@@ -1,0 +1,130 @@
+LAMMPS (1 Feb 2014)
+# 2-d LJ flow simulation
+
+dimension	2
+boundary	p s p
+
+atom_style	atomic
+neighbor	0.3 bin
+neigh_modify	delay 5
+
+# create geometry
+
+lattice		hex 0.7
+Lattice spacing in x,y,z = 1.28436 2.22457 1.28436
+region		box block 0 20 0 10 -0.25 0.25
+create_box	3 box
+Created orthogonal box = (0 0 -0.321089) to (25.6871 22.2457 0.321089)
+  2 by 2 by 1 MPI processor grid
+create_atoms	1 box
+Created 420 atoms
+
+mass		1 1.0
+mass		2 1.0
+mass		3 1.0
+
+# LJ potentials
+
+pair_style	lj/cut 1.12246
+pair_coeff	* * 1.0 1.0 1.12246
+
+# define groups
+
+region	     1 block INF INF INF 1.25 INF INF
+group	     lower region 1
+60 atoms in group lower
+region	     2 block INF INF 8.75 INF INF INF
+group	     upper region 2
+60 atoms in group upper
+group	     boundary union lower upper
+120 atoms in group boundary
+group	     flow subtract all boundary
+300 atoms in group flow
+
+set	     group lower type 2
+  60 settings made for type
+set	     group upper type 3
+  60 settings made for type
+
+# initial velocities
+
+compute	     mobile flow temp
+velocity     flow create 1.0 482748 temp mobile
+fix	     1 all nve
+fix	     2 flow temp/rescale 200 1.0 1.0 0.02 1.0
+fix_modify   2 temp mobile
+
+# Couette flow
+
+#velocity     lower set 0.0 0.0 0.0
+#velocity     upper set 3.0 0.0 0.0
+#fix	     3 boundary setforce 0.0 0.0 0.0
+#fix	     4 all enforce2d
+
+# Poiseuille flow
+
+velocity     boundary set 0.0 0.0 0.0
+fix	     3 lower setforce 0.0 0.0 0.0
+fix	     4 upper setforce 0.0 NULL 0.0
+fix	     5 upper aveforce 0.0 -1.0 0.0
+fix	     6 flow addforce 0.5 0.0 0.0
+fix	     7 all enforce2d
+
+# Run
+
+timestep	0.003
+thermo		500
+thermo_modify	temp mobile
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:439)
+
+#dump		1 all atom 500 dump.flow
+
+#dump		2 all image 100 image.*.jpg type type #		zoom 1.6 adiam 1.5
+#dump_modify	2 pad 5
+
+#dump		3 all movie 100 movie.mpg type type #		zoom 1.6 adiam 1.5
+#dump_modify	3 pad 5
+
+run		10000
+Memory usage per processor = 2.06206 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0            1            0            0   0.71190476   0.52314537    571.54286 
+     500    1.0758737  -0.36090417            0   0.40501541    2.7822308     575.0659 
+    1000            1  -0.35701441            0   0.35489035    2.0575313    585.71407 
+    1500    1.2368663  -0.37709732            0   0.50343367    1.4865879      587.193 
+    2000            1  -0.39362939            0   0.31827537       1.4236     578.9418 
+    2500    1.2272957    -0.423819            0   0.44989866     1.454461    570.15856 
+    3000            1  -0.49143403            0   0.22047073    1.5345951    554.98633 
+    3500    1.2444908  -0.59761803            0   0.28834092     1.875379    537.01606 
+    4000            1  -0.70133161            0  0.010573147    2.1395416    521.46845 
+    4500    1.2212352  -0.74763375            0    0.1217694    2.7598268    507.63512 
+    5000            1   -0.7889135            0 -0.077008742    2.9809426    501.21601 
+    5500    1.1965673  -0.78262115            0  0.069220825    2.8192028     505.3984 
+    6000            1  -0.71434201            0 -0.0024372499     2.346053    512.05291 
+    6500     1.203859  -0.67621716            0   0.18081576    2.1621043      518.624 
+    7000            1  -0.66493592            0  0.046968842    1.8459166    519.01312 
+    7500    1.2065975  -0.69903932            0   0.15994317    2.0439995    515.42888 
+    8000            1  -0.71320172            0 -0.0012969589    2.1303566    511.98833 
+    8500    1.2146567  -0.72062191            0     0.144098    2.4268382    504.80659 
+    9000            1  -0.74806158            0 -0.036156822    2.5758196    502.43487 
+    9500    1.1970932  -0.73220717            0    0.1200092     2.585169    504.06803 
+   10000            1  -0.71105178            0 0.00085297794    2.3528576    507.92052 
+Loop time of 0.221735 on 4 procs for 10000 steps with 420 atoms
+
+Pair  time (%) = 0.0346093 (15.6084)
+Neigh time (%) = 0.0078088 (3.52168)
+Comm  time (%) = 0.0817159 (36.8529)
+Outpt time (%) = 0.000392079 (0.176823)
+Other time (%) = 0.097209 (43.8402)
+
+Nlocal:    105 ave 107 max 103 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:    42.75 ave 46 max 37 min
+Histogram: 1 0 0 0 0 0 0 2 0 1
+Neighs:    276.5 ave 295 max 257 min
+Histogram: 1 0 1 0 0 0 0 0 1 1
+
+Total # of neighbors = 1106
+Ave neighs/atom = 2.63333
+Neighbor list builds = 564
+Dangerous builds = 0

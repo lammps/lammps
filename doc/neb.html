@@ -70,12 +70,12 @@ for further discussion.
 <P>IMPORTANT NOTE: The current NEB implementation in LAMMPS only allows
 there to be one processor per replica.
 </P>
-<P>IMPORTANT NOTE: As explained below, a NEB calculation perfoms a
-damped-dynamics minimization across all the replicas.  This will use
+<P>IMPORTANT NOTE: As explained below, a NEB calculation perfoms a damped
+dynamics minimization across all the replicas.  The mimimizer uses
 whatever timestep you have defined in your input script, via the
-<A HREF = "timestep.html">timestep</A> command.  You may get faster convergence for
-a NEB calculation if you use a larger timestep than you would normally
-use for dynamics with the same system.
+<A HREF = "timestep.html">timestep</A> command.  Often NEB will converge more
+quickly if you use a timestep about 10x larger than you would normally
+use for dynamics simulations.
 </P>
 <P>When a NEB calculation is performed, it is assumed that each replica
 is running the same system, though LAMMPS does not check for this.

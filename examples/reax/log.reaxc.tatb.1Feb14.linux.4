@@ -1,0 +1,86 @@
+LAMMPS (1 Feb 2014)
+# ReaxFF potential for TATB system
+# this run is equivalent to reax/in.reax.tatb,
+
+units		real
+
+atom_style	charge
+read_data	data.tatb
+  triclinic box = (0 0 0) to (13.624 17.1149 15.1826) with tilt (-5.75316 -6.32547 7.42573)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  384 atoms
+
+pair_style      reax/c control.reax_c.tatb
+pair_coeff      * * ffield.reax C H O N
+
+compute reax all pair reax/c
+
+variable eb  	 equal c_reax[1]
+variable ea  	 equal c_reax[2]
+variable elp 	 equal c_reax[3]
+variable emol 	 equal c_reax[4]
+variable ev 	 equal c_reax[5]
+variable epen 	 equal c_reax[6]
+variable ecoa 	 equal c_reax[7]
+variable ehb 	 equal c_reax[8]
+variable et 	 equal c_reax[9]
+variable eco 	 equal c_reax[10]
+variable ew 	 equal c_reax[11]
+variable ep 	 equal c_reax[12]
+variable efi 	 equal c_reax[13]
+variable eqeq 	 equal c_reax[14]
+
+neighbor	2.5 bin
+neigh_modify	delay 0 every 5 check no
+
+fix		1 all nve
+fix             2 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
+fix   		4 all reax/c/bonds 5 bonds.reaxc
+
+thermo		5
+thermo_style 	custom step temp epair etotal press 		v_eb v_ea v_elp v_emol v_ev v_epen v_ecoa 		v_ehb v_et v_eco v_ew v_ep v_efi v_eqeq
+
+timestep	0.0625
+
+#dump		1 all custom 100 dump.reaxc.tatb id type q x y z
+
+#dump		2 all image 5 image.*.jpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3
+
+#dump		3 all movie 5 movie.mpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
+
+fix 		3 all reax/c/species 1 5 5 species.tatb
+
+run		25
+Memory usage per processor = 110.859 Mbytes
+Step Temp E_pair TotEng Press eb ea elp emol ev epen ecoa ehb et eco ew ep efi eqeq 
+       0            0   -44760.998   -44760.998    7827.7868   -61120.591     486.4378    4.7236377            0    1574.1033    20.788929   -279.51642   -1556.4696    252.57147   -655.84699    18862.412   -8740.6397            0    6391.0277 
+       5   0.61603967   -44761.698   -44760.994    8934.6345   -61118.769    486.81263    4.7234094            0    1573.9241    20.768834   -278.24084   -1557.6713    252.64377   -655.74435    18859.379   -8738.1911            0    6388.6671 
+      10     2.352555   -44763.227   -44760.541    12288.585   -61113.174    487.82738    4.7226863            0     1573.411    20.705939   -274.50357   -1560.7569    252.85309   -655.44063    18850.391   -8730.9755            0    6381.7133 
+      15    4.9013276    -44766.36   -44760.764    17717.042   -61103.434    489.14722    4.7213644            0    1572.6349    20.593139   -268.56847   -1566.3829    252.95174   -654.96611    18835.777   -8719.2303            0    6370.3965 
+      20    7.8294571   -44769.686   -44760.747    25205.564   -61089.006    490.21314     4.719302            0    1571.7022    20.420943   -260.85565   -1573.7378     253.3539   -654.31623     18816.07   -8703.5115            0    6355.2627 
+      25    10.697903   -44772.904   -44760.691    34232.722   -61069.308    490.25887    4.7163736            0    1570.7397    20.181347   -251.91378   -1582.3261    253.82253   -653.53184    18791.975   -8684.3809            0    6336.8616 
+Loop time of 2.12304 on 4 procs for 25 steps with 384 atoms
+
+Pair  time (%) = 1.72134 (81.0791)
+Neigh time (%) = 0.225867 (10.6388)
+Comm  time (%) = 0.00605559 (0.285232)
+Outpt time (%) = 0.00259632 (0.122292)
+Other time (%) = 0.16718 (7.87454)
+
+Nlocal:    96 ave 96 max 96 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    5118 ave 5118 max 5118 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    79754 ave 79754 max 79754 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 319016
+Ave neighs/atom = 830.771
+Neighbor list builds = 5
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+

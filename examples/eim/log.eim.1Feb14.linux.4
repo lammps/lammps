@@ -1,0 +1,72 @@
+LAMMPS (1 Feb 2014)
+# NaCl test problem for embedded atom method (EIM) potential
+
+units		metal
+atom_style      atomic
+
+boundary	p p p
+
+lattice         diamond 5.0
+Lattice spacing in x,y,z = 5 5 5
+read_data       data.eim
+  orthogonal box = (-0.5 -0.5 -0.5) to (35.54 35.54 35.54)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  2000 atoms
+  reading velocities ...
+  2000 velocities
+
+pair_style      eim
+pair_coeff      * * Na Cl ffield.eim Na Cl
+
+neighbor	0.3 bin
+neigh_modify	delay 0
+
+timestep        0.001
+thermo_style    custom step pe pxx pyy pzz temp
+thermo          50
+
+velocity        all create 1400.0 43454 dist gaussian mom yes
+fix             int all npt temp 1400.0 300.0 0.1 aniso 0.0 0.0 0.1
+
+#dump		id all atom 100 dump.eim
+
+#dump		2 all image 25 image.*.jpg element element #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3 element Na Cl
+
+#dump		3 all movie 25 movie.mpg element element #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3 element Na Cl
+
+run             500
+Memory usage per processor = 1.87327 Mbytes
+Step PotEng Pxx Pyy Pzz Temp 
+       0   -5660.4738   -118151.29   -117613.39   -118064.41         1400 
+      50   -5773.8661    889.73924    898.43321     703.5365    891.68472 
+     100   -5742.8192     866.6183    817.86837    889.72898    838.77403 
+     150    -5738.752   -335.23317   -345.69716    -123.3196    900.54672 
+     200   -5704.2444   -172.01932   -508.83888   -654.45947    834.82705 
+     250   -5724.4679    375.50199    546.99196    405.29298    966.14585 
+     300   -5718.5442    428.47856    361.93998    752.00729    934.57116 
+     350   -5722.7694   -409.40162   -484.53168    42.702482    865.13075 
+     400   -5743.6862    173.43552    288.02324    107.96614    840.48912 
+     450   -5751.3366   -752.54635   -762.07316   -591.45022    743.42176 
+     500   -5780.5266   -157.23981    84.510897   -52.426827    712.64129 
+Loop time of 1.52681 on 4 procs for 500 steps with 2000 atoms
+
+Pair  time (%) = 1.36826 (89.6153)
+Neigh time (%) = 0.0933943 (6.11695)
+Comm  time (%) = 0.0370625 (2.42744)
+Outpt time (%) = 0.000231683 (0.0151743)
+Other time (%) = 0.0278663 (1.82513)
+
+Nlocal:    500 ave 501 max 498 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Nghost:    2179.25 ave 2182 max 2175 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+Neighs:    24884.2 ave 25164 max 24622 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+
+Total # of neighbors = 99537
+Ave neighs/atom = 49.7685
+Neighbor list builds = 89
+Dangerous builds = 10

@@ -2,7 +2,7 @@
 # .....
 
 dimension      3
-boundary  p p p
+boundary       p p p
 units		real
 
 atom_style	charge
@@ -14,21 +14,22 @@ neighbor	2. bin
 neigh_modify	every 10 delay 0 check no
 fix             2 all qeq/reax 1 0.0 10.0 1e-6 reax/c
 
+# should equilibrate much longer in practice
+
 fix		1 all npt temp 100.0 100.0 10.0 iso 1.0 1. 2000.0
-timestep   0.2
-thermo_style custom step temp epair etotal press 
-thermo     5000
-dump      4 all xyz 5000 dumpnpt.xyz
-run        50000
+timestep        0.2
+thermo_style    custom step temp epair etotal press 
+thermo          1
+dump            4 all xyz 5000 dumpnpt.xyz
+run             10   
+
 unfix           1
 
-fix            1  all nvt temp 100.0 100.0 100.0
-
-thermo_style custom step temp epair etotal press 
-thermo     5000
+fix             1  all nvt temp 100.0 100.0 100.0
+thermo_style    custom step temp epair etotal press 
 timestep	0.2
 
 #dump		5 all xyz 5000 dumpnvt.xyz
 #dump            6 all custom 5000 dumpidtype.dat id type x y z 
 
-run		1000000
+run		10

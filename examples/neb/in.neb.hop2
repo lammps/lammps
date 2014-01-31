@@ -39,7 +39,7 @@ group		lower region 1
 group		mobile subtract all lower
 set		group lower type 2
 
-timestep	0.005
+timestep	0.05
 
 # group of NEB atoms - either block or single atom ID 421
 

@@ -1,0 +1,80 @@
+LAMMPS (1 Feb 2014)
+# GI-System
+
+units metal
+newton off
+package		gpu force/neigh 0 1 1
+
+atom_style      charge
+read_data 	data.phosphate
+  orthogonal box = (33.0201 33.0201 33.0201) to (86.9799 86.9799 86.9799)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  10950 atoms
+  reading velocities ...
+  10950 velocities
+
+replicate 	3 3 3
+  orthogonal box = (33.0201 33.0201 33.0201) to (194.899 194.899 194.899)
+  2 by 1 by 2 MPI processor grid
+  295650 atoms
+
+pair_style      lj/cut/coul/long/gpu 15.0
+
+pair_coeff 1 1  0.0 0.29
+pair_coeff 1 2  0.0 0.29
+pair_coeff 1 3  0.000668 2.5738064
+pair_coeff 2 2  0.0 0.29
+pair_coeff 2 3  0.004251 1.91988674
+pair_coeff 3 3  0.012185 2.91706967
+
+kspace_style    pppm/gpu 1e-5
+
+neighbor	2.0 bin
+
+thermo 100
+
+timestep 0.001
+
+fix 		1 all npt temp 400 400 0.01 iso 1000.0 1000.0 1.0
+run 		200
+PPPM initialization ...
+  G vector (1/distance) = 0.210051
+  grid = 108 108 108
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.000178801
+  estimated relative force accuracy = 1.24171e-05
+  using double precision FFTs
+  3d grid and FFT values/proc = 427915 314928
+Memory usage per processor = 80.0769 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0    400.30257   -2381941.6            0   -2366643.8   -449.96842    4242016.4 
+     100    411.69681   -2392428.5            0   -2376695.3     7046.698    4308883.5 
+     200    401.28392   -2394152.5            0   -2378817.2    3243.2685    4334284.4 
+Loop time of 56.1151 on 4 procs for 200 steps with 295650 atoms
+
+Pair  time (%) = 4.55937 (8.12503)
+Kspce time (%) = 34.5442 (61.5596)
+Neigh time (%) = 0.00624901 (0.0111361)
+Comm  time (%) = 0.470437 (0.838343)
+Outpt time (%) = 0.000446558 (0.000795789)
+Other time (%) = 16.5344 (29.4651)
+
+FFT time (% of Kspce) = 22.6526 (65.5758)
+FFT Gflps 3d (1d only) = 3.12448 11.5533
+
+Nlocal:    73912.5 ave 74223 max 73638 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+Nghost:    105257 ave 105797 max 104698 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 6
+Dangerous builds = 0
+unfix 		1
+
+Please see the log.cite file for references relevant to this simulation
+

@@ -44,8 +44,9 @@
     N1 = max # of iterations (timesteps) to run initial NEB 
     N2 = max # of iterations (timesteps) to run barrier-climbing NEB
     Nevery = print NEB statistics every this many timesteps
-  <I>min_style</I> value = <I>cg</I> or <I>hftn</I> or <I>sd</I> or <I>quickmin</I> or <I>fire</I>
   <I>neb_style</I> value = <I>quickmin</I> or <I>fire</I>
+  <I>neb_step</I> value = dtneb
+    dtneb = timestep for NEB damped dynamics minimization
   <I>neb_log</I> value = file where NEB statistics are printed 
 </PRE>
 
@@ -132,9 +133,11 @@ check is performed by quenching the system and comparing the resulting
 atom coordinates to the coordinates from the previous basin.
 </P>
 <P>A quench is an energy minimization and is performed by whichever
-algorithm has been defined by the <I>min</I> and <I>min_style</I> keywords or
-their default values. Note that typically, you do not need to perform
-a highly-converged minimization to detect a transition event.
+algorithm has been defined by the <A HREF = "min_style.html">min_style</A> command;
+its default is the CG minimizer.  The tolerances and limits for each
+quench can be set by the <I>min</I> keyword.  Note that typically, you do
+not need to perform a highly-converged minimization to detect a
+transition event.
 </P>
 <P>The event check is performed by a compute with the specified
 <I>compute-ID</I>.  Currently there is only one compute that works with the
@@ -145,11 +148,17 @@ event/displace</A> checks whether any atom in
 the compute group has moved further than a specified threshold
 distance.  If so, an "event" has occurred.
 </P>
-<P>The neb calculation is similar to that invoked by the <A HREF = "neb.html">neb</A>
+<P>The NEB calculation is similar to that invoked by the <A HREF = "neb.html">neb</A>
 command, except that the final state is generated internally, instead
-of being read in from a file. The TAD implementation provides default
-values for the NEB settings, which can be overridden using the <I>neb</I>
-and <I>neb_style</I> keywords.
+of being read in from a file.  The style of minimization performed by
+NEB is determined by the <I>neb_style</I> keyword and must be a damped
+dynamics minimizer.  The tolerances and limits for each NEB
+calculation can be set by the <I>neb</I> keyword.  As discussed on the
+<A HREF = "neb.html">neb</A>, it is often advantageous to use a larger timestep for
+NEB than for normal dyanmics.  Since the size of the timestep set by
+the <A HREF = "timestep.html">timestep</A> command is used by TAD for performing
+dynamics, there is a <I>neb_step</I> keyword which can be used to set a
+larger timestep for each NEB calculation if desired.
 </P>
 <HR>
 
@@ -211,7 +220,7 @@ while the global event number, energy barrier, and
 in the immediately preceding block of detected events.  
 The low-temperature event time <I>t_lo</I> is incremented by <I>delt_lo</I>.
 </P>
-<P>The NEB statistics are written to the file specified by the <I>neb_log</I>
+<P>NEB statistics are written to the file specified by the <I>neb_log</I>
 keyword. If the keyword value is "none", then no NEB statistics are
 printed out. The statistics are written every <I>Nevery</I> timesteps.  See
 the <A HREF = "neb.html">neb</A> command for a full description of the NEB
@@ -301,8 +310,8 @@ dt/reset</A> and <A HREF = "fix_deposit.html">fix deposit</A>.
 <P><B>Default:</B> 
 </P>
 <P>The option defaults are <I>min</I> = 0.1 0.1 40 50, <I>neb</I> = 0.01 100 100
-10, <I>min_style</I> = <I>cg</I>, <I>neb_style</I> = <I>quickmin</I>, and <I>neb_log</I> =
-"none"
+10, <I>neb_style</I> = <I>quickmin</I>, <I>neb_step</I> = the same timestep set by
+the <A HREF = "timestep.html">timestep</A> command, and <I>neb_log</I> = "none".
 </P>
 <HR>
 

@@ -326,11 +326,6 @@ definitions.
 
 <DD>The data file header lists angles but no angle types. 
 
-<DT><I>Another input script is already being processed</I> 
-
-<DD>Cannot attempt to open a 2nd input script, when the original file is
-still being processed. 
-
 <DT><I>Append boundary must be shrink/minimum</I> 
 
 <DD>The boundary style of the face where atoms are added
@@ -360,13 +355,36 @@ must be of type m (shrink/minimum).
 
 <DD>Self-explanatory. 
 
+<DT><I>Atom ID is negative</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Atom ID is too big</I> 
+
+<DD>The limit on atom IDs is set by the SMALLBIG, BIGBIG, SMALLSMALL
+setting in your Makefile.  See Section_start 2.2 of the manual for
+more details. 
+
+<DT><I>Atom ID is zero</I> 
+
+<DD>Either all atoms IDs must be zero or none of them. 
+
 <DT><I>Atom IDs must be consecutive for velocity create loop all</I> 
 
 <DD>Self-explanatory. 
 
+<DT><I>Atom IDs must be used for molecular systems</I> 
+
+<DD>Atom IDs are used to identify and find partner atoms in bonds. 
+
 <DT><I>Atom count changed in fix neb</I> 
 
 <DD>This is not allowed in a NEB calculation. 
+
+<DT><I>Atom count is inconsistent, cannot write data file</I> 
+
+<DD>The sum of atoms across processors does not equal the global number
+of atoms.  Probably some atoms have been lost. 
 
 <DT><I>Atom count is inconsistent, cannot write restart file</I> 
 
@@ -398,6 +416,14 @@ command or turn off sorting.
 
 <DD>Self-explanatory. 
 
+<DT><I>Atom style template molecule must have atom types</I> 
+
+<DD>The defined molecule(s) does not specify atom types. 
+
+<DT><I>Atom style was redefined after using fix property/atom</I> 
+
+<DD>This is not allowed. 
+
 <DT><I>Atom vector in equal-style variable formula</I> 
 
 <DD>Atom vectors generate one value per atom which is not allowed
@@ -407,6 +433,11 @@ in an equal-style variable.
 
 <DD>Atom-style variables generate one value per atom which is not allowed
 in an equal-style variable. 
+
+<DT><I>Atom_modify id command after simulation box is defined</I> 
+
+<DD>The atom_modify id command cannot be used after a read_data,
+read_restart, or create_box command. 
 
 <DT><I>Atom_modify map command after simulation box is defined</I> 
 
@@ -427,6 +458,18 @@ read_restart, or create_box command.
 <DD>Self-explanatory. 
 
 <DT><I>Atom_style tri can only be used in 3d simulations</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Atomfile variable could not read values</I> 
+
+<DD>Check the file assigned to the variable. 
+
+<DT><I>Atomfile variable in equal-style variable formula</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Atomfile-style variable in equal-style variable formula</I> 
 
 <DD>Self-explanatory. 
 
@@ -473,6 +516,10 @@ f_.
 <DD>The 3d grid of processors defined by the processors command does not
 match the number of processors LAMMPS is being run on. 
 
+<DT><I>Bad kspace_modify kmax/ewald parameter</I> 
+
+<DD>Kspace_modify values for the kmax/ewald keyword must be integers > 0 
+
 <DT><I>Bad kspace_modify slab parameter</I> 
 
 <DD>Kspace_modify value for the slab/volume keyword must be >= 2.0. 
@@ -493,6 +540,11 @@ group of atoms correctly.
 <DT><I>Bad quadratic solve for particle/tri collision</I> 
 
 <DD>This is an internal error.  It should nornally not occur. 
+
+<DT><I>Bad real space Coulomb cutoff in fix tune/kspace</I> 
+
+<DD>Fix tune/kspace tried to find the optimal real space Coulomb cutoff using
+the Newton-Rhaphson method, but found a non-positive or NaN cutoff 
 
 <DT><I>Balance command before simulation box is defined</I> 
 
@@ -532,8 +584,8 @@ compute.
 
 <DT><I>Bigint setting in lmptype.h is not compatible</I> 
 
-<DD>Bigint stored in restart file is not consistent with LAMMPS version
-you are running. 
+<DD>Format of bigint stored in restart file is not consistent with LAMMPS
+version you are running.  See the settings in src/lmptype.h 
 
 <DT><I>Bitmapped lookup tables require int/float be same size</I> 
 
@@ -622,6 +674,11 @@ it should be defined.
 <DD>No angle, dihedral, or improper styles can be defined when using
 bond style quartic. 
 
+<DT><I>Bond style quartic cannot be used with atom style template</I> 
+
+<DD>This bond style can change the bond topology which is not
+allowed with this atom style. 
+
 <DT><I>Bond style quartic requires special_bonds = 1,1,1</I> 
 
 <DD>This is a restriction of the current bond quartic implementation. 
@@ -661,6 +718,14 @@ This means there is something invalid about the topology definitions.
 
 <DD>The data file header lists bonds but no bond types. 
 
+<DT><I>Both restart files must use % or neither</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Both restart files must use MPI-IO or neither</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Both sides of boundary must be periodic</I> 
 
 <DD>Cannot specify a boundary as periodic only on the lo or hi side.  Must
@@ -681,7 +746,7 @@ lo value must be less than the hi value for all 3 dimensions.
 <DD>The box command cannot be used after a read_data, read_restart, or
 create_box command. 
 
-<DT><I>CPU neighbor lists must be used for ellipsoid/sphere mix</I> 
+<DT><I>CPU neighbor lists must be used for ellipsoid/sphere mix.</I> 
 
 <DD>When using Gay-Berne or RE-squared pair styles with both ellipsoidal and
 spherical particles, the neighbor list must be built on the CPU 
@@ -716,11 +781,19 @@ See the region prism command for details.
 
 <DD>This is a current restriction of this command. 
 
+<DT><I>Cannot (yet) use 'electron' units with dipoles</I> 
+
+<DD>This feature is not yet supported. 
+
+<DT><I>Cannot (yet) use Ewald with triclinic box and slab correction</I> 
+
+<DD>This feature is not yet supported. 
+
 <DT><I>Cannot (yet) use K-space slab correction with compute group/group</I> 
 
 <DD>This option is not yet supported. 
 
-<DT><I>Cannot (yet) use Kspace slab correction with compute group/group</I> 
+<DT><I>Cannot (yet) use K-space slab correction with compute group/group for triclinic systems</I> 
 
 <DD>This option is not yet supported. 
 
@@ -728,15 +801,27 @@ See the region prism command for details.
 
 <DD>This feature is not yet supported. 
 
-<DT><I>Cannot (yet) use MSM with triclinic box</I> 
+<DT><I>Cannot (yet) use PPPM with triclinic box and TIP4P</I> 
 
 <DD>This feature is not yet supported. 
 
-<DT><I>Cannot (yet) use PPPM with triclinic box</I> 
+<DT><I>Cannot (yet) use PPPM with triclinic box and kspace_modify diff ad</I> 
 
 <DD>This feature is not yet supported. 
 
-<DT><I>Cannot (yet) use PPPMDisp with triclinic box</I> 
+<DT><I>Cannot (yet) use PPPM with triclinic box and slab correction</I> 
+
+<DD>This feature is not yet supported. 
+
+<DT><I>Cannot (yet) use kspace slab correction with long-range dipoles and non-neutral systems or per-atom energy</I> 
+
+<DD>This feature is not yet supported. 
+
+<DT><I>Cannot (yet) use kspace_modify diff ad with compute group/group</I> 
+
+<DD>This option is not yet supported. 
+
+<DT><I>Cannot (yet) use kspace_style pppm/stagger with triclinic systems</I> 
 
 <DD>This feature is not yet supported. 
 
@@ -796,8 +881,8 @@ size.
 
 <DT><I>Cannot change timestep with fix pour</I> 
 
-<DD>This fix pre-computes some values based on the timestep, so it cannot
-be changed during a simulation run. 
+<DD>This is because fix pour pre-computes the time delay for particles to
+fall out of the insertion volume due to gravity. 
 
 <DT><I>Cannot change_box after reading restart file with per-atom info</I> 
 
@@ -812,6 +897,16 @@ will assign the restart file info to actual atoms.
 <DT><I>Cannot change_box in z dimension for 2d simulation</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Cannot close restart file - MPI error: %s</I> 
+
+<DD>This error was generated by MPI when reading/writing an MPI-IO restart
+file. 
+
+<DT><I>Cannot compute PPPM G</I> 
+
+<DD>The Ewald factor could not be computed for the current choice of
+grid size, cutoff, accuracy. 
 
 <DT><I>Cannot compute initial g_ewald_disp</I> 
 
@@ -836,14 +931,13 @@ allocaters, to create a vector or array of pointers.
 
 <DT><I>Cannot create_atoms after reading restart file with per-atom info</I> 
 
-<DD>The per-atom info was stored to be used when by a fix that you
-may re-define.  If you add atoms before re-defining the fix, then
-there will not be a correct amount of per-atom info. 
+<DD>The per-atom info was stored to be used when by a fix that you may
+re-define.  If you add atoms before re-defining the fix, then there
+will not be a correct amount of per-atom info. 
 
 <DT><I>Cannot create_box after simulation box is defined</I> 
 
-<DD>The create_box command cannot be used after a read_data, read_restart,
-or create_box command. 
+<DD>A simulation box can only be defined once. 
 
 <DT><I>Cannot currently use pair reax with pair hybrid</I> 
 
@@ -884,13 +978,14 @@ will assign the restart file info to actual atoms.
 <DD>This is a restriction due to the way atoms are organized in a list to
 enable the atom_modify first command. 
 
-<DT><I>Cannot dump JPG file</I> 
-
-<DD>LAMMPS was not built with the -DLAMMPS_JPEG switch in the Makefile. 
-
 <DT><I>Cannot dump sort on atom IDs with no atom IDs defined</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Cannot dump sort when multiple dump files are written</I> 
+
+<DD>In this mode, each processor dumps its atoms to a file, so
+no sorting is allowed. 
 
 <DT><I>Cannot evaporate atoms in atom_modify first group</I> 
 
@@ -904,6 +999,10 @@ a list to enable the atom_modify first command.
 <DT><I>Cannot have both pair_modify shift and tail set to yes</I> 
 
 <DD>These 2 options are contradictory. 
+
+<DT><I>Cannot mix molecular and molecule template atom styles</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Cannot open -reorder file</I> 
 
@@ -925,6 +1024,16 @@ path and name are correct.
 path and name are correct. 
 
 <DT><I>Cannot open COMB potential file %s</I> 
+
+<DD>The specified COMB potential file cannot be opened.  Check that the
+path and name are correct. 
+
+<DT><I>Cannot open COMB3 C library file</I> 
+
+<DD>The extra lib.comb3 file for carbon cannot be opened.  Check that it
+exists. 
+
+<DT><I>Cannot open COMB3 potential file %s</I> 
 
 <DD>The specified COMB potential file cannot be opened.  Check that the
 path and name are correct. 
@@ -956,8 +1065,8 @@ and name are correct.
 
 <DT><I>Cannot open Tersoff potential file %s</I> 
 
-<DD>The specified Tersoff potential file cannot be opened.  Check that the
-path and name are correct. 
+<DD>The specified potential file cannot be opened.  Check that the path
+and name are correct. 
 
 <DT><I>Cannot open balance output file</I> 
 
@@ -966,6 +1075,11 @@ path and name are correct.
 <DT><I>Cannot open custom file</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Cannot open data file %s</I> 
+
+<DD>The specified file cannot be opened.  Check that the path and name are
+correct. 
 
 <DT><I>Cannot open dir to search for restart file</I> 
 
@@ -980,7 +1094,8 @@ path and name are correct.
 <DT><I>Cannot open file %s</I> 
 
 <DD>The specified file cannot be opened.  Check that the path and name are
-correct. 
+correct. If the file is a compressed file, also check that the gzip
+executable can be found and run. 
 
 <DT><I>Cannot open file variable file %s</I> 
 
@@ -1035,6 +1150,16 @@ Check that the path and name are correct.
 <DD>The specified file cannot be opened.  Check that the path and name are
 correct. 
 
+<DT><I>Cannot open fix rigid restart file %s</I> 
+
+<DD>The specified file cannot be opened.  Check that the path and name are
+correct. 
+
+<DT><I>Cannot open fix rigid/small infile %s</I> 
+
+<DD>The specified file cannot be opened.  Check that the path and name are
+correct. 
+
 <DT><I>Cannot open fix tmd file %s</I> 
 
 <DD>The output file for the fix tmd command cannot be opened.  Check that
@@ -1047,14 +1172,21 @@ the path and name are correct.
 
 <DT><I>Cannot open gzipped file</I> 
 
-<DD>LAMMPS is attempting to open a gzipped version of the specified file
-but was unsuccessful.  Check that the path and name are correct. 
+<DD>LAMMPS was compiled without support for reading and writing gzipped
+files through a pipeline to the gzip program with -DLAMMPS_GZIP. 
 
 <DT><I>Cannot open input script %s</I> 
 
 <DD>Self-explanatory. 
 
-<DT><I>Cannot open log.lammps</I> 
+<DT><I>Cannot open log.cite file</I> 
+
+<DD>This file is created when you use some LAMMPS features, to indicate
+what paper you should cite on behalf of those who implemented
+the feature.  Check that you have write priveleges into the directory
+you are running in. 
+
+<DT><I>Cannot open log.lammps for writing</I> 
 
 <DD>The default LAMMPS log file cannot be opened.  Check that the
 directory you are running in allows for files to be created. 
@@ -1069,10 +1201,24 @@ Check that the path and name are correct.
 <DD>The LAMMPS log file specified in the input script cannot be opened.
 Check that the path and name are correct. 
 
+<DT><I>Cannot open molecule file %s</I> 
+
+<DD>The specified file cannot be opened.  Check that the path and name are
+correct. 
+
+<DT><I>Cannot open nb3b/harmonic potential file %s</I> 
+
+<DD>The specified potential file cannot be opened.  Check that the path
+and name are correct. 
+
 <DT><I>Cannot open pair_write file</I> 
 
 <DD>The specified output file for pair energies and forces cannot be
 opened.  Check that the path and name are correct. 
+
+<DT><I>Cannot open print file %s</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Cannot open processors output file</I> 
 
@@ -1081,6 +1227,16 @@ opened.  Check that the path and name are correct.
 <DT><I>Cannot open restart file %s</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Cannot open restart file for reading - MPI error: %s</I> 
+
+<DD>This error was generated by MPI when reading/writing an MPI-IO restart
+file. 
+
+<DT><I>Cannot open restart file for writing - MPI error: %s</I> 
+
+<DD>This error was generated by MPI when reading/writing an MPI-IO restart
+file. 
 
 <DT><I>Cannot open screen file</I> 
 
@@ -1099,6 +1255,11 @@ created.
 <DD>For a multi-partition run, the master screen file cannot be opened.
 Check that the directory you are running in allows for files to be
 created. 
+
+<DT><I>Cannot read from restart file - MPI error: %s</I> 
+
+<DD>This error was generated by MPI when reading/writing an MPI-IO restart
+file. 
 
 <DT><I>Cannot read_data after simulation box is defined</I> 
 
@@ -1144,6 +1305,11 @@ time is in place.
 <DD>Use the boundary command to make the z dimension periodic in order to
 run a 2d simulation. 
 
+<DT><I>Cannot set bond topology types for atom style template</I> 
+
+<DD>The bond, angle, etc types cannot be changed for this atom style since
+they are static settings in the molecule template files. 
+
 <DT><I>Cannot set both respa pair and inner/middle/outer</I> 
 
 <DD>In the rRESPA integrator, you must compute pairwise potentials either
@@ -1180,6 +1346,11 @@ Instead they are defined on a per-atom basis in the data file.
 <DD>In the rRESPA integrator, you must define both a inner and outer
 setting in order to use a middle setting. 
 
+<DT><I>Cannot set restart file size - MPI error: %s</I> 
+
+<DD>This error was generated by MPI when reading/writing an MPI-IO restart
+file. 
+
 <DT><I>Cannot set temperature for fix rigid/nph</I> 
 
 <DD>The temp keyword cannot be specified. 
@@ -1214,14 +1385,10 @@ before LAMMPS is built.
 <DD>The kspace style ewald cannot be used in 2d simulations.  You can use
 2d Ewald in a 3d simulation; see the kspace_modify command. 
 
-<DT><I>Cannot use Ewald with triclinic box</I> 
+<DT><I>Cannot use Ewald/disp solver on system with no charge, dipole, or LJ particles</I> 
 
-<DD>This feature is not yet supported. 
-
-<DT><I>Cannot use Ewald/disp solver on system with no charge or LJ particles</I> 
-
-<DD>No atoms in system have a non-zero charge or are LJ particles.  Change
-charges or change options of the kspace solver/pair style. 
+<DD>No atoms in system have a non-zero charge or dipole, or are LJ particles.  Change
+charges/dipoles or change options of the kspace solver/pair style. 
 
 <DT><I>Cannot use EwaldDisp with 2d simulation</I> 
 
@@ -1247,7 +1414,11 @@ charges or change options of the kspace solver/pair style.
 <DT><I>Cannot use PPPMDisp with 2d simulation</I> 
 
 <DD>The kspace style pppm/disp cannot be used in 2d simulations.  You can
-use 2d PPPM in a 3d simulation; see the kspace_modify command. 
+use 2d pppm/disp in a 3d simulation; see the kspace_modify command. 
+
+<DT><I>Cannot use PRD with a changing box</I> 
+
+<DD>The current box dimensions are not copied between replicas 
 
 <DT><I>Cannot use PRD with a time-dependent fix defined</I> 
 
@@ -1293,6 +1464,10 @@ style.
 <DD>The boundary style of the face where atoms are added can not be of
 type p (periodic). 
 
+<DT><I>Cannot use atomfile-style variable unless atom map exists</I> 
+
+<DD>Self-explanatory.  See the atom_modify command to create a map. 
+
 <DT><I>Cannot use compute cluster/atom unless atoms have IDs</I> 
 
 <DD>Atom IDs are used to identify clusters. 
@@ -1309,6 +1484,14 @@ used.
 <DT><I>Cannot use delete_bonds with non-molecular system</I> 
 
 <DD>Your choice of atom style does not have bonds. 
+
+<DT><I>Cannot use dump_modify fileper without % in dump file name</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot use dump_modify nfile without % in dump file name</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Cannot use fix GPU with USER-CUDA mode enabled</I> 
 
@@ -1328,11 +1511,18 @@ an atom map to be created.
 
 <DT><I>Cannot use fix bond/break with non-molecular systems</I> 
 
-<DD>Self-explanatory. 
+<DD>Only systems with bonds that can be changed can be used.  Atom_style
+template does not qualify. 
 
 <DT><I>Cannot use fix bond/create with non-molecular systems</I> 
 
-<DD>Self-explanatory. 
+<DD>Only systems with bonds that can be changed can be used.  Atom_style
+template does not qualify. 
+
+<DT><I>Cannot use fix bond/swap with non-molecular systems</I> 
+
+<DD>Only systems with bonds that can be changed can be used.  Atom_style
+template does not qualify. 
 
 <DT><I>Cannot use fix box/relax on a 2nd non-periodic dimension</I> 
 
@@ -1370,6 +1560,18 @@ of the strain implied by the tilt factor.
 <DT><I>Cannot use fix deform trate on a box with zero tilt</I> 
 
 <DD>The trate style alters the current strain. 
+
+<DT><I>Cannot use fix deposit rigid and not molecule</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot use fix deposit rigid and shake</I> 
+
+<DD>These two attributes are conflicting. 
+
+<DT><I>Cannot use fix deposit shake and not molecule</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Cannot use fix enforce2d with 3d simulation</I> 
 
@@ -1428,9 +1630,21 @@ periodic.
 
 <DD>The 2nd dimension in the barostatted tilt factor must be periodic. 
 
+<DT><I>Cannot use fix pour rigid and not molecule</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot use fix pour rigid and shake</I> 
+
+<DD>These two attributes are conflicting. 
+
+<DT><I>Cannot use fix pour shake and not molecule</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Cannot use fix pour with triclinic box</I> 
 
-<DD>This feature is not yet supported. 
+<DD>This option is not yet supported. 
 
 <DT><I>Cannot use fix press/berendsen and fix deform on same component of stress tensor</I> 
 
@@ -1470,6 +1684,14 @@ periodic.
 
 <DD>This is a current restriction of this fix due to the grid it creates. 
 
+<DT><I>Cannot use fix tune/kspace without a kspace style</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot use fix tune/kspace without a pair style</I> 
+
+<DD>This fix (tune/kspace) can only be used when a pair style has been specified. 
+
 <DT><I>Cannot use fix wall in periodic dimension</I> 
 
 <DD>Self-explanatory. 
@@ -1503,6 +1725,14 @@ in one command.
 
 <DD>Self-explanatory. 
 
+<DT><I>Cannot use fix_deposit unless atoms have IDs</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot use fix_pour unless atoms have IDs</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Cannot use force/hybrid_neigh with triclinic box</I> 
 
 <DD>Self-explanatory. 
@@ -1511,6 +1741,10 @@ in one command.
 
 <DD>This is a current limitation of the GPU implementation
 in LAMMPS. 
+
+<DT><I>Cannot use include command within an if command</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Cannot use kspace solver on system with no charge</I> 
 
@@ -1551,6 +1785,10 @@ in LAMMPS.
 <DD>Too many neighbor bins will be created.  This typically happens when
 the simulation box is very small in some dimension, compared to the
 neighbor cutoff.  Use the "nsq" style instead of "bin" style. 
+
+<DT><I>Cannot use newton pair with beck/gpu pair style</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Cannot use newton pair with born/coul/long/gpu pair style</I> 
 
@@ -1632,6 +1870,10 @@ neighbor cutoff.  Use the "nsq" style instead of "bin" style.
 
 <DD>Self-explanatory. 
 
+<DT><I>Cannot use newton pair with lj/cut/coul/msm/gpu pair style</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Cannot use newton pair with lj/cut/gpu pair style</I> 
 
 <DD>Self-explanatory. 
@@ -1640,7 +1882,15 @@ neighbor cutoff.  Use the "nsq" style instead of "bin" style.
 
 <DD>Self-explanatory. 
 
+<DT><I>Cannot use newton pair with lj/gromacs/gpu pair style</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Cannot use newton pair with lj96/cut/gpu pair style</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot use newton pair with mie/cut/gpu pair style</I> 
 
 <DD>Self-explanatory. 
 
@@ -1649,6 +1899,10 @@ neighbor cutoff.  Use the "nsq" style instead of "bin" style.
 <DD>Self-explanatory. 
 
 <DT><I>Cannot use newton pair with resquared/gpu pair style</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot use newton pair with soft/gpu pair style</I> 
 
 <DD>Self-explanatory. 
 
@@ -1701,9 +1955,9 @@ slab with a non-periodic z dimension.
 
 <DD>Self-explanatory. 
 
-<DT><I>Cannot use pair hybrid with GPU neighbor builds</I> 
+<DT><I>Cannot use pair hybrid with GPU neighbor list builds</I> 
 
-<DD>See documentation for fix gpu. 
+<DD>Neighbor list builds must be done on the CPU for this pair style. 
 
 <DT><I>Cannot use pair tail corrections with 2d simulations</I> 
 
@@ -1730,10 +1984,6 @@ create_box command has been used.
 
 <DD>Self-explanatory. 
 
-<DT><I>Cannot use slab correction with MSM</I> 
-
-<DD>Slab correction can only be used with Ewald and PPPM, not MSM. 
-
 <DT><I>Cannot use swiggle in variable formula between runs</I> 
 
 <DD>This is a function of elapsed time. 
@@ -1741,6 +1991,10 @@ create_box command has been used.
 <DT><I>Cannot use tris with fix srd unless overlap is set</I> 
 
 <DD>This is because triangles are connected to each other. 
+
+<DT><I>Cannot use variable energy with constant efield in fix efield</I> 
+
+<DD>LAMMPS computes the energy itself when the E-field is constant. 
 
 <DT><I>Cannot use variable energy with constant force in fix addforce</I> 
 
@@ -1769,19 +2023,35 @@ of velocity creation cannot be performed.
 
 <DD>Self-explanatory. 
 
+<DT><I>Cannot use write_restart fileper without % in restart file name</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Cannot use write_restart nfile without % in restart file name</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Cannot wiggle and shear fix wall/gran</I> 
 
 <DD>Cannot specify both options at the same time. 
+
+<DT><I>Cannot write to restart file - MPI error: %s</I> 
+
+<DD>This error was generated by MPI when reading/writing an MPI-IO restart
+file. 
 
 <DT><I>Cannot zero Langevin force of 0 atoms</I> 
 
 <DD>The group has zero atoms, so you cannot request its force
 be zeroed. 
 
-<DT><I>Cannot zero momentum of 0 atoms</I> 
+<DT><I>Cannot zero gld force for zero atoms</I> 
 
-<DD>The collection of atoms for which momentum is being computed has no
-atoms. 
+<DD>There are no atoms currently in the group. 
+
+<DT><I>Cannot zero momentum of no atoms</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Change_box command before simulation box is defined</I> 
 
@@ -1954,6 +2224,10 @@ developers.
 
 <DD>This compute cannot be used with point paritlces. 
 
+<DT><I>Compute erotate/rigid with non-rigid fix-ID</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Compute erotate/sphere requires atom style sphere</I> 
 
 <DD>Self-explanatory. 
@@ -1995,6 +2269,10 @@ developers.
 
 <DD>Self-explanatory. 
 
+<DT><I>Compute ke/rigid with non-rigid fix-ID</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Compute msd/molecule requires molecular atom style</I> 
 
 <DD>Self-explanatory. 
@@ -2026,14 +2304,28 @@ computed on all atoms.
 <DD>The compute ID assigned to a pressure computation must compute
 temperature. 
 
+<DT><I>Compute property/atom floating point vector does not exist</I> 
+
+<DD>The command is accessing a vector added by the fix property/atom
+command, that does not exist. 
+
 <DT><I>Compute property/atom for atom property that isn't allocated</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Compute property/atom integer vector does not exist</I> 
+
+<DD>The command is accessing a vector added by the fix property/atom
+command, that does not exist. 
 
 <DT><I>Compute property/local cannot use these inputs together</I> 
 
 <DD>Only inputs that generate the same number of datums can be used
 togther.  E.g. bond and angle quantities cannot be mixed. 
+
+<DT><I>Compute property/local does not (yet) work with atom_style template</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Compute property/local for property that isn't allocated</I> 
 
@@ -2194,10 +2486,6 @@ must have been evaluated on the last timestep of the previous run in
 order for their value(s) to be accessed.  See the doc page for the
 variable command for more info. 
 
-<DT><I>Compute voronoi/atom not allowed for triclinic boxes</I> 
-
-<DD>This is a current restriction of this command. 
-
 <DT><I>Computed temperature for fix temp/berendsen cannot be 0.0</I> 
 
 <DD>Self-explanatory. 
@@ -2210,7 +2498,7 @@ temperature is 0.0.
 <DT><I>Could not adjust g_ewald_6</I> 
 
 <DD>The Newton-Raphson solver failed to converge to a good value for
-g_ewald_6.  This error should not occur for typical problems.  Please
+g_ewald.  This error should not occur for typical problems.  Please
 send an email to the developers. 
 
 <DT><I>Could not compute g_ewald</I> 
@@ -2231,7 +2519,7 @@ send an email to the developers.
 accuracy.  This error should not occur for typical problems.  Please
 send an email to the developers. 
 
-<DT><I>Could not compute grid size for dispersion</I> 
+<DT><I>Could not compute grid size for Dispersion</I> 
 
 <DD>The code is unable to compute a grid size consistent with the desired
 accuracy.  This error should not occur for typical problems.  Please
@@ -2316,6 +2604,14 @@ created.
 
 <DD>The compute ID for calculating temperature does not exist. 
 
+<DT><I>Could not find compute vacf fix ID</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Could not find compute/voronoi surface group ID</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Could not find compute_modify ID</I> 
 
 <DD>Self-explanatory. 
@@ -2334,8 +2630,7 @@ created.
 
 <DT><I>Could not find dump custom compute ID</I> 
 
-<DD>The compute ID needed by dump custom to compute a per-atom quantity
-does not exist. 
+<DD>Self-explanatory. 
 
 <DT><I>Could not find dump custom fix ID</I> 
 
@@ -2487,7 +2782,7 @@ package
 
 <DD>Self-explanatory. 
 
-<DT><I>Coulomb PPPMDisp order < minimum allowed order</I> 
+<DT><I>Coulomb PPPMDisp order has been reduced below minorder</I> 
 
 <DD>The default minimum order is 2.  This can be reset by the
 kspace_modify minorder command. 
@@ -2509,6 +2804,10 @@ kspace_modify minorder command.
 <DD>If using a Kspace solver, all Coulomb cutoffs of long pair styles must
 be the same. 
 
+<DT><I>Coulombic cut not supported in pair_style lj/long/dipole/long</I> 
+
+<DD>Must use long-range Coulombic interactions. 
+
 <DT><I>Cound not find dump_modify ID</I> 
 
 <DD>Self-explanatory. 
@@ -2518,18 +2817,34 @@ be the same.
 <DD>The create_atoms command cannot be used before a read_data,
 read_restart, or create_box command. 
 
+<DT><I>Create_atoms molecule has atom IDs, but system does not</I> 
+
+<DD>The atom_style id command can be used to force atom IDs to be stored. 
+
+<DT><I>Create_atoms molecule must have atom types</I> 
+
+<DD>The defined molecule does not specify atom types. 
+
+<DT><I>Create_atoms molecule must have coordinates</I> 
+
+<DD>The defined molecule does not specify coordinates. 
+
 <DT><I>Create_atoms region ID does not exist</I> 
 
 <DD>A region ID used in the create_atoms command does not exist. 
 
 <DT><I>Create_box region ID does not exist</I> 
 
-<DD>A region ID used in the create_box command does not exist. 
+<DD>Self-explanatory. 
 
 <DT><I>Create_box region does not support a bounding box</I> 
 
 <DD>Not all regions represent bounded volumes.  You cannot use
 such a region with the create_box command. 
+
+<DT><I>Cut-offs missing in pair_style lj/long/dipole/long</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Cutoffs missing in pair_style buck/long/coul/long</I> 
 
@@ -2700,8 +3015,8 @@ read_restart, or create_box command.
 
 <DT><I>Dispersion PPPMDisp order has been reduced below minorder</I> 
 
-<DD>This may lead to a larger grid than desired.  See the kspace_modify overlap
-command to prevent changing of the dipsersion order. 
+<DD>The default minimum order is 2.  This can be reset by the
+kspace_modify minorder command. 
 
 <DT><I>Displace_atoms command before simulation box is defined</I> 
 
@@ -2735,9 +3050,10 @@ simulation box to a great distance.
 
 <DD>Self-explanatory. 
 
-<DT><I>Dump cfg arguments must start with 'id type xs ys zs' or 'id type xsu ysu zsu'</I> 
+<DT><I>Dump cfg arguments must start with 'mass type xs ys zs' or 'mass type xsu ysu zsu'</I> 
 
-<DD>This is a requirement of the CFG output format. 
+<DD>This is a requirement of the CFG output format.  See the dump cfg doc
+page for more details. 
 
 <DT><I>Dump cfg requires one snapshot per file</I> 
 
@@ -2796,6 +3112,11 @@ dump output.
 <DT><I>Dump every variable returned a bad timestep</I> 
 
 <DD>The variable must return a timestep greater than the current timestep. 
+
+<DT><I>Dump file MPI-IO output not allowed with % in filename</I> 
+
+<DD>This is because a % signifies one file per processor and MPI-IO
+creates one large file for all processors. 
 
 <DT><I>Dump file does not contain requested snapshot</I> 
 
@@ -2926,10 +3247,14 @@ needs them.
 
 <DD>Use the dump_modify sort command to enable this. 
 
+<DT><I>Dump_modify buffer yes not allowed for this style</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Dump_modify format string is too short</I> 
 
-<DD>There are more fields to be dumped in a line of output than
-your format string specifies. 
+<DD>There are more fields to be dumped in a line of output than your
+format string specifies. 
 
 <DT><I>Dump_modify region ID does not exist</I> 
 
@@ -2971,23 +3296,19 @@ variable doc page for ideas on how to make this work.
 
 <DT><I>Epsilon or sigma reference not set by pair style in PPPMDisp</I> 
 
-<DD>The pair style is not providing the needed epsilon or sigma values. 
+<DD>Self-explanatory. 
 
 <DT><I>Epsilon or sigma reference not set by pair style in ewald/n</I> 
 
 <DD>The pair style is not providing the needed epsilon or sigma values. 
 
-<DT><I>Expected floating point parameter in input script or data file</I> 
+<DT><I>Error in vdw spline: inner radius > outer radius</I> 
 
-<DD>The quantity being read is an integer on non-numeric value. 
+<DD>Self-explanatory. 
 
 <DT><I>Expected floating point parameter in variable definition</I> 
 
 <DD>The quantity being read is a non-numeric value. 
-
-<DT><I>Expected integer parameter in input script or data file</I> 
-
-<DD>The quantity being read is a floating point or non-numeric value. 
 
 <DT><I>Expected integer parameter in variable definition</I> 
 
@@ -2997,6 +3318,11 @@ variable doc page for ideas on how to make this work.
 
 <DD>Your LAMMPS simulation has run out of memory.  You need to run a
 smaller simulation or on more processors. 
+
+<DT><I>Failed to open FFmpeg pipeline to file %s</I> 
+
+<DD>The specified file cannot be opened.  Check that the path and name are
+correct and writable and that the FFmpeg executable can be found and run. 
 
 <DT><I>Failed to reallocate %ld bytes for array %s</I> 
 
@@ -3015,11 +3341,15 @@ smaller simulation or on more processors.
 
 <DD>Self-explanatory. 
 
-<DT><I>Fix GPU split must be positive for hybrid pair styles</I> 
+<DT><I>Fix ID for compute atom/molecule does not exist</I> 
 
 <DD>Self-explanatory. 
 
-<DT><I>Fix ID for compute atom/molecule does not exist</I> 
+<DT><I>Fix ID for compute erotate/rigid does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix ID for compute ke/rigid does not exist</I> 
 
 <DD>Self-explanatory. 
 
@@ -3056,6 +3386,10 @@ smaller simulation or on more processors.
 <DD>Self-explanatory 
 
 <DT><I>Fix ID for read_data does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix ID for velocity does not exist</I> 
 
 <DD>Self-explanatory. 
 
@@ -3353,11 +3687,10 @@ expects to next perform averaging.
 <DD>You cannot reset the timestep to a value beyond where the fix
 expects to next perform averaging. 
 
-<DT><I>Fix ave/spatial settings invalid with changing box</I> 
+<DT><I>Fix ave/spatial settings invalid with changing box size</I> 
 
-<DD>If the ave setting is "running" or "window" and the box size/shape
-changes during the simulation, then the units setting must be
-"reduced", else the number of bins may change. 
+<DD>If the box size changes, only the units reduced option can be
+used. 
 
 <DT><I>Fix ave/spatial variable is not atom-style variable</I> 
 
@@ -3494,6 +3827,27 @@ is a triclinic (non-orthogonal) box.
 
 <DD>Cannot use volume style unless other dimensions are being controlled. 
 
+<DT><I>Fix deposit and fix rigid/small not using same molecule template ID</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix deposit and fix shake not using same molecule template ID</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix deposit molecule must have atom types</I> 
+
+<DD>The defined molecule does not specify atom types. 
+
+<DT><I>Fix deposit molecule must have coordinates</I> 
+
+<DD>The defined molecule does not specify coordinates. 
+
+<DT><I>Fix deposit molecule template ID must be same as atom_style template ID</I> 
+
+<DD>When using atom_style template, you cannot deposit molecules that are
+not in that template. 
+
 <DT><I>Fix deposit region cannot be dynamic</I> 
 
 <DD>Only static regions can be used with fix deposit. 
@@ -3503,9 +3857,17 @@ is a triclinic (non-orthogonal) box.
 <DD>Not all regions represent bounded volumes.  You cannot use
 such a region with the fix deposit command. 
 
-<DT><I>Fix efield requires atom attribute q</I> 
+<DT><I>Fix deposit shake fix does not exist</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Fix efield requires atom attribute q or mu</I> 
+
+<DD>The atom style defined does not have this attribute. 
+
+<DT><I>Fix efield with dipoles cannot use atom-style variables</I> 
+
+<DD>This option is not supported. 
 
 <DT><I>Fix evaporate molecule requires atom attribute molecule</I> 
 
@@ -3561,6 +3923,10 @@ belonging to a molecule could be deleted.
 template molecule in the usual LAMMPS data file with its molecule id
 specified in the fix gcmc command as the "type" of the exchanged gas. 
 
+<DT><I>Fix gcmc does not (yet) work with atom_style template</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Fix gcmc incompatible with given pair_style</I> 
 
 <DD>Some pair_styles do not provide single-atom energies, which are needed
@@ -3578,10 +3944,7 @@ is on.
 
 <DT><I>Fix gcmc ran out of available molecule IDs</I> 
 
-<DD>This is a code limitation where more than MAXSMALLINT (usually around
-two billion) molecules have been created. The code needs to be 
-modified to either allow molecule ID recycling or use bigger ints for
-molecule IDs. A work-around is to run shorter simulations. 
+<DD>See the setting for tagint in the src/lmptype.h file. 
 
 <DT><I>Fix gcmc region cannot be dynamic</I> 
 
@@ -3593,6 +3956,34 @@ molecule IDs. A work-around is to run shorter simulations.
 such a region with the fix gcmc command. 
 
 <DT><I>Fix gcmc region extends outside simulation box</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix gld c coefficients must be >= 0</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix gld needs more prony series coefficients</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix gld prony terms must be > 0</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix gld series type must be pprony for now</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix gld start temperature must be >= 0</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix gld stop temperature must be >= 0</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix gld tau coefficients must be > 0</I> 
 
 <DD>Self-explanatory. 
 
@@ -3780,6 +4171,31 @@ error occurs, it is likely a bug, so send an email to the
 
 <DD>Somehow a fix that the pair style defines has been deleted. 
 
+<DT><I>Fix pour and fix rigid/small not using same molecule template ID</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix pour and fix shake not using same molecule template ID</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix pour molecule must have atom types</I> 
+
+<DD>The defined molecule does not specify atom types. 
+
+<DT><I>Fix pour molecule must have coordinates</I> 
+
+<DD>The defined molecule does not specify coordinates. 
+
+<DT><I>Fix pour molecule template ID must be same as atom style template ID</I> 
+
+<DD>When using atom_style template, you cannot pour molecules that are
+not in that template. 
+
+<DT><I>Fix pour polydisperse fractions do not sum to 1.0</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Fix pour region ID does not exist</I> 
 
 <DD>Self-explanatory. 
@@ -3797,9 +4213,37 @@ such a region with the fix pour command.
 
 <DD>The atom style defined does not have these attributes. 
 
+<DT><I>Fix pour rigid fix does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix pour shake fix does not exist</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Fix press/berendsen damping parameters must be > 0.0</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Fix property/atom cannot specify mol twice</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix property/atom cannot specify q twice</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix property/atom mol when atom_style already has molecule attribute</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix property/atom q when atom_style already has charge attribute</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Fix property/atom vector name already exists</I> 
+
+<DD>The name for an integer or floating-point vector must be unique. 
 
 <DT><I>Fix qeq/comb group has no atoms</I> 
 
@@ -3825,6 +4269,10 @@ was exceeded.
 <DT><I>Fix rigid atom has non-zero image flag in a non-periodic dimension</I> 
 
 <DD>Image flags for non-periodic dimensions should not be set. 
+
+<DT><I>Fix rigid file has no lines</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Fix rigid langevin period must be > 0.0</I> 
 
@@ -3882,6 +4330,18 @@ was exceeded.
 
 <DD>Self-explanatory. 
 
+<DT><I>Fix rigid/small molecule must have atom types</I> 
+
+<DD>The defined molecule does not specify atom types. 
+
+<DT><I>Fix rigid/small molecule must have coordinates</I> 
+
+<DD>The defined molecule does not specify coordinates. 
+
+<DT><I>Fix rigid/small requires an atom map, see atom_modify</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Fix rigid/small requires atom attribute molecule</I> 
 
 <DD>Self-explanatory. 
@@ -3895,6 +4355,10 @@ are not within the required tolerances.
 
 <DD>Cannot use fix shake while doing an energy minimization since
 it turns off bonds that should contribute to the energy. 
+
+<DT><I>Fix shake molecule template must have shake info</I> 
+
+<DD>The defined molecule does not specify SHAKE information. 
 
 <DT><I>Fix spring couple group ID does not exist</I> 
 
@@ -4093,10 +4557,18 @@ non-hydrostatic pressure control can not be used in this case.
 
 <DD>Self-explanatory. 
 
+<DT><I>GPU package does not (yet) work with atom_style template</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>GPU particle split must be set to 1 for this pair style.</I> 
 
 <DD>For this pair style, you cannot run part of the force calculation on
 the host.  See the package command. 
+
+<DT><I>GPU split param must be positive for hybrid pair styles</I> 
+
+<DD>See the package gpu command. 
 
 <DT><I>Gmask function in equal-style variable formula</I> 
 
@@ -4104,15 +4576,15 @@ the host.  See the package command.
 
 <DT><I>Gravity changed since fix pour was created</I> 
 
-<DD>Gravity must be static and not dynamic for use with fix pour. 
+<DD>The gravity vector defined by fix gravity must be static. 
 
 <DT><I>Gravity must point in -y to use with fix pour in 2d</I> 
 
-<DD>Gravity must be pointing "down" in a 2d box. 
+<DD>Self-explanatory. 
 
 <DT><I>Gravity must point in -z to use with fix pour in 3d</I> 
 
-<DD>Gravity must be pointing "down" in a 3d box, i.e. theta = 180.0. 
+<DD>Self-explanatory. 
 
 <DT><I>Grmask function in equal-style variable formula</I> 
 
@@ -4151,6 +4623,11 @@ command-line option when running LAMMPS to see the offending line.
 <DD>One or more of the coefficients defined in the potential file is
 invalid. 
 
+<DT><I>Illegal COMB3 parameter</I> 
+
+<DD>One or more of the coefficients defined in the potential file is
+invalid. 
+
 <DT><I>Illegal Stillinger-Weber parameter</I> 
 
 <DD>One or more of the coefficients defined in the potential file is
@@ -4174,6 +4651,11 @@ than or equal to zero.
 
 <DD>Self-explanatory. 
 
+<DT><I>Illegal nb3b/harmonic parameter</I> 
+
+<DD>One or more of the coefficients defined in the potential file is
+invalid. 
+
 <DT><I>Illegal number of angle table entries</I> 
 
 <DD>There must be at least 2 table entries. 
@@ -4189,6 +4671,15 @@ than or equal to zero.
 <DT><I>Illegal simulation box</I> 
 
 <DD>The lower bound of the simulation box is greater than the upper bound. 
+
+<DT><I>Imageint setting in lmptype.h is invalid</I> 
+
+<DD>Imageint must be as large or larger than smallint. 
+
+<DT><I>Imageint setting in lmptype.h is not compatible</I> 
+
+<DD>Format of imageint stored in restart file is not consistent with
+LAMMPS version you are running.  See the settings in src/lmptype.h 
 
 <DT><I>Improper atom missing in delete_bonds</I> 
 
@@ -4283,6 +4774,11 @@ the atom coordinate.
 
 <DD>See doc page for body style. 
 
+<DT><I>Incorrect %s format in data file</I> 
+
+<DD>A section of the data file being read by fix property/atom does
+not have the correct number of values per line. 
+
 <DT><I>Incorrect args for angle coefficients</I> 
 
 <DD>Self-explanatory.  Check the input script or data file. 
@@ -4312,6 +4808,10 @@ the atom coordinate.
 <DD>Number of values per atom line in the data file is not consistent with
 the atom style. 
 
+<DT><I>Incorrect atom format in neb file</I> 
+
+<DD>The number of fields per line is not what expected. 
+
 <DT><I>Incorrect bonus data format in data file</I> 
 
 <DD>See the read_data doc page for a description of how various kinds of
@@ -4335,7 +4835,7 @@ bonus data must be formatted for certain atom styles.
 <DT><I>Incorrect boundaries with slab PPPMDisp</I> 
 
 <DD>Must have periodic x,y dimensions and non-periodic z dimension to use
-2d slab option with PPPM. 
+2d slab option with pppm/disp. 
 
 <DT><I>Incorrect element names in ADP potential file</I> 
 
@@ -4349,13 +4849,13 @@ bonus data must be formatted for certain atom styles.
 
 <DD>Incorrect number of words per line in the potential file. 
 
-<DT><I>Incorrect format in MEAM potential file</I> 
+<DT><I>Incorrect format in COMB3 potential file</I> 
 
 <DD>Incorrect number of words per line in the potential file. 
 
-<DT><I>Incorrect format in NEB coordinate file</I> 
+<DT><I>Incorrect format in MEAM potential file</I> 
 
-<DD>Self-explanatory. 
+<DD>Incorrect number of words per line in the potential file. 
 
 <DT><I>Incorrect format in Stillinger-Weber potential file</I> 
 
@@ -4369,6 +4869,10 @@ bonus data must be formatted for certain atom styles.
 
 <DD>Incorrect number of words per line in the potential file. 
 
+<DT><I>Incorrect format in nb3b/harmonic potential file</I> 
+
+<DD>Incorrect number of words per line in the potential file. 
+
 <DT><I>Incorrect integer value in Bodies section of data file</I> 
 
 <DD>See doc page for body style. 
@@ -4378,6 +4882,10 @@ bonus data must be formatted for certain atom styles.
 <DD>Self-explanatory.  Check the input script or data file. 
 
 <DT><I>Incorrect rigid body format in fix rigid file</I> 
+
+<DD>The number of fields per line is not what expected. 
+
+<DT><I>Incorrect rigid body format in fix rigid/small file</I> 
 
 <DD>The number of fields per line is not what expected. 
 
@@ -4415,8 +4923,7 @@ map command will force an atom map to be created.
 
 <DT><I>Insertion region extends outside simulation box</I> 
 
-<DD>Region specified with fix pour command extends outside the global
-simulation box. 
+<DD>Self-explanatory. 
 
 <DT><I>Insufficient Jacobi rotations for POEMS body</I> 
 
@@ -4427,6 +4934,10 @@ simulation box.
 <DD>Eigensolve for rigid body was not sufficiently accurate. 
 
 <DT><I>Insufficient Jacobi rotations for rigid body</I> 
+
+<DD>Eigensolve for rigid body was not sufficiently accurate. 
+
+<DT><I>Insufficient Jacobi rotations for rigid molecule</I> 
 
 <DD>Eigensolve for rigid body was not sufficiently accurate. 
 
@@ -4452,6 +4963,11 @@ package
 
 <DD>Self-explanatory. 
 
+<DT><I>Invalid LAMMPS restart file</I> 
+
+<DD>The file does not appear to be a LAMMPS restart file since
+it doesn't contain the correct magic string at the beginning. 
+
 <DT><I>Invalid REAX atom type</I> 
 
 <DD>There is a mis-match between LAMMPS atom types and the elements
@@ -4470,6 +4986,10 @@ listed in the ReaxFF force field file.
 <DD>Angle type must be positive integer and within range of specified angle
 types. 
 
+<DT><I>Invalid angle type in Angles section of molecule file</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Invalid angle type index for fix shake</I> 
 
 <DD>Self-explanatory. 
@@ -4478,10 +4998,19 @@ types.
 
 <DD>"NULL" is only supported in pair_coeff calls when using pair hybrid 
 
+<DT><I>Invalid atom ID in %s section of data file</I> 
+
+<DD>An atom in a section of the data file being read by fix property/atom
+has an invalid atom ID that is <= 0 or > the maximum existing atom ID. 
+
 <DT><I>Invalid atom ID in Angles section of data file</I> 
 
 <DD>Atom IDs must be positive integers and within range of defined
 atoms. 
+
+<DT><I>Invalid atom ID in Angles section of molecule file</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Invalid atom ID in Atoms section of data file</I> 
 
@@ -4496,6 +5025,10 @@ atoms.
 
 <DD>Atom IDs must be positive integers and within range of defined
 atoms. 
+
+<DT><I>Invalid atom ID in Bonds section of molecule file</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Invalid atom ID in Bonus section of data file</I> 
 
@@ -4517,9 +5050,33 @@ atoms.
 <DD>Atom IDs must be positive integers and within range of defined
 atoms. 
 
+<DT><I>Invalid atom ID in dihedrals section of molecule file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid atom ID in impropers section of molecule file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid atom ID in variable file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid atom IDs in neb file</I> 
+
+<DD>An ID in the file was not found in the system. 
+
+<DT><I>Invalid atom diameter in molecule file</I> 
+
+<DD>Diameters must be >= 0.0. 
+
 <DT><I>Invalid atom mass for fix shake</I> 
 
 <DD>Mass specified in fix shake command must be > 0.0. 
+
+<DT><I>Invalid atom mass in molecule file</I> 
+
+<DD>Masses must be > 0.0. 
 
 <DT><I>Invalid atom style</I> 
 
@@ -4534,13 +5091,46 @@ atoms.
 <DD>The create_box command specified the range of valid atom types.
 An invalid type is being requested. 
 
+<DT><I>Invalid atom type in create_atoms mol command</I> 
+
+<DD>The atom types in the defined molecule are added to the value
+specified in the create_atoms command, as an offset.  The final value
+for each atom must be between 1 to N, where N is the number of atom
+types. 
+
 <DT><I>Invalid atom type in fix bond/create command</I> 
 
 <DD>Self-explanatory. 
 
+<DT><I>Invalid atom type in fix deposit command</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid atom type in fix deposit mol command</I> 
+
+<DD>The atom types in the defined molecule are added to the value
+specified in the create_atoms command, as an offset.  The final value
+for each atom must be between 1 to N, where N is the number of atom
+types. 
+
 <DT><I>Invalid atom type in fix gcmc command</I> 
 
 <DD>The atom type specified in the GCMC command does not exist. 
+
+<DT><I>Invalid atom type in fix pour command</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid atom type in fix pour mol command</I> 
+
+<DD>The atom types in the defined molecule are added to the value
+specified in the create_atoms command, as an offset.  The final value
+for each atom must be between 1 to N, where N is the number of atom
+types. 
+
+<DT><I>Invalid atom type in molecule file</I> 
+
+<DD>Atom types must range from 1 to specified # of types. 
 
 <DT><I>Invalid atom type in neighbor exclusion list</I> 
 
@@ -4578,6 +5168,18 @@ An invalid type is being requested.
 
 <DD>Self-explantory. 
 
+<DT><I>Invalid basis setting in create_atoms command</I> 
+
+<DD>The basis index must be between 1 to N where N is the number of basis
+atoms in the lattice.  The type index must be between 1 to N where N
+is the number of atom types. 
+
+<DT><I>Invalid basis setting in fix append/atoms command</I> 
+
+<DD>The basis index must be between 1 to N where N is the number of basis
+atoms in the lattice.  The type index must be between 1 to N where N
+is the number of atom types. 
+
 <DT><I>Invalid body nparticle command</I> 
 
 <DD>Arguments in atom-style command are not correct. 
@@ -4598,6 +5200,10 @@ An invalid type is being requested.
 
 <DD>Bond type must be positive integer and within range of specified bond
 types. 
+
+<DT><I>Invalid bond type in Bonds section of molecule file</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Invalid bond type in fix bond/break command</I> 
 
@@ -4620,6 +5226,11 @@ types.
 <DD>The specified color name was not in the list of recognized colors.
 See the dump_modify doc page. 
 
+<DT><I>Invalid color map min/max values</I> 
+
+<DD>The min/max values are not consistent with either each other or
+with values in the color map. 
+
 <DT><I>Invalid command-line argument</I> 
 
 <DD>One or more command-line arguments is invalid.  Check the syntax of
@@ -4632,6 +5243,11 @@ the command you are using to launch LAMMPS.
 <DT><I>Invalid compute style</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Invalid custom OpenCL parameter string.</I> 
+
+<DD>There are not enough or too many parameters in the custom string for package
+GPU. 
 
 <DT><I>Invalid cutoff in communicate command</I> 
 
@@ -4733,6 +5349,10 @@ the command you are using to launch LAMMPS.
 
 <DD>Density value cannot be <= 0.0. 
 
+<DT><I>Invalid density in set command</I> 
+
+<DD>Density must be > 0.0. 
+
 <DT><I>Invalid diameter in set command</I> 
 
 <DD>Self-explanatory. 
@@ -4745,6 +5365,10 @@ the command you are using to launch LAMMPS.
 
 <DD>Dihedral type must be positive integer and within range of specified
 dihedral types. 
+
+<DT><I>Invalid dihedral type in dihedrals section of molecule file</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Invalid dipole length in set command</I> 
 
@@ -4784,6 +5408,11 @@ be for a single processor.
 <DT><I>Invalid dump image zoom value</I> 
 
 <DD>Zoom value must be > 0.0. 
+
+<DT><I>Invalid dump movie filename</I> 
+
+<DD>The file produced by dump movie cannot be binary or compressed
+and must be a single file for a single processor. 
 
 <DT><I>Invalid dump reader style</I> 
 
@@ -4878,6 +5507,10 @@ specified.
 
 <DD>Unrecognized entry in restart file. 
 
+<DT><I>Invalid flag in peratom section of restart file</I> 
+
+<DD>The format of this section of the file is not correct. 
+
 <DT><I>Invalid flag in type arrays section of restart file</I> 
 
 <DD>Unrecognized entry in restart file. 
@@ -4903,10 +5536,6 @@ appear.
 
 <DD>Self-explanatory. 
 
-<DT><I>Invalid image color range</I> 
-
-<DD>The lo value in the range is larger than the hi value. 
-
 <DT><I>Invalid image up vector</I> 
 
 <DD>Up vector cannot be (0,0,0). 
@@ -4923,6 +5552,10 @@ appear.
 
 <DD>Improper type must be positive integer and within range of specified
 improper types. 
+
+<DT><I>Invalid improper type in impropers section of molecule file</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Invalid index for non-body particles in compute body/local command</I> 
 
@@ -5063,8 +5696,13 @@ cannot be the same partition.
 
 <DT><I>Invalid rigid body ID in fix rigid file</I> 
 
-<DD>The ID does not match the number or an existing ID of rigid bodies
+<DD>The ID does not match the number of an existing ID of rigid bodies
 that are defined by the fix rigid command. 
+
+<DT><I>Invalid rigid body ID in fix rigid/small file</I> 
+
+<DD>The ID does not match the number of an existing ID of rigid bodies
+that are defined by the fix rigid/small command. 
 
 <DT><I>Invalid run command N value</I> 
 
@@ -5089,6 +5727,22 @@ integer less than or equal to 900 million.
 <DD>The initial seed for this random number generator must be a positive
 integer. 
 
+<DT><I>Invalid shake angle type in molecule file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid shake atom in molecule file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid shake bond type in molecule file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid shake flag in molecule file</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Invalid shape in Ellipsoids section of data file</I> 
 
 <DD>Self-explanatory. 
@@ -5102,6 +5756,10 @@ integer.
 <DD>Self-explanatory. 
 
 <DT><I>Invalid shear direction for fix wall/gran</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Invalid special atom index in molecule file</I> 
 
 <DD>Self-explanatory. 
 
@@ -5125,9 +5783,24 @@ integer.
 
 <DD>The value must be greater than 0. 
 
+<DT><I>Invalid template atom in Atoms section of data file</I> 
+
+<DD>The atom indices must be between 1 to N, where N is the number of
+atoms in the template molecule the atom belongs to. 
+
+<DT><I>Invalid template index in Atoms section of data file</I> 
+
+<DD>The template indices must be between 1 to N, where N is the number of
+molecules in the template. 
+
 <DT><I>Invalid thermo keyword in variable formula</I> 
 
 <DD>The keyword is not recognized. 
+
+<DT><I>Invalid threads_per_atom specified.</I> 
+
+<DD>For 3-body potentials on the GPU, the threads_per_atom setting cannot be
+greater than 4 for NVIDIA GPUs. 
 
 <DT><I>Invalid tmax in tad command</I> 
 
@@ -5137,6 +5810,11 @@ integer.
 
 <DD>Mass command must set a type from 1-N where N is the number of atom
 types. 
+
+<DT><I>Invalid use of library file() function</I> 
+
+<DD>This function is called thru the library interface.  This
+error should not occur.  Contact the developers if it does. 
 
 <DT><I>Invalid value in set command</I> 
 
@@ -5151,10 +5829,6 @@ too small or too large.
 
 <DD>Self-explanatory. 
 
-<DT><I>Invalid variable in special function next</I> 
-
-<DD>Only file-style variables can be used with the next() function. 
-
 <DT><I>Invalid variable name</I> 
 
 <DD>Variable name used in an input script line is invalid. 
@@ -5163,10 +5837,18 @@ too small or too large.
 
 <DD>Variable name is not recognized. 
 
+<DT><I>Invalid variable style in special function next</I> 
+
+<DD>Only file-style or atomfile-style variables can be used with next(). 
+
 <DT><I>Invalid variable style with next command</I> 
 
 <DD>Variable styles <I>equal</I> and <I>world</I> cannot be used in a next
 command. 
+
+<DT><I>Invalid volume in set command</I> 
+
+<DD>Volume must be > 0.0. 
 
 <DT><I>Invalid wiggle direction for fix wall/gran</I> 
 
@@ -5194,6 +5876,14 @@ command.
 pair style none, which is illegal.  You are probably attempting to
 compute per-atom quantities with an undefined pair style. 
 
+<DT><I>Invoking coulombic in pair style lj/coul requires atom attribute q</I> 
+
+<DD>The atom style defined does not have this attribute. 
+
+<DT><I>Invoking coulombic in pair style lj/long/dipole/long requires atom attribute q</I> 
+
+<DD>The atom style defined does not have these attributes. 
+
 <DT><I>KIM neighbor iterator exceeded range</I> 
 
 <DD>This should not happen.  It likely indicates a bug
@@ -5216,6 +5906,11 @@ via the kspace_modify command.
 <DT><I>KSpace solver requires a pair style</I> 
 
 <DD>No pair style is defined. 
+
+<DT><I>KSpace style does not yet support triclinic geometries</I> 
+
+<DD>The specified kspace style does not allow for non-orthogonal
+simulation boxes. 
 
 <DT><I>KSpace style has not yet been set</I> 
 
@@ -5250,6 +5945,10 @@ Coulombic or dispersion component be used.
 
 <DD>The atom style defined does not have these attributes.
 Change the atom style or switch of the coulomb solver. 
+
+<DT><I>Kspace_modify eigtol must be smaller than one</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>LAMMPS unit_style lj not supported by KIM models</I> 
 
@@ -5336,6 +6035,10 @@ the MSM order can only be 4, 6, 8, or 10.
 <DD>The mass command cannot be used before a read_data, read_restart, or
 create_box command. 
 
+<DT><I>Matrix factorization to split dispersion coefficients failed</I> 
+
+<DD>This should not normally happen.  Contact the developers. 
+
 <DT><I>Min_style command before simulation box is defined</I> 
 
 <DD>The min_style command cannot be used before a read_data, read_restart,
@@ -5375,11 +6078,6 @@ formula.
 
 <DD>Self-explanatory. 
 
-<DT><I>Molecular data file has too many atoms</I> 
-
-<DD>These kids of data files are currently limited to a number
-of atoms that fits in a 32-bit integer. 
-
 <DT><I>Molecule count changed in compute atom/molecule</I> 
 
 <DD>Number of molecules must remain constant over time. 
@@ -5403,6 +6101,94 @@ of atoms that fits in a 32-bit integer.
 <DT><I>Molecule count changed in compute property/molecule</I> 
 
 <DD>Number of molecules must remain constant over time. 
+
+<DT><I>Molecule file has angles but no nangles setting</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule file has bonds but no nbonds setting</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule file has dihedrals but no ndihedrals setting</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule file has impropers but no nimpropers setting</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule file has special flags but no bonds</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule file needs both Special Bond sections</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule file shake flags not before shake atoms</I> 
+
+<DD>The order of the two sections is important. 
+
+<DT><I>Molecule file shake flags not before shake bonds</I> 
+
+<DD>The order of the two sections is important. 
+
+<DT><I>Molecule file shake info is incomplete</I> 
+
+<DD>All 3 SHAKE sections are needed. 
+
+<DT><I>Molecule file special list does not match special count</I> 
+
+<DD>The number of values in an atom's special list does not match count. 
+
+<DT><I>Molecule file z center-of-mass must be 0.0 for 2d</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule file z coord must be 0.0 for 2d</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule template ID for atom_style template does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule template ID for create_atoms does not exist</I> 
+
+<DD>Self-explantory. 
+
+<DT><I>Molecule template ID for fix deposit does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule template ID for fix pour does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule template ID for fix rigid/small does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule template ID for fix shake does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule template ID must be alphanumeric or underscore characters</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Molecule toplogy/atom exceeds system topology/atom</I> 
+
+<DD>The number of bonds, angles, etc per-atom in the molecule exceeds the
+system setting.  See the create_box command for how to specify these
+values. 
+
+<DT><I>Molecule topology type exceeds system topology type</I> 
+
+<DD>The number of bond, angle, etc types in the molecule exceeds the
+system setting.  See the create_box command for how to specify these
+values. 
 
 <DT><I>More than one fix deform</I> 
 
@@ -5482,6 +6268,11 @@ defines Improper Coeffs.
 <DD>Must use a pair_style command before reading a data file that defines
 Pair Coeffs. 
 
+<DT><I>Must define pair_style before PairIJ Coeffs</I> 
+
+<DD>Must use a pair_style command before reading a data file that defines
+PairIJ Coeffs. 
+
 <DT><I>Must have more than one processor partition to temper</I> 
 
 <DD>Cannot use the temper command with only one processor partition.  Use
@@ -5542,7 +6333,7 @@ type s (shrink-wrapped).
 
 <DT><I>Must specify a region in fix pour</I> 
 
-<DD>The region keyword must be specified with this fix. 
+<DD>Self-explanatory. 
 
 <DT><I>Must use -in switch with multiple partitions</I> 
 
@@ -5566,10 +6357,9 @@ by a fix shake command.
 
 <DD>Self-explanatory. 
 
-<DT><I>Must use a z-axis cylinder with fix pour</I> 
+<DT><I>Must use a z-axis cylinder region with fix pour</I> 
 
-<DD>The axis of the cylinder region used with the fix pour command must
-be oriented along the z dimension. 
+<DD>Self-explanatory. 
 
 <DT><I>Must use an angle style with TIP4P potential</I> 
 
@@ -5580,7 +6370,7 @@ command.
 
 <DD>Self-explanatory. 
 
-<DT><I>Must use pair_style comb with fix qeq/comb</I> 
+<DT><I>Must use pair_style comb or comb3 with fix qeq/comb</I> 
 
 <DD>Self-explanatory. 
 
@@ -5588,6 +6378,11 @@ command.
 
 <DD>Must define an energy vartiable when applyting a dynamic
 force during minimization. 
+
+<DT><I>Must use variable energy with fix efield</I> 
+
+<DD>You must define an energy when performing a minimization with a
+variable E-field. 
 
 <DT><I>NEB command before simulation box is defined</I> 
 
@@ -5610,10 +6405,10 @@ force during minimization.
 <DD>Some atom styles require bonus data.  See the read_data doc page for
 details. 
 
-<DT><I>Needed topology not in data file</I> 
+<DT><I>Needed molecular topology not in data file</I> 
 
-<DD>The header of the data file indicated that bonds or angles or
-dihedrals or impropers would be included, but they were not present. 
+<DD>The header of the data file indicated bonds, angles, etc would be
+included, but they are not present. 
 
 <DT><I>Neigh_modify exclude molecule requires atom attribute molecule</I> 
 
@@ -5639,12 +6434,6 @@ multiple of the every setting.
 command to increase the max number of neighbors allowed for one atom.
 You may also want to boost the page size. 
 
-<DT><I>Neighbor list overflow, boost neigh_modify one or page</I> 
-
-<DD>There are too many neighbors of a single atom.  Use the neigh_modify
-command to increase the neighbor page size and the max number of
-neighbors allowed for one atom. 
-
 <DT><I>Neighbor multi not yet enabled for ghost neighbors</I> 
 
 <DD>This is a current restriction within LAMMPS. 
@@ -5661,6 +6450,10 @@ neighbors allowed for one atom.
 
 <DD>This is required to prevent wasting too much memory. 
 
+<DT><I>New atom IDs exceed maximum allowed ID</I> 
+
+<DD>See the setting for tagint in the src/lmptype.h file. 
+
 <DT><I>New bond exceeded bonds per atom in fix bond/create</I> 
 
 <DD>See the read_data command for info on setting the "extra bond per
@@ -5675,6 +6468,10 @@ the special bonds list to allow for additional bonds to be formed.
 
 <DD>The newton command cannot be used to change the newton bond value
 after a read_data, read_restart, or create_box command. 
+
+<DT><I>Next command must list all universe and uloop variables</I> 
+
+<DD>This is to insure they stay in sync. 
 
 <DT><I>No Kspace style defined for compute group/group</I> 
 
@@ -5691,12 +6488,16 @@ OpenMP support.
 
 <DT><I>No angles allowed with this atom style</I> 
 
-<DD>Self-explanatory.  Check data file. 
+<DD>Self-explanatory. 
+
+<DT><I>No atom count in molecule file</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>No atoms in data file</I> 
 
 <DD>The header of the data file indicated that atoms would be included,
-but they were not present. 
+but they are not present. 
 
 <DT><I>No basis atoms in lattice</I> 
 
@@ -5712,7 +6513,7 @@ but they were not present.
 
 <DT><I>No bonds allowed with this atom style</I> 
 
-<DD>Self-explanatory.  Check data file. 
+<DD>Self-explanatory. 
 
 <DT><I>No box information in dump. You have to use 'box no'</I> 
 
@@ -5724,7 +6525,7 @@ but they were not present.
 
 <DT><I>No dihedrals allowed with this atom style</I> 
 
-<DD>Self-explanatory.  Check data file. 
+<DD>Self-explanatory. 
 
 <DT><I>No dump custom arguments specified</I> 
 
@@ -5741,7 +6542,7 @@ output to dump file.
 
 <DT><I>No fix gravity defined for fix pour</I> 
 
-<DD>Cannot add poured particles without gravity to move them. 
+<DD>Gravity is required to use fix pour. 
 
 <DT><I>No improper style is defined for compute improper/local</I> 
 
@@ -5749,7 +6550,7 @@ output to dump file.
 
 <DT><I>No impropers allowed with this atom style</I> 
 
-<DD>Self-explanatory.  Check data file. 
+<DD>Self-explanatory. 
 
 <DT><I>No lines allowed with this atom style</I> 
 
@@ -5764,6 +6565,11 @@ requested elements.
 
 <DD>The EAM potential file does not contain elements that match the
 requested elements. 
+
+<DT><I>No molecule topology allowed with atom style template</I> 
+
+<DD>The data file cannot specify the number of bonds, angles, etc,
+because this info if inferred from the molecule templates. 
 
 <DT><I>No overlap of box and region for create_atoms</I> 
 
@@ -5802,6 +6608,10 @@ requested elements.
 <DD>Swap frequency in temper command must evenly divide the total # of
 timesteps. 
 
+<DT><I>Not all atom IDs are 0</I> 
+
+<DD>Either all atoms IDs must be zero or none of them. 
+
 <DT><I>Nprocs not a multiple of N for -reorder</I> 
 
 <DD>Self-explanatory. 
@@ -5821,6 +6631,10 @@ contain the same atom.
 
 <DD>Any rigid body defined by the fix rigid command must contain 2 or more
 atoms. 
+
+<DT><I>Only one cut-off allowed when requesting all long</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Only one cutoff allowed when requesting all long</I> 
 
@@ -5910,6 +6724,11 @@ kspace_modify minorder command.
 
 <DD>This is a limitation of the PPPM implementation in LAMMPS. 
 
+<DT><I>PPPM order has been reduced to 0</I> 
+
+<DD>The auto-adjust of the order failed.  You will need to
+set the grid size and order directly via kspace_modify. 
+
 <DT><I>PPPMDisp Coulomb grid is too large</I> 
 
 <DD>The global PPPM grid is larger than OFFSET in one or more dimensions.
@@ -5918,9 +6737,9 @@ requested accuracy.
 
 <DT><I>PPPMDisp Dispersion grid is too large</I> 
 
-<DD>The global dispersion grid is larger than OFFSET in one or more
-dimensions.  OFFSET is currently set to 4096.  You likely need to
-decrease the requested accuracy. 
+<DD>The global PPPM grid is larger than OFFSET in one or more dimensions.
+OFFSET is currently set to 4096.  You likely need to decrease the
+requested accuracy. 
 
 <DT><I>PPPMDisp coulomb order cannot be greater than %d</I> 
 
@@ -5985,10 +6804,6 @@ before LAMMPS is built.
 
 <DD>Style in pair coeff must have been listed in pair_style command. 
 
-<DT><I>Pair colloid/poly requires atom style sphere</I> 
-
-<DD>Self-explanatory. 
-
 <DT><I>Pair coul/wolf requires atom attribute q</I> 
 
 <DD>The atom style defined does not have this attribute. 
@@ -6005,6 +6820,10 @@ rRESPA cutoffs.
 <DT><I>Pair dipole/cut/gpu requires atom attributes q, mu, torque</I> 
 
 <DD>The atom style defined does not have this attribute. 
+
+<DT><I>Pair dipole/long requires atom attributes q, mu, torque</I> 
+
+<DD>The atom style defined does not have these attributes. 
 
 <DT><I>Pair distance < table inner cutoff</I> 
 
@@ -6074,6 +6893,10 @@ rRESPA cutoffs.
 <DT><I>Pair line/lj requires atom style line</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Pair lj/long/dipole/long requires atom attributes mu, torque</I> 
+
+<DD>The atom style defined does not have these attributes. 
 
 <DT><I>Pair lubricate requires atom style sphere</I> 
 
@@ -6191,13 +7014,26 @@ potential.
 <DD>See the newton command.  This is a restriction to use the COMB
 potential. 
 
+<DT><I>Pair style COMB3 requires atom IDs</I> 
+
+<DD>This is a requirement to use this potential. 
+
+<DT><I>Pair style COMB3 requires atom attribute q</I> 
+
+<DD>The atom style defined does not have this attribute. 
+
+<DT><I>Pair style COMB3 requires newton pair on</I> 
+
+<DD>See the newton command.  This is a restriction to use the COMB3
+potential. 
+
 <DT><I>Pair style LCBOP requires atom IDs</I> 
 
 <DD>This is a requirement to use the LCBOP potential. 
 
 <DT><I>Pair style LCBOP requires newton pair on</I> 
 
-<DD>See the newton command.  This is a restriction to use the LCBOP
+<DD>See the newton command.  This is a restriction to use the Tersoff
 potential. 
 
 <DT><I>Pair style MEAM requires newton pair on</I> 
@@ -6398,6 +7234,23 @@ then a kspace style must also be used.
 
 <DD>The atom style defined does not have this attribute. 
 
+<DT><I>Pair style lj/cut/coul/msm requires atom attribute q</I> 
+
+<DD>The atom style defined does not have this attribute. 
+
+<DT><I>Pair style lj/cut/tip4p/cut requires atom IDs</I> 
+
+<DD>This is a requirement to use this potential. 
+
+<DT><I>Pair style lj/cut/tip4p/cut requires atom attribute q</I> 
+
+<DD>The atom style defined does not have this attribute. 
+
+<DT><I>Pair style lj/cut/tip4p/cut requires newton pair on</I> 
+
+<DD>See the newton command.  This is a restriction to use this
+potential. 
+
 <DT><I>Pair style lj/cut/tip4p/long requires atom IDs</I> 
 
 <DD>There are no atom IDs defined in the system and the TIP4P potential
@@ -6412,17 +7265,13 @@ requires them to find O,H atoms with a water molecule.
 <DD>This is because the computation of constraint forces within a water
 molecule adds forces to atoms owned by other processors. 
 
-<DT><I>Pair style lj/cut/coul/msm requires atom attribute q</I> 
-
-<DD>The atom style defined does not have this attribute. 
-
 <DT><I>Pair style lj/gromacs/coul/gromacs requires atom attribute q</I> 
 
 <DD>An atom_style with this attribute is needed. 
 
-<DT><I>Pair style lj/long/coul/long requires atom attribute q</I> 
+<DT><I>Pair style lj/long/dipole/long does not currently support respa</I> 
 
-<DD>The atom style defined does not have this attribute. 
+<DD>This feature is not yet supported. 
 
 <DT><I>Pair style lj/long/tip4p/long requires atom IDs</I> 
 
@@ -6437,6 +7286,22 @@ requires them to find O,H atoms with a water molecule.
 
 <DD>This is because the computation of constraint forces within a water
 molecule adds forces to atoms owned by other processors. 
+
+<DT><I>Pair style nb3b/harmonic requires atom IDs</I> 
+
+<DD>This is a requirement to use this potential. 
+
+<DT><I>Pair style nb3b/harmonic requires newton pair on</I> 
+
+<DD>See the newton command.  This is a restriction to use this potential. 
+
+<DT><I>Pair style nm/cut/coul/cut requires atom attribute q</I> 
+
+<DD>The atom style defined does not have this attribute. 
+
+<DT><I>Pair style nm/cut/coul/long requires atom attribute q</I> 
+
+<DD>The atom style defined does not have this attribute. 
 
 <DT><I>Pair style peri requires atom style peri</I> 
 
@@ -6453,6 +7318,44 @@ molecule adds forces to atoms owned by other processors.
 <DT><I>Pair style requires a KSpace style</I> 
 
 <DD>No kspace style is defined. 
+
+<DT><I>Pair style requres a KSpace style</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Pair style sw/gpu requires atom IDs</I> 
+
+<DD>This is a requirement to use this potential. 
+
+<DT><I>Pair style sw/gpu requires newton pair off</I> 
+
+<DD>See the newton command.  This is a restriction to use this potential. 
+
+<DT><I>Pair style tip4p/cut requires atom IDs</I> 
+
+<DD>This is a requirement to use this potential. 
+
+<DT><I>Pair style tip4p/cut requires atom attribute q</I> 
+
+<DD>The atom style defined does not have this attribute. 
+
+<DT><I>Pair style tip4p/cut requires newton pair on</I> 
+
+<DD>See the newton command.  This is a restriction to use this potential. 
+
+<DT><I>Pair style tip4p/long requires atom IDs</I> 
+
+<DD>There are no atom IDs defined in the system and the TIP4P potential
+requires them to find O,H atoms with a water molecule. 
+
+<DT><I>Pair style tip4p/long requires atom attribute q</I> 
+
+<DD>The atom style defined does not have these attributes. 
+
+<DT><I>Pair style tip4p/long requires newton pair on</I> 
+
+<DD>This is because the computation of constraint forces within a water
+molecule adds forces to atoms owned by other processors. 
 
 <DT><I>Pair table cutoffs must all be equal to use with KSpace</I> 
 
@@ -6484,9 +7387,9 @@ long-range solver starts at that cutoff.
 
 <DD>Self-explanatory. 
 
-<DT><I>PairKIM only works with 3D problems.</I> 
+<DT><I>PairKIM only works with 3D problems</I> 
 
-<DD>This is a current restriction of this pair style. 
+<DD>This is a current limitation. 
 
 <DT><I>Pair_coeff command before pair_style is defined</I> 
 
@@ -6675,6 +7578,15 @@ cart for the map option.
 
 <DD>Equilibrium spring length is invalid. 
 
+<DT><I>Read dump of atom property that isn't allocated</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Read restart MPI-IO input not allowed with % in filename</I> 
+
+<DD>This is because a % signifies one file per processor and MPI-IO
+creates one large file for all processors. 
+
 <DT><I>Read_dump command before simulation box is defined</I> 
 
 <DD>The read_dump command cannot be used before a read_data, read_restart,
@@ -6689,7 +7601,11 @@ or create_box command.
 <DD>Both the dump snapshot and the current LAMMPS simulation must
 be using either an orthogonal or triclinic box. 
 
-<DT><I>Read_dump x,y,z fields do not have consistent scaling</I> 
+<DT><I>Read_dump xyz fields do not have consistent scaling/wrapping</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Reading from MPI-IO filename when MPIIO package is not installed</I> 
 
 <DD>Self-explanatory. 
 
@@ -6732,6 +7648,10 @@ library and re-build LAMMPS.
 <DD>Self-explanatory. 
 
 <DT><I>Region ID for fix deposit does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Region ID for fix efield does not exist</I> 
 
 <DD>Self-explanatory. 
 
@@ -6794,10 +7714,9 @@ or create_box command.
 to processors.  This is likely due to some atom coordinates being
 outside a non-periodic simulation box. 
 
-<DT><I>Replicated molecular system atom IDs are too big</I> 
+<DT><I>Replicated system atom IDs are too big</I> 
 
-<DD>See the setting for the allowed atom ID size in the src/lmptype.h
-file. 
+<DD>See the setting for tagint in the src/lmptype.h file. 
 
 <DT><I>Replicated system is too big</I> 
 
@@ -6828,6 +7747,45 @@ create_box command.
 
 <DD>The first cutoff must be <= the second cutoff. 
 
+<DT><I>Restart file MPI-IO output not allowed with % in filename</I> 
+
+<DD>This is because a % signifies one file per processor and MPI-IO
+creates one large file for all processors. 
+
+<DT><I>Restart file byte ordering is not recognized</I> 
+
+<DD>The file does not appear to be a LAMMPS restart file since it doesn't
+contain a recognized byte-orderomg flag at the beginning. 
+
+<DT><I>Restart file byte ordering is swapped</I> 
+
+<DD>The file was written on a machine with different byte-ordering than
+the machine you are reading it on.  Convert it to a text data file
+instead, on the machine you wrote it on. 
+
+<DT><I>Restart file incompatible with current version</I> 
+
+<DD>This is probably because you are trying to read a file created with a
+version of LAMMPS that is too old compared to the current version.
+Use your older version of LAMMPS and convert the restart file
+to a data file. 
+
+<DT><I>Restart file is a MPI-IO file</I> 
+
+<DD>The file is inconsistent with the filename you specified for it. 
+
+<DT><I>Restart file is a multi-proc file</I> 
+
+<DD>The file is inconsistent with the filename you specified for it. 
+
+<DT><I>Restart file is not a MPI-IO file</I> 
+
+<DD>The file is inconsistent with the filename you specified for it. 
+
+<DT><I>Restart file is not a multi-proc file</I> 
+
+<DD>The file is inconsistent with the filename you specified for it. 
+
 <DT><I>Restart variable returned a bad timestep</I> 
 
 <DD>The variable must return a timestep greater than the current timestep. 
@@ -6857,6 +7815,10 @@ atom has moved too far.
 <DT><I>Reuse of dump ID</I> 
 
 <DD>A dump ID cannot be used twice. 
+
+<DT><I>Reuse of molecule template ID</I> 
+
+<DD>The template IDs must be unique. 
 
 <DT><I>Reuse of region ID</I> 
 
@@ -6932,6 +7894,14 @@ warning.
 <DD>The set command cannot be used before a read_data, read_restart,
 or create_box command. 
 
+<DT><I>Set command floating point vector does not exist</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Set command integer vector does not exist</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Set command with no atoms existing</I> 
 
 <DD>No atoms are yet defined so the set command cannot be used. 
@@ -6984,9 +7954,17 @@ specified by the fix shake command is numerically invalid.
 <DD>NPT fix must be defined in input script after SHAKE fix, else the
 SHAKE fix contribution to the pressure virial is incorrect. 
 
-<DT><I>Small, tag, big integers are not sized correctly</I> 
+<DT><I>Shear history overflow, boost neigh_modify one</I> 
 
-<DD>See description of these 3 data types in src/lmptype.h. 
+<DD>There are too many neighbors of a single atom.  Use the neigh_modify
+command to increase the max number of neighbors allowed for one atom.
+You may also want to boost the page size. 
+
+<DT><I>Small to big integers are not sized correctly</I> 
+
+<DD>This error occurs whenthe sizes of smallint, imageint, tagint, bigint,
+as defined in src/lmptype.h are not what is expected.  Contact
+the developers if this occurs. 
 
 <DT><I>Smallint setting in lmptype.h is invalid</I> 
 
@@ -7014,6 +7992,18 @@ match the number of processors LAMMPS is being run on.
 
 <DD>Input script line contained a variable that could not be substituted
 for. 
+
+<DT><I>Support for writing images in JPEG format not included</I> 
+
+<DD>LAMMPS was not built with the -DLAMMPS_JPEG switch in the Makefile. 
+
+<DT><I>Support for writing images in PNG format not included</I> 
+
+<DD>LAMMPS was not built with the -DLAMMPS_PNG switch in the Makefile. 
+
+<DT><I>Support for writing movies not included</I> 
+
+<DD>LAMMPS was not built with the -DLAMMPS_FFMPEG switch in the Makefile 
 
 <DT><I>System in data file is too big</I> 
 
@@ -7053,8 +8043,8 @@ fix group.
 
 <DT><I>Tagint setting in lmptype.h is not compatible</I> 
 
-<DD>Smallint stored in restart file is not consistent with LAMMPS version
-you are running. 
+<DD>Format of tagint stored in restart file is not consistent with LAMMPS
+version you are running.  See the settings in src/lmptype.h 
 
 <DT><I>Target temperature for fix nvt/npt/nph cannot be 0.0</I> 
 
@@ -7165,7 +8155,7 @@ temperature (nvt or langevin).
 
 <DT><I>Test_descriptor_string already allocated</I> 
 
-<DD>This should not happen. It likely indicates a bug in the pair_kim implementation. 
+<DD>This is an internal error.  Contact the developers. 
 
 <DT><I>The package gpu command is required for gpu styles</I> 
 
@@ -7229,10 +8219,6 @@ atom-style variables.
 
 <DD>Self-explanatory. 
 
-<DT><I>Thermo keyword in variable requires lattice be defined</I> 
-
-<DD>The xlat, ylat, zlat keywords refer to lattice properties. 
-
 <DT><I>Thermo keyword in variable requires thermo to use/init pe</I> 
 
 <DD>You are using a thermo keyword in a variable that requires
@@ -7250,10 +8236,6 @@ thermo output.
 <DD>You are using a thermo keyword in a variable that requires temperature
 to be calculated, but your thermo output does not use it.  Add it to
 your thermo output. 
-
-<DT><I>Thermo keyword requires lattice be defined</I> 
-
-<DD>The xlat, ylat, zlat keywords refer to lattice properties. 
 
 <DT><I>Thermo style does not use press</I> 
 
@@ -7387,6 +8369,18 @@ machine's floating point representation.
 <DD>The fix shake command cannot list more masses than there are atom
 types. 
 
+<DT><I>Too many molecules for compute</I> 
+
+<DD>The limit is 2^31 = ~2 billion molecules. 
+
+<DT><I>Too many molecules for fix poems</I> 
+
+<DD>The limit is 2^31 = ~2 billion molecules. 
+
+<DT><I>Too many molecules for fix rigid</I> 
+
+<DD>The limit is 2^31 = ~2 billion molecules. 
+
 <DT><I>Too many neighbor bins</I> 
 
 <DD>This is likely due to an immense simulation box that has blown up
@@ -7410,11 +8404,10 @@ for NEB.
 <DD>Table size specified via pair_modify command is too large.  Note that
 a value of N generates a 2^N size table. 
 
-<DT><I>Too many touching neighbors - boost MAXTOUCH</I> 
+<DT><I>Too much buffered per-proc info for dump</I> 
 
-<DD>A granular simulation has too many neighbors touching one atom.  The
-MAXTOUCH parameter in fix_shear_history.cpp must be set larger and
-LAMMPS must be re-built. 
+<DD>The size of the buffered string must fit in a 32-bit integer for a
+dump. 
 
 <DT><I>Too much per-proc info for dump</I> 
 
@@ -7483,6 +8476,18 @@ section.  Something is wrong with the format of the data file.
 
 <DD>A read operation from the file failed. 
 
+<DT><I>Unexpected end of fix rigid/small file</I> 
+
+<DD>A read operation from the file failed. 
+
+<DT><I>Unexpected end of molecule file</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Unexpected end of neb file</I> 
+
+<DD>A read operation from the file failed. 
+
 <DT><I>Units command after simulation box is defined</I> 
 
 <DD>The units command cannot be used after a read_data, read_restart, or
@@ -7504,6 +8509,10 @@ number of processor partitions.
 <DT><I>Unknown identifier in data file: %s</I> 
 
 <DD>A section of the data file cannot be read by LAMMPS. 
+
+<DT><I>Unknown section in molecule file</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Unknown table style in angle style table</I> 
 
@@ -7543,88 +8552,13 @@ valid.
 
 <DD>Only geometric mixing is supported. 
 
-<DT><I>Unsupported mixing rule in kspace_style pppm/disp for pair_style %s</I> 
-
-<DD>Only geometric mixing is supported. 
-
 <DT><I>Unsupported order in kspace_style ewald/disp</I> 
 
-<DD>Only 1/r^6 dispersion terms are supported. 
+<DD>Only 1/r^6 dispersion or dipole terms are supported. 
 
-<DT><I>Unsupported order in kspace_style pppm/disp pair_style %s</I> 
+<DT><I>Unsupported order in kspace_style pppm/disp, pair_style %s</I> 
 
-<DD>Only 1/r^6 dispersion terms are supported. 
-
-<DT><I>Use of change_box with undefined lattice</I> 
-
-<DD>Must use lattice command with displace_box command if units option is
-set to lattice. 
-
-<DT><I>Use of compute temp/ramp with undefined lattice</I> 
-
-<DD>Must use lattice command with compute temp/ramp command if units
-option is set to lattice. 
-
-<DT><I>Use of displace_atoms with undefined lattice</I> 
-
-<DD>Must use lattice command with displace_atoms command if units option
-is set to lattice. 
-
-<DT><I>Use of fix append/atoms with undefined lattice</I> 
-
-<DD>A lattice must be defined before using this fix. 
-
-<DT><I>Use of fix ave/spatial with undefined lattice</I> 
-
-<DD>A lattice must be defined to use fix ave/spatial with units = lattice. 
-
-<DT><I>Use of fix deform with undefined lattice</I> 
-
-<DD>A lattice must be defined to use fix deform with units = lattice. 
-
-<DT><I>Use of fix deposit with undefined lattice</I> 
-
-<DD>Must use lattice command with compute fix deposit command if units
-option is set to lattice. 
-
-<DT><I>Use of fix dt/reset with undefined lattice</I> 
-
-<DD>Must use lattice command with fix dt/reset command if units option is
-set to lattice. 
-
-<DT><I>Use of fix indent with undefined lattice</I> 
-
-<DD>The lattice command must be used to define a lattice before using the
-fix indent command. 
-
-<DT><I>Use of fix move with undefined lattice</I> 
-
-<DD>Must use lattice command with fix move command if units option is
-set to lattice. 
-
-<DT><I>Use of fix recenter with undefined lattice</I> 
-
-<DD>Must use lattice command with fix recenter command if units option is
-set to lattice. 
-
-<DT><I>Use of fix wall with undefined lattice</I> 
-
-<DD>Must use lattice command with fix wall command if units option is set
-to lattice. 
-
-<DT><I>Use of fix wall/piston with undefined lattice</I> 
-
-<DD>A lattice must be defined before using this fix. 
-
-<DT><I>Use of region with undefined lattice</I> 
-
-<DD>If units = lattice (the default) for the region command, then a
-lattice must first be defined via the lattice command. 
-
-<DT><I>Use of velocity with undefined lattice</I> 
-
-<DD>If units = lattice (the default) for the velocity set or velocity ramp
-command, then a lattice must first be defined via the lattice command. 
+<DD>Only pair styles with 1/r and 1/r^6 dependence are currently supported. 
 
 <DT><I>Using fix nvt/sllod with inconsistent fix deform remap option</I> 
 
@@ -7711,7 +8645,7 @@ before the simulation has been setup.
 
 <DT><I>Variable for fix efield is invalid style</I> 
 
-<DD>Only equal-style variables can be used. 
+<DD>The variable must be an equal- or atom-style variable. 
 
 <DT><I>Variable for fix gravity is invalid style</I> 
 
@@ -7785,6 +8719,10 @@ before the simulation has been setup.
 
 <DD>Only equal-style variables can be used. 
 
+<DT><I>Variable for set command is invalid style</I> 
+
+<DD>Only atom-style variables can be used. 
+
 <DT><I>Variable for thermo every is invalid style</I> 
 
 <DD>Only equal-style variables can be used. 
@@ -7792,6 +8730,11 @@ before the simulation has been setup.
 <DT><I>Variable for velocity set is invalid style</I> 
 
 <DD>Only atom-style variables can be used. 
+
+<DT><I>Variable for voronoi radius is not atom style</I> 
+
+<DD>The variable used for this command must be an atom-style variable.
+See the variable command for details. 
 
 <DT><I>Variable formula compute array is accessed out-of-range</I> 
 
@@ -7959,6 +8902,10 @@ longer chains of dependence are also not allowed.
 
 <DD>Self-explanatory. 
 
+<DT><I>Variable name for set command does not exist</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Variable name for thermo every does not exist</I> 
 
 <DD>Self-explanatory. 
@@ -7967,7 +8914,15 @@ longer chains of dependence are also not allowed.
 
 <DD>Self-explanatory. 
 
+<DT><I>Variable name for voronoi radius does not exist</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Variable name must be alphanumeric or underscore characters</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Variable uses atom property that isn't allocated</I> 
 
 <DD>Self-explanatory. 
 
@@ -7984,10 +8939,18 @@ or create_box command.
 
 <DD>Self-explanatory. 
 
+<DT><I>Velocity rigid used with non-rigid fix-ID</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Velocity temperature ID does not compute temperature</I> 
 
 <DD>The compute ID given to the velocity command must compute
 temperature. 
+
+<DT><I>Verlet/split does not yet support TIP4P</I> 
+
+<DD>This is a current limitation. 
 
 <DT><I>Verlet/split requires 2 partitions</I> 
 
@@ -8020,6 +8983,11 @@ variable doc page for ideas on how to make this work.
 
 <DD>Self-explanatory. 
 
+<DT><I>Water H epsilon must be 0.0 for pair style lj/cut/tip4p/cut</I> 
+
+<DD>This is because LAMMPS does not compute the Lennard-Jones interactions
+with these particles for efficiency reasons. 
+
 <DT><I>Water H epsilon must be 0.0 for pair style lj/cut/tip4p/long</I> 
 
 <DD>This is because LAMMPS does not compute the Lennard-Jones interactions
@@ -8035,10 +9003,18 @@ with these particles for efficiency reasons.
 <DD>A world-style variable must specify a number of values equal to the
 number of processor partitions. 
 
+<DT><I>Write_data command before simulation box is defined</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Write_restart command before simulation box is defined</I> 
 
 <DD>The write_restart command cannot be used before a read_data,
 read_restart, or create_box command. 
+
+<DT><I>Writing to MPI-IO filename when MPIIO package is not installed</I> 
+
+<DD>Self-explanatory. 
 
 <DT><I>Zero length rotation vector with displace_atoms</I> 
 
@@ -8063,11 +9039,36 @@ read_restart, or create_box command.
 <DD>The adjust/cutoff command is turned on and the Coulombic cutoff has been
 adjusted to match the user-specified accuracy. 
 
+<DT><I>Angle atoms missing at step %ld</I> 
+
+<DD>One or more of 3 atoms needed to compute a particular angle are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the angle has blown apart and an atom is
+too far away. 
+
 <DT><I>Atom with molecule ID = 0 included in compute molecule group</I> 
 
 <DD>The group used in a compute command that operates on moleclues
 includes atoms with no molecule ID.  This is probably not what you
 want. 
+
+<DT><I>Bond atom missing in box size check</I> 
+
+<DD>The 2nd atoms needed to compute a particular bond is missing on this
+processor.  Typically this is because the pairwise cutoff is set too
+short or the bond has blown apart and an atom is too far away. 
+
+<DT><I>Bond atom missing in image check</I> 
+
+<DD>The 2nd atom in a particular bond is missing on this processor.
+Typically this is because the pairwise cutoff is set too short or the
+bond has blown apart and an atom is too far away. 
+
+<DT><I>Bond atoms missing at step %ld</I> 
+
+<DD>The 2nd atom needed to compute a particular bond is missing on this
+processor.  Typically this is because the pairwise cutoff is set too
+short or the bond has blown apart and an atom is too far away. 
 
 <DT><I>Bond/angle/dihedral extent > half of periodic box length</I> 
 
@@ -8093,6 +9094,11 @@ restriction.
 The solution is to check for building the regular neighbor lists
 more frequently. 
 
+<DT><I>Cannot count rigid body degrees-of-freedom before bodies are fully initialized</I> 
+
+<DD>This means the temperature associated with the rigid bodies may be
+incorrect on this timestep. 
+
 <DT><I>Cannot include log terms without 1/r terms; setting flagHI to 1</I> 
 
 <DD>Self-explanatory. 
@@ -8103,8 +9109,7 @@ more frequently.
 
 <DT><I>Charges are set, but coulombic solver is not used</I> 
 
-<DD>The atom style supports charge, but this KSpace style does not include
-long-range Coulombics. 
+<DD>Self-explanatory. 
 
 <DT><I>Compute cna/atom cutoff may be too large to find ghost atom neighbors</I> 
 
@@ -8123,6 +9128,13 @@ not be accounted for.
 <DD>See the doc page for fix bond/create for more info on this
 restriction. 
 
+<DT><I>Dihedral atoms missing at step %ld</I> 
+
+<DD>One or more of 4 atoms needed to compute a particular dihedral are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the dihedral has blown apart and an atom is
+too far away. 
+
 <DT><I>Dihedral problem: %d %ld %d %d %d %d</I> 
 
 <DD>Conformation of the 4 listed dihedral atoms is extreme; you may want
@@ -8133,9 +9145,13 @@ to check your simulation geometry.
 <DD>If the fix changes the timestep, the dump dcd file will not
 reflect the change. 
 
+<DT><I>Error in splitting of dispersion coeffs is estimated %g%</I> 
+
+<DD>Error is greater than 0.0001 percent. 
+
 <DT><I>Ewald/disp Newton solver failed, using old method to estimate g_ewald</I> 
 
-<DD>Self-explanatory. 
+<DD>Self-explanatory. Choosing a different cutoff value may help. 
 
 <DT><I>FENE bond too long: %ld %d %d %g</I> 
 
@@ -8173,15 +9189,6 @@ of a molecule.
 
 <DD>Other fixes may change the position of the center-of-mass, so
 fix recenter should come last. 
-
-<DT><I>Fix shake with rRESPA computes invalid pressures</I> 
-
-<DD>This is a known bug in LAMMPS that has not yet been fixed.  If you use
-SHAKE with rRESPA and perform a constant volume simulation (e.g. using
-fix npt) this only affects the output pressure, not the dynamics of
-the simulation.  If you use SHAKE with rRESPA and perform a constant
-pressure simulation (e.g. using fix npt) then you will be
-equilibrating to the wrong volume. 
 
 <DT><I>Fix srd SRD moves may trigger frequent reneighboring</I> 
 
@@ -8236,6 +9243,13 @@ feature is disabled by using 'pair_modify table 0'.
 computes a temperature on a different group of atoms than the fix
 itself operates on.  This is probably not what you want to do. 
 
+<DT><I>Improper atoms missing at step %ld</I> 
+
+<DD>One or more of 4 atoms needed to compute a particular improper are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the improper has blown apart and an atom is
+too far away. 
+
 <DT><I>Improper problem: %d %ld %d %d %d %d</I> 
 
 <DD>Conformation of the 4 listed improper atoms is extreme; you may want
@@ -8278,9 +9292,8 @@ grids padded with empty space do not overlap.
 
 <DT><I>Less insertions than requested</I> 
 
-<DD>Less atom insertions occurred on this timestep due to the fix pour
-command than were scheduled.  This is probably because there were too
-many overlaps detected. 
+<DD>The fix pour command was unsuccessful at finding open space
+for as many particles as it tried to insert. 
 
 <DT><I>Library error in lammps_gather_atoms</I> 
 
@@ -8318,13 +9331,44 @@ reneighboring.
 <DD>The temperature computation used by the velocity command will not be
 on the same group of atoms that velocities are being set for. 
 
-<DT><I>Mixing forced for LJ coefficients</I> 
-
-<DD>Self-explanatory. 
-
 <DT><I>Mixing forced for lj coefficients</I> 
 
 <DD>Self-explanatory. 
+
+<DT><I>Molecule attributes do not match system attributes</I> 
+
+<DD>An attribute is specified (e.g. diameter, charge) that is
+not defined for the specified atom style. 
+
+<DT><I>Molecule has bond topology but no special bond settings</I> 
+
+<DD>This means the bonded atoms will not be excluded in pair-wise
+interactions. 
+
+<DT><I>Molecule template for create_atoms has multiple molecules</I> 
+
+<DD>The create_atoms command will only create molecules of a single type,
+i.e. the first molecule in the template. 
+
+<DT><I>Molecule template for fix deposit has multiple molecules</I> 
+
+<DD>The fix deposit command will only create molecules of a single type,
+i.e. the first molecule in the template. 
+
+<DT><I>Molecule template for fix pour has multiple molecules</I> 
+
+<DD>The fix pour command will only create molecules of a single type,
+i.e. the first molecule in the template. 
+
+<DT><I>Molecule template for fix rigid/small has multiple molecules</I> 
+
+<DD>The fix rigid/small command will only recoginze molecules of a single
+type, i.e. the first molecule in the template. 
+
+<DT><I>Molecule template for fix shake has multiple molecules</I> 
+
+<DD>The fix shake command will only recoginze molecules of a single
+type, i.e. the first molecule in the template. 
 
 <DT><I>More than one compute centro/atom</I> 
 
@@ -8409,7 +9453,7 @@ fix rigid.
 <DD>This is most likely an error, unless you have created your own ReaxFF
 parameter file in a different set of units. 
 
-<DT><I>Number of MSM mesh points increased to be a multiple of 2</I> 
+<DT><I>Number of MSM mesh points changed to be a multiple of 2</I> 
 
 <DD>MSM requires that the number of grid points in each direction be a multiple
 of two and the number of grid points in one or more directions have been
@@ -8471,12 +9515,17 @@ may be in the insertion region.
 <DD>This may lead to a larger grid than desired.  See the kspace_modify overlap
 command to prevent changing of the PPPM order. 
 
-<DT><I>Reducing PPPMDisp Coulomb order b/c stencil extends beyond neighbor processor.</I> 
+<DT><I>Reducing PPPM order b/c stencil extends beyond neighbor processor</I> 
 
 <DD>This may lead to a larger grid than desired.  See the kspace_modify overlap
 command to prevent changing of the PPPM order. 
 
-<DT><I>Reducing PPPMDisp Dispersion order b/c stencil extends beyond neighbor processor</I> 
+<DT><I>Reducing PPPMDisp Coulomb order b/c stencil extends beyond neighbor processor</I> 
+
+<DD>This may lead to a larger grid than desired.  See the kspace_modify overlap
+command to prevent changing of the PPPM order. 
+
+<DT><I>Reducing PPPMDisp dispersion order b/c stencil extends beyond neighbor processor</I> 
 
 <DD>This may lead to a larger grid than desired.  See the kspace_modify overlap
 command to prevent changing of the PPPM order. 
@@ -8539,10 +9588,6 @@ you ran on the same # of processors.
 
 <DD>The input script value will override the setting in the restart file. 
 
-<DT><I>Restart file version does not match LAMMPS version</I> 
-
-<DD>This may cause problems when reading the restart file. 
-
 <DT><I>Restrain problem: %d %ld %d %d %d %d</I> 
 
 <DD>Conformation of the 4 listed dihedral atoms is extreme; you may want
@@ -8581,6 +9626,18 @@ will set it to 0.0 and continue.
 
 <DD>LAMMPS allows this, but their dynamics are not computed correctly. 
 
+<DT><I>Should not use fix nve/limit with fix shake</I> 
+
+<DD>This will lead to invalid constraint forces in the SHAKE computation. 
+
+<DT><I>Simulations might be very slow because of large number of structure factors</I> 
+
+<DD>Self-explanatory. 
+
+<DT><I>Slab correction not needed for MSM</I> 
+
+<DD>Slab correction is intended to be used with Ewald or PPPM and is not needed by MSM. 
+
 <DT><I>System is not charge neutral, net charge = %g</I> 
 
 <DD>The total charge on all atoms on the system is not 0.0, which
@@ -8618,6 +9675,11 @@ pressure, the kinetic energy contribution from the temperature is
 assumed to also be for all atoms.  Thus the pressure printed by thermo
 could be inaccurate. 
 
+<DT><I>The minimizer does not re-orient dipoles when using fix efield</I> 
+
+<DD>This means that only the atom coordinates will be minimized,
+not the orientation of the dipoles. 
+
 <DT><I>Too many common neighbors in CNA %d times</I> 
 
 <DD>More than the maximum # of neighbors was found multiple times.  This
@@ -8648,6 +9710,12 @@ LAMMPS simulation may be inefficient as a result.
 
 <DD>Most FENE models need this setting for the special_bonds command. 
 
+<DT><I>Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions</I> 
+
+<DD>This is likely not what you want to do.  The exclusion settings will
+eliminate neighbors in the neighbor list, which the manybody potential
+needs to calculated its terms correctly. 
+
 <DT><I>Using compute temp/deform with inconsistent fix deform remap option</I> 
 
 <DD>Fix nvt/sllod assumes deforming atoms have a velocity profile provided
@@ -8663,11 +9731,15 @@ compute temp/deform in this case.
 <DD>The deformation will heat the SRD particles so this can
 be dangerous. 
 
+<DT><I>Using largest cut-off for lj/long/dipole/long long long</I> 
+
+<DD>Self-explanatory. 
+
 <DT><I>Using largest cutoff for buck/long/coul/long</I> 
 
 <DD>Self-exlanatory. 
 
-<DT><I>Using largest cutoff for pair_style lj/long/coul/long</I> 
+<DT><I>Using largest cutoff for lj/long/coul/long</I> 
 
 <DD>Self-explanatory. 
 

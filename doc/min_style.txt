@@ -64,6 +64,11 @@ a minimization.
 Either the {quickmin} and {fire} styles are useful in the context of
 nudged elastic band (NEB) calculations via the "neb"_neb.html command.
 
+IMPORTANT NOTE: The damped dynamic minimizers use whatever timestep
+you have defined via the "timestep"_timestep.html command.  Often they
+will converge more quickly if you use a timestep about 10x larger than
+you would normally use for dynamics simulations.
+
 IMPORTANT NOTE: The {quickmin} and {fire} styles do not yet support
 the use of the "fix box/relax"_fix_box_relax.html command or
 minimizations involving the electron radius in "eFF"_pair_eff.html

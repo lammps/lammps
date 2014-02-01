@@ -67,7 +67,7 @@ compute		ke all ke/atom
 variable	temp atom c_ke/1.5
 
 fix		2 all ave/spatial 10 100 1000 z lower 0.05 v_temp &
-		  file heat.temp.profile units reduced
+		  file profile.heat units reduced
 
 variable        tdiff equal f_2[11][3]-f_2[1][3]
 fix             ave all ave/time 1 1 1000 v_tdiff ave running start 13000

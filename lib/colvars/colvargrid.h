@@ -661,7 +661,7 @@ public:
 
 
   /// \brief Check that the grid information inside (boundaries,
-  /// widths, ...) is consistent with the one of another grid
+  /// widths, ...) is consistent with that of another grid
   void check_consistency (colvar_grid<T> const &other_grid)
   {
     for (size_t i = 0; i < nd; i++) {

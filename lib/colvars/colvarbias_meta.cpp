@@ -37,8 +37,7 @@ colvarbias_meta::colvarbias_meta (std::string const &conf, char const *key)
     new_hills_begin (hills.end())
 {
   if (cvm::n_abf_biases > 0)
-    cvm::log ("Warning: ABF and metadynamics running at the "
-              "same time can lead to inconsistent results.\n");
+    cvm::log ("Warning: running ABF and metadynamics together is not recommended unless applyBias is off for ABF.\n");
 
   get_keyval (conf, "hillWeight", hill_weight, 0.01);
   if (hill_weight == 0.0)

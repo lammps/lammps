@@ -132,7 +132,7 @@ jump	    in.script loopa :pre
 
 [Restrictions:]
 
-As described above
+As described above.
 
 [Related commands:]
 

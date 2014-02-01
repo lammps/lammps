@@ -1,0 +1,62 @@
+# This is a relatively complex example containing two different types of
+# molecules, and a hybrid of Lennard-Jones and 3-body SW "pair" styles.
+
+import "watmw.lt"
+import "cyclododecane.lt"
+
+write_once("Data Boundary") {
+  0.000000   48.000 xlo xhi
+  0.000000   48.000 ylo yhi
+  0.000000   48.000 zlo zhi
+}
+
+wat = new WatMW [12].move(0, 0, 4.0)
+                [12].move(0, 4.0, 0) 
+                [12].move(4.0, 0, 0)
+
+cyclododecane = new Cyclododecane [4].move(0, 0, 12.0)
+                                  [4].move(0, 12.0, 0)
+                                  [4].move(12.0, 0, 0)
+
+# (Move them by (6.0,6.0,6.0) to avoid overlap with the water.)
+cyclododecane[*][*][*].move(6.0,6.0,6.0)
+
+write_once("In Init") {
+  # -- Tell LAMMPS we want to use two different pair styles 
+  # -- (This overrides earlier settings.)
+  pair_style   hybrid  sw  lj/charmm/coul/charmm 9.0 11.0 9.0 11.0
+}
+
+
+write_once("In Settings") {
+  # -- Now indicate which atom type(s) are simulated using the "sw" pair style 
+  # -- In this case only one of the atom types is used (the mW water "atom").
+
+  pair_coeff    * * sw system.in.sw mW NULL NULL NULL
+
+  # -- Unfortunately LAMMPS itself does not understand molemlate syntax, so
+  # -- the atoms are identified by order in the list, not by name.  (The "mW" 
+  # -- refers to to an identifier in the system.in.sw file, not watmw.lt.)
+  # -- This command says that the first atom type corresponds to the "mW"
+  # -- atom in system.in.sw, and to ignore the remaining three atom types
+  # -- (correspond to the CH2, CH3, CH4 atom types defined in trappe1998.lt.
+  # --  We don't want to use the "sw" force field for interactions involving 
+  # --  these atom types, so we put "NULL" there.)
+  # -- Note: For this to work, you should probably run moltemplate this way:
+  # --     moltemplate.sh -a "@atom:WatMW/mW 1" system.lt
+  # -- This assigns the atom type named @atom:WatMW/mW to 1  (the first atom)
+}
+
+
+
+# -- Somewhere we must eventually define interactions 
+# -- between atoms from different molecule types
+
+write_once("In Settings") {
+  pair_coeff @atom:WatMW/mW @atom:TraPPE/CH2 lj/charmm/coul/charmm 0.11914784667210733 3.558
+  pair_coeff @atom:WatMW/mW @atom:TraPPE/CH3 lj/charmm/coul/charmm 0.17390830404497651 3.458
+  pair_coeff @atom:WatMW/mW @atom:TraPPE/CH4 lj/charmm/coul/charmm 0.21371654257637612 3.448
+}
+
+
+

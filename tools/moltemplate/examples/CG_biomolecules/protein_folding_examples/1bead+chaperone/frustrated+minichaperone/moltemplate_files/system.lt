@@ -1,0 +1,72 @@
+write_once("Data Boundary") {
+  0.0  80.0  xlo xhi
+  0.0  80.0  ylo yhi
+  0.0  80.0  zlo zhi
+}
+
+
+import "1beadFrustrated_variants.lt"
+import "minichaperone.lt"
+
+
+# Create 8 proteins and 8 chaperones (2x2x2 array):
+# NOTE: Below I create multiple proteins and multiple chaperones
+#       to see what would happen. (I suspect nothing good.  In the
+#       2006 paper, only 1 protein and 1 chaperone were present.)
+
+
+proteins   = new 1beadUnfolded [2].move(40,0,0)
+                               [2].move(0,40,0)
+                               [2].move(0,0,40)
+
+chaperones = new Minichaperone [2].move(40,0,0)
+                               [2].move(0,40,0)
+                               [2].move(0,0,40)
+
+proteins[*][*][*].move(20,20,20)  # to avoid overlap with the chaperones
+
+
+
+#    If you only want 1 protein and 1 chaperone
+#    then replace the lines above with:
+#
+# protein   = new 1beadMisfolded
+# chaperone = new Minichaperone
+
+
+
+
+
+# ---- Now define interactions between the atoms in the protein ----
+# ---- (named "B", "L", "N") and the atom which represents the  ----
+# ---- chaperone ("c").  These interactions are tabulated.      ----
+
+write_once("In Settings") {
+  pair_coeff @atom:Minichaperone/C @atom:1beadFrustrated/B  table  table_minichaperone_h=0.6.dat CH_H0.6
+  pair_coeff @atom:Minichaperone/C @atom:1beadFrustrated/L  table  table_minichaperone_h=0.dat   CH_H0
+  pair_coeff @atom:Minichaperone/C @atom:1beadFrustrated/N  table  table_minichaperone_h=0.dat   CH_H0
+}
+
+# Note: If you want purely repulsive spheres (crowding, h=0.0)
+#       instead of an attractive "hydrophobic" chaperone (h=0.6)
+#       then replace "table_minichaperone_h=0_6.dat CH_H0_6"
+#       with "table_minichaperone_h=0.dat CH_H0"
+#       (... or just use an ordinary Lennard-Jones interaction
+#            with sigma = 6.0 and epsilon near 0.0)
+
+
+# LAMMPS has many available force field styles (and atom styles).  Here we
+# select the ones which work well for the full combine system.  (This should 
+# override any settings made in "1beadFrustrated.lt" or "minichaperone.lt")
+
+
+write_once("In Init") {
+  units           lj
+  atom_style      full
+  bond_style      hybrid harmonic
+  angle_style     hybrid harmonic
+  dihedral_style  hybrid table spline 360
+  pair_style      hybrid lj/charmm/coul/charmm/inter es4k4l maxmax 3.5 4.0 table spline 981
+  pair_modify     mix arithmetic
+  special_bonds   lj 0.0 0.0 1.0   #(turn on "1-4" interactions)
+}

@@ -1,3 +1,9 @@
+# PREREQUISITES:
+#
+#     You must use moltemplate.sh to create 3 files:
+#        system.data  system.in.init  system.in.settings
+#     (Follow the instructions in README_setup.sh, or run it using ./README_sh.)
+
 # ------------------------------- Initialization Section --------------------
 
 include         system.in.init
@@ -19,7 +25,7 @@ include         system.in.settings
 #       in general, it's always a good idea to minimize the system beforehand.
 # fShakeTIP3P was defined in system.in.settings. It is incompatible with "minimize".
 unfix         fShakeTIP3P
-minimize 1.0e-5 1.0e-7 100000 400000
+minimize 1.0e-4 1.0e-6 100000 400000
 # Now read "system.in.settings" in order to redefine fShakeTIP3P again:
 include       system.in.settings
 
@@ -29,9 +35,9 @@ include       system.in.settings
 timestep        1.0
 dump            1 all custom 500 traj_npt.lammpstrj id mol type x y z ix iy iz
 fix             fxnpt all npt temp 300.0 300.0 100.0 iso 1.0 1.0 1000.0 drag 1.0
-thermo          500
+thermo          100
 #thermo_modify  flush yes
 
-run             50000
+run             2000
 
-write_restart   system_after_npt.rst
+write_data   system_after_npt.data

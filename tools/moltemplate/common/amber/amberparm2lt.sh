@@ -175,10 +175,20 @@ AMBER_STYLES_INIT=$(cat <<EOF
     angle_style     hybrid harmonic
     dihedral_style  hybrid fourier
     improper_style  hybrid cvff
-    pair_style      hybrid lj/charmm/coul/long 9.0 10.0 10.0
-    kspace_style    pppm 0.0001
-    # If long-range coulombic forces are not needed, replace the previous two
-    # lines with "pair_style hybrid lj/charmm/coul/charmm 9.0 10.0 10.0"
+    pair_style      hybrid lj/charmm/coul/charmm 9.0 10.0
+
+    # NOTE: Long-range coulombic forces were disabled intentionally. (See below)
+    #       If you want to use long-range electrostatics, uncomment these lines:
+    #
+    #pair_style      hybrid lj/charmm/coul/long 9.0 10.0 10.0
+    #kspace_style    pppm 0.0001
+    #
+    # Instead I use hybrid lj/charmm/coul/charmm by default, because
+    # LAMMPS complains if you attempt to use lj/charmm/coul/long on a
+    # system if it does not contain any charged particles.
+    # Currently, moltemplate does not assign atomic charge, 
+    # so this problem occurs frequently.
+
     pair_modify     mix arithmetic
     special_bonds   amber
   }

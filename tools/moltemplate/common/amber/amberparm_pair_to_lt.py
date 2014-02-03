@@ -3,7 +3,18 @@
 import sys
 
 lines_gaff = sys.stdin.readlines()
-pair_style = 'lj/charmm/coul/long'
+
+#pair_style = 'lj/charmm/coul/long'
+
+    # NOTE: Long-range coulombic forces were disabled intentionally. (See below)
+    #       If you want to use long-range electrostatics, uncomment these lines:
+    # Instead I use hybrid lj/charmm/coul/charmm by default, because
+    # LAMMPS complains if you attempt to use lj/charmm/coul/long on a
+    # system if it does not contain any charged particles.
+    # Currently, moltemplate does not assign atomic charge, 
+    # so this problem occurs frequently.
+
+pair_style = 'lj/charmm/coul/charmm'
 
 sys.stdout.write('  write_once(\"In Settings\") {\n')
 

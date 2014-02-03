@@ -12,6 +12,33 @@ cd moltemplate_files
   moltemplate.sh system.lt
 
   # This will generate various files with names ending in *.in* and *.data. 
+
+  # FIX THE PAIR STYLES
+  #    (Sorry, this is messy)
+  #
+  # I was forced to change the default pair-style for AMBER-force-fields (GAFF)
+  # from lj/charmm/coul/long to lj/charmm/coul/charmm.  (This is because
+  # LAMMPS crashes when using lj/charmm/coul/long on a system without any
+  # charged particles, and users were complaining it was moltemplate's fault.
+  # I wish LAMMPS would not do this.)
+  #
+  # Unfortunately, this means that the "Isobutane" molecule (which uses
+  # AMBER's GAFF), and the "TIP3P_2004" molecule now use different pair styles.
+  #
+  # The cleanest way to fix this is to force the two molecules to use
+  # the same pair style.
+  # (Using a hybrid pair_style is not practical because that disables mixing
+  #  rules.  This would force us to add a huge list of pair_coeff commands to
+  #  explain how TIP3P_2004 atoms interact with all of the various GAFF atoms.)
+
+  # Add a line to systems.in.init to override the pair_style.
+  # Change the pair_style to "lj/charmm/coul/long 10.0 10.5 10.5".
+
+  echo "pair_style   hybrid lj/charmm/coul/long 10.0 10.5 10.5" >> system.in.init
+
+  # Then use "sed" to replace "lj/charmm/coul/charmm" with "lj/charmm/coul/long"
+  sed -i 's/lj\/charmm\/coul\/charmm/lj\/charmm\/coul\/long/g' system.in.settings
+
   # These files are the input files directly read by LAMMPS.  Move them to 
   # the parent directory (or wherever you plan to run the simulation).
   #cp -f system.data system.in* ../

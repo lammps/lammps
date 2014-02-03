@@ -147,13 +147,13 @@ from lttree_styles import AtomStyle2ColNames, ColNames2AidAtypeMolid
 
 if sys.version < '2.6':
     raise InputError('Error: Using python '+sys.version+'\n'
-                     '       Alas, you must upgrade to a newever version of python (2.7 or later).')
+                     '       Alas, you must upgrade to a newer version of python (2.6 or later).')
 elif sys.version < '2.7':
     sys.stderr.write('--------------------------------------------------------\n'
                      '----------------- WARNING: OLD PYTHON VERSION ----------\n'
                      '  This program is untested on your python version ('+sys.version+').\n'
                      '  PLEASE LET ME KNOW IF THIS PROGRAM CRASHES (and upgrade python).\n'
-                     '    -Andrew   2012-4-16\n'
+                     '    -Andrew   2013-10-25\n'
                      '--------------------------------------------------------\n'
                      '--------------------------------------------------------\n')
     from ordereddict import OrderedDict

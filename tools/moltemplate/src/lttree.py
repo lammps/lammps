@@ -665,8 +665,8 @@ if __name__ == "__main__":
     #######  Main Code Below: #######
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')
     sys.stderr.write('\n(python version '+str(sys.version)+')\n')
-    if sys.version < '2.7':
-        raise InputError('Error: Alas, you must upgrade to a newever version of python.')
+    if sys.version < '2.6':
+        raise InputError('Error: Alas, you must upgrade to a newer version of python.')
 
     try:
 

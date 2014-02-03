@@ -1,4 +1,4 @@
-#    This is the January 2013 version of gaff from AmberTools13.
+#    This is the January 2013 version of GAFF (from AmberTools13).
 ####################################################################
 # To use this, LAMMPS currently must be compiled with the USER-MISC package.
 # (Type "make yes-user-misc" into the shell before compiling LAMMPS.)
@@ -115,77 +115,77 @@ GAFF {
   } # (end of masses)
 
   write_once("In Settings") {
-    pair_coeff @atom:h1 @atom:h1 lj/charmm/coul/long 0.0157 1.3870   # Veenstra et al JCC,8,(1992),963
-    pair_coeff @atom:h2 @atom:h2 lj/charmm/coul/long 0.0157 1.2870   # Veenstra et al JCC,8,(1992),963
-    pair_coeff @atom:h3 @atom:h3 lj/charmm/coul/long 0.0157 1.1870   # Veenstra et al JCC,8,(1992),963
-    pair_coeff @atom:h4 @atom:h4 lj/charmm/coul/long 0.0150 1.4090   # Spellmeyer, one electrowithdr. neighbor
-    pair_coeff @atom:h5 @atom:h5 lj/charmm/coul/long 0.0150 1.3590   # Spellmeyer, two electrowithdr. neighbor
-    pair_coeff @atom:ha @atom:ha lj/charmm/coul/long 0.0150 1.4590   # Spellmeyer
-    pair_coeff @atom:hc @atom:hc lj/charmm/coul/long 0.0157 1.4870   # OPLS
-    pair_coeff @atom:hn @atom:hn lj/charmm/coul/long 0.0157 0.6000   # !Ferguson base pair geom.
-    pair_coeff @atom:ho @atom:ho lj/charmm/coul/long 0.0000 0.0000   # OPLS Jorgensen, JACS,110,(1988),1657
-    pair_coeff @atom:hp @atom:hp lj/charmm/coul/long 0.0157 0.6000   # same to hs (be careful !)
-    pair_coeff @atom:hs @atom:hs lj/charmm/coul/long 0.0157 0.6000   # W. Cornell CH3SH --> CH3OH FEP
-    pair_coeff @atom:hw @atom:hw lj/charmm/coul/long 0.0000 0.0000   # OPLS Jorgensen, JACS,110,(1988),1657
-    pair_coeff @atom:hx @atom:hx lj/charmm/coul/long 0.0157 1.1000   # Veenstra et al JCC,8,(1992),963
-    pair_coeff @atom:o @atom:o lj/charmm/coul/long 0.2100 1.6612   # OPLS
-    pair_coeff @atom:oh @atom:oh lj/charmm/coul/long 0.2104 1.7210   # OPLS
-    pair_coeff @atom:os @atom:os lj/charmm/coul/long 0.1700 1.6837   # OPLS ether
-    pair_coeff @atom:ow @atom:ow lj/charmm/coul/long 0.1520 1.7683   # TIP3P water model
-    pair_coeff @atom:c @atom:c lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:c1 @atom:c1 lj/charmm/coul/long 0.2100 1.9080   # cp C DLM 11/2007 well depth from OPLS replacing 0.0860
-    pair_coeff @atom:c2 @atom:c2 lj/charmm/coul/long 0.0860 1.9080   # sp2 atom in the middle of C=CD-CD=C
-    pair_coeff @atom:c3 @atom:c3 lj/charmm/coul/long 0.1094 1.9080   # OPLS
-    pair_coeff @atom:ca @atom:ca lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cc @atom:cc lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cd @atom:cd lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:ce @atom:ce lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cf @atom:cf lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cg @atom:cg lj/charmm/coul/long 0.2100 1.9080   # DLM 12/2007 as c1
-    pair_coeff @atom:ch @atom:ch lj/charmm/coul/long 0.2100 1.9080   # DLM 12/2007 as c1
-    pair_coeff @atom:cp @atom:cp lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cq @atom:cq lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cu @atom:cu lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cv @atom:cv lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cx @atom:cx lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cy @atom:cy lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cz @atom:cz lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:n @atom:n lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:n1 @atom:n1 lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:n2 @atom:n2 lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:n3 @atom:n3 lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:n4 @atom:n4 lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:na @atom:na lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:nb @atom:nb lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:nc @atom:nc lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:nd @atom:nd lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:ne @atom:ne lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:nf @atom:nf lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:nh @atom:nh lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:no @atom:no lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:s @atom:s lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:s2 @atom:s2 lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:s4 @atom:s4 lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:s6 @atom:s6 lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:sx @atom:sx lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:sy @atom:sy lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:sh @atom:sh lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:ss @atom:ss lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:p2 @atom:p2 lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:p3 @atom:p3 lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:p4 @atom:p4 lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:p5 @atom:p5 lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:pb @atom:pb lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:pc @atom:pc lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:pd @atom:pd lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:pe @atom:pe lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:pf @atom:pf lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:px @atom:px lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:py @atom:py lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:f @atom:f lj/charmm/coul/long 0.061 1.75   # Gough et al. JCC 13,(1992),963.
-    pair_coeff @atom:cl @atom:cl lj/charmm/coul/long 0.265 1.948   # Fox, JPCB,102,8070,(98),flex.mdl CHCl3
-    pair_coeff @atom:br @atom:br lj/charmm/coul/long 0.420 2.02   # Junmei, 2010
-    pair_coeff @atom:i @atom:i lj/charmm/coul/long 0.50 2.15   # Junmei, 2010
+    pair_coeff @atom:h1 @atom:h1 lj/charmm/coul/charmm 0.0157 1.3870   # Veenstra et al JCC,8,(1992),963
+    pair_coeff @atom:h2 @atom:h2 lj/charmm/coul/charmm 0.0157 1.2870   # Veenstra et al JCC,8,(1992),963
+    pair_coeff @atom:h3 @atom:h3 lj/charmm/coul/charmm 0.0157 1.1870   # Veenstra et al JCC,8,(1992),963
+    pair_coeff @atom:h4 @atom:h4 lj/charmm/coul/charmm 0.0150 1.4090   # Spellmeyer, one electrowithdr. neighbor
+    pair_coeff @atom:h5 @atom:h5 lj/charmm/coul/charmm 0.0150 1.3590   # Spellmeyer, two electrowithdr. neighbor
+    pair_coeff @atom:ha @atom:ha lj/charmm/coul/charmm 0.0150 1.4590   # Spellmeyer
+    pair_coeff @atom:hc @atom:hc lj/charmm/coul/charmm 0.0157 1.4870   # OPLS
+    pair_coeff @atom:hn @atom:hn lj/charmm/coul/charmm 0.0157 0.6000   # !Ferguson base pair geom.
+    pair_coeff @atom:ho @atom:ho lj/charmm/coul/charmm 0.0000 0.0000   # OPLS Jorgensen, JACS,110,(1988),1657
+    pair_coeff @atom:hp @atom:hp lj/charmm/coul/charmm 0.0157 0.6000   # same to hs (be careful !)
+    pair_coeff @atom:hs @atom:hs lj/charmm/coul/charmm 0.0157 0.6000   # W. Cornell CH3SH --> CH3OH FEP
+    pair_coeff @atom:hw @atom:hw lj/charmm/coul/charmm 0.0000 0.0000   # OPLS Jorgensen, JACS,110,(1988),1657
+    pair_coeff @atom:hx @atom:hx lj/charmm/coul/charmm 0.0157 1.1000   # Veenstra et al JCC,8,(1992),963
+    pair_coeff @atom:o @atom:o lj/charmm/coul/charmm 0.2100 1.6612   # OPLS
+    pair_coeff @atom:oh @atom:oh lj/charmm/coul/charmm 0.2104 1.7210   # OPLS
+    pair_coeff @atom:os @atom:os lj/charmm/coul/charmm 0.1700 1.6837   # OPLS ether
+    pair_coeff @atom:ow @atom:ow lj/charmm/coul/charmm 0.1520 1.7683   # TIP3P water model
+    pair_coeff @atom:c @atom:c lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:c1 @atom:c1 lj/charmm/coul/charmm 0.2100 1.9080   # cp C DLM 11/2007 well depth from OPLS replacing 0.0860
+    pair_coeff @atom:c2 @atom:c2 lj/charmm/coul/charmm 0.0860 1.9080   # sp2 atom in the middle of C=CD-CD=C
+    pair_coeff @atom:c3 @atom:c3 lj/charmm/coul/charmm 0.1094 1.9080   # OPLS
+    pair_coeff @atom:ca @atom:ca lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:cc @atom:cc lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:cd @atom:cd lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:ce @atom:ce lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:cf @atom:cf lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:cg @atom:cg lj/charmm/coul/charmm 0.2100 1.9080   # DLM 12/2007 as c1
+    pair_coeff @atom:ch @atom:ch lj/charmm/coul/charmm 0.2100 1.9080   # DLM 12/2007 as c1
+    pair_coeff @atom:cp @atom:cp lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:cq @atom:cq lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:cu @atom:cu lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:cv @atom:cv lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:cx @atom:cx lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:cy @atom:cy lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:cz @atom:cz lj/charmm/coul/charmm 0.0860 1.9080   # OPLS
+    pair_coeff @atom:n @atom:n lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:n1 @atom:n1 lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:n2 @atom:n2 lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:n3 @atom:n3 lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:n4 @atom:n4 lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:na @atom:na lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:nb @atom:nb lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:nc @atom:nc lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:nd @atom:nd lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:ne @atom:ne lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:nf @atom:nf lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:nh @atom:nh lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:no @atom:no lj/charmm/coul/charmm 0.1700 1.8240   # OPLS
+    pair_coeff @atom:s @atom:s lj/charmm/coul/charmm 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:s2 @atom:s2 lj/charmm/coul/charmm 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:s4 @atom:s4 lj/charmm/coul/charmm 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:s6 @atom:s6 lj/charmm/coul/charmm 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:sx @atom:sx lj/charmm/coul/charmm 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:sy @atom:sy lj/charmm/coul/charmm 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:sh @atom:sh lj/charmm/coul/charmm 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:ss @atom:ss lj/charmm/coul/charmm 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:p2 @atom:p2 lj/charmm/coul/charmm 0.2000 2.1000   # JCC,7,(1986),230;
+    pair_coeff @atom:p3 @atom:p3 lj/charmm/coul/charmm 0.2000 2.1000   # JCC,7,(1986),230;
+    pair_coeff @atom:p4 @atom:p4 lj/charmm/coul/charmm 0.2000 2.1000   # JCC,7,(1986),230;
+    pair_coeff @atom:p5 @atom:p5 lj/charmm/coul/charmm 0.2000 2.1000   # JCC,7,(1986),230;
+    pair_coeff @atom:pb @atom:pb lj/charmm/coul/charmm 0.2000 2.1000   # JCC,7,(1986),230;
+    pair_coeff @atom:pc @atom:pc lj/charmm/coul/charmm 0.2000 2.1000   # JCC,7,(1986),230;
+    pair_coeff @atom:pd @atom:pd lj/charmm/coul/charmm 0.2000 2.1000   # JCC,7,(1986),230;
+    pair_coeff @atom:pe @atom:pe lj/charmm/coul/charmm 0.2000 2.1000   # JCC,7,(1986),230;
+    pair_coeff @atom:pf @atom:pf lj/charmm/coul/charmm 0.2000 2.1000   # JCC,7,(1986),230;
+    pair_coeff @atom:px @atom:px lj/charmm/coul/charmm 0.2000 2.1000   # JCC,7,(1986),230;
+    pair_coeff @atom:py @atom:py lj/charmm/coul/charmm 0.2000 2.1000   # JCC,7,(1986),230;
+    pair_coeff @atom:f @atom:f lj/charmm/coul/charmm 0.061 1.75   # Gough et al. JCC 13,(1992),963.
+    pair_coeff @atom:cl @atom:cl lj/charmm/coul/charmm 0.265 1.948   # Fox, JPCB,102,8070,(98),flex.mdl CHCl3
+    pair_coeff @atom:br @atom:br lj/charmm/coul/charmm 0.420 2.02   # Junmei, 2010
+    pair_coeff @atom:i @atom:i lj/charmm/coul/charmm 0.50 2.15   # Junmei, 2010
   } # (end of pair_coeffs)
 
   write_once("In Settings") {
@@ -11370,10 +11370,20 @@ GAFF {
     angle_style     hybrid harmonic
     dihedral_style  hybrid fourier
     improper_style  hybrid cvff
-    pair_style      hybrid lj/charmm/coul/long 9.0 10.0 10.0
-    kspace_style    pppm 0.0001
-    # If long-range coulombic forces are not needed, replace the previous two
-    # lines with "pair_style hybrid lj/charmm/coul/charmm 9.0 10.0 10.0"
+    pair_style      hybrid lj/charmm/coul/charmm 9.0 10.0
+
+    # NOTE: Long-range coulombic forces were disabled intentionally. (See below)
+    #       If you want to use long-range electrostatics, uncomment these lines:
+    #
+    #pair_style      hybrid lj/charmm/coul/long 9.0 10.0 10.0
+    #kspace_style    pppm 0.0001
+    #
+    # Instead I use hybrid lj/charmm/coul/charmm by default, because
+    # LAMMPS complains if you attempt to use lj/charmm/coul/long on a
+    # system if it does not contain any charged particles.
+    # Currently, moltemplate does not assign atomic charge, 
+    # so this problem occurs frequently.
+
     pair_modify     mix arithmetic
     special_bonds   amber
   }

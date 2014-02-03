@@ -15,7 +15,6 @@
 
 import sys
 lines_orig = []
-in_stream = sys.stdin
 f = None
 fname = None
 num_lines_ignore = 0
@@ -97,17 +96,17 @@ while i < len(lines_orig):
                 if len(pair_style_list) > 0:
                     if ((pair_style_list[0] == 'hybrid') or 
                         (pair_style_list[0] == 'hybrid/overlay')):
-                        if ((tokens[5] == 'i') and (tokens[3][0:6]=='hbond/')):
+                        if ((len(tokens) > 5) and (tokens[5] == 'i') and (tokens[3][0:6]=='hbond/')):
                             tokens[5] = 'j'
                             sys.stderr.write('  (and replaced \"i\" with \"j\")\n')
-                        elif ((tokens[5] == 'j') and (tokens[3][0:6]=='hbond/')):
+                        elif ((len(tokens) > 5) and (tokens[5] == 'j') and (tokens[3][0:6]=='hbond/')):
                             tokens[5] = 'i'
                             sys.stderr.write('  (and replaced \"j\" with \"i\")\n')
                     elif (pair_style_list[0][0:6] == 'hbond/'):
-                        if (tokens[4] == 'i'):
+                        if ((len(tokens) > 4) and (tokens[4] == 'i')):
                             tokens[4] = 'j'
                             sys.stderr.write('  (and replaced \"i\" with \"j\")\n')
-                        elif (tokens[4] == 'j'):
+                        elif ((len(tokens) > 4) and (tokens[4] == 'j')):
                             tokens[4] = 'i'
                             sys.stderr.write('  (and replaced \"j\" with \"i\")\n')
 

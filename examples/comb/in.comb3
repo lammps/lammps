@@ -23,7 +23,7 @@ neigh_modify	every 1 delay 0 check yes
 #dump_modify   	1 element O Cu H C C
 
 fix             1 all nve
-fix             2 all qeq/comb 10 1e-3 file fq.out
+fix             2 all qeq/comb 10 31e-3 file fq.out
 
 timestep        0.00020
 

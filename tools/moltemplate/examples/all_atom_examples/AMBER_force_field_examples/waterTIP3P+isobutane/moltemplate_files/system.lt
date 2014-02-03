@@ -29,3 +29,4 @@ isobutane = new Isobutane [4].move(0, 0, 10.35)
 
 # move the isobutane molecules slightly to reduce overlap with the water
 isobutane[*][*][*].move(1.725, 1.725, 1.725)
+

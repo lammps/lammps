@@ -1,0 +1,44 @@
+
+import "alkanes.lt"   # <-- Defines the atoms and force-field used for Alkanes
+
+
+CH2 inherits Alkanes {
+
+  # atom-id  mol-id atom-type charge  x       y              z
+
+  write("Data Atoms") {
+    $atom:C  $mol:... @atom:c3 0.00 0.00 0.000              0.000
+    $atom:H1 $mol:... @atom:h1 0.00 0.00 0.6310438442242609 0.8924307629540046
+    $atom:H2 $mol:... @atom:h1 0.00 0.00 0.6310438442242609 -0.8924307629540046
+  }
+
+  #  Note: The "..." in "$mol:..." tells moltemplate that this molecule may
+  #        be a part of a larger molecule, and (if so) to use the larger
+  #        parent object's molecule id number as it's own.
+  #        The CH2 group is part of the Hexadecane molecule.
+
+  # Now specify which pairs of atoms are bonded:
+  # bond-id   bond-type   atom-id1  atom-id2
+
+  write('Data Bonds') {
+    $bond:b1 @bond:CH  $atom:C $atom:H1
+    $bond:b2 @bond:CH  $atom:C $atom:H2
+  }
+
+} # CH2
+
+
+
+
+
+######### (scratchwork calculations for the atomic coordinates) #########
+# Lcc = 1.5350 # length of the C-C bond (Sp3)
+# Lch = 1.0930 # length of the C-H bond
+# theta=2*atan(sqrt(2)) # ~= 109.5 degrees = tetrahedronal angle (C-C-C angle)
+# DeltaXc = Lcc*sin(theta/2)  # = 1.2533222517240594
+# DeltaYc = Lcc*cos(theta/2)  # = 0.8862326632060754
+#                             # 0.5*DeltaYc = 0.4431163316030377
+# DeltaZh = Lch*sin(theta/2)  # = 0.8924307629540046
+# DeltaYh = Lch*cos(theta/2)  # = 0.6310438442242609
+
+

@@ -12,7 +12,7 @@ A reference DATA file is needed (argument).
    (This extract last frame, uses "full" atom_style.)
 
    options:
-./dump2data.py [-time t -atomstyle style] orig.data < dump.lammpstrj > new.data
+./dump2data.py [-t t -atomstyle style] orig.data < dump.lammpstrj > new.data
 
 """
 
@@ -397,6 +397,7 @@ def ParseArgs(argv,
             misc_settings.timestep_str = argv[i+1]
             del(argv[i:i+2])
             misc_settings.multi = False
+            misc_settings.last_frame = False
 
         elif (argv[i].lower() == '-tstart'):
             if ((i+1 >= len(argv)) or (not str.isdigit(argv[i+1]))):
@@ -440,8 +441,6 @@ def ParseArgs(argv,
             del(argv[i:i+1])
 
         elif (argv[i].lower() == '-multi'):
-            # This is usually not necessary for the user
-            # because "-multi" is on by default
             misc_settings.multi = True
             del(argv[i:i+1])
 
@@ -468,7 +467,7 @@ def ParseArgs(argv,
 dump2data.py orig_file.data < dump.lammpstrj > new_file.data
       (This extracts last frame, uses "full" atom_style.)
     Additional options:
-dump2data.py -time t -atomstyle style orig.data < dump.lammpstrj > new.data
+dump2data.py -t t -atomstyle style orig.data < dump.lammpstrj > new.data
 """
 
     #if __name__ == "__main__":
@@ -749,8 +748,8 @@ def WriteFrameToData(out_file,
 if __name__ == "__main__":
 
     g_program_name = 'dump2data.py'
-    g_date_str     = '2013-9-19'
-    g_version_str  = 'v0.42'
+    g_date_str     = '2013-10-30'
+    g_version_str  = 'v0.43'
 
     #######  Main Code Below: #######
     sys.stderr.write(g_program_name+' '+g_version_str+' '+g_date_str+' ')
@@ -1218,7 +1217,7 @@ if __name__ == "__main__":
                         # and replace appropriate lines or fields with
                         # the corresponding text from the DUMP file.
                         descr_str = 'LAMMPS data from timestep '+frame_timestep_str
-                        if misc_settings.multi:
+                        if misc_settings.multi and (misc_settings.output_format == 'data'):
                             out_file_name = data_settings.file_name + '.'\
                                 + str(num_frames_out)
                             sys.stderr.write('  (creating file \"'+out_file_name+'\")\n')

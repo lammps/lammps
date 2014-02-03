@@ -219,8 +219,7 @@ no-%:
 # overwrite = overwrite package files with newer src files
 # diff = show differences between src and package files
 
-package-status:
-ps:
+package-status ps:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p status; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p status; done

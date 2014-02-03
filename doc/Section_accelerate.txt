@@ -211,8 +211,8 @@ make machine :pre
 If your input script uses one of the OPT pair styles,
 you can run it as follows:
 
-lmp_machine -sf opt < in.script
-mpirun -np 4 lmp_machine -sf opt < in.script :pre
+lmp_machine -sf opt -in in.script
+mpirun -np 4 lmp_machine -sf opt -in in.script :pre
 
 You should see a reduction in the "Pair time" printed out at the end
 of the run.  On most machines and problems, this will typically be a 5

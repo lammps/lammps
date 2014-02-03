@@ -147,7 +147,7 @@ abf_integrate:
 MC-based integration of multidimensional free energy gradient
 Version 20110511
 
-Syntax: ./abf_integrate &lt;filename&gt; \[-n &lt;nsteps&gt;\] \[-t &lt;temp&gt;\] \[-m \[0|1\] (metadynamics)\] \[-h &lt;hill_height&gt;\] \[-f &lt;variable_hill_factor&gt;\] :pre
+Syntax: ./abf_integrate < filename > \[-n < nsteps >\] \[-t < temp >\] \[-m \[0|1\] (metadynamics)\] \[-h < hill_height >\] \[-f < variable_hill_factor >\] :pre
 
 :line
 

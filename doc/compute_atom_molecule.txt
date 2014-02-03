@@ -26,7 +26,7 @@ input = c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
 [Examples:]
 
 compute 1 all atom/molecule c_ke c_pe
-compute 1 top atom/molecule v_myFormula c_stress[3] :pre
+compute 1 top atom/molecule v_myFormula c_stress\[3\] :pre
 
 [Description:]
 

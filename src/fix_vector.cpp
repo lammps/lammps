@@ -123,41 +123,34 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   // this fix produces either a global vector or array
   // intensive/extensive flags set by compute,fix,variable that produces value
 
-  global_freq = nevery;
+  int value,finalvalue;
+  for (int i = 0; i < nvalues; i++) {
+    if (which[i] == COMPUTE) {
+      Compute *compute = modify->compute[modify->find_compute(ids[i])];
+      if (argindex[0] == 0) value = compute->extscalar;
+      else if (compute->extvector >= 0) value = compute->extvector;
+      else value = compute->extlist[argindex[0]-1];
+    } else if (which[i] == FIX) {
+      Fix *fix = modify->fix[modify->find_fix(ids[i])];
+      if (argindex[i] == 0) value = fix->extvector;
+      else value = fix->extarray;
+    } else if (which[i] == VARIABLE) value = 0;
+    if (i == 0) finalvalue = value;
+    else if (value != finalvalue)
+      error->all(FLERR,"Fix vector cannot set output array "
+                 "intensive/extensive from these inputs");
+  }
 
   if (nvalues == 1) {
     vector_flag = 1;
-    if (which[0] == COMPUTE) {
-      Compute *compute = modify->compute[modify->find_compute(ids[0])];
-      if (argindex[0] == 0) extvector = compute->extvector;
-      else if (compute->extvector >= 0) extvector = compute->extvector;
-      else extvector = compute->extlist[argindex[0]-1];
-    } else if (which[0] == FIX) {
-      Fix *fix = modify->fix[modify->find_fix(ids[0])];
-      if (argindex[0] == 0) extvector = fix->extvector;
-      else if (fix->extvector >= 0) extvector = fix->extvector;
-      else extvector = fix->extlist[argindex[0]-1];
-    } else if (which[0] == VARIABLE)
-      extvector = 0;
-
+    extvector = finalvalue;
   } else {
+    array_flag = 1;
     size_array_cols = nvalues;
-    extarray = -1;
-    for (int i = 0; i < nvalues; i++) {
-      if (which[i] == COMPUTE) {
-        Compute *compute = modify->compute[modify->find_compute(ids[i])];
-        if (argindex[i] == 0) extlist[i] = compute->extscalar;
-        else if (compute->extvector >= 0) extlist[i] = compute->extvector;
-        else extlist[i] = compute->extlist[argindex[i]-1];
-      } else if (which[i] == FIX) {
-        Fix *fix = modify->fix[modify->find_fix(ids[i])];
-        if (argindex[i] == 0) extlist[i] = fix->extscalar;
-        else if (fix->extvector >= 0) extlist[i] = fix->extvector;
-        else extlist[i] = fix->extlist[argindex[i]-1];
-      } else if (which[i] == VARIABLE)
-        extlist[i] = 0;
-    }
+    extarray = finalvalue;
   }
+
+  global_freq = nevery;
 
   // ncount = current size of vector or array
 

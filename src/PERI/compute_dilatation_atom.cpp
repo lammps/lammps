@@ -12,17 +12,21 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mike Parks (SNL)
+   Contributing author: Rezwanur Rahman, John Foster (UTSA)
 ------------------------------------------------------------------------- */
 
 #include "string.h"
-#include "compute_damage_atom.h"
+#include "compute_dilatation_atom.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "comm.h"
 #include "force.h"
+#include "pair.h"
+#include "pair_peri_lps.h"
 #include "pair_peri_pmb.h"
+#include "pair_peri_ves.h"
+#include "pair_peri_eps.h"
 #include "fix_peri_neigh.h"
 #include "memory.h"
 #include "error.h"
@@ -31,99 +35,92 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeDamageAtom::ComputeDamageAtom(LAMMPS *lmp, int narg, char **arg) :
+ComputeDilatationAtom::
+ComputeDilatationAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute damage/atom command");
+  if (narg != 3) error->all(FLERR,"Illegal compute Dilatation/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
 
   nmax = 0;
-  damage = NULL;
+  dilatation = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
-ComputeDamageAtom::~ComputeDamageAtom()
+ComputeDilatationAtom::~ComputeDilatationAtom()
 {
-  memory->destroy(damage);
+  memory->destroy(dilatation);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeDamageAtom::init()
+void ComputeDilatationAtom::init()
 {
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"damage/peri") == 0) count++;
+    if (strcmp(modify->compute[i]->style,"dilatation/peri") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute damage/atom");
+    error->warning(FLERR,"More than one compute dilatation/atom");
+
+  // check PD pair style
+
+  isPMB = isLPS = isVES = isEPS = 0;
+  if (force->pair_match("peri/pmb",1)) isPMB = 1;
+  if (force->pair_match("peri/lps",1)) isLPS = 1;
+  if (force->pair_match("peri/ves",1)) isVES = 1;
+  if (force->pair_match("peri/eps",1)) isEPS = 1;
+  
+  if (isPMB) 
+    error->all(FLERR,"Compute dilatation/atom cannot be used "
+               "with this pair style");
 
   // find associated PERI_NEIGH fix that must exist
 
-  ifix_peri = -1;
+  int ifix_peri = -1;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
   if (ifix_peri == -1)
-    error->all(FLERR,"Compute damage/atom requires peridynamic potential");
+    error->all(FLERR,"Compute dilatation/atom requires Peridynamic pair style");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeDamageAtom::compute_peratom()
+void ComputeDilatationAtom::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
 
-  // grow damage array if necessary
+  // grow dilatation array if necessary
 
   if (atom->nlocal > nmax) {
-    memory->destroy(damage);
+    memory->destroy(dilatation);
     nmax = atom->nmax;
-    memory->create(damage,nmax,"damage/atom:damage");
-    vector_atom = damage;
+    memory->create(dilatation,nmax,"dilatation/atom:dilatation");
+    vector_atom = dilatation;
   }
 
-  // compute damage for each atom in group
+  // extract dilatation for each atom in group
 
-  int nlocal = atom->nlocal;
+  double *theta;
+  Pair *anypair = force->pair_match("peri",0);
+  if (isLPS) theta = ((PairPeriLPS *) anypair)->theta;
+  if (isVES) theta = ((PairPeriVES *) anypair)->theta;
+  if (isEPS) theta = ((PairPeriEPS *) anypair)->theta;
+
   int *mask = atom->mask;
-  double *vfrac = atom->vfrac;
-  double *vinter = ((FixPeriNeigh *) modify->fix[ifix_peri])->vinter;
-  tagint **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
-  int *npartner = ((FixPeriNeigh *) modify->fix[ifix_peri])->npartner;
-  int i,j,jj,jnum;
+  int nlocal = atom->nlocal;
 
-  double damage_temp;
-
-  for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      jnum = npartner[i];
-      damage_temp = 0.0;
-      for (jj = 0; jj < jnum; jj++) {
-        if (partner[i][jj] == 0) continue;
-        
-        // look up local index of this partner particle
-        // skip if particle is "lost"
-        
-        j = atom->map(partner[i][jj]);
-        if (j < 0) continue;
-        
-        damage_temp += vfrac[j];
-      }
-
-      if (vinter[i] != 0.0) damage[i] = 1.0 - damage_temp/vinter[i];
-      else damage[i] = 0.0;
-
-    } else damage[i] = 0.0;
-  }
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) dilatation[i] = theta[i];
 }
 
 /* ----------------------------------------------------------------------
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-double ComputeDamageAtom::memory_usage()
+double ComputeDilatationAtom::memory_usage()
 {
   double bytes = nmax * sizeof(double);
   return bytes;

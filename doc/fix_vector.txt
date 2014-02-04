@@ -1,0 +1,148 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix vector command :h3
+
+[Syntax:]
+
+fix ID group-ID vector Nevery value1 value2 ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+ave/time = style name of this fix command :l
+Nevery = use input values every this many timesteps :l
+one or more input values can be listed :l
+value = c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
+  c_ID = global scalar calculated by a compute with ID
+  c_ID\[I\] = Ith component of global vector calculated by a compute with ID
+  f_ID = global scalar calculated by a fix with ID
+  f_ID\[I\] = Ith component of global vector calculated by a fix with ID
+  v_name = global value calculated by an equal-style variable with name :pre
+:ule
+
+[Examples:]
+
+fix 1 all vector 100 c_myTemp
+fix 1 all vector 5 c_myTemp v_integral :pre
+
+[Description:]
+
+Use one or more global values as inputs every few timesteps, and
+simply store them.  For a single specified value, the values are
+stored as a global vector of growing length For multiple specified
+values, they are stored as rows in a global array, whose number of
+rows is growing.  The resulting vector or array can be used by other
+"output commands"_Section_howto.html#howto_15.
+
+One way to to use this command is to accumulate a vector that is
+time-integrated using the "variable trap()"_variable.html function.
+For example the velocity auto-correlation function (VACF) can be
+time-integrated, to yield a diffusion coefficient, as follows:
+
+compute         2 all vacf
+fix             5 all vector 1 c_2[4]
+variable        diff equal dt*trap(f_5)
+thermo_style    custom step v_diff :pre
+
+The group specified with this command is ignored.  However, note that
+specified values may represent calculations performed by computes and
+fixes which store their own "group" definitions.
+
+Each listed value can be the result of a "compute"_compute.html or
+"fix"_fix.html or the evaluation of an equal-style
+"variable"_variable.html.  In each case, the compute, fix, or variable
+must produce a global quantity, not a per-atom or local quantity.
+And the global quantity must be a scalar, not a vector or array.
+
+"Computes"_compute.html that produce global quantities are those which
+do not have the word {atom} in their style name.  Only a few
+"fixes"_fix.html produce global quantities.  See the doc pages for
+individual fixes for info on which ones produce such values.
+"Variables"_variable.html of style {equal} are the only ones that can
+be used with this fix.  Variables of style {atom} cannot be used,
+since they produce per-atom values.
+
+The {Nevery} argument specifies on what timesteps the input values
+will be used in order to be stored.  Only timesteps that a multiple
+of {Nevery}, including timestep 0, will contribute values.
+
+:line
+
+If a value begins with "c_", a compute ID must follow which has been
+previously defined in the input script.  If no bracketed term is
+appended, the global scalar calculated by the compute is used.  If a
+bracketed term is appended, the Ith element of the global vector
+calculated by the compute is used.
+
+Note that there is a "compute reduce"_compute_reduce.html command
+which can sum per-atom quantities into a global scalar or vector which
+can thus be accessed by fix vector.  Or it can be a compute defined
+not in your input script, but by "thermodynamic
+output"_thermo_style.html or other fixes such as "fix nvt"_fix_nh.html
+or "fix temp/rescale"_fix_temp_rescale.html.  See the doc pages for
+these commands which give the IDs of these computes.  Users can also
+write code for their own compute styles and "add them to
+LAMMPS"_Section_modify.html.
+
+If a value begins with "f_", a fix ID must follow which has been
+previously defined in the input script.  If no bracketed term is
+appended, the global scalar calculated by the fix is used.  If a
+bracketed term is appended, the Ith element of the global vector
+calculated by the fix is used.
+
+Note that some fixes only produce their values on certain timesteps,
+which must be compatible with {Nevery}, else an error will result.
+Users can also write code for their own fix styles and "add them to
+LAMMPS"_Section_modify.html.
+
+If a value begins with "v_", a variable name must follow which has
+been previously defined in the input script.  Only equal-style
+variables can be referenced.  See the "variable"_variable.html command
+for details.  Note that variables of style {equal} define a formula
+which can reference individual atom properties or thermodynamic
+keywords, or they can invoke other computes, fixes, or variables when
+they are evaluated, so this is a very general means of specifying
+quantities to be stored by fix vector.
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.
+
+This fix produces a global vector or global array which can be
+accessed by various "output commands"_Section_howto.html#howto_15.
+The values can only be accessed on timesteps that are multiples of
+{Nevery}.
+
+A vector is produced if only a single input value is specified.
+An array is produced if multiple input values are specified.
+The length of the vector or the number of rows in the array grows
+by 1 every {Nevery} timesteps.
+
+If the fix prouduces a vector, then the entire vector will be either
+"intensive" or "extensive", depending on whether the values stored in
+the vector are "intensive" or "extensive".  If the fix produces an
+array, then all elements in the array must be the same, either
+"intensive" or "extensive".  If a compute or fix provides the value
+stored, then the compute or fix determines whether the value is
+intensive or extensive; see the doc page for that compute or fix for
+further info.  Values produced by a variable are treated as intensive.
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute"_compute.html, "variable"_variable.html
+
+[Default:] none

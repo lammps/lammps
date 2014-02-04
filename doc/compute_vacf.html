@@ -39,8 +39,14 @@ is the total VACF, i.e. (vx*vx0 + vy*vy0 + vz*vz0), summed and
 averaged over atoms in the group.
 </P>
 <P>The integral of the VACF versus time is proportional to the diffusion
-coefficient of the diffusing atoms.
+coefficient of the diffusing atoms.  This can be computed in the
+following manner, using the <A HREF = "variable.html">variable trap()</A> function:
 </P>
+<PRE>compute         2 all vacf
+fix             5 all vector 1 c_2<B>4</B>
+variable        diff equal dt*trap(f_5)
+thermo_style    custom step v_diff 
+</PRE>
 <P>IMPORTANT NOTE: If you want the quantities calculated by this compute
 to be continuous when running from a <A HREF = "read_restart.html">restart file</A>,
 then you should use the same ID for this compute, as in the original

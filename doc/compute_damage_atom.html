@@ -25,13 +25,22 @@
 <P><B>Description:</B>
 </P>
 <P>Define a computation that calculates the per-atom damage for each atom
-in a group.  Please see the <A HREF = "http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf">PDLAMMPS user
+in a group.  This is a quantity relevant for <A HREF = "pair_peri.html">Peridynamics
+models</A>.
+</P>
+<P>The "damage" of a Peridymaics particles is based on the bond breakage
+between the particle and its neighbors.  If all the bonds are broken
+the particle is considered to be fully damaged.
+</P>
+<P>See the <A HREF = "http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf">PDLAMMPS user
 guide</A> for a formal
 definition of "damage" and more details about Peridynamics as it is
 implemented in LAMMPS.
 </P>
-<P>The value of the damage will be 0.0 for atoms not in the specified
-compute group.
+<P>This command can be used with all the Peridynamic pair styles.
+</P>
+<P>The damage value will be 0.0 for atoms not in the specified compute
+group.
 </P>
 <P><B>Output info:</B>
 </P>
@@ -40,8 +49,7 @@ any command that uses per-atom values from a compute as input.  See
 <A HREF = "Section_howto.html#howto_15">Section_howto 15</A> for an overview of
 LAMMPS output options.
 </P>
-<P>The per-atom vector values will be a number >= 0.0, as explained
-above.
+<P>The per-atom vector values are unitlesss numbers (damage) >= 0.0.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -51,7 +59,8 @@ LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "dump.html">dump custom</A>
+<P><A HREF = "compute_dilatation.html">compute dilatation</A>, <A HREF = "compute_plasticity.html">compute
+plasticity</A>
 </P>
 <P><B>Default:</B> none
 </P>

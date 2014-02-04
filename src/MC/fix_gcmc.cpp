@@ -1164,6 +1164,7 @@ void FixGCMC::get_model_molecule()
   double com[3]; 
   gas_mass = group->mass(0);
   group->xcm(0,gas_mass,com);
+  gas_mass /= comm->nprocs;
 
   double **x = atom->x;  
   for (int i = 0; i < nlocal; i++) {

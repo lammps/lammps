@@ -50,7 +50,7 @@ help:
 	@echo 'make install-python      install LAMMPS wrapper in Python'
 	@echo ''
 	@echo 'make package             list available packages'
-	@echo 'make package-status      status of all packages'
+	@echo 'make package-status (ps) status of all packages'
 	@echo 'make yes-package         install a single package in src dir'
 	@echo 'make no-package          remove a single package from src dir'
 	@echo 'make yes-all             install all packages in src dir'
@@ -61,9 +61,9 @@ help:
 	@echo 'make no-user             remove all user packages'
 	@echo 'make no-lib              remove all packages with external libs'
 	@echo ''
-	@echo 'make package-update      replace src files with package files'
+	@echo 'make package-update (pu) replace src files with updated package files'
 	@echo 'make package-overwrite   replace package files with src files'
-	@echo 'make package-diff        diff src files against package files'
+	@echo 'make package-diff (pd)   diff src files against package files'
 	@echo ''
 	@echo 'make machine             build LAMMPS where machine is one of:'
 	@echo ''
@@ -159,9 +159,9 @@ package:
 	@echo 'make no-user             remove all user packages'
 	@echo 'make no-lib              remove all packages with external libs'
 	@echo ''
-	@echo 'make package-update      replace src files with package files'
+	@echo 'make package-update (pu) replace src files with package files'
 	@echo 'make package-overwrite   replace package files with src files'
-	@echo 'make package-diff        diff src files against package file'
+	@echo 'make package-diff (pd)   diff src files against package file'
 
 # backward compatibility
 yes-user-openmp no-user-openmp:
@@ -229,7 +229,7 @@ package-status ps:
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p status; done
 
-package-update:
+package-update pu:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p update; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p update; done
@@ -239,7 +239,7 @@ package-overwrite:
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p overwrite; done
 
-package-diff:
+package-diff pd:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p diff; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p diff; done

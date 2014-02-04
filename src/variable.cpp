@@ -64,7 +64,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
 
 // customize by adding a special function
 
-enum{SUM,XMIN,XMAX,AVE,TRAP,NEXT};
+enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE,NEXT};
 
 #define INVOKED_SCALAR 1
 #define INVOKED_VECTOR 2
@@ -3109,18 +3109,22 @@ int Variable::region_function(char *id)
    contents = str between parentheses with one,two,three args
    return 0 if not a match, 1 if successfully processed
    customize by adding a special function:
-     sum(x),min(x),max(x),ave(x),trap(x),gmask(x),rmask(x),grmask(x,y),next(x)
+     sum(x),min(x),max(x),ave(x),trap(x),slope(x),
+     gmask(x),rmask(x),grmask(x,y),next(x)
 ------------------------------------------------------------------------- */
 
 int Variable::special_function(char *word, char *contents, Tree **tree,
                                Tree **treestack, int &ntreestack,
                                double *argstack, int &nargstack)
 {
+  double value,xvalue,sx,sy,sxx,sxy;
+
   // word not a match to any special function
 
   if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") &&
-      strcmp(word,"ave") && strcmp(word,"trap") && strcmp(word,"gmask") &&
-      strcmp(word,"rmask") && strcmp(word,"grmask") && strcmp(word,"next"))
+      strcmp(word,"ave") && strcmp(word,"trap") && strcmp(word,"slope") &&
+      strcmp(word,"gmask") && strcmp(word,"rmask") && 
+      strcmp(word,"grmask") && strcmp(word,"next"))
     return 0;
 
   // parse contents for arg1,arg2,arg3 separated by commas
@@ -3157,7 +3161,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
   if (strcmp(word,"sum") == 0 || strcmp(word,"min") == 0 ||
       strcmp(word,"max") == 0 || strcmp(word,"ave") == 0 ||
-      strcmp(word,"trap") == 0) {
+      strcmp(word,"trap") == 0 || strcmp(word,"slope") == 0) {
 
     int method;
     if (strcmp(word,"sum") == 0) method = SUM;
@@ -3165,6 +3169,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     else if (strcmp(word,"max") == 0) method = XMAX;
     else if (strcmp(word,"ave") == 0) method = AVE;
     else if (strcmp(word,"trap") == 0) method = TRAP;
+    else if (strcmp(word,"slope") == 0) method = SLOPE;
 
     if (narg != 1) 
       error->all(FLERR,"Invalid special function in variable formula");
@@ -3240,7 +3245,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     } else error->all(FLERR,"Invalid special function in variable formula");
 
-    double value = 0.0;
+    value = 0.0;
+    if (method == SLOPE) sx = sy = sxx = sxy = 0.0;
     if (method == XMIN) value = BIG;
     if (method == XMAX) value = -BIG;
 
@@ -3258,6 +3264,14 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == XMAX) value = MAX(value,vec[j]);
         else if (method == AVE) value += vec[j];
         else if (method == TRAP) value += vec[j];
+        else if (method == SLOPE) {
+          if (nvec > 1) xvalue = (double) i / (nvec-1);
+          else xvalue = 0.0;
+          sx += xvalue;
+          sy += vec[j];
+          sxx += xvalue*xvalue;
+          sxy += xvalue*vec[j];
+        }
         j += nstride;
       }
       if (method == TRAP) value -= 0.5*vec[0] + 0.5*vec[nvec-1];
@@ -3273,6 +3287,14 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == XMAX) value = MAX(value,one);
         else if (method == AVE) value += one;
         else if (method == TRAP) value += one;
+        else if (method == SLOPE) {
+          if (nvec > 1) xvalue = (double) i / (nvec-1);
+          else xvalue = 0.0;
+          sx += xvalue;
+          sy += one;
+          sxx += xvalue*xvalue;
+          sxy += xvalue*one;
+        }
       }
       if (method == TRAP) {
         if (index) value -= 0.5*fix->compute_array(0,index-1) + 
@@ -3283,6 +3305,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     }
 
     if (method == AVE) value /= nvec;
+
+    if (method == SLOPE) {
+      double numerator = sxy - sx*sy;
+      double denominator = sxx - sx*sx;
+      if (denominator != 0.0) value = numerator/denominator / nvec;
+      else value = BIG;
+    }
 
     // save value in tree or on argstack
 

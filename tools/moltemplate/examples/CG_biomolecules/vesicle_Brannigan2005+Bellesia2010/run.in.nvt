@@ -22,15 +22,9 @@ include         system.in.init
 #
 # read_data       system.data
 #
-# Instead read the restart file created by "run.in.min".
+# Instead read the data file created by "run.in.min".
 
-read_restart    system_after_min.rst
-
-# WARNING: Unfortunately the LAMMPS "read_restart" command has been undependable
-# over the past year (2012).  If this fails, then just move the minimization
-# steps in run.in.min into this script (into the "Run Section").
-# Alternately, try to extract the last frame of the dump file created
-# by run.in.min using "read_dump", "dump2data.py", and/or "restart2data".
+read_data    system_after_min.data
 
 # ------------------------------- Settings Section --------------------------
 
@@ -39,8 +33,7 @@ include         system.in.settings
 # ------------------------------- Run Section -------------------------------
 
 # Just in case the previous minimization failed, try again.
-# (I don't know why this would help, but sometimes loading
-#  up the restart file and trying again does help.  Magic.)
+# (I don't know why this helps, but sometimes it does.  Magic.)
 
 minimize 1.0e-5 1.0e-7 5000 20000
 
@@ -66,5 +59,5 @@ fix fxnve all nve
 
 run           1000000
 
-write_restart system_after_nvt.rst
+write_data system_after_nvt.data
 

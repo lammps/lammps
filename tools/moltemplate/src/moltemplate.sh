@@ -7,8 +7,8 @@
 # All rights reserved.
 
 G_PROGRAM_NAME="moltemplate.sh"
-G_VERSION="1.14"
-G_DATE="2013-10-08"
+G_VERSION="1.17"
+G_DATE="2013-12-23"
 
 echo "${G_PROGRAM_NAME} v${G_VERSION} ${G_DATE}" >&2
 echo "" >&2
@@ -53,7 +53,7 @@ ERR_BAD_INSTALL()
 
 ERR_INTERNAL()
 {
-  echo "  --- Possible internal error. ---" >&2
+  echo "    !!!!!!   Possible internal error  !!!!!!" >&2
   echo "This could be a bug in moltemplate." >&2
   echo "Please report this error." >&2
   echo "(And please include the last few lines of moltemplate output preceeding this.)" >&2
@@ -367,7 +367,7 @@ while [ "$i" -lt "$ARGC" ]; do
     elif [ "$A" == "-overlay-angles" ]; then
         # In that case, do not remove duplicate angle interactions
         unset REMOVE_DUPLICATE_ANGLES
-    elif [ "$A" == "-overlay-dihdedrals" ]; then
+    elif [ "$A" == "-overlay-dihedrals" ]; then
         # In that case, do not remove duplicate dihedral interactions
         unset REMOVE_DUPLICATE_DIHEDRALS
     elif [ "$A" == "-overlay-impropers" ]; then
@@ -571,6 +571,8 @@ while [ "$i" -lt "$ARGC" ]; do
         fi
     fi
 done
+
+
 
 
 OUT_FILE_INPUT_SCRIPT="${OUT_FILE_BASE}.in"
@@ -1715,7 +1717,9 @@ echo "" > input_scripts_so_far.tmp
 for file_name in "$OUT_FILE_INIT" "$OUT_FILE_INPUT_SCRIPT" "$OUT_FILE_SETTINGS"; do
     if [ -s "$file_name" ]; then
         echo "postprocessing file \"$file_name\"" >&2
-        $PYTHON_COMMAND "${SCRIPT_DIR}/postprocess_input_script.py" input_scripts_so_far.tmp < "$file_name" > "$file_name".tmp
+        if ! $PYTHON_COMMAND "${SCRIPT_DIR}/postprocess_input_script.py" input_scripts_so_far.tmp < "$file_name" > "$file_name".tmp; then
+            ERR_INTERNAL
+	fi
         echo "" >&2
         mv "$file_name".tmp "$file_name"
         #cat "$file_name" >> input_scripts_so_far.tmp
@@ -1727,7 +1731,9 @@ done
 
 ls "${in_prefix}"* 2> /dev/null | while read file_name; do
     echo "postprocessing file \"$file_name\"" >&2
-    $PYTHON_COMMAND "${SCRIPT_DIR}/postprocess_input_script.py" input_scripts_so_far.tmp < "$file_name" > "$file_name".tmp
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/postprocess_input_script.py" input_scripts_so_far.tmp < "$file_name" > "$file_name".tmp; then
+        ERR_INTERNAL
+    fi
     echo "" >&2
     mv "$file_name".tmp "$file_name"
     cat "$file_name" >> input_scripts_so_far.tmp

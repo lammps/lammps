@@ -323,7 +323,7 @@ void PairComb3::read_lib()
     FILE *fp =  fopen("lib.comb3","r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open COMB3 C library file");
+      sprintf(str,"Cannot open COMB3 C library file \n");
       error->one(FLERR,str);
     }
 
@@ -750,17 +750,17 @@ void PairComb3::read_file(char *file)
     params[nparams].pcnb = atof(words[59]);
     params[nparams].pcnc = atof(words[60]);
     params[nparams].pcnd = atof(words[61]);
-    params[nparams].plp1 = atof(words[62]);
-    params[nparams].plp2 = atof(words[63]);
-    params[nparams].plp3 = atof(words[64]);
-    params[nparams].plp4 = atof(words[65]);
-    params[nparams].plp5 = atof(words[66]);
-    params[nparams].plp6 = atof(words[67]);
-    params[nparams].addrep = atof(words[68]);
-    params[nparams].pbb1=atof(words[69]);
-    params[nparams].pbb2=atof(words[70]);
-    params[nparams].ptork1=atof(words[71]);
-    params[nparams].ptork2=atof(words[72]);
+    params[nparams].p6p0 = atof(words[62]);
+    params[nparams].p6p1 = atof(words[63]);
+    params[nparams].p6p2 = atof(words[64]);
+    params[nparams].p6p3 = atof(words[65]);
+    params[nparams].p6p4 = atof(words[66]);
+    params[nparams].p6p5 = atof(words[67]);
+    params[nparams].p6p6 = atof(words[68]);
+    params[nparams].ptork1=atof(words[69]);
+    params[nparams].ptork2=atof(words[70]);
+    params[nparams].addrepr=atof(words[71]);
+    params[nparams].addrep=atof(words[72]);
     params[nparams].pcross = atof(words[73]);
     params[nparams].powermint = int(params[nparams].powerm);
 
@@ -774,7 +774,7 @@ void PairComb3::read_file(char *file)
 	params[nparams].bigr < 0.0 || params[nparams].bigd < 0.0 ||
 	params[nparams].bigd > params[nparams].bigr ||
 	params[nparams].powerm - params[nparams].powermint != 0.0 ||
-	params[nparams].addrep < 0.0 || params[nparams].powermint < 1.0 ||
+	params[nparams].addrepr < 0.0 || params[nparams].powermint < 1.0 ||
 	params[nparams].QL > 0.0 || params[nparams].QU < 0.0 || 
 	params[nparams].DL < 0.0 || params[nparams].DU > 0.0 ||
 	params[nparams].pcross < 0.0 || 
@@ -860,11 +860,12 @@ void PairComb3::Short_neigh()
   int n,nj,*neighptrj,icontrol;
   int iparam_ij,iparam_ji,iparam_jk,*ilist,*jlist,*numneigh,**firstneigh;
   int inum,jnum,i,j,k,l,ii,jj,kk,ll,itype,jtype,ktype,ltype;
-  tagint itag,jtag;
+  tagint itag, jtag;
   double rr1,rr2,rsq1,rsq2,delrj[3],delrk[3];
   int sht_knum,*sht_klist;
 
   double **x = atom->x;
+  tagint *tag  = atom->tag;
   int *type  = atom->type;
   int ntype = atom->ntypes;
   int nlocal = atom->nlocal;
@@ -895,6 +896,7 @@ void PairComb3::Short_neigh()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    itag = tag[i];
     dpl[i][0] = dpl[i][1] = dpl[i][2] = 0.0;
 
     nj = 0;
@@ -911,6 +913,7 @@ void PairComb3::Short_neigh()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      jtag = tag[j];
 
       delrj[0] = x[i][0] - x[j][0];
       delrj[1] = x[i][1] - x[j][1];
@@ -960,15 +963,15 @@ void PairComb3::compute(int eflag, int vflag)
   int sht_jnum,*sht_jlist,sht_lnum,*sht_llist;
   int sht_mnum,*sht_mlist,sht_pnum,*sht_plist;
   int *ilist,*jlist,*numneigh,**firstneigh,mr1,mr2,mr3,inty,nj;
-  tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double rr,rsq,rsq1,rsq2,rsq3,iq,jq,yaself;
   double fqi,fqij,eng_tmp,vionij,fvionij,sr1,sr2,sr3; 
   double zeta_ij,prefac_ij1,prefac_ij2,prefac_ij3,prefac_ij4,prefac_ij5;
   double zeta_ji,prefac_ji1,prefac_ji2,prefac_ji3,prefac_ji4,prefac_ji5;
   double delrj[3],delrk[3],delri[3],fi[3],fj[3],fk[3],fl[3];
-  double elp_ij,elp_ji,filp[3],fjlp[3],fklp[3],fllp[3];
+  double ep6p_ij,ep6p_ji,fip6p[3],fjp6p[3],fkp6p[3],flp6p[3];
   double potal,fac11,fac11e;
+  tagint itag, jtag;
   
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -1332,7 +1335,7 @@ void PairComb3::compute(int eflag, int vflag)
 	 eflag, eng_tmp, iq, jq, i, j, nj, bbtor, kconjug, lconjug);
 
       evdwl = eng_tmp;
-      selflp(&params[iparam_ij],&params[iparam_ji],rsq1,eng_tmp,fpair);
+      selfp6p(&params[iparam_ij],&params[iparam_ji],rsq1,eng_tmp,fpair);
 
       evdwl += eng_tmp;
       f[i][0] += delrj[0]*fpair;
@@ -1371,14 +1374,14 @@ void PairComb3::compute(int eflag, int vflag)
 		prefac_ij1, prefac_ij2, prefac_ij3, prefac_ij4, prefac_ij5,
 		rsq1,rsq2,delrj,delrk,fi,fj,fk,i,xcn);
 
-	elp_ij = elp(&params[iparam_ijk],&params[iparam_ikj],rsq1,rsq2,delrj,delrk,zet_addi);
-	flp(&params[iparam_ijk],&params[iparam_ikj],rsq1,rsq2,delrj,delrk,filp,fjlp,fklp); 
+	ep6p_ij = ep6p(&params[iparam_ijk],&params[iparam_ikj],rsq1,rsq2,delrj,delrk,zet_addi);
+	fp6p(&params[iparam_ijk],&params[iparam_ikj],rsq1,rsq2,delrj,delrk,fip6p,fjp6p,fkp6p); 
 
 	// Sums up i-j-k forces: LP contribution
 	for (im = 0; im < 3; im++) {
-	  fi[im] += filp[im];
-	  fj[im] += fjlp[im];
-	  fk[im] += fklp[im];
+	  fi[im] += fip6p[im];
+	  fj[im] += fjp6p[im];
+	  fk[im] += fkp6p[im];
 	}
 
 	// Sums up i-j-k forces: Tallies into global force vector
@@ -1465,7 +1468,7 @@ void PairComb3::compute(int eflag, int vflag)
 	}
 
         if (evflag) 
-	  ev_tally(i,j,nlocal,newton_pair,elp_ij,0.0,0.0,0.0,0.0,0.0);
+	  ev_tally(i,j,nlocal,newton_pair,ep6p_ij,0.0,0.0,0.0,0.0,0.0);
 	if (vflag_atom)
 	  v_tally3(i,j,k,fj,fk,delrj,delrk);
 
@@ -1500,17 +1503,17 @@ void PairComb3::compute(int eflag, int vflag)
 		rsq1,rsq2,delrl,delrk,fj,fi,fl,j,ycn);
 
 	// BO-independent 3-body j-i-l LP and BB correction and forces
-	elp_ji = elp(&params[iparam_jil],&params[iparam_jli],rsq1,rsq2,delrl,delrk,zet_addj);
-	flp(&params[iparam_jil],&params[iparam_jli],rsq1,rsq2,delrl,delrk,fjlp,filp,fllp); 
+	ep6p_ji = ep6p(&params[iparam_jil],&params[iparam_jli],rsq1,rsq2,delrl,delrk,zet_addj);
+	fp6p(&params[iparam_jil],&params[iparam_jli],rsq1,rsq2,delrl,delrk,fjp6p,fip6p,flp6p); 
 
         if (evflag) 
-	  ev_tally(j,i,nlocal,newton_pair,elp_ji,0.0,0.0,0.0,0.0,0.0);
+	  ev_tally(j,i,nlocal,newton_pair,ep6p_ji,0.0,0.0,0.0,0.0,0.0);
 
 	// BO-dependent 3-body E & F
 	for (im = 0; im < 3; im++) {
-	  fj[im] += fjlp[im];
-	  fi[im] += filp[im];
-	  fl[im] += fllp[im];
+	  fj[im] += fjp6p[im];
+	  fi[im] += fip6p[im];
+	  fl[im] += flp6p[im];
 	}
 
 	// Sums up j-i-l forces: Tallies into global force vector
@@ -1583,6 +1586,7 @@ void PairComb3::repulsive(Param *parami, Param *paramj, double rsq,
 
   double romi = parami->addrep;
   double rrcs = parami->bigr + parami->bigd;
+  double addr = parami->addrepr;
 
   r = sqrt(rsq);
   if (r > rrcs) return ;
@@ -1605,9 +1609,9 @@ void PairComb3::repulsive(Param *parami, Param *paramj, double rsq,
   // additional repulsion 
 
   vrcs = 1.0; fvrcs = 0.0;
-  if (romi > 0.0) { 
-    vrcs += romi * pow((1.0-r/rrcs),2.0);
-    fvrcs = romi * 2.0 * (r/rrcs-1.0)/rrcs; 
+  if (romi != 0.0 && r < addr) { 
+    vrcs += romi * pow((1.0-r/addr),2.0);
+    fvrcs = romi * 2.0 * (r/addr-1.0)/addr; 
     fforce = fforce*vrcs - caj * tmp_fc * vrcs * fvrcs;
   }
   fforce /= r;
@@ -1639,7 +1643,7 @@ double PairComb3::zeta(Param *parami, Param *paramj, double rsqij,
 
 /* ---------------------------------------------------------------------- */
 
-void PairComb3::selflp(Param *parami, Param *paramj, double rsq, 
+void PairComb3::selfp6p(Param *parami, Param *paramj, double rsq, 
 	double &eng, double &force)
 {
   double r,comtti,comttj,fcj,fcj_d;
@@ -1650,21 +1654,15 @@ void PairComb3::selflp(Param *parami, Param *paramj, double rsq,
   fcj_d=comb_fc_d(r,parami);
   comtti = comttj = 0.0;
 
-  if (fabs(parami->plp1) > 1.0e-6 || fabs(parami->plp2) > 1.0e-6 
-   || fabs(parami->plp3) > 1.0e-6 || fabs(parami->plp4) > 1.0e-6 
-   || fabs(parami->plp5) > 1.0e-6 || fabs(parami->plp6) > 1.0e-6 )  {
-    double pilp1 = parami->plp1, pilp2 = parami->plp2, pilp3 = parami->plp3;
-    double pilp4 = parami->plp4, pilp5 = parami->plp5, pilp6 = parami->plp6;
-    comtti = pilp1 + pilp2 + pilp3 + pilp4 + pilp5 + pilp6;
-  }
+    double pilp0 = parami->p6p0;
+    double pilp1 = parami->p6p1, pilp2 = parami->p6p2, pilp3 = parami->p6p3;
+    double pilp4 = parami->p6p4, pilp5 = parami->p6p5, pilp6 = parami->p6p6;
+    comtti = pilp0 + pilp1 + pilp2 + pilp3 + pilp4 + pilp5 + pilp6;
 
-  if (fabs(paramj->plp1) > 1.0e-6 || fabs(paramj->plp2) > 1.0e-6
-   || fabs(paramj->plp3) > 1.0e-6 || fabs(paramj->plp4) > 1.0e-6
-   || fabs(paramj->plp5) > 1.0e-6 || fabs(paramj->plp6) > 1.0e-6) {
-    double pjlp1 = paramj->plp1, pjlp2 = paramj->plp2, pjlp3 = paramj->plp3;
-    double pjlp4 = paramj->plp4, pjlp5 = paramj->plp5, pjlp6 = paramj->plp6;
-    comttj = pjlp1 + pjlp2 + pjlp3 + pjlp4 + pjlp5 + pjlp6;
-  }
+    double pjlp0 = paramj->p6p0;
+    double pjlp1 = paramj->p6p1, pjlp2 = paramj->p6p2, pjlp3 = paramj->p6p3;
+    double pjlp4 = paramj->p6p4, pjlp5 = paramj->p6p5, pjlp6 = paramj->p6p6;
+    comttj = pjlp0 + pjlp1 + pjlp2 + pjlp3 + pjlp4 + pjlp5 + pjlp6;
 
   eng = 0.5 * fcj * (comtti + comttj);
   force += 0.5 * fcj_d * (comtti + comttj)/r;
@@ -1672,79 +1670,56 @@ void PairComb3::selflp(Param *parami, Param *paramj, double rsq,
 
 /* ---------------------------------------------------------------------- */
 
-double PairComb3::elp(Param *paramj, Param *paramk, double rsqij, double rsqik,
+double PairComb3::ep6p(Param *paramj, Param *paramk, double rsqij, double rsqik,
 		     double *delrij, double *delrik , double &zet_add)
 {
-  int con_flag, plp_flag;
-  con_flag = plp_flag = 0;
-  if (fabs(paramj->pbb2) > 1.0e-6) con_flag = 1;
-  if (fabs(paramj->plp1) > 1.0e-6 || fabs(paramj->plp2) > 1.0e-6 
-   || fabs(paramj->plp3) > 1.0e-6 || fabs(paramj->plp4) > 1.0e-6
-   || fabs(paramj->plp5) > 1.0e-6 || fabs(paramj->plp6) > 1.0e-6 )
-      plp_flag = 1;
-
-  if(con_flag || plp_flag) {
-    double rij,rik,costheta,lp1,lp2,lp3,lp4,lp5,lp6;
-    double rmu,rmu2,rmu3,rmu4,rmu5,rmu6,comtt,fcj,fck,fcj_d;
-    double pplp1 = paramj->plp1, pplp2 = paramj->plp2, pplp3 = paramj->plp3;
-    double pplp4 = paramj->plp4, pplp5 = paramj->plp5, pplp6 = paramj->plp6;
-    
+  double comtt;
+  double pplp0 = paramj->p6p0;
+  double pplp1 = paramj->p6p1, pplp2 = paramj->p6p2, pplp3 = paramj->p6p3;
+  double pplp4 = paramj->p6p4, pplp5 = paramj->p6p5, pplp6 = paramj->p6p6;
+  double rij,rik,costheta,lp0,lp1,lp2,lp3,lp4,lp5,lp6;
+  double rmu,rmu2,rmu3,rmu4,rmu5,rmu6,fcj,fck,fcj_d;
+    comtt=0.0;
     rij = sqrt(rsqij);
     rik = sqrt(rsqik);
     costheta = vec3_dot(delrij,delrik) / (rij*rik);
     fcj = comb_fc(rij,paramj);
     fcj_d = comb_fc_d(rij,paramj);
     fck = comb_fc(rik,paramk);
+
     rmu = costheta; 
-
-    // Legendre Polynomial functions
-    if (plp_flag) {
-      rmu2 = rmu *rmu; rmu3 = rmu2*rmu; rmu4 = rmu3*rmu;
-      rmu5 = rmu4*rmu; rmu6 = rmu5*rmu;
-      lp1 = pplp1*rmu;
-      lp2 = pplp2*0.5*(3.0*rmu2-1.0);
-      lp3 = pplp3*0.5*(5.0*rmu3-3.0*rmu);
-      lp4 = pplp4*(35.0*rmu4-30.0*rmu2+3.0)/8.0;
-      lp5 = pplp5*(63.0*rmu5-70.0*rmu3+15.0*rmu)/8.0;
-      lp6 = pplp6*(231.0*rmu6-315.0*rmu4+105.0*rmu2-5.0)/16.0;
-      comtt = lp1 + lp2 + lp3 + lp4 + lp5 + lp6;
-    }
-    else {comtt = 0.0;}
-    
-    // bond-bending terms
-    
-    if (con_flag) {
-      double c123 = paramj->pbb1;
-      comtt += paramj->pbb2 *(rmu-c123)*(rmu-c123);
-    }
-
+    rmu2 = rmu *rmu; rmu3 = rmu2*rmu; rmu4 = rmu3*rmu;
+    rmu5 = rmu4*rmu; rmu6 = rmu5*rmu;
+    lp0 = pplp0;
+    lp1 = pplp1*rmu;
+    lp2 = pplp2*rmu2;
+    lp3 = pplp3*rmu3;
+    lp4 = pplp4*rmu4;
+    lp5 = pplp5*rmu5;
+    lp6 = pplp6*rmu6;
+    comtt = lp0 + lp1 + lp2 + lp3 + lp4 + lp5 + lp6;
     return 0.5 * fck * comtt *fcj;
   }
-  return 0.0;
-}
 
 /*---------------------------------------------------------------------- */
 
-void PairComb3::flp(Param *paramij,Param *paramik, double rsqij, double rsqik,
+void PairComb3::fp6p(Param *paramij,Param *paramik, double rsqij, double rsqik,
 		   double *delrij, double *delrik, double *drilp, 
 		   double *drjlp, double *drklp)
 {
-  int con_flag, plp_flag;
-  double ffj1,ffj2,ffk1,ffk2,com5k;
-
-  con_flag = plp_flag = 0;
-  ffj1 = 0.0; ffj2 = 0.0; ffk1 = 0.0; ffk2 = 0.0;
-  if (fabs(paramij->pbb2) > 1.0e-6) con_flag = 1;
-  if (fabs(paramij->plp1) > 1.0e-6 || fabs(paramij->plp2) > 1.0e-6 
-   || fabs(paramij->plp3) > 1.0e-6 || fabs(paramij->plp4) > 1.0e-6 
-   || fabs(paramij->plp5) > 1.0e-6 || fabs(paramij->plp6) > 1.0e-6 )
-
-   plp_flag=1;
-
-  if(con_flag || plp_flag) {
-    double rij,rik,costheta;
-    double rmu,comtt,comtt_d,com4k,com5,fcj,fcj_d,fck,fck_d;
+  double pplp0 = paramij->p6p0;
+  double pplp1 = paramij->p6p1, pplp2 = paramij->p6p2, pplp3 = paramij->p6p3;
+  double pplp4 = paramij->p6p4, pplp5 = paramij->p6p5, pplp6 = paramij->p6p6;
+  double ffj1,ffj2,ffk1,ffk2;
+  double rij,rik,costheta;
+  double rmu,comtt,comtt_d,com4k,com5,com5k,fcj,fcj_d,fck,fck_d;
+  double lp0,lp1,lp2,lp3,lp4,lp5,lp6;
+  double lp1_d,lp2_d,lp3_d,lp4_d,lp5_d,lp6_d;
+  double rmu2, rmu3, rmu4, rmu5, rmu6;
     
+    ffj1 = 0.0, ffj2 = 0.0;
+    ffk1 = 0.0, ffk2 = 0.0;
+
     rij = sqrt(rsqij); rik = sqrt(rsqik);
     costheta = vec3_dot(delrij,delrik) / (rij*rik);	
     fcj = comb_fc(rij,paramij);
@@ -1752,57 +1727,34 @@ void PairComb3::flp(Param *paramij,Param *paramik, double rsqij, double rsqik,
     fcj_d = comb_fc_d(rij,paramij);
     fck_d = comb_fc_d(rik,paramik);
     rmu = costheta; 
-    
-    // Legendre Polynomial functions and derivatives
-    
-    if (plp_flag) {
-      double lp1,lp2,lp3,lp4,lp5,lp6;
-      double lp1_d,lp2_d,lp3_d,lp4_d,lp5_d,lp6_d;
-      double rmu2, rmu3, rmu4, rmu5, rmu6;
-      double pplp1 = paramij->plp1, pplp2 = paramij->plp2, pplp3 = paramij->plp3;
-      double pplp4 = paramij->plp4, pplp5 = paramij->plp5, pplp6 = paramij->plp6;
+
       rmu2 = rmu *rmu; rmu3 = rmu2*rmu;
       rmu4 = rmu3*rmu; rmu5 = rmu4*rmu; rmu6 = rmu5*rmu;
+      lp0 = pplp0;
       lp1 = pplp1*rmu;
-      lp2 = pplp2*0.5*(3.0*rmu2-1.0);
-      lp3 = pplp3*0.5*(5.0*rmu3-3.0*rmu);
-      lp4 = pplp4*(35.0*rmu4-30.0*rmu2+3.0)/8.0;
-      lp5 = pplp5*(63.0*rmu5-70.0*rmu3+15.0*rmu)/8.0;
-      lp6 = pplp6*(231.0*rmu6-315.0*rmu4+105.0*rmu2-5.0)/16.0;
+      lp2 = pplp2*rmu2;
+      lp3 = pplp3*rmu3;
+      lp4 = pplp4*rmu4;
+      lp5 = pplp5*rmu5;
+      lp6 = pplp6*rmu6;
       lp1_d = pplp1;
-      lp2_d = pplp2*3.0*rmu;
-      lp3_d = pplp3*(7.5*rmu2-1.5);
-      lp4_d = pplp4*(140.0*rmu3-60.0*rmu)/8.0;
-      lp5_d = pplp5*(315.0*rmu4-210.0*rmu2+15.0)/8.0;
-      lp6_d = pplp6*(1386.0*rmu5-1260.0*rmu3+210.0)/16.0;
-      comtt = lp1 + lp2 + lp3 + lp4 + lp5 + lp6;
+      lp2_d = pplp2*2.0*rmu;
+      lp3_d = pplp3*3.0*rmu2;
+      lp4_d = pplp4*4.0*rmu3;
+      lp5_d = pplp5*5.0*rmu4;
+      lp6_d = pplp6*6.0*rmu5;
+      comtt = lp0 + lp1 + lp2 + lp3 + lp4 + lp5 + lp6;
       comtt_d = lp1_d + lp2_d + lp3_d + lp4_d + lp5_d + lp6_d;
-    } else {
-      comtt = 0.0;
-      comtt_d = 0.0;
-    }
     
-    // bond-bending terms derivatives
-    
-    if (con_flag) {
-      double c123 = paramij->pbb1;
-      comtt += paramij->pbb2 *(rmu-c123)*(rmu-c123);
-      comtt_d += 2.0*paramij->pbb2*(rmu-c123);
-    }
-    
-    com4k = fcj * fck_d * comtt;
-    com5  = fcj * fck * comtt_d;
+      com4k = fcj * fck_d * comtt;
+      com5  = fcj * fck * comtt_d;
+      com5k = fck * comtt * fcj_d; 
 
-    com5k = fck * comtt * fcj_d; 
-    ffj1 = 0.5*(-com5/(rij*rik)); 
-    ffj2 = 0.5*(com5*rmu/rsqij-com5k/rij); 
-    ffk1 = ffj1;
-    ffk2 = 0.5*(-com4k/rik+com5*rmu/rsqik);
-  } else {
-    ffj1 = 0.0; ffj2 = 0.0;
-    ffk1 = 0.0; ffk2 = 0.0;
-  }
-  
+      ffj1 = 0.5*(-com5/(rij*rik)); 
+      ffj2 = 0.5*(com5*rmu/rsqij-com5k/rij); 
+      ffk1 = ffj1;
+      ffk2 = 0.5*(-com4k/rik+com5*rmu/rsqik);
+
   // j-atom
   vec3_scale(ffj1,delrik,drjlp); 
   vec3_scaleadd(ffj2,delrij,drjlp,drjlp);
@@ -1831,12 +1783,8 @@ void PairComb3::force_zeta(Param *parami, Param *paramj, double rsq,
   double boij, dbij1, dbij2, dbij3, dbij4, dbij5;
   double boji, dbji1, dbji2, dbji3, dbji4, dbji5;
   double pradx, prady;
-
   int inti=parami->ielement;
   int intj=paramj->ielement;
-  tagint *tag=atom->tag;
-  tagint itag=tag[i];
-  tagint jtag=tag[j];
   r = sqrt(rsq);
 
   if (r > parami->bigr + parami->bigd) return;
@@ -2648,9 +2596,9 @@ void PairComb3::tables()
                
         rvdw[1][inty] = params[iparam_ij].vsig * 0.950;
 
-        // radius check: outer radius vs. sigma
+        // radius check: outter radius vs. sigma
         if( rvdw[0][inty] > rvdw[1][inty] )
-          error->all(FLERR,"Error in vdw spline: inner radius > outer radius");
+          error->all(FLERR,"Error in vdw spline: inner radius > outter radius");
 
         rrc[0] = rvdw[1][inty];
 
@@ -3347,16 +3295,16 @@ void PairComb3::tor_force(int torindx, Param *paramk, Param *paraml,
 
 double PairComb3::combqeq(double *qf_fix, int &igroup)
 {
-  int i,j,ii,jj,itype,jtype,jnum;
+  int i,j,ii, jj,itype,jtype,jnum;
   int iparam_i,iparam_ji,iparam_ij;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int mr1,mr2,mr3,inty,nj;
-  tagint itag,jtag;
   double xtmp,ytmp,ztmp,rr,rsq,rsq1,rsq2,delrj[3],zeta_ij;
   double iq,jq,fqi,fqj,fqij,fqji,yaself,yaself_d,sr1,sr2,sr3;
   double rr_sw,ij_sw,ji_sw,fq_swi,fq_swj;
   double potal,fac11,fac11e;
   int sht_jnum,*sht_jlist;
+  tagint itag, jtag;
   
   double **x = atom->x;
   double *q = atom->q;
@@ -3507,7 +3455,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
     i = ilist[ii];
     if (mask[i] & groupbit){
       eneg += qf[i];
-      itag=tag[i];
+	  itag=tag[i];
     }
   }
 
@@ -3694,6 +3642,7 @@ void PairComb3::qfo_short(Param *parami, Param *paramj, double rsq,
   double QUchi, QOchi, QUchj, QOchj;
   double bij, caj, cbj, caqpn, caqpj, cbqpn, cbqpj;
   double LamDiLamDj, AlfDiAlfDj;
+  double addr = parami->addrepr;
   double romi = parami->addrep;
   double rrcs = parami->bigr + parami->bigd;
   double rlm1 = parami->lambda;
@@ -3710,7 +3659,7 @@ void PairComb3::qfo_short(Param *parami, Param *paramj, double rsq,
   bij = bbij[i][nj];
 
   // additional repulsion
-  if (romi > 0.0) vrcs = romi * pow((1.0-r/rrcs),2.0);
+  if (romi != 0.0 && r < addr) vrcs = romi * pow((1.0-r/addr),2.0);
   
   QUchi = (parami->QU - iq) * parami->bD;
   QUchj = (paramj->QU - jq) * paramj->bD;

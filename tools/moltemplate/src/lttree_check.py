@@ -48,8 +48,8 @@ from lttree_styles import *
 from lttree import *
 from ttree_lex import InputError
 
-if sys.version < '2.7':
-    raise InputError('Error: Alas, you must upgrade to a newever version of python.')
+if sys.version < '2.6':
+    raise InputError('Error: Alas, you must upgrade to a newer version of python.')
 
 
 #g_no_check_msg = \

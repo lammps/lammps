@@ -1,3 +1,11 @@
+# PREREQUISITES:
+#
+#     You must use moltemplate.sh to create 3 files:
+#        system.data  system.in.init  system.in.settings
+#     (Follow the instructions in README_setup.sh, or run it using ./README_sh.)
+#     (You do not need to run LAMMPS to equilibrate the system before
+#      using this file.)
+
 # ----------------------------- Initialization Section --------------------
 
 include system.in.init
@@ -67,5 +75,5 @@ fix_modify fxMoveStuff temp tempMobile
 restart         5000000   restart_nvt
 run		10000000
 
-write_restart  system_after_nvt.rst
+write_data  system_after_nvt.data
 

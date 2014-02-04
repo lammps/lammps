@@ -100,23 +100,22 @@ void ComputeDamageAtom::compute_peratom()
     if (mask[i] & groupbit) {
       jnum = npartner[i];
       damage_temp = 0.0;
-
       for (jj = 0; jj < jnum; jj++) {
         if (partner[i][jj] == 0) continue;
-
+        
         // look up local index of this partner particle
         // skip if particle is "lost"
-
+        
         j = atom->map(partner[i][jj]);
         if (j < 0) continue;
-
+        
         damage_temp += vfrac[j];
       }
-    }
-    else damage_temp = vinter[i];
 
-    if (vinter[i] != 0.0) damage[i] = 1.0 - damage_temp/vinter[i];
-    else damage[i] = 0.0;
+      if (vinter[i] != 0.0) damage[i] = 1.0 - damage_temp/vinter[i];
+      else damage[i] = 0.0;
+
+    } else damage[i] = 0.0;
   }
 }
 

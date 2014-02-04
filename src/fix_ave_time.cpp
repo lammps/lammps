@@ -20,6 +20,7 @@
 #include "unistd.h"
 #include "fix_ave_time.h"
 #include "update.h"
+#include "force.h"
 #include "modify.h"
 #include "compute.h"
 #include "group.h"
@@ -27,7 +28,6 @@
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

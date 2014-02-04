@@ -260,7 +260,7 @@ void PairPeriVES::compute(int eflag, int vflag)
     itype = type[i];
     jnum = npartner[i];
     first = true;
-
+    
     for (jj = 0; jj < jnum; jj++) {
       if (partner[i][jj] == 0) continue;
       j = atom->map(partner[i][jj]);

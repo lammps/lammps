@@ -22,18 +22,11 @@ include system.in.init
 
 read_data system.data
 
-#   If you repeat minimization later, you can skip the (slow) step above which 
-#   reads the coordinaes, by commenting it out and uncommenting this line below:
-#
-# read_restart system_t0.rst
-
 # -- Settings Section --
 
 include system.in.settings
 
 # -- Run section --
-
-write_restart  system_t0.rst
 
 dump            1 all custom 50 traj_min.lammpstrj id mol type x y z ix iy iz
 
@@ -50,4 +43,4 @@ minimize 1.0e-5 1.0e-7 5000 20000
 #
 # run 10000
 
-write_restart  system_after_min.rst
+write_data  system_after_min.data

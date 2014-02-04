@@ -9,9 +9,6 @@ g_version_str  = 'v0.42'
 
 #######  Main Code Below: #######
 sys.stderr.write(g_program_name+' '+g_version_str+' '+g_date_str)
-#if sys.version < '3':
-#    sys.stderr.write('  (python version < 3)\n')
-#else:
 sys.stderr.write('\n')
 
 try:

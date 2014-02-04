@@ -95,4 +95,8 @@ fix_modify fxMoveStuff temp tempMobile
 
 run             100000
 
-write_restart  system_after_npt.rst
+write_data  system_after_npt.data
+
+# (The "write_restart" and "read_restart" commands were buggy in 2012, 
+#  but they should work also.)
+

@@ -2,8 +2,8 @@
 #
 # --  Usage  --
 #
-# lmp_g++ -i run.in.npt
-# (assuming lmp_g++ is the name of your lammps binary)
+# lmp_linux -i run.in.npt
+# (assuming lmp_linux is the name of your lammps binary)
 #
 # --  Prerequisite Input Files:  --
 #   systen.data, system.in.init, system.in.settings, system.in.sw
@@ -55,4 +55,7 @@ thermo          500  # time interval for printing out "thermo" data
 
 run             200000
 
-write_restart   system_after_npt.rst
+write_data   system_after_npt.data
+
+# (The "write_restart" and "read_restart" commands were buggy in 2012, 
+#  but they should work also.)

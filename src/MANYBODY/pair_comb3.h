@@ -47,9 +47,9 @@ class PairComb3 : public Pair {
     double pcos6,pcos5,pcos4,pcos3,pcos2,pcos1,pcos0;
     double gamma,powerm,powern,bigA,bigB1,bigB2,bigB3;
     double bigd,bigr,cut,cutsq,c1,c2,c3,c4;
-    double plp1,plp2,plp3,plp4,plp5,plp6;
-    double pbb1,pbb2,ptork1,ptork2;
-    double addrep, vdwflag;
+    double p6p0,p6p1,p6p2,p6p3,p6p4,p6p5,p6p6;
+    double ptork1,ptork2;
+    double addrepr,addrep, vdwflag;
     double QU,QL,DU,DL,Qo,dQ,aB,bB,nD,bD,qmin,qmax;
     double chi,dj,dk,dl,dm,esm,cmn1,cmn2,pcmn1,pcmn2;
     double coulcut, lcut, lcutsq;
@@ -182,9 +182,9 @@ class PairComb3 : public Pair {
         double &, double &, double &, double &, Param *);
 
   // Legendre polynomials
-  void selflp(Param *, Param *, double, double &, double &);
-  double elp(Param *, Param *, double, double, double *, double * ,double &);
-  void flp(Param *, Param *, double, double, double *, double *, double *, 
+  void selfp6p(Param *, Param *, double, double &, double &);
+  double ep6p(Param *, Param *, double, double, double *, double * ,double &);
+  void fp6p(Param *, Param *, double, double, double *, double *, double *, 
 	  double *, double *);
 
   // long range q-dependent terms
@@ -280,39 +280,34 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair style COMB3 requires atom IDs
+E: Pair style COMB requires atom IDs
 
-This is a requirement to use this potential.
+This is a requirement to use the AIREBO potential.
 
-E: Pair style COMB3 requires newton pair on
+E: Pair style COMB requires newton pair on
 
-See the newton command.  This is a restriction to use the COMB3
+See the newton command.  This is a restriction to use the COMB
 potential.
 
-E: Pair style COMB3 requires atom attribute q
+E: Pair style COMB requires atom attribute q
 
-The atom style defined does not have this attribute.
+Self-explanatory.
 
 E: All pair coeffs are not set
 
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
-E: Cannot open COMB3 C library file
-
-The extra lib.comb3 file for carbon cannot be opened.  Check that it
-exists.
-
-E: Cannot open COMB3 potential file %s
+E: Cannot open COMB potential file %s
 
 The specified COMB potential file cannot be opened.  Check that the
 path and name are correct.
 
-E: Incorrect format in COMB3 potential file
+E: Incorrect format in COMB potential file
 
 Incorrect number of words per line in the potential file.
 
-E: Illegal COMB3 parameter
+E: Illegal COMB parameter
 
 One or more of the coefficients defined in the potential file is
 invalid.
@@ -327,14 +322,12 @@ E: Potential file is missing an entry
 The potential file for a SW or Tersoff potential does not have a
 needed entry.
 
-E: Neighbor list overflow, boost neigh_modify one
+W: Pair COMB charge %.10f with force %.10f hit min barrier
 
-There are too many neighbors of a single atom.  Use the neigh_modify
-command to increase the max number of neighbors allowed for one atom.
-You may also want to boost the page size.
+Something is possibly wrong with your model.
 
-E: Error in vdw spline: inner radius > outer radius
+W: Pair COMB charge %.10f with force %.10f hit max barrier
 
-Self-explanatory.
+Something is possibly wrong with your model.
 
 */

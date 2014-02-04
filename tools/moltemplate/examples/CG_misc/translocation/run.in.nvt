@@ -1,3 +1,9 @@
+# PREREQUISITES:
+#
+#     You must use moltemplate.sh to create 3 files:
+#        system.data  system.in.init  system.in.settings
+#     (Follow the instructions in README_setup.sh, or run it using ./README_sh.)
+
 # -- Init Section --
 
 include system.in.init

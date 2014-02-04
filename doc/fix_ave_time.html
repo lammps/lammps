@@ -304,13 +304,14 @@ of rows = length of the input vectors and # of columns = number of
 inputs.
 </P>
 <P>If the fix prouduces a scalar or vector, then the scalar and each
-element of the vector can be either "intensive" or "extensive".  If
-the fix produces an array, then all elements in the array must be the
-same, either "intensive" or "extensive".  If a compute or fix provides
-the value being time averaged, then the compute or fix determines
-whether the value is intensive or extensive; see the doc page for that
-compute or fix for further info.  Values produced by a variable are
-treated as intensive.
+element of the vector can be either "intensive" or "extensive",
+depending on whether the values contributing to the scalar or vector
+element are "intensive" or "extensive".  If the fix produces an array,
+then all elements in the array must be the same, either "intensive" or
+"extensive".  If a compute or fix provides the value being time
+averaged, then the compute or fix determines whether the value is
+intensive or extensive; see the doc page for that compute or fix for
+further info.  Values produced by a variable are treated as intensive.
 </P>
 <P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
 the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
@@ -324,7 +325,7 @@ minimization</A>.
 ave/spatial</A>, <A HREF = "fix_ave_histo.html">fix ave/histo</A>,
 <A HREF = "variable.html">variable</A>, <A HREF = "fix_ave_correlate.html">fix ave/correlate</A>,
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
 </P>
 <P>The option defaults are mode = scalar, ave = one, start = 0, no file
 output, title 1,2,3 = strings as described above, and no off settings

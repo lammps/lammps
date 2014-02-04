@@ -28,9 +28,11 @@ class FixPeriNeigh : public Fix {
   friend class PairPeriPMB;
   friend class PairPeriPMBOMP;
   friend class PairPeriLPS;
-  friend class PairPeriVES;   //NEW
+  friend class PairPeriVES;
+  friend class PairPeriEPS;
   friend class PairPeriLPSOMP;
   friend class ComputeDamageAtom;
+  friend class ComputePlasticityAtom;
 
  public:
   FixPeriNeigh(class LAMMPS *,int, char **);
@@ -63,14 +65,14 @@ class FixPeriNeigh : public Fix {
   tagint **partner;          // neighs for each atom, stored as global IDs
   double **deviatorextention; // Deviatoric extention     
   double **deviatorBackextention; // Deviatoric back extention 
+  double **deviatorPlasticextension; // Deviatoric plastic extension 
+  double *lambdaValue;
   double **r0;               // initial distance to partners
-  double **r1;               // Instanteneous distance to partners *** NEW ***
-  double *thetaOld;          // Dilatation Old one
+  double **r1;               // instanteneous distance to partners
+  double *thetaValue;        // dilatation 
   double *vinter;            // sum of vfrac for bonded neighbors
   double *wvolume;           // weighted volume of particle
-  int isPMB;
-  int isLPS;
-  int isVES;
+  int isPMB,isLPS,isVES,isEPS;  // which flavor of PD
 
   class NeighList *list;
 };

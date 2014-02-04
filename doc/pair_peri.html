@@ -19,12 +19,14 @@
 </H3>
 <H3>pair_style peri/ves command 
 </H3>
+<H3>pair_style peri/eps command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>pair_style style 
 </PRE>
-<UL><LI>style = <I>peri/pmb</I> or <I>peri/lps</I> or <I>peri/ves</I> 
-</UL>
+<P>style = <I>peri/pmb</I> or <I>peri/lps</I> or <I>peri/ves</I> or <I>peri/eps</I>:ul
+</P>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style peri/pmb
@@ -35,6 +37,9 @@ pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25
 </PRE>
 <PRE>pair_style peri/ves
 pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 0.5 0.001 
+</PRE>
+<PRE>pair_style peri/eps
+pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 118.43 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -50,18 +55,24 @@ peridynamic solid (LPS) model.
 <P>Style <I>peri/ves</I> implements the Peridynamic state-based linear
 peridynamic viscoelastic solid (VES) model.
 </P>
+<P>Style <I>peri/eps</I> implements the Peridynamic state-based elastic-plastic 
+solid (EPS) model.
+</P>
 <P>The canonical papers on Peridynamics are <A HREF = "#Silling2000">(Silling 2000)</A>
 and <A HREF = "#Silling2007">(Silling 2007)</A>.  The implementation of Peridynamics
 in LAMMPS is described in <A HREF = "#Parks">(Parks)</A>.  Also see the <A HREF = "http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf">PDLAMMPS
 user guide</A> for
-more details about the implementation of peridynamics in LAMMPS.
+more details about its implementation.
 </P>
-<P>The peridynamic VES model in PDLAMMPS is implemented by R. Rahman and
-J.T Foster at University of Texas at San Antonio. The VES formulation
-is described in <A HREF = "#Mitchell">(Mitchell)</A>.  An additional PDF doc with
-details is in <A HREF = "PDF/PDLammps_VES.pdf">doc/PDF/PDLammps_VES.pdf</A>.  For
-questions regarding VES implementation in LAMMPS please contact Rezwan
-Rahman: rezwanur.rahman at utsa.edu.
+<P>The peridynamic VES and EPS models in PDLAMMPS were implemented by
+R. Rahman and J. T. Foster at University of Texas at San Antonio.  The
+original VES formulation is described in "(Mitchell2011)" and the
+original EPS formulation is in "(Mitchell2011a)".  Additional PDF docs
+that describe the VES and EPS implementations are include in the
+LAMMPS distro in <A HREF = "PDF/PDLammps_VES.pdf">doc/PDF/PDLammps_VES.pdf</A> and
+<A HREF = "PDF/PDLammps_EPS.pdf">doc/PDF/PDLammps_EPS.pdf</A>.  For questions
+regarding the VES and EPS models in LAMMPS you can contact R. Rahman
+(rezwanur.rahman at utsa.edu).
 </P>
 <P>The following coefficients must be defined for each pair of atom types
 via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples above,
@@ -106,14 +117,28 @@ details.
 <LI>m_lambdai (unitless)
 <LI>m_taubi (unitless) 
 </UL>
-<P>The same as for <I>peri/lps</I>, K is the bulk modulus and G is the shear
-modulus. The horizon is a cutoff distance for truncating interactions,
-and s00 and alpha are used as a bond breaking criteria. m_lambdai and
-m_taubi are the viscoelastic relaxation parameter and time constant,
+<P>K is the bulk modulus and G is the shear modulus. The horizon is a
+cutoff distance for truncating interactions, and s00 and alpha are
+used as a bond breaking criteria. m_lambdai and m_taubi are the
+viscoelastic relaxation parameter and time constant,
 respectively. m_lambdai varies within zero to one. For very small
 values of m_lambdai the viscoelsatic model responds very similar to a
-linear elastic model. For details see the description in
-<A HREF = "#Mitchell">(Mitchell)</A>.
+linear elastic model. For details please see the description in
+"(Mtchell2011)".
+</P>
+<P>For the <I>peri/eps</I> style:
+</P>
+<P>K (force/area units)
+G (force/area units)
+horizon (distance units)
+s00 (unitless)
+alpha (unitless) 
+m_yield_stress (force/area units)
+</P>
+<P>K is the bulk modulus and G is the shear modulus. The horizon is a
+cutoff distance and s00 and alpha are used as a bond breaking
+criteria.  m_yield_stress is the yield stress of the material. For
+details please see the description in "(Mtchell2011a)".
 </P>
 <HR>
 
@@ -162,10 +187,9 @@ to be specified in an input script that reads a restart file.
 
 <P><B>Restrictions:</B>
 </P>
-<P>The <I>peri/pmb</I>, <I>peri/lps</I> and <I>peri/ves</I> styles are part of the PERI
-package. They are only enabled if LAMMPS was built with that package.
-See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more
-info.
+<P>All of these styles are part of the PERI package. They are only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -189,10 +213,16 @@ info.
 <P><B>(Silling 2007)</B> Silling, Epton, Weckner, Xu, Askari, J Elasticity,
 88, 151-184 (2007).
 </P>
-<A NAME = "Mitchell"></A>
+<A NAME = "Mitchell2011"></A>
 
-<P><B>(Mitchell)</B> Mitchell, "A non-local, ordinary-state-based
-viscoelasticity model for peridynamics", Sandia National Lab Report,
+<P><B>(Mitchell2011)</B> Mitchell. A non-local, ordinary-state-based
+viscoelasticity model for peridynamics. Sandia National Lab Report,
 8064:1-28 (2011).
+</P>
+<A NAME = "Mitchell2011a"></A>
+
+<P><B>(Mitchell2011a)</B> Mitchell. A Nonlocal, Ordinary, State-Based
+Plasticity Model for Peridynamics. Sandia National Lab Report,
+3166:1-34 (2011).
 </P>
 </HTML>

@@ -1,0 +1,65 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute dilatation/atom command :h3
+
+[Syntax:]
+
+compute ID group-ID dilatation/atom :pre
+
+ID, group-ID are documented in compute command
+dilation/atom = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 all dilatation/atom :pre
+
+[Description:]
+
+Define a computation that calculates the per-atom dilatation for each
+atom in a group.  This is a quantity relevant for "Peridynamics
+models"_pair_peri.html.
+
+For small deformation, dilatation of is the measure of the volumetric
+strain.
+
+The dilatation "theta" for each peridynamic particle I is calculated
+as a sum over its neighbors with unbroken bonds, where the
+contribution of the IJ pair is a function of the change in bond length
+(versus the initial length in the reference state), the volume
+fraction of the particles and an influence function.  See the
+"PDLAMMPS user
+guide"_http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf for a formal
+definition of dilatation.
+
+This command can only be used with a subset of the Peridynamic "pair
+styles"_pair_peri.html: peri/lps, peri/ves and peri/eps.
+
+The dilatation value will be 0.0 for atoms not in the specified
+compute group.
+
+[Output info:]
+
+This compute calculates a per-atom vector, which can be accessed by
+any command that uses per-atom values from a compute as input. See
+Section_howto 15 for an overview of LAMMPS output options.
+
+The per-atom vector values are unitlesss numbers (theta) >= 0.0.
+
+[Restrictions:]
+
+This compute is part of the PERI package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"compute damage"_compute_damage.html, "compute
+plasticity"_compute_plasticity.html
+
+[Default:] none 

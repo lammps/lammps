@@ -26,6 +26,8 @@ namespace LAMMPS_NS {
 
 class PairPeriVES : public Pair {
  public:
+  double *theta;
+
   PairPeriVES(class LAMMPS *);
   virtual ~PairPeriVES();
   int pack_comm(int, int *, double *, int, int *);
@@ -49,10 +51,11 @@ class PairPeriVES : public Pair {
   double **bulkmodulus;
   double **shearmodulus;
   double **s00, **alpha;
-  double **cut, **m_lambdai, **m_taubi;   //NEW: **m_lambdai,**m_taubi
+  double **cut;
+  double **m_lambdai;
+  double **m_taubi;
 
   double *s0_new;
-  double *theta;
   int nmax;
 
   void allocate();

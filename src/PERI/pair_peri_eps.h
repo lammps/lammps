@@ -13,23 +13,23 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(peri/lps,PairPeriLPS)
+PairStyle(peri/eps,PairPeriEPS)
 
 #else
 
-#ifndef LMP_PAIR_PERI_LPS_H
-#define LMP_PAIR_PERI_LPS_H
+#ifndef LMP_PAIR_PERI_EPS_H
+#define LMP_PAIR_PERI_EPS_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairPeriLPS : public Pair {
+class PairPeriEPS : public Pair {
  public:
   double *theta;
 
-  PairPeriLPS(class LAMMPS *);
-  virtual ~PairPeriLPS();
+  PairPeriEPS(class LAMMPS *);
+  virtual ~PairPeriEPS();
   int pack_comm(int, int *, double *, int, int *);
   void unpack_comm(int, int, double *);
 
@@ -45,13 +45,14 @@ class PairPeriLPS : public Pair {
   double memory_usage();
   double influence_function(double, double, double);
   void compute_dilatation();
+  double compute_DeviatoricForceStateNorm(int);
 
  protected:
   int ifix_peri;
   double **bulkmodulus;
   double **shearmodulus;
-  double **s00,**alpha;
-  double **cut;
+  double **s00, **alpha;
+  double **cut, **m_yieldstress;   //NEW: **m_yieldstress
 
   double *s0_new;
   int nmax;
@@ -89,6 +90,10 @@ E: Pair peri requires an atom map, see atom_modify
 
 Even for atomic systems, an atom map is required to find Peridynamic
 bonds.  Use the atom_modify command to define one.
+
+E: Pair peri requires a lattice be defined
+
+Use the lattice command for this purpose.
 
 E: Pair peri lattice is not identical in x, y, and z
 

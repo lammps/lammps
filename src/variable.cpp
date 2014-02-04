@@ -3257,12 +3257,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == XMIN) value = MIN(value,vec[j]);
         else if (method == XMAX) value = MAX(value,vec[j]);
         else if (method == AVE) value += vec[j];
-        else if (method == TRAP) {
-          if (i > 0 && i < nvec-1) value += vec[j];
-          else value += 0.5*vec[j];
-        }
+        else if (method == TRAP) value += vec[j];
         j += nstride;
       }
+      if (method == TRAP) value -= 0.5*vec[0] + 0.5*vec[nvec-1];
     }
 
     if (fix) {
@@ -3274,10 +3272,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         else if (method == XMIN) value = MIN(value,one);
         else if (method == XMAX) value = MAX(value,one);
         else if (method == AVE) value += one;
-        else if (method == TRAP) {
-          if (i > 0 && i < nvec-1) value += one;
-          else value += 0.5*one;
-        }
+        else if (method == TRAP) value += one;
+      }
+      if (method == TRAP) {
+        if (index) value -= 0.5*fix->compute_array(0,index-1) + 
+                     0.5*fix->compute_array(nvec-1,index-1);
+        else value -= 0.5*fix->compute_vector(0) + 
+               0.5*fix->compute_vector(nvec-1);
       }
     }
 

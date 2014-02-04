@@ -22,13 +22,22 @@ compute 1 all damage/atom :pre
 [Description:]
 
 Define a computation that calculates the per-atom damage for each atom
-in a group.  Please see the "PDLAMMPS user
+in a group.  This is a quantity relevant for "Peridynamics
+models"_pair_peri.html.
+
+The "damage" of a Peridymaics particles is based on the bond breakage
+between the particle and its neighbors.  If all the bonds are broken
+the particle is considered to be fully damaged.
+
+See the "PDLAMMPS user
 guide"_http://www.sandia.gov/~mlparks/papers/PDLAMMPS.pdf for a formal
 definition of "damage" and more details about Peridynamics as it is
 implemented in LAMMPS.
 
-The value of the damage will be 0.0 for atoms not in the specified
-compute group.
+This command can be used with all the Peridynamic pair styles.
+
+The damage value will be 0.0 for atoms not in the specified compute
+group.
 
 [Output info:]
 
@@ -37,8 +46,7 @@ any command that uses per-atom values from a compute as input.  See
 "Section_howto 15"_Section_howto.html#howto_15 for an overview of
 LAMMPS output options.
 
-The per-atom vector values will be a number >= 0.0, as explained
-above.
+The per-atom vector values are unitlesss numbers (damage) >= 0.0.
 
 [Restrictions:]
 
@@ -48,6 +56,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"dump custom"_dump.html
+"compute dilatation"_compute_dilatation.html, "compute
+plasticity"_compute_plasticity.html
 
 [Default:] none

@@ -439,8 +439,13 @@ void Group::assign(int narg, char **arg)
   } else if (strcmp(arg[1],"dynamic") == 0) {
 
     if (narg < 4) error->all(FLERR,"Illegal group command");
+    if (strcmp(arg[0],arg[2]) == 0) 
+      error->all(FLERR,"Group dynamic cannot reference itself");
+    if (find(arg[2]) < 0) 
+      error->all(FLERR,"Group dynamic parent group does not exist");
+    if (igroup = 0) error->all(FLERR,"Group all cannot be made dynamic");
 
-    // if group is already dynamic, delete current FixGroup
+    // if group is already dynamic, delete existing FixGroup
 
     if (dynamic[igroup]) {
       int n = strlen("GROUP_") + strlen(names[igroup]) + 1;

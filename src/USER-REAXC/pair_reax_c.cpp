@@ -816,7 +816,7 @@ void PairReaxC::FindBond()
 	tmpid[i][nj] = j;
 	tmpbo[i][nj] = bo_tmp;
 	nj ++;
-	if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in fix_reaxc_species.h");
+	if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in reaxc_defs.h");
       }
     }
   }

@@ -201,7 +201,6 @@ int FixLangevin::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
-  mask |= POST_INTEGRATE;
   mask |= END_OF_STEP;
   mask |= THERMO_ENERGY;
   return mask;

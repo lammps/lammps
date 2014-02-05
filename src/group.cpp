@@ -51,10 +51,12 @@ Group::Group(LAMMPS *lmp) : Pointers(lmp)
   names = new char*[MAX_GROUP];
   bitmask = new int[MAX_GROUP];
   inversemask = new int[MAX_GROUP];
+  dynamic = new int[MAX_GROUP];
 
   for (int i = 0; i < MAX_GROUP; i++) names[i] = NULL;
   for (int i = 0; i < MAX_GROUP; i++) bitmask[i] = 1 << i;
   for (int i = 0; i < MAX_GROUP; i++) inversemask[i] = bitmask[i] ^ ~0;
+  for (int i = 0; i < MAX_GROUP; i++) dynamic[i] = 0;
 
   // create "all" group
 
@@ -75,6 +77,7 @@ Group::~Group()
   delete [] names;
   delete [] bitmask;
   delete [] inversemask;
+  delete [] dynamic;
 }
 
 /* ----------------------------------------------------------------------
@@ -114,8 +117,17 @@ void Group::assign(int narg, char **arg)
     int bits = inversemask[igroup];
     for (i = 0; i < nlocal; i++) mask[i] &= bits;
 
+    if (dynamic[igroup]) {
+      int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
+      char *fixID = new char[n];
+      sprintf(fixID,"GROUP_%s",names[igroup]);
+      modify->delete_fix(fixID);
+      delete [] fixID;
+    }
+
     delete [] names[igroup];
     names[igroup] = NULL;
+    dynamic[igroup] = 0;
     ngroup--;
 
     return;
@@ -156,6 +168,7 @@ void Group::assign(int narg, char **arg)
         mask[i] |= bit;
 
   // style = type, molecule, id
+  // add to group if atom matches type/molecule/id or condition
 
   } else if (strcmp(arg[1],"type") == 0 || strcmp(arg[1],"molecule") == 0 ||
              strcmp(arg[1],"id") == 0) {
@@ -296,6 +309,7 @@ void Group::assign(int narg, char **arg)
     }
 
   // style = variable
+  // add to group if atom-atyle variable is non-zero
 
   } else if (strcmp(arg[1],"variable") == 0) {
 
@@ -331,6 +345,8 @@ void Group::assign(int narg, char **arg)
     for (int iarg = 2; iarg < narg; iarg++) {
       jgroup = find(arg[iarg]);
       if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
+      if (dynamic[jgroup]) 
+        error->all(FLERR,"Cannot subtract groups using a dynamic group");
       list[iarg-2] = jgroup;
     }
 
@@ -367,6 +383,8 @@ void Group::assign(int narg, char **arg)
     for (int iarg = 2; iarg < narg; iarg++) {
       jgroup = find(arg[iarg]);
       if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
+      if (dynamic[jgroup]) 
+        error->all(FLERR,"Cannot union groups using a dynamic group");
       list[iarg-2] = jgroup;
     }
 
@@ -395,6 +413,8 @@ void Group::assign(int narg, char **arg)
     for (int iarg = 2; iarg < narg; iarg++) {
       jgroup = find(arg[iarg]);
       if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
+      if (dynamic[jgroup]) 
+        error->all(FLERR,"Cannot intersect groups using a dynamic group");
       list[iarg-2] = jgroup;
     }
 
@@ -412,6 +432,55 @@ void Group::assign(int narg, char **arg)
     }
 
     delete [] list;
+
+  // style = dynamic
+  // create a new FixGroup to dynamically determine atoms in group
+
+  } else if (strcmp(arg[1],"dynamic") == 0) {
+
+    if (narg < 4) error->all(FLERR,"Illegal group command");
+
+    // if group is already dynamic, delete current FixGroup
+
+    if (dynamic[igroup]) {
+      int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
+      char *fixID = new char[n];
+      sprintf(fixID,"GROUP_%s",names[igroup]);
+      modify->delete_fix(fixID);
+      delete [] fixID;
+    }
+
+    dynamic[igroup] = 1;
+
+    int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
+    char *fixID = new char[n];
+    sprintf(fixID,"GROUP_%s",names[igroup]);
+
+    char **newarg = new char*[narg];
+    newarg[0] = fixID;
+    newarg[1] = arg[2];
+    newarg[2] = (char *) "GROUP";
+    for (int i = 3; i < narg; i++) newarg[i] = arg[i];
+    modify->add_fix(narg,newarg);
+    delete [] newarg;
+    delete [] fixID;
+
+  // style = static
+  // remove dynamic FixGroup if necessary
+
+  } else if (strcmp(arg[1],"static") == 0) {
+
+    if (narg != 2) error->all(FLERR,"Illegal group command");
+
+    if (dynamic[igroup]) {
+      int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
+      char *fixID = new char[n];
+      sprintf(fixID,"GROUP_%s",names[igroup]);
+      modify->delete_fix(fixID);
+      delete [] fixID;
+    }
+
+    dynamic[igroup] = 0;
 
   // not a valid group style
 

@@ -25,6 +25,7 @@ class Group : protected Pointers {
   char **names;                // name of each group
   int *bitmask;                // one-bit mask for each group
   int *inversemask;            // inverse mask for each group
+  int *dynamic;                // 1 if dynamic, 0 if not
 
   Group(class LAMMPS *);
   ~Group();

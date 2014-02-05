@@ -3688,11 +3688,18 @@ void Variable::print_tree(Tree *tree, int level)
 
 double Variable::evaluate_boolean(char *str)
 {
-  int op,opprevious;
+  int op,opprevious,flag1,flag2;
   double value1,value2;
   char onechar;
+  char *str1,*str2;
 
-  double argstack[MAXLEVEL];
+  struct Arg {
+    int flag;          // 0 for numeric value, 1 for string
+    double value;      // stored numeric value
+    char *str;         // stored string
+  };
+
+  Arg argstack[MAXLEVEL];
   int opstack[MAXLEVEL];
   int nargstack = 0;
   int nopstack = 0;
@@ -3722,7 +3729,9 @@ double Variable::evaluate_boolean(char *str)
 
       // evaluate contents and push on stack
 
-      argstack[nargstack++] = evaluate_boolean(contents);
+      argstack[nargstack].value = evaluate_boolean(contents);
+      argstack[nargstack].flag = 0;
+      nargstack++;
 
       delete [] contents;
 
@@ -3735,7 +3744,7 @@ double Variable::evaluate_boolean(char *str)
         error->all(FLERR,"Invalid Boolean syntax in if command");
       expect = OP;
 
-      // istop = end of number, including scientific notation
+      // set I to end of number, including scientific notation
 
       int istart = i++;
       while (isdigit(str[i]) || str[i] == '.') i++;
@@ -3744,16 +3753,36 @@ double Variable::evaluate_boolean(char *str)
         if (str[i] == '+' || str[i] == '-') i++;
         while (isdigit(str[i])) i++;
       }
-      int istop = i - 1;
 
-      int n = istop - istart + 1;
-      char *number = new char[n+1];
-      strncpy(number,&str[istart],n);
-      number[n] = '\0';
+      onechar = str[i];
+      str[i] = '\0';
+      argstack[nargstack].value = atof(&str[istart]);
+      str[i] = onechar;
 
-      argstack[nargstack++] = atof(number);
+      argstack[nargstack++].flag = 0;
 
-      delete [] number;
+    // ----------------
+    // string: push string onto stack
+    // ----------------
+
+    } else if (isalpha(onechar)) {
+      if (expect == OP) 
+        error->all(FLERR,"Invalid Boolean syntax in if command");
+      expect = OP;
+
+      // set I to end of string
+
+      int istart = i++;
+      while (isalnum(str[i]) || str[i] == '_') i++;
+
+      int n = i - istart + 1;
+      argstack[nargstack].str = new char[n];
+      onechar = str[i];
+      str[i] = '\0';
+      strcpy(argstack[nargstack].str,&str[istart]);
+      str[i] = onechar;
+
+      argstack[nargstack++].flag = 1;
 
     // ----------------
     // Boolean operator, including end-of-string
@@ -3811,37 +3840,72 @@ double Variable::evaluate_boolean(char *str)
       while (nopstack && precedence[opstack[nopstack-1]] >= precedence[op]) {
         opprevious = opstack[--nopstack];
 
-        value2 = argstack[--nargstack];
-        if (opprevious != NOT) value1 = argstack[--nargstack];
+        nargstack--;
+        flag2 = argstack[nargstack].flag;
+        value2 = argstack[nargstack].value;
+        str2 = argstack[nargstack].str;
+        if (opprevious != NOT) {
+          nargstack--;
+          flag1 = argstack[nargstack].flag;
+          value1 = argstack[nargstack].value;
+          str1 = argstack[nargstack].str;
+        }
 
         if (opprevious == NOT) {
-          if (value2 == 0.0) argstack[nargstack++] = 1.0;
-          else argstack[nargstack++] = 0.0;
+          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (value2 == 0.0) argstack[nargstack].value = 1.0;
+          else argstack[nargstack].value = 0.0;
         } else if (opprevious == EQ) {
-          if (value1 == value2) argstack[nargstack++] = 1.0;
-          else argstack[nargstack++] = 0.0;
+          if (flag1 != flag2)
+            error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag2 == 0) {
+            if (value1 == value2) argstack[nargstack].value = 1.0;
+            else argstack[nargstack].value = 0.0;
+          } else {
+            if (strcmp(str1,str2) == 0) argstack[nargstack].value = 1.0;
+            else argstack[nargstack].value = 0.0;
+            delete [] str1;
+            delete [] str2;
+          }
         } else if (opprevious == NE) {
-          if (value1 != value2) argstack[nargstack++] = 1.0;
-          else argstack[nargstack++] = 0.0;
+          if (flag1 != flag2)
+            error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (flag2 == 0) {
+            if (value1 != value2) argstack[nargstack].value = 1.0;
+            else argstack[nargstack].value = 0.0;
+          } else {
+            if (strcmp(str1,str2) != 0) argstack[nargstack].value = 1.0;
+            else argstack[nargstack].value = 0.0;
+            delete [] str1;
+            delete [] str2;
+          }
         } else if (opprevious == LT) {
-          if (value1 < value2) argstack[nargstack++] = 1.0;
-          else argstack[nargstack++] = 0.0;
+          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (value1 < value2) argstack[nargstack].value = 1.0;
+          else argstack[nargstack].value = 0.0;
         } else if (opprevious == LE) {
-          if (value1 <= value2) argstack[nargstack++] = 1.0;
-          else argstack[nargstack++] = 0.0;
+          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (value1 <= value2) argstack[nargstack].value = 1.0;
+          else argstack[nargstack].value = 0.0;
         } else if (opprevious == GT) {
-          if (value1 > value2) argstack[nargstack++] = 1.0;
-          else argstack[nargstack++] = 0.0;
+          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (value1 > value2) argstack[nargstack].value = 1.0;
+          else argstack[nargstack].value = 0.0;
         } else if (opprevious == GE) {
-          if (value1 >= value2) argstack[nargstack++] = 1.0;
-          else argstack[nargstack++] = 0.0;
+          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (value1 >= value2) argstack[nargstack].value = 1.0;
+          else argstack[nargstack].value = 0.0;
         } else if (opprevious == AND) {
-          if (value1 != 0.0 && value2 != 0.0) argstack[nargstack++] = 1.0;
-          else argstack[nargstack++] = 0.0;
+          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (value1 != 0.0 && value2 != 0.0) argstack[nargstack].value = 1.0;
+          else argstack[nargstack].value = 0.0;
         } else if (opprevious == OR) {
-          if (value1 != 0.0 || value2 != 0.0) argstack[nargstack++] = 1.0;
-          else argstack[nargstack++] = 0.0;
+          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if (value1 != 0.0 || value2 != 0.0) argstack[nargstack].value = 1.0;
+          else argstack[nargstack].value = 0.0;
         }
+
+        argstack[nargstack++].flag = 0;
       }
 
       // if end-of-string, break out of entire formula evaluation loop
@@ -3857,7 +3921,7 @@ double Variable::evaluate_boolean(char *str)
 
   if (nopstack) error->all(FLERR,"Invalid Boolean syntax in if command");
   if (nargstack != 1) error->all(FLERR,"Invalid Boolean syntax in if command");
-  return argstack[0];
+  return argstack[0].value;
 }
 
 /* ---------------------------------------------------------------------- */

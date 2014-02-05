@@ -443,7 +443,7 @@ void Group::assign(int narg, char **arg)
       error->all(FLERR,"Group dynamic cannot reference itself");
     if (find(arg[2]) < 0) 
       error->all(FLERR,"Group dynamic parent group does not exist");
-    if (igroup = 0) error->all(FLERR,"Group all cannot be made dynamic");
+    if (igroup == 0) error->all(FLERR,"Group all cannot be made dynamic");
 
     // if group is already dynamic, delete existing FixGroup
 

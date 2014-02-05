@@ -159,9 +159,9 @@ package:
 	@echo 'make no-user             remove all user packages'
 	@echo 'make no-lib              remove all packages with external libs'
 	@echo ''
-	@echo 'make package-update      replace src files with package files'
-	@echo 'make package-overwrite   replace package files with src files'
-	@echo 'make package-diff        diff src files against package file'
+	@echo 'make package-update (pu)    replace src files with package files'
+	@echo 'make package-overwrite (po) replace package files with src files'
+	@echo 'make package-diff           diff src files against package file'
 
 yes-all:
 	@for p in $(PACKALL); do $(MAKE) yes-$$p; done
@@ -224,12 +224,12 @@ package-status ps:
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p status; done
 
-package-update:
+package-update pu:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p update; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p update; done
 
-package-overwrite:
+package-overwrite po:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p overwrite; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p overwrite; done

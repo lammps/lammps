@@ -225,6 +225,9 @@ void ReadData::command(int narg, char **arg)
 
       atom->allocate_type_arrays();
       atom->avec->grow(n);
+
+      // initialize here, in case there are no bonds in the data file yet.
+      atom->bond_per_atom = atom->extra_bond_per_atom;
       n = atom->nmax;
 
       domain->print_box("  ");

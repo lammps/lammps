@@ -901,11 +901,24 @@ interface and how to extend it for your needs.
 
 <H4><A NAME = "start_6"></A>2.6 Running LAMMPS 
 </H4>
-<P>By default, LAMMPS runs by reading commands from stdin; e.g. lmp_linux
-< in.file.  This means you first create an input script (e.g. in.file)
-containing the desired commands.  <A HREF = "Section_commands.html">This section</A>
-describes how input scripts are structured and what commands they
-contain.
+<P>By default, LAMMPS runs by reading commands from standard input.  Thus
+if you run the LAMMPS executable by itself, e.g.
+</P>
+<PRE>lmp_linux 
+</PRE>
+<P>it will simply wait, expecting commands from the keyboard.  Typically
+you should put commands in an input script and use I/O redirection,
+e.g.
+</P>
+<PRE>lmp_linux < in.file 
+</PRE>
+<P>For parallel environments this should also work.  If it does not, use
+the '-in' command-line switch, e.g.
+</P>
+<PRE>lmp_linux -in in.file 
+</PRE>
+<P><A HREF = "Section_commands.html">This section</A> describes how input scripts are
+structured and what commands they contain.
 </P>
 <P>You can test LAMMPS on any of the sample inputs provided in the
 examples or bench directory.  Input scripts are named in.* and sample
@@ -921,8 +934,9 @@ cp lmp_linux ../bench
 cd ../bench
 mpirun -np 4 lmp_linux < in.lj 
 </PRE>
-<P>See <A HREF = "http://lammps.sandia.gov/bench.html">this page</A> for timings for this and the other benchmarks
-on various platforms.
+<P>See <A HREF = "http://lammps.sandia.gov/bench.html">this page</A> for timings for this and the other benchmarks on
+various platforms.  Note that some of the example scripts require
+LAMMPS to be built with one or more of its optional packages.
 </P>
 
 
@@ -951,12 +965,13 @@ with the name of your LAMMPS input script.
 <P>For the MPI version, which allows you to run LAMMPS under Windows on 
 multiple processors, follow these steps:
 </P>
-<UL><LI>Download and install 
+<UL><LI>Download and install
 <A HREF = "http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads">MPICH2</A>
 for Windows. 
 
-<LI>You'll need to use the mpiexec.exe and smpd.exe files from the MPICH2 package. Put them in 
-same directory (or path) as the LAMMPS Windows executable. 
+<LI>You'll need to use the mpiexec.exe and smpd.exe files from the MPICH2
+package. Put them in same directory (or path) as the LAMMPS Windows
+executable. 
 
 <LI>Get a command prompt by going to Start->Run... , 
 then typing "cmd". 
@@ -964,18 +979,17 @@ then typing "cmd".
 <LI>Move to the directory where you have saved lmp_win_mpi.exe
 (e.g. by typing: cd "Documents"). 
 
-<LI>Then type something like this: "mpiexec -np 4 -localonly lmp_win_mpi -in in.lj", 
-replacing in.lj with the name of your LAMMPS input script. 
+<LI>Then type something like this: "mpiexec -localonly 4 lmp_win_mpi -in
+in.lj", replacing in.lj with the name of your LAMMPS input script. 
 
-<LI>Note that you may need to provide smpd with a passphrase --- it doesn't matter what you 
-type. 
+<LI>Note that you may need to provide smpd with a passphrase (it doesn't
+matter what you type). 
 
-<LI>In this mode, output may not immediately show up on the screen, so 
-if your input script takes a long time to execute, you may need to be 
-patient before the output shows up. 
-
-<LI>Alternatively, you can still use this executable to run on a single processor by
-typing something like: "lmp_win_mpi -in in.lj". 
+<LI>In this mode, output may not immediately show up on the screen, so if
+your input script takes a long time to execute, you may need to be
+patient before the output shows up. :l Alternatively, you can still
+use this executable to run on a single processor by typing something
+like: "lmp_win_mpi -in in.lj". 
 </UL>
 <HR>
 
@@ -1062,17 +1076,22 @@ set by using the <A HREF = "echo.html">echo</A> command in the input script itse
 </PRE>
 <P>Specify a file to use as an input script.  This is an optional switch
 when running LAMMPS in one-partition mode.  If it is not specified,
-LAMMPS reads its input script from stdin - e.g. lmp_linux < in.run.
-This is a required switch when running LAMMPS in multi-partition mode,
-since multiple processors cannot all read from stdin.
+LAMMPS reads its script from standard input, typically from a script
+via I/O redirection; e.g. lmp_linux < in.run.  I/O redirection should
+also work in parallel, but if it does not (in the unlikely case that
+an MPI implementation does not support it), then use the -in flag.
+Note that this is a required switch when running LAMMPS in
+multi-partition mode, since multiple processors cannot all read from
+stdin.
 </P>
 <PRE>-help 
 </PRE>
-<P>Print a list of options compiled into this executable for each LAMMPS
-style (atom_style, fix, compute, pair_style, bond_style, etc).  This
-can help you know if the command you want to use was included via the
-appropriate package.  LAMMPS will print the info and immediately exit
-if this switch is used.
+<P>Print a brief help summary and a list of options compiled into this
+executable for each LAMMPS style (atom_style, fix, compute,
+pair_style, bond_style, etc).  This can tell you if the command you
+want to use was included via the appropriate package at compile time.
+LAMMPS will print the info and immediately exit if this switch is
+used.
 </P>
 <PRE>-log file 
 </PRE>

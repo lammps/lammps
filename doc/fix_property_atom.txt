@@ -165,7 +165,7 @@ dump file:
 
 fix prop all property/atom i_flag1 d_flag2
 compute 1 all property/atom i_flag1 d_flag2
-dump 1 all custom 100 tmp.dump id x y z c_1[1] c_1[2] :pre
+dump 1 all custom 100 tmp.dump id x y z c_1\[1\] c_1\[2\] :pre
 
 :line
 

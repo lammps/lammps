@@ -43,6 +43,7 @@ own sub-directories with their own Makefiles.
 "binary2txt"_#binary
 "ch2lmp"_#charmm
 "chain"_#chain
+"colvars"_#colvars
 "createatoms"_#create
 "data2xmovie"_#data
 "eam database"_#eamdb
@@ -132,6 +133,28 @@ system for the "chain benchmark"_Section_perf.html.
 
 :line
 
+colvars tools :h4,link(colvars)
+
+The colvars directory contains a collection of tools for postprocessing
+data produced by the colvars collective variable library.
+To compile the tools, edit the makefile for your system and run "make".
+
+Please report problems and issues the colvars library and its tools
+at: https://github.com/colvars/colvars/issues
+
+abf_integrate:
+
+MC-based integration of multidimensional free energy gradient
+Version 20110511
+
+Syntax: ./abf_integrate < filename > \[-n < nsteps >\] \[-t < temp >\] \[-m \[0|1\] (metadynamics)\] \[-h < hill_height >\] \[-f < variable_hill_factor >\] :pre
+
+The LAMMPS interface to the colvars collective variable library, as
+well as these tools, were created by Axel Kohlmeyer (akohlmey at
+gmail.com) at ICTP, Italy.
+
+:line
+
 createatoms tool :h4,link(create)
 
 The tools/createatoms directory contains a Fortran program called
@@ -152,7 +175,7 @@ suitable for visualizing with the "xmovie"_#xmovie tool, as if it had
 been output with a dump command from LAMMPS itself.  The syntax for
 running the tool is
 
-data2xmovie [options] < infile > outfile :pre
+data2xmovie \[options\] < infile > outfile :pre
 
 See the top of the data2xmovie.c file for a discussion of the options.
 
@@ -491,7 +514,7 @@ it can find the appropriate X libraries to link against.
 
 The syntax for running xmovie is
 
-xmovie [options] dump.file1 dump.file2 ... :pre
+xmovie \[options\] dump.file1 dump.file2 ... :pre
 
 If you just type "xmovie" you will see a list of options.  Note that
 by default, LAMMPS dump files are in scaled coordinates, so you

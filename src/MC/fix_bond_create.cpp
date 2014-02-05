@@ -316,6 +316,8 @@ void FixBondCreate::post_integrate()
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+  tagint **bond_atom = atom->bond_atom;
+  int *num_bond = atom->num_bond;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -343,7 +345,23 @@ void FixBondCreate::post_integrate()
             (imaxbond == 0 || bondcount[j] < imaxbond))
           possible = 1;
       }
+
+      // avoid to attempt to add bonds that already exist. we have to
+      // check both, tag[i]-tag[j] and tag[j]-tag[i] since we do not
+      // account for newton_bond or newton_pair at this point and
+      // use a half neighbor list.
+      if (possible) {
+        int k;
+        for (k=0; k < num_bond[i]; ++k)
+          if (bond_atom[i][k] == tag[j])
+            possible = 0;
+
+        for (k=0; k < num_bond[j]; ++k)
+          if (bond_atom[j][k] == tag[i])
+            possible = 0;
+      }
       if (!possible) continue;
+
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -386,8 +404,6 @@ void FixBondCreate::post_integrate()
   // and probability constraint is satisfied
 
   int **bond_type = atom->bond_type;
-  tagint **bond_atom = atom->bond_atom;
-  int *num_bond = atom->num_bond;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
   int newton_bond = force->newton_bond;
@@ -396,6 +412,7 @@ void FixBondCreate::post_integrate()
   for (i = 0; i < nlocal; i++) {
     if (partner[i] == 0) continue;
     j = atom->map(partner[i]);
+    if (j < 0) continue;
     if (partner[j] != tag[i]) continue;
 
     // apply probability constraint using RN for atom with smallest ID

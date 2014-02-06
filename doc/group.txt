@@ -14,7 +14,7 @@ group ID style args :pre
 
 ID = user-defined name of the group :ulb,l
 style = {delete} or {region} or {type} or {id} or {molecule} or {variable} or \
-      {subtract} or {union} or {intersect} :l
+      {subtract} or {union} or {intersect} or {dynamic} or {static} :l
   {delete} = no args
   {region} args = region-ID
   {type} or {id} or {molecule}
@@ -28,10 +28,17 @@ style = {delete} or {region} or {type} or {id} or {molecule} or {variable} or \
     args = logical value1 value2
       logical = "<>"
       value1,value2 = atom types or atom IDs or molecule IDs (depending on {style})
-  {variable} args  = variable-ID
+  {variable} args = variable-name
   {subtract} args = two or more group IDs
   {union} args = one or more group IDs
-  {intersect} args = two or more group IDs :pre
+  {intersect} args = two or more group IDs
+  {dynamic} args = parent-ID keyword value ...
+    one or more keyword/value pairs may be appended
+    keyword = {region} or {var} or {every}
+      {region} value = region-ID
+      {var} value = name of variable
+      {every} value = N = update group every this many timesteps
+  {static} = no args :pre
 :ule
 
 [Examples:]
@@ -47,7 +54,9 @@ group hienergy variable eng
 group boundary subtract all a2 a3
 group boundary union lower upper
 group boundary intersect upper flow
-group boundary delete :pre
+group boundary delete
+group mine dynamic all region myRegion every 100 :pre
+
 
 [Description:]
 
@@ -58,6 +67,18 @@ to act on those atoms together.
 
 If the group ID already exists, the group command adds the specified
 atoms to the group.
+
+IMPORTANT NOTE: By default groups are static, meaning the atoms are
+permanently assigned to the group.  For example, if the {region} style
+is used to assign atoms to a group, the atoms will remain in the group
+even if they later move out of the region.  As explained below, the
+{dynamic} style can be used to make a group dynamic so that a periodic
+determination is made as to which atoms are in the group.  Since many
+LAMMPS commands operate on groups of atoms, you should think carefully
+about whether making a group dynamic makes sense for your model.
+
+A group with the ID {all} is predefined.  All atoms belong to this
+group.  This group cannot be deleted, or made dynamic.
 
 The {delete} style removes the named group and un-assigns all atoms
 that were assigned to that group.  Since there is a restriction (see
@@ -151,13 +172,62 @@ The {intersect} style takes a list of two or more existing group names
 as arguments.  Atoms that belong to every one of the listed groups are
 added to the specified group.
 
-A group with the ID {all} is predefined.  All atoms belong to this
-group.  This group cannot be deleted.
+:line
+
+The {dynamic} style flags an existing or new group as dynamic.  This
+means atoms will be (re)assigned to the group periodically as a
+simulation runs.  This is in contrast to static groups where atoms are
+permanently assigned to the group.  The way the assignment occurs is
+as follows.  Only atoms in the group specified as the parent group via
+the parent-ID are initially assigned to the dynamic group.  If the
+{region} keyword is used, atoms not in the specified region are
+removed from the dynamic group.  If the {var} keyword is used, the
+variable name must be an atom-style or atomfile-style variable.  The
+variable is evaluated and atoms whose per-atom values are 0.0, are
+removed from the dynamic group.
+
+The assignment of atoms to a dynamic group is done at the beginning of
+each run and on every timestep that is a multiple of {N}, which is the
+argument for the {every} keyword (N = 1 is the default).  For an
+energy minimization, via the "minimize"_minimize.html command, an
+assignement is made at the beginning of the minimization, but not
+during the iterations of the minimizer.
+
+The point in the timestep at which atoms are assigned to a dynamic
+group is after the initial stage of velocity Verlet time integration
+has been performed, and before neighbor lists or forces are computed.
+This is the point in the timestep where atom positions have just
+changed due to the time integration, so the region criterion should be
+accurate, if applied.
+
+Here is an example of using a dynamic group to shrink the set of atoms
+being integrated by using a spherical region with a variable radius
+(shrinking from 18 to 5 over the course of the run).  This could be
+used to model a quench of the system, freezing atoms outside the
+shrinking sphere, then converting the remaining atoms to a static
+group and running further.
+
+variable        nsteps equal 5000
+variable        rad equal 18-(step/v_nsteps)*(18-5)
+region          ss sphere 20 20 0 v_rad
+group           mobile dynamic all region ss
+fix             1 mobile nve
+run             ${nsteps}
+group           mobile static
+run	        ${nsteps} :pre
+
+The {static} style removes the setting for a dynamic group, converting
+it to a static group (the default).  The atoms in the static group are
+those currently in the dynamic group.
+
+:line
 
 [Restrictions:]
 
 There can be no more than 32 groups defined at one time, including
 "all".
+
+The parent group of a dynamic group cannot itself be a dynamic group.
 
 [Related commands:]
 

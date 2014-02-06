@@ -11,10 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Pieter in 't Veld (SNL)
-------------------------------------------------------------------------- */
-
 #include "string.h"
 #include "fix_vector.h"
 #include "update.h"

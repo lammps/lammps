@@ -147,26 +147,21 @@ package:
 	@echo ''
 	@echo 'User-contributed packages:' $(PACKUSER)
 	@echo ''
-	@echo 'make package             list available packages'
-	@echo 'make package-status (ps) status of all packages'
-	@echo 'make yes-package         install a single package in src dir'
-	@echo 'make no-package          remove a single package from src dir'
-	@echo 'make yes-all             install all packages in src dir'
-	@echo 'make no-all              remove all packages from src dir'
-	@echo 'make yes-standard        install all standard packages'
-	@echo 'make no-standard         remove all standard packages'
-	@echo 'make yes-user            install all user packages'
-	@echo 'make no-user             remove all user packages'
-	@echo 'make no-lib              remove all packages with external libs'
+	@echo 'make package              list available packages'
+	@echo 'make package-status (ps)  status of all packages'
+	@echo 'make yes-package          install a single package in src dir'
+	@echo 'make no-package           remove a single package from src dir'
+	@echo 'make yes-all              install all packages in src dir'
+	@echo 'make no-all               remove all packages from src dir'
+	@echo 'make yes-standard         install all standard packages'
+	@echo 'make no-standard          remove all standard packages'
+	@echo 'make yes-user             install all user packages'
+	@echo 'make no-user              remove all user packages'
+	@echo 'make no-lib               remove all packages with external libs'
 	@echo ''
-	@echo 'make package-update (pu) replace src files with package files'
-	@echo 'make package-overwrite   replace package files with src files'
-	@echo 'make package-diff (pd)   diff src files against package file'
-
-# backward compatibility
-yes-user-openmp no-user-openmp:
-	@echo 'The user-openmp package has been superseded by the user-omp package'
-	exit 1
+	@echo 'make package-update (pu)  replace src files with package files'
+	@echo 'make package-overwrite    replace package files with src files'
+	@echo 'make package-diff (pd)    diff src files against package file'
 
 yes-all:
 	@for p in $(PACKALL); do $(MAKE) yes-$$p; done

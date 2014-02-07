@@ -13,7 +13,7 @@ fix planeforce command :h3
 fix ID group-ID planeforce x y z :pre
 
 ID, group-ID are documented in "fix"_fix.html command
-lineforce = style name of this fix command
+planeforce = style name of this fix command
 x y z = 3-vector that is normal to the plane :ul
 
 [Examples:]

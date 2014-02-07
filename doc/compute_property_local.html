@@ -81,6 +81,14 @@ extracting bond, angle, etc info.  For bonds, info about an individual
 bond will only be included if both atoms in the bond are in the
 specified compute group.  Likewise for angles, dihedrals, etc.
 </P>
+<P>For bonds and angles, a bonds/angles that have been broken by setting
+their bond/angle type to 0 will not be included.  Bonds/angles that
+have been turned off (see the <A HREF = "fix_shake.html">fix shake</A> or
+<A HREF = "delete_bonds.html">delete_bonds</A> commands) by setting their bond/angle
+type negative are written into the file.  This is consistent with the
+<A HREF = "compute_bond_local.html">compute bond/local</A> and <A HREF = "compute_angle_local.html">compute
+angle/local</A> commands
+</P>
 <P>Note that as atoms migrate from processor to processor, there will be
 no consistent ordering of the entries within the local vector or array
 from one timestep to the next.  The only consistency that is

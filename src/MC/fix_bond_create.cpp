@@ -182,7 +182,7 @@ void FixBondCreate::init()
 
   // require special bonds = *,1,1
   // [0] can be anything b/c duplicate bond is checked for
-  // [1],[2] must be 1 b/c only special lists of I,J are updated when
+  // [1],[2] must be 1.0 b/c only special lists of I,J are updated when
   //   bond I-J is created, not special lists of neighbors of I,J,etc
 
   if (force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)

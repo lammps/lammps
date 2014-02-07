@@ -15,7 +15,7 @@
 // M. Matsumoto & T. Nishimura,
 // ACM Transactions on Modeling and Computer Simulation,
 // vol. 8, no. 1, 1998, pp. 3-30.
-// 
+//
 // Uses the Marsaglia RNG in RanMars to generate the initial seeds
 
 #include "math.h"
@@ -80,14 +80,14 @@ uint32_t RanMT::_randomize() {
     const int diff = MT_N-MT_M;
     int i;
 
-    for (i=0; i < diff; ++i) {    
+    for (i=0; i < diff; ++i) {
       r = (_m[i] & UMASK) | (_m[i+1] & LMASK);
       _m[i] = _m[i+MT_M] ^ (r >> 1) ^ magic[r & 1];}
-    
-    for (i=diff; i < MT_N-1; ++i) {    
+
+    for (i=diff; i < MT_N-1; ++i) {
       r = (_m[i] & UMASK) | (_m[i+1] & LMASK);
-      _m[i] = _m[i-diff] ^ (r >> 1) ^ magic[r & 1];}      
-    
+      _m[i] = _m[i-diff] ^ (r >> 1) ^ magic[r & 1];}
+
     r = (_m[MT_N-1] & UMASK) | (_m[0] & LMASK);
     _m[MT_N-1] = _m[MT_M-1] ^ (r >> 1) ^ magic[r & 1];
     _idx = 0;

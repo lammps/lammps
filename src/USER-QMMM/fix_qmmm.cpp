@@ -513,7 +513,8 @@ void FixQMMM::exchange_forces()
       // supported internal units ("metal" or "real")
       for (int i=0; i < num_qm; ++i) {
         if  (verbose > 1) {
-           const char fmt[] = "[%d]: QM(%g %g %g) MM(%g %g %g) /\\(%g %g %g)\n";
+           const char fmt[] = "[" TAGINT_FORMAT "]: QM(%g %g %g) MM(%g %g %g)"
+                              " /\\(%g %g %g)\n";
            if (screen) fprintf(screen, fmt, qm_remap[i],
                 qmmm_fscale*qm_force[3*i+0], qmmm_fscale*qm_force[3*i+1],
                 qmmm_fscale*qm_force[3*i+2], qm_coord[3*i+0], qm_coord[3*i+1],
@@ -683,12 +684,14 @@ void FixQMMM::init()
       qm_remap=taginthash_keys(qm_hash);
 
       if (verbose > 1) {
+        const char fmt[] = "qm_remap[%d]=" TAGINT_FORMAT 
+                           "  qm_hash[" TAGINT_FORMAT "]=" TAGINT_FORMAT "\n";
         // print hashtable and reverse mapping
         for (i=0; i < num_qm; ++i) {
-          if (screen) fprintf(screen, "qm_remap[%d]=%d  qm_hash[%d]=%d\n",
-            i,qm_remap[i],qm_remap[i], taginthash_lookup(qm_hash, qm_remap[i]));
-          if (logfile) fprintf(logfile, "qm_remap[%d]=%d  qm_hash[%d]=%d\n",
-            i,qm_remap[i],qm_remap[i], taginthash_lookup(qm_hash, qm_remap[i]));
+          if (screen) fprintf(screen,fmt,i,qm_remap[i],qm_remap[i],
+                              taginthash_lookup(qm_hash, qm_remap[i]));
+          if (logfile) fprintf(logfile,fmt,i,qm_remap[i],qm_remap[i],
+                               taginthash_lookup(qm_hash, qm_remap[i]));
         }
       }
 

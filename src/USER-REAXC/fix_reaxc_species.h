@@ -48,7 +48,6 @@ class FixReaxCSpecies : public Fix {
 
  private:
   int me, nprocs, nmax, nlocal, ntypes, ntotal;
-  bigint natoms;
   int nrepeat, nfreq, posfreq;
   int Nmoltype, vector_nmole, vector_nspec;
   int *Name, *MolName, *NMol, *nd, *MolType, *molmap;

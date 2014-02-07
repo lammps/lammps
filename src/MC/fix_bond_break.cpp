@@ -128,13 +128,14 @@ int FixBondBreak::setmask()
 
 void FixBondBreak::init()
 {
-  // require special bonds = 0,1,1
+  // require special bonds = *,1,1
+  // [0] can be anything b/c I,J are removed from each other's special list
+  // [1],[2] must be 1.0 b/c only special lists of I,J are updated when
+  //   bond I-J is broken, not special lists of neighbors of I,J,etc
 
   int flag = 0;
-  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 ||
-      force->special_lj[3] != 1.0) flag = 1;
-  if (force->special_coul[1] != 0.0 || force->special_coul[2] != 1.0 ||
-      force->special_coul[3] != 1.0) flag = 1;
+  if (force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0) flag = 1;
+  if (force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0) flag = 1;
   if (flag) error->all(FLERR,"Fix bond/break requires special_bonds = 0,1,1");
 
   // warn if angles, dihedrals, impropers are being used

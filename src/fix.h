@@ -196,6 +196,10 @@ class Fix : protected Pointers {
   void v_setup(int);
   void v_tally(int, int *, double, double *);
 
+  inline int sbmask(int j) {
+    return j >> SBBITS & 3;
+  }
+
   // union data struct for packing 32-bit and 64-bit ints into double bufs
   // see atom_vec.h for documentation
 

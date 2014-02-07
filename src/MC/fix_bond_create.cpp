@@ -180,16 +180,17 @@ void FixBondCreate::init()
   if (force->pair == NULL || cutsq > force->pair->cutsq[iatomtype][jatomtype])
     error->all(FLERR,"Fix bond/create cutoff is longer than pairwise cutoff");
 
-  // require special bonds = 0,1,1
+  // require special bonds = *,1,1
+  // [0] can be anything b/c duplicate bond is checked for
+  // [1],[2] must be 1 b/c only special lists of I,J are updated when
+  //   bond I-J is created, not special lists of neighbors of I,J,etc
 
-  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 ||
-      force->special_lj[3] != 1.0)
-    error->all(FLERR,"Fix bond/create requires special_bonds lj = 0,1,1");
+  if (force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
+    error->all(FLERR,"Fix bond/create requires special_bonds lj = *,1,1");
 
   if (atom->q_flag)
-    if (force->special_coul[1] != 0.0 || force->special_coul[2] != 1.0 ||
-        force->special_coul[3] != 1.0)
-      error->all(FLERR,"Fix bond/create requires special_bonds coul = 0,1,1");
+    if (force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
+      error->all(FLERR,"Fix bond/create requires special_bonds coul = *,1,1");
 
   // warn if angles, dihedrals, impropers are being used
 
@@ -267,7 +268,7 @@ void FixBondCreate::setup(int vflag)
 
 void FixBondCreate::post_integrate()
 {
-  int i,j,m,ii,jj,inum,jnum,itype,jtype,n1,n3,possible;
+  int i,j,k,m,ii,jj,inum,jnum,itype,jtype,n1,n3,possible;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   tagint *slist;
@@ -309,6 +310,8 @@ void FixBondCreate::post_integrate()
 
   double **x = atom->x;
   tagint *tag = atom->tag;
+  tagint **bond_atom = atom->bond_atom;
+  int *num_bond = atom->num_bond;
   int *mask = atom->mask;
   int *type = atom->type;
 
@@ -343,6 +346,16 @@ void FixBondCreate::post_integrate()
             (imaxbond == 0 || bondcount[j] < imaxbond))
           possible = 1;
       }
+      if (!possible) continue;
+
+      // do not allow a duplicate bond to be created
+      // check existing bonds of both I and J
+
+      for (k = 0; k < num_bond[i]; k++)
+        if (bond_atom[i][k] == tag[j]) possible = 0;
+      if (j < nlocal)
+        for (k = 0; k < num_bond[j]; k++)
+          if (bond_atom[j][k] == tag[i]) possible = 0;
       if (!possible) continue;
 
       delx = xtmp - x[j][0];
@@ -386,8 +399,6 @@ void FixBondCreate::post_integrate()
   // and probability constraint is satisfied
 
   int **bond_type = atom->bond_type;
-  tagint **bond_atom = atom->bond_atom;
-  int *num_bond = atom->num_bond;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
   int newton_bond = force->newton_bond;
@@ -437,11 +448,10 @@ void FixBondCreate::post_integrate()
     // increment bondcount, convert atom to new type if limit reached
 
     bondcount[i]++;
-    if (type[i] == iatomtype) {
+    if (type[i] == iatomtype)
       if (bondcount[i] == imaxbond) type[i] = inewtype;
-    } else {
+    else
       if (bondcount[i] == jmaxbond) type[i] = jnewtype;
-    }
 
     // count the created bond once
 

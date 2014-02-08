@@ -525,8 +525,8 @@ int FixPropertyAtom::pack_restart(int i, double *buf)
   for (int j = 0; j < nvalue; j++) {
     if (style[j] == MOLECULE) buf[m++] = ubuf(atom->molecule[i]).d;
     else if (style[j] == CHARGE) buf[m++] = atom->q[i];
-    else if (style[j] == INTEGER) buf[m++] = ubuf(atom->ivector[index[m]][i]).d;
-    else if (style[j] == DOUBLE) buf[m++] = atom->dvector[index[m]][i];
+    else if (style[j] == INTEGER) buf[m++] = ubuf(atom->ivector[index[j]][i]).d;
+    else if (style[j] == DOUBLE) buf[m++] = atom->dvector[index[j]][i];
   }
 
   return nvalue+1;
@@ -552,9 +552,9 @@ void FixPropertyAtom::unpack_restart(int nlocal, int nth)
     else if (style[i] == CHARGE)
       atom->q[nlocal] = extra[nlocal][m++];
     else if (style[i] == INTEGER) 
-      atom->ivector[index[m]][nlocal] = (int) ubuf(extra[nlocal][m++]).i;
+      atom->ivector[index[i]][nlocal] = (int) ubuf(extra[nlocal][m++]).i;
     else if (style[i] == DOUBLE)
-      atom->dvector[index[m]][nlocal] = extra[nlocal][m++];
+      atom->dvector[index[i]][nlocal] = extra[nlocal][m++];
   }
 }
 

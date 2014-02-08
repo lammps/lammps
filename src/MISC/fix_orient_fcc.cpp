@@ -495,7 +495,7 @@ int FixOrientFCC::pack_comm(int n, int *list, double *buf,
     buf[m++] = nbr[k].duxi;
 
     for (j = 0; j < num; j++) {
-      if (use_xismooth) buf[m++] = nbr[m].xismooth[j];
+      if (use_xismooth) buf[m++] = nbr[k].xismooth[j];
       buf[m++] = nbr[k].dxi[j][0];
       buf[m++] = nbr[k].dxi[j][1];
       buf[m++] = nbr[k].dxi[j][2];

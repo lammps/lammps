@@ -143,12 +143,10 @@ for these angles and dihedrals, even if your simulation defines an
 <A HREF = "dihedral_style.html">dihedral_style</A>.
 </P>
 <P>This fix requires that the pairwise weightings defined by the
-<A HREF = "special_bonds.html">special_bonds</A> command be 0,1,1 for 1-2, 1-3, and
-1-4 neighbors within the bond topology.  This effectively means that
-the pairwise interaction between atoms I and J is turned off when a
-bond between them exists and will be turned on when the bond is
-broken.  It also means that the pairwise interaction of I with J's
-other bond partners is unaffected by the existence of the bond.
+<A HREF = "special_bonds.html">special_bonds</A> command be *,1,1 for 1-3 and 1-4
+neighbors within the bond topology (the 1-2 setting is not
+restricted).  This means that the pairwise interaction of I with J's
+other bond partners is unaffected by the breaking of the bond.
 </P>
 <P><B>Related commands:</B>
 </P>

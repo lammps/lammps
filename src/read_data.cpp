@@ -184,10 +184,9 @@ void ReadData::command(int narg, char **arg)
     } else error->all(FLERR,"Illegal read_data command");
   }
 
-
   // perform 1-pass read if no molecular topoogy in file
-  // perform 2-pass read if molecular topology
-  //   1st pass calculates max topology/atom
+  // perform 2-pass read if molecular topology,
+  //   first pass calculates max topology/atom
 
   int atomflag,topoflag;
   int bondflag,angleflag,dihedralflag,improperflag;
@@ -225,10 +224,6 @@ void ReadData::command(int narg, char **arg)
 
       atom->allocate_type_arrays();
       atom->avec->grow(n);
-
-      // initialize here, in case there are no bonds in the data file yet.
-      atom->bond_per_atom = atom->extra_bond_per_atom;
-      n = atom->nmax;
 
       domain->print_box("  ");
       domain->set_initial_box();
@@ -497,16 +492,19 @@ void ReadData::command(int narg, char **arg)
     if (!topoflag) break;
     firstpass = 0;
 
-    // reallocate bond,angle,diehdral,improper arrays via grow(),
-    // using new bond,angle,dihedral,improper per-atom values from 1st pass
+    // reallocate bond,angle,diehdral,improper arrays via grow()
+    // use new bond,angle,dihedral,improper per-atom values from 1st pass
     // should leave other atom arrays unchanged, since already nmax in length
+    // if bonds/etc not in data file, initialize per-atom size 
+    //   with extra settings before grow() of these topology arrays
 
     if (bondflag) {
       memory->destroy(atom->bond_type);
       memory->destroy(atom->bond_atom);
       atom->bond_type = NULL;
       atom->bond_atom = NULL;
-    }
+    } else atom->bond_per_atom = atom->extra_bond_per_atom;
+
     if (angleflag) {
       memory->destroy(atom->angle_type);
       memory->destroy(atom->angle_atom1);
@@ -514,7 +512,8 @@ void ReadData::command(int narg, char **arg)
       memory->destroy(atom->angle_atom3);
       atom->angle_type = NULL;
       atom->angle_atom1 = atom->angle_atom2 = atom->angle_atom3 = NULL;
-    }
+    } else atom->angle_per_atom = atom->extra_angle_per_atom;
+
     if (dihedralflag) {
       memory->destroy(atom->dihedral_type);
       memory->destroy(atom->dihedral_atom1);
@@ -524,7 +523,8 @@ void ReadData::command(int narg, char **arg)
       atom->dihedral_type = NULL;
       atom->dihedral_atom1 = atom->dihedral_atom2 = 
         atom->dihedral_atom3 = atom->dihedral_atom4 = NULL;
-    }
+    } else atom->dihedral_per_atom = atom->extra_dihedral_per_atom;
+
     if (improperflag) {
       memory->destroy(atom->improper_type);
       memory->destroy(atom->improper_atom1);
@@ -534,7 +534,7 @@ void ReadData::command(int narg, char **arg)
       atom->improper_type = NULL;
       atom->improper_atom1 = atom->improper_atom2 = 
         atom->improper_atom3 = atom->improper_atom4 = NULL;
-    }
+    } else atom->improper_per_atom = atom->extra_improper_per_atom;
 
     atom->avec->grow(atom->nmax);
   }

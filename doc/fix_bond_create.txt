@@ -188,12 +188,10 @@ an "angle_style"_angle_style.html or
 "dihedral_style"_dihedral_style.html.
 
 This fix requires that the pairwise weightings defined by the
-"special_bonds"_special_bonds.html command be 0,1,1 for 1-2, 1-3, and
-1-4 neighbors within the bond topology.  This effectively means that
-the pairwise interaction between atoms I and J will be turned off when
-a bond between them is created.  It also means that the pairwise
-interaction of I with J's other bond partners will be unaffected by
-the new bond.
+"special_bonds"_special_bonds.html command be *,1,1 for 1-3 and 1-4
+neighbors within the bond topology (the 1-2 setting is not
+restricted).  This means that the pairwise interaction of I with J's
+other bond partners is unaffected by the creation of a new bond.
 
 [Related commands:]
 

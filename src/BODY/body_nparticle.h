@@ -29,11 +29,11 @@ class BodyNparticle : public Body {
  public:
   BodyNparticle(class LAMMPS *, int, char **);
   ~BodyNparticle();
-  int nsub(class AtomVecBody::Bonus *);
-  double *coords(class AtomVecBody::Bonus *);
+  int nsub(struct AtomVecBody::Bonus *);
+  double *coords(struct AtomVecBody::Bonus *);
 
-  int pack_border_body(class AtomVecBody::Bonus *, double *);
-  int unpack_border_body(class AtomVecBody::Bonus *, double *);
+  int pack_border_body(struct AtomVecBody::Bonus *, double *);
+  int unpack_border_body(struct AtomVecBody::Bonus *, double *);
   void data_body(int, int, int, char **, char **);
 
   int noutrow(int);

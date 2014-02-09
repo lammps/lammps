@@ -543,7 +543,7 @@ void Finish::end(int flag)
   // print thread breakdown only with full timer detail
 
   if ((ifix >= 0) && timer->has_full() && me == 0) {
-    double thr_total;
+    double thr_total = 0.0;
     ThrData *td;
     FixOMP *fixomp = static_cast<FixOMP *>(lmp->modify->fix[ifix]);
     for (i=0; i < nthreads; ++i) {

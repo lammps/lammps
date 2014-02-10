@@ -49,16 +49,19 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   // store temperature ID used by pressure computation
   // insure it is valid for temperature computation
 
-  int n = strlen(arg[3]) + 1;
-  id_temp = new char[n];
-  strcpy(id_temp,arg[3]);
+  if (strcmp(arg[3],"NULL") == 0) id_temp = NULL;
+  else {
+    int n = strlen(arg[3]) + 1;
+    id_temp = new char[n];
+    strcpy(id_temp,arg[3]);
 
-  int icompute = modify->find_compute(id_temp);
-  if (icompute < 0)
-    error->all(FLERR,"Could not find compute pressure temperature ID");
-  if (modify->compute[icompute]->tempflag == 0)
-    error->all(FLERR,
-               "Compute pressure temperature ID does not compute temperature");
+    int icompute = modify->find_compute(id_temp);
+    if (icompute < 0)
+      error->all(FLERR,"Could not find compute pressure temperature ID");
+    if (modify->compute[icompute]->tempflag == 0)
+      error->all(FLERR,
+		 "Compute pressure temperature ID does not compute temperature");
+  }
 
   // process optional args
 
@@ -91,6 +94,12 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
+  // error check
+
+  if (keflag && id_temp == NULL) 
+    error->all(FLERR,"Compute pressure requires temperature ID "
+	       "to include kinetic energy");
+
   vector = new double[6];
   nvirial = 0;
   vptr = NULL;
@@ -116,10 +125,12 @@ void ComputePressure::init()
   // set temperature compute, must be done in init()
   // fixes could have changed or compute_modify could have changed it
 
-  int icompute = modify->find_compute(id_temp);
-  if (icompute < 0)
-    error->all(FLERR,"Could not find compute pressure temperature ID");
-  temperature = modify->compute[icompute];
+  if (keflag) {
+    int icompute = modify->find_compute(id_temp);
+    if (icompute < 0)
+      error->all(FLERR,"Could not find compute pressure temperature ID");
+    temperature = modify->compute[icompute];
+  }
 
   // detect contributions to virial
   // vptr points to all virial[6] contributions
@@ -169,7 +180,7 @@ double ComputePressure::compute_scalar()
   if (update->vflag_global != invoked_scalar)
     error->all(FLERR,"Virial was not tallied on needed timestep");
 
-  // invoke temperature it it hasn't been already
+  // invoke temperature if it hasn't been already
 
   double t;
   if (keflag) {

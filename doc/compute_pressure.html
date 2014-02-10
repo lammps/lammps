@@ -19,14 +19,14 @@
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
 <LI>pressure = style name of this compute command
-<LI>temp-ID = ID of compute that calculates temperature
+<LI>temp-ID = ID of compute that calculates temperature, can be NULL if not needed
 <LI>zero or more keywords may be appended
 <LI>keyword = <I>ke</I> or <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or <I>kspace</I> or <I>fix</I> or <I>virial</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>compute 1 all pressure myTemp
-compute 1 all pressure thermo_temp pair bond 
+<PRE>compute 1 all pressure thermo_temp
+compute 1 all pressure NULL pair bond 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -68,12 +68,20 @@ means include all terms except the kinetic energy <I>ke</I>.
 </P>
 <P>The temperature and kinetic energy tensor is not calculated by this
 compute, but rather by the temperature compute specified with the
-command.  Normally this compute should calculate the temperature of
-all atoms for consistency with the virial term, but any compute style
-that calculates temperature can be used, e.g. one that excludes frozen
-atoms or other degrees of freedom.
+command.  If the kinetic energy is not included in the pressure, than
+the temperature compute is not used and can be specified as NULL.
+Normally the temperature compute used by compute pressure should
+calculate the temperature of all atoms for consistency with the virial
+term, but any compute style that calculates temperature can be used,
+e.g. one that excludes frozen atoms or other degrees of freedom.
 </P>
-<P>Note that the N in the first formula above is really
+<P>Note that if desired the specified temperature compute can be one that
+subtracts off a bias to calculate a temperature using only the thermal
+velocity of the atoms, e.g. by subtracting a background streaming
+velocity.  See the doc pages for individual <A HREF = "compute.html">compute
+commands</A> to determine which ones include a bias.
+</P>
+<P>Also note that the N in the first formula above is really
 degrees-of-freedom divided by d = dimensionality, where the DOF value
 is calcluated by the temperature compute.  See the various <A HREF = "compute.html">compute
 temperature</A> styles for details.

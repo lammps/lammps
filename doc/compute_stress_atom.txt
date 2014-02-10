@@ -10,17 +10,19 @@ compute stress/atom command :h3
 
 [Syntax:]
 
-compute ID group-ID stress/atom keyword ... :pre
+compute ID group-ID stress/atom temp-ID keyword ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command
 stress/atom = style name of this compute command
+temp-ID = ID of compute that calculates temperature, can be NULL if not needed
 zero or more keywords may be appended
 keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} or {kspace} or {fix} or {virial} :ul
 
 [Examples:]
 
-compute 1 mobile stress/atom
-compute 1 all stress/atom pair bond :pre
+compute 1 mobile stress/atom NULL
+compute 1 mobile stress/atom myRamp
+compute 1 all stress/atom NULL pair bond :pre
 
 [Description:]
 
@@ -37,19 +39,21 @@ the symmetric tensor:
 
 :c,image(Eqs/stress_tensor.jpg)
 
-The first term is a kinetic energy contribution for atom {I}.  The
-second term is a pairwise energy contribution where {n} loops over the
-{Np} neighbors of atom {I}, {r1} and {r2} are the positions of the 2
-atoms in the pairwise interaction, and {F1} and {F2} are the forces on
-the 2 atoms resulting from the pairwise interaction.  The third term
-is a bond contribution of similar form for the {Nb} bonds which atom
-{I} is part of.  There are similar terms for the {Na} angle, {Nd}
-dihedral, and {Ni} improper interactions atom {I} is part of.  There
-is also a term for the KSpace contribution from long-range Coulombic
-interactions, if defined.  Finally, there is a term for the {Nf}
-"fixes"_fix.html that apply internal constraint forces to atom {I}.
-Currently, only the "fix shake"_fix_shake.html and "fix
-rigid"_fix_rigid.html commands contribute to this term.
+The first term is a kinetic energy contribution for atom {I}.  See
+details below on how the specified {temp-ID} can affect the velocities
+used in this calculation.  The second term is a pairwise energy
+contribution where {n} loops over the {Np} neighbors of atom {I}, {r1}
+and {r2} are the positions of the 2 atoms in the pairwise interaction,
+and {F1} and {F2} are the forces on the 2 atoms resulting from the
+pairwise interaction.  The third term is a bond contribution of
+similar form for the {Nb} bonds which atom {I} is part of.  There are
+similar terms for the {Na} angle, {Nd} dihedral, and {Ni} improper
+interactions atom {I} is part of.  There is also a term for the KSpace
+contribution from long-range Coulombic interactions, if defined.
+Finally, there is a term for the {Nf} "fixes"_fix.html that apply
+internal constraint forces to atom {I}.  Currently, only the "fix
+shake"_fix_shake.html and "fix rigid"_fix_rigid.html commands
+contribute to this term.
 
 As the coefficients in the formula imply, a virial contribution
 produced by a small set of atoms (e.g. 4 atoms in a dihedral or 3
@@ -81,12 +85,29 @@ per-atom stress is calculated.  Thus it can significantly increase the
 cost of the PPPM calculation if it is needed on a large fraction of
 the simulation timesteps.
 
+The {temp-ID} argument can be used to affect the per-atom velocities
+used in the kinetic energy contribution to the total stress.  If the
+kinetic energy is not included in the stress, than the temperature
+compute is not used and can be specified as NULL.  If the kinetic
+energy is included and you wish to use atom velocities as-is, then
+{temp-ID} can also be specified as NULL.  If desired, the specified
+temperature compute can be one that subtracts off a bias to leave each
+atom with only a thermal velocity to use in the formula above, e.g. by
+subtracting a background streaming velocity.  See the doc pages for
+individual "compute commands"_compute.html to determine which ones
+include a bias.
+
+:line
+
 Note that as defined in the formula, per-atom stress is the negative
 of the per-atom pressure tensor.  It is also really a stress*volume
 formulation, meaning the computed quantity is in units of
 pressure*volume.  It would need to be divided by a per-atom volume to
 have units of stress (pressure), but an individual atom's volume is
 not well defined or easy to compute in a deformed solid or a liquid.
+See the "compute voronoi/atom"_compute_voronoi_atom.html command for
+one possible way to estimate a per-atom volume.
+
 Thus, if the diagonal components of the per-atom stress tensor are
 summed for all atoms in the system and the sum is divided by dV, where
 d = dimension and V is the volume of the system, the result should be
@@ -95,7 +116,7 @@ d = dimension and V is the volume of the system, the result should be
 These lines in an input script for a 3d system should yield that
 result.  I.e. the last 2 columns of thermo output will be the same:
 
-compute		peratom all stress/atom
+compute		peratom all stress/atom NULL
 compute		p all reduce sum c_peratom\[1\] c_peratom\[2\] c_peratom\[3\]
 variable	press equal -(c_p\[1\]+c_p\[2\]+c_p\[3\])/(3*vol)
 thermo_style	custom step temp etotal press v_press :pre

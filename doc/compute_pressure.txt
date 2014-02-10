@@ -15,14 +15,14 @@ compute ID group-ID pressure temp-ID keyword ... :pre
 
 ID, group-ID are documented in "compute"_compute.html command
 pressure = style name of this compute command
-temp-ID = ID of compute that calculates temperature
+temp-ID = ID of compute that calculates temperature, can be NULL if not needed
 zero or more keywords may be appended
 keyword = {ke} or {pair} or {bond} or {angle} or {dihedral} or {improper} or {kspace} or {fix} or {virial} :ul
 
 [Examples:]
 
-compute 1 all pressure myTemp
-compute 1 all pressure thermo_temp pair bond :pre
+compute 1 all pressure thermo_temp
+compute 1 all pressure NULL pair bond :pre
 
 [Description:]
 
@@ -51,7 +51,7 @@ ordered xx, yy, zz, xy, xz, yz.  The equation for the I,J components
 (where I and J = x,y,z) is similar to the above formula, except that
 the first term uses components of the kinetic energy tensor and the
 second term uses components of the virial tensor:
-
+  
 :c,image(Eqs/pressure_tensor.jpg)
 
 If no extra keywords are listed, the entire equations above are
@@ -64,12 +64,20 @@ means include all terms except the kinetic energy {ke}.
 
 The temperature and kinetic energy tensor is not calculated by this
 compute, but rather by the temperature compute specified with the
-command.  Normally this compute should calculate the temperature of
-all atoms for consistency with the virial term, but any compute style
-that calculates temperature can be used, e.g. one that excludes frozen
-atoms or other degrees of freedom.
+command.  If the kinetic energy is not included in the pressure, than
+the temperature compute is not used and can be specified as NULL.
+Normally the temperature compute used by compute pressure should
+calculate the temperature of all atoms for consistency with the virial
+term, but any compute style that calculates temperature can be used,
+e.g. one that excludes frozen atoms or other degrees of freedom.
 
-Note that the N in the first formula above is really
+Note that if desired the specified temperature compute can be one that
+subtracts off a bias to calculate a temperature using only the thermal
+velocity of the atoms, e.g. by subtracting a background streaming
+velocity.  See the doc pages for individual "compute
+commands"_compute.html to determine which ones include a bias.
+
+Also note that the N in the first formula above is really
 degrees-of-freedom divided by d = dimensionality, where the DOF value
 is calcluated by the temperature compute.  See the various "compute
 temperature"_compute.html styles for details.

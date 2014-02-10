@@ -160,7 +160,19 @@ calculations accessed in the various ways described above.
 
 Each compute style has its own doc page which describes its arguments
 and what it does.  Here is an alphabetic list of compute styles
-available in LAMMPS:
+available in LAMMPS.  They are also given in more compact form in the
+compute section of "this page"_Section_commands.html#cmd_5.
+
+There are also additional compute styles (not listed here) submitted
+by users which are included in the LAMMPS distribution.  The list of
+these with links to the individual styles are given in the compute
+section of "this page"_Section_commands.html#cmd_5.
+
+There are also additional accelerated compute styles (note listed
+here) included in the LAMMPS distribution for faster performance on
+CPUs and GPUs.  The list of these with links to the individual styles
+are given in the compute section of "this
+page"_Section_commands.html#cmd_5.
 
 "angle/local"_compute_bond_local.html - theta and energy of each angle
 "atom/molecule"_compute_atom_molecule.html - sum per-atom properties for each molecule
@@ -175,6 +187,7 @@ available in LAMMPS:
 "coord/atom"_compute_coord_atom.html - coordination number for each atom
 "damage/atom"_compute_damage_atom.html - Peridynamic damage for each atom
 "dihedral/local"_compute_dihedral_local.html - angle of each dihedral
+"dilatation/atom"_compute_dilatation_atom.html - Peridynamic dilatation for each atom
 "displace/atom"_compute_displace_atom.html - displacement of each atom
 "erotate/asphere"_compute_erotate_asphere.html - rotational energy of aspherical particles
 "erotate/rigid"_compute_erotate_rigid.html - rotational energy of rigid bodies
@@ -192,10 +205,12 @@ available in LAMMPS:
 "ke/rigid"_compute_ke_rigid.html - translational kinetic energy of rigid bodies
 "msd"_compute_msd.html - mean-squared displacement of group of atoms
 "msd/molecule"_compute_msd_molecule.html - mean-squared displacement for each molecule
+"msd/nongauss"_compute_msd_nongauss.html - MSD and non-Gaussian parameter of group of atoms
 "pair"_compute_pair.html - values computed by a pair style
 "pair/local"_compute_pair_local.html - distance/energy/force of each pairwise interaction
 "pe"_compute_pe.html - potential energy
 "pe/atom"_compute_pe_atom.html - potential energy for each atom
+"plasticity/atom"_compute_plasticity_atom.html - Peridynamic plasticity for each atom
 "pressure"_compute_pressure.html - total pressure and pressure tensor
 "property/atom"_compute_property_atom.html - convert atom attributes to per-atom vectors/arrays
 "property/local"_compute_property_local.html - convert local attributes to localvectors/arrays
@@ -215,6 +230,7 @@ available in LAMMPS:
 "temp/region"_compute_temp_region.html - temperature of a region of atoms
 "temp/sphere"_compute_temp_sphere.html - temperature of spherical particles
 "ti"_compute_ti.html - thermodyanmic integration free energy values
+"vacf"_compute_vacf.html - velocity-autocorrelation function of group of atoms
 "voronoi/atom"_compute_voronoi_atom.html - Voronoi volume and neighbors for each atom :ul
 
 There are also additional compute styles submitted by users which are

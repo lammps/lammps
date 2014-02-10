@@ -165,7 +165,19 @@ calculations accessed in the various ways described above.
 
 <P>Each compute style has its own doc page which describes its arguments
 and what it does.  Here is an alphabetic list of compute styles
-available in LAMMPS:
+available in LAMMPS.  They are also given in more compact form in the
+compute section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
+</P>
+<P>There are also additional compute styles (not listed here) submitted
+by users which are included in the LAMMPS distribution.  The list of
+these with links to the individual styles are given in the compute
+section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
+</P>
+<P>There are also additional accelerated compute styles (note listed
+here) included in the LAMMPS distribution for faster performance on
+CPUs and GPUs.  The list of these with links to the individual styles
+are given in the compute section of <A HREF = "Section_commands.html#cmd_5">this
+page</A>.
 </P>
 <UL><LI><A HREF = "compute_bond_local.html">angle/local</A> - theta and energy of each angle
 <LI><A HREF = "compute_atom_molecule.html">atom/molecule</A> - sum per-atom properties for each molecule
@@ -180,6 +192,7 @@ available in LAMMPS:
 <LI><A HREF = "compute_coord_atom.html">coord/atom</A> - coordination number for each atom
 <LI><A HREF = "compute_damage_atom.html">damage/atom</A> - Peridynamic damage for each atom
 <LI><A HREF = "compute_dihedral_local.html">dihedral/local</A> - angle of each dihedral
+<LI><A HREF = "compute_dilatation_atom.html">dilatation/atom</A> - Peridynamic dilatation for each atom
 <LI><A HREF = "compute_displace_atom.html">displace/atom</A> - displacement of each atom
 <LI><A HREF = "compute_erotate_asphere.html">erotate/asphere</A> - rotational energy of aspherical particles
 <LI><A HREF = "compute_erotate_rigid.html">erotate/rigid</A> - rotational energy of rigid bodies
@@ -197,10 +210,12 @@ available in LAMMPS:
 <LI><A HREF = "compute_ke_rigid.html">ke/rigid</A> - translational kinetic energy of rigid bodies
 <LI><A HREF = "compute_msd.html">msd</A> - mean-squared displacement of group of atoms
 <LI><A HREF = "compute_msd_molecule.html">msd/molecule</A> - mean-squared displacement for each molecule
+<LI><A HREF = "compute_msd_nongauss.html">msd/nongauss</A> - MSD and non-Gaussian parameter of group of atoms
 <LI><A HREF = "compute_pair.html">pair</A> - values computed by a pair style
 <LI><A HREF = "compute_pair_local.html">pair/local</A> - distance/energy/force of each pairwise interaction
 <LI><A HREF = "compute_pe.html">pe</A> - potential energy
 <LI><A HREF = "compute_pe_atom.html">pe/atom</A> - potential energy for each atom
+<LI><A HREF = "compute_plasticity_atom.html">plasticity/atom</A> - Peridynamic plasticity for each atom
 <LI><A HREF = "compute_pressure.html">pressure</A> - total pressure and pressure tensor
 <LI><A HREF = "compute_property_atom.html">property/atom</A> - convert atom attributes to per-atom vectors/arrays
 <LI><A HREF = "compute_property_local.html">property/local</A> - convert local attributes to localvectors/arrays
@@ -220,6 +235,7 @@ available in LAMMPS:
 <LI><A HREF = "compute_temp_region.html">temp/region</A> - temperature of a region of atoms
 <LI><A HREF = "compute_temp_sphere.html">temp/sphere</A> - temperature of spherical particles
 <LI><A HREF = "compute_ti.html">ti</A> - thermodyanmic integration free energy values
+<LI><A HREF = "compute_vacf.html">vacf</A> - velocity-autocorrelation function of group of atoms
 <LI><A HREF = "compute_voronoi_atom.html">voronoi/atom</A> - Voronoi volume and neighbors for each atom 
 </UL>
 <P>There are also additional compute styles submitted by users which are

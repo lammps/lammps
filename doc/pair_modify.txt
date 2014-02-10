@@ -10,10 +10,13 @@ pair_modify command :h3
 
 [Syntax:]
 
-pair_modify keyword value ... :pre
+pair_modify keyword values ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {shift} or {mix} or {table} or {table/disp} or {tabinner} or {tabinner/disp} or {tail} or {compute} :l
+keyword = {pair} or {shift} or {mix} or {table} or {table/disp} or {tabinner} or {tabinner/disp} or {tail} or {compute} :l
+  {pair} values = sub-style N
+    sub-style = sub-style of "pair hybrid"_pair_hybrid.html
+    N = which instance of sub-style (only if sub-style is used multiple times)
   {mix} value = {geometric} or {arithmetic} or {sixthpower}
   {shift} value = {yes} or {no}
   {table} value = N
@@ -38,6 +41,20 @@ pair_modify table 12 :pre
 
 Modify the parameters of the currently defined pair style.  Not all
 parameters are relevant to all pair styles.
+
+If used, the {pair} keyword must appear first in the list of keywords.
+It can only be used with the "hybrid and
+hybrid/overlay"_pair_hybrid.html pair styles.  It means that the
+following parameters will only be modified for the specified
+sub-style, which must be a sub-style defined by the "pair_style
+hybrid"_pair_hybrid.html command.  If the sub-style is defined
+multiple times, then an additional numeric argument {N} must also be
+specified which is a number from 1 to M where M is the number of times
+the sub-style was listed in the "pair_style hybrid"_pair_hybrid.html
+command.  The extra number indicates which instance of the sub-style
+these modifications apply to.  Note that if the {pair} keyword is not
+used, and the pair style is {hybrid} or {hybrid/overlay}, the
+pair_modify keywords will be applied to all sub-styles.
 
 The {mix} keyword affects pair coefficients for interactions between
 atoms of type I and J, when I != J and the coefficients are not
@@ -149,11 +166,18 @@ those interactions. :l,ule
 The {compute} keyword allows pairwise computations to be turned off,
 even though a "pair_style"_pair_style.html is defined.  This is not
 useful for running a real simulation, but can be useful for debugging
-purposes or for computing only partial forces that do not include the
-pairwise contribution.  You can also do this by simply not defining a
-"pair_style"_pair_style.html, but a Kspace-compatible pair_style is
-required if you also want to define a
-"kspace_style"_kspace_style.html.  This keyword gives you that option.
+purposes or for performing a "rerun"_rerun.html simulation, when you
+only wish to compute partial forces that do not include the pairwise
+contribution.
+
+Two examples are as follows.  First, this option allows you to perform
+a simulation with "pair_style hybrid"_pair_hybrid.html with only a
+subset of the hybrid sub-styles enabled.  Second, this option allows
+you to perform a simulation with only long-range interactions but no
+short-range pairwise interactions.  Doing this by simply not defining
+a pair style will not work, because the
+"kspace_style"_kspace_style.html command requires a Kspace-compatible
+pair style be defined.
 
 [Restrictions:] none
 

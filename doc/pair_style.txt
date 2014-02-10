@@ -77,20 +77,23 @@ previously specified pair_coeff values.
 
 :line
 
-Here is an alphabetic list of pair styles defined in LAMMPS.  Click on
-the style to display the formula it computes, arguments specified in
-the pair_style command, and coefficients specified by the associated
-"pair_coeff"_pair_coeff.html command.
-
-Note that there are also additional pair styles submitted by users
-which are included in the LAMMPS distribution.  The list of these with
-links to the individual styles are given in the pair section of "this
+Here is an alphabetic list of pair styles defined in LAMMPS.  They are
+also given in more compact form in the pair section of "this
 page"_Section_commands.html#cmd_5.
 
-There are also additional accelerated pair styles included in the
-LAMMPS distribution for faster performance on CPUs and GPUs.  The list
-of these with links to the individual styles are given in the pair
+Click on the style to display the formula it computes, arguments
+specified in the pair_style command, and coefficients specified by the
+associated "pair_coeff"_pair_coeff.html command.
+
+There are also additional pair styles (not listed here) submitted by
+users which are included in the LAMMPS distribution.  The list of
+these with links to the individual styles are given in the pair
 section of "this page"_Section_commands.html#cmd_5.
+
+There are also additional accelerated pair styles (not listed here)
+included in the LAMMPS distribution for faster performance on CPUs and
+GPUs.  The list of these with links to the individual styles are given
+in the pair section of "this page"_Section_commands.html#cmd_5.
 
 "pair_style none"_pair_none.html - turn off pairwise interactions
 "pair_style hybrid"_pair_hybrid.html - multiple styles of pairwise interactions
@@ -114,13 +117,13 @@ section of "this page"_Section_commands.html#cmd_5.
 "pair_style buck/long/coul/long"_pair_buck.html - long-range Buckingham with long-range Coulombics
 "pair_style colloid"_pair_colloid.html - integrated colloidal potential
 "pair_style comb"_pair_comb.html - charge-optimized many-body (COMB) potential
+"pair_style comb3"_pair_comb.html - charge-optimized many-body (COMB3) potential
 "pair_style coul/cut"_pair_coul.html - cutoff Coulombic potential
 "pair_style coul/debye"_pair_coul.html - cutoff Coulombic potential with Debye screening
 "pair_style coul/dsf"_pair_coul.html - Coulombics via damped shifted forces
 "pair_style coul/long"_pair_coul.html - long-range Coulombic potential
 "pair_style coul/msm"_pair_coul.html - long-range MSM Coulombics
 "pair_style coul/wolf"_pair_coul.html - Coulombics via Wolf potential
-"pair_style dipole/cut"_pair_dipole.html - point dipoles with cutoff
 "pair_style dpd"_pair_dpd.html - dissipative particle dynamics (DPD)
 "pair_style dpd/tstat"_pair_dpd.html - DPD thermostatting
 "pair_style dsmc"_pair_dsmc.html - Direct Simulation Monte Carlo (DSMC)
@@ -151,12 +154,15 @@ section of "this page"_Section_commands.html#cmd_5.
 "pair_style lj/cut/coul/dsf"_pair_lj.html - LJ with Coulombics via damped shifted forces
 "pair_style lj/cut/coul/long"_pair_lj.html - LJ with long-range Coulombics
 "pair_style lj/cut/coul/msm"_pair_lj.html - LJ with long-range MSM Coulombics
+"pair_style dipole/cut"_pair_dipole.html - point dipoles with cutoff
+"pair_style dipole/long"_pair_dipole.html - point dipoles with long-range Ewald
 "pair_style lj/cut/tip4p/cut"_pair_lj.html - LJ with cutoff Coulomb for TIP4P water
 "pair_style lj/cut/tip4p/long"_pair_lj.html - LJ with long-range Coulomb for TIP4P water
 "pair_style lj/expand"_pair_lj_expand.html - Lennard-Jones for variable size particles
 "pair_style lj/gromacs"_pair_gromacs.html - GROMACS-style Lennard-Jones potential
 "pair_style lj/gromacs/coul/gromacs"_pair_gromacs.html - GROMACS-style LJ and Coulombic potential
 "pair_style lj/long/coul/long"_pair_lj_long.html - long-range LJ and long-range Coulombics
+"pair_style lj/long/dipole/long"_pair_dipole.html - long-range LJ and long-range point dipoles
 "pair_style lj/long/tip4p/long"_pair_lj_long.html - long-range LJ and long-range Coulomb for TIP4P water
 "pair_style lj/smooth"_pair_lj_smooth.html - smoothed Lennard-Jones potential
 "pair_style lj/smooth/linear"_pair_lj_smooth_linear.html - linear smoothed Lennard-Jones potential
@@ -168,8 +174,14 @@ section of "this page"_Section_commands.html#cmd_5.
 "pair_style meam"_pair_meam.html - modified embedded atom method (MEAM)
 "pair_style mie/cut"_pair_mie.html - Mie potential
 "pair_style morse"_pair_morse.html - Morse potential
+"pair_style nb3b/harmonic"_pair_nb3d_harmonic.html - nonbonded 3-body harmonic potential
+"pair_style nm/cut"_pair_nm.html - N-M potential
+"pair_style nm/cut/coul/cut"_pair_nm.html - N-M potential with cutoff Coulomb
+"pair_style nm/cut/coul/long"_pair_nm.html - N-M potential with long-range Coulombics
+"pair_style peri/eps"_pair_peri.html - peridynamic EPS potential
 "pair_style peri/lps"_pair_peri.html - peridynamic LPS potential
 "pair_style peri/pmb"_pair_peri.html - peridynamic PMB potential
+"pair_style peri/ves"_pair_peri.html - peridynamic VES potential
 "pair_style reax"_pair_reax.html - ReaxFF potential
 "pair_style rebo"_pair_airebo.html - 2nd generation REBO potential of Brenner
 "pair_style resquared"_pair_resquared.html - Everaers RE-Squared ellipsoidal potential
@@ -177,7 +189,10 @@ section of "this page"_Section_commands.html#cmd_5.
 "pair_style sw"_pair_sw.html - Stillinger-Weber 3-body potential
 "pair_style table"_pair_table.html - tabulated pair potential
 "pair_style tersoff"_pair_tersoff.html - Tersoff 3-body potential
+"pair_style tersoff/mod"_pair_tersoff_mod.html - modified Tersoff 3-body potential
 "pair_style tersoff/zbl"_pair_tersoff_zbl.html - Tersoff/ZBL 3-body potential
+"pair_style tip4p/cut"_pair_coul.html - Coulomb for TIP4P water w/out LJ
+"pair_style tip4p/long"_pair_coul.html - long-range Coulombics for TIP4P water w/out LJ
 "pair_style tri/lj"_pair_tri_lj.html - LJ potential between triangles
 "pair_style yukawa"_pair_yukawa.html - Yukawa potential
 "pair_style yukawa/colloid"_pair_yukawa_colloid.html - screened Yukawa potential for finite-size particles

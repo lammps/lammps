@@ -80,11 +80,11 @@ multiple times, due to the manner in which they were coded in Fortran.
 In the pair_coeff commands, the name of a pair style must be added
 after the I,J type specification, with the remaining coefficients
 being those appropriate to that style.  If the pair style is used
-multiple times in the pair_style command with, then an additional
-numeric argument must also be included which is the number from 1 to M
-where M is the number of times the sub-style was listed in the pair
-style command.  The extra number indicates which instance of the
-sub-style these coefficients apply to.
+multiple times in the pair_style command, then an additional numeric
+argument must also be specified which is a number from 1 to M where M
+is the number of times the sub-style was listed in the pair style
+command.  The extra number indicates which instance of the sub-style
+these coefficients apply to.
 
 For example, consider a simulation with 3 atom types: types 1 and 2
 are Ni atoms, type 3 are LJ atoms with charges.  The following

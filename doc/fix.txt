@@ -153,16 +153,30 @@ for further info.
 
 Each fix style has its own documentation page which describes its
 arguments and what it does, as listed below.  Here is an alphabetic
-list of fix styles available in LAMMPS:
+list of fix styles available in LAMMPS.  They are also given in more
+compact form in the fix section of "this
+page"_Section_commands.html#cmd_5.
+
+There are also additional fix styles (not listed here) submitted by
+users which are included in the LAMMPS distribution.  The list of
+these with links to the individual styles are given in the fix section
+of "this page"_Section_commands.html#cmd_5.
+
+There are also additional accelerated fix styles (not listed here)
+included in the LAMMPS distribution for faster performance on CPUs and
+GPUs.  The list of these with links to the individual styles are given
+in the fix section of "this page"_Section_commands.html#cmd_5.
 
 "adapt"_fix_adapt.html - change a simulation parameter over time
 "addforce"_fix_addforce.html - add a force to each atom
 "append/atoms"_fix_append_atoms.html - append atoms to a running simulation
 "aveforce"_fix_aveforce.html - add an averaged force to each atom
 "ave/atom"_fix_ave_atom.html - compute per-atom time-averaged quantities
+"ave/correlate"_fix_correlate_atom.html - compute/output time correlations
 "ave/histo"_fix_ave_histo.html - compute/output time-averaged histograms
 "ave/spatial"_fix_ave_spatial.html - compute/output time-averaged per-atom quantities by layer
 "ave/time"_fix_ave_time.html - compute/output global time-averaged quantities
+"balance"_fix_balance.html - perform dynamic load-balancing
 "bond/break"_fix_bond_break.html - break bonds on the fly
 "bond/create"_fix_bond_create.html - create bonds on the fly
 "bond/swap"_fix_bond_swap.html - Monte Carlo bond swapping
@@ -176,8 +190,9 @@ list of fix styles available in LAMMPS:
 "evaporate"_fix_evaporate.html - remove atoms from simulation periodically
 "external"_fix_external.html - callback to an external driver program
 "freeze"_fix_freeze.html - freeze atoms in a granular simulation
-"gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
 "gcmc"_fix_gcmc.html - grand canonical insertions/deletions
+"gld"_fix_gcmc.html - generalized Langevin dynamics integrator
+"gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
 "heat"_fix_heat.html - add/subtract momentum-conserving heat
 "indent"_fix_indent.html - impose force due to an indenter
 "langevin"_fix_langevin.html - Langevin temperature control
@@ -187,9 +202,9 @@ list of fix styles available in LAMMPS:
 "msst"_fix_msst.html - multi-scale shock technique (MSST) integration
 "neb"_fix_neb.html - nudged elastic band (NEB) spring forces
 "nph"_fix_nh.html - constant NPH time integration via Nose/Hoover
+"nphug"_fix_nphug.html - constant-stress Hugoniostat integration
 "nph/asphere"_fix_nph_asphere.html - NPH for aspherical particles
 "nph/sphere"_fix_nph_sphere.html - NPH for spherical particles
-"nphug"_fix_nphug.html - constant-stress Hugoniostat integration
 "npt"_fix_nh.html - constant NPT time integration via Nose/Hoover
 "npt/asphere"_fix_npt_asphere.html - NPT for aspherical particles
 "npt/sphere"_fix_npt_sphere.html - NPT for spherical particles
@@ -210,11 +225,12 @@ list of fix styles available in LAMMPS:
 "planeforce"_fix_planeforce.html - constrain atoms to move in a plane
 "poems"_fix_poems.html - constrain clusters of atoms to move \
   as coupled rigid bodies
-"pour"_fix_pour.html - pour new atoms into a granular simulation domain
+"pour"_fix_pour.html - pour new atoms/molecules into a granular simulation domain
 "press/berendsen"_fix_press_berendsen.html - pressure control by \
      Berendsen barostat
 "print"_fix_print.html - print text and variables during a simulation
 "property/atom"_fix_property_atom.html - add customized per-atom values
+"qeq/comb"_fix_qeq/comb.html - charge equilibration for COMB potential \
 "reax/bonds"_fix_reax_bonds.html - write out ReaxFF bond information \
 "recenter"_fix_recenter.html - constrain the center-of-mass position \
   of a group of atoms
@@ -229,7 +245,7 @@ list of fix styles available in LAMMPS:
      move as a rigid body with alternate NVE integration
 "rigid/nvt"_fix_rigid.html - constrain one or more clusters of atoms to \
      move as a rigid body with NVT integration
-"rigid"_fix_rigid.html - constrain many small clusters of atoms to \
+"rigid/small"_fix_rigid.html - constrain many small clusters of atoms to \
      move as a rigid body with NVE integration
 "setforce"_fix_setforce.html - set the force on each atom
 "shake"_fix_shake.html - SHAKE constraints on bonds and/or angles
@@ -248,28 +264,21 @@ list of fix styles available in LAMMPS:
      thermal conductivity calculation
 "tmd"_fix_tmd.html - guide a group of atoms to a new configuration
 "ttm"_fix_ttm.html - two-temperature model for electronic/atomic coupling
+"tune/kspace"_fix_tune_kspace.html - auto-tune KSpace parameters
+"vector"_vector.html - accumulate a global vector every N timesteps
 "viscosity"_fix_viscosity.html - Muller-Plathe momentum exchange for \
      viscosity calculation
 "viscous"_fix_viscous.html - viscous damping for granular simulations
 "wall/colloid"_fix_wall.html - Lennard-Jones wall interacting with finite-size particles
 "wall/gran"_fix_wall_gran.html - frictional wall(s) for granular simulations
 "wall/harmonic"_fix_wall.html - harmonic spring wall
+"wall/lj1043"_fix_wall.html - Lennard-Jones 10-4-3 wall
 "wall/lj126"_fix_wall.html - Lennard-Jones 12-6 wall
 "wall/lj93"_fix_wall.html - Lennard-Jones 9-3 wall
 "wall/piston"_fix_wall_piston.html - moving reflective piston wall
 "wall/reflect"_fix_wall_reflect.html - reflecting wall(s)
 "wall/region"_fix_wall_region.html - use region surface as wall
 "wall/srd"_fix_wall_srd.html - slip/no-slip wall for SRD particles :ul
-
-There are also additional fix styles submitted by users which are
-included in the LAMMPS distribution.  The list of these with links to
-the individual styles are given in the fix section of "this
-page"_Section_commands.html#cmd_5.
-
-There are also additional accelerated fix styles included in the
-LAMMPS distribution for faster performance on CPUs and GPUs.  The list
-of these with links to the individual styles are given in the pair
-section of "this page"_Section_commands.html#cmd_5.
 
 [Restrictions:]
 

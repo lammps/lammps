@@ -230,6 +230,10 @@ void ReadData::command(int narg, char **arg)
       domain->set_global_box();
       comm->set_proc_grid();
       domain->set_local_box();
+      atom->bond_per_atom = atom->extra_bond_per_atom;
+      atom->angle_per_atom = atom->extra_angle_per_atom;
+      atom->dihedral_per_atom = atom->extra_dihedral_per_atom;
+      atom->improper_per_atom = atom->extra_improper_per_atom;
     }
 
     // customize for new sections
@@ -503,7 +507,7 @@ void ReadData::command(int narg, char **arg)
       memory->destroy(atom->bond_atom);
       atom->bond_type = NULL;
       atom->bond_atom = NULL;
-    } else atom->bond_per_atom = atom->extra_bond_per_atom;
+    }
 
     if (angleflag) {
       memory->destroy(atom->angle_type);
@@ -512,7 +516,7 @@ void ReadData::command(int narg, char **arg)
       memory->destroy(atom->angle_atom3);
       atom->angle_type = NULL;
       atom->angle_atom1 = atom->angle_atom2 = atom->angle_atom3 = NULL;
-    } else atom->angle_per_atom = atom->extra_angle_per_atom;
+    }
 
     if (dihedralflag) {
       memory->destroy(atom->dihedral_type);
@@ -523,7 +527,7 @@ void ReadData::command(int narg, char **arg)
       atom->dihedral_type = NULL;
       atom->dihedral_atom1 = atom->dihedral_atom2 = 
         atom->dihedral_atom3 = atom->dihedral_atom4 = NULL;
-    } else atom->dihedral_per_atom = atom->extra_dihedral_per_atom;
+    }
 
     if (improperflag) {
       memory->destroy(atom->improper_type);
@@ -534,7 +538,7 @@ void ReadData::command(int narg, char **arg)
       atom->improper_type = NULL;
       atom->improper_atom1 = atom->improper_atom2 = 
         atom->improper_atom3 = atom->improper_atom4 = NULL;
-    } else atom->improper_per_atom = atom->extra_improper_per_atom;
+    }
 
     atom->avec->grow(atom->nmax);
   }

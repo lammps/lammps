@@ -173,6 +173,15 @@ void ReadData::command(int narg, char **arg)
       domain->box_exist = 1;
       update->ntimestep = 0;
     
+      // insure extra settings are applied before grow(),
+      //   even if no topology in file
+      // if topology is in file, realloc and another grow() is done below
+
+      atom->bond_per_atom = atom->extra_bond_per_atom;
+      atom->angle_per_atom = atom->extra_angle_per_atom;
+      atom->dihedral_per_atom = atom->extra_dihedral_per_atom;
+      atom->improper_per_atom = atom->extra_improper_per_atom;
+
       int n;
       if (comm->nprocs == 1) n = static_cast<int> (atom->natoms);
       else n = static_cast<int> (LB_FACTOR * atom->natoms / comm->nprocs);
@@ -437,7 +446,7 @@ void ReadData::command(int narg, char **arg)
       memory->destroy(atom->bond_atom);
       atom->bond_type = NULL;
       atom->bond_atom = NULL;
-    } else atom->bond_per_atom = atom->extra_bond_per_atom;
+    }
 
     if (angleflag) {
       memory->destroy(atom->angle_type);
@@ -446,7 +455,7 @@ void ReadData::command(int narg, char **arg)
       memory->destroy(atom->angle_atom3);
       atom->angle_type = NULL;
       atom->angle_atom1 = atom->angle_atom2 = atom->angle_atom3 = NULL;
-    } else atom->angle_per_atom = atom->extra_angle_per_atom;
+    }
 
     if (dihedralflag) {
       memory->destroy(atom->dihedral_type);
@@ -457,7 +466,7 @@ void ReadData::command(int narg, char **arg)
       atom->dihedral_type = NULL;
       atom->dihedral_atom1 = atom->dihedral_atom2 = 
         atom->dihedral_atom3 = atom->dihedral_atom4 = NULL;
-    } else atom->dihedral_per_atom = atom->extra_dihedral_per_atom;
+    }
 
     if (improperflag) {
       memory->destroy(atom->improper_type);
@@ -468,7 +477,7 @@ void ReadData::command(int narg, char **arg)
       atom->improper_type = NULL;
       atom->improper_atom1 = atom->improper_atom2 = 
         atom->improper_atom3 = atom->improper_atom4 = NULL;
-    } else atom->improper_per_atom = atom->extra_improper_per_atom;
+    }
 
     atom->avec->grow(atom->nmax);
   }

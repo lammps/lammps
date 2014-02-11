@@ -31,12 +31,14 @@
 
 using namespace LAMMPS_NS;
 
+enum{NOBIAS,BIAS};
+
 /* ---------------------------------------------------------------------- */
 
 ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 3) error->all(FLERR,"Illegal compute stress/atom command");
+  if (narg < 4) error->all(FLERR,"Illegal compute stress/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 6;
@@ -44,7 +46,26 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
   timeflag = 1;
   comm_reverse = 6;
 
-  if (narg == 3) {
+  // store temperature ID used by stress computation
+  // insure it is valid for temperature computation
+
+  if (strcmp(arg[3],"NULL") == 0) id_temp = NULL;
+  else {
+    int n = strlen(arg[3]) + 1;
+    id_temp = new char[n];
+    strcpy(id_temp,arg[3]);
+
+    int icompute = modify->find_compute(id_temp);
+    if (icompute < 0)
+      error->all(FLERR,"Could not find compute stress/atom temperature ID");
+    if (modify->compute[icompute]->tempflag == 0)
+      error->all(FLERR,
+		 "Compute stress/atom temperature ID does not compute temperature");
+  }
+
+  // process optional args
+
+  if (narg == 4) {
     keflag = 1;
     pairflag = 1;
     bondflag = angleflag = dihedralflag = improperflag = 1;
@@ -56,7 +77,7 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
     bondflag = angleflag = dihedralflag = improperflag = 0;
     kspaceflag = 0;
     fixflag = 0;
-    int iarg = 3;
+    int iarg = 4;
     while (iarg < narg) {
       if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
       else if (strcmp(arg[iarg],"pair") == 0) pairflag = 1;
@@ -83,7 +104,25 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeStressAtom::~ComputeStressAtom()
 {
+  delete [] id_temp;
   memory->destroy(stress);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeStressAtom::init()
+{
+  // set temperature compute, must be done in init()
+  // fixes could have changed or compute_modify could have changed it
+
+  if (id_temp) {
+    int icompute = modify->find_compute(id_temp);
+    if (icompute < 0)
+      error->all(FLERR,"Could not find compute stress/atom temperature ID");
+    temperature = modify->compute[icompute];
+    if (temperature->tempbias) biasflag = BIAS;
+    else biasflag = NOBIAS;
+  } else biasflag = NOBIAS;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -211,6 +250,7 @@ void ComputeStressAtom::compute_peratom()
     }
 
   // include kinetic energy term for each atom in group
+  // apply temperature bias is applicable
   // mvv2e converts mv^2 to energy
 
   if (keflag) {
@@ -220,29 +260,68 @@ void ComputeStressAtom::compute_peratom()
     int *type = atom->type;
     double mvv2e = force->mvv2e;
 
-    if (rmass) {
-      for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          onemass = mvv2e * rmass[i];
-          stress[i][0] += onemass*v[i][0]*v[i][0];
-          stress[i][1] += onemass*v[i][1]*v[i][1];
-          stress[i][2] += onemass*v[i][2]*v[i][2];
-          stress[i][3] += onemass*v[i][0]*v[i][1];
-          stress[i][4] += onemass*v[i][0]*v[i][2];
-          stress[i][5] += onemass*v[i][1]*v[i][2];
-        }
+    if (biasflag == NOBIAS) {
+      if (rmass) {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit) {
+	    onemass = mvv2e * rmass[i];
+	    stress[i][0] += onemass*v[i][0]*v[i][0];
+	    stress[i][1] += onemass*v[i][1]*v[i][1];
+	    stress[i][2] += onemass*v[i][2]*v[i][2];
+	    stress[i][3] += onemass*v[i][0]*v[i][1];
+	    stress[i][4] += onemass*v[i][0]*v[i][2];
+	    stress[i][5] += onemass*v[i][1]*v[i][2];
+	  }
+
+      } else {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit) {
+	    onemass = mvv2e * mass[type[i]];
+	    stress[i][0] += onemass*v[i][0]*v[i][0];
+	    stress[i][1] += onemass*v[i][1]*v[i][1];
+	    stress[i][2] += onemass*v[i][2]*v[i][2];
+	    stress[i][3] += onemass*v[i][0]*v[i][1];
+	    stress[i][4] += onemass*v[i][0]*v[i][2];
+	    stress[i][5] += onemass*v[i][1]*v[i][2];
+	  }
+      }
 
     } else {
-      for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          onemass = mvv2e * mass[type[i]];
-          stress[i][0] += onemass*v[i][0]*v[i][0];
-          stress[i][1] += onemass*v[i][1]*v[i][1];
-          stress[i][2] += onemass*v[i][2]*v[i][2];
-          stress[i][3] += onemass*v[i][0]*v[i][1];
-          stress[i][4] += onemass*v[i][0]*v[i][2];
-          stress[i][5] += onemass*v[i][1]*v[i][2];
-        }
+
+      // invoke temperature if it hasn't been already
+      // this insures bias factor is pre-computed
+
+      if (keflag && temperature->invoked_scalar != update->ntimestep)
+	temperature->compute_scalar();
+
+      if (rmass) {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit) {
+	    temperature->remove_bias(i,v[i]);
+	    onemass = mvv2e * rmass[i];
+	    stress[i][0] += onemass*v[i][0]*v[i][0];
+	    stress[i][1] += onemass*v[i][1]*v[i][1];
+	    stress[i][2] += onemass*v[i][2]*v[i][2];
+	    stress[i][3] += onemass*v[i][0]*v[i][1];
+	    stress[i][4] += onemass*v[i][0]*v[i][2];
+	    stress[i][5] += onemass*v[i][1]*v[i][2];
+	    temperature->restore_bias(i,v[i]);
+	  }
+	
+      } else {
+	for (i = 0; i < nlocal; i++)
+	  if (mask[i] & groupbit) {
+	    temperature->remove_bias(i,v[i]);
+	    onemass = mvv2e * mass[type[i]];
+	    stress[i][0] += onemass*v[i][0]*v[i][0];
+	    stress[i][1] += onemass*v[i][1]*v[i][1];
+	    stress[i][2] += onemass*v[i][2]*v[i][2];
+	    stress[i][3] += onemass*v[i][0]*v[i][1];
+	    stress[i][4] += onemass*v[i][0]*v[i][2];
+	    stress[i][5] += onemass*v[i][1]*v[i][2];
+	    temperature->restore_bias(i,v[i]);
+	  }
+      }
     }
   }
 

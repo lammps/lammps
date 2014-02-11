@@ -100,9 +100,10 @@ void PairHybrid::compute(int eflag, int vflag)
 
   for (m = 0; m < nstyles; m++) {
 
-    // invoke compute() unless 
+    // invoke compute() unless compute flag is turned off or
     // outerflag is set and sub-style has a compute_outer() method
 
+    if (styles[m]->compute_flag == 0) continue;
     if (outerflag && styles[m]->respa_enable) 
       styles[m]->compute_outer(eflag,vflag_substyle);
     else styles[m]->compute(eflag,vflag_substyle);
@@ -280,8 +281,10 @@ void PairHybrid::flags()
   // ghostneigh = 1 if any sub-style is set
   // ewaldflag, pppmflag, msmflag, dispersionflag, tip4pflag = 1
   //   if any sub-style is set
+  // compute_flag = 1 if any sub-style is set
 
   single_enable = 0;
+  compute_flag = 0;
   for (m = 0; m < nstyles; m++) {
     if (styles[m]->single_enable) single_enable = 1;
     if (styles[m]->respa_enable) respa_enable = 1;
@@ -293,6 +296,7 @@ void PairHybrid::flags()
     if (styles[m]->msmflag) msmflag = 1;
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
+    if (styles[m]->compute_flag) compute_flag = 1;
   }
 
   // single_extra = min of all sub-style single_extra
@@ -694,14 +698,34 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
 
 /* ----------------------------------------------------------------------
    modify parameters of the pair style
-   call modify_params of PairHybrid
-   also pass command args to each sub-style of hybrid
+   if 1st keyword is pair, then applies to one sub-style
+   else pass command args to every sub-style of hybrid
 ------------------------------------------------------------------------- */
 
 void PairHybrid::modify_params(int narg, char **arg)
 {
-  Pair::modify_params(narg,arg);
-  for (int m = 0; m < nstyles; m++) styles[m]->modify_params(narg,arg);
+  if (narg == 0) error->all(FLERR,"Illegal pair_modify command");
+
+  if (strcmp(arg[0],"pair") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal pair_modify command");
+    int m;
+    for (m = 0; m < nstyles; m++)
+      if (strcmp(arg[1],keywords[m]) == 0) break;
+    if (m == nstyles) error->all(FLERR,"Unknown pair_modify hybrid sub-style");
+    if (multiple[m] == 0)
+      styles[m]->modify_params(narg-2,&arg[2]);
+    else {
+      if (narg < 3) error->all(FLERR,"Illegal pair_modify command");
+      int multiflag = force->inumeric(FLERR,arg[2]);
+      for (m = 0; m < nstyles; m++)
+        if (strcmp(arg[1],keywords[m]) == 0 && multiflag == multiple[m]) break;
+      if (m == nstyles) 
+        error->all(FLERR,"Unknown pair_modify hybrid sub-style");
+      styles[m]->modify_params(narg-3,&arg[3]);
+    }
+    
+  } else
+    for (int m = 0; m < nstyles; m++) styles[m]->modify_params(narg,arg);
 }
 
 /* ----------------------------------------------------------------------

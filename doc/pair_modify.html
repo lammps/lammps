@@ -13,13 +13,16 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_modify keyword value ... 
+<PRE>pair_modify keyword values ... 
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>shift</I> or <I>mix</I> or <I>table</I> or <I>table/disp</I> or <I>tabinner</I> or <I>tabinner/disp</I> or <I>tail</I> or <I>compute</I> 
+<LI>keyword = <I>pair</I> or <I>shift</I> or <I>mix</I> or <I>table</I> or <I>table/disp</I> or <I>tabinner</I> or <I>tabinner/disp</I> or <I>tail</I> or <I>compute</I> 
 
-<PRE>  <I>mix</I> value = <I>geometric</I> or <I>arithmetic</I> or <I>sixthpower</I>
+<PRE>  <I>pair</I> values = sub-style N
+    sub-style = sub-style of <A HREF = "pair_hybrid.html">pair hybrid</A>
+    N = which instance of sub-style (only if sub-style is used multiple times)
+  <I>mix</I> value = <I>geometric</I> or <I>arithmetic</I> or <I>sixthpower</I>
   <I>shift</I> value = <I>yes</I> or <I>no</I>
   <I>table</I> value = N
     2^N = # of values in table
@@ -44,6 +47,20 @@ pair_modify table 12
 </P>
 <P>Modify the parameters of the currently defined pair style.  Not all
 parameters are relevant to all pair styles.
+</P>
+<P>If used, the <I>pair</I> keyword must appear first in the list of keywords.
+It can only be used with the <A HREF = "pair_hybrid.html">hybrid and
+hybrid/overlay</A> pair styles.  It means that the
+following parameters will only be modified for the specified
+sub-style, which must be a sub-style defined by the <A HREF = "pair_hybrid.html">pair_style
+hybrid</A> command.  If the sub-style is defined
+multiple times, then an additional numeric argument <I>N</I> must also be
+specified which is a number from 1 to M where M is the number of times
+the sub-style was listed in the <A HREF = "pair_hybrid.html">pair_style hybrid</A>
+command.  The extra number indicates which instance of the sub-style
+these modifications apply to.  Note that if the <I>pair</I> keyword is not
+used, and the pair style is <I>hybrid</I> or <I>hybrid/overlay</I>, the
+pair_modify keywords will be applied to all sub-styles.
 </P>
 <P>The <I>mix</I> keyword affects pair coefficients for interactions between
 atoms of type I and J, when I != J and the coefficients are not
@@ -155,11 +172,18 @@ those interactions.
 <P>The <I>compute</I> keyword allows pairwise computations to be turned off,
 even though a <A HREF = "pair_style.html">pair_style</A> is defined.  This is not
 useful for running a real simulation, but can be useful for debugging
-purposes or for computing only partial forces that do not include the
-pairwise contribution.  You can also do this by simply not defining a
-<A HREF = "pair_style.html">pair_style</A>, but a Kspace-compatible pair_style is
-required if you also want to define a
-<A HREF = "kspace_style.html">kspace_style</A>.  This keyword gives you that option.
+purposes or for performing a <A HREF = "rerun.html">rerun</A> simulation, when you
+only wish to compute partial forces that do not include the pairwise
+contribution.
+</P>
+<P>Two examples are as follows.  First, this option allows you to perform
+a simulation with <A HREF = "pair_hybrid.html">pair_style hybrid</A> with only a
+subset of the hybrid sub-styles enabled.  Second, this option allows
+you to perform a simulation with only long-range interactions but no
+short-range pairwise interactions.  Doing this by simply not defining
+a pair style will not work, because the
+<A HREF = "kspace_style.html">kspace_style</A> command requires a Kspace-compatible
+pair style be defined.
 </P>
 <P><B>Restrictions:</B> none
 </P>

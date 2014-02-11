@@ -28,7 +28,7 @@ class ComputeStressAtom : public Compute {
  public:
   ComputeStressAtom(class LAMMPS *, int, char **);
   ~ComputeStressAtom();
-  void init() {}
+  void init();
   void compute_peratom();
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
@@ -36,7 +36,10 @@ class ComputeStressAtom : public Compute {
 
  private:
   int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
-  int kspaceflag,fixflag;
+  int kspaceflag,fixflag,biasflag;
+  Compute *temperature;
+  char *id_temp;
+
   int nmax;
   double **stress;
 };

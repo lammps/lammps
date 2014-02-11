@@ -158,16 +158,30 @@ for further info.
 
 <P>Each fix style has its own documentation page which describes its
 arguments and what it does, as listed below.  Here is an alphabetic
-list of fix styles available in LAMMPS:
+list of fix styles available in LAMMPS.  They are also given in more
+compact form in the fix section of <A HREF = "Section_commands.html#cmd_5">this
+page</A>.
+</P>
+<P>There are also additional fix styles (not listed here) submitted by
+users which are included in the LAMMPS distribution.  The list of
+these with links to the individual styles are given in the fix section
+of <A HREF = "Section_commands.html#cmd_5">this page</A>.
+</P>
+<P>There are also additional accelerated fix styles (not listed here)
+included in the LAMMPS distribution for faster performance on CPUs and
+GPUs.  The list of these with links to the individual styles are given
+in the fix section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
 </P>
 <UL><LI><A HREF = "fix_adapt.html">adapt</A> - change a simulation parameter over time
 <LI><A HREF = "fix_addforce.html">addforce</A> - add a force to each atom
 <LI><A HREF = "fix_append_atoms.html">append/atoms</A> - append atoms to a running simulation
 <LI><A HREF = "fix_aveforce.html">aveforce</A> - add an averaged force to each atom
 <LI><A HREF = "fix_ave_atom.html">ave/atom</A> - compute per-atom time-averaged quantities
+<LI><A HREF = "fix_correlate_atom.html">ave/correlate</A> - compute/output time correlations
 <LI><A HREF = "fix_ave_histo.html">ave/histo</A> - compute/output time-averaged histograms
 <LI><A HREF = "fix_ave_spatial.html">ave/spatial</A> - compute/output time-averaged per-atom quantities by layer
 <LI><A HREF = "fix_ave_time.html">ave/time</A> - compute/output global time-averaged quantities
+<LI><A HREF = "fix_balance.html">balance</A> - perform dynamic load-balancing
 <LI><A HREF = "fix_bond_break.html">bond/break</A> - break bonds on the fly
 <LI><A HREF = "fix_bond_create.html">bond/create</A> - create bonds on the fly
 <LI><A HREF = "fix_bond_swap.html">bond/swap</A> - Monte Carlo bond swapping
@@ -181,8 +195,9 @@ list of fix styles available in LAMMPS:
 <LI><A HREF = "fix_evaporate.html">evaporate</A> - remove atoms from simulation periodically
 <LI><A HREF = "fix_external.html">external</A> - callback to an external driver program
 <LI><A HREF = "fix_freeze.html">freeze</A> - freeze atoms in a granular simulation
-<LI><A HREF = "fix_gravity.html">gravity</A> - add gravity to atoms in a granular simulation
 <LI><A HREF = "fix_gcmc.html">gcmc</A> - grand canonical insertions/deletions
+<LI><A HREF = "fix_gcmc.html">gld</A> - generalized Langevin dynamics integrator
+<LI><A HREF = "fix_gravity.html">gravity</A> - add gravity to atoms in a granular simulation
 <LI><A HREF = "fix_heat.html">heat</A> - add/subtract momentum-conserving heat
 <LI><A HREF = "fix_indent.html">indent</A> - impose force due to an indenter
 <LI><A HREF = "fix_langevin.html">langevin</A> - Langevin temperature control
@@ -192,9 +207,9 @@ list of fix styles available in LAMMPS:
 <LI><A HREF = "fix_msst.html">msst</A> - multi-scale shock technique (MSST) integration
 <LI><A HREF = "fix_neb.html">neb</A> - nudged elastic band (NEB) spring forces
 <LI><A HREF = "fix_nh.html">nph</A> - constant NPH time integration via Nose/Hoover
+<LI><A HREF = "fix_nphug.html">nphug</A> - constant-stress Hugoniostat integration
 <LI><A HREF = "fix_nph_asphere.html">nph/asphere</A> - NPH for aspherical particles
 <LI><A HREF = "fix_nph_sphere.html">nph/sphere</A> - NPH for spherical particles
-<LI><A HREF = "fix_nphug.html">nphug</A> - constant-stress Hugoniostat integration
 <LI><A HREF = "fix_nh.html">npt</A> - constant NPT time integration via Nose/Hoover
 <LI><A HREF = "fix_npt_asphere.html">npt/asphere</A> - NPT for aspherical particles
 <LI><A HREF = "fix_npt_sphere.html">npt/sphere</A> - NPT for spherical particles
@@ -214,18 +229,18 @@ list of fix styles available in LAMMPS:
 <LI><A HREF = "fix_orient_fcc.html">orient/fcc</A> - add grain boundary migration force
 <LI><A HREF = "fix_planeforce.html">planeforce</A> - constrain atoms to move in a plane
 <LI><A HREF = "fix_poems.html">poems</A> - constrain clusters of atoms to move   as coupled rigid bodies
-<LI><A HREF = "fix_pour.html">pour</A> - pour new atoms into a granular simulation domain
+<LI><A HREF = "fix_pour.html">pour</A> - pour new atoms/molecules into a granular simulation domain
 <LI><A HREF = "fix_press_berendsen.html">press/berendsen</A> - pressure control by      Berendsen barostat
 <LI><A HREF = "fix_print.html">print</A> - print text and variables during a simulation
 <LI><A HREF = "fix_property_atom.html">property/atom</A> - add customized per-atom values
-<LI><A HREF = "fix_reax_bonds.html">reax/bonds</A> - write out ReaxFF bond information <A HREF = "fix_recenter.html">recenter</A> - constrain the center-of-mass position   of a group of atoms
+<LI><A HREF = "fix_qeq/comb.html">qeq/comb</A> - charge equilibration for COMB potential <A HREF = "fix_reax_bonds.html">reax/bonds</A> - write out ReaxFF bond information <A HREF = "fix_recenter.html">recenter</A> - constrain the center-of-mass position   of a group of atoms
 <LI><A HREF = "fix_restrain.html">restrain</A> - constrain a bond, angle, dihedral
 <LI><A HREF = "fix_rigid.html">rigid</A> - constrain one or more clusters of atoms to      move as a rigid body with NVE integration
 <LI><A HREF = "fix_rigid.html">rigid/nph</A> - constrain one or more clusters of atoms to      move as a rigid body with NPH integration
 <LI><A HREF = "fix_rigid.html">rigid/npt</A> - constrain one or more clusters of atoms to      move as a rigid body with NPT integration
 <LI><A HREF = "fix_rigid.html">rigid/nve</A> - constrain one or more clusters of atoms to      move as a rigid body with alternate NVE integration
 <LI><A HREF = "fix_rigid.html">rigid/nvt</A> - constrain one or more clusters of atoms to      move as a rigid body with NVT integration
-<LI><A HREF = "fix_rigid.html">rigid</A> - constrain many small clusters of atoms to      move as a rigid body with NVE integration
+<LI><A HREF = "fix_rigid.html">rigid/small</A> - constrain many small clusters of atoms to      move as a rigid body with NVE integration
 <LI><A HREF = "fix_setforce.html">setforce</A> - set the force on each atom
 <LI><A HREF = "fix_shake.html">shake</A> - SHAKE constraints on bonds and/or angles
 <LI><A HREF = "fix_spring.html">spring</A> - apply harmonic spring force to group of atoms
@@ -239,11 +254,14 @@ list of fix styles available in LAMMPS:
 <LI><A HREF = "fix_thermal_conductivity.html">thermal/conductivity</A> - Muller-Plathe kinetic energy exchange for      thermal conductivity calculation
 <LI><A HREF = "fix_tmd.html">tmd</A> - guide a group of atoms to a new configuration
 <LI><A HREF = "fix_ttm.html">ttm</A> - two-temperature model for electronic/atomic coupling
+<LI><A HREF = "fix_tune_kspace.html">tune/kspace</A> - auto-tune KSpace parameters
+<LI><A HREF = "vector.html">vector</A> - accumulate a global vector every N timesteps
 <LI><A HREF = "fix_viscosity.html">viscosity</A> - Muller-Plathe momentum exchange for      viscosity calculation
 <LI><A HREF = "fix_viscous.html">viscous</A> - viscous damping for granular simulations
 <LI><A HREF = "fix_wall.html">wall/colloid</A> - Lennard-Jones wall interacting with finite-size particles
 <LI><A HREF = "fix_wall_gran.html">wall/gran</A> - frictional wall(s) for granular simulations
 <LI><A HREF = "fix_wall.html">wall/harmonic</A> - harmonic spring wall
+<LI><A HREF = "fix_wall.html">wall/lj1043</A> - Lennard-Jones 10-4-3 wall
 <LI><A HREF = "fix_wall.html">wall/lj126</A> - Lennard-Jones 12-6 wall
 <LI><A HREF = "fix_wall.html">wall/lj93</A> - Lennard-Jones 9-3 wall
 <LI><A HREF = "fix_wall_piston.html">wall/piston</A> - moving reflective piston wall
@@ -251,16 +269,6 @@ list of fix styles available in LAMMPS:
 <LI><A HREF = "fix_wall_region.html">wall/region</A> - use region surface as wall
 <LI><A HREF = "fix_wall_srd.html">wall/srd</A> - slip/no-slip wall for SRD particles 
 </UL>
-<P>There are also additional fix styles submitted by users which are
-included in the LAMMPS distribution.  The list of these with links to
-the individual styles are given in the fix section of <A HREF = "Section_commands.html#cmd_5">this
-page</A>.
-</P>
-<P>There are also additional accelerated fix styles included in the
-LAMMPS distribution for faster performance on CPUs and GPUs.  The list
-of these with links to the individual styles are given in the pair
-section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
-</P>
 <P><B>Restrictions:</B>
 </P>
 <P>Some fix styles are part of specific packages.  They are only enabled

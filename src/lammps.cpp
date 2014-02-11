@@ -42,6 +42,7 @@
 #include "output.h"
 #include "citeme.h"
 #include "accelerator_cuda.h"
+#include "accelerator_kokkos.h"
 #include "accelerator_omp.h"
 #include "timer.h"
 #include "memory.h"
@@ -75,6 +76,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int partscreenflag = 0;
   int partlogflag = 0;
   int cudaflag = -1;
+  int kokkosflag = -1;
   int restartflag = 0;
   int citeflag = 1;
   int helpflag = 0;
@@ -84,6 +86,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   char *rfile = NULL;
   char *dfile = NULL;
   int wdfirst,wdlast;
+  int kkfirst,kklast;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -146,6 +149,18 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       else if (strcmp(arg[iarg+1],"off") == 0) cudaflag = 0;
       else error->universe_all(FLERR,"Invalid command-line argument");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"-kokkos") == 0 ||
+               strcmp(arg[iarg],"-k") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      if (strcmp(arg[iarg+1],"on") == 0) kokkosflag = 1;
+      else if (strcmp(arg[iarg+1],"off") == 0) kokkosflag = 0;
+      else error->universe_all(FLERR,"Invalid command-line argument");
+      iarg += 2;
+      // delimit any extra args for the Kokkos instantiation
+      kkfirst = iarg;
+      while (iarg < narg && arg[iarg][0] != '-') iarg++;
+      kklast = iarg;
     } else if (strcmp(arg[iarg],"-suffix") == 0 ||
                strcmp(arg[iarg],"-sf") == 0) {
       if (iarg+2 > narg)
@@ -403,8 +418,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     error->all(FLERR,"Small to big integers are not sized correctly");
 #endif
 
-  // create CUDA class if USER-CUDA installed, unless explicitly switched off
-  // instantiation creates dummy CUDA class if USER-CUDA is not installed
+  // create Cuda class if USER-CUDA installed, unless explicitly switched off
+  // instantiation creates dummy Cuda class if USER-CUDA is not installed
 
   if (cudaflag == 0) {
     cuda = NULL;
@@ -423,6 +438,27 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int me;
   MPI_Comm_rank(world,&me);
   if (cuda && me == 0) error->message(FLERR,"USER-CUDA mode is enabled");
+
+  // create Kokkos class if KOKKOS installed, unless explicitly switched off
+  // instantiation creates dummy Kokkos class if KOKKOS is not installed
+  // add args between kkfirst and kklast to Kokkos instantiation
+
+  if (kokkosflag == 0) {
+    kokkos = NULL;
+  } else if (kokkosflag == 1) {
+    kokkos = new KokkosLMP(this,kklast-kkfirst,&arg[kkfirst]);
+    if (!kokkos->kokkos_exists)
+      error->all(FLERR,"Cannot use -kokkos on without KOKKOS installed");
+  } else {
+    kokkos = new KokkosLMP(this,kklast-kkfirst,&arg[kkfirst]);
+    if (!kokkos->kokkos_exists) {
+      delete kokkos;
+      kokkos = NULL;
+    }
+  }
+
+  MPI_Comm_rank(world,&me);
+  if (kokkos && me == 0) error->message(FLERR,"KOKKOS mode is enabled");
 
   // allocate CiteMe class if enabled
 
@@ -445,8 +481,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     error->done();
   }
 
-  // if restartflag set, process 2 command and quit
-  // add args between wdfirst and wdlast to write_data
+  // if restartflag set, invoke 2 commands and quit
+  // add args between wdfirst and wdlast to write_data command
   // also add "noinit" to prevent write_data from doing system init
 
   if (restartflag) {
@@ -487,6 +523,7 @@ LAMMPS::~LAMMPS()
   if (world != universe->uworld) MPI_Comm_free(&world);
 
   delete cuda;
+  delete kokkos;
   delete [] suffix;
 
   delete input;
@@ -556,6 +593,7 @@ void LAMMPS::post_create()
 void LAMMPS::init()
 {
   if (cuda) cuda->accelerator(0,NULL);
+  if (kokkos) kokkos->accelerator(0,NULL);
 
   update->init();
   force->init();         // pair must come after update due to minimizer
@@ -608,6 +646,7 @@ void LAMMPS::help()
           "-echo none/screen/log/both  : echoing of input script (-e)\n"
           "-in filename                : read input from file, not stdin (-i)\n"
           "-help                       : print this help message (-h)\n"
+          "-kokkos on/off ...          : turn KOKKOS mode on or off (-k)\n"
           "-log none/filename          : where to send log output (-l)\n"
           "-nocite                     : disable writing log.cite file (-nc)\n"
           "-partition size1 size2 ...  : assign partition sizes (-p)\n"

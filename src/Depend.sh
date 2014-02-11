@@ -108,4 +108,3 @@ if (test $1 = "USER-MISC") then
   depend GPU
   depend USER-OMP
 fi
-

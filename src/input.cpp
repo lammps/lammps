@@ -43,6 +43,7 @@
 #include "special.h"
 #include "variable.h"
 #include "accelerator_cuda.h"
+#include "accelerator_kokkos.h"
 #include "error.h"
 #include "memory.h"
 
@@ -1388,6 +1389,11 @@ void Input::package()
     modify->add_fix(2+narg,fixarg,NULL);
     delete [] fixarg;
     force->newton_pair = 0;
+
+  } else if (strcmp(arg[0],"kokkos") == 0) {
+    if (!lmp->kokkos)
+      error->all(FLERR,"Package kokkos command without KOKKOS installed");
+    lmp->kokkos->accelerator(narg-1,&arg[1]);
 
   } else if (strcmp(arg[0],"omp") == 0) {
     char **fixarg = new char*[2+narg];

@@ -47,7 +47,6 @@ class FixEfield : public Fix {
   int xvar,yvar,zvar,evar,xstyle,ystyle,zstyle,estyle;
   int nlevels_respa;
   double qe2f;
-  double fdotx;
   int qflag,muflag;
 
   int maxatom;

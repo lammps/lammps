@@ -63,7 +63,7 @@ class AtomVecDipole : public AtomVec {
   int *type,*mask;
   imageint *image;
   double **x,**v,**f;
-  double *q,**mu,**omega,**torque;
+  double *q,**mu;
 };
 
 }

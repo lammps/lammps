@@ -1290,7 +1290,7 @@ void FixLbFluid::write_restartfile(void)
 
   char *hfile;
   hfile = new char[32];
-  sprintf(hfile,"FluidRestart_%d.dat",update->ntimestep);
+  sprintf(hfile,"FluidRestart_" BIGINT_FORMAT ".dat",update->ntimestep);
   
   MPI_File_open(world,hfile,MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,&fh);
 

@@ -294,7 +294,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
 
         for (k = 5; k < 5+numbonds; k++) {
           jtag = static_cast<tagint> (buf[j+k]);
-          fprintf(fp," %d",jtag);
+          fprintf(fp," " TAGINT_FORMAT,jtag);
         }
         j += (5+numbonds);
 

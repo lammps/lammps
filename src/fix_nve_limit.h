@@ -39,7 +39,7 @@ class FixNVELimit : public Fix {
  private:
   double dtv,dtf;
   double *step_respa;
-  int mass_require,ncount;
+  int ncount;
   double xlimit,vlimitsq;
 };
 

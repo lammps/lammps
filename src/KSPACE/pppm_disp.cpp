@@ -263,7 +263,7 @@ void PPPMDisp::init()
   memset(function, 0, EWALD_FUNCS*sizeof(int));
   for (int i=0; i<=EWALD_MAXORDER; ++i)			// transcribe order
     if (ewald_order&(1<<i)) {				// from pair_style
-      int  k;
+      int  k=-1;
       char str[128];
       switch (i) {
 	case 1:
@@ -1293,7 +1293,7 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
     err =  bmax/amax;
     if (err > 1.0e-4) {
       char str[128];
-      sprintf(str,"Error in splitting of dispersion coeffs is estimated %g%",err);
+      sprintf(str,"Error in splitting of dispersion coeffs is estimated %g",err);
       error->warning(FLERR, str);
     }
     // set B
@@ -3986,7 +3986,8 @@ void PPPMDisp::compute_sf_coeff()
         sf_coeff[2] += sf_precoeff3[n]*greensfn[n];
         sf_coeff[3] += sf_precoeff4[n]*greensfn[n];
         sf_coeff[4] += sf_precoeff5[n]*greensfn[n];
-        sf_coeff[5] += sf_precoeff6[n]*greensfn[n++];
+        sf_coeff[5] += sf_precoeff6[n]*greensfn[n];
+        ++n;
       }
     }
   }
@@ -4042,7 +4043,8 @@ void PPPMDisp::compute_sf_coeff_6()
         sf_coeff_6[2] += sf_precoeff3_6[n]*greensfn_6[n];
         sf_coeff_6[3] += sf_precoeff4_6[n]*greensfn_6[n];
         sf_coeff_6[4] += sf_precoeff5_6[n]*greensfn_6[n];
-        sf_coeff_6[5] += sf_precoeff6_6[n]*greensfn_6[n++];
+        sf_coeff_6[5] += sf_precoeff6_6[n]*greensfn_6[n];
+        ++n;
       }
     }
   }

@@ -1,0 +1,66 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute plasticity/atom command :h3
+
+[Syntax:]
+
+compute ID group-ID plasticity/atom :pre
+
+ID, group-ID are documented in compute command
+plasticity/atom = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 all plasticity/atom :pre
+
+[Description:]
+
+Define a computation that calculates the per-atom plasticity for each
+atom in a group.  This is a quantity relevant for "Peridynamics
+models"_pair_peri.html.
+
+The plasticity for a Peridynamic particle is the so-called consistency
+parameter (lambda).  For elastic deformation lambda = 0, otherwise
+lambda > 0 for plastic deformation.  For details, see
+"(Mitchell)"_#Mitchell and the PDF doc included in the LAMMPS
+distro in "doc/PDF/PDLammps_EPS.pdf"_PDF/PDLammps_EPS.pdf. 
+
+This command can be invoked for one of the Peridynamic "pair
+styles"_pair_peri.html: peri/eps.
+
+The plasticity value will be 0.0 for atoms not in the specified
+compute group.
+
+[Output info:]
+
+This compute calculates a per-atom vector, which can be accessed by
+any command that uses per-atom values from a compute as input. See
+Section_howto 15 for an overview of LAMMPS output options.
+
+The per-atom vector values are unitlesss numbers (lambda) >= 0.0.
+
+[Restrictions:]
+
+This compute is part of the PERI package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"compute damage"_compute_damage.html, "compute
+dilatation"_compute_dilatation.html
+
+[Default:] none 
+
+:line
+
+:link(Mitchell)
+[(Mitchell)] Mitchell, "A non-local, ordinary-state-based
+viscoelasticity model for peridynamics", Sandia National Lab Report,
+8064:1-28 (2011).

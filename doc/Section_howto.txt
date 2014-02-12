@@ -2093,6 +2093,29 @@ print        "average viscosity: $v \[Pa.s/] @ $T K, $\{ndens\} /A^3" :pre
 
 :line
 
+6.22 Calculating diffusion :link(howto_22),h4
+
+The diffusion coefficient D of a material can be measured in at least
+2 ways using various options in LAMMPS.  See the examples/DIFFUSE
+directory for scripts that implement the 2 methods discussed here for
+a simple Lennard-Jones fluid model.
+
+The first method is to measure the mean-squared displacement (MSD) of
+the system, via the "compute msd"_compute_msd.html command.  The slope
+of the MSD versus time is proportional to the diffusion coefficient.
+The instantaneous MSD values can be accumulated in a vector via the
+"fix vector"_fix_vector.html command, and a line fit to the vector to
+compute its slope via the "variable slope"_variable.html function, and
+thus extract D.
+
+The second method is to measure the velocity auto-correlation function
+(VACF) of the system, via the "compute vacf"_compute_vacf.html
+command.  The time-integral of the VACF is proportional to the
+diffusion coefficient.  The instantaneous VACF values can be
+accumulated in a vector via the "fix vector"_fix_vector.html command,
+and time integrated via the "variable trap"_variable.html function,
+and thus extract D.
+
 :line
 :line
 
@@ -2129,28 +2152,3 @@ Phys, 79, 926 (1983).
 
 :link(Shinoda)
 [(Shinoda)] Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
-
-:line
-
-6.22 Calculating diffusion :link(howto_22),h4
-
-The diffusion coefficient D of a material can be measured in at least
-2 ways using various options in LAMMPS.  See the examples/DIFFUSE
-directory for scripts that implement the 2 methods discussed here for
-a simple Lennard-Jones fluid model.
-
-The first method is to measure the mean-squared displacement (MSD) of
-the system, via the "compute msd"_compute_msd.html command.  The slope
-of the MSD versus time is proportional to the diffusion coefficient.
-The instantaneous MSD values can be accumulated in a vector via the
-"fix vector"_fix_vector.html command, and a line fit to the vector to
-compute its slope via the "variable slope"_variable.html function, and
-thus extract D.
-
-The second method is to measure the velocity auto-correlation function
-(VACF) of the system, via the "compute vacf"_compute_vacf.html
-command.  The time-integral of the VACF is proportional to the
-diffusion coefficient.  The instantaneous VACF values can be
-accumulated in a vector via the "fix vector"_fix_vector.html command,
-and time integrated via the "variable trap"_variable.html function,
-and thus extract D.

@@ -2106,6 +2106,29 @@ print        "average viscosity: $v [Pa.s/</B> @ $T K, ${ndens} /A^3"
 </PRE>
 <HR>
 
+<A NAME = "howto_22"></A><H4>6.22 Calculating diffusion 
+</H4>
+<P>The diffusion coefficient D of a material can be measured in at least
+2 ways using various options in LAMMPS.  See the examples/DIFFUSE
+directory for scripts that implement the 2 methods discussed here for
+a simple Lennard-Jones fluid model.
+</P>
+<P>The first method is to measure the mean-squared displacement (MSD) of
+the system, via the <A HREF = "compute_msd.html">compute msd</A> command.  The slope
+of the MSD versus time is proportional to the diffusion coefficient.
+The instantaneous MSD values can be accumulated in a vector via the
+<A HREF = "fix_vector.html">fix vector</A> command, and a line fit to the vector to
+compute its slope via the <A HREF = "variable.html">variable slope</A> function, and
+thus extract D.
+</P>
+<P>The second method is to measure the velocity auto-correlation function
+(VACF) of the system, via the <A HREF = "compute_vacf.html">compute vacf</A>
+command.  The time-integral of the VACF is proportional to the
+diffusion coefficient.  The instantaneous VACF values can be
+accumulated in a vector via the <A HREF = "fix_vector.html">fix vector</A> command,
+and time integrated via the <A HREF = "variable.html">variable trap</A> function,
+and thus extract D.
+</P>
 <HR>
 
 <HR>
@@ -2152,30 +2175,5 @@ Phys, 79, 926 (1983).
 <A NAME = "Shinoda"></A>
 
 <P><B>(Shinoda)</B> Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
-</P>
-<HR>
-
-<A NAME = "howto_22"></A><H4>6.22 Calculating diffusion 
-</H4>
-<P>The diffusion coefficient D of a material can be measured in at least
-2 ways using various options in LAMMPS.  See the examples/DIFFUSE
-directory for scripts that implement the 2 methods discussed here for
-a simple Lennard-Jones fluid model.
-</P>
-<P>The first method is to measure the mean-squared displacement (MSD) of
-the system, via the <A HREF = "compute_msd.html">compute msd</A> command.  The slope
-of the MSD versus time is proportional to the diffusion coefficient.
-The instantaneous MSD values can be accumulated in a vector via the
-<A HREF = "fix_vector.html">fix vector</A> command, and a line fit to the vector to
-compute its slope via the <A HREF = "variable.html">variable slope</A> function, and
-thus extract D.
-</P>
-<P>The second method is to measure the velocity auto-correlation function
-(VACF) of the system, via the <A HREF = "compute_vacf.html">compute vacf</A>
-command.  The time-integral of the VACF is proportional to the
-diffusion coefficient.  The instantaneous VACF values can be
-accumulated in a vector via the <A HREF = "fix_vector.html">fix vector</A> command,
-and time integrated via the <A HREF = "variable.html">variable trap</A> function,
-and thus extract D.
 </P>
 </HTML>

@@ -1,6 +1,6 @@
-LAMMPS (10 Sep 2013)
-# Sample LAMMPS input script for thermal conductivity of Ar
-# use Muller-Plathe method via fix thermal_conductivity
+LAMMPS (1 Feb 2014)
+# sample LAMMPS input script for thermal conductivity of liquid LJ
+# Muller-Plathe method via fix thermal_conductivity
 
 # settings
 
@@ -22,7 +22,7 @@ units		lj
 atom_style	atomic
 
 lattice		fcc ${rho}
-lattice		fcc 0.5999999999999999778
+lattice		fcc 0.6
 Lattice spacing in x,y,z = 1.88207 1.88207 1.88207
 region		box block 0 $x 0 $y 0 $z
 region		box block 0 10 0 $y 0 $z
@@ -36,7 +36,7 @@ Created 8000 atoms
 mass		1 1.0
 
 velocity	all create $t 87287
-velocity	all create 1.3500000000000000888 87287
+velocity	all create 1.35 87287
 
 pair_style	lj/cut ${rc}
 pair_style	lj/cut 2.5
@@ -48,11 +48,11 @@ neigh_modify	delay 0 every 1
 # 1st equilibration run
 
 fix		1 all nvt temp $t $t 0.5
-fix		1 all nvt temp 1.3500000000000000888 $t 0.5
-fix		1 all nvt temp 1.3500000000000000888 1.3500000000000000888 0.5
+fix		1 all nvt temp 1.35 $t 0.5
+fix		1 all nvt temp 1.35 1.35 0.5
 thermo		100
 run		1000
-Memory usage per processor = 2.15017 Mbytes
+Memory usage per processor = 2.14238 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0         1.35   -4.1241917            0   -2.0994448   -3.1961612 
      100    1.1819832   -3.7640881            0    -1.991335   0.53985757 
@@ -65,13 +65,13 @@ Step Temp E_pair E_mol TotEng Press
      800    1.3419994   -3.7155648            0   -1.7028172   0.82925677 
      900    1.3562214   -3.6965608            0    -1.662483   0.88908144 
     1000    1.3732016   -3.7100024            0   -1.6504575   0.83982823 
-Loop time of 0.956419 on 8 procs for 1000 steps with 8000 atoms
+Loop time of 0.862547 on 8 procs for 1000 steps with 8000 atoms
 
-Pair  time (%) = 0.541827 (56.6516)
-Neigh time (%) = 0.235903 (24.6653)
-Comm  time (%) = 0.121429 (12.6962)
-Outpt time (%) = 0.000318199 (0.0332699)
-Other time (%) = 0.0569417 (5.95364)
+Pair  time (%) = 0.478427 (55.4668)
+Neigh time (%) = 0.220096 (25.517)
+Comm  time (%) = 0.10999 (12.7517)
+Outpt time (%) = 0.00030601 (0.0354775)
+Other time (%) = 0.0537277 (6.22896)
 
 Nlocal:    1000 ave 1020 max 982 min
 Histogram: 1 0 2 1 0 1 1 1 0 1
@@ -86,7 +86,7 @@ Neighbor list builds = 162
 Dangerous builds = 0
 
 velocity	all scale $t
-velocity	all scale 1.3500000000000000888
+velocity	all scale 1.35
 
 unfix		1
 
@@ -96,7 +96,7 @@ compute		ke all ke/atom
 variable	temp atom c_ke/1.5
 
 fix		1 all nve
-fix		2 all ave/spatial 10 100 1000 z lower 0.05 v_temp 		  file tmp.tcond.profile units reduced
+fix		2 all ave/spatial 10 100 1000 z lower 0.05 v_temp 		  file profile.mp units reduced
 fix		3 all thermal/conductivity 10 z 20
 
 variable        tdiff equal f_2[11][3]-f_2[1][3]
@@ -104,7 +104,7 @@ thermo_style	custom step temp epair etotal f_3 v_tdiff
 
 thermo		1000
 run		20000
-Memory usage per processor = 2.15109 Mbytes
+Memory usage per processor = 2.1433 Mbytes
 Step Temp E_pair TotEng 3 tdiff 
     1000         1.35   -3.7100024   -1.6852556            0            0 
     2000    1.3488972    -3.708116   -1.6850231    877.52861   0.25969396 
@@ -127,13 +127,13 @@ Step Temp E_pair TotEng 3 tdiff
    19000    1.4016117   -3.7972936   -1.6951388    14216.201    1.1846518 
    20000    1.4105524   -3.8113272   -1.6957631    14977.184    1.2831156 
    21000    1.4068217   -3.8054214   -1.6954526    15739.554     1.147926 
-Loop time of 22.7808 on 8 procs for 20000 steps with 8000 atoms
+Loop time of 20.7938 on 8 procs for 20000 steps with 8000 atoms
 
-Pair  time (%) = 11.0445 (48.4813)
-Neigh time (%) = 5.22965 (22.9563)
-Comm  time (%) = 5.51376 (24.2035)
-Outpt time (%) = 0.000640869 (0.00281319)
-Other time (%) = 0.99234 (4.35603)
+Pair  time (%) = 9.73079 (46.7967)
+Neigh time (%) = 4.8843 (23.4893)
+Comm  time (%) = 5.15718 (24.8016)
+Outpt time (%) = 0.000606179 (0.0029152)
+Other time (%) = 1.02088 (4.90955)
 
 Nlocal:    1000 ave 1176 max 820 min
 Histogram: 2 2 0 0 0 0 0 0 2 2
@@ -156,7 +156,7 @@ fix             ave all ave/time 1 1 1000 v_tdiff ave running
 thermo_style	custom step temp epair etotal f_3 v_tdiff f_ave
 
 run		20000
-Memory usage per processor = 2.34184 Mbytes
+Memory usage per processor = 2.33403 Mbytes
 Step Temp E_pair TotEng 3 tdiff ave 
    21000    1.4068217   -3.8054214   -1.6954526            0     1.147926     1.147926 
    22000    1.3967994   -3.7893902    -1.694453     767.0398    1.1920832    1.1700046 
@@ -179,13 +179,13 @@ Step Temp E_pair TotEng 3 tdiff ave
    39000    1.4132869   -3.8147648   -1.6950995    13548.517    1.1134294    1.1594321 
    40000    1.4071151   -3.8068479   -1.6964391    14307.339    1.1772366    1.1603223 
    41000    1.4126121   -3.8153948   -1.6967416     15087.11    1.1408062     1.159393 
-Loop time of 23.9428 on 8 procs for 20000 steps with 8000 atoms
+Loop time of 21.9152 on 8 procs for 20000 steps with 8000 atoms
 
-Pair  time (%) = 11.1014 (46.3663)
-Neigh time (%) = 5.36983 (22.4278)
-Comm  time (%) = 6.41641 (26.799)
-Outpt time (%) = 0.000608236 (0.00254037)
-Other time (%) = 1.05454 (4.40441)
+Pair  time (%) = 9.77976 (44.6255)
+Neigh time (%) = 5.01423 (22.8802)
+Comm  time (%) = 6.03064 (27.5181)
+Outpt time (%) = 0.000575513 (0.00262609)
+Other time (%) = 1.08999 (4.97365)
 
 Nlocal:    1000 ave 1167 max 820 min
 Histogram: 3 1 0 0 0 0 0 0 0 4

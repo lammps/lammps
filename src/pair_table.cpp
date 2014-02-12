@@ -343,7 +343,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
 
   // open file
 
-  FILE *fp = fopen(file,"r");
+  FILE *fp = open_potential(file);
   if (fp == NULL) {
     char str[128];
     sprintf(str,"Cannot open file %s",file);

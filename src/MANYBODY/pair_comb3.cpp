@@ -320,7 +320,7 @@ void PairComb3::read_lib()
   // open libraray file on proc 0
   
   if(comm->me == 0) {
-    FILE *fp =  fopen("lib.comb3","r");
+    FILE *fp =  open_potential("lib.comb3");
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open COMB3 C library file \n");

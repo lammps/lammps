@@ -237,7 +237,7 @@ class Atom : protected Pointers {
   void map_delete();
   int map_find_hash(tagint);
 
- private:
+ protected:
 
   // global to local ID mapping
 

@@ -15,6 +15,7 @@
 #include "string.h"
 #include "compute_ke_rigid.h"
 #include "update.h"
+#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "fix_rigid.h"
@@ -69,5 +70,6 @@ double ComputeKERigid::compute_scalar()
   else if (strstr(modify->fix[irfix]->style,"rigid"))
     scalar = ((FixRigid *) modify->fix[irfix])->extract_ke();
 
+  scalar *= force->mvv2e;
   return scalar;
 }

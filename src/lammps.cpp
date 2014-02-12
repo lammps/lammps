@@ -420,7 +420,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   // error check on accelerator packages
 
-  if (cudaflag && kokkosflag) 
+  if (cudaflag == 1 && kokkosflag == 1) 
     error->all(FLERR,"Cannot use -cuda on and -kokkos on");
 
   // create Cuda class if USER-CUDA installed, unless explicitly switched off

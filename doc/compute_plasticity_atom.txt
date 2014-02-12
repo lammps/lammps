@@ -23,7 +23,8 @@ compute 1 all plasticity/atom :pre
 
 Define a computation that calculates the per-atom plasticity for each
 atom in a group.  This is a quantity relevant for "Peridynamics
-models"_pair_peri.html.
+models"_pair_peri.html.  See "this document"_PDF/PDLammps_overview.pdf
+for an overview of LAMMPS commands for Peridynamics modeling.
 
 The plasticity for a Peridynamic particle is the so-called consistency
 parameter (lambda).  For elastic deformation lambda = 0, otherwise

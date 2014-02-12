@@ -418,6 +418,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     error->all(FLERR,"Small to big integers are not sized correctly");
 #endif
 
+  // error check on accelerator packages
+
+  if (cudaflag && kokkosflag) 
+    error->all(FLERR,"Cannot use -cuda on and -kokkos on");
+
   // create Cuda class if USER-CUDA installed, unless explicitly switched off
   // instantiation creates dummy Cuda class if USER-CUDA is not installed
 
@@ -544,6 +549,7 @@ void LAMMPS::create()
   // so that nthreads is defined when create_avec invokes grow()
 
   if (cuda) comm = new CommCuda(this);
+  else if (kokkos) comm = new CommKokkos(this);
   else comm = new Comm(this);
 
   if (cuda) neighbor = new NeighborCuda(this);
@@ -556,13 +562,15 @@ void LAMMPS::create()
   else domain = new Domain(this);
 #endif
 
-  atom = new Atom(this);
+  if (kokkos) atom = new AtomKokkos(this);
+  else atom = new Atom(this);
   atom->create_avec("atomic",0,NULL,suffix);
 
   group = new Group(this);
   force = new Force(this);    // must be after group, to create temperature
 
   if (cuda) modify = new ModifyCuda(this);
+  else if (kokkos) modify = new ModifyKokkos(this);
   else modify = new Modify(this);
 
   output = new Output(this);  // must be after group, so "all" exists

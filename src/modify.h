@@ -51,7 +51,6 @@ class Modify : protected Pointers {
   virtual void setup_pre_force(int);
   virtual void initial_integrate(int);
   virtual void post_integrate();
-  void pre_decide();
   virtual void pre_exchange();
   virtual void pre_neighbor();
   virtual void pre_force(int);
@@ -61,27 +60,27 @@ class Modify : protected Pointers {
   virtual double thermo_energy();
   virtual void post_run();
 
-  void setup_pre_force_respa(int, int);
-  void initial_integrate_respa(int, int, int);
-  void post_integrate_respa(int, int);
-  void pre_force_respa(int, int, int);
-  void post_force_respa(int, int, int);
-  void final_integrate_respa(int, int);
+  virtual void setup_pre_force_respa(int, int);
+  virtual void initial_integrate_respa(int, int, int);
+  virtual void post_integrate_respa(int, int);
+  virtual void pre_force_respa(int, int, int);
+  virtual void post_force_respa(int, int, int);
+  virtual void final_integrate_respa(int, int);
 
-  void min_pre_exchange();
-  void min_pre_neighbor();
-  void min_pre_force(int);
-  void min_post_force(int);
+  virtual void min_pre_exchange();
+  virtual void min_pre_neighbor();
+  virtual void min_pre_force(int);
+  virtual void min_post_force(int);
 
-  double min_energy(double *);
-  void min_store();
-  void min_step(double, double *);
-  void min_clearstore();
-  void min_pushstore();
-  void min_popstore();
-  int min_reset_ref();
-  double max_alpha(double *);
-  int min_dof();
+  virtual double min_energy(double *);
+  virtual void min_store();
+  virtual void min_step(double, double *);
+  virtual void min_clearstore();
+  virtual void min_pushstore();
+  virtual void min_popstore();
+  virtual double max_alpha(double *);
+  virtual int min_dof();
+  virtual int min_reset_ref();
 
   void add_fix(int, char **, char *suffix = NULL);
   void modify_fix(int, char **);

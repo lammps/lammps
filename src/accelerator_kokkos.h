@@ -20,15 +20,14 @@
 #ifdef LMP_KOKKOS
 
 #include "kokkos.h"
+#include "atom_kokkos.h"
+#include "comm_kokkos.h"
+#include "modify_kokkos.h"
 
 #else
 
 // dummy interface to KOKKOS
 // needed for compiling when KOKKOS is not installed
-
-//#include "comm.h"
-//#include "modify.h"
-//#include "verlet.h"
 
 namespace LAMMPS_NS {
 
@@ -41,16 +40,16 @@ class KokkosLMP {
   void accelerator(int, char **) {}
 };
 
+class AtomKokkos : public Atom {
+ public:
+ AtomKokkos(class LAMMPS *lmp) : Atom(lmp) {}
+  ~AtomKokkos() {}
+};
+
 class CommKokkos : public Comm {
  public:
  CommKokkos(class LAMMPS *lmp) : Comm(lmp) {}
   ~CommKokkos() {}
-};
-
-class DomainKokkos : public Domain {
- public:
- DomainKokkos(class LAMMPS *lmp) : Domain(lmp) {}
-  ~DomainKokkos() {}
 };
 
 class NeighborKokkos : public Neighbor {
@@ -63,12 +62,6 @@ class ModifyKokkos : public Modify {
  public:
  ModifyKokkos(class LAMMPS *lmp) : Modify(lmp) {}
   ~ModifyKokkos() {}
-};
-
-class VerletKokkos : public Verlet {
- public:
- VerletKokkos(class LAMMPS *lmp, int narg, char **arg) : Verlet(lmp,narg,arg) {}
-  ~VerletKokkos() {}
 };
 
 }

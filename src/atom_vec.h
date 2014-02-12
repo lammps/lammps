@@ -43,6 +43,7 @@ class AtomVec : protected Pointers {
   int nset;                            // # of molecules in list
 
   int cudable;                         // 1 if atom style is CUDA-enabled
+  int kokkosable;                      // 1 if atom style is KOKKOS-enabled
   int *maxsend;                        // CUDA-specific variable
 
   int nargcopy;          // copy of command-line args for atom_style command

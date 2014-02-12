@@ -48,6 +48,10 @@
 
 namespace LAMMPS_NS {
 
+// enum used for KOKKOS host/device flag
+
+enum ExecutionSpace{Host,Device};
+
 // reserve 2 hi bits in molecular system neigh list for special bonds flag
 // max local + ghost atoms per processor = 2^30 - 1
 

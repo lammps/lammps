@@ -218,6 +218,15 @@ void ReadData::command(int narg, char **arg)
       domain->box_exist = 1;
       update->ntimestep = 0;
     
+      // insure extra settings are applied before grow(),
+      //   even if no topology in file
+      // if topology is in file, realloc and another grow() is done below
+
+      atom->bond_per_atom = atom->extra_bond_per_atom;
+      atom->angle_per_atom = atom->extra_angle_per_atom;
+      atom->dihedral_per_atom = atom->extra_dihedral_per_atom;
+      atom->improper_per_atom = atom->extra_improper_per_atom;
+
       int n;
       if (comm->nprocs == 1) n = static_cast<int> (atom->natoms);
       else n = static_cast<int> (LB_FACTOR * atom->natoms / comm->nprocs);

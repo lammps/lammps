@@ -83,6 +83,15 @@ class Fix : protected Pointers {
   double **vatom;                // accumulated per-atom virial
 
   int restart_reset;             // 1 if restart just re-initialized fix
+
+  // KOKKOS host/device flag and per-fix data masks
+
+  ExecutionSpace execution_space;
+  unsigned int datamask_read, datamask_read_ext;
+  unsigned int datamask_modify, datamask_modify_ext;
+
+  // USER-CUDA per-fix data masks
+
   unsigned int datamask;
   unsigned int datamask_ext;
 

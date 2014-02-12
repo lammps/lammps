@@ -1,0 +1,244 @@
+LAMMPS (1 Feb 2014)
+# Aspherical shear demo - 2d line boxes, solvated by SRD particles
+
+units		lj
+atom_style	line
+atom_modify	first big
+dimension	2
+
+read_data	data.line.srd
+  orthogonal box = (-28.7968 -28.7968 -0.5) to (28.7968 28.7968 0.5)
+  4 by 2 by 1 MPI processor grid
+  reading atoms ...
+  400 atoms
+  400 lines
+
+# add small particles as hi density lattice
+
+lattice		sq 0.4
+Lattice spacing in x,y,z = 1.58114 1.58114 1.58114
+region		plane block INF INF INF INF -0.001 0.001
+lattice		sq 10.0
+Lattice spacing in x,y,z = 0.316228 0.316228 0.316228
+create_atoms	2 region plane
+Created 33489 atoms
+
+group		big type 1
+400 atoms in group big
+group		small type 2
+33489 atoms in group small
+set		group small mass 0.01
+  33489 settings made for mass
+
+# delete overlaps
+# must set 1-2 cutoff to non-zero value
+
+pair_style	lj/cut 1.5
+pair_coeff	1 1 1.0 1.0
+pair_coeff	2 2 0.0 1.0 0.0
+pair_coeff	1 2 0.0 1.0
+
+delete_atoms	overlap 1.5 small big
+Deleted 13605 atoms, new total = 20284
+
+# SRD run
+
+reset_timestep	0
+
+velocity	small create 1.44 87287 loop geom
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+neigh_modify	exclude molecule big include big
+
+communicate	multi group big vel yes
+neigh_modify	include big
+
+# no pairwise interactions with small particles
+
+pair_style	line/lj 2.5
+pair_coeff	1 1 1.0 1.0
+pair_coeff	2 2 0.0 1.0 0.0
+pair_coeff	1 2 0.0 1.0 0.0
+
+# use fix SRD to push small particles out from inside big ones
+# if comment out, big particles won't see SRD particles
+
+timestep	0.001
+
+fix		1 big rigid molecule
+100 rigid bodies with 400 atoms
+fix	        2 small srd 20 big 1.0 0.25 49894 		search 0.2 cubic warn 0.0001 shift yes 49829 		overlap yes collision noslip
+
+fix		3 all deform 1 x scale 0.35 y scale 0.35
+fix		4 all enforce2d
+
+# diagnostics
+
+compute		tsmall small temp/deform
+compute		tbig big temp
+variable	pebig equal pe*atoms/count(big)
+variable	ebig equal etotal*atoms/count(big)
+
+compute		1 big erotate/asphere
+compute		2 all ke
+compute		3 all pe
+variable	toteng equal (c_1+c_2+c_3)/atoms
+
+thermo		1000
+thermo_style	custom step temp c_tsmall f_2[9] c_1 etotal 		v_pebig v_ebig press
+thermo_modify	temp tbig
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:439)
+
+compute		10 big property/atom end1x end1y end2x end2y
+
+#dump		1 all custom 500 dump1.atom.srd id type x y z ix iy iz
+#dump		2 all custom 500 dump1.line.srd id type #		c_10[1] c_10[2] c_10[3] c_10[4]
+
+run		10000
+WARNING: Using fix srd with box deformation but no SRD thermostat (../fix_srd.cpp:385)
+SRD info:
+  SRD/big particles = 19884 400
+  big particle diameter max/min = 1.99882 0.503306
+  SRD temperature & lamda = 1 0.2
+  SRD max distance & max velocity = 0.8 40
+  SRD grid counts: 230 230 1
+  SRD grid size: request, actual (xyz) = 0.25, 0.250407 0.250407 1
+  SRD per actual grid cell = 0.444963
+  SRD viscosity = 4.2356
+  big/SRD mass density ratio = 14.0918
+WARNING: SRD bin size for fix srd differs from user request (../fix_srd.cpp:2853)
+WARNING: Fix srd grid size > 1/4 of big particle diameter (../fix_srd.cpp:2875)
+  # of rescaled SRD velocities = 0
+  ave/max small velocity = 15.906 29.1054
+  ave/max big velocity = 0 0
+WARNING: Using compute temp/deform with inconsistent fix deform remap option (../compute_temp_deform.cpp:76)
+Memory usage per processor = 7.79007 Mbytes
+Step Temp tsmall 2[9] 1 TotEng pebig ebig Press 
+       0            0    1.4528554            0            0            0            0            0            0 
+    1000            0    1.1122612    1.1071958 0.00058011072            0            0            0   0.32625408 
+    2000            0    1.0254475    1.0231236 0.00072347646 -2.3144253e-06 -0.00011736451 -0.00011736451   0.44526308 
+    3000            0    1.0089214   0.99966408 0.00061511441 -0.00023298189 -0.011814512 -0.011814512   0.87208025 
+    4000            0    1.0066185   0.99391102 0.00079065587 -0.0021630644  -0.10968899  -0.10968899    1.3901494 
+    5000            0    1.0109003    1.0009124 0.00071588733 -0.0040023493  -0.20295913  -0.20295913    1.2736445 
+    6000            0    1.0119642    1.0105049 0.00080741361 -0.0067908165  -0.34436231  -0.34436231    2.5492857 
+    7000            0    1.0048989   0.98912274 0.00098851463 -0.010933999  -0.55446309  -0.55446309    3.5707613 
+    8000            0    1.0021597   0.99377939 0.0008405671 -0.015690841  -0.79568252  -0.79568252     6.685381 
+    9000            0    1.0197546      1.00114 0.0012645557 -0.021124602   -1.0712286   -1.0712286    18.907993 
+   10000            0    1.0401079    1.0184189 0.0036111452 0.0099395852   0.50403637   0.50403637    96.909257 
+Loop time of 3.93391 on 8 procs for 10000 steps with 20284 atoms
+
+Pair  time (%) = 0.110261 (2.80284)
+Neigh time (%) = 0.32853 (8.35124)
+Comm  time (%) = 0.199613 (5.07416)
+Outpt time (%) = 0.00108692 (0.0276295)
+Other time (%) = 3.29442 (83.7441)
+
+Nlocal:    2535.5 ave 2850 max 2226 min
+Histogram: 1 0 1 1 1 1 1 0 1 1
+Nghost:    109.25 ave 117 max 102 min
+Histogram: 1 0 2 0 1 1 1 1 0 1
+Neighs:    526 ave 665 max 407 min
+Histogram: 1 2 0 1 0 1 1 1 0 1
+
+Total # of neighbors = 4208
+Ave neighs/atom = 0.207454
+Neighbor list builds = 522
+Dangerous builds = 0
+
+#undump          1
+#undump          2
+unfix		3
+
+change_box      all triclinic
+  triclinic box = (-10.0789 -10.0789 -0.5) to (10.0789 10.0789 0.5) with tilt (0 0 0)
+
+fix	        2 small srd 20 big 1.0 0.25 49894 		search 0.2 cubic warn 0.0001 shift yes 49829 		overlap yes collision noslip tstat yes
+
+#dump		1 all custom 500 dump2.atom.srd id type x y z ix iy iz
+#dump		2 all custom 500 dump2.line.srd id type #		c_10[1] c_10[2] c_10[3] c_10[4]
+
+fix		3 all deform 1 xy erate 0.05 units box remap v
+
+run		40000
+SRD info:
+  SRD/big particles = 19884 400
+  big particle diameter max/min = 1.99882 0.503306
+  SRD temperature & lamda = 1 0.2
+  SRD max distance & max velocity = 0.8 40
+  SRD grid counts: 81 81 1
+  SRD grid size: request, actual (xyz) = 0.25, 0.248861 0.248861 1
+  SRD per actual grid cell = -11.3331
+  SRD viscosity = -1920.36
+  big/SRD mass density ratio = -0.546468
+WARNING: SRD bin size for fix srd differs from user request (../fix_srd.cpp:2853)
+WARNING: Fix srd grid size > 1/4 of big particle diameter (../fix_srd.cpp:2875)
+WARNING: Fix srd viscosity < 0.0 due to low SRD density (../fix_srd.cpp:2877)
+  # of rescaled SRD velocities = 1
+  ave/max small velocity = 12.724 40
+  ave/max big velocity = 1.54523 5.36901
+Memory usage per processor = 4.23847 Mbytes
+Step Temp tsmall 2[9] 1 TotEng pebig ebig Press 
+   10000            0    1.0277413            0 0.0036111452  0.010135973   0.51399517   0.51399517    60.794865 
+   11000            0    1.0024742            1 0.00040482851 -0.031643325    -1.604633    -1.604633    55.531632 
+   12000            0    1.0036177            1 0.00036416993 -0.030844063   -1.5641024   -1.5641024    56.694788 
+   13000            0    1.0043067            1 0.00068862721 -0.030673787   -1.5554677   -1.5554677    56.852537 
+   14000            0    1.0042533            1 0.00050997053 -0.035967153   -1.8238943   -1.8238943    51.254109 
+   15000            0     1.003956            1 0.00048458218 -0.038060147   -1.9300301   -1.9300301    50.346943 
+   16000            0    1.0059929            1 0.0004740426 -0.037433402   -1.8982478   -1.8982478     49.82532 
+   17000            0    1.0042401            1 0.00039855238 -0.034314446   -1.7400855   -1.7400855    48.430648 
+   18000            0    1.0025952            1 0.00046207703 -0.034166102    -1.732563    -1.732563    53.883613 
+   19000            0    1.0025881            1 0.00034818943 -0.037341367   -1.8935807   -1.8935807     48.90662 
+   20000            0    1.0009932            1 0.00031244041 -0.035274728   -1.7887814   -1.7887814    47.665935 
+   21000            0    1.0025603            1 0.0005514826 -0.034350221   -1.7418997   -1.7418997    63.290704 
+   22000            0    1.0038575            1 0.00034453716  -0.03576596   -1.8136918   -1.8136918    49.805726 
+   23000            0    1.0030321            1 0.00049535709 -0.035873083    -1.819124    -1.819124    48.973244 
+   24000            0    1.0048593            1 0.00034225992  -0.03322158   -1.6846663   -1.6846663    52.557383 
+   25000            0    1.0024423            1 0.00059157362 -0.030152319   -1.5290241   -1.5290241    56.733821 
+   26000            0    1.0022703            1 0.00047512976 -0.029563064    -1.499143    -1.499143    56.271943 
+   27000            0    1.0024537            1 0.00054158319  -0.02957039   -1.4995145   -1.4995145    55.246787 
+   28000            0    1.0023325            1 0.00051129428 -0.035115211   -1.7806924   -1.7806924    49.718172 
+   29000            0     1.002865            1 0.00056728135 -0.035484703   -1.7994293   -1.7994293    48.387401 
+   30000            0    1.0022693            1 0.00040284402 -0.033844303   -1.7162446   -1.7162446    50.486676 
+   31000            0    1.0037106            1 0.00056291948 -0.036529699    -1.852421    -1.852421    52.011803 
+   32000            0    1.0022542            1 0.00041877447 -0.036903458   -1.8713743   -1.8713743    52.712289 
+   33000            0    1.0021364            1 0.00040871451 -0.033616728   -1.7047043   -1.7047043    55.199593 
+   34000            0     1.003779            1 0.00040667148 -0.031745412   -1.6098098   -1.6098098    51.055261 
+   35000            0    1.0015547            1 0.00042509365 -0.033603064   -1.7040114   -1.7040114    53.887389 
+   36000            0    1.0024849            1 0.00040589851 -0.032151258   -1.6303903   -1.6303903    55.673615 
+   37000            0    1.0038204            1 0.00040542177 -0.033643242   -1.7060488   -1.7060488    51.834694 
+   38000            0    1.0031777            1 0.00040237126 -0.034711811   -1.7602359   -1.7602359    56.275778 
+   39000            0     1.002777            1 0.00051021239 -0.034375104   -1.7431615   -1.7431615    48.461145 
+   40000            0    1.0053762            1 0.00041566465 -0.036016384   -1.8263908   -1.8263908    48.937456 
+   41000            0    1.0039078            1 0.00049726673 -0.036481888   -1.8499966   -1.8499966    49.290465 
+   42000            0    1.0033408            1 0.00045236191 -0.034254524   -1.7370469   -1.7370469    52.146603 
+   43000            0    1.0039893            1 0.00048362351 -0.032519474   -1.6490625   -1.6490625    53.320599 
+   44000            0    1.0036667            1 0.00046834006 -0.031099875   -1.5770747   -1.5770747    55.907531 
+   45000            0    1.0035765            1 0.0005195031 -0.029559708   -1.4989728   -1.4989728    56.191165 
+   46000            0     1.004514            1 0.00050134348 -0.028852909    -1.463131    -1.463131    57.547696 
+   47000            0     1.003864            1 0.00038963389 -0.031339229   -1.5892123   -1.5892123    55.775764 
+   48000            0     1.003145            1 0.00035436452 -0.032390682   -1.6425315   -1.6425315    55.233354 
+   49000            0    1.0042615            1 0.00053161075 -0.029960468   -1.5192953   -1.5192953    54.611685 
+   50000            0    1.0037096            1 0.00031191389  -0.02942011   -1.4918938   -1.4918938    58.653762 
+Loop time of 27.1275 on 8 procs for 40000 steps with 20284 atoms
+
+Pair  time (%) = 1.54277 (5.68709)
+Neigh time (%) = 1.26864 (4.67658)
+Comm  time (%) = 1.19871 (4.4188)
+Outpt time (%) = 0.00421953 (0.0155544)
+Other time (%) = 23.1132 (85.202)
+
+Nlocal:    2535.5 ave 2670 max 2406 min
+Histogram: 1 1 1 0 0 2 1 1 0 1
+Nghost:    114.5 ave 124 max 103 min
+Histogram: 1 0 1 0 2 1 0 1 0 2
+Neighs:    521.5 ave 692 max 442 min
+Histogram: 3 1 1 1 0 0 0 1 0 1
+
+Total # of neighbors = 4172
+Ave neighs/atom = 0.205679
+Neighbor list builds = 2002
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+

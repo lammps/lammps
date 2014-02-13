@@ -39,9 +39,9 @@ e.g.
 lmp_g++ < in.script :pre
 
 since the SELF option invokes the C-library rewind() call, which may
-not be supported for stdin on some systems.  This can be worked around
-by using the "-in command-line argument"_Section_start.html#start_7,
-e.g.
+not be supported for stdin on some systems or by some MPI
+implementations.  This can be worked around by using the "-in
+command-line argument"_Section_start.html#start_7, e.g.
 
 lmp_g++ -in in.script :pre
 

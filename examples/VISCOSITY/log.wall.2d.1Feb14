@@ -1,0 +1,221 @@
+LAMMPS (1 Feb 2014)
+# sample LAMMPS input script for viscosity of 2d LJ liquid
+# use shearing wall, thermostat via fix langevin
+
+# settings
+
+variable	x equal 20
+variable	y equal 20
+variable	ylo equal -2.5
+variable	yhi equal 23
+
+variable	rho equal 0.6
+variable        t equal 1.0
+variable	rc equal 2.5
+
+variable	srate equal 2.7
+
+# problem setup
+
+units		lj
+dimension	2
+atom_style	atomic
+neigh_modify	delay 0 every 1
+
+lattice         sq2 ${rho}
+lattice         sq2 0.6
+Lattice spacing in x,y,z = 1.82574 1.82574 1.82574
+region          simbox block 0 $x ${ylo} ${yhi} -0.1 0.1
+region          simbox block 0 20 ${ylo} ${yhi} -0.1 0.1
+region          simbox block 0 20 -2.5 ${yhi} -0.1 0.1
+region          simbox block 0 20 -2.5 23 -0.1 0.1
+create_box      3 simbox
+Created orthogonal box = (0 -4.56435 -0.182574) to (36.5148 41.9921 0.182574)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 1020 atoms
+
+mass            * 1.0
+
+pair_style      lj/cut ${rc}
+pair_style      lj/cut 2.5
+pair_coeff      * * 1 1
+
+region		lower block INF INF INF 0.0 INF INF
+region		upper block INF INF $y INF INF INF
+region		upper block INF INF 20 INF INF INF
+group		lower region lower
+120 atoms in group lower
+group		upper region upper
+120 atoms in group upper
+set		group lower type 2
+  120 settings made for type
+set		group upper type 3
+  120 settings made for type
+group		wall union lower upper
+240 atoms in group wall
+group		flow subtract all wall
+780 atoms in group flow
+
+velocity        flow create $t 97287
+velocity        flow create 1 97287
+velocity	upper set ${srate} 0.0 0.0 units box
+velocity	upper set 2.7 0.0 0.0 units box
+
+compute		thermal flow temp/partial 0 1 0
+compute		flow flow temp
+
+fix             1 all nve
+fix	        2 flow langevin $t $t 0.1 498094
+fix	        2 flow langevin 1 $t 0.1 498094
+fix	        2 flow langevin 1 1 0.1 498094
+fix_modify      2 temp thermal
+
+fix		3 wall setforce 0.0 0.0 0.0
+fix		4 flow ave/spatial 20 500 10000 y center 0.05 vx 		  units reduced file profile.wall.2d
+fix	        5 all enforce2d
+
+# equilibration run
+
+variable        ybox equal $y*ylat
+variable        ybox equal 20*ylat
+compute		tilt flow temp/ramp vx 0 ${srate} y 0 ${ybox} units box
+compute		tilt flow temp/ramp vx 0 2.7 y 0 ${ybox} units box
+compute		tilt flow temp/ramp vx 0 2.7 y 0 36.5148371670111 units box
+
+thermo          1000
+thermo_style	custom step temp c_tilt epair etotal press pxy
+
+run	        20000
+Memory usage per processor = 2.06571 Mbytes
+Step Temp tilt E_pair TotEng Press Pxy 
+       0    1.1937193    2.1893943   -1.4419854  -0.24943634  -0.78936698  0.014349737 
+    1000    1.3454512    1.9300306   -1.5968842  -0.25275207   0.66766599  -0.14162185 
+    2000    1.4039346    1.7347137   -1.5342289  -0.13167071     1.008354  0.018819298 
+    3000    1.4366164    1.6062771   -1.5387082  -0.10350032    1.0397303   -0.1707825 
+    4000    1.4109705     1.529146   -1.5813814   -0.1717942    0.8261407 -0.083290587 
+    5000    1.5048218    1.4638099   -1.4771896  0.026156803    1.2811761   0.10617426 
+    6000    1.4732731    1.3291657   -1.5848926  -0.11306394   0.87088047 -0.078205262 
+    7000    1.5878351    1.3674924   -1.5563906  0.029887788    1.0613527  -0.12731515 
+    8000    1.6514036    1.3361332   -1.5283327    0.1214519    1.2440283  -0.22095466 
+    9000    1.6293224    1.1961769   -1.5963023  0.031422811   0.78644571  -0.05204626 
+   10000    1.6942081    1.2257803   -1.4599247   0.23262242    1.4657509    0.1035164 
+   11000    1.7138453    1.1753464   -1.5590901   0.15307494   0.95417101 -0.025106722 
+   12000    1.7266196    1.2007806   -1.5893891   0.13553773    1.0787435  0.098092592 
+   13000    1.7207128    1.1144055   -1.5482322   0.17079356    1.1747293  -0.14991275 
+   14000    1.7945777    1.1420807   -1.5829923   0.20982594    1.0237707  0.022798338 
+   15000    1.8020798    1.0923181   -1.4742089   0.32610413    1.5137094   0.15142119 
+   16000    1.8094386    1.1147657   -1.5756134   0.23205124    1.0384998  0.039411258 
+   17000    1.8504661    1.1454342   -1.6013307   0.24732123   0.99885985  0.064524284 
+   18000    1.8120967    1.0611987   -1.5274247   0.28289545    1.2153993  -0.26659063 
+   19000    1.9125001    1.1489776   -1.5897343   0.32089077   0.92800706  -0.13377604 
+   20000    1.8159111    1.0646767   -1.5138561   0.30027466     1.344041   0.13332455 
+Loop time of 4.58235 on 1 procs for 20000 steps with 1020 atoms
+
+Pair  time (%) = 2.26221 (49.3678)
+Neigh time (%) = 0.727145 (15.8684)
+Comm  time (%) = 0.100413 (2.1913)
+Outpt time (%) = 0.000513554 (0.0112072)
+Other time (%) = 1.49207 (32.5613)
+
+Nlocal:    1020 ave 1020 max 1020 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    327 ave 327 max 327 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    6986 ave 6986 max 6986 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 6986
+Ave neighs/atom = 6.84902
+Neighbor list builds = 3127
+Dangerous builds = 0
+
+# data gathering run
+
+variable	visc equal -pxy/(v_srate/ly)
+fix		vave all ave/time 1000 1 1000 v_visc ave running
+
+thermo_style	custom step temp pxy v_visc f_vave
+thermo_modify	temp tilt
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:439)
+
+# only need to run for 5000 steps to make a good 100-frame movie
+
+#dump	        1 all custom 50 dump.wall.2d id type x y z vx
+
+#dump		1 all image 50 image.*.jpg vx type zoom 1.6 adiam 1.2
+#dump_modify	1 pad 5 amap 0.0 ${srate} ca 0.0 2 min blue max red
+
+run		50000
+Memory usage per processor = 2.10386 Mbytes
+Step Temp Pxy visc vave 
+   20000    1.0646767   0.15189449   -2.6191346   -2.6191346 
+   21000    1.0786918  -0.10890107     1.877794   -0.3706703 
+   22000    1.0900211   0.13731881   -2.3678043   -1.0363816 
+   23000    1.0651319  -0.28509211    4.9158768   0.45168298 
+   24000    1.0175701 -0.040455765   0.69758351   0.50086309 
+   25000    1.0125344  0.043662601  -0.75287937   0.29190601 
+   26000    1.0857086  -0.19503005    3.3629261   0.73062318 
+   27000   0.99062507 -0.053424367   0.92120263   0.75444561 
+   28000   0.99171297 -0.058537212     1.009364   0.78276988 
+   29000    1.0149672 -0.031160198   0.53729895   0.75822278 
+   30000    1.0485095   0.19756111   -3.4065694   0.37960531 
+   31000    1.0677328 -0.0041714932  0.071929547   0.35396567 
+   32000    1.1082895 -0.056056758   0.96659327   0.40109087 
+   33000    1.0048242   -0.1384997    2.3881667   0.54302485 
+   34000     1.047045 -0.016373106   0.28232339   0.52564476 
+   35000    1.0196427   0.16916051   -2.9168546   0.31048854 
+   36000    1.0362892  -0.20425258    3.5219512   0.49939811 
+   37000    1.0633356   0.10439152   -1.8000353   0.37165181 
+   38000     1.015715  0.058051671   -1.0009918   0.29940741 
+   39000    1.0385941  -0.16716069    2.8823715   0.42855562 
+   40000     1.011397 -0.052797719   0.91039728   0.45150046 
+   41000   0.98609436   -0.1553228    2.6782492   0.55271631 
+   42000   0.96711394 -0.046794703   0.80688657   0.56376719 
+   43000   0.99413772  0.035847044  -0.61811479   0.51452211 
+   44000    1.0240733   0.02187727  -0.37723234   0.47885193 
+   45000   0.97952963  0.097145869   -1.6750976   0.39600772 
+   46000    1.0025347  -0.18830187    3.2469113   0.50159674 
+   47000    1.0256026 -0.018237157   0.31446543   0.49491348 
+   48000   0.98291299     0.179511   -3.0953293     0.371112 
+   49000    1.0402649  -0.11378523    1.9620121     0.424142 
+   50000    1.0049318  0.034725323  -0.59877283   0.39114475 
+   51000    1.0732488    -0.209848    3.6184337   0.49199753 
+   52000   0.97684232 0.00028492106 -0.0049129273   0.47693964 
+   53000   0.92940891   0.11857333   -2.0445739   0.40277747 
+   54000    1.0251118 -0.095039337    1.6387745   0.43809167 
+   55000   0.99517914  0.063163955   -1.0891435   0.39566847 
+   56000   0.99165209  -0.35577322    6.1346395    0.5507758 
+   57000    1.0225405 -0.077905942    1.3433413   0.57163279 
+   58000    1.0021926   0.20894163    -3.602805   0.46459592 
+   59000   0.97414863  -0.21189296    3.6536952    0.5443234 
+   60000   0.99605625 -0.029227184   0.50396777   0.54333912 
+   61000   0.95282293  -0.26403219    4.5527381     0.638801 
+   62000   0.94153456    0.0040018 -0.069003507   0.62234043 
+   63000    1.0511126 -0.012076417   0.20823508   0.61292894 
+   64000    1.0383869  -0.21624175     3.728682    0.6821679 
+   65000    1.0060049  -0.10456568    1.8030384   0.70653465 
+   66000    1.0325485 -0.068797861    1.1862896    0.7167422 
+   67000    1.0362817  -0.13561168    2.3383682   0.75052608 
+   68000    1.0058202 -0.039842193   0.68700361    0.7492297 
+   69000    1.0175259  -0.18169494    3.1329872   0.79690485 
+   70000    1.0369101  -0.16530295    2.8503381   0.83716825 
+Loop time of 11.5341 on 1 procs for 50000 steps with 1020 atoms
+
+Pair  time (%) = 5.65688 (49.0449)
+Neigh time (%) = 1.88743 (16.3639)
+Comm  time (%) = 0.253797 (2.20041)
+Outpt time (%) = 0.00080061 (0.00694124)
+Other time (%) = 3.73519 (32.3839)
+
+Nlocal:    1020 ave 1020 max 1020 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    318 ave 318 max 318 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    6936 ave 6936 max 6936 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 6936
+Ave neighs/atom = 6.8
+Neighbor list builds = 8105
+Dangerous builds = 0

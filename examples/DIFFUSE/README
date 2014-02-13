@@ -1,0 +1,61 @@
+This directory has 2 scripts that compute the diffusion coefficient of
+a 2d Lennard-Jones fluid using 2 different methods.  See the
+discussion in Section 6.22 of the manual for an overview of the
+methods and pointers to doc pages for the commands which implement
+them. 
+
+These scripts are provided for illustration purposes.  No guarantee is
+made that the systems are fully equilibrated or that the runs are long
+enough to generate good statistics and highly accurate results.
+
+-------------
+
+These are the 2 methods for computing the diffusion coefficient.  The
+first computes the slope of the mean-squared displacement (MSD) of the
+atoms.  The second time-integrates the velocity-auto-correlation
+function (VACF) for the system.  In both cases a single time origin is
+used.  This allows the diffusion coefficient to be estimated
+on-the-fly using variables in the LAMMPS input scripts.  For better
+statistics you typically want to use multiple time origins,
+post-processing the data from dump files.
+
+in.msd.2d = mean-squared displacement (MSD)
+in.vacf.2d = velocity auto-correlation function (VACF)
+
+Both systems have 3200 atoms and run for 100000 timesteps, after
+equilibration.
+
+The scripts were both run on 8 processors.  They both run in about 10
+seconds and produce the accompanying log files.
+
+The state point of the LJ fluid is rho* = 0.6, T* = 1.0, and Rcut =
+2.5 sigma.  
+
+-------------
+
+Here is how to extract the diffusion coefficient from the log file
+output for each method.
+
+(1) in.msd.2d
+
+The 3rd column of output is the instantaneous mean-squared
+displacment, which grows over time.  The 4th column estimates the
+slope of the MSD from its two end-points, and uses it to compute the
+diffusion coefficient.  The 5th column fits a straight line to the
+entire (growing) set of MSD data and uses the slope of the line to
+compute the diffusion coefficient.  You can see that both measures
+give roughly the same answer and rapidly become roughly constant for
+the 100K step simulation.
+
+Dcoeff = 0.36
+
+(2) in.vacf.2d
+
+The 3rd column of output is the instantaneous velocity
+auto-correlation function (VACF).  The 4th column is the
+time-integration of the VACF (for every timestep), integrated up to
+that point in time, converted into the diffusion coefficient.  You can
+see the VACF approach gives a more noise, fluctuating value for the
+diffusion coefficient, compared to the MSD approach.
+
+Dcoeff = 0.25 to 0.45

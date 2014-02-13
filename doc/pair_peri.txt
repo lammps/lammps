@@ -36,7 +36,9 @@ pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 118.43 :pre
 [Description:]
 
 The peridynamic pair styles implement material models that can be used
-at the mescscopic and macroscopic scales.
+at the mescscopic and macroscopic scales.  See "this
+document"_PDF/PDLammps_overview.pdf for an overview of LAMMPS commands
+for Peridynamics modeling.
 
 Style {peri/pmb} implements the Peridynamic bond-based prototype
 microelastic brittle (PMB) model.

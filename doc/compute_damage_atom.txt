@@ -23,7 +23,8 @@ compute 1 all damage/atom :pre
 
 Define a computation that calculates the per-atom damage for each atom
 in a group.  This is a quantity relevant for "Peridynamics
-models"_pair_peri.html.
+models"_pair_peri.html.  See "this document"_PDF/PDLammps_overview.pdf
+for an overview of LAMMPS commands for Peridynamics modeling.
 
 The "damage" of a Peridymaics particles is based on the bond breakage
 between the particle and its neighbors.  If all the bonds are broken

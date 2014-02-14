@@ -30,7 +30,10 @@ keyword = {min} or {temp} or {vel} :l
     Tdephase = target temperature for velocity randomization, used in dephasing
   {vel} values = loop dist
     loop = {all} or {local} or {geom}, used in dephasing
-    dist = {uniform} or {gaussian}, used in dephasing :pre
+    dist = {uniform} or {gaussian}, used in dephasing
+  {time} value = {step} or {clock}
+    {step} = simulation runs for N timesteps on each replica (default)
+    {clock} = simulation runs for N timesteps across all replicas :pre
 :ule
 
 [Examples:]
@@ -41,7 +44,9 @@ prd 5000 100 10 10 100 1 54982 min 0.1 0.1 100 200 :pre
 [Description:]
 
 Run a parallel replica dynamics (PRD) simulation using multiple
-replicas of a system.  One or more replicas can be used.
+replicas of a system.  One or more replicas can be used.  The total
+number of steps {N} to run can be interpreted in one of two ways; see
+discussion of the {time} keyword below.
 
 PRD is described in "this paper"_#Voter by Art Voter.  It is a method
 for performing accelerated dynamics that is suitable for
@@ -98,13 +103,17 @@ In the first stage, dephasing is performed by each replica
 independently to eliminate correlations between replicas.  This is
 done by choosing a random set of velocities, based on the
 {random_seed} that is specified, and running {t_dephase} timesteps of
-dynamics.  This is repeated {n_dephase} times.  If the {temp} keyword
-is not specified, the target temperature for velocity randomization
-for each replica is the current temperature of that replica.
-Otherwise, it is the specified {Tdephase} temperature.  The style of
-velocity randomization is controlled using the keyword {vel} with
-arguments that have the same meaning as their counterparts in the
-"velocity"_velocity.html command.
+dynamics.  This is repeated {n_dephase} times.  At each of the
+{n_dephase} stages, if an event occurs during the {t_dephase} steps of
+dynamics for a particular replica, the replica repeats the stage until
+no event occurs.
+
+If the {temp} keyword is not specified, the target temperature for
+velocity randomization for each replica is the current temperature of
+that replica.  Otherwise, it is the specified {Tdephase} temperature.
+The style of velocity randomization is controlled using the keyword
+{vel} with arguments that have the same meaning as their counterparts
+in the "velocity"_velocity.html command.
 
 In the second stage, each replica runs dynamics continuously, stopping
 every {t_event} steps to check if a transition event has occurred.
@@ -135,6 +144,7 @@ In the third stage, the replica on which the event occurred (event
 replica) continues to run dynamics to search for correlated events.
 This is done by running dynamics for {t_correlate} steps, quenching
 every {t_event} steps, and checking if another event has occurred.
+
 The first time no correlated event occurs, the final state of the
 event replica is shared with all replicas, the new basin reference
 coordinates are updated with the quenched state, and the outer loop
@@ -142,6 +152,18 @@ begins again. While the replica event is searching for correlated
 events, all the other replicas also run dynamics and event checking
 with the same schedule, but the final states are always overwritten by
 the state of the event replica.
+
+The outer loop of the pseudo-code above continues until {N} steps of
+dynamics have been performed.  Note that {N} only includes the
+dynamics of stages 2 and 3, not the steps taken during dephasing or
+the minimization iterations of quenching.  The specified {N} is
+interpreted in one of two ways, depending on the {time} keyword.  If
+the {time} value is {step}, which is the default, then each replica
+runs for {N} timesteps.  If the {time} value is {clock}, then the
+simulation runs until {N} aggregate timesteps across all replicas have
+elapsed.  This aggregate time is the "clock" time defined below, which
+typically advances nearly M times faster than the timestepping on a
+single replica.
 
 :line
 
@@ -155,28 +177,31 @@ limited to event statistics.  Note that if a PRD run is performed on
 only a single replica then the event statistics will be intermixed
 with the usual thermodynamic output discussed below.
 
-The quantities printed each time an event occurs are the timestep,
-CPU time, clock, event number, a correlation flag, 
-the number of coincident events, and the replica number of the chosen event.
+The quantities printed each time an event occurs are the timestep, CPU
+time, clock, event number, a correlation flag, the number of
+coincident events, and the replica number of the chosen event.
 
 The timestep is the usual LAMMPS timestep, except that time does not
 advance during dephasing or quenches, but only during dynamics.  Note
 that are two kinds of dynamics in the PRD loop listed above.  The
-first is when all replicas are performing independent dynamics.  The
-second is when correlated events are being searched for and only one
-replica is running dynamics.
+first is when all replicas are performing independent dynamics,
+waiting for an event to occur.  The second is when correlated events
+are being searched for and only one replica is running dynamics.
 
 The CPU time is the total processor time since the start of the PRD
 run. 
 
 The clock is the same as the timestep except that it advances by M
 steps every timestep during the first kind of dynamics when the M
-replicas are running independently.  The clock represents the real
-time that effectively elapses during a PRD simulation of {N} steps on
-M replicas.  If most of the PRD run is spent in the second stage of
-the loop above, searching for infrequent events, then the clock will
-advance nearly N*M steps.  Note the clock time between events will be
-drawn from p(t).
+replicas are running independently.  The clock advances by only 1 step
+per timestep during the second kind of dynamics, since only a single
+replica is checking for a correlated event.  Thus "clock" time
+represents the aggregate time (in steps) that effectively elapses
+during a PRD simulation on M replicas.  If most of the PRD run is
+spent in the second stage of the loop above, searching for infrequent
+events, then the clock will advance nearly M times faster than it
+would if a single replica was running.  Note the clock time between
+events will be drawn from p(t).
 
 The event number is a counter that increments with each event, whether
 it is uncorrelated or correlated.
@@ -284,8 +309,8 @@ dt/reset"_fix_dt_reset.html and "fix deposit"_fix_deposit.html.
 
 [Default:] 
 
-The option defaults are {min} = 0.1 0.1 40 50, no {temp} setting, and
-{vel} = {geom} {gaussian}.
+The option defaults are min = 0.1 0.1 40 50, no temp setting, vel =
+geom gaussian, and time = step.
 
 :line
 

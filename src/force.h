@@ -104,6 +104,10 @@ class Force : protected Pointers {
   double numeric(const char *, int, char *);
   int inumeric(const char *, int, char *);
   bigint bnumeric(const char *, int, char *);
+
+  FILE *open_potential(const char *);
+  const char *potname(const char *);
+
   bigint memory_usage();
 
  private:

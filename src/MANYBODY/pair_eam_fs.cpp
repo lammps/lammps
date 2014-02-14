@@ -21,6 +21,7 @@
 #include "pair_eam_fs.h"
 #include "atom.h"
 #include "comm.h"
+#include "force.h"
 #include "memory.h"
 #include "error.h"
 
@@ -122,7 +123,7 @@ void PairEAMFS::read_file(char *filename)
   char line[MAXLINE];
 
   if (me == 0) {
-    fptr = open_potential(filename);
+    fptr = force->open_potential(filename);
     if (fptr == NULL) {
       char str[128];
       sprintf(str,"Cannot open EAM potential file %s",filename);

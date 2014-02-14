@@ -439,7 +439,7 @@ void PairEAM::read_file(char *filename)
   char line[MAXLINE];
 
   if (me == 0) {
-    fptr = open_potential(filename);
+    fptr = force->open_potential(filename);
     if (fptr == NULL) {
       char str[128];
       sprintf(str,"Cannot open EAM potential file %s",filename);

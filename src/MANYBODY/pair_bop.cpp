@@ -8205,7 +8205,7 @@ void PairBOP::read_file(char *filename)
   rcore=0.1;
 
   if (me == 0) {
-    FILE *fp = open_potential(filename);
+    FILE *fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open BOP potential file %s",filename);
@@ -8265,7 +8265,7 @@ void PairBOP::read_file(char *filename)
   if (me == 0) {
     words = new char*[bop_types];
     for(i=0;i<bop_types;i++) words[i]=NULL;
-    FILE *fp = open_potential(filename);
+    FILE *fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open BOP potential file %s",filename);
@@ -8429,7 +8429,7 @@ void PairBOP::read_table(char *filename)
   MPI_Comm_rank(world,&me);
 
   if (me == 0) {
-    FILE *fp = open_potential(filename);
+    FILE *fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open BOP potential file %s",filename);
@@ -8478,7 +8478,7 @@ void PairBOP::read_table(char *filename)
   allocate();
 
   if (me == 0) {
-    FILE *fp = open_potential(filename);
+    FILE *fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open BOP potential file %s",filename);

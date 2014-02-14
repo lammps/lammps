@@ -461,7 +461,7 @@ void PairCDEAM::read_h_coeff(char *filename)
                 FILE *fp;
                 char line[MAXLINE];
                 char nextline[MAXLINE];
-                fp = open_potential(filename);
+                fp = force->open_potential(filename);
                 if (fp == NULL) {
                         char str[128];
                         sprintf(str,"Cannot open EAM potential file %s", filename);

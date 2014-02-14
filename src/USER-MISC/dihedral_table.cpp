@@ -1011,7 +1011,7 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
 
   // open file
 
-  FILE *fp = fopen(file,"r");
+  FILE *fp = force->open_potential(file);
   if (fp == NULL) {
     string err_msg = string("Cannot open file ") + string(file);
     error->one(FLERR,err_msg.c_str());

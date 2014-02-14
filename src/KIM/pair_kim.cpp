@@ -1007,7 +1007,7 @@ void PairKIM::set_kim_model_has_flags()
    kim_model_has_particleVirial = (kimerror == KIM_STATUS_OK);
    mdl.get_index((char*) "process_dEdr", &kimerror);
    kim_model_has_particleVirial = kim_model_has_particleVirial || 
-     (kimerror == KIM_STATUS_OK)<;
+     (kimerror == KIM_STATUS_OK);
    if (!kim_model_has_particleVirial) 
      error->warning(FLERR,"KIM Model does not provide `particleVirial'; "
                     "virial per atom will be zero");

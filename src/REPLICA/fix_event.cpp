@@ -46,6 +46,10 @@ FixEvent::FixEvent(LAMMPS *lmp, int narg, char **arg) :
   xold = NULL;
   vold = NULL;
   imageold = NULL;
+  xorig = NULL;
+  vorig = NULL;
+  imageorig = NULL;
+
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 }
@@ -64,6 +68,9 @@ FixEvent::~FixEvent()
   memory->destroy(xold);
   memory->destroy(vold);
   memory->destroy(imageold);
+  memory->destroy(xorig);
+  memory->destroy(vorig);
+  memory->destroy(imageorig);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -121,7 +128,7 @@ void FixEvent::restore_event()
    so can later restore pre-quench state if no event occurs
 ------------------------------------------------------------------------- */
 
-void FixEvent::store_state()
+void FixEvent::store_state_quench()
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -144,7 +151,7 @@ void FixEvent::store_state()
    called after no event detected so can continue
 ------------------------------------------------------------------------- */
 
-void FixEvent::restore_state()
+void FixEvent::restore_state_quench()
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -163,12 +170,56 @@ void FixEvent::restore_state()
 }
 
 /* ----------------------------------------------------------------------
+   store original state of all atoms
+------------------------------------------------------------------------- */
+
+void FixEvent::store_state_dephase()
+{
+  double **x = atom->x;
+  double **v = atom->v;
+  imageint *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    xorig[i][0] = x[i][0];
+    xorig[i][1] = x[i][1];
+    xorig[i][2] = x[i][2];
+    vorig[i][0] = v[i][0];
+    vorig[i][1] = v[i][1];
+    vorig[i][2] = v[i][2];
+    imageorig[i] = image[i];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   restore state of all atoms to original state
+------------------------------------------------------------------------- */
+
+void FixEvent::restore_state_dephase()
+{
+  double **x = atom->x;
+  double **v = atom->v;
+  imageint *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    x[i][0] = xorig[i][0];
+    x[i][1] = xorig[i][1];
+    x[i][2] = xorig[i][2];
+    v[i][0] = vorig[i][0];
+    v[i][1] = vorig[i][1];
+    v[i][2] = vorig[i][2];
+    image[i] = imageorig[i];
+  }
+}
+
+/* ----------------------------------------------------------------------
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
 double FixEvent::memory_usage()
 {
-  double bytes = 6*atom->nmax * sizeof(double);
+  double bytes = 12*atom->nmax * sizeof(double);
   bytes += atom->nmax*sizeof(int);
   return bytes;
 }
@@ -183,6 +234,9 @@ void FixEvent::grow_arrays(int nmax)
   memory->grow(xold,nmax,3,"event:xold");
   memory->grow(vold,nmax,3,"event:vold");
   memory->grow(imageold,nmax,"event:imageold");
+  memory->grow(xorig,nmax,3,"event:xorig");
+  memory->grow(vorig,nmax,3,"event:vorig");
+  memory->grow(imageorig,nmax,"event:imageorig");
 
   // allow compute event to access stored event coords
 
@@ -205,6 +259,13 @@ void FixEvent::copy_arrays(int i, int j, int delflag)
   vold[j][1] = vold[i][1];
   vold[j][2] = vold[i][2];
   imageold[j] = imageold[i];
+  xorig[j][0] = xorig[i][0];
+  xorig[j][1] = xorig[i][1];
+  xorig[j][2] = xorig[i][2];
+  vorig[j][0] = vorig[i][0];
+  vorig[j][1] = vorig[i][1];
+  vorig[j][2] = vorig[i][2];
+  imageorig[j] = imageorig[i];
 }
 
 /* ----------------------------------------------------------------------
@@ -223,8 +284,15 @@ int FixEvent::pack_exchange(int i, double *buf)
   buf[7] = vold[i][1];
   buf[8] = vold[i][2];
   buf[9] = imageold[i];
+  buf[10] = xorig[i][0];
+  buf[11] = xorig[i][1];
+  buf[12] = xorig[i][2];
+  buf[13] = vorig[i][0];
+  buf[14] = vorig[i][1];
+  buf[15] = vorig[i][2];
+  buf[16] = imageorig[i];
 
-  return 10;
+  return 17;
 }
 
 /* ----------------------------------------------------------------------
@@ -242,23 +310,14 @@ int FixEvent::unpack_exchange(int nlocal, double *buf)
   vold[nlocal][0] = buf[6];
   vold[nlocal][1] = buf[7];
   vold[nlocal][2] = buf[8];
-  imageold[nlocal] = static_cast<int>(buf[9]);
+  imageold[nlocal] = static_cast<imageint>(buf[9]);
+  xorig[nlocal][0] = buf[10];
+  xorig[nlocal][1] = buf[11];
+  xorig[nlocal][2] = buf[12];
+  vorig[nlocal][0] = buf[13];
+  vorig[nlocal][1] = buf[14];
+  vorig[nlocal][2] = buf[15];
+  imageorig[nlocal] = static_cast<imageint>(buf[16]);
 
-  return 10;
-}
-
-/* ----------------------------------------------------------------------
-   pack entire state of Fix into one write
-------------------------------------------------------------------------- */
-
-void FixEvent::write_restart(FILE *fp)
-{
-}
-
-/* ----------------------------------------------------------------------
-   use state info from restart file to restart the Fix
-------------------------------------------------------------------------- */
-
-void FixEvent::restart(char *buf)
-{
+  return 17;
 }

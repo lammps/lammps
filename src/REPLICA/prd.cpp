@@ -73,7 +73,9 @@ void PRD::command(int narg, char **arg)
 
   if (narg < 7) error->universe_all(FLERR,"Illegal prd command");
 
-  nsteps = force->inumeric(FLERR,arg[0]);
+  // read as double so can cast to bigint
+
+  int nsteps = force->inumeric(FLERR,arg[0]);
   t_event = force->inumeric(FLERR,arg[1]);
   n_dephase = force->inumeric(FLERR,arg[2]);
   t_dephase = force->inumeric(FLERR,arg[3]);
@@ -132,10 +134,12 @@ void PRD::command(int narg, char **arg)
     memory->create(imageall,natoms,"prd:imageall");
   }
 
-  // random_select = same RNG for each replica for multiple event selection
-  // random_dephase = unique RNG for each replica for dephasing
+  // random_select = same RNG for each replica, for multiple event selection
+  // random_clock = same RNG for each replica, for clock updates
+  // random_dephase = unique RNG for each replica, for dephasing
 
   random_select = new RanPark(lmp,seed);
+  random_clock = new RanPark(lmp,seed+1000);
   random_dephase = new RanMars(lmp,seed+iworld);
 
   // create ComputeTemp class to monitor temperature
@@ -264,10 +268,10 @@ void PRD::command(int narg, char **arg)
   // need this line if quench() does only setup_minimal()
   // update->minimize->setup();
 
-  fix_event->store_state();
+  fix_event->store_state_quench();
   quench();
   ncoincident = 0;
-  share_event(0,0);
+  share_event(0,0,0);
 
   timer->init();
   timer->barrier_start(TIME_LOOP);
@@ -295,29 +299,49 @@ void PRD::command(int narg, char **arg)
 
   nbuild = ndanger = 0;
   time_dephase = time_dynamics = time_quench = time_comm = time_output = 0.0;
+  bigint clock = 0;
 
   timer->barrier_start(TIME_LOOP);
   time_start = timer->array[TIME_LOOP];
 
-  while (update->ntimestep < update->endstep) {
+  int istep = 0;
+
+  while (istep < nsteps) {
     dephase();
 
+    if (stepmode == 0) istep = update->ntimestep - update->beginstep;
+    else istep = clock;
+
     ireplica = -1;
-    while (update->ntimestep < update->endstep) {
-      dynamics();
-      fix_event->store_state();
+    while (istep < nsteps) {
+      dynamics(t_event,time_dynamics);
+      fix_event->store_state_quench();
       quench();
+      clock = clock + t_event*universe->nworlds;
       ireplica = check_event();
       if (ireplica >= 0) break;
-      fix_event->restore_state();
+      fix_event->restore_state_quench();
+      if (stepmode == 0) istep = update->ntimestep - update->beginstep;
+      else istep = clock;
     }
     if (ireplica < 0) break;
 
-    // potentially more efficient for correlated events if don't
-    // share until correlated check has completed
+    // decrement clock by random time at which 1 or more events occurred
+
+    int frac_t_event = t_event;
+    for (int i = 0; i <= fix_event->ncoincident; i++) {
+      int frac_rand = static_cast<int> (random_clock->uniform() * t_event);
+      frac_t_event = MIN(frac_t_event,frac_rand);
+    }
+    int decrement = frac_t_event*universe->nworlds;
+    clock -= decrement;
+
+    // share event across replicas
+    // NOTE: would be potentially more efficient for correlated events
+    //   if don't share until correlated check below has completed
     // this will complicate the dump (always on replica 0)
 
-    share_event(ireplica,1);
+    share_event(ireplica,1,decrement);
     log_event();
 
     int restart_flag = 0;
@@ -339,15 +363,16 @@ void PRD::command(int narg, char **arg)
         restart_flag = 0;
         break;
       }
-      dynamics();
-      fix_event->store_state();
+      dynamics(t_event,time_dynamics);
+      fix_event->store_state_quench();
       quench();
+      clock += t_event;
       int corr_event_check = check_event(ireplica);
       if (corr_event_check >= 0) {
-        share_event(ireplica,2);
+        share_event(ireplica,2,0);
         log_event();
         corr_endstep = update->ntimestep + t_corr;
-      } else fix_event->restore_state();
+      } else fix_event->restore_state_quench();
     }
 
     // full init/setup since are starting all replicas after event
@@ -378,7 +403,12 @@ void PRD::command(int narg, char **arg)
       timer->barrier_stop(TIME_LOOP);
       time_output += timer->array[TIME_LOOP];
     }
+
+    if (stepmode == 0) istep = update->ntimestep - update->beginstep;
+    else istep = clock;
   }
+
+  if (stepmode) nsteps = update->ntimestep - update->beginstep;
 
   // set total timers and counters so Finish() will process them
 
@@ -407,6 +437,11 @@ void PRD::command(int narg, char **arg)
               timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
   }
 
+  if (me == 0) {
+    if (screen) fprintf(screen,"\nPRD done\n");
+    if (logfile) fprintf(logfile,"\nPRD done\n");
+  }
+
   finish->end(2);
 
   update->whichflag = 0;
@@ -430,6 +465,7 @@ void PRD::command(int narg, char **arg)
   delete [] id_compute;
   MPI_Comm_free(&comm_replica);
   delete random_select;
+  delete random_clock;
   delete random_dephase;
   delete velocity;
   delete finish;
@@ -447,24 +483,35 @@ void PRD::dephase()
 {
   bigint ntimestep_hold = update->ntimestep;
 
-  update->whichflag = 1;
-  update->nsteps = n_dephase*t_dephase;
-
-  timer->barrier_start(TIME_LOOP);
+  // n_dephase iterations of dephasing, each of t_dephase steps
 
   for (int i = 0; i < n_dephase; i++) {
-    int seed = static_cast<int> (random_dephase->uniform() * MAXSMALLINT);
-    if (seed == 0) seed = 1;
-    velocity->create(temp_dephase,seed);
-    update->integrate->run(t_dephase);
-    if (temp_flag == 0) temp_dephase = temperature->compute_scalar();
+
+    fix_event->store_state_dephase();
+
+    // do not proceed to next iteration until an event-free run occurs
+
+    int done = 0;
+    while (!done) {
+      int seed = static_cast<int> (random_dephase->uniform() * MAXSMALLINT);
+      if (seed == 0) seed = 1;
+      velocity->create(temp_dephase,seed);
+
+      dynamics(t_dephase,time_dephase);
+      fix_event->store_state_quench();
+      quench();
+
+      if (compute_event->compute_scalar() > 0.0) {
+        fix_event->restore_state_dephase();
+        update->ntimestep -= t_dephase;
+      } else {
+        fix_event->restore_state_quench();
+        done = 1;
+      }
+
+      if (temp_flag == 0) temp_dephase = temperature->compute_scalar();
+    }
   }
-
-  timer->barrier_stop(TIME_LOOP);
-  time_dephase += timer->array[TIME_LOOP];
-
-  update->integrate->cleanup();
-  finish->end(0);
 
   // reset timestep as if dephase did not occur
   // clear timestep storage from computes, since now invalid
@@ -475,13 +522,13 @@ void PRD::dephase()
 }
 
 /* ----------------------------------------------------------------------
-   single short dynamics run
+   short dynamics run: for event search, decorrelation, or dephasing
 ------------------------------------------------------------------------- */
 
-void PRD::dynamics()
+void PRD::dynamics(int nsteps, double &time_category)
 {
   update->whichflag = 1;
-  update->nsteps = t_event;
+  update->nsteps = nsteps;
 
   lmp->init();
   update->integrate->setup();
@@ -490,9 +537,9 @@ void PRD::dynamics()
   bigint ncalls = neighbor->ncalls;
 
   timer->barrier_start(TIME_LOOP);
-  update->integrate->run(t_event);
+  update->integrate->run(nsteps);
   timer->barrier_stop(TIME_LOOP);
-  time_dynamics += timer->array[TIME_LOOP];
+  time_category += timer->array[TIME_LOOP];
 
   nbuild += neighbor->ncalls - ncalls;
   ndanger += neighbor->ndanger;
@@ -542,7 +589,7 @@ void PRD::quench()
   update->minimize->cleanup();
   finish->end(0);
 
-  // reset timestep as if dephase did not occur
+  // reset timestep as if quench did not occur
   // clear timestep storage from computes, since now invalid
 
   update->ntimestep = ntimestep_hold;
@@ -618,7 +665,7 @@ int PRD::check_event(int replica_num)
    flag = 2 = called during PRD run = correlated event
 ------------------------------------------------------------------------- */
 
-void PRD::share_event(int ireplica, int flag)
+void PRD::share_event(int ireplica, int flag, int decrement)
 {
   timer->barrier_start(TIME_LOOP);
 
@@ -641,8 +688,11 @@ void PRD::share_event(int ireplica, int flag)
   // if this is a correlated event, time elapsed only on one partition
 
   if (flag != 2) delta *= universe->nworlds;
+  if (delta > 0 && flag != 2) delta -= decrement;
   delta += corr_adjust;
-
+  
+  // delta passed to store_event_prd() should make its clock update
+  //   be consistent with clock in main PRD loop
   // don't change the clock or timestep if this is a restart
 
   if (flag == 0 && fix_event->event_number != 0)
@@ -672,7 +722,7 @@ void PRD::share_event(int ireplica, int flag)
 
   // restore and communicate hot coords to all replicas
 
-  fix_event->restore_state();
+  fix_event->restore_state_quench();
   timer->barrier_start(TIME_LOOP);
   replicate(ireplica);
   timer->barrier_stop(TIME_LOOP);
@@ -689,7 +739,7 @@ void PRD::log_event()
   if (universe->me == 0) {
     if (universe->uscreen)
       fprintf(universe->uscreen,
-              BIGINT_FORMAT " %.3f %d %d %d %d %d\n",
+              BIGINT_FORMAT " %.3f " BIGINT_FORMAT " %d %d %d %d\n",
               fix_event->event_timestep,
               timer->elapsed(TIME_LOOP),
               fix_event->clock,
@@ -698,7 +748,7 @@ void PRD::log_event()
               fix_event->replica_number);
     if (universe->ulogfile)
       fprintf(universe->ulogfile,
-              BIGINT_FORMAT " %.3f %d %d %d %d %d\n",
+              BIGINT_FORMAT " %.3f " BIGINT_FORMAT " %d %d %d %d\n",
               fix_event->event_timestep,
               timer->elapsed(TIME_LOOP),
               fix_event->clock,
@@ -790,6 +840,7 @@ void PRD::options(int narg, char **arg)
   maxiter = 40;
   maxeval = 50;
   temp_flag = 0;
+  stepmode = 0;
 
   char *str = (char *) "geom";
   int n = strlen(str) + 1;
@@ -840,6 +891,14 @@ void PRD::options(int narg, char **arg)
       strcpy(dist_setting,arg[iarg+2]);
 
       iarg += 3;
+
+    } else if (strcmp(arg[iarg],"time") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal prd command");
+      if (strcmp(arg[iarg+1],"steps") == 0) stepmode = 0;
+      else if (strcmp(arg[iarg+1],"clock") == 0) stepmode = 1;
+      else error->all(FLERR,"Illegal prd command");
+      iarg += 2;
+
     } else error->all(FLERR,"Illegal prd command");
   }
 }

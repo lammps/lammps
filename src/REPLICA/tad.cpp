@@ -247,7 +247,7 @@ void TAD::command(int narg, char **arg)
   // This should work with if uncommented, but does not
   // if (universe->iworld == 0) {
 
-  fix_event->store_state();
+  fix_event->store_state_quench();
   quench();
 
   timer->init();
@@ -255,7 +255,7 @@ void TAD::command(int narg, char **arg)
   time_start = timer->array[TIME_LOOP];
   fix_event->store_event_tad(update->ntimestep);
   log_event(0);
-  fix_event->restore_state();
+  fix_event->restore_state_quench();
 
   // do full init/setup
 
@@ -289,7 +289,7 @@ void TAD::command(int narg, char **arg)
         while (update->ntimestep < update->endstep) {
 
           dynamics();
-          fix_event->store_state();
+          fix_event->store_state_quench();
           quench();
 
           event_flag = check_event();
@@ -299,7 +299,7 @@ void TAD::command(int narg, char **arg)
 
           // restore hot state
 
-          fix_event->restore_state();
+          fix_event->restore_state_quench();
 
           // store hot state in revert
 
@@ -403,6 +403,11 @@ void TAD::command(int narg, char **arg)
   }
 
   if (me_universe == 0) fclose(ulogfile_neb);
+
+  if (me == 0) {
+    if (screen) fprintf(screen,"\nTAD done\n");
+    if (logfile) fprintf(logfile,"\nTAD done\n");
+  }
 
   finish->end(3);
 
@@ -929,8 +934,8 @@ void TAD::add_event()
 
   // store hot state for new event
 
-  fix_event->restore_state();
-  fix_event_list[ievent]->store_state();
+  fix_event->restore_state_quench();
+  fix_event_list[ievent]->store_state_quench();
 
   // string clean-up
 
@@ -1019,8 +1024,8 @@ void TAD::perform_event(int ievent)
 
   // load and store hot state
 
-  fix_event_list[ievent]->restore_state();
-  fix_event->store_state();
+  fix_event_list[ievent]->restore_state_quench();
+  fix_event->store_state_quench();
 }
 
 /* ----------------------------------------------------------------------

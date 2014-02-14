@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class FixEvent : public Fix {
  public:
   FixEvent(class LAMMPS *, int, char **);
-  virtual ~FixEvent()=0;    // Use destructor to make base class virtual
+  virtual ~FixEvent()=0;      // use destructor to make base class virtual
   int setmask();
 
   double memory_usage();
@@ -29,21 +29,26 @@ class FixEvent : public Fix {
   void copy_arrays(int, int, int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
-  virtual void write_restart(FILE *);
-  virtual void restart(char *);
+  virtual void write_restart(FILE *) {}
+  virtual void restart(char *) {}
 
   // methods specific to FixEvent
 
-  void store_event();         // store quenched atoms
-  void restore_event();       // restore quenched atoms
-  void store_state();         // store hot atoms
-  void restore_state();       // restore hot atoms
+  void store_event();              // store quenched atoms
+  void restore_event();            // restore quenched atoms
+  void store_state_quench();       // store hot atoms prior to quench
+  void restore_state_quench();     // restore hot atoms after quench
+  void store_state_dephase();      // store atoms before dephase iteration
+  void restore_state_dephase();    // restore atoms if dephase had event
 
  private:
   double **xevent;       // atom coords at last event
   double **xold;         // atom coords for reset/restore
   double **vold;         // atom vels for reset/restore
-  int *imageold;         // image flags for reset/restore
+  imageint *imageold;    // image flags for reset/restore
+  double **xorig;        // original atom coords for reset/restore
+  double **vorig;        // original atom vels for reset/restore
+  imageint *imageorig;   // original image flags for reset/restore
 };
 
 }

@@ -32,9 +32,9 @@ class PRD : protected Pointers {
 
  private:
   int me,nprocs;
-  int nsteps,t_event,n_dephase,t_dephase,t_corr;
+  int t_event,n_dephase,t_dephase,t_corr;
   double etol,ftol,temp_dephase;
-  int maxiter,maxeval,temp_flag;
+  int maxiter,maxeval,temp_flag,stepmode;
   char *loop_setting,*dist_setting;
 
   int equal_size_replicas,natoms;
@@ -52,7 +52,7 @@ class PRD : protected Pointers {
 
   int ncoincident;
 
-  class RanPark *random_select;
+  class RanPark *random_select,*random_clock;
   class RanMars *random_dephase;
   class Compute *compute_event;
   class FixEventPRD *fix_event;
@@ -61,10 +61,10 @@ class PRD : protected Pointers {
   class Finish *finish;
 
   void dephase();
-  void dynamics();
+  void dynamics(int, double &);
   void quench();
   int check_event(int replica = -1);
-  void share_event(int, int);
+  void share_event(int, int, int);
   void log_event();
   void replicate(int);
   void options(int, char **);

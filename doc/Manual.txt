@@ -134,6 +134,7 @@ it gives quick access to documentation for all LAMMPS commands.
   6.19 "Library interface to LAMMPS"_howto_19 :b
   6.20 "Calculating thermal conductivity"_howto_20 :b
   6.21 "Calculating viscosity"_howto_21 :ule,b
+  6.22 "Calculating a diffusion coefficient"_howto_22 :ule,b
 "Example problems"_Section_example.html :l
 "Performance & scalability"_Section_perf.html :l
 "Additional tools"_Section_tools.html :l

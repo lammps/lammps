@@ -28,7 +28,7 @@ class FixEventPRD : public FixEvent {
  public:
   int event_number;      // event counter
   bigint event_timestep; // timestep of last event on any replica
-  int clock;             // total elapsed timesteps across all replicas
+  bigint clock;          // total elapsed timesteps across all replicas
   int replica_number;    // replica where last event occured
   int correlated_event;  // 1 if last event was correlated, 0 otherwise
   int ncoincident;       // # of simultaneous events on different replicas

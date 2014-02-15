@@ -170,6 +170,8 @@ it gives quick access to documentation for all LAMMPS commands.
   13.2 "Past versions"_hist_2 :ule,b
 :ole
 
+foo
+
 :link(intro_1,Section_intro.html#intro_1)
 :link(intro_2,Section_intro.html#intro_2)
 :link(intro_3,Section_intro.html#intro_3)

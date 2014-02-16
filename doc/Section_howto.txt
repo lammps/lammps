@@ -31,7 +31,7 @@ This section describes how to perform common tasks using LAMMPS.
 6.19 "Library interface to LAMMPS"_#howto_19
 6.20 "Calculating thermal conductivity"_#howto_20
 6.21 "Calculating viscosity"_#howto_21
-6.22 "Calculating diffusion"_#howto_22 :all(b)
+6.22 "Calculating a diffusion coefficient"_#howto_22 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
 highlighted in "Section_example"_Section_example.html also show how to
@@ -2093,7 +2093,7 @@ print        "average viscosity: $v \[Pa.s/] @ $T K, $\{ndens\} /A^3" :pre
 
 :line
 
-6.22 Calculating diffusion :link(howto_22),h4
+6.22 Calculating a diffusion coefficient :link(howto_22),h4
 
 The diffusion coefficient D of a material can be measured in at least
 2 ways using various options in LAMMPS.  See the examples/DIFFUSE

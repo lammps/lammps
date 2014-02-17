@@ -9,7 +9,7 @@ CUDA_LIB = -L$(CUDA_HOME)/lib64 -Xlinker -rpath -Xlinker $(CUDA_HOME)/lib64 -lcu
 CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math --ftz=true 
 
 CUDR_CPP = mpic++ -DMPI_GERYON -DUCL_NO_EXIT -I$(CUDA_HOME)/include 
-CUDR_OPTS = -O3 -ffast-math -funroll-loops -DMPI_GERYON -fpic
+CUDR_OPTS = -O3 -ffast-math -funroll-loops -DMPI_GERYON -fpic -DLAMMPS_SMALLBIG
 
 BIN_DIR = .
 OBJ_DIR = obj

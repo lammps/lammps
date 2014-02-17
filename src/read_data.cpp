@@ -1363,6 +1363,7 @@ void ReadData::paircoeffs()
     next = strchr(buf,'\n');
     *next = '\0';
     parse_coeffs(buf,NULL,1);
+    if (narg == 0) error->all(FLERR,"Unexpected end of PairCoeffs section");
     force->pair->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1388,6 +1389,7 @@ void ReadData::pairIJcoeffs()
       next = strchr(buf,'\n');
       *next = '\0';
       parse_coeffs(buf,NULL,0);
+      if (narg == 0) error->all(FLERR,"Unexpected end of PairCoeffs section");
       force->pair->coeff(narg,arg);
       buf = next + 1;
     }
@@ -1409,6 +1411,7 @@ void ReadData::bondcoeffs()
     next = strchr(buf,'\n');
     *next = '\0';
     parse_coeffs(buf,NULL,0);
+    if (narg == 0) error->all(FLERR,"Unexpected end of BondCoeffs section");
     force->bond->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1432,6 +1435,7 @@ void ReadData::anglecoeffs(int which)
     if (which == 0) parse_coeffs(buf,NULL,0);
     else if (which == 1) parse_coeffs(buf,"bb",0);
     else if (which == 2) parse_coeffs(buf,"ba",0);
+    if (narg == 0) error->all(FLERR,"Unexpected end of AngleCoeffs section");
     force->angle->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1458,6 +1462,7 @@ void ReadData::dihedralcoeffs(int which)
     else if (which == 3) parse_coeffs(buf,"at",0);
     else if (which == 4) parse_coeffs(buf,"aat",0);
     else if (which == 5) parse_coeffs(buf,"bb13",0);
+    if (narg == 0) error->all(FLERR,"Unexpected end of DihedralCoeffs section");
     force->dihedral->coeff(narg,arg);
     buf = next + 1;
   }
@@ -1480,6 +1485,7 @@ void ReadData::impropercoeffs(int which)
     *next = '\0';
     if (which == 0) parse_coeffs(buf,NULL,0);
     else if (which == 1) parse_coeffs(buf,"aa",0);
+    if (narg == 0) error->all(FLERR,"Unexpected end of ImproperCoeffs section");
     force->improper->coeff(narg,arg);
     buf = next + 1;
   }

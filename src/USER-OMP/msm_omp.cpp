@@ -276,15 +276,15 @@ void MSMOMP::direct_eval(const int nn)
 
       // accumulate per-atom energy/virial
 
-      egrid[n][icz][icy][icx] = esum;
+      egrid[nn][icz][icy][icx] = esum;
 
       if (VFLAG_ATOM) {
-        v0grid[n][icz][icy][icx] = v0sum;
-        v1grid[n][icz][icy][icx] = v1sum;
-        v2grid[n][icz][icy][icx] = v2sum;
-        v3grid[n][icz][icy][icx] = v3sum;
-        v4grid[n][icz][icy][icx] = v4sum;
-        v5grid[n][icz][icy][icx] = v5sum;
+        v0grid[nn][icz][icy][icx] = v0sum;
+        v1grid[nn][icz][icy][icx] = v1sum;
+        v2grid[nn][icz][icy][icx] = v2sum;
+        v3grid[nn][icz][icy][icx] = v3sum;
+        v4grid[nn][icz][icy][icx] = v4sum;
+        v5grid[nn][icz][icy][icx] = v5sum;
       }
 
       if (EFLAG_GLOBAL || VFLAG_GLOBAL) {

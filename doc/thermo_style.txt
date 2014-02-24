@@ -22,7 +22,7 @@ args = list of arguments for a particular style :l
                           atoms, temp, press, pe, ke, etotal, enthalpy,
                           evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                           emol, elong, etail,
-                          vol, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
+                          vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
 			  xy, xz, yz, xlat, ylat, zlat,
 			  pxx, pyy, pzz, pxy, pxz, pyz,
 			  fmax, fnorm,

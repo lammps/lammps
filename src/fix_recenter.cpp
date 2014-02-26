@@ -49,6 +49,7 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 3;
   extscalar = 1;
   extvector = 1;
+  global_freq = 1;
 
 /* ---------------------------------------------------------------------- */
 

@@ -217,8 +217,13 @@ void FixVector::init()
   }
 
   // reallocate vector or array for size at end of run
+  // nsize = # of entries this run will add
 
-  int nsize = (update->laststep-update->firststep+1) / nevery;
+  bigint nfirst = update->firststep/nevery * nevery;
+  if (nfirst < update->firststep) nfirst += nevery;
+  bigint nlast = update->laststep/nevery * nevery;
+  if (nlast > update->laststep) nlast -= nevery;
+  int nsize = (nlast-nfirst)/nevery + 1;
   if (nvalues == 1) memory->grow(vector,ncount+nsize,"vector:vector");
   else memory->grow(array,ncount+nsize,nvalues,"vector:array");
 }

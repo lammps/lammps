@@ -126,7 +126,7 @@ void Molecule::compute_mass()
   masstotal = 0.0;
   for (int i = 0; i < natoms; i++) {
     if (rmassflag) masstotal += rmass[i];
-      else masstotal += atom->type[type[i]];
+    else masstotal += atom->mass[type[i]];
   }
 }
 

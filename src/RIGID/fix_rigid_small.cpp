@@ -1392,7 +1392,7 @@ void FixRigidSmall::create_bodies()
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
     domain->unmap(x[i],image[i],unwrap);
-    buf[m++] = ubuf(bodytag[i]).i;
+    buf[m++] = ubuf(bodytag[i]).d;
     buf[m++] = unwrap[0];
     buf[m++] = unwrap[1];
     buf[m++] = unwrap[2];

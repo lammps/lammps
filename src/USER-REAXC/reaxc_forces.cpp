@@ -224,7 +224,7 @@ void Validate_Lists( reax_system *system, storage *workspace, reax_list **lists,
   if( numH > 0 ) {
     hbonds = *lists + HBONDS;
 
-    for( i = 0; i < n; ++i ) {
+    for( i = 0; i < N; ++i ) {
       Hindex = system->my_atoms[i].Hindex;
       if( Hindex > -1 ) {
         system->my_atoms[i].num_hbonds =

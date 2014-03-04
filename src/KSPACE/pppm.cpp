@@ -261,7 +261,7 @@ void PPPM::init()
   qsum = tmp;
   MPI_Allreduce(&qsqsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
   qsqsum = tmp;
-  q2 = qsqsum * force->qqrd2e / force->dielectric;
+  q2 = qsqsum * force->qqrd2e;
 
   if (qsqsum == 0.0)
     error->all(FLERR,"Cannot use kspace solver on system with no charge");

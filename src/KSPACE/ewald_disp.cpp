@@ -189,8 +189,8 @@ void EwaldDisp::init()
 
   // setup K-space resolution
 
-  q2 = qsqsum * force->qqrd2e / force->dielectric;
-  M2 *= mumurd2e / force->dielectric;
+  q2 = qsqsum * force->qqrd2e;
+  M2 *= mumurd2e;
   b2 = bsbsum; //Are these units right?
   bigint natoms = atom->natoms;
 
@@ -862,7 +862,8 @@ void EwaldDisp::compute_force()
 void EwaldDisp::compute_surface()
 {
   // assume conducting metal (tinfoil) boundary conditions, so this function is
-  // not called because dielectric --> infinity, which makes all the terms here zero.
+  // not called because dielectric at the boundary --> infinity, which makes all
+  // the terms here zero.
 
   if (!function[3]) return;
   if (!atom->mu) return;

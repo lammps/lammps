@@ -2535,7 +2535,7 @@ void PPPMDisp::deallocate_peratom()
 
 void PPPMDisp::set_grid()
 {
-  double q2 = qsqsum * force->qqrd2e / force->dielectric;
+  double q2 = qsqsum * force->qqrd2e;
 
   // use xprd,yprd,zprd even if triclinic so grid size is the same
   // adjust z dimension for 2d slab PPPM
@@ -2835,7 +2835,7 @@ void PPPMDisp::adjust_gewald()
 double PPPMDisp::f()
 {
   double df_rspace, df_kspace;
-  double q2 = qsqsum * force->qqrd2e / force->dielectric;
+  double q2 = qsqsum * force->qqrd2e;
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
@@ -2878,7 +2878,7 @@ double PPPMDisp::derivf()
 double PPPMDisp::final_accuracy()
 {
   double df_rspace, df_kspace;
-  double q2 = qsqsum * force->qqrd2e / force->dielectric;
+  double q2 = qsqsum * force->qqrd2e;
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;

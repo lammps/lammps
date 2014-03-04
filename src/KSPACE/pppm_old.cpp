@@ -971,7 +971,7 @@ void PPPMOld::set_grid()
   acons[7][5] = 1755948832039.0 / 36229939200000.0;
   acons[7][6] = 4887769399.0 / 37838389248.0;
 
-  double q2 = qsqsum * force->qqrd2e / force->dielectric;
+  double q2 = qsqsum * force->qqrd2e;
 
   // use xprd,yprd,zprd even if triclinic so grid size is the same
   // adjust z dimension for 2d slab PPPM

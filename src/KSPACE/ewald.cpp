@@ -143,7 +143,7 @@ void Ewald::init()
 
   // setup K-space resolution
 
-  q2 = qsqsum * force->qqrd2e / force->dielectric;
+  q2 = qsqsum * force->qqrd2e;
   bigint natoms = atom->natoms;
 
   triclinic = domain->triclinic;

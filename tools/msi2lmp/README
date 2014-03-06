@@ -1,6 +1,11 @@
 Axel Kohlmeyer is the current maintainer of the msi2lmp tool.
 Please send any inquiries about msi2lmp to the lammps-users mailing list.
 
+06 Mar 2014 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Fixed a bug in handling of triclinic cells, where the matrices to
+convert to and from fractional coordinates were incorrectly built.
+
 26 Oct 2013 Axel Kohlmeyer <akohlmey@gmail.com>
 
 Implemented writing out force field style hints in generated data

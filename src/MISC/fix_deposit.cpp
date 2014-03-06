@@ -349,6 +349,8 @@ void FixDeposit::pre_exchange()
       coords[0][0] = coord[0];
       coords[0][1] = coord[1];
       coords[0][2] = coord[2];
+      imageflags[0] = ((imageint) IMGMAX << IMG2BITS) |
+        ((imageint) IMGMAX << IMGBITS) | IMGMAX;
     } else {
       if (dimension == 3) {
         r[0] = random->uniform() - 0.5;

@@ -138,8 +138,6 @@
 #include <string.h>
 #include <ctype.h>
 
-static const char version[] = "v3.9.3 / 06-Mar-2014";
-
 /* global variables */
 
 char  *rootname;
@@ -330,7 +328,7 @@ int main (int argc, char *argv[])
 
 
   if (pflag > 0) {
-    printf("\nRunning msi2lmp %s ...\n",version);
+    puts("\nRunning msi2lmp " MSI2LMP_VERSION "\n");
     if (forcefield & FF_TYPE_CLASS1) puts(" Forcefield: Class I");
     if (forcefield & FF_TYPE_CLASS2) puts(" Forcefield: Class II");
     if (forcefield & FF_TYPE_OPLSAA) puts(" Forcefield: OPLS-AA");

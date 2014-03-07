@@ -1,4 +1,4 @@
-LAMMPS data file via write_data, version 31 Jan 2014-ICMS, timestep = 100
+LAMMPS data file via write_data, version 4 Mar 2014, timestep = 100
 
 1280 atoms
 5 atom types
@@ -18,7 +18,7 @@ Masses
 4 15.9994
 5 1.00797
 
-Pair Coeffs # lj/cut/coul/long
+Pair Coeffs
 
 1 1.3297e-06 4.27132
 2 1.8402e-06 3.30196
@@ -26,11 +26,11 @@ Pair Coeffs # lj/cut/coul/long
 4 0.155416 3.16552
 5 0 0
 
-Bond Coeffs # harmonic
+Bond Coeffs
 
 1 553.935 1
 
-Atoms # full
+Atoms
 
 1 1 1 1.5750000000000000e+00 2.5993596520046260e+00 1.4882900600258182e+00 -1.0812491332750085e-03 0 0 0
 2 1 2 2.1000000000000001e+00 3.3881083617607270e+00 8.8638081118868861e+00 2.7520703123178425e+00 0 0 0

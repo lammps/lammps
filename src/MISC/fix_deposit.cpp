@@ -343,7 +343,7 @@ void FixDeposit::pre_exchange()
     // coords = coords of all atoms
     // for molecule, perform random rotation around center pt
     // apply PBC so final coords are inside box
-    // also store image flag modified due to PBC
+    // also modify image flags due to PBC
 
     if (mode == ATOM) {
       coords[0][0] = coord[0];

@@ -531,7 +531,8 @@ double ComputeReduce::compute_one(int m, int flag)
 
   } else if (which[m] == FIX) {
     if (update->ntimestep % modify->fix[vidx]->peratom_freq)
-      error->all(FLERR,"Fix used in compute reduce not computed at compatible time");
+      error->all(FLERR,"Fix used in compute reduce not "
+                 "computed at compatible time");
     Fix *fix = modify->fix[vidx];
 
     if (flavor[m] == PERATOM) {

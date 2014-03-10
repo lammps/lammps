@@ -781,7 +781,7 @@ void Balance::dumpout(bigint tstep, FILE *bfp)
 
     int nx = comm->procgrid[0] + 1;
     int ny = comm->procgrid[1] + 1;
-    int nz = comm->procgrid[2] + 1;
+    //int nz = comm->procgrid[2] + 1;
 
     if (dimension == 2) {
       int m = 0;

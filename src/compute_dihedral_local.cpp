@@ -50,9 +50,7 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   pflag = -1;
   nvalues = 0;
 
-  int i;
   for (int iarg = 3; iarg < narg; iarg++) {
-    i = iarg-3;
     if (strcmp(arg[iarg],"phi") == 0) pflag = nvalues++;
     else error->all(FLERR,"Invalid keyword in compute dihedral/local command");
   }
@@ -111,7 +109,7 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
   int i,m,n,nd,atom1,atom2,atom3,atom4,imol,iatom;
   tagint tagprev;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
-  double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,rginv,ra2inv,rb2inv,rabinv;
+  double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,ra2inv,rb2inv,rabinv;
   double s,c;
   double *pbuf;
 
@@ -207,8 +205,11 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
           rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
           rg = sqrt(rgsq);
 
-          rginv = ra2inv = rb2inv = 0.0;
+          ra2inv = rb2inv = 0.0;
+/* DEAD CODE
+          rginv = 0.0;
           if (rg > 0) rginv = 1.0/rg;
+*/
           if (rasq > 0) ra2inv = 1.0/rasq;
           if (rbsq > 0) rb2inv = 1.0/rbsq;
           rabinv = sqrt(ra2inv*rb2inv);

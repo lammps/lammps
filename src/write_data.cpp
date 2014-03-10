@@ -422,7 +422,7 @@ void WriteData::bonds()
 
   // pack my bond data into buf
 
-  int foo = atom->avec->pack_bond(buf);
+  atom->avec->pack_bond(buf);
 
   // write one chunk of info per proc to file
   // proc 0 pings each proc, receives its chunk, writes to file

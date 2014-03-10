@@ -233,14 +233,11 @@ void Pair::init()
 
 void Pair::reinit()
 {
-  int i,j;
-  double tmp;
-
   etail = ptail = 0.0;
 
-  for (i = 1; i <= atom->ntypes; i++)
-    for (j = i; j <= atom->ntypes; j++) {
-      tmp = init_one(i,j);
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++) {
+      init_one(i,j);
       if (tail_flag) {
         etail += etail_ij;
         ptail += ptail_ij;
@@ -494,7 +491,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
 void Pair::init_tables_disp(double cut_lj_global)
 {
   int masklo,maskhi;
-  double r, rsq, r2inv, force_coul, force_lj;
+  double rsq;
   double g_ewald_6 = force->kspace->g_ewald_6;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
   
@@ -531,7 +528,7 @@ void Pair::init_tables_disp(double cut_lj_global)
       rsq_lookup.i = i << ndispshiftbits;
       rsq_lookup.i |= maskhi;
     }
-    r = sqrtf(rsq_lookup.f);
+    // r = sqrtf(rsq_lookup.f); DEAD CODE
     rsq = rsq_lookup.f;
     register double x2 = g2*rsq, a2 = 1.0/x2;
     x2 = a2*exp(-x2);
@@ -567,7 +564,7 @@ void Pair::init_tables_disp(double cut_lj_global)
   // deltas at itablemax only needed if corresponding rsq < cut*cut
   // if so, compute deltas between rsq and cut*cut
   
-  double f_tmp,c_tmp,e_tmp,p_tmp = 0.0,v_tmp = 0.0;
+  double f_tmp,e_tmp;
   double cut_lj_globalsq;
   itablemin = minrsq_lookup.i & ndispmask;
   itablemin >>= ndispshiftbits;
@@ -578,7 +575,7 @@ void Pair::init_tables_disp(double cut_lj_global)
   
   if (rsq_lookup.f < (cut_lj_globalsq = cut_lj_global * cut_lj_global)) {
     rsq_lookup.f = cut_lj_globalsq;
-    r = sqrtf(rsq_lookup.f);
+    // r = sqrtf(rsq_lookup.f); DEAD CODE
     
     register double x2 = g2*rsq, a2 = 1.0/x2;
     x2 = a2*exp(-x2);
@@ -1152,7 +1149,7 @@ void Pair::ev_tally4(int i, int j, int k, int m, double evdwl,
 void Pair::ev_tally_tip4p(int key, int *list, double *v,
                           double ecoul, double alpha)
 {
-  int i,j;
+  int i;
 
   if (eflag_either) {
     if (eflag_global) eng_coul += ecoul;

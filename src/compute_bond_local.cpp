@@ -119,7 +119,6 @@ int ComputeBondLocal::compute_bonds(int flag)
   int i,m,n,nb,atom1,atom2,imol,iatom,btype;
   tagint tagprev;
   double delx,dely,delz,rsq;
-  double *dbuf,*ebuf,*fbuf;
   double *ptr;
 
   double **x = atom->x;

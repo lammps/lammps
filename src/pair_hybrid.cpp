@@ -189,16 +189,14 @@ void PairHybrid::allocate()
 
 void PairHybrid::settings(int narg, char **arg)
 {
-  int i,m,istyle;
-
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
   // delete old lists, since cannot just change settings
 
   if (nstyles) {
-    for (m = 0; m < nstyles; m++) delete styles[m];
+    for (int m = 0; m < nstyles; m++) delete styles[m];
     delete [] styles;
-    for (m = 0; m < nstyles; m++) delete [] keywords[m];
+    for (int m = 0; m < nstyles; m++) delete [] keywords[m];
     delete [] keywords;
   }
 

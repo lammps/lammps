@@ -562,7 +562,7 @@ int AtomVecBody::pack_border(int n, int *list, double *buf,
 {
   int i,j,m;
   double dx,dy,dz;
-  double *quat,*c1,*c2,*c3,*inertia;
+  double *quat,*inertia;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -642,7 +642,7 @@ int AtomVecBody::pack_border_vel(int n, int *list, double *buf,
 {
   int i,j,m;
   double dx,dy,dz,dvx,dvy,dvz;
-  double *quat,*c1,*c2,*c3,*inertia;
+  double *quat,*inertia;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -775,7 +775,7 @@ int AtomVecBody::pack_border_vel(int n, int *list, double *buf,
 int AtomVecBody::pack_border_hybrid(int n, int *list, double *buf)
 {
   int i,j,m;
-  double *quat,*c1,*c2,*c3,*inertia;
+  double *quat,*inertia;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -805,7 +805,7 @@ int AtomVecBody::pack_border_hybrid(int n, int *list, double *buf)
 void AtomVecBody::unpack_border(int n, int first, double *buf)
 {
   int i,j,m,last;
-  double *quat,*c1,*c2,*c3,*inertia;
+  double *quat,*inertia;
 
   m = 0;
   last = first + n;
@@ -853,7 +853,7 @@ void AtomVecBody::unpack_border(int n, int first, double *buf)
 void AtomVecBody::unpack_border_vel(int n, int first, double *buf)
 {
   int i,j,m,last;
-  double *quat,*c1,*c2,*c3,*inertia;
+  double *quat,*inertia;
 
   m = 0;
   last = first + n;
@@ -907,7 +907,7 @@ void AtomVecBody::unpack_border_vel(int n, int first, double *buf)
 int AtomVecBody::unpack_border_hybrid(int n, int first, double *buf)
 {
   int i,j,m,last;
-  double *quat,*c1,*c2,*c3,*inertia;
+  double *quat,*inertia;
 
   m = 0;
   last = first + n;
@@ -1346,9 +1346,6 @@ int AtomVecBody::data_vel_hybrid(int m, char **values)
 
 void AtomVecBody::pack_data(double **buf)
 {
-  double c2mc1[2],c3mc1[3],norm[3];
-  double area;
-
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
     buf[i][0] = ubuf(tag[i]).d;

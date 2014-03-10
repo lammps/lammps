@@ -680,8 +680,8 @@ void Variable::compute_atom(int ivar, int igroup,
   double *vstore;
   
   if (style[ivar] == ATOM) {
-    double tmp = evaluate(data[ivar][0],&tree);
-    tmp = collapse_tree(tree);
+    evaluate(data[ivar][0],&tree);
+    collapse_tree(tree);
   } else vstore = reader[ivar]->fix->vstore;
 
   int groupbit = group->bitmask[igroup];
@@ -2543,27 +2543,27 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
   // evaluate args
 
   Tree *newtree;
-  double tmp,value1,value2,value3;
+  double value1,value2,value3;
 
   if (tree) {
     newtree = new Tree();
     Tree *argtree;
     if (narg == 1) {
-      tmp = evaluate(arg1,&argtree);
+      evaluate(arg1,&argtree);
       newtree->left = argtree;
       newtree->middle = newtree->right = NULL;
     } else if (narg == 2) {
-      tmp = evaluate(arg1,&argtree);
+      evaluate(arg1,&argtree);
       newtree->left = argtree;
       newtree->middle = NULL;
-      tmp = evaluate(arg2,&argtree);
+      evaluate(arg2,&argtree);
       newtree->right = argtree;
     } else if (narg == 3) {
-      tmp = evaluate(arg1,&argtree);
+      evaluate(arg1,&argtree);
       newtree->left = argtree;
-      tmp = evaluate(arg2,&argtree);
+      evaluate(arg2,&argtree);
       newtree->middle = argtree;
-      tmp = evaluate(arg3,&argtree);
+      evaluate(arg3,&argtree);
       newtree->right = argtree;
     }
     treestack[ntreestack++] = newtree;

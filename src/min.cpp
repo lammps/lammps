@@ -547,10 +547,6 @@ void Min::force_clear()
 {
   if (external_force_clear) return;
 
-  int i;
-
-  if (external_force_clear) return;
-
   // clear global force array
   // nall includes ghosts only if either newton flag is set
 

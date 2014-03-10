@@ -231,7 +231,6 @@ void Molecule::compute_inertia()
   // inertia = 3 eigenvalues = principal moments of inertia
   // evectors and exzy = 3 evectors = principal axes of rigid body
 
-  int ierror;
   double cross[3];
   double tensor[3][3],evectors[3][3];
 

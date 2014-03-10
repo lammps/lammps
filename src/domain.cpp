@@ -693,7 +693,7 @@ void Domain::box_too_small_check()
   Molecule **onemols = atom->avec->onemols;
   int nlocal = atom->nlocal;
 
-  double delx,dely,delz,rsq,r;
+  double delx,dely,delz,rsq;
   double maxbondme = 0.0;
 
   int lostbond = output->thermo->lostbond;

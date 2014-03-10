@@ -757,7 +757,7 @@ void ReadData::header()
 
 void ReadData::atoms()
 {
-  int i,m,nchunk,eof;
+  int nchunk,eof;
 
   if (me == 0) {
     if (screen) fprintf(screen,"  reading atoms ...\n");
@@ -807,7 +807,7 @@ void ReadData::atoms()
 
 void ReadData::velocities()
 {
-  int i,m,nchunk,eof;
+  int nchunk,eof;
 
   if (me == 0) {
     if (screen) fprintf(screen,"  reading velocities ...\n");
@@ -1146,7 +1146,7 @@ void ReadData::impropers(int firstpass)
 
 void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
 {
-  int i,m,nchunk,eof;
+  int nchunk,eof;
 
   int mapflag = 0;
   if (atom->map_style == 0) {
@@ -1261,7 +1261,6 @@ void ReadData::bodies(int firstpass)
 
 void ReadData::mass()
 {
-  int i,m;
   char *next;
   char *buf = new char[atom->ntypes*MAXLINE];
 
@@ -1269,7 +1268,7 @@ void ReadData::mass()
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
-  for (i = 0; i < atom->ntypes; i++) {
+  for (int i = 0; i < atom->ntypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
     atom->set_mass(buf);

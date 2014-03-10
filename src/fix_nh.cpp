@@ -1172,7 +1172,7 @@ void FixNH::write_restart(FILE *fp)
   double *list;
   memory->create(list,nsize,"nh:list");
 
-  int n = pack_restart_data(list);
+  pack_restart_data(list);
 
   if (comm->me == 0) {
     int size = nsize * sizeof(double);

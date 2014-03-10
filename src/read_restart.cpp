@@ -611,9 +611,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
 
 void ReadRestart::header(int incompatible)
 {
-  int px,py,pz;
   int xperiodic,yperiodic,zperiodic;
-  int boundary[3][2];
 
   // read flags and fields until flag = -1
 
@@ -859,7 +857,6 @@ void ReadRestart::type_arrays()
 
 void ReadRestart::force_fields()
 {
-  int n;
   char *style;
 
   int flag = read_int();

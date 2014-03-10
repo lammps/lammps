@@ -193,21 +193,20 @@ int Irregular::migrate_check()
   // this check needs to observe PBC
   // cannot check via comm->procneigh since it ignores PBC
 
-  AtomVec *avec = atom->avec;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
   int *periodicity = domain->periodicity;
   int *myloc = comm->myloc;
   int *procgrid = comm->procgrid;
-  int newproc,igx,igy,igz,glo,ghi;
+  int igx,igy,igz,glo,ghi;
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
     if (x[i][0] < sublo[0] || x[i][0] >= subhi[0] ||
         x[i][1] < sublo[1] || x[i][1] >= subhi[1] ||
         x[i][2] < sublo[2] || x[i][2] >= subhi[2]) {
-      newproc = coord2proc(x[i],igx,igy,igz);
+      coord2proc(x[i],igx,igy,igz);
 
       glo = myloc[0] - 1;
       ghi = myloc[0] + 1;

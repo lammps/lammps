@@ -692,7 +692,7 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
 {
   double d1[3], d1len, d2[3], d2len, normal[3], invndotd;
   double xlocal[3], ylocal[3], zlocal[3];
-  double center[3], bounds[6];
+  //double center[3];
   double surface[3];
   double depth;
 
@@ -722,10 +722,11 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
   if (invndotd == 0) return;
 
   double r[3],u[3];
-
+/* DEAD CODE
   center[0] = (xlocal[0] + ylocal[0] + zlocal[0]) / 3;
   center[1] = (xlocal[1] + ylocal[1] + zlocal[1]) / 3;
   center[2] = (xlocal[2] + ylocal[2] + zlocal[2]) / 3;
+*/
 
   r[0] = MathExtra::dot3(camRight,xlocal);
   r[1] = MathExtra::dot3(camRight,ylocal);
@@ -1088,7 +1089,7 @@ void Image::write_PPM(FILE *fp)
 {
   fprintf (fp,"P6\n%d %d\n255\n",width,height);
 
-  int x,y;
+  int y;
   for (y = height-1; y >= 0; y --)
     fwrite(&writeBuffer[y*width*3],3,width,fp);
 }
@@ -1878,7 +1879,7 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
 
 double *ColorMap::value2color(double value)
 {
-  double lo,hi;
+  double lo;//,hi;
 
   value = MAX(value,locurrent);
   value = MIN(value,hicurrent);
@@ -1887,10 +1888,10 @@ double *ColorMap::value2color(double value)
     if (locurrent == hicurrent) value = 0.0;
     else value = (value-locurrent) / (hicurrent-locurrent);
     lo = 0.0;
-    hi = 1.0;
+    //hi = 1.0;
   } else {
     lo = locurrent;
-    hi = hicurrent;
+    //hi = hicurrent;
   }
 
   if (mstyle == CONTINUOUS) {

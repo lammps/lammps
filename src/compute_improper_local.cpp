@@ -51,9 +51,7 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
   cflag = -1;
   nvalues = 0;
 
-  int i;
   for (int iarg = 3; iarg < narg; iarg++) {
-    i = iarg-3;
     if (strcmp(arg[iarg],"chi") == 0) cflag = nvalues++;
     else error->all(FLERR,"Invalid keyword in compute improper/local command");
   }

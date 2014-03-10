@@ -50,6 +50,14 @@ using namespace LAMMPS_NS;
                            // customize for new sections
 #define NSECTIONS 25       // change when add to header::section_keywords
 
+// pair style suffixes to ignore
+// when matching Pair Coeffs comment to currently-defined pair style
+
+const char *suffixes[] = {"/cuda","/gpu","/opt","/omp","/kk",
+                          "/coul/cut","/coul/long","/coul/msm",
+                          "/coul/dsf","/coul/debye","/coul/charmm",
+                          NULL};
+
 /* ---------------------------------------------------------------------- */
 
 ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
@@ -57,6 +65,7 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   line = new char[MAXLINE];
   keyword = new char[MAXLINE];
+  style = new char[MAXLINE];
   buffer = new char[CHUNK*MAXLINE];
   narg = maxarg = 0;
   arg = NULL;
@@ -80,6 +89,7 @@ ReadData::~ReadData()
 {
   delete [] line;
   delete [] keyword;
+  delete [] style;
   delete [] buffer;
   memory->sfree(arg);
 
@@ -218,8 +228,12 @@ void ReadData::command(int narg, char **arg)
 
       if (strcmp(keyword,"Atoms") == 0) {
         atomflag = 1;
-        if (firstpass) atoms();
-        else skip_lines(atom->natoms);
+        if (firstpass) {
+          if (me == 0 && !style_match(style,atom->atom_style))
+            error->warning(FLERR,"Atom style in data file differs "
+                           "from currently defined atom style");
+          atoms();
+        } else skip_lines(atom->natoms);
       } else if (strcmp(keyword,"Velocities") == 0) {
         if (atomflag == 0) 
           error->all(FLERR,"Must read Atoms before Velocities");
@@ -287,41 +301,65 @@ void ReadData::command(int narg, char **arg)
       } else if (strcmp(keyword,"Pair Coeffs") == 0) {
         if (force->pair == NULL)
           error->all(FLERR,"Must define pair_style before Pair Coeffs");
-        if (firstpass) paircoeffs();
-        else skip_lines(atom->ntypes);
+        if (firstpass) {
+          if (me == 0 && !style_match(style,force->pair_style))
+            error->warning(FLERR,"Pair style in data file differs "
+                           "from currently defined pair style");
+          paircoeffs();
+        } else skip_lines(atom->ntypes);
       } else if (strcmp(keyword,"PairIJ Coeffs") == 0) {
         if (force->pair == NULL)
           error->all(FLERR,"Must define pair_style before PairIJ Coeffs");
-        if (firstpass) pairIJcoeffs();
-        else skip_lines(atom->ntypes*(atom->ntypes+1)/2);
+        if (firstpass) {
+          if (me == 0 && !style_match(style,force->pair_style))
+            error->warning(FLERR,"Pair style in data file differs "
+                           "from currently defined pair style");
+          pairIJcoeffs();
+        } else skip_lines(atom->ntypes*(atom->ntypes+1)/2);
       } else if (strcmp(keyword,"Bond Coeffs") == 0) {
         if (atom->avec->bonds_allow == 0)
           error->all(FLERR,"Invalid data file section: Bond Coeffs");
         if (force->bond == NULL)
           error->all(FLERR,"Must define bond_style before Bond Coeffs");
-        if (firstpass) bondcoeffs();
-        else skip_lines(atom->nbondtypes);
+        if (firstpass) {
+          if (me == 0 && !style_match(style,force->bond_style))
+            error->warning(FLERR,"Bond style in data file differs "
+                           "from currently defined bond style");
+          bondcoeffs();
+        } else skip_lines(atom->nbondtypes);
       } else if (strcmp(keyword,"Angle Coeffs") == 0) {
         if (atom->avec->angles_allow == 0)
           error->all(FLERR,"Invalid data file section: Angle Coeffs");
         if (force->angle == NULL)
           error->all(FLERR,"Must define angle_style before Angle Coeffs");
-        if (firstpass) anglecoeffs(0);
-        else skip_lines(atom->nangletypes);
+        if (firstpass) {
+          if (me == 0 && !style_match(style,force->angle_style))
+            error->warning(FLERR,"Angle style in data file differs "
+                           "from currently defined angle style");
+          anglecoeffs(0);
+        } else skip_lines(atom->nangletypes);
       } else if (strcmp(keyword,"Dihedral Coeffs") == 0) {
         if (atom->avec->dihedrals_allow == 0)
           error->all(FLERR,"Invalid data file section: Dihedral Coeffs");
         if (force->dihedral == NULL)
           error->all(FLERR,"Must define dihedral_style before Dihedral Coeffs");
-        if (firstpass) dihedralcoeffs(0);
-        else skip_lines(atom->ndihedraltypes);
+        if (firstpass) {
+          if (me == 0 && !style_match(style,force->dihedral_style))
+            error->warning(FLERR,"Dihedral style in data file differs "
+                           "from currently defined dihedral style");
+          dihedralcoeffs(0);
+        } else skip_lines(atom->ndihedraltypes);
       } else if (strcmp(keyword,"Improper Coeffs") == 0) {
         if (atom->avec->impropers_allow == 0)
           error->all(FLERR,"Invalid data file section: Improper Coeffs");
         if (force->improper == NULL)
           error->all(FLERR,"Must define improper_style before Improper Coeffs");
-        if (firstpass) impropercoeffs(0);
-        else skip_lines(atom->nimpropertypes);
+        if (firstpass) {
+          if (me == 0 && !style_match(style,force->improper_style))
+            error->warning(FLERR,"Improper style in data file differs "
+                           "from currently defined improper style");
+          impropercoeffs(0);
+        } else skip_lines(atom->nimpropertypes);
 
       } else if (strcmp(keyword,"BondBond Coeffs") == 0) {
         if (atom->avec->angles_allow == 0)
@@ -1464,8 +1502,14 @@ void ReadData::open(char *file)
   else {
 #ifdef LAMMPS_GZIP
     char gunzip[128];
-    sprintf(gunzip,"gunzip -c %s",file);
+    sprintf(gunzip,"gzip -c -d %s",file);
+
+#ifdef _WIN32
+    fp = _popen(gunzip,"rb");
+#else
     fp = popen(gunzip,"r");
+#endif
+
 #else
     error->one(FLERR,"Cannot open gzipped file");
 #endif
@@ -1482,6 +1526,7 @@ void ReadData::open(char *file)
    grab next keyword
    read lines until one is non-blank
    keyword is all text on line w/out leading & trailing white space
+   optional style can be appended after comment char '#'
    read one additional line (assumed blank)
    if any read hits EOF, set keyword to empty
    if first = 1, line variable holds non-blank line that ended header
@@ -1518,6 +1563,19 @@ void ReadData::parse_keyword(int first)
   if (me == 0) n = strlen(line) + 1;
   MPI_Bcast(&n,1,MPI_INT,0,world);
   MPI_Bcast(line,n,MPI_CHAR,0,world);
+
+  // store optional "style" following comment char '#' after keyword
+
+  char *ptr;
+  if ((ptr = strchr(line,'#'))) {
+    *ptr++ = '\0';
+    while (*ptr == ' ' || *ptr == '\t') ptr++;
+    int stop = strlen(ptr) - 1;
+    while (ptr[stop] == ' ' || ptr[stop] == '\t'
+           || ptr[stop] == '\n' || ptr[stop] == '\r') stop--;
+    ptr[stop+1] = '\0';
+    strcpy(style,ptr);
+  } else style[0] = '\0';
 
   // copy non-whitespace portion of line into keyword
 
@@ -1571,4 +1629,31 @@ void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag)
     if (dupflag && narg == 1) arg[narg++] = word;
     word = strtok(NULL," \t\n\r\f");
   }
+}
+
+/* ----------------------------------------------------------------------
+   compare two style strings if they both exist
+   one = comment in data file section, two = currently-defined style
+   ignore suffixes listed in suffixes array at top of file
+------------------------------------------------------------------------- */
+
+int ReadData::style_match(const char *one, const char *two)
+{
+  int i,delta,len,len1,len2;
+
+  if ((one == NULL) || (two == NULL)) return 1;
+
+  len1 = strlen(one);
+  len2 = strlen(two);
+
+  for (i = 0; suffixes[i] != NULL; i++) {
+    len = strlen(suffixes[i]);
+    if ((delta = len1 - len) > 0)
+      if (strcmp(one+delta,suffixes[i]) == 0) len1 = delta;
+    if ((delta = len2 - len) > 0)
+      if (strcmp(two+delta,suffixes[i]) == 0) len2 = delta;
+  }
+
+  if ((len1 == 0) || (len1 == len2) || (strncmp(one,two,len1) == 0)) return 1;
+  return 0;
 }

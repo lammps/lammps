@@ -50,11 +50,13 @@ value(s) is read from the line.  If it doesn't contain a header
 keyword, the line begins the body of the file.
 
 The body of the file contains zero or more sections.  The first line
-of a section has only a keyword.  The next line is skipped.  The
-remaining lines of the section contain values.  The number of lines
-depends on the section keyword as described below.  Zero or more blank
-lines can be used between sections.  Sections can appear in any order,
-with a few exceptions as noted below.
+of a section has only a keyword.  This line can have a trailing
+comment starting with '#' that is either ignored or can be used to
+check for a style match, as described below.  The next line is
+skipped.  The remaining lines of the section contain values.  The
+number of lines depends on the section keyword as described below.
+Zero or more blank lines can be used between sections.  Sections can
+appear in any order, with a few exceptions as noted below.
 
 The keyword {fix} can be used one or more times.  Each usage specifies
 a fix that will be used to process a specific portion of the data
@@ -222,6 +224,22 @@ These are the section keywords for the body of the file.
 {BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs, \
    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs, \
    BondBond13 Coeffs, AngleAngle Coeffs} = class 2 force field sections :ul
+
+These keywords will check an appended comment for a match with the
+currently defined style:
+
+{Atoms, Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, Improper Coeffs} :ul
+
+For example, these lines:
+
+Atoms # sphere
+Pair Coeffs # lj/cut :pre
+
+will check if the currently-defined "atom_style"_atom_style.html is
+{sphere}, and the current "pair_style"_pair_style is {lj/cut}.  If
+not, LAMMPS will issue a warning to indicate that the data file
+section likely does not contain the correct number or type of
+parameters expected for the currently-defined style.
 
 Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and

@@ -528,7 +528,6 @@ void Pair::init_tables_disp(double cut_lj_global)
       rsq_lookup.i = i << ndispshiftbits;
       rsq_lookup.i |= maskhi;
     }
-    // r = sqrtf(rsq_lookup.f); DEAD CODE
     rsq = rsq_lookup.f;
     register double x2 = g2*rsq, a2 = 1.0/x2;
     x2 = a2*exp(-x2);
@@ -575,7 +574,6 @@ void Pair::init_tables_disp(double cut_lj_global)
   
   if (rsq_lookup.f < (cut_lj_globalsq = cut_lj_global * cut_lj_global)) {
     rsq_lookup.f = cut_lj_globalsq;
-    // r = sqrtf(rsq_lookup.f); DEAD CODE
     
     register double x2 = g2*rsq, a2 = 1.0/x2;
     x2 = a2*exp(-x2);

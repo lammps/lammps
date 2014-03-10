@@ -756,7 +756,7 @@ void PPPMDisp::setup()
             b = 0.5*sqrt(sqk)*gewinv;
             bs = b*b;
             bt = bs*b;
-            erft = 2*bt*rtpi*erfc(b);
+            erft = 2*bt*rtpi*erfc((double) b);
             expt = exp(-bs);
             nom = erft - 2*bs*expt;
             denom = nom + expt;

@@ -539,6 +539,7 @@ of each style or click on the style itself for a full description:
 "store/force"_fix_store_force.html,
 "store/state"_fix_store_state.html,
 "temp/berendsen"_fix_temp_berendsen.html,
+"temp/csvr"_fix_temp_csvr.html,
 "temp/rescale"_fix_temp_rescale.html,
 "thermal/conductivity"_fix_thermal_conductivity.html,
 "tmd"_fix_tmd.html,

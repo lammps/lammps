@@ -3941,7 +3941,7 @@ unsigned int Variable::data_mask(char *str)
 {
   unsigned int datamask = EMPTY_MASK;
 
-  for (unsigned int i=0; i < strlen(str)-2; i++) {
+  for (unsigned int i = 0; i < strlen(str)-2; i++) {
     int istart = i;
     while (isalnum(str[i]) || str[i] == '_') i++;
     int istop = i-1;
@@ -3974,21 +3974,21 @@ unsigned int Variable::data_mask(char *str)
     }
 
     if ((strncmp(word,"f_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
-        if (domain->box_exist == 0)
-          error->all(FLERR,
-                     "Variable evaluation before simulation box is defined");
-
-        n = strlen(word) - 2 + 1;
-        char *id = new char[n];
-        strcpy(id,&word[2]);
-
-        int ifix = modify->find_fix(id);
-        if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
-
-        datamask &= modify->fix[ifix]->data_mask();
-        delete [] id;
+      if (domain->box_exist == 0)
+        error->all(FLERR,
+                   "Variable evaluation before simulation box is defined");
+      
+      n = strlen(word) - 2 + 1;
+      char *id = new char[n];
+      strcpy(id,&word[2]);
+      
+      int ifix = modify->find_fix(id);
+      if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
+      
+      datamask &= modify->fix[ifix]->data_mask();
+      delete [] id;
     }
-
+    
     if ((strncmp(word,"v_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
       int ivar = find(word);
       datamask &= data_mask(ivar);

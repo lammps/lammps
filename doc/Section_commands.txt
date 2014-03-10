@@ -513,6 +513,7 @@ of each style or click on the style itself for a full description:
 "nvt/asphere"_fix_nvt_asphere.html,
 "nvt/sllod"_fix_nvt_sllod.html,
 "nvt/sphere"_fix_nvt_sphere.html,
+"oneway"_fix_oneway.html,
 "orient/fcc"_fix_orient_fcc.html,
 "planeforce"_fix_planeforce.html,
 "poems"_fix_poems.html,

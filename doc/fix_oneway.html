@@ -1,0 +1,69 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix oneway command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID N oneway region-ID direction 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>oneway = style name of this fix command 
+
+<LI>N = apply this fix every this many timesteps 
+
+<LI>region-ID = ID of region where fix is active 
+
+<LI>direction = <I>x</I> or <I>-x</I> or <I>y</I> or <I>-y</I> or <I>z</I> or <I>-z</I> = coordinate and direction of the oneway constraint 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix ions 10 oneway semi -x
+fix all 1 oneway left -z
+fix all 1 oneway right z 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Enforce that particles in the group and in a given region can only
+move in one direction.  This is done by reversing a particle's
+velocity component, if it has the wrong sign in the specified
+dimension.  The effect is that the particle moves in one direction
+only.
+</P>
+<P>This can be used, for example, as a simple model of a semi-permeable
+membrane, or as an implementation of Maxwell's demon.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_wall_reflect.html">fix wall/reflect</A> command
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+</HTML>

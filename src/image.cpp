@@ -692,7 +692,6 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
 {
   double d1[3], d1len, d2[3], d2len, normal[3], invndotd;
   double xlocal[3], ylocal[3], zlocal[3];
-  //double center[3];
   double surface[3];
   double depth;
 
@@ -722,11 +721,6 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
   if (invndotd == 0) return;
 
   double r[3],u[3];
-/* DEAD CODE
-  center[0] = (xlocal[0] + ylocal[0] + zlocal[0]) / 3;
-  center[1] = (xlocal[1] + ylocal[1] + zlocal[1]) / 3;
-  center[2] = (xlocal[2] + ylocal[2] + zlocal[2]) / 3;
-*/
 
   r[0] = MathExtra::dot3(camRight,xlocal);
   r[1] = MathExtra::dot3(camRight,ylocal);

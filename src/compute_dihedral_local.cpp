@@ -206,10 +206,6 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
           rg = sqrt(rgsq);
 
           ra2inv = rb2inv = 0.0;
-/* DEAD CODE
-          rginv = 0.0;
-          if (rg > 0) rginv = 1.0/rg;
-*/
           if (rasq > 0) ra2inv = 1.0/rasq;
           if (rbsq > 0) rb2inv = 1.0/rbsq;
           rabinv = sqrt(ra2inv*rb2inv);

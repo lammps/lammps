@@ -723,7 +723,6 @@ void Set::setrandom(int keyword)
 
   AtomVecEllipsoid *avec_ellipsoid =
     (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  atom->style_match("line"); // DEAD CODE?
   AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
 
   RanPark *random = new RanPark(lmp,1);

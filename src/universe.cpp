@@ -100,7 +100,7 @@ void Universe::reorder(char *style, char *arg)
       if (!fgets(line,MAXLINE,fp))
         error->one(FLERR,"Unexpected end of -reorder file");
       while (1) {
-        if (ptr = strchr(line,'#')) *ptr = '\0';
+        if ((ptr = strchr(line,'#'))) *ptr = '\0';
         if (strspn(line," \t\n\r") != strlen(line)) break;
         if (!fgets(line,MAXLINE,fp))
           error->one(FLERR,"Unexpected end of -reorder file");

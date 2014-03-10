@@ -969,14 +969,14 @@ int DumpImage::modify_param(int narg, char **arg)
     int ncount = 1;
     char *nextptr;
     char *ptr = arg[2];
-    while (nextptr = strchr(ptr,'/')) {
+    while ((nextptr = strchr(ptr,'/'))) {
       ptr = nextptr + 1;
       ncount++;
     }
     char **ptrs = new char*[ncount+1];
     ncount = 0;
     ptrs[ncount++] = strtok(arg[2],"/");
-    while (ptrs[ncount++] = strtok(NULL,"/"));
+    while ((ptrs[ncount++] = strtok(NULL,"/")));
     ncount--;
 
     // assign each of ncount colors in round-robin fashion to types
@@ -1029,14 +1029,14 @@ int DumpImage::modify_param(int narg, char **arg)
     int ncount = 1;
     char *nextptr;
     char *ptr = arg[2];
-    while (nextptr = strchr(ptr,'/')) {
+    while ((nextptr = strchr(ptr,'/'))) {
       ptr = nextptr + 1;
       ncount++;
     }
     char **ptrs = new char*[ncount+1];
     ncount = 0;
     ptrs[ncount++] = strtok(arg[2],"/");
-    while (ptrs[ncount++] = strtok(NULL,"/"));
+    while ((ptrs[ncount++] = strtok(NULL,"/")));
     ncount--;
 
     // assign each of ncount colors in round-robin fashion to types

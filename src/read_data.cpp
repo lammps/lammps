@@ -619,7 +619,7 @@ void ReadData::header()
     // trim anything from '#' onward
     // if line is blank, continue
 
-    if (ptr = strchr(line,'#')) *ptr = '\0';
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
     if (strspn(line," \t\n\r") == strlen(line)) continue;
 
     // allow special fixes first chance to match and process the line
@@ -1556,7 +1556,7 @@ void ReadData::skip_lines(bigint n)
 void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag)
 {
   char *ptr;
-  if (ptr = strchr(line,'#')) *ptr = '\0';
+  if ((ptr = strchr(line,'#'))) *ptr = '\0';
 
   narg = 0;
   char *word = strtok(line," \t\n\r\f");

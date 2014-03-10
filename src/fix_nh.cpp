@@ -1534,20 +1534,22 @@ double FixNH::compute_vector(int n)
       n -= ilen;
     } else if (pstyle == ANISO) {
       ilen = 3;
-      if (n < ilen)
+      if (n < ilen) {
         if (p_flag[n])
           return p_hydro*(volume-vol0) / (pdim*nktv2p);
         else
           return 0.0;
+      }
       n -= ilen;
     } else {
       ilen = 6;
-      if (n < ilen)
+      if (n < ilen) {
         if (n > 2) return 0.0;
         else if (p_flag[n])
           return p_hydro*(volume-vol0) / (pdim*nktv2p);
         else
           return 0.0;
+      }
       n -= ilen;
     }
 
@@ -1558,17 +1560,19 @@ double FixNH::compute_vector(int n)
       n -= ilen;
     } else if (pstyle == ANISO) {
       ilen = 3;
-      if (n < ilen)
+      if (n < ilen) {
         if (p_flag[n])
           return 0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
         else return 0.0;
+      }
       n -= ilen;
     } else {
       ilen = 6;
-      if (n < ilen)
+      if (n < ilen) {
         if (p_flag[n])
           return 0.5*omega_dot[n]*omega_dot[n]*omega_mass[n];
         else return 0.0;
+      }
       n -= ilen;
     }
 
@@ -2139,7 +2143,7 @@ void FixNH::nh_omega_dot()
   if (deviatoric_flag) compute_deviatoric();
 
   mtk_term1 = 0.0;
-  if (mtk_flag)
+  if (mtk_flag) {
     if (pstyle == ISO) {
       mtk_term1 = tdof * boltz * t_current;
       mtk_term1 /= pdim * atom->natoms;
@@ -2150,6 +2154,7 @@ void FixNH::nh_omega_dot()
           mtk_term1 += mvv_current[i];
       mtk_term1 /= pdim * atom->natoms;
     }
+  }
 
   for (int i = 0; i < 3; i++)
     if (p_flag[i]) {

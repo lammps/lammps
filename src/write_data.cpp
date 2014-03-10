@@ -65,7 +65,7 @@ void WriteData::command(int narg, char **arg)
   int n = strlen(arg[0]) + 16;
   char *file = new char[n];
 
-  if (ptr = strchr(arg[0],'*')) {
+  if ((ptr = strchr(arg[0],'*'))) {
     *ptr = '\0';
     sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
   } else strcpy(file,arg[0]);
@@ -152,11 +152,11 @@ void WriteData::write(char *file)
   // sum up bond,angle counts
   // may be different than atom->nbonds,nangles if broken/turned-off
 
-  if (atom->molecular == 1 && atom->nbonds || atom->nbondtypes) {
+  if (atom->molecular == 1 && (atom->nbonds || atom->nbondtypes)) {
     nbonds_local = atom->avec->pack_bond(NULL);
     MPI_Allreduce(&nbonds_local,&nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }
-  if (atom->molecular == 1 && atom->nangles || atom->nangletypes) {
+  if (atom->molecular == 1 && (atom->nangles || atom->nangletypes)) {
     nangles_local = atom->avec->pack_angle(NULL);
     MPI_Allreduce(&nangles_local,&nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
   }

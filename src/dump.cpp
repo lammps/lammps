@@ -105,7 +105,7 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   multiname = NULL;
 
   char *ptr;
-  if (ptr = strchr(filename,'%')) {
+  if ((ptr = strchr(filename,'%'))) {
     if (strstr(style,"mpiio"))
       error->all(FLERR,
                  "Dump file MPI-IO output not allowed with % in filename");

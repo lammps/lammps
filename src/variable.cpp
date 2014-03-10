@@ -4088,7 +4088,7 @@ int VarReader::read_scalar(char *str)
       else n = strlen(str);
       if (n == 0) break;                                 // end of file
       str[n-1] = '\0';                                   // strip newline
-      if (ptr = strchr(str,'#')) *ptr = '\0';            // strip comment
+      if ((ptr = strchr(str,'#'))) *ptr = '\0';          // strip comment
       if (strtok(str," \t\n\r\f") == NULL) continue;     // skip if blank
       n = strlen(str) + 1;
       break;
@@ -4131,7 +4131,7 @@ int VarReader::read_peratom()
       else n = strlen(str);
       if (n == 0) break;                                 // end of file
       str[n-1] = '\0';                                   // strip newline
-      if (ptr = strchr(str,'#')) *ptr = '\0';            // strip comment
+      if ((ptr = strchr(str,'#'))) *ptr = '\0';          // strip comment
       if (strtok(str," \t\n\r\f") == NULL) continue;     // skip if blank
       n = strlen(str) + 1;
       break;

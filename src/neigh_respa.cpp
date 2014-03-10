@@ -131,7 +131,7 @@ void Neighbor::respa_nsq_no_newton(NeighList *list)
                                  tag[j]-tagprev);
           else which = 0;
           if (which == 0) neighptr[n++] = j;
-          else if (minchange = domain->minimum_image_check(delx,dely,delz))
+          else if ((minchange = domain->minimum_image_check(delx,dely,delz)))
             neighptr[n++] = j;
           else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
         } else neighptr[n++] = j;
@@ -309,7 +309,7 @@ void Neighbor::respa_nsq_newton(NeighList *list)
                                  tag[j]-tagprev);
           else which = 0;
           if (which == 0) neighptr[n++] = j;
-          else if (minchange = domain->minimum_image_check(delx,dely,delz))
+          else if ((minchange = domain->minimum_image_check(delx,dely,delz)))
             neighptr[n++] = j;
           else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
         } else neighptr[n++] = j;
@@ -478,7 +478,7 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
                                    tag[j]-tagprev);
             else which = 0;
             if (which == 0) neighptr[n++] = j;
-            else if (minchange = domain->minimum_image_check(delx,dely,delz))
+            else if ((minchange = domain->minimum_image_check(delx,dely,delz)))
               neighptr[n++] = j;
             else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;
@@ -651,7 +651,7 @@ void Neighbor::respa_bin_newton(NeighList *list)
                                  tag[j]-tagprev);
           else which = 0;
           if (which == 0) neighptr[n++] = j;
-          else if (minchange = domain->minimum_image_check(delx,dely,delz))
+          else if ((minchange = domain->minimum_image_check(delx,dely,delz)))
             neighptr[n++] = j;
           else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
         } else neighptr[n++] = j;
@@ -695,7 +695,7 @@ void Neighbor::respa_bin_newton(NeighList *list)
                                    tag[j]-tagprev);
             else which = 0;
             if (which == 0) neighptr[n++] = j;
-            else if (minchange = domain->minimum_image_check(delx,dely,delz))
+            else if ((minchange = domain->minimum_image_check(delx,dely,delz)))
               neighptr[n++] = j;
             else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;
@@ -873,7 +873,7 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
                                    tag[j]-tagprev);
             else which = 0;
             if (which == 0) neighptr[n++] = j;
-            else if (minchange = domain->minimum_image_check(delx,dely,delz))
+            else if ((minchange = domain->minimum_image_check(delx,dely,delz)))
               neighptr[n++] = j;
             else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = j;

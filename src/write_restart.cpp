@@ -89,7 +89,7 @@ void WriteRestart::command(int narg, char **arg)
   int n = strlen(arg[0]) + 16;
   char *file = new char[n];
 
-  if (ptr = strchr(arg[0],'*')) {
+  if ((ptr = strchr(arg[0],'*'))) {
     *ptr = '\0';
     sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
   } else strcpy(file,arg[0]);

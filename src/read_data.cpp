@@ -23,6 +23,7 @@
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
+#include "force.h"
 #include "molecule.h"
 #include "comm.h"
 #include "update.h"
@@ -108,13 +109,10 @@ void ReadData::command(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal read_data command");
 
-  if (domain->box_exist)
-    error->all(FLERR,"Cannot read_data after simulation box is defined");
-  if (domain->dimension == 2 && domain->zperiodic == 0)
-    error->all(FLERR,"Cannot run 2d simulation with nonperiodic Z dimension");
+  // optional args
 
-  // fixes that process data file info
-
+  addflag = mergeflag = 0;
+  offset[0] = offset[1] = offset[2] = 0.0;
   nfix = 0;
   fix_index = NULL;
   fix_header = NULL;
@@ -122,7 +120,20 @@ void ReadData::command(int narg, char **arg)
 
   int iarg = 1;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"fix") == 0) {
+    if (strcmp(arg[iarg],"add") == 0) {
+      addflag = 1;
+      iarg++;
+    } else if (strcmp(arg[iarg],"merge") == 0) {
+      mergeflag = 1;
+      iarg++;
+    } else if (strcmp(arg[iarg],"offset") == 0) {
+      if (iarg+4 > narg)
+        error->all(FLERR,"Illegal read_data command");
+      offset[0] = force->numeric(FLERR,arg[iarg+1]);
+      offset[1] = force->numeric(FLERR,arg[iarg+2]);
+      offset[2] = force->numeric(FLERR,arg[iarg+3]);
+      iarg += 4;
+    } else if (strcmp(arg[iarg],"fix") == 0) {
       if (iarg+4 > narg)
         error->all(FLERR,"Illegal read_data command");
       memory->grow(fix_index,nfix+1,"read_data:fix_index");
@@ -148,6 +159,18 @@ void ReadData::command(int narg, char **arg)
       iarg += 4;
     } else error->all(FLERR,"Illegal read_data command");
   }
+
+  // error checks
+
+  if (domain->box_exist && !addflag && !mergeflag)
+    error->all(FLERR,"Cannot read_data after simulation box is defined");
+  if (addflag && mergeflag) error->all(FLERR,"Cannot read_data add and merge");
+  if (domain->dimension == 2 && offset[2] != 0.0)
+    error->all(FLERR,"Cannot use non-zero z offset in read_data "
+               "for 2d simulation");
+
+  if (domain->dimension == 2 && domain->zperiodic == 0)
+    error->all(FLERR,"Cannot run 2d simulation with nonperiodic Z dimension");
 
   // perform 1-pass read if no molecular topoogy in file
   // perform 2-pass read if molecular topology,
@@ -633,8 +656,6 @@ void ReadData::header()
     if (eof == NULL) error->one(FLERR,"Unexpected end of data file");
   }
 
-  // customize for new header lines
-
   while (1) {
 
     // read a line and bcast length if flag is set
@@ -675,6 +696,7 @@ void ReadData::header()
     }
 
     // search line for header keyword and set corresponding variable
+    // customize for new header lines
 
     if (strstr(line,"atoms")) {
       sscanf(line,BIGINT_FORMAT,&atom->natoms);

@@ -27,7 +27,7 @@
 * The thrid version was revised in Fall 2011 by 
 * Stephanie Teich-McGoldrick to add support non-orthogonal cells.
 *
-* The next revision was done in Summer 2013 by
+* The next revision was started in Summer/Fall 2013 by
 * Axel Kohlmeyer to improve portability to Windows compilers,
 * clean up command line parsing and improve compatibility with
 * the then current LAMMPS versions. This revision removes 
@@ -35,6 +35,8 @@
 */
 
 # include <stdio.h>
+
+#define MSI2LMP_VERSION "v3.9.3 / 07 Mar 2014"
 
 #define PI_180  0.01745329251994329576
 

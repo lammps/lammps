@@ -29,7 +29,7 @@ counter=0
 errors=0
 
 # Class1 tests with cvff
-for m in hydrogen water h2-h2o ethane benzene naphthalene crambin nylon phen3_cff97 hap_crystal
+for m in hydrogen water h2-h2o ethane benzene naphthalene cnt-hexagonal crambin nylon phen3_cff97 hap_crystal
 do \
     before=$errors
     vglog=${m}-class1.chk
@@ -104,7 +104,7 @@ do \
 done
 
 # Class2 tests with compass
-for m in hydrogen ethane benzene naphthalene
+for m in hydrogen ethane benzene naphthalene cnt-hexagonal
 do \
     before=$errors
     vglog=${m}-class2a.chk
@@ -129,7 +129,7 @@ do \
 done
 
 # Class2 tests with pcff
-for m in water h2-h2o ethane benzene naphthalene hap_crystal
+for m in water h2-h2o ethane benzene naphthalene cnt-hexagonal hap_crystal
 do \
     before=$errors
     vglog=${m}-class2b.chk

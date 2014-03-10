@@ -25,9 +25,9 @@ void set_box(double box[3][3], double *h, double *h_inv)
   h_inv[1] = 1.0/h[1];
   h_inv[2] = 1.0/h[2];
 
-  h[3] = box[2][0];
+  h[3] = box[2][2];
   h[4] = box[2][1];
-  h[5] = box[2][2];
+  h[5] = box[2][0];
   h_inv[3] = -h[3] / (h[1]*h[2]);
   h_inv[4] = (h[3]*h[5] - h[1]*h[4]) / (h[0]*h[1]*h[2]);
   h_inv[5] = -h[5] / (h[0]*h[1]);
@@ -252,6 +252,8 @@ void ReadCarFile(void)
 
   } else {
 
+      if (pflag > 2)
+          printf(" pbc[0] %f pbc[1] %f pbc[2] %f\n", pbc[0] ,pbc[1] ,pbc[2]);
     if (TriclinicFlag == 0) {
       for (k=0; k < 3; k++) {
         box[0][k] = -0.5*pbc[k] + center[k] + shift[k];

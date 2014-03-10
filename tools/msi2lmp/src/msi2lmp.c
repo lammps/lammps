@@ -2,6 +2,10 @@
 *
 *  msi2lmp.exe
 *
+*   v3.9.3 AK- Bugfix for triclinic cells.
+*
+*   v3.9.2 AK- Support for writing out force field style hints
+*
 *   v3.9.1 AK- Bugfix for Class2. Free allocated memory. Print version number.
 *
 *   v3.9 AK  - Rudimentary support for OPLS-AA
@@ -133,8 +137,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
-static const char version[] = "v3.9.1 / 08-Oct-2013";
 
 /* global variables */
 
@@ -326,7 +328,7 @@ int main (int argc, char *argv[])
 
 
   if (pflag > 0) {
-    printf("\nRunning msi2lmp %s ...\n",version);
+    puts("\nRunning msi2lmp " MSI2LMP_VERSION "\n");
     if (forcefield & FF_TYPE_CLASS1) puts(" Forcefield: Class I");
     if (forcefield & FF_TYPE_CLASS2) puts(" Forcefield: Class II");
     if (forcefield & FF_TYPE_OPLSAA) puts(" Forcefield: OPLS-AA");

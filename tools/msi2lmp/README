@@ -117,6 +117,9 @@ see msi2lmp/TriclinicModification.pdf doc for details
                           geometrical center of the provided geometry but
                           rather around the origin
 
+   -- -oldstyle (or -o)   write out a data file without style hints
+                          (to be compatible with older LAMMPS versions)
+
    -- -shift (or -s)      translate the entire system (box and coordinates)
                           by a vector (default: 0.0 0.0 0.0)
 

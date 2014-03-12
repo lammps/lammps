@@ -78,7 +78,7 @@ class NeighList : protected Pointers {
   class CudaNeighList *cuda_list;  // CUDA neighbor list
 
   NeighList(class LAMMPS *);
-  ~NeighList();
+  virtual ~NeighList();
   void setup_pages(int, int, int);      // setup page data structures
   void grow(int);                       // grow maxlocal
   void stencil_allocate(int, int);      // allocate stencil arrays
@@ -87,7 +87,7 @@ class NeighList : protected Pointers {
   int get_maxlocal() {return maxatoms;}
   bigint memory_usage();
 
- private:
+ protected:
   int maxatoms;                    // size of allocated atom arrays
 };
 

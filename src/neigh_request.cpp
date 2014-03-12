@@ -45,6 +45,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   // default is no neighbors of ghosts
   // default is no CUDA neighbor list build
   // default is no multi-threaded neighbor list build
+  // default is no Kokkos neighbor list build
 
   occasional = 0;
   newton = 0;
@@ -53,6 +54,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   ghost = 0;
   cudable = 0;
   omp = 0;
+  kokkos_host = kokkos_device = 0;
 
   // default is no copy or skip
 

@@ -97,6 +97,11 @@ class Pair : protected Pointers {
 
   int compute_flag;              // 0 if skip compute()
 
+  // KOKKOS host/device flag and data masks
+
+  ExecutionSpace execution_space;
+  unsigned int datamask_read,datamask_modify;
+
   Pair(class LAMMPS *);
   virtual ~Pair();
 

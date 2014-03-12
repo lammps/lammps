@@ -60,13 +60,8 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   minimize_style = NULL;
   minimize = NULL;
 
-  if (lmp->cuda) {
-    str = (char *) "verlet/cuda";
-    create_integrate(1,&str,NULL);
-  } else {
-    str = (char *) "verlet";
-    create_integrate(1,&str,NULL);
-  }
+  str = (char *) "verlet";
+  create_integrate(1,&str,lmp->suffix);
 
   str = (char *) "cg";
   create_minimize(1,&str);

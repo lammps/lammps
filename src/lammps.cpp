@@ -553,9 +553,11 @@ void LAMMPS::create()
   else comm = new Comm(this);
 
   if (cuda) neighbor = new NeighborCuda(this);
+  else if (kokkos) neighbor = new NeighborKokkos(this);
   else neighbor = new Neighbor(this);
 
   if (cuda) domain = new DomainCuda(this);
+  else if (kokkos) domain = new DomainKokkos(this);
 #ifdef LMP_USER_OMP
   else domain = new DomainOMP(this);
 #else
@@ -630,6 +632,7 @@ void LAMMPS::destroy()
   delete force;
   delete group;
   delete output;
+
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes
   delete domain;          // domain must come after modify

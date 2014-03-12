@@ -16,8 +16,9 @@
 #include "string.h"
 #include "stdio.h"
 #include "finish.h"
-#include "timer.h"
+#include "lammps.h"
 #include "universe.h"
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
@@ -29,6 +30,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "timer.h"
 #include "output.h"
 #include "memory.h"
 
@@ -527,22 +529,28 @@ void Finish::end(int flag)
 
     // find a non-skip neighbor list containing half the pairwise interactions
     // count neighbors in that list for stats purposes
+    // allow it to be Kokkos neigh list as well
 
-    for (m = 0; m < neighbor->old_nrequest; m++)
+    for (m = 0; m < neighbor->old_nrequest; m++) {
       if ((neighbor->old_requests[m]->half ||
            neighbor->old_requests[m]->gran ||
            neighbor->old_requests[m]->respaouter ||
            neighbor->old_requests[m]->half_from_full) &&
-          neighbor->old_requests[m]->skip == 0 &&
-          neighbor->lists[m]->numneigh) break;
+          neighbor->old_requests[m]->skip == 0) {
+        if (neighbor->lists[m] && neighbor->lists[m]->numneigh) break;
+        if (lmp->kokkos && lmp->kokkos->neigh_list_kokkos(m)) break;
+      }
+    }
 
     nneigh = 0;
     if (m < neighbor->old_nrequest) {
-      int inum = neighbor->lists[m]->inum;
-      int *ilist = neighbor->lists[m]->ilist;
-      int *numneigh = neighbor->lists[m]->numneigh;
-      for (i = 0; i < inum; i++)
-        nneigh += numneigh[ilist[i]];
+      if (neighbor->lists[m]) {
+        int inum = neighbor->lists[m]->inum;
+        int *ilist = neighbor->lists[m]->ilist;
+        int *numneigh = neighbor->lists[m]->numneigh;
+        for (i = 0; i < inum; i++)
+          nneigh += numneigh[ilist[i]];
+      } else if (lmp->kokkos) nneigh = lmp->kokkos->neigh_count(m);
     }
 
     tmp = nneigh;
@@ -565,19 +573,23 @@ void Finish::end(int flag)
     // find a non-skip neighbor list containing full pairwise interactions
     // count neighbors in that list for stats purposes
 
-    for (m = 0; m < neighbor->old_nrequest; m++)
+    for (m = 0; m < neighbor->old_nrequest; m++) {
       if (neighbor->old_requests[m]->full &&
-          neighbor->old_requests[m]->skip == 0) break;
+          neighbor->old_requests[m]->skip == 0) {
+        if (neighbor->lists[m] && neighbor->lists[m]->numneigh) break;
+        if (lmp->kokkos && lmp->kokkos->neigh_list_kokkos(m)) break;
+      }
+    }
 
     nneighfull = 0;
     if (m < neighbor->old_nrequest) {
-      if (neighbor->lists[m]->numneigh > 0) {
+      if (neighbor->lists[m]) {
         int inum = neighbor->lists[m]->inum;
         int *ilist = neighbor->lists[m]->ilist;
         int *numneigh = neighbor->lists[m]->numneigh;
         for (i = 0; i < inum; i++)
           nneighfull += numneigh[ilist[i]];
-      }
+      } else if (lmp->kokkos) nneighfull = lmp->kokkos->neigh_count(m);
 
       tmp = nneighfull;
       stats(1,&tmp,&ave,&max,&min,10,histo);

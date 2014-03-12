@@ -22,12 +22,20 @@
 #include "kokkos.h"
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
+#include "domain_kokkos.h"
+#include "neighbor_kokkos.h"
 #include "modify_kokkos.h"
 
 #else
 
 // dummy interface to KOKKOS
 // needed for compiling when KOKKOS is not installed
+
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "neighbor.h"
+#include "modify.h"
 
 namespace LAMMPS_NS {
 
@@ -38,29 +46,37 @@ class KokkosLMP {
   KokkosLMP(class LAMMPS *, int, char **) {kokkos_exists = 0;}
   ~KokkosLMP() {}
   void accelerator(int, char **) {}
+  int neigh_list_kokkos(int) {return 0;}
+  int neigh_count(int) {return 0;}
 };
 
 class AtomKokkos : public Atom {
  public:
- AtomKokkos(class LAMMPS *lmp) : Atom(lmp) {}
+  AtomKokkos(class LAMMPS *lmp) : Atom(lmp) {}
   ~AtomKokkos() {}
 };
 
 class CommKokkos : public Comm {
  public:
- CommKokkos(class LAMMPS *lmp) : Comm(lmp) {}
+  CommKokkos(class LAMMPS *lmp) : Comm(lmp) {}
   ~CommKokkos() {}
+};
+
+class DomainKokkos : public Domain {
+ public:
+  DomainKokkos(class LAMMPS *lmp) : Domain(lmp) {}
+  ~DomainKokkos() {}
 };
 
 class NeighborKokkos : public Neighbor {
  public:
- NeighborKokkos(class LAMMPS *lmp) : Neighbor(lmp) {}
+  NeighborKokkos(class LAMMPS *lmp) : Neighbor(lmp) {}
   ~NeighborKokkos() {}
 };
 
 class ModifyKokkos : public Modify {
  public:
- ModifyKokkos(class LAMMPS *lmp) : Modify(lmp) {}
+  ModifyKokkos(class LAMMPS *lmp) : Modify(lmp) {}
   ~ModifyKokkos() {}
 };
 

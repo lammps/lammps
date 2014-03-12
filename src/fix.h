@@ -84,10 +84,10 @@ class Fix : protected Pointers {
 
   int restart_reset;             // 1 if restart just re-initialized fix
 
-  // KOKKOS host/device flag and per-fix data masks
+  // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
-  unsigned int datamask_read, datamask_modify;
+  unsigned int datamask_read,datamask_modify;
 
   // USER-CUDA per-fix data masks
 

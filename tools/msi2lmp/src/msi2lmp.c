@@ -264,9 +264,9 @@ int main (int argc, char *argv[])
       shift[2] = atof(argv[++n]);
     } else if (strncmp(argv[n],"-i",2) == 0 ) {
       iflag = 1;
-    } else if (strncmp(argv[n],"-n",4) == 0 ) {
+    } else if (strncmp(argv[n],"-n",2) == 0 ) {
       centerflag = 0;
-    } else if (strncmp(argv[n],"-o",4) == 0 ) {
+    } else if (strncmp(argv[n],"-o",2) == 0 ) {
       hintflag = 0;
     } else if (strncmp(argv[n],"-p",2) == 0) {
       n++;

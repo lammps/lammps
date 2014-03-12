@@ -231,7 +231,6 @@ void Molecule::compute_inertia()
   // inertia = 3 eigenvalues = principal moments of inertia
   // evectors and exzy = 3 evectors = principal axes of rigid body
 
-  int ierror;
   double cross[3];
   double tensor[3][3],evectors[3][3];
 
@@ -313,7 +312,7 @@ void Molecule::read(int flag)
     // trim anything from '#' onward
     // if line is blank, continue
 
-    if (ptr = strchr(line,'#')) *ptr = '\0';
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
     if (strspn(line," \t\n\r") == strlen(line)) continue;
 
     // search line for header keywords and set corresponding variable
@@ -1325,7 +1324,7 @@ int Molecule::parse(char *line, char **words, int max)
   int nwords = 0;
   words[nwords++] = strtok(line," \t\n\r\f");
 
-  while (ptr = strtok(NULL," \t\n\r\f")) {
+  while ((ptr = strtok(NULL," \t\n\r\f"))) {
     if (nwords < max) words[nwords] = ptr;
     nwords++;
   }

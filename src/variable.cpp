@@ -680,8 +680,8 @@ void Variable::compute_atom(int ivar, int igroup,
   double *vstore;
   
   if (style[ivar] == ATOM) {
-    double tmp = evaluate(data[ivar][0],&tree);
-    tmp = collapse_tree(tree);
+    evaluate(data[ivar][0],&tree);
+    collapse_tree(tree);
   } else vstore = reader[ivar]->fix->vstore;
 
   int groupbit = group->bitmask[igroup];
@@ -2543,27 +2543,27 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
   // evaluate args
 
   Tree *newtree;
-  double tmp,value1,value2,value3;
+  double value1,value2,value3;
 
   if (tree) {
     newtree = new Tree();
     Tree *argtree;
     if (narg == 1) {
-      tmp = evaluate(arg1,&argtree);
+      evaluate(arg1,&argtree);
       newtree->left = argtree;
       newtree->middle = newtree->right = NULL;
     } else if (narg == 2) {
-      tmp = evaluate(arg1,&argtree);
+      evaluate(arg1,&argtree);
       newtree->left = argtree;
       newtree->middle = NULL;
-      tmp = evaluate(arg2,&argtree);
+      evaluate(arg2,&argtree);
       newtree->right = argtree;
     } else if (narg == 3) {
-      tmp = evaluate(arg1,&argtree);
+      evaluate(arg1,&argtree);
       newtree->left = argtree;
-      tmp = evaluate(arg2,&argtree);
+      evaluate(arg2,&argtree);
       newtree->middle = argtree;
-      tmp = evaluate(arg3,&argtree);
+      evaluate(arg3,&argtree);
       newtree->right = argtree;
     }
     treestack[ntreestack++] = newtree;
@@ -3953,7 +3953,7 @@ unsigned int Variable::data_mask(char *str)
 {
   unsigned int datamask = EMPTY_MASK;
 
-  for (unsigned int i=0; i < strlen(str)-2; i++) {
+  for (unsigned int i = 0; i < strlen(str)-2; i++) {
     int istart = i;
     while (isalnum(str[i]) || str[i] == '_') i++;
     int istop = i-1;
@@ -3986,21 +3986,21 @@ unsigned int Variable::data_mask(char *str)
     }
 
     if ((strncmp(word,"f_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
-        if (domain->box_exist == 0)
-          error->all(FLERR,
-                     "Variable evaluation before simulation box is defined");
-
-        n = strlen(word) - 2 + 1;
-        char *id = new char[n];
-        strcpy(id,&word[2]);
-
-        int ifix = modify->find_fix(id);
-        if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
-
-        datamask &= modify->fix[ifix]->data_mask();
-        delete [] id;
+      if (domain->box_exist == 0)
+        error->all(FLERR,
+                   "Variable evaluation before simulation box is defined");
+      
+      n = strlen(word) - 2 + 1;
+      char *id = new char[n];
+      strcpy(id,&word[2]);
+      
+      int ifix = modify->find_fix(id);
+      if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
+      
+      datamask &= modify->fix[ifix]->data_mask();
+      delete [] id;
     }
-
+    
     if ((strncmp(word,"v_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
       int ivar = find(word);
       datamask &= data_mask(ivar);
@@ -4100,7 +4100,7 @@ int VarReader::read_scalar(char *str)
       else n = strlen(str);
       if (n == 0) break;                                 // end of file
       str[n-1] = '\0';                                   // strip newline
-      if (ptr = strchr(str,'#')) *ptr = '\0';            // strip comment
+      if ((ptr = strchr(str,'#'))) *ptr = '\0';          // strip comment
       if (strtok(str," \t\n\r\f") == NULL) continue;     // skip if blank
       n = strlen(str) + 1;
       break;
@@ -4143,7 +4143,7 @@ int VarReader::read_peratom()
       else n = strlen(str);
       if (n == 0) break;                                 // end of file
       str[n-1] = '\0';                                   // strip newline
-      if (ptr = strchr(str,'#')) *ptr = '\0';            // strip comment
+      if ((ptr = strchr(str,'#'))) *ptr = '\0';          // strip comment
       if (strtok(str," \t\n\r\f") == NULL) continue;     // skip if blank
       n = strlen(str) + 1;
       break;

@@ -94,7 +94,7 @@ void ComputeClusterAtom::init_list(int id, NeighList *ptr)
 
 void ComputeClusterAtom::compute_peratom()
 {
-  int i,j,ii,jj,inum,jnum,n;
+  int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -156,7 +156,6 @@ void ComputeClusterAtom::compute_peratom()
         jlist = firstneigh[i];
         jnum = numneigh[i];
 
-        n = 0;
         for (jj = 0; jj < jnum; jj++) {
           j = jlist[jj];
           j &= NEIGHMASK;

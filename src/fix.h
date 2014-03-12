@@ -87,8 +87,7 @@ class Fix : protected Pointers {
   // KOKKOS host/device flag and per-fix data masks
 
   ExecutionSpace execution_space;
-  unsigned int datamask_read, datamask_read_ext;
-  unsigned int datamask_modify, datamask_modify_ext;
+  unsigned int datamask_read, datamask_modify;
 
   // USER-CUDA per-fix data masks
 

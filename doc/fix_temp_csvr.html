@@ -1,0 +1,161 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix temp/csvr command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID temp/csvr Tstart Tstop Tdamp seed 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>temp/csvr = style name of this fix command 
+
+<LI>Tstart,Tstop = desired temperature at start/end of run 
+
+<PRE>  Tstart can be a variable (see below) 
+</PRE>
+<LI>Tdamp = temperature damping parameter (time units) 
+
+<LI>seed = random number seed to use for white noise (positive integer) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all temp/csvr 300.0 300.0 100.0 54324 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Adjust the temperature with a CSVR thermostat <A HREF = "#Bussi">(Bussi)</A>, which
+updates the velocities to a linear combination of the current
+velocities with a gaussian distribution at the desired temperature in
+every timestep.
+</P>
+<P>The thermostat is applied to only the translational degrees of freedom
+for the particles, which is an important consideration for finite-size
+particles which have rotational degrees of freedom are being
+thermostatted with this fix.  The translational degrees of freedom can
+also have a bias velocity removed from them before thermostatting
+takes place; see the description below.
+</P>
+<P>The desired temperature at each timestep is a ramped value during the
+run from <I>Tstart</I> to <I>Tstop</I>.  The <I>Tdamp</I> parameter is specified in
+time units and determines how rapidly the temperature is relaxed.  For
+example, a value of 100.0 means to relax the temperature in a timespan
+of (roughly) 100 time units (tau or fmsec or psec - see the
+<A HREF = "units.html">units</A> command).
+</P>
+<P><I>Tstart</I> can be specified as an equal-style <A HREF = "variable.html">variable</A>.
+In this case, the <I>Tstop</I> setting is ignored.  If the value is a
+variable, it should be specified as v_name, where name is the variable
+name.  In this case, the variable will be evaluated each timestep, and
+its value used to determine the target temperature.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.
+</P>
+<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nh.html">fix nvt</A> command which
+performs Nose/Hoover thermostatting AND time integration, this fix
+does NOT perform time integration.  It only modifies velocities to
+effect thermostatting.  Thus you must use a separate time integration
+fix, like <A HREF = "fix_nve.html">fix nve</A> to actually update the positions of
+atoms using the modified velocities.  Likewise, this fix should not
+normally be used on atoms that also have their temperature controlled
+by another fix - e.g. by <A HREF = "fix_nh.html">fix nvt</A> or <A HREF = "fix_langevin.html">fix
+langevin</A> commands.
+</P>
+<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
+a discussion of different ways to compute temperature and perform
+thermostatting.
+</P>
+<P>This fix computes a temperature each timestep.  To do this, the fix
+creates its own compute of style "temp", as if this command had been
+issued:
+</P>
+<PRE>compute fix-ID_temp group-ID temp 
+</PRE>
+<P>See the <A HREF = "compute_temp.html">compute temp</A> command for details.  Note
+that the ID of the new compute is the fix-ID + underscore + "temp",
+and the group for the new compute is the same as the fix group.
+</P>
+<P>Note that this is NOT the compute used by thermodynamic output (see
+the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>.
+This means you can change the attributes of this fix's temperature
+(e.g. its degrees-of-freedom) via the
+<A HREF = "compute_modify.html">compute_modify</A> command or print this temperature
+during thermodynamic output via the <A HREF = "thermo_style.html">thermo_style
+custom</A> command using the appropriate compute-ID.
+It also means that changing attributes of <I>thermo_temp</I> will have no
+effect on this fix.
+</P>
+<P>Like other fixes that perform thermostatting, this fix can be used
+with <A HREF = "compute.html">compute commands</A> that calculate a temperature
+after removing a "bias" from the atom velocities.  E.g. removing the
+center-of-mass velocity from a group of atoms or only calculating
+temperature on the x-component of velocity or only calculating
+temperature for atoms in a geometric region.  This is not done by
+default, but only if the <A HREF = "fix_modify.html">fix_modify</A> command is used
+to assign a temperature compute to this fix that includes such a bias
+term.  See the doc pages for individual <A HREF = "compute.html">compute
+commands</A> to determine which ones include a bias.  In
+this case, the thermostat works in the following manner: the current
+temperature is calculated taking the bias into account, bias is
+removed from each atom, thermostatting is performed on the remaining
+thermal degrees of freedom, and the bias is added back in.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+fix.  You can use it to assign a temperature <A HREF = "compute.html">compute</A>
+you have defined to this fix which will be used in its thermostatting
+procedure, as described above.  For consistency, the group used by
+this fix and by the compute should be the same.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy change implied by a velocity rescaling to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.
+</P>
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+cummulative energy change due to this fix.  The scalar value
+calculated by this fix is "extensive".
+</P>
+<P>This fix can ramp its target temperature over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A>, <A HREF = "fix_langevin.html">fix langevin</A>,
+<A HREF = "fix_modify.html">fix_modify</A>, <A HREF = "compute_temp.html">compute temp</A>,
+<A HREF = "fix_temp_berendsen.html">fix temp/berendsen</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Bussi"></A>
+
+<P><B>(Bussi)</B> Bussi and Parrinello, Phys. Rev. E (2007)
+</P>
+</HTML>

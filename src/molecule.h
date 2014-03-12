@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #ifndef LMP_ONE_MOLECULE_H
-#define LMP_ONE_MOLEUCULE_H
+#define LMP_ONE_MOLECULE_H
 
 #include "pointers.h"
 

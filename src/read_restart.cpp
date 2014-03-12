@@ -549,7 +549,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
 
   char *pattern = new char[strlen(filename) + 16];
 
-  if (ptr = strchr(filename,'%')) {
+  if ((ptr = strchr(filename,'%'))) {
     *ptr = '\0';
     sprintf(pattern,"%s%s%s",filename,"base",ptr+1);
     *ptr = '%';
@@ -574,7 +574,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
   DIR *dp = opendir(dirname);
   if (dp == NULL)
     error->one(FLERR,"Cannot open dir to search for restart file");
-  while (ep = readdir(dp)) {
+  while ((ep = readdir(dp))) {
     if (strstr(ep->d_name,begin) != ep->d_name) continue;
     if ((ptr = strstr(&ep->d_name[nbegin],end)) == NULL) continue;
     if (strlen(end) == 0) ptr = ep->d_name + strlen(ep->d_name);
@@ -611,9 +611,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
 
 void ReadRestart::header(int incompatible)
 {
-  int px,py,pz;
   int xperiodic,yperiodic,zperiodic;
-  int boundary[3][2];
 
   // read flags and fields until flag = -1
 
@@ -859,7 +857,6 @@ void ReadRestart::type_arrays()
 
 void ReadRestart::force_fields()
 {
-  int n;
   char *style;
 
   int flag = read_int();

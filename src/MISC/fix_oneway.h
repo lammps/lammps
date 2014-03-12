@@ -10,6 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 #ifdef FIX_CLASS
 
 FixStyle(oneway,FixOneWay)
@@ -32,7 +33,6 @@ class FixOneWay : public Fix {
   virtual void end_of_step();
 
  protected:
-  int nevery;
   int direction;
   int regionidx;
   char *regionstr;

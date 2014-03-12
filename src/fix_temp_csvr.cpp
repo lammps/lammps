@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (ICTP, Italy)
+------------------------------------------------------------------------- */
+
 #include "string.h"
 #include "stdlib.h"
 #include "math.h"

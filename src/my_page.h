@@ -213,9 +213,9 @@ class MyPage {
       return;
     }
 
-    void *ptr;
     for (int i = npage-pagedelta; i < npage; i++) {
 #if defined(LAMMPS_MEMALIGN)
+      void *ptr;
       if (posix_memalign(&ptr, LAMMPS_MEMALIGN, pagesize*sizeof(T)))
         errorflag = 2;
       pages[i] = (T *) ptr;

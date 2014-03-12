@@ -347,8 +347,8 @@ void FixPressBerendsen::end_of_step()
   // compute new T,P
 
   if (pstyle == ISO) {
-    double tmp = temperature->compute_scalar();
-    tmp = pressure->compute_scalar();
+    temperature->compute_scalar();
+    pressure->compute_scalar();
   } else {
     temperature->compute_vector();
     pressure->compute_vector();

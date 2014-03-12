@@ -1613,16 +1613,17 @@ velocity of spherical or aspherical particles to be adjusted in
 prescribed ways.
 </P>
 <P>Thermostatting in LAMMPS is performed by <A HREF = "fix.html">fixes</A>, or in one
-case by a pair style.  Four thermostatting fixes are currently
-available: Nose-Hoover (nvt), Berendsen, Langevin, and direct
-rescaling (temp/rescale).  Dissipative particle dynamics (DPD)
-thermostatting can be invoked via the <I>dpd/tstat</I> pair style:
+case by a pair style.  Several thermostatting fixes are available:
+Nose-Hoover (nvt), Berendsen, CSVR, Langevin, and direct rescaling
+(temp/rescale).  Dissipative particle dynamics (DPD) thermostatting
+can be invoked via the <I>dpd/tstat</I> pair style:
 </P>
 <UL><LI><A HREF = "fix_nh.html">fix nvt</A>
 <LI><A HREF = "fix_nvt_sphere.html">fix nvt/sphere</A>
 <LI><A HREF = "fix_nvt_asphere.html">fix nvt/asphere</A>
 <LI><A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A>
 <LI><A HREF = "fix_temp_berendsen.html">fix temp/berendsen</A>
+<LI><A HREF = "fix_temp_csvr.html">fix temp/csvr</A>
 <LI><A HREF = "fix_langevin.html">fix langevin</A>
 <LI><A HREF = "fix_temp_rescale.html">fix temp/rescale</A>
 <LI><A HREF = "pair_dpd.html">pair_style dpd/tstat</A> 

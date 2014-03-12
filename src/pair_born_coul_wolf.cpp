@@ -84,7 +84,6 @@ void PairBornCoulWolf::compute(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -285,7 +284,7 @@ void PairBornCoulWolf::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style born/coul/wolf requires atom attribute q");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 
   cut_coulsq = cut_coul * cut_coul;
 }

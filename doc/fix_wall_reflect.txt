@@ -150,7 +150,7 @@ error.
 
 [Related commands:]
 
-"fix wall/lj93"_fix_wall.html command
+"fix wall/lj93"_fix_wall.html, "fix oneway"_fix_oneway.html
 
 [Default:] none
 

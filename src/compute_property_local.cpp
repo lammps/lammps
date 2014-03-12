@@ -342,8 +342,6 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
   // invoke half neighbor list (will copy or build if necessary)

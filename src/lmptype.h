@@ -48,7 +48,7 @@
 
 namespace LAMMPS_NS {
 
-// enum used for KOKKOS host/device flag
+// enum used for KOKKOS host/device flags
 
 enum ExecutionSpace{Host,Device};
 

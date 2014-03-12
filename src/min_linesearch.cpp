@@ -586,7 +586,7 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
 {
   int i,m,n;
   double fdothall,fdothme,hme,hmax,hmaxall;
-  double de_ideal,de;
+  double de;
   double *xatom,*x0atom,*fatom,*hatom;
 
   double alpha_max, alpha_init, alpha_del;
@@ -884,7 +884,7 @@ double MinLineSearch::alpha_step(double alpha, int resetflag)
 double MinLineSearch::compute_dir_deriv(double &ff)
 {
    int i,m,n;
-   double *xatom,*hatom, *fatom;
+   double *hatom, *fatom;
    double dot[2],dotall[2];
    double fh;
 

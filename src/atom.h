@@ -187,7 +187,7 @@ class Atom : protected Pointers {
   void data_bonus(int, char *, class AtomVec *);
   void data_bodies(int, char *, class AtomVecBody *);
 
-  void allocate_type_arrays();
+  virtual void allocate_type_arrays();
   void set_mass(const char *);
   void set_mass(int, double);
   void set_mass(int, char **);
@@ -202,7 +202,7 @@ class Atom : protected Pointers {
   void add_molecule_atom(class Molecule *, int, int, tagint);
 
   void first_reorder();
-  void sort();
+  virtual void sort();
 
   void add_callback(int);
   void delete_callback(const char *, int);

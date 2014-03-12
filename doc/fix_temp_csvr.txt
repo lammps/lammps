@@ -25,9 +25,10 @@ fix 1 all temp/csvr 300.0 300.0 100.0 54324 :pre
 
 [Description:]
 
-Adjust the temperature with a CSVR thermostat "(Bussi)"_#Bussi, which updates
-the velocities to a linear combination of the current velocities with a gaussian
-distribution at the desired temperature in every timestep.
+Adjust the temperature with a CSVR thermostat "(Bussi)"_#Bussi, which
+updates the velocities to a linear combination of the current
+velocities with a gaussian distribution at the desired temperature in
+every timestep.
 
 The thermostat is applied to only the translational degrees of freedom
 for the particles, which is an important consideration for finite-size

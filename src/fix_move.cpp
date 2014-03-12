@@ -761,6 +761,7 @@ void FixMove::final_integrate()
           v[i][0] += dtfm * f[i][0];
         }
       }
+
       if (yflag) {
         if (rmass) {
           dtfm = dtf / rmass[i];
@@ -770,6 +771,7 @@ void FixMove::final_integrate()
           v[i][1] += dtfm * f[i][1];
         }
       }
+
       if (zflag) {
         if (rmass) {
           dtfm = dtf / rmass[i];

@@ -10,29 +10,31 @@ fix oneway command :h3
 
 [Syntax:]
 
-fix ID group-ID oneway region-ID direction Nevery :pre
+fix ID group-ID N oneway region-ID direction :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 oneway = style name of this fix command :l
-region-ID = ID of region where the fix is active :l
-direction = {x} or {-x} or {y} or {-y} or {z} or {-z} :l
-  coordinate component and direction of the oneway action
-Nevery = apply this fix every this many timesteps :l
+N = apply this fix every this many timesteps :l
+region-ID = ID of region where fix is active :l
+direction = {x} or {-x} or {y} or {-y} or {z} or {-z} = coordinate and direction of the oneway constraint :l
 :ule
 
 [Examples:]
-fix ions oneway semi -x 10
-fix all oneway left -z 1
-fix all oneway right z 1
+
+fix ions 10 oneway semi -x
+fix all 1 oneway left -z
+fix all 1 oneway right z :pre
 
 [Description:]
 
-Enforce that particles can move only in one direction for either the
-x-, y-, or z-direction for a given region. This is achieved through
-reversing the particles' velocity component for that direction, if it
-has the wrong sign. Thus particles are forced to move in one direction
-only. This can be used as a simple model of, e.g. semi-permeable
-membranes.
+Enforce that particles in the group and in a given region can only
+move in one direction.  This is done by reversing a particle's
+velocity component, if it has the wrong sign in the specified
+dimension.  The effect is that the particle moves in one direction
+only.
+
+This can be used, for example, as a simple model of a semi-permeable
+membrane, or as an implementation of Maxwell's demon.
 
 :line
 
@@ -46,9 +48,7 @@ commands"_Section_howto.html#howto_15.  No parameter of this fix can
 be used with the {start/stop} keywords of the "run"_run.html command.
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:]
-
-none.
+[Restrictions:] none
 
 [Related commands:]
 

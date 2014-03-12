@@ -233,12 +233,10 @@ void Pair::init()
 
 void Pair::reinit()
 {
-  int i,j;
-
   etail = ptail = 0.0;
 
-  for (i = 1; i <= atom->ntypes; i++)
-    for (j = i; j <= atom->ntypes; j++) {
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++) {
       init_one(i,j);
       if (tail_flag) {
         etail += etail_ij;

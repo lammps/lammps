@@ -103,8 +103,11 @@ void DumpXYZMPIIO::openfile()
 
   if (append_flag) { // append open
     int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND | MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
-    if (err != MPI_SUCCESS)
-      error->one(FLERR,"Cannot open dump file");
+    if (err != MPI_SUCCESS) {
+      char str[128];
+      sprintf(str,"Cannot open dump file %s",filecurrent);
+      error->one(FLERR,str);
+    }
     int myrank;
     MPI_Comm_rank(world,&myrank);
     if (myrank == 0)
@@ -116,12 +119,16 @@ void DumpXYZMPIIO::openfile()
   else { // replace open
 
     int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND | MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
-    if (err != MPI_SUCCESS)
-      error->one(FLERR,"Cannot open dump file");
+    if (err != MPI_SUCCESS) {
+      char str[128];
+      sprintf(str,"Cannot open dump file %s",filecurrent);
+      error->one(FLERR,str);
+    }
     mpifo = 0;
 
     MPI_File_set_size(mpifh,(MPI_Offset) (headerSize+sumFileSize));
     currentFileSize = (headerSize+sumFileSize);
+
   }
 }
 
@@ -308,7 +315,7 @@ void DumpXYZMPIIO::write_string(int n, double *mybuf)
 
 int DumpXYZMPIIO::convert_string_omp(int n, double *mybuf)
 {
-  double *localbuf = mybuf;
+  MPI_Status mpiStatus;
   char **mpifh_buffer_line_per_thread;
   int mpifhStringCount;
   int *mpifhStringCountPerThread, *bufOffset, *bufRange, *bufLength;
@@ -343,7 +350,7 @@ int DumpXYZMPIIO::convert_string_omp(int n, double *mybuf)
     mpifh_buffer_line_per_thread[i] = (char *) malloc(DUMP_BUF_CHUNK_SIZE * sizeof(char));
     mpifh_buffer_line_per_thread[i][0] = '\0';
 
-#pragma omp parallel default(none) shared(localbuf,bufLength,bufOffset,bufRange,mpifhStringCountPerThread,mpifh_buffer_line_per_thread)
+#pragma omp parallel default(none) shared(bufOffset, bufRange, bufLength, mpifhStringCountPerThread, mpifh_buffer_line_per_thread, mybuf)
     {
       int tid = omp_get_thread_num();
       int m=0;
@@ -355,7 +362,7 @@ int DumpXYZMPIIO::convert_string_omp(int n, double *mybuf)
           bufLength[tid] = (mpifhStringCountPerThread[tid]+DUMP_BUF_CHUNK_SIZE) * sizeof(char);
         }
 
-        mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),format,typenames[static_cast<int> (localbuf[bufOffset[tid]+m+1])],localbuf[bufOffset[tid]+m+2],localbuf[bufOffset[tid]+m+3],localbuf[bufOffset[tid]+m+4]);
+        mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),format,typenames[static_cast<int> (mybuf[bufOffset[tid]+m+1])],mybuf[bufOffset[tid]+m+2],mybuf[bufOffset[tid]+m+3],mybuf[bufOffset[tid]+m+4]);
           m += size_one;
 
       }

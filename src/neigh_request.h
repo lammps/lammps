@@ -80,6 +80,11 @@ class NeighRequest : protected Pointers {
 
   int omp;
 
+  // 1 if using Kokkos neighbor build
+
+  int kokkos_host;
+  int kokkos_device;
+
   // set by neighbor and pair_hybrid after all requests are made
   // these settings do not change kind value
 

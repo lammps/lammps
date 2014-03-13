@@ -62,8 +62,8 @@ class Atom : protected Pointers {
   double *eradius,*ervel,*erforce,*ervelforce;
   double *cs,*csforce,*vforce;
   int *etag;
-  double *rho, *drho;
-  double *e, *de;
+  double *rho,*drho;
+  double *e,*de;
   double **vest;
   double *cv;
 

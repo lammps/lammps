@@ -32,6 +32,8 @@
 // needed for compiling when USER-CUDA is not installed
 
 #include "comm.h"
+#include "domain.h"
+#include "neighbor.h"
 #include "modify.h"
 #include "verlet.h"
 

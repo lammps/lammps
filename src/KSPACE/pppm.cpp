@@ -800,17 +800,17 @@ void PPPM::allocate()
   fft1 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                   0,0,&tmp);
+                   0,0,&tmp,collective_flag);
 
   fft2 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   0,0,&tmp);
+                   0,0,&tmp,collective_flag);
 
   remap = new Remap(lmp,world,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                    1,0,0,FFT_PRECISION);
+                    1,0,0,FFT_PRECISION,collective_flag);
 
   // create ghost grid object for rho and electric field communication
 
@@ -1268,8 +1268,8 @@ void PPPM::adjust_gewald()
 }
 
 /* ----------------------------------------------------------------------
- Calculate f(x) using Newton-Raphson solver
- ------------------------------------------------------------------------- */
+   calculate f(x) using Newton-Raphson solver
+------------------------------------------------------------------------- */
 
 double PPPM::newton_raphson_f()
 {
@@ -1287,9 +1287,9 @@ double PPPM::newton_raphson_f()
 }
 
 /* ----------------------------------------------------------------------
- Calculate numerical derivative f'(x) using forward difference
- [f(x + h) - f(x)] / h
- ------------------------------------------------------------------------- */
+   calculate numerical derivative f'(x) using forward difference
+   [f(x + h) - f(x)] / h
+------------------------------------------------------------------------- */
 
 double PPPM::derivf()
 {
@@ -1307,7 +1307,7 @@ double PPPM::derivf()
 }
 
 /* ----------------------------------------------------------------------
-   Calculate the final estimate of the accuracy
+   calculate the final estimate of the accuracy
 ------------------------------------------------------------------------- */
 
 double PPPM::final_accuracy()
@@ -1315,7 +1315,6 @@ double PPPM::final_accuracy()
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  double zprd_slab = zprd*slab_volfactor;
   bigint natoms = atom->natoms;
 
   double df_kspace = compute_df_kspace();
@@ -1323,7 +1322,7 @@ double PPPM::final_accuracy()
   double df_rspace = 2.0 * q2_over_sqrt * exp(-g_ewald*g_ewald*cutoff*cutoff);
   double df_table = estimate_table_accuracy(q2_over_sqrt,df_rspace);
   double estimated_accuracy = sqrt(df_kspace*df_kspace + df_rspace*df_rspace +
-   df_table*df_table);
+                                   df_table*df_table);
 
   return estimated_accuracy;
 }
@@ -3385,7 +3384,7 @@ void PPPM::poisson_groups(int AA_flag)
 
 void PPPM::poisson_groups_triclinic()
 {
-  int i,j,k,n;
+  int i,n;
 
   // reuse memory (already declared)
 

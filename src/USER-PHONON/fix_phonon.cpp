@@ -158,7 +158,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   for (int i = 1; i < nprocs; ++i) fft_disp[i] = fft_disp[i-1]+fft_cnts[i-1];
   delete []nx_loc;
 
-  fft = new FFT3d(lmp,world,nz,ny,nx,0,nz-1,0,ny-1,nxlo,nxhi,0,nz-1,0,ny-1,nxlo,nxhi,0,0,&mysize);
+  fft = new FFT3d(lmp,world,nz,ny,nx,0,nz-1,0,ny-1,nxlo,nxhi,0,nz-1,0,ny-1,nxlo,nxhi,0,0,&mysize,0);
   memory->create(fft_data, MAX(1,mynq)*2, "fix_phonon:fft_data");
 
   // allocate variables; MAX(1,... is used because NULL buffer will result in error for MPI
@@ -225,7 +225,6 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   temperature = modify->compute[icompute];
   inv_nTemp = 1.0/group->count(temperature->igroup);
 
-return;
 } // end of constructor
 
 /* ---------------------------------------------------------------------- */
@@ -294,8 +293,6 @@ void FixPhonon::init()
   int count = 0;
   for (int i = 0; i < modify->nfix; ++i) if (strcmp(modify->fix[i]->style,"gfc") == 0) ++count;
   if (count > 1 && me == 0) error->warning(FLERR,"More than one fix phonon defined"); // just warn, but allowed.
-
-return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -318,8 +315,6 @@ void FixPhonon::setup(int flag)
 
   prev_nstep = update->ntimestep;
   neval  = ifreq = 0;
-
-return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -422,7 +417,6 @@ void FixPhonon::end_of_step()
   // compute and output Phi_q after every nfreq evaluations
   if (++ifreq == nfreq) postprocess();
 
-return;
 }   // end of end_of_step()
 
 /* ---------------------------------------------------------------------- */
@@ -459,8 +453,7 @@ int FixPhonon::modify_param(int narg, char **arg)
 
     return 2;
   }
-
-return 0;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -522,8 +515,6 @@ void FixPhonon::getmass()
   delete []mass_all;
   delete []type_one;
   delete []type_all;
-
-return;
 }
 
 
@@ -629,8 +620,6 @@ void FixPhonon::readmap()
         error->one(FLERR,"The mapping info read is incorrect!");
     }
   }
-
-return;
 }
 
 /* ----------------------------------------------------------------------
@@ -780,7 +769,6 @@ void FixPhonon::postprocess( )
     fflush(flog);
   }
 
-return;
 }   // end of postprocess
 
 /* ----------------------------------------------------------------------
@@ -864,8 +852,6 @@ void FixPhonon::GaussJordan(int n, std::complex<double> *Mat)
   delete []indxr;
   delete []indxc;
   delete []ipiv;
-
-return;
 }
 
 /* ----------------------------------------------------------------------
@@ -926,7 +912,5 @@ void FixPhonon::EnforceASR()
       }
     }
   }
-
-return;
 }
 /* --------------------------------------------------------------------*/

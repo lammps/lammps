@@ -319,7 +319,7 @@ extern "C" {
   struct fft_plan_3d *fft_3d_create_plan(MPI_Comm, int, int, int,
                                          int, int, int, int, int, 
                                          int, int, int, int, int, int, int,
-                                         int, int, int *);
+                                         int, int, int *, int);
   void fft_3d_destroy_plan(struct fft_plan_3d *);
   void factor(int, int *, int *);
   void bifactor(int, int *, int *);

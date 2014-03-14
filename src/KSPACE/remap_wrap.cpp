@@ -24,12 +24,13 @@ Remap::Remap(LAMMPS *lmp, MPI_Comm comm,
              int in_klo, int in_khi,
              int out_ilo, int out_ihi, int out_jlo, int out_jhi,
              int out_klo, int out_khi,
-             int nqty, int permute, int memory, int precision) : Pointers(lmp)
+             int nqty, int permute, int memory,
+             int precision, int usecollective) : Pointers(lmp)
 {
   plan = remap_3d_create_plan(comm,
                               in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                               out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
-                              nqty,permute,memory,precision);
+                              nqty,permute,memory,precision,usecollective);
   if (plan == NULL) error->one(FLERR,"Could not create 3d remap plan");
 }
 

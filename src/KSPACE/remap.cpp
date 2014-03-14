@@ -61,51 +61,151 @@
 
 void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
               struct remap_plan_3d *plan)
-
 {
-  MPI_Status status;
-  int i,isend,irecv;
-  FFT_SCALAR *scratch;
+  // use point-to-point communication
 
-  if (plan->memory == 0)
-    scratch = buf;
-  else
-    scratch = plan->scratch;
+  if (!plan->usecollective) { 
+    MPI_Status status;
+    int i,isend,irecv;
+    FFT_SCALAR *scratch;
 
-  // post all recvs into scratch space
+    if (plan->memory == 0)
+      scratch = buf;
+    else
+      scratch = plan->scratch;
 
-  for (irecv = 0; irecv < plan->nrecv; irecv++)
-    MPI_Irecv(&scratch[plan->recv_bufloc[irecv]],plan->recv_size[irecv],
-              MPI_FFT_SCALAR,plan->recv_proc[irecv],0,
-              plan->comm,&plan->request[irecv]);
+    // post all recvs into scratch space
 
-  // send all messages to other procs
+    for (irecv = 0; irecv < plan->nrecv; irecv++)
+      MPI_Irecv(&scratch[plan->recv_bufloc[irecv]],plan->recv_size[irecv],
+                MPI_FFT_SCALAR,plan->recv_proc[irecv],0,
+                plan->comm,&plan->request[irecv]);
 
-  for (isend = 0; isend < plan->nsend; isend++) {
-    plan->pack(&in[plan->send_offset[isend]],
-               plan->sendbuf,&plan->packplan[isend]);
-    MPI_Send(plan->sendbuf,plan->send_size[isend],MPI_FFT_SCALAR,
-             plan->send_proc[isend],0,plan->comm);
-  }
+    // send all messages to other procs
 
-  // copy in -> scratch -> out for self data
+    for (isend = 0; isend < plan->nsend; isend++) {
+      plan->pack(&in[plan->send_offset[isend]],
+                 plan->sendbuf,&plan->packplan[isend]);
+      MPI_Send(plan->sendbuf,plan->send_size[isend],MPI_FFT_SCALAR,
+               plan->send_proc[isend],0,plan->comm);
+    }
 
-  if (plan->self) {
-    isend = plan->nsend;
-    irecv = plan->nrecv;
-    plan->pack(&in[plan->send_offset[isend]],
-               &scratch[plan->recv_bufloc[irecv]],
-               &plan->packplan[isend]);
-    plan->unpack(&scratch[plan->recv_bufloc[irecv]],
-                 &out[plan->recv_offset[irecv]],&plan->unpackplan[irecv]);
-  }
+    // copy in -> scratch -> out for self data
 
-  // unpack all messages from scratch -> out
+    if (plan->self) {
+      isend = plan->nsend;
+      irecv = plan->nrecv;
+      plan->pack(&in[plan->send_offset[isend]],
+                 &scratch[plan->recv_bufloc[irecv]],
+                 &plan->packplan[isend]);
+      plan->unpack(&scratch[plan->recv_bufloc[irecv]],
+                   &out[plan->recv_offset[irecv]],&plan->unpackplan[irecv]);
+    }
 
-  for (i = 0; i < plan->nrecv; i++) {
-    MPI_Waitany(plan->nrecv,plan->request,&irecv,&status);
-    plan->unpack(&scratch[plan->recv_bufloc[irecv]],
-                 &out[plan->recv_offset[irecv]],&plan->unpackplan[irecv]);
+    // unpack all messages from scratch -> out
+
+    for (i = 0; i < plan->nrecv; i++) {
+      MPI_Waitany(plan->nrecv,plan->request,&irecv,&status);
+      plan->unpack(&scratch[plan->recv_bufloc[irecv]],
+                   &out[plan->recv_offset[irecv]],&plan->unpackplan[irecv]);
+    }
+
+  // use All2Allv collective for remap communication
+
+  } else { 
+    if (plan->commringlen > 0) {
+      MPI_Status status;
+      int i,isend,irecv;
+      FFT_SCALAR *scratch;
+
+      if (plan->memory == 0) scratch = buf;
+      else scratch = plan->scratch;
+
+      // create send and recv buffers for alltoallv collective
+
+      int sendBufferSize = 0;
+      int recvBufferSize = 0;
+      for (int i=0;i<plan->nsend;i++)
+        sendBufferSize += plan->send_size[i];
+      for (int i=0;i<plan->nrecv;i++)
+        recvBufferSize += plan->recv_size[i];
+
+      FFT_SCALAR *packedSendBuffer 
+        = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * sendBufferSize);
+      FFT_SCALAR *packedRecvBuffer 
+        = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * recvBufferSize);
+
+      int *sendcnts = (int *) malloc(sizeof(int) * plan->commringlen);
+      int *rcvcnts = (int *) malloc(sizeof(int) * plan->commringlen);
+      int *sdispls = (int *) malloc(sizeof(int) * plan->commringlen);
+      int *rdispls = (int *) malloc(sizeof(int) * plan->commringlen);
+      int *nrecvmap = (int *) malloc(sizeof(int) * plan->commringlen);
+
+      // create and populate send data, count and displacement buffers
+
+      int currentSendBufferOffset = 0;
+      for (isend = 0; isend < plan->commringlen; isend++) {
+        sendcnts[isend] = 0;
+        sdispls[isend] = 0;
+        int foundentry = 0;
+        for (int i=0;(i<plan->nsend && !foundentry); i++) {
+          if (plan->send_proc[i] == plan->commringlist[isend]) {
+            foundentry = 1;
+            sendcnts[isend] = plan->send_size[i];
+            sdispls[isend] = currentSendBufferOffset;
+            plan->pack(&in[plan->send_offset[i]],
+                       &packedSendBuffer[currentSendBufferOffset],
+                       &plan->packplan[i]);
+            currentSendBufferOffset += plan->send_size[i];
+          }
+        }
+      }
+
+      // create and populate recv count and displacement buffers
+
+      int currentRecvBufferOffset = 0;
+      for (irecv = 0; irecv < plan->commringlen; irecv++) {
+        rcvcnts[irecv] = 0;
+        rdispls[irecv] = 0;
+        nrecvmap[irecv] = -1;
+        int foundentry = 0;
+        for (int i=0;(i<plan->nrecv && !foundentry); i++) {
+          if (plan->recv_proc[i] == plan->commringlist[irecv]) {
+            foundentry = 1;
+            rcvcnts[irecv] = plan->recv_size[i];
+            rdispls[irecv] = currentRecvBufferOffset;
+            currentRecvBufferOffset += plan->recv_size[i];
+            nrecvmap[irecv] = i;
+          }
+        }
+      }
+
+      int mpirc = MPI_Alltoallv(packedSendBuffer, sendcnts, sdispls,
+                                MPI_FFT_SCALAR, packedRecvBuffer, rcvcnts,
+                                rdispls, MPI_FFT_SCALAR, plan->comm);
+
+      // unpack the data from the recv buffer into out
+
+      currentRecvBufferOffset = 0;
+      for (irecv = 0; irecv < plan->commringlen; irecv++) {
+        if (nrecvmap[irecv] > -1) {
+          plan->unpack(&packedRecvBuffer[currentRecvBufferOffset],
+                       &out[plan->recv_offset[nrecvmap[irecv]]],
+                       &plan->unpackplan[nrecvmap[irecv]]);
+          currentRecvBufferOffset += plan->recv_size[nrecvmap[irecv]];
+        }
+      }
+
+      // free temporary data structures
+
+      free(sendcnts);
+      free(rcvcnts);
+      free(sdispls);
+      free(rdispls);
+      free(nrecvmap);
+      free(packedSendBuffer);
+      free(packedRecvBuffer);
+    }
   }
 }
 
@@ -131,19 +231,21 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
    precision            precision of data
                           1 = single precision (4 bytes per datum)
                           2 = double precision (8 bytes per datum)
+   usecollective        whether to use collective MPI or point-to-point
 ------------------------------------------------------------------------- */
 
 struct remap_plan_3d *remap_3d_create_plan(
-       MPI_Comm comm,
-       int in_ilo, int in_ihi, int in_jlo, int in_jhi,
-       int in_klo, int in_khi,
-       int out_ilo, int out_ihi, int out_jlo, int out_jhi,
-       int out_klo, int out_khi,
-       int nqty, int permute, int memory, int precision)
+  MPI_Comm comm,
+  int in_ilo, int in_ihi, int in_jlo, int in_jhi,
+  int in_klo, int in_khi,
+  int out_ilo, int out_ihi, int out_jlo, int out_jhi,
+  int out_klo, int out_khi,
+  int nqty, int permute, int memory, int precision, int usecollective)
 
 {
+
   struct remap_plan_3d *plan;
-  struct extent_3d *array;
+  struct extent_3d *inarray, *outarray;
   struct extent_3d in,out,overlap;
   int i,iproc,nsend,nrecv,ibuf,size,me,nprocs;
 
@@ -156,6 +258,7 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   plan = (struct remap_plan_3d *) malloc(sizeof(struct remap_plan_3d));
   if (plan == NULL) return NULL;
+  plan->usecollective = usecollective;
 
   // store parameters in local data structs
 
@@ -185,11 +288,14 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   // combine output extents across all procs
 
-  array = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
-  if (array == NULL) return NULL;
+  inarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
+  if (inarray == NULL) return NULL;
+
+  outarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
+  if (outarray == NULL) return NULL;
 
   MPI_Allgather(&out,sizeof(struct extent_3d),MPI_BYTE,
-                array,sizeof(struct extent_3d),MPI_BYTE,comm);
+                outarray,sizeof(struct extent_3d),MPI_BYTE,comm);
 
   // count send collides, including self
 
@@ -198,7 +304,7 @@ struct remap_plan_3d *remap_3d_create_plan(
   for (i = 0; i < nprocs; i++) {
     iproc++;
     if (iproc == nprocs) iproc = 0;
-    nsend += remap_3d_collide(&in,&array[iproc],&overlap);
+    nsend += remap_3d_collide(&in,&outarray[iproc],&overlap);
   }
 
   // malloc space for send info
@@ -223,11 +329,11 @@ struct remap_plan_3d *remap_3d_create_plan(
   for (i = 0; i < nprocs; i++) {
     iproc++;
     if (iproc == nprocs) iproc = 0;
-    if (remap_3d_collide(&in,&array[iproc],&overlap)) {
+    if (remap_3d_collide(&in,&outarray[iproc],&overlap)) {
       plan->send_proc[nsend] = iproc;
       plan->send_offset[nsend] = nqty *
         ((overlap.klo-in.klo)*in.jsize*in.isize +
-        ((overlap.jlo-in.jlo)*in.isize + overlap.ilo-in.ilo));
+         ((overlap.jlo-in.jlo)*in.isize + overlap.ilo-in.ilo));
       plan->packplan[nsend].nfast = nqty*overlap.isize;
       plan->packplan[nsend].nmid = overlap.jsize;
       plan->packplan[nsend].nslow = overlap.ksize;
@@ -241,15 +347,18 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   // plan->nsend = # of sends not including self
 
-  if (nsend && plan->send_proc[nsend-1] == me)
-    plan->nsend = nsend - 1;
-  else
+  if (nsend && plan->send_proc[nsend-1] == me) {
+    if (plan->usecollective) // for collectives include self in nsend list
+      plan->nsend = nsend;
+    else
+      plan->nsend = nsend - 1;
+  } else
     plan->nsend = nsend;
 
   // combine input extents across all procs
 
   MPI_Allgather(&in,sizeof(struct extent_3d),MPI_BYTE,
-                array,sizeof(struct extent_3d),MPI_BYTE,comm);
+                inarray,sizeof(struct extent_3d),MPI_BYTE,comm);
 
   // count recv collides, including self
 
@@ -258,7 +367,7 @@ struct remap_plan_3d *remap_3d_create_plan(
   for (i = 0; i < nprocs; i++) {
     iproc++;
     if (iproc == nprocs) iproc = 0;
-    nrecv += remap_3d_collide(&out,&array[iproc],&overlap);
+    nrecv += remap_3d_collide(&out,&inarray[iproc],&overlap);
   }
 
   // malloc space for recv info
@@ -305,7 +414,7 @@ struct remap_plan_3d *remap_3d_create_plan(
   for (i = 0; i < nprocs; i++) {
     iproc++;
     if (iproc == nprocs) iproc = 0;
-    if (remap_3d_collide(&out,&array[iproc],&overlap)) {
+    if (remap_3d_collide(&out,&inarray[iproc],&overlap)) {
       plan->recv_proc[nrecv] = iproc;
       plan->recv_bufloc[nrecv] = ibuf;
 
@@ -349,25 +458,128 @@ struct remap_plan_3d *remap_3d_create_plan(
     }
   }
 
-  // plan->nrecv = # of recvs not including self
+  // create sub-comm rank list
 
-  if (nrecv && plan->recv_proc[nrecv-1] == me)
-    plan->nrecv = nrecv - 1;
-  else
-    plan->nrecv = nrecv;
+  if (plan->usecollective) { 
+    plan->commringlist = NULL;
+
+    // merge recv and send rank lists
+    // ask Steve Plimpton about method to more accurately determine 
+    // maximum number of procs contributing to pencil
+
+    int maxcommsize = nprocs;  
+    int *commringlist = (int *) malloc(maxcommsize*sizeof(int));
+    int commringlen = 0;
+
+    for (int i = 0; i < nrecv; i++) {
+      commringlist[i] = plan->recv_proc[i];
+      commringlen++;
+    }
+
+    for (int i = 0; i < nsend; i++) {
+      int foundentry = 0;
+      for (int j=0;j<commringlen;j++)
+        if (commringlist[j] == plan->send_proc[i]) foundentry = 1;
+      if (!foundentry) {
+        commringlist[commringlen] = plan->send_proc[i];
+        commringlen++;
+      }
+    }
+
+    // sort initial commringlist
+
+    int swap = 0;
+    for (int c = 0 ; c < (commringlen - 1); c++) {
+      for (int d = 0 ; d < commringlen - c - 1; d++) {
+        if (commringlist[d] > commringlist[d+1]) {
+          swap = commringlist[d];
+          commringlist[d]   = commringlist[d+1];
+          commringlist[d+1] = swap;
+        }
+      }
+    }
+
+    // collide all inarray extents for the comm ring with all output
+    // extents and all outarray extents for the comm ring with all input
+    // extents - if there is a collison add the rank to the comm ring,
+    // keep iterating until nothing is added to commring
+
+    int commringappend = 1;
+    while (commringappend) {
+      int newcommringlen = commringlen;
+      commringappend = 0;
+      for (int i=0;i<commringlen;i++) {
+        for (int j=0;j<nprocs;j++) {
+          if (remap_3d_collide(&inarray[commringlist[i]],
+                               &outarray[j],&overlap)) {
+            int alreadyinlist = 0;
+            for (int k=0;k<newcommringlen;k++) {
+              if (commringlist[k] == j) {
+                alreadyinlist = 1;
+              }
+            }
+            if (!alreadyinlist) {
+              commringlist[newcommringlen++] = j;
+              commringappend = 1;
+            }
+          }
+          if (remap_3d_collide(&outarray[commringlist[i]],
+                               &inarray[j],&overlap)) {
+            int alreadyinlist = 0;
+            for (int k=0;k<newcommringlen;k++) {
+              if (commringlist[k] == j) alreadyinlist = 1;
+            }
+            if (!alreadyinlist) {
+              commringlist[newcommringlen++] = j;
+              commringappend = 1;
+            }
+          }
+        }
+      }
+      commringlen = newcommringlen;
+    }
+
+    // sort the final commringlist
+
+    for (int c = 0 ; c < ( commringlen - 1 ); c++) {
+      for (int d = 0 ; d < commringlen - c - 1; d++) {
+        if (commringlist[d] > commringlist[d+1]) {
+          swap = commringlist[d];
+          commringlist[d]   = commringlist[d+1];
+          commringlist[d+1] = swap;
+        }
+      }
+    }
+
+    // resize commringlist to final size
+
+    commringlist = (int *) realloc(commringlist, commringlen*sizeof(int));
+
+    // set the plan->commringlist
+
+    plan->commringlen = commringlen;
+    plan->commringlist = commringlist;
+  }
+
+  // plan->nrecv = # of recvs not including self
+  // for collectives include self in the nsend list
+
+  if (nrecv && plan->recv_proc[nrecv-1] == me) {
+    if (plan->usecollective) plan->nrecv = nrecv;
+    else plan->nrecv = nrecv - 1;
+  } else plan->nrecv = nrecv;
 
   // init remaining fields in remap plan
 
   plan->memory = memory;
 
-  if (nrecv == plan->nrecv)
-    plan->self = 0;
-  else
-    plan->self = 1;
+  if (nrecv == plan->nrecv) plan->self = 0;
+  else plan->self = 1;
 
   // free locally malloced space
 
-  free(array);
+  free(inarray);
+  free(outarray);
 
   // find biggest send message (not including self) and malloc space for it
 
@@ -390,14 +602,34 @@ struct remap_plan_3d *remap_3d_create_plan(
   if (memory == 1) {
     if (nrecv > 0) {
       plan->scratch =
-        (FFT_SCALAR *) malloc(nqty*out.isize*out.jsize*out.ksize*sizeof(FFT_SCALAR));
+        (FFT_SCALAR *) malloc(nqty*out.isize*out.jsize*out.ksize *
+                              sizeof(FFT_SCALAR));
       if (plan->scratch == NULL) return NULL;
     }
   }
 
-  // create new MPI communicator for remap
+  // if using collective and the commringlist is NOT empty create a
+  // communicator for the plan based off an MPI_Group created with
+  // ranks from the commringlist
 
-  MPI_Comm_dup(comm,&plan->comm);
+  if ((plan->usecollective && (plan->commringlen > 0))) {
+    MPI_Group orig_group, new_group;
+    MPI_Comm_group(comm, &orig_group);
+    MPI_Group_incl(orig_group, plan->commringlen,
+                   plan->commringlist, &new_group);
+    MPI_Comm_create(comm, new_group, &plan->comm);
+  }
+
+  // if using collective and the comm ring list is empty create
+  // a communicator for the plan with an empty group
+
+  else if ((plan->usecollective) && (plan->commringlen == 0)) {
+    MPI_Comm_create(comm, MPI_GROUP_EMPTY, &plan->comm);
+  }
+
+  // not using collective - dup comm
+
+  else MPI_Comm_dup(comm,&plan->comm);
 
   // return pointer to plan
 
@@ -409,11 +641,16 @@ struct remap_plan_3d *remap_3d_create_plan(
 ------------------------------------------------------------------------- */
 
 void remap_3d_destroy_plan(struct remap_plan_3d *plan)
-
 {
   // free MPI communicator
 
-  MPI_Comm_free(&plan->comm);
+  if (!((plan->usecollective) && (plan->commringlen == 0)))
+    MPI_Comm_free(&plan->comm);
+
+  if (plan->usecollective) {
+    if (plan->commringlist != NULL)
+      free(plan->commringlist);
+  }
 
   // free internal arrays
 

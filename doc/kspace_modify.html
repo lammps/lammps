@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>mesh</I> or <I>order</I> or <I>order/disp</I> or <I>overlap</I> or <I>minorder</I> or <I>force</I> or <I>gewald</I> or <I>gewald/disp</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>cutoff/adjust</I> or <I>diff</I> or <I>kmax/ewald</I> or <I>force/disp/real</I> or <I>force/disp/kspace</I> or <I>splittol</I> 
+<LI>keyword = <I>mesh</I> or <I>order</I> or <I>order/disp</I> or <I>mix/disp</I> or <I>overlap</I> or <I>minorder</I> or <I>force</I> or <I>gewald</I> or <I>gewald/disp</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>cutoff/adjust</I> or <I>fftbench</I> or <I>collective</I> or <I>diff</I> or <I>kmax/ewald</I> or <I>force/disp/real</I> or <I>force/disp/kspace</I> or <I>splittol</I> 
 
 <PRE>  <I>mesh</I> value = x y z
     x,y,z = grid size in each dimension for long-range Coulombics
@@ -27,6 +27,7 @@
     N = extent of Gaussian for PPPM or MSM mapping of charge to grid
   <I>order/disp</I> value = N
     N = extent of Gaussian for PPPM mapping of dispersion term to grid
+  <I>mix/disp</I> value = <I>pair</I> or <I>geom</I> or <I>none</I>
   <I>overlap</I> = <I>yes</I> or <I>no</I> = whether the grid stencil for PPPM is allowed to overlap into more than the nearest-neighbor processor
   <I>minorder</I> value = M
     M = min allowed extent of Gaussian when auto-adjusting to minimize grid communication
@@ -42,10 +43,10 @@
   <I>compute</I> value = <I>yes</I> or <I>no</I> 
   <I>cutoff/adjust</I> value = <I>yes</I> or <I>no</I> 
   <I>fftbench</I> value = <I>yes</I> or <I>no</I> 
+  <I>collective</I> value = <I>yes</I> or <I>no</I> 
   <I>diff</I> value = <I>ad</I> or <I>ik</I> = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode 
   <I>kmax/ewald</I> value = kx ky kz 
     kx,ky,kz = number of Ewald sum kspace vectors in each dimension
-  <I>mix/disp</I> value = <I>pair</I> or <I>geom</I> or <I>none</I>
   <I>force/disp/real</I> value = accuracy (force units)
   <I>force/disp/kspace</I> value = accuracy (force units)
   <I>splittol</I> value = tol
@@ -210,6 +211,14 @@ this option is turned off, LAMMPS will not take the time at the end
 of a run to give FFT benchmark timings, and will finish a few seconds
 faster than it would if this option were on.
 </P>
+<P>The <I>collective</I> keyword applies only to PPPM.  It is set to <I>no</I> by
+default, except on IBM BlueGene machines.  If this option is set to
+<I>yes</I>, LAMMPS will use MPI collective operations to remap data for
+3d-FFT operations instead of the default point-to-point communication.
+This is faster on IBM BlueGene machines, and may also be faster on
+other machines if they have an efficient implementation of MPI
+collective operations and adequate hardware.
+</P>
 <P>The <I>diff</I> keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
 potentials on the PPPM mesh.  The <I>ik</I> approach is the default for
@@ -231,16 +240,13 @@ always used for MSM.
 <P>IMPORTANT NOTE: Currently, not all PPPM styles support the <I>ad</I>
 option.  Support for those PPPM variants will be added later.
 </P>
-<P>The <I>kmax/ewald</I> keyword sets the number of kspace vectors in
-each dimension for kspace style <I>ewald</I>.  The three values must
-be positive integers, or else (0,0,0), which unsets the option. 
-When this option is not 
-set, the Ewald sum scheme chooses its own kspace vectors, 
-consistent with the
-user-specified accuracy and pairwise cutoff. In any case,
-if kspace style <I>ewald</I> is invoked, the values used 
-are printed to the screen and
-the log file at the start of the run.
+<P>The <I>kmax/ewald</I> keyword sets the number of kspace vectors in each
+dimension for kspace style <I>ewald</I>.  The three values must be positive
+integers, or else (0,0,0), which unsets the option.  When this option
+is not set, the Ewald sum scheme chooses its own kspace vectors,
+consistent with the user-specified accuracy and pairwise cutoff. In
+any case, if kspace style <I>ewald</I> is invoked, the values used are
+printed to the screen and the log file at the start of the run.
 </P>
 <P>With the <I>mix/disp</I> keyword one can select the mixing rule for the
 dispersion coefficients.  With <I>pair</I>, the dispersion coefficients of

@@ -13,7 +13,7 @@ kspace_modify command :h3
 kspace_modify keyword value ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {mesh} or {order} or {order/disp} or {overlap} or {minorder} or {force} or {gewald} or {gewald/disp} or {slab} or (nozforce} or {compute} or {cutoff/adjust} or {diff} or {kmax/ewald} or {force/disp/real} or {force/disp/kspace} or {splittol} :l
+keyword = {mesh} or {order} or {order/disp} or {mix/disp} or {overlap} or {minorder} or {force} or {gewald} or {gewald/disp} or {slab} or (nozforce} or {compute} or {cutoff/adjust} or {fftbench} or {collective} or {diff} or {kmax/ewald} or {force/disp/real} or {force/disp/kspace} or {splittol} :l
   {mesh} value = x y z
     x,y,z = grid size in each dimension for long-range Coulombics
   {mesh/disp} value = x y z
@@ -22,6 +22,7 @@ keyword = {mesh} or {order} or {order/disp} or {overlap} or {minorder} or {force
     N = extent of Gaussian for PPPM or MSM mapping of charge to grid
   {order/disp} value = N
     N = extent of Gaussian for PPPM mapping of dispersion term to grid
+  {mix/disp} value = {pair} or {geom} or {none}
   {overlap} = {yes} or {no} = whether the grid stencil for PPPM is allowed to overlap into more than the nearest-neighbor processor
   {minorder} value = M
     M = min allowed extent of Gaussian when auto-adjusting to minimize grid communication
@@ -37,10 +38,10 @@ keyword = {mesh} or {order} or {order/disp} or {overlap} or {minorder} or {force
   {compute} value = {yes} or {no} 
   {cutoff/adjust} value = {yes} or {no} 
   {fftbench} value = {yes} or {no} 
+  {collective} value = {yes} or {no} 
   {diff} value = {ad} or {ik} = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode 
   {kmax/ewald} value = kx ky kz 
     kx,ky,kz = number of Ewald sum kspace vectors in each dimension
-  {mix/disp} value = {pair} or {geom} or {none}
   {force/disp/real} value = accuracy (force units)
   {force/disp/kspace} value = accuracy (force units)
   {splittol} value = tol
@@ -204,6 +205,14 @@ this option is turned off, LAMMPS will not take the time at the end
 of a run to give FFT benchmark timings, and will finish a few seconds
 faster than it would if this option were on.
 
+The {collective} keyword applies only to PPPM.  It is set to {no} by
+default, except on IBM BlueGene machines.  If this option is set to
+{yes}, LAMMPS will use MPI collective operations to remap data for
+3d-FFT operations instead of the default point-to-point communication.
+This is faster on IBM BlueGene machines, and may also be faster on
+other machines if they have an efficient implementation of MPI
+collective operations and adequate hardware.
+
 The {diff} keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
 potentials on the PPPM mesh.  The {ik} approach is the default for
@@ -225,16 +234,13 @@ always used for MSM.
 IMPORTANT NOTE: Currently, not all PPPM styles support the {ad}
 option.  Support for those PPPM variants will be added later.
 
-The {kmax/ewald} keyword sets the number of kspace vectors in
-each dimension for kspace style {ewald}.  The three values must
-be positive integers, or else (0,0,0), which unsets the option. 
-When this option is not 
-set, the Ewald sum scheme chooses its own kspace vectors, 
-consistent with the
-user-specified accuracy and pairwise cutoff. In any case,
-if kspace style {ewald} is invoked, the values used 
-are printed to the screen and
-the log file at the start of the run.
+The {kmax/ewald} keyword sets the number of kspace vectors in each
+dimension for kspace style {ewald}.  The three values must be positive
+integers, or else (0,0,0), which unsets the option.  When this option
+is not set, the Ewald sum scheme chooses its own kspace vectors,
+consistent with the user-specified accuracy and pairwise cutoff. In
+any case, if kspace style {ewald} is invoked, the values used are
+printed to the screen and the log file at the start of the run.
 
 With the {mix/disp} keyword one can select the mixing rule for the
 dispersion coefficients.  With {pair}, the dispersion coefficients of

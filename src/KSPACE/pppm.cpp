@@ -1268,8 +1268,8 @@ void PPPM::adjust_gewald()
 }
 
 /* ----------------------------------------------------------------------
- Calculate f(x) using Newton-Raphson solver
- ------------------------------------------------------------------------- */
+   calculate f(x) using Newton-Raphson solver
+------------------------------------------------------------------------- */
 
 double PPPM::newton_raphson_f()
 {
@@ -1287,9 +1287,9 @@ double PPPM::newton_raphson_f()
 }
 
 /* ----------------------------------------------------------------------
- Calculate numerical derivative f'(x) using forward difference
- [f(x + h) - f(x)] / h
- ------------------------------------------------------------------------- */
+   calculate numerical derivative f'(x) using forward difference
+   [f(x + h) - f(x)] / h
+------------------------------------------------------------------------- */
 
 double PPPM::derivf()
 {
@@ -1307,7 +1307,7 @@ double PPPM::derivf()
 }
 
 /* ----------------------------------------------------------------------
-   Calculate the final estimate of the accuracy
+   calculate the final estimate of the accuracy
 ------------------------------------------------------------------------- */
 
 double PPPM::final_accuracy()
@@ -1322,7 +1322,7 @@ double PPPM::final_accuracy()
   double df_rspace = 2.0 * q2_over_sqrt * exp(-g_ewald*g_ewald*cutoff*cutoff);
   double df_table = estimate_table_accuracy(q2_over_sqrt,df_rspace);
   double estimated_accuracy = sqrt(df_kspace*df_kspace + df_rspace*df_rspace +
-   df_table*df_table);
+                                   df_table*df_table);
 
   return estimated_accuracy;
 }

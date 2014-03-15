@@ -16,7 +16,7 @@
                          Axel Kohlmeyer (Temple U) added support for
                          FFTW3, KISSFFT, Dfti/MKL, and ACML.
                          Phil Blood (PSC) added single precision FFT.
-                         Paul Coffman(IBM) added optional MPI collectives remap
+                         Paul Coffman (IBM) added MPI collectives remap
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"

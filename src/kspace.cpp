@@ -46,7 +46,8 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   overlap_allowed = 1;
   fftbench = 0;
 
-  // default to use MPI collectives for FFT/remap on bluegene
+  // default to using MPI collectives for FFT/remap only on IBM BlueGene
+
 #ifdef __bg__
   collective_flag = 1;
 #else

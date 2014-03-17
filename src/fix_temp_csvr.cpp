@@ -21,6 +21,7 @@
 #include "fix_temp_csvr.h"
 #include "atom.h"
 #include "force.h"
+#include "memory.h"
 #include "comm.h"
 #include "input.h"
 #include "variable.h"
@@ -47,9 +48,7 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   // CSVR thermostat should be applied every step
 
   nevery = 1;
-  scalar_flag = 1;
   global_freq = nevery;
-  extscalar = 1;
 
   tstr = NULL;
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -90,6 +89,8 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
 
   random = new RanMars(lmp,seed + comm->me);
 
+  vhold = NULL;
+  nmax = -1;
   energy = 0.0;
 }
 
@@ -105,6 +106,9 @@ FixTempCSVR::~FixTempCSVR()
   delete [] id_temp;
 
   delete random;
+  memory->destroy(vhold);
+  vhold = NULL;
+  nmax = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -113,7 +117,6 @@ int FixTempCSVR::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -121,6 +124,16 @@ int FixTempCSVR::setmask()
 
 void FixTempCSVR::init()
 {
+
+  // we cannot handle shake correctly at the moment.
+
+  int has_shake = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    if (strcmp(modify->fix[i]->style,"shake") == 0) ++has_shake;
+
+  if (has_shake > 0)
+    error->all(FLERR,"Fix temp/csvr is not compatible with fix shake");
+  
   // check variable
 
   if (tstr) {
@@ -144,14 +157,13 @@ void FixTempCSVR::init()
 
 void FixTempCSVR::end_of_step()
 {
-  double t_current = temperature->compute_scalar();
-
-  double delta = update->ntimestep - update->beginstep;
-  if (delta != 0.0) delta /= update->endstep - update->beginstep;
 
   // set current t_target
   // if variable temp, evaluate variable, wrap with clear/add
 
+  double delta = update->ntimestep - update->beginstep;
+
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
   if (tstyle == CONSTANT)
     t_target = t_start + delta * (t_stop-t_start);
   else {
@@ -163,82 +175,62 @@ void FixTempCSVR::end_of_step()
     modify->addstep_compute(update->ntimestep + nevery);
   }
 
-  // Langevin thermostat, implemented as decribed in
-  // Bussi and Parrinello, Phys. Rev. E (2007).
-  // it is a linear combination of old velocities and new,
-  // randomly chosen, velocity, with proper coefficients
+  double * const * const v = atom->v;
+  const int * const mask = atom->mask;
+  const int * const type = atom->type;
+  const int nlocal = atom->nlocal;
 
-  double **v = atom->v;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  const double c1 = exp(-update->dt/t_period);
+  // adjust holding space, if needed and copy existing velocities
 
-  if (atom->rmass_flag) { // per atom masses
-    const double * const rmass = atom->rmass;
+  if (nmax < atom->nlocal) {
+    nmax = atom->nlocal + 1;
+    memory->destroy(vhold);
+    memory->create(vhold,nmax,3,"csvr:vhold");
+  }
+
+  // The CSVR thermostat is a linear combination of old and new velocities,
+  // where the new ones are randomly chosen from a gaussian distribution.
+  // see Bussi and Parrinello, Phys. Rev. E (2007).
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      double m;
+      if (atom->rmass_flag) m = atom->rmass[i];
+      else m = atom->mass[type[i]];
+
+      const double factor = 1.0/sqrt(m);
+      const double vx = random->gaussian() * factor;
+      vhold[i][0] = v[i][0];
+      v[i][0] = vx;
+      const double vy = random->gaussian() * factor;
+      vhold[i][1] = v[i][1];
+      v[i][1] = vy;
+      const double vz = random->gaussian() * factor;
+      vhold[i][2] = v[i][2];
+      v[i][2] = vz;
+    }
+  }
   
-    if (which == NOBIAS) {
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) {
-          const double m = rmass[i];
-          const double c2 = sqrt((1.0-c1*c1)*t_target/m);
-          for (int j = 0; j < 3; ++j) {
-            energy  += 0.5*m*v[i][j]*v[i][j];
-            v[i][j] *= c1;
-            v[i][j] += c2*random->gaussian();
-            energy  -= 0.5*m*v[i][j]*v[i][j];
-          }
-        }
-      }
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) {
-          const double m = rmass[i];
-          const double c2 = sqrt((1.0-c1*c1)*t_target/m);
-          temperature->remove_bias(i,v[i]);
-          for (int j = 0; j < 3; ++j) {
-            energy  += 0.5*rmass[i]*v[i][j]*v[i][j];
-            v[i][j] *= c1;
-            v[i][j] += c2*random->gaussian();
-            energy  -= 0.5*rmass[i]*v[i][j]*v[i][j];
-          }
-          temperature->restore_bias(i,v[i]);
-        }
+  // mixing factors
+  const double c1 = exp(-update->dt/t_period);
+  const double c2 = sqrt((1.0-c1*c1)*t_target/temperature->compute_scalar());
+
+  if (which == NOBIAS) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        v[i][0] = vhold[i][0]*c1 + v[i][0]*c2;
+        v[i][1] = vhold[i][1]*c1 + v[i][1]*c2;
+        v[i][2] = vhold[i][2]*c1 + v[i][2]*c2;
       }
     }
-  } else { // per atom type masses
-
-    const double * const mass = atom->mass;
-    const int    * const type = atom->type;
-
-    if (which == NOBIAS) {
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) {
-          const double m = mass[type[i]];
-          const double c2 = sqrt((1.0-c1*c1)*t_target/m);
-
-          for (int j = 0; j < 3; ++j) {
-            energy  += 0.5*m*v[i][j]*v[i][j];
-            v[i][j] *= c1;
-            v[i][j] += c2*random->gaussian();
-            energy  -= 0.5*m*v[i][j]*v[i][j];
-          }
-        }
-      }
-    } else {
-      for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) {
-          const double m = mass[type[i]];
-          const double c2 = sqrt((1.0-c1*c1)*t_target/m);
-
-          temperature->remove_bias(i,v[i]);
-          for (int j = 0; j < 3; ++j) {
-            energy  += 0.5*m*v[i][j]*v[i][j];
-            v[i][j] *= c1;
-            v[i][j] += c2*random->gaussian();
-            energy  -= 0.5*m*v[i][j]*v[i][j];
-          }
-          temperature->restore_bias(i,v[i]);
-        }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        temperature->remove_bias(i,vhold[i]);
+        v[i][0] = vhold[i][0]*c1 + v[i][0]*c2;
+        v[i][1] = vhold[i][1]*c1 + v[i][1]*c2;
+        v[i][2] = vhold[i][2]*c1 + v[i][2]*c2;
+        temperature->restore_bias(i,v[i]);
       }
     }
   }
@@ -279,13 +271,6 @@ int FixTempCSVR::modify_param(int narg, char **arg)
 void FixTempCSVR::reset_target(double t_new)
 {
   t_target = t_start = t_stop = t_new;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double FixTempCSVR::compute_scalar()
-{
-  return energy;
 }
 
 /* ----------------------------------------------------------------------

@@ -117,23 +117,15 @@ you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The "fix_modify"_fix_modify.html {energy} option is supported by this
-fix to add the energy change implied by a velocity rescaling to the
-system's potential energy as part of "thermodynamic
-output"_thermo_style.html.
-
-This fix computes a global scalar which can be accessed by various
-"output commands"_Section_howto.html#howto_15.  The scalar is the
-cummulative energy change due to this fix.  The scalar value
-calculated by this fix is "extensive".
-
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the
 "run"_run.html command for details of how to do this.
 
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] none
+[Restrictions:]
+
+This fix is not compatible with "fix shake"_fix_shake.html.
 
 [Related commands:]
 

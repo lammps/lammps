@@ -899,9 +899,10 @@ after or in between runs, e.g. by including them in a
 "print"_print.html command.  In this case, if a compute is needed to
 evaluate a variable (either directly or indirectly), LAMMPS will not
 invoke the compute, but it will use a value previously calculated by
-the compute, and can do this only if it is current.  Fixes will always
-provide a quantity needed by a variable, but the quantity may or may
-not be current.  This leads to one of three kinds of behavior:
+the compute, and can do this only if it was invoked on the current
+timestep.  Fixes will always provide a quantity needed by a variable,
+but the quantity may or may not be current.  This leads to one of
+three kinds of behavior:
 
 (1) The variable may be evaluated accurately.  If it contains
 references to a compute or fix, and these values were calculated on
@@ -910,12 +911,12 @@ used by the variable and the result will be accurate.
 
 (2) LAMMPS may not be able to evaluate the variable and will generate
 an error message stating so.  For example, if the variable requires a
-quantity from a "compute"_compute.html that is not current, LAMMPS
-will generate an error.  This means, for example, that such a variable
-cannot be evaluated before the first run has occurred.  Likewise, in
-between runs, such a variable cannot be accessed unless it was
-evaluated on the last timestep of the preceding run, e.g. by
-thermodynamic output.
+quantity from a "compute"_compute.html that has not been invoked on
+the current timestep, LAMMPS will generate an error.  This means, for
+example, that such a variable cannot be evaluated before the first run
+has occurred.  Likewise, in between runs, a variable containing a
+compute cannot be evaluated unless the compute was invoked on the last
+timestep of the preceding run, e.g. by thermodynamic output.
 
 One way to get around this problem is to perform a 0-timestep run
 before using the variable.  For example, these commands
@@ -944,7 +945,7 @@ follows.  Also note that the 0-timestep run must actually use and
 invoke the compute in question (e.g. via "thermo"_thermo_style.html or
 "dump"_dump.html output) in order for it to enable the compute to be
 used in a variable after the run.  Thus if you are trying to print a
-variable that uses a compute you have defined, you could insure it was
+variable that uses a compute you have defined, you can insure it is
 invoked on the last timestep of the preceding run by including it in
 thermodynamic output.
 

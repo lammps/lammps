@@ -40,7 +40,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EWALD_F   1.12837917
+#define EWALD_F 1.12837917
 
 enum{RLINEAR,RSQ,BMP};
 

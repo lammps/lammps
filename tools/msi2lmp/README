@@ -69,7 +69,7 @@ see msi2lmp/TriclinicModification.pdf doc for details
  This program uses the .car and .mdf files from MSI/Biosyms's INSIGHT
  program to produce a LAMMPS data file.
 
- 1. Building msi2lmp3
+ 1. Building msi2lmp
 
     Use the Makefile in the src directory. It is
     currently set up for gcc. You will have to modify
@@ -154,7 +154,7 @@ see msi2lmp/TriclinicModification.pdf doc for details
 
 ****************************************************************
 *
-* Msi2lmp3
+* msi2lmp
 *
 * This is the third version of a program that generates a LAMMPS
 * data file based on the information in MSI .car (atom

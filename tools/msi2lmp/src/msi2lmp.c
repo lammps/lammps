@@ -108,7 +108,7 @@
 *
 ****************************************************************
 *
-* Msi2lmp3
+* msi2lmp
 *
 * This is the third version of a program that generates a LAMMPS
 * data file based on the information in a MSI car file (atom

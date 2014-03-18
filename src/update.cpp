@@ -256,7 +256,7 @@ void Update::set_units(const char *style)
     force->mvh2r = 0.0;
     force->angstrom = 1.0e-4;
     force->femtosecond = 1.0e-9;
-    force->qelectron = 1.6021765e-19;
+    force->qelectron = 1.6021765e-7;
 
     dt = 2.0;
     neighbor->skin = 0.1;
@@ -277,7 +277,7 @@ void Update::set_units(const char *style)
     force->mvh2r = 0.0;
     force->angstrom = 1.0e-1;
     force->femtosecond = 1.0e-6;
-    force->qelectron = 1.6021765e-19;
+    force->qelectron = 1.0;
        
     dt = 0.00045;
     neighbor->skin = 0.1;

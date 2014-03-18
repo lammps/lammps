@@ -88,6 +88,23 @@ command can be used to break out of a loop.  See the "variable
 delete"_variable.html command for info on how to delete the associated
 loop variable, so that it can be re-used later in the input script.
 
+Here is an example of a loop which checks every 1000 steps if the
+system temperature has reached a certain value, and if so, breaks out
+of the loop to finish the run.  Note that any variable could be
+checked, so long as it is current on the timestep when the run
+completes.  As explained on the "variable"_variable.html doc page,
+this can be insured by includig the variable in thermodynamic output.
+
+variable myTemp equal temp
+label loop
+variable a loop 1000
+run 1000
+if "$\{myTemp\} < 300.0" then "jump SELF break"
+next a
+jump SELF loop
+label break
+print "ALL DONE" :pre
+
 Here is an example of a double loop which uses the if and
 "jump"_jump.html commands to break out of the inner loop when a
 condition is met, then continues iterating thru the outer loop.
@@ -98,13 +115,13 @@ variable    a loop 5
   variable  b loop 5
   print	    "A,B = $a,$b"
   run       10000
-  if	    '$b > 2' then "print 'Jumping to another script'" "jump in.script break"
+  if	    "$b > 2" then "jump SELF break"
   next	    b
   jump	    in.script loopb
 label	    break
-variable    b delete :pre
+variable    b delete
 next	    a
-jump	    in.script loopa :pre
+jump	    SELF loopa :pre
 
 :line
 

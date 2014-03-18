@@ -1849,10 +1849,10 @@ application.
 </P>
 <P>Library.cpp contains these 4 functions:
 </P>
-<PRE>void lammps_open(int, char **, MPI_Comm, void **);
-void lammps_close(void *);
-void lammps_file(void *, char *);
-char *lammps_command(void *, char *); 
+<PRE>void lammps_open(int, char **, MPI_Comm, void **)
+void lammps_close(void *)
+void lammps_file(void *, char *)
+char *lammps_command(void *, char *) 
 </PRE>
 <P>The lammps_open() function is used to initialize LAMMPS, passing in a
 list of strings as if they were <A HREF = "Section_start.html#start_7">command-line

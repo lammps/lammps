@@ -193,12 +193,12 @@ angstroms instead of 10 angstroms) provides better MSM accuracy for
 both the real space and grid computed forces.
 
 Currently calculation of the full pressure tensor in MSM is expensive.
-Using the "kspace_modify"_kspace_modify.html
-{pressure/scalar yes} command provides a less expensive way to compute the
-scalar pressure (Pxx + Pyy + Pzz)/3.0. The scalar pressure can be used, for example,
-to run an isotropic barostat. If the full pressure tensor is needed, then
-calculating the pressure at every timestep or using a fixed pressure
-simulation with MSM will cause the code to run slower.
+Using the "kspace_modify"_kspace_modify.html {pressure/scalar yes}
+command provides a less expensive way to compute the scalar pressure
+(Pxx + Pyy + Pzz)/3.0. The scalar pressure can be used, for example,
+to run an isotropic barostat. If the full pressure tensor is needed,
+then calculating the pressure at every timestep or using a fixed
+pressure simulation with MSM will cause the code to run slower.
 
 :line
 
@@ -216,16 +216,20 @@ to determine the number of K-space vectors for style {ewald} or the
 grid size for style {pppm} or {msm}. 
 
 Note that style {pppm} only computes the grid size at the beginning of
-a simulation, so if the length or triclinic tilt of the simulation cell
-increases dramatically during the course of the simulation, the accuracy
-of the simulation may degrade. For example, for a triclinic system with 
-all three tilt factors set to the maximum limit, the PPPM grid should be
-increased roughly by a factor of 1.5 in the y direction and 2.0 in the z
-direction as compared to the same system using a cubic orthogonal simulation
-cell. One way to ensure the accuracy requirement is being met is to run a 
-short simulation at the maximum expected tilt or length, note the required
-grid size, and then use the "kspace_modify"_kspace_modify.html {mesh} 
-command to manually set the PPPM grid size to this value.
+a simulation, so if the length or triclinic tilt of the simulation
+cell increases dramatically during the course of the simulation, the
+accuracy of the simulation may degrade.  Likewise, if the
+"kspace_modify slab"_kspace_modify.html option is used with
+shrink-wrap boundaries in the z-dimension, and the box size changes
+dramatically in z.  For example, for a triclinic system with all three
+tilt factors set to the maximum limit, the PPPM grid should be
+increased roughly by a factor of 1.5 in the y direction and 2.0 in the
+z direction as compared to the same system using a cubic orthogonal
+simulation cell. One way to ensure the accuracy requirement is being
+met is to run a short simulation at the maximum expected tilt or
+length, note the required grid size, and then use the
+"kspace_modify"_kspace_modify.html {mesh} command to manually set the
+PPPM grid size to this value.
 
 RMS force errors in real space for {ewald} and {pppm} are estimated
 using equation 18 of "(Kolafa)"_#Kolafa, which is also referenced as

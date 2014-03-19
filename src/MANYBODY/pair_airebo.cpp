@@ -25,7 +25,6 @@
 #include "pair_airebo.h"
 #include "atom.h"
 #include "neighbor.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
 #include "neighbor.h"

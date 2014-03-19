@@ -1,5 +1,23 @@
-Stephanie Teich-McGoldrick (Sandai) is the current maintainer
-of the msi2lmp tool.  She can be contacted at steichm at sandia.gov
+Axel Kohlmeyer is the current maintainer of the msi2lmp tool.
+Please send any inquiries about msi2lmp to the lammps-users mailing list.
+
+06 Mar 2014 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Fixed a bug in handling of triclinic cells, where the matrices to
+convert to and from fractional coordinates were incorrectly built.
+
+26 Oct 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Implemented writing out force field style hints in generated data
+files for improved consistency checking when reading those files.
+Also added writing out CGCMM style comments to identify atom types.
+
+08 Oct 2013 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Fixed a memory access violation with Class 2 force fields.
+Free all allocated memory to better detection of memory errors.
+Print out version number and data with all print levels > 0.
+Added valgrind checks to the regression tests
 
 08 Oct 2013 Axel Kohlmeyer <akohlmey@gmail.com>
 
@@ -98,6 +116,9 @@ see msi2lmp/TriclinicModification.pdf doc for details
    -- -nocenter (or -n)   do not recenter the simulation box around the
                           geometrical center of the provided geometry but
                           rather around the origin
+
+   -- -oldstyle (or -o)   write out a data file without style hints
+                          (to be compatible with older LAMMPS versions)
 
    -- -shift (or -s)      translate the entire system (box and coordinates)
                           by a vector (default: 0.0 0.0 0.0)

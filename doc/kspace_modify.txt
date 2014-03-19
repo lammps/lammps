@@ -37,6 +37,7 @@ keyword = {mesh} or {order} or {order/disp} or {mix/disp} or {overlap} or {minor
   {nozforce} turns off kspace forces in the z direction
   {compute} value = {yes} or {no} 
   {cutoff/adjust} value = {yes} or {no} 
+  {pressure/scalar} value = {yes} or {no} 
   {fftbench} value = {yes} or {no} 
   {collective} value = {yes} or {no} 
   {diff} value = {ad} or {ik} = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode 
@@ -200,6 +201,16 @@ grid that minimizes cost using an estimate given by
 "(Hardy)"_#Hardy. Note that this cost estimate is not exact, somewhat
 experimental, and still may not yield the optimal parameters.
 
+The {pressure/scalar} keyword applies only to MSM. If this option is
+turned on, only the scalar pressure (i.e. (Pxx + Pyy + Pzz)/3.0) will
+be computed, which can be used, for example, to run an isotropic barostat.
+Computing the full pressure tensor with MSM is expensive, and this option
+provides a faster alternative. The scalar pressure is computed using a
+relationship between the Coulombic energy and pressure "(Hummer)"_#Hummer
+instead of using the virial equation. This option cannot be used to access
+individual components of the pressure tensor, to compute per-atom virial,
+or with suffix kspace/pair styles of MSM, like OMP or GPU.
+
 The {fftbench} keyword applies only to PPPM. It is on by default. If
 this option is turned off, LAMMPS will not take the time at the end
 of a run to give FFT benchmark timings, and will finish a few seconds
@@ -276,9 +287,9 @@ are different.
 The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
-yes (MSM), fftbench = yes (PPPM), diff = ik (PPPM), mix/disp = pair,
-force/disp/real = -1.0, force/disp/kspace = -1.0, split = 0, and tol =
-1.0e-6.
+yes (MSM), pressure/scalar = yes (MSM), fftbench = yes (PPPM), diff = ik
+(PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace = -1.0,
+split = 0, and tol = 1.0e-6.
 
 :line
 
@@ -300,6 +311,9 @@ Adam Hilger, NY (1989).
 [(Hardy)] David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
 Illinois at Urbana-Champaign, (2006).
+
+:link(Hummer)
+[(Hummer)] Hummer, Grønbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)
 
 :link(Isele-Holder)
 [(Isele-Holder)] Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J

@@ -192,8 +192,12 @@ are needed. Note that use of a larger coulomb cutoff (i.e. 15
 angstroms instead of 10 angstroms) provides better MSM accuracy for 
 both the real space and grid computed forces.
 
-Currently the pressure calculation in MSM is expensive,
-so calculating the pressure at every timestep or using a fixed pressure
+Currently calculation of the full pressure tensor in MSM is expensive.
+Using the "kspace_modify"_kspace_modify.html
+{pressure/scalar yes} command provides a less expensive way to compute the
+scalar pressure (Pxx + Pyy + Pzz)/3.0. The scalar pressure can be used, for example,
+to run an isotropic barostat. If the full pressure tensor is needed, then
+calculating the pressure at every timestep or using a fixed pressure
 simulation with MSM will cause the code to run slower.
 
 :line

@@ -33,23 +33,19 @@ energy due to a pair of atoms at a distance r_ij is given by:
 
 :c,image(Eqs/pair_zbl.jpg)
 
-where e is the electron
-charge, epsilon_0 is the electrical permittivity of vacuum, and 
-Z_i and Z_j are the nuclear charges of the two atoms in electron
-charge units. 
-The switching
-function S(r) is identical to that used by 
-"pair_style lj/gromacs"_pair_gromacs.html. 
-Here, the inner and outer cutoff are the same 
-for all pairs of atom types.
+where e is the electron charge, epsilon_0 is the electrical
+permittivity of vacuum, and Z_i and Z_j are the nuclear charges of the
+two atoms.  The switching function S(r) is identical to that used by
+"pair_style lj/gromacs"_pair_gromacs.html.  Here, the inner and outer
+cutoff are the same for all pairs of atom types.
 
 The following coefficient must be defined for each pair of atom types
 via the "pair_coeff"_pair_coeff.html command as in the examples above,
-or in the LAMMPS data file. 
-Z can not be specified for two different atoms types.
-Therefore the lists of atom types I and atom types J must match.
+or in the LAMMPS data file.  Z can not be specified for two different
+atoms types.  Therefore the lists of atom types I and atom types J
+must match.
 
-Z (electron charge) :ul
+Z (multiples of proton charge, e.g. 13.0 for aluminum) :ul
 
 Although Z must be defined for all atom type pairs I,J, it is only
 stored for individual atom types, i.e. when I = J.  Z is normally equal
@@ -60,7 +56,8 @@ constants in the screening function depend on the unit of distance. In
 the above equation they are given for units of angstroms. LAMMPS will
 automatically convert these values to the distance unit of the
 specified LAMMPS "units"_units.html setting.  The values of Z should
-always be given in units of electron charge.
+always be given as multiples of a proton's charge, e.g. 29.0 for
+copper.
 
 :line
 

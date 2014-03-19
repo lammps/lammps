@@ -1836,10 +1836,10 @@ application.
 
 Library.cpp contains these 4 functions:
 
-void lammps_open(int, char **, MPI_Comm, void **);
-void lammps_close(void *);
-void lammps_file(void *, char *);
-char *lammps_command(void *, char *); :pre
+void lammps_open(int, char **, MPI_Comm, void **)
+void lammps_close(void *)
+void lammps_file(void *, char *)
+char *lammps_command(void *, char *) :pre
 
 The lammps_open() function is used to initialize LAMMPS, passing in a
 list of strings as if they were "command-line

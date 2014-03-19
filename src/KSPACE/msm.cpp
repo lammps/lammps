@@ -100,6 +100,7 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   levels = 0;
 
   peratom_allocate_flag = 0;
+  scalar_pressure_flag = 1;
 
   order = 10;
 }
@@ -416,7 +417,7 @@ void MSM::setup()
   } else {
     get_g_direct();
     if (domain->nonperiodic) get_g_direct_top(levels-1);
-    if (vflag_either) {
+    if (vflag_either && !scalar_pressure_flag) {
       get_virial_direct();
       if (domain->nonperiodic) get_virial_direct_top(levels-1);
     }
@@ -462,6 +463,19 @@ void MSM::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = evflag_atom = eflag_global = vflag_global =
     eflag_atom = vflag_atom = eflag_either = vflag_either = 0;
+
+  if (scalar_pressure_flag && vflag_either) {
+    if (vflag_atom)
+      error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' to obtain "
+        "per-atom virial with kspace_style MSM");
+
+    // must switch on global energy computation if not already on
+
+    if (eflag == 0 || eflag == 2) {
+      eflag++;
+      ev_setup(eflag,vflag);
+    }
+  }
 
   // invoke allocate_peratom() if needed for first time
 
@@ -588,11 +602,16 @@ void MSM::compute(int eflag, int vflag)
 
   // total long-range virial
 
-  if (vflag_global) {
+  if (vflag_global && !scalar_pressure_flag) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
     for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*virial_all[i];
   }
+
+  // fast compute of scalar pressure (if requested)
+
+  if (scalar_pressure_flag && vflag_global)
+    for (i = 0; i < 3; i++) virial[i] = energy/3.0;
 
   // per-atom energy/virial
   // energy includes self-energy correction
@@ -1588,7 +1607,7 @@ void MSM::direct(int n)
         qtmp = qgridn[icz][icy][icx]; // charge on center grid point
 
         esum = 0.0;
-        if (vflag_either)
+        if (vflag_either && !scalar_pressure_flag)
           v0sum = v1sum = v2sum = v3sum = v4sum = v5sum = 0.0;
 
         // use hemisphere to avoid double computation of pair-wise
@@ -1612,7 +1631,7 @@ void MSM::direct(int n)
               esum += gtmp * qtmp2;
               ekj[ii] += gtmp * qtmp;
 
-              if (vflag_either) {
+              if (vflag_either && !scalar_pressure_flag) {
                 v0sum += v0_directn[k] * qtmp2;
                 v1sum += v1_directn[k] * qtmp2;
                 v2sum += v2_directn[k] * qtmp2;
@@ -1644,7 +1663,7 @@ void MSM::direct(int n)
             esum += gtmp * qtmp2;
             ekj[ii] += gtmp * qtmp;
 
-            if (vflag_either) {
+            if (vflag_either && !scalar_pressure_flag) {
               v0sum += v0_directn[k] * qtmp2;
               v1sum += v1_directn[k] * qtmp2;
               v2sum += v2_directn[k] * qtmp2;
@@ -1675,7 +1694,7 @@ void MSM::direct(int n)
           esum += gtmp * qtmp2;
           ekj[ii] += gtmp * qtmp;
 
-          if (vflag_either) {
+          if (vflag_either && !scalar_pressure_flag) {
             v0sum += v0_directn[k] * qtmp2;
             v1sum += v1_directn[k] * qtmp2;
             v2sum += v2_directn[k] * qtmp2;
@@ -1717,7 +1736,7 @@ void MSM::direct(int n)
         if (evflag) {
           qtmp = qgridn[icz][icy][icx];
           if (eflag_global) energy += 2.0 * esum * qtmp;
-          if (vflag_global) {
+          if (vflag_global && !scalar_pressure_flag) {
             virial[0] += 2.0 * v0sum * qtmp;
             virial[1] += 2.0 * v1sum * qtmp;
             virial[2] += 2.0 * v2sum * qtmp;
@@ -1947,7 +1966,7 @@ void MSM::direct_top(int n)
         qtmp = qgridn[icz][icy][icx];
 
         esum = 0.0;
-        if (vflag_either)
+        if (vflag_either && !scalar_pressure_flag)
           v0sum = v1sum = v2sum = v3sum = v4sum = v5sum = 0.0;
 
         // use hemisphere to avoid double computation of pair-wise
@@ -1971,7 +1990,7 @@ void MSM::direct_top(int n)
               esum += gtmp * qtmp2;
               ekj[ii] += gtmp * qtmp;
 
-              if (vflag_either) {
+              if (vflag_either && !scalar_pressure_flag) {
                 v0sum += v0_direct_top[k] * qtmp2;
                 v1sum += v1_direct_top[k] * qtmp2;
                 v2sum += v2_direct_top[k] * qtmp2;
@@ -2003,7 +2022,7 @@ void MSM::direct_top(int n)
             esum += gtmp * qtmp2;
             ekj[ii] += gtmp * qtmp;
 
-            if (vflag_either) {
+            if (vflag_either && !scalar_pressure_flag) {
               v0sum += v0_direct_top[k] * qtmp2;
               v1sum += v1_direct_top[k] * qtmp2;
               v2sum += v2_direct_top[k] * qtmp2;
@@ -2034,7 +2053,7 @@ void MSM::direct_top(int n)
           esum += gtmp * qtmp2;
           ekj[ii] += gtmp * qtmp;
 
-          if (vflag_either) {
+          if (vflag_either && !scalar_pressure_flag) {
             v0sum += v0_direct_top[k] * qtmp2;
             v1sum += v1_direct_top[k] * qtmp2;
             v2sum += v2_direct_top[k] * qtmp2;
@@ -2057,7 +2076,7 @@ void MSM::direct_top(int n)
         esum += 0.5 * gtmp * qtmp;
         egridn[icz][icy][icx] += 0.5 * gtmp * qtmp;
 
-        if (vflag_either) {
+        if (vflag_either && !scalar_pressure_flag) {
           v0sum += v0_direct_top[k] * qtmp;
           v1sum += v1_direct_top[k] * qtmp;
           v2sum += v2_direct_top[k] * qtmp;
@@ -2084,7 +2103,7 @@ void MSM::direct_top(int n)
         if (evflag) {
           qtmp = qgridn[icz][icy][icx];
           if (eflag_global) energy += 2.0 * esum * qtmp;
-          if (vflag_global) {
+          if (vflag_global && !scalar_pressure_flag) {
             virial[0] += 2.0 * v0sum * qtmp;
             virial[1] += 2.0 * v1sum * qtmp;
             virial[2] += 2.0 * v2sum * qtmp;

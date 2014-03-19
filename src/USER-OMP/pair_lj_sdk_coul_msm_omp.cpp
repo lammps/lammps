@@ -40,6 +40,10 @@ PairLJSDKCoulMSMOMP::PairLJSDKCoulMSMOMP(LAMMPS *lmp) :
 
 void PairLJSDKCoulMSMOMP::compute(int eflag, int vflag)
 {
+  if (force->kspace->scalar_pressure_flag)
+    error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' "
+      "with OMP MSM Pair styles");
+
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
   } else evflag = vflag_fdotr = 0;

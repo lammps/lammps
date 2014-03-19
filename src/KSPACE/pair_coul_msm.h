@@ -64,4 +64,8 @@ E: Pair style is incompatible with KSpace style
 If a pair style with a long-range Coulombic component is selected,
 then a kspace style must also be used.
 
+E: Must use 'kspace_modify pressure/scalar no' to obtain per-atom virial with kspace_style MSM
+
+The kspace scalar pressure option cannot be used to obtain per-atom virial.
+
 */

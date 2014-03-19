@@ -72,6 +72,10 @@ MSMCG::~MSMCG()
 
 void MSMCG::compute(int eflag, int vflag)
 {
+  if (scalar_pressure_flag)
+    error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' with "
+      "kspace_style msm/cg");
+
   const double * const q = atom->q;
   const int nlocal = atom->nlocal;
   int i,j,n;

@@ -56,6 +56,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Must use 'kspace_modify pressure/scalar no' with kspace_style msm/cg
+
+The kspace scalar pressure option is not compatible with kspace_style msm/cg.
+
 E: Out of range atoms - cannot compute MSM
 
 One or more atoms are attempting to map their charge to a MSM grid point 

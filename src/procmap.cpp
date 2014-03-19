@@ -275,14 +275,14 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
 void ProcMap::custom_grid(char *cfile, int nprocs,
                           int *user_procgrid, int *procgrid)
 {
-  FILE *fp;
-  char line[MAXLINE];
-
   int me;
   MPI_Comm_rank(world,&me);
 
+  char line[MAXLINE];
+  FILE *fp = NULL;
+
   if (me == 0) {
-    FILE *fp = fopen(cfile,"r");
+    fp = fopen(cfile,"r");
     if (fp == NULL) error->one(FLERR,"Cannot open custom file");
 
     // skip header = blank and comment lines

@@ -193,10 +193,10 @@ void PairMIECut::compute_inner()
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cut_out_off_sq) {
+        jtype = type[j];
         r2inv = 1.0/rsq;
         rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
         rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
-        jtype = type[j];
         forcemie =  (mie1[itype][jtype]*rgamR - mie2[itype][jtype]*rgamA);
         fpair = factor_mie*forcemie*r2inv;
         if (rsq > cut_out_on_sq) {
@@ -272,10 +272,10 @@ void PairMIECut::compute_middle()
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cut_out_off_sq && rsq > cut_in_off_sq) {
+        jtype = type[j];
         r2inv = 1.0/rsq;
         rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
         rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
-        jtype = type[j];
         forcemie =  (mie1[itype][jtype]*rgamR - mie2[itype][jtype]*rgamA);
         fpair = factor_mie*forcemie*r2inv;
         if (rsq < cut_in_on_sq) {

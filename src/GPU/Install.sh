@@ -47,6 +47,10 @@ action pair_coul_dsf_gpu.cpp
 action pair_coul_dsf_gpu.h
 action pair_coul_long_gpu.cpp pair_coul_long.cpp
 action pair_coul_long_gpu.h pair_coul_long.cpp
+action pair_dpd_gpu.cpp
+action pair_dpd_gpu.h
+action pair_dpd_tstat_gpu.cpp
+action pair_dpd_tstat_gpu.h
 action pair_lj_cut_dipole_cut_gpu.cpp pair_lj_cut_dipole_cut.cpp
 action pair_lj_cut_dipole_cut_gpu.h pair_lj_cut_dipole_cut.cpp
 action pair_lj_sf_dipole_sf_gpu.cpp pair_lj_sf_dipole_sf.cpp

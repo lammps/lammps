@@ -46,7 +46,7 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
                              double **vatom, double *virial, double &ecoul);
 
 static const char cite_gpu_package[] =
-  "GPU package (short-range and long-range):\n\n"
+  "GPU package (short-range, long-range and three-body potentials):\n\n"
   "@Article{Brown11,\n"
   " author = {W. M. Brown, P. Wang, S. J. Plimpton, A. N. Tharrington},\n"
   " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers - Short Range Forces},\n"
@@ -62,6 +62,14 @@ static const char cite_gpu_package[] =
   " year =    2012,\n"
   " volume =  183,\n"
   " pages =   {449--459}\n"
+  "}\n\n"
+  "@Article{Brown13,\n"
+  " author = {W. M. Brown, Y. Masako},\n"
+  " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers – Three-Body Potentials},\n"
+  " journal = {Comp.~Phys.~Comm.},\n"
+  " year =    2013,\n"
+  " volume =  184,\n"
+  " pages =   {2785--2793}\n"
   "}\n\n";
 
 /* ---------------------------------------------------------------------- */

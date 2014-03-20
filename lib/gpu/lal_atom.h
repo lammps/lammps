@@ -67,7 +67,8 @@ class Atom {
     *        gpu_nbor 1 if neighboring will be performed on device
     *        gpu_nbor 2 if binning on host and neighboring on device **/
   bool init(const int nall, const bool charge, const bool rot, 
-            UCL_Device &dev, const int gpu_nbor=0, const bool bonds=false);
+            UCL_Device &dev, const int gpu_nbor=0, const bool bonds=false, 
+            const bool vel=false);
   
   /// Check if we have enough device storage and realloc if not
   /** Returns true if resized with any call during this timestep **/
@@ -87,7 +88,7 @@ class Atom {
     *        gpu_nbor 1 if neighboring will be performed on device
     *        gpu_nbor 2 if binning on host and neighboring on device **/
   bool add_fields(const bool charge, const bool rot, const int gpu_nbor,
-                  const bool bonds);
+                  const bool bonds, const bool vel=false);
   
   /// Returns true if GPU is using charges
   bool charge() { return _charge; }
@@ -95,6 +96,9 @@ class Atom {
   /// Returns true if GPU is using quaternions
   bool quaternion() { return _rot; }
   
+  /// Returns true if GPU is using velocities
+  bool velocity() { return _vel; }
+
   /// Only free matrices of length inum or nall for resizing
   void clear_resize();
   
@@ -114,6 +118,8 @@ class Atom {
       time_q.add_to_total();
     if (_rot)
       time_quat.add_to_total();
+    if (_vel)
+      time_vel.add_to_total();
   }
 
   /// Add copy times to timers
@@ -123,6 +129,8 @@ class Atom {
       time_q.zero();
     if (_rot)
       time_quat.zero();
+    if (_vel)
+      time_vel.zero();
   }
 
   /// Return the total time for host/device data transfer
@@ -135,8 +143,12 @@ class Atom {
       time_q.zero_total();
     }
     if (_rot) {
-      total+=time_q.total_seconds();
+      total+=time_quat.total_seconds();
       time_quat.zero_total();
+    }
+    if (_vel) {
+      total+=time_vel.total_seconds();
+      time_vel.zero_total();
     }
     
     return total+_time_transfer/1000.0;
@@ -242,7 +254,7 @@ class Atom {
 
   /// Signal that we need to transfer atom data for next timestep
   inline void data_unavail()
-    { _x_avail=false; _q_avail=false; _quat_avail=false; _resized=false; }
+    { _x_avail=false; _q_avail=false; _quat_avail=false; _v_avail=false; _resized=false; }
 
   /// Cast positions and types to write buffer
   inline void cast_x_data(double **host_ptr, const int *host_type) {
@@ -341,6 +353,53 @@ class Atom {
     }
   }
 
+  /// Cast velocities and tags to write buffer
+  inline void cast_v_data(double **host_ptr, const tagint *host_tag) {
+    if (_v_avail==false) {
+      double t=MPI_Wtime();
+      #ifdef GPU_CAST
+      memcpy(host_v_cast.begin(),host_ptr[0],_nall*3*sizeof(double));
+      memcpy(host_tag_cast.begin(),host_tag,_nall*sizeof(int));
+      #else
+      int wl=0;
+      for (int i=0; i<_nall; i++) {
+        v[wl]=host_ptr[i][0];
+        v[wl+1]=host_ptr[i][1];
+        v[wl+2]=host_ptr[i][2];
+        v[wl+3]=host_tag[i];
+        wl+=4;
+      }
+      #endif
+      _time_cast+=MPI_Wtime()-t;
+    }
+  }
+
+  /// Copy velocities and tags to device asynchronously
+  /** Copies nall() elements **/
+  inline void add_v_data(double **host_ptr, tagint *host_tag) { 
+    time_vel.start();
+    if (_v_avail==false) {
+      #ifdef GPU_CAST
+      v_cast.update_device(_nall*3,true);
+      tag_cast.update_device(_nall,true);
+      int block_size=64;
+      int GX=static_cast<int>(ceil(static_cast<double>(_nall)/block_size));
+      k_cast_x.set_size(GX,block_size);
+      k_cast_x.run(&v, &v_cast, &tag_cast, &_nall);
+      #else
+      v.update_device(_nall*4,true);
+      #endif
+      _v_avail=true;
+    }
+    time_vel.stop();
+  }
+
+  /// Calls cast_v_data and add_v_data and times the routines
+  inline void cast_copy_v(double **host_ptr, tagint *host_tag) {
+    cast_v_data(host_ptr,host_tag);
+    add_v_data(host_ptr,host_tag);
+  }
+
   /// Add in casting time from additional data (seconds)
   inline void add_cast_time(double t) { _time_cast+=t; }
 
@@ -362,7 +421,9 @@ class Atom {
   UCL_Vector<numtyp,numtyp> q;
   /// Quaterions
   UCL_Vector<numtyp,numtyp> quat;
-  
+  /// Velocities
+  UCL_Vector<numtyp,numtyp> v;  
+
   #ifdef GPU_CAST
   UCL_Vector<double,double> x_cast;
   UCL_Vector<int,int> type_cast;
@@ -372,6 +433,7 @@ class Atom {
   UCL_D_Vec<unsigned> dev_cell_id;
   /// Cell list identifiers for device nbor builds
   UCL_D_Vec<int> dev_particle_id;
+
   /// Atom tag information for device nbor builds
   UCL_D_Vec<tagint> dev_tag;
   
@@ -381,7 +443,7 @@ class Atom {
   UCL_H_Vec<int> host_particle_id;
 
   /// Device timers
-  UCL_Timer time_pos, time_q, time_quat;
+  UCL_Timer time_pos, time_q, time_quat, time_vel;
   
   /// Geryon device
   UCL_Device *dev;
@@ -396,11 +458,11 @@ class Atom {
   bool _compiled;
   
   // True if data has been copied to device already
-  bool _x_avail, _q_avail, _quat_avail, _resized;
+  bool _x_avail, _q_avail, _quat_avail, _v_avail, _resized;
 
   bool alloc(const int nall);
   
-  bool _allocated, _rot, _charge, _bonds, _other;
+  bool _allocated, _rot, _charge, _bonds, _vel, _other;
   int _max_atoms, _nall, _gpu_nbor;
   bool _host_view;
   double _time_cast, _time_transfer;

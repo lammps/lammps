@@ -41,6 +41,8 @@ int AtomT::bytes_per_atom() const {
     bytes+=4*sizeof(numtyp);
   if (_charge)
     bytes+=sizeof(numtyp);
+  if (_vel)
+    bytes+=4*sizeof(numtyp);
   return bytes;
 }
 
@@ -52,7 +54,7 @@ bool AtomT::alloc(const int nall) {
   
   // Ignore host/device transfers?
   _host_view=false;
-  if (dev->shared_memory()) {
+  if (dev->shared_memory() && sizeof(numtyp)==sizeof(double)) {
     _host_view=true;
     #ifdef GPU_CAST
     assert(0==1);
@@ -90,6 +92,11 @@ bool AtomT::alloc(const int nall) {
                                    UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=quat.device.row_bytes();
   }
+  if (_vel && _host_view==false) {
+    success=success && (v.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
+                                   UCL_READ_ONLY)==UCL_SUCCESS);
+    gpu_bytes+=v.device.row_bytes();
+  }
 
   if (_gpu_nbor>0) {
     if (_bonds) {
@@ -124,7 +131,7 @@ bool AtomT::alloc(const int nall) {
 
 template <class numtyp, class acctyp>
 bool AtomT::add_fields(const bool charge, const bool rot,
-                       const int gpu_nbor, const bool bonds) {
+                       const int gpu_nbor, const bool bonds, const bool vel) {
   bool success=true;
   // Ignore host/device transfers?
   int gpu_bytes=0;
@@ -146,6 +153,16 @@ bool AtomT::add_fields(const bool charge, const bool rot,
       success=success && (quat.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
                                      UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=quat.device.row_bytes();
+    }
+  }
+
+  if (vel && _vel==false) {
+    _vel=true;
+    _other=true;
+    if (_host_view==false) {
+      success=success && (v.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
+                                     UCL_READ_ONLY)==UCL_SUCCESS);
+      gpu_bytes+=v.device.row_bytes();
     }
   }
 
@@ -191,19 +208,21 @@ bool AtomT::add_fields(const bool charge, const bool rot,
 
 template <class numtyp, class acctyp>
 bool AtomT::init(const int nall, const bool charge, const bool rot,
-                 UCL_Device &devi, const int gpu_nbor, const bool bonds) {
+                 UCL_Device &devi, const int gpu_nbor, const bool bonds, const bool vel) {
   clear();
 
   bool success=true;
   _x_avail=false;
   _q_avail=false;
   _quat_avail=false;
+  _v_avail=false;
   _resized=false;
   _gpu_nbor=gpu_nbor;
   _bonds=bonds;
   _charge=charge;
   _rot=rot;
-  _other=_charge || _rot;
+  _vel=vel;
+  _other=_charge || _rot || _vel;
   dev=&devi;
   _time_transfer=0;
 
@@ -216,9 +235,11 @@ bool AtomT::init(const int nall, const bool charge, const bool rot,
   time_pos.init(*dev);
   time_q.init(*dev);
   time_quat.init(*dev);
+  time_vel.init(*dev);
   time_pos.zero();
   time_q.zero();
   time_quat.zero();
+  time_vel.zero();
   _time_cast=0.0;
   
   #ifdef GPU_CAST
@@ -239,6 +260,8 @@ void AtomT::clear_resize() {
     q.clear();
   if (_rot)
     quat.clear();
+  if (_vel)
+    v.clear();
 
   dev_cell_id.clear();
   dev_particle_id.clear();
@@ -267,6 +290,7 @@ void AtomT::clear() {
   time_pos.clear();
   time_q.clear();
   time_quat.clear();
+  time_vel.clear();
   clear_resize();
 
   #ifdef GPU_CAST
@@ -284,6 +308,8 @@ double AtomT::host_memory_usage() const {
   if (_charge) 
     atom_bytes+=1;
   if (_rot) 
+    atom_bytes+=4;
+  if (_vel) 
     atom_bytes+=4;
   return _max_atoms*atom_bytes*sizeof(numtyp)+sizeof(Atom<numtyp,acctyp>);
 }

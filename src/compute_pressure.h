@@ -74,6 +74,11 @@ E: Compute pressure temperature ID does not compute temperature
 The compute ID assigned to a pressure computation must compute
 temperature.
 
+E: Must use 'kspace_modify pressure/scalar no' to get individual
+components of pressure tensor with kspace_style MSM
+
+Self-explanatory.
+
 E: Virial was not tallied on needed timestep
 
 You are using a thermo keyword that requires potentials to

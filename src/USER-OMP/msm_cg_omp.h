@@ -56,6 +56,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Must use 'kspace_modify pressure/scalar no' with kspace_style msm/cg/omp
+
+The kspace scalar pressure option is not compatible with kspace_style msm/cg/omp.
+
 E: Cannot (yet) use MSM with triclinic box
 
 This feature is not yet supported.

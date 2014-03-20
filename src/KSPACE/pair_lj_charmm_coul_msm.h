@@ -27,11 +27,14 @@ namespace LAMMPS_NS {
 class PairLJCharmmCoulMSM : public PairLJCharmmCoulLong {
  public:
   PairLJCharmmCoulMSM(class LAMMPS *);
-  virtual ~PairLJCharmmCoulMSM(){};
+  virtual ~PairLJCharmmCoulMSM();
   virtual void compute(int, int);
   virtual double single(int, int, int, int, double, double, double, double &);
   virtual void compute_outer(int, int);
   virtual void *extract(const char *, int &);
+ protected:
+  int nmax;
+  double **ftmp;
 };
 
 }
@@ -58,6 +61,15 @@ The atom style defined does not have these attributes.
 E: Pair inner cutoff >= Pair outer cutoff
 
 The specified cutoffs for the pair style are inconsistent.
+
+E: Must use 'kspace_modify pressure/scalar no' to obtain per-atom virial
+with kspace_style MSM
+
+The kspace scalar pressure option cannot be used to obtain per-atom virial.
+
+E: Must use 'kspace_modify pressure/scalar no' for rRESPA with kspace_style MSM
+
+The kspace scalar pressure option cannot (yet) be used with rRESPA.
 
 E: Pair cutoff < Respa interior cutoff
 

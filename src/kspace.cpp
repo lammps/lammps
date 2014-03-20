@@ -65,6 +65,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   slab_volfactor = 1;
   suffix_flag = Suffix::NONE;
   adjust_cutoff_flag = 1;
+  scalar_pressure_flag = 0;
 
   accuracy_absolute = -1.0;
   accuracy_real_6 = -1.0;
@@ -489,6 +490,12 @@ void KSpace::modify_params(int narg, char **arg)
       splittol = atof(arg[iarg+1]);
       if (splittol >= 1.0) 
         error->all(FLERR,"Kspace_modify eigtol must be smaller than one");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"pressure/scalar") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) scalar_pressure_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) scalar_pressure_flag = 0;
+      else error->all(FLERR,"Illegal kspace_modify command");
       iarg += 2;
     } else error->all(FLERR,"Illegal kspace_modify command");
   }

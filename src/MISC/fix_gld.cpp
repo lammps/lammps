@@ -224,6 +224,8 @@ void FixGLD::initial_integrate(int vflag)
   double fran[3], fsum[3], fsumall[3];
   bigint count;
 
+  int icoeff;
+
   // update v and x of atoms in group
   double **x = atom->x;
   double **v = atom->v;
@@ -231,7 +233,7 @@ void FixGLD::initial_integrate(int vflag)
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;
+  int *mask = atom->mask;  
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -261,9 +263,10 @@ void FixGLD::initial_integrate(int vflag)
         x[i][2] += dtv * v[i][2];
 
 	// Advance S by dt
+	icoeff = 0;
 	for (int k = 0; k < 3*prony_terms; k=k+3) {
-	  double theta = exp(-dtv/prony_tau[k]);
-          double ck = prony_c[k];
+	  double theta = exp(-dtv/prony_tau[icoeff]);
+          double ck = prony_c[icoeff];
           double vmult = (theta-1.)*ck/ftm2v;
 	  double rmult = sqrt(2.0*kT*ck/dtv)*(1.-theta)/ftm2v;
 
@@ -295,6 +298,8 @@ void FixGLD::initial_integrate(int vflag)
           s_gld[i][k]   += fran[0];
           s_gld[i][k+1] += fran[1];
           s_gld[i][k+2] += fran[2];
+
+	  icoeff += 1;
 	}
       }
 
@@ -318,9 +323,10 @@ void FixGLD::initial_integrate(int vflag)
         x[i][2] += dtv * v[i][2];
 
 	// Advance S by dt
+	icoeff = 0;
 	for (int k = 0; k < 3*prony_terms; k=k+3) {
-	  double theta = exp(-dtv/prony_tau[k]);
-          double ck = prony_c[k];
+	  double theta = exp(-dtv/prony_tau[icoeff]);
+          double ck = prony_c[icoeff];
           double vmult = (theta-1.)*ck/ftm2v;
 	  double rmult = sqrt(2.0*kT*ck/dtv)*(1.-theta)/ftm2v;
 
@@ -352,6 +358,9 @@ void FixGLD::initial_integrate(int vflag)
           s_gld[i][k]   += fran[0];
           s_gld[i][k+1] += fran[1];
           s_gld[i][k+2] += fran[2];
+	 
+	  icoeff += 1;
+
 	}
       }
   }
@@ -375,6 +384,7 @@ void FixGLD::initial_integrate(int vflag)
       }
     }
   }
+
 }
 
 /* ----------------------------------------------------------------------

@@ -679,11 +679,10 @@ void PairBOP::gneigh()
   neigh_total=0;
   cos_total=0;
   for (ii = 0; ii < nall; ii++) {
-    if(i<nlocal) {
+    if (ii < nlocal) {
       i=ilist[ii];
       if(numneigh[i]>maxneigh) maxneigh=numneigh[i];
-    }
-    else {
+    } else {
       i=ii;
       if(numneigh[i]>maxneigh) maxneigh=numneigh[i];
     }

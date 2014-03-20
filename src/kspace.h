@@ -48,6 +48,7 @@ class KSpace : protected Pointers {
   int neighrequest_flag;         // used to avoid obsolete construction of neighbor lists
   int mixflag;                   // 1 if geometric mixing rules are enforced for LJ coefficients
   int slabflag;
+  int scalar_pressure_flag;      // 1 if using MSM fast scalar pressure
   double slab_volfactor;
 
 

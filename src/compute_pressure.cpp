@@ -59,8 +59,8 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     if (icompute < 0)
       error->all(FLERR,"Could not find compute pressure temperature ID");
     if (modify->compute[icompute]->tempflag == 0)
-      error->all(FLERR,
-		 "Compute pressure temperature ID does not compute temperature");
+      error->all(FLERR,"Compute pressure temperature ID does not "
+                 "compute temperature");
   }
 
   // process optional args
@@ -220,6 +220,10 @@ void ComputePressure::compute_vector()
   invoked_vector = update->ntimestep;
   if (update->vflag_global != invoked_vector)
     error->all(FLERR,"Virial was not tallied on needed timestep");
+
+  if (force->kspace && kspace_virial && force->kspace->scalar_pressure_flag)
+    error->all(FLERR,"Kspace_modify pressure/scalar no required "
+               "for components of pressure tensor with kspace_style msm");
 
   // invoke temperature if it hasn't been already
 

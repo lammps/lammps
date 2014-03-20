@@ -44,3 +44,11 @@ namespace LAMMPS_NS {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Must use 'kspace_modify pressure/scalar no' with kspace_style msm/omp
+
+The kspace scalar pressure option is not compatible with kspace_style msm/omp.
+
+*/

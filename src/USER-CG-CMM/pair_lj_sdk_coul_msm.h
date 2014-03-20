@@ -46,3 +46,12 @@ private:
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Must use 'kspace_modify pressure/scalar no' with Pair style
+
+The kspace scalar pressure option is not (yet) compatible with at least one of
+the defined Pair styles.
+
+*/

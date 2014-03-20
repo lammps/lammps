@@ -359,18 +359,11 @@ namespace ATC {
   // -------------------------------------------------------------
   void FE_Mesh::initialize(void) 
   {
-
     bool aligned = is_aligned();
     if (!aligned) {
       feElement_->set_projection_guess(CENTROID_LINEARIZED);
       ATC::LammpsInterface::instance()->print_msg_once("WARNING: mesh is not aligned with the coordinate directions atom-to-element mapping will be expensive");
       // if HEX8 -> orient();
-    }
-    bool twoD = is_two_dimensional(); 
-    if (twoD) {
-      feElement_->set_projection_guess(TWOD_ANALYTIC);
-      if (feElement_->order()< 3) hasPlanarFaces_ = true; 
-      ATC::LammpsInterface::instance()->print_msg_once(" mesh is two dimensional");
     }
   }
   //-----------------------------------------------------------------

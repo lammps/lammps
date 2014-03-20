@@ -217,6 +217,11 @@ The global MSM grid is larger than OFFSET in one or more dimensions.
 OFFSET is currently set to 16384.  You likely need to decrease the
 requested accuracy.
 
+E: Must use 'kspace_modify pressure/scalar no' to obtain per-atom virial
+with kspace_style MSM
+
+The kspace scalar pressure option cannot be used to obtain per-atom virial.
+
 E: Out of range atoms - cannot compute MSM
 
 One or more atoms are attempting to map their charge to a MSM grid point 

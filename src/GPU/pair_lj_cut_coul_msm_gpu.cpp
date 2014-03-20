@@ -136,6 +136,9 @@ void PairLJCutCoulMSMGPU::init_style()
   if (force->newton_pair) 
     error->all(FLERR,"Cannot use newton pair with lj/cut/coul/msm/gpu pair style");
 
+  if (force->kspace->scalar_pressure_flag)
+    error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' with GPU MSM Pair styles");
+
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
   double cut;

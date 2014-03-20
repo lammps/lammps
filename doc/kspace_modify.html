@@ -42,6 +42,7 @@
   <I>nozforce</I> turns off kspace forces in the z direction
   <I>compute</I> value = <I>yes</I> or <I>no</I> 
   <I>cutoff/adjust</I> value = <I>yes</I> or <I>no</I> 
+  <I>pressure/scalar</I> value = <I>yes</I> or <I>no</I> 
   <I>fftbench</I> value = <I>yes</I> or <I>no</I> 
   <I>collective</I> value = <I>yes</I> or <I>no</I> 
   <I>diff</I> value = <I>ad</I> or <I>ik</I> = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode 
@@ -206,6 +207,16 @@ grid that minimizes cost using an estimate given by
 <A HREF = "#Hardy">(Hardy)</A>. Note that this cost estimate is not exact, somewhat
 experimental, and still may not yield the optimal parameters.
 </P>
+<P>The <I>pressure/scalar</I> keyword applies only to MSM. If this option is
+turned on, only the scalar pressure (i.e. (Pxx + Pyy + Pzz)/3.0) will
+be computed, which can be used, for example, to run an isotropic barostat.
+Computing the full pressure tensor with MSM is expensive, and this option
+provides a faster alternative. The scalar pressure is computed using a
+relationship between the Coulombic energy and pressure <A HREF = "#Hummer">(Hummer)</A>
+instead of using the virial equation. This option cannot be used to access
+individual components of the pressure tensor, to compute per-atom virial,
+or with suffix kspace/pair styles of MSM, like OMP or GPU.
+</P>
 <P>The <I>fftbench</I> keyword applies only to PPPM. It is on by default. If
 this option is turned off, LAMMPS will not take the time at the end
 of a run to give FFT benchmark timings, and will finish a few seconds
@@ -282,9 +293,9 @@ are different.
 <P>The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
-yes (MSM), fftbench = yes (PPPM), diff = ik (PPPM), mix/disp = pair,
-force/disp/real = -1.0, force/disp/kspace = -1.0, split = 0, and tol =
-1.0e-6.
+yes (MSM), pressure/scalar = yes (MSM), fftbench = yes (PPPM), diff = ik
+(PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace = -1.0,
+split = 0, and tol = 1.0e-6.
 </P>
 <HR>
 
@@ -311,6 +322,10 @@ Adam Hilger, NY (1989).
 <P><B>(Hardy)</B> David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
 Illinois at Urbana-Champaign, (2006).
+</P>
+<A NAME = "Hummer"></A>
+
+<P><B>(Hummer)</B> Hummer, Grønbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)
 </P>
 <A NAME = "Isele-Holder"></A>
 

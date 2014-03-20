@@ -7,8 +7,10 @@
 :line
 
 pair_style dpd command :h3
+pair_style dpd/gpu command :h3
 pair_style dpd/omp command :h3
 pair_style dpd/tstat command :h3
+pair_style dpd/tstat/gpu command :h3
 pair_style dpd/tstat/omp command :h3
 
 [Syntax:]
@@ -89,6 +91,9 @@ command so it does not need to be specified.
 For style {dpd/tstat}, the coefficiencts defined for each pair of
 atoms types via the "pair_coeff"_pair_coeff.html command is the same,
 except that A is not included.
+
+The GPU-accelerated versions of these styles are implemented based on
+the work of "(Afshar)"_#Afshar and "(Phillips)"_#Phillips.
 
 :line
 
@@ -183,3 +188,12 @@ langevin"_fix_langevin.html
 
 :link(Groot)
 [(Groot)] Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
+
+:link(Afshar)
+[(Afshar)] Afshar, F. Schmid, A. Pishevar, S. Worley, Comput Phys
+Comm, 184, 1119–1128 (2013).
+
+:link(Phillips)
+[(Phillips)] C. L. Phillips, J. A. Anderson, S. C. Glotzer, Comput
+Phys Comm, 230, 7191-7201 (2013).
+

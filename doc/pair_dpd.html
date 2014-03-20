@@ -11,9 +11,13 @@
 
 <H3>pair_style dpd command 
 </H3>
+<H3>pair_style dpd/gpu command 
+</H3>
 <H3>pair_style dpd/omp command 
 </H3>
 <H3>pair_style dpd/tstat command 
+</H3>
+<H3>pair_style dpd/tstat/gpu command 
 </H3>
 <H3>pair_style dpd/tstat/omp command 
 </H3>
@@ -95,6 +99,9 @@ command so it does not need to be specified.
 <P>For style <I>dpd/tstat</I>, the coefficiencts defined for each pair of
 atoms types via the <A HREF = "pair_coeff.html">pair_coeff</A> command is the same,
 except that A is not included.
+</P>
+<P>The GPU-accelerated versions of these styles are implemented based on
+the work of <A HREF = "#Afshar">(Afshar)</A> and <A HREF = "#Phillips">(Phillips)</A>.
 </P>
 <HR>
 
@@ -190,5 +197,15 @@ langevin</A>
 <A NAME = "Groot"></A>
 
 <P><B>(Groot)</B> Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
+</P>
+<A NAME = "Afshar"></A>
+
+<P><B>(Afshar)</B> Afshar, F. Schmid, A. Pishevar, S. Worley, Comput Phys
+Comm, 184, 1119–1128 (2013).
+</P>
+<A NAME = "Phillips"></A>
+
+<P><B>(Phillips)</B> C. L. Phillips, J. A. Anderson, S. C. Glotzer, Comput
+Phys Comm, 230, 7191-7201 (2013).
 </P>
 </HTML>

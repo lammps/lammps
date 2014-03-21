@@ -226,7 +226,8 @@ void ComputeGroupGroup::pair_contribution()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(mask[i] & groupbit || mask[i] & jgroupbit)) continue; // skip if atom I is not in either group
+    // skip if atom I is not in either group
+    if (!(mask[i] & groupbit || mask[i] & jgroupbit)) continue; 
 
     xtmp = x[i][0];
     ytmp = x[i][1];

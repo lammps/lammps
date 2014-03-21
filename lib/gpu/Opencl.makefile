@@ -18,6 +18,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_device.o $(OBJ_DIR)/lal_base_atomic.o \
        $(OBJ_DIR)/lal_base_charge.o $(OBJ_DIR)/lal_base_ellipsoid.o \
        $(OBJ_DIR)/lal_base_dipole.o $(OBJ_DIR)/lal_base_three.o \
+       $(OBJ_DIR)/lal_base_dpd.o \
        $(OBJ_DIR)/lal_pppm.o $(OBJ_DIR)/lal_pppm_ext.o \
        $(OBJ_DIR)/lal_gayberne.o $(OBJ_DIR)/lal_gayberne_ext.o \
        $(OBJ_DIR)/lal_re_squared.o $(OBJ_DIR)/lal_re_squared_ext.o \
@@ -54,7 +55,8 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_mie.o $(OBJ_DIR)/lal_mie_ext.o \
        $(OBJ_DIR)/lal_soft.o $(OBJ_DIR)/lal_soft_ext.o \
        $(OBJ_DIR)/lal_lj_coul_msm.o $(OBJ_DIR)/lal_lj_coul_msm_ext.o \
-       $(OBJ_DIR)/lal_lj_gromacs.o $(OBJ_DIR)/lal_lj_gromacs_ext.o
+       $(OBJ_DIR)/lal_lj_gromacs.o $(OBJ_DIR)/lal_lj_gromacs_ext.o \
+       $(OBJ_DIR)/lal_dpd.o $(OBJ_DIR)/lal_dpd_ext.o 
 
 KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/neighbor_cpu_cl.h $(OBJ_DIR)/pppm_cl.h \
@@ -77,7 +79,7 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/lj_coul_debye_cl.h $(OBJ_DIR)/coul_dsf_cl.h \
        $(OBJ_DIR)/sw_cl.h $(OBJ_DIR)/beck_cl.h $(OBJ_DIR)/mie_cl.h \
        $(OBJ_DIR)/soft_cl.h $(OBJ_DIR)/lj_coul_msm_cl.h \
-       $(OBJ_DIR)/lj_gromacs_cl.h
+       $(OBJ_DIR)/lj_gromacs_cl.h $(OBJ_DIR)/dpd_cl.h
 
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
@@ -128,6 +130,9 @@ $(OBJ_DIR)/lal_base_dipole.o: $(OCL_H) lal_base_dipole.h lal_base_dipole.cpp
 
 $(OBJ_DIR)/lal_base_three.o: $(OCL_H) lal_base_three.h lal_base_three.cpp
 	$(OCL) -o $@ -c lal_base_three.cpp
+
+$(OBJ_DIR)/lal_base_dpd.o: $(OCL_H) lal_base_dpd.h lal_base_dpd.cpp
+	$(OCL) -o $@ -c lal_base_dpd.cpp
 
 $(OBJ_DIR)/pppm_cl.h: lal_pppm.cu lal_preprocessor.h
 	$(BSH) ./geryon/file_to_cstr.sh pppm lal_preprocessor.h lal_pppm.cu $(OBJ_DIR)/pppm_cl.h;
@@ -470,6 +475,15 @@ $(OBJ_DIR)/lal_lj_gromacs.o: $(ALL_H) lal_lj_gromacs.h lal_lj_gromacs.cpp  $(OBJ
 
 $(OBJ_DIR)/lal_lj_gromacs_ext.o: $(ALL_H) lal_lj_gromacs.h lal_lj_gromacs_ext.cpp lal_base_atomic.h
 	$(OCL) -o $@ -c lal_lj_gromacs_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/dpd_cl.h: lal_dpd.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh dpd $(PRE1_H) lal_dpd.cu $(OBJ_DIR)/dpd_cl.h;
+
+$(OBJ_DIR)/lal_dpd.o: $(ALL_H) lal_dpd.h lal_dpd.cpp  $(OBJ_DIR)/dpd_cl.h $(OBJ_DIR)/dpd_cl.h $(OBJ_DIR)/lal_base_dpd.o
+	$(OCL) -o $@ -c lal_dpd.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_dpd_ext.o: $(ALL_H) lal_dpd.h lal_dpd_ext.cpp lal_base_dpd.h
+	$(OCL) -o $@ -c lal_dpd_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp
 	$(OCL) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_OPENCL $(OCL_LINK) 

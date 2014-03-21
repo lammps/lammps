@@ -219,12 +219,12 @@ int DeviceT::set_ocl_params(char *ocl_vendor) {
 
 template <class numtyp, class acctyp>
 int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
-                         const bool rot, const int nlocal, 
-                         const int host_nlocal, const int nall,
-                         Neighbor *nbor, const int maxspecial,
-                         const int gpu_host, const int max_nbors, 
-                         const double cell_size, const bool pre_cut,
-                         const int threads_per_atom) {
+                  const bool rot, const int nlocal, 
+                  const int host_nlocal, const int nall,
+                  Neighbor *nbor, const int maxspecial,
+                  const int gpu_host, const int max_nbors, 
+                  const double cell_size, const bool pre_cut,
+                  const int threads_per_atom, const bool vel) {
   if (!_device_init)
     return -1;
   if (sizeof(acctyp)==sizeof(double) && gpu->double_precision()==false)
@@ -251,7 +251,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
 
   if (_init_count==0) {
     // Initialize atom and nbor data
-    if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor>0 && maxspecial>0))
+    if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor>0 && maxspecial>0,vel))
       return -3;
       
     _data_in_estimate++;
@@ -259,12 +259,16 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
       _data_in_estimate++;
     if (rot)
       _data_in_estimate++;
+    if (vel)
+      _data_in_estimate++;
   } else {
     if (atom.charge()==false && charge)
       _data_in_estimate++;
     if (atom.quaternion()==false && rot)
       _data_in_estimate++;
-    if (!atom.add_fields(charge,rot,gpu_nbor,gpu_nbor>0 && maxspecial))
+    if (atom.velocity()==false && vel)
+      _data_in_estimate++;
+    if (!atom.add_fields(charge,rot,gpu_nbor,gpu_nbor>0 && maxspecial,vel))
       return -3;
   }
   
@@ -324,7 +328,7 @@ void DeviceT::set_double_precompute
 
 template <class numtyp, class acctyp>
 void DeviceT::init_message(FILE *screen, const char *name,
-                                  const int first_gpu, const int last_gpu) {
+                           const int first_gpu, const int last_gpu) {
   #if defined(USE_OPENCL)
   std::string fs="";
   #elif defined(USE_CUDART)
@@ -377,8 +381,8 @@ void DeviceT::init_message(FILE *screen, const char *name,
 
 template <class numtyp, class acctyp>
 void DeviceT::estimate_gpu_overhead(const int kernel_calls, 
-                                           double &gpu_overhead,
-                                           double &gpu_driver_overhead) {
+                                    double &gpu_overhead,
+                                    double &gpu_driver_overhead) {
   UCL_H_Vec<int> *host_data_in=NULL, *host_data_out=NULL;
   UCL_D_Vec<int> *dev_data_in=NULL, *dev_data_out=NULL, *kernel_data=NULL;
   UCL_Timer *timers_in=NULL, *timers_out=NULL, *timers_kernel=NULL;
@@ -549,14 +553,14 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
 
 template <class numtyp, class acctyp>
 void DeviceT::output_kspace_times(UCL_Timer &time_in, 
-                                         UCL_Timer &time_out,
-                                         UCL_Timer &time_map,
-                                         UCL_Timer &time_rho,
-                                         UCL_Timer &time_interp,
-                                         Answer<numtyp,acctyp> &ans, 
-                                         const double max_bytes, 
-                                         const double cpu_time, 
-                                         const double idle_time, FILE *screen) {
+                                  UCL_Timer &time_out,
+                                  UCL_Timer &time_map,
+                                  UCL_Timer &time_rho,
+                                  UCL_Timer &time_interp,
+                                  Answer<numtyp,acctyp> &ans, 
+                                  const double max_bytes, 
+                                  const double cpu_time, 
+                                  const double idle_time, FILE *screen) {
   double single[8], times[8];
 
   single[0]=time_out.total_seconds();
@@ -580,7 +584,7 @@ void DeviceT::output_kspace_times(UCL_Timer &time_in,
     if (screen && times[6]>0.0) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
-      fprintf(screen,"    Device Time Info (average): ");
+      fprintf(screen,"      Device Time Info (average): ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 

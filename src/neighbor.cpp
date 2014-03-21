@@ -1488,7 +1488,7 @@ void Neighbor::build_one(int i)
   int flag = 0;
   if (dist_check && update->whichflag) flag = check_distance();
   if (flag && me == 0)
-    error->warning(FLERR,"Building an occasional neighobr list when "
+    error->warning(FLERR,"Building an occasional neighbor list when "
                    "atoms may have moved too far");
 
   (this->*pair_build[i])(lists[i]);

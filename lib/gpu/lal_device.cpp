@@ -340,7 +340,11 @@ void DeviceT::init_message(FILE *screen, const char *name,
   if (_replica_me == 0 && screen) {
     fprintf(screen,"\n-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
-    fprintf(screen,"- Using acceleration for %s:\n",name);
+    #ifdef USE_OPENCL
+    fprintf(screen,"- Using OpenCL acceleration for %s:\n",name);
+    #else
+    fprintf(screen,"- Using CUDA acceleration for %s:\n",name);
+    #endif
     fprintf(screen,"-  with %d proc(s) per device.\n",_procs_per_gpu);
     #ifdef _OPENMP
     fprintf(screen,"-  with %d thread(s) per proc.\n",_nthreads);

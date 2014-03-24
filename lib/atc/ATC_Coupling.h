@@ -126,7 +126,7 @@ namespace ATC {
 
 // public for FieldIntegrator
     bool source_atomic_quadrature(FieldName field)  
-      { return (sourceIntegration_ == FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE); }
+      { return false; }
     ATC::IntegrationDomainType source_integration() 
       { return sourceIntegration_; }
 

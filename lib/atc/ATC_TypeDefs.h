@@ -52,8 +52,7 @@ namespace ATC
   enum IntegrationDomainType {
     FULL_DOMAIN=0,
     ATOM_DOMAIN,
-    FE_DOMAIN,
-    FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE 
+    FE_DOMAIN
   };
   /** domain decomposition */
   enum DomainDecompositionType {

@@ -114,9 +114,6 @@ void PoissonSolver::initialize(void)
 {
   nNodes_ = feEngine_->num_nodes();
 
-  if (atc_->source_atomic_quadrature(fieldName_))  
-    integrationType_ = FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE;
-
   // compute penalty for Dirichlet boundaries
   if (prescribedDataMgr_->none_fixed(fieldName_))  
     throw ATC_Error("Poisson solver needs Dirichlet data");

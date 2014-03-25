@@ -525,9 +525,6 @@ namespace ATC {
         if (strcmp(arg[argIdx],"fe")==0) {
           sourceIntegration_ = FULL_DOMAIN;
         }
-        else {
-          sourceIntegration_ = FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE;
-        }
         match = true;
       }
 
@@ -905,31 +902,8 @@ namespace ATC {
     const PhysicsModel * physicsModel)
   {
 
-    if (integrationType  == FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE) {
-      RHS_MASK rhsMaskFE = rhsMask;
-      RHS_MASK rhsMaskMD = rhsMask; rhsMaskMD = false;
-      for (FIELDS::const_iterator field = fields.begin(); 
-           field != fields.end(); field++) {
-        FieldName thisFieldName = field->first;
-        if ( rhsMaskFE(thisFieldName,SOURCE) ) {
-          rhsMaskFE(thisFieldName,SOURCE) = false;
-          rhsMaskMD(thisFieldName,SOURCE) = true;
-        }
-      }
-      feEngine_->compute_tangent_matrix(rhsMaskFE, row_col,
-        fields , physicsModel, elementToMaterialMap_, stiffness);
-      masked_atom_domain_rhs_tangent(row_col,
-                                     rhsMaskMD,
-                                     fields,
-                                     stiffnessAtomDomain_,
-                                     physicsModel);
-      stiffness += stiffnessAtomDomain_; 
-
-    }
-    else {
       feEngine_->compute_tangent_matrix(rhsMask, row_col,
         fields , physicsModel, elementToMaterialMap_, stiffness);
-    }
     ROBIN_SURFACE_SOURCE & robinFcn = *(prescribedDataMgr_->robin_functions()); 
     feEngine_->add_robin_tangent(rhsMask, fields, time(), robinFcn, stiffness);
   }
@@ -1032,35 +1006,6 @@ namespace ATC {
                                       fields,
                                       rhs,
                                       physicsModel);
-    }
-    else if (integrationType  == FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE) {
-      RHS_MASK rhsMaskFE = rhsMask;
-      RHS_MASK rhsMaskMD = rhsMask; rhsMaskMD = false;
-      for (FIELDS::const_iterator field = fields.begin(); 
-           field != fields.end(); field++) {
-        FieldName thisFieldName = field->first;
-        if ( rhsMaskFE(thisFieldName,SOURCE) ) {
-          rhsMaskFE(thisFieldName,SOURCE) = false;
-          rhsMaskMD(thisFieldName,SOURCE) = true;
-        }
-      }
-      feEngine_->compute_rhs_vector(rhsMaskFE,
-                                    fields,
-                                    physicsModel,
-                                    elementToMaterialMap_,
-                                    rhs);
-      masked_atom_domain_rhs_integral(rhsMaskMD,
-                                      fields,
-                                      rhsAtomDomain_,
-                                      physicsModel);
-      for (FIELDS::const_iterator field = fields.begin(); 
-           field != fields.end(); field++) {
-        FieldName thisFieldName = field->first;
-
-        if ( ((rhs[thisFieldName].quantity()).size() > 0)
-         && ((rhsAtomDomain_[thisFieldName].quantity()).size() > 0) )
-          rhs[thisFieldName] += rhsAtomDomain_[thisFieldName].quantity();
-      }
     }
     else { // domain == FULL_DOMAIN
       feEngine_->compute_rhs_vector(rhsMask,

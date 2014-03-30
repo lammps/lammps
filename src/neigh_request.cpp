@@ -54,7 +54,6 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   ghost = 0;
   cudable = 0;
   omp = 0;
-  kokkos_host = kokkos_device = 0;
 
   // default is no copy or skip
 

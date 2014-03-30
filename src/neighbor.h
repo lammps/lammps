@@ -176,6 +176,16 @@ class Neighbor : protected Pointers {
   virtual void choose_build(int, class NeighRequest *);
   void choose_stencil(int, class NeighRequest *);
 
+  // dummy functions provided by NeighborKokkos
+
+  virtual void init_cutneighsq_kokkos(int) {}
+  virtual int init_lists_kokkos() {return 0;}
+  virtual void init_list_flags1_kokkos(int) {}
+  virtual void init_list_flags2_kokkos(int) {}
+  virtual void init_list_grow_kokkos(int) {}
+  virtual void build_kokkos(int) {}
+  virtual void setup_bins_kokkos(int) {}
+
   // pairwise build functions
 
   typedef void (Neighbor::*PairPtr)(class NeighList *);

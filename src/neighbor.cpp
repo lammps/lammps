@@ -243,7 +243,8 @@ void Neighbor::init()
 
   n = atom->ntypes;
   if (cutneighsq == NULL) {
-    memory->create(cutneighsq,n+1,n+1,"neigh:cutneighsq");
+    if (lmp->kokkos) init_cutneighsq_kokkos(n);
+    else memory->create(cutneighsq,n+1,n+1,"neigh:cutneighsq");
     memory->create(cutneighghostsq,n+1,n+1,"neigh:cutneighghostsq");
     cuttype = new double[n+1];
     cuttypesq = new double[n+1];
@@ -468,16 +469,27 @@ void Neighbor::init()
     delete [] pair_build;
     delete [] stencil_create;
 
-    nlist = nrequest;
-    lists = new NeighList*[nlist];
-    pair_build = new PairPtr[nlist];
-    stencil_create = new StencilPtr[nlist];
+    if (lmp->kokkos) nlist = init_lists_kokkos();
+    else nlist = nrequest;
+
+    lists = new NeighList*[nrequest];
+    pair_build = new PairPtr[nrequest];
+    stencil_create = new StencilPtr[nrequest];
+
+    // initialize to NULL since some may be Kokkos lists
+
+    for (i = 0; i < nrequest; i++) {
+      lists[i] = NULL;
+      pair_build[i] = NULL;
+      stencil_create[i] = NULL;
+    }
 
     // create individual lists, one per request
     // pass list ptr back to requestor (except for Command class)
     // wait to allocate initial pages until copy lists are detected
 
-    for (i = 0; i < nlist; i++) {
+    for (i = 0; i < nrequest; i++) {
+      if (requests[i]->kokkos_host || requests[i]->kokkos_device) continue;
       lists[i] = new NeighList(lmp);
       lists[i]->index = i;
 
@@ -520,7 +532,8 @@ void Neighbor::init()
 
     int processed;
 
-    for (i = 0; i < nlist; i++) {
+    for (i = 0; i < nrequest; i++) {
+      if (!lists[i]) continue;
       processed = 0;
 
       if (requests[i]->copy) {
@@ -559,17 +572,20 @@ void Neighbor::init()
       if (processed) continue;
 
       if (requests[i]->pair && requests[i]->half) {
-        for (j = 0; j < nlist; j++)
+        for (j = 0; j < nrequest; j++) {
+          if (!lists[j]) continue;
           if (requests[j]->full && requests[j]->occasional == 0 &&
               requests[j]->skip == 0) break;
-        if (j < nlist) {
+        }
+        if (j < nrequest) {
           requests[i]->half = 0;
           requests[i]->half_from_full = 1;
           lists[i]->listfull = lists[j];
         }
         
       } else if (requests[i]->fix || requests[i]->compute) {
-        for (j = 0; j < nlist; j++) {
+        for (j = 0; j < nrequest; j++) {
+          if (!lists[j]) continue;
           if (requests[i]->half && requests[j]->pair &&
               requests[j]->skip == 0 && requests[j]->half) break;
           if (requests[i]->full && requests[j]->pair &&
@@ -579,20 +595,21 @@ void Neighbor::init()
           if (requests[i]->half && requests[j]->pair &&
               requests[j]->skip == 0 && requests[j]->respaouter) break;
         }
-        if (j < nlist && requests[j]->cudable != requests[i]->cudable)
-          j = nlist;
-        if (j < nlist) {
+        if (j < nrequest && requests[j]->cudable != requests[i]->cudable)
+          j = nrequest;
+        if (j < nrequest) {
           requests[i]->copy = 1;
           requests[i]->otherlist = j;
           lists[i]->listcopy = lists[j];
         } else {
-          for (j = 0; j < nlist; j++) {
+          for (j = 0; j < nrequest; j++) {
+            if (!lists[j]) continue;
             if (requests[i]->half && requests[j]->pair &&
                 requests[j]->skip == 0 && requests[j]->full) break;
           }
-          if (j < nlist && requests[j]->cudable != requests[i]->cudable)
-            j = nlist;
-          if (j < nlist) {
+          if (j < nrequest && requests[j]->cudable != requests[i]->cudable)
+            j = nrequest;
+          if (j < nrequest) {
             requests[i]->half = 0;
             requests[i]->half_from_full = 1;
             lists[i]->listfull = lists[j];
@@ -603,15 +620,17 @@ void Neighbor::init()
 
     // allocate initial pages for each list, except if listcopy set
 
-    for (i = 0; i < nlist; i++)
+    for (i = 0; i < nrequest; i++) {
+      if (!lists[i]) continue;
       if (!lists[i]->listcopy)
         lists[i]->setup_pages(pgsize,oneatom,requests[i]->dnum);
+    }
 
     // set ptrs to pair_build and stencil_create functions for each list
     // ptrs set to NULL if not set explicitly
     // also set cudable to 0 if any neigh list request is not cudable
 
-    for (i = 0; i < nlist; i++) {
+    for (i = 0; i < nrequest; i++) {
       choose_build(i,requests[i]);
       if (style != NSQ) choose_stencil(i,requests[i]);
       else stencil_create[i] = NULL;
@@ -626,32 +645,37 @@ void Neighbor::init()
     // anyghostlist = 1 if any non-occasional list stores neighbors of ghosts
 
     anyghostlist = 0;
-    for (i = 0; i < nlist; i++) {
-      lists[i]->buildflag = 1;
-      if (pair_build[i] == NULL) lists[i]->buildflag = 0;
-      if (requests[i]->occasional) lists[i]->buildflag = 0;
+    for (i = 0; i < nrequest; i++) {
+      if (lists[i]) {
+        lists[i]->buildflag = 1;
+        if (pair_build[i] == NULL) lists[i]->buildflag = 0;
+        if (requests[i]->occasional) lists[i]->buildflag = 0;
 
-      lists[i]->growflag = 1;
-      if (requests[i]->copy) lists[i]->growflag = 0;
+        lists[i]->growflag = 1;
+        if (requests[i]->copy) lists[i]->growflag = 0;
 
-      lists[i]->stencilflag = 1;
-      if (style == NSQ) lists[i]->stencilflag = 0;
-      if (stencil_create[i] == NULL) lists[i]->stencilflag = 0;
+        lists[i]->stencilflag = 1;
+        if (style == NSQ) lists[i]->stencilflag = 0;
+        if (stencil_create[i] == NULL) lists[i]->stencilflag = 0;
 
-      lists[i]->ghostflag = 0;
-      if (requests[i]->ghost) lists[i]->ghostflag = 1;
-      if (requests[i]->ghost && !requests[i]->occasional) anyghostlist = 1;
+        lists[i]->ghostflag = 0;
+        if (requests[i]->ghost) lists[i]->ghostflag = 1;
+        if (requests[i]->ghost && !requests[i]->occasional) anyghostlist = 1;
+      } else init_list_flags1_kokkos(i);
     }
 
 #ifdef NEIGH_LIST_DEBUG
-    for (i = 0; i < nlist; i++) lists[i]->print_attributes();
+    for (i = 0; i < nrequest; i++) lists[i]->print_attributes();
 #endif
 
     // allocate atom arrays for neighbor lists that store them
 
     maxatom = atom->nmax;
-    for (i = 0; i < nlist; i++)
-      if (lists[i]->growflag) lists[i]->grow(maxatom);
+    for (i = 0; i < nrequest; i++) {
+      if (lists[i]) {
+        if (lists[i]->growflag) lists[i]->grow(maxatom);
+      } else init_list_grow_kokkos(i);
+    }
 
     // setup 3 vectors of pairwise neighbor lists
     // blist = lists whose pair_build() is invoked every reneighbor
@@ -664,16 +688,18 @@ void Neighbor::init()
     delete [] blist;
     delete [] glist;
     delete [] slist;
-    blist = new int[nlist];
-    glist = new int[nlist];
-    slist = new int[nlist];
+    blist = new int[nrequest];
+    glist = new int[nrequest];
+    slist = new int[nrequest];
 
-    for (i = 0; i < nlist; i++) {
-      if (lists[i]->buildflag) blist[nblist++] = i;
-      if (lists[i]->growflag && requests[i]->occasional == 0)
-        glist[nglist++] = i;
-      if (lists[i]->stencilflag && requests[i]->occasional == 0)
-        slist[nslist++] = i;
+    for (i = 0; i < nrequest; i++) {
+      if (lists[i]) {
+        if (lists[i]->buildflag) blist[nblist++] = i;
+        if (lists[i]->growflag && requests[i]->occasional == 0)
+          glist[nglist++] = i;
+        if (lists[i]->stencilflag && requests[i]->occasional == 0)
+          slist[nslist++] = i;
+      } else init_list_flags2_kokkos(i);
     }
 
 #ifdef NEIGH_LIST_DEBUG
@@ -691,12 +717,13 @@ void Neighbor::init()
     while (!done) {
       done = 1;
       for (i = 0; i < nblist; i++) {
+        if (!lists[blist[i]]) continue;
         NeighList *ptr = NULL;
         if (lists[blist[i]]->listfull) ptr = lists[blist[i]]->listfull;
         if (lists[blist[i]]->listcopy) ptr = lists[blist[i]]->listcopy;
         if (lists[blist[i]]->listskip) ptr = lists[blist[i]]->listskip;
         if (ptr == NULL) continue;
-        for (m = 0; m < nlist; m++)
+        for (m = 0; m < nrequest; m++)
           if (ptr == lists[m]) break;
         for (j = 0; j < nblist; j++)
           if (m == blist[j]) break;
@@ -1399,9 +1426,13 @@ void Neighbor::build(int topoflag)
 
   // invoke building of pair and molecular neighbor lists
   // only for pairwise lists with buildflag set
+  // blist is for standard neigh lists, otherwise is a Kokkos list
 
-  for (i = 0; i < nblist; i++)
-    (this->*pair_build[blist[i]])(lists[blist[i]]);
+  for (i = 0; i < nblist; i++) {
+    if (lists[blist[i]])
+      (this->*pair_build[blist[i]])(lists[blist[i]]);
+    else build_kokkos(i);
+  }
 
   if (atom->molecular && topoflag) build_topology();
 }
@@ -1643,8 +1674,10 @@ void Neighbor::setup_bins()
   // only done for lists with stencilflag and buildflag set
 
   for (int i = 0; i < nslist; i++) {
-    lists[slist[i]]->stencil_allocate(smax,style);
-    (this->*stencil_create[slist[i]])(lists[slist[i]],sx,sy,sz);
+    if (lists[slist[i]]) {
+      lists[slist[i]]->stencil_allocate(smax,style);
+      (this->*stencil_create[slist[i]])(lists[slist[i]],sx,sy,sz);
+    } else setup_bins_kokkos(i);
   }
 }
 
@@ -1971,7 +2004,8 @@ bigint Neighbor::memory_usage()
     bytes += memory->usage(binhead,maxhead);
   }
 
-  for (int i = 0; i < nlist; i++) bytes += lists[i]->memory_usage();
+  for (int i = 0; i < nrequest; i++) 
+    if (lists[i]) bytes += lists[i]->memory_usage();
 
   bytes += memory->usage(bondlist,maxbond,3);
   bytes += memory->usage(anglelist,maxangle,4);

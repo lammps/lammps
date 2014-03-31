@@ -28,6 +28,7 @@ input = one or more atom attributes :l
 			corner1x, corner1y, corner1z,
 			corner2x, corner2y, corner2z,
 			corner3x, corner3y, corner3z,
+			nbonds,
                         i_name, d_name :pre
       id = atom ID
       mol = molecule ID
@@ -53,7 +54,8 @@ input = one or more atom attributes :l
       ervel = electron radial velocity
       erforce = electron radial force
       end12x, end12y, end12z = end points of line segment
-      coner123x, corner123y, corner123z = corner points of triangle
+      corner123x, corner123y, corner123z = corner points of triangle
+      nbonds = number of bonds
       i_name = custom integer vector with name
       d_name = custom integer vector with name :pre
 :ule
@@ -102,6 +104,9 @@ line segment particles and define the end points of each line segment.
 {Corner1x}, {corner1y}, {corner1z}, {corner2x}, {corner2y},
 {corner2z}, {corner3x}, {corner3y}, {corner3z}, are defined for
 triangular particles and define the corner points of each triangle.
+
+{nbonds} is available for all molecular atom styles and refers to
+the number of explicit bonds attached to an atom.
 
 The {i_name} and {d_name} attributes refer to custom integer and
 floating-point properties that have been added to each atom via the

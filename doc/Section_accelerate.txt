@@ -341,9 +341,10 @@ examples are "presented here"_http://sites.google.com/site/akohlmey/software/lam
 
 5.6 GPU package :h4,link(acc_6)
 
-The GPU package was developed by Mike Brown at ORNL.  It provides GPU
-versions of several pair styles and for long-range Coulombics via the
-PPPM command.  It has the following features:
+The GPU package was developed by Mike Brown at ORNL and his
+collaborators.  It provides GPU versions of several pair styles,
+including the 3-body Stillinger-Weber pair style, and for long-range
+Coulombics via the PPPM command.  It has the following features:
 
 The package is designed to exploit common GPU hardware configurations
 where one or more GPUs are coupled with many cores of a multi-core

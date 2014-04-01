@@ -313,7 +313,7 @@ Evaluation of Forces for the Simulation of Biomolecules, University of
 Illinois at Urbana-Champaign, (2006).
 
 :link(Hummer)
-[(Hummer)] Hummer, Grønbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)
+[(Hummer)] Hummer, Gronbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)
 
 :link(Isele-Holder)
 [(Isele-Holder)] Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J

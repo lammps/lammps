@@ -16,6 +16,7 @@
 #include "run.h"
 #include "domain.h"
 #include "update.h"
+#include "force.h"
 #include "integrate.h"
 #include "modify.h"
 #include "output.h"
@@ -23,7 +24,6 @@
 #include "input.h"
 #include "timer.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 

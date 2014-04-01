@@ -537,8 +537,8 @@ void Finish::end(int flag)
            neighbor->old_requests[m]->respaouter ||
            neighbor->old_requests[m]->half_from_full) &&
           neighbor->old_requests[m]->skip == 0) {
-        if (neighbor->lists[m] && neighbor->lists[m]->numneigh) break;
         if (lmp->kokkos && lmp->kokkos->neigh_list_kokkos(m)) break;
+        else break;
       }
     }
 
@@ -576,8 +576,8 @@ void Finish::end(int flag)
     for (m = 0; m < neighbor->old_nrequest; m++) {
       if (neighbor->old_requests[m]->full &&
           neighbor->old_requests[m]->skip == 0) {
-        if (neighbor->lists[m] && neighbor->lists[m]->numneigh) break;
         if (lmp->kokkos && lmp->kokkos->neigh_list_kokkos(m)) break;
+        else break;
       }
     }
 

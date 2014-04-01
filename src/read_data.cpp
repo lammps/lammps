@@ -227,10 +227,6 @@ void ReadData::command(int narg, char **arg)
       domain->set_global_box();
       comm->set_proc_grid();
       domain->set_local_box();
-      atom->bond_per_atom = atom->extra_bond_per_atom;
-      atom->angle_per_atom = atom->extra_angle_per_atom;
-      atom->dihedral_per_atom = atom->extra_dihedral_per_atom;
-      atom->improper_per_atom = atom->extra_improper_per_atom;
     }
 
     // customize for new sections

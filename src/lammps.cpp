@@ -96,6 +96,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int kkfirst,kklast;
 
   // read .lammpsrc in home and current directory for overriding defaults
+
   const char *rcpath;
   char *homepath = NULL;
 #ifdef _WIN32
@@ -118,7 +119,23 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     fd = fopen(rcpath,"r");
     if (fd) {
        char linebuf[1024];
+       char *key, *value;
 
+       // loop through file
+       while(1) {
+         fgets(linebuf,1024,fd);
+         if (feof(fd) || ferror(fd)) break;
+
+         // truncate line at comment character, if present
+         if ((key = strstr(linebuf,"#"))) *key = '\0';
+
+         key = strtok(linebuf," \t\n\r\f");
+         value = strtok(NULL," \t\n\r\f");
+
+         // skip empty lines
+         if (key == NULL) continue;
+
+       }
        fclose(fd);
     }
     if (homepath) {
@@ -462,7 +479,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // error check on accelerator packages
 
   if (cudaflag == 1 && kokkosflag == 1) 
-    error->all(FLERR,"Cannot use -cuda on and -kokkos on");
+    error->all(FLERR,"Cannot use -cuda on and -kokkos on together");
 
   // create Cuda class if USER-CUDA installed, unless explicitly switched off
   // instantiation creates dummy Cuda class if USER-CUDA is not installed

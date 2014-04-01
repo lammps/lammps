@@ -205,8 +205,14 @@ void Atom::map_set()
 
     // possible reallocation of sametag must come after map_init()
     // since map_init() will invoke map_delete(), whacking sametag
+    // map_init() uses MPI_Allreduce() so we have to make sure that
+    // it is called consistently across all MPI ranks.
 
-    if (nall > map_nhash) map_init();
+    int init_flag = (nall > map_nhash) ? 1 : 0;
+    int init_flag_all = 0;
+    MPI_Allreduce(&init_flag,&init_flag_all,1,MPI_INT,MPI_SUM,world);
+    if (init_flag_all) map_init();
+
     if (nall > max_same) {
       max_same = nall + EXTRA;
       memory->destroy(sametag);

@@ -95,6 +95,40 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int wdfirst,wdlast;
   int kkfirst,kklast;
 
+  // read .lammpsrc in home and current directory for overriding defaults
+  const char *rcpath;
+  char *homepath = NULL;
+#ifdef _WIN32
+  const char rcname[] = "lammps.rc";
+#else
+  const char rcname[] = ".lammpsrc";
+  const char *homedir = getenv("HOME");
+  if (homedir) {
+    int len = strlen(homedir) + strlen(rcname);
+    homepath = new char[len+2];
+    strcpy(homepath,homedir);
+    strcat(homepath,"/");
+    strcat(homepath,rcname);
+  }
+#endif
+  FILE *fd;
+  do {
+    if (homepath) rcpath = homepath;
+    else rcpath = rcname;
+    fd = fopen(rcpath,"r");
+    if (fd) {
+       char linebuf[1024];
+
+       fclose(fd);
+    }
+    if (homepath) {
+      delete[] homepath;
+      homepath = NULL;
+    }
+  } while(rcpath != rcname);
+
+  // parsing command line flags
+
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"-partition") == 0 ||

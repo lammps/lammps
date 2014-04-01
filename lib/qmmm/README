@@ -1,12 +1,18 @@
 QM/MM support toplevel library
 
 Axel Kohlmeyer, akohlmey@gmail.com
-ICTP, Trieste, Italy
+Temple University, Philadelphia and ICTP, Trieste
 
 This library provides  the basic glue code to  combine LAMMPS with the
 Quantum ESPRESSO package plane wave density functional theory code for
 performing QM/MM  molecular dynamics simulations.  More information on
 Quantum ESPRESSO can be found at: http://www.quantum-espresso.org
+
+The interface code itself is designed so it can also be combined with
+other QM codes, however only support for Quantum ESPRESSO is currently
+the only option. Adding support for a different QM code will require
+to write a new version of the top-level wrapper code, pwqmmm.c, and
+also an interface layer into the QM code similar to the one in QE.
 
 -------------------------------------------------
 

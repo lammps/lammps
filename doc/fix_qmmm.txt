@@ -25,10 +25,16 @@ fix 1 qmol qmmm
 This fix provides functionality to implement a QM/MM coupling of 
 LAMMPS a quantum mechanical code. The current implementation only
 supports an ONIOM style mechanical coupling to the Quantum ESPRESSO
-plane wave DFT package.
+plane wave DFT package. Electrostatic coupling is in preparation
+and the interface was written in a way, that coupling to other QM
+codes is possible without changes to the LAMMPS codes itself. The
+interface code is made available at this early stage of development
+in order to encourage contributions for interfaces to other QM
+codes before the LAMMPS side of the implementation is finalized
+and will be much more difficult to adapt.
 
-Details about how to use this fix are documented in the 
-description of the QM/MM interface code itself.
+Details about how to use this fix are currently documented in the 
+description of the QM/MM interface code itself in lib/qmmm/README.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

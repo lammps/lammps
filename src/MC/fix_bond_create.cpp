@@ -409,6 +409,15 @@ void FixBondCreate::post_integrate()
     j = atom->map(partner[i]);
     if (partner[j] != tag[i]) continue;
 
+    // check again for existing bonds among possible partners
+    // this should also reliably catch cases of a bond crossing domains
+
+    possible = 1;
+    for (k = 0; k < num_bond[i]; k++)
+      if (bond_atom[i][k] == partner[i]) possible = 0;
+
+    if (!possible) continue;
+
     // apply probability constraint using RN for atom with smallest ID
 
     if (fraction < 1.0) {
@@ -421,9 +430,8 @@ void FixBondCreate::post_integrate()
 
     // if newton_bond is set, only store with I or J
     // if not newton_bond, store bond with both I and J
-    // NOTE: I and J are local indices *not* tags. same as in neigh_bond.cpp
 
-    if (!newton_bond || (i < j)) {
+    if (!newton_bond || (tag[i] < tag[j])) {
       if (num_bond[i] == atom->bond_per_atom)
         error->one(FLERR,"New bond exceeded bonds per atom in fix bond/create");
       bond_type[i][num_bond[i]] = btype;

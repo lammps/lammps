@@ -691,8 +691,10 @@ void Finish::end(int flag)
            neighbor->old_requests[m]->gran ||
            neighbor->old_requests[m]->respaouter ||
            neighbor->old_requests[m]->half_from_full) &&
-          neighbor->old_requests[m]->skip == 0) {
-        if (lmp->kokkos && lmp->kokkos->neigh_list_kokkos(m)) break;
+          neighbor->old_requests[m]->skip == 0 &&
+          neighbor->lists[m] && neighbor->lists[m]->numneigh) {
+        if (!neighbor->lists[m] && lmp->kokkos &&
+            lmp->kokkos->neigh_list_kokkos(m)) break;
         else break;
       }
     }
@@ -738,13 +740,14 @@ void Finish::end(int flag)
 
     nneighfull = 0;
     if (m < neighbor->old_nrequest) {
-      if (neighbor->lists[m]) {
+      if (neighbor->lists[m] && neighbor->lists[m]->numneigh) {
         int inum = neighbor->lists[m]->inum;
         int *ilist = neighbor->lists[m]->ilist;
         int *numneigh = neighbor->lists[m]->numneigh;
         for (i = 0; i < inum; i++)
           nneighfull += numneigh[ilist[i]];
-      } else if (lmp->kokkos) nneighfull = lmp->kokkos->neigh_count(m);
+      } else if (!neighbor->lists[m] && lmp->kokkos)
+          nneighfull = lmp->kokkos->neigh_count(m);
 
       tmp = nneighfull;
       stats(1,&tmp,&ave,&max,&min,10,histo);

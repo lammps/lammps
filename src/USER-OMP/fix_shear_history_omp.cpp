@@ -32,8 +32,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ----------------------------------------------------------------------
-   copy shear partner info from neighbor lists to atom arrays
-   so can be migrated or stored with atoms
+   copy shear partner info from neighbor lists to per-atom arrays
+   so it can be exchanged with those atoms
 ------------------------------------------------------------------------- */
 
 void FixShearHistoryOMP::pre_exchange()

@@ -230,10 +230,11 @@ class Atom : protected Pointers {
     else return -1;
   };
 
-  void map_init();
+  void map_init(int check = 1);
   void map_clear();
   void map_set();
   void map_one(tagint, int);
+  int map_style_set();
   void map_delete();
   int map_find_hash(tagint);
 

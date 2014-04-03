@@ -1480,16 +1480,26 @@ void Neighbor::build_one(int i)
     error->one(FLERR,"Too many local+ghost atoms for neighbor list");
 
   // when occasional list built, LAMMPS can crash if atoms have moved too far
-  // why is this?, give warning if this is the case
+  // why is this? maybe b/c this list is derived from some now out-of-date list?
+  // give warning if this is the case
   // no easy workaround b/c all neighbor lists really need to be rebuilt
   // solution is for input script to check more often for rebuild
   // only check_distance if running a simulation, not between simulations
+  // comment out for now
+  //   is sometimes giving warning when there is no issue
+  //   e.g. when a variable uses a fix with an occasional neigh list
+  //   at the beginning of a timestep (e.g. fix move) where
+  //   all neigh lists are about to be re-built anyway
 
+  /*
   int flag = 0;
   if (dist_check && update->whichflag) flag = check_distance();
-  if (flag && me == 0)
+  if (flag && me == 0) {
+    printf("BUILD ONE ERROR: %ld\n",update->ntimestep);
     error->warning(FLERR,"Building an occasional neighbor list when "
                    "atoms may have moved too far");
+  }
+  */
 
   (this->*pair_build[i])(lists[i]);
 }

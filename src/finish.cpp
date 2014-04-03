@@ -527,7 +527,7 @@ void Finish::end(int flag)
       }
     }
 
-    // find a non-skip neighbor list containing half the pairwise interactions
+    // find a non-skip neighbor list containing half pairwise interactions
     // count neighbors in that list for stats purposes
     // allow it to be Kokkos neigh list as well
 
@@ -572,6 +572,7 @@ void Finish::end(int flag)
 
     // find a non-skip neighbor list containing full pairwise interactions
     // count neighbors in that list for stats purposes
+    // allow it to be Kokkos neigh list as well
 
     for (m = 0; m < neighbor->old_nrequest; m++) {
       if (neighbor->old_requests[m]->full &&

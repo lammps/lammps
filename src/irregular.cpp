@@ -24,6 +24,12 @@
 
 using namespace LAMMPS_NS;
 
+// allocate space for static class variable
+// prototype for non-class function
+
+int *Irregular::proc_recv_copy;
+int compare_standalone(const void *, const void *);
+
 #define BUFFACTOR 1.5
 #define BUFMIN 1000
 #define BUFEXTRA 1000
@@ -247,7 +253,7 @@ int Irregular::migrate_check()
    return total # of doubles I will recv (not including self)
 ------------------------------------------------------------------------- */
 
-int Irregular::create_atom(int n, int *sizes, int *proclist)
+int Irregular::create_atom(int n, int *sizes, int *proclist, int sort)
 {
   int i;
 
@@ -358,6 +364,33 @@ int Irregular::create_atom(int n, int *sizes, int *proclist)
     nrecvsize += length_recv[i];
   }
 
+  // sort proc_recv and num_recv by proc ID if requested
+  // useful for debugging to insure reproducible ordering of received atoms
+  // invoke by adding final arg = 1 to create_atom() call in migrate_atoms()
+
+  if (sort) {
+    int *order = new int[nrecv];
+    int *proc_recv_ordered = new int[nrecv];
+    int *length_recv_ordered = new int[nrecv];
+
+    for (i = 0; i < nrecv; i++) order[i] = i;
+    proc_recv_copy = proc_recv;
+    qsort(order,nrecv,sizeof(int),compare_standalone);
+
+    int j;
+    for (i = 0; i < nrecv; i++) {
+      j = order[i];
+      proc_recv_ordered[i] = proc_recv[j];
+      length_recv_ordered[i] = length_recv[j];
+    }
+
+    memcpy(proc_recv,proc_recv_ordered,nrecv*sizeof(int));
+    memcpy(length_recv,length_recv_ordered,nrecv*sizeof(int));
+    delete [] order;
+    delete [] proc_recv_ordered;
+    delete [] length_recv_ordered;
+  }
+
   // barrier to insure all MPI_ANY_SOURCE messages are received
   // else another proc could proceed to exchange_atom() and send to me
 
@@ -386,6 +419,21 @@ int Irregular::create_atom(int n, int *sizes, int *proclist)
   aplan->status = status;
 
   return nrecvsize;
+}
+
+/* ----------------------------------------------------------------------
+   comparison function invoked by qsort()
+   accesses static class member proc_recv_copy, set before call to qsort()
+------------------------------------------------------------------------- */
+
+int compare_standalone(const void *iptr, const void *jptr)
+{
+  int i = *((int *) iptr);
+  int j = *((int *) jptr);
+  int *proc_recv = Irregular::proc_recv_copy;
+  if (proc_recv[i] < proc_recv[j]) return -1;
+  if (proc_recv[i] > proc_recv[j]) return 1;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------

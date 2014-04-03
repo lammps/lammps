@@ -20,6 +20,11 @@ namespace LAMMPS_NS {
 
 class Irregular : protected Pointers {
  public:
+
+  // static variable across all Irregular objects, for qsort callback
+
+  static int *proc_recv_copy;
+
   Irregular(class LAMMPS *);
   ~Irregular();
   void migrate_atoms();
@@ -82,7 +87,7 @@ class Irregular : protected Pointers {
   PlanAtom *aplan;
   PlanData *dplan;
 
-  int create_atom(int, int *, int *);
+  int create_atom(int, int *, int *, int sort = 0);
   void exchange_atom(double *, int *, double *);
   void destroy_atom();
   int coord2proc(double *, int &, int &, int &);
@@ -95,6 +100,7 @@ class Irregular : protected Pointers {
 }
 
 #endif
+
 /* ERROR/WARNING messages:
 
 */

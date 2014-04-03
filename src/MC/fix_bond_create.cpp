@@ -312,6 +312,8 @@ void FixBondCreate::post_integrate()
   tagint *tag = atom->tag;
   tagint **bond_atom = atom->bond_atom;
   int *num_bond = atom->num_bond;
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
   int *mask = atom->mask;
   int *type = atom->type;
 
@@ -349,13 +351,10 @@ void FixBondCreate::post_integrate()
       if (!possible) continue;
 
       // do not allow a duplicate bond to be created
-      // check existing bonds of both I and J
+      // check 1-2 neighbors of atom I
 
-      for (k = 0; k < num_bond[i]; k++)
-        if (bond_atom[i][k] == tag[j]) possible = 0;
-      if (j < nlocal)
-        for (k = 0; k < num_bond[j]; k++)
-          if (bond_atom[j][k] == tag[i]) possible = 0;
+      for (k = 0; k < nspecial[i][0]; k++)
+        if (special[i][k] == tag[j]) possible = 0;
       if (!possible) continue;
 
       delx = xtmp - x[j][0];
@@ -394,13 +393,11 @@ void FixBondCreate::post_integrate()
   comm->forward_comm_fix(this);
 
   // create bonds for atoms I own
-  // if other atom is owned by another proc, it should create same bond
-  // if both atoms list each other as winning bond partner
-  // and probability constraint is satisfied
+  // only if both atoms list each other as winning bond partner
+  //   and probability constraint is satisfied
+  // if other atom is owned by another proc, it should do same thing
 
   int **bond_type = atom->bond_type;
-  int **nspecial = atom->nspecial;
-  tagint **special = atom->special;
   int newton_bond = force->newton_bond;
 
   int ncreate = 0;
@@ -421,6 +418,7 @@ void FixBondCreate::post_integrate()
 
     // if newton_bond is set, only store with I or J
     // if not newton_bond, store bond with both I and J
+    // if J is ghost atom, other proc will be consistent
 
     if (!newton_bond || tag[i] < tag[j]) {
       if (num_bond[i] == atom->bond_per_atom)
@@ -431,7 +429,7 @@ void FixBondCreate::post_integrate()
     }
 
     // add a 1-2 neighbor to special bond list for atom I
-    // atom J will also do this
+    // atom J will also do this whether owned by this proc or another proc
 
     slist = special[i];
     n1 = nspecial[i][0];

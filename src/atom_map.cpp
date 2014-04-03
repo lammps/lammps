@@ -23,7 +23,6 @@ using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
    allocate and initialize array or hash table for global -> local map
-   set map_tag_max = largest atom ID (may be larger than natoms)
    for array option:
      array length = 1 to map_tag_max
      set entire array to -1 as initial values
@@ -33,38 +32,20 @@ using namespace LAMMPS_NS;
        so buckets will only be filled with 0 or 1 atoms on average
 ------------------------------------------------------------------------- */
 
-void Atom::map_init()
+void Atom::map_init(int check)
 {
-  if (tag_enable == 0)
-    error->all(FLERR,"Cannot create an atom map unless atoms have IDs");
-
-  int map_style_old = map_style;
-
-  // map_tag_max = max ID of any atom that will be in new map
-
-  tagint max = 0;
-  for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
-  MPI_Allreduce(&max,&map_tag_max,1,MPI_LMP_TAGINT,MPI_MAX,world);
-
-  // set map_style for new map
-  // if user-selected, use that setting
-  // else if map_tag_max > 1M, use hash
-  // else use array
-  
-  if (map_user) map_style = map_user;
-  else if (map_tag_max > 1000000) map_style = 2;
-  else map_style = 1;
-
+  // check for new map style if max atomID changed (check = 1 = default)
   // recreate = 1 if must delete old map and create new map
   // recreate = 0 if can re-use old map w/out realloc and just adjust settings
 
   int recreate = 0;
-  if (map_style != map_style_old) recreate = 1;
-  else if (map_style == 1 && map_tag_max > map_maxarray) recreate = 1;
+  if (check) recreate = map_style_set();
+
+  if (map_style == 1 && map_tag_max > map_maxarray) recreate = 1;
   else if (map_style == 2 && nlocal+nghost > map_nhash) recreate = 1;
 
   // if not recreating:
-  // for array, just initialize current map_tag_max values
+  // for array, initialize current map_tag_max values
   // for hash, set all buckets to empty, put all entries in free list 
 
   if (!recreate) {
@@ -78,7 +59,7 @@ void Atom::map_init()
       map_hash[map_nhash-1].next = -1;
     }
 
-  // delete old map and create new one for array or hash
+  // recreating: delete old map and create new one for array or hash
 
   } else {
     map_delete();
@@ -203,10 +184,12 @@ void Atom::map_set()
 
   } else {
 
-    // possible reallocation of sametag must come after map_init()
-    // since map_init() will invoke map_delete(), whacking sametag
+    // if this proc has more atoms than hash table size, call map_init()
+    //   call with 0 since max atomID in system has not changed
+    // possible reallocation of sametag must come after map_init(),
+    //   b/c map_init() may invoke map_delete(), whacking sametag
 
-    if (nall > map_nhash) map_init();
+    if (nall > map_nhash) map_init(0);
     if (nall > max_same) {
       max_same = nall + EXTRA;
       memory->destroy(sametag);
@@ -292,6 +275,41 @@ void Atom::map_one(tagint global, int local)
     map_hash[index].next = -1;
     map_nused++;
   }
+}
+
+/* ----------------------------------------------------------------------
+   set map style to array or hash based on user request or max atomID
+   set map_tag_max = max atom ID (may be larger than natoms)
+   called whenever map_init() called with new total # of atoms
+   return 1 if map_style changed, else 0
+------------------------------------------------------------------------- */
+
+int Atom::map_style_set()
+{
+  if (tag_enable == 0)
+    error->all(FLERR,"Cannot create an atom map unless atoms have IDs");
+
+  // map_tag_max = max ID of any atom that will be in new map
+
+  tagint max = 0;
+  for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
+  MPI_Allreduce(&max,&map_tag_max,1,MPI_LMP_TAGINT,MPI_MAX,world);
+
+  // set map_style for new map
+  // if user-selected, use that setting
+  // else if map_tag_max > 1M, use hash
+  // else use array
+  
+  int map_style_old = map_style;
+  if (map_user) map_style = map_user;
+  else if (map_tag_max > 1000000) map_style = 2;
+  else map_style = 1;
+
+  // recreate = 1 if must create new map b/c map_style changed
+
+  int recreate = 0;
+  if (map_style != map_style_old) recreate = 1;
+  return recreate;
 }
 
 /* ----------------------------------------------------------------------

@@ -42,6 +42,16 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
   xcom = ycom = zcom = 0.0;
   xflag = yflag = zflag = 1;
   xinitflag = yinitflag = zinitflag = 0;
+  shift[0] = shift[1] = shift[2] = 0.0;
+  distance = 0.0;
+  scalar_flag = 1;
+  vector_flag = 1;
+  size_vector = 3;
+  extscalar = 1;
+  extvector = 1;
+  global_freq = 1;
+
+/* ---------------------------------------------------------------------- */
 
   if (strcmp(arg[3],"NULL") == 0) xflag = 0;
   else if (strcmp(arg[3],"INIT") == 0) xinitflag = 1;
@@ -177,10 +187,30 @@ void FixRecenter::initial_integrate(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  shift[0] = xflag ? (xtarget - xcm[0]) : 0.0;
+  shift[1] = yflag ? (ytarget - xcm[1]) : 0.0;
+  shift[2] = zflag ? (ztarget - xcm[2]) : 0.0;
+  distance = sqrt(shift[0]*shift[0] + shift[1]*shift[1] + shift[2]*shift[2]);
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & group2bit) {
-      if (xflag) x[i][0] += xtarget - xcm[0];
-      if (yflag) x[i][1] += ytarget - xcm[1];
-      if (zflag) x[i][2] += ztarget - xcm[2];
+      x[i][0] += shift[0];
+      x[i][1] += shift[1];
+      x[i][2] += shift[2];
     }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixRecenter::compute_scalar()
+{
+  return distance;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixRecenter::compute_vector(int n)
+{
+  return shift[n];
+}
+

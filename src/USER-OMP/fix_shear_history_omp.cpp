@@ -32,8 +32,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ----------------------------------------------------------------------
-   copy shear partner info from neighbor lists to atom arrays
-   so can be exchanged with atoms
+   copy shear partner info from neighbor lists to per-atom arrays
+   so it can be exchanged with those atoms
 ------------------------------------------------------------------------- */
 
 void FixShearHistoryOMP::pre_exchange()
@@ -44,7 +44,7 @@ void FixShearHistoryOMP::pre_exchange()
   const int nall = nlocal + nghost;
   const int nthreads = comm->nthreads;
   maxtouch = 0;
-  
+
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
@@ -56,21 +56,10 @@ void FixShearHistoryOMP::pre_exchange()
     const int tid = 0;
 #endif
 
-    // each thread works on a fixed chunk of local and ghost atoms.
-    const int ldelta = 1 + nlocal/nthreads;
-    const int lfrom = tid*ldelta;
-    const int lmax = lfrom +ldelta;
-    const int lto = (lmax > nlocal) ? nlocal : lmax;
-
     int i,j,ii,jj,m,n,inum,jnum;
     int *ilist,*jlist,*numneigh,**firstneigh;
     int *touch,**firsttouch;
     double *shear,*allshear,**firstshear;
-
-    // zero npartners for all current atoms and
-    // clear page data structures for this thread
-
-    for (i = lfrom; i < lto; i++) npartner[i] = 0;
 
     MyPage <tagint> &ipg = ipage[tid];
     MyPage <double[3]> &dpg = dpage[tid];
@@ -89,6 +78,21 @@ void FixShearHistoryOMP::pre_exchange()
     firstneigh = list->firstneigh;
     firsttouch = list->listgranhistory->firstneigh;
     firstshear = list->listgranhistory->firstdouble;
+
+    int nlocal_neigh = 0;
+    if (inum) nlocal_neigh = ilist[inum-1] + 1;
+
+    // each thread works on a fixed chunk of local and ghost atoms.
+    const int ldelta = 1 + nlocal_neigh/nthreads;
+    const int lfrom = tid*ldelta;
+    const int lmax = lfrom +ldelta;
+    const int lto = (lmax > nlocal_neigh) ? nlocal_neigh : lmax;
+
+    // zero npartners for all current atoms and
+    // clear page data structures for this thread
+
+    for (i = lfrom; i < lto; i++) npartner[i] = 0;
+
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
@@ -111,13 +115,15 @@ void FixShearHistoryOMP::pre_exchange()
 
     // get page chunks to store atom IDs and shear history for my atoms
 
-    for (ii = lfrom; ii < lto; ii++) {
+    for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      n = npartner[i];
-      partner[i] = ipg.get(n);
-      shearpartner[i] = dpg.get(n);
-      if (partner[i] == NULL || shearpartner[i] == NULL)
-        error->one(FLERR,"Shear history overflow, boost neigh_modify one");
+      if ((i >= lfrom) && (i < lto)) {
+        n = npartner[i];
+        partner[i] = ipg.get(n);
+        shearpartner[i] = dpg.get(n);
+        if (partner[i] == NULL || shearpartner[i] == NULL)
+          error->one(FLERR,"Shear history overflow, boost neigh_modify one");
+      }
     }
 
     // 2nd loop over neighbor list
@@ -161,7 +167,7 @@ void FixShearHistoryOMP::pre_exchange()
     }
 
     // set maxtouch = max # of partners of any owned atom
-    m = 0;
+    maxtouch = m = 0;
     for (i = lfrom; i < lto; i++)
       m = MAX(m,npartner[i]);
 

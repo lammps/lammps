@@ -583,6 +583,7 @@ package"_Section_start.html#start_3.
 "nvt/sllod/eff"_fix_nvt_sllod_eff.html,
 "phonon"_fix_phonon.html,
 "qeq/reax"_fix_qeq_reax.html,
+"qmmm"_fix_qmmm.html,
 "reax/c/bonds"_fix_reax_bonds.html,
 "reax/c/species"_fix_reaxc_species.html,
 "smd"_fix_smd.html,

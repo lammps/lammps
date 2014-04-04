@@ -40,6 +40,7 @@ The current list of standard packages is as follows:
 
 Package, Description, Author(s), Doc page, Example, Library
 ASPHERE, aspherical particles, -, "Section_howto"_Section_howto.html#howto_14, ellipse, -
+BODY, body-style particles, -, "body"_body.html, body, -
 CLASS2, class 2 force fields, -, "pair_style lj/class2"_pair_class2.html, -, -
 COLLOID, colloidal particles, -, "atom_style colloid"_atom_style.html, colloid, -
 DIPOLE, point dipole particles, -, "pair_style dipole/cut"_pair_dipole.html, dipole, -
@@ -114,6 +115,8 @@ USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/f
 USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
 USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
 USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_Section_accelerate.html#acc_5, -, -, -
+USER-PHONON, phonon dynamical matrix, Ling-Ti Kong (Shanghai Jiao Tong U), "fix phonon"_fix_phonon.html, USER/phonon, -, -
+USER-QMMM, QM/MM coupling, Axel Kohlmeyer (Temple U), "fix qmmm"_fix_qmmm.html, lib/qmmm/example1, -, lib/qmmm
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
 USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_USER/sph/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
 :tb(ea=c)
@@ -165,29 +168,6 @@ below.
 
 :line
 
-USER-MISC package :h4
-
-The files in this package are a potpourri of (mostly) unrelated
-features contributed to LAMMPS by users.  Each feature is a single
-pair of files (*.cpp and *.h).
-
-More information about each feature can be found by reading its doc
-page in the LAMMPS doc directory.  The doc page which lists all LAMMPS
-input script commands is as follows:
-
-"Section_commands"_Section_commands.html#cmd_5
-
-User-contributed features are listed at the bottom of the fix,
-compute, pair, etc sections.
-
-The list of features and author of each is given in the
-src/USER-MISC/README file.
-
-You should contact the author directly if you have specific questions
-about the feature or its coding.
-
-:line
-
 USER-ATC package :h4
 
 This package implements a "fix atc" command which can be used in a
@@ -233,36 +213,6 @@ have questions.
 
 :line
 
-USER-COLVARS package :h4
-
-This package implements the "fix colvars" command which can be
-used in a LAMMPS input script.
-
-This fix allows to use "collective variables" to implement
-Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
-Sampling and Restraints. This code consists of two parts:
-
-A portable collective variable module library written and maintained by Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and Jerome Henin (LISM, CNRS, Marseille, France). This code is located in the directory lib/colvars and needs to be compiled first.
-The colvars fix and an interface layer, exchanges information between LAMMPS and the collective variable module. :ul
-
-See the doc page of "fix colvars"_fix_colvars.html for more details.
-
-There are example scripts for using this package in
-examples/USER/colvars
-
-This is a very new interface that does not yet support all
-features in the module and will see future optimizations
-and improvements. The colvars module library is also available
-in NAMD has been thoroughly used and tested there. Bugs and
-problems are likely due to the interface layers code.
-Thus the current version of this package should be considered
-beta quality.
-
-The person who created this package is Axel Kohlmeyer at Temple U
-(akohlmey at gmail.com).  Contact him directly if you have questions.
-
-:line
-
 USER-CG-CMM package :h4
 
 This package implements 3 commands which can be used in a LAMMPS input
@@ -298,6 +248,36 @@ The current version of this package should be considered beta
 quality. The CG potentials work correctly for "normal" situations, but
 have not been testing with all kinds of potential parameters and
 simulation systems.
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+
+:line
+
+USER-COLVARS package :h4
+
+This package implements the "fix colvars" command which can be
+used in a LAMMPS input script.
+
+This fix allows to use "collective variables" to implement
+Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
+Sampling and Restraints. This code consists of two parts:
+
+A portable collective variable module library written and maintained by Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and Jerome Henin (LISM, CNRS, Marseille, France). This code is located in the directory lib/colvars and needs to be compiled first.
+The colvars fix and an interface layer, exchanges information between LAMMPS and the collective variable module. :ul
+
+See the doc page of "fix colvars"_fix_colvars.html for more details.
+
+There are example scripts for using this package in
+examples/USER/colvars
+
+This is a very new interface that does not yet support all
+features in the module and will see future optimizations
+and improvements. The colvars module library is also available
+in NAMD has been thoroughly used and tested there. Bugs and
+problems are likely due to the interface layers code.
+Thus the current version of this package should be considered
+beta quality.
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.
@@ -369,6 +349,69 @@ have questions.
 
 :line
 
+USER-LB package :h4
+
+This package contains a LAMMPS implementation of a background
+Lattice-Boltzmann fluid, which can be used to model MD particles
+influenced by hydrodynamic forces.
+
+See this doc page and its related commands to get started:
+
+"fix lb/fluid"_fix_lb_fluid.html
+
+The people who created this package are Frances Mackay (fmackay at
+uwo.ca) and Colin (cdennist at uwo.ca) Denniston, University of
+Western Ontario.  Contact them directly if you have questions.
+
+:line
+
+USER-MISC package :h4
+
+The files in this package are a potpourri of (mostly) unrelated
+features contributed to LAMMPS by users.  Each feature is a single
+pair of files (*.cpp and *.h).
+
+More information about each feature can be found by reading its doc
+page in the LAMMPS doc directory.  The doc page which lists all LAMMPS
+input script commands is as follows:
+
+"Section_commands"_Section_commands.html#cmd_5
+
+User-contributed features are listed at the bottom of the fix,
+compute, pair, etc sections.
+
+The list of features and author of each is given in the
+src/USER-MISC/README file.
+
+You should contact the author directly if you have specific questions
+about the feature or its coding.
+
+:line
+
+USER-MOLFILE package :h4
+
+This package contains a dump molfile command which uses molfile
+plugins that are bundled with the
+"VMD"_http://www.ks.uiuc.edu/Research/vmd molecular visualization and
+analysis program, to enable LAMMPS to dump its information in formats
+compatible with various molecular simulation tools.
+
+The package only provides the interface code, not the plugins.  These
+can be obtained from a VMD installation which has to match the
+platform that you are using to compile LAMMPS for. By adding plugins
+to VMD, support for new file formats can be added to LAMMPS (or VMD or
+other programs that use them) without having to recompile the
+application itself.
+
+See this doc page to get started:
+
+"dump molfile"_dump_molfile.html#acc_5
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+
+:line
+
 USER-OMP package :h4
 
 This package provides OpenMP multi-threading support and
@@ -378,6 +421,45 @@ styles, and fix styles.
 See this section of the manual to get started:
 
 "Section_accelerate"_Section_accelerate.html#acc_5
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+
+:line
+
+USER-PHONON package :h4
+
+This package contains a fix phonon command that calculates dynamical
+matrices, which can then be used to compute phonon dispersion
+relations, directly from molecular dynamics simulations.
+
+See this doc page to get started:
+
+"fix phonon"_fix_phonon.html
+
+The person who created this package is Ling-Ti Kong (konglt at
+sjtu.edu.cn) at Shanghai Jiao Tong University.  Contact him directly
+if you have questions.
+
+:line
+
+USER-QMMM package :h4
+
+This package provides a fix qmmm command which allows LAMMPS to be
+used in a QM/MM simulation, currently only in combination with pw.x
+code from the Quantum ESPRESSO package.
+
+The current implementation only supports an ONIOM style mechanical
+coupling to the Quantum ESPRESSO plane wave DFT package.
+Electrostatic coupling is in preparation and the interface has been
+written in a manner that coupling to other QM codes should be possible
+without changes to LAMMPS itself.
+
+See this doc page to get started:
+
+"fix qmmm"_fix_qmmm.html
+
+as well as the lib/qmmm/README file.
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.

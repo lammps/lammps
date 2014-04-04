@@ -307,6 +307,7 @@ velocity all create $t 352839
 fix 1 all nvt $t $t 100.0
 dump 1 all atom 1000 dump.$a
 run 100000
+clear
 next t
 next a
 jump in.polymer :pre

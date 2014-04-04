@@ -156,9 +156,9 @@ void ComputeInertiaMolecule::compute_array()
       if (molmap) imol = molmap[imol-idlo];
       else imol--;
       domain->unmap(x[i],image[i],unwrap);
-      dx = unwrap[0] - com[imol][0];
-      dy = unwrap[1] - com[imol][1];
-      dz = unwrap[2] - com[imol][2];
+      dx = unwrap[0] - comall[imol][0];
+      dy = unwrap[1] - comall[imol][1];
+      dz = unwrap[2] - comall[imol][2];
       inertia[imol][0] += massone * (dy*dy + dz*dz);
       inertia[imol][1] += massone * (dx*dx + dz*dz);
       inertia[imol][2] += massone * (dx*dx + dy*dy);

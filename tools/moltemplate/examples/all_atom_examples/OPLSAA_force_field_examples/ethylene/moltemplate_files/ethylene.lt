@@ -1,0 +1,42 @@
+import "oplsaa.lt"
+
+# The "oplsaa.lt" file contains force-field definitions and masses for the 
+# atoms in your system.  See oplsaa_lt_generator/README.TXT for details.
+
+# Note:
+# Atom type 85 corresponds to "Alkene H2-C="
+# Atom type 86 corresponds to "Alkene H-C="
+
+
+
+Ethylene inherits OPLSAA {
+
+  # atom-id  mol-id  atom-type charge      X         Y        Z
+
+  write('Data Atoms') {
+    $atom:C1  $mol @atom:85  0.000  -0.6695    0.000000  0.000000
+    $atom:C2  $mol @atom:85  0.000   0.6695    0.000000  0.000000
+    $atom:H11 $mol @atom:86  0.000  -1.234217 -0.854458  0.000000
+    $atom:H12 $mol @atom:86  0.000  -1.234217  0.854458  0.000000
+    $atom:H21 $mol @atom:86  0.000   1.234217 -0.854458  0.000000
+    $atom:H22 $mol @atom:86  0.000   1.234217  0.854458  0.000000
+  }
+
+  write('Data Bond List') {
+    $bond:C12  $atom:C1 $atom:C2
+    $bond:C1H1 $atom:C1 $atom:H11
+    $bond:C1H2 $atom:C1 $atom:H12
+    $bond:C2H1 $atom:C2 $atom:H21
+    $bond:C2H2 $atom:C2 $atom:H22
+  }
+
+} # Ethylene
+
+
+
+# Note: You don't need to know the partial partial charges of the atoms.
+#       But you must supply a number there because atom_style full requires
+#       at least 7 columns in the "Data Atoms" section.
+#       Just fill the fourth column with zeros ("0.000").
+#       Moltemplate and LAMMPS will automatically assign the charge later.
+

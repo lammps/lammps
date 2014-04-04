@@ -1,0 +1,82 @@
+import "monomers.lt"
+
+using namespace MonomerTypes
+
+RandomHeteropolymer {
+
+  # Make a chain of monomers with random composition:
+
+  monomers = new random([2bead,3bead], 
+                        [0.6,0.4],
+                        123456)    # <-- optional random seed
+                 [50].rot(180,1,0,0).move(2.95, 0, 0)
+
+  # Now, link the monomers together this way:
+
+  write("Data Bonds") {
+    $bond:bb1 @bond:MonomerTypes/bb $atom:monomers[0]/CA $atom:monomers[1]/CA
+    $bond:bb2 @bond:MonomerTypes/bb $atom:monomers[1]/CA $atom:monomers[2]/CA
+    $bond:bb3 @bond:MonomerTypes/bb $atom:monomers[2]/CA $atom:monomers[3]/CA
+    $bond:bb4 @bond:MonomerTypes/bb $atom:monomers[3]/CA $atom:monomers[4]/CA
+    $bond:bb5 @bond:MonomerTypes/bb $atom:monomers[4]/CA $atom:monomers[5]/CA
+    $bond:bb6 @bond:MonomerTypes/bb $atom:monomers[5]/CA $atom:monomers[6]/CA
+    $bond:bb7 @bond:MonomerTypes/bb $atom:monomers[6]/CA $atom:monomers[7]/CA
+    $bond:bb8 @bond:MonomerTypes/bb $atom:monomers[7]/CA $atom:monomers[8]/CA
+    $bond:bb9 @bond:MonomerTypes/bb $atom:monomers[8]/CA $atom:monomers[9]/CA
+    $bond:bb10 @bond:MonomerTypes/bb $atom:monomers[9]/CA $atom:monomers[10]/CA
+    $bond:bb11 @bond:MonomerTypes/bb $atom:monomers[10]/CA $atom:monomers[11]/CA
+    $bond:bb12 @bond:MonomerTypes/bb $atom:monomers[11]/CA $atom:monomers[12]/CA
+    $bond:bb13 @bond:MonomerTypes/bb $atom:monomers[12]/CA $atom:monomers[13]/CA
+    $bond:bb14 @bond:MonomerTypes/bb $atom:monomers[13]/CA $atom:monomers[14]/CA
+    $bond:bb15 @bond:MonomerTypes/bb $atom:monomers[14]/CA $atom:monomers[15]/CA
+    $bond:bb16 @bond:MonomerTypes/bb $atom:monomers[15]/CA $atom:monomers[16]/CA
+    $bond:bb17 @bond:MonomerTypes/bb $atom:monomers[16]/CA $atom:monomers[17]/CA
+    $bond:bb18 @bond:MonomerTypes/bb $atom:monomers[17]/CA $atom:monomers[18]/CA
+    $bond:bb19 @bond:MonomerTypes/bb $atom:monomers[18]/CA $atom:monomers[19]/CA
+    $bond:bb20 @bond:MonomerTypes/bb $atom:monomers[19]/CA $atom:monomers[20]/CA
+    $bond:bb21 @bond:MonomerTypes/bb $atom:monomers[20]/CA $atom:monomers[21]/CA
+    $bond:bb22 @bond:MonomerTypes/bb $atom:monomers[21]/CA $atom:monomers[22]/CA
+    $bond:bb23 @bond:MonomerTypes/bb $atom:monomers[22]/CA $atom:monomers[23]/CA
+    $bond:bb24 @bond:MonomerTypes/bb $atom:monomers[23]/CA $atom:monomers[24]/CA
+    $bond:bb25 @bond:MonomerTypes/bb $atom:monomers[24]/CA $atom:monomers[25]/CA
+    $bond:bb26 @bond:MonomerTypes/bb $atom:monomers[25]/CA $atom:monomers[26]/CA
+    $bond:bb27 @bond:MonomerTypes/bb $atom:monomers[26]/CA $atom:monomers[27]/CA
+    $bond:bb28 @bond:MonomerTypes/bb $atom:monomers[27]/CA $atom:monomers[28]/CA
+    $bond:bb29 @bond:MonomerTypes/bb $atom:monomers[28]/CA $atom:monomers[29]/CA
+    $bond:bb30 @bond:MonomerTypes/bb $atom:monomers[29]/CA $atom:monomers[30]/CA
+    $bond:bb31 @bond:MonomerTypes/bb $atom:monomers[30]/CA $atom:monomers[31]/CA
+    $bond:bb32 @bond:MonomerTypes/bb $atom:monomers[31]/CA $atom:monomers[32]/CA
+    $bond:bb33 @bond:MonomerTypes/bb $atom:monomers[32]/CA $atom:monomers[33]/CA
+    $bond:bb34 @bond:MonomerTypes/bb $atom:monomers[33]/CA $atom:monomers[34]/CA
+    $bond:bb35 @bond:MonomerTypes/bb $atom:monomers[34]/CA $atom:monomers[35]/CA
+    $bond:bb36 @bond:MonomerTypes/bb $atom:monomers[35]/CA $atom:monomers[36]/CA
+    $bond:bb37 @bond:MonomerTypes/bb $atom:monomers[36]/CA $atom:monomers[37]/CA
+    $bond:bb38 @bond:MonomerTypes/bb $atom:monomers[37]/CA $atom:monomers[38]/CA
+    $bond:bb39 @bond:MonomerTypes/bb $atom:monomers[38]/CA $atom:monomers[39]/CA
+    $bond:bb40 @bond:MonomerTypes/bb $atom:monomers[39]/CA $atom:monomers[40]/CA
+    $bond:bb41 @bond:MonomerTypes/bb $atom:monomers[40]/CA $atom:monomers[41]/CA
+    $bond:bb42 @bond:MonomerTypes/bb $atom:monomers[41]/CA $atom:monomers[42]/CA
+    $bond:bb43 @bond:MonomerTypes/bb $atom:monomers[42]/CA $atom:monomers[43]/CA
+    $bond:bb44 @bond:MonomerTypes/bb $atom:monomers[43]/CA $atom:monomers[44]/CA
+    $bond:bb45 @bond:MonomerTypes/bb $atom:monomers[44]/CA $atom:monomers[45]/CA
+    $bond:bb46 @bond:MonomerTypes/bb $atom:monomers[45]/CA $atom:monomers[46]/CA
+    $bond:bb47 @bond:MonomerTypes/bb $atom:monomers[46]/CA $atom:monomers[47]/CA
+    $bond:bb48 @bond:MonomerTypes/bb $atom:monomers[47]/CA $atom:monomers[48]/CA
+    $bond:bb49 @bond:MonomerTypes/bb $atom:monomers[48]/CA $atom:monomers[49]/CA
+  }
+
+  # These lines of moltemplate script above were generated in python:
+  # for i in range(0,49):
+  #     print('    $bond:bb'+str(i+1)+' @bond:MonomerTypes/bb $atom:monomers['
+  #           +str(i)+']/CA $atom:monomers['+str(i+1)+']/CA')
+
+  # Finally, create a molecule ID number for this large polymer object
+
+  create_var { $mol }
+
+} # RandomHeteropolymer
+
+
+
+# Angle, dihedral and improper interactions will be generated
+# automatically according to the instructions in "monomers.lt"

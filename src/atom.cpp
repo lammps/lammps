@@ -161,9 +161,9 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   tag_enable = 1;
   map_style = map_user = 0;
-  map_tag_max = 0;
+  map_tag_max = -1;
   map_maxarray = 0;
-  map_nhash = 0;
+  map_nhash = -1;
 
   max_same = 0;
   sametag = NULL;
@@ -1848,9 +1848,9 @@ bigint Atom::memory_usage()
   memory->destroy(memstr);
 
   bytes += max_same*sizeof(int);
-  if (map_style == 1)
+  if (map_style == 1 && map_tag_max >= 0)
     bytes += memory->usage(map_array,map_maxarray);
-  else if (map_style == 2) {
+  else if (map_style == 2 && map_nhash >=0) {
     bytes += map_nbucket*sizeof(int);
     bytes += map_nhash*sizeof(HashElem);
   }

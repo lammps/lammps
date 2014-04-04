@@ -291,7 +291,7 @@ int Atom::map_style_set()
 
   // map_tag_max = max ID of any atom that will be in new map
 
-  tagint max = 0;
+  tagint max = -1;
   for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
   MPI_Allreduce(&max,&map_tag_max,1,MPI_LMP_TAGINT,MPI_MAX,world);
 

@@ -18,8 +18,8 @@ PACKAGE = asphere body class2 colloid dipole fld gpu granular kim \
 	  reax replica rigid shock srd voronoi xtc
 
 PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars \
-	   user-cuda user-eff user-lb user-misc user-omp user-molfile \
-	   user-phonon user-reaxc user-sph
+	   user-cuda user-eff user-lb user-misc user-molfile \
+	   user-omp user-phonon user-qmmm user-reaxc user-sph
 
 PACKLIB = gpu kim meam poems reax voronoi \
 	  user-atc user-awpmd user-colvars user-cuda user-molfile

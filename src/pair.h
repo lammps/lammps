@@ -213,9 +213,6 @@ class Pair : protected Pointers {
                       double, double, double, double, double, double);
   void virial_fdotr_compute();
 
-  FILE *open_potential(const char *);
-  const char *potname(const char *);
-
   inline int sbmask(int j) {
     return j >> SBBITS & 3;
   }

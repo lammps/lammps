@@ -318,9 +318,9 @@ void PairComb3::read_lib()
   MPI_Comm_rank(world,&comm->me);
 
   // open libraray file on proc 0
-  
+
   if(comm->me == 0) {
-    FILE *fp =  open_potential("lib.comb3");
+    FILE *fp = force->open_potential("lib.comb3");
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open COMB3 C library file \n");

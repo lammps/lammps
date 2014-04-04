@@ -457,7 +457,7 @@ void PairEIM::read_file(char *filename)
   FILE *fptr;
 
   if (me == 0) {
-    fptr = open_potential(filename);
+    fptr = force->open_potential(filename);
     if (fptr == NULL) {
       char str[128];
       sprintf(str,"Cannot open EIM potential file %s",filename);

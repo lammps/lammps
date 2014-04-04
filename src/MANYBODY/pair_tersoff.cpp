@@ -377,7 +377,7 @@ void PairTersoff::read_file(char *file)
 
   FILE *fp;
   if (comm->me == 0) {
-    fp = open_potential(file);
+    fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open Tersoff potential file %s",file);

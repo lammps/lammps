@@ -1,0 +1,67 @@
+# -*- Makefile -*- for coupling LAMMPS to PWscf for QM/MM molecular dynamics
+
+# this file will be copied to Makefile.lammps
+EXTRAMAKE = Makefile.lammps.empty
+
+# top level directory of Quantum ESPRESSO 5.1 or later
+QETOPDIR=$(HOME)/compile/espresso
+
+# import compiler settings from Quantum ESPRESSO
+sinclude $(QETOPDIR)/make.sys
+
+# FLAGS for c++ OpenMPI when QE was compiled with GNU Fortran 4.x
+MPICXX=mpicxx
+MPICXXFLAGS=-DOMPI_SKIP_MPICXX=1 -O2 -Wall -g \
+	-I../../src -I$(QETOPDIR)/COUPLE/include
+MPILIBS=-fopenmp -lgfortran -ldl -ljpeg -lmpi_f77 -lmpi
+
+# location of required libraries
+# part 1: hi-level libraries for building pw.x
+PWOBJS = \
+$(QETOPDIR)/COUPLE/src/libqecouple.a \
+$(QETOPDIR)/PW/src/libpw.a \
+$(QETOPDIR)/Modules/libqemod.a
+# part 2: lo-level libraries for all of Q-E
+LIBOBJS = \
+$(QETOPDIR)/flib/ptools.a \
+$(QETOPDIR)/flib/flib.a   \
+$(QETOPDIR)/clib/clib.a   \
+$(QETOPDIR)/iotk/src/libiotk.a
+
+# part 3: add-on libraries and main library for LAMMPS
+sinclude ../../src/Makefile.package
+LAMMPSCFG = openmpi-omp
+LAMMPSLIB = ../../src/liblammps_$(LAMMPSCFG).a
+
+# part 4: local QM/MM library and progams
+SRC=pwqmmm.c libqmmm.c
+OBJ=$(SRC:%.c=%.o)
+
+
+default: libqmmm.a
+
+all : tldeps libqmmm.a pwqmmm.x
+
+pwqmmm.x : pwqmmm.o $(OBJ) $(PWOBJS) $(LIBOBJS) $(LAMMPSLIB)
+	$(MPICXX) $(LDFLAGS) -o $@ $^ $(PKG_PATH) $(PKG_LIB) $(MPILIBS) $(LIBS)
+
+libqmmm.a: libqmmm.o
+	$(AR) $(ARFLAGS) $@ $^
+	@cp $(EXTRAMAKE) Makefile.lammps
+
+%.o: %.c
+	$(MPICXX) -c $(LAMMPSFLAGS) $(MPICXXFLAGS) $< -o $@
+
+tldeps:
+	( cd $(QETOPDIR) ; $(MAKE) $(MFLAGS) couple || exit 1)
+	$(MAKE) -C ../../src $(MFLAGS) makelib
+	$(MAKE) -C ../../src $(MFLAGS) $(LAMMPSCFG)
+	$(MAKE) -C ../../src $(MFLAGS) -f Makefile.lib $(LAMMPSCFG)
+
+clean :
+	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L
+
+# explicit dependencies
+
+pwqmmm.o: pwqmmm.c libqmmm.h
+libqmmm.o: libqmmm.c libqmmm.h

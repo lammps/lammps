@@ -25,5 +25,7 @@ poems	      POEMS rigid-body integration package, POEMS package
                 from Rudranarayan Mukherjee (RPI)
 meam	      modified embedded atom method (MEAM) potential, MEAM package
                 from Greg Wagner (Sandia)
+qmmm	      quantum mechanics/molecular mechanics coupling interface
+                from Axel Kohlmeyer (Temple U)
 reax          ReaxFF potential, REAX package
 	        from Adri van Duin (Penn State) and Aidan Thompson (Sandia)

@@ -1,0 +1,108 @@
+QM/MM support toplevel library
+
+Axel Kohlmeyer, akohlmey@gmail.com
+Temple University, Philadelphia and ICTP, Trieste
+
+This library provides  the basic glue code to  combine LAMMPS with the
+Quantum ESPRESSO package plane wave density functional theory code for
+performing QM/MM  molecular dynamics simulations.  More information on
+Quantum ESPRESSO can be found at: http://www.quantum-espresso.org
+
+The interface code itself is designed so it can also be combined with
+other QM codes, however only support for Quantum ESPRESSO is currently
+the only option. Adding support for a different QM code will require
+to write a new version of the top-level wrapper code, pwqmmm.c, and
+also an interface layer into the QM code similar to the one in QE.
+
+-------------------------------------------------
+
+This  directory has  the   source files  to build  a   library  and an
+executable  for combining the pw.x program   from Quantum ESPRESSO and
+LAMMPS into  a single executable that  can be used for QM/MM molecular
+dynamics  simulations.  LAMMPS will act as   the  MD "driver" and will
+delegate  computation of forces  for the  QM subset  of the system  to
+Quantum ESPRESSO.
+
+The toplevel  code provided here will split  the  total number of cpus
+into three  partitions: the first for  running a DFT  calculation, the
+second  for running the  "master"  classical MD  calculation, and  the
+third for  a "slave" classical  MD calculation.  Each calculation will
+have to be  run in  its own  subdirectory with its  own specific input
+data and will write its output there as well.  This and other settings
+are provided in the QM/MM input file that is mandatory argument to the
+QM/MM executable. The  number of MM  cpus is provided  as the optional
+second argument.  The MM "slave" partition  is always run with  only 1
+cpu thus the minimum number is 2, which is also the default. Therefore
+a QM/MM calculation with this code requires at least 3 processes.
+
+Thus the overall calling sequence is like this:
+
+   mpirun -np <total #cpus> ./pwqmmm.x <QM/MM input> [<#cpus for MM>]
+
+A commented example is given below.
+
+-------------------------------------------------
+
+Build the library using one of the provided Makefile.* files or create
+your own, specific to your compiler and system.  For example:
+
+make -f Makefile.gfortran
+
+When you are done building this library, two new files should
+exist in this directory:
+
+libqmmm.a		the library LAMMPS will link against
+Makefile.lammps		settings the LAMMPS Makefile will import
+
+Makefile.lammps is created by the make command by simply copying the 
+Makefile.lammps.empty file. Currently no additional dependencies for
+this library exist.
+
+-------------------------------------------------
+
+To compile and link the final QM/MM executable, you have to build
+quantum espresso with the "pw" and "couple" targets. You also have
+to to install the USER-QMMM package for LAMMPS. You have to specify
+the path to the toplevel Quantum ESPRESSO directory, so that the 
+compiler and linker settings can be imported.
+
+The makefile variable MPILIBS needs to be set to include all linker
+flags that will need to be used in addition to the various libraries
+from the two packages. Please see the provided example(s).
+
+"make -f Makefile.gfortran" all by itself will only compile the
+library (so that LAMMPS can be compiled into a standalone executable
+as well, when the USER-QMMM package is installed).
+"make -f Makefile.gfortran pwqmmm.x" will compile and link the QM/MM
+executable; "make -f Makefile.gfortran all" will recurse through the
+Quantum ESPRESSO and LAMMPS directories to compile all files that 
+require recompilation and then link the executable.
+
+Please refer to the specific LAMMPS and Quantum ESPRESSO documentation
+for details on how to set up compilation for each package and make
+sure you have a set of settings and flags that allow you to build 
+each package successfully, so that it can run on its own.
+
+-------------------------------------------------
+
+# configuration file for QMMM wrapper
+
+mode     mech         # coupling choices: o(ff), m(echanical), e(lectrostatic)
+steps    20           # number of QM/MM (MD) steps
+verbose  1            # verbosity level (0=no QM/MM output during run)
+restart    water.restart  # checkpoint/restart file to write out at end
+
+# QM system config
+qmdir    qm-pw        # directory to run QM system in
+qminp    water.in     # input file for QM code
+qmout    NULL         # output file for QM code (or NULL to print to screen)
+
+# MM master config
+madir    mm-master    # directory to run MM master in
+mainp    water.in     # input file for MM master
+maout    water.out    # output file for MM master (or NULL to print to screen)
+
+# MM slave config
+sldir    mm-slave          # directory to run MM slave in
+slinp    water_single.in   # input file for MM slave
+slout    water_single.out  # output file for MM slave (or NULL to print to screen)

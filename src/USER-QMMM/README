@@ -1,8 +1,8 @@
 This package implements the "fix qmmm" command which can be used
 in a LAMMPS input script.
 
-This fix allows to do QM/MM simulations, currently only in
-combination with pw.x code from the Quantum ESPRESSO package. 
+This fix enables LAMMPS to be used in a QM/MM simulation, currently
+only in combination with pw.x code from the Quantum ESPRESSO package.
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.

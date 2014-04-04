@@ -27,6 +27,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "neighbor.h"
 #include "memory.h"
 #include "msm_cg.h"
 
@@ -155,12 +156,16 @@ void MSMCG::compute(int eflag, int vflag)
     }
   }
 
-  num_charged = 0;
-  for (i = 0; i < nlocal; ++i)
-    if (fabs(q[i]) > smallq) {
-      is_charged[num_charged] = i;
-      ++num_charged;
+  // only need to rebuild this list after a neighbor list update
+  if (neighbor->ago == 0) {
+    num_charged = 0;
+    for (i = 0; i < nlocal; ++i) {
+      if (fabs(q[i]) > smallq) {
+        is_charged[num_charged] = i;
+        ++num_charged;
+      }
     }
+  }
 
   // find grid points for all my particles
   // map my particle charge onto my local 3d density grid (aninterpolation)

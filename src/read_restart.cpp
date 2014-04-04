@@ -242,8 +242,7 @@ void ReadRestart::command(int narg, char **arg)
             coord[1] >= sublo[1] && coord[1] < subhi[1] &&
             coord[2] >= sublo[2] && coord[2] < subhi[2]) {
           m += avec->unpack_restart(&buf[m]);
-        }
-        else m += static_cast<int> (buf[m]);
+        } else m += static_cast<int> (buf[m]);
       }
     }
 

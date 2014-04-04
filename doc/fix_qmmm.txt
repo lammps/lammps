@@ -21,18 +21,21 @@ fix 1 qmol qmmm
 
 [Description:]
 
-This fix provides functionality to implement a QM/MM coupling of 
-LAMMPS a quantum mechanical code. The current implementation only
-supports an ONIOM style mechanical coupling to the Quantum ESPRESSO
-plane wave DFT package. Electrostatic coupling is in preparation
-and the interface was written in a way, that coupling to other QM
-codes is possible without changes to the LAMMPS codes itself. The
-interface code is made available at this early stage of development
-in order to encourage contributions for interfaces to other QM
-codes before the LAMMPS side of the implementation is finalized
-and will be much more difficult to adapt.
+This fix provides functionality to enable a quantum
+mechanics/molecular mechanice (QM/MM) coupling of LAMMPS to a quantum
+mechanical code.  The current implementation only supports an ONIOM
+style mechanical coupling to the Quantum ESPRESSO plane wave DFT
+package.  Electrostatic coupling is in preparation and the interface
+has been written in a manner that coupling to other QM codes should be
+possible without changes to LAMMPS itself.
 
-Details about how to use this fix are currently documented in the 
+The interface code for this is in the lib/qmmm directory of the LAMMPS
+distribution and is being made available at this early stage of
+development in order to encourage contributions for interfaces to
+other QM codes.  This will allow the LAMMPS side of the implementation
+to be adapted if necessary before being finalized.
+
+Details about how to use this fix are currently documented in the
 description of the QM/MM interface code itself in lib/qmmm/README.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
@@ -54,7 +57,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 The fix is only functional when LAMMPS is built as a library and
 linked with a compatible QM program and a QM/MM frontend into a QM/MM
-executable.
+executable.  See the lib/qmmm/README file for details.
 
 [Related commands:] none
 

@@ -27,7 +27,6 @@ class Special : protected Pointers {
  private:
   int me,nprocs;
   tagint **onetwo,**onethree,**onefour;
-  int dihedral_flag;
 
   // data used by ring callback methods
 

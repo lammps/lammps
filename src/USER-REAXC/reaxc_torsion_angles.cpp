@@ -160,7 +160,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
 {
   int i, j, k, l, pi, pj, pk, pl, pij, plk, natoms;
   int type_i, type_j, type_k, type_l;
-  int start_j, end_j, start_k, end_k;
+  int start_j, end_j;
   int start_pj, end_pj, start_pk, end_pk;
   int num_frb_intrs = 0;
 
@@ -203,7 +203,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
 
   // Virial tallying variables
   real delil[3], deljl[3], delkl[3];
-  real eng_tmp, f_scaler, fi_tmp[3], fj_tmp[3], fk_tmp[3];
+  real eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
 
   // sprintf( fname, "tor%d.out", system->my_rank );
   // ftor = fopen( fname, "w" );
@@ -227,8 +227,6 @@ void Torsion_Angles( reax_system *system, control_params *control,
          trying to form a 4-body interaction out of this neighborhood */
       if( system->my_atoms[j].orig_id < system->my_atoms[k].orig_id &&
           bo_jk->BO > control->thb_cut/*0*/ && Num_Entries(pk, thb_intrs) ) {
-        start_k = Start_Index(k, bonds);
-        end_k = End_Index(k, bonds);
         pj = pbond_jk->sym_index; // pj points to j on k's list
 
         /* do the same check as above:

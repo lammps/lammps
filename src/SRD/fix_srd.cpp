@@ -465,7 +465,6 @@ void FixSRD::pre_neighbor()
 {
   int i,j,m,ix,iy,iz,jx,jy,jz,ibin,jbin,lo,hi;
   double rsq,cutbinsq;
-  double xlamda[3];
 
   // grow SRD per-atom bin arrays if necessary
 
@@ -700,7 +699,6 @@ void FixSRD::pre_neighbor()
 void FixSRD::post_force(int vflag)
 {
   int i,m,ix,iy,iz;
-  double xlamda[3];
 
   // zero per-timestep stats
 
@@ -831,8 +829,8 @@ void FixSRD::reset_velocities()
 {
   int i,j,n,ix,iy,iz,ibin,axis,sign,irandom;
   double u[3],vsum[3];
-  double vx,vy,vz,vsq,tbin,scale;
-  double *vave,*vnew,*xlamda;
+  double vsq,tbin,scale;
+  double *vave,*xlamda;
   double vstream[3];
 
   // if requested, perform a dynamic shift of bin positions
@@ -1260,7 +1258,7 @@ void FixSRD::xbin_unpack(double *buf, BinAve *vbin, int n, int *list, int nval)
 
 void FixSRD::collisions_single()
 {
-  int i,j,k,m,type,nbig,ibin,ibounce,inside,collide_flag,lineside;
+  int i,j,k,m,type,nbig,ibin,ibounce,inside,collide_flag;
   double dt,t_remain;
   double norm[3],xscoll[3],xbcoll[3],vsnew[3];
   Big *big;
@@ -1639,7 +1637,6 @@ int FixSRD::inside_line(double *xs, double *xb, double *vs, double *vb,
                         Big *big, double dt_step)
 {
   double pmc0[2],pmc1[2],n0[2],n1[2];
-  double n1_n0[2],pmc1_pmc0[2];
 
   // 1 and 2 = start and end of timestep
   // pmc = P - C, where P = position of S, C = position of B
@@ -2013,7 +2010,7 @@ double FixSRD::collision_ellipsoid_exact(double *xs, double *xb,
   double vs_vb[3],xs_xb[3],omega_ex[3],omega_ey[3],omega_ez[3];
   double excoll[3],eycoll[3],ezcoll[3],delta[3],xbody[3],nbody[3];
   double ax,bx,cx,ay,by,cy,az,bz,cz;
-  double a,b,c,scale;
+  double a,b,c;
 
   double *omega = big->omega;
   double *ex = big->ex;
@@ -2902,7 +2899,6 @@ void FixSRD::big_static()
   int *ellipsoid = atom->ellipsoid;
   int *line = atom->line;
   int *tri = atom->tri;
-  int *type = atom->type;
 
   double skinhalf = 0.5 * neighbor->skin;
 
@@ -3880,7 +3876,7 @@ void FixSRD::velocity_stats(int groupnum)
 
 double FixSRD::newton_raphson(double t1, double t2)
 {
-  double f1,f2,df,tlo,thi;
+  double f1,df,tlo,thi;
   lineside(t1,f1,df);
   if (f1 < 0.0) {
     tlo = t1;

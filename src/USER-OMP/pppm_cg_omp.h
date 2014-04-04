@@ -42,15 +42,12 @@ class PPPMCGOMP : public PPPMCG, public ThrOMP {
   virtual void fieldforce_ik();
   virtual void fieldforce_ad();
   virtual void fieldforce_peratom();
-//  virtual void make_rho();
 
  private:
   void compute_rho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
                          const FFT_SCALAR &, const FFT_SCALAR &);
   void compute_drho1d_thr(FFT_SCALAR * const * const, const FFT_SCALAR &,
 			  const FFT_SCALAR &, const FFT_SCALAR &);
-//  void slabcorr(int);
-
 };
 
 }

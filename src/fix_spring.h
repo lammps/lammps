@@ -48,7 +48,6 @@ class FixSpring : public Fix {
   double masstotal,masstotal2;
   int nlevels_respa;
   double espring,ftotal[4];
-  int force_flag;
 
   void spring_tether();
   void spring_couple();

@@ -515,7 +515,7 @@ void FixQEqReax::init_matvec()
 void FixQEqReax::compute_H()
 {
   int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
-  int i, j, ii, jj, temp, newnbr, flag;
+  int i, j, ii, jj, flag;
   double **x, SMALL = 0.0001;
   double dx, dy, dz, r_sqr;
 

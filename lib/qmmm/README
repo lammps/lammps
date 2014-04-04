@@ -16,28 +16,28 @@ also an interface layer into the QM code similar to the one in QE.
 
 -------------------------------------------------
 
-This  directory has  the   source files  to build  a   library  and an
-executable  for combining the pw.x program   from Quantum ESPRESSO and
-LAMMPS into  a single executable that  can be used for QM/MM molecular
-dynamics  simulations.  LAMMPS will act as   the  MD "driver" and will
-delegate  computation of forces  for the  QM subset  of the system  to
+This directory has the source files to build a library and an
+executable for combining the pw.x program from Quantum ESPRESSO and
+LAMMPS into a single executable that can be used for QM/MM molecular
+dynamics simulations.  LAMMPS will act as the MD "driver" and will
+delegate computation of forces for the QM subset of the system to
 Quantum ESPRESSO.
 
-The toplevel  code provided here will split  the  total number of cpus
-into three  partitions: the first for  running a DFT  calculation, the
-second  for running the  "master"  classical MD  calculation, and  the
-third for  a "slave" classical  MD calculation.  Each calculation will
-have to be  run in  its own  subdirectory with its  own specific input
+The toplevel code provided here will split the total number of cpus
+into three partitions: the first for running a DFT calculation, the
+second for running the "master" classical MD calculation, and the
+third for a "slave" classical MD calculation.  Each calculation will
+have to be run in its own subdirectory with its own specific input
 data and will write its output there as well.  This and other settings
 are provided in the QM/MM input file that is mandatory argument to the
-QM/MM executable. The  number of MM  cpus is provided  as the optional
-second argument.  The MM "slave" partition  is always run with  only 1
+QM/MM executable. The number of MM cpus is provided as the optional
+second argument.  The MM "slave" partition is always run with only 1
 cpu thus the minimum number is 2, which is also the default. Therefore
 a QM/MM calculation with this code requires at least 3 processes.
 
 Thus the overall calling sequence is like this:
 
-   mpirun -np <total #cpus> ./pwqmmm.x <QM/MM input> [<#cpus for MM>]
+mpirun -np <total #cpus> ./pwqmmm.x <QM/MM input> [<#cpus for MM>]
 
 A commented example is given below.
 

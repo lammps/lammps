@@ -1,0 +1,66 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix qmmm command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID qmmm  
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>qmmm = style name of this fix command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<P>fix 1 qmol qmmm 
+</P>
+<P><B>Description:</B>
+</P>
+<P>This fix provides functionality to implement a QM/MM coupling of 
+LAMMPS a quantum mechanical code. The current implementation only
+supports an ONIOM style mechanical coupling to the Quantum ESPRESSO
+plane wave DFT package. Electrostatic coupling is in preparation
+and the interface was written in a way, that coupling to other QM
+codes is possible without changes to the LAMMPS codes itself. The
+interface code is made available at this early stage of development
+in order to encourage contributions for interfaces to other QM
+codes before the LAMMPS side of the implementation is finalized
+and will be much more difficult to adapt.
+</P>
+<P>Details about how to use this fix are currently documented in the 
+description of the QM/MM interface code itself in lib/qmmm/README.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No global scalar or vector or per-atom
+quantities are stored by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the USER-QMMM package.  It is only enabled if
+LAMMPS was built with that package. It also requires building a
+library provided with LAMMPS.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>The fix is only functional when LAMMPS is built as a library and
+linked with a compatible QM program and a QM/MM frontend into a QM/MM
+executable.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

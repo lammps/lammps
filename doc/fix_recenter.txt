@@ -91,11 +91,22 @@ to tether the molecule in place.
 
 No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various "output
-commands"_Section_howto.html#howto_15.  No parameter of this fix can
-be used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+are relevant to this fix.
+
+This fix computes a global scalar which can be accessed by various
+"output commands"_Section_howto.html#howto_15.  The scalar is the
+distance the group is moved by fix recenter.
+
+This fix also computes global 3-vector which can be accessed by
+various "output commands"_Section_howto.html#howto_15.  The 3
+quantities in the vector are xyz components of displacement applied to
+the group of atoms by the fix.
+
+The scalar and vector values calculated by this fix are "extensive".
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
 
 [Restrictions:]
 

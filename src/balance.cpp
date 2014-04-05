@@ -200,12 +200,13 @@ void Balance::command(int narg, char **arg)
         error->all(FLERR,"Illegal balance command");
 
   if (dflag) {
-    for (int i = 0; i < strlen(bstr); i++) {
+    const int blen=strlen(bstr);
+    for (int i = 0; i < blen; i++) {
       if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
         error->all(FLERR,"Balance dynamic string is invalid");
       if (bstr[i] == 'z' && dimension == 2)
         error->all(FLERR,"Balance dynamic string is invalid");
-      for (int j = i+1; j < strlen(bstr); j++)
+      for (int j = i+1; j < blen; j++)
         if (bstr[i] == bstr[j])
           error->all(FLERR,"Balance dynamic string is invalid");
     }

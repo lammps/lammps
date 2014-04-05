@@ -5,20 +5,6 @@
 
 TraPPE {
 
-  write_once("In Init") {
-    # -- Default styles for "TraPPE" --
-    units           real
-    atom_style      full
-    # (Hybrid force field styles were used for portability.)
-    bond_style      hybrid harmonic
-    angle_style     hybrid harmonic
-    dihedral_style  hybrid opls
-    improper_style  none
-    pair_style      hybrid lj/charmm/coul/charmm 9.0 11.0 9.0 11.0
-    pair_modify     mix arithmetic
-    special_bonds   lj 0.0 0.0 0.0
-  }
-
   write_once("Data Masses") {
     @atom:CH2 14.1707
     @atom:CH3 15.2507
@@ -42,8 +28,25 @@ TraPPE {
     dihedral_coeff @dihedral:backbone opls 1.411036 -0.271016 3.145034 0.0
   }
 
+  # Optional: Create a group corresponding to atoms used by the TraPPE force-
+  #           field.  (This is useful if you mix force-fields together.)
+
   write_once("In Settings") {
     group TraPPE type @atom:CH2 @atom:CH3 @atom:CH4
+  }
+
+  write_once("In Init") {
+    # -- Default styles for "TraPPE" --
+    units           real
+    atom_style      full
+    # (Hybrid force field styles were used for portability.)
+    bond_style      hybrid harmonic
+    angle_style     hybrid harmonic
+    dihedral_style  hybrid opls
+    improper_style  none
+    pair_style      hybrid lj/charmm/coul/charmm 9.0 11.0 9.0 11.0
+    pair_modify     mix arithmetic
+    special_bonds   lj 0.0 0.0 0.0
   }
 
 }  # class TraPPE

@@ -145,7 +145,9 @@ void Irregular::migrate_atoms()
 
   // create irregular communication plan, perform comm, destroy plan
   // returned nrecv = size of buffer needed for incoming atoms
+  // debug: turn on sorting for repoducible irregular() via extra final arg
 
+  //int nrecv = create_atom(nsendatom,sizes,proclist,1);
   int nrecv = create_atom(nsendatom,sizes,proclist);
   if (nrecv > maxrecv) grow_recv(nrecv);
   exchange_atom(buf_send,sizes,buf_recv);

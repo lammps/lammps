@@ -99,11 +99,22 @@ to tether the molecule in place.
 </P>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  No parameter of this fix can
-be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+are relevant to this fix.
+</P>
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+distance the group is moved by fix recenter.
+</P>
+<P>This fix also computes global 3-vector which can be accessed by
+various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The 3
+quantities in the vector are xyz components of displacement applied to
+the group of atoms by the fix.
+</P>
+<P>The scalar and vector values calculated by this fix are "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>

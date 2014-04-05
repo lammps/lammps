@@ -54,7 +54,7 @@ reset_timestep  0
 
 compute         myKE all ke/atom
 compute         myPE all pe/atom
-compute         myStress all stress/atom virial
+compute         myStress all stress/atom NULL virial
 compute         flux all heat/flux myKE myPE myStress
 variable        Jx equal c_flux[1]/vol
 variable        Jy equal c_flux[2]/vol

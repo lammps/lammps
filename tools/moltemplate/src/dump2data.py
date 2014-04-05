@@ -16,9 +16,9 @@ A reference DATA file is needed (argument).
 
 """
 
-# Authors: Andrew Jewett, Lieberman-Aiden group
+# Authors: Andrew Jewett
 # License: New BSD License
-# Copyright (c) 2013
+# Copyright (c) 2014
 # All rights reserved.
 
 

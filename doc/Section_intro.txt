@@ -251,9 +251,11 @@ molecular dynamics options:
 "real-time visualization and interactive MD"_fix_imd.html
 "atom-to-continuum coupling"_fix_atc.html with finite elements
 coupled rigid body integration via the "POEMS"_fix_poems.html library
+"QM/MM coupling"_fix_qmmm.html
 "grand canonical Monte Carlo"_fix_gcmc.html insertions/deletions
 "Direct Simulation Monte Carlo"_pair_dsmc.html for low-density fluids
 "Peridynamics mesoscale modeling"_pair_peri.html
+"Lattice Boltzmann fluid"_fix_lb_fluid.html
 "targeted"_fix_tmd.html and "steered"_fix_smd.html molecular dynamics
 "two-temperature electron model"_fix_ttm.html :ul
 

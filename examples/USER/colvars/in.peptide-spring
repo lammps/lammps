@@ -32,8 +32,8 @@ fix		2a ref setforce 0.0 0.0 0.0
 
 fix		4 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
 
-dump		1 colvar custom 1 dump.spring.lammpstrj id xu yu zu fx fy fz
-dump_modify 1  sort id
+#dump		1 colvar custom 1 dump.spring.lammpstrj id xu yu zu fx fy fz
+#dump_modify 1  sort id
 
 variable sp equal f_3a+f_3b
 

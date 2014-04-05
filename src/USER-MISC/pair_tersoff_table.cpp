@@ -63,6 +63,10 @@ PairTersoffTable::PairTersoffTable(LAMMPS *lmp) : Pair(lmp)
   nparams = maxparam = 0;
   params = NULL;
   elem2param = NULL;
+  allocated = 0;
+
+  preGtetaFunction = preGtetaFunctionDerived = NULL;
+  preCutoffFunction = preCutoffFunctionDerived = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -99,7 +103,6 @@ void PairTersoffTable::compute(int eflag, int vflag)
 
 
   int interpolIDX;
-  double r_ik_x, r_ik_y, r_ik_z;
   double directorCos_ij_x, directorCos_ij_y, directorCos_ij_z, directorCos_ik_x, directorCos_ik_y, directorCos_ik_z;
   double invR_ij, invR_ik, cosTeta;
   double repulsivePotential, attractivePotential;
@@ -543,8 +546,6 @@ void PairTersoffTable::allocatePreLoops(void)
 
 void PairTersoffTable::deallocateGrids()
 {
-  int i,j;
-
   memory->destroy(exponential);
   memory->destroy(gtetaFunction);
   memory->destroy(gtetaFunctionDerived);

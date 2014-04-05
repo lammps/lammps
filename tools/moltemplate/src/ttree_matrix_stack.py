@@ -1,4 +1,4 @@
-# Author: Andrew Jewett (jewett.aij at g mail)
+# Author: Andrew Jewett (jewett.aij@gmail.com)
 #         http://www.chem.ucsb.edu/~sheagroup
 # License: 3-clause BSD License  (See LICENSE.TXT)
 # Copyright (c) 2012, Regents of the University of California
@@ -307,7 +307,6 @@ class AffineStack(object):
                     AffineCompose(Mtmp, moveCentBack, Mdest)
                     CopyMat(Mdest, Mtmp)
 
-
             # # elif transform_str.find('rotcm(') == 0:
             # #     assert(xcm != None)
             # #     i_paren_close = transform_str.find(')')
@@ -339,6 +338,50 @@ class AffineStack(object):
             # #                   [0.0, 0.0, 1.0, xcm[2]]]
             # #     AffineCompose(Mtmp, moveCmBack, Mdest)
             # #     CopyMat(Mdest, Mtmp)
+
+            elif transform_str.find('rotvv(') == 0:
+                i_paren_close = transform_str.find(')')
+                if i_paren_close == -1:
+                    i_paren_close = len(transform_str)
+                args = transform_str[6:i_paren_close].split(',')
+                center_v = None
+                if (len(args) == 9):
+                    center_v = [float(args[6]), float(args[7]), float(args[8])]
+                elif (len(args) != 6):
+                    raise InputError('Error near '+ErrorLeader(src_loc.infile, src_loc.lineno)+':\n'
+                                     '       Invalid command: \"'+transform_str+'\"\n'
+                                     '       This command requires either 6 or 9 numerical arguments.  Either:\n'
+                                     '           rotvv(Xold,Yold,Zold,Xnew,Ynew,Znew)  or \n'
+                                     '           rotvv(Xold,Yold,Zold,Xnew,Ynew,Znew,centerX,centerY,centerZ)')
+                M[0][3] = 0.0 #RotMatAXYZ() only modifies 3x3 submatrix of M
+                M[1][3] = 0.0 #The remaining final column must be zeroed by hand
+                M[2][3] = 0.0
+                RotMatXYZXYZ(M,
+                             float(args[0]),
+                             float(args[1]),
+                             float(args[2]),
+                             float(args[3]),
+                             float(args[4]),
+                             float(args[5]))
+                if (center_v == None):
+                    AffineCompose(Mtmp, M, Mdest)
+                    CopyMat(Mdest, Mtmp)
+                else:
+                    # Move "center_v" to the origin
+                    moveCentToOrig = [[1.0, 0.0, 0.0, -center_v[0]],
+                                      [0.0, 1.0, 0.0, -center_v[1]],
+                                      [0.0, 0.0, 1.0, -center_v[2]]]
+                    AffineCompose(Mtmp, moveCentToOrig, Mdest)
+                    CopyMat(Mdest, Mtmp)
+                    # Rotate the coordinates (relative to the origin)
+                    AffineCompose(Mtmp, M, Mdest)  # M is the rotation matrix
+                    CopyMat(Mdest, Mtmp)
+                    # Move the origin back to center_v
+                    moveCentBack   = [[1.0, 0.0, 0.0, center_v[0]],
+                                      [0.0, 1.0, 0.0, center_v[1]],
+                                      [0.0, 0.0, 1.0, center_v[2]]]
+                    AffineCompose(Mtmp, moveCentBack, Mdest)
+                    CopyMat(Mdest, Mtmp)
 
             elif transform_str.find('scale(') == 0:
                 i_paren_close = transform_str.find(')')
@@ -615,4 +658,45 @@ def RotMatAXYZ(dest, angle, axis_x, axis_y, axis_z):
     # r = [[1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0]]
     # RotMatAXYZ(r, 90.0, 0.0, 0.0, 1.0)
 
+def CrossProd(dest, A, B):
+    dest[0] = (A[1]*B[2] - B[1]*A[2])
+    dest[1] = (A[2]*B[0] - B[2]*A[0])
+    dest[2] = (A[0]*B[1] - B[0]*A[1])
 
+def DotProd(A, B):
+    c = 0.0
+    for d in range(0, len(A)):
+        c += A[d]*B[d]
+    return c
+
+def Length(A):
+    L = 0.0
+    for x in A:
+        L += x*x
+    return math.sqrt(L)
+
+def Normalize(dest, source):
+    assert(len(dest) == len(source))
+    L = Length(source)
+    for d in range(0, len(source)):
+        dest[d] = source[d] / L
+
+def RotMatXYZXYZ(dest, 
+                 xold, yold, zold,
+                 xnew, ynew, znew):
+    A = [xold, yold, zold]
+    B = [xnew, ynew, znew]
+    axis = [0.0, 0.0, 0.0]
+    CrossProd(axis, A, B)
+    La = Length(A)
+    Lb = Length(B)
+    Lc = Length(axis)
+    sinAng = Lc / (La*Lb)
+    cosAng = DotProd(A,B) / (La*Lb)
+    if Length > 0.0:
+        Normalize(axis, axis)
+        angle = math.atan2(sinAng, cosAng)
+    else:
+        axis = [1.0, 0.0, 0.0]
+        angle = 0.0
+    RotMatAXYZ(dest, angle, axis[0], axis[1], axis[2])

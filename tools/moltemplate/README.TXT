@@ -4,7 +4,7 @@ Moltemplate is a cross-platform text-based molecule builder for LAMMPS.
 
    --  Typical usage:  --
 
-moltemplate.sh [-atomstyle style] [-pdb/-xyz coord_file]  file.lt
+moltemplate.sh [-atomstyle style] [-pdb/-xyz coord_file] [-vmd]  system.lt
 
    --  Web page:  --
 

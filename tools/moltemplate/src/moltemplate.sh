@@ -7,8 +7,8 @@
 # All rights reserved.
 
 G_PROGRAM_NAME="moltemplate.sh"
-G_VERSION="1.17"
-G_DATE="2013-12-23"
+G_VERSION="1.20"
+G_DATE="2014-4-02"
 
 echo "${G_PROGRAM_NAME} v${G_VERSION} ${G_DATE}" >&2
 echo "" >&2
@@ -342,6 +342,7 @@ REMOVE_DUPLICATE_BONDS="true"
 REMOVE_DUPLICATE_ANGLES="true"
 REMOVE_DUPLICATE_DIHEDRALS="true"
 REMOVE_DUPLICATE_IMPROPERS="true"
+RUN_VMD_AT_END=""
 
 
 ARGC=0
@@ -373,7 +374,8 @@ while [ "$i" -lt "$ARGC" ]; do
     elif [ "$A" == "-overlay-impropers" ]; then
         # In that case, do not remove duplicate improper interactions
         unset REMOVE_DUPLICATE_IMPROPERS
-
+    elif [ "$A" == "-vmd" ]; then
+        RUN_VMD_AT_END="true"
     elif [ "$A" == "-raw" ]; then
         if [ "$i" -eq "$ARGC" ]; then
             echo "$SYNTAX_MSG" >&2
@@ -1685,15 +1687,19 @@ ls "${in_prefix}"* 2> /dev/null | while read file_name; do
     #If using bash:
     #section_name="${file_name:$N_in_prefix}"
     #If using sh:
-    section_name=`expr substr "$file_name" $(($N_in_prefix+1)) 1000000`
+    SECTION_NAME=`expr substr "$file_name" $(($N_in_prefix+1)) 1000000`
+    FILE_SUFFIX=`echo "$SECTION_NAME" | awk '{print tolower($0)}'`
     # Create a new section in the lammps input script
     # matching the portion of the name of 
     # the file after the in_prefix.
     echo "" >> $OUT_FILE_INPUT_SCRIPT
-    echo "# ----------------- $section_name Section -----------------" >> $OUT_FILE_INPUT_SCRIPT
+    echo "# ----------------- $SECTION_NAME Section -----------------" >> $OUT_FILE_INPUT_SCRIPT
+    cp -f "$file_name" ${OUT_FILE_INPUT_SCRIPT}.${FILE_SUFFIX}
+
     echo "" >> $OUT_FILE_INPUT_SCRIPT
-    cat "$file_name" >> $OUT_FILE_INPUT_SCRIPT
+    echo "include \"${OUT_FILE_INPUT_SCRIPT}.${FILE_SUFFIX}\"" >> $OUT_FILE_INPUT_SCRIPT
     echo "" >> $OUT_FILE_INPUT_SCRIPT
+
     mv -f "$file_name" output_ttree/
 done
 
@@ -1779,3 +1785,17 @@ echo "#  ---- (end of examples) ----">> $OUT_FILE_INPUT_SCRIPT
 #echo "# these commands." >> $OUT_FILE_INPUT_SCRIPT
 echo "" >> $OUT_FILE_INPUT_SCRIPT
 
+
+
+# Finally, if the -vmd argument was included, start up VMD and
+# view the system (using topotools to convert the 
+
+if [ ! -z $RUN_VMD_AT_END ]; then
+
+    echo "topo readlammpsdata $OUT_FILE_DATA full" > vmd_viz_moltemplate.tcl.tmp
+    bn=`basename $OUT_FILE_DATA .data`
+    echo "animate write psf $bn.psf" >> vmd_viz_moltemplate.tcl.tmp
+    vmd -e vmd_viz_moltemplate.tcl.tmp
+    rm -rf vmd_viz_moltemplate.tcl.tmp
+
+fi

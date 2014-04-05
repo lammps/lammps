@@ -30,7 +30,9 @@ Isobutane inherits GAFF {
     $atom:H33 $mol:. @atom:h1   0.0   0.003   1.456   1.070
   }
 
-  #  The "." in "$mol:." refers to the current object's molecule ID,
+  #  The "." in "$mol:." refers to this molecule object's molecule ID
+  #  (It means we do not expect this molecule to be a group or a subunit
+  #   of a larger molecule.  Otherwise we would use "$mol:..." instead.)
 
   write('Data Bond List') {
     $bond:C01 $atom:C0 $atom:C1

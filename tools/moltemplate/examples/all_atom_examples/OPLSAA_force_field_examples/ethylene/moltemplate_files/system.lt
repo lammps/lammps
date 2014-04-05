@@ -1,0 +1,19 @@
+import "ethylene.lt"  # <- defines the "Ethylene" molecule type.
+
+
+# Periodic boundary conditions:
+write_once("Data Boundary") {
+   0.0  70.00  xlo xhi
+   0.0  70.00  ylo yhi
+   0.0  70.00  zlo zhi
+}
+
+
+# The next command generates a cubic lattice with 10.0 Angstroms spacing.
+# This lattice spacing was not chosen carefully.
+# The pressure must be equilibrated later.
+
+isobutane = new Ethylene  [7].move(0, 0, 10.0)
+                          [7].move(0, 10.0, 0)
+                          [7].move(10.0, 0, 0)
+

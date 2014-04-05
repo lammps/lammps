@@ -99,14 +99,14 @@ distance the group is moved by fix recenter.
 
 This fix also computes global 3-vector which can be accessed by
 various "output commands"_Section_howto.html#howto_15.  The 3
-quantities in the vector are xyz components of displacement applied
-by to the group of atoms by the fix.
+quantities in the vector are xyz components of displacement applied to
+the group of atoms by the fix.
 
 The scalar and vector values calculated by this fix are "extensive".
 
-No parameter of this fix can
-be used with the {start/stop} keywords of the "run"_run.html command.
-This fix is not invoked during "energy minimization"_minimize.html.
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
 
 [Restrictions:]
 

@@ -10,8 +10,15 @@
 
 
 NaIon {
+
+  # The epsilong & sigma parameters from that paper were 0.3526418 & 1.212.
+  # However sigma must be divided by 2^(1/6), because they use the alternate
+  # Lennard-Jones convention: U(r)=epsilon*((s/r)^12 - 2*(s/r)^6), and
+  # pair_style lj/charmm/coul/long uses U(r)=4*epsilon*((s/r)^12 - (s/r)^6)
+  # (Note: This change does not effect the epsilon parameter.)
+
   write_once("In Settings") {
-    pair_coeff @atom:Na @atom:Na  lj/charmm/coul/long  0.3526418  1.212
+    pair_coeff @atom:Na @atom:Na lj/charmm/coul/long 0.3526418 1.079769246386
   }
 
   write_once("Data Masses") {

@@ -1,11 +1,11 @@
-QM/MM support toplevel library
+QM/MM support library
 
 Axel Kohlmeyer, akohlmey@gmail.com
 Temple University, Philadelphia and ICTP, Trieste
 
 This library provides  the basic glue code to  combine LAMMPS with the
 Quantum ESPRESSO package plane wave density functional theory code for
-performing QM/MM  molecular dynamics simulations.  More information on
+performing QM/MM molecular dynamics simulations.  More information on
 Quantum ESPRESSO can be found at: http://www.quantum-espresso.org
 
 The interface code itself is designed so it can also be combined with
@@ -16,35 +16,19 @@ also an interface layer into the QM code similar to the one in QE.
 
 -------------------------------------------------
 
-This directory has the source files to build a library and an
-executable for combining the pw.x program from Quantum ESPRESSO and
-LAMMPS into a single executable that can be used for QM/MM molecular
-dynamics simulations.  LAMMPS will act as the MD "driver" and will
-delegate computation of forces for the QM subset of the system to
-Quantum ESPRESSO.
-
-The toplevel code provided here will split the total number of cpus
-into three partitions: the first for running a DFT calculation, the
-second for running the "master" classical MD calculation, and the
-third for a "slave" classical MD calculation.  Each calculation will
-have to be run in its own subdirectory with its own specific input
-data and will write its output there as well.  This and other settings
-are provided in the QM/MM input file that is mandatory argument to the
-QM/MM executable. The number of MM cpus is provided as the optional
-second argument.  The MM "slave" partition is always run with only 1
-cpu thus the minimum number is 2, which is also the default. Therefore
-a QM/MM calculation with this code requires at least 3 processes.
-
-Thus the overall calling sequence is like this:
-
-mpirun -np <total #cpus> ./pwqmmm.x <QM/MM input> [<#cpus for MM>]
-
-A commented example is given below.
+WARNING: This is experimental code under developementand is provided
+at this early stage to encourage others to write interfaces to other
+QM codes. Please test *very* carefully before using this software for
+production calculations.
 
 -------------------------------------------------
 
-Build the library using one of the provided Makefile.* files or create
-your own, specific to your compiler and system.  For example:
+Building the QM/MM executable has to be done in multiple stages.
+
+Step 1) 
+Build the qmmm coupling library in this directory using one of the
+provided Makefile.<compiler> files or create your own, specific to
+your compiler and system.  For example with:
 
 make -f Makefile.gfortran
 
@@ -58,30 +42,113 @@ Makefile.lammps is created by the make command by simply copying the
 Makefile.lammps.empty file. Currently no additional dependencies for
 this library exist.
 
--------------------------------------------------
+Step 2)
+Build a standalone LAMMPS executable as described in the LAMMPS 
+documentation and include the USER-QMMM package. This executable
+is not functional for QM/MM, but it will usually be needed to
+run all MM calculations for equilibration and testing and also
+to confirm that the classical part of the code is set up correctly.
 
-To compile and link the final QM/MM executable, you have to build
-quantum espresso with the "pw" and "couple" targets. You also have
-to to install the USER-QMMM package for LAMMPS. You have to specify
-the path to the toplevel Quantum ESPRESSO directory, so that the 
-compiler and linker settings can be imported.
+Step 3)
+Build a standalone pw.x executable in the Quantum ESPRESSO directory
+and also make the "couple" target. At the time of this writing 
+(April 2014) you have to download a QE snapshot from the SVN 
+repository, since no official release with the library interface
+to couple other codes to QE has been made yet. This is also needed
+to confirm that corresponding code is working correctly and to
+run test calculations on the cluster of QM atoms.
+
+Step 4)
+To compile and link the final QM/MM executable, which combines the
+compiled sources from both packages, you have to return to the lib/qmmm
+directory and now edit the Makefile.<compiler> for the Makefile 
+configuration used to compile LAMMPS and also update the directory
+and library settings for the Quantum ESPRESSO installation.
 
 The makefile variable MPILIBS needs to be set to include all linker
 flags that will need to be used in addition to the various libraries
-from the two packages. Please see the provided example(s).
+from _both_ packages. Please see the provided example(s).
 
-"make -f Makefile.gfortran" all by itself will only compile the
-library (so that LAMMPS can be compiled into a standalone executable
-as well, when the USER-QMMM package is installed).
-"make -f Makefile.gfortran pwqmmm.x" will compile and link the QM/MM
-executable; "make -f Makefile.gfortran all" will recurse through the
+"make -f Makefile.<compiler> all" will now recurse through both the
 Quantum ESPRESSO and LAMMPS directories to compile all files that 
-require recompilation and then link the executable.
+require recompilation and then link the combined QM/MM executable.
+
+If you want to only update the local objects and the QM/MM executable,
+you can use "make -f Makefile.<compiler> pwqmmm.x"
 
 Please refer to the specific LAMMPS and Quantum ESPRESSO documentation
 for details on how to set up compilation for each package and make
 sure you have a set of settings and flags that allow you to build 
 each package successfully, so that it can run on its own.
+
+-------------------------------------------------
+
+How it works.
+
+This directory has the source files for an interface layer and a
+toplevel code that combines objects/libraries from the QM code and
+LAMMPS to build a QM/MM executable. LAMMPS will act as the MD "driver"
+and will delegate computation of forces for the QM subset of the QM
+code, i.e. Quantum ESPRESSO currently. While the code is combined into
+a single executable, this executable can only act as either "QM slave",
+"MM slave" or "MM master" and information between those is done solely
+via MPI. Thus MPI is required to make it work, and both codes have
+to be configured to use the same MPI library.
+
+The toplevel code provided here will split the total number of cpus
+into three partitions: the first for running a DFT calculation, the
+second for running the "master" classical MD calculation, and the
+third for a "slave" classical MD calculation.  Each calculation will
+have to be run in its own subdirectory with its own specific input
+data and will write its output there as well.  This and other settings
+are provided in the QM/MM input file that is mandatory argument to the
+QM/MM executable. The number of MM cpus is provided as the optional
+second argument.  The MM "slave" partition is always run with only 1
+cpu thus the minimum required number of MM CPU is 2, which is also
+the default. Therefore a QM/MM calculation with this code requires at
+least 3 processes.
+
+Thus the overall calling sequence is like this:
+
+mpirun -np <total #cpus> ./pwqmmm.x <QM/MM input> [<#cpus for MM>]
+
+A commented example QM/MM input file is given below.
+
+-------------------------------------------------
+
+To run a QM/MM calculation, you need to set up 4 inputs, each is
+best placed in a separate subdirectory:
+
+1: the total system as classical MD input. this becomes the MM master
+and in addition to the regular MD setup it needs to define a group,
+e.g. "wat" for the atoms that are treated as QM atoms and then add
+the QM/MM fix like this:
+
+fix  1 wat qmmm
+
+2: the QM system as classical MD input
+This system must only contain the atom (and bonds, angles, etc) for
+the subsystem that is supposed to be treated with the QM code. This
+will become the MM slave run and here the QM/MM fix needs to be
+applied to all atoms:
+
+fix  1 all qmmm
+
+3: the QM system as QM input
+This needs to be a cluster calculation for the QM subset, i.e. the
+same atoms as in the MM slave configuration. For Quantum ESPRESSO
+this is a regular input which in addition contains the line
+
+tqmmm = .true.
+
+in the &CONTROL namelist. This will make the include QE code 
+connect to the LAMMPS code and receive updated positions while
+it sends QM forces back to the MM code.
+
+4: the fourth input is the QM/MM configuration file which tells the
+QM/MM wrapper code where to find the other 3 inputs, where to place
+the corresponding output of the partitions and how many MD steps are
+to run with this setup.
 
 -------------------------------------------------
 

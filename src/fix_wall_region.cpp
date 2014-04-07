@@ -19,12 +19,12 @@
 #include "atom_vec.h"
 #include "domain.h"
 #include "region.h"
+#include "force.h"
 #include "lattice.h"
 #include "update.h"
 #include "output.h"
 #include "respa.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

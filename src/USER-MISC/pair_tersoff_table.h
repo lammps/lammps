@@ -74,8 +74,8 @@ class PairTersoffTable : public Pair {
 
   double **preGtetaFunction, **preGtetaFunctionDerived;
   double *preCutoffFunction, *preCutoffFunctionDerived;
-  void allocatePreLoops(void);
-  void deallocatePreLoops(void);
+  virtual void allocatePreLoops(void);
+  virtual void deallocatePreLoops(void);
 
   // grids
 

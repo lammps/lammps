@@ -119,10 +119,11 @@ void PairLJShiftedForceOMP::eval(int iifrom, int iito, ThrData * const thr)
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
         r6inv = r2inv*r2inv*r2inv;
-        t = sqrt(r2inv*cutsq[itype][jtype]);
+        t = sqrt(rsq)/cut[itype][jtype];
+
         forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]) -
           t*foffset[itype][jtype];
-        forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+
         fpair = factor_lj*forcelj*r2inv;
 
         fxtmp += delx*fpair;

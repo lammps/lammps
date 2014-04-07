@@ -161,10 +161,8 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
     double Uprime_i;
     double embeddingEnergy = U.eval(rho_value, Uprime_i) - zero_atom_energy;
     Uprime_thr[i] = Uprime_i;
-    if (EFLAG) {
-      if (eflag_global) eng_vdwl += embeddingEnergy;
-      if (eflag_atom) eatom[i] += embeddingEnergy;
-    }
+    if (EFLAG)
+      e_tally_thr(this,i,i,nlocal,1/*newton_pair*/,embeddingEnergy,0.0,thr);
 
     double forces_i[3] = {0.0, 0.0, 0.0};
 
@@ -183,7 +181,9 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
       for(int kk = 0; kk < jj; kk++, ++bondk) {
         const double rik = bondk->r;
 
-        const double cos_theta = (bondj.del[0]*bondk->del[0] + bondj.del[1]*bondk->del[1] + bondj.del[2]*bondk->del[2]);
+        const double cos_theta = (bondj.del[0]*bondk->del[0]
+                                  + bondj.del[1]*bondk->del[1]
+                                  + bondj.del[2]*bondk->del[2]);
         double g_prime;
         double g_value = g.eval(cos_theta, g_prime);
         const double f_rik_prime = bondk->fprime;

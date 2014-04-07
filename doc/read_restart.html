@@ -168,6 +168,11 @@ file is read.
 to the restart file as broken bonds with a type of 0.  Thus these
 bonds will still be broken when the restart file is read.
 </P>
+<P>Bonds that have been broken by the <A HREF = "fix_bond_break.html">fix
+bond/break</A> command have disappeared from the
+system.  No information about these bonds is written to the restart
+file.
+</P>
 <P>IMPORTANT NOTE: No other information is stored in the restart file.
 This means that an input script that reads a restart file should
 specify settings for quantities like <A HREF = "timestep.html">timestep size</A>,

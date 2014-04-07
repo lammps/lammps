@@ -87,18 +87,18 @@ seamlessly integrated with the rest of the code.
 </P>
 <P>The new atom properties encode values that migrate with atoms to new
 processors and are written to restart files.  If you want the new
-properties to also be defined for ghost atoms, then use the <I>border</I>
+properties to also be defined for ghost atoms, then use the <I>ghost</I>
 keyword with a value of <I>yes</I>.  This will invoke extra communication
 when ghost atoms are created (at every re-neighboring) to insure the
-new properties are also defined for the ghost atoms.  
+new properties are also defined for the ghost atoms.
 </P>
 <P>IMPORTANT NOTE: The properties for ghost atoms are not updated every
 timestep, but only once every few steps when neighbor lists are
-re-built.  Thus the <I>border</I> keyword is suitable for static
-properties, like molecule IDs, but not for dynamic properties that
-change every step.  In that case, the code you add to LAMMPS to change
-the properties will also need to communicate their new values, an
-operation that can be invoked from within a <A HREF = "pair_style.html">pair
+re-built.  Thus the <I>ghost</I> keyword is suitable for static properties,
+like molecule IDs, but not for dynamic properties that change every
+step.  For the latter, the code you add to LAMMPS to change the
+properties will also need to communicate their new values to/from
+ghost atoms, an operation that can be invoked from within a <A HREF = "pair_style.html">pair
 style</A> or <A HREF = "fix.html">fix</A> or <A HREF = "compute.html">compute</A>
 that you write.
 </P>

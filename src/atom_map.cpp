@@ -290,8 +290,9 @@ int Atom::map_style_set()
     error->all(FLERR,"Cannot create an atom map unless atoms have IDs");
 
   // map_tag_max = max ID of any atom that will be in new map
+  // map_tag_max = -1 if no atoms
 
-  tagint max = 0;
+  tagint max = -1;
   for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
   MPI_Allreduce(&max,&map_tag_max,1,MPI_LMP_TAGINT,MPI_MAX,world);
 

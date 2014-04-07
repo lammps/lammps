@@ -161,9 +161,8 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   tag_enable = 1;
   map_style = map_user = 0;
-  map_tag_max = 0;
-  map_maxarray = 0;
-  map_nhash = 0;
+  map_tag_max = -1;
+  map_maxarray = map_nhash = 0;
 
   max_same = 0;
   sametag = NULL;
@@ -350,7 +349,8 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
 
   // if molecular system:
   // atom IDs must be defined
-  // force atom map to be created, style will reset by map_init()
+  // force atom map to be created
+  // map style may be reset by map_init() and its call to map_style_set()
 
   molecular = avec->molecular;
   if (molecular && tag_enable == 0)
@@ -480,7 +480,6 @@ void Atom::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"array") == 0) map_user = 1;
       else if (strcmp(arg[iarg+1],"hash") == 0) map_user = 2;
       else error->all(FLERR,"Illegal atom_modify command");
-      map_style = map_user;
       iarg += 2;
     } else if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");

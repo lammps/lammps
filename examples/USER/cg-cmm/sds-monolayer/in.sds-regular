@@ -1,0 +1,43 @@
+# coarse grained SDS surfactant monolayer
+
+units           real
+dimension       3
+atom_style      full
+processors  * * 1
+
+pair_style lj/sdk/coul/long 15.0
+bond_style      harmonic
+angle_style     sdk
+special_bonds   lj/coul 0.0 0.0 1.0
+
+read_data       data.sds.gz
+
+pair_coeff  1     1      lj9_6  0.7000 4.3210 # SO4  SO4 
+pair_coeff  1     2      lj9_6  0.3830 4.4135 # SO4  CM  
+pair_coeff  1     3      lj9_6  0.4050 4.4530 # SO4  CT  
+pair_coeff  1     4      lj12_4 1.1000 4.1000 # SO4  SOD 
+pair_coeff  1     5      lj12_4 1.1000 4.1000 # SO4  W   
+pair_coeff  2     2      lj9_6  0.4200 4.5060 # CM   CM  
+pair_coeff  2     3      lj9_6  0.4440 4.5455 # CT   CM  
+pair_coeff  2     4      lj12_4 0.3400 4.4385 # SOD  CM  
+pair_coeff  2     5      lj12_4 0.3400 4.4385 # W    CM  
+pair_coeff  3     3      lj9_6  0.4690 4.5850 # CT   CT  
+pair_coeff  3     4      lj12_4 0.3600 4.4780 # SOD  CT  
+pair_coeff  3     5      lj12_4 0.3600 4.4780 # W    CT  
+pair_coeff  4     4      lj12_4 0.3500 4.3710 # SOD  SOD 
+pair_coeff  4     5      lj12_4 0.8950 4.3710 # SOD  W   
+pair_coeff  5     5      lj12_4 0.8950 4.3710 # W    W   
+
+kspace_style    pppm/cg 0.00001
+kspace_modify   order 3 
+
+neighbor        2.0 bin
+neigh_modify    delay 4 every 2 check yes
+
+timestep        10.0
+
+fix             1 all nvt temp 310.0 310.0 100.0
+
+thermo          10
+
+run              100

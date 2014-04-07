@@ -132,13 +132,19 @@ three-body parameters for SiCSi and SiSiC entries will not, in
 general, be the same.  The parameters used for the two-body
 interaction come from the entry where the 2nd element is repeated.
 Thus the two-body parameters for Si interacting with C, comes from the
-SiCC entry.  By symmetry, the twobody parameters in the SiCC and CSiSi
-entries should thus be the same.  The parameters used for a particular
+SiCC entry.  
+
+The parameters used for a particular
 three-body interaction come from the entry with the corresponding
 three elements.  The parameters used only for two-body interactions
 (n, beta, lambda2, B, lambda1, and A) in entries whose 2nd and 3rd
 element are different (e.g. SiCSi) are not used for anything and can
 be set to 0.0 if desired.
+
+Note that the twobody parameters in entries such as SiCC and CSiSi 
+are often the same, due to the common use of symmetric mixing rules, 
+but this is not always the case. For example, the beta and n parameters in 
+Tersoff_2 "(Tersoff_2)"_#Tersoff_2 are not symmetric.
 
 We chose the above form so as to enable users to define all commonly
 used variants of the Tersoff portion of the potential.  In particular,
@@ -150,13 +156,12 @@ different but equivalent form for alloys, which we will refer to as
 Tersoff_2 potential "(Tersoff_2)"_#Tersoff_2.
 
 LAMMPS parameter values for Tersoff_2 can be obtained as follows:
-gamma = 1, just as for Tersoff_1, but now lambda3 = 0 and the value of
+gamma = omega_ijk, lambda3 = 0 and the value of
 m has no effect.  The parameters for species i and j can be calculated
 using the Tersoff_2 mixing rules:
 
 :c,image(Eqs/pair_tersoff_2.jpg)
 
-Values not shown are determined by the first atom type.  Finally, the
 Tersoff_2 parameters R and S must be converted to the LAMMPS
 parameters R and D (R is different in both forms), using the following
 relations: R=(R'+S')/2 and D=(S'-R')/2, where the primes indicate the
@@ -253,8 +258,8 @@ units.
 of Ions in Matter' Vol 1, 1985, Pergamon Press.
 
 :link(Albe)
-[(Albe)] J. Nord, K. Albe, P. Erhartand K. Nordlund, J. Phys.:
+[(Albe)] J. Nord, K. Albe, P. Erhart and K. Nordlund, J. Phys.:
 Condens. Matter, 15, 5649(2003).
 
 :link(Tersoff_2)
-[(Tersoff_2)] J. Tersoff, Phys Rev B, 39, 5566 (1989)
+[(Tersoff_2)] J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)

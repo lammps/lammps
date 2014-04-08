@@ -165,6 +165,11 @@ Bonds that are broken (e.g. by a bond-breaking potential) are written
 to the restart file as broken bonds with a type of 0.  Thus these
 bonds will still be broken when the restart file is read.
 
+Bonds that have been broken by the "fix
+bond/break"_fix_bond_break.html command have disappeared from the
+system.  No information about these bonds is written to the restart
+file.
+
 IMPORTANT NOTE: No other information is stored in the restart file.
 This means that an input script that reads a restart file should
 specify settings for quantities like "timestep size"_timestep.html,

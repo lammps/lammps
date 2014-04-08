@@ -37,6 +37,7 @@ void Atom::map_init(int check)
   // check for new map style if max atomID changed (check = 1 = default)
   // recreate = 1 if must delete old map and create new map
   // recreate = 0 if can re-use old map w/out realloc and just adjust settings
+  // map_maxarray/map_nhash initially -1, to force recreate even when no atoms
 
   int recreate = 0;
   if (check) recreate = map_style_set();

@@ -720,3 +720,35 @@ void FixDeposit::restart(char *buf)
 
   random->reset(seed);
 }
+
+/* ----------------------------------------------------------------------
+   extract particle radius for atom type = itype
+------------------------------------------------------------------------- */
+
+void *FixDeposit::extract(const char *str, int &itype)
+{
+  if (strcmp(str,"radius") == 0) {
+    if (mode == ATOM) {
+      if (itype == ntype) oneradius = 0.5;
+      else oneradius = 0.0;
+    } else {
+      double *radius = onemol->radius;
+      int *type = onemol->type;
+      int natoms = onemol->natoms;
+
+      // check radii of matching types in Molecule
+      // default to 0.5, if radii not defined in Molecule
+      //   same as atom->avec->create_atom(), invoked in pre_exchange()
+
+      oneradius = 0.0;
+      for (int i = 0; i < natoms; i++)
+        if (type[i] == itype-ntype) {
+          if (radius) oneradius = MAX(oneradius,radius[i]);
+          else oneradius = 0.5;
+        }
+    }
+    itype = 0;
+    return &oneradius;
+  }
+  return NULL;
+}

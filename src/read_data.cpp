@@ -240,7 +240,7 @@ void ReadData::command(int narg, char **arg)
         int i;
         for (i = 0; i < nfix; i++)
           if (strcmp(keyword,fix_section[i]) == 0) {
-            if (firstpass) fix(i,keyword);
+            if (firstpass) fix(fix_index[i],keyword);
             else skip_lines(modify->fix[fix_index[i]]->
                             read_data_skip_lines(keyword));
             parse_keyword(0);

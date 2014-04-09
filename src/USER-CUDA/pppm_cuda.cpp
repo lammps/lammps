@@ -38,7 +38,6 @@
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-
 #include "mpi.h"
 #include <cstring>
 #include <cstdio>
@@ -211,7 +210,6 @@ void PPPMCuda::init()
 
   // error check
 
-  triclinic_check();
   if (domain->dimension == 2) error->all(FLERR,"Cannot use PPPMCuda with 2d simulation");
 
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
@@ -235,7 +233,7 @@ void PPPMCuda::init()
 
   // extract short-range Coulombic cutoff from pair style
 
-  qqrd2e = force->qqrd2e;
+  triclinic_check();
 
   if (force->pair == NULL)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
@@ -274,25 +272,10 @@ void PPPMCuda::init()
 
   // compute qsum & qsqsum and warn if not charge-neutral
 
-  qsum = qsqsum = 0.0;
-  for (int i = 0; i < atom->nlocal; i++) {
-    qsum += atom->q[i];
-    qsqsum += atom->q[i]*atom->q[i];
-  }
-
-  double tmp;
-  MPI_Allreduce(&qsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsum = tmp;
-  MPI_Allreduce(&qsqsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsqsum = tmp;
-
-  if (qsqsum == 0.0)
-    error->all(FLERR,"Cannot use kspace solver on system with no charge");
-  if (fabs(qsum) > SMALL && me == 0) {
-    char str[128];
-    sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    error->warning(FLERR,str);
-  }
+  scale = 1.0;
+  qqrd2e = force->qqrd2e;
+  qsum_qsq(0);
+  natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
 
@@ -791,6 +774,7 @@ void PPPMCuda::compute(int eflag, int vflag)
   cuda->shared_data.cuda_timings.pppm_fieldforce+=(endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000);
 
   // sum energy across procs and add in volume-dependent term
+  // reset qsum and qsqsum if atom count has changed
 
   my_gettime(CLOCK_REALTIME,&endtotal);
   cuda->shared_data.cuda_timings.pppm_compute+=(endtotal.tv_sec-starttotal.tv_sec+1.0*(endtotal.tv_nsec-starttotal.tv_nsec)/1000000000);
@@ -799,6 +783,11 @@ void PPPMCuda::compute(int eflag, int vflag)
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
+
+    if (atom->natoms != natoms_original) {
+      qsum_qsq(0);
+      natoms_original = atom->natoms;
+    }
 
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/1.772453851 +
@@ -1095,7 +1084,6 @@ void PPPMCuda::set_grid()
   acons[7][5] = 1755948832039.0 / 36229939200000.0;
   acons[7][6] = 4887769399.0 / 37838389248.0;
 
-  double q2 = qsqsum * force->qqrd2e;
   bigint natoms = atom->natoms;
 
   // use xprd,yprd,zprd even if triclinic so grid size is the same

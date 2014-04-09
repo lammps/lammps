@@ -1399,9 +1399,9 @@ void Neighbor::build(int topoflag)
   }
 
   // if any lists store neighbors of ghosts:
-  // invoke grow() if nlocal+nghost exceeds previous list size
+  //   invoke grow() if nlocal+nghost exceeds previous list size
   // else only invoke grow() if nlocal exceeds previous list size
-  // only done for lists with growflag set and which are perpetual
+  // only for lists with growflag set and which are perpetual (glist)
 
   if (anyghostlist && atom->nlocal+atom->nghost > maxatom) {
     maxatom = atom->nmax;
@@ -1467,6 +1467,8 @@ void Neighbor::build_one(int i)
   }
 
   if (lists[i]->growflag) lists[i]->grow(maxatom);
+
+  // extend atom bin list if necessary
 
   if (style != NSQ && atom->nmax > maxbin) {
     maxbin = atom->nmax;

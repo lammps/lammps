@@ -45,8 +45,10 @@ class KSpace : protected Pointers {
   int tip4pflag;                 // 1 if a TIP4P solver
   int dipoleflag;                // 1 if a dipole solver
   int differentiation_flag;
-  int neighrequest_flag;         // used to avoid obsolete construction of neighbor lists
-  int mixflag;                   // 1 if geometric mixing rules are enforced for LJ coefficients
+  int neighrequest_flag;         // used to avoid obsolete construction 
+                                 // of neighbor lists
+  int mixflag;                   // 1 if geometric mixing rules are enforced 
+                                 // for LJ coefficients
   int slabflag;
   int scalar_pressure_flag;      // 1 if using MSM fast scalar pressure
   double slab_volfactor;
@@ -57,8 +59,10 @@ class KSpace : protected Pointers {
   double accuracy_absolute;         // user-specifed accuracy in force units
   double accuracy_relative;         // user-specified dimensionless accuracy
                                     // accurary = acc_rel * two_charge_force
-  double accuracy_real_6;           // real space accuracy for dispersion solver (force units)
-  double accuracy_kspace_6;         // reciprocal space accuracy for dispersion solver (force units)
+  double accuracy_real_6;           // real space accuracy for 
+                                    // dispersion solver (force units)
+  double accuracy_kspace_6;         // reciprocal space accuracy for 
+                                    // dispersion solver (force units)
   double two_charge_force;          // force in user units of two point
                                     // charges separated by 1 Angstrom
 
@@ -77,7 +81,7 @@ class KSpace : protected Pointers {
   int collective_flag;            // 1 if use MPI collectives for FFT/remap
   int stagger_flag;               // 1 if using staggered PPPM grids
 
-  double splittol;                // tolerance for when to truncate the splitting
+  double splittol;                // tolerance for when to truncate splitting
 
   KSpace(class LAMMPS *, int, char **);
   virtual ~KSpace();
@@ -116,19 +120,19 @@ class KSpace : protected Pointers {
    see Eq 4 from Parallel Computing 35 (2009) 164177
 ------------------------------------------------------------------------- */
 
-  double gamma(const double &rho) const {
+  double gamma(const double &rho) const 
+  {
     if (rho <= 1.0) {
       const int split_order = order/2;
       const double rho2 = rho*rho;
       double g = gcons[split_order][0];
       double rho_n = rho2;
-      for (int n=1; n<=split_order; n++) {
+      for (int n = 1; n <= split_order; n++) {
         g += gcons[split_order][n]*rho_n;
         rho_n *= rho2;
       }
       return g;
-    } else
-      return (1.0/rho);
+    } else return (1.0/rho);
   }
 
 /* ----------------------------------------------------------------------
@@ -136,19 +140,19 @@ class KSpace : protected Pointers {
    see Eq 4 from Parallel Computing 35 (2009) 164-177
 ------------------------------------------------------------------------- */
 
-  double dgamma(const double &rho) const {
+  double dgamma(const double &rho) const 
+  {
     if (rho <= 1.0) {
       const int split_order = order/2;
       const double rho2 = rho*rho;
       double dg = dgcons[split_order][0]*rho;
       double rho_n = rho*rho2;
-      for (int n=1; n<split_order; n++) {
+      for (int n = 1; n < split_order; n++) {
         dg += dgcons[split_order][n]*rho_n;
         rho_n *= rho2;
       }
       return dg;
-    } else
-      return (-1.0/rho/rho);
+    } else return (-1.0/rho/rho);
   }
   
   double **get_gcons() { return gcons; }
@@ -160,7 +164,9 @@ class KSpace : protected Pointers {
   int minorder,overlap_allowed;
   int adjust_cutoff_flag;
   int suffix_flag;                  // suffix compatibility flag
-  double scale;
+  bigint natoms_original;
+  double scale,qqrd2e;
+  double qsum,qsqsum,q2;
   double **gcons,**dgcons;          // accumulated per-atom energy/virial
 
   int evflag,evflag_atom;
@@ -171,6 +177,7 @@ class KSpace : protected Pointers {
   int kewaldflag;                   // 1 if kspace range set for Ewald sum
   int kx_ewald,ky_ewald,kz_ewald;   // kspace settings for Ewald sum
 
+  void qsum_qsq(int);
   void pair_check();
   void ev_setup(int, int);
   double estimate_table_accuracy(double, double);

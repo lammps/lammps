@@ -65,8 +65,7 @@ void PairTIP4PCutOMP::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-  const int nlocal = atom->nlocal;
-  const int nall = nlocal + atom->nghost;
+  const int nall = atom->nlocal + atom->nghost;
 
   // reallocate hneigh_thr & newsite_thr if necessary
   // initialize hneigh_thr[0] to -1 on steps when reneighboring occurred
@@ -140,9 +139,7 @@ void PairTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const double * _noalias const q = atom->q;
   const int * _noalias const type = atom->type;
-  const int nlocal = atom->nlocal;
   const double * _noalias const special_coul = force->special_coul;
-  const double * _noalias const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
   const double cut_coulsqplus = (cut_coul+2.0*qdist) * (cut_coul+2.0*qdist);
 

@@ -58,9 +58,8 @@ void PPPMDispOMP::allocate()
 {
   PPPMDisp::allocate();
 
-  const int nthreads = comm->nthreads;
-
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -133,12 +132,11 @@ void PPPMDispOMP::compute_gf()
     double unitky = (2.0*MY_PI/yprd);
     double unitkz = (2.0*MY_PI/zprd_slab);
 
-    int tid,nn,nnfrom,nnto,nx,ny,nz,k,l,m;
+    int tid,nn,nnfrom,nnto,k,l,m;
     int kper,lper,mper;
     double snx,sny,snz,snx2,sny2,snz2;
     double sqk;
     double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
-    double sum1,dot1,dot2;
     double numerator,denominator;
 
     const int nnx = nxhi_fft-nxlo_fft+1;
@@ -337,7 +335,6 @@ void PPPMDispOMP::particle_map(double dxinv, double dyinv,
                                int nxhi_o, int nyhi_o,
                                int nzhi_o)
 {
-  const int * _noalias const type = atom->type;
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   int3_t * _noalias const p2g = (int3_t *) part2grid[0];
   const double boxlox = boxlo[0];
@@ -693,7 +690,6 @@ void PPPMDispOMP::make_rho_a()
 
 void PPPMDispOMP::fieldforce_c_ik()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -711,6 +707,7 @@ void PPPMDispOMP::fieldforce_c_ik()
   const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -781,7 +778,6 @@ void PPPMDispOMP::fieldforce_c_ik()
 
 void PPPMDispOMP::fieldforce_c_ad()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -814,6 +810,7 @@ void PPPMDispOMP::fieldforce_c_ad()
   const double hz_inv = nz_pppm/zprd_slab;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -835,7 +832,7 @@ void PPPMDispOMP::fieldforce_c_ad()
     FFT_SCALAR * const * const dr1d = static_cast<FFT_SCALAR **>(thr->get_drho1d());
 
     int l,m,n,nx,ny,nz,mx,my,mz;
-    FFT_SCALAR dx,dy,dz,x0,y0,z0;
+    FFT_SCALAR dx,dy,dz;
     FFT_SCALAR ekx,eky,ekz;
     double sf = 0.0;
     double s1,s2,s3;
@@ -903,7 +900,6 @@ void PPPMDispOMP::fieldforce_c_ad()
 
 void PPPMDispOMP::fieldforce_c_peratom()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -919,6 +915,7 @@ void PPPMDispOMP::fieldforce_c_peratom()
   const double * const * const x = atom->x;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -937,7 +934,7 @@ void PPPMDispOMP::fieldforce_c_peratom()
     ThrData *thr = fix->get_thr(tid);
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d());
 
-    int i,l,m,n,nx,ny,nz,mx,my,mz;
+    int l,m,n,nx,ny,nz,mx,my,mz;
     FFT_SCALAR dx,dy,dz,x0,y0,z0;
     FFT_SCALAR u,v0,v1,v2,v3,v4,v5;
 
@@ -1000,7 +997,6 @@ void PPPMDispOMP::fieldforce_c_peratom()
 
 void PPPMDispOMP::fieldforce_g_ik()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1014,9 +1010,9 @@ void PPPMDispOMP::fieldforce_g_ik()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -1090,7 +1086,6 @@ void PPPMDispOMP::fieldforce_g_ik()
 
 void PPPMDispOMP::fieldforce_g_ad()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1119,6 +1114,7 @@ void PPPMDispOMP::fieldforce_g_ad()
   const double hz_inv = nz_pppm_6/zprd_slab;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -1140,7 +1136,7 @@ void PPPMDispOMP::fieldforce_g_ad()
     FFT_SCALAR * const * const dr1d = static_cast<FFT_SCALAR **>(thr->get_drho1d_6());
 
     int l,m,n,nx,ny,nz,mx,my,mz;
-    FFT_SCALAR dx,dy,dz,x0,y0,z0;
+    FFT_SCALAR dx,dy,dz;
     FFT_SCALAR ekx,eky,ekz;
     int type;
     double lj;
@@ -1212,7 +1208,6 @@ void PPPMDispOMP::fieldforce_g_ad()
 
 void PPPMDispOMP::fieldforce_g_peratom()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1227,6 +1222,7 @@ void PPPMDispOMP::fieldforce_g_peratom()
   const double * const * const x = atom->x;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -1245,7 +1241,7 @@ void PPPMDispOMP::fieldforce_g_peratom()
     ThrData *thr = fix->get_thr(tid);
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d_6());
 
-    int i,l,m,n,nx,ny,nz,mx,my,mz;
+    int l,m,n,nx,ny,nz,mx,my,mz;
     FFT_SCALAR dx,dy,dz,x0,y0,z0;
     FFT_SCALAR u,v0,v1,v2,v3,v4,v5;
     int type;
@@ -1311,7 +1307,6 @@ void PPPMDispOMP::fieldforce_g_peratom()
 
 void PPPMDispOMP::fieldforce_a_ik()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1325,9 +1320,9 @@ void PPPMDispOMP::fieldforce_a_ik()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -1433,7 +1428,6 @@ void PPPMDispOMP::fieldforce_a_ik()
 
 void PPPMDispOMP::fieldforce_a_ad()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1462,6 +1456,7 @@ void PPPMDispOMP::fieldforce_a_ad()
   const double hz_inv = nz_pppm_6/zprd_slab;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -1622,7 +1617,6 @@ void PPPMDispOMP::fieldforce_a_ad()
 
 void PPPMDispOMP::fieldforce_a_peratom()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1637,6 +1631,7 @@ void PPPMDispOMP::fieldforce_a_peratom()
   const double * const * const x = atom->x;
 
 #if defined(_OPENMP)
+  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {
@@ -1655,7 +1650,7 @@ void PPPMDispOMP::fieldforce_a_peratom()
     ThrData *thr = fix->get_thr(tid);
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d_6());
 
-    int i,l,m,n,nx,ny,nz,mx,my,mz;
+    int l,m,n,nx,ny,nz,mx,my,mz;
     FFT_SCALAR dx,dy,dz,x0,y0,z0;
     FFT_SCALAR u0,v00,v10,v20,v30,v40,v50;
     FFT_SCALAR u1,v01,v11,v21,v31,v41,v51;

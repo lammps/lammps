@@ -95,6 +95,7 @@ void AngleCharmmOMP::eval(int nfrom, int nto, ThrData * const thr)
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int4_t * _noalias const anglelist = (int4_t *) neighbor->anglelist[0];
   const int nlocal = atom->nlocal;
+  eangle = 0.0;
 
   for (n = nfrom; n < nto; n++) {
     i1 = anglelist[n].a;

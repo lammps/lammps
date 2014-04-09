@@ -233,14 +233,9 @@ void PPPMDisp::init()
   deallocate();
   deallocate_peratom(); 
 
-  // set scale
-
-  scale = 1.0;
-
-  triclinic = domain->triclinic;
-
   // check whether cutoff and pair style are set
 
+  triclinic = domain->triclinic;
   pair_check();
 
   int tmp;
@@ -269,7 +264,8 @@ void PPPMDisp::init()
 	case 1:
 	  k = 0; break;
 	case 6:
-	  if ((ewald_mix==GEOMETRIC || ewald_mix==SIXTHPOWER|| mixflag == 1) && mixflag!= 2) { k = 1; break; }
+	  if ((ewald_mix==GEOMETRIC || ewald_mix==SIXTHPOWER || 
+               mixflag == 1) && mixflag!= 2) { k = 1; break; }
 	  else if (ewald_mix==ARITHMETIC && mixflag!=2) { k = 2; break; }
 	  else if (mixflag == 2) { k = 3; break; }
 	default:
@@ -282,41 +278,20 @@ void PPPMDisp::init()
  
 
   // warn, if function[0] is not set but charge attribute is set!
+
   if (!function[0] && atom->q_flag && me == 0) {
     char str[128];
     sprintf(str, "Charges are set, but coulombic solver is not used");
     error->warning(FLERR, str);
   }
 
-  // compute qsum & qsqsum, if function[0] is set, print error if no charges are set or warn if not charge-neutral  
+  // compute qsum & qsqsum, if function[0] is set, warn if not charge-neutral
+
+  scale = 1.0;
+  qqrd2e = force->qqrd2e;
+  natoms_original = atom->natoms;
  
-  if (function[0]) {
-    if (!atom->q_flag) 
-      error->all(FLERR,"Kspace style with selected options "
-                 "requires atom attribute q");
- 
-    qsum = qsqsum = 0.0;
-    for (int i = 0; i < atom->nlocal; i++) {
-      qsum += atom->q[i];
-      qsqsum += atom->q[i]*atom->q[i];
-
-    }
-
-    double tmp;
-    MPI_Allreduce(&qsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    qsum = tmp;
-    MPI_Allreduce(&qsqsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    qsqsum = tmp;
-
-    if (qsqsum == 0.0)
-      error->all(FLERR,"Cannot use kspace solver with selected options "
-                 "on system with no charge");
-    if (fabs(qsum) > SMALL && me == 0) {
-      char str[128];
-      sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-      error->warning(FLERR,str);
-    }
-  }
+  if (function[0]) qsum_qsq(0);
 
   // if kspace is TIP4P, extract TIP4P params from pair style
   // bond/angle are not yet init(), so insure equilibrium request is valid
@@ -351,8 +326,8 @@ void PPPMDisp::init()
     alpha = qdist / (cos(0.5*theta) * blen);
   }
 
-
   // initialize the pair style to get the coefficients
+
   neighrequest_flag = 0;
   pair->init();
   neighrequest_flag = 1;
@@ -1144,6 +1119,7 @@ void PPPMDisp::compute(int eflag, int vflag)
   }
 
   // sum energy across procs and add in volume-dependent term
+  // reset qsum and qsqsum if atom count has changed
 
   const double qscale = force->qqrd2e * scale;
   if (eflag_global) {
@@ -1156,6 +1132,11 @@ void PPPMDisp::compute(int eflag, int vflag)
     energy_1 *= 0.5*volume;
     energy_6 *= 0.5*volume;
     
+    if (atom->natoms != natoms_original) {
+      qsum_qsq(0);
+      natoms_original = atom->natoms;
+    }
+
     energy_1 -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy_6 += - MY_PI*MY_PIS/(6*volume)*pow(g_ewald_6,3)*csumij +

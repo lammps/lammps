@@ -203,13 +203,19 @@ void PPPMStagger::compute(int eflag, int vflag)
   }
 
   // sum global energy across procs and add in volume-dependent term
+  // reset qsum and qsqsum if atom count has changed
 
-  const double qscale = force->qqrd2e * scale;
+  const double qscale = qqrd2e * scale;
 
   if (eflag_global) {
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
+
+    if (atom->natoms != natoms_original) {
+      qsum_qsq(0);
+      natoms_original = atom->natoms;
+    }
 
     energy *= 0.5*volume/float(nstagger);
     energy -= g_ewald*qsqsum/MY_PIS +
@@ -813,7 +819,7 @@ void PPPMStagger::fieldforce_ik()
 
     // convert E-field to force
 
-    const double qfactor = force->qqrd2e * scale * q[i] / float(nstagger);
+    const double qfactor = qqrd2e * scale * q[i] / float(nstagger);
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;
     if (slabflag != 2) f[i][2] += qfactor*ekz;
@@ -884,7 +890,7 @@ void PPPMStagger::fieldforce_ad()
 
     // convert E-field to force and substract self forces
 
-    const double qfactor = force->qqrd2e * scale / float(nstagger);
+    const double qfactor = qqrd2e * scale / float(nstagger);
 
     s1 = x[i][0]*hx_inv + stagger;
     s2 = x[i][1]*hy_inv + stagger;
@@ -898,7 +904,6 @@ void PPPMStagger::fieldforce_ad()
     sf += sf_coeff[3]*sin(4*MY_PI*s2);
     sf *= 2*q[i]*q[i];
     f[i][1] += qfactor*(eky*q[i] - sf);
-
 
     sf = sf_coeff[4]*sin(2*MY_PI*s3);
     sf += sf_coeff[5]*sin(4*MY_PI*s3);

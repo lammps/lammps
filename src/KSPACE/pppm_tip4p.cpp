@@ -223,7 +223,7 @@ void PPPMTIP4P::fieldforce_ik()
 
     // convert E-field to force
 
-    const double qfactor = force->qqrd2e * scale * q[i];
+    const double qfactor = qqrd2e * scale * q[i];
     if (type[i] != typeO) {
       f[i][0] += qfactor*ekx;
       f[i][1] += qfactor*eky;
@@ -326,7 +326,8 @@ void PPPMTIP4P::fieldforce_ad()
     ekz *= hz_inv;
     
     // convert E-field to force and substract self forces
-    const double qfactor = force->qqrd2e * scale;
+
+    const double qfactor = qqrd2e * scale;
 
     s1 = x[i][0]*hx_inv;
     s2 = x[i][1]*hy_inv;

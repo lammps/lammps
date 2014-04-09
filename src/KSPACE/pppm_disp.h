@@ -62,7 +62,6 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   int me,nprocs;
   int nfactors;
   int *factors;
-  double qsum,qsqsum;
   double csumij;
   double csum;
   double *csumi;  //needed as correction term for per atom calculations!

@@ -154,8 +154,6 @@ void PPPMOld::init()
 
   // extract short-range Coulombic cutoff from pair style
 
-  scale = 1.0;
-
   pair_check();
 
   int itmp=0;
@@ -198,25 +196,10 @@ void PPPMOld::init()
 
   // compute qsum & qsqsum and warn if not charge-neutral
 
-  qsum = qsqsum = 0.0;
-  for (int i = 0; i < atom->nlocal; i++) {
-    qsum += atom->q[i];
-    qsqsum += atom->q[i]*atom->q[i];
-  }
-
-  double tmp;
-  MPI_Allreduce(&qsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsum = tmp;
-  MPI_Allreduce(&qsqsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsqsum = tmp;
-
-  if (qsqsum == 0.0)
-    error->all(FLERR,"Cannot use kspace solver on system with no charge");
-  if (fabs(qsum) > SMALL && me == 0) {
-    char str[128];
-    sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    error->warning(FLERR,str);
-  }
+  scale = 1.0;
+  qqrd2e = force->qqrd2e;
+  qsum_qsq(0);
+  natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
 
@@ -742,13 +725,19 @@ void PPPMOld::compute(int eflag, int vflag)
   if (evflag_atom) fieldforce_peratom();
 
   // sum global energy across procs and add in volume-dependent term
+  // reset qsum and qsqsum if atom count has changed
 
-  const double qscale = force->qqrd2e * scale;
+  const double qscale = qqrd2e * scale;
 
   if (eflag_global) {
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
+
+    if (atom->natoms != natoms_original) {
+      qsum_qsq(0);
+      natoms_original = atom->natoms;
+    }
 
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/MY_PIS +
@@ -970,8 +959,6 @@ void PPPMOld::set_grid()
   acons[7][4] = 25091609.0 / 1560084480.0;
   acons[7][5] = 1755948832039.0 / 36229939200000.0;
   acons[7][6] = 4887769399.0 / 37838389248.0;
-
-  double q2 = qsqsum * force->qqrd2e;
 
   // use xprd,yprd,zprd even if triclinic so grid size is the same
   // adjust z dimension for 2d slab PPPM
@@ -2232,7 +2219,7 @@ void PPPMOld::fieldforce()
 
     // convert E-field to force
 
-    const double qfactor = force->qqrd2e * scale * q[i];
+    const double qfactor = qqrd2e * scale * q[i];
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;
     if (slabflag != 2) f[i][2] += qfactor*ekz;
@@ -2471,7 +2458,7 @@ void PPPMOld::slabcorr()
 
   const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
     qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
-  const double qscale = force->qqrd2e * scale;
+  const double qscale = qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
 
@@ -2645,7 +2632,7 @@ void PPPMOld::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
 
   poisson_groups(BA_flag);
 
-  const double qscale = force->qqrd2e * scale;
+  const double qscale = qqrd2e * scale;
 
   // total group A <--> group B energy
   // self and boundary correction terms are in compute_group_group.cpp

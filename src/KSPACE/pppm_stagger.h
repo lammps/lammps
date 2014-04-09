@@ -52,7 +52,8 @@ class PPPMStagger : public PPPM {
 
 
   inline double gf_denom2(const double &x, const double &y,
-                         const double &z) const {
+                         const double &z) const
+  {
     double sx,sy,sz;
     double x2 = x*x;
     double y2 = y*y;

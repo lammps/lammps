@@ -97,7 +97,6 @@ void PPPMDispTIP4P::particle_map_c(double delx, double dely, double delz,
     p2g[i][1] = ny;
     p2g[i][2] = nz;
 
-
     // check that entire stencil around nx,ny,nz will fit in my 3d brick
 
     if (nx+nlow < nxlo || nx+nup > nxhi ||

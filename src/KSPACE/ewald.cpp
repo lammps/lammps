@@ -106,8 +106,7 @@ void Ewald::init()
 
   // extract short-range Coulombic cutoff from pair style
 
-  scale = 1.0;
-
+  triclinic = domain->triclinic;
   pair_check();
 
   int itmp;
@@ -116,25 +115,12 @@ void Ewald::init()
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
 
-  qsum = qsqsum = 0.0;
-  for (int i = 0; i < atom->nlocal; i++) {
-    qsum += atom->q[i];
-    qsqsum += atom->q[i]*atom->q[i];
-  }
+  // compute qsum & qsqsum and warn if not charge-neutral
 
-  double tmp;
-  MPI_Allreduce(&qsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsum = tmp;
-  MPI_Allreduce(&qsqsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsqsum = tmp;
-
-  if (qsqsum == 0.0)
-    error->all(FLERR,"Cannot use kspace solver on system with no charge");
-  if (fabs(qsum) > SMALL && comm->me == 0) {
-    char str[128];
-    sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    error->warning(FLERR,str);
-  }
+  scale = 1.0;
+  qqrd2e = force->qqrd2e;
+  qsum_qsq(0);
+  natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
 
@@ -143,10 +129,7 @@ void Ewald::init()
 
   // setup K-space resolution
 
-  q2 = qsqsum * force->qqrd2e;
   bigint natoms = atom->natoms;
-
-  triclinic = domain->triclinic;
 
   // use xprd,yprd,zprd even if triclinic so grid size is the same
   // adjust z dimension for 2d slab Ewald
@@ -440,7 +423,7 @@ void Ewald::compute(int eflag, int vflag)
 
   // convert E-field to force
 
-  const double qscale = force->qqrd2e * scale;
+  const double qscale = qqrd2e * scale;
 
   for (i = 0; i < nlocal; i++) {
     f[i][0] += qscale * q[i]*ek[i][0];
@@ -448,12 +431,19 @@ void Ewald::compute(int eflag, int vflag)
     if (slabflag != 2) f[i][2] += qscale * q[i]*ek[i][2];
   }
 
-  // global energy
+  // sum global energy across Kspace vevs and add in volume-dependent term
+  // reset qsum and qsqsum if atom count has changed
 
   if (eflag_global) {
     for (k = 0; k < kcount; k++)
       energy += ug[k] * (sfacrl_all[k]*sfacrl_all[k] +
                          sfacim_all[k]*sfacim_all[k]);
+
+    if (atom->natoms != natoms_original) {
+      qsum_qsq(0);
+      natoms_original = atom->natoms;
+    }
+
     energy -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qscale;
@@ -1206,7 +1196,7 @@ void Ewald::slabcorr()
 
   const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
     qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
-  const double qscale = force->qqrd2e * scale;
+  const double qscale = qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
 
@@ -1337,7 +1327,7 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   MPI_Allreduce(sfacrl_B,sfacrl_B_all,kcount,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(sfacim_B,sfacim_B_all,kcount,MPI_DOUBLE,MPI_SUM,world);
 
-  const double qscale = force->qqrd2e * scale;
+  const double qscale = qqrd2e * scale;
   double partial_group;
 
   // total group A <--> group B energy
@@ -1437,7 +1427,7 @@ void Ewald::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
 
   // compute corrections
 
-  const double qscale = force->qqrd2e * scale;
+  const double qscale = qqrd2e * scale;
   const double efact = qscale * MY_2PI/volume;
 
   e2group += efact * (dipole_A*dipole_B - 0.5*(qsum_A*dipole_r2_B +

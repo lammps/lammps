@@ -209,13 +209,19 @@ void PPPMCG::compute(int eflag, int vflag)
   if (evflag_atom) fieldforce_peratom();
 
   // sum global energy across procs and add in volume-dependent term
+  // reset qsum and qsqsum if atom count has changed
 
-  const double qscale = force->qqrd2e * scale;
+  const double qscale = qqrd2e * scale;
 
   if (eflag_global) {
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
+
+    if (atom->natoms != natoms_original) {
+      qsum_qsq(0);
+      natoms_original = atom->natoms;
+    }
 
     energy *= 0.5*volume;
     energy -= g_ewald*qsqsum/MY_PIS +
@@ -406,7 +412,7 @@ void PPPMCG::fieldforce_ik()
 
     // convert E-field to force
 
-    const double qfactor = force->qqrd2e * scale * q[i];
+    const double qfactor = qqrd2e * scale * q[i];
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;
     if (slabflag != 2) f[i][2] += qfactor*ekz;
@@ -479,7 +485,7 @@ void PPPMCG::fieldforce_ad()
 
     // convert E-field to force and substract self forces
 
-    const double qfactor = force->qqrd2e * scale;
+    const double qfactor = qqrd2e * scale;
 
     s1 = x[i][0]*hx_inv;
     s2 = x[i][1]*hy_inv;
@@ -618,7 +624,7 @@ void PPPMCG::slabcorr()
 
   const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
     qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
-  const double qscale = force->qqrd2e * scale;
+  const double qscale = qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
 

@@ -52,7 +52,6 @@ class PPPMOld : public KSpace {
   int me,nprocs;
   int nfactors;
   int *factors;
-  double qsum,qsqsum;
   double cutoff;
   double volume;
   double delxinv,delyinv,delzinv,delvolinv;

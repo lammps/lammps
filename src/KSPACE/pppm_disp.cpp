@@ -1209,88 +1209,94 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
   int n = atom->ntypes;
   int converged;
   delete [] B;
+  B = NULL;
   if (function[3] + function[2]) {                     // no mixing rule or arithmetic
     if (function[2] && me == 0) {
       if (screen) fprintf(screen,"  Optimizing splitting of Dispersion coefficients\n");
       if (logfile) fprintf(logfile,"  Optimizing splitting of Dispersion coefficients\n");
     }
-    // get dispersion coefficients
-    double **b = (double **) force->pair->extract("B",tmp);
+
     // allocate data for eigenvalue decomposition
-    double **A;
-    double **Q;
-    memory->create(A,n,n,"pppm/disp:A");
-    memory->create(Q,n,n,"pppm/disp:Q");
-    // fill coefficients to matrix a
-    for (int i = 1; i <= n; i++)
-      for (int j = 1; j <= n; j++)
-        A[i-1][j-1] = b[i][j];
-    // transform q to a unity matrix
-    for (int i = 0; i < n; i++)
-      for (int j = 0; j < n; j++)
-        Q[i][j] = 0.0;
-    for (int i = 0; i < n; i++)
-      Q[i][i] = 1.0;
-    // perfrom eigenvalue decomposition with QR algorithm
-    converged = qr_alg(A,Q,n);
-    if (function[3] && !converged) {
-      error->all(FLERR,"Matrix factorization to split dispersion coefficients failed");
-    }
-    // determine number of used eigenvalues 
-    //   based on maximum allowed number or cutoff criterion
-    //   sort eigenvalues according to their size with bubble sort
-    double t;
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n-1-i; j++) {
-        if (fabs(A[j][j]) < fabs(A[j+1][j+1])) {
-          t = A[j][j];
-          A[j][j] = A[j+1][j+1];
-          A[j+1][j+1] = t;
-          for (int k = 0; k < n; k++) {
-	    t = Q[k][j];
-	    Q[k][j] = Q[k][j+1];
-            Q[k][j+1] = t;
+    double **A=NULL;
+    double **Q=NULL;
+    if ( n > 1 ) {
+      // get dispersion coefficients
+      double **b = (double **) force->pair->extract("B",tmp);
+      memory->create(A,n,n,"pppm/disp:A");
+      memory->create(Q,n,n,"pppm/disp:Q");
+      // fill coefficients to matrix a
+      for (int i = 1; i <= n; i++)
+        for (int j = 1; j <= n; j++)
+          A[i-1][j-1] = b[i][j];
+      // transform q to a unity matrix
+      for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+          Q[i][j] = 0.0;
+      for (int i = 0; i < n; i++)
+        Q[i][i] = 1.0;
+      // perfrom eigenvalue decomposition with QR algorithm
+      converged = qr_alg(A,Q,n);
+      if (function[3] && !converged) {
+        error->all(FLERR,"Matrix factorization to split dispersion coefficients failed");
+      }
+      // determine number of used eigenvalues 
+      //   based on maximum allowed number or cutoff criterion
+      //   sort eigenvalues according to their size with bubble sort
+      double t;
+      for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n-1-i; j++) {
+          if (fabs(A[j][j]) < fabs(A[j+1][j+1])) {
+            t = A[j][j];
+            A[j][j] = A[j+1][j+1];
+            A[j+1][j+1] = t;
+            for (int k = 0; k < n; k++) {
+              t = Q[k][j];
+              Q[k][j] = Q[k][j+1];
+              Q[k][j+1] = t;
+            }
           }
         }
       }
-    }
 
-    //   check which eigenvalue is the first that is smaller
-    //   than a specified tolerance
-    //   check how many are maximum allowed by the user
-    double amax = fabs(A[0][0]);
-    double acrit = amax*splittol;
-    double bmax = 0;
-    double err = 0;
-    nsplit = 0;
-    for (int i = 0; i < n; i++) {
-      if (fabs(A[i][i]) > acrit) nsplit++;
-      else {
-        bmax = fabs(A[i][i]);
-        break;
+      //   check which eigenvalue is the first that is smaller
+      //   than a specified tolerance
+      //   check how many are maximum allowed by the user
+      double amax = fabs(A[0][0]);
+      double acrit = amax*splittol;
+      double bmax = 0;
+      double err = 0;
+      nsplit = 0;
+      for (int i = 0; i < n; i++) {
+        if (fabs(A[i][i]) > acrit) nsplit++;
+        else {
+          bmax = fabs(A[i][i]);
+          break;
+        }
       }
-    }
 
-    err =  bmax/amax;
-    if (err > 1.0e-4) {
-      char str[128];
-      sprintf(str,"Error in splitting of dispersion coeffs is estimated %g",err);
-      error->warning(FLERR, str);
-    }
-    // set B
-    B = new double[nsplit*n+nsplit];
-    for (int i = 0; i< nsplit; i++) {
-      B[i] = A[i][i];
-      for (int j = 0; j < n; j++) {
-        B[nsplit*(j+1) + i] = Q[j][i];
+      err =  bmax/amax;
+      if (err > 1.0e-4) {
+        char str[128];
+        sprintf(str,"Error in splitting of dispersion coeffs is estimated %g%",err);
+        error->warning(FLERR, str);
       }
-    }
+      // set B
+      B = new double[nsplit*n+nsplit];
+      for (int i = 0; i< nsplit; i++) {
+        B[i] = A[i][i];
+        for (int j = 0; j < n; j++) {
+          B[nsplit*(j+1) + i] = Q[j][i];
+        }
+      }
 
-    nsplit_alloc = nsplit;
-    if (nsplit%2 == 1) nsplit_alloc = nsplit + 1;
+      nsplit_alloc = nsplit;
+      if (nsplit%2 == 1) nsplit_alloc = nsplit + 1;
+    } else
+        nsplit = 1; // use geometric mixing
+
     // check if the function should preferably be [1] or [2] or [3]
     if (nsplit == 1) {
-      delete [] B;
+      if ( B ) delete [] B;
       function[3] = 0;
       function[2] = 0;
       function[1] = 1;
@@ -1312,7 +1318,7 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
         if (screen) fprintf(screen,"  Using 7 structure factors\n");
         if (logfile) fprintf(logfile,"  Using 7 structure factors\n");
       }
-      delete [] B;
+      if ( B ) delete [] B;
     }
     if (function[3]) {
       if (me == 0) {
@@ -1345,7 +1351,7 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
       sigma_i = sigma[i][i];
       sigma_n = 1.0;
       for (int j=0; j<7; ++j) {
-	*(bi++) = sigma_n*eps_i*c[j]*0.25;
+        *(bi++) = sigma_n*eps_i*c[j]*0.25;
         sigma_n *= sigma_i;
       }
     }

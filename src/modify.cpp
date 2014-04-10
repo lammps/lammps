@@ -535,7 +535,7 @@ double Modify::min_energy(double *fextra)
 }
 
 /* ----------------------------------------------------------------------
-   store current state of extra dof, only for relevant fixes
+   store current state of extra minimizer dof, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::min_store()
@@ -545,7 +545,7 @@ void Modify::min_store()
 }
 
 /* ----------------------------------------------------------------------
-   mange state of extra dof on a stack, only for relevant fixes
+   manage state of extra minimizer dof on a stack, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::min_clearstore()
@@ -567,7 +567,7 @@ void Modify::min_popstore()
 }
 
 /* ----------------------------------------------------------------------
-   displace extra dof along vector hextra, only for relevant fixes
+   displace extra minimizer dof along vector hextra, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void Modify::min_step(double alpha, double *hextra)
@@ -602,7 +602,7 @@ double Modify::max_alpha(double *hextra)
 }
 
 /* ----------------------------------------------------------------------
-   extract extra dof for minimization, only for relevant fixes
+   extract extra minimizer dof, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 int Modify::min_dof()
@@ -614,7 +614,7 @@ int Modify::min_dof()
 }
 
 /* ----------------------------------------------------------------------
-   reset reference state of fix, only for relevant fixes
+   reset minimizer reference state of fix, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 int Modify::min_reset_ref()

@@ -42,6 +42,8 @@ NeighList::NeighList(LAMMPS *lmp) :
 
   dnum = 0;
 
+  last_build = -1;
+
   iskip = NULL;
   ijskip = NULL;
 

@@ -75,7 +75,7 @@ class Neighbor : protected Pointers {
   void setup_bins();                // setup bins based on box and cutoff
   virtual void build(int topoflag=1);  // create all neighbor lists (pair,bond)
   virtual void build_topology();    // create all topology neighbor lists
-  void build_one(int);              // create a single neighbor list
+  void build_one(int, int preflag=0);  // create a single neighbor list
   void set(int, char **);           // set neighbor style and skin distance
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
@@ -106,6 +106,9 @@ class Neighbor : protected Pointers {
   int boxcheck;                        // 1 if need to store box size
   double boxlo_hold[3],boxhi_hold[3];  // box size at last neighbor build
   double corners_hold[8][3];           // box corners at last neighbor build
+
+  int binatomflag;                 // bin atoms or not when build neigh list
+                                   // turned off by build_one()
 
   int nbinx,nbiny,nbinz;           // # of global bins
   int *bins;                       // ptr to next atom in each bin

@@ -247,7 +247,7 @@ void Neighbor::full_bin(NeighList *list)
 
   // bin owned & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   double **x = atom->x;
   int *type = atom->type;
@@ -355,7 +355,7 @@ void Neighbor::full_bin_ghost(NeighList *list)
 
   // bin owned & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   double **x = atom->x;
   int *type = atom->type;

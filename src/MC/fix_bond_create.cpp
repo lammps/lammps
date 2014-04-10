@@ -200,11 +200,12 @@ void FixBondCreate::init()
                      "dihedrals, or impropers");
   }
 
-  // need a half neighbor list, built when ever re-neighboring occurs
+  // need a half neighbor list, built every Nevery steps
 
   int irequest = neighbor->request((void *) this);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix = 1;
+  neighbor->requests[irequest]->occasional = 1;
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -317,6 +318,7 @@ void FixBondCreate::post_integrate()
   int *mask = atom->mask;
   int *type = atom->type;
 
+  neighbor->build_one(list->index,1);
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -446,7 +448,6 @@ void FixBondCreate::post_integrate()
     // increment bondcount, convert atom to new type if limit reached
 
     bondcount[i]++;
-    int oldtype = type[i];
     if (type[i] == iatomtype) {
       if (bondcount[i] == imaxbond) type[i] = inewtype;
     } else {

@@ -177,7 +177,7 @@ void FixPeriNeigh::setup(int vflag)
   if (!first) return;
   first = 0;
 
-  // invoke full neighbor list (will copy or build if necessary)
+  // build full neighbor list, will copy or build as necessary
 
   neighbor->build_one(list->index);
 

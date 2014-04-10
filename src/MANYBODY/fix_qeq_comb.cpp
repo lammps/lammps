@@ -133,12 +133,6 @@ void FixQEQComb::init()
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/comb group has no atoms");
-
-  int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -321,5 +315,3 @@ void FixQEQComb::unpack_comm(int n, int first, double *buf)
   last = first + n ;
   for (i = first; i < last; i++) atom->q[i] = buf[m++];
 }
-
-/* ---------------------------------------------------------------------- */

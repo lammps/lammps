@@ -58,18 +58,23 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg != 6) error->all(FLERR,"Illegal fix bond/swap command");
 
+  nevery = force->inumeric(FLERR,arg[3]);
+  if (nevery <= 0) error->all(FLERR,"Illegal fix bond/swap command");
+
+  force_reneighbor = 1;
+  next_reneighbor = -1;
   vector_flag = 1;
   size_vector = 2;
   global_freq = 1;
   extvector = 0;
 
-  fraction = force->numeric(FLERR,arg[3]);
-  double cutoff = force->numeric(FLERR,arg[4]);
+  fraction = force->numeric(FLERR,arg[4]);
+  double cutoff = force->numeric(FLERR,arg[5]);
   cutsq = cutoff*cutoff;
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  int seed = force->inumeric(FLERR,arg[5]);
+  int seed = force->inumeric(FLERR,arg[6]);
   random = new RanMars(lmp,seed + comm->me);
 
   // error check
@@ -120,7 +125,7 @@ FixBondSwap::~FixBondSwap()
 int FixBondSwap::setmask()
 {
   int mask = 0;
-  mask |= PRE_NEIGHBOR;
+  mask |= POST_INTEGRATE;
   return mask;
 }
 
@@ -159,11 +164,12 @@ void FixBondSwap::init()
       force->special_lj[3] != 1.0)
     error->all(FLERR,"Fix bond/swap requires special_bonds = 0,1,1");
 
-  // need a half neighbor list, built when ever re-neighboring occurs
+  // need a half neighbor list, built every Nevery steps
 
   int irequest = neighbor->request((void *) this);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix = 1;
+  neighbor->requests[irequest]->occasional = 1;
 
   // zero out stats
 
@@ -179,9 +185,16 @@ void FixBondSwap::init_list(int id, NeighList *ptr)
   list = ptr;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   look for and perform swaps
+   NOTE: used to do this every pre_neighbor(), but think that is a bug
+         b/c was doing it after exchange() and before neighbor->build()
+         which is when neigh lists are actually out-of-date or even bogus,
+         now do it based on user-specified Nevery, and trigger reneigh
+         if any swaps performed, like fix bond/create
+------------------------------------------------------------------------- */
 
-void FixBondSwap::pre_neighbor()
+void FixBondSwap::post_integrate()
 {
   int i,j,ii,jj,m,inum,jnum;
   int inext,iprev,ilast,jnext,jprev,jlast,ibond,iangle,jbond,jangle;
@@ -190,6 +203,8 @@ void FixBondSwap::pre_neighbor()
   tagint i1,i2,i3,j1,j2,j3;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double delta,factor;
+
+  if (update->ntimestep % nevery) return;
 
   // compute current temp for Boltzmann factor test
 
@@ -216,6 +231,7 @@ void FixBondSwap::pre_neighbor()
   type = atom->type;
   x = atom->x;
 
+  neighbor->build_one(list->index,1);
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -418,6 +434,13 @@ void FixBondSwap::pre_neighbor()
   }
 
  done:
+
+  // trigger immediate reneighboring if any swaps occurred
+
+  int accept_any;
+  MPI_Allreduce(&accept,&accept_any,1,MPI_INT,MPI_SUM,world);
+  if (accept_any) next_reneighbor = update->ntimestep;
+
   if (!accept) return;
   naccept++;
 
@@ -629,11 +652,13 @@ int FixBondSwap::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
+    if (icompute < 0) 
+      error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
-      error->all(FLERR,"Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR,"Fix_modify temperature ID does not "
+                 "compute temperature");
     if (temperature->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Group for fix_modify temp != fix group");
     return 2;

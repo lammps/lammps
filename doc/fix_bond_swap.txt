@@ -14,13 +14,14 @@ fix ID group-ID bond/swap fraction cutoff seed :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 bond/swap = style name of this fix command
+Nevery = attempt bond swapping every this many steps :l
 fraction = fraction of group atoms to consider for swapping
 cutoff = distance at which swapping will be considered (distance units)
 seed = random # seed (positive integer) :ul
 
 [Examples:]
 
-fix 1 all bond/swap 0.5 1.3 598934 :pre
+fix 1 all bond/swap 50 0.5 1.3 598934 :pre
 
 [Description:]
 
@@ -52,13 +53,14 @@ undergone a dramatic conformational change.  This reference provides
 more details on how the algorithm works and its application:
 "(Sides)"_#Sides.
 
-The bond swapping operation is invoked each time neighbor lists are
-built during a simulation, since it potentially alters the list of
-which neighbors are considered for pairwise interaction.  At each
-reneighboring step, each processor considers a random specified
-{fraction} of its atoms as potential swapping monomers for this
-timestep.  Choosing a small {fraction} value can reduce the likelihood
-of a reverse swap occurring soon after an initial swap.
+The bond swapping operation is invoked every {Nevery} timesteps.  If
+any bond is swapped, a re-build of the neighbor lists is triggered,
+since a swap alters the list of which neighbors are considered for
+pairwise interaction.  At each invocation, each processor considers a
+random specified {fraction} of its atoms as potential swapping
+monomers for this timestep.  Choosing a small {fraction} value can
+reduce the likelihood of a reverse swap occurring soon after an
+initial swap.
 
 For each monomer A1, its neighbors are examined to find a possible B1
 monomer.  Both A1 and B1 must be in the fix group, their separation

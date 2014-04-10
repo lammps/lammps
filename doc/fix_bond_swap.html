@@ -15,15 +15,17 @@
 </P>
 <PRE>fix ID group-ID bond/swap fraction cutoff seed 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>bond/swap = style name of this fix command
-<LI>fraction = fraction of group atoms to consider for swapping
+<LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+bond/swap = style name of this fix command
+Nevery = attempt bond swapping every this many steps 
+
+<UL><LI>fraction = fraction of group atoms to consider for swapping
 <LI>cutoff = distance at which swapping will be considered (distance units)
 <LI>seed = random # seed (positive integer) 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 1 all bond/swap 0.5 1.3 598934 
+<PRE>fix 1 all bond/swap 50 0.5 1.3 598934 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -55,13 +57,14 @@ undergone a dramatic conformational change.  This reference provides
 more details on how the algorithm works and its application:
 <A HREF = "#Sides">(Sides)</A>.
 </P>
-<P>The bond swapping operation is invoked each time neighbor lists are
-built during a simulation, since it potentially alters the list of
-which neighbors are considered for pairwise interaction.  At each
-reneighboring step, each processor considers a random specified
-<I>fraction</I> of its atoms as potential swapping monomers for this
-timestep.  Choosing a small <I>fraction</I> value can reduce the likelihood
-of a reverse swap occurring soon after an initial swap.
+<P>The bond swapping operation is invoked every <I>Nevery</I> timesteps.  If
+any bond is swapped, a re-build of the neighbor lists is triggered,
+since a swap alters the list of which neighbors are considered for
+pairwise interaction.  At each invocation, each processor considers a
+random specified <I>fraction</I> of its atoms as potential swapping
+monomers for this timestep.  Choosing a small <I>fraction</I> value can
+reduce the likelihood of a reverse swap occurring soon after an
+initial swap.
 </P>
 <P>For each monomer A1, its neighbors are examined to find a possible B1
 monomer.  Both A1 and B1 must be in the fix group, their separation

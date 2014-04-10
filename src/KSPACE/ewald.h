@@ -38,7 +38,7 @@ class Ewald : public KSpace {
  protected:
   int kxmax,kymax,kzmax;
   int kcount,kmax,kmax3d,kmax_created;
-  double gsqmx,qsum,qsqsum,q2,volume;
+  double gsqmx,volume;
   int nmax;
 
   double unitk[3];

@@ -53,7 +53,6 @@ class PPPM : public KSpace {
   int me,nprocs;
   int nfactors;
   int *factors;
-  double qsum,qsqsum,q2;
   double cutoff;
   double volume;
   double delxinv,delyinv,delzinv,delvolinv;

@@ -233,14 +233,9 @@ void PPPMDisp::init()
   deallocate();
   deallocate_peratom(); 
 
-  // set scale
-
-  scale = 1.0;
-
-  triclinic = domain->triclinic;
-
   // check whether cutoff and pair style are set
 
+  triclinic = domain->triclinic;
   pair_check();
 
   int tmp;
@@ -269,7 +264,8 @@ void PPPMDisp::init()
 	case 1:
 	  k = 0; break;
 	case 6:
-	  if ((ewald_mix==GEOMETRIC || ewald_mix==SIXTHPOWER|| mixflag == 1) && mixflag!= 2) { k = 1; break; }
+	  if ((ewald_mix==GEOMETRIC || ewald_mix==SIXTHPOWER || 
+               mixflag == 1) && mixflag!= 2) { k = 1; break; }
 	  else if (ewald_mix==ARITHMETIC && mixflag!=2) { k = 2; break; }
 	  else if (mixflag == 2) { k = 3; break; }
 	default:
@@ -282,41 +278,20 @@ void PPPMDisp::init()
  
 
   // warn, if function[0] is not set but charge attribute is set!
+
   if (!function[0] && atom->q_flag && me == 0) {
     char str[128];
     sprintf(str, "Charges are set, but coulombic solver is not used");
     error->warning(FLERR, str);
   }
 
-  // compute qsum & qsqsum, if function[0] is set, print error if no charges are set or warn if not charge-neutral  
+  // compute qsum & qsqsum, if function[0] is set, warn if not charge-neutral
+
+  scale = 1.0;
+  qqrd2e = force->qqrd2e;
+  natoms_original = atom->natoms;
  
-  if (function[0]) {
-    if (!atom->q_flag) 
-      error->all(FLERR,"Kspace style with selected options "
-                 "requires atom attribute q");
- 
-    qsum = qsqsum = 0.0;
-    for (int i = 0; i < atom->nlocal; i++) {
-      qsum += atom->q[i];
-      qsqsum += atom->q[i]*atom->q[i];
-
-    }
-
-    double tmp;
-    MPI_Allreduce(&qsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    qsum = tmp;
-    MPI_Allreduce(&qsqsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-    qsqsum = tmp;
-
-    if (qsqsum == 0.0)
-      error->all(FLERR,"Cannot use kspace solver with selected options "
-                 "on system with no charge");
-    if (fabs(qsum) > SMALL && me == 0) {
-      char str[128];
-      sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-      error->warning(FLERR,str);
-    }
-  }
+  if (function[0]) qsum_qsq(0);
 
   // if kspace is TIP4P, extract TIP4P params from pair style
   // bond/angle are not yet init(), so insure equilibrium request is valid
@@ -351,8 +326,8 @@ void PPPMDisp::init()
     alpha = qdist / (cos(0.5*theta) * blen);
   }
 
-
   // initialize the pair style to get the coefficients
+
   neighrequest_flag = 0;
   pair->init();
   neighrequest_flag = 1;
@@ -1144,6 +1119,7 @@ void PPPMDisp::compute(int eflag, int vflag)
   }
 
   // sum energy across procs and add in volume-dependent term
+  // reset qsum and qsqsum if atom count has changed
 
   const double qscale = force->qqrd2e * scale;
   if (eflag_global) {
@@ -1156,6 +1132,11 @@ void PPPMDisp::compute(int eflag, int vflag)
     energy_1 *= 0.5*volume;
     energy_6 *= 0.5*volume;
     
+    if (atom->natoms != natoms_original) {
+      qsum_qsq(0);
+      natoms_original = atom->natoms;
+    }
+
     energy_1 -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy_6 += - MY_PI*MY_PIS/(6*volume)*pow(g_ewald_6,3)*csumij +
@@ -1228,88 +1209,94 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
   int n = atom->ntypes;
   int converged;
   delete [] B;
+  B = NULL;
   if (function[3] + function[2]) {                     // no mixing rule or arithmetic
     if (function[2] && me == 0) {
       if (screen) fprintf(screen,"  Optimizing splitting of Dispersion coefficients\n");
       if (logfile) fprintf(logfile,"  Optimizing splitting of Dispersion coefficients\n");
     }
-    // get dispersion coefficients
-    double **b = (double **) force->pair->extract("B",tmp);
+
     // allocate data for eigenvalue decomposition
-    double **A;
-    double **Q;
-    memory->create(A,n,n,"pppm/disp:A");
-    memory->create(Q,n,n,"pppm/disp:Q");
-    // fill coefficients to matrix a
-    for (int i = 1; i <= n; i++)
-      for (int j = 1; j <= n; j++)
-        A[i-1][j-1] = b[i][j];
-    // transform q to a unity matrix
-    for (int i = 0; i < n; i++)
-      for (int j = 0; j < n; j++)
-        Q[i][j] = 0.0;
-    for (int i = 0; i < n; i++)
-      Q[i][i] = 1.0;
-    // perfrom eigenvalue decomposition with QR algorithm
-    converged = qr_alg(A,Q,n);
-    if (function[3] && !converged) {
-      error->all(FLERR,"Matrix factorization to split dispersion coefficients failed");
-    }
-    // determine number of used eigenvalues 
-    //   based on maximum allowed number or cutoff criterion
-    //   sort eigenvalues according to their size with bubble sort
-    double t;
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n-1-i; j++) {
-        if (fabs(A[j][j]) < fabs(A[j+1][j+1])) {
-          t = A[j][j];
-          A[j][j] = A[j+1][j+1];
-          A[j+1][j+1] = t;
-          for (int k = 0; k < n; k++) {
-	    t = Q[k][j];
-	    Q[k][j] = Q[k][j+1];
-            Q[k][j+1] = t;
+    double **A=NULL;
+    double **Q=NULL;
+    if ( n > 1 ) {
+      // get dispersion coefficients
+      double **b = (double **) force->pair->extract("B",tmp);
+      memory->create(A,n,n,"pppm/disp:A");
+      memory->create(Q,n,n,"pppm/disp:Q");
+      // fill coefficients to matrix a
+      for (int i = 1; i <= n; i++)
+        for (int j = 1; j <= n; j++)
+          A[i-1][j-1] = b[i][j];
+      // transform q to a unity matrix
+      for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+          Q[i][j] = 0.0;
+      for (int i = 0; i < n; i++)
+        Q[i][i] = 1.0;
+      // perfrom eigenvalue decomposition with QR algorithm
+      converged = qr_alg(A,Q,n);
+      if (function[3] && !converged) {
+        error->all(FLERR,"Matrix factorization to split dispersion coefficients failed");
+      }
+      // determine number of used eigenvalues 
+      //   based on maximum allowed number or cutoff criterion
+      //   sort eigenvalues according to their size with bubble sort
+      double t;
+      for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n-1-i; j++) {
+          if (fabs(A[j][j]) < fabs(A[j+1][j+1])) {
+            t = A[j][j];
+            A[j][j] = A[j+1][j+1];
+            A[j+1][j+1] = t;
+            for (int k = 0; k < n; k++) {
+              t = Q[k][j];
+              Q[k][j] = Q[k][j+1];
+              Q[k][j+1] = t;
+            }
           }
         }
       }
-    }
 
-    //   check which eigenvalue is the first that is smaller
-    //   than a specified tolerance
-    //   check how many are maximum allowed by the user
-    double amax = fabs(A[0][0]);
-    double acrit = amax*splittol;
-    double bmax = 0;
-    double err = 0;
-    nsplit = 0;
-    for (int i = 0; i < n; i++) {
-      if (fabs(A[i][i]) > acrit) nsplit++;
-      else {
-        bmax = fabs(A[i][i]);
-        break;
+      //   check which eigenvalue is the first that is smaller
+      //   than a specified tolerance
+      //   check how many are maximum allowed by the user
+      double amax = fabs(A[0][0]);
+      double acrit = amax*splittol;
+      double bmax = 0;
+      double err = 0;
+      nsplit = 0;
+      for (int i = 0; i < n; i++) {
+        if (fabs(A[i][i]) > acrit) nsplit++;
+        else {
+          bmax = fabs(A[i][i]);
+          break;
+        }
       }
-    }
 
-    err =  bmax/amax;
-    if (err > 1.0e-4) {
-      char str[128];
-      sprintf(str,"Error in splitting of dispersion coeffs is estimated %g",err);
-      error->warning(FLERR, str);
-    }
-    // set B
-    B = new double[nsplit*n+nsplit];
-    for (int i = 0; i< nsplit; i++) {
-      B[i] = A[i][i];
-      for (int j = 0; j < n; j++) {
-        B[nsplit*(j+1) + i] = Q[j][i];
+      err =  bmax/amax;
+      if (err > 1.0e-4) {
+        char str[128];
+        sprintf(str,"Error in splitting of dispersion coeffs is estimated %g%",err);
+        error->warning(FLERR, str);
       }
-    }
+      // set B
+      B = new double[nsplit*n+nsplit];
+      for (int i = 0; i< nsplit; i++) {
+        B[i] = A[i][i];
+        for (int j = 0; j < n; j++) {
+          B[nsplit*(j+1) + i] = Q[j][i];
+        }
+      }
 
-    nsplit_alloc = nsplit;
-    if (nsplit%2 == 1) nsplit_alloc = nsplit + 1;
+      nsplit_alloc = nsplit;
+      if (nsplit%2 == 1) nsplit_alloc = nsplit + 1;
+    } else
+        nsplit = 1; // use geometric mixing
+
     // check if the function should preferably be [1] or [2] or [3]
     if (nsplit == 1) {
-      delete [] B;
+      if ( B ) delete [] B;
       function[3] = 0;
       function[2] = 0;
       function[1] = 1;
@@ -1331,7 +1318,7 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
         if (screen) fprintf(screen,"  Using 7 structure factors\n");
         if (logfile) fprintf(logfile,"  Using 7 structure factors\n");
       }
-      delete [] B;
+      if ( B ) delete [] B;
     }
     if (function[3]) {
       if (me == 0) {
@@ -1364,7 +1351,7 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
       sigma_i = sigma[i][i];
       sigma_n = 1.0;
       for (int j=0; j<7; ++j) {
-	*(bi++) = sigma_n*eps_i*c[j]*0.25;
+        *(bi++) = sigma_n*eps_i*c[j]*0.25;
         sigma_n *= sigma_i;
       }
     }

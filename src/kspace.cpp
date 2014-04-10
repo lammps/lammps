@@ -26,6 +26,8 @@
 
 using namespace LAMMPS_NS;
 
+#define SMALL 0.00001
+
 /* ---------------------------------------------------------------------- */
 
 KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
@@ -244,6 +246,40 @@ void KSpace::ev_setup(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   compute qsum,qsqsum,q2 and give error/warning if not charge neutral
+   only called initially or when particle count changes
+------------------------------------------------------------------------- */
+
+void KSpace::qsum_qsq(int flag)
+{
+  qsum = qsqsum = 0.0;
+  for (int i = 0; i < atom->nlocal; i++) {
+    qsum += atom->q[i];
+    qsqsum += atom->q[i]*atom->q[i];
+  }
+
+  double tmp;
+  MPI_Allreduce(&qsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsum = tmp;
+  MPI_Allreduce(&qsqsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+  qsqsum = tmp;
+
+  if (qsqsum == 0.0)
+    error->all(FLERR,"Cannot use kspace solver on system with no charge");
+
+  q2 = qsqsum * force->qqrd2e;
+
+  // not yet sure of the correction needed for non-neutral systems
+
+  if (fabs(qsum) > SMALL) {
+    char str[128];
+    sprintf(str,"System is not charge neutral, net charge = %g",qsum);
+    if (flag) error->all(FLERR,str);
+    else if (comm->me == 0) error->warning(FLERR,str);
+  }
+}
+
+/* ----------------------------------------------------------------------
    estimate the accuracy of the short-range coulomb tables
 ------------------------------------------------------------------------- */
 
@@ -335,7 +371,8 @@ void KSpace::lamda2xvector(double *lamda, double *v)
    coords and return the tight (axis-aligned) bounding box, does not 
    preserve vector magnitude
    see http://www.loria.fr/~shornus/ellipsoid-bbox.html and
-   http://yiningkarlli.blogspot.com/2013/02/bounding-boxes-for-ellipsoidsfigure.html
+   http://yiningkarlli.blogspot.com/2013/02/
+     bounding-boxes-for-ellipsoidsfigure.html
 ------------------------------------------------------------------------- */
 
 void KSpace::kspacebbox(double r, double *b)

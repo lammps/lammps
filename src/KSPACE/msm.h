@@ -40,7 +40,6 @@ class MSM : public KSpace {
   double precision;
   int nfactors;
   int *factors;
-  double qsum,qsqsum,q2;
   double qqrd2e;
   double cutoff;
   double volume;

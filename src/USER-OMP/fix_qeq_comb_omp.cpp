@@ -41,8 +41,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEQCombOMP::FixQEQCombOMP(LAMMPS *lmp, int narg, char **arg)
-  : FixQEQComb(lmp, narg, arg)
+FixQEQCombOMP::FixQEQCombOMP(LAMMPS *lmp, int narg, char **arg) :
+  FixQEQComb(lmp, narg, arg)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qeq/comb/omp command");
 }
@@ -60,7 +60,9 @@ void FixQEQCombOMP::init()
   comb = (PairComb *) force->pair_match("comb/omp",1);
   if (comb == NULL)
     comb = (PairComb *) force->pair_match("comb",1);
-  if (comb == NULL) error->all(FLERR,"Must use pair_style comb or comb/omp with fix qeq/comb/omp");
+  if (comb == NULL) 
+    error->all(FLERR,"Must use pair_style comb or "
+               "comb/omp with fix qeq/comb/omp");
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;

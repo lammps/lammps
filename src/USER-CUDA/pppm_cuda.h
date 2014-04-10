@@ -105,7 +105,6 @@ class PPPMCuda : public PPPMOld {
   int old_nmax;
   int global_flag;
   dev_array* adev_data_array;
-  double qqrd2e;
 };
 
 }

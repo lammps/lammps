@@ -166,9 +166,10 @@ void MSM::init()
     error->all(FLERR,"Cannot (yet) use single precision with MSM "
                "(remove -DFFT_SINGLE from Makefile and recompile)");
 
-  pair_check();
-
   // extract short-range Coulombic cutoff from pair style
+
+  triclinic = domain->triclinic;
+  pair_check();
 
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
@@ -176,36 +177,12 @@ void MSM::init()
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
-  // compute qsum & qsqsum and give error if not charge-neutral
+  // compute qsum & qsqsum and error if not charge-neutral
 
-  qsum = qsqsum = 0.0;
-  for (int i = 0; i < atom->nlocal; i++) {
-    qsum += atom->q[i];
-    qsqsum += atom->q[i]*atom->q[i];
-  }
-
-  qqrd2e = force->qqrd2e;
   scale = 1.0;
-
-  double tmp;
-  MPI_Allreduce(&qsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsum = tmp;
-  MPI_Allreduce(&qsqsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsqsum = tmp;
-  q2 = qsqsum * force->qqrd2e;
-
-  if (qsqsum == 0.0)
-    error->all(FLERR,"Cannot use kspace solver on system with no charge");
-
-  // not yet sure of the correction needed for non-neutral systems
-
-  if (fabs(qsum) > SMALL) {
-    char str[128];
-    sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    error->all(FLERR,str);
-  }
-
-  triclinic = domain->triclinic;
+  qqrd2e = force->qqrd2e;
+  qsum_qsq(1);
+  natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
 
@@ -586,16 +563,22 @@ void MSM::compute(int eflag, int vflag)
 
   if (evflag_atom) fieldforce_peratom();
 
-  // total long-range energy
+  // sum global energy across procs and add in self-energy term
+  // reset qsum and qsqsum if atom count has changed
 
-  const double qscale = force->qqrd2e * scale;
+  const double qscale = qqrd2e * scale;
 
   if (eflag_global) {
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
 
-    double e_self = qsqsum*gamma(0.0)/cutoff;  // Self-energy term
+    if (atom->natoms != natoms_original) {
+      qsum_qsq(0);
+      natoms_original = atom->natoms;
+    }
+
+    double e_self = qsqsum*gamma(0.0)/cutoff;
     energy -= e_self;
     energy *= 0.5*qscale;
   }
@@ -2796,7 +2779,7 @@ void MSM::fieldforce()
 
     // convert E-field to force
 
-    const double qfactor = force->qqrd2e*scale*q[i];
+    const double qfactor = qqrd2e*scale*q[i];
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;
     f[i][2] += qfactor*ekz;

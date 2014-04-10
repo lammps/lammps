@@ -456,7 +456,7 @@ double PairLJCutCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
     eng += factor_lj*philj;
   }
 
-  if (r < cut_coulsq) { 
+  if (rsq < cut_coulsq) { 
     phicoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
     eng += phicoul;
   } 

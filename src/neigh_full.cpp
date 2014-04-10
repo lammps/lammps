@@ -491,7 +491,7 @@ void Neighbor::full_multi(NeighList *list)
 
   // bin local & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   double **x = atom->x;
   int *type = atom->type;

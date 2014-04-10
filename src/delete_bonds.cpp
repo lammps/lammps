@@ -63,7 +63,7 @@ void DeleteBonds::command(int narg, char **arg)
 
   // set style and which = type value
 
-  int style;
+  int style = -1;
   if (strcmp(arg[1],"multi") == 0) style = MULTI;
   else if (strcmp(arg[1],"atom") == 0) style = ATOM;
   else if (strcmp(arg[1],"bond") == 0) style = BOND;

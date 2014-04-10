@@ -1277,7 +1277,7 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
       err =  bmax/amax;
       if (err > 1.0e-4) {
         char str[128];
-        sprintf(str,"Error in splitting of dispersion coeffs is estimated %g%",err);
+        sprintf(str,"Estimated error in splitting of dispersion coeffs is %g",err);
         error->warning(FLERR, str);
       }
       // set B

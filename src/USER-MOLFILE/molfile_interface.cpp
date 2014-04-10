@@ -173,33 +173,6 @@ extern "C" {
     return pte_vdw_radius[idx];
   }
 
-  static int get_pte_idx(const char *label)
-  {
-    int i;
-    char atom[3];
-
-    /* zap string */
-    atom[0] = (char) 0;
-    atom[1] = (char) 0;
-    atom[2] = (char) 0;
-    /* if we don't have a null-pointer, there must be at least two
-     * chars, which is all we need. we convert to the capitalization
-     * convention of the table above during assignment. */
-    if (label != NULL) {
-      atom[0] = (char) toupper((int) label[0]);
-      atom[1] = (char) tolower((int) label[1]);
-    }
-    /* discard numbers in atom label */
-    if (isdigit(atom[1])) atom[1] = (char) 0;
-
-    for (i=0; i < nr_pte_entries; ++i) {
-      if ( (pte_label[i][0] == atom[0])
-           && (pte_label[i][1] == atom[1]) ) return i;
-    }
-
-    return 0;
-  }
-
   static int get_pte_idx_from_string(const char *label) {
     int i, ind;
     char atom[3];
@@ -296,15 +269,6 @@ extern "C" {
     return (void *)LoadLibrary(fname);
   }
 
-  // report error message from dlopen
-  static const char *my_dlerror(void) {
-    static CHAR szBuf[80];
-    DWORD dw = GetLastError();
-
-    sprintf(szBuf, "my_dlopen failed: GetLastError returned %u\n", dw);
-    return szBuf;
-  }
-
   // resolve a symbol in shared object
   static void *my_dlsym(void *h, const char *sym) {
     return (void *)GetProcAddress((HINSTANCE)h, sym);
@@ -375,11 +339,6 @@ extern "C" {
   // open a shared object file
   static void *my_dlopen(const char *fname) {
     return dlopen(fname, RTLD_NOW);
-  }
-
-  // report error message from dlopen
-  static const char *my_dlerror(void) {
-    return dlerror();
   }
 
   // resolve a symbol in shared object

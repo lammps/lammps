@@ -58,7 +58,7 @@ void DisplaceAtoms::command(int narg, char **arg)
   if (igroup == -1) error->all(FLERR,"Could not find displace_atoms group ID");
   int groupbit = group->bitmask[igroup];
 
-  int style;
+  int style=-1;
   if (strcmp(arg[1],"move") == 0) style = MOVE;
   else if (strcmp(arg[1],"ramp") == 0) style = RAMP;
   else if (strcmp(arg[1],"random") == 0) style = RANDOM;

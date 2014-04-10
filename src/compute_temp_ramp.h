@@ -43,7 +43,7 @@ class ComputeTempRamp : public Compute {
 
  private:
   int coord_dim;
-  double coord_lo,coord_hi,inv_coord_delta;
+  double coord_lo,coord_hi;
   int v_dim;
   double v_lo,v_hi;
   int scaleflag,fix_dof;

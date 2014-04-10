@@ -342,7 +342,7 @@ void PairCDEAM::compute(int eflag, int vflag)
                                         x_j = rhoB[j]/rho[j];
                                         ASSERT(x_j >= 0 && x_j<=1.0);
 
-                                        double D_j;
+                                        double D_j=0.0;
                                         if(cdeamVersion == 1) {
                                                 // Calculate derivative of h(x_j) polynomial function.
                                                 double h_prime_j = evalHprime(x_j);
@@ -375,7 +375,7 @@ void PairCDEAM::compute(int eflag, int vflag)
                                 }
                                 else {
                                         // We have a concentration dependence for the i-j interaction.
-                                        double h;
+                                        double h=0.0;
                                         if(cdeamVersion == 1) {
                                                 // Calculate h(x_i) polynomial function.
                                                 double h_i = evalH(x_i);

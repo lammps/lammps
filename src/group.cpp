@@ -187,7 +187,7 @@ void Group::assign(int narg, char **arg)
          strcmp(arg[2],"<=") == 0 || strcmp(arg[2],">=") == 0 ||
          strcmp(arg[2],"<>") == 0)) {
 
-      int condition;
+      int condition = -1;
       if (strcmp(arg[2],"<") == 0) condition = LT;
       else if (strcmp(arg[2],"<=") == 0) condition = LE;
       else if (strcmp(arg[2],">") == 0) condition = GT;

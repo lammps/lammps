@@ -613,7 +613,7 @@ void Print_Grid( grid* g, FILE *out )
 }
 
 
-
+#if 0
 void Print_GCell_Exchange_Bounds( int my_rank, neighbor_proc *my_nbrs )
 {
   ivec r;
@@ -653,6 +653,7 @@ void Print_GCell_Exchange_Bounds( int my_rank, neighbor_proc *my_nbrs )
 
   fclose(f);
 }
+#endif
 
 
 

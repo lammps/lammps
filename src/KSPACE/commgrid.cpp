@@ -488,8 +488,6 @@ void CommGrid::setup()
 
 void CommGrid::forward_comm(KSpace *kspace, int which)
 {
-  int i,n;
-
   for (int m = 0; m < nswap; m++) {
     if (swap[m].sendproc == me) 
       kspace->pack_forward(which,buf2,swap[m].npack,swap[m].packlist);
@@ -515,8 +513,6 @@ void CommGrid::forward_comm(KSpace *kspace, int which)
 
 void CommGrid::reverse_comm(KSpace *kspace, int which)
 {
-  int i,n;
-
   for (int m = nswap-1; m >= 0; m--) {
     if (swap[m].recvproc == me) 
       kspace->pack_reverse(which,buf2,swap[m].nunpack,swap[m].unpacklist);

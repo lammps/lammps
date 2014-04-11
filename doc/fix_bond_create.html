@@ -117,22 +117,20 @@ structures that store this information must have space for it.  When
 LAMMPS is initialized from a data file, the list of bonds is scanned
 and the maximum number of bonds per atom is tallied.  If some atom
 will acquire more bonds than this limit as this fix operates, then the
-"extra bonds per atom" parameter in the data file header must be set
-to allow for it.  See the <A HREF = "read_data.html">read_data</A> command for more
-details.  Note that if this parameter needs to be set, it means a data
-file must be used to initialize the system, even if it initially has
-no bonds.  A data file with no atoms can be used if you wish to add
-unbonded atoms via the <A HREF = "create_atoms.html">create atoms</A> command,
-e.g. for a percolation simulation.
+"extra bonds per atom" parameter must be set to allow for it.  See the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command for
+more details.  Note that a data file with no atoms can be used if you
+wish to add unbonded atoms via the <A HREF = "create_atoms.html">create atoms</A>
+command, e.g. for a percolation simulation.
 </P>
 <P>IMPORTANT NOTE: LAMMPS also maintains a data structure that stores a
-list of 1st, 2nd, and 3rd neighbors of each atom (in the bond topology
-of the system) for use in weighting pairwise interactions for bonded
-atoms.  Adding a bond adds a single entry to this list.  The "extra"
-keyword of the <A HREF = "special_bonds.html">special_bonds</A> command should be
-used to leave space for new bonds if the maximum number of entries for
-any atom will be exceeded as this fix operates.  See the
-<A HREF = "special_bonds.html">special_bonds</A> command for details.
+list of 1st, 2nd, and 3rd neighbors of each atom (within the bond
+topology of the system) for use in weighting pairwise interactions for
+bonded atoms.  Adding a bond adds a single entry to this list.  The
+"extra special per atom" parameter must typically be set to allow for
+it.  There are 3 ways to do this.  See the <A HREF = "read_data.html">read_data</A>
+or <A HREF = "create_box.html">create_box</A> or "special_bonds extra" commands for
+details.
 </P>
 <P>Note that even if your simulation starts with no bonds, you must
 define a <A HREF = "bond_style.html">bond_style</A> and use the

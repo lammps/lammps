@@ -105,7 +105,7 @@ structures that store this information must have space for it.  When
 LAMMPS is initialized from a data file, the list of bonds is scanned
 and the maximum number of bonds per atom is tallied.  If some atom
 will acquire more bonds than this limit as this fix operates, then the
-"extra bonds per atom" parameter in the data file header must be set
+"extra bond per atom" parameter in the data file header must be set
 to allow for it.  See the "read_data"_read_data.html command for more
 details.  Note that if this parameter needs to be set, it means a data
 file must be used to initialize the system, even if it initially has

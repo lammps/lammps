@@ -625,6 +625,7 @@ void PairLubricateUPoly::compute_RU(double **x)
   double vxmu2f = force->vxmu2f;
   double a_sq = 0.0;
   double a_sh = 0.0;
+  double a_pu = 0.0;
 
   inum = list->inum;
   ilist = list->ilist;

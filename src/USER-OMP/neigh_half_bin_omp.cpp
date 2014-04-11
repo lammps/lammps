@@ -35,7 +35,7 @@ void Neighbor::half_bin_no_newton_omp(NeighList *list)
 {
   // bin local & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int molecular = atom->molecular;
@@ -152,7 +152,7 @@ void Neighbor::half_bin_no_newton_ghost_omp(NeighList *list)
 {
   // bin local & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
@@ -299,7 +299,7 @@ void Neighbor::half_bin_newton_omp(NeighList *list)
 {
   // bin local & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int molecular = atom->molecular;
@@ -447,7 +447,7 @@ void Neighbor::half_bin_newton_tri_omp(NeighList *list)
 {
   // bin local & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int molecular = atom->molecular;

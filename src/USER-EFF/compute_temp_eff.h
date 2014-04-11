@@ -36,7 +36,6 @@ class ComputeTempEff : public Compute {
  private:
   int fix_dof;
   double tfactor;
-  double *inertia;
 
   void dof_compute();
 };

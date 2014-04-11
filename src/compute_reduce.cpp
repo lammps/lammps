@@ -45,7 +45,7 @@ enum{PERATOM,LOCAL};
 ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  int iarg;
+  int iarg = 0;
   if (strcmp(style,"reduce") == 0) {
     if (narg < 5) error->all(FLERR,"Illegal compute reduce command");
     idregion = NULL;
@@ -59,7 +59,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     idregion = new char[n];
     strcpy(idregion,arg[3]);
     iarg = 4;
-  }
+  } else error->all(FLERR,"Unkown derived compute reduce style");
 
   if (strcmp(arg[iarg],"sum") == 0) mode = SUM;
   else if (strcmp(arg[iarg],"min") == 0) mode = MINN;

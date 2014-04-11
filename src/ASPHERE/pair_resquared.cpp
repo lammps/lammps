@@ -36,8 +36,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairRESquared::PairRESquared(LAMMPS *lmp) : Pair(lmp),
-                                            b_alpha(45.0/56.0),
-                                            cr60(pow(60.0,1.0/3.0))
+                                            cr60(pow(60.0,1.0/3.0)),
+                                            b_alpha(45.0/56.0)
 {
   single_enable = 0;
 

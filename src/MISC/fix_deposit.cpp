@@ -248,7 +248,6 @@ void FixDeposit::pre_exchange()
 {
   int i,j,m,n,nlocalprev,flag,flagall;
   double coord[3],lamda[3],delx,dely,delz,rsq;
-  double alpha,beta,gamma;
   double r[3],vnew[3],rotmat[3][3],quat[4];
   double *newcoord;
 

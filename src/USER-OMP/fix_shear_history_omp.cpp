@@ -41,7 +41,6 @@ void FixShearHistoryOMP::pre_exchange()
 
   const int nlocal = atom->nlocal;
   const int nghost = atom->nghost;
-  const int nall = nlocal + nghost;
   const int nthreads = comm->nthreads;
   maxtouch = 0;
 

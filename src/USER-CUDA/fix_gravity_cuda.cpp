@@ -34,6 +34,7 @@
 #include "cuda_modify_flags.h"
 #include "math_const.h"
 #include "error.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -53,31 +54,31 @@ FixGravityCuda::FixGravityCuda(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg < 5) error->all(FLERR,"Illegal fix gravity command");
 
-  magnitude = atof(arg[3]);
+  magnitude = force->numeric(FLERR,arg[3]);
 
   if (strcmp(arg[4],"chute") == 0) {
     if (narg != 6) error->all(FLERR,"Illegal fix gravity command");
     style = CHUTE;
     phi = 0.0;
-    theta = 180.0 - atof(arg[5]);
+    theta = 180.0 - force->numeric(FLERR,arg[5]);
   } else if (strcmp(arg[4],"spherical") == 0) {
     if (narg != 7) error->all(FLERR,"Illegal fix gravity command");
     style = SPHERICAL;
-    phi = atof(arg[5]);
-    theta = atof(arg[6]);
+    phi = force->numeric(FLERR,arg[5]);
+    theta = force->numeric(FLERR,arg[6]);
   } else if (strcmp(arg[4],"gradient") == 0) {
     if (narg != 9) error->all(FLERR,"Illegal fix gravity command");
     style = GRADIENT;
-    phi = atof(arg[5]);
-    theta = atof(arg[6]);
-    phigrad = atof(arg[7]);
-    thetagrad = atof(arg[8]);
+    phi = force->numeric(FLERR,arg[5]);
+    theta = force->numeric(FLERR,arg[6]);
+    phigrad = force->numeric(FLERR,arg[7]);
+    thetagrad = force->numeric(FLERR,arg[8]);
   } else if (strcmp(arg[4],"vector") == 0) {
     if (narg != 8) error->all(FLERR,"Illegal fix gravity command");
     style = VECTOR;
-    xdir = atof(arg[5]);
-    ydir = atof(arg[6]);
-    zdir = atof(arg[7]);
+    xdir = force->numeric(FLERR,arg[5]);
+    ydir = force->numeric(FLERR,arg[6]);
+    zdir = force->numeric(FLERR,arg[7]);
   } else error->all(FLERR,"Illegal fix gravity command");
 
   degree2rad = MY_PI/180.0;

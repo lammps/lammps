@@ -56,7 +56,7 @@ ImproperCossq::~ImproperCossq()
 
 void ImproperCossq::compute(int eflag, int vflag)
 {
-   int i1,i2,i3,i4,m,n,type;
+   int i1,i2,i3,i4,n,type;
    double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z ;
    double eimproper,f1[3],f2[3],f3[3],f4[3];
    double rjisq, rji, rlksq, rlk, cosphi, angfac;

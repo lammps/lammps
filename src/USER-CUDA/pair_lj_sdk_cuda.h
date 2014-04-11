@@ -24,11 +24,12 @@
 #ifdef PAIR_CLASS
 
 PairStyle(lj/sdk/cuda,PairLJSDKCuda)
+PairStyle(cg/cmm/cuda,PairLJSDKCuda)
 
 #else
 
-#ifndef PAIR_CG_CMM_CUDA_H
-#define PAIR_CG_CMM_CUDA_H
+#ifndef PAIR_LJ_SDK_CUDA_H
+#define PAIR_LJ_SDK_CUDA_H
 
 #include "pair_lj_sdk.h"
 #include "cuda_data.h"

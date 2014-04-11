@@ -70,6 +70,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // however, each fix that uses these values should explicitly set them
 
   nevery = 1;
+  global_freq = 1;
 
   maxvatom = 0;
   vatom = NULL;

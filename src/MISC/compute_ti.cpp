@@ -160,6 +160,8 @@ double ComputeTI::compute_scalar()
   if (update->eflag_global != invoked_scalar)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
+  const int nlocal = atom->nlocal;
+  const int * const type = atom->type;
   double dUdl = 0.0;
 
   for (int m = 0; m < nterms; m++) {
@@ -171,18 +173,12 @@ double ComputeTI::compute_scalar()
     if (value1 == 0.0) continue;
 
     if (which[m] == PAIR) {
-      int ntypes = atom->ntypes;
-      int *mask = atom->mask; 
       if (total_flag) {
         eng = pptr[m]->eng_vdwl + pptr[m]->eng_coul;
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);
       } 
       else { 
-        int nlocal = atom->nlocal;
         int npair = nlocal;
-        int *mask = atom->mask;
-        int *type = atom->type;
-        
         double *eatom = pptr[m]->eatom;
         
         if (force->newton_pair) npair += atom->nghost;
@@ -215,17 +211,10 @@ double ComputeTI::compute_scalar()
       dUdl += eng/value1 * value2;
       
     } else if (which[m] == KSPACE) {
-      int ntypes = atom->ntypes;
-      int *mask = atom->mask; 
       if (total_flag) 
         eng = force->kspace->energy;
       else { 
-        int nlocal = atom->nlocal;
-        int npair = nlocal;
-        int *mask = atom->mask;
-        int *type = atom->type;
         double *eatom = force->kspace->eatom;
-        eng = 0;
         for(int i = 0; i < nlocal; i++)
           if ((ilo[m]<=type[i])&(ihi[m]>=type[i])) 
             eng += eatom[i];  

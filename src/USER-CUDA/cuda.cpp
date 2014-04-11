@@ -131,7 +131,6 @@ Cuda::Cuda(LAMMPS* lmp) : Pointers(lmp)
   pinned = true;
 
   debugdata = 0;
-  new int[2 * CUDA_MAX_DEBUG_SIZE];
 
   finished_setup = false;
   begin_setup = false;
@@ -173,6 +172,7 @@ Cuda::~Cuda()
   delete cu_virial;
   delete cu_eng_vdwl;
   delete cu_eng_coul;
+  delete cu_extent;
   delete cu_eatom;
   delete cu_vatom;
   delete cu_radius;
@@ -187,6 +187,9 @@ Cuda::~Cuda()
   delete [] v_radius;
   delete cu_omega_rmass;
   delete [] omega_rmass;
+
+  delete cu_debugdata;
+  delete[] debugdata;
 
   delete cu_map_array;
 
@@ -213,14 +216,14 @@ void Cuda::accelerator(int narg, char** arg)
       if(++i == narg)
         error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a number after 'gpu/node' option.");
 
-      pppn = atoi(arg[i]);
+      pppn = force->inumeric(FLERR,arg[i]);
     }
 
     if(strcmp(arg[i], "gpu/node/special") == 0) {
       if(++i == narg)
         error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting number of GPUs to be used per node after keyword 'gpu/node/special'.");
 
-      pppn = atoi(arg[i]);
+      pppn = force->inumeric(FLERR,arg[i]);
 
       if(pppn < 1) error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting number of GPUs to be used per node after keyword 'gpu/node special'.");
 
@@ -231,7 +234,7 @@ void Cuda::accelerator(int narg, char** arg)
 
       for(int k = 0; k < pppn; k++) {
         i++;
-        devicelist[k] = atoi(arg[i]);
+        devicelist[k] = force->inumeric(FLERR,arg[i]);
       }
     }
 
@@ -239,7 +242,7 @@ void Cuda::accelerator(int narg, char** arg)
       if(++i == narg)
         error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a number after 'pinned' option.");
 
-      pinned = atoi(arg[i]) == 0 ? false : true;
+      pinned = force->inumeric(FLERR,arg[i]) == 0 ? false : true;
 
       if((pinned == false) && (universe->me == 0)) printf(" #CUDA: Pinned memory is not used for communication\n");
     }
@@ -263,7 +266,7 @@ void Cuda::accelerator(int narg, char** arg)
       if(++i == narg)
         error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a number after 'test' option.");
 
-      testatom = atof(arg[i]);
+      testatom = force->numeric(FLERR,arg[i]);
       dotestatom = true;
     }
 
@@ -271,7 +274,7 @@ void Cuda::accelerator(int narg, char** arg)
       if(++i == narg)
         error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a number after 'override/bpa' option.");
 
-      shared_data.pair.override_block_per_atom = atoi(arg[i]);
+      shared_data.pair.override_block_per_atom = force->inumeric(FLERR,arg[i]);
     }
   }
 

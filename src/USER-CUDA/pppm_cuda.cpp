@@ -110,7 +110,7 @@ PPPMCuda::PPPMCuda(LAMMPS *lmp, int narg, char **arg) :
   #endif
 
   triclinic_support = 0;
-  accuracy_relative = atof(arg[0]);
+  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   nfactors = 3;
   factors = new int[nfactors];
@@ -934,7 +934,7 @@ void PPPMCuda::allocate()
   remap = new Remap(lmp,world,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                    1,0,0,2);
+                    1,0,0,2,0);
 
 
 pppm_device_init(cu_density_brick->dev_data(), cu_vdx_brick->dev_data(), cu_vdy_brick->dev_data(), cu_vdz_brick->dev_data(), cu_density_fft->dev_data(),cu_energy->dev_data(),cu_virial->dev_data()

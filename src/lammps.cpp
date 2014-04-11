@@ -67,6 +67,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   screen = NULL;
   logfile = NULL;
+  infile = NULL;
 
   // parse input switches
 
@@ -200,6 +201,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       if (iarg+1 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
       helpflag = 1;
+      citeflag = 0;
       iarg += 1;
     } else error->universe_all(FLERR,"Invalid command-line argument");
   }
@@ -270,7 +272,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
     screen = universe->uscreen;
     logfile = universe->ulogfile;
     world = universe->uworld;
-    infile = NULL;
 
     if (universe->me == 0) {
       if (inflag == 0) infile = stdin;
@@ -421,7 +422,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // error check on accelerator packages
 
   if (cudaflag == 1 && kokkosflag == 1) 
-    error->all(FLERR,"Cannot use -cuda on and -kokkos on");
+    error->all(FLERR,"Cannot use -cuda on and -kokkos on together");
 
   // create Cuda class if USER-CUDA installed, unless explicitly switched off
   // instantiation creates dummy Cuda class if USER-CUDA is not installed
@@ -518,12 +519,19 @@ LAMMPS::~LAMMPS()
   delete citeme;
 
   if (universe->nworlds == 1) {
+    if (screen && screen != stdout) fclose(screen);
     if (logfile) fclose(logfile);
+    logfile = NULL;
+    if (screen != stdout) screen = NULL;
   } else {
     if (screen && screen != stdout) fclose(screen);
     if (logfile) fclose(logfile);
     if (universe->ulogfile) fclose(universe->ulogfile);
+    logfile = NULL;
+    if (screen != stdout) screen = NULL;
   }
+
+  if (infile && infile != stdin) fclose(infile);
 
   if (world != universe->uworld) MPI_Comm_free(&world);
 
@@ -632,7 +640,6 @@ void LAMMPS::destroy()
   delete force;
   delete group;
   delete output;
-
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes
   delete domain;          // domain must come after modify

@@ -56,7 +56,6 @@ void FixNHEff::nve_v()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  int itype;
   double dtfm;
 
   for (int i = 0; i < nlocal; i++) {

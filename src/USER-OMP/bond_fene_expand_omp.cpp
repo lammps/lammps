@@ -91,6 +91,7 @@ void BondFENEExpandOMP::eval(int nfrom, int nto, ThrData * const thr)
   const int3_t * _noalias const bondlist = (int3_t *) neighbor->bondlist[0];
   const int nlocal = atom->nlocal;
   const int tid = thr->get_tid();
+  ebond = 0.0;
 
   for (n = nfrom; n < nto; n++) {
     i1 = bondlist[n].a;

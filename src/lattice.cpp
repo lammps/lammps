@@ -153,12 +153,12 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"orient") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal lattice command");
-      int dim;
+      int dim = -1;
       if (strcmp(arg[iarg+1],"x") == 0) dim = 0;
       else if (strcmp(arg[iarg+1],"y") == 0) dim = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) dim = 2;
       else error->all(FLERR,"Illegal lattice command");
-      int *orient;
+      int *orient = NULL;
       if (dim == 0) orient = orientx;
       else if (dim == 1) orient = orienty;
       else if (dim == 2) orient = orientz;

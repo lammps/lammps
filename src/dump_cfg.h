@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class DumpCFG : public DumpCustom {
  public:
   DumpCFG(class LAMMPS *, int, char **);
-  ~DumpCFG();
+  virtual ~DumpCFG();
 
  private:
   char **auxname;            // name strings of auxiliary properties

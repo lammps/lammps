@@ -87,7 +87,7 @@ void PairLJSFDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
   double rcutlj2inv, rcutcoul2inv,rcutlj6inv;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  evdwl = 0.0;
+  evdwl = ecoul = 0.0;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];

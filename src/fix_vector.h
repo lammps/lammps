@@ -37,7 +37,7 @@ class FixVector : public Fix {
 
  private:
   int nvalues;
-  int *which,*argindex,*value2index,*offcol;
+  int *which,*argindex,*value2index;
   char **ids;
 
   int ncount;        // # of values currently in growing vector or array

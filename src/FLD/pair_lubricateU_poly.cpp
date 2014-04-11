@@ -150,7 +150,7 @@ void PairLubricateUPoly::compute(int eflag, int vflag)
 
 void PairLubricateUPoly::iterate(double **x, int stage)
 {
-  int i,j,ii,itype;
+  int i,j,ii;
 
   int inum = list->inum;
   int *ilist = list->ilist;
@@ -160,14 +160,12 @@ void PairLubricateUPoly::iterate(double **x, int stage)
   double alpha,beta;
   double normi,error,normig;
   double send[2],recv[2],rcg_dot_rcg;
-  double mo_inertia,radi;
 
   double **v = atom->v;
   double **f = atom->f;
   double **omega = atom->omega;
   double **angmom = atom->angmom;
   double **torque = atom->torque;
-  double *radius = atom->radius;
 
   // First compute R_FE*E
 
@@ -312,8 +310,6 @@ void PairLubricateUPoly::iterate(double **x, int stage)
 
   for (ii=0;ii<inum;ii++) {
     i = ilist[ii];
-    itype = type[i];
-    radi = radius[i];
     v[i][0] = v[i][0] + gdot*x[i][1];
     omega[i][2] = omega[i][2] - gdot/2.0;
   }
@@ -339,13 +335,11 @@ void PairLubricateUPoly::compute_Fh(double **x)
   double rsq,r,h_sep,radi,radj;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
   double vt1,vt2,vt3;
-  double inv_inertia;
   double vi[3],vj[3],wi[3],wj[3],xl[3],jl[3],pre[2];
 
   double **v = atom->v;
   double **f = atom->f;
   double **omega = atom->omega;
-  double **angmom = atom->angmom;
   double **torque = atom->torque;
   double *radius = atom->radius;
 
@@ -616,10 +610,8 @@ void PairLubricateUPoly::compute_RU(double **x)
 
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,tx,ty,tz;
   double rsq,r,radi,radj,h_sep;
-  //double beta0,beta1;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
   double vt1,vt2,vt3,wdotn,wt1,wt2,wt3;
-  double inv_inertia;
   double vi[3],vj[3],wi[3],wj[3],xl[3],jl[3],pre[2];
 
   double **v = atom->v;
@@ -1123,8 +1115,6 @@ void PairLubricateUPoly::compute_RE(double **x)
 
 void PairLubricateUPoly::settings(int narg, char **arg)
 {
-  int itype;
-
   if (narg < 5 || narg > 7) error->all(FLERR,"Illegal pair_style command");
 
   mu = force->numeric(FLERR,arg[0]);
@@ -1166,8 +1156,6 @@ void PairLubricateUPoly::settings(int narg, char **arg)
   Ef[2][0] = 0.0;
   Ef[2][1] = 0.0;
   Ef[2][2] = 0.0;
-
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1188,7 +1176,6 @@ void PairLubricateUPoly::init_style()
   // for pair hybrid, should limit test to types using the pair style
 
   double *radius = atom->radius;
-  int *type = atom->type;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)

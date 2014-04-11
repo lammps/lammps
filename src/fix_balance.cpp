@@ -55,12 +55,13 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   if (nevery < 0 || nitermax <= 0 || thresh < 1.0)
     error->all(FLERR,"Illegal fix balance command");
 
-  for (int i = 0; i < strlen(bstr); i++) {
+  int blen = strlen(bstr);
+  for (int i = 0; i < blen; i++) {
     if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
       error->all(FLERR,"Fix balance string is invalid");
     if (bstr[i] == 'z' && dimension == 2)
       error->all(FLERR,"Fix balance string is invalid for 2d simulation");
-    for (int j = i+1; j < strlen(bstr); j++)
+    for (int j = i+1; j < blen; j++)
       if (bstr[i] == bstr[j])
         error->all(FLERR,"Fix balance string is invalid");
   }

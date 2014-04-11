@@ -258,7 +258,7 @@ void PPPMDisp::init()
   memset(function, 0, EWALD_FUNCS*sizeof(int));
   for (int i=0; i<=EWALD_MAXORDER; ++i)			// transcribe order
     if (ewald_order&(1<<i)) {				// from pair_style
-      int  k=-1;
+      int  k=0;
       char str[128];
       switch (i) {
 	case 1:
@@ -1277,7 +1277,7 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
       err =  bmax/amax;
       if (err > 1.0e-4) {
         char str[128];
-        sprintf(str,"Error in splitting of dispersion coeffs is estimated %g%",err);
+        sprintf(str,"Estimated error in splitting of dispersion coeffs is %g",err);
         error->warning(FLERR, str);
       }
       // set B

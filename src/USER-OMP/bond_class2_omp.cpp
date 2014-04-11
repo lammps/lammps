@@ -88,6 +88,7 @@ void BondClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int3_t * _noalias const bondlist = (int3_t *) neighbor->bondlist[0];
   const int nlocal = atom->nlocal;
+  ebond = 0.0;
 
   for (n = nfrom; n < nto; n++) {
     i1 = bondlist[n].a;

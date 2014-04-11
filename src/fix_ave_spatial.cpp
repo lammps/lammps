@@ -730,10 +730,12 @@ void FixAveSpatial::end_of_step()
                   MPI_DOUBLE,MPI_SUM,world);
     for (m = 0; m < nbins; m++) {
       if (count_sum[m] > 0.0)
-        for (j = 0; j < nvalues; j++)
+        for (j = 0; j < nvalues; j++) {
           if (which[j] == DENSITY_NUMBER) values_sum[m][j] /= repeat;
-          else if (which[j] == DENSITY_MASS) values_sum[m][j] *= mv2d/repeat;
-          else values_sum[m][j] /= count_sum[m];
+          else if (which[j] == DENSITY_MASS) {
+              values_sum[m][j] *= mv2d/repeat;
+            } else values_sum[m][j] /= count_sum[m];
+        }
       count_sum[m] /= repeat;
     }
   } else {

@@ -89,7 +89,7 @@ void DihedralFourierOMP::eval(int nfrom, int nto, ThrData * const thr)
   double edihedral,f1[3],f2[3],f3[3],f4[3];
   double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,rginv,ra2inv,rb2inv,rabinv;
   double df,df1_,ddf1_,fg,hg,fga,hgb,gaa,gbb;
-  double dtfx,dtfy,dtfz,dtgx,dtgy,dtgz,dthx,dthy,dthz;  
+  double dtfx,dtfy,dtfz,dtgx,dtgy,dtgz,dthx,dthy,dthz;
   double c,s,p_,sx2,sy2,sz2;
 
   edihedral = 0.0;
@@ -185,7 +185,7 @@ void DihedralFourierOMP::eval(int nfrom, int nto, ThrData * const thr)
       m = multiplicity[type][j];
       p_ = 1.0;
       df1_ = 0.0;
-    
+
       for (i = 0; i < m; i++) {
         ddf1_ = p_*c - df1_*s;
         df1_ = p_*s + df1_*c;
@@ -196,13 +196,13 @@ void DihedralFourierOMP::eval(int nfrom, int nto, ThrData * const thr)
       df1_ = df1_*cos_shift[type][j] - ddf1_*sin_shift[type][j];
       df1_ *= -m;
       p_ += 1.0;
- 
+
       if (m == 0) {
         p_ = 1.0 + cos_shift[type][j];
         df1_ = 0.0;
       }
 
-      if (EFLAG) edihedral += k[type][j] * p_; 
+      if (EFLAG) edihedral += k[type][j] * p_;
 
       df += (-k[type][j] * df1_);
     }

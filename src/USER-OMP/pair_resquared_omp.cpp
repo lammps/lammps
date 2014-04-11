@@ -91,6 +91,7 @@ void PairRESquaredOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   double fxtmp,fytmp,fztmp,t1tmp,t2tmp,t3tmp;
 
+  evdwl = 0.0;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;

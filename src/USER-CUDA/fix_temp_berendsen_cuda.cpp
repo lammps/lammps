@@ -71,9 +71,9 @@ FixTempBerendsenCuda::FixTempBerendsenCuda(LAMMPS *lmp, int narg, char **arg) :
 
   nevery = 1;
 
-  t_start = atof(arg[3]);
-  t_stop = atof(arg[4]);
-  t_period = atof(arg[5]);
+  t_start = force->numeric(FLERR,arg[3]);
+  t_stop = force->numeric(FLERR,arg[4]);
+  t_period = force->numeric(FLERR,arg[5]);
 
   // error checks
 

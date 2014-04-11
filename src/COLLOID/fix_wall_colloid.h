@@ -32,7 +32,7 @@ class FixWallColloid : public FixWall {
   void wall_particle(int, int, double);
 
  private:
-  double coeff1[6],coeff2[6],coeff3[6],coeff4[6],offset[6];
+  double coeff1[6],coeff2[6],coeff3[6],coeff4[6];
 };
 
 }

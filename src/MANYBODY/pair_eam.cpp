@@ -149,6 +149,7 @@ void PairEAM::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -159,8 +160,7 @@ void PairEAM::compute(int eflag, int vflag)
   // zero out density
 
   if (newton_pair) {
-    m = nlocal + atom->nghost;
-    for (i = 0; i < m; i++) rho[i] = 0.0;
+    for (i = 0; i < nall; i++) rho[i] = 0.0;
   } else for (i = 0; i < nlocal; i++) rho[i] = 0.0;
 
   // rho = density at each atom

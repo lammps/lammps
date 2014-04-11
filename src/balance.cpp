@@ -11,6 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+//#define BALANCE_DEBUG 1
+
 #include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
@@ -30,8 +32,6 @@ using namespace LAMMPS_NS;
 
 enum{NONE,UNIFORM,USER,DYNAMIC};
 enum{X,Y,Z};
-
-//#define BALANCE_DEBUG 1
 
 /* ---------------------------------------------------------------------- */
 
@@ -200,12 +200,13 @@ void Balance::command(int narg, char **arg)
         error->all(FLERR,"Illegal balance command");
 
   if (dflag) {
-    for (int i = 0; i < strlen(bstr); i++) {
+    const int blen=strlen(bstr);
+    for (int i = 0; i < blen; i++) {
       if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
         error->all(FLERR,"Balance dynamic string is invalid");
       if (bstr[i] == 'z' && dimension == 2)
         error->all(FLERR,"Balance dynamic string is invalid");
-      for (int j = i+1; j < strlen(bstr); j++)
+      for (int j = i+1; j < blen; j++)
         if (bstr[i] == bstr[j])
           error->all(FLERR,"Balance dynamic string is invalid");
     }
@@ -433,7 +434,7 @@ void Balance::static_setup(char *str)
   ndim = strlen(str);
   bdim = new int[ndim];
 
-  for (int i = 0; i < strlen(str); i++) {
+  for (int i = 0; i < ndim; i++) {
     if (str[i] == 'x') bdim[i] = X;
     if (str[i] == 'y') bdim[i] = Y;
     if (str[i] == 'z') bdim[i] = Z;
@@ -866,11 +867,11 @@ void Balance::dumpout(bigint tstep, FILE *bfp)
    debug output for Idim and count
    only called by proc 0
 ------------------------------------------------------------------------- */
-
+#ifdef BALANCE_DEBUG
 void Balance::debug_output(int idim, int m, int np, double *split)
 {
   int i;
-  const char *dim;
+  const char *dim = NULL;
 
   double *boxlo = domain->boxlo;
   double *prd = domain->prd;
@@ -878,41 +879,42 @@ void Balance::debug_output(int idim, int m, int np, double *split)
   if (bdim[idim] == X) dim = "X";
   else if (bdim[idim] == Y) dim = "Y";
   else if (bdim[idim] == Z) dim = "Z";
-  printf("Dimension %s, Iteration %d\n",dim,m);
+  fprintf(stderr,"Dimension %s, Iteration %d\n",dim,m);
 
-  printf("  Count:");
-  for (i = 0; i < np; i++) printf(" " BIGINT_FORMAT,count[i]);
-  printf("\n");
-  printf("  Sum:");
-  for (i = 0; i <= np; i++) printf(" " BIGINT_FORMAT,sum[i]);
-  printf("\n");
-  printf("  Target:");
-  for (i = 0; i <= np; i++) printf(" " BIGINT_FORMAT,target[i]);
-  printf("\n");
-  printf("  Actual cut:");
+  fprintf(stderr,"  Count:");
+  for (i = 0; i < np; i++) fprintf(stderr," " BIGINT_FORMAT,count[i]);
+  fprintf(stderr,"\n");
+  fprintf(stderr,"  Sum:");
+  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,sum[i]);
+  fprintf(stderr,"\n");
+  fprintf(stderr,"  Target:");
+  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,target[i]);
+  fprintf(stderr,"\n");
+  fprintf(stderr,"  Actual cut:");
   for (i = 0; i <= np; i++)
-    printf(" %g",boxlo[bdim[idim]] + split[i]*prd[bdim[idim]]);
-  printf("\n");
-  printf("  Split:");
-  for (i = 0; i <= np; i++) printf(" %g",split[i]);
-  printf("\n");
-  printf("  Low:");
-  for (i = 0; i <= np; i++) printf(" %g",lo[i]);
-  printf("\n");
-  printf("  Low-sum:");
-  for (i = 0; i <= np; i++) printf(" " BIGINT_FORMAT,losum[i]);
-  printf("\n");
-  printf("  Hi:");
-  for (i = 0; i <= np; i++) printf(" %g",hi[i]);
-  printf("\n");
-  printf("  Hi-sum:");
-  for (i = 0; i <= np; i++) printf(" " BIGINT_FORMAT,hisum[i]);
-  printf("\n");
-  printf("  Delta:");
-  for (i = 0; i < np; i++) printf(" %g",split[i+1]-split[i]);
-  printf("\n");
+    fprintf(stderr," %g",boxlo[bdim[idim]] + split[i]*prd[bdim[idim]]);
+  fprintf(stderr,"\n");
+  fprintf(stderr,"  Split:");
+  for (i = 0; i <= np; i++) fprintf(stderr," %g",split[i]);
+  fprintf(stderr,"\n");
+  fprintf(stderr,"  Low:");
+  for (i = 0; i <= np; i++) fprintf(stderr," %g",lo[i]);
+  fprintf(stderr,"\n");
+  fprintf(stderr,"  Low-sum:");
+  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,losum[i]);
+  fprintf(stderr,"\n");
+  fprintf(stderr,"  Hi:");
+  for (i = 0; i <= np; i++) fprintf(stderr," %g",hi[i]);
+  fprintf(stderr,"\n");
+  fprintf(stderr,"  Hi-sum:");
+  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,hisum[i]);
+  fprintf(stderr,"\n");
+  fprintf(stderr,"  Delta:");
+  for (i = 0; i < np; i++) fprintf(stderr," %g",split[i+1]-split[i]);
+  fprintf(stderr,"\n");
 
   bigint max = 0;
   for (i = 0; i < np; i++) max = MAX(max,count[i]);
-  printf("  Imbalance factor: %g\n",1.0*max*np/target[np]);
+  fprintf(stderr,"  Imbalance factor: %g\n",1.0*max*np/target[np]);
 }
+#endif

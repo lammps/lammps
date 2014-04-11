@@ -122,6 +122,7 @@ void PairLJGromacsCoulGromacsOMP::eval(int iifrom, int iito, ThrData * const thr
       dely = ytmp - x[j].y;
       delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
+      tc = tlj = 0.0;
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {

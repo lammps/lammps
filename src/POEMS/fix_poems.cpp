@@ -926,7 +926,7 @@ void FixPOEMS::readfile(char *file)
     if (ptr == NULL || ptr[0] == '#') continue;
     ptr = strtok(NULL," ,\t\n\0");
 
-    while (ptr = strtok(NULL," ,\t\n\0")) {
+    while ((ptr = strtok(NULL," ,\t\n\0"))) {
       id = atoi(ptr);
       i = atom->map(id);
       if (i < 0 || i >= nlocal) continue;

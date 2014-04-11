@@ -209,7 +209,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   // volume_one = volume of inserted particle (with max possible radius)
   // in 3d, insure dy >= 1, for quasi-2d simulations
 
-  double volume,volume_one;
+  double volume,volume_one=0.0;
+  dstyle = -1;
   if (domain->dimension == 3) {
     if (region_style == 1) {
       double dy = yhi - ylo;

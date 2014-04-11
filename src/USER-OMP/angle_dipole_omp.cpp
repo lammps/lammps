@@ -93,6 +93,7 @@ void AngleDipoleOMP::eval(int nfrom, int nto, ThrData * const thr)
   const int nlocal = atom->nlocal;
   const double f1[3] = {0.0, 0.0, 0.0};
   const double f3[3] = {0.0, 0.0, 0.0};
+  eangle = 0.0;
 
   for (n = nfrom; n < nto; n++) {
     iDip = anglelist[n][0]; // dipole whose orientation is to be restrained

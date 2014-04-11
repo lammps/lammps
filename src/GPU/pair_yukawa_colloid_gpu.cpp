@@ -183,7 +183,7 @@ void PairYukawaColloidGPU::cpu_compute(int start, int inum, int eflag,
                                        int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,radi,radj;
-  double r,rsq,r2inv,rinv,screening,forceyukawa,factor;
+  double r,rsq,rinv,screening,forceyukawa,factor;
   int *jlist;
 
   double **x = atom->x;
@@ -217,7 +217,6 @@ void PairYukawaColloidGPU::cpu_compute(int start, int inum, int eflag,
       radj = radius[j];
       
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
         r = sqrt(rsq);
         rinv = 1.0/r;
         screening = exp(-kappa*(r-(radi+radj)));

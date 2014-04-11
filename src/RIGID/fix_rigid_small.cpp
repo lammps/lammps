@@ -384,7 +384,6 @@ void FixRigidSmall::setup_pre_neighbor()
 void FixRigidSmall::setup(int vflag)
 {
   int i,n,ibody;
-  double massone,radone;
 
   //check(1);
 
@@ -394,7 +393,6 @@ void FixRigidSmall::setup(int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  int *type = atom->type;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
@@ -2033,7 +2031,7 @@ void FixRigidSmall::setup_bodies_static()
 
 void FixRigidSmall::setup_bodies_dynamic()
 {
-  int i,n,ibody;
+  int i,ibody;
   double massone,radone;
 
   // sum vcm, angmom across all rigid bodies
@@ -2155,11 +2153,10 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
   // key = mol ID of bodies my atoms own
   // value = index into local body array
 
-  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
   hash = new std::map<tagint,int>();
-  for (int i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++)
     if (bodyown[i] >= 0) (*hash)[atom->molecule[i]] = bodyown[i];
 
   // open file and read header
@@ -2448,7 +2445,6 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev,
   int nlocal = atom->nlocal;
   if (nlocalprev == nlocal) return;
 
-  double **x = atom->x;
   tagint *tag = atom->tag;
 
   for (int i = nlocalprev; i < nlocal; i++) {

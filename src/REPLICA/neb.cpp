@@ -412,7 +412,7 @@ void NEB::readfile(char *file, int flag)
     // loop over lines of atom coords
     // tokenize the line into values
 
-    for (int i = 0; i < nchunk; i++) {
+    for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
       
       values[0] = strtok(buf," \t\n\r\f");

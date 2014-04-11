@@ -144,6 +144,7 @@ then
     prune_rpm RPMS -doc
     prune_rpm RPMS -openmpi
     prune_rpm RPMS -mpich2
+    prune_rpm RPMS -mpich
     prune_rpm RPMS -python
 
     # remove all previous delta rpms of this group. we will recreate all
@@ -155,6 +156,7 @@ then
     make_drpms RPMS -doc
     make_drpms RPMS -openmpi
     make_drpms RPMS -mpich2
+    make_drpms RPMS -mpich
     make_drpms RPMS -python
 
     createrepo --deltas -x \*latest\* -v RPMS

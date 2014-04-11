@@ -127,7 +127,7 @@ void ComputeTI::init()
   for (int m = 0; m < nterms; m++) {
     ivar1[m] = input->variable->find(var1[m]);
     ivar2[m] = input->variable->find(var2[m]);
-    if (ivar1[m] < 0 || ivar2 < 0)
+    if (ivar1[m] < 0 || ivar2[m] < 0)
       error->all(FLERR,"Variable name for compute ti does not exist");
     if (!input->variable->equalstyle(ivar1[m]) ||
         !input->variable->equalstyle(ivar2[m]))
@@ -160,6 +160,8 @@ double ComputeTI::compute_scalar()
   if (update->eflag_global != invoked_scalar)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
+  const int nlocal = atom->nlocal;
+  const int * const type = atom->type;
   double dUdl = 0.0;
 
   for (int m = 0; m < nterms; m++) {
@@ -171,21 +173,15 @@ double ComputeTI::compute_scalar()
     if (value1 == 0.0) continue;
 
     if (which[m] == PAIR) {
-      int ntypes = atom->ntypes;
-      int *mask = atom->mask; 
       if (total_flag) {
         eng = pptr[m]->eng_vdwl + pptr[m]->eng_coul;
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);
       } 
       else { 
-        int nlocal = atom->nlocal;
         int npair = nlocal;
-        int *mask = atom->mask;
-        int *type = atom->type;
-        
         double *eatom = pptr[m]->eatom;
         
-        if (force->newton) npair += atom->nghost;
+        if (force->newton_pair) npair += atom->nghost;
         for (int i = 0; i < npair; i++)    
           if ((ilo[m]<=type[i])&(ihi[m]>=type[i])) eng += eatom[i];  
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);
@@ -204,7 +200,6 @@ double ComputeTI::compute_scalar()
           else jt = ilo[m];
           for (; jt <=ihi[m];jt++) {
             if ((force->pair->tail_flag)&&(force->pair->setflag[it][jt])) {
-              double cut = force->pair->init_one(it,jt);
               eng += force->pair->etail_ij;
             }
             if (it !=jt) eng += force->pair->etail_ij; 
@@ -215,17 +210,10 @@ double ComputeTI::compute_scalar()
       dUdl += eng/value1 * value2;
       
     } else if (which[m] == KSPACE) {
-      int ntypes = atom->ntypes;
-      int *mask = atom->mask; 
       if (total_flag) 
         eng = force->kspace->energy;
       else { 
-        int nlocal = atom->nlocal;
-        int npair = nlocal;
-        int *mask = atom->mask;
-        int *type = atom->type;
         double *eatom = force->kspace->eatom;
-        eng = 0;
         for(int i = 0; i < nlocal; i++)
           if ((ilo[m]<=type[i])&(ihi[m]>=type[i])) 
             eng += eatom[i];  

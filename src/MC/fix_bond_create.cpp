@@ -446,7 +446,6 @@ void FixBondCreate::post_integrate()
     // increment bondcount, convert atom to new type if limit reached
 
     bondcount[i]++;
-    int oldtype = type[i];
     if (type[i] == iatomtype) {
       if (bondcount[i] == imaxbond) type[i] = inewtype;
     } else {

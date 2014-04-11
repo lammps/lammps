@@ -880,10 +880,9 @@ void Print_Symmetric_Sparse(reax_system *system, sparse_matrix *A, char *fname)
 void Print_Linear_System( reax_system *system, control_params *control,
                           storage *workspace, int step )
 {
-  int   i, j;
+  int   i;
   char  fname[100];
-  reax_atom *ai, *aj;
-  sparse_matrix *H;
+  reax_atom *ai;
   FILE *out;
 
   // print rhs and init guesses for QEq

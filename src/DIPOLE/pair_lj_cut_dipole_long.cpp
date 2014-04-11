@@ -101,7 +101,6 @@ void PairLJCutDipoleLong::compute(int eflag, int vflag)
   double **torque = atom->torque;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;

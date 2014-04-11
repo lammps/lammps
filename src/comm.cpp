@@ -1519,6 +1519,61 @@ void Comm::forward_comm_array(int n, double **array)
 }
 
 /* ----------------------------------------------------------------------
+   exchange info provided with all 6 stencil neighbors
+------------------------------------------------------------------------- */
+
+int Comm::exchange_variable(int n, double *inbuf, double *&outbuf)
+{
+  int nsend,nrecv,nrecv1,nrecv2;
+  MPI_Request request;
+  MPI_Status status;
+
+  nrecv = n;
+  if (nrecv > maxrecv) grow_recv(nrecv);
+  memcpy(buf_recv,inbuf,nrecv*sizeof(double));
+
+  // loop over dimensions
+
+  for (int dim = 0; dim < 3; dim++) {
+    
+    // no exchange if only one proc in a dimension
+
+    if (procgrid[dim] == 1) continue;
+
+    // send/recv info in both directions using same buf_recv
+    // if 2 procs in dimension, single send/recv
+    // if more than 2 procs in dimension, send/recv to both neighbors
+
+    nsend = nrecv;
+    MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
+                 &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,&status);
+    nrecv += nrecv1;
+    if (procgrid[dim] > 2) {
+      MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
+                   &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,&status);
+      nrecv += nrecv2;
+    } else nrecv2 = 0;
+
+    if (nrecv > maxrecv) grow_recv(nrecv);
+    
+    MPI_Irecv(&buf_recv[nsend],nrecv1,MPI_DOUBLE,procneigh[dim][1],0,
+              world,&request);
+    MPI_Send(buf_recv,nsend,MPI_DOUBLE,procneigh[dim][0],0,world);
+    MPI_Wait(&request,&status);
+    
+    if (procgrid[dim] > 2) {
+      MPI_Irecv(&buf_recv[nsend+nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
+                world,&request);
+      MPI_Send(buf_recv,nsend,MPI_DOUBLE,procneigh[dim][1],0,world);
+      MPI_Wait(&request,&status);
+    }
+  }
+
+  outbuf = buf_recv;
+  return nrecv;
+}
+
+/* ----------------------------------------------------------------------
    communicate inbuf around full ring of processors with messtag
    nbytes = size of inbuf = n datums * nper bytes
    callback() is invoked to allow caller to process/update each proc's inbuf

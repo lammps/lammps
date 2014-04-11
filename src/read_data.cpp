@@ -748,6 +748,15 @@ void ReadData::header()
     else if (strstr(line,"extra special per atom"))
       sscanf(line,"%d",&force->special_extra);
 
+    else if (strstr(line,"extra bonds per atom"))
+      sscanf(line,"%d",&atom->extra_bond_per_atom);
+    else if (strstr(line,"extra angles per atom"))
+      sscanf(line,"%d",&atom->extra_angle_per_atom);
+    else if (strstr(line,"extra dihedrals per atom"))
+      sscanf(line,"%d",&atom->extra_dihedral_per_atom);
+    else if (strstr(line,"extra impropers per atom"))
+      sscanf(line,"%d",&atom->extra_improper_per_atom);
+
     else if (strstr(line,"xlo xhi"))
       sscanf(line,"%lg %lg",&domain->boxlo[0],&domain->boxhi[0]);
     else if (strstr(line,"ylo yhi"))

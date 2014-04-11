@@ -39,7 +39,7 @@ run		1
 ##                calculates C11, C12, C13 and C14
 
 fix  		2 all deform 1 x scale 1.0001 remap x 
-compute   	perfx all stress/atom pair
+compute   	perfx all stress/atom NULL pair
 compute   	fx all reduce sum &
 		c_perfx[1] c_perfx[2] c_perfx[3] &
 		c_perfx[4] c_perfx[5] c_perfx[6]
@@ -50,7 +50,7 @@ run		10
 ##		strain z, measure s_z: calculates C33
 
 fix  		2 all deform 1 z scale 1.0001 remap x 
-compute   	perfz all stress/atom pair
+compute   	perfz all stress/atom NULL pair
 compute   	fz all reduce sum &
 		c_perfz[1] c_perfz[2] c_perfz[3] &
 		c_perfz[4] c_perfz[5] c_perfz[6]
@@ -61,7 +61,7 @@ run		10
 ##		strain yz, measure s_yz: calculates C44
 
 fix  		2 all deform 1 yz erate 0.0001 remap x 
-compute   	perfyz all stress/atom pair
+compute   	perfyz all stress/atom NULL pair
 compute   	fyz all reduce sum &
 		c_perfyz[1] c_perfyz[2] c_perfyz[3] &
 		c_perfyz[4] c_perfyz[5] c_perfyz[6]
@@ -72,7 +72,7 @@ run		10
 ##		strain xy, measure s_xy: calculates C66
 
 fix  		2 all deform 1 xy erate 0.0001 remap x 
-compute   	perfxy all stress/atom pair
+compute   	perfxy all stress/atom NULL pair
 compute   	fxy all reduce sum &
 		c_perfxy[1] c_perfxy[2] c_perfxy[3] &
 		c_perfxy[4] c_perfxy[5] c_perfxy[6]

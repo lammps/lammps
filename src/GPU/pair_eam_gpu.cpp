@@ -94,8 +94,7 @@ double PairEAMGPU::memory_usage()
 
 void PairEAMGPU::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,m,jnum,itype,jtype;
-  double evdwl,*coeff;
+  double evdwl;
 
   evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);

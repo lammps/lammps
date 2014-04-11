@@ -41,17 +41,44 @@ class FixBondBreak : public Fix {
   double memory_usage();
 
  private:
-  int me;
+  int me,nprocs;
   int btype,seed;
-  double cutsq,fraction;
+  double cutoff,cutsq,fraction;
+  double commextent;
 
   int breakcount,breakcounttotal;
   int nmax;
   tagint *partner;
   double *distsq,*probability;
 
+  int nbreak,nbreakall;
+  int maxbreak,maxbreakall;
+  tagint **broken,**brokenall;
+  double *inbuf;
+
+  int maxinfluenced;
+  int *influenced;
+  int *recvcounts,*displs;
+  tagint *copy;
+
   class RanMars *random;
   int nlevels_respa;
+
+  int commflag;
+  int nbroken;
+  int nangles,ndihedrals,nimpropers;
+
+  void update_topology();
+  void rebuild_special(int, tagint, tagint);
+  void break_angles(int, tagint, tagint);
+  void break_dihedrals(int, tagint, tagint);
+  void break_impropers(int, tagint, tagint);
+  int dedup(int, int, tagint *);
+  
+  // DEBUG
+
+  void print_bb();
+  void print_copy(const char *, tagint, int, int, int, int *);
 };
 
 }

@@ -52,6 +52,7 @@ using namespace MathConst;
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz,
 // xlat, ylat, zlat
+// bonds, angles, dihedrals, impropers,
 // pxx, pyy, pzz, pxy, pxz, pyz
 // fmax, fnorm
 // cella, cellb, cellc, cellalpha, cellbeta, cellgamma
@@ -764,6 +765,15 @@ void Thermo::parse_fields(char *str)
     } else if (strcmp(word,"zlat") == 0) {
       addfield("Zlat",&Thermo::compute_zlat,FLOAT);
 
+    } else if (strcmp(word,"bonds") == 0) {
+      addfield("Bonds",&Thermo::compute_bonds,BIGINT);
+    } else if (strcmp(word,"angles") == 0) {
+      addfield("Angles",&Thermo::compute_angles,BIGINT);
+    } else if (strcmp(word,"dihedrals") == 0) {
+      addfield("Diheds",&Thermo::compute_dihedrals,BIGINT);
+    } else if (strcmp(word,"impropers") == 0) {
+      addfield("Impros",&Thermo::compute_impropers,BIGINT);
+
     } else if (strcmp(word,"pxx") == 0) {
       addfield("Pxx",&Thermo::compute_pxx,FLOAT);
       index_press_vector = add_compute(id_press,VECTOR);
@@ -1266,14 +1276,16 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   else if (strcmp(word,"xz") == 0) compute_xz();
   else if (strcmp(word,"yz") == 0) compute_yz();
 
-  else if (strcmp(word,"xlat") == 0) {
-    compute_xlat();
-  } else if (strcmp(word,"ylat") == 0) {
-    compute_ylat();
-  } else if (strcmp(word,"zlat") == 0) {
-    compute_zlat();
+  else if (strcmp(word,"xlat") == 0) compute_xlat();
+  else if (strcmp(word,"ylat") == 0) compute_ylat();
+  else if (strcmp(word,"zlat") == 0) compute_zlat();
 
-  } else if (strcmp(word,"pxx") == 0) {
+  else if (strcmp(word,"bonds") == 0) compute_bonds();
+  else if (strcmp(word,"angles") == 0) compute_angles();
+  else if (strcmp(word,"dihedrals") == 0) compute_dihedrals();
+  else if (strcmp(word,"impropers") == 0) compute_impropers();
+
+  else if (strcmp(word,"pxx") == 0) {
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "
                  "thermo to use/init press");
@@ -1853,6 +1865,34 @@ void Thermo::compute_ylat()
 void Thermo::compute_zlat()
 {
   dvalue = domain->lattice->zlattice;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_bonds()
+{
+  bivalue = atom->nbonds;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_angles()
+{
+  bivalue = atom->nangles;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_dihedrals()
+{
+  bivalue = atom->ndihedrals;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_impropers()
+{
+  bivalue = atom->nimpropers;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -36,7 +36,7 @@ void Neighbor::half_multi_no_newton_omp(NeighList *list)
 {
   // bin local & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int molecular = atom->molecular;
@@ -158,7 +158,7 @@ void Neighbor::half_multi_newton_omp(NeighList *list)
 {
   // bin local & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int molecular = atom->molecular;
@@ -314,7 +314,7 @@ void Neighbor::half_multi_newton_tri_omp(NeighList *list)
 {
   // bin local & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int molecular = atom->molecular;

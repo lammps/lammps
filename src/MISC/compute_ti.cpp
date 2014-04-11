@@ -127,7 +127,7 @@ void ComputeTI::init()
   for (int m = 0; m < nterms; m++) {
     ivar1[m] = input->variable->find(var1[m]);
     ivar2[m] = input->variable->find(var2[m]);
-    if (ivar1[m] < 0 || ivar2 < 0)
+    if (ivar1[m] < 0 || ivar2[m] < 0)
       error->all(FLERR,"Variable name for compute ti does not exist");
     if (!input->variable->equalstyle(ivar1[m]) ||
         !input->variable->equalstyle(ivar2[m]))
@@ -185,7 +185,7 @@ double ComputeTI::compute_scalar()
         
         double *eatom = pptr[m]->eatom;
         
-        if (force->newton) npair += atom->nghost;
+        if (force->newton_pair) npair += atom->nghost;
         for (int i = 0; i < npair; i++)    
           if ((ilo[m]<=type[i])&(ihi[m]>=type[i])) eng += eatom[i];  
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);

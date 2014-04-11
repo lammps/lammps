@@ -378,7 +378,7 @@ void Neighbor::respa_bin_no_newton(NeighList *list)
 
   // bin local & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   double **x = atom->x;
   int *type = atom->type;
@@ -548,7 +548,7 @@ void Neighbor::respa_bin_newton(NeighList *list)
 
   // bin local & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   double **x = atom->x;
   int *type = atom->type;
@@ -765,7 +765,7 @@ void Neighbor::respa_bin_newton_tri(NeighList *list)
 
   // bin local & ghost atoms
 
-  bin_atoms();
+  if (binatomflag) bin_atoms();
 
   double **x = atom->x;
   int *type = atom->type;

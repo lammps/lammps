@@ -45,6 +45,8 @@ class NeighList : protected Pointers {
   MyPage<int> *ipage;              // pages of neighbor indices
   MyPage<double> *dpage;           // pages of neighbor doubles, if dnum > 0
 
+  bigint last_build;           // timestep of last build for occasional lists
+
   // atom types to skip when building list
   // iskip,ijskip are just ptrs to corresponding request
 

@@ -322,13 +322,14 @@ void FixQEqReax::init()
     error->all(FLERR,"Must use pair_style reax/c with fix qeq/reax");
 
   // need a half neighbor list w/ Newton off and ghost neighbors
-  // built whenever re-neighboring occurs
+  // make it occasional if QeQ not performed every timestep
 
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix = 1;
   neighbor->requests[irequest]->newton = 2;
   neighbor->requests[irequest]->ghost = 1;
+  if (nevery) neighbor->requests[irequest]->occasional = 1;
 
   init_shielding();
   init_taper();
@@ -523,12 +524,14 @@ void FixQEqReax::compute_H()
   tagint *tag = atom->tag;
   x = atom->x;
 
+  if (nevery > 1) neighbor->build_one(list->index);
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
   // fill in the H matrix
+
   m_fill = 0;
   r_sqr = 0;
   for( ii = 0; ii < inum; ii++ ) {

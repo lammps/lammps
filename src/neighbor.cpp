@@ -83,6 +83,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   binsizeflag = 0;
   build_once = 0;
   cluster_check = 0;
+  binatomflag = 1;
 
   cutneighsq = NULL;
   cutneighghostsq = NULL;
@@ -508,27 +509,6 @@ void Neighbor::init()
     // detect lists that are connected to other lists
     // if-then-else sequence and processed flag is important
     //   since don't want to re-process skip or copy lists further down
-    //   skip list needs to have granhistory or respa info added
-    // copy: point this list at request->otherlist, could be a skip list
-    // skip: point this list at request->otherlist, copy skip info from request
-    //   also set granular and respa info if applicable
-    // half_from_full: point this list at preceeding full list
-    // granhistory: set preceeding list's listgranhistory to this list
-    //   also set preceeding list's ptr to FixShearHistory
-    // respaouter: point this list at preceeding 1/2 inner/middle lists
-    // pair and half: if there is a full non-occasional non-skip list
-    //   change this list to half_from_full and point at the full list
-    //   parent could be copy list or pair or fix
-    // fix/compute requests:
-    //   whether request is occasional or not doesn't matter
-    //   if request = half and non-skip pair half/respaouter exists,
-    //     become copy of that list if cudable flag matches
-    //   if request = full and non-skip pair full exists,
-    //     become copy of that list if cudable flag matches
-    //   if request = half and non-skip pair full exists,
-    //     become half_from_full of that list if cudable flag matches
-    //   if no matches, do nothing, fix/compute list will be built directly
-    //   ok if parent is copy list
 
     int processed;
 
@@ -536,19 +516,31 @@ void Neighbor::init()
       if (!lists[i]) continue;
       processed = 0;
 
+      // copy: point this list at request->otherlist, could be a skip list
+
       if (requests[i]->copy) {
         lists[i]->listcopy = lists[requests[i]->otherlist];
         processed = 1;
+
+      // skip: point this list at request->otherlist,
+      //       copy skip info from request
+      // skip list still needs to have granhistory or respa info added below
 
       } else if (requests[i]->skip) {
         lists[i]->listskip = lists[requests[i]->otherlist];
         lists[i]->copy_skip_info(requests[i]->iskip,requests[i]->ijskip);
         processed = 1;
 
+      // half_from_full: point this list at full list that comes right before
+      //   will only be case if pair style requested one after other
+
       } else if (requests[i]->half_from_full) {
         lists[i]->listfull = lists[i-1];
         processed = 1;
       }
+
+      // granhistory: set preceeding list's listgranhistory to this list
+      //               also set preceeding list's ptr to FixShearHistory
 
       if (requests[i]->granhistory) {
         lists[i-1]->listgranhistory = lists[i];
@@ -556,6 +548,8 @@ void Neighbor::init()
           if (strcmp(modify->fix[ifix]->style,"SHEAR_HISTORY") == 0)
             lists[i-1]->fix_history = (FixShearHistory *) modify->fix[ifix];
         processed = 1;
+
+      // respaouter: point this list at preceeding 1/2 inner/middle lists
 
       } else if (requests[i]->respaouter) {
         if (requests[i-1]->respainner) {
@@ -571,6 +565,10 @@ void Neighbor::init()
 
       if (processed) continue;
 
+      // pair and half: if there is a full non-occasional non-skip list
+      //   change this list to half_from_full and point at the full list
+      //   parent could be copy list or pair or fix
+
       if (requests[i]->pair && requests[i]->half) {
         for (j = 0; j < nrequest; j++) {
           if (!lists[j]) continue;
@@ -583,6 +581,18 @@ void Neighbor::init()
           lists[i]->listfull = lists[j];
         }
         
+      // fix/compute requests:
+      // whether request is occasional or not doesn't matter
+      // if request = half and non-skip pair half/respaouter exists,
+      //   become copy of that list if cudable flag matches
+      // if request = full and non-skip pair full exists,
+      //   become copy of that list if cudable flag matches
+      // if request = half and non-skip pair full exists,
+      //   become half_from_full of that list if cudable flag matches
+      // if no matches, do nothing
+      //   fix/compute list will be built independently as needed
+      // ok if parent is itself a copy list
+
       } else if (requests[i]->fix || requests[i]->compute) {
         for (j = 0; j < nrequest; j++) {
           if (!lists[j]) continue;
@@ -1349,8 +1359,8 @@ int Neighbor::check_distance()
 }
 
 /* ----------------------------------------------------------------------
-   build all perpetual neighbor lists every few timesteps
-   pairwise & topology lists are created as needed
+   build perpetuals neighbor lists
+   called at setup and every few timesteps during run or minimization
    topology lists only built if topoflag = 1, USER-CUDA calls with topoflag = 0
 ------------------------------------------------------------------------- */
 
@@ -1419,12 +1429,12 @@ void Neighbor::build(int topoflag)
     memory->create(bins,maxbin,"bins");
   }
 
-  // check that neighbor list with special bond flags will not overflow
+  // check that using special bond flags will not overflow neigh lists
 
   if (atom->nlocal+atom->nghost > NEIGHMASK)
     error->one(FLERR,"Too many local+ghost atoms for neighbor list");
 
-  // invoke building of pair and molecular neighbor lists
+  // invoke building of pair and molecular topology neighbor lists
   // only for pairwise lists with buildflag set
   // blist is for standard neigh lists, otherwise is a Kokkos list
 
@@ -1455,9 +1465,22 @@ void Neighbor::build_topology()
    called by other classes
 ------------------------------------------------------------------------- */
 
-void Neighbor::build_one(int i)
+void Neighbor::build_one(int i, int preflag)
 {
-  // update stencils and grow atom arrays and bins as needed
+  // no need to build if already built since last re-neighbor
+  // preflag is set by fix bond/create and fix bond/swap
+  //   b/c they invoke build_one() on same step neigh list is re-built,
+  //   but before re-build, so need to use ">" instead of ">="
+
+  if (preflag) {
+    if (lists[i]->last_build > lastcall) return;
+  } else {
+    if (lists[i]->last_build >= lastcall) return;
+  }
+
+  lists[i]->last_build = update->ntimestep;
+
+  // update stencils and grow atom arrays as needed
   // only for relevant settings of stencilflag and growflag
   // grow atom array for this list to current size of perpetual lists
 
@@ -1468,42 +1491,14 @@ void Neighbor::build_one(int i)
 
   if (lists[i]->growflag) lists[i]->grow(maxatom);
 
-  // extend atom bin list if necessary
+  // build list I, turning off atom binning
+  // binning results from last re-neighbor should be used instead
+  // if re-bin now, atoms may have moved outside of proc domain & bin extent,
+  //   leading to errors or even a crash
 
-  if (style != NSQ && atom->nmax > maxbin) {
-    maxbin = atom->nmax;
-    memory->destroy(bins);
-    memory->create(bins,maxbin,"bins");
-  }
-
-  // check that neighbor list with special bond flags will not overflow
-
-  if (atom->nlocal+atom->nghost > NEIGHMASK)
-    error->one(FLERR,"Too many local+ghost atoms for neighbor list");
-
-  // when occasional list built, LAMMPS can crash if atoms have moved too far
-  // why is this? maybe b/c this list is derived from some now out-of-date list?
-  // give warning if this is the case
-  // no easy workaround b/c all neighbor lists really need to be rebuilt
-  // solution is for input script to check more often for rebuild
-  // only check_distance if running a simulation, not between simulations
-  // comment out for now
-  //   is sometimes giving warning when there is no issue
-  //   e.g. when a variable uses a fix with an occasional neigh list
-  //   at the beginning of a timestep (e.g. fix move) where
-  //   all neigh lists are about to be re-built anyway
-
-  /*
-  int flag = 0;
-  if (dist_check && update->whichflag) flag = check_distance();
-  if (flag && me == 0) {
-    printf("BUILD ONE ERROR: %ld\n",update->ntimestep);
-    error->warning(FLERR,"Building an occasional neighbor list when "
-                   "atoms may have moved too far");
-  }
-  */
-
+  binatomflag = 0;
   (this->*pair_build[i])(lists[i]);
+  binatomflag = 1;
 }
 
 /* ----------------------------------------------------------------------

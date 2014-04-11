@@ -32,7 +32,7 @@ class FixBondSwap : public Fix {
   int setmask();
   void init();
   void init_list(int, class NeighList *);
-  void pre_neighbor();
+  void post_integrate();
   int modify_param(int, char **);
   double compute_vector(int);
   double memory_usage();

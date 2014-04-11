@@ -266,8 +266,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
     error->all(FLERR,"Delete_atoms cutoff > neighbor cutoff");
 
   // setup domain, communication and neighboring
-  // acquire ghosts
-  // build neighbor list based on earlier request
+  // acquire ghosts and build standard neighbor lists
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
@@ -277,6 +276,9 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   comm->exchange();
   comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  neighbor->build();
+
+  // build neighbor list this command needs based on earlier request
 
   NeighList *list = neighbor->lists[irequest];
   neighbor->build_one(irequest);

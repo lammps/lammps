@@ -93,6 +93,7 @@ class Force : protected Pointers {
 
   void create_improper(const char *, const char *suffix = NULL);
   class Improper *new_improper(const char *, const char *, int &);
+  class Improper *improper_match(const char *);
 
   void create_kspace(int, char **, const char *suffix = NULL);
   class KSpace *new_kspace(int, char **, const char *, int &);

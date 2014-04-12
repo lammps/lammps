@@ -486,6 +486,21 @@ Improper *Force::new_improper(const char *style, const char *suffix, int &sflag)
 }
 
 /* ----------------------------------------------------------------------
+   return ptr to current improper class or hybrid sub-class if matches style
+------------------------------------------------------------------------- */
+
+Improper *Force::improper_match(const char *style)
+{
+  if (strcmp(improper_style,style) == 0) return improper;
+  else if (strcmp(improper_style,"hybrid") == 0) {
+    ImproperHybrid *hybrid = (ImproperHybrid *) bond;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
+  }
+  return NULL;
+}
+
+/* ----------------------------------------------------------------------
    new kspace style
 ------------------------------------------------------------------------- */
 

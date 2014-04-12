@@ -552,7 +552,6 @@ int DumpAtomMPIIO::convert_string_omp(int n, double *mybuf)
 
 int DumpAtomMPIIO::convert_image_omp(int n, double *mybuf)
 {
-  MPI_Status mpiStatus;
   char **mpifh_buffer_line_per_thread;
   int mpifhStringCount;
   int *mpifhStringCountPerThread, *bufOffset, *bufRange, *bufLength;
@@ -643,7 +642,6 @@ int DumpAtomMPIIO::convert_image_omp(int n, double *mybuf)
 
 int DumpAtomMPIIO::convert_noimage_omp(int n, double *mybuf)
 {
-  MPI_Status mpiStatus;
   char **mpifh_buffer_line_per_thread;
   int mpifhStringCount;
   int *mpifhStringCountPerThread, *bufOffset, *bufRange, *bufLength;

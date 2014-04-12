@@ -480,7 +480,7 @@ void Balance::dynamic_setup(char *str, int nitermax_in, double thresh_in)
 int Balance::dynamic()
 {
   int i,j,k,m,np,max;
-  double *split;
+  double *split = NULL;
 
   // no balancing if no atoms
 

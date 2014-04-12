@@ -141,7 +141,7 @@ void ComputeVoronoi::init()
 
 void ComputeVoronoi::compute_peratom()
 {
-  int i, j;
+  int i;
   const double e = 0.01;
 
   invoked_peratom = update->ntimestep;
@@ -182,7 +182,7 @@ void ComputeVoronoi::compute_peratom()
     syz = domain->yz/my;
 
     // cutghost is in lamda coordinates for triclinic boxes, use subxx_lamda
-    double *h = domain->h, cuttri[3];
+    double *h = domain->h;
     sublo_bound[0] = h[0]*sublo_lamda[0] + h[5]*sublo_lamda[1] + h[4]*sublo_lamda[2] + boxlo[0];
     sublo_bound[1] = h[1]*sublo_lamda[1] + h[3]*sublo_lamda[2] + boxlo[1];
     sublo_bound[2] = h[2]*sublo_lamda[2] + boxlo[2];

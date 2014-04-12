@@ -119,7 +119,6 @@ void EwaldDisp::init()
   for (int i=0; i<=EWALD_NORDER; ++i)                        // transcribe order
     if (ewald_order&(1<<i)) {                                // from pair_style
       int n[] = EWALD_NSUMS, k = 0;
-      char str[128];
       switch (i) {
         case 1:
           k = 0; break;
@@ -767,7 +766,6 @@ void EwaldDisp::compute_force()
   double *ke, c[EWALD_NFUNCS] = {
     8.0*MY_PI*qscale/volume, 2.0*MY_PI*MY_PIS/(12.0*volume),
     2.0*MY_PI*MY_PIS/(192.0*volume), 8.0*MY_PI*mumurd2e/volume};
-  double kt = 4.0*cube(g_ewald)/3.0/MY_PIS/c[3];
   int i, kx, ky, lbytes = (2*nbox+1)*sizeof(cvector), *type = atom->type;
   int func[EWALD_NFUNCS];
 
@@ -1103,7 +1101,6 @@ void EwaldDisp::compute_virial_dipole()
 {
   if (!function[3]) return;
   if (!vflag_atom && !vflag_global) return;
-  double test = 0.0;
   kvector *k;
   hvector *h, *nh;
   cvector *z = ekr_local;
@@ -1119,7 +1116,6 @@ void EwaldDisp::compute_virial_dipole()
   double *ke, c[EWALD_NFUNCS] = {
     8.0*MY_PI*qscale/volume, 2.0*MY_PI*MY_PIS/(12.0*volume),
     2.0*MY_PI*MY_PIS/(192.0*volume), 8.0*MY_PI*mumurd2e/volume};
-  double kt = 4.0*cube(g_ewald)/3.0/MY_PIS/c[3];
   int i, kx, ky, lbytes = (2*nbox+1)*sizeof(cvector), *type = atom->type;
   int func[EWALD_NFUNCS];
 

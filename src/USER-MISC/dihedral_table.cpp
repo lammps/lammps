@@ -622,7 +622,7 @@ void DihedralTable::compute(int eflag, int vflag)
     // ----- Step 3: Calculate the energy and force in the phi direction -----
 
     // tabulated force & energy
-    double u, m_du_dphi; //u = energy.   m_du_dphi = "minus" du/dphi
+    double u=0.0, m_du_dphi=0.0; //u = energy.   m_du_dphi = "minus" du/dphi
     uf_lookup(type, phi, u, m_du_dphi);
 
     if (eflag) edihedral = u;
@@ -696,7 +696,7 @@ double DihedralTable::single(int type, int i1, int i2, int i3, int i4)
   double phi = Phi(x[i1], x[i2], x[i3], x[i4], domain,
                    vb12, vb23, vb34, n123, n234);
 
-  double u;
+  double u=0.0;
   u_lookup(type, phi, u); //Calculate the energy, and store it in "u"
 
   return u;

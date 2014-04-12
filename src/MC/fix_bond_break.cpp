@@ -185,7 +185,7 @@ void FixBondBreak::init()
 
 void FixBondBreak::post_integrate()
 {
-  int i,j,k,m,n,i1,i2,n1,n2,n3,type;
+  int i,j,k,m,n,i1,i2,n1,n3,type;
   double delx,dely,delz,rsq;
   tagint *slist;
 
@@ -511,7 +511,7 @@ void FixBondBreak::update_topology()
 
 void FixBondBreak::rebuild_special(int m, tagint id1, tagint id2)
 {
-  int i,j,n,n1,n2,n3,cn1,cn2,cn3;
+  int i,j,n,n1,cn1,cn2,cn3;
   tagint *slist;
 
   tagint *tag = atom->tag;

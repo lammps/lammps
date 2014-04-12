@@ -573,7 +573,6 @@ void DumpCustomMPIIO::write_string(int n, double *mybuf)
 
 int DumpCustomMPIIO::convert_string_omp(int n, double *mybuf)
 {
-  MPI_Status mpiStatus;
   char **mpifh_buffer_line_per_thread;
   int mpifhStringCount;
   int *mpifhStringCountPerThread, *bufOffset, *bufRange, *bufLength;

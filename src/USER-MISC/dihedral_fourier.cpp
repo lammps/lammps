@@ -75,22 +75,17 @@ void DihedralFourier::compute(int eflag, int vflag)
   double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,rginv,ra2inv,rb2inv,rabinv;
   double df,df1_,ddf1_,fg,hg,fga,hgb,gaa,gbb;
   double dtfx,dtfy,dtfz,dtgx,dtgy,dtgz,dthx,dthy,dthz;  
-  double c,s,p,p_,sx2,sy2,sz2;
-  int itype,jtype;
-  double delx,dely,delz,rsq,r2inv,r6inv;
+  double c,s,p_,sx2,sy2,sz2;
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
 
   double **x = atom->x;
   double **f = atom->f;
-  double *q = atom->q;
-  int *atomtype = atom->type;
   int **dihedrallist = neighbor->dihedrallist;
   int ndihedrallist = neighbor->ndihedrallist;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
-  double qqrd2e = force->qqrd2e;
 
   for (n = 0; n < ndihedrallist; n++) {
     i1 = dihedrallist[n][0];
@@ -178,7 +173,7 @@ void DihedralFourier::compute(int eflag, int vflag)
     {
       m = multiplicity[type][j];
       p_ = 1.0;
-      df1_ = 0.0;
+      ddf1_ = df1_ = 0.0;
     
       for (i = 0; i < m; i++) {
         ddf1_ = p_*c - df1_*s;

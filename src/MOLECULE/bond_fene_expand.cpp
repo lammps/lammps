@@ -55,7 +55,7 @@ void BondFENEExpand::compute(int eflag, int vflag)
   double rsq,r0sq,rlogarg,sr2,sr6;
   double r,rshift,rshiftsq;
 
-  ebond = 0.0;
+  ebond = sr6 = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
 

@@ -533,8 +533,6 @@ int FixGLD::pack_exchange(int i, double *buf)
 
 int FixGLD::unpack_exchange(int nlocal, double *buf)
 {
-  double **extra = atom->extra;
-
   int m = 0;
   for (int k = 0; k < 3*prony_terms; k++) {
     s_gld[nlocal][k] = buf[m++];
@@ -612,7 +610,6 @@ int FixGLD::maxsize_restart()
 void FixGLD::init_s_gld()
 {
   int icoeff;
-  int *type = atom->type;
   double eq_sdev=0.0;
 
   // set kT to the temperature in mvvv units

@@ -429,7 +429,7 @@ int FixPropertyAtom::pack_border(int n, int *list, double *buf)
       int *ivector = atom->ivector[index[k]];
       for (i = 0; i < n; i++) {
         j = list[i];
-        buf[m++] = ubuf(ivector[j]).i;
+        buf[m++] = ubuf(ivector[j]).d;
       }
     } else if (style[k] == DOUBLE) {
       double *dvector = atom->dvector[index[k]];

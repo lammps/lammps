@@ -176,7 +176,7 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
 
   // bonus->dvalue = sub-particle displacements in body frame
 
-  double delta[3],displace[3];
+  double delta[3];
 
   int j = 6;
   int k = 0;

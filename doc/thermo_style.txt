@@ -24,6 +24,7 @@ args = list of arguments for a particular style :l
                           emol, elong, etail,
                           vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
 			  xy, xz, yz, xlat, ylat, zlat,
+                          bonds, angles, dihedrals, impropers,
 			  pxx, pyy, pzz, pxy, pxz, pyz,
 			  fmax, fnorm,
 			  cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
@@ -63,6 +64,7 @@ args = list of arguments for a particular style :l
       xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
       xy,xz,yz = box tilt for triclinic (non-orthogonal) simulation boxes
       xlat,ylat,zlat = lattice spacings as calculated by "lattice"_lattice.html command
+      bonds,angles,dihedrals,impropers = # of these interactions defined
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
       fmax = max component of force on any atom in any dimension
       fnorm = length of force vector for all atoms

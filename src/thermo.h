@@ -169,6 +169,11 @@ class Thermo : protected Pointers {
   void compute_ylat();
   void compute_zlat();
 
+  void compute_bonds();
+  void compute_angles();
+  void compute_dihedrals();
+  void compute_impropers();
+
   void compute_pxx();
   void compute_pyy();
   void compute_pzz();

@@ -565,11 +565,16 @@ void Neighbor::init()
 
       if (processed) continue;
 
-      // pair and half: if there is a full non-occasional non-skip list
+      // pair and half and newton != 2:
+      //   if there is a full non-occasional non-skip list
       //   change this list to half_from_full and point at the full list
       //   parent could be copy list or pair or fix
+      // could remove newton != 2 check if added half_from_full_no_newton_ghost
+      //   option in neigh_derive.cpp and below in choose_build()
+      //   this would require full list had ghost info
+      //   would be useful when reax/c used in hybrid mode, e.g. with airebo
 
-      if (requests[i]->pair && requests[i]->half) {
+      if (requests[i]->pair && requests[i]->half && requests[i]->newton != 2) {
         for (j = 0; j < nrequest; j++) {
           if (!lists[j]) continue;
           if (requests[j]->full && requests[j]->occasional == 0 &&
@@ -924,8 +929,14 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
       else pb = &Neighbor::skip_from;
 
     } else if (rq->half_from_full) {
-      if (newton_pair == 0) pb = &Neighbor::half_from_full_no_newton;
-      else if (newton_pair == 1) pb = &Neighbor::half_from_full_newton;
+      if (rq->newton == 0) {
+        if (newton_pair == 0) pb = &Neighbor::half_from_full_no_newton;
+        else if (newton_pair == 1) pb = &Neighbor::half_from_full_newton;
+      } else if (rq->newton == 1) {
+        pb = &Neighbor::half_from_full_newton;
+      } else if (rq->newton == 2) {
+        pb = &Neighbor::half_from_full_no_newton;
+      }
 
     } else if (rq->half) {
       if (style == NSQ) {

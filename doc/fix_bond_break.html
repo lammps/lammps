@@ -47,12 +47,14 @@ specified criteria.  This can be used to model the dissolution of a
 polymer network due to stretching of the simulation box or other
 deformations.  In this context, a bond means an interaction between a
 pair of atoms computed by the <A HREF = "bond_style.html">bond_style</A> command.
-Once the bond is broken it will be permanently deleted.  This is
-different than a <A HREF = "pair_style.html">pairwise</A> bond-order potential such
-as Tersoff or AIREBO which infers bonds and many-body interactions
-based on the current geometry of a small cluster of atoms and
-effectively creates and destroys bonds from timestep to timestep as
-atoms move.
+Once the bond is broken it will be permanently deleted, as will all
+angle, dihedral, and improper interactions that bond is part of.
+</P>
+<P>This is different than a <A HREF = "pair_style.html">pairwise</A> bond-order
+potential such as Tersoff or AIREBO which infers bonds and many-body
+interactions based on the current geometry of a small cluster of atoms
+and effectively creates and destroys bonds and higher-order many-body
+interactions from timestep to timestep as atoms move.
 </P>
 <P>A check for possible bond breakage is performed every <I>Nevery</I>
 timesteps.  If two bonded atoms I,J are further than a distance <I>Rmax</I>
@@ -80,17 +82,21 @@ A uniform random number between 0.0 and 1.0 is generated and the
 eligible bond is only broken if the random number < fraction.
 </P>
 <P>When a bond is broken, data structures within LAMMPS that store bond
-topology are updated to reflect the breakage.  This can also affect
-subsequent computation of pairwise interactions involving the atoms in
-the bond.  See the Restriction section below for additional
-information.
+topology are updated to reflect the breakage.  Likewise, if the bond
+is part of a 3-body (angle) or 4-body (dihedral, improper)
+interaction, that interaction is removed as well.
 </P>
-<P>Computationally, each timestep this fix operates, it loops over bond
-lists and computes distances between pairs of bonded atoms in the
-list.  It also communicates between neighboring processors to
-coordinate which bonds are broken.  Thus it will increase the cost of
-a timestep.  Thus you should be cautious about invoking this fix too
-frequently.
+<P>Computationally, each timestep this fix operates, it loops over all
+the bonds in the system and computes distances between pairs of bonded
+atoms.  It also communicates between neighboring processors to
+coordinate which bonds are broken.  Moreover, if any bonds are broken,
+neighbor lists must be immediately updated on the same timestep.  This
+is to insure that any pairwise interactions that should be turned "on"
+due to a bond breaking, because they are no longer excluded by the
+presence of the bond and the settings of the
+<A HREF = "special_bonds.html">special_bonds</A> command, will be immediately
+recognized.  All of these operations increase the cost of a timestep.
+Thus you should be cautious about invoking this fix too frequently.
 </P>
 <P>You can dump out snapshots of the current bond topology via the <A HREF = "dump.html">dump
 local</A> command.
@@ -131,22 +137,6 @@ minimization</A>.
 <P>This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
-</P>
-<P>Currently, there are 2 restrictions for using this fix.  We may relax
-these in the future if there are new models that would be enabled by
-it.
-</P>
-<P>When a bond is broken, you might wish to turn off angle and dihedral
-interactions that include that bond.  However, LAMMPS does not check
-for these angles and dihedrals, even if your simulation defines an
-<A HREF = "angle_style.html">angle_style</A> or
-<A HREF = "dihedral_style.html">dihedral_style</A>.
-</P>
-<P>This fix requires that the pairwise weightings defined by the
-<A HREF = "special_bonds.html">special_bonds</A> command be *,1,1 for 1-3 and 1-4
-neighbors within the bond topology (the 1-2 setting is not
-restricted).  This means that the pairwise interaction of I with J's
-other bond partners is unaffected by the breaking of the bond.
 </P>
 <P><B>Related commands:</B>
 </P>

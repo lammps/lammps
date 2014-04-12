@@ -174,7 +174,6 @@ int ComputeBodyLocal::compute_body(int flag)
 
       } else {
         ibonus = body[i];
-        AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
         n = bptr->noutrow(ibonus);
         for (int j = 0; j < n; j++) {
           bptr->output(ibonus,j,values);

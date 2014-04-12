@@ -63,6 +63,8 @@ class Comm : protected Pointers {
   virtual void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
   void forward_comm_array(int, double **);         // forward comm of array
 
+  int exchange_variable(int, double *,   // exchange of info on neigh stencil
+                        double *&);
   void ring(int, int, void *, int, void (*)(int, char *),   // ring comm
             void *, int self = 1);
   int read_lines_from_file(FILE *, int, int, char *);  // read/bcast file lines

@@ -53,7 +53,7 @@ void BondFENE::compute(int eflag, int vflag)
   double delx,dely,delz,ebond,fbond;
   double rsq,r0sq,rlogarg,sr2,sr6;
 
-  ebond = 0.0;
+  ebond = sr6 = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
 

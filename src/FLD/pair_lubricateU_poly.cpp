@@ -154,7 +154,6 @@ void PairLubricateUPoly::iterate(double **x, int stage)
 
   int inum = list->inum;
   int *ilist = list->ilist;
-  int *type = atom->type;
   int newton_pair = force->newton_pair;
 
   double alpha,beta;
@@ -164,7 +163,6 @@ void PairLubricateUPoly::iterate(double **x, int stage)
   double **v = atom->v;
   double **f = atom->f;
   double **omega = atom->omega;
-  double **angmom = atom->angmom;
   double **torque = atom->torque;
 
   // First compute R_FE*E
@@ -329,7 +327,6 @@ void PairLubricateUPoly::compute_Fh(double **x)
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
   int newton_pair = force->newton_pair;
-  int overlaps = 0;
 
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
   double rsq,r,h_sep,radi,radj;
@@ -511,10 +508,6 @@ void PairLubricateUPoly::compute_Fh(double **x)
 
         // Find the scalar resistances a_sq, a_sh and a_pu
 
-        // check for overlaps
-
-        if (h_sep < 0.0) overlaps++;
-
         // If less than the minimum gap use the minimum gap instead
 
         if (r < cut_inner[itype][jtype])
@@ -606,7 +599,6 @@ void PairLubricateUPoly::compute_RU(double **x)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
-  int overlaps = 0;
 
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,tx,ty,tz;
   double rsq,r,radi,radj,h_sep;
@@ -617,7 +609,6 @@ void PairLubricateUPoly::compute_RU(double **x)
   double **v = atom->v;
   double **f = atom->f;
   double **omega = atom->omega;
-  double **angmom = atom->angmom;
   double **torque = atom->torque;
   double *radius = atom->radius;
 
@@ -759,10 +750,6 @@ void PairLubricateUPoly::compute_RU(double **x)
         // Find the scalar resistances a_sq and a_sh
 
         h_sep = r - radi-radj;
-
-        // check for overlaps
-
-        if(h_sep < 0.0) overlaps++;
 
         // If less than the minimum gap use the minimum gap instead
 
@@ -913,7 +900,6 @@ void PairLubricateUPoly::compute_RE(double **x)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   int *type = atom->type;
-  int overlaps = 0;
 
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,tx,ty,tz;
   double rsq,r,h_sep,radi,radj;
@@ -930,7 +916,6 @@ void PairLubricateUPoly::compute_RE(double **x)
   double vxmu2f = force->vxmu2f;
   double a_sq = 0.0;
   double a_sh = 0.0;
-  double a_pu = 0.0;
 
   if (!flagHI) return;
 
@@ -976,10 +961,6 @@ void PairLubricateUPoly::compute_RE(double **x)
 
         h_sep = r - radi-radj;
 
-        // check for overlaps
-
-        if (h_sep < 0.0) overlaps++;
-
         // If less than the minimum gap use the minimum gap instead
 
         if (r < cut_inner[itype][jtype])
@@ -1015,28 +996,6 @@ void PairLubricateUPoly::compute_RE(double **x)
           a_sh = pre[0]*((8.0*(beta[0][1]+beta[0][3])+4.0*beta[0][2])/15.0
                 +(64.0-180.0*(beta[0][1]+beta[0][3])+232.0*beta[0][2]
                   +64.0*beta[0][4])*h_sep_beta11/375.0)*log_h_sep_beta13;
-
-          a_pu = pre[1]*((0.4*beta[0][1]+0.1*beta[0][2])*beta[1][1]
-                +(0.128-0.132*beta[0][1]+0.332*beta[0][2]
-                  +0.172*beta[0][3])*h_sep)*log_h_sep_beta13;
-
-          /*//a_sq = 6*MY_PI*mu*radi*(1.0/4.0/h_sep + 9.0/40.0*log(1/h_sep));
-          a_sq = beta0*beta0/beta1/beta1/h_sep
-                  +(1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3)*lhsep;
-          a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0*pow(beta0,3)
-                  +pow(beta0,4))/21.0/pow(beta1,4)*h_sep*lhsep;
-          a_sq *= 6.0*MY_PI*mu*radi;
-
-          a_sh = 4.0*beta0*(2.0+beta0
-                  +2.0*beta0*beta0)/15.0/pow(beta1,3)*log(1.0/h_sep);
-          a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*pow(beta0,3)
-                  +16.0*pow(beta0,4))/375.0/pow(beta1,4)*h_sep*log(1.0/h_sep);
-          a_sh *= 6.0*MY_PI*mu*radi;
-
-          a_pu = beta0*(4.0+beta0)/10.0/beta1/beta1*log(1.0/h_sep);
-          a_pu += (32.0-33.0*beta0+83.0*beta0*beta0
-                  +43.0*pow(beta0,3))/250.0/pow(beta1,3)*h_sep*log(1.0/h_sep);
-          a_pu *= 8.0*MY_PI*mu*pow(radi,3);*/
         } else
           a_sq = pre[0]*(beta[0][1]*beta[0][1]/(beta[1][1]*beta[1][1]*h_sep));
 
@@ -1098,15 +1057,10 @@ void PairLubricateUPoly::compute_RE(double **x)
           torque[i][1] -= vxmu2f*ty;
           torque[i][2] -= vxmu2f*tz;
 
-          // NOTE No a_pu term needed as they add up to zero
         }
       }
     }
   }
-
-  int print_overlaps = 0;
-  if (print_overlaps && overlaps)
-    printf("Number of overlaps=%d\n",overlaps);
 }
 
 /*-----------------------------------------------------------------------

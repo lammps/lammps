@@ -394,69 +394,69 @@ a z wall velocity without implementing fixed BCs in z");
   // Create the MPI datatypes used to pass portions of arrays:
   // datatypes to pass the f and feq arrays.
   //--------------------------------------------------------------------------
-  MPI_Aint sizeofdouble;
-  MPI_Type_extent(MPI_DOUBLE,&sizeofdouble);
+  MPI_Aint lb, sizeofdouble;
+  MPI_Type_get_extent(MPI_DOUBLE,&lb,&sizeofdouble);
   
   MPI_Type_vector(subNbz-2,numvel,numvel,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNby-2,1,numvel*subNbz*sizeofdouble,oneslice,&passxf);
+  MPI_Type_create_hvector(subNby-2,1,numvel*subNbz*sizeofdouble,oneslice,&passxf);
   MPI_Type_commit(&passxf);
  
-  MPI_Type_hvector(subNbx,1,numvel*subNbz*subNby*sizeofdouble,oneslice,&passyf);
+  MPI_Type_create_hvector(subNbx,1,numvel*subNbz*subNby*sizeofdouble,oneslice,&passyf);
   MPI_Type_commit(&passyf);
   
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNby,numvel,numvel*subNbz,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNbx,1,numvel*subNbz*subNby*sizeofdouble,oneslice,&passzf);
+  MPI_Type_create_hvector(subNbx,1,numvel*subNbz*subNby*sizeofdouble,oneslice,&passzf);
   MPI_Type_commit(&passzf);
 
   // datatypes to pass the u array, and the Ff array.
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNbz+3,3,3,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNby+3,1,3*(subNbz+3)*sizeofdouble,oneslice,&passxu);
+  MPI_Type_create_hvector(subNby+3,1,3*(subNbz+3)*sizeofdouble,oneslice,&passxu);
   MPI_Type_commit(&passxu);
   
-  MPI_Type_hvector(subNbx+3,1,3*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passyu);
+  MPI_Type_create_hvector(subNbx+3,1,3*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passyu);
   MPI_Type_commit(&passyu);
   
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNby+3,3,3*(subNbz+3),MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNbx+3,1,3*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passzu);
+  MPI_Type_create_hvector(subNbx+3,1,3*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passzu);
   MPI_Type_commit(&passzu);
 
   // datatypes to pass the density array.
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNbz+3,1,1,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNby+3,1,1*(subNbz+3)*sizeofdouble,oneslice,&passxrho);
+  MPI_Type_create_hvector(subNby+3,1,1*(subNbz+3)*sizeofdouble,oneslice,&passxrho);
   MPI_Type_commit(&passxrho);
   
-  MPI_Type_hvector(subNbx+3,1,1*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passyrho);
+  MPI_Type_create_hvector(subNbx+3,1,1*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passyrho);
   MPI_Type_commit(&passyrho);
   
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNby+3,1,1*(subNbz+3),MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNbx+3,1,1*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passzrho);
+  MPI_Type_create_hvector(subNbx+3,1,1*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passzrho);
   MPI_Type_commit(&passzrho);
 
   // datatypes to receive a portion of the Ff array.
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNbz+3,3,3,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNby+3,1,3*(subNbz+3)*sizeofdouble,oneslice,&passxtemp);
+  MPI_Type_create_hvector(subNby+3,1,3*(subNbz+3)*sizeofdouble,oneslice,&passxtemp);
   MPI_Type_commit(&passxtemp);
   
-  MPI_Type_hvector(subNbx+3,1,3*(subNbz+3)*5*sizeofdouble,oneslice,&passytemp);
+  MPI_Type_create_hvector(subNbx+3,1,3*(subNbz+3)*5*sizeofdouble,oneslice,&passytemp);
   MPI_Type_commit(&passytemp);
   
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNby+3,3,3*5,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNbx+3,1,3*5*(subNby+3)*sizeofdouble,oneslice,&passztemp);
+  MPI_Type_create_hvector(subNbx+3,1,3*5*(subNby+3)*sizeofdouble,oneslice,&passztemp);
   MPI_Type_commit(&passztemp);
 
   MPI_Type_free(&oneslice);

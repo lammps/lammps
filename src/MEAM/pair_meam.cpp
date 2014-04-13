@@ -520,7 +520,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
 
     // strip comment, skip line if blank
 
-    if (ptr = strchr(line,'#')) *ptr = '\0';
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
 
@@ -539,7 +539,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
       if (eof) break;
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if (ptr = strchr(line,'#')) *ptr = '\0';
+      if ((ptr = strchr(line,'#'))) *ptr = '\0';
       nwords = atom->count_words(line);
     }
 
@@ -551,7 +551,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
 
     nwords = 0;
     words[nwords++] = strtok(line,"' \t\n\r\f");
-    while (words[nwords++] = strtok(NULL,"' \t\n\r\f")) continue;
+    while ((words[nwords++] = strtok(NULL,"' \t\n\r\f"))) continue;
 
     // skip if element name isn't in element list
 
@@ -676,7 +676,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
 
     // strip comment, skip line if blank
 
-    if (ptr = strchr(line,'#')) *ptr = '\0';
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
     nparams = atom->count_words(line);
     if (nparams == 0) continue;
 

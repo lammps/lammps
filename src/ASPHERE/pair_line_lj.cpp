@@ -70,7 +70,7 @@ void PairLineLJ::compute(int eflag, int vflag)
   int ni,nj,npi,npj,ifirst,jfirst;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,term1,term2,sig,sig3,forcelj;
-  double xi[2],xj[2],fi[2],fj[2],dxi,dxj,dyi,dyj,ti,tj;
+  double xi[2],xj[2],fi[2],fj[2],dxi,dxj,dyi,dyj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -441,7 +441,6 @@ void PairLineLJ::discretize(int i, double sigma)
       memory->srealloc(discrete,dmax*sizeof(Discrete),"pair:discrete");
   }
 
-  double *x = atom->x[i];
   sigma = length/n;
   double delta;
 

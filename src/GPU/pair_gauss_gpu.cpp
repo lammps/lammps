@@ -172,7 +172,7 @@ void PairGaussGPU::cpu_compute(int start, int inum, int eflag, int vflag,
                                int *ilist, int *numneigh, int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double r,rsq,r2inv,forcelj,factor_lj;
+  double rsq,r2inv,forcelj,factor_lj;
   int *jlist;
 
   double **x = atom->x;
@@ -204,7 +204,6 @@ void PairGaussGPU::cpu_compute(int start, int inum, int eflag, int vflag,
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
-        r = sqrt(rsq);
         forcelj = - 2.0*a[itype][jtype]*b[itype][jtype] * rsq * 
           exp(-b[itype][jtype]*rsq); 
         fpair = factor_lj*forcelj*r2inv;

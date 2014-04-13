@@ -645,7 +645,7 @@ int FixShake::dof(int igroup)
 void FixShake::find_clusters()
 {
   int i,j,m,n,imol,iatom;
-  int flag,flag_all,messtag,loop,nbuf,nbufmax,size;
+  int flag,flag_all,nbuf,size;
   tagint tagprev;
   double massone;
   tagint *buf;

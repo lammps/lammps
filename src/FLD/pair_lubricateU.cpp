@@ -1976,11 +1976,7 @@ void PairLubricateU::copy_vec_uo(int inum, double *xcg,
                                  double **v, double **omega)
 {
   int i,j,ii;
-  int *ilist;
-
-  double *rmass = atom->rmass;
-
-  ilist = list->ilist;
+  int *ilist = list->ilist;
 
   for (ii=0;ii<inum;ii++) {
     i = ilist[ii];

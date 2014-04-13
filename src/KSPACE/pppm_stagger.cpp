@@ -294,7 +294,7 @@ double PPPMStagger::compute_qopt()
   double numerator,denominator;
   double u1,u2,u3,sqk;
 
-  int k,l,m,n,nx,ny,nz,kper,lper,mper;
+  int k,l,m,nx,ny,nz,kper,lper,mper;
 
   const int nbx = 2;
   const int nby = 2;
@@ -302,7 +302,6 @@ double PPPMStagger::compute_qopt()
 
   const int twoorder = 2*order;
 
-  n = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
     snz = square(sin(0.5*unitkz*mper*zprd_slab/nz_pppm));
@@ -381,13 +380,11 @@ double PPPMStagger::compute_qopt_ad()
   const double unitky = (MY_2PI/yprd);
   const double unitkz = (MY_2PI/zprd_slab);
 
-  double snx,sny,snz;
-  double cnx,cny,cnz;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double sum1,sum2,sum3,sum4,sum5,sum6,dot2;
   double u1,u2,sqk;
 
-  int k,l,m,n,nx,ny,nz,kper,lper,mper;
+  int k,l,m,nx,ny,nz,kper,lper,mper;
 
   const int nbx = 2;
   const int nby = 2;
@@ -395,21 +392,14 @@ double PPPMStagger::compute_qopt_ad()
 
   const int twoorder = 2*order;
 
-  n = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
-    snz = square(sin(0.5*unitkz*mper*zprd_slab/nz_pppm));
-    cnz = cos(0.5*unitkz*mper*zprd_slab/nz_pppm);
 
     for (l = nylo_fft; l <= nyhi_fft; l++) {
       lper = l - ny_pppm*(2*l/ny_pppm);
-      sny = square(sin(0.5*unitky*lper*yprd/ny_pppm));
-      cny = cos(0.5*unitky*lper*yprd/ny_pppm);
 
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
         kper = k - nx_pppm*(2*k/nx_pppm);
-        snx = square(sin(0.5*unitkx*kper*xprd/nx_pppm));
-        cnx = cos(0.5*unitkx*kper*xprd/nx_pppm);
 
         sqk = square(unitkx*kper) + square(unitky*lper) + square(unitkz*mper);
 

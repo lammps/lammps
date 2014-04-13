@@ -199,7 +199,7 @@ void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
                                  int *ilist, int *numneigh,
                                  int **firstneigh)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
+  int i,j,ii,jj,jnum;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double r,rsq,r2inv,forcecoul,factor_coul;
   double prefactor,erfcc,erfcd,e_self,t;
@@ -210,7 +210,6 @@ void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
   double qqrd2e = force->qqrd2e;
@@ -223,7 +222,6 @@ void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -241,7 +239,6 @@ void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
 
       if (rsq < cut_coulsq) {
         r2inv = 1.0/rsq;

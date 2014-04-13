@@ -187,20 +187,19 @@ void PairCoulLongGPU::cpu_compute(int start, int inum, int eflag,
                                   int vflag, int *ilist, int *numneigh,
                                   int **firstneigh)
 {
-  int i,j,ii,jj,jnum,itype,jtype,itable;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  int i,j,ii,jj,jnum,itable;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double fraction,table;
-  double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
+  double r,r2inv,r6inv,forcecoul,factor_coul;
   double grij,expm2,prefactor,t,erfc;
   int *jlist;
   double rsq;
 
-  evdwl = ecoul = 0.0;
+  ecoul = 0.0;
 
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  int *type = atom->type;
   double *special_coul = force->special_coul;
   double qqrd2e = force->qqrd2e;
 
@@ -212,7 +211,6 @@ void PairCoulLongGPU::cpu_compute(int start, int inum, int eflag,
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -225,7 +223,6 @@ void PairCoulLongGPU::cpu_compute(int start, int inum, int eflag,
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
 
       r2inv = 1.0/rsq;
 

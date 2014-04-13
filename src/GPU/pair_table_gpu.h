@@ -38,7 +38,6 @@ class PairTableGPU : public PairTable {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

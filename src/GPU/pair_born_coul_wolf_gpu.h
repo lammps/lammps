@@ -38,7 +38,6 @@ class PairBornCoulWolfGPU : public PairBornCoulWolf {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

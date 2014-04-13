@@ -38,7 +38,6 @@ class PairGayBerneGPU : public PairGayBerne {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
   int quat_nmax;
   double **quat;
 };

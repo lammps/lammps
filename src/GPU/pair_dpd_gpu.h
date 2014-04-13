@@ -38,7 +38,6 @@ class PairDPDGPU : public PairDPD {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

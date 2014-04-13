@@ -38,7 +38,6 @@ class PairBeckGPU : public PairBeck {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

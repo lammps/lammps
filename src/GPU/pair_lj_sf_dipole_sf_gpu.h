@@ -38,7 +38,6 @@ class PairLJSFDipoleSFGPU : public PairLJSFDipoleSF {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

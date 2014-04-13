@@ -200,6 +200,7 @@ double ComputeTI::compute_scalar()
           else jt = ilo[m];
           for (; jt <=ihi[m];jt++) {
             if ((force->pair->tail_flag)&&(force->pair->setflag[it][jt])) {
+              force->pair->init_one(it,jt);
               eng += force->pair->etail_ij;
             }
             if (it !=jt) eng += force->pair->etail_ij; 

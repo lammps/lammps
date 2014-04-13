@@ -11,7 +11,8 @@ OPENMP= -fopenmp
 CC =		mpic++ $(OPENMP)
 CCFLAGS =	-O3 -fomit-frame-pointer -fno-rtti -fno-exceptions            \
 			-march=native -ffast-math -mpc64 -g -fstrict-aliasing \
-			-Wall -W -Wno-unused-parameter -Wno-maybe-uninitialized
+			-Wall -Wextra -W -Wno-unused-parameter -Wno-maybe-uninitialized \
+			-Wno-sign-compare
 DEPFLAGS =	-MM
 LINK =		mpic++ $(OPENMP)
 LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -mpc64

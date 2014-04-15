@@ -105,7 +105,7 @@ structures that store this information must have space for it.  When
 LAMMPS is initialized from a data file, the list of bonds is scanned
 and the maximum number of bonds per atom is tallied.  If some atom
 will acquire more bonds than this limit as this fix operates, then the
-"extra bonds per atom" parameter must be set to allow for it.  See the
+"extra bond per atom" parameter must be set to allow for it.  See the
 "read_data"_read_data.html or "create_box"_create_box.html command for
 more details.  Note that a data file with no atoms can be used if you
 wish to add unbonded atoms via the "create atoms"_create_atoms.html

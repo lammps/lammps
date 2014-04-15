@@ -68,6 +68,8 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 8) error->all(FLERR,"Illegal fix qeq/reax command");
 
   nevery = force->inumeric(FLERR,arg[3]);
+  if (nevery <= 0) error->all(FLERR,"Illegal fix qeq/reax command");
+
   swa = force->numeric(FLERR,arg[4]);
   swb = force->numeric(FLERR,arg[5]);
   tolerance = force->numeric(FLERR,arg[6]);
@@ -122,7 +124,6 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
 
   reaxc = NULL;
   reaxc = (PairReaxC *) force->pair_match("reax/c",1);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -329,7 +330,7 @@ void FixQEqReax::init()
   neighbor->requests[irequest]->fix = 1;
   neighbor->requests[irequest]->newton = 2;
   neighbor->requests[irequest]->ghost = 1;
-  if (nevery) neighbor->requests[irequest]->occasional = 1;
+  if (nevery > 1) neighbor->requests[irequest]->occasional = 1;
 
   init_shielding();
   init_taper();

@@ -51,8 +51,8 @@ region		whole block 0 ${mz} 0 ${mx} 0 ${my} units box
 create_box		2 whole
 create_atoms 1 box basis 1 1 basis 2 1 basis 3 1 basis 4 1 
 
-region fixed1 block -INF INF -INF INF -INF 10 units box
-region fixed2 block -INF INF -INF INF  100 INF units box
+region fixed1 block INF INF INF INF INF 10 units box
+region fixed2 block INF INF INF INF  100 INF units box
 group lower region fixed1
 group upper region fixed2
 group boundary union upper lower

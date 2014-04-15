@@ -23,7 +23,7 @@ variable        errestrain equal c_energies[4]
 
 communicate     single vel yes
 
-compute         peratom all stress/atom
+compute         peratom all stress/atom NULL
 compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
 variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
 

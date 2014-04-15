@@ -87,7 +87,7 @@ compute coord all coord/atom $r
 
 compute  patom all pe/atom
 compute  pe all reduce sum c_patom
-compute  satom all stress/atom
+compute  satom all stress/atom NULL
 compute  str all reduce sum c_satom[1] c_satom[2] c_satom[3]
 variable press equal (c_str[1]+c_str[2]+c_str[3])/(3*vol)
 

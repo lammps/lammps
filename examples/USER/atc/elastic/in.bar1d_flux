@@ -77,7 +77,7 @@ fix_modify     AtC control momentum flux interpolate
 
 # run to extension
 compute		myTemp internal temp
-compute		atomStress internal stress/atom
+compute		atomStress internal stress/atom NULL
 compute		avgStress internal reduce sum c_atomStress[1] c_atomStress[2] c_atomStress[3]
 variable	myPres equal -(c_avgStress[1]+c_avgStress[2]+c_avgStress[3])/(3*vol)
 thermo_style	custom step c_myTemp v_myPres pe

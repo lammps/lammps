@@ -481,7 +481,7 @@ void FixBondBreak::update_topology()
   }
 
   for (i = 0; i < nlocal; i++)
-    if (influenced[i]) rebuild_special(i,id1,id2);
+    if (influenced[i]) rebuild_special(i);
 }
 
 /* ----------------------------------------------------------------------
@@ -613,7 +613,7 @@ void FixBondBreak::break_impropers(int m, tagint id1, tagint id2)
    may affect 1-3 and 1-4 bonds
 ------------------------------------------------------------------------- */
 
-void FixBondBreak::rebuild_special(int m, tagint id1, tagint id2)
+void FixBondBreak::rebuild_special(int m)
 {
   int i,j,n,n1,cn1,cn2,cn3;
   tagint *slist;

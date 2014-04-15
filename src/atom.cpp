@@ -297,6 +297,13 @@ void Atom::settings(Atom *old)
   tag_enable = old->tag_enable;
   map_user = old->map_user;
   map_style = old->map_style;
+  sortfreq = old->sortfreq;
+  userbinsize = old->userbinsize;
+  if (old->firstgroupname) {
+    int n = strlen(old->firstgroupname) + 1;
+    firstgroupname = new char[n];
+    strcpy(firstgroupname,old->firstgroupname);
+  }
 }
 
 /* ----------------------------------------------------------------------

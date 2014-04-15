@@ -949,12 +949,13 @@ void ReadData::bonds(int firstpass)
     for (int i = 0; i < nlocal; i++) max = MAX(max,count[i]);
     int maxall;
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
+    maxall += atom->extra_bond_per_atom;
 
     if (me == 0) {
       if (screen) fprintf(screen,"  %d = max bonds/atom\n",maxall);
       if (logfile) fprintf(logfile,"  %d = max bonds/atom\n",maxall);
     }
-    atom->bond_per_atom = maxall + atom->extra_bond_per_atom;
+    atom->bond_per_atom = maxall;
     memory->destroy(count);
     return;
   }
@@ -1023,12 +1024,13 @@ void ReadData::angles(int firstpass)
     for (int i = 0; i < nlocal; i++) max = MAX(max,count[i]);
     int maxall;
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
+    maxall += atom->extra_angle_per_atom;
 
     if (me == 0) {
       if (screen) fprintf(screen,"  %d = max angles/atom\n",maxall);
       if (logfile) fprintf(logfile,"  %d = max angles/atom\n",maxall);
     }
-    atom->angle_per_atom = maxall + atom->extra_angle_per_atom;
+    atom->angle_per_atom = maxall;
     memory->destroy(count);
     return;
   }
@@ -1097,12 +1099,13 @@ void ReadData::dihedrals(int firstpass)
     for (int i = 0; i < nlocal; i++) max = MAX(max,count[i]);
     int maxall;
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
+    maxall += atom->extra_dihedral_per_atom;
 
     if (me == 0) {
       if (screen) fprintf(screen,"  %d = max dihedrals/atom\n",maxall);
       if (logfile) fprintf(logfile,"  %d = max dihedrals/atom\n",maxall);
     }
-    atom->dihedral_per_atom = maxall + atom->extra_dihedral_per_atom;
+    atom->dihedral_per_atom = maxall;
     memory->destroy(count);
     return;
   }
@@ -1171,12 +1174,13 @@ void ReadData::impropers(int firstpass)
     for (int i = 0; i < nlocal; i++) max = MAX(max,count[i]);
     int maxall;
     MPI_Allreduce(&max,&maxall,1,MPI_INT,MPI_MAX,world);
+    maxall += atom->extra_improper_per_atom;
 
     if (me == 0) {
       if (screen) fprintf(screen,"  %d = max impropers/atom\n",maxall);
       if (logfile) fprintf(logfile,"  %d = max impropers/atom\n",maxall);
     }
-    atom->improper_per_atom = maxall + atom->extra_improper_per_atom;
+    atom->improper_per_atom = maxall;
     memory->destroy(count);
     return;
   }

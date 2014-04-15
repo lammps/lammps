@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class PairPeriVES : public Pair {
  public:
   double *theta;
+  double *elastic_energy;  
 
   PairPeriVES(class LAMMPS *);
   virtual ~PairPeriVES();
@@ -44,7 +45,8 @@ class PairPeriVES : public Pair {
   void read_restart_settings(FILE *) {}
   double memory_usage();
   double influence_function(double, double, double);
-  void compute_dilatation();
+  void compute_dilatation();  
+  
 
  protected:
   int ifix_peri;

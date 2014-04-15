@@ -44,21 +44,18 @@ class FixBondBreak : public Fix {
   int me,nprocs;
   int btype,seed;
   double cutoff,cutsq,fraction;
-  double commextent;
+  tagint lastcheck;
 
   int breakcount,breakcounttotal;
   int nmax;
-  tagint *partner;
+  tagint *partner,*finalpartner;
   double *distsq,*probability;
 
-  int nbreak,nbreakall;
-  int maxbreak,maxbreakall;
-  tagint **broken,**brokenall;
-  double *inbuf;
+  int nbreak,maxbreak;
+  tagint **broken;
 
   int maxinfluenced;
   int *influenced;
-  int *recvcounts,*displs;
   tagint *copy;
 
   class RanMars *random;
@@ -68,6 +65,7 @@ class FixBondBreak : public Fix {
   int nbroken;
   int nangles,ndihedrals,nimpropers;
 
+  void check_ghosts();
   void update_topology();
   void rebuild_special(int, tagint, tagint);
   void break_angles(int, tagint, tagint);

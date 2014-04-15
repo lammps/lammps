@@ -90,27 +90,23 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   random = new RanMars(lmp,seed + me);
 
   // set comm sizes needed by this fix
-  // forward is big due to comm of 1-2 neighbors
+  // forward is big due to comm of broken bonds and 1-2 neighbors
 
-  comm_forward = MAX(2,1+atom->maxspecial);
+  comm_forward = MAX(2,2+atom->maxspecial);
   comm_reverse = 2;
 
   // allocate arrays local to this fix
 
   nmax = 0;
-  partner = NULL;
+  partner = finalpartner = NULL;
   distsq = NULL;
 
-  maxbreak = maxbreakall = 0;
-  broken = brokenall = NULL;
-  inbuf = NULL;
+  maxbreak = 0;
+  broken = NULL;
 
   maxinfluenced = 0;
   influenced = NULL;
   
-  recvcounts = NULL;
-  displs = NULL;
-
   // copy = special list for one atom
   // may contain 1-2 neighs of all 1-3 neighs before dedup() shrinks it
 
@@ -132,13 +128,10 @@ FixBondBreak::~FixBondBreak()
   // delete locally stored arrays
 
   memory->destroy(partner);
+  memory->destroy(finalpartner);
   memory->destroy(distsq);
   memory->destroy(broken);
-  memory->destroy(brokenall);
-  memory->destroy(inbuf);
   memory->destroy(influenced);
-  memory->destroy(recvcounts);
-  memory->destroy(displs);
   delete [] copy;
 }
 
@@ -159,23 +152,13 @@ void FixBondBreak::init()
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  // commextent = 3*bondcutoff
-  // use 3 b/c 4 atom in 1-2-3-4 needs to know 1-2 bond has broken
-  // and that info could be known by atom 1 with 
-  // atom 1 on one proc and atoms 2,3,4 on the other proc
-  // using "cutoff" as bond length is a guesstimate of what's OK
-  // see NOTE below for possible issues with this
-
-  commextent = 3.0*cutoff;
-
-  // improper class2 and ring styles not allowed for now
-  // due to different ordering of improper topology (not atom I centric)
-
   if (force->improper) {
     if (force->improper_match("class2") || force->improper_match("ring"))
       error->all(FLERR,"Cannot yet use fix bond/break with this "
                  "improper style");
   }
+
+  lastcheck = -1;
 
   // DEBUG
   // print_bb();
@@ -191,7 +174,13 @@ void FixBondBreak::post_integrate()
 
   if (update->ntimestep % nevery) return;
 
-  // need updated ghost atom positions
+  // check that all procs have needed ghost atoms within ghost cutoff
+  // only if neighbor list has changed since last check
+
+  if (lastcheck < neighbor->lastcall) check_ghosts();
+
+  // acquire updated ghost atom positions
+  // necessary b/c are calling this after integrate, but before Verlet comm
 
   comm->forward_comm();
 
@@ -201,9 +190,11 @@ void FixBondBreak::post_integrate()
 
   if (atom->nmax > nmax) {
     memory->destroy(partner);
+    memory->destroy(finalpartner);
     memory->destroy(distsq);
     nmax = atom->nmax;
     memory->create(partner,nmax,"bond/break:partner");
+    memory->create(finalpartner,nmax,"bond/break:finalpartner");
     memory->create(distsq,nmax,"bond/break:distsq");
     probability = distsq;
   }
@@ -213,6 +204,7 @@ void FixBondBreak::post_integrate()
 
   for (i = 0; i < nall; i++) {
     partner[i] = 0;
+    finalpartner[i] = 0;
     distsq[i] = 0.0;
   }
 
@@ -318,18 +310,11 @@ void FixBondBreak::post_integrate()
     nspecial[i][1]--;
     nspecial[i][2]--;
 
-    // count the broken bond once and store in broken list
+    // store final broken bond partners and count the broken bond once
 
-    if (tag[i] < tag[j]) {
-      if (nbreak == maxbreak) {
-        maxbreak += DELTA;
-        memory->grow(broken,maxbreak,2,"bond/break:broken");
-        memory->grow(inbuf,2*maxbreak,"bond/break:inbuf");
-      }
-      broken[nbreak][0] = tag[i];
-      broken[nbreak][1] = tag[j];
-      nbreak++;
-    }
+    finalpartner[i] = tag[j];
+    finalpartner[j] = tag[i];
+    if (tag[i] < tag[j]) nbreak++;
   }
 
   // tally stats
@@ -345,72 +330,33 @@ void FixBondBreak::post_integrate()
   if (breakcount) next_reneighbor = update->ntimestep;
   if (!breakcount) return;
 
-  // communicate broken bonds to procs that need them
-  // local comm via exchange_variable() if commextent < prob sub-domain
-  // else global comm via MPI_Allgatherv()
-  // NOTE: not fully happy with this test,
-  //   but want to avoid Allgather if at all possible
-  //   issue is there is no simple way to guarantee that local comm is OK
-  //   what is really needed is every 4 atom in 1-2-3-4 knows about 1-2 bond
-  //   this is hard to predict dynamically b/c current lengths of 2-3,3-4
-  //     bonds are not known
-  //   could use 3*(domain->maxbondall+BONDSTRETCH) for better estimate?
-  //   am not doing the local comm via ghost atoms, so ghost cutoff 
-  //     is irrelevant
-  //   this test is also for orthogonal boxes and equi-partitioning
-
-  double *outbuf;
-
-  int local = 1;
-  if (domain->xprd/comm->procgrid[0] < commextent) local = 0;
-  if (domain->yprd/comm->procgrid[1] < commextent) local = 0;
-  if (domain->dimension == 3 && domain->zprd/comm->procgrid[2] < commextent) 
-    local = 0;
-
-  if (local) {
-    m = 0;
-    for (i = 0; i < nbreak; i++) {
-      inbuf[m++] = broken[i][0];
-      inbuf[m++] = broken[i][1];
-    }
-    int ntotal = comm->exchange_variable(2*nbreak,inbuf,outbuf);
-    nbreakall = ntotal/2;
-  } else MPI_Allreduce(&nbreak,&nbreakall,1,MPI_INT,MPI_SUM,world);
-
-  if (nbreakall > maxbreakall) {
-    while (maxbreakall < nbreakall) maxbreakall += DELTA;
-    memory->destroy(brokenall);
-    memory->grow(brokenall,maxbreakall,2,"bond/break:brokenall");
-  }
-
-  if (local) {
-    m = 0;
-    for (i = 0; i < nbreakall; i++) {
-      brokenall[i][0] = static_cast<int> (outbuf[m++]);
-      brokenall[i][1] = static_cast<int> (outbuf[m++]);
-    }
-  } else {
-    if (!recvcounts) {
-      memory->create(recvcounts,nprocs,"bond/break:recvcounts");
-      memory->create(displs,nprocs,"bond/break:displs");
-    }
-    int n = 2*nbreak;
-    MPI_Allgather(&n,1,MPI_INT,recvcounts,1,MPI_INT,world);
-    displs[0] = 0;
-    for (int iproc = 1; iproc < nprocs; iproc++)
-    displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
-
-    int *ptr = NULL;
-    if (nbreak) ptr = &broken[0][0];
-    MPI_Allgatherv(ptr,2*nbreak,MPI_INT,
-                   &brokenall[0][0],recvcounts,displs,MPI_INT,world);
-  }
-
-  // communicate 1-2 special neighs of ghost atoms
+  // communicate final broken bond and 1-2 special neighbors
   // 1-2 neighs already reflect broken bonds
 
   commflag = 2;
   comm->forward_comm_variable_fix(this);
+
+  // create list of broken bonds that influence my owned atoms
+  //   even if between owned-ghost or ghost-ghost atoms
+  // finalpartner is now set for owned and ghost atoms so loop over nall
+  // OK if duplicates in broken list due to ghosts duplicating owned atoms
+  // check J < 0 to insure a broken bond to unknown atom is included
+  //   i.e. bond partner outside of cutoff length
+
+  nbreak = 0;
+  for (i = 0; i < nall; i++) {
+    if (finalpartner[i] == 0) continue;
+    j = atom->map(finalpartner[i]);
+    if (j < 0 || tag[i] < tag[j]) {
+      if (nbreak == maxbreak) {
+        maxbreak += DELTA;
+        memory->grow(broken,maxbreak,2,"bond/break:broken");
+      }
+      broken[nbreak][0] = tag[i];
+      broken[nbreak][1] = finalpartner[i];
+      nbreak++;
+    }
+  }
 
   // update special neigh lists of all atoms affected by any broken bond
   // also remove angles/dihedrals/impropers broken by broken bonds
@@ -419,6 +365,37 @@ void FixBondBreak::post_integrate()
 
   // DEBUG
   // print_bb();
+}
+
+/* ----------------------------------------------------------------------
+   insure all atoms 2 hops away from owned atoms are in ghost list
+   this allows dihedral 1-2-3-4 to be properly deleted
+     if I own atom 1, 2-3-4 are ghosts, and bond 3-4 is deleted
+     since ghost 3 will store 4 as its finalpartner
+------------------------------------------------------------------------- */
+
+void FixBondBreak::check_ghosts()
+{
+  int i,j,n;
+  int *slist;
+
+  int **nspecial = atom->nspecial;
+  int **special = atom->special;
+  int nlocal = atom->nlocal;
+
+  int flag = 0;
+  for (i = 0; i < nlocal; i++) {
+    slist = special[i];
+    n = nspecial[i][1];
+    for (j = 0; j < n; j++)
+      if (atom->map(slist[j]) < 0) flag = 1;
+  }
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) 
+    error->all(FLERR,"Fix bond/break needs ghost atoms from further away");
+  lastcheck = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------
@@ -461,9 +438,9 @@ void FixBondBreak::update_topology()
     influenced[i] = 0;
     slist = special[i];
 
-    for (j = 0; j < nbreakall; j++) {
-      id1 = brokenall[j][0];
-      id2 = brokenall[j][1];
+    for (j = 0; j < nbreak; j++) {
+      id1 = broken[j][0];
+      id2 = broken[j][1];
 
       influence = 0;
       if (tag[i] == id1 || tag[i] == id2) influence = 1;
@@ -734,6 +711,7 @@ int FixBondBreak::pack_comm(int n, int *list, double *buf,
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
+    buf[m++] = ubuf(finalpartner[j]).d;
     ns = nspecial[j][0];
     buf[m++] = ubuf(ns).d;
     for (k = 0; k < ns; k++)
@@ -764,6 +742,7 @@ void FixBondBreak::unpack_comm(int n, int first, double *buf)
     m = 0;
     last = first + n;
     for (i = first; i < last; i++) {
+      finalpartner[i] = (tagint) ubuf(buf[m++]).i;
       ns = (int) ubuf(buf[m++]).i;
       nspecial[i][0] = ns;
       for (j = 0; j < ns; j++)
@@ -861,7 +840,7 @@ double FixBondBreak::compute_vector(int n)
 double FixBondBreak::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(tagint);
+  double bytes = 2*nmax * sizeof(tagint);
   bytes += nmax * sizeof(double);
   bytes += maxinfluenced * sizeof(int);
   return bytes;

@@ -298,7 +298,7 @@ void FixBondBreak::post_integrate()
     }
 
     // remove J from special bond list for atom I
-    // atom J will also do this
+    // atom J will also do this, whatever proc it is on
 
     slist = special[i];
     n1 = nspecial[i][0];
@@ -330,7 +330,7 @@ void FixBondBreak::post_integrate()
   if (breakcount) next_reneighbor = update->ntimestep;
   if (!breakcount) return;
 
-  // communicate final broken bond and 1-2 special neighbors
+  // communicate final partner and 1-2 special neighbors
   // 1-2 neighs already reflect broken bonds
 
   commflag = 2;
@@ -370,8 +370,9 @@ void FixBondBreak::post_integrate()
 /* ----------------------------------------------------------------------
    insure all atoms 2 hops away from owned atoms are in ghost list
    this allows dihedral 1-2-3-4 to be properly deleted
-     if I own atom 1, 2-3-4 are ghosts, and bond 3-4 is deleted
-     since ghost 3 will store 4 as its finalpartner
+     and special list of 1 to be properly updated
+   if I own atom 1, but not 2,3,4, and bond 3-4 is deleted
+     then 2,3 will be ghosts and 3 will store 4 as its finalpartner
 ------------------------------------------------------------------------- */
 
 void FixBondBreak::check_ghosts()
@@ -484,6 +485,132 @@ void FixBondBreak::update_topology()
 }
 
 /* ----------------------------------------------------------------------
+   break any angles owned by atom M that include atom IDs 1 and 2
+   angle is broken if ID1-ID2 is one of 2 bonds in linear angle
+------------------------------------------------------------------------- */
+
+void FixBondBreak::break_angles(int m, tagint id1, tagint id2)
+{
+  int j,found;
+
+  int num_angle = atom->num_angle[m];
+  int *angle_type = atom->angle_type[m];
+  tagint *angle_atom1 = atom->angle_atom1[m];
+  tagint *angle_atom2 = atom->angle_atom2[m];
+  tagint *angle_atom3 = atom->angle_atom3[m];
+
+  int i = 0;
+  while (i < num_angle) {
+    found = 0;
+    if (angle_atom1[i] == id1 && angle_atom2[i] == id2) found = 1;
+    else if (angle_atom2[i] == id1 && angle_atom3[i] == id2) found = 1;
+    else if (angle_atom1[i] == id2 && angle_atom2[i] == id1) found = 1;
+    else if (angle_atom2[i] == id2 && angle_atom3[i] == id1) found = 1;
+    if (!found) i++;
+    else {
+      for (j = i; j < num_angle-1; j++) {
+        angle_type[j] = angle_type[j+1];
+        angle_atom1[j] = angle_atom1[j+1];
+        angle_atom2[j] = angle_atom2[j+1];
+        angle_atom3[j] = angle_atom3[j+1];
+      }
+      num_angle--;
+      nangles++;
+    }
+  }
+
+  atom->num_angle[m] = num_angle;
+}
+
+/* ----------------------------------------------------------------------
+   break any dihedrals owned by atom M that include atom IDs 1,2,3
+   dihedral is broken if ID1-ID2 is one of 3 bonds in linear dihedral
+------------------------------------------------------------------------- */
+
+void FixBondBreak::break_dihedrals(int m, tagint id1, tagint id2)
+{
+  int j,found;
+
+  int num_dihedral = atom->num_dihedral[m];
+  int *dihedral_type = atom->dihedral_type[m];
+  tagint *dihedral_atom1 = atom->dihedral_atom1[m];
+  tagint *dihedral_atom2 = atom->dihedral_atom2[m];
+  tagint *dihedral_atom3 = atom->dihedral_atom3[m];
+  tagint *dihedral_atom4 = atom->dihedral_atom4[m];
+
+  int i = 0;
+  while (i < num_dihedral) {
+    found = 0;
+    if (dihedral_atom1[i] == id1 && dihedral_atom2[i] == id2) found = 1;
+    else if (dihedral_atom2[i] == id1 && dihedral_atom3[i] == id2) found = 1;
+    else if (dihedral_atom3[i] == id1 && dihedral_atom4[i] == id2) found = 1;
+    else if (dihedral_atom1[i] == id2 && dihedral_atom2[i] == id1) found = 1;
+    else if (dihedral_atom2[i] == id2 && dihedral_atom3[i] == id1) found = 1;
+    else if (dihedral_atom3[i] == id2 && dihedral_atom4[i] == id1) found = 1;
+    if (!found) i++;
+    else {
+      for (j = i; j < num_dihedral-1; j++) {
+        dihedral_type[j] = dihedral_type[j+1];
+        dihedral_atom1[j] = dihedral_atom1[j+1];
+        dihedral_atom2[j] = dihedral_atom2[j+1];
+        dihedral_atom3[j] = dihedral_atom3[j+1];
+        dihedral_atom4[j] = dihedral_atom4[j+1];
+      }
+      num_dihedral--;
+      ndihedrals++;
+    }
+  }
+
+  atom->num_dihedral[m] = num_dihedral;
+}
+
+/* ----------------------------------------------------------------------
+   break any impropers owned by atom M that include atom IDs 1,2,3
+   improper is broken if ID1-ID2 is one of 3 bonds in improper (I-J,I-K,I-L)
+------------------------------------------------------------------------- */
+
+void FixBondBreak::break_impropers(int m, tagint id1, tagint id2)
+{
+  int j,found;
+
+  int num_improper = atom->num_improper[m];
+  int *improper_type = atom->improper_type[m];
+  tagint *improper_atom1 = atom->improper_atom1[m];
+  tagint *improper_atom2 = atom->improper_atom2[m];
+  tagint *improper_atom3 = atom->improper_atom3[m];
+  tagint *improper_atom4 = atom->improper_atom4[m];
+
+  int i = 0;
+  while (i < num_improper) {
+    found = 0;
+    if (improper_atom1[i] == id1 && improper_atom2[i] == id2) found = 1;
+    else if (improper_atom1[i] == id1 && improper_atom3[i] == id2) found = 1;
+    else if (improper_atom1[i] == id1 && improper_atom4[i] == id2) found = 1;
+    else if (improper_atom1[i] == id2 && improper_atom2[i] == id1) found = 1;
+    else if (improper_atom1[i] == id2 && improper_atom3[i] == id1) found = 1;
+    else if (improper_atom1[i] == id2 && improper_atom4[i] == id1) found = 1;
+    if (!found) i++;
+    else {
+      for (j = i; j < num_improper-1; j++) {
+        improper_type[j] = improper_type[j+1];
+        improper_atom1[j] = improper_atom1[j+1];
+        improper_atom2[j] = improper_atom2[j+1];
+        improper_atom3[j] = improper_atom3[j+1];
+        improper_atom4[j] = improper_atom4[j+1];
+      }
+      num_improper--;
+      nimpropers++;
+    }
+  }
+
+  atom->num_improper[m] = num_improper;
+}
+
+
+/* ----------------------------------------------------------------------
+   re-build special list of atom M due to bond ID1-ID2 being formed
+   does not affect 1-2 neighs (already include effects of new bond)
+   may affect 1-3 and 1-4 bonds
 ------------------------------------------------------------------------- */
 
 void FixBondBreak::rebuild_special(int m, tagint id1, tagint id2)
@@ -539,122 +666,6 @@ void FixBondBreak::rebuild_special(int m, tagint id1, tagint id2)
   nspecial[m][1] = cn2;
   nspecial[m][2] = cn3;
   memcpy(special[m],copy,cn3*sizeof(int));
-}
-
-/* ----------------------------------------------------------------------
-------------------------------------------------------------------------- */
-
-void FixBondBreak::break_angles(int m, tagint id1, tagint id2)
-{
-  int j,found;
-
-  int num_angle = atom->num_angle[m];
-  int *angle_type = atom->angle_type[m];
-  tagint *angle_atom1 = atom->angle_atom1[m];
-  tagint *angle_atom2 = atom->angle_atom2[m];
-  tagint *angle_atom3 = atom->angle_atom3[m];
-
-  int i = 0;
-  while (i < num_angle) {
-    found = 0;
-    if (angle_atom1[i] == id1 && angle_atom2[i] == id2) found = 1;
-    else if (angle_atom2[i] == id1 && angle_atom3[i] == id2) found = 1;
-    else if (angle_atom1[i] == id2 && angle_atom2[i] == id1) found = 1;
-    else if (angle_atom2[i] == id2 && angle_atom3[i] == id1) found = 1;
-    if (!found) i++;
-    else {
-      for (j = i; j < num_angle-1; j++) {
-        angle_type[j] = angle_type[j+1];
-        angle_atom1[j] = angle_atom1[j+1];
-        angle_atom2[j] = angle_atom2[j+1];
-        angle_atom3[j] = angle_atom3[j+1];
-      }
-      num_angle--;
-      nangles++;
-    }
-  }
-
-  atom->num_angle[m] = num_angle;
-}
-
-/* ----------------------------------------------------------------------
-------------------------------------------------------------------------- */
-
-void FixBondBreak::break_dihedrals(int m, tagint id1, tagint id2)
-{
-  int j,found;
-
-  int num_dihedral = atom->num_dihedral[m];
-  int *dihedral_type = atom->dihedral_type[m];
-  tagint *dihedral_atom1 = atom->dihedral_atom1[m];
-  tagint *dihedral_atom2 = atom->dihedral_atom2[m];
-  tagint *dihedral_atom3 = atom->dihedral_atom3[m];
-  tagint *dihedral_atom4 = atom->dihedral_atom4[m];
-
-  int i = 0;
-  while (i < num_dihedral) {
-    found = 0;
-    if (dihedral_atom1[i] == id1 && dihedral_atom2[i] == id2) found = 1;
-    else if (dihedral_atom2[i] == id1 && dihedral_atom3[i] == id2) found = 1;
-    else if (dihedral_atom3[i] == id1 && dihedral_atom4[i] == id2) found = 1;
-    else if (dihedral_atom1[i] == id2 && dihedral_atom2[i] == id1) found = 1;
-    else if (dihedral_atom2[i] == id2 && dihedral_atom3[i] == id1) found = 1;
-    else if (dihedral_atom3[i] == id2 && dihedral_atom4[i] == id1) found = 1;
-    if (!found) i++;
-    else {
-      for (j = i; j < num_dihedral-1; j++) {
-        dihedral_type[j] = dihedral_type[j+1];
-        dihedral_atom1[j] = dihedral_atom1[j+1];
-        dihedral_atom2[j] = dihedral_atom2[j+1];
-        dihedral_atom3[j] = dihedral_atom3[j+1];
-        dihedral_atom4[j] = dihedral_atom4[j+1];
-      }
-      num_dihedral--;
-      ndihedrals++;
-    }
-  }
-
-  atom->num_dihedral[m] = num_dihedral;
-}
-
-/* ----------------------------------------------------------------------
-------------------------------------------------------------------------- */
-
-void FixBondBreak::break_impropers(int m, tagint id1, tagint id2)
-{
-  int j,found;
-
-  int num_improper = atom->num_improper[m];
-  int *improper_type = atom->improper_type[m];
-  tagint *improper_atom1 = atom->improper_atom1[m];
-  tagint *improper_atom2 = atom->improper_atom2[m];
-  tagint *improper_atom3 = atom->improper_atom3[m];
-  tagint *improper_atom4 = atom->improper_atom4[m];
-
-  int i = 0;
-  while (i < num_improper) {
-    found = 0;
-    if (improper_atom1[i] == id1 && improper_atom2[i] == id2) found = 1;
-    else if (improper_atom1[i] == id1 && improper_atom3[i] == id2) found = 1;
-    else if (improper_atom1[i] == id1 && improper_atom4[i] == id2) found = 1;
-    else if (improper_atom1[i] == id2 && improper_atom2[i] == id1) found = 1;
-    else if (improper_atom1[i] == id2 && improper_atom3[i] == id1) found = 1;
-    else if (improper_atom1[i] == id2 && improper_atom4[i] == id1) found = 1;
-    if (!found) i++;
-    else {
-      for (j = i; j < num_improper-1; j++) {
-        improper_type[j] = improper_type[j+1];
-        improper_atom1[j] = improper_atom1[j+1];
-        improper_atom2[j] = improper_atom2[j+1];
-        improper_atom3[j] = improper_atom3[j+1];
-        improper_atom4[j] = improper_atom4[j+1];
-      }
-      num_improper--;
-      nimpropers++;
-    }
-  }
-
-  atom->num_improper[m] = num_improper;
 }
 
 /* ----------------------------------------------------------------------

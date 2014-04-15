@@ -67,10 +67,10 @@ class FixBondBreak : public Fix {
 
   void check_ghosts();
   void update_topology();
-  void rebuild_special(int, tagint, tagint);
   void break_angles(int, tagint, tagint);
   void break_dihedrals(int, tagint, tagint);
   void break_impropers(int, tagint, tagint);
+  void rebuild_special(int, tagint, tagint);
   int dedup(int, int, tagint *);
   
   // DEBUG

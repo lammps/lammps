@@ -184,7 +184,7 @@ void DihedralFourierOMP::eval(int nfrom, int nto, ThrData * const thr)
     for (j=0; j<nterms[type]; j++) {
       m = multiplicity[type][j];
       p_ = 1.0;
-      df1_ = 0.0;
+      ddf1_ = df1_ = 0.0;
 
       for (i = 0; i < m; i++) {
         ddf1_ = p_*c - df1_*s;

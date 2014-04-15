@@ -40,7 +40,6 @@ class PairLJSDKCoulLongGPU : public PairLJSDKCoulLong {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

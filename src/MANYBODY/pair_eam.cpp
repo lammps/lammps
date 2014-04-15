@@ -766,7 +766,7 @@ void PairEAM::grab(FILE *fptr, int n, double *list)
     fgets(line,MAXLINE,fptr);
     ptr = strtok(line," \t\n\r\f");
     list[i++] = atof(ptr);
-    while (ptr = strtok(NULL," \t\n\r\f")) list[i++] = atof(ptr);
+    while ((ptr = strtok(NULL," \t\n\r\f"))) list[i++] = atof(ptr);
   }
 }
 

@@ -303,7 +303,6 @@ void FixPeriNeigh::setup(int vflag)
   double half_lc = 0.5*(domain->lattice->xlattice);
   double vfrac_scale;
   PairPeriLPS *pairlps = static_cast<PairPeriLPS*>(anypair);
-  PairPeriPMB *pairpmb = static_cast<PairPeriPMB*>(anypair);
   PairPeriVES *pairves = static_cast<PairPeriVES*>(anypair);
   PairPeriEPS *paireps = static_cast<PairPeriEPS*>(anypair);
 

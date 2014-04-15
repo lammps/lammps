@@ -59,7 +59,7 @@ void BondQuartic::compute(int eflag, int vflag)
   double delx,dely,delz,ebond,fbond,evdwl,fpair;
   double r,rsq,dr,r2,ra,rb,sr2,sr6;
 
-  ebond = evdwl = 0.0;
+  ebond = evdwl = sr6 = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = 0;
 

@@ -336,7 +336,7 @@ void DihedralTableOMP::eval(int nfrom, int nto, ThrData * const thr)
     // ----- Step 3: Calculate the energy and force in the phi direction -----
 
     // tabulated force & energy
-    double u, m_du_dphi; //u = energy.   m_du_dphi = "minus" du/dphi
+    double u=0.0, m_du_dphi=0.0; //u = energy.   m_du_dphi = "minus" du/dphi
 
     uf_lookup(type, phi, u, m_du_dphi);
 

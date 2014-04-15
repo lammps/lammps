@@ -38,7 +38,6 @@ class PairLJClass2CoulLongGPU : public PairLJClass2CoulLong {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

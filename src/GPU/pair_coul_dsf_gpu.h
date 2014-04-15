@@ -38,7 +38,6 @@ class PairCoulDSFGPU : public PairCoulDSF {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

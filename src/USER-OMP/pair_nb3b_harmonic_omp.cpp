@@ -72,7 +72,7 @@ void PairNb3bHarmonicOMP::eval(int iifrom, int iito, ThrData * const thr)
   int i,j,k,ii,jj,kk,jnum,jnumm1;
   tagint itag,jtag;
   int itype,jtype,ktype,ijparam,ikparam,ijkparam;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fj[3],fk[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -83,7 +83,6 @@ void PairNb3bHarmonicOMP::eval(int iifrom, int iito, ThrData * const thr)
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const tagint * _noalias const tag = atom->tag;
   const int * _noalias const type = atom->type;
-  const int nlocal = atom->nlocal;
 
   ilist = list->ilist;
   numneigh = list->numneigh;

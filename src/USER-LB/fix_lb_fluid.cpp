@@ -779,7 +779,6 @@ void FixLbFluid::calc_fluidforce(void)
   MPI_Status statuses[20];
   double forceloc[3],force[3];
   double torqueloc[3],torque[3];
-  int numrequests;
   
   //--------------------------------------------------------------------------
   // Zero out arrays
@@ -2531,8 +2530,6 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
 void FixLbFluid::streamout(void)
 {
   int i,j,k;
-  double mass,massloc;
-  double momentumloc[3],momentum[3];
   int istart,jstart,kstart;
   int iend,jend,kend;
   int w,iproc;

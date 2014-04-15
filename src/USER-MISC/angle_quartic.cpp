@@ -283,7 +283,5 @@ double AngleQuartic::single(int type, int i1, int i2, int i3)
   double dtheta2 = dtheta * dtheta;
   double dtheta3 = dtheta2 * dtheta;
   double dtheta4 = dtheta3 * dtheta;
-  double tk = 2.0 * k2[type] * dtheta + 3.0 * k3[type] * dtheta2 + 
-    4.0 * k4[type] * dtheta3;
   return k2[type] * dtheta2 + k3[type] * dtheta3 + k4[type] * dtheta4;
 }

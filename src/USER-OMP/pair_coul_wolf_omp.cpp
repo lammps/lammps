@@ -82,7 +82,7 @@ void PairCoulWolfOMP::eval(int iifrom, int iito, ThrData * const thr)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double rsq,forcecoul,factor_coul;
   double prefactor;
-  double r,rexp;
+  double r;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double erfcc,erfcd,v_sh,dvdrr,e_self,e_shift,f_shift,qisq;
 
@@ -91,7 +91,6 @@ void PairCoulWolfOMP::eval(int iifrom, int iito, ThrData * const thr)
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const double * _noalias const q = atom->q;
-  const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
   const double * _noalias const special_coul = force->special_coul;
   const double qqrd2e = force->qqrd2e;

@@ -79,7 +79,7 @@ void PairTableOMP::eval(int iifrom, int iito, ThrData * const thr)
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,factor_lj,fraction,value,a,b;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  Table *tb;
+  const Table *tb;
 
   union_int_float_t rsq_lookup;
   int tlm1 = tablength - 1;

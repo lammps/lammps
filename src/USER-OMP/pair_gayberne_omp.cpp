@@ -98,6 +98,7 @@ void PairGayBerneOMP::eval(int iifrom, int iito, ThrData * const thr)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+  evdwl = 0.0;
 
   // loop over neighbors of my atoms
 

@@ -38,7 +38,6 @@ class PairLJExpandGPU : public PairLJExpand {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

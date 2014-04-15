@@ -622,7 +622,7 @@ void PairComb::read_file(char *file)
 
     // strip comment, skip line if blank
 
-    if (ptr = strchr(line,'#')) *ptr = '\0';
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
 
@@ -641,7 +641,7 @@ void PairComb::read_file(char *file)
       if (eof) break;
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if (ptr = strchr(line,'#')) *ptr = '\0';
+      if ((ptr = strchr(line,'#'))) *ptr = '\0';
       nwords = atom->count_words(line);
     }
 
@@ -652,7 +652,7 @@ void PairComb::read_file(char *file)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while (words[nwords++] = strtok(NULL," \t\n\r\f")) continue;
+    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
 
     // ielement,jelement,kelement = 1st args
     // if all 3 args are in element list, then parse this line
@@ -2047,16 +2047,14 @@ void PairComb::unpack_reverse_comm(int n, int *list, double *buf)
 
 void PairComb::Short_neigh()
 {
-  int nj,itype,jtype,iparam_ij;
+  int nj,itype,jtype;
   int inum,jnum,i,j,ii,jj;
   int *neighptrj,*ilist,*jlist,*numneigh;
   int **firstneigh;
-  double xtmp,ytmp,ztmp,rr,rsq,delrj[3];
+  double xtmp,ytmp,ztmp,rsq,delrj[3];
 
   double **x = atom->x;
   int *type  = atom->type;
-  int nlocal = atom->nlocal;
-  int ntype = atom->ntypes;
 
   if (atom->nmax > nmax) {
     memory->sfree(sht_first);

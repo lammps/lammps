@@ -186,9 +186,9 @@ void PairLJSDKGPU::cpu_compute(int start, int inum, int *ilist,
   const double * const * const x = atom->x;
   double * const * const f = atom->f;
   const int * const type = atom->type;
-  const int nlocal = atom->nlocal;
   const double * const special_lj = force->special_lj;
   double fxtmp,fytmp,fztmp;
+  evdwl=0.0;
 
   // loop over neighbors of my atoms
 

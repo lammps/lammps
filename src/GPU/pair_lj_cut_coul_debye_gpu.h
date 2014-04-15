@@ -38,7 +38,6 @@ class PairLJCutCoulDebyeGPU : public PairLJCutCoulDebye {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

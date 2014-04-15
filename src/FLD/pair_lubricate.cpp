@@ -108,8 +108,6 @@ void PairLubricate::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
-  int overlaps = 0;
-
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -299,10 +297,6 @@ void PairLubricate::compute(int eflag, int vflag)
 
         h_sep = r - 2.0*radi;
 
-        // check for overlaps
-
-        if (h_sep < 0.0) overlaps++;
-
         // if less than the minimum gap use the minimum gap instead
 
         if (r < cut_inner[itype][jtype])
@@ -443,16 +437,6 @@ void PairLubricate::compute(int eflag, int vflag)
       omega[i][1] += 0.5*h_rate[4];
       omega[i][2] -= 0.5*h_rate[5];
     }
-  }
-
-  // to DEBUG: set print_overlaps to 1
-
-  int print_overlaps = 0;
-  if (print_overlaps) {
-    int overlaps_all;
-    MPI_Allreduce(&overlaps,&overlaps_all,1,MPI_INT,MPI_SUM,world);
-    if (overlaps_all && comm->me == 0)
-      printf("Number of overlaps = %d\n",overlaps);
   }
 
   if (vflag_fdotr) virial_fdotr_compute();

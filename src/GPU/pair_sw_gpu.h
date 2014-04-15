@@ -39,7 +39,6 @@ class PairSWGPU : public PairSW {
 
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

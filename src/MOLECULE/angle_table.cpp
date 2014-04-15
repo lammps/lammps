@@ -322,7 +322,7 @@ double AngleTable::single(int type, int i1, int i2, int i3)
   if (c < -1.0) c = -1.0;
 
   double theta = acos(c);
-  double u;
+  double u=0.0;
   u_lookup(type,theta,u);
   return u;
 }

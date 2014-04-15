@@ -38,7 +38,6 @@ class PairBornGPU : public PairBorn {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

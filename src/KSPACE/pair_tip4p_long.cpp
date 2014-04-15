@@ -79,18 +79,17 @@ void PairTIP4PLong::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype,itable,key;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul;
   double fraction,table;
-  double delxOM, delyOM, delzOM;
   double r,r2inv,forcecoul,cforce;
   double factor_coul;
-  double grij,expm2,prefactor,t,erfc,ddotf;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],f1[3],v[6],xH1[3],xH2[3];
+  double grij,expm2,prefactor,t,erfc;
+  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];
   double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
 
-  evdwl = ecoul = 0.0;
+  ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
@@ -118,7 +117,6 @@ void PairTIP4PLong::compute(int eflag, int vflag)
   tagint *tag = atom->tag;
   int *type = atom->type;
   double *special_coul = force->special_coul;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
   double cut_coulsqplus = (cut_coul+2.0*qdist) * (cut_coul+2.0*qdist);
 

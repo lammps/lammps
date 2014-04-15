@@ -38,7 +38,6 @@ class PairLJ96CutGPU : public PairLJ96Cut {
  private:
   int gpu_mode;
   double cpu_time;
-  int *gpulist;
 };
 
 }

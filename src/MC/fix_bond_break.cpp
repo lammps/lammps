@@ -378,7 +378,7 @@ void FixBondBreak::post_integrate()
 void FixBondBreak::check_ghosts()
 {
   int i,j,n;
-  int *slist;
+  tagint *slist;
 
   int **nspecial = atom->nspecial;
   int **special = atom->special;

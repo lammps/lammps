@@ -13,6 +13,9 @@ style_kspace.h
 style_minimize.h
 style_pair.h
 style_region.h
+# deleted on 15 Apr 14
+pppm_old.cpp
+pppm_old.h
 # deleted on Thu Jun 6 15:19:12 2013 +0000
 pair_dipole_cut.h
 pair_dipole_cut.cpp

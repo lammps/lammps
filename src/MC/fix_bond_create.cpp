@@ -439,7 +439,7 @@ void FixBondCreate::post_integrate()
     if (n3 == atom->maxspecial)
       error->one(FLERR,
                  "New bond exceeded special list size in fix bond/create");
-    for (m = n3; m > n1; m--) slist[m+1] = slist[m];
+    for (m = n3; m > n1; m--) slist[m] = slist[m-1];
     slist[n1] = tag[j];
     nspecial[i][0]++;
     nspecial[i][1]++;

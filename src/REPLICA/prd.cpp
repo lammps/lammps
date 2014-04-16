@@ -58,7 +58,7 @@ PRD::PRD(LAMMPS *lmp) : Pointers(lmp) {}
 
 void PRD::command(int narg, char **arg)
 {
-  int flag,ireplica;
+  int ireplica;
 
   // error checks
 
@@ -773,7 +773,7 @@ void PRD::replicate(int ireplica)
 {
   int nreplica = universe->nworlds;
   int nprocs_universe = universe->nprocs;
-  int i,m,flag,commflag;
+  int i,m;
 
   if (nreplica == nprocs_universe) {
     MPI_Bcast(atom->image,atom->nlocal,MPI_INT,ireplica,comm_replica);

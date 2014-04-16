@@ -723,22 +723,21 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   const double * const q = atom->q;
   const int * const type = atom->type;
   const int nlocal = atom->nlocal;
-  const int nall = nlocal + atom->nghost;
   const double * const special_coul = force->special_coul;
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
   const double cut_coulsqplus = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
 
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype,itable;
   int n,vlist[6];
   int key;
   int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double fraction,table;
   double r,r2inv,forcecoul,forcelj,cforce;
-  double factor_coul,factor_lj;
+  double factor_coul;
   double grij,expm2,prefactor,t,erfc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
+  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];
   dbl3_t x1,x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
@@ -746,7 +745,7 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   evdwl = ecoul = 0.0;
 
   int ni;
-  double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
 
   ilist = list->ilist;
@@ -791,7 +790,6 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
@@ -1079,17 +1077,15 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const thr)
 {
-  double r, rsq, r2inv, forcecoul = 0.0, forcelj, cforce, fpair;
+  double rsq, r2inv, forcecoul = 0.0, forcelj, cforce;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   double * const * const f = thr->get_f();
   const double * const q = atom->q;
   const int * const type = atom->type;
-  const int nlocal = atom->nlocal;
   const double * const special_coul = force->special_coul;
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
-  const int newton_pair = force->newton_pair;
   const double cut_coulsqplus = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
 
   const double cut_out_on = cut_respa[0];
@@ -1099,21 +1095,18 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
   const double cut_out_on_sq = cut_out_on*cut_out_on;
   const double cut_out_off_sq = cut_out_off*cut_out_off;
 
-  int *jneigh, *jneighn, typei, typej, ni;
+  int ni;
   const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
   double qri;
-  vector xi, d;
 
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype;
   int iH1,iH2,jH1,jH2;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
-  double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
+  double fO[3],fH[3],fd[3];
   dbl3_t x1,x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double *lj1i, *lj2i;
 
   ilist = listinner->ilist;
   numneigh = listinner->numneigh;
@@ -1151,14 +1144,11 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    offseti = offset[itype];
-    lj1i = lj1[itype]; lj2i = lj2[itype]; lj3i = lj3[itype]; lj4i = lj4[itype];
+    lj1i = lj1[itype]; lj2i = lj2[itype];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;
@@ -1321,19 +1311,17 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
 
 void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const thr)
 {
-  double r, rsq, r2inv, forcecoul,forcelj, cforce, fpair;
+  double rsq, r2inv, forcecoul,forcelj, cforce;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   double * const * const f = thr->get_f();
   const double * const q = atom->q;
   const int * const type = atom->type;
-  const int nlocal = atom->nlocal;
   const double * const special_coul = force->special_coul;
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
 
   const double cut_coulsqplus = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
-  const int newton_pair = force->newton_pair;
   const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
 
   const double cut_in_off = cut_respa[0];
@@ -1348,19 +1336,16 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
   const double cut_out_on_sq = cut_out_on*cut_out_on;
   const double cut_out_off_sq = cut_out_off*cut_out_off;
 
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype;
   int iH1,iH2,jH1,jH2;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
-  double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
+  double fO[3],fH[3],fd[3];
   dbl3_t x1,x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double qri;
 
   int ni;
-  double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
-  double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
+  double *lj1i, *lj2i;
 
   ilist = listmiddle->ilist;
   numneigh = listmiddle->numneigh;
@@ -1398,14 +1383,11 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    offseti = offset[itype];
-    lj1i = lj1[itype]; lj2i = lj2[itype]; lj3i = lj3[itype]; lj4i = lj4[itype];
+    lj1i = lj1[itype]; lj2i = lj2[itype];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;
@@ -1578,7 +1560,7 @@ template < const int EVFLAG, const int EFLAG,
            const int NEWTON_PAIR, const int CTABLE, const int LJTABLE, const int ORDER1, const int ORDER6 >
 void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const thr)
 {
-  double evdwl,ecoul,fvirial,fpair;
+  double evdwl,ecoul,fvirial;
   evdwl = ecoul = 0.0;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
@@ -1591,23 +1573,20 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
   const double qqrd2e = force->qqrd2e;
   const double cut_coulsqplus = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
 
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype;
   int n,vlist[6];
   int key;
   int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
-  double fraction,table;
-  double r,r2inv,forcecoul,forcelj,cforce, respa_coul, respa_lj, frespa;
-  double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
+  double r2inv,forcecoul,forcelj,cforce, respa_coul, respa_lj, frespa;
+  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];
   dbl3_t x1,x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq,qri;
   int respa_flag;
 
   int ni;
-  double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
 
   const double cut_in_off = cut_respa[2];
@@ -1660,8 +1639,6 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;

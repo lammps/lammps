@@ -89,8 +89,8 @@ void PairPeriEPS::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double xtmp0,ytmp0,ztmp0,delx0,dely0,delz0,rsq0;
-  double rsq,r,dr,dr1,rk,rkNew,evdwl,fpair,fbond;
-  double ed,fbondElastoPlastic,fbondFinal;
+  double rsq,r,dr,rk,rkNew,evdwl,fpair,fbond;
+  double fbondElastoPlastic,fbondFinal;
   double deltalambda,edpNp1;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double d_ij,delta,stretch;
@@ -104,7 +104,6 @@ void PairPeriEPS::compute(int eflag, int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  double timestepsize = update->dt;
   double *vfrac = atom->vfrac;
   double *s0 = atom->s0;
   double **x0 = atom->x0;
@@ -259,7 +258,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
   // first = true if this is first neighbor of particle i
 
   bool first;
-  double omega_minus, omega_plus, omega;
+  double omega_minus, omega_plus;
 
   for (i = 0; i < nlocal; i++) {
     xtmp = x[i][0];
@@ -717,17 +716,13 @@ double PairPeriEPS::compute_DeviatoricForceStateNorm(int i)
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double xtmp0,ytmp0,ztmp0,delx0,dely0,delz0;
   double rsq,r,dr;
-  double delta;
   double tdtrial;
   double norm = 0.0;
 
   double **x = atom->x;
   int *type = atom->type;
   double **x0 = atom->x0;
-  double *s0 = atom->s0;
-  int nlocal = atom->nlocal;
   double *vfrac = atom->vfrac;
-  double vfrac_scale = 1.0;
 
   double lc = domain->lattice->xlattice;
   double half_lc = 0.5*lc;
@@ -794,8 +789,6 @@ double PairPeriEPS::compute_DeviatoricForceStateNorm(int i)
       
       double omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);
       double omega_minus = influence_function(delx0,dely0,delz0);
-      
-      double stretch = dr / r0[i][jj];
       
       tdtrial = ( 15 * shearmodulus[itype][itype]) *
            ((omega_plus * theta[i] / wvolume[i]) +

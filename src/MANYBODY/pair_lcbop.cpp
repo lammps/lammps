@@ -259,8 +259,6 @@ void PairLCBOP::SR_neigh()
   int *neighptr;
 
   double **x = atom->x;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
 
   if (atom->nmax > maxlocal) {  // ensure ther is enough space
     maxlocal = atom->nmax;      // for atoms and ghosts allocated
@@ -360,7 +358,7 @@ void PairLCBOP::FSR(int eflag, int vflag)
   double delx,dely,delz,fpair,xtmp,ytmp,ztmp;
   double r_sq,rijmag,f_c_ij,df_c_ij;
   double VR,dVRdi,VA,Bij,dVAdi,dVA;
-  double d_f_c_ij,del[3];
+  double del[3];
   int *ilist,*SR_neighs;
 
   double **x = atom->x;
@@ -451,7 +449,7 @@ void PairLCBOP::FSR(int eflag, int vflag)
 
 void PairLCBOP::FLR(int eflag, int vflag)
 {
-  int i,j,jj,m,ii;
+  int i,j,jj,ii;
   tagint itag,jtag;
   double delx,dely,delz,fpair,xtmp,ytmp,ztmp;
   double r_sq,rijmag,f_c_ij,df_c_ij;
@@ -556,7 +554,7 @@ void PairLCBOP::FNij( int i, int j, double factor, double **f, int vflag_atom ) 
       if( riksq > r_1*r_1 ) { // &&  riksq < r_2*r_2, if second condition not fulfilled neighbor would not be in the list
         double rikmag = sqrt(riksq);
         double df_c_ik;
-        double f_c_ik = f_c( rikmag, r_1, r_2, &df_c_ik );
+        f_c( rikmag, r_1, r_2, &df_c_ik );
 
         // F = factor*df_c_ik*(-grad rikmag)
         // grad_i rikmag =  \vec{rik} /rikmag
@@ -967,7 +965,7 @@ double PairLCBOP::F_conj( double N_ij, double N_ji, double N_conj_ij, double *dF
 
 void PairLCBOP::read_file(char *filename)
 {
-  int i,j,k,l,limit;
+  int i,k,l;
   char s[MAXLINE];
 
   MPI_Comm_rank(world,&me);

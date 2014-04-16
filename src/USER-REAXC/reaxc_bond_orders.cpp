@@ -804,7 +804,7 @@ void BO( reax_system *system, control_params *control, simulation_data *data,
          storage *workspace, reax_list **lists, output_controls *out_control )
 {
   int i, j, pj, type_i, type_j;
-  int start_i, end_i, sym_index, num_bonds;
+  int start_i, end_i, sym_index;
   real val_i, Deltap_i, Deltap_boc_i;
   real val_j, Deltap_j, Deltap_boc_j;
   real f1, f2, f3, f4, f5, f4f5, exp_f4, exp_f5;
@@ -833,7 +833,6 @@ void BO( reax_system *system, control_params *control, simulation_data *data,
   //   Num_Entries(i, bonds), sizeof(bond_data), compare_bonds );
 #endif
 
-  num_bonds = 0;
   p_boc1 = system->reax_param.gp.l[0];
   p_boc2 = system->reax_param.gp.l[1];
 
@@ -1172,20 +1171,9 @@ void BO( reax_system *system, control_params *control, simulation_data *data,
       workspace->Delta_lp_temp[j] = sbp_j->nlp_opt - workspace->nlp_temp[j];
       workspace->dDelta_lp_temp[j] = workspace->Clp[j];
     }
-
-    //fprintf( stderr, "%d\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",
-    //j, workspace->Delta[j], workspace->Delta_e[j], workspace->Delta_boc[j],
-    //workspace->nlp[j], system->reaxprm.sbp[type_j].nlp_opt,
-    //workspace->Delta_lp[j], workspace->Clp[j], workspace->dDelta_lp[j] );
-
-    //fprintf( stdout, "%d(%d) %24.15f\n",
-    //     j, workspace->bond_mark[j], workspace->total_bond_order[j] );
   }
 
-  //Print_Bonds( system, bonds, "pbonds.out" );
-
 #if defined(TEST_ENERGIES) || defined(TEST_FORCES)
-  fprintf( stderr, "Number of bonds: %d\n", num_bonds );
   Print_Bond_List( system, control, data, lists, out_control);
 #endif
 }

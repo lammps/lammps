@@ -1937,14 +1937,13 @@ void FixLbFluid::initialize_feq(void)
 void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, int zstart, int zend) {
 
   double rho;
-  double usq;
   int i, j, k, l, iup, idwn, jup, jdwn, kup, kdwn;
   double Fx_w, Fy_w, Fz_w;
 
   double total_density(0.0);
   double drhox, drhoy, drhoz, drhoxx, drhoyy, drhozz;
   double Pxx, Pyy, Pzz, Pxy, Pxz, Pyz;
-  double grs, p0,TrP;
+  double grs, p0;
   double dPdrho;
 
   double S[2][3],std;
@@ -2036,11 +2035,6 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
  	Fy_w = Ff[i][j][k][1];
  	Fz_w = Ff[i][j][k][2];
 
-	// this is Tr(P)
- 	TrP = Pxx+Pyy+Pzz;
- 	usq=u_lb[i][j][k][0]*u_lb[i][j][k][0]+u_lb[i][j][k][1]*u_lb[i][j][k][1]+
-	  u_lb[i][j][k][2]*u_lb[i][j][k][2];
-
 	etacov[0] = rho;
 	etacov[1] = rho*u_lb[i][j][k][0] + Fx_w*tau + rho*bodyforcex*tau;
 	etacov[2] = rho*u_lb[i][j][k][1] + Fy_w*tau + rho*bodyforcey*tau;
@@ -2062,6 +2056,7 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
 	etacov[11] = 0.0; 
 	etacov[12] = 0.0;
 	etacov[13] = rho*u_lb[i][j][k][0]*u_lb[i][j][k][1]*u_lb[i][j][k][2];
+	const double TrP = Pxx+Pyy+Pzz;
 	etacov[14] = K_0*(rho-TrP);
        
 	for (l=0; l<15; l++) {
@@ -2121,14 +2116,13 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
 void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, int zstart, int zend) {
 
   double rho;
-  double usq;
   int i, j, k, l, iup, idwn, jup, jdwn, kup, kdwn;
   double Fx_w, Fy_w, Fz_w;
 
   double total_density(0.0);
   double drhox, drhoy, drhoz, drhoxx, drhoyy, drhozz;
   double Pxx, Pyy, Pzz, Pxy, Pxz, Pyz;
-  double grs, p0,TrP;
+  double grs, p0;
   double dPdrho;
 
   double S[2][3],std;
@@ -2218,11 +2212,6 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
  	Fx_w = Ff[i][j][k][0];
  	Fy_w = Ff[i][j][k][1];
  	Fz_w = Ff[i][j][k][2];
-
-	// this is Tr(P)
- 	TrP = Pxx+Pyy+Pzz;
- 	usq=u_lb[i][j][k][0]*u_lb[i][j][k][0]+u_lb[i][j][k][1]*u_lb[i][j][k][1]+
-	  u_lb[i][j][k][2]*u_lb[i][j][k][2];
 
 	etacov[0] = rho;
 	etacov[1] = rho*u_lb[i][j][k][0] + Fx_w*tau + rho*bodyforcex*tau;

@@ -114,9 +114,8 @@ void ImproperFourier::addone(const int &i1,const int &i2,const int &i3,const int
             const double &vb2x, const double &vb2y, const double &vb2z,
             const double &vb3x, const double &vb3y, const double &vb3z)
 {
-  int n;
   double eimproper,f1[3],f2[3],f3[3],f4[3];
-  double domega,c,c2,a,s,projhfg,dhax,dhay,dhaz,dahx,dahy,dahz,cotphi;
+  double c,c2,a,s,projhfg,dhax,dhay,dhaz,dahx,dahy,dahz,cotphi;
   double ax,ay,az,ra2,rh2,ra,rh,rar,rhr,arx,ary,arz,hrx,hry,hrz;
 
   double **x = atom->x;

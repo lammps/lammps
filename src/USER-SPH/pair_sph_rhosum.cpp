@@ -66,7 +66,7 @@ void PairSPHRhoSum::init_style() {
 void PairSPHRhoSum::compute(int eflag, int vflag) {
   int i, j, ii, jj, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz;
-  double r, rsq, imass, h, ih, ihsq;
+  double rsq, imass, h, ih, ihsq;
   int *jlist;
   double wf;
   // neighbor list variables

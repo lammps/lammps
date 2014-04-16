@@ -203,9 +203,8 @@ void PairBuckCoulLongGPU::cpu_compute(int start, int inum, int eflag,
                                        int vflag, int *ilist, int *numneigh,
                                        int **firstneigh)
 {
-  int i,j,ii,jj,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double fraction,table;
   double r,rexp,r2inv,r6inv,forcecoul,forcebuck,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
   int *jlist;

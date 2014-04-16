@@ -221,11 +221,6 @@ void PairLJLongCoulLong::coeff(int narg, char **arg)
 
 void PairLJLongCoulLong::init_style()
 {
-  const char *style1[] = 
-    {"ewald", "ewald/n", "pppm", "pppm_disp", "pppm_disp/tip4p", NULL};
-  const char *style6[] = {"ewald/n", "pppm_disp", "pppm_disp/tip4p", NULL};
-  int i;
-
   // require an atom style with charge defined
 
   if (!atom->q_flag && (ewald_order&(1<<1)))

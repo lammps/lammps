@@ -447,13 +447,12 @@ void FixPour::pre_exchange()
 
   int success;
   double radtmp,delx,dely,delz,rsq,radsum,rn,h;
-  double coord[3],xcm[3];
+  double coord[3];
 
   int nfix = modify->nfix;
   Fix **fix = modify->fix;
 
-  AtomVec *avec = atom->avec;
-  double denstmp,vxtmp,vytmp,vztmp;
+  double denstmp;
   double *sublo = domain->sublo;
   double *subhi = domain->subhi;
 
@@ -706,11 +705,6 @@ int FixPour::overlap(int i)
   double delta;
   if (mode == ATOM) delta = atom->radius[i] + radius_max;
   else delta = atom->radius[i] + onemol->molradius;
-
-  double *boxlo = domain->boxlo;
-  double *boxhi = domain->boxhi;
-  double *prd = domain->prd;
-  int *periodicity = domain->periodicity;
 
   double *x = atom->x[i];
 

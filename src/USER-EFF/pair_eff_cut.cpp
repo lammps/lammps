@@ -867,7 +867,7 @@ void PairEffCut::init_style()
   // add hook to minimizer for eradius and erforce
 
   if (update->whichflag == 2)
-    int ignore = update->minimize->request(this,1,0.01);
+    update->minimize->request(this,1,0.01);
 
   // make sure to use the appropriate timestep when using real units
 
@@ -878,7 +878,7 @@ void PairEffCut::init_style()
 
   // need a half neigh list and optionally a granular history neigh list
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 }
 
 /* ----------------------------------------------------------------------

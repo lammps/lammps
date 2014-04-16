@@ -26,6 +26,8 @@ namespace LAMMPS_NS {
 
 class DumpCFG : public DumpCustom {
  public:
+  int multifile_override;          // used by write_dump command
+
   DumpCFG(class LAMMPS *, int, char **);
   virtual ~DumpCFG();
 

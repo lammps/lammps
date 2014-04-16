@@ -72,6 +72,9 @@ void WriteDump::command(int narg, char **arg)
   if (strcmp(arg[1],"image") == 0) 
     ((DumpImage *) dump)->multifile_override = 1;
 
+  if (strcmp(arg[1],"cfg") == 0)
+    ((DumpCFG *) dump)->multifile_override = 1;
+
   dump->init();
   dump->write();
 

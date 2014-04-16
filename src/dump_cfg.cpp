@@ -44,6 +44,8 @@ enum{INT,DOUBLE,STRING,BIGINT};   // same as in DumpCustom
 DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
   DumpCustom(lmp, narg, arg)
 {
+  multifile_override = 0;
+
   if (narg < 10 ||
       strcmp(arg[5],"mass") != 0 || strcmp(arg[6],"type") != 0 ||
       (strcmp(arg[7],"xs") != 0 && strcmp(arg[7],"xsu") != 0) ||
@@ -115,7 +117,7 @@ DumpCFG::~DumpCFG()
 
 void DumpCFG::init_style()
 {
-  if (multifile == 0) 
+  if (multifile == 0 && !multifile_override)
     error->all(FLERR,"Dump cfg requires one snapshot per file");
 
   DumpCustom::init_style();

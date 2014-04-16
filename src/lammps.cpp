@@ -95,6 +95,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int wdfirst,wdlast;
   int kkfirst,kklast;
 
+#if 0
   // read .lammpsrc in home and current directory for overriding defaults
 
   const char *rcpath;
@@ -143,6 +144,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       homepath = NULL;
     }
   } while(rcpath != rcname);
+#endif
 
   // parsing command line flags
 

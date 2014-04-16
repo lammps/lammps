@@ -231,9 +231,8 @@ void PairPeriEPS::compute(int eflag, int vflag)
    
 
   // compute the dilatation on each particle
-
   compute_dilatation();
-
+  
   // communicate dilatation (theta) of each particle
   comm->forward_comm_pair(this);
 
@@ -347,7 +346,6 @@ void PairPeriEPS::compute(int eflag, int vflag)
               
       double deviatoric_extension = dr - (theta[i]* r0[i][jj] / 3.0);
       edpNp1 = deviatorPlasticextension[i][jj];
-
   
       double tdtrialValue = ( 15 * shearmodulus[itype][itype]) *
         ( (omega_plus / wvolume[i]) + (omega_minus / wvolume[j]) ) * 
@@ -378,9 +376,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
 
       // since I-J is double counted, set newton off & use 1/2 factor and I,I
 
-      if (eflag) evdwl =  (0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) *
-                    omega_plus * deviatoric_extension * deviatoric_extension) + 
-                    (0.5 * 15 * (shearmodulus[itype][itype]/wvolume[i]) *
+      if (eflag) evdwl =  (0.5 * 15 * shearmodulus[itype][itype]/wvolume[i] *
                        omega_plus * (deviatoric_extension - edpNp1) * 
                       (deviatoric_extension-edpNp1)) * vfrac[j] * vfrac_scale;
       if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,
@@ -402,7 +398,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
                          (alpha[itype][jtype] * stretch));
 
       first = false;
-    }
+    }    
   }
 
   // store new s0
@@ -415,8 +411,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
          double temp_data = deviatorPlasticExtTemp[i][jj];
          deviatorPlasticextension[i][jj] = temp_data;
       }
-  }    
-         
+  }            
 }
 
 /* ----------------------------------------------------------------------

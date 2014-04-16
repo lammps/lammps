@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class PairPeriLPS : public Pair {
  public:
   double *theta;
+  double *elastic_energy;
 
   PairPeriLPS(class LAMMPS *);
   virtual ~PairPeriLPS();

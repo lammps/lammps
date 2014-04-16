@@ -90,27 +90,23 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   random = new RanMars(lmp,seed + me);
 
   // set comm sizes needed by this fix
-  // forward is big due to comm of 1-2 neighbors
+  // forward is big due to comm of broken bonds and 1-2 neighbors
 
-  comm_forward = MAX(2,1+atom->maxspecial);
+  comm_forward = MAX(2,2+atom->maxspecial);
   comm_reverse = 2;
 
   // allocate arrays local to this fix
 
   nmax = 0;
-  partner = NULL;
+  partner = finalpartner = NULL;
   distsq = NULL;
 
-  maxbreak = maxbreakall = 0;
-  broken = brokenall = NULL;
-  inbuf = NULL;
+  maxbreak = 0;
+  broken = NULL;
 
   maxinfluenced = 0;
   influenced = NULL;
   
-  recvcounts = NULL;
-  displs = NULL;
-
   // copy = special list for one atom
   // may contain 1-2 neighs of all 1-3 neighs before dedup() shrinks it
 
@@ -132,13 +128,10 @@ FixBondBreak::~FixBondBreak()
   // delete locally stored arrays
 
   memory->destroy(partner);
+  memory->destroy(finalpartner);
   memory->destroy(distsq);
   memory->destroy(broken);
-  memory->destroy(brokenall);
-  memory->destroy(inbuf);
   memory->destroy(influenced);
-  memory->destroy(recvcounts);
-  memory->destroy(displs);
   delete [] copy;
 }
 
@@ -159,23 +152,13 @@ void FixBondBreak::init()
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  // commextent = 3*bondcutoff
-  // use 3 b/c 4 atom in 1-2-3-4 needs to know 1-2 bond has broken
-  // and that info could be known by atom 1 with 
-  // atom 1 on one proc and atoms 2,3,4 on the other proc
-  // using "cutoff" as bond length is a guesstimate of what's OK
-  // see NOTE below for possible issues with this
-
-  commextent = 3.0*cutoff;
-
-  // improper class2 and ring styles not allowed for now
-  // due to different ordering of improper topology (not atom I centric)
-
   if (force->improper) {
     if (force->improper_match("class2") || force->improper_match("ring"))
       error->all(FLERR,"Cannot yet use fix bond/break with this "
                  "improper style");
   }
+
+  lastcheck = -1;
 
   // DEBUG
   // print_bb();
@@ -191,7 +174,13 @@ void FixBondBreak::post_integrate()
 
   if (update->ntimestep % nevery) return;
 
-  // need updated ghost atom positions
+  // check that all procs have needed ghost atoms within ghost cutoff
+  // only if neighbor list has changed since last check
+
+  if (lastcheck < neighbor->lastcall) check_ghosts();
+
+  // acquire updated ghost atom positions
+  // necessary b/c are calling this after integrate, but before Verlet comm
 
   comm->forward_comm();
 
@@ -201,9 +190,11 @@ void FixBondBreak::post_integrate()
 
   if (atom->nmax > nmax) {
     memory->destroy(partner);
+    memory->destroy(finalpartner);
     memory->destroy(distsq);
     nmax = atom->nmax;
     memory->create(partner,nmax,"bond/break:partner");
+    memory->create(finalpartner,nmax,"bond/break:finalpartner");
     memory->create(distsq,nmax,"bond/break:distsq");
     probability = distsq;
   }
@@ -213,6 +204,7 @@ void FixBondBreak::post_integrate()
 
   for (i = 0; i < nall; i++) {
     partner[i] = 0;
+    finalpartner[i] = 0;
     distsq[i] = 0.0;
   }
 
@@ -306,7 +298,7 @@ void FixBondBreak::post_integrate()
     }
 
     // remove J from special bond list for atom I
-    // atom J will also do this
+    // atom J will also do this, whatever proc it is on
 
     slist = special[i];
     n1 = nspecial[i][0];
@@ -318,18 +310,11 @@ void FixBondBreak::post_integrate()
     nspecial[i][1]--;
     nspecial[i][2]--;
 
-    // count the broken bond once and store in broken list
+    // store final broken bond partners and count the broken bond once
 
-    if (tag[i] < tag[j]) {
-      if (nbreak == maxbreak) {
-        maxbreak += DELTA;
-        memory->grow(broken,maxbreak,2,"bond/break:broken");
-        memory->grow(inbuf,2*maxbreak,"bond/break:inbuf");
-      }
-      broken[nbreak][0] = tag[i];
-      broken[nbreak][1] = tag[j];
-      nbreak++;
-    }
+    finalpartner[i] = tag[j];
+    finalpartner[j] = tag[i];
+    if (tag[i] < tag[j]) nbreak++;
   }
 
   // tally stats
@@ -345,72 +330,33 @@ void FixBondBreak::post_integrate()
   if (breakcount) next_reneighbor = update->ntimestep;
   if (!breakcount) return;
 
-  // communicate broken bonds to procs that need them
-  // local comm via exchange_variable() if commextent < prob sub-domain
-  // else global comm via MPI_Allgatherv()
-  // NOTE: not fully happy with this test,
-  //   but want to avoid Allgather if at all possible
-  //   issue is there is no simple way to guarantee that local comm is OK
-  //   what is really needed is every 4 atom in 1-2-3-4 knows about 1-2 bond
-  //   this is hard to predict dynamically b/c current lengths of 2-3,3-4
-  //     bonds are not known
-  //   could use 3*(domain->maxbondall+BONDSTRETCH) for better estimate?
-  //   am not doing the local comm via ghost atoms, so ghost cutoff 
-  //     is irrelevant
-  //   this test is also for orthogonal boxes and equi-partitioning
-
-  double *outbuf;
-
-  int local = 1;
-  if (domain->xprd/comm->procgrid[0] < commextent) local = 0;
-  if (domain->yprd/comm->procgrid[1] < commextent) local = 0;
-  if (domain->dimension == 3 && domain->zprd/comm->procgrid[2] < commextent) 
-    local = 0;
-
-  if (local) {
-    m = 0;
-    for (i = 0; i < nbreak; i++) {
-      inbuf[m++] = broken[i][0];
-      inbuf[m++] = broken[i][1];
-    }
-    int ntotal = comm->exchange_variable(2*nbreak,inbuf,outbuf);
-    nbreakall = ntotal/2;
-  } else MPI_Allreduce(&nbreak,&nbreakall,1,MPI_INT,MPI_SUM,world);
-
-  if (nbreakall > maxbreakall) {
-    while (maxbreakall < nbreakall) maxbreakall += DELTA;
-    memory->destroy(brokenall);
-    memory->grow(brokenall,maxbreakall,2,"bond/break:brokenall");
-  }
-
-  if (local) {
-    m = 0;
-    for (i = 0; i < nbreakall; i++) {
-      brokenall[i][0] = static_cast<int> (outbuf[m++]);
-      brokenall[i][1] = static_cast<int> (outbuf[m++]);
-    }
-  } else {
-    if (!recvcounts) {
-      memory->create(recvcounts,nprocs,"bond/break:recvcounts");
-      memory->create(displs,nprocs,"bond/break:displs");
-    }
-    int n = 2*nbreak;
-    MPI_Allgather(&n,1,MPI_INT,recvcounts,1,MPI_INT,world);
-    displs[0] = 0;
-    for (int iproc = 1; iproc < nprocs; iproc++)
-    displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
-
-    int *ptr = NULL;
-    if (nbreak) ptr = &broken[0][0];
-    MPI_Allgatherv(ptr,2*nbreak,MPI_INT,
-                   &brokenall[0][0],recvcounts,displs,MPI_INT,world);
-  }
-
-  // communicate 1-2 special neighs of ghost atoms
+  // communicate final partner and 1-2 special neighbors
   // 1-2 neighs already reflect broken bonds
 
   commflag = 2;
   comm->forward_comm_variable_fix(this);
+
+  // create list of broken bonds that influence my owned atoms
+  //   even if between owned-ghost or ghost-ghost atoms
+  // finalpartner is now set for owned and ghost atoms so loop over nall
+  // OK if duplicates in broken list due to ghosts duplicating owned atoms
+  // check J < 0 to insure a broken bond to unknown atom is included
+  //   i.e. bond partner outside of cutoff length
+
+  nbreak = 0;
+  for (i = 0; i < nall; i++) {
+    if (finalpartner[i] == 0) continue;
+    j = atom->map(finalpartner[i]);
+    if (j < 0 || tag[i] < tag[j]) {
+      if (nbreak == maxbreak) {
+        maxbreak += DELTA;
+        memory->grow(broken,maxbreak,2,"bond/break:broken");
+      }
+      broken[nbreak][0] = tag[i];
+      broken[nbreak][1] = finalpartner[i];
+      nbreak++;
+    }
+  }
 
   // update special neigh lists of all atoms affected by any broken bond
   // also remove angles/dihedrals/impropers broken by broken bonds
@@ -419,6 +365,38 @@ void FixBondBreak::post_integrate()
 
   // DEBUG
   // print_bb();
+}
+
+/* ----------------------------------------------------------------------
+   insure all atoms 2 hops away from owned atoms are in ghost list
+   this allows dihedral 1-2-3-4 to be properly deleted
+     and special list of 1 to be properly updated
+   if I own atom 1, but not 2,3,4, and bond 3-4 is deleted
+     then 2,3 will be ghosts and 3 will store 4 as its finalpartner
+------------------------------------------------------------------------- */
+
+void FixBondBreak::check_ghosts()
+{
+  int i,j,n;
+  tagint *slist;
+
+  int **nspecial = atom->nspecial;
+  int **special = atom->special;
+  int nlocal = atom->nlocal;
+
+  int flag = 0;
+  for (i = 0; i < nlocal; i++) {
+    slist = special[i];
+    n = nspecial[i][1];
+    for (j = 0; j < n; j++)
+      if (atom->map(slist[j]) < 0) flag = 1;
+  }
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) 
+    error->all(FLERR,"Fix bond/break needs ghost atoms from further away");
+  lastcheck = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------
@@ -461,9 +439,9 @@ void FixBondBreak::update_topology()
     influenced[i] = 0;
     slist = special[i];
 
-    for (j = 0; j < nbreakall; j++) {
-      id1 = brokenall[j][0];
-      id2 = brokenall[j][1];
+    for (j = 0; j < nbreak; j++) {
+      id1 = broken[j][0];
+      id2 = broken[j][1];
 
       influence = 0;
       if (tag[i] == id1 || tag[i] == id2) influence = 1;
@@ -503,13 +481,139 @@ void FixBondBreak::update_topology()
   }
 
   for (i = 0; i < nlocal; i++)
-    if (influenced[i]) rebuild_special(i,id1,id2);
+    if (influenced[i]) rebuild_special(i);
 }
 
 /* ----------------------------------------------------------------------
+   break any angles owned by atom M that include atom IDs 1 and 2
+   angle is broken if ID1-ID2 is one of 2 bonds in linear angle
 ------------------------------------------------------------------------- */
 
-void FixBondBreak::rebuild_special(int m, tagint id1, tagint id2)
+void FixBondBreak::break_angles(int m, tagint id1, tagint id2)
+{
+  int j,found;
+
+  int num_angle = atom->num_angle[m];
+  int *angle_type = atom->angle_type[m];
+  tagint *angle_atom1 = atom->angle_atom1[m];
+  tagint *angle_atom2 = atom->angle_atom2[m];
+  tagint *angle_atom3 = atom->angle_atom3[m];
+
+  int i = 0;
+  while (i < num_angle) {
+    found = 0;
+    if (angle_atom1[i] == id1 && angle_atom2[i] == id2) found = 1;
+    else if (angle_atom2[i] == id1 && angle_atom3[i] == id2) found = 1;
+    else if (angle_atom1[i] == id2 && angle_atom2[i] == id1) found = 1;
+    else if (angle_atom2[i] == id2 && angle_atom3[i] == id1) found = 1;
+    if (!found) i++;
+    else {
+      for (j = i; j < num_angle-1; j++) {
+        angle_type[j] = angle_type[j+1];
+        angle_atom1[j] = angle_atom1[j+1];
+        angle_atom2[j] = angle_atom2[j+1];
+        angle_atom3[j] = angle_atom3[j+1];
+      }
+      num_angle--;
+      nangles++;
+    }
+  }
+
+  atom->num_angle[m] = num_angle;
+}
+
+/* ----------------------------------------------------------------------
+   break any dihedrals owned by atom M that include atom IDs 1,2,3
+   dihedral is broken if ID1-ID2 is one of 3 bonds in linear dihedral
+------------------------------------------------------------------------- */
+
+void FixBondBreak::break_dihedrals(int m, tagint id1, tagint id2)
+{
+  int j,found;
+
+  int num_dihedral = atom->num_dihedral[m];
+  int *dihedral_type = atom->dihedral_type[m];
+  tagint *dihedral_atom1 = atom->dihedral_atom1[m];
+  tagint *dihedral_atom2 = atom->dihedral_atom2[m];
+  tagint *dihedral_atom3 = atom->dihedral_atom3[m];
+  tagint *dihedral_atom4 = atom->dihedral_atom4[m];
+
+  int i = 0;
+  while (i < num_dihedral) {
+    found = 0;
+    if (dihedral_atom1[i] == id1 && dihedral_atom2[i] == id2) found = 1;
+    else if (dihedral_atom2[i] == id1 && dihedral_atom3[i] == id2) found = 1;
+    else if (dihedral_atom3[i] == id1 && dihedral_atom4[i] == id2) found = 1;
+    else if (dihedral_atom1[i] == id2 && dihedral_atom2[i] == id1) found = 1;
+    else if (dihedral_atom2[i] == id2 && dihedral_atom3[i] == id1) found = 1;
+    else if (dihedral_atom3[i] == id2 && dihedral_atom4[i] == id1) found = 1;
+    if (!found) i++;
+    else {
+      for (j = i; j < num_dihedral-1; j++) {
+        dihedral_type[j] = dihedral_type[j+1];
+        dihedral_atom1[j] = dihedral_atom1[j+1];
+        dihedral_atom2[j] = dihedral_atom2[j+1];
+        dihedral_atom3[j] = dihedral_atom3[j+1];
+        dihedral_atom4[j] = dihedral_atom4[j+1];
+      }
+      num_dihedral--;
+      ndihedrals++;
+    }
+  }
+
+  atom->num_dihedral[m] = num_dihedral;
+}
+
+/* ----------------------------------------------------------------------
+   break any impropers owned by atom M that include atom IDs 1,2,3
+   improper is broken if ID1-ID2 is one of 3 bonds in improper (I-J,I-K,I-L)
+------------------------------------------------------------------------- */
+
+void FixBondBreak::break_impropers(int m, tagint id1, tagint id2)
+{
+  int j,found;
+
+  int num_improper = atom->num_improper[m];
+  int *improper_type = atom->improper_type[m];
+  tagint *improper_atom1 = atom->improper_atom1[m];
+  tagint *improper_atom2 = atom->improper_atom2[m];
+  tagint *improper_atom3 = atom->improper_atom3[m];
+  tagint *improper_atom4 = atom->improper_atom4[m];
+
+  int i = 0;
+  while (i < num_improper) {
+    found = 0;
+    if (improper_atom1[i] == id1 && improper_atom2[i] == id2) found = 1;
+    else if (improper_atom1[i] == id1 && improper_atom3[i] == id2) found = 1;
+    else if (improper_atom1[i] == id1 && improper_atom4[i] == id2) found = 1;
+    else if (improper_atom1[i] == id2 && improper_atom2[i] == id1) found = 1;
+    else if (improper_atom1[i] == id2 && improper_atom3[i] == id1) found = 1;
+    else if (improper_atom1[i] == id2 && improper_atom4[i] == id1) found = 1;
+    if (!found) i++;
+    else {
+      for (j = i; j < num_improper-1; j++) {
+        improper_type[j] = improper_type[j+1];
+        improper_atom1[j] = improper_atom1[j+1];
+        improper_atom2[j] = improper_atom2[j+1];
+        improper_atom3[j] = improper_atom3[j+1];
+        improper_atom4[j] = improper_atom4[j+1];
+      }
+      num_improper--;
+      nimpropers++;
+    }
+  }
+
+  atom->num_improper[m] = num_improper;
+}
+
+
+/* ----------------------------------------------------------------------
+   re-build special list of atom M due to bond ID1-ID2 being formed
+   does not affect 1-2 neighs (already include effects of new bond)
+   may affect 1-3 and 1-4 bonds
+------------------------------------------------------------------------- */
+
+void FixBondBreak::rebuild_special(int m)
 {
   int i,j,n,n1,cn1,cn2,cn3;
   tagint *slist;
@@ -562,122 +666,6 @@ void FixBondBreak::rebuild_special(int m, tagint id1, tagint id2)
   nspecial[m][1] = cn2;
   nspecial[m][2] = cn3;
   memcpy(special[m],copy,cn3*sizeof(int));
-}
-
-/* ----------------------------------------------------------------------
-------------------------------------------------------------------------- */
-
-void FixBondBreak::break_angles(int m, tagint id1, tagint id2)
-{
-  int j,found;
-
-  int num_angle = atom->num_angle[m];
-  int *angle_type = atom->angle_type[m];
-  tagint *angle_atom1 = atom->angle_atom1[m];
-  tagint *angle_atom2 = atom->angle_atom2[m];
-  tagint *angle_atom3 = atom->angle_atom3[m];
-
-  int i = 0;
-  while (i < num_angle) {
-    found = 0;
-    if (angle_atom1[i] == id1 && angle_atom2[i] == id2) found = 1;
-    else if (angle_atom2[i] == id1 && angle_atom3[i] == id2) found = 1;
-    else if (angle_atom1[i] == id2 && angle_atom2[i] == id1) found = 1;
-    else if (angle_atom2[i] == id2 && angle_atom3[i] == id1) found = 1;
-    if (!found) i++;
-    else {
-      for (j = i; j < num_angle-1; j++) {
-        angle_type[j] = angle_type[j+1];
-        angle_atom1[j] = angle_atom1[j+1];
-        angle_atom2[j] = angle_atom2[j+1];
-        angle_atom3[j] = angle_atom3[j+1];
-      }
-      num_angle--;
-      nangles++;
-    }
-  }
-
-  atom->num_angle[m] = num_angle;
-}
-
-/* ----------------------------------------------------------------------
-------------------------------------------------------------------------- */
-
-void FixBondBreak::break_dihedrals(int m, tagint id1, tagint id2)
-{
-  int j,found;
-
-  int num_dihedral = atom->num_dihedral[m];
-  int *dihedral_type = atom->dihedral_type[m];
-  tagint *dihedral_atom1 = atom->dihedral_atom1[m];
-  tagint *dihedral_atom2 = atom->dihedral_atom2[m];
-  tagint *dihedral_atom3 = atom->dihedral_atom3[m];
-  tagint *dihedral_atom4 = atom->dihedral_atom4[m];
-
-  int i = 0;
-  while (i < num_dihedral) {
-    found = 0;
-    if (dihedral_atom1[i] == id1 && dihedral_atom2[i] == id2) found = 1;
-    else if (dihedral_atom2[i] == id1 && dihedral_atom3[i] == id2) found = 1;
-    else if (dihedral_atom3[i] == id1 && dihedral_atom4[i] == id2) found = 1;
-    else if (dihedral_atom1[i] == id2 && dihedral_atom2[i] == id1) found = 1;
-    else if (dihedral_atom2[i] == id2 && dihedral_atom3[i] == id1) found = 1;
-    else if (dihedral_atom3[i] == id2 && dihedral_atom4[i] == id1) found = 1;
-    if (!found) i++;
-    else {
-      for (j = i; j < num_dihedral-1; j++) {
-        dihedral_type[j] = dihedral_type[j+1];
-        dihedral_atom1[j] = dihedral_atom1[j+1];
-        dihedral_atom2[j] = dihedral_atom2[j+1];
-        dihedral_atom3[j] = dihedral_atom3[j+1];
-        dihedral_atom4[j] = dihedral_atom4[j+1];
-      }
-      num_dihedral--;
-      ndihedrals++;
-    }
-  }
-
-  atom->num_dihedral[m] = num_dihedral;
-}
-
-/* ----------------------------------------------------------------------
-------------------------------------------------------------------------- */
-
-void FixBondBreak::break_impropers(int m, tagint id1, tagint id2)
-{
-  int j,found;
-
-  int num_improper = atom->num_improper[m];
-  int *improper_type = atom->improper_type[m];
-  tagint *improper_atom1 = atom->improper_atom1[m];
-  tagint *improper_atom2 = atom->improper_atom2[m];
-  tagint *improper_atom3 = atom->improper_atom3[m];
-  tagint *improper_atom4 = atom->improper_atom4[m];
-
-  int i = 0;
-  while (i < num_improper) {
-    found = 0;
-    if (improper_atom1[i] == id1 && improper_atom2[i] == id2) found = 1;
-    else if (improper_atom1[i] == id1 && improper_atom3[i] == id2) found = 1;
-    else if (improper_atom1[i] == id1 && improper_atom4[i] == id2) found = 1;
-    else if (improper_atom1[i] == id2 && improper_atom2[i] == id1) found = 1;
-    else if (improper_atom1[i] == id2 && improper_atom3[i] == id1) found = 1;
-    else if (improper_atom1[i] == id2 && improper_atom4[i] == id1) found = 1;
-    if (!found) i++;
-    else {
-      for (j = i; j < num_improper-1; j++) {
-        improper_type[j] = improper_type[j+1];
-        improper_atom1[j] = improper_atom1[j+1];
-        improper_atom2[j] = improper_atom2[j+1];
-        improper_atom3[j] = improper_atom3[j+1];
-        improper_atom4[j] = improper_atom4[j+1];
-      }
-      num_improper--;
-      nimpropers++;
-    }
-  }
-
-  atom->num_improper[m] = num_improper;
 }
 
 /* ----------------------------------------------------------------------
@@ -734,6 +722,7 @@ int FixBondBreak::pack_comm(int n, int *list, double *buf,
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
+    buf[m++] = ubuf(finalpartner[j]).d;
     ns = nspecial[j][0];
     buf[m++] = ubuf(ns).d;
     for (k = 0; k < ns; k++)
@@ -764,6 +753,7 @@ void FixBondBreak::unpack_comm(int n, int first, double *buf)
     m = 0;
     last = first + n;
     for (i = first; i < last; i++) {
+      finalpartner[i] = (tagint) ubuf(buf[m++]).i;
       ns = (int) ubuf(buf[m++]).i;
       nspecial[i][0] = ns;
       for (j = 0; j < ns; j++)
@@ -861,7 +851,7 @@ double FixBondBreak::compute_vector(int n)
 double FixBondBreak::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(tagint);
+  double bytes = 2*nmax * sizeof(tagint);
   bytes += nmax * sizeof(double);
   bytes += maxinfluenced * sizeof(int);
   return bytes;

@@ -73,7 +73,9 @@ eligible bond is only broken if the random number < fraction.
 When a bond is broken, data structures within LAMMPS that store bond
 topology are updated to reflect the breakage.  Likewise, if the bond
 is part of a 3-body (angle) or 4-body (dihedral, improper)
-interaction, that interaction is removed as well.
+interaction, that interaction is removed as well.  These changes
+typically affect pairwise interactions between atoms that used to be
+part of bonds, angles, etc.
 
 Computationally, each timestep this fix operates, it loops over all
 the bonds in the system and computes distances between pairs of bonded
@@ -97,7 +99,7 @@ very stiff harmonic bond and break it when 2 atoms are separated by a
 distance far from the equilibribum bond length, then the 2 atoms will
 be dramatically released when the bond is broken.  More generally, you
 may need to thermostat your system to compensate for energy changes
-resulting from broken bonds.
+resulting from broken bonds (and angles, dihedrals, impropers).
 
 :line
 

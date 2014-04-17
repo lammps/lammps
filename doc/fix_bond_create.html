@@ -29,7 +29,7 @@
 
 <LI>zero or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>iparam</I> or <I>jparam</I> or <I>prob</I> 
+<LI>keyword = <I>iparam</I> or <I>jparam</I> or <I>prob</I> or <I>atype</I> or <I>dtype</I> or <I>itype</I> 
 
 <PRE>  <I>iparam</I> values = maxbond, newtype
     maxbond = max # of bonds of bondtype the itype atom can have
@@ -39,14 +39,21 @@
     newtype = change the jtype atom to this type when maxbonds exist
   <I>prob</I> values = fraction seed
     fraction = create a bond with this probability if otherwise eligible
-    seed = random number seed (positive integer) 
+    seed = random number seed (positive integer)
+  <I>atype</I> value = angletype
+    angletype = type of created angles
+  <I>dtype</I> value = dihedraltype
+    dihedraltype = type of created dihedrals
+  <I>itype</I> value = impropertype
+    impropertype = type of created impropers 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix 5 all bond/create 10 1 2 0.8 1
-fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3 
+fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3
+fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3 atype 1 dtype 2 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -55,11 +62,16 @@ specified criteria.  This can be used to model cross-linking of
 polymers, the formation of a percolation network, etc.  In this
 context, a bond means an interaction between a pair of atoms computed
 by the <A HREF = "bond_style.html">bond_style</A> command.  Once the bond is created
-it will be permanently in place.  This is different than a
-<A HREF = "pair_style.html">pairwise</A> bond-order potential such as Tersoff or
-AIREBO which infers bonds and many-body interactions based on the
-current geometry of a small cluster of atoms and effectively creates
-and destroys bonds from timestep to timestep as atoms move.
+it will be permanently in place.  Optionally, the creation of a bond
+can also create angle, dihedral, and improper interactions that bond
+is part of.  See the discussion of the <I>atype</I>, <I>dtype</I>, and <I>itype</I>
+keywords below.
+</P>
+<P>This is different than a <A HREF = "pair_style.html">pairwise</A> bond-order
+potential such as Tersoff or AIREBO which infers bonds and many-body
+interactions based on the current geometry of a small cluster of atoms
+and effectively creates and destroys bonds and higher-order many-body
+interactions from timestep to timestep as atoms move.
 </P>
 <P>A check for possible new bonds is performed every <I>Nevery</I> timesteps.
 If two atoms I,J are within a distance <I>Rmin</I> of each other, if I is
@@ -106,22 +118,37 @@ actually created.  The <I>fraction</I> setting must be a value between 0.0
 and 1.0.  A uniform random number between 0.0 and 1.0 is generated and
 the eligible bond is only created if the random number < fraction.
 </P>
-<P>Any bond that is created is assigned a bond type of <I>bondtype</I>.  Data
-structures within LAMMPS that store bond topology are updated to
-reflect the new bond.  This can also affect subsequent computation of
-pairwise interactions involving the atoms in the bond.  See the
-Restriction section below for additional information.
+<P>Any bond that is created is assigned a bond type of <I>bondtype</I>
+</P>
+<P>When a bond is created, data structures within LAMMPS that store bond
+topology are updated to reflect the creation.  If the bond is part of
+new 3-body (angle) or 4-body (dihedral, improper) interactions, you
+can choose to create new angles, dihedrals, impropers as well, using
+the <I>atype</I>, <I>dtype</I>, and <I>itype</I> keywords.  All of these changes
+typically affect pairwise interactions between atoms that are now part
+of new bonds, angles, etc.
+</P>
+<P>If the <I>atype</I> keyword is used and if an angle potential is defined
+via the <A HREF = "angle.html">angle_style</A> command, then any new 3-body
+interactions inferred by the creation of a bond will create new angles
+of type <I>angletype</I>, with parameters assigned by the corresponding
+<A HREF = "angle_coeff.html">angle_coeff</A> command.  Likewise, the <I>dtype</I> and
+<I>itype</I> keywords will create new dihedrals and impropers of type
+<I>dihedraltype</I> and <I>impropertype</I>.
 </P>
 <P>IMPORTANT NOTE: To create a new bond, the internal LAMMPS data
 structures that store this information must have space for it.  When
 LAMMPS is initialized from a data file, the list of bonds is scanned
 and the maximum number of bonds per atom is tallied.  If some atom
 will acquire more bonds than this limit as this fix operates, then the
-"extra bond per atom" parameter must be set to allow for it.  See the
-<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command for
-more details.  Note that a data file with no atoms can be used if you
-wish to add unbonded atoms via the <A HREF = "create_atoms.html">create atoms</A>
-command, e.g. for a percolation simulation.
+"extra bond per atom" parameter must be set to allow for it.  Ditto
+for "extra angle per atom", "extra dihedral per atom", and "extra
+improper per atom" if angles, dihedrals, or impropers are being added
+when bonds are created.  See the <A HREF = "read_data.html">read_data</A> or
+<A HREF = "create_box.html">create_box</A> command for more details.  Note that a
+data file with no atoms can be used if you wish to add unbonded atoms
+via the <A HREF = "create_atoms.html">create atoms</A> command, e.g. for a
+percolation simulation.
 </P>
 <P>IMPORTANT NOTE: LAMMPS also maintains a data structure that stores a
 list of 1st, 2nd, and 3rd neighbors of each atom (within the bond
@@ -143,9 +170,14 @@ specified for the new types.
 <P>Computationally, each timestep this fix operates, it loops over
 neighbor lists and computes distances between pairs of atoms in the
 list.  It also communicates between neighboring processors to
-coordinate which bonds are created.  Thus it roughly doubles the cost
-of a timestep.  Thus you should be cautious about invoking this fix
-too frequently.
+coordinate which bonds are created.  Moreover, if any bonds are
+created, neighbor lists must be immediately updated on the same
+timestep.  This is to insure that any pairwise interactions that
+should be turned "off" due to a bond creation, because they are now
+excluded by the presence of the bond and the settings of the
+<A HREF = "special_bonds.html">special_bonds</A> command, will be immediately
+recognized.  All of these operations increase the cost of a timestep.
+Thus you should be cautious about invoking this fix too frequently.
 </P>
 <P>You can dump out snapshots of the current bond topology via the <A HREF = "dump.html">dump
 local</A> command.
@@ -157,7 +189,7 @@ very stiff harmonic bond and create it when 2 atoms are separated by a
 distance far from the equilibribum bond length, then the 2 atoms will
 oscillate dramatically when the bond is formed.  More generally, you
 may need to thermostat your system to compensate for energy changes
-resulting from created bonds.
+resulting from created bonds (and angles, dihedrals, impropers).
 </P>
 <HR>
 
@@ -186,22 +218,6 @@ minimization</A>.
 <P>This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
-</P>
-<P>Currently, there are 2 restrictions for using this fix.  We may relax
-these in the future if there are new models that would be enabled by
-it.
-</P>
-<P>When a bond is created, you might wish to induce new angle and
-dihedral interactions that include that bond.  However, LAMMPS does
-not create these angles and dihedrals, even if your simulation defines
-an <A HREF = "angle_style.html">angle_style</A> or
-<A HREF = "dihedral_style.html">dihedral_style</A>.
-</P>
-<P>This fix requires that the pairwise weightings defined by the
-<A HREF = "special_bonds.html">special_bonds</A> command be *,1,1 for 1-3 and 1-4
-neighbors within the bond topology (the 1-2 setting is not
-restricted).  This means that the pairwise interaction of I with J's
-other bond partners is unaffected by the creation of a new bond.
 </P>
 <P><B>Related commands:</B>
 </P>

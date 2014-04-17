@@ -44,6 +44,7 @@ class FixBondBreak : public Fix {
   int me,nprocs;
   int btype,seed;
   double cutoff,cutsq,fraction;
+  int angleflag,dihedralflag,improperflag;
   tagint lastcheck;
 
   int breakcount,breakcounttotal;
@@ -54,8 +55,6 @@ class FixBondBreak : public Fix {
   int nbreak,maxbreak;
   tagint **broken;
 
-  int maxinfluenced;
-  int *influenced;
   tagint *copy;
 
   class RanMars *random;

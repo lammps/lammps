@@ -1,1 +1,1 @@
-#define LAMMPS_VERSION "12 Apr 2014"
+#define LAMMPS_VERSION "16 Apr 2014"

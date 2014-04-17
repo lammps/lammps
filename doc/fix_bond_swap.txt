@@ -49,9 +49,9 @@ respectively within their own chains.  The bond swap operation will
 attempt to delete the A1-A2 and B1-B2 bonds and replace them with
 A1-B2 and B1-A2 bonds.  If the swap is energetically favorable, the
 two chains on the right are the result and each polymer chain has
-undergone a dramatic conformational change.  This reference provides
-more details on how the algorithm works and its application:
-"(Sides)"_#Sides.
+undergone a dramatic conformational change.  This reference,
+"(Sides)"_#Sides provides more details on how the algorithm works and
+its application:
 
 The bond swapping operation is invoked every {Nevery} timesteps.  If
 any bond is swapped, a re-build of the neighbor lists is triggered,
@@ -98,8 +98,8 @@ where all monomers on a single chain are assigned the same ID
 (different for each chain), then swaps will only occur within the same
 chain.  If you assign the same molecule ID to all monomers in all
 chains then inter-chain swaps will occur, but they will not conserve
-chain length.  Neither of these scenarios is probably not what you
-want for this fix.
+chain length.  Neither of these scenarios is probably what you want
+for this fix.
 
 IMPORTANT NOTE: When a bond swap occurs the image flags of monomers in
 the new polymer chains can become inconsistent.  See the

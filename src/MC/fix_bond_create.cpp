@@ -19,6 +19,7 @@
 #include "update.h"
 #include "respa.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "pair.h"
 #include "comm.h"
@@ -33,6 +34,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define BIG 1.0e20
+#define DELTA 16
 
 /* ---------------------------------------------------------------------- */
 
@@ -75,6 +77,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   jnewtype = jatomtype;
   fraction = 1.0;
   int seed = 12345;
+  atype = dtype = itype = 0;
 
   int iarg = 8;
   while (iarg < narg) {
@@ -102,6 +105,21 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal fix bond/create command");
       if (seed <= 0) error->all(FLERR,"Illegal fix bond/create command");
       iarg += 3;
+    } else if (strcmp(arg[iarg],"atype") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      atype = force->inumeric(FLERR,arg[iarg+1]);
+      if (atype < 0) error->all(FLERR,"Illegal fix bond/create command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"dtype") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      dtype = force->inumeric(FLERR,arg[iarg+1]);
+      if (dtype < 0) error->all(FLERR,"Illegal fix bond/create command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"itype") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      itype = force->inumeric(FLERR,arg[iarg+1]);
+      if (itype < 0) error->all(FLERR,"Illegal fix bond/create command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix bond/create command");
   }
 
@@ -128,15 +146,28 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   countflag = 0;
 
   // set comm sizes needed by this fix
+  // forward is big due to comm of broken bonds and 1-2 neighbors
 
-  comm_forward = 2;
+  comm_forward = MAX(2,2+atom->maxspecial);
   comm_reverse = 2;
 
   // allocate arrays local to this fix
 
   nmax = 0;
-  partner = NULL;
+  partner = finalpartner = NULL;
   distsq = NULL;
+
+  maxcreate = 0;
+  created = NULL;
+
+  // copy = special list for one atom
+  // size = ms^2 + ms is sufficient
+  // b/c in rebuild_special() neighs of all 1-2s are added,
+  //   then a dedup(), then neighs of all 1-3s are added, then final dedup()
+  // this means intermediate size cannot exceed ms^2 + ms
+
+  int maxspecial = atom->maxspecial;
+  copy = new tagint[maxspecial*maxspecial + maxspecial];
 
   // zero out stats
 
@@ -158,7 +189,10 @@ FixBondCreate::~FixBondCreate()
 
   memory->destroy(bondcount);
   memory->destroy(partner);
+  memory->destroy(finalpartner);
   memory->destroy(distsq);
+  memory->destroy(created);
+  delete [] copy;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -175,29 +209,39 @@ int FixBondCreate::setmask()
 
 void FixBondCreate::init()
 {
+  if (strstr(update->integrate_style,"respa"))
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+
   // check cutoff for iatomtype,jatomtype
 
   if (force->pair == NULL || cutsq > force->pair->cutsq[iatomtype][jatomtype])
     error->all(FLERR,"Fix bond/create cutoff is longer than pairwise cutoff");
 
-  // require special bonds = *,1,1
-  // [0] can be anything b/c duplicate bond is checked for
-  // [1],[2] must be 1.0 b/c only special lists of I,J are updated when
-  //   bond I-J is created, not special lists of neighbors of I,J,etc
+  // enable angle/dihedral/improper creation if atype/dtype/itype
+  //   option was used and a force field has been specified
 
-  if (force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
-    error->all(FLERR,"Fix bond/create requires special_bonds lj = *,1,1");
+  if (atype && force->angle) {
+    angleflag = 1;
+    if (atype > atom->nangletypes) 
+      error->all(FLERR,"Fix bond/create angle type is invalid");
+  } else angleflag = 0;
 
-  if (atom->q_flag)
-    if (force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
-      error->all(FLERR,"Fix bond/create requires special_bonds coul = *,1,1");
+  if (dtype && force->dihedral) {
+    dihedralflag = 1;
+    if (dtype > atom->ndihedraltypes) 
+      error->all(FLERR,"Fix bond/create dihedral type is invalid");
+  } else dihedralflag = 0;
 
-  // warn if angles, dihedrals, impropers are being used
+  if (itype && force->improper) {
+    improperflag = 1;
+    if (itype > atom->nimpropertypes) 
+      error->all(FLERR,"Fix bond/create improper type is invalid");
+  } else improperflag = 0;
 
-  if (force->angle || force->dihedral || force->improper) {
-    if (me == 0)
-      error->warning(FLERR,"Created bonds will not create angles, "
-                     "dihedrals, or impropers");
+  if (force->improper) {
+    if (force->improper_match("class2") || force->improper_match("ring"))
+      error->all(FLERR,"Cannot yet use fix bond/create with this "
+                 "improper style");
   }
 
   // need a half neighbor list, built every Nevery steps
@@ -207,8 +251,7 @@ void FixBondCreate::init()
   neighbor->requests[irequest]->fix = 1;
   neighbor->requests[irequest]->occasional = 1;
 
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  lastcheck = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -225,7 +268,7 @@ void FixBondCreate::setup(int vflag)
   int i,j,m;
 
   // compute initial bondcount if this is first run
-  // can't do this earlier, like in constructor or init, b/c need ghost info
+  // can't do this earlier, in constructor or init, b/c need ghost info
 
   if (countflag) return;
   countflag = 1;
@@ -251,9 +294,9 @@ void FixBondCreate::setup(int vflag)
         bondcount[i]++;
         if (newton_bond) {
           m = atom->map(bond_atom[i][j]);
-          if (m < 0)
-            error->one(FLERR,
-                       "Could not count initial bonds in fix bond/create");
+          if (m < 0) 
+            error->one(FLERR,"Fix bond/create needs ghost atoms "
+                       "from further away");
           bondcount[m]++;
         }
       }
@@ -261,7 +304,7 @@ void FixBondCreate::setup(int vflag)
 
   // if newton_bond is set, need to sum bondcount
 
-  commflag = 0;
+  commflag = 1;
   if (newton_bond) comm->reverse_comm_fix(this);
 }
 
@@ -269,20 +312,30 @@ void FixBondCreate::setup(int vflag)
 
 void FixBondCreate::post_integrate()
 {
-  int i,j,k,m,ii,jj,inum,jnum,itype,jtype,n1,n3,possible;
+  int i,j,k,m,n,ii,jj,inum,jnum,itype,jtype,n1,n2,n3,possible;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   tagint *slist;
 
   if (update->ntimestep % nevery) return;
 
-  // need updated ghost atom positions
+  // check that all procs have needed ghost atoms within ghost cutoff
+  // only if neighbor list has changed since last check
+  // needs to be <= test b/c neighbor list could have been re-built in
+  //   same timestep as last post_integrate() call, but afterwards
+  // NOTE: no longer think is needed, due to error tests on atom->map()
+  // NOTE: if delete, can also delete lastcheck
+
+  //if (lastcheck <= neighbor->lastcall) check_ghosts();
+
+  // acquire updated ghost atom positions
+  // necessary b/c are calling this after integrate, but before Verlet comm
 
   comm->forward_comm();
 
   // forward comm of bondcount, so ghosts have it
 
-  commflag = 0;
+  commflag = 1;
   comm->forward_comm_fix(this);
 
   // resize bond partner list and initialize it
@@ -291,9 +344,11 @@ void FixBondCreate::post_integrate()
 
   if (atom->nmax > nmax) {
     memory->destroy(partner);
+    memory->destroy(finalpartner);
     memory->destroy(distsq);
     nmax = atom->nmax;
     memory->create(partner,nmax,"bond/create:partner");
+    memory->create(finalpartner,nmax,"bond/create:finalpartner");
     memory->create(distsq,nmax,"bond/create:distsq");
     probability = distsq;
   }
@@ -303,6 +358,7 @@ void FixBondCreate::post_integrate()
 
   for (i = 0; i < nall; i++) {
     partner[i] = 0;
+    finalpartner[i] = 0;
     distsq[i] = BIG;
   }
 
@@ -379,7 +435,7 @@ void FixBondCreate::post_integrate()
   // reverse comm of distsq and partner
   // not needed if newton_pair off since I,J pair was seen by both procs
 
-  commflag = 1;
+  commflag = 2;
   if (force->newton_pair) comm->reverse_comm_fix(this);
 
   // each atom now knows its winning partner
@@ -391,7 +447,7 @@ void FixBondCreate::post_integrate()
       if (partner[i]) probability[i] = random->uniform();
   }
 
-  commflag = 1;
+  commflag = 2;
   comm->forward_comm_fix(this);
 
   // create bonds for atoms I own
@@ -402,7 +458,7 @@ void FixBondCreate::post_integrate()
   int **bond_type = atom->bond_type;
   int newton_bond = force->newton_bond;
 
-  int ncreate = 0;
+  ncreate = 0;
   for (i = 0; i < nlocal; i++) {
     if (partner[i] == 0) continue;
     j = atom->map(partner[i]);
@@ -420,7 +476,7 @@ void FixBondCreate::post_integrate()
 
     // if newton_bond is set, only store with I or J
     // if not newton_bond, store bond with both I and J
-    // if J is ghost atom, other proc will be consistent
+    // atom J will also do this consistently, whatever proc it is on
 
     if (!newton_bond || tag[i] < tag[j]) {
       if (num_bond[i] == atom->bond_per_atom)
@@ -431,21 +487,32 @@ void FixBondCreate::post_integrate()
     }
 
     // add a 1-2 neighbor to special bond list for atom I
-    // atom J will also do this whether owned by this proc or another proc
+    // atom J will also do this, whatever proc it is on
+    // need to first remove tag[j] from later in list if it appears
+    // prevents list from overflowing, will be rebuilt in rebuild_special()
 
     slist = special[i];
     n1 = nspecial[i][0];
+    n2 = nspecial[i][1];
     n3 = nspecial[i][2];
+    for (m = n1; m < n3; m++)
+      if (slist[m] == tag[j]) break;
+    if (m < n3) {
+      for (n = m; n < n3-1; n++) slist[n] = slist[n+1];
+      n3--;
+      if (m < n2) n2--;
+    }
     if (n3 == atom->maxspecial)
       error->one(FLERR,
                  "New bond exceeded special list size in fix bond/create");
     for (m = n3; m > n1; m--) slist[m] = slist[m-1];
     slist[n1] = tag[j];
-    nspecial[i][0]++;
-    nspecial[i][1]++;
-    nspecial[i][2]++;
+    nspecial[i][0] = n1+1;
+    nspecial[i][1] = n2+1;
+    nspecial[i][2] = n3+1;
 
     // increment bondcount, convert atom to new type if limit reached
+    // atom J will also do this, whatever proc it is on
 
     bondcount[i]++;
     if (type[i] == iatomtype) {
@@ -454,8 +521,10 @@ void FixBondCreate::post_integrate()
       if (bondcount[i] == jmaxbond) type[i] = jnewtype;
     }
 
-    // count the created bond once
+    // store final created bond partners and count the created bond once
 
+    finalpartner[i] = tag[j];
+    finalpartner[j] = tag[i];
     if (tag[i] < tag[j]) ncreate++;
   }
 
@@ -466,8 +535,671 @@ void FixBondCreate::post_integrate()
   atom->nbonds += createcount;
 
   // trigger reneighboring if any bonds were formed
+  // this insures neigh lists will immediately reflect the topology changes
+  // done if any bonds created
 
   if (createcount) next_reneighbor = update->ntimestep;
+  if (!createcount) return;
+
+  // communicate final partner and 1-2 special neighbors
+  // 1-2 neighs already reflect created bonds
+
+  commflag = 3;
+  comm->forward_comm_variable_fix(this);
+
+  // create list of broken bonds that influence my owned atoms
+  //   even if between owned-ghost or ghost-ghost atoms
+  // finalpartner is now set for owned and ghost atoms so loop over nall
+  // OK if duplicates in broken list due to ghosts duplicating owned atoms
+  // check J < 0 to insure a broken bond to unknown atom is included
+  //   i.e. bond partner outside of cutoff length
+
+  ncreate = 0;
+  for (i = 0; i < nall; i++) {
+    if (finalpartner[i] == 0) continue;
+    j = atom->map(finalpartner[i]);
+    if (j < 0 || tag[i] < tag[j]) {
+      if (ncreate == maxcreate) {
+        maxcreate += DELTA;
+        memory->grow(created,maxcreate,2,"bond/create:created");
+      }
+      created[ncreate][0] = tag[i];
+      created[ncreate][1] = finalpartner[i];
+      ncreate++;
+    }
+  }
+
+  // update special neigh lists of all atoms affected by any created bond
+  // also add angles/dihedrals/impropers induced by created bonds
+
+  update_topology();
+
+  // DEBUG
+  //print_bb();
+}
+
+/* ----------------------------------------------------------------------
+   insure all atoms 2 hops away from owned atoms are in ghost list
+   this allows dihedral 1-2-3-4 to be properly created
+     and special list of 1 to be properly updated
+   if I own atom 1, but not 2,3,4, and bond 3-4 is added
+     then 2,3 will be ghosts and 3 will store 4 as its finalpartner
+------------------------------------------------------------------------- */
+
+void FixBondCreate::check_ghosts()
+{
+  int i,j,n;
+  tagint *slist;
+
+  int **nspecial = atom->nspecial;
+  int **special = atom->special;
+  int nlocal = atom->nlocal;
+
+  int flag = 0;
+  for (i = 0; i < nlocal; i++) {
+    slist = special[i];
+    n = nspecial[i][1];
+    for (j = 0; j < n; j++)
+      if (atom->map(slist[j]) < 0) flag = 1;
+  }
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) 
+    error->all(FLERR,"Fix3 bond/create needs ghost atoms from further away");
+  lastcheck = update->ntimestep;
+}
+
+/* ----------------------------------------------------------------------
+   double loop over my atoms and created bonds
+   influenced = 1 if atom's topology is affected by any created bond
+     yes if is one of 2 atoms in bond
+     yes if either atom ID appears in as 1-2 or 1-3 in atom's special list
+     else no
+   if influenced by any created bond:
+     rebuild the atom's special list of 1-2,1-3,1-4 neighs
+     check for angles/dihedrals/impropers to create due modified special list
+------------------------------------------------------------------------- */
+
+void FixBondCreate::update_topology()
+{
+  int i,j,k,n,influence,influenced,found;
+  tagint id1,id2;
+  tagint *slist;
+
+  tagint *tag = atom->tag;
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+  int nlocal = atom->nlocal;
+
+  nangles = 0;
+  ndihedrals = 0;
+  nimpropers = 0;
+  overflow = 0;
+
+  //printf("NCREATE %d: ",ncreate);
+  //for (i = 0; i < ncreate; i++)
+  //  printf(" %d %d,",created[i][0],created[i][1]);
+  //printf("\n");
+
+  for (i = 0; i < nlocal; i++) {
+    influenced = 0;
+    slist = special[i];
+
+    for (j = 0; j < ncreate; j++) {
+      id1 = created[j][0];
+      id2 = created[j][1];
+
+      influence = 0;
+      if (tag[i] == id1 || tag[i] == id2) influence = 1;
+      else {
+        n = nspecial[i][1];
+        for (k = 0; k < n; k++)
+          if (slist[k] == id1 || slist[k] == id2) {
+            influence = 1;
+            break;
+          }
+      }
+      if (!influence) continue;
+      influenced = 1;
+    }
+
+    // rebuild_special first, since used by create_angles, etc
+
+    if (influenced) {
+      rebuild_special(i);
+      if (angleflag) create_angles(i);
+      if (dihedralflag) create_dihedrals(i);
+      if (improperflag) create_impropers(i);
+    }
+  }
+
+  int overflowall;
+  MPI_Allreduce(&overflow,&overflowall,1,MPI_INT,MPI_SUM,world);
+  if (overflowall) error->all(FLERR,"Fix bond/create induced too many "
+                              "angles/dihedrals/impropers per atom");
+
+  int newton_bond = force->newton_bond;
+
+  int all;
+  if (angleflag) {
+    MPI_Allreduce(&nangles,&all,1,MPI_INT,MPI_SUM,world);
+    if (!newton_bond) all /= 3;
+    atom->nangles += all;
+  }
+  if (dihedralflag) {
+    MPI_Allreduce(&ndihedrals,&all,1,MPI_INT,MPI_SUM,world);
+    if (!newton_bond) all /= 4;
+    atom->ndihedrals += all;
+  }
+  if (improperflag) {
+    MPI_Allreduce(&nimpropers,&all,1,MPI_INT,MPI_SUM,world);
+    if (!newton_bond) all /= 4;
+    atom->nimpropers += all;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   re-build special list of atom M
+   does not affect 1-2 neighs (already include effects of new bond)
+   affects 1-3 and 1-4 neighs due to other atom's augmented 1-2 neighs
+------------------------------------------------------------------------- */
+
+void FixBondCreate::rebuild_special(int m)
+{
+  int i,j,n,n1,cn1,cn2,cn3;
+  tagint *slist;
+
+  tagint *tag = atom->tag;
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+
+  // existing 1-2 neighs of atom M
+
+  slist = special[m];
+  n1 = nspecial[m][0];
+  cn1 = 0;
+  for (i = 0; i < n1; i++)
+    copy[cn1++] = slist[i];
+
+  // new 1-3 neighs of atom M, based on 1-2 neighs of 1-2 neighs
+  // exclude self
+  // remove duplicates after adding all possible 1-3 neighs
+
+  cn2 = cn1;
+  for (i = 0; i < cn1; i++) {
+    n = atom->map(copy[i]);
+    if (n < 0) 
+      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+    slist = special[n];
+    n1 = nspecial[n][0];
+    for (j = 0; j < n1; j++)
+      if (slist[j] != tag[m]) copy[cn2++] = slist[j];
+  }
+
+  cn2 = dedup(cn1,cn2,copy);
+  if (cn2 > atom->maxspecial)
+    error->one(FLERR,"Special list size exceeded in fix bond/create");
+
+  // new 1-4 neighs of atom M, based on 1-2 neighs of 1-3 neighs
+  // exclude self
+  // remove duplicates after adding all possible 1-4 neighs
+
+  cn3 = cn2;
+  for (i = cn1; i < cn2; i++) {
+    n = atom->map(copy[i]);
+    if (n < 0) 
+      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+    slist = special[n];
+    n1 = nspecial[n][0];
+    for (j = 0; j < n1; j++)
+      if (slist[j] != tag[m]) copy[cn3++] = slist[j];
+  }
+
+  cn3 = dedup(cn2,cn3,copy);
+  if (cn3 > atom->maxspecial)
+    error->one(FLERR,"Special list size exceeded in fix bond/create");
+
+  // store new special list with atom M
+
+  nspecial[m][0] = cn1;
+  nspecial[m][1] = cn2;
+  nspecial[m][2] = cn3;
+  memcpy(special[m],copy,cn3*sizeof(int));
+}
+
+/* ----------------------------------------------------------------------
+   create any angles owned by atom M induced by newly created bonds
+   walk special list to find all possible angles to create
+   only add an angle if a new bond is one of its 2 bonds (I-J,J-K)
+   for newton_bond on, atom M is central atom
+   for newton_bond off, atom M is any of 3 atoms in angle
+------------------------------------------------------------------------- */
+
+void FixBondCreate::create_angles(int m)
+{
+  int i,j,n,i2local,n1,n2;
+  tagint i1,i2,i3;
+  tagint *s1list,*s2list;
+
+  tagint *tag = atom->tag;
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+
+  int num_angle = atom->num_angle[m];
+  int *angle_type = atom->angle_type[m];
+  tagint *angle_atom1 = atom->angle_atom1[m];
+  tagint *angle_atom2 = atom->angle_atom2[m];
+  tagint *angle_atom3 = atom->angle_atom3[m];
+
+  // atom M is central atom in angle
+  // double loop over 1-2 neighs
+  // avoid double counting by 2nd loop as j = i+1,N not j = 1,N
+  // consider all angles, only add if:
+  //   a new bond is in the angle and atom types match
+
+  i2 = tag[m];
+  n2 = nspecial[m][0];
+  s2list = special[m];
+
+  for (i = 0; i < n2; i++) {
+    i1 = s2list[i];
+    for (j = i+1; j < n2; j++) {
+      i3 = s2list[j];
+
+      // angle = i1-i2-i3
+
+      for (n = 0; n < ncreate; n++) {
+        if (created[n][0] == i1 && created[n][1] == i2) break;
+        if (created[n][0] == i2 && created[n][1] == i1) break;
+        if (created[n][0] == i2 && created[n][1] == i3) break;
+        if (created[n][0] == i3 && created[n][1] == i2) break;
+      }
+      if (n == ncreate) continue;
+
+      // NOTE: this is place to check atom types of i1,i2,i3
+
+      if (num_angle < atom->angle_per_atom) {
+        angle_type[num_angle] = atype;
+        angle_atom1[num_angle] = i1;
+        angle_atom2[num_angle] = i2;
+        angle_atom3[num_angle] = i3;
+        num_angle++;
+        nangles++;
+      } else overflow = 1;
+    }
+  }
+
+  atom->num_angle[m] = num_angle;
+  if (force->newton_bond) return;
+
+  // for newton_bond off, also consider atom M as atom 1 in angle
+
+  i1 = tag[m];
+  n1 = nspecial[m][0];
+  s1list = special[m];
+
+  for (i = 0; i < n1; i++) {
+    i2 = s1list[i];
+    i2local = atom->map(i2);
+    if (i2local < 0) 
+      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+    s2list = special[i2local];
+    n2 = nspecial[i2local][0];
+
+    for (j = 0; j < n2; j++) {
+      i3 = s2list[j];
+      if (i3 == i1) continue;
+
+      // angle = i1-i2-i3
+
+      for (n = 0; n < ncreate; n++) {
+        if (created[n][0] == i1 && created[n][1] == i2) break;
+        if (created[n][0] == i2 && created[n][1] == i1) break;
+        if (created[n][0] == i2 && created[n][1] == i3) break;
+        if (created[n][0] == i3 && created[n][1] == i2) break;
+      }
+      if (n == ncreate) continue;
+
+      // NOTE: this is place to check atom types of i1,i2,i3
+
+      if (num_angle < atom->angle_per_atom) {
+        angle_type[num_angle] = atype;
+        angle_atom1[num_angle] = i1;
+        angle_atom2[num_angle] = i2;
+        angle_atom3[num_angle] = i3;
+        num_angle++;
+        nangles++;
+      } else overflow = 1;
+    }
+  }
+
+  atom->num_angle[m] = num_angle;
+}
+
+/* ----------------------------------------------------------------------
+   create any dihedrals owned by atom M induced by newly created bonds
+   walk special list to find all possible dihedrals to create
+   only add a dihedral if a new bond is one of its 3 bonds (I-J,J-K,K-L)
+   for newton_bond on, atom M is central atom
+   for newton_bond off, atom M is any of 4 atoms in dihedral
+------------------------------------------------------------------------- */
+
+void FixBondCreate::create_dihedrals(int m)
+{
+  int i,j,k,n,i1local,i2local,i3local,n1,n2,n3,n4;
+  tagint i1,i2,i3,i4;
+  tagint *s1list,*s2list,*s3list;
+
+  tagint *tag = atom->tag;
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+
+  int num_dihedral = atom->num_dihedral[m];
+  int *dihedral_type = atom->dihedral_type[m];
+  tagint *dihedral_atom1 = atom->dihedral_atom1[m];
+  tagint *dihedral_atom2 = atom->dihedral_atom2[m];
+  tagint *dihedral_atom3 = atom->dihedral_atom3[m];
+  tagint *dihedral_atom4 = atom->dihedral_atom4[m];
+
+  // atom M is 2nd atom in dihedral
+  // double loop over 1-2 neighs
+  // two triple loops: one over neighs at each end of triplet
+  // avoid double counting by 2nd loop as j = i+1,N not j = 1,N
+  // avoid double counting due to another atom being 2nd atom in same dihedral
+  //   by requiring ID of 2nd atom < ID of 3rd atom
+  //   don't do this if newton bond off since want to double count
+  // consider all dihedrals, only add if:
+  //   a new bond is in the dihedral and atom types match
+
+  i2 = tag[m];
+  n2 = nspecial[m][0];
+  s2list = special[m];
+
+  for (i = 0; i < n2; i++) {
+    i1 = s2list[i];
+
+    for (j = i+1; j < n2; j++) {
+      i3 = s2list[j];
+      if (force->newton_bond && i2 > i3) continue;
+      i3local = atom->map(i3);
+      if (i3local < 0) 
+        error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      s3list = special[i3local];
+      n3 = nspecial[i3local][0];
+
+      for (k = 0; k < n3; k++) {
+        i4 = s3list[k];
+        if (i4 == i1 || i4 == i2 || i4 == i3) continue;
+
+        // dihedral = i1-i2-i3-i4
+
+        for (n = 0; n < ncreate; n++) {
+          if (created[n][0] == i1 && created[n][1] == i2) break;
+          if (created[n][0] == i2 && created[n][1] == i1) break;
+          if (created[n][0] == i2 && created[n][1] == i3) break;
+          if (created[n][0] == i3 && created[n][1] == i2) break;
+          if (created[n][0] == i3 && created[n][1] == i4) break;
+          if (created[n][0] == i4 && created[n][1] == i3) break;
+        }
+        if (n < ncreate) {
+          // NOTE: this is place to check atom types of i3,i2,i1,i4
+          if (num_dihedral < atom->dihedral_per_atom) {
+            dihedral_type[num_dihedral] = dtype;
+            dihedral_atom1[num_dihedral] = i1;
+            dihedral_atom2[num_dihedral] = i2;
+            dihedral_atom3[num_dihedral] = i3;
+            dihedral_atom4[num_dihedral] = i4;
+            num_dihedral++;
+            ndihedrals++;
+          } else overflow = 1;
+        }
+      }
+    }
+  }
+
+  for (i = 0; i < n2; i++) {
+    i1 = s2list[i];
+    if (force->newton_bond && i2 > i1) continue;
+    i1local = atom->map(i1);
+    if (i1local < 0) 
+      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+    s3list = special[i1local];
+    n3 = nspecial[i1local][0];
+
+    for (j = i+1; j < n2; j++) {
+      i3 = s2list[j];
+
+      for (k = 0; k < n3; k++) {
+        i4 = s3list[k];
+        if (i4 == i1 || i4 == i2 || i4 == i3) continue;
+
+        // dihedral = i3-i2-i1-i4
+
+        for (n = 0; n < ncreate; n++) {
+          if (created[n][0] == i3 && created[n][1] == i2) break;
+          if (created[n][0] == i2 && created[n][1] == i3) break;
+          if (created[n][0] == i2 && created[n][1] == i1) break;
+          if (created[n][0] == i1 && created[n][1] == i2) break;
+          if (created[n][0] == i1 && created[n][1] == i4) break;
+          if (created[n][0] == i4 && created[n][1] == i1) break;
+        }
+        if (n < ncreate) {
+          // NOTE: this is place to check atom types of i3,i2,i1,i4
+          if (num_dihedral < atom->dihedral_per_atom) {
+            dihedral_type[num_dihedral] = dtype;
+            dihedral_atom1[num_dihedral] = i3;
+            dihedral_atom2[num_dihedral] = i2;
+            dihedral_atom3[num_dihedral] = i1;
+            dihedral_atom4[num_dihedral] = i4;
+            num_dihedral++;
+            ndihedrals++;
+          } else overflow = 1;
+        }
+      }
+    }
+  }
+
+  atom->num_dihedral[m] = num_dihedral;
+  if (force->newton_bond) return;
+
+  // for newton_bond off, also consider atom M as atom 1 in dihedral
+
+  i1 = tag[m];
+  n1 = nspecial[m][0];
+  s1list = special[m];
+
+  for (i = 0; i < n1; i++) {
+    i2 = s1list[i];
+    i2local = atom->map(i2);
+    if (i2local < 0) 
+      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+    s2list = special[i2local];
+    n2 = nspecial[i2local][0];
+
+    for (j = 0; j < n2; j++) {
+      i3 = s2list[j];
+      if (i3 == i1) continue;
+      i3local = atom->map(i3);
+      if (i3local < 0) 
+        error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      s3list = special[i3local];
+      n3 = nspecial[i3local][0];
+
+      for (k = 0; k < n3; k++) {
+        i4 = s3list[k];
+        if (i4 == i1 || i4 == i2 || i4 == i3) continue;
+
+        // dihedral = i1-i2-i3-i4
+
+        for (n = 0; n < ncreate; n++) {
+          if (created[n][0] == i1 && created[n][1] == i2) break;
+          if (created[n][0] == i2 && created[n][1] == i1) break;
+          if (created[n][0] == i2 && created[n][1] == i3) break;
+          if (created[n][0] == i3 && created[n][1] == i2) break;
+          if (created[n][0] == i3 && created[n][1] == i4) break;
+          if (created[n][0] == i4 && created[n][1] == i3) break;
+        }
+        if (n < ncreate) {
+          // NOTE: this is place to check atom types of i3,i2,i1,i4
+          if (num_dihedral < atom->dihedral_per_atom) {
+            dihedral_type[num_dihedral] = dtype;
+            dihedral_atom1[num_dihedral] = i1;
+            dihedral_atom2[num_dihedral] = i2;
+            dihedral_atom3[num_dihedral] = i3;
+            dihedral_atom4[num_dihedral] = i4;
+            num_dihedral++;
+            ndihedrals++;
+          } else overflow = 1;
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   create any impropers owned by atom M induced by newly created bonds
+   walk special list to find all possible impropers to create
+   only add an improper if a new bond is one of its 3 bonds (I-J,I-K,I-L)
+   for newton_bond on, atom M is central atom
+   for newton_bond off, atom M is any of 4 atoms in improper
+------------------------------------------------------------------------- */
+
+void FixBondCreate::create_impropers(int m)
+{
+  int i,j,k,n,i1local,n1,n2;
+  tagint i1,i2,i3,i4;
+  tagint *s1list,*s2list;
+
+  tagint *tag = atom->tag;
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+
+  int num_improper = atom->num_improper[m];
+  int *improper_type = atom->improper_type[m];
+  tagint *improper_atom1 = atom->improper_atom1[m];
+  tagint *improper_atom2 = atom->improper_atom2[m];
+  tagint *improper_atom3 = atom->improper_atom3[m];
+  tagint *improper_atom4 = atom->improper_atom4[m];
+
+  // atom M is central atom in improper
+  // triple loop over 1-2 neighs
+  // avoid double counting by 2nd loop as j = i+1,N not j = 1,N
+  // consider all impropers, only add if:
+  //   a new bond is in the improper and atom types match
+
+  i1 = tag[m];
+  n1 = nspecial[m][0];
+  s1list = special[m];
+
+  for (i = 0; i < n1; i++) {
+    i2 = s1list[i];
+    for (j = i+1; j < n1; j++) {
+      i3 = s1list[j];
+      for (k = j+1; k < n1; k++) {
+        i4 = s1list[k];
+
+        // improper = i1-i2-i3-i4
+
+        for (n = 0; n < ncreate; n++) {
+          if (created[n][0] == i1 && created[n][1] == i2) break;
+          if (created[n][0] == i2 && created[n][1] == i1) break;
+          if (created[n][0] == i1 && created[n][1] == i3) break;
+          if (created[n][0] == i3 && created[n][1] == i1) break;
+          if (created[n][0] == i1 && created[n][1] == i4) break;
+          if (created[n][0] == i4 && created[n][1] == i1) break;
+        }
+        if (n == ncreate) continue;
+
+        // NOTE: this is place to check atom types of i1,i2,i3,i4
+
+        if (num_improper < atom->improper_per_atom) {
+          improper_type[num_improper] = itype;
+          improper_atom1[num_improper] = i1;
+          improper_atom2[num_improper] = i2;
+          improper_atom3[num_improper] = i3;
+          improper_atom4[num_improper] = i4;
+          num_improper++;
+          nimpropers++;
+        } else overflow = 1;
+      }
+    }
+  }
+
+  atom->num_improper[m] = num_improper;
+  if (force->newton_bond) return;
+
+  // for newton_bond off, also consider atom M as atom 2 in improper
+
+  i2 = tag[m];
+  n2 = nspecial[m][0];
+  s2list = special[m];
+
+  for (i = 0; i < n2; i++) {
+    i1 = s2list[i];
+    i1local = atom->map(i1);
+    if (i1local < 0) 
+      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+    s1list = special[i1local];
+    n1 = nspecial[i1local][0];
+
+    for (j = 0; j < n1; j++) {
+      i3 = s1list[j];
+      if (i3 == i1 || i3 == i2) continue;
+
+      for (k = j+1; k < n1; k++) {
+        i4 = s1list[k];
+        if (i4 == i1 || i4 == i2) continue;
+
+        // improper = i1-i2-i3-i4
+
+        for (n = 0; n < ncreate; n++) {
+          if (created[n][0] == i1 && created[n][1] == i2) break;
+          if (created[n][0] == i2 && created[n][1] == i1) break;
+          if (created[n][0] == i1 && created[n][1] == i3) break;
+          if (created[n][0] == i3 && created[n][1] == i1) break;
+          if (created[n][0] == i1 && created[n][1] == i4) break;
+          if (created[n][0] == i4 && created[n][1] == i1) break;
+        }
+        if (n < ncreate) {
+          // NOTE: this is place to check atom types of i3,i2,i1,i4
+          if (num_improper < atom->improper_per_atom) {
+            improper_type[num_improper] = dtype;
+            improper_atom1[num_improper] = i1;
+            improper_atom2[num_improper] = i2;
+            improper_atom3[num_improper] = i3;
+            improper_atom4[num_improper] = i4;
+            num_improper++;
+            nimpropers++;
+          } else overflow = 1;
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   remove all ID duplicates in copy from Nstart:Nstop-1
+   compare to all previous values in copy
+   return N decremented by any discarded duplicates
+------------------------------------------------------------------------- */
+
+int FixBondCreate::dedup(int nstart, int nstop, tagint *copy)
+{
+  int i;
+
+  int m = nstart;
+  while (m < nstop) {
+    for (i = 0; i < m; i++)
+      if (copy[i] == copy[m]) {
+        copy[m] = copy[nstop-1];
+        nstop--;
+        break;
+      }
+    if (i == m) m++;
+  }
+
+  return nstop;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -482,44 +1214,74 @@ void FixBondCreate::post_integrate_respa(int ilevel, int iloop)
 int FixBondCreate::pack_comm(int n, int *list, double *buf,
                              int pbc_flag, int *pbc)
 {
-  int i,j,m;
+  int i,j,k,m,ns;
 
   m = 0;
 
-  if (commflag == 0) {
+  if (commflag == 1) {
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = bondcount[j];
+      buf[m++] = ubuf(bondcount[j]).d;
     }
     return 1;
+  }
 
-  } else {
+  if (commflag == 2) {
     for (i = 0; i < n; i++) {
       j = list[i];
-      buf[m++] = partner[j];
+      buf[m++] = ubuf(partner[j]).d;
       buf[m++] = probability[j];
     }
     return 2;
   }
+
+  int **nspecial = atom->nspecial;
+  int **special = atom->special;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = ubuf(finalpartner[j]).d;
+    ns = nspecial[j][0];
+    buf[m++] = ubuf(ns).d;
+    for (k = 0; k < ns; k++)
+      buf[m++] = ubuf(special[j][k]).d;
+  }
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixBondCreate::unpack_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i,j,m,ns,last;
 
   m = 0;
   last = first + n;
 
-  if (commflag == 0) {
+  if (commflag == 1) {
     for (i = first; i < last; i++)
-      bondcount[i] = static_cast<int> (buf[m++]);
+      bondcount[i] = (int) ubuf(buf[m++]).i;
+
+  } else if (commflag == 2) {
+    for (i = first; i < last; i++) {
+      partner[i] = (tagint) ubuf(buf[m++]).i;
+      probability[i] = buf[m++];
+    }
 
   } else {
+
+    int **nspecial = atom->nspecial;
+    int **special = atom->special;
+
+    m = 0;
+    last = first + n;
     for (i = first; i < last; i++) {
-      partner[i] = static_cast<tagint> (buf[m++]);
-      probability[i] = buf[m++];
+      finalpartner[i] = (tagint) ubuf(buf[m++]).i;
+      ns = (int) ubuf(buf[m++]).i;
+      nspecial[i][0] = ns;
+      for (j = 0; j < ns; j++)
+        special[i][j] = (tagint) ubuf(buf[m++]).i;
     }
   }
 }
@@ -533,18 +1295,17 @@ int FixBondCreate::pack_reverse_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
 
-  if (commflag == 0) {
+  if (commflag == 1) {
     for (i = first; i < last; i++)
-      buf[m++] = bondcount[i];
+      buf[m++] = ubuf(bondcount[i]).d;
     return 1;
-
-  } else {
-    for (i = first; i < last; i++) {
-      buf[m++] = distsq[i];
-      buf[m++] = partner[i];
-    }
-    return 2;
   }
+
+  for (i = first; i < last; i++) {
+    buf[m++] = ubuf(partner[i]).d;
+    buf[m++] = distsq[i];
+  }
+  return 2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -555,18 +1316,18 @@ void FixBondCreate::unpack_reverse_comm(int n, int *list, double *buf)
 
   m = 0;
 
-  if (commflag == 0) {
+  if (commflag == 1) {
     for (i = 0; i < n; i++) {
       j = list[i];
-      bondcount[j] += static_cast<int> (buf[m++]);
+      bondcount[j] += (int) ubuf(buf[m++]).i;
     }
 
   } else {
     for (i = 0; i < n; i++) {
       j = list[i];
-      if (buf[m] < distsq[j]) {
+      if (buf[m+1] < distsq[j]) {
+        partner[j] = (tagint) ubuf(buf[m++]).i;
         distsq[j] = buf[m++];
-        partner[j] = static_cast<tagint> (buf[m++]);
       } else m += 2;
     }
   }
@@ -625,7 +1386,57 @@ double FixBondCreate::compute_vector(int n)
 double FixBondCreate::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax*2 * sizeof(int);
+  double bytes = nmax * sizeof(int);
+  bytes = 2*nmax * sizeof(tagint);
   bytes += nmax * sizeof(double);
   return bytes;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixBondCreate::print_bb()
+{
+  for (int i = 0; i < atom->nlocal; i++) {
+    printf("TAG %i: %d nbonds: ",atom->tag[i],atom->num_bond[i]);
+    for (int j = 0; j < atom->num_bond[i]; j++) {
+      printf(" %d",atom->bond_atom[i][j]);
+    }
+    printf("\n");
+    printf("TAG %i: %d nangles: ",atom->tag[i],atom->num_angle[i]);
+    for (int j = 0; j < atom->num_angle[i]; j++) {
+      printf(" %d %d %d,",atom->angle_atom1[i][j],
+	     atom->angle_atom2[i][j],atom->angle_atom3[i][j]);
+    }
+    printf("\n");
+    printf("TAG %i: %d ndihedrals: ",atom->tag[i],atom->num_dihedral[i]);
+    for (int j = 0; j < atom->num_dihedral[i]; j++) {
+      printf(" %d %d %d %d,",atom->dihedral_atom1[i][j],
+	     atom->dihedral_atom2[i][j],atom->dihedral_atom3[i][j],
+	     atom->dihedral_atom4[i][j]);
+    }
+    printf("\n");
+    printf("TAG %i: %d nimpropers: ",atom->tag[i],atom->num_improper[i]);
+    for (int j = 0; j < atom->num_improper[i]; j++) {
+      printf(" %d %d %d %d,",atom->improper_atom1[i][j],
+	     atom->improper_atom2[i][j],atom->improper_atom3[i][j],
+	     atom->improper_atom4[i][j]);
+    }
+    printf("\n");
+    printf("TAG %i: %d %d %d nspecial: ",atom->tag[i],
+	   atom->nspecial[i][0],atom->nspecial[i][1],atom->nspecial[i][2]);
+    for (int j = 0; j < atom->nspecial[i][2]; j++) {
+      printf(" %d",atom->special[i][j]);
+    }
+    printf("\n");
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixBondCreate::print_copy(const char *str, tagint m, 
+                              int n1, int n2, int n3, int *v)
+{
+  printf("%s %i: %d %d %d nspecial: ",str,m,n1,n2,n3);
+  for (int j = 0; j < n3; j++) printf(" %d",v[j]);
+  printf("\n");
 }

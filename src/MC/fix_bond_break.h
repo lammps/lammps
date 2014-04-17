@@ -45,7 +45,7 @@ class FixBondBreak : public Fix {
   int btype,seed;
   double cutoff,cutsq,fraction;
   int angleflag,dihedralflag,improperflag;
-  tagint lastcheck;
+  bigint lastcheck;
 
   int breakcount,breakcounttotal;
   int nmax;

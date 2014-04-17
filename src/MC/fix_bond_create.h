@@ -53,19 +53,41 @@ class FixBondCreate : public Fix {
   int imaxbond,jmaxbond;
   int inewtype,jnewtype;
   double cutsq,fraction;
+  int atype,dtype,itype;
+  int angleflag,dihedralflag,improperflag;
+  int overflow;
+  tagint lastcheck;
 
-  int createcount,createcounttotal;   // bond formation stats
-
+  int *bondcount;
+  int createcount,createcounttotal;
   int nmax;
-  int *bondcount;        // count of created bonds this atom is part of
-  tagint *partner;       // ID of preferred atom for this atom to bond to
-  double *distsq;        // distance to preferred bond partner
-  double *probability;   // random # to use in decision to form bond
+  tagint *partner,*finalpartner;
+  double *distsq,*probability;
+
+  int ncreate,maxcreate;
+  tagint **created;
+
+  tagint *copy;
 
   class RanMars *random;
   class NeighList *list;
+  
   int countflag,commflag;
   int nlevels_respa;
+  int nangles,ndihedrals,nimpropers;
+
+  void check_ghosts();
+  void update_topology();
+  void rebuild_special(int);
+  void create_angles(int);
+  void create_dihedrals(int);
+  void create_impropers(int);
+  int dedup(int, int, tagint *);
+
+  // DEBUG
+
+  void print_bb();
+  void print_copy(const char *, tagint, int, int, int, int *);
 };
 
 }

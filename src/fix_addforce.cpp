@@ -103,7 +103,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   force_flag = 0;
   foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
 
-  maxatom = 0;
+  maxatom = -1;
   sforce = NULL;
 }
 

@@ -84,7 +84,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double fraction,table;
   double r,r2inv,forcecoul,forcelj,cforce;
-  double factor_coul,factor_lj;
+  double factor_coul;
   double grij,expm2,prefactor,t,erfc;
   double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
   double *x1,*x2;
@@ -172,7 +172,6 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 

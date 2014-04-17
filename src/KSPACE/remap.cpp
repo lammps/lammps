@@ -115,10 +115,6 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
   } else { 
     if (plan->commringlen > 0) {
       int isend,irecv;
-      FFT_SCALAR *scratch;
-
-      if (plan->memory == 0) scratch = buf;
-      else scratch = plan->scratch;
 
       // create send and recv buffers for alltoallv collective
 

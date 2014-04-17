@@ -608,7 +608,7 @@ int FixQEqReax::CG( double *b, double *x )
 {
   int  i, j, imax;
   double tmp, alpha, beta, b_norm;
-  double sig_old, sig_new, sig0;
+  double sig_old, sig_new;
 
   imax = 200;
 
@@ -622,7 +622,6 @@ int FixQEqReax::CG( double *b, double *x )
 
   b_norm = parallel_norm( b, n );
   sig_new = parallel_dot( r, d, n );
-  sig0 = sig_new;
 
   for( i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i ) {
     comm->forward_comm_fix(this); //Dist_vector( d );

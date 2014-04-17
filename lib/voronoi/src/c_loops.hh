@@ -247,7 +247,7 @@ class c_loop_subset : public c_loop_base {
 		const bool xperiodic,yperiodic,zperiodic;
 		double px,py,pz,apx,apy,apz;
 		double v0,v1,v2,v3,v4,v5;
-		int ai,bi,aj,bj,ak,bk,s;
+		int ai,bi,aj,bj,ak,bk;
 		int ci,cj,ck,di,dj,dk,inc1,inc2;
 		inline int step_mod(int a,int b) {return a>=0?a%b:b-1-(b-1-a)%b;}
 		inline int step_div(int a,int b) {return a>=0?a/b:-1+(a+1)/b;}

@@ -1636,9 +1636,7 @@ int voronoicell_base::check_marginal(int n,double &ans) {
 	return marg[n_marg-1];
 }
 
-/** For each face of the Voronoi cell, this routine prints the out the normal
- * vector of the face, and scales it to the distance from the cell center to
- * that plane.
+/** This routine calculates the unit normal vectors for every face.
  * \param[out] v the vector to store the results in. */
 void voronoicell_base::normals(std::vector<double> &v) {
 	int i,j,k;
@@ -1953,9 +1951,10 @@ bool voronoicell_base::plane_intersects_guess(double x,double y,double z,double 
 	return true;
 }
 
-/* This routine tests to see if a cell intersects a plane, by tracing over the cell from
- * vertex to vertex, starting at up. It is meant to be called either by plane_intersects()
- * or plane_intersects_track(), when those routines cannot immediately resolve the case.
+/* This routine tests to see if a cell intersects a plane, by tracing over the
+ * cell from vertex to vertex, starting at up. It is meant to be called either
+ * by plane_intersects() or plane_intersects_track(), when those routines
+ * cannot immediately resolve the case.
  * \param[in] (x,y,z) the normal vector to the plane.
  * \param[in] rsq the distance along this vector of the plane.
  * \param[in] g the distance of up from the plane.

@@ -1,3 +1,22 @@
+Version 0.4.7 (...)
+===================
+* Fixed typo in random_points.cc example. Thanks to Guo-Jie Gao (Osaka
+  University) and Jose Adsuara (Universit of Valencia) for pointing this out.
+* Fixed documentation error in normals routine. Thanks to Jean Farago
+  (Université de Strasbourg) for pointing this out.
+
+Version 0.4.6 (October 17th 2013)
+=================================
+* Fixed an issue with template instantiation in wall.cc that was causing
+  compilation problems with new versions of Apple Xcode. Thanks to Barend
+  Thijsse (Delft University of Technology) and Juan Pablo Cruz Pérez (Instituto
+  de Física y Matemáticas) for pointing this out.
+* Added routines to the container classes to compute a ghost Voronoi cell at
+  any given location, as though an extra particle was inserted at that
+  location
+* Removed unused private variable in c_loops.hh
+* Updated Doxyfile to 1.8.5
+
 Version 0.4.5 (July 27th 2012)
 ==============================
 * Removed "using namespace std" from the header files and added extra "std::"

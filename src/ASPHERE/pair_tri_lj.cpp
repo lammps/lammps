@@ -534,7 +534,7 @@ void PairTriLJ::discretize(int i, double sigma,
 
   // if sigma sphere overlaps all corner points, add particle at centroid
 
-  if (len1sq <= sigmasq && len2sq <= sigmasq & len3sq <= sigmasq) {
+  if ((len1sq <= sigmasq) && (len2sq <= sigmasq) && (len3sq <= sigmasq)) {
     if (ndiscrete == dmax) {
       dmax += DELTA;
       discrete = (Discrete *)

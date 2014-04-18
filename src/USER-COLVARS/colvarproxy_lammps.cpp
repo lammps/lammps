@@ -71,6 +71,7 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   previous_step=-1;
   t_target=temp;
   do_exit=false;
+  restart_every=0;
 
   // set input restart name and strip the extension, if present
   input_prefix_str = std::string(inp_name ? inp_name : "");

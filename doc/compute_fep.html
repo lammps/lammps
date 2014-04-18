@@ -1,0 +1,274 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute fep command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID fep temp attribute args ... keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in the <A HREF = "compute.html">compute</A> command 
+
+<LI>fep = name of this compute command 
+
+<LI>temp = external temperature (as specified for constant-temperature run) 
+
+<LI>one or more attributes with args may be appended 
+
+<LI>attribute = <I>pair</I> or <I>atom</I> 
+
+<PRE>  <I>pair</I> args = pstyle pparam I J v_delta
+    pstyle = pair style name, e.g. lj/cut
+    pparam = parameter to perturb
+    I,J = type pair(s) to set parameter for
+    v_delta = variable with perturbation to apply (in the units of the parameter)
+  <I>atom</I> args = aparam I v_delta
+    aparam = parameter to adapt over time
+    I = type to set parameter for
+    v_delta = variable with perturbation to apply (in the units of the parameter) 
+</PRE>
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>tail</I> or <I>volume</I> 
+
+<PRE>  <I>tail</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = ignore tail correction to pair energies (usually small in fep)
+    <I>yes</I> = include tail correction to pair energies
+  <I>volume</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = ignore volume changes (e.g. in <I>NVE</I> or <I>NVT</I> trajectories)
+    <I>yes</I> = include volume changes (e.g. in <I>NpT</I> trajectories) 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all fep 298 pair lj/cut epsilon 1 * v_delta pair lj/cut sigma 1 * v_delta volume yes
+compute 1 all fep 300 atom charge 2 v_delta 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Apply a perturbation to parameters of the interaction potential and
+recalculate the pair potential energy without changing the atomic
+coordinates from those of the reference, unperturbed system. This
+compute can be used to calculate free energy differences using several
+methods, such as free-energy perturbation (FEP), finite-difference
+thermodynamic integration (FDTI) or Bennet's acceptance ratio method
+(BAR).
+</P>
+<P>The potential energy of the system is decomposed in three terms: a
+background term corresponding to interaction sites whose parameters
+remain constant, a reference term <I>U</I><sub>0</sub> corresponding to the
+initial interactions of the atoms that will undergo perturbation, and
+a term <I>U</I><sub>1</sub> corresponding to the final interactions of
+these atoms:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_fep_u.jpg">
+</CENTER>
+<P>A coupling parameter &lambda; varying from 0 to 1 connects the
+reference and perturbed systems:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_fep_lambda.jpg">
+</CENTER>
+<P>It is possible but not necessary that the coupling parameter (or a
+function thereof) appears as a multiplication factor of the potential
+energy. Therefore, this compute can apply perturbations to interaction
+parameters that are not directly proportional to the potential energy
+(e.g. &sigma; in Lennard-Jones potentials).
+</P>
+<P>This command can be combined with <A HREF = "fix_adapt.html">fix adapt</A> to
+perform multistage free-energy perturbation calculations along
+stepwise alchemical transformations during a simulation run:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_fep_fep.jpg">
+</CENTER>
+<P>This compute is suitable for the finite-difference thermodynamic
+integration (FDTI) method <A HREF = "#Mezei">(Mezei)</A>, which is based on an
+evaluation of the numerical derivative of the free energy by a
+perturbation method using a very small &delta;:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_fep_fdti.jpg">
+</CENTER>
+<P>where <I>w</I><sub>i</sub> are weights of a numerical quadrature. The <A HREF = "fix_adapt.html">fix
+adapt</A> command can be used to define the stages of
+&lambda; at which the derivative is calculated and averaged.
+</P>
+<P>The compute fep calculates the exponential Boltzmann term and also the
+potential energy difference <I>U</I><sub>1</sub>-<I>U</I><sub>0</sub>. By
+choosing a very small perturbation &delta; the thermodynamic
+integration method can be implemented using a numerical evaluation of
+the derivative of the potential energy with respect to &lambda;:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_fep_ti.jpg">
+</CENTER>
+<P>Another technique to calculate free energy differences is the
+acceptance ratio method <A HREF = "#Bennet">(Bennet)</A>, which can be implemented
+by calculating the potential energy differences with &delta; = 1.0 on
+both the forward and reverse routes:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_fep_bar.jpg">
+</CENTER>
+<P>The value of the free energy difference is determined by numerical
+root finding to establish the equality.
+</P>
+<P>Concerning the choice of how the atomic parameters are perturbed in
+order to setup an alchemical transformation route, several strategies
+are available, such as single-topology or double-topology strategies
+<A HREF = "#Pearlman">(Pearlman)</A>. The latter does not require modification of
+bond lengths, angles or other internal coordinates.
+</P>
+<P>IMPORTANT NOTES: This compute command does not take kinetic energy
+into account, therefore the masses of the particles should not be
+modified between the reference and perturbed states, or along the
+alchemical transformation route.  This compute command does not change
+bond lengths or other internal coordinates <A HREF = "#BoreschKarplus">(Boresch,
+Karplus)</A>.
+</P>
+<HR>
+
+<P>The <I>pair</I> attribute enables various parameters of potentials defined
+by the <A HREF = "pair_style.html">pair_style</A> and <A HREF = "pair_coeff.html">pair_coeff</A>
+commands to be changed, if the pair style supports it.
+</P>
+<P>The <I>pstyle</I> argument is the name of the pair style. For example,
+<I>pstyle</I> could be specified as "lj/cut".  The <I>pparam</I> argument is the
+name of the parameter to change.  This is a (non-exclusive) list of
+pair styles and parameters that can be used with this compute.  See
+the doc pages for individual pair styles and their energy formulas for
+the meaning of these parameters:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "pair_lj.html">lj/cut</A></TD><TD > epsilon,sigma</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut</A></TD><TD > epsilon,sigma</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj.html">lj/cut/coul/long</A></TD><TD > epsilon,sigma</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj_soft_coul_soft.html">lj/soft/coul/soft</A></TD><TD > epsilon,sigma,lambda</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj_soft_coul_soft.html">lj/soft</A></TD><TD > epsilon,sigma,lambda</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj_soft_coul_soft.html">coul/soft</A></TD><TD > lambda</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_born.html">born</A></TD><TD > a,b,c</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_buck.html">buck</A></TD><TD > a,c </TD><TD > type pairs 
+</TD></TR></TABLE></DIV>
+
+<P>Note that it is easy to add new potentials and their parameters to
+this list.  All it typically takes is adding an extract() method to
+the pair_*.cpp file associated with the potential.
+</P>
+<P>Similar to the <A HREF = "pair_coeff.html">pair_coeff</A> command, I and J can be
+specified in one of two ways.  Explicit numeric values can be used for
+each, as in the 1st example above.  I <= J is required.  LAMMPS sets
+the coefficients for the symmetric J,I interaction to the same
+values. A wild-card asterisk can be used in place of or in conjunction
+with the I,J arguments to set the coefficients for multiple pairs of
+atom types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N =
+the number of atom types, then an asterisk with no numeric values
+means all types from 1 to N.  A leading asterisk means all types from
+1 to n (inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).  Note that only type pairs with I <= J are considered; if
+asterisks imply type pairs where J < I, they are ignored.
+</P>
+<P>If <A HREF = "pair_hybrid.html">pair_style hybrid or hybrid/overlay</A> is being
+used, then the <I>pstyle</I> will be a sub-style name.  You must specify
+I,J arguments that correspond to type pair values defined (via the
+<A HREF = "pair_coeff.html">pair_coeff</A> command) for that sub-style.
+</P>
+<P>The <I>v_name</I> argument for keyword <I>pair</I> is the name of an
+<A HREF = "variable.html">equal-style variable</A> which will be evaluated each time
+this compute is invoked.  It should be specified as v_name, where name
+is the variable name.
+</P>
+<HR>
+
+<P>The <I>atom</I> attribute enables atom properties to be changed.  The
+<I>aparam</I> argument is the name of the parameter to change.  This is the
+current list of atom parameters that can be used with this compute:
+</P>
+<UL><LI>charge = charge on particle 
+</UL>
+<P>The <I>v_name</I> argument for keyword <I>pair</I> is the name of an
+<A HREF = "variable.html">equal-style variable</A> which will be evaluated each time
+this compute is invoked.  It should be specified as v_name, where name
+is the variable name.
+</P>
+<HR>
+
+<P>The <I>tail</I> keyword controls the calculation of the tail correction to
+"van der Waals" pair energies beyond the cutoff, if this has been
+activated via the <A HREF = "pair_modify.html">pair_modify</A> command. If the
+perturbation is small, the tail contribution to the energy difference
+between the reference and perturbed systems should be negligible.
+</P>
+<P>If the keyword <I>volume</I> = <I>yes</I>, then the Boltzmann term is multiplied
+by the volume so that correct ensemble averaging can be performed over
+trajectories during which the volume fluctuates or changes <A HREF = "#AllenTildesley">(Allen and
+Tildesley)</A>:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_fep_vol.jpg">
+</CENTER>
+<HR>
+
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global vector of length 3 which contains the
+energy difference (<I>U</I><sub>1</sub>-<I>U</I><sub>0</sub>) as c_ID[1], the
+Boltzmann factor exp(-(<I>U</I><sub>1</sub>-<I>U</I><sub>0</sub>)/<I>kT</I>), or
+<I>V</I>exp(-(<I>U</I><sub>1</sub>-<I>U</I><sub>0</sub>)/<I>kT</I>), as c_ID[2] and the
+volume of the simulation box <I>V</I> as c_ID[3]. <I>U</I><sub>1</sub> is the
+pair potential energy obtained with the perturbed parameters and
+<I>U</I><sub>0</sub> is the pair potential energy obtained with the
+unperturbed parameters. The energies include kspace terms if these
+are used in the simulation.
+</P>
+<P>These output results can be used by any command that uses a global
+scalar or vector from a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
+15</A> for an overview of LAMMPS output
+options. For example, the computed values can be averaged using <A HREF = "fix_ave_time.html">fix
+ave/time</A>.
+</P>
+<P>The values calculated by this compute are "extensive".
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute is distributed as the USER-FEP package.  It is only
+enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_adapt_fep.html">fix adapt/fep</A>, <A HREF = "fix_ave_time.html">fix ave/time</A>,
+<A HREF = "pair_lj_soft_coul_soft.txt">pair_lj_soft_coul_soft</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are <I>tail</I> = <I>no</I>, <I>volume</I> = <I>no</I>.
+</P>
+<HR>
+
+<A NAME = "Pearlman"></A>
+
+<P><B>(Pearlman)</B> Pearlman, J Chem Phys, 98, 1487 (1994)
+</P>
+<A NAME = "Mezei"></A>
+
+<P><B>(Mezei)</B> Mezei, J Chem Phys, 86, 7084 (1987)
+</P>
+<A NAME = "Bennet"></A>
+
+<P><B>(Bennet)</B> Bennet, J Comput Phys, 22, 245 (1976)
+</P>
+<A NAME = "BoreschKarplus"></A>
+
+<P><B>(BoreschKarplus)</B> Boresch and Karplus, J Phys Chem A, 103, 103 (1999)
+</P>
+<A NAME = "AllenTildesley"></A>
+
+<P><B>(AllenTildesley)</B> Allen and Tildesley, Computer Simulation of
+Liquids, Oxford University Press (1987)
+</P>
+</HTML>

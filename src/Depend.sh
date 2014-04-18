@@ -74,6 +74,7 @@ if (test $1 = "KSPACE") then
   depend USER-CUDA
   depend USER-OMP
   depend USER-PHONON
+  depend USER-FEP
 fi
 
 if (test $1 = "MANYBODY") then
@@ -109,3 +110,4 @@ if (test $1 = "USER-MISC") then
   depend GPU
   depend USER-OMP
 fi
+

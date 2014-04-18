@@ -39,8 +39,6 @@ using namespace FixConst;
 void FixShearHistoryOMP::pre_exchange()
 {
 
-  const int nlocal = atom->nlocal;
-  const int nghost = atom->nghost;
   const int nthreads = comm->nthreads;
   maxtouch = 0;
 

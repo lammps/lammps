@@ -237,10 +237,10 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
 
   /* fill in the lookup table entries for existing atom types.
      only lower half should be enough. */
-  for( i = 0; i < num_atom_types; ++i )
-    if( aggregated[i] )
+  for( i = 0; i < num_atom_types; ++i ) {
+    if( aggregated[i] ) {
       //for( j = 0; j < num_atom_types; ++j )
-      for( j = i; j < num_atom_types; ++j )
+      for( j = i; j < num_atom_types; ++j ) {
         if( aggregated[j] ) {
           LR[i][j].xmin = 0;
           LR[i][j].xmax = control->nonb_cut;
@@ -305,11 +305,12 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
           Natural_Cubic_Spline( &h[1], &fCEclmb[1],
                                 &(LR[i][j].CEclmb[1]), control->tabulate+1,
                                 comm );
-        }
-        else{
+        } else{
           LR[i][j].n = 0;
         }
-
+      }
+    }
+  }
   free(h);
   free(fh);
   free(fvdw);

@@ -118,11 +118,9 @@ PairMEAM::~PairMEAM()
 void PairMEAM::compute(int eflag, int vflag)
 {
   int i,j,ii,n,inum_half,errorflag;
-  double evdwl;
   int *ilist_half,*numneigh_half,**firstneigh_half;
   int *numneigh_full,**firstneigh_full;
 
-  evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = vflag_global =
          eflag_atom = vflag_atom = 0;

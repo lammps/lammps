@@ -41,7 +41,7 @@ PairGranHooke::PairGranHooke(LAMMPS *lmp) : PairGranHookeHistory(lmp)
 
 void PairGranHooke::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
+  int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
   double radi,radj,radsum,rsq,r,rinv,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -235,7 +235,7 @@ double PairGranHooke::single(int i, int j, int itype, int jtype, double rsq,
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3,wr1,wr2,wr3;
   double vtr1,vtr2,vtr3,vrel;
   double mi,mj,meff,damp,ccel;
-  double fn,fs,ft,fs1,fs2,fs3;
+  double fn,fs,ft;
 
   double *radius = atom->radius;
   radi = radius[i];

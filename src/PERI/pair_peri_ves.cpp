@@ -91,7 +91,7 @@ void PairPeriVES::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double xtmp0,ytmp0,ztmp0,delx0,dely0,delz0,rsq0;
-  double rsq,r,dr,dr1,rk,evdwl,fpair,fbond;
+  double rsq,r,dr,rk,evdwl,fpair,fbond;
   double deltaed,fbondViscoElastic,fbondFinal;
   double decay,betai,lambdai,edbNp1,rkNew;
   int *ilist,*jlist,*numneigh,**firstneigh;

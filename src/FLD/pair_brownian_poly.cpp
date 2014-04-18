@@ -70,7 +70,6 @@ void PairBrownianPoly::compute(int eflag, int vflag)
   else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
-  double **v = atom->v;
   double **f = atom->f;
   double **torque = atom->torque;
   double *radius = atom->radius;
@@ -340,7 +339,6 @@ void PairBrownianPoly::init_style()
   // for pair hybrid, should limit test to types using the pair style
 
   double *radius = atom->radius;
-  int *type = atom->type;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)

@@ -106,7 +106,6 @@ void PairTIP4PCut::compute(int eflag, int vflag)
   tagint *tag = atom->tag;
   int *type = atom->type;
   double *special_coul = force->special_coul;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
   inum = list->inum;

@@ -78,8 +78,8 @@ void PairEDIPOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
 void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,k,ii,inum,jnum;
-  int itype,jtype,ktype,ijparam,ikparam,ijkparam;
+  int i,j,k,ii,jnum;
+  int itype,jtype,ktype,ijparam,ikparam;
   double xtmp,ytmp,ztmp,evdwl;
   int *ilist,*jlist,*numneigh,**firstneigh;
   register int preForceCoord_counter;
@@ -115,7 +115,6 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
   double exp3B_ik;
   double exp3BDerived_ik;
   double qFunction;
-  double qFunctionDerived;
   double tauFunction;
   double tauFunctionDerived;
   double expMinusBetaZeta_iZeta_i;
@@ -152,7 +151,6 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
 
-  inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -283,8 +281,6 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
     tauFunctionDerived = interpolY1 + (interpolY2 - interpolY1) *
       (interpolTMP-interpolIDX);
 
-    qFunctionDerived = -mu * qFunction;
-
     forceModCoord_factor = 2.0 * beta * zeta_i * expMinusBetaZeta_iZeta_i;
 
     forceModCoord = 0.0;
@@ -358,7 +354,6 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
           k &= NEIGHMASK;
           ktype = map[type[k]];
           ikparam = elem2param[itype][ktype][ktype];
-          ijkparam = elem2param[itype][jtype][ktype];
 
           dr_ik[0] = x[k].x - xtmp;
           dr_ik[1] = x[k].y - ytmp;

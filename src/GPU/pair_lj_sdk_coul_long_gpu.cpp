@@ -214,13 +214,12 @@ void PairLJSDKCoulLongGPU::cpu_compute(int start, int inum, int *ilist,
 {
   int i,j,ii,jj;
   double qtmp,xtmp,ytmp,ztmp;
-  double r,rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
+  double r2inv,forcecoul,forcelj,factor_coul,factor_lj;
 
   const double * const * const x = atom->x;
   double * const * const f = atom->f;
   const double * const q = atom->q;
   const int * const type = atom->type;
-  const int nlocal = atom->nlocal;
   const double * const special_coul = force->special_coul;
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;

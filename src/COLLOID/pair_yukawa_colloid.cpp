@@ -42,7 +42,7 @@ void PairYukawaColloid::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,radi,radj;
-  double rsq,r2inv,r,rinv,screening,forceyukawa,factor;
+  double rsq,r,rinv,screening,forceyukawa,factor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -87,7 +87,6 @@ void PairYukawaColloid::compute(int eflag, int vflag)
       radj = radius[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
         r = sqrt(rsq);
         rinv = 1.0/r;
         screening = exp(-kappa*(r-(radi+radj)));
@@ -166,9 +165,8 @@ double PairYukawaColloid::single(int i, int j, int itype, int jtype,
                                  double factor_coul, double factor_lj,
                                  double &fforce)
 {
-  double r2inv,r,rinv,screening,forceyukawa,phi;
+  double r,rinv,screening,forceyukawa,phi;
 
-  r2inv = 1.0/rsq;
   r = sqrt(rsq);
   rinv = 1.0/r;
   screening = exp(-kappa*(r-(rad[itype]+rad[jtype])));

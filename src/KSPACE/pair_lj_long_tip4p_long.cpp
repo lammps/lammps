@@ -84,9 +84,9 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double fraction,table;
   double r,r2inv,forcecoul,forcelj,cforce;
-  double factor_coul,factor_lj;
+  double factor_coul;
   double grij,expm2,prefactor,t,erfc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
+  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
   double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
@@ -126,7 +126,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
 
   int order1 = ewald_order&(1<<1), order6 = ewald_order&(1<<6);
   int ni;
-  double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double  *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
 
   inum = list->inum;
@@ -172,7 +172,6 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
@@ -460,13 +459,11 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
 
 void PairLJLongTIP4PLong::compute_inner()
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   int iH1,iH2,jH1,jH2;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
-  double r,r2inv,forcecoul,forcelj,cforce;
-  double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
+  double r2inv,forcecoul,forcelj,cforce;
+  double fO[3],fH[3],fd[3];// f1[3];
   double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq, qri;
@@ -504,13 +501,12 @@ void PairLJLongTIP4PLong::compute_inner()
   int *type = atom->type;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
   double cut_coulsqplus = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
 
   int order1 = ewald_order&(1<<1);
   int ni;
-  double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double *lj1i, *lj2i;
 
   inum = listinner->inum;
   ilist = listinner->ilist;
@@ -549,14 +545,11 @@ void PairLJLongTIP4PLong::compute_inner()
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    offseti = offset[itype];
-    lj1i = lj1[itype]; lj2i = lj2[itype]; lj3i = lj3[itype]; lj4i = lj4[itype];
+    lj1i = lj1[itype]; lj2i = lj2[itype];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -719,13 +712,11 @@ void PairLJLongTIP4PLong::compute_inner()
 
 void PairLJLongTIP4PLong::compute_middle()
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   int iH1,iH2,jH1,jH2;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
-  double r,r2inv,forcecoul,forcelj,cforce;
-  double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
+  double r2inv,forcecoul,forcelj,cforce;
+  double fO[3],fH[3],fd[3];
   double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq,qri;
@@ -746,8 +737,6 @@ void PairLJLongTIP4PLong::compute_middle()
   // initialize hneigh[0] to -1 on steps when reneighboring occurred
   // initialize hneigh[2] to 0 every step
 
-  int nlocal = atom->nlocal;
-
   double **f = atom->f;
   double **x = atom->x;
   double *q = atom->q;
@@ -755,14 +744,12 @@ void PairLJLongTIP4PLong::compute_middle()
   int *type = atom->type;
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
   double cut_coulsqplus = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
 
   int order1 = ewald_order&(1<<1);
   int ni;
-  double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
-  double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
+  double  *lj1i, *lj2i;
 
   inum = listmiddle->inum;
   ilist = listmiddle->ilist;
@@ -801,14 +788,11 @@ void PairLJLongTIP4PLong::compute_middle()
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    offseti = offset[itype];
-    lj1i = lj1[itype]; lj2i = lj2[itype]; lj3i = lj3[itype]; lj4i = lj4[itype];
+    lj1i = lj1[itype]; lj2i = lj2[itype];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -979,16 +963,13 @@ void PairLJLongTIP4PLong::compute_middle()
 
 void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,inum,jnum,itype,jtype;
   int n,vlist[6];
   int key;
   int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
-  double fraction,table;
-  double r,r2inv,forcecoul,forcelj,cforce, respa_coul, respa_lj, frespa,fvirial;
-  double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
+  double r2inv,forcecoul,forcelj,cforce, respa_coul, respa_lj, frespa,fvirial;
+  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
   double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq,qri;
@@ -1030,7 +1011,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
 
   int order1 = ewald_order&(1<<1), order6 = ewald_order&(1<<6);
   int ni;
-  double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
 
   double cut_in_off = cut_respa[2];
@@ -1084,8 +1065,6 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];

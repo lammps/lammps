@@ -314,9 +314,6 @@ inline void ElecElecElec(double rc, double re1, double re2,
 
   re = sqrt(re1 * re1 + re2 * re2);
 
-  double ratio;
-  ratio = rc / re;
-
   /* constants: sqrt(2), 2 / sqrt(pi) */
   a = coeff_a / re;
   arc = a * rc;
@@ -369,7 +366,7 @@ inline void ElecCoreCore(double q, double rc, double re1, double re2,
 {
   double a, arc, re;
   double coeff_a;
-  double E, dEdr, f, fre, df;
+  double E, dEdr, f, df;
 
   coeff_a = 1.4142135623730951;
 
@@ -379,7 +376,6 @@ inline void ElecCoreCore(double q, double rc, double re1, double re2,
 
   f = ierfoverx1(arc, &df);
   dEdr = -q * a * a * df;
-  fre = q * a * (f + arc * df) / (re * re);
   E = q * a * f;
 
   *ecoul += E;

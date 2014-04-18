@@ -132,6 +132,7 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
   for (ii = iifrom; ii < iito; ++ii) {
 
     i = ilist[ii];
+    itype = type[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -145,6 +146,7 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
+      jtype = type[j];
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -201,8 +203,8 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
           mi = rmass[i];
           mj = rmass[j];
         } else {
-          mi = mass[type[i]];
-          mj = mass[type[j]];
+          mi = mass[itype];
+          mj = mass[jtype];
         }
         if (fix_rigid) {
           if (mass_rigid[i] > 0.0) mi = mass_rigid[i];

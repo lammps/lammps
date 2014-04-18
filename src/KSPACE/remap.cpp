@@ -114,12 +114,7 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
 
   } else { 
     if (plan->commringlen > 0) {
-      MPI_Status status;
-      int i,isend,irecv;
-      FFT_SCALAR *scratch;
-
-      if (plan->memory == 0) scratch = buf;
-      else scratch = plan->scratch;
+      int isend,irecv;
 
       // create send and recv buffers for alltoallv collective
 
@@ -180,9 +175,9 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
         }
       }
 
-      int mpirc = MPI_Alltoallv(packedSendBuffer, sendcnts, sdispls,
-                                MPI_FFT_SCALAR, packedRecvBuffer, rcvcnts,
-                                rdispls, MPI_FFT_SCALAR, plan->comm);
+      MPI_Alltoallv(packedSendBuffer, sendcnts, sdispls,
+                    MPI_FFT_SCALAR, packedRecvBuffer, rcvcnts,
+                    rdispls, MPI_FFT_SCALAR, plan->comm);
 
       // unpack the data from the recv buffer into out
 

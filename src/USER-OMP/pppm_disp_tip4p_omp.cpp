@@ -60,8 +60,6 @@ void PPPMDispTIP4POMP::allocate()
 {
   PPPMDispTIP4P::allocate();
 
-  const int nthreads = comm->nthreads;
-
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
@@ -78,7 +76,7 @@ void PPPMDispTIP4POMP::allocate()
     }
     if (function[1] + function[2]) {
       ThrData * thr = fix->get_thr(tid);
-      thr->init_pppm_disp(order_6,memory);  
+      thr->init_pppm_disp(order_6,memory);
     }
   }
 }
@@ -136,12 +134,11 @@ void PPPMDispTIP4POMP::compute_gf()
     double unitky = (2.0*MY_PI/yprd);
     double unitkz = (2.0*MY_PI/zprd_slab);
 
-    int tid,nn,nnfrom,nnto,nx,ny,nz,k,l,m;
+    int tid,nn,nnfrom,nnto,k,l,m;
     int kper,lper,mper;
     double snx,sny,snz,snx2,sny2,snz2;
     double sqk;
     double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
-    double sum1,dot1,dot2;
     double numerator,denominator;
 
     const int nnx = nxhi_fft-nxlo_fft+1;
@@ -191,7 +188,7 @@ void PPPMDispTIP4POMP::compute_gf()
 
           if (sqk != 0.0) {
             numerator = 4.0*MY_PI/sqk;
-            denominator = gf_denom(snx2,sny2,snz2, gf_b, order);  
+            denominator = gf_denom(snx2,sny2,snz2, gf_b, order);
             greensfn[nn] = numerator*sx*sy*sz*wx*wy*wz/denominator;
           } else greensfn[nn] = 0.0;
         }
@@ -258,7 +255,7 @@ void PPPMDispTIP4POMP::compute_gf_6()
       argz = 0.5*qz*zprd_slab/nz_pppm_6;
       if (argz != 0.0) wz = pow(sin(argz)/argz,order_6);
       wz *= wz;
-              
+
       for (l = nylo_fft_6; l <= nyhi_fft_6; l++) {
         lper = l - ny_pppm_6*(2*l/ny_pppm_6);
         qy = unitky*lper;
@@ -285,10 +282,10 @@ void PPPMDispTIP4POMP::compute_gf_6()
 	  argx = 0.5*qx*xprd/nx_pppm_6;
 	  if (argx != 0.0) wx = pow(sin(argx)/argx,order_6);
           wx *= wx;
-      
+
 	  sqk = pow(qx,2.0) + pow(qy,2.0) + pow(qz,2.0);
 
-	  denominator = gf_denom(snx2,sny2,snz2, gf_b_6, order_6); 
+	  denominator = gf_denom(snx2,sny2,snz2, gf_b_6, order_6);
 	  rtsqk = sqrt(sqk);
           term = (1-2*sqk*inv2ew*inv2ew)*sx*sy*sz +
                   2*sqk*rtsqk*inv2ew*inv2ew*inv2ew*rtpi*erfc(rtsqk*inv2ew);
@@ -418,7 +415,6 @@ void PPPMDispTIP4POMP::particle_map(double dxinv, double dyinv,
   // no local atoms => nothing to do
   if (atom->nlocal == 0) return;
 
-  const int * _noalias const type = atom->type;
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   int3_t * _noalias const p2g = (int3_t *) part2grid[0];
   const double boxlox = boxlo[0];
@@ -526,7 +522,7 @@ void PPPMDispTIP4POMP::make_rho_c()
       const int ny = p2g[i].b;
       const int nz = p2g[i].t;
 
-      // pre-screen whether this atom will ever come within 
+      // pre-screen whether this atom will ever come within
       // reach of the data segement this thread is updating.
       if ( ((nz+nlower-nzlo_out)*ix*iy >= jto)
            || ((nz+nupper-nzlo_out+1)*ix*iy < jfrom) ) continue;
@@ -618,7 +614,7 @@ void PPPMDispTIP4POMP::make_rho_g()
       const int ny = p2g[i].b;
       const int nz = p2g[i].t;
 
-      // pre-screen whether this atom will ever come within 
+      // pre-screen whether this atom will ever come within
       // reach of the data segement this thread is updating.
       if ( ((nz+nlower_6-nzlo_out_6)*ix*iy >= jto)
            || ((nz+nupper_6-nzlo_out_6+1)*ix*iy < jfrom) ) continue;
@@ -720,7 +716,7 @@ void PPPMDispTIP4POMP::make_rho_a()
       const int ny = p2g[i].b;
       const int nz = p2g[i].t;
 
-      // pre-screen whether this atom will ever come within 
+      // pre-screen whether this atom will ever come within
       // reach of the data segement this thread is updating.
       if ( ((nz+nlower_6-nzlo_out_6)*ix*iy >= jto)
            || ((nz+nupper_6-nzlo_out_6+1)*ix*iy < jfrom) ) continue;
@@ -1026,7 +1022,6 @@ void PPPMDispTIP4POMP::fieldforce_g_ik()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -1681,7 +1676,7 @@ void PPPMDispTIP4POMP::fieldforce_a_peratom()
 
     // this if protects against having more threads than local atoms
     if (ifrom < nlocal) {
-      for (int i = ifrom; i < ito; i++) {
+      for (i = ifrom; i < ito; i++) {
 
         nx = part2grid_6[i][0];
         ny = part2grid_6[i][1];
@@ -1776,20 +1771,20 @@ void PPPMDispTIP4POMP::fieldforce_a_peratom()
         lj6 = B[7*type]*0.5;
 
         if (eflag_atom)
-          eatom[i] += u0*lj0 + u1*lj1 + u2*lj2 + 
+          eatom[i] += u0*lj0 + u1*lj1 + u2*lj2 +
             u3*lj3 + u4*lj4 + u5*lj5 + u6*lj6;
         if (vflag_atom) {
-          vatom[i][0] += v00*lj0 + v01*lj1 + v02*lj2 + v03*lj3 + 
+          vatom[i][0] += v00*lj0 + v01*lj1 + v02*lj2 + v03*lj3 +
             v04*lj4 + v05*lj5 + v06*lj6;
-          vatom[i][1] += v10*lj0 + v11*lj1 + v12*lj2 + v13*lj3 + 
+          vatom[i][1] += v10*lj0 + v11*lj1 + v12*lj2 + v13*lj3 +
             v14*lj4 + v15*lj5 + v16*lj6;
-          vatom[i][2] += v20*lj0 + v21*lj1 + v22*lj2 + v23*lj3 + 
+          vatom[i][2] += v20*lj0 + v21*lj1 + v22*lj2 + v23*lj3 +
             v24*lj4 + v25*lj5 + v26*lj6;
-          vatom[i][3] += v30*lj0 + v31*lj1 + v32*lj2 + v33*lj3 + 
+          vatom[i][3] += v30*lj0 + v31*lj1 + v32*lj2 + v33*lj3 +
             v34*lj4 + v35*lj5 + v36*lj6;
-          vatom[i][4] += v40*lj0 + v41*lj1 + v42*lj2 + v43*lj3 + 
+          vatom[i][4] += v40*lj0 + v41*lj1 + v42*lj2 + v43*lj3 +
             v44*lj4 + v45*lj5 + v46*lj6;
-          vatom[i][5] += v50*lj0 + v51*lj1 + v52*lj2 + v53*lj3 + 
+          vatom[i][5] += v50*lj0 + v51*lj1 + v52*lj2 + v53*lj3 +
             v54*lj4 + v55*lj5 + v56*lj6;
         }
       }

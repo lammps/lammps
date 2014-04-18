@@ -227,12 +227,6 @@ void ComputeVoronoi::buildCells()
   // setup bounds for voro++ domain for orthogonal and triclinic simulation boxes
   if( domain->triclinic ) {
     // triclinic box: embed parallelepiped into orthogonal voro++ domain
-    double mx, my, sxy,sxz,syz;
-    mx = (boxhi[0]-boxlo[0])/(subhi[0]-sublo[0]);
-    my = (boxhi[1]-boxlo[1])/(subhi[1]-sublo[1]);
-    sxy = domain->xy/mx;
-    sxz = domain->xz/mx;
-    syz = domain->yz/my;
 
     // cutghost is in lamda coordinates for triclinic boxes, use subxx_lamda
     double *h = domain->h, cuttri[3];

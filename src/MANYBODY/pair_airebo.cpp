@@ -318,8 +318,6 @@ void PairAIREBO::REBO_neigh()
 
   double **x = atom->x;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
 
   if (atom->nmax > maxlocal) {
     maxlocal = atom->nmax;

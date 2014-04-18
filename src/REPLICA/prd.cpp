@@ -58,7 +58,7 @@ PRD::PRD(LAMMPS *lmp) : Pointers(lmp) {}
 
 void PRD::command(int narg, char **arg)
 {
-  int flag,ireplica;
+  int ireplica;
 
   // error checks
 
@@ -773,7 +773,7 @@ void PRD::replicate(int ireplica)
 {
   int nreplica = universe->nworlds;
   int nprocs_universe = universe->nprocs;
-  int i,m,flag,commflag;
+  int i,m;
 
   if (nreplica == nprocs_universe) {
     MPI_Bcast(atom->image,atom->nlocal,MPI_INT,ireplica,comm_replica);
@@ -856,17 +856,17 @@ void PRD::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal prd command");
-      etol = atof(arg[iarg+1]);
-      ftol = atof(arg[iarg+2]);
-      maxiter = atoi(arg[iarg+3]);
-      maxeval = atoi(arg[iarg+4]);
+      etol = force->numeric(FLERR,arg[iarg+1]);
+      ftol = force->numeric(FLERR,arg[iarg+2]);
+      maxiter = force->inumeric(FLERR,arg[iarg+3]);
+      maxeval = force->inumeric(FLERR,arg[iarg+4]);
       if (maxiter < 0) error->all(FLERR,"Illegal prd command");
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal prd command");
       temp_flag = 1;
-      temp_dephase = atof(arg[iarg+1]);
+      temp_dephase = force->numeric(FLERR,arg[iarg+1]);
       if (temp_dephase <= 0.0) error->all(FLERR,"Illegal prd command");
       iarg += 2;
 

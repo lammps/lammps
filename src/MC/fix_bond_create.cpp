@@ -623,7 +623,7 @@ void FixBondCreate::check_ghosts()
 
 void FixBondCreate::update_topology()
 {
-  int i,j,k,n,influence,influenced,found;
+  int i,j,k,n,influence,influenced;
   tagint id1,id2;
   tagint *slist;
 
@@ -887,7 +887,7 @@ void FixBondCreate::create_angles(int m)
 
 void FixBondCreate::create_dihedrals(int m)
 {
-  int i,j,k,n,i1local,i2local,i3local,n1,n2,n3,n4;
+  int i,j,k,n,i1local,i2local,i3local,n1,n2,n3;
   tagint i1,i2,i3,i4;
   tagint *s1list,*s2list,*s3list;
 

@@ -715,22 +715,21 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   const double * const q = atom->q;
   const int * const type = atom->type;
   const int nlocal = atom->nlocal;
-  const int nall = nlocal + atom->nghost;
   const double * const special_coul = force->special_coul;
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
   const double cut_coulsqplus = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
 
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype,itable;
   int n,vlist[6];
   int key;
   int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double fraction,table;
   double r,r2inv,forcecoul,forcelj,cforce;
-  double factor_coul,factor_lj;
+  double factor_coul;
   double grij,expm2,prefactor,t,erfc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
+  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];
   dbl3_t x1,x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
@@ -738,13 +737,13 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   evdwl = ecoul = 0.0;
 
   int ni;
-  double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = iifrom; ii < iito; ++ii) {
@@ -783,7 +782,6 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
@@ -792,7 +790,7 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
       delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-        
+
       if (rsq < cut_ljsq[itype][jtype]) {			// lj
         r2inv = 1.0/rsq;
        	if (ORDER6) {					// long-range lj
@@ -810,7 +808,7 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 	      register double f = special_lj[ni], t = rn*(1.0-f);
 	      forcelj = f*(rn *= rn)*lj1i[jtype]-
 	        g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[jtype];
-	      if (EFLAG) 
+	      if (EFLAG)
 	        evdwl = f*rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[jtype];
 	    }
           }
@@ -857,12 +855,12 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 				 evdwl,0.0,forcelj,delx,dely,delz,thr);
       }
 
-      
+
       // adjust rsq and delxyz for off-site O charge(s)
       // ADDITIONAL REQEUST REQUIRED HERE!!!!!
 
       if (rsq < cut_coulsqplus) {
-        if (itype == typeO || jtype == typeO) { 
+        if (itype == typeO || jtype == typeO) {
 	  if (jtype == typeO) {
             if (hneigh_thr[j].a < 0) {
               hneigh_thr[j].a = jH1 = atom->map(atom->tag[j] + 1);
@@ -890,7 +888,7 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
 	// test current rsq against cutoff and compute Coulombic force
-      
+
         if (rsq < cut_coulsq && ORDER1) {
 	  r2inv = 1.0 / rsq;
 	  if (!CTABLE || rsq <= tabinnersq) {
@@ -902,7 +900,7 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    prefactor = qqrd2e * qtmp*q[j]/r;
 	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
 	    if (factor_coul < 1.0) {
-	      forcecoul -= (1.0-factor_coul)*prefactor; 
+	      forcecoul -= (1.0-factor_coul)*prefactor;
 	    }
 	  } else {
 	    union_int_float_t rsq_lookup;
@@ -1020,7 +1018,7 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
             fH[0] = 0.5 * alpha * fd[0];
             fH[1] = 0.5 * alpha * fd[1];
-            fH[2] = 0.5 * alpha * fd[2]; 
+            fH[2] = 0.5 * alpha * fd[2];
 
 	    f[j][0] += fO[0];
 	    f[j][1] += fO[1];
@@ -1059,7 +1057,7 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 	    }
 	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
- 
+
           if (EVFLAG) ev_tally_list_thr(this,key,vlist,v,ecoul,alpha,thr);
 	}
       }
@@ -1071,17 +1069,15 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
 void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const thr)
 {
-  double r, rsq, r2inv, forcecoul = 0.0, forcelj, cforce, fpair;
+  double rsq, r2inv, forcecoul = 0.0, forcelj, cforce;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   double * const * const f = thr->get_f();
   const double * const q = atom->q;
   const int * const type = atom->type;
-  const int nlocal = atom->nlocal;
   const double * const special_coul = force->special_coul;
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
-  const int newton_pair = force->newton_pair;
   const double cut_coulsqplus = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
 
   const double cut_out_on = cut_respa[0];
@@ -1091,26 +1087,23 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
   const double cut_out_on_sq = cut_out_on*cut_out_on;
   const double cut_out_off_sq = cut_out_off*cut_out_off;
 
-  int *jneigh, *jneighn, typei, typej, ni;
+  int ni;
   const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
   double qri;
-  vector xi, d;
 
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype;
   int iH1,iH2,jH1,jH2;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
-  double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
+  double fO[3],fH[3],fd[3];
   dbl3_t x1,x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double *lj1i, *lj2i;
 
   ilist = listinner->ilist;
   numneigh = listinner->numneigh;
   firstneigh = listinner->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = iifrom; ii < iito; ++ii) {
@@ -1143,14 +1136,11 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    offseti = offset[itype];
-    lj1i = lj1[itype]; lj2i = lj2[itype]; lj3i = lj3[itype]; lj4i = lj4[itype];
+    lj1i = lj1[itype]; lj2i = lj2[itype];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;
@@ -1158,7 +1148,7 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
       delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-        
+
       if (rsq < cut_ljsq[itype][jtype] && rsq < cut_out_off_sq ) {  // lj
         r2inv = 1.0/rsq;				
 	register double rn = r2inv*r2inv*r2inv;
@@ -1182,12 +1172,12 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
 	f[j][2] -= delz*forcelj;
       }
 
-      
+
       // adjust rsq and delxyz for off-site O charge(s)
       // ADDITIONAL REQEUST REQUIRED HERE!!!!!
 
       if (rsq < cut_coulsqplus && order1) {
-        if (itype == typeO || jtype == typeO) { 
+        if (itype == typeO || jtype == typeO) {
 	  if (jtype == typeO) {
             if (hneigh_thr[j].a < 0) {
               hneigh_thr[j].a = jH1 = atom->map(atom->tag[j] + 1);
@@ -1215,7 +1205,7 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
         }
 
 	// test current rsq against cutoff and compute Coulombic force
-      
+
         if (rsq < cut_coulsq && rsq < cut_out_off_sq) {
 	  r2inv = 1.0 / rsq;
           qri = qqrd2e*qtmp;
@@ -1289,7 +1279,7 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
 
             fH[0] = 0.5 * alpha * fd[0];
             fH[1] = 0.5 * alpha * fd[1];
-            fH[2] = 0.5 * alpha * fd[2]; 
+            fH[2] = 0.5 * alpha * fd[2];
 
 	    f[j][0] += fO[0];
 	    f[j][1] += fO[1];
@@ -1313,19 +1303,17 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
 
 void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const thr)
 {
-  double r, rsq, r2inv, forcecoul,forcelj, cforce, fpair;
+  double rsq, r2inv, forcecoul,forcelj, cforce;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   double * const * const f = thr->get_f();
   const double * const q = atom->q;
   const int * const type = atom->type;
-  const int nlocal = atom->nlocal;
   const double * const special_coul = force->special_coul;
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
 
   const double cut_coulsqplus = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
-  const int newton_pair = force->newton_pair;
   const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
 
   const double cut_in_off = cut_respa[0];
@@ -1340,24 +1328,21 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
   const double cut_out_on_sq = cut_out_on*cut_out_on;
   const double cut_out_off_sq = cut_out_off*cut_out_off;
 
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype;
   int iH1,iH2,jH1,jH2;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
-  double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
+  double fO[3],fH[3],fd[3];
   dbl3_t x1,x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double qri;
 
   int ni;
-  double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
-  double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
+  double *lj1i, *lj2i;
 
   ilist = listmiddle->ilist;
   numneigh = listmiddle->numneigh;
   firstneigh = listmiddle->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = iifrom; ii < iito; ++ii) {
@@ -1390,14 +1375,11 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    offseti = offset[itype];
-    lj1i = lj1[itype]; lj2i = lj2[itype]; lj3i = lj3[itype]; lj4i = lj4[itype];
+    lj1i = lj1[itype]; lj2i = lj2[itype];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;
@@ -1405,7 +1387,7 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
       delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-        
+
       if (rsq < cut_ljsq[itype][jtype] && rsq >= cut_in_off_sq && rsq <= cut_out_off_sq ) {  // lj
         r2inv = 1.0/rsq;				
 	register double rn = r2inv*r2inv*r2inv;
@@ -1433,12 +1415,12 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
 	f[j][2] -= delz*forcelj;
       }
 
-      
+
       // adjust rsq and delxyz for off-site O charge(s)
       // ADDITIONAL REQEUST REQUIRED HERE!!!!!
 
       if (rsq < cut_coulsqplus && order1) {
-        if (itype == typeO || jtype == typeO) { 
+        if (itype == typeO || jtype == typeO) {
 	  if (jtype == typeO) {
             if (hneigh_thr[j].a < 0) {
               hneigh_thr[j].a = jH1 = atom->map(atom->tag[j] + 1);
@@ -1466,7 +1448,7 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
         }
 
 	// test current rsq against cutoff and compute Coulombic force
-      
+
         if (rsq < cut_coulsq &&  rsq >= cut_in_off_sq && rsq <= cut_out_off_sq) {
 	  r2inv = 1.0 / rsq;
           qri = qqrd2e*qtmp;
@@ -1544,7 +1526,7 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
 
             fH[0] = 0.5 * alpha * fd[0];
             fH[1] = 0.5 * alpha * fd[1];
-            fH[2] = 0.5 * alpha * fd[2]; 
+            fH[2] = 0.5 * alpha * fd[2];
 
 	    f[j][0] += fO[0];
 	    f[j][1] += fO[1];
@@ -1570,7 +1552,7 @@ template < const int EVFLAG, const int EFLAG,
            const int NEWTON_PAIR, const int CTABLE, const int LJTABLE, const int ORDER1, const int ORDER6 >
 void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const thr)
 {
-  double evdwl,ecoul,fvirial,fpair;
+  double evdwl,ecoul,fvirial;
   evdwl = ecoul = 0.0;
 
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
@@ -1583,28 +1565,25 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
   const double qqrd2e = force->qqrd2e;
   const double cut_coulsqplus = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
 
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable;
+  int i,j,ii,jj,jnum,itype,jtype;
   int n,vlist[6];
   int key;
   int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
-  double fraction,table;
-  double r,r2inv,forcecoul,forcelj,cforce, respa_coul, respa_lj, frespa;
-  double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];// f1[3];
+  double r2inv,forcecoul,forcelj,cforce, respa_coul, respa_lj, frespa;
+  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];
   dbl3_t x1,x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq,qri;
   int respa_flag;
-  
+
   int ni;
-  double  *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  double *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
 
   const double cut_in_off = cut_respa[2];
   const double cut_in_on = cut_respa[3];
-  
+
   const double cut_in_diff = cut_in_on - cut_in_off;
   const double cut_in_off_sq = cut_in_off*cut_in_off;
   const double cut_in_on_sq = cut_in_on*cut_in_on;
@@ -1612,7 +1591,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
   ilist = listouter->ilist;
   numneigh = listouter->numneigh;
   firstneigh = listouter->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = iifrom; ii < iito; ++ii) {
@@ -1652,8 +1631,6 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       ni = sbmask(j);
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;
@@ -1661,7 +1638,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
       delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-        
+
       respa_coul = 0;
       respa_lj = 0;
       if (rsq < cut_ljsq[itype][jtype]) {			// lj
@@ -1730,7 +1707,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
 	f[j][0] -= delx*forcelj;
 	f[j][1] -= dely*forcelj;
 	f[j][2] -= delz*forcelj;
-      
+
         if (EVFLAG) {
           fvirial = forcelj + respa_lj*r2inv;
           ev_tally_thr(this,i,j,nlocal,/*newton_pair = */ 1,
@@ -1738,12 +1715,12 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
         }
       }
 
-      
+
       // adjust rsq and delxyz for off-site O charge(s)
       // ADDITIONAL REQEUST REQUIRED HERE!!!!!
 
       if (rsq < cut_coulsqplus) {
-        if (itype == typeO || jtype == typeO) { 
+        if (itype == typeO || jtype == typeO) {
 	  if (jtype == typeO) {
             if (hneigh_thr[j].a < 0) {
               hneigh_thr[j].a = jH1 = atom->map(atom->tag[j] + 1);
@@ -1818,7 +1795,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
                 ecoul = qiqj*(etable[k]+f*detable[k]-t.f);
               }
             }
-          } 
+          }
 
           cforce = forcecoul * r2inv;
           fvirial = (forcecoul + respa_coul) * r2inv;
@@ -1932,7 +1909,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
 
             fH[0] = 0.5 * alpha * fd[0];
             fH[1] = 0.5 * alpha * fd[1];
-            fH[2] = 0.5 * alpha * fd[2]; 
+            fH[2] = 0.5 * alpha * fd[2];
 
 	    f[j][0] += fO[0];
 	    f[j][1] += fO[1];
@@ -1958,7 +1935,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
 
               fH[0] = 0.5 * alpha * fd[0];
               fH[1] = 0.5 * alpha * fd[1];
-              fH[2] = 0.5 * alpha * fd[2]; 
+              fH[2] = 0.5 * alpha * fd[2];
 
 	      domain->closest_image(&x[j].x,&x[jH1].x,xH1);
 	      domain->closest_image(&x[j].x,&x[jH2].x,xH2);
@@ -1974,7 +1951,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
 	    vlist[n++] = jH1;
 	    vlist[n++] = jH2;
 	  }
- 
+
           if (EVFLAG) ev_tally_list_thr(this,key,vlist,v,ecoul,alpha,thr);
         }
       }

@@ -180,14 +180,12 @@ void MSMOMP::direct_eval(const int nn)
       icz += nzlo_inn;
       icy += nylo_inn;
       icx += nxlo_inn;
-      
+
       const int kmax = zper ? nzhi_direct : MIN(nzhi_direct,betazn - icz);
       const int jmin = yper ? nylo_direct : MAX(nylo_direct,alphan - icy);
       const int jmax = yper ? nyhi_direct : MIN(nyhi_direct,betayn - icy);
       const int imin = xper ? nxlo_direct : MAX(nxlo_direct,alphan - icx);
       const int imax = xper ? nxhi_direct : MIN(nxhi_direct,betaxn - icx);
-
-      const double qtmp = qgridn[icz][icy][icx]; // charge on center grid point
 
       esum = 0.0;
       if (VFLAG_GLOBAL || VFLAG_ATOM)
@@ -357,8 +355,7 @@ void MSMOMP::direct_peratom(const int nn)
   const int yper = domain->yperiodic;
   const int xper = domain->xperiodic;
 
-  const int n=nn;
-  int i,ifrom,ito,tid,icx,icy,icz,ix,iy,iz,k;
+  int i,icx,icy,icz,ix,iy,iz,k;
 
 
   for (i = 0; i < inum; ++i) {
@@ -371,7 +368,7 @@ void MSMOMP::direct_peratom(const int nn)
     icz += nzlo_inn;
     icy += nylo_inn;
     icx += nxlo_inn;
-    
+
     const int kmax = zper ? nzhi_direct : MIN(nzhi_direct,betazn - icz);
     const int jmin = yper ? nylo_direct : MAX(nylo_direct,alphan - icy);
     const int jmax = yper ? nyhi_direct : MIN(nyhi_direct,betayn - icy);

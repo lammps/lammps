@@ -22,6 +22,7 @@
 #include "error.h"
 #include "fix_omp.h"
 #include "force.h"
+#include "neighbor.h"
 #include "memory.h"
 #include "math_const.h"
 #include "math_special.h"

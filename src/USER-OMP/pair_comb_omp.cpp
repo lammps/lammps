@@ -567,12 +567,11 @@ void PairCombOMP::Short_neigh_thr()
 #pragma omp parallel default(none)
 #endif
   {
-    int nj,npntj,*neighptrj;
-    int iparam_ij,*ilist,*jlist,*numneigh,**firstneigh;
+    int nj,*neighptrj;
+    int *ilist,*jlist,*numneigh,**firstneigh;
     int jnum,i,j,ii,jj;
     double xtmp,ytmp,ztmp,rsq,delrj[3];
     double **x = atom->x;
-    int *type  = atom->type;
 
     const int inum = list->inum;
     ilist = list->ilist;

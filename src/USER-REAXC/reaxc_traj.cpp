@@ -131,7 +131,6 @@ int Write_Header( reax_system *system, control_params *control,
                   output_controls *out_control, mpi_datatypes *mpi_data )
 {
   int  num_hdr_lines, my_hdr_lines, buffer_req;
-  MPI_Status status;
   char ensembles[ens_N][25] =  { "NVE", "NVT", "fully flexible NPT",
                                  "semi isotropic NPT", "isotropic NPT" };
   char reposition[3][25] = { "fit to periodic box", "CoM to center of box",
@@ -339,7 +338,7 @@ int Write_Header( reax_system *system, control_params *control,
                             mpi_data->world, system->my_rank,
                             my_hdr_lines, num_hdr_lines );
     MPI_File_write_all( out_control->trj, out_control->buffer,
-                        num_hdr_lines, mpi_data->header_line, &status );
+                        num_hdr_lines, mpi_data->header_line, MPI_STATUS_IGNORE );
     out_control->trj_offset = (num_hdr_lines) * HEADER_LINE_LEN;
   }
   else {
@@ -549,7 +548,6 @@ int Write_Frame_Header( reax_system *system, control_params *control,
                         mpi_datatypes *mpi_data )
 {
   int me, num_frm_hdr_lines, my_frm_hdr_lines, buffer_req;
-  MPI_Status status;
 
   me = system->my_rank;
   /* frame header lengths */
@@ -670,7 +668,7 @@ int Write_Frame_Header( reax_system *system, control_params *control,
                             me, my_frm_hdr_lines, num_frm_hdr_lines );
 
     MPI_File_write_all(out_control->trj, out_control->buffer, my_frm_hdr_lines,
-                       mpi_data->header_line, &status);
+                       mpi_data->header_line, MPI_STATUS_IGNORE);
     out_control->trj_offset += (num_frm_hdr_lines) * HEADER_LINE_LEN;
   }
   else {

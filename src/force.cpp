@@ -583,11 +583,11 @@ void Force::set_special(int narg, char **arg)
 {
   if (narg == 0) error->all(FLERR,"Illegal special_bonds command");
 
-  // defaults
+  // defaults, but do not reset special_extra
 
   special_lj[1] = special_lj[2] = special_lj[3] = 0.0;
   special_coul[1] = special_coul[2] = special_coul[3] = 0.0;
-  special_angle = special_dihedral = special_extra = 0;
+  special_angle = special_dihedral = 0;
 
   int iarg = 0;
   while (iarg < narg) {

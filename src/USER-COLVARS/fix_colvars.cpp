@@ -75,8 +75,6 @@ static int inthash_lookup(void *tptr, int key);
 static int inthash_insert(inthash_t *tptr, int key, int data);
 /* delete the hash table */
 static void inthash_destroy(inthash_t *tptr);
-/* adapted sort for in-place sorting of map indices. */
-static void id_sort(int *idmap, int left, int right);
 
 /************************************************************************
  * integer hash code:
@@ -237,44 +235,6 @@ void inthash_destroy(inthash_t *tptr) {
     free(tptr->bucket);
     memset(tptr, 0, sizeof(inthash_t));
   }
-}
-
-/************************************************************************
- * integer list sort code:
- ************************************************************************/
-
-/* sort for integer map. initial call  id_sort(idmap, 0, natoms - 1); */
-static void id_sort(int *idmap, int left, int right)
-{
-  int pivot, l_hold, r_hold;
-
-  l_hold = left;
-  r_hold = right;
-  pivot = idmap[left];
-
-  while (left < right) {
-    while ((idmap[right] >= pivot) && (left < right))
-      right--;
-    if (left != right) {
-      idmap[left] = idmap[right];
-      left++;
-    }
-    while ((idmap[left] <= pivot) && (left < right))
-      left++;
-    if (left != right) {
-      idmap[right] = idmap[left];
-      right--;
-    }
-  }
-  idmap[left] = pivot;
-  pivot = left;
-  left = l_hold;
-  right = r_hold;
-
-  if (left < pivot)
-    id_sort(idmap, left, pivot-1);
-  if (right > pivot)
-    id_sort(idmap, pivot+1, right);
 }
 
 /***************************************************************/

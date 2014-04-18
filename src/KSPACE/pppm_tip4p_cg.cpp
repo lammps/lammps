@@ -266,16 +266,15 @@ void PPPMTIP4PCG::compute(int eflag, int vflag)
 
 void PPPMTIP4PCG::particle_map()
 {
-  int nx,ny,nz,iH1,iH2;
+  int i,j,nx,ny,nz,iH1,iH2;
   double *xi,xM[3];
 
   int *type = atom->type;
   double **x = atom->x;
-  int nlocal = atom->nlocal;
 
   int flag = 0;
-  for (int j = 0; j < num_charged; j++) {
-    int i = is_charged[j];
+  for (j = 0; j < num_charged; j++) {
+    i = is_charged[j];
     if (type[i] == typeO) {
       find_M_cg(i,iH1,iH2,xM);
       xi = xM;
@@ -314,7 +313,7 @@ void PPPMTIP4PCG::particle_map()
 
 void PPPMTIP4PCG::make_rho()
 {
-  int i,l,m,n,nx,ny,nz,mx,my,mz,iH1,iH2;
+  int i,j,l,m,n,nx,ny,nz,mx,my,mz,iH1,iH2;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
   double *xi,xM[3];
 
@@ -331,10 +330,9 @@ void PPPMTIP4PCG::make_rho()
   int *type = atom->type;
   double *q = atom->q;
   double **x = atom->x;
-  int nlocal = atom->nlocal;
 
-  for (int j = 0; j < num_charged; j++) {
-    int i = is_charged[j];
+  for (j = 0; j < num_charged; j++) {
+    i = is_charged[j];
     if (type[i] == typeO) {
       find_M_cg(i,iH1,iH2,xM);
       xi = xM;
@@ -371,7 +369,7 @@ void PPPMTIP4PCG::make_rho()
 
 void PPPMTIP4PCG::fieldforce_ik()
 {
-  int i,l,m,n,nx,ny,nz,mx,my,mz;
+  int i,j,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
   FFT_SCALAR ekx,eky,ekz;
   double *xi;
@@ -387,12 +385,10 @@ void PPPMTIP4PCG::fieldforce_ik()
   double *q = atom->q;
   double **x = atom->x;
   double **f = atom->f;
-
   int *type = atom->type;
-  int nlocal = atom->nlocal;
 
-  for (int j = 0; j < num_charged; j++) {
-    int i = is_charged[j];
+  for (j = 0; j < num_charged; j++) {
+    i = is_charged[j];
     if (type[i] == typeO) {
       find_M_cg(i,iH1,iH2,xM);
       xi = xM;
@@ -459,7 +455,7 @@ void PPPMTIP4PCG::fieldforce_ik()
 
 void PPPMTIP4PCG::fieldforce_ad()
 {
-  int i,l,m,n,nx,ny,nz,mx,my,mz;
+  int i,j,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz;
   FFT_SCALAR ekx,eky,ekz;
   double *xi;
@@ -490,12 +486,10 @@ void PPPMTIP4PCG::fieldforce_ad()
   double *q = atom->q;
   double **x = atom->x;
   double **f = atom->f;
-
   int *type = atom->type;
-  int nlocal = atom->nlocal;
 
-  for (int j = 0; j < num_charged; j++) {
-    int i = is_charged[j];
+  for (j = 0; j < num_charged; j++) {
+    i = is_charged[j];
     if (type[i] == typeO) {
       find_M_cg(i,iH1,iH2,xM);      
       xi = xM;
@@ -580,7 +574,7 @@ void PPPMTIP4PCG::fieldforce_ad()
 
 void PPPMTIP4PCG::fieldforce_peratom()
 {
-  int i,l,m,n,nx,ny,nz,mx,my,mz;
+  int i,j,l,m,n,nx,ny,nz,mx,my,mz;
   FFT_SCALAR dx,dy,dz,x0,y0,z0;
   double *xi;
   int iH1,iH2;
@@ -595,12 +589,10 @@ void PPPMTIP4PCG::fieldforce_peratom()
 
   double *q = atom->q;
   double **x = atom->x;
-
   int *type = atom->type;
-  int nlocal = atom->nlocal;
 
-  for (int j = 0; j < num_charged; j++) {
-    int i = is_charged[j];
+  for (j = 0; j < num_charged; j++) {
+    i = is_charged[j];
     if (type[i] == typeO) {
       find_M_cg(i,iH1,iH2,xM);      
       xi = xM;

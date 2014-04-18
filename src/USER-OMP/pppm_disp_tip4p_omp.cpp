@@ -60,8 +60,6 @@ void PPPMDispTIP4POMP::allocate()
 {
   PPPMDispTIP4P::allocate();
 
-  const int nthreads = comm->nthreads;
-
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
 #endif
@@ -136,12 +134,11 @@ void PPPMDispTIP4POMP::compute_gf()
     double unitky = (2.0*MY_PI/yprd);
     double unitkz = (2.0*MY_PI/zprd_slab);
 
-    int tid,nn,nnfrom,nnto,nx,ny,nz,k,l,m;
+    int tid,nn,nnfrom,nnto,k,l,m;
     int kper,lper,mper;
     double snx,sny,snz,snx2,sny2,snz2;
     double sqk;
     double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
-    double sum1,dot1,dot2;
     double numerator,denominator;
 
     const int nnx = nxhi_fft-nxlo_fft+1;
@@ -418,7 +415,6 @@ void PPPMDispTIP4POMP::particle_map(double dxinv, double dyinv,
   // no local atoms => nothing to do
   if (atom->nlocal == 0) return;
 
-  const int * _noalias const type = atom->type;
   const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
   int3_t * _noalias const p2g = (int3_t *) part2grid[0];
   const double boxlox = boxlo[0];
@@ -1026,7 +1022,6 @@ void PPPMDispTIP4POMP::fieldforce_g_ik()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -1681,7 +1676,7 @@ void PPPMDispTIP4POMP::fieldforce_a_peratom()
 
     // this if protects against having more threads than local atoms
     if (ifrom < nlocal) {
-      for (int i = ifrom; i < ito; i++) {
+      for (i = ifrom; i < ito; i++) {
 
         nx = part2grid_6[i][0];
         ny = part2grid_6[i][1];

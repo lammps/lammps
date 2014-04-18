@@ -475,7 +475,7 @@ int AtomVecMeso::pack_border_vel(int n, int *list, double *buf, int pbc_flag,
                                  int *pbc)
 {
   int i,j,m;
-  double dx,dy,dz,dvx,dvy,dvz;
+  double dx,dy,dz;
 
   m = 0;
   if (pbc_flag == 0) {
@@ -527,9 +527,6 @@ int AtomVecMeso::pack_border_vel(int n, int *list, double *buf, int pbc_flag,
         buf[m++] = vest[j][2];
       }
     } else {
-      dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
-      dvy = pbc[1]*h_rate[1] + pbc[3]*h_rate[3];
-      dvz = pbc[2]*h_rate[2];
       for (i = 0; i < n; i++) {
         j = list[i];
         buf[m++] = x[j][0] + dx;

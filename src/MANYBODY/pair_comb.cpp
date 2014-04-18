@@ -1844,13 +1844,12 @@ void PairComb::qfo_direct(int inty, int mr1, int mr2, int mr3,
 void PairComb::qfo_field(Param *param, double rsq,double iq,double jq,
                          double &fqij, double &fqjj)
 {
- double r,r5,r6,rc,rc5,rc6;
+ double r,r5,rc,rc5,rc6;
  double cmi1,cmi2,cmj1,cmj2,rf5;
 
  fqij = fqjj = 0.0;
  r  = sqrt(rsq);
  r5 = r*r*r*r*r;
- r6 = r5 * r;
  rc = param->lcut;
  rc5 = rc*rc*rc*rc*rc;
  rc6 = rc5 * rc;
@@ -1871,7 +1870,7 @@ void PairComb::qfo_field(Param *param, double rsq,double iq,double jq,
 void PairComb::qfo_short(Param *param, int i, int j, double rsq,
                          double iq, double jq, double &fqij, double &fqjj)
 {
-  double r,tmp_fc,tmp_fc_d,tmp_exp1,tmp_exp2;
+  double r,tmp_fc,tmp_exp1,tmp_exp2;
   double bigA,Asi,Asj,vrcs;
   double romi = param->addrep,rrcs = param->bigr + param->bigd;
   double qi,qj,Di,Dj,bigB,Bsi,Bsj;
@@ -1881,7 +1880,7 @@ void PairComb::qfo_short(Param *param, int i, int j, double rsq,
   double romie = param->romiga;
   double romib = param->romigb;
   double ca1,ca2,ca3,ca4;
-  double rslp,rslp2,rslp4,arr1,arr2,fc2j,fc3j,fcp2j,fcp3j;
+  double rslp,rslp2,rslp4,arr1,arr2,fc2j,fc3j;
 
   qi = iq; qj = jq; r = sqrt(rsq);
   Di = Dj = Asi = Asj = bigA = Bsi = Bsj = bigB = 0.0;
@@ -1890,7 +1889,6 @@ void PairComb::qfo_short(Param *param, int i, int j, double rsq,
   caj = cbj = vrcs = cfqr = cfqs = 0.0;
 
   tmp_fc = comb_fc(r,param);
-  tmp_fc_d = comb_fc_d(r,param);
   tmp_exp1 = exp(-param->rlm1 * r);
   tmp_exp2 = exp(-param->rlm2 * r);
   bij = bbij[i][j]; //comb_bij(zeta_ij,param);
@@ -1898,8 +1896,6 @@ void PairComb::qfo_short(Param *param, int i, int j, double rsq,
   arr1 = 2.22850; arr2 = 1.89350;
   fc2j = comb_fc2(r);
   fc3j = comb_fc3(r);
-  fcp2j = comb_fc2_d(r);
-  fcp3j = comb_fc3_d(r);
 
   vrcs = 0.0;
   if (romi > 0.0) {
@@ -2047,14 +2043,13 @@ void PairComb::unpack_reverse_comm(int n, int *list, double *buf)
 
 void PairComb::Short_neigh()
 {
-  int nj,itype,jtype;
+  int nj;
   int inum,jnum,i,j,ii,jj;
   int *neighptrj,*ilist,*jlist,*numneigh;
   int **firstneigh;
   double xtmp,ytmp,ztmp,rsq,delrj[3];
 
   double **x = atom->x;
-  int *type  = atom->type;
 
   if (atom->nmax > nmax) {
     memory->sfree(sht_first);
@@ -2077,7 +2072,6 @@ void PairComb::Short_neigh()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    itype = type[i];
 
     nj = 0;
     neighptrj = ipage->vget();
@@ -2092,7 +2086,6 @@ void PairComb::Short_neigh()
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      jtype = type[j];
 
       delrj[0] = xtmp - x[j][0];
       delrj[1] = ytmp - x[j][1];

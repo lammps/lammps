@@ -86,7 +86,7 @@ PairGranHookeHistory::~PairGranHookeHistory()
 
 void PairGranHookeHistory::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
+  int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
   double radi,radj,radsum,rsq,r,rinv,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -712,7 +712,6 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
   // start from neighprev, since will typically be next neighbor
   // reset neighprev to 0 as necessary
 
-  int *jlist = list->firstneigh[i];
   int jnum = list->numneigh[i];
   int *touch = list->listgranhistory->firstneigh[i];
   double *allshear = list->listgranhistory->firstdouble[i];

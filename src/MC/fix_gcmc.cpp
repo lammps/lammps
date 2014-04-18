@@ -96,6 +96,17 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
 
   options(narg-11,&arg[11]);
 
+  // only one GCMC fix may handle a molecule
+  if (molflag) {
+    for (int i = 0; i < modify->nfix; i++) {
+      if (modify->fix[i] == this) continue;
+      if (strcmp(modify->fix[i]->style,"gcmc") == 0) {
+         FixGCMC *f = (FixGCMC *) modify->fix[i];
+         if (f->molflag)
+            error->all(FLERR,"Only one fix gcmc with 'molecule yes' allowed");
+      }
+    }
+  }
   // random number generator, same for all procs
 
   random_equal = new RanPark(lmp,seed);
@@ -303,7 +314,10 @@ void FixGCMC::init()
 
   if (molflag) {
     char **group_arg = new char*[3];
-    group_arg[0] = (char *) "rotation_gas_atoms";
+    // create unique group name for atoms to be rotated
+    int len = strlen(id) + 24;
+    group_arg[0] = new char[60];
+    sprintf(group_arg[0],"FixGCMC:rotation_gas_atoms:%s",id);
     group_arg[1] = (char *) "molecule";
     char digits[12];
     sprintf(digits,"%d",ngcmc_type);
@@ -314,6 +328,7 @@ void FixGCMC::init()
       error->all(FLERR,"Could not find fix gcmc rotation group ID");
     rotation_groupbit = group->bitmask[rotation_group];
     rotation_inversegroupbit = rotation_groupbit ^ ~0;
+    delete [] group_arg[0];
     delete [] group_arg;
   }
     

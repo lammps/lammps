@@ -196,8 +196,15 @@ special_bonds extra 2
 </P>
 <PRE>special_bonds amber extra 2 
 </PRE>
-<P>since in the former case, the 2nd command will set all the LJ and Coulombic
-weights to 0.0 (the default).
+<P>since in the former case, the 2nd command will reset all the LJ and
+Coulombic weights to 0.0 (the default).
+</P>
+<P>One exception to this rule is the <I>extra</I> option itself.  It is not
+reset to its default value of 0 each time the special_bonds command is
+invoked.  This is because it can also be set by the
+<A HREF = "read_data.html">read_data</A> and <A HREF = "create_box.html">create_box</A> commands,
+so this command will not override those settings unless you explicitly
+use <I>extra</I> as an option.
 </P>
 <P><B>Restrictions:</B> none
 </P>

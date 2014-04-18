@@ -11,7 +11,7 @@ using namespace voro;
 const double x_min=-1,x_max=1;
 const double y_min=-1,y_max=1;
 const double z_min=-1,z_max=1;
-const double cvol=(x_max-x_min)*(y_max-y_min)*(x_max-x_min);
+const double cvol=(x_max-x_min)*(y_max-y_min)*(z_max-z_min);
 
 // Set up the number of blocks that the container is divided into
 const int n_x=6,n_y=6,n_z=6;

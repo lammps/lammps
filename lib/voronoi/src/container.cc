@@ -148,7 +148,7 @@ void container_poly::put(particle_order &vo,int n,double x,double y,double z,dou
  *                        domain if necessary.
  * \return True if the particle can be successfully placed into the container,
  * false otherwise. */
-inline bool container_base::put_locate_block(int &ijk,double &x,double &y,double &z) {
+bool container_base::put_locate_block(int &ijk,double &x,double &y,double &z) {
 	if(put_remap(ijk,x,y,z)) {
 		if(co[ijk]==mem[ijk]) add_particle_memory(ijk);
 		return true;

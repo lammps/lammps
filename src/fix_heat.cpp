@@ -81,7 +81,7 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   scale = 1.0;
 
-  maxatom = 0;
+  maxatom = -1;
   vheat = NULL;
   vscale = NULL;
 }

@@ -271,7 +271,7 @@ class container_base : public voro_base, public wall_list {
 		}
 	protected:
 		void add_particle_memory(int i);
-		inline bool put_locate_block(int &ijk,double &x,double &y,double &z);
+		bool put_locate_block(int &ijk,double &x,double &y,double &z);
 		inline bool put_remap(int &ijk,double &x,double &y,double &z);
 		inline bool remap(int &ai,int &aj,int &ak,int &ci,int &cj,int &ck,double &x,double &y,double &z,int &ijk);
 };
@@ -473,6 +473,26 @@ class container : public container_base, public radius_mono {
 			int k=ijk/nxy,ijkt=ijk-nxy*k,j=ijkt/nx,i=ijkt-j*nx;
 			return vc.compute_cell(c,ijk,q,i,j,k);
 		}
+		/** Computes the Voronoi cell for a ghost particle at a given
+		 * location.
+		 * \param[out] c a Voronoi cell class in which to store the
+		 * 		 computed cell.
+		 * \param[in] (x,y,z) the location of the ghost particle.
+		 * \return True if the cell was computed. If the cell cannot be
+		 * computed, if it is removed entirely by a wall or boundary
+		 * condition, then the routine returns false. */
+		template<class v_cell>
+		inline bool compute_ghost_cell(v_cell &c,double x,double y,double z) {
+			int ijk;
+			if(put_locate_block(ijk,x,y,z)) {
+				double *pp=p[ijk]+3*co[ijk]++;
+				*(pp++)=x;*(pp++)=y;*pp=z;
+				bool q=compute_cell(c,ijk,co[ijk]-1);
+				co[ijk]--;
+				return q;
+			}
+			return false;
+		}
 	private:
 		voro_compute<container> vc;
 		friend class voro_compute<container>;
@@ -673,6 +693,28 @@ class container_poly : public container_base, public radius_poly {
 		inline bool compute_cell(v_cell &c,int ijk,int q) {
 			int k=ijk/nxy,ijkt=ijk-nxy*k,j=ijkt/nx,i=ijkt-j*nx;
 			return vc.compute_cell(c,ijk,q,i,j,k);
+		}
+		/** Computes the Voronoi cell for a ghost particle at a given
+		 * location.
+		 * \param[out] c a Voronoi cell class in which to store the
+		 * 		 computed cell.
+		 * \param[in] (x,y,z) the location of the ghost particle.
+		 * \param[in] r the radius of the ghost particle.
+		 * \return True if the cell was computed. If the cell cannot be
+		 * computed, if it is removed entirely by a wall or boundary
+		 * condition, then the routine returns false. */
+		template<class v_cell>
+		inline bool compute_ghost_cell(v_cell &c,double x,double y,double z,double r) {
+			int ijk;
+			if(put_locate_block(ijk,x,y,z)) {
+				double *pp=p[ijk]+4*co[ijk]++,tm=max_radius;
+				*(pp++)=x;*(pp++)=y;*(pp++)=z;*pp=r;
+				if(r>max_radius) max_radius=r;
+				bool q=compute_cell(c,ijk,co[ijk]-1);
+				co[ijk]--;max_radius=tm;
+				return q;
+			}
+			return false;
 		}
 		void print_custom(const char *format,FILE *fp=stdout);
 		void print_custom(const char *format,const char *filename);

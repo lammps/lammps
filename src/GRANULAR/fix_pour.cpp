@@ -593,7 +593,7 @@ void FixPour::pre_exchange()
         int n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
         if (mode == MOLECULE) {
-          if (atom->molecule) atom->molecule[n] = maxmol_all+1;
+          if (atom->molecule_flag) atom->molecule[n] = maxmol_all+1;
           if (atom->molecular == 2) {
             atom->molindex[n] = 0;
             atom->molatom[n] = m;

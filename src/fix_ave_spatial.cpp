@@ -370,7 +370,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   maxvar = 0;
   varatom = NULL;
 
-  maxatom = 0;
+  maxatom = -1;
   bin = NULL;
 
   nbins = maxbin = 0;

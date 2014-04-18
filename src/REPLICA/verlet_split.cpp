@@ -191,7 +191,7 @@ VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
   // f_kspace = Rspace copy of Kspace forces
   // allocate dummy version for Kspace partition
 
-  maxatom = 0;
+  maxatom = -1;
   f_kspace = NULL;
   if (!master) memory->create(f_kspace,1,1,"verlet/split:f_kspace");
 }

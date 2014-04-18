@@ -113,7 +113,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   force_flag = 0;
   fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
 
-  maxatom = 0;
+  maxatom = -1;
   efield = NULL;
 }
 

@@ -169,7 +169,7 @@ void FixBondBreak::init()
   lastcheck = -1;
 
   // DEBUG
-  // print_bb();
+  //print_bb();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -432,6 +432,11 @@ void FixBondBreak::update_topology()
   nangles = 0;
   ndihedrals = 0;
   nimpropers = 0;
+
+  //printf("NBREAK %d: ",nbreak);
+  //for (i = 0; i < nbreak; i++)
+  //  printf(" %d %d,",broken[i][0],broken[i][1]);
+  //printf("\n");
 
   for (i = 0; i < nlocal; i++) {
     influenced = 0;

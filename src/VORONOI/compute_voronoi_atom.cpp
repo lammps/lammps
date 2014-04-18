@@ -29,6 +29,7 @@
 #include "comm.h"
 #include "variable.h"
 #include "input.h"
+#include "force.h"
 
 #include <vector>
 
@@ -50,55 +51,61 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   fthresh = ethresh = 0.0;
   radstr = NULL;
   onlyGroup = false;
+  occupation = false;
+
+  con_mono = NULL;
+  con_poly = NULL;
+  tags = occvec = sendocc = lroot = lnext = NULL;
 
   int iarg = 3;
   while ( iarg<narg ) {
-    if (strcmp(arg[iarg],"only_group") == 0) {
+    if (strcmp(arg[iarg], "occupation") == 0) {
+      occupation = true;
+      iarg++;
+    } 
+    else if (strcmp(arg[iarg], "only_group") == 0) {
       onlyGroup = true;
       iarg++;
     } 
-    else if (strcmp(arg[iarg],"radius") == 0) {
-      if (iarg + 2 > narg || strstr(arg[iarg+1],"v_") != arg[iarg+1] ) 
-        error->all(FLERR,"Illegal compute voronoi/atom command");
+    else if (strcmp(arg[iarg], "radius") == 0) {
+      if (iarg + 2 > narg || strstr(arg[iarg+1],"v_") != arg[iarg+1] ) error->all(FLERR,"Missing atom style variable for radical voronoi tesselation radius.");
       int n = strlen(&arg[iarg+1][2]) + 1;
       radstr = new char[n];
       strcpy(radstr,&arg[iarg+1][2]);
       iarg += 2;
     } 
-    else if (strcmp(arg[iarg],"surface") == 0) {
-      if (iarg + 2 > narg) 
-        error->all(FLERR,"Illegal compute voronoi/atom command");
+    else if (strcmp(arg[iarg], "surface") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR,"Missing group name after keyword 'surface'.");
       // group all is a special case where we just skip group testing
       if(strcmp(arg[iarg+1], "all") == 0) {
         surface = VOROSURF_ALL;
       } else {
         sgroup = group->find(arg[iarg+1]);
-        if (sgroup == -1) 
-          error->all(FLERR,"Could not find compute/voronoi surface group ID");
+        if (sgroup == -1) error->all(FLERR,"Could not find compute/voronoi surface group ID");
         sgroupbit = group->bitmask[sgroup]; 
         surface = VOROSURF_GROUP;
       }
       size_peratom_cols = 3;
       iarg += 2;
     } else if (strcmp(arg[iarg], "edge_histo") == 0) {
-      if (iarg + 2 > narg) 
-        error->all(FLERR,"Illegal compute voronoi/atom command");
-      maxedge = atoi(arg[iarg+1]);
+      if (iarg + 2 > narg) error->all(FLERR,"Missing maximum edge count after keyword 'edge_histo'.");
+      maxedge = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "face_threshold") == 0) {
-      if (iarg + 2 > narg) 
-        error->all(FLERR,"Illegal compute voronoi/atom command");
-      fthresh = atof(arg[iarg+1]);
+      if (iarg + 2 > narg) error->all(FLERR,"Missing minimum face area after keyword 'face_threshold'.");
+      fthresh = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "edge_threshold") == 0) {
-      if (iarg + 2 > narg) 
-        error->all(FLERR,"Illegal compute voronoi/atom command");
-      ethresh = atof(arg[iarg+1]);
+      if (iarg + 2 > narg) error->all(FLERR,"Missing minimum edge length after keyword 'edge_threshold'.");
+      ethresh = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } 
     else 
       error->all(FLERR,"Illegal compute voronoi/atom command");
   }
+
+  if (occupation && ( surface!=VOROSURF_NONE || maxedge>0 ) ) 
+    error->all(FLERR,"Illegal compute voronoi/atom command (occupation and (surface or edges))");
 
   nmax = rmax = 0;
   edge = rfield = sendvector = NULL;
@@ -122,17 +129,25 @@ ComputeVoronoi::~ComputeVoronoi()
   memory->destroy(sendvector);
   memory->destroy(voro);
   delete[] radstr;
+
+  // voro++ container classes
+  delete con_mono;
+  delete con_poly;
+
+  // occupation analysis stuff
+  memory->destroy(lroot);
+  memory->destroy(lnext);
+  memory->destroy(occvec);
+#ifdef NOTINPLACE
+  memory->destroy(sendocc);
+#endif
+  memory->destroy(tags);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeVoronoi::init()
 {
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"voronoi/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute voronoi/atom command");
 }
 
 /* ----------------------------------------------------------------------
@@ -141,13 +156,9 @@ void ComputeVoronoi::init()
 
 void ComputeVoronoi::compute_peratom()
 {
-  int i;
-  const double e = 0.01;
-
   invoked_peratom = update->ntimestep;
 
   // grow per atom array if necessary
-
   int nlocal = atom->nlocal;
   if (nlocal > nmax) {
     memory->destroy(voro);
@@ -155,6 +166,48 @@ void ComputeVoronoi::compute_peratom()
     memory->create(voro,nmax,size_peratom_cols,"voronoi/atom:voro");
     array_atom = voro;
   }
+
+  // decide between occupation or per-frame tesselation modes
+  if (occupation) {
+    // build cells only once
+    int i, j, 
+        nall = nlocal + atom->nghost;
+    if (con_mono==NULL && con_poly==NULL) {
+      // generate the voronoi cell network for the initial structure
+      buildCells();
+
+      // save tags of atoms (i.e. of each voronoi cell)
+      memory->create(tags,nall,"voronoi/atom:tags");
+      for (i=0; i<nall; i++) tags[i] = atom->tag[i];
+
+      // linked list structure for cell occupation count on the atoms
+      oldnall= nall;
+      memory->create(lroot,nall,"voronoi/atom:lroot"); // point to first atom index in cell (or -1 for empty cell)
+      lnext = NULL; 
+      lmax = 0;
+  
+      // build the occupation buffer
+      oldnatoms = atom->natoms;
+      memory->create(occvec,oldnatoms,"voronoi/atom:occvec");
+#ifdef NOTINPLACE
+      memory->create(sendocc,oldnatoms,"voronoi/atom:sendocc");
+#endif
+    }
+
+    // get the occupation of each original voronoi cell
+    checkOccupation();
+  } else {
+    // build cells for each output
+    buildCells();
+    loopCells();
+  }
+}
+
+void ComputeVoronoi::buildCells()
+{
+  int i, j;
+  const double e = 0.01;
+  int nlocal = atom->nlocal;
 
   // in the onlyGroup mode we are not setting values for all atoms later in the voro loop
   // initialize everything to zero here
@@ -182,7 +235,7 @@ void ComputeVoronoi::compute_peratom()
     syz = domain->yz/my;
 
     // cutghost is in lamda coordinates for triclinic boxes, use subxx_lamda
-    double *h = domain->h;
+    double *h = domain->h, cuttri[3];
     sublo_bound[0] = h[0]*sublo_lamda[0] + h[5]*sublo_lamda[1] + h[4]*sublo_lamda[2] + boxlo[0];
     sublo_bound[1] = h[1]*sublo_lamda[1] + h[3]*sublo_lamda[2] + boxlo[1];
     sublo_bound[2] = h[2]*sublo_lamda[2] + boxlo[2];
@@ -218,15 +271,14 @@ void ComputeVoronoi::compute_peratom()
   // initialize voro++ container
   // preallocates 8 atoms per cell
   // voro++ allocates more memory if needed
-  voronoicell_neighbor c;
   int *mask = atom->mask;
-  if(radstr) {
+  if (radstr) {
     // check and fetch atom style variable data
     int radvar = input->variable->find(radstr);
     if (radvar < 0)
-      error->all(FLERR,"Variable name for voronoi radius does not exist");
+            error->all(FLERR,"Variable name for voronoi radius set does not exist");
     if (!input->variable->atomstyle(radvar))
-      error->all(FLERR,"Variable for voronoi radius is not atom style");
+            error->all(FLERR,"Variable for voronoi radius is not atom style");
     // prepare destination buffer for variable evaluation
     if (nlocal > rmax) {
       memory->destroy(rfield);
@@ -240,7 +292,8 @@ void ComputeVoronoi::compute_peratom()
     comm->forward_comm_compute(this);
 
     // polydisperse voro++ container
-    container_poly con(sublo_bound[0]-cut_bound[0]-e,subhi_bound[0]+cut_bound[0]+e,
+    delete con_poly;
+    con_poly = new container_poly(sublo_bound[0]-cut_bound[0]-e,subhi_bound[0]+cut_bound[0]+e,
                        sublo_bound[1]-cut_bound[1]-e,subhi_bound[1]+cut_bound[1]+e,
                        sublo_bound[2]-cut_bound[2]-e,subhi_bound[2]+cut_bound[2]+e,
                        int(n[0]),int(n[1]),int(n[2]),false,false,false,8); 
@@ -248,17 +301,11 @@ void ComputeVoronoi::compute_peratom()
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++)
       if( !onlyGroup || (mask[i] & groupbit) )
-        con.put(i,x[i][0],x[i][1],x[i][2],rfield[i]);
-
-    // invoke voro++ and fetch results for owned atoms in group
-    c_loop_all cl(con);
-    if (cl.start()) do if (con.compute_cell(c,cl)) {
-      i = cl.pid();
-      processCell(c,i);
-    } while (cl.inc());
+        con_poly->put(i,x[i][0],x[i][1],x[i][2],rfield[i]);
   } else {
     // monodisperse voro++ container
-    container con(sublo_bound[0]-cut_bound[0]-e,subhi_bound[0]+cut_bound[0]+e,
+    delete con_mono;
+    con_mono = new container(sublo_bound[0]-cut_bound[0]-e,subhi_bound[0]+cut_bound[0]+e,
                   sublo_bound[1]-cut_bound[1]-e,subhi_bound[1]+cut_bound[1]+e,
                   sublo_bound[2]-cut_bound[2]-e,subhi_bound[2]+cut_bound[2]+e,
                   int(n[0]),int(n[1]),int(n[2]),false,false,false,8); 
@@ -266,11 +313,102 @@ void ComputeVoronoi::compute_peratom()
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++)
       if( !onlyGroup || (mask[i] & groupbit) )
-        con.put(i,x[i][0],x[i][1],x[i][2]);
+        con_mono->put(i,x[i][0],x[i][1],x[i][2]);
+  }
+}
 
-    // invoke voro++ and fetch results for owned atoms in group
-    c_loop_all cl(con);
-    if (cl.start()) do if (con.compute_cell(c,cl)) {
+void ComputeVoronoi::checkOccupation()
+{
+  // clear occupation vector
+  memset(occvec, 0, oldnatoms*sizeof(*occvec));
+
+  int i, j, k,
+      nlocal = atom->nlocal,
+      nall = atom->nghost + nlocal;
+  double rx, ry, rz,
+         **x = atom->x;
+
+  // prepare destination buffer for variable evaluation
+  if (nall > lmax) {
+    memory->destroy(lnext);
+    lmax = atom->nmax;
+    memory->create(lnext,lmax,"voronoi/atom:lnext");
+  }
+
+  // clear lroot
+  for (i=0; i<oldnall; ++i) lroot[i] = -1;
+
+  // clear lnext
+  for (i=0; i<nall; ++i) lnext[i] = -1;
+
+  // loop over all local atoms and find out in which of the local first frame voronoi cells the are in
+  // (need to loop over ghosts, too, to get correct occupation numbers for the second column)
+  for (i=0; i<nall; ++i) {
+    // again: find_voronoi_cell() should be in the common base class. Why it is not, I don't know. Ask the voro++ author.
+    if ((  radstr && con_poly->find_voronoi_cell(x[i][0], x[i][1], x[i][2], rx, ry, rz, k)) ||
+        ( !radstr && con_mono->find_voronoi_cell(x[i][0], x[i][1], x[i][2], rx, ry, rz, k) )) {
+      // increase occupation count of this particular cell
+      // only for local atoms, as we do an MPI reduce sum later
+      if (i<nlocal) occvec[tags[k]-1]++;
+
+      // add this atom to the linked list of cell j
+      if (lroot[k]<0) 
+        lroot[k]=i;
+      else {
+        j = lroot[k];
+        while (lnext[j]>=0) j=lnext[j];
+        lnext[j] = i; 
+      }
+    }
+  }
+
+  // MPI sum occupation
+#ifdef NOTINPLACE
+  memcpy(sendocc, occvec, oldnatoms*sizeof(*occvec));
+  MPI_Allreduce(sendocc, occvec, oldnatoms, MPI_INT, MPI_SUM, world);
+#else
+  MPI_Allreduce(MPI_IN_PLACE, occvec, oldnatoms, MPI_INT, MPI_SUM, world);
+#endif
+
+  // determine the total number of atoms in this atom's currently occupied cell
+  int c;
+  for (i=0; i<oldnall; i++) { // loop over lroot (old voronoi cells)
+    // count
+    c = 0;
+    j = lroot[i];
+    while (j>=0) {
+      c++;
+      j = lnext[j];
+    }
+    // set
+    j = lroot[i];
+    while (j>=0) {
+      voro[j][1] = c;
+      j = lnext[j];
+    }
+  }
+
+  // cherry pick currently owned atoms 
+  for (i=0; i<nlocal; i++) {
+    // set the new atom count in the atom's first frame voronoi cell
+    voro[i][0] = occvec[atom->tag[i]-1];
+  }
+}
+
+void ComputeVoronoi::loopCells()
+{
+  // invoke voro++ and fetch results for owned atoms in group
+  voronoicell_neighbor c;
+  int i;
+  if (radstr) {
+    c_loop_all cl(*con_poly);
+    if (cl.start()) do if (con_poly->compute_cell(c,cl)) {
+      i = cl.pid();
+      processCell(c,i);
+    } while (cl.inc());
+  } else {
+    c_loop_all cl(*con_mono);
+    if (cl.start()) do if (con_mono->compute_cell(c,cl)) {
       i = cl.pid();
       processCell(c,i);
     } while (cl.inc());

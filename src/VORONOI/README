@@ -31,7 +31,7 @@ compute the tesselation locally on each processor.
 == Run tests ==
 
 Run the includes test input file
-./lmp_serial < lammps/examples/voronoi/in.vorotest | grep '^TEST_'
+./lmp_serial < lammps/examples/voronoi/in.voronoi | grep '^TEST_'
 
 The output should conclude with 'TEST_DONE' and every line should 
 report an error of 0%. 

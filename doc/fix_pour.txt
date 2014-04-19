@@ -71,8 +71,10 @@ If inserted particles are individual atoms, they are assigned the
 specified atom type.  If they are molecules, the type of each atom in
 the inserted molecule is specified in the file read by the
 "molecule"_molecule.html command, and those values are added to the
-specified atom type.  E.g. if {type} = 2, and the file specifies atom
-types 1,2,3, then the inserted molecule will have atom types 3,4,5.
+specified atom type.  E.g. if the file specifies atom types 1,2,3, and
+those are the atom types you want for inserted molecules, then specify
+{type} = 0.  If you specify {type} = 2, the in the inserted molecule
+will have atom types 3,4,5.
 
 All atoms in the inserted particle are assigned to two groups: the
 default group "all" and the group specified in the fix pour command

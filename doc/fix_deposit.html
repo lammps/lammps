@@ -85,8 +85,10 @@ this doc page, a single inserted atom or molecule is referred to as a
 specified atom type.  If they are molecules, the type of each atom in
 the inserted molecule is specified in the file read by the
 <A HREF = "molecule.html">molecule</A> command, and those values are added to the
-specified atom type.  E.g. if <I>type</I> = 2, and the file specifies atom
-types 1,2,3, then the inserted molecule will have atom types 3,4,5.
+specified atom type.  E.g. if the file specifies atom types 1,2,3, and
+those are the atom types you want for inserted molecules, then specify
+<I>type</I> = 0.  If you specify <I>type</I> = 2, the in the inserted molecule
+will have atom types 3,4,5.
 </P>
 <P>All atoms in the inserted particle are assigned to two groups: the
 default group "all" and the group specified in the fix deposit command

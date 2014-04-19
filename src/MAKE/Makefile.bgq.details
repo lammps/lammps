@@ -1,9 +1,12 @@
-# bgq = Blue Gene/Q, xlC, native MPI, ALCF FFTW2
+# multiple compiler options for BGQ
+
 # ---------------------------------------------------------------------
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-# uncomment one and only one of the following lines to choose a compiler toolchain
+# uncomment one and only one of the following three lines 
+# to choose a compiler toolchain
+
 #COMPILER = GCC
 #COMPILER = LLVM
 COMPILER = XLC

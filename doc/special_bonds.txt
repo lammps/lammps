@@ -190,8 +190,15 @@ are not the same as this single command:
 
 special_bonds amber extra 2 :pre
 
-since in the former case, the 2nd command will set all the LJ and Coulombic
-weights to 0.0 (the default).
+since in the former case, the 2nd command will reset all the LJ and
+Coulombic weights to 0.0 (the default).
+
+One exception to this rule is the {extra} option itself.  It is not
+reset to its default value of 0 each time the special_bonds command is
+invoked.  This is because it can also be set by the
+"read_data"_read_data.html and "create_box"_create_box.html commands,
+so this command will not override those settings unless you explicitly
+use {extra} as an option.
 
 [Restrictions:] none
 

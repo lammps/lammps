@@ -1292,7 +1292,7 @@ void Neighbor::print_lists_of_lists()
 int Neighbor::decide()
 {
   if (must_check) {
-    int n = update->ntimestep;
+    bigint n = update->ntimestep;
     if (restart_check && n == output->next_restart) return 1;
     for (int i = 0; i < fix_check; i++)
       if (n == modify->fix[fixchecklist[i]]->next_reneighbor) return 1;

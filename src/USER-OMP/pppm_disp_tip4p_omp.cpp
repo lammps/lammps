@@ -1147,7 +1147,7 @@ void PPPMDispTIP4POMP::fieldforce_g_ad()
     FFT_SCALAR * const * const dr1d = static_cast<FFT_SCALAR **>(thr->get_drho1d_6());
 
     int l,m,n,nx,ny,nz,mx,my,mz;
-    FFT_SCALAR dx,dy,dz,x0,y0,z0;
+    FFT_SCALAR dx,dy,dz;
     FFT_SCALAR ekx,eky,ekz;
     int type;
     double lj;
@@ -1252,7 +1252,7 @@ void PPPMDispTIP4POMP::fieldforce_g_peratom()
     ThrData *thr = fix->get_thr(tid);
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d_6());
 
-    int i,l,m,n,nx,ny,nz,mx,my,mz;
+    int l,m,n,nx,ny,nz,mx,my,mz;
     FFT_SCALAR dx,dy,dz,x0,y0,z0;
     FFT_SCALAR u,v0,v1,v2,v3,v4,v5;
     int type;
@@ -1332,7 +1332,6 @@ void PPPMDispTIP4POMP::fieldforce_a_ik()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)

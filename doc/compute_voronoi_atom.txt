@@ -17,13 +17,14 @@ voronoi/atom = style name of this compute command :l
 zero or more keyword/value pairs may be appended :l
 keyword = {only_group} or {surface} or {radius} or {edge_histo} or {edge_threshold} or {face_threshold} :l
   {only_group} = no arg
+  {occupation} = no arg
   {surface} arg = sgroup-ID
     sgroup-ID = compute the dividing surface between group-ID and sgroup-ID
       this keyword adds a third column to the compute output
   {radius} arg = v_r
-    v_r = radius atom style variable for a poly-disperse voronoi tessellation
+    v_r = radius atom style variable for a poly-disperse Voronoi tessellation
   {edge_histo} arg = maxedge
-    maxedge = maximum number of voronoi cell edges to be accounted in the histogram 
+    maxedge = maximum number of Voronoi cell edges to be accounted in the histogram 
   {edge_threshold} arg = minlength
     minlength = minimum length for an edge to be counted
   {face_threshold} arg = minarea
@@ -36,6 +37,7 @@ compute 1 all voronoi/atom
 compute 2 precipitate voronoi/atom surface matrix
 compute 3b precipitate voronoi/atom radius v_r 
 compute 4 solute voronoi/atom only_group :pre
+compute 5 defects voronoi/atom occupation :pre
 
 [Description:]
 
@@ -58,19 +60,19 @@ equivalent to deleting all atoms not contained in the group prior to
 evaluating the tessellation.
 
 If the {surface} keyword is specified a third quantity per atom is
-computed: the voronoi cell surface of the given atom. {surface} takes
+computed: the Voronoi cell surface of the given atom. {surface} takes
 a group ID as an argument. If a group other than {all} is specified,
-only the voronoi cell facets facing a neighbor atom from the specified
+only the Voronoi cell facets facing a neighbor atom from the specified
 group are counted towards the surface area.
 
 In the example above, a precipitate embedded in a matrix, only atoms
 at the surface of the precipitate will have non-zero surface area, and
-only the outward facing facets of the voronoi cells are counted (the
+only the outward facing facets of the Voronoi cells are counted (the
 hull of the precipitate). The total surface area of the precipitate
 can be obtained by running a "reduce sum" compute on c_2\[3\]
 
 If the {radius} keyword is specified with an atom style variable as
-the argument, a poly-disperse voronoi tessellation is
+the argument, a poly-disperse Voronoi tessellation is
 performed. Examples for radius variables are
 
 variable r1 atom (type==1)*0.1+(type==2)*0.4
@@ -82,9 +84,9 @@ and 0.4 units for type 2 atoms, and v_r2 accesses the radius property
 present in atom_style sphere for granular models.
 
 The {edge_histo} keyword activates the compilation of a histogram of
-number of edges on the faces of the voronoi cells in the compute
+number of edges on the faces of the Voronoi cells in the compute
 group. The argument maxedge of the this keyword is the largest number
-of edges on a single voronoi cell face expected to occur in the
+of edges on a single Voronoi cell face expected to occur in the
 sample. This keyword adds the generation of a global vector with
 maxedge+1 entries. The last entry in the vector contains the number of
 faces with with more than maxedge edges. Since the polygon with the
@@ -94,8 +96,24 @@ will always be zero.
 The {edge_threshold} and {face_threshold} keywords allow the
 suppression of edges below a given minimum length and faces below a
 given minimum area. Ultra short edges and ultra small faces can occur
-as artifacts of the voronoi tessellation. These keywords will affect
+as artifacts of the Voronoi tessellation. These keywords will affect
 the neighbor count and edge histogram outputs.
+
+If the {occupation} keyword is specified the tessellation is only
+performed for the first invocation of the compute and then stored.
+For all following invocations of the compute the number of atoms in
+each Voronoi cell in the stored tessellation is counted. In this mode
+the compute returns a per-atom array with 2 columns. The first column
+is the number of atoms currently in the Voronoi volume defined by this
+atom at the time of the first invocation of the compute (note that the
+atom may have moved significantly). The second column contains the
+total number of atoms sharing the Voronoi cell of the stored
+tessellation at the location of the current atom. Numbers in column
+one can be any positive integer including zero, while column two
+values will always be greater than zero. Column one data can be used
+to locate vacancies (the coordinates are given by the atom coordinates
+at the time step when the compute was first invoked), while column two
+data can be used to identify interstitial atoms.
 
 :line
 
@@ -130,9 +148,11 @@ systems.  Note that you define the z extent of the simulation box for
 
 [Output info:]
 
-This compute calculates a per-atom array with 2 columns.  The first
-column is the Voronoi volume, the second is the neighbor count, as
-described above.  These values can be accessed by any command that
+This compute calculates a per-atom array with 2 columns. In regular
+dynamic tessellation mode the first column is the Voronoi volume, the 
+second is the neighbor count, as described above (read above for the 
+output data in case the {occupation} keyword is specified). 
+These values can be accessed by any command that
 uses per-atom values from a compute as input.  See "Section_howto
 15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.

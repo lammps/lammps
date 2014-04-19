@@ -7,7 +7,9 @@ boundary	p p p
 lattice         fcc 1 origin 0.25 0.25 0.25
 atom_style	atomic
 
-atom_modify     sort 0 0.0
+# indexed atom variables in test 5 need a map
+
+atom_modify     sort 0 0.0 map hash
 
 region          box block 0 10  0 10 0 10
 create_box      2 box
@@ -41,10 +43,10 @@ thermo 1
 
 #compute v1 all voronoi/atom radius v_r
 
-
 #
 # TEST 1: Sum of all voronoi cells is the simulation cell volume
 #
+
 compute v1 all voronoi/atom
 dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
 compute r0 all   reduce sum c_v1[1]
@@ -59,6 +61,7 @@ undump    d1
 #
 # TEST 2: Sum of all only_group voronoi cells is the simulation cell volume
 #
+
 compute v1 type2 voronoi/atom only_group
 dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
 compute r0 type2   reduce sum c_v1[1]
@@ -77,6 +80,7 @@ undump    d1
 #
 # TEST 3: Sum of all radius voronoi cells is the simulation cell volume
 #
+
 compute v1 all voronoi/atom radius v_r
 dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
 compute r0 all   reduce sum c_v1[1]
@@ -88,10 +92,10 @@ uncompute v1
 uncompute r0
 undump    d1
 
-
 #
 # TEST 4: Edge histogram tests
 #
+
 compute v1 type2 voronoi/atom edge_histo 8
 thermo_style custom c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
 run  1
@@ -130,9 +134,61 @@ delete_atoms group all
 lattice         fcc 1 origin 0.25 0.25 0.25
 create_atoms    1 box basis 1 2
 
+#
+# TEST 5: Occupation analysis
+#
+
+print "START5"
+
+# start with pristine lattice
+variable i1 equal 13
+variable i2 equal 257
+compute v1 all voronoi/atom occupation
+compute r0 all   reduce sum c_v1[1]
+compute r1 all   reduce sum c_v1[2]
+variable d5a equal c_v1[${i1}][1]
+variable d5b equal c_v1[${i2}][1]
+variable d5c equal c_v1[${i1}][2]
+variable d5d equal c_v1[${i2}][2]
+thermo_style custom c_r0 c_r1 v_d5a v_d5b v_d5c v_d5d
+
+run 0
+# expect 1 1 1 1 (one atom per cell each)
+variable t5a equal abs(${d5a}-1)+abs(${d5b}-1)+abs(${d5c}-1)+abs(${d5d}-1)
+
+# move atom i1 next to atom i2
+variable oxd equal x[${i1}]
+variable oyd equal y[${i1}]
+variable ozd equal z[${i1}]
+# we need to freeze this value
+variable ox equal ${oxd}
+variable oy equal ${oyd}
+variable oz equal ${ozd}
+# these coords dont change so dynamic evaluation is ok
+variable nx equal x[${i2}]
+variable ny equal y[${i2}]
+variable nz equal z[${i2}]
+set atom ${i1} x $(v_nx+0.2) y $(v_ny+0.2) z $(v_nz+0.2) 
+
+run 0
+# expect 0 2 2 2 (vacancy at the original i1 site, interstitial at i2 and both atoms are now sharing a site)
+variable t5b equal abs(${d5a}-0)+abs(${d5b}-2)+abs(${d5c}-2)+abs(${d5d}-2)
+
+# move atom back
+set atom ${i1} x ${ox} y ${oy} z ${oz}
+
+run 0
+# expect 1 1 1 1 (restored to the initial state)
+variable t5c equal abs(${d5a}-1)+abs(${d5b}-1)+abs(${d5c}-1)+abs(${d5d}-1)
+
+print "TEST_5  $((v_t5a+v_t5b+v_t5c)*100)% Error.  Detection of vacancies and interstitials using the {occupation} keyword."
+
+uncompute v1
+uncompute r0
+uncompute r1
 
 #
-# TEST 5: Sum of all voronoi cells is the triclinic simulation cell volume
+# TEST 6: Sum of all voronoi cells is the triclinic simulation cell volume
 #
 
 # switch to triclinic box
@@ -143,12 +199,13 @@ compute v1 all voronoi/atom
 dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
 compute r0 all   reduce sum c_v1[1]
 thermo_style custom c_r0
-variable t5 equal c_r0
+variable t6 equal c_r0
 run  0
-print "TEST_5  $(round((v_t5-1000)/10))% Error.  Sum of all voronoi cells is the triclinic simulation cell volume"
+print "TEST_6  $(round((v_t6-1000)/10))% Error.  Sum of all voronoi cells is the triclinic simulation cell volume"
 uncompute v1
 uncompute r0
 undump    d1
 
 # All tests done
+
 print TEST_DONE

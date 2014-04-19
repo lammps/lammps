@@ -49,7 +49,7 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   // fix # group lb/fluid nevery typeLB viscosity densityinit_real
   //  
   //  where: nevery:            call this fix every nevery timesteps. 
-  //		                 (keep this set to 1 for now).
+  //		                 (nevery generally set to 1).
   //         typeLB:            there are two different integrators 
   //                             in the code labelled "1" and "2".
   //         viscosity:         the viscosity of the fluid. 
@@ -177,6 +177,11 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
     }
     else if(strcmp(arg[iarg],"calcforce")==0){
       force_diagnostic = atoi(arg[iarg+1]);
+      if(force_diagnostic % nevery != 0){
+	char str[200];
+	sprintf(str,"Requesting calcforce output every %i timesteps. Will only print output for those timesteps that are a multiple of nevery.",force_diagnostic);
+	error->warning(FLERR,str);	
+      }
       igroupforce=group->find(arg[iarg+2]);
       iarg += 3;
     }
@@ -195,6 +200,11 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
     }
     else if(strcmp(arg[iarg],"write_restart")==0){
       printrestart = atoi(arg[iarg+1]);
+      if(printrestart % nevery != 0){
+	char str[200];
+	sprintf(str,"Requesting restart files every %i timesteps. Will only print restart files for those timesteps that are a multiple of nevery.",printrestart);
+	error->warning(FLERR,str);	
+      }
       iarg += 2;
     }
     else if(strcmp(arg[iarg],"zwall_velocity")==0){
@@ -651,68 +661,78 @@ void FixLbFluid::setup(int vflag)
 
 void FixLbFluid::initial_integrate(int vflag)
 {
-  //--------------------------------------------------------------------------
-  // Print a header labelling any output printed to the screen.
-  //--------------------------------------------------------------------------
-  static int printheader = 1;
-
-  if(printheader == 1){
-    if(force_diagnostic > 0 && me == 0){
-      printf("-------------------------------------------------------------------------------\n");
-      printf("     F_x          F_y          F_z          T_x          T_y          T_z\n");
-      printf("-------------------------------------------------------------------------------\n");
+  // only call every nevery timesteps (by default nevery only affects how
+  // often end_of_step is called.
+  if(update->ntimestep % nevery == 0){
+    //--------------------------------------------------------------------------
+    // Print a header labelling any output printed to the screen.
+    //--------------------------------------------------------------------------
+    static int printheader = 1;
+    
+    if(printheader == 1){
+      if(force_diagnostic > 0 && me == 0){
+	printf("-------------------------------------------------------------------------------\n");
+	printf("     F_x          F_y          F_z          T_x          T_y          T_z\n");
+	printf("-------------------------------------------------------------------------------\n");
+      }
+      
+      if(printfluid > 0 && me == 0){
+	printf("---------------------------------------------------------------------\n");
+	printf("     density            u_x              u_y              u_z \n");
+	printf("---------------------------------------------------------------------\n");
+      }
+      printheader = 0;
     }
     
-    if(printfluid > 0 && me == 0){
-      printf("---------------------------------------------------------------------\n");
-      printf("     density            u_x              u_y              u_z \n");
-      printf("---------------------------------------------------------------------\n");
+    //--------------------------------------------------------------------------
+    // Determine the equilibrium distribution on the local subgrid.
+    //--------------------------------------------------------------------------
+    (*this.*equilibriumdist)(1,subNbx-1,1,subNby-1,1,subNbz-1);
+    
+    //--------------------------------------------------------------------------
+    // Using the equilibrium distribution, calculate the new
+    // distribution function.
+    //--------------------------------------------------------------------------
+    (*this.*update_full)();
+    
+    std::swap(f_lb,fnew); 
+    
+    //--------------------------------------------------------------------------
+    // Calculate moments of the distribution function.
+    //--------------------------------------------------------------------------
+    parametercalc_full();
+    
+    //--------------------------------------------------------------------------
+    // Store the equilibrium distribution function, it is needed in
+    // the next time step by the update routine.
+    //--------------------------------------------------------------------------
+    if(typeLB == 2){
+      std::swap(feqold,feq);
+      std::swap(feqoldn,feqn);
     }
-    printheader = 0;
-  }
-
-  //--------------------------------------------------------------------------
-  // Determine the equilibrium distribution on the local subgrid.
-  //--------------------------------------------------------------------------
-  (*this.*equilibriumdist)(1,subNbx-1,1,subNby-1,1,subNbz-1);
-
-  //--------------------------------------------------------------------------
-  // Using the equilibrium distribution, calculate the new
-  // distribution function.
-  //--------------------------------------------------------------------------
-  (*this.*update_full)();
   
-  std::swap(f_lb,fnew); 
-
-  //--------------------------------------------------------------------------
-  // Calculate moments of the distribution function.
-  //--------------------------------------------------------------------------
-  parametercalc_full();
-
-  //--------------------------------------------------------------------------
-  // Store the equilibrium distribution function, it is needed in
-  // the next time step by the update routine.
-  //--------------------------------------------------------------------------
-  if(typeLB == 2){
-    std::swap(feqold,feq);
-    std::swap(feqoldn,feqn);
-  }
-
+  }  
+ 
   //--------------------------------------------------------------------------
   // Perform diagnostics, and print output for the graphics program
   //--------------------------------------------------------------------------
   if(printfluid > 0 && update->ntimestep > 0 && (update->ntimestep % printfluid == 0))
     streamout();
-  
+   
 }
 void FixLbFluid::post_force(int vflag)
 {
-  if(fixviscouslb==1)
-    calc_fluidforce();
+  // only call every nevery timesteps (by default nevery only affects how
+  // often end_of_step is called.
+  if(update->ntimestep % nevery == 0){
+    if(fixviscouslb==1)
+      calc_fluidforce();
+  }
 }
 
 void FixLbFluid::end_of_step()
 {  
+  // end_of_step is only called every nevery timesteps
   if(fixviscouslb==0)
     calc_fluidforce();
  

@@ -38,6 +38,12 @@ class ComputeVoronoi : public Compute {
   void unpack_comm(int, int, double *);
 
  private:
+  voro::container *con_mono;
+  voro::container_poly *con_poly;
+
+  void buildCells();
+  void checkOccupation();
+  void loopCells();
   void processCell(voro::voronoicell_neighbor&, int);
 
   int nmax, rmax, maxedge, sgroupbit;
@@ -46,7 +52,10 @@ class ComputeVoronoi : public Compute {
   double **voro;
   double *edge, *sendvector, *rfield;
   enum { VOROSURF_NONE, VOROSURF_ALL, VOROSURF_GROUP } surface;
-  bool onlyGroup;
+  bool onlyGroup, occupation;
+
+  tagint *tags;
+  int *occvec, *sendocc, *lroot, *lnext, lmax, oldnatoms, oldnall;
 };
 
 }
@@ -62,21 +71,12 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Could not find compute/voronoi surface group ID
+E: Compute voronoi/atom not allowed for triclinic boxes
 
-Self-explanatory.
+This is a current restriction of this command.
 
 W: More than one compute voronoi/atom command
 
 It is not efficient to use compute voronoi/atom more than once.
-
-E: Variable name for voronoi radius does not exist
-
-Self-explanatory.
-
-E: Variable for voronoi radius is not atom style
-
-The variable used for this command must be an atom-style variable.
-See the variable command for details.
 
 */

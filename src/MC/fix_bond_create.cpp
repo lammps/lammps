@@ -324,7 +324,7 @@ void FixBondCreate::post_integrate()
   // needs to be <= test b/c neighbor list could have been re-built in
   //   same timestep as last post_integrate() call, but afterwards
   // NOTE: no longer think is needed, due to error tests on atom->map()
-  // NOTE: if delete, can also delete lastcheck
+  // NOTE: if delete, can also delete lastcheck and check_ghosts()
 
   //if (lastcheck <= neighbor->lastcall) check_ghosts();
 
@@ -552,7 +552,7 @@ void FixBondCreate::post_integrate()
   // finalpartner is now set for owned and ghost atoms so loop over nall
   // OK if duplicates in broken list due to ghosts duplicating owned atoms
   // check J < 0 to insure a broken bond to unknown atom is included
-  //   i.e. bond partner outside of cutoff length
+  //   i.e. a bond partner outside of cutoff length
 
   ncreate = 0;
   for (i = 0; i < nall; i++) {

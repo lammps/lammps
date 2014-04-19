@@ -1,11 +1,15 @@
+# bgq = IBM Blue Gene/Q, multiple compiler options, native MPI, ALCF FFTW2
+
 SHELL = /bin/bash
 .SUFFIXES: .cpp .u 
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
 # no need to edit this section
+# select which compiler by editing Makefile.bgq.details
 
 include ../MAKE/Makefile.bgq.details
+
 include Makefile.package.settings
 include Makefile.package
 

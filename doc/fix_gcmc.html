@@ -232,12 +232,11 @@ trigger an error, so it is better to run multiple shorter-duration
 simulations. Likewise, very large molecules have not been tested
 and may turn out to be problematic.
 </P>
-<P>Use of multiple fix gcmc commands in the same input script can be 
-problematic if using a template molecule. The issue is that the 
-user-referenced template molecule in the second fix gcmc command
-may no longer exist since it might have been deleted by the first
-fix gcmc command. An existing template molecule will need to be
-referenced by the user for each subsequent fix gcmc command.
+<P>Use of multiple fix gcmc commands in the same input using a template
+molecule are not supported. There are multiple issues where the 
+current implmentation makes assumptions that are no longer valid
+in this case. Resolving all of them require significant changes to
+the implementation.
 </P>
 <P><B>Related commands:</B>
 </P>

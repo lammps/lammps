@@ -44,8 +44,8 @@ PairCoulCutSoft::~PairCoulCutSoft()
 
     memory->destroy(cut);
     memory->destroy(lambda);
-    memory->destroy(lj1);
-    memory->destroy(lj4);
+    memory->destroy(lam1);
+    memory->destroy(lam2);
   }
 }
 
@@ -102,8 +102,8 @@ void PairCoulCutSoft::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
 
-        denc = sqrt(lj4[itype][jtype] + rsq);
-        forcecoul = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
+        denc = sqrt(lam2[itype][jtype] + rsq);
+        forcecoul = qqrd2e * lam1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
 
         fpair = factor_coul*forcecoul;
 
@@ -117,7 +117,7 @@ void PairCoulCutSoft::compute(int eflag, int vflag)
         }
 
         if (eflag)
-          ecoul = factor_coul * qqrd2e * lj1[itype][jtype] * qtmp*q[j] / denc;
+          ecoul = factor_coul * qqrd2e * lam1[itype][jtype] * qtmp*q[j] / denc;
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              0.0,ecoul,fpair,delx,dely,delz);
@@ -146,8 +146,8 @@ void PairCoulCutSoft::allocate()
 
   memory->create(cut,n+1,n+1,"pair:cut");
   memory->create(lambda,n+1,n+1,"pair:lambda");
-  memory->create(lj1,n+1,n+1,"pair:lj1");
-  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(lam1,n+1,n+1,"pair:lam1");
+  memory->create(lam2,n+1,n+1,"pair:lam2");
 }
 
 /* ----------------------------------------------------------------------
@@ -231,13 +231,13 @@ double PairCoulCutSoft::init_one(int i, int j)
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
 
-  lj1[i][j] = pow(lambda[i][j], nlambda);
-  lj4[i][j] = alphac * (1.0 - lambda[i][j])*(1.0 - lambda[i][j]);
+  lam1[i][j] = pow(lambda[i][j], nlambda);
+  lam2[i][j] = alphac * (1.0 - lambda[i][j])*(1.0 - lambda[i][j]);
 
   cut[j][i] = cut[i][j];
   lambda[j][i] = lambda[i][j];
-  lj1[j][i] = lj1[i][j];
-  lj4[j][i] = lj4[i][j];
+  lam1[j][i] = lam1[i][j];
+  lam2[j][i] = lam2[i][j];
 
   return cut[i][j];
 }
@@ -354,14 +354,14 @@ double PairCoulCutSoft::single(int i, int j, int itype, int jtype,
   double denc;
 
   if (rsq < cutsq[itype][jtype]) {
-    denc = sqrt(lj4[itype][jtype] + rsq);
-    forcecoul = force->qqrd2e * lj1[itype][jtype] * atom->q[i]*atom->q[j] /
+    denc = sqrt(lam2[itype][jtype] + rsq);
+    forcecoul = force->qqrd2e * lam1[itype][jtype] * atom->q[i]*atom->q[j] /
       (denc*denc*denc);
   } else forcecoul = 0.0; 
   fforce = factor_coul*forcecoul;
 
   if (rsq < cutsq[itype][jtype])
-    phicoul = force->qqrd2e * lj1[itype][jtype] * atom->q[i]*atom->q[j] / denc;
+    phicoul = force->qqrd2e * lam1[itype][jtype] * atom->q[i]*atom->q[j] / denc;
   else phicoul = 0.0;
   return factor_coul*phicoul;
 }

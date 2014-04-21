@@ -43,6 +43,7 @@ PairLJCutSoft::PairLJCutSoft(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
   writedata = 1;
+  allocated = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,6 +62,7 @@ PairLJCutSoft::~PairLJCutSoft()
     memory->destroy(lj2);
     memory->destroy(lj3);
     memory->destroy(offset);
+    allocated=0;
   }
 }
 

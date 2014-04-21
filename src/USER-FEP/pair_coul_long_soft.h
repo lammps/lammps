@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PairCoulLongSoft : public Pair {
  public:
   PairCoulLongSoft(class LAMMPS *);
-  ~PairCoulLongSoft();
+  virtual ~PairCoulLongSoft();
   virtual void compute(int, int);
   virtual void settings(int, char **);
   void coeff(int, char **);
@@ -45,7 +45,7 @@ class PairCoulLongSoft : public Pair {
   double **scale;
   double **lambda;
   double nlambda, alphac;
-  double **lj1, **lj4;
+  double **lam1, **lam2;
   double qdist; // TIP4P distance O to negative charge (compatibility of cutoffs)
   double g_ewald;
 

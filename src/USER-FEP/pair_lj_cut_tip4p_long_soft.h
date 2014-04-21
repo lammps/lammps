@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PairLJCutTIP4PLongSoft : public PairLJCutCoulLongSoft {
  public:
   PairLJCutTIP4PLongSoft(class LAMMPS *);
-  ~PairLJCutTIP4PLongSoft();
+  virtual ~PairLJCutTIP4PLongSoft();
   virtual void compute(int, int);
   void settings(int, char **);
   void init_style();
@@ -35,7 +35,7 @@ class PairLJCutTIP4PLongSoft : public PairLJCutCoulLongSoft {
   void write_restart_settings(FILE *fp);
   void read_restart_settings(FILE *fp);
   void *extract(const char *, int &);
-  double memory_usage();
+  virtual double memory_usage();
 
  protected:
   int typeH,typeO;             // atom types of TIP4P water H and O atoms

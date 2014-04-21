@@ -78,17 +78,15 @@ PairLJCutTIP4PLongSoft::~PairLJCutTIP4PLongSoft()
 
 void PairLJCutTIP4PLongSoft::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable,key;
+  int i,j,ii,jj,inum,jnum,itype,jtype,key;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
-  double fraction,table;
-  double delxOM, delyOM, delzOM;
   double r,forcecoul,forcelj,cforce;
   double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc,ddotf;
+  double grij,expm2,prefactor,t,erfc;
   double denc, denlj, r4sig6;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],f1[3],v[6],xH1[3],xH2[3];
+  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];
   double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;

@@ -61,8 +61,8 @@ PairCoulLongSoft::~PairCoulLongSoft()
     memory->destroy(scale);
 
     memory->destroy(lambda);
-    memory->destroy(lj1);
-    memory->destroy(lj4);
+    memory->destroy(lam1);
+    memory->destroy(lam2);
   }
 }
 
@@ -126,8 +126,8 @@ void PairCoulLongSoft::compute(int eflag, int vflag)
         t = 1.0 / (1.0 + EWALD_P*grij);
         erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 
-        denc = sqrt(lj4[itype][jtype] + rsq);
-        prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
+        denc = sqrt(lam2[itype][jtype] + rsq);
+        prefactor = qqrd2e * lam1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
 
         forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
         if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
@@ -144,7 +144,7 @@ void PairCoulLongSoft::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / denc;
+          prefactor = qqrd2e * lam1[itype][jtype] * qtmp*q[j] / denc;
           ecoul = prefactor*erfc;
           if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
         }
@@ -177,8 +177,8 @@ void PairCoulLongSoft::allocate()
   memory->create(scale,n+1,n+1,"pair:scale");
 
   memory->create(lambda,n+1,n+1,"pair:lambda");
-  memory->create(lj1,n+1,n+1,"pair:lj1");
-  memory->create(lj4,n+1,n+1,"pair:lj4");
+  memory->create(lam1,n+1,n+1,"pair:lam1");
+  memory->create(lam2,n+1,n+1,"pair:lam2");
 }
 
 /* ----------------------------------------------------------------------
@@ -256,13 +256,13 @@ double PairCoulLongSoft::init_one(int i, int j)
     lambda[i][j] = lambda[i][i];
   }
 
-  lj1[i][j] = pow(lambda[i][j], nlambda);
-  lj4[i][j] = alphac * (1.0 - lambda[i][j])*(1.0 - lambda[i][j]);
+  lam1[i][j] = pow(lambda[i][j], nlambda);
+  lam2[i][j] = alphac * (1.0 - lambda[i][j])*(1.0 - lambda[i][j]);
 
   scale[j][i] = scale[i][j];
   lambda[j][i] = lambda[i][j];
-  lj1[j][i] = lj1[i][j];
-  lj4[j][i] = lj4[i][j];
+  lam1[j][i] = lam1[i][j];
+  lam2[j][i] = lam2[i][j];
 
   return cut_coul+2.0*qdist;
 }
@@ -362,8 +362,8 @@ double PairCoulLongSoft::single(int i, int j, int itype, int jtype,
     t = 1.0 / (1.0 + EWALD_P*grij);
     erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
     
-    denc = sqrt(lj4[itype][jtype] + rsq);
-    prefactor = force->qqrd2e * lj1[itype][jtype] * atom->q[i]*atom->q[j] /
+    denc = sqrt(lam2[itype][jtype] + rsq);
+    prefactor = force->qqrd2e * lam1[itype][jtype] * atom->q[i]*atom->q[j] /
       (denc*denc*denc);
 
     forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
@@ -373,7 +373,7 @@ double PairCoulLongSoft::single(int i, int j, int itype, int jtype,
   fforce = forcecoul;
 
   if (rsq < cut_coulsq) {
-    prefactor = force->qqrd2e * lj1[itype][jtype] * atom->q[i]*atom->q[j] / denc;
+    prefactor = force->qqrd2e * lam1[itype][jtype] * atom->q[i]*atom->q[j] / denc;
     phicoul = prefactor*erfc;
     if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
   } else phicoul = 0.0;

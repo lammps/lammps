@@ -3,7 +3,7 @@ Ethane to Methanol in Water
 
 Example calculation of the difference in free energy of hydration upon
 transforming ethane into methanol with LAMMPS using *compute fep* and
-*fix adapt*.
+*fix adapt/fep*.
 
 Ethane and methanol are represented by the OPLS-AA force field (1
 molecule). Water is represented by the 3-site SPC/E model (360

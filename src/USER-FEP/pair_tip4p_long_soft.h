@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PairTIP4PLongSoft : public PairCoulLongSoft {
  public:
   PairTIP4PLongSoft(class LAMMPS *);
-  ~PairTIP4PLongSoft();
+  virtual ~PairTIP4PLongSoft();
   virtual void compute(int, int);
   void settings(int, char **);
   void init_style();
@@ -35,7 +35,7 @@ class PairTIP4PLongSoft : public PairCoulLongSoft {
   void write_restart_settings(FILE *fp);
   void read_restart_settings(FILE *fp);
   void *extract(const char *, int &);
-  double memory_usage();
+  virtual double memory_usage();
 
  protected:
   int typeH,typeO;             // atom types of TIP4P water H and O atoms

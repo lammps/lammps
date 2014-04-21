@@ -77,22 +77,20 @@ PairTIP4PLongSoft::~PairTIP4PLongSoft()
 
 void PairTIP4PLongSoft::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype,itable,key;
+  int i,j,ii,jj,inum,jnum,itype,jtype,key;
   int n,vlist[6];
   int iH1,iH2,jH1,jH2;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
-  double fraction,table;
-  double delxOM, delyOM, delzOM;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul;
   double r,forcecoul,cforce;
   double factor_coul;
-  double grij,expm2,prefactor,t,erfc,ddotf;
+  double grij,expm2,prefactor,t,erfc;
   double denc;
-  double xiM[3],xjM[3],fO[3],fH[3],fd[3],f1[3],v[6],xH1[3],xH2[3];
+  double fO[3],fH[3],fd[3],v[6],xH1[3],xH2[3];
   double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
 
-  evdwl = ecoul = 0.0;
+  ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
@@ -119,7 +117,6 @@ void PairTIP4PLongSoft::compute(int eflag, int vflag)
   double *q = atom->q;
   int *type = atom->type;
   double *special_coul = force->special_coul;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
   double cut_coulsqplus = (cut_coul+2.0*qdist) * (cut_coul+2.0*qdist);
 
@@ -221,8 +218,8 @@ void PairTIP4PLongSoft::compute(int eflag, int vflag)
           t = 1.0 / (1.0 + EWALD_P*grij);
           erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 
-          denc = sqrt(lj4[itype][jtype] + rsq);
-          prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
+          denc = sqrt(lam2[itype][jtype] + rsq);
+          prefactor = qqrd2e * lam1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
 
           forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
           if (factor_coul < 1.0) {
@@ -359,7 +356,7 @@ void PairTIP4PLongSoft::compute(int eflag, int vflag)
           }
 
           if (eflag) {
-            prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / denc;
+            prefactor = qqrd2e * lam1[itype][jtype] * qtmp*q[j] / denc;
             ecoul = prefactor*erfc;
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;

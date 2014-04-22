@@ -41,6 +41,7 @@ doc/mass.html
 doc/minimize.html
 doc/min_style.html
 doc/min_modify.html
+doc/molecule.html
 doc/neb.html
 doc/neighbor.html
 doc/neigh_modify.html
@@ -97,6 +98,7 @@ doc/fix.html
 doc/unfix.html
 doc/fix_modify.html
 doc/fix_adapt.html
+doc/fix_adapt_fep.html
 doc/fix_addforce.html
 doc/fix_addtorque.html
 doc/fix_append_atoms.html
@@ -131,6 +133,11 @@ doc/fix_imd.html
 doc/fix_indent.html
 doc/fix_langevin.html
 doc/fix_langevin_eff.html
+doc/fix_lb_fluid.html
+doc/fix_lb_momentum.html
+doc/fix_lb_pc.html
+doc/fix_lb_rigid_pc_sphere.html
+doc/fix_lb_viscous.html
 doc/fix_lineforce.html
 doc/fix_meso.html
 doc/fix_meso_stationary.html
@@ -159,6 +166,7 @@ doc/fix_nvt_asphere.html
 doc/fix_nvt_sllod.html
 doc/fix_nvt_sllod_eff.html
 doc/fix_nvt_sphere.html
+doc/fix_oneway.html
 doc/fix_orient_fcc.html
 doc/fix_phonon.html
 doc/fix_planeforce.html
@@ -185,12 +193,16 @@ doc/fix_srd.html
 doc/fix_store_force.html
 doc/fix_store_state.html
 doc/fix_temp_berendsen.html
+doc/fix_temp_csvr.html
 doc/fix_temp_rescale.html
 doc/fix_temp_rescale_eff.html
 doc/fix_thermal_conductivity.html
+doc/fix_ti_rs.html
+doc/fix_ti_spring.html
 doc/fix_tmd.html
 doc/fix_tune_kspace.html
 doc/fix_ttm.html
+doc/fix_vector.html
 doc/fix_viscosity.html
 doc/fix_viscous.html
 doc/fix_wall_gran.html
@@ -217,12 +229,14 @@ doc/compute_contact_atom.html
 doc/compute_coord_atom.html
 doc/compute_damage_atom.html
 doc/compute_dihedral_local.html
+doc/compute_dilatation_atom.html
 doc/compute_displace_atom.html
 doc/compute_erotate_asphere.html
 doc/compute_erotate_sphere.html
 doc/compute_erotate_sphere_atom.html
 doc/compute_erotate_rigid.html
 doc/compute_event_displace.html
+doc/compute_fep.html
 doc/compute_group_group.html
 doc/compute_gyration.html
 doc/compute_gyration_molecule.html
@@ -245,6 +259,7 @@ doc/compute_pair.html
 doc/compute_pair_local.html
 doc/compute_pe.html
 doc/compute_pe_atom.html
+doc/compute_plasticity_atom.html
 doc/compute_pressure.html
 doc/compute_property_atom.html
 doc/compute_property_local.html
@@ -267,6 +282,7 @@ doc/compute_temp_eff.html
 doc/compute_temp_deform_eff.html
 doc/compute_temp_region_eff.html
 doc/compute_ti.html
+doc/compute_vacf.html
 doc/compute_voronoi_atom.html
 doc/pair_modify.html
 doc/pair_adp.html
@@ -311,6 +327,7 @@ doc/pair_lj_long.html
 doc/pair_lj_sf.html
 doc/pair_lj_smooth.html
 doc/pair_lj_smooth_linear.html
+doc/pair_lj_soft.html
 doc/pair_lubricate.html
 doc/pair_lubricateU.html
 doc/pair_nb3b_harmonic.html

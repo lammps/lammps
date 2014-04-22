@@ -111,6 +111,7 @@ USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sd
 USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_Section_accelerate.html#acc_7, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
+USER-FEP, free energy perturbation, Agilio Padua at (U Clermont-Ferrand), "compute fep"_compute_fep.html, USER/fep, -, -
 USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
 USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
 USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
@@ -346,6 +347,24 @@ There are auxiliary tools for using this package in tools/eff.
 The person who created this package is Andres Jaramillo-Botero at
 CalTech (ajaramil at wag.caltech.edu).  Contact him directly if you
 have questions.
+
+:line
+
+USER-FEP package :h4
+
+This package provides USER-FEP package for free energy perturbation
+simulations with soft-core pair potentials in LAMMPS. The package
+contains the fep compute style and a adapt/fep fix style and several
+soft core potentials for Lennard-Jones and coulomb interactions.
+
+There are example scripts for using this package in
+examples/USER/fep.
+
+There are auxiliary tools for using this package in tools/fep.
+
+The person who created this package is Agilio Padua at Universite
+Blaise Pascal Clermont-Ferrand (agilio.padua at univ-bpclermont.fr)
+Contact him directly if you have questions.
 
 :line
 

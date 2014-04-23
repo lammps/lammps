@@ -1,4 +1,7 @@
 # ubuntu_simple = Ubuntu Linux box, g++, openmpi, KISS FFT
+#
+# you have to install the packages g++, mpi-default-bin and mpi-default-dev 
+# to compile LAMMPS with this makefile
 
 SHELL = /bin/sh
 

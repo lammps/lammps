@@ -67,7 +67,7 @@ neighbor 2.0 bin
 
 timestep 2.0
 
-# velocity all create ${temp} 12345
+velocity all create ${temp} 12345
 
 thermo_style multi
 thermo ${nprint}

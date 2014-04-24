@@ -2,7 +2,7 @@ Free Energy of Hydration of Methane
 ===================================
 
 Example calculation of the free energy of hydration of methane with
-LAMMPS using *compute fep* and *fix adapt*.
+LAMMPS using *compute fep* and *fix adapt/fep*.
 
 Methane is represented by the 5-site OPLS-AA model (1 molecule). Water
 is represented by the 4-site TIP4P-Ew model (360 molecules). Interactions

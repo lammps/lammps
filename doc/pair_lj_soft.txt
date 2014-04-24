@@ -77,8 +77,8 @@ pair_coeff * * 0.28 3.1 1.0
 pair_coeff 1 1 0.28 3.1 0.0 10.0
 pair_coeff 1 1 0.28 3.1 0.0 10.0 9.5 :pre
 
-pair_style lj/cut/tip4p/long/soft 1 2 7 8 2.0 0.5 10.0 0.15 9.8
-pair_style lj/cut/tip4p/long/soft 1 2 7 8 2.0 0.5 10.0 0.15 9.8 9.5
+pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
+pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8 9.5
 pair_coeff * * 0.155 3.1536 1.0
 pair_coeff 1 1 0.155 3.1536 1.0 9.5 :pre
  
@@ -86,7 +86,7 @@ pair_style coul/long/soft 1.0 10.0 9.5
 pair_coeff * * 1.0
 pair_coeff 1 1 1.0 9.5 :pre
 
-pair_style tip4p/long/soft 1 2 7 8 2.0 0.5 10.0 0.15 9.8
+pair_style tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
 pair_coeff * * 1.0
 pair_coeff 1 1 1.0 9.5 :pre
 
@@ -120,7 +120,10 @@ The paratemers n, alpha_LJ and alpha_C are set in the
 "pair_style"_pair_style.html command, before the cutoffs.  Usual
 choices for the exponent are n = 2 or n = 1. For the remaining
 coefficients alpha_LJ = 0.5 and alpha_C = 10 Angstrom^2 are
-appropriate choices.
+appropriate choices. Plots of the LJ and Coulomb terms are shown
+below, for lambda ranging from 1 ro 0 every 0.1. 
+
+:c,image(JPG/lj_soft.jpg),image(JPG/coul_soft.jpg)
 
 The {lj/cut/tip4p/long/soft} implements a soft-core version of the
 TIP4P water model. The usage of this pair style is documented in the
@@ -153,7 +156,7 @@ lambda (activation parameter between 0 and 1)
 cutoff1 (distance units)
 cutoff2 (distance units) :ul
 
-The latter 2 coefficients are optional.  If not specified, the global
+The latter two coefficients are optional.  If not specified, the global
 LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
@@ -222,7 +225,7 @@ See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html, "fix_adapt"_fix_adapt.html,
-"compute_fep"_compute_fep.html
+"fix_adapt/fep"_fix_adapt_fep.html, "compute_fep"_compute_fep.html
 
 [Default:] none
 

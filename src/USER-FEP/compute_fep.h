@@ -65,8 +65,6 @@ class ComputeFEP : public Compute {
 
   Perturb *perturb;
 
-  class Pair *pair;
-
   double compute_epair();
   void perturb_params();
   void backup_params();

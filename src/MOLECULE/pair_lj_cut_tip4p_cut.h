@@ -39,6 +39,7 @@ class PairLJCutTIP4PCut : public Pair {
   void read_restart(FILE *);
   void write_data(FILE *);
   void write_data_all(FILE *);
+  void *extract(const char *, int &);
   double memory_usage();
 
  protected:

@@ -109,6 +109,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     impropers_allow = MAX(impropers_allow,styles[k]->impropers_allow);
     mass_type = MAX(mass_type,styles[k]->mass_type);
     dipole_type = MAX(dipole_type,styles[k]->dipole_type);
+    if (styles[k]->molecular == 2) onemols = styles[k]->onemols;
 
     comm_x_only = MIN(comm_x_only,styles[k]->comm_x_only);
     comm_f_only = MIN(comm_f_only,styles[k]->comm_f_only);

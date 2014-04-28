@@ -180,23 +180,23 @@ the "dimension"_dimension command, and nasr = 20.
 :link(Campana)
 [(Campa&ntilde;&aacute;)] C. Campa&ntilde;&aacute; and
 M. H. M&uuml;ser, {Practical Green's function approach to the
-simulation of elastic semi-infinite solids}, "Phys. Rev. B [74],
+simulation of elastic semi-infinite solids}, "Phys. Rev. B \[74\],
 075420 (2006)"_http://dx.doi.org/10.1103/PhysRevB.74.075420
 
 :link(Kong)
 [(Kong)] L.T. Kong, G. Bartels, C. Campa&ntilde;&aacute;,
 C. Denniston, and Martin H. M&uuml;ser, {Implementation of Green's
 function molecular dynamics: An extension to LAMMPS}, "Computer
-Physics Communications [180](6):1004-1010
+Physics Communications \[180\](6):1004-1010
 (2009)."_http://dx.doi.org/10.1016/j.cpc.2008.12.035
 
 L.T. Kong, C. Denniston, and Martin H. M&uuml;ser,
 {An improved version of the Green's function molecular dynamics
-method}, "Computer Physics Communications [182](2):540-541
+method}, "Computer Physics Communications \[182\](2):540-541
 (2011)."_http://dx.doi.org/10.1016/j.cpc.2010.10.006
 
 :link(Kong2011)
 [(Kong2011)] L.T. Kong, {Phonon dispersion measured directly from
 molecular dynamics simulations}, "Computer Physics Communications
-[182](10):2201-2207,
+\[182\](10):2201-2207,
 (2011)."_http://dx.doi.org/10.1016/j.cpc.2011.04.019

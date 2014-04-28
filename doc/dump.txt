@@ -93,7 +93,7 @@ dump 2 subgroup atom 50 dump.run.mpiio.bin
 dump 4a all custom 100 dump.myforce.* id type x y vx fx
 dump 4b flow custom 100 dump.%.myforce id type c_myF\[3\] v_ke
 dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
-dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress[2]
+dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress\[2\]
 dump 1 all xtc 1000 file.xtc
 dump e_data all custom 100 dump.eff id type x y z spin eradius fx fy fz eforce :pre
 

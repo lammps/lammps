@@ -40,7 +40,7 @@ coefficient of the diffusing atoms.  This can be computed in the
 following manner, using the "variable trap()"_variable.html function:
 
 compute         2 all vacf
-fix             5 all vector 1 c_2[4]
+fix             5 all vector 1 c_2\[4\]
 variable        diff equal dt*trap(f_5)
 thermo_style    custom step v_diff :pre
 

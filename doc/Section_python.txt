@@ -540,12 +540,12 @@ from ctypes import *
 natoms = lmp.get_natoms()
 n3 = 3*natoms
 x = (n3*c_double)()
-x[0] = x coord of atom with ID 1
-x[1] = y coord of atom with ID 1
-x[2] = z coord of atom with ID 1
-x[3] = x coord of atom with ID 2
+x\[0\] = x coord of atom with ID 1
+x\[1\] = y coord of atom with ID 1
+x\[2\] = z coord of atom with ID 1
+x\[3\] = x coord of atom with ID 2
 ...
-x[n3-1] = z coord of atom with ID natoms
+x\[n3-1\] = z coord of atom with ID natoms
 lmp.scatter_coords("x",1,3,x) :pre
 
 Alternatively, you can just change values in the vector returned by

@@ -195,17 +195,17 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
         numtyp sw_cut=sw3_ijparam.x;
         numtyp sw_cutsq=sw3_ijparam.y;
         numtyp pre_sw_c1=sw_biga*sw_epsilon*sw_powerp*sw_bigb*
-            pow(sw_sigma,sw_powerp);
+            ucl_powr(sw_sigma,sw_powerp);
         numtyp pre_sw_c2=sw_biga*sw_epsilon*sw_powerq*
-            pow(sw_sigma,sw_powerq);
+            ucl_powr(sw_sigma,sw_powerq);
         numtyp pre_sw_c3=sw_biga*sw_epsilon*sw_bigb*
-            pow(sw_sigma,sw_powerp+(numtyp)1.0);
+            ucl_powr(sw_sigma,sw_powerp+(numtyp)1.0);
         numtyp pre_sw_c4=sw_biga*sw_epsilon*
-            pow(sw_sigma,sw_powerq+(numtyp)1.0);
+            ucl_powr(sw_sigma,sw_powerq+(numtyp)1.0);
         numtyp pre_sw_c5=sw_biga*sw_epsilon*sw_bigb*
-            pow(sw_sigma,sw_powerp);
+            ucl_powr(sw_sigma,sw_powerp);
         numtyp pre_sw_c6=sw_biga*sw_epsilon*
-            pow(sw_sigma,sw_powerq);
+            ucl_powr(sw_sigma,sw_powerq);
 
         numtyp r=ucl_sqrt(rsq);
         numtyp rp=ucl_powr(r,-sw_powerp);
@@ -343,7 +343,6 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
                                 const int t_per_atom, const int evatom) {
   __local int tpa_sq, n_stride;
   tpa_sq=fast_mul(t_per_atom,t_per_atom);
-  numtyp sw_epsilon, sw_sigma, sw_lambda, sw_gamma;
   numtyp sw_sigma_gamma_ij, sw_cut_ij, sw_sigma_gamma_ik, sw_cut_ik;
   numtyp sw_costheta_ijk, sw_lambda_epsilon_ijk, sw_lambda_epsilon2_ijk;
 
@@ -467,7 +466,6 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
                              const int t_per_atom) {
   __local int tpa_sq, n_stride;
   tpa_sq=fast_mul(t_per_atom,t_per_atom);
-  numtyp sw_epsilon, sw_sigma, sw_lambda, sw_gamma;
   numtyp sw_sigma_gamma_ij, sw_cut_ij, sw_sigma_gamma_ik, sw_cut_ik;
   numtyp sw_costheta_ijk, sw_lambda_epsilon_ijk, sw_lambda_epsilon2_ijk;
 
@@ -515,12 +513,14 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
 
       if (rsq1 > sw3_ijparam.y) continue;
 
-      numtyp4 sw1_ijparam; fetch4(sw1_ijparam,ijparam,sw1_tex);
-      sw_sigma_gamma_ij=sw1_ijparam.y*sw1_ijparam.w; //sw_sigma*sw_gamma;
-      sw_cut_ij=sw3_ijparam.x;
+      int jiparam=elem2param[jtype*nelements*nelements+itype*nelements+itype]; 
+      numtyp4 sw1_jiparam; fetch4(sw1_jiparam,jiparam,sw1_tex);
+      numtyp4 sw3_jiparam; fetch4(sw3_jiparam,jiparam,sw3_tex);
+      sw_sigma_gamma_ij=sw1_jiparam.y*sw1_jiparam.w; //sw_sigma*sw_gamma;
+      sw_cut_ij=sw3_jiparam.x;
 
       const __global int *nbor_k=dev_nbor+j+nbor_pitch;
-      int numk=*nbor_k; 
+      int numk=*nbor_k;
       if (dev_nbor==dev_packed) {
         nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
         k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
@@ -541,25 +541,25 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
         numtyp4 kx; fetch4(kx,k,pos_tex);
         int ktype=kx.w;
         ktype=map[ktype];
-        int ikparam=elem2param[itype*nelements*nelements+ktype*nelements+ktype]; 
+        int jkparam=elem2param[jtype*nelements*nelements+ktype*nelements+ktype]; 
 
         numtyp delr2x = kx.x - jx.x;
         numtyp delr2y = kx.y - jx.y;
         numtyp delr2z = kx.z - jx.z;
         numtyp rsq2 = delr2x*delr2x + delr2y*delr2y + delr2z*delr2z;
-        numtyp4 sw3_ikparam; fetch4(sw3_ikparam,ikparam,sw3_tex);
+        numtyp4 sw3_jkparam; fetch4(sw3_jkparam,jkparam,sw3_tex);
 
-        if (rsq2 < sw3_ikparam.y) {
-          numtyp4 sw1_ikparam; fetch4(sw1_ikparam,ikparam,sw1_tex);
-          sw_sigma_gamma_ik=sw1_ikparam.y*sw1_ikparam.w; //sw_sigma*sw_gamma;
-          sw_cut_ik=sw3_ikparam.x;
+        if (rsq2 < sw3_jkparam.y) {
+          numtyp4 sw1_jkparam; fetch4(sw1_jkparam,jkparam,sw1_tex);
+          sw_sigma_gamma_ik=sw1_jkparam.y*sw1_jkparam.w; //sw_sigma*sw_gamma;
+          sw_cut_ik=sw3_jkparam.x;
 
-          int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
-          numtyp4 sw1_ijkparam; fetch4(sw1_ijkparam,ijkparam,sw1_tex);
-          sw_lambda_epsilon_ijk=sw1_ijkparam.x*sw1_ijkparam.z; //sw_lambda*sw_epsilon;
+          int jikparam=elem2param[jtype*nelements*nelements+itype*nelements+ktype];
+          numtyp4 sw1_jikparam; fetch4(sw1_jikparam,jikparam,sw1_tex);
+          sw_lambda_epsilon_ijk=sw1_jikparam.x*sw1_jikparam.z; //sw_lambda*sw_epsilon;
           sw_lambda_epsilon2_ijk=(numtyp)2.0*sw_lambda_epsilon_ijk;
-          numtyp4 sw3_ijkparam; fetch4(sw3_ijkparam,ijkparam,sw3_tex);
-          sw_costheta_ijk=sw3_ijkparam.z;
+          numtyp4 sw3_jikparam; fetch4(sw3_jikparam,jikparam,sw3_tex);
+          sw_costheta_ijk=sw3_jikparam.z;
 
           numtyp fjx, fjy, fjz;
           //if (evatom==0) {
@@ -602,7 +602,6 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
                              const int t_per_atom) {
   __local int tpa_sq, n_stride;
   tpa_sq=fast_mul(t_per_atom,t_per_atom);
-  numtyp sw_epsilon, sw_sigma, sw_lambda, sw_gamma;
   numtyp sw_sigma_gamma_ij, sw_cut_ij, sw_sigma_gamma_ik, sw_cut_ik;
   numtyp sw_costheta_ijk, sw_lambda_epsilon_ijk, sw_lambda_epsilon2_ijk;
 
@@ -650,10 +649,12 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
 
       if (rsq1 > sw3_ijparam.y) continue;
 
-      numtyp4 sw1_ijparam; fetch4(sw1_ijparam,ijparam,sw1_tex);
-      sw_sigma_gamma_ij=sw1_ijparam.y*sw1_ijparam.w; //sw_sigma*sw_gamma;
-      sw_cut_ij=sw3_ijparam.x;
-        
+      int jiparam=elem2param[jtype*nelements*nelements+itype*nelements+itype]; 
+      numtyp4 sw1_jiparam; fetch4(sw1_jiparam,jiparam,sw1_tex);
+      numtyp4 sw3_jiparam; fetch4(sw3_jiparam,jiparam,sw3_tex);
+      sw_sigma_gamma_ij=sw1_jiparam.y*sw1_jiparam.w; //sw_sigma*sw_gamma;
+      sw_cut_ij=sw3_jiparam.x;
+       
       const __global int *nbor_k=dev_nbor+j+nbor_pitch;
       int numk=*nbor_k;
       if (dev_nbor==dev_packed) {
@@ -676,25 +677,25 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
         numtyp4 kx; fetch4(kx,k,pos_tex);
         int ktype=kx.w;
         ktype=map[ktype];
-        int ikparam=elem2param[itype*nelements*nelements+ktype*nelements+ktype]; 
-        numtyp4 sw3_ikparam; fetch4(sw3_ikparam,ikparam,sw3_tex);
+        int jkparam=elem2param[jtype*nelements*nelements+ktype*nelements+ktype]; 
+        numtyp4 sw3_jkparam; fetch4(sw3_jkparam,jkparam,sw3_tex);
 
         numtyp delr2x = kx.x - jx.x;
         numtyp delr2y = kx.y - jx.y;
         numtyp delr2z = kx.z - jx.z;
         numtyp rsq2 = delr2x*delr2x + delr2y*delr2y + delr2z*delr2z;
 
-        if (rsq2 < sw3_ikparam.y) {
-          numtyp4 sw1_ikparam; fetch4(sw1_ikparam,ikparam,sw1_tex);
-          sw_sigma_gamma_ik=sw1_ikparam.y*sw1_ikparam.w; //sw_sigma*sw_gamma;
-          sw_cut_ik=sw3_ikparam.x;
+        if (rsq2 < sw3_jkparam.y) {
+          numtyp4 sw1_jkparam; fetch4(sw1_jkparam,jkparam,sw1_tex);
+          sw_sigma_gamma_ik=sw1_jkparam.y*sw1_jkparam.w; //sw_sigma*sw_gamma;
+          sw_cut_ik=sw3_jkparam.x;
 
-          int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
-          numtyp4 sw1_ijkparam; fetch4(sw1_ijkparam,ijkparam,sw1_tex);
-          sw_lambda_epsilon_ijk=sw1_ijkparam.x*sw1_ijkparam.z; //sw_lambda*sw_epsilon;
+          int jikparam=elem2param[jtype*nelements*nelements+itype*nelements+ktype];
+          numtyp4 sw1_jikparam; fetch4(sw1_jikparam,jikparam,sw1_tex);
+          sw_lambda_epsilon_ijk=sw1_jikparam.x*sw1_jikparam.z; //sw_lambda*sw_epsilon;
           sw_lambda_epsilon2_ijk=(numtyp)2.0*sw_lambda_epsilon_ijk;
-          numtyp4 sw3_ijkparam; fetch4(sw3_ijkparam,ijkparam,sw3_tex);
-          sw_costheta_ijk=sw3_ijkparam.z;
+          numtyp4 sw3_jikparam; fetch4(sw3_jikparam,jikparam,sw3_tex);
+          sw_costheta_ijk=sw3_jikparam.z;
 
           numtyp fjx, fjy, fjz, fkx, fky, fkz;
           threebody(delr1x,delr1y,delr1z,eflag,energy);

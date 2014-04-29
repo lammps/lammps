@@ -44,7 +44,7 @@ For example the velocity auto-correlation function (VACF) can be
 time-integrated, to yield a diffusion coefficient, as follows:
 
 compute         2 all vacf
-fix             5 all vector 1 c_2[4]
+fix             5 all vector 1 c_2\[4\]
 variable        diff equal dt*trap(f_5)
 thermo_style    custom step v_diff :pre
 

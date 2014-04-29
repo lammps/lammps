@@ -190,7 +190,7 @@ void PairCoulLongGPU::cpu_compute(int start, int inum, int eflag,
   int i,j,ii,jj,jnum,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double fraction,table;
-  double r,r2inv,r6inv,forcecoul,factor_coul;
+  double r,r2inv,forcecoul,factor_coul;
   double grij,expm2,prefactor,t,erfc;
   int *jlist;
   double rsq;

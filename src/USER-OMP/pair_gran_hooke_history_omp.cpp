@@ -101,7 +101,7 @@ void PairGranHookeHistoryOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int SHEARUPDATE>
 void PairGranHookeHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
+  int i,j,ii,jj,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
   double myshear[3];
   double radi,radj,radsum,rsq,r,rinv,rsqinv;

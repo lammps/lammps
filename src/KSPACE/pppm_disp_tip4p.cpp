@@ -263,7 +263,7 @@ void PPPMDispTIP4P::fieldforce_c_ik()
 void PPPMDispTIP4P::fieldforce_c_ad()
 {
   int i,l,m,n,nx,ny,nz,mx,my,mz;
-  FFT_SCALAR dx,dy,dz,x0,y0,z0,dx0,dy0,dz0;
+  FFT_SCALAR dx,dy,dz;
   FFT_SCALAR ekx,eky,ekz;
   double *xi;
   int iH1,iH2;
@@ -399,7 +399,6 @@ void PPPMDispTIP4P::fieldforce_c_peratom()
   // ek = 3 components of E-field on particle
   double *q = atom->q;
   double **x = atom->x;
-  double **f = atom->f;
 
   int *type = atom->type;
   int nlocal = atom->nlocal;

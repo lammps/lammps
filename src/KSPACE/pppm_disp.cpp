@@ -404,7 +404,7 @@ void PPPMDisp::init()
   
     // print stats
 
-    int ngrid_max,nfft_both_max,nbuf_max;
+    int ngrid_max,nfft_both_max;
     MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
     MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
@@ -502,7 +502,7 @@ void PPPMDisp::init()
 
     // print stats
 
-    int ngrid_max,nfft_both_max,nbuf_max;
+    int ngrid_max,nfft_both_max;
     MPI_Allreduce(&ngrid_6,&ngrid_max,1,MPI_INT,MPI_MAX,world);
     MPI_Allreduce(&nfft_both_6,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
@@ -2888,7 +2888,6 @@ double PPPMDisp::final_accuracy()
 
 void PPPMDisp::final_accuracy_6(double& acc, double& acc_real, double& acc_kspace)
 {
-  double df_rspace, df_kspace;
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
@@ -3050,12 +3049,10 @@ double PPPMDisp::compute_qopt_ad()
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
   double u2, sqk;
   double sum1,sum2,sum3,sum4,dot2;
-  double numerator;
 
   int nbx = 2;
   int nby = 2;
   int nbz = 2;
-  double form = 1.0;
 
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
@@ -3070,7 +3067,6 @@ double PPPMDisp::compute_qopt_ad()
           pow(unitkz*mper,2.0);
 
         if (sqk != 0.0) {
-          numerator = form*12.5663706;
     
           sum1 = 0.0;
           sum2 = 0.0;
@@ -3120,7 +3116,7 @@ double PPPMDisp::compute_qopt_ad()
 double PPPMDisp::compute_qopt_6_ik()
 {
   double qopt = 0.0;
-  int k,l,m,n;
+  int k,l,m;
   double *prd;
 
   if (triclinic == 0) prd = domain->prd;
@@ -3148,7 +3144,6 @@ double PPPMDisp::compute_qopt_6_ik()
   int nby = 2;
   int nbz = 2;
 
-  n = 0;
   for (m = nzlo_fft_6; m <= nzhi_fft_6; m++) {
     mper = m - nz_pppm_6*(2*m/nz_pppm_6);
 
@@ -3343,9 +3338,6 @@ void PPPMDisp::calc_csum()
   //the following variables are needed to distinguish between arithmetic
   //  and geometric mixing
 
-  double mix1;    // scales 20/16 to 4
-  int mix2;       // shifts the value to the sigma^3 value
-  int mix3;       // shifts the value to the right atom type
   if (function[1]) {
     for (i = 1; i <= ntypes; i++)
       cii[i] = B[i]*B[i];

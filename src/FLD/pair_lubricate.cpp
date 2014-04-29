@@ -80,13 +80,13 @@ PairLubricate::~PairLubricate()
 void PairLubricate::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,fpair,fx,fy,fz,tx,ty,tz;
-  double rsq,r,h_sep,radi,tfmag;
+  double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,tx,ty,tz;
+  double rsq,r,h_sep,radi;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
   double vt1,vt2,vt3,wt1,wt2,wt3,wdotn;
-  double inertia,inv_inertia,vRS0;
+  double vRS0;
   double vi[3],vj[3],wi[3],wj[3],xl[3];
-  double a_sq,a_sh,a_pu,Fbmag,del,delmin,eta;
+  double a_sq,a_sh,a_pu;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double lamda[3],vstream[3];
 
@@ -99,11 +99,8 @@ void PairLubricate::compute(int eflag, int vflag)
   double **v = atom->v;
   double **f = atom->f;
   double **omega = atom->omega;
-  double **angmom = atom->angmom;
   double **torque = atom->torque;
   double *radius = atom->radius;
-  double *mass = atom->mass;
-  double *rmass = atom->rmass;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -546,7 +543,7 @@ void PairLubricate::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair lubricate requires ghost atoms store velocity");
 
-  int irequest = neighbor->request(this);
+  neighbor->request(this);
 
   // require that atom radii are identical within each type
   // require monodisperse system with same radii for all types

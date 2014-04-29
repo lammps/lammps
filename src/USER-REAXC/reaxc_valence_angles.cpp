@@ -101,13 +101,12 @@ void Valence_Angles( reax_system *system, control_params *control,
   real Cf7ij, Cf7jk, Cf8j, Cf9j;
   real f7_ij, f7_jk, f8_Dj, f9_Dj;
   real Ctheta_0, theta_0, theta_00, theta, cos_theta, sin_theta;
-  real r_ij, r_jk;
   real BOA_ij, BOA_jk;
   rvec force, ext_press;
   // rtensor temp_rtensor, total_rtensor;
 
   // Tallying variables
-  real eng_tmp, f_scaler, fi_tmp[3], fj_tmp[3], fk_tmp[3];
+  real eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
   real delij[3], delkj[3];
 
   three_body_header *thbh;
@@ -183,7 +182,6 @@ void Valence_Angles( reax_system *system, control_params *control,
       if( BOA_ij/*bo_ij->BO*/ > 0.0 &&
           ( j < system->n || pbond_ij->nbr < system->n ) ) {
         i = pbond_ij->nbr;
-        r_ij = pbond_ij->d;
         type_i = system->my_atoms[i].type;
         // fprintf( out_control->eval, "i: %d\n", i );
 
@@ -246,7 +244,6 @@ void Valence_Angles( reax_system *system, control_params *control,
               (bo_ij->BO > control->thb_cut) &&
               (bo_jk->BO > control->thb_cut) &&
               (bo_ij->BO * bo_jk->BO > control->thb_cutsq) ) {
-            r_jk = pbond_jk->d;
             thbh = &( system->reax_param.thbp[ type_i ][ type_j ][ type_k ] );
 
             /* if( system->my_atoms[i].orig_id < system->my_atoms[k].orig_id )

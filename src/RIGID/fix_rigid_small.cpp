@@ -313,6 +313,15 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
     onemol->compute_inertia();
   }
 
+  // set pstat_flag
+
+  pstat_flag = 0;
+  for (int i = 0; i < 3; i++) 
+    if (p_flag[i]) pstat_flag = 1;
+
+  if (pcouple == XYZ || (domain->dimension == 2 && pcouple == XY)) pstyle = ISO;
+  else pstyle = ANISO;
+
   // create rigid bodies based on molecule ID
   // sets bodytag for owned atoms
   // body attributes are computed later by setup_bodies()
@@ -2742,7 +2751,7 @@ int FixRigidSmall::pack_comm(int n, int *list, double *buf,
                              int pbc_flag, int *pbc)
 {
   int i,j;
-  double *xcm,*vcm,*quat,*omega,*ex_space,*ey_space,*ez_space;
+  double *xcm,*vcm,*quat,*omega,*ex_space,*ey_space,*ez_space,*conjqm;
 
   int m = 0;
 
@@ -2779,6 +2788,11 @@ int FixRigidSmall::pack_comm(int n, int *list, double *buf,
       buf[m++] = ez_space[0];
       buf[m++] = ez_space[1];
       buf[m++] = ez_space[2];
+      conjqm = body[bodyown[j]].conjqm;
+      buf[m++] = conjqm[0];
+      buf[m++] = conjqm[1];
+      buf[m++] = conjqm[2];
+      buf[m++] = conjqm[3];
     }
 
   } else if (commflag == FINAL) {
@@ -2793,6 +2807,11 @@ int FixRigidSmall::pack_comm(int n, int *list, double *buf,
       buf[m++] = omega[0];
       buf[m++] = omega[1];
       buf[m++] = omega[2];
+      conjqm = body[bodyown[j]].conjqm;
+      buf[m++] = conjqm[0];
+      buf[m++] = conjqm[1];
+      buf[m++] = conjqm[2];
+      buf[m++] = conjqm[3];
     }
 
   } else if (commflag == FULL_BODY) {
@@ -2819,7 +2838,7 @@ int FixRigidSmall::pack_comm(int n, int *list, double *buf,
 void FixRigidSmall::unpack_comm(int n, int first, double *buf)
 {
   int i,j,last;
-  double *xcm,*vcm,*quat,*omega,*ex_space,*ey_space,*ez_space;
+  double *xcm,*vcm,*quat,*omega,*ex_space,*ey_space,*ez_space,*conjqm;
 
   int m = 0;
   last = first + n;
@@ -2856,6 +2875,11 @@ void FixRigidSmall::unpack_comm(int n, int first, double *buf)
       ez_space[0] = buf[m++];
       ez_space[1] = buf[m++];
       ez_space[2] = buf[m++];
+      conjqm = body[bodyown[i]].conjqm;
+      conjqm[0] = buf[m++];
+      conjqm[1] = buf[m++];
+      conjqm[2] = buf[m++];
+      conjqm[3] = buf[m++];
     }
 
   } else if (commflag == FINAL) {
@@ -2869,6 +2893,11 @@ void FixRigidSmall::unpack_comm(int n, int first, double *buf)
       omega[0] = buf[m++];
       omega[1] = buf[m++];
       omega[2] = buf[m++];
+      conjqm = body[bodyown[i]].conjqm;
+      conjqm[0] = buf[m++];
+      conjqm[1] = buf[m++];
+      conjqm[2] = buf[m++];
+      conjqm[3] = buf[m++];
     }
 
   } else if (commflag == FULL_BODY) {

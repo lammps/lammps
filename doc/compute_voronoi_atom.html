@@ -113,16 +113,16 @@ performed for the first invocation of the compute and then stored.
 For all following invocations of the compute the number of atoms in
 each Voronoi cell in the stored tessellation is counted. In this mode
 the compute returns a per-atom array with 2 columns. The first column
-is the number of atoms currently in the Voronoi volume defined by this 
-atom at the time of the first invocation of the compute (note that the 
+is the number of atoms currently in the Voronoi volume defined by this
+atom at the time of the first invocation of the compute (note that the
 atom may have moved significantly). The second column contains the
-total number of atoms sharing the Voronoi cell of the stored 
-tessellation at the location of the current atom. Numbers in column one
-can be any positive integer including zero, while column two values will 
-always be greater than zero. Column one data can be used to locate 
-vacancies (the coordinates are given by the atom coordinates at the 
-time step when the compute was first invoked), while column two data
-can be used to identify interstitial atoms.
+total number of atoms sharing the Voronoi cell of the stored
+tessellation at the location of the current atom. Numbers in column
+one can be any positive integer including zero, while column two
+values will always be greater than zero. Column one data can be used
+to locate vacancies (the coordinates are given by the atom coordinates
+at the time step when the compute was first invoked), while column two
+data can be used to identify interstitial atoms.
 </P>
 <HR>
 

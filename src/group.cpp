@@ -198,18 +198,12 @@ void Group::assign(int narg, char **arg)
       else error->all(FLERR,"Illegal group command");
       
       tagint bound1,bound2;
-      if (sizeof(tagint) == sizeof(smallint))
-        bound1 = force->inumeric(FLERR,arg[3]);
-      else
-        bound1 = force->bnumeric(FLERR,arg[3]);
+      bound1 = force->tnumeric(FLERR,arg[3]);
       bound2 = -1;
 
       if (condition == BETWEEN) {
         if (narg != 5) error->all(FLERR,"Illegal group command");
-        if (sizeof(tagint) == sizeof(smallint))
-          bound2 = force->inumeric(FLERR,arg[4]);
-        else
-          bound2 = force->bnumeric(FLERR,arg[4]);
+        bound2 = force->tnumeric(FLERR,arg[4]);
       } else if (narg != 4) error->all(FLERR,"Illegal group command");
 
       int *attribute = NULL;
@@ -284,13 +278,15 @@ void Group::assign(int narg, char **arg)
 
       for (int iarg = 2; iarg < narg; iarg++) {
         if (strchr(arg[iarg],':')) {
-          start = ATOTAGINT(strtok(arg[iarg],":")); 
-          stop = ATOTAGINT(strtok(NULL,":"));
+          ptr = strtok(arg[iarg],":"); 
+          start = force->tnumeric(FLERR,ptr); 
+          ptr = strtok(NULL,":"); 
+          stop = force->tnumeric(FLERR,ptr); 
           ptr = strtok(NULL,":");
-          if (ptr) delta = ATOTAGINT(ptr);
+          if (ptr) delta = force->tnumeric(FLERR,ptr);
           else delta = 1;
         } else {
-          start = stop = ATOTAGINT(arg[iarg]);
+          start = stop = force->tnumeric(FLERR,arg[iarg]);
           delta = 1;
         }
 

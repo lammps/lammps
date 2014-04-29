@@ -59,6 +59,9 @@ FixRigidSmall *FixRigidSmall::frsptr;
 
 #define DELTA_BODY 10000
 
+enum{NONE,XYZ,XY,YZ,XZ};        // same as in FixRigid
+enum{ISO,ANISO,TRICLINIC};      // same as in FixRigid
+
 enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 
 /* ---------------------------------------------------------------------- */
@@ -125,6 +128,23 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   infile = NULL;
   onemol = NULL;
 
+  tstat_flag = 0;
+  pstat_flag = 0;
+  allremap = 1;
+  id_dilate = NULL;
+  t_chain = 10;
+  t_iter = 1;
+  t_order = 3;
+  p_chain = 10;
+
+  pcouple = NONE;
+  pstyle = ANISO;
+
+  for (int i = 0; i < 3; i++) {
+    p_start[i] = p_stop[i] = p_period[i] = 0.0;
+    p_flag[i] = 0;
+  }
+
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"langevin") == 0) {
@@ -159,6 +179,121 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
                        "fix rigid/small has multiple molecules");
       onemol = atom->molecules[imol];
       iarg += 2;
+
+    } else if (strcmp(arg[iarg],"temp") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      if (strcmp(style,"rigid/nvt/small") != 0 && 
+          strcmp(style,"rigid/npt/small") != 0)
+        error->all(FLERR,"Illegal fix rigid command");
+      tstat_flag = 1;
+      t_start = force->numeric(FLERR,arg[iarg+1]);
+      t_stop = force->numeric(FLERR,arg[iarg+2]);
+      t_period = force->numeric(FLERR,arg[iarg+3]);
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"iso") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      if (strcmp(style,"rigid/npt/small") != 0 && 
+          strcmp(style,"rigid/nph/small") != 0)
+	      error->all(FLERR,"Illegal fix rigid/small command");
+      pcouple = XYZ;
+      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] = 
+        force->numeric(FLERR,arg[iarg+3]);
+      p_flag[0] = p_flag[1] = p_flag[2] = 1;
+      if (domain->dimension == 2) {
+	      p_start[2] = p_stop[2] = p_period[2] = 0.0;
+      	p_flag[2] = 0;
+      }
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"aniso") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      if (strcmp(style,"rigid/npt/small") != 0 && 
+          strcmp(style,"rigid/nph/small") != 0)
+	      error->all(FLERR,"Illegal fix rigid/small command");
+      p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[0] = p_period[1] = p_period[2] = 
+        force->numeric(FLERR,arg[iarg+3]);
+      p_flag[0] = p_flag[1] = p_flag[2] = 1;
+      if (domain->dimension == 2) {
+      	p_start[2] = p_stop[2] = p_period[2] = 0.0;
+	      p_flag[2] = 0;
+      }
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"x") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      p_start[0] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[0] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[0] = force->numeric(FLERR,arg[iarg+3]);
+      p_flag[0] = 1;
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"y") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      p_start[1] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[1] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[1] = force->numeric(FLERR,arg[iarg+3]);
+      p_flag[1] = 1;
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"z") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      p_start[2] = force->numeric(FLERR,arg[iarg+1]);
+      p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
+      p_period[2] = force->numeric(FLERR,arg[iarg+3]);
+      p_flag[2] = 1;
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"couple") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
+      else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
+      else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
+      else if (strcmp(arg[iarg+1],"xz") == 0) pcouple = XZ;
+      else if (strcmp(arg[iarg+1],"none") == 0) pcouple = NONE;
+      else error->all(FLERR,"Illegal fix rigid/small command");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"dilate") == 0) {
+      if (iarg+2 > narg) 
+        error->all(FLERR,"Illegal fix rigid/small nvt/npt/nph command");
+      if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
+      else {
+        allremap = 0;
+        delete [] id_dilate;
+        int n = strlen(arg[iarg+1]) + 1;
+        id_dilate = new char[n];
+        strcpy(id_dilate,arg[iarg+1]);
+        int idilate = group->find(id_dilate);
+        if (idilate == -1)
+          error->all(FLERR,"Fix rigid/small nvt/npt/nph dilate group ID "
+                     "does not exist");
+      }
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"tparam") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      if (strcmp(style,"rigid/nvt/small") != 0 && 
+          strcmp(style,"rigid/npt/small") != 0)
+        error->all(FLERR,"Illegal fix rigid/small command");
+      t_chain = force->numeric(FLERR,arg[iarg+1]);
+      t_iter = force->numeric(FLERR,arg[iarg+2]);
+      t_order = force->numeric(FLERR,arg[iarg+3]);
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"pchain") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
+      if (strcmp(style,"rigid/npt/small") != 0 && 
+          strcmp(style,"rigid/nph/small") != 0)
+        error->all(FLERR,"Illegal fix rigid/small command");
+      p_chain = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+
+
     } else error->all(FLERR,"Illegal fix rigid/small command");
   }
 

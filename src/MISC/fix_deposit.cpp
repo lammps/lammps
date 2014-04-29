@@ -466,16 +466,16 @@ void FixDeposit::pre_exchange()
         for (j = 0; j < nfix; j++)
           if (fix[j]->create_attribute) fix[j]->set_arrays(n);
       }
-
-      // FixRigidSmall::set_molecule stores rigid body attributes
-      //   coord is new position of geometric center of mol, not COM
-      // FixShake::set_molecule stores shake info for molecule
-
-      if (rigidflag)
-        fixrigid->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
-      else if (shakeflag)
-        fixshake->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
     }
+
+    // FixRigidSmall::set_molecule stores rigid body attributes
+    //   coord is new position of geometric center of mol, not COM
+    // FixShake::set_molecule stores shake info for molecule
+
+    if (rigidflag)
+      fixrigid->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
+    else if (shakeflag)
+      fixshake->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
 
     // old code: unsuccessful if no proc performed insertion of an atom
     // don't think that check is necessary

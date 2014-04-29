@@ -156,7 +156,7 @@ void PairLJSDKSoft::eval()
 
           if (EFLAG)
             evdwl = r4inv*(lj3[itype][jtype]*r4inv*r4inv
-                           - lj4[itype][jtype]) - offset[itype][jtype];
+                           - alphalj[itype][jtype]) - offset[itype][jtype];
 
         } else if (ljt == LJ9_6) {
           const double r3inv = r2inv*sqrt(r2inv);
@@ -165,7 +165,7 @@ void PairLJSDKSoft::eval()
                            - lj2[itype][jtype]);
           if (EFLAG)
             evdwl = r6inv*(lj3[itype][jtype]*r3inv
-                           - lj4[itype][jtype]) - offset[itype][jtype];
+                           - alphalj[itype][jtype]) - offset[itype][jtype];
 
         } else if (ljt == LJ12_6) {
           const double r6inv = r2inv*r2inv*r2inv;
@@ -173,7 +173,7 @@ void PairLJSDKSoft::eval()
                           - lj2[itype][jtype]);
           if (EFLAG)
             evdwl = r6inv*(lj3[itype][jtype]*r6inv
-                           - lj4[itype][jtype]) - offset[itype][jtype];
+                           - alphalj[itype][jtype]) - offset[itype][jtype];
         } else continue;
 
         fpair = factor_lj*forcelj*r2inv;
@@ -309,7 +309,7 @@ double PairLJSDKSoft::init_one(int i, int j)
   lj1[i][j] = lj_prefact[ljt] * lj_pow1[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow1[ljt]);
   lj2[i][j] = lj_prefact[ljt] * lj_pow2[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow2[ljt]);
   lj3[i][j] = lj_prefact[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow1[ljt]);
-  lj4[i][j] = lj_prefact[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow2[ljt]);
+  alphalj[i][j] = lj_prefact[ljt] * epsilon[i][j] * pow(sigma[i][j],lj_pow2[ljt]);
 
   if (offset_flag) {
     double ratio = sigma[i][j] / cut[i][j];
@@ -319,7 +319,7 @@ double PairLJSDKSoft::init_one(int i, int j)
   lj1[j][i] = lj1[i][j];
   lj2[j][i] = lj2[i][j];
   lj3[j][i] = lj3[i][j];
-  lj4[j][i] = lj4[i][j];
+  alphalj[j][i] = alphalj[i][j];
   cut[j][i] = cut[i][j];
   cutsq[j][i] = cutsq[i][j];
   offset[j][i] = offset[i][j];

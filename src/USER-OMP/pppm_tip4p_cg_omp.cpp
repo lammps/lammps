@@ -353,7 +353,7 @@ void PPPMTIP4PCGOMP::particle_map()
 #if defined(_OPENMP)
 #pragma omp parallel for private(j) default(none) reduction(+:flag) schedule(static)
 #endif
-  for (int j = 0; j < num_charged; j++) {
+  for (j = 0; j < num_charged; j++) {
     const int i = is_charged[j];
 
     dbl3_t xM;

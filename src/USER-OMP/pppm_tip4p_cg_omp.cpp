@@ -348,7 +348,6 @@ void PPPMTIP4PCGOMP::particle_map()
   const double boxlox = boxlo[0];
   const double boxloy = boxlo[1];
   const double boxloz = boxlo[2];
-  const int nlocal = atom->nlocal;
 
   int j, flag = 0;
 #if defined(_OPENMP)

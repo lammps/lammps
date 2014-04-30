@@ -306,11 +306,9 @@ void FixRigidNHSmall::setup(int vflag)
   // total translational and rotational degrees of freedom
   
   int k,ibody;
-  double *inertia;
 
   nf_t = nf_r = dimension * nlocal_body;
   for (ibody = 0; ibody < nlocal_body; ibody++) {
-    inertia = body[ibody].inertia;
     for (k = 0; k < domain->dimension; k++) 
       if (fabs(body[ibody].inertia[k]) < EPSILON) nf_r--;
   }
@@ -625,7 +623,7 @@ void FixRigidNHSmall::final_integrate()
 {
   int i,ibody;
   double tmp,scale_t[3],scale_r;
-  double dtfm,xy,xz,yz;
+  double dtfm;
   double mbody[3],tbody[3],fquat[4];
   double dtf2 = dtf * 2.0;
 
@@ -1001,11 +999,11 @@ void FixRigidNHSmall::nhc_press_integrate()
 
 double FixRigidNHSmall::compute_scalar()
 {
-  int i,k,ibody;
+  int i,k;
   double kt = boltz * t_target;
   double energy,ke_t,ke_q,tmp,Pkq[4];
   
-  double *vcm,*inertia,*quat;
+  double *vcm,*quat;
   
   // compute the kinetic parts of H_NVE in Kameraj et al (JCP 2005, pp 224114)
   

@@ -437,8 +437,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   double qqrd2e = force->qqrd2e;
 
   int i, j;
-  int order1 = ewald_order&(1<<1), order3 = ewald_order&(1<<3),
-      order6 = ewald_order&(1<<6);
+  int order3 = ewald_order&(1<<3), order6 = ewald_order&(1<<6);
   int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
   double *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double rsq, r2inv, force_coul, force_lj;

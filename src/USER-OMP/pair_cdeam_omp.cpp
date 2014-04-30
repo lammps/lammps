@@ -416,7 +416,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
         D_i = D_values[i] * h_prime_i / (2.0 * rho[i] * rho[i]);
       } else if(CDEAMVERSION == 2) {
         D_i = D_values[i];
-      } else ASSERT(false);
+      } else {
+        ASSERT(false);
+      }
     }
 
     for(jj = 0; jj < jnum; jj++) {
@@ -462,8 +464,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
             D_j = D_values[j] * h_prime_j / (2.0 * rho[j] * rho[j]);
           } else if(CDEAMVERSION == 2) {
             D_j = D_values[j];
-          } else ASSERT(false);
-
+          } else {
+            ASSERT(false);
+          }
           double t2 = -rhoB[j];
           if(itype == speciesB) t2 += rho[j];
           fpair += D_j * rhoip * t2;
@@ -497,8 +500,9 @@ void PairCDEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
             double x_ij = 0.5 * (x_i + x_j);
             // Calculate h(x_ij) polynomial function.
             h = evalH(x_ij);
-          } else ASSERT(false);
-
+          } else {
+            ASSERT(false);
+          }
           fpair += h * phip;
           phi *= h;
         }

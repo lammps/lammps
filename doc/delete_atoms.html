@@ -91,11 +91,17 @@ has already been assigned.
 </P>
 <P>It the <I>mol</I> keyword is set to <I>yes</I>, then for every atom that is
 deleted, all other atoms in the same molecule will also be deleted.
-This keyword is only used by the <I>region</I> style.  It is a way to
-insure that entire molecules are deleted instead of only a subset of
-atoms in the molecule which will typically lead to errors because of
-bond, angle, or dihedral interactions stored by remaining atoms which
-reference deleted atoms.
+This is a way to insure that entire molecules are deleted instead of
+only a subset of atoms in the molecule which will typically lead to
+errors because of bond, angle, or dihedral interactions stored by
+remaining atoms which reference deleted atoms.
+</P>
+<P>IMPORTANT NOTE: The molecule deletion operation in invoked after all
+individual atoms have been deleted using the rules described above for
+each style.  This means additional atoms may be deleted that are not
+in the group or region, that are not required by the overlap cutoff
+criterion, or that will create a higher fraction of porosity than was
+requested.
 </P>
 <P><B>Restrictions:</B>
 </P>

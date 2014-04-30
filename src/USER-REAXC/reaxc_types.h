@@ -79,46 +79,6 @@ typedef int tagint;
 typedef int64_t tagint;
 #endif
 
-typedef struct {
-  int step, bigN;
-  real T, xi, v_xi, v_xi_old, G_xi;
-  rtensor box;
-} restart_header;
-
-typedef struct {
-  tagint orig_id, type;
-  char name[8];
-  rvec x, v;
-} restart_atom;
-
-typedef struct
-{
-  tagint  orig_id;
-  int  imprt_id;
-  int  type;
-  int  num_bonds;
-  int  num_hbonds;
-  //int  pad;  // pad to 8-byte address boundary
-  char name[8];
-  rvec x;     // position
-  rvec v;     // velocity
-  rvec f_old; // old force
-  rvec4 s, t;  // for calculating q
-} mpi_atom;
-
-
-typedef struct
-{
-  tagint  orig_id;
-  int  imprt_id;
-  int  type;
-  int  num_bonds;
-  int  num_hbonds;
-  //int  pad;
-  rvec x;     // position
-} boundary_atom;
-
-
 typedef struct
 {
   //int  ncells;

@@ -121,7 +121,7 @@ and box information.
 
 The dump file is scanned for a snapshot with a time stamp that matches
 the specified {Nstep}.  This means the LAMMPS timestep the dump file
-snapshot was written on for the {native} format.  However, the {xyz}
+snapshot was written on for the {native} format.  Note that the {xyz}
 and {molfile} formats do not store the timestep.  For these formats,
 timesteps are numbered logically, in a sequential manner, starting
 from 0.  Thus to access the 10th snapshot in an {xyz} or {mofile}

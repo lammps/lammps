@@ -50,7 +50,6 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 6) error->all(FLERR,"Illegal fix pour command");
 
   time_depend = 1;
-  dstyle = -1;
 
   if (!atom->radius_flag || !atom->rmass_flag)
     error->all(FLERR,"Fix pour requires atom attributes radius, rmass");

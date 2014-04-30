@@ -237,6 +237,16 @@ FixGCMC::~FixGCMC()
   if (regionflag) delete [] idregion;
   delete random_equal;
   delete random_unequal;
+
+  if (rotation_group != 0) {
+    // clean up internal group, if defined
+    char **group_arg = new char*[2];
+    group_arg[0] = group->names[rotation_group];
+    group_arg[1] = (char *) "delete";
+    group->assign(2,group_arg);
+    delete [] group_arg;
+  }
+
   memory->destroy(local_gas_list);
   memory->destroy(atom_coord);
   memory->destroy(model_atom_buf);

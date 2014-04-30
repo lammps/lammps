@@ -44,7 +44,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
 {
   int i, j, pj, natoms;
   int start_i, end_i, flag;
-  rctagint orig_i, orig_j;
+  rc_tagint orig_i, orig_j;
   real p_vdW1, p_vdW1i;
   real powr_vdW1, powgi_vdW1;
   real tmp, r_ij, fn13, exp1, exp2;
@@ -266,7 +266,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
   int i, j, pj, r, natoms;
   int type_i, type_j, tmin, tmax;
   int start_i, end_i, flag;
-  rctagint orig_i, orig_j;
+  rc_tagint orig_i, orig_j;
   real r_ij, base, dif;
   real e_vdW, e_ele;
   real CEvd, CEclmb, SMALL = 0.0001;

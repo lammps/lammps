@@ -792,7 +792,7 @@ void Print_Far_Neighbors( reax_system *system, reax_list **lists,
 {
   char  fname[100];
   int   i, j, nbr, natoms;
-  rctagint id_i, id_j;
+  rc_tagint id_i, id_j;
   FILE *fout;
   reax_list *far_nbrs;
 
@@ -994,7 +994,7 @@ int fn_qsort_intcmp( const void *a, const void *b )
 void Print_Bond_List2( reax_system *system, reax_list *bonds, char *fname )
 {
   int i,j, nbr, pj;
-  rctagint id_i, id_j;
+  rc_tagint id_i, id_j;
   FILE *f = fopen( fname, "w" );
   int temp[500];
   int num=0;
@@ -1360,7 +1360,7 @@ void Print_Far_Neighbors_List( reax_system *system, reax_list **lists,
                                output_controls *out_control )
 {
   int   i, j, nbr, natoms;
-  rctagint id_i, id_j;
+  rc_tagint id_i, id_j;
   int num=0;
   int temp[500];
   reax_list *far_nbrs;
@@ -1394,7 +1394,7 @@ void Print_Bond_List( reax_system *system, control_params *control,
                       output_controls *out_control)
 {
   int i,j, nbr, pj;
-  rctagint id_i, id_j;
+  rc_tagint id_i, id_j;
   reax_list *bonds = (*lists) + BONDS;
 
   int temp[500];

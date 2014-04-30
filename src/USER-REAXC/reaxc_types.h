@@ -67,16 +67,23 @@ typedef real rtensor[3][3];
 typedef real rvec2[2];
 typedef real rvec4[4];
 
+// NOTE: this is needed for REAX/C to repsect LAMMPS
+//       choice of 32-bit vs 64-bit atom IDs
+// cannot just typedef to tagint,
+// or get conflicts when compiling force.cpp
+// better way to do this would be in include lmptype.h,
+// but that requires USER-REAXC to live in LAMMPS_NS
+
 #ifdef LAMMPS_SMALLSMALL
-typedef int rctagint;
+typedef int rc_tagint;
 #endif
 
 #ifdef LAMMPS_SMALLBIG
-typedef int rctagint;
+typedef int rc_tagint;
 #endif
 
 #ifdef LAMMPS_BIGBIG
-typedef int64_t rctagint;
+typedef int64_t rc_tagint;
 #endif
 
 typedef struct {
@@ -86,14 +93,14 @@ typedef struct {
 } restart_header;
 
 typedef struct {
-  rctagint orig_id, type;
+  rc_tagint orig_id, type;
   char name[8];
   rvec x, v;
 } restart_atom;
 
 typedef struct
 {
-  rctagint  orig_id;
+  rc_tagint  orig_id;
   int  imprt_id;
   int  type;
   int  num_bonds;
@@ -109,7 +116,7 @@ typedef struct
 
 typedef struct
 {
-  rctagint  orig_id;
+  rc_tagint  orig_id;
   int  imprt_id;
   int  type;
   int  num_bonds;
@@ -359,7 +366,7 @@ typedef struct
 
 struct _reax_atom
 {
-  rctagint  orig_id;
+  rc_tagint  orig_id;
   int  imprt_id;
   int  type;
   char name[8];

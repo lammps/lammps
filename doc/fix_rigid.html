@@ -21,13 +21,21 @@
 </H3>
 <H3>fix rigid/small command 
 </H3>
+<H3>fix rigid/nve/small command 
+</H3>
+<H3>fix rigid/nvt/small command 
+</H3>
+<H3>fix rigid/npt/small command 
+</H3>
+<H3>fix rigid/nph/small command 
+</H3>
 <P><B>Syntax:</B>
 </P>
 <PRE>fix ID group-ID style bodystyle args keyword values ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
-<LI>style = <I>rigid</I> or <I>rigid/nve</I> or <I>rigid/nvt</I> or <I>rigid/npt</I> or <I>rigid/nph</I> or <I>rigid/small</I> 
+<LI>style = <I>rigid</I> or <I>rigid/nve</I> or <I>rigid/nvt</I> or <I>rigid/npt</I> or <I>rigid/nph</I> or <I>rigid/small</I> or <I>rigid/nve/small</I> or <I>rigid/nvt/small</I> or <I>rigid/npt/small</I> or <I>rigid/nph/small</I> 
 
 <LI>bodystyle = <I>single</I> or <I>molecule</I> or <I>group</I> 
 
@@ -39,7 +47,7 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>langevin</I> or <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>couple</I> or <I>tparam</I> or <I>pchain</I> or <I>dilate</I> or <I>force</I> or <I>torque</I> or <I>infile</I> or <I>mol</I> 
+<LI>keyword = <I>langevin</I> or <I>temp</I> or <I>iso</I> or <I>aniso</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>couple</I> or <I>tparam</I> or <I>pchain</I> or <I>dilate</I> or <I>force</I> or <I>torque</I> or <I>infile</I> 
 
 <PRE>  <I>langevin</I> values = Tstart Tstop Tperiod seed
     Tstart,Tstop = desired temperature at start/stop of run (temperature units)
@@ -70,7 +78,7 @@
     M = which rigid body from 1-Nbody (see asterisk form below)
     xflag,yflag,zflag = off/on if component of center-of-mass torque is active
   <I>infile</I> filename
-    filename = file with per-body values of mass, center-of-mass, moments of inertia
+    filename = file with per-body values of mass, center-of-mass, moments of inertia 
   <I>mol</I> value = template-ID
     template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command 
 </PRE>
@@ -87,7 +95,8 @@ fix 1 polychains rigid/small molecule langevin 1.0 1.0 1.0 428984
 fix 2 fluid rigid group 3 clump1 clump2 clump3 torque * off off off 
 fix 1 rods rigid/npt molecule temp 300.0 300.0 100.0 iso 0.5 0.5 10.0
 fix 1 particles rigid/npt molecule temp 1.0 1.0 5.0 x 0.5 0.5 1.0 z 0.5 0.5 1.0 couple xz
-fix 1 water rigid/nph molecule iso 0.5 0.5 1.0 
+fix 1 water rigid/nph molecule iso 0.5 0.5 1.0
+fix 1 particles rigid/npt/small molecule temp 1.0 1.0 1.0 iso 0.5 0.5 1.0 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -292,17 +301,17 @@ iterations.  The <I>rigid/nve</I> style uses the methods described in the
 paper by <A HREF = "#Miller">Miller</A>, which are thought to provide better energy
 conservation than an iterative approach.
 </P>
-<P>The <I>rigid/nvt</I> style performs constant NVT integration using a
-Nose/Hoover thermostat with chains as described originally in
-<A HREF = "#Hoover">(Hoover)</A> and <A HREF = "#Martyna">(Martyna)</A>, which thermostats both
-the translational and rotational degrees of freedom of the rigid
-bodies.  The rigid-body algorithm used by <I>rigid/nvt</I> is described in
-the paper by <A HREF = "#Kamberaj">Kamberaj</A>.
+<P>The <I>rigid/nvt</I> and <I>rigid/nvt/small</I> styles performs constant NVT 
+integration using a Nose/Hoover thermostat with chains as described 
+originally in <A HREF = "#Hoover">(Hoover)</A> and <A HREF = "#Martyna">(Martyna)</A>, which 
+thermostats both the translational and rotational degrees of freedom 
+of the rigid bodies.  The rigid-body algorithm used by <I>rigid/nvt</I> 
+is described in the paper by <A HREF = "#Kamberaj">Kamberaj</A>.
 </P>
-<P>The <I>rigid/npt</I> and <I>rigid/nph</I> styles perform constant NPT or NPH
-integration using a Nose/Hoover barostat with chains.  For the NPT
-case, the same Nose/Hoover thermostat is also used as with
-<I>rigid/nvt</I>.
+<P>The <I>rigid/npt</I> and <I>rigid/nph</I> (and their /small counterparts) styles 
+perform constant NPT or NPH integration using a Nose/Hoover barostat 
+with chains.  For the NPT case, the same Nose/Hoover thermostat is also 
+used as with <I>rigid/nvt</I>.
 </P>
 <P>The barostat parameters are specified using one or more of the <I>iso</I>,
 <I>aniso</I>, <I>x</I>, <I>y</I>, <I>z</I> and <I>couple</I> keywords.  These keywords give you
@@ -312,8 +321,8 @@ they represent are varied together during a constant-pressure
 simulation.  The effects of these keywords are similar to those
 defined in <A HREF = "fix_nh.html">fix npt/nph</A>
 </P>
-<P>NOTE: Currently the <I>rigid/npt</I> and <I>rigid/nph</I> styles do not support
-triclinic (non-orthongonal) boxes.
+<P>NOTE: Currently the <I>rigid/npt</I> and <I>rigid/nph</I> (and their /small 
+counterparts) styles do not support triclinic (non-orthongonal) boxes.
 </P>
 <P>The target pressures for each of the 6 components of the stress tensor
 can be specified independently via the <I>x</I>, <I>y</I>, <I>z</I> keywords, which
@@ -483,12 +492,10 @@ have to list attributes for every rigid body integrated by fix rigid.
 Only bodies which the file specifies will have their computed
 attributes overridden.  The file can contain initial blank lines or
 comment lines starting with "#" which are ignored.  The first
-non-blank, non-comment line should list N, which is the number of
-lines to follow.  The N successive lines contain the following
-information:
+non-blank, non-comment line should list N = the number of lines to
+follow.  The N successive lines contain the following information:
 </P>
-<PRE>N
-ID1 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz
+<PRE>ID1 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz
 ID2 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz
 ...
 IDN masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz 

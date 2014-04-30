@@ -112,8 +112,12 @@ int SWT::init(const int ntypes, const int nlocal, const int nall, const int max_
   sw3.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
   
   for (int i=0; i<nparams; i++) {
-    dview[i].x=static_cast<numtyp>(cut[i]);
-    dview[i].y=static_cast<numtyp>(cutsq[i]);
+    double sw_cut = cut[i];
+    double sw_cutsq = cutsq[i];
+    if (sw_cutsq>=sw_cut*sw_cut)
+      sw_cutsq=sw_cut*sw_cut-1e-4;
+    dview[i].x=static_cast<numtyp>(sw_cut);
+    dview[i].y=static_cast<numtyp>(sw_cutsq);
     dview[i].z=static_cast<numtyp>(costheta[i]);
     dview[i].w=(numtyp)0;
   }

@@ -115,17 +115,21 @@ every Nth snapshot is read, where N = <I>Nskip</I>.  E.g. if <I>Nskip</I> = 3,
 then only 1 out of every 3 snapshots is read, assuming the snapshot
 timestamp is also consistent with the other criteria.
 </P>
-<P>The <I>start</I> and <I>stop</I> keywords have the same meaning that they do for
-the <A HREF = "run.html">run</A> command.  They only need to be defined if (a) you
-are using a <A HREF = "fix.html">fix</A> command that changes some value over time,
-and (b) you want the reference point for elapsed time (from start to
-stop) to be different than the <I>first</I> and <I>last</I> settings.  See the
-doc page for individual fixes to see which ones can be used with the
-<I>start/stop</I> keywords.  Note that if you define neither of the
-<I>start</I>/<I>stop</I> or <I>first</I>/<I>last</I> keywords, then LAMMPS treats the
+<P>The <I>start</I> and <I>stop</I> keywords do not affect which snapshots are read
+from the dump file(s).  Rather, they have the same meaning that they
+do for the <A HREF = "run.html">run</A> command.  They only need to be defined if
+(a) you are using a <A HREF = "fix.html">fix</A> command that changes some value
+over time, and (b) you want the reference point for elapsed time (from
+start to stop) to be different than the <I>first</I> and <I>last</I> settings.
+See the doc page for individual fixes to see which ones can be used
+with the <I>start/stop</I> keywords.  Note that if you define neither of
+the <I>start</I>/<I>stop</I> or <I>first</I>/<I>last</I> keywords, then LAMMPS treats the
 pseudo run as going from 0 to a huge value (effectively infinity).
 This means that any quantity that a fix scales as a fraction of
 elapsed time in the run, will essentially remain at its intiial value.
+Also note that an error will occur if you read a snapshot from the
+dump file with a timestep value larger than the <I>stop</I> setting you
+have specified.
 </P>
 <P>The <I>dump</I> keyword is required and must be the last keyword specified.
 Its arguments are passed internally to the <A HREF = "read_dump.html">read_dump</A>
@@ -161,9 +165,9 @@ atoms are acquired from far enough away for operations like bond and
 angle evaluations, if no pair style is being used.
 </P>
 <P>Every time a snapshot is read, the timestep for the simulation is
-reset, as if the <A HREF = "reset_timestep.html<A HREF = "fix_deposit.html">>reset_timestep</A> command were
+reset, as if the <A HREF = "reset_timestep.html">reset_timestep</A> command were
 used.  This command has some restrictions as to what fixes can be
-defined.  See its doc page for details.  For example, the fix
+defined.  See its doc page for details.  For example, the <A HREF = "fix_deposit.html">fix
 deposit</A> and <A HREF = "fix_dt_reset.html">fix dt/reset</A> fixes
 are in this category.  They also make no sense to use with a rerun
 command.

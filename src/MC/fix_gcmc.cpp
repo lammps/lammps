@@ -238,8 +238,9 @@ FixGCMC::~FixGCMC()
   delete random_equal;
   delete random_unequal;
 
-  if (rotation_group != 0) {
-    // clean up internal group, if defined
+  // remove rotation group this fix defined
+
+  if (rotation_group) {
     char **group_arg = new char*[2];
     group_arg[0] = group->names[rotation_group];
     group_arg[1] = (char *) "delete";

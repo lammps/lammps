@@ -163,6 +163,8 @@ void Rerun::command(int narg, char **arg)
 
     firstflag = 0;
     ntimestep = rd->next(ntimestep,last,nevery,nskip);
+    if (stopflag && ntimestep > stop)
+      error->all(FLERR,"Read rerun dump file timestep > specified stop");
     if (ntimestep < 0) break;
   }
 

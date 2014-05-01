@@ -117,8 +117,7 @@ void DeleteAtoms::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   delete all atoms in group
-   group will still exist
+   delete all atoms in group, group will still exist
 ------------------------------------------------------------------------- */
 
 void DeleteAtoms::delete_group(int narg, char **arg)
@@ -140,11 +139,12 @@ void DeleteAtoms::delete_group(int narg, char **arg)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) dlist[i] = 1;
+
+  if (mol_flag) delete_molecule();
 }
 
 /* ----------------------------------------------------------------------
    delete all atoms in region
-   if mol_flag is set, also delete atoms in molecules with any deletions
 ------------------------------------------------------------------------- */
 
 void DeleteAtoms::delete_region(int narg, char **arg)
@@ -166,53 +166,7 @@ void DeleteAtoms::delete_region(int narg, char **arg)
   for (int i = 0; i < nlocal; i++)
     if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) dlist[i] = 1;
 
-  if (mol_flag == 0) return;
-
-  // delete entire molecules if any atom in molecule was deleted
-  // store list of molecule IDs I delete atoms from in list
-  // pass list from proc to proc via ring communication
-
-  hash = new std::map<tagint,int>();
-
-  tagint *molecule = atom->molecule;
-  for (int i = 0; i < nlocal; i++)
-    if (dlist[i] && hash->find(molecule[i]) == hash->end())
-      (*hash)[molecule[i]] = 1;
-
-  int n = hash->size();
-  tagint *list;
-  memory->create(list,n,"delete_atoms:list");
-
-  n = 0;
-  std::map<tagint,int>::iterator pos;
-  for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
-
-  cptr = this;
-  comm->ring(n,sizeof(tagint),list,1,molring,NULL);
-
-  delete hash;
-  memory->destroy(list);
-}
-
-/* ----------------------------------------------------------------------
-   callback from comm->ring()
-   cbuf = list of N molecule IDs, put them in hash
-   loop over my atoms, if matches molecule ID in hash, delete that atom
-------------------------------------------------------------------------- */
-
-void DeleteAtoms::molring(int n, char *cbuf)
-{
-  tagint *list = (tagint *) cbuf;
-  int *dlist = cptr->dlist;
-  std::map<tagint,int> *hash = cptr->hash;
-  int nlocal = cptr->atom->nlocal;
-  tagint *molecule = cptr->atom->molecule;
-
-  hash->clear();
-  for (int i = 0; i < n; i++) (*hash)[list[i]] = 1;
-
-  for (int i = 0; i < nlocal; i++)
-    if (hash->find(molecule[i]) != hash->end()) dlist[i] = 1;
+  if (mol_flag) delete_molecule();
 }
 
 /* ----------------------------------------------------------------------
@@ -364,6 +318,8 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
       break;
     }
   }
+
+  if (mol_flag) delete_molecule();
 }
 
 /* ----------------------------------------------------------------------
@@ -394,6 +350,65 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   for (int i = 0; i < nlocal; i++)
     if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
       if (random->uniform() <= porosity_fraction) dlist[i] = 1;
+
+  if (mol_flag) delete_molecule();
+}
+
+/* ----------------------------------------------------------------------
+   delete atoms in molecules with any deletions
+   use dlist marked with atom deletions, and mark additional atoms
+------------------------------------------------------------------------- */
+
+void DeleteAtoms::delete_molecule()
+{
+  // hash = unique molecule IDs from which I deleted atoms
+
+  hash = new std::map<tagint,int>();
+
+  tagint *molecule = atom->molecule;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (dlist[i] && hash->find(molecule[i]) == hash->end())
+      (*hash)[molecule[i]] = 1;
+
+  // list = set of unique molecule IDs from which I deleted atoms
+  // pass list to all other procs via comm->ring()
+
+  int n = hash->size();
+  tagint *list;
+  memory->create(list,n,"delete_atoms:list");
+
+  n = 0;
+  std::map<tagint,int>::iterator pos;
+  for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
+
+  cptr = this;
+  comm->ring(n,sizeof(tagint),list,1,molring,NULL);
+
+  delete hash;
+  memory->destroy(list);
+}
+
+/* ----------------------------------------------------------------------
+   callback from comm->ring()
+   cbuf = list of N molecule IDs, put them in hash
+   loop over my atoms, if matches molecule ID in hash, delete that atom
+------------------------------------------------------------------------- */
+
+void DeleteAtoms::molring(int n, char *cbuf)
+{
+  tagint *list = (tagint *) cbuf;
+  int *dlist = cptr->dlist;
+  std::map<tagint,int> *hash = cptr->hash;
+  int nlocal = cptr->atom->nlocal;
+  tagint *molecule = cptr->atom->molecule;
+
+  hash->clear();
+  for (int i = 0; i < n; i++) (*hash)[list[i]] = 1;
+
+  for (int i = 0; i < nlocal; i++)
+    if (hash->find(molecule[i]) != hash->end()) dlist[i] = 1;
 }
 
 /* ----------------------------------------------------------------------

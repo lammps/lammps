@@ -464,6 +464,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   bin_list = NULL;
   vector = NULL;
   maxatom = 0;
+
   if (ave == WINDOW) {
     memory->create(stats_list,nwindow,4,"histo:stats_list");
     memory->create(bin_list,nwindow,nbins,"ave/histo:bin_list");

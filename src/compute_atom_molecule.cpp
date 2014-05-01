@@ -327,9 +327,9 @@ void ComputeAtomMolecule::compute_one(int m)
       maxatom = atom->nmax;
       memory->destroy(scratch);
       memory->create(scratch,maxatom,"atom/molecule:scratch");
-      peratom = scratch;
     }
 
+    peratom = scratch;
     input->variable->compute_atom(vidx,igroup,peratom,1,0);
     nstride = 1;
   }

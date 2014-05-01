@@ -27,6 +27,8 @@
 #ifndef __REAX_TYPES_H_
 #define __REAX_TYPES_H_
 
+#include "lmptype.h"
+
 #include "ctype.h"
 #include "math.h"
 #include "mpi.h"
@@ -67,24 +69,9 @@ typedef real rtensor[3][3];
 typedef real rvec2[2];
 typedef real rvec4[4];
 
-// NOTE: this is needed for REAX/C to repsect LAMMPS
-//       choice of 32-bit vs 64-bit atom IDs
-// cannot just typedef to tagint,
-// or get conflicts when compiling force.cpp
-// better way to do this would be in include lmptype.h,
-// but that requires USER-REAXC to live in LAMMPS_NS
+// import LAMMPS' definition of tagint
 
-#ifdef LAMMPS_SMALLSMALL
-typedef int rc_tagint;
-#endif
-
-#ifdef LAMMPS_SMALLBIG
-typedef int rc_tagint;
-#endif
-
-#ifdef LAMMPS_BIGBIG
-typedef int64_t rc_tagint;
-#endif
+typedef LAMMPS_NS::tagint rc_tagint;
 
 typedef struct {
   int step, bigN;
@@ -112,7 +99,6 @@ typedef struct
   rvec f_old; // old force
   rvec4 s, t;  // for calculating q
 } mpi_atom;
-
 
 typedef struct
 {

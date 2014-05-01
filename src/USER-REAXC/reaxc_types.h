@@ -38,7 +38,6 @@
 
 /************* SOME DEFS - crucial for reax_types.h *********/
 
-//#define PURE_REAX
 #define LAMMPS_REAX
 
 //#define DEBUG
@@ -846,9 +845,6 @@ typedef _reax_list  reax_list;
 
 typedef struct
 {
-#if defined(PURE_REAX)
-  MPI_File trj;
-#endif
   FILE *strj;
   int   trj_offset;
   int   atom_line_len;
@@ -954,9 +950,6 @@ extern LR_lookup_table **LR;
 typedef void (*evolve_function)(reax_system*, control_params*,
                                 simulation_data*, storage*, reax_list**,
                                 output_controls*, mpi_datatypes* );
-#if defined(PURE_REAX)
-evolve_function  Evolve;
-#endif
 
 typedef void (*interaction_function) (reax_system*, control_params*,
                                       simulation_data*, storage*,

@@ -25,13 +25,8 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
-#if defined(PURE_REAX)
-#include "list.h"
-#include "tool_box.h"
-#elif defined(LAMMPS_REAX)
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
-#endif
 
 
 /************* allocate list space ******************/

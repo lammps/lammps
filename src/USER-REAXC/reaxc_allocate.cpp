@@ -691,7 +691,6 @@ void ReAllocate( reax_system *system, control_params *control,
   int renbr, newsize;
   reallocate_data *realloc;
   reax_list *far_nbrs;
-  grid *g;
   MPI_Comm comm;
   char msg[200];
 
@@ -700,7 +699,6 @@ void ReAllocate( reax_system *system, control_params *control,
   double saferzone = system->saferzone;
 
   realloc = &(workspace->realloc);
-  g = &(system->my_grid);
   comm = mpi_data->world;
 
 #if defined(DEBUG)

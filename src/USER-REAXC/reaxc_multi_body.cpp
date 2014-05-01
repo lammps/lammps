@@ -25,17 +25,10 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
-#if defined(PURE_REAX)
-#include "multi_body.h"
-#include "bond_orders.h"
-#include "list.h"
-#include "vector.h"
-#elif defined(LAMMPS_REAX)
 #include "reaxc_multi_body.h"
 #include "reaxc_bond_orders.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
-#endif
 
 
 void Atom_Energy( reax_system *system, control_params *control,

@@ -29,12 +29,6 @@
 
 #include "reaxc_types.h"
 
-#if defined(PURE_REAX)
-void Initialize( reax_system*, control_params*, simulation_data*,
-                 storage*, reax_list**, output_controls*, mpi_datatypes* );
-#elif defined(LAMMPS_REAX)
 void Initialize( reax_system*, control_params*, simulation_data*, storage*,
                  reax_list**, output_controls*, mpi_datatypes*, MPI_Comm );
-#endif
-
 #endif

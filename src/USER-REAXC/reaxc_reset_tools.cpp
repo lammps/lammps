@@ -25,17 +25,10 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
-#if defined(PURE_REAX)
-#include "reset_tools.h"
-#include "list.h"
-#include "tool_box.h"
-#include "vector.h"
-#elif defined(LAMMPS_REAX)
 #include "reaxc_reset_tools.h"
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
-#endif
 
 
 void Reset_Atoms( reax_system* system, control_params *control )
@@ -116,7 +109,7 @@ void Reset_Timing( reax_timing *rt )
   rt->s_matvecs = 0;
   rt->t_matvecs = 0;
 }
-
+ 
 #ifdef TEST_FORCES
 void Reset_Test_Forces( reax_system *system, storage *workspace )
 {

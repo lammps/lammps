@@ -610,26 +610,19 @@ void PairReaxC::set_far_nbr( far_neighbor_data *fdest,
 int PairReaxC::estimate_reax_lists()
 {
   int itr_i, itr_j, i, j;
-  int nlocal, nghost, num_nbrs, num_marked;
+  int num_nbrs, num_marked;
   int *ilist, *jlist, *numneigh, **firstneigh, *marked;
   double d_sqr;
   rvec dvec;
   double *dist, **x;
-  reax_list *far_nbrs;
-  far_neighbor_data *far_list;
 
   int mincap = system->mincap;
   double safezone = system->safezone;
 
   x = atom->x;
-  nlocal = atom->nlocal;
-  nghost = atom->nghost;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
-  far_nbrs = lists + FAR_NBRS;
-  far_list = far_nbrs->select.far_nbr_list;
 
   num_nbrs = 0;
   num_marked = 0;

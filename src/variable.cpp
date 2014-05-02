@@ -3355,6 +3355,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       error->all(FLERR,"Invalid special function in variable formula");
 
     int iregion = region_function(arg1);
+    domain->regions[iregion]->prematch();
 
     Tree *newtree = new Tree();
     newtree->type = RMASK;
@@ -3372,6 +3373,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     if (igroup == -1)
       error->all(FLERR,"Group ID in variable formula does not exist");
     int iregion = region_function(arg2);
+    domain->regions[iregion]->prematch();
 
     Tree *newtree = new Tree();
     newtree->type = GRMASK;

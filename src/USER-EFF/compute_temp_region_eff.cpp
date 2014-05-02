@@ -88,6 +88,13 @@ void ComputeTempRegionEff::setup()
 
 /* ---------------------------------------------------------------------- */
 
+void ComputeTempRegionEff::dof_remove_pre()
+{
+  domain->regions[iregion]->prematch();
+}
+
+/* ---------------------------------------------------------------------- */
+
 int ComputeTempRegionEff::dof_remove(int i)
 {
   double *x = atom->x[i];

@@ -33,6 +33,7 @@ class ComputeTempRegion : public Compute {
   virtual double compute_scalar();
   virtual void compute_vector();
 
+  void dof_remove_pre();
   int dof_remove(int);
   void remove_bias(int, double *);
   void remove_bias_all();

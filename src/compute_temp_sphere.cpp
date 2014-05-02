@@ -169,6 +169,8 @@ void ComputeTempSphere::dof_compute()
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
+    tbias->dof_remove_pre();
+
     count = 0;
     if (domain->dimension == 3) {
       for (int i = 0; i < nlocal; i++)

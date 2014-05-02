@@ -1,0 +1,41 @@
+#########################################################
+#    Example how to run this file:
+#
+# 1) Choose a ransom seed (in this case 141203)
+#    (or use `bash -c 'echo $RANDOM'`)
+#
+# 2) Then, from the shell, invoke LAMMPS to collapse the polymer:
+#
+#   lmp_ubuntu_parallel -i run.in -var seed 141203
+#
+#########################################################
+# eg:
+# time mpirun -np 2 lmp_ubuntu_parallel -i run.in.min
+#########################################################
+
+# -- Init Section --
+
+include system.in.init
+
+# -- Atom Definition Section --
+
+read_data system.data
+
+# -- Settings Section --
+
+include system.in.settings
+
+# -- Run Section --
+
+dump    1 all custom 10000 traj_min.lammpstrj id mol type x y z ix iy iz
+thermo_style    custom step pe etotal vol epair ebond eangle edihed
+thermo_modify   norm no  #(report total energy not energy / num_atoms)
+thermo          100    #(time interval for printing out "thermo" data)
+
+# Now minimize the system:
+
+min_style quickmin
+min_modify dmax 0.05
+minimize 1.0e-7 1.0e-8 30000 100000000
+
+write_data system_after_min.data

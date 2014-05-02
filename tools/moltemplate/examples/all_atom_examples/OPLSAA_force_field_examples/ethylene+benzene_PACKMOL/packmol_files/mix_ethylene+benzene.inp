@@ -1,0 +1,31 @@
+#
+# A mixture of ethylene and benzene
+#
+
+# All the atoms from diferent molecules will be separated at least 2.0
+# Anstroms at the solution.
+
+tolerance 2.0
+
+# The file type of input and output files is PDB
+
+filetype xyz
+
+# The name of the output file
+
+output system.xyz
+
+# 1000 water molecules and 500 urea molecules will be put in a box
+# defined by the minimum coordinates x, y and z = 0. 0. 0. and maximum
+# coordinates 80. 80. 80. That is, they will be put in a cube of side
+# 80. (the keyword "inside cube 0. 0. 0. 80.") could be used as well.
+
+structure ethylene.xyz
+  number 1000 
+  inside box 0. 0. 0. 80. 80. 80. 
+end structure
+
+structure benzene.xyz
+  number 500
+  inside box 0. 0. 0. 80. 80. 80. 
+end structure

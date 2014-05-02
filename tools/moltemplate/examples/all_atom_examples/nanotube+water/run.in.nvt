@@ -1,0 +1,79 @@
+# PREREQUISITES:
+#
+#     You must use moltemplate.sh to create 3 files:
+#        system.data  system.in.init  system.in.settings
+#     (Follow the instructions in README_setup.sh, or run it using ./README_sh.)
+#     (You do not need to run LAMMPS to equilibrate the system before
+#      using this file.)
+
+# ----------------------------- Initialization Section --------------------
+
+include system.in.init
+
+
+# ----------------------------- Atom Definition Section -------------------
+
+read_data system.data
+
+
+# ----------------------------- Settings Section --------------------------
+
+include system.in.settings
+
+
+# ----------------------------- Run Section -------------------------------
+
+
+
+# Optional: Improve efficiency by omitting the calcuation of interactions 
+# between immobile atoms. (Note: This is not optional under NPT conditions.)
+neigh_modify exclude group Cgraphene Cgraphene
+
+# Only the Cgraphene atoms are immobile.
+group mobile subtract all Cgraphene
+
+
+
+# -- minimization protocol --
+
+# Unfortunately you can not use the LAMMPS "minimize" command on this system
+# because there is no way to immobilize the carbon graphene & nanotube atoms
+# during minimization.  Instead, we can use langevin dynamics with a large 
+# damping parameter and a small timestep.
+
+print "--------- beginning minimization (using fix langevin) ---------"
+
+timestep        0.1
+fix fxlan mobile langevin 1.0 1.0 100.0 48279
+fix fxnve mobile nve   # <-- needed by fix langevin (see lammps documentation)
+thermo          100
+run 2500
+
+unfix fxlan
+unfix fxnve
+
+# -- simulation protocol --
+
+print "--------- beginning simulation (using fix nvt) ---------"
+
+timestep        1.0
+dump            1 all custom 500 traj_nvt.lammpstrj id mol type x y z ix iy iz
+
+thermo_style    custom step temp pe etotal press vol epair #ebond eangle edihed
+thermo          500  # time interval for printing out "thermo" data
+
+
+# Integrate the equations of motion:
+fix fxMoveStuff mobile nvt temp 300.0 300.0 100.0
+
+# The next two lines recalculate the temperature 
+# using only the mobile degrees of freedom:
+
+compute tempMobile mobile temp
+fix_modify fxMoveStuff temp tempMobile
+
+restart         5000000   restart_nvt
+run		10000000
+
+write_data  system_after_nvt.data
+

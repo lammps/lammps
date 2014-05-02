@@ -1,0 +1,41 @@
+# Here we define a trivial molecule containing only one particle.
+
+Chaperonin {
+
+  # atomID molID atomType charge   x  y  z
+
+  write("Data Atoms") {
+    $atom:C $mol @atom:C   0.0   0.0 0.0 0.0
+  }
+
+  write_once("Data Masses") {
+    @atom:C 100.0
+  }
+
+  write_once("In Settings") {
+    # If for some reason there are multiple chaperones present, 
+    # I assume that they interact repulsively (hence, L=0)
+    #            i       j                              epsilon sigma K L
+
+    pair_coeff @atom:C @atom:C lj/charmm/coul/charmm/inter 1.0   6.0  1 0
+
+    # Optional: define the atoms in the "chaperonins" group:
+    # (Defining a group for the chaperone makes it easy to immobilize it later.)
+
+    group chaperonins type @atom:C
+  }
+
+
+  # Specify which pair_styles, and atom styles work well with 
+  # this model.  (Again this can be overridden later.)
+
+  write_once("In Init") {
+    units       lj
+    atom_style  full
+    pair_style  hybrid lj/charmm/coul/charmm/inter es4k4l maxmax 11.0 12.0
+  }
+
+} # Chaperonin
+
+# We have not specified how this particle interacts with other particles
+# besides itself.  Later on you must do this.

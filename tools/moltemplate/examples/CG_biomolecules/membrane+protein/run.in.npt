@@ -1,0 +1,65 @@
+# PREREQUISITES:
+#
+#     You must use moltemplate.sh to create 3 files:
+#        system.data  system.in.init  system.in.settings
+#     (Follow the instructions in README_setup.sh, or run it using ./README_sh.)
+#
+# -------- REQUIREMENTS: ---------
+# 1) This example requires the "USER-MISC" package.  (Use "make yes-USER-MISC")
+#   http://lammps.sandia.gov/doc/Section_start.html#start_3
+# 2) It also may require additional features and bug fixes for LAMMPS.
+#   So, after typing "make yes-user-misc" in to the shell, ...
+#   be sure to download and copy the "additional_lammps_code" from 
+#   http://moltemplate.org     (upper-left corner menu)
+# 3) Unpack it
+# 4) copy the .cpp and .h files to the src folding of your lammps installation.
+# 5) Compile LAMMPS.
+#
+# If LAMMPS complains about an "Invalid pair_style", or "Invalid dihedral_style"
+# then you made a mistake in the instructions above.
+#
+
+# -- Init Section --
+
+include system.in.init
+
+# -- Atom Definition Section --
+
+read_data system.data
+
+# -- Settings Section --
+
+include system.in.settings
+
+# -- Run Section --
+
+#minimize 1.0e-5 1.0e-7 500 2000
+
+timestep      10.0  # The time-step in Watson et. al 2011 was 0.002*3ps = 6fs
+dump          1 all custom 10000 traj_npt.lammpstrj id mol type x y z ix iy iz
+
+
+thermo_style  custom step temp pe etotal vol epair ebond eangle
+thermo        1000  # time interval for printing out "thermo" data
+
+
+fix fxlan all langevin  300.0 300.0  120 48279
+fix fxnph all nph x 0 0 1000 y 0 0 1000 couple xy
+
+
+# Note: The temperature 300.0 K corresponds to 0.907033536873*epsilon
+#        (for the "epsilon" used by the coarse-grained lipid), and
+#       to 0.33*epsilon (for the "epsilon" used in the coarse-grained protein)
+# Note: The langevin damping parameter "120" corresponds to 
+#       the 0.12ps damping time used in Watson et. al JCP 2011.
+# Note: We maintain the system system at constant (zero) tention 
+#       using a barostat damping parameter Pdamp=1000 ("0 0 1000")
+
+
+# optional (not sure if this helps):
+# balance x uniform y uniform
+
+
+run           100000
+
+write_data   system_after_npt.data

@@ -1,0 +1,57 @@
+# -------- REQUIREMENTS: ---------
+# 1) This example may require additional features and bug fixes for LAMMPS.
+#   Be sure to download and copy the "additional_lammps_code" from 
+#   http://moltemplate.org     (upper-left corner menu)
+# 2) Unpack it
+# 3) copy the .cpp and .h files to the src folding of your lammps installation.
+# 4) Compile LAMMPS.
+#
+# (If LAMMPS complains about an "Invalid pair_style"
+#  then you made a mistake in the instructions above.)
+#
+
+# -- Init Section --
+
+include system.in.init
+
+# -- Atom Definition Section --
+
+read_data system.data
+
+# -- Settings Section --
+
+include system.in.settings
+
+# -- Run Section --
+
+
+timestep      6.0  # The time-step in Watson et. al 2011 was 0.002*3ps = 6fs
+dump          1 all custom 5000 traj_npt.lammpstrj id mol type x y z ix iy iz
+
+
+thermo_style  custom step temp pe etotal vol epair ebond eangle
+thermo        1000  # time interval for printing out "thermo" data
+
+
+fix fxlan all langevin  300.0 300.0  120 48279
+fix fxnph all nph x 0 0 1000 y 0 0 1000 couple xy
+
+
+# Note: The temperature 300.0 K corresponds to 0.907033536873*epsilon
+#       for the "epsilon" used by the coarse-grained lipid.
+# Note: The langevin damping parameter "120" corresponds to 
+#       the 0.12ps damping time used in Watson et. al JCP 2011.
+# Note: We maintain the system system at constant (zero) tention 
+#       using a barostat damping parameter Pdamp=1000 ("0 0 1000")
+
+
+# optional (not sure if this helps):
+# balance x uniform y uniform
+
+
+#restart      1000000
+
+run           2000000
+
+write_restart system_after_npt.rst
+

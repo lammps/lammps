@@ -1,0 +1,144 @@
+LAMMPS (3 May 2014)
+# test of NB3B pair style with pair hybrid and KSpace solver
+
+units           real
+atom_style      full
+
+bond_style      morse
+angle_style     none
+dihedral_style  none
+improper_style  none
+
+read_data       data.nb3b
+  orthogonal box = (0 0 0) to (22.5907 22.359 23.4708)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1400 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  reading bonds ...
+  560 bonds
+  1 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+
+pair_style      hybrid/overlay nb3b/harmonic lj/cut/coul/long 10.0
+pair_coeff      * * nb3b/harmonic MOH.nb3b.harmonic M O H
+pair_modify     mix arithmetic
+
+pair_coeff      1 1 lj/cut/coul/long 0.000000903 5.264325869
+pair_coeff      1 2 lj/cut/coul/long 0.000374621 4.214922978
+pair_coeff      1 3 lj/cut/coul/long 0 2.632162934
+pair_coeff      2 2 lj/cut/coul/long 0.155416412 3.165520088
+pair_coeff      2 3 lj/cut/coul/long 0 1.582760044
+pair_coeff      3 3 lj/cut/coul/long 0 0
+
+kspace_style    ewald/disp 0.0001
+
+neighbor        2.0 bin
+neigh_modify    delay 5
+special_bonds   lj/coul 0.0 0.0 1.0
+  1 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  1 = max # of special neighbors
+
+thermo_style    custom step etotal ke temp pe ebond eangle edihed eimp                 evdwl ecoul elong press lx ly lz xy xz yz vol
+
+timestep        1.0
+run_style       respa 2 2 pair 1 kspace 2
+Respa levels:
+  1 = bond angle dihedral improper pair
+  2 = kspace
+
+thermo          50
+
+### Minimize forces in structure ###
+
+minimize        1.0e-06 1.0e-08 1000 10000
+WARNING: Resetting reneighboring criteria during minimization (../min.cpp:173)
+EwaldDisp initialization ...
+WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (../pair.cpp:195)
+  G vector = 0.269426
+WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (../pair.cpp:195)
+  vectors: nbox = 6, nkvec = 478
+Memory usage per processor = 21.4036 Mbytes
+Step TotEng KinEng Temp PotEng E_bond E_angle E_dihed E_impro E_vdwl E_coul E_long Press Lx Ly Lz Xy Xz Yz Volume 
+       0   -61505.983            0            0   -61505.983    198.11978            0            0            0    5426.6842   -20935.868   -46194.919    979.72809      22.5907       22.359      23.4708            0            0            0    11855.229 
+       3   -61506.574            0            0   -61506.574    192.23343            0            0            0     5462.762    -20966.52    -46195.05    2196.3697      22.5907       22.359      23.4708            0            0            0    11855.229 
+Loop time of 0.969872 on 1 procs for 3 steps with 1400 atoms
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+           -61505.9829     -61506.5583555     -61506.5743242
+  Force two-norm initial, final = 17.893 9.98801
+  Force max component initial, final = 0.757547 0.314107
+  Final line search alpha, max atom move = 0.000178805 5.61639e-05
+  Iterations, force evaluations = 3 25
+
+Pair  time (%) = 0.747406 (77.0623)
+Bond  time (%) = 0.000653505 (0.0673806)
+Kspce time (%) = 0.218625 (22.5416)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.00222945 (0.229871)
+Outpt time (%) = 0 (0)
+Other time (%) = 0.000958443 (0.0988216)
+
+Nlocal:    1400 ave 1400 max 1400 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    10804 ave 10804 max 10804 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    596960 ave 596960 max 596960 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  1.19392e+06 ave 1.19392e+06 max 1.19392e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1193920
+Ave neighs/atom = 852.8
+Ave special neighs/atom = 0.8
+Neighbor list builds = 0
+Dangerous builds = 0
+
+### Run NVE to equilibrate velocities ###
+
+velocity        all create 298.0 4928459 mom yes rot yes dist gaussian
+
+fix             1 all nve
+fix             2 all temp/rescale 10 298.0 298.0 25.0 1.0
+
+run             100
+EwaldDisp initialization ...
+WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (../pair.cpp:195)
+  G vector = 0.269426
+WARNING: Using a manybody potential with bonds/angles/dihedrals and special_bond exclusions (../pair.cpp:195)
+Memory usage per processor = 20.9138 Mbytes
+Step TotEng KinEng Temp PotEng E_bond E_angle E_dihed E_impro E_vdwl E_coul E_long Press Lx Ly Lz Xy Xz Yz Volume 
+       3   -60263.869    1242.7057          298   -61506.574    192.23343            0            0            0     5462.762    -20966.52    -46195.05    6988.0868      22.5907       22.359      23.4708            0            0            0    11855.229 
+      50   -58834.736    1260.2404    302.20481   -60094.977    213.89563            0            0            0    6132.6243   -20255.127    -46186.37    21262.808      22.5907       22.359      23.4708            0            0            0    11855.229 
+     100   -58828.252    1242.7057          298   -60070.958    437.82815            0            0            0    6455.2967   -20778.873    -46185.21     20113.98      22.5907       22.359      23.4708            0            0            0    11855.229 
+     103   -58827.642    1235.2387    296.20942   -60062.881     453.5865            0            0            0    6411.1525   -20743.952   -46183.668    18788.656      22.5907       22.359      23.4708            0            0            0    11855.229 
+Loop time of 5.86221 on 1 procs for 100 steps with 1400 atoms
+
+Pair  time (%) = 4.88784 (83.3788)
+Bond  time (%) = 0.00446033 (0.0760863)
+Kspce time (%) = 0.840367 (14.3353)
+Neigh time (%) = 0.0973861 (1.66125)
+Comm  time (%) = 0.01776 (0.302958)
+Outpt time (%) = 0.000123978 (0.00211486)
+Other time (%) = 0.0142703 (0.243429)
+
+Nlocal:    1400 ave 1400 max 1400 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    10843 ave 10843 max 10843 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    595351 ave 595351 max 595351 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  1.1907e+06 ave 1.1907e+06 max 1.1907e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1190702
+Ave neighs/atom = 850.501
+Ave special neighs/atom = 0.8
+Neighbor list builds = 2
+Dangerous builds = 0

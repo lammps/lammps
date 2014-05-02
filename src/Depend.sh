@@ -90,6 +90,7 @@ if (test $1 = "MOLECULE") then
   depend USER-CUDA
   depend USER-MISC
   depend USER-OMP
+  depend USER-FEP
 fi
 
 if (test $1 = "PERI") then
@@ -106,8 +107,11 @@ if (test $1 = "USER-CG-CMM") then
   depend USER-OMP
 fi
 
+if (test $1 = "USER-FEP") then
+  depend USER-OMP
+fi
+
 if (test $1 = "USER-MISC") then
   depend GPU
   depend USER-OMP
 fi
-

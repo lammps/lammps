@@ -204,6 +204,11 @@ command must have been previously used to define the lattice spacing.
 Note that the units choice affects all the keyword values that have
 units of distance or velocity.
 
+IMPORTANT NOTE: If you are monitoring the temperature of a system
+where the atom count is changing due to adding atoms, you typically
+should use the "compute_modify dynamic yes"_compute_modify.html
+command for the temperature compute you are using.
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 This fix writes the state of the deposition to "binary restart

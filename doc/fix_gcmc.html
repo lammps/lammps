@@ -158,19 +158,17 @@ keyword, in which case the user-specified chemical potential is
 ignored. For non-ideal gas reservoirs, the user may also specify the 
 fugacity coefficient using the <I>fugacity_coeff</I> keyword.
 </P>
-<P>Use of this fix typically will cause the number of atoms to fluctuate,
-therefore, you will want to use the
-<A HREF = "compute_modify.html">compute_modify</A> command to insure that the
-current number of atoms is used as a normalizing factor each time
-temperature is computed.  Here is the necessary command:
-</P>
-<PRE>compute_modify thermo_temp dynamic yes 
-</PRE>
 <P>If LJ units are used, note that a value of 0.18292026 is used by this
 fix as the reduced value for Planck's constant.  This value was
 derived from LJ paramters for argon, where h* = h/sqrt(sigma^2 *
 epsilon * mass), sigma = 3.429 angstroms, epsilon/k = 121.85 K, and
 mass = 39.948 amu.
+</P>
+<P>IMPORTANT NOTE: If you are monitoring the temperature of a system
+where the particle count is changing due to adding/deleting particles,
+you typically should use the <A HREF = "compute_modify.html">compute_modify dynamic
+yes</A> command for the temperature compute you are
+using.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

@@ -695,9 +695,17 @@ operates.
 
 <H4>Atom Values and Vectors 
 </H4>
-<P>Atom values take a single integer argument I from 1 to N, where I is
-the an atom-ID, e.g. x[243], which means use the x coordinate of the
-atom with ID = 243.
+<P>Atom values take an integer argument I from 1 to N, where I is the an
+atom-ID, e.g. x[243], which means use the x coordinate of the atom
+with ID = 243.  Or they can take a variable name, specified as v_name,
+where name is the name of the variable, like x[v_myIndex].  The
+variable can be of any style except atom or atom-file variables.  The
+variable is evaluated and the result is expected to be numeric and is
+cast to an integer (i.e. 3.4 becomes 3), to use an an index, which
+must be a value from 1 to N.  Note that a "formula" cannot be used as
+the argument between the brackets, e.g. x[243+10] or
+x[v_myIndex+1] are not allowed.  To do this a single variable can be
+defined that contains the needed formula.
 </P>
 <P>Atom vectors generate one value per atom, so that a reference like
 "vx" means the x-component of each atom's velocity will be used when
@@ -741,10 +749,14 @@ only produce global or per-atom quantities, never both.
 <TR><TD >c_ID[I][J]</TD><TD > I,J element of global array, or atom I's Jth value in per-atom array 
 </TD></TR></TABLE></DIV>
 
-<P>If a variable containing a compute is evaluated
-directly in an input script (not during a run), then the values
-accessed by the compute must be current.  See the discussion below
-about "Variable Accuracy".
+<P>For I and J, integers can be specified or a variable name, specified
+as v_name, where name is the name of the variable.  The rules for this
+syntax are the same as for the "Atom Values and Vectors" discussion
+above.
+</P>
+<P>If a variable containing a compute is evaluated directly in an input
+script (not during a run), then the values accessed by the compute
+must be current.  See the discussion below about "Variable Accuracy".
 </P>
 <HR>
 
@@ -774,6 +786,11 @@ since fixes only produce global or per-atom quantities, never both.
 <TR><TD >f_ID[I][J]</TD><TD > I,J element of global array, or atom I's Jth value in per-atom array 
 </TD></TR></TABLE></DIV>
 
+<P>For I and J, integers can be specified or a variable name, specified
+as v_name, where name is the name of the variable.  The rules for this
+syntax are the same as for the "Atom Values and Vectors" discussion
+above.
+</P>
 <P>If a variable containing a fix is evaluated directly in an input
 script (not during a run), then the values accessed by the fix should
 be current.  See the discussion below about "Variable Accuracy".
@@ -814,6 +831,11 @@ produce only a global scalar or a per-atom vector, never both.
 <TR><TD >v_name[I]</TD><TD > atom I's value in per-atom vector 
 </TD></TR></TABLE></DIV>
 
+<P>For I, an integer can be specified or a variable name, specified as
+v_name, where name is the name of the variable.  The rules for this
+syntax are the same as for the "Atom Values and Vectors" discussion
+above.
+</P>
 <HR>
 
 <P><B>Immediate Evaluation of Variables:</B>

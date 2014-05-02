@@ -982,12 +982,12 @@ double Variable::evaluate(char *str, Tree **tree)
         else {
           nbracket = 1;
           ptr = &str[i];
-          index1 = int_between_brackets(ptr);
+          index1 = int_between_brackets(ptr,1);
           i = ptr-str+1;
           if (str[i] == '[') {
             nbracket = 2;
             ptr = &str[i];
-            index2 = int_between_brackets(ptr);
+            index2 = int_between_brackets(ptr,1);
             i = ptr-str+1;
           }
         }
@@ -1196,12 +1196,12 @@ double Variable::evaluate(char *str, Tree **tree)
         else {
           nbracket = 1;
           ptr = &str[i];
-          index1 = int_between_brackets(ptr);
+          index1 = int_between_brackets(ptr,1);
           i = ptr-str+1;
           if (str[i] == '[') {
             nbracket = 2;
             ptr = &str[i];
-            index2 = int_between_brackets(ptr);
+            index2 = int_between_brackets(ptr,1);
             i = ptr-str+1;
           }
         }
@@ -1368,7 +1368,7 @@ double Variable::evaluate(char *str, Tree **tree)
         else {
           nbracket = 1;
           ptr = &str[i];
-          index = int_between_brackets(ptr);
+          index = int_between_brackets(ptr,1);
           i = ptr-str+1;
         }
 
@@ -1474,7 +1474,7 @@ double Variable::evaluate(char *str, Tree **tree)
                        "Variable evaluation before simulation box is defined");
 
           ptr = &str[i];
-          int id = int_between_brackets(ptr);
+          int id = int_between_brackets(ptr,1);
           i = ptr-str+1;
 
           peratom2global(0,word,NULL,0,id,
@@ -2457,25 +2457,59 @@ int Variable::find_matching_paren(char *str, int i,char *&contents)
    find int between brackets and return it
    ptr initially points to left bracket
    return it pointing to right bracket
-   error if no right bracket or brackets are empty
-   error if any between-bracket chars are non-digits or value == 0
+   error if no right bracket or brackets are empty or index = 0
+   if varallow = 0: error if any between-bracket chars are non-digits
+   if varallow = 1: also allow for v_name, where name is variable name
 ------------------------------------------------------------------------- */
 
-int Variable::int_between_brackets(char *&ptr)
+int Variable::int_between_brackets(char *&ptr, int varallow)
 {
+  int varflag,index;
+
   char *start = ++ptr;
 
-  while (*ptr && *ptr != ']') {
-    if (!isdigit(*ptr))
-      error->all(FLERR,"Non digit character between brackets in variable");
-    ptr++;
+  if (varallow && strstr(ptr,"v_") == ptr) {
+    varflag = 1;
+    while (*ptr && *ptr != ']') {
+      if (!isalnum(*ptr) && *ptr != '_')
+        error->all(FLERR,"Variable name between brackets must be "
+                   "alphanumeric or underscore characters");
+      ptr++;
+    }
+
+  } else {
+    varflag = 0;
+    while (*ptr && *ptr != ']') {
+      if (!isdigit(*ptr))
+        error->all(FLERR,"Non digit character between brackets in variable");
+      ptr++;
+    }
   }
 
   if (*ptr != ']') error->all(FLERR,"Mismatched brackets in variable");
   if (ptr == start) error->all(FLERR,"Empty brackets in variable");
 
   *ptr = '\0';
-  int index = atoi(start);
+
+  // evaluate index as variable or as simple integer via atoi()
+
+  if (varflag) {
+    char *id = start+2;
+    int ivar = find(id);
+    if (ivar < 0)
+      error->all(FLERR,"Invalid variable name in variable formula");
+    if (eval_in_progress[ivar])
+      error->all(FLERR,"Variable has circular dependency");
+
+    char *var = retrieve(id);
+    if (var == NULL)
+      error->all(FLERR,"Invalid variable evaluation in variable formula");
+    index = static_cast<int> (atof(var));
+
+  } else {
+    index = atoi(start);
+  }
+
   *ptr = ']';
 
   if (index == 0)
@@ -3189,7 +3223,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       ptr1 = strchr(arg1,'[');
       if (ptr1) {
         ptr2 = ptr1;
-        index = int_between_brackets(ptr2);
+        index = int_between_brackets(ptr2,0);
         *ptr1 = '\0';
       } else index = 0;
 
@@ -3228,7 +3262,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       ptr1 = strchr(arg1,'[');
       if (ptr1) {
         ptr2 = ptr1;
-        index = int_between_brackets(ptr2);
+        index = int_between_brackets(ptr2,0);
         *ptr1 = '\0';
       } else index = 0;
 

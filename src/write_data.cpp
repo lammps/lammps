@@ -218,21 +218,25 @@ void WriteData::header()
   fprintf(fp,BIGINT_FORMAT " atoms\n",atom->natoms);
   fprintf(fp,"%d atom types\n",atom->ntypes);
 
-  if (atom->nbonds || atom->nbondtypes) {
-    fprintf(fp,BIGINT_FORMAT " bonds\n",nbonds);
-    fprintf(fp,"%d bond types\n",atom->nbondtypes);
-  }
-  if (atom->nangles || atom->nangletypes) {
-    fprintf(fp,BIGINT_FORMAT " angles\n",nangles);
-    fprintf(fp,"%d angle types\n",atom->nangletypes);
-  }
-  if (atom->ndihedrals || atom->ndihedraltypes) {
-    fprintf(fp,BIGINT_FORMAT " dihedrals\n",atom->ndihedrals);
-    fprintf(fp,"%d dihedral types\n",atom->ndihedraltypes);
-  }
-  if (atom->nimpropers || atom->nimpropertypes) {
-    fprintf(fp,BIGINT_FORMAT " impropers\n",atom->nimpropers);
-    fprintf(fp,"%d improper types\n",atom->nimpropertypes);
+  // do not write molecular topology info for atom_style template
+
+  if (atom->molecular == 1) {
+    if (atom->nbonds || atom->nbondtypes) {
+      fprintf(fp,BIGINT_FORMAT " bonds\n",nbonds);
+      fprintf(fp,"%d bond types\n",atom->nbondtypes);
+    }
+    if (atom->nangles || atom->nangletypes) {
+      fprintf(fp,BIGINT_FORMAT " angles\n",nangles);
+      fprintf(fp,"%d angle types\n",atom->nangletypes);
+    }
+    if (atom->ndihedrals || atom->ndihedraltypes) {
+      fprintf(fp,BIGINT_FORMAT " dihedrals\n",atom->ndihedrals);
+      fprintf(fp,"%d dihedral types\n",atom->ndihedraltypes);
+    }
+    if (atom->nimpropers || atom->nimpropertypes) {
+      fprintf(fp,BIGINT_FORMAT " impropers\n",atom->nimpropers);
+      fprintf(fp,"%d improper types\n",atom->nimpropertypes);
+    }
   }
 
   for (int i = 0; i < modify->nfix; i++)

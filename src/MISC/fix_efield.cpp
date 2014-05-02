@@ -45,6 +45,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all(FLERR,"Illegal fix efield command");
 
+  dynamic_group_allow = 1;
   vector_flag = 1;
   scalar_flag = 1;
   size_vector = 3;

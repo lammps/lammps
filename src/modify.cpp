@@ -217,6 +217,23 @@ void Modify::init()
   }
   addstep_compute_all(update->ntimestep);
 
+  // error if any fix or compute is using a dynamic group when not allowed
+
+  for (i = 0; i < nfix; i++)
+    if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup]) {
+      char str[128];
+      sprintf(str,"Fix %s does not allow use of dynamic group",fix[i]->id);
+      error->all(FLERR,str);
+    }
+
+  for (i = 0; i < ncompute; i++)
+    if (!compute[i]->dynamic_group_allow && 
+        group->dynamic[compute[i]->igroup]) {
+      char str[128];
+      sprintf(str,"Compute %s does not allow use of dynamic group",fix[i]->id);
+      error->all(FLERR,str);
+    }
+
   // warn if any particle is time integrated more than once
 
   int nlocal = atom->nlocal;

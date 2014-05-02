@@ -500,8 +500,8 @@ void Group::assign(int narg, char **arg)
 
   if (me == 0) {
     if (dynamic[igroup]) {
-      if (screen) fprintf(screen,"dynamic group %s\n",names[igroup]);
-      if (logfile) fprintf(logfile,"dynamic group %s\n",names[igroup]);
+      if (screen) fprintf(screen,"dynamic group %s defined\n",names[igroup]);
+      if (logfile) fprintf(logfile,"dynamic group %s defined\n",names[igroup]);
     } else {
       if (screen) 
         fprintf(screen,"%.15g atoms in group %s\n",all,names[igroup]);

@@ -20,7 +20,6 @@ namespace LAMMPS_NS {
 
 class Compute : protected Pointers {
  public:
-
   char *id,*style;
   int igroup,groupbit;
 
@@ -75,13 +74,14 @@ class Compute : protected Pointers {
 
   double dof;         // degrees-of-freedom for temperature
 
-  int comm_forward;   // size of forward communication (0 if none)
-  int comm_reverse;   // size of reverse communication (0 if none)
+  int comm_forward;         // size of forward communication (0 if none)
+  int comm_reverse;         // size of reverse communication (0 if none)
+  int dynamic_group_allow;  // 1 if can be used with dynamic group, else 0
 
   unsigned int datamask;
   unsigned int datamask_ext;
 
-  int cudable;        // 1 if compute is CUDA-enabled
+  int cudable;              // 1 if compute is CUDA-enabled
 
   Compute(class LAMMPS *, int, char **);
   virtual ~Compute();

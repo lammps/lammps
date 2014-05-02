@@ -704,9 +704,9 @@ Atom vectors generate one value per atom, so that a reference like
 evaluating the variable.
 
 The meaning of the different atom values and vectors is mostly
-self-explanatory.  Mol refernces the molecule ID of an atom, and is
-only defined if an "atom_style"_atom_style.html is being used
-that defines molecule IDs.
+self-explanatory.  Mol refers to the molecule ID of an atom, and is
+only defined if an "atom_style"_atom_style.html is being used that
+defines molecule IDs.
 
 Note that many other atom attributes can be used as inputs to a
 variable by using the "compute

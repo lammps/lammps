@@ -647,11 +647,12 @@ char *Variable::retrieve(char *name)
 
 double Variable::compute_equal(int ivar)
 {
-  // eval_in_progress used to detect circle dependencies
-  // could extend this later to check v_a = c_b + v_a constructs?
-
+  if (eval_in_progress[ivar]) 
+    error->all(FLERR,"Variable has circular dependency");
   eval_in_progress[ivar] = 1;
+
   double value = evaluate(data[ivar][0],NULL);
+
   eval_in_progress[ivar] = 0;
   return value;
 }
@@ -679,6 +680,10 @@ void Variable::compute_atom(int ivar, int igroup,
   Tree *tree;
   double *vstore;
   
+  if (eval_in_progress[ivar]) 
+    error->all(FLERR,"Variable has circular dependency");
+  eval_in_progress[ivar] = 1;
+
   if (style[ivar] == ATOM) {
     evaluate(data[ivar][0],&tree);
     collapse_tree(tree);
@@ -724,6 +729,8 @@ void Variable::compute_atom(int ivar, int igroup,
   }
 
   if (style[ivar] == ATOM) free_tree(tree);
+
+  eval_in_progress[ivar] = 0;
 }
 
 /* ----------------------------------------------------------------------

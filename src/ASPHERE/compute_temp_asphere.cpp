@@ -158,9 +158,13 @@ void ComputeTempAsphere::dof_compute()
 
   if (tempbias == 1) {
     if (mode == ALL) dof -= tbias->dof_remove(-1) * natoms;
+
   } else if (tempbias == 2) {
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
+
+    tbias->dof_remove_pre();
+
     int count = 0;
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)

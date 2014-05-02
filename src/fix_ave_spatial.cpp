@@ -508,6 +508,10 @@ void FixAveSpatial::end_of_step()
   bigint ntimestep = update->ntimestep;
   if (ntimestep != nvalid) return;
 
+  // update region if necessary
+
+  if (regionflag) region->prematch();
+
   // zero out arrays that accumulate over many samples
   // if box changes, first re-setup bins
 

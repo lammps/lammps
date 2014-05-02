@@ -46,6 +46,7 @@ class Region : protected Pointers {
 
   // called by other classes to check point versus region
 
+  void prematch();
   int match(double, double, double);
   int surface(double, double, double, double);
 
@@ -68,8 +69,8 @@ class Region : protected Pointers {
   char *xstr,*ystr,*zstr,*tstr;
   int xvar,yvar,zvar,tvar;
   double dx,dy,dz,theta;
-  bigint lastshape,lastdynamic;
 
+  void pretransform();
   void forward_transform(double &, double &, double &);
   void inverse_transform(double &, double &, double &);
   void rotate(double &, double &, double &, double);

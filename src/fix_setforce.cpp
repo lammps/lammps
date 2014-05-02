@@ -218,6 +218,14 @@ void FixSetForce::post_force(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  // update region if necessary
+
+  Region *region = NULL;
+  if (iregion >= 0) {
+    region = domain->regions[iregion];
+    region->prematch();
+  }
+
   // reallocate sforce array if necessary
 
   if (varflag == ATOM && nlocal > maxatom) {
@@ -232,10 +240,7 @@ void FixSetForce::post_force(int vflag)
   if (varflag == CONSTANT) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if (iregion >= 0 &&
-            !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-          continue;
-
+        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         foriginal[0] += f[i][0];
         foriginal[1] += f[i][1];
         foriginal[2] += f[i][2];
@@ -270,10 +275,7 @@ void FixSetForce::post_force(int vflag)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if (iregion >= 0 &&
-            !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-          continue;
-
+        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         foriginal[0] += f[i][0];
         foriginal[1] += f[i][1];
         foriginal[2] += f[i][2];
@@ -295,12 +297,20 @@ void FixSetForce::post_force_respa(int vflag, int ilevel, int iloop)
 
   if (ilevel == nlevels_respa-1) post_force(vflag);
   else {
+    Region *region = NULL;
+    if (iregion >= 0) {
+      region = domain->regions[iregion];
+      region->prematch();
+    }
+
+    double **x = atom->x;
     double **f = atom->f;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
+        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         if (xstyle) f[i][0] = 0.0;
         if (ystyle) f[i][1] = 0.0;
         if (zstyle) f[i][2] = 0.0;

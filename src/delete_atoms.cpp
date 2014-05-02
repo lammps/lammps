@@ -153,6 +153,8 @@ void DeleteAtoms::delete_region(int narg, char **arg)
 
   int iregion = domain->find_region(arg[1]);
   if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
+  domain->regions[iregion]->prematch();
+
   options(narg-2,&arg[2]);
 
   // allocate and initialize deletion list
@@ -332,6 +334,7 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
 
   int iregion = domain->find_region(arg[1]);
   if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
+  domain->regions[iregion]->prematch();
 
   double porosity_fraction = force->numeric(FLERR,arg[2]);
   int seed = force->inumeric(FLERR,arg[3]);

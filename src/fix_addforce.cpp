@@ -224,6 +224,14 @@ void FixAddForce::post_force(int vflag)
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
+  // update region if necessary
+
+  Region *region = NULL;
+  if (iregion >= 0) {
+    region = domain->regions[iregion];
+    region->prematch();
+  }
+
   // reallocate sforce array if necessary
 
   if ((varflag == ATOM || estyle == ATOM) && nlocal > maxatom) {
@@ -245,10 +253,7 @@ void FixAddForce::post_force(int vflag)
     double unwrap[3];
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if (iregion >= 0 &&
-            !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-          continue;
-
+        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         domain->unmap(x[i],image[i],unwrap);
         foriginal[0] -= xvalue*unwrap[0] + yvalue*unwrap[1] + zvalue*unwrap[2];
         foriginal[1] += f[i][0];
@@ -291,10 +296,7 @@ void FixAddForce::post_force(int vflag)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if (iregion >= 0 &&
-            !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-          continue;
-
+        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         if (estyle == ATOM) foriginal[0] += sforce[i][3];
         foriginal[1] += f[i][0];
         foriginal[2] += f[i][1];

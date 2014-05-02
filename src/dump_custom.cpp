@@ -419,6 +419,7 @@ int DumpCustom::count()
 
   if (iregion >= 0) {
     Region *region = domain->regions[iregion];
+    region->prematch();
     double **x = atom->x;
     for (i = 0; i < nlocal; i++)
       if (choose[i] && region->match(x[i][0],x[i][1],x[i][2]) == 0)

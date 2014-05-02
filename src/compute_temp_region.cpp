@@ -102,6 +102,8 @@ double ComputeTempRegion::compute_scalar()
   int nlocal = atom->nlocal;
 
   Region *region = domain->regions[iregion];
+  region->prematch();
+
   int count = 0;
   double t = 0.0;
 
@@ -147,6 +149,8 @@ void ComputeTempRegion::compute_vector()
   int nlocal = atom->nlocal;
 
   Region *region = domain->regions[iregion];
+  region->prematch();
+
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 

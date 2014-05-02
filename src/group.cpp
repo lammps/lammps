@@ -162,6 +162,7 @@ void Group::assign(int narg, char **arg)
     int iregion = domain->find_region(arg[2]);
     if (iregion == -1) error->all(FLERR,"Group region ID does not exist");
     domain->regions[iregion]->init();
+    domain->regions[iregion]->prematch();
 
     for (i = 0; i < nlocal; i++)
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
@@ -661,6 +662,7 @@ bigint Group::count(int igroup, int iregion)
 {
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
+  region->prematch();
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -715,6 +717,7 @@ double Group::mass(int igroup, int iregion)
 {
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
+  region->prematch();
 
   double **x = atom->x;
   double *mass = atom->mass;
@@ -769,6 +772,7 @@ double Group::charge(int igroup, int iregion)
 {
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
+  region->prematch();
 
   double **x = atom->x;
   double *q = atom->q;
@@ -837,6 +841,7 @@ void Group::bounds(int igroup, double *minmax, int iregion)
 {
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
+  region->prematch();
 
   double extent[6];
   extent[0] = extent[2] = extent[4] = BIG;
@@ -936,6 +941,7 @@ void Group::xcm(int igroup, double masstotal, double *cm, int iregion)
 {
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
+  region->prematch();
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -1035,6 +1041,7 @@ void Group::vcm(int igroup, double masstotal, double *cm, int iregion)
 {
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
+  region->prematch();
 
   double **x = atom->x;
   double **v = atom->v;
@@ -1106,6 +1113,7 @@ void Group::fcm(int igroup, double *cm, int iregion)
 {
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
+  region->prematch();
 
   double **x = atom->x;
   double **f = atom->f;
@@ -1168,6 +1176,7 @@ double Group::ke(int igroup, int iregion)
 {
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
+  region->prematch();
 
   double **x = atom->x;
   double **v = atom->v;
@@ -1246,6 +1255,7 @@ double Group::gyration(int igroup, double masstotal, double *cm, int iregion)
 {
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
+  region->prematch();
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -1327,6 +1337,7 @@ void Group::angmom(int igroup, double *cm, double *lmom, int iregion)
 {
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
+  region->prematch();
 
   double **x = atom->x;
   double **v = atom->v;
@@ -1405,6 +1416,7 @@ void Group::torque(int igroup, double *cm, double *tq, int iregion)
 {
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
+  region->prematch();
 
   double **x = atom->x;
   double **f = atom->f;
@@ -1492,6 +1504,7 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
 
   int groupbit = bitmask[igroup];
   Region *region = domain->regions[iregion];
+  region->prematch();
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -1533,7 +1546,7 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
 
 /* ----------------------------------------------------------------------
    compute angular velocity omega from L = Iw, inverting I to solve for w
-   really not a group operation, but L and I were computed for a group
+   really not a group/region operation, but L,I were computed for a group/region
 ------------------------------------------------------------------------- */
 
 void Group::omega(double *angmom, double inertia[3][3], double *w)

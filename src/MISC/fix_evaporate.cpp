@@ -185,6 +185,9 @@ void FixEvaporate::pre_exchange()
   // nbefore = # on procs before me
   // list[ncount] = list of local indices of atoms I can delete
 
+  Region *region = domain->regions[iregion];
+  region->prematch();
+
   double **x = atom->x;
   int *mask = atom->mask;
   tagint *tag = atom->tag;
@@ -193,8 +196,7 @@ void FixEvaporate::pre_exchange()
   int ncount = 0;
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
-      if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-        list[ncount++] = i;
+      if (region->match(x[i][0],x[i][1],x[i][2])) list[ncount++] = i;
 
   int nall,nbefore;
   MPI_Allreduce(&ncount,&nall,1,MPI_INT,MPI_SUM,world);

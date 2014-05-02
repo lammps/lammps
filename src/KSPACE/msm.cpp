@@ -985,7 +985,6 @@ void MSM::set_grid_global()
 
   int flag = 0;
   int xlevels,ylevels,zlevels;
-  double k,r;
 
   while (!factorable(nx_max,flag,xlevels)) {
     double k = log(nx_max)/log(2.0);
@@ -1162,7 +1161,7 @@ void MSM::set_grid_local()
 
     // lengths of box and processor sub-domains
 
-    double *prd,*sublo,*subhi,*boxhi;
+    double *prd,*sublo,*subhi;
 
     if (!triclinic) {
       prd = domain->prd;
@@ -1546,7 +1545,7 @@ void MSM::direct(int n)
 
   int icx,icy,icz,ix,iy,iz,zk,zyk,k;
   int ii,jj,kk;
-  int imin,imax,jmin,jmax,kmin,kmax;
+  int imin,imax,jmin,jmax,kmax;
   double qtmp,qtmp2,gtmp;
   double esum,v0sum,v1sum,v2sum,v3sum,v4sum,v5sum;
   double **qk,**ek;
@@ -1560,10 +1559,8 @@ void MSM::direct(int n)
   for (icz = nzlo_in[n]; icz <= nzhi_in[n]; icz++) {
 
     if (domain->zperiodic) {
-      kmin = nzlo_direct;
       kmax = nzhi_direct;
     } else {
-      kmin = MAX(nzlo_direct,alpha[n] - icz);
       kmax = MIN(nzhi_direct,betaz[n] - icz);
     }
 
@@ -1759,7 +1756,7 @@ void MSM::direct_peratom(int n)
 
   int icx,icy,icz,ix,iy,iz,zk,zyk,k;
   int ii,jj,kk;
-  int imin,imax,jmin,jmax,kmin,kmax;
+  int imin,imax,jmin,jmax,kmax;
   double qtmp;
 
   int nx = nxhi_direct - nxlo_direct + 1;
@@ -1770,10 +1767,8 @@ void MSM::direct_peratom(int n)
   for (icz = nzlo_in[n]; icz <= nzhi_in[n]; icz++) {
 
     if (domain->zperiodic) {
-      kmin = nzlo_direct;
       kmax = nzhi_direct;
     } else {
-      kmin = MAX(nzlo_direct,alpha[n] - icz);
       kmax = MIN(nzhi_direct,betaz[n] - icz);
     }
 
@@ -1901,7 +1896,7 @@ void MSM::direct_top(int n)
 
   int icx,icy,icz,ix,iy,iz,zk,zyk,k;
   int ii,jj,kk;
-  int imin,imax,jmin,jmax,kmin,kmax;
+  int imin,imax,jmin,jmax,kmax;
   double qtmp,qtmp2,gtmp;
   double esum,v0sum,v1sum,v2sum,v3sum,v4sum,v5sum;
   double **qk,**ek;
@@ -1919,10 +1914,8 @@ void MSM::direct_top(int n)
   for (icz = nzlo_in[n]; icz <= nzhi_in[n]; icz++) {
 
     if (domain->zperiodic) {
-      kmin = 0;
       kmax = nz_msm[n]-1;
     } else {
-      kmin = alpha[n] - icz;
       kmax = betaz[n] - icz;
     }
 
@@ -2123,7 +2116,7 @@ void MSM::direct_peratom_top(int n)
 
   int icx,icy,icz,ix,iy,iz,zk,zyk,k;
   int ii,jj,kk;
-  int imin,imax,jmin,jmax,kmin,kmax;
+  int imin,imax,jmin,jmax,kmax;
   double qtmp;
 
   int nx_top = betax[n] - alpha[n];
@@ -2138,10 +2131,8 @@ void MSM::direct_peratom_top(int n)
   for (icz = nzlo_in[n]; icz <= nzhi_in[n]; icz++) {
 
     if (domain->zperiodic) {
-      kmin = 0;
       kmax = nz_msm[n]-1;
     } else {
-      kmin = alpha[n] - icz;
       kmax = betaz[n] - icz;
     }
 

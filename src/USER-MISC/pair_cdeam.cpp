@@ -299,11 +299,11 @@ void PairCDEAM::compute(int eflag, int vflag)
                                 // Calculate derivative of h(x_i) polynomial function.
                                 h_prime_i = evalHprime(x_i);
                                 D_i = D_values[i] * h_prime_i / (2.0 * rho[i] * rho[i]);
-                        }
-                        else if(cdeamVersion == 2) {
+                        } else if(cdeamVersion == 2) {
                                 D_i = D_values[i];
+                        } else {
+                          ASSERT(false);
                         }
-                        else ASSERT(false);
                 }
 
                 for(jj = 0; jj < jnum; jj++) {
@@ -347,12 +347,11 @@ void PairCDEAM::compute(int eflag, int vflag)
                                                 // Calculate derivative of h(x_j) polynomial function.
                                                 double h_prime_j = evalHprime(x_j);
                                                 D_j = D_values[j] * h_prime_j / (2.0 * rho[j] * rho[j]);
-                                        }
-                                        else if(cdeamVersion == 2) {
+                                        } else if(cdeamVersion == 2) {
                                                 D_j = D_values[j];
+                                        } else {
+                                          ASSERT(false);
                                         }
-                                        else ASSERT(false);
-
                                         double t2 = -rhoB[j];
                                         if(itype == speciesB) t2 += rho[j];
                                         fpair += D_j * rhoip * t2;
@@ -372,8 +371,7 @@ void PairCDEAM::compute(int eflag, int vflag)
                                 if(itype == jtype || x_i == -1.0 || x_j == -1.0) {
                                         // Case of no concentration dependence.
                                         fpair += phip;
-                                }
-                                else {
+                                } else {
                                         // We have a concentration dependence for the i-j interaction.
                                         double h=0.0;
                                         if(cdeamVersion == 1) {
@@ -382,14 +380,14 @@ void PairCDEAM::compute(int eflag, int vflag)
                                                 // Calculate h(x_j) polynomial function.
                                                 double h_j = evalH(x_j);
                                                 h = 0.5 * (h_i + h_j);
-                                        }
-                                        else if(cdeamVersion == 2) {
+                                        } else if(cdeamVersion == 2) {
                                                 // Average concentration.
                                                 double x_ij = 0.5 * (x_i + x_j);
                                                 // Calculate h(x_ij) polynomial function.
                                                 h = evalH(x_ij);
+                                        } else {
+                                          ASSERT(false);
                                         }
-                                        else ASSERT(false);
                                         fpair += h * phip;
                                         phi *= h;
                                 }
@@ -556,8 +554,9 @@ void PairCDEAM::unpack_comm(int n, int first, double *buf)
                                 rho[i] = buf[m++];
                                 rhoB[i] = buf[m++];
                         }
+                } else {
+                  ASSERT(false);
                 }
-                else ASSERT(false);
         }
         else if(communicationStage == 4) {
                 for(i = first; i < last; i++) {
@@ -616,15 +615,15 @@ void PairCDEAM::unpack_reverse_comm(int n, int *list, double *buf)
                                 rhoB[j] += buf[m++];
                                 D_values[j] += buf[m++];
                         }
-                }
-                else if(cdeamVersion == 2) {
+                } else if(cdeamVersion == 2) {
                         for(i = 0; i < n; i++) {
                                 j = list[i];
                                 rho[j] += buf[m++];
                                 rhoB[j] += buf[m++];
                         }
+                } else {
+                  ASSERT(false);
                 }
-                else ASSERT(false);
         }
         else if(communicationStage == 3) {
                 for(i = 0; i < n; i++) {

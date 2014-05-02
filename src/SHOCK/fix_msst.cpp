@@ -299,7 +299,6 @@ void FixMSST::init()
   double mass = 0.0;
   for (int i = 0; i < atom->nlocal; i++) mass += atom->mass[atom->type[i]];
   MPI_Allreduce(&mass,&total_mass,1,MPI_DOUBLE,MPI_SUM,world);
-  total_mass = total_mass;
 
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;

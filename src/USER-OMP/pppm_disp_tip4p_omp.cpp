@@ -775,7 +775,6 @@ void PPPMDispTIP4POMP::make_rho_a()
 
 void PPPMDispTIP4POMP::fieldforce_c_ik()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -806,7 +805,7 @@ void PPPMDispTIP4POMP::fieldforce_c_ik()
     FFT_SCALAR x0,y0,z0,ekx,eky,ekz;
     int i,ifrom,ito,tid,iH1,iH2,l,m,n,mx,my,mz;
 
-    loop_setup_thr(ifrom,ito,tid,nlocal,nthreads);
+    loop_setup_thr(ifrom,ito,tid,nlocal,comm->nthreads);
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
@@ -879,7 +878,6 @@ void PPPMDispTIP4POMP::fieldforce_c_ik()
 
 void PPPMDispTIP4POMP::fieldforce_c_ad()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -916,7 +914,7 @@ void PPPMDispTIP4POMP::fieldforce_c_ad()
     FFT_SCALAR ekx,eky,ekz;
     int i,ifrom,ito,tid,iH1,iH2,l,m,n,mx,my,mz;
 
-    loop_setup_thr(ifrom,ito,tid,nlocal,nthreads);
+    loop_setup_thr(ifrom,ito,tid,nlocal,comm->nthreads);
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
@@ -1008,7 +1006,6 @@ void PPPMDispTIP4POMP::fieldforce_c_ad()
 
 void PPPMDispTIP4POMP::fieldforce_g_ik()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1031,7 +1028,7 @@ void PPPMDispTIP4POMP::fieldforce_g_ik()
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
     const int inum = nlocal;
-    const int idelta = 1 + inum/nthreads;
+    const int idelta = 1 + inum/comm->nthreads;
     const int ifrom = tid*idelta;
     const int ito = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
 #else
@@ -1097,7 +1094,6 @@ void PPPMDispTIP4POMP::fieldforce_g_ik()
 
 void PPPMDispTIP4POMP::fieldforce_g_ad()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1133,7 +1129,7 @@ void PPPMDispTIP4POMP::fieldforce_g_ad()
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
     const int inum = nlocal;
-    const int idelta = 1 + inum/nthreads;
+    const int idelta = 1 + inum/comm->nthreads;
     const int ifrom = tid*idelta;
     const int ito = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
 #else
@@ -1147,7 +1143,7 @@ void PPPMDispTIP4POMP::fieldforce_g_ad()
     FFT_SCALAR * const * const dr1d = static_cast<FFT_SCALAR **>(thr->get_drho1d_6());
 
     int l,m,n,nx,ny,nz,mx,my,mz;
-    FFT_SCALAR dx,dy,dz,x0,y0,z0;
+    FFT_SCALAR dx,dy,dz;
     FFT_SCALAR ekx,eky,ekz;
     int type;
     double lj;
@@ -1219,7 +1215,6 @@ void PPPMDispTIP4POMP::fieldforce_g_ad()
 
 void PPPMDispTIP4POMP::fieldforce_g_peratom()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1241,7 +1236,7 @@ void PPPMDispTIP4POMP::fieldforce_g_peratom()
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
     const int inum = nlocal;
-    const int idelta = 1 + inum/nthreads;
+    const int idelta = 1 + inum/comm->nthreads;
     const int ifrom = tid*idelta;
     const int ito = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
 #else
@@ -1252,7 +1247,7 @@ void PPPMDispTIP4POMP::fieldforce_g_peratom()
     ThrData *thr = fix->get_thr(tid);
     FFT_SCALAR * const * const r1d =  static_cast<FFT_SCALAR **>(thr->get_rho1d_6());
 
-    int i,l,m,n,nx,ny,nz,mx,my,mz;
+    int l,m,n,nx,ny,nz,mx,my,mz;
     FFT_SCALAR dx,dy,dz,x0,y0,z0;
     FFT_SCALAR u,v0,v1,v2,v3,v4,v5;
     int type;
@@ -1318,7 +1313,6 @@ void PPPMDispTIP4POMP::fieldforce_g_peratom()
 
 void PPPMDispTIP4POMP::fieldforce_a_ik()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1332,7 +1326,6 @@ void PPPMDispTIP4POMP::fieldforce_a_ik()
   // ek = 3 components of E-field on particle
 
   const double * const * const x = atom->x;
-  const double qqrd2e = force->qqrd2e;
 
 #if defined(_OPENMP)
 #pragma omp parallel default(none)
@@ -1342,7 +1335,7 @@ void PPPMDispTIP4POMP::fieldforce_a_ik()
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
     const int inum = nlocal;
-    const int idelta = 1 + inum/nthreads;
+    const int idelta = 1 + inum/comm->nthreads;
     const int ifrom = tid*idelta;
     const int ito = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
 #else
@@ -1440,7 +1433,6 @@ void PPPMDispTIP4POMP::fieldforce_a_ik()
 
 void PPPMDispTIP4POMP::fieldforce_a_ad()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1476,7 +1468,7 @@ void PPPMDispTIP4POMP::fieldforce_a_ad()
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
     const int inum = nlocal;
-    const int idelta = 1 + inum/nthreads;
+    const int idelta = 1 + inum/comm->nthreads;
     const int ifrom = tid*idelta;
     const int ito = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
 #else
@@ -1629,7 +1621,6 @@ void PPPMDispTIP4POMP::fieldforce_a_ad()
 
 void PPPMDispTIP4POMP::fieldforce_a_peratom()
 {
-  const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
 
   // no local atoms => nothing to do
@@ -1651,7 +1642,7 @@ void PPPMDispTIP4POMP::fieldforce_a_peratom()
     // each thread works on a fixed chunk of atoms.
     const int tid = omp_get_thread_num();
     const int inum = nlocal;
-    const int idelta = 1 + inum/nthreads;
+    const int idelta = 1 + inum/comm->nthreads;
     const int ifrom = tid*idelta;
     const int ito = ((ifrom + idelta) > inum) ? inum : ifrom + idelta;
 #else

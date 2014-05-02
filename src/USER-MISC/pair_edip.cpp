@@ -91,7 +91,7 @@ PairEDIP::~PairEDIP()
 void PairEDIP::compute(int eflag, int vflag)
 {
   int i,j,k,ii,inum,jnum;
-  int itype,jtype,ktype,ijparam,ikparam,ijkparam;
+  int itype,jtype,ktype,ijparam,ikparam;
   double xtmp,ytmp,ztmp,evdwl;
   int *ilist,*jlist,*numneigh,**firstneigh;
   register int preForceCoord_counter;
@@ -127,7 +127,6 @@ void PairEDIP::compute(int eflag, int vflag)
   double exp3B_ik;
   double exp3BDerived_ik;
   double qFunction;
-  double qFunctionDerived;
   double tauFunction;
   double tauFunctionDerived;
   double expMinusBetaZeta_iZeta_i;
@@ -290,8 +289,6 @@ void PairEDIP::compute(int eflag, int vflag)
     tauFunctionDerived = interpolY1 + (interpolY2 - interpolY1) *
       (interpolTMP-interpolIDX);
 
-    qFunctionDerived = -mu * qFunction;
-
     forceModCoord_factor = 2.0 * beta * zeta_i * expMinusBetaZeta_iZeta_i;
 
     forceModCoord = 0.0;
@@ -365,7 +362,6 @@ void PairEDIP::compute(int eflag, int vflag)
           k &= NEIGHMASK;
           ktype = map[type[k]];
           ikparam = elem2param[itype][ktype][ktype];
-          ijkparam = elem2param[itype][jtype][ktype];
 
           dr_ik[0] = x[k][0] - xtmp;
           dr_ik[1] = x[k][1] - ytmp;
@@ -639,7 +635,6 @@ void PairEDIP::initGrids(void)
   int numGridPointsNotOneCutoffFunction;
   int numGridPointsCutoffFunction;
   int numGridPointsR;
-  int numGridPointsRTotal;
   int numGridPointsQFunctionGrid;
   int numGridPointsExpMinusBetaZeta_iZeta_i;
   int numGridPointsTauFunctionGrid;
@@ -737,7 +732,6 @@ void PairEDIP::initGrids(void)
 
   numGridPointsR = (int)
     ((cutoffA + leftLimitToZero - GRIDSTART) * GRIDDENSITY);
-  numGridPointsRTotal = numGridPointsR + 2;
 
   r = GRIDSTART;
   deltaArgumentR = 1.0 / GRIDDENSITY;

@@ -84,13 +84,13 @@ void PairNMCutCoulLongOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairNMCutCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,ii,jj,jnum,jtype,itable;
+  int j,ii,jj,jnum,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
-  double r,rsq,rinv,r2inv,factor_coul,factor_lj;
+  double r,rsq,r2inv,factor_coul,factor_lj;
   double forcecoul,forcenm,rminv,rninv;
   double grij,expm2,prefactor,t,erfc;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *ilist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
 

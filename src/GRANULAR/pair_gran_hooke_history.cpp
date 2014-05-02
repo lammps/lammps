@@ -616,7 +616,7 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
   double radi,radj,radsum;
   double r,rinv,rsqinv,delx,dely,delz;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3,wr1,wr2,wr3;
-  double mi,mj,meff,damp,ccel,polyhertz;
+  double mi,mj,meff,damp,ccel;
   double vtr1,vtr2,vtr3,vrel,shrmag,rsht;
   double fs1,fs2,fs3,fs,fn;
 

@@ -112,8 +112,9 @@ void FixEvent::restore_event()
     x[i][1] = xevent[i][1];
     x[i][2] = xevent[i][2];
 
-    // since xevent is unwrapped coordinate, need to
-    // adjust image flags when remapping
+    // since xevent is unwrapped coordinate,
+    // need to adjust image flag from default when remapping
+    // same as in read_data -> Atom::data_atoms()
 
     image[i] = ((imageint) IMGMAX << IMG2BITS) |
       ((imageint) IMGMAX << IMGBITS) | IMGMAX;

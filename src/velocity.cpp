@@ -463,14 +463,20 @@ void Velocity::set(int narg, char **arg)
 
   } else {
     if (xstyle == EQUAL) vx = input->variable->compute_equal(xvar);
-    else if (xstyle == ATOM && vfield)
-      input->variable->compute_atom(xvar,igroup,&vfield[0][0],3,0);
+    else if (xstyle == ATOM) {
+      if (vfield) input->variable->compute_atom(xvar,igroup,&vfield[0][0],3,0);
+      else input->variable->compute_atom(xvar,igroup,NULL,3,0);
+    }
     if (ystyle == EQUAL) vy = input->variable->compute_equal(yvar);
-    else if (ystyle == ATOM && vfield)
-      input->variable->compute_atom(yvar,igroup,&vfield[0][1],3,0);
+    else if (ystyle == ATOM) {
+      if (vfield) input->variable->compute_atom(yvar,igroup,&vfield[0][1],3,0);
+      else input->variable->compute_atom(yvar,igroup,NULL,3,0);
+    }
     if (zstyle == EQUAL) vz = input->variable->compute_equal(zvar);
-    else if (zstyle == ATOM && vfield)
-      input->variable->compute_atom(zvar,igroup,&vfield[0][2],3,0);
+    else if (zstyle == ATOM) {
+      if (vfield) input->variable->compute_atom(zvar,igroup,&vfield[0][2],3,0);
+      else input->variable->compute_atom(zvar,igroup,NULL,3,0);
+    }
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {

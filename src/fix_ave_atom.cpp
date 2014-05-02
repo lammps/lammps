@@ -355,8 +355,10 @@ void FixAveAtom::end_of_step()
     // evaluate atom-style variable
     // final argument = 1 sums result to array
 
-    } else if (which[m] == VARIABLE && array)
-      input->variable->compute_atom(n,igroup,&array[0][m],nvalues,1);
+    } else if (which[m] == VARIABLE) {
+      if (array) input->variable->compute_atom(n,igroup,&array[0][m],nvalues,1);
+      else input->variable->compute_atom(n,igroup,NULL,nvalues,1);
+    }
   }
 
   // done if irepeat < nrepeat

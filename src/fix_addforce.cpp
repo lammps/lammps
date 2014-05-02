@@ -38,6 +38,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all(FLERR,"Illegal fix addforce command");
 
+  dynamic_group_allow = 1;
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 3;

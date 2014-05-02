@@ -40,7 +40,6 @@
 
 /************* SOME DEFS - crucial for reax_types.h *********/
 
-//#define PURE_REAX
 #define LAMMPS_REAX
 
 //#define DEBUG
@@ -48,8 +47,8 @@
 //#define TEST_ENERGY
 //#define TEST_FORCES
 //#define CG_PERFORMANCE
-#define LOG_PERFORMANCE
-#define STANDARD_BOUNDARIES
+//#define LOG_PERFORMANCE
+//#define STANDARD_BOUNDARIES
 //#define OLD_BOUNDARIES
 //#define MIDPOINT_BOUNDARIES
 
@@ -68,8 +67,6 @@ typedef real rvec[3];
 typedef real rtensor[3][3];
 typedef real rvec2[2];
 typedef real rvec4[4];
-
-// import LAMMPS' definition of tagint
 
 typedef LAMMPS_NS::tagint rc_tagint;
 
@@ -92,7 +89,6 @@ typedef struct
   int  type;
   int  num_bonds;
   int  num_hbonds;
-  //int  pad;  // pad to 8-byte address boundary
   char name[8];
   rvec x;     // position
   rvec v;     // velocity
@@ -107,20 +103,14 @@ typedef struct
   int  type;
   int  num_bonds;
   int  num_hbonds;
-  //int  pad;
   rvec x;     // position
 } boundary_atom;
 
 
 typedef struct
 {
-  //int  ncells;
-  //int *cnt_by_gcell;
-
   int  cnt;
-  //int *block;
   int *index;
-  //MPI_Datatype out_dtype;
   void *out_atoms;
 } mpi_out_data;
 
@@ -147,61 +137,11 @@ typedef struct
   MPI_Datatype angle_line;
   MPI_Datatype angle_view;
 
-  //MPI_Request  send_req1[REAX_MAX_NBRS];
-  //MPI_Request  send_req2[REAX_MAX_NBRS];
-  //MPI_Status   send_stat1[REAX_MAX_NBRS];
-  //MPI_Status   send_stat2[REAX_MAX_NBRS];
-  //MPI_Status   recv_stat1[REAX_MAX_NBRS];
-  //MPI_Status   recv_stat2[REAX_MAX_NBRS];
-
   mpi_out_data out_buffers[REAX_MAX_NBRS];
   void *in1_buffer;
   void *in2_buffer;
 } mpi_datatypes;
 
-
-/* Global params mapping */
-/*
-l[0]  = p_boc1
-l[1]  = p_boc2
-l[2]  = p_coa2
-l[3]  = N/A
-l[4]  = N/A
-l[5]  = N/A
-l[6]  = p_ovun6
-l[7]  = N/A
-l[8]  = p_ovun7
-l[9]  = p_ovun8
-l[10] = N/A
-l[11] = swa
-l[12] = swb
-l[13] = N/A
-l[14] = p_val6
-l[15] = p_lp1
-l[16] = p_val9
-l[17] = p_val10
-l[18] = N/A
-l[19] = p_pen2
-l[20] = p_pen3
-l[21] = p_pen4
-l[22] = N/A
-l[23] = p_tor2
-l[24] = p_tor3
-l[25] = p_tor4
-l[26] = N/A
-l[27] = p_cot2
-l[28] = p_vdW1
-l[29] = v_par30
-l[30] = p_coa4
-l[31] = p_ovun4
-l[32] = p_ovun3
-l[33] = p_val8
-l[34] = N/A
-l[35] = N/A
-l[36] = N/A
-l[37] = version number
-l[38] = p_coa3
-*/
 
 typedef struct
 {
@@ -815,37 +755,8 @@ typedef struct
   /* force calculations */
   real *CdDelta;  // coefficient of dDelta
   rvec *f;
-#ifdef TEST_FORCES
-  rvec *f_ele;
-  rvec *f_vdw;
-  rvec *f_bo;
-  rvec *f_be;
-  rvec *f_lp;
-  rvec *f_ov;
-  rvec *f_un;
-  rvec *f_ang;
-  rvec *f_coa;
-  rvec *f_pen;
-  rvec *f_hb;
-  rvec *f_tor;
-  rvec *f_con;
-  rvec *f_tot;
-  rvec *dDelta;   // calculated on the fly in bond_orders.c together with bo'
-
-  int  *rcounts;
-  int  *displs;
-  int  *id_all;
-  rvec *f_all;
-#endif
 
   reallocate_data realloc;
-  //int *num_bonds;
-  /* hydrogen bonds */
-  //int   num_H, Hcap;
-  //int  *Hindex;
-  //int *num_hbonds;
-  //int *hash;
-  //int *rev_hash;
 } storage;
 
 
@@ -879,9 +790,6 @@ typedef _reax_list  reax_list;
 
 typedef struct
 {
-#if defined(PURE_REAX)
-  MPI_File trj;
-#endif
   FILE *strj;
   int   trj_offset;
   int   atom_line_len;
@@ -916,31 +824,6 @@ typedef struct
   int   debug_level;
   int   energy_update_freq;
 
-#ifdef TEST_ENERGY
-  FILE *ebond;
-  FILE *elp, *eov, *eun;
-  FILE *eval, *epen, *ecoa;
-  FILE *ehb;
-  FILE *etor, *econ;
-  FILE *evdw, *ecou;
-#endif
-
-#ifdef TEST_FORCES
-  FILE *fbo, *fdbo;
-  FILE *fbond;
-  FILE *flp, *fov, *fun;
-  FILE *fang, *fcoa, *fpen;
-  FILE *fhb;
-  FILE *ftor, *fcon;
-  FILE *fvdw, *fele;
-  FILE *ftot, *fcomp;
-#endif
-
-#if defined(TEST_ENERGY) || defined(TEST_FORCES)
-  FILE *flist; // far neighbor list
-  FILE *blist; // bond list
-  FILE *nlist; // near neighbor list
-#endif
 } output_controls;
 
 
@@ -987,9 +870,6 @@ extern LR_lookup_table **LR;
 typedef void (*evolve_function)(reax_system*, control_params*,
                                 simulation_data*, storage*, reax_list**,
                                 output_controls*, mpi_datatypes* );
-#if defined(PURE_REAX)
-evolve_function  Evolve;
-#endif
 
 typedef void (*interaction_function) (reax_system*, control_params*,
                                       simulation_data*, storage*,

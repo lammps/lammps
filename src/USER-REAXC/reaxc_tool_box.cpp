@@ -25,66 +25,12 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
-#if defined(PURE_REAX)
-#include "tool_box.h"
-#elif defined(LAMMPS_REAX)
 #include "reaxc_tool_box.h"
-#endif
 
-
-#if defined(PURE_REAX)
-/************** taken from comm_tools.c **************/
-int SumScan( int n, int me, int root, MPI_Comm comm )
-{
-  int  i, my_order, wsize;;
-  int *nbuf = NULL;
-
-  if( me == root ) {
-    MPI_Comm_size( comm, &wsize );
-    nbuf = (int *) calloc( wsize, sizeof(int) );
-
-    MPI_Gather( &n, 1, MPI_INT, nbuf, 1, MPI_INT, root, comm );
-
-    for( i = 0; i < wsize-1; ++i ) {
-      nbuf[i+1] += nbuf[i];
-    }
-
-    MPI_Scatter( nbuf, 1, MPI_INT, &my_order, 1, MPI_INT, root, comm );
-
-    free( nbuf );
-  }
-  else {
-    MPI_Gather( &n, 1, MPI_INT, nbuf, 1, MPI_INT, root, comm );
-    MPI_Scatter( nbuf, 1, MPI_INT, &my_order, 1, MPI_INT, root, comm );
-  }
-
-  return my_order;
-}
-
-
-void SumScanB( int n, int me, int wsize, int root, MPI_Comm comm, int *nbuf )
-{
-  int  i;
-
-  MPI_Gather( &n, 1, MPI_INT, nbuf, 1, MPI_INT, root, comm );
-
-  if( me == root ) {
-    for( i = 0; i < wsize-1; ++i )
-      nbuf[i+1] += nbuf[i];
-  }
-
-  MPI_Bcast( nbuf, wsize, MPI_INT, root, comm );
-}
-#endif
-
-
-/************** taken from box.c **************/
 void Transform( rvec x1, simulation_box *box, char flag, rvec x2 )
 {
   int i, j;
   real tmp;
-
-  //  printf(">x1: (%lf, %lf, %lf)\n",x1[0],x1[1],x1[2]);
 
   if (flag > 0) {
     for (i=0; i < 3; i++) {
@@ -102,7 +48,6 @@ void Transform( rvec x1, simulation_box *box, char flag, rvec x2 )
       x2[i] = tmp;
     }
   }
-  //  printf(">x2: (%lf, %lf, %lf)\n", x2[0], x2[1], x2[2]);
 }
 
 
@@ -115,8 +60,6 @@ void Transform_to_UnitBox( rvec x1, simulation_box *box, char flag, rvec x2 )
   x2[2] /= box->box_norms[2];
 }
 
-
-/* determine whether point p is inside the box */
 void Fit_to_Periodic_Box( simulation_box *box, rvec *p )
 {
   int i;
@@ -135,126 +78,6 @@ void Fit_to_Periodic_Box( simulation_box *box, rvec *p )
   }
 }
 
-#if defined(PURE_REAX)
-/* determine the touch point, tp, of a box to
-   its neighbor denoted by the relative coordinate rl */
-inline void Box_Touch_Point( simulation_box *box, ivec rl, rvec tp )
-{
-  int d;
-
-  for( d = 0; d < 3; ++d )
-    if( rl[d] == -1 )
-      tp[d] = box->min[d];
-    else if( rl[d] == 0 )
-      tp[d] = NEG_INF - 1.;
-    else
-      tp[d] = box->max[d];
-}
-
-
-/* determine whether point p is inside the box */
-/* assumes orthogonal box */
-inline int is_Inside_Box( simulation_box *box, rvec p )
-{
-  if( p[0] < box->min[0] || p[0] >= box->max[0] ||
-      p[1] < box->min[1] || p[1] >= box->max[1] ||
-      p[2] < box->min[2] || p[2] >= box->max[2] )
-     return 0;
-
-  return 1;
-}
-
-
-inline int iown_midpoint( simulation_box *box, rvec p1, rvec p2 )
-{
-  rvec midp;
-
-  midp[0] = (p1[0] + p2[0]) / 2;
-  midp[1] = (p1[1] + p2[1]) / 2;
-  midp[2] = (p1[2] + p2[2]) / 2;
-
-  if( midp[0] < box->min[0] || midp[0] >= box->max[0] ||
-      midp[1] < box->min[1] || midp[1] >= box->max[1] ||
-      midp[2] < box->min[2] || midp[2] >= box->max[2] )
-     return 0;
-
-  return 1;
-}
-
-
-
-/**************** from grid.c ****************/
-/* finds the closest point of grid cell cj to ci.
-   no need to consider periodic boundary conditions as in the serial case
-   because the box of a process is not periodic in itself */
-inline void GridCell_Closest_Point( grid_cell *gci, grid_cell *gcj,
-                                    ivec ci, ivec cj, rvec cp )
-{
-  int  d;
-
-  for( d = 0; d < 3; d++ )
-    if( cj[d] > ci[d] )
-      cp[d] = gcj->min[d];
-    else if ( cj[d] == ci[d] )
-      cp[d] = NEG_INF - 1.;
-    else
-      cp[d] = gcj->max[d];
-}
-
-
-
-inline void GridCell_to_Box_Points( grid_cell *gc, ivec rl, rvec cp, rvec fp )
-{
-  int d;
-
-  for( d = 0; d < 3; ++d )
-    if( rl[d] == -1 ) {
-      cp[d] = gc->min[d];
-      fp[d] = gc->max[d];
-    }
-    else if( rl[d] == 0 ) {
-      cp[d] = fp[d] = NEG_INF - 1.;
-    }
-    else{
-      cp[d] = gc->max[d];
-      fp[d] = gc->min[d];
-    }
-}
-
-
-inline real DistSqr_between_Special_Points( rvec sp1, rvec sp2 )
-{
-  int  i;
-  real d_sqr = 0;
-
-  for( i = 0; i < 3; ++i )
-    if( sp1[i] > NEG_INF && sp2[i] > NEG_INF )
-      d_sqr += SQR( sp1[i] - sp2[i] );
-
-  return d_sqr;
-}
-
-
-inline real DistSqr_to_Special_Point( rvec cp, rvec x )
-{
-  int  i;
-  real d_sqr = 0;
-
-  for( i = 0; i < 3; ++i )
-    if( cp[i] > NEG_INF )
-      d_sqr += SQR( cp[i] - x[i] );
-
-  return d_sqr;
-}
-
-
-inline int Relative_Coord_Encoding( ivec c )
-{
-  return 9 * (c[0] + 1) + 3 * (c[1] + 1) + (c[2] + 1);
-}
-#endif
-
-
 /************** from geo_tools.c *****************/
 void Make_Point( real x, real y, real z, rvec* p )
 {
@@ -267,14 +90,6 @@ void Make_Point( real x, real y, real z, rvec* p )
 
 int is_Valid_Serial( storage *workspace, int serial )
 {
-  // if( workspace->map_serials[ serial ] < 0 )
-  // {
-  // fprintf( stderr, "CONECT line includes invalid pdb serial number %d.\n",
-  // serial );
-  // fprintf( stderr, "Please correct the input file.Terminating...\n" );
-  //  MPI_Abort( MPI_COMM_WORLD, INVALID_INPUT );
-  // }
-
   return SUCCESS;
 }
 
@@ -303,8 +118,6 @@ void Trim_Spaces( char *element )
   element[j-i] = 0; // finalize the string
 }
 
-
-/************ from system_props.c *************/
 struct timeval tim;
 real t_end;
 
@@ -331,8 +144,6 @@ void Update_Timing_Info( real *t_start, real *timing )
   *t_start = t_end;
 }
 
-
-/*********** from io_tools.c **************/
 int Get_Atom_Type( reax_interaction *reax_param, char *s, MPI_Comm comm )
 {
   int i;
@@ -402,8 +213,6 @@ int Tokenize( char* s, char*** tok )
   return count;
 }
 
-
-/***************** taken from lammps ************************/
 /* safe malloc */
 void *smalloc( long n, const char *name, MPI_Comm comm )
 {

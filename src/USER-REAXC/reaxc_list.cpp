@@ -25,14 +25,8 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
-#if defined(PURE_REAX)
-#include "list.h"
-#include "tool_box.h"
-#elif defined(LAMMPS_REAX)
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
-#endif
-
 
 /************* allocate list space ******************/
 int Make_List(int n, int num_intrs, int type, reax_list *l, MPI_Comm comm)
@@ -46,9 +40,6 @@ int Make_List(int n, int num_intrs, int type, reax_list *l, MPI_Comm comm)
   l->end_index = (int*) smalloc( n * sizeof(int), "list:end_index", comm );
 
   l->type = type;
-#if defined(DEBUG_FOCUS)
-  fprintf( stderr, "list: n=%d num_intrs=%d type=%d\n", n, num_intrs, type );
-#endif
 
   switch(l->type) {
   case TYP_VOID:
@@ -133,30 +124,3 @@ void Delete_List( reax_list *l, MPI_Comm comm )
   }
 }
 
-
-#if defined(PURE_REAX)
-inline int Num_Entries( int i, reax_list *l )
-{
-  return l->end_index[i] - l->index[i];
-}
-
-inline int Start_Index( int i, reax_list *l )
-{
-  return l->index[i];
-}
-
-inline int End_Index( int i, reax_list *l )
-{
-  return l->end_index[i];
-}
-
-inline void Set_Start_Index( int i, int val, reax_list *l )
-{
-  l->index[i] = val;
-}
-
-inline void Set_End_Index( int i, int val, reax_list *l )
-{
-  l->end_index[i] = val;
-}
-#endif

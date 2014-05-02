@@ -25,20 +25,11 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
-#if defined(PURE_REAX)
-#include "bonds.h"
-#include "bond_orders.h"
-#include "list.h"
-#include "tool_box.h"
-#include "vector.h"
-#elif defined(LAMMPS_REAX)
 #include "reaxc_bonds.h"
 #include "reaxc_bond_orders.h"
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
-#endif
-
 
 void Bonds( reax_system *system, control_params *control,
             simulation_data *data, storage *workspace, reax_list **lists,
@@ -101,19 +92,6 @@ void Bonds( reax_system *system, control_params *control,
         bo_ij->Cdbopi -= (CEbo + twbp->De_p);
         bo_ij->Cdbopi2 -= (CEbo + twbp->De_pp);
 
-#ifdef TEST_ENERGY
-        //fprintf( out_control->ebond, "%6d%6d%24.15e%24.15e%24.15e\n",
-        fprintf( out_control->ebond, "%6d%6d%12.4f%12.4f%12.4f\n",
-                 system->my_atoms[i].orig_id,
-                 system->my_atoms[j].orig_id,
-                 bo_ij->BO, ebond, data->my_en.e_bond );
-#endif
-#ifdef TEST_FORCES
-        Add_dBO( system, lists, i, pj, CEbo, workspace->f_be );
-        Add_dBOpinpi2( system, lists, i, pj,
-                       -(CEbo + twbp->De_p), -(CEbo + twbp->De_pp),
-                       workspace->f_be, workspace->f_be );
-#endif
         /* Stabilisation terminal triple bond */
         if( bo_ij->BO >= 1.00 ) {
           if( gp37 == 2 ||
@@ -142,17 +120,6 @@ void Bonds( reax_system *system, control_params *control,
             bo_ij->Cdbo += decobdbo;
             workspace->CdDelta[i] += decobdboua;
             workspace->CdDelta[j] += decobdboub;
-#ifdef TEST_ENERGY
-            //fprintf( out_control->ebond,
-            //  "%6d%6d%24.15e%24.15e%24.15e%24.15e\n",
-            //  system->my_atoms[i].orig_id, system->my_atoms[j].orig_id,
-            //  estriph, decobdbo, decobdboua, decobdboub );
-#endif
-#ifdef TEST_FORCES
-            Add_dBO( system, lists, i, pj, decobdbo, workspace->f_be );
-            Add_dDelta( system, lists, i, decobdboua, workspace->f_be );
-            Add_dDelta( system, lists, j, decobdboub, workspace->f_be );
-#endif
           }
         }
       }

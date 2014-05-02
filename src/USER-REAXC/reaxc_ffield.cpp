@@ -26,14 +26,8 @@
 
 #include "pair_reax_c.h"
 #include "error.h"
-#if defined(PURE_REAX)
-#include "ffield.h"
-#include "tool_box.h"
-#elif defined(LAMMPS_REAX)
 #include "reaxc_ffield.h"
 #include "reaxc_tool_box.h"
-#endif
-
 
 char Read_Force_Field( char *ffield_file, reax_interaction *reax,
                        control_params *control )
@@ -158,15 +152,8 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
     }
   }
 
-  // vdWaals type: 1: Shielded Morse, no inner-wall
-  //               2: inner wall, no shielding
-  //               3: inner wall+shielding
   reax->gp.vdw_type = 0;
 
-  /* reading single atom parameters */
-  /* there are 4 or 5 lines of each single atom parameters in ff files,
-     depending on using lgvdw or not. These parameters later determine
-     some of the pair and triplet parameters using combination rules. */
 
   for( i = 0; i < reax->num_atom_types; i++ ) {
     /* line one */
@@ -261,10 +248,6 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
         }
         else{
           reax->gp.vdw_type = 3;
-#if defined(DEBUG)
-          fprintf( stderr, "vdWaals type for element %s: Shielding+inner-wall",
-                   reax->sbp[i].name );
-#endif
         }
       }
       else {  // No shielding vdWaals parameters present
@@ -278,10 +261,6 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
                    reax->sbp[i].name );
         else{
           reax->gp.vdw_type = 2;
-#if defined(DEBUG)
-          fprintf( stderr,"vdWaals type for element%s: No Shielding,inner-wall",
-                   reax->sbp[i].name );
-#endif
         }
       }
     }
@@ -297,10 +276,6 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
                    reax->sbp[i].name );
         else{
           reax->gp.vdw_type = 1;
-#if defined(DEBUG)
-          fprintf( stderr,"vdWaals type for element%s: Shielding,no inner-wall",
-                   reax->sbp[i].name );
-#endif
         }
       }
       else{
@@ -312,10 +287,6 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
     }
   }
 
-#if defined(DEBUG)
-  fprintf( stderr, "vdWaals type: %d\n", reax->gp.vdw_type );
-#endif
-
   /* Equate vval3 to valf for first-row elements (25/10/2004) */
   for( i = 0; i < reax->num_atom_types; i++ )
     if( reax->sbp[i].mass < 21 &&
@@ -324,7 +295,6 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
                reax->sbp[i].name );
       reax->sbp[i].valency_val = reax->sbp[i].valency_boc;
     }
-
 
   /* next line is number of two body combination and some comments */
   fgets(s,MAX_LINE,fp);
@@ -384,8 +354,6 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
       val = atof(tmp[7]);
     }
   }
-
-  /* calculating combination rules and filling up remaining fields. */
 
   for (i=0; i < reax->num_atom_types; i++)
     for (j=i; j < reax->num_atom_types; j++) {
@@ -486,10 +454,6 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
 
     }
 
-
-  /* next line is number of two body offdiagonal combinations and comments */
-  /* these are two body offdiagonal terms that are different from the
-     combination rules defined above */
   fgets(s,MAX_LINE,fp);
   c=Tokenize(s,&tmp);
   l = atoi(tmp[0]);
@@ -546,16 +510,11 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
     }
   }
 
-
-  /* 3-body parameters -
-     supports multi-well potentials (upto MAX_3BODY_PARAM in mytypes.h) */
-  /* clear entries first */
   for( i = 0; i < reax->num_atom_types; ++i )
     for( j = 0; j < reax->num_atom_types; ++j )
       for( k = 0; k < reax->num_atom_types; ++k )
         reax->thbp[i][j][k].cnt = 0;
 
-  /* next line is number of 3-body params and some comments */
   fgets( s, MAX_LINE, fp );
   c = Tokenize( s, &tmp );
   l = atoi( tmp[0] );
@@ -604,15 +563,6 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
     }
   }
 
-
-  /* 4-body parameters are entered in compact form. i.e. 0-X-Y-0
-     correspond to any type of pair of atoms in 1 and 4
-     position. However, explicit X-Y-Z-W takes precedence over the
-     default description.
-     supports multi-well potentials (upto MAX_4BODY_PARAM in mytypes.h)
-     IMPORTANT: for now, directions on how to read multi-entries from ffield
-     is not clear */
-
   /* clear all entries first */
   for( i = 0; i < reax->num_atom_types; ++i )
     for( j = 0; j < reax->num_atom_types; ++j )
@@ -639,16 +589,11 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
     if (j >= 0 && n >= 0) { // this means the entry is not in compact form
       if (j < reax->num_atom_types && k < reax->num_atom_types &&
           m < reax->num_atom_types && n < reax->num_atom_types) {
-        /* these flags ensure that this entry take precedence
-           over the compact form entries */
         tor_flag[j][k][m][n] = 1;
         tor_flag[n][m][k][j] = 1;
 
         reax->fbp[j][k][m][n].cnt = 1;
         reax->fbp[n][m][k][j].cnt = 1;
-        /* cnt = reax->fbp[j][k][m][n].cnt;
-           reax->fbp[j][k][m][n].cnt++;
-           reax->fbp[n][m][k][j].cnt++; */
 
         val = atof(tmp[4]);
         reax->fbp[j][k][m][n].prm[0].V1 = val;
@@ -677,9 +622,6 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
           for( o = 0; o < reax->num_atom_types; o++ ) {
             reax->fbp[p][k][m][o].cnt = 1;
             reax->fbp[o][m][k][p].cnt = 1;
-            /* cnt = reax->fbp[p][k][m][o].cnt;
-               reax->fbp[p][k][m][o].cnt++;
-               reax->fbp[o][m][k][p].cnt++; */
 
             if (tor_flag[p][k][m][o] == 0) {
               reax->fbp[p][k][m][o].prm[0].V1 = atof(tmp[4]);
@@ -731,7 +673,6 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
     }
   }
 
-
   /* deallocate helper storage */
   for( i = 0; i < MAX_TOKENS; i++ )
     free( tmp[i] );
@@ -754,10 +695,6 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
   // close file
 
   fclose(fp);
-
-#if defined(DEBUG_FOCUS)
-  fprintf( stderr, "force field read\n" );
-#endif
 
   return SUCCESS;
 }

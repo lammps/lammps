@@ -25,16 +25,9 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
-#if defined(PURE_REAX)
-#include "system_props.h"
-#include "tool_box.h"
-#include "vector.h"
-#elif defined(LAMMPS_REAX)
 #include "reaxc_system_props.h"
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
-#endif
-
 
 void Temperature_Control( control_params *control, simulation_data *data )
 {
@@ -255,36 +248,8 @@ void Compute_Center_of_Mass( reax_system *system, simulation_data *data,
   /* Compute the rotational energy */
   data->erot_cm = 0.5 * E_CONV * rvec_Dot( data->avcm, data->amcm );
 
-#if defined(DEBUG)
-  fprintf( stderr, "xcm:  %24.15e %24.15e %24.15e\n",
-           data->xcm[0], data->xcm[1], data->xcm[2] );
-  fprintf( stderr, "vcm:  %24.15e %24.15e %24.15e\n",
-           data->vcm[0], data->vcm[1], data->vcm[2] );
-  fprintf( stderr, "amcm: %24.15e %24.15e %24.15e\n",
-           data->amcm[0], data->amcm[1], data->amcm[2] );
-  /* fprintf( stderr, "mat:  %f %f %f\n     %f %f %f\n     %f %f %f\n",
-     mat[0][0], mat[0][1], mat[0][2],
-     mat[1][0], mat[1][1], mat[1][2],
-     mat[2][0], mat[2][1], mat[2][2] );
-     fprintf( stderr, "inv:  %g %g %g\n     %g %g %g\n     %g %g %g\n",
-     inv[0][0], inv[0][1], inv[0][2],
-     inv[1][0], inv[1][1], inv[1][2],
-     inv[2][0], inv[2][1], inv[2][2] ); */
-  fprintf( stderr, "avcm: %24.15e %24.15e %24.15e\n",
-           data->avcm[0], data->avcm[1], data->avcm[2] );
-#endif
 }
 
-
-
-/* IMPORTANT: This function assumes that current kinetic energy
- * the system is already computed
- *
- * IMPORTANT: In Klein's paper, it is stated that a dU/dV term needs
- *  to be added when there are long-range interactions or long-range
- *  corrections to short-range interactions present.
- *  We may want to add that for more accuracy.
- */
 void Compute_Pressure(reax_system* system, control_params *control,
                       simulation_data* data, mpi_datatypes *mpi_data)
 {
@@ -308,35 +273,14 @@ void Compute_Pressure(reax_system* system, control_params *control,
       rvec_Multiply( tmp, p_atom->f, tx );
       rvec_Add( int_press, tmp );
 
-#if defined(DEBUG)
-      fprintf( stderr, "%8d%8.2f%8.2f%8.2f",
-               i+1, p_atom->x[0], p_atom->x[1], p_atom->x[2] );
-      fprintf( stderr, "%8.2f%8.2f%8.2f",
-               p_atom->f[0], p_atom->f[1], p_atom->f[2] );
-      fprintf( stderr, "%8.2f%8.2f%8.2f\n",
-               int_press[0], int_press[1], int_press[2] );
-#endif
     }
   }
 
   /* sum up internal and external pressure */
-#if defined(DEBUG)
-  fprintf(stderr,"p%d:p_int(%10.5f %10.5f %10.5f)p_ext(%10.5f %10.5f %10.5f)\n",
-          system->my_rank, int_press[0], int_press[1], int_press[2],
-          data->my_ext_press[0], data->my_ext_press[1], data->my_ext_press[2] );
-#endif
   MPI_Allreduce( int_press, data->int_press,
                  3, MPI_DOUBLE, MPI_SUM, mpi_data->comm_mesh3D );
   MPI_Allreduce( data->my_ext_press, data->ext_press,
                  3, MPI_DOUBLE, MPI_SUM, mpi_data->comm_mesh3D );
-#if defined(DEBUG)
-  fprintf( stderr, "p%d: %10.5f %10.5f %10.5f\n",
-           system->my_rank,
-           data->int_press[0], data->int_press[1], data->int_press[2] );
-  fprintf( stderr, "p%d: %10.5f %10.5f %10.5f\n",
-           system->my_rank,
-           data->ext_press[0], data->ext_press[1], data->ext_press[2] );
-#endif
 
   /* kinetic contribution */
   data->kin_press = 2.*(E_CONV*data->sys_en.e_kin) / (3.*big_box->V*P_CONV);
@@ -354,63 +298,6 @@ void Compute_Pressure(reax_system* system, control_params *control,
     (( data->int_press[2] + data->ext_press[2] ) /
      ( big_box->box_norms[0] * big_box->box_norms[1] * P_CONV ));
 
-  /* Average pressure for the whole box */
   data->iso_bar.P =
     ( data->tot_press[0] + data->tot_press[1] + data->tot_press[2] ) / 3.;
 }
-
-
-
-/*
-void Compute_Pressure_Isotropic_Klein( reax_system* system,
-                                       simulation_data* data )
-{
-  int i;
-  reax_atom *p_atom;
-  rvec dx;
-
-  // IMPORTANT: This function assumes that current kinetic energy and
-  // the center of mass of the system is already computed before.
-  data->iso_bar.P = 2.0 * data->my_en.e_kin;
-
-  for( i = 0; i < system->N; ++i ) {
-    p_atom = &( system->my_atoms[i] );
-    rvec_ScaledSum(dx,1.0,p_atom->x,-1.0,data->xcm);
-    data->iso_bar.P += ( -F_CONV * rvec_Dot(p_atom->f, dx) );
-  }
-
-  data->iso_bar.P /= (3.0 * system->my_box.V);
-
-  // IMPORTANT: In Klein's paper, it is stated that a dU/dV term needs
-  // to be added when there are long-range interactions or long-range
-  // corrections to short-range interactions present.
-  // We may want to add that for more accuracy.
-}
-
-
-void Compute_Pressure( reax_system* system, simulation_data* data )
-{
-  int i;
-  reax_atom *p_atom;
-  rtensor temp;
-
-  rtensor_MakeZero( data->flex_bar.P );
-
-  for( i = 0; i < system->N; ++i ) {
-    p_atom = &( system->my_atoms[i] );
-
-    // Distance_on_T3_Gen( data->rcm, p_atom->x, &(system->my_box), &dx );
-
-    rvec_OuterProduct( temp, p_atom->v, p_atom->v );
-    rtensor_ScaledAdd( data->flex_bar.P,
-                       system->reax_param.sbp[ p_atom->type ].mass, temp );
-
-    // rvec_OuterProduct(temp,workspace->virial_forces[i],p_atom->x); //dx);
-    rtensor_ScaledAdd( data->flex_bar.P, -F_CONV, temp );
-  }
-
-  rtensor_Scale( data->flex_bar.P, 1.0 / system->my_box.V, data->flex_bar.P );
-
-  data->iso_bar.P = rtensor_Trace( data->flex_bar.P ) / 3.0;
-}
-*/

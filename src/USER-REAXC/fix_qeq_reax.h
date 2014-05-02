@@ -70,6 +70,8 @@ class FixQEqReax : public Fix {
   double *chi,*eta,*gamma;  // qeq parameters
   double **shld;
 
+  bigint ngroup;
+
   // fictitious charges
 
   double *s, *t;
@@ -132,10 +134,7 @@ class FixQEqReax : public Fix {
   double parallel_dot( double*, double*, int );
   double parallel_vector_acc( double*, int );
 
-  double norm(double*,int);
   void vector_sum(double*,double,double*,double,double*,int);
-  void vector_scale(double*,double,double*,int);
-  double dot(double*,double*,int);
   void vector_add(double*, double, double*,int);
 };
 

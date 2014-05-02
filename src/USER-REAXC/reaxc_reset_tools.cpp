@@ -25,18 +25,10 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
-#if defined(PURE_REAX)
-#include "reset_tools.h"
-#include "list.h"
-#include "tool_box.h"
-#include "vector.h"
-#elif defined(LAMMPS_REAX)
 #include "reaxc_reset_tools.h"
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
-#endif
-
 
 void Reset_Atoms( reax_system* system, control_params *control )
 {
@@ -47,6 +39,7 @@ void Reset_Atoms( reax_system* system, control_params *control )
   if( control->hbond_cut > 0 )
     for( i = 0; i < system->n; ++i ) {
       atom = &(system->my_atoms[i]);
+      if (atom->type < 0) continue;
       if( system->reax_param.sbp[ atom->type ].p_hbond == 1 )
         atom->Hindex = system->numH++;
       else atom->Hindex = -1;
@@ -99,7 +92,6 @@ void Reset_Simulation_Data( simulation_data* data, int virial )
   Reset_Energies( &data->my_en );
   Reset_Energies( &data->sys_en );
   Reset_Temperatures( data );
-  //if( virial )
   Reset_Pressures( data );
 }
 
@@ -117,26 +109,6 @@ void Reset_Timing( reax_timing *rt )
   rt->t_matvecs = 0;
 }
 
-#ifdef TEST_FORCES
-void Reset_Test_Forces( reax_system *system, storage *workspace )
-{
-  memset( workspace->f_ele, 0, system->total_cap * sizeof(rvec) );
-  memset( workspace->f_vdw, 0, system->total_cap * sizeof(rvec) );
-  memset( workspace->f_bo, 0, system->total_cap * sizeof(rvec) );
-  memset( workspace->f_be, 0, system->total_cap * sizeof(rvec) );
-  memset( workspace->f_lp, 0, system->total_cap * sizeof(rvec) );
-  memset( workspace->f_ov, 0, system->total_cap * sizeof(rvec) );
-  memset( workspace->f_un, 0, system->total_cap * sizeof(rvec) );
-  memset( workspace->f_ang, 0, system->total_cap * sizeof(rvec) );
-  memset( workspace->f_coa, 0, system->total_cap * sizeof(rvec) );
-  memset( workspace->f_pen, 0, system->total_cap * sizeof(rvec) );
-  memset( workspace->f_hb, 0, system->total_cap * sizeof(rvec) );
-  memset( workspace->f_tor, 0, system->total_cap * sizeof(rvec) );
-  memset( workspace->f_con, 0, system->total_cap * sizeof(rvec) );
-}
-#endif
-
-
 void Reset_Workspace( reax_system *system, storage *workspace )
 {
   memset( workspace->total_bond_order, 0, system->total_cap * sizeof( real ) );
@@ -144,10 +116,6 @@ void Reset_Workspace( reax_system *system, storage *workspace )
   memset( workspace->CdDelta, 0, system->total_cap * sizeof( real ) );
   memset( workspace->f, 0, system->total_cap * sizeof( rvec ) );
 
-#ifdef TEST_FORCES
-  memset( workspace->dDelta, 0, sizeof(rvec) * system->total_cap );
-  Reset_Test_Forces( system, workspace );
-#endif
 }
 
 
@@ -205,10 +173,6 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     }
   }
 
-  // fprintf( stderr, "p%d: n:%d num_intrs:%d  num_H:%d\n",
-  //   system->my_rank, hbonds->n, hbonds->num_intrs, workspace->num_H );
-  // MPI_Barrier( comm );
-  /* hbonds list */
   if( control->hbond_cut > 0 && system->numH > 0 ) {
     hbonds = (*lists) + HBONDS;
     total_hbonds = 0;
@@ -234,8 +198,6 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
       }
     }
   }
-  // fprintf( stderr, "p%d: cleared hbonds\n", system->my_rank );
-  // MPI_Barrier( comm );
 }
 
 
@@ -249,10 +211,5 @@ void Reset( reax_system *system, control_params *control, simulation_data *data,
   Reset_Workspace( system, workspace );
 
   Reset_Neighbor_Lists( system, control, workspace, lists, comm );
-
-#if defined(DEBUG_FOCUS)
-  fprintf( stderr, "p%d @ step%d: reset done\n", system->my_rank, data->step );
-  MPI_Barrier( comm );
-#endif
 
 }

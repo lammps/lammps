@@ -25,12 +25,7 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
-#if defined(PURE_REAX)
-#include "vector.h"
-#include "random.h"
-#elif defined(LAMMPS_REAX)
 #include "reaxc_vector.h"
-#endif
 
 int Vector_isZero( real* v, int k )
 {
@@ -243,29 +238,14 @@ int rvec_isZero( rvec v )
 
 void rvec_MakeZero( rvec v )
 {
-//  v[0] = v[1] = v[2] = 0.0000000000000;
   v[0] = v[1] = v[2] = 0.000000000000000e+00;
 }
-
-
-#if defined(PURE_REAX)
-void rvec_Random( rvec v )
-{
-  v[0] = Random(2.0)-1.0;
-  v[1] = Random(2.0)-1.0;
-  v[2] = Random(2.0)-1.0;
-}
-#endif
-
 
 void rtensor_Multiply( rtensor ret, rtensor m1, rtensor m2 )
 {
   int i, j, k;
   rtensor temp;
 
-  // check if the result matrix is the same as one of m1, m2.
-  // if so, we cannot modify the contents of m1 or m2, so
-  // we have to use a temp matrix.
   if( ret == m1 || ret == m2 )
     {
       for( i = 0; i < 3; ++i )
@@ -298,8 +278,6 @@ void rtensor_MatVec( rvec ret, rtensor m, rvec v )
   int i;
   rvec temp;
 
-  // if ret is the same vector as v, we cannot modify the
-  // contents of v until all computation is finished.
   if( ret == v )
     {
       for( i = 0; i < 3; ++i )

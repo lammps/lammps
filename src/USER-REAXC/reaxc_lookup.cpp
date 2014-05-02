@@ -25,25 +25,17 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
-#if defined(PURE_REAX)
-#include "lookup.h"
-#include "nonbonded.h"
-#include "tool_box.h"
-#elif defined(LAMMPS_REAX)
 #include "reaxc_lookup.h"
 #include "reaxc_nonbonded.h"
 #include "reaxc_tool_box.h"
-#endif
 
 LR_lookup_table **LR;
 
-/* Fills solution into x. Warning: will modify c and d! */
 void Tridiagonal_Solve( const real *a, const real *b,
                         real *c, real *d, real *x, unsigned int n){
   int i;
   real id;
 
-  /* Modify the coefficients. */
   c[0] /= b[0];        /* Division by zero risk. */
   d[0] /= b[0];        /* Division by zero would imply a singular matrix. */
   for(i = 1; i < n; i++){
@@ -52,7 +44,6 @@ void Tridiagonal_Solve( const real *a, const real *b,
     d[i] = (d[i] - d[i-1] * a[i])/id;
   }
 
-  /* Now back substitute. */
   x[n - 1] = d[n - 1];
   for(i = n - 2; i >= 0; i--)
     x[i] = d[i] - c[i] * x[i + 1];
@@ -216,17 +207,12 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
   fCEclmb = (real*)
     smalloc( (control->tabulate+2) * sizeof(real), "lookup:fCEclmb", comm );
 
-  /* allocate Long-Range LookUp Table space based on
-     number of atom types in the ffield file */
   LR = (LR_lookup_table**)
     scalloc( num_atom_types, sizeof(LR_lookup_table*), "lookup:LR", comm );
   for( i = 0; i < num_atom_types; ++i )
     LR[i] = (LR_lookup_table*)
       scalloc( num_atom_types, sizeof(LR_lookup_table), "lookup:LR[i]", comm );
 
-  /* most atom types in ffield file will not exist in the current
-     simulation. to avoid unnecessary lookup table space, determine
-     the atom types that exist in the current simulation */
   for( i = 0; i < MAX_ATOM_TYPES; ++i )
     existing_types[i] = 0;
   for( i = 0; i < system->n; ++i )
@@ -235,11 +221,8 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
   MPI_Allreduce( existing_types, aggregated, MAX_ATOM_TYPES,
                  MPI_INT, MPI_SUM, mpi_data->world );
 
-  /* fill in the lookup table entries for existing atom types.
-     only lower half should be enough. */
   for( i = 0; i < num_atom_types; ++i ) {
     if( aggregated[i] ) {
-      //for( j = 0; j < num_atom_types; ++j )
       for( j = i; j < num_atom_types; ++j ) {
         if( aggregated[j] ) {
           LR[i][j].xmin = 0;

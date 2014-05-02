@@ -7,6 +7,7 @@
 :line
 
 pair_style coul/diel command :h3
+pair_style coul/diel/omp command :h3
 
 [Syntax:]
 

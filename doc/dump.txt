@@ -17,7 +17,7 @@ dump ID group-ID style N file args :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be dumped :l
-style = {atom} or {atom/mpiio} or {cfg} or {dcd} or {xtc} or {xyz} or {xyz/mpiio} or {image} or {molfile} or {local} or {custom} or {custom/mpiio} :l
+style = {atom} or {atom/mpiio} or {cfg} or {dcd} or {xtc} or {xyz} or {xyz/mpiio} or {image} or {movie} or {molfile} or {local} or {custom} or {custom/mpiio} :l
 N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
@@ -30,6 +30,8 @@ args = list of arguments for a particular style :l
   {xyz/mpiio} args = none :pre
 
   {image} args = discussed on "dump image"_dump_image.html doc page :pre
+
+  {movie} args = discussed on "dump image"_dump_image.html doc page :pre
 
   {molfile} args = discussed on "dump molfile"_dump_molfile.html doc page :pre
 
@@ -91,19 +93,20 @@ dump 2 subgroup atom 50 dump.run.mpiio.bin
 dump 4a all custom 100 dump.myforce.* id type x y vx fx
 dump 4b flow custom 100 dump.%.myforce id type c_myF\[3\] v_ke
 dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
-dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress[2]
+dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress\[2\]
 dump 1 all xtc 1000 file.xtc
 dump e_data all custom 100 dump.eff id type x y z spin eradius fx fy fz eforce :pre
 
 [Description:]
 
 Dump a snapshot of atom quantities to one or more files every N
-timesteps in one of several styles.  The {image} style is the
-exception; it creates a JPG or PPM image file of the atom
-configuration every N timesteps, as discussed on the "dump
-image"_dump_image.html doc page.  The timesteps on which dump output
-is written can also be controlled by a variable; see the "dump_modify
-every"_dump_modify.html command for details.
+timesteps in one of several styles.  The {image} and {movie} styles are
+the exception: the {image} style renders a JPG, PNG, or PPM image file
+of the atom configuration every N timesteps while the {movie} style
+combines and compresses them into a movie file; both are discussed in
+detail on the "dump image"_dump_image.html doc page.  The timesteps on
+which dump output is written can also be controlled by a variable.
+See the "dump_modify every"_dump_modify.html command.
 
 Only information for atoms in the specified group is dumped.  The
 "dump_modify thresh and region"_dump_modify.html commands can also

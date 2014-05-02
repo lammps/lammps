@@ -270,7 +270,7 @@ dump file as a (large) integer, then you need to use an appropriate
 format.  For example, these commands:
 
 compute     1 all property/local batom1 batom2
-dump        1 all local 100 tmp.bonds index c_1[1] c_1[2]
+dump        1 all local 100 tmp.bonds index c_1\[1\] c_1\[2\]
 dump_modify 1 format "%d %0.0f %0.0f" :pre
 
 will output the two atom IDs for atoms in each bond as integers.  If

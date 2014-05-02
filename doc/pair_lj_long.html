@@ -34,7 +34,7 @@
       <I>off</I> = omit Coulombic term
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  <I>lj/cut/tip4p/long</I> args = flag_lj flag_coul otype htype btype atype qdist cutoff (cutoff2)
+  <I>lj/long/tip4p/long</I> args = flag_lj flag_coul otype htype btype atype qdist cutoff (cutoff2)
     flag_lj = <I>long</I> or <I>cut</I>
       <I>long</I> = use Kspace long-range summation for dispersion 1/r^6 term
       <I>cut</I> = use a cutoff
@@ -83,7 +83,7 @@ settings.  The <A HREF = "#Veld">In 't Veld</A> paper has more details on when i
 appropriate to include long-range 1/r^6 interactions, using this
 potential.
 </P>
-<P>Style <I>lj/cut/tip4p/long</I> implements the TIP4P water model of
+<P>Style <I>lj/long/tip4p/long</I> implements the TIP4P water model of
 <A HREF = "#Jorgensen">(Jorgensen)</A>, which introduces a massless site located a
 short distance away from the oxygen atom along the bisector of the HOH
 angle.  The atomic types of the oxygen and hydrogen atoms, the bond

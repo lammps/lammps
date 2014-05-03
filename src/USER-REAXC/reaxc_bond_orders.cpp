@@ -150,7 +150,6 @@ void Add_dBond_to_Forces( reax_system *system, int i, int pj,
   int pk, k, j;
 
   /* Virial Tallying variables */
-  real f_scaler;
   rvec fi_tmp, fj_tmp, fk_tmp, delij, delji, delki, delkj, temp;
 
   /* Initializations */
@@ -370,7 +369,7 @@ void BO( reax_system *system, control_params *control, simulation_data *data,
          storage *workspace, reax_list **lists, output_controls *out_control )
 {
   int i, j, pj, type_i, type_j;
-  int start_i, end_i, sym_index, num_bonds;
+  int start_i, end_i, sym_index;
   real val_i, Deltap_i, Deltap_boc_i;
   real val_j, Deltap_j, Deltap_boc_j;
   real f1, f2, f3, f4, f5, f4f5, exp_f4, exp_f5;
@@ -384,7 +383,6 @@ void BO( reax_system *system, control_params *control, simulation_data *data,
   bond_order_data *bo_ij, *bo_ji;
   reax_list *bonds = (*lists) + BONDS;
 
-  num_bonds = 0;
   p_boc1 = system->reax_param.gp.l[0];
   p_boc2 = system->reax_param.gp.l[1];
 

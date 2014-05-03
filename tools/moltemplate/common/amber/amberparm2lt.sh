@@ -1,30 +1,5 @@
 #!/bin/sh
 
-if ! which amberparm_mass_to_lt.py > /dev/null; then
-    echo "\nError: \"amberparm_mass_to_lt.py\" not found. (Update your PATH?)\n" >&2
-    exit 2
-fi
-if ! which amberparm_pair_to_lt.py > /dev/null; then
-    echo "\nError: \"amberparm_pair_to_lt.py\" not found. (Update your PATH?)\n" >&2
-    exit 2
-fi
-if ! which amberparm_bond_to_lt.py > /dev/null; then
-    echo "\nError: \"amberparm_bond_to_lt.py\" not found. (Update your PATH?)\n" >&2
-    exit 2
-fi
-if ! which amberparm_angle_to_lt.py > /dev/null; then
-    echo "\nError: \"amberparm_angle_to_lt.py\" not found. (Update your PATH?)\n" >&2
-    exit 2
-fi
-if ! which amberparm_dihedral_to_lt.py > /dev/null; then
-    echo "\nError: \"amberparm_dihedral_to_lt.py\" not found. (Update your PATH?)\n" >&2
-    exit 2
-fi
-if ! which amberparm_improper_to_lt.py > /dev/null; then
-    echo "\nError: \"amberparm_improper_to_lt.py\" not found. (Update your PATH?)\n" >&2
-    exit 2
-fi
-
 SYNTAX_MSG=$(cat <<EOF
 Typical Usage:
 
@@ -91,6 +66,38 @@ echo ""
 echo ""
 
 
+if ! which ./amberparm_mass_to_lt.py > /dev/null; then
+    echo "\nError: \"amberparm_mass_to_lt.py\" not found.\n" >&2
+    echo "       (Try running this script from the directory containing amberparm2lt.sh)" >&2
+    exit 2
+fi
+if ! which ./amberparm_pair_to_lt.py > /dev/null; then
+    echo "\nError: \"amberparm_pair_to_lt.py\" not found.\n" >&2
+    echo "       (Try running this script from the directory containing amberparm2lt.sh)" >&2
+    exit 2
+fi
+if ! which ./amberparm_bond_to_lt.py > /dev/null; then
+    echo "\nError: \"amberparm_bond_to_lt.py\" not found.\n" >&2
+    echo "       (Try running this script from the directory containing amberparm2lt.sh)" >&2
+    exit 2
+fi
+if ! which ./amberparm_angle_to_lt.py > /dev/null; then
+    echo "\nError: \"amberparm_angle_to_lt.py\" not found.\n" >&2
+    echo "       (Try running this script from the directory containing amberparm2lt.sh)" >&2
+    exit 2
+fi
+if ! which ./amberparm_dihedral_to_lt.py > /dev/null; then
+    echo "\nError: \"amberparm_dihedral_to_lt.py\" not found.\n" >&2
+    echo "       (Try running this script from the directory containing amberparm2lt.sh)" >&2
+    exit 2
+fi
+if ! which ./amberparm_improper_to_lt.py > /dev/null; then
+    echo "\nError: \"amberparm_improper_to_lt.py\" not found. (Update your PATH?)\n" >&2
+    echo "       (Try running this script from the directory containing amberparm2lt.sh)" >&2
+    exit 2
+fi
+
+
 #PARM_FILE='gaff.dat'
 PARM_FILE=$1
 
@@ -137,13 +144,13 @@ awk -v n=8 '{if (NF==0) nblanks++; else {if (nblanks+1==n) print $0}}' \
     > "${PARM_FILE}.pair"
 
 
-amberparm_mass_to_lt.py < "${PARM_FILE}.mass" > "${PARM_FILE}.mass.lt"
-amberparm_pair_to_lt.py < "${PARM_FILE}.pair" > "${PARM_FILE}.pair.lt"
-amberparm_bond_to_lt.py < "${PARM_FILE}.bond" > "${PARM_FILE}.bond.lt"
-amberparm_angle_to_lt.py < "${PARM_FILE}.angle" > "${PARM_FILE}.angle.lt"
-amberparm_dihedral_to_lt.py \
+./amberparm_mass_to_lt.py < "${PARM_FILE}.mass" > "${PARM_FILE}.mass.lt"
+./amberparm_pair_to_lt.py < "${PARM_FILE}.pair" > "${PARM_FILE}.pair.lt"
+./amberparm_bond_to_lt.py < "${PARM_FILE}.bond" > "${PARM_FILE}.bond.lt"
+./amberparm_angle_to_lt.py < "${PARM_FILE}.angle" > "${PARM_FILE}.angle.lt"
+./amberparm_dihedral_to_lt.py \
      < "${PARM_FILE}.dihedral" > "${PARM_FILE}.dihedral.lt"
-amberparm_improper_to_lt.py \
+./amberparm_improper_to_lt.py \
      < "${PARM_FILE}.improper" > "${PARM_FILE}.improper.lt"
 
 echo "$2 {"
@@ -175,19 +182,12 @@ AMBER_STYLES_INIT=$(cat <<EOF
     angle_style     hybrid harmonic
     dihedral_style  hybrid fourier
     improper_style  hybrid cvff
-    pair_style      hybrid lj/charmm/coul/charmm 9.0 10.0
+    pair_style      hybrid lj/charmm/coul/long 9.0 10.0 10.0
+    kspace_style    pppm 0.0001
 
-    # NOTE: Long-range coulombic forces were disabled intentionally. (See below)
-    #       If you want to use long-range electrostatics, uncomment these lines:
-    #
-    #pair_style      hybrid lj/charmm/coul/long 9.0 10.0 10.0
-    #kspace_style    pppm 0.0001
-    #
-    # Instead I use hybrid lj/charmm/coul/charmm by default, because
-    # LAMMPS complains if you attempt to use lj/charmm/coul/long on a
-    # system if it does not contain any charged particles.
-    # Currently, moltemplate does not assign atomic charge, 
-    # so this problem occurs frequently.
+    # NOTE: If you do not want to use long-range coulombic forces,
+    #       comment out the two lines above and uncomment this line:
+    # pair_style      hybrid lj/charmm/coul/charmm 9.0 10.0
 
     pair_modify     mix arithmetic
     special_bonds   amber

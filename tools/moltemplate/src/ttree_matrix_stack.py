@@ -626,10 +626,18 @@ def ScaleMat(dest, scale):
 
 
 def RotMatAXYZ(dest, angle, axis_x, axis_y, axis_z):
+
     r = math.sqrt(axis_x*axis_x + axis_y*axis_y + axis_z*axis_z)
-    X = axis_x / r
-    Y = axis_y / r
-    Z = axis_z / r
+
+    X = 1.0
+    Y = 0.0
+    Z = 0.0
+    if r > 0.0:  # check for non-sensical input
+        X = axis_x / r
+        Y = axis_y / r
+        Z = axis_z / r
+    else:
+        angle = 0.0
 
     #angle *= math.pi/180.0 # "angle" is assumed to be in degrees
     #    on second thought, let the caller worry about angle units.
@@ -693,7 +701,7 @@ def RotMatXYZXYZ(dest,
     Lc = Length(axis)
     sinAng = Lc / (La*Lb)
     cosAng = DotProd(A,B) / (La*Lb)
-    if Length > 0.0:
+    if Lc > 0.0:
         Normalize(axis, axis)
         angle = math.atan2(sinAng, cosAng)
     else:

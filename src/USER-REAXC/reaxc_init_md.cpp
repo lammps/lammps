@@ -36,7 +36,6 @@
 #include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
 
-
 int Init_System( reax_system *system, control_params *control, char *msg )
 {
   int i;
@@ -56,20 +55,12 @@ int Init_System( reax_system *system, control_params *control, char *msg )
   if( control->hbond_cut > 0 )
     for( i = 0; i < system->n; ++i ) {
       atom = &(system->my_atoms[i]);
+      if (atom->type < 0) continue;
       if( system->reax_param.sbp[ atom->type ].p_hbond == 1 )
         atom->Hindex = system->numH++;
       else atom->Hindex = -1;
     }
   system->Hcap = (int)(MAX( system->numH * saferzone, mincap ));
-
-#if defined(DEBUG_FOCUS)
-  fprintf( stderr, "p%d: n=%d local_cap=%d\n",
-           system->my_rank, system->n, system->local_cap );
-  fprintf( stderr, "p%d: N=%d total_cap=%d\n",
-           system->my_rank, system->N, system->total_cap );
-  fprintf( stderr, "p%d: numH=%d H_cap=%d\n",
-           system->my_rank, system->numH, system->Hcap );
-#endif
 
   return SUCCESS;
 }
@@ -83,20 +74,13 @@ int Init_Simulation_Data( reax_system *system, control_params *control,
   /* initialize the timer(s) */
   if( system->my_rank == MASTER_NODE ) {
     data->timing.start = Get_Time( );
-#if defined(LOG_PERFORMANCE)
-    Reset_Timing( &data->timing );
-#endif
   }
 
-  //if( !control->restart )
   data->step = data->prev_steps = 0;
 
   return SUCCESS;
 }
 
-
-/************************ initialize workspace ************************/
-/* Initialize Taper params */
 void Init_Taper( control_params *control,  storage *workspace, MPI_Comm comm )
 {
   real d1, d7;
@@ -199,16 +183,8 @@ int  Init_Lists( reax_system *system, control_params *control,
       fprintf( stderr, "not enough space for hbonds list. terminating!\n" );
       MPI_Abort( comm, INSUFFICIENT_MEMORY );
     }
-#if defined(DEBUG_FOCUS)
-    fprintf( stderr, "p%d: allocated hbonds: total_hbonds=%d, space=%dMB\n",
-             system->my_rank, total_hbonds,
-             (int)(total_hbonds*sizeof(hbond_data)/(1024*1024)) );
-#endif
   }
 
-  /* bonds list */
-  //Allocate_Bond_List( system->N, bond_top, (*lists)+BONDS );
-  //num_bonds = bond_top[system->N-1];
   total_bonds = 0;
   for( i = 0; i < system->N; ++i ) {
     system->my_atoms[i].num_bonds = bond_top[i];
@@ -221,11 +197,6 @@ int  Init_Lists( reax_system *system, control_params *control,
     fprintf( stderr, "not enough space for bonds list. terminating!\n" );
     MPI_Abort( comm, INSUFFICIENT_MEMORY );
   }
-#if defined(DEBUG_FOCUS)
-  fprintf( stderr, "p%d: allocated bonds: total_bonds=%d, space=%dMB\n",
-           system->my_rank, bond_cap,
-           (int)(bond_cap*sizeof(bond_data)/(1024*1024)) );
-#endif
 
   /* 3bodies list */
   cap_3body = (int)(MAX( num_3body*safezone, MIN_3BODIES ));
@@ -234,38 +205,12 @@ int  Init_Lists( reax_system *system, control_params *control,
     fprintf( stderr, "Problem in initializing angles list. Terminating!\n" );
     MPI_Abort( comm, INSUFFICIENT_MEMORY );
   }
-#if defined(DEBUG_FOCUS)
-  fprintf( stderr, "p%d: allocated 3-body list: num_3body=%d, space=%dMB\n",
-           system->my_rank, cap_3body,
-           (int)(cap_3body*sizeof(three_body_interaction_data)/(1024*1024)) );
-#endif
-
-#if defined(TEST_FORCES)
-  if( !Make_List( system->total_cap, bond_cap*8, TYP_DDELTA,
-                  *lists+DDELTAS, comm ) ) {
-    fprintf( stderr, "Problem in initializing dDelta list. Terminating!\n" );
-    MPI_Abort( comm, INSUFFICIENT_MEMORY );
-  }
-  fprintf( stderr, "p%d: allocated dDelta list: num_ddelta=%d space=%ldMB\n",
-           system->my_rank, bond_cap*30,
-           bond_cap*8*sizeof(dDelta_data)/(1024*1024) );
-
-  if( !Make_List( bond_cap, bond_cap*50, TYP_DBO, (*lists)+DBOS, comm ) ) {
-    fprintf( stderr, "Problem in initializing dBO list. Terminating!\n" );
-    MPI_Abort( comm, INSUFFICIENT_MEMORY );
-  }
-  fprintf( stderr, "p%d: allocated dbond list: num_dbonds=%d space=%ldMB\n",
-           system->my_rank, bond_cap*MAX_BONDS*3,
-           bond_cap*MAX_BONDS*3*sizeof(dbond_data)/(1024*1024) );
-#endif
 
   free( hb_top );
   free( bond_top );
 
   return SUCCESS;
 }
-
-
 
 void Initialize( reax_system *system, control_params *control,
                  simulation_data *data, storage *workspace,
@@ -282,9 +227,6 @@ void Initialize( reax_system *system, control_params *control,
              system->my_rank );
     MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
   }
-#if defined(DEBUG)
-  fprintf( stderr, "p%d: initialized mpi datatypes\n", system->my_rank );
-#endif
 
   if( Init_System(system, control, msg) == FAILURE ){
     fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
@@ -292,9 +234,6 @@ void Initialize( reax_system *system, control_params *control,
              system->my_rank );
     MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
   }
-#if defined(DEBUG)
-  fprintf( stderr, "p%d: system initialized\n", system->my_rank );
-#endif
 
   if( Init_Simulation_Data( system, control, data, msg ) == FAILURE ) {
     fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
@@ -302,9 +241,6 @@ void Initialize( reax_system *system, control_params *control,
              system->my_rank );
     MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
   }
-#if defined(DEBUG)
-  fprintf( stderr, "p%d: initialized simulation data\n", system->my_rank );
-#endif
 
   if( Init_Workspace( system, control, workspace, mpi_data->world, msg ) ==
       FAILURE ) {
@@ -314,9 +250,6 @@ void Initialize( reax_system *system, control_params *control,
              system->my_rank );
     MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
   }
-#if defined(DEBUG)
-  fprintf( stderr, "p%d: initialized workspace\n", system->my_rank );
-#endif
 
   if( Init_Lists( system, control, data, workspace, lists, mpi_data, msg ) ==
       FAILURE ) {
@@ -325,9 +258,6 @@ void Initialize( reax_system *system, control_params *control,
                system->my_rank );
       MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
     }
-#if defined(DEBUG)
-  fprintf( stderr, "p%d: initialized lists\n", system->my_rank );
-#endif
 
   if( Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE) {
     fprintf( stderr, "p%d: %s\n", system->my_rank, msg );
@@ -335,9 +265,6 @@ void Initialize( reax_system *system, control_params *control,
              system->my_rank );
     MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
   }
-#if defined(DEBUG)
-  fprintf( stderr, "p%d: output files opened\n", system->my_rank );
-#endif
 
   if( control->tabulate ) {
     if( Init_Lookup_Tables( system, control, workspace, mpi_data, msg ) == FAILURE ) {
@@ -346,18 +273,8 @@ void Initialize( reax_system *system, control_params *control,
                system->my_rank );
       MPI_Abort( mpi_data->world, CANNOT_INITIALIZE );
     }
-#if defined(DEBUG)
-    fprintf( stderr, "p%d: initialized lookup tables\n", system->my_rank );
-#endif
   }
 
 
   Init_Force_Functions( control );
-#if defined(DEBUG)
-  fprintf( stderr, "p%d: initialized force functions\n", system->my_rank );
-#endif
-  /*#if defined(TEST_FORCES)
-    Init_Force_Test_Functions();
-    fprintf(stderr,"p%d: initialized force test functions\n",system->my_rank);
-  #endif*/
 }

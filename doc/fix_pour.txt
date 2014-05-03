@@ -161,6 +161,12 @@ The {rate} option moves the insertion volume in the z direction (3d)
 or y direction (2d).  This enables pouring particles from a
 successively higher height over time.
 
+IMPORTANT NOTE: If you are monitoring the temperature of a system
+where the particle count is changing due to adding particles, you
+typically should use the "compute_modify dynamic
+yes"_compute_modify.html command for the temperature compute you are
+using.
+
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]

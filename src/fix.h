@@ -46,6 +46,7 @@ class Fix : protected Pointers {
                                  //      so write_restart must remap to PBC
   int wd_header;                 // # of header values fix writes to data file
   int wd_section;                // # of sections fix writes to data file
+  int dynamic_group_allow;       // 1 if can be used with dynamic group, else 0
   int cudable_comm;              // 1 if fix has CUDA-enabled communication
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists

@@ -1,59 +1,73 @@
 This directory contains instructions for creating a a moltemplate file
-("oplsaa.lt") containing force-field definitions relevant to ethylene example.
-Create "oplsaa.lt" this way:
+("oplsaa.lt") containing force-field definitions relevant to the 
+"ethylene" example.  (However, these instructions should work 
+for other molecules too.)
 
-./oplsaa_moltemplate.py  oplsaa_subset.txt
+First, check and see if there is an "oplsaa_subset.prm" file present.
+If not, then download this file:
 
-# Then move the newly created opls.lt file to the parent directory
-# (to help moltemplate find it).
+http://dasher.wustl.edu/tinker/distribution/params/oplsaa.prm
+   This file is also available here:
+http://dasher.wustl.edu/ffe/distribution/params/oplsaa.prm
 
-mv oplsaa.lt ..
+and save this file as "oplsaa_subset.prm".  Then you must EDIT THIS FILE
+so that it only contains atom types you plan to have in your simulation
+(see below for details).  Then run the opls_moltemplate.py script this way:
 
------------ GENERAL DOCUMENTATION -----------
-The "oplsaa_subset.txt" file should contain force-field information
-for a subset of the atoms in the oplsaa forcefield.  This directory
-also contains the python code ("oplsaa_moltemplate.py") used to
-generate that file, as well as the full oplsaa force field file: "oplsaa.txt".
 
-NOTE: THE ORIGINAL "oplsaa.txt" FILE IS LOCATED IN THE "common/opls/" DIRECTORY.
-      (I deleted it here to save space.)
+python oplsaa_moltemplate.py  oplsaa_subset.prm
 
-python oplsaa_moltemplate.py  <force field file name>
 
-First, back-up the oplsaa.txt file and then delete all the unnecessary atoms
-from the file.
+This will create a file named "oplsaa.lt"
+Look over the newly created "oplsaa.lt" file.
+Then move this file to wherever you plan to run moltemplate.  For example:
 
-It is ideal for you to run this on a subset of the OPLS forcefield relevant 
-to your problem.  (It is possible for you to generate a full OPLS force field
-moltemplate file but that demands a lot of time and generates a file that is
-on the order 100 gigabytes, which moltemplate can not read.)  
-Save yourself time and energy, and make a copy of the oplsaa.txt.  Then edit 
-this file and delete or comment out any line beginning with the word "atom"
-which is not relevant to your problem.  (However keep the rest of the file.)
+mv -f oplsaa.lt ..
+
+----- DETAILS: Editing the "oplsaa_subset.prm" file -------
+
+Again, before you run "oplsaa_moltemplate.py", you must edit the "oplsaa.prm"
+file (or "oplsaa_subset.prm file) and eliminate atom types which do not 
+correspond to any of the atoms in your simulation.  This means you must
+look for lines near the beginning of this file which begin with the word "atom"
+and refer to atom types which appear in the simulation you plan to run.  All
+other lines (beginning with the word "atom") must be deleted or commented out.
+(Leave the rest of the file alone.)
 
 For example:
-Let's assume this new file is called "oplsaa_subset.txt".  If you were 
-working with ethylene you would delete every atom except for atom 85(C=) 
-and 86(H-C=) and use that as the input file for oplsaa_moltemplate.py
+If you were working with ethylene, you would delete every line
+beginning with the word "atom", except for these two lines:
 
-atom         85   37    CM    "Alkene H2-C="                 6    12.011    3
-atom         86   36    HC    "Alkene H-C="                  1     1.008    1
 
-You do not need to make any other changes other than that.  Then run:
+atom         88   47    CM    "Alkene H2-C="                 6    12.011    3
+atom         89   46    HC    "Alkene H-C="                  1     1.008    1
 
-python oplsaa_moltemplate.py oplsaa_subset.txt
 
-   ...this will create a file named "oplsaa.lt"
+Then you are ready to run oplsaa_moltemplate.py on this file.
 
-Look over the newly created "oplsaa.lt" file.  Then copy it to the "common" directory (where other force-field files like gaff.lt are located, ...or just copy it to wherever you plan to run moltemplate).  
+(You can try to delete more irrelevant information, but be careful.
+ It is not necessary, and it is easy to make mistakes.)
 
-Then you can create molecules that refer to it using:
+
+----- Using the "oplsaa.lt" file -----
+
+Once you have created the "oplsaa.lt" file, you can create files (like 
+ethylene.lt) which define molecules that refer to these atom types.
+Here is an excerpt from "ethyelene.lt":
 
 Ethylene inherits OPLSAA {
-  # Definition of Ethylene molecule goes here.
+  write('Data Atoms') { 
+    list of atoms goes here ...
+  }
+  write('Data Bond List') { 
+    list of bonds goes here ...
+  }
 }
 
-CHARGE:
+And then run moltemplate.
+
+
+-----------  CHARGE: -----------
 
 By default, the OPLSAA force-field assigns atom charge according to atom type.
 When you run moltemplate, it will create a file named "system.in.charges",
@@ -74,8 +88,19 @@ OPLS atom numbers.  (Check the output_ttree/ttree_assignments.txt file,
 created by moltemplate, to see a table of "@atom" type numbers translated 
 from OPLSAA into LAMMPS.)
 
--Jason Lambert
-February, 2014
+----------- CREDIT -----------
 
-Please email bugs to jewett.aij@gmail.com
+If you use these tools and you publish a paper using OPLSAA, please also cite 
+the TINKER program.  (Because these examples use the "oplsaa.prm" file which
+is distributed with TINKER.)  I think these are the relevant citations:
 
+1) Ponder, J. W., & Richards, F. M. (1987). "An efficient newton‐like method for molecular mechanics energy minimization of large molecules. Journal of Computational Chemistry", 8(7), 1016-1024.
+
+2) Ponder, J. W, (2004) "TINKER: Software tools for molecular design", http://dasher.wustl.edu/tinker/
+
+-------------------------------
+
+Jason Lambert and Andrew Jewett
+April, 2014
+
+Please email bugs to jewett.aij@gmail.com and jlamber9@gmail.com

@@ -216,7 +216,7 @@ class TtreeShlex(object):
                         if raw in self.source_triggers_x:
                             self.source_files_restricted.add(newfile)
                     else:
-                        if self.debug >= 0:
+                        if self.debug >= 1:
                             sys.stderr.write('\ndebug warning: duplicate attempt to import file:\n               \"'+newfile+'\"\n')
                 raw = self.get_token()
 

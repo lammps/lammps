@@ -50,7 +50,7 @@
 #
 # Note: In this example "2bead" is NOT a molecule.  (Because it contains no
 #       "write("Data Atoms")" section of its own.)  "2bead" is simply the 
-#       name of an environment in which other molecules (H,P) are defined.
+#       name of an environment in which other molecules "H" and "P" are defined.
 
 
 

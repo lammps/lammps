@@ -10,7 +10,18 @@
 import sys
 from nbody_graph_search import *
 #from collections import namedtuple
-from collections import defaultdict, OrderedDict
+if sys.version < '2.7':
+    sys.stderr.write('--------------------------------------------------------\n'
+                     '----------------- WARNING: OLD PYTHON VERSION ----------\n'
+                     '  This program is untested on your python version ('+sys.version+').\n'
+                     '  PLEASE LET ME KNOW IF THIS PROGRAM CRASHES (and upgrade python).\n'
+                     '    -Andrew   2013-10-25\n'
+                     '--------------------------------------------------------\n'
+                     '--------------------------------------------------------\n')
+    from ordereddict import OrderedDict
+else:
+    from collections import OrderedDict
+from collections import defaultdict
 from ttree_lex import MatchesPattern, MatchesAll, InputError
 #import gc
 

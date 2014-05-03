@@ -45,6 +45,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all(FLERR,"Illegal fix efield command");
 
+  dynamic_group_allow = 1;
   vector_flag = 1;
   scalar_flag = 1;
   size_vector = 3;
@@ -259,6 +260,14 @@ void FixEfield::post_force(int vflag)
     memory->create(efield,maxatom,4,"efield:efield");
   }
 
+  // update region if necessary
+
+  Region *region = NULL;
+  if (iregion >= 0) {
+    region = domain->regions[iregion];
+    region->prematch();
+  }
+
   // fsum[0] = "potential energy" for added force
   // fsum[123] = extra force added to atoms
 
@@ -279,9 +288,7 @@ void FixEfield::post_force(int vflag)
     if (qflag) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
-          if (iregion >= 0 &&
-              !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-            continue;
+          if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
           fx = q[i]*ex;
           fy = q[i]*ey;
           fz = q[i]*ez;
@@ -306,9 +313,7 @@ void FixEfield::post_force(int vflag)
       double tx,ty,tz;
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
-          if (iregion >= 0 &&
-              !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-            continue;
+          if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
           tx = ez*mu[i][1] - ey*mu[i][2];
           ty = ex*mu[i][2] - ez*mu[i][0];
           tz = ey*mu[i][0] - ex*mu[i][1];
@@ -354,9 +359,7 @@ void FixEfield::post_force(int vflag)
     if (qflag) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
-          if (iregion >= 0 &&
-              !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-            continue;
+          if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
           if (xstyle == ATOM) fx = qe2f * q[i]*efield[i][0];
           else fx = q[i]*ex;
           f[i][0] += fx;
@@ -382,9 +385,7 @@ void FixEfield::post_force(int vflag)
       double tx,ty,tz;
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
-          if (iregion >= 0 &&
-              !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-            continue;
+          if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
           tx = ez*mu[i][1] - ey*mu[i][2];
           ty = ex*mu[i][2] - ez*mu[i][0];
           tz = ey*mu[i][0] - ex*mu[i][1];

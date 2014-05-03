@@ -57,8 +57,12 @@ class PairReaxC : public Pair {
   reax_list *lists;
   mpi_datatypes *mpi_data;
 
+  bigint ngroup;
+
  private:
   double cutmax;
+  int nelements;                // # of unique elements
+  char **elements;              // names of unique elements
   int *map;
   class FixReaxC *fix_reax;
 
@@ -68,17 +72,20 @@ class PairReaxC : public Pair {
   int firstwarn;
 
   void allocate();
+  void setup();
+  void create_compute();
+  void create_fix();
   void write_reax_atoms();
   void get_distance(rvec, rvec, double *, rvec *);
   void set_far_nbr(far_neighbor_data *, int, double, rvec);
   int estimate_reax_lists();
   int write_reax_lists();
-  void read_reax_forces();
-  void setup();
+  void read_reax_forces(int);
 
   int nmax;
   void FindBond();
   double memory_usage();
+
 };
 
 }

@@ -29,7 +29,6 @@
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
 
-
 int Reallocate_Output_Buffer( output_controls *out_control, int req_space,
                               MPI_Comm comm )
 {
@@ -121,14 +120,6 @@ int Write_Header( reax_system *system, control_params *control,
     sprintf( out_control->line, STR_LINE, "is_this_a_restart?:",
              (control->restart ? "yes" : "no") );
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
-
-    //sprintf( out_control->line, STR_LINE, "restarted_from_file:",
-    //     (control->restart ? control->restart_from : "NA") );
-    //strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
-
-    //sprintf( out_control->line, STR_LINE, "kept_restart_velocities?:",
-    //     (control->restart ? (control->random_vel ? "no":"yes"):"NA") );
-    //strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
     sprintf( out_control->line, STR_LINE, "write_restart_files?:",
              ((out_control->restart_freq > 0) ? "yes" : "no") );
@@ -350,13 +341,6 @@ int Init_Traj( reax_system *system, control_params *control,
   out_control->buffer_len = 0;
   out_control->buffer = NULL;
 
-  /* fprintf( stderr, "p%d: init_traj: atom_line_len = %d "                \
-     "bond_line_len = %d, angle_line_len = %d\n"                        \
-     "max_line = %d, max_buffer_size = %d\n",
-     system->my_rank, out_control->atom_line_len,
-     out_control->bond_line_len, out_control->angle_line_len,
-     MAX_TRJ_LINE_LEN, MAX_TRJ_BUFFER_SIZE ); */
-
   /* write trajectory header and atom info, if applicable */
   if( out_control->traj_method == REG_TRAJ) {
     if( system->my_rank == MASTER_NODE )
@@ -366,19 +350,8 @@ int Init_Traj( reax_system *system, control_params *control,
     strcpy( msg, "init_traj: unknown trajectory option" );
     return FAILURE;
   }
-
-
-#if defined(DEBUG_FOCUS)
-  fprintf( stderr, "p%d: initiated trajectory\n", system->my_rank );
-#endif
   Write_Header( system, control, out_control, mpi_data );
-#if defined(DEBUG_FOCUS)
-  fprintf( stderr, "p%d: header written\n", system->my_rank );
-#endif
   Write_Init_Desc( system, control, out_control, mpi_data );
-#if defined(DEBUG_FOCUS)
-  fprintf( stderr, "p%d: atom descriptions written\n", system->my_rank );
-#endif
 
   return SUCCESS;
 }
@@ -658,7 +631,6 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
     }
   }
 
-
   if( me != MASTER_NODE )
     MPI_Send( out_control->buffer, buffer_req-1, MPI_CHAR, MASTER_NODE,
               np*BOND_LINES+me, mpi_data->world );
@@ -778,9 +750,6 @@ int Append_Frame( reax_system *system, control_params *control,
                   simulation_data *data, reax_list **lists,
                   output_controls *out_control, mpi_datatypes *mpi_data )
 {
-#if defined(DEBUG_FOCUS)
-  fprintf( stderr, "p%d: appending frame %d\n", system->my_rank, data->step );
-#endif
   Write_Frame_Header( system, control, data, out_control, mpi_data );
 
   if( out_control->write_atoms )
@@ -792,9 +761,6 @@ int Append_Frame( reax_system *system, control_params *control,
   if( out_control->write_angles )
     Write_Angles( system, control, (*lists + BONDS), (*lists + THREE_BODIES),
                   out_control, mpi_data );
-#if defined(DEBUG_FOCUS)
-  fprintf( stderr, "p%d: appended frame %d\n", system->my_rank, data->step );
-#endif
 
   return SUCCESS;
 }

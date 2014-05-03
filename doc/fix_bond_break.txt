@@ -77,6 +77,11 @@ interaction, that interaction is removed as well.  These changes
 typically affect pairwise interactions between atoms that used to be
 part of bonds, angles, etc.
 
+IMPORTANT NOTE: One data structure that is not updated when a bond
+breaks are the molecule IDs stored by each atom.  Even though
+one molecule becomes two moleclues due to the broken bond, all atoms
+in both new moleclues retain their original molecule IDs.
+
 Computationally, each timestep this fix operates, it loops over all
 the bonds in the system and computes distances between pairs of bonded
 atoms.  It also communicates between neighboring processors to

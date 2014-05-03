@@ -38,6 +38,7 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 6) error->all(FLERR,"Illegal fix aveforce command");
 
+  dynamic_group_allow = 1;
   vector_flag = 1;
   size_vector = 3;
   global_freq = 1;
@@ -189,6 +190,14 @@ void FixAveForce::min_setup(int vflag)
 
 void FixAveForce::post_force(int vflag)
 {
+  // update region if necessary
+
+  Region *region = NULL;
+  if (iregion >= 0) {
+    region = domain->regions[iregion];
+    region->prematch();
+  }
+
   // sum forces on participating atoms
 
   double **x = atom->x;
@@ -201,10 +210,7 @@ void FixAveForce::post_force(int vflag)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (iregion >= 0 &&
-          !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-        continue;
-
+      if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
       foriginal[0] += f[i][0];
       foriginal[1] += f[i][1];
       foriginal[2] += f[i][2];
@@ -238,10 +244,7 @@ void FixAveForce::post_force(int vflag)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (iregion >= 0 &&
-          !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-        continue;
-
+      if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
       if (xstyle) f[i][0] = fave[0];
       if (ystyle) f[i][1] = fave[1];
       if (zstyle) f[i][2] = fave[2];
@@ -257,6 +260,12 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
 
   if (ilevel == nlevels_respa-1) post_force(vflag);
   else {
+    Region *region = NULL;
+    if (iregion >= 0) {
+      region = domain->regions[iregion];
+      region->prematch();
+    }
+
     double **x = atom->x;
     double **f = atom->f;
     int *mask = atom->mask;
@@ -267,10 +276,7 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if (iregion >= 0 &&
-            !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-          continue;
-
+        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         foriginal[0] += f[i][0];
         foriginal[1] += f[i][1];
         foriginal[2] += f[i][2];
@@ -289,10 +295,7 @@ void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
 
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if (iregion >= 0 &&
-            !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-          continue;
-
+        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         if (xstyle) f[i][0] = fave[0];
         if (ystyle) f[i][1] = fave[1];
         if (zstyle) f[i][2] = fave[2];

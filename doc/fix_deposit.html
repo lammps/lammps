@@ -216,6 +216,11 @@ command must have been previously used to define the lattice spacing.
 Note that the units choice affects all the keyword values that have
 units of distance or velocity.
 </P>
+<P>IMPORTANT NOTE: If you are monitoring the temperature of a system
+where the atom count is changing due to adding atoms, you typically
+should use the <A HREF = "compute_modify.html">compute_modify dynamic yes</A>
+command for the temperature compute you are using.
+</P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>This fix writes the state of the deposition to <A HREF = "restart.html">binary restart

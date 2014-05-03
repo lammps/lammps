@@ -88,6 +88,13 @@ void ComputeTempRegionEff::setup()
 
 /* ---------------------------------------------------------------------- */
 
+void ComputeTempRegionEff::dof_remove_pre()
+{
+  domain->regions[iregion]->prematch();
+}
+
+/* ---------------------------------------------------------------------- */
+
 int ComputeTempRegionEff::dof_remove(int i)
 {
   double *x = atom->x[i];
@@ -112,6 +119,8 @@ double ComputeTempRegionEff::compute_scalar()
   double mefactor = domain->dimension/4.0;
 
   Region *region = domain->regions[iregion];
+  region->prematch();
+
   int count = 0;
   int ecount = 0;
   double t = 0.0;
@@ -166,6 +175,8 @@ void ComputeTempRegionEff::compute_vector()
   double mefactor = domain->dimension/4.0;
 
   Region *region = domain->regions[iregion];
+  region->prematch();
+
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
 

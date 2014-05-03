@@ -89,8 +89,9 @@ void FixOneWay::init()
 void FixOneWay::end_of_step()
 {
   Region *region = domain->regions[regionidx];
-  const int idx = direction & XYZMASK;
+  region->prematch();
 
+  const int idx = direction & XYZMASK;
   const double * const * const x = atom->x;
   double * const * const v = atom->v;
   const int *mask = atom->mask;

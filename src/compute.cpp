@@ -68,6 +68,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   timeflag = 0;
   comm_forward = comm_reverse = 0;
+  dynamic_group_allow = 1;
   cudable = 0;
 
   invoked_scalar = invoked_vector = invoked_array = -1;

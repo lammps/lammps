@@ -13,15 +13,9 @@ Alkanes {
     angle_style     hybrid harmonic
     dihedral_style  hybrid fourier
     #improper_style  hybrid cvff
-
-    pair_style      hybrid lj/cut 9.0
+    pair_style      hybrid lj/charmm/coul/long 9.0 10.0 10.0
+    kspace_style    pppm 0.0001
     pair_modify     shift yes
-
-    # If you have charges on the atoms, then comment out the line above 
-    # and use this instead:
-    #pair_style      hybrid lj/charmm/coul/long 9.0 10.0 10.0
-    #kspace_style    pppm 0.0001
-
     pair_modify     mix arithmetic
     special_bonds   amber
   }
@@ -41,8 +35,8 @@ Alkanes {
   # Pairwise (non-bonded) force-field parameters:
 
   write_once("In Settings") {
-    pair_coeff @atom:c3 @atom:c3 lj/cut 0.1094 1.9080
-    pair_coeff @atom:h1 @atom:h1 lj/cut 0.0157 1.3870
+    pair_coeff @atom:c3 @atom:c3 lj/charmm/coul/long 0.1094 1.9080
+    pair_coeff @atom:h1 @atom:h1 lj/charmm/coul/long 0.0157 1.3870
   }
 
   #  Rules for determining 3 and 4-body bonded interactions by type

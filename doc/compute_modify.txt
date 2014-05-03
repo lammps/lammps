@@ -49,8 +49,8 @@ Only compute styles that compute a temperature use this option.  By
 default, N is assumed to be constant.  If you are adding atoms to the
 system (see the "fix pour"_fix_pour.html or "fix
 deposit"_fix_deposit.html commands) or expect atoms to be lost
-(e.g. due to evaporation), then this option can be used to insure the
-temperature is correctly normalized.
+(e.g. due to evaporation), then this option should be used to insure
+the temperature is correctly normalized.
 
 The {thermo} keyword determines whether the potential energy
 contribution calculated by some "fixes"_fix.html is added to the

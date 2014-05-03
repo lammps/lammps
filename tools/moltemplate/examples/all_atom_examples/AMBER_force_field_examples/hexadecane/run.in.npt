@@ -79,7 +79,7 @@ dump dumpeq3 all custom 200 traj_eq3_npt.lammpstrj id mol type x y z ix iy iz
 fix fxnpt all npt temp 300.0 300.0 100.0 iso 100.0 1.0 1000.0 drag 2.0
 
 timestep        1.0
-run             30000
+run             60000
 
 write_data   system_after_eq3_npt.data
 

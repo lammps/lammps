@@ -43,7 +43,7 @@ coefficient of the diffusing atoms.  This can be computed in the
 following manner, using the <A HREF = "variable.html">variable trap()</A> function:
 </P>
 <PRE>compute         2 all vacf
-fix             5 all vector 1 c_2<B>4</B>
+fix             5 all vector 1 c_2[4]
 variable        diff equal dt*trap(f_5)
 thermo_style    custom step v_diff 
 </PRE>

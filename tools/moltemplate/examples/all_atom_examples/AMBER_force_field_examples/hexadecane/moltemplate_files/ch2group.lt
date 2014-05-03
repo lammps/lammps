@@ -8,18 +8,18 @@ import "gaff.lt"    # <-- defines the "GAFF" force field
 # parameters for bonded and non-bonded interactions between them 
 # (and many other atoms).
 
-# The charges for the atoms in this example are all set to zero.
-# In a realistic simulation, one must assign (partial) charges to each atom.
+# Atom charges were taken from the OPLSAA force field file:
+# http://dasher.wustl.edu/tinker/distribution/params/oplsaa.prm
 
 
 CH2 inherits GAFF {
 
-  # atom-id  mol-id atom-type charge  x       y              z
+  # atom-id  mol-id atom-type  charge    x        y                z
 
   write("Data Atoms") {
-    $atom:C  $mol:... @atom:c3 0.00 0.00 0.000              0.000
-    $atom:H1 $mol:... @atom:h1 0.00 0.00 0.6310438442242609 0.8924307629540046
-    $atom:H2 $mol:... @atom:h1 0.00 0.00 0.6310438442242609 -0.8924307629540046
+    $atom:C  $mol:... @atom:c3 -0.120  0.000  0.000             0.000
+    $atom:H1 $mol:... @atom:h1  0.060  0.000  0.63104384422426  0.892430762954
+    $atom:H2 $mol:... @atom:h1  0.060  0.000  0.63104384422426 -0.892430762954
   }
 
   #  Note: The "..." in "$mol:..." tells moltemplate that this molecule may

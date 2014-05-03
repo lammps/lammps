@@ -1,45 +1,47 @@
-# Define the "CH2" and "CH3" objects:
+# This example looks complicated because I split the
+# hexadecane molecule into individual CH2 and CH3 monomers.
+#
+# I defined it this way so that you can easily modify 
+# it to change the length of the alkane chain.
 
-import "ch2group.lt"
-import "ch3group.lt"
-
+import "alkanes.lt"   # load the "Alkanes" force-field information
+import "ch2group.lt"  # load the definition of the "CH2" object
+import "ch3group.lt"  # load the definition of the "CH3" object
 
 
 Hexadecane inherits Alkanes {
 
-  # Create an array of 16 "CH2" objects
+
+  # Create an array of 16 "CH2" objects distributed along the X axis
 
   monomers = new CH2.move(0,0.4431163,0) [16].rot(180,1,0,0).move(1.2533223,0,0)
 
-  # "monomers" is a 1-dimensional array containing 16 copies of the CH2 molecule
-  # Each copy is rotated 180 degrees and shifted along the x axix.
-  # (For an explanation, read sections 7.1-7.3 of the moltemplate manual.)
-  # Notes:
-  #   1.2533223 = DeltaXc   = how far each CH2 group is shifted along the axis
-  #   0.4431163 = DeltaYc/2 = lateral displacement of carbons along axis
+  #   Each CH2 monomer is initial moved in the +Y direction by 0.43116
+  #   angstroms. Then it is rotated 180 degrees with respect to the
+  #   previous monomer, and moved 1.2533223 Angstroms down the X axis.
 
   # ---- Now, modify the ends: ---
   # Delete the CH2 groups at the beginning and end, and replace them with CH3.
-  # (Note: Alternately, instead of deleting the CH2 groups at each end, you 
-  #        could modify them by adding an extra hydrogen atom to those carbons.)
+  # (Note: Alternately, instead of deleting the CH2 groups at each end, you
+  #  could modify them by adding an extra hydrogen atom to those carbons.)
 
   delete monomers[0]
   delete monomers[15]
-  monomer_begin = new CH3
-  monomer_end   = new CH3
+  endcap1 = new CH3
+  endcap2 = new CH3
 
   # Move the CH3 groups to the correct location at either end of the chain:
 
-  monomer_begin.move(0,0.4431163,0)
-  monomer_end.move(0,0.4431163,0).rot(180,0,0,1).move(18.7998345,0,0)
+  endcap1.move(0,0.4431163,0)
+  endcap2.move(0,0.4431163,0).rot(180,0,0,1).move(18.7998345,0,0)
 
-  # Note: 18.7998345 = (16-1) * DeltaXc
+  # Note: 18.7998345 = (16-1) * 1.2533223
 
 
   # Now add a list of bonds connecting the carbon atoms together:
 
   write('Data Bonds') {
-    $bond:b1 @bond:CC  $atom:monomer_begin/C $atom:monomers[1]/C
+    $bond:b1 @bond:CC  $atom:endcap1/C $atom:monomers[1]/C
     $bond:b2 @bond:CC  $atom:monomers[1]/C $atom:monomers[2]/C
     $bond:b3 @bond:CC  $atom:monomers[2]/C $atom:monomers[3]/C
     $bond:b4 @bond:CC  $atom:monomers[3]/C $atom:monomers[4]/C
@@ -53,14 +55,13 @@ Hexadecane inherits Alkanes {
     $bond:b12 @bond:CC  $atom:monomers[11]/C  $atom:monomers[12]/C
     $bond:b13 @bond:CC  $atom:monomers[12]/C  $atom:monomers[13]/C
     $bond:b14 @bond:CC  $atom:monomers[13]/C  $atom:monomers[14]/C
-    $bond:b15 @bond:CC  $atom:monomers[14]/C $atom:monomer_end/C
+    $bond:b15 @bond:CC  $atom:monomers[14]/C $atom:endcap2/C
   }
 
-  create_var { $mol }  # Define a molecule ID number for this polymer
-
-  # This causes monomer[0], monomer[1], ... to share the same molecule-ID.
-  # (because in the ch2group.lt file, the "..." in "$mol:..." looks for
-  #  a counter of type "$mol" in a parent molecule or earlier ancestor.)
+                       # OPTIONAL:
+  create_var { $mol }  # Create a molecule ID number.  This number will
+                       # be shared by all of the atoms in this polymer.
+                       # In ch2group.lt, "$mol:..." refers to this number.
 
 } # Hexadecane
 

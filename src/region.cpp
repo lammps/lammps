@@ -40,7 +40,6 @@ Region::Region(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   varshape = 0;
   xstr = ystr = zstr = tstr = NULL;
   dx = dy = dz = 0.0;
-  lastshape = lastdynamic = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,14 +86,30 @@ void Region::init()
 }
 
 /* ----------------------------------------------------------------------
-   return 1 if region is dynamic, 0 if static
+   return 1 if region is dynamic (moves/rotates) or has variable shape
+   else return 0 if static
    only primitive regions define it here
    union/intersect regions have their own dynamic_check()
 ------------------------------------------------------------------------- */
 
 int Region::dynamic_check()
 {
-  return dynamic;
+  if (dynamic || varshape) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   called before looping over atoms with match() or surface()
+   this insures any variables used by region are invoked once per timestep
+   also insures variables are invoked by all procs even those w/out atoms
+     necessary if equal-style variable invokes global operation
+     with MPI_Allreduce, e.g. xcm() or count()
+------------------------------------------------------------------------- */
+
+void Region::prematch()
+{
+  if (varshape) shape_update();
+  if (dynamic) pretransform();
 }
 
 /* ----------------------------------------------------------------------
@@ -111,13 +126,7 @@ int Region::dynamic_check()
 
 int Region::match(double x, double y, double z)
 {
-  if (varshape && update->ntimestep != lastshape) {
-    shape_update();
-    lastshape = update->ntimestep;
-  }
-
   if (dynamic) inverse_transform(x,y,z);
-
   return !(inside(x,y,z) ^ interior);
 }
 
@@ -138,11 +147,6 @@ int Region::surface(double x, double y, double z, double cutoff)
   int ncontact;
   double xs,ys,zs;
   double xnear[3],xorig[3];
-
-  if (varshape && update->ntimestep != lastshape) {
-    shape_update();
-    lastshape = update->ntimestep;
-  }
 
   if (dynamic) {
     xorig[0] = x;
@@ -191,30 +195,33 @@ void Region::add_contact(int n, double *x, double xp, double yp, double zp)
 }
 
 /* ----------------------------------------------------------------------
+   pre-compute dx,dy,dz and theta for a moving/rotating region
+   called once for the region before per-atom loop, via prematch()
+------------------------------------------------------------------------- */
+
+void Region::pretransform()
+{
+  if (moveflag) {
+    if (xstr) dx = input->variable->compute_equal(xvar);
+    if (ystr) dy = input->variable->compute_equal(yvar);
+    if (zstr) dz = input->variable->compute_equal(zvar);
+  }
+  if (rotateflag) theta = input->variable->compute_equal(tvar);
+}
+
+/* ----------------------------------------------------------------------
    transform a point x,y,z in region space to moved space
    rotate first (around original P), then displace
 ------------------------------------------------------------------------- */
 
 void Region::forward_transform(double &x, double &y, double &z)
 {
-  if (rotateflag) {
-    if (update->ntimestep != lastdynamic)
-      theta = input->variable->compute_equal(tvar);
-    rotate(x,y,z,theta);
-  }
-
+  if (rotateflag) rotate(x,y,z,theta);
   if (moveflag) {
-    if (update->ntimestep != lastdynamic) {
-      if (xstr) dx = input->variable->compute_equal(xvar);
-      if (ystr) dy = input->variable->compute_equal(yvar);
-      if (zstr) dz = input->variable->compute_equal(zvar);
-    }
     x += dx;
     y += dy;
     z += dz;
   }
-
-  lastdynamic = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------
@@ -225,23 +232,11 @@ void Region::forward_transform(double &x, double &y, double &z)
 void Region::inverse_transform(double &x, double &y, double &z)
 {
   if (moveflag) {
-    if (update->ntimestep != lastdynamic) {
-      if (xstr) dx = input->variable->compute_equal(xvar);
-      if (ystr) dy = input->variable->compute_equal(yvar);
-      if (zstr) dz = input->variable->compute_equal(zvar);
-    }
     x -= dx;
     y -= dy;
     z -= dz;
   }
-
-  if (rotateflag) {
-    if (update->ntimestep != lastdynamic)
-      theta = input->variable->compute_equal(tvar);
-    rotate(x,y,z,-theta);
-  }
-
-  lastdynamic = update->ntimestep;
+  if (rotateflag) rotate(x,y,z,-theta);
 }
 
 /* ----------------------------------------------------------------------

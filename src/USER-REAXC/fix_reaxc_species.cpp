@@ -53,6 +53,7 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
 
   vector_flag = 1;
   size_vector = 2;
+  extvector = 0;
 
   peratom_flag = 1;
   size_peratom_cols = 0;

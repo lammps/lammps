@@ -14,7 +14,8 @@ lines_gaff = sys.stdin.readlines()
     # Currently, moltemplate does not assign atomic charge, 
     # so this problem occurs frequently.
 
-pair_style = 'lj/charmm/coul/charmm'
+#pair_style = 'lj/charmm/coul/charmm'
+pair_style = 'lj/charmm/coul/long'
 
 sys.stdout.write('  write_once(\"In Settings\") {\n')
 

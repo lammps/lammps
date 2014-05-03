@@ -27,15 +27,10 @@
 #include "pair_reax_c.h"
 #include "reaxc_tool_box.h"
 
-
-
-/************** taken from box.c **************/
 void Transform( rvec x1, simulation_box *box, char flag, rvec x2 )
 {
   int i, j;
   real tmp;
-
-  //  printf(">x1: (%lf, %lf, %lf)\n",x1[0],x1[1],x1[2]);
 
   if (flag > 0) {
     for (i=0; i < 3; i++) {
@@ -53,7 +48,6 @@ void Transform( rvec x1, simulation_box *box, char flag, rvec x2 )
       x2[i] = tmp;
     }
   }
-  //  printf(">x2: (%lf, %lf, %lf)\n", x2[0], x2[1], x2[2]);
 }
 
 
@@ -66,8 +60,6 @@ void Transform_to_UnitBox( rvec x1, simulation_box *box, char flag, rvec x2 )
   x2[2] /= box->box_norms[2];
 }
 
-
-/* determine whether point p is inside the box */
 void Fit_to_Periodic_Box( simulation_box *box, rvec *p )
 {
   int i;
@@ -86,7 +78,6 @@ void Fit_to_Periodic_Box( simulation_box *box, rvec *p )
   }
 }
 
-/************ from system_props.c *************/
 struct timeval tim;
 real t_end;
 
@@ -113,8 +104,6 @@ void Update_Timing_Info( real *t_start, real *timing )
   *t_start = t_end;
 }
 
-
-/*********** from io_tools.c **************/
 int Get_Atom_Type( reax_interaction *reax_param, char *s, MPI_Comm comm )
 {
   int i;
@@ -184,8 +173,6 @@ int Tokenize( char* s, char*** tok )
   return count;
 }
 
-
-/***************** taken from lammps ************************/
 /* safe malloc */
 void *smalloc( long n, const char *name, MPI_Comm comm )
 {

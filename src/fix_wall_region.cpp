@@ -192,6 +192,8 @@ void FixWallRegion::post_force(int vflag)
   int nlocal = atom->nlocal;
 
   Region *region = domain->regions[iregion];
+  region->prematch();
+
   int onflag = 0;
 
   // region->match() insures particle is in region or on surface, else error

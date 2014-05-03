@@ -4,13 +4,13 @@ import "alkanes.lt"   # <-- Defines the atoms and force-field used for Alkanes
 
 CH3 inherits Alkanes {
 
-  # atom-id  mol-id atom-type charge  x       y              z
+  # atom-id  mol-id atom-type   charge      x            y               z
 
   write("Data Atoms") {
-    $atom:C  $mol:... @atom:c3 0.00 0.00 0.000              0.000
-    $atom:H1 $mol:... @atom:h1 0.00 0.00 0.6310438442242609 0.8924307629540046
-    $atom:H2 $mol:... @atom:h1 0.00 0.00 0.6310438442242609 -0.8924307629540046
-    $atom:H3 $mol:... @atom:h1 0.00 -0.8924307629540046 -0.6310438442242609 0.00
+    $atom:C  $mol:... @atom:c3 -0.180   0.000000     0.000000          0.000000
+    $atom:H1 $mol:... @atom:h1  0.060   0.000000   0.6310438442242609 0.8924307629540046
+    $atom:H2 $mol:... @atom:h1  0.060   0.000000   0.6310438442242609 -0.8924307629540046
+    $atom:H3 $mol:... @atom:h1  0.060  -0.8924307629540046 -0.6310438442242609 0.000000
   }
 
   #  Note: The "..." in "$mol:..." tells moltemplate that this molecule may
@@ -31,6 +31,8 @@ CH3 inherits Alkanes {
 
 
 
+# Atom charges for this example were taken from the OPLSAA force field file:
+# http://dasher.wustl.edu/tinker/distribution/params/oplsaa.prm
 
 ######### (scratchwork calculations for the atomic coordinates) #########
 # Lcc = 1.5350 # length of the C-C bond (Sp3)

@@ -359,8 +359,8 @@ def GenInteractions_files(lines_data,
 if __name__ == "__main__":
 
     g_program_name = __file__.split('/')[-1]  # = 'nbody_by_type.py'
-    g_date_str     = '2013-8-06'
-    g_version_str  = '0.15'
+    g_date_str     = '2014-4-07'
+    g_version_str  = '0.16'
 
     #######  Main Code Below: #######
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')

@@ -1,5 +1,8 @@
-# This text appears to be taken from the "oplsaa.prm" file here:
+# This text is similar but not identical to this file:
 # http://dasher.wustl.edu/ffe/distribution/params/oplsaa.prm
+# The difference appears to be the atom numbering and switching.
+# If you can help us figure out which numbering convention we should use
+# please email us at jewett.aij@gmail.com and jlamber9@gmail.com
 
       ##############################
       ##                          ##

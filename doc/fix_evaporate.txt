@@ -61,6 +61,11 @@ Note that neighbor lists are re-built on timesteps that atoms are
 removed.  Thus you should not remove atoms too frequently or you will
 incur overhead due to the cost of building neighbor lists.
 
+IMPORTANT NOTE: If you are monitoring the temperature of a system
+where the atom count is changing due to evaporation, you typically
+should use the "compute_modify dynamic yes"_compute_modify.html
+command for the temperature compute you are using.
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart

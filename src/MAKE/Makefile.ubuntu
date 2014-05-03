@@ -1,5 +1,5 @@
 # ubuntu = Ubuntu Linux box, g++, openmpi, FFTW3
-#
+
 # you have to install the packages g++, mpi-default-bin, mpi-default-dev,
 # libfftw3-dev, libjpeg-dev and libpng12-dev to compile LAMMPS with this
 # makefile

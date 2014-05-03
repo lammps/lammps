@@ -142,7 +142,6 @@ void FixHeat::end_of_step()
   int i;
   double heat,ke,massone;
   double vsub[3],vcm[3];
-  Region *region;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -189,6 +188,12 @@ void FixHeat::end_of_step()
   // vsub = velocity subtracted from each atom to preserve momentum
   // overall KE cannot go negative
 
+  Region *region = NULL;
+  if (iregion >= 0) {
+    region = domain->regions[iregion];
+    region->prematch();
+  }
+
   if (hstyle != ATOM) {
     heat = heat_input*nevery*update->dt*force->ftm2v;
     double escale = 
@@ -207,7 +212,6 @@ void FixHeat::end_of_step()
           v[i][2] = scale*v[i][2] - vsub[2];
         }
     } else {
-      region = domain->regions[iregion];
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
           v[i][0] = scale*v[i][0] - vsub[0];
@@ -254,7 +258,6 @@ void FixHeat::end_of_step()
         }
 
     } else {
-      region = domain->regions[iregion];
       for (i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
           heat = vheat[i]*nevery*update->dt*force->ftm2v;
@@ -306,8 +309,8 @@ double FixHeat::compute_scalar()
         }
       }
     } else {
-      Region *region;
-      region = domain->regions[iregion];
+      Region *region = domain->regions[iregion];
+      region->prematch();
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
           scale_sum += sqrt(vscale[i]);

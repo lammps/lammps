@@ -1,7 +1,7 @@
 # -------- WARNING: --------
 
 This directory contains some examples of all-atom simulations using the OPLSAA
-force field, prepared using Jason Lamberts oplsaa_moltemplate.py conversion
+force field, prepared using Jason Lambert's oplsaa_moltemplate.py conversion
 tool, and moltemplate.
 
 This software is experimental, and the force-fields and equilbration protocols
@@ -14,7 +14,7 @@ If you notice a problem with these examples, please report it.
 Peer-review is the only way to improve this software (or any software).
 Other suggestions are also welcome!
 
-(Contact jewett.aij@gmail.com, 2014-3-03
+(Contact jewett.aij@gmail.com, 2014-4-19)
 
 --- Improper angles ---
 
@@ -24,3 +24,6 @@ builders.  (I think they are, but I am worried that we might have listed
 the atom types in the wrong order.  Let us know if you see discrepancies
 between what moltemplate and other molecule builders generates.)
 
+-----------
+For more details how to use the OPLSAA force-field, read the "README.TXT"
+file located in "ethylene/moltemplate_files/oplsaa_lt_generator/README.TXT"

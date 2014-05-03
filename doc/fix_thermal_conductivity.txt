@@ -34,7 +34,7 @@ Use the Muller-Plathe algorithm described in "this
 paper"_#Muller-Plathe to exchange kinetic energy between two particles
 in different regions of the simulation box every N steps.  This
 induces a temperature gradient in the system.  As described below this
-enables a thermal conductivity of the fluid to be calculated.  This
+enables the thermal conductivity of a material to be calculated.  This
 algorithm is sometimes called a reverse non-equilibrium MD (reverse
 NEMD) approach to computing thermal conductivity.  This is because the
 usual NEMD approach is to impose a temperature gradient on the system

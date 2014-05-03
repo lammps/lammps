@@ -33,7 +33,7 @@ class Variable : protected Pointers {
   double compute_equal(int);
   double compute_equal(char *);
   void compute_atom(int, int, double *, int, int);
-  int int_between_brackets(char *&);
+  int int_between_brackets(char *&, int);
   double evaluate_boolean(char *);
 
   unsigned int data_mask(int ivar);

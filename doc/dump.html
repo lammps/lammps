@@ -25,7 +25,7 @@
 
 <LI>group-ID = ID of the group of atoms to be dumped 
 
-<LI>style = <I>atom</I> or <I>atom/mpiio</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>xyz/mpiio</I> or <I>image</I> or <I>molfile</I> or <I>local</I> or <I>custom</I> or <I>custom/mpiio</I> 
+<LI>style = <I>atom</I> or <I>atom/mpiio</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>xyz/mpiio</I> or <I>image</I> or <I>movie</I> or <I>molfile</I> or <I>local</I> or <I>custom</I> or <I>custom/mpiio</I> 
 
 <LI>N = dump every this many timesteps 
 
@@ -43,6 +43,8 @@
 <PRE>  <I>xyz/mpiio</I> args = none 
 </PRE>
 <PRE>  <I>image</I> args = discussed on <A HREF = "dump_image.html">dump image</A> doc page 
+</PRE>
+<PRE>  <I>movie</I> args = discussed on <A HREF = "dump_image.html">dump image</A> doc page 
 </PRE>
 <PRE>  <I>molfile</I> args = discussed on <A HREF = "dump_molfile.html">dump molfile</A> doc page 
 </PRE>
@@ -105,19 +107,20 @@ dump 2 subgroup atom 50 dump.run.mpiio.bin
 dump 4a all custom 100 dump.myforce.* id type x y vx fx
 dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
 dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
-dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress<B>2</B>
+dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress[2]
 dump 1 all xtc 1000 file.xtc
 dump e_data all custom 100 dump.eff id type x y z spin eradius fx fy fz eforce 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Dump a snapshot of atom quantities to one or more files every N
-timesteps in one of several styles.  The <I>image</I> style is the
-exception; it creates a JPG or PPM image file of the atom
-configuration every N timesteps, as discussed on the <A HREF = "dump_image.html">dump
-image</A> doc page.  The timesteps on which dump output
-is written can also be controlled by a variable; see the <A HREF = "dump_modify.html">dump_modify
-every</A> command for details.
+timesteps in one of several styles.  The <I>image</I> and <I>movie</I> styles are
+the exception: the <I>image</I> style renders a JPG, PNG, or PPM image file
+of the atom configuration every N timesteps while the <I>movie</I> style
+combines and compresses them into a movie file; both are discussed in
+detail on the <A HREF = "dump_image.html">dump image</A> doc page.  The timesteps on
+which dump output is written can also be controlled by a variable.
+See the <A HREF = "dump_modify.html">dump_modify every</A> command.
 </P>
 <P>Only information for atoms in the specified group is dumped.  The
 <A HREF = "dump_modify.html">dump_modify thresh and region</A> commands can also

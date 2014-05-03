@@ -480,6 +480,7 @@ void Set::selection(int n)
   } else if (style == REGION_SELECT) {
     int iregion = domain->find_region(id);
     if (iregion == -1) error->all(FLERR,"Set region ID does not exist");
+    domain->regions[iregion]->prematch();
 
     double **x = atom->x;
     for (int i = 0; i < n; i++)

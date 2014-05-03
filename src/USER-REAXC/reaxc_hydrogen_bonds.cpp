@@ -25,20 +25,11 @@
   ----------------------------------------------------------------------*/
 
 #include "pair_reax_c.h"
-#if defined(PURE_REAX)
-#include "hydrogen_bonds.h"
-#include "bond_orders.h"
-#include "list.h"
-#include "valence_angles.h"
-#include "vector.h"
-#elif defined(LAMMPS_REAX)
 #include "reaxc_hydrogen_bonds.h"
 #include "reaxc_bond_orders.h"
 #include "reaxc_list.h"
 #include "reaxc_valence_angles.h"
 #include "reaxc_vector.h"
-#endif
-
 
 void Hydrogen_Bonds( reax_system *system, control_params *control,
                      simulation_data *data, storage *workspace,
@@ -55,7 +46,6 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
   real e_hb, exp_hb2, exp_hb3, CEhb1, CEhb2, CEhb3;
   rvec dcos_theta_di, dcos_theta_dj, dcos_theta_dk;
   rvec dvec_jk, force, ext_press;
-  // rtensor temp_rtensor, total_rtensor;
   hbond_parameters *hbp;
   bond_order_data *bo_ij;
   bond_data *pbond_ij;
@@ -72,15 +62,9 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
   hbonds = (*lists) + HBONDS;
   hbond_list = hbonds->select.hbond_list;
 
-  /* loops below discover the Hydrogen bonds between i-j-k triplets.
-     here j is H atom and there has to be some bond between i and j.
-     Hydrogen bond is between j and k.
-     so in this function i->X, j->H, k->Z when we map
-     variables onto the ones in the handout.*/
   for( j = 0; j < system->n; ++j )
-    /* j has to be of type H */
+    if (system->my_atoms[j].type < 0) continue;
     if( system->reax_param.sbp[system->my_atoms[j].type].p_hbond == 1 ) {
-      /*set j's variables */
       type_j     = system->my_atoms[j].type;
       start_j    = Start_Index(j, bonds);
       end_j      = End_Index(j, bonds);
@@ -91,21 +75,20 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
       for( pi = start_j; pi < end_j; ++pi )  {
         pbond_ij = &( bond_list[pi] );
         i = pbond_ij->nbr;
-        bo_ij = &(pbond_ij->bo_data);
         type_i = system->my_atoms[i].type;
+	if (type_i < 0) continue;
+        bo_ij = &(pbond_ij->bo_data);
 
         if( system->reax_param.sbp[type_i].p_hbond == 2 &&
             bo_ij->BO >= HB_THRESHOLD )
           hblist[top++] = pi;
       }
 
-      // fprintf( stderr, "j: %d, top: %d, hb_start_j: %d, hb_end_j:%d\n",
-      //          j, top, hb_start_j, hb_end_j );
-
       for( pk = hb_start_j; pk < hb_end_j; ++pk ) {
         /* set k's varibles */
         k = hbond_list[pk].nbr;
         type_k = system->my_atoms[k].type;
+	if (type_k < 0) continue;
         nbr_jk = hbond_list[pk].ptr;
         r_jk = nbr_jk->d;
         rvec_Scale( dvec_jk, hbond_list[pk].scl, nbr_jk->dvec );
@@ -118,6 +101,7 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
           if( system->my_atoms[i].orig_id != system->my_atoms[k].orig_id ) {
             bo_ij = &(pbond_ij->bo_data);
             type_i = system->my_atoms[i].type;
+	    if (type_i < 0) continue;
             r_ij = pbond_ij->d;
             hbp = &(system->reax_param.hbp[ type_i ][ type_j ][ type_k ]);
             ++num_hb_intrs;
@@ -146,12 +130,6 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
             CEhb3 = -hbp->p_hb3 *
               (-hbp->r0_hb / SQR(r_jk) + 1.0 / hbp->r0_hb) * e_hb;
 
-            /*fprintf( stdout,
-              "%6d%6d%6d%12.6f%12.6f%12.6f%12.6f%12.6f%12.6f%12.6f%12.6f%12.6f\n",
-              system->my_atoms[i].orig_id, system->my_atoms[j].orig_id,
-              system->my_atoms[k].orig_id,
-              r_jk, theta, hbp->p_hb1, exp_hb2, hbp->p_hb3, hbp->r0_hb,
-              exp_hb3, sin_xhz4, e_hb ); */
 
             /* hydrogen bond forces */
             bo_ij->Cdbo += CEhb1; // dbo term
@@ -166,8 +144,6 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
               rvec_ScaledAdd( workspace->f[k], +CEhb3/r_jk, dvec_jk );
             }
             else {
-              /* for pressure coupling, terms that are not related to bond order
-                 derivatives are added directly into pressure vector/tensor */
               rvec_Scale( force, +CEhb2, dcos_theta_di ); // dcos terms
               rvec_Add( workspace->f[i], force );
               rvec_iMultiply( ext_press, pbond_ij->rel_box, force );
@@ -202,41 +178,8 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
 
               system->pair_ptr->ev_tally3(i,j,k,e_hb,0.0,fi_tmp,fk_tmp,delij,delkj);
             }
-
-#ifdef TEST_ENERGY
-            /* fprintf( out_control->ehb,
-               "%24.15e%24.15e%24.15e\n%24.15e%24.15e%24.15e\n%24.15e%24.15e%24.15e\n",
-               dcos_theta_di[0], dcos_theta_di[1], dcos_theta_di[2],
-               dcos_theta_dj[0], dcos_theta_dj[1], dcos_theta_dj[2],
-               dcos_theta_dk[0], dcos_theta_dk[1], dcos_theta_dk[2]);
-               fprintf( out_control->ehb, "%24.15e%24.15e%24.15e\n",
-               CEhb1, CEhb2, CEhb3 ); */
-            fprintf( out_control->ehb,
-                     //"%6d%6d%6d%24.15e%24.15e%24.15e%24.15e%24.15e\n",
-                     "%6d%6d%6d%12.4f%12.4f%12.4f%12.4f%12.4f\n",
-                     system->my_atoms[i].orig_id, system->my_atoms[j].orig_id,
-                     system->my_atoms[k].orig_id,
-                     r_jk, theta, bo_ij->BO, e_hb, data->my_en.e_hb );
-#endif
-#ifdef TEST_FORCES
-            Add_dBO( system, lists, j, pi, +CEhb1, workspace->f_hb ); //dbo term
-            // dcos terms
-            rvec_ScaledAdd( workspace->f_hb[i], +CEhb2, dcos_theta_di );
-            rvec_ScaledAdd( workspace->f_hb[j], +CEhb2, dcos_theta_dj );
-            rvec_ScaledAdd( workspace->f_hb[k], +CEhb2, dcos_theta_dk );
-            // dr terms
-            rvec_ScaledAdd( workspace->f_hb[j], -CEhb3/r_jk, dvec_jk );
-            rvec_ScaledAdd( workspace->f_hb[k], +CEhb3/r_jk, dvec_jk );
-#endif
           }
         }
       }
     }
-
-#if defined(DEBUG)
-  fprintf( stderr, "Number of hydrogen bonds: %d\n", num_hb_intrs );
-  fprintf( stderr, "Hydrogen Bond Energy: %g\n", data->my_en.e_hb );
-  fprintf( stderr, "hydbonds: ext_press (%24.15e %24.15e %24.15e)\n",
-           data->ext_press[0], data->ext_press[1], data->ext_press[2] );
-#endif
 }

@@ -13,7 +13,7 @@ write_once("Data Boundary") {
 # This lattice spacing was not chosen carefully.
 # The pressure must be equilibrated later.
 
-isobutane = new Ethylene  [7].move(0, 0, 10.0)
+ethylenes = new Ethylene  [7].move(0, 0, 10.0)
                           [7].move(0, 10.0, 0)
                           [7].move(10.0, 0, 0)
 

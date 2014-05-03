@@ -2,8 +2,9 @@
 #
 #     You must use moltemplate.sh to create 3 files:
 #        system.data  system.in.init  system.in.settings
-#     (Follow the instructions in README_setup.sh, or run it using ./README_sh.)
-
+#     (Follow the instructions in README_setup.sh, or run it using 
+#      ./README_setup.sh)
+#
 # ------------------------------- Initialization Section --------------------
 
 include         system.in.init
@@ -38,6 +39,6 @@ fix             fxnpt all npt temp 300.0 300.0 100.0 iso 1.0 1.0 1000.0 drag 1.0
 thermo          100
 #thermo_modify  flush yes
 
-run             2000
+run             40000
 
 write_data   system_after_npt.data

@@ -183,10 +183,6 @@ performed.  This can be used when the {reax/c} style is used as part
 of the {hybrid} pair style.  The NULL values are placeholders for atom
 types that will be used with other potentials.
 
-IMPORTANT NOTE: Currently the reax/c pair style cannot be used as part
-of the {hybrid} pair style.  Some additional work still need to be
-done to enable this.
-
 As an example, say your LAMMPS simulation has 4 atom types and the
 elements are ordered as C, H, O, N in the {ffield} file.  If you want
 the LAMMPS atom type 1 and 2 to be C, type 3 to be N, and type 4 to be

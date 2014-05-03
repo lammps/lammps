@@ -53,8 +53,8 @@ write_once("Data Boundary") {
 
 # A note on geometry:
 # We want to create a bilayer arranged in a hexagonal lattice consisting of
-#    15 rows     (each row is aligned with the x-axis)
-#    13 columns  (aligned at a 60 degree angle from the x axis)
+#    13 rows     (each row is aligned with the x-axis)
+#    15 columns  (aligned at a 60 degree angle from the x axis)
 # The lattice spacing is 7.5 Angstroms.
 # When wrapped onto a rectangular box, the dimensions of the system are:
 #    13 * 7.5 Angstroms           in the X direction

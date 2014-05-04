@@ -31,16 +31,6 @@
 #include "reaxc_types.h"
 #include "reaxc_defs.h"
 
-int  Vector_isZero( real*, int );
-void Vector_MakeZero( real*, int );
-void Vector_Copy( real*, real*, int );
-void Vector_Scale( real*, real, real*, int );
-void Vector_Sum( real*, real, real*, real, real*, int );
-void Vector_Add( real*, real, real*, int );
-real Dot( real*, real*, int );
-real Norm( real*, int );
-void Vector_Print( FILE*, char*, real*, int );
-
 void rvec_Copy( rvec, rvec );
 void rvec_Scale( rvec, real, rvec );
 void rvec_Add( rvec, rvec );
@@ -63,33 +53,12 @@ void rvec_MakeZero( rvec );
 void rvec_Random( rvec );
 
 void rtensor_MakeZero( rtensor );
-void rtensor_Multiply( rtensor, rtensor, rtensor );
 void rtensor_MatVec( rvec, rtensor, rvec );
 void rtensor_Scale( rtensor, real, rtensor );
-void rtensor_Add( rtensor, rtensor );
-void rtensor_ScaledAdd( rtensor, real, rtensor );
-void rtensor_Sum( rtensor, rtensor, rtensor );
-void rtensor_ScaledSum( rtensor, real, rtensor, real, rtensor );
-void rtensor_Scale( rtensor, real, rtensor );
-void rtensor_Copy( rtensor, rtensor );
-void rtensor_Identity( rtensor );
-void rtensor_Transpose( rtensor, rtensor );
-real rtensor_Det( rtensor );
-real rtensor_Trace( rtensor );
 
-void Print_rTensor(FILE*,rtensor);
-
-int  ivec_isZero( ivec );
-int  ivec_isEqual( ivec, ivec );
 void ivec_MakeZero( ivec );
 void ivec_Copy( ivec, ivec );
 void ivec_Scale( ivec, real, ivec );
-void ivec_rScale( ivec, real, rvec );
 void ivec_Sum( ivec, ivec, ivec );
-void ivec_ScaledSum( ivec, int, ivec, int, ivec );
-void ivec_Add( ivec, ivec );
-void ivec_ScaledAdd( ivec, int, ivec );
-void ivec_Max( ivec, ivec, ivec );
-void ivec_Max3( ivec, ivec, ivec, ivec );
 
 #endif

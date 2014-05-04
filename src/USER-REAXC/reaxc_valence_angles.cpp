@@ -30,6 +30,16 @@
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
 
+static real Dot( real* v1, real* v2, int k )
+{
+  real ret = 0.0;
+
+  for( int i=0; i < k; ++i )
+    ret +=  v1[i] * v2[i];
+
+  return ret;
+}
+
 void Calculate_Theta( rvec dvec_ji, real d_ji, rvec dvec_jk, real d_jk,
                       real *theta, real *cos_theta )
 {

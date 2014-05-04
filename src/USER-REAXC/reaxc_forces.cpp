@@ -28,7 +28,6 @@
 #include "reaxc_forces.h"
 #include "reaxc_bond_orders.h"
 #include "reaxc_bonds.h"
-#include "reaxc_basic_comm.h"
 #include "reaxc_hydrogen_bonds.h"
 #include "reaxc_io_tools.h"
 #include "reaxc_list.h"

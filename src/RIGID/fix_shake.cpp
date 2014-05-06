@@ -148,7 +148,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   // parse optional args
 
-  onemol = NULL;
+  onemols = NULL;
 
   int iarg = next;
   while (iarg < narg) {
@@ -160,17 +160,17 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       if (atom->molecules[imol]->nset > 1 && comm->me == 0)
         error->warning(FLERR,"Molecule template for "
                        "fix shake has multiple molecules");
-      onemol = atom->molecules[imol];
-      nmol = onemol->nset;
+      onemols = &atom->molecules[imol];
+      nmol = onemols[0]->nset;
       iarg += 2;
     } else error->all(FLERR,"Illegal fix shake command");
   }
 
   // error check for Molecule template
 
-  if (onemol) {
+  if (onemols) {
     for (int i = 0; i < nmol; i++)
-      if (onemol[i].shakeflag == 0)
+      if (onemols[i]->shakeflag == 0)
         error->all(FLERR,"Fix shake molecule template must have shake info");
   }
 
@@ -656,7 +656,7 @@ void FixShake::find_clusters()
 
   if (me == 0 && screen) fprintf(screen,"Finding SHAKE clusters ...\n");
 
-  onemols = atom->avec->onemols;
+  atommols = atom->avec->onemols;
 
   tagint *tag = atom->tag;
   int *type = atom->type;
@@ -701,7 +701,7 @@ void FixShake::find_clusters()
       imol = molindex[i];
       if (imol < 0) continue;
       iatom = molatom[i];
-      max = MAX(max,onemols[imol]->nspecial[iatom][0]);
+      max = MAX(max,atommols[imol]->nspecial[iatom][0]);
     }
   }
 
@@ -736,9 +736,9 @@ void FixShake::find_clusters()
       if (imol < 0) continue;
       iatom = molatom[i];
       tagprev = tag[i] - iatom - 1;
-      npartner[i] = onemols[imol]->nspecial[iatom][0];
+      npartner[i] = atommols[imol]->nspecial[iatom][0];
       for (j = 0; j < npartner[i]; j++)
-        partner_tag[i][j] = onemols[imol]->special[iatom][j] + tagprev;;
+        partner_tag[i][j] = atommols[imol]->special[iatom][j] + tagprev;;
     }
   }
 
@@ -2266,9 +2266,9 @@ int FixShake::bondtype_findset(int i, tagint n1, tagint n2, int setflag)
     int iatom = atom->molatom[i];
     tagint *tag = atom->tag;
     tagint tagprev = tag[i] - iatom - 1;
-    tagint *batom = onemols[imol]->bond_atom[iatom];
-    btype = onemols[imol]->bond_type[iatom];
-    nbonds = onemols[imol]->num_bond[iatom];
+    tagint *batom = atommols[imol]->bond_atom[iatom];
+    btype = atommols[imol]->bond_type[iatom];
+    nbonds = atommols[imol]->num_bond[iatom];
     
     for (m = 0; m < nbonds; m++) {
       if (n1 == tag[i] && n2 == batom[m]+tagprev) break;
@@ -2322,10 +2322,10 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
     int iatom = atom->molatom[i];
     tagint *tag = atom->tag;
     tagint tagprev = tag[i] - iatom - 1;
-    tagint *aatom1 = onemols[imol]->angle_atom1[iatom];
-    tagint *aatom3 = onemols[imol]->angle_atom3[iatom];
-    atype = onemols[imol]->angle_type[iatom];
-    nangles = onemols[imol]->num_angle[iatom];
+    tagint *aatom1 = atommols[imol]->angle_atom1[iatom];
+    tagint *aatom3 = atommols[imol]->angle_atom3[iatom];
+    atype = atommols[imol]->angle_type[iatom];
+    nangles = atommols[imol]->num_angle[iatom];
     
     for (m = 0; m < nangles; m++) {
       if (n1 == aatom1[m]+tagprev && n2 == aatom3[m]+tagprev) break;
@@ -2469,13 +2469,13 @@ void FixShake::set_molecule(int nlocalprev, tagint tagprev, int imol,
   if (nlocalprev == nlocal) return;
 
   tagint *tag = atom->tag;
-  tagint **mol_shake_atom = onemol[imol].shake_atom;
-  int **mol_shake_type = onemol[imol].shake_type;
+  tagint **mol_shake_atom = onemols[imol]->shake_atom;
+  int **mol_shake_type = onemols[imol]->shake_type;
 
   for (int i = nlocalprev; i < nlocal; i++) {
     m = tag[i] - tagprev-1;
 
-    flag = shake_flag[i] = onemol[imol].shake_flag[m];
+    flag = shake_flag[i] = onemols[imol]->shake_flag[m];
 
     if (flag == 1) {
       shake_atom[i][0] = mol_shake_atom[m][0] + tagprev;
@@ -2653,7 +2653,7 @@ void *FixShake::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"onemol") == 0) {
-    return onemol;
+    return onemols;
   }
   return NULL;
 }

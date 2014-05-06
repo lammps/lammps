@@ -367,7 +367,7 @@ void FixDeposit::pre_exchange()
       natom = onemols[imol]->natoms;
       if (dimension == 3) {
         r[0] = random->uniform() - 0.5;
-        r[1] = random->uniform() - 0.5
+        r[1] = random->uniform() - 0.5;
         r[2] = random->uniform() - 0.5;
       } else {
         r[0] = r[1] = 0.0;

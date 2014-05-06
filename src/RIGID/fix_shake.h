@@ -103,8 +103,8 @@ class FixShake : public Fix {
   double *a_ave,*a_max,*a_min;
   double *a_ave_all,*a_max_all,*a_min_all;
 
-  class Molecule **onemols;             // atom style template pointer
-  class Molecule *onemol;               // molecule added on-the-fly
+  class Molecule **atommols;            // atom style template pointer
+  class Molecule **onemols;             // molecule added on-the-fly
   int nmol;
 
   void find_clusters();

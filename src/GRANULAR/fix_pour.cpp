@@ -118,21 +118,22 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   if (mode == MOLECULE) {
     for (int i = 0; i < nmol; i++) {
-      if (onemol[i].xflag == 0)
+      if (onemols[i]->xflag == 0)
         error->all(FLERR,"Fix pour molecule must have coordinates");
-      if (onemol[i].typeflag == 0)
+      if (onemols[i]->typeflag == 0)
         error->all(FLERR,"Fix pour molecule must have atom types");
-      if (ntype+onemol[i].ntypes <= 0 || ntype+onemol[i].ntypes > atom->ntypes)
+      if (ntype+onemols[i]->ntypes <= 0 || 
+          ntype+onemols[i]->ntypes > atom->ntypes)
         error->all(FLERR,"Invalid atom type in fix pour mol command");
       
-      if (atom->molecular == 2 && onemol != atom->avec->onemols[0])
+      if (atom->molecular == 2 && onemols != atom->avec->onemols)
         error->all(FLERR,"Fix pour molecule template ID must be same "
                    "as atom style template ID");
-      onemol[i].check_attributes(0);
+      onemols[i]->check_attributes(0);
 
       // fix pour uses geoemetric center of molecule for insertion
 
-      onemol[i].compute_center();
+      onemols[i]->compute_center();
     }
   }
 
@@ -145,14 +146,14 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   // setup of coords and imageflags array
 
-  if (mode == ATOM) natom = 1;
+  if (mode == ATOM) natom_max = 1;
   else {
-    natom = 0;
+    natom_max = 0;
     for (int i = 0; i < nmol; i++)
-      natom = MAX(natom,onemol[i].natoms);
+      natom_max = MAX(natom_max,onemols[i]->natoms);
   }
-  memory->create(coords,natom,4,"pour:coords");
-  memory->create(imageflags,natom,"pour:imageflags");
+  memory->create(coords,natom_max,4,"pour:coords");
+  memory->create(imageflags,natom_max,"pour:imageflags");
 
   // find current max atom and molecule IDs if necessary
 
@@ -220,7 +221,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   molradius_max = 0.0;
   if (mode == MOLECULE) {
     for (int i = 0; i < nmol; i++)
-      molradius_max = MAX(molradius_max,onemol[i].molradius);
+      molradius_max = MAX(molradius_max,onemols[i]->molradius);
   }
 
   if (domain->dimension == 3) {
@@ -340,7 +341,7 @@ void FixPour::init()
     if (ifix < 0) error->all(FLERR,"Fix pour rigid fix does not exist");
     fixrigid = modify->fix[ifix];
     int tmp;
-    if (onemol != (Molecule *) fixrigid->extract("onemol",tmp))
+    if (onemols != (Molecule **) fixrigid->extract("onemol",tmp))
       error->all(FLERR,
                  "Fix pour and fix rigid/small not using "
                  "same molecule template ID");
@@ -355,7 +356,7 @@ void FixPour::init()
     if (ifix < 0) error->all(FLERR,"Fix pour shake fix does not exist");
     fixshake = modify->fix[ifix];
     int tmp;
-    if (onemol != (Molecule *) fixshake->extract("onemol",tmp))
+    if (onemols != (Molecule **) fixshake->extract("onemol",tmp))
       error->all(FLERR,"Fix pour and fix shake not using "
                  "same molecule template ID");
   }
@@ -367,7 +368,7 @@ void FixPour::init()
 
 void FixPour::pre_exchange()
 {
-  int i,j,m,flag,nlocalprev,imol;
+  int i,j,m,flag,nlocalprev,imol,natom;
   double r[3],rotmat[3][3],quat[4],vnew[3];
   double *newcoord;
 
@@ -410,7 +411,7 @@ void FixPour::pre_exchange()
 
   double **xmine,**xnear;
   memory->create(xmine,ncount,4,"fix_pour:xmine");
-  memory->create(xnear,nprevious+nnew*natom,4,"fix_pour:xnear");
+  memory->create(xnear,nprevious+nnew*natom_max,4,"fix_pour:xnear");
   int nnear = nprevious;
 
   // setup for allgatherv
@@ -467,11 +468,11 @@ void FixPour::pre_exchange()
   double *sublo = domain->sublo;
   double *subhi = domain->subhi;
 
+  int nsuccess = 0;
   int attempt = 0;
   int maxiter = nnew * maxattempt;
-  int ntotal = nprevious + nnew*natom;
 
-  while (nnear < ntotal) {
+  while (nsuccess < nnew) {
     rn = random->uniform();
     h = hi_current - rn*rn * (hi_current-lo_current);
     if (mode == ATOM) radtmp = radius_sample();
@@ -492,6 +493,7 @@ void FixPour::pre_exchange()
         double rng = random->uniform();
         imol = 0;
         while (rng > molfrac[imol]) imol++;
+        natom = onemols[imol]->natoms;
         if (dimension == 3) {
           r[0] = random->uniform() - 0.5;
           r[1] = random->uniform() - 0.5;
@@ -505,7 +507,7 @@ void FixPour::pre_exchange()
         MathExtra::axisangle_to_quat(r,theta,quat);
         MathExtra::quat_to_mat(quat,rotmat);
         for (i = 0; i < natom; i++) {
-          MathExtra::matvec(rotmat,onemol[imol].dx[i],coords[i]);
+          MathExtra::matvec(rotmat,onemols[imol]->dx[i],coords[i]);
           coords[i][0] += coord[0];
           coords[i][1] += coord[1];
           coords[i][2] += coord[2];
@@ -514,7 +516,8 @@ void FixPour::pre_exchange()
           // default to 0.5, if radii not defined in Molecule
           //   same as atom->avec->create_atom(), invoked below
 
-          if (onemol[imol].radiusflag) coords[i][3] = onemol[imol].radius[i];
+          if (onemols[imol]->radiusflag) 
+            coords[i][3] = onemols[imol]->radius[i];
           else coords[i][3] = 0.5;
 
           imageflags[i] = ((imageint) IMGMAX << IMG2BITS) |
@@ -548,6 +551,7 @@ void FixPour::pre_exchange()
 
     // proceed with insertion
 
+    nsuccess++;
     nlocalprev = atom->nlocal;
 
     // add all atoms in particle to xnear
@@ -603,7 +607,7 @@ void FixPour::pre_exchange()
 
       if (flag) {
         if (mode == ATOM) atom->avec->create_atom(ntype,coords[m]);
-        else atom->avec->create_atom(ntype+onemol[imol].type[m],coords[m]);
+        else atom->avec->create_atom(ntype+onemols[imol]->type[m],coords[m]);
         int n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
         if (mode == MOLECULE) {
@@ -622,7 +626,7 @@ void FixPour::pre_exchange()
           radtmp = newcoord[3];
           atom->radius[n] = radtmp;
           atom->rmass[n] = 4.0*MY_PI/3.0 * radtmp*radtmp*radtmp * denstmp;
-        } else atom->add_molecule_atom(&onemol[imol],m,n,maxtag_all);
+        } else atom->add_molecule_atom(onemols[imol],m,n,maxtag_all);
         for (j = 0; j < nfix; j++)
           if (fix[j]->create_attribute) fix[j]->set_arrays(n);
       }
@@ -659,10 +663,10 @@ void FixPour::pre_exchange()
     if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
       error->all(FLERR,"Too many total atoms");
     if (mode == MOLECULE) {
-      atom->nbonds += onemol[imol].nbonds * ninserted_mols;
-      atom->nangles += onemol[imol].nangles * ninserted_mols;
-      atom->ndihedrals += onemol[imol].ndihedrals * ninserted_mols;
-      atom->nimpropers += onemol[imol].nimpropers * ninserted_mols;
+      atom->nbonds += onemols[imol]->nbonds * ninserted_mols;
+      atom->nangles += onemols[imol]->nangles * ninserted_mols;
+      atom->ndihedrals += onemols[imol]->ndihedrals * ninserted_mols;
+      atom->nimpropers += onemols[imol]->nimpropers * ninserted_mols;
     }
     if (maxtag_all >= MAXTAGINT)
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
@@ -828,6 +832,7 @@ void FixPour::options(int narg, char **arg)
 
   iregion = -1;
   mode = ATOM;
+  molfrac = NULL;
   rigidflag = 0;
   idrigid = NULL;
   shakeflag = 0;
@@ -855,12 +860,9 @@ void FixPour::options(int narg, char **arg)
       int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1)
         error->all(FLERR,"Molecule template ID for fix pour does not exist");
-      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
-        error->warning(FLERR,"Molecule template for "
-                       "fix pour has multiple molecules");
       mode = MOLECULE;
-      onemol = atom->molecules[imol];
-      nmol = onemol->nset;
+      onemols = &atom->molecules[imol];
+      nmol = onemols[0]->nset;
       delete [] molfrac;
       molfrac = new double[nmol];
       molfrac[0] = 1.0/nmol;
@@ -875,10 +877,8 @@ void FixPour::options(int narg, char **arg)
         molfrac[i] = molfrac[i-1] + force->numeric(FLERR,arg[iarg+i+1]);
       if (molfrac[nmol-1] < 1.0-EPSILON || molfrac[nmol-1] > 1.0+EPSILON) 
         error->all(FLERR,"Illegal fix deposit command");
-      if (nmol > 1) molfrac[nmol-1] = 1.0 - molfrac[nmol-2];
-      else molfrac[nmol-1] = 1.0;
+      molfrac[nmol-1] = 1.0;
       iarg += nmol+1;
-
 
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
@@ -1000,10 +1000,10 @@ void *FixPour::extract(const char *str, int &itype)
       // find a molecule in template with matching type
 
       for (int i = 0; i < nmol; i++) {
-        if (itype-ntype > onemol[i].ntypes) continue;
-        double *radius = onemol[i].radius;
-        int *type = onemol[i].type;
-        int natoms = onemol[i].natoms;
+        if (itype-ntype > onemols[i]->ntypes) continue;
+        double *radius = onemols[i]->radius;
+        int *type = onemols[i]->type;
+        int natoms = onemols[i]->natoms;
 
         // check radii of matching types in Molecule
         // default to 0.5, if radii not defined in Molecule

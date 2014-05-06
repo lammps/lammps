@@ -126,7 +126,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   int seed;
   langflag = 0;
   infile = NULL;
-  onemol = NULL;
+  onemols = NULL;
 
   tstat_flag = 0;
   pstat_flag = 0;
@@ -174,11 +174,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (imol == -1)
         error->all(FLERR,"Molecule template ID for "
                    "fix rigid/small does not exist");
-      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
-        error->warning(FLERR,"Molecule template for "
-                       "fix rigid/small has multiple molecules");
-      onemol = atom->molecules[imol];
-      nmol = onemol->nset;
+      onemols = &atom->molecules[imol];
+      nmol = onemols[0]->nset;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"temp") == 0) {
@@ -300,19 +297,19 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   // error check and further setup for Molecule template
 
-  if (onemol) {
+  if (onemols) {
     for (int i = 0; i < nmol; i++) {
-      if (onemol[i].xflag == 0)
+      if (onemols[i]->xflag == 0)
         error->all(FLERR,"Fix rigid/small molecule must have coordinates");
-      if (onemol[i].typeflag == 0)
+      if (onemols[i]->typeflag == 0)
         error->all(FLERR,"Fix rigid/small molecule must have atom types");
 
       // fix rigid/small uses center, masstotal, COM, inertia of molecule
       
-      onemol[i].compute_center();
-      onemol[i].compute_mass();
-      onemol[i].compute_com();
-      onemol[i].compute_inertia();
+      onemols[i]->compute_center();
+      onemols[i]->compute_mass();
+      onemols[i]->compute_com();
+      onemols[i]->compute_inertia();
     }
   }
 
@@ -1552,9 +1549,9 @@ void FixRigidSmall::create_bodies()
 
   MPI_Allreduce(&rsqfar,&maxextent,1,MPI_DOUBLE,MPI_MAX,world);
   maxextent = sqrt(maxextent);
-  if (onemol) {
+  if (onemols) {
     for (int i = 0; i < nmol; i++)
-      maxextent = MAX(maxextent,onemol[i].maxextent);
+      maxextent = MAX(maxextent,onemols[i]->maxextent);
   }
 
   // clean up
@@ -1724,10 +1721,10 @@ void FixRigidSmall::setup_bodies_static()
   // extended = 1 if using molecule template with finite-size particles
   // require all molecules in template to have consistent radiusflag
 
-  if (onemol) {
-    int radiusflag = onemol->radiusflag;
+  if (onemols) {
+    int radiusflag = onemols[0]->radiusflag;
     for (i = 1; i < nmol; i++) {
-      if (onemol->radiusflag != radiusflag)
+      if (onemols[i]->radiusflag != radiusflag)
         error->all(FLERR,"Inconsistent use of finite-size particles "
                    "by molecule template molecules");
     }
@@ -2607,16 +2604,16 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, int imol,
   tagint *tag = atom->tag;
 
   for (int i = nlocalprev; i < nlocal; i++) {
-    bodytag[i] = tagprev + onemol[imol].comatom;
-    if (tag[i]-tagprev == onemol[imol].comatom) bodyown[i] = nlocal_body;
+    bodytag[i] = tagprev + onemols[imol]->comatom;
+    if (tag[i]-tagprev == onemols[imol]->comatom) bodyown[i] = nlocal_body;
 
     m = tag[i] - tagprev-1;
-    displace[i][0] = onemol[imol].dxbody[m][0];
-    displace[i][1] = onemol[imol].dxbody[m][1];
-    displace[i][2] = onemol[imol].dxbody[m][2];
+    displace[i][0] = onemols[imol]->dxbody[m][0];
+    displace[i][1] = onemols[imol]->dxbody[m][1];
+    displace[i][2] = onemols[imol]->dxbody[m][2];
 
     eflags[i] = 0;
-    if (onemol[imol].radiusflag) {
+    if (onemols[imol]->radiusflag) {
       eflags[i] |= SPHERE;
       eflags[i] |= OMEGA;
       eflags[i] |= TORQUE;
@@ -2625,27 +2622,27 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, int imol,
     if (bodyown[i] >= 0) {
       if (nlocal_body == nmax_body) grow_body();
       Body *b = &body[nlocal_body];
-      b->mass = onemol[imol].masstotal;
+      b->mass = onemols[imol]->masstotal;
 
-      // new COM = Q (onemol[imol].xcm - onemol[imol].center) + xgeom
+      // new COM = Q (onemols[imol]->xcm - onemols[imol]->center) + xgeom
       // Q = rotation matrix associated with quat
 
       MathExtra::quat_to_mat(quat,rotmat);
-      MathExtra::sub3(onemol[imol].com,onemol[imol].center,ctr2com);
+      MathExtra::sub3(onemols[imol]->com,onemols[imol]->center,ctr2com);
       MathExtra::matvec(rotmat,ctr2com,ctr2com_rotate);
       MathExtra::add3(ctr2com_rotate,xgeom,b->xcm);
 
       b->vcm[0] = vcm[0];
       b->vcm[1] = vcm[1];
       b->vcm[2] = vcm[2];
-      b->inertia[0] = onemol[imol].inertia[0];
-      b->inertia[1] = onemol[imol].inertia[1];
-      b->inertia[2] = onemol[imol].inertia[2];
+      b->inertia[0] = onemols[imol]->inertia[0];
+      b->inertia[1] = onemols[imol]->inertia[1];
+      b->inertia[2] = onemols[imol]->inertia[2];
 
       // final quat is product of insertion quat and original quat
       // true even if insertion rotation was not around COM
 
-      MathExtra::quatquat(quat,onemol[imol].quat,b->quat);
+      MathExtra::quatquat(quat,onemols[imol]->quat,b->quat);
       MathExtra::q_to_exyz(b->quat,b->ex_space,b->ey_space,b->ez_space);
 
       b->angmom[0] = b->angmom[1] = b->angmom[2] = 0.0;
@@ -3194,7 +3191,7 @@ void *FixRigidSmall::extract(const char *str, int &dim)
 
   if (strcmp(str,"onemol") == 0) {
     dim = 0;
-    return onemol;
+    return onemols;
   }
 
   // return vector of rigid body masses, for owned+ghost bodies

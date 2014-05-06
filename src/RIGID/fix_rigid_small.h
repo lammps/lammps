@@ -170,7 +170,7 @@ class FixRigidSmall : public Fix {
 
   // molecules added on-the-fly as rigid bodies
 
-  class Molecule *onemol;
+  class Molecule **onemols;
   int nmol;
 
   // class data used by ring communication callbacks

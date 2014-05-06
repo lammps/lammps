@@ -51,8 +51,8 @@ class FixPour : public Fix {
   double grav;
   char *idrigid,*idshake;
 
-  class Molecule *onemol;
-  int natom,nmol;
+  class Molecule **onemols;
+  int nmol,natom_max;
   double molradius_max;
   double *molfrac;
   double **coords;

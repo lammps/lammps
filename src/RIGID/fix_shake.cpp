@@ -161,14 +161,18 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
         error->warning(FLERR,"Molecule template for "
                        "fix shake has multiple molecules");
       onemol = atom->molecules[imol];
+      nmol = onemol->nset;
       iarg += 2;
     } else error->all(FLERR,"Illegal fix shake command");
   }
 
   // error check for Molecule template
 
-  if (onemol && onemol->shakeflag == 0)
-    error->all(FLERR,"Fix shake molecule template must have shake info");
+  if (onemol) {
+    for (int i = 0; i < nmol; i++)
+      if (onemol[i].shakeflag == 0)
+        error->all(FLERR,"Fix shake molecule template must have shake info");
+  }
 
   // allocate bond and angle distance arrays, indexed from 1 to n
 
@@ -2456,7 +2460,7 @@ void FixShake::update_arrays(int i, int atom_offset)
    xgeom,vcm,quat ignored
 ------------------------------------------------------------------------- */
 
-void FixShake::set_molecule(int nlocalprev, tagint tagprev, 
+void FixShake::set_molecule(int nlocalprev, tagint tagprev, int imol,
                             double *xgeom, double *vcm, double *quat)
 {
   int m,flag;
@@ -2465,13 +2469,13 @@ void FixShake::set_molecule(int nlocalprev, tagint tagprev,
   if (nlocalprev == nlocal) return;
 
   tagint *tag = atom->tag;
-  tagint **mol_shake_atom = onemol->shake_atom;
-  int **mol_shake_type = onemol->shake_type;
+  tagint **mol_shake_atom = onemol[imol].shake_atom;
+  int **mol_shake_type = onemol[imol].shake_type;
 
   for (int i = nlocalprev; i < nlocal; i++) {
     m = tag[i] - tagprev-1;
 
-    flag = shake_flag[i] = onemol->shake_flag[m];
+    flag = shake_flag[i] = onemol[imol].shake_flag[m];
 
     if (flag == 1) {
       shake_atom[i][0] = mol_shake_atom[m][0] + tagprev;

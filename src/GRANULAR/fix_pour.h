@@ -52,7 +52,9 @@ class FixPour : public Fix {
   char *idrigid,*idshake;
 
   class Molecule *onemol;
-  int natom;                    // # of atoms per inserted particle
+  int natom,nmol;
+  double molradius_max;
+  double *molfrac;
   double **coords;
   imageint *imageflags;
   class Fix *fixrigid,*fixshake;

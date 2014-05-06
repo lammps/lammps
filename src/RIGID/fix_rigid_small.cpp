@@ -178,6 +178,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         error->warning(FLERR,"Molecule template for "
                        "fix rigid/small has multiple molecules");
       onemol = atom->molecules[imol];
+      nmol = onemol->nset;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"temp") == 0) {
@@ -300,17 +301,19 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // error check and further setup for Molecule template
 
   if (onemol) {
-    if (onemol->xflag == 0)
-      error->all(FLERR,"Fix rigid/small molecule must have coordinates");
-    if (onemol->typeflag == 0)
-      error->all(FLERR,"Fix rigid/small molecule must have atom types");
+    for (int i = 0; i < nmol; i++) {
+      if (onemol[i].xflag == 0)
+        error->all(FLERR,"Fix rigid/small molecule must have coordinates");
+      if (onemol[i].typeflag == 0)
+        error->all(FLERR,"Fix rigid/small molecule must have atom types");
 
-    // fix rigid/small uses center, masstotal, COM, inertia of molecule
-
-    onemol->compute_center();
-    onemol->compute_mass();
-    onemol->compute_com();
-    onemol->compute_inertia();
+      // fix rigid/small uses center, masstotal, COM, inertia of molecule
+      
+      onemol[i].compute_center();
+      onemol[i].compute_mass();
+      onemol[i].compute_com();
+      onemol[i].compute_inertia();
+    }
   }
 
   // set pstat_flag
@@ -1549,7 +1552,10 @@ void FixRigidSmall::create_bodies()
 
   MPI_Allreduce(&rsqfar,&maxextent,1,MPI_DOUBLE,MPI_MAX,world);
   maxextent = sqrt(maxextent);
-  if (onemol) maxextent = MAX(maxextent,onemol->maxextent);
+  if (onemol) {
+    for (int i = 0; i < nmol; i++)
+      maxextent = MAX(maxextent,onemol[i].maxextent);
+  }
 
   // clean up
 
@@ -1716,8 +1722,17 @@ void FixRigidSmall::setup_bodies_static()
   }
 
   // extended = 1 if using molecule template with finite-size particles
+  // require all molecules in template to have consistent radiusflag
 
-  if (onemol && onemol->radiusflag) extended = 1;
+  if (onemol) {
+    int radiusflag = onemol->radiusflag;
+    for (i = 1; i < nmol; i++) {
+      if (onemol->radiusflag != radiusflag)
+        error->all(FLERR,"Inconsistent use of finite-size particles "
+                   "by molecule template molecules");
+    }
+    if (radiusflag) extended = 1;
+  }
 
   // grow extended arrays and set extended flags for each particle
   // orientflag = 4 if any particle stores ellipsoid or tri orientation
@@ -2579,7 +2594,7 @@ void FixRigidSmall::set_arrays(int i)
           relative to template in Molecule class
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, 
+void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, int imol,
                                  double *xgeom, double *vcm, double *quat)
 {
   int m;
@@ -2592,16 +2607,16 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev,
   tagint *tag = atom->tag;
 
   for (int i = nlocalprev; i < nlocal; i++) {
-    bodytag[i] = tagprev + onemol->comatom;
-    if (tag[i]-tagprev == onemol->comatom) bodyown[i] = nlocal_body;
+    bodytag[i] = tagprev + onemol[imol].comatom;
+    if (tag[i]-tagprev == onemol[imol].comatom) bodyown[i] = nlocal_body;
 
     m = tag[i] - tagprev-1;
-    displace[i][0] = onemol->dxbody[m][0];
-    displace[i][1] = onemol->dxbody[m][1];
-    displace[i][2] = onemol->dxbody[m][2];
+    displace[i][0] = onemol[imol].dxbody[m][0];
+    displace[i][1] = onemol[imol].dxbody[m][1];
+    displace[i][2] = onemol[imol].dxbody[m][2];
 
     eflags[i] = 0;
-    if (onemol->radiusflag) {
+    if (onemol[imol].radiusflag) {
       eflags[i] |= SPHERE;
       eflags[i] |= OMEGA;
       eflags[i] |= TORQUE;
@@ -2610,27 +2625,27 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev,
     if (bodyown[i] >= 0) {
       if (nlocal_body == nmax_body) grow_body();
       Body *b = &body[nlocal_body];
-      b->mass = onemol->masstotal;
+      b->mass = onemol[imol].masstotal;
 
-      // new COM = Q (onemol->xcm - onemol->center) + xgeom
+      // new COM = Q (onemol[imol].xcm - onemol[imol].center) + xgeom
       // Q = rotation matrix associated with quat
 
       MathExtra::quat_to_mat(quat,rotmat);
-      MathExtra::sub3(onemol->com,onemol->center,ctr2com);
+      MathExtra::sub3(onemol[imol].com,onemol[imol].center,ctr2com);
       MathExtra::matvec(rotmat,ctr2com,ctr2com_rotate);
       MathExtra::add3(ctr2com_rotate,xgeom,b->xcm);
 
       b->vcm[0] = vcm[0];
       b->vcm[1] = vcm[1];
       b->vcm[2] = vcm[2];
-      b->inertia[0] = onemol->inertia[0];
-      b->inertia[1] = onemol->inertia[1];
-      b->inertia[2] = onemol->inertia[2];
+      b->inertia[0] = onemol[imol].inertia[0];
+      b->inertia[1] = onemol[imol].inertia[1];
+      b->inertia[2] = onemol[imol].inertia[2];
 
       // final quat is product of insertion quat and original quat
       // true even if insertion rotation was not around COM
 
-      MathExtra::quatquat(quat,onemol->quat,b->quat);
+      MathExtra::quatquat(quat,onemol[imol].quat,b->quat);
       MathExtra::q_to_exyz(b->quat,b->ex_space,b->ey_space,b->ez_space);
 
       b->angmom[0] = b->angmom[1] = b->angmom[2] = 0.0;

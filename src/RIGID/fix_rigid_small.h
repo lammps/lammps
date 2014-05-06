@@ -48,7 +48,7 @@ class FixRigidSmall : public Fix {
   void grow_arrays(int);
   void copy_arrays(int, int, int);
   void set_arrays(int);
-  void set_molecule(int, tagint, double *, double *, double *);
+  void set_molecule(int, tagint, int, double *, double *, double *);
 
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
@@ -171,6 +171,7 @@ class FixRigidSmall : public Fix {
   // molecules added on-the-fly as rigid bodies
 
   class Molecule *onemol;
+  int nmol;
 
   // class data used by ring communication callbacks
 

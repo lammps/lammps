@@ -33,7 +33,7 @@ char Read_Control_File( char *control_file, control_params* control,
 {
   FILE *fp;
   char *s, **tmp;
-  int   c,i,ival;
+  int   i,ival;
   real  val;
 
   /* open control file */
@@ -115,7 +115,7 @@ char Read_Control_File( char *control_file, control_params* control,
   /* read control parameters file */
   while (!feof(fp)) {
     fgets( s, MAX_LINE, fp );
-    c = Tokenize( s, &tmp );
+    Tokenize( s, &tmp );
 
     if( strcmp(tmp[0], "simulation_name") == 0 ) {
       strcpy( control->sim_name, tmp[1] );

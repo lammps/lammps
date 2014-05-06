@@ -78,46 +78,6 @@ void Fit_to_Periodic_Box( simulation_box *box, rvec *p )
   }
 }
 
-/************** from geo_tools.c *****************/
-void Make_Point( real x, real y, real z, rvec* p )
-{
-  (*p)[0] = x;
-  (*p)[1] = y;
-  (*p)[2] = z;
-}
-
-
-
-int is_Valid_Serial( storage *workspace, int serial )
-{
-  return SUCCESS;
-}
-
-
-
-int Check_Input_Range( int val, int lo, int hi, char *message, MPI_Comm comm )
-{
-  if( val < lo || val > hi ) {
-    fprintf( stderr, "%s\nInput %d - Out of range %d-%d. Terminating...\n",
-             message, val, lo, hi );
-    MPI_Abort( comm, INVALID_INPUT );
-  }
-
-  return 1;
-}
-
-
-void Trim_Spaces( char *element )
-{
-  int i, j;
-
-  for( i = 0; element[i] == ' '; ++i ); // skip initial space chars
-
-  for( j = i; j < (int)(strlen(element)) && element[j] != ' '; ++j )
-    element[j-i] = toupper( element[j] ); // make uppercase, offset to 0
-  element[j-i] = 0; // finalize the string
-}
-
 struct timeval tim;
 real t_end;
 

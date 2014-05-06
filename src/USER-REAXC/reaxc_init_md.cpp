@@ -155,10 +155,8 @@ int  Init_Lists( reax_system *system, control_params *control,
                  simulation_data *data, storage *workspace, reax_list **lists,
                  mpi_datatypes *mpi_data, char *msg )
 {
-  int i, num_nbrs;
-  int total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
+  int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
   int *hb_top, *bond_top;
-  int nrecv[MAX_NBRS];
   MPI_Comm comm;
 
   int mincap = system->mincap;

@@ -27,7 +27,6 @@
 #include "pair_reax_c.h"
 #include "update.h"
 #include "reaxc_io_tools.h"
-#include "reaxc_basic_comm.h"
 #include "reaxc_list.h"
 #include "reaxc_reset_tools.h"
 #include "reaxc_system_props.h"

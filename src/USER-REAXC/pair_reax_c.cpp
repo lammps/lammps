@@ -630,37 +630,28 @@ void PairReaxC::set_far_nbr( far_neighbor_data *fdest,
 
 int PairReaxC::estimate_reax_lists()
 {
-  int itr_i, itr_j, itr_g, i, j, g;
-  int nlocal, nghost, num_nbrs, num_marked;
+  int itr_i, itr_j, i, j;
+  int num_nbrs, num_marked;
   int *ilist, *jlist, *numneigh, **firstneigh, *marked;
-  double d_sqr, g_d_sqr;
-  rvec dvec, g_dvec;
+  double d_sqr;
+  rvec dvec;
   double **x;
-  reax_list *far_nbrs;
-  far_neighbor_data *far_list;
 
   int mincap = system->mincap;
   double safezone = system->safezone;
 
   x = atom->x;
-  nlocal = atom->nlocal;
-  nghost = atom->nghost;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
-  far_nbrs = lists + FAR_NBRS;
-  far_list = far_nbrs->select.far_nbr_list;
 
   num_nbrs = 0;
   num_marked = 0;
   marked = (int*) calloc( system->N, sizeof(int) );
 
-  int inum = list->inum;
-  int gnum = list->gnum;
-  int numall = inum + gnum;
+  int numall = list->inum + list->gnum;
 
-  for( itr_i = 0; itr_i < inum+gnum; ++itr_i ){
+  for( itr_i = 0; itr_i < numall; ++itr_i ){
     i = ilist[itr_i];
     marked[i] = 1;
     ++num_marked;
@@ -685,18 +676,16 @@ int PairReaxC::estimate_reax_lists()
 
 int PairReaxC::write_reax_lists()
 {
-  int itr_i, itr_j, itr_g, i, j, g, flag;
-  int nlocal, nghost, num_nbrs;
+  int itr_i, itr_j, i, j;
+  int num_nbrs;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  double d_sqr, g_d, g_d_sqr;
-  rvec dvec, g_dvec;
-  double *dist, **x, SMALL = 0.0001;
+  double d_sqr;
+  rvec dvec;
+  double *dist, **x;
   reax_list *far_nbrs;
   far_neighbor_data *far_list;
 
   x = atom->x;
-  nlocal = atom->nlocal;
-  nghost = atom->nghost;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -707,11 +696,9 @@ int PairReaxC::write_reax_lists()
   num_nbrs = 0;
   dist = (double*) calloc( system->N, sizeof(double) );
 
-  int inum = list->inum;
-  int gnum = list->gnum;
-  int numall = inum + gnum;
+  int numall = list->inum + list->gnum;
 
-  for( itr_i = 0; itr_i < inum+gnum; ++itr_i ){
+  for( itr_i = 0; itr_i < numall; ++itr_i ){
     i = ilist[itr_i];
     jlist = firstneigh[i];
     Set_Start_Index( i, num_nbrs, far_nbrs );
@@ -792,8 +779,6 @@ double PairReaxC::memory_usage()
   bytes += 19.0 * system->total_cap * sizeof(real);
   bytes += 3.0 * system->total_cap * sizeof(int);
 
-  double mem1 = bytes;
-
   // From reaxc_lists
   bytes += 2.0 * lists->n * sizeof(int);
   bytes += lists->num_intrs * sizeof(three_body_interaction_data);
@@ -813,8 +798,8 @@ double PairReaxC::memory_usage()
 
 void PairReaxC::FindBond()
 {
-  int i, ii, j, pj, nj, jtmp, jj;
-  double bo_tmp, bo_cut, rij, rsq, r_tmp;
+  int i, j, pj, nj;
+  double bo_tmp, bo_cut;
 
   bond_data *bo_ij;
   bo_cut = 0.10;
@@ -827,7 +812,6 @@ void PairReaxC::FindBond()
       if (j < i) continue;
 
       bo_tmp = bo_ij->bo_data.BO;
-      r_tmp = bo_ij->d;
 
       if (bo_tmp >= bo_cut ) {
 	tmpid[i][nj] = j;

@@ -54,7 +54,6 @@ void Write_Skip_Line( output_controls *out_control, mpi_datatypes *mpi_data,
   if( my_rank == MASTER_NODE )
     fprintf( out_control->strj, INT2_LINE,
              "chars_to_skip_section:", skip, num_section );
-
 }
 
 

@@ -68,44 +68,9 @@ typedef real rtensor[3][3];
 typedef real rvec2[2];
 typedef real rvec4[4];
 
+
+// import LAMMPS' definition of tagint
 typedef LAMMPS_NS::tagint rc_tagint;
-
-typedef struct {
-  int step, bigN;
-  real T, xi, v_xi, v_xi_old, G_xi;
-  rtensor box;
-} restart_header;
-
-typedef struct {
-  rc_tagint orig_id, type;
-  char name[8];
-  rvec x, v;
-} restart_atom;
-
-typedef struct
-{
-  rc_tagint  orig_id;
-  int  imprt_id;
-  int  type;
-  int  num_bonds;
-  int  num_hbonds;
-  char name[8];
-  rvec x;     // position
-  rvec v;     // velocity
-  rvec f_old; // old force
-  rvec4 s, t;  // for calculating q
-} mpi_atom;
-
-typedef struct
-{
-  rc_tagint  orig_id;
-  int  imprt_id;
-  int  type;
-  int  num_bonds;
-  int  num_hbonds;
-  rvec x;     // position
-} boundary_atom;
-
 
 typedef struct
 {

@@ -48,12 +48,6 @@ real DistSqr_between_Special_Points( rvec, rvec );
 real DistSqr_to_Special_Point( rvec, rvec );
 int Relative_Coord_Encoding( ivec );
 
-/* from geo_tools.h */
-void Make_Point( real, real, real, rvec* );
-int is_Valid_Serial( storage*, int );
-int Check_Input_Range( int, int, int, char*, MPI_Comm );
-void Trim_Spaces( char* );
-
 /* from system_props.h */
 real Get_Time( );
 real Get_Timing_Info( real );

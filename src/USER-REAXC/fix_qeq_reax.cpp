@@ -553,7 +553,7 @@ void FixQEqReax::init_matvec()
 void FixQEqReax::compute_H()
 {
   int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
-  int i, j, ii, jj, temp, newnbr, flag;
+  int i, j, ii, jj, flag;
   double **x, SMALL = 0.0001;
   double dx, dy, dz, r_sqr;
 
@@ -651,7 +651,7 @@ int FixQEqReax::CG( double *b, double *x )
 {
   int  i, j, imax;
   double tmp, alpha, beta, b_norm;
-  double sig_old, sig_new, sig0;
+  double sig_old, sig_new;
 
   int nn, jj;
   int *ilist;
@@ -677,17 +677,14 @@ int FixQEqReax::CG( double *b, double *x )
       d[j] = r[j] * Hdia_inv[j]; //pre-condition
   }
 
-  int ttype = 1;
   b_norm = parallel_norm( b, nn );
   sig_new = parallel_dot( r, d, nn);
-  sig0 = sig_new;
 
   for( i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i ) {
     comm->forward_comm_fix(this); //Dist_vector( d );
     sparse_matvec( &H, d, q );
     comm->reverse_comm_fix(this); //Coll_vector( q );
 
-    ttype = 2;
     tmp = parallel_dot( d, q, nn);
     alpha = sig_new / tmp;
 

@@ -28,7 +28,6 @@
 #include "reaxc_forces.h"
 #include "reaxc_bond_orders.h"
 #include "reaxc_bonds.h"
-#include "reaxc_basic_comm.h"
 #include "reaxc_hydrogen_bonds.h"
 #include "reaxc_io_tools.h"
 #include "reaxc_list.h"
@@ -120,8 +119,6 @@ void Validate_Lists( reax_system *system, storage *workspace, reax_list **lists,
 {
   int i, comp, Hindex;
   reax_list *bonds, *hbonds;
-  reallocate_data *realloc;
-  realloc = &(workspace->realloc);
 
   double saferzone = system->saferzone;
 
@@ -391,7 +388,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
   int btop_i, btop_j, num_bonds, num_hbonds;
   int ihb, jhb, ihb_top, jhb_top;
   int local, flag, renbr;
-  real r_ij, cutoff;
+  real cutoff;
   reax_list *far_nbrs, *bonds, *hbonds;
   single_body_parameters *sbp_i, *sbp_j;
   two_body_parameters *twbp;
@@ -468,7 +465,6 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
       if( flag ) {
         type_j = atom_j->type;
 	if (type_j < 0) continue;
-        r_ij = nbr_pj->d;
         sbp_j = &(system->reax_param.sbp[type_j]);
         twbp = &(system->reax_param.tbp[type_i][type_j]);
 
@@ -536,7 +532,7 @@ void Estimate_Storages( reax_system *system, control_params *control,
   int ihb, jhb;
   int local;
   real cutoff;
-  real r_ij, r2;
+  real r_ij;
   real C12, C34, C56;
   real BO, BO_s, BO_pi, BO_pi2;
   reax_list *far_nbrs;
@@ -604,8 +600,6 @@ void Estimate_Storages( reax_system *system, control_params *control,
 
         /* uncorrected bond orders */
         if( nbr_pj->d <= control->bond_cut ) {
-          r2 = SQR(r_ij);
-
           if( sbp_i->r_s > 0.0 && sbp_j->r_s > 0.0) {
             C12 = twbp->p_bo1 * pow( r_ij / twbp->r_s, twbp->p_bo2 );
             BO_s = (1.0 + control->bo_cut) * exp( C12 );

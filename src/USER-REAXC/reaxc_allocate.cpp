@@ -54,31 +54,6 @@ int PreAllocate_Space( reax_system *system, control_params *control,
 
 
 /*************       system        *************/
-inline void reax_atom_Copy( reax_atom *dest, reax_atom *src )
-{
-  dest->orig_id = src->orig_id;
-  dest->type = src->type;
-  strcpy( dest->name, src->name );
-  rvec_Copy( dest->x, src->x );
-  rvec_Copy( dest->v, src->v );
-  rvec_Copy( dest->f_old, src->f_old );
-  rvec_Copy( dest->s, src->s );
-  rvec_Copy( dest->t, src->t );
-  dest->Hindex = src->Hindex;
-  dest->num_bonds = src->num_bonds;
-  dest->num_hbonds = src->num_hbonds;
-  dest->numbonds = src->numbonds;
-}
-
-
-void Copy_Atom_List( reax_atom *dest, reax_atom *src, int n )
-{
-  int i;
-
-  for( i = 0; i < n; ++i )
-    memcpy( dest+i, src+i, sizeof(reax_atom) );
-}
-
 
 int Allocate_System( reax_system *system, int local_cap, int total_cap,
                      char *msg )
@@ -306,8 +281,8 @@ int Allocate_Workspace( reax_system *system, control_params *control,
 }
 
 
-void Reallocate_Neighbor_List( reax_list *far_nbrs, int n, int num_intrs,
-                               MPI_Comm comm )
+static void Reallocate_Neighbor_List( reax_list *far_nbrs, int n,
+                                      int num_intrs, MPI_Comm comm )
 {
   Delete_List( far_nbrs, comm );
   if(!Make_List( n, num_intrs, TYP_FAR_NEIGHBOR, far_nbrs, comm )){
@@ -317,48 +292,8 @@ void Reallocate_Neighbor_List( reax_list *far_nbrs, int n, int num_intrs,
 }
 
 
-int Allocate_Matrix( sparse_matrix **pH, int cap, int m, MPI_Comm comm )
-{
-  sparse_matrix *H;
-
-  *pH = (sparse_matrix*)
-    smalloc( sizeof(sparse_matrix), "sparse_matrix", comm );
-  H = *pH;
-  H->cap = cap;
-  H->m = m;
-  H->start = (int*) smalloc( sizeof(int) * cap, "matrix_start", comm );
-  H->end = (int*) smalloc( sizeof(int) * cap, "matrix_end", comm );
-  H->entries = (sparse_matrix_entry*)
-    smalloc( sizeof(sparse_matrix_entry)*m, "matrix_entries", comm );
-
-  return SUCCESS;
-}
-
-
-void Deallocate_Matrix( sparse_matrix *H )
-{
-  sfree(H->start, "H->start");
-  sfree(H->end, "H->end");
-  sfree(H->entries, "H->entries");
-  sfree(H, "H");
-}
-
-
-int Reallocate_Matrix( sparse_matrix **H, int n, int m, char *name,
-                       MPI_Comm comm )
-{
-  Deallocate_Matrix( *H );
-  if( !Allocate_Matrix( H, n, m, comm ) ) {
-    fprintf(stderr, "not enough space for %s matrix. terminating!\n", name);
-    MPI_Abort( comm, INSUFFICIENT_MEMORY );
-  }
-
-  return SUCCESS;
-}
-
-
-int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds,
-                            MPI_Comm comm )
+static int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds,
+                                   MPI_Comm comm )
 {
   int i, id, total_hbonds;
 
@@ -382,8 +317,9 @@ int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds,
 }
 
 
-int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
-                           int *total_bonds, int *est_3body, MPI_Comm comm )
+static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
+                                  int *total_bonds, int *est_3body,
+                                  MPI_Comm comm )
 {
   int i;
 
@@ -408,174 +344,6 @@ int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
 }
 
 
-/*************       grid        *************/
-int Estimate_GCell_Population( reax_system* system, MPI_Comm comm )
-{
-  int d, i, j, k, l, max_atoms, my_max, all_max;
-  ivec c;
-  grid *g;
-  grid_cell *gc;
-  simulation_box *my_ext_box;
-  reax_atom *atoms;
-
-  my_ext_box = &(system->my_ext_box);
-  g          = &(system->my_grid);
-  atoms      = system->my_atoms;
-  Reset_Grid( g );
-
-  for( l = 0; l < system->n; l++ ) {
-    for( d = 0; d < 3; ++d ) {
-
-      c[d] = (int)((atoms[l].x[d]-my_ext_box->min[d])*g->inv_len[d]);
-
-      if( c[d] >= g->native_end[d] )
-        c[d] = g->native_end[d] - 1;
-      else if( c[d] < g->native_str[d] )
-        c[d] = g->native_str[d];
-    }
-    gc = &( g->cells[c[0]][c[1]][c[2]] );
-    gc->top++;
-  }
-
-  max_atoms = 0;
-  for( i = 0; i < g->ncells[0]; i++ )
-    for( j = 0; j < g->ncells[1]; j++ )
-      for( k = 0; k < g->ncells[2]; k++ ) {
-        gc = &(g->cells[i][j][k]);
-        if( max_atoms < gc->top )
-          max_atoms = gc->top;
-      }
-
-  my_max = (int)(MAX(max_atoms*SAFE_ZONE, MIN_GCELL_POPL));
-  MPI_Allreduce( &my_max, &all_max, 1, MPI_INT, MPI_MAX, comm );
-
-  return all_max;
-}
-
-
-void Allocate_Grid( reax_system *system, MPI_Comm comm )
-{
-  int i, j, k, l;
-  grid *g;
-  grid_cell *gc;
-
-  g = &( system->my_grid );
-
-  /* allocate gcell reordering space */
-  g->order = (ivec*) scalloc( g->total+1, sizeof(ivec), "g:order", comm );
-
-  /* allocate the gcells for the new grid */
-  g->max_nbrs = (2*g->vlist_span[0]+1)*(2*g->vlist_span[1]+1)*
-    (2*g->vlist_span[2]+1)+3;
-
-  g->cells = (grid_cell***)
-    scalloc( g->ncells[0], sizeof(grid_cell**), "gcells", comm );
-  for( i = 0; i < g->ncells[0]; i++ ) {
-    g->cells[i] = (grid_cell**)
-      scalloc( g->ncells[1], sizeof(grid_cell*),"gcells[i]", comm );
-
-    for( j = 0; j < g->ncells[1]; ++j )        {
-      g->cells[i][j] = (grid_cell*)
-        scalloc( g->ncells[2], sizeof(grid_cell), "gcells[i][j]", comm );
-
-      for( k = 0; k < g->ncells[2]; k++ ) {
-        gc = &(g->cells[i][j][k]);
-        gc->top = gc->mark = gc->str = gc->end = 0;
-        gc->nbrs = (grid_cell**)
-          scalloc( g->max_nbrs, sizeof(grid_cell*), "g:nbrs", comm );
-        gc->nbrs_x = (ivec*)
-          scalloc( g->max_nbrs, sizeof(ivec), "g:nbrs_x", comm );
-        gc->nbrs_cp = (rvec*)
-          scalloc( g->max_nbrs, sizeof(rvec), "g:nbrs_cp", comm );
-        for( l = 0; l < g->max_nbrs; ++l )
-          gc->nbrs[l] = NULL;
-      }
-    }
-  }
-
-  /* allocate atom id storage in gcells */
-  g->max_atoms = Estimate_GCell_Population( system, comm );
-  /* space for storing atom id's is required only for native cells */
-  for( i = g->native_str[0]; i < g->native_end[0]; ++i )
-    for( j = g->native_str[1]; j < g->native_end[1]; ++j )
-      for( k = g->native_str[2]; k < g->native_end[2]; ++k )
-        g->cells[i][j][k].atoms = (int*) scalloc( g->max_atoms, sizeof(int),
-                                                  "g:atoms", comm );
-}
-
-
-void Deallocate_Grid( grid *g )
-{
-  int i, j, k;
-  grid_cell *gc;
-
-  sfree( g->order, "g:order" );
-
-  /* deallocate the grid cells */
-  for( i = 0; i < g->ncells[0]; i++ ) {
-    for( j = 0; j < g->ncells[1]; j++ ) {
-      for( k = 0; k < g->ncells[2]; k++ ) {
-        gc = &(g->cells[i][j][k]);
-        sfree( gc->nbrs, "g:nbrs" );
-        sfree( gc->nbrs_x, "g:nbrs_x" );
-        sfree( gc->nbrs_cp, "g:nbrs_cp" );
-        if(gc->atoms != NULL )
-          sfree( gc->atoms, "g:atoms" );
-      }
-      sfree( g->cells[i][j], "g:cells[i][j]" );
-    }
-    sfree( g->cells[i], "g:cells[i]" );
-  }
-  sfree( g->cells, "g:cells" );
-}
-
-
-int  Allocate_MPI_Buffers( mpi_datatypes *mpi_data, int est_recv,
-                           neighbor_proc *my_nbrs, char *msg )
-{
-  int i;
-  mpi_out_data  *mpi_buf;
-  MPI_Comm comm;
-
-  comm = mpi_data->world;
-
-  /* in buffers */
-  mpi_data->in1_buffer = (void*)
-    scalloc( est_recv, sizeof(boundary_atom), "in1_buffer", comm );
-  mpi_data->in2_buffer = (void*)
-    scalloc( est_recv, sizeof(boundary_atom), "in2_buffer", comm );
-
-  /* out buffers */
-  for( i = 0; i < MAX_NBRS; ++i ) {
-    mpi_buf = &( mpi_data->out_buffers[i] );
-    /* allocate storage for the neighbor processor i */
-    mpi_buf->index = (int*)
-      scalloc( my_nbrs[i].est_send, sizeof(int), "mpibuf:index", comm );
-    mpi_buf->out_atoms = (void*)
-      scalloc( my_nbrs[i].est_send, sizeof(boundary_atom), "mpibuf:out_atoms",
-               comm );
-  }
-
-  return SUCCESS;
-}
-
-
-void Deallocate_MPI_Buffers( mpi_datatypes *mpi_data )
-{
-  int i;
-  mpi_out_data  *mpi_buf;
-
-  sfree( mpi_data->in1_buffer, "in1_buffer" );
-  sfree( mpi_data->in2_buffer, "in2_buffer" );
-
-  for( i = 0; i < MAX_NBRS; ++i ) {
-    mpi_buf = &( mpi_data->out_buffers[i] );
-    sfree( mpi_buf->index, "mpibuf:index" );
-    sfree( mpi_buf->out_atoms, "mpibuf:out_atoms" );
-  }
-}
-
-
 void ReAllocate( reax_system *system, control_params *control,
                  simulation_data *data, storage *workspace, reax_list **lists,
                  mpi_datatypes *mpi_data )
@@ -584,7 +352,6 @@ void ReAllocate( reax_system *system, control_params *control,
   int renbr, newsize;
   reallocate_data *realloc;
   reax_list *far_nbrs;
-  grid *g;
   MPI_Comm comm;
   char msg[200];
 
@@ -593,13 +360,10 @@ void ReAllocate( reax_system *system, control_params *control,
   double saferzone = system->saferzone;
 
   realloc = &(workspace->realloc);
-  g = &(system->my_grid);
   comm = mpi_data->world;
 
-  int nflag = 0;
   if( system->n >= DANGER_ZONE * system->local_cap ||
       (0 && system->n <= LOOSE_ZONE * system->local_cap) ) {
-    nflag = 1;
     system->local_cap = MAX( (int)(system->n * safezone), mincap );
   }
 

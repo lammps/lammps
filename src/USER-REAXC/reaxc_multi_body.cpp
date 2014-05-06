@@ -43,19 +43,18 @@ void Atom_Energy( reax_system *system, control_params *control,
   real exp_ovun2n, exp_ovun6, exp_ovun8;
   real inv_exp_ovun1, inv_exp_ovun2, inv_exp_ovun2n, inv_exp_ovun8;
   real e_un, CEunder1, CEunder2, CEunder3, CEunder4;
-  real p_lp1, p_lp2, p_lp3;
+  real p_lp2, p_lp3;
   real p_ovun2, p_ovun3, p_ovun4, p_ovun5, p_ovun6, p_ovun7, p_ovun8;
-  real eng_tmp, f_tmp;
+  real eng_tmp;
   int numbonds;
 
-  single_body_parameters *sbp_i, *sbp_j;
+  single_body_parameters *sbp_i;
   two_body_parameters *twbp;
   bond_data *pbond;
   bond_order_data *bo_ij;
   reax_list *bonds = (*lists) + BONDS;
 
   /* Initialize parameters */
-  p_lp1 = system->reax_param.gp.l[15];
   p_lp3 = system->reax_param.gp.l[5];
   p_ovun3 = system->reax_param.gp.l[32];
   p_ovun4 = system->reax_param.gp.l[31];
@@ -143,7 +142,6 @@ void Atom_Energy( reax_system *system, control_params *control,
         type_j = system->my_atoms[j].type;
 	if (type_j < 0) continue;
         bo_ij = &(bonds->select.bond_list[pj].bo_data);
-        sbp_j = &(system->reax_param.sbp[ type_j ]);
         twbp = &(system->reax_param.tbp[ type_i ][ type_j ]);
 
         sum_ovun1 += twbp->p_ovun1 * twbp->De_s * bo_ij->BO;
@@ -205,7 +203,6 @@ void Atom_Energy( reax_system *system, control_params *control,
     if( system->pair_ptr->evflag) {
       eng_tmp = e_ov;
       if (numbonds > 0) eng_tmp += e_un;
-      f_tmp = CEover3 + CEunder3;
       system->pair_ptr->ev_tally(i,i,system->n,1,eng_tmp,0.0,0.0,0.0,0.0,0.0);
     }
 

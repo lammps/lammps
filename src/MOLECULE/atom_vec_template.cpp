@@ -845,7 +845,7 @@ void AtomVecTemplate::write_data(FILE *fp, int n, double **buf)
 int AtomVecTemplate::write_data_hybrid(FILE *fp, double *buf)
 {
   fprintf(fp," " TAGINT_FORMAT " %d %d",
-          (tagint) ubuf(buf[0]).i,(int) ubuf(buf[0]).i,(int) ubuf(buf[0]).i);
+          (tagint) ubuf(buf[0]).i,(int) ubuf(buf[1]).i,(int) ubuf(buf[2]).i);
   return 3;
 }
 

@@ -45,6 +45,8 @@ keyword = {region} or {diam} or {dens} or {vol} or {rate} or {vel} or {mol} or {
     vy = y velocity (2d) assigned to inserted particles (velocity units)
   {mol} value = template-ID
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
+  {molfrac} values = f1 f2 ... fN
+    f1 to fN = relative probability of creating each of N molecules in template-ID
   {rigid} value = fix-ID
     fix-ID = ID of "fix rigid/small"_fix_rigid.html command
   {shake} value = fix-ID
@@ -95,6 +97,13 @@ information for the molecule can be specified in the molecule file.
 See the "molecule"_molecule.html command for details.  The only
 settings required to be in this file are the coordinates and types of
 atoms in the molecule.
+
+If the molecule template contains more than one molecule, the relative
+probability of depositing each molecule can be specified by the
+{molfrac} keyword.  N relative probablities, each from 0.0 to 1.0, are
+specified, where N is the number of molecules in the template.  Each
+time a molecule is inserted, a random number is used to sample from
+the list of relative probabilities.  The N values must sum to 1.0.
 
 If you wish to insert molecules via the {mol} keyword, that will be
 treated as rigid bodies, use the {rigid} keyword, specifying as its
@@ -213,5 +222,8 @@ defined by the "region"_region.html command.
 
 [Default:]
 
-The option defaults are diam = one 1.0, dens = 1.0 1.0, vol = 0.25 50,
-rate = 0.0, vel = 0.0 0.0 0.0 0.0 0.0.
+Insertions are performed for individual particles, i.e. no {mol}
+setting is defined.  If the {mol} keyword is used, the default for
+{molfrac} is an equal probabilities for all molecules in the template.
+Additional option defaults are diam = one 1.0, dens = 1.0 1.0, vol =
+0.25 50, rate = 0.0, vel = 0.0 0.0 0.0 0.0 0.0.

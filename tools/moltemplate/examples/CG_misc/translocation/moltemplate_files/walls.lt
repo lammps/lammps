@@ -1,0 +1,23 @@
+####################### WALLS ##########################
+
+import "wall_single.lt"
+
+# Create a wall at position z=6.0    (6.0 = 2*3.0)
+
+wall1 = new MoleculeB [12].move(3.0, 0, 0)
+                      [12].move(0, 3.0, 0)
+
+wall1[*][*].move(0,0,6.0)
+
+# Create a second wall at position z=24.0   (24.0 = 8*3.0)
+
+wall2 = new MoleculeB [12].move(3.0, 0, 0)
+                      [12].move(0, 3.0, 0)
+
+wall2[*][*].move(0,0,24.0)
+
+# Now delete some of the molecules in "wall2" to create a hole.
+
+delete wall2[6-7][6-9]
+delete wall2[5-8][7-8]
+

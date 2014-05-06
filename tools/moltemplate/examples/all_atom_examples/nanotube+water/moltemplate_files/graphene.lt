@@ -1,0 +1,52 @@
+# The minimal unit cell for graphine contains only 2 atoms:
+# (which I arbitrarily named "C1" and "C2")
+
+Graphene {
+
+  # atomID   molID     atomType charge      x              y         z
+  write("Data Atoms") {
+    $atom:C1  $mol:...  @atom:C   0.0  -0.61487803668695 -0.355   0.0000
+    $atom:C2  $mol:...  @atom:C   0.0   0.61487803668695  0.355   0.0000
+  }
+
+  # Now define the "C" atom type
+  write_once("Data Masses") {
+    @atom:C  12.0
+  }
+  write_once("In Settings") {
+    #              i       j                             epsilon     sigma
+    pair_coeff  @atom:C @atom:C  lj/cut/coul/long       0.068443     3.407
+    
+    # These Lennard-Jones parameters come from
+    #  R. Saito, R. Matsuo, T. Kimura, G. Dresselhaus, M.S. Dresselhaus,
+    #  Chem Phys Lett, 348:187 (2001)
+
+    # Define a group consisting of only carbon atoms in graphene molecules
+    group Cgraphene type @atom:C
+  }
+  write_once("In Init") {
+    pair_style  hybrid  lj/cut/coul/long  9.0
+  }
+} # Graphene
+
+
+
+
+# This is a 2-dimensional hexagonal unit cell.  The unit vectors are:
+#
+# (2.4595121467478,    0,     0)    
+# (1.2297560733739,  2.13,    0)
+#
+# You can create a sheet of single-layer graphene this way:
+#
+# small_crystal = new Graphene [3].move(2.45951214, 0, 0)
+#                              [3].move(1.229756, 2.13, 0)
+#
+# For thicker sheets, follow the instructions in the "graphite.lt" file.
+#
+# Note: The length of each carbon-carbon bond is currently 1.42 Angstroms.
+#       To increase it to 1.422 Angstroms, uncomment the following line:
+#
+# Graphene.scale(1.0014084507042254)    # 1.0014084507042254 = 1.422 / 1.42
+#
+# You will have to change the unit cell lattice vectors (see above) accordingly

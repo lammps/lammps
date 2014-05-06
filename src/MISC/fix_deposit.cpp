@@ -355,6 +355,7 @@ void FixDeposit::pre_exchange()
     // also modify image flags due to PBC
 
     if (mode == ATOM) {
+      natom = 1;
       coords[0][0] = coord[0];
       coords[0][1] = coord[1];
       coords[0][2] = coord[2];

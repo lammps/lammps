@@ -483,6 +483,7 @@ void FixPour::pre_exchange()
       xyz_random(h,coord);
 
       if (mode == ATOM) {
+        natom = 1;
         coords[0][0] = coord[0];
         coords[0][1] = coord[1];
         coords[0][2] = coord[2];

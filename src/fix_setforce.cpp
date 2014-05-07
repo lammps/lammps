@@ -99,8 +99,8 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   force_flag = 0;
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
 
-  maxatom = 0;
-  sforce = NULL;
+  maxatom = atom->nmax;
+  memory->create(sforce,maxatom,3,"setforce:sforce");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -257,20 +257,14 @@ void FixSetForce::post_force(int vflag)
     modify->clearstep_compute();
 
     if (xstyle == EQUAL) xvalue = input->variable->compute_equal(xvar);
-    else if (xstyle == ATOM) {
-      if (sforce) input->variable->compute_atom(xvar,igroup,&sforce[0][0],3,0);
-      else input->variable->compute_atom(xvar,igroup,NULL,3,0);
-    }
+    else if (xstyle == ATOM)
+      input->variable->compute_atom(xvar,igroup,&sforce[0][0],3,0);
     if (ystyle == EQUAL) yvalue = input->variable->compute_equal(yvar);
-    else if (ystyle == ATOM) {
-      if (sforce) input->variable->compute_atom(yvar,igroup,&sforce[0][1],3,0);
-      else input->variable->compute_atom(yvar,igroup,NULL,3,0);
-    }
+    else if (ystyle == ATOM)
+      input->variable->compute_atom(yvar,igroup,&sforce[0][1],3,0);
     if (zstyle == EQUAL) zvalue = input->variable->compute_equal(zvar);
-    else if (zstyle == ATOM) {
-      if (sforce) input->variable->compute_atom(zvar,igroup,&sforce[0][2],3,0);
-      else input->variable->compute_atom(zvar,igroup,NULL,3,0);
-    }
+    else if (zstyle == ATOM)
+      input->variable->compute_atom(zvar,igroup,&sforce[0][2],3,0);
 
     modify->addstep_compute(update->ntimestep + 1);
 

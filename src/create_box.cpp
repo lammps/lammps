@@ -164,11 +164,14 @@ void CreateBox::command(int narg, char **arg)
   }
 
   // problem setup using info from header
-  // no call to atom->grow since create_atoms or fixes will do it
+  // deallocate/grow insures any extra settings are used for topology arrays
+  // necessary in case no create_atoms is performed
 
   update->ntimestep = 0;
 
   atom->allocate_type_arrays();
+  atom->deallocate_topology();
+  atom->avec->grow(atom->nmax);
 
   domain->print_box("Created ");
   domain->set_initial_box();

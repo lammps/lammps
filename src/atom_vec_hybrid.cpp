@@ -23,8 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
-
 /* ---------------------------------------------------------------------- */
 
 AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp) : AtomVec(lmp) {}
@@ -134,13 +132,13 @@ void AtomVecHybrid::init()
 
 /* ----------------------------------------------------------------------
    grow atom arrays
-   n = 0 grows arrays by DELTA
+   n = 0 grows arrays by a chunk
    n > 0 allocates arrays to size n
 ------------------------------------------------------------------------- */
 
 void AtomVecHybrid::grow(int n)
 {
-  if (n == 0) nmax += DELTA;
+  if (n == 0) grow_nmax();
   else nmax = n;
   atom->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)

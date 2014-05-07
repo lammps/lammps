@@ -330,17 +330,12 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
   // create instance of AtomVec
   // use grow() to initialize atom-based arrays to length 1
   //   so that x[0][0] can always be referenced even if proc has no atoms
-  // but reset nmax = 0 in both Atom and AtomVec
-  //   so 2d arrays like bond_type will later be allocated correctly
-  //   since currently, 2nd dimension bond_per_atom = 0
 
   int sflag;
   avec = new_avec(style,suffix,sflag);
   avec->store_args(narg,arg);
   avec->process_args(narg,arg);
   avec->grow(1);
-  nmax = 0;
-  avec->reset();
 
   if (sflag) {
     char estyle[256];
@@ -638,6 +633,48 @@ int Atom::count_words(const char *line)
 
   memory->destroy(copy);
   return n;
+}
+
+/* ----------------------------------------------------------------------
+   deallocate molecular topology arrays
+   done before realloc with (possibly) new 2nd dimension set to
+     correctly initialized per-atom values, e.g. bond_per_atom
+   needs to be called whenever 2nd dimensions are changed
+     and these arrays are already pre-allocated,
+     e.g. with 1st dimension of length 1 due to atom style creation
+------------------------------------------------------------------------- */
+
+void Atom::deallocate_topology()
+{
+  memory->destroy(atom->bond_type);
+  memory->destroy(atom->bond_atom);
+  atom->bond_type = NULL;
+  atom->bond_atom = NULL;
+
+  memory->destroy(atom->angle_type);
+  memory->destroy(atom->angle_atom1);
+  memory->destroy(atom->angle_atom2);
+  memory->destroy(atom->angle_atom3);
+  atom->angle_type = NULL;
+  atom->angle_atom1 = atom->angle_atom2 = atom->angle_atom3 = NULL;
+  
+  memory->destroy(atom->dihedral_type);
+  memory->destroy(atom->dihedral_atom1);
+  memory->destroy(atom->dihedral_atom2);
+  memory->destroy(atom->dihedral_atom3);
+  memory->destroy(atom->dihedral_atom4);
+  atom->dihedral_type = NULL;
+  atom->dihedral_atom1 = atom->dihedral_atom2 = 
+    atom->dihedral_atom3 = atom->dihedral_atom4 = NULL;
+  
+  memory->destroy(atom->improper_type);
+  memory->destroy(atom->improper_atom1);
+  memory->destroy(atom->improper_atom2);
+  memory->destroy(atom->improper_atom3);
+  memory->destroy(atom->improper_atom4);
+  atom->improper_type = NULL;
+  atom->improper_atom1 = atom->improper_atom2 = 
+    atom->improper_atom3 = atom->improper_atom4 = NULL;
 }
 
 /* ----------------------------------------------------------------------

@@ -114,8 +114,8 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   force_flag = 0;
   fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
 
-  maxatom = 0;
-  efield = NULL;
+  maxatom = atom->nmax;
+  memory->create(efield,maxatom,4,"efield:efield");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -332,24 +332,16 @@ void FixEfield::post_force(int vflag)
     modify->clearstep_compute();
 
     if (xstyle == EQUAL) ex = qe2f * input->variable->compute_equal(xvar);
-    else if (xstyle == ATOM) {
-      if (efield) input->variable->compute_atom(xvar,igroup,&efield[0][0],3,0);
-      else input->variable->compute_atom(xvar,igroup,NULL,3,0);
-    }
+    else if (xstyle == ATOM)
+      input->variable->compute_atom(xvar,igroup,&efield[0][0],3,0);
     if (ystyle == EQUAL) ey = qe2f * input->variable->compute_equal(yvar);
-    else if (ystyle == ATOM) {
-      if (efield) input->variable->compute_atom(yvar,igroup,&efield[0][1],3,0);
-      else input->variable->compute_atom(yvar,igroup,NULL,3,0);
-    }
+    else if (ystyle == ATOM)
+      input->variable->compute_atom(yvar,igroup,&efield[0][1],3,0);
     if (zstyle == EQUAL) ez = qe2f * input->variable->compute_equal(zvar);
-    else if (zstyle == ATOM) {
-      if (efield) input->variable->compute_atom(zvar,igroup,&efield[0][2],3,0);
-      else input->variable->compute_atom(zvar,igroup,NULL,3,0);
-    }
-    if (estyle == ATOM) {
-      if (efield) input->variable->compute_atom(evar,igroup,&efield[0][3],4,0);
-      else input->variable->compute_atom(evar,igroup,NULL,4,0);
-    }
+    else if (zstyle == ATOM)
+      input->variable->compute_atom(zvar,igroup,&efield[0][2],3,0);
+    if (estyle == ATOM)
+      input->variable->compute_atom(evar,igroup,&efield[0][3],4,0);
 
     modify->addstep_compute(update->ntimestep + 1);
 

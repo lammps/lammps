@@ -21,6 +21,8 @@
 
 using namespace LAMMPS_NS;
 
+#define DELTA 16384
+
 /* ---------------------------------------------------------------------- */
 
 AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
@@ -82,12 +84,13 @@ void AtomVec::init()
 }
 
 /* ----------------------------------------------------------------------
-   reset nmax = 0, called by Atom::create_avec() when new atom style created
+   grow nmax
 ------------------------------------------------------------------------- */
 
-void AtomVec::reset()
+void AtomVec::grow_nmax()
 {
-  nmax = 0;
+  nmax = nmax/DELTA * DELTA;
+  nmax += DELTA;
 }
 
 /* ----------------------------------------------------------------------

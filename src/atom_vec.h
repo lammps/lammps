@@ -103,7 +103,6 @@ class AtomVec : protected Pointers {
   virtual void write_vel(FILE *, int, double **);
   virtual int write_vel_hybrid(FILE *, double *) {return 0;}
 
-  void reset();
   int pack_bond(tagint **);
   void write_bond(FILE *, int, tagint **, int);
   int pack_angle(tagint **);
@@ -139,6 +138,8 @@ class AtomVec : protected Pointers {
     ubuf(int64_t arg) : i(arg) {}
     ubuf(int arg) : i(arg) {}
   };
+
+  void grow_nmax();
 };
 
 }

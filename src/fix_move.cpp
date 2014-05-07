@@ -242,8 +242,9 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
   atom->add_callback(1);
 
-  maxatom = 0;
-  displace = velocity = NULL;
+  maxatom = atom->nmax;
+  if (displaceflag) memory->create(displace,maxatom,3,"move:displace");
+  if (velocityflag) memory->create(velocity,maxatom,3,"move:velocity");
 
   // xoriginal = initial unwrapped positions of atoms
 
@@ -581,45 +582,27 @@ void FixMove::initial_integrate(int vflag)
 
     if (xvarstr) {
       if (xvarstyle == EQUAL) dx = input->variable->compute_equal(xvar);
-      else if (displace)
-        input->variable->compute_atom(xvar,igroup,&displace[0][0],3,0);
-      else 
-        input->variable->compute_atom(xvar,igroup,NULL,3,0);
+      else input->variable->compute_atom(xvar,igroup,&displace[0][0],3,0);
     }
     if (yvarstr) {
       if (yvarstyle == EQUAL) dy = input->variable->compute_equal(yvar);
-      else if (displace)
-        input->variable->compute_atom(yvar,igroup,&displace[0][1],3,0);
-      else
-        input->variable->compute_atom(yvar,igroup,NULL,3,0);
+      else input->variable->compute_atom(yvar,igroup,&displace[0][1],3,0);
     }
     if (zvarstr) {
       if (zvarstyle == EQUAL) dz = input->variable->compute_equal(zvar);
-      else if (displace)
-        input->variable->compute_atom(zvar,igroup,&displace[0][2],3,0);
-      else
-        input->variable->compute_atom(zvar,igroup,NULL,3,0);
+      else input->variable->compute_atom(zvar,igroup,&displace[0][2],3,0);
     }
     if (vxvarstr) {
       if (vxvarstyle == EQUAL) vx = input->variable->compute_equal(vxvar);
-      else if (velocity)
-        input->variable->compute_atom(vxvar,igroup,&velocity[0][0],3,0);
-      else
-        input->variable->compute_atom(vxvar,igroup,NULL,3,0);
+      else input->variable->compute_atom(vxvar,igroup,&velocity[0][0],3,0);
     }
     if (vyvarstr) {
       if (vyvarstyle == EQUAL) vy = input->variable->compute_equal(vyvar);
-      else if (velocity)
-        input->variable->compute_atom(vyvar,igroup,&velocity[0][1],3,0);
-      else
-        input->variable->compute_atom(vyvar,igroup,NULL,3,0);
+      else input->variable->compute_atom(vyvar,igroup,&velocity[0][1],3,0);
     }
     if (vzvarstr) {
       if (vzvarstyle == EQUAL) vz = input->variable->compute_equal(vzvar);
-      else if (velocity)
-        input->variable->compute_atom(vzvar,igroup,&velocity[0][2],3,0);
-      else
-        input->variable->compute_atom(vzvar,igroup,NULL,3,0);
+      else input->variable->compute_atom(vzvar,igroup,&velocity[0][2],3,0);
     }
 
     modify->addstep_compute(update->ntimestep + 1);

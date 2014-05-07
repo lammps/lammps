@@ -304,7 +304,6 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  values = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
   atom->add_callback(1);
@@ -467,11 +466,9 @@ void FixStoreState::end_of_step()
 
       // evaluate atom-style variable
 
-      } else if (which[m] == VARIABLE)
-        if (values) 
-          input->variable->compute_atom(n,igroup,&values[0][m],nvalues,0);
-        else
-          input->variable->compute_atom(n,igroup,NULL,nvalues,0);
+      } else if (which[m] == VARIABLE) {
+        input->variable->compute_atom(n,igroup,&values[0][m],nvalues,0);
+      }
     }
   }
 

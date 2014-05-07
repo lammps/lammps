@@ -641,7 +641,7 @@ int Atom::count_words(const char *line)
      correctly initialized per-atom values, e.g. bond_per_atom
    needs to be called whenever 2nd dimensions are changed
      and these arrays are already pre-allocated,
-     e.g. with 1st dimension of length 1 due to atom style creation
+     e.g. due to grow(1) in create_avec()
 ------------------------------------------------------------------------- */
 
 void Atom::deallocate_topology()

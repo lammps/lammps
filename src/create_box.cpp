@@ -171,7 +171,7 @@ void CreateBox::command(int narg, char **arg)
 
   atom->allocate_type_arrays();
   atom->deallocate_topology();
-  atom->avec->grow(atom->nmax);
+  atom->avec->grow(1);
 
   domain->print_box("Created ");
   domain->set_initial_box();

@@ -37,7 +37,7 @@ class ComputeTempSphere : public Compute {
   void restore_bias(int, double *);
 
  private:
-  int fix_dof,mode;
+  int mode;
   double tfactor;
   double *inertia;
   char *id_bias;

@@ -39,7 +39,6 @@ class ComputeTempCOM : public Compute {
   void restore_bias_all();
 
  private:
-  int fix_dof;
   double tfactor,masstotal;
 
   void dof_compute();

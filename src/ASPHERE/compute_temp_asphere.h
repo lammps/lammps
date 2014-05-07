@@ -37,7 +37,7 @@ class ComputeTempAsphere : public Compute {
   void restore_bias(int, double *);
 
  private:
-  int fix_dof,mode;
+  int mode;
   double tfactor;
   char *id_bias;
   class Compute *tbias;              // ptr to additional bias compute

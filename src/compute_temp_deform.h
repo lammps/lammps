@@ -40,7 +40,6 @@ class ComputeTempDeform : public Compute {
   double memory_usage();
 
  protected:
-  int fix_dof;
   double tfactor;
 
   virtual void dof_compute();

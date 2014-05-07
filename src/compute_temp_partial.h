@@ -42,7 +42,6 @@ class ComputeTempPartial : public Compute {
 
  protected:
   int xflag,yflag,zflag;
-  int fix_dof;
   double tfactor;
 
   void dof_compute();

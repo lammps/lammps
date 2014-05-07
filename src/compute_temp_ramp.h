@@ -44,7 +44,7 @@ class ComputeTempRamp : public Compute {
   double coord_lo,coord_hi;
   int v_dim;
   double v_lo,v_hi;
-  int scaleflag,fix_dof;
+  int scaleflag;
   double tfactor,xscale,yscale,zscale;
 
   void dof_compute();

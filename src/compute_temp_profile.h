@@ -44,7 +44,6 @@ class ComputeTempProfile : public Compute {
   int xflag,yflag,zflag,ncount,outflag;
   int nbinx,nbiny,nbinz,nbins;
   int ivx,ivy,ivz;
-  int fix_dof;
   double tfactor;
 
   int box_change,triclinic;

@@ -86,6 +86,7 @@ class Compute : protected Pointers {
   Compute(class LAMMPS *, int, char **);
   virtual ~Compute();
   void modify_params(int, char **);
+  void adjust_dof_fix();
   void reset_extra_dof();
 
   virtual void init() = 0;
@@ -122,6 +123,7 @@ class Compute : protected Pointers {
 
  protected:
   int extra_dof;               // extra DOF for temperature computes
+  int fix_dof;                 // DOF due to fixes
   int dynamic;                 // recount atoms for temperature computes
   int thermoflag;              // 1 if include fix PE for PE computes
 

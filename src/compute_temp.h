@@ -34,7 +34,6 @@ class ComputeTemp : public Compute {
   void compute_vector();
 
  protected:
-  int fix_dof;
   double tfactor;
 
   virtual void dof_compute();

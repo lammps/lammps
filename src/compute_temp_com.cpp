@@ -19,8 +19,6 @@
 #include "update.h"
 #include "force.h"
 #include "group.h"
-#include "modify.h"
-#include "fix.h"
 #include "domain.h"
 #include "lattice.h"
 #include "error.h"
@@ -62,9 +60,7 @@ void ComputeTempCOM::init()
 
 void ComputeTempCOM::setup()
 {
-  fix_dof = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+  fix_dof = -1;
   dof_compute();
 }
 
@@ -72,6 +68,7 @@ void ComputeTempCOM::setup()
 
 void ComputeTempCOM::dof_compute()
 {
+  if (fix_dof) adjust_dof_fix();
   double natoms = group->count(igroup);
   int nper = domain->dimension;
   dof = nper * natoms;

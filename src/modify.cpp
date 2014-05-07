@@ -271,7 +271,7 @@ void Modify::init()
 void Modify::setup(int vflag)
 {
   // compute setup needs to come before fix setup
-  // b/c NH fixes need use DOF of temperature computes
+  // b/c NH fixes need DOF of temperature computes
 
   for (int i = 0; i < ncompute; i++) compute[i]->setup();
 

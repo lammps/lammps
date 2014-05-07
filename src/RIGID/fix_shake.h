@@ -40,7 +40,7 @@ class FixShake : public Fix {
   void copy_arrays(int, int, int);
   void set_arrays(int);
   void update_arrays(int, int);
-  void set_molecule(int, tagint, double *, double *, double *);
+  void set_molecule(int, tagint, int, double *, double *, double *);
 
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
@@ -103,8 +103,9 @@ class FixShake : public Fix {
   double *a_ave,*a_max,*a_min;
   double *a_ave_all,*a_max_all,*a_min_all;
 
-  class Molecule **onemols;             // atom style template pointer
-  class Molecule *onemol;               // molecule added on-the-fly
+  class Molecule **atommols;            // atom style template pointer
+  class Molecule **onemols;             // molecule added on-the-fly
+  int nmol;
 
   void find_clusters();
   int masscheck(double);

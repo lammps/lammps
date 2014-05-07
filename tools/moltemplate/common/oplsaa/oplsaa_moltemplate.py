@@ -1,8 +1,12 @@
 #! /usr/bin/env python
-#The purpose of this script is to create a moltemplate lt file for the opls-aa forcefield.
-#This will assist researchers in building complex simulations using this OPLS-UA and the OPLS-AA forcefields.
+#
+# The purpose of this script is to create a moltemplate lt file for the oplsaa.
+# forcefield.  This will assist researchers in building complex simulations using
+# this OPLS-UA and the OPLS-AA forcefields.
+
 __author__="Jason Lambert"
-__version__="0.15"
+# (some additional corrections by Miguel Gonzalez and Andrew Jewett)
+__version__="0.16"
 
 import sys
 import os
@@ -257,7 +261,9 @@ index1=0
 for x in bond:
   for y in atom_lookup.get(x[0],[]):
     for z in atom_lookup.get(x[1],[]):
-      g.write("    bond_coeff @bond:{}-{} harmonic {} {}\n".format(y,z,x[2]/2,x[3]))
+      #g.write("    bond_coeff @bond:{}-{} harmonic {} {}\n".format(y,z,x[2]/2,x[3]))
+      # Miguel Gonzales corrected this line to:
+      g.write("    bond_coeff @bond:{}-{} harmonic {} {}\n".format(y,z,x[2],x[3]))
       h.write("    @bond:{0}-{1} @atom:{0} @atom:{1}\n".format(y,z))
 g.write("  } #(end of bond_coeffs)\n\n")
 h.seek(0,0)      
@@ -278,10 +284,10 @@ for x in angle:
     for z in atom_lookup.get(x[1],[]):
       for u in atom_lookup.get(x[2],[]):
          #print(y,z,u,x)
-            h.write("    angle_coeff @angle:{}-{}-{} harmonic {} {}\n".format(y,z,u,
-            x[3]/2.0,x[4]))
-            g.write("    @angle:{0}-{1}-{2} @atom:{0} @atom:{1} @atom:{2}\n".format(
-            y,z,u))
+         #h.write("    angle_coeff @angle:{}-{}-{} harmonic {} {}\n".format(y,z,u,x[3]/2.0,x[4]))
+         # Miguel Gonzales corrected this line:
+         h.write("    angle_coeff @angle:{}-{}-{} harmonic {} {}\n".format(y,z,u,x[3],x[4]))
+         g.write("    @angle:{0}-{1}-{2} @atom:{0} @atom:{1} @atom:{2}\n".format(y,z,u))
 
 
 g.write("  } #(end of angles by type)\n\n") 
@@ -370,7 +376,7 @@ g.write("    improper_style hybrid harmonic\n")
 #g.write("    pair_style hybrid lj/cut/coul/cut 10.0 10.0\n")
 g.write("    pair_style hybrid lj/cut/coul/long 10.0 10.0\n")
 g.write("    pair_modify mix arithmetic\n")
-g.write("    special_bonds lj 0.0 0.0 0.5\n")    
+g.write("    special_bonds lj/coul 0.0 0.0 0.5\n")    
 g.write("    kspace_style pppm 0.0001\n")
 g.write("  } #end of init parameters\n\n")
 g.write("} # OPLSAA\n")

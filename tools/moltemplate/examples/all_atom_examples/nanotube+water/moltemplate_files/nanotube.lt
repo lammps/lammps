@@ -1,5 +1,11 @@
 import "graphene.lt"
 
+# The "Graphene" unit cell defined in "graphene.lt" lies in the XY plane.
+# In the next line, we will create a new version of the graphene unit cell
+# which lies in the XZ plane, by rotating Graphene 90 degrees around the X axis:
+
+GrapheneXZ = Graphene.rot(90,1,0,0)
+
 # ------------------ nanotube ---------------
 
 # Now use this to build a simple ("zigzag") nanotube where the long-axis of each
@@ -11,15 +17,14 @@ import "graphene.lt"
 
 
 
+nanotube = new GrapheneXZ.move(0, 5.457193512764, 0)            # 5.45 = R
+                  [14].rot(25.7142857,0,0,1)                    #25.7=360/14
+                  [12].rot(12.8571429,0,0,1).move(0, 0, 2.13)   #12.9=180/14
+                                                                #2.13= d*1.5
 
-nanotube = new Graphene/2AtomCellAlignXZ.move(0, 5.457193512764, 0) # 5.45 = R
-                      [14].rot(25.7142857,0,0,1)                    #25.7=360/14
-                      [12].rot(12.8571429,0,0,1).move(0, 0, 2.13)   #12.9=180/14
-                                                                    #2.13= d*1.5
 
-
-                      # Note: The length is 12 hexegons, the circumference is
-                      # 14 hexegons (~=25.56 and 34.43 Angstroms, respectively).
+                  # Note: The length is 12 hexegons, the circumference is
+                  # 14 hexegons (~=25.56 and 34.43 Angstroms, respectively).
 
 
 # Move all of the unit-cells in the nanotube between the two graphene sheets.

@@ -28,8 +28,6 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA_BONUS 8192
-
 /* ---------------------------------------------------------------------- */
 
 AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
@@ -159,7 +157,7 @@ void AtomVecBody::grow_reset()
 
 void AtomVecBody::grow_bonus()
 {
-  nmax_bonus += DELTA_BONUS;
+  nmax_bonus = grow_nmax_bonus(nmax_bonus);
   if (nmax_bonus < 0 || nmax_bonus > MAXSMALLINT)
     error->one(FLERR,"Per-processor system is too big");
 

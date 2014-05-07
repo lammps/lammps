@@ -140,6 +140,7 @@ class AtomVec : protected Pointers {
   };
 
   void grow_nmax();
+  int grow_nmax_bonus(int);
 };
 
 }

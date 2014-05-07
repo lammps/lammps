@@ -26,7 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA_BONUS 10000
 #define EPSILON 0.001
 
 /* ---------------------------------------------------------------------- */
@@ -123,7 +122,7 @@ void AtomVecLine::grow_reset()
 
 void AtomVecLine::grow_bonus()
 {
-  nmax_bonus += DELTA_BONUS;
+  nmax_bonus = grow_nmax_bonus(nmax_bonus);
   if (nmax_bonus < 0 || nmax_bonus > MAXSMALLINT)
     error->one(FLERR,"Per-processor system is too big");
 

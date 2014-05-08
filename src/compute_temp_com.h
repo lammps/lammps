@@ -41,7 +41,6 @@ class ComputeTempCOM : public Compute {
   void restore_bias_thr(int, double *, double *);
 
  private:
-  int fix_dof;
   double tfactor,masstotal;
 
   void dof_compute();

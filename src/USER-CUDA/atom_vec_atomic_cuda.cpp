@@ -51,7 +51,6 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
 #define BUFFACTOR 1.5
 #define BUFEXTRA 1000
 #define NCUDAEXCHANGE 11 //nextra x y z vx vy vz tag type mask image

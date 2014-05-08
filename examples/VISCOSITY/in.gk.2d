@@ -49,17 +49,28 @@ unfix		2
 
 reset_timestep  0
 
+# Define distinct components of symmetric traceless stress tensor
+ 
 variable         pxy equal pxy
+variable         pxx equal pxx-press
 
 fix              SS all ave/correlate $s $p $d &
-                 v_pxy type auto file profile.gk.2d ave running
+                 v_pxy v_pxx type auto file profile.gk.2d ave running
+
+# Diagonal components of SS are larger by factor 2-2/d,
+# which is 4/3 for d=3, but 1 for d=2.
+# See Daivis and Evans, J.Chem.Phys, 100, 541-547 (1994)
 
 variable         scale equal 1.0/$t*vol*$s*dt
-variable         v11 equal trap(f_SS[3])*${scale}
+variable         diagfac equal 2-2/2
+variable         vxy equal trap(f_SS[3])*${scale}
+variable         vxx equal trap(f_SS[4])*${scale}/${diagfac}
 
-thermo_style     custom step temp press pxy v_v11
+thermo_style     custom step temp press pxy v_vxy v_vxx
 
 run              500000
 
-variable         eta equal v_v11
+variable         etaxy equal v_vxy
+variable         etaxx equal v_vxx
+variable         eta equal 0.5*(${etaxy}+${etaxx})
 print            "running average viscosity: ${eta}"

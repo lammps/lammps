@@ -26,8 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
-#define DELTA_BONUS 10000
 #define EPSILON 0.001
 
 /* ---------------------------------------------------------------------- */
@@ -73,13 +71,13 @@ void AtomVecLine::init()
 
 /* ----------------------------------------------------------------------
    grow atom arrays
-   n = 0 grows arrays by DELTA
+   n = 0 grows arrays by a chunk
    n > 0 allocates arrays to size n
 ------------------------------------------------------------------------- */
 
 void AtomVecLine::grow(int n)
 {
-  if (n == 0) nmax += DELTA;
+  if (n == 0) grow_nmax();
   else nmax = n;
   atom->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
@@ -124,7 +122,7 @@ void AtomVecLine::grow_reset()
 
 void AtomVecLine::grow_bonus()
 {
-  nmax_bonus += DELTA_BONUS;
+  nmax_bonus = grow_nmax_bonus(nmax_bonus);
   if (nmax_bonus < 0 || nmax_bonus > MAXSMALLINT)
     error->one(FLERR,"Per-processor system is too big");
 

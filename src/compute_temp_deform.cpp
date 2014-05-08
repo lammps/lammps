@@ -86,9 +86,7 @@ void ComputeTempDeform::init()
 
 void ComputeTempDeform::setup()
 {
-  fix_dof = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+  fix_dof = -1;
   dof_compute();
 }
 
@@ -96,6 +94,7 @@ void ComputeTempDeform::setup()
 
 void ComputeTempDeform::dof_compute()
 {
+  if (fix_dof) adjust_dof_fix();
   double natoms = group->count(igroup);
   dof = domain->dimension * natoms;
   dof -= extra_dof + fix_dof;

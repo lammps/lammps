@@ -17,7 +17,6 @@
 #include "atom.h"
 #include "update.h"
 #include "force.h"
-#include "modify.h"
 #include "domain.h"
 #include "region.h"
 #include "memory.h"

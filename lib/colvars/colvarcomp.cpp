@@ -8,18 +8,18 @@
 colvar::cvc::cvc()
   : sup_coeff (1.0), sup_np (1),
     b_periodic (false),
-    b_debug_gradients (false),
     b_inverse_gradients (false),
-    b_Jacobian_derivative (false)
+    b_Jacobian_derivative (false),
+    b_debug_gradients (false)
 {}
 
 
 colvar::cvc::cvc (std::string const &conf)
   : sup_coeff (1.0), sup_np (1),
     b_periodic (false),
-    b_debug_gradients (false),
     b_inverse_gradients (false),
-    b_Jacobian_derivative (false)
+    b_Jacobian_derivative (false),
+    b_debug_gradients (false)
 {
   if (cvm::debug())
     cvm::log ("Initializing cvc base object.\n");

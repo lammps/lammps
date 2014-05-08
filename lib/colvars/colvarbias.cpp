@@ -121,8 +121,8 @@ std::ostream & colvarbias::write_traj (std::ostream &os)
 colvarbias_harmonic::colvarbias_harmonic (std::string const &conf,
                                           char const *key)
   : colvarbias (conf, key),
-    target_nsteps (0),
-    target_nstages (0)
+    target_nstages (0),
+    target_nsteps (0)
 {
   get_keyval (conf, "forceConstant", force_k, 1.0);
   for (size_t i = 0; i < colvars.size(); i++) {

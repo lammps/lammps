@@ -59,7 +59,6 @@ void PPPMDispOMP::allocate()
   PPPMDisp::allocate();
 
 #if defined(_OPENMP)
-  const int nthreads = comm->nthreads;
 #pragma omp parallel default(none)
 #endif
   {

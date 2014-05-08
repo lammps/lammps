@@ -25,8 +25,6 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
-
 /* ---------------------------------------------------------------------- */
 
 AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
@@ -90,13 +88,13 @@ void AtomVecTemplate::process_args(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    grow atom arrays
-   n = 0 grows arrays by DELTA
+   n = 0 grows arrays by a chunk
    n > 0 allocates arrays to size n
 ------------------------------------------------------------------------- */
 
 void AtomVecTemplate::grow(int n)
 {
-  if (n == 0) nmax += DELTA;
+  if (n == 0) grow_nmax();
   else nmax = n;
   atom->nmax = nmax;
   if (nmax < 0 || nmax > MAXSMALLINT)
@@ -845,7 +843,7 @@ void AtomVecTemplate::write_data(FILE *fp, int n, double **buf)
 int AtomVecTemplate::write_data_hybrid(FILE *fp, double *buf)
 {
   fprintf(fp," " TAGINT_FORMAT " %d %d",
-          (tagint) ubuf(buf[0]).i,(int) ubuf(buf[0]).i,(int) ubuf(buf[0]).i);
+          (tagint) ubuf(buf[0]).i,(int) ubuf(buf[1]).i,(int) ubuf(buf[2]).i);
   return 3;
 }
 

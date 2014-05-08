@@ -25,7 +25,6 @@
 #include "force.h"
 #include "domain.h"
 #include "modify.h"
-#include "fix.h"
 #include "group.h"
 #include "memory.h"
 #include "error.h"
@@ -128,9 +127,7 @@ void ComputeTempAsphere::init()
 
 void ComputeTempAsphere::setup()
 {
-  fix_dof = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+  fix_dof = -1;
   dof_compute();
 }
 
@@ -138,6 +135,8 @@ void ComputeTempAsphere::setup()
 
 void ComputeTempAsphere::dof_compute()
 {
+  if (fix_dof) adjust_dof_fix();
+
   // 6 dof for 3d, 3 dof for 2d
   // which dof are included also depends on mode
   // assume full rotation of extended particles

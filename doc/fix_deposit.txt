@@ -46,6 +46,8 @@ keyword = {region} or {id} or {global} or {local} or {near} or {attempt} or {rat
     tx,ty,tz = location of target point (distance units)
   {mol} value = template-ID
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
+  {molfrac} values = f1 f2 ... fN
+    f1 to fN = relative probability of creating each of N molecules in template-ID
   {rigid} value = fix-ID
     fix-ID = ID of "fix rigid/small"_fix_rigid.html command
   {shake} value = fix-ID
@@ -110,12 +112,20 @@ side = {in}.
 
 Individual atoms are inserted, unless the {mol} keyword is used.  It
 specifies a {template-ID} previously defined using the
-"molecule"_molecule.html command, which reads a file that defines the
-molecule.  The coordinates, atom types, charges, etc, as well as any
-bond/angle/etc and special neighbor information for the molecule can
-be specified in the molecule file.  See the "molecule"_molecule.html
-command for details.  The only settings required to be in this file
-are the coordinates and types of atoms in the molecule.
+"molecule"_molecule.html command, which reads files that define one or
+more molecules.  The coordinates, atom types, charges, etc, as well as
+any bond/angle/etc and special neighbor information for the molecule
+can be specified in the molecule file.  See the
+"molecule"_molecule.html command for details.  The only settings
+required to be in each file are the coordinates and types of atoms in
+the molecule.
+
+If the molecule template contains more than one molecule, the relative
+probability of depositing each molecule can be specified by the
+{molfrac} keyword.  N relative probablities, each from 0.0 to 1.0, are
+specified, where N is the number of molecules in the template.  Each
+time a molecule is deposited, a random number is used to sample from
+the list of relative probabilities.  The N values must sum to 1.0.
 
 If you wish to insert molecules via the {mol} keyword, that will be
 treated as rigid bodies, use the {rigid} keyword, specifying as its
@@ -205,9 +215,10 @@ Note that the units choice affects all the keyword values that have
 units of distance or velocity.
 
 IMPORTANT NOTE: If you are monitoring the temperature of a system
-where the atom count is changing due to adding atoms, you typically
-should use the "compute_modify dynamic yes"_compute_modify.html
-command for the temperature compute you are using.
+where the atom count is changing due to adding particles, you
+typically should use the "compute_modify dynamic
+yes"_compute_modify.html command for the temperature compute you are
+using.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -242,6 +253,8 @@ defined by the "region"_region.html command.
 [Default:]
 
 Insertions are performed for individual atoms, i.e. no {mol} setting
-is defined.  Additional option defaults are id = max, delta = 0.0,
-near = 0.0, attempt = 10, rate = 0.0, vx = 0.0 0.0, vy = 0.0 0.0, vz =
-0.0 0.0, and units = lattice.
+is defined.  If the {mol} keyword is used, the default for {molfrac}
+is an equal probabilities for all molecules in the template.
+Additional option defaults are id = max, delta = 0.0, near = 0.0,
+attempt = 10, rate = 0.0, vx = 0.0 0.0, vy = 0.0 0.0, vz = 0.0 0.0,
+and units = lattice.

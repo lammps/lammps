@@ -38,6 +38,8 @@ using namespace MathConst;
 
 enum{ATOM,MOLECULE};
 
+#define EPSILON 1.0e6
+
 /* ---------------------------------------------------------------------- */
 
 FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
@@ -99,21 +101,24 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Cannot use fix_deposit unless atoms have IDs");
 
   if (mode == MOLECULE) {
-    if (onemol->xflag == 0)
-      error->all(FLERR,"Fix deposit molecule must have coordinates");
-    if (onemol->typeflag == 0)
-      error->all(FLERR,"Fix deposit molecule must have atom types");
-    if (ntype+onemol->ntypes <= 0 || ntype+onemol->ntypes > atom->ntypes)
-      error->all(FLERR,"Invalid atom type in fix deposit mol command");
+    for (int i = 0; i < nmol; i++) {
+      if (onemols[i]->xflag == 0)
+        error->all(FLERR,"Fix deposit molecule must have coordinates");
+      if (onemols[i]->typeflag == 0)
+        error->all(FLERR,"Fix deposit molecule must have atom types");
+      if (ntype+onemols[i]->ntypes <= 0 || 
+          ntype+onemols[i]->ntypes > atom->ntypes)
+        error->all(FLERR,"Invalid atom type in fix deposit mol command");
+      
+      if (atom->molecular == 2 && onemols != atom->avec->onemols)
+        error->all(FLERR,"Fix deposit molecule template ID must be same "
+                   "as atom_style template ID");
+      onemols[i]->check_attributes(0);
 
-    if (atom->molecular == 2 && onemol != atom->avec->onemols[0])
-      error->all(FLERR,"Fix deposit molecule template ID must be same "
-                 "as atom_style template ID");
-    onemol->check_attributes(0);
-
-    // fix deposit uses geoemetric center of molecule for insertion
-
-    onemol->compute_center();
+      // fix deposit uses geoemetric center of molecule for insertion
+      
+      onemols[i]->compute_center();
+    }
   }
 
   if (rigidflag && mode == ATOM)
@@ -125,10 +130,14 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   // setup of coords and imageflags array
 
-  if (mode == ATOM) natom = 1;
-  else natom = onemol->natoms;
-  memory->create(coords,natom,3,"deposit:coords");
-  memory->create(imageflags,natom,"deposit:imageflags");
+  if (mode == ATOM) natom_max = 1;
+  else {
+    natom_max = 0;
+    for (int i = 0; i < nmol; i++)
+      natom_max = MAX(natom_max,onemols[i]->natoms);
+  }
+  memory->create(coords,natom_max,3,"deposit:coords");
+  memory->create(imageflags,natom_max,"deposit:imageflags");
 
   // setup scaling
 
@@ -184,6 +193,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 FixDeposit::~FixDeposit()
 {
   delete random;
+  delete [] molfrac;
   delete [] idrigid;
   delete [] idshake;
   delete [] idregion;
@@ -219,7 +229,7 @@ void FixDeposit::init()
     if (ifix < 0) error->all(FLERR,"Fix pour rigid fix does not exist");
     fixrigid = modify->fix[ifix];
     int tmp;
-    if (onemol != (Molecule *) fixrigid->extract("onemol",tmp))
+    if (onemols != (Molecule **) fixrigid->extract("onemol",tmp))
       error->all(FLERR,
                  "Fix deposit and fix rigid/small not using "
                  "same molecule template ID");
@@ -234,7 +244,7 @@ void FixDeposit::init()
     if (ifix < 0) error->all(FLERR,"Fix deposit shake fix does not exist");
     fixshake = modify->fix[ifix];
     int tmp;
-    if (onemol != (Molecule *) fixshake->extract("onemol",tmp))
+    if (onemols != (Molecule **) fixshake->extract("onemol",tmp))
       error->all(FLERR,"Fix deposit and fix shake not using "
                  "same molecule template ID");
   }
@@ -246,7 +256,7 @@ void FixDeposit::init()
 
 void FixDeposit::pre_exchange()
 {
-  int i,j,m,n,nlocalprev,flag,flagall;
+  int i,j,m,n,nlocalprev,imol,natom,flag,flagall;
   double coord[3],lamda[3],delx,dely,delz,rsq;
   double r[3],vnew[3],rotmat[3][3],quat[4];
   double *newcoord;
@@ -345,12 +355,17 @@ void FixDeposit::pre_exchange()
     // also modify image flags due to PBC
 
     if (mode == ATOM) {
+      natom = 1;
       coords[0][0] = coord[0];
       coords[0][1] = coord[1];
       coords[0][2] = coord[2];
       imageflags[0] = ((imageint) IMGMAX << IMG2BITS) |
         ((imageint) IMGMAX << IMGBITS) | IMGMAX;
     } else {
+      double rng = random->uniform();
+      imol = 0;
+      while (rng > molfrac[imol]) imol++;
+      natom = onemols[imol]->natoms;
       if (dimension == 3) {
         r[0] = random->uniform() - 0.5;
         r[1] = random->uniform() - 0.5;
@@ -364,7 +379,7 @@ void FixDeposit::pre_exchange()
       MathExtra::axisangle_to_quat(r,theta,quat);
       MathExtra::quat_to_mat(quat,rotmat);
       for (i = 0; i < natom; i++) {
-        MathExtra::matvec(rotmat,onemol->dx[i],coords[i]);
+        MathExtra::matvec(rotmat,onemols[imol]->dx[i],coords[i]);
         coords[i][0] += coord[0];
         coords[i][1] += coord[1];
         coords[i][2] += coord[2];
@@ -447,7 +462,7 @@ void FixDeposit::pre_exchange()
 
       if (flag) {
         if (mode == ATOM) atom->avec->create_atom(ntype,coords[m]);
-        else atom->avec->create_atom(ntype+onemol->type[m],coords[m]);
+        else atom->avec->create_atom(ntype+onemols[imol]->type[m],coords[m]);
         n = atom->nlocal - 1;
         atom->tag[n] = maxtag_all + m+1;
         if (mode == MOLECULE) {
@@ -462,7 +477,8 @@ void FixDeposit::pre_exchange()
         atom->v[n][0] = vnew[0];
         atom->v[n][1] = vnew[1];
         atom->v[n][2] = vnew[2];
-        if (mode == MOLECULE) atom->add_molecule_atom(onemol,m,n,maxtag_all);
+        if (mode == MOLECULE) 
+          atom->add_molecule_atom(onemols[imol],m,n,maxtag_all);
         for (j = 0; j < nfix; j++)
           if (fix[j]->create_attribute) fix[j]->set_arrays(n);
       }
@@ -473,9 +489,9 @@ void FixDeposit::pre_exchange()
     // FixShake::set_molecule stores shake info for molecule
 
     if (rigidflag)
-      fixrigid->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
+      fixrigid->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
     else if (shakeflag)
-      fixshake->set_molecule(nlocalprev,maxtag_all,coord,vnew,quat);
+      fixshake->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
 
     // old code: unsuccessful if no proc performed insertion of an atom
     // don't think that check is necessary
@@ -504,10 +520,10 @@ void FixDeposit::pre_exchange()
     if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
       error->all(FLERR,"Too many total atoms");
     if (mode == MOLECULE) {
-      atom->nbonds += onemol->nbonds;
-      atom->nangles += onemol->nangles;
-      atom->ndihedrals += onemol->ndihedrals;
-      atom->nimpropers += onemol->nimpropers;
+      atom->nbonds += onemols[imol]->nbonds;
+      atom->nangles += onemols[imol]->nangles;
+      atom->ndihedrals += onemols[imol]->ndihedrals;
+      atom->nimpropers += onemols[imol]->nimpropers;
     }
     maxtag_all += natom;
     if (maxtag_all >= MAXTAGINT)
@@ -561,6 +577,7 @@ void FixDeposit::options(int narg, char **arg)
   iregion = -1;
   idregion = NULL;
   mode = ATOM;
+  molfrac = NULL;
   rigidflag = 0;
   idrigid = NULL;
   shakeflag = 0;
@@ -586,17 +603,32 @@ void FixDeposit::options(int narg, char **arg)
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
       iarg += 2;
+
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1)
         error->all(FLERR,"Molecule template ID for fix deposit does not exist");
-      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
-        error->warning(FLERR,"Molecule template for "
-                       "fix deposit has multiple molecules");
       mode = MOLECULE;
-      onemol = atom->molecules[imol];
+      onemols = &atom->molecules[imol];
+      nmol = onemols[0]->nset;
+      delete [] molfrac;
+      molfrac = new double[nmol];
+      molfrac[0] = 1.0/nmol;
+      for (int i = 1; i < nmol-1; i++) molfrac[i] = molfrac[i-1] + 1.0/nmol;
+      molfrac[nmol-1] = 1.0;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"molfrac") == 0) {
+      if (mode != MOLECULE) error->all(FLERR,"Illegal fix deposit command");
+      if (iarg+nmol+1 > narg) error->all(FLERR,"Illegal fix deposit command");
+      molfrac[0] = force->numeric(FLERR,arg[iarg+1]);
+      for (int i = 1; i < nmol; i++) 
+        molfrac[i] = molfrac[i-1] + force->numeric(FLERR,arg[iarg+i+1]);
+      if (molfrac[nmol-1] < 1.0-EPSILON || molfrac[nmol-1] > 1.0+EPSILON) 
+        error->all(FLERR,"Illegal fix deposit command");
+      molfrac[nmol-1] = 1.0;
+      iarg += nmol+1;
+
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       int n = strlen(arg[iarg+1]) + 1;
@@ -730,24 +762,32 @@ void *FixDeposit::extract(const char *str, int &itype)
     if (mode == ATOM) {
       if (itype == ntype) oneradius = 0.5;
       else oneradius = 0.0;
+
     } else {
-      double *radius = onemol->radius;
-      int *type = onemol->type;
-      int natoms = onemol->natoms;
 
-      // check radii of matching types in Molecule
-      // default to 0.5, if radii not defined in Molecule
-      //   same as atom->avec->create_atom(), invoked in pre_exchange()
+      // find a molecule in template with matching type
 
-      oneradius = 0.0;
-      for (int i = 0; i < natoms; i++)
-        if (type[i] == itype-ntype) {
-          if (radius) oneradius = MAX(oneradius,radius[i]);
-          else oneradius = 0.5;
-        }
+      for (int i = 0; i < nmol; i++) {
+        if (itype-ntype > onemols[i]->ntypes) continue;
+        double *radius = onemols[i]->radius;
+        int *type = onemols[i]->type;
+        int natoms = onemols[i]->natoms;
+
+        // check radii of matching types in Molecule
+        // default to 0.5, if radii not defined in Molecule
+        //   same as atom->avec->create_atom(), invoked in pre_exchange()
+
+        oneradius = 0.0;
+        for (int i = 0; i < natoms; i++)
+          if (type[i] == itype-ntype) {
+            if (radius) oneradius = MAX(oneradius,radius[i]);
+            else oneradius = 0.5;
+          }
+      }
     }
     itype = 0;
     return &oneradius;
   }
+
   return NULL;
 }

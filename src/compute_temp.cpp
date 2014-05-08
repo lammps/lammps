@@ -18,8 +18,6 @@
 #include "update.h"
 #include "force.h"
 #include "domain.h"
-#include "modify.h"
-#include "fix.h"
 #include "group.h"
 #include "error.h"
 
@@ -52,9 +50,7 @@ ComputeTemp::~ComputeTemp()
 
 void ComputeTemp::setup()
 {
-  fix_dof = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+  fix_dof = -1;
   dof_compute();
 }
 
@@ -62,6 +58,7 @@ void ComputeTemp::setup()
 
 void ComputeTemp::dof_compute()
 {
+  if (fix_dof) adjust_dof_fix();
   double natoms = group->count(igroup);
   dof = domain->dimension * natoms;
   dof -= static_cast<double>(extra_dof + fix_dof);

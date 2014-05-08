@@ -63,13 +63,13 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
   hbond_list = hbonds->select.hbond_list;
 
   for( j = 0; j < system->n; ++j )
-    if (system->my_atoms[j].type < 0) continue;
     if( system->reax_param.sbp[system->my_atoms[j].type].p_hbond == 1 ) {
       type_j     = system->my_atoms[j].type;
       start_j    = Start_Index(j, bonds);
       end_j      = End_Index(j, bonds);
       hb_start_j = Start_Index( system->my_atoms[j].Hindex, hbonds );
       hb_end_j   = End_Index( system->my_atoms[j].Hindex, hbonds );
+      if (type_j < 0) continue;
 
       top = 0;
       for( pi = start_j; pi < end_j; ++pi )  {
@@ -128,7 +128,6 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
             CEhb2 = -hbp->p_hb1/2.0 * (1.0 - exp_hb2) * exp_hb3 * cos_xhz1;
             CEhb3 = -hbp->p_hb3 *
               (-hbp->r0_hb / SQR(r_jk) + 1.0 / hbp->r0_hb) * e_hb;
-
 
             /* hydrogen bond forces */
             bo_ij->Cdbo += CEhb1; // dbo term

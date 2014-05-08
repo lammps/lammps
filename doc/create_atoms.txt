@@ -236,6 +236,8 @@ and thus also set the mass for the particle to 1.0.
 The "set"_set.html command can be used to override many of these
 default settings.
 
+:line
+
 [Restrictions:]
 
 An "atom_style"_atom_style.html must be previously defined to use this

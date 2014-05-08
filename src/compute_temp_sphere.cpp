@@ -20,7 +20,6 @@
 #include "force.h"
 #include "domain.h"
 #include "modify.h"
-#include "fix.h"
 #include "group.h"
 #include "error.h"
 
@@ -109,9 +108,7 @@ void ComputeTempSphere::init()
 
 void ComputeTempSphere::setup()
 {
-  fix_dof = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+  fix_dof = -1;
   dof_compute();
 }
 
@@ -120,6 +117,8 @@ void ComputeTempSphere::setup()
 void ComputeTempSphere::dof_compute()
 {
   int count,count_all;
+
+  if (fix_dof) adjust_dof_fix();
 
   // 6 or 3 dof for extended/point particles for 3d
   // 3 or 2 dof for extended/point particles for 2d

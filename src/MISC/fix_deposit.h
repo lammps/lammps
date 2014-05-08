@@ -47,8 +47,9 @@ class FixDeposit : public Fix {
   char *idregion;
   char *idrigid,*idshake;
 
-  class Molecule *onemol;
-  int natom;
+  class Molecule **onemols;
+  int nmol,natom_max;
+  double *molfrac;
   double **coords;
   imageint *imageflags;
   class Fix *fixrigid,*fixshake;

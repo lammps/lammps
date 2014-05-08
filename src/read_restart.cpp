@@ -151,6 +151,7 @@ void ReadRestart::command(int narg, char **arg)
   else n = static_cast<int> (LB_FACTOR * atom->natoms / nprocs);
 
   atom->allocate_type_arrays();
+  atom->deallocate_topology();
   atom->avec->grow(n);
   n = atom->nmax;
 

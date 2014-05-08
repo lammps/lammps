@@ -18,8 +18,6 @@
 #include "update.h"
 #include "force.h"
 #include "domain.h"
-#include "modify.h"
-#include "fix.h"
 #include "group.h"
 #include "memory.h"
 #include "error.h"
@@ -63,9 +61,7 @@ ComputeTempPartial::~ComputeTempPartial()
 
 void ComputeTempPartial::setup()
 {
-  fix_dof = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+  fix_dof = -1;
   dof_compute();
 }
 
@@ -76,6 +72,7 @@ void ComputeTempPartial::setup()
 
 void ComputeTempPartial::dof_compute()
 {
+  if (fix_dof) adjust_dof_fix();
   double natoms = group->count(igroup);
   int nper = xflag+yflag+zflag;
   dof = nper * natoms;

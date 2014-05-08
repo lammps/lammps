@@ -370,7 +370,7 @@ void FixAdapt::change_settings()
 }
 
 /* ----------------------------------------------------------------------
-   restore pair,kspace.atom parameters to original values
+   restore pair,kspace,atom parameters to original values
 ------------------------------------------------------------------------- */
 
 void FixAdapt::restore_settings()

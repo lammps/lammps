@@ -29,8 +29,6 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
-
 /* ---------------------------------------------------------------------- */
 
 AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
@@ -58,13 +56,13 @@ AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
 
 /* ----------------------------------------------------------------------
    grow atom-electron arrays
-   n = 0 grows arrays by DELTA
+   n = 0 grows arrays by a chunk
    n > 0 allocates arrays to size n
 ------------------------------------------------------------------------- */
 
 void AtomVecWavepacket::grow(int n)
 {
-  if (n == 0) nmax += DELTA;
+  if (n == 0) grow_nmax();
   else nmax = n;
   atom->nmax = nmax;
 

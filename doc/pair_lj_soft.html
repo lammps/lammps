@@ -109,20 +109,20 @@ pair_coeff 1 1 1.0 9.5
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>lj/cut/soft</I> style and substyles compute the 12/6
-Lennard-Jones and Coulomb potential modified by a soft core, in order
-to avoid singularities during free energy calculations when sites are
-created or anihilated <A HREF = "#Beutler">(Beutler)</A>,
+<P>The <I>lj/cut/soft</I> style and substyles compute the 12/6 Lennard-Jones
+and Coulomb potential modified by a soft core, in order to avoid
+singularities during free energy calculations when sites are created
+or anihilated <A HREF = "#Beutler">(Beutler)</A>.
 </P>
 <CENTER><IMG SRC = "Eqs/pair_lj_soft.jpg">
 </CENTER>
 <P>Coulomb interactions are also damped with a soft core at short
-distance,
+distance as
 </P>
 <CENTER><IMG SRC = "Eqs/pair_coul_soft.jpg">
 </CENTER>
-<P>In the Coulomb part C is an energy-conversion constant, q_i and q_j are
-the charges on the 2 atoms, and epsilon is the dielectric constant
+<P>In the Coulomb part C is an energy-conversion constant, q_i and q_j
+are the charges on the 2 atoms, and epsilon is the dielectric constant
 which can be set by the <A HREF = "dielectric.html">dielectric</A> command.
 </P>
 <P>The coefficient lambda is an activation parameter. When lambda = 1 the
@@ -138,7 +138,7 @@ when sites are created or anihilated and can overlap
 choices for the exponent are n = 2 or n = 1. For the remaining
 coefficients alpha_LJ = 0.5 and alpha_C = 10 Angstrom^2 are
 appropriate choices. Plots of the LJ and Coulomb terms are shown
-below, for lambda ranging from 1 ro 0 every 0.1. 
+below, for lambda ranging from 1 ro 0 every 0.1.
 </P>
 <CENTER><IMG SRC = "JPG/lj_soft.jpg"><IMG SRC = "JPG/coul_soft.jpg">
 </CENTER>
@@ -236,8 +236,8 @@ for example, or else use the <I>coul/long/soft</I> or similar substyle.
 </P>
 <P>All of the plain <I>soft</I> pair styles are part of the USER-FEP package.
 The <I>long</I> styles also requires the KSPACE package to be installed.
-They are only enabled if LAMMPS was built with that package.
-See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
+They are only enabled if LAMMPS was built with those packages.  See
+the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>

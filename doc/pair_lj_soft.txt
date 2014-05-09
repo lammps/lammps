@@ -92,20 +92,20 @@ pair_coeff 1 1 1.0 9.5 :pre
 
 [Description:]
 
-The {lj/cut/soft} style and substyles compute the 12/6
-Lennard-Jones and Coulomb potential modified by a soft core, in order
-to avoid singularities during free energy calculations when sites are
-created or anihilated "(Beutler)"_#Beutler,
+The {lj/cut/soft} style and substyles compute the 12/6 Lennard-Jones
+and Coulomb potential modified by a soft core, in order to avoid
+singularities during free energy calculations when sites are created
+or anihilated "(Beutler)"_#Beutler.
 
 :c,image(Eqs/pair_lj_soft.jpg)
 
 Coulomb interactions are also damped with a soft core at short
-distance,
+distance as
 
 :c,image(Eqs/pair_coul_soft.jpg)
 
-In the Coulomb part C is an energy-conversion constant, q_i and q_j are
-the charges on the 2 atoms, and epsilon is the dielectric constant
+In the Coulomb part C is an energy-conversion constant, q_i and q_j
+are the charges on the 2 atoms, and epsilon is the dielectric constant
 which can be set by the "dielectric"_dielectric.html command.
 
 The coefficient lambda is an activation parameter. When lambda = 1 the
@@ -121,7 +121,7 @@ The paratemers n, alpha_LJ and alpha_C are set in the
 choices for the exponent are n = 2 or n = 1. For the remaining
 coefficients alpha_LJ = 0.5 and alpha_C = 10 Angstrom^2 are
 appropriate choices. Plots of the LJ and Coulomb terms are shown
-below, for lambda ranging from 1 ro 0 every 0.1. 
+below, for lambda ranging from 1 ro 0 every 0.1.
 
 :c,image(JPG/lj_soft.jpg),image(JPG/coul_soft.jpg)
 
@@ -219,8 +219,8 @@ for example, or else use the {coul/long/soft} or similar substyle.
 
 All of the plain {soft} pair styles are part of the USER-FEP package.
 The {long} styles also requires the KSPACE package to be installed.
-They are only enabled if LAMMPS was built with that package.
-See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+They are only enabled if LAMMPS was built with those packages.  See
+the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

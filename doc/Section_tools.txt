@@ -50,6 +50,7 @@ own sub-directories with their own Makefiles.
 "eam generate"_#eamgn
 "eff"_#eff
 "emacs"_#emacs
+"fep"_#fep
 "ipp"_#ipp
 "kate"_#kate
 "lmp2arc"_#arc
@@ -229,6 +230,19 @@ with various highlighting options setup.
 
 These tools were provided by Aidan Thompson at Sandia
 (athomps at sandia.gov).
+
+:line
+
+fep tool :h4,link(fep)
+
+The tools/fep directory contains Python scripts useful for
+post-processing results from performing free-energy perturbation
+simulations using the USER-FEP package.
+
+The scripts were contributed by Agilio Padua (Université Blaise
+Pascal Clermont-Ferrand), agilio.padua at univ-bpclermont.fr.
+
+See README file in the tools/fep directory.
 
 :line
 

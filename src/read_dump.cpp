@@ -547,7 +547,7 @@ void ReadDump::atoms()
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
   Irregular *irregular = new Irregular(lmp);
-  irregular->migrate_atoms();
+  irregular->migrate_atoms(1);
   delete irregular;
   if (triclinic) domain->lamda2x(atom->nlocal);
 

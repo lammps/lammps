@@ -78,7 +78,7 @@ Irregular::~Irregular()
    for triclinic: atoms must be in lamda coords (0-1) before this is called
 ------------------------------------------------------------------------- */
 
-void Irregular::migrate_atoms()
+void Irregular::migrate_atoms(int sortflag)
 {
   // clear global->local map since atoms move to new procs
   // clear old ghosts so map_set() at end will operate only on local atoms
@@ -145,10 +145,8 @@ void Irregular::migrate_atoms()
 
   // create irregular communication plan, perform comm, destroy plan
   // returned nrecv = size of buffer needed for incoming atoms
-  // debug: turn on sorting for repoducible irregular() via extra final arg
 
-  //int nrecv = create_atom(nsendatom,sizes,proclist,1);
-  int nrecv = create_atom(nsendatom,sizes,proclist);
+  int nrecv = create_atom(nsendatom,sizes,proclist,sortflag);
   if (nrecv > maxrecv) grow_recv(nrecv);
   exchange_atom(buf_send,sizes,buf_recv);
   destroy_atom();
@@ -255,7 +253,7 @@ int Irregular::migrate_check()
    return total # of doubles I will recv (not including self)
 ------------------------------------------------------------------------- */
 
-int Irregular::create_atom(int n, int *sizes, int *proclist, int sort)
+int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
 {
   int i;
 
@@ -370,7 +368,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sort)
   // useful for debugging to insure reproducible ordering of received atoms
   // invoke by adding final arg = 1 to create_atom() call in migrate_atoms()
 
-  if (sort) {
+  if (sortflag) {
     int *order = new int[nrecv];
     int *proc_recv_ordered = new int[nrecv];
     int *length_recv_ordered = new int[nrecv];

@@ -1,0 +1,87 @@
+Ethane to Methanol in Water
+===========================
+
+Example calculation of the difference in free energy of hydration upon
+transforming ethane into methanol with LAMMPS using *compute fep* and
+*fix adapt/fep*.
+
+Ethane and methanol are represented by the OPLS-AA force field (1
+molecule). Water is represented by the 3-site SPC/E model (360
+molecules).
+
+The strategy used to perform the alchemical transformation is the
+following:
+
+* The dual topology approach is used, therefore all the atoms of
+  ethane and methanol are present throughout the simulation, only some
+  of them are dummy sites at the endpoints of the
+  transformation. Masses and intramolecular terms (bond lengths,
+  angles, dihedrals) are not changed.
+
+* Interactions of sites that are being created (from dummy sites) or
+  deleted (to become dummy sites) are treated using soft-core verions
+  of the Lennard-Jones and Coulomb potentials (*pair
+  lj/cut/coul/long/soft*) in order to avoid singularities. The
+  exponent of the coupling parameter lambda in the soft-core pair
+  potentials was in this example n = 1.
+
+* Eletrostatic charges that are modified are varied linearly from the
+  initial to the final values. This keeps the overall charge of the
+  molecule constant, which is good for the long range electrostatics
+  (the coupling parameter lambda has no effect on the kspace terms).
+
+The following directories contain input files and results for
+calculations using free-energy perturbation (FEP), thermodynamic
+integration (TI/FDTI) and Bennet's acceptance ratio methods:
+
+* `mols` -- Molcule description files and force field database used to
+  create the initial configurations for the simulations `data.0.lmp`
+  and `data.1.lmp`
+
+* `fep01` -- Calculation using FEP, multi-stage transformation of an
+  ethane molecule into methanol. Results in `fep01.lmp`
+
+* `fep10` -- Calculation using FEP, multi-stage transformation of a
+  methanol molecule into ethane. Results in `fep10.lmp`
+
+* `fdti01` -- Calculation using FDTI, transformation of an
+  ethane molecule into methanol. Results in `fdti01.lmp`
+
+* `fdti10` -- Calculation using FDTI, transformation of a
+  methanol molecule into ethane. Results in `fdti10.lmp`
+
+* `bar01` -- Calculation using BAR, 1-step transformation of an
+  ethane molecule into methanol. Results in `bar01.lmp`
+
+* `bar10` -- Calculation using BAR, 1-step transformation of a
+  methanol molecule into ethane. Results in `bar10.lmp`
+
+The free-energy profiles can be observed by plotting the values in the
+third column of the results files. The Python scripts `fep.py`,
+`nti.py`, `fdti.py`, and `bar.py` found in the `tools` directory can
+be used to calculate the free-energy differences corresponding to the
+above transformations:
+
+    fep.py 300 < fep01.lmp
+
+    fep.py 300 < fep10.lmp
+
+    nti.py 300 0.002 < fdti01.lmp
+
+    nti.py 300 0.002 < fdti10.lmp
+
+    fdti.py 300 0.002 < fdti01.lmp
+
+    fdti.py 300 0.002 < fdti10.lmp
+
+    bar.py 300 bar01.lmp bar10.lmp
+
+The outputs are in kcal/mol and can be compared with the experimental
+value of -6.93 kcal/mol and with simulation value from the literature:
+-6.7 kcal/mol [Jorgensen, Ravimohan, J Chem Phys 83 (1985) 3050], -6.8
+kcal/mol [Goette, Grubmüller, J Comp Chem 30 (2007) 447].
+
+These example calculations are for tutorial purposes only. The results
+may not be of research quality (not enough sampling, size of the step
+in lambda or of the delta for numerical derivative not optimized, no
+evaluation of ideal-gas contributions, etc.)

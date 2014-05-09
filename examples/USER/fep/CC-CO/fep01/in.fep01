@@ -1,0 +1,143 @@
+# created by fftool
+
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+dihedral_style opls
+special_bonds lj/coul 0.0 0.0 0.5
+
+read_data data.0.lmp
+# read_restart restart.*.lmp
+# reset_timestep 0
+
+pair_style hybrid lj/cut/coul/long 10.0 10.0 &
+  lj/cut/coul/long/soft 1 0.5 10.0 10.0 10.0
+pair_modify tail no
+kspace_style pppm 1.0e-4
+
+pair_coeff    1    1  none  # C-CO C-CO
+pair_coeff    1    2  none  # C-CO C-D
+pair_coeff    1    3  none  # C-CO H-D
+pair_coeff    1    4  none  # C-CO H-H1
+pair_coeff    1    5  none  # C-CO OHD-
+pair_coeff    1    6  none  # C-CO HOD-
+pair_coeff    1    7  lj/cut/coul/long    0.0000   1.0000  # C-CO Hw
+pair_coeff    1    8  lj/cut/coul/long    0.1013   3.3286  # C-CO Ow
+pair_coeff    2    2  none  # C-D C-D
+pair_coeff    2    3  none  # C-D H-D
+pair_coeff    2    4  none  # C-D H-H1
+pair_coeff    2    5  none  # C-D OHD-
+pair_coeff    2    6  none  # C-D HOD-
+pair_coeff    2    7  lj/cut/coul/long/soft    0.0000   1.0000  1.0  # C-D Hw
+pair_coeff    2    8  lj/cut/coul/long/soft    0.1013   3.3286  1.0  # C-D Ow
+pair_coeff    3    3  none  # H-D H-D
+pair_coeff    3    4  lj/cut/coul/long/soft    0.0300   2.5000  1.0  # H-D H-H1
+pair_coeff    3    5  none  # H-D OHD-
+pair_coeff    3    6  none  # H-D HOD-
+pair_coeff    3    7  lj/cut/coul/long/soft    0.0000   1.0000  1.0  # H-D Hw
+pair_coeff    3    8  lj/cut/coul/long/soft    0.0683   2.8131  1.0  # H-D Ow
+pair_coeff    4    4  none  # H-H1 H-H1
+pair_coeff    4    5  none  # H-H1 OHD-
+pair_coeff    4    6  lj/cut/coul/long/soft    0.0000   1.0000  0.0 # H-H1 HOD-
+pair_coeff    4    7  lj/cut/coul/long    0.0000   1.0000  # H-H1 Hw
+pair_coeff    4    8  lj/cut/coul/long    0.0683   2.8131  # H-H1 Ow
+pair_coeff    5    5  none  # OHD- OHD-
+pair_coeff    5    6  none  # OHD- HOD-
+pair_coeff    5    7  lj/cut/coul/long/soft    0.0000   1.0000  0.0  # OHD- Hw
+pair_coeff    5    8  lj/cut/coul/long/soft    0.1625   3.1427  0.0  # OHD- Ow
+pair_coeff    6    6  none  # HOD- HOD-
+pair_coeff    6    7  lj/cut/coul/long/soft    0.0000   1.0000  0.0  # HOD- Hw
+pair_coeff    6    8  lj/cut/coul/long/soft    0.0000   1.7792  0.0  # HOD- Ow
+pair_coeff    7    7  lj/cut/coul/long    0.0000   1.0000  # Hw Hw
+pair_coeff    7    8  lj/cut/coul/long    0.0000   1.0000  # Hw Ow
+pair_coeff    8    8  lj/cut/coul/long    0.1554   3.1655  # Ow Ow
+
+variable nsteps equal 25000
+variable nprint equal ${nsteps}/500
+variable ndump equal ${nsteps}/100
+# variable nrestart equal ${nsteps}/10
+
+variable temp equal 300.0
+variable press equal 1.0
+
+neighbor 2.0 bin
+
+timestep 2.0
+
+# velocity all create ${temp} 12345
+
+thermo_style multi
+thermo ${nprint}
+
+fix fSHAKE all shake 0.0001 20 ${nprint} b 2 4 5 a 6
+
+fix fNPT all npt temp ${temp} ${temp} 100 iso ${press} ${press} 500
+
+run 10000
+reset_timestep 0
+write_restart  init.restart
+
+
+variable lambda equal ramp(0.0,1.0)
+variable minusl equal 1.0-v_lambda
+variable q1 equal  0.145*v_lambda-0.180*(1.0-v_lambda)
+variable q2 equal -0.180*(1.0-v_lambda)
+variable q3 equal  0.060*(1.0-v_lambda)
+variable q4 equal  0.040*v_lambda+0.060*(1.0-v_lambda)
+variable q5 equal -0.683*v_lambda
+variable q6 equal  0.418*v_lambda
+
+fix fADAPT all adapt/fep 125000 &
+    pair lj/cut/coul/long/soft lambda 2*3 7*8 v_minusl &
+    pair lj/cut/coul/long/soft lambda 3 4 v_minusl &
+    pair lj/cut/coul/long/soft lambda 4 6 v_lambda &
+    pair lj/cut/coul/long/soft lambda 5*6 7*8 v_lambda &
+    atom charge 1 v_q1 &
+    atom charge 2 v_q2 &
+    atom charge 3 v_q3 &
+    atom charge 4 v_q4 &
+    atom charge 5 v_q5 &
+    atom charge 6 v_q6 &
+    after yes
+
+variable dlambda equal 0.05
+variable minusdl equal -0.05
+variable dq1 equal  0.145*v_dlambda+0.180*v_dlambda
+variable dq2 equal  0.180*v_dlambda
+variable dq3 equal -0.060*v_dlambda
+variable dq4 equal  0.040*v_dlambda-0.060*v_dlambda
+variable dq5 equal -0.683*v_dlambda
+variable dq6 equal  0.418*v_dlambda
+
+compute cFEP all fep ${temp} &
+    pair lj/cut/coul/long/soft lambda 2*3 7*8 v_minusdl &
+    pair lj/cut/coul/long/soft lambda 3 4 v_minusdl &
+    pair lj/cut/coul/long/soft lambda 4 6 v_dlambda &
+    pair lj/cut/coul/long/soft lambda 5*6 7*8 v_dlambda &
+    atom charge 1 v_dq1 &
+    atom charge 2 v_dq2 &
+    atom charge 3 v_dq3 &
+    atom charge 4 v_dq4 &
+    atom charge 5 v_dq5 &
+    atom charge 6 v_dq6
+
+fix fFEP all ave/time 25 4000 125000 c_cFEP[1] c_cFEP[2] file fep01.lmp
+
+# compute cRDF all rdf 100 1 1
+# fix fRDF all ave/time 20 100 ${nsteps} c_cRDF file rdf.lammps mode vector
+
+compute cMSD all msd
+fix fMSD all ave/time 1 1 ${ndump} c_cMSD[1] c_cMSD[2] c_cMSD[3] c_cMSD[4] file msd.lammps
+
+dump dCONF all custom ${ndump} dump.lammpstrj id mol type element x y z ix iy iz
+dump_modify dCONF element C C H H O H H O
+
+# restart ${nrestart} restart.*.lmp
+
+run ${nsteps}
+
+write_restart restart.*.lmp
+write_data data.*.lmp

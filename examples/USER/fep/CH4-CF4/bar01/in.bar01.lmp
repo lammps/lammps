@@ -1,0 +1,89 @@
+# created by fftool
+
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+special_bonds lj/coul 0.0 0.0 0.5
+
+read_data data.0.lmp
+# read_restart restart.*.lmp
+# reset_timestep 0
+
+pair_style hybrid lj/cut/coul/long 10.0 10.0 lj/cut/coul/long/soft 1 0.5 10.0 10.0 10.0
+pair_modify tail yes
+kspace_style pppm 1.0e-4
+
+pair_coeff    1    1  none  # C-CF C-CF
+pair_coeff    1    2  none  # C-CF H-D
+pair_coeff    1    3  none  # C-CF FD-
+pair_coeff    1    4  lj/cut/coul/long    0.0000   1.8708  # C-CF Hw
+pair_coeff    1    5  lj/cut/coul/long    0.1013   3.3286  # C-CF Ow
+pair_coeff    2    2  none  # H-D H-D
+pair_coeff    2    3  none  # H-D FD-
+pair_coeff    2    4  lj/cut/coul/long/soft    0.0000   1.5811  1.0  # H-D Hw
+pair_coeff    2    5  lj/cut/coul/long/soft    0.0683   2.8131  1.0  # H-D Ow
+pair_coeff    3    3  none  # FD- FD-
+pair_coeff    3    4  lj/cut/coul/long/soft    0.0000   1.7176  0.0  # FD- Hw
+pair_coeff    3    5  lj/cut/coul/long/soft    0.0908   3.0559  0.0  # FD- Ow
+pair_coeff    4    4  lj/cut/coul/long    0.0000   1.0000  # Hw Hw
+pair_coeff    4    5  lj/cut/coul/long    0.0000   1.7792  # Hw Ow
+pair_coeff    5    5  lj/cut/coul/long    0.1554   3.1655  # Ow Ow
+
+variable nsteps equal 500000
+variable nprint equal ${nsteps}/500
+variable ndump equal ${nsteps}/100
+# variable nrestart equal ${nsteps}/10
+
+variable temp equal 300.0
+variable press equal 1.0
+
+neighbor 2.0 bin
+
+timestep 2.0
+
+velocity all create ${temp} 12345
+
+thermo_style multi
+thermo ${nprint}
+
+fix fSHAKE all shake 0.0001 20 ${nprint} b 3 a 4
+
+fix fNPT all npt temp ${temp} ${temp} 100 iso ${press} ${press} 500
+
+run 200000
+reset_timestep 0
+
+variable dlambda equal  1.0
+variable minusdl equal -1.0
+variable dqC equal  0.48*v_dlambda-0.24*(1.0-v_dlambda)
+variable dqH equal  0.06*(1.0-v_dlambda)
+variable dqF equal -0.12*v_dlambda
+
+compute cFEP all fep ${temp} &
+    pair lj/cut/coul/long/soft lambda 2 4*5 v_minusdl &
+    pair lj/cut/coul/long/soft lambda 3 4*5 v_dlambda &
+    atom charge 1 v_dqC &
+    atom charge 2 v_dqH &
+    atom charge 3 v_dqF
+
+fix fFEP all ave/time 1 1 100 c_cFEP[1] c_cFEP[2] file bar01.lmp
+
+
+# compute cRDF all rdf 100 1 1
+# fix fRDF all ave/time 20 100 ${nsteps} c_cRDF file rdf.lammps mode vector
+
+# compute cMSD all msd
+# fix fMSD all ave/time 1 1 ${ndump} c_cMSD[1] c_cMSD[2] c_cMSD[3] c_cMSD[4] file msd.lammps
+
+dump dCONF all custom ${ndump} dump.lammpstrj id mol type element x y z ix iy iz
+dump_modify dCONF element C H F H O
+
+# restart ${nrestart} restart.*.lmp
+
+run ${nsteps}
+
+# write_restart restart.*.lmp
+write_data data.*.lmp

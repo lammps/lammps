@@ -1,0 +1,85 @@
+# oplsaa.ff (kJ/mol, A, deg) version 2013/07/27
+
+ATOMS
+#   type  m/uma    q/e    pot   pars
+# alkanes OPLS-AA JACS 118(1996)11225, JPC 100(1996)18010
+C4C   CT  12.011   0.00   lj    3.50   0.27614
+C4H   CT   4.011  -0.24   lj    3.50   0.27614
+C3H   CT  12.011  -0.18   lj    3.50   0.27614
+C2H   CT  12.011  -0.12   lj    3.50   0.27614
+H     HC   4.008   0.06   lj    2.50   0.12552
+# alcohols OPLS-AA JACS 118(1996)11225, JPC 100(1996)18010
+CTO   CT  12.011   0.145  lj    3.50   0.27614  
+CET   CT  12.011  -0.140  lj    3.50   0.27614  
+C2T   CT  12.011  -0.080  lj    3.50   0.27614  
+H1O   HC   1.008   0.040  lj    2.50   0.12552
+OH    OH  15.999  -0.683  lj    3.12   0.71128
+HO    HO   1.008   0.418  lj    0.00   0.00000
+# aromatics OPLS-AA JACS 118(1996)11225
+CA    CA  12.011  -0.115  lj    3.55   0.43932
+HA    HA   1.008   0.115  lj    2.42   0.12552
+# toluene OPLS-AA JACS 118(1996)11217, JCC 25(2004)1322
+CAP   CA  12.011  -0.154  lj    3.55   0.43932
+CAM   CA  12.011  -0.145  lj    3.55   0.43932
+CAO   CA  12.011  -0.147  lj    3.55   0.43932
+CAT   CA  12.011  -0.081  lj    3.55   0.43932
+CTT   CT  12.011  -0.197  lj    3.50   0.27614
+HAT   HA   1.008   0.148  lj    2.42   0.12552
+HT    HC   1.008   0.092  lj    2.42   0.12552
+
+BONDS
+# i j    pot    re/A    ka/kJmol-1
+# alkanes OPLS-AA JACS 118(1996)11225, JPC 100(1996)18010
+HC  CT   harm   1.090   2845.12
+CT  CT   harm   1.529   2242.62
+# alcohols OPLS-AA JACS 118(1996)11225, JPC 100(1996)18010
+CT  OH   harm   1.410   2677.76
+HO  OH   cons   0.945   4627.50
+# aromatics AMBER JACS 117(1995)5179
+CA  CA   harm   1.400   3924.6
+CA  HA   cons   1.080   3071.1
+# toluene AMBER JACS 117(1995)5179
+CA  CT   harm   1.510   2652.7
+
+ANGLES
+# i  j  k    pot    th/deg   ka/kjmol-1
+# alkanes OPLS-AA JACS 118(1996)11225, JPC 100(1996)18010
+HC  CT  HC   harm   107.80   276.14
+HC  CT  CT   harm   110.70   313.80
+CT  CT  CT   harm   112.70   488.27
+# alcohols OPLS-AA JACS 118(1996)11225, JPC 100(1996)18010
+CT  CT  OH   harm   109.50   418.40
+HC  CT  OH   harm   109.50   292.88
+CT  OH  HO   harm   108.50   460.24
+# aromatics AMBER JACS 117(1995)5179
+CA  CA  HA   harm   120.00   292.88
+CA  CA  CA   harm   120.00   527.18
+# toluene AMBER JACS 117(1995)5179
+CA  CA  CT   harm   120.00   585.76
+CA  CT  HC   harm   109.50   418.4  
+
+DIHEDRALS
+# i j   k   l    pot     v1        v2        v3        v4
+# alkanes OPLS-AA JACS 118: 11225 (1996); J Phys Chem 100: 18010 (1996)
+HC  CT  CT  HC   opls    0.0000    0.0000    1.3305    0.0000
+HC  CT  CT  CT   opls    0.0000    0.0000    1.5313    0.0000
+CT  CT  CT  CT   opls    7.2800   -0.6569    1.1673    0.0000
+# alcohols OPLS-AA JACS 118(1996)11225, AMBER98 (OCCO) 117(1995)5179
+HC  CT  OH  HO   opls    0.0000    0.0000    1.8828    0.0000
+CT  CT  OH  HO   opls   -1.4895   -0.7280    2.0585    0.0000
+HC  CT  CT  OH   opls    0.0000    0.0000    1.9581    0.0000
+OH  CT  CT  OH   opls    0.0000   -9.8324    1.2050    0.0000
+# aromatics AMBER JACS 117(1995)5179
+CA  CA  CA  CA   opls    0.0000    30.334    0.0000    0.0000
+CA  CA  CA  HA   opls    0.0000    30.334    0.0000    0.0000
+HA  CA  CA  HA   opls    0.0000    30.334    0.0000    0.0000
+# toluene AMBER JACS 117: 5179 (1995)
+CT  CA  CA  CA   opls    0.0000    30.334    0.0000    0.0000
+CT  CA  CA  HA   opls    0.0000    30.334    0.0000    0.0000
+CA  CA  CT  HC   opls    0.0000    0.0000    0.0000    0.0000
+
+IMPROPER
+# improper aromatics AMBER JACS 117(1995)5179
+CA  CA  CA  HA   opls    0.0000    9.2048    0.0000    0.0000
+# improper toluene AMBER JACS 117: 5179 (1995)
+CA  CA  CA  CT   opls    0.0000    9.2048    0.0000    0.0000

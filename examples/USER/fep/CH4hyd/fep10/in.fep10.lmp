@@ -1,0 +1,80 @@
+# created by fftool
+
+print "Methane in TIP4P water"
+
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+special_bonds lj/coul 0.0 0.0 0.5
+
+read_data data.lmp
+
+pair_style hybrid &
+  lj/cut/coul/long 10.0 10.0 &
+  lj/cut/tip4p/long/soft 3 4 2 2 0.125 1 0.5 10.0 10.0 10.0
+pair_modify tail no
+kspace_style pppm/tip4p 1.0e-4
+
+pair_coeff    1    1  lj/cut/coul/long    0.0660   3.5000  # C4H C4H
+pair_coeff    1    2  lj/cut/coul/long    0.0445   2.9580  # C4H H
+pair_coeff    2    2  lj/cut/coul/long    0.0300   2.5000  # H H
+pair_coeff    3    3  lj/cut/tip4p/long/soft   0.1628   3.1644  1.0  # Ow Ow
+pair_coeff    3    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # Ow Hw
+pair_coeff    4    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # Hw Hw
+
+pair_coeff    1    3  lj/cut/tip4p/long/soft   0.1036   3.3279  1.0  # C4H Ow
+pair_coeff    1    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # C4H Hw
+pair_coeff    2    3  lj/cut/tip4p/long/soft   0.0699   2.8126  1.0  # H Ow
+pair_coeff    2    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # H Hw
+
+variable nsteps equal 2500000
+variable nprint equal ${nsteps}/500
+variable ndump equal ${nsteps}/100
+
+variable temp equal 300.0
+variable press equal 1.0
+
+fix fSHAKE all shake 0.0001 20 ${nprint} b 2 a 2
+
+neighbor 2.0 bin
+
+timestep 2.0
+
+velocity all create ${temp} 12345
+
+thermo_style multi
+thermo ${nprint}
+
+fix fNPT all npt temp ${temp} ${temp} 100 iso ${press} ${press} 1000
+
+run 250000
+
+reset_timestep 0
+
+variable lambda equal ramp(1.0,0.0)
+
+fix fADAPT all adapt/fep 125000 pair lj/cut/tip4p/long/soft lambda 1*2 3*4 v_lambda after yes
+
+variable dlambda equal -0.05
+
+compute cFEP all fep ${temp} pair lj/cut/tip4p/long/soft lambda 1*2 3*4 v_dlambda
+
+fix fFEP all ave/time 25 4000 125000 c_cFEP[1] c_cFEP[2] file fep10.lmp
+
+# compute cRDF all rdf 100 3 3 3 4 4 4
+# fix fRDF all ave/time 2000 500 ${nsteps} c_cRDF file rdf.lammps mode vector
+
+group owater type 3
+compute cMSD owater msd
+fix fMSD owater ave/time 1 1 ${ndump} c_cMSD[1] c_cMSD[2] c_cMSD[3] c_cMSD[4] file msd.lammps
+
+dump dCONF all custom ${ndump} dump.lammpstrj id mol type element x y z ix iy iz
+dump_modify dCONF element C H O H
+
+run ${nsteps}
+
+# write_restart restart.*.lmp
+write_data data.*.lmp

@@ -1,0 +1,256 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style lj/cut/soft command 
+</H3>
+<H3>pair_style lj/cut/soft/omp command 
+</H3>
+<H3>pair_style lj/cut/coul/cut/soft command 
+</H3>
+<H3>pair_style lj/cut/coul/cut/soft/omp command 
+</H3>
+<H3>pair_style lj/cut/coul/long/soft command 
+</H3>
+<H3>pair_style lj/cut/coul/long/soft/omp command 
+</H3>
+<H3>pair_style lj/cut/tip4p/long/soft command 
+</H3>
+<H3>pair_style lj/cut/tip4p/long/soft/omp command 
+</H3>
+<H3>pair_style coul/cut/soft command 
+</H3>
+<H3>pair_style coul/cut/soft/omp command 
+</H3>
+<H3>pair_style coul/long/soft command 
+</H3>
+<H3>pair_style coul/long/soft/omp command 
+</H3>
+<H3>pair_style tip4p/long/soft command 
+</H3>
+<H3>pair_style tip4p/long/soft/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style args 
+</PRE>
+<UL><LI>style = <I>lj/cut/soft</I> or <I>lj/cut/coul/cut/soft</I> or <I>lj/cut/coul/long/soft</I> or <I>lj/cut/tip4p/long/soft</I> or <I>coul/cut/soft</I> or <I>coul/long/soft</I> or <I>tip4p/long/soft</I>
+<LI>args = list of arguments for a particular style 
+</UL>
+<PRE>  <I>lj/cut/soft</I> args = n alpha_lj cutoff
+    n, alpha_LJ = parameters of soft-core potential
+    cutoff = global cutoff for Lennard-Jones interactions (distance units)
+  <I>lj/cut/coul/cut/soft</I> args = n alpha_LJ alpha_C cutoff (cutoff2)
+    n, alpha_LJ, alpha_C = parameters of soft-core potential
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  <I>lj/cut/coul/long/soft</I> args = n alpha_LJ alpha_C cutoff
+    n, alpha_LJ, alpha_C = parameters of the soft-core potential 
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  <I>lj/cut/tip4p/long/soft</I> args = otype htype btype atype qdist n alpha_LJ alpha_C cutoff (cutoff2)
+    otype,htype = atom types for TIP4P O and H
+    btype,atype = bond and angle types for TIP4P waters
+    qdist = distance from O atom to massless charge (distance units)
+    n, alpha_LJ, alpha_C = parameters of the soft-core potential 
+    cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  <I>coul/cut/soft</I> args = n alpha_C cutoff
+    n, alpha_C = parameters of the soft-core potential 
+    cutoff = global cutoff for Coulomb interactions (distance units)
+  <I>coul/long/soft</I> args = n alpha_C cutoff
+    n, alpha_C = parameters of the soft-core potential 
+    cutoff = global cutoff for Coulomb interactions (distance units)
+  <I>tip4p/long/soft</I> args = otype htype btype atype qdist n alpha_C cutoff
+    otype,htype = atom types for TIP4P O and H
+    btype,atype = bond and angle types for TIP4P waters
+    qdist = distance from O atom to massless charge (distance units)
+    n, alpha_C = parameters of the soft-core potential 
+    cutoff = global cutoff for Coulomb interactions (distance units)
+
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style lj/cut/soft 2.0 0.5 9.5
+pair_coeff * * 0.28 3.1 1.0
+pair_coeff 1 1 0.28 3.1 1.0 9.5 
+</PRE>
+<PRE>pair_style lj/cut/coul/cut/soft 2.0 0.5 10.0 9.5
+pair_style lj/cut/coul/cut/soft 2.0 0.5 10.0 9.5 9.5
+pair_coeff * * 0.28 3.1 1.0
+pair_coeff 1 1 0.28 3.1 0.5 10.0
+pair_coeff 1 1 0.28 3.1 0.5 10.0 9.5 
+</PRE>
+<PRE>pair_style lj/cut/coul/long/soft 2.0 0.5 10.0 9.5
+pair_style lj/cut/coul/long/soft 2.0 0.5 10.0 9.5 9.5
+pair_coeff * * 0.28 3.1 1.0
+pair_coeff 1 1 0.28 3.1 0.0 10.0
+pair_coeff 1 1 0.28 3.1 0.0 10.0 9.5 
+</PRE>
+<PRE>pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
+pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8 9.5
+pair_coeff * * 0.155 3.1536 1.0
+pair_coeff 1 1 0.155 3.1536 1.0 9.5 
+</PRE>
+<PRE>pair_style coul/long/soft 1.0 10.0 9.5
+pair_coeff * * 1.0
+pair_coeff 1 1 1.0 9.5 
+</PRE>
+<PRE>pair_style tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
+pair_coeff * * 1.0
+pair_coeff 1 1 1.0 9.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>lj/cut/soft</I> style and substyles compute the 12/6
+Lennard-Jones and Coulomb potential modified by a soft core, in order
+to avoid singularities during free energy calculations when sites are
+created or anihilated <A HREF = "#Beutler">(Beutler)</A>,
+</P>
+<CENTER><IMG SRC = "Eqs/pair_lj_soft.jpg">
+</CENTER>
+<P>Coulomb interactions are also damped with a soft core at short
+distance,
+</P>
+<CENTER><IMG SRC = "Eqs/pair_coul_soft.jpg">
+</CENTER>
+<P>In the Coulomb part C is an energy-conversion constant, q_i and q_j are
+the charges on the 2 atoms, and epsilon is the dielectric constant
+which can be set by the <A HREF = "dielectric.html">dielectric</A> command.
+</P>
+<P>The coefficient lambda is an activation parameter. When lambda = 1 the
+pair potentiel is identical to a Lennard-Jones term plus a Coulomb
+term. When lambda = 0 the pair interactions are deactivated. The
+transition between these two extrema is smoothed by a repulsive soft
+core in order to avoid singularities in potential energy and forces
+when sites are created or anihilated and can overlap
+<A HREF = "#Beutler">(Beutler)</A>.
+</P>
+<P>The paratemers n, alpha_LJ and alpha_C are set in the
+<A HREF = "pair_style.html">pair_style</A> command, before the cutoffs.  Usual
+choices for the exponent are n = 2 or n = 1. For the remaining
+coefficients alpha_LJ = 0.5 and alpha_C = 10 Angstrom^2 are
+appropriate choices. Plots of the LJ and Coulomb terms are shown
+below, for lambda ranging from 1 ro 0 every 0.1. 
+</P>
+<CENTER><IMG SRC = "JPG/lj_soft.jpg"><IMG SRC = "JPG/coul_soft.jpg">
+</CENTER>
+<P>The <I>lj/cut/tip4p/long/soft</I> implements a soft-core version of the
+TIP4P water model. The usage of this pair style is documented in the
+<A HREF = "pair_lj.html">pair_lj</A> styles. The soft-core version introduces the
+lambda parameter to the list of arguments, after epsilon and sigma in
+the <A HREF = "pair_coeff.html">pair_coeff</A> command. The paratemers n, alpha_LJ
+and alpha_C are set in the <A HREF = "pair_style.html">pair_style</A> command,
+before the cutoffs.
+</P>
+<P>The <I>coul/cut/soft</I>, <I>coul/long/soft</I> and <I>tip4p/long/soft</I> substyles
+are designed to be combined with other pair potentials via the
+<A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A> command.  This is because
+they have no repulsive core.  Hence, if used by themselves, there will
+be no repulsion to keep two oppositely charged particles from
+overlapping each other. In this case, if lambda = 1, a singularity may
+occur.  These substyles are suitable to represent charges embedded in
+the Lennard-Jones radius of another site (for example hydrogen atoms
+in several water models).
+</P>
+<P>For the <I>lj/cut/coul/cut/soft</I> or <I>lj/cut/coul/long/soft</I> pair styles,
+the following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>epsilon (energy units)
+<LI>sigma (distance units)
+<LI>lambda (activation parameter between 0 and 1)
+<LI>cutoff1 (distance units)
+<LI>cutoff2 (distance units) 
+</UL>
+<P>The latter two coefficients are optional.  If not specified, the global
+LJ and Coulombic cutoffs specified in the pair_style command are used.
+If only one cutoff is specified, it is used as the cutoff for both LJ
+and Coulombic interactions for this type pair.  If both coefficients
+are specified, they are used as the LJ and Coulombic cutoffs for this
+type pair.  You cannot specify 2 cutoffs for style <I>lj/cut/soft</I>,
+since it has no Coulombic terms. For the <I>coul/cut/soft</I> and
+<I>coul/long/soft</I> only lambda and the optional cutoff2 are to be
+specified.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally
+the same as the corresponding style without the suffix.  They have
+been optimized to run faster, depending on your available hardware, as
+discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A> of the
+manual.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
+packages, respectively.  They are only enabled if LAMMPS was built with
+those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, tail correction, restart info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for this pair style can be mixed.
+The default mix value is <I>geometric</I>.  See the "pair_modify" command
+for details.
+</P>
+<P>These pair styles support the <A HREF = "pair_modify.html">pair_modify</A> shift
+option for the energy of the Lennard-Jones portion of the pair
+interaction.
+</P>
+<P>These pair styles support the <A HREF = "pair_modify.html">pair_modify</A> tail
+option for adding a long-range tail correction to the energy and
+pressure for the Lennard-Jones portion of the pair interaction.
+</P>
+<P>These pair styles write information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>To avoid division by zero do not set sigma = 0. When sites do not
+interact though the Lennard-Jones term use epsilon = 0 and sigma = 1
+for example, or else use the <I>coul/long/soft</I> or similar substyle.
+</P>
+<P>All of the plain <I>soft</I> pair styles are part of the USER-FEP package.
+The <I>long</I> styles also requires the KSPACE package to be installed.
+They are only enabled if LAMMPS was built with that package.
+See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "fix_adapt.html">fix_adapt</A>,
+<A HREF = "fix_adapt_fep.html">fix_adapt/fep</A>, <A HREF = "compute_fep.html">compute_fep</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Beutler"></A>
+
+<P><B>(Beutler)</B> Beutler, Mark, van Schaik, Gerber, van Gunsteren, Chem
+Phys Lett, 222, 529 (1994).
+</P>
+</HTML>

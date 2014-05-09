@@ -730,11 +730,6 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
 
   if (fix[ifix] == NULL) error->all(FLERR,"Invalid fix style");
 
-  // set fix mask values and increment nfix (if new)
-
-  fmask[ifix] = fix[ifix]->setmask();
-  if (newflag) nfix++;
-
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
 
@@ -766,6 +761,16 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
         if (logfile) fprintf(logfile,str,fix[ifix]->id,fix[ifix]->style);
       }
     }
+
+  // increment nfix (if new)
+  // set fix mask values
+  // post_construct() allows new fix to create other fixes
+  // nfix increment comes first so that recursive call to add_fix within
+  //   post_constructor() will see updated nfix
+
+  if (newflag) nfix++;
+  fmask[ifix] = fix[ifix]->setmask();
+  fix[ifix]->post_constructor();
 }
 
 /* ----------------------------------------------------------------------

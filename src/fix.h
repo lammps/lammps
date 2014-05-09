@@ -101,6 +101,7 @@ class Fix : protected Pointers {
 
   virtual int setmask() = 0;
 
+  virtual void post_constructor() {}
   virtual void init() {}
   virtual void init_list(int, class NeighList *) {}
   virtual void setup(int) {}

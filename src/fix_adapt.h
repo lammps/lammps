@@ -32,6 +32,7 @@ class FixAdapt : public Fix {
   FixAdapt(class LAMMPS *, int, char **);
   ~FixAdapt();
   int setmask();
+  void post_constructor();
   void init();
   void setup_pre_force(int);
   void pre_force(int);
@@ -40,6 +41,8 @@ class FixAdapt : public Fix {
  private:
   int nadapt,resetflag,scaleflag;
   int anypair;
+  char *id_fix_diam,*id_fix_chg;
+  class FixStore *fix_diam,*fix_chg;
 
   struct Adapt {
     int which,ivar;

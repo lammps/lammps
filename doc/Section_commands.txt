@@ -568,6 +568,7 @@ These are fix styles contributed by users, which can be used if
 "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
+"adapt/fep"_fix_adapt_fep.html,
 "addtorque"_fix_addtorque.html,
 "atc"_fix_atc.html,
 "colvars"_fix_colvars.html,
@@ -707,6 +708,7 @@ package"_Section_start.html#start_3.
 
 "ackland/atom"_compute_ackland_atom.html,
 "basal/atom"_compute_basal_atom.html,
+"fep"_compute_fep.html,
 "ke/eff"_compute_ke_eff.html,
 "ke/atom/eff"_compute_ke_atom_eff.html,
 "meso_e/atom"_compute_meso_e_atom.html,
@@ -840,13 +842,19 @@ These are pair styles contributed by users, which can be used if
 package"_Section_start.html#start_3.
 
 "awpmd/cut"_pair_awpmd.html,
+"coul/cut/soft"_pair_lj_soft.html,
 "coul/diel"_pair_coul_diel.html,
+"coul/long/soft"_pair_lj_soft.html,
 "eam/cd"_pair_eam.html,
 "edip"_pair_edip.html,
 "eff/cut"_pair_eff.html,
 "gauss/cut"_pair_gauss.html,
 "list"_pair_list.html,
+"lj/cut/coul/cut/soft"_pair_lj_soft.html,
+"lj/cut/coul/long/soft"_pair_lj_soft.html,
 "lj/cut/dipole/sf"_pair_dipole.html,
+"lj/cut/soft"_pair_lj_soft.html,
+"lj/cut/tip4p/long/soft"_pair_lj_soft.html,
 "lj/sdk"_pair_sdk.html,
 "lj/sdk/coul/long"_pair_sdk.html,
 "lj/sdk/coul/msm"_pair_sdk.html,
@@ -860,7 +868,8 @@ package"_Section_start.html#start_3.
 "sph/rhosum"_pair_sph_rhosum.html,
 "sph/taitwater"_pair_sph_taitwater.html,
 "sph/taitwater/morris"_pair_sph_taitwater_morris.html,
-"tersoff/table"_pair_tersoff.html :tb(c=4,ea=c)
+"tersoff/table"_pair_tersoff.html,
+"tip4p/long/soft"_pair_lj_soft.html :tb(c=4,ea=c)
 
 These are accelerated pair styles, which can be used if LAMMPS is
 built with the "appropriate accelerated
@@ -895,11 +904,13 @@ package"_Section_accelerate.html.
 "colloid/omp"_pair_colloid.html,
 "comb/omp"_pair_comb.html,
 "coul/cut/omp"_pair_coul.html,
+"coul/cut/soft/omp"_pair_lj_soft.html,
 "coul/debye/omp"_pair_coul.html,
 "coul/dsf/gpu"_pair_coul.html,
 "coul/dsf/omp"_pair_coul.html,
 "coul/long/gpu"_pair_coul.html,
 "coul/long/omp"_pair_coul.html,
+"coul/long/soft/omp"_pair_lj_soft.html,
 "coul/msm/omp"_pair_coul.html,
 "coul/wolf"_pair_coul.html,
 "dpd/omp"_pair_dpd.html,
@@ -951,6 +962,7 @@ package"_Section_accelerate.html.
 "lj/cut/coul/cut/cuda"_pair_lj.html,
 "lj/cut/coul/cut/gpu"_pair_lj.html,
 "lj/cut/coul/cut/omp"_pair_lj.html,
+"lj/cut/coul/cut/soft/omp"_pair_lj_soft.html,
 "lj/cut/coul/debye/cuda"_pair_lj.html,
 "lj/cut/coul/debye/gpu"_pair_lj.html,
 "lj/cut/coul/debye/omp"_pair_lj.html,
@@ -962,6 +974,7 @@ package"_Section_accelerate.html.
 "lj/cut/coul/long/opt"_pair_lj.html,
 "lj/cut/coul/msm/gpu"_pair_lj.html,
 "lj/cut/coul/msm/opt"_pair_lj.html,
+"lj/cut/coul/long/soft/omp"_pair_lj_soft.html,
 "lj/cut/cuda"_pair_lj.html,
 "lj/cut/dipole/cut/gpu"_pair_dipole.html,
 "lj/cut/dipole/cut/omp"_pair_dipole.html,
@@ -971,9 +984,11 @@ package"_Section_accelerate.html.
 "lj/cut/gpu"_pair_lj.html,
 "lj/cut/omp"_pair_lj.html,
 "lj/cut/opt"_pair_lj.html,
+"lj/cut/soft/omp"_pair_lj_soft.html,
 "lj/cut/tip4p/cut/omp"_pair_lj.html,
 "lj/cut/tip4p/long/omp"_pair_lj.html,
 "lj/cut/tip4p/long/opt"_pair_lj.html,
+"lj/cut/tip4p/long/soft/omp"_pair_lj_soft.html,
 "lj/expand/cuda"_pair_lj_expand.html,
 "lj/expand/gpu"_pair_lj_expand.html,
 "lj/expand/omp"_pair_lj_expand.html,
@@ -1026,6 +1041,7 @@ package"_Section_accelerate.html.
 "tersoff/zbl/omp"_pair_tersoff_zbl.html,
 "tip4p/cut/omp"_pair_coul.html,
 "tip4p/long/omp"_pair_coul.html,
+"tip4p/long/soft/omp"_pair_lj_soft.html,
 "tri/lj/omp"_pair_tri_lj.html,
 "yukawa/gpu"_pair_yukawa.html,
 "yukawa/omp"_pair_yukawa.html,

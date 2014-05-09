@@ -111,6 +111,7 @@ USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sd
 USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_Section_accelerate.html#acc_7, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
+USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferrand), "fix adapt/fep"_fix_adapt.html, USER/fep, -, -
 USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
 USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
 USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
@@ -263,8 +264,12 @@ This fix allows to use "collective variables" to implement
 Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
 Sampling and Restraints. This code consists of two parts:
 
-A portable collective variable module library written and maintained by Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and Jerome Henin (LISM, CNRS, Marseille, France). This code is located in the directory lib/colvars and needs to be compiled first.
-The colvars fix and an interface layer, exchanges information between LAMMPS and the collective variable module. :ul
+A portable collective variable module library written and maintained
+by Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and
+Jerome Henin (LISM, CNRS, Marseille, France). This code is located in
+the directory lib/colvars and needs to be compiled first.  The colvars
+fix and an interface layer, exchanges information between LAMMPS and
+the collective variable module. :ul
 
 See the doc page of "fix colvars"_fix_colvars.html for more details.
 
@@ -346,6 +351,23 @@ There are auxiliary tools for using this package in tools/eff.
 The person who created this package is Andres Jaramillo-Botero at
 CalTech (ajaramil at wag.caltech.edu).  Contact him directly if you
 have questions.
+
+:line
+
+USER-FEP package :h4
+
+This package provides methods for performing free energy perturbation
+simulations with soft-core pair potentials in LAMMPS.
+
+See these doc pages and their related commands to get started:
+
+"fix adapt/fep"_fix_adapt_fep.html
+"compute fep"_compute_fep.html
+"soft pair styles"_pair_lj_soft.html :ul
+
+The person who created this package is Agilio Padua at Université
+Blaise Pascal Clermont-Ferrand (agilio.padua at univ-bpclermont.fr)
+Contact him directly if you have questions.
 
 :line
 

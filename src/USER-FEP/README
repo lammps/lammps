@@ -1,0 +1,13 @@
+This package provides methods for performing free energy perturbation
+simulations with soft-core pair potentials in LAMMPS.
+
+See the doc page for the fix adapt/fep command to get started.
+
+There are example scripts for using this package in
+examples/USER/fep.
+
+There are auxiliary tools for using this package in tools/fep.
+
+The person who created this package is Agilio Padua at Université
+Blaise Pascal Clermont-Ferrand (agilio.padua at univ-bpclermont.fr)
+Contact him directly if you have questions.

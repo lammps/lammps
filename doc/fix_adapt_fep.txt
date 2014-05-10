@@ -52,15 +52,16 @@ fix 1 all adapt/fep 10 atom diameter 1 v_size :pre
 [Description:]
 
 Change or adapt one or more specific simulation attributes or settings
-over time as a simulation runs. 
+over time as a simulation runs.
 
-This is a version of the "fix_adapt"_fix_adapt.html with two
-differences, 
+This is an enhanced version of the "fix_adapt"_fix_adapt.html command
+with two differences,
 
-It is possible to modify the charges of chosen atom types only, \
-instead of scaling all the charges in the system.
-There is a new option {after} for better compatibility with "fix\
-ave/time". :ul
+It is possible to modify the charges of chosen atom types only,
+instead of scaling all the charges in the system. :ulb,l
+
+There is a new option {after} for better compatibility with "fix
+ave/time". :l,ule
 
 This version is suited for free energy calculations using
 "compute_ti"_compute_ti.html or "compute_fep"_compute_fep.html.
@@ -88,10 +89,10 @@ the parameters themselves are actually altered; make sure you use the
 initial values after the run.
 
 If the {after} keyword is set to {yes}, then the parameters are
-changed one timestep after the multiple of N. In this manner, if a
-fix such as "fix ave/time" is used to calculate averages at every N
+changed one timestep after the multiple of N. In this manner, if a fix
+such as "fix ave/time" is used to calculate averages at every N
 timesteps, all the contributions to the average will be obtained with
-the same values of the parameters. 
+the same values of the parameters.
 
 :line
 
@@ -247,9 +248,8 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Related commands:]
 
-"compute fep"_compute_fep.html
-"fix_adapt"_fix_adapt.html
-"compute ti"_compute_ti.html
+"compute fep"_compute_fep.html, "fix_adapt"_fix_adapt.html, "compute
+ti"_compute_ti.html
 
 [Default:]
 

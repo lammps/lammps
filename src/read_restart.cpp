@@ -471,7 +471,7 @@ void ReadRestart::command(int narg, char **arg)
   }
 
   if (natoms != atom->natoms)
-    error->all(FLERR,"Did not assign all atoms correctly");
+    error->all(FLERR,"Did not assign all restart atoms correctly");
 
   if (me == 0) {
     if (atom->nbonds) {

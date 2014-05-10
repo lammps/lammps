@@ -64,13 +64,16 @@ fix 1 all adapt/fep 10 atom diameter 1 v_size
 <P><B>Description:</B>
 </P>
 <P>Change or adapt one or more specific simulation attributes or settings
-over time as a simulation runs. 
+over time as a simulation runs.
 </P>
-<P>This is a version of the <A HREF = "fix_adapt.html">fix_adapt</A> with two
-differences, 
+<P>This is an enhanced version of the <A HREF = "fix_adapt.html">fix_adapt</A> command
+with two differences,
 </P>
-<UL><LI>It is possible to modify the charges of chosen atom types only, instead of scaling all the charges in the system.
-<LI>There is a new option <I>after</I> for better compatibility with "fixave/time". 
+<UL><LI>It is possible to modify the charges of chosen atom types only,
+instead of scaling all the charges in the system. 
+
+<LI>There is a new option <I>after</I> for better compatibility with "fix
+ave/time". 
 </UL>
 <P>This version is suited for free energy calculations using
 <A HREF = "compute_ti.html">compute_ti</A> or <A HREF = "compute_fep.html">compute_fep</A>.
@@ -98,10 +101,10 @@ the parameters themselves are actually altered; make sure you use the
 initial values after the run.
 </P>
 <P>If the <I>after</I> keyword is set to <I>yes</I>, then the parameters are
-changed one timestep after the multiple of N. In this manner, if a
-fix such as "fix ave/time" is used to calculate averages at every N
+changed one timestep after the multiple of N. In this manner, if a fix
+such as "fix ave/time" is used to calculate averages at every N
 timesteps, all the contributions to the average will be obtained with
-the same values of the parameters. 
+the same values of the parameters.
 </P>
 <HR>
 
@@ -259,9 +262,8 @@ This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "compute_fep.html">compute fep</A>
-<A HREF = "fix_adapt.html">fix_adapt</A>
-<A HREF = "compute_ti.html">compute ti</A>
+<P><A HREF = "compute_fep.html">compute fep</A>, <A HREF = "fix_adapt.html">fix_adapt</A>, <A HREF = "compute_ti.html">compute
+ti</A>
 </P>
 <P><B>Default:</B>
 </P>

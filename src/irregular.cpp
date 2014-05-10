@@ -74,7 +74,7 @@ Irregular::~Irregular()
    can be used in place of comm->exchange()
    unlike exchange(), allows atoms to have moved arbitrarily long distances
    sets up irregular plan, invokes it, destroys it
-   atoms must be remapped to be inside simulation box before this is called
+   atoms MUST be remapped to be inside simulation box before this is called
    for triclinic: atoms must be in lamda coords (0-1) before this is called
 ------------------------------------------------------------------------- */
 

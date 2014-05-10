@@ -87,8 +87,10 @@ set to will be whatever the variable generates.  If the <I>scale</I>
 keyword is set to <I>yes</I>, then the value of the altered parameter will
 be the initial value of that parameter multiplied by whatever the
 variable generates.  I.e. the variable is now a "scale factor" applied
-in (presumably) a time-varying fashion to the parameter.  Internally,
-the parameters themselves are actually altered; make sure you use the
+in (presumably) a time-varying fashion to the parameter.
+</P>
+<P>Note that whether scale is <I>no</I> or <I>yes</I>, internally, the parameters
+themselves are actually altered by this fix.  Make sure you use the
 <I>reset yes</I> option if you want the parameters to be restored to their
 initial values after the run.
 </P>
@@ -214,6 +216,10 @@ specified as v_name, where name is the variable name.  See the
 discussion above describing the formulas associated with equal-style
 variables.  The new value is assigned to the corresponding attribute
 for all atoms in the fix group.
+</P>
+<P>IMPORTANT NOTE: The <I>atom</I> keyword works this way whether the <I>scale</I>
+keyword is set to <I>no</I> or <I>yes</I>.  I.e. the use of scale yes is not yet
+supported by the <I>atom</I> keyword.
 </P>
 <P>If the atom parameter is <I>diameter</I> and per-atom density and per-atom
 mass are defined for particles (e.g. <A HREF = "atom_style.html">atom_style

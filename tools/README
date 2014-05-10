@@ -23,6 +23,7 @@ eam_database	       one tool to generate EAM alloy potential files
 eam_generate	       2nd tool to generate EAM alloy potential files
 eff		       scripts for working with the eFF (electron force field)
 emacs		       add-ons to EMACS editor for editing LAMMPS input scripts
+fep		       scripts for free-energy perturbation with USER-FEP pkg
 ipp		       input pre-processor Perl tool for creating input scripts
 lmp2arc		       convert LAMMPS output to Accelrys Insight format
 lmp2cfg		       convert LAMMPS output to CFG files for AtomEye viz

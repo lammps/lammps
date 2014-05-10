@@ -119,6 +119,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.
 <TR ALIGN="center"><TD >USER-COLVARS</TD><TD > collective variables</TD><TD > Fiorin & Henin & Kohlmeyer (3)</TD><TD > <A HREF = "fix_colvars.html">fix colvars</A></TD><TD > USER/colvars</TD><TD > <A HREF = "colvars">colvars</A></TD><TD > lib/colvars</TD></TR>
 <TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "Section_accelerate.html#acc_7">Section accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
 <TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-FEP</TD><TD > free energy perturbation</TD><TD > Agilio Padua (U Blaise Pascal Clermont-Ferrand)</TD><TD > <A HREF = "fix_adapt.html">fix adapt/fep</A></TD><TD > USER/fep</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-LB</TD><TD > Lattice Boltzmann fluid</TD><TD > Colin Denniston (U Western Ontario)</TD><TD > <A HREF = "fix_lb_fluid.html">fix lb/fluid</A></TD><TD > USER/lb</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-MISC</TD><TD > single-file contributions</TD><TD > USER-MISC/README</TD><TD > USER-MISC/README</TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-MOLFILE</TD><TD > <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> molfile plug-ins</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "dump_molfile.html">dump molfile</A></TD><TD > -</TD><TD > -</TD><TD > VMD-MOLFILE</TD></TR>
@@ -276,8 +277,12 @@ used in a LAMMPS input script.
 Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
 Sampling and Restraints. This code consists of two parts:
 </P>
-<UL><LI>A portable collective variable module library written and maintained by Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and Jerome Henin (LISM, CNRS, Marseille, France). This code is located in the directory lib/colvars and needs to be compiled first.
-<LI>The colvars fix and an interface layer, exchanges information between LAMMPS and the collective variable module. 
+<UL><LI>A portable collective variable module library written and maintained
+<LI>by Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and
+<LI>Jerome Henin (LISM, CNRS, Marseille, France). This code is located in
+<LI>the directory lib/colvars and needs to be compiled first.  The colvars
+<LI>fix and an interface layer, exchanges information between LAMMPS and
+<LI>the collective variable module. 
 </UL>
 <P>See the doc page of <A HREF = "fix_colvars.html">fix colvars</A> for more details.
 </P>
@@ -359,6 +364,23 @@ examples/USER/eff.
 <P>The person who created this package is Andres Jaramillo-Botero at
 CalTech (ajaramil at wag.caltech.edu).  Contact him directly if you
 have questions.
+</P>
+<HR>
+
+<H4>USER-FEP package 
+</H4>
+<P>This package provides methods for performing free energy perturbation
+simulations with soft-core pair potentials in LAMMPS.
+</P>
+<P>See these doc pages and their related commands to get started:
+</P>
+<UL><LI><A HREF = "fix_adapt_fep.html">fix adapt/fep</A>
+<LI><A HREF = "compute_fep.html">compute fep</A>
+<LI><A HREF = "pair_lj_soft.html">soft pair styles</A> 
+</UL>
+<P>The person who created this package is Agilio Padua at Université
+Blaise Pascal Clermont-Ferrand (agilio.padua at univ-bpclermont.fr)
+Contact him directly if you have questions.
 </P>
 <HR>
 

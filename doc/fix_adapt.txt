@@ -75,8 +75,10 @@ set to will be whatever the variable generates.  If the {scale}
 keyword is set to {yes}, then the value of the altered parameter will
 be the initial value of that parameter multiplied by whatever the
 variable generates.  I.e. the variable is now a "scale factor" applied
-in (presumably) a time-varying fashion to the parameter.  Internally,
-the parameters themselves are actually altered; make sure you use the
+in (presumably) a time-varying fashion to the parameter.
+
+Note that whether scale is {no} or {yes}, internally, the parameters
+themselves are actually altered by this fix.  Make sure you use the
 {reset yes} option if you want the parameters to be restored to their
 initial values after the run.
 
@@ -200,6 +202,10 @@ specified as v_name, where name is the variable name.  See the
 discussion above describing the formulas associated with equal-style
 variables.  The new value is assigned to the corresponding attribute
 for all atoms in the fix group.
+
+IMPORTANT NOTE: The {atom} keyword works this way whether the {scale}
+keyword is set to {no} or {yes}.  I.e. the use of scale yes is not yet
+supported by the {atom} keyword.
 
 If the atom parameter is {diameter} and per-atom density and per-atom
 mass are defined for particles (e.g. "atom_style

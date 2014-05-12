@@ -14,8 +14,8 @@
 cvm::atom_group::atom_group (std::string const &conf,
                              char const        *key)
   : b_center (false), b_rotate (false), b_user_defined_fit (false),
-    ref_pos_group (NULL),
     b_fit_gradients (false),
+    ref_pos_group (NULL),
     noforce (false)
 {
   cvm::log ("Defining atom group \""+
@@ -27,7 +27,7 @@ cvm::atom_group::atom_group (std::string const &conf,
 
 cvm::atom_group::atom_group (std::vector<cvm::atom> const &atoms)
   : b_dummy (false), b_center (false), b_rotate (false),
-    ref_pos_group (NULL), b_fit_gradients (false),
+    b_fit_gradients (false), ref_pos_group (NULL),
     noforce (false)
 {
   this->reserve (atoms.size());
@@ -44,7 +44,7 @@ cvm::atom_group::atom_group (std::vector<cvm::atom> const &atoms)
 
 cvm::atom_group::atom_group()
   : b_dummy (false), b_center (false), b_rotate (false),
-    ref_pos_group (NULL), b_fit_gradients (false),
+    b_fit_gradients (false), ref_pos_group (NULL),
     noforce (false)
 {
   total_mass = 0.0;

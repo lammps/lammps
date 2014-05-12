@@ -591,11 +591,12 @@ void colvar::enable (colvar::task const &t)
     }
     break;
 
-
   case task_output_value:
   case task_runave:
   case task_corrfunc:
   case task_ntot:
+  case task_langevin:
+  case task_output_energy:
     break;
 
   case task_gradients:
@@ -612,6 +613,7 @@ void colvar::enable (colvar::task const &t)
       build_atom_list();
     }
     break;
+
   }
 
 
@@ -660,6 +662,9 @@ void colvar::disable (colvar::task const &t)
   case task_lower_wall:
   case task_upper_wall:
   case task_ntot:
+  case task_langevin:
+  case task_output_energy:
+  case task_collect_gradients:
     break;
   }
 

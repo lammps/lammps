@@ -2,7 +2,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2013-12-13"
+#define COLVARS_VERSION "2014-05-08"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -481,40 +481,6 @@ inline cvm::real cvm::position_dist2 (cvm::atom_pos const &pos1,
                                       cvm::atom_pos const &pos2)
 {
   return proxy->position_dist2 (pos1, pos2);
-}
-
-inline void cvm::load_atoms (char const *file_name,
-                             std::vector<cvm::atom> &atoms,
-                             std::string const &pdb_field,
-                             double const pdb_field_value)
-{
-  proxy->load_atoms (file_name, atoms, pdb_field, pdb_field_value);
-}
-
-inline void cvm::load_coords (char const *file_name,
-                              std::vector<cvm::atom_pos> &pos,
-                              const std::vector<int> &indices,
-                              std::string const &pdb_field,
-                              double const pdb_field_value)
-{
-  // Differentiate between PDB and XYZ files
-  // for XYZ files, use CVM internal parser
-  // otherwise call proxy function for PDB
-
-  char const *ext = strlen(file_name) > 4 ? file_name + (strlen(file_name) - 4) : file_name;
-  if ( !strncmp(ext, ".xyz", 4) || !strncmp(ext, ".XYZ", 4) ) {
-    if ( pdb_field.size() > 0 ) {
-      cvm::fatal_error ("Error: PDB column may not be specified for XYZ coordinate file.\n");
-    }
-    cvm::load_coords_xyz (file_name, pos, indices);
-  } else {
-    proxy->load_coords (file_name, pos, indices, pdb_field, pdb_field_value);
-  }
-}
-
-inline void cvm::backup_file (char const *filename)
-{
-  proxy->backup_file (filename);
 }
 
 inline cvm::real cvm::rand_gaussian (void)

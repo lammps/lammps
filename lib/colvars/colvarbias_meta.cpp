@@ -25,16 +25,16 @@
 
 colvarbias_meta::colvarbias_meta()
   : colvarbias(),
-    state_file_step (0),
-    new_hills_begin (hills.end())
+    new_hills_begin (hills.end()),
+    state_file_step (0)
 {
 }
 
 
 colvarbias_meta::colvarbias_meta (std::string const &conf, char const *key)
   : colvarbias (conf, key),
-    state_file_step (0),
-    new_hills_begin (hills.end())
+    new_hills_begin (hills.end()),
+    state_file_step (0)
 {
   if (cvm::n_abf_biases > 0)
     cvm::log ("Warning: running ABF and metadynamics together is not recommended unless applyBias is off for ABF.\n");

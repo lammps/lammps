@@ -595,7 +595,7 @@ std::istream & operator>> (std::istream &is, colvarparse::read_block const &rb)
   size_t brace_count = 1;
   std::string line;
   while (colvarparse::getline_nocomments (is, line)) {
-    size_t br = 0, br_old;
+    size_t br = 0, br_old = 0;
     while ( (br = line.find_first_of ("{}", br)) != std::string::npos) {
       if (line[br] == '{') brace_count++;
       if (line[br] == '}') brace_count--;

@@ -173,19 +173,19 @@ public:
   /// \brief "Almost copy-constructor": only copies configuration
   /// parameters from another grid, but doesn't reallocate stuff;
   /// create() must be called after that;
-  colvar_grid (colvar_grid<T> const &g) : has_data (false),
-                                          nd (g.nd),
+  colvar_grid (colvar_grid<T> const &g) : nd (g.nd),
                                           nx (g.nx),
                                           mult (g.mult),
+                                          data(),
                                           cv (g.cv),
+                                          actual_value (g.actual_value),
                                           lower_boundaries (g.lower_boundaries),
                                           upper_boundaries (g.upper_boundaries),
+                                          periodic (g.periodic),
                                           hard_lower_boundaries (g.hard_lower_boundaries),
                                           hard_upper_boundaries (g.hard_upper_boundaries),
-                                          periodic (g.periodic),
                                           widths (g.widths),
-                                          actual_value (g.actual_value),
-                                          data()
+                                          has_data (false)
   {
     save_delimiters = false;
   }

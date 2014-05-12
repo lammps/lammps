@@ -16,6 +16,7 @@
 #include "delete_atoms.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "molecule.h"
 #include "comm.h"
 #include "domain.h"
 #include "force.h"
@@ -53,6 +54,10 @@ void DeleteAtoms::command(int narg, char **arg)
   // store state before delete
 
   bigint natoms_previous = atom->natoms;
+  bigint nbonds_previous = atom->nbonds;
+  bigint nangles_previous = atom->nangles;
+  bigint ndihedrals_previous = atom->ndihedrals;
+  bigint nimpropers_previous = atom->nimpropers;
 
   // delete the atoms
 
@@ -61,6 +66,8 @@ void DeleteAtoms::command(int narg, char **arg)
   else if (strcmp(arg[0],"overlap") == 0) delete_overlap(narg,arg);
   else if (strcmp(arg[0],"porosity") == 0) delete_porosity(narg,arg);
   else error->all(FLERR,"Illegal delete_atoms command");
+
+  if (mol_flag) delete_molecule();
 
   // delete local atoms flagged in dlist
   // reset nlocal
@@ -90,7 +97,7 @@ void DeleteAtoms::command(int narg, char **arg)
     atom->tag_extend();
   }
 
-  // reset atom->natoms
+  // reset atom->natoms and also topology counts
   // reset atom->map if it exists
   // set nghost to 0 so old ghosts of deleted atoms won't be mapped
 
@@ -102,17 +109,61 @@ void DeleteAtoms::command(int narg, char **arg)
     atom->map_set();
   }
 
-  // print before and after atom count
+  if (mol_flag) recount_topology();
+
+  // print before and after atom and topology counts
 
   bigint ndelete = natoms_previous - atom->natoms;
+  bigint ndelete_bonds = nbonds_previous - atom->nbonds;
+  bigint ndelete_angles = nangles_previous - atom->nangles;
+  bigint ndelete_dihedrals = ndihedrals_previous - atom->ndihedrals;
+  bigint ndelete_impropers = nimpropers_previous - atom->nimpropers;
 
   if (comm->me == 0) {
-    if (screen) fprintf(screen,"Deleted " BIGINT_FORMAT
-                        " atoms, new total = " BIGINT_FORMAT "\n",
-                        ndelete,atom->natoms);
+    if (screen) {
+      fprintf(screen,"Deleted " BIGINT_FORMAT
+              " atoms, new total = " BIGINT_FORMAT "\n",
+              ndelete,atom->natoms);
+      if (mol_flag) {
+        if (nbonds_previous) 
+          fprintf(screen,"Deleted " BIGINT_FORMAT
+                  " bonds, new total = " BIGINT_FORMAT "\n",
+                  ndelete_bonds,atom->nbonds);
+        if (nangles_previous) 
+          fprintf(screen,"Deleted " BIGINT_FORMAT
+                  " angles, new total = " BIGINT_FORMAT "\n",
+                  ndelete_angles,atom->nangles);
+        if (ndihedrals_previous) 
+          fprintf(screen,"Deleted " BIGINT_FORMAT
+                  " dihedrals, new total = " BIGINT_FORMAT "\n",
+                  ndelete_dihedrals,atom->ndihedrals);
+        if (nimpropers_previous) 
+          fprintf(screen,"Deleted " BIGINT_FORMAT
+                  " impropers, new total = " BIGINT_FORMAT "\n",
+                  ndelete_impropers,atom->nimpropers);
+      }
+    }
     if (logfile) fprintf(logfile,"Deleted " BIGINT_FORMAT
                          " atoms, new total = " BIGINT_FORMAT "\n",
                          ndelete,atom->natoms);
+      if (mol_flag) {
+        if (nbonds_previous) 
+          fprintf(logfile,"Deleted " BIGINT_FORMAT
+                  " bonds, new total = " BIGINT_FORMAT "\n",
+                  ndelete_bonds,atom->nbonds);
+        if (nangles_previous) 
+          fprintf(logfile,"Deleted " BIGINT_FORMAT
+                  " angles, new total = " BIGINT_FORMAT "\n",
+                  ndelete_angles,atom->nangles);
+        if (ndihedrals_previous) 
+          fprintf(logfile,"Deleted " BIGINT_FORMAT
+                  " dihedrals, new total = " BIGINT_FORMAT "\n",
+                  ndelete_dihedrals,atom->ndihedrals);
+        if (nimpropers_previous) 
+          fprintf(logfile,"Deleted " BIGINT_FORMAT
+                  " impropers, new total = " BIGINT_FORMAT "\n",
+                  ndelete_impropers,atom->nimpropers);
+      }
   }
 }
 
@@ -139,8 +190,6 @@ void DeleteAtoms::delete_group(int narg, char **arg)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) dlist[i] = 1;
-
-  if (mol_flag) delete_molecule();
 }
 
 /* ----------------------------------------------------------------------
@@ -167,8 +216,6 @@ void DeleteAtoms::delete_region(int narg, char **arg)
 
   for (int i = 0; i < nlocal; i++)
     if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) dlist[i] = 1;
-
-  if (mol_flag) delete_molecule();
 }
 
 /* ----------------------------------------------------------------------
@@ -320,8 +367,6 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
       break;
     }
   }
-
-  if (mol_flag) delete_molecule();
 }
 
 /* ----------------------------------------------------------------------
@@ -353,8 +398,6 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   for (int i = 0; i < nlocal; i++)
     if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
       if (random->uniform() <= porosity_fraction) dlist[i] = 1;
-
-  if (mol_flag) delete_molecule();
 }
 
 /* ----------------------------------------------------------------------
@@ -391,6 +434,67 @@ void DeleteAtoms::delete_molecule()
 
   delete hash;
   memory->destroy(list);
+}
+
+/* ----------------------------------------------------------------------
+   update bond,angle,etc counts
+   different for atom->molecular = 1 or 2
+------------------------------------------------------------------------- */
+
+void DeleteAtoms::recount_topology()
+{
+  bigint nbonds = 0;
+  bigint nangles = 0;
+  bigint ndihedrals = 0;
+  bigint nimpropers = 0;
+
+  if (atom->molecular == 1) {
+    int *num_bond = atom->num_bond;
+    int *num_angle = atom->num_angle;
+    int *num_dihedral = atom->num_dihedral;
+    int *num_improper = atom->num_improper;
+    int nlocal = atom->nlocal;
+
+    for (int i = 0; i < nlocal; i++) {
+      if (num_bond) nbonds += num_bond[i];
+      if (num_angle) nangles += num_angle[i];
+      if (num_dihedral) ndihedrals += num_dihedral[i];
+      if (num_improper) nimpropers += num_improper[i];
+    }
+
+  } else if (atom->molecular == 2) {
+    Molecule **onemols = atom->avec->onemols;
+    int *molindex = atom->molindex;
+    int *molatom = atom->molatom;
+    int nlocal = atom->nlocal;
+
+    int imol,iatom;
+
+    for (int i = 0; i < nlocal; i++) {
+      imol = molindex[i];
+      iatom = molatom[i];
+      nbonds += onemols[imol]->num_bond[iatom];
+      nangles += onemols[imol]->num_angle[iatom];
+      ndihedrals += onemols[imol]->num_dihedral[iatom];
+      nimpropers += onemols[imol]->num_improper[iatom];
+    }
+  }
+
+  if (atom->avec->bonds_allow)
+    MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (atom->avec->angles_allow)
+    MPI_Allreduce(&nangles,&atom->nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (atom->avec->dihedrals_allow)
+    MPI_Allreduce(&ndihedrals,&atom->ndihedrals,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (atom->avec->impropers_allow)
+    MPI_Allreduce(&nimpropers,&atom->nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
+
+  if (!force->newton_bond) {
+    atom->nbonds /= 2;
+    atom->nangles /= 3;
+    atom->ndihedrals /= 4;
+    atom->nimpropers /= 4;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -433,6 +537,9 @@ void DeleteAtoms::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
+      if (atom->molecular == 0) 
+        error->all(FLERR,"Cannot delete_atoms mol yes for "
+                   "non-molecular systems");
       if (strcmp(arg[iarg+1],"yes") == 0) mol_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) mol_flag = 0;
       else error->all(FLERR,"Illegal delete_atoms command");

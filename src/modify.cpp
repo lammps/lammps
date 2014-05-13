@@ -437,8 +437,8 @@ void Modify::post_run()
 
 void Modify::setup_pre_force_respa(int vflag, int ilevel)
 {
-  for (int i = 0; i < n_pre_force; i++)
-    fix[list_pre_force[i]]->setup_pre_force_respa(vflag,ilevel);
+  for (int i = 0; i < n_pre_force_respa; i++)
+    fix[list_pre_force_respa[i]]->setup_pre_force_respa(vflag,ilevel);
 }
 
 /* ----------------------------------------------------------------------

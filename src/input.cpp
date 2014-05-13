@@ -1165,6 +1165,7 @@ void Input::comm_style()
                  "irregular tiling of proc domains");
     comm = new CommBrick(lmp);
   } else if (strcmp(arg[0],"tiled") == 0) {
+    error->all(FLERR,"Comm_style tiled not yet supported");
     comm = new CommTiled(lmp);
   } else error->all(FLERR,"Illegal comm_style command");
 }

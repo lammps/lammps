@@ -23,6 +23,8 @@ class Comm : protected Pointers {
   int style;     // comm pattern: 0 = 6-way stencil, 1 = irregular tiling
   int layout;    // current proc domains: 0 = logical bricks, 1 = general tiling
                  // can do style=1 on layout=0, but not vice versa
+  // NOTE: uniform needs to be subsumed into layout
+  int uniform;                      // 1 = equal subdomains, 0 = load-balanced
 
   int me,nprocs;                    // proc info
   int procgrid[3];                  // procs assigned in each dim of 3d grid
@@ -30,7 +32,6 @@ class Comm : protected Pointers {
   int myloc[3];                     // which proc I am in each dim
   int procneigh[3][2];              // my 6 neighboring procs, 0/1 = left/right
   int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
-  int uniform;                      // 1 = equal subdomains, 0 = load-balanced
   double *xsplit,*ysplit,*zsplit;   // fractional (0-1) sub-domain sizes
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
   double cutghostuser;              // user-specified ghost cutoff

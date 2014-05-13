@@ -28,7 +28,7 @@ velocity	all create 1.0 593849 loop geom
 neighbor	0.3 bin
 neigh_modify	delay 1 every 1 check no
 
-communicate	single group empty
+comm_modify	group empty
 
 # timestep is big and SRD frequency is 1
 

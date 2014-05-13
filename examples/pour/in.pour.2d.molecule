@@ -5,7 +5,7 @@ atom_style	sphere
 atom_modify     map array
 boundary	f fm p
 newton		off
-communicate	single vel yes cutoff 2.5
+comm_modify	vel yes cutoff 2.5
 
 fix             prop all property/atom mol
 

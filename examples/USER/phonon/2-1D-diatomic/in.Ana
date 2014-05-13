@@ -7,7 +7,7 @@ atom_style	bond
 atom_modify sort 0 1.
 bond_style  harmonic
 pair_style  none
-communicate single cutoff 2.0
+comm_modify cutoff 2.0
 
 # geometry
 read_data	data.pos

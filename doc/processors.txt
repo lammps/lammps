@@ -50,12 +50,12 @@ processors * * * part 1 2 multiple :pre
 
 [Description:]
 
-Specify how processors are mapped as a 3d logical grid to the global
-simulation box.  This involves 2 steps.  First if there are P
+Specify how processors are mapped as a regular 3d grid to the global
+simulation box.  The mapping involves 2 steps.  First if there are P
 processors it means choosing a factorization P = Px by Py by Pz so
 that there are Px processors in the x dimension, and similarly for the
 y and z dimensions.  Second, the P processors are mapped to the
-logical 3d grid.  The arguments to this command control each of these
+regular 3d grid.  The arguments to this command control each of these
 2 steps.
 
 The Px, Py, Pz parameters affect the factorization.  Any of the 3
@@ -65,12 +65,11 @@ It will do this based on the size and shape of the global simulation
 box so as to minimize the surface-to-volume ratio of each processor's
 sub-domain.
 
-Since LAMMPS does not load-balance by changing the grid of 3d
-processors on-the-fly, choosing explicit values for Px or Py or Pz can
-be used to override the LAMMPS default if it is known to be
-sub-optimal for a particular problem.  E.g. a problem where the extent
-of atoms will change dramatically in a particular dimension over the
-course of the simulation.
+Choosing explicit values for Px or Py or Pz can be used to override
+the default manner in which LAMMPS will create the regular 3d grid of
+processors, if it is known to be sub-optimal for a particular problem.
+E.g. a problem where the extent of atoms will change dramatically in a
+particular dimension over the course of the simulation.
 
 The product of Px, Py, Pz must equal P, the total # of processors
 LAMMPS is running on.  For a "2d simulation"_dimension.html, Pz must
@@ -93,6 +92,28 @@ different processor grids for different partitions, e.g.
 
 partition yes 1 processors 4 4 4
 partition yes 2 processors 2 3 2 :pre
+
+IMPORTANT NOTE: This command only affects the initial regular 3d grid
+created when the simulation box is first specified via a
+"create_box"_create_box.html or "read_data"_read_data.html or
+"read_restart"_read_restart.html command.  Or if the simulation box is
+re-created via the "replicate"_replicate.html command.  The same
+regular grid is initially created, regardless of which
+"comm_style"_comm_style.html command is in effect.
+
+If load-balancing is never invoked via the "balance"_balance.html or
+"fix balance"_fix_balance.html commands, then the initial regular grid
+will persist for all simulations.  If balancing is performed, some of
+the methods invoked by those commands retain the logical toplogy of
+the initial 3d grid, and the mapping of processors to the grid
+specified by the processors command.  However the grid spacings in
+different dimensions may change, so that processors own sub-domains of
+different sizes.  If the "comm_style tiled"_comm_style.html command is
+used, methods invoked by the balancing commands may discard the 3d
+grid of processors and tile the simulation domain with sub-domains of
+different sizes and shapes which no longer have a logical 3d
+connectivity.  If that occurs, all the information specified by the
+processors command is ignored.
 
 :line
 
@@ -137,7 +158,7 @@ access (NUMA) costs.  It also uses a different algorithm than the
 {twolevel} keyword for doing the two-level factorization of the
 simulation box into a 3d processor grid to minimize off-node
 communication, and it does its own MPI-based mapping of nodes and
-cores to the logical 3d grid.  Thus it may produce a different layout
+cores to the regular 3d grid.  Thus it may produce a different layout
 of the processors than the {twolevel} options.
 
 The {numa} style will give an error if the number of MPI processes is
@@ -232,11 +253,11 @@ and {Precv} must be integers from 1 to Np, where Np is the number of
 partitions you have defined via the "-partition command-line
 switch"_Section_start.html#start_7.
 
-A "dependency" means that the sending partition will create its 3d
-logical grid as Px by Py by Pz and after it has done this, it will
+A "dependency" means that the sending partition will create its
+regular 3d grid as Px by Py by Pz and after it has done this, it will
 send the Px,Py,Pz values to the receiving partition.  The receiving
-partition will wait to receive these values before creating its own 3d
-logical grid and will use the sender's Px,Py,Pz values as a
+partition will wait to receive these values before creating its own
+regular 3d grid and will use the sender's Px,Py,Pz values as a
 constraint.  The nature of the constraint is determined by the
 {cstyle} argument.
 
@@ -287,7 +308,7 @@ The universe and original IDs will only be different if you used the
 the processors differently than their rank in the original
 communicator LAMMPS was instantiated with.
 
-I,J,K are the indices of the processor in the 3d logical grid, each
+I,J,K are the indices of the processor in the regular 3d grid, each
 from 1 to Nd, where Nd is the number of processors in that dimension
 of the grid.
 

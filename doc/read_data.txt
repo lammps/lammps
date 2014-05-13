@@ -114,7 +114,12 @@ is different than the default.
 
 The initial simulation box size is determined by the lo/hi settings.
 In any dimension, the system may be periodic or non-periodic; see the
-"boundary"_boundary.html command.
+"boundary"_boundary.html command.  When the simulation box is created
+it is also partitioned into a regular 3d grid of rectangular bricks,
+one per processor, based on the number of processors being used and
+the settings of the "processors"_processors.html command.  The
+partitioning can later be changed by the "balance"_balance.html or
+"fix balance"_fix_balance.html commands.
 
 If the {xy xz yz} line does not appear, LAMMPS will set up an
 axis-aligned (orthogonal) simulation box.  If the line does appear,

@@ -120,7 +120,12 @@ is different than the default.
 </UL>
 <P>The initial simulation box size is determined by the lo/hi settings.
 In any dimension, the system may be periodic or non-periodic; see the
-<A HREF = "boundary.html">boundary</A> command.
+<A HREF = "boundary.html">boundary</A> command.  When the simulation box is created
+it is also partitioned into a regular 3d grid of rectangular bricks,
+one per processor, based on the number of processors being used and
+the settings of the <A HREF = "processors.html">processors</A> command.  The
+partitioning can later be changed by the <A HREF = "balance.html">balance</A> or
+<A HREF = "fix_balance.html">fix balance</A> commands.
 </P>
 <P>If the <I>xy xz yz</I> line does not appear, LAMMPS will set up an
 axis-aligned (orthogonal) simulation box.  If the line does appear,

@@ -1,0 +1,70 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>comm_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>comm_style style 
+</PRE>
+<UL><LI>style = <I>brick</I> or <I>tiled</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>comm_style brick
+comm_style tiled 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command sets the style of inter-processor communication of atom
+information that occurs each timestep as coordinates and other
+properties are exchanged between neighboring processors and stored as
+properties of ghost atoms.
+</P>
+<P>IMPORTANT NOTE: The <I>tiled</I> style is not yet implemented.
+</P>
+<P>For the default <I>brick</I> style, the domain decomposition used by LAMMPS
+to partition the simulation box must be a regular 3d grid of bricks,
+one per processor.  Each processor communicates with its 6 Cartesian
+neighbors in the grid to acquire information for nearby atoms.
+</P>
+<P>For the <I>tiled</I> style, a more general domain decomposition can be
+used, as triggered by the <A HREF = "balance.html">balance</A> or <A HREF = "fix_balance.html">fix
+balance</A> commands.  The simulation box can be
+partitioned into non-overlapping rectangular-shaped "tiles" or varying
+sizes and shapes.  Again there is one tile per processor.  To acquire
+information for nearby atoms, communication must now be done with a
+more complex pattern of neighboring processors.
+</P>
+<P>Note that this command does not actually define a partitoining of the
+simulation box (a domain decomposition), rather it determines what
+kinds of decompositions are allowed and the pattern of communication
+used to enable the decomposition.  A decomposition is created when the
+simulation box is first created, via the <A HREF = "create_box.html">create_box</A>
+or <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands.  For both the <I>brick</I> and <I>tiled</I> styles, the initial
+decomposition will be the same, as described by
+<A HREF = "create_box.html">create_box</A> and <A HREF = "processors.html">processors</A>
+commands.  The decomposition can be changed via the
+<A HREF = "balance.html">balance</A> or <A HREF = "fix_balance.html">fix_balance</A> commands.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "comm_modify.html">comm_modify</A>, <A HREF = "processors.html">processors</A>,
+<A HREF = "balance.html">balance</A>, <A HREF = "fix_balance.html">fix balance</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The default style is brick.
+</P>
+</HTML>

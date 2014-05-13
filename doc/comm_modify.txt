@@ -6,15 +6,15 @@
 
 :line
 
-communicate command :h3
+comm_modify command :h3
 
 [Syntax:]
 
-communicate style keyword value ... :pre
+comm_modify keyword value ... :pre
 
-style = {single} or {multi} :ulb,l
-zero or more keyword/value pairs may be appended :l
-keyword = {cutoff} or {group} or {vel} :l
+zero or more keyword/value pairs may be appended :ulb,l
+keyword = {mode} or {cutoff} or {group} or {vel} :l
+  {mode} value = {single} or {multi} = communicate atoms within a single or multiple distances
   {cutoff} value = Rcut (distance units) = communicate atoms from this far away
   {group} value = group-ID = only communicate atoms in the group
   {vel} value = {yes} or {no} = do or do not communicate velocity info with ghost atoms :pre
@@ -22,32 +22,42 @@ keyword = {cutoff} or {group} or {vel} :l
 
 [Examples:]
 
-communicate multi
-communicate multi group solvent
-communicate single vel yes
-communicate single cutoff 5.0 vel yes :pre
+communicate mode multi
+communicate mode multi group solvent
+communicate vel yes
+communicate cutoff 5.0 vel yes :pre
 
 [Description:]
 
-This command sets the style of inter-processor communication that
-occurs each timestep as atom coordinates and other properties are
-exchanged between neighboring processors and stored as properties of
-ghost atoms.
+This command sets parameters that affect the inter-processor
+communication of atom information that occurs each timestep as
+coordinates and other properties are exchanged between neighboring
+processors and stored as properties of ghost atoms.
 
-The default style is {single} which means each processor acquires
+IMPORTANT NOTE: These options apply to the currently defined comm
+style.  When you specify a "comm_style"_comm_style.html command, all
+communication settings are restored to their default values, including
+those previously reset by a comm_modify command.  Thus if your input
+script specifies a comm_style command, you should use the comm_modify
+command after it.
+
+The {mode} keyword determines whether a single or multiple cutoff
+distances are used to determine which atoms to communicate.
+
+The default mode is {single} which means each processor acquires
 information for ghost atoms that are within a single distance from its
 sub-domain.  The distance is the maximum of the neighbor cutoff for
 all atom type pairs.
 
 For many systems this is an efficient algorithm, but for systems with
-widely varying cutoffs for different type pairs, the {multi} style can
+widely varying cutoffs for different type pairs, the {multi} mode can
 be faster.  In this case, each atom type is assigned its own distance
 cutoff for communication purposes, and fewer atoms will be
 communicated.  See the "neighbor multi"_neighbor.html command for a
 neighbor list construction option that may also be beneficial for
 simulations of this kind.
 
-The {cutoff} option allows you to set a ghost cutoff distance, which
+The {cutoff} keyword allows you to set a ghost cutoff distance, which
 is the distance from the borders of a processor's sub-domain at which
 ghost atoms are acquired from other processors.  By default the ghost
 cutoff = neighbor cutoff = pairwise force cutoff + neighbor skin.  See
@@ -98,14 +108,14 @@ will typically lead to bad dynamics (i.e. the bond length is now the
 simulation box length).  To detect if this is happening, see the
 "neigh_modify cluster"_neigh_modify.html command.
 
-The {group} option will limit communication to atoms in the specified
+The {group} keyword will limit communication to atoms in the specified
 group.  This can be useful for models where no ghost atoms are needed
 for some kinds of particles.  All atoms (not just those in the
 specified group) will still migrate to new processors as they move.
 The group specified with this option must also be specified via the
 "atom_modify first"_atom_modify.html command.
 
-The {vel} option enables velocity information to be communicated with
+The {vel} keyword enables velocity information to be communicated with
 ghost particles.  Depending on the "atom_style"_atom_style.html,
 velocity info includes the translational velocity, angular velocity,
 and angular momentum of a particle.  If the {vel} option is set to
@@ -124,10 +134,10 @@ that boundary (e.g. due to dilation or shear).
 
 [Related commands:]
 
-"neighbor"_neighbor.html
+"comm_style"_comm_style.html, "neighbor"_neighbor.html
 
 [Default:]
 
-The default settings are style = single, group = all, cutoff = 0.0,
-vel = no.  The cutoff default of 0.0 means that ghost cutoff =
-neighbor cutoff = pairwise force cutoff + neighbor skin.
+The option defauls are mode = single, group = all, cutoff = 0.0, vel =
+no.  The cutoff default of 0.0 means that ghost cutoff = neighbor
+cutoff = pairwise force cutoff + neighbor skin.

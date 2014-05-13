@@ -10,75 +10,129 @@ fix balance command :h3
 
 [Syntax:]
 
-fix ID group-ID balance Nfreq dimstr Niter thresh keyword value ... :pre
+fix ID group-ID balance Nfreq thresh style args keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 balance = style name of this fix command :l
 Nfreq = perform dynamic load balancing every this many steps :l
-dimstr = sequence of letters containing "x" or "y" or "z", each not more than once :l
-Niter = # of times to iterate within each dimension of dimstr sequence :l
-thresh = stop balancing when this imbalance threshhold is reached :l
-zero or more keyword/arg pairs may be appended :ule,l
+thresh = imbalance threshhold that must be exceeded to perform a re-balance :l
+style = {shift} or {rcb} :l
+  shift args = dimstr Niter stopthresh
+    dimstr = sequence of letters containing "x" or "y" or "z", each not more than once
+    Niter = # of times to iterate within each dimension of dimstr sequence
+    stopthresh = stop balancing when this imbalance threshhold is reached
+  rcb args = none :pre
+zero or more keyword/value pairs may be appended :l
 keyword = {out} :l
- {out} arg = filename
-   filename = output file to write each processor's sub-domain to :pre
+  {out} value = filename
+    filename = write each processor's sub-domain to a file, at each re-balancing :pre
 :ule
 
 [Examples:]
 
-fix 2 all balance 1000 x 10 1.05
-fix 2 all balance 0 xy 20 1.1 out tmp.balance :pre
+fix 2 all balance 1000 1.05 shift x 10 1.05
+fix 2 all balance 100 0.9 shift xy 20 1.1 out tmp.balance
+fix 2 all balance 1000 1.1 rcb :pre
 
 [Description:]
 
-This command adjusts the size of processor sub-domains within the
-simulation box dynamically as a simulation runs, to attempt to balance
-the number of particles and thus the computational cost (load) evenly
-across processors. The load balancing is "dynamic" in the sense that
+This command adjusts the size and shape of processor sub-domains
+within the simulation box, to attempt to balance the number of
+particles and thus the computational cost (load) evenly across
+processors.  The load balancing is "dynamic" in the sense that
 rebalancing is performed periodically during the simulation.  To
-perform "static" balancing, before of between runs, see the
+perform "static" balancing, before or between runs, see the
 "balance"_balance.html command.
 
-Load-balancing is only useful if the particles in the simulation box
-have a spatially-varying density distribution.  E.g. a model of a
-vapor/liquid interface, or a solid with an irregular-shaped geometry
-containing void regions. In this case, the LAMMPS default of dividing
-the simulation box volume into a regular-spaced grid of processor
-sub-domain, with one equal-volume sub-domain per procesor, may assign
-very different numbers of particles per processor. This can lead to
-poor performance in a scalability sense, when the simulation is run in
+Load-balancing is typically only useful if the particles in the
+simulation box have a spatially-varying density distribution.  E.g. a
+model of a vapor/liquid interface, or a solid with an irregular-shaped
+geometry containing void regions.  In this case, the LAMMPS default of
+dividing the simulation box volume into a regular-spaced grid of 3d
+bricks, with one equal-volume sub-domain per procesor, may assign very
+different numbers of particles per processor.  This can lead to poor
+performance in a scalability sense, when the simulation is run in
 parallel.
 
-Note that the "processors"_processors.html command gives you some
-control over how the box volume is split across
-processors. Specifically, for a Px by Py by Pz grid of processors, it
-lets you choose Px, Py, and Pz, subject to the constraint that Px * Py
-* Pz = P, the total number of processors. This can be sufficient to
-achieve good load-balance for some models on some processor
-counts. However, all the processor sub-domains will still be the same
-shape and have the same volume.
+Note that the "processors"_processors.html command allows some control
+over how the box volume is split across processors.  Specifically, for
+a Px by Py by Pz grid of processors, it allows choice of Px, Py, and
+Pz, subject to the constraint that Px * Py * Pz = P, the total number
+of processors.  This is sufficient to achieve good load-balance for
+many models on many processor counts.  However, all the processor
+sub-domains will still have the same shape and same volume.
 
-This command does not alter the topology of the Px by Py by Pz grid or
-processors. But it shifts the cutting planes between processors (in
-3d, or lines in 2d), which adjusts the volume (area in 2d) assigned to
-each processor, as in the following 2d diagram. The left diagram is
-the default partitioning of the simulation box across processors (one
-sub-box for each of 16 processors); the right diagram is after
-balancing.
+On a particular timestep, a load-balancing operation is only performed
+if the current "imbalance factor" in particles owned by each processor
+exceeds the specified {thresh} parameter.  This factor is defined as
+the maximum number of particles owned by any processor, divided by the
+average number of particles per processor.  Thus an imbalance factor
+of 1.0 is perfect balance.  For 10000 particles running on 10
+processors, if the most heavily loaded processor has 1200 particles,
+then the factor is 1.2, meaning there is a 20% imbalance.  Note that
+re-balances can be forced even if the current balance is perfect (1.0)
+be specifying a {thresh} < 1.0.
+
+IMPORTANT NOTE: This command attempts to minimize the imbalance
+factor, as defined above.  But depending on the method a perfect
+balance (1.0) may not be achieved.  For example, "grid" methods
+(defined below) that create a logical 3d grid cannot achieve perfect
+balance for many irregular distributions of particles.  Likewise, if a
+portion of the system is a perfect lattice, e.g. the intiial system is
+generated by the "create_atoms"_create_atoms.html command, then "grid"
+methods may be unable to achieve exact balance.  This is because
+entire lattice planes will be owned or not owned by a single
+processor.
+
+IMPORTANT NOTE: Computational cost is not strictly proportional to
+particle count, and changing the relative size and shape of processor
+sub-domains may lead to additional computational and communication
+overheads, e.g. in the PPPM solver used via the
+"kspace_style"_kspace_style.html command.  Thus you should benchmark
+the run times of a simulation before and after balancing.
+
+:line
+
+The method used to perform a load balance is specified by one of the
+listed styles, which are described in detail below.  There are 2 kinds
+of styles.
+
+The {shift} style is a "grid" method which produces a logical 3d grid
+of processors.  It operates by changing the cutting planes (or lines)
+between processors in 3d (or 2d), to adjust the volume (area in 2d)
+assigned to each processor, as in the following 2d diagram.  The left
+diagram is the default partitioning of the simulation box across
+processors (one sub-box for each of 16 processors); the right diagram
+is after balancing.
 
 :c,image(JPG/balance.jpg)
 
-IMPORTANT NOTE: This command attempts to minimize the imbalance
-factor, as defined above.  But because of the topology constraint that
-only the cutting planes (lines) between processors are moved, there
-are many irregular distributions of particles, where this factor
-cannot be shrunk to 1.0, particuarly in 3d.  Also, computational cost
-is not strictly proportional to particle count, and changing the
-relative size and shape of processor sub-domains may lead to
-additional computational and communication overheads, e.g. in the PPPM
-solver used via the "kspace_style"_kspace_style.html command.  Thus
-you should benchmark the run times of your simulation with and without
-balancing.
+The {rcb} style is a "tiling" method which does not produce a logical
+3d grid of processors.  Rather it tiles the simulation domain with
+rectangular sub-boxes of varying size and shape in an irregular
+fashion so as to have equal numbers of particles in each sub-box, as
+in the following 2d diagram.  Again the left diagram is the default
+partitioning of the simulation box across processors (one sub-box for
+each of 16 processors); the right diagram is after balancing.
+
+NOTE: Need a diagram of RCB partitioning.
+
+The "grid" methods can be used with either of the
+"comm_style"_comm_style.html command options, {brick} or {tiled}.  The
+"tiling" methods can only be used with "comm_style
+tiled"_comm_style.html.
+
+When a "grid" method is specified, the current domain partitioning can
+be either a logical 3d grid or a tiled partitioning.  In the former
+case, the current logical 3d grid is used as a starting point and
+changes are made to improve the imbalance factor.  In the latter case,
+the tiled partitioning is discarded and a logical 3d grid is created
+with uniform spacing in all dimensions.  This becomes the starting
+point for the balancing operation.
+
+When a "tiling" method is specified, the current domain partitioning
+("grid" or "tiled") is ignored, and a new partitioning is computed
+from scratch.
 
 :line
 
@@ -91,14 +145,20 @@ particles.
 
 The {Nfreq} setting determines how often a rebalance is performed.  If
 {Nfreq} > 0, then rebalancing will occur every {Nfreq} steps.  Each
-time a rebalance occurs, a reneighboring is triggered, so you should
-not make {Nfreq} too small.  If {Nfreq} = 0, then rebalancing will be
+time a rebalance occurs, a reneighboring is triggered, so {Nfreq}
+should not be too small.  If {Nfreq} = 0, then rebalancing will be
 done every time reneighboring normally occurs, as determined by the
 the "neighbor"_neighbor.html and "neigh_modify"_neigh_modify.html
 command settings.
 
 On rebalance steps, rebalancing will only be attempted if the current
 imbalance factor, as defined above, exceeds the {thresh} setting.
+
+:line
+
+The {shift} style invokes a "grid" method for balancing, as described
+above.  It changes the positions of cutting planes between processors
+in an iterative fashion, seeking to reduce the imbalance factor.
 
 The {dimstr} argument is a string of characters, each of which must be
 an "x" or "y" or "z".  Eacn character can appear zero or one time,
@@ -110,61 +170,61 @@ Balancing proceeds by adjusting the cutting planes in each of the
 dimensions listed in {dimstr}, one dimension at a time.  For a single
 dimension, the balancing operation (described below) is iterated on up
 to {Niter} times.  After each dimension finishes, the imbalance factor
-is re-computed, and the balancing operation halts if the {thresh}
+is re-computed, and the balancing operation halts if the {stopthresh}
 criterion is met.
 
 A rebalance operation in a single dimension is performed using a
 density-dependent recursive multisectioning algorithm, where the
 position of each cutting plane (line in 2d) in the dimension is
 adjusted independently.  This is similar to a recursive bisectioning
-(RCB) for a single value, except that the bounds used for each
-bisectioning take advantage of information from neighboring cuts if
-possible, as well as counts of particles at the bounds on either side
-of each cuts, which themselves were cuts in previous iterations.  The
-latter is used to infer a density of pariticles near each of the
-current cuts.  At each iteration, the count of particles on either
-side of each plane is tallied.  If the counts do not match the target
-value for the plane, the position of the cut is adjusted based on the
-local density.  The low and high bounds are adjusted on each
-iteration, using new count information, so that they become closer
-together over time.  Thus as the recustion progresses, the count of
-particles on either side of the plane gets closer to the target value.
+for a single value, except that the bounds used for each bisectioning
+take advantage of information from neighboring cuts if possible, as
+well as counts of particles at the bounds on either side of each cuts,
+which themselves were cuts in previous iterations.  The latter is used
+to infer a density of pariticles near each of the current cuts.  At
+each iteration, the count of particles on either side of each plane is
+tallied.  If the counts do not match the target value for the plane,
+the position of the cut is adjusted based on the local density.  The
+low and high bounds are adjusted on each iteration, using new count
+information, so that they become closer together over time.  Thus as
+the recustion progresses, the count of particles on either side of the
+plane gets closer to the target value.
 
 The density-dependent part of this algorithm is often an advantage
 when you rebalance a system that is already nearly balanced.  It
 typically converges more quickly than the geometric bisectioning
 algorithm used by the "balance"_balance.html command.  However, if can
-be a disadvants if you attempt to rebalance a system that is far from
-balanced, and converge more slowly.  In this case you probably want to
-use the "balance"_balance.html command before starting a run, so that
-you begin the run with a balanced system.
+be a disadvantage if you attempt to rebalance a system that is far
+from balanced, and converge more slowly.  In this case you probably
+want to use the "balance"_balance.html command before starting a run,
+so that you begin the run with a balanced system.
 
 Once the rebalancing is complete and final processor sub-domains
 assigned, particles migrate to their new owning processor as part of
 the normal reneighboring procedure.
 
-IMPORTANT NOTE: At each rebalance operation, the RCB operation for
-each cutting plane (line in 2d) typcially starts with low and high
-bounds separated by the extent of a processor's sub-domain in one
-dimension.  The size of this bracketing region shrinks based on the
-local density, as described above, which should typically be 1/2 or
-more every iteration.  Thus if {Niter} is specified as 10, the cutting
-plane will typically be positioned to better than 1 part in 1000
-accuracy (relative to the perfect target position).  For {Niter} = 20,
-it will be accurate to better than 1 part in a million.  Thus there is
-no need to set {Niter} to a large value.  This is especially true if
-you are rebalancing often enough that each time you expect only an
-incremental adjustement in the cutting planes is necessary.  LAMMPS
-will check if the threshold accuracy is reached (in a dimension) is
-less iterations than {Niter} and exit early.
+IMPORTANT NOTE: At each rebalance operation, the bisectioning for each
+cutting plane (line in 2d) typcially starts with low and high bounds
+separated by the extent of a processor's sub-domain in one dimension.
+The size of this bracketing region shrinks based on the local density,
+as described above, which should typically be 1/2 or more every
+iteration.  Thus if {Niter} is specified as 10, the cutting plane will
+typically be positioned to better than 1 part in 1000 accuracy
+(relative to the perfect target position).  For {Niter} = 20, it will
+be accurate to better than 1 part in a million.  Thus there is no need
+to set {Niter} to a large value.  This is especially true if you are
+rebalancing often enough that each time you expect only an incremental
+adjustement in the cutting planes is necessary.  LAMMPS will check if
+the threshold accuracy is reached (in a dimension) is less iterations
+than {Niter} and exit early.
 
-IMPORTANT NOTE: If a portion of your system is a perfect lattice,
-e.g. a frozen substrate, then the balancer may be unable to achieve
-exact balance.  I.e. entire lattice planes will be owned or not owned
-by a single processor.  So you you should not expect to achieve
-perfect balance in this case.  Nor will it be helpful to use a large
-value for {Niter}, since it will simply cause the balancer to iterate
-until {Niter} is reached, without improving the imbalance factor.
+:line
+
+The {rcb} style invokes a "tiled" method for balancing, as described
+above.  It performs a recursive coordinate bisectioning (RCB) of the
+simulation domain.
+
+Need further description of RCB.
 
 :line
 
@@ -250,7 +310,10 @@ minimization"_minimize.html.
 
 :line
 
-[Restrictions:] none
+[Restrictions:]
+
+For 2d simulations, a "z" cannot appear in {dimstr} for the {shift}
+style.
 
 [Related commands:]
 

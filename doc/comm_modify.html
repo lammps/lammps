@@ -9,19 +9,18 @@
 
 <HR>
 
-<H3>communicate command 
+<H3>comm_modify command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>communicate style keyword value ... 
+<PRE>comm_modify keyword value ... 
 </PRE>
-<UL><LI>style = <I>single</I> or <I>multi</I> 
+<UL><LI>zero or more keyword/value pairs may be appended 
 
-<LI>zero or more keyword/value pairs may be appended 
+<LI>keyword = <I>mode</I> or <I>cutoff</I> or <I>group</I> or <I>vel</I> 
 
-<LI>keyword = <I>cutoff</I> or <I>group</I> or <I>vel</I> 
-
-<PRE>  <I>cutoff</I> value = Rcut (distance units) = communicate atoms from this far away
+<PRE>  <I>mode</I> value = <I>single</I> or <I>multi</I> = communicate atoms within a single or multiple distances
+  <I>cutoff</I> value = Rcut (distance units) = communicate atoms from this far away
   <I>group</I> value = group-ID = only communicate atoms in the group
   <I>vel</I> value = <I>yes</I> or <I>no</I> = do or do not communicate velocity info with ghost atoms 
 </PRE>
@@ -29,32 +28,42 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>communicate multi
-communicate multi group solvent
-communicate single vel yes
-communicate single cutoff 5.0 vel yes 
+<PRE>communicate mode multi
+communicate mode multi group solvent
+communicate vel yes
+communicate cutoff 5.0 vel yes 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This command sets the style of inter-processor communication that
-occurs each timestep as atom coordinates and other properties are
-exchanged between neighboring processors and stored as properties of
-ghost atoms.
+<P>This command sets parameters that affect the inter-processor
+communication of atom information that occurs each timestep as
+coordinates and other properties are exchanged between neighboring
+processors and stored as properties of ghost atoms.
 </P>
-<P>The default style is <I>single</I> which means each processor acquires
+<P>IMPORTANT NOTE: These options apply to the currently defined comm
+style.  When you specify a <A HREF = "comm_style.html">comm_style</A> command, all
+communication settings are restored to their default values, including
+those previously reset by a comm_modify command.  Thus if your input
+script specifies a comm_style command, you should use the comm_modify
+command after it.
+</P>
+<P>The <I>mode</I> keyword determines whether a single or multiple cutoff
+distances are used to determine which atoms to communicate.
+</P>
+<P>The default mode is <I>single</I> which means each processor acquires
 information for ghost atoms that are within a single distance from its
 sub-domain.  The distance is the maximum of the neighbor cutoff for
 all atom type pairs.
 </P>
 <P>For many systems this is an efficient algorithm, but for systems with
-widely varying cutoffs for different type pairs, the <I>multi</I> style can
+widely varying cutoffs for different type pairs, the <I>multi</I> mode can
 be faster.  In this case, each atom type is assigned its own distance
 cutoff for communication purposes, and fewer atoms will be
 communicated.  See the <A HREF = "neighbor.html">neighbor multi</A> command for a
 neighbor list construction option that may also be beneficial for
 simulations of this kind.
 </P>
-<P>The <I>cutoff</I> option allows you to set a ghost cutoff distance, which
+<P>The <I>cutoff</I> keyword allows you to set a ghost cutoff distance, which
 is the distance from the borders of a processor's sub-domain at which
 ghost atoms are acquired from other processors.  By default the ghost
 cutoff = neighbor cutoff = pairwise force cutoff + neighbor skin.  See
@@ -105,14 +114,14 @@ will typically lead to bad dynamics (i.e. the bond length is now the
 simulation box length).  To detect if this is happening, see the
 <A HREF = "neigh_modify.html">neigh_modify cluster</A> command.
 </P>
-<P>The <I>group</I> option will limit communication to atoms in the specified
+<P>The <I>group</I> keyword will limit communication to atoms in the specified
 group.  This can be useful for models where no ghost atoms are needed
 for some kinds of particles.  All atoms (not just those in the
 specified group) will still migrate to new processors as they move.
 The group specified with this option must also be specified via the
 <A HREF = "atom_modify.html">atom_modify first</A> command.
 </P>
-<P>The <I>vel</I> option enables velocity information to be communicated with
+<P>The <I>vel</I> keyword enables velocity information to be communicated with
 ghost particles.  Depending on the <A HREF = "atom_style.html">atom_style</A>,
 velocity info includes the translational velocity, angular velocity,
 and angular momentum of a particle.  If the <I>vel</I> option is set to
@@ -131,12 +140,12 @@ that boundary (e.g. due to dilation or shear).
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "neighbor.html">neighbor</A>
+<P><A HREF = "comm_style.html">comm_style</A>, <A HREF = "neighbor.html">neighbor</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The default settings are style = single, group = all, cutoff = 0.0,
-vel = no.  The cutoff default of 0.0 means that ghost cutoff =
-neighbor cutoff = pairwise force cutoff + neighbor skin.
+<P>The option defauls are mode = single, group = all, cutoff = 0.0, vel =
+no.  The cutoff default of 0.0 means that ghost cutoff = neighbor
+cutoff = pairwise force cutoff + neighbor skin.
 </P>
 </HTML>

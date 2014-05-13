@@ -305,7 +305,7 @@ Force fields:
 
 Settings:
 
-"communicate"_communicate.html, "group"_group.html, "mass"_mass.html,
+"comm_style"_comm_style.html, "group"_group.html, "mass"_mass.html,
 "min_modify"_min_modify.html, "min_style"_min_style.html,
 "neigh_modify"_neigh_modify.html, "neighbor"_neighbor.html,
 "reset_timestep"_reset_timestep.html, "run_style"_run_style.html,
@@ -367,7 +367,8 @@ in the command's documentation.
 "box"_box.html,
 "change_box"_change_box.html,
 "clear"_clear.html,
-"communicate"_communicate.html,
+"comm_modify"_comm_modify.html,
+"comm_style"_comm_style.html,
 "compute"_compute.html,
 "compute_modify"_compute_modify.html,
 "create_atoms"_create_atoms.html,

@@ -27,7 +27,12 @@
 For example, replication factors of 2,2,2 will create a simulation
 with 8x as many atoms by doubling the simulation domain in each
 dimension.  A replication factor of 1 in a dimension leaves the
-simulation domain unchanged.
+simulation domain unchanged.  When the new simulation box is created
+it is also partitioned into a regular 3d grid of rectangular bricks,
+one per processor, based on the number of processors being used and
+the settings of the <A HREF = "processors.html">processors</A> command.  The
+partitioning can later be changed by the <A HREF = "balance.html">balance</A> or
+<A HREF = "fix_balance.html">fix balance</A> commands.
 </P>
 <P>All properties of the atoms are replicated, including their
 velocities, which may or may not be desirable.  New atom IDs are

@@ -13,6 +13,9 @@ style_kspace.h
 style_minimize.h
 style_pair.h
 style_region.h
+# deleted on 13 May 14
+commgrid.cpp
+commgrid.h
 # deleted on 5 May 14
 reaxc_basic_comm.cpp
 reaxc_basic_comm.h

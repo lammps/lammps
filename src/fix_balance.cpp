@@ -102,7 +102,10 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   // create instance of Irregular class
 
   balance = new Balance(lmp);
+
   if (lbstyle == SHIFT) balance->shift_setup(bstr,nitermax,thresh);
+  if (lbstyle == RCB) error->all(FLERR,"Fix balance rcb is not yet supported");
+
   irregular = new Irregular(lmp);
 
   // output file

@@ -35,6 +35,7 @@
 #include "update.h"
 #include "neighbor.h"
 #include "comm.h"
+#include "comm_brick.h"
 #include "domain.h"
 #include "force.h"
 #include "modify.h"
@@ -558,7 +559,7 @@ void LAMMPS::create()
 
   if (cuda) comm = new CommCuda(this);
   else if (kokkos) comm = new CommKokkos(this);
-  else comm = new Comm(this);
+  else comm = new CommBrick(this);
 
   if (cuda) neighbor = new NeighborCuda(this);
   else if (kokkos) neighbor = new NeighborKokkos(this);

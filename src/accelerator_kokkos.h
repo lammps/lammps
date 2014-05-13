@@ -32,7 +32,7 @@
 // needed for compiling when KOKKOS is not installed
 
 #include "atom.h"
-#include "comm.h"
+#include "comm_brick.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "modify.h"
@@ -56,9 +56,9 @@ class AtomKokkos : public Atom {
   ~AtomKokkos() {}
 };
 
-class CommKokkos : public Comm {
+class CommKokkos : public CommBrick {
  public:
-  CommKokkos(class LAMMPS *lmp) : Comm(lmp) {}
+  CommKokkos(class LAMMPS *lmp) : CommBrick(lmp) {}
   ~CommKokkos() {}
 };
 

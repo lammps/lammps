@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
-#include "commgrid.h"
+#include "gridcomm.h"
 #include "comm.h"
 #include "kspace.h"
 #include "memory.h"
@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-CommGrid::CommGrid(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
+GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
                    int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
                    int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
                    int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi) 
@@ -71,10 +71,11 @@ CommGrid::CommGrid(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
 
 /* ---------------------------------------------------------------------- */
 
-CommGrid::CommGrid(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
+GridComm::GridComm(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
                    int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
                    int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
-                   int oxlo_max, int oxhi_max, int oylo_max, int oyhi_max, int ozlo_max, int ozhi_max,
+                   int oxlo_max, int oxhi_max, int oylo_max, int oyhi_max, 
+                   int ozlo_max, int ozhi_max,
                    int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi) 
   : Pointers(lmp)
 {
@@ -119,7 +120,7 @@ CommGrid::CommGrid(LAMMPS *lmp, MPI_Comm gcomm, int forward, int reverse,
 
 /* ---------------------------------------------------------------------- */
 
-CommGrid::~CommGrid()
+GridComm::~GridComm()
 {
   for (int i = 0; i < nswap; i++) {
     memory->destroy(swap[i].packlist);
@@ -140,7 +141,7 @@ CommGrid::~CommGrid()
    if no neighbor proc, value is from self
 ------------------------------------------------------------------------- */
 
-void CommGrid::ghost_notify()
+void GridComm::ghost_notify()
 {
   int nplanes = inxlo - outxlo;
   if (procxlo != me)
@@ -184,7 +185,7 @@ void CommGrid::ghost_notify()
    if yes, return 1, else return 0
 ------------------------------------------------------------------------- */
 
-int CommGrid::ghost_overlap()
+int GridComm::ghost_overlap()
 {
   int nearest = 0;
   if (ghostxlo > inxhi-inxlo+1) nearest = 1;
@@ -208,7 +209,7 @@ int CommGrid::ghost_overlap()
    same swap list used by forward and reverse communication
 ------------------------------------------------------------------------- */
 
-void CommGrid::setup()
+void GridComm::setup()
 {
   int nsent,sendfirst,sendlast,recvfirst,recvlast;
   int sendplanes,recvplanes;
@@ -486,7 +487,7 @@ void CommGrid::setup()
    use swap list in forward order to acquire copy of all needed ghost grid pts
 ------------------------------------------------------------------------- */
 
-void CommGrid::forward_comm(KSpace *kspace, int which)
+void GridComm::forward_comm(KSpace *kspace, int which)
 {
   for (int m = 0; m < nswap; m++) {
     if (swap[m].sendproc == me) 
@@ -511,7 +512,7 @@ void CommGrid::forward_comm(KSpace *kspace, int which)
    for each owned grid pt that some other proc has copy of as a ghost grid pt
 ------------------------------------------------------------------------- */
 
-void CommGrid::reverse_comm(KSpace *kspace, int which)
+void GridComm::reverse_comm(KSpace *kspace, int which)
 {
   for (int m = nswap-1; m >= 0; m--) {
     if (swap[m].recvproc == me) 
@@ -537,7 +538,7 @@ void CommGrid::reverse_comm(KSpace *kspace, int which)
      outzlo_max:outzhi_max)
 ------------------------------------------------------------------------- */
 
-int CommGrid::indices(int *&list, 
+int GridComm::indices(int *&list, 
                        int xlo, int xhi, int ylo, int yhi, int zlo, int zhi)
 {
   int nmax = (xhi-xlo+1) * (yhi-ylo+1) * (zhi-zlo+1);
@@ -560,7 +561,7 @@ int CommGrid::indices(int *&list,
    memory usage of send/recv bufs
 ------------------------------------------------------------------------- */
 
-double CommGrid::memory_usage()
+double GridComm::memory_usage()
 {
   double bytes = 2*nbuf * sizeof(double);
   return bytes;

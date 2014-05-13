@@ -31,7 +31,7 @@
 // dummy interface to USER-CUDA
 // needed for compiling when USER-CUDA is not installed
 
-#include "comm.h"
+#include "comm_brick.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "modify.h"
@@ -52,9 +52,9 @@ class Cuda {
   void uploadAll() {}
 };
 
-class CommCuda : public Comm {
+class CommCuda : public CommBrick {
  public:
- CommCuda(class LAMMPS *lmp) : Comm(lmp) {}
+ CommCuda(class LAMMPS *lmp) : CommBrick(lmp) {}
   ~CommCuda() {}
 };
 

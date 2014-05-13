@@ -30,22 +30,24 @@ class Balance : protected Pointers {
   Balance(class LAMMPS *);
   ~Balance();
   void command(int, char **);
-  void dynamic_setup(char *, int, double);
-  int dynamic();
+  void shift_setup(char *, int, double);
+  int shift();
   double imbalance_nlocal(int &);
   void dumpout(bigint, FILE *);
 
  private:
   int me,nprocs;
 
+  double thresh;                                    // threshhold to perform LB
+  int style;                                        // style of LB
   int xflag,yflag,zflag;                            // xyz LB flags
   double *user_xsplit,*user_ysplit,*user_zsplit;    // params for xyz LB
 
-  int dflag;                 // dynamic LB flag
-  int nitermax;              // params for dynamic LB
-  double thresh;
+  int nitermax;              // params for shift LB
+  double stopthresh;
   char bstr[4];
 
+  int shift_allocate;        // 1 if SHIFT vectors have been allocated
   int ndim;                  // length of balance string bstr
   int *bdim;                 // XYZ for each character in bstr
   bigint *count;             // counts for slices in one dim

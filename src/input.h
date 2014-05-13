@@ -83,7 +83,8 @@ class Input : protected Pointers {
   void bond_style();
   void boundary();
   void box();
-  void communicate();
+  void comm_modify();
+  void comm_style();
   void compute();
   void compute_modify();
   void dielectric();

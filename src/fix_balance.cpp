@@ -27,12 +27,14 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+enum{SHIFT,RCB};
+
 /* ---------------------------------------------------------------------- */
 
 FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 7) error->all(FLERR,"Illegal fix balance command");
+  if (narg < 6) error->all(FLERR,"Illegal fix balance command");
 
   box_change_domain = 1;
   scalar_flag = 1;
@@ -47,23 +49,24 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   int dimension = domain->dimension;
 
   nevery = force->inumeric(FLERR,arg[3]);
-  if (strlen(arg[4]) > 3) error->all(FLERR,"Illegal fix balance command");
-  strcpy(bstr,arg[4]);
-  nitermax = force->inumeric(FLERR,arg[5]);
-  thresh = force->numeric(FLERR,arg[6]);
+  if (nevery < 0) error->all(FLERR,"Illegal fix balance command");
+  thresh = force->numeric(FLERR,arg[4]);
 
-  if (nevery < 0 || nitermax <= 0 || thresh < 1.0)
-    error->all(FLERR,"Illegal fix balance command");
+  if (strcmp(arg[5],"shift") == 0) lbstyle = SHIFT;
+  else if (strcmp(arg[5],"rcb") == 0) lbstyle = RCB;
+  else error->all(FLERR,"Illegal fix balance command");
 
-  int blen = strlen(bstr);
-  for (int i = 0; i < blen; i++) {
-    if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
-      error->all(FLERR,"Fix balance string is invalid");
-    if (bstr[i] == 'z' && dimension == 2)
-      error->all(FLERR,"Fix balance string is invalid for 2d simulation");
-    for (int j = i+1; j < blen; j++)
-      if (bstr[i] == bstr[j])
-        error->all(FLERR,"Fix balance string is invalid");
+  int iarg = 5;
+  if (lbstyle == SHIFT) {
+    if (iarg+4 > narg) error->all(FLERR,"Illegal fix balance command");
+    strcpy(bstr,arg[iarg+1]);
+    nitermax = force->inumeric(FLERR,arg[iarg+2]);
+    if (nitermax <= 0) error->all(FLERR,"Illegal fix balance command");
+    stopthresh = force->numeric(FLERR,arg[iarg+3]);
+    if (stopthresh < 1.0) error->all(FLERR,"Illegal fix balance command");
+    iarg += 4;
+  } else if (lbstyle == RCB) {
+    iarg++;
   }
 
   // optional args
@@ -71,7 +74,6 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   int outarg = 0;
   fp = NULL;
 
-  int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"out") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix balance command");
@@ -80,11 +82,27 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix balance command");
   }
 
+  // error check
+
+  if (lbstyle == SHIFT) {
+    int blen = strlen(bstr);
+    for (int i = 0; i < blen; i++) {
+      if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
+        error->all(FLERR,"Fix balance shift string is invalid");
+      if (bstr[i] == 'z' && dimension == 2)
+        error->all(FLERR,"Fix balance shift string is invalid");
+      for (int j = i+1; j < blen; j++)
+        if (bstr[i] == bstr[j])
+          error->all(FLERR,"Fix balance shift string is invalid");
+    }
+  }
+
   // create instance of Balance class and initialize it with params
+  // NOTE: do I need Balance instance if RCB?
   // create instance of Irregular class
 
   balance = new Balance(lmp);
-  balance->dynamic_setup(bstr,nitermax,thresh);
+  if (lbstyle == SHIFT) balance->shift_setup(bstr,nitermax,thresh);
   irregular = new Irregular(lmp);
 
   // output file
@@ -216,13 +234,18 @@ void FixBalance::pre_neighbor()
 void FixBalance::rebalance()
 {
   imbprev = imbnow;
-  itercount = balance->dynamic();
+
+  if (lbstyle == SHIFT) {
+    itercount = balance->shift();
+  } else if (lbstyle == RCB) {
+  }
 
   // output of final result
 
   if (fp) balance->dumpout(update->ntimestep,fp);
 
   // reset comm->uniform flag
+  // NOTE: this needs to change with RCB
 
   comm->uniform = 0;
 

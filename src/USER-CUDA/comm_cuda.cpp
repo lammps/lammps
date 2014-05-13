@@ -56,7 +56,7 @@ enum{SINGLE,MULTI};
    setup MPI and allocate buffer space
 ------------------------------------------------------------------------- */
 
-CommCuda::CommCuda(LAMMPS *lmp):Comm(lmp)
+CommCuda::CommCuda(LAMMPS *lmp) : CommBrick(lmp)
 {
   cuda = lmp->cuda;
    if(cuda == NULL)

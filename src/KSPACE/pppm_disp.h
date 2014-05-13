@@ -187,10 +187,10 @@ Variables needed for calculating the 1/r and 1/r^6 potential
   class FFT3d *fft1_6, *fft2_6;
   class Remap *remap;
   class Remap *remap_6;
-  class CommGrid *cg;
-  class CommGrid *cg_peratom;
-  class CommGrid *cg_6;
-  class CommGrid *cg_peratom_6;
+  class GridComm *cg;
+  class GridComm *cg_peratom;
+  class GridComm *cg_6;
+  class GridComm *cg_peratom_6;
 
   int **part2grid;             // storage for particle -> grid mapping
   int **part2grid_6;

@@ -36,6 +36,8 @@ fix 2 all balance 1000 1.1 rcb :pre
 
 [Description:]
 
+IMPORTANT NOTE: The {rcb} style is not yet implemented.
+
 This command adjusts the size and shape of processor sub-domains
 within the simulation box, to attempt to balance the number of
 particles and thus the computational cost (load) evenly across

@@ -79,8 +79,8 @@ void Comm::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
-      if (strcmp(arg[0],"single") == 0) mode = SINGLE;
-      else if (strcmp(arg[0],"multi") == 0) mode = MULTI;
+      if (strcmp(arg[iarg+1],"single") == 0) mode = SINGLE;
+      else if (strcmp(arg[iarg+1],"multi") == 0) mode = MULTI;
       else error->all(FLERR,"Illegal comm_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"group") == 0) {

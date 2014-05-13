@@ -56,7 +56,7 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_bond_swap);
 
-  if (narg != 6) error->all(FLERR,"Illegal fix bond/swap command");
+  if (narg != 7) error->all(FLERR,"Illegal fix bond/swap command");
 
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix bond/swap command");

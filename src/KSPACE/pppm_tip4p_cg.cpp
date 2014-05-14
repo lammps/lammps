@@ -23,7 +23,7 @@
 #include "neighbor.h"
 #include "memory.h"
 #include "error.h"
-#include "commgrid.h"
+#include "gridcomm.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;

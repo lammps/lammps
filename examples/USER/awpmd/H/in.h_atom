@@ -22,7 +22,7 @@ timestep        0.001
 
 fix             1 all nve/awpmd
 
-communicate	    single vel yes
+comm_modify	vel yes
 
 compute         energies all pair awpmd/cut
 variable        eke equal c_energies[1]

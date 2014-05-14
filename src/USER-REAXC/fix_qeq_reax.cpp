@@ -148,6 +148,7 @@ int FixQEqReax::setmask()
 {
   int mask = 0;
   mask |= PRE_FORCE;
+  mask |= PRE_FORCE_RESPA;
   mask |= MIN_PRE_FORCE;
   return mask;
 }

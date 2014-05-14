@@ -26,7 +26,7 @@
 #include "math_const.h"
 #include "atom.h"
 #include "comm.h"
-#include "commgrid.h"
+#include "gridcomm.h"
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"
@@ -348,7 +348,7 @@ void PPPMDisp::init()
 
   int iteration = 0;
   if (function[0]) {
-    CommGrid *cgtmp = NULL;
+    GridComm *cgtmp = NULL;
     while (order >= minorder) {
 
       if (iteration && me == 0)
@@ -376,7 +376,7 @@ void PPPMDisp::init()
 
       if (overlap_allowed) break;
 
-      cgtmp = new CommGrid(lmp, world,1,1,
+      cgtmp = new GridComm(lmp, world,1,1,
                            nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                            nxlo_out,nxhi_out,nylo_out,nyhi_out,
                            nzlo_out,nzhi_out,
@@ -445,7 +445,7 @@ void PPPMDisp::init()
 
   iteration = 0;
   if (function[1] + function[2] + function[3]) {
-    CommGrid *cgtmp = NULL;
+    GridComm *cgtmp = NULL;
     while (order_6 >= minorder) {
 
       if (iteration && me == 0)
@@ -471,7 +471,7 @@ void PPPMDisp::init()
 
       if (overlap_allowed) break;
 
-      cgtmp = new CommGrid(lmp,world,1,1,
+      cgtmp = new GridComm(lmp,world,1,1,
                            nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,
                            nzlo_in_6,nzhi_in_6,
                            nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,
@@ -1654,13 +1654,13 @@ void PPPMDisp::allocate()
   // create ghost grid object for rho and electric field communication
 
   if (differentiation_flag == 1)
-    cg = new CommGrid(lmp,world,1,1,
+    cg = new GridComm(lmp,world,1,1,
                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                       nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
                       procneigh[0][0],procneigh[0][1],procneigh[1][0],
                       procneigh[1][1],procneigh[2][0],procneigh[2][1]);
   else
-    cg = new CommGrid(lmp,world,3,1,
+    cg = new GridComm(lmp,world,3,1,
                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                       nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
                       procneigh[0][0],procneigh[0][1],procneigh[1][0],
@@ -1733,13 +1733,13 @@ void PPPMDisp::allocate()
     // create ghost grid object for rho and electric field communication
 
     if (differentiation_flag == 1)
-      cg_6 = new CommGrid(lmp,world,1,1,
+      cg_6 = new GridComm(lmp,world,1,1,
                         nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                         nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
                         procneigh[0][0],procneigh[0][1],procneigh[1][0],
                         procneigh[1][1],procneigh[2][0],procneigh[2][1]);
     else
-      cg_6 = new CommGrid(lmp,world,3,1,
+      cg_6 = new GridComm(lmp,world,3,1,
                         nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                         nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
                         procneigh[0][0],procneigh[0][1],procneigh[1][0],
@@ -1890,13 +1890,13 @@ void PPPMDisp::allocate()
 
 
     if (differentiation_flag == 1)
-      cg_6 = new CommGrid(lmp,world,7,7,
+      cg_6 = new GridComm(lmp,world,7,7,
                         nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                         nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
                         procneigh[0][0],procneigh[0][1],procneigh[1][0],
                         procneigh[1][1],procneigh[2][0],procneigh[2][1]);
     else
-      cg_6 = new CommGrid(lmp,world,21,7,
+      cg_6 = new GridComm(lmp,world,21,7,
                         nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                         nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
                         procneigh[0][0],procneigh[0][1],procneigh[1][0],
@@ -1969,13 +1969,13 @@ void PPPMDisp::allocate()
     // create ghost grid object for rho and electric field communication
 
     if (differentiation_flag == 1)
-      cg_6 = new CommGrid(lmp,world,nsplit_alloc,nsplit_alloc,
+      cg_6 = new GridComm(lmp,world,nsplit_alloc,nsplit_alloc,
                         nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                         nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
                         procneigh[0][0],procneigh[0][1],procneigh[1][0],
                         procneigh[1][1],procneigh[2][0],procneigh[2][1]);
     else
-      cg_6 = new CommGrid(lmp,world,3*nsplit_alloc,nsplit_alloc,
+      cg_6 = new GridComm(lmp,world,3*nsplit_alloc,nsplit_alloc,
                         nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                         nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
                         procneigh[0][0],procneigh[0][1],procneigh[1][0],
@@ -2017,14 +2017,14 @@ void PPPMDisp::allocate_peratom()
 
     if (differentiation_flag == 1)
       cg_peratom =
-        new CommGrid(lmp,world,6,1,
+        new GridComm(lmp,world,6,1,
                      nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                      nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
                      procneigh[1][1],procneigh[2][0],procneigh[2][1]);
     else
       cg_peratom =
-        new CommGrid(lmp,world,7,1,
+        new GridComm(lmp,world,7,1,
                      nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                      nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
@@ -2056,14 +2056,14 @@ void PPPMDisp::allocate_peratom()
 
     if (differentiation_flag == 1)
       cg_peratom_6 =
-        new CommGrid(lmp,world,6,1,
+        new GridComm(lmp,world,6,1,
                      nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                      nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
                      procneigh[1][1],procneigh[2][0],procneigh[2][1]);
     else
       cg_peratom_6 =
-        new CommGrid(lmp,world,7,1,
+        new GridComm(lmp,world,7,1,
                      nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                      nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
@@ -2185,14 +2185,14 @@ void PPPMDisp::allocate_peratom()
 
     if (differentiation_flag == 1)
       cg_peratom_6 =
-        new CommGrid(lmp,world,42,1,
+        new GridComm(lmp,world,42,1,
                      nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                      nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
                      procneigh[1][1],procneigh[2][0],procneigh[2][1]);
     else
       cg_peratom_6 =
-        new CommGrid(lmp,world,49,1,
+        new GridComm(lmp,world,49,1,
                      nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                      nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
@@ -2223,14 +2223,14 @@ void PPPMDisp::allocate_peratom()
 
     if (differentiation_flag == 1)
       cg_peratom_6 =
-        new CommGrid(lmp,world,6*nsplit_alloc,1,
+        new GridComm(lmp,world,6*nsplit_alloc,1,
                      nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                      nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
                      procneigh[1][1],procneigh[2][0],procneigh[2][1]);
     else
       cg_peratom_6 =
-        new CommGrid(lmp,world,7*nsplit_alloc,1,
+        new GridComm(lmp,world,7*nsplit_alloc,1,
                      nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                      nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6,
                      procneigh[0][0],procneigh[0][1],procneigh[1][0],

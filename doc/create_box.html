@@ -44,7 +44,12 @@ create_box 2 mybox bond/types 2 extra/bond/per/atom 1
 </P>
 <P>This command creates a simulation box based on the specified region.
 Thus a <A HREF = "region.html">region</A> command must first be used to define a
-geometric domain.
+geometric domain.  It also partitions the simulation box into a
+regular 3d grid of rectangular bricks, one per processor, based on the
+number of processors being used and the settings of the
+<A HREF = "processors.html">processors</A> command.  The partitioning can later be
+changed by the <A HREF = "balance.html">balance</A> or <A HREF = "fix_balance.html">fix
+balance</A> commands.
 </P>
 <P>The argument N is the number of atom types that will be used in the
 simulation.
@@ -94,13 +99,14 @@ you should not make the lo/hi box dimensions (as defined in your
 of the atoms you eventually plan to create, e.g. via the
 <A HREF = "create_atoms.html">create_atoms</A> command.  For example, if your atoms
 extend from 0 to 50, you should not specify the box bounds as -10000
-and 10000. This is because LAMMPS uses the specified box size to
-layout the 3d grid of processors.  A huge (mostly empty) box will be
-sub-optimal for performance when using "fixed" boundary conditions
-(see the <A HREF = "boundary.html">boundary</A> command).  When using "shrink-wrap"
-boundary conditions (see the <A HREF = "boundary.html">boundary</A> command), a huge
-(mostly empty) box may cause a parallel simulation to lose atoms the
-first time that LAMMPS shrink-wraps the box around the atoms.
+and 10000. This is because as described above, LAMMPS uses the
+specified box size to layout the 3d grid of processors.  A huge
+(mostly empty) box will be sub-optimal for performance when using
+"fixed" boundary conditions (see the <A HREF = "boundary.html">boundary</A>
+command).  When using "shrink-wrap" boundary conditions (see the
+<A HREF = "boundary.html">boundary</A> command), a huge (mostly empty) box may cause
+a parallel simulation to lose atoms the first time that LAMMPS
+shrink-wraps the box around the atoms.
 </P>
 <HR>
 

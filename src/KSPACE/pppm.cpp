@@ -27,7 +27,7 @@
 #include "pppm.h"
 #include "atom.h"
 #include "comm.h"
-#include "commgrid.h"
+#include "gridcomm.h"
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"
@@ -272,7 +272,7 @@ void PPPM::init()
 
   int (*procneigh)[2] = comm->procneigh;
 
-  CommGrid *cgtmp = NULL;
+  GridComm *cgtmp = NULL;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -285,7 +285,7 @@ void PPPM::init()
     set_grid_local();
     if (overlap_allowed) break;
 
-    cgtmp = new CommGrid(lmp,world,1,1,
+    cgtmp = new GridComm(lmp,world,1,1,
                          nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                          nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
                          procneigh[0][0],procneigh[0][1],procneigh[1][0],
@@ -805,13 +805,13 @@ void PPPM::allocate()
   int (*procneigh)[2] = comm->procneigh;
 
   if (differentiation_flag == 1)
-    cg = new CommGrid(lmp,world,1,1,
+    cg = new GridComm(lmp,world,1,1,
                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                       nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
                       procneigh[0][0],procneigh[0][1],procneigh[1][0],
                       procneigh[1][1],procneigh[2][0],procneigh[2][1]);
   else
-    cg = new CommGrid(lmp,world,3,1,
+    cg = new GridComm(lmp,world,3,1,
                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                       nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
                       procneigh[0][0],procneigh[0][1],procneigh[1][0],
@@ -901,14 +901,14 @@ void PPPM::allocate_peratom()
 
   if (differentiation_flag == 1)
     cg_peratom =
-      new CommGrid(lmp,world,6,1,
+      new GridComm(lmp,world,6,1,
                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                    nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
                    procneigh[0][0],procneigh[0][1],procneigh[1][0],
                    procneigh[1][1],procneigh[2][0],procneigh[2][1]);
   else
     cg_peratom =
-      new CommGrid(lmp,world,7,1,
+      new GridComm(lmp,world,7,1,
                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                    nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
                    procneigh[0][0],procneigh[0][1],procneigh[1][0],

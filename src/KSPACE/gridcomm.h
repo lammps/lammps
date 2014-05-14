@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_COMMGRID_H
-#define LMP_COMMGRID_H
+#ifndef LMP_GRIDCOMM_H
+#define LMP_GRIDCOMM_H
 
 #include "pointers.h"
 
@@ -26,18 +26,18 @@ typedef double FFT_SCALAR;
 
 namespace LAMMPS_NS {
 
-class CommGrid : protected Pointers {
+class GridComm : protected Pointers {
  public:
-  CommGrid(class LAMMPS *, MPI_Comm, int, int,
+  GridComm(class LAMMPS *, MPI_Comm, int, int,
            int, int, int, int, int, int,
            int, int, int, int, int, int,
            int, int, int, int, int, int);
-  CommGrid(class LAMMPS *, MPI_Comm, int, int,
+  GridComm(class LAMMPS *, MPI_Comm, int, int,
            int, int, int, int, int, int,
            int, int, int, int, int, int,
            int, int, int, int, int, int,
            int, int, int, int, int, int);
-  ~CommGrid();
+  ~GridComm();
   void ghost_notify();
   int ghost_overlap();
   void setup();

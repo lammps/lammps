@@ -159,7 +159,7 @@ int Allocate_Tokenizer_Space( char **line, char **backup, char ***tokens )
 int Tokenize( char* s, char*** tok )
 {
   char test[MAX_LINE];
-  const char *sep = (const char *)"\t \n!=";
+  const char *sep = (const char *)"\t \n\r\f!=";
   char *word;
   int count=0;
 

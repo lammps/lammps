@@ -1,0 +1,65 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+comm_style command :h3
+
+[Syntax:]
+
+comm_style style :pre
+
+style = {brick} or {tiled} :ul
+
+[Examples:]
+
+comm_style brick
+comm_style tiled :pre
+
+[Description:]
+
+This command sets the style of inter-processor communication of atom
+information that occurs each timestep as coordinates and other
+properties are exchanged between neighboring processors and stored as
+properties of ghost atoms.
+
+IMPORTANT NOTE: The {tiled} style is not yet implemented.
+
+For the default {brick} style, the domain decomposition used by LAMMPS
+to partition the simulation box must be a regular 3d grid of bricks,
+one per processor.  Each processor communicates with its 6 Cartesian
+neighbors in the grid to acquire information for nearby atoms.
+
+For the {tiled} style, a more general domain decomposition can be
+used, as triggered by the "balance"_balance.html or "fix
+balance"_fix_balance.html commands.  The simulation box can be
+partitioned into non-overlapping rectangular-shaped "tiles" or varying
+sizes and shapes.  Again there is one tile per processor.  To acquire
+information for nearby atoms, communication must now be done with a
+more complex pattern of neighboring processors.
+
+Note that this command does not actually define a partitoining of the
+simulation box (a domain decomposition), rather it determines what
+kinds of decompositions are allowed and the pattern of communication
+used to enable the decomposition.  A decomposition is created when the
+simulation box is first created, via the "create_box"_create_box.html
+or "read_data"_read_data.html or "read_restart"_read_restart.html
+commands.  For both the {brick} and {tiled} styles, the initial
+decomposition will be the same, as described by
+"create_box"_create_box.html and "processors"_processors.html
+commands.  The decomposition can be changed via the
+"balance"_balance.html or "fix_balance"_fix_balance.html commands.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"comm_modify"_comm_modify.html, "processors"_processors.html,
+"balance"_balance.html, "fix balance"_fix_balance.html
+
+[Default:]
+
+The default style is brick.

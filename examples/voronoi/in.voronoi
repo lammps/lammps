@@ -27,7 +27,7 @@ neighbor	0.3 bin
 neigh_modify	delay 10
 
 # set the cut-off to 2.5x the cutoff from the potential
-communicate     single cutoff 5.0
+comm_modify     cutoff 5.0
 
 # atom radii per type
 variable r atom (type==1)*0.1+(type==2)*0.3

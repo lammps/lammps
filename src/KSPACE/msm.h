@@ -81,10 +81,10 @@ class MSM : public KSpace {
   int procgrid[3];                  // procs assigned in each dim of 3d grid
   int myloc[3];                     // which proc I am in each dim
   int ***procneigh_levels;          // my 6 neighboring procs, 0/1 = left/right
-  class CommGrid **cg;
-  class CommGrid **cg_peratom;
-  class CommGrid *cg_all;
-  class CommGrid *cg_peratom_all;
+  class GridComm **cg;
+  class GridComm **cg_peratom;
+  class GridComm *cg_all;
+  class GridComm *cg_peratom_all;
   
   int current_level;
 

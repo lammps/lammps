@@ -30,7 +30,8 @@
 
 using namespace LAMMPS_NS;
 
-enum{NONE,UNIFORM,USER,DYNAMIC};
+enum{XYZ,SHIFT,RCB};
+enum{NONE,UNIFORM,USER};
 enum{X,Y,Z};
 
 /* ---------------------------------------------------------------------- */
@@ -44,7 +45,7 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
   memory->create(allproccount,nprocs,"balance:allproccount");
 
   user_xsplit = user_ysplit = user_zsplit = NULL;
-  dflag = 0;
+  shift_allocate = 0;
 
   fp = NULL;
   firststep = 1;
@@ -61,7 +62,7 @@ Balance::~Balance()
   delete [] user_ysplit;
   delete [] user_zsplit;
 
-  if (dflag) {
+  if (shift_allocate) {
     delete [] bdim;
     delete [] count;
     delete [] sum;
@@ -89,18 +90,21 @@ void Balance::command(int narg, char **arg)
 
   // parse arguments
 
-  if (narg < 1) error->all(FLERR,"Illegal balance command");
+  if (narg < 2) error->all(FLERR,"Illegal balance command");
+
+  thresh = force->numeric(FLERR,arg[0]);
 
   int dimension = domain->dimension;
   int *procgrid = comm->procgrid;
+  style = -1;
   xflag = yflag = zflag = NONE;
-  dflag = 0;
-  outflag = 0;
 
-  int iarg = 0;
+  int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"x") == 0) {
-      if (xflag == DYNAMIC) error->all(FLERR,"Illegal balance command");
+      if (style != -1 && style != XYZ) 
+        error->all(FLERR,"Illegal balance command");
+      style = XYZ;
       if (strcmp(arg[iarg+1],"uniform") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
         xflag = UNIFORM;
@@ -118,7 +122,9 @@ void Balance::command(int narg, char **arg)
         user_xsplit[procgrid[0]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"y") == 0) {
-      if (yflag == DYNAMIC) error->all(FLERR,"Illegal balance command");
+      if (style != -1 && style != XYZ) 
+        error->all(FLERR,"Illegal balance command");
+      style = XYZ;
       if (strcmp(arg[iarg+1],"uniform") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
         yflag = UNIFORM;
@@ -136,7 +142,9 @@ void Balance::command(int narg, char **arg)
         user_ysplit[procgrid[1]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"z") == 0) {
-      if (zflag == DYNAMIC) error->all(FLERR,"Illegal balance command");
+      if (style != -1 && style != XYZ) 
+        error->all(FLERR,"Illegal balance command");
+      style = XYZ;
       if (strcmp(arg[iarg+1],"uniform") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
         zflag = UNIFORM;
@@ -154,22 +162,32 @@ void Balance::command(int narg, char **arg)
         user_zsplit[procgrid[2]] = 1.0;
       }
 
-    } else if (strcmp(arg[iarg],"dynamic") == 0) {
-      if (xflag != NONE || yflag != NONE || zflag != NONE)
-        error->all(FLERR,"Illegal balance command");
+    } else if (strcmp(arg[iarg],"shift") == 0) {
+      if (style != -1) error->all(FLERR,"Illegal balance command");
       if (iarg+4 > narg) error->all(FLERR,"Illegal balance command");
-      dflag = 1;
-      xflag = yflag = DYNAMIC;
-      if (dimension == 3) zflag = DYNAMIC;
+      style = SHIFT;
       if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal balance command");
       strcpy(bstr,arg[iarg+1]);
       nitermax = force->inumeric(FLERR,arg[iarg+2]);
       if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
-      thresh = force->numeric(FLERR,arg[iarg+3]);
-      if (thresh < 1.0) error->all(FLERR,"Illegal balance command");
+      stopthresh = force->numeric(FLERR,arg[iarg+3]);
+      if (stopthresh < 1.0) error->all(FLERR,"Illegal balance command");
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"out") == 0) {
+    } else if (strcmp(arg[iarg],"rcb") == 0) {
+      if (style != -1) error->all(FLERR,"Illegal balance command");
+      style = RCB;
+      iarg++;
+
+    } else break;
+  }
+
+  // optional keywords
+
+  outflag = 0;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"out") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
       if (outflag) error->all(FLERR,"Illegal balance command");
       outflag = 1;
@@ -183,50 +201,58 @@ void Balance::command(int narg, char **arg)
 
   // error check
 
-  if (zflag && dimension == 2)
-    error->all(FLERR,"Cannot balance in z dimension for 2d simulation");
+  if (style == XYZ) {
+    if (zflag != NONE  && dimension == 2)
+      error->all(FLERR,"Cannot balance in z dimension for 2d simulation");
 
-  if (xflag == USER)
-    for (int i = 1; i <= procgrid[0]; i++)
-      if (user_xsplit[i-1] >= user_xsplit[i])
-        error->all(FLERR,"Illegal balance command");
-  if (yflag == USER)
-    for (int i = 1; i <= procgrid[1]; i++)
-      if (user_ysplit[i-1] >= user_ysplit[i])
-        error->all(FLERR,"Illegal balance command");
-  if (zflag == USER)
-    for (int i = 1; i <= procgrid[2]; i++)
-      if (user_zsplit[i-1] >= user_zsplit[i])
-        error->all(FLERR,"Illegal balance command");
+    if (xflag == USER)
+      for (int i = 1; i <= procgrid[0]; i++)
+        if (user_xsplit[i-1] >= user_xsplit[i])
+          error->all(FLERR,"Illegal balance command");
+    if (yflag == USER)
+      for (int i = 1; i <= procgrid[1]; i++)
+        if (user_ysplit[i-1] >= user_ysplit[i])
+          error->all(FLERR,"Illegal balance command");
+    if (zflag == USER)
+      for (int i = 1; i <= procgrid[2]; i++)
+        if (user_zsplit[i-1] >= user_zsplit[i])
+          error->all(FLERR,"Illegal balance command");
+  }
 
-  if (dflag) {
+  if (style == SHIFT) {
     const int blen=strlen(bstr);
     for (int i = 0; i < blen; i++) {
       if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
-        error->all(FLERR,"Balance dynamic string is invalid");
+        error->all(FLERR,"Balance shift string is invalid");
       if (bstr[i] == 'z' && dimension == 2)
-        error->all(FLERR,"Balance dynamic string is invalid");
+        error->all(FLERR,"Balance shift string is invalid");
       for (int j = i+1; j < blen; j++)
         if (bstr[i] == bstr[j])
-          error->all(FLERR,"Balance dynamic string is invalid");
+          error->all(FLERR,"Balance shift string is invalid");
     }
   }
 
   // insure atoms are in current box & update box via shrink-wrap
-  // no exchange() since doesn't matter if atoms are assigned to correct procs
+  // init entire system since comm->setup is done
+  // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
+
+  lmp->init();
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
+  comm->setup();
+  comm->exchange();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // imbinit = initial imbalance
-  // use current splits instead of nlocal since atoms may not be in sub-box
 
-  domain->x2lamda(atom->nlocal);
   int maxinit;
-  double imbinit = imbalance_splits(maxinit);
-  domain->lamda2x(atom->nlocal);
+  double imbinit = imbalance_nlocal(maxinit);
+
+  // no load-balance if imbalance doesn't exceed threshhold
+
+  if (imbinit < thresh) return;
 
   // debug output of initial state
 
@@ -236,40 +262,55 @@ void Balance::command(int narg, char **arg)
 
   int niter = 0;
 
-  // explicit setting of sub-domain sizes
+  // NOTE: if using XYZ or SHIFT and current partition is TILING,
+  //   then need to create initial BRICK partition before performing LB
 
-  if (xflag == UNIFORM) {
-    for (int i = 0; i < procgrid[0]; i++)
-      comm->xsplit[i] = i * 1.0/procgrid[0];
-    comm->xsplit[procgrid[0]] = 1.0;
+  // perform load-balance
+  // style XYZ = explicit setting of cutting planes of logical 3d grid
+
+  if (style == XYZ) {
+    if (xflag == UNIFORM) {
+      for (int i = 0; i < procgrid[0]; i++)
+        comm->xsplit[i] = i * 1.0/procgrid[0];
+      comm->xsplit[procgrid[0]] = 1.0;
+    }
+
+    if (yflag == UNIFORM) {
+      for (int i = 0; i < procgrid[1]; i++)
+        comm->ysplit[i] = i * 1.0/procgrid[1];
+      comm->ysplit[procgrid[1]] = 1.0;
+    }
+
+    if (zflag == UNIFORM) {
+      for (int i = 0; i < procgrid[2]; i++)
+        comm->zsplit[i] = i * 1.0/procgrid[2];
+      comm->zsplit[procgrid[2]] = 1.0;
+    }
+
+    if (xflag == USER)
+      for (int i = 0; i <= procgrid[0]; i++) comm->xsplit[i] = user_xsplit[i];
+
+    if (yflag == USER)
+      for (int i = 0; i <= procgrid[1]; i++) comm->ysplit[i] = user_ysplit[i];
+
+    if (zflag == USER)
+      for (int i = 0; i <= procgrid[2]; i++) comm->zsplit[i] = user_zsplit[i];
   }
 
-  if (yflag == UNIFORM) {
-    for (int i = 0; i < procgrid[1]; i++)
-      comm->ysplit[i] = i * 1.0/procgrid[1];
-    comm->ysplit[procgrid[1]] = 1.0;
-  }
+  // style SHIFT = adjust cutting planes of logical 3d grid
 
-  if (zflag == UNIFORM) {
-    for (int i = 0; i < procgrid[2]; i++)
-      comm->zsplit[i] = i * 1.0/procgrid[2];
-    comm->zsplit[procgrid[2]] = 1.0;
-  }
-
-  if (xflag == USER)
-    for (int i = 0; i <= procgrid[0]; i++) comm->xsplit[i] = user_xsplit[i];
-
-  if (yflag == USER)
-    for (int i = 0; i <= procgrid[1]; i++) comm->ysplit[i] = user_ysplit[i];
-
-  if (zflag == USER)
-    for (int i = 0; i <= procgrid[2]; i++) comm->zsplit[i] = user_zsplit[i];
-
-  // static load-balance of sub-domain sizes
-
-  if (dflag) {
+  if (style == SHIFT) {
     static_setup(bstr);
-    niter = dynamic();
+    niter = shift();
+  }
+
+  // style RCB = 
+
+  if (style == RCB) {
+    error->all(FLERR,"Balance rcb is not yet supported");
+
+    if (comm->style == 0) 
+      error->all(FLERR,"Cannot use balance rcb with comm_style brick");
   }
 
   // output of final result
@@ -279,15 +320,18 @@ void Balance::command(int narg, char **arg)
   // reset comm->uniform flag if necessary
 
   if (comm->uniform) {
-    if (xflag == USER || xflag == DYNAMIC) comm->uniform = 0;
-    if (yflag == USER || yflag == DYNAMIC) comm->uniform = 0;
-    if (zflag == USER || zflag == DYNAMIC) comm->uniform = 0;
+    if (style == SHIFT) comm->uniform = 0;
+    if (style == XYZ && xflag == USER) comm->uniform = 0;
+    if (style == XYZ && yflag == USER) comm->uniform = 0;
+    if (style == XYZ && zflag == USER) comm->uniform = 0;
   } else {
     if (dimension == 3) {
-      if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
+      if (style == XYZ && 
+          xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
         comm->uniform = 1;
     } else {
-      if (xflag == UNIFORM && yflag == UNIFORM) comm->uniform = 1;
+      if (style == XYZ && xflag == UNIFORM && yflag == UNIFORM)
+        comm->uniform = 1;
     }
   }
 
@@ -431,6 +475,8 @@ double Balance::imbalance_splits(int &max)
 
 void Balance::static_setup(char *str)
 {
+  shift_allocate = 1;
+
   ndim = strlen(str);
   bdim = new int[ndim];
 
@@ -456,17 +502,16 @@ void Balance::static_setup(char *str)
 }
 
 /* ----------------------------------------------------------------------
-   setup dynamic load balance operations
+   setup shift load balance operations
    called from fix balance
-   set rho = 1 for dynamic balancing after call to dynamic_setup()
+   set rho = 1 for shift balancing after call to shift_setup()
 ------------------------------------------------------------------------- */
 
-void Balance::dynamic_setup(char *str, int nitermax_in, double thresh_in)
+void Balance::shift_setup(char *str, int nitermax_in, double thresh_in)
 {
-  dflag = 1;
   static_setup(str);
   nitermax = nitermax_in;
-  thresh = thresh_in;
+  stopthresh = thresh_in;
 
   rho = 1;
 }
@@ -477,7 +522,7 @@ void Balance::dynamic_setup(char *str, int nitermax_in, double thresh_in)
    return niter = iteration count
 ------------------------------------------------------------------------- */
 
-int Balance::dynamic()
+int Balance::shift()
 {
   int i,j,k,m,np,max;
   double *split = NULL;
@@ -490,7 +535,7 @@ int Balance::dynamic()
   // set delta for 1d balancing = root of threshhold
   // root = # of dimensions being balanced on
 
-  double delta = pow(thresh,1.0/ndim) - 1.0;
+  double delta = pow(stopthresh,1.0/ndim) - 1.0;
   int *procgrid = comm->procgrid;
 
   // all balancing done in lamda coords
@@ -624,7 +669,7 @@ int Balance::dynamic()
     // this is a true 3d test of particle count per processor
 
     double imbfactor = imbalance_splits(max);
-    if (imbfactor <= thresh) break;
+    if (imbfactor <= stopthresh) break;
   }
 
   // restore real coords
@@ -867,6 +912,7 @@ void Balance::dumpout(bigint tstep, FILE *bfp)
    debug output for Idim and count
    only called by proc 0
 ------------------------------------------------------------------------- */
+
 #ifdef BALANCE_DEBUG
 void Balance::debug_output(int idim, int m, int np, double *split)
 {

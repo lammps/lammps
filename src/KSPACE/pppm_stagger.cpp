@@ -23,7 +23,7 @@
 #include "math.h"
 #include "pppm_stagger.h"
 #include "atom.h"
-#include "commgrid.h"
+#include "gridcomm.h"
 #include "force.h"
 #include "domain.h"
 #include "memory.h"

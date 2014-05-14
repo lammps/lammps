@@ -24,7 +24,7 @@
 #include "msm.h"
 #include "atom.h"
 #include "comm.h"
-#include "commgrid.h"
+#include "gridcomm.h"
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"
@@ -639,7 +639,7 @@ void MSM::allocate()
   int (*procneigh_all)[2] = comm->procneigh;
 
 
-  cg_all = new CommGrid(lmp,world,1,1,
+  cg_all = new GridComm(lmp,world,1,1,
                     nxlo_in[0],nxhi_in[0],nylo_in[0],nyhi_in[0],nzlo_in[0],nzhi_in[0],
                     nxlo_out_all,nxhi_out_all,nylo_out_all,nyhi_out_all,nzlo_out_all,nzhi_out_all,
                     nxlo_out[0],nxhi_out[0],nylo_out[0],nyhi_out[0],nzlo_out[0],nzhi_out[0],
@@ -659,7 +659,7 @@ void MSM::allocate()
 
     if (active_flag[n]) {
       int **procneigh = procneigh_levels[n];
-      cg[n] = new CommGrid(lmp,world_levels[n],1,1,
+      cg[n] = new GridComm(lmp,world_levels[n],1,1,
                         nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],nzlo_in[n],nzhi_in[n],
                         nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n],
                         procneigh[0][0],procneigh[0][1],procneigh[1][0],
@@ -708,7 +708,7 @@ void MSM::allocate_peratom()
   int (*procneigh_all)[2] = comm->procneigh;
 
   cg_peratom_all =
-    new CommGrid(lmp,world,6,6,
+    new GridComm(lmp,world,6,6,
                  nxlo_in[0],nxhi_in[0],nylo_in[0],nyhi_in[0],nzlo_in[0],nzhi_in[0],
                  nxlo_out_all,nxhi_out_all,nylo_out_all,nyhi_out_all,nzlo_out_all,nzhi_out_all,
                  nxlo_out[0],nxhi_out[0],nylo_out[0],nyhi_out[0],nzlo_out[0],nzhi_out[0],
@@ -736,7 +736,7 @@ void MSM::allocate_peratom()
     if (active_flag[n]) {
       int **procneigh = procneigh_levels[n];
       cg_peratom[n] =
-        new CommGrid(lmp,world_levels[n],6,6,
+        new GridComm(lmp,world_levels[n],6,6,
                      nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],nzlo_in[n],nzhi_in[n],
                      nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n],
                      procneigh[0][0],procneigh[0][1],procneigh[1][0],
@@ -782,8 +782,8 @@ void MSM::allocate_levels()
 {
   ngrid = new int[levels];
 
-  cg = new CommGrid*[levels];
-  cg_peratom = new CommGrid*[levels];
+  cg = new GridComm*[levels];
+  cg_peratom = new GridComm*[levels];
 
   memory->create(procneigh_levels,levels,3,2,"msm:procneigh_levels");
   world_levels = new MPI_Comm[levels];

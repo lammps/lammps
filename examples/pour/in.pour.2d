@@ -4,7 +4,7 @@ dimension	2
 atom_style	sphere
 boundary	f fm p
 newton		off
-communicate	single vel yes
+comm_modify	vel yes
 
 region		reg block 0 100 0 50 -0.5 0.5 units box
 create_box	1 reg

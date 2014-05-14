@@ -523,6 +523,10 @@ void Force::create_kspace(int narg, char **arg, const char *suffix)
     kspace_style = new char[n];
     strcpy(kspace_style,arg[0]);
   }
+
+  if (comm->style == 1 && !kspace_match("ewald",0))
+    error->all(FLERR,
+               "Cannot yet use KSpace solver with grid with comm style tiled");
 }
 
 /* ----------------------------------------------------------------------

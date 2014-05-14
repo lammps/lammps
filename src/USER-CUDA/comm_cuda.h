@@ -17,11 +17,11 @@
 #include "pointers.h"
 
 #include "cuda_data.h"
-#include "comm.h"
+#include "comm_brick.h"
 
 namespace LAMMPS_NS {
 
-class CommCuda : public Comm {
+class CommCuda : public CommBrick {
 public:
   CommCuda(class LAMMPS *);
   ~CommCuda();

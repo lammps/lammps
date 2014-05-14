@@ -40,9 +40,9 @@ class FixBalance : public Fix {
   double memory_usage();
 
  private:
-  int nevery,nitermax;
+  int nevery,lbstyle,nitermax;
+  double thresh,stopthresh;
   char bstr[3];
-  double thresh;
   FILE *fp;
 
   double imbnow;                // current imbalance factor

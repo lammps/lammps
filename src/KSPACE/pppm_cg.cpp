@@ -22,7 +22,7 @@
 #include "string.h"
 
 #include "atom.h"
-#include "commgrid.h"
+#include "gridcomm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"

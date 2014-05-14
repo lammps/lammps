@@ -27,7 +27,15 @@ read_restart poly.*.% :pre
 
 Read in a previously saved simulation from a restart file.  This
 allows continuation of a previous run.  Information about what is
-stored in a restart file is given below.
+stored in a restart file is given below.  Basically this operation
+will re-create the simulation box with all its atoms and their
+attributes, at the point in time it was written to the restart file by
+a previous simluation.  The simulation box will be partitioned into a
+regular 3d grid of rectangular bricks, one per processor, based on the
+number of processors in the current simulation and the settings of the
+"processors"_processors.html command.  The partitioning can later be
+changed by the "balance"_balance.html or "fix
+balance"_fix_balance.html commands.
 
 Restart files are saved in binary format to enable exact restarts,
 meaning that the trajectories of a restarted run will precisely match

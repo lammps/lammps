@@ -24,7 +24,7 @@
 #include "pppm_gpu.h"
 #include "atom.h"
 #include "comm.h"
-#include "commgrid.h"
+#include "gridcomm.h"
 #include "neighbor.h"
 #include "force.h"
 #include "pair.h"

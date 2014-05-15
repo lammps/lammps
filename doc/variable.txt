@@ -841,9 +841,9 @@ a variable command.  The input script parser evaluates the reference
 variable immediately and substitutes its value into the command.  As
 explained in "Section commands 3.2"_Section_commands.html#3_2 for
 "Parsing rules", you can also use un-named "immediate" variables for
-this purpose.  An variable reference such as
-$((xlo+xhi)/2+sqrt(v_area)) evaluates the string between the
-parenthesis as an equal-style variable.
+this purpose.  For example, a string like this
+$((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates the
+string between the parenthesis as an equal-style variable formula.
 
 Referencing a variable with a leading "v_" is an optional or required
 kind of argument for some commands (e.g. the "fix

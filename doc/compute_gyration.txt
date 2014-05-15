@@ -59,7 +59,8 @@ options.
 
 The scalar and vector values calculated by this compute are
 "intensive".  The scalar and vector values will be in distance
-"units"_units.html.
+"units"_units.html, since they are the square root of values
+represented by the formula above.
 
 [Restrictions:] none
 

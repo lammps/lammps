@@ -82,11 +82,12 @@ number of atoms in the system.  This is not done for molecular systems
 has already been assigned.
 
 It the {mol} keyword is set to {yes}, then for every atom that is
-deleted, all other atoms in the same molecule will also be deleted.
-This is a way to insure that entire molecules are deleted instead of
-only a subset of atoms in the molecule which will typically lead to
-errors because of bond, angle, or dihedral interactions stored by
-remaining atoms which reference deleted atoms.
+deleted, all other atoms in the same molecule (i.e. with the same
+molecule ID) will also be deleted.  This is a way to insure that
+entire molecules are deleted instead of only a subset of atoms in the
+molecule which will typically lead to errors because of bond, angle,
+or dihedral interactions stored by remaining atoms which reference
+deleted atoms.
 
 IMPORTANT NOTE: The molecule deletion operation in invoked after all
 individual atoms have been deleted using the rules described above for

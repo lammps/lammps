@@ -212,7 +212,7 @@ void ComputeGyrationMolecule::compute_array()
 
   for (i = 0; i < nmolecules; i++)
     for (j = 0; j < 6; j++)
-      array[i][j] /= masstotal[i];
+      array[i][j] = sqrt(array[i][j]/masstotal[i]);
 }
 
 

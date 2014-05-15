@@ -609,48 +609,51 @@ then be accessed by variables) was discussed
 
 10.15 Submitting new features for inclusion in LAMMPS :link(mod_15),h4
 
-We encourage users to submit new features that they add to LAMMPS to
-"the developers"_http://lammps.sandia.gov/authors.html, especially if
-you think the features will be of interest to other users.  If they
-are broadly useful we may add them as core files to LAMMPS or as part
-of a "standard package"_Section_start.html#start_3.  Else we will add
-them as a user-contributed package or file.  Examples of user packages
-are in src sub-directories that start with USER.  The USER-MISC
-package is simply a collection of (mostly) unrelated single files,
-which is the simplest way to have your contribution quickly added to
-the LAMMPS distribution.  You can see a list of the both standard and
-user packages by typing "make package" in the LAMMPS src directory.
+We encourage users to submit new features to "the
+developers"_http://lammps.sandia.gov/authors.html that they add to
+LAMMPS, especially if you think they will be of interest to other
+users.  If they are broadly useful we may add them as core files to
+LAMMPS or as part of a "standard package"_Section_start.html#start_3.
+Else we will add them as a user-contributed file or package.  Examples
+of user packages are in src sub-directories that start with USER.  The
+USER-MISC package is simply a collection of (mostly) unrelated single
+files, which is the simplest way to have your contribution quickly
+added to the LAMMPS distribution.  You can see a list of the both
+standard and user packages by typing "make package" in the LAMMPS src
+directory.
 
-Note that by providing us the files to release you are agreeing to
-make them open-source, i.e. that we can release them under the terms
-of the GPL used as a license for the rest of LAMMPS.  See "Section
+Note that by providing us the files to release, you are agreeing to
+make them open-source, i.e. we can release them under the terms of the
+GPL used as a license for the rest of LAMMPS.  See "Section
 1.4"_Section_intro.html#intro_4 for details.
 
 With user packages and files, all we are really providing (aside from
 the fame and fortune that accompanies having your name in the source
 code and on the "Authors page"_http://lammps.sandia.gov/authors.html
 of the "LAMMPS WWW site"_lws), is a means for you to distribute your
-work to the LAMMPS user community and a mechanism for others to easily
-try out your new feature.  This may help you find bugs or make contact
-with new collaborators.  Note that you're also implicitly agreeing to
-support your code which means answer questions, fix bugs, and maintain
-it if LAMMPS changes.
+work to the LAMMPS user community, and a mechanism for others to
+easily try out your new feature.  This may help you find bugs or make
+contact with new collaborators.  Note that you're also implicitly
+agreeing to support your code which means answer questions, fix bugs,
+and maintain it if LAMMPS changes in some way that breaks it (an
+unusual event).
 
-The previous sections of this doc page describe how to add new
-features of various kinds to LAMMPS.  Packages are simply collections
-of one or more new class files which are invoked as a new "style"
-within a LAMMPS input script.  If designed correctly, these additions
-typically do not require changes to the main core of LAMMPS; they are
-simply add-on files.  If you think your new feature requires
-non-trivial changes in core LAMMPS files, you'll need to "communicate
-with the developers"_http://lammps.sandia.gov/authors.html, since we
-may or may not want to make those changes.  An example of a trivial
-change is making a parent-class method "virtual" when you derive a new
-child class from it.
+The previous sections of this doc page describe how to add new "style"
+files of various kinds to LAMMPS.  Packages are simply collections of
+one or more new class files which are invoked as a new style within a
+LAMMPS input script.  If designed correctly, these additions typically
+do not require changes to the main core of LAMMPS; they are simply
+add-on files.  If you think your new feature requires non-trivial
+changes in core LAMMPS files, you'll need to "communicate with the
+developers"_http://lammps.sandia.gov/authors.html, since we may or may
+not want to make those changes.  An example of a trivial change is
+making a parent-class method "virtual" when you derive a new child
+class from it.
 
-Here is what you need to do to submit a user package or single file
-for our consideration.  Following these steps will save time for both
-you and us.  See existing package files for examples.
+Here are the steps you need to follow to submit a single file or user
+package for our consideration.  Following these steps will save both
+you and us time.  See existing files in packages in the src dir for
+examples.
 
 All source files you provide must compile with the most current
 version of LAMMPS. :ulb,l
@@ -697,45 +700,47 @@ style you are adding to LAMMPS.  This will be one file for a
 single-file feature.  For a package, it might be several files.  These
 are simple text files which we auto-convert to HTML.  Thus they must
 be in the same format as other *.txt files in the lammps/doc directory
-for similar commands and styles.  As appropriate, the text files can
-includelinks to equations (see doc/Eqs/*.tex for examples, we
-auto-create the associated JPG files), or figures (see doc/JPG for
-examples), or even additional PDF files with further details (see
-doc/PDF for examples).  The doc page should also include literature
-citations; see the bottom of doc/fix_nh.txt for examples and the
-earlier part of the same file for examples of how to format the cite.
-The "Restrictions" section of the doc page should indicate that your
-command is only available if LAMMPS is built with the appropriate
-USER-MISC or USER-FOO package.  See other user package doc files for
-an example of how to do this.  The txt2html tool we use to do the
-conversion can be downloaded from "this
+for similar commands and styles; use one or more of them as a starting
+point.  As appropriate, the text files can include links to equations
+(see doc/Eqs/*.tex for examples, we auto-create the associated JPG
+files), or figures (see doc/JPG for examples), or even additional PDF
+files with further details (see doc/PDF for examples).  The doc page
+should also include literature citations as appropriate; see the
+bottom of doc/fix_nh.txt for examples and the earlier part of the same
+file for how to format the cite itself.  The "Restrictions" section of
+the doc page should indicate that your command is only available if
+LAMMPS is built with the appropriate USER-MISC or USER-FOO package.
+See other user package doc files for examples of how to do this.  The
+txt2html tool we use to convert to HTML can be downloaded from "this
 site"_http://www.sandia.gov/~sjplimp/download.html, so you can perform
 the HTML conversion yourself to proofread your doc page. :l
 
 For a new package (or even a single command) you can include one or
 more example scripts.  These should run in no more than 1 minute, even
 on a single processor, and not require large data files as input.  See
-directories under examples/USER for examples of user-provided input
-scripts for their packages. :l
+directories under examples/USER for examples of input scripts other
+users provided for their packages. :l
 
 If there is a paper of yours describing your feature (either the
-algorithm/science behind the feature itself, or its implementation in
-LAMMPS), you can add the citation to the *.cpp source file.  See
-src/USER-EFF/atom_vec_electron.cpp for an example.  A LaTeX citation
-is stored in a variable at the top of the file and a single line of
-code that references the variable is added to the constructor of the
-class.  This will cause LAMMPS to output the citation to a log.cite
-file and issue a prompt to examine the file, whenever a user inovkes
-your feature from their input script.  Note that you should only use
-this for a paper you or your group authored.  Adding a cite in the
-code for a paper by Nose and Hoover if you write a fix that implements
-their integrator is not the intended usage.  That kind of citation
-should just be in the doc page you provide. :l,ule
+algorithm/science behind the feature itself, or its initial usage, or
+its implementation in LAMMPS), you can add the citation to the *.cpp
+source file.  See src/USER-EFF/atom_vec_electron.cpp for an example.
+A LaTeX citation is stored in a variable at the top of the file and a
+single line of code that references the variable is added to the
+constructor of the class.  Whenever a user invokes your feature from
+their input script, this will cause LAMMPS to output the citation to a
+log.cite file and prompt the user to examine the file.  Note that you
+should only use this for a paper you or your group authored.
+E.g. adding a cite in the code for a paper by Nose and Hoover if you
+write a fix that implements their integrator is not the intended
+usage.  That kind of citation should just be in the doc page you
+provide. :l,ule
 
 Finally, as a general rule-of-thumb, the more clear and
 self-explanatory you make your doc and README files, and the easier
 you make it for people to get started, e.g. by providing example
-scripts, the more likely it is that users will try your new feature.
+scripts, the more likely it is that users will try out your new
+feature.
 
 :line
 :line

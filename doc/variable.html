@@ -49,7 +49,7 @@
     numbers = 0.0, 100, -5.4, 2.8e-4, etc
     constants = PI
     thermo keywords = vol, ke, press, etc from <A HREF = "thermo_style.html">thermo_style</A>
-    math operators = (), -x, x+y, x-y, x*y, x/y, x^y, 
+    math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
                      x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y, !x
     math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
@@ -368,7 +368,7 @@ references to other variables.
 <TR><TD >Number</TD><TD > 0.2, 100, 1.0e20, -15.4, etc</TD></TR>
 <TR><TD >Constant</TD><TD > PI</TD></TR>
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
-<TR><TD >Math operators</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y, !x</TD></TR>
+<TR><TD >Math operators</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, x%y, x==y, x!=y, x<y, x<=y, x>y, x>=y, x&&y, x||y, !x</TD></TR>
 <TR><TD >Math functions</TD><TD > sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), stride(x,y,z), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)</TD></TR>
 <TR><TD >Group functions</TD><TD > count(ID), mass(ID), charge(ID), xcm(ID,dim),                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), 		 gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), 		 inertia(ID,dimdim), omega(ID,dim)</TD></TR>
 <TR><TD >Region functions</TD><TD > count(ID,IDR), mass(ID,IDR), charge(ID,IDR), 		  xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), 		  bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), 		  angmom(ID,dim,IDR), torque(ID,dim,IDR),                   inertia(ID,dimdim,IDR), omega(ID,dim,IDR)</TD></TR>
@@ -428,13 +428,13 @@ vectors of y and z velocities.
 <P>Operators are evaluated left to right and have the usual C-style
 precedence: unary minus and unary logical NOT operator "!" have the
 highest precedence, exponentiation "^" is next; multiplication and
-division are next; addition and subtraction are next; the 4 relational
-operators "<", "<=", ">", and ">=" are next; the two remaining
-relational operators "==" and "!=" are next; then the logical AND
-operator "&&"; and finally the logical OR operator "||" has the lowest
-precedence.  Parenthesis can be used to group one or more portions of
-a formula and/or enforce a different order of evaluation than what
-would occur with the default precedence.
+division and the modulo operator "%" are next; addition and
+subtraction are next; the 4 relational operators "<", "<=", ">", and
+">=" are next; the two remaining relational operators "==" and "!="
+are next; then the logical AND operator "&&"; and finally the logical
+OR operator "||" has the lowest precedence.  Parenthesis can be used
+to group one or more portions of a formula and/or enforce a different
+order of evaluation than what would occur with the default precedence.
 </P>
 <P>IMPORTANT NOTE: Because a unary minus is higher precedence than
 exponentiation, the formula "-2^2" will evaluate to 4, not -4.  This

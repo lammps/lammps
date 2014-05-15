@@ -1,5 +1,5 @@
 <HTML>
-<CENTER><A HREF = "Section_tools.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
+<CENTER> <A HREF = "Section_tools.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
 <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_python.html">Next
 Section</A> 
 </CENTER>
@@ -647,6 +647,11 @@ which is the simplest way to have your contribution quickly added to
 the LAMMPS distribution.  You can see a list of the both standard and
 user packages by typing "make package" in the LAMMPS src directory.
 </P>
+<P>Note that by providing us the files to release you are agreeing to
+make them open-source, i.e. that we can release them under the terms
+of the GPL used as a license for the rest of LAMMPS.  See <A HREF = "Section_intro.html#intro_4">Section
+1.4</A> for details.
+</P>
 <P>With user packages and files, all we are really providing (aside from
 the fame and fortune that accompanies having your name in the source
 code and on the <A HREF = "http://lammps.sandia.gov/authors.html">Authors page</A>
@@ -684,46 +689,79 @@ the code accesses data structures, performs its operations, and is
 formatted similar to other LAMMPS source files, including the use of
 the error class for error and warning messages. 
 
-<LI>If your contribution is a single file (actually a *.cpp and *.h file)
-it can most rapidly be added to the USER-MISC directory.  Send us the
-one-line entry to add to the USER-MISC/README file in that dir, along
-with the 2 source files.  You can do this multiple times if you wish
-to contribute several individual features.  
+<LI>If you want your contribution to be added as a user-contributed
+feature, and it's a single file (actually a *.cpp and *.h file) it can
+rapidly be added to the USER-MISC directory.  Send us the one-line
+entry to add to the USER-MISC/README file in that dir, along with the
+2 source files.  You can do this multiple times if you wish to
+contribute several individual features.  
 
-<LI>If your contribution is several related featues, it is probably best
-to make it a user package directory with a name like USER-FOO.  In
-addition to your new files, the directory should contain a README, and
-Install.csh file.  The README text file should contain your name and
-contact information and a brief description of what your new package
-does.  The Install.csh file enables LAMMPS to include and exclude your
-package.  See other README and Install.sh files in other USER
-directories as examples.  Send us a tarball of this USER-FOO
-directory. 
+<LI>If you want your contribution to be added as a user-contribution and
+it is several related featues, it is probably best to make it a user
+package directory with a name like USER-FOO.  In addition to your new
+files, the directory should contain a README text file.  The README
+should contain your name and contact information and a brief
+description of what your new package does.  If your files depend on
+other LAMMPS style files also being installed (e.g. because your file
+is a derived class from the other LAMMPS class), then an Install.sh
+file is also needed to check for those dependencies.  See other README
+and Install.sh files in other USER directories as examples.  Send us a
+tarball of this USER-FOO directory. 
 
 <LI>Your new source files need to have the LAMMPS copyright, GPL notice,
-and your name at the top, like other LAMMPS source files.  They need
-to create a class that is inside the LAMMPS namespace.  If the file is
-for one of the USER packages, including USER-MISC, then we are not as
-picky about the coding style (see above).  I.e. they do not need to be
-in the same stylistic format and syntax as other LAMMPS files, though
-that would be nice. 
+and your name and email address at the top, like other
+user-contributed LAMMPS source files.  They need to create a class
+that is inside the LAMMPS namespace.  If the file is for one of the
+USER packages, including USER-MISC, then we are not as picky about the
+coding style (see above).  I.e. the files do not need to be in the
+same stylistic format and syntax as other LAMMPS files, though that
+would be nice for developers as well as users who try to read your
+code. 
 
-<LI>Finally, you must also send a documentation file for each new command
-or style you are adding to LAMMPS.  This will be one file for a
+<LI>You must also create a documentation file for each new command or
+style you are adding to LAMMPS.  This will be one file for a
 single-file feature.  For a package, it might be several files.  These
-are simple text files which we will convert to HTML.  They must be in
-the same format as other *.txt files in the lammps/doc directory for
-similar commands and styles.  The "Restrictions" section of the doc
-page should indicate that your command is only available if LAMMPS is
-built with the appropriate USER-MISC or USER-FOO package.  See other
-user package doc files for an example of how to do this.  The txt2html
-tool we use to do the conversion can be downloaded from <A HREF = "http://www.sandia.gov/~sjplimp/download.html">this
+are simple text files which we auto-convert to HTML.  Thus they must
+be in the same format as other *.txt files in the lammps/doc directory
+for similar commands and styles.  As appropriate, the text files can
+includelinks to equations (see doc/Eqs/*.tex for examples, we
+auto-create the associated JPG files), or figures (see doc/JPG for
+examples), or even additional PDF files with further details (see
+doc/PDF for examples).  The doc page should also include literature
+citations; see the bottom of doc/fix_nh.txt for examples and the
+earlier part of the same file for examples of how to format the cite.
+The "Restrictions" section of the doc page should indicate that your
+command is only available if LAMMPS is built with the appropriate
+USER-MISC or USER-FOO package.  See other user package doc files for
+an example of how to do this.  The txt2html tool we use to do the
+conversion can be downloaded from <A HREF = "http://www.sandia.gov/~sjplimp/download.html">this
 site</A>, so you can perform
-the HTML conversion yourself to proofread your doc page.  
+the HTML conversion yourself to proofread your doc page. 
+
+<LI>For a new package (or even a single command) you can include one or
+more example scripts.  These should run in no more than 1 minute, even
+on a single processor, and not require large data files as input.  See
+directories under examples/USER for examples of user-provided input
+scripts for their packages. 
+
+<LI>If there is a paper of yours describing your feature (either the
+algorithm/science behind the feature itself, or its implementation in
+LAMMPS), you can add the citation to the *.cpp source file.  See
+src/USER-EFF/atom_vec_electron.cpp for an example.  A LaTeX citation
+is stored in a variable at the top of the file and a single line of
+code that references the variable is added to the constructor of the
+class.  This will cause LAMMPS to output the citation to a log.cite
+file and issue a prompt to examine the file, whenever a user inovkes
+your feature from their input script.  Note that you should only use
+this for a paper you or your group authored.  Adding a cite in the
+code for a paper by Nose and Hoover if you write a fix that implements
+their integrator is not the intended usage.  That kind of citation
+should just be in the doc page you provide. 
 </UL>
-<P>Note that the more clear and self-explanatory you make your doc and
-README files, the more likely it is that users will try out your new
-feature.
+<P>Finally, as a general rule-of-thumb, the more clear and
+self-explanatory you make your doc and README files, and the easier
+you make it for people to get started, e.g. by providing example
+scripts, the more likely it is that users will try your new feature.
 </P>
 <HR>
 

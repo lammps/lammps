@@ -75,7 +75,7 @@ dump m2 all movie 100 movie.m4v type type zoom 1.8 adiam v_value size 1280 720 :
 [Description:]
 
 Dump a high-quality rendered image of the atom configuration every N
-timesteps and save the images either as a sequence of JPG or PNG, or
+timesteps and save the images either as a sequence of JPEG or PNG or
 PPM files, or as a single movie file.  The options for this command as
 well as the "dump_modify"_dump_modify.html command control what is
 included in the image or movie and how it appears.  A series of such
@@ -91,8 +91,8 @@ has been run, using the "rerun"_rerun.html command to read snapshots
 from an existing dump file, and using these dump commands in the rerun
 script to generate the images/movie.
 
-Here are two sample images, rendered as 1024x1024 JPG files.  Click to
-see the full-size images:
+Here are two sample images, rendered as 1024x1024 JPEG files.  Click
+to see the full-size images:
 
 <DIV ALIGN=center>
 
@@ -106,14 +106,14 @@ Only atoms in the specified group are rendered in the image.  The
 alter what atoms are included in the image.\
 
 The filename suffix determines whether a JPEG, PNG, or PPM file is
-created with the {image} dump style.  If the suffix is ".jpg" or ".jpeg",
-then a JPEG format file is created, if the suffix is ".png", then a PNG
-format is created, else a PPM (aka NETPBM) format file is created.
-The JPG and PNG files are binary; PPM has a text mode header followed
-by binary data. JPG images have lossy compression; PNG has lossless
-compression; and PPM files are uncompressed but can be compressed with
-gzip, if LAMMPS has been compiled with -DLAMMPS_GZIP and a ".gz" suffix
-is used.
+created with the {image} dump style.  If the suffix is ".jpg" or
+".jpeg", then a JPEG format file is created, if the suffix is ".png",
+then a PNG format is created, else a PPM (aka NETPBM) format file is
+created.  The JPEG and PNG files are binary; PPM has a text mode
+header followed by binary data. JPEG images have lossy compression;
+PNG has lossless compression; and PPM files are uncompressed but can
+be compressed with gzip, if LAMMPS has been compiled with
+-DLAMMPS_GZIP and a ".gz" suffix is used.
 
 Similarly, the format of the resulting movie is chosen with the
 {movie} dump style. This is handled by the underlying FFmpeg converter
@@ -391,14 +391,15 @@ shading is performed.
 
 :line
 
-A series of JPG, PNG, or PPM images can be converted into a movie file
-and then played as a movie using commonly available tools. Using dump
-style {movie} automates this step and avoids the intermediate step of
-writing (many) image snapshot file. But LAMMPS has to be compiled with
--DLAMMPS_FFMPEG and an FFmpeg executable have to be installed.
+A series of JPEG, PNG, or PPM images can be converted into a movie
+file and then played as a movie using commonly available tools. Using
+dump style {movie} automates this step and avoids the intermediate
+step of writing (many) image snapshot file. But LAMMPS has to be
+compiled with -DLAMMPS_FFMPEG and an FFmpeg executable have to be
+installed.
 
-To manually convert JPG, PNG or PPM files into an animated GIF or MPEG
-or other movie file you can use:
+To manually convert JPEG, PNG or PPM files into an animated GIF or
+MPEG or other movie file you can use:
 
 a) Use the ImageMagick convert program. :ulb,l
 
@@ -472,7 +473,7 @@ per-atom quantities which could then be output into dump files.
 
 [Restrictions:]
 
-To write JPG images, you must use the -DLAMMPS_JPEG switch when
+To write JPEG images, you must use the -DLAMMPS_JPEG switch when
 building LAMMPS and link with a JPEG library. To write PNG images, you
 must use the -DLAMMPS_PNG switch when building LAMMPS and link with a
 PNG library.

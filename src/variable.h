@@ -90,8 +90,6 @@ class Variable : protected Pointers {
   void atom_vector(char *, Tree **, Tree **, int &);
   int is_constant(char *);
   double constant(char *);
-  double numeric(char *);
-  int inumeric(char *);
   char *find_next_comma(char *);
   void print_tree(Tree *, int);
 };

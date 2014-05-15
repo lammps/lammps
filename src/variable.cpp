@@ -3657,41 +3657,6 @@ double Variable::constant(char *word)
 }
 
 /* ----------------------------------------------------------------------
-   read a floating point value from a string
-   generate an error if not a legitimate floating point value
-------------------------------------------------------------------------- */
-
-double Variable::numeric(char *str)
-{
-  int n = strlen(str);
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i])) continue;
-    if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
-    if (str[i] == 'e' || str[i] == 'E') continue;
-    error->all(FLERR,
-               "Expected floating point parameter in variable definition");
-  }
-
-  return atof(str);
-}
-
-/* ----------------------------------------------------------------------
-   read an integer value from a string
-   generate an error if not a legitimate integer value
-------------------------------------------------------------------------- */
-
-int Variable::inumeric(char *str)
-{
-  int n = strlen(str);
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    error->all(FLERR,"Expected integer parameter in variable definition");
-  }
-
-  return atoi(str);
-}
-
-/* ----------------------------------------------------------------------
    find next comma in str
    skip commas inside one or more nested parenthesis
    only return ptr to comma at level 0, else NULL if not found

@@ -59,6 +59,83 @@ void CommTiled::setup()
 
 void CommTiled::forward_comm(int dummy)
 {
+  /*
+
+  int n;
+  MPI_Request request;
+  MPI_Status status;
+  AtomVec *avec = atom->avec;
+  double **x = atom->x;
+  double *buf;
+
+  // exchange data with another proc
+  // if other proc is self, just copy
+  // if comm_x_only set, exchange or copy directly to x, don't unpack
+
+  for (int iswap = 0; iswap < nswap; iswap++) {
+    if (sendproc[iswap] != me) {
+      if (comm_x_only) {
+        // loop over recvs
+        if (size_forward_recv[iswap]) buf = x[firstrecv[iswap]];
+        else buf = NULL;
+        if (size_forward_recv[iswap])
+          MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
+                    recvproc[iswap],0,world,&request);
+        // loop over sends
+        n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
+        if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+        // wait any or all?
+        if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
+      } else if (ghost_velocity) {
+        // loop over recvs
+        if (size_forward_recv[iswap])
+          MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
+                    recvproc[iswap],0,world,&request);
+        // loop over sends
+        n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
+                                buf_send,pbc_flag[iswap],pbc[iswap]);
+        if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+        // wait any or all?
+        if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
+        // loop over recvs and unpack each
+        avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_recv);
+      } else {
+        // loop over recvs
+        if (size_forward_recv[iswap])
+          MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
+                    recvproc[iswap],0,world,&request);
+        // loop over sends
+        n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
+        if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
+        // wait any or all?
+        if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
+        // loop over recvs and unpack each
+        avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
+      }
+
+    } else {
+      if (comm_x_only) {
+        // single copy
+        if (sendnum[iswap])
+          n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                              x[firstrecv[iswap]],pbc_flag[iswap],
+                              pbc[iswap]);
+      } else if (ghost_velocity) {
+        // single copy
+        n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
+                                buf_send,pbc_flag[iswap],pbc[iswap]);
+        avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_send);
+      } else {
+        // single copy
+        n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
+        avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+      }
+    }
+  }
+  */
 }
 
 /* ----------------------------------------------------------------------
@@ -68,6 +145,63 @@ void CommTiled::forward_comm(int dummy)
 
 void CommTiled::reverse_comm()
 {
+  /*
+  int n;
+  MPI_Request request;
+  MPI_Status status;
+  AtomVec *avec = atom->avec;
+  double **f = atom->f;
+  double *buf;
+
+  // exchange data with other procs in each swap
+  // if other proc is self, just copy
+  // if comm_f_only set, exchange or copy directly from f, don't pack
+
+  for (int iswap = nswap-1; iswap >= 0; iswap--) {
+    if (!selfflag[iswap]) {
+      if (comm_f_only) {
+        // loop over recvs
+        if (size_reverse_recv[iswap])
+          MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
+                    sendproc[iswap],0,world,&request);
+        // loop over sends
+        if (size_reverse_send[iswap]) buf = f[firstrecv[iswap]];
+        else buf = NULL;
+        if (size_reverse_send[iswap])
+          MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,
+                   recvproc[iswap],0,world);
+        // wait any or all?
+        if (size_reverse_recv[iswap]) MPI_Wait(&request,&status);
+        // loop over recvs and unpack each
+        avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_recv);
+      } else {
+        // loop over recvs
+        if (size_reverse_recv[iswap])
+          MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
+                    sendproc[iswap],0,world,&request);
+        // loop over sends
+        n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
+        if (n) MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
+        // wait any or all?
+        if (size_reverse_recv[iswap]) MPI_Wait(&request,&status);
+        // loop over recvs and unpack each
+        avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_recv);
+      }
+
+    } else {
+      if (comm_f_only) {
+        // single copy
+        if (sendnum[iswap])
+            avec->unpack_reverse(sendnum[iswap],sendlist[iswap],
+                                f[firstrecv[iswap]]);
+      } else {
+        // single copy
+        n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
+        avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_send);
+      }
+    }
+  }
+  */
 }
 
 /* ----------------------------------------------------------------------

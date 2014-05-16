@@ -1646,6 +1646,12 @@ void *FixNH::extract(const char *str, int &dim)
   dim=0;
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
+  } else if (strcmp(str,"mtchain") == 0) {
+    return &mtchain;
+  }
+  dim=1;
+  if (strcmp(str,"eta") == 0) {
+    return &eta;
   }
   return NULL;
 }

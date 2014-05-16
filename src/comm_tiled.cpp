@@ -331,6 +331,8 @@ void CommTiled::forward_comm_array(int n, double **array)
 
 int CommTiled::exchange_variable(int n, double *inbuf, double *&outbuf)
 {
+  int nrecv = n;
+  return nrecv;
 }
 
 /* ----------------------------------------------------------------------

@@ -466,5 +466,6 @@ void *PairLJCutCoulCut::extract(const char *str, int &dim)
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   dim = 2;
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str,"sigma") == 0) return (void *) sigma;
   return NULL;
 }

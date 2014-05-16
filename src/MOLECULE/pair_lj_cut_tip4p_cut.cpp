@@ -17,6 +17,7 @@
 
 #include "math.h"
 #include "stdlib.h"
+#include "string.h"
 #include "pair_lj_cut_tip4p_cut.h"
 #include "atom.h"
 #include "force.h"
@@ -722,6 +723,17 @@ void PairLJCutTIP4PCut::compute_newsite(double *xO,  double *xH1,
   xM[2] = xO[2] + alpha * 0.5 * (delz1 + delz2);
 }
 
+/* ---------------------------------------------------------------------- */
+
+void *PairLJCutTIP4PCut::extract(const char *str, int &dim)
+{
+  dim = 0;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  dim = 2;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str,"sigma") == 0) return (void *) sigma;
+  return NULL;
+}
 /* ----------------------------------------------------------------------
    memory usage of hneigh
 ------------------------------------------------------------------------- */

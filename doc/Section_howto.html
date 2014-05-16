@@ -1483,6 +1483,10 @@ as input to other output commands.
 </P>
 <H5><A NAME = "fixoutput"></A>Fixes that process output quantities 
 </H5>
+<P>The <A HREF = "fix_vector.html">fix vector</A> command can create global vectors as
+output from global scalars as input, accumulating them one element at
+a time.
+</P>
 <P>The <A HREF = "fix_ave_atom.html">fix ave/atom</A> command performs time-averaging
 of per-atom vectors.  The per-atom quantities can be atom attributes
 such as position, velocity, force.  They can also be per-atom
@@ -1559,6 +1563,7 @@ vector input could be a column of an array.
 <TR><TD ><A HREF = "compute_property_atom.html">compute property/atom</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute_property_local.html">compute property/local</A></TD><TD > local vectors</TD><TD > local vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "compute_atom_molecule.html">compute atom/molecule</A></TD><TD > per-atom vectors</TD><TD > global vector/array</TD><TD ></TD></TR>
+<TR><TD ><A HREF = "fix_vector.html">fix vector</A></TD><TD > global scalars</TD><TD > global vector</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_atom.html">fix ave/atom</A></TD><TD > per-atom vectors</TD><TD > per-atom vector/array</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_time.html">fix ave/time</A></TD><TD > global scalars/vectors</TD><TD > global scalar/vector/array, file</TD><TD ></TD></TR>
 <TR><TD ><A HREF = "fix_ave_spatial.html">fix ave/spatial</A></TD><TD > per-atom vectors</TD><TD > global array, file</TD><TD ></TD></TR>

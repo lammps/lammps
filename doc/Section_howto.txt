@@ -1472,6 +1472,10 @@ as input to other output commands.
 
 Fixes that process output quantities :h5,link(fixoutput)
 
+The "fix vector"_fix_vector.html command can create global vectors as
+output from global scalars as input, accumulating them one element at
+a time.
+
 The "fix ave/atom"_fix_ave_atom.html command performs time-averaging
 of per-atom vectors.  The per-atom quantities can be atom attributes
 such as position, velocity, force.  They can also be per-atom
@@ -1547,6 +1551,7 @@ Command: Input: Output:
 "compute property/atom"_compute_property_atom.html: per-atom vectors: per-atom vector/array:
 "compute property/local"_compute_property_local.html: local vectors: local vector/array:
 "compute atom/molecule"_compute_atom_molecule.html: per-atom vectors: global vector/array:
+"fix vector"_fix_vector.html: global scalars: global vector:
 "fix ave/atom"_fix_ave_atom.html: per-atom vectors: per-atom vector/array:
 "fix ave/time"_fix_ave_time.html: global scalars/vectors: global scalar/vector/array, file:
 "fix ave/spatial"_fix_ave_spatial.html: per-atom vectors: global array, file:

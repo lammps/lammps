@@ -1081,10 +1081,10 @@ void Image::write_PNG(FILE *fp)
 
 void Image::write_PPM(FILE *fp)
 {
-  fprintf (fp,"P6\n%d %d\n255\n",width,height);
+  fprintf(fp,"P6\n%d %d\n255\n",width,height);
 
   int y;
-  for (y = height-1; y >= 0; y --)
+  for (y = height-1; y >= 0; y--)
     fwrite(&writeBuffer[y*width*3],3,width,fp);
 }
 

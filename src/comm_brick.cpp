@@ -753,8 +753,8 @@ void CommBrick::exchange()
    borders: list nearby atoms to send to neighboring procs at every timestep
    one list is created for every swap that will be made
    as list is made, actually do swaps
-   this does equivalent of a communicate, so don't need to explicitly
-     call communicate routine on reneighboring timestep
+   this does equivalent of a forward_comm(), so don't need to explicitly
+     call forward_comm() on reneighboring timestep
    this routine is called before every reneighboring
    for triclinic, atoms must be in lamda coords (0-1) before borders is called
 ------------------------------------------------------------------------- */
@@ -931,6 +931,7 @@ void CommBrick::borders()
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Pair
+   n = constant number of datums per atom
 ------------------------------------------------------------------------- */
 
 void CommBrick::forward_comm_pair(Pair *pair)
@@ -968,6 +969,7 @@ void CommBrick::forward_comm_pair(Pair *pair)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Pair
+   n = constant number of datums per atom
 ------------------------------------------------------------------------- */
 
 void CommBrick::reverse_comm_pair(Pair *pair)
@@ -1154,6 +1156,7 @@ void CommBrick::reverse_comm_variable_fix(Fix *fix)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Compute
+   n = constant number of datums per atom
 ------------------------------------------------------------------------- */
 
 void CommBrick::forward_comm_compute(Compute *compute)
@@ -1191,6 +1194,7 @@ void CommBrick::forward_comm_compute(Compute *compute)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Compute
+   n = constant number of datums per atom
 ------------------------------------------------------------------------- */
 
 void CommBrick::reverse_comm_compute(Compute *compute)
@@ -1227,6 +1231,7 @@ void CommBrick::reverse_comm_compute(Compute *compute)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Dump
+   n = constant number of datums per atom
 ------------------------------------------------------------------------- */
 
 void CommBrick::forward_comm_dump(Dump *dump)
@@ -1264,6 +1269,7 @@ void CommBrick::forward_comm_dump(Dump *dump)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Dump
+   n = constant number of datums per atom
 ------------------------------------------------------------------------- */
 
 void CommBrick::reverse_comm_dump(Dump *dump)

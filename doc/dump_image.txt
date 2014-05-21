@@ -480,7 +480,28 @@ PNG library.
 
 To write {movie} dumps, you must use the -DLAMMPS_FFMPEG switch when
 building LAMMPS and have the FFmpeg executable available on the
-machine where LAMMPS is being run.
+machine where LAMMPS is being run. Since FFmpeg is run as an external
+program via a pipe, LAMMPS has limited control over its execution
+and no knowledge about errors and warnings printed by it. Those warnings
+and error messages will be printed to the screen only. Due to the way
+how the image data is communicated to FFmpeg, it will often print
+the message
+
+pipe:: Input/output error :pre
+
+which can be safely ignored. Other warnings and errors have to be
+addressed according to the FFmpeg documentation. One known issue is
+that certain movie file formats (e.g. MPEG level 1 and 2 format streams)
+have video bandwith limits that can be crossed when rendering too
+large image sizes. Typical warnings would look like this:
+
+\[mpeg @ 0x98b5e0\] packet too large, ignoring buffer limits to mux it
+\[mpeg @ 0x98b5e0\] buffer underflow st=0 bufi=281407 size=285018
+\[mpeg @ 0x98b5e0\] buffer underflow st=0 bufi=283448 size=285018 :pre
+
+In that case it is recommended to either reduce the size of the image or
+encode in a different format without this limitation (e.g. .avi, .mkv, .mp4)
+that is also supported by your copy of FFmpeg.
 
 See the "Making LAMMPS"_Section_start.html#start_2_4 section of the
 documentation for details on how to configure and compile optional in

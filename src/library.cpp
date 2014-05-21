@@ -255,7 +255,7 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
      so the caller must free this memory to avoid a leak, e.g.
        double *dptr = (double *) lammps_extract_fix();
        double value = *dptr;
-       free(dptr);
+       lammps_free(dptr);
    IMPORTANT: LAMMPS cannot easily check here when info extracted from
      the fix is valid, so caller must insure that it is OK
 ------------------------------------------------------------------------- */
@@ -320,11 +320,11 @@ void *lammps_extract_fix(void *ptr, char *id, int style, int type,
      e.g. for equal-style variables
        double *dptr = (double *) lammps_extract_variable();
        double value = *dptr;
-       free(dptr);
+       lammps_free(dptr);
      e.g. for atom-style variables
        double *vector = (double *) lammps_extract_variable();
        use the vector values
-       free(vector);
+       lammps_free(vector);
    IMPORTANT: LAMMPS cannot easily check here when it is valid to evaluate
      the variable or any fixes or computes or thermodynamic info it references,
      so caller must insure that it is OK

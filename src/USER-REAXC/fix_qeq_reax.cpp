@@ -48,7 +48,7 @@ using namespace FixConst;
 //#define LOOSE_ZONE      0.7
 #define SQR(x) ((x)*(x))
 #define CUBE(x) ((x)*(x)*(x))
-#define MIN_NBRS 100
+#define MIN_NBRS 100327
 
 static const char cite_fix_qeq_reax[] =
   "fix qeq/reax command:\n\n"
@@ -323,9 +323,6 @@ void FixQEqReax::reallocate_matrix()
 void FixQEqReax::init()
 {
   if (!atom->q_flag) error->all(FLERR,"Fix qeq/reax requires atom attribute q");
-
-  if (!force->pair_match("reax/c",1))
-    error->all(FLERR,"Must use pair_style reax/c with fix qeq/reax");
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/reax group has no atoms");

@@ -175,6 +175,7 @@ void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           const double r6inv = r2inv*r2inv*r2inv;
           forcelj = r6inv * (lj1i[jtype]*r6inv - lj2i[jtype]);
           const double philj = r6inv*(lj3i[jtype]*r6inv-lj4i[jtype]);
+          if (EFLAG) evdwl = philj;
 
           if (rsq > cut_lj_innersq) {
             const double drsq = cut_ljsq - rsq;
@@ -182,7 +183,7 @@ void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             const double switch1 = drsq * (drsq*drsq + 3.0*cut2) * inv_denom_lj;
             const double switch2 = 12.0*rsq * cut2 * inv_denom_lj;
             forcelj = forcelj*switch1 + philj*switch2;
-            if (EFLAG) evdwl = philj*switch1;
+            if (EFLAG) evdwl *= switch1;
           }
 
           if (sbindex) {

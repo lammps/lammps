@@ -14,6 +14,8 @@ pair_style lj/cut/coul/long/soft command :h3
 pair_style lj/cut/coul/long/soft/omp command :h3
 pair_style lj/cut/tip4p/long/soft command :h3
 pair_style lj/cut/tip4p/long/soft/omp command :h3
+pair_style lj/charmm/coul/long/soft command :h3
+pair_style lj/charmm/coul/long/soft/omp command :h3
 pair_style coul/cut/soft command :h3
 pair_style coul/cut/soft/omp command :h3
 pair_style coul/long/soft command :h3
@@ -25,7 +27,7 @@ pair_style tip4p/long/soft/omp command :h3
 
 pair_style style args :pre
 
-style = {lj/cut/soft} or {lj/cut/coul/cut/soft} or {lj/cut/coul/long/soft} or {lj/cut/tip4p/long/soft} or {coul/cut/soft} or {coul/long/soft} or {tip4p/long/soft}
+style = {lj/cut/soft} or {lj/cut/coul/cut/soft} or {lj/cut/coul/long/soft} or {lj/cut/tip4p/long/soft} or {lj/charmm/coul/long/soft} or {coul/cut/soft} or {coul/long/soft} or {tip4p/long/soft}
 args = list of arguments for a particular style :ul
   {lj/cut/soft} args = n alpha_lj cutoff
     n, alpha_LJ = parameters of soft-core potential
@@ -35,27 +37,31 @@ args = list of arguments for a particular style :ul
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {lj/cut/coul/long/soft} args = n alpha_LJ alpha_C cutoff
-    n, alpha_LJ, alpha_C = parameters of the soft-core potential 
+    n, alpha_LJ, alpha_C = parameters of the soft-core potential
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {lj/cut/tip4p/long/soft} args = otype htype btype atype qdist n alpha_LJ alpha_C cutoff (cutoff2)
     otype,htype = atom types for TIP4P O and H
     btype,atype = bond and angle types for TIP4P waters
     qdist = distance from O atom to massless charge (distance units)
-    n, alpha_LJ, alpha_C = parameters of the soft-core potential 
+    n, alpha_LJ, alpha_C = parameters of the soft-core potential
     cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  {lj/charmm/coul/long/soft} args = n alpha_LJ alpha_C inner outer (cutoff)
+    n, alpha_LJ, alpha_C = parameters of the soft-core potential
+    inner, outer = global switching cutoffs for LJ (and Coulombic if only 5 args)
+    cutoff = global cutoff for Coulombic (optional, outer is Coulombic cutoff if only 5 args)
   {coul/cut/soft} args = n alpha_C cutoff
-    n, alpha_C = parameters of the soft-core potential 
+    n, alpha_C = parameters of the soft-core potential
     cutoff = global cutoff for Coulomb interactions (distance units)
   {coul/long/soft} args = n alpha_C cutoff
-    n, alpha_C = parameters of the soft-core potential 
+    n, alpha_C = parameters of the soft-core potential
     cutoff = global cutoff for Coulomb interactions (distance units)
   {tip4p/long/soft} args = otype htype btype atype qdist n alpha_C cutoff
     otype,htype = atom types for TIP4P O and H
     btype,atype = bond and angle types for TIP4P waters
     qdist = distance from O atom to massless charge (distance units)
-    n, alpha_C = parameters of the soft-core potential 
+    n, alpha_C = parameters of the soft-core potential
     cutoff = global cutoff for Coulomb interactions (distance units)
 :pre
 
@@ -81,7 +87,12 @@ pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
 pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8 9.5
 pair_coeff * * 0.155 3.1536 1.0
 pair_coeff 1 1 0.155 3.1536 1.0 9.5 :pre
- 
+
+pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0
+pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0 9.0
+pair_coeff * * 0.28 3.1 1.0
+pair_coeff 1 1 0.28 3.1 1.0 0.14 3.1 :pre
+
 pair_style coul/long/soft 1.0 10.0 9.5
 pair_coeff * * 1.0
 pair_coeff 1 1 1.0 9.5 :pre
@@ -132,6 +143,17 @@ lambda parameter to the list of arguments, after epsilon and sigma in
 the "pair_coeff"_pair_coeff.html command. The paratemers n, alpha_LJ
 and alpha_C are set in the "pair_style"_pair_style.html command,
 before the cutoffs.
+
+Style {lj/charmm/coul/long/soft} implements a soft-core version of the
+CHARMM version of LJ interactions with an additional switching
+function S(r) that ramps the energy and force smoothly to zero between
+an inner and outer cutoff. The usage of this pair style is documented
+in the "pair_charmm"_pair_charmm.html styles. The soft-core version
+introduces the lambda parameter to the list of arguments, after
+epsilon and sigma in the "pair_coeff"_pair_coeff.html command (and
+before the optional eps14 and sigma14). The paratemers n,
+alpha_LJ and alpha_C are set in the "pair_style"_pair_style.html
+command, before the cutoffs.
 
 The {coul/cut/soft}, {coul/long/soft} and {tip4p/long/soft} substyles
 are designed to be combined with other pair potentials via the

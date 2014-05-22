@@ -143,17 +143,17 @@ invoked.  If only a single command is specified as NULL, then no
 command is invoked.  Thus these lines:
 </P>
 <PRE>variable q equal x[100]
-run 6000 every 2000 "print Coord = $q" 
+run 6000 every 2000 "print 'Coord = $q'" 
 </PRE>
 <P>are the equivalent of:
 </P>
 <PRE>variable q equal x[100]
 run 2000
-print Coord = $q
+print "Coord = $q"
 run 2000
-print Coord = $q
+print "Coord = $q"
 run 2000
-print Coord = $q 
+print "Coord = $q" 
 </PRE>
 <P>which does 3 runs of 2000 steps and prints the x-coordinate of a
 particular atom between runs.  Note that the variable "$q" will

@@ -65,12 +65,26 @@ that you think it should flag, please send an email to the
 If you get an error message about an invalid command in your input
 script, you can determine what command is causing the problem by
 looking in the log.lammps file or using the "echo command"_echo.html
-to see it on the screen.  For a given command, LAMMPS expects certain
-arguments in a specified order.  If you mess this up, LAMMPS will
-often flag the error, but it may read a bogus argument and assign a
-value that is valid, but not what you wanted.  E.g. trying to read the
-string "abc" as an integer value and assigning the associated variable
-a value of 0.
+to see it on the screen.  If you get an error like "Invalid ...
+style", with ... being fix, compute, pair, etc, it means that you
+mistyped the style name or that the command is part of an optional
+package which was not compiled into your executable.  The list of
+available styles in your executable can be listed by using "the -h
+command-line argument"_Section_start.html#start_7.  The installation
+and compilation of optional packages is explained in the "installation
+instructions"_Section_start.html#start_3.
+
+For a given command, LAMMPS expects certain arguments in a specified
+order.  If you mess this up, LAMMPS will often flag the error, but it
+may also simply read a bogus argument and assign a value that is
+valid, but not what you wanted.  E.g. trying to read the string "abc"
+as an integer value of 0.  Careful reading of the associated doc page
+for the command should allow you to fix these problems.  Note that
+some commands allow for variables to be specified in place of numeric
+constants so that the value can be evaluated and change over the
+course of a run.  This is typically done with the syntax {v_name} for
+a parameter, where name is the name of the variable.  This is only
+allowed if the command documentation says it is.
 
 Generally, LAMMPS will print a message to the screen and logfile and
 exit gracefully when it encounters a fatal error.  Sometimes it will

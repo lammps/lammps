@@ -46,7 +46,7 @@ src: source files
 tools: pre- and post-processing tools :tb(s=:)
 
 If you download one of the Windows executables from the download page,
-then you just get a single file:
+then you get a single file:
 
 lmp_windows.exe :pre
 
@@ -512,18 +512,29 @@ src/MAKE/Makefile.mac file.
 [{Building for Windows:}] :link(start_2_6)
 
 The LAMMPS download page has an option to download both a serial and
-parallel pre-built Windows exeutable.  See the "Running
-LAMMPS"_#start_6 section for instructions for running these
-executables on a Windows box.
+parallel pre-built Windows executable.  See the "Running
+LAMMPS"_#start_6 section for instructions on running these executables
+on a Windows box.
 
-The pre-built executables are built with a subset of the available
-pacakges; see the download page for the list.  If you want
-a Windows version with specific packages included and excluded,
-you can build it yourself.
+The pre-built executables hosted on the "LAMMPS download
+page"_http://lammps.sandia.gov/download.html are built with a subset
+of the available packages; see the download page for the list. These
+are single executable files.  No examples or documentation in
+included. You will need to download the full source code package to
+obtain those.
+
+As an alternative, you can download "daily builds" (and some older
+versions) of the installer packages from
+"rpm.lammps.org/windows.html"_http://rpm.lammps.org/windows.html.
+These executables are built with most optional packages and the
+download includes documentation, some tools and most examples.
+
+If you want a Windows version with specific packages included and
+excluded, you can build it yourself.
 
 One way to do this is install and use cygwin to build LAMMPS with a
-standard Linus make, just as you would on any Linux box; see
-src/MAKE/Makefile.cygwin.
+standard unix style make program, just as you would on a Linux box;
+see src/MAKE/Makefile.cygwin.
 
 The other way to do this is using Visual Studio and project files.
 See the src/WINDOWS directory and its README.txt file for instructions

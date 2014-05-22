@@ -107,6 +107,10 @@ void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     const int * const jlist = firstneigh[i];
     const int jnum = numneigh[i];
+    const double * _noalias const lj1i = lj1[itype];
+    const double * _noalias const lj2i = lj2[itype];
+    const double * _noalias const lj3i = lj3[itype];
+    const double * _noalias const lj4i = lj4[itype];
 
     for (int jj = 0; jj < jnum; jj++) {
       double forcecoul, forcelj, evdwl, ecoul;
@@ -121,7 +125,7 @@ void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
       const double rsq = delx*delx + dely*dely + delz*delz;
       const int jtype = type[j];
 
-      if (rsq < cutsq[itype][jtype]) {
+      if (rsq < cut_bothsq) {
         const double r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
@@ -167,21 +171,17 @@ void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (rsq < cut_ljsq) {
           const double r6inv = r2inv*r2inv*r2inv;
-          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-          if (EFLAG) evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+          forcelj = r6inv * (lj1i[jtype]*r6inv - lj2i[jtype]);
+          const double philj = r6inv*(lj3i[jtype]*r6inv-lj4i[jtype]);
+          if (EFLAG) evdwl = philj;
 
           if (rsq > cut_lj_innersq) {
             const double drsq = cut_ljsq - rsq;
             const double cut2 = (rsq - cut_lj_innersq) * drsq;
             const double switch1 = drsq * (drsq*drsq + 3.0*cut2) * inv_denom_lj;
             const double switch2 = 12.0*rsq * cut2 * inv_denom_lj;
-            if (EFLAG) {
-              forcelj = forcelj*switch1 + evdwl*switch2;
-              evdwl *= switch1;
-            } else {
-              const double philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
-              forcelj =  forcelj*switch1 + philj*switch2;
-            }
+            forcelj = forcelj*switch1 + philj*switch2;
+            if (EFLAG) evdwl *= switch1;
           }
 
           if (sbindex) {
@@ -189,7 +189,6 @@ void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             forcelj *= factor_lj;
             if (EFLAG) evdwl *= factor_lj;
           }
-
         }
         const double fpair = (forcecoul + forcelj) * r2inv;
 

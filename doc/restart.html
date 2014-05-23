@@ -137,6 +137,17 @@ another machine.  In this case, you can use the <A HREF = "Section_start.html#st
 switch</A> to convert a restart file to a data
 file.
 </P>
+<P>IMPORTANT NOTE: Although the purpose of restart files is to enable
+restarting a simulation from where it left off, not all information
+about a simulation is stored in the file.  For example, the list of
+fixes that were specified during the initial run is not stored, which
+means the new input script must specify any fixes you want to use.
+Even when restart information is stored in the file, as it is for some
+fixes, commands may need to be re-specified in the new input script,
+in order to re-use that information.  See the
+<A HREF = "read_restart.html">read_restart</A> command for information about what is
+stored in a restart file.
+</P>
 <HR>
 
 <P>The optional <I>nfile</I> or <I>fileper</I> keywords can be used in conjunction

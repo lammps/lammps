@@ -56,8 +56,7 @@ class Dump : protected Pointers {
   int compressed;            // 1 if dump file is written compressed, 0 no
   int binary;                // 1 if dump file is written binary, 0 no
   int multifile;             // 0 = one big file, 1 = one file per timestep
-
-  int multiproc;             // 0 = proc 0 writes for all
+  int multiproc;             // 0 = proc 0 writes for all,
                              // else # of procs writing files
   int nclusterprocs;         // # of procs in my cluster that write to one file
   int filewriter;            // 1 if this proc writes a file, else 0
@@ -99,7 +98,6 @@ class Dump : protected Pointers {
 
   int maxbuf;                // size of buf
   double *buf;               // memory for atom quantities
-
   int maxsbuf;               // size of sbuf
   char *sbuf;                // memory for atom quantities in string format
 

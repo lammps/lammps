@@ -38,6 +38,7 @@ class NeighRequest : protected Pointers {
 
   int half;              // 1 if half neigh list (set by default)
   int full;              // 1 if full neigh list
+  int full_cluster;      // only used by Kokkos pair styles
 
   int gran;              // 1 if granular list 
   int granhistory;       // 1 if granular history list
@@ -86,7 +87,7 @@ class NeighRequest : protected Pointers {
 
   int kokkos_host;
   int kokkos_device;
-
+ 
   // set by neighbor and pair_hybrid after all requests are made
   // these settings do not change kind value
 

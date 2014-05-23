@@ -138,6 +138,17 @@ class Compute : protected Pointers {
   inline int sbmask(int j) {
     return j >> SBBITS & 3;
   }
+
+  // union data struct for packing 32-bit and 64-bit ints into double bufs
+  // see atom_vec.h for documentation
+
+  union ubuf {
+    double d;
+    int64_t i;
+    ubuf(double arg) : d(arg) {}
+    ubuf(int64_t arg) : i(arg) {}
+    ubuf(int arg) : i(arg) {}
+  };
 };
 
 }

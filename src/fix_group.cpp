@@ -187,6 +187,8 @@ void FixGroup::set_group()
   
   // set mask for each atom
   // only in group if in parent group, in region, variable is non-zero
+  // if compute, fix, etc needs updated masks of ghost atoms,
+  // it must do forward_comm() to update them
 
   double **x = atom->x;
   int *mask = atom->mask;

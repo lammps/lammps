@@ -490,6 +490,7 @@ void Neighbor::init()
     // wait to allocate initial pages until copy lists are detected
 
     for (i = 0; i < nrequest; i++) {
+      requests[i]->unprocessed = 0;
       if (requests[i]->kokkos_host || requests[i]->kokkos_device) continue;
       lists[i] = new NeighList(lmp);
       lists[i]->index = i;

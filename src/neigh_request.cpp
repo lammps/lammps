@@ -24,6 +24,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   // default ID = 0
 
   id = 0;
+  unprocessed = 1;
 
   // default is pair request
 
@@ -96,6 +97,7 @@ int NeighRequest::identical(NeighRequest *other)
 {
   int same = 1;
 
+  if (unprocessed) same = 0;
   if (requestor != other->requestor) same = 0;
   if (id != other->id) same = 0;
 

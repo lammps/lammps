@@ -23,6 +23,8 @@ class NeighRequest : protected Pointers {
   void *requestor;       // class that made request
   int id;                // ID of request
                          // used to track multiple requests from one class
+  int unprocessed;       // 1 when first requested
+                         // 0 after processed by Neighbor class
 
   // which class is requesting the list, one flag is 1, others are 0
 

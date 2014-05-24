@@ -41,7 +41,7 @@ class FixEfield : public Fix {
 
  private:
   double ex,ey,ez;
-  int varflag,iregion;;
+  int varflag,iregion;
   char *xstr,*ystr,*zstr,*estr;
   char *idregion;
   int xvar,yvar,zvar,evar,xstyle,ystyle,zstyle,estyle;

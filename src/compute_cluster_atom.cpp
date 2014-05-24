@@ -27,6 +27,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include "group.h"
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -118,6 +120,13 @@ void ComputeClusterAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // if group is dynamic, insure ghost atom masks are current
+
+  if (group->dynamic[igroup]) {
+    commflag = 0;
+    comm->forward_comm_compute(this);
+  }
+
   // every atom starts in its own cluster, with clusterID = atomID
 
   tagint *tag = atom->tag;
@@ -136,6 +145,7 @@ void ComputeClusterAtom::compute_peratom()
   // iterate until no changes in my atoms
   // then check if any proc made changes
 
+  commflag = 1;
   double **x = atom->x;
 
   int change,done,anychange;
@@ -191,10 +201,19 @@ int ComputeClusterAtom::pack_comm(int n, int *list, double *buf,
   int i,j,m;
 
   m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    buf[m++] = clusterID[j];
+  if (commflag) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = clusterID[j];
+    }
+  } else {
+    int *mask = atom->mask;
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = ubuf(mask[j]).d;
+    }
   }
+
   return 1;
 }
 
@@ -206,7 +225,12 @@ void ComputeClusterAtom::unpack_comm(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) clusterID[i] = buf[m++];
+  if (commflag)
+    for (i = first; i < last; i++) clusterID[i] = buf[m++];
+  else {
+    int *mask = atom->mask;
+    for (i = first; i < last; i++) mask[i] = (int) ubuf(buf[m++]).i;
+  }
 }
 
 /* ----------------------------------------------------------------------

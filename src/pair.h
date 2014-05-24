@@ -183,6 +183,8 @@ class Pair : protected Pointers {
  protected:
   enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
 
+  int special_lj[4];           // copied from force->special_lj for Kokkos
+
   int allocated;               // 0/1 = whether arrays are allocated
   int suffix_flag;             // suffix compatibility flag
 

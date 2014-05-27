@@ -78,7 +78,7 @@ class FixRigidSmall : public Fix {
   double MINUSPI,TWOPI;
 
   char *infile;             // file to read rigid body attributes from
-  int firstflag;            // 1 for first-time setup of rigid bodies
+  int staticflag;           // 1 if static body properties are setup, else 0
   int commflag;             // various modes of forward/reverse comm
   int nbody;                // total # of rigid bodies
   tagint maxmol;            // max mol-ID

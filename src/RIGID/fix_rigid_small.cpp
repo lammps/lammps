@@ -421,9 +421,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   mass_body = NULL;
   nmax_mass = 0;
 
-  // firstflag = 1 triggers one-time initialization of rigid body attributes
-
-  firstflag = 1;
+  staticflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -505,19 +503,16 @@ void FixRigidSmall::init()
 }
 
 /* ----------------------------------------------------------------------
-   one-time initialization of rigid body attributes via local comm
-   extended flags, mass, COM, inertia tensor, displacement of each atom
-   performed after init() b/c requires communication stencil
-     has been setup by comm->borders()
+   setup static/dynamic properties of rigid bodies, using current atom info
+   allows resetting of atom properties like mass between runs
+   only do static initialization once if using an infile
+   cannot do this until now, b/c requires comm->setup() to have setup stencil
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::setup_pre_neighbor()
 {
-  if (firstflag) {
-    firstflag = 0;
-    setup_bodies_static();
-    setup_bodies_dynamic();
-  } else pre_neighbor();
+  if (!staticflag || !infile) setup_bodies_static();
+  setup_bodies_dynamic();
 }
 
 /* ----------------------------------------------------------------------
@@ -972,7 +967,7 @@ int FixRigidSmall::dof(int tgroup)
 
   // cannot count DOF correctly unless setup_bodies_static() has been called
 
-  if (firstflag) {
+  if (!staticflag) {
     if (comm->me == 0) 
       error->warning(FLERR,"Cannot count rigid body degrees-of-freedom "
                      "before bodies are fully initialized");
@@ -1672,10 +1667,12 @@ void FixRigidSmall::ring_farthest(int n, char *cbuf)
 }
 
 /* ----------------------------------------------------------------------
-   one-time initialization of rigid body attributes
-   extended flags, mass, center-of-mass
-   Cartesian and diagonalized inertia tensor
-   read per-body attributes from infile if specified
+   initialization of rigid body attributes
+   called at setup, so body/atom properties can be changed between runs
+   unless reading from infile, in which case only called once
+   sets extended flags, masstotal, center-of-mass
+   sets Cartesian and diagonalized inertia tensor
+   sets body image flags, but only on first call
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::setup_bodies_static()
@@ -1838,10 +1835,12 @@ void FixRigidSmall::setup_bodies_static()
 
   // set image flags for each rigid body to default values
   // then remap the xcm of each body back into simulation box if needed
+  // staticflag check insures this in only done once, not on successive runs
 
-  for (ibody = 0; ibody < nlocal_body; ibody++)
-    body[ibody].image = ((imageint) IMGMAX << IMG2BITS) | 
-      ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+  if (!staticflag)
+    for (ibody = 0; ibody < nlocal_body; ibody++)
+      body[ibody].image = ((imageint) IMGMAX << IMG2BITS) | 
+        ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
   pre_neighbor();
 
@@ -2175,6 +2174,11 @@ void FixRigidSmall::setup_bodies_static()
 
   memory->destroy(itensor);
   if (infile) memory->destroy(inbody);
+
+  // static properties have now been initialized once
+  // used to prevent re-initialization which would re-read infile
+
+  staticflag = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -2418,7 +2422,7 @@ void FixRigidSmall::write_restart_file(char *file)
 
   // do not write file if bodies have not yet been intialized
 
-  if (firstflag) return;
+  if (!staticflag) return;
 
   // proc 0 opens file and writes header
 

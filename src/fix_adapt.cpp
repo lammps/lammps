@@ -45,6 +45,8 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery < 0) error->all(FLERR,"Illegal fix adapt command");
 
+  dynamic_group_allow = 1;
+
   // count # of adaptations
 
   nadapt = 0;
@@ -266,6 +268,13 @@ void FixAdapt::init()
 {
   int i,j;
 
+  // allow a dynamic group only if ATOM attribute not used
+
+  if (group->dynamic[igroup])
+    for (int i = 0; i < nadapt; i++)
+      if (adapt[i].which == ATOM) 
+        error->all(FLERR,"Cannot use dynamic group with fix adapt atom");
+  
   // setup and error checks
 
   anypair = 0;

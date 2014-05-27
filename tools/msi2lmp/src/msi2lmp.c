@@ -2,6 +2,8 @@
 *
 *  msi2lmp.exe
 *
+*   v3.9.5 AK- Add TopoTools style force field parameter type hints
+*
 *   v3.9.4 AK- Make force field style hints optional with a flag
 *
 *   v3.9.3 AK- Bugfix for triclinic cells.

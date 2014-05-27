@@ -36,7 +36,7 @@
 
 # include <stdio.h>
 
-#define MSI2LMP_VERSION "v3.9.4 / 11 Mar 2014"
+#define MSI2LMP_VERSION "v3.9.5 / 27 May 2014"
 
 #define PI_180  0.01745329251994329576
 

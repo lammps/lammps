@@ -1,6 +1,13 @@
 Axel Kohlmeyer is the current maintainer of the msi2lmp tool.
 Please send any inquiries about msi2lmp to the lammps-users mailing list.
 
+27 May 2014 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Added TopoTools style type hints as comments to all Mass, PairCoeff,
+BondCoeff, AngleCoeff, DihedralCoeff, ImproperCoeff entries.
+This should make it easier to identify force field entries with
+the structure and force field map in the data file later.
+
 06 Mar 2014 Axel Kohlmeyer <akohlmey@gmail.com>
 
 Fixed a bug in handling of triclinic cells, where the matrices to

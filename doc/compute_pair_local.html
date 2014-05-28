@@ -88,11 +88,16 @@ command in a consistent way.
 1-4 interactions within the molecular topology, their pairwise
 interaction may be turned off, and thus they may not appear in the
 neighbor list, and will not be part of the local data created by this
-command.  More specifically, this may be true of I,J pairs with a
+command.  More specifically, this will be true of I,J pairs with a
 weighting factor of 0.0; pairs with a non-zero weighting factor are
 included.  The weighting factors for 1-2, 1-3, and 1-4 pairwise
 interactions are set by the <A HREF = "special_bonds.html">special_bonds</A>
-command.
+command.  An exception is if long-range Coulombics are being computed
+via the <A HREF = "kspace_style.html">kspace_style</A> command, then atom pairs with
+weighting factors of zero are still included in the neighbor list, so
+that a portion of the long-range interaction contribution can be
+computed in the pair style.  Hence in that case, those atom pairs will
+be part of the local data created by this command.
 </P>
 <P><B>Output info:</B>
 </P>

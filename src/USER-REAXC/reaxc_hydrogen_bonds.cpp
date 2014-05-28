@@ -166,10 +166,10 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
 
             /* tally into per-atom virials */
             if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
-              rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
-                                    -1., system->my_atoms[j].x );
-              rvec_ScaledSum( delkj, 1., system->my_atoms[k].x,
-                                     -1., system->my_atoms[j].x );
+              rvec_ScaledSum( delij, 1., system->my_atoms[j].x,
+                                    -1., system->my_atoms[i].x );
+              rvec_ScaledSum( delkj, 1., system->my_atoms[j].x,
+                                     -1., system->my_atoms[k].x );
 
               rvec_Scale(fi_tmp, CEhb2, dcos_theta_di);
               rvec_Scale(fk_tmp, CEhb2, dcos_theta_dk);

@@ -103,12 +103,12 @@ fix 1 particles rigid/npt/small molecule temp 1.0 1.0 1.0 iso 0.5 0.5 1.0
 <P>Treat one or more sets of atoms as independent rigid bodies.  This
 means that each timestep the total force and torque on each rigid body
 is computed as the sum of the forces and torques on its constituent
-particles and the coordinates, velocities, and orientations of the
-atoms in each body are updated so that the body moves and rotates as a
+particles.  The coordinates, velocities, and orientations of the atoms
+in each body are then updated so that the body moves and rotates as a
 single entity.
 </P>
-<P>Examples of large rigid bodies are a large colloidal particle, or
-portions of a large biomolecule such as a protein.
+<P>Examples of large rigid bodies are a colloidal particle, or portions
+of a biomolecule such as a protein.
 </P>
 <P>Example of small rigid bodies are patchy nanoparticles, such as those
 modeled in <A HREF = "#Zhang">this paper</A> by Sharon Glotzer's group, clumps of
@@ -182,6 +182,16 @@ assigning them an initial velocity (via the <A HREF = "velocity.html">velocity</
 command), setting the force on them to 0.0 (via the <A HREF = "fix_setforce.html">fix
 setforce</A> command), and integrating them as usual
 (e.g. via the <A HREF = "fix_nve.html">fix nve</A> command).
+</P>
+<P>IMPORTANT NOTE: The aggregate properties of each rigid body are
+calculated at the start of each simulation run.  These include its
+center of mass, moments of inertia, and net velocity and angular
+momentum.  This means that before or between runs, per-atom properties
+can be changed, e.g. via the <A HREF = "set.html">set</A> or
+<A HREF = "velocity.html">velocity</A> command, which will affect the bodies.  An
+exception is if the <I>infile</I> keyword is used, then all the body
+properties (except net velocity and angular momentum) are only
+calculated once so that values from the file are valid.
 </P>
 <HR>
 

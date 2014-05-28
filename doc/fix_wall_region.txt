@@ -73,10 +73,20 @@ points suffer from inaccuracies.  The basic problem is that the
 outward normal of the surface is not continuous at these points.  This
 can cause particles to feel no force (they don't "see" the wall) when
 in one location, then move a distance epsilon, and suddenly feel a
-large force because they now "see" the wall.  In the worst-case
+large force because they now "see" the wall.  In a worst-case
 scenario, this can blow particles out of the simulation box.  Thus, as
 a general rule you should not use the fix wall/region command with
 {union} or {interesect} regions that have convex points or edges.
+
+IMPORTANT NOTE: Similarly, you should not define {union} or
+{intersert} regions for use with this command that share a common
+face, even if the face is smooth.  E.g. two regions of style block in
+a {union} region, where the two blocks have the same face.  This is
+because LAMMPS discards points that are part of multiple sub-regions
+when calculating wall/particle interactions, to avoid double-counting
+the interaction.  Having two coincident faces could cause the face to
+become invisible to the particles.  The solution is to make the two
+faces differ by epsilon in their position.
 
 The energy of wall-particle interactions depends on the specified
 style.

@@ -45,15 +45,16 @@ CLASS2, class 2 force fields, -, "pair_style lj/class2"_pair_class2.html, -, -
 COLLOID, colloidal particles, -, "atom_style colloid"_atom_style.html, colloid, -
 DIPOLE, point dipole particles, -, "pair_style dipole/cut"_pair_dipole.html, dipole, -
 FLD, Fast Lubrication Dynamics, Kumar & Bybee & Higdon (1), "pair_style lubricateU"_pair_lubricateU.html, -, -
-GPU, GPU-enabled potentials, Mike Brown (ORNL), "Section accelerate"_Section_accelerate.html#acc_6, gpu, lib/gpu
+GPU, GPU-enabled styles, Mike Brown (ORNL), "Section accelerate"_Section_accelerate.html#acc_6, gpu, lib/gpu
 GRANULAR, granular systems, -, "Section_howto"_Section_howto.html#howto_6, pour, -
 KIM, openKIM potentials, Smirichinski & Elliot & Tadmor (3), "pair_style kim"_pair_kim.html, kim, KIM
+KOKKOS, Kokkos-enabled styles, Trott & Edwards (4), "Section_accelerate"_Section_accelerate.html#acc_8, kokkos, lib/kokkos
 KSPACE, long-range Coulombic solvers, -, "kspace_style"_kspace_style.html, peptide, -
 MANYBODY, many-body potentials, -, "pair_style tersoff"_pair_tersoff.html, shear, -
 MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, lib/meam
 MC, Monte Carlo options, -, "fix gcmc"_fix_gcmc.html, -, -
 MOLECULE, molecular system force fields, -, "Section_howto"_Section_howto.html#howto_3, peptide, -
-OPT, optimized pair potentials, Fischer & Richie & Natoli (2), "Section accelerate"_Section_accelerate.html#acc_4, -, -
+OPT, optimized pair styles, Fischer & Richie & Natoli (2), "Section accelerate"_Section_accelerate.html#acc_4, -, -
 PERI, Peridynamics models, Mike Parks (Sandia), "pair_style peri"_pair_peri.html, peri, -
 POEMS, coupled rigid body motion, Rudra Mukherjee (JPL), "fix poems"_fix_poems.html, rigid, lib/poems
 REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax,  lib/reax
@@ -77,6 +78,10 @@ Technolgy).
 
 (3) The KIM package was created by Valeriu Smirichinski, Ryan Elliott,
 and Ellad Tadmor (U Minn).
+
+(4) The KOKKOS package was created primarily by Christian Trott
+(Sandia).  It uses the Kokkos library which was developed by Carter
+Edwards, Christian, and collaborators at Sandia.
 
 The "Doc page" column links to either a portion of the
 "Section_howto"_Section_howto.html of the manual, or an input script

@@ -549,7 +549,7 @@ This section has the following sub-sections:
 "Package basics"_#start_3_1
 "Including/excluding packages"_#start_3_2
 "Packages that require extra libraries"_#start_3_3
-"Additional Makefile settings for extra libraries"_#start_3_4 :ul
+"Packages that use make variable settings"_#start_3_4 :ul
 
 :line
 
@@ -682,7 +682,7 @@ for a list of packages that have auxiliary libraries.
 
 Code for some of these auxiliary libraries is included in the LAMMPS
 distribution under the lib directory.  Examples are the USER-ATC and
-MEAM packages.  Some auxiliary libraries are not included with LAMMPS;
+MEAM packages.  Some auxiliary libraries are NOT included with LAMMPS;
 to use the associated package you must download and install the
 auxiliary library yourself.  Examples are the KIM and VORONOI and
 USER-MOLFILE packages.
@@ -693,31 +693,33 @@ that library.  Typically this is done by typing something like:
 
 make -f Makefile.g++ :pre
 
-If one of the provided Makefiles is not
-appropriate for your system you will need to edit or add one.
-Note that all the Makefiles have a setting for EXTRAMAKE at
-the top that names a Makefile.lammps.* file.
+If one of the provided Makefiles is not appropriate for your system
+you will need to edit or add one.  Note that all the Makefiles have a
+setting for EXTRAMAKE at the top that specifies a Makefile.lammps.*
+file.
 
-If successful, this will produce 2 files in the lib directory:
+If the library build is successful, it will produce 2 files in the lib
+directory:
 
 libpackage.a
 Makefile.lammps :pre
 
-The Makefile.lammps file is a copy of the EXTRAMAKE file specified
-in the Makefile you used.
+The Makefile.lammps file will be a copy of the EXTRAMAKE file setting
+specified in the library Makefile.* you used.
 
-You MUST insure that the settings in Makefile.lammps are appropriate
-for your system.  If they are not, the LAMMPS build will fail.
+Note that you must insure that the settings in Makefile.lammps are
+appropriate for your system.  If they are not, the LAMMPS build will
+fail.
 
-As explained in the lib/package/README files, they are used to specify
-additional system libraries and their locations so that LAMMPS can
-build with the auxiliary library.  For example, if the MEAM or REAX
-packages are used, the auxiliary libraries consist of F90 code, build
-with a F90 complier.  To link that library with LAMMPS (a C++ code)
-via whatever C++ compiler LAMMPS is built with, typically requires
-additional Fortran-to-C libraries be included in the link.  Another
-example are the BLAS and LAPACK libraries needed to use the USER-ATC
-or USER-AWPMD packages.
+As explained in the lib/package/README files, the settings in
+Makefile.lammps are used to specify additional system libraries and
+their locations so that LAMMPS can build with the auxiliary library.
+For example, if the MEAM or REAX packages are used, the auxiliary
+libraries consist of F90 code, built with a Fortran complier.  To link
+that library with LAMMPS (a C++ code) via whatever C++ compiler LAMMPS
+is built with, typically requires additional Fortran-to-C libraries be
+included in the link.  Another example are the BLAS and LAPACK
+libraries needed to use the USER-ATC or USER-AWPMD packages.
 
 For libraries without provided source code, see the
 src/package/Makefile.lammps file for information on where to find the
@@ -725,10 +727,105 @@ library and how to build it.  E.g. the file src/KIM/Makefile.lammps or
 src/VORONOI/Makefile.lammps or src/UESR-MOLFILE/Makefile.lammps.
 These files serve the same purpose as the lib/package/Makefile.lammps
 files described above.  The files have settings needed when LAMMPS is
-built to link with the corresponding auxiliary library.  Again, you
-MUST insure that the settings in src/package/Makefile.lammps are
-appropriate for your system and where you installed the auxiliary
-library.  If they are not, the LAMMPS build will fail.
+built to link with the corresponding auxiliary library.
+
+Again, you must insure that the settings in
+src/package/Makefile.lammps are appropriate for your system and where
+you installed the auxiliary library.  If they are not, the LAMMPS
+build will fail.
+
+:line
+
+[{Packages that use make variable settings}] :link(start_3_4)
+
+One package, the KOKKOS package, allows its build options to be
+specified by setting variables via the "make" command, rather than by
+first building an auxiliary library and editing a Makefile.lammps
+file, as discussed in the previous sub-section for other packages.
+This is for convenience since it is common to want to experiment with
+different Kokkos library options.  Using variables enables a direct
+re-build of LAMMPS and its Kokkos dependencies, so that a benchmark
+test with different Kokkos options can be quickly performed.
+
+The syntax for setting make variables is as follows.  You must
+use a GNU-compatible make command for this to work.  Try "gmake"
+if your system's standard make complains.
+
+make yes-kokkos
+make g++ VAR1=value VAR2=value ... :pre
+
+The first line installs the KOKKOS package, which only needs to be
+done once.  The second line builds LAMMPS with src/MAKE/Makefile.g++
+and optionally sets one or more variables that affect the build.  Each
+variable is specified in upper-case; its value follows an equal sign
+with no spaces.  The second line can be repeated with different
+variable settings, though a "clean" must be done before the rebuild.
+Type "make clean" to see options for this operation.
+
+These are the variables that can be specified.  Each takes a value of
+{yes} or {no}.  The default value is listed, which is set in the
+lib/kokkos/Makefile.lammps file.  See "this
+section"_Section_accelerate.html#acc_8 for a discussion of what is
+meant by "host" and "device" in the Kokkos context.
+
+OMP, default = {yes}
+CUDA, default = {no}
+HWLOC, default = {no}
+AVX, default = {no}
+MIC, default = {no}
+LIBRT, default = {no}
+DEBUG, default = {no} :ul
+
+OMP sets the parallelization method used for Kokkos code (within
+LAMMPS) that runs on the host.  OMP=yes means that OpenMP will be
+used.  OMP=no means that pthreads will be used.
+
+CUDA sets the parallelization method used for Kokkos code (within
+LAMMPS) that runs on the device.  CUDA=yes means an NVIDIA GPU running
+CUDA will be used.  CUDA=no means that the OMP=yes or OMP=no setting
+will be used for the device as well as the host.
+
+If CUDA=yes, then the lo-level Makefile in the src/MAKE directory must
+use "nvcc" as its compiler, via its CC setting.  For best performance
+its CCFLAGS setting should use -O3 and have an -arch setting that
+matches the compute capability of your NVIDIA hardware and software
+installation, e.g. -arch=sm_20.  Generally Fermi Generation GPUs are
+sm_20, while Kepler generation GPUs are sm_30 or sm_35 and Maxwell
+cards are sm_50.  A complete list can be found on
+"wikipedia"_http://en.wikipedia.org/wiki/CUDA#Supported_GPUs. You can
+also use the deviceQuery tool that comes with the CUDA samples.  Note
+the minimal required compute capability is 2.0, but this will give
+signicantly reduced performance compared to Kepler generation GPUs
+with compute capability 3.x.  For the LINK setting, "nvcc" should not
+be used; instead use g++ or another compiler suitable for linking C++
+applications.  Often you will want to use your MPI compiler wrapper
+for this setting (i.e. mpicxx).  Finally, the lo-level Makefile must
+also have a "Compilation rule" for creating *.o files from *.cu files.
+See src/Makefile.cuda for an example of a lo-level Makefile with all
+of these settings.
+
+HWLOC binds threads to hardware cores, so they do not migrate during a
+simulation.  HWLOC=yes should always be used if running with OMP=no
+for pthreads.  It is not necessary for OMP=yes for OpenMP, because
+OpenMP provides alternative methods via environment variables for
+binding threads to hardware cores.  More info on binding threads to
+cores is given in "this section"_Section_accelerate.html#acc_8.
+
+AVX enables Intel advanced vector extensions when compiling for an
+Intel-compatible chip.  AVX=yes should only be set if your host
+hardware supports AVX.  If it does not support it, this will cause a
+run-time crash.
+
+MIC enables compiler switches needed when compling for an Intel Phi
+processor.
+
+LIBRT enables use of a more accurate timer mechanism on most Unix
+platforms.  This library is not available on all platforms.
+
+DEBUG is only useful when developing a Kokkos-enabled style within
+LAMMPS.  DEBUG=yes enables printing of run-time debugging information
+that can be useful.  It also enables runtime bounds checking on Kokkos
+data structures.
 
 :line
 
@@ -1038,6 +1135,7 @@ letter abbreviation can be used:
 -e or -echo
 -i or -in
 -h or -help
+-k or -kokkos
 -l or -log
 -nc or -nocite
 -p or -partition
@@ -1097,6 +1195,86 @@ pair_style, bond_style, etc).  This can tell you if the command you
 want to use was included via the appropriate package at compile time.
 LAMMPS will print the info and immediately exit if this switch is
 used.
+
+-kokkos on/off keyword/value ... :pre
+
+Explicitly enable or disable Kokkos support, as provided by the KOKKOS
+package.  If LAMMPS is built with this package, as described above in
+"Section 2.3"_#start_3, then by default LAMMPS will run in Kokkos
+mode.  If this switch is set to "off", then it will not, even if it
+was built with the KOKKOS package, which means you can run standard
+LAMMPS styles or use styles enhanced by other acceleration packages,
+such as the GPU or USER-CUDA or USER-OMP packages, for testing or
+benchmarking purposes.  The only reason to set the switch to "on", is
+to check if LAMMPS was built with the KOKKOS package, since an error
+will be generated if it was not.
+
+Additional optional keyword/value pairs can be specified which
+determine how Kokkos will use the underlying hardware on your
+platform.  These settings apply to each MPI task you launch via the
+"mpirun" or "mpiexec" command.  You may choose to run one or more MPI
+tasks per physical node.  Note that if you are running on a desktop
+machine, you typically have one physical node.  On a cluster or
+supercomputer there may be dozens or 1000s of physical nodes.
+
+Either the full word or an abbreviation can be used for the keywords.
+Note that the keywords do not use a leading minus sign.  I.e. the
+keyword is "t", not "-t".  Also note that each of the keywords has a
+default setting.  More explanation as to when to use these options and
+what settings to use on different platforms is given in "this
+section"_Section_accerlerate.html#acc_8.
+
+d or device
+g or gpus
+t or threads
+n or numa :ul
+
+device Nd :pre
+
+This option is only relevant if you built LAMMPS with CUDA=yes, you
+have more than one GPU per node, and if you are running with only one
+MPI task per node.  The Nd setting is the ID of the GPU on the node to
+run on.  By default Nd = 0.  If you have multiple GPUs per node, they
+have consecutive IDs numbered as 0,1,2,etc.  This setting allows you
+to launch multiple independent jobs on the node, each with a single
+MPI task per node, and assign each job to run on a different GPU.
+
+gpus Ng Ns :pre
+
+This option is only relevant if you built LAMMPS with CUDA=yes, you
+have more than one GPU per node, and you are running with multiple MPI
+tasks per node (up to one per GPU).  The Ng setting is how many GPUs
+you will use.  The Ns setting is optional.  If set, it is the ID of a
+GPU to skip when assigning MPI tasks to GPUs.  This may be useful if
+your desktop system reserves one GPU to drive the screen and the rest
+are intended for computational work like running LAMMPS.  By default
+Ng = 1 and Ns is not set.
+
+Depending on which flavor of MPI you are running, LAMMPS will look for
+one of these 3 environment variables
+
+SLURM_LOCALID (???) CT NOTE: what MPI is this for?
+MV2_COMM_WORLD_LOCAL_RANK (Mvapich)
+OMPI_COMM_WORLD_LOCAL_RANK (OpenMPI) :pre
+
+which are initialized by "mpirun" or "mpiexec".  The environment
+variable setting for each MPI rank is used to assign a unique GPU ID
+to the MPI task.
+
+threads Nt :pre
+
+This option assigns Nt number of threads to each MPI task for
+performing work when Kokkos is executing in OpenMP or pthreads mode.
+The default is Nt = 1, which essentially runs in MPI-only mode.  If
+there are Np MPI tasks per physical node, you generally want Np*Nt =
+the number of physical cores per node, to use your available hardware
+optimally.
+
+numa Nm :pre
+
+CT NOTE: what does numa set, and why use it?
+
+Explain.  The default is Nm = 1.
 
 -log file :pre
 
@@ -1271,23 +1449,24 @@ multi-partition mode, if the specified file is "none", then no screen
 output is performed. Option -pscreen will override the name of the
 partition screen files file.N.
 
--suffix style :pre
+-suffix style args :pre
 
 Use variants of various styles if they exist.  The specified style can
-be {opt}, {omp}, {gpu}, or {cuda}.  These refer to optional packages that
-LAMMPS can be built with, as described above in "Section
-2.3"_#start_3.  The "opt" style corrsponds to the OPT package, the
-"omp" style to the USER-OMP package, the "gpu" style to the GPU 
-package, and the "cuda" style to the USER-CUDA package.
+be {cuda}, {gpu}, {kk}, {omp}, or {opt}.  These refer to optional
+packages that LAMMPS can be built with, as described above in "Section
+2.3"_#start_3.  The "cuda" style corresponds to the USER-CUDA package,
+the "gpu" style to the GPU package, the "kk" style to the KOKKOS
+pacakge, the "opt" style to the OPT package, and the "omp" style to
+the USER-OMP package.
 
 As an example, all of the packages provide a "pair_style
-lj/cut"_pair_lj.html variant, with style names lj/cut/opt, lj/cut/omp,
-lj/cut/gpu, or lj/cut/cuda.  A variant styles can be specified
-explicitly in your input script, e.g. pair_style lj/cut/gpu.  If the
--suffix switch is used, you do not need to modify your input script.
-The specified suffix (opt,omp,gpu,cuda) is automatically appended
-whenever your input script command creates a new
-"atom"_atom_style.html, "pair"_pair_style.html, "fix"_fix.html,
+lj/cut"_pair_lj.html variant, with style names lj/cut/cuda,
+lj/cut/gpu, lj/cut/kk, lj/cut/omp, or lj/cut/opt.  A variant styles
+can be specified explicitly in your input script, e.g. pair_style
+lj/cut/gpu.  If the -suffix switch is used, you do not need to modify
+your input script.  The specified suffix (cuda,gpu,kk,omp,opt) is
+automatically appended whenever your input script command creates a
+new "atom"_atom_style.html, "pair"_pair_style.html, "fix"_fix.html,
 "compute"_compute.html, or "run"_run_style.html style.  If the variant
 version does not exist, the standard version is created.
 
@@ -1297,13 +1476,20 @@ default GPU settings, as if the command "package gpu force/neigh 0 0
 changed by using the "package gpu"_package.html command in your script
 if desired.
 
+For the KOKKOS package, using this command-line switch also invokes
+the default KOKKOS settings, as if the command "package kokkos neigh
+full comm/exchange host comm/forward host " were used at the top of
+your input script.  These settings can be changed by using the
+"package kokkos"_package.html command in your script if desired.
+
 For the OMP package, using this command-line switch also invokes the
 default OMP settings, as if the command "package omp *" were used at
 the top of your input script.  These settings can be changed by using
 the "package omp"_package.html command in your script if desired.
 
-The "suffix"_suffix.html command can also set a suffix and it can also
-turn off/on any suffix setting made via the command line.
+The "suffix"_suffix.html command can also be used set a suffix and it
+can also turn off or back on any suffix setting made via the command
+line.
 
 -var name value1 value2 ... :pre
 

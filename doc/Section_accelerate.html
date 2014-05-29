@@ -24,7 +24,8 @@ kinds of machines.
 5.5 <A HREF = "#acc_5">USER-OMP package</A><BR>
 5.6 <A HREF = "#acc_6">GPU package</A><BR>
 5.7 <A HREF = "#acc_7">USER-CUDA package</A><BR>
-5.8 <A HREF = "#acc_8">Comparison of GPU and USER-CUDA packages</A> <BR>
+5.8 <A HREF = "#acc_8">KOKKOS package</A><BR>
+5.9 <A HREF = "#acc_9">Comparison of GPU and USER-CUDA packages</A> <BR>
 
 <HR>
 
@@ -146,14 +147,14 @@ command is identical, their functionality is the same, and the
 numerical results it produces should also be identical, except for
 precision and round-off issues.
 </P>
-<P>For example, all of these variants of the basic Lennard-Jones pair
-style exist in LAMMPS:
+<P>For example, all of these styles are variants of the basic
+Lennard-Jones pair style <A HREF = "pair_lj.html">pair_style lj/cut</A>:
 </P>
-<UL><LI><A HREF = "pair_lj.html">pair_style lj/cut</A>
-<LI><A HREF = "pair_lj.html">pair_style lj/cut/opt</A>
-<LI><A HREF = "pair_lj.html">pair_style lj/cut/omp</A>
+<UL><LI><A HREF = "pair_lj.html">pair_style lj/cut/cuda</A>
 <LI><A HREF = "pair_lj.html">pair_style lj/cut/gpu</A>
-<LI><A HREF = "pair_lj.html">pair_style lj/cut/cuda</A> 
+<LI><A HREF = "pair_lj.html">pair_style lj/cut/kk</A>
+<LI><A HREF = "pair_lj.html">pair_style lj/cut/omp</A>
+<LI><A HREF = "pair_lj.html">pair_style lj/cut/opt</A> 
 </UL>
 <P>Assuming you have built LAMMPS with the appropriate package, these
 styles can be invoked by specifying them explicitly in your input
@@ -161,11 +162,17 @@ script.  Or you can use the <A HREF = "Section_start.html#start_7">-suffix comma
 switch</A> to invoke the accelerated versions
 automatically, without changing your input script.  The
 <A HREF = "suffix.html">suffix</A> command allows you to set a suffix explicitly and
-to turn off/on the comand-line switch setting, both from within your
-input script.
+to turn off and back on the comand-line switch setting, both from
+within your input script.
 </P>
-<P>Styles with an "opt" suffix are part of the OPT package and typically
-speed-up the pairwise calculations of your simulation by 5-25%.
+<P>Styles with a "cuda" or "gpu" suffix are part of the USER-CUDA or GPU
+packages, and can be run on NVIDIA GPUs associated with your CPUs.
+The speed-up due to GPU usage depends on a variety of factors, as
+discussed below.
+</P>
+<P>Styles with a "kk" suffix are part of the KOKKOS package, and can be
+run using OpenMP, pthreads, or on an NVIDIA GPU.  The speed-up depends
+on a variety of factors, as discussed below.
 </P>
 <P>Styles with an "omp" suffix are part of the USER-OMP package and allow
 a pair-style to be run in multi-threaded mode using OpenMP.  This can
@@ -174,26 +181,26 @@ than cores is advantageous, e.g. when running with PPPM so that FFTs
 are run on fewer MPI processors or when the many MPI tasks would
 overload the available bandwidth for communication.
 </P>
-<P>Styles with a "gpu" or "cuda" suffix are part of the GPU or USER-CUDA
-packages, and can be run on NVIDIA GPUs associated with your CPUs.
-The speed-up due to GPU usage depends on a variety of factors, as
-discussed below.
+<P>Styles with an "opt" suffix are part of the OPT package and typically
+speed-up the pairwise calculations of your simulation by 5-25%.
 </P>
 <P>To see what styles are currently available in each of the accelerated
 packages, see <A HREF = "Section_commands.html#cmd_5">Section_commands 5</A> of the
 manual.  A list of accelerated styles is included in the pair, fix,
-compute, and kspace sections.
+compute, and kspace sections.  The doc page for each indvidual style
+(e.g. <A HREF = "pair_lj.html">pair lj/cut</A> or <A HREF = "fix_nve.html">fix nve</A>) will also
+list any accelerated variants available for that style.
 </P>
 <P>The following sections explain:
 </P>
 <UL><LI>what hardware and software the accelerated styles require
-<LI>how to build LAMMPS with the accelerated packages in place
+<LI>how to build LAMMPS with the accelerated package in place
 <LI>what changes (if any) are needed in your input scripts
 <LI>guidelines for best performance
 <LI>speed-ups you can expect 
 </UL>
 <P>The final section compares and contrasts the GPU and USER-CUDA
-packages, since they are both designed to use NVIDIA GPU hardware.
+packages, since they are both designed to use NVIDIA hardware.
 </P>
 <HR>
 
@@ -212,8 +219,8 @@ dependencies:
 <PRE>make yes-opt
 make machine 
 </PRE>
-<P>If your input script uses one of the OPT pair styles,
-you can run it as follows:
+<P>If your input script uses one of the OPT pair styles, you can run it
+as follows:
 </P>
 <PRE>lmp_machine -sf opt < in.script
 mpirun -np 4 lmp_machine -sf opt < in.script 
@@ -226,12 +233,13 @@ to 20% savings.
 
 <H4><A NAME = "acc_5"></A>5.5 USER-OMP package 
 </H4>
-<P>The USER-OMP package was developed by Axel Kohlmeyer at Temple University.
-It provides multi-threaded versions of most pair styles, all dihedral
-styles and a few fixes in LAMMPS. The package currently uses the OpenMP
-interface which requires using a specific compiler flag in the makefile
-to enable multiple threads; without this flag the corresponding pair
-styles will still be compiled and work, but do not support multi-threading.
+<P>The USER-OMP package was developed by Axel Kohlmeyer at Temple
+University.  It provides multi-threaded versions of most pair styles,
+all dihedral styles, and a few fixes in LAMMPS. The package currently
+uses the OpenMP interface which requires using a specific compiler
+flag in the makefile to enable multiple threads; without this flag the
+corresponding pair styles will still be compiled and work, but do not
+support multi-threading.
 </P>
 <P><B>Building LAMMPS with the USER-OMP package:</B>
 </P>
@@ -264,18 +272,19 @@ env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
 mpirun -x OMP_NUM_THREADS=2 -np 2 lmp_machine -sf omp -in in.script 
 </PRE>
 <P>The value of the environment variable OMP_NUM_THREADS determines how
-many threads per MPI task are launched. All three examples above use
-a total of 4 CPU cores.  For different MPI implementations the method
-to pass the OMP_NUM_THREADS environment variable to all processes is
-different.  Two different variants, one for MPICH and OpenMPI, respectively
-are shown above.  Please check the documentation of your MPI installation
-for additional details.  Alternatively, the value provided by OMP_NUM_THREADS
-can be overridded with the <A HREF = "package.html">package omp</A> command.
-Depending on which styles are accelerated in your input, you should
-see a reduction in the "Pair time" and/or "Bond time" and "Loop time"
-printed out at the end of the run. The optimal ratio of MPI to OpenMP
-can vary a lot and should always be confirmed through some benchmark
-runs for the current system and on the current machine.
+many threads per MPI task are launched. All three examples above use a
+total of 4 CPU cores.  For different MPI implementations the method to
+pass the OMP_NUM_THREADS environment variable to all processes is
+different.  Two different variants, one for MPICH and OpenMPI,
+respectively are shown above.  Please check the documentation of your
+MPI installation for additional details.  Alternatively, the value
+provided by OMP_NUM_THREADS can be overridded with the <A HREF = "package.html">package
+omp</A> command.  Depending on which styles are accelerated
+in your input, you should see a reduction in the "Pair time" and/or
+"Bond time" and "Loop time" printed out at the end of the run. The
+optimal ratio of MPI to OpenMP can vary a lot and should always be
+confirmed through some benchmark runs for the current system and on
+the current machine.
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -293,53 +302,55 @@ On the other hand, in many cases you still want to use the <I>omp</I> version
 all contain optimizations similar to those in the OPT package, which
 can result in serial speedup.
 </P>
-<P>Using multi-threading is most effective under the following circumstances:
+<P>Using multi-threading is most effective under the following
+circumstances:
 </P>
-<UL><LI>Individual compute nodes have a significant number of CPU cores
-but the CPU itself has limited memory bandwidth, e.g. Intel Xeon 53xx
-(Clovertown) and 54xx (Harpertown) quad core processors. Running
-one MPI task per CPU core will result in significant performance
-degradation, so that running with 4 or even only 2 MPI tasks per
-nodes is faster. Running in hybrid MPI+OpenMP mode will reduce the
-inter-node communication bandwidth contention in the same way,
-but offers and additional speedup from utilizing the otherwise
-idle CPU cores. 
+<UL><LI>Individual compute nodes have a significant number of CPU cores but
+the CPU itself has limited memory bandwidth, e.g. Intel Xeon 53xx
+(Clovertown) and 54xx (Harpertown) quad core processors. Running one
+MPI task per CPU core will result in significant performance
+degradation, so that running with 4 or even only 2 MPI tasks per nodes
+is faster. Running in hybrid MPI+OpenMP mode will reduce the
+inter-node communication bandwidth contention in the same way, but
+offers and additional speedup from utilizing the otherwise idle CPU
+cores. 
 
 <LI>The interconnect used for MPI communication is not able to provide
-sufficient bandwidth for a large number of MPI tasks per node.
-This applies for example to running over gigabit ethernet or
-on Cray XT4 or XT5 series supercomputers. Same as in the aforementioned
-case this effect worsens with using an increasing number of nodes. 
+sufficient bandwidth for a large number of MPI tasks per node.  This
+applies for example to running over gigabit ethernet or on Cray XT4 or
+XT5 series supercomputers. Same as in the aforementioned case this
+effect worsens with using an increasing number of nodes. 
 
-<LI>The input is a system that has an inhomogeneous particle density
-which cannot be mapped well to the domain decomposition scheme
-that LAMMPS employs. While this can be to some degree alleviated
-through using the <A HREF = "processors.html">processors</A> keyword, multi-threading
-provides a parallelism that parallelizes over the number of particles
-not their distribution in space. 
+<LI>The input is a system that has an inhomogeneous particle density which
+cannot be mapped well to the domain decomposition scheme that LAMMPS
+employs. While this can be to some degree alleviated through using the
+<A HREF = "processors.html">processors</A> keyword, multi-threading provides a
+parallelism that parallelizes over the number of particles not their
+distribution in space. 
 
 <LI>Finally, multi-threaded styles can improve performance when running
 LAMMPS in "capability mode", i.e. near the point where the MPI
-parallelism scales out. This can happen in particular when using
-as kspace style for long-range electrostatics. Here the scaling
-of the kspace style is the performance limiting factor and using
-multi-threaded styles allows to operate the kspace style at the
-limit of scaling and then increase performance parallelizing
-the real space calculations with hybrid MPI+OpenMP. Sometimes
-additional speedup can be achived by increasing the real-space
-coulomb cutoff and thus reducing the work in the kspace part. 
+parallelism scales out. This can happen in particular when using as
+kspace style for long-range electrostatics. Here the scaling of the
+kspace style is the performance limiting factor and using
+multi-threaded styles allows to operate the kspace style at the limit
+of scaling and then increase performance parallelizing the real space
+calculations with hybrid MPI+OpenMP. Sometimes additional speedup can
+be achived by increasing the real-space coulomb cutoff and thus
+reducing the work in the kspace part. 
 </UL>
-<P>The best parallel efficiency from <I>omp</I> styles is typically 
-achieved when there is at least one MPI task per physical 
-processor, i.e. socket or die.
+<P>The best parallel efficiency from <I>omp</I> styles is typically achieved
+when there is at least one MPI task per physical processor,
+i.e. socket or die.
 </P>
 <P>Using threads on hyper-threading enabled cores is usually
 counterproductive, as the cost in additional memory bandwidth
-requirements is not offset by the gain in CPU utilization
-through hyper-threading.
+requirements is not offset by the gain in CPU utilization through
+hyper-threading.
 </P>
 <P>A description of the multi-threading strategy and some performance
-examples are <A HREF = "http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1">presented here</A>
+examples are <A HREF = "http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1">presented
+here</A>
 </P>
 <HR>
 
@@ -366,32 +377,23 @@ between processors, runs on the CPU.
 <LI>Asynchronous force computations can be performed simultaneously on the
 CPU(s) and GPU. 
 
+<LI>It allows for GPU computations to be performed in single or double
+precision, or in mixed-mode precision. where pairwise forces are
+cmoputed in single precision, but accumulated into double-precision
+force vectors. 
+
 <LI>LAMMPS-specific code is in the GPU package.  It makes calls to a
 generic GPU library in the lib/gpu directory.  This library provides
 NVIDIA support as well as more general OpenCL support, so that the
 same functionality can eventually be supported on a variety of GPU
 hardware. 
 </UL>
-<P>NOTE:
-  discuss 3 precisions
-    if change, also have to re-link with LAMMPS
-  always use newton off
-  expt with differing numbers of CPUs vs GPU - can't tell what is fastest
-  give command line switches in examples
-</P>
-<P>I am not very clear to the meaning of  "Max Mem / Proc"
-in the "GPU Time Info (average)".
-Is it the maximal of GPU memory used by one CPU core?
-</P>
-<P>It is the maximum memory used at one time on the GPU for data storage by
-a single MPI process. - Mike
-</P>
 <P><B>Hardware and software requirements:</B>
 </P>
-<P>To use this package, you currently need to have specific NVIDIA
-hardware and install specific NVIDIA CUDA software on your system:
+<P>To use this package, you currently need to have an NVIDIA GPU and
+install the NVIDIA Cuda software on your system:
 </P>
-<UL><LI>Check if you have an NVIDIA card: cat /proc/driver/nvidia/cards/0
+<UL><LI>Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/cards/0
 <LI>Go to http://www.nvidia.com/object/cuda_get.html
 <LI>Install a driver and toolkit appropriate for your system (SDK is not necessary)
 <LI>Follow the instructions in lammps/lib/gpu/README to build the library (see below)
@@ -403,8 +405,21 @@ hardware and install specific NVIDIA CUDA software on your system:
 need to first build the GPU library, before building LAMMPS itself.
 General instructions for doing this are in <A HREF = "Section_start.html#start_3">this
 section</A> of the manual.  For this package,
-do the following, using a Makefile in lib/gpu appropriate for your
-system:
+use a Makefile in lib/gpu appropriate for your system.
+</P>
+<P>Before building the library, you can set the precision it will use by
+editing the CUDA_PREC setting in the Makefile you are using, as
+follows:
+</P>
+<PRE>CUDA_PREC = -D_SINGLE_SINGLE  # Single precision for all calculations
+CUDA_PREC = -D_DOUBLE_DOUBLE  # Double precision for all calculations
+CUDA_PREC = -D_SINGLE_DOUBLE  # Accumulation of forces, etc, in double 
+</PRE>
+<P>The last setting is the mixed mode referred to above.  Note that your
+GPU must support double precision to use either the 2nd or 3rd of
+these settings.
+</P>
+<P>To build the library, then type:
 </P>
 <PRE>cd lammps/lib/gpu
 make -f Makefile.linux
@@ -424,41 +439,60 @@ set appropriately to include the paths and settings for the CUDA
 system software on your machine.  See src/MAKE/Makefile.g++ for an
 example.
 </P>
-<P><B>GPU configuration</B>
+<P>Also note that if you change the GPU library precision, you need to
+re-build the entire library.  You should do a "clean" first,
+e.g. "make -f Makefile.linux clean".  Then you must also re-build
+LAMMPS if the library precision has changed, so that it re-links with
+the new library.
 </P>
-<P>When using GPUs, you are restricted to one physical GPU per LAMMPS
-process, which is an MPI process running on a single core or
-processor.  Multiple MPI processes (CPU cores) can share a single GPU,
-and in many cases it will be more efficient to run this way.
+<P><B>Running an input script:</B>
 </P>
-<P><B>Input script requirements:</B>
+<P>The examples/gpu and bench/GPU directories have scripts that can be
+run with the GPU package, as well as detailed instructions on how to
+run them.
 </P>
-<P>Additional input script requirements to run pair or PPPM styles with a
+<P>The total number of MPI tasks used by LAMMPS (one or multiple per
+compute node) is set in the usual manner via the mpirun or mpiexec
+commands, and is independent of the GPU package.
+</P>
+<P>When using the GPU package, you cannot assign more than one physical
+GPU to an MPI task.  However multiple MPI tasks can share the same
+GPU, and in many cases it will be more efficient to run this way.
+</P>
+<P>Input script requirements to run using pair or PPPM styles with a
 <I>gpu</I> suffix are as follows:
 </P>
-<UL><LI>To invoke specific styles from the GPU package, you can either append
-"gpu" to the style name (e.g. pair_style lj/cut/gpu), or use the
-<A HREF = "Section_start.html#start_7">-suffix command-line switch</A>, or use the
-<A HREF = "suffix.html">suffix</A> command. 
+<UL><LI>To invoke specific styles from the GPU package, either append "gpu" to
+the style name (e.g. pair_style lj/cut/gpu), or use the <A HREF = "Section_start.html#start_7">-suffix
+command-line switch</A>, or use the
+<A HREF = "suffix.html">suffix</A> command in the input script. 
 
-<LI>The <A HREF = "newton.html">newton pair</A> setting must be <I>off</I>. 
+<LI>The <A HREF = "newton.html">newton pair</A> setting in the input script must be
+<I>off</I>. 
 
-<LI>The <A HREF = "package.html">package gpu</A> command must be used near the beginning
-of your script to control the GPU selection and initialization
-settings.  It also has an option to enable asynchronous splitting of
-force computations between the CPUs and GPUs. 
+<LI>Unless the <A HREF = "Section_start.html#start_7">-suffix gpu command-line
+switch</A> is used, the <A HREF = "package.html">package
+gpu</A> command must be used near the beginning of the
+script to control the GPU selection and initialization settings.  It
+also has an option to enable asynchronous splitting of force
+computations between the CPUs and GPUs. 
 </UL>
-<P>As an example, if you have two GPUs per node and 8 CPU cores per node,
-and would like to run on 4 nodes (32 cores) with dynamic balancing of
-force calculation across CPU and GPU cores, you could specify
+<P>The default for the <A HREF = "package.html">package gpu</A> command is to have all
+the MPI tasks on the compute node use a single GPU.  If you have
+multiple GPUs per node, then be sure to create one or more MPI tasks
+per GPU, and use the first/last settings in the <A HREF = "package.html">package
+gpu</A> command to include all the GPU IDs on the node.
+E.g. first = 0, last = 1, for 2 GPUs.  For example, on an 8-core 2-GPU
+compute node, if you assign 8 MPI tasks to the node, the following
+command in the input script
 </P>
-<PRE>package gpu force/neigh 0 1 -1 
-</PRE>
-<P>In this case, all CPU cores and GPU devices on the nodes would be
-utilized.  Each GPU device would be shared by 4 CPU cores. The CPU
-cores would perform force calculations for some fraction of the
-particles at the same time the GPUs performed force calculation for
-the other particles.
+<P>package gpu force/neigh 0 1 -1
+</P>
+<P>would speciy each GPU is shared by 4 MPI tasks.  The final -1 will
+dynamically balance force calculations across the CPU cores and GPUs.
+I.e. each CPU core will perform force calculations for some small
+fraction of the particles, at the same time the GPUs perform force
+calcaultions for the majority of the particles.
 </P>
 <P><B>Timing output:</B>
 </P>
@@ -482,19 +516,30 @@ screen output (not in the log file) at the end of each run.  These
 timings represent total time spent on the GPU for each routine,
 regardless of asynchronous CPU calculations.
 </P>
+<P>The output section "GPU Time Info (average)" reports "Max Mem / Proc".
+This is the maximum memory used at one time on the GPU for data
+storage by a single MPI process.
+</P>
 <P><B>Performance tips:</B>
 </P>
-<P>Generally speaking, for best performance, you should use multiple CPUs
-per GPU, as provided my most multi-core CPU/GPU configurations.
+<P>You should experiment with how many MPI tasks per GPU to use to see
+what gives the best performance for your problem.  This is a function
+of your problem size and what pair style you are using.  Likewise, you
+should also experiment with the precision setting for the GPU library
+to see if single or mixed precision will give accurate results, since
+they will typically be faster.
 </P>
-<P>Because of the large number of cores within each GPU device, it may be
-more efficient to run on fewer processes per GPU when the number of
-particles per MPI process is small (100's of particles); this can be
-necessary to keep the GPU cores busy.
+<P>Using multiple MPI tasks per GPU will often give the best performance,
+as allowed my most multi-core CPU/GPU configurations.
 </P>
-<P>See the lammps/lib/gpu/README file for instructions on how to build
-the GPU library for single, mixed, or double precision.  The latter
-requires that your GPU card support double precision.
+<P>If the number of particles per MPI task is small (e.g. 100s of
+particles), it can be more eefficient to run with fewer MPI tasks per
+GPU, even if you do not use all the cores on the compute node.
+</P>
+<P>The <A HREF = "http://lammps.sandia.gov/bench.html">Benchmark page</A> of the LAMMPS
+web site gives GPU performance on a desktop machine and the Titan HPC
+platform at ORNL for several of the LAMMPS benchmarks, as a function
+of problem size and number of compute nodes.
 </P>
 <HR>
 
@@ -632,9 +677,292 @@ occurs, the faster your simulation will run.
 </P>
 <HR>
 
+<H4><A NAME = "acc_8"></A>5.8 KOKKOS package 
+</H4>
+<P>The KOKKOS package contains versions of pair, fix, and atom styles
+that use data structures and methods and macros provided by the Kokkos
+library, which is included with LAMMPS in lib/kokkos.
+</P>
+<P>Kokkos is a C++ library that provides two key abstractions for an
+application like LAMMPS.  First, it allows a single implementation of
+an application kernel (e.g. a pair style) to run efficiently on
+different kinds of hardware (GPU, Intel Phi, many-core chip).
+</P>
+<P>Second, it adjusts the memory layout of basic data structures like 2d
+and 3d arrays specifically for the chosen hardware.  These are used in
+LAMMPS to store atom coordinates or forces or neighbor lists.  The
+layout is chosen to optimize performance on different platforms.
+Again this operation is hidden from the developer, and does not affect
+how the single implementation of the kernel is coded.
+</P>
+<P>CT NOTE: Pointer to Kokkos web page???
+</P>
+<P>These abstractions are set at build time, when LAMMPS is compiled with
+the KOKKOS package installed.  This is done by selecting a "host" and
+"device" to build for, compatible with the compute nodes in your
+machine.  Note that if you are running on a desktop machine, you
+typically have one compute node.  On a cluster or supercomputer there
+may be dozens or 1000s of compute nodes.  The procedure for building
+and running with the Kokkos library is the same, no matter how many
+nodes you run on.
+</P>
+<P>All Kokkos operations occur within the context of an individual MPI
+task running on a single node of the machine.  The total number of MPI
+tasks used by LAMMPS (one or multiple per compute node) is set in the
+usual manner via the mpirun or mpiexec commands, and is independent of
+Kokkos.
+</P>
+<P>Kokkos provides support for one or two modes of execution per MPI
+task.  This means that some computational tasks (pairwise
+interactions, neighbor list builds, time integration, etc) are
+parallelized in one or the other of the two modes.  The first mode is
+called the "host" and is one or more threads running on one or more
+physical CPUs (within the node).  Currently, both multi-core CPUs and
+an Intel Phi processor (running in native mode) are supported.  The
+second mode is called the "device" and is an accelerator chip of some
+kind.  Currently only an NVIDIA GPU is supported.  If your compute
+node does not have a GPU, then there is only one mode of execution,
+i.e. the host and device are the same.
+</P>
+<P>IMPORTNANT NOTE: Currently, if using GPUs, you should set the number
+of MPI tasks per compute node to be equal to the number of GPUs per
+compute node.  In the future Kokkos will support assigning one GPU to
+multiple MPI tasks or using multiple GPUs per MPI task.
+</P>
+<P>CT NOTE: what about AMD GPUs running OpenCL? are they supported?
+</P>
+<P>Here are several examples of how to build LAMMPS and run a simulation
+using the KOKKOS package for typical compute node configurations.
+Note that the -np setting for the mpirun command in these examples are
+for a run on a single node.  To scale these examples up to run on a
+system with N compute nodes, simply multiply the -np setting by N.
+</P>
+<P>All the build steps are performed from within the src directory.  All
+the run steps are performed in the bench directory using the in.lj
+input script.  It is assumed the LAMMPS executable has been copied to
+that directory or whatever directory the runs are being performed in.
+Details of the various options are discussed below.
+</P>
+<P><B>Compute node(s) = dual hex-core CPUs and no GPU:</B>
+</P>
+<PRE>make yes-kokkos                           # install the KOKKOS package
+make g++ OMP=yes                          # build with OpenMP, no CUDA 
+</PRE>
+<PRE>mpirun -np 12 lmp_g++ -k off < in.lj      # MPI-only mode with no Kokkos
+mpirun -np 12 lmp_g++ -sf kk < in.lj      # MPI-only mode with Kokkos
+mpirun -np 1 lmp_g++ -k on t 12 -sf kk < in.lj     # one MPI task, 12 threads
+mpirun -np 2 lmp_g++ -k on t 6 -sf kk < in.lj      # two MPI tasks, 6 threads/task 
+</PRE>
+<P><B>Compute node(s) = Intel Phi with 61 cores:</B>
+</P>
+<PRE>make yes-kokkos
+make g++ OMP=yes MIC=yes                  # build with OpenMP for Phi 
+</PRE>
+<PRE>mpirun -np 12 lmp_g++ -k on t 20 -sf kk < in.lj      # 12*20 = 240 total cores
+mpirun -np 15 lmp_g++ -k on t 16 -sf kk < in.lj
+mpirun -np 30 lmp_g++ -k on t 8 -sf kk < in.lj
+mpirun -np 1 lmp_g++ -k on t 240 -sf kk < in.lj 
+</PRE>
+<P><B>Compute node(s) = dual hex-core CPUs and a single GPU:</B>
+</P>
+<PRE>make yes-kokkos
+make cuda CUDA=yes             # build for GPU, use src/MAKE/Makefile.cuda 
+</PRE>
+<PRE>mpirun -np 1 lmp_cuda -k on t 6 -sf kk < in.lj 
+</PRE>
+<P><B>Compute node(s) = dual 8-core CPUs and 2 GPUs:</B>
+</P>
+<PRE>make yes-kokkos
+make cuda CUDA=yes 
+</PRE>
+<PRE>mpirun -np 2 lmp_cuda -k on t 8 g 2 -sf kk < in.lj     # use both GPUs, one per MPI task 
+</PRE>
+<P><B>Building LAMMPS with the KOKKOS package:</B>
+</P>
+<P>A summary of the build process is given here.  More details and all
+the available make variable options are given in <A HREF = "Section_start.html#start_3_4">this
+section</A> of the manual.
+</P>
+<P>From the src directory, type
+</P>
+<PRE>make yes-kokkos 
+</PRE>
+<P>to include the KOKKOS package.  Then perform a normal LAMMPS build,
+with additional make variable specifications to choose the host and
+device you will run the resulting executable on, e.g.
+</P>
+<PRE>make g++ OMP=yes
+make cuda CUDA=yes 
+</PRE>
+<P>As illustrated above, the most important variables to set are OMP,
+CUDA, and MIC.  The default settings are OMP=yes, CUDA=no, MIC=no
+Setting OMP to <I>yes</I> will use OpenMP for threading on the host, as
+well as on the device (if no GPU is present).  Setting CUDA to <I>yes</I>
+will use one or more GPUs as the device.  Setting MIC=yes is necessary
+when building for an Intel Phi processor.
+</P>
+<P>Note that to use a GPU, you must use a lo-level Makefile,
+e.g. src/MAKE/Makefile.cuda as included in the LAMMPS distro, which
+uses the NVIDA "nvcc" compiler.  You must check that the CCFLAGS -arch
+setting is appropriate for your NVIDIA hardware and installed
+software.  Typical values for -arch are given in <A HREF = "Section_start.html#start_3_4">this
+section</A> of the manual, as well as other
+settings that must be included in the lo-level Makefile, if you create
+your own.
+</P>
+<P><B>Input scripts and use of command-line switches -kokkos and -suffix:</B>
+</P>
+<P>To use any Kokkos-enabled style provided in the KOKKOS package, you
+must use a Kokkos-enabled atom style.  LAMMPS will give an error if
+you do not do this.
+</P>
+<P>There are two command-line switches relevant to using Kokkos, -k or
+-kokkos, and -sf or -suffix.  They are described in detail in <A HREF = "Section_start.html#start_7">this
+section</A> of the manual.
+</P>
+<P>Here are common options to use:
+</P>
+<UL><LI>-k off : runs an executable built with the KOKKOS pacakage, as
+ if Kokkos were not installed. 
+
+<LI>-sf kk : enables automatic use of Kokkos versions of atom, pair,
+fix, compute styles if they exist.  This can also be done with more
+precise control by using the <A HREF = "suffix.html">suffix</A> command or appending
+"kk" to styles within the input script, e.g. "pair_style lj/cut/kk". 
+
+<LI>-k on t Nt : specifies how many threads per MPI task to use within a
+ compute node.  For good performance, the product of MPI tasks *
+ threads/task should not exceed the number of physical CPU or Intel
+ Phi cores. 
+
+<LI>-k on g Ng : specifies how many GPUs per compute node are available.
+The default is 1, so this should be specified is you have 2 or more
+GPUs per compute node. 
+</UL>
+<P><B>Use of package command options:</B>
+</P>
+<P>Using the <A HREF = "package.html">package kokkos</A> command in an input script
+allows choice of options for neighbor lists and communication.  See
+the <A HREF = "package.html">package</A> command doc page for details and default
+settings.
+</P>
+<P>Experimenting with different styles of neighbor lists or inter-node
+communication can provide a speed-up for specific calculations.
+</P>
+<P><B>Running on a multi-core CPU:</B>
+</P>
+<P>Build with OMP=yes (the default) and CUDA=no (the default).
+</P>
+<P>If N is the number of physical cores/node, then the number of MPI
+tasks/node * number of threads/task should not exceed N, and should
+typically equal N.  Note that the default threads/task is 1, as set by
+the "t" keyword of the -k <A HREF = "Section_start.html#start_7">command-line
+switch</A>.  If you do not change this, there
+will no additional parallelism (beyond MPI) invoked on the host
+CPU(s).
+</P>
+<P>You can compare the performance running in different modes:
+</P>
+<UL><LI>run with 1 MPI task/node and N threads/task
+<LI>run with N MPI tasks/node and 1 thread/task
+<LI>run with settings in between these extremes 
+</UL>
+<P>Examples of mpirun commands in these modes, for nodes with dual
+hex-core CPUs and no GPU, are shown above.
+</P>
+<P><B>Running on GPUs:</B>
+</P>
+<P>Build with CUDA=yes, using src/MAKE/Makefile.cuda.  Insure the setting
+for CUDA_PATH in lib/kokkos/Makefile.lammps is correct for your Cuda
+software installation.  Insure the -arch setting in
+src/MAKE/Makefile.cuda is correct for your GPU hardware/software (see
+<A HREF = "Section_start.html#start_3_4">this section</A> of the manual for details.
+</P>
+<P>The -np setting of the mpirun command must set the number of MPI
+tasks/node to be equal to the # of physical GPUs on the node.  CT
+NOTE: does LAMMPS enforce this?
+</P>
+<P>Use the <A HREF = "Section_commands.html#start_7">-kokkos command-line switch</A> to
+specify the number of GPUs per node, and the number of threads per MPI
+task.  As above for multi-core CPUs (and no GPU), if N is the number
+of physical cores/node, then the number of MPI tasks/node * number of
+threads/task should not exceed N.  With one GPU (and one MPI task) it
+may be faster to use less than all the available cores, by setting
+threads/task to a smaller value.  This is because using all the cores
+on a dual-socket node will incur extra cost to copy memory from the
+2nd socket to the GPU.
+</P>
+<P>Examples of mpirun commands that follow these rules, for nodes with
+dual hex-core CPUs and one or two GPUs, are shown above.
+</P>
+<P><B>Running on an Intel Phi:</B>
+</P>
+<P>Kokkos only uses Intel Phi processors in their "native" mode, i.e.
+not hosted by a CPU.
+</P>
+<P>Build with OMP=yes (the default) and MIC=yes.  The latter
+insures code is correctly compiled for the Intel Phi.  The
+OMP setting means OpenMP will be used for parallelization
+on the Phi, which is currently the best option within
+Kokkos.  In the future, other options may be added.
+</P>
+<P>Current-generation Intel Phi chips have either 61 or 57 cores.  One
+core should be excluded to run the OS, leaving 60 or 56 cores.  Each
+core is hyperthreaded, so there are effectively N = 240 (4*60) or N =
+224 (4*56) cores to run on.
+</P>
+<P>The -np setting of the mpirun command sets the number of MPI
+tasks/node.  The "-k on t Nt" command-line switch sets the number of
+threads/task as Nt.  The product of these 2 values should be N, i.e.
+240 or 224.  Also, the number of threads/task should be a multiple of
+4 so that logical threads from more than one MPI task do not run on
+the same physical core.
+</P>
+<P>Examples of mpirun commands that follow these rules, for Intel Phi
+nodes with 61 cores, are shown above.
+</P>
+<P><B>Examples and benchmarks:</B>
+</P>
+<P>The examples/kokkos and bench/KOKKOS directories have scripts that can
+be run with the KOKKOS package, as well as detailed instructions on
+how to run them.
+</P>
+<P>IMPORTANT NOTE: the bench/KOKKOS directory does not yet exist.  It
+will be added later.
+</P>
+<P><B>Additional performance issues:</B>
+</P>
+<P>When using threads (OpenMP or pthreads), it is important for
+performance to bind the threads to physical cores, so they do not
+migrate during a simulation.  The same is true for MPI tasks, but the
+default binding rules implemented for various MPI versions, do not
+account for thread binding.  Thus you should do the following if using
+multiple threads per MPI task.  CT NOTE: explain what to do.
+</P>
+<P>When using a GPU, you will achieve the best performance if your input
+script does not use any fix or compute styles which are not yet
+Kokkos-enabled.  This allows data to stay on the GPU for multiple
+timesteps, without being copied back to the host CPU.  Invoking a
+non-Kokkos fix or compute, or performing I/O for
+<A HREF = "thermo_style.html">thermo</A> or <A HREF = "dump.html">dump</A> output will cause data
+to be copied back to the CPU.
+</P>
+<P>You cannot yet assign multiple MPI tasks to the same GPU with the
+KOKKOS package.  We plan to support this in the future, similar to the
+GPU package in LAMMPS.
+</P>
+<P>You cannot yet use both the host (multi-threaded) and device (GPU)
+together to compute pairwise interactions with the KOKKOS package.  We
+hope to support this in the future, similar to the GPU package in
+LAMMPS.
+</P>
+<P>CT NOTE: other performance tips??
+</P>
 <HR>
 
-<H4><A NAME = "acc_8"></A>5.8 Comparison of GPU and USER-CUDA packages 
+<HR>
+
+<H4><A NAME = "acc_9"></A>5.9 Comparison of GPU and USER-CUDA packages 
 </H4>
 <P>Both the GPU and USER-CUDA packages accelerate a LAMMPS calculation
 using NVIDIA hardware, but they do it in different ways.

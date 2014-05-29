@@ -12,21 +12,8 @@ package command :h3
 
 package style args :pre
 
-style = {gpu} or {cuda} or {omp} :ulb,l
+style = {cuda} or {gpu} or {kokkos} or {omp} :ulb,l
 args = arguments specific to the style :l
-  {gpu} args = mode first last split keyword value ...
-    mode = force or force/neigh
-    first = ID of first GPU to be used on each node
-    last = ID of last GPU to be used on each node
-    split = fraction of particles assigned to the GPU
-    zero or more keyword/value pairs may be appended
-    keywords = {threads_per_atom} or {cellsize} or {device}
-      {threads_per_atom} value = Nthreads
-        Nthreads = # of GPU threads used per atom
-      {cellsize} value = dist
-        dist = length (distance units) in each dimension for neighbor bins
-      {device} value = device_type
-        device_type = {kepler} or {fermi} or {cypress} or {generic}
   {cuda} args = keyword value ...
     one or more keyword/value pairs may be appended
     keywords = {gpu/node} or {gpu/node/special} or {timing} or {test} or {override/bpa}
@@ -40,6 +27,25 @@ args = arguments specific to the style :l
         id = atom-ID of a test particle
       {override/bpa} values = flag
         flag = 0 for TpA algorithm, 1 for BpA algorithm 
+  {gpu} args = mode first last split keyword value ...
+    mode = force or force/neigh
+    first = ID of first GPU to be used on each node
+    last = ID of last GPU to be used on each node
+    split = fraction of particles assigned to the GPU
+    zero or more keyword/value pairs may be appended
+    keywords = {threads_per_atom} or {cellsize} or {device}
+      {threads_per_atom} value = Nthreads
+        Nthreads = # of GPU threads used per atom
+      {cellsize} value = dist
+        dist = length (distance units) in each dimension for neighbor bins
+      {device} value = device_type
+        device_type = {kepler} or {fermi} or {cypress} or {generic}
+  {kokkos} args = keyword value ...
+    one or more keyword/value pairs may be appended
+    keywords = {neigh} or {comm/exchange} or {comm/forward}
+      {neigh} value = {full} or {half/thread} or {half} or {n2} or {full/cluster}
+      {comm/exchange} value = {no} or {host} or {device}
+      {comm/forward} value = {no} or {host} or {device}
   {omp} args = Nthreads mode
     Nthreads = # of OpenMP threads to associate with each MPI process
     mode = force or force/neigh (optional) :pre
@@ -53,13 +59,14 @@ package gpu force/neigh 0 0 1.0
 package gpu force/neigh 0 1 -1.0
 package cuda gpu/node/special 2 0 2
 package cuda test 3948
+package kokkos neigh half/thread comm/forward device
 package omp * force/neigh
 package omp 4 force :pre
 
 [Description:]
 
 This command invokes package-specific settings.  Currently the
-following packages use it: GPU, USER-CUDA, and USER-OMP.
+following packages use it: USER-CUDA, GPU, KOKKOS, and USER-OMP.
 
 To use the accelerated GPU and USER-OMP styles, the use of the package
 command is required.  However, as described in the "Defaults" section
@@ -68,13 +75,65 @@ options"_Section_start.html#start_7 to enable use of these styles,
 then default package settings are enabled.  In that case you only need
 to use the package command if you want to change the defaults.
 
-To use the accelerate USER-CUDA styles, the package command is not
-required as defaults are assigned internally.  You only need to use
-the package command if you want to change the defaults.
+To use the accelerated USER-CUDA and KOKKOS styles, the package
+command is not required as defaults are assigned internally.  You only
+need to use the package command if you want to change the defaults.
 
 See "Section_accelerate"_Section_accelerate.html of the manual for
 more details about using these various packages for accelerating
 LAMMPS calculations.
+
+:line
+
+The {cuda} style invokes options associated with the use of the
+USER-CUDA package.  
+
+The {gpu/node} keyword specifies the number {N} of GPUs to be used on
+each node.  An MPI process with rank {K} will use the GPU (K mod N).
+This implies that processes should be assigned with successive ranks
+on each node, which is the default with most (or even all) MPI
+implementations. The default value for {N} is 2.
+
+The {gpu/node/special} keyword also specifies the number (N) of GPUs
+to be used on each node, but allows more control over their
+specification.  An MPI process with rank {K} will use the GPU {gpuI}
+with l = (K mod N) + 1. This implies that processes should be assigned
+with successive ranks on each node, which is the default with most (or
+even all) MPI implementations.  For example if you have three GPUs on
+a machine, one of which is used for the X-Server (the GPU with the ID
+1) while the others (with IDs 0 and 2) are used for computations you
+would specify:
+
+package cuda gpu/node/special 2 0 2 :pre
+
+A main purpose of the {gpu/node/special} optoin is to allow two (or
+more) simulations to be run on one workstation.  In that case one
+would set the first simulation to use GPU 0 and the second to use GPU
+1. This is not necessary though, if the GPUs are in what is called
+{compute exclusive} mode.  Using that setting, every process will get
+its own GPU automatically.  This {compute exclusive} mode can be set
+as root using the {nvidia-smi} tool which is part of the CUDA
+installation.
+
+Note that if the {gpu/node/special} keyword is not used, the USER-CUDA
+package sorts existing GPUs on each node according to their number of
+multiprocessors.  This way, compute GPUs will be priorized over
+X-Server GPUs.
+ 
+Use of the {timing} keyword will output detailed timing information
+for various subroutines.
+
+The {test} keyword will output info for the the specified atom at
+several points during each time step.  This is mainly usefull for
+debugging purposes.  Note that the simulation will be severly slowed
+down if this option is used.
+
+The {override/bpa} keyword can be used to specify which mode is used
+for pair-force evaluation.  TpA = one thread per atom; BpA = one block
+per atom.  If this keyword is not used, a short test at the begin of
+each run will determine which method is more effective (the result of
+this test is part of the LAMMPS output).  Therefore it is usually not
+necessary to use this keyword.
 
 :line
 
@@ -151,55 +210,64 @@ device type can be specified when building LAMMPS with the GPU library.
 
 :line
 
-The {cuda} style invokes options associated with the use of the
-USER-CUDA package.  
+The {kk} style invokes options associated with the use of the
+KOKKOS package.
 
-The {gpu/node} keyword specifies the number {N} of GPUs to be used on
-each node.  An MPI process with rank {K} will use the GPU (K mod N).
-This implies that processes should be assigned with successive ranks
-on each node, which is the default with most (or even all) MPI
-implementations. The default value for {N} is 2.
+The {neigh} keyword determines what kinds of neighbor lists are built.
+A value of {half} uses half-neighbor lists, the same as used by most
+pair styles in LAMMPS.  This is the default when running without
+threads on a CPU.  A value of {half/thread} uses a threadsafe variant
+of the half-neighbor list.  It should be used instead of {half} when
+running with threads on a CPU.  A value of {full} uses a
+full-neighborlist, i.e. f_ij and f_ji are both calculated.  This
+performs twice as much computation as the {half} option, however that
+can be a win because it is threadsafe and doesn't require atomic
+operations.  This is the default when running in threaded mode or on
+GPUs.  A value of {full/cluster} is an experimental neighbor style,
+where particles interact with all particles within a small cluster, if
+at least one of the clusters particles is within the neighbor cutoff
+range.  This potentially allows for better vectorization on
+architectures such as the Intel Phi.  If also reduces the size of the
+neighbor list by roughly a factor of the cluster size, thus reducing
+the total memory footprint considerably.
 
-The {gpu/node/special} keyword also specifies the number (N) of GPUs
-to be used on each node, but allows more control over their
-specification.  An MPI process with rank {K} will use the GPU {gpuI}
-with l = (K mod N) + 1. This implies that processes should be assigned
-with successive ranks on each node, which is the default with most (or
-even all) MPI implementations.  For example if you have three GPUs on
-a machine, one of which is used for the X-Server (the GPU with the ID
-1) while the others (with IDs 0 and 2) are used for computations you
-would specify:
+The {comm/exchange} and {comm/forward} keywords determine whether the
+host or device performs the packing and unpacking of data when
+communicating information between processors.  "Exchange"
+communication happens only on timesteps that neighbor lists are
+rebuilt.  The data is only for atoms that migrate to new processors.
+"Forward" communication happens every timestep.  The data is for atom
+coordinates and any other atom properties that needs to be updated for
+ghost atoms owned by each processor.
 
-package cuda gpu/node/special 2 0 2 :pre
+The value options for these keywords are {no} or {host} or {device}.
+A value of {no} means to use the standard non-KOKKOS method of
+packing/unpacking data for the communication.  A value of {host} means
+to use the host, typically a multi-core CPU, and perform the
+packing/unpacking in parallel with threads.  A value of {device} means
+to use the device, typically a GPU, to perform the packing/unpacking
+operation.
 
-A main purpose of the {gpu/node/special} optoin is to allow two (or
-more) simulations to be run on one workstation.  In that case one
-would set the first simulation to use GPU 0 and the second to use GPU
-1. This is not necessary though, if the GPUs are in what is called
-{compute exclusive} mode.  Using that setting, every process will get
-its own GPU automatically.  This {compute exclusive} mode can be set
-as root using the {nvidia-smi} tool which is part of the CUDA
-installation.
+CT NOTE: please read this paragraph, to make sure it is correct:
 
-Note that if the {gpu/node/special} keyword is not used, the USER-CUDA
-package sorts existing GPUs on each node according to their number of
-multiprocessors.  This way, compute GPUs will be priorized over
-X-Server GPUs.
- 
-Use of the {timing} keyword will output detailed timing information
-for various subroutines.
-
-The {test} keyword will output info for the the specified atom at
-several points during each time step.  This is mainly usefull for
-debugging purposes.  Note that the simulation will be severly slowed
-down if this option is used.
-
-The {override/bpa} keyword can be used to specify which mode is used
-for pair-force evaluation.  TpA = one thread per atom; BpA = one block
-per atom.  If this keyword is not used, a short test at the begin of
-each run will determine which method is more effective (the result of
-this test is part of the LAMMPS output).  Therefore it is usually not
-necessary to use this keyword.
+The optimal choice for these keywords depends on the input script and
+the hardware used.  The {no} value is useful for verifying that Kokkos
+code is working correctly.  It may also be the fastest choice when
+using Kokkos styles in MPI-only mode (i.e. with a thread count of 1).
+When running on CPUs or Xeon Phi, the {host} and {device} values
+should work identically.  When using GPUs, the {device} value will
+typically be optimal if all of your styles used in your input script
+are supported by the KOKKOS package.  In this case data can stay on
+the GPU for many timesteps without being moved between the host and
+GPU, if you use the {device} value.  This requires that your MPI is
+able to access GPU memory directly.  Currently that is true for
+OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later), and CrayMPI.
+If your script uses styles (e.g. fixes) which are not yet supported by
+the KOKKOS package, then data has to be move between the host and
+device anyway, so it is typically faster to let the host handle
+communication, by using the {host} value.  Using {host} instead of
+{no} will enable use of multiple threads to pack/unpack communicated
+data.
 
 :line
 
@@ -256,6 +324,10 @@ The gpu style of this command can only be invoked if LAMMPS was built
 with the GPU package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
+The kk style of this command can only be invoked if LAMMPS was built
+with the KOKKOS package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
 The omp style of this command can only be invoked if LAMMPS was built
 with the USER-OMP package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
@@ -266,15 +338,23 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Default:]
 
+The default settings for the USER-CUDA package are "package cuda gpu
+2".  This is the case whether the "-sf cuda" "command-line
+switch"_Section_start.html#start_7 is used or not.
+
 If the "-sf gpu" "command-line switch"_Section_start.html#start_7 is
 used then it is as if the command "package gpu force/neigh 0 0 1" were
 invoked, to specify default settings for the GPU package.  If the
 command-line switch is not used, then no defaults are set, and you
 must specify the appropriate package command in your input script.
 
-The default settings for the USER CUDA package are "package cuda gpu
-2".  This is the case whether the "-sf cuda" "command-line
-switch"_Section_start.html#start_7 is used or not.
+CT NOTE: is this correct?  The above sems to say the
+choice of neigh value depends on use of threads or not.
+
+The default settings for the KOKKOS package are "package kokkos neigh
+full comm/exchange host comm/forward host".  This is the case whether
+the "-sf kk" "command-line switch"_Section_start.html#start_7 is used
+or not.
 
 If the "-sf omp" "command-line switch"_Section_start.html#start_7 is
 used then it is as if the command "package omp *" were invoked, to

@@ -244,7 +244,9 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
 
   maxatom = atom->nmax;
   if (displaceflag) memory->create(displace,maxatom,3,"move:displace");
+  else displace = NULL;
   if (velocityflag) memory->create(velocity,maxatom,3,"move:velocity");
+  else velocity = NULL;
 
   // xoriginal = initial unwrapped positions of atoms
 

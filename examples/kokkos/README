@@ -1,0 +1,42 @@
+The in.kokkos input script is a copy of the bench/in.lj script,
+but can be run with the KOKKOS package,
+
+To run it, you must first build LAMMPS with the KOKKOS package
+installed, following the steps explained in Section 2.3.4 of
+doc/Section_start.html.  An overview of building and running LAMMPS
+with the KOKKOS package, for different compute-node hardware on your
+machine, is given in Section 5.8 of doc/Section_accelerate.html.
+
+The example log files included in this directory are for a desktop box
+with dual hex-core CPUs and 2 GPUs.
+
+Two executables were built in the following manner:
+
+make yes-kokkos
+make g++ OMP=yes -> lmp_cpu
+make cuda CUDA=yes -> lmp_cuda
+
+Then the following runs were made.  The "->" means that the run
+produced log.lammps which was then copied to the named log file.
+
+* MPI-only runs
+
+lmp_cpu -k off < in.kokkos -> log.kokkos.date.mpionly.1
+mpirun -np 4 lmp_cpu -k off < in.kokkos -> log.kokkos.date.mpionly.4
+
+* OpenMP threaded runs on CPUs only
+
+lmp_cpu -k on t 1 -sf kk < in.kokkos.half -> log.kokkos.date.cpu.1
+lmp_cpu -k on t 4 -sf kk < in.kokkos -> log.kokkos.date.cpu.4
+
+Note that in.kokkos.half was use for one of the runs, which uses the
+package command to force the use of half neighbor lists which are
+faster when running on just 1 thread.
+
+* GPU runs on 1 or 2 GPUs
+
+lmp_cuda -k on t 6 -sf kk < in.kokkos -> log.kokkos.date.gpu.1
+mpirun -np 2 lmp_cuda -k on t 6 -sf kk < in.kokkos -> log.kokkos.date.gpu.2
+
+Note that this is a very small problem (32K atoms) to run
+on 1 or 2 GPUs.

@@ -39,9 +39,10 @@ mpirun -np 8 ../lmp_linux_mixed -sf gpu -c off -v g 2 -v x 32 -v y 32 -v z 64 -v
 
 The "xyz" settings determine the problem size.  The "t" setting
 determines the number of timesteps.  The "np" setting determines how
-many CPUs the problem will be run on, and the "g" settings determines
-how many GPUs the problem will run on, i.e. 1 or 2 in this case.  You
-can use more CPUs than GPUs with the GPU package.
+many MPI tasks per compute node the problem will run on, and the "g"
+setting determines how many GPUs per compute node the problem will run
+on, i.e. 1 or 2 in this case.  Note that you can use more MPI tasks
+than GPUs (both per compute node) with the GPU package.
 
 ------------------------------------------------------------------------
 
@@ -54,7 +55,7 @@ mpirun -np 2 ../lmp_linux_double -sf cuda -v g 2 -v x 32 -v y 64 -v z 64 -v t 10
 
 The "xyz" settings determine the problem size.  The "t" setting
 determines the number of timesteps.  The "np" setting determines how
-many CPUs the problem will be run on, and the "g" setting determines
-how many GPUs the problem will run on, i.e. 1 or 2 in this case.  You
-should make the number of CPUs and number of GPUs equal for the
-USER-CUDA package.
+many MPI tasks per compute node the problem will run on, and the "g"
+setting determines how many GPUs per compute node the problem will run
+on, i.e. 1 or 2 in this case.  For the USER-CUDA package, the number
+of MPI tasks and GPUs (both per compute node) must be equal.

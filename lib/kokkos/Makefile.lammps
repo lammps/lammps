@@ -1,0 +1,104 @@
+# Settings that the LAMMPS build will import when this package library is used
+ 
+OMP = yes
+CUDA = no
+HWLOC = no
+AVX = no
+MIC = no
+LIBRT = no
+DEBUG = no
+
+CUDA_PATH = /usr/local/cuda
+
+KOKKOS_PATH = ../../lib/kokkos
+kokkos_SYSINC = -I$(KOKKOS_PATH)/core/src -I$(KOKKOS_PATH)/containers/src -I../ 
+SRC_KOKKOS = $(wildcard $(KOKKOS_PATH)/core/src/impl/*.cpp)
+
+ifeq ($(CUDA), yes)
+kokkos_SYSINC += -x cu -DDEVICE=2 -DKOKKOS_HAVE_CUDA
+SRC_KOKKOS += $(wildcard $(KOKKOS_PATH)/core/src/Cuda/*.cpp)
+SRC_KOKKOS += $(wildcard $(KOKKOS_PATH)/core/src/Cuda/*.cu)
+USRLIB += -L$(CUDA_PATH)/lib64 -lcudart -lcuda 
+ifeq ($(UVM), yes)
+kokkos_SYSINC += -DKOKKOS_USE_UVM
+endif
+else
+kokkos_SYSINC += -DDEVICE=1
+endif
+
+ifeq ($(CUSPARSE), yes)
+kokkos_SYSINC += -DKOKKOS_USE_CUSPARSE
+USRLIB += -lcusparse
+endif
+
+ifeq ($(CUBLAS), yes)
+kokkos_SYSINC += -DKOKKOS_USE_CUBLAS
+USRLIB += -lcublas
+endif
+
+ifeq ($(AVX), yes)
+ifeq ($(CUDA), yes) 
+kokkos_SYSINC += -Xcompiler -mavx
+else
+kokkos_SYSINC += -mavx
+endif
+LINKFLAGS += -mavx
+endif
+
+ifeq ($(MIC), yes)
+kokkos_SYSINC += -mmic
+LINKFLAGS += -mmic
+endif
+
+ifeq ($(OMP),yes)
+kokkos_SYSINC += -DKOKKOS_HAVE_OPENMP 
+SRC_KOKKOS += $(wildcard $(KOKKOS_PATH)/core/src/OpenMP/*.cpp)
+ifeq ($(CUDA), yes) 
+kokkos_SYSINC += -Xcompiler -fopenmp
+else
+kokkos_SYSINC += -fopenmp
+endif
+LINKFLAGS += -fopenmp
+else
+kokkos_SYSINC += -DKOKKOS_HAVE_PTHREAD
+USRLIB += -lpthread
+SRC_KOKKOS += $(wildcard $(KOKKOS_PATH)/core/src/Threads/*.cpp)
+endif
+
+ifeq ($(HWLOC),yes)
+kokkos_SYSINC += -DKOKKOS_HAVE_HWLOC -I$(HWLOCPATH)/include
+USRLIB += -L$(HWLOCPATH)/lib -lhwloc
+endif
+
+ifeq ($(RED_PREC), yes)
+kokkos_SYSINC += --use_fast_math
+endif
+
+ifeq ($(DEBUG), yes)
+kokkos_SYSINC += -g -G -DKOKKOS_EXPRESSION_CHECK -DENABLE_TRACEBACK
+LINKFLAGS += -g
+endif
+
+ifeq ($(LIBRT),yes)
+kokkos_SYSINC += -DKOKKOS_USE_LIBRT -DPREC_TIMER
+USRLIB += -lrt
+endif
+
+ifeq ($(CUDALDG), yes)
+kokkos_SYSINC += -DKOKKOS_USE_LDG_INTRINSIC
+endif
+
+OBJ_KOKKOS_TMP = $(SRC_KOKKOS:.cpp=.o)
+OBJ_KOKKOS = $(OBJ_KOKKOS_TMP:.cu=.o)
+OBJ_KOKKOS_LINK = $(notdir $(OBJ_KOKKOS))
+
+override OBJ += kokkos_depend.o
+
+libkokkoscore.a: $(OBJ_KOKKOS)
+	ar cr libkokkoscore.a $(OBJ_KOKKOS_LINK)	
+
+kokkos_depend.o: libkokkoscore.a
+	touch kokkos_depend.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c kokkos_depend.cpp
+
+kokkos_SYSLIB = -L./ $(LINKFLAGS) $(USRLIB)

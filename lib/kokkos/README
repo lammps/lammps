@@ -1,0 +1,45 @@
+Kokkos library
+
+Carter Edwards, Christian Trott, others ??? (CT NOTE)
+Sandia National Labs
+
+CT NOTE: Version ???
+27 May 2014
+
+CT NOTE: Pointer to Kokkos web page???
+
+-------------------------
+
+This directory has source files from the Kokkos library that LAMMPS
+uses when building with its KOKKOS package.  The package contains
+versions of pair, fix, and atom styles written with Kokkos data
+structures and calls to the Kokkos library that should run efficiently
+on various kinds of accelerated nodes, including GPU and many-core
+chips.
+
+Kokkos is a C++ library that provides two key abstractions for an
+application like LAMMPS.  First, it allows a single implementation of
+an application kernel (e.g. a pair style) to run efficiently on
+different kinds of hardware (GPU, Intel Phi, many-core chip).
+
+Second, it adjusts the memory layout of basic data structures like 2d
+and 3d arrays specifically for the chosen hardware.  These are used in
+LAMMPS to store atom coordinates or forces or neighbor lists.  The
+layout is chosen to optimize performance on different platforms.
+Again this operation is hidden from the developer, and does not affect
+how the single implementation of the kernel is coded.
+
+CT NOTE: More details???  
+
+To build LAMMPS with Kokkos, you should not need to make any changes
+to files in this directory.  You can overrided defaults that are set
+in Makefile.lammps when building LAMMPS, by defining variables as part
+of the make command.  Details of the build process with Kokkos are
+explained in Section 2.3 of doc/Section_start.html. and in Section 5.9
+of doc/Section_accelerate.html.
+
+The one exception is that when using Kokkos with NVIDIA GPUs, the
+CUDA_PATH setting in Makefile.lammps needs to point to the
+installation of the Cuda software on your machine.  The normal default
+location is /usr/local/cuda.  If this is not correct, you need to edit
+Makefile.lammps.

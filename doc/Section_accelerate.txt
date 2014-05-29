@@ -679,19 +679,20 @@ The KOKKOS package contains versions of pair, fix, and atom styles
 that use data structures and methods and macros provided by the Kokkos
 library, which is included with LAMMPS in lib/kokkos.
 
-Kokkos is a C++ library that provides two key abstractions for an
-application like LAMMPS.  First, it allows a single implementation of
-an application kernel (e.g. a pair style) to run efficiently on
-different kinds of hardware (GPU, Intel Phi, many-core chip).
+"Kokkos"_http://trilinos.sandia.gov/packages/kokkos is a C++ library
+that provides two key abstractions for an application like LAMMPS.
+First, it allows a single implementation of an application kernel
+(e.g. a pair style) to run efficiently on different kinds of hardware
+(GPU, Intel Phi, many-core chip).
 
-Second, it adjusts the memory layout of basic data structures like 2d
-and 3d arrays specifically for the chosen hardware.  These are used in
-LAMMPS to store atom coordinates or forces or neighbor lists.  The
-layout is chosen to optimize performance on different platforms.
-Again this operation is hidden from the developer, and does not affect
-how the single implementation of the kernel is coded.
-
-CT NOTE: Pointer to Kokkos web page???
+Second, it provides data abstractions to adjust (at compile time) the
+memory layout of basic data structures like 2d and 3d arrays and allow
+the transparent utilization of special hardware load and store units.
+Such data structures are used in LAMMPS to store atom coordinates or
+forces or neighbor lists.  The layout is chosen to optimize
+performance on different platforms.  Again this operation is hidden
+from the developer, and does not affect how the single implementation
+of the kernel is coded.
 
 These abstractions are set at build time, when LAMMPS is compiled with
 the KOKKOS package installed.  This is done by selecting a "host" and
@@ -723,9 +724,11 @@ i.e. the host and device are the same.
 IMPORTNANT NOTE: Currently, if using GPUs, you should set the number
 of MPI tasks per compute node to be equal to the number of GPUs per
 compute node.  In the future Kokkos will support assigning one GPU to
-multiple MPI tasks or using multiple GPUs per MPI task.
-
-CT NOTE: what about AMD GPUs running OpenCL? are they supported?
+multiple MPI tasks or using multiple GPUs per MPI task.  Currently
+Kokkos does not support AMD GPUs due to limits in the available
+backend programming models (in particular relative extensive C++
+support is required for the Kernel language).  This is expected to
+change in the future.
 
 Here are several examples of how to build LAMMPS and run a simulation
 using the KOKKOS package for typical compute node configurations.
@@ -853,8 +856,8 @@ If N is the number of physical cores/node, then the number of MPI
 tasks/node * number of threads/task should not exceed N, and should
 typically equal N.  Note that the default threads/task is 1, as set by
 the "t" keyword of the -k "command-line
-switch"_Section_start.html#start_7.  If you do not change this, there
-will no additional parallelism (beyond MPI) invoked on the host
+switch"_Section_start.html#start_7.  If you do not change this, no
+additional parallelism (beyond MPI) will be invoked on the host
 CPU(s).
 
 You can compare the performance running in different modes:
@@ -874,9 +877,8 @@ software installation.  Insure the -arch setting in
 src/MAKE/Makefile.cuda is correct for your GPU hardware/software (see
 "this section"_Section_start.html#start_3_4 of the manual for details.
 
-The -np setting of the mpirun command must set the number of MPI
-tasks/node to be equal to the # of physical GPUs on the node.  CT
-NOTE: does LAMMPS enforce this?
+The -np setting of the mpirun command should set the number of MPI
+tasks/node to be equal to the # of physical GPUs on the node. 
 
 Use the "-kokkos command-line switch"_Section_commands.html#start_7 to
 specify the number of GPUs per node, and the number of threads per MPI
@@ -932,8 +934,18 @@ When using threads (OpenMP or pthreads), it is important for
 performance to bind the threads to physical cores, so they do not
 migrate during a simulation.  The same is true for MPI tasks, but the
 default binding rules implemented for various MPI versions, do not
-account for thread binding.  Thus you should do the following if using
-multiple threads per MPI task.  CT NOTE: explain what to do.
+account for thread binding.  
+
+Thus if you use more than one thread per MPI task, you should insure
+MPI tasks are bound to CPU sockets.  Furthermore, use thread affinity
+environment variables from the OpenMP runtime when using OpenMP and
+compile with hwloc support when using pthreads.  With OpenMP 3.1 (gcc
+4.7 or later, intel 12 or later) setting the environment variable
+OMP_PROC_BIND=true should be sufficient.  A typical mpirun command
+should set these flags:
+
+OpenMPI 1.8: mpirun -np 2 -bind-to socket -map-by socket ./lmp_openmpi ...
+Mvapich2 2.0: mpiexec -np 2 -bind-to socket -map-by socket ./lmp_mvapich ... :pre
 
 When using a GPU, you will achieve the best performance if your input
 script does not use any fix or compute styles which are not yet
@@ -951,8 +963,6 @@ You cannot yet use both the host (multi-threaded) and device (GPU)
 together to compute pairwise interactions with the KOKKOS package.  We
 hope to support this in the future, similar to the GPU package in
 LAMMPS.
-
-CT NOTE: other performance tips??
 
 :line
 :line

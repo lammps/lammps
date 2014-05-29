@@ -1259,13 +1259,13 @@ Ng = 1 and Ns is not set.
 <P>Depending on which flavor of MPI you are running, LAMMPS will look for
 one of these 3 environment variables
 </P>
-<PRE>SLURM_LOCALID (???) CT NOTE: what MPI is this for?
+<PRE>SLURM_LOCALID (various MPI variants compiled with SLURM support)
 MV2_COMM_WORLD_LOCAL_RANK (Mvapich)
 OMPI_COMM_WORLD_LOCAL_RANK (OpenMPI) 
 </PRE>
-<P>which are initialized by "mpirun" or "mpiexec".  The environment
-variable setting for each MPI rank is used to assign a unique GPU ID
-to the MPI task.
+<P>which are initialized by the "srun", "mpirun" or "mpiexec" commands.
+The environment variable setting for each MPI rank is used to assign a
+unique GPU ID to the MPI task.
 </P>
 <PRE>threads Nt 
 </PRE>
@@ -1274,13 +1274,20 @@ performing work when Kokkos is executing in OpenMP or pthreads mode.
 The default is Nt = 1, which essentially runs in MPI-only mode.  If
 there are Np MPI tasks per physical node, you generally want Np*Nt =
 the number of physical cores per node, to use your available hardware
-optimally.
+optimally.  This also sets the number of threads used by the host when
+LAMMPS is compiled with CUDA=yes.
 </P>
 <PRE>numa Nm 
 </PRE>
-<P>CT NOTE: what does numa set, and why use it?
-</P>
-<P>Explain.  The default is Nm = 1.
+<P>This option is only relevant when using pthreads with hwloc support.
+In this case Nm defines the number of NUMA regions (typicaly sockets)
+on a node which will be utilizied by a single MPI rank.  By default Nm
+= 1.  If this option is used the total number of worker-threads per
+MPI rank is threads*numa.  Currently it is always almost better to
+assign at least one MPI rank per NUMA region, and leave numa set to
+its default value of 1. This is because letting a single process span
+multiple NUMA regions induces a significant amount of cross NUMA data
+traffic which is slow.
 </P>
 <PRE>-log file 
 </PRE>

@@ -210,26 +210,24 @@ device type can be specified when building LAMMPS with the GPU library.
 
 :line
 
-The {kk} style invokes options associated with the use of the
+The {kokkos} style invokes options associated with the use of the
 KOKKOS package.
 
 The {neigh} keyword determines what kinds of neighbor lists are built.
 A value of {half} uses half-neighbor lists, the same as used by most
-pair styles in LAMMPS.  This is the default when running without
-threads on a CPU.  A value of {half/thread} uses a threadsafe variant
-of the half-neighbor list.  It should be used instead of {half} when
-running with threads on a CPU.  A value of {full} uses a
+pair styles in LAMMPS.  A value of {half/thread} uses a threadsafe
+variant of the half-neighbor list.  It should be used instead of
+{half} when running with threads on a CPU.  A value of {full} uses a
 full-neighborlist, i.e. f_ij and f_ji are both calculated.  This
 performs twice as much computation as the {half} option, however that
 can be a win because it is threadsafe and doesn't require atomic
-operations.  This is the default when running in threaded mode or on
-GPUs.  A value of {full/cluster} is an experimental neighbor style,
-where particles interact with all particles within a small cluster, if
-at least one of the clusters particles is within the neighbor cutoff
-range.  This potentially allows for better vectorization on
-architectures such as the Intel Phi.  If also reduces the size of the
-neighbor list by roughly a factor of the cluster size, thus reducing
-the total memory footprint considerably.
+operations.  A value of {full/cluster} is an experimental neighbor
+style, where particles interact with all particles within a small
+cluster, if at least one of the clusters particles is within the
+neighbor cutoff range.  This potentially allows for better
+vectorization on architectures such as the Intel Phi.  If also reduces
+the size of the neighbor list by roughly a factor of the cluster size,
+thus reducing the total memory footprint considerably.
 
 The {comm/exchange} and {comm/forward} keywords determine whether the
 host or device performs the packing and unpacking of data when
@@ -248,26 +246,23 @@ packing/unpacking in parallel with threads.  A value of {device} means
 to use the device, typically a GPU, to perform the packing/unpacking
 operation.
 
-CT NOTE: please read this paragraph, to make sure it is correct:
-
 The optimal choice for these keywords depends on the input script and
 the hardware used.  The {no} value is useful for verifying that Kokkos
 code is working correctly.  It may also be the fastest choice when
 using Kokkos styles in MPI-only mode (i.e. with a thread count of 1).
-When running on CPUs or Xeon Phi, the {host} and {device} values
-should work identically.  When using GPUs, the {device} value will
-typically be optimal if all of your styles used in your input script
-are supported by the KOKKOS package.  In this case data can stay on
-the GPU for many timesteps without being moved between the host and
-GPU, if you use the {device} value.  This requires that your MPI is
-able to access GPU memory directly.  Currently that is true for
-OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later), and CrayMPI.
-If your script uses styles (e.g. fixes) which are not yet supported by
-the KOKKOS package, then data has to be move between the host and
-device anyway, so it is typically faster to let the host handle
-communication, by using the {host} value.  Using {host} instead of
-{no} will enable use of multiple threads to pack/unpack communicated
-data.
+When running on CPUs or Xeon Phi, the {host} and {device} values work
+identically.  When using GPUs, the {device} value will typically be
+optimal if all of your styles used in your input script are supported
+by the KOKKOS package.  In this case data can stay on the GPU for many
+timesteps without being moved between the host and GPU, if you use the
+{device} value.  This requires that your MPI is able to access GPU
+memory directly.  Currently that is true for OpenMPI 1.8 (or later
+versions), Mvapich2 1.9 (or later), and CrayMPI.  If your script uses
+styles (e.g. fixes) which are not yet supported by the KOKKOS package,
+then data has to be move between the host and device anyway, so it is
+typically faster to let the host handle communication, by using the
+{host} value.  Using {host} instead of {no} will enable use of
+multiple threads to pack/unpack communicated data.
 
 :line
 
@@ -348,13 +343,10 @@ invoked, to specify default settings for the GPU package.  If the
 command-line switch is not used, then no defaults are set, and you
 must specify the appropriate package command in your input script.
 
-CT NOTE: is this correct?  The above sems to say the
-choice of neigh value depends on use of threads or not.
-
-The default settings for the KOKKOS package are "package kokkos neigh
-full comm/exchange host comm/forward host".  This is the case whether
-the "-sf kk" "command-line switch"_Section_start.html#start_7 is used
-or not.
+The default settings for the KOKKOS package are "package kk neigh full 
+comm/exchange host comm/forward host".  This is the case whether the
+"-sf kk" "command-line switch"_Section_start.html#start_7 is used or
+not.
 
 If the "-sf omp" "command-line switch"_Section_start.html#start_7 is
 used then it is as if the command "package omp *" were invoked, to

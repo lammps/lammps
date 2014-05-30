@@ -2,6 +2,8 @@
 *
 *  msi2lmp.exe
 *
+*   v3.9.5 AK- Add TopoTools style force field parameter type hints
+*
 *   v3.9.4 AK- Make force field style hints optional with a flag
 *
 *   v3.9.3 AK- Bugfix for triclinic cells.
@@ -108,7 +110,7 @@
 *
 ****************************************************************
 *
-* Msi2lmp3
+* msi2lmp
 *
 * This is the third version of a program that generates a LAMMPS
 * data file based on the information in a MSI car file (atom
@@ -266,7 +268,7 @@ int main (int argc, char *argv[])
       iflag = 1;
     } else if (strncmp(argv[n],"-n",4) == 0 ) {
       centerflag = 0;
-    } else if (strncmp(argv[n],"-o",4) == 0 ) {
+    } else if (strncmp(argv[n],"-o",2) == 0 ) {
       hintflag = 0;
     } else if (strncmp(argv[n],"-p",2) == 0) {
       n++;

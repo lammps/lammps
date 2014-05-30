@@ -30,8 +30,10 @@ void WriteDataFile(char *nameroot)
 
   if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA)) total_no_angle_angles = 0;
 
-  fprintf(DatF, "LAMMPS data file. msi2lmp " MSI2LMP_VERSION
-                " / CGCMM for %s\n\n", nameroot);
+  if (hintflag) fprintf(DatF, "LAMMPS data file. msi2lmp " MSI2LMP_VERSION
+                        " / CGCMM for %s\n\n", nameroot);
+  else fprintf(DatF, "LAMMPS data file. msi2lmp " MSI2LMP_VERSION
+               " for %s\n\n", nameroot);
   fprintf(DatF, " %6d atoms\n", total_no_atoms);
   fprintf(DatF, " %6d bonds\n", total_no_bonds);
   fprintf(DatF, " %6d angles\n",total_no_angles);
@@ -76,8 +78,10 @@ void WriteDataFile(char *nameroot)
   /* MASSES */
 
   fprintf(DatF, "\nMasses\n\n");
-  for(k=0; k < no_atom_types; k++)
-    fprintf(DatF, " %3d %10.6f\n",k+1,atomtypes[k].mass);
+  for(k=0; k < no_atom_types; k++) {
+    if (hintflag) fprintf(DatF, " %3d %10.6f # %s\n",k+1,atomtypes[k].mass,atomtypes[k].potential);
+    else fprintf(DatF, " %3d %10.6f\n",k+1,atomtypes[k].mass);
+  }
   fputs("\n",DatF);
 
 
@@ -85,17 +89,19 @@ void WriteDataFile(char *nameroot)
 
   fputs("Pair Coeffs",DatF);
   if (hintflag) {
-      if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA))
-          fputs(" # lj/cut/coul/long\n\n",DatF);
-      else if (forcefield & FF_TYPE_CLASS2)
-          fputs(" # lj/class2/coul/long\n\n",DatF);
+    if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA))
+      fputs(" # lj/cut/coul/long\n\n",DatF);
+    else if (forcefield & FF_TYPE_CLASS2)
+      fputs(" # lj/class2/coul/long\n\n",DatF);
   } else fputs("\n\n",DatF);
 
   for (i=0; i < no_atom_types; i++) {
     fprintf(DatF, " %3i ", i+1);
     for ( j = 0; j < 2; j++)
-      fprintf(DatF, "%14.10f ", atomtypes[i].params[j]);
-    fputs("\n",DatF);
+      fprintf(DatF, "%14.10f ",atomtypes[i].params[j]);
+
+    if (hintflag) fprintf(DatF, "# %s\n",atomtypes[i].potential);
+    else fputs("\n",DatF);
   }
   fputs("\n",DatF);
 
@@ -107,17 +113,20 @@ void WriteDataFile(char *nameroot)
 
     fputs("Bond Coeffs",DatF);
     if (hintflag) {
-        if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA))
-            fputs(" # harmonic\n\n",DatF);
-        else if (forcefield & FF_TYPE_CLASS2)
-            fputs(" # class2\n\n",DatF);
+      if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA))
+        fputs(" # harmonic\n\n",DatF);
+      else if (forcefield & FF_TYPE_CLASS2)
+        fputs(" # class2\n\n",DatF);
     } else fputs("\n\n",DatF);
 
     for (i=0; i < no_bond_types; i++) {
-      fprintf(DatF, "%3i ", i+1);
+      fprintf(DatF, " %3i", i+1);
       for ( j = 0; j < m; j++)
-        fprintf(DatF, "%10.4f ", bondtypes[i].params[j]);
-      fputs("\n",DatF);
+        fprintf(DatF, " %10.4f", bondtypes[i].params[j]);
+
+      if (hintflag) fprintf(DatF," # %s-%s\n",atomtypes[bondtypes[i].types[0]].potential,
+                            atomtypes[bondtypes[i].types[1]].potential);
+      else fputs("\n",DatF);
     }
     fputs("\n",DatF);
   }
@@ -130,109 +139,151 @@ void WriteDataFile(char *nameroot)
 
     fputs("Angle Coeffs",DatF);
     if (hintflag) {
-        if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA))
-            fputs(" # harmonic\n\n",DatF);
-        else if (forcefield & FF_TYPE_CLASS2)
-            fputs(" # class2\n\n",DatF);
+      if (forcefield & (FF_TYPE_CLASS1|FF_TYPE_OPLSAA))
+        fputs(" # harmonic\n\n",DatF);
+      else if (forcefield & FF_TYPE_CLASS2)
+        fputs(" # class2\n\n",DatF);
     } else fputs("\n\n",DatF);
     
     for (i=0; i < no_angle_types; i++) {
-      fprintf(DatF, "%3i ", i+1);
+      fprintf(DatF, " %3i", i+1);
       for ( j = 0; j < m; j++)
+        fprintf(DatF, " %10.4f", angletypes[i].params[j]);
 
-        fprintf(DatF, "%10.4f ", angletypes[i].params[j]);
-      fputs("\n",DatF);
+      if (hintflag) fprintf(DatF," # %s-%s-%s\n",
+                            atomtypes[angletypes[i].types[0]].potential,
+                            atomtypes[angletypes[i].types[1]].potential,
+                            atomtypes[angletypes[i].types[2]].potential);
+      else fputs("\n",DatF);
     }
     fputs("\n",DatF);
   }
 
   if (no_dihedral_types > 0) {
 
-      fputs("Dihedral Coeffs",DatF);
-      if (forcefield & FF_TYPE_CLASS1) {
+    fputs("Dihedral Coeffs",DatF);
+    if (forcefield & FF_TYPE_CLASS1) {
 
-          if (hintflag) fputs(" # harmonic\n\n",DatF);
-          else fputs("\n\n",DatF);
+      if (hintflag) fputs(" # harmonic\n\n",DatF);
+      else fputs("\n\n",DatF);
 
-          for (i=0; i < no_dihedral_types; i++)
-              fprintf(DatF, "%3i %10.4f %3i %3i\n", i+1,
-                      dihedraltypes[i].params[0],
-                      (int) dihedraltypes[i].params[1],
-                      (int) dihedraltypes[i].params[2]);
-
-      } else if (forcefield & FF_TYPE_OPLSAA) {
-
-          if (hintflag) fputs(" # opls\n\n",DatF);
-          else fputs("\n\n",DatF);
-
-          for (i=0; i < no_dihedral_types; i++) {
-              fprintf(DatF, "%3i",i+1);
-              for ( j = 0; j < 4; j++)
-                  fprintf(DatF, " %10.4f",dihedraltypes[i].params[j]);
-
-              fputs("\n",DatF);
-          }
-      } else if (forcefield & FF_TYPE_CLASS2) {
-
-          if (hintflag) fputs(" # class2\n\n",DatF);
-          else fputs("\n\n",DatF);
-
-          for (i=0; i < no_dihedral_types; i++) {
-              fprintf(DatF, "%3i",i+1);
-              for ( j = 0; j < 6; j++)
-                  fprintf(DatF, " %10.4f",dihedraltypes[i].params[j]);
-
-              fputs("\n",DatF);
-          }
+      for (i=0; i < no_dihedral_types; i++) {
+        fprintf(DatF, "%3i %10.4f %3i %3i", i+1,
+                dihedraltypes[i].params[0],
+                (int) dihedraltypes[i].params[1],
+                (int) dihedraltypes[i].params[2]);
+        if (hintflag) fprintf(DatF," # %s-%s-%s-%s\n",
+                              atomtypes[dihedraltypes[i].types[0]].potential,
+                              atomtypes[dihedraltypes[i].types[1]].potential,
+                              atomtypes[dihedraltypes[i].types[2]].potential,
+                              atomtypes[dihedraltypes[i].types[3]].potential);
+        else fputs("\n",DatF);
       }
       fputs("\n",DatF);
+    } else if (forcefield & FF_TYPE_OPLSAA) {
+
+      if (hintflag) fputs(" # opls\n\n",DatF);
+      else fputs("\n\n",DatF);
+
+      for (i=0; i < no_dihedral_types; i++) {
+        fprintf(DatF, " %3i",i+1);
+        for ( j = 0; j < 4; j++)
+          fprintf(DatF, " %10.4f",dihedraltypes[i].params[j]);
+
+        if (hintflag) fprintf(DatF," # %s-%s-%s-%s\n",
+                              atomtypes[dihedraltypes[i].types[0]].potential,
+                              atomtypes[dihedraltypes[i].types[1]].potential,
+                              atomtypes[dihedraltypes[i].types[2]].potential,
+                              atomtypes[dihedraltypes[i].types[3]].potential);
+        else fputs("\n",DatF);
+      }
+      fputs("\n",DatF);
+    } else if (forcefield & FF_TYPE_CLASS2) {
+
+      if (hintflag) fputs(" # class2\n\n",DatF);
+      else fputs("\n\n",DatF);
+
+      for (i=0; i < no_dihedral_types; i++) {
+        fprintf(DatF, " %3i",i+1);
+        for ( j = 0; j < 6; j++)
+          fprintf(DatF, " %10.4f",dihedraltypes[i].params[j]);
+
+        if (hintflag) fprintf(DatF,"# %s-%s-%s-%s\n",
+                              atomtypes[dihedraltypes[i].types[0]].potential,
+                              atomtypes[dihedraltypes[i].types[1]].potential,
+                              atomtypes[dihedraltypes[i].types[2]].potential,
+                              atomtypes[dihedraltypes[i].types[3]].potential);
+        else fputs("\n",DatF);
+      }
+      fputs("\n",DatF);
+    }
   }
 
   if (forcefield & FF_TYPE_CLASS1) {
-      if (no_oop_types > 0) {
-          /* cvff improper coeffs are: type K0 d n */
-          if (hintflag) fputs("Improper Coeffs # cvff\n\n",DatF);
-          else fputs("Improper Coeffs\n\n",DatF);
+    if (no_oop_types > 0) {
+      /* cvff improper coeffs are: type K0 d n */
+      if (hintflag) fputs("Improper Coeffs # cvff\n\n",DatF);
+      else fputs("Improper Coeffs\n\n",DatF);
 
-          for (i=0; i < no_oop_types; i++) {
-              fprintf(DatF,"%5i %10.4f %3i %3i\n",i+1,
-                      ooptypes[i].params[0], (int) ooptypes[i].params[1],
-                      (int) ooptypes[i].params[2]);
-          }
-          fputs("\n",DatF);
+      for (i=0; i < no_oop_types; i++) {
+        fprintf(DatF,"%5i %10.4f %3i %3i ",i+1,
+                ooptypes[i].params[0], (int) ooptypes[i].params[1],
+                (int) ooptypes[i].params[2]);
+
+        if (hintflag) fprintf(DatF,"# %s-%s-%s-%s\n",
+                              atomtypes[ooptypes[i].types[0]].potential,
+                              atomtypes[ooptypes[i].types[1]].potential,
+                              atomtypes[ooptypes[i].types[2]].potential,
+                              atomtypes[ooptypes[i].types[3]].potential);
+        else fputs("\n",DatF);
       }
+      fputs("\n",DatF);
+    }
   } else if (forcefield & FF_TYPE_OPLSAA) {
-      if (no_oop_types > 0) {
-          /* opls improper coeffs are like cvff: type K0 d(=-1) n(=2) */
-          if (hintflag) fputs("Improper Coeffs # cvff\n\n",DatF);
-          else fputs("Improper Coeffs\n\n",DatF);
+    if (no_oop_types > 0) {
+      /* opls improper coeffs are like cvff: type K0 d(=-1) n(=2) */
+      if (hintflag) fputs("Improper Coeffs # cvff\n\n",DatF);
+      else fputs("Improper Coeffs\n\n",DatF);
 
-          for (i=0; i < no_oop_types; i++) {
-              fprintf(DatF,"%5i %10.4f %3i %3i\n",i+1,
-                      ooptypes[i].params[0], (int) ooptypes[i].params[1],
-                      (int) ooptypes[i].params[2]);
-          }
-          fputs("\n",DatF);
+      for (i=0; i < no_oop_types; i++) {
+        fprintf(DatF,"%5i %10.4f %3i %3i ",i+1,
+                ooptypes[i].params[0], (int) ooptypes[i].params[1],
+                (int) ooptypes[i].params[2]);
+
+        if (hintflag) fprintf(DatF,"# %s-%s-%s-%s\n",
+                              atomtypes[ooptypes[i].types[0]].potential,
+                              atomtypes[ooptypes[i].types[1]].potential,
+                              atomtypes[ooptypes[i].types[2]].potential,
+                              atomtypes[ooptypes[i].types[3]].potential);
+        else fputs("\n",DatF);
       }
+      fputs("\n",DatF);
+    }
   } else if (forcefield & FF_TYPE_CLASS2) {
-      if ((no_oop_types + no_angleangle_types) > 0) {
-          if (hintflag) fputs("Improper Coeffs # class2\n\n",DatF);
-          else fputs("Improper Coeffs\n\n",DatF);
+    if ((no_oop_types + no_angleangle_types) > 0) {
+      if (hintflag) fputs("Improper Coeffs # class2\n\n",DatF);
+      else fputs("Improper Coeffs\n\n",DatF);
 
-          for (i=0; i < no_oop_types; i++) {
-              fprintf(DatF, "%3i ", i+1);
-              for ( j = 0; j < 2; j++)
-                  fprintf(DatF, "%10.4f ", ooptypes[i].params[j]);
-              fputs("\n",DatF);
-          }
-          for (i=0; i < no_angleangle_types; i++) {
-              fprintf(DatF, "%3i ", i+no_oop_types+1);
-              for ( j = 0; j < 2; j++)
-                  fprintf(DatF, "%10.4f ", 0.0);
-              fputs("\n",DatF);
-          }
-          fputs("\n",DatF);
+      for (i=0; i < no_oop_types; i++) {
+        fprintf(DatF, "%3i ", i+1);
+        for ( j = 0; j < 2; j++)
+          fprintf(DatF, "%10.4f ", ooptypes[i].params[j]);
+
+        if (hintflag) fprintf(DatF,"# %s-%s-%s-%s\n",
+                              atomtypes[ooptypes[i].types[0]].potential,
+                              atomtypes[ooptypes[i].types[1]].potential,
+                              atomtypes[ooptypes[i].types[2]].potential,
+                              atomtypes[ooptypes[i].types[3]].potential);
+        else fputs("\n",DatF);
       }
+      for (i=0; i < no_angleangle_types; i++) {
+        fprintf(DatF, "%3i ", i+no_oop_types+1);
+        for ( j = 0; j < 2; j++)
+          fprintf(DatF, "%10.4f ", 0.0);
+        fputs("\n",DatF);
+      }
+      fputs("\n",DatF);
+    }
   }
 
   if (forcefield & FF_TYPE_CLASS2) {
@@ -338,7 +389,7 @@ void WriteDataFile(char *nameroot)
 
   for(k=0; k < total_no_atoms; k++) {
     int typ = atoms[k].type;
-    fprintf(DatF," %6i %6i %3i %9.6f %15.9f %15.9f %15.9f %3i %3i %3i # %s\n",
+    fprintf(DatF," %6i %6i %3i %9.6f %15.9f %15.9f %15.9f %3i %3i %3i",
             k+1,
             atoms[k].molecule,
             typ+1,
@@ -348,8 +399,9 @@ void WriteDataFile(char *nameroot)
             atoms[k].x[2],
             atoms[k].image[0],
             atoms[k].image[1],
-            atoms[k].image[2],
-            atomtypes[typ].potential);
+            atoms[k].image[2]);
+    if (hintflag) fprintf(DatF," # %s\n",atomtypes[typ].potential);
+    else fputs("\n",DatF);
   }
   fputs("\n",DatF);
 

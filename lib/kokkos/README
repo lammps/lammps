@@ -1,12 +1,10 @@
 Kokkos library
 
-Carter Edwards, Christian Trott, others ??? (CT NOTE)
+Carter Edwards, Christian Trott, Daniel Sunderland
 Sandia National Labs
 
-CT NOTE: Version ???
-27 May 2014
-
-CT NOTE: Pointer to Kokkos web page???
+29 May 2014
+http://trilinos.sandia.gov/packages/kokkos/
 
 -------------------------
 
@@ -22,14 +20,14 @@ application like LAMMPS.  First, it allows a single implementation of
 an application kernel (e.g. a pair style) to run efficiently on
 different kinds of hardware (GPU, Intel Phi, many-core chip).
 
-Second, it adjusts the memory layout of basic data structures like 2d
-and 3d arrays specifically for the chosen hardware.  These are used in
-LAMMPS to store atom coordinates or forces or neighbor lists.  The
-layout is chosen to optimize performance on different platforms.
-Again this operation is hidden from the developer, and does not affect
-how the single implementation of the kernel is coded.
-
-CT NOTE: More details???  
+Second, it provides data abstractions to adjust (at compile time) the
+memory layout of basic data structures like 2d and 3d arrays and allow
+the transparent utilization of special hardware load and store units.
+Such data structures are used in LAMMPS to store atom coordinates or
+forces or neighbor lists.  The layout is chosen to optimize
+performance on different platforms.  Again this operation is hidden
+from the developer, and does not affect how the single implementation
+of the kernel is coded.
 
 To build LAMMPS with Kokkos, you should not need to make any changes
 to files in this directory.  You can overrided defaults that are set
@@ -43,3 +41,4 @@ CUDA_PATH setting in Makefile.lammps needs to point to the
 installation of the Cuda software on your machine.  The normal default
 location is /usr/local/cuda.  If this is not correct, you need to edit
 Makefile.lammps.
+

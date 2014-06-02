@@ -746,10 +746,27 @@ These fixes are all part of the RIGID package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
+Assigning a temperature via the "velocity create"_velocity.html
+command to a system with "rigid bodies"_fix_rigid.html may not have
+the desired outcome for two reasons.  First, the velocity command can
+be invoked before the rigid-body fix is invoked or initialized and the
+number of adjusted degrees of freedom (DOFs) is known.  Thus it is not
+possible to compute the target temperature correctly.  Second, the
+assigned velocities may be partially canceled when constraints are
+first enforced, leading to a different temperature than desired.  A
+workaround for this is to perform a "run 0"_run.html command, which
+insures all DOFs are accounted for properly, and then rescale the
+temperature to the desired value before performing a simulation.  For
+example:
+
+velocity all create 300.0 12345
+run 0                             # temperature may not be 300K
+velocity all scale 300.0          # now it should be :pre
+
 [Related commands:]
 
 "delete_bonds"_delete_bonds.html, "neigh_modify"_neigh_modify.html
-exclude
+exclude, "fix shake"_fix_shake.html
 
 [Default:]
 

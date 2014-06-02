@@ -1,0 +1,68 @@
+LAMMPS (27 May 2014)
+KOKKOS mode is enabled (../lammps.cpp:468)
+  using 6 OpenMP thread(s) per MPI task
+# 3d Lennard-Jones melt
+
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 20*$x
+variable	xx equal 20*1
+variable	yy equal 20*$y
+variable	yy equal 20*1
+variable	zz equal 20*$z
+variable	zz equal 20*1
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+region		box block 0 20 0 ${yy} 0 ${zz}
+region		box block 0 20 0 20 0 ${zz}
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (33.5919 33.5919 33.5919)
+  1 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 32000 atoms
+mass		1 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+fix		1 all nve
+
+run		100
+Memory usage per processor = 16.9509 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1.44   -6.7733681            0   -4.6134356   -5.0197073 
+     100    0.7574531   -5.7585055            0   -4.6223613   0.20726105 
+Loop time of 0.57192 on 6 procs (1 MPI x 6 OpenMP) for 100 steps with 32000 atoms
+
+Pair  time (%) = 0.205416 (35.917)
+Neigh time (%) = 0.112468 (19.665)
+Comm  time (%) = 0.174223 (30.4629)
+Outpt time (%) = 0.000159025 (0.0278055)
+Other time (%) = 0.0796535 (13.9274)
+
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    19657 ave 19657 max 19657 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  2.40567e+06 ave 2.40567e+06 max 2.40567e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2405666
+Ave neighs/atom = 75.1771
+Neighbor list builds = 5
+Dangerous builds = 0

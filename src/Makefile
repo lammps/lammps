@@ -14,7 +14,7 @@ OBJ = 	$(SRC:.cpp=.o)
 # Package variables
 
 PACKAGE = asphere body class2 colloid dipole fld gpu granular kim \
-	  kspace manybody mc meam misc molecule mpiio opt peri poems \
+	  kokkos kspace manybody mc meam misc molecule mpiio opt peri poems \
 	  reax replica rigid shock srd voronoi xtc
 
 PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars \

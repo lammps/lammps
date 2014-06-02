@@ -334,7 +334,7 @@ void ComputePropertyLocal::compute_local()
 
 int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
 {
-  int i,j,m,n,ii,jj,inum,jnum,itype,jtype;
+  int i,j,m,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -358,7 +358,7 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
 
   double **cutsq = force->pair->cutsq;
 
-  m = n = 0;
+  m = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;

@@ -186,6 +186,7 @@ void Group::assign(int narg, char **arg)
     if (narg > 3 &&
         (strcmp(arg[2],"<") == 0 || strcmp(arg[2],">") == 0 ||
          strcmp(arg[2],"<=") == 0 || strcmp(arg[2],">=") == 0 ||
+         strcmp(arg[2],"==") == 0 || strcmp(arg[2],"!=") == 0 ||
          strcmp(arg[2],"<>") == 0)) {
 
       int condition = -1;

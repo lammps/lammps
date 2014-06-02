@@ -22,10 +22,10 @@ keyword = {mode} or {cutoff} or {group} or {vel} :l
 
 [Examples:]
 
-communicate mode multi
-communicate mode multi group solvent
-communicate vel yes
-communicate cutoff 5.0 vel yes :pre
+comm_modify mode multi
+comm_modify mode multi group solvent
+comm_modify vel yes
+comm_modify cutoff 5.0 vel yes :pre
 
 [Description:]
 

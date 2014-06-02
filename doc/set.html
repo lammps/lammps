@@ -150,11 +150,16 @@ for details of how to specify a group or region.
 change, for the selected atoms.
 </P>
 <P>Note that except where explicitly prohibited below, all of the
-keywords allow an <A HREF = "variable.html">atom-style variable</A> to be used as
-the specified value(s).  If the value is a variable, it should be
-specified as v_name, where name is the variable name.  In this case,
-the variable will be evaluated, and its resulting per-atom value used
-to determine the value assigned to each selected atom.
+keywords allow an <A HREF = "variable.html">atom-style or atomfile-style
+variable</A> to be used as the specified value(s).  If the
+value is a variable, it should be specified as v_name, where name is
+the variable name.  In this case, the variable will be evaluated, and
+its resulting per-atom value used to determine the value assigned to
+each selected atom.  Note that the per-atom value from the variable
+will be ignored for atoms that are not selected via the <I>style</I> and
+<I>ID</I> settings explained above.  A simple way to use per-atom values
+from the variable to reset a property for all atoms is to use style
+<I>atom</I> with <I>ID</I> = "*"; this selects all atom IDs.
 </P>
 <P>Atom-style variables can specify formulas with various mathematical
 functions, and include <A HREF = "thermo_style.html">thermo_style</A> command

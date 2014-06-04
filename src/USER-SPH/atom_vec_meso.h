@@ -60,6 +60,8 @@ class AtomVecMeso : public AtomVec {
   int pack_data_hybrid(int, double *);
   void write_data(FILE *, int, double **);
   int write_data_hybrid(FILE *, double *);
+  int property_atom(char *);
+  void pack_property_atom(int, double *, int, int);
   bigint memory_usage();
 
  private:

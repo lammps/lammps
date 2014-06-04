@@ -944,6 +944,66 @@ int AtomVecMeso::write_data_hybrid(FILE *fp, double *buf)
 }
 
 /* ----------------------------------------------------------------------
+   assign an index to named atom property and return index
+   return -1 if name is unknown to this atom style
+------------------------------------------------------------------------- */
+
+int AtomVecMeso::property_atom(char *name)
+{
+  if (strcmp(name,"rho") == 0) return 0;
+  if (strcmp(name,"drho") == 0) return 1;
+  if (strcmp(name,"e") == 0) return 2;
+  if (strcmp(name,"de") == 0) return 3;
+  if (strcmp(name,"cv") == 0) return 4;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   pack per-atom data into buf for ComputePropertyAtom
+   index maps to data specific to this atom style
+------------------------------------------------------------------------- */
+
+void AtomVecMeso::pack_property_atom(int index, double *buf, 
+                                     int nvalues, int groupbit)
+{
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int n = 0;
+
+  if (index == 0) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = rho[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 1) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = drho[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 2) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = e[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 3) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = de[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 4) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = cv[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
    ------------------------------------------------------------------------- */
 

@@ -54,6 +54,7 @@ int FixMeso::setmask() {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
+  mask |= PRE_FORCE;
   return mask;
 }
 
@@ -62,6 +63,25 @@ int FixMeso::setmask() {
 void FixMeso::init() {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
+}
+
+void FixMeso::setup_pre_force(int vflag)
+{
+  // set vest equal to v 
+  double **v = atom->v;
+  double **vest = atom->vest;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup)
+    nlocal = atom->nfirst;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      vest[i][0] = v[i][0];
+      vest[i][1] = v[i][1];
+      vest[i][2] = v[i][2];
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

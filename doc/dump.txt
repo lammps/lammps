@@ -51,7 +51,6 @@ args = list of arguments for a particular style :l
                           q, mux, muy, muz, mu,
                           radius, diameter, omegax, omegay, omegaz,
 			  angmomx, angmomy, angmomz, tqx, tqy, tqz,
-			  spin, eradius, ervel, erforce,
 			  c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
 
       id = atom ID
@@ -73,10 +72,6 @@ args = list of arguments for a particular style :l
       omegax,omegay,omegaz = angular velocity of spherical particle
       angmomx,angmomy,angmomz = angular momentum of aspherical particle
       tqx,tqy,tqz = torque on finite-size particles
-      spin = electron spin
-      eradius = electron radius
-      ervel = electron radial velocity
-      erforce = electron radial force
       c_ID = per-atom vector calculated by a compute with ID
       c_ID\[N\] = Nth column of per-atom array calculated by a compute with ID
       f_ID = per-atom vector calculated by a fix with ID
@@ -94,8 +89,7 @@ dump 4a all custom 100 dump.myforce.* id type x y vx fx
 dump 4b flow custom 100 dump.%.myforce id type c_myF\[3\] v_ke
 dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
 dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress\[2\]
-dump 1 all xtc 1000 file.xtc
-dump e_data all custom 100 dump.eff id type x y z spin eradius fx fy fz eforce :pre
+dump 1 all xtc 1000 file.xtc :pre
 
 [Description:]
 
@@ -508,12 +502,6 @@ the {ellipsoid} atom style defines this quantity.
 The {tqx}, {tqy}, {tqz} attributes are for finite-size particles that
 can sustain a rotational torque due to interactions with other
 particles.
-
-The {spin}, {eradius}, {ervel}, and {erforce} attributes are for
-particles that represent nuclei and electrons modeled with the
-electronic force field (EFF).  See "atom_style
-electron"_atom_style.html and "pair_style eff"_pair_eff.html for more
-details.
 
 The {c_ID} and {c_ID\[N\]} attributes allow per-atom vectors or arrays
 calculated by a "compute"_compute.html to be output.  The ID in the

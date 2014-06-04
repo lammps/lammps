@@ -640,12 +640,15 @@ settings appropriate to your system.
 Additional input script requirements to run styles with a {cuda}
 suffix are as follows:
 
+The "-cuda on command-line switch"_Section_start.html#start_7 must be
+used when launching LAMMPS to enable the USER-CUDA package. :ulb,l
+
 To invoke specific styles from the USER-CUDA package, you can either
 append "cuda" to the style name (e.g. pair_style lj/cut/cuda), or use
 the "-suffix command-line switch"_Section_start.html#start_7, or use
 the "suffix"_suffix.html command.  One exception is that the
 "kspace_style pppm/cuda"_kspace_style.html command has to be requested
-explicitly. :ulb,l
+explicitly. :l
 
 To use the USER-CUDA package with its default settings, no additional
 command is needed in your input script.  This is because when LAMMPS
@@ -747,8 +750,8 @@ Details of the various options are discussed below.
 make yes-kokkos                           # install the KOKKOS package
 make g++ OMP=yes                          # build with OpenMP, no CUDA :pre
 
-mpirun -np 12 lmp_g++ -k off < in.lj      # MPI-only mode with no Kokkos
-mpirun -np 12 lmp_g++ -sf kk < in.lj      # MPI-only mode with Kokkos
+mpirun -np 12 lmp_g++ < in.lj      # MPI-only mode with no Kokkos
+mpirun -np 12 lmp_g++ -k on -sf kk < in.lj      # MPI-only mode with Kokkos
 mpirun -np 1 lmp_g++ -k on t 12 -sf kk < in.lj     # one MPI task, 12 threads
 mpirun -np 2 lmp_g++ -k on t 6 -sf kk < in.lj      # two MPI tasks, 6 threads/task :pre
 
@@ -821,8 +824,7 @@ section"_Section_start.html#start_7 of the manual.
 
 Here are common options to use:
 
--k off : runs an executable built with the KOKKOS pacakage, as
- if Kokkos were not installed. :ulb,l
+-k on : required to run any KOKKOS-enabled style :ulb,l
 
 -sf kk : enables automatic use of Kokkos versions of atom, pair,
 fix, compute styles if they exist.  This can also be done with more

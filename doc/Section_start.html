@@ -1163,14 +1163,12 @@ mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none < in.alloy
 <PRE>-cuda on/off 
 </PRE>
 <P>Explicitly enable or disable CUDA support, as provided by the
-USER-CUDA package.  If LAMMPS is built with this package, as described
-above in <A HREF = "#start_3">Section 2.3</A>, then by default LAMMPS will run in
-CUDA mode.  If this switch is set to "off", then it will not, even if
-it was built with the USER-CUDA package, which means you can run
-standard LAMMPS or with the GPU package for testing or benchmarking
-purposes.  The only reason to set the switch to "on", is to check if
-LAMMPS was built with the USER-CUDA package, since an error will be
-generated if it was not.
+USER-CUDA package.  Even if LAMMPS is built with this package, as
+described above in <A HREF = "#start_3">Section 2.3</A>, this switch must be set to
+enable running with the CUDA-enhanced styles the package provides.  If
+the switch is not set (the default), LAMMPS will operate as if the
+USER-CUDA package were not installed; i.e. you can run standard LAMMPS
+or with the GPU package, for testing or benchmarking purposes.
 </P>
 <PRE>-echo style 
 </PRE>
@@ -1204,16 +1202,14 @@ used.
 </P>
 <PRE>-kokkos on/off keyword/value ... 
 </PRE>
-<P>Explicitly enable or disable Kokkos support, as provided by the KOKKOS
-package.  If LAMMPS is built with this package, as described above in
-<A HREF = "#start_3">Section 2.3</A>, then by default LAMMPS will run in Kokkos
-mode.  If this switch is set to "off", then it will not, even if it
-was built with the KOKKOS package, which means you can run standard
-LAMMPS styles or use styles enhanced by other acceleration packages,
-such as the GPU or USER-CUDA or USER-OMP packages, for testing or
-benchmarking purposes.  The only reason to set the switch to "on", is
-to check if LAMMPS was built with the KOKKOS package, since an error
-will be generated if it was not.
+<P>Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
+package.  Even if LAMMPS is built with this package, as described
+above in <A HREF = "#start_3">Section 2.3</A>, this switch must be set to enable
+running with the KOKKOS-enhanced styles the package provides.  If the
+switch is not set (the default), LAMMPS will operate as if the KOKKOS
+package were not installed; i.e. you can run standard LAMMPS or with
+the GPU or USER-CUDA or USER-OMP packages, for testing or benchmarking
+purposes.
 </P>
 <P>Additional optional keyword/value pairs can be specified which
 determine how Kokkos will use the underlying hardware on your

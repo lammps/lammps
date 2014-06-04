@@ -644,7 +644,10 @@ settings appropriate to your system.
 <P>Additional input script requirements to run styles with a <I>cuda</I>
 suffix are as follows:
 </P>
-<UL><LI>To invoke specific styles from the USER-CUDA package, you can either
+<UL><LI>The <A HREF = "Section_start.html#start_7">-cuda on command-line switch</A> must be
+used when launching LAMMPS to enable the USER-CUDA package. 
+
+<LI>To invoke specific styles from the USER-CUDA package, you can either
 append "cuda" to the style name (e.g. pair_style lj/cut/cuda), or use
 the <A HREF = "Section_start.html#start_7">-suffix command-line switch</A>, or use
 the <A HREF = "suffix.html">suffix</A> command.  One exception is that the
@@ -751,8 +754,8 @@ Details of the various options are discussed below.
 <PRE>make yes-kokkos                           # install the KOKKOS package
 make g++ OMP=yes                          # build with OpenMP, no CUDA 
 </PRE>
-<PRE>mpirun -np 12 lmp_g++ -k off < in.lj      # MPI-only mode with no Kokkos
-mpirun -np 12 lmp_g++ -sf kk < in.lj      # MPI-only mode with Kokkos
+<PRE>mpirun -np 12 lmp_g++ < in.lj      # MPI-only mode with no Kokkos
+mpirun -np 12 lmp_g++ -k on -sf kk < in.lj      # MPI-only mode with Kokkos
 mpirun -np 1 lmp_g++ -k on t 12 -sf kk < in.lj     # one MPI task, 12 threads
 mpirun -np 2 lmp_g++ -k on t 6 -sf kk < in.lj      # two MPI tasks, 6 threads/task 
 </PRE>
@@ -825,8 +828,7 @@ section</A> of the manual.
 </P>
 <P>Here are common options to use:
 </P>
-<UL><LI>-k off : runs an executable built with the KOKKOS pacakage, as
- if Kokkos were not installed. 
+<UL><LI>-k on : required to run any KOKKOS-enabled style 
 
 <LI>-sf kk : enables automatic use of Kokkos versions of atom, pair,
 fix, compute styles if they exist.  This can also be done with more

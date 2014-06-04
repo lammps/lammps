@@ -17,6 +17,7 @@
 
 #include "float.h"
 #include "stdlib.h"
+#include "string.h"
 #include "atom_vec_peri.h"
 #include "atom.h"
 #include "comm.h"
@@ -892,6 +893,45 @@ int AtomVecPeri::write_data_hybrid(FILE *fp, double *buf)
 {
   fprintf(fp," %-1.16e %-1.16e",buf[0],buf[1]);
   return 2;
+}
+
+/* ----------------------------------------------------------------------
+   assign an index to named atom property and return index
+   return -1 if name is unknown to this atom style
+------------------------------------------------------------------------- */
+
+int AtomVecPeri::property_atom(char *name)
+{
+  if (strcmp(name,"vfrac") == 0) return 0;
+  if (strcmp(name,"s0") == 0) return 1;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   pack per-atom data into buf for ComputePropertyAtom
+   index maps to data specific to this atom style
+------------------------------------------------------------------------- */
+
+void AtomVecPeri::pack_property_atom(int index, double *buf, 
+                                     int nvalues, int groupbit)
+{
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int n = 0;
+
+  if (index == 0) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = vfrac[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 1) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = s0[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

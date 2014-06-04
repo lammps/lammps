@@ -41,7 +41,7 @@ enum{ID,MOL,TYPE,ELEMENT,MASS,
      VX,VY,VZ,FX,FY,FZ,
      Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
      OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
-     TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
+     TQX,TQY,TQZ,
      COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{INT,DOUBLE,STRING,BIGINT};    // same as in DumpCFG
@@ -804,33 +804,6 @@ int DumpCustom::count()
         ptr = &atom->torque[0][2];
         nstride = 3;
 
-      } else if (thresh_array[ithresh] == SPIN) {
-        if (!atom->spin_flag)
-          error->all(FLERR,
-                     "Threshhold for an atom property that isn't allocated");
-        int *spin = atom->spin;
-        for (i = 0; i < nlocal; i++) dchoose[i] = spin[i];
-        ptr = dchoose;
-        nstride = 1;
-      } else if (thresh_array[ithresh] == ERADIUS) {
-        if (!atom->eradius_flag)
-          error->all(FLERR,
-                     "Threshhold for an atom property that isn't allocated");
-        ptr = atom->eradius;
-        nstride = 1;
-      } else if (thresh_array[ithresh] == ERVEL) {
-        if (!atom->ervel_flag)
-          error->all(FLERR,
-                     "Threshhold for an atom property that isn't allocated");
-        ptr = atom->ervel;
-        nstride = 1;
-      } else if (thresh_array[ithresh] == ERFORCE) {
-        if (!atom->erforce_flag)
-          error->all(FLERR,
-                     "Threshhold for an atom property that isn't allocated");
-        ptr = atom->erforce;
-        nstride = 1;
-
       } else if (thresh_array[ithresh] == COMPUTE) {
         i = nfield + ithresh;
         if (argindex[i] == 0) {
@@ -1171,27 +1144,6 @@ int DumpCustom::parse_fields(int narg, char **arg)
       pack_choice[i] = &DumpCustom::pack_tqz;
       vtype[i] = DOUBLE;
 
-    } else if (strcmp(arg[iarg],"spin") == 0) {
-      if (!atom->spin_flag)
-        error->all(FLERR,"Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_spin;
-      vtype[i] = INT;
-    } else if (strcmp(arg[iarg],"eradius") == 0) {
-      if (!atom->eradius_flag)
-        error->all(FLERR,"Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_eradius;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"ervel") == 0) {
-      if (!atom->ervel_flag)
-        error->all(FLERR,"Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_ervel;
-      vtype[i] = DOUBLE;
-    } else if (strcmp(arg[iarg],"erforce") == 0) {
-      if (!atom->erforce_flag)
-        error->all(FLERR,"Dumping an atom quantity that isn't allocated");
-      pack_choice[i] = &DumpCustom::pack_erforce;
-      vtype[i] = DOUBLE;
-
     // compute value = c_ID
     // if no trailing [], then arg is set to 0, else arg is int between []
 
@@ -1505,11 +1457,6 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"tqx") == 0) thresh_array[nthresh] = TQX;
     else if (strcmp(arg[1],"tqy") == 0) thresh_array[nthresh] = TQY;
     else if (strcmp(arg[1],"tqz") == 0) thresh_array[nthresh] = TQZ;
-
-    else if (strcmp(arg[1],"spin") == 0) thresh_array[nthresh] = SPIN;
-    else if (strcmp(arg[1],"eradius") == 0) thresh_array[nthresh] = ERADIUS;
-    else if (strcmp(arg[1],"ervel") == 0) thresh_array[nthresh] = ERVEL;
-    else if (strcmp(arg[1],"erforce") == 0) thresh_array[nthresh] = ERFORCE;
 
     // compute value = c_ID
     // if no trailing [], then arg is set to 0, else arg is between []
@@ -2415,54 +2362,6 @@ void DumpCustom::pack_tqz(int n)
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = torque[clist[i]][2];
-    n += size_one;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_spin(int n)
-{
-  int *spin = atom->spin;
-
-  for (int i = 0; i < nchoose; i++) {
-    buf[n] = spin[clist[i]];
-    n += size_one;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_eradius(int n)
-{
-  double *eradius = atom->eradius;
-
-  for (int i = 0; i < nchoose; i++) {
-    buf[n] = eradius[clist[i]];
-    n += size_one;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_ervel(int n)
-{
-  double *ervel = atom->ervel;
-
-  for (int i = 0; i < nchoose; i++) {
-    buf[n] = ervel[clist[i]];
-    n += size_one;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCustom::pack_erforce(int n)
-{
-  double *erforce = atom->erforce;
-
-  for (int i = 0; i < nchoose; i++) {
-    buf[n] = erforce[clist[i]];
     n += size_one;
   }
 }

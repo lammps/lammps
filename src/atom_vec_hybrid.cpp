@@ -1003,6 +1003,34 @@ void AtomVecHybrid::write_vel(FILE *fp, int n, double **buf)
 }
 
 /* ----------------------------------------------------------------------
+   assign an index to named atom property and return index
+   returned value encodes which sub-style and index returned by sub-style
+   return -1 if name is unknown to any sub-styles
+------------------------------------------------------------------------- */
+
+int AtomVecHybrid::property_atom(char *name)
+{
+  for (int k = 0; k < nstyles; k++) {
+    int index = styles[k]->property_atom(name);
+    if (index >= 0) return index*nstyles + k;
+  }
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   pack per-atom data into buf for ComputePropertyAtom
+   index maps to data specific to this atom style
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::pack_property_atom(int multiindex, double *buf, 
+                                       int nvalues, int groupbit)
+{
+  int k = multiindex % nstyles;
+  int index = multiindex/nstyles;
+  styles[k]->pack_property_atom(index,buf,nvalues,groupbit);
+}
+
+/* ----------------------------------------------------------------------
    allstyles = list of all atom styles in this LAMMPS executable
 ------------------------------------------------------------------------- */
 

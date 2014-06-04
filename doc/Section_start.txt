@@ -1159,7 +1159,7 @@ Here are the details on the options:
 Explicitly enable or disable CUDA support, as provided by the
 USER-CUDA package.  Even if LAMMPS is built with this package, as
 described above in "Section 2.3"_#start_3, this switch must be set to
-enable running with the CUDA-enhanced styles the package provides.  If
+enable running with the CUDA-enabled styles the package provides.  If
 the switch is not set (the default), LAMMPS will operate as if the
 USER-CUDA package were not installed; i.e. you can run standard LAMMPS
 or with the GPU package, for testing or benchmarking purposes.
@@ -1199,7 +1199,7 @@ used.
 Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
 package.  Even if LAMMPS is built with this package, as described
 above in "Section 2.3"_#start_3, this switch must be set to enable
-running with the KOKKOS-enhanced styles the package provides.  If the
+running with the KOKKOS-enabled styles the package provides.  If the
 switch is not set (the default), LAMMPS will operate as if the KOKKOS
 package were not installed; i.e. you can run standard LAMMPS or with
 the GPU or USER-CUDA or USER-OMP packages, for testing or benchmarking

@@ -29,15 +29,17 @@
 			angmomx, angmomy, angmomz,
 			shapex,shapey, shapez,
 		        quatw, quati, quatj, quatk, tqx, tqy, tqz,
-			spin, eradius, ervel, erforce
 			end1x, end1y, end1z, end2x, end2y, end2z,
 			corner1x, corner1y, corner1z,
 			corner2x, corner2y, corner2z,
 			corner3x, corner3y, corner3z,
 			nbonds,
+			spin, eradius, ervel, erforce, ervelforce,
+                        cs, csforce, vforce, etag,
+                        rho, drho, e, de, cv, vestx, vesty, vestz,
                         i_name, d_name 
 </PRE>
-<PRE>      id = atom ID
+<P>      id = atom ID
       mol = molecule ID
       type = atom type
       mass = atom mass
@@ -56,13 +58,28 @@
       shapex,shapey,shapez = 3 diameters of aspherical particle
       quatw,quati,quatj,quatk = quaternion components for aspherical or body particles
       tqx,tqy,tqz = torque on finite-size particles
+      end12x, end12y, end12z = end points of line segment
+      corner123x, corner123y, corner123z = corner points of triangle
+      nbonds = number of bonds
+</P>
+<P>      PERI package per-atom properties:
+      vfrac = ???
+      s0 = ???
+</P>
+<P>      USER-EFF and USER-AWPMD package per-atom properties:
       spin = electron spin
       eradius = electron radius
       ervel = electron radial velocity
       erforce = electron radial force
-      end12x, end12y, end12z = end points of line segment
-      corner123x, corner123y, corner123z = corner points of triangle
-      nbonds = number of bonds
+</P>
+<P>      USER-SPH package per-atom properties:
+      rho = ???
+      drho = ???
+      e = ???
+      de = ???
+      cv = ???
+</P>
+<PRE>      <A HREF = "fix_property_atom.html">fix property/atom</A> per-atom properties:
       i_name = custom integer vector with name
       d_name = custom integer vector with name 
 </PRE>

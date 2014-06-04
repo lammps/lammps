@@ -114,7 +114,7 @@ in the pair section of "this page"_Section_commands.html#cmd_5.
 "pair_style buck/coul/cut"_pair_buck.html - Buckingham with cutoff Coulomb
 "pair_style buck/coul/long"_pair_buck.html - Buckingham with long-range Coulombics
 "pair_style buck/coul/msm"_pair_buck.html - Buckingham long-range MSM Coulombics
-"pair_style buck/long/coul/long"_pair_buck.html - long-range Buckingham with long-range Coulombics
+"pair_style buck/long/coul/long"_pair_buck_long.html - long-range Buckingham with long-range Coulombics
 "pair_style colloid"_pair_colloid.html - integrated colloidal potential
 "pair_style comb"_pair_comb.html - charge-optimized many-body (COMB) potential
 "pair_style comb3"_pair_comb.html - charge-optimized many-body (COMB3) potential

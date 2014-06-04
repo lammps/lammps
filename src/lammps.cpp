@@ -77,8 +77,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int logflag = 0;
   int partscreenflag = 0;
   int partlogflag = 0;
-  int cudaflag = -1;
-  int kokkosflag = -1;
+  int cudaflag = 0;
+  int kokkosflag = 0;
   int restartflag = 0;
   int citeflag = 1;
   int helpflag = 0;
@@ -428,18 +428,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // create Cuda class if USER-CUDA installed, unless explicitly switched off
   // instantiation creates dummy Cuda class if USER-CUDA is not installed
 
-  if (cudaflag == 0) {
-    cuda = NULL;
-  } else if (cudaflag == 1) {
+  cuda = NULL;
+  if (cudaflag == 1) {
     cuda = new Cuda(this);
     if (!cuda->cuda_exists)
       error->all(FLERR,"Cannot use -cuda on without USER-CUDA installed");
-  } else {
-    cuda = new Cuda(this);
-    if (!cuda->cuda_exists) {
-      delete cuda;
-      cuda = NULL;
-    }
   }
 
   int me;
@@ -450,18 +443,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // instantiation creates dummy Kokkos class if KOKKOS is not installed
   // add args between kkfirst and kklast to Kokkos instantiation
 
-  if (kokkosflag == 0) {
-    kokkos = NULL;
-  } else if (kokkosflag == 1) {
+  kokkos = NULL;
+  if (kokkosflag == 1) {
     kokkos = new KokkosLMP(this,kklast-kkfirst,&arg[kkfirst]);
     if (!kokkos->kokkos_exists)
       error->all(FLERR,"Cannot use -kokkos on without KOKKOS installed");
-  } else {
-    kokkos = new KokkosLMP(this,kklast-kkfirst,&arg[kkfirst]);
-    if (!kokkos->kokkos_exists) {
-      delete kokkos;
-      kokkos = NULL;
-    }
   }
 
   MPI_Comm_rank(world,&me);

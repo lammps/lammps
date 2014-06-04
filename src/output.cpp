@@ -515,7 +515,7 @@ void Output::reset_timestep(bigint ntimestep)
     next_thermo = static_cast<bigint>
       (input->variable->compute_equal(ivar_thermo));
     if (next_thermo < ntimestep)
-      error->all(FLERR,"Thermo every variable returned a bad timestep");
+      error->all(FLERR,"Thermo_modify every variable returned a bad timestep");
     update->ntimestep++;
     next_thermo = MIN(next_thermo,update->laststep);
     modify->addstep_compute(next_thermo);

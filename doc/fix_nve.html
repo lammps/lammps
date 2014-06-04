@@ -13,6 +13,8 @@
 </H3>
 <H3>fix nve/cuda command 
 </H3>
+<H3>fix nve/kk command 
+</H3>
 <H3>fix nve/omp command 
 </H3>
 <P><B>Syntax:</B>
@@ -35,17 +37,18 @@ ensemble.
 </P>
 <HR>
 
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>omp</I>, or <I>opt</I> suffix are functionally
-the same as the corresponding style without the suffix.  They have
-been optimized to run faster, depending on your available hardware, as
-discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A> of the
-manual.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
 </P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
-packages, respectively.  They are only enabled if LAMMPS was built with
-those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
-section for more info.
+<P>These accelerated styles are part of the USER-CUDA, GPU, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P>You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line

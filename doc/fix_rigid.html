@@ -764,10 +764,27 @@ of the <A HREF = "run.html">run</A> command.  These fixes are not invoked during
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
+<P>Assigning a temperature via the <A HREF = "velocity.html">velocity create</A>
+command to a system with <A HREF = "fix_rigid.html">rigid bodies</A> may not have
+the desired outcome for two reasons.  First, the velocity command can
+be invoked before the rigid-body fix is invoked or initialized and the
+number of adjusted degrees of freedom (DOFs) is known.  Thus it is not
+possible to compute the target temperature correctly.  Second, the
+assigned velocities may be partially canceled when constraints are
+first enforced, leading to a different temperature than desired.  A
+workaround for this is to perform a <A HREF = "run.html">run 0</A> command, which
+insures all DOFs are accounted for properly, and then rescale the
+temperature to the desired value before performing a simulation.  For
+example:
+</P>
+<PRE>velocity all create 300.0 12345
+run 0                             # temperature may not be 300K
+velocity all scale 300.0          # now it should be 
+</PRE>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "delete_bonds.html">delete_bonds</A>, <A HREF = "neigh_modify.html">neigh_modify</A>
-exclude
+exclude, <A HREF = "fix_shake.html">fix shake</A>
 </P>
 <P><B>Default:</B>
 </P>

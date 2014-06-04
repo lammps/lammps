@@ -199,11 +199,28 @@ are in units of lattice spacings per time (e.g. spacings/fmsec) and
 coordinates are in lattice spacings.  The "lattice"_lattice.html
 command must have been previously used to define the lattice spacing.
 
-[Restrictions:] none
+[Restrictions:]
+
+Assigning a temperature via the {create} option to a system with
+"rigid bodies"_fix_rigid.html or "SHAKE constraints"_fix_shake.html
+may not have the desired outcome for two reasons.  First, the velocity
+command can be invoked before all of the relevant fixes are created
+and initialized and the number of adjusted degrees of freedom (DOFs)
+is known.  Thus it is not possible to compute the target temperature
+correctly.  Second, the assigned velocities may be partially canceled
+when constraints are first enforced, leading to a different
+temperature than desired.  A workaround for this is to perform a "run
+0"_run.html command, which insures all DOFs are accounted for
+properly, and then rescale the temperature to the desired value before
+performing a simulation.  For example:
+
+velocity all create 300.0 12345
+run 0                             # temperature may not be 300K
+velocity all scale 300.0          # now it should be :pre
 
 [Related commands:]
 
-"fix shake"_fix_shake.html, "lattice"_lattice.html
+"fix rigid"_fix_rigid.html, "fix shake"_fix_shake.html, "lattice"_lattice.html
 
 [Default:]
 

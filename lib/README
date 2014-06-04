@@ -19,6 +19,8 @@ cuda	      NVIDIA GPU routines, USER-CUDA package
                 from Christian Trott (U Tech Ilmenau)
 gpu	      general GPU routines, GPU package
 	        from Mike Brown (ORNL)
+kokkos        Kokkos package for GPU and many-core acceleration
+                from Kokkos development team (Sandia)
 linalg        set of BLAS and LAPACK routines needed by USER-ATC package
 	        from Axel Kohlmeyer (Temple U)
 poems	      POEMS rigid-body integration package, POEMS package

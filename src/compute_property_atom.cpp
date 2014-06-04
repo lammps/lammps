@@ -338,6 +338,8 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
                    "vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_dname;
 
+    // check if atom style recognizes keyword
+
     } else {
       index[i] = atom->avec->property_atom(arg[iarg]);
       if (index[i] < 0)

@@ -974,6 +974,59 @@ int AtomVecElectron::write_vel_hybrid(FILE *fp, double *buf)
 }
 
 /* ----------------------------------------------------------------------
+   assign an index to named atom property and return index
+   return -1 if name is unknown to this atom style
+------------------------------------------------------------------------- */
+
+int AtomVecElectron::property_atom(char *name)
+{
+  if (strcmp(name,"spin") == 0) return 0;
+  if (strcmp(name,"eradius") == 0) return 1;
+  if (strcmp(name,"ervel") == 0) return 2;
+  if (strcmp(name,"erforce") == 0) return 3;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   pack per-atom data into buf for ComputePropertyAtom
+   index maps to data specific to this atom style
+------------------------------------------------------------------------- */
+
+void AtomVecElectron::pack_property_atom(int index, double *buf, 
+                                         int nvalues, int groupbit)
+{
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int n = 0;
+
+  if (index == 0) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = spin[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 1) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = eradius[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 2) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = ervel[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 3) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = erforce[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 

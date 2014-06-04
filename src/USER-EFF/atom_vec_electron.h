@@ -66,6 +66,8 @@ class AtomVecElectron : public AtomVec {
   int pack_vel_hybrid(int, double *);
   void write_vel(FILE *, int, double **);
   int write_vel_hybrid(FILE *, double *);
+  int property_atom(char *);
+  void pack_property_atom(int, double *, int, int);
   bigint memory_usage();
 
  private:

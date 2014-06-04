@@ -17,6 +17,7 @@
 #include "domain.h"
 #include "comm.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -69,17 +70,11 @@ void Verlet::init()
   int ifix = modify->find_fix("package_omp");
   if (ifix >= 0) external_force_clear = 1;
 
-  // set flags for what arrays to clear in force_clear()
-  // need to clear additionals arrays if they exist
+  // set flags for arrays to clear in force_clear()
 
-  torqueflag = 0;
+  torqueflag = extraflag = 0;
   if (atom->torque_flag) torqueflag = 1;
-  erforceflag = 0;
-  if (atom->erforce_flag) erforceflag = 1;
-  e_flag = 0;
-  if (atom->e_flag) e_flag = 1;
-  rho_flag = 0;
-  if (atom->rho_flag) rho_flag = 1;
+  if (atom->avec->forceclearflag) extraflag = 1;
 
   // orthogonal vs triclinic simulation box
 
@@ -330,6 +325,7 @@ void Verlet::cleanup()
 void Verlet::force_clear()
 {
   int i;
+  size_t nbytes;
 
   if (external_force_clear) return;
 
@@ -337,19 +333,16 @@ void Verlet::force_clear()
   // if either newton flag is set, also include ghosts
   // when using threads always clear all forces.
 
-  if (neighbor->includegroup == 0) {
-    int nall;
-    if (force->newton) nall = atom->nlocal + atom->nghost;
-    else nall = atom->nlocal;
+  int nlocal = atom->nlocal;
 
-    size_t nbytes = sizeof(double) * nall;
+  if (neighbor->includegroup == 0) {
+    nbytes = sizeof(double) * nlocal;
+    if (force->newton) nbytes += sizeof(double) * atom->nghost;
 
     if (nbytes) {
-      memset(&(atom->f[0][0]),0,3*nbytes);
-      if (torqueflag)  memset(&(atom->torque[0][0]),0,3*nbytes);
-      if (erforceflag) memset(&(atom->erforce[0]),  0,  nbytes);
-      if (e_flag)      memset(&(atom->de[0]),       0,  nbytes);
-      if (rho_flag)    memset(&(atom->drho[0]),     0,  nbytes);
+      memset(&atom->f[0][0],0,3*nbytes);
+      if (torqueflag) memset(&atom->torque[0][0],0,3*nbytes);
+      if (extraflag) atom->avec->force_clear(0,nbytes);
     }
 
   // neighbor includegroup flag is set
@@ -357,70 +350,21 @@ void Verlet::force_clear()
   // if either newton flag is set, also include ghosts
 
   } else {
-    int nall = atom->nfirst;
+    nbytes = sizeof(double) * atom->nfirst;
 
-    double **f = atom->f;
-    for (i = 0; i < nall; i++) {
-      f[i][0] = 0.0;
-      f[i][1] = 0.0;
-      f[i][2] = 0.0;
-    }
-
-    if (torqueflag) {
-      double **torque = atom->torque;
-      for (i = 0; i < nall; i++) {
-        torque[i][0] = 0.0;
-        torque[i][1] = 0.0;
-        torque[i][2] = 0.0;
-      }
-    }
-
-    if (erforceflag) {
-      double *erforce = atom->erforce;
-      for (i = 0; i < nall; i++) erforce[i] = 0.0;
-    }
-
-    if (e_flag) {
-      double *de = atom->de;
-      for (i = 0; i < nall; i++) de[i] = 0.0;
-    }
-
-    if (rho_flag) {
-      double *drho = atom->drho;
-      for (i = 0; i < nall; i++) drho[i] = 0.0;
+    if (nbytes) {
+      memset(&atom->f[0][0],0,3*nbytes);
+      if (torqueflag) memset(&atom->torque[0][0],0,3*nbytes);
+      if (extraflag) atom->avec->force_clear(0,nbytes);
     }
 
     if (force->newton) {
-      nall = atom->nlocal + atom->nghost;
+      nbytes = sizeof(double) * atom->nghost;
 
-      for (i = atom->nlocal; i < nall; i++) {
-        f[i][0] = 0.0;
-        f[i][1] = 0.0;
-        f[i][2] = 0.0;
-      }
-
-      if (torqueflag) {
-        double **torque = atom->torque;
-        for (i = atom->nlocal; i < nall; i++) {
-          torque[i][0] = 0.0;
-          torque[i][1] = 0.0;
-          torque[i][2] = 0.0;
-        }
-      }
-
-      if (erforceflag) {
-        double *erforce = atom->erforce;
-        for (i = atom->nlocal; i < nall; i++) erforce[i] = 0.0;
-      }
-
-      if (e_flag) {
-        double *de = atom->de;
-        for (i = 0; i < nall; i++) de[i] = 0.0;
-      }
-
-      if (rho_flag) {
-        double *drho = atom->drho;
-        for (i = 0; i < nall; i++) drho[i] = 0.0;
+      if (nbytes) {
+        memset(&atom->f[nlocal][0],0,3*nbytes);
+        if (torqueflag) memset(&atom->torque[nlocal][0],0,3*nbytes);
+        if (extraflag) atom->avec->force_clear(nlocal,nbytes);
       }
     }
   }

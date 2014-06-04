@@ -39,6 +39,7 @@ class AtomVec : protected Pointers {
   int size_data_bonus;                 // number of values in Bonus line
   int xcol_data;                       // column (1-N) where x is in Atom line
 
+  int forceclearflag;                  // 1 if has forceclear() method
   class Molecule **onemols;            // list of molecules for style template
   int nset;                            // # of molecules in list
 
@@ -59,6 +60,7 @@ class AtomVec : protected Pointers {
   virtual void grow_reset() = 0;
   virtual void copy(int, int, int) = 0;
   virtual void clear_bonus() {}
+  virtual void force_clear(int, size_t) {}
 
   virtual int pack_comm(int, int *, double *, int, int *) = 0;
   virtual int pack_comm_vel(int, int *, double *, int, int *) = 0;

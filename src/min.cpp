@@ -24,6 +24,7 @@
 #include "string.h"
 #include "min.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "domain.h"
 #include "comm.h"
 #include "update.h"
@@ -139,17 +140,11 @@ void Min::init()
   int ifix = modify->find_fix("package_omp");
   if (ifix >= 0) external_force_clear = 1;
 
-  // set flags for what arrays to clear in force_clear()
-  // need to clear additionals arrays if they exist
+  // set flags for arrays to clear in force_clear()
 
-  torqueflag = 0;
+  torqueflag = extraflag = 0;
   if (atom->torque_flag) torqueflag = 1;
-  erforceflag = 0;
-  if (atom->erforce_flag) erforceflag = 1;
-  e_flag = 0;
-  if (atom->e_flag) e_flag = 1;
-  rho_flag = 0;
-  if (atom->rho_flag) rho_flag = 1;
+  if (atom->avec->forceclearflag) extraflag = 1;
 
   // allow pair and Kspace compute() to be turned off via modify flags
 
@@ -540,7 +535,7 @@ double Min::energy_force(int resetflag)
 
 /* ----------------------------------------------------------------------
    clear force on own & ghost atoms
-   setup and clear other arrays as needed
+   clear other arrays as needed
 ------------------------------------------------------------------------- */
 
 void Min::force_clear()
@@ -548,20 +543,15 @@ void Min::force_clear()
   if (external_force_clear) return;
 
   // clear global force array
-  // nall includes ghosts only if either newton flag is set
+  // if either newton flag is set, also include ghosts
 
-  int nall;
-  if (force->newton) nall = atom->nlocal + atom->nghost;
-  else nall = atom->nlocal;
-
-  size_t nbytes = sizeof(double) * nall;
+  size_t nbytes = sizeof(double) * atom->nlocal;
+  if (force->newton) nbytes += sizeof(double) * atom->nghost;
 
   if (nbytes) {
-    memset(&(atom->f[0][0]),0,3*nbytes);
-    if (torqueflag)  memset(&(atom->torque[0][0]),0,3*nbytes);
-    if (erforceflag) memset(&(atom->erforce[0]),  0,  nbytes);
-    if (e_flag)      memset(&(atom->de[0]),       0,  nbytes);
-    if (rho_flag)    memset(&(atom->drho[0]),     0,  nbytes);
+    memset(&atom->f[0][0],0,3*nbytes);
+    if (torqueflag) memset(&atom->torque[0][0],0,3*nbytes);
+    if (extraflag) atom->avec->force_clear(0,nbytes);
   }
 }
 

@@ -17,6 +17,7 @@
 
 #include "math.h"
 #include "stdlib.h"
+#include "string.h"
 #include "atom_vec_electron.h"
 #include "atom.h"
 #include "comm.h"
@@ -51,6 +52,7 @@ AtomVecElectron::AtomVecElectron(LAMMPS *lmp) : AtomVec(lmp)
 
   mass_type = 1;
   molecular = 0;
+  forceclearflag = 1;
 
   size_forward = 4;
   size_reverse = 4;
@@ -136,6 +138,13 @@ void AtomVecElectron::copy(int i, int j, int delflag)
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->copy_arrays(i,j,delflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecElectron::force_clear(int n, size_t nbytes)
+{
+  memset(&erforce[n],0,nbytes);
 }
 
 /* ---------------------------------------------------------------------- */

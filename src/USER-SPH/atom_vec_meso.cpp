@@ -11,6 +11,7 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
+#include "string.h"
 #include "stdlib.h"
 #include "atom_vec_meso.h"
 #include "atom.h"
@@ -29,6 +30,7 @@ AtomVecMeso::AtomVecMeso(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = 0;
   mass_type = 1;
+  forceclearflag = 1;
 
   comm_x_only = 0; // we communicate not only x forward but also vest ...
   comm_f_only = 0; // we also communicate de and drho in reverse direction
@@ -127,6 +129,14 @@ void AtomVecMeso::copy(int i, int j, int delflag) {
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->copy_arrays(i, j,delflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecMeso::force_clear(int n, size_t nbytes)
+{
+  memset(&de[n],0,nbytes);
+  memset(&drho[n],0,nbytes);
 }
 
 /* ---------------------------------------------------------------------- */

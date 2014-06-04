@@ -17,6 +17,7 @@
 
 #include "math.h"
 #include "stdlib.h"
+#include "string.h"
 #include "atom_vec_wavepacket.h"
 #include "atom.h"
 #include "comm.h"
@@ -37,6 +38,7 @@ AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
 
   mass_type = 1;
   molecular = 0;
+  forceclearflag = 1;
 
   size_forward = 4; // coords[3]+radius[1]
   size_reverse = 10; // force[3]+erforce[1]+ervelforce[1]+vforce[3]+csforce[2]
@@ -108,7 +110,6 @@ void AtomVecWavepacket::grow_reset()
   vforce = atom->vforce;
   ervelforce = atom->ervelforce;
   etag = atom->etag;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -141,6 +142,13 @@ void AtomVecWavepacket::copy(int i, int j, int delflag)
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->copy_arrays(i,j,delflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecWavepacket::force_clear(int n, size_t nbytes)
+{
+  memset(&erforce[n],0,nbytes);
 }
 
 /* ---------------------------------------------------------------------- */

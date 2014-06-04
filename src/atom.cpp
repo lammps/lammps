@@ -79,16 +79,17 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   mu = NULL;
   omega = angmom = torque = NULL;
   radius = rmass = NULL;
+  ellipsoid = line = tri = body = NULL;
+
   vfrac = s0 = NULL;
   x0 = NULL;
-  ellipsoid = line = tri = body = NULL;
+
   spin = NULL;
   eradius = ervel = erforce = NULL;
   cs = csforce = vforce = ervelforce = NULL;
   etag = NULL;
-  rho = drho = NULL;
-  e = de = NULL;
-  cv = NULL;
+
+  rho = drho = e = de = cv = NULL;
   vest = NULL;
 
   bond_per_atom =  extra_bond_per_atom = 0;
@@ -130,14 +131,19 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // initialize atom style and array existence flags
   // customize by adding new flag
 
-  sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
-  peri_flag = electron_flag = 0;
+  sphere_flag = peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;
 
-  molecule_flag = q_flag = mu_flag = 0;
-  rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
-  vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
-  cs_flag = csforce_flag = vforce_flag = ervelforce_flag= etag_flag = 0;
+  molecule_flag = 0;
+  q_flag = mu_flag = 0;
+  omega_flag = torque_flag = angmom_flag = 0;
+  radius_flag = rmass_flag = 0;
+  ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+
+  vfrac_flag = 0;
+  spin_flag = eradius_flag = ervel_flag = erforce_flag = ervelforce_flag = 0;
+  cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
+
   rho_flag = e_flag = cv_flag = vest_flag = 0;
 
   // Peridynamic scale factor
@@ -200,6 +206,10 @@ Atom::~Atom()
   memory->destroy(v);
   memory->destroy(f);
 
+  memory->destroy(molecule);
+  memory->destroy(molindex);
+  memory->destroy(molatom);
+
   memory->destroy(q);
   memory->destroy(mu);
   memory->destroy(omega);
@@ -207,21 +217,31 @@ Atom::~Atom()
   memory->destroy(torque);
   memory->destroy(radius);
   memory->destroy(rmass);
-  memory->destroy(vfrac);
-  memory->destroy(s0);
-  memory->destroy(x0);
   memory->destroy(ellipsoid);
   memory->destroy(line);
   memory->destroy(tri);
   memory->destroy(body);
+
+  memory->destroy(vfrac);
+  memory->destroy(s0);
+  memory->destroy(x0);
+
   memory->destroy(spin);
   memory->destroy(eradius);
   memory->destroy(ervel);
   memory->destroy(erforce);
+  memory->destroy(ervelforce);
+  memory->destroy(cs);
+  memory->destroy(csforce);
+  memory->destroy(vforce);
+  memory->destroy(etag);
 
-  memory->destroy(molecule);
-  memory->destroy(molindex);
-  memory->destroy(molatom);
+  memory->destroy(rho);
+  memory->destroy(drho);
+  memory->destroy(e);
+  memory->destroy(de);
+  memory->destroy(cv);
+  memory->destroy(vest);
 
   memory->destroy(nspecial);
   memory->destroy(special);
@@ -250,11 +270,6 @@ Atom::~Atom()
   memory->destroy(improper_atom3);
   memory->destroy(improper_atom4);
 
-  // delete user-defined molecules
-
-  for (int i = 0; i < nmolecule; i++) delete molecules[i];
-  memory->sfree(molecules);
-
   // delete custom atom arrays
 
   for (int i = 0; i < nivector; i++) {
@@ -270,6 +285,11 @@ Atom::~Atom()
   memory->sfree(dname);
   memory->sfree(ivector);
   memory->sfree(dvector);
+
+  // delete user-defined molecules
+
+  for (int i = 0; i < nmolecule; i++) delete molecules[i];
+  memory->sfree(molecules);
 
   // delete per-type arrays
 
@@ -320,12 +340,20 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
   // may have been set by old avec
   // customize by adding new flag
 
-  sphere_flag = ellipsoid_flag = line_flag = tri_flag = 0;
-  peri_flag = electron_flag = 0;
+  sphere_flag = peri_flag = electron_flag = 0;
+  wavepacket_flag = sph_flag = 0;
 
-  molecule_flag = q_flag = mu_flag = 0;
-  rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
-  vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
+  molecule_flag = 0;
+  q_flag = mu_flag = 0;
+  omega_flag = torque_flag = angmom_flag = 0;
+  radius_flag = rmass_flag = 0;
+  ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+
+  vfrac_flag = 0;
+  spin_flag = eradius_flag = ervel_flag = erforce_flag = ervelforce_flag = 0;
+  cs_flag = csforce_flag = vforce_flag = etag_flag = 0;
+
+  rho_flag = e_flag = cv_flag = vest_flag = 0;
 
   // create instance of AtomVec
   // use grow() to initialize atom-based arrays to length 1
@@ -1867,12 +1895,34 @@ void *Atom::extract(char *name)
   if (strcmp(name,"q") == 0) return (void *) q;
   if (strcmp(name,"mu") == 0) return (void *) mu;
   if (strcmp(name,"omega") == 0) return (void *) omega;
-  if (strcmp(name,"amgmom") == 0) return (void *) angmom;
+  if (strcmp(name,"angmom") == 0) return (void *) angmom;
   if (strcmp(name,"torque") == 0) return (void *) torque;
   if (strcmp(name,"radius") == 0) return (void *) radius;
   if (strcmp(name,"rmass") == 0) return (void *) rmass;
+  if (strcmp(name,"ellipsoid") == 0) return (void *) ellipsoid;
+  if (strcmp(name,"line") == 0) return (void *) line;
+  if (strcmp(name,"tri") == 0) return (void *) tri;
+
   if (strcmp(name,"vfrac") == 0) return (void *) vfrac;
   if (strcmp(name,"s0") == 0) return (void *) s0;
+  if (strcmp(name,"x0") == 0) return (void *) x0;
+
+  if (strcmp(name,"spin") == 0) return (void *) spin;
+  if (strcmp(name,"eradius") == 0) return (void *) eradius;
+  if (strcmp(name,"ervel") == 0) return (void *) ervel;
+  if (strcmp(name,"erforce") == 0) return (void *) erforce;
+  if (strcmp(name,"ervelforce") == 0) return (void *) ervelforce;
+  if (strcmp(name,"cs") == 0) return (void *) cs;
+  if (strcmp(name,"csforce") == 0) return (void *) csforce;
+  if (strcmp(name,"vforce") == 0) return (void *) vforce;
+  if (strcmp(name,"etag") == 0) return (void *) etag;
+
+  if (strcmp(name,"rho") == 0) return (void *) rho;
+  if (strcmp(name,"drho") == 0) return (void *) drho;
+  if (strcmp(name,"e") == 0) return (void *) e;
+  if (strcmp(name,"de") == 0) return (void *) de;
+  if (strcmp(name,"cv") == 0) return (void *) cv;
+  if (strcmp(name,"vest") == 0) return (void *) vest;
 
   return NULL;
 }

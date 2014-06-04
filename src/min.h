@@ -63,8 +63,7 @@ class Min : protected Pointers {
 
   int triclinic;              // 0 if domain is orthog, 1 if triclinic
   int pairflag;
-  int torqueflag,erforceflag;
-  int e_flag,rho_flag;
+  int torqueflag,extraflag;
 
   int pair_compute_flag;            // 0 if pair->compute is skipped
   int kspace_compute_flag;          // 0 if kspace->compute is skipped

@@ -16,6 +16,7 @@
 #include "compute_property_atom.h"
 #include "math_extra.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
@@ -239,27 +240,6 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_tqz;
 
-    } else if (strcmp(arg[iarg],"spin") == 0) {
-      if (!atom->spin_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_spin;
-    } else if (strcmp(arg[iarg],"eradius") == 0) {
-      if (!atom->eradius_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_eradius;
-    } else if (strcmp(arg[iarg],"ervel") == 0) {
-      if (!atom->ervel_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_ervel;
-    } else if (strcmp(arg[iarg],"erforce") == 0) {
-      if (!atom->erforce_flag)
-        error->all(FLERR,"Compute property/atom for "
-                   "atom property that isn't allocated");
-      pack_choice[i] = &ComputePropertyAtom::pack_erforce;
-
     } else if (strcmp(arg[iarg],"end1x") == 0) {
       avec_line = (AtomVecLine *) atom->style_match("line");
       if (!avec_line) error->all(FLERR,"Compute property/atom for "
@@ -342,6 +322,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_nbonds;
+
     } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
       int flag;
       index[i] = atom->find_custom(&arg[iarg][2],flag);
@@ -357,7 +338,12 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
                    "vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_dname;
 
-    } else error->all(FLERR,"Invalid keyword in compute property/atom command");
+    } else {
+      index[i] = atom->avec->property_atom(arg[iarg]);
+      if (index[i] < 0)
+        error->all(FLERR,"Invalid keyword in compute property/atom command");
+      pack_choice[i] = &ComputePropertyAtom::pack_property_atom;
+    }
   }
 
   nmax = 0;
@@ -1341,66 +1327,6 @@ void ComputePropertyAtom::pack_tqz(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePropertyAtom::pack_spin(int n)
-{
-  int *spin = atom->spin;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = spin[i];
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyAtom::pack_eradius(int n)
-{
-  double *eradius = atom->eradius;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = eradius[i];
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyAtom::pack_ervel(int n)
-{
-  double *ervel = atom->ervel;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = ervel[i];
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePropertyAtom::pack_erforce(int n)
-{
-  double *erforce = atom->erforce;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = erforce[i];
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ComputePropertyAtom::pack_end1x(int n)
 {
   AtomVecLine::Bonus *bonus = avec_line->bonus;
@@ -1733,4 +1659,11 @@ void ComputePropertyAtom::pack_dname(int n)
     else buf[n] = 0.0;
     n += nvalues;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_property_atom(int n)
+{
+  atom->avec->pack_property_atom(index[n],&buf[n],nvalues,groupbit);
 }

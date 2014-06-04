@@ -107,6 +107,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     impropers_allow = MAX(impropers_allow,styles[k]->impropers_allow);
     mass_type = MAX(mass_type,styles[k]->mass_type);
     dipole_type = MAX(dipole_type,styles[k]->dipole_type);
+    forceclearflag = MAX(forceclearflag,styles[k]->forceclearflag);
 
     comm_x_only = MIN(comm_x_only,styles[k]->comm_x_only);
     comm_f_only = MIN(comm_f_only,styles[k]->comm_f_only);
@@ -198,6 +199,14 @@ void AtomVecHybrid::copy(int i, int j, int delflag)
 void AtomVecHybrid::clear_bonus()
 {
   for (int k = 0; k < nstyles; k++) styles[k]->clear_bonus();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecHybrid::force_clear(int n, size_t nbytes)
+{
+  for (int k = 0; k < nstyles; k++) 
+    if (styles[k]->forceclearflag) styles[k]->force_clear(n,nbytes);
 }
 
 /* ---------------------------------------------------------------------- */

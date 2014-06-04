@@ -26,6 +26,7 @@ class AtomVec : protected Pointers {
   int dihedrals_allow,impropers_allow; // 1 if dihedrals, impropers used
   int mass_type;                       // 1 if per-type masses
   int dipole_type;                     // 1 if per-type dipole moments
+  int forceclearflag;                  // 1 if has forceclear() method
 
   int comm_x_only;                     // 1 if only exchange x in forward comm
   int comm_f_only;                     // 1 if only exchange f in reverse comm
@@ -39,7 +40,6 @@ class AtomVec : protected Pointers {
   int size_data_bonus;                 // number of values in Bonus line
   int xcol_data;                       // column (1-N) where x is in Atom line
 
-  int forceclearflag;                  // 1 if has forceclear() method
   class Molecule **onemols;            // list of molecules for style template
   int nset;                            // # of molecules in list
 
@@ -113,6 +113,9 @@ class AtomVec : protected Pointers {
   void write_dihedral(FILE *, int, tagint **, int);
   void pack_improper(tagint **);
   void write_improper(FILE *, int, tagint **, int);
+ 
+  virtual int property_atom(char *) {return -1;}
+  virtual void pack_property_atom(int, double *, int, int) {}
 
   virtual bigint memory_usage() = 0;
 

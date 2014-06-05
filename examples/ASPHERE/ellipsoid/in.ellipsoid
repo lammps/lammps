@@ -75,7 +75,7 @@ reset_timestep	0
 neighbor	0.3 bin
 neigh_modify	delay 0 every 1 check yes
 
-communicate	multi group big vel yes
+comm_modify	mode multi group big vel yes
 neigh_modify	include big
 
 # no pairwise interactions with small particles

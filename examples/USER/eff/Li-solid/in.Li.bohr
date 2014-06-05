@@ -13,7 +13,7 @@ read_data       data.${sname}
 pair_style      eff/cut 20.88 limit/eradius pressure/evirials
 pair_coeff      * *
 
-communicate	single vel yes
+comm_modify	vel yes
 
 neigh_modify	one 2000 page 20000
 

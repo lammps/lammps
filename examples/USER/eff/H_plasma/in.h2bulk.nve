@@ -14,7 +14,7 @@ pair_coeff	* *
 
 neigh_modify    one 10000 page 100000
 
-communicate	single vel yes
+comm_modify	vel yes
 
 compute		effTemp all temp/eff
 

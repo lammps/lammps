@@ -12,7 +12,7 @@ read_data  	data.${sname}
 pair_style      eff/cut 100.0
 pair_coeff	* *
 
-communicate	single vel yes	
+comm_modify	vel yes	
 
 compute         effTemp all temp/eff
 

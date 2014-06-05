@@ -167,8 +167,8 @@ number of "dangerous" reneighborings (printed at the end of a
 simulation), you should experiment with forcing reneighboring more
 often and see if system energies/trajectories change.
 
-These pair styles requires you to use the "communicate vel
-yes"_communicate.html option so that velocites are stored by ghost
+These pair styles requires you to use the "comm_modify vel
+yes"_comm_modify.html command so that velocites are stored by ghost
 atoms.
 
 These pair styles will not restart exactly when using the

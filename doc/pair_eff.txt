@@ -289,8 +289,8 @@ such as radius, radial velocity, and radital force, as defined by the
 "atom_style"_atom_style.html.  The {electron} atom style does all of
 this.
 
-Thes pair styles require you to use the "communicate vel
-yes"_communicate.html option so that velocites are stored by ghost
+Thes pair styles require you to use the "comm_modify vel
+yes"_comm_modify.html command so that velocites are stored by ghost
 atoms.
 
 [Related commands:]

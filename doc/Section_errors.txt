@@ -4384,7 +4384,7 @@ Self-explanatory. :dd
 
 {Fix srd requires ghost atoms store velocity} :dt
 
-Use the communicate vel yes command to enable this. :dd
+Use the comm_modify vel yes command to enable this. :dd
 
 {Fix srd requires newton pair on} :dt
 
@@ -6845,7 +6845,7 @@ Two atoms are further apart than the pairwise table allows. :dd
 
 {Pair dpd requires ghost atoms store velocity} :dt
 
-Use the communicate vel yes command to enable this. :dd
+Use the comm_modify vel yes command to enable this. :dd
 
 {Pair gayberne epsilon a,b,c coeffs are not all set} :dt
 
@@ -6874,7 +6874,7 @@ Self-explanatory. :dd
 
 {Pair granular requires ghost atoms store velocity} :dt
 
-Use the communicate vel yes command to enable this. :dd
+Use the comm_modify vel yes command to enable this. :dd
 
 {Pair granular with shear history requires newton pair off} :dt
 
@@ -6914,7 +6914,7 @@ Self-explanatory. :dd
 
 {Pair lubricate requires ghost atoms store velocity} :dt
 
-Use the communicate vel yes command to enable this. :dd
+Use the comm_modify vel yes command to enable this. :dd
 
 {Pair lubricate requires monodisperse particles} :dt
 
@@ -6930,7 +6930,7 @@ One of the particles has radius 0.0. :dd
 
 {Pair lubricate/poly requires ghost atoms store velocity} :dt
 
-Use the communicate vel yes command to enable this. :dd
+Use the comm_modify vel yes command to enable this. :dd
 
 {Pair lubricate/poly requires newton pair off} :dt
 
@@ -6942,7 +6942,7 @@ Self-explanatory. :dd
 
 {Pair lubricateU requires ghost atoms store velocity} :dt
 
-Use the communicate vel yes command to enable this. :dd
+Use the comm_modify vel yes command to enable this. :dd
 
 {Pair lubricateU requires monodisperse particles} :dt
 
@@ -6950,7 +6950,7 @@ All particles must be the same finite size. :dd
 
 {Pair lubricateU/poly requires ghost atoms store velocity} :dt
 
-Use the communicate vel yes command to enable this. :dd
+Use the comm_modify vel yes command to enable this. :dd
 
 {Pair lubricateU/poly requires newton pair off} :dt
 

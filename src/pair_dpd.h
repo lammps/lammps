@@ -71,7 +71,7 @@ Self-explanatory.  Check the input script or data file.
 
 E: Pair dpd requires ghost atoms store velocity
 
-Use the communicate vel yes command to enable this.
+Use the comm_modify vel yes command to enable this.
 
 W: Pair dpd needs newton pair on for momentum conservation
 

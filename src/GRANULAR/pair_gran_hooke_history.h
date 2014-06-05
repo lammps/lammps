@@ -93,7 +93,7 @@ Self-explanatory.
 
 E: Pair granular requires ghost atoms store velocity
 
-Use the communicate vel yes command to enable this.
+Use the comm_modify vel yes command to enable this.
 
 E: Pair granular with shear history requires newton pair off
 

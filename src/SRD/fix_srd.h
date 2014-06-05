@@ -276,7 +276,7 @@ Self-explanatory.
 
 E: Fix srd requires ghost atoms store velocity
 
-Use the communicate vel yes command to enable this.
+Use the comm_modify vel yes command to enable this.
 
 E: Fix SRD no-slip requires atom attribute torque
 

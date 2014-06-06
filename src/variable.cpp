@@ -139,6 +139,8 @@ void Variable::set(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal variable command");
 
+  int replaceflag = 0;
+
   // DELETE
   // doesn't matter if variable no longer exists
 
@@ -262,24 +264,28 @@ void Variable::set(int narg, char **arg)
                    "All universe/uloop variables must have same # of values");
 
   // STRING
-  // remove pre-existing var if also style STRING (allows it to be reset)
+  // replace pre-existing var if also style STRING (allows it to be reset)
   // num = 1, which = 1st value
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"string") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal variable command");
-    if (find(arg[0]) >= 0) {
-      if (style[find(arg[0])] != STRING)
+    int ivar = find(arg[0]);
+    if (ivar >= 0) {
+      if (style[ivar] != STRING)
         error->all(FLERR,"Cannot redefine variable as a different style");
-      remove(find(arg[0]));
+      delete [] data[ivar][0];
+      copy(1,&arg[2],data[ivar]);
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = STRING;
+      num[nvar] = 1;
+      which[nvar] = 0;
+      pad[nvar] = 0;
+      data[nvar] = new char*[num[nvar]];
+      copy(1,&arg[2],data[nvar]);
     }
-    if (nvar == maxvar) grow();
-    style[nvar] = STRING;
-    num[nvar] = 1;
-    which[nvar] = 0;
-    pad[nvar] = 0;
-    data[nvar] = new char*[num[nvar]];
-    copy(1,&arg[2],data[nvar]);
 
   // GETENV
   // remove pre-existing var if also style GETENV (allows it to be reset)
@@ -357,51 +363,62 @@ void Variable::set(int narg, char **arg)
     data[nvar][2] = NULL;
 
   // EQUAL
-  // remove pre-existing var if also style EQUAL (allows it to be reset)
+  // replace pre-existing var if also style EQUAL (allows it to be reset)
   // num = 2, which = 1st value
   // data = 2 values, 1st is string to eval, 2nd is filled on retrieval
 
   } else if (strcmp(arg[1],"equal") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal variable command");
-    if (find(arg[0]) >= 0) {
-      if (style[find(arg[0])] != EQUAL)
+    int ivar = find(arg[0]);
+    if (ivar >= 0) {
+      if (style[ivar] != EQUAL)
         error->all(FLERR,"Cannot redefine variable as a different style");
-      remove(find(arg[0]));
+      delete [] data[ivar][0];
+      if (data[ivar][1]) delete [] data[ivar][1];
+      copy(1,&arg[2],data[ivar]);
+      data[ivar][1] = NULL;
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = EQUAL;
+      num[nvar] = 2;
+      which[nvar] = 0;
+      pad[nvar] = 0;
+      data[nvar] = new char*[num[nvar]];
+      copy(1,&arg[2],data[nvar]);
+      data[nvar][1] = NULL;
     }
-    if (nvar == maxvar) grow();
-    style[nvar] = EQUAL;
-    num[nvar] = 2;
-    which[nvar] = 0;
-    pad[nvar] = 0;
-    data[nvar] = new char*[num[nvar]];
-    copy(1,&arg[2],data[nvar]);
-    data[nvar][1] = NULL;
 
   // ATOM
-  // remove pre-existing var if also style ATOM (allows it to be reset)
+  // replace pre-existing var if also style ATOM (allows it to be reset)
   // num = 1, which = 1st value
   // data = 1 value, string to eval
 
   } else if (strcmp(arg[1],"atom") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal variable command");
-    if (find(arg[0]) >= 0) {
-      if (style[find(arg[0])] != ATOM)
+    int ivar = find(arg[0]);
+    if (ivar >= 0) {
+      if (style[ivar] != ATOM)
         error->all(FLERR,"Cannot redefine variable as a different style");
-      remove(find(arg[0]));
+      delete [] data[ivar][0];
+      copy(1,&arg[2],data[ivar]);
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = ATOM;
+      num[nvar] = 1;
+      which[nvar] = 0;
+      pad[nvar] = 0;
+      data[nvar] = new char*[num[nvar]];
+      copy(1,&arg[2],data[nvar]);
     }
-    if (nvar == maxvar) grow();
-    style[nvar] = ATOM;
-    num[nvar] = 1;
-    which[nvar] = 0;
-    pad[nvar] = 0;
-    data[nvar] = new char*[num[nvar]];
-    copy(1,&arg[2],data[nvar]);
 
   } else error->all(FLERR,"Illegal variable command");
 
-  // set name of variable
-  // must come at end, since STRING/EQUAL/ATOM reset may have removed name
+  // set name of variable, if not replacing (STRING/EQUAL/ATOM)
   // name must be all alphanumeric chars or underscores
+
+  if (replaceflag) return;
 
   int n = strlen(arg[0]) + 1;
   names[nvar] = new char[n];

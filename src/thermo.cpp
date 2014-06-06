@@ -29,6 +29,7 @@
 #include "compute.h"
 #include "input.h"
 #include "variable.h"
+#include "neighbor.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -54,7 +55,7 @@ using namespace MathConst;
 // xlat, ylat, zlat
 // bonds, angles, dihedrals, impropers,
 // pxx, pyy, pzz, pxy, pxz, pyz
-// fmax, fnorm
+// fmax, fnorm, nbuild, ndanger,
 // cella, cellb, cellc, cellalpha, cellbeta, cellgamma
 
 // customize a new thermo style by adding a DEFINE to this list
@@ -798,6 +799,11 @@ void Thermo::parse_fields(char *str)
     } else if (strcmp(word,"fnorm") == 0) {
       addfield("Fnorm",&Thermo::compute_fnorm,FLOAT);
 
+    } else if (strcmp(word,"nbuild") == 0) {
+      addfield("Nbuild",&Thermo::compute_nbuild,BIGINT);
+    } else if (strcmp(word,"ndanger") == 0) {
+      addfield("Ndanger",&Thermo::compute_ndanger,BIGINT);
+
     } else if (strcmp(word,"cella") == 0) {
       addfield("Cella",&Thermo::compute_cella,FLOAT);
     } else if (strcmp(word,"cellb") == 0) {
@@ -1368,9 +1374,18 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       pressure->invoked_flag |= INVOKED_VECTOR;
     }
     compute_pyz();
+  }
 
-  } else if (strcmp(word,"fmax") == 0) compute_fmax();
+  else if (strcmp(word,"fmax") == 0) compute_fmax();
   else if (strcmp(word,"fnorm") == 0) compute_fnorm();
+
+  else if (strcmp(word,"nbuild") == 0) {
+    compute_nbuild();
+    dvalue = bivalue;
+  } else if (strcmp(word,"ndanger") == 0) {
+    compute_ndanger();
+    dvalue = bivalue;
+  }
 
   else if (strcmp(word,"cella") == 0) compute_cella();
   else if (strcmp(word,"cellb") == 0) compute_cellb();
@@ -1968,6 +1983,20 @@ void Thermo::compute_fnorm()
   double dotall;
   MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
   dvalue = sqrt(dotall);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_nbuild()
+{
+  bivalue = neighbor->ncalls;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_ndanger()
+{
+  bivalue = neighbor->ndanger;
 }
 
 /* ---------------------------------------------------------------------- */

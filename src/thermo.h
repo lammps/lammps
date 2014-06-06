@@ -184,6 +184,9 @@ class Thermo : protected Pointers {
   void compute_fmax();
   void compute_fnorm();
 
+  void compute_nbuild();
+  void compute_ndanger();
+
   void compute_cella();
   void compute_cellb();
   void compute_cellc();

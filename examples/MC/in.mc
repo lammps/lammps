@@ -34,7 +34,8 @@ neigh_modify	delay 0 every 1 check yes
 
 variable        e equal pe
 
-# run 0 to get minimum energy of system
+# run 0 to get energy of perfect lattice
+# emin = minimum energy
 
 run             0
 variable        emin equal $e

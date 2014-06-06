@@ -9,6 +9,8 @@ These scripts are provided for illustration purposes.  No guarantee is
 made that the systems are fully equilibrated or that the runs are long
 enough to generate good statistics and highly accurate results.
 
+These scripts could easily be adapted to work with solids as well.
+
 -------------
 
 These are the 4 methods for computing thermal conductivity.  The first

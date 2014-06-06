@@ -132,12 +132,19 @@ The ELASTIC directory has an example script for computing elastic
 constants, using a zero temperature Si example.  See the
 ELASTIC/in.elastic file for more info.
 
-The KAPPA directory has an example scripts for computing the thermal
+The KAPPA directory has example scripts for computing the thermal
 conductivity (kappa) of a LJ liquid using 4 different methods.  See
 the KAPPA/README file for more info.
+
+The MC directory has an example script for using LAMMPS as an
+energy-evaluation engine in a iterative Monte Carlo energy-relaxation
+loop.
 
 The USER directory contains subdirectories of user-provided example
 scripts for ser packages.  See the README files in those directories
 for more info.  See the doc/Section_start.html file for more info
 about installing and building user packages.
 
+The VISCOSITY directory has example scripts for computing the
+viscosity of a LJ liquid using 4 different methods.  See the
+VISCOSITY/README file for more info.

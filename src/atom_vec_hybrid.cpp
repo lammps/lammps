@@ -107,6 +107,8 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     impropers_allow = MAX(impropers_allow,styles[k]->impropers_allow);
     mass_type = MAX(mass_type,styles[k]->mass_type);
     dipole_type = MAX(dipole_type,styles[k]->dipole_type);
+    forceclearflag = MAX(forceclearflag,styles[k]->forceclearflag);
+
     if (styles[k]->molecular == 2) onemols = styles[k]->onemols;
 
     comm_x_only = MIN(comm_x_only,styles[k]->comm_x_only);
@@ -199,6 +201,14 @@ void AtomVecHybrid::copy(int i, int j, int delflag)
 void AtomVecHybrid::clear_bonus()
 {
   for (int k = 0; k < nstyles; k++) styles[k]->clear_bonus();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecHybrid::force_clear(int n, size_t nbytes)
+{
+  for (int k = 0; k < nstyles; k++) 
+    if (styles[k]->forceclearflag) styles[k]->force_clear(n,nbytes);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -992,6 +1002,34 @@ void AtomVecHybrid::write_vel(FILE *fp, int n, double **buf)
 
     fprintf(fp,"\n");
   }
+}
+
+/* ----------------------------------------------------------------------
+   assign an index to named atom property and return index
+   returned value encodes which sub-style and index returned by sub-style
+   return -1 if name is unknown to any sub-styles
+------------------------------------------------------------------------- */
+
+int AtomVecHybrid::property_atom(char *name)
+{
+  for (int k = 0; k < nstyles; k++) {
+    int index = styles[k]->property_atom(name);
+    if (index >= 0) return index*nstyles + k;
+  }
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   pack per-atom data into buf for ComputePropertyAtom
+   index maps to data specific to this atom style
+------------------------------------------------------------------------- */
+
+void AtomVecHybrid::pack_property_atom(int multiindex, double *buf, 
+                                       int nvalues, int groupbit)
+{
+  int k = multiindex % nstyles;
+  int index = multiindex/nstyles;
+  styles[k]->pack_property_atom(index,buf,nvalues,groupbit);
 }
 
 /* ----------------------------------------------------------------------

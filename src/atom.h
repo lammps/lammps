@@ -53,19 +53,28 @@ class Atom : protected Pointers {
 
   tagint *molecule;
   int *molindex,*molatom;
+
   double *q,**mu;
   double **omega,**angmom,**torque;
-  double *radius,*rmass,*vfrac,*s0;
-  double **x0;
+  double *radius,*rmass;
   int *ellipsoid,*line,*tri,*body;
+
+  // PERI package
+
+  double *vfrac,*s0;
+  double **x0;
+
+  // USER-EFF and USER-AWPMD packages
+
   int *spin;
   double *eradius,*ervel,*erforce,*ervelforce;
   double *cs,*csforce,*vforce;
   int *etag;
-  double *rho,*drho;
-  double *e,*de;
+
+  // USER-SPH package
+
+  double *rho,*drho,*e,*de,*cv;
   double **vest;
-  double *cv;
 
   int **nspecial;               // 0,1,2 = cummulative # of 1-2,1-3,1-4 neighs
   tagint **special;             // IDs of 1-2,1-3,1-4 neighs of each atom

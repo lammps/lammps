@@ -229,8 +229,8 @@ These pair styles require that atoms store torque and angular velocity
 require a per-particle radius is stored.  The {sphere} atom style does
 all of this.
 
-This pair style requires you to use the "communicate vel
-yes"_communicate.html option so that velocites are stored by ghost
+This pair style requires you to use the "comm_modify vel
+yes"_comm_modify.html command so that velocites are stored by ghost
 atoms.
 
 These pair styles will not restart exactly when using the

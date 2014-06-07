@@ -37,7 +37,7 @@ neighbor	0.3 bin
 neigh_modify	delay 0 every 1 check yes
 neigh_modify	exclude molecule big include big
 
-communicate	multi group big vel yes
+comm_modify	mode multi group big vel yes
 neigh_modify	include big
 
 # no pairwise interactions with small particles

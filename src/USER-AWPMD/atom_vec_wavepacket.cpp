@@ -17,6 +17,7 @@
 
 #include "math.h"
 #include "stdlib.h"
+#include "string.h"
 #include "atom_vec_wavepacket.h"
 #include "atom.h"
 #include "comm.h"
@@ -37,6 +38,7 @@ AtomVecWavepacket::AtomVecWavepacket(LAMMPS *lmp) : AtomVec(lmp)
 
   mass_type = 1;
   molecular = 0;
+  forceclearflag = 1;
 
   size_forward = 4; // coords[3]+radius[1]
   size_reverse = 10; // force[3]+erforce[1]+ervelforce[1]+vforce[3]+csforce[2]
@@ -108,7 +110,6 @@ void AtomVecWavepacket::grow_reset()
   vforce = atom->vforce;
   ervelforce = atom->ervelforce;
   etag = atom->etag;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -141,6 +142,13 @@ void AtomVecWavepacket::copy(int i, int j, int delflag)
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->copy_arrays(i,j,delflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecWavepacket::force_clear(int n, size_t nbytes)
+{
+  memset(&erforce[n],0,nbytes);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1099,6 +1107,59 @@ int AtomVecWavepacket::write_vel_hybrid(FILE *fp, double *buf)
 {
   fprintf(fp," %-1.16e",buf[0]);
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+   assign an index to named atom property and return index
+   return -1 if name is unknown to this atom style
+------------------------------------------------------------------------- */
+
+int AtomVecWavepacket::property_atom(char *name)
+{
+  if (strcmp(name,"spin") == 0) return 0;
+  if (strcmp(name,"eradius") == 0) return 1;
+  if (strcmp(name,"ervel") == 0) return 2;
+  if (strcmp(name,"erforce") == 0) return 3;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   pack per-atom data into buf for ComputePropertyAtom
+   index maps to data specific to this atom style
+------------------------------------------------------------------------- */
+
+void AtomVecWavepacket::pack_property_atom(int index, double *buf, 
+                                           int nvalues, int groupbit)
+{
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int n = 0;
+
+  if (index == 0) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = spin[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 1) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = eradius[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 2) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = ervel[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 3) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) buf[n] = erforce[i];
+      else buf[n] = 0.0;
+      n += nvalues;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

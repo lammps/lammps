@@ -13,7 +13,7 @@ read_restart	${sname}.min.restart2
 pair_style      eff/cut 50.112 
 pair_coeff	* * 
 
-communicate	single vel yes
+comm_modify	vel yes
 
 compute		effTemp all temp/eff
 

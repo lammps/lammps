@@ -12,7 +12,7 @@ read_data  	data.${sname}
 pair_style      eff/cut 0.529177249
 pair_coeff 	* *
 
-communicate	single vel yes
+comm_modify	vel yes
 
 compute         energies all pair eff/cut
 variable        eke equal c_energies[1]

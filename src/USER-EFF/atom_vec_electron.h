@@ -31,6 +31,7 @@ class AtomVecElectron : public AtomVec {
   void grow(int);
   void grow_reset();
   void copy(int, int, int);
+  void force_clear(int, size_t);
   int pack_comm(int, int *, double *, int, int *);
   int pack_comm_vel(int, int *, double *, int, int *);
   int pack_comm_hybrid(int, int *, double *);
@@ -65,6 +66,8 @@ class AtomVecElectron : public AtomVec {
   int pack_vel_hybrid(int, double *);
   void write_vel(FILE *, int, double **);
   int write_vel_hybrid(FILE *, double *);
+  int property_atom(char *);
+  void pack_property_atom(int, double *, int, int);
   bigint memory_usage();
 
  private:

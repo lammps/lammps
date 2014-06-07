@@ -127,7 +127,7 @@ void Rerun::command(int narg, char **arg)
   // perform the psuedo run
   // invoke lmp->init() only once
   // read all relevant snapshots
-  // uset setup_minimal() since atoms are already owned by correct procs
+  // use setup_minimal() since atoms are already owned by correct procs
   // addstep_compute_all() insures energy/virial computed on every snapshot
 
   update->whichflag = 1;

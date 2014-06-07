@@ -45,7 +45,7 @@ Self-explanatory.
 
 E: Pair lubricate/poly requires ghost atoms store velocity
 
-Use the communicate vel yes command to enable this.
+Use the comm_modify vel yes command to enable this.
 
 E: Pair lubricate/poly requires atom style sphere
 

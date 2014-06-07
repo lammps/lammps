@@ -31,7 +31,7 @@
 		        xy, xz, yz, xlat, ylat, zlat,
                         bonds, angles, dihedrals, impropers,
 		        pxx, pyy, pzz, pxy, pxz, pyz,
-			fmax, fnorm,
+			fmax, fnorm, nbuild, ndanger,
 			cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
 			c_ID, c_ID[I], c_ID[I][J],
                         f_ID, f_ID[I], f_ID[I][J],
@@ -73,6 +73,8 @@
       pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
       fmax = max component of force on any atom in any dimension
       fnorm = length of force vector for all atoms
+      nbuild = # of neighbor list builds
+      ndanger = # of dangerous neighbor list builds
       cella,cellb,cellc = periodic cell lattice constants a,b,c 
       cellalpha, cellbeta, cellgamma = periodic cell angles alpha,beta,gamma
       c_ID = global scalar value calculated by a compute with ID
@@ -264,6 +266,19 @@ of an <A HREF = "minimize.html">energy minimization</A>.  The <I>fmax</I> keywor
 calculates the maximum force in any dimension on any atom in the
 system, or the infinity-norm of the force vector for the system.  The
 <I>fnorm</I> keyword calculates the 2-norm or length of the force vector.
+</P>
+<P>The <I>nbuild</I> and <I>ndanger</I> keywords are useful for monitoring neighbor
+list builds during a run.  Note that both these values are also
+printed with the end-of-run statistics.  The <I>nbuild</I> keyword is the
+number of re-builds during the current run.  The <I>ndanger</I> keyword is
+the number of re-builds that LAMMPS considered potentially
+"dangerous".  If atom movement triggered neighbor list rebuilding (see
+the <A HREF = "neigh_modify.html">neigh_modify</A> command), then dangerous
+reneighborings are those that were triggered on the first timestep
+atom movement was checked for.  If this count is non-zero you may wish
+to reduce the delay factor to insure no force interactions are missed
+by atoms moving beyond the neighbor skin distance before a rebuild
+takes place.
 </P>
 <P>The keywords <I>cella</I>, <I>cellb</I>, <I>cellc</I>, <I>cellalpha</I>, <I>cellbeta</I>,
 <I>cellgamma</I>, correspond to the usual crystallographic quantities that

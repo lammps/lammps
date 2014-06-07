@@ -12,7 +12,7 @@ read_data  	data.${sname}
 pair_style      eff/cut 6.447968 pressure/evirials
 pair_coeff 	* *
 
-communicate	single vel yes
+comm_modify	vel yes
 
 min_style	cg
 min_modify	line quadratic

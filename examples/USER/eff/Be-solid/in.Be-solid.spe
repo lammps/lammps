@@ -12,7 +12,7 @@ read_data       data.${sname}
 pair_style      eff/cut 31.6125
 pair_coeff      * *
 
-communicate	single vel yes
+comm_modify	vel yes
 
 neigh_modify	one 10000 page 100000
 

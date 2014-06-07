@@ -101,10 +101,6 @@ class ComputePropertyAtom : public Compute {
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);
-  void pack_spin(int);
-  void pack_eradius(int);
-  void pack_ervel(int);
-  void pack_erforce(int);
   void pack_end1x(int);
   void pack_end1y(int);
   void pack_end1z(int);
@@ -125,6 +121,8 @@ class ComputePropertyAtom : public Compute {
 
   void pack_iname(int);
   void pack_dname(int);
+
+  void pack_property_atom(int);
 };
 
 }

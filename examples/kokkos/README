@@ -19,10 +19,10 @@ make cuda CUDA=yes -> lmp_cuda
 Then the following runs were made.  The "->" means that the run
 produced log.lammps which was then copied to the named log file.
 
-* MPI-only runs
+* MPI-only (non-KOKKOS) runs
 
-lmp_cpu -k off < in.kokkos -> log.kokkos.date.mpionly.1
-mpirun -np 4 lmp_cpu -k off < in.kokkos -> log.kokkos.date.mpionly.4
+lmp_cpu < in.kokkos -> log.kokkos.date.mpionly.1
+mpirun -np 4 lmp_cpu < in.kokkos -> log.kokkos.date.mpionly.4
 
 * OpenMP threaded runs on CPUs only
 

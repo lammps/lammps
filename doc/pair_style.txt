@@ -174,7 +174,7 @@ in the pair section of "this page"_Section_commands.html#cmd_5.
 "pair_style meam"_pair_meam.html - modified embedded atom method (MEAM)
 "pair_style mie/cut"_pair_mie.html - Mie potential
 "pair_style morse"_pair_morse.html - Morse potential
-"pair_style nb3b/harmonic"_pair_nb3d_harmonic.html - nonbonded 3-body harmonic potential
+"pair_style nb3b/harmonic"_pair_nb3b_harmonic.html - nonbonded 3-body harmonic potential
 "pair_style nm/cut"_pair_nm.html - N-M potential
 "pair_style nm/cut/coul/cut"_pair_nm.html - N-M potential with cutoff Coulomb
 "pair_style nm/cut/coul/long"_pair_nm.html - N-M potential with long-range Coulombics

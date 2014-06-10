@@ -35,12 +35,15 @@ thermo_style    custom step etotal pe ke v_eke v_epauli v_estatics v_errestrain 
 thermo_modify   temp effTemp press effPress
 
 min_style	cg
-minimize	0 1e-6 100 2000
+minimize	0 1e-6 10 10
 
 fix 		0 all temp/rescale/eff 1 0.0 3000.0 0.02 0.5
 
 fix		1 all npt/eff temp 3000.0 3000.0 0.1 iso 1e7 1e7 1.0
-dump            1 all custom 100 ${sname}.spe.lammpstrj id type q spin eradius x y z
 
-run 		1000
+compute         1 all property/atom spin eradius
+dump            1 all custom 1 ${sname}.spe.lammpstrj &
+                id type q c_1[1] c_1[2] x y z
+
+run 		10
 

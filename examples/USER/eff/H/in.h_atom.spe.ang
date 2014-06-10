@@ -13,6 +13,7 @@ pair_style      eff/cut 0.529177249
 pair_coeff 	* *
 
 comm_modify	vel yes
+timestep 0.0001
 
 compute         energies all pair eff/cut
 variable        eke equal c_energies[1]

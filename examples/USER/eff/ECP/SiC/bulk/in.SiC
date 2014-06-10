@@ -34,8 +34,9 @@ thermo_modify   lost warn norm yes flush yes
 
 min_style       cg
 dump            1 all xyz ${nstep} ${sname}.min.xyz 
-dump            2 all custom ${nstep} ${sname}.min.lammpstrj id type q spin eradius x y z fx fy fz erforce
-dump            3 all custom ${nstep} ${sname}.data.restart id type q spin eradius x y z
+compute         1 all property/atom spin eradius erforce
+dump            2 all custom ${nstep} ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
+dump            3 all custom ${nstep} ${sname}.data.restart id type q c_1[1] c_1[2] x y z
 min_modify      line quadratic
 minimize        0 1e-8 100000 1000000
 

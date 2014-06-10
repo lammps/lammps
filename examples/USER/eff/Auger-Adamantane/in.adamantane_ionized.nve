@@ -23,7 +23,8 @@ thermo_modify	temp effTemp
 # Minimization
 min_style       cg
 dump            1 all xyz 500 ${sname}.min.xyz
-dump            2 all custom 500 ${sname}.min.lammpstrj id type x y z spin eradius fx fy fz erforce
+compute         1 all property/atom spin eradius erforce
+dump            2 all custom 500 ${sname}.min.lammpstrj id type x y z c_1[1] c_1[2] fx fy fz c_1[3]
 min_modify	line quadratic
 minimize        0.0 1.0e-5 10000 100000
 
@@ -40,7 +41,7 @@ timestep	0.001
 
 fix		1 all nve/eff
 dump            1 all xyz 1000 ${sname}.nve.xyz
-dump            2 all custom 1000 ${sname}.nve.lammpstrj id type x y z spin eradius fx fy fz erforce
+dump            2 all custom 1000 ${sname}.nve.lammpstrj id type x y z c_1[1] c_1[2] fx fy fz c_1[3]
 #restart		1000 ${sname}.nve.restart1 ${sname}.nve.restart2
 
 run		200000

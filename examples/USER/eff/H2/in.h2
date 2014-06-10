@@ -41,8 +41,9 @@ fix		1 all nve/eff
 run		10000
 unfix		3
 
+#compute         1 all property/atom spin eradius
 #fix		1 all npt/eff temp 3000.0 3000.0 0.1 iso 1e7 1e7 1.0 drag 0.5
-#dump		1 all custom 100 dump.file id type q spin eradius x y z
+#dump		1 all custom 100 dump.file id type q c_1[1] c_1[2] x y z
 
 #fix		1 all nve/eff
 

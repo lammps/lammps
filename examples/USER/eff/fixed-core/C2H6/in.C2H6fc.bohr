@@ -38,8 +38,9 @@ thermo_modify   temp effTemp press effPress
 
 min_style       cg
 dump            1 all xyz 10 ${sname}.min.xyz
-dump            2 all custom 10 ${sname}.min.lammpstrj id type q spin eradius x y z fx fy fz erforce
-dump            3 all custom 10 data.${sname}.restart id type q spin eradius x y z
+compute         1 all property/atom spin eradius erforce
+dump            2 all custom 10 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
+dump            3 all custom 10 data.${sname}.restart id type q c_1[1] c_1[2] x y z
 min_modify      line quadratic
 minimize        0 1e-6 1000 2000
 
@@ -48,6 +49,6 @@ undump		2
 undump          3
 
 fix		1 all nvt/eff 1 2000 1.0
-dump            2 all custom 10 ${sname}.nvt.lammpstrj id type q spin eradius x y z fx fy fz erforce
+dump            2 all custom 10 ${sname}.nvt.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
 
 run		10000

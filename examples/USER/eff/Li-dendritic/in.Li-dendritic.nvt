@@ -24,7 +24,9 @@ thermo_modify   temp effTemp press effPress
 
 print		"Starting minimizer"
 min_style       cg
-#dump            1 all custom 100 ${sname}.min.lammpstrj id type x y z q spin eradius
+
+compute         1 all property/atom spin eradius
+#dump            1 all custom 100 ${sname}.min.lammpstrj id type x y z q c_1[1] c_1[2]
 #dump            2 all xyz 100 ${sname}.min.xyz
 min_modify      line quadratic dmax 0.05
 minimize        0 1.0e-7 1000 2000
@@ -40,7 +42,7 @@ timestep	0.005
 
 print		"Starting nvt"
 fix		1 all nvt/eff temp 300.0 300.0 0.1
-dump            1 all custom 100 ${sname}.nvt.lammpstrj id type x y z spin eradius
+dump            1 all custom 100 ${sname}.nvt.lammpstrj id type x y z c_1[1] c_1[2]
 dump            2 all xyz 100 ${sname}.nvt.xyz
 restart		100 ${sname}.nvt.restart1 ${sname}.nvt.restart2
 

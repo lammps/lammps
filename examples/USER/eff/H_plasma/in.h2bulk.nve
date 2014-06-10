@@ -38,7 +38,8 @@ compute		peatom all pe/atom
 compute		keatom all ke/atom/eff
 
 dump		2 all xyz 1000 ${sname}.nve.xyz
-dump		3 all custom 1000 ${sname}.nve.lammpstrj id type x y z spin eradius c_peatom c_keatom
+compute         1 all property/atom spin eradius
+dump		3 all custom 1000 ${sname}.nve.lammpstrj id type x y z c_1[1] c_1[2] c_peatom c_keatom
 
 run		100000
 

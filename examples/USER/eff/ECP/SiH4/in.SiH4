@@ -41,7 +41,8 @@ thermo_modify   temp effTemp press effPress
 
 min_style       cg
 dump            1 all xyz 1 ${sname}.min.xyz
-dump            2 all custom 1 ${sname}.min.lammpstrj id type q spin eradius x y z fx fy fz erforce
+compute         1 all property/atom spin eradius erforce
+dump            2 all custom 1 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
 min_modify      line quadratic
 minimize        0 1.0e-5 1000 10000
 

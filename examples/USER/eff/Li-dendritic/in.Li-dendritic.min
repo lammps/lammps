@@ -21,7 +21,8 @@ thermo          10
 thermo_style    custom step etotal pe ke temp press
 thermo_modify	temp effTemp
 
-dump            1 all custom 10 ${sname}.min.lammpstrj id type q spin eradius x y z
+compute         1 all property/atom spin eradius
+dump            1 all custom 10 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z
 dump            2 all xyz 10 ${sname}.min.xyz
 
 restart		10 ${sname}.nve.restart1 ${sname}.nve.restart2

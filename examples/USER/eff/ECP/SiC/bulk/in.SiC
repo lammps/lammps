@@ -14,7 +14,7 @@ pair_coeff	* *
 pair_coeff	1 s 0.320852 2.283269 0.814857 
 pair_coeff	2 p 22.721015 0.728733 1.103199 17.695345 6.693621
 
-communicate	single vel yes
+comm_modify	vel yes
 
 neigh_modify    one 4000 page 40000
 

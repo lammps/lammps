@@ -21,7 +21,7 @@ variable        epauli equal c_energies[2]
 variable        estatics equal c_energies[3]
 variable        errestrain equal c_energies[4]
 
-communicate     single vel yes
+comm_modify	vel yes
 
 compute         peratom all stress/atom NULL
 compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]

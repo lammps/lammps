@@ -370,9 +370,7 @@ void VerletKokkos::force_clear()
         atomKK->modified(Device,F_MASK);
       }
       if (torqueflag)  memset(&(atomKK->torque[0][0]),0,3*nbytes);
-      if (erforceflag) memset(&(atomKK->erforce[0]),  0,  nbytes);
-      if (e_flag)      memset(&(atomKK->de[0]),       0,  nbytes);
-      if (rho_flag)    memset(&(atomKK->drho[0]),     0,  nbytes);
+
     }
 
   // neighbor includegroup flag is set
@@ -397,21 +395,6 @@ void VerletKokkos::force_clear()
       }
     }
 
-    if (erforceflag) {
-      double *erforce = atomKK->erforce;
-      for (i = 0; i < nall; i++) erforce[i] = 0.0;
-    }
-
-    if (e_flag) {
-      double *de = atomKK->de;
-      for (i = 0; i < nall; i++) de[i] = 0.0;
-    }
-
-    if (rho_flag) {
-      double *drho = atomKK->drho;
-      for (i = 0; i < nall; i++) drho[i] = 0.0;
-    }
-
     if (force->newton) {
       nall = atomKK->nlocal + atomKK->nghost;
 
@@ -424,20 +407,6 @@ void VerletKokkos::force_clear()
         }
       }
 
-      if (erforceflag) {
-        double *erforce = atomKK->erforce;
-        for (i = atomKK->nlocal; i < nall; i++) erforce[i] = 0.0;
-      }
-
-      if (e_flag) {
-        double *de = atomKK->de;
-        for (i = 0; i < nall; i++) de[i] = 0.0;
-      }
-
-      if (rho_flag) {
-        double *drho = atomKK->drho;
-        for (i = 0; i < nall; i++) drho[i] = 0.0;
-      }
     }
   }
 }

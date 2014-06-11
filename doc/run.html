@@ -104,10 +104,11 @@ must be done.
 </P>
 <P>IMPORTANT NOTE: If your input script changes settings between 2 runs
 (e.g. adds a <A HREF = "fix.html">fix</A> or <A HREF = "dump.html">dump</A> or
-<A HREF = "compute.html">compute</A> or changes a <A HREF = "neigh_modify.html">neighbor</A> list
-parameter), then the initial setup must be performed.  LAMMPS does not
-check for this, but it would be an error to use the <I>pre no</I> option in
-this case.
+<A HREF = "compute.html">compute</A>, changes a <A HREF = "neigh_modify.html">neighbor</A> list
+parameter, writes a restart file which can migrate atoms between
+processors), then the initial setup must be performed.  LAMMPS has no
+easy way to check for this, but it would be an error to use the <I>pre
+no</I> option in this case.
 </P>
 <P>If <I>post</I> is specified as "no", the full timing summary is skipped;
 only a one-line summary timing is printed.

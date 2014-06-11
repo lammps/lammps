@@ -16,7 +16,8 @@ comm_modify	vel yes
 
 # Minimize
 min_style       cg
-dump            1 all custom 1 ${sname}.min.lammpstrj id type q spin eradius x y z
+compute         1 all property/atom spin eradius
+dump            1 all custom 1 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z
 min_modify      line quadratic dmax 0.1
 minimize        0 1.0e-6 1000 10000
 
@@ -34,7 +35,7 @@ timestep 	0.005
 fix 		1 all nve/eff
 
 # the custom dump includes the radii
-dump            2 all custom 1000 ${sname}.nve.lammpstrj id type q spin eradius x y z
+dump            2 all custom 1000 ${sname}.nve.lammpstrj id type q c_1[1] c_1[2] x y z
 dump		3 all xyz 1000 ${sname}.nve.xyz 
 
 run 		100000

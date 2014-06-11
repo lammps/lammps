@@ -98,7 +98,10 @@ int NeighRequest::identical(NeighRequest *other)
 {
   int same = 1;
 
-  if (unprocessed) same = 0;
+  // set same = 0 if old list was never processed
+
+  if (other->unprocessed) same = 0;
+
   if (requestor != other->requestor) same = 0;
   if (id != other->id) same = 0;
 

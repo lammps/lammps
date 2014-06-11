@@ -26,6 +26,7 @@ thermo          1
 thermo_style    custom step etotal pe ke v_eke v_epauli v_ecoul v_erres
 
 min_style	cg
-dump            2 all custom 10 ${sname}.min.lammpstrj id type q spin eradius x y z fx fy fz erforce
+compute         1 all property/atom spin eradius erforce
+dump            2 all custom 10 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
 minimize	0 1e-6 2000 4000
 

@@ -38,7 +38,8 @@ thermo_style    custom step pe temp press vol v_density
 thermo_modify	temp effTemp
 
 dump		2 all xyz 10000 ${sname}.npt.xyz
-dump		3 all custom 10000 ${sname}.npt.lammpstrj id type x y z spin eradius
+compute         1 all property/atom spin eradius
+dump		3 all custom 10000 ${sname}.npt.lammpstrj id type x y z c_1[1] c_1[2]
 
 run		10000000
 

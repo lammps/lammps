@@ -31,7 +31,8 @@ timestep 	0.001
 fix 		1 all nvt/eff temp 300.0 300.0 0.1
  
 # the custom dump includes the radii
-dump            1 all custom 100 ${sname}.nvt.lammpstrj id type x y z spin eradius
+compute         1 all property/atom spin eradius
+dump            1 all custom 100 ${sname}.nvt.lammpstrj id type x y z c_1[1] c_1[2]
 dump		2 all xyz 100 ${sname}.nvt.xyz 
 
 run 		1000000

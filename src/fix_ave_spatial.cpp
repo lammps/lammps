@@ -42,7 +42,6 @@ enum{BOX,LATTICE,REDUCED};
 enum{ONE,RUNNING,WINDOW};
 
 #define INVOKED_PERATOM 8
-#define BIG 1000000000
 
 /* ---------------------------------------------------------------------- */
 
@@ -329,9 +328,9 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   delete [] title3;
 
   // this fix produces a global array
+  // size_array_rows set by setup_bins()
 
   array_flag = 1;
-  size_array_rows = BIG;
   size_array_cols = 1 + ndim + nvalues;
   extarray = 0;
 
@@ -362,6 +361,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // initializations
+  // invoke setup_bins() now to set size_array_rows
+  // will be reset in setup(), but needed now so Thermo custom can access it
 
   irepeat = 0;
   iwindow = window_limit = 0;
@@ -379,6 +380,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   count_list = NULL;
   values_one = values_many = values_sum = values_total = NULL;
   values_list = NULL;
+
+  setup_bins();
 
   // nvalid = next step on which end_of_step does something
   // add nvalid to all computes that store invocation times
@@ -896,6 +899,8 @@ void FixAveSpatial::setup_bins()
     nbins *= nlayers[m];
     bin_volume *= delta[m]/prd[dim[m]];
   }
+
+  size_array_rows = nbins;
 
   // reallocate bin arrays if needed
 

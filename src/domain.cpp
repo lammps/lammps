@@ -148,9 +148,13 @@ void Domain::init()
 /* ----------------------------------------------------------------------
    set initial global box
    assumes boxlo/hi and triclinic tilts are already set
+   expandflag = 1 if need to expand box in shrink-wrapped dims
+   not invoked by read_restart since box is already expanded
+   if don't prevent further expansion, restarted triclinic box
+     with unchanged tilt factors can become a box with atoms outside the box
 ------------------------------------------------------------------------- */
 
-void Domain::set_initial_box()
+void Domain::set_initial_box(int expandflag)
 {
   // error checks for orthogonal and triclinic domains
 
@@ -180,7 +184,9 @@ void Domain::set_initial_box()
   small[1] = SMALL * (boxhi[1] - boxlo[1]);
   small[2] = SMALL * (boxhi[2] - boxlo[2]);
 
-  // adjust box lo/hi for shrink-wrapped dims
+  // if expandflag, adjust box lo/hi for shrink-wrapped dims
+
+  if (!expandflag) return;
 
   if (boundary[0][0] == 2) boxlo[0] -= small[0];
   else if (boundary[0][0] == 3) minxlo = boxlo[0];

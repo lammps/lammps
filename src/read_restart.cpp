@@ -156,7 +156,7 @@ void ReadRestart::command(int narg, char **arg)
   n = atom->nmax;
 
   domain->print_box("  ");
-  domain->set_initial_box();
+  domain->set_initial_box(0);
   domain->set_global_box();
   comm->set_proc_grid();
   domain->set_local_box();

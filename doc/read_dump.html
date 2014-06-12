@@ -45,7 +45,7 @@
     <I>native</I> = native LAMMPS dump file
     <I>xyz</I> = XYZ file
     <I>molfile</I> style path = VMD molfile plugin interface
-      style = <I>dcd</I> or <I>xyz</I> or others supported my mofile
+      style = <I>dcd</I> or <I>xyz</I> or others supported by my molfile plugins
       path = optional path for location of molfile plugins 
 </PRE>
 
@@ -53,13 +53,12 @@
 <P><B>Examples:</B>
 </P>
 <PRE>read_dump dump.file 5000 x y z
-read_dump dump.xyz 5 x y z format xyz box no
-read_dump dump.xyz 10 x y z format molfile box no reader xyz "../plugins"
-read_dump dump.dcd 0 x y z format molfile box yes reader dcd
-read_dump dump.file 1000 x y z vx vy vz format molfile box yes reader lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile
+read_dump dump.xyz 5 x y z box no format xyz
+read_dump dump.xyz 10 x y z box no format molfile xyz "../plugins"
+read_dump dump.dcd 0 x y z box yes format molfile dcd
+read_dump dump.file 1000 x y z vx vy vz box yes format molfile lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile
 read_dump dump.file 5000 x y vx vy trim yes
 read_dump ../run7/dump.file.gz 10000 x y z box yes 
-read_dump dump.xyz 5 x y z box no format xyz
 read_dump dump.xyz 10 x y z box no format molfile xyz ../plugins
 read_dump dump.dcd 0 x y z format molfile dcd
 read_dump dump.file 1000 x y z vx vy vz format molfile lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile 
@@ -104,7 +103,7 @@ If specified, it must be the last keyword used, since all remaining
 arguments are passed on to the dump reader.  The <I>native</I> format is
 for native LAMMPS dump files, written with a "dump atom".html or <A HREF = "dump.html">dump
 custom</A> command.  The <I>xyz</I> format is for generic XYZ
-formatted dump files,
+formatted dump files.  These formats take no additional values.
 </P>
 <P>The <I>molfile</I> format supports reading data through using the <A HREF = "vmd">VMD</A>
 molfile plugin interface. This dump reader format is only available,

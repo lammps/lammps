@@ -75,7 +75,7 @@ CommCuda::CommCuda(LAMMPS *lmp) : CommBrick(lmp)
   buf_send = NULL;
   buf_recv = NULL;
 
-  Comm::free_swap();
+  CommBrick::free_swap();
   allocate_swap(maxswap);
 }
 
@@ -132,7 +132,7 @@ void CommCuda::init()
   cuda->shared_data.comm.slablo.dev_data=cu_slablo->dev_data();
   cuda->shared_data.comm.slabhi.dev_data=cu_slabhi->dev_data();
 
-  Comm::init();
+  CommBrick::init();
 }
 
 /* ----------------------------------------------------------------------
@@ -145,7 +145,7 @@ void CommCuda::init()
 void CommCuda::setup()
 {
   if(cuda->shared_data.pair.neighall) cutghostuser = MAX(2.0*neighbor->cutneighmax,cutghostuser);
-  Comm::setup();
+  CommBrick::setup();
 
   //upload changed geometry to device
     if(style == SINGLE)
@@ -197,7 +197,7 @@ void CommCuda::forward_comm_cuda()
   if(not comm_x_only && not avec->cudable)
   {
           cuda->downloadAll();
-    Comm::forward_comm();
+    CommBrick::forward_comm();
     cuda->uploadAll();
     return;
   }
@@ -630,7 +630,7 @@ void CommCuda::forward_comm_pair(Pair *pair)
 {
   if(not cuda->shared_data.pair.cudable_force)
   {
-          return Comm::forward_comm_pair(pair);
+          return CommBrick::forward_comm_pair(pair);
   }
 
   int iswap,n;
@@ -753,7 +753,7 @@ void CommCuda::exchange()
 
   if(not cuda->oncpu) cuda->downloadAll();
 
-  Comm::exchange();
+  CommBrick::exchange();
 }
 
 
@@ -887,7 +887,7 @@ void CommCuda::borders()
            return;
   }
 
-  Comm::borders();
+  CommBrick::borders();
 
   cuda->setSystemParams();
   if(cuda->finished_setup) {cuda->checkResize(); cuda->uploadAll();}
@@ -1313,7 +1313,7 @@ void CommCuda::grow_list(int iswap, int n)
 void CommCuda::grow_swap(int n)
 {
   int oldmaxswap=maxswap;
-  Comm::grow_swap(n);
+  CommBrick::grow_swap(n);
   if(n>cu_sendlist->get_dim()[0])
   {
    MYDBG(printf(" # CUDA CommCuda::grow_swap\n");)
@@ -1357,7 +1357,7 @@ void CommCuda::grow_swap(int n)
 
 void CommCuda::allocate_swap(int n)
 {
-   Comm::allocate_swap(n);
+   CommBrick::allocate_swap(n);
 
           delete cu_pbc;
           delete cu_slablo;
@@ -1392,7 +1392,7 @@ void CommCuda::allocate_swap(int n)
 
 void CommCuda::allocate_multi(int n)
 {
-  Comm::allocate_multi(n);
+  CommBrick::allocate_multi(n);
 
           delete cu_multilo;
           delete cu_multihi;
@@ -1410,7 +1410,7 @@ void CommCuda::allocate_multi(int n)
 void CommCuda::free_swap()
 {
 
-  Comm::free_swap();
+  CommBrick::free_swap();
 
   delete cuda->shared_data.comm.nsend_swap; cuda->shared_data.comm.nsend_swap=NULL;
   delete cu_pbc; cu_pbc = NULL;
@@ -1431,7 +1431,7 @@ void CommCuda::free_swap()
 
 void CommCuda::free_multi()
 {
-  Comm::free_multi();
+  CommBrick::free_multi();
   delete cu_multilo; cu_multilo = NULL;
   delete cu_multihi; cu_multihi = NULL;
 }

@@ -70,6 +70,7 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 PairRESquaredGPU::PairRESquaredGPU(LAMMPS *lmp) : PairRESquared(lmp),
                                                 gpu_mode(GPU_FORCE)
 {
+  reinitflag = 0;
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   if (!avec)
     error->all(FLERR,"Pair resquared/gpu requires atom style ellipsoid");

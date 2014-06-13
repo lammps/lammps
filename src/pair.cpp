@@ -68,6 +68,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   svector = NULL;
 
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
+  reinitflag = 1;
 
   // pair_modify settings
 
@@ -239,6 +240,9 @@ void Pair::init()
 
 void Pair::reinit()
 {
+  if (!reinitflag)
+    error->all(FLERR,"Calling reinit not available for this pair style");
+
   etail = ptail = 0.0;
 
   for (int i = 1; i <= atom->ntypes; i++)

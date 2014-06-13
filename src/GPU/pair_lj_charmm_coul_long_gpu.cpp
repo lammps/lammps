@@ -81,6 +81,7 @@ PairLJCharmmCoulLongGPU::PairLJCharmmCoulLongGPU(LAMMPS *lmp) :
   PairLJCharmmCoulLong(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
+  reinitflag = 0;
   cpu_time = 0.0;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }

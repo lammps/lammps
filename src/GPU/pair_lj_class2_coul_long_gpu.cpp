@@ -79,6 +79,7 @@ PairLJClass2CoulLongGPU::PairLJClass2CoulLongGPU(LAMMPS *lmp) :
   PairLJClass2CoulLong(lmp), gpu_mode(GPU_FORCE)
 {
   cpu_time = 0.0;
+  reinitflag = 0;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 

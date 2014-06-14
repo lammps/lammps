@@ -68,6 +68,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   svector = NULL;
 
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
+  reinitflag = 1;
 
   // pair_modify settings
 
@@ -239,6 +240,12 @@ void Pair::init()
 
 void Pair::reinit()
 {
+  // generalize this error message if reinit() is used by more than fix adapt
+
+  if (!reinitflag)
+    error->all(FLERR,"Fix adapt interface to this pair style not supported");
+
+
   etail = ptail = 0.0;
 
   for (int i = 1; i <= atom->ntypes; i++)

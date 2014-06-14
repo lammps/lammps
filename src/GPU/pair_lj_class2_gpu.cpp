@@ -63,6 +63,7 @@ double lj96_gpu_bytes();
 
 PairLJClass2GPU::PairLJClass2GPU(LAMMPS *lmp) : PairLJClass2(lmp), gpu_mode(GPU_FORCE)
 {
+  reinitflag = 0;
   cpu_time = 0.0;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }

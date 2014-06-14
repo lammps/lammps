@@ -10,16 +10,18 @@ read_restart command :h3
 
 [Syntax:]
 
-read_restart file :pre
+read_restart file flag :pre
 
 file = name of binary restart file to read in :ul
+flag = remap (optional)
 
 [Examples:]
 
 read_restart save.10000
+read_restart save.10000 remap
 read_restart restart.*
 read_restart restart.*.mpiio
-read_restart poly.*.% :pre
+read_restart poly.*.% remap :pre
 
 :pre
 
@@ -36,6 +38,17 @@ number of processors in the current simulation and the settings of the
 "processors"_processors.html command.  The partitioning can later be
 changed by the "balance"_balance.html or "fix
 balance"_fix_balance.html commands.
+
+IMPORTANT NOTE: Normally, restart files are written by the
+"restart"_restart.html or "write_restart"_write_restart.html commands
+so that all atoms in the restart file are inside the simulation box.
+If this is not the case, the read_restart command will print an error
+that atoms were "lost" when the file is read.  This error should be
+reported to the LAMMPS developers so the invalid writing of the
+restart file can be fixed.  If you still wish to use the restart file,
+the optional {remap} flag can be appended to the read_restart command.
+This will avoid the error, by explicitly remapping each atom back into
+the simulation box, updating image flags for the atom appropriately.
 
 Restart files are saved in binary format to enable exact restarts,
 meaning that the trajectories of a restarted run will precisely match

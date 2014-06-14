@@ -1,6 +1,6 @@
 
 #precision setting: 1 single, 2 double, 4 mixed
-precision ?= 2
+precision ?= 4
 
 #verbose setting: 0 no, 1 yes
 verbose ?= 1

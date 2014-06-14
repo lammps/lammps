@@ -36,7 +36,7 @@ extern "C" void  CudaWrapper_CopyData(void* dev_dest, void* dev_source, unsigned
 extern "C" void* CudaWrapper_AllocPinnedHostData(unsigned nbytes, bool mapped = false, bool writeCombind = false);
 extern "C" void  CudaWrapper_FreePinnedHostData(void* dev_data);
 extern "C" void  cuda_check_error(char* comment);
-extern "C" int   CudaWrapper_CheckMemUseage();
+extern "C" int   CudaWrapper_CheckMemUsage();
 extern "C" double CudaWrapper_CheckUploadTime(bool reset = false);
 extern "C" double CudaWrapper_CheckDownloadTime(bool reset = false);
 extern "C" double CudaWrapper_CheckCPUBufUploadTime(bool reset = false);

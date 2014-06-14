@@ -80,7 +80,7 @@ produced the restart file, it could be a LAMMPS bug, so consider
 wrong.
 
 Because restart files are binary, they may not be portable to other
-machines.  In this case, you can use the "-r command-line
+machines.  In this case, you can use the "-restart command-line
 switch"_Section_start.html#start_7 to convert a restart file to a data
 file.
 

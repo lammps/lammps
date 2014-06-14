@@ -245,11 +245,11 @@ support multi-threading.
 </P>
 <P>The procedure for building LAMMPS with the USER-OMP package is simple.
 You have to edit your machine specific makefile to add the flag to
-enable OpenMP support to the CCFLAGS and LINKFLAGS variables. For the
-GNU compilers for example this flag is called <I>-fopenmp</I>. Check your
-compiler documentation to find out which flag you need to add.
-The rest of the compilation is the same as for any other package which
-has no additional library dependencies:
+enable OpenMP support to both the CCFLAGS and LINKFLAGS variables.
+For the GNU compilers and Intel compilers, this flag is called
+<I>-fopenmp</I>. Check your compiler documentation to find out which flag
+you need to add.  The rest of the compilation is the same as for any
+other package which has no additional library dependencies:
 </P>
 <PRE>make yes-user-omp
 make machine 

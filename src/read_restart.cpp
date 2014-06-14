@@ -73,13 +73,21 @@ ReadRestart::ReadRestart(LAMMPS *lmp) : Pointers(lmp) {}
 
 void ReadRestart::command(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Illegal read_restart command");
+  if (narg != 1 && narg != 2) error->all(FLERR,"Illegal read_restart command");
 
   if (domain->box_exist)
     error->all(FLERR,"Cannot read_restart after simulation box is defined");
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
+
+  // check for remap option
+
+  int remapflag = 0;
+  if (narg == 2) {
+    if (strcmp(arg[1],"remap") == 0) remapflag = 1;
+    else error->all(FLERR,"Illegal read_restart command");
+  }
 
   // if filename contains "*", search dir for latest restart file
 
@@ -204,11 +212,13 @@ void ReadRestart::command(int narg, char **arg)
   // nprocs_file = # of chunks in file
   // proc 0 reads a chunk and bcasts it to other procs
   // each proc unpacks the atoms, saving ones in it's sub-domain
+  // if remapflag set, remap the atom to box before checking sub-domain
   // check for atom in sub-domain differs for orthogonal vs triclinic box
 
   else if (multiproc == 0) {
 
     int triclinic = domain->triclinic;
+    imageint *iptr;
     double *x,lamda[3];
     double *coord,*sublo,*subhi;
     if (triclinic == 0) {
@@ -234,6 +244,11 @@ void ReadRestart::command(int narg, char **arg)
       m = 0;
       while (m < n) {
         x = &buf[m+1];
+        if (remapflag) {
+          iptr = (imageint *) &buf[m+7];
+          domain->remap(x,*iptr);
+        }
+
         if (triclinic) {
           domain->x2lamda(x,lamda);
           coord = lamda;
@@ -410,6 +425,17 @@ void ReadRestart::command(int narg, char **arg)
   // perform irregular comm to migrate atoms to correct procs
 
   if (multiproc || mpiioflag) {
+
+    // if remapflag set, remap all atoms I read back to box before migrating
+
+    if (remapflag) {
+      double **x = atom->x;
+      imageint *image = atom->image;
+      int nlocal = atom->nlocal;
+
+      for (int i = 0; i < nlocal; i++)
+        domain->remap(x[i],image[i]);
+    }
 
     // create a temporary fix to hold and migrate extra atom info
     // necessary b/c irregular will migrate atoms

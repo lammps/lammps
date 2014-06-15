@@ -27,6 +27,8 @@ for preventing certain particles from moving in a simulation.  The
 "granular pair styles"_pair_gran.html also detect if this fix has been
 defined and compute interactions between frozen and non-frozen
 particles appropriately, as if the frozen particle has infinite mass.
+A similar functionality for normal (point) particles can be obtained
+using "fix setforce"_fix_setforce.html.
 
 :line
 
@@ -78,8 +80,8 @@ the "granular pair styles"_pair_gran.html treat frozen particles
 differently and need to be able to reference a single group to which
 this fix is applied.
 
-[Related commands:] none
+[Related commands:]
 
-"atom_style sphere"_atom_style.html
+"atom_style sphere"_atom_style.html, "fix setforce"_fix_setforce.html
 
 [Default:] none

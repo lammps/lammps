@@ -5,7 +5,7 @@ units		lj
 atom_style	sphere
 boundary	p p fs
 newton		off
-communicate	single vel yes
+comm_modify	vel yes
 
 read_data	data.chute
 

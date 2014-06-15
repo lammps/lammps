@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpic++
-CCFLAGS =	-O2 -fomit-frame-pointer -fno-rtti -fno-exceptions -g \
+CCFLAGS =	-O3 -fomit-frame-pointer  \
 			-ffast-math -mpc64 -finline-functions \
 			-funroll-loops -fstrict-aliasing -Wall -W -Wno-uninitialized
 #			-march=native -ffast-math -mpc64 -finline-functions 

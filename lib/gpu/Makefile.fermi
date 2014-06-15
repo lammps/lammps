@@ -1,8 +1,13 @@
-#CUDA_HOME = $(HOME)/cuda-4.0
+#CUDA_DIR = $(HOME)/cuda-4.0
+ifeq ($(CUDA_DIR),)
+CUDA_HOME=/usr/loca/cuda
+else
+CUDA_HOME=$(CUDA_DIR)
+endif
 NVCC  = $(CUDA_HOME)/bin/nvcc #-ccbin /opt/gcc-34/bin
 EXTRAMAKE = Makefile.lammps.cuda
 
-CUDA_ARCH = -arch=sm_35
+CUDA_ARCH = -arch=sm_20
 CUDA_PRECISION = -D_SINGLE_DOUBLE
 CUDA_INCLUDE = -I$(CUDA_HOME)/include 
 CUDA_LIB = -L$(CUDA_HOME)/lib64 -Xlinker -rpath -Xlinker $(CUDA_HOME)/lib64 -lcudart

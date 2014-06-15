@@ -42,6 +42,8 @@ namespace LAMMPS_NS {
 class KokkosLMP {
  public:
   int kokkos_exists;
+  int num_threads;
+  int numa;
 
   KokkosLMP(class LAMMPS *, int, char **) {kokkos_exists = 0;}
   ~KokkosLMP() {}

@@ -35,6 +35,7 @@
 #include "compute.h"
 #include "output.h"
 #include "dump.h"
+#include "accelerator_kokkos.h"
 #include "math_extra.h"
 #include "error.h"
 #include "memory.h"
@@ -76,7 +77,9 @@ CommBrick::CommBrick(LAMMPS *lmp) : Comm(lmp)
 
   nthreads = 1;
 #ifdef _OPENMP
-  if (getenv("OMP_NUM_THREADS") == NULL) {
+  if (lmp->kokkos) {
+    nthreads = lmp->kokkos->num_threads * lmp->kokkos->numa;
+  } else if (getenv("OMP_NUM_THREADS") == NULL) {
     nthreads = 1;
     if (me == 0)
       error->warning(FLERR,"OMP_NUM_THREADS environment is not set.");
@@ -87,7 +90,7 @@ CommBrick::CommBrick(LAMMPS *lmp) : Comm(lmp)
   // enforce consistent number of threads across all MPI tasks
 
   MPI_Bcast(&nthreads,1,MPI_INT,0,world);
-  omp_set_num_threads(nthreads);
+  if (!lmp->kokkos) omp_set_num_threads(nthreads);
 
   if (me == 0) {
     if (screen)

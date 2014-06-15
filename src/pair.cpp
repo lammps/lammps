@@ -240,8 +240,11 @@ void Pair::init()
 
 void Pair::reinit()
 {
+  // generalize this error message if reinit() is used by more than fix adapt
+
   if (!reinitflag)
-    error->all(FLERR,"Calling reinit not available for this pair style");
+    error->all(FLERR,"Fix adapt interface to this pair style not supported");
+
 
   etail = ptail = 0.0;
 

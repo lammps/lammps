@@ -492,6 +492,7 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
                            const double driver_overhead, 
                            const int threads_per_atom, FILE *screen) {
   double single[9], times[9];
+  int post_final=0;
 
   single[0]=atom.transfer_time()+ans.transfer_time();
   single[1]=nbor.time_nbor.total_seconds()+nbor.time_hybrid1.total_seconds()+
@@ -503,6 +504,9 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
   single[6]=driver_overhead;
   single[7]=ans.cpu_idle_time();
   single[8]=nbor.bin_time();
+
+  MPI_Finalized(&post_final);
+  if (post_final) return;
 
   MPI_Reduce(single,times,9,MPI_DOUBLE,MPI_SUM,0,_comm_replica);
 

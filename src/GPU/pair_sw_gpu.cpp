@@ -71,6 +71,7 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
 PairSWGPU::PairSWGPU(LAMMPS *lmp) : PairSW(lmp), gpu_mode(GPU_FORCE)
 {
   cpu_time = 0.0;
+  reinitflag = 0;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
   cutghost = NULL;

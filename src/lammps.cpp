@@ -80,6 +80,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int cudaflag = 0;
   int kokkosflag = 0;
   int restartflag = 0;
+  int restartremapflag = 0;
   int citeflag = 1;
   int helpflag = 0;
 
@@ -188,6 +189,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       restartflag = 1;
       rfile = arg[iarg+1];
       dfile = arg[iarg+2];
+      // check for restart remap flag
+      if (strcmp(dfile,"remap") == 0) {
+        if (iarg+4 > narg)
+          error->universe_all(FLERR,"Invalid command-line argument");
+        restartremapflag = 1;
+        dfile = arg[iarg+3];
+        iarg++;
+      }
       iarg += 3;
       // delimit any extra args for the write_data command
       wdfirst = iarg;
@@ -481,6 +490,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   if (restartflag) {
     char cmd[128];
     sprintf(cmd,"read_restart %s\n",rfile);
+    if (restartremapflag) strcat(cmd," remap\n");
     input->one(cmd);
     sprintf(cmd,"write_data %s",dfile);
     for (iarg = wdfirst; iarg < wdlast; iarg++)

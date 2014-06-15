@@ -1350,13 +1350,13 @@ sub-directory (-pscreen replica_files/screen).  If this option is not
 used the screen file for partition N is screen.N or whatever is
 specified by the -screen command-line option.
 
--restart restartfile datafile keyword value ... :pre 
+-restart restartfile {remap} datafile keyword value ... :pre 
 
 Convert the restart file into a data file and immediately exit.  This
 is the same operation as if the following 2-line input script were
 run:
 
-read_restart restartfile
+read_restart restartfile {remap}
 write_data datafile keyword value ... :pre
 
 Note that the specified restartfile and datafile can have wild-card
@@ -1364,6 +1364,13 @@ characters ("*",%") as described by the
 "read_restart"_read_restart.html and "write_data"_write_data.html
 commands.  But a filename such as file.* will need to be enclosed in
 quotes to avoid shell expansion of the "*" character.
+
+Note that following restartfile, the optional flag {remap} can be
+used.  This has the same effect as adding it to the
+"read_restart"_read_restart.html command, as explained on its doc
+page.  This is only useful if the reading of the restart file triggers
+an error that atoms have been lost.  In that case, use of the remap
+flag should allow the data file to still be produced.
 
 Also note that following datafile, the same optional keyword/value
 pairs can be listed as used by the "write_data"_write_data.html

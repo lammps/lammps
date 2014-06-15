@@ -134,6 +134,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   // allocate list for per thread accumulator manager class instances
   // and then have each thread create an instance of this class to
   // encourage the OS to use storage that is "close" to each thread's CPU.
+
   thr = new ThrData *[nthreads];
   _nthr = nthreads;
 #if defined(_OPENMP)
@@ -207,6 +208,7 @@ void FixOMP::init()
   // kspace_split == 0 : regular processing
   // kspace_split < 0  : master partition, does not do kspace
   // kspace_split > 0  : slave partition, only does kspace
+
   if (strstr(update->integrate_style,"verlet/split") != NULL) {
     if (universe->iworld == 0) kspace_split = -1;
     else kspace_split = 1;

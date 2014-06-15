@@ -254,7 +254,7 @@ void cuda_check_error(char* comment)
   printf("ERROR-CUDA %s %s\n", comment, cudaGetErrorString(cudaGetLastError()));
 }
 
-int CudaWrapper_CheckMemUseage()
+int CudaWrapper_CheckMemUsage()
 {
   size_t free, total;
   cudaMemGetInfo(&free, &total);

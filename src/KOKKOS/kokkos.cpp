@@ -35,8 +35,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // process any command-line args that invoke Kokkos settings
 
   int device = 0;
-  int num_threads = 1;
-  int numa = 1;
+  num_threads = 1;
+  numa = 1;
 
   int iarg = 0;
   while (iarg < narg) {

@@ -1,4 +1,4 @@
-# redsky - SUN X6275 with dual socket/quad core nodes, mpic++, openmpi, FFTW 
+# redsky - SUN X6275 nodes, dual socket/quad core 2.93 GHz Nehalem processors, mpic++, openmpi, OpenMP, no FFTW 
 
 SHELL = /bin/sh
 
@@ -26,12 +26,12 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpic++
+CC =		mpic++ -fopenmp
 CCFLAGS =	-O2 -xsse4.2 -funroll-loops -fstrict-aliasing
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpic++
+LINK =		mpic++ -fopenmp
 LINKFLAGS =	-O -xsse4.2 
 LIB =           -lstdc++
 SIZE =		size
@@ -68,9 +68,9 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =    -DFFT_FFTW -I${FFTW_INCLUDE}
-FFT_PATH =   -L${FFTW_LIB}
-FFT_LIB =    -lfftw 
+#FFT_INC =    -DFFT_FFTW -I${FFTW_INCLUDE}
+#FFT_PATH =   -L${FFTW_LIB}
+#FFT_LIB =    -lfftw 
 
 # JPEG and/or PNG library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 7)

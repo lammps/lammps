@@ -389,7 +389,7 @@ void FixBondBreak::check_ghosts()
   tagint *slist;
 
   int **nspecial = atom->nspecial;
-  int **special = atom->special;
+  tagint **special = atom->special;
   int nlocal = atom->nlocal;
 
   int flag = 0;
@@ -718,7 +718,7 @@ int FixBondBreak::pack_comm(int n, int *list, double *buf,
   }
 
   int **nspecial = atom->nspecial;
-  int **special = atom->special;
+  tagint **special = atom->special;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -749,7 +749,7 @@ void FixBondBreak::unpack_comm(int n, int first, double *buf)
   } else {
 
     int **nspecial = atom->nspecial;
-    int **special = atom->special;
+    tagint **special = atom->special;
 
     m = 0;
     last = first + n;

@@ -901,13 +901,13 @@ struct AtomVecAtomicKokkos_PackExchangeFunctor {
   typename AT::t_tagint_1d_randomread _tag;
   typename AT::t_int_1d_randomread _type;
   typename AT::t_int_1d_randomread _mask;
-  typename AT::t_int_1d_randomread _image;
+  typename AT::t_imageint_1d_randomread _image;
   typename AT::t_x_array _xw;
   typename AT::t_v_array _vw;
   typename AT::t_tagint_1d _tagw;
   typename AT::t_int_1d _typew;
   typename AT::t_int_1d _maskw;
-  typename AT::t_int_1d _imagew;
+  typename AT::t_imageint_1d _imagew;
 
   typename AT::t_xfloat_2d_um _buf;
   int _nlocal,_dim;
@@ -1030,7 +1030,7 @@ struct AtomVecAtomicKokkos_UnpackExchangeFunctor {
   typename AT::t_tagint_1d _tag;
   typename AT::t_int_1d _type;
   typename AT::t_int_1d _mask;
-  typename AT::t_int_1d _image;
+  typename AT::t_imageint_1d _image;
 
   typename AT::t_xfloat_2d_um _buf;
   int _dim;

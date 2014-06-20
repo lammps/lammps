@@ -37,11 +37,11 @@ AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
 
 AtomKokkos::~AtomKokkos()
 {
-  k_tag = DAT::tdual_int_1d();
+  k_tag = DAT::tdual_tagint_1d();
   k_mask = DAT::tdual_int_1d();
   k_type = DAT::tdual_int_1d();
-  k_image = DAT::tdual_int_1d();
-  k_molecule = DAT::tdual_int_1d();
+  k_image = DAT::tdual_imageint_1d();
+  k_molecule = DAT::tdual_tagint_1d();
 
   k_x = DAT::tdual_x_array();
   k_v = DAT::tdual_v_array();

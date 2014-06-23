@@ -1010,5 +1010,5 @@ int FixMove::size_restart(int nlocal)
 
 void FixMove::reset_dt()
 {
-  error->all(FLERR,"Resetting timestep is not allowed with fix move");
+  error->all(FLERR,"Resetting timestep size is not allowed with fix move");
 }

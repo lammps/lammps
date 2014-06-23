@@ -52,6 +52,7 @@ using namespace MathConst;
 Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 {
   natoms = 0;
+  ns = 0; //!GLE
   nlocal = nghost = nmax = 0;
   ntypes = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
@@ -72,6 +73,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   type = mask = NULL;
   image = NULL;
   x = v = f = NULL;
+  s = NULL; //!GLE
 
   molecule = NULL;
   molindex = molatom = NULL;
@@ -205,6 +207,7 @@ Atom::~Atom()
   memory->destroy(x);
   memory->destroy(v);
   memory->destroy(f);
+  memory->destroy(s); //!GLE
 
   memory->destroy(molecule);
   memory->destroy(molindex);
@@ -1891,6 +1894,7 @@ void *Atom::extract(char *name)
   if (strcmp(name,"x") == 0) return (void *) x;
   if (strcmp(name,"v") == 0) return (void *) v;
   if (strcmp(name,"f") == 0) return (void *) f;
+  if (strcmp(name,"s") == 0) return (void *) s; //!GLE
   if (strcmp(name,"molecule") == 0) return (void *) molecule;
   if (strcmp(name,"q") == 0) return (void *) q;
   if (strcmp(name,"mu") == 0) return (void *) mu;

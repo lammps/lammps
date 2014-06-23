@@ -51,6 +51,7 @@ class Atom : protected Pointers {
   imageint *image;
   double **x,**v,**f;
 
+  double **s; int ns; //!GLE
   tagint *molecule;
   int *molindex,*molatom;
 

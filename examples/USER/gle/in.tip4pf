@@ -1,0 +1,29 @@
+units		   real
+atom_style	gle # 6
+
+pair_style lj/cut/tip4p/long 1 2 1 1 0.14714951 8
+bond_style      class2
+angle_style     harmonic
+kspace_style    pppm 0.0001
+
+read_data	data.tip4pf
+pair_coeff  * 2 0 0
+pair_coeff  1  1  0.1852  3.1589022
+
+#q-tip4pf bond parameters
+bond_coeff      1 0.9419 607.19354  -1388.6516 1852.577
+angle_coeff     1 43.93  107.4
+thermo          100
+thermo_style    custom step temp pe ke etotal
+
+timestep	0.5
+
+dump            snapxyz all atom 100 h2o.lammpstraj
+
+# some problem
+fix 1 all gle 6 smart.A 300 31415
+fix_modify 1 energy yes
+#fix 1 all  nve
+
+run		10000
+

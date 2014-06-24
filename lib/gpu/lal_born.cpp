@@ -98,6 +98,25 @@ int BornT::init(const int ntypes, double **host_cutsq,
 }
 
 template <class numtyp, class acctyp>
+void BornT::reinit(const int ntypes, double **host_rhoinv,
+                   double **host_born1, double **host_born2,
+                   double **host_born3, double **host_a, double **host_c,
+                   double **host_d, double **host_offset) {
+  
+  // Allocate a host write buffer for data initialization
+  UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
+                               UCL_WRITE_ONLY);
+  
+  for (int i=0; i<_lj_types*_lj_types; i++)
+    host_write[i]=0.0;
+  
+  this->atom->type_pack4(ntypes,_lj_types,coeff1,host_write,host_rhoinv,
+                         host_born1,host_born2,host_born3);
+  this->atom->type_pack4(ntypes,_lj_types,coeff2,host_write,host_a,host_c,
+		                     host_d,host_offset);
+}
+
+template <class numtyp, class acctyp>
 void BornT::clear() {
   if (!_allocated)
     return;

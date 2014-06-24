@@ -87,6 +87,21 @@ int SoftT::init(const int ntypes, double **host_cutsq,
 }
 
 template <class numtyp, class acctyp>
+void SoftT::reinit(const int ntypes, double **host_cutsq,
+                   double **host_prefactor, double **host_cut) {
+  
+  // Allocate a host write buffer for data initialization
+  UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
+                               UCL_WRITE_ONLY);
+  
+  for (int i=0; i<_lj_types*_lj_types; i++)
+    host_write[i]=0.0;
+  
+  this->atom->type_pack4(ntypes,_lj_types,coeff,host_write,host_prefactor,
+			                   host_cut,host_cutsq);
+}
+
+template <class numtyp, class acctyp>
 void SoftT::clear() {
   if (!_allocated)
     return;

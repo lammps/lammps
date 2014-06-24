@@ -92,6 +92,24 @@ int BuckT::init(const int ntypes, double **host_cutsq,
 }
 
 template <class numtyp, class acctyp>
+void BuckT::reinit(const int ntypes, double **host_cutsq,
+                   double **host_rhoinv, double **host_buck1, double **host_buck2,
+                   double **host_a, double **host_c, double **host_offset) {
+  
+  // Allocate a host write buffer for data initialization
+  UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
+                               UCL_WRITE_ONLY);
+  
+  for (int i=0; i<_lj_types*_lj_types; i++)
+    host_write[i]=0.0;
+  
+  this->atom->type_pack4(ntypes,_lj_types,coeff1,host_write,host_rhoinv,
+                         host_buck1,host_buck2,host_cutsq);
+  this->atom->type_pack4(ntypes,_lj_types,coeff2,host_write,host_a,host_c,
+                         host_offset);
+}
+
+template <class numtyp, class acctyp>
 void BuckT::clear() {
   if (!_allocated)
     return;

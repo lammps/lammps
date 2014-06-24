@@ -44,6 +44,11 @@ int ljl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  double **offset, double *special_lj, const int nlocal,
                  const int nall, const int max_nbors, const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen);
+
+int ljl_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
+                   double **host_lj2, double **host_lj3, double **host_lj4,
+                   double **offset);
+
 void ljl_gpu_clear();
 int ** ljl_gpu_compute_n(const int ago, const int inum,
                          const int nall, double **host_x, int *host_type,
@@ -64,7 +69,6 @@ double ljl_gpu_bytes();
 PairLJCutGPU::PairLJCutGPU(LAMMPS *lmp) : PairLJCut(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
-  reinitflag = 0;
   cpu_time = 0.0;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -87,7 +91,7 @@ void PairLJCutGPU::compute(int eflag, int vflag)
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-
+  
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
@@ -159,6 +163,15 @@ void PairLJCutGPU::init_style()
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCutGPU::reinit()
+{
+  Pair::reinit();
+  
+  ljl_gpu_reinit(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4, offset);
 }
 
 /* ---------------------------------------------------------------------- */

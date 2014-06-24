@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(born/gpu,PairBornGPU)
+PairStyle(coul/cut/gpu,PairCoulCutGPU)
 
 #else
 
-#ifndef LMP_PAIR_BORN_GPU_H
-#define LMP_PAIR_BORN_GPU_H
+#ifndef LMP_PAIR_COUL_CUT_GPU_H
+#define LMP_PAIR_COUL_CUT_GPU_H
 
-#include "pair_born.h"
+#include "pair_coul_cut.h"
 
 namespace LAMMPS_NS {
 
-class PairBornGPU : public PairBorn {
+class PairCoulCutGPU : public PairCoulCut {
  public:
-  PairBornGPU(LAMMPS *lmp);
-  ~PairBornGPU();
+  PairCoulCutGPU(LAMMPS *lmp);
+  ~PairCoulCutGPU();
   void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int);
   void init_style();
@@ -52,8 +52,12 @@ E: Insufficient memory on accelerator
 There is insufficient memory on one of the devices specified for the gpu
 package
 
-E: Cannot use newton pair with born/gpu pair style
+E: Pair style lj/cut/coul/cut/gpu requires atom attribute q
 
-Self-explantory.
+The atom style defined does not have this attribute.
+
+E: Cannot use newton pair with lj/cut/coul/cut/gpu pair style
+
+Self-explanatory.
 
 */

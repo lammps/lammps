@@ -20,6 +20,7 @@
 #include "domain.h"
 #include "atom.h"
 #include "force.h"
+#include "comm.h"
 #include "region.h"
 #include "modify.h"
 #include "fix.h"
@@ -31,6 +32,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <map>
+
 using namespace LAMMPS_NS;
 
 #define MAX_GROUP 32
@@ -39,6 +42,10 @@ enum{TYPE,MOLECULE,ID};
 enum{LT,LE,GT,GE,EQ,NEQ,BETWEEN};
 
 #define BIG 1.0e20
+
+// allocate space for static class variable
+
+Group *Group::cptr;
 
 /* ----------------------------------------------------------------------
    initialize group memory
@@ -129,6 +136,21 @@ void Group::assign(int narg, char **arg)
     names[igroup] = NULL;
     dynamic[igroup] = 0;
     ngroup--;
+
+    return;
+  }
+
+  // clear the group
+
+  if (strcmp(arg[1],"clear") == 0) {
+    int igroup = find(arg[0]);
+    if (igroup == -1) error->all (FLERR,"Could not find group clear group ID");
+    if (igroup == 0) error->all (FLERR,"Cannot clear group all");
+
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+    int bits = inversemask[igroup];
+    for (i = 0; i < nlocal; i++) mask[i] &= bits;
 
     return;
   }
@@ -329,6 +351,16 @@ void Group::assign(int narg, char **arg)
       if (aflag[i] != 0.0) mask[i] |= bit;
 
     memory->destroy(aflag);
+
+  // style = include
+
+  } else if (strcmp(arg[1],"include") == 0) {
+
+    if (narg != 3) error->all(FLERR,"Illegal group command");
+    if (strcmp(arg[2],"molecule") != 0) 
+      error->all(FLERR,"Illegal group command");
+
+    add_molecules(igroup,bit);
 
   // style = subtract
 
@@ -565,6 +597,69 @@ int Group::find_unused()
   for (int igroup = 0; igroup < MAX_GROUP; igroup++)
     if (names[igroup] == NULL) return igroup;
   return -1;
+}
+
+/* ----------------------------------------------------------------------
+   add atoms to group that are in same molecules as atoms already in group
+   do not include molID = 0
+------------------------------------------------------------------------- */
+
+void Group::add_molecules(int igroup, int bit)
+{
+  // hash = unique molecule IDs of atoms already in group
+
+  hash = new std::map<tagint,int>();
+
+  tagint *molecule = atom->molecule;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & bit) {
+      if (molecule[i] == 0) continue;
+      if (hash->find(molecule[i]) == hash->end()) (*hash)[molecule[i]] = 1;
+    }
+
+  // list = set of unique molecule IDs for atoms to add
+  // pass list to all other procs via comm->ring()
+
+  int n = hash->size();
+  tagint *list;
+  memory->create(list,n,"group:list");
+
+  n = 0;
+  std::map<tagint,int>::iterator pos;
+  for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
+
+  cptr = this;
+  molbit = bit;
+  comm->ring(n,sizeof(tagint),list,1,molring,NULL);
+
+  delete hash;
+  memory->destroy(list);
+}
+
+/* ----------------------------------------------------------------------
+   callback from comm->ring()
+   cbuf = list of N molecule IDs, put them in hash
+   loop over my atoms, if matches molecule ID in hash,
+     add atom to group flagged by molbit
+------------------------------------------------------------------------- */
+
+void Group::molring(int n, char *cbuf)
+{
+  tagint *list = (tagint *) cbuf;
+  std::map<tagint,int> *hash = cptr->hash;
+  int nlocal = cptr->atom->nlocal;
+  tagint *molecule = cptr->atom->molecule;
+  int *mask = cptr->atom->mask;
+  int molbit = cptr->molbit;
+
+  hash->clear();
+  for (int i = 0; i < n; i++) (*hash)[list[i]] = 1;
+
+  for (int i = 0; i < nlocal; i++)
+    if (hash->find(molecule[i]) != hash->end()) mask[i] |= molbit;
 }
 
 /* ----------------------------------------------------------------------

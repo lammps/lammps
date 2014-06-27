@@ -44,7 +44,6 @@ class FixGCMC : public Fix {
   tagint pick_random_gas_molecule();
   double molecule_energy(tagint);
   void get_rotation_matrix(double, double *);
-  void get_model_molecule();
   void update_gas_atoms_list();
   double compute_vector(int);
   double memory_usage();
@@ -59,14 +58,13 @@ class FixGCMC : public Fix {
   int ngas;                 // # of gas atoms on all procs
   int ngas_local;           // # of gas atoms on this proc
   int ngas_before;          // # of gas atoms on procs < this proc
-  int molflag;              // 0 = atomic, 1 = molecular system
+  int mode;                 // ATOM or MOLECULE
   int regionflag;           // 0 = anywhere in box, 1 = specific region
   int iregion;              // GCMC region
   char *idregion;           // GCMC region id
   bool pressure_flag;       // true if user specified reservoir pressure
                             // else false
 
-  tagint maxmol;            // largest molecule tag across all existing atoms
   int natoms_per_molecule;  // number of atoms in each gas molecule
 
   double ntranslation_attempts;
@@ -94,7 +92,6 @@ class FixGCMC : public Fix {
   int *local_gas_list;
   double **cutsq;
   double **atom_coord;
-  double *model_atom_buf;
   imageint imagetmp;
 
   class Pair *pair;
@@ -103,6 +100,14 @@ class FixGCMC : public Fix {
   class RanPark *random_unequal;
   
   class Atom *model_atom;
+
+  class Molecule **onemols;
+  int imol,nmol;
+  double **coords;
+  imageint *imageflags;
+  class Fix *fixshake;
+  int shakeflag;
+  char *idshake;
 
   void options(int, char **);
 };

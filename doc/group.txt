@@ -172,14 +172,15 @@ variables are current when they are evaluated between runs.
 
 The {include} style with its arg {molecule} adds atoms to a group that
 have the same molecule ID as atoms already in the group.  The molecule
-ID = 0 is ignored in this operation, since it assumed to represent
-atoms that are not part of molecules.  An example of where this
-operation is useful is if the {region} style has been used previously
-to add atoms to a group that are within a geometric region.  If
-molecules straddle the region boundary, then atoms outside the region
-that are part of molecules with atoms inside the region will not be in
-the group.  Using the group command a 2nd time with {include molecule}
-will add those atoms that are outside the region to the group.
+ID = 0 is ignored in this operation, since it is assumed to flag
+isolated atoms that are not part of molecules.  An example of where
+this operation is useful is if the {region} style has been used
+previously to add atoms to a group that are within a geometric region.
+If molecules straddle the region boundary, then atoms outside the
+region that are part of molecules with atoms inside the region will
+not be in the group.  Using the group command a 2nd time with {include
+molecule} will add those atoms that are outside the region to the
+group.
 
 IMPORTANT NOTE: The {include molecule} operation is relatively
 expensive in a parallel sense.  This is because it requires

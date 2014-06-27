@@ -43,6 +43,10 @@ action pair_buck_gpu.cpp pair_buck.cpp
 action pair_buck_gpu.h pair_buck.cpp
 action pair_colloid_gpu.cpp pair_colloid.cpp
 action pair_colloid_gpu.h pair_colloid.cpp
+action pair_coul_cut_gpu.cpp
+action pair_coul_cut_gpu.h
+action pair_coul_debye_gpu.cpp
+action pair_coul_debye_gpu.h
 action pair_coul_dsf_gpu.cpp
 action pair_coul_dsf_gpu.h
 action pair_coul_long_gpu.cpp pair_coul_long.cpp

@@ -32,7 +32,7 @@ templates (or will in the future) include:
 "fix pour"_fix_pour.html
 "fix rigid/small"_fix_rigid.html
 "fix shake"_fix_shake.html
-"fix gcmc"_fix_gcmc.html (not yet)
+"fix gcmc"_fix_gcmc.html
 "create_atoms"_create_atoms.html 
 "atom_style template"_atom_style.html :ul
 

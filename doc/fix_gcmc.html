@@ -25,7 +25,7 @@
 
 <LI>M = number of MC displacements to attempt every N steps 
 
-<LI>type = atom type or molecule ID of exchanged gas 
+<LI>type = atom type to assign to inserted atoms (offset for molecule insertion) 
 
 <LI>seed = random # seed (positive integer) 
 
@@ -37,9 +37,12 @@
 
 <LI>zero or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>molecule</I>, <I>region</I>, <I>maxangle</I>, <I>pressure</I>, or <I>fugacity_coeff</I> 
+<LI>keyword = <I>mol</I>, <I>region</I>, <I>maxangle</I>, <I>pressure</I>, or <I>fugacity_coeff</I> 
 
-<PRE>  <I>molecule</I> value = <I>no</I> or <I>yes</I>
+<PRE>  <I>mol</I> value = template-ID
+    template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
+  <I>shake</I> value = fix-ID
+    fix-ID = ID of <A HREF = "fix_shake.html">fix shake</A> command
   <I>region</I> value = region-ID
     region-ID = ID of region to use as an exchange/move volume 
   <I>maxangle</I> value = maximum molecular rotation angle (degrees) 
@@ -51,7 +54,7 @@
 <P><B>Examples:</B>
 </P>
 <PRE>fix 2 gas gcmc 10 1000 1000 2 29494 298.0 -0.5 0.01
-fix 3 Kr gcmc 10 100 100 1 3456543 3.0 -2.5 0.1 molecule yes maxangle 180
+fix 3 water gcmc 10 100 100 0 3456543 3.0 -2.5 0.1 mol my_one_water maxangle 180
 fix 4 my_gas gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk 
 </PRE>
 <P><B>Description:</B>
@@ -79,6 +82,13 @@ attempted with 50% probability. For MC moves of atomic gasses,
 translations are attempted 100% of the time. For MC exchanges of either
 molecular or atomic gasses, deletions and insertions are each attempted
 with 50% probability.
+</P>
+<P>If inserted particles are individual atoms, they are assigned the
+specified atom type.  If they are molecules, the type of each atom in
+the inserted molecule is specified in the file read by the
+<A HREF = "molecule.html">molecule</A> command, and those values are added to the
+specified atom type.  E.g. if <I>type</I> = 2, and the file specifies atom
+types 1,2,3, then the inserted molecule will have atom types 3,4,5.
 </P>
 <P>This fix cannot be used to perform MC insertions of gas atoms or
 molecules other than the exchanged type, but MC deletions, translations,
@@ -120,21 +130,26 @@ coordinates for atoms in a molecule are taken from the template
 molecule provided by the user. A random initial rotation is used in the
 case of molecule insertions.
 </P>
-<P>If the setting for the <I>molecule</I> keyword is <I>no</I>, then only single
-atoms are exchanged.  In this case, you should ensure you do not
+<P>Individual atoms are inserted, unless the <I>mol</I> keyword is used.  It
+specifies a <I>template-ID</I> previously defined using the
+<A HREF = "molecule.html">molecule</A> command, which reads a file that defines the
+molecule.  The coordinates, atom types, charges, etc, as well as any
+bond/angle/etc and special neighbor information for the molecule can
+be specified in the molecule file.  See the <A HREF = "molecule.html">molecule</A>
+command for details.  The only settings required to be in this file
+are the coordinates and types of atoms in the molecule.
+</P>
+<P>When not using the <I>mol</I> keyword, you should ensure you do not
 delete only a portion of a molecule (only some of its atoms), or
 LAMMPS will soon generate an error when it tries to find those atoms.
 LAMMPS will warn you if any of the atoms eligible for deletion have a
 non-zero molecule ID, but does not check for this at the time of
 deletion.
 </P>
-<P>If the setting for the <I>molecule</I> keyword is <I>yes</I>, entire molecules
-are exchanged. The user must supply a model molecule in the data
-file to use as a template for exchanges, and that molecule's number
-must be given in the fix GCMC command as the "type" of the exchanged
-gas. Note that the model molecule must be present whenever the fix 
-is initialized. This is a limitation that will likely be remedied
-in the not-to-distant future.
+<P>If you wish to insert molecules via the <I>mol</I> keyword, that will have
+their bonds or angles constrained via SHAKE, use the <I>shake</I> keyword,
+specifying as its value the ID of a separate <A HREF = "fix_shake.html">fix
+shake</A> command which also appears in your input script.
 </P>
 <P>Optionally, users may specify the maximum rotation angle for 
 molecular rotations using the <I>maxangle</I> keyword and specifying
@@ -158,17 +173,19 @@ keyword, in which case the user-specified chemical potential is
 ignored. For non-ideal gas reservoirs, the user may also specify the 
 fugacity coefficient using the <I>fugacity_coeff</I> keyword.
 </P>
+<P>Use of this fix typically will cause the number of atoms to fluctuate,
+therefore, you will want to use the
+<A HREF = "compute_modify.html">compute_modify</A> command to insure that the
+current number of atoms is used as a normalizing factor each time
+temperature is computed.  Here is the necessary command:
+</P>
+<PRE>compute_modify thermo_temp dynamic yes 
+</PRE>
 <P>If LJ units are used, note that a value of 0.18292026 is used by this
 fix as the reduced value for Planck's constant.  This value was
 derived from LJ paramters for argon, where h* = h/sqrt(sigma^2 *
 epsilon * mass), sigma = 3.429 angstroms, epsilon/k = 121.85 K, and
 mass = 39.948 amu.
-</P>
-<P>IMPORTANT NOTE: If you are monitoring the temperature of a system
-where the particle count is changing due to adding/deleting particles,
-you typically should use the <A HREF = "compute_modify.html">compute_modify dynamic
-yes</A> command for the temperature compute you are
-using.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -230,11 +247,12 @@ trigger an error, so it is better to run multiple shorter-duration
 simulations. Likewise, very large molecules have not been tested
 and may turn out to be problematic.
 </P>
-<P>Use of multiple fix gcmc commands in the same input using a template
-molecule are not supported. There are multiple issues where the 
-current implmentation makes assumptions that are no longer valid
-in this case. Resolving all of them require significant changes to
-the implementation.
+<P>Use of multiple fix gcmc commands in the same input script can be 
+problematic if using a template molecule. The issue is that the 
+user-referenced template molecule in the second fix gcmc command
+may no longer exist since it might have been deleted by the first
+fix gcmc command. An existing template molecule will need to be
+referenced by the user for each subsequent fix gcmc command.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -244,7 +262,7 @@ the implementation.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are molecule = no, maxangle = 10.
+<P>The option defaults are mol = no, maxangle = 10.
 </P>
 <HR>
 

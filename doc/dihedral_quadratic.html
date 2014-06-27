@@ -28,14 +28,16 @@ dihedral_coeff 100.0 80.0
 </P>
 <CENTER><IMG SRC = "Eqs/dihedral_quadratic.jpg">
 </CENTER>
-<P>This dihedral potential can be used to keep a dihedral in a predefined value.
+<P>This dihedral potential can be used to keep a dihedral in a predefined
+value (cis=zero, right-hand convention is used).
 </P>
-<P>The following coefficients must be defined for each dihedral type via the
-<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command as in the example above, or in
-the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
-or <A HREF = "read_restart.html">read_restart</A> commands:
+<P>The following coefficients must be defined for each dihedral type via
+the <A HREF = "dihedral_coeff.html">dihedral_coeff</A> command as in the example
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
 </P>
-<UL><LI>K (energy)
+<UL><LI>K (energy/radian^2) 
 <LI>phi0 (degrees) 
 </UL>
 <HR>
@@ -47,10 +49,10 @@ discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A> of the
 manual.  The accelerated styles take the same arguments and should
 produce the same results, except for round-off and precision issues.
 </P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
-packages, respectively.  They are only enabled if LAMMPS was built with
-those packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
-section for more info.
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and
+OPT packages, respectively.  They are only enabled if LAMMPS was built
+with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P>You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line

@@ -124,8 +124,7 @@ texture<int2> q_tex;
 #endif
 
 __kernel void k_coul_long(const __global numtyp4 *restrict x_, 
-                          const __global numtyp4 *restrict lj1,
-                          const __global numtyp4 *restrict lj3, 
+                          const __global numtyp *restrict scale,
                           const int lj_types,
                           const __global numtyp *restrict sp_cl_in, 
                           const __global int *dev_nbor,
@@ -161,6 +160,7 @@ __kernel void k_coul_long(const __global numtyp4 *restrict x_,
               n_stride,list_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    int itype=ix.w;
     numtyp qtmp; fetch(qtmp,i,q_tex);
 
     for ( ; nbor<list_end; nbor+=n_stride) {
@@ -171,24 +171,26 @@ __kernel void k_coul_long(const __global numtyp4 *restrict x_,
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-
+      int jtype=jx.w;
+      
       // Compute r12
       numtyp delx = ix.x-jx.x;
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-
+      
+      int mtype=itype*lj_types+jtype;
       if (rsq < cut_coulsq) {
         numtyp r2inv=ucl_recip(rsq);
         numtyp force, prefactor, _erfc;
-
+        
         numtyp r = ucl_rsqrt(r2inv);
         numtyp grij = g_ewald * r;
         numtyp expm2 = ucl_exp(-grij*grij);
         numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
         _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
         fetch(prefactor,j,q_tex);
-        prefactor *= qqrd2e * qtmp/r;
+        prefactor *= qqrd2e * scale[mtype] * qtmp/r;
         force = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul) * r2inv;
 
         f.x+=delx*force;
@@ -196,7 +198,7 @@ __kernel void k_coul_long(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (eflag>0) {
-	  e_coul += prefactor*(_erfc-factor_coul);
+	        e_coul += prefactor*(_erfc-factor_coul);
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -215,8 +217,7 @@ __kernel void k_coul_long(const __global numtyp4 *restrict x_,
 }
 
 __kernel void k_coul_long_fast(const __global numtyp4 *restrict x_, 
-                               const __global numtyp4 *restrict lj1_in,
-                               const __global numtyp4 *restrict lj3_in,
+                               const __global numtyp *restrict scale_in,
                                const __global numtyp *restrict sp_cl_in,
                                const __global int *dev_nbor, 
                                const __global int *dev_packed,
@@ -230,10 +231,14 @@ __kernel void k_coul_long_fast(const __global numtyp4 *restrict x_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
+  __local numtyp scale[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_cl[4];
   if (tid<4)
     sp_cl[tid]=sp_cl_in[tid];
-
+  if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
+    scale[tid]=scale_in[tid];
+  }
+  
   acctyp e_coul=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
@@ -252,7 +257,9 @@ __kernel void k_coul_long_fast(const __global numtyp4 *restrict x_,
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
-
+    int iw = ix.w;
+    int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
+    
     for ( ; nbor<list_end; nbor+=n_stride) {
       int j=*nbor;
 
@@ -261,7 +268,8 @@ __kernel void k_coul_long_fast(const __global numtyp4 *restrict x_,
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-
+      int mtype=itype+jx.w;
+      
       // Compute r12
       numtyp delx = ix.x-jx.x;
       numtyp dely = ix.y-jx.y;
@@ -272,13 +280,13 @@ __kernel void k_coul_long_fast(const __global numtyp4 *restrict x_,
         numtyp r2inv=ucl_recip(rsq);
         numtyp force, prefactor, _erfc;
 
-        numtyp r = ucl_rsqrt(r2inv);
+        numtyp r = ucl_sqrt(rsq);
         numtyp grij = g_ewald * r;
         numtyp expm2 = ucl_exp(-grij*grij);
         numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
         _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
         fetch(prefactor,j,q_tex);
-        prefactor *= qqrd2e * qtmp/r;
+        prefactor *= qqrd2e * scale[mtype] * qtmp/r;
         force = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul) * r2inv;
 
         f.x+=delx*force;
@@ -286,7 +294,7 @@ __kernel void k_coul_long_fast(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (eflag>0) {
-	  e_coul += prefactor*(_erfc-factor_coul);
+	        e_coul += prefactor*(_erfc-factor_coul);
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

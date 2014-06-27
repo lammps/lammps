@@ -37,12 +37,16 @@ class CoulLong : public BaseCharge<numtyp, acctyp> {
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(const int nlocal, const int nall, const int max_nbors,
+  int init(const int ntypes, double **scale,
+           const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
-	   const double gpu_split, FILE *screen, 
-	   const double host_cut_coulsq, double *host_special_coul,
-	   const double qqrd2e, const double g_ewald);
-
+	         const double gpu_split, FILE *screen,
+	         const double host_cut_coulsq, double *host_special_coul,
+	         const double qqrd2e, const double g_ewald);
+  
+  /// Send updated coeffs from host to device (to be compatible with fix adapt)
+  void reinit(const int ntypes, double **scale);
+  
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear();
@@ -59,6 +63,8 @@ class CoulLong : public BaseCharge<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> lj1;
   /// lj3 dummy
   UCL_D_Vec<numtyp4> lj3;
+  /// scale
+  UCL_D_Vec<numtyp> scale;
   /// Special Coul values [0-3]
   UCL_D_Vec<numtyp> sp_cl;
 

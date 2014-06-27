@@ -88,6 +88,28 @@ int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
   return init_ok;
 }
 
+// ---------------------------------------------------------------------------
+// Copy updated coeffs from host to device
+// ---------------------------------------------------------------------------
+void gauss_gpu_reinit(const int ntypes, double **cutsq, double **host_a,
+                      double **host_b, double **offset) {
+  int world_me=GLMF.device->world_me();
+  int gpu_rank=GLMF.device->gpu_rank();
+  int procs_per_gpu=GLMF.device->procs_per_gpu();
+  
+  if (world_me==0)
+    GLMF.reinit(ntypes, cutsq, host_a, host_b, offset);
+  
+  GLMF.device->world_barrier();
+  
+  for (int i=0; i<procs_per_gpu; i++) {
+    if (gpu_rank==i && world_me!=0)
+      GLMF.reinit(ntypes, cutsq, host_a, host_b, offset);
+    
+    GLMF.device->gpu_barrier();
+  }
+}
+
 void gauss_gpu_clear() {
   GLMF.clear();
 }

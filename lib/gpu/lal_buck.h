@@ -45,6 +45,11 @@ class Buck : public BaseAtomic<numtyp, acctyp> {
            const int maxspecial, const double cell_size, 
            const double gpu_split, FILE *screen);
 
+  /// Send updated coeffs from host to device (to be compatible with fix adapt)
+  void reinit(const int ntypes, double **host_cutsq,
+            double **host_rhoinv, double **host_buck1, double **host_buck2,
+            double **host_a, double **host_c, double **host_offset);
+  
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear();

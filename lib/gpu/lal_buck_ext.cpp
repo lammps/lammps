@@ -89,6 +89,31 @@ int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
   return init_ok;
 }
 
+// ---------------------------------------------------------------------------
+// Copy updated coeffs from host to device
+// ---------------------------------------------------------------------------
+void buck_gpu_reinit(const int ntypes, double **cutsq, double **host_rhoinv,
+                  double **host_buck1, double **host_buck2,
+                  double **host_a, double **host_c, double **offset) {
+  int world_me=BUCKMF.device->world_me();
+  int gpu_rank=BUCKMF.device->gpu_rank();
+  int procs_per_gpu=BUCKMF.device->procs_per_gpu();
+  
+  if (world_me==0)
+    BUCKMF.reinit(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
+                  host_a, host_c, offset);
+  
+  BUCKMF.device->world_barrier();
+
+  for (int i=0; i<procs_per_gpu; i++) {
+    if (gpu_rank==i && world_me!=0)
+      BUCKMF.reinit(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
+                    host_a, host_c, offset);
+    
+    BUCKMF.device->gpu_barrier();
+  }
+}
+
 void buck_gpu_clear() {
   BUCKMF.clear(); 
 }

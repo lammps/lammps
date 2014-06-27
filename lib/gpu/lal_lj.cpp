@@ -93,6 +93,23 @@ int LJT::init(const int ntypes,
 }
 
 template <class numtyp, class acctyp>
+void LJT::reinit(const int ntypes, double **host_cutsq, double **host_lj1,
+                 double **host_lj2, double **host_lj3,
+                 double **host_lj4, double **host_offset) {
+  // Allocate a host write buffer for data initialization
+  UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
+                               UCL_WRITE_ONLY);
+  
+  for (int i=0; i<_lj_types*_lj_types; i++)
+    host_write[i]=0.0;
+  
+  this->atom->type_pack4(ntypes,_lj_types,lj1,host_write,host_lj1,host_lj2,
+                         host_cutsq);
+  this->atom->type_pack4(ntypes,_lj_types,lj3,host_write,host_lj3,host_lj4,
+                         host_offset);
+}
+
+template <class numtyp, class acctyp>
 void LJT::clear() {
   if (!_allocated)
     return;

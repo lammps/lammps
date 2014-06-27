@@ -27,10 +27,11 @@ static CoulLong<PRECISION,ACC_PRECISION> CLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int cl_gpu_init(const int inum, const int nall, const int max_nbors,
-		const int maxspecial, const double cell_size, int &gpu_mode,
-		FILE *screen, double host_cut_coulsq, double *host_special_coul,
-		const double qqrd2e, const double g_ewald) {
+int cl_gpu_init(const int ntypes, double **host_scale,
+                const int inum, const int nall, const int max_nbors,
+                const int maxspecial, const double cell_size, int &gpu_mode,
+                FILE *screen, double host_cut_coulsq, double *host_special_coul,
+                const double qqrd2e, const double g_ewald) {
   CLMF.clear();
   gpu_mode=CLMF.device->gpu_mode();
   double gpu_split=CLMF.device->particle_split();
@@ -53,9 +54,9 @@ int cl_gpu_init(const int inum, const int nall, const int max_nbors,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=CLMF.init(inum, nall, 300, maxspecial, cell_size, gpu_split,
-		      screen, host_cut_coulsq, host_special_coul, qqrd2e,
-		      g_ewald);
+    init_ok=CLMF.init(ntypes, host_scale, inum, nall, 300, maxspecial,
+                      cell_size, gpu_split, screen, host_cut_coulsq,
+                      host_special_coul, qqrd2e, g_ewald);
 
   CLMF.device->world_barrier();
   if (message)
@@ -71,9 +72,9 @@ int cl_gpu_init(const int inum, const int nall, const int max_nbors,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=CLMF.init(inum, nall, 300, maxspecial, cell_size, gpu_split,
-			screen, host_cut_coulsq, host_special_coul,
-			qqrd2e, g_ewald);
+      init_ok=CLMF.init(ntypes, host_scale, inum, nall, 300, maxspecial,
+                        cell_size, gpu_split, screen, host_cut_coulsq,
+                        host_special_coul, qqrd2e, g_ewald);
 
     CLMF.device->gpu_barrier();
     if (message)
@@ -85,6 +86,27 @@ int cl_gpu_init(const int inum, const int nall, const int max_nbors,
   if (init_ok==0)
     CLMF.estimate_gpu_overhead();
   return init_ok;
+}
+
+// ---------------------------------------------------------------------------
+// Copy updated coeffs from host to device
+// ---------------------------------------------------------------------------
+void cl_gpu_reinit(const int ntypes, double **host_scale) {
+  int world_me=CLMF.device->world_me();
+  int gpu_rank=CLMF.device->gpu_rank();
+  int procs_per_gpu=CLMF.device->procs_per_gpu();
+  
+  if (world_me==0)
+    CLMF.reinit(ntypes, host_scale);
+  
+  CLMF.device->world_barrier();
+  
+  for (int i=0; i<procs_per_gpu; i++) {
+    if (gpu_rank==i && world_me!=0)
+      CLMF.reinit(ntypes, host_scale);
+    
+    CLMF.device->gpu_barrier();
+  }
 }
 
 void cl_gpu_clear() {

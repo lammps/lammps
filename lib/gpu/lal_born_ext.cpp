@@ -92,6 +92,32 @@ int born_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
   return init_ok;
 }
 
+// ---------------------------------------------------------------------------
+// Copy updated coeffs from host to device
+// ---------------------------------------------------------------------------
+void born_gpu_reinit(const int ntypes, double **host_rhoinv,
+                     double **host_born1, double **host_born2,
+                     double **host_born3, double **host_a, double **host_c,
+                     double **host_d, double **offset) {
+  int world_me=BORNMF.device->world_me();
+  int gpu_rank=BORNMF.device->gpu_rank();
+  int procs_per_gpu=BORNMF.device->procs_per_gpu();
+  
+  if (world_me==0)
+    BORNMF.reinit(ntypes, host_rhoinv, host_born1, host_born2,
+                  host_born3, host_a, host_c, host_d, offset);
+  
+  BORNMF.device->world_barrier();
+  
+  for (int i=0; i<procs_per_gpu; i++) {
+    if (gpu_rank==i && world_me!=0)
+      BORNMF.reinit(ntypes, host_rhoinv, host_born1, host_born2,
+                    host_born3, host_a, host_c, host_d, offset);
+    
+    BORNMF.device->gpu_barrier();
+  }
+}
+
 void born_gpu_clear() {
   BORNMF.clear(); 
 }

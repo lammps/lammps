@@ -38,14 +38,14 @@ struct DomainPBCFunctor {
   typename ArrayTypes<DeviceType>::t_x_array x;
   typename ArrayTypes<DeviceType>::t_v_array v;
   typename ArrayTypes<DeviceType>::t_int_1d mask;
-  typename ArrayTypes<DeviceType>::t_int_1d image;
+  typename ArrayTypes<DeviceType>::t_imageint_1d image;
   int deform_groupbit;
   double h_rate[6];
   int xperiodic,yperiodic,zperiodic;
 
   DomainPBCFunctor(double* _lo, double* _hi, double* _period,
                    DAT::tdual_x_array _x, DAT::tdual_v_array _v,
-                   DAT::tdual_int_1d _mask, DAT::tdual_int_1d _image, 
+                   DAT::tdual_int_1d _mask, DAT::tdual_imageint_1d _image, 
                    int _deform_groupbit, double* _h_rate,
                    int _xperiodic, int _yperiodic, int _zperiodic):
     x(_x.view<DeviceType>()), v(_v.view<DeviceType>()),
@@ -65,7 +65,7 @@ struct DomainPBCFunctor {
       if (x(i,0) < lo[0]) {
         x(i,0) += period[0];
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) v(i,0) += h_rate[0];
-        int idim = image[i] & IMGMASK;
+        imageint idim = image[i] & IMGMASK;
         const int otherdims = image[i] ^ idim;
         idim--;
         idim &= IMGMASK;
@@ -75,7 +75,7 @@ struct DomainPBCFunctor {
         x(i,0) -= period[0];
         x(i,0) = MAX(x(i,0),lo[0]);
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) v(i,0) -= h_rate[0];
-        int idim = image[i] & IMGMASK;
+        imageint idim = image[i] & IMGMASK;
         const int otherdims = image[i] ^ idim;
         idim++;
         idim &= IMGMASK;
@@ -90,8 +90,8 @@ struct DomainPBCFunctor {
           v(i,0) += h_rate[5];
           v(i,1) += h_rate[1];
         }
-        int idim = (image[i] >> IMGBITS) & IMGMASK;
-        const int otherdims = image[i] ^ (idim << IMGBITS);
+        imageint idim = (image[i] >> IMGBITS) & IMGMASK;
+        const imageint otherdims = image[i] ^ (idim << IMGBITS);
         idim--;
         idim &= IMGMASK;
         image[i] = otherdims | (idim << IMGBITS);
@@ -103,8 +103,8 @@ struct DomainPBCFunctor {
           v(i,0) -= h_rate[5];
           v(i,1) -= h_rate[1];
         }
-        int idim = (image[i] >> IMGBITS) & IMGMASK;
-        const int otherdims = image[i] ^ (idim << IMGBITS);
+        imageint idim = (image[i] >> IMGBITS) & IMGMASK;
+        const imageint otherdims = image[i] ^ (idim << IMGBITS);
         idim++;
         idim &= IMGMASK;
         image[i] = otherdims | (idim << IMGBITS);
@@ -119,8 +119,8 @@ struct DomainPBCFunctor {
           v(i,1) += h_rate[3];
           v(i,2) += h_rate[2];
         }
-        int idim = image[i] >> IMG2BITS;
-        const int otherdims = image[i] ^ (idim << IMG2BITS);
+        imageint idim = image[i] >> IMG2BITS;
+        const imageint otherdims = image[i] ^ (idim << IMG2BITS);
         idim--;
         idim &= IMGMASK;
         image[i] = otherdims | (idim << IMG2BITS);
@@ -133,8 +133,8 @@ struct DomainPBCFunctor {
           v(i,1) -= h_rate[3];
           v(i,2) -= h_rate[2];
         }
-        int idim = image[i] >> IMG2BITS;
-        const int otherdims = image[i] ^ (idim << IMG2BITS);
+        imageint idim = image[i] >> IMG2BITS;
+        const imageint otherdims = image[i] ^ (idim << IMG2BITS);
         idim++;
         idim &= IMGMASK;
         image[i] = otherdims | (idim << IMG2BITS);

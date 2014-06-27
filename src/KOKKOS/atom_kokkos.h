@@ -21,8 +21,9 @@ namespace LAMMPS_NS {
 
 class AtomKokkos : public Atom {
  public:
-  DAT::tdual_int_1d k_tag, k_type, k_mask, k_molecule;
-  DAT::tdual_tagint_1d k_image;
+  DAT::tdual_tagint_1d k_tag, k_molecule;
+  DAT::tdual_imageint_1d k_image;
+  DAT::tdual_int_1d k_type, k_mask;
   DAT::tdual_x_array k_x;
   DAT::tdual_v_array k_v;
   DAT::tdual_f_array k_f;

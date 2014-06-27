@@ -81,15 +81,17 @@ class AtomVecAtomicKokkos : public AtomVecKokkos {
   void modified(ExecutionSpace space, unsigned int mask);
 
  protected:
-  int *tag,*type,*mask;
-  tagint *image;
+  tagint *tag;
+  imageint *image;
+  int *type,*mask;
   double **x,**v,**f;
 
-  DAT::t_int_1d d_tag, d_type, d_mask;
-  HAT::t_int_1d h_tag, h_type, h_mask;
-
-  DAT::t_tagint_1d d_image;
-  HAT::t_tagint_1d h_image;
+  DAT::t_tagint_1d d_tag;
+  HAT::t_tagint_1d h_tag;
+  DAT::t_imageint_1d d_image;
+  HAT::t_imageint_1d h_image;
+  DAT::t_int_1d d_type, d_mask;
+  HAT::t_int_1d h_type, h_mask;
 
   DAT::t_x_array d_x;
   DAT::t_v_array d_v;

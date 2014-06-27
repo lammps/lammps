@@ -33,7 +33,8 @@ class NeighborKokkosExecute
   typename AT::t_int_2d bins;
   typename AT::t_int_2d_const c_bins;
   const typename AT::t_x_array_randomread x;
-  const typename AT::t_int_1d_const type,mask,molecule;
+  const typename AT::t_int_1d_const type,mask;
+  const typename AT::t_tagint_1d_const molecule;
 
   const int nbinx,nbiny,nbinz;
   const int mbinx,mbiny,mbinz;
@@ -57,7 +58,7 @@ class NeighborKokkosExecute
         const typename AT::t_x_array_randomread &_x,
     const typename AT::t_int_1d_const &_type,
     const typename AT::t_int_1d_const &_mask,
-    const typename AT::t_int_1d_const &_molecule,
+    const typename AT::t_tagint_1d_const &_molecule,
     const int & _nbinx,const int & _nbiny,const int & _nbinz,
     const int & _mbinx,const int & _mbiny,const int & _mbinz,
     const int & _mbinxlo,const int & _mbinylo,const int & _mbinzlo,

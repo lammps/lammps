@@ -16,6 +16,7 @@ ID = user-defined name of the group :ulb,l
 style = {delete} or {region} or {type} or {id} or {molecule} or {variable} or \
       {subtract} or {union} or {intersect} or {dynamic} or {static} :l
   {delete} = no args
+  {clear} = no args
   {region} args = region-ID
   {type} or {id} or {molecule}
     args = list of one or more atom types, atom IDs, or molecule IDs
@@ -29,6 +30,8 @@ style = {delete} or {region} or {type} or {id} or {molecule} or {variable} or \
       logical = "<>"
       value1,value2 = atom types or atom IDs or molecule IDs (depending on {style})
   {variable} args = variable-name
+  {include} args = molecule
+    molecule = add atoms to group with same molecule ID as atoms already in group
   {subtract} args = two or more group IDs
   {union} args = one or more group IDs
   {intersect} args = two or more group IDs
@@ -51,6 +54,7 @@ group sub id 100:10000:10
 group sub id <= 150
 group polyA molecule <> 50 250
 group hienergy variable eng
+group hienergy include molecule
 group boundary subtract all a2 a3
 group boundary union lower upper
 group boundary intersect upper flow
@@ -87,6 +91,12 @@ below) that no more than 32 groups can be defined at any time, the
 so that more can be specified.  You cannot delete a group if it has
 been used to define a current "fix"_fix.html or "compute"_compute.html
 or "dump"_dump.html.
+
+The {clear} style un-assigns all atoms that were assigned to that
+group.  This may be dangerous to do during a simulation run,
+e.g. using the "run every"_run.html command if a fix or compute or
+other operation expects the atoms in the group to remain constant, but
+LAMMPS does not check for this.
 
 The {region} style puts all atoms in the region volume into the group.
 Note that this is a static one-time assignment.  The atoms remain
@@ -159,6 +169,25 @@ it sums the pe/atom compute values (in the reduce compute) to output
 them to the screen.  See the "Variable Accuracy" section of the
 "variable"_variable.html doc page for more details on insuring that
 variables are current when they are evaluated between runs.
+
+The {include} style with its arg {molecule} adds atoms to a group that
+have the same molecule ID as atoms already in the group.  The molecule
+ID = 0 is ignored in this operation, since it assumed to represent
+atoms that are not part of molecules.  An example of where this
+operation is useful is if the {region} style has been used previously
+to add atoms to a group that are within a geometric region.  If
+molecules straddle the region boundary, then atoms outside the region
+that are part of molecules with atoms inside the region will not be in
+the group.  Using the group command a 2nd time with {include molecule}
+will add those atoms that are outside the region to the group.
+
+IMPORTANT NOTE: The {include molecule} operation is relatively
+expensive in a parallel sense.  This is because it requires
+communication of relevant molecule IDs between all the processors and
+each processor to loop over its atoms once per processor, to compare
+its atoms to the list of molecule IDs from every other processor.
+Hence it scales as N, rather than N/P as most of the group operations
+do, where N is the number of atoms, and P is the number of processors.
 
 The {subtract} style takes a list of two or more existing group names
 as arguments.  All atoms that belong to the 1st group, but not to any

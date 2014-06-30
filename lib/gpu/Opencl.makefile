@@ -56,7 +56,9 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_soft.o $(OBJ_DIR)/lal_soft_ext.o \
        $(OBJ_DIR)/lal_lj_coul_msm.o $(OBJ_DIR)/lal_lj_coul_msm_ext.o \
        $(OBJ_DIR)/lal_lj_gromacs.o $(OBJ_DIR)/lal_lj_gromacs_ext.o \
-       $(OBJ_DIR)/lal_dpd.o $(OBJ_DIR)/lal_dpd_ext.o 
+       $(OBJ_DIR)/lal_dpd.o $(OBJ_DIR)/lal_dpd_ext.o \
+       $(OBJ_DIR)/lal_coul.o $(OBJ_DIR)/lal_coul_ext.o \
+       $(OBJ_DIR)/lal_coul_debye.o $(OBJ_DIR)/lal_coul_debye_ext.o
 
 KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/neighbor_cpu_cl.h $(OBJ_DIR)/pppm_cl.h \
@@ -79,7 +81,8 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/lj_coul_debye_cl.h $(OBJ_DIR)/coul_dsf_cl.h \
        $(OBJ_DIR)/sw_cl.h $(OBJ_DIR)/beck_cl.h $(OBJ_DIR)/mie_cl.h \
        $(OBJ_DIR)/soft_cl.h $(OBJ_DIR)/lj_coul_msm_cl.h \
-       $(OBJ_DIR)/lj_gromacs_cl.h $(OBJ_DIR)/dpd_cl.h
+       $(OBJ_DIR)/lj_gromacs_cl.h $(OBJ_DIR)/dpd_cl.h \
+       $(OBJ_DIR)/coul_cl.h $(OBJ_DIR)/coul_debye_cl.h
 
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
@@ -484,6 +487,24 @@ $(OBJ_DIR)/lal_dpd.o: $(ALL_H) lal_dpd.h lal_dpd.cpp  $(OBJ_DIR)/dpd_cl.h $(OBJ_
 
 $(OBJ_DIR)/lal_dpd_ext.o: $(ALL_H) lal_dpd.h lal_dpd_ext.cpp lal_base_dpd.h
 	$(OCL) -o $@ -c lal_dpd_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/coul_cl.h: lal_coul.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh coul $(PRE1_H) lal_coul.cu $(OBJ_DIR)/coul_cl.h;
+
+$(OBJ_DIR)/lal_coul.o: $(ALL_H) lal_coul.h lal_coul.cpp  $(OBJ_DIR)/coul_cl.h $(OBJ_DIR)/coul_cl.h $(OBJ_DIR)/lal_base_charge.o
+	$(OCL) -o $@ -c lal_coul.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_coul_ext.o: $(ALL_H) lal_coul.h lal_coul_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_coul_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/coul_debye_cl.h: lal_coul_debye.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh coul_debye $(PRE1_H) lal_coul_debye.cu $(OBJ_DIR)/coul_debye_cl.h;
+
+$(OBJ_DIR)/lal_coul_debye.o: $(ALL_H) lal_coul_debye.h lal_coul_debye.cpp  $(OBJ_DIR)/coul_debye_cl.h $(OBJ_DIR)/coul_debye_cl.h $(OBJ_DIR)/lal_base_charge.o
+	$(OCL) -o $@ -c lal_coul_debye.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_coul_debye_ext.o: $(ALL_H) lal_coul_debye.h lal_coul_debye_ext.cpp lal_base_charge.h
+	$(OCL) -o $@ -c lal_coul_debye_ext.cpp -I$(OBJ_DIR)
 
 $(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp
 	$(OCL) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_OPENCL $(OCL_LINK) 

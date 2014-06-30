@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(born/gpu,PairBornGPU)
+PairStyle(coul/debye/gpu,PairCoulDebyeGPU)
 
 #else
 
-#ifndef LMP_PAIR_BORN_GPU_H
-#define LMP_PAIR_BORN_GPU_H
+#ifndef LMP_PAIR_COUL_DEBYE_GPU_H
+#define LMP_PAIR_COUL_DEBYE_GPU_H
 
-#include "pair_born.h"
+#include "pair_coul_debye.h"
 
 namespace LAMMPS_NS {
 
-class PairBornGPU : public PairBorn {
+class PairCoulDebyeGPU : public PairCoulDebye {
  public:
-  PairBornGPU(LAMMPS *lmp);
-  ~PairBornGPU();
+  PairCoulDebyeGPU(LAMMPS *lmp);
+  ~PairCoulDebyeGPU();
   void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int);
   void init_style();
@@ -52,8 +52,12 @@ E: Insufficient memory on accelerator
 There is insufficient memory on one of the devices specified for the gpu
 package
 
-E: Cannot use newton pair with born/gpu pair style
+E: Pair style lj/cut/coul/debye/gpu requires atom attribute q
 
-Self-explantory.
+The atom style defined does not have this attribute.
+
+E: Cannot use newton pair with lj/cut/coul/debye/gpu pair style
+
+Self-explanatory.
 
 */

@@ -182,7 +182,7 @@ cd ../../src
 
 # install packages
 # fortran reax is obsolete, no GPU support, QM/MM requires a Q-E library, USER-LB and MPIIO require MPI-IO.
-make yes-all no-kim no-gpu no-user-cuda no-reax no-user-qmmm no-user-lb no-mpiio
+make yes-all no-kim no-kokkos no-gpu no-user-cuda no-reax no-user-qmmm no-user-lb no-mpiio
 
 make -C STUBS
 

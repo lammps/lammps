@@ -208,6 +208,7 @@ void ComputeVoronoi::buildCells()
   int i;
   const double e = 0.01;
   int nlocal = atom->nlocal;
+  int dim = domain->dimension;
 
   // in the onlyGroup mode we are not setting values for all atoms later in the voro loop
   // initialize everything to zero here
@@ -289,7 +290,7 @@ void ComputeVoronoi::buildCells()
     delete con_poly;
     con_poly = new container_poly(sublo_bound[0]-cut_bound[0]-e,subhi_bound[0]+cut_bound[0]+e,
                        sublo_bound[1]-cut_bound[1]-e,subhi_bound[1]+cut_bound[1]+e,
-                       sublo_bound[2]-cut_bound[2]-e,subhi_bound[2]+cut_bound[2]+e,
+                       sublo_bound[2]-(dim==3 ? cut_bound[2]-e : 0.0),subhi_bound[2]+(dim==3 ? cut_bound[2]+e : 0.0),
                        int(n[0]),int(n[1]),int(n[2]),false,false,false,8); 
 
     // pass coordinates for local and ghost atoms to voro++
@@ -301,7 +302,7 @@ void ComputeVoronoi::buildCells()
     delete con_mono;
     con_mono = new container(sublo_bound[0]-cut_bound[0]-e,subhi_bound[0]+cut_bound[0]+e,
                   sublo_bound[1]-cut_bound[1]-e,subhi_bound[1]+cut_bound[1]+e,
-                  sublo_bound[2]-cut_bound[2]-e,subhi_bound[2]+cut_bound[2]+e,
+                  sublo_bound[2]-(dim==3 ? cut_bound[2]-e : 0.0),subhi_bound[2]+(dim==3 ? cut_bound[2]+e : 0.0),
                   int(n[0]),int(n[1]),int(n[2]),false,false,false,8); 
 
     // pass coordinates for local and ghost atoms to voro++

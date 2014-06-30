@@ -89,6 +89,29 @@ int lje_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   return init_ok;
 }
 
+// ---------------------------------------------------------------------------
+// Copy updated coeffs from host to device
+// ---------------------------------------------------------------------------
+int lje_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
+                   double **host_lj2, double **host_lj3, double **host_lj4,
+                   double **offset, double **shift) {
+  int world_me=LJEMF.device->world_me();
+  int gpu_rank=LJEMF.device->gpu_rank();
+  int procs_per_gpu=LJEMF.device->procs_per_gpu();
+  
+  if (world_me==0)
+    LJEMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
+                offset, shift);
+  LJEMF.device->world_barrier();
+  
+  for (int i=0; i<procs_per_gpu; i++) {
+    if (gpu_rank==i && world_me!=0)
+      LJEMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
+                   offset, shift);
+    LJEMF.device->gpu_barrier();
+  }
+}
+
 void lje_gpu_clear() {
   LJEMF.clear();
 }

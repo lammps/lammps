@@ -21,15 +21,17 @@
 #include "stdlib.h"
 #include "dihedral_quadratic.h"
 #include "atom.h"
-#include "comm.h"
 #include "neighbor.h"
 #include "domain.h"
+#include "comm.h"
 #include "force.h"
 #include "update.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define TOLERANCE 0.05
 #define SMALL     0.001
@@ -61,7 +63,7 @@ void DihedralQuadratic::compute(int eflag, int vflag)
   double b2mag,b3mag2,b3mag,ctmp,r12c1,c1mag,r12c2;
   double c2mag,sc1,sc2,s1,s12,c,p,pd,a,a11,a22;
   double a33,a12,a13,a23,sx2,sy2,sz2;
-  double s2,cx,cy,cz,cmag,dx,phi,si,sin2;
+  double s2,cx,cy,cz,cmag,dx,phi,si,siinv,sin2;
 
   edihedral = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -186,16 +188,14 @@ void DihedralQuadratic::compute(int eflag, int vflag)
     // pd = dp/dc
 
     phi = acos(c);
-    if (dx < 0.0) phi *= -1.0;
+    if (dx > 0.0) phi *= -1.0;
     si = sin(phi);
+    if (fabs(si) < SMALLER) si = SMALLER;
+    siinv = 1.0/si;
 
     double dphi = phi-phi0[type];
     p = k[type]*dphi;
-    if (fabs(si) < SMALLER) {
-        pd = - 2.0 * k[type];
-    } else {
-        pd = - 2.0 * p / si;
-    }
+    pd = - 2.0 * p * siinv;
     p = p * dphi;
 
     if (eflag) edihedral = p; 
@@ -298,7 +298,7 @@ void DihedralQuadratic::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    phi0[i] = phi0_one;
+    phi0[i] = phi0_one*MY_PI/180.0;
     setflag[i] = 1;
     count++;
   }
@@ -326,7 +326,7 @@ void DihedralQuadratic::read_restart(FILE *fp)
 
   if (comm->me == 0) {
     fread(&k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi0[1],sizeof(int),atom->ndihedraltypes,fp);
+    fread(&phi0[1],sizeof(double),atom->ndihedraltypes,fp);
   }
   MPI_Bcast(&k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&phi0[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);

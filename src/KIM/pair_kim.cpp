@@ -73,7 +73,8 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    kim_particleTypes(0),
    lmps_force_tmp(0),
    lmps_stripped_neigh_list(0),
-   kim_iterator_position(0)
+   kim_iterator_position(0),
+   Rij(0)
 {
    // Initialize Pair data members to appropriate values
    single_enable = 0;  // We do not provide the Single() function
@@ -85,9 +86,6 @@ PairKIM::PairKIM(LAMMPS *lmp) :
    kim_model_init_ok = false;
    kim_init_ok = false;
    // END
-
-   // allocate enough memory to ensure we are safe (by using neighbor->oneatom)
-   memory->create(Rij,3*(neighbor->oneatom),"pair:Rij");
 
    return;
 }
@@ -396,7 +394,14 @@ void PairKIM::init_style()
       if (kimerror != KIM_STATUS_OK)
          kim_error(__LINE__, "KIM API:model_init() failed", kimerror);
       else
+      {
          kim_model_init_ok = true;
+
+         // allocate enough memory to ensure we are safe
+         // (by using neighbor->oneatom)
+         if (kim_model_using_Rij)
+           memory->create(Rij,3*(neighbor->oneatom),"pair:Rij");
+      }
    }
 
    // request none, half, or full neighbor list

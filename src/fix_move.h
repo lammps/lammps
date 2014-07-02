@@ -123,7 +123,7 @@ E: Cannot add atoms to fix move variable
 
 Atoms can not be added afterwards to this fix option.
 
-E: Resetting timestep is not allowed with fix move
+E: Resetting timestep size is not allowed with fix move
 
 This is because fix move is moving atoms based on elapsed time.
 

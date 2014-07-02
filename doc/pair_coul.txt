@@ -7,8 +7,10 @@
 :line
 
 pair_style coul/cut command :h3
+pair_style coul/cut/gpu command :h3
 pair_style coul/cut/omp command :h3
 pair_style coul/debye command :h3
+pair_style coul/debye/gpu command :h3
 pair_style coul/debye/omp command :h3
 pair_style coul/dsf command :h3
 pair_style coul/dsf/gpu command :h3

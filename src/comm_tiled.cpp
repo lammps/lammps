@@ -84,12 +84,39 @@ void CommTiled::init()
 void CommTiled::setup()
 {
   // error on triclinic or multi?
-  // set nswap
+  // set nswap = 2*dim
   // setup neighbor proc info for exchange()
   // setup nsendproc and nrecvproc bounts
   // setup sendproc and recvproc lists
-  // setup sendbox
+  // setup sendboxes
   // reallocate requests and statuses
+
+  // check that cutoff is <= 1/2 of periodic box len?
+
+  // loop over dims
+  //  left:
+  //    construct ghost boxes
+  //      differnet in x,y,z
+  //      account for ghost borders in y,z
+  //      account for PBC by shifting
+  //      split into multiple boxes if straddles PBC
+  //    drop boxes down RCB tree
+  //      count unique procs they cover
+  //      what about self if crosses PBC
+  //      for each proc they cover:
+  //        compute box I send it to left
+  //        is a message I will recv from right (don't care about box)
+  //    for ghost-extended boxes
+  //      do not count procs that do not overlap my owned box at all
+  //      only touching edge of my owned box does not count
+  //      in this case list I send to and recv from may be different?
+  //  same thing to right
+
+  // what need from decomp (RCB):
+  // dropbox: return list of procs with overlap and overlapping boxes
+  //   return n, proclist, boxlist
+  // otherbox: bbox of another proc
+  // dropatom: return what proc owns the atom coord
 }
 
 /* ----------------------------------------------------------------------
@@ -249,6 +276,14 @@ void CommTiled::reverse_comm()
 
 void CommTiled::exchange()
 {
+  // loop over atoms
+  //   if not outside my box, continue
+  //   find which proc it is in
+  //   find which one of my touching procs it is, else lost
+  //   make sure all atoms are "lost" that should be (e.g. outside non-PBC)
+  //   add to list to send to that proc
+  // loop over touching procs
+  //   send buffer to them
 }
 
 /* ----------------------------------------------------------------------

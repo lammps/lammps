@@ -403,6 +403,7 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
 /* ----------------------------------------------------------------------
    delete atoms in molecules with any deletions
    use dlist marked with atom deletions, and mark additional atoms
+   do not include molID = 0
 ------------------------------------------------------------------------- */
 
 void DeleteAtoms::delete_molecule()
@@ -414,9 +415,11 @@ void DeleteAtoms::delete_molecule()
   tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++) {
+    if (molecule[i] == 0) continue;
     if (dlist[i] && hash->find(molecule[i]) == hash->end())
       (*hash)[molecule[i]] = 1;
+  }
 
   // list = set of unique molecule IDs from which I deleted atoms
   // pass list to all other procs via comm->ring()

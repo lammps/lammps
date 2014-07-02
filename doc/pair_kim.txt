@@ -23,7 +23,7 @@ pair_coeff * * Ar Ar :pre
 [Description:]
 
 This pair style is a wrapper on the "Knowledge Base for Interatomic
-Models (KIM)"_http://openkim.org repository of interatomic potentials,
+Models (KIM)"_https://openkim.org repository of interatomic potentials,
 so that they can be used by LAMMPS scripts.
 
 In KIM lingo, a potential is a "model" and a model contains both the
@@ -33,8 +33,8 @@ cutoffs.
 
 The argument {virialmode} determines how the global virial is
 calculated.  If {KIMvirial} is specified, the KIM model performs the
-global virial calculation.  If {LAMMPSvirial} is specified, LAMMPS
-computes the global virial using its fdotr mechanism.
+global virial calculation (if it knows how).  If {LAMMPSvirial} is
+specified, LAMMPS computes the global virial using its fdotr mechanism.
 
 The argument {model} is the name of the KIM model for a specific
 potential as KIM defines it.  In principle, LAMMPS can invoke any KIM
@@ -73,172 +73,116 @@ directory where LAMMPS is running.
 
 :line
 
-Here is information on how to build KIM for use with LAMMPS.  There is
-a directory src/KIM/ with an important file in it: Makefile.lammps.
-When you do 'make yes-kim' LAMMPS will use the settings in
-src/KIM/Makefile.lammps to find KIM header files and the KIM library
-itself for linking purposes.  Thus, you should ensure Makefile.lammps
-has the correct settings for your system and your build of KIM.
+Here is information on how to build KIM for use with LAMMPS.
 
-Consult the KIM documentation for further details on KIM specifics.
-
-OpenKIM is available for download from "this site"_http://openkim.org,
-namely http://openkim.org.  The tarball you download is
-"openkim-api-vX.X.X.tgz", which can be unpacked via
+The KIM API is available for download from "this
+site"_https://openkim.org, namely https://openkim.org.  The tarball
+you download is "openkim-api-vX.X.X.tgz", which can be unpacked via
 
 tar xvfz openkim*tgz :pre
 
-The openkim-api-vX.X.X/DOCS directory has further documentation.  For
-more information on installing KIM and troubleshooting refer to
-openkim/INSTALL.
+The openkim-api-vX.X.X/DOCS/ directory has further documentation.  In
+order to compile and install the KIM API follow the instructions found
+in the file openkim-api-vX.X.X/INSTALL.  (Don't forget to download and
+compile any Model Drivers and Models that you want to use.)
 
-Here is a brief summary of how to build KIM:
+Once you have successfully compiled and installed the KIM API, you
+need to set up LAMMPS to use your KIM API system.  In the LAMMPS
+package there is a directory src/KIM/ with an important file in it:
+Makefile.lammps.  When you do 'make yes-kim' LAMMPS will use the
+settings in src/KIM/Makefile.lammps to find the KIM API header files
+and the KIM API library itself for linking purposes.  Thus, you should
+edit src/KIM/Makefile.lammps to ensure it has the correct settings for
+your system and your build of KIM.
 
-If you have previously used the openkim-api package (versions 1.1.1 or
-below), it is recommended that you remove all associated environment
-variables from your environment.  (These include, KIM_DIR, KIM_INTEL,
-KIM_SYSTEM32, KIM_DYNAMIC, KIM_API_DIR, KIM_TESTS_DIR,
-KIM_MODEL_DRIVERS_DIR, and KIM_MODELS_DIR.)  All setting are now
-specified in the Makefile.KIM_Config file.  :olb,l
+The following is an example of how to download, compile, and run
+LAMMPS with the KIM API:
 
-Set up the Makefile.KIM_Config file :l
+<pre>
+mkdir lammps-kim
+cd lammps-kim :
 
-   (a) Copy the file Makefile.KIM_Config.example to Makefile.KIM_Config
-       For example, if you untarred the `openkim-api-vX.X.X.tgz' tarball in
-       your home directory, you would do: :pre
+#
+# download lammps and the KIM API
+# :
 
-       % cd $HOME/openkim-api-vX.X.X
-       % cp Makefile.KIM_Config.example Makefile.KIM_Config :pre
+wget http://lammps.sandia.gov/tars/lammps-DDMMMYY.tar.gz        # replace DDMMMYY as appropriate here and below
+wget http://s3.openkim.org/openkim-api/openkim-api-vX.X.X.tgz   # replace X.X.X as appropriate here and below
+tar zxvf openkim-api-vX.X.X.tgz :
 
-       The `%' symbol represents the bash sell prompt and should not be typed.
-       :pre
+#
+# Get OpenKIM models, setup and compile
+# :
 
-       (Above `vX.X.X' represents the current release number.) :pre
+cd openkim-api-vX.X.X
+cp Makefile.KIM_Config.example Makefile.KIM_Config
+vi Makefile.KIM_Config  # edit file as appropriate following the instructions given in the INSTALL file
+cd MODEL_DRIVERS
+wget --content-disposition 'https://kim-items.openkim.org/archive?kimid=EAM_Dynamo__MD_120291908751_000&compression=gz'
+tar zxvf EAM_Dynamo__MD_120291908751_000.tgz
+cd ../MODELS
+wget --content-disposition 'https://kim-items.openkim.org/archive?kimid=EAM_Dynamo_Angelo_Moody_NiAlH__MO_418978237058_000&compression=gz'
+tar zxvf EAM_Dynamo_Angelo_Moody_NiAlH__MO_418978237058_000.tgz
+cd ../
+make
+cd ../ :
 
-   (b) Edit the file Makefile.KIM_Config and set the appropriate value for the
-       KIM_DIR variable.  This must expand to an absolute path.  Using the same
-       assumptions as above, this would be :pre
+#
+# setup and compile lammps
+# :
 
-       KIM_DIR = $(HOME)/openkim-api-vX.X.X :pre
+tar zxvf lammps-DDMMMYY.tar.gz
+cd lammps-DDMMMYY/src/KIM
+vi Makefile.lammps  # edit the three lines to look like below:
+                    #   kim_SYSINC  = -I../../../openkim-api-vX.X.X/KIM_API
+                    #   kim_SYSLIB  = -lkim
+                    #   kim_SYSPATH = -L../../../openkim-api-vX.X.X/KIM_API
+cd ../
+make yes-kim
+cd STUBS
+make
+cd ../
+make serial :
 
-   (c) If appropriate, set explicit values for the remaining three 
-       directories :pre
+#
+# run simple example with KIM model
+# :
 
-       KIM_MODEL_DRIVERS_DIR =
-       KIM_MODELS_DIR =
-       KIM_TESTS_DIR = :pre
+cd ../../
+vi al-input  # create file with the following content
+#----------------------------------------------------------------------------------------
+variable        x index 1
+variable        y index 1
+variable        z index 1 :
 
-       If these lines are commented out, defaults will be provided by the
-       openkim-api make system. :pre
+variable        xx equal 20*$x
+variable        yy equal 20*$y
+variable        zz equal 20*$z :
 
-   (d) Set the value of KIM_COMPILERSUITE.  Possible values are `GCC' and
-       `INTEL'. :pre
+units           metal
+atom_style      atomic :
 
-       KIM_COMPILERSUITE = GCC :pre
+lattice         fcc 4.0500
+region          box block 0.0 $\{xx\} 0.0 $\{yy\} 0.0 $\{zz\}
+create_box      1 box
+create_atoms    1 box :
 
-   (e) Set the value of KIM_SYSTEMLINKER. Possible values are `linux',
-       `freebsd', and `darwin'. :pre
+pair_style      kim KIMvirial EAM_Dynamo_Angelo_Moody_NiAlH__MO_418978237058_000
+pair_coeff      * * Al :
 
-       KIM_SYSTEMLINKER = linux :pre
+mass            1 26.98
+velocity        all create 200.0 232345 loop geom :
 
-   (f) Set the value of KIM_SYSTEMARCH.  Possible values are `32bit' and
-       `64bit'. :pre
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes :
 
-       KIM_SYSTEMARCH = 64bit :pre
+fix             1 all nve :
 
-   (g) Set the value of KIM_LINK.  Possible values are `dynamic-load',
-       `dynamic-link', and `static-link'. :pre
+run             100
+#---------------------------------------------------------------------------------------- :
 
-       KIM_LINK = dynamic-load :pre
-
-       `dynamic-load' is the preferred option. (Unless performance or
-       other issues require it, you should use dynamic-load.)
-       `dynamic-link' is like `dynamic-load' but does not use the dl.h
-       library.  This option requires a more complicated Makefile
-       process, but may improve computation time in some instances.
-       `static-link' only works with ONE Model and AT MOST ONE Model
-       Driver (in order to avoid the possibility of symbol
-       clashes). :pre
-
-   (h) Set override values for other variables, if necessary, by
-       adding the desired variable name (after the "# overwrite
-       default variable values here" line) and filling in appropriate
-       values. :pre
-
-       # overwrite default variable values here :pre
-
-       # overwrite default compiler options :pre
-       CC =
-       CXX =
-       FC = :pre
-
-       # overwrite default compiler option flag lists
-       FFLAGS   =
-       CCFLAGS  =
-       CXXFLAGS =
-       LDFLAGS  = :pre
-
-       # overwrite default linker options
-       LDSHAREDFLAG =
-       LINKSONAME =
-       LDWHOLEARCHIVESTARTFLAG =
-       LDWHOLEARCHIVEENDFLAG = :pre
-
-       # overwrite default install directories
-       package_name =
-       prefix =
-       libdir = :pre
-
-In the remainder of the documentation we will use the string $KD to
-represent the location of the openkim-api source package (the value of
-the KIM_DIR variable discussed above).  If you wish to, type the below
-commands exactly as written to set the shell variable KD to the
-appropriate value: :l
-
-   bash:
-   % export KD=$HOME/openkim-api-vX.X.X :pre
-
-To compile the package, including the provided examples, change to the
-$KD directory and execute `make examples' and then `make': :l
-
-   % cd $KD
-   % make examples
-   % make :pre
-
-     This builds all Model Drivers, Models, Tests, and the openkim-api service
-     routine library.  The targets defined by the Makefile in this directory
-     include: :pre
-
-       `make'                -- compiles the API and all Models and Tests
-       `make all'            -- same as `make'
-       `make clean'          -- will remove appropriate .o, .mod, .a, .so and
-                                executable files
-       `make install'        -- install files to `/usr/local/lib' by default
-       `make uninstall'      -- delete files installed by `make install'
-       `make openkim-api'    -- compiles only the API
-       `make examples'       -- copies examples into the appropriate
-                                directories (no overwrite)
-       `make examples-force' -- copies examples into the appropriate
-                                directories (overwrite)
-       `make examples-clean' -- remove all examples from the MODEL_DRIVERS,
-                                MODELS, and TESTS directories. :pre
-
-Verify that the compilation was successful by running a Test. :l
-
-   The provided example Tests read in the name of a Model (or Models)
-   which they use to perform their calculations.  For most Tests the
-   name of the Model can be piped in using an `echo' command.  For
-   example, the following Fortran 90 Test reads in one Model: :pre
-
-   % cd $KD/TESTs/test_Ar_free_cluster_CLUSTER_F90
-   % echo "model_Ar_P_MLJ_CLUSTER_C" | ./test_Ar_free_cluster_CLUSTER_F90 :pre
-
-  (See the README files in the Test directories for an explanation of what
-   the Tests do.) :pre
-
-Each Test (and Model) has its own make file for compiling and linking.
-If changes are made to the code, re-compile (from the $KD
-directory). :l,ole
+./lammps-DDMMYY/src/lmp_serial < al-input :
+</pre>
 
 :line
 

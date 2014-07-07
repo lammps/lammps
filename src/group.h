@@ -16,6 +16,7 @@
 
 #include "stdio.h"
 #include "pointers.h"
+#include <map>
 
 namespace LAMMPS_NS {
 
@@ -63,8 +64,17 @@ class Group : protected Pointers {
 
  private:
   int me;
+  std::map<tagint,int> *hash;
 
   int find_unused();
+  void add_molecules(int, int);
+
+  // static variable for ring communication callback to access class data
+  // callback functions for ring communication
+
+  static Group *cptr;
+  static void molring(int, char *);
+  int molbit;
 };
 
 }

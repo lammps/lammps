@@ -42,7 +42,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   int sgroup;
-  
+
   size_peratom_cols = 2;
   peratom_flag = 1;
 
@@ -63,18 +63,18 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg], "occupation") == 0) {
       occupation = true;
       iarg++;
-    } 
+    }
     else if (strcmp(arg[iarg], "only_group") == 0) {
       onlyGroup = true;
       iarg++;
-    } 
+    }
     else if (strcmp(arg[iarg], "radius") == 0) {
       if (iarg + 2 > narg || strstr(arg[iarg+1],"v_") != arg[iarg+1] ) error->all(FLERR,"Missing atom style variable for radical voronoi tesselation radius.");
       int n = strlen(&arg[iarg+1][2]) + 1;
       radstr = new char[n];
       strcpy(radstr,&arg[iarg+1][2]);
       iarg += 2;
-    } 
+    }
     else if (strcmp(arg[iarg], "surface") == 0) {
       if (iarg + 2 > narg) error->all(FLERR,"Missing group name after keyword 'surface'.");
       // group all is a special case where we just skip group testing
@@ -83,7 +83,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
       } else {
         sgroup = group->find(arg[iarg+1]);
         if (sgroup == -1) error->all(FLERR,"Could not find compute/voronoi surface group ID");
-        sgroupbit = group->bitmask[sgroup]; 
+        sgroupbit = group->bitmask[sgroup];
         surface = VOROSURF_GROUP;
       }
       size_peratom_cols = 3;
@@ -100,12 +100,12 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) error->all(FLERR,"Missing minimum edge length after keyword 'edge_threshold'.");
       ethresh = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
-    } 
-    else 
+    }
+    else
       error->all(FLERR,"Illegal compute voronoi/atom command");
   }
 
-  if (occupation && ( surface!=VOROSURF_NONE || maxedge>0 ) ) 
+  if (occupation && ( surface!=VOROSURF_NONE || maxedge>0 ) )
     error->all(FLERR,"Illegal compute voronoi/atom command (occupation and (surface or edges))");
 
   nmax = rmax = 0;
@@ -183,9 +183,9 @@ void ComputeVoronoi::compute_peratom()
       // linked list structure for cell occupation count on the atoms
       oldnall= nall;
       memory->create(lroot,nall,"voronoi/atom:lroot"); // point to first atom index in cell (or -1 for empty cell)
-      lnext = NULL; 
+      lnext = NULL;
       lmax = 0;
-  
+
       // build the occupation buffer
       oldnatoms = atom->natoms;
       memory->create(occvec,oldnatoms,"voronoi/atom:occvec");
@@ -208,11 +208,12 @@ void ComputeVoronoi::buildCells()
   int i;
   const double e = 0.01;
   int nlocal = atom->nlocal;
+  int dim = domain->dimension;
 
   // in the onlyGroup mode we are not setting values for all atoms later in the voro loop
   // initialize everything to zero here
   if (onlyGroup) {
-    if (surface == VOROSURF_NONE) 
+    if (surface == VOROSURF_NONE)
       for (i = 0; i < nlocal; i++) voro[i][0] = voro[i][1] = 0.0;
     else
       for (i = 0; i < nlocal; i++) voro[i][0] = voro[i][1] = voro[i][2] = 0.0;
@@ -223,7 +224,7 @@ void ComputeVoronoi::buildCells()
   double *cut = comm->cutghost;
   double sublo_bound[3], subhi_bound[3], cut_bound[3];
   double **x = atom->x;
-   
+
   // setup bounds for voro++ domain for orthogonal and triclinic simulation boxes
   if( domain->triclinic ) {
     // triclinic box: embed parallelepiped into orthogonal voro++ domain
@@ -257,7 +258,7 @@ void ComputeVoronoi::buildCells()
   for( i=0; i<3; ++i ) {
     n[i] = round( n[i]*pow( double(nall)/(V*8.0), 0.333333 ) );
     n[i] = n[i]==0 ? 1 : n[i];
-  } 
+  }
 
   // clear edge statistics
   for (i = 0; i < maxedge; ++i) edge[i]=0;
@@ -289,8 +290,8 @@ void ComputeVoronoi::buildCells()
     delete con_poly;
     con_poly = new container_poly(sublo_bound[0]-cut_bound[0]-e,subhi_bound[0]+cut_bound[0]+e,
                        sublo_bound[1]-cut_bound[1]-e,subhi_bound[1]+cut_bound[1]+e,
-                       sublo_bound[2]-cut_bound[2]-e,subhi_bound[2]+cut_bound[2]+e,
-                       int(n[0]),int(n[1]),int(n[2]),false,false,false,8); 
+                       sublo_bound[2]-(dim==3 ? cut_bound[2]-e : 0.0),subhi_bound[2]+(dim==3 ? cut_bound[2]+e : 0.0),
+                       int(n[0]),int(n[1]),int(n[2]),false,false,false,8);
 
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++)
@@ -301,8 +302,8 @@ void ComputeVoronoi::buildCells()
     delete con_mono;
     con_mono = new container(sublo_bound[0]-cut_bound[0]-e,subhi_bound[0]+cut_bound[0]+e,
                   sublo_bound[1]-cut_bound[1]-e,subhi_bound[1]+cut_bound[1]+e,
-                  sublo_bound[2]-cut_bound[2]-e,subhi_bound[2]+cut_bound[2]+e,
-                  int(n[0]),int(n[1]),int(n[2]),false,false,false,8); 
+                  sublo_bound[2]-(dim==3 ? cut_bound[2]-e : 0.0),subhi_bound[2]+(dim==3 ? cut_bound[2]+e : 0.0),
+                  int(n[0]),int(n[1]),int(n[2]),false,false,false,8);
 
     // pass coordinates for local and ghost atoms to voro++
     for (i = 0; i < nall; i++)
@@ -346,12 +347,12 @@ void ComputeVoronoi::checkOccupation()
       if (i<nlocal) occvec[tags[k]-1]++;
 
       // add this atom to the linked list of cell j
-      if (lroot[k]<0) 
+      if (lroot[k]<0)
         lroot[k]=i;
       else {
         j = lroot[k];
         while (lnext[j]>=0) j=lnext[j];
-        lnext[j] = i; 
+        lnext[j] = i;
       }
     }
   }
@@ -382,7 +383,7 @@ void ComputeVoronoi::checkOccupation()
     }
   }
 
-  // cherry pick currently owned atoms 
+  // cherry pick currently owned atoms
   for (i=0; i<nlocal; i++) {
     // set the new atom count in the atom's first frame voronoi cell
     voro[i][0] = occvec[atom->tag[i]-1];
@@ -412,7 +413,7 @@ void ComputeVoronoi::loopCells()
 /* ----------------------------------------------------------------------
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
-void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i) 
+void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
 {
   int j,k, *mask = atom->mask;
   std::vector<int> neigh, norder, vlist;
@@ -428,16 +429,18 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
 
     // number of cell faces
     c.neighbors(neigh);
+    int neighs = neigh.size();
+
     if (fthresh > 0) {
       // count only faces above area threshold
       c.face_areas(narea);
       have_narea = true;
       voro[i][1] = 0.0;
-      for (j=0; j<narea.size(); ++j)  
+      for (j=0; j<narea.size(); ++j)
         if (narea[j] > fthresh) voro[i][1] += 1.0;
     } else {
       // unthresholded face count
-      voro[i][1] = neigh.size();
+      voro[i][1] = neighs;
     }
 
     // cell surface area
@@ -446,23 +449,29 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
     } else if (surface == VOROSURF_GROUP) {
       if (!have_narea) c.face_areas(narea);
       voro[i][2] = 0.0;
+
+      // each entry in neigh should correspond to amn entry in narea
+      if (neighs != narea.size())
+        error->all(FLERR,"voro++ error: 'narea' and 'neigh' have a different size.");
+
       // loop over all faces (neighbors) and check if they are in the surface group
-      for (j=0; j<voro[i][1]; ++j)  
-        if (mask[neigh[j]] & sgroupbit) voro[i][2] += narea[j];
+      for (j=0; j<neighs; ++j)
+        if (neigh[j] >= 0 && mask[neigh[j]] & sgroupbit)
+          voro[i][2] += narea[j];
     }
 
     // histogram of number of face edges
     if (maxedge>0) {
       if (ethresh > 0) {
-        // count only edges above length threshold 
+        // count only edges above length threshold
         c.vertices(vcell);
         c.face_vertices(vlist); // for each face: vertex count followed list of vertex indices (n_1,v1_1,v2_1,v3_1,..,vn_1,n_2,v2_1,...)
         double dx, dy, dz, r2, t2 = ethresh*ethresh;
-        for( j=0; j<vlist.size(); j+=vlist[j]+1 ) { 
+        for( j=0; j<vlist.size(); j+=vlist[j]+1 ) {
           int a, b, nedge = 0;
           // vlist[j] contains number of vertex indices for the current face
-          for( k=0; k<vlist[j]; ++k ) { 
-            a = vlist[j+1+k];              // first vertex in edge 
+          for( k=0; k<vlist[j]; ++k ) {
+            a = vlist[j+1+k];              // first vertex in edge
             b = vlist[j+1+(k+1)%vlist[j]]; // second vertex in edge (possible wrap around to first vertex in list)
             dx = vcell[a*3]   - vcell[b*3];
             dy = vcell[a*3+1] - vcell[b*3+1];
@@ -472,7 +481,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
           }
           // counted edges above threshold, now put into the correct bin
           if (nedge>0) {
-            if (nedge<=maxedge) 
+            if (nedge<=maxedge)
               edge[nedge-1]++;
             else
               edge[maxedge]++;
@@ -483,7 +492,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
         c.face_orders(norder);
         for (j=0; j<voro[i][1]; ++j)
           if (norder[j]>0) {
-            if (norder[j]<=maxedge) 
+            if (norder[j]<=maxedge)
               edge[norder[j]-1]++;
             else
               edge[maxedge]++;
@@ -526,4 +535,3 @@ void ComputeVoronoi::unpack_comm(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) rfield[i] = buf[m++];
 }
-

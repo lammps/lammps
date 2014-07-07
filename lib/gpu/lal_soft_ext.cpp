@@ -88,6 +88,28 @@ int soft_gpu_init(const int ntypes, double **cutsq, double **host_prefactor,
   return init_ok;
 }
 
+// ---------------------------------------------------------------------------
+// Copy updated constants to device
+// ---------------------------------------------------------------------------
+void soft_gpu_reinit(const int ntypes, double **cutsq, double **host_prefactor,
+                    double **host_cut) {
+  int world_me=SLMF.device->world_me();
+  int gpu_rank=SLMF.device->gpu_rank();
+  int procs_per_gpu=SLMF.device->procs_per_gpu();
+  
+  if (world_me==0)
+    SLMF.reinit(ntypes, cutsq, host_prefactor, host_cut);
+  
+  SLMF.device->world_barrier();
+  
+  for (int i=0; i<procs_per_gpu; i++) {
+    if (gpu_rank==i && world_me!=0)
+      SLMF.reinit(ntypes, cutsq, host_prefactor, host_cut);
+    
+    SLMF.device->gpu_barrier();
+  }
+}
+
 void soft_gpu_clear() {
   SLMF.clear();
 }

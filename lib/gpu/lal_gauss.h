@@ -14,7 +14,7 @@
  ***************************************************************************/
 
 #ifndef LAL_GAUSS_H
-#define LAL_GAYSS_H
+#define LAL_GAUSS_H
 
 #include "lal_base_atomic.h"
 
@@ -43,7 +43,11 @@ class Gauss : public BaseAtomic<numtyp, acctyp> {
            const int nlocal, const int nall, const int max_nbors, 
            const int maxspecial, const double cell_size, 
            const double gpu_split, FILE *screen);
-
+  
+  /// Send updated coeffs from host to device (to be compatible with fix adapt)
+  void reinit(const int ntypes, double **host_cutsq,
+              double **host_a, double **host_b, double **host_offset);
+           
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear();

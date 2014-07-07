@@ -48,10 +48,12 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int cl_gpu_init(const int nlocal, const int nall, const int max_nbors,
+int cl_gpu_init(const int ntypes, double **scale,
+                const int nlocal, const int nall, const int max_nbors,
                 const int maxspecial, const double cell_size, int &gpu_mode,
                 FILE *screen, double host_cut_coulsq, double *host_special_coul,
                 const double qqrd2e, const double g_ewald);
+void cl_gpu_reinit(const int ntypes, double **scale);
 void cl_gpu_clear();
 int ** cl_gpu_compute_n(const int ago, const int inum,
                         const int nall, double **host_x, int *host_type,
@@ -75,7 +77,6 @@ PairCoulLongGPU::PairCoulLongGPU(LAMMPS *lmp) :
   PairCoulLong(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
-  reinitflag = 0;
   cpu_time = 0.0;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -144,7 +145,7 @@ void PairCoulLongGPU::init_style()
     error->all(FLERR,"Cannot use newton pair with coul/long/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
-  double cell_size = sqrt(cut_coul) + neighbor->skin;
+  double cell_size = cut_coul + neighbor->skin;
 
   cut_coulsq = cut_coul * cut_coul;
 
@@ -161,7 +162,8 @@ void PairCoulLongGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
-  int success = cl_gpu_init(atom->nlocal, atom->nlocal+atom->nghost, 300,
+  int success = cl_gpu_init(atom->ntypes+1, scale,
+                            atom->nlocal, atom->nlocal+atom->nghost, 300,
                             maxspecial, cell_size, gpu_mode, screen, cut_coulsq,
                             force->special_coul, force->qqrd2e, g_ewald);
 
@@ -172,6 +174,15 @@ void PairCoulLongGPU::init_style()
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairCoulLongGPU::reinit()
+{
+  Pair::reinit();
+  
+  cl_gpu_reinit(atom->ntypes+1, scale);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -45,6 +45,9 @@ int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                   double **offset, double *special_lj, const int inum,
                   const int nall, const int max_nbors,  const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen);
+void buck_gpu_reinit(const int ntypes, double **cutsq, double **host_rhoinv,
+                  double **host_buck1, double **host_buck2,
+                  double **host_a, double **host_c, double **offset);
 void buck_gpu_clear();
 int ** buck_gpu_compute_n(const int ago, const int inum_full, const int nall,
                           double **host_x, int *host_type, double *sublo,
@@ -65,7 +68,6 @@ double buck_gpu_bytes();
 PairBuckGPU::PairBuckGPU(LAMMPS *lmp) : PairBuck(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
-  reinitflag = 0;
   cpu_time = 0.0;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -158,6 +160,16 @@ void PairBuckGPU::init_style()
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairBuckGPU::reinit()
+{
+  Pair::reinit();
+  
+  buck_gpu_reinit(atom->ntypes+1, cutsq, rhoinv, buck1, buck2,
+                  a, c, offset);
 }
 
 /* ---------------------------------------------------------------------- */

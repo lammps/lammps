@@ -13,8 +13,8 @@
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
-#ifndef LAL_GAUSS_H
-#define LAL_GAYSS_H
+#ifndef LAL_SOFT_H
+#define LAL_SOFT_H
 
 #include "lal_base_atomic.h"
 
@@ -44,6 +44,10 @@ class Soft : public BaseAtomic<numtyp, acctyp> {
            const int maxspecial, const double cell_size, 
            const double gpu_split, FILE *screen);
 
+  /// Send updated coeffs from host to device (to be compatible with fix adapt)
+  void reinit(const int ntypes, double **host_cutsq,
+              double **host_prefactor, double **host_cut);
+           
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear();

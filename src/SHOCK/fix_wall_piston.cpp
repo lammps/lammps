@@ -50,7 +50,7 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
   rampNL3flag = 0;
   rampNL4flag = 0;
   rampNL5flag = 0;
-  x0 = y0 = z0 = vx = vy = vz = 0.0;
+  z0 = vz = 0.0;
   xloflag = xhiflag = yloflag = yhiflag = zloflag = zhiflag = 0;
 
   int iarg = 3;
@@ -71,17 +71,13 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"zhi") == 0)
       error->all(FLERR,"Fix wall/piston command only available at zlo");
     else if (strcmp(arg[iarg],"vel") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix wall/piston command");
-      vx = force->numeric(FLERR,arg[iarg+1]);
-      vy = force->numeric(FLERR,arg[iarg+2]);
-      vz = force->numeric(FLERR,arg[iarg+3]);
-      iarg += 4;
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/piston command");
+      vz = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"pos") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix wall/piston command");
-      x0 = force->numeric(FLERR,arg[iarg+1]);
-      y0 = force->numeric(FLERR,arg[iarg+2]);
-      z0 = force->numeric(FLERR,arg[iarg+3]);
-      iarg += 4;
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/piston command");
+      z0 = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix wall/piston command");
       tempflag = 1;
@@ -147,11 +143,7 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
   }
   else xscale = yscale = zscale = 1.0;
 
-  vx *= xscale;
-  vy *= yscale;
   vz *= zscale;
-  x0 *= xscale;
-  y0 *= yscale;
   z0 *= zscale;
   roughdist *= zscale;
 

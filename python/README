@@ -34,7 +34,7 @@ scripts in the examples sub-directory:
 
 trivial.py          read/run a LAMMPS input script thru Python
 demo.py	  	    invoke various LAMMPS library interface routines
-simple.py	    mimic operation of couple/simple/simple.cpp in Python
+simple.py	    mimic operation of examples/COUPLE/simple/simple.cpp
 mc.py               Monte Carlo energy relaxation wrapper on LAMMPS
 gui.py		    GUI go/stop/temperature-slider to control LAMMPS
 plot.py		    real-time temeperature plot with GnuPlot via Pizza.py

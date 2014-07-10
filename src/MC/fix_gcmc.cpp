@@ -937,7 +937,7 @@ void FixGCMC::attempt_molecule_insertion()
         for (int j = 0; j < nfix; j++)
           if (fix[j]->create_attribute) fix[j]->set_arrays(m);
 
-      } else atom->nlocal--;
+      }
     }
 
     if (shakeflag) 

@@ -912,7 +912,6 @@ void FixGCMC::attempt_molecule_insertion()
     for (int i = 0; i < atom->nlocal; i++) maxtag = MAX(maxtag,atom->tag[i]);
     tagint maxtag_all;
     MPI_Allreduce(&maxtag,&maxtag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
-    maxtag_all++;
     
     int nfix = modify->nfix;
     Fix **fix = modify->fix;
@@ -927,9 +926,9 @@ void FixGCMC::attempt_molecule_insertion()
         atom->image[m] = imagetmp;
         domain->remap(atom->x[m],atom->image[m]);
         atom->molecule[m] = maxmol_all;
-        if (maxtag_all+i >= MAXTAGINT)
+        if (maxtag_all+i+1 >= MAXTAGINT)
           error->all(FLERR,"Fix gcmc ran out of available atom IDs");
-        atom->tag[m] = maxtag_all + i;
+        atom->tag[m] = maxtag_all + i + 1;
         atom->v[m][0] = random_unequal->gaussian()*sigma;
         atom->v[m][1] = random_unequal->gaussian()*sigma;
         atom->v[m][2] = random_unequal->gaussian()*sigma;

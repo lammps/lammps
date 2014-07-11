@@ -15,8 +15,8 @@ fix ID group-ID gcmc N X M type seed T mu displace keyword values ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 gcmc = style name of this fix command :l
 N = invoke this fix every N steps :l
-X = number of exchanges to attempt every N steps :l
-M = number of MC displacements to attempt every N steps :l
+X = number of exchanges to attempt (on average) every N steps :l
+M = number of MC displacements to attempt (on average) every N steps :l
 type = atom type to assign to inserted atoms (offset for molecule insertion) :l
 seed = random # seed (positive integer) :l
 T = temperature of the ideal gas reservoir (temperature units) :l
@@ -52,9 +52,9 @@ potential, constant volume, and constant temperature) can be
 performed.  Specific uses include computing isotherms in microporous
 materials, or computing vapor-liquid coexistence curves.
 
-Perform up to X exchanges of gas atoms or molecules of the given type 
-between the simulation domain and the imaginary reservoir every N 
-timesteps. Also perform M Monte Carlo displacements or rotations 
+Perform up to X exchanges (on average) of gas atoms or molecules of the 
+given type between the simulation domain and the imaginary reservoir every N 
+timesteps. Also perform M (on average) Monte Carlo displacements or rotations 
 (for molecules) of gas of the given type within the simulation domain.
 M should typically be chosen to be approximately equal to the expected
 number of gas atoms or molecules of the given type within the domain, 

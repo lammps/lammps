@@ -239,7 +239,7 @@ The tools/fep directory contains Python scripts useful for
 post-processing results from performing free-energy perturbation
 simulations using the USER-FEP package.
 
-The scripts were contributed by Agilio Padua (Université Blaise
+The scripts were contributed by Agilio Padua (Universite Blaise
 Pascal Clermont-Ferrand), agilio.padua at univ-bpclermont.fr.
 
 See README file in the tools/fep directory.

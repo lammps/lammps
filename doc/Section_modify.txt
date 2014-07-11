@@ -624,7 +624,7 @@ directory.
 
 Note that by providing us the files to release, you are agreeing to
 make them open-source, i.e. we can release them under the terms of the
-GPL used as a license for the rest of LAMMPS.  See "Section
+GPL, used as a license for the rest of LAMMPS.  See "Section
 1.4"_Section_intro.html#intro_4 for details.
 
 With user packages and files, all we are really providing (aside from
@@ -637,6 +637,16 @@ contact with new collaborators.  Note that you're also implicitly
 agreeing to support your code which means answer questions, fix bugs,
 and maintain it if LAMMPS changes in some way that breaks it (an
 unusual event).
+
+NOTE: If you prefer to actively develop and support your add-on
+feature yourself, then you may wish to make it available for download
+from your own website, as a user package that LAMMPS users can add to
+their copy of LAMMPS.  See the "Offsite LAMMPS packages and
+tools"_http://lammps.sandia.gov/offsite.html page of the LAMMPS web
+site for examples of groups that do this.  We are happy to advertise
+your package and web site from that page.  Simply email the
+"developers"_http://lammps.sandia.gov/authors.html with info about
+your package and we will post it there.
 
 The previous sections of this doc page describe how to add new "style"
 files of various kinds to LAMMPS.  Packages are simply collections of

@@ -10,11 +10,11 @@ fix bond/swap command :h3
 
 [Syntax:]
 
-fix ID group-ID bond/swap fraction cutoff seed :pre
+fix ID group-ID bond/swap Nevery fraction cutoff seed :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 bond/swap = style name of this fix command
-Nevery = attempt bond swapping every this many steps :l
+Nevery = attempt bond swapping every this many steps
 fraction = fraction of group atoms to consider for swapping
 cutoff = distance at which swapping will be considered (distance units)
 seed = random # seed (positive integer) :ul

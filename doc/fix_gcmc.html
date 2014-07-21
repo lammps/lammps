@@ -21,9 +21,9 @@
 
 <LI>N = invoke this fix every N steps 
 
-<LI>X = number of exchanges to attempt every N steps 
+<LI>X = number of exchanges to attempt (on average) every N steps 
 
-<LI>M = number of MC displacements to attempt every N steps 
+<LI>M = number of MC displacements to attempt (on average) every N steps 
 
 <LI>type = atom type to assign to inserted atoms (offset for molecule insertion) 
 
@@ -68,9 +68,9 @@ potential, constant volume, and constant temperature) can be
 performed.  Specific uses include computing isotherms in microporous
 materials, or computing vapor-liquid coexistence curves.
 </P>
-<P>Perform up to X exchanges of gas atoms or molecules of the given type 
-between the simulation domain and the imaginary reservoir every N 
-timesteps. Also perform M Monte Carlo displacements or rotations 
+<P>Perform up to X exchanges (on average) of gas atoms or molecules of the 
+given type between the simulation domain and the imaginary reservoir every N 
+timesteps. Also perform M (on average) Monte Carlo displacements or rotations 
 (for molecules) of gas of the given type within the simulation domain.
 M should typically be chosen to be approximately equal to the expected
 number of gas atoms or molecules of the given type within the domain, 

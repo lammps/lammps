@@ -20,7 +20,8 @@ doc/box.html
 doc/boundary.html
 doc/change_box.html
 doc/clear.html
-doc/communicate.html
+doc/comm_style.html
+doc/comm_modify.html
 doc/create_atoms.html
 doc/create_box.html
 doc/delete_atoms.html

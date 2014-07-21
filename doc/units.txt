@@ -58,7 +58,7 @@ density = mass/volume, where rho* = rho sigma^dim :ul
 Note that for LJ units, the default mode of thermodyamic output via
 the "thermo_style"_thermo_style.html command is to normalize energies
 by the number of atoms, i.e. energy/atom.  This can be changed via the
-"thermo_modify norm"_therm_modify.html command.
+"thermo_modify norm"_thermo_modify.html command.
 
 For style {real}, these are the units:
 

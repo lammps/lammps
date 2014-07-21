@@ -370,7 +370,7 @@ See these doc pages and their related commands to get started:
 "compute fep"_compute_fep.html
 "soft pair styles"_pair_lj_soft.html :ul
 
-The person who created this package is Agilio Padua at Université
+The person who created this package is Agilio Padua at Universite
 Blaise Pascal Clermont-Ferrand (agilio.padua at univ-bpclermont.fr)
 Contact him directly if you have questions.
 

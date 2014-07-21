@@ -30,7 +30,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{KEYWORD,COMPUTE,FIX,VARIABLE};
+enum{KEYWORD,COMPUTE,FIX,VARIABLE,DNAME,INAME};
 
 #define INVOKED_PERATOM 8
 
@@ -198,11 +198,15 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[nvalues++] = &FixStoreState::pack_tqz;
 
     } else if (strncmp(arg[iarg],"c_",2) == 0 ||
+               strncmp(arg[iarg],"d_",2) == 0 ||
                strncmp(arg[iarg],"f_",2) == 0 ||
+               strncmp(arg[iarg],"i_",2) == 0 ||
                strncmp(arg[iarg],"v_",2) == 0) {
       cfv_any = 1;
       if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
+      else if (arg[iarg][0] == 'd') which[nvalues] = DNAME;
       else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
+      else if (arg[iarg][0] == 'i') which[nvalues] = INAME;
       else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
 
       int n = strlen(arg[iarg]);
@@ -264,6 +268,20 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
           argindex[i] > modify->compute[icompute]->size_peratom_cols)
         error->all(FLERR,
                    "Fix store/state compute array is accessed out-of-range");
+
+    } else if (which[i] == INAME) {
+      int icustom,iflag;
+      icustom = atom->find_custom(ids[i],iflag);
+      if ((icustom < 0) || (iflag != 0))
+        error->all(FLERR,
+                   "Custom integer vector does not exist");
+
+    } else if (which[i] == DNAME) {
+      int icustom,iflag;
+      icustom = atom->find_custom(ids[i],iflag);
+      if ((icustom < 0) || (iflag != 1))
+        error->all(FLERR,
+                   "Custom floating point vector does not exist");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
@@ -369,6 +387,23 @@ void FixStoreState::init()
         error->all(FLERR,"Compute ID for fix store/state does not exist");
       value2index[m] = icompute;
 
+    } else if (which[m] == INAME) {
+      int icustom,iflag;
+      icustom = atom->find_custom(ids[m],iflag);
+      if ((icustom < 0) || (iflag != 0))
+        error->all(FLERR,
+                   "Custom integer vector for fix store/state does not exist");
+      value2index[m] = icustom;
+
+    } else if (which[m] == DNAME) {
+      int icustom,iflag;
+      icustom = atom->find_custom(ids[m],iflag);
+      if ((icustom < 0) || (iflag != 1))
+        error->all(FLERR,
+                   "Custom floating point vector for fix"
+                   " store/state does not exist");
+      value2index[m] = icustom;
+
     } else if (which[m] == FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0)
@@ -464,6 +499,18 @@ void FixStoreState::end_of_step()
           for (i = 0; i < nlocal; i++)
             if (mask[i] & groupbit) values[i][m] = fix_array[i][jm1];
         }
+
+      // access custom atom property fields
+
+      } else if (which[m] == INAME) {
+        int *ivector = atom->ivector[n];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) values[i][m] = ivector[i];
+
+      } else if (which[m] == DNAME) {
+        double *dvector = atom->dvector[n];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) values[i][m] = dvector[i];
 
       // evaluate atom-style variable
 

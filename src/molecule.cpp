@@ -151,7 +151,7 @@ void Molecule::compute_com()
     com[0] = com[1] = com[2] = 0.0;
     for (int i = 0; i < natoms; i++) {
       if (rmassflag) onemass = rmass[i];
-      else onemass = atom->type[type[i]];
+      else onemass = atom->mass[type[i]];
       com[0] += x[i][0]*onemass;
       com[1] += x[i][1]*onemass;
       com[2] += x[i][2]*onemass;

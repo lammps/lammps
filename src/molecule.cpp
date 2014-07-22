@@ -447,6 +447,8 @@ void Molecule::read(int flag)
       error->all(FLERR,"Molecule file needs both Special Bond sections");
     if (specialflag && !bondflag) 
       error->all(FLERR,"Molecule file has special flags but no bonds");
+    if (!specialflag && bondflag) 
+      error->all(FLERR,"Molecule file has bonds but no special flags");
 
     if ((shakeflagflag || shakeatomflag || shaketypeflag) && !shakeflag)
       error->all(FLERR,"Molecule file shake info is incomplete");

@@ -15,7 +15,7 @@ compute ID group-ID property/atom input1 input2 ... :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 property/atom = style name of this compute command :l
 input = one or more atom attributes :l
-  possible attributes = id, mol, type, mass,
+  possible attributes = id, mol, proc, type, mass,
  	                x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
 		        vx, vy, vz, fx, fy, fz,
                         q, mux, muy, muz, mu,
@@ -34,6 +34,7 @@ input = one or more atom attributes :l
                         i_name, d_name :pre
       id = atom ID
       mol = molecule ID
+      proc = ID of processor that owns atom
       type = atom type
       mass = atom mass
       x,y,z = unscaled atom coordinates
@@ -96,8 +97,8 @@ variable"_variable.html commands.
 The list of possible attributes is the same as that used by the "dump
 custom"_dump.html command, which describes their meaning, with some
 additional quantities that are only defined for certain "atom
-styles"_atom_style.html.  Basically, this list gives your input script
-access to any per-atom quantity stored by LAMMPS.
+styles"_atom_style.html.  Basically, this augmented list gives an
+input script access to any per-atom quantity stored by LAMMPS.
 
 The values are stored in a per-atom vector or array as discussed
 below.  Zeroes are stored for atoms not in the specified group or for

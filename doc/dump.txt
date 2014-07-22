@@ -55,6 +55,7 @@ args = list of arguments for a particular style :l
 
       id = atom ID
       mol = molecule ID
+      proc = ID of processor that owns atom
       type = atom type
       element = name of atom element, as defined by "dump_modify"_dump_modify.html command
       mass = atom mass
@@ -445,17 +446,18 @@ dump 1 all local 1000 tmp.dump index c_1\[1\] c_1\[2\] c_1\[3\] c_2\[1\] c_2\[2\
 This section explains the atom attributes that can be specified as
 part of the {custom} and {cfg} styles.
 
-The {id}, {mol}, {type}, {element}, {mass}, {vx}, {vy}, {vz}, {fx}, {fy},
-{fz}, {q} attributes are self-explanatory.
+The {id}, {mol}, {proc}, {type}, {element}, {mass}, {vx}, {vy}, {vz},
+{fx}, {fy}, {fz}, {q} attributes are self-explanatory.
 
 {Id} is the atom ID.  {Mol} is the molecule ID, included in the data
-file for molecular systems.  {Type} is the atom type.  {Element} is
-typically the chemical name of an element, which you must assign to
-each type via the "dump_modify element"_dump_modify.html command.
-More generally, it can be any string you wish to associated with an
-atom type.  {Mass} is the atom mass.  {Vx}, {vy}, {vz}, {fx}, {fy},
-{fz}, and {q} are components of atom velocity and force and atomic
-charge.
+file for molecular systems.  {Proc} is the ID of the processor (0 to
+Nprocs-1) that currently owns the atom.  {Type} is the atom type.
+{Element} is typically the chemical name of an element, which you must
+assign to each type via the "dump_modify element"_dump_modify.html
+command.  More generally, it can be any string you wish to associated
+with an atom type.  {Mass} is the atom mass.  {Vx}, {vy}, {vz}, {fx},
+{fy}, {fz}, and {q} are components of atom velocity and force and
+atomic charge.
 
 There are several options for outputting atom coordinates.  The {x},
 {y}, {z} attributes write atom coordinates "unscaled", in the

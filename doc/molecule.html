@@ -29,7 +29,7 @@ molecule CO2 co2.txt
 <P>Define a molecule template that can be used as part of other LAMMPS
 commands, typically to define a collection of particles as a bonded
 molecule or a rigid body.  Commands that currently use molecule
-templates (or will in the future) include:
+templates include:
 </P>
 <UL><LI><A HREF = "fix_deposit.html">fix deposit</A>
 <LI><A HREF = "fix_pour.html">fix pour</A>
@@ -116,6 +116,12 @@ internally.
 <LI><I>Special Bond Counts, Special Bonds</I> = special neighbor info
 <LI><I>Shake Flags, Shake Atoms, Shake Bond Types</I> = SHAKE info 
 </UL>
+<P>If a Bonds section is specified then the Special Bond Counts and
+Special Bonds sections must be also, since the latter is needed for
+LAMMPS to properly exclude or weight bonded pairwise interactions
+between bonded atoms.  See the <A HREF = "special_bonds.html">special_bonds</A>
+command for more details.
+</P>
 <P>IMPORTANT NOTE: Whether a section is required depends on how the
 molecule template is used by other LAMMPS commands.  For example, to
 add a molecule via the <A HREF = "fix_deposit.html">fix deposit</A> command, the

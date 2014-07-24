@@ -117,6 +117,7 @@ class DumpCustom : public Dump {
 
   void pack_id(int);
   void pack_molecule(int);
+  void pack_proc(int);
   void pack_type(int);
   void pack_mass(int);
 

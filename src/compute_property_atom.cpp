@@ -23,6 +23,7 @@
 #include "atom_vec_body.h"
 #include "update.h"
 #include "domain.h"
+#include "comm.h"
 #include "memory.h"
 #include "error.h"
 
@@ -57,6 +58,8 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_molecule;
+    } else if (strcmp(arg[iarg],"proc") == 0) {
+      pack_choice[i] = &ComputePropertyAtom::pack_proc;
     } else if (strcmp(arg[iarg],"type") == 0) {
       pack_choice[i] = &ComputePropertyAtom::pack_type;
     } else if (strcmp(arg[iarg],"mass") == 0) {
@@ -448,6 +451,21 @@ void ComputePropertyAtom::pack_molecule(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = molecule[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_proc(int n)
+{
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int me = comm->me;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = me;
     else buf[n] = 0.0;
     n += nvalues;
   }

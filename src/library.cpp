@@ -135,6 +135,9 @@ void *lammps_extract_global(void *ptr, char *name)
   if (strcmp(name,"boxyhi") == 0) return (void *) &lmp->domain->boxhi[1];
   if (strcmp(name,"boxzlo") == 0) return (void *) &lmp->domain->boxlo[2];
   if (strcmp(name,"boxzhi") == 0) return (void *) &lmp->domain->boxhi[2];
+  if (strcmp(name,"xy") == 0) return (void *) &lmp->domain->xy;
+  if (strcmp(name,"xz") == 0) return (void *) &lmp->domain->xz;
+  if (strcmp(name,"yz") == 0) return (void *) &lmp->domain->yz;
   if (strcmp(name,"natoms") == 0) return (void *) &lmp->atom->natoms;
   if (strcmp(name,"nlocal") == 0) return (void *) &lmp->atom->nlocal;
   return NULL;

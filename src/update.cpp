@@ -19,6 +19,7 @@
 #include "style_integrate.h"
 #include "style_minimize.h"
 #include "neighbor.h"
+#include "neigh_list.h"
 #include "force.h"
 #include "modify.h"
 #include "fix.h"
@@ -395,13 +396,6 @@ void Update::reset_timestep(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    reset timestep
-   set atimestep to new timestep, so future update_time() calls will be correct
-   trigger reset of timestep for output and for fixes that require it
-   do not allow any timestep-dependent fixes to be defined
-   reset eflag/vflag global so nothing will think eng/virial are current
-   reset invoked flags of computes,
-     so nothing will think they are current between runs
-   clear timestep list of computes that store future invocation times
    called from rerun command and input script (indirectly)
 ------------------------------------------------------------------------- */
 
@@ -411,7 +405,13 @@ void Update::reset_timestep(bigint newstep)
   if (ntimestep < 0) error->all(FLERR,"Timestep must be >= 0");
   if (ntimestep > MAXBIGINT) error->all(FLERR,"Too big a timestep");
 
+  // set atimestep to new timestep
+  // so future update_time() calls will be correct
+
   atimestep = ntimestep;
+
+  // trigger reset of timestep for output and for fixes that require it
+  // do not allow any timestep-dependent fixes to be defined
 
   output->reset_timestep(ntimestep);
 
@@ -422,7 +422,12 @@ void Update::reset_timestep(bigint newstep)
     modify->fix[i]->reset_timestep(ntimestep);
   }
 
+  // reset eflag/vflag global so no commands will think eng/virial are current
+
   eflag_global = vflag_global = -1;
+
+  // reset invoked flags of computes,
+  // so no commands will think they are current between runs
 
   for (int i = 0; i < modify->ncompute; i++) {
     modify->compute[i]->invoked_scalar = -1;
@@ -432,8 +437,15 @@ void Update::reset_timestep(bigint newstep)
     modify->compute[i]->invoked_local = -1;
   }
 
+  // clear timestep list of computes that store future invocation times
+
   for (int i = 0; i < modify->ncompute; i++)
     if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
+
+  // set last_build of all neigh lists to -1 to force rebuild
+
+  for (int i = 0; i < neighbor->nlist; i++)
+    neighbor->lists[i]->last_build = -1;
 
   // NOTE: 7Jun12, adding rerun command, don't think this is required
 

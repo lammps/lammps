@@ -854,6 +854,17 @@ int DumpCustom::count()
 	iwhich = atom->find_custom(id_custom[field2index[i]],tmp);
         ptr = atom->dvector[iwhich];
         nstride = 1;
+
+      } else if (thresh_array[ithresh] == INAME) {
+	int iwhich,tmp;
+        i = nfield + ithresh;
+	iwhich = atom->find_custom(id_custom[field2index[i]],tmp);
+
+        int *ivector = atom->ivector[iwhich];
+        for (i = 0; i < nlocal; i++)
+          dchoose[i] = ivector[i];
+        ptr = dchoose;
+        nstride = 1;
       }
 
       // unselect atoms that don't meet threshhold criterion
@@ -1685,8 +1696,22 @@ int DumpCustom::modify_param(int narg, char **arg)
     // must grow field2index and argindex arrays, since access is beyond nfield
 
     } else if (strncmp(arg[1],"i_",2) == 0) {
-      error->all(FLERR,"Using custom per-atom integer vectors "
-                   "for dump_modify is not supported");
+      thresh_array[nthresh] = INAME;
+      memory->grow(field2index,nfield+nthresh+1,"dump:field2index");
+      memory->grow(argindex,nfield+nthresh+1,"dump:argindex");
+      int n = strlen(arg[1]);
+      char *suffix = new char[n];
+      strcpy(suffix,&arg[1][2]);
+      argindex[nfield+nthresh] = 0;
+
+      int tmp = -1;
+      n = atom->find_custom(suffix,tmp);
+      if ((n < 0) || (tmp != 0)) 
+        error->all(FLERR,"Could not find dump modify "
+                   "custom atom integer property ID");
+
+      field2index[nfield+nthresh] = add_custom(suffix,0);
+      delete [] suffix;
 
     } else error->all(FLERR,"Invalid dump_modify threshhold operator");
 

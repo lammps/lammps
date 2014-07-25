@@ -26,7 +26,7 @@ molecule CO2 co2.txt :pre
 Define a molecule template that can be used as part of other LAMMPS
 commands, typically to define a collection of particles as a bonded
 molecule or a rigid body.  Commands that currently use molecule
-templates (or will in the future) include:
+templates include:
 
 "fix deposit"_fix_deposit.html
 "fix pour"_fix_pour.html
@@ -112,6 +112,12 @@ These are the allowed section keywords for the body of the file.
 {Bonds, Angles, Dihedrals, Impropers} = molecular topology sections 
 {Special Bond Counts, Special Bonds} = special neighbor info
 {Shake Flags, Shake Atoms, Shake Bond Types} = SHAKE info :ul
+
+If a Bonds section is specified then the Special Bond Counts and
+Special Bonds sections must be also, since the latter is needed for
+LAMMPS to properly exclude or weight bonded pairwise interactions
+between bonded atoms.  See the "special_bonds"_special_bonds.html
+command for more details.
 
 IMPORTANT NOTE: Whether a section is required depends on how the
 molecule template is used by other LAMMPS commands.  For example, to

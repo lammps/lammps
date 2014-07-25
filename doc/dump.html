@@ -68,6 +68,7 @@
 </PRE>
 <PRE>      id = atom ID
       mol = molecule ID
+      proc = ID of processor that owns atom
       type = atom type
       element = name of atom element, as defined by <A HREF = "dump_modify.html">dump_modify</A> command
       mass = atom mass
@@ -459,17 +460,18 @@ dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2]
 <P>This section explains the atom attributes that can be specified as
 part of the <I>custom</I> and <I>cfg</I> styles.
 </P>
-<P>The <I>id</I>, <I>mol</I>, <I>type</I>, <I>element</I>, <I>mass</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>,
-<I>fz</I>, <I>q</I> attributes are self-explanatory.
+<P>The <I>id</I>, <I>mol</I>, <I>proc</I>, <I>type</I>, <I>element</I>, <I>mass</I>, <I>vx</I>, <I>vy</I>, <I>vz</I>,
+<I>fx</I>, <I>fy</I>, <I>fz</I>, <I>q</I> attributes are self-explanatory.
 </P>
 <P><I>Id</I> is the atom ID.  <I>Mol</I> is the molecule ID, included in the data
-file for molecular systems.  <I>Type</I> is the atom type.  <I>Element</I> is
-typically the chemical name of an element, which you must assign to
-each type via the <A HREF = "dump_modify.html">dump_modify element</A> command.
-More generally, it can be any string you wish to associated with an
-atom type.  <I>Mass</I> is the atom mass.  <I>Vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>, <I>fy</I>,
-<I>fz</I>, and <I>q</I> are components of atom velocity and force and atomic
-charge.
+file for molecular systems.  <I>Proc</I> is the ID of the processor (0 to
+Nprocs-1) that currently owns the atom.  <I>Type</I> is the atom type.
+<I>Element</I> is typically the chemical name of an element, which you must
+assign to each type via the <A HREF = "dump_modify.html">dump_modify element</A>
+command.  More generally, it can be any string you wish to associated
+with an atom type.  <I>Mass</I> is the atom mass.  <I>Vx</I>, <I>vy</I>, <I>vz</I>, <I>fx</I>,
+<I>fy</I>, <I>fz</I>, and <I>q</I> are components of atom velocity and force and
+atomic charge.
 </P>
 <P>There are several options for outputting atom coordinates.  The <I>x</I>,
 <I>y</I>, <I>z</I> attributes write atom coordinates "unscaled", in the

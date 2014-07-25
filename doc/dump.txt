@@ -55,6 +55,7 @@ args = list of arguments for a particular style :l
 
       id = atom ID
       mol = molecule ID
+      proc = ID of processor that owns atom
       type = atom type
       element = name of atom element, as defined by "dump_modify"_dump_modify.html command
       mass = atom mass
@@ -76,7 +77,9 @@ args = list of arguments for a particular style :l
       c_ID\[N\] = Nth column of per-atom array calculated by a compute with ID
       f_ID = per-atom vector calculated by a fix with ID
       f_ID\[N\] = Nth column of per-atom array calculated by a fix with ID
-      v_name = per-atom vector calculated by an atom-style variable with name :pre
+      v_name = per-atom vector calculated by an atom-style variable with name
+      d_name = per-atom floating point vector with name managed by fix property/atom
+      i_name = per-atom integer vector with name managed by fix property/atom :pre
 :ule
 
 [Examples:]
@@ -444,17 +447,18 @@ dump 1 all local 1000 tmp.dump index c_1\[1\] c_1\[2\] c_1\[3\] c_2\[1\] c_2\[2\
 This section explains the atom attributes that can be specified as
 part of the {custom} and {cfg} styles.
 
-The {id}, {mol}, {type}, {element}, {mass}, {vx}, {vy}, {vz}, {fx}, {fy},
-{fz}, {q} attributes are self-explanatory.
+The {id}, {mol}, {proc}, {type}, {element}, {mass}, {vx}, {vy}, {vz},
+{fx}, {fy}, {fz}, {q} attributes are self-explanatory.
 
 {Id} is the atom ID.  {Mol} is the molecule ID, included in the data
-file for molecular systems.  {Type} is the atom type.  {Element} is
-typically the chemical name of an element, which you must assign to
-each type via the "dump_modify element"_dump_modify.html command.
-More generally, it can be any string you wish to associated with an
-atom type.  {Mass} is the atom mass.  {Vx}, {vy}, {vz}, {fx}, {fy},
-{fz}, and {q} are components of atom velocity and force and atomic
-charge.
+file for molecular systems.  {Proc} is the ID of the processor (0 to
+Nprocs-1) that currently owns the atom.  {Type} is the atom type.
+{Element} is typically the chemical name of an element, which you must
+assign to each type via the "dump_modify element"_dump_modify.html
+command.  More generally, it can be any string you wish to associated
+with an atom type.  {Mass} is the atom mass.  {Vx}, {vy}, {vz}, {fx},
+{fy}, {fz}, and {q} are components of atom velocity and force and
+atomic charge.
 
 There are several options for outputting atom coordinates.  The {x},
 {y}, {z} attributes write atom coordinates "unscaled", in the
@@ -546,6 +550,10 @@ attributes, per-atom atom attributes, thermodynamic keywords, or
 invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of creating quantities to output to a
 dump file.
+
+The {d_name} and {i_name} attributes allow to output custom per atom
+floating point or integer properties that are managed by
+"fix property/atom"_fix_property_atom.html.
 
 See "Section_modify"_Section_modify.html of the manual for information
 on how to add new compute and fix styles to LAMMPS to calculate

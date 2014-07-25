@@ -146,15 +146,21 @@ void quest_callback(void *ptr, bigint ntimestep,
   double boxyhi = *((double *) lammps_extract_global(info->lmp,"boxyhi"));
   double boxzlo = *((double *) lammps_extract_global(info->lmp,"boxzlo"));
   double boxzhi = *((double *) lammps_extract_global(info->lmp,"boxzhi"));
+  double boxxy = *((double *) lammps_extract_global(info->lmp,"xy"));
+  double boxxz = *((double *) lammps_extract_global(info->lmp,"xz"));
+  double boxyz = *((double *) lammps_extract_global(info->lmp,"yz"));
 
   double xprd = (boxxhi-boxxlo)/ANGSTROM_per_BOHR;
   double yprd = (boxyhi-boxylo)/ANGSTROM_per_BOHR;
   double zprd = (boxzhi-boxzlo)/ANGSTROM_per_BOHR;
+  double xy = boxxy/ANGSTROM_per_BOHR;
+  double xz = boxxz/ANGSTROM_per_BOHR;
+  double yz = boxyz/ANGSTROM_per_BOHR;
 
   if (info->me == 0) {
     sprintf(boxlines[0],"%g %g %g\n",xprd,0.0,0.0);
-    sprintf(boxlines[1],"%g %g %g\n",0.0,yprd,0.0);
-    sprintf(boxlines[2],"%g %g %g\n",0.0,0.0,zprd);
+    sprintf(boxlines[1],"%g %g %g\n",xy,yprd,0.0);
+    sprintf(boxlines[2],"%g %g %g\n",xz,yz,zprd);
   }
 
   // xlines = x for atoms on each proc converted to text lines

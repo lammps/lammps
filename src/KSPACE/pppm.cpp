@@ -211,6 +211,11 @@ void PPPM::init()
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
+  // a TIP4P pair style requires a matching long-range solver
+  if (!tip4pflag && force->pair->tip4pflag)
+      error->all(FLERR,"Using a TIP4P pair style without a "
+                   "compatible kspace style");
+
   // if kspace is TIP4P, extract TIP4P params from pair style
   // bond/angle are not yet init(), so insure equilibrium request is valid
 

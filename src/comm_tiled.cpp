@@ -11,15 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "string.h"
 #include "lmptype.h"
 #include "comm_tiled.h"
+#include "comm_brick.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
+#include "force.h"
 #include "pair.h"
+#include "neighbor.h"
 #include "modify.h"
 #include "fix.h"
 #include "compute.h"
+#include "output.h"
 #include "dump.h"
 #include "memory.h"
 #include "error.h"
@@ -27,31 +32,92 @@
 using namespace LAMMPS_NS;
 
 #define BUFFACTOR 1.5
+#define BUFFACTOR 1.5
+#define BUFMIN 1000
+#define BUFEXTRA 1000
 
 enum{SINGLE,MULTI};               // same as in Comm
+enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
 CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 {
-  style = 1;
-  layout = 0;
-
   error->all(FLERR,"Comm_style tiled is not yet supported");
+
+  style = 1;
+  layout = LAYOUT_UNIFORM;
+  init_buffers();
+}
+
+/* ---------------------------------------------------------------------- */
+
+CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
+{
+  style = 1;
+  layout = oldcomm->layout;
+  copy_arrays(oldcomm);
+  init_buffers();
 }
 
 /* ---------------------------------------------------------------------- */
 
 CommTiled::~CommTiled()
 {
+  free_swap();
+
+  if (sendlist) for (int i = 0; i < nswap; i++) memory->destroy(sendlist[i]);
+  memory->sfree(sendlist);
+  memory->destroy(maxsendlist);
+
+  memory->destroy(buf_send);
+  memory->destroy(buf_recv);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   initialize comm buffers and other data structs local to CommTiled
+   NOTE: if this is identical to CommBrick, put it into Comm ??
+------------------------------------------------------------------------- */
+
+void CommTiled::init_buffers()
+{
+  maxexchange = maxexchange_atom + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
+
+  maxsend = BUFMIN;
+  memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
+  maxrecv = BUFMIN;
+  memory->create(buf_recv,maxrecv,"comm:buf_recv");
+
+  nswap = 2 * domain->dimension;
+  allocate_swap(nswap);
+
+  //sendlist = (int **) memory->smalloc(nswap*sizeof(int *),"comm:sendlist");
+  //memory->create(maxsendlist,nswap,"comm:maxsendlist");
+  //for (int i = 0; i < nswap; i++) {
+  //  maxsendlist[i] = BUFMIN;
+  //  memory->create(sendlist[i],BUFMIN,"comm:sendlist[i]");
+  //}
+}
+
+/* ----------------------------------------------------------------------
+   NOTE: if this is nearly identical to CommBrick, put it into Comm ??
+------------------------------------------------------------------------- */
 
 void CommTiled::init()
 {
   triclinic = domain->triclinic;
   map_style = atom->map_style;
+
+  // temporary restrictions
+
+  if (triclinic) 
+    error->all(FLERR,"Cannot yet use comm_style tiled with triclinic box");
+  if (domain->xperiodic || domain->yperiodic || 
+      (domain->dimension == 2 && domain->zperiodic))
+    error->all(FLERR,"Cannot yet use comm_style tiled with periodic box");
+  if (mode == MULTI)
+    error->all(FLERR,"Cannot yet use comm_style tiled with multi-mode comm");
 
   // comm_only = 1 if only x,f are exchanged in forward/reverse comm
   // comm_x_only = 0 if ghost_velocity since velocities are added
@@ -72,51 +138,210 @@ void CommTiled::init()
 
   for (int i = 0; i < modify->nfix; i++)
     size_border += modify->fix[i]->comm_border;
+
+  // maxexchange = max # of datums/atom in exchange communication
+  // maxforward = # of datums in largest forward communication
+  // maxreverse = # of datums in largest reverse communication
+  // query pair,fix,compute,dump for their requirements
+  // pair style can force reverse comm even if newton off
+
+  maxexchange = BUFMIN + maxexchange_fix;
+  maxforward = MAX(size_forward,size_border);
+  maxreverse = size_reverse;
+
+  if (force->pair) maxforward = MAX(maxforward,force->pair->comm_forward);
+  if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse);
+
+  for (int i = 0; i < modify->nfix; i++) {
+    maxforward = MAX(maxforward,modify->fix[i]->comm_forward);
+    maxreverse = MAX(maxreverse,modify->fix[i]->comm_reverse);
+  }
+
+  for (int i = 0; i < modify->ncompute; i++) {
+    maxforward = MAX(maxforward,modify->compute[i]->comm_forward);
+    maxreverse = MAX(maxreverse,modify->compute[i]->comm_reverse);
+  }
+
+  for (int i = 0; i < output->ndump; i++) {
+    maxforward = MAX(maxforward,output->dump[i]->comm_forward);
+    maxreverse = MAX(maxreverse,output->dump[i]->comm_reverse);
+  }
+
+  if (force->newton == 0) maxreverse = 0;
+  if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse_off);
 }
 
 /* ----------------------------------------------------------------------
    setup spatial-decomposition communication patterns
-   function of neighbor cutoff(s) & cutghostuser & current box size
-   single mode sets slab boundaries (slablo,slabhi) based on max cutoff
-   multi mode sets type-dependent slab boundaries (multilo,multihi)
+   function of neighbor cutoff(s) & cutghostuser & current box size and tiling
 ------------------------------------------------------------------------- */
 
 void CommTiled::setup()
 {
-  // error on triclinic or multi?
-  // set nswap = 2*dim
-  // setup neighbor proc info for exchange()
-  // setup nsendproc and nrecvproc bounts
-  // setup sendproc and recvproc lists
-  // setup sendboxes
-  // reallocate requests and statuses
+  int i;
 
-  // check that cutoff is <= 1/2 of periodic box len?
+  int dimension;
+  int *periodicity;
+  double *prd,*sublo,*subhi,*boxlo,*boxhi;
 
-  // loop over dims
-  //  left:
-  //    construct ghost boxes
-  //      differnet in x,y,z
-  //      account for ghost borders in y,z
-  //      account for PBC by shifting
-  //      split into multiple boxes if straddles PBC
-  //    drop boxes down RCB tree
-  //      count unique procs they cover
-  //      what about self if crosses PBC
-  //      for each proc they cover:
-  //        compute box I send it to left
-  //        is a message I will recv from right (don't care about box)
-  //    for ghost-extended boxes
-  //      do not count procs that do not overlap my owned box at all
-  //      only touching edge of my owned box does not count
-  //      in this case list I send to and recv from may be different?
-  //  same thing to right
+  double cut = MAX(neighbor->cutneighmax,cutghostuser);
 
-  // what need from decomp (RCB):
-  // dropbox: return list of procs with overlap and overlapping boxes
-  //   return n, proclist, boxlist
-  // otherbox: bbox of another proc
-  // dropatom: return what proc owns the atom coord
+  dimension = domain->dimension;
+  periodicity = domain->periodicity;
+  prd = domain->prd;
+  sublo = domain->sublo;
+  subhi = domain->subhi;
+  boxlo = domain->boxlo;
+  boxhi = domain->boxhi;
+  cutghost[0] = cutghost[1] = cutghost[2] = cut;
+  
+  if ((periodicity[0] && cut > prd[0]) ||
+      (periodicity[1] && cut > prd[1]) ||
+      (dimension == 3 && periodicity[2] && cut > prd[2]))
+    error->all(FLERR,"Communication cutoff for comm_style tiled "
+               "cannot exceed periodic box length");
+
+  // allocate overlap
+  int *overlap;
+  int noverlap,noverlap1,indexme;
+  double lo1[3],hi1[3],lo2[3],hi2[3];
+  int one,two;
+
+  nswap = 0;
+  for (int idim = 0; idim < dimension; idim++) {
+
+    // ghost box in lower direction
+
+    one = 1;
+    lo1[0] = sublo[0]; lo1[1] = sublo[1]; lo1[2] = sublo[2];
+    hi1[0] = subhi[0]; hi1[1] = subhi[1]; hi1[2] = subhi[2];
+    lo1[idim] = sublo[idim] - cut;
+    hi1[idim] = sublo[idim];
+
+    two = 0;
+    if (periodicity[idim] && lo1[idim] < boxlo[idim]) {
+      two = 1;
+      lo2[0] = sublo[0]; lo2[1] = sublo[1]; lo2[2] = sublo[2];
+      hi2[0] = subhi[0]; hi2[1] = subhi[1]; hi2[2] = subhi[2];
+      lo2[idim] = lo1[idim] + prd[idim];
+      hi2[idim] = hi1[idim] + prd[idim];
+      if (sublo[idim] == boxlo[idim]) {
+        one = 0;
+        hi2[idim] = boxhi[idim];
+      }
+    }
+
+    indexme = -1;
+    noverlap = 0;
+    if (one) {
+      if (layout == LAYOUT_UNIFORM) 
+        box_drop_uniform(idim,lo1,hi1,noverlap,overlap,indexme);
+      else if (layout == LAYOUT_NONUNIFORM) 
+        box_drop_nonuniform(idim,lo1,hi1,noverlap,overlap,indexme);
+      else
+        box_drop_tiled(lo1,hi1,0,nprocs-1,noverlap,overlap,indexme);
+    }
+
+    noverlap1 = noverlap;
+    if (two) {
+      if (layout == LAYOUT_UNIFORM) 
+        box_drop_uniform(idim,lo2,hi2,noverlap,overlap,indexme);
+      else if (layout == LAYOUT_NONUNIFORM) 
+        box_drop_nonuniform(idim,lo2,hi2,noverlap,overlap,indexme);
+      else 
+        box_drop_tiled(lo2,hi2,0,nprocs-1,noverlap,overlap,indexme);
+    }
+
+    // if this (self) proc is in overlap list, move it to end of list
+
+    if (indexme >= 0) {
+      int tmp = overlap[noverlap-1];
+      overlap[noverlap-1] = overlap[indexme];
+      overlap[indexme] = tmp;
+    }
+
+    // overlap how has list of noverlap procs
+    // includes PBC effects
+
+    if (overlap[noverlap-1] == me) sendself[nswap] = 1;
+    else sendself[nswap] = 0;
+    if (noverlap-sendself[nswap]) sendother[nswap] = 1;
+    else sendother[nswap] = 0;
+
+    nsendproc[nswap] = noverlap;
+    for (i = 0; i < noverlap; i++) sendproc[nswap][i] = overlap[i];
+    nrecvproc[nswap+1] = noverlap;
+    for (i = 0; i < noverlap; i++) recvproc[nswap+1][i] = overlap[i];
+
+    // compute sendbox for each of my sends
+    // ibox = intersection of ghostbox with other proc's sub-domain
+    // sendbox = ibox displaced by cutoff in dim
+
+    // NOTE: need to extend send box in lower dims by cutoff
+    // NOTE: this logic for overlapping boxes is not correct for sending
+
+    double oboxlo[3],oboxhi[3],sbox[6];
+
+    for (i = 0; i < noverlap; i++) {
+      pbc_flag[nswap][i] = 0;
+      pbc[nswap][i][0] = pbc[nswap][i][1] = pbc[nswap][i][2] =
+        pbc[nswap][i][3] = pbc[nswap][i][4] = pbc[nswap][i][5] = 0;
+
+      if (layout == LAYOUT_UNIFORM) 
+        box_other_uniform(overlap[i],oboxlo,oboxhi);
+      else if (layout == LAYOUT_NONUNIFORM) 
+        box_other_nonuniform(overlap[i],oboxlo,oboxhi);
+      else
+        box_other_tiled(overlap[i],oboxlo,oboxhi);
+
+      if (i < noverlap1) {
+        sbox[0] = MAX(oboxlo[0],lo1[0]);
+        sbox[1] = MAX(oboxlo[1],lo1[1]);
+        sbox[2] = MAX(oboxlo[2],lo1[2]);
+        sbox[3] = MIN(oboxhi[0],hi1[0]);
+        sbox[4] = MIN(oboxhi[1],hi1[1]);
+        sbox[5] = MIN(oboxhi[2],hi1[2]);
+        sbox[idim] += cut;
+        sbox[3+idim] += cut;
+        if (sbox[idim] == lo1[idim]) sbox[idim] = sublo[idim];
+      } else {
+        pbc_flag[nswap][i] = 1;
+        pbc[nswap][i][idim] = 1;
+        sbox[0] = MAX(oboxlo[0],lo2[0]);
+        sbox[1] = MAX(oboxlo[1],lo2[1]);
+        sbox[2] = MAX(oboxlo[2],lo2[2]);
+        sbox[3] = MIN(oboxhi[0],hi2[0]);
+        sbox[4] = MIN(oboxhi[1],hi2[1]);
+        sbox[5] = MIN(oboxhi[2],hi2[2]);
+        sbox[idim] -= prd[idim] - cut;
+        sbox[3+idim] -= prd[idim] + cut;
+        if (sbox[idim] == lo1[idim]) sbox[idim] = sublo[idim];
+      }
+
+      if (idim >= 1) {
+        if (sbox[0] == sublo[0]) sbox[0] -= cut;
+        if (sbox[4] == subhi[0]) sbox[4] += cut;
+      }
+      if (idim == 2) {
+        if (sbox[1] == sublo[1]) sbox[1] -= cut;
+        if (sbox[5] == subhi[1]) sbox[5] += cut;
+      }
+
+      memcpy(sendbox[nswap][i],sbox,6*sizeof(double));
+    }
+
+    // ghost box in upper direction
+
+
+
+
+
+    nswap += 2;
+  }
+
+
+  // reallocate requests and statuses to max of any swap
+
 }
 
 /* ----------------------------------------------------------------------
@@ -126,46 +351,73 @@ void CommTiled::setup()
 
 void CommTiled::forward_comm(int dummy)
 {
-  int i,irecv,n;
+  int i,irecv,n,nsend,nrecv;
   MPI_Status status;
   AtomVec *avec = atom->avec;
   double **x = atom->x;
 
   // exchange data with another set of procs in each swap
-  // if first proc in set is self, then is just self across PBC, just copy
+  // post recvs from all procs except self
+  // send data to all procs except self
+  // copy data to self if sendself is set
+  // wait on all procs except self and unpack received data
   // if comm_x_only set, exchange or copy directly to x, don't unpack
 
   for (int iswap = 0; iswap < nswap; iswap++) {
-    if (sendproc[iswap][0] != me) {
-      if (comm_x_only) {
-        for (i = 0; i < nrecvproc[iswap]; i++)
+    nsend = nsendproc[iswap] - sendself[iswap];
+    nrecv = nrecvproc[iswap] - sendself[iswap];
+
+    if (comm_x_only) {
+      if (sendother[iswap]) {
+        for (i = 0; i < nrecv; i++)
           MPI_Irecv(x[firstrecv[iswap][i]],size_forward_recv[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
-        for (i = 0; i < nsendproc[iswap]; i++) {
+        for (i = 0; i < nsend; i++) {
           n = avec->pack_comm(sendnum[iswap][i],sendlist[iswap][i],
                               buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][i],0,world);
         }
-        MPI_Waitall(nrecvproc[iswap],requests,statuses);
+      }
 
-      } else if (ghost_velocity) {
-        for (i = 0; i < nrecvproc[iswap]; i++)
+      if (sendself[iswap]) {
+        avec->pack_comm(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                        x[firstrecv[iswap][nrecv]],pbc_flag[iswap][nsend],
+                        pbc[iswap][nsend]);
+      }
+
+      if (sendother[iswap]) MPI_Waitall(nrecv,requests,statuses);
+
+    } else if (ghost_velocity) {
+      if (sendother[iswap]) {
+        for (i = 0; i < nrecv; i++)
           MPI_Irecv(&buf_recv[forward_recv_offset[iswap][i]],
                     size_forward_recv[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
-        for (i = 0; i < nsendproc[iswap]; i++) {
+        for (i = 0; i < nsend; i++) {
           n = avec->pack_comm_vel(sendnum[iswap][i],sendlist[iswap][i],
                                   buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][i],0,world);
         }
-        for (i = 0; i < nrecvproc[iswap]; i++) {
-          MPI_Waitany(nrecvproc[iswap],requests,&irecv,&status);
-          avec->unpack_comm_vel(recvnum[iswap][i],firstrecv[iswap][irecv],
+      }
+
+      if (sendself[iswap]) {
+        avec->pack_comm_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                            buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
+        avec->unpack_comm_vel(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
+                              buf_send);
+      }
+
+      if (sendother[iswap]) {
+        for (i = 0; i < nrecv; i++) {
+          MPI_Waitany(nrecv,requests,&irecv,&status);
+          avec->unpack_comm_vel(recvnum[iswap][irecv],firstrecv[iswap][irecv],
                                 &buf_recv[forward_recv_offset[iswap][irecv]]);
         }
+      }
 
-      } else {
-        for (i = 0; i < nrecvproc[iswap]; i++)
+    } else {
+      if (sendother[iswap]) {
+        for (i = 0; i < nrecv; i++)
           MPI_Irecv(&buf_recv[forward_recv_offset[iswap][i]],
                     size_forward_recv[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
@@ -174,27 +426,21 @@ void CommTiled::forward_comm(int dummy)
                               buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][i],0,world);
         }
-        for (i = 0; i < nrecvproc[iswap]; i++) {
-          MPI_Waitany(nrecvproc[iswap],requests,&irecv,&status);
-          avec->unpack_comm(recvnum[iswap][i],firstrecv[iswap][irecv],
-                            &buf_recv[forward_recv_offset[iswap][irecv]]);
-        }
       }
 
-    } else {
-      if (comm_x_only) {
-        if (sendnum[iswap][0])
-          n = avec->pack_comm(sendnum[iswap][0],sendlist[iswap][0],
-                              x[firstrecv[iswap][0]],pbc_flag[iswap][0],
-                              pbc[iswap][0]);
-      } else if (ghost_velocity) {
-        n = avec->pack_comm_vel(sendnum[iswap][0],sendlist[iswap][0],
-                                buf_send,pbc_flag[iswap][0],pbc[iswap][0]);
-        avec->unpack_comm_vel(recvnum[iswap][0],firstrecv[iswap][0],buf_send);
-      } else {
-        n = avec->pack_comm(sendnum[iswap][0],sendlist[iswap][0],
-                            buf_send,pbc_flag[iswap][0],pbc[iswap][0]);
-        avec->unpack_comm(recvnum[iswap][0],firstrecv[iswap][0],buf_send);
+      if (sendself[iswap]) {
+        avec->pack_comm(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                        buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
+        avec->unpack_comm(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
+                          buf_send);
+      }
+
+      if (sendother[iswap]) {
+        for (i = 0; i < nrecv; i++) {
+          MPI_Waitany(nrecv,requests,&irecv,&status);
+          avec->unpack_comm(recvnum[iswap][irecv],firstrecv[iswap][irecv],
+                            &buf_recv[forward_recv_offset[iswap][irecv]]);
+        }
       }
     }
   }
@@ -207,57 +453,70 @@ void CommTiled::forward_comm(int dummy)
 
 void CommTiled::reverse_comm()
 {
-  int i,irecv,n;
+  int i,irecv,n,nsend,nrecv;
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
   double **f = atom->f;
 
   // exchange data with another set of procs in each swap
-  // if first proc in set is self, then is just self across PBC, just copy
+  // post recvs from all procs except self
+  // send data to all procs except self
+  // copy data to self if sendself is set
+  // wait on all procs except self and unpack received data
   // if comm_f_only set, exchange or copy directly from f, don't pack
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
-    if (sendproc[iswap][0] != me) {
-      if (comm_f_only) {
-        for (i = 0; i < nsendproc[iswap]; i++)
+    if (comm_f_only) {
+      if (sendother[iswap]) {
+        for (i = 0; i < nsend; i++)
           MPI_Irecv(&buf_recv[reverse_recv_offset[iswap][i]],
                     size_reverse_recv[iswap][i],MPI_DOUBLE,
                     sendproc[iswap][i],0,world,&requests[i]);
-        for (i = 0; i < nrecvproc[iswap]; i++)
+        for (i = 0; i < nrecv; i++)
           MPI_Send(f[firstrecv[iswap][i]],size_reverse_send[iswap][i],
                    MPI_DOUBLE,recvproc[iswap][i],0,world);
-        for (i = 0; i < nsendproc[iswap]; i++) {
-          MPI_Waitany(nsendproc[iswap],requests,&irecv,&status);
-          avec->unpack_reverse(sendnum[iswap][irecv],sendlist[iswap][irecv],
-                               &buf_recv[reverse_recv_offset[iswap][irecv]]);
-        }
+      }
 
-      } else {
-        for (i = 0; i < nsendproc[iswap]; i++)
-          MPI_Irecv(&buf_recv[reverse_recv_offset[iswap][i]],
-                    size_reverse_recv[iswap][i],MPI_DOUBLE,
-                    sendproc[iswap][i],0,world,&requests[i]);
-        for (i = 0; i < nrecvproc[iswap]; i++) {
-          n = avec->pack_reverse(recvnum[iswap][i],firstrecv[iswap][i],
-                                 buf_send);
-          MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap][i],0,world);
-        }
-        for (i = 0; i < nsendproc[iswap]; i++) {
-          MPI_Waitany(nsendproc[iswap],requests,&irecv,&status);
+      if (sendself[iswap]) {
+        avec->unpack_reverse(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                             f[firstrecv[iswap][nrecv]]);
+      }
+
+      if (sendother[iswap]) {
+        for (i = 0; i < nsend; i++) {
+          MPI_Waitany(nsend,requests,&irecv,&status);
           avec->unpack_reverse(sendnum[iswap][irecv],sendlist[iswap][irecv],
                                &buf_recv[reverse_recv_offset[iswap][irecv]]);
         }
       }
-
+      
     } else {
-      if (comm_f_only) {
-        if (sendnum[iswap][0])
-          avec->unpack_reverse(sendnum[iswap][0],sendlist[iswap][0],
-                               f[firstrecv[iswap][0]]);
-      } else {
-        n = avec->pack_reverse(recvnum[iswap][0],firstrecv[iswap][0],buf_send);
-        avec->unpack_reverse(sendnum[iswap][0],sendlist[iswap][0],buf_send);
+      if (sendother[iswap]) {
+        for (i = 0; i < nsend; i++)
+          MPI_Irecv(&buf_recv[reverse_recv_offset[iswap][i]],
+                    size_reverse_recv[iswap][i],MPI_DOUBLE,
+                    sendproc[iswap][i],0,world,&requests[i]);
+        for (i = 0; i < nrecv; i++) {
+          n = avec->pack_reverse(recvnum[iswap][i],firstrecv[iswap][i],
+                                 buf_send);
+          MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap][i],0,world);
+        }
+      }
+
+      if (sendself[iswap]) {
+        avec->pack_reverse(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
+                           buf_send);
+        avec->unpack_reverse(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                             buf_send);
+      }
+
+      if (sendother[iswap]) {
+        for (i = 0; i < nsend; i++) {
+          MPI_Waitany(nsend,requests,&irecv,&status);
+          avec->unpack_reverse(sendnum[iswap][irecv],sendlist[iswap][irecv],
+                               &buf_recv[reverse_recv_offset[iswap][irecv]]);
+        }
       }
     }
   }
@@ -298,7 +557,7 @@ void CommTiled::exchange()
 
 void CommTiled::borders()
 {
-  int i,n,irecv,ngroup,nlast,nsend,rmaxswap;
+  int i,n,irecv,ngroup,nlast,nsend,nrecv,ncount,rmaxswap;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double *bbox;
   double **x;
@@ -333,36 +592,40 @@ void CommTiled::borders()
       if (iswap < 2) nlast = atom->nlocal;
       else nlast = atom->nlocal + atom->nghost;
 
-      nsend = 0;
+      ncount = 0;
       for (i = 0; i < ngroup; i++)
         if (x[i][0] >= xlo && x[i][0] <= xhi &&
             x[i][1] >= ylo && x[i][1] <= yhi &&
             x[i][2] >= zlo && x[i][2] <= zhi) {
-          if (nsend == maxsendlist[iswap][i]) grow_list(iswap,i,nsend);
-          sendlist[iswap][i][nsend++] = i;
+          if (ncount == maxsendlist[iswap][i]) grow_list(iswap,i,ncount);
+          sendlist[iswap][i][ncount++] = i;
         }
       for (i = atom->nlocal; i < nlast; i++)
         if (x[i][0] >= xlo && x[i][0] <= xhi &&
             x[i][1] >= ylo && x[i][1] <= yhi &&
             x[i][2] >= zlo && x[i][2] <= zhi) {
-          if (nsend == maxsendlist[iswap][i]) grow_list(iswap,i,nsend);
-          sendlist[iswap][i][nsend++] = i;
+          if (ncount == maxsendlist[iswap][i]) grow_list(iswap,i,ncount);
+          sendlist[iswap][i][ncount++] = i;
         }
-      sendnum[iswap][i] = nsend;
-      smax = MAX(smax,nsend);
+      sendnum[iswap][i] = ncount;
+      smax = MAX(smax,ncount);
     }
 
-    // send sendnum counts to procs who recv from me
+    // send sendnum counts to procs who recv from me except self
+    // copy data to self if sendself is set
 
-    if (sendproc[iswap][0] != me) {
-      for (i = 0; i < nrecvproc[iswap]; i++)
+    nsend = nsendproc[iswap] - sendself[iswap];
+    nrecv = nrecvproc[iswap] - sendself[iswap];
+
+    if (sendother[iswap]) {
+      for (i = 0; i < nrecv; i++)
         MPI_Irecv(&recvnum[iswap][i],1,MPI_INT,
                   recvproc[iswap][i],0,world,&requests[i]);
-      for (i = 0; i < nsendproc[iswap]; i++)
+      for (i = 0; i < nsend; i++)
         MPI_Send(&sendnum[iswap][i],1,MPI_INT,sendproc[iswap][i],0,world);
-      MPI_Waitall(nrecvproc[iswap],requests,statuses);
-
-    } else recvnum[iswap][0] = sendnum[iswap][0];
+    }
+    if (sendself[iswap]) recvnum[iswap][nrecv] = sendnum[iswap][nsend];
+    if (sendother[iswap]) MPI_Waitall(nrecv,requests,statuses);
 
     // setup other per swap/proc values from sendnum and recvnum
 
@@ -390,54 +653,64 @@ void CommTiled::borders()
 
     // swap atoms with other procs using pack_border(), unpack_border()
 
-    if (sendproc[iswap][0] != me) {
-      for (i = 0; i < nsendproc[iswap]; i++) {
-        if (ghost_velocity) {
-          for (i = 0; i < nrecvproc[iswap]; i++)
-            MPI_Irecv(&buf_recv[forward_recv_offset[iswap][i]],
-                      recvnum[iswap][i]*size_border,
-                      MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
-          for (i = 0; i < nsendproc[iswap]; i++) {
-            n = avec->pack_border_vel(sendnum[iswap][i],sendlist[iswap][i],
-                                      buf_send,pbc_flag[iswap][i],
-                                      pbc[iswap][i]);
-            MPI_Send(buf_send,n*size_border,MPI_DOUBLE,
-                     sendproc[iswap][i],0,world);
-          }
-          for (i = 0; i < nrecvproc[iswap]; i++) {
-            MPI_Waitany(nrecvproc[iswap],requests,&irecv,&status);
-            avec->unpack_border(recvnum[iswap][i],firstrecv[iswap][irecv],
-                                &buf_recv[forward_recv_offset[iswap][irecv]]);
-          }
-          
-        } else {
-          for (i = 0; i < nrecvproc[iswap]; i++)
-            MPI_Irecv(&buf_recv[forward_recv_offset[iswap][i]],
-                      recvnum[iswap][i]*size_border,
-                      MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
-          for (i = 0; i < nsendproc[iswap]; i++) {
-            n = avec->pack_border(sendnum[iswap][i],sendlist[iswap][i],
-                                  buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
-            MPI_Send(buf_send,n*size_border,MPI_DOUBLE,
-                     sendproc[iswap][i],0,world);
-          }
-          for (i = 0; i < nrecvproc[iswap]; i++) {
-            MPI_Waitany(nrecvproc[iswap],requests,&irecv,&status);
-            avec->unpack_border(recvnum[iswap][i],firstrecv[iswap][irecv],
-                                &buf_recv[forward_recv_offset[iswap][irecv]]);
-          }
+    if (ghost_velocity) {
+      if (sendother[iswap]) {
+        for (i = 0; i < nrecv; i++)
+          MPI_Irecv(&buf_recv[forward_recv_offset[iswap][i]],
+                    recvnum[iswap][i]*size_border,
+                    MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
+        for (i = 0; i < nsend; i++) {
+          n = avec->pack_border_vel(sendnum[iswap][i],sendlist[iswap][i],
+                                    buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
+          MPI_Send(buf_send,n*size_border,MPI_DOUBLE,
+                   sendproc[iswap][i],0,world);
+        }
+      }
+
+      if (sendself[iswap]) {
+        n = avec->pack_border_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                                  buf_send,pbc_flag[iswap][nsend],
+                                  pbc[iswap][nsend]);
+        avec->unpack_border_vel(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
+                                buf_send);
+      }
+
+      if (sendother[iswap]) {
+        for (i = 0; i < nrecv; i++) {
+          MPI_Waitany(nrecv,requests,&irecv,&status);
+          avec->unpack_border(recvnum[iswap][irecv],firstrecv[iswap][irecv],
+                              &buf_recv[forward_recv_offset[iswap][irecv]]);
         }
       }
 
     } else {
-      if (ghost_velocity) {
-        n = avec->pack_border_vel(sendnum[iswap][0],sendlist[iswap][0],
-                                  buf_send,pbc_flag[iswap][0],pbc[iswap][0]);
-        avec->unpack_border_vel(recvnum[iswap][0],firstrecv[iswap][0],buf_send);
-      } else {
-        n = avec->pack_border(sendnum[iswap][0],sendlist[iswap][0],
-                              buf_send,pbc_flag[iswap][0],pbc[iswap][0]);
-        avec->unpack_border(recvnum[iswap][0],firstrecv[iswap][0],buf_send);
+      if (sendother[iswap]) {
+        for (i = 0; i < nrecv; i++)
+          MPI_Irecv(&buf_recv[forward_recv_offset[iswap][i]],
+                    recvnum[iswap][i]*size_border,
+                    MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
+        for (i = 0; i < nsend; i++) {
+          n = avec->pack_border(sendnum[iswap][i],sendlist[iswap][i],
+                                buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
+          MPI_Send(buf_send,n*size_border,MPI_DOUBLE,
+                   sendproc[iswap][i],0,world);
+        }
+      }
+
+      if (sendself[iswap]) {
+        n = avec->pack_border(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                              buf_send,pbc_flag[iswap][nsend],
+                              pbc[iswap][nsend]);
+        avec->unpack_border(recvnum[iswap][nsend],firstrecv[iswap][nsend],
+                            buf_send);
+      }
+
+      if (sendother[iswap]) {
+        for (i = 0; i < nrecv; i++) {
+          MPI_Waitany(nrecv,requests,&irecv,&status);
+          avec->unpack_border(recvnum[iswap][irecv],firstrecv[iswap][irecv],
+                              &buf_recv[forward_recv_offset[iswap][irecv]]);
+        }
       }
     }
 
@@ -787,6 +1060,64 @@ int CommTiled::exchange_variable(int n, double *inbuf, double *&outbuf)
 }
 
 /* ----------------------------------------------------------------------
+   determine overlap list of Noverlap procs the lo/hi box overlaps
+   overlap = non-zero area in common between box and proc sub-domain
+   box is onwed by me and extends in dim
+------------------------------------------------------------------------- */
+
+void CommTiled::box_drop_uniform(int dim, double *lo, double *hi, 
+                                 int &noverlap, int *overlap, int &indexme)
+{
+
+}
+
+/* ----------------------------------------------------------------------
+   determine overlap list of Noverlap procs the lo/hi box overlaps
+   overlap = non-zero area in common between box and proc sub-domain
+------------------------------------------------------------------------- */
+
+void CommTiled::box_drop_nonuniform(int dim, double *lo, double *hi, 
+                                    int &noverlap, int *overlap, int &indexme)
+{
+}
+
+/* ----------------------------------------------------------------------
+   determine overlap list of Noverlap procs the lo/hi box overlaps
+   overlap = non-zero area in common between box and proc sub-domain
+   recursive routine for traversing an RCB tree of cuts
+------------------------------------------------------------------------- */
+
+void CommTiled::box_drop_tiled(double *lo, double *hi, 
+                               int proclower, int procupper,
+                               int &noverlap, int *overlap, int &indexme)
+{
+  // end recursion when partition is a single proc
+  // add proc to overlap list
+
+  if (proclower == procupper) {
+    if (proclower == me) indexme = noverlap;
+    overlap[noverlap++] = proclower;
+    return;
+  }
+
+  // drop box on each side of cut it extends beyond
+  // use > and < criteria to not include procs it only touches
+  // procmid = 1st processor in upper half of partition
+  //         = location in tree that stores this cut
+  // dim = 0,1,2 dimension of cut
+  // cut = position of cut
+
+  int procmid = proclower + (procupper - proclower) / 2 + 1;
+  double cut = tree[procmid].cut;
+  int dim = tree[procmid].dim;
+  
+  if (lo[dim] < cut) 
+    box_drop_tiled(lo,hi,proclower,procmid-1,noverlap,overlap,indexme);
+  if (hi[dim] > cut)
+    box_drop_tiled(lo,hi,procmid,procupper,noverlap,overlap,indexme);
+}
+
+/* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR and bufextra
    if flag = 1, realloc
    if flag = 0, don't need to realloc with copy, just free/malloc
@@ -823,6 +1154,42 @@ void CommTiled::grow_list(int iswap, int iwhich, int n)
   maxsendlist[iswap][iwhich] = static_cast<int> (BUFFACTOR * n);
   memory->grow(sendlist[iswap][iwhich],maxsendlist[iswap][iwhich],
                "comm:sendlist[iswap]");
+}
+
+/* ----------------------------------------------------------------------
+   allocation of swap info
+------------------------------------------------------------------------- */
+
+void CommTiled::allocate_swap(int n)
+{
+  memory->create(sendnum,n,"comm:sendnum");
+  memory->create(recvnum,n,"comm:recvnum");
+  memory->create(sendproc,n,"comm:sendproc");
+  memory->create(recvproc,n,"comm:recvproc");
+  memory->create(size_forward_recv,n,"comm:size");
+  memory->create(size_reverse_send,n,"comm:size");
+  memory->create(size_reverse_recv,n,"comm:size");
+  memory->create(firstrecv,n,"comm:firstrecv");
+  memory->create(pbc_flag,n,"comm:pbc_flag");
+  memory->create(pbc,n,6,"comm:pbc");
+}
+
+/* ----------------------------------------------------------------------
+   free memory for swaps
+------------------------------------------------------------------------- */
+
+void CommTiled::free_swap()
+{
+  memory->destroy(sendnum);
+  memory->destroy(recvnum);
+  memory->destroy(sendproc);
+  memory->destroy(recvproc);
+  memory->destroy(size_forward_recv);
+  memory->destroy(size_reverse_send);
+  memory->destroy(size_reverse_recv);
+  memory->destroy(firstrecv);
+  memory->destroy(pbc_flag);
+  memory->destroy(pbc);
 }
 
 /* ----------------------------------------------------------------------

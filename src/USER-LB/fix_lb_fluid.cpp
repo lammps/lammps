@@ -88,6 +88,10 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
 
   if(narg <7) error->all(FLERR,"Illegal fix lb/fluid command");
 
+  if (comm->style != 0) 
+    error->universe_all(FLERR,"Fix lb/fluid can only currently be used with "
+                        "comm_style brick");
+
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
@@ -567,8 +571,11 @@ int FixLbFluid::setmask()
 
 void FixLbFluid::init(void)
 {
-  
   int i,j;
+
+  if (comm->style != 0) 
+    error->universe_all(FLERR,"Fix lb/fluid can only currently be used with "
+                        "comm_style brick");
 
   //--------------------------------------------------------------------------
   // Check to see if the MD timestep has changed between runs.

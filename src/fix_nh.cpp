@@ -2271,3 +2271,14 @@ void FixNH::pre_exchange()
     domain->lamda2x(atom->nlocal);
   }
 }
+
+/* ----------------------------------------------------------------------
+   memory usage of Irregular
+------------------------------------------------------------------------- */
+
+double FixNH::memory_usage()
+{
+  double bytes = 0.0;
+  if (irregular) bytes += irregular->memory_usage();
+  return bytes;
+}

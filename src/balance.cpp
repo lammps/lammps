@@ -21,6 +21,7 @@
 #include "balance.h"
 #include "atom.h"
 #include "comm.h"
+#include "rcb.h"
 #include "irregular.h"
 #include "domain.h"
 #include "force.h"
@@ -30,9 +31,10 @@
 
 using namespace LAMMPS_NS;
 
-enum{XYZ,SHIFT,RCB};
+enum{XYZ,SHIFT,BISECTION};
 enum{NONE,UNIFORM,USER};
 enum{X,Y,Z};
+enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -46,6 +48,8 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
 
   user_xsplit = user_ysplit = user_zsplit = NULL;
   shift_allocate = 0;
+
+  rcb = NULL;
 
   fp = NULL;
   firststep = 1;
@@ -73,6 +77,8 @@ Balance::~Balance()
     delete [] losum;
     delete [] hisum;
   }
+
+  delete rcb;
 
   if (fp) fclose(fp);
 }
@@ -176,7 +182,7 @@ void Balance::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"rcb") == 0) {
       if (style != -1) error->all(FLERR,"Illegal balance command");
-      style = RCB;
+      style = BISECTION;
       iarg++;
 
     } else break;
@@ -232,6 +238,9 @@ void Balance::command(int narg, char **arg)
     }
   }
 
+  if (style == BISECTION && comm->style == 0) 
+    error->all(FLERR,"Balance rcb cannot be used with comm_style brick");
+
   // insure atoms are in current box & update box via shrink-wrap
   // init entire system since comm->setup is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
@@ -251,8 +260,10 @@ void Balance::command(int narg, char **arg)
   double imbinit = imbalance_nlocal(maxinit);
 
   // no load-balance if imbalance doesn't exceed threshhold
+  // unless switching from tiled to non tiled layout, then force rebalance
 
-  if (imbinit < thresh) return;
+  if (comm->layout == LAYOUT_TILED && style != BISECTION) {
+  } else if (imbinit < thresh) return;
 
   // debug output of initial state
 
@@ -262,80 +273,65 @@ void Balance::command(int narg, char **arg)
 
   int niter = 0;
 
-  // NOTE: if using XYZ or SHIFT and current partition is TILING,
-  //   then need to create initial BRICK partition before performing LB
-
   // perform load-balance
   // style XYZ = explicit setting of cutting planes of logical 3d grid
 
   if (style == XYZ) {
+    if (comm->layout == LAYOUT_UNIFORM) {
+      if (xflag == USER || yflag == USER || zflag == USER)
+        comm->layout == LAYOUT_NONUNIFORM;
+    } else if (comm->style == LAYOUT_NONUNIFORM) {
+      if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
+        comm->layout == LAYOUT_UNIFORM;
+    } else if (comm->style == LAYOUT_TILED) {
+      if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
+        comm->layout == LAYOUT_UNIFORM;
+      else comm->layout == LAYOUT_NONUNIFORM;
+    }
+
     if (xflag == UNIFORM) {
       for (int i = 0; i < procgrid[0]; i++)
         comm->xsplit[i] = i * 1.0/procgrid[0];
       comm->xsplit[procgrid[0]] = 1.0;
-    }
+    } else if (xflag == USER)
+      for (int i = 0; i <= procgrid[0]; i++) comm->xsplit[i] = user_xsplit[i];
 
     if (yflag == UNIFORM) {
       for (int i = 0; i < procgrid[1]; i++)
         comm->ysplit[i] = i * 1.0/procgrid[1];
       comm->ysplit[procgrid[1]] = 1.0;
-    }
+    } else if (yflag == USER)
+      for (int i = 0; i <= procgrid[1]; i++) comm->ysplit[i] = user_ysplit[i];
 
     if (zflag == UNIFORM) {
       for (int i = 0; i < procgrid[2]; i++)
         comm->zsplit[i] = i * 1.0/procgrid[2];
       comm->zsplit[procgrid[2]] = 1.0;
-    }
-
-    if (xflag == USER)
-      for (int i = 0; i <= procgrid[0]; i++) comm->xsplit[i] = user_xsplit[i];
-
-    if (yflag == USER)
-      for (int i = 0; i <= procgrid[1]; i++) comm->ysplit[i] = user_ysplit[i];
-
-    if (zflag == USER)
+    } else if (zflag == USER)
       for (int i = 0; i <= procgrid[2]; i++) comm->zsplit[i] = user_zsplit[i];
   }
 
   // style SHIFT = adjust cutting planes of logical 3d grid
 
   if (style == SHIFT) {
-    static_setup(bstr);
+    comm->layout = LAYOUT_NONUNIFORM;
+    shift_setup_static(bstr);
     niter = shift();
   }
 
-  // style RCB = 
+  // style BISECTION = recursive coordinate bisectioning
 
-  if (style == RCB) {
-    error->all(FLERR,"Balance rcb is not yet supported");
-
-    if (comm->style == 0) 
-      error->all(FLERR,"Cannot use balance rcb with comm_style brick");
+  if (style == BISECTION) {
+    comm->layout = LAYOUT_TILED;
+    bisection(1);
   }
 
   // output of final result
 
   if (outflag && me == 0) dumpout(update->ntimestep,fp);
 
-  // reset comm->uniform flag if necessary
-
-  if (comm->uniform) {
-    if (style == SHIFT) comm->uniform = 0;
-    if (style == XYZ && xflag == USER) comm->uniform = 0;
-    if (style == XYZ && yflag == USER) comm->uniform = 0;
-    if (style == XYZ && zflag == USER) comm->uniform = 0;
-  } else {
-    if (dimension == 3) {
-      if (style == XYZ && 
-          xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
-        comm->uniform = 1;
-    } else {
-      if (style == XYZ && xflag == UNIFORM && yflag == UNIFORM)
-        comm->uniform = 1;
-    }
-  }
-
   // reset proc sub-domains
+  // for either brick or tiled comm style
 
   if (domain->triclinic) domain->set_lamda_box();
   domain->set_local_box();
@@ -344,7 +340,8 @@ void Balance::command(int narg, char **arg)
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   Irregular *irregular = new Irregular(lmp);
-  irregular->migrate_atoms(1);
+  if (style == BISECTION) irregular->migrate_atoms(1,rcb->sendproc);
+  else irregular->migrate_atoms(1);
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
@@ -382,34 +379,36 @@ void Balance::command(int narg, char **arg)
     }
   }
 
-  if (me == 0) {
-    if (screen) {
-      fprintf(screen,"  x cuts:");
-      for (int i = 0; i <= comm->procgrid[0]; i++)
-        fprintf(screen," %g",comm->xsplit[i]);
-      fprintf(screen,"\n");
-      fprintf(screen,"  y cuts:");
-      for (int i = 0; i <= comm->procgrid[1]; i++)
-        fprintf(screen," %g",comm->ysplit[i]);
-      fprintf(screen,"\n");
-      fprintf(screen,"  z cuts:");
-      for (int i = 0; i <= comm->procgrid[2]; i++)
-        fprintf(screen," %g",comm->zsplit[i]);
-      fprintf(screen,"\n");
-    }
-    if (logfile) {
-      fprintf(logfile,"  x cuts:");
-      for (int i = 0; i <= comm->procgrid[0]; i++)
-        fprintf(logfile," %g",comm->xsplit[i]);
-      fprintf(logfile,"\n");
-      fprintf(logfile,"  y cuts:");
-      for (int i = 0; i <= comm->procgrid[1]; i++)
-        fprintf(logfile," %g",comm->ysplit[i]);
-      fprintf(logfile,"\n");
-      fprintf(logfile,"  z cuts:");
-      for (int i = 0; i <= comm->procgrid[2]; i++)
-        fprintf(logfile," %g",comm->zsplit[i]);
-      fprintf(logfile,"\n");
+  if (style != BISECTION) {
+    if (me == 0) {
+      if (screen) {
+        fprintf(screen,"  x cuts:");
+        for (int i = 0; i <= comm->procgrid[0]; i++)
+          fprintf(screen," %g",comm->xsplit[i]);
+        fprintf(screen,"\n");
+        fprintf(screen,"  y cuts:");
+        for (int i = 0; i <= comm->procgrid[1]; i++)
+          fprintf(screen," %g",comm->ysplit[i]);
+        fprintf(screen,"\n");
+        fprintf(screen,"  z cuts:");
+        for (int i = 0; i <= comm->procgrid[2]; i++)
+          fprintf(screen," %g",comm->zsplit[i]);
+        fprintf(screen,"\n");
+      }
+      if (logfile) {
+        fprintf(logfile,"  x cuts:");
+        for (int i = 0; i <= comm->procgrid[0]; i++)
+          fprintf(logfile," %g",comm->xsplit[i]);
+        fprintf(logfile,"\n");
+        fprintf(logfile,"  y cuts:");
+        for (int i = 0; i <= comm->procgrid[1]; i++)
+          fprintf(logfile," %g",comm->ysplit[i]);
+        fprintf(logfile,"\n");
+        fprintf(logfile,"  z cuts:");
+        for (int i = 0; i <= comm->procgrid[2]; i++)
+          fprintf(logfile," %g",comm->zsplit[i]);
+        fprintf(logfile,"\n");
+      }
     }
   }
 }
@@ -468,12 +467,51 @@ double Balance::imbalance_splits(int &max)
 }
 
 /* ----------------------------------------------------------------------
+   perform balancing via RCB class
+   sortflag = flag for sorting order of received messages by proc ID
+------------------------------------------------------------------------- */
+
+int *Balance::bisection(int sortflag)
+{
+  if (!rcb) rcb = new RCB(lmp);
+
+  // NOTE: lo/hi args could be simulation box or particle bounding box
+  // NOTE: triclinic needs to be in lamda coords
+
+  int dim = domain->dimension;
+  double *boxlo = domain->boxlo;
+  double *boxhi = domain->boxhi;
+  double *prd = domain->prd;
+
+  rcb->compute(dim,atom->nlocal,atom->x,NULL,boxlo,boxhi);
+  rcb->invert(sortflag);
+  
+  // NOTE: this logic is specific to orthogonal boxes, not triclinic
+
+  double (*mysplit)[2] = comm->mysplit;
+  
+  mysplit[0][0] = (rcb->lo[0] - boxlo[0]) / prd[0];
+  if (rcb->hi[0] == boxhi[0]) mysplit[0][1] = 1.0;
+  else mysplit[0][1] = (rcb->hi[0] - boxlo[0]) / prd[0];
+  
+  mysplit[1][0] = (rcb->lo[1] - boxlo[1]) / prd[1];
+  if (rcb->hi[1] == boxhi[1]) mysplit[1][1] = 1.0;
+  else mysplit[1][1] = (rcb->hi[1] - boxlo[1]) / prd[1];
+  
+  mysplit[2][0] = (rcb->lo[2] - boxlo[2]) / prd[2];
+  if (rcb->hi[2] == boxhi[2]) mysplit[2][1] = 1.0;
+  else mysplit[2][1] = (rcb->hi[2] - boxlo[2]) / prd[2];
+
+  return rcb->sendproc;
+}
+
+/* ----------------------------------------------------------------------
    setup static load balance operations
-   called from command
+   called from command and indirectly initially from fix balance
    set rho = 0 for static balancing
 ------------------------------------------------------------------------- */
 
-void Balance::static_setup(char *str)
+void Balance::shift_setup_static(char *str)
 {
   shift_allocate = 1;
 
@@ -498,21 +536,35 @@ void Balance::static_setup(char *str)
   losum = new bigint[max+1];
   hisum = new bigint[max+1];
 
+  // if current layout is TILED, set initial uniform splits in Comm
+  // this gives starting point to subsequent shift balancing
+
+  if (comm->layout == LAYOUT_TILED) {
+    int *procgrid = comm->procgrid;
+    double *xsplit = comm->xsplit;
+    double *ysplit = comm->ysplit;
+    double *zsplit = comm->zsplit;
+
+    for (int i = 0; i < procgrid[0]; i++) xsplit[i] = i * 1.0/procgrid[0];
+    for (int i = 0; i < procgrid[1]; i++) ysplit[i] = i * 1.0/procgrid[1];
+    for (int i = 0; i < procgrid[2]; i++) zsplit[i] = i * 1.0/procgrid[2];
+    xsplit[procgrid[0]] = ysplit[procgrid[1]] = zsplit[procgrid[2]] = 1.0;
+  }
+
   rho = 0;
 }
 
 /* ----------------------------------------------------------------------
    setup shift load balance operations
    called from fix balance
-   set rho = 1 for shift balancing after call to shift_setup()
+   set rho = 1 to do dynamic balancing after call to shift_setup_static()
 ------------------------------------------------------------------------- */
 
 void Balance::shift_setup(char *str, int nitermax_in, double thresh_in)
 {
-  static_setup(str);
+  shift_setup_static(str);
   nitermax = nitermax_in;
   stopthresh = thresh_in;
-
   rho = 1;
 }
 
@@ -525,7 +577,7 @@ void Balance::shift_setup(char *str, int nitermax_in, double thresh_in)
 int Balance::shift()
 {
   int i,j,k,m,np,max;
-  double *split = NULL;
+  double *split;
 
   // no balancing if no atoms
 
@@ -590,7 +642,7 @@ int Balance::shift()
     // iterate until balanced
 
 #ifdef BALANCE_DEBUG
-    if (me == 0) debug_output(idim,0,np,split);
+    if (me == 0) debug_shift_output(idim,0,np,split);
 #endif
 
     int doneflag;
@@ -601,7 +653,7 @@ int Balance::shift()
       niter++;
 
 #ifdef BALANCE_DEBUG
-      if (me == 0) debug_output(idim,m+1,np,split);
+      if (me == 0) debug_shift_output(idim,m+1,np,split);
       if (me == 0 && fp) dumpout(update->ntimestep,fp);
 #endif
 
@@ -827,7 +879,7 @@ void Balance::dumpout(bigint tstep, FILE *bfp)
 
     int nx = comm->procgrid[0] + 1;
     int ny = comm->procgrid[1] + 1;
-    //int nz = comm->procgrid[2] + 1;
+    int nz = comm->procgrid[2] + 1;
 
     if (dimension == 2) {
       int m = 0;
@@ -914,7 +966,7 @@ void Balance::dumpout(bigint tstep, FILE *bfp)
 ------------------------------------------------------------------------- */
 
 #ifdef BALANCE_DEBUG
-void Balance::debug_output(int idim, int m, int np, double *split)
+void Balance::debug_shift_output(int idim, int m, int np, double *split)
 {
   int i;
   const char *dim = NULL;

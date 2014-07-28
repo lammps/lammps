@@ -22,6 +22,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "comm_brick.h"
+#include "comm_tiled.h"
 #include "universe.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -52,58 +53,57 @@ using namespace LAMMPS_NS;
 #define BIG 1.0e20
 
 enum{SINGLE,MULTI};               // same as in Comm
+enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
 CommBrick::CommBrick(LAMMPS *lmp) : Comm(lmp)
 {
-  style = layout = 0;
+  style = 0;
+  layout = LAYOUT_UNIFORM;
+  init_buffers();
+}
 
-  recv_from_partition = send_to_partition = -1;
-  otherflag = 0;
+/* ---------------------------------------------------------------------- */
 
-  grid2proc = NULL;
+CommBrick::~CommBrick()
+{
+  free_swap();
+  if (mode == MULTI) {
+    free_multi();
+    memory->destroy(cutghostmulti);
+  }
 
-  uniform = 1;
+  if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
+  memory->sfree(sendlist);
+  memory->destroy(maxsendlist);
+
+  memory->destroy(buf_send);
+  memory->destroy(buf_recv);
+}
+
+/* ---------------------------------------------------------------------- */
+
+CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
+{
+  if (oldcomm->layout == LAYOUT_TILED)
+    error->all(FLERR,"Cannot change to comm_style brick from tiled layout");
+
+  style = 0;
+  layout = oldcomm->layout;
+  copy_arrays(oldcomm);
+  init_buffers();
+}
+
+/* ----------------------------------------------------------------------
+   initialize comm buffers and other data structs local to CommBrick
+------------------------------------------------------------------------- */
+
+void CommBrick::init_buffers()
+{
   multilo = multihi = NULL;
   cutghostmulti = NULL;
 
-  // use of OpenMP threads
-  // query OpenMP for number of threads/process set by user at run-time
-  // if the OMP_NUM_THREADS environment variable is not set, we default
-  // to using 1 thread. This follows the principle of the least surprise,
-  // while practically all OpenMP implementations violate it by using
-  // as many threads as there are (virtual) CPU cores by default.
-
-  nthreads = 1;
-#ifdef _OPENMP
-  if (lmp->kokkos) {
-    nthreads = lmp->kokkos->num_threads * lmp->kokkos->numa;
-  } else if (getenv("OMP_NUM_THREADS") == NULL) {
-    nthreads = 1;
-    if (me == 0)
-      error->warning(FLERR,"OMP_NUM_THREADS environment is not set.");
-  } else {
-    nthreads = omp_get_max_threads();
-  }
-
-  // enforce consistent number of threads across all MPI tasks
-
-  MPI_Bcast(&nthreads,1,MPI_INT,0,world);
-  if (!lmp->kokkos) omp_set_num_threads(nthreads);
-
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,"  using %d OpenMP thread(s) per MPI task\n",nthreads);
-    if (logfile)
-      fprintf(logfile,"  using %d OpenMP thread(s) per MPI task\n",nthreads);
-  }
-#endif
-
-  // initialize comm buffers & exchange memory
-  // NOTE: allow for AtomVec to set maxexchange_atom, e.g. for atom_style body
-
-  maxexchange_atom = maxexchange_fix = 0;
   maxexchange = maxexchange_atom + maxexchange_fix;
   bufextra = maxexchange + BUFEXTRA;
 
@@ -121,26 +121,6 @@ CommBrick::CommBrick(LAMMPS *lmp) : Comm(lmp)
     maxsendlist[i] = BUFMIN;
     memory->create(sendlist[i],BUFMIN,"comm:sendlist[i]");
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-CommBrick::~CommBrick()
-{
-  memory->destroy(grid2proc);
-
-  free_swap();
-  if (mode == MULTI) {
-    free_multi();
-    memory->destroy(cutghostmulti);
-  }
-
-  if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
-  memory->sfree(sendlist);
-  memory->destroy(maxsendlist);
-
-  memory->destroy(buf_send);
-  memory->destroy(buf_recv);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -280,12 +260,12 @@ void CommBrick::setup()
   //   0 = to left, 1 = to right
   //   set equal to recvneed[idim][1/0] of neighbor proc
   // maxneed[idim] = max procs away any proc recvs atoms in either direction
-  // uniform = 1 = uniform sized sub-domains:
+  // layout = UNIFORM = uniform sized sub-domains:
   //   maxneed is directly computable from sub-domain size
   //     limit to procgrid-1 for non-PBC
   //   recvneed = maxneed except for procs near non-PBC
   //   sendneed = recvneed of neighbor on each side
-  // uniform = 0 = non-uniform sized sub-domains:
+  // layout = NONUNIFORM = non-uniform sized sub-domains:
   //   compute recvneed via updown() which accounts for non-PBC
   //   sendneed = recvneed of neighbor on each side
   //   maxneed via Allreduce() of recvneed
@@ -293,7 +273,7 @@ void CommBrick::setup()
   int *periodicity = domain->periodicity;
   int left,right;
 
-  if (uniform) {
+  if (layout == LAYOUT_UNIFORM) {
     maxneed[0] = static_cast<int> (cutghost[0] * procgrid[0] / prd[0]) + 1;
     maxneed[1] = static_cast<int> (cutghost[1] * procgrid[1] / prd[1]) + 1;
     maxneed[2] = static_cast<int> (cutghost[2] * procgrid[2] / prd[2]) + 1;
@@ -561,16 +541,15 @@ void CommBrick::forward_comm(int dummy)
     } else {
       if (comm_x_only) {
         if (sendnum[iswap])
-          n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-                              x[firstrecv[iswap]],pbc_flag[iswap],
-                              pbc[iswap]);
+          avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                          x[firstrecv[iswap]],pbc_flag[iswap],pbc[iswap]);
       } else if (ghost_velocity) {
-        n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
-                                buf_send,pbc_flag[iswap],pbc[iswap]);
+        avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
+                            buf_send,pbc_flag[iswap],pbc[iswap]);
         avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_send);
       } else {
-        n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
-                            buf_send,pbc_flag[iswap],pbc[iswap]);
+        avec->pack_comm(sendnum[iswap],sendlist[iswap],
+                        buf_send,pbc_flag[iswap],pbc[iswap]);
         avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_send);
       }
     }
@@ -620,10 +599,10 @@ void CommBrick::reverse_comm()
     } else {
       if (comm_f_only) {
         if (sendnum[iswap])
-            avec->unpack_reverse(sendnum[iswap],sendlist[iswap],
-                                f[firstrecv[iswap]]);
+          avec->unpack_reverse(sendnum[iswap],sendlist[iswap],
+                               f[firstrecv[iswap]]);
       } else {
-        n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
+        avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
         avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_send);
       }
     }

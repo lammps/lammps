@@ -39,6 +39,7 @@ class FixNH : public Fix {
   void reset_target(double);
   void reset_dt();
   virtual void *extract(const char*,int &);
+  double memory_usage();
 
  protected:
   int dimension,which;

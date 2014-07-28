@@ -47,23 +47,93 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   gridflag = ONELEVEL;
   mapflag = CART;
   customfile = NULL;
+  outfile = NULL;
   recv_from_partition = send_to_partition = -1;
   otherflag = 0;
-  outfile = NULL;
+  maxexchange_atom = maxexchange_fix = 0;
 
+  grid2proc = NULL;
   xsplit = ysplit = zsplit = NULL;
+
+  // use of OpenMP threads
+  // query OpenMP for number of threads/process set by user at run-time
+  // if the OMP_NUM_THREADS environment variable is not set, we default
+  // to using 1 thread. This follows the principle of the least surprise,
+  // while practically all OpenMP implementations violate it by using
+  // as many threads as there are (virtual) CPU cores by default.
+
+  nthreads = 1;
+#ifdef _OPENMP
+  if (lmp->kokkos) {
+    nthreads = lmp->kokkos->num_threads * lmp->kokkos->numa;
+  } else if (getenv("OMP_NUM_THREADS") == NULL) {
+    nthreads = 1;
+    if (me == 0)
+      error->warning(FLERR,"OMP_NUM_THREADS environment is not set.");
+  } else {
+    nthreads = omp_get_max_threads();
+  }
+
+  // enforce consistent number of threads across all MPI tasks
+
+  MPI_Bcast(&nthreads,1,MPI_INT,0,world);
+  if (!lmp->kokkos) omp_set_num_threads(nthreads);
+
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,"  using %d OpenMP thread(s) per MPI task\n",nthreads);
+    if (logfile)
+      fprintf(logfile,"  using %d OpenMP thread(s) per MPI task\n",nthreads);
+  }
+#endif
+
 }
 
 /* ---------------------------------------------------------------------- */
 
 Comm::~Comm()
 {
+  memory->destroy(grid2proc);
   memory->destroy(xsplit);
   memory->destroy(ysplit);
   memory->destroy(zsplit);
-
   delete [] customfile;
   delete [] outfile;
+}
+
+/* ----------------------------------------------------------------------
+   deep copy of arrays from old Comm class to new one
+   all public/protected vectors/arrays in parent Comm class must be copied
+   called from alternate constructor of child classes
+   when new comm style is created from Input
+------------------------------------------------------------------------- */
+
+void Comm::copy_arrays(Comm *oldcomm)
+{
+  if (oldcomm->grid2proc) {
+    memory->create(grid2proc,procgrid[0],procgrid[1],procgrid[2],
+                   "comm:grid2proc");
+    memcpy(&grid2proc[0][0][0],&oldcomm->grid2proc[0][0][0],
+           (procgrid[0]*procgrid[1]*procgrid[2])*sizeof(int));
+    
+    memory->create(xsplit,procgrid[0]+1,"comm:xsplit");
+    memory->create(ysplit,procgrid[1]+1,"comm:ysplit");
+    memory->create(zsplit,procgrid[2]+1,"comm:zsplit");
+    memcpy(xsplit,oldcomm->xsplit,(procgrid[0]+1)*sizeof(double));
+    memcpy(ysplit,oldcomm->ysplit,(procgrid[1]+1)*sizeof(double));
+    memcpy(zsplit,oldcomm->zsplit,(procgrid[2]+1)*sizeof(double));
+  }
+
+  if (customfile) {
+    int n = strlen(oldcomm->customfile) + 1;
+    customfile = new char[n];
+    strcpy(customfile,oldcomm->customfile);
+  }
+  if (outfile) {
+    int n = strlen(oldcomm->outfile) + 1;
+    outfile = new char[n];
+    strcpy(outfile,oldcomm->outfile);
+  }
 }
 
 /* ----------------------------------------------------------------------

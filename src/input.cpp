@@ -1159,19 +1159,15 @@ void Input::comm_style()
 {
   if (narg < 1) error->all(FLERR,"Illegal comm_style command");
   if (strcmp(arg[0],"brick") == 0) {
-    if (comm->layout)
-      error->all(FLERR,
-                 "Cannot switch to comm style brick from "
-                 "irregular tiling of proc domains");
-    comm = new CommBrick(lmp);
-    // NOTE: this will lose load balancing info in old CommBrick
-    if (domain->box_exist) {
-      comm->set_proc_grid();
-      domain->set_local_box();
-    }
+    if (comm->style == 0) return;
+    Comm *oldcomm = comm;
+    comm = new CommBrick(lmp,oldcomm);
+    delete oldcomm;
   } else if (strcmp(arg[0],"tiled") == 0) {
-    error->all(FLERR,"Comm_style tiled not yet supported");
-    comm = new CommTiled(lmp);
+    if (comm->style == 1) return;
+    Comm *oldcomm = comm;
+    comm = new CommTiled(lmp,oldcomm);
+    delete oldcomm;
   } else error->all(FLERR,"Illegal comm_style command");
 }
 

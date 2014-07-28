@@ -22,12 +22,14 @@
 #include "irregular.h"
 #include "force.h"
 #include "kspace.h"
+#include "rcb.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{SHIFT,RCB};
+enum{SHIFT,BISECTION};
+enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,7 +55,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   thresh = force->numeric(FLERR,arg[4]);
 
   if (strcmp(arg[5],"shift") == 0) lbstyle = SHIFT;
-  else if (strcmp(arg[5],"rcb") == 0) lbstyle = RCB;
+  else if (strcmp(arg[5],"rcb") == 0) lbstyle = BISECTION;
   else error->all(FLERR,"Illegal fix balance command");
 
   int iarg = 5;
@@ -65,7 +67,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
     stopthresh = force->numeric(FLERR,arg[iarg+3]);
     if (stopthresh < 1.0) error->all(FLERR,"Illegal fix balance command");
     iarg += 4;
-  } else if (lbstyle == RCB) {
+  } else if (lbstyle == BISECTION) {
     iarg++;
   }
 
@@ -97,14 +99,16 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // create instance of Balance class and initialize it with params
-  // NOTE: do I need Balance instance if RCB?
-  // create instance of Irregular class
+  if (lbstyle == BISECTION && comm->style == 0) 
+    error->all(FLERR,"Fix balance rcb cannot be used with comm_style brick");
+
+  // create instance of Balance class
+  // if SHIFT, initialize it with params
 
   balance = new Balance(lmp);
-
   if (lbstyle == SHIFT) balance->shift_setup(bstr,nitermax,thresh);
-  if (lbstyle == RCB) error->all(FLERR,"Fix balance rcb is not yet supported");
+
+  // create instance of Irregular class
 
   irregular = new Irregular(lmp);
 
@@ -238,32 +242,33 @@ void FixBalance::rebalance()
 {
   imbprev = imbnow;
 
+  // invoke balancer and reset comm->uniform flag
+
+  int *sendproc;
   if (lbstyle == SHIFT) {
     itercount = balance->shift();
-  } else if (lbstyle == RCB) {
+    comm->layout = LAYOUT_NONUNIFORM;
+  } else if (lbstyle == BISECTION) {
+    sendproc = balance->bisection();
+    comm->layout = LAYOUT_TILED;
   }
 
   // output of final result
 
   if (fp) balance->dumpout(update->ntimestep,fp);
 
-  // reset comm->uniform flag
-  // NOTE: this needs to change with RCB
-
-  comm->uniform = 0;
-
   // reset proc sub-domains
 
   if (domain->triclinic) domain->set_lamda_box();
   domain->set_local_box();
 
-  // if splits moved further than neighboring processor
   // move atoms to new processors via irregular()
-  // only needed if migrate_check() says an atom moves to far,
+  // only needed if migrate_check() says an atom moves to far
   // else allow caller's comm->exchange() to do it
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  if (irregular->migrate_check()) irregular->migrate_atoms();
+  if (lbstyle == BISECTION) irregular->migrate_atoms(0,sendproc);
+  else if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // invoke KSpace setup_grid() to adjust to new proc sub-domains
@@ -303,5 +308,6 @@ double FixBalance::compute_vector(int i)
 double FixBalance::memory_usage()
 {
   double bytes = irregular->memory_usage();
+  if (balance->rcb) bytes += balance->rcb->memory_usage();
   return bytes;
 }

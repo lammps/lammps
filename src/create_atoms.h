@@ -35,6 +35,10 @@ class CreateAtoms : protected Pointers {
   double xone[3];
   int remapflag;
 
+  int varflag,vvar,xvar,yvar,zvar;
+  char *vstr,*xstr,*ystr,*zstr;
+  char *xstr_copy,*ystr_copy,*zstr_copy;
+
   class Molecule *onemol;
   class RanMars *ranmol;
 
@@ -45,6 +49,7 @@ class CreateAtoms : protected Pointers {
   void add_random();
   void add_lattice();
   void add_molecule(double *);
+  int vartest(double *);        // evaluate a variable with new atom position
 };
 
 }

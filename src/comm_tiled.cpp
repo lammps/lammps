@@ -54,6 +54,8 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 
 CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
+  error->all(FLERR,"Comm_style tiled is not yet supported");
+
   style = 1;
   layout = oldcomm->layout;
   copy_arrays(oldcomm);

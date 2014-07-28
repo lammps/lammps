@@ -375,7 +375,6 @@ void Variable::set(int narg, char **arg)
       if (style[ivar] != EQUAL)
         error->all(FLERR,"Cannot redefine variable as a different style");
       delete [] data[ivar][0];
-      if (data[ivar][1]) delete [] data[ivar][1];
       copy(1,&arg[2],data[ivar]);
       replaceflag = 1;
     } else {
@@ -387,6 +386,7 @@ void Variable::set(int narg, char **arg)
       data[nvar] = new char*[num[nvar]];
       copy(1,&arg[2],data[nvar]);
       data[nvar][1] = new char[VALUELENGTH];
+      printf("AAA %d %s %p\n",nvar,data[nvar][0],data[nvar][1]);
     }
 
   // ATOM

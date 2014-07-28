@@ -24,6 +24,10 @@
 #include "memory.h"
 #include "error.h"
 
+#ifdef _OPENMP
+#include "omp.h"
+#endif
+
 using namespace LAMMPS_NS;
 
 enum{SINGLE,MULTI};             // same as in Comm sub-styles

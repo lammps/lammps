@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
+#include "stdlib.h"
 #include "string.h"
 #include "comm.h"
 #include "universe.h"

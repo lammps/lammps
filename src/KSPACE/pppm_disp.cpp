@@ -213,6 +213,9 @@ void PPPMDisp::init()
   triclinic_check();
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
+  if (comm->style != 0) 
+    error->universe_all(FLERR,"PPPMDisp can only currently be used with "
+                        "comm_style brick");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use nonperiodic boundaries with PPPMDisp");

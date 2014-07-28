@@ -44,6 +44,7 @@ using namespace MathConst;
 #define MAXLEVEL 4
 #define MAXLINE 256
 #define CHUNK 1024
+#define VALUELENGTH 64
 
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
@@ -306,7 +307,7 @@ void Variable::set(int narg, char **arg)
     pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
-    data[nvar][1] = NULL;
+    data[nvar][1] = new char[VALUELENGTH];
 
   // SCALARFILE for strings or numbers
   // which = 1st value
@@ -360,7 +361,7 @@ void Variable::set(int narg, char **arg)
     pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(2,&arg[2],data[nvar]);
-    data[nvar][2] = NULL;
+    data[nvar][2] = new char[VALUELENGTH];
 
   // EQUAL
   // replace pre-existing var if also style EQUAL (allows it to be reset)
@@ -376,7 +377,6 @@ void Variable::set(int narg, char **arg)
       delete [] data[ivar][0];
       if (data[ivar][1]) delete [] data[ivar][1];
       copy(1,&arg[2],data[ivar]);
-      data[ivar][1] = NULL;
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -386,7 +386,7 @@ void Variable::set(int narg, char **arg)
       pad[nvar] = 0;
       data[nvar] = new char*[num[nvar]];
       copy(1,&arg[2],data[nvar]);
-      data[nvar][1] = NULL;
+      data[nvar][1] = new char[VALUELENGTH];
     }
 
   // ATOM
@@ -625,32 +625,24 @@ char *Variable::retrieve(char *name)
     strcpy(data[ivar][0],result);
     str = data[ivar][0];
   } else if (style[ivar] == EQUAL) {
-    char result[64];
     double answer = evaluate(data[ivar][0],NULL);
-    sprintf(result,"%.15g",answer);
-    int n = strlen(result) + 1;
-    if (data[ivar][1]) delete [] data[ivar][1];
-    data[ivar][1] = new char[n];
-    strcpy(data[ivar][1],result);
+    sprintf(data[ivar][1],"%.15g",answer);
     str = data[ivar][1];
   } else if (style[ivar] == FORMAT) {
-    char result[64];
     int jvar = find(data[ivar][0]);
     if (jvar == -1) return NULL;
     if (!equalstyle(jvar)) return NULL;
     double answer = evaluate(data[jvar][0],NULL);
-    sprintf(result,data[ivar][1],answer);
-    int n = strlen(result) + 1;
-    if (data[ivar][2]) delete [] data[ivar][2];
-    data[ivar][2] = new char[n];
-    strcpy(data[ivar][2],result);
+    sprintf(data[ivar][2],data[ivar][1],answer);
     str = data[ivar][2];
   } else if (style[ivar] == GETENV) {
     const char *result = getenv(data[ivar][0]);
-    if (data[ivar][1]) delete [] data[ivar][1];
-    if (result == NULL) result = (const char *)"";
+    if (result == NULL) result = (const char *) "";
     int n = strlen(result) + 1;
-    data[ivar][1] = new char[n];
+    if (n > VALUELENGTH) {
+      delete [] data[ivar][1];
+      data[ivar][1] = new char[n];
+    }
     strcpy(data[ivar][1],result);
     str = data[ivar][1];
   } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE) return NULL;
@@ -780,6 +772,45 @@ int Variable::atomstyle(int ivar)
 {
   if (style[ivar] == ATOM || style[ivar] == ATOMFILE) return 1;
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   save copy of EQUAL style ivar formula in copy
+   allocate copy here, later equal_restore() call will free it
+   insure data[ivar][0] is of VALUELENGTH since will be overridden
+------------------------------------------------------------------------- */
+
+void Variable::equal_save(int ivar, char *&copy)
+{
+  int n = strlen(data[ivar][0]) + 1;
+  copy = new char[n];
+  strcpy(copy,data[ivar][0]);
+  delete [] data[ivar][0];
+  data[ivar][0] = new char[VALUELENGTH];
+}
+
+/* ----------------------------------------------------------------------
+   restore formula string of EQUAL style ivar from copy
+   then free copy, allocated in equal_save()
+------------------------------------------------------------------------- */
+
+void Variable::equal_restore(int ivar, char *copy)
+{
+  delete [] data[ivar][0];
+  int n = strlen(copy) + 1;
+  data[ivar][0] = new char[n];
+  strcpy(data[ivar][0],copy);
+  delete [] copy;
+}
+
+/* ----------------------------------------------------------------------
+   override EQUAL style ivar formula with value converted to string
+   data[ivar][0] was set to length 64 in equal_save()
+------------------------------------------------------------------------- */
+
+void Variable::equal_override(int ivar, double value)
+{
+  sprintf(data[ivar][0],"%.15g",value);
 }
 
 /* ----------------------------------------------------------------------

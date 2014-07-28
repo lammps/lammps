@@ -386,7 +386,6 @@ void Variable::set(int narg, char **arg)
       data[nvar] = new char*[num[nvar]];
       copy(1,&arg[2],data[nvar]);
       data[nvar][1] = new char[VALUELENGTH];
-      printf("AAA %d %s %p\n",nvar,data[nvar][0],data[nvar][1]);
     }
 
   // ATOM

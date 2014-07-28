@@ -36,14 +36,9 @@
 #include "compute.h"
 #include "output.h"
 #include "dump.h"
-#include "accelerator_kokkos.h"
 #include "math_extra.h"
 #include "error.h"
 #include "memory.h"
-
-#ifdef _OPENMP
-#include "omp.h"
-#endif
 
 using namespace LAMMPS_NS;
 

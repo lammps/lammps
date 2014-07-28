@@ -20,6 +20,7 @@
 #include "domain.h"
 #include "group.h"
 #include "procmap.h"
+#include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
 

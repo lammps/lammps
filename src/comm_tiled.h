@@ -94,18 +94,25 @@ class CommTiled : public Comm {
     int dim;	               // dimension = 0/1/2 of cut
   };
 
-  int *overlap;
-  RCBinfo *rcbinfo;       // list of RCB info for all procs
+  int noverlap;                // # of overlapping procs
+  int maxoverlap;              // current max length of overlap
+  int *overlap;                // list of overlapping procs
+
+  RCBinfo *rcbinfo;            // list of RCB info for all procs
+
+  double *prd;                 // local ptrs to Domain attributes
+  double *boxlo,*boxhi;
+  double *sublo,*subhi;
 
   void init_buffers();
 
   // box drop and other functions
 
-  typedef void (CommTiled::*BoxDropPtr)(int, double *, double *, int &, int &);
+  typedef void (CommTiled::*BoxDropPtr)(int, double *, double *, int &);
   BoxDropPtr box_drop;
-  void box_drop_brick(int, double *, double *, int &, int &);
-  void box_drop_tiled(int, double *, double *, int &, int &);
-  void box_drop_tiled_recurse(double *, double *, int, int, int &, int &);
+  void box_drop_brick(int, double *, double *, int &);
+  void box_drop_tiled(int, double *, double *, int &);
+  void box_drop_tiled_recurse(double *, double *, int, int, int &);
 
   typedef void (CommTiled::*BoxOtherPtr)(int, int, int, double *, double *);
   BoxOtherPtr box_other;

@@ -70,9 +70,9 @@ CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 
 CommTiled::~CommTiled()
 {
-  memory->destroy(overlap);
   memory->destroy(buf_send);
   memory->destroy(buf_recv);
+  memory->destroy(overlap);
   deallocate_swap(nswap);
 }
 
@@ -83,8 +83,6 @@ CommTiled::~CommTiled()
 
 void CommTiled::init_buffers()
 {
-  memory->create(overlap,nprocs,"comm:overlap");
-
   maxexchange = maxexchange_atom + maxexchange_fix;
   bufextra = maxexchange + BUFEXTRA;
 
@@ -92,6 +90,9 @@ void CommTiled::init_buffers()
   memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
   maxrecv = BUFMIN;
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
+
+  maxoverlap = 0;
+  overlap = NULL;
 
   nswap = 2 * domain->dimension;
   allocate_swap(nswap);
@@ -174,13 +175,16 @@ void CommTiled::setup()
 {
   int i;
 
+  // domain properties used in setup and methods it calls
+
+  prd = domain->prd;
+  boxlo = domain->boxlo;
+  boxhi = domain->boxhi;
+  sublo = domain->sublo;
+  subhi = domain->subhi;
+
   int dimension = domain->dimension;
   int *periodicity = domain->periodicity;
-  double *prd = domain->prd;
-  double *boxlo = domain->boxlo;
-  double *boxhi = domain->boxhi;
-  double *sublo = domain->sublo;
-  double *subhi = domain->subhi;
 
   // set function pointers
 
@@ -220,7 +224,7 @@ void CommTiled::setup()
   // sets nsendproc, nrecvproc, sendproc, recvproc
   // sets sendother, sendself, pbc_flag, pbc, sendbox
 
-  int noverlap,noverlap1,indexme;
+  int noverlap1,indexme;
   double lo1[3],hi1[3],lo2[3],hi2[3];
   int one,two;
 
@@ -273,9 +277,9 @@ void CommTiled::setup()
 
       indexme = -1;
       noverlap = 0;
-      if (one) (this->*box_drop)(idim,lo1,hi1,noverlap,indexme);
+      if (one) (this->*box_drop)(idim,lo1,hi1,indexme);
       noverlap1 = noverlap;
-      if (two) (this->*box_drop)(idim,lo2,hi2,noverlap,indexme);
+      if (two) (this->*box_drop)(idim,lo2,hi2,indexme);
 
       // if self is in overlap list, move it to end of list
 
@@ -1101,16 +1105,9 @@ int CommTiled::exchange_variable(int n, double *inbuf, double *&outbuf)
    box is owned by me and extends in dim
 ------------------------------------------------------------------------- */
 
-void CommTiled::box_drop_brick(int idim, double *lo, double *hi, 
-                               int &noverlap, int &indexme)
+void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
 {
   // NOTE: this is not triclinic compatible
-
-  double *prd = domain->prd;
-  double *boxlo = domain->boxlo;
-  double *boxhi = domain->boxhi;
-  double *sublo = domain->sublo;
-  double *subhi = domain->subhi;
 
   int index,dir;
   if (hi[idim] == sublo[idim]) {
@@ -1153,6 +1150,11 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi,
     else if (idim == 1) proc = grid2proc[other1][index][other2];
     else proc = grid2proc[other1][other2][idim];
 
+    if (noverlap == maxoverlap) {
+      maxoverlap += DELTA_PROCS;
+      memory->grow(overlap,maxoverlap,"comm:overlap");
+    }
+
     if (proc == me) indexme = noverlap;
     overlap[noverlap++] = proc;
     index += dir;
@@ -1167,20 +1169,24 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi,
    no need to split lo/hi box as recurse b/c OK if box extends outside RCB box
 ------------------------------------------------------------------------- */
 
-void CommTiled::box_drop_tiled(int idim, double *lo, double *hi, 
-                               int &noverlap, int &indexme)
+void CommTiled::box_drop_tiled(int idim, double *lo, double *hi, int &indexme)
 {
-  box_drop_tiled_recurse(lo,hi,0,nprocs-1,noverlap,indexme);
+  box_drop_tiled_recurse(lo,hi,0,nprocs-1,indexme);
 }
 
 void CommTiled::box_drop_tiled_recurse(double *lo, double *hi, 
                                        int proclower, int procupper,
-                                       int &noverlap, int &indexme)
+                                       int &indexme)
 {
   // end recursion when partition is a single proc
   // add proc to overlap list
 
   if (proclower == procupper) {
+    if (noverlap == maxoverlap) {
+      maxoverlap += DELTA_PROCS;
+      memory->grow(overlap,maxoverlap,"comm:overlap");
+    }
+
     if (proclower == me) indexme = noverlap;
     overlap[noverlap++] = proclower;
     return;
@@ -1198,9 +1204,9 @@ void CommTiled::box_drop_tiled_recurse(double *lo, double *hi,
   int idim = rcbinfo[procmid].dim;
   
   if (lo[idim] < cut) 
-    box_drop_tiled_recurse(lo,hi,proclower,procmid-1,noverlap,indexme);
+    box_drop_tiled_recurse(lo,hi,proclower,procmid-1,indexme);
   if (hi[idim] > cut)
-    box_drop_tiled_recurse(lo,hi,procmid,procupper,noverlap,indexme);
+    box_drop_tiled_recurse(lo,hi,procmid,procupper,indexme);
 }
 
 /* ----------------------------------------------------------------------
@@ -1210,12 +1216,6 @@ void CommTiled::box_drop_tiled_recurse(double *lo, double *hi,
 void CommTiled::box_other_brick(int idim, int iswap,
                                 int proc, double *lo, double *hi)
 {
-  double *prd = domain->prd;
-  double *boxlo = domain->boxlo;
-  double *boxhi = domain->boxhi;
-  double *sublo = domain->sublo;
-  double *subhi = domain->subhi;
-
   lo[0] = sublo[0]; lo[1] = sublo[1]; lo[2] = sublo[2]; 
   hi[0] = subhi[0]; hi[1] = subhi[1]; hi[2] = subhi[2]; 
 
@@ -1264,10 +1264,6 @@ void CommTiled::box_other_brick(int idim, int iswap,
 void CommTiled::box_other_tiled(int idim, int iswap,
                                 int proc, double *lo, double *hi)
 {
-  double *prd = domain->prd;
-  double *boxlo = domain->boxlo;
-  double *boxhi = domain->boxhi;
-
   double (*split)[2] = rcbinfo[proc].mysplit;
 
   lo[0] = boxlo[0] + prd[0]*split[0][0];

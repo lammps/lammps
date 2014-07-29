@@ -176,6 +176,8 @@ void CommTiled::init()
 /* ----------------------------------------------------------------------
    setup spatial-decomposition communication patterns
    function of neighbor cutoff(s) & cutghostuser & current box size and tiling
+   sets nsendproc, nrecvproc, sendproc, recvproc
+   sets sendother, sendself, pbc_flag, pbc, sendbox
 ------------------------------------------------------------------------- */
 
 void CommTiled::setup()
@@ -203,7 +205,12 @@ void CommTiled::setup()
     error->all(FLERR,"Communication cutoff for comm_style tiled "
                "cannot exceed periodic box length");
 
-  // allocate overlap
+  // NOTE: allocate overlap (to Nprocs?)
+  // NOTE: allocate 2nd dim of sendproc, recvproc, sendbox
+  // NOTE: func pointers for box_drop and box_other
+  // NOTE: write box_drop and box_other methods
+  // NOTE: for tiled, must do one-time gather of RCB cuts and proc boxes
+
   int *overlap;
   int noverlap,noverlap1,indexme;
   double lo1[3],hi1[3],lo2[3],hi2[3];
@@ -211,134 +218,155 @@ void CommTiled::setup()
 
   nswap = 0;
   for (int idim = 0; idim < dimension; idim++) {
+    for (int iswap = 0; iswap < 2; iswap++) {
 
-    // ghost box in lower direction
+      // ghost box in lower direction
 
-    one = 1;
-    lo1[0] = sublo[0]; lo1[1] = sublo[1]; lo1[2] = sublo[2];
-    hi1[0] = subhi[0]; hi1[1] = subhi[1]; hi1[2] = subhi[2];
-    lo1[idim] = sublo[idim] - cut;
-    hi1[idim] = sublo[idim];
-
-    two = 0;
-    if (periodicity[idim] && lo1[idim] < boxlo[idim]) {
-      two = 1;
-      lo2[0] = sublo[0]; lo2[1] = sublo[1]; lo2[2] = sublo[2];
-      hi2[0] = subhi[0]; hi2[1] = subhi[1]; hi2[2] = subhi[2];
-      lo2[idim] = lo1[idim] + prd[idim];
-      hi2[idim] = hi1[idim] + prd[idim];
-      if (sublo[idim] == boxlo[idim]) {
-        one = 0;
-        hi2[idim] = boxhi[idim];
-      }
-    }
-
-    indexme = -1;
-    noverlap = 0;
-    if (one) {
-      if (layout == LAYOUT_UNIFORM) 
-        box_drop_uniform(idim,lo1,hi1,noverlap,overlap,indexme);
-      else if (layout == LAYOUT_NONUNIFORM) 
-        box_drop_nonuniform(idim,lo1,hi1,noverlap,overlap,indexme);
-      else
-        box_drop_tiled(lo1,hi1,0,nprocs-1,noverlap,overlap,indexme);
-    }
-
-    noverlap1 = noverlap;
-    if (two) {
-      if (layout == LAYOUT_UNIFORM) 
-        box_drop_uniform(idim,lo2,hi2,noverlap,overlap,indexme);
-      else if (layout == LAYOUT_NONUNIFORM) 
-        box_drop_nonuniform(idim,lo2,hi2,noverlap,overlap,indexme);
-      else 
-        box_drop_tiled(lo2,hi2,0,nprocs-1,noverlap,overlap,indexme);
-    }
-
-    // if this (self) proc is in overlap list, move it to end of list
-
-    if (indexme >= 0) {
-      int tmp = overlap[noverlap-1];
-      overlap[noverlap-1] = overlap[indexme];
-      overlap[indexme] = tmp;
-    }
-
-    // overlap how has list of noverlap procs
-    // includes PBC effects
-
-    if (overlap[noverlap-1] == me) sendself[nswap] = 1;
-    else sendself[nswap] = 0;
-    if (noverlap-sendself[nswap]) sendother[nswap] = 1;
-    else sendother[nswap] = 0;
-
-    nsendproc[nswap] = noverlap;
-    for (i = 0; i < noverlap; i++) sendproc[nswap][i] = overlap[i];
-    nrecvproc[nswap+1] = noverlap;
-    for (i = 0; i < noverlap; i++) recvproc[nswap+1][i] = overlap[i];
-
-    // compute sendbox for each of my sends
-    // ibox = intersection of ghostbox with other proc's sub-domain
-    // sendbox = ibox displaced by cutoff in dim
-
-    // NOTE: need to extend send box in lower dims by cutoff
-    // NOTE: this logic for overlapping boxes is not correct for sending
-
-    double oboxlo[3],oboxhi[3],sbox[6];
-
-    for (i = 0; i < noverlap; i++) {
-      pbc_flag[nswap][i] = 0;
-      pbc[nswap][i][0] = pbc[nswap][i][1] = pbc[nswap][i][2] =
-        pbc[nswap][i][3] = pbc[nswap][i][4] = pbc[nswap][i][5] = 0;
-
-      if (layout == LAYOUT_UNIFORM) 
-        box_other_uniform(overlap[i],oboxlo,oboxhi);
-      else if (layout == LAYOUT_NONUNIFORM) 
-        box_other_nonuniform(overlap[i],oboxlo,oboxhi);
-      else
-        box_other_tiled(overlap[i],oboxlo,oboxhi);
-
-      if (i < noverlap1) {
-        sbox[0] = MAX(oboxlo[0],lo1[0]);
-        sbox[1] = MAX(oboxlo[1],lo1[1]);
-        sbox[2] = MAX(oboxlo[2],lo1[2]);
-        sbox[3] = MIN(oboxhi[0],hi1[0]);
-        sbox[4] = MIN(oboxhi[1],hi1[1]);
-        sbox[5] = MIN(oboxhi[2],hi1[2]);
-        sbox[idim] += cut;
-        sbox[3+idim] += cut;
-        if (sbox[idim] == lo1[idim]) sbox[idim] = sublo[idim];
+      one = 1;
+      lo1[0] = sublo[0]; lo1[1] = sublo[1]; lo1[2] = sublo[2];
+      hi1[0] = subhi[0]; hi1[1] = subhi[1]; hi1[2] = subhi[2];
+      if (iswap == 0) {
+        lo1[idim] = sublo[idim] - cut;
+        hi1[idim] = sublo[idim];
       } else {
-        pbc_flag[nswap][i] = 1;
-        pbc[nswap][i][idim] = 1;
-        sbox[0] = MAX(oboxlo[0],lo2[0]);
-        sbox[1] = MAX(oboxlo[1],lo2[1]);
-        sbox[2] = MAX(oboxlo[2],lo2[2]);
-        sbox[3] = MIN(oboxhi[0],hi2[0]);
-        sbox[4] = MIN(oboxhi[1],hi2[1]);
-        sbox[5] = MIN(oboxhi[2],hi2[2]);
-        sbox[idim] -= prd[idim] - cut;
-        sbox[3+idim] -= prd[idim] + cut;
-        if (sbox[idim] == lo1[idim]) sbox[idim] = sublo[idim];
+        lo1[idim] = subhi[idim];
+        hi1[idim] = subhi[idim] + cut;
+      }
+      
+      two = 0;
+      if (iswap == 0 && periodicity[idim] && lo1[idim] < boxlo[idim]) two = 1;
+      if (iswap == 1 && periodicity[idim] && hi1[idim] > boxhi[idim]) two = 1;
+
+      if (two) {
+        lo2[0] = sublo[0]; lo2[1] = sublo[1]; lo2[2] = sublo[2];
+        hi2[0] = subhi[0]; hi2[1] = subhi[1]; hi2[2] = subhi[2];
+        if (iswap == 0) {
+          lo2[idim] = lo1[idim] + prd[idim];
+          hi2[idim] = hi1[idim] + prd[idim];
+          if (sublo[idim] == boxlo[idim]) {
+            one = 0;
+            hi2[idim] = boxhi[idim];
+          }
+        } else {
+          lo2[idim] = lo1[idim] - prd[idim];
+          hi2[idim] = hi1[idim] - prd[idim];
+          if (subhi[idim] == boxhi[idim]) {
+            one = 0;
+            lo2[idim] = boxlo[idim];
+          }
+        }
       }
 
-      if (idim >= 1) {
-        if (sbox[0] == sublo[0]) sbox[0] -= cut;
-        if (sbox[4] == subhi[0]) sbox[4] += cut;
-      }
-      if (idim == 2) {
-        if (sbox[1] == sublo[1]) sbox[1] -= cut;
-        if (sbox[5] == subhi[1]) sbox[5] += cut;
+      indexme = -1;
+      noverlap = 0;
+      if (one) {
+        if (layout == LAYOUT_UNIFORM) 
+          box_drop_uniform(idim,lo1,hi1,noverlap,overlap,indexme);
+        else if (layout == LAYOUT_NONUNIFORM) 
+          box_drop_nonuniform(idim,lo1,hi1,noverlap,overlap,indexme);
+        else
+          box_drop_tiled(lo1,hi1,0,nprocs-1,noverlap,overlap,indexme);
       }
 
-      memcpy(sendbox[nswap][i],sbox,6*sizeof(double));
+      noverlap1 = noverlap;
+      if (two) {
+        if (layout == LAYOUT_UNIFORM) 
+          box_drop_uniform(idim,lo2,hi2,noverlap,overlap,indexme);
+        else if (layout == LAYOUT_NONUNIFORM) 
+          box_drop_nonuniform(idim,lo2,hi2,noverlap,overlap,indexme);
+        else 
+          box_drop_tiled(lo2,hi2,0,nprocs-1,noverlap,overlap,indexme);
+      }
+
+      // if this (self) proc is in overlap list, move it to end of list
+      
+      if (indexme >= 0) {
+        int tmp = overlap[noverlap-1];
+        overlap[noverlap-1] = overlap[indexme];
+        overlap[indexme] = tmp;
+      }
+
+      // overlap how has list of noverlap procs
+      // includes PBC effects
+
+      if (overlap[noverlap-1] == me) sendself[nswap] = 1;
+      else sendself[nswap] = 0;
+      if (noverlap-sendself[nswap]) sendother[nswap] = 1;
+      else sendother[nswap] = 0;
+
+      nsendproc[nswap] = noverlap;
+      for (i = 0; i < noverlap; i++) sendproc[nswap][i] = overlap[i];
+      if (iswap == 0) {
+        nrecvproc[nswap+1] = noverlap;
+        for (i = 0; i < noverlap; i++) recvproc[nswap+1][i] = overlap[i];
+      } else {
+        nrecvproc[nswap-1] = noverlap;
+        for (i = 0; i < noverlap; i++) recvproc[nswap-1][i] = overlap[i];
+      }
+
+      // compute sendbox for each of my sends
+      // obox = intersection of ghostbox with other proc's sub-domain
+      // sbox = what I need to send to other proc
+      //      = sublo to MIN(sublo+cut,subhi) in idim, for iswap = 0
+      //      = MIN(subhi-cut,sublo) to subhi in idim, for iswap = 1
+      //      = obox in other 2 dims
+      // if sbox touches sub-box boundaries in lower dims,
+      //   extend sbox in those lower dims to include ghost atoms
+      
+      double oboxlo[3],oboxhi[3],sbox[6];
+
+      for (i = 0; i < noverlap; i++) {
+        pbc_flag[nswap][i] = 0;
+        pbc[nswap][i][0] = pbc[nswap][i][1] = pbc[nswap][i][2] =
+          pbc[nswap][i][3] = pbc[nswap][i][4] = pbc[nswap][i][5] = 0;
+        
+        if (layout == LAYOUT_UNIFORM) 
+          box_other_uniform(overlap[i],oboxlo,oboxhi);
+        else if (layout == LAYOUT_NONUNIFORM) 
+          box_other_nonuniform(overlap[i],oboxlo,oboxhi);
+        else
+          box_other_tiled(overlap[i],oboxlo,oboxhi);
+        
+        if (i < noverlap1) {
+          sbox[0] = MAX(oboxlo[0],lo1[0]);
+          sbox[1] = MAX(oboxlo[1],lo1[1]);
+          sbox[2] = MAX(oboxlo[2],lo1[2]);
+          sbox[3] = MIN(oboxhi[0],hi1[0]);
+          sbox[4] = MIN(oboxhi[1],hi1[1]);
+          sbox[5] = MIN(oboxhi[2],hi1[2]);
+        } else {
+          pbc_flag[nswap][i] = 1;
+          pbc[nswap][i][idim] = 1;
+          sbox[0] = MAX(oboxlo[0],lo2[0]);
+          sbox[1] = MAX(oboxlo[1],lo2[1]);
+          sbox[2] = MAX(oboxlo[2],lo2[2]);
+          sbox[3] = MIN(oboxhi[0],hi2[0]);
+          sbox[4] = MIN(oboxhi[1],hi2[1]);
+          sbox[5] = MIN(oboxhi[2],hi2[2]);
+        }
+
+        if (iswap == 0) {
+          sbox[idim] = sublo[idim];
+          sbox[3+idim] = MIN(sublo[idim]+cut,subhi[idim]);
+        } else {
+          sbox[idim] = MAX(subhi[idim]-cut,sublo[idim]);
+          sbox[3+idim] = subhi[idim];
+        }
+
+        if (idim >= 1) {
+          if (sbox[0] == sublo[0]) sbox[0] -= cut;
+          if (sbox[4] == subhi[0]) sbox[4] += cut;
+        }
+        if (idim == 2) {
+          if (sbox[1] == sublo[1]) sbox[1] -= cut;
+          if (sbox[5] == subhi[1]) sbox[5] += cut;
+        }
+        
+        memcpy(sendbox[nswap][i],sbox,6*sizeof(double));
+      }
+
+      nswap++;
     }
-
-    // ghost box in upper direction
-
-
-
-
-
-    nswap += 2;
   }
 
 
@@ -1064,7 +1092,7 @@ int CommTiled::exchange_variable(int n, double *inbuf, double *&outbuf)
 /* ----------------------------------------------------------------------
    determine overlap list of Noverlap procs the lo/hi box overlaps
    overlap = non-zero area in common between box and proc sub-domain
-   box is onwed by me and extends in dim
+   box is owned by me and extends in dim
 ------------------------------------------------------------------------- */
 
 void CommTiled::box_drop_uniform(int dim, double *lo, double *hi, 
@@ -1086,7 +1114,8 @@ void CommTiled::box_drop_nonuniform(int dim, double *lo, double *hi,
 /* ----------------------------------------------------------------------
    determine overlap list of Noverlap procs the lo/hi box overlaps
    overlap = non-zero area in common between box and proc sub-domain
-   recursive routine for traversing an RCB tree of cuts
+   recursive method for traversing an RCB tree of cuts
+   no need to split lo/hi box as recurse b/c OK if box extends outside RCB box
 ------------------------------------------------------------------------- */
 
 void CommTiled::box_drop_tiled(double *lo, double *hi, 
@@ -1103,7 +1132,7 @@ void CommTiled::box_drop_tiled(double *lo, double *hi,
   }
 
   // drop box on each side of cut it extends beyond
-  // use > and < criteria to not include procs it only touches
+  // use > and < criteria so does not include a box it only touches
   // procmid = 1st processor in upper half of partition
   //         = location in tree that stores this cut
   // dim = 0,1,2 dimension of cut

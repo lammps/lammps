@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 // customize by adding keyword
 // also customize compute_atom_property.cpp
 
-enum{ID,MOL,PROC,TYPE,ELEMENT,MASS,
+enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,
      XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
      IX,IY,IZ,
@@ -452,6 +452,10 @@ int DumpCustom::count()
         ptr = dchoose;
         nstride = 1;
       } else if (thresh_array[ithresh] == PROC) {
+        for (i = 0; i < nlocal; i++) dchoose[i] = me;
+        ptr = dchoose;
+        nstride = 1;
+      } else if (thresh_array[ithresh] == PROCP1) {
         for (i = 0; i < nlocal; i++) dchoose[i] = me;
         ptr = dchoose;
         nstride = 1;
@@ -985,6 +989,9 @@ int DumpCustom::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"proc") == 0) {
       pack_choice[i] = &DumpCustom::pack_proc;
       vtype[i] = INT;
+    } else if (strcmp(arg[iarg],"procp1") == 0) {
+      pack_choice[i] = &DumpCustom::pack_procp1;
+      vtype[i] = INT;
     } else if (strcmp(arg[iarg],"type") == 0) {
       pack_choice[i] = &DumpCustom::pack_type;
       vtype[i] = INT;
@@ -1392,6 +1399,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     if (strcmp(arg[1],"id") == 0) thresh_array[nthresh] = ID;
     else if (strcmp(arg[1],"mol") == 0) thresh_array[nthresh] = MOL;
     else if (strcmp(arg[1],"proc") == 0) thresh_array[nthresh] = PROC;
+    else if (strcmp(arg[1],"procp1") == 0) thresh_array[nthresh] = PROCP1;
     else if (strcmp(arg[1],"type") == 0) thresh_array[nthresh] = TYPE;
     else if (strcmp(arg[1],"mass") == 0) thresh_array[nthresh] = MASS;
 
@@ -1695,6 +1703,16 @@ void DumpCustom::pack_proc(int n)
 {
   for (int i = 0; i < nchoose; i++) {
     buf[n] = me;
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_procp1(int n)
+{
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = me+1;
     n += size_one;
   }
 }

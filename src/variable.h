@@ -36,10 +36,15 @@ class Variable : protected Pointers {
   int int_between_brackets(char *&, int);
   double evaluate_boolean(char *);
 
+  void equal_save(int, char *&);
+  void equal_restore(int, char *);
+  void equal_override(int, double);
+
   unsigned int data_mask(int ivar);
   unsigned int data_mask(char *str);
 
  private:
+  int me;
   int nvar;                // # of defined variables
   int maxvar;              // max # of variables following lists can hold
   char **names;            // name of each variable
@@ -57,7 +62,6 @@ class Variable : protected Pointers {
 
   int precedence[17];      // precedence level of math operators
                            // set length to include up to OR in enum
-  int me;
 
   struct Tree {            // parse tree for atom-style variables
     double value;          // single scalar  

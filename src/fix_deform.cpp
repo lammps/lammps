@@ -987,3 +987,14 @@ void FixDeform::options(int narg, char **arg)
     } else error->all(FLERR,"Illegal fix deform command");
   }
 }
+
+/* ----------------------------------------------------------------------
+   memory usage of Irregular
+------------------------------------------------------------------------- */
+
+double FixDeform::memory_usage()
+{
+  double bytes = 0.0;
+  if (irregular) bytes += irregular->memory_usage();
+  return bytes;
+}

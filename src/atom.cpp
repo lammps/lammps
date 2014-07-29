@@ -47,6 +47,8 @@ using namespace MathConst;
 #define CUDA_CHUNK 3000
 #define MAXBODY 20       // max # of lines in one body, also in ReadData class
 
+enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
+
 /* ---------------------------------------------------------------------- */
 
 Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
@@ -753,17 +755,33 @@ void Atom::data_atoms(int n, char *buf)
     sublo[2] = domain->sublo_lamda[2]; subhi[2] = domain->subhi_lamda[2];
   }
 
-  if (domain->xperiodic) {
-    if (comm->myloc[0] == 0) sublo[0] -= epsilon[0];
-    if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] += epsilon[0];
-  }
-  if (domain->yperiodic) {
-    if (comm->myloc[1] == 0) sublo[1] -= epsilon[1];
-    if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] += epsilon[1];
-  }
-  if (domain->zperiodic) {
-    if (comm->myloc[2] == 0) sublo[2] -= epsilon[2];
-    if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] += epsilon[2];
+  if (comm->layout != LAYOUT_TILED) {
+    if (domain->xperiodic) {
+      if (comm->myloc[0] == 0) sublo[0] -= epsilon[0];
+      if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] += epsilon[0];
+    }
+    if (domain->yperiodic) {
+      if (comm->myloc[1] == 0) sublo[1] -= epsilon[1];
+      if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] += epsilon[1];
+    }
+    if (domain->zperiodic) {
+      if (comm->myloc[2] == 0) sublo[2] -= epsilon[2];
+      if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] += epsilon[2];
+    }
+
+  } else {
+    if (domain->xperiodic) {
+      if (comm->mysplit[0][0] == 0.0) sublo[0] -= epsilon[0];
+      if (comm->mysplit[0][1] == 1.0) subhi[0] += epsilon[0];
+    }
+    if (domain->yperiodic) {
+      if (comm->mysplit[1][0] == 0.0) sublo[1] -= epsilon[1];
+      if (comm->mysplit[1][1] == 1.0) subhi[1] += epsilon[1];
+    }
+    if (domain->zperiodic) {
+      if (comm->mysplit[2][0] == 0.0) sublo[2] -= epsilon[2];
+      if (comm->mysplit[2][1] == 1.0) subhi[2] += epsilon[2];
+    }
   }
 
   // xptr = which word in line starts xyz coords

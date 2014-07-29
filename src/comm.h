@@ -21,21 +21,15 @@ namespace LAMMPS_NS {
 class Comm : protected Pointers {
  public:
   int style;     // comm pattern: 0 = 6-way stencil, 1 = irregular tiling
-  int layout;    // current proc domains: 0 = logical bricks, 1 = general tiling
-                 // can do style=1 on layout=0, but not vice versa
-  // NOTE: uniform needs to be subsumed into layout
-  int uniform;                      // 1 = equal subdomains, 0 = load-balanced
+  int layout;    // LAYOUT_UNIFORM = logical equal-sized bricks
+                 // LAYOUT_NONUNIFORM = logical bricks, 
+                 //                     but different sizes due to LB
+                 // LAYOUT_TILED = general tiling, due to RCB LB
 
   int me,nprocs;                    // proc info
-  int procgrid[3];                  // procs assigned in each dim of 3d grid
-  int user_procgrid[3];             // user request for procs in each dim
-  int myloc[3];                     // which proc I am in each dim
-  int procneigh[3][2];              // my 6 neighboring procs, 0/1 = left/right
   int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
-  double *xsplit,*ysplit,*zsplit;   // fractional (0-1) sub-domain sizes
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
   double cutghostuser;              // user-specified ghost cutoff
-  int ***grid2proc;                 // which proc owns i,j,k loc in 3d grid
   int recv_from_partition;          // recv proc layout from this partition
   int send_to_partition;            // send my proc layout to this partition
                                     // -1 if no recv or send
@@ -45,8 +39,24 @@ class Comm : protected Pointers {
   int maxexchange_fix;              // max contribution to exchange from Fixes
   int nthreads;                     // OpenMP threads per MPI process
 
+  // public settings specific to layout = UNIFORM, NONUNIFORM
+
+  int procgrid[3];                  // procs assigned in each dim of 3d grid
+  int user_procgrid[3];             // user request for procs in each dim
+  int myloc[3];                     // which proc I am in each dim
+  int procneigh[3][2];              // my 6 neighboring procs, 0/1 = left/right
+  double *xsplit,*ysplit,*zsplit;   // fractional (0-1) sub-domain sizes
+  int ***grid2proc;                 // which proc owns i,j,k loc in 3d grid
+
+  // public settings specific to layout = TILED
+
+  double mysplit[3][2];             // fractional (0-1) bounds of my sub-domain
+
+  // methods
+
   Comm(class LAMMPS *);
   virtual ~Comm();
+  void copy_arrays(class Comm *);
   void modify_params(int, char **);
 
   void set_processors(int, char **);      // set 3d processor grid attributes

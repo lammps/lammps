@@ -27,9 +27,9 @@ class Irregular : protected Pointers {
 
   Irregular(class LAMMPS *);
   ~Irregular();
-  void migrate_atoms(int sortflag = 0);
+  void migrate_atoms(int sortflag = 0, int *procassign = NULL);
   int migrate_check();
-  int create_data(int, int *);
+  int create_data(int, int *, int sortflag = 0);
   void exchange_data(char *, int, char *);
   void destroy_data();
   bigint memory_usage();
@@ -38,58 +38,58 @@ class Irregular : protected Pointers {
   int me,nprocs;
   int triclinic;
   int map_style;
-  int uniform;
+  int layout;
   double *xsplit,*ysplit,*zsplit;   // ptrs to comm
   int *procgrid;                    // ptr to comm
   int ***grid2proc;                 // ptr to comm
   double *boxlo;                    // ptr to domain
   double *prd;                      // ptr to domain
 
-  int maxsend,maxrecv;              // size of buffers in # of doubles
-  double *buf_send,*buf_recv;
+  int maxsend,maxrecv;              // size of buf send/recv in # of doubles
+  double *buf_send,*buf_recv;       // bufs used in migrate_atoms
+  int maxdbuf;                      // size of double buf in bytes
+  double *dbuf;                     // double buf for largest single atom send
+  int maxbuf;                       // size of char buf in bytes
+  char *buf;                        // char buf for largest single data send
 
-  // plan for irregular communication of atoms
+  int *mproclist,*msizes;           // persistent vectors in migrate_atoms
+  int maxlocal;                     // allocated size of mproclist and msizes
+
+  int *work1,*work2;                // work vectors
+
+  // plan params for irregular communication of atoms or datums
+  // no params refer to atoms/data copied to self
+
+  int nsend_proc;            // # of messages to send
+  int nrecv_proc;            // # of messages to recv
+  int sendmax_proc;          // # of doubles/datums in largest send message
+  int *proc_send;            // list of procs to send to
+  int *num_send;             // # of atoms/datums to send to each proc
+  int *index_send;           // list of which atoms/datums to send to each proc
+  int *proc_recv;            // list of procs to recv from
+  MPI_Request *request;      // MPI requests for posted recvs
+  MPI_Status *status;        // MPI statuses for WaitAll
+
+  // extra plan params plan for irregular communication of atoms
   // no params refer to atoms copied to self
 
-  struct PlanAtom {
-    int nsend;                 // # of messages to send
-    int nrecv;                 // # of messages to recv
-    int sendmax;               // # of doubles in largest send message
-    int *proc_send;            // procs to send to
-    int *length_send;          // # of doubles to send to each proc
-    int *num_send;             // # of atoms to send to each proc
-    int *index_send;           // list of which atoms to send to each proc
-    int *offset_send;          // where each atom starts in send buffer
-    int *proc_recv;            // procs to recv from
-    int *length_recv;          // # of doubles to recv from each proc
-    MPI_Request *request;      // MPI requests for posted recvs
-    MPI_Status *status;        // MPI statuses for WaitAll
-  };
+  int *length_send;          // # of doubles to send to each proc
+  int *length_recv;          // # of doubles to recv from each proc
+  int *offset_send;          // where each atom starts in send buffer
 
-  // plan for irregular communication of datums
-  // only 2 self params refer to atoms copied to self
+  // extra plan params plan for irregular communication of datums 
+  // 2 self params refer to data copied to self
 
-  struct PlanData {            // plan for irregular communication of data
-    int nsend;                 // # of messages to send
-    int nrecv;                 // # of messages to recv
-    int sendmax;               // # of datums in largest send message
-    int *proc_send;            // procs to send to
-    int *num_send;             // # of datums to send to each proc
-    int *index_send;           // list of which datums to send to each proc
-    int *proc_recv;            // procs to recv from
-    int *num_recv;             // # of datums to recv from each proc
-    int num_self;              // # of datums to copy to self
-    int *index_self;           // list of which datums to copy to self
-    MPI_Request *request;      // MPI requests for posted recvs
-    MPI_Status *status;        // MPI statuses for WaitAll
-  };
+  int *num_recv;             // # of datums to recv from each proc
+  int num_self;              // # of datums to copy to self
+  int *index_self;           // list of which datums to copy to self
 
-  PlanAtom *aplan;
-  PlanData *dplan;
+  // private methods
 
   int create_atom(int, int *, int *, int);
   void exchange_atom(double *, int *, double *);
   void destroy_atom();
+
   int coord2proc(double *, int &, int &, int &);
   int binary(double, int, double *);
 

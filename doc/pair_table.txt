@@ -113,8 +113,8 @@ to very steep parts of the potential. :l,ule
 
 :line
 
-The format of a tabulated file is as follows (without the
-parenthesized comments):
+The format of a tabulated file is a series of one or more sections,
+defined as follows (without the parenthesized comments):
 
 # Morse potential for Fe   (one or more comment or blank lines) :pre
 

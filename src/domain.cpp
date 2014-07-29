@@ -44,13 +44,14 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+enum{NO_REMAP,X_REMAP,V_REMAP};    // same as fix_deform.cpp
+enum{IGNORE,WARN,ERROR};           // same as thermo.cpp
+enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
+
 #define BIG   1.0e20
 #define SMALL 1.0e-4
 #define DELTAREGION 4
 #define BONDSTRETCH 1.1
-
-enum{NO_REMAP,X_REMAP,V_REMAP};    // same as fix_deform.cpp
-enum{IGNORE,WARN,ERROR};           // same as thermo.cpp
 
 /* ----------------------------------------------------------------------
    default is periodic
@@ -249,42 +250,56 @@ void Domain::set_global_box()
 /* ----------------------------------------------------------------------
    set lamda box params
    assumes global box is defined and proc assignment has been made
-   uses comm->xyz_split to define subbox boundaries in consistent manner
+   uses comm->xyz_split or comm->mysplit
+     to define subbox boundaries in consistent manner
 ------------------------------------------------------------------------- */
 
 void Domain::set_lamda_box()
 {
-  int *myloc = comm->myloc;
-  double *xsplit = comm->xsplit;
-  double *ysplit = comm->ysplit;
-  double *zsplit = comm->zsplit;
+  if (comm->layout != LAYOUT_TILED) {
+    int *myloc = comm->myloc;
+    double *xsplit = comm->xsplit;
+    double *ysplit = comm->ysplit;
+    double *zsplit = comm->zsplit;
 
-  sublo_lamda[0] = xsplit[myloc[0]];
-  subhi_lamda[0] = xsplit[myloc[0]+1];
+    sublo_lamda[0] = xsplit[myloc[0]];
+    subhi_lamda[0] = xsplit[myloc[0]+1];
+    sublo_lamda[1] = ysplit[myloc[1]];
+    subhi_lamda[1] = ysplit[myloc[1]+1];
+    sublo_lamda[2] = zsplit[myloc[2]];
+    subhi_lamda[2] = zsplit[myloc[2]+1];
 
-  sublo_lamda[1] = ysplit[myloc[1]];
-  subhi_lamda[1] = ysplit[myloc[1]+1];
+  } else {
+    double (*mysplit)[2] = comm->mysplit;
 
-  sublo_lamda[2] = zsplit[myloc[2]];
-  subhi_lamda[2] = zsplit[myloc[2]+1];
+    sublo_lamda[0] = mysplit[0][0];
+    subhi_lamda[0] = mysplit[0][1];
+    sublo_lamda[1] = mysplit[1][0];
+    subhi_lamda[1] = mysplit[1][1];
+    sublo_lamda[2] = mysplit[2][0];
+    subhi_lamda[2] = mysplit[2][1];
+  }
 }
 
 /* ----------------------------------------------------------------------
    set local subbox params for orthogonal boxes
    assumes global box is defined and proc assignment has been made
-   uses comm->xyz_split to define subbox boundaries in consistent manner
+   uses comm->xyz_split or comm->mysplit
+     to define subbox boundaries in consistent manner
    insure subhi[max] = boxhi
 ------------------------------------------------------------------------- */
 
 void Domain::set_local_box()
 {
-  int *myloc = comm->myloc;
-  int *procgrid = comm->procgrid;
-  double *xsplit = comm->xsplit;
-  double *ysplit = comm->ysplit;
-  double *zsplit = comm->zsplit;
+  if (triclinic) return;
+      
+  if (comm->layout != LAYOUT_TILED) {
+    int *myloc = comm->myloc;
+    int *procgrid = comm->procgrid;
+    double *xsplit = comm->xsplit;
+    double *ysplit = comm->ysplit;
+    double *zsplit = comm->zsplit;
 
-  if (triclinic == 0) {
     sublo[0] = boxlo[0] + xprd*xsplit[myloc[0]];
     if (myloc[0] < procgrid[0]-1)
       subhi[0] = boxlo[0] + xprd*xsplit[myloc[0]+1];
@@ -299,6 +314,21 @@ void Domain::set_local_box()
     if (myloc[2] < procgrid[2]-1)
       subhi[2] = boxlo[2] + zprd*zsplit[myloc[2]+1];
     else subhi[2] = boxhi[2];
+
+  } else {
+    double (*mysplit)[2] = comm->mysplit;
+
+    sublo[0] = boxlo[0] + xprd*mysplit[0][0];
+    subhi[0] = boxlo[0] + xprd*mysplit[0][1];
+    if (mysplit[0][1] == 1.0) subhi[0] = boxhi[0];
+
+    sublo[1] = boxlo[1] + yprd*mysplit[1][0];
+    subhi[1] = boxlo[1] + yprd*mysplit[1][1];
+    if (mysplit[1][1] == 1.0) subhi[1] = boxhi[1];
+
+    sublo[2] = boxlo[2] + zprd*mysplit[2][0];
+    subhi[2] = boxlo[2] + zprd*mysplit[2][1];
+    if (mysplit[2][1] == 1.0) subhi[2] = boxhi[2];
   }
 }
 

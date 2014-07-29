@@ -27,11 +27,14 @@ namespace LAMMPS_NS {
 
 class Balance : protected Pointers {
  public:
+  class RCB *rcb;
+
   Balance(class LAMMPS *);
   ~Balance();
   void command(int, char **);
   void shift_setup(char *, int, double);
   int shift();
+  int *bisection(int sortflag = 0);
   double imbalance_nlocal(int &);
   void dumpout(bigint, FILE *);
 
@@ -66,13 +69,13 @@ class Balance : protected Pointers {
   FILE *fp;
   int firststep;
 
-  void static_setup(char *);
   double imbalance_splits(int &);
+  void shift_setup_static(char *);
   void tally(int, int, double *);
   int adjust(int, double *);
   int binary(double, int, double *);
 #ifdef BALANCE_DEBUG
-  void debug_output(int, int, int, double *);
+  void debug_shift_output(int, int, int, double *);
 #endif
 };
 

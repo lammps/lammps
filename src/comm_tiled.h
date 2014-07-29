@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class CommTiled : public Comm {
  public:
   CommTiled(class LAMMPS *);
+  CommTiled(class LAMMPS *, class Comm *);
   virtual ~CommTiled();
 
   void init();
@@ -46,15 +47,16 @@ class CommTiled : public Comm {
   bigint memory_usage();
 
  private:
-  int nswap;                    // # of swaps to perform = 2*dim
-  int *nsendproc,*nrecvproc;    // # of procs to send/recv to/from in each swap
-
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic
   int map_style;                    // non-0 if global->local mapping is done
   int size_forward;                 // # of per-atom datums in forward comm
   int size_reverse;                 // # of datums in reverse comm
   int size_border;                  // # of datums in forward border comm
 
+  int nswap;                    // # of swaps to perform = 2*dim
+  int *nsendproc,*nrecvproc;    // # of procs to send/recv to/from in each swap
+  int *sendother;               // 1 if send to any other proc in each swap
+  int *sendself;                // 1 if send to self in each swap
   int **sendnum,**recvnum;      // # of atoms to send/recv per swap/proc
   int **sendproc,**recvproc;    // proc to send/recv to/from per swap/proc
   int **size_forward_recv;      // # of values to recv in each forward swap/proc
@@ -77,6 +79,7 @@ class CommTiled : public Comm {
   int maxsend,maxrecv;          // current size of send/recv buffer
   int maxforward,maxreverse;    // max # of datums in forward/reverse comm
 
+  int maxexchange;              // max # of datums/atom in exchange comm 
   int bufextra;                 // extra space beyond maxsend in send buffer
 
   MPI_Request *requests;
@@ -84,9 +87,35 @@ class CommTiled : public Comm {
 
   int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
 
+  struct Tree {
+    double cut;
+    int dim;
+  };
+
+  Tree *tree;
+
+  // info from RCB decomp
+
+  double rcbcut;
+  int rcbcutdim;
+  double rcblo[3];
+  double rcbhi[3];
+
+  void init_buffers();
+
+  void box_drop_uniform(int, double *, double *, int &, int *, int &);
+  void box_drop_nonuniform(int, double *, double *, int &, int *, int &);
+  void box_drop_tiled(double *, double *, int, int, int &, int *, int &);
+
+  void box_other_uniform(int, double *, double *) {}
+  void box_other_nonuniform(int, double *, double *) {}
+  void box_other_tiled(int, double *, double *) {}
+
   void grow_send(int, int);         // reallocate send buffer
   void grow_recv(int);              // free/allocate recv buffer
   void grow_list(int, int, int);    // reallocate sendlist for one swap/proc
+  void allocate_swap(int);          // allocate swap arrays
+  void free_swap();                 // free swap arrays
 };
 
 }

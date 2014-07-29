@@ -148,6 +148,9 @@ void MSM::init()
   triclinic_check();
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot (yet) use MSM with 2d simulation");
+  if (comm->style != 0) 
+    error->universe_all(FLERR,"MSM can only currently be used with "
+                        "comm_style brick");
 
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 

@@ -498,8 +498,6 @@ void FixAdapt::restore_settings()
 
     } else if (ad->which == ATOM) {
       if (diamflag) {
-        int mflag = 0;
-        if (atom->rmass_flag) mflag = 1;
         double density;
 
         double *vec = fix_diam->vstore;

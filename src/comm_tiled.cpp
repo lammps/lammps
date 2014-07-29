@@ -47,7 +47,7 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 {
-  error->all(FLERR,"Comm_style tiled is not yet supported");
+  //error->all(FLERR,"Comm_style tiled is not yet supported");
 
   style = 1;
   layout = LAYOUT_UNIFORM;
@@ -58,7 +58,7 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 
 CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
-  error->all(FLERR,"Comm_style tiled is not yet supported");
+  //error->all(FLERR,"Comm_style tiled is not yet supported");
 
   style = 1;
   layout = oldcomm->layout;

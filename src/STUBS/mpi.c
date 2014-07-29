@@ -20,13 +20,22 @@
 #include <sys/time.h>
 #include "mpi.h"
 
-/* lo-level data structure */
+/* data structure for double/int */
 
 struct _mpi_double_int {
   double value;
   int proc;
 };
 typedef struct _mpi_double_int double_int;
+
+/* extra MPI_Datatypes registered by MPI_Type_contiguous */
+
+#define MAXEXTRA_DATATYPE 16
+
+int nextra_datatype;
+MPI_Datatype *ptr_datatype[MAXEXTRA_DATATYPE];
+int index_datatype[MAXEXTRA_DATATYPE];
+int size_datatype[MAXEXTRA_DATATYPE];
 
 /* ---------------------------------------------------------------------- */
 /* MPI Functions */
@@ -101,6 +110,8 @@ double MPI_Wtime()
 
 /* ---------------------------------------------------------------------- */
 
+/* include sizes of user defined datatypes, stored in extra lists */
+
 static int stubtypesize(MPI_Datatype datatype)
 {
   if (datatype == MPI_INT)             return sizeof(int);
@@ -111,6 +122,12 @@ static int stubtypesize(MPI_Datatype datatype)
   else if (datatype == MPI_LONG)       return sizeof(long);
   else if (datatype == MPI_LONG_LONG)  return sizeof(uint64_t);
   else if (datatype == MPI_DOUBLE_INT) return sizeof(double_int);
+  else {
+    int i;
+    for (i = 0; i < nextra_datatype; i++)
+      if (datatype == index_datatype[i]) return size_datatype[i];
+  }
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -300,6 +317,66 @@ int MPI_Cart_shift(MPI_Comm comm, int direction, int displ,
 int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank)
 {
   *rank = 0;
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* store size of user datatype in extra lists */
+
+int MPI_Type_contiguous(int count, MPI_Datatype oldtype, 
+                        MPI_Datatype *newtype)
+{
+  if (nextra_datatype = MAXEXTRA_DATATYPE) return -1;
+  ptr_datatype[nextra_datatype] = newtype;
+  index_datatype[nextra_datatype] = -(nextra_datatype + 1);
+  size_datatype[nextra_datatype] = count * stubtypesize(oldtype);
+  nextra_datatype++;
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* set value of user datatype to internal negative index, 
+   based on match of ptr */
+
+int MPI_Type_commit(MPI_Datatype *datatype)
+{
+  int i;
+  for (i = 0; i < nextra_datatype; i++)
+    if (datatype == ptr_datatype[i]) *datatype = index_datatype[i];
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* remove user datatype from extra lists */
+
+int MPI_Type_free(MPI_Datatype *datatype)
+{
+  int i;
+  for (i = 0; i < nextra_datatype; i++)
+    if (datatype == ptr_datatype[i]) {
+      ptr_datatype[i] = ptr_datatype[nextra_datatype-1];
+      index_datatype[i] = index_datatype[nextra_datatype-1];
+      size_datatype[i] = size_datatype[nextra_datatype-1];
+      nextra_datatype--;
+      break;
+    }
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int MPI_Op_create(MPI_User_function *function, int commute, MPI_Op *op)
+{
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int MPI_Op_free(MPI_Op *op)
+{
   return 0;
 }
 

@@ -64,6 +64,9 @@ extern "C" {
 
 #define MPI_MAX_PROCESSOR_NAME 128
 
+typedef void MPI_User_function(void *invec, void *inoutvec, 
+                               int *len, MPI_Datatype *datatype);
+
 /* MPI data structs */
 
 struct _MPI_Status {
@@ -122,6 +125,13 @@ int MPI_Cart_shift(MPI_Comm comm, int direction, int displ,
                    int *source, int *dest);
 int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank);
 
+int MPI_Type_contiguous(int count, MPI_Datatype oldtype, 
+                        MPI_Datatype *newtype);
+int MPI_Type_commit(MPI_Datatype *datatype);
+int MPI_Type_free(MPI_Datatype *datatype);
+
+int MPI_Op_create(MPI_User_function *function, int commute, MPI_Op *op);
+int MPI_Op_free(MPI_Op *op);
 
 int MPI_Barrier(MPI_Comm comm);
 int MPI_Bcast(void *buf, int count, MPI_Datatype datatype,

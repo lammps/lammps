@@ -279,14 +279,14 @@ void Balance::command(int narg, char **arg)
   if (style == XYZ) {
     if (comm->layout == LAYOUT_UNIFORM) {
       if (xflag == USER || yflag == USER || zflag == USER)
-        comm->layout == LAYOUT_NONUNIFORM;
+        comm->layout = LAYOUT_NONUNIFORM;
     } else if (comm->style == LAYOUT_NONUNIFORM) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
-        comm->layout == LAYOUT_UNIFORM;
+        comm->layout = LAYOUT_UNIFORM;
     } else if (comm->style == LAYOUT_TILED) {
       if (xflag == UNIFORM && yflag == UNIFORM && zflag == UNIFORM)
-        comm->layout == LAYOUT_UNIFORM;
-      else comm->layout == LAYOUT_NONUNIFORM;
+        comm->layout = LAYOUT_UNIFORM;
+      else comm->layout = LAYOUT_NONUNIFORM;
     }
 
     if (xflag == UNIFORM) {
@@ -476,6 +476,7 @@ int *Balance::bisection(int sortflag)
   if (!rcb) rcb = new RCB(lmp);
 
   // NOTE: lo/hi args could be simulation box or particle bounding box
+  //       if particle bbox, then mysplit needs to be reset to sim box
   // NOTE: triclinic needs to be in lamda coords
 
   int dim = domain->dimension;
@@ -487,6 +488,10 @@ int *Balance::bisection(int sortflag)
   rcb->invert(sortflag);
   
   // NOTE: this logic is specific to orthogonal boxes, not triclinic
+
+  comm->rcbnew = 1;
+  comm->rcbcut = rcb->cut;
+  comm->rcbcutdim = rcb->cutdim;
 
   double (*mysplit)[2] = comm->mysplit;
   
@@ -501,6 +506,8 @@ int *Balance::bisection(int sortflag)
   mysplit[2][0] = (rcb->lo[2] - boxlo[2]) / prd[2];
   if (rcb->hi[2] == boxhi[2]) mysplit[2][1] = 1.0;
   else mysplit[2][1] = (rcb->hi[2] - boxlo[2]) / prd[2];
+
+  // return list of procs to send my atoms to
 
   return rcb->sendproc;
 }

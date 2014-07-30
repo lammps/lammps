@@ -504,8 +504,11 @@ documentation for details on how to compile with optional switches.
 LAMMPS has limited control over its execution and no knowledge about
 errors and warnings printed by it. Those warnings and error messages
 will be printed to the screen only. Due to the way image data is
-communicated to FFmpeg, it will often print the message + pipe::
-Input/output error :pre + which can be safely ignored. Other warnings
+communicated to FFmpeg, it will often print the message 
+</P>
+<PRE>pipe:: Input/output error 
+</PRE>
+<P>which can be safely ignored. Other warnings
 and errors have to be addressed according to the FFmpeg documentation.
 One known issue is that certain movie file formats (e.g. MPEG level 1
 and 2 format streams) have video bandwith limits that can be crossed

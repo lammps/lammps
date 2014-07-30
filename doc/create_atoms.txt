@@ -200,7 +200,9 @@ created atom, one for y, and one for z.
 When an atom is created, its x, y, or z coordinates override the
 formula for any {set} variable that is defined.  The {var} variable is
 then evaluated.  If the returned value is 0.0, the atom is not
-created.  If it is non-zero, the atom is created.
+created.  If it is non-zero, the atom is created.  After all atoms are
+created, the formulas defined for all of the {set} variables are
+restored to their original strings.
 
 As an example, these commands can be used in a 2d simulation, to
 create a sinusoidal surface.  Note that the surface is "rough" due to

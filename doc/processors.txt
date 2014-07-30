@@ -334,8 +334,7 @@ The {part} keyword (for the receiving partition) only works with the
 
 [Related commands:]
 
-"partition"_partition.html, "-reorder command-line
-switch"_Section_start.html#start_7
+"partition"_partition.html, "-reorder command-line switch"_Section_start.html#start_7
 
 [Default:]
 

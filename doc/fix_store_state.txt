@@ -21,8 +21,9 @@ input = one or more atom attributes :l
 		        vx, vy, vz, fx, fy, fz,
                         q, mux, muy, muz,
                         radius, omegax, omegay, omegaz,
-                        angmomx, angmomy, angmomz, tqx, tqy, tqz
-			c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
+                        angmomx, angmomy, angmomz, tqx, tqy, tqz,
+                        c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name,
+                        d_name, i_name :pre
 
       id = atom ID
       mol = molecule ID
@@ -44,7 +45,9 @@ input = one or more atom attributes :l
       c_ID\[I\] = Ith column of per-atom array calculated by a compute with ID
       f_ID = per-atom vector calculated by a fix with ID
       f_ID\[I\] = Ith column of per-atom array calculated by a fix with ID
-      v_name = per-atom vector calculated by an atom-style variable with name :pre
+      v_name = per-atom vector calculated by an atom-style variable with name
+      d_name = per-atom floating point vector name, managed by fix property/atom
+      i_name = per-atom integer vector name, managed by fix property/atom :pre
 
 zero or more keyword/value pairs may be appended :l
 keyword = {com} :l
@@ -120,7 +123,8 @@ minimization"_minimize.html.
 [Related commands:]
 
 "dump custom"_dump.html, "compute
-property/atom"_compute_property_atom.html, "variable"_variable.html
+property/atom"_compute_property_atom.html,
+"fix property/atom"_fix_property_atom.html, "variable"_variable.html
 
 [Default:]
 

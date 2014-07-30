@@ -49,7 +49,7 @@ keyword = {append} or {buffer} or {element} or {every} or {fileper} or {first} o
     these 3 args can be replaced by the word "none" to turn off thresholding
   {unwrap} arg = {yes} or {no} :pre
 these keywords apply only to the {image} and {movie} "styles"_dump_image.html :l
-keyword = {acolor} or {adiam} or {amap} or {backcolor} or {bcolor} or {bdiam} or {bitrate} or {boxcolor} or {color} or {framerate} :l 
+keyword = {acolor} or {adiam} or {amap} or {backcolor} or {bcolor} or {bdiam} or {boxcolor} or {color} or {bitrate} or {framerate} :l 
   {acolor} args = type color
     type = atom type or range of types (see below)
     color = name of color or color1/color2/...
@@ -84,13 +84,13 @@ keyword = {acolor} or {adiam} or {amap} or {backcolor} or {bcolor} or {bdiam} or
   {bdiam} args = type diam
     type = bond type or range of types (see below)
     diam = diameter of bonds of that type (distance units)
-  {bitrate} arg = rate
-    rate = target bitrate for movie in kbps
   {boxcolor} arg = color
     color = name of color for box lines
   {color} args = name R G B
     name = name of color
     R,G,B = red/green/blue numeric values from 0.0 to 1.0
+  {bitrate} arg = rate
+    rate = target bitrate for movie in kbps
   {framerate} arg = fps
     fps = frames per second for movie :pre
 :ule

@@ -91,7 +91,9 @@
       c_ID[N] = Nth column of per-atom array calculated by a compute with ID
       f_ID = per-atom vector calculated by a fix with ID
       f_ID[N] = Nth column of per-atom array calculated by a fix with ID
-      v_name = per-atom vector calculated by an atom-style variable with name 
+      v_name = per-atom vector calculated by an atom-style variable with name
+      d_name = per-atom floating point vector with name, managed by fix property/atom
+      i_name = per-atom integer vector with name, managed by fix property/atom 
 </PRE>
 
 </UL>
@@ -567,6 +569,10 @@ invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of creating quantities to output to a
 dump file.
 </P>
+<P>The <I>d_name</I> and <I>i_name</I> attributes allow to output custom per atom
+floating point or integer properties that are managed by
+<A HREF = "fix_property_atom.html">fix property/atom</A>.
+</P>
 <P>See <A HREF = "Section_modify.html">Section_modify</A> of the manual for information
 on how to add new compute and fix styles to LAMMPS to calculate
 per-atom quantities which could then be output into dump files.
@@ -608,7 +614,7 @@ machines.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The defaults for the image style are listed on the <A HREF = "dump_image.html">dump
-image</A> doc page.
+<P>The defaults for the <I>image</I> and <I>movie</I> styles are listed on the
+<A HREF = "dump_image.html">dump image</A> doc page.
 </P>
 </HTML>

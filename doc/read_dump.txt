@@ -36,7 +36,7 @@ keyword = {box} or {replace} or {purge} or {trim} or {add} or {label} or {scaled
     {native} = native LAMMPS dump file
     {xyz} = XYZ file
     {molfile} style path = VMD molfile plugin interface
-      style = {dcd} or {xyz} or others supported by my molfile plugins
+      style = {dcd} or {xyz} or others supported by molfile plugins
       path = optional path for location of molfile plugins :pre
 :ule
 

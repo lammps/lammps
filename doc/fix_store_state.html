@@ -28,8 +28,9 @@
 		        vx, vy, vz, fx, fy, fz,
                         q, mux, muy, muz,
                         radius, omegax, omegay, omegaz,
-                        angmomx, angmomy, angmomz, tqx, tqy, tqz
-			c_ID, c_ID[N], f_ID, f_ID[N], v_name 
+                        angmomx, angmomy, angmomz, tqx, tqy, tqz,
+                        c_ID, c_ID[N], f_ID, f_ID[N], v_name,
+                        d_name, i_name 
 </PRE>
 <PRE>      id = atom ID
       mol = molecule ID
@@ -51,7 +52,9 @@
       c_ID[I] = Ith column of per-atom array calculated by a compute with ID
       f_ID = per-atom vector calculated by a fix with ID
       f_ID[I] = Ith column of per-atom array calculated by a fix with ID
-      v_name = per-atom vector calculated by an atom-style variable with name 
+      v_name = per-atom vector calculated by an atom-style variable with name
+      d_name = per-atom floating point vector name, managed by fix property/atom
+      i_name = per-atom integer vector name, managed by fix property/atom 
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -130,7 +133,8 @@ minimization</A>.
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "dump.html">dump custom</A>, <A HREF = "compute_property_atom.html">compute
-property/atom</A>, <A HREF = "variable.html">variable</A>
+property/atom</A>,
+<A HREF = "fix_property_atom.html">fix property/atom</A>, <A HREF = "variable.html">variable</A>
 </P>
 <P><B>Default:</B>
 </P>

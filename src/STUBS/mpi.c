@@ -37,17 +37,39 @@ MPI_Datatype *ptr_datatype[MAXEXTRA_DATATYPE];
 int index_datatype[MAXEXTRA_DATATYPE];
 int size_datatype[MAXEXTRA_DATATYPE];
 
+static int _mpi_is_initialized=0;
+
 /* ---------------------------------------------------------------------- */
 /* MPI Functions */
 /* ---------------------------------------------------------------------- */
 
-int MPI_Init(int *argc, char ***argv) {return 0;}
+int MPI_Init(int *argc, char ***argv)
+{
+  if (_mpi_is_initialized > 0) {
+    printf("MPI Stub WARNING: MPI already initialized\n");
+    return 1;
+  }
+  if (_mpi_is_initialized < 0) {
+    printf("MPI Stub WARNING: MPI already finalized\n");
+    return 1;
+  }
+  _mpi_is_initialized = 1;
+  return 0;
+}
 
 /* ---------------------------------------------------------------------- */
 
 int MPI_Initialized(int *flag)
 {
-  *flag = 1;
+  *flag = (_mpi_is_initialized > 0) ? 1 : 0;
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int MPI_Finalized(int *flag)
+{
+  *flag = (_mpi_is_initialized < 0) ? 1 : 0;
   return 0;
 }
 
@@ -94,7 +116,19 @@ int MPI_Abort(MPI_Comm comm, int errorcode)
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Finalize() {return 0;}
+int MPI_Finalize()
+{
+  if (_mpi_is_initialized == 0) {
+    printf("MPI Stub WARNING: MPI not yet initialized\n");
+    return 1;
+  }
+  if (_mpi_is_initialized < 0) {
+    printf("MPI Stub WARNING: MPI already finalized\n");
+    return 1;
+  }
+  _mpi_is_initialized = -1;
+  return 0;
+}
 
 /* ---------------------------------------------------------------------- */
 

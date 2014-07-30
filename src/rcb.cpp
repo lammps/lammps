@@ -101,8 +101,8 @@ RCB::~RCB()
      sets noriginal,nfinal,nkeep,recvproc,recvindex,lo,hi
    all proc particles will be inside or on surface of 3-d box
      defined by final lo/hi
-   // NOTE: worry about re-use of data structs for fix balance
-   // NOTE: should I get rid of wt all together, will it be used?
+   // NOTE: worry about re-use of data structs for fix balance?
+   // NOTE: could get rid of wt all together, will it be used?
 ------------------------------------------------------------------------- */
 
 void RCB::compute(int dimension, int n, double **x, double *wt,

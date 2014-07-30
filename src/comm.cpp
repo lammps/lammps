@@ -60,6 +60,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
 
   grid2proc = NULL;
   xsplit = ysplit = zsplit = NULL;
+  rcbnew = 0;
 
   // use of OpenMP threads
   // query OpenMP for number of threads/process set by user at run-time

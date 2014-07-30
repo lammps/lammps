@@ -50,7 +50,10 @@ class Comm : protected Pointers {
 
   // public settings specific to layout = TILED
 
+  int rcbnew;                       // 1 if just reset by rebalance, else 0
   double mysplit[3][2];             // fractional (0-1) bounds of my sub-domain
+  double rcbcut;                    // RCB cut by this proc
+  int rcbcutdim;                    // dimension of RCB cut
 
   // methods
 

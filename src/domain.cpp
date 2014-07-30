@@ -301,34 +301,31 @@ void Domain::set_local_box()
     double *zsplit = comm->zsplit;
 
     sublo[0] = boxlo[0] + xprd*xsplit[myloc[0]];
-    if (myloc[0] < procgrid[0]-1)
-      subhi[0] = boxlo[0] + xprd*xsplit[myloc[0]+1];
+    if (myloc[0] < procgrid[0]-1) subhi[0] = boxlo[0] + xprd*xsplit[myloc[0]+1];
     else subhi[0] = boxhi[0];
 
     sublo[1] = boxlo[1] + yprd*ysplit[myloc[1]];
-    if (myloc[1] < procgrid[1]-1)
-      subhi[1] = boxlo[1] + yprd*ysplit[myloc[1]+1];
+    if (myloc[1] < procgrid[1]-1) subhi[1] = boxlo[1] + yprd*ysplit[myloc[1]+1];
     else subhi[1] = boxhi[1];
 
     sublo[2] = boxlo[2] + zprd*zsplit[myloc[2]];
-    if (myloc[2] < procgrid[2]-1)
-      subhi[2] = boxlo[2] + zprd*zsplit[myloc[2]+1];
+    if (myloc[2] < procgrid[2]-1) subhi[2] = boxlo[2] + zprd*zsplit[myloc[2]+1];
     else subhi[2] = boxhi[2];
 
   } else {
     double (*mysplit)[2] = comm->mysplit;
 
     sublo[0] = boxlo[0] + xprd*mysplit[0][0];
-    subhi[0] = boxlo[0] + xprd*mysplit[0][1];
-    if (mysplit[0][1] == 1.0) subhi[0] = boxhi[0];
+    if (mysplit[0][1] < 1.0) subhi[0] = boxlo[0] + xprd*mysplit[0][1];
+    else subhi[0] = boxhi[0];
 
     sublo[1] = boxlo[1] + yprd*mysplit[1][0];
-    subhi[1] = boxlo[1] + yprd*mysplit[1][1];
-    if (mysplit[1][1] == 1.0) subhi[1] = boxhi[1];
+    if (mysplit[1][1] < 1.0) subhi[1] = boxlo[1] + yprd*mysplit[1][1];
+    else subhi[1] = boxhi[1];
 
     sublo[2] = boxlo[2] + zprd*mysplit[2][0];
-    subhi[2] = boxlo[2] + zprd*mysplit[2][1];
-    if (mysplit[2][1] == 1.0) subhi[2] = boxhi[2];
+    if (mysplit[2][1] < 1.0) subhi[2] = boxlo[2] + zprd*mysplit[2][1];
+    else subhi[2] = boxhi[2];
   }
 }
 

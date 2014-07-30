@@ -393,7 +393,7 @@ void FixTuneKspace::adjust_rcut(double time)
 void FixTuneKspace::mnbrak()
 {
   const double GLIMIT = 100.0, TINY = 1.0e-20;
-  double temp,r,q;
+  double r,q;
   r = (bx_brent - ax_brent)*(fb_brent - fc_brent);
   q = (bx_brent - cx_brent)*(fb_brent - fa_brent);
   dx_brent = bx_brent - ((bx_brent - cx_brent)*q - (bx_brent - ax_brent)*r)/
@@ -475,7 +475,6 @@ void FixTuneKspace::brent0()
 
 void FixTuneKspace::brent1()
 {
-  const int ITMAX=100;
   const double CGOLD=0.3819660;
   const double ZEPS=numeric_limits<double>::epsilon()*1.0e-3;
   double d=0.0,etemp;

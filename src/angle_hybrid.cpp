@@ -256,6 +256,10 @@ void AngleHybrid::coeff(int narg, char **arg)
   if (m == nstyles) {
     if (strcmp(arg[1],"none") == 0) none = 1;
     else if (strcmp(arg[1],"skip") == 0) none = skip = 1;
+    else if (strcmp(arg[1],"ba") == 0)
+      error->all(FLERR,"BondAngle coeff for hybrid angle has invalid format");
+    else if (strcmp(arg[1],"bb") == 0)
+      error->all(FLERR,"BondBond coeff for hybrid angle has invalid format");
     else error->all(FLERR,"Angle coeff for hybrid has invalid style");
   }
 

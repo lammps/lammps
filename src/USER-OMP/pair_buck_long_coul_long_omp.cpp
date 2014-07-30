@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckLongCoulLongOMP::PairBuckLongCoulLongOMP(LAMMPS *lmp) : 
+PairBuckLongCoulLongOMP::PairBuckLongCoulLongOMP(LAMMPS *lmp) :
   PairBuckLongCoulLong(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
@@ -648,7 +648,7 @@ void PairBuckLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   // loop over neighbors of my atoms
 
   int i, ii, j;
-  int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
+  int *jneigh, *jneighn, typei, typej, ni;
   double qi = 0.0, qri = 0.0, *cutsqi, *cut_bucksqi,
          *buck1i, *buck2i, *buckai, *buckci, *rhoinvi, *offseti;
   double r, rsq, r2inv, force_coul, force_buck;
@@ -815,7 +815,7 @@ void PairBuckLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const t
   const double cut_out_off_sq = cut_out_off*cut_out_off;
 
 
-  int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
+  int *jneigh, *jneighn, typei, typej, ni;
   const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
   int i, j, ii;
   double qri, *cut_bucksqi, *buck1i, *buck2i, *rhoinvi;
@@ -1002,7 +1002,7 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
   double *f0 = f[0], *fi = f0;
 
   int *ilist = listouter->ilist;
-  
+
   int i, j, ii;
   int *jneigh, *jneighn, typei, typej, ni, respa_flag;
   double qi = 0.0, qri = 0.0;
@@ -1011,10 +1011,10 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
   double respa_buck = 0.0, respa_coul = 0.0, frespa = 0.0;
   vector xi, d;
-  
+
   const double cut_in_off = cut_respa[2];
   const double cut_in_on = cut_respa[3];
-  
+
   const double cut_in_diff = cut_in_on - cut_in_off;
   const double cut_in_off_sq = cut_in_off*cut_in_off;
   const double cut_in_on_sq = cut_in_on*cut_in_on;

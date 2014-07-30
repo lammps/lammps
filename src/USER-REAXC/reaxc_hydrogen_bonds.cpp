@@ -42,7 +42,7 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
   int  itr, top;
   int  num_hb_intrs = 0;
   ivec rel_jk;
-  real r_ij, r_jk, theta, cos_theta, sin_xhz4, cos_xhz1, sin_theta2;
+  real r_jk, theta, cos_theta, sin_xhz4, cos_xhz1, sin_theta2;
   real e_hb, exp_hb2, exp_hb3, CEhb1, CEhb2, CEhb3;
   rvec dcos_theta_di, dcos_theta_dj, dcos_theta_dk;
   rvec dvec_jk, force, ext_press;
@@ -102,7 +102,6 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
             bo_ij = &(pbond_ij->bo_data);
             type_i = system->my_atoms[i].type;
 	    if (type_i < 0) continue;
-            r_ij = pbond_ij->d;
             hbp = &(system->reax_param.hbp[ type_i ][ type_j ][ type_k ]);
             ++num_hb_intrs;
 

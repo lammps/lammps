@@ -91,7 +91,7 @@ void DihedralQuadraticOMP::eval(int nfrom, int nto, ThrData * const thr)
   double b2mag,b3mag2,b3mag,ctmp,r12c1,c1mag,r12c2;
   double c2mag,sc1,sc2,s1,s12,c,p,pd,a,a11,a22;
   double a33,a12,a13,a23,sx2,sy2,sz2;
-  double s2,cx,cy,cz,cmag,dx,phi,si,sin2;
+  double s2,cx,cy,cz,cmag,dx,phi,si,siinv,sin2;
 
   edihedral = 0.0;
 
@@ -212,19 +212,17 @@ void DihedralQuadraticOMP::eval(int nfrom, int nto, ThrData * const thr)
     // pd = dp/dc
 
     phi = acos(c);
-    if (dx < 0.0) phi *= -1.0;
+    if (dx > 0.0) phi *= -1.0;
     si = sin(phi);
+    if (fabs(si) < SMALLER) si = SMALLER;
+    siinv = 1.0/si;
 
     double dphi = phi-phi0[type];
     p = k[type]*dphi;
-    if (fabs(si) < SMALLER) {
-        pd = - 2.0 * k[type];
-    } else {
-        pd = - 2.0 * p / si;
-    }
+    pd = - 2.0 * p * siinv;
     p = p * dphi;
 
-    if (EFLAG) edihedral = p; 
+    if (EFLAG) edihedral = p;
 
     a = pd;
     c = c * a;

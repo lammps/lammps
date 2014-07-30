@@ -173,17 +173,31 @@ void KSpace::pair_check()
 {
   if (force->pair == NULL)
     error->all(FLERR,"KSpace solver requires a pair style");
-  if (ewaldflag && force->pair->ewaldflag == 0)
+
+  if (ewaldflag && !force->pair->ewaldflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (pppmflag && force->pair->pppmflag == 0)
+  if (pppmflag && !force->pair->pppmflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (msmflag && force->pair->msmflag == 0)
+  if (msmflag && !force->pair->msmflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (dispersionflag && force->pair->dispersionflag == 0)
+  if (dispersionflag && !force->pair->dispersionflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (tip4pflag && force->pair->tip4pflag == 0)
+  if (tip4pflag && !force->pair->tip4pflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (dipoleflag && force->pair->dipoleflag == 0)
+  if (dipoleflag && !force->pair->dipoleflag)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+
+  if (!ewaldflag && force->pair->ewaldflag)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (!pppmflag && force->pair->pppmflag)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (!msmflag && force->pair->msmflag)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (!dispersionflag && force->pair->dispersionflag)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (!tip4pflag && force->pair->tip4pflag)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (!dipoleflag && force->pair->dipoleflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
 }
 

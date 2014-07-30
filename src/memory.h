@@ -408,7 +408,7 @@ class Memory : protected Pointers {
     TYPE ***plane = (TYPE ***) smalloc(nbytes,name);
     nbytes = ((bigint) sizeof(TYPE ***)) * n1;
     array = (TYPE ****) smalloc(nbytes,name);
-    
+
     int i,j,k;
     bigint m1,m2;
     bigint n = 0;

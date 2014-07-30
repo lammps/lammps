@@ -39,7 +39,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const double kappa_lb=0.0;
-static const double sqrt2=1.41421356237310;
 
 FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
@@ -408,69 +407,69 @@ a z wall velocity without implementing fixed BCs in z");
   // Create the MPI datatypes used to pass portions of arrays:
   // datatypes to pass the f and feq arrays.
   //--------------------------------------------------------------------------
-  MPI_Aint sizeofdouble;
-  MPI_Type_extent(MPI_DOUBLE,&sizeofdouble);
+  MPI_Aint lb, sizeofdouble;
+  MPI_Type_get_extent(MPI_DOUBLE,&lb,&sizeofdouble);
   
   MPI_Type_vector(subNbz-2,numvel,numvel,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNby-2,1,numvel*subNbz*sizeofdouble,oneslice,&passxf);
+  MPI_Type_create_hvector(subNby-2,1,numvel*subNbz*sizeofdouble,oneslice,&passxf);
   MPI_Type_commit(&passxf);
  
-  MPI_Type_hvector(subNbx,1,numvel*subNbz*subNby*sizeofdouble,oneslice,&passyf);
+  MPI_Type_create_hvector(subNbx,1,numvel*subNbz*subNby*sizeofdouble,oneslice,&passyf);
   MPI_Type_commit(&passyf);
   
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNby,numvel,numvel*subNbz,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNbx,1,numvel*subNbz*subNby*sizeofdouble,oneslice,&passzf);
+  MPI_Type_create_hvector(subNbx,1,numvel*subNbz*subNby*sizeofdouble,oneslice,&passzf);
   MPI_Type_commit(&passzf);
 
   // datatypes to pass the u array, and the Ff array.
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNbz+3,3,3,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNby+3,1,3*(subNbz+3)*sizeofdouble,oneslice,&passxu);
+  MPI_Type_create_hvector(subNby+3,1,3*(subNbz+3)*sizeofdouble,oneslice,&passxu);
   MPI_Type_commit(&passxu);
   
-  MPI_Type_hvector(subNbx+3,1,3*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passyu);
+  MPI_Type_create_hvector(subNbx+3,1,3*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passyu);
   MPI_Type_commit(&passyu);
   
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNby+3,3,3*(subNbz+3),MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNbx+3,1,3*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passzu);
+  MPI_Type_create_hvector(subNbx+3,1,3*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passzu);
   MPI_Type_commit(&passzu);
 
   // datatypes to pass the density array.
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNbz+3,1,1,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNby+3,1,1*(subNbz+3)*sizeofdouble,oneslice,&passxrho);
+  MPI_Type_create_hvector(subNby+3,1,1*(subNbz+3)*sizeofdouble,oneslice,&passxrho);
   MPI_Type_commit(&passxrho);
   
-  MPI_Type_hvector(subNbx+3,1,1*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passyrho);
+  MPI_Type_create_hvector(subNbx+3,1,1*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passyrho);
   MPI_Type_commit(&passyrho);
   
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNby+3,1,1*(subNbz+3),MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNbx+3,1,1*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passzrho);
+  MPI_Type_create_hvector(subNbx+3,1,1*(subNbz+3)*(subNby+3)*sizeofdouble,oneslice,&passzrho);
   MPI_Type_commit(&passzrho);
 
   // datatypes to receive a portion of the Ff array.
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNbz+3,3,3,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNby+3,1,3*(subNbz+3)*sizeofdouble,oneslice,&passxtemp);
+  MPI_Type_create_hvector(subNby+3,1,3*(subNbz+3)*sizeofdouble,oneslice,&passxtemp);
   MPI_Type_commit(&passxtemp);
   
-  MPI_Type_hvector(subNbx+3,1,3*(subNbz+3)*5*sizeofdouble,oneslice,&passytemp);
+  MPI_Type_create_hvector(subNbx+3,1,3*(subNbz+3)*5*sizeofdouble,oneslice,&passytemp);
   MPI_Type_commit(&passytemp);
   
   MPI_Type_free(&oneslice);
   MPI_Type_vector(subNby+3,3,3*5,MPI_DOUBLE,&oneslice);
   MPI_Type_commit(&oneslice);
-  MPI_Type_hvector(subNbx+3,1,3*5*(subNby+3)*sizeofdouble,oneslice,&passztemp);
+  MPI_Type_create_hvector(subNbx+3,1,3*5*(subNby+3)*sizeofdouble,oneslice,&passztemp);
   MPI_Type_commit(&passztemp);
 
   MPI_Type_free(&oneslice);
@@ -806,7 +805,6 @@ void FixLbFluid::calc_fluidforce(void)
   MPI_Status statuses[20];
   double forceloc[3],force[3];
   double torqueloc[3],torque[3];
-  int numrequests;
   
   //--------------------------------------------------------------------------
   // Zero out arrays
@@ -1317,7 +1315,7 @@ void FixLbFluid::write_restartfile(void)
 
   char *hfile;
   hfile = new char[32];
-  sprintf(hfile,"FluidRestart_%d.dat",update->ntimestep);
+  sprintf(hfile,"FluidRestart_" BIGINT_FORMAT ".dat",update->ntimestep);
   
   MPI_File_open(world,hfile,MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,&fh);
 
@@ -1965,14 +1963,13 @@ void FixLbFluid::initialize_feq(void)
 void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, int zstart, int zend) {
 
   double rho;
-  double usq;
   int i, j, k, l, iup, idwn, jup, jdwn, kup, kdwn;
   double Fx_w, Fy_w, Fz_w;
 
   double total_density(0.0);
   double drhox, drhoy, drhoz, drhoxx, drhoyy, drhozz;
   double Pxx, Pyy, Pzz, Pxy, Pxz, Pyz;
-  double grs, p0,TrP;
+  double grs, p0;
   double dPdrho;
 
   double S[2][3],std;
@@ -2064,11 +2061,6 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
  	Fy_w = Ff[i][j][k][1];
  	Fz_w = Ff[i][j][k][2];
 
-	// this is Tr(P)
- 	TrP = Pxx+Pyy+Pzz;
- 	usq=u_lb[i][j][k][0]*u_lb[i][j][k][0]+u_lb[i][j][k][1]*u_lb[i][j][k][1]+
-	  u_lb[i][j][k][2]*u_lb[i][j][k][2];
-
 	etacov[0] = rho;
 	etacov[1] = rho*u_lb[i][j][k][0] + Fx_w*tau + rho*bodyforcex*tau;
 	etacov[2] = rho*u_lb[i][j][k][1] + Fy_w*tau + rho*bodyforcey*tau;
@@ -2090,6 +2082,7 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
 	etacov[11] = 0.0; 
 	etacov[12] = 0.0;
 	etacov[13] = rho*u_lb[i][j][k][0]*u_lb[i][j][k][1]*u_lb[i][j][k][2];
+	const double TrP = Pxx+Pyy+Pzz;
 	etacov[14] = K_0*(rho-TrP);
        
 	for (l=0; l<15; l++) {
@@ -2149,14 +2142,13 @@ void FixLbFluid::equilibriumdist15(int xstart, int xend, int ystart, int yend, i
 void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, int zstart, int zend) {
 
   double rho;
-  double usq;
   int i, j, k, l, iup, idwn, jup, jdwn, kup, kdwn;
   double Fx_w, Fy_w, Fz_w;
 
   double total_density(0.0);
   double drhox, drhoy, drhoz, drhoxx, drhoyy, drhozz;
   double Pxx, Pyy, Pzz, Pxy, Pxz, Pyz;
-  double grs, p0,TrP;
+  double grs, p0;
   double dPdrho;
 
   double S[2][3],std;
@@ -2246,11 +2238,6 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
  	Fx_w = Ff[i][j][k][0];
  	Fy_w = Ff[i][j][k][1];
  	Fz_w = Ff[i][j][k][2];
-
-	// this is Tr(P)
- 	TrP = Pxx+Pyy+Pzz;
- 	usq=u_lb[i][j][k][0]*u_lb[i][j][k][0]+u_lb[i][j][k][1]*u_lb[i][j][k][1]+
-	  u_lb[i][j][k][2]*u_lb[i][j][k][2];
 
 	etacov[0] = rho;
 	etacov[1] = rho*u_lb[i][j][k][0] + Fx_w*tau + rho*bodyforcex*tau;
@@ -2558,8 +2545,6 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
 void FixLbFluid::streamout(void)
 {
   int i,j,k;
-  double mass,massloc;
-  double momentumloc[3],momentum[3];
   int istart,jstart,kstart;
   int iend,jend,kend;
   int w,iproc;

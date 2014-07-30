@@ -37,6 +37,7 @@ using namespace FixConst;
 using namespace MathConst;
 
 enum{ATOM,MOLECULE};
+enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 #define EPSILON 1.0e6
 
@@ -452,13 +453,25 @@ void FixDeposit::pre_exchange()
       if (newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
           newcoord[1] >= sublo[1] && newcoord[1] < subhi[1] &&
           newcoord[2] >= sublo[2] && newcoord[2] < subhi[2]) flag = 1;
-      else if (dimension == 3 && newcoord[2] >= domain->boxhi[2] &&
-               comm->myloc[2] == comm->procgrid[2]-1 &&
-               newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
-               newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
-      else if (dimension == 2 && newcoord[1] >= domain->boxhi[1] &&
-               comm->myloc[1] == comm->procgrid[1]-1 &&
-               newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
+      else if (dimension == 3 && newcoord[2] >= domain->boxhi[2]) {
+        if (comm->layout != LAYOUT_TILED) {
+          if (comm->myloc[2] == comm->procgrid[2]-1 &&
+              newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
+              newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
+        } else {
+          if (comm->mysplit[2][1] == 1.0 &&
+              newcoord[0] >= sublo[0] && newcoord[0] < subhi[0] &&
+              newcoord[1] >= sublo[1] && newcoord[1] < subhi[1]) flag = 1;
+        } 
+      } else if (dimension == 2 && newcoord[1] >= domain->boxhi[1]) {
+        if (comm->layout != LAYOUT_TILED) {
+          if (comm->myloc[1] == comm->procgrid[1]-1 &&
+              newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
+        } else {
+          if (comm->mysplit[1][1] == 1.0 &&
+              newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
+        }
+      }
 
       if (flag) {
         if (mode == ATOM) atom->avec->create_atom(ntype,coords[m]);

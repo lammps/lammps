@@ -334,9 +334,12 @@ void FixSRD::init()
   if (bigexist && comm->ghost_velocity == 0)
     error->all(FLERR,"Fix srd requires ghost atoms store velocity");
   if (bigexist && collidestyle == NOSLIP && !atom->torque_flag)
-    error->all(FLERR,"Fix SRD no-slip requires atom attribute torque");
+    error->all(FLERR,"Fix srd no-slip requires atom attribute torque");
   if (initflag && update->dt != dt_big)
     error->all(FLERR,"Cannot change timestep once fix srd is setup");
+  if (comm->style != 0) 
+    error->universe_all(FLERR,"Fix srd can only currently be used with "
+                        "comm_style brick");
 
   // orthogonal vs triclinic simulation box
   // could be static or shearing box

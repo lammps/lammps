@@ -35,6 +35,7 @@ class FixDeform : public Fix {
   void init();
   void pre_exchange();
   void end_of_step();
+  double memory_usage();
 
  private:
   int triclinic,scaleflag,flipflag;

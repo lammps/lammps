@@ -31,7 +31,7 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>mol</I> or <I>basis</I> or <I>remap</I> or <I>units</I> 
+<LI>keyword = <I>mol</I> or <I>basis</I> or <I>remap</I> or <I>var</I> or <I>set</I> or <I>units</I> 
 
 <PRE>  <I>mol</I> value = template-ID seed
     template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
@@ -40,6 +40,10 @@
     M = which basis atom
     itype = atom type (1-N) to assign to this basis atom
   <I>remap</I> value = <I>yes</I> or <I>no</I>
+  <I>var</I> value = name = variable name to evaluate for test of atom creation
+  <I>set</I> values = dim vname
+    dim = <I>x</I> or <I>y</I> or <I>z</I>
+    name = name of variable to set with x,y,z atom position
   <I>units</I> value = <I>lattice</I> or <I>box</I>
     <I>lattice</I> = the geometry is defined in lattice units
     <I>box</I> = the geometry is defined in simulation box units 
@@ -51,6 +55,7 @@
 <PRE>create_atoms 1 box
 create_atoms 3 region regsphere basis 2 3
 create_atoms 3 single 0 0 5 
+create_atoms 1 box var v set x xpos set y ypos 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -189,6 +194,45 @@ box, it will mapped back into the box, assuming the relevant
 dimensions are periodic.  If it is set to <I>no</I>, no remapping is done
 and no particle is created if its position is outside the box.
 </P>
+<P>The <I>var</I> and <I>set</I> keywords can be used to provide a criterion for
+accepting or rejecting the addition of an individual atom, based on
+its coordinates.  The <I>vname</I> specified for the <I>var</I> keyword is the
+name of an <A HREF = "variable.html">equal-style variable</A> which should evaluate
+to a zero or non-zero value based on one or two or three variables
+which will store the x, y, or z coordinates of an atom (one variable
+per coordinate).  These other variables must be <A HREF = "variable.html">equal-style
+variables</A> defined in the input script, but their
+formula can by anything.  The <I>set</I> keyword is used to identify the
+names of these other variables, one variable for the x-coordinate of a
+created atom, one for y, and one for z.
+</P>
+<P>When an atom is created, its x, y, or z coordinates override the
+formula for any <I>set</I> variable that is defined.  The <I>var</I> variable is
+then evaluated.  If the returned value is 0.0, the atom is not
+created.  If it is non-zero, the atom is created.
+</P>
+<P>As an example, these commands can be used in a 2d simulation, to
+create a sinusoidal surface.  Note that the surface is "rough" due to
+individual lattice points being "above" or "below" the mathematical
+expression for the sinusoidal curve.  If a finer lattice were used,
+the sinusoid would appear to be "smoother".  Also note the use of the
+"xlat" and "ylat" <A HREF = "thermo_style.html">thermo_style</A> keywords which
+converts lattice spacings to distance.  Click on the image for a
+larger version.
+</P>
+<PRE>variable        x equal 100
+variable        y equal 25
+lattice		hex 0.8442
+region		box block 0 $x 0 $y -0.5 0.5
+create_box	1 box 
+</PRE>
+<PRE>variable        xx equal 0.0
+variable        yy equal 0.0
+variable        v equal "(0.2*v_y*ylat * cos(v_xx/xlat * 2.0*PI*4.0/v_x) + 0.5*v_y*ylat - v_yy) > 0.0"
+create_atoms	1 box var v set x xx set y yy 
+</PRE>
+<CENTER><A HREF = "JPG/sinusoid.jpg"><IMG SRC = "JPG/sinusoid_small.jpg"></A>
+</CENTER>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the <I>single</I>
 style.  A <I>box</I> value selects standard distance units as defined by

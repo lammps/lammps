@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class CommBrick : public Comm {
  public:
   CommBrick(class LAMMPS *);
+  CommBrick(class LAMMPS *, class Comm *);
   virtual ~CommBrick();
 
   virtual void init();
@@ -80,6 +81,7 @@ class CommBrick : public Comm {
   int maxexchange;                  // max # of datums/atom in exchange comm 
   int bufextra;                     // extra space beyond maxsend in send buffer
 
+  void init_buffers();
   int updown(int, int, int, double, int, double *);
                                             // compare cutoff to procs
   virtual void grow_send(int, int);         // reallocate send buffer

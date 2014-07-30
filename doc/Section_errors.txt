@@ -988,14 +988,6 @@ will assign the restart file info to actual atoms. :dd
 This is a restriction due to the way atoms are organized in a list to
 enable the atom_modify first command. :dd
 
-{Support for writing images in JPEG format not included} :dt
-
-LAMMPS was not built with the -DLAMMPS_JPEG switch in the Makefile. :dd
-
-{Support for writing images in PNG format not included} :dt
-
-LAMMPS was not built with the -DLAMMPS_PNG switch in the Makefile. :dd
-
 {Cannot dump sort on atom IDs with no atom IDs defined} :dt
 
 Self-explanatory. :dd

@@ -52,6 +52,9 @@ VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
   if (universe->procs_per_world[0] % universe->procs_per_world[1])
     error->universe_all(FLERR,"Verlet/split requires Rspace partition "
                         "size be multiple of Kspace partition size");
+  if (comm->style != 0) 
+    error->universe_all(FLERR,"Verlet/split can only currently be used with "
+                        "comm_style brick");
 
   // master = 1 for Rspace procs, 0 for Kspace procs
 
@@ -214,6 +217,9 @@ VerletSplit::~VerletSplit()
 
 void VerletSplit::init()
 {
+  if (comm->style != 0) 
+    error->universe_all(FLERR,"Verlet/split can only currently be used with "
+                        "comm_style brick");
   if (!force->kspace && comm->me == 0)
     error->warning(FLERR,"No Kspace calculation with verlet/split");
 

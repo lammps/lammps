@@ -27,6 +27,8 @@
 #include "domain.h"
 #include "lattice.h"
 #include "region.h"
+#include "input.h"
+#include "variable.h"
 #include "random_park.h"
 #include "random_mars.h"
 #include "math_extra.h"
@@ -41,6 +43,7 @@ using namespace MathConst;
 
 enum{BOX,REGION,SINGLE,RANDOM};
 enum{ATOM,MOLECULE};
+enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -103,6 +106,8 @@ void CreateAtoms::command(int narg, char **arg)
   remapflag = 0;
   mode = ATOM;
   int molseed;
+  varflag = 0;
+  vstr = xstr = ystr = zstr = NULL;
 
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
@@ -141,6 +146,33 @@ void CreateAtoms::command(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
       else error->all(FLERR,"Illegal create_atoms command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"var") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
+      delete [] vstr;
+      int n = strlen(arg[iarg+1]) + 1;
+      vstr = new char[n];
+      strcpy(vstr,arg[iarg+1]);
+      varflag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"set") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
+      if (strcmp(arg[iarg+1],"x") == 0) {
+        delete [] xstr;
+        int n = strlen(arg[iarg+2]) + 1;
+        xstr = new char[n];
+        strcpy(xstr,arg[iarg+2]);
+      } else if (strcmp(arg[iarg+1],"y") == 0) {
+        delete [] ystr;
+        int n = strlen(arg[iarg+2]) + 1;
+        ystr = new char[n];
+        strcpy(ystr,arg[iarg+2]);
+      } else if (strcmp(arg[iarg+1],"z") == 0) {
+        delete [] zstr;
+        int n = strlen(arg[iarg+2]) + 1;
+        zstr = new char[n];
+        strcpy(zstr,arg[iarg+2]);
+      } else error->all(FLERR,"Illegal create_atoms command");
+      iarg += 3;
     } else error->all(FLERR,"Illegal create_atoms command");
   }
 
@@ -176,6 +208,47 @@ void CreateAtoms::command(int narg, char **arg)
     // molecule random number generator, different for each proc
     
     ranmol = new RanMars(lmp,molseed+comm->me);
+  }
+
+  // error check and further setup for variable test
+  // save local copy of each equal variable string so can restore at end
+
+  if (!vstr && (xstr || ystr || zstr))
+    error->all(FLERR,"Incomplete use of variables in create_atoms command");
+  if (vstr && (!xstr && !ystr && !zstr))
+    error->all(FLERR,"Incomplete use of variables in create_atoms command");
+
+  if (varflag) {
+    vvar = input->variable->find(vstr);
+    if (vvar < 0)
+      error->all(FLERR,"Variable name for create_atoms does not exist");
+    if (!input->variable->equalstyle(vvar))
+      error->all(FLERR,"Variable for create_atoms is invalid style");
+
+    if (xstr) {
+      xvar = input->variable->find(xstr);
+      if (xvar < 0)
+        error->all(FLERR,"Variable name for create_atoms does not exist");
+      if (!input->variable->equalstyle(xvar))
+        error->all(FLERR,"Variable for create_atoms is invalid style");
+      input->variable->equal_save(xvar,xstr_copy);
+    }
+    if (ystr) {
+      yvar = input->variable->find(ystr);
+      if (yvar < 0)
+        error->all(FLERR,"Variable name for create_atoms does not exist");
+      if (!input->variable->equalstyle(yvar))
+        error->all(FLERR,"Variable for create_atoms is invalid style");
+      input->variable->equal_save(yvar,ystr_copy);
+    }
+    if (zstr) {
+      zvar = input->variable->find(zstr);
+      if (zvar < 0)
+        error->all(FLERR,"Variable name for create_atoms does not exist");
+      if (!input->variable->equalstyle(zvar))
+        error->all(FLERR,"Variable for create_atoms is invalid style");
+      input->variable->equal_save(zvar,zstr_copy);
+    }
   }
 
   // demand non-none lattice be defined for BOX and REGION
@@ -226,17 +299,32 @@ void CreateAtoms::command(int narg, char **arg)
   }
 
   if (style == BOX || style == REGION) {
-    if (domain->xperiodic) {
-      if (comm->myloc[0] == 0) sublo[0] -= epsilon[0];
-      if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] -= 2.0*epsilon[0];
-    }
-    if (domain->yperiodic) {
-      if (comm->myloc[1] == 0) sublo[1] -= epsilon[1];
-      if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] -= 2.0*epsilon[1];
-    }
-    if (domain->zperiodic) {
-      if (comm->myloc[2] == 0) sublo[2] -= epsilon[2];
-      if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] -= 2.0*epsilon[2];
+    if (comm->layout != LAYOUT_TILED) {
+      if (domain->xperiodic) {
+        if (comm->myloc[0] == 0) sublo[0] -= epsilon[0];
+        if (comm->myloc[0] == comm->procgrid[0]-1) subhi[0] -= 2.0*epsilon[0];
+      }
+      if (domain->yperiodic) {
+        if (comm->myloc[1] == 0) sublo[1] -= epsilon[1];
+        if (comm->myloc[1] == comm->procgrid[1]-1) subhi[1] -= 2.0*epsilon[1];
+      }
+      if (domain->zperiodic) {
+        if (comm->myloc[2] == 0) sublo[2] -= epsilon[2];
+        if (comm->myloc[2] == comm->procgrid[2]-1) subhi[2] -= 2.0*epsilon[2];
+      }
+    } else {
+      if (domain->xperiodic) {
+        if (comm->mysplit[0][0] == 0.0) sublo[0] -= epsilon[0];
+        if (comm->mysplit[0][1] == 1.0) subhi[0] -= 2.0*epsilon[0];
+      }
+      if (domain->yperiodic) {
+        if (comm->mysplit[1][0] == 0.0) sublo[1] -= epsilon[1];
+        if (comm->mysplit[1][1] == 1.0) subhi[1] -= 2.0*epsilon[1];
+      }
+      if (domain->zperiodic) {
+        if (comm->mysplit[2][0] == 0.0) sublo[2] -= epsilon[2];
+        if (comm->mysplit[2][1] == 1.0) subhi[2] -= 2.0*epsilon[2];
+      }
     }
   }
 
@@ -257,6 +345,14 @@ void CreateAtoms::command(int narg, char **arg)
     if (fix->create_attribute)
       for (int i = nlocal_previous; i < nlocal; i++)
         fix->set_arrays(i);
+  }
+
+  // restore each equal variable string previously saved
+
+  if (varflag) {
+    if (xstr) input->variable->equal_restore(xvar,xstr_copy);
+    if (ystr) input->variable->equal_restore(yvar,ystr_copy);
+    if (zstr) input->variable->equal_restore(zvar,zstr_copy);
   }
 
   // set new total # of atoms and error check
@@ -409,6 +505,10 @@ void CreateAtoms::command(int narg, char **arg)
 
   delete ranmol;
   if (domain->lattice) delete [] basistype;
+  delete [] vstr;
+  delete [] xstr;
+  delete [] ystr;
+  delete [] zstr;
 
   // print status
 
@@ -509,7 +609,7 @@ void CreateAtoms::add_random()
   }
 
   // generate random positions for each new atom/molecule within bounding box
-  // iterate until atom is within region and triclinic simulation box
+  // iterate until atom is within region, variable, and triclinic simulation box
   // if final atom position is in my subbox, create it
 
   if (xlo > xhi || ylo > yhi || zlo > zhi)
@@ -527,6 +627,7 @@ void CreateAtoms::add_random()
       if (nregion >= 0 &&
           domain->regions[nregion]->match(xone[0],xone[1],xone[2]) == 0)
         valid = 0;
+      if (varflag && vartest(xone) == 0) valid = 0;
       if (triclinic) {
         domain->x2lamda(xone,lamda);
         coord = lamda;
@@ -642,6 +743,10 @@ void CreateAtoms::add_lattice()
           if (style == REGION)
             if (!domain->regions[nregion]->match(x[0],x[1],x[2])) continue;
 
+          // if variable test specified, eval variable
+
+          if (varflag && vartest(x) == 0) continue;
+
           // test if atom/molecule position is in my subbox
 
           if (triclinic) {
@@ -695,4 +800,20 @@ void CreateAtoms::add_molecule(double *center)
     n = atom->nlocal - 1;
     atom->add_molecule_atom(onemol,m,n,0);
   }
+}
+
+/* ----------------------------------------------------------------------
+   test a generated atom position against variable evaluation
+   first plug in x,y,z values as requested
+------------------------------------------------------------------------- */
+
+int CreateAtoms::vartest(double *x)
+{
+  if (xstr) input->variable->equal_override(xvar,x[0]);
+  if (ystr) input->variable->equal_override(yvar,x[1]);
+  if (zstr) input->variable->equal_override(zvar,x[2]);
+
+  double value = input->variable->compute_equal(vvar);
+  if (value == 0.0) return 0;
+  return 1;
 }

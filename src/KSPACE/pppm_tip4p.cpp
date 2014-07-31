@@ -44,6 +44,7 @@ PPPMTIP4P::PPPMTIP4P(LAMMPS *lmp, int narg, char **arg) :
 {
   triclinic_support = 0;
   tip4pflag = 1;
+  pppmflag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

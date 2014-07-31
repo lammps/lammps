@@ -31,6 +31,8 @@ for preventing certain particles from moving in a simulation.  The
 <A HREF = "pair_gran.html">granular pair styles</A> also detect if this fix has been
 defined and compute interactions between frozen and non-frozen
 particles appropriately, as if the frozen particle has infinite mass.
+A similar functionality for normal (point) particles can be obtained
+using <A HREF = "fix_setforce.html">fix setforce</A>.
 </P>
 <HR>
 
@@ -82,9 +84,9 @@ the <A HREF = "pair_gran.html">granular pair styles</A> treat frozen particles
 differently and need to be able to reference a single group to which
 this fix is applied.
 </P>
-<P><B>Related commands:</B> none
+<P><B>Related commands:</B>
 </P>
-<P><A HREF = "atom_style.html">atom_style sphere</A>
+<P><A HREF = "atom_style.html">atom_style sphere</A>, <A HREF = "fix_setforce.html">fix setforce</A>
 </P>
 <P><B>Default:</B> none
 </P>

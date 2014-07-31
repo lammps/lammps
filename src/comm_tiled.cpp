@@ -345,7 +345,8 @@ void CommTiled::setup()
           sbox[5] = MIN(oboxhi[2],hi1[2]);
         } else {
           pbc_flag[nswap][i] = 1;
-          pbc[nswap][i][idim] = 1;
+          if (iswap == 0) pbc[nswap][i][idim] = 1;
+          else pbc[nswap][i][idim] = -1;
           sbox[0] = MAX(oboxlo[0],lo2[0]);
           sbox[1] = MAX(oboxlo[1],lo2[1]);
           sbox[2] = MAX(oboxlo[2],lo2[2]);

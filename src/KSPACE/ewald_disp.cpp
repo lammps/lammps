@@ -173,11 +173,8 @@ void EwaldDisp::init()
       error->warning(FLERR,str);
   }
 
-  if (!function[1] && !function[2])
-    dispersionflag = 0;
-
-  if (!function[3])
-    dipoleflag = 0;
+  if (!function[1] && !function[2]) dispersionflag = 0;
+  if (!function[3]) dipoleflag = 0;
 
   pair_check();
 

@@ -54,6 +54,9 @@ class CommTiled : public Comm {
   int size_border;                  // # of datums in forward border comm
 
   int nswap;                    // # of swaps to perform = 2*dim
+
+  // forward/reverse comm info, proc lists include self
+
   int *nsendproc,*nrecvproc;    // # of procs to send/recv to/from in each swap
   int *sendother;               // 1 if send to any other proc in each swap
   int *sendself;                // 1 if send to self in each swap
@@ -73,6 +76,12 @@ class CommTiled : public Comm {
   int ***pbc;                   // dimension flags for PBC adjustments
 
   double ***sendbox;            // bounding box of atoms to send per swap/proc
+
+  // exchange comm info, proc lists do not include self
+
+  int *nesendproc,*nerecvproc;  // # of procs to send/recv to/from in each swap
+  int *neprocmax;               // current max # of send procs for each swap
+  int **esendproc,**erecvproc;  // proc to send/recv to/from per swap/proc
 
   double *buf_send;             // send buffer for all comm
   double *buf_recv;             // recv buffer for all comm
@@ -118,6 +127,11 @@ class CommTiled : public Comm {
   BoxOtherPtr box_other;
   void box_other_brick(int, int, int, double *, double *);
   void box_other_tiled(int, int, int, double *, double *);
+
+  typedef int (CommTiled::*BoxTouchPtr)(int, int, int);
+  BoxTouchPtr box_touch;
+  int box_touch_brick(int, int, int);
+  int box_touch_tiled(int, int, int);
 
   void grow_send(int, int);            // reallocate send buffer
   void grow_recv(int);                 // free/allocate recv buffer

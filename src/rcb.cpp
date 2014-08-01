@@ -158,6 +158,9 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
   hi[1] = bboxhi[1];
   hi[2] = bboxhi[2];
 
+  cut = 0.0;
+  cutdim = -1;
+
   // initialize counters
 
   counters[0] = 0;

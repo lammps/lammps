@@ -266,9 +266,12 @@ void FixBalance::rebalance()
   // only needed if migrate_check() says an atom moves to far
   // else allow caller's comm->exchange() to do it
 
+  //NOTE: change back to migrate_check()
+
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (lbstyle == BISECTION) irregular->migrate_atoms(0,sendproc);
-  else if (irregular->migrate_check()) irregular->migrate_atoms();
+  //else if (irregular->migrate_check()) irregular->migrate_atoms();
+  else irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // invoke KSpace setup_grid() to adjust to new proc sub-domains

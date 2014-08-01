@@ -678,12 +678,14 @@ void CommBrick::exchange()
     atom->nlocal = nlocal;
 
     // send/recv atoms in both directions
+    // send size of message first so receiver can realloc buf_recv if needed
     // if 1 proc in dimension, no send/recv, set recv buf to send buf
     // if 2 procs in dimension, single send/recv
     // if more than 2 procs in dimension, send/recv to both neighbors
 
     if (procgrid[dim] == 1) {
-      nrecv = nsend;
+      nrecv = nsend;   // NOTE: could just be nrecv = 0 ?? 
+                       // no buf, just buf_recv 
       buf = buf_send;
 
     } else {
@@ -714,6 +716,7 @@ void CommBrick::exchange()
 
     // check incoming atoms to see if they are in my box
     // if so, add to my list
+    // check is only for this dimension, may be passed to another proc
 
     m = 0;
     while (m < nrecv) {

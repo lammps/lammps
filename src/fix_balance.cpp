@@ -172,6 +172,9 @@ void FixBalance::setup(int vflag)
 void FixBalance::setup_pre_exchange()
 {
   // insure atoms are in current box & update box via shrink-wrap
+  // has to be be done before rebalance() invokes Irregular::migrate_atoms()
+  //   since it requires atoms be inside simulation box
+  //   even though pbc() will be done again in Verlet::run()
   // no exchange() since doesn't matter if atoms are assigned to correct procs
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);

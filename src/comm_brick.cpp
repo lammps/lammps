@@ -504,11 +504,12 @@ void CommBrick::forward_comm(int dummy)
   for (int iswap = 0; iswap < nswap; iswap++) {
     if (sendproc[iswap] != me) {
       if (comm_x_only) {
-        if (size_forward_recv[iswap]) buf = x[firstrecv[iswap]];
-        else buf = NULL;
-        if (size_forward_recv[iswap])
+        if (size_forward_recv[iswap]) {
+          if (size_forward_recv[iswap]) buf = x[firstrecv[iswap]];
+          else buf = NULL;
           MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
                     recvproc[iswap],0,world,&request);
+        }
         n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
                             buf_send,pbc_flag[iswap],pbc[iswap]);
         if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
@@ -575,11 +576,12 @@ void CommBrick::reverse_comm()
         if (size_reverse_recv[iswap])
           MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
                     sendproc[iswap],0,world,&request);
-        if (size_reverse_send[iswap]) buf = f[firstrecv[iswap]];
-        else buf = NULL;
-        if (size_reverse_send[iswap])
+        if (size_reverse_send[iswap]) {
+          if (size_reverse_send[iswap]) buf = f[firstrecv[iswap]];
+          else buf = NULL;
           MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,
                    recvproc[iswap],0,world);
+        }
         if (size_reverse_recv[iswap]) MPI_Wait(&request,&status);
       } else {
         if (size_reverse_recv[iswap])
@@ -620,7 +622,7 @@ void CommBrick::exchange()
   int i,m,nsend,nrecv,nrecv1,nrecv2,nlocal;
   double lo,hi,value;
   double **x;
-  double *sublo,*subhi,*buf;
+  double *sublo,*subhi;
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
@@ -656,7 +658,9 @@ void CommBrick::exchange()
 
   // loop over dimensions
 
-  for (int dim = 0; dim < 3; dim++) {
+  int dimension = domain->dimension;
+
+  for (int dim = 0; dim < dimension; dim++) {
 
     // fill buffer with atoms leaving my box, using < and >=
     // when atom is deleted, fill it in with last atom
@@ -679,16 +683,13 @@ void CommBrick::exchange()
 
     // send/recv atoms in both directions
     // send size of message first so receiver can realloc buf_recv if needed
-    // if 1 proc in dimension, no send/recv, set recv buf to send buf
+    // if 1 proc in dimension, no send/recv
+    //   set nrecv = 0 so buf_send atoms will be lost
     // if 2 procs in dimension, single send/recv
     // if more than 2 procs in dimension, send/recv to both neighbors
 
-    if (procgrid[dim] == 1) {
-      nrecv = nsend;   // NOTE: could just be nrecv = 0 ?? 
-                       // no buf, just buf_recv 
-      buf = buf_send;
-
-    } else {
+    if (procgrid[dim] == 1) nrecv = 0;
+    else {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
                    &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,&status);
       nrecv = nrecv1;
@@ -710,19 +711,18 @@ void CommBrick::exchange()
         MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][1],0,world);
         MPI_Wait(&request,&status);
       }
-
-      buf = buf_recv;
     }
 
     // check incoming atoms to see if they are in my box
     // if so, add to my list
-    // check is only for this dimension, may be passed to another proc
+    // check is only for this dimension,
+    //   may be passed to another proc on later dims
 
     m = 0;
     while (m < nrecv) {
-      value = buf[m+dim+1];
-      if (value >= lo && value < hi) m += avec->unpack_exchange(&buf[m]);
-      else m += static_cast<int> (buf[m]);
+      value = buf_recv[m+dim+1];
+      if (value >= lo && value < hi) m += avec->unpack_exchange(&buf_recv[m]);
+      else m += static_cast<int> (buf_recv[m]);
     }
   }
 

@@ -133,6 +133,11 @@ class CommTiled : public Comm {
   int box_touch_brick(int, int, int);
   int box_touch_tiled(int, int, int);
 
+  typedef int (CommTiled::*PointDropPtr)(int, double *);
+  PointDropPtr point_drop;
+  int point_drop_brick(int, double *);
+  int point_drop_tiled(int, double *);
+
   void grow_send(int, int);            // reallocate send buffer
   void grow_recv(int);                 // free/allocate recv buffer
   void grow_list(int, int, int);       // reallocate sendlist for one swap/proc

@@ -21,7 +21,7 @@ file = name of file to write image to :l
 color = atom attribute that determines color of each atom :l
 diameter = atom attribute that determines size of each atom :l
 zero or more keyword/value pairs may be appended :l
-keyword = {adiam} or {atom} or {bond} or {size} or {view} or {center} or {up} or {zoom} or {persp} or {box} or {axes} or {shiny} or {ssao} :l
+keyword = {adiam} or {atom} or {bond} or {size} or {view} or {center} or {up} or {zoom} or {persp} or {box} or {axes} or {subbox} or {shiny} or {ssao} :l
   {adiam} value = number = numeric value for atom diameter (distance units)
   {atom} = yes/no = do or do not draw atoms
   {bond} values = color width = color and width of bonds
@@ -55,6 +55,9 @@ keyword = {adiam} or {atom} or {bond} or {size} or {view} or {center} or {up} or
     yes/no = do or do not draw xyz axes lines next to simulation box
     length = length of axes lines as fraction of respective box lengths
     diam = diameter of axes lines as fraction of shortest box length
+  {subbox} values = yes/no diam = draw outline of processor sub-domains
+    yes/no = do or do not draw sub-domain lines
+    diam = diameter of sub-domain lines as fraction of shortest box length
   {shiny} value = sfactor = shinyness of spheres and cylinders
     sfactor = shinyness of spheres and cylinders from 0.0 to 1.0
   {ssao} value = yes/no seed dfactor = SSAO depth shading
@@ -356,23 +359,33 @@ IMPORTANT NOTE: The {persp} keyword is not yet supported as an option.
 
 :line
 
-The {box} keyword determines how the simulation box boundaries are
-rendered as thin cylinders in the image.  If {no} is set, then the box
-boundaries are not drawn and the {diam} setting is ignored.  If {yes}
-is set, the 12 edges of the box are drawn, with a diameter that is a
-fraction of the shortest box length in x,y,z (for 3d) or x,y (for 2d).
-The color of the box boundaries can be set with the "dump_modify
+The {box} keyword determines if and how the simulation box boundaries
+are rendered as thin cylinders in the image.  If {no} is set, then the
+box boundaries are not drawn and the {diam} setting is ignored.  If
+{yes} is set, the 12 edges of the box are drawn, with a diameter that
+is a fraction of the shortest box length in x,y,z (for 3d) or x,y (for
+2d).  The color of the box boundaries can be set with the "dump_modify
 boxcolor"_dump_modify.html command.
 
-The {axes} keyword determines how the coordinate axes are rendered as
-thin cylinders in the image.  If {no} is set, then the axes are not
-drawn and the {length} and {diam} settings are ignored.  If {yes} is
-set, 3 thin cylinders are drawn to represent the x,y,z axes in colors
-red,green,blue.  The origin of these cylinders will be offset from the
-lower left corner of the box by 10%.  The {length} setting determines
-how long the cylinders will be as a fraction of the respective box
-lengths.  The {diam} setting determines their thickness as a fraction
-of the shortest box length in x,y,z (for 3d) or x,y (for 2d).
+The {axes} keyword determines if and how the coordinate axes are
+rendered as thin cylinders in the image.  If {no} is set, then the
+axes are not drawn and the {length} and {diam} settings are ignored.
+If {yes} is set, 3 thin cylinders are drawn to represent the x,y,z
+axes in colors red,green,blue.  The origin of these cylinders will be
+offset from the lower left corner of the box by 10%.  The {length}
+setting determines how long the cylinders will be as a fraction of the
+respective box lengths.  The {diam} setting determines their thickness
+as a fraction of the shortest box length in x,y,z (for 3d) or x,y (for
+2d).
+
+The {subbox} keyword determines if and how processor sub-domain
+boundaries are rendered as thin cylinders in the image.  If {no} is
+set (default), then the sub-domain boundaries are not drawn and the
+{diam} setting is ignored.  If {yes} is set, the 12 edges of each
+processor sub-domain are drawn, with a diameter that is a fraction of
+the shortest box length in x,y,z (for 3d) or x,y (for 2d).  The color
+of the sub-domain boundaries can be set with the "dump_modify
+boxcolor"_dump_modify.html command.
 
 :line
 
@@ -533,5 +546,6 @@ zoom = 1.0
 persp = 0.0
 box = yes 0.02
 axes = no 0.0 0.0
+subbox no 0.0
 shiny = 1.0
 ssao = no :ul

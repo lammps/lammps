@@ -95,7 +95,7 @@
     type = bond type or range of types (see below)
     diam = diameter of bonds of that type (distance units)
   <I>boxcolor</I> arg = color
-    color = name of color for box lines
+    color = name of color for simulation box lines and processor sub-domain lines
   <I>color</I> args = name R G B
     name = name of color
     R,G,B = red/green/blue numeric values from 0.0 to 1.0
@@ -661,8 +661,10 @@ allow the bitrate to be set.  If not, the setting is silently ignored.
 <HR>
 
 <P>The <I>boxcolor</I> keyword sets the color of the simulation box drawn
-around the atoms in each image.  See the "dump image box" command for
-how to specify that a box be drawn.  The color name can be any of the
+around the atoms in each image as well as the color of processor
+sub-domain boundaries.  See the "dump image box" command for how to
+specify that a box be drawn via the <I>box</I> keyword, and the sub-domain
+boundaries via the <I>subbox</I> keyword.  The color name can be any of the
 140 pre-defined colors (see below) or a color name defined by the
 dump_modify color option.
 </P>

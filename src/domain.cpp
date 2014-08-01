@@ -1740,3 +1740,44 @@ void Domain::box_corners()
   corners[7][0] = 1.0; corners[7][1] = 1.0; corners[7][2] = 1.0;
   lamda2x(corners[7],corners[7]);
 }
+
+/* ----------------------------------------------------------------------
+   compute 8 corner pts of my triclinic sub-box
+   8 are ordered with x changing fastest, then y, finally z
+   could be more efficient if just coded with xy,yz,xz explicitly
+------------------------------------------------------------------------- */
+
+void Domain::subbox_corners()
+{
+  corners[0][0] = sublo_lamda[0]; corners[0][1] = sublo_lamda[1]; 
+  corners[0][2] = sublo_lamda[2];
+  lamda2x(corners[0],corners[0]);
+
+  corners[1][0] = subhi_lamda[0]; corners[1][1] = sublo_lamda[1]; 
+  corners[1][2] = sublo_lamda[2];
+  lamda2x(corners[1],corners[1]);
+
+  corners[2][0] = sublo_lamda[0]; corners[2][1] = subhi_lamda[1]; 
+  corners[2][2] = sublo_lamda[2];
+  lamda2x(corners[2],corners[2]);
+
+  corners[3][0] = subhi_lamda[0]; corners[3][1] = subhi_lamda[1]; 
+  corners[3][2] = sublo_lamda[2];
+  lamda2x(corners[3],corners[3]);
+
+  corners[4][0] = sublo_lamda[0]; corners[4][1] = sublo_lamda[1]; 
+  corners[4][2] = subhi_lamda[2];
+  lamda2x(corners[4],corners[4]);
+
+  corners[5][0] = subhi_lamda[0]; corners[5][1] = sublo_lamda[1]; 
+  corners[5][2] = subhi_lamda[2];
+  lamda2x(corners[5],corners[5]);
+
+  corners[6][0] = sublo_lamda[0]; corners[6][1] = subhi_lamda[1]; 
+  corners[6][2] = subhi_lamda[2];
+  lamda2x(corners[6],corners[6]);
+
+  corners[7][0] = subhi_lamda[0]; corners[7][1] = subhi_lamda[1]; 
+  corners[7][2] = subhi_lamda[2];
+  lamda2x(corners[7],corners[7]);
+}

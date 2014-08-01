@@ -420,21 +420,36 @@ void CommTiled::setup()
     for (i = 0; i < n; i++) {
       proc = sendproc[iswap][i];
       if (proc == me) continue;
-      if ((this->*box_touch)(proc,idim,0)) overlap[noverlap++] = proc;
-    }
-    noverlap1 = noverlap;
-    iswap = 2*idim;
-    n = nsendproc[iswap];
-    for (i = 0; i < n; i++) {
-      proc = sendproc[iswap][i];
-      if (proc == me) continue;
       if ((this->*box_touch)(proc,idim,0)) {
-        for (j = 0; j < noverlap1; j++)
-          if (overlap[j] == proc) break;
-        if (j < noverlap1) continue;
+        if (noverlap == maxoverlap) {
+          maxoverlap += DELTA_PROCS;
+          memory->grow(overlap,maxoverlap,"comm:overlap");
+        }
         overlap[noverlap++] = proc;
       }
     }
+    noverlap1 = noverlap;
+    iswap = 2*idim+1;
+    n = nsendproc[iswap];
+
+    MPI_Barrier(world);
+
+    for (i = 0; i < n; i++) {
+      proc = sendproc[iswap][i];
+      if (proc == me) continue;
+      if ((this->*box_touch)(proc,idim,1)) {
+        for (j = 0; j < noverlap1; j++)
+          if (overlap[j] == proc) break;
+        if (j < noverlap1) continue;
+        if (noverlap == maxoverlap) {
+          maxoverlap += DELTA_PROCS;
+          memory->grow(overlap,maxoverlap,"comm:overlap");
+        }
+        overlap[noverlap++] = proc;
+      }
+    }
+
+    MPI_Barrier(world);
 
     // reallocate esendproc and erecvproc if needed based on noverlap
     
@@ -447,13 +462,14 @@ void CommTiled::setup()
     }
 
     nexchproc[idim] = noverlap;
-    for (i = 0; i < noverlap; i++) exchproc[iswap][i] = overlap[i];
+    for (i = 0; i < noverlap; i++) exchproc[idim][i] = overlap[i];
   }
 
   // reallocate MPI Requests and Statuses as needed
 
   int nmax = 0;
-  for (iswap = 0; iswap < nswap; iswap++) nmax = MAX(nmax,nprocmax[iswap]);
+  for (i = 0; i < nswap; i++) nmax = MAX(nmax,nprocmax[i]);
+  for (i = 0; i < dimension; i++) nmax = MAX(nmax,nexchprocmax[i]);
   if (nmax > maxreqstat) {
     maxreqstat = nmax;
     delete [] requests;
@@ -463,11 +479,13 @@ void CommTiled::setup()
   }
 
   // DEBUG
-  /*
+
+  MPI_Barrier(world);
 
   printf("SUBBOX %d: %g %g: %g %g\n",me,sublo[0],sublo[1],subhi[0],subhi[1]);
   MPI_Barrier(world);
 
+  /*
   for (i = 0; i < nswap; i++) {
     if (nsendproc[i] == 1)
       printf("SETUP SEND %d %d: nsend %d self %d sproc0 %d: "
@@ -503,8 +521,25 @@ void CommTiled::setup()
              i,me,nrecvproc[i],sendother[i],recvproc[i][0],recvproc[i][1]);
   }
 
-  MPI_Barrier(world);
   */
+
+  for (i = 0; i < dimension; i++) {
+    if (nexchproc[i] == 1)
+      printf("SETUP EXCH %d %d: nexch %d exch %d\n",
+             i,me,nexchproc[i],exchproc[i][0]);
+    else if (nexchproc[i] == 2)
+      printf("SETUP EXCH2 %d %d: nexch %d exch %d %d\n",
+             i,me,nexchproc[i],exchproc[i][0],exchproc[i][1]);
+    else if (nexchproc[i] == 3)
+      printf("SETUP EXCH2 %d %d: nexch %d exch %d %d %d\n",
+             i,me,nexchproc[i],exchproc[i][0],exchproc[i][1],exchproc[i][2]);
+    else if (nexchproc[i] == 4)
+      printf("SETUP EXCH2 %d %d: nexch %d exch %d %d %d %d\n",
+             i,me,nexchproc[i],exchproc[i][0],exchproc[i][1],
+             exchproc[i][2],exchproc[i][3]);
+  }
+
+  MPI_Barrier(world);
 }
 
 /* ----------------------------------------------------------------------
@@ -781,13 +816,18 @@ void CommTiled::exchange()
     // receiver may receive multiple messages, realloc buf_recv if needed
 
     nexch = nexchproc[dim];
+    if (!nexch) continue;
+
+    //MPI_Barrier(world);
+    printf("EXCH dim %d me %d nexch %d %d\n",dim,me,nexch,exchproc[0][0]);
+    //MPI_Barrier(world);
 
     for (m = 0; m < nexch; m++)
       MPI_Irecv(&exchnum[dim][m],1,MPI_INT,
                 exchproc[dim][m],0,world,&requests[m]);
     for (m = 0; m < nexch; m++)
       MPI_Send(&nsend,1,MPI_INT,exchproc[dim][m],0,world);
-    MPI_Waitall(nrecv,requests,statuses);
+    MPI_Waitall(nexch,requests,statuses);
 
     nrecv = 0;
     for (m = 0; m < nexch; m++) nrecv += exchnum[dim][m];
@@ -801,7 +841,11 @@ void CommTiled::exchange()
     }
     for (m = 0; m < nexch; m++)
       MPI_Send(buf_send,nsend,MPI_DOUBLE,exchproc[dim][m],0,world);
-    MPI_Waitall(nrecv,requests,statuses);
+    MPI_Waitall(nexch,requests,statuses);
+
+    //MPI_Barrier(world);
+    printf("DONE EXCH dim %d me %d nexch %d %d\n",dim,me,nexch,exchproc[0][0]);
+    //MPI_Barrier(world);
       
     // check incoming atoms to see if I own it and they are in my box
     // if so, add to my list
@@ -820,6 +864,11 @@ void CommTiled::exchange()
       }
       m += static_cast<int> (buf_recv[m]);
     }
+
+    //MPI_Barrier(world);
+    printf("DONE UNPACK dim %d me %d nexch %d %d\n",
+           dim,me,nexch,exchproc[0][0]);
+    //MPI_Barrier(world);
   }
 
   if (atom->firstgroupname) atom->first_reorder();
@@ -1891,7 +1940,7 @@ void CommTiled::deallocate_swap(int n)
   delete [] nexchproc;
   delete [] nexchprocmax;
 
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < n/2; i++) {
     delete [] exchproc[i];
     delete [] exchnum[i];
   }

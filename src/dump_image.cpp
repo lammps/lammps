@@ -122,6 +122,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   boxflag = YES;
   boxdiam = 0.02;
   axesflag = NO;
+  subboxflag = NO;
 
   // parse optional args
 
@@ -284,6 +285,15 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (axeslen < 0.0 || axesdiam < 0.0)
         error->all(FLERR,"Illegal dump image command");
       iarg += 4;
+
+    } else if (strcmp(arg[iarg],"subbox") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
+      if (strcmp(arg[iarg+1],"yes") == 0) subboxflag = YES;
+      else if (strcmp(arg[iarg+1],"no") == 0) subboxflag = NO;
+      else error->all(FLERR,"Illegal dump image command");
+      subboxdiam = force->numeric(FLERR,arg[iarg+2]);
+      if (subboxdiam < 0.0) error->all(FLERR,"Illegal dump image command");
+      iarg += 3;
 
     } else if (strcmp(arg[iarg],"shiny") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
@@ -824,6 +834,36 @@ void DumpImage::create_image()
         } else image->draw_cylinder(x[atom1],x[atom2],color,diameter,3);
       }
     }
+  }
+
+  // render outline of my sub-box, orthogonal or triclinic
+
+  if (subboxflag) {
+    double diameter = MIN(boxxhi-boxxlo,boxyhi-boxylo);
+    if (domain->dimension == 3) diameter = MIN(diameter,boxzhi-boxzlo);
+    diameter *= boxdiam;
+
+    double *sublo = domain->sublo;
+    double *subhi = domain->subhi;
+
+    double (*boxcorners)[3];
+    double box[8][3];
+    if (domain->triclinic == 0) {
+      box[0][0] = sublo[0]; box[0][1] = sublo[1]; box[0][2] = sublo[2];
+      box[1][0] = subhi[0]; box[1][1] = sublo[1]; box[1][2] = sublo[2];
+      box[2][0] = sublo[0]; box[2][1] = subhi[1]; box[2][2] = sublo[2];
+      box[3][0] = subhi[0]; box[3][1] = subhi[1]; box[3][2] = sublo[2];
+      box[4][0] = sublo[0]; box[4][1] = sublo[1]; box[4][2] = subhi[2];
+      box[5][0] = subhi[0]; box[5][1] = sublo[1]; box[5][2] = subhi[2];
+      box[6][0] = sublo[0]; box[6][1] = subhi[1]; box[6][2] = subhi[2];
+      box[7][0] = subhi[0]; box[7][1] = subhi[1]; box[7][2] = subhi[2];
+      boxcorners = box;
+    } else {
+      domain->subbox_corners();
+      boxcorners = domain->corners;
+    }
+
+    image->draw_box(boxcorners,diameter);
   }
 
   // render outline of simulation box, orthogonal or triclinic

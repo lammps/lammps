@@ -398,51 +398,38 @@ void CommTiled::setup()
   }
 
   // setup exchange communication = subset of forward/reverse comm
-  // loop over 6 swap directions
+  // loop over dimensions
   // determine which procs I will send to and receive from in each swap
   // subset of procs that touch my proc in forward/reverse comm
-  // sets nesendproc, nerecvproc, esendproc, erecvproc
-  // resets neprocmax
+  // sets nexchproc, exchproc
+  // resets nexchprocmax
 
   iswap = 0;
   for (int idim = 0; idim < dimension; idim++) {
-    for (int idir = 0; idir < 2; idir++) {
-      noverlap = 0;
-      n = nsendproc[iswap];
-      for (i = 0; i < n; i++) {
-        if (sendproc[iswap][i] == me) continue;
-        if ((this->*box_touch)(sendproc[iswap][i],idim,idir))
-          overlap[noverlap++] = sendproc[iswap][i];
-      }
-
-      // reallocate esendproc or erecvproc if needed based on novlerap
-
-      if (noverlap > neprocmax[iswap]) {
-        while (neprocmax[iswap] < noverlap) neprocmax[iswap] += DELTA_PROCS;
-        n = neprocmax[iswap];
-        delete [] esendproc[iswap];
-        esendproc[iswap] = new int[n];
-        if (idir == 0) {
-          delete [] erecvproc[iswap+1];
-          erecvproc[iswap+1] = new int[n];
-        } else {
-          delete [] erecvproc[iswap-1];
-          erecvproc[iswap-1] = new int[n];
-        }
-      }
-
-      nesendproc[iswap] = noverlap;
-      for (i = 0; i < noverlap; i++) esendproc[iswap][i] = overlap[i];
-      if (idir == 0) {
-        nerecvproc[iswap+1] = noverlap;
-        for (i = 0; i < noverlap; i++) erecvproc[iswap+1][i] = overlap[i];
-      } else {
-        nerecvproc[iswap-1] = noverlap;
-        for (i = 0; i < noverlap; i++) erecvproc[iswap-1][i] = overlap[i];
-      }
-
-      iswap++;
+    noverlap = 0;
+    n = nsendproc[idim];
+    for (i = 0; i < n; i++) {
+      if (sendproc[iswap][i] == me) continue;
+      if ((this->*box_touch)(sendproc[iswap][i],idim,0))
+        overlap[noverlap++] = sendproc[iswap][i];
     }
+    n = nsendproc[idim];
+    for (i = 0; i < n; i++) {
+      if (sendproc[iswap][i] == me) continue;
+      if ((this->*box_touch)(sendproc[iswap][i],idim,1))
+        overlap[noverlap++] = sendproc[iswap][i];
+    }
+
+    // reallocate esendproc and erecvproc if needed based on noverlap
+    
+    if (noverlap > nexchprocmax[idim]) {
+      while (nexchprocmax[idim] < noverlap) nexchprocmax[idim] += DELTA_PROCS;
+      delete [] exchproc[idim];
+      exchproc[idim] = new int[nexchprocmax[idim]];
+    }
+
+    nexchproc[idim] = noverlap;
+    for (i = 0; i < noverlap; i++) exchproc[iswap][i] = overlap[i];
   }
 
   // reallocate MPI Requests and Statuses as needed
@@ -701,7 +688,7 @@ void CommTiled::reverse_comm()
 
 void CommTiled::exchange()
 {
-  int i,m,nsend,nrecv,nsendsize,nrecvsize,nlocal,proc,offset;
+  int i,m,nexch,nsend,nrecv,nlocal,proc,offset;
   double lo,hi,value;
   double **x;
   AtomVec *avec = atom->avec;
@@ -753,15 +740,15 @@ void CommTiled::exchange()
     lo = sublo[dim];
     hi = subhi[dim];
     nlocal = atom->nlocal;
-    i = nsendsize = 0;
+    i = nsend = 0;
 
     while (i < nlocal) {
       if (x[i][dim] < lo || x[i][dim] >= hi) {
-        if (nsendsize > maxsend) grow_send(nsendsize,1);
+        if (nsend > maxsend) grow_send(nsend,1);
         proc = (this->*point_drop)(dim,x[i]);
         if (proc != me) {
-          buf_send[nsendsize++] = proc;
-          nsendsize += avec->pack_exchange(i,&buf_send[nsendsize]);
+          buf_send[nsend++] = proc;
+          nsend += avec->pack_exchange(i,&buf_send[nsend]);
           avec->copy(nlocal-1,i,1);
           nlocal--;
         } else i++;
@@ -775,28 +762,27 @@ void CommTiled::exchange()
     // send size of message first
     // receiver may receive multiple messages, realloc buf_recv if needed
 
-    nsend = nesendproc[dim];
-    nrecv = nerecvproc[dim];
+    nexch = nexchproc[dim];
 
-    for (m = 0; m < nrecv; m++)
+    for (m = 0; m < nexch; m++)
       MPI_Irecv(&recvnum[dim][m],1,MPI_INT,
-                erecvproc[dim][m],0,world,&requests[m]);
-    for (m = 0; m < nsend; m++)
-      MPI_Send(&nsendsize,1,MPI_INT,esendproc[dim][m],0,world);
+                exchproc[dim][m],0,world,&requests[m]);
+    for (m = 0; m < nexch; m++)
+      MPI_Send(&nsend,1,MPI_INT,exchproc[dim][m],0,world);
     MPI_Waitall(nrecv,requests,statuses);
 
-    nrecvsize = 0;
-    for (m = 0; m < nrecv; m++) nrecvsize += recvnum[dim][m];
-    if (nrecvsize > maxrecv) grow_recv(nrecvsize);
+    nrecv = 0;
+    for (m = 0; m < nexch; m++) nrecv += recvnum[dim][m];
+    if (nrecv > maxrecv) grow_recv(nrecv);
 
     offset = 0;
-    for (m = 0; m < nrecv; m++) {
+    for (m = 0; m < nexch; m++) {
       MPI_Irecv(&buf_recv[offset],recvnum[dim][m],
-                MPI_DOUBLE,erecvproc[dim][m],0,world,&requests[m]);
+                MPI_DOUBLE,exchproc[dim][m],0,world,&requests[m]);
       offset += recvnum[dim][m];
     }
-    for (m = 0; m < nsend; m++)
-      MPI_Send(buf_send,nsendsize,MPI_DOUBLE,esendproc[dim][m],0,world);
+    for (m = 0; m < nexch; m++)
+      MPI_Send(buf_send,nsend,MPI_DOUBLE,exchproc[dim][m],0,world);
     MPI_Waitall(nrecv,requests,statuses);
       
     // check incoming atoms to see if I own it and they are in my box
@@ -805,7 +791,7 @@ void CommTiled::exchange()
     //   atom may be passed to another proc in later dims
 
     m = 0;
-    while (m < nrecvsize) {
+    while (m < nrecv) {
       proc = static_cast<int> (buf_recv[m++]);
       if (proc == me) {
         value = buf_recv[m+dim+1];
@@ -1708,17 +1694,13 @@ void CommTiled::allocate_swap(int n)
     grow_swap_recv(i,DELTA_PROCS);
   }
 
-  nesendproc = new int[n];
-  nerecvproc = new int[n];
-  neprocmax = new int[n];
-  esendproc = new int*[n];
-  erecvproc = new int*[n];
+  nexchproc = new int[n/2];
+  nexchprocmax = new int[n/2];
+  exchproc = new int*[n/2];
 
   for (int i = 0; i < n; i++) {
-    esendproc[i] = erecvproc[i] = NULL;
-    neprocmax[i] = DELTA_PROCS;
-    esendproc[i] = new int[DELTA_PROCS];
-    erecvproc[i] = new int[DELTA_PROCS];
+    nexchprocmax[i] = DELTA_PROCS;
+    exchproc[i] = new int[DELTA_PROCS];
   }
 }
 
@@ -1830,17 +1812,11 @@ void CommTiled::deallocate_swap(int n)
 
   delete [] nprocmax;
 
-  delete [] nesendproc;
-  delete [] nerecvproc;
-  delete [] neprocmax;
+  delete [] nexchproc;
+  delete [] nexchprocmax;
 
-  for (int i = 0; i < n; i++) {
-    delete [] esendproc[i];
-    delete [] erecvproc[i];
-  }
-
-  delete [] esendproc;
-  delete [] erecvproc;
+  for (int i = 0; i < n; i++) delete [] exchproc[i];
+  delete [] exchproc;
 }
 
 /* ----------------------------------------------------------------------

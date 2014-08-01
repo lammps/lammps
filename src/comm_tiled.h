@@ -61,7 +61,7 @@ class CommTiled : public Comm {
   int *sendother;               // 1 if send to any other proc in each swap
   int *sendself;                // 1 if send to self in each swap
   int *nprocmax;                // current max # of send procs for each swap
-  int **sendproc,**recvproc;    // proc to send/recv to/from per swap/proc
+  int **sendproc,**recvproc;    // procs to send/recv to/from per swap
   int **sendnum,**recvnum;      // # of atoms to send/recv per swap/proc
   int **size_forward_recv;      // # of values to recv in each forward swap/proc
   int **firstrecv;              // where to put 1st recv atom per swap/proc
@@ -79,9 +79,9 @@ class CommTiled : public Comm {
 
   // exchange comm info, proc lists do not include self
 
-  int *nesendproc,*nerecvproc;  // # of procs to send/recv to/from in each swap
-  int *neprocmax;               // current max # of send procs for each swap
-  int **esendproc,**erecvproc;  // proc to send/recv to/from per swap/proc
+  int *nexchproc;               // # of procs to send/recv to/from in each exch
+  int *nexchprocmax;            // current max # of exch procs for each exch
+  int **exchproc;               // procs to exchange with per exch
 
   double *buf_send;             // send buffer for all comm
   double *buf_recv;             // recv buffer for all comm

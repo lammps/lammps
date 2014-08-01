@@ -82,6 +82,7 @@ class CommTiled : public Comm {
   int *nexchproc;               // # of procs to send/recv to/from in each exch
   int *nexchprocmax;            // current max # of exch procs for each exch
   int **exchproc;               // procs to exchange with per exch
+  int **exchnum;                // # of atoms received per exch/proc
 
   double *buf_send;             // send buffer for all comm
   double *buf_recv;             // recv buffer for all comm
@@ -103,11 +104,11 @@ class CommTiled : public Comm {
     int dim;	               // dimension = 0/1/2 of cut
   };
 
+  RCBinfo *rcbinfo;            // list of RCB info for all procs
+
   int noverlap;                // # of overlapping procs
   int maxoverlap;              // current max length of overlap
   int *overlap;                // list of overlapping procs
-
-  RCBinfo *rcbinfo;            // list of RCB info for all procs
 
   double *prd;                 // local ptrs to Domain attributes
   double *boxlo,*boxhi;
@@ -137,6 +138,7 @@ class CommTiled : public Comm {
   PointDropPtr point_drop;
   int point_drop_brick(int, double *);
   int point_drop_tiled(int, double *);
+  int point_drop_tiled_recurse(double *, int, int);
 
   void grow_send(int, int);            // reallocate send buffer
   void grow_recv(int);                 // free/allocate recv buffer

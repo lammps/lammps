@@ -35,6 +35,7 @@ using namespace LAMMPS_NS;
 #define BUFFACTOR 1.5
 #define BUFMIN 1000
 #define BUFEXTRA 1000
+#define EPSILON 1.0e-6
 
 // NOTE: change this to 16 after debugged
 
@@ -176,7 +177,7 @@ void CommTiled::init()
 
 void CommTiled::setup()
 {
-  int i,n;
+  int i,j,n;
 
   // domain properties used in setup method and methods it calls
 
@@ -195,10 +196,12 @@ void CommTiled::setup()
     box_drop = &CommTiled::box_drop_brick;
     box_other = &CommTiled::box_other_brick;
     box_touch = &CommTiled::box_touch_brick;
+    point_drop = &CommTiled::point_drop_brick;
   } else {
     box_drop = &CommTiled::box_drop_tiled;
     box_other = &CommTiled::box_other_tiled;
     box_touch = &CommTiled::box_touch_tiled;
+    point_drop = &CommTiled::point_drop_tiled;
   }
 
   // if RCB decomp exists and just changed, gather needed global RCB info
@@ -397,27 +400,40 @@ void CommTiled::setup()
     }
   }
 
-  // setup exchange communication = subset of forward/reverse comm
+  // setup exchange communication = subset of forward/reverse comm procs
   // loop over dimensions
-  // determine which procs I will send to and receive from in each swap
+  // determine which procs I will exchange with in each dimension
   // subset of procs that touch my proc in forward/reverse comm
-  // sets nexchproc, exchproc
-  // resets nexchprocmax
+  // sets nexchproc & exchproc, resets nexchprocmax
 
-  iswap = 0;
+  int proc;
+
   for (int idim = 0; idim < dimension; idim++) {
+
+    // overlap = list of procs that touch my sub-box in idim
+    // proc can appear twice in list if touches in both directions
+    // 2nd add-to-list checks to insure each proc appears exactly once
+
     noverlap = 0;
-    n = nsendproc[idim];
+    iswap = 2*idim;
+    n = nsendproc[iswap];
     for (i = 0; i < n; i++) {
-      if (sendproc[iswap][i] == me) continue;
-      if ((this->*box_touch)(sendproc[iswap][i],idim,0))
-        overlap[noverlap++] = sendproc[iswap][i];
+      proc = sendproc[iswap][i];
+      if (proc == me) continue;
+      if ((this->*box_touch)(proc,idim,0)) overlap[noverlap++] = proc;
     }
-    n = nsendproc[idim];
+    noverlap1 = noverlap;
+    iswap = 2*idim;
+    n = nsendproc[iswap];
     for (i = 0; i < n; i++) {
-      if (sendproc[iswap][i] == me) continue;
-      if ((this->*box_touch)(sendproc[iswap][i],idim,1))
-        overlap[noverlap++] = sendproc[iswap][i];
+      proc = sendproc[iswap][i];
+      if (proc == me) continue;
+      if ((this->*box_touch)(proc,idim,0)) {
+        for (j = 0; j < noverlap1; j++)
+          if (overlap[j] == proc) break;
+        if (j < noverlap1) continue;
+        overlap[noverlap++] = proc;
+      }
     }
 
     // reallocate esendproc and erecvproc if needed based on noverlap
@@ -426,6 +442,8 @@ void CommTiled::setup()
       while (nexchprocmax[idim] < noverlap) nexchprocmax[idim] += DELTA_PROCS;
       delete [] exchproc[idim];
       exchproc[idim] = new int[nexchprocmax[idim]];
+      delete [] exchnum[idim];
+      exchnum[idim] = new int[nexchprocmax[idim]];
     }
 
     nexchproc[idim] = noverlap;
@@ -765,21 +783,21 @@ void CommTiled::exchange()
     nexch = nexchproc[dim];
 
     for (m = 0; m < nexch; m++)
-      MPI_Irecv(&recvnum[dim][m],1,MPI_INT,
+      MPI_Irecv(&exchnum[dim][m],1,MPI_INT,
                 exchproc[dim][m],0,world,&requests[m]);
     for (m = 0; m < nexch; m++)
       MPI_Send(&nsend,1,MPI_INT,exchproc[dim][m],0,world);
     MPI_Waitall(nrecv,requests,statuses);
 
     nrecv = 0;
-    for (m = 0; m < nexch; m++) nrecv += recvnum[dim][m];
+    for (m = 0; m < nexch; m++) nrecv += exchnum[dim][m];
     if (nrecv > maxrecv) grow_recv(nrecv);
 
     offset = 0;
     for (m = 0; m < nexch; m++) {
-      MPI_Irecv(&buf_recv[offset],recvnum[dim][m],
+      MPI_Irecv(&buf_recv[offset],exchnum[dim][m],
                 MPI_DOUBLE,exchproc[dim][m],0,world,&requests[m]);
-      offset += recvnum[dim][m];
+      offset += exchnum[dim][m];
     }
     for (m = 0; m < nexch; m++)
       MPI_Send(buf_send,nsend,MPI_DOUBLE,exchproc[dim][m],0,world);
@@ -1595,11 +1613,67 @@ int CommTiled::point_drop_brick(int idim, double *x)
 }
 
 /* ----------------------------------------------------------------------
+   determine overlap list of Noverlap procs the lo/hi box overlaps
+   overlap = non-zero area in common between box and proc sub-domain
+   recursive method for traversing an RCB tree of cuts
+   no need to split lo/hi box as recurse b/c OK if box extends outside RCB box
 ------------------------------------------------------------------------- */
 
 int CommTiled::point_drop_tiled(int idim, double *x)
 {
-  return 0;
+  double xnew[3];
+  xnew[0] = x[0]; xnew[1] = x[1]; xnew[2] = x[2];
+  if (idim == 0) {
+    xnew[1] = MAX(xnew[1],sublo[1]);
+    xnew[1] = MIN(xnew[1],subhi[1]);
+  }
+  if (idim <= 1) {
+    xnew[2] = MAX(xnew[2],sublo[2]);
+    xnew[2] = MIN(xnew[2],subhi[2]);
+  }
+
+  int proc = point_drop_tiled_recurse(xnew,0,nprocs-1);
+  if (proc == me) return me;
+
+  int done = 1;
+  if (idim == 0) {
+    if (rcbinfo[proc].mysplit[1][0] == rcbinfo[me].mysplit[1][1]) {
+      xnew[1] -= EPSILON * (subhi[1]-sublo[1]);
+      done = 0;
+    }
+  }
+  if (idim <= 1) {
+    if (rcbinfo[proc].mysplit[2][0] == rcbinfo[me].mysplit[2][1]) {
+      xnew[2] -= EPSILON * (subhi[2]-sublo[2]);
+      done = 0;
+    }
+  }
+  if (!done) proc = point_drop_tiled_recurse(xnew,0,nprocs-1);
+
+  return proc;
+}
+
+int CommTiled::point_drop_tiled_recurse(double *x, 
+                                        int proclower, int procupper)
+{
+  // end recursion when partition is a single proc
+  // return proc
+
+  if (proclower == procupper) return proclower;
+  
+  // drop point on side of cut it is on
+  // use < criterion so point is not on high edge of proc sub-domain
+  // procmid = 1st processor in upper half of partition
+  //         = location in tree that stores this cut
+  // dim = 0,1,2 dimension of cut
+  // cut = position of cut
+
+  int procmid = proclower + (procupper - proclower) / 2 + 1;
+  double cut = rcbinfo[procmid].cut;
+  int idim = rcbinfo[procmid].dim;
+
+  if (x[idim] < cut) return point_drop_tiled_recurse(x,proclower,procmid-1);
+  else return point_drop_tiled_recurse(x,procmid,procupper);
 }
 
 /* ----------------------------------------------------------------------
@@ -1697,10 +1771,12 @@ void CommTiled::allocate_swap(int n)
   nexchproc = new int[n/2];
   nexchprocmax = new int[n/2];
   exchproc = new int*[n/2];
+  exchnum = new int*[n/2];
 
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < n/2; i++) {
     nexchprocmax[i] = DELTA_PROCS;
     exchproc[i] = new int[DELTA_PROCS];
+    exchnum[i] = new int[DELTA_PROCS];
   }
 }
 
@@ -1815,8 +1891,13 @@ void CommTiled::deallocate_swap(int n)
   delete [] nexchproc;
   delete [] nexchprocmax;
 
-  for (int i = 0; i < n; i++) delete [] exchproc[i];
+  for (int i = 0; i < n; i++) {
+    delete [] exchproc[i];
+    delete [] exchnum[i];
+  }
+
   delete [] exchproc;
+  delete [] exchnum;
 }
 
 /* ----------------------------------------------------------------------

@@ -715,8 +715,8 @@ void CommBrick::exchange()
 
     // check incoming atoms to see if they are in my box
     // if so, add to my list
-    // check is only for this dimension,
-    //   may be passed to another proc on later dims
+    // box check is only for this dimension,
+    //   atom may be passed to another proc in later dims
 
     m = 0;
     while (m < nrecv) {

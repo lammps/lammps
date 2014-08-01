@@ -52,7 +52,6 @@ PairLJCutTIP4PLong::PairLJCutTIP4PLong(LAMMPS *lmp) :
   PairLJCutCoulLong(lmp)
 {
   tip4pflag = 1;
-  ewaldflag = pppmflag = 0;
 
   single_enable = 0;
   respa_enable = 0;

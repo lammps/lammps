@@ -183,10 +183,17 @@ middle of a run when the condition is met.
 
 [Restrictions:]
 
-The number of specified timesteps N must fit in a signed 32-bit
-integer, so you are limited to slightly more than 2 billion steps
-(2^31) in a single run.  However, you can perform successive runs to
-run a simulation for any number of steps (ok, up to 2^63 steps).
+When not using the {upto} keyword, the number of specified timesteps N
+must fit in a signed 32-bit integer, so you are limited to slightly
+more than 2 billion steps (2^31) in a single run.  When using {upto},
+N can be larger than a signed 32-bit integer, however the difference
+between N and the current timestep must still be no larger than
+2^31 steps.  
+
+However, with or without the {upto} keyword, you can perform
+successive runs to run a simulation for any number of steps (ok, up to
+2^63 total steps).  I.e. the timestep counter within LAMMPS is a
+64-bit signed integer.
 
 [Related commands:]
 

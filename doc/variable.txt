@@ -110,6 +110,14 @@ commands).  Variables of style {atomfile} can be used anywhere in an
 input script that atom-style variables are used; they get their
 per-atom values from a file rather than from a formula.
 
+IMPORTANT NOTE: As discussed in "Section
+3.2"_Section_commands.html#cmd_2 of the manual, an input script can
+use "immediate" variables, specified as $(formula) with parenthesis,
+where the formula has the same syntax as equal-style variables
+described on this page.  This is a way to evaluate a formula
+immediately without using the variable command to define a named
+variable.
+
 In the discussion that follows, the "name" of the variable is the
 arbitrary string that is the 1st argument in the variable command.
 This name can only contain alphanumeric characters and underscores.
@@ -835,16 +843,26 @@ above.
 
 [Immediate Evaluation of Variables:]
 
-There is a difference between referencing a variable with a leading $
-sign (e.g. $x or $\{abc\}) versus with a leading "v_" (e.g. v_x or
-v_abc).  The former can be used in any input script command, including
-a variable command.  The input script parser evaluates the reference
-variable immediately and substitutes its value into the command.  As
-explained in "Section commands 3.2"_Section_commands.html#3_2 for
-"Parsing rules", you can also use un-named "immediate" variables for
-this purpose.  For example, a string like this
-$((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates the
-string between the parenthesis as an equal-style variable formula.
+If you want an equal-style variable to be evaluated immediately, it
+may be the case that you do not need to define a variable at all.  See
+"Section 3.2"_Section_commands.html#cmd_2 of the manual, which
+describes the use of "immediate" variables in an input script,
+specified as $(formula) with parenthesis, where the formula has the
+same syntax as equal-style variables described on this page.  This
+effectively evaluates a formula immediately without using the variable
+command to define a named variable.
+
+More generally, there is a difference between referencing a variable
+with a leading $ sign (e.g. $x or $\{abc\}) versus with a leading "v_"
+(e.g. v_x or v_abc).  The former can be used in any input script
+command, including a variable command.  The input script parser
+evaluates the reference variable immediately and substitutes its value
+into the command.  As explained in "Section commands
+3.2"_Section_commands.html#3_2 for "Parsing rules", you can also use
+un-named "immediate" variables for this purpose.  For example, a
+string like this $((xlo+xhi)/2+sqrt(v_area)) in an input script
+command evaluates the string between the parenthesis as an equal-style
+variable formula.
 
 Referencing a variable with a leading "v_" is an optional or required
 kind of argument for some commands (e.g. the "fix

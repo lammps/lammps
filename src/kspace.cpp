@@ -173,6 +173,7 @@ void KSpace::pair_check()
 {
   if (force->pair == NULL)
     error->all(FLERR,"KSpace solver requires a pair style");
+
   if (ewaldflag && !force->pair->ewaldflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   if (pppmflag && !force->pair->pppmflag)
@@ -181,9 +182,14 @@ void KSpace::pair_check()
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   if (dispersionflag && !force->pair->dispersionflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (dipoleflag && !force->pair->dipoleflag)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
   if (tip4pflag && !force->pair->tip4pflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (dipoleflag && !force->pair->dipoleflag)
+
+  if (force->pair->dispersionflag && !dispersionflag)
+    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (force->pair->tip4pflag && !tip4pflag)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
 }
 

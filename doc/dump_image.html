@@ -33,7 +33,7 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>adiam</I> or <I>atom</I> or <I>bond</I> or <I>size</I> or <I>view</I> or <I>center</I> or <I>up</I> or <I>zoom</I> or <I>persp</I> or <I>box</I> or <I>axes</I> or <I>shiny</I> or <I>ssao</I> 
+<LI>keyword = <I>adiam</I> or <I>atom</I> or <I>bond</I> or <I>size</I> or <I>view</I> or <I>center</I> or <I>up</I> or <I>zoom</I> or <I>persp</I> or <I>box</I> or <I>axes</I> or <I>subbox</I> or <I>shiny</I> or <I>ssao</I> 
 
 <PRE>  <I>adiam</I> value = number = numeric value for atom diameter (distance units)
   <I>atom</I> = yes/no = do or do not draw atoms
@@ -68,6 +68,9 @@
     yes/no = do or do not draw xyz axes lines next to simulation box
     length = length of axes lines as fraction of respective box lengths
     diam = diameter of axes lines as fraction of shortest box length
+  <I>subbox</I> values = yes/no diam = draw outline of processor sub-domains
+    yes/no = do or do not draw sub-domain lines
+    diam = diameter of sub-domain lines as fraction of shortest box length
   <I>shiny</I> value = sfactor = shinyness of spheres and cylinders
     sfactor = shinyness of spheres and cylinders from 0.0 to 1.0
   <I>ssao</I> value = yes/no seed dfactor = SSAO depth shading
@@ -370,23 +373,33 @@ perspective.
 </P>
 <HR>
 
-<P>The <I>box</I> keyword determines how the simulation box boundaries are
-rendered as thin cylinders in the image.  If <I>no</I> is set, then the box
-boundaries are not drawn and the <I>diam</I> setting is ignored.  If <I>yes</I>
-is set, the 12 edges of the box are drawn, with a diameter that is a
-fraction of the shortest box length in x,y,z (for 3d) or x,y (for 2d).
-The color of the box boundaries can be set with the <A HREF = "dump_modify.html">dump_modify
+<P>The <I>box</I> keyword determines if and how the simulation box boundaries
+are rendered as thin cylinders in the image.  If <I>no</I> is set, then the
+box boundaries are not drawn and the <I>diam</I> setting is ignored.  If
+<I>yes</I> is set, the 12 edges of the box are drawn, with a diameter that
+is a fraction of the shortest box length in x,y,z (for 3d) or x,y (for
+2d).  The color of the box boundaries can be set with the <A HREF = "dump_modify.html">dump_modify
 boxcolor</A> command.
 </P>
-<P>The <I>axes</I> keyword determines how the coordinate axes are rendered as
-thin cylinders in the image.  If <I>no</I> is set, then the axes are not
-drawn and the <I>length</I> and <I>diam</I> settings are ignored.  If <I>yes</I> is
-set, 3 thin cylinders are drawn to represent the x,y,z axes in colors
-red,green,blue.  The origin of these cylinders will be offset from the
-lower left corner of the box by 10%.  The <I>length</I> setting determines
-how long the cylinders will be as a fraction of the respective box
-lengths.  The <I>diam</I> setting determines their thickness as a fraction
-of the shortest box length in x,y,z (for 3d) or x,y (for 2d).
+<P>The <I>axes</I> keyword determines if and how the coordinate axes are
+rendered as thin cylinders in the image.  If <I>no</I> is set, then the
+axes are not drawn and the <I>length</I> and <I>diam</I> settings are ignored.
+If <I>yes</I> is set, 3 thin cylinders are drawn to represent the x,y,z
+axes in colors red,green,blue.  The origin of these cylinders will be
+offset from the lower left corner of the box by 10%.  The <I>length</I>
+setting determines how long the cylinders will be as a fraction of the
+respective box lengths.  The <I>diam</I> setting determines their thickness
+as a fraction of the shortest box length in x,y,z (for 3d) or x,y (for
+2d).
+</P>
+<P>The <I>subbox</I> keyword determines if and how processor sub-domain
+boundaries are rendered as thin cylinders in the image.  If <I>no</I> is
+set (default), then the sub-domain boundaries are not drawn and the
+<I>diam</I> setting is ignored.  If <I>yes</I> is set, the 12 edges of each
+processor sub-domain are drawn, with a diameter that is a fraction of
+the shortest box length in x,y,z (for 3d) or x,y (for 2d).  The color
+of the sub-domain boundaries can be set with the <A HREF = "dump_modify.html">dump_modify
+boxcolor</A> command.
 </P>
 <HR>
 
@@ -546,6 +559,7 @@ mp4).
 <LI>persp = 0.0
 <LI>box = yes 0.02
 <LI>axes = no 0.0 0.0
+<LI>subbox no 0.0
 <LI>shiny = 1.0
 <LI>ssao = no 
 </UL>

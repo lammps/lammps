@@ -243,7 +243,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
       if (dim == 0 && hi[2]-lo[2] > hi[0]-lo[0]) dim = 2;
       if (dim == 1 && hi[2]-lo[2] > hi[1]-lo[1]) dim = 2;
     }
-    
+
     // create active list and mark array for dots
     // initialize active list to all dots
 

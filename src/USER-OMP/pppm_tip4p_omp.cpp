@@ -350,6 +350,9 @@ void PPPMTIP4POMP::particle_map()
   const double boxloz = boxlo[2];
   const int nlocal = atom->nlocal;
 
+  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
+    error->one(FLERR,"Non-numeric box dimensions. Simulation unstable.");
+
   int i, flag = 0;
 #if defined(_OPENMP)
 #pragma omp parallel for private(i) default(none) reduction(+:flag) schedule(static)

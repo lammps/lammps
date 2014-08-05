@@ -282,6 +282,9 @@ void PPPMCG::particle_map()
 
   double **x = atom->x;
 
+  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
+    error->one(FLERR,"Non-numeric box dimensions. Simulation unstable.");
+
   int flag = 0;
   for (int j = 0; j < num_charged; j++) {
     int i = is_charged[j];

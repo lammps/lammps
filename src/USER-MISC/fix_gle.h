@@ -54,7 +54,7 @@ class FixGLE : public Fix {
 
   void init_gle(); void init_gles();
  protected:
-  int ns;
+  int ns, ns1sq;
   double *A, *C, *S, *T, *ST, *TT;
   double *gle_tmp1, *gle_tmp2;
   double t_start, t_stop, t_target;

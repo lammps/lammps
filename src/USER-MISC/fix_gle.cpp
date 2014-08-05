@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Michele Ceriotti (EPFL), Joe Morrone (Stony Brooks)
+   Contributing author: Michele Ceriotti (EPFL), Joe Morrone (Stony Brook)
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"
@@ -44,6 +44,8 @@ using namespace FixConst;
 enum{NOBIAS,BIAS};
 enum{CONSTANT,EQUAL,ATOM};
 //#define GLE_DEBUG 1
+
+#define MAXLINE 1024
 
 /* syntax for fix_gle:
  * fix nfix id-group gle ns Tstart Tstop seed amatrix [noneq cmatrix] [every nmts]
@@ -136,64 +138,144 @@ void MatrixExp(unsigned long n, const double* M, double* EM, unsigned long j=8, 
 FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 8) error->all(FLERR,"Illegal fix gle command. Expecting fix nfix id-group gle ns Tstart Tstop seed amatrix");
+  if (narg < 8)
+    error->all(FLERR,"Illegal fix gle command. Expecting: fix <fix-ID>"
+               " <group-ID> gle <ns> <Tstart> <Tstop> <seed> <Amatrix>");
 
   restart_peratom = 1;
   time_integrate = 1;
 
   // number of additional momenta
-  ns = atof(arg[3]);
+  ns = force->numeric(FLERR,arg[3]);
+  ns1sq = (ns+1)*(ns+1);
 
-  // initializes GLE matrices
-  A = new double[(ns+1)*(ns+1)];
-  C = new double[(ns+1)*(ns+1)];
-  TT=ST=T=S=NULL;
+  // allocate GLE matrices
+  A  = new double[ns1sq];
+  C  = new double[ns1sq];
+  T  = new double[ns1sq];
+  S  = new double[ns1sq];
+  TT = new double[ns1sq];
+  ST = new double[ns1sq];
 
   // start temperature (t ramp)
-  t_start = atof(arg[4]);
+  t_start = force->numeric(FLERR,arg[4]);
 
   // final temperature (t ramp)
-  t_stop = atof(arg[5]);
+  t_stop = force->numeric(FLERR,arg[5]);
 
   // PRNG seed
-  int seed = atoi(arg[6]);
+  int seed = force->inumeric(FLERR,arg[6]);
 
-
-  // LOADS A matrix
-  printf("Reading A matrix from %s\n", arg[7]);
-  FILE* fgle = fopen(arg[7], "r");
-
-  if (fgle==NULL) error->all(FLERR, "Cannot open A matrix GLE input");
-  for (int i=0; i<(ns+1)*(ns+1); ++i)  //ASSUMES A IS IN THE CORRECT INVERSE TIME UNITS
-    if (!fscanf(fgle,"%lf",&(A[i]))) error->all(FLERR, "Cannot read A matrix GLE input");
-
-  fclose(fgle);
-  fnoneq=0; gle_every=1; gle_step=0;
-  for (int iarg=8; iarg<narg; iarg+=2)
-  {
-     if(strcmp(arg[iarg],"noneq") == 0)
-     {
-        fnoneq = 1;
-        if (iarg+2>narg) error->all(FLERR, "Did not specify C matrix for non-equilibrium GLE");
-        printf("Reading C matrix from %s\n", arg[9]);
-        fgle = fopen(arg[iarg+1], "r");
-        if (fgle==NULL) error->all(FLERR, "Cannot open C matrix GLE input");
-        for (int i=0; i<(ns+1)*(ns+1); ++i)  //ASSUMES C IS IN THE CORRECT TEMPERATURE UNITS
-           if (!fscanf(fgle,"%lf",&(C[i]))) error->all(FLERR, "Cannot read C matrix GLE input");
-        for (int i=0; i<(ns+1)*(ns+1); ++i) C[i]*=force->boltz/force->mvv2e;
-        fclose(fgle);
-      }
-      else if (strcmp(arg[iarg],"every") == 0)
-      {
-         if (iarg+2>narg) error->all(FLERR, "Did not specify interval for applying the GLE");
-         gle_every=atoi(arg[iarg+1]);
-      }
+  // LOADING A matrix
+  FILE* fgle = NULL;
+  if (comm->me == 0) {
+    fgle = force->open_potential(arg[7]);
+    if (fgle == NULL) {
+      char str[128];
+      sprintf(str,"Cannot open A-matrix file %s",arg[7]);
+      error->one(FLERR,str);
+    }
+    if (screen) fprintf(screen,"Reading A-matrix from %s\n", arg[7]);
+    if (logfile) fprintf(logfile,"Reading A-matrix from %s\n", arg[7]);
   }
-  if (fnoneq == 0) // sets equilibrium C matrix
-  {
-     t_target=t_start;
-     for (int i=0; i<(ns+1)*(ns+1); ++i) C[i]=0.0;
-     for (int i=0; i<(ns+1)*(ns+1); i+=(ns+2)) C[i]=t_target*force->boltz/force->mvv2e;
+
+  // read each line out of file, skipping blank lines or leading '#'
+
+  char line[MAXLINE],*ptr;
+  int n,nwords,ndone=0,eof=0;
+  while (1) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fgle);
+      if (ptr == NULL) {
+        eof = 1;
+        fclose(fgle);
+      } else n = strlen(line) + 1;
+    }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(&n,1,MPI_INT,0,world);
+    MPI_Bcast(line,n,MPI_CHAR,0,world);
+
+    // strip comment, skip line if blank
+
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
+
+    nwords = atom->count_words(line);
+    if (nwords == 0) continue;
+
+    ptr = strtok(line," \t\n\r\f");
+    do {
+      A[ndone] = atof(ptr);
+      ptr = strtok(NULL," \t\n\r\f");
+      ndone++;
+    } while ((ptr != NULL) && (ndone < ns1sq));
+  }
+
+  fnoneq=0; gle_every=1; gle_step=0;
+  for (int iarg=8; iarg<narg; iarg+=2) {
+    if(strcmp(arg[iarg],"noneq") == 0) {
+      fnoneq = 1;
+      if (iarg+2>narg)
+        error->all(FLERR,"Did not specify C matrix for non-equilibrium GLE");
+
+      if (comm->me == 0) {
+        fgle = force->open_potential(arg[iarg+1]);
+        if (fgle == NULL) {
+          char str[128];
+          sprintf(str,"Cannot open C-matrix file %s",arg[iarg+1]);
+          error->one(FLERR,str);
+        }
+        if (screen)
+          fprintf(screen,"Reading C-matrix from %s\n", arg[iarg+1]);
+        if (logfile)
+          fprintf(logfile,"Reading C-matrix from %s\n", arg[iarg+1]);
+      }
+
+      // read each line of the file, skipping blank lines or leading '#'
+      ndone = eof = 0;
+
+      while (1) {
+        if (comm->me == 0) {
+          ptr = fgets(line,MAXLINE,fgle);
+          if (ptr == NULL) {
+            eof = 1;
+            fclose(fgle);
+          } else n = strlen(line) + 1;
+        }
+        MPI_Bcast(&eof,1,MPI_INT,0,world);
+        if (eof) break;
+        MPI_Bcast(&n,1,MPI_INT,0,world);
+        MPI_Bcast(line,n,MPI_CHAR,0,world);
+
+        // strip comment, skip line if blank
+
+        if ((ptr = strchr(line,'#'))) *ptr = '\0';
+
+        nwords = atom->count_words(line);
+        if (nwords == 0) continue;
+
+        ptr = strtok(line," \t\n\r\f");
+        do {
+          C[ndone] = atof(ptr);
+          ptr = strtok(NULL," \t\n\r\f");
+          ndone++;
+        } while ((ptr != NULL) && (ndone < ns1sq));
+      }
+      
+    } else if (strcmp(arg[iarg],"every") == 0) {
+
+      if (iarg+2>narg)
+        error->all(FLERR, "Did not specify interval for applying the GLE");
+      gle_every=force->inumeric(FLERR,arg[iarg+1]);
+    }
+  }
+
+  // sets equilibrium C matrix
+  if (fnoneq == 0) {
+    t_target=t_start;
+    memset(C,0,sizeof(double)*ns1sq);
+    for (int i=0; i<ns1sq; i+=(ns+2))
+      C[i]=t_target*force->boltz/force->mvv2e;
   }
 
 #ifdef GLE_DEBUG
@@ -205,8 +287,8 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize Marsaglia RNG with processor-unique seed
   // NB: this means runs will not be the same with different numbers of processors
-  random = new RanMars(lmp,seed + comm->me);
   if (seed <= 0) error->all(FLERR,"Illegal fix gle command");
+  random = new RanMars(lmp,seed + comm->me);
 
   // allocate per-type arrays for mass-scaling
   sqrt_m=NULL;
@@ -219,7 +301,6 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
   grow_arrays(atom->nmax);
   init_gles();
-
 
   // add callbacks to enable restarts
   atom->add_callback(0);
@@ -291,16 +372,21 @@ void FixGLE::init()
 void FixGLE::init_gle()
 {
   // compute Langevin terms
-  T = new double[(ns+1)*(ns+1)]; S = new double[(ns+1)*(ns+1)];
 
-  double *tmp1 = new double[(ns+1)*(ns+1)], *tmp2 = new double[(ns+1)*(ns+1)];
-  for (int i=0; i<(ns+1)*(ns+1); ++i) { tmp1[i]=-A[i]*update->dt*0.5*gle_every; tmp2[i]=S[i]=0.0; }
+  double *tmp1 = new double[ns1sq];
+  double *tmp2 = new double[ns1sq];
+
+  for (int i=0; i<ns1sq; ++i) {
+    tmp1[i]=-A[i]*update->dt*0.5*gle_every;
+    tmp2[i]=S[i]=0.0;
+  }
   GLE::MatrixExp(ns+1,tmp1,T);
 
   GLE::MyMult(ns+1,ns+1,ns+1,T,C,tmp1);
   GLE::MyTrans(ns+1,T,tmp2);
   GLE::MyMult(ns+1,ns+1,ns+1,tmp1,tmp2,S);
-  for (int i=0; i<(ns+1)*(ns+1); ++i) tmp1[i]=C[i]-S[i];
+
+  for (int i=0; i<ns1sq; ++i) tmp1[i]=C[i]-S[i];
 
   GLE::StabCholesky(ns+1, tmp1, S);   //!TODO use symmetric square root, which is more stable.
 
@@ -312,7 +398,6 @@ void FixGLE::init_gle()
 #endif
 
   // transposed evolution matrices to have fast index multiplication in gle_integrate
-  TT = new double[(ns+1)*(ns+1)]; ST = new double[(ns+1)*(ns+1)];
   GLE::MyTrans(ns+1,T,TT);
   GLE::MyTrans(ns+1,S,ST);
   delete[] tmp1;
@@ -325,8 +410,8 @@ void FixGLE::init_gles()
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double *rootC  = new double[(ns+1)*(ns+1)];
-  double *rootCT = new double[(ns+1)*(ns+1)];
+  double *rootC  = new double[ns1sq];
+  double *rootCT = new double[ns1sq];
   double *newg   = new double[3*(ns+1)*nlocal];
   double *news   = new double[3*(ns+1)*nlocal];
 
@@ -517,8 +602,8 @@ void FixGLE::final_integrate()
   if (t_stop != t_start && fnoneq == 0)
   {
      // only updates if it is really necessary
-     for (int i=0; i<(ns+1)*(ns+1); ++i) C[i]=0.0;
-     for (int i=0; i<(ns+1)*(ns+1); i+=(ns+2)) C[i]=t_target*force->boltz/force->mvv2e;
+     for (int i=0; i<ns1sq; ++i) C[i]=0.0;
+     for (int i=0; i<ns1sq; i+=(ns+2)) C[i]=t_target*force->boltz/force->mvv2e;
      init_gle();
   }
 
@@ -582,8 +667,8 @@ void FixGLE::reset_target(double t_new)
   if (fnoneq == 0)
   {
      // only updates if it is really necessary
-     for (int i=0; i<(ns+1)*(ns+1); ++i) C[i]=0.0;
-     for (int i=0; i<(ns+1)*(ns+1); i+=(ns+2)) C[i]=t_target*force->boltz/force->mvv2e;
+     for (int i=0; i<ns1sq; ++i) C[i]=0.0;
+     for (int i=0; i<ns1sq; i+=(ns+2)) C[i]=t_target*force->boltz/force->mvv2e;
      init_gle();
   }
   else

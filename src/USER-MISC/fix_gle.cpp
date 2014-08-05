@@ -140,25 +140,25 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
   restart_peratom = 1;
   time_integrate = 1;
-  
+
   // number of additional momenta
   ns = atof(arg[3]);
 
   // initializes GLE matrices
   A = new double[(ns+1)*(ns+1)];
   C = new double[(ns+1)*(ns+1)];
-  TT=ST=T=S=NULL; 
+  TT=ST=T=S=NULL;
 
   // start temperature (t ramp)
   t_start = atof(arg[4]);
 
   // final temperature (t ramp)
   t_stop = atof(arg[5]);
-  
+
   // PRNG seed
   int seed = atoi(arg[6]);
-  
-  
+
+
   // LOADS A matrix
   printf("Reading A matrix from %s\n", arg[7]);
   FILE* fgle = fopen(arg[7], "r");
@@ -169,11 +169,11 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
   fclose(fgle);
   fnoneq=0; gle_every=1; gle_step=0;
-  for (int iarg=8; iarg<narg; iarg+=2)  
+  for (int iarg=8; iarg<narg; iarg+=2)
   {
-     if(strcmp(arg[iarg],"noneq") == 0) 
+     if(strcmp(arg[iarg],"noneq") == 0)
      {
-        fnoneq = 1;	
+        fnoneq = 1;
         if (iarg+2>narg) error->all(FLERR, "Did not specify C matrix for non-equilibrium GLE");
         printf("Reading C matrix from %s\n", arg[9]);
         fgle = fopen(arg[iarg+1], "r");
@@ -183,7 +183,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
         for (int i=0; i<(ns+1)*(ns+1); ++i) C[i]*=force->boltz/force->mvv2e;
         fclose(fgle);
       }
-      else if (strcmp(arg[iarg],"every") == 0) 
+      else if (strcmp(arg[iarg],"every") == 0)
       {
          if (iarg+2>narg) error->all(FLERR, "Did not specify interval for applying the GLE");
          gle_every=atoi(arg[iarg+1]);
@@ -211,20 +211,20 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   // allocate per-type arrays for mass-scaling
   sqrt_m=NULL;
   memory->grow(sqrt_m, atom->ntypes+1,"gle:sqrt_m");
-  
+
   // allocates space for additional degrees of freedom
   gle_s=NULL;
   // allocates space for temporaries
   gle_tmp1=gle_tmp2=NULL;
-  
+
   grow_arrays(atom->nmax);
   init_gles();
-  
-  
+
+
   // add callbacks to enable restarts
   atom->add_callback(0);
   atom->add_callback(1);
-    
+
   energy = 0.0;
 }
 
@@ -240,7 +240,7 @@ FixGLE::~FixGLE()
   delete [] T;
   delete [] TT;
   delete [] ST;
-  
+
   memory->destroy(sqrt_m);
   memory->destroy(gle_s);
   memory->destroy(gle_tmp1);
@@ -270,7 +270,7 @@ void FixGLE::init()
   dogle = 1;
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-  
+
   // set force prefactors
   if (!atom->rmass) {
     for (int i = 1; i <= atom->ntypes; i++) {
@@ -281,18 +281,18 @@ void FixGLE::init()
   if (strstr(update->integrate_style,"respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     step_respa = ((Respa *) update->integrate)->step;
-  }  
-  
-  init_gle();  
+  }
+
+  init_gle();
 }
 
 /* ------- Initializes integrator matrices (change with T and dt) ------- */
 
 void FixGLE::init_gle()
-{    
+{
   // compute Langevin terms
   T = new double[(ns+1)*(ns+1)]; S = new double[(ns+1)*(ns+1)];
-  
+
   double *tmp1 = new double[(ns+1)*(ns+1)], *tmp2 = new double[(ns+1)*(ns+1)];
   for (int i=0; i<(ns+1)*(ns+1); ++i) { tmp1[i]=-A[i]*update->dt*0.5*gle_every; tmp2[i]=S[i]=0.0; }
   GLE::MatrixExp(ns+1,tmp1,T);
@@ -328,23 +328,23 @@ void FixGLE::init_gles()
   double *rootC  = new double[(ns+1)*(ns+1)];
   double *rootCT = new double[(ns+1)*(ns+1)];
   double *newg   = new double[3*(ns+1)*nlocal];
-  double *news   = new double[3*(ns+1)*nlocal]; 
-  
+  double *news   = new double[3*(ns+1)*nlocal];
+
   GLE::StabCholesky(ns+1, C, rootC);
   GLE::MyTrans(ns+1,rootC,rootCT);
-  
+
   for (int i = 0; i < nlocal*3*(ns+1); ++i) { newg[i] = random->gaussian(); news[i]=0.0; }
   GLE::MyMult(nlocal*3,ns+1,ns+1, newg, rootCT, news);
-  
+
   int nk=0; // unpacks temporary into gle_s
-  for (int i = 0; i < nlocal; i++) if (mask[i] & groupbit) {        
+  for (int i = 0; i < nlocal; i++) if (mask[i] & groupbit) {
      for (int k = 0; k<3; k++)  // first loads velocities
-     { 
-        for (int j=0; j<ns; ++j) 
-          gle_s[i][k*ns+j]=news[nk++];          
-     }    
+     {
+        for (int j=0; j<ns; ++j)
+          gle_s[i][k*ns+j]=news[nk++];
+     }
   }
-  
+
   delete[] rootC;
   delete[] rootCT;
   delete[] news;
@@ -374,51 +374,51 @@ void FixGLE::gle_integrate()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
-  
+
 #ifdef GLE_DEBUG
   printf("!MC! GLE THERMO STEP dt=%f\n",update->dt);
 #endif
 
-  // loads momentum data (mass-scaled) into the temporary vectors for the propagation 
+  // loads momentum data (mass-scaled) into the temporary vectors for the propagation
   int nk=0, ni=0; double deltae=0.0;
-  for (int i = 0; i < nlocal; i++) if (mask[i] & groupbit) {   
+  for (int i = 0; i < nlocal; i++) if (mask[i] & groupbit) {
      ni++;
      if (rmass) smi = sqrt(rmass[i]); else smi=sqrt_m[type[i]];
-     for (int k = 0; k<3; k++)  
-     { 
+     for (int k = 0; k<3; k++)
+     {
         //also zeroes tmp1
         gle_tmp1[nk]=0.0;
         // first loads velocities and accumulates conserved quantity
-        gle_tmp2[nk]=v[i][k]*smi; deltae+= gle_tmp2[nk]*gle_tmp2[nk]; ++nk;        
+        gle_tmp2[nk]=v[i][k]*smi; deltae+= gle_tmp2[nk]*gle_tmp2[nk]; ++nk;
         // then copies in the additional momenta
-        for (int j=0; j<ns; ++j) 
+        for (int j=0; j<ns; ++j)
           gle_tmp2[nk++] = gle_s[i][k*ns+j];
-     }    
+     }
   }
-  
+
   // s(t+dt) = T.s ....
   GLE::MyMult(ni*3,ns+1,ns+1,gle_tmp2,TT,gle_tmp1);
-  
+
   //fills up a vector of random numbers
   for (int i = 0; i < 3*ni*(ns+1); i++) gle_tmp2[i] = random->gaussian();
-  
+
   // ... + S \xi
   GLE::MyMult(ni*3,ns+1,ns+1,gle_tmp2,ST,gle_tmp1,1.0);
 
   // unloads momentum data (mass-scaled) from the temporary vectors
-  nk=0;  
-  for (int i = 0; i < nlocal; i++) if (mask[i] & groupbit) {        
+  nk=0;
+  for (int i = 0; i < nlocal; i++) if (mask[i] & groupbit) {
      if (rmass) ismi = 1.0/sqrt(rmass[i]); else ismi=1.0/sqrt_m[type[i]];
-     for (int k = 0; k<3; k++)  
-     { 
+     for (int k = 0; k<3; k++)
+     {
         // fetches new velocities and completes computation of the conserved quantity change
-        v[i][k]=gle_tmp1[nk]*ismi; deltae-= gle_tmp1[nk]*gle_tmp1[nk]; ++nk;        
+        v[i][k]=gle_tmp1[nk]*ismi; deltae-= gle_tmp1[nk]*gle_tmp1[nk]; ++nk;
         // stores the additional momenta in the gle_s buffer
-        for (int j=0; j<ns; ++j) 
+        for (int j=0; j<ns; ++j)
           gle_s[i][k*ns+j]=gle_tmp1[nk++];
-     }    
+     }
   }
-  
+
   energy += deltae*0.5*force->mvv2e;
 }
 
@@ -509,7 +509,7 @@ void FixGLE::final_integrate()
   printf("!MC! GLE P2 STEP dt=%f\n",dtv);
 #endif
   if (dogle && gle_step<1) { gle_integrate(); gle_step=gle_every; }
-  
+
   // Change the temperature for the next step
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
@@ -521,7 +521,7 @@ void FixGLE::final_integrate()
      for (int i=0; i<(ns+1)*(ns+1); i+=(ns+2)) C[i]=t_target*force->boltz/force->mvv2e;
      init_gle();
   }
-  
+
 }
 /* ---------------------------------------------------------------------- */
 
@@ -536,12 +536,12 @@ void FixGLE::initial_integrate_respa(int vflag, int ilevel, int iloop)
   if (ilevel==nlevels_respa-1) gle_integrate();
   dogle=0;
   if (ilevel == 0) initial_integrate(vflag);
-  else { final_integrate();} 
+  else { final_integrate();}
 }
 
 void FixGLE::final_integrate_respa(int ilevel, int iloop)
 {
-  dtv = step_respa[ilevel]; 
+  dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   dogle=0;
   final_integrate();
@@ -574,7 +574,7 @@ void *FixGLE::extract(const char *str, int &dim)
 
 /* ----------------------------------------------------------------------
    Called when a change to the target temperature is requested mid-run
-------------------------------------------------------------------------- */ 
+------------------------------------------------------------------------- */
 
 void FixGLE::reset_target(double t_new)
 {
@@ -607,10 +607,10 @@ void FixGLE::reset_dt()
 /* ----------------------------------------------------------------------
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
- 
+
 double FixGLE::memory_usage()
 {
-  double bytes = atom->nmax*(3*ns+2*3*(ns+1))*sizeof(double);  
+  double bytes = atom->nmax*(3*ns+2*3*(ns+1))*sizeof(double);
   return bytes;
 }
 
@@ -657,14 +657,14 @@ int FixGLE::pack_exchange(int i, double *buf)
 int FixGLE::unpack_exchange(int nlocal, double *buf)
 {
   int m = 0;
-  for (int k = 0; k < 3*ns; k++) gle_s[nlocal][k] = buf[m++];  
+  for (int k = 0; k < 3*ns; k++) gle_s[nlocal][k] = buf[m++];
   return m;
 }
 
 
 /* ----------------------------------------------------------------------
-   Pack extended variables assoc. w/ atom i into buffer for 
-   writing to a restart file 
+   Pack extended variables assoc. w/ atom i into buffer for
+   writing to a restart file
 ------------------------------------------------------------------------- */
 
 int FixGLE::pack_restart(int i, double *buf)
@@ -703,7 +703,7 @@ void FixGLE::unpack_restart(int nlocal, int nth)
 }
 
 /* ----------------------------------------------------------------------
-   Returns the number of items in atomic restart data associated with 
+   Returns the number of items in atomic restart data associated with
    local atom nlocal.  Used in determining the total extra data stored by
    fixes on a given processor.
 ------------------------------------------------------------------------- */

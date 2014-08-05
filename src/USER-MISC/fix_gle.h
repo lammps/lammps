@@ -39,7 +39,7 @@ class FixGLE : public Fix {
   double compute_scalar();
   void reset_target(double);
   virtual void reset_dt();
-  
+
   double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int, int);
@@ -49,17 +49,17 @@ class FixGLE : public Fix {
   void unpack_restart(int, int);
   int size_restart(int);
   int maxsize_restart();
-  
+
   virtual void *extract(const char *, int &);
 
   void init_gle(); void init_gles();
  protected:
   int ns;
   double *A, *C, *S, *T, *ST, *TT;
-  double *gle_tmp1, *gle_tmp2; 
+  double *gle_tmp1, *gle_tmp2;
   double t_start, t_stop, t_target;
   double dtv, dtf;
-  
+
   int dogle, fnoneq, gle_every, gle_step;
   class RanMars *random;
   double *sqrt_m;

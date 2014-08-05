@@ -234,7 +234,12 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 FixGLE::~FixGLE()
 {
   delete random;
-  delete [] A; delete [] C; delete [] S; delete [] T; delete [] TT; delete [] ST;
+  delete [] A;
+  delete [] C;
+  delete [] S;
+  delete [] T;
+  delete [] TT;
+  delete [] ST;
   
   memory->destroy(sqrt_m);
   memory->destroy(gle_s);
@@ -305,11 +310,13 @@ void FixGLE::init_gle()
   printf("S Matrix\n");
   GLE::MyPrint(ns+1,S);
 #endif
+
   // transposed evolution matrices to have fast index multiplication in gle_integrate
   TT = new double[(ns+1)*(ns+1)]; ST = new double[(ns+1)*(ns+1)];
   GLE::MyTrans(ns+1,T,TT);
   GLE::MyTrans(ns+1,S,ST);
-  delete[] tmp1;  delete[] tmp2;
+  delete[] tmp1;
+  delete[] tmp2;
 }
 
 /* ------- Sets initial values of additional DOF for free particles ----- */
@@ -318,7 +325,10 @@ void FixGLE::init_gles()
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double *rootC=new double[(ns+1)*(ns+1)], *rootCT=new double[(ns+1)*(ns+1)], *newg=new double[3*(ns+1)*nlocal], *news=new double[3*(ns+1)*nlocal]; 
+  double *rootC  = new double[(ns+1)*(ns+1)];
+  double *rootCT = new double[(ns+1)*(ns+1)];
+  double *newg   = new double[3*(ns+1)*nlocal];
+  double *news   = new double[3*(ns+1)*nlocal]; 
   
   GLE::StabCholesky(ns+1, C, rootC);
   GLE::MyTrans(ns+1,rootC,rootCT);
@@ -335,7 +345,10 @@ void FixGLE::init_gles()
      }    
   }
   
-  delete[] rootC, rootCT, news, newg;
+  delete[] rootC;
+  delete[] rootCT;
+  delete[] news;
+  delete[] newg;
   return;
 }
 
@@ -356,7 +369,6 @@ void FixGLE::setup(int vflag)
 void FixGLE::gle_integrate()
 {
   double **v = atom->v;
-  double **s = gle_s;
   double *rmass = atom->rmass, smi, ismi;
   int *type = atom->type;
   int *mask = atom->mask;

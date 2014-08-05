@@ -146,7 +146,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
 
   // number of additional momenta
-  ns = force->numeric(FLERR,arg[3]);
+  ns = force->inumeric(FLERR,arg[3]);
   ns1sq = (ns+1)*(ns+1);
 
   // allocate GLE matrices
@@ -167,19 +167,20 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   int seed = force->inumeric(FLERR,arg[6]);
 
   // LOADING A matrix
-  FILE* fgle = NULL;
+  FILE *fgle = NULL;
+  char *fname = arg[7];
   if (comm->me == 0) {
-    fgle = force->open_potential(arg[7]);
+    fgle = force->open_potential(fname);
     if (fgle == NULL) {
       char str[128];
-      sprintf(str,"Cannot open A-matrix file %s",arg[7]);
+      sprintf(str,"Cannot open A-matrix file %s",fname);
       error->one(FLERR,str);
     }
-    if (screen) fprintf(screen,"Reading A-matrix from %s\n", arg[7]);
-    if (logfile) fprintf(logfile,"Reading A-matrix from %s\n", arg[7]);
+    if (screen) fprintf(screen,"Reading A-matrix from %s\n", fname);
+    if (logfile) fprintf(logfile,"Reading A-matrix from %s\n", fname);
   }
 
-  // read each line out of file, skipping blank lines or leading '#'
+  // read each line of the file, skipping blank lines or leading '#'
 
   char line[MAXLINE],*ptr;
   int n,nwords,ndone=0,eof=0;
@@ -218,50 +219,8 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2>narg)
         error->all(FLERR,"Did not specify C matrix for non-equilibrium GLE");
 
-      if (comm->me == 0) {
-        fgle = force->open_potential(arg[iarg+1]);
-        if (fgle == NULL) {
-          char str[128];
-          sprintf(str,"Cannot open C-matrix file %s",arg[iarg+1]);
-          error->one(FLERR,str);
-        }
-        if (screen)
-          fprintf(screen,"Reading C-matrix from %s\n", arg[iarg+1]);
-        if (logfile)
-          fprintf(logfile,"Reading C-matrix from %s\n", arg[iarg+1]);
-      }
+      fname = arg[iarg+1];
 
-      // read each line of the file, skipping blank lines or leading '#'
-      ndone = eof = 0;
-
-      while (1) {
-        if (comm->me == 0) {
-          ptr = fgets(line,MAXLINE,fgle);
-          if (ptr == NULL) {
-            eof = 1;
-            fclose(fgle);
-          } else n = strlen(line) + 1;
-        }
-        MPI_Bcast(&eof,1,MPI_INT,0,world);
-        if (eof) break;
-        MPI_Bcast(&n,1,MPI_INT,0,world);
-        MPI_Bcast(line,n,MPI_CHAR,0,world);
-
-        // strip comment, skip line if blank
-
-        if ((ptr = strchr(line,'#'))) *ptr = '\0';
-
-        nwords = atom->count_words(line);
-        if (nwords == 0) continue;
-
-        ptr = strtok(line," \t\n\r\f");
-        do {
-          C[ndone] = atof(ptr);
-          ptr = strtok(NULL," \t\n\r\f");
-          ndone++;
-        } while ((ptr != NULL) && (ndone < ns1sq));
-      }
-      
     } else if (strcmp(arg[iarg],"every") == 0) {
 
       if (iarg+2>narg)
@@ -270,12 +229,59 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // sets equilibrium C matrix
+  // set C matrix
+  const double cfac = force->boltz/force->mvv2e;
+
   if (fnoneq == 0) {
     t_target=t_start;
     memset(C,0,sizeof(double)*ns1sq);
     for (int i=0; i<ns1sq; i+=(ns+2))
-      C[i]=t_target*force->boltz/force->mvv2e;
+      C[i]=t_target*cfac;
+
+  } else {
+    if (comm->me == 0) {
+      fgle = force->open_potential(fname);
+      if (fgle == NULL) {
+        char str[128];
+        sprintf(str,"Cannot open C-matrix file %s",fname);
+        error->one(FLERR,str);
+      }
+      if (screen)
+        fprintf(screen,"Reading C-matrix from %s\n", fname);
+      if (logfile)
+        fprintf(logfile,"Reading C-matrix from %s\n", fname);
+    }
+
+    // read each line of the file, skipping blank lines or leading '#'
+    ndone = eof = 0;
+
+    while (1) {
+      if (comm->me == 0) {
+        ptr = fgets(line,MAXLINE,fgle);
+        if (ptr == NULL) {
+          eof = 1;
+          fclose(fgle);
+        } else n = strlen(line) + 1;
+      }
+      MPI_Bcast(&eof,1,MPI_INT,0,world);
+      if (eof) break;
+      MPI_Bcast(&n,1,MPI_INT,0,world);
+      MPI_Bcast(line,n,MPI_CHAR,0,world);
+
+      // strip comment, skip line if blank
+
+      if ((ptr = strchr(line,'#'))) *ptr = '\0';
+
+      nwords = atom->count_words(line);
+      if (nwords == 0) continue;
+
+      ptr = strtok(line," \t\n\r\f");
+      do {
+        C[ndone] = cfac*atof(ptr);
+        ptr = strtok(NULL," \t\n\r\f");
+        ndone++;
+      } while ((ptr != NULL) && (ndone < ns1sq));
+    }
   }
 
 #ifdef GLE_DEBUG

@@ -35,6 +35,7 @@ using namespace LAMMPS_NS;
 #define BUFFACTOR 1.5
 #define BUFMIN 1000
 #define BUFEXTRA 1000
+#define EPSILON 1.0e-6
 
 // NOTE: change this to 16 after debugged
 
@@ -74,6 +75,7 @@ CommTiled::~CommTiled()
   memory->destroy(buf_recv);
   memory->destroy(overlap);
   deallocate_swap(nswap);
+  memory->sfree(rcbinfo);
 }
 
 /* ----------------------------------------------------------------------
@@ -96,6 +98,8 @@ void CommTiled::init_buffers()
 
   nswap = 2 * domain->dimension;
   allocate_swap(nswap);
+
+  rcbinfo = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -173,9 +177,9 @@ void CommTiled::init()
 
 void CommTiled::setup()
 {
-  int i;
+  int i,j,n;
 
-  // domain properties used in setup and methods it calls
+  // domain properties used in setup method and methods it calls
 
   prd = domain->prd;
   boxlo = domain->boxlo;
@@ -191,19 +195,27 @@ void CommTiled::setup()
   if (layout != LAYOUT_TILED) {
     box_drop = &CommTiled::box_drop_brick;
     box_other = &CommTiled::box_other_brick;
+    box_touch = &CommTiled::box_touch_brick;
+    point_drop = &CommTiled::point_drop_brick;
   } else {
     box_drop = &CommTiled::box_drop_tiled;
     box_other = &CommTiled::box_other_tiled;
+    box_touch = &CommTiled::box_touch_tiled;
+    point_drop = &CommTiled::point_drop_tiled;
   }
 
-  // if RCB decomp has just changed, gather needed global RCB info
+  // if RCB decomp exists and just changed, gather needed global RCB info
 
   if (rcbnew) {
+    if (!rcbinfo) 
+      rcbinfo = (RCBinfo *) 
+        memory->smalloc(nprocs*sizeof(RCBinfo),"comm:rcbinfo");
     rcbnew = 0;
-    memcpy(&rcbinfo[me].mysplit[0][0],&mysplit[0][0],6*sizeof(double));
-    rcbinfo[me].cut = rcbcut;
-    rcbinfo[me].dim = rcbcutdim;
-    MPI_Allgather(&rcbinfo[me],sizeof(RCBinfo),MPI_CHAR,
+    RCBinfo rcbone;
+    memcpy(&rcbone.mysplit[0][0],&mysplit[0][0],6*sizeof(double));
+    rcbone.cut = rcbcut;
+    rcbone.dim = rcbcutdim;
+    MPI_Allgather(&rcbone,sizeof(RCBinfo),MPI_CHAR,
                   rcbinfo,sizeof(RCBinfo),MPI_CHAR,world);
   }
 
@@ -218,19 +230,21 @@ void CommTiled::setup()
     error->all(FLERR,"Communication cutoff for comm_style tiled "
                "cannot exceed periodic box length");
 
+  // setup forward/reverse communication
   // loop over 6 swap directions
   // determine which procs I will send to and receive from in each swap
   // done by intersecting ghost box with all proc sub-boxes it overlaps
   // sets nsendproc, nrecvproc, sendproc, recvproc
   // sets sendother, sendself, pbc_flag, pbc, sendbox
+  // resets nprocmax
 
   int noverlap1,indexme;
   double lo1[3],hi1[3],lo2[3],hi2[3];
   int one,two;
 
-  nswap = 0;
+  int iswap = 0;
   for (int idim = 0; idim < dimension; idim++) {
-    for (int iswap = 0; iswap < 2; iswap++) {
+    for (int idir = 0; idir < 2; idir++) {
 
       // one = first ghost box in same periodic image
       // two = second ghost box wrapped across periodic boundary
@@ -239,7 +253,7 @@ void CommTiled::setup()
       one = 1;
       lo1[0] = sublo[0]; lo1[1] = sublo[1]; lo1[2] = sublo[2];
       hi1[0] = subhi[0]; hi1[1] = subhi[1]; hi1[2] = subhi[2];
-      if (iswap == 0) {
+      if (idir == 0) {
         lo1[idim] = sublo[idim] - cut;
         hi1[idim] = sublo[idim];
       } else {
@@ -248,13 +262,13 @@ void CommTiled::setup()
       }
       
       two = 0;
-      if (iswap == 0 && periodicity[idim] && lo1[idim] < boxlo[idim]) two = 1;
-      if (iswap == 1 && periodicity[idim] && hi1[idim] > boxhi[idim]) two = 1;
+      if (idir == 0 && periodicity[idim] && lo1[idim] < boxlo[idim]) two = 1;
+      if (idir == 1 && periodicity[idim] && hi1[idim] > boxhi[idim]) two = 1;
 
       if (two) {
         lo2[0] = sublo[0]; lo2[1] = sublo[1]; lo2[2] = sublo[2];
         hi2[0] = subhi[0]; hi2[1] = subhi[1]; hi2[2] = subhi[2];
-        if (iswap == 0) {
+        if (idir == 0) {
           lo2[idim] = lo1[idim] + prd[idim];
           hi2[idim] = hi1[idim] + prd[idim];
           if (sublo[idim] == boxlo[idim]) {
@@ -290,39 +304,44 @@ void CommTiled::setup()
       }
 
       // reallocate 2nd dimensions of all send/recv arrays, based on noverlap
-      // # of sends of this swap = # of recvs of nswap +/- 1
+      // # of sends of this swap = # of recvs of iswap +/- 1
 
       if (noverlap > nprocmax[iswap]) {
         int oldmax = nprocmax[iswap];
         while (nprocmax[iswap] < noverlap) nprocmax[iswap] += DELTA_PROCS;
         grow_swap_send(iswap,nprocmax[iswap],oldmax);
-        if (iswap == 0) grow_swap_recv(iswap+1,nprocmax[iswap]);
+        if (idir == 0) grow_swap_recv(iswap+1,nprocmax[iswap]);
         else grow_swap_recv(iswap-1,nprocmax[iswap]);
       }
 
       // overlap how has list of noverlap procs
       // includes PBC effects
 
-      if (overlap[noverlap-1] == me) sendself[nswap] = 1;
-      else sendself[nswap] = 0;
-      if (noverlap-sendself[nswap]) sendother[nswap] = 1;
-      else sendother[nswap] = 0;
+      if (overlap[noverlap-1] == me) sendself[iswap] = 1;
+      else sendself[iswap] = 0;
+      if (noverlap-sendself[iswap]) sendother[iswap] = 1;
+      else sendother[iswap] = 0;
 
-      nsendproc[nswap] = noverlap;
-      for (i = 0; i < noverlap; i++) sendproc[nswap][i] = overlap[i];
-      if (iswap == 0) {
-        nrecvproc[nswap+1] = noverlap;
-        for (i = 0; i < noverlap; i++) recvproc[nswap+1][i] = overlap[i];
+      //MPI_Barrier(world);
+      //printf("AAA idir %d me %d: noverlap %d: %g %g: %g %g\n",
+      //       idir,me,noverlap,sublo[0],sublo[1],subhi[0],subhi[1]);
+      //if (idir == 0) error->all(FLERR,"ALL DONE");
+
+      nsendproc[iswap] = noverlap;
+      for (i = 0; i < noverlap; i++) sendproc[iswap][i] = overlap[i];
+      if (idir == 0) {
+        nrecvproc[iswap+1] = noverlap;
+        for (i = 0; i < noverlap; i++) recvproc[iswap+1][i] = overlap[i];
       } else {
-        nrecvproc[nswap-1] = noverlap;
-        for (i = 0; i < noverlap; i++) recvproc[nswap-1][i] = overlap[i];
+        nrecvproc[iswap-1] = noverlap;
+        for (i = 0; i < noverlap; i++) recvproc[iswap-1][i] = overlap[i];
       }
 
       // compute sendbox for each of my sends
       // obox = intersection of ghostbox with other proc's sub-domain
       // sbox = what I need to send to other proc
-      //      = sublo to MIN(sublo+cut,subhi) in idim, for iswap = 0
-      //      = MIN(subhi-cut,sublo) to subhi in idim, for iswap = 1
+      //      = sublo to MIN(sublo+cut,subhi) in idim, for idir = 0
+      //      = MIN(subhi-cut,sublo) to subhi in idim, for idir = 1
       //      = obox in other 2 dims
       // if sbox touches sub-box boundaries in lower dims,
       //   extend sbox in those lower dims to include ghost atoms
@@ -330,11 +349,11 @@ void CommTiled::setup()
       double oboxlo[3],oboxhi[3],sbox[6];
 
       for (i = 0; i < noverlap; i++) {
-        pbc_flag[nswap][i] = 0;
-        pbc[nswap][i][0] = pbc[nswap][i][1] = pbc[nswap][i][2] =
-          pbc[nswap][i][3] = pbc[nswap][i][4] = pbc[nswap][i][5] = 0;
+        pbc_flag[iswap][i] = 0;
+        pbc[iswap][i][0] = pbc[iswap][i][1] = pbc[iswap][i][2] =
+          pbc[iswap][i][3] = pbc[iswap][i][4] = pbc[iswap][i][5] = 0;
         
-        (this->*box_other)(idim,iswap,overlap[i],oboxlo,oboxhi);
+        (this->*box_other)(idim,idir,overlap[i],oboxlo,oboxhi);
         
         if (i < noverlap1) {
           sbox[0] = MAX(oboxlo[0],lo1[0]);
@@ -344,8 +363,9 @@ void CommTiled::setup()
           sbox[4] = MIN(oboxhi[1],hi1[1]);
           sbox[5] = MIN(oboxhi[2],hi1[2]);
         } else {
-          pbc_flag[nswap][i] = 1;
-          pbc[nswap][i][idim] = 1;
+          pbc_flag[iswap][i] = 1;
+          if (idir == 0) pbc[iswap][i][idim] = 1;
+          else pbc[iswap][i][idim] = -1;
           sbox[0] = MAX(oboxlo[0],lo2[0]);
           sbox[1] = MAX(oboxlo[1],lo2[1]);
           sbox[2] = MAX(oboxlo[2],lo2[2]);
@@ -354,29 +374,172 @@ void CommTiled::setup()
           sbox[5] = MIN(oboxhi[2],hi2[2]);
         }
 
-        if (iswap == 0) {
+        if (idir == 0) {
           sbox[idim] = sublo[idim];
-          sbox[3+idim] = MIN(sublo[idim]+cut,subhi[idim]);
+          if (i < noverlap1) sbox[3+idim] = MIN(sbox[3+idim]+cut,subhi[idim]);
+          else sbox[3+idim] = MIN(sbox[3+idim]-prd[idim]+cut,subhi[idim]);
         } else {
-          sbox[idim] = MAX(subhi[idim]-cut,sublo[idim]);
+          if (i < noverlap1) sbox[idim] = MAX(sbox[idim]-cut,sublo[idim]);
+          else sbox[idim] = MAX(sbox[idim]+prd[idim]-cut,sublo[idim]);
           sbox[3+idim] = subhi[idim];
         }
 
         if (idim >= 1) {
           if (sbox[0] == sublo[0]) sbox[0] -= cut;
-          if (sbox[4] == subhi[0]) sbox[4] += cut;
+          if (sbox[3] == subhi[0]) sbox[3] += cut;
         }
         if (idim == 2) {
           if (sbox[1] == sublo[1]) sbox[1] -= cut;
-          if (sbox[5] == subhi[1]) sbox[5] += cut;
+          if (sbox[4] == subhi[1]) sbox[4] += cut;
         }
         
-        memcpy(sendbox[nswap][i],sbox,6*sizeof(double));
+        memcpy(sendbox[iswap][i],sbox,6*sizeof(double));
       }
 
-      nswap++;
+      iswap++;
     }
   }
+
+  // setup exchange communication = subset of forward/reverse comm procs
+  // loop over dimensions
+  // determine which procs I will exchange with in each dimension
+  // subset of procs that touch my proc in forward/reverse comm
+  // sets nexchproc & exchproc, resets nexchprocmax
+
+  int proc;
+
+  for (int idim = 0; idim < dimension; idim++) {
+
+    // overlap = list of procs that touch my sub-box in idim
+    // proc can appear twice in list if touches in both directions
+    // 2nd add-to-list checks to insure each proc appears exactly once
+
+    noverlap = 0;
+    iswap = 2*idim;
+    n = nsendproc[iswap];
+    for (i = 0; i < n; i++) {
+      proc = sendproc[iswap][i];
+      if (proc == me) continue;
+      if ((this->*box_touch)(proc,idim,0)) {
+        if (noverlap == maxoverlap) {
+          maxoverlap += DELTA_PROCS;
+          memory->grow(overlap,maxoverlap,"comm:overlap");
+        }
+        overlap[noverlap++] = proc;
+      }
+    }
+    noverlap1 = noverlap;
+    iswap = 2*idim+1;
+    n = nsendproc[iswap];
+
+    MPI_Barrier(world);
+
+    for (i = 0; i < n; i++) {
+      proc = sendproc[iswap][i];
+      if (proc == me) continue;
+      if ((this->*box_touch)(proc,idim,1)) {
+        for (j = 0; j < noverlap1; j++)
+          if (overlap[j] == proc) break;
+        if (j < noverlap1) continue;
+        if (noverlap == maxoverlap) {
+          maxoverlap += DELTA_PROCS;
+          memory->grow(overlap,maxoverlap,"comm:overlap");
+        }
+        overlap[noverlap++] = proc;
+      }
+    }
+
+    MPI_Barrier(world);
+
+    // reallocate esendproc and erecvproc if needed based on noverlap
+    
+    if (noverlap > nexchprocmax[idim]) {
+      while (nexchprocmax[idim] < noverlap) nexchprocmax[idim] += DELTA_PROCS;
+      delete [] exchproc[idim];
+      exchproc[idim] = new int[nexchprocmax[idim]];
+      delete [] exchnum[idim];
+      exchnum[idim] = new int[nexchprocmax[idim]];
+    }
+
+    nexchproc[idim] = noverlap;
+    for (i = 0; i < noverlap; i++) exchproc[idim][i] = overlap[i];
+  }
+
+  // reallocate MPI Requests and Statuses as needed
+
+  int nmax = 0;
+  for (i = 0; i < nswap; i++) nmax = MAX(nmax,nprocmax[i]);
+  for (i = 0; i < dimension; i++) nmax = MAX(nmax,nexchprocmax[i]);
+  if (nmax > maxreqstat) {
+    maxreqstat = nmax;
+    delete [] requests;
+    delete [] statuses;
+    requests = new MPI_Request[maxreqstat];
+    statuses = new MPI_Status[maxreqstat];
+  }
+
+  // DEBUG
+
+  MPI_Barrier(world);
+
+  printf("SUBBOX %d: %g %g: %g %g\n",me,sublo[0],sublo[1],subhi[0],subhi[1]);
+  MPI_Barrier(world);
+
+  /*
+  for (i = 0; i < nswap; i++) {
+    if (nsendproc[i] == 1)
+      printf("SETUP SEND %d %d: nsend %d self %d sproc0 %d: "
+             "%g %g %g: %g %g %g\n",
+             i,me,nsendproc[i],sendself[i],sendproc[i][0],
+             sendbox[i][0][0],
+             sendbox[i][0][1],
+             sendbox[i][0][2],
+             sendbox[i][0][3],
+             sendbox[i][0][4],
+             sendbox[i][0][5]);
+    else 
+      printf("SETUP SEND %d %d: nsend %d self %d sprocs %d %d: "
+             "%g %g %g: %g %g %g: %g %g %g: %g %g %g\n",
+             i,me,nsendproc[i],sendself[i],sendproc[i][0],sendproc[i][1],
+             sendbox[i][0][0],
+             sendbox[i][0][1],
+             sendbox[i][0][2],
+             sendbox[i][0][3],
+             sendbox[i][0][4],
+             sendbox[i][0][5],
+             sendbox[i][1][0],
+             sendbox[i][1][1],
+             sendbox[i][1][2],
+             sendbox[i][1][3],
+             sendbox[i][1][4],
+             sendbox[i][1][5]);
+    if (nrecvproc[i] == 1)
+      printf("SETUP RECV %d %d: nrecv %d other %d rproc0 %d\n",
+             i,me,nrecvproc[i],sendother[i],recvproc[i][0]);
+    else 
+      printf("SETUP RECV %d %d: nrecv %d other %d rprocs %d %d\n",
+             i,me,nrecvproc[i],sendother[i],recvproc[i][0],recvproc[i][1]);
+  }
+
+  */
+
+  for (i = 0; i < dimension; i++) {
+    if (nexchproc[i] == 1)
+      printf("SETUP EXCH %d %d: nexch %d exch %d\n",
+             i,me,nexchproc[i],exchproc[i][0]);
+    else if (nexchproc[i] == 2)
+      printf("SETUP EXCH2 %d %d: nexch %d exch %d %d\n",
+             i,me,nexchproc[i],exchproc[i][0],exchproc[i][1]);
+    else if (nexchproc[i] == 3)
+      printf("SETUP EXCH2 %d %d: nexch %d exch %d %d %d\n",
+             i,me,nexchproc[i],exchproc[i][0],exchproc[i][1],exchproc[i][2]);
+    else if (nexchproc[i] == 4)
+      printf("SETUP EXCH2 %d %d: nexch %d exch %d %d %d %d\n",
+             i,me,nexchproc[i],exchproc[i][0],exchproc[i][1],
+             exchproc[i][2],exchproc[i][3]);
+  }
+
+  MPI_Barrier(world);
 }
 
 /* ----------------------------------------------------------------------
@@ -425,7 +588,7 @@ void CommTiled::forward_comm(int dummy)
     } else if (ghost_velocity) {
       if (sendother[iswap]) {
         for (i = 0; i < nrecv; i++)
-          MPI_Irecv(&buf_recv[forward_recv_offset[iswap][i]],
+          MPI_Irecv(&buf_recv[size_forward*forward_recv_offset[iswap][i]],
                     size_forward_recv[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
         for (i = 0; i < nsend; i++) {
@@ -446,14 +609,15 @@ void CommTiled::forward_comm(int dummy)
         for (i = 0; i < nrecv; i++) {
           MPI_Waitany(nrecv,requests,&irecv,&status);
           avec->unpack_comm_vel(recvnum[iswap][irecv],firstrecv[iswap][irecv],
-                                &buf_recv[forward_recv_offset[iswap][irecv]]);
+                                &buf_recv[size_forward*
+                                          forward_recv_offset[iswap][irecv]]);
         }
       }
 
     } else {
       if (sendother[iswap]) {
         for (i = 0; i < nrecv; i++)
-          MPI_Irecv(&buf_recv[forward_recv_offset[iswap][i]],
+          MPI_Irecv(&buf_recv[size_forward*forward_recv_offset[iswap][i]],
                     size_forward_recv[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
         for (i = 0; i < nsendproc[iswap]; i++) {
@@ -474,7 +638,8 @@ void CommTiled::forward_comm(int dummy)
         for (i = 0; i < nrecv; i++) {
           MPI_Waitany(nrecv,requests,&irecv,&status);
           avec->unpack_comm(recvnum[iswap][irecv],firstrecv[iswap][irecv],
-                            &buf_recv[forward_recv_offset[iswap][irecv]]);
+                            &buf_recv[size_forward*
+                                      forward_recv_offset[iswap][irecv]]);
         }
       }
     }
@@ -508,7 +673,7 @@ void CommTiled::reverse_comm()
     if (comm_f_only) {
       if (sendother[iswap]) {
         for (i = 0; i < nsend; i++)
-          MPI_Irecv(&buf_recv[reverse_recv_offset[iswap][i]],
+          MPI_Irecv(&buf_recv[size_reverse*reverse_recv_offset[iswap][i]],
                     size_reverse_recv[iswap][i],MPI_DOUBLE,
                     sendproc[iswap][i],0,world,&requests[i]);
         for (i = 0; i < nrecv; i++)
@@ -525,14 +690,15 @@ void CommTiled::reverse_comm()
         for (i = 0; i < nsend; i++) {
           MPI_Waitany(nsend,requests,&irecv,&status);
           avec->unpack_reverse(sendnum[iswap][irecv],sendlist[iswap][irecv],
-                               &buf_recv[reverse_recv_offset[iswap][irecv]]);
+                               &buf_recv[size_reverse*
+                                         reverse_recv_offset[iswap][irecv]]);
         }
       }
       
     } else {
       if (sendother[iswap]) {
         for (i = 0; i < nsend; i++)
-          MPI_Irecv(&buf_recv[reverse_recv_offset[iswap][i]],
+          MPI_Irecv(&buf_recv[size_reverse*reverse_recv_offset[iswap][i]],
                     size_reverse_recv[iswap][i],MPI_DOUBLE,
                     sendproc[iswap][i],0,world,&requests[i]);
         for (i = 0; i < nrecv; i++) {
@@ -553,7 +719,8 @@ void CommTiled::reverse_comm()
         for (i = 0; i < nsend; i++) {
           MPI_Waitany(nsend,requests,&irecv,&status);
           avec->unpack_reverse(sendnum[iswap][irecv],sendlist[iswap][irecv],
-                               &buf_recv[reverse_recv_offset[iswap][irecv]]);
+                               &buf_recv[size_reverse*
+                                         reverse_recv_offset[iswap][irecv]]);
         }
       }
     }
@@ -562,6 +729,7 @@ void CommTiled::reverse_comm()
 
 /* ----------------------------------------------------------------------
    exchange: move atoms to correct processors
+   NOTE: need to re-doc this
    atoms exchanged with all 6 stencil neighbors
    send out atoms that have left my box, receive ones entering my box
    atoms will be lost if not inside some proc's box
@@ -573,14 +741,137 @@ void CommTiled::reverse_comm()
 
 void CommTiled::exchange()
 {
-  // loop over atoms
-  //   if not outside my box, continue
-  //   find which proc it is in
-  //   find which one of my touching procs it is, else lost
-  //   make sure all atoms are "lost" that should be (e.g. outside non-PBC)
-  //   add to list to send to that proc
-  // loop over touching procs
-  //   send buffer to them
+  int i,m,nexch,nsend,nrecv,nlocal,proc,offset;
+  double lo,hi,value;
+  double **x;
+  AtomVec *avec = atom->avec;
+
+  // clear global->local map for owned and ghost atoms
+  // b/c atoms migrate to new procs in exchange() and
+  //   new ghosts are created in borders()
+  // map_set() is done at end of borders()
+  // clear ghost count and any ghost bonus data internal to AtomVec
+
+  if (map_style) atom->map_clear();
+  atom->nghost = 0;
+  atom->avec->clear_bonus();
+
+  // insure send buf is large enough for single atom
+  // fixes can change per-atom size requirement on-the-fly
+
+  int bufextra_old = bufextra;
+  maxexchange = maxexchange_atom + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
+  if (bufextra > bufextra_old)
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
+
+  // domain properties used in exchange method and methods it calls
+  // subbox bounds for orthogonal or triclinic
+
+  prd = domain->prd;
+  boxlo = domain->boxlo;
+  boxhi = domain->boxhi;
+
+  if (triclinic == 0) {
+    sublo = domain->sublo;
+    subhi = domain->subhi;
+  } else {
+    sublo = domain->sublo_lamda;
+    subhi = domain->subhi_lamda;
+  }
+
+  // loop over dimensions
+
+  int dimension = domain->dimension;
+
+  for (int dim = 0; dim < dimension; dim++) {
+
+    // fill buffer with atoms leaving my box, using < and >=
+    // when atom is deleted, fill it in with last atom
+
+    x = atom->x;
+    lo = sublo[dim];
+    hi = subhi[dim];
+    nlocal = atom->nlocal;
+    i = nsend = 0;
+
+    while (i < nlocal) {
+      if (x[i][dim] < lo || x[i][dim] >= hi) {
+        if (nsend > maxsend) grow_send(nsend,1);
+        proc = (this->*point_drop)(dim,x[i]);
+        if (proc != me) {
+          buf_send[nsend++] = proc;
+          nsend += avec->pack_exchange(i,&buf_send[nsend]);
+          avec->copy(nlocal-1,i,1);
+          nlocal--;
+        } else i++;
+      } else i++;
+    }
+
+    atom->nlocal = nlocal;
+
+    // send and recv atoms from neighbor procs that touch my sub-box in dim
+    // no send/recv with self
+    // send size of message first
+    // receiver may receive multiple messages, realloc buf_recv if needed
+
+    nexch = nexchproc[dim];
+    if (!nexch) continue;
+
+    //MPI_Barrier(world);
+    printf("EXCH dim %d me %d nexch %d %d\n",dim,me,nexch,exchproc[0][0]);
+    //MPI_Barrier(world);
+
+    for (m = 0; m < nexch; m++)
+      MPI_Irecv(&exchnum[dim][m],1,MPI_INT,
+                exchproc[dim][m],0,world,&requests[m]);
+    for (m = 0; m < nexch; m++)
+      MPI_Send(&nsend,1,MPI_INT,exchproc[dim][m],0,world);
+    MPI_Waitall(nexch,requests,statuses);
+
+    nrecv = 0;
+    for (m = 0; m < nexch; m++) nrecv += exchnum[dim][m];
+    if (nrecv > maxrecv) grow_recv(nrecv);
+
+    offset = 0;
+    for (m = 0; m < nexch; m++) {
+      MPI_Irecv(&buf_recv[offset],exchnum[dim][m],
+                MPI_DOUBLE,exchproc[dim][m],0,world,&requests[m]);
+      offset += exchnum[dim][m];
+    }
+    for (m = 0; m < nexch; m++)
+      MPI_Send(buf_send,nsend,MPI_DOUBLE,exchproc[dim][m],0,world);
+    MPI_Waitall(nexch,requests,statuses);
+
+    //MPI_Barrier(world);
+    printf("DONE EXCH dim %d me %d nexch %d %d\n",dim,me,nexch,exchproc[0][0]);
+    //MPI_Barrier(world);
+      
+    // check incoming atoms to see if I own it and they are in my box
+    // if so, add to my list
+    // box check is only for this dimension,
+    //   atom may be passed to another proc in later dims
+
+    m = 0;
+    while (m < nrecv) {
+      proc = static_cast<int> (buf_recv[m++]);
+      if (proc == me) {
+        value = buf_recv[m+dim+1];
+        if (value >= lo && value < hi) {
+          m += avec->unpack_exchange(&buf_recv[m]);
+          continue;
+        }
+      }
+      m += static_cast<int> (buf_recv[m]);
+    }
+
+    //MPI_Barrier(world);
+    printf("DONE UNPACK dim %d me %d nexch %d %d\n",
+           dim,me,nexch,exchproc[0][0]);
+    //MPI_Barrier(world);
+  }
+
+  if (atom->firstgroupname) atom->first_reorder();
 }
 
 /* ----------------------------------------------------------------------
@@ -608,7 +899,7 @@ void CommTiled::borders()
   int smax = 0;
   int rmax = 0;
 
-  // loop over all swaps in all dimensions
+  // loop over swaps in all dimensions
 
   for (int iswap = 0; iswap < nswap; iswap++) {
 
@@ -631,18 +922,20 @@ void CommTiled::borders()
       else nlast = atom->nlocal + atom->nghost;
 
       ncount = 0;
-      for (i = 0; i < nlocal; i++)
+      for (i = 0; i < nlocal; i++) {
         if (x[i][0] >= xlo && x[i][0] <= xhi &&
             x[i][1] >= ylo && x[i][1] <= yhi &&
             x[i][2] >= zlo && x[i][2] <= zhi) {
-          if (ncount == maxsendlist[iswap][m]) grow_list(iswap,i,ncount);
+          if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
           sendlist[iswap][m][ncount++] = i;
         }
+      }
+
       for (i = atom->nlocal; i < nlast; i++)
         if (x[i][0] >= xlo && x[i][0] <= xhi &&
             x[i][1] >= ylo && x[i][1] <= yhi &&
             x[i][2] >= zlo && x[i][2] <= zhi) {
-          if (ncount == maxsendlist[iswap][m]) grow_list(iswap,i,ncount);
+          if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
           sendlist[iswap][m][ncount++] = i;
         }
       sendnum[iswap][m] = ncount;
@@ -667,12 +960,18 @@ void CommTiled::borders()
 
     // setup other per swap/proc values from sendnum and recvnum
 
+    for (m = 0; m < nsendproc[iswap]; m++) {
+      size_reverse_recv[iswap][m] = sendnum[iswap][m]*size_reverse;
+      if (m == 0) reverse_recv_offset[iswap][0] = 0;
+      else reverse_recv_offset[iswap][m] = 
+             reverse_recv_offset[iswap][m-1] + sendnum[iswap][m-1];
+    }
+
     rmaxswap = 0;
     for (m = 0; m < nrecvproc[iswap]; m++) {
       rmaxswap += recvnum[iswap][m];
       size_forward_recv[iswap][m] = recvnum[iswap][m]*size_forward;
       size_reverse_send[iswap][m] = recvnum[iswap][m]*size_reverse;
-      size_reverse_recv[iswap][m] = sendnum[iswap][m]*size_reverse;
       if (m == 0) {
         firstrecv[iswap][0] = atom->nlocal + atom->nghost;
         forward_recv_offset[iswap][0] = 0;
@@ -694,14 +993,13 @@ void CommTiled::borders()
     if (ghost_velocity) {
       if (sendother[iswap]) {
         for (m = 0; m < nrecv; m++)
-          MPI_Irecv(&buf_recv[forward_recv_offset[iswap][m]],
+          MPI_Irecv(&buf_recv[size_border*forward_recv_offset[iswap][m]],
                     recvnum[iswap][m]*size_border,
                     MPI_DOUBLE,recvproc[iswap][m],0,world,&requests[m]);
         for (m = 0; m < nsend; m++) {
           n = avec->pack_border_vel(sendnum[iswap][m],sendlist[iswap][m],
                                     buf_send,pbc_flag[iswap][m],pbc[iswap][m]);
-          MPI_Send(buf_send,n*size_border,MPI_DOUBLE,
-                   sendproc[iswap][m],0,world);
+          MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][m],0,world);
         }
       }
 
@@ -717,21 +1015,21 @@ void CommTiled::borders()
         for (m = 0; m < nrecv; m++) {
           MPI_Waitany(nrecv,requests,&irecv,&status);
           avec->unpack_border(recvnum[iswap][irecv],firstrecv[iswap][irecv],
-                              &buf_recv[forward_recv_offset[iswap][irecv]]);
+                              &buf_recv[size_border*
+                                        forward_recv_offset[iswap][irecv]]);
         }
       }
 
     } else {
       if (sendother[iswap]) {
         for (m = 0; m < nrecv; m++)
-          MPI_Irecv(&buf_recv[forward_recv_offset[iswap][m]],
+          MPI_Irecv(&buf_recv[size_border*forward_recv_offset[iswap][m]],
                     recvnum[iswap][m]*size_border,
                     MPI_DOUBLE,recvproc[iswap][m],0,world,&requests[m]);
         for (m = 0; m < nsend; m++) {
           n = avec->pack_border(sendnum[iswap][m],sendlist[iswap][m],
                                 buf_send,pbc_flag[iswap][m],pbc[iswap][m]);
-          MPI_Send(buf_send,n*size_border,MPI_DOUBLE,
-                   sendproc[iswap][m],0,world);
+          MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][m],0,world);
         }
       }
 
@@ -747,7 +1045,8 @@ void CommTiled::borders()
         for (m = 0; m < nrecv; m++) {
           MPI_Waitany(nrecv,requests,&irecv,&status);
           avec->unpack_border(recvnum[iswap][irecv],firstrecv[iswap][irecv],
-                              &buf_recv[forward_recv_offset[iswap][irecv]]);
+                              &buf_recv[size_border*
+                                        forward_recv_offset[iswap][irecv]]);
         }
       }
     }
@@ -768,6 +1067,29 @@ void CommTiled::borders()
   // reset global->local map
 
   if (map_style) atom->map_set();
+
+  // DEBUG
+
+  /*
+  MPI_Barrier(world);
+
+  for (i = 0; i < nswap; i++) {
+    if (nsendproc[i] == 1)
+      printf("BORDERS SEND %d %d: nsend %d snum0 %d\n",
+             i,me,nsendproc[i],sendnum[i][0]);
+    else 
+      printf("BORDERS SEND %d %d: nsend %d snums %d %d\n",
+             i,me,nsendproc[i],sendnum[i][0],sendnum[i][1]);
+    if (nrecvproc[i] == 1)
+      printf("BORDERS RECV %d %d: nrecv %d rnum0 %d\n",
+             i,me,nrecvproc[i],recvnum[i][0]);
+    else 
+      printf("BORDERS RECV %d %d: nrecv %d rnums %d %d\n",
+             i,me,nrecvproc[i],recvnum[i][0],recvnum[i][1]);
+  }
+
+  MPI_Barrier(world);
+  */
 }
 
 // NOTE: remaining forward/reverse methods still need to be updated
@@ -1213,7 +1535,7 @@ void CommTiled::box_drop_tiled_recurse(double *lo, double *hi,
    return other box owned by proc as lo/hi corner pts
 ------------------------------------------------------------------------- */
 
-void CommTiled::box_other_brick(int idim, int iswap,
+void CommTiled::box_other_brick(int idim, int idir,
                                 int proc, double *lo, double *hi)
 {
   lo[0] = sublo[0]; lo[1] = sublo[1]; lo[2] = sublo[2]; 
@@ -1234,7 +1556,7 @@ void CommTiled::box_other_brick(int idim, int iswap,
   }
 
   int dir = -1;
-  if (iswap) dir = 1;
+  if (idir) dir = 1;
   int index = myloc[idim];
   int n = procgrid[idim];
 
@@ -1261,7 +1583,7 @@ void CommTiled::box_other_brick(int idim, int iswap,
    return other box owned by proc as lo/hi corner pts
 ------------------------------------------------------------------------- */
 
-void CommTiled::box_other_tiled(int idim, int iswap,
+void CommTiled::box_other_tiled(int idim, int idir,
                                 int proc, double *lo, double *hi)
 {
   double (*split)[2] = rcbinfo[proc].mysplit;
@@ -1277,6 +1599,130 @@ void CommTiled::box_other_tiled(int idim, int iswap,
   lo[2] = boxlo[2] + prd[2]*split[2][0];
   if (split[2][1] < 1.0) hi[2] = boxlo[2] + prd[2]*split[2][1];
   else hi[2] = boxhi[2];
+}
+
+/* ----------------------------------------------------------------------
+   return 1 if proc's box touches me, else 0
+   procneigh stores 6 procs that touch me
+------------------------------------------------------------------------- */
+
+int CommTiled::box_touch_brick(int proc, int idim, int idir)
+{
+  if (procneigh[idim][idir] == proc) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   return 1 if proc's box touches me, else 0
+------------------------------------------------------------------------- */
+
+int CommTiled::box_touch_tiled(int proc, int idim, int idir)
+{
+  // sending to left
+  // only touches if proc hi = my lo, or if proc hi = boxhi and my lo = boxlo
+
+  if (idir == 0) {
+    if (rcbinfo[proc].mysplit[idim][1] == rcbinfo[me].mysplit[idim][0])
+      return 1;
+    else if (rcbinfo[proc].mysplit[idim][1] == 1.0 && 
+             rcbinfo[me].mysplit[idim][0] == 0.0)
+      return 1;
+
+  // sending to right
+  // only touches if proc lo = my hi, or if proc lo = boxlo and my hi = boxhi
+
+  } else {
+    if (rcbinfo[proc].mysplit[idim][0] == rcbinfo[me].mysplit[idim][1])
+      return 1;
+    else if (rcbinfo[proc].mysplit[idim][0] == 0.0 && 
+             rcbinfo[me].mysplit[idim][1] == 1.0)
+      return 1;
+  }
+
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+int CommTiled::point_drop_brick(int idim, double *x)
+{
+  double deltalo,deltahi;
+
+  if (sublo[idim] == boxlo[idim])
+    deltalo = fabs(x[idim]-prd[idim] - sublo[idim]);
+  else deltalo = fabs(x[idim] - sublo[idim]);
+
+  if (subhi[idim] == boxhi[idim])
+    deltahi = fabs(x[idim]+prd[idim] - subhi[idim]);
+  else deltahi = fabs(x[idim] - subhi[idim]);
+
+  if (deltalo < deltahi) return procneigh[idim][0];
+  return procneigh[idim][1];
+}
+
+/* ----------------------------------------------------------------------
+   determine overlap list of Noverlap procs the lo/hi box overlaps
+   overlap = non-zero area in common between box and proc sub-domain
+   recursive method for traversing an RCB tree of cuts
+   no need to split lo/hi box as recurse b/c OK if box extends outside RCB box
+------------------------------------------------------------------------- */
+
+int CommTiled::point_drop_tiled(int idim, double *x)
+{
+  double xnew[3];
+  xnew[0] = x[0]; xnew[1] = x[1]; xnew[2] = x[2];
+  if (idim == 0) {
+    xnew[1] = MAX(xnew[1],sublo[1]);
+    xnew[1] = MIN(xnew[1],subhi[1]);
+  }
+  if (idim <= 1) {
+    xnew[2] = MAX(xnew[2],sublo[2]);
+    xnew[2] = MIN(xnew[2],subhi[2]);
+  }
+
+  int proc = point_drop_tiled_recurse(xnew,0,nprocs-1);
+  if (proc == me) return me;
+
+  int done = 1;
+  if (idim == 0) {
+    if (rcbinfo[proc].mysplit[1][0] == rcbinfo[me].mysplit[1][1]) {
+      xnew[1] -= EPSILON * (subhi[1]-sublo[1]);
+      done = 0;
+    }
+  }
+  if (idim <= 1) {
+    if (rcbinfo[proc].mysplit[2][0] == rcbinfo[me].mysplit[2][1]) {
+      xnew[2] -= EPSILON * (subhi[2]-sublo[2]);
+      done = 0;
+    }
+  }
+  if (!done) proc = point_drop_tiled_recurse(xnew,0,nprocs-1);
+
+  return proc;
+}
+
+int CommTiled::point_drop_tiled_recurse(double *x, 
+                                        int proclower, int procupper)
+{
+  // end recursion when partition is a single proc
+  // return proc
+
+  if (proclower == procupper) return proclower;
+  
+  // drop point on side of cut it is on
+  // use < criterion so point is not on high edge of proc sub-domain
+  // procmid = 1st processor in upper half of partition
+  //         = location in tree that stores this cut
+  // dim = 0,1,2 dimension of cut
+  // cut = position of cut
+
+  int procmid = proclower + (procupper - proclower) / 2 + 1;
+  double cut = rcbinfo[procmid].cut;
+  int idim = rcbinfo[procmid].dim;
+
+  if (x[idim] < cut) return point_drop_tiled_recurse(x,proclower,procmid-1);
+  else return point_drop_tiled_recurse(x,procmid,procupper);
 }
 
 /* ----------------------------------------------------------------------
@@ -1370,6 +1816,17 @@ void CommTiled::allocate_swap(int n)
     grow_swap_send(i,DELTA_PROCS,0);
     grow_swap_recv(i,DELTA_PROCS);
   }
+
+  nexchproc = new int[n/2];
+  nexchprocmax = new int[n/2];
+  exchproc = new int*[n/2];
+  exchnum = new int*[n/2];
+
+  for (int i = 0; i < n/2; i++) {
+    nexchprocmax[i] = DELTA_PROCS;
+    exchproc[i] = new int[DELTA_PROCS];
+    exchnum[i] = new int[DELTA_PROCS];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1424,14 +1881,6 @@ void CommTiled::grow_swap_recv(int i, int n)
 
   delete [] size_reverse_send[i];
   size_reverse_send[i] = new int[n];
-
-  if (n > maxreqstat) {
-    maxreqstat = n;
-    delete [] requests;
-    delete [] statuses;
-    requests = new MPI_Request[n];
-    statuses = new MPI_Status[n];
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1487,6 +1936,17 @@ void CommTiled::deallocate_swap(int n)
   delete [] statuses;
 
   delete [] nprocmax;
+
+  delete [] nexchproc;
+  delete [] nexchprocmax;
+
+  for (int i = 0; i < n/2; i++) {
+    delete [] exchproc[i];
+    delete [] exchnum[i];
+  }
+
+  delete [] exchproc;
+  delete [] exchnum;
 }
 
 /* ----------------------------------------------------------------------

@@ -488,10 +488,14 @@ int *Balance::bisection(int sortflag)
   rcb->invert(sortflag);
   
   // NOTE: this logic is specific to orthogonal boxes, not triclinic
+  // insure comm->rcbcut will be exactly equal to sub-box boundaries it touches
 
   comm->rcbnew = 1;
-  comm->rcbcut = rcb->cut;
-  comm->rcbcutdim = rcb->cutdim;
+
+  int idim = rcb->cutdim;
+  double split = (rcb->cut - boxlo[idim]) / prd[idim];
+  comm->rcbcut = boxlo[idim] + prd[idim]*split;
+  comm->rcbcutdim = idim;
 
   double (*mysplit)[2] = comm->mysplit;
   

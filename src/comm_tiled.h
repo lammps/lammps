@@ -54,11 +54,14 @@ class CommTiled : public Comm {
   int size_border;                  // # of datums in forward border comm
 
   int nswap;                    // # of swaps to perform = 2*dim
+
+  // forward/reverse comm info, proc lists include self
+
   int *nsendproc,*nrecvproc;    // # of procs to send/recv to/from in each swap
   int *sendother;               // 1 if send to any other proc in each swap
   int *sendself;                // 1 if send to self in each swap
   int *nprocmax;                // current max # of send procs for each swap
-  int **sendproc,**recvproc;    // proc to send/recv to/from per swap/proc
+  int **sendproc,**recvproc;    // procs to send/recv to/from per swap
   int **sendnum,**recvnum;      // # of atoms to send/recv per swap/proc
   int **size_forward_recv;      // # of values to recv in each forward swap/proc
   int **firstrecv;              // where to put 1st recv atom per swap/proc
@@ -73,6 +76,13 @@ class CommTiled : public Comm {
   int ***pbc;                   // dimension flags for PBC adjustments
 
   double ***sendbox;            // bounding box of atoms to send per swap/proc
+
+  // exchange comm info, proc lists do not include self
+
+  int *nexchproc;               // # of procs to send/recv to/from in each exch
+  int *nexchprocmax;            // current max # of exch procs for each exch
+  int **exchproc;               // procs to exchange with per exch
+  int **exchnum;                // # of atoms received per exch/proc
 
   double *buf_send;             // send buffer for all comm
   double *buf_recv;             // recv buffer for all comm
@@ -94,11 +104,11 @@ class CommTiled : public Comm {
     int dim;	               // dimension = 0/1/2 of cut
   };
 
+  RCBinfo *rcbinfo;            // list of RCB info for all procs
+
   int noverlap;                // # of overlapping procs
   int maxoverlap;              // current max length of overlap
   int *overlap;                // list of overlapping procs
-
-  RCBinfo *rcbinfo;            // list of RCB info for all procs
 
   double *prd;                 // local ptrs to Domain attributes
   double *boxlo,*boxhi;
@@ -118,6 +128,17 @@ class CommTiled : public Comm {
   BoxOtherPtr box_other;
   void box_other_brick(int, int, int, double *, double *);
   void box_other_tiled(int, int, int, double *, double *);
+
+  typedef int (CommTiled::*BoxTouchPtr)(int, int, int);
+  BoxTouchPtr box_touch;
+  int box_touch_brick(int, int, int);
+  int box_touch_tiled(int, int, int);
+
+  typedef int (CommTiled::*PointDropPtr)(int, double *);
+  PointDropPtr point_drop;
+  int point_drop_brick(int, double *);
+  int point_drop_tiled(int, double *);
+  int point_drop_tiled_recurse(double *, int, int);
 
   void grow_send(int, int);            // reallocate send buffer
   void grow_recv(int);                 // free/allocate recv buffer

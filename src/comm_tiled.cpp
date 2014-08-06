@@ -1269,8 +1269,6 @@ void CommTiled::borders()
   */
 }
 
-// NOTE: remaining forward/reverse methods still need to be updated
-
 /* ----------------------------------------------------------------------
    forward communication invoked by a Pair
 ------------------------------------------------------------------------- */
@@ -1455,6 +1453,8 @@ void CommTiled::reverse_comm_fix(Fix *fix)
     }
   }
 }
+
+// NOTE: these two forward/reverse methods still need to be updated
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Fix
@@ -1726,6 +1726,8 @@ void CommTiled::forward_comm_array(int nsize, double **array)
     }
   }
 }
+
+// NOTE: this one is not used ???
 
 /* ----------------------------------------------------------------------
    exchange info provided with all 6 stencil neighbors

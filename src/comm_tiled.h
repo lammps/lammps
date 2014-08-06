@@ -65,8 +65,8 @@ class CommTiled : public Comm {
   int **sendnum,**recvnum;      // # of atoms to send/recv per swap/proc
   int **size_forward_recv;      // # of values to recv in each forward swap/proc
   int **firstrecv;              // where to put 1st recv atom per swap/proc
-  int **size_reverse_send;      // # to send in each reverse comm per swap/proc
-  int **size_reverse_recv;      // # to recv in each reverse comm per swap/proc
+  int **size_reverse_send;      // # of values to send in each reverse swap/proc
+  int **size_reverse_recv;      // # of values to recv in each reverse swap/proc
   int **forward_recv_offset;  // forward comm offsets in buf_recv per swap/proc
   int **reverse_recv_offset;  // reverse comm offsets in buf_recv per swap/proc
 
@@ -82,7 +82,7 @@ class CommTiled : public Comm {
   int *nexchproc;               // # of procs to send/recv to/from in each exch
   int *nexchprocmax;            // current max # of exch procs for each exch
   int **exchproc;               // procs to exchange with per exch
-  int **exchnum;                // # of atoms received per exch/proc
+  int **exchnum;                // # of values received per exch/proc
 
   double *buf_send;             // send buffer for all comm
   double *buf_recv;             // recv buffer for all comm

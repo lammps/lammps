@@ -40,8 +40,8 @@ class PairLubricate : public Pair {
   int pre_adapt(char *, int, int, int, int);
   void adapt(int, int, int, int, int, double);
 
-  int pack_comm(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
 
  protected:
   double mu,cut_inner_global,cut_global;

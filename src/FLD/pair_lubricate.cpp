@@ -752,8 +752,8 @@ void PairLubricate::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-int PairLubricate::pack_comm(int n, int *list, double *buf,
-                             int pbc_flag, int *pbc)
+int PairLubricate::pack_forward_comm(int n, int *list, double *buf,
+                                     int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -771,12 +771,12 @@ int PairLubricate::pack_comm(int n, int *list, double *buf,
     buf[m++] = omega[j][2];
   }
 
-  return 6;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLubricate::unpack_comm(int n, int first, double *buf)
+void PairLubricate::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

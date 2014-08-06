@@ -3853,7 +3853,8 @@ double PairComb3::switching_d(double rr)
 
 /* ---------------------------------------------------------------------- */
 
-int PairComb3::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairComb3::pack_forward_comm(int n, int *list, double *buf, 
+                                 int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -3869,12 +3870,12 @@ int PairComb3::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
       buf[m++] = NCo[j];
     }
   }
-  return 1;
+  return m;
 }   
     
 /* ---------------------------------------------------------------------- */
     
-void PairComb3::unpack_comm(int n, int first, double *buf)
+void PairComb3::unpack_forward_comm(int n, int first, double *buf)
 {   
   int i,m,last;
   
@@ -3904,7 +3905,7 @@ int PairComb3::pack_reverse_comm(int n, int first, double *buf)
     for (i = first; i < last; i++)
       buf[m++] = NCo[i];
   }
-  return 1;
+  return m;
 }   
     
 /* ---------------------------------------------------------------------- */

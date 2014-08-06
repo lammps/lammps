@@ -927,8 +927,8 @@ int FixReaxCSpecies::nint(const double &r)
 
 /* ---------------------------------------------------------------------- */
 
-int FixReaxCSpecies::pack_comm(int n, int *list, double *buf, 
-				  int pbc_flag, int *pbc)
+int FixReaxCSpecies::pack_forward_comm(int n, int *list, double *buf, 
+                                       int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -942,12 +942,12 @@ int FixReaxCSpecies::pack_comm(int n, int *list, double *buf,
     buf[m+4] = x0[j].z;
     m += 5;
   }
-  return 5;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCSpecies::unpack_comm(int n, int first, double *buf)
+void FixReaxCSpecies::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

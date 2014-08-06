@@ -237,8 +237,8 @@ double PairEAMGPU::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-int PairEAMGPU::pack_comm(int n, int *list, double *buf, int pbc_flag,
-                          int *pbc)
+int PairEAMGPU::pack_forward_comm(int n, int *list, double *buf, 
+                                  int pbc_flag,int *pbc)
 {
   int i,j,m;
 
@@ -258,12 +258,12 @@ int PairEAMGPU::pack_comm(int n, int *list, double *buf, int pbc_flag,
     }
   }
 
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairEAMGPU::unpack_comm(int n, int first, double *buf)
+void PairEAMGPU::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

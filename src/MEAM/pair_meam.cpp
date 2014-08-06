@@ -730,7 +730,8 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairMEAM::pack_forward_comm(int n, int *list, double *buf, 
+                                int pbc_flag, int *pbc)
 {
   int i,j,k,m;
 
@@ -767,12 +768,13 @@ int PairMEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
     buf[m++] = tsq_ave[j][1];
     buf[m++] = tsq_ave[j][2];
   }
-  return comm_forward;
+
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAM::unpack_comm(int n, int first, double *buf)
+void PairMEAM::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,k,m,last;
 
@@ -843,7 +845,7 @@ int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = tsq_ave[i][2];
   }
 
-  return comm_reverse;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

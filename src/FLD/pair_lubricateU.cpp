@@ -2009,8 +2009,8 @@ void PairLubricateU::copy_uo_vec(int inum, double **f, double **torque,
 
 /* ---------------------------------------------------------------------- */
 
-int PairLubricateU::pack_comm(int n, int *list, double *buf,
-                              int pbc_flag, int *pbc)
+int PairLubricateU::pack_forward_comm(int n, int *list, double *buf,
+                                      int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -2027,12 +2027,12 @@ int PairLubricateU::pack_comm(int n, int *list, double *buf,
     buf[m++] = omega[j][1];
     buf[m++] = omega[j][2];
   }
-  return 6;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLubricateU::unpack_comm(int n, int first, double *buf)
+void PairLubricateU::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

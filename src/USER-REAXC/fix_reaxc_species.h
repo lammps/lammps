@@ -74,8 +74,8 @@ class FixReaxCSpecies : public Fix {
   int CheckExistence(int, int);
 
   int nint(const double &);
-  int pack_comm(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
   void OpenPos();
   void WritePos(int, int);
   double memory_usage();

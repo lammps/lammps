@@ -562,18 +562,19 @@ double PairMEAMSWSpline::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAMSWSpline::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairMEAMSWSpline::pack_forward_comm(int n, int *list, double *buf, 
+                                        int pbc_flag, int *pbc)
 {
         int* list_iter = list;
         int* list_iter_end = list + n;
         while(list_iter != list_iter_end)
                 *buf++ = Uprime_values[*list_iter++];
-        return 1;
+        return n;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairMEAMSWSpline::unpack_comm(int n, int first, double *buf)
+void PairMEAMSWSpline::unpack_forward_comm(int n, int first, double *buf)
 {
         memcpy(&Uprime_values[first], buf, n * sizeof(buf[0]));
 }

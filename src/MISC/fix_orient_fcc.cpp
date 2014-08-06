@@ -478,8 +478,8 @@ double FixOrientFCC::compute_scalar()
 
 /* ---------------------------------------------------------------------- */
 
-int FixOrientFCC::pack_comm(int n, int *list, double *buf,
-                            int pbc_flag, int *pbc)
+int FixOrientFCC::pack_forward_comm(int n, int *list, double *buf,
+                                    int pbc_flag, int *pbc)
 {
   int i,j,k,num;
   tagint id;
@@ -508,18 +508,14 @@ int FixOrientFCC::pack_comm(int n, int *list, double *buf,
       if (k < nlocal) id = tag[id];
       buf[m++] = id;
     }
-
-    m += (12-num) * 3;
-    if (use_xismooth) m += 12-num;
   }
 
-  if (use_xismooth) return 62;
-  return 50;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixOrientFCC::unpack_comm(int n, int first, double *buf)
+void FixOrientFCC::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,j,num;
   int last = first + n;
@@ -536,9 +532,6 @@ void FixOrientFCC::unpack_comm(int n, int first, double *buf)
       nbr[i].dxi[j][2] = buf[m++];
       nbr[i].id[j] = static_cast<tagint> (buf[m++]);
     }
-
-    m += (12-num) * 3;
-    if (use_xismooth) m += 12-num;
   }
 }
 

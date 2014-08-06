@@ -679,13 +679,13 @@ int FixATC::unpack_exchange(int nlocal, double * buf)
   return num;
 }
 
-int FixATC::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixATC::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int num = atc_->pack_comm(n, list, buf, pbc_flag, pbc);
   return num;
 }
 
-void FixATC::unpack_comm(int n, int first, double *buf)
+void FixATC::unpack_forward_comm(int n, int first, double *buf)
 {
   atc_->unpack_comm(n, first, buf);
 }

@@ -2762,8 +2762,8 @@ int FixRigidSmall::unpack_exchange(int nlocal, double *buf)
    for FULL_BODY, send 0/1 flag with every atom
 ------------------------------------------------------------------------- */
 
-int FixRigidSmall::pack_comm(int n, int *list, double *buf,
-                             int pbc_flag, int *pbc)
+int FixRigidSmall::pack_forward_comm(int n, int *list, double *buf,
+                                     int pbc_flag, int *pbc)
 {
   int i,j;
   double *xcm,*vcm,*quat,*omega,*ex_space,*ey_space,*ez_space,*conjqm;
@@ -2850,7 +2850,7 @@ int FixRigidSmall::pack_comm(int n, int *list, double *buf,
    for other commflag values, only unpack body info if atom owns it
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::unpack_comm(int n, int first, double *buf)
+void FixRigidSmall::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,j,last;
   double *xcm,*vcm,*quat,*omega,*ex_space,*ey_space,*ez_space,*conjqm;

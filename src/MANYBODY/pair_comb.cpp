@@ -1991,7 +1991,8 @@ void PairComb::Over_cor(Param *param, double rsq1, int NCoi,
 
 /* ---------------------------------------------------------------------- */
 
-int PairComb::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairComb::pack_forward_comm(int n, int *list, double *buf, 
+                                int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -2000,12 +2001,12 @@ int PairComb::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
     j = list[i];
     buf[m++] = qf[j];
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairComb::unpack_comm(int n, int first, double *buf)
+void PairComb::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -2023,7 +2024,7 @@ int PairComb::pack_reverse_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) buf[m++] = qf[i];
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

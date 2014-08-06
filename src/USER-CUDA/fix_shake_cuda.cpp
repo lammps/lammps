@@ -2793,7 +2793,8 @@ void FixShakeCuda::post_force_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-int FixShakeCuda::pack_comm(int n, int* list, double* buf, int pbc_flag, int* pbc)
+int FixShakeCuda::pack_forward_comm(int n, int* list, double* buf, 
+                                    int pbc_flag, int* pbc)
 {
   if(cuda->finished_setup) {
     int iswap = *list;
@@ -2805,7 +2806,7 @@ int FixShakeCuda::pack_comm(int n, int* list, double* buf, int pbc_flag, int* pb
     } else
       Cuda_FixShakeCuda_PackComm(&cuda->shared_data, n, iswap, (void*) buf, pbc, pbc_flag);
 
-    return 3;
+    return 3*n;
   }
 
   int i, j, m;
@@ -2839,12 +2840,12 @@ int FixShakeCuda::pack_comm(int n, int* list, double* buf, int pbc_flag, int* pb
     }
   }
 
-  return 3;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixShakeCuda::unpack_comm(int n, int first, double* buf)
+void FixShakeCuda::unpack_forward_comm(int n, int first, double* buf)
 {
   if(cuda->finished_setup) {
     Cuda_FixShakeCuda_UnpackComm(&cuda->shared_data, n, first, (void*)buf);

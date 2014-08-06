@@ -799,8 +799,8 @@ double PairPeriEPS::compute_DeviatoricForceStateNorm(int i)
    communication routines
 ---------------------------------------------------------------------- */
 
-int PairPeriEPS::pack_comm(int n, int *list, double *buf,
-                           int pbc_flag, int *pbc)
+int PairPeriEPS::pack_forward_comm(int n, int *list, double *buf,
+                                   int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -809,12 +809,12 @@ int PairPeriEPS::pack_comm(int n, int *list, double *buf,
     j = list[i];
     buf[m++] = theta[j];
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairPeriEPS::unpack_comm(int n, int first, double *buf)
+void PairPeriEPS::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

@@ -287,8 +287,8 @@ double PairSPHRhoSum::single(int i, int j, int itype, int jtype, double rsq,
 
 /* ---------------------------------------------------------------------- */
 
-int PairSPHRhoSum::pack_comm(int n, int *list, double *buf, int pbc_flag,
-    int *pbc) {
+int PairSPHRhoSum::pack_forward_comm(int n, int *list, double *buf, 
+                                     int pbc_flag, int *pbc) {
   int i, j, m;
   double *rho = atom->rho;
 
@@ -297,12 +297,12 @@ int PairSPHRhoSum::pack_comm(int n, int *list, double *buf, int pbc_flag,
     j = list[i];
     buf[m++] = rho[j];
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairSPHRhoSum::unpack_comm(int n, int first, double *buf) {
+void PairSPHRhoSum::unpack_forward_comm(int n, int first, double *buf) {
   int i, m, last;
   double *rho = atom->rho;
 

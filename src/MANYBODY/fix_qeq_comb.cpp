@@ -292,7 +292,8 @@ double FixQEQComb::memory_usage()
 }
 /* ---------------------------------------------------------------------- */
 
-int FixQEQComb::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixQEQComb::pack_forward_comm(int n, int *list, double *buf, 
+                                  int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -301,12 +302,12 @@ int FixQEQComb::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
     j = list[i];
     buf[m++] = atom->q[j];
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEQComb::unpack_comm(int n, int first, double *buf)
+void FixQEQComb::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

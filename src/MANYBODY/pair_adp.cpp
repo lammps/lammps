@@ -933,7 +933,8 @@ void PairADP::grab(FILE *fp, int n, double *list)
 
 /* ---------------------------------------------------------------------- */
 
-int PairADP::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairADP::pack_forward_comm(int n, int *list, double *buf, 
+                               int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -951,12 +952,12 @@ int PairADP::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
     buf[m++] = lambda[j][4];
     buf[m++] = lambda[j][5];
   }
-  return 10;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairADP::unpack_comm(int n, int first, double *buf)
+void PairADP::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -996,7 +997,7 @@ int PairADP::pack_reverse_comm(int n, int first, double *buf)
   buf[m++] = lambda[i][4];
   buf[m++] = lambda[i][5];
   }
-  return 10;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

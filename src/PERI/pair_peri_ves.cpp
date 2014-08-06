@@ -696,8 +696,8 @@ void PairPeriVES::compute_dilatation()
    communication routines
 ---------------------------------------------------------------------- */
 
-int PairPeriVES::pack_comm(int n, int *list, double *buf,
-                           int pbc_flag, int *pbc)
+int PairPeriVES::pack_forward_comm(int n, int *list, double *buf,
+                                   int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -706,12 +706,12 @@ int PairPeriVES::pack_comm(int n, int *list, double *buf,
     j = list[i];
     buf[m++] = theta[j];
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairPeriVES::unpack_comm(int n, int first, double *buf)
+void PairPeriVES::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

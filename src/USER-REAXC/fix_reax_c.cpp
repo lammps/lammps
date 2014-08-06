@@ -135,8 +135,8 @@ int FixReaxC::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixReaxC::pack_comm(int n, int *list, double *buf,
-                         int pbc_flag, int *pbc)
+int FixReaxC::pack_forward_comm(int n, int *list, double *buf,
+                                int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -145,12 +145,12 @@ int FixReaxC::pack_comm(int n, int *list, double *buf,
     j = list[i];
     buf[m++] = num_bonds[j];
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxC::unpack_comm(int n, int first, double *buf)
+void FixReaxC::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

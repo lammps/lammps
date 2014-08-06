@@ -449,7 +449,7 @@ void CommTiled::setup()
 
     MPI_Barrier(world);
 
-    // reallocate esendproc and erecvproc if needed based on noverlap
+    // reallocate exchproc and exchnum if needed based on noverlap
     
     if (noverlap > nexchprocmax[idim]) {
       while (nexchprocmax[idim] < noverlap) nexchprocmax[idim] += DELTA_PROCS;
@@ -850,6 +850,19 @@ void CommTiled::exchange()
       if (x[i][dim] < lo || x[i][dim] >= hi) {
         if (nsend > maxsend) grow_send(nsend,1);
         proc = (this->*point_drop)(dim,x[i]);
+
+        /*
+        // DEBUG:
+        // test if proc is not in exch list, means will lose atom
+        // could be that should lose atom
+        int flag = 0;
+        for (int k = 0; k < nexchproc[dim]; k++)
+          if (proc == exchproc[k]) flag = 1;
+        if (!flag) 
+          printf("Losing exchange atom: dim %d me %d %proc %d: %g %g %g\n",
+                 dim,me,proc,x[i][0],x[i][1],x[i][2]);
+        */
+
         if (proc != me) {
           buf_send[nsend++] = proc;
           nsend += avec->pack_exchange(i,&buf_send[nsend]);
@@ -1992,15 +2005,34 @@ int CommTiled::point_drop_brick(int idim, double *x)
 
 int CommTiled::point_drop_tiled(int idim, double *x)
 {
+  double deltalo,deltahi;
+
   double xnew[3];
   xnew[0] = x[0]; xnew[1] = x[1]; xnew[2] = x[2];
+
   if (idim == 0) {
-    xnew[1] = MAX(xnew[1],sublo[1]);
-    xnew[1] = MIN(xnew[1],subhi[1]);
+    if (xnew[1] < sublo[1] || xnew[1] > subhi[1]) {
+      if (sublo[1] == boxlo[1])
+        deltalo = fabs(x[1]-prd[1] - sublo[1]);
+      else deltalo = fabs(x[1] - sublo[1]);
+      if (subhi[1] == boxhi[1])
+        deltahi = fabs(x[1]+prd[1] - subhi[1]);
+      else deltahi = fabs(x[1] - subhi[1]);
+      if (deltalo < deltahi) xnew[1] = sublo[1];
+      else xnew[1] = subhi[1];
+    }
   }
   if (idim <= 1) {
-    xnew[2] = MAX(xnew[2],sublo[2]);
-    xnew[2] = MIN(xnew[2],subhi[2]);
+    if (xnew[2] < sublo[2] || xnew[2] > subhi[2]) {
+      if (sublo[2] == boxlo[2])
+        deltalo = fabs(x[2]-prd[2] - sublo[2]);
+      else deltalo = fabs(x[2] - sublo[2]);
+      if (subhi[2] == boxhi[2])
+        deltahi = fabs(x[2]+prd[2] - subhi[2]);
+      else deltahi = fabs(x[2] - subhi[2]);
+      if (deltalo < deltahi) xnew[2] = sublo[2];
+      else xnew[2] = subhi[2];
+    }
   }
 
   int proc = point_drop_tiled_recurse(xnew,0,nprocs-1);

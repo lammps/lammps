@@ -79,10 +79,10 @@ class CommTiled : public Comm {
 
   // exchange comm info, proc lists do not include self
 
-  int *nexchproc;               // # of procs to send/recv to/from in each exch
-  int *nexchprocmax;            // current max # of exch procs for each exch
-  int **exchproc;               // procs to exchange with per exch
-  int **exchnum;                // # of values received per exch/proc
+  int *nexchproc;               // # of procs to send/recv to/from in each dim
+  int *nexchprocmax;            // current max # of exch procs for each dim
+  int **exchproc;               // procs to exchange with per dim
+  int **exchnum;                // # of values received per dim/proc
 
   double *buf_send;             // send buffer for all comm
   double *buf_recv;             // recv buffer for all comm

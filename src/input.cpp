@@ -733,7 +733,7 @@ void Input::ifthenelse()
   // must substitute on copy of arg else will step on subsequent args
   // bound and execute "elif" or "else" commands
 
-  while (1) {
+  while (iarg != narg) {
     if (iarg+2 > narg) error->all(FLERR,"Illegal if command");
     if (strcmp(arg[iarg],"elif") == 0) {
       n = strlen(arg[iarg+1]) + 1;

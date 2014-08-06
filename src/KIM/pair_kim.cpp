@@ -479,7 +479,7 @@ int PairKIM::pack_reverse_comm(int n, int first, double *buf)
          buf[m++] = fp[3*i+1];
          buf[m++] = fp[3*i+2];
       }
-      return 3;
+      return m;
    }
    else if ((kim_model_has_forces) && (vflag_atom == 1) &&
             (kim_model_has_particleVirial))
@@ -498,7 +498,7 @@ int PairKIM::pack_reverse_comm(int n, int first, double *buf)
          buf[m++] = va[6*i+4];
          buf[m++] = va[6*i+5];
       }
-      return 9;
+      return m;
    }
    else if ((!kim_model_has_forces) && (vflag_atom == 1) &&
             (kim_model_has_particleVirial))
@@ -513,7 +513,7 @@ int PairKIM::pack_reverse_comm(int n, int first, double *buf)
          buf[m++] = va[6*i+4];
          buf[m++] = va[6*i+5];
       }
-      return 6;
+      return m;
    }
    else
       return 0;

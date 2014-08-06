@@ -52,7 +52,7 @@ class Comm : protected Pointers {
 
   int rcbnew;                       // 1 if just reset by rebalance, else 0
   double mysplit[3][2];             // fractional (0-1) bounds of my sub-domain
-  double rcbcut;                    // RCB cut by this proc
+  double rcbcutfrac;                // fractional RCB cut by this proc
   int rcbcutdim;                    // dimension of RCB cut
 
   // methods

@@ -181,13 +181,13 @@ void CommTiled::setup()
 
   // domain properties used in setup method and methods it calls
 
+  dimension = domain->dimension;
   prd = domain->prd;
   boxlo = domain->boxlo;
   boxhi = domain->boxhi;
   sublo = domain->sublo;
   subhi = domain->subhi;
 
-  int dimension = domain->dimension;
   int *periodicity = domain->periodicity;
 
   // set function pointers
@@ -213,7 +213,7 @@ void CommTiled::setup()
     rcbnew = 0;
     RCBinfo rcbone;
     memcpy(&rcbone.mysplit[0][0],&mysplit[0][0],6*sizeof(double));
-    rcbone.cut = rcbcut;
+    rcbone.cutfrac = rcbcutfrac;
     rcbone.dim = rcbcutdim;
     MPI_Allgather(&rcbone,sizeof(RCBinfo),MPI_CHAR,
                   rcbinfo,sizeof(RCBinfo),MPI_CHAR,world);
@@ -235,7 +235,7 @@ void CommTiled::setup()
   // determine which procs I will send to and receive from in each swap
   // done by intersecting ghost box with all proc sub-boxes it overlaps
   // sets nsendproc, nrecvproc, sendproc, recvproc
-  // sets sendother, sendself, pbc_flag, pbc, sendbox
+  // sets sendother, recvother, sendself, pbc_flag, pbc, sendbox
   // resets nprocmax
 
   int noverlap1,indexme;
@@ -270,19 +270,19 @@ void CommTiled::setup()
         hi2[0] = subhi[0]; hi2[1] = subhi[1]; hi2[2] = subhi[2];
         if (idir == 0) {
           lo2[idim] = lo1[idim] + prd[idim];
-          hi2[idim] = hi1[idim] + prd[idim];
-          if (sublo[idim] == boxlo[idim]) {
-            one = 0;
-            hi2[idim] = boxhi[idim];
-          }
+          hi2[idim] = boxhi[idim];
+          if (sublo[idim] == boxlo[idim]) one = 0;
         } else {
-          lo2[idim] = lo1[idim] - prd[idim];
+          lo2[idim] = boxlo[idim];
           hi2[idim] = hi1[idim] - prd[idim];
-          if (subhi[idim] == boxhi[idim]) {
-            one = 0;
-            lo2[idim] = boxlo[idim];
-          }
+          if (subhi[idim] == boxhi[idim]) one = 0;
         }
+      }
+
+      if (one) {
+        if (idir == 0) lo1[idim] = MAX(lo1[idim],boxlo[idim]);
+        else hi1[idim] = MIN(hi1[idim],boxhi[idim]);
+        if (lo1[idim] == hi1[idim]) one = 0;
       }
 
       // noverlap = # of overlaps of box1/2 with procs via box_drop()
@@ -317,22 +317,20 @@ void CommTiled::setup()
       // overlap how has list of noverlap procs
       // includes PBC effects
 
-      if (overlap[noverlap-1] == me) sendself[iswap] = 1;
+      if (noverlap && overlap[noverlap-1] == me) sendself[iswap] = 1;
       else sendself[iswap] = 0;
-      if (noverlap-sendself[iswap]) sendother[iswap] = 1;
+      if (noverlap && noverlap-sendself[iswap]) sendother[iswap] = 1;
       else sendother[iswap] = 0;
-
-      //MPI_Barrier(world);
-      //printf("AAA idir %d me %d: noverlap %d: %g %g: %g %g\n",
-      //       idir,me,noverlap,sublo[0],sublo[1],subhi[0],subhi[1]);
-      //if (idir == 0) error->all(FLERR,"ALL DONE");
 
       nsendproc[iswap] = noverlap;
       for (i = 0; i < noverlap; i++) sendproc[iswap][i] = overlap[i];
+
       if (idir == 0) {
+        recvother[iswap+1] = sendother[iswap];
         nrecvproc[iswap+1] = noverlap;
         for (i = 0; i < noverlap; i++) recvproc[iswap+1][i] = overlap[i];
       } else {
+        recvother[iswap-1] = sendother[iswap];
         nrecvproc[iswap-1] = noverlap;
         for (i = 0; i < noverlap; i++) recvproc[iswap-1][i] = overlap[i];
       }
@@ -343,7 +341,7 @@ void CommTiled::setup()
       //      = sublo to MIN(sublo+cut,subhi) in idim, for idir = 0
       //      = MIN(subhi-cut,sublo) to subhi in idim, for idir = 1
       //      = obox in other 2 dims
-      // if sbox touches sub-box boundaries in lower dims,
+      // if sbox touches other proc's sub-box boundaries in lower dims,
       //   extend sbox in those lower dims to include ghost atoms
       
       double oboxlo[3],oboxhi[3],sbox[6];
@@ -385,12 +383,12 @@ void CommTiled::setup()
         }
 
         if (idim >= 1) {
-          if (sbox[0] == sublo[0]) sbox[0] -= cut;
-          if (sbox[3] == subhi[0]) sbox[3] += cut;
+          if (sbox[0] == oboxlo[0]) sbox[0] -= cut;
+          if (sbox[3] == oboxhi[0]) sbox[3] += cut;
         }
         if (idim == 2) {
-          if (sbox[1] == sublo[1]) sbox[1] -= cut;
-          if (sbox[4] == subhi[1]) sbox[4] += cut;
+          if (sbox[1] == oboxlo[1]) sbox[1] -= cut;
+          if (sbox[4] == oboxhi[1]) sbox[4] += cut;
         }
         
         memcpy(sendbox[iswap][i],sbox,6*sizeof(double));
@@ -480,12 +478,13 @@ void CommTiled::setup()
 
   // DEBUG
 
-  MPI_Barrier(world);
-
-  printf("SUBBOX %d: %g %g: %g %g\n",me,sublo[0],sublo[1],subhi[0],subhi[1]);
-  MPI_Barrier(world);
-
   /*
+  MPI_Barrier(world);
+
+  printf("SUBBOX %d: %g %g %g: %g %g %g\n",
+         me,sublo[0],sublo[1],sublo[2],subhi[0],subhi[1],subhi[2]);
+  MPI_Barrier(world);
+
   for (i = 0; i < nswap; i++) {
     if (nsendproc[i] == 1)
       printf("SETUP SEND %d %d: nsend %d self %d sproc0 %d: "
@@ -497,7 +496,7 @@ void CommTiled::setup()
              sendbox[i][0][3],
              sendbox[i][0][4],
              sendbox[i][0][5]);
-    else 
+    else if (nsendproc[i] == 2) 
       printf("SETUP SEND %d %d: nsend %d self %d sprocs %d %d: "
              "%g %g %g: %g %g %g: %g %g %g: %g %g %g\n",
              i,me,nsendproc[i],sendself[i],sendproc[i][0],sendproc[i][1],
@@ -513,33 +512,85 @@ void CommTiled::setup()
              sendbox[i][1][3],
              sendbox[i][1][4],
              sendbox[i][1][5]);
+    else if (nsendproc[i] == 3) 
+      printf("SETUP SEND %d %d: nsend %d self %d sprocs %d %d %d: "
+             "%g %g %g: %g %g %g: %g %g %g: %g %g %g: %g %g %g: %g %g %g\n",
+             i,me,nsendproc[i],sendself[i],sendproc[i][0],sendproc[i][1],
+             sendproc[i][2],
+             sendbox[i][0][0],
+             sendbox[i][0][1],
+             sendbox[i][0][2],
+             sendbox[i][0][3],
+             sendbox[i][0][4],
+             sendbox[i][0][5],
+             sendbox[i][1][0],
+             sendbox[i][1][1],
+             sendbox[i][1][2],
+             sendbox[i][1][3],
+             sendbox[i][1][4],
+             sendbox[i][1][5],
+             sendbox[i][2][0],
+             sendbox[i][2][1],
+             sendbox[i][2][2],
+             sendbox[i][2][3],
+             sendbox[i][2][4],
+             sendbox[i][2][5]);
+    else if (nsendproc[i] >= 4)
+      printf("SETUP SEND %d %d: nsend %d self %d sprocs %d %d %d %d: "
+             "%g %g %g: %g %g %g: %g %g %g: %g %g %g: %g %g %g: %g %g %g"
+             " %g %g %g: %g %g %g\n",
+             i,me,nsendproc[i],sendself[i],sendproc[i][0],sendproc[i][1],
+             sendproc[i][2],sendproc[i][3],
+             sendbox[i][0][0],
+             sendbox[i][0][1],
+             sendbox[i][0][2],
+             sendbox[i][0][3],
+             sendbox[i][0][4],
+             sendbox[i][0][5],
+             sendbox[i][1][0],
+             sendbox[i][1][1],
+             sendbox[i][1][2],
+             sendbox[i][1][3],
+             sendbox[i][1][4],
+             sendbox[i][1][5],
+             sendbox[i][2][0],
+             sendbox[i][2][1],
+             sendbox[i][2][2],
+             sendbox[i][2][3],
+             sendbox[i][2][4],
+             sendbox[i][2][5],
+             sendbox[i][3][0],
+             sendbox[i][3][1],
+             sendbox[i][3][2],
+             sendbox[i][3][3],
+             sendbox[i][3][4],
+             sendbox[i][3][5]);
     if (nrecvproc[i] == 1)
       printf("SETUP RECV %d %d: nrecv %d other %d rproc0 %d\n",
              i,me,nrecvproc[i],sendother[i],recvproc[i][0]);
-    else 
+    else if (nrecvproc[i] >= 2)
       printf("SETUP RECV %d %d: nrecv %d other %d rprocs %d %d\n",
              i,me,nrecvproc[i],sendother[i],recvproc[i][0],recvproc[i][1]);
   }
-
-  */
 
   for (i = 0; i < dimension; i++) {
     if (nexchproc[i] == 1)
       printf("SETUP EXCH %d %d: nexch %d exch %d\n",
              i,me,nexchproc[i],exchproc[i][0]);
     else if (nexchproc[i] == 2)
-      printf("SETUP EXCH2 %d %d: nexch %d exch %d %d\n",
+      printf("SETUP EXCH %d %d: nexch %d exch %d %d\n",
              i,me,nexchproc[i],exchproc[i][0],exchproc[i][1]);
     else if (nexchproc[i] == 3)
-      printf("SETUP EXCH2 %d %d: nexch %d exch %d %d %d\n",
+      printf("SETUP EXCH %d %d: nexch %d exch %d %d %d\n",
              i,me,nexchproc[i],exchproc[i][0],exchproc[i][1],exchproc[i][2]);
-    else if (nexchproc[i] == 4)
-      printf("SETUP EXCH2 %d %d: nexch %d exch %d %d %d %d\n",
+    else if (nexchproc[i] >= 4)
+      printf("SETUP EXCH %d %d: nexch %d exch %d %d %d %d\n",
              i,me,nexchproc[i],exchproc[i][0],exchproc[i][1],
              exchproc[i][2],exchproc[i][3]);
   }
 
   MPI_Barrier(world);
+  */
 }
 
 /* ----------------------------------------------------------------------
@@ -566,46 +617,46 @@ void CommTiled::forward_comm(int dummy)
     nrecv = nrecvproc[iswap] - sendself[iswap];
 
     if (comm_x_only) {
-      if (sendother[iswap]) {
+      if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++)
           MPI_Irecv(x[firstrecv[iswap][i]],size_forward_recv[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
+      }
+      if (sendother[iswap]) {
         for (i = 0; i < nsend; i++) {
           n = avec->pack_comm(sendnum[iswap][i],sendlist[iswap][i],
                               buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][i],0,world);
         }
       }
-
       if (sendself[iswap]) {
         avec->pack_comm(sendnum[iswap][nsend],sendlist[iswap][nsend],
                         x[firstrecv[iswap][nrecv]],pbc_flag[iswap][nsend],
                         pbc[iswap][nsend]);
       }
-
-      if (sendother[iswap]) MPI_Waitall(nrecv,requests,statuses);
+      if (recvother[iswap]) MPI_Waitall(nrecv,requests,statuses);
 
     } else if (ghost_velocity) {
-      if (sendother[iswap]) {
+      if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++)
           MPI_Irecv(&buf_recv[size_forward*forward_recv_offset[iswap][i]],
                     size_forward_recv[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
+      }
+      if (sendother[iswap]) {
         for (i = 0; i < nsend; i++) {
           n = avec->pack_comm_vel(sendnum[iswap][i],sendlist[iswap][i],
                                   buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][i],0,world);
         }
       }
-
       if (sendself[iswap]) {
         avec->pack_comm_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
                             buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
         avec->unpack_comm_vel(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
                               buf_send);
       }
-
-      if (sendother[iswap]) {
+      if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
           MPI_Waitany(nrecv,requests,&irecv,&status);
           avec->unpack_comm_vel(recvnum[iswap][irecv],firstrecv[iswap][irecv],
@@ -615,26 +666,26 @@ void CommTiled::forward_comm(int dummy)
       }
 
     } else {
-      if (sendother[iswap]) {
+      if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++)
           MPI_Irecv(&buf_recv[size_forward*forward_recv_offset[iswap][i]],
                     size_forward_recv[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
+      }
+      if (sendother[iswap]) {
         for (i = 0; i < nsendproc[iswap]; i++) {
           n = avec->pack_comm(sendnum[iswap][i],sendlist[iswap][i],
                               buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][i],0,world);
         }
       }
-
       if (sendself[iswap]) {
         avec->pack_comm(sendnum[iswap][nsend],sendlist[iswap][nsend],
                         buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
         avec->unpack_comm(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
                           buf_send);
       }
-
-      if (sendother[iswap]) {
+      if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
           MPI_Waitany(nrecv,requests,&irecv,&status);
           avec->unpack_comm(recvnum[iswap][irecv],firstrecv[iswap][irecv],
@@ -654,7 +705,6 @@ void CommTiled::forward_comm(int dummy)
 void CommTiled::reverse_comm()
 {
   int i,irecv,n,nsend,nrecv;
-  MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
   double **f = atom->f;
@@ -672,20 +722,21 @@ void CommTiled::reverse_comm()
 
     if (comm_f_only) {
       if (sendother[iswap]) {
-        for (i = 0; i < nsend; i++)
+        for (i = 0; i < nsend; i++) {
           MPI_Irecv(&buf_recv[size_reverse*reverse_recv_offset[iswap][i]],
                     size_reverse_recv[iswap][i],MPI_DOUBLE,
                     sendproc[iswap][i],0,world,&requests[i]);
+        }
+      }
+      if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++)
           MPI_Send(f[firstrecv[iswap][i]],size_reverse_send[iswap][i],
                    MPI_DOUBLE,recvproc[iswap][i],0,world);
       }
-
       if (sendself[iswap]) {
         avec->unpack_reverse(sendnum[iswap][nsend],sendlist[iswap][nsend],
                              f[firstrecv[iswap][nrecv]]);
       }
-
       if (sendother[iswap]) {
         for (i = 0; i < nsend; i++) {
           MPI_Waitany(nsend,requests,&irecv,&status);
@@ -701,20 +752,20 @@ void CommTiled::reverse_comm()
           MPI_Irecv(&buf_recv[size_reverse*reverse_recv_offset[iswap][i]],
                     size_reverse_recv[iswap][i],MPI_DOUBLE,
                     sendproc[iswap][i],0,world,&requests[i]);
+      }
+      if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
           n = avec->pack_reverse(recvnum[iswap][i],firstrecv[iswap][i],
                                  buf_send);
           MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap][i],0,world);
         }
       }
-
       if (sendself[iswap]) {
         avec->pack_reverse(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
                            buf_send);
         avec->unpack_reverse(sendnum[iswap][nsend],sendlist[iswap][nsend],
                              buf_send);
       }
-
       if (sendother[iswap]) {
         for (i = 0; i < nsend; i++) {
           MPI_Waitany(nsend,requests,&irecv,&status);
@@ -782,7 +833,7 @@ void CommTiled::exchange()
 
   // loop over dimensions
 
-  int dimension = domain->dimension;
+  dimension = domain->dimension;
 
   for (int dim = 0; dim < dimension; dim++) {
 
@@ -818,10 +869,6 @@ void CommTiled::exchange()
     nexch = nexchproc[dim];
     if (!nexch) continue;
 
-    //MPI_Barrier(world);
-    printf("EXCH dim %d me %d nexch %d %d\n",dim,me,nexch,exchproc[0][0]);
-    //MPI_Barrier(world);
-
     for (m = 0; m < nexch; m++)
       MPI_Irecv(&exchnum[dim][m],1,MPI_INT,
                 exchproc[dim][m],0,world,&requests[m]);
@@ -843,10 +890,6 @@ void CommTiled::exchange()
       MPI_Send(buf_send,nsend,MPI_DOUBLE,exchproc[dim][m],0,world);
     MPI_Waitall(nexch,requests,statuses);
 
-    //MPI_Barrier(world);
-    printf("DONE EXCH dim %d me %d nexch %d %d\n",dim,me,nexch,exchproc[0][0]);
-    //MPI_Barrier(world);
-      
     // check incoming atoms to see if I own it and they are in my box
     // if so, add to my list
     // box check is only for this dimension,
@@ -864,14 +907,76 @@ void CommTiled::exchange()
       }
       m += static_cast<int> (buf_recv[m]);
     }
-
-    //MPI_Barrier(world);
-    printf("DONE UNPACK dim %d me %d nexch %d %d\n",
-           dim,me,nexch,exchproc[0][0]);
-    //MPI_Barrier(world);
   }
 
   if (atom->firstgroupname) atom->first_reorder();
+
+  // DEBUG
+
+  // check that total count of atoms is correct
+
+  /*
+  nlocal = atom->nlocal;
+  int ntotal;
+  MPI_Allreduce(&nlocal,&ntotal,1,MPI_INT,MPI_SUM,world);
+  if (ntotal != atom->natoms) {
+    if (me == 0) printf("Atom counts: old %d new %d\n",atom->natoms,ntotal);
+    //error->all(FLERR,"Post-exchange atom count wrong");
+  }
+
+  // check that each proc owns exact atoms it should in its sub-box
+  // lo/hi = first/last owned atom in lattice
+
+  int ilo,jlo,klo,ihi,jhi,khi;
+  bounds(sublo[0],sublo[1],sublo[2],subhi[0],subhi[1],subhi[2],
+         ilo,jlo,klo,ihi,jhi,khi);
+  int ncount = (ihi-ilo+1) * (jhi-jlo+1) * (khi-klo+1);
+
+  if (ncount != nlocal) 
+    printf("EXCH proc %d: correct %d actual %d\n",me,ncount,nlocal);
+  int flag = 0;
+  if (ncount != nlocal) {
+    flag = 1;
+    //for (int i = 0; i < nlocal; i++)
+    //  printf("MISSING %d %d: %g %g %g\n",i,atom->tag[i],
+    //         atom->x[i][0],atom->x[i][1],atom->x[i][2]);
+  }
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) error->all(FLERR,"Bad exchange results");
+  else if (me == 0) printf("EXCH is correct\n");
+  */
+}
+
+/* ----------------------------------------------------------------------
+   convert box bounds into lattice indices
+   assume static_int can be below/above neg/pos floating point value
+   integer lo = integer >= floating point value
+   integer hi = integer < floating point value
+------------------------------------------------------------------------- */
+
+void CommTiled::bounds(double xlo, double ylo, double zlo, 
+                       double xhi, double yhi, double zhi,
+                       int &ilo, int &jlo, int &klo, 
+                       int &ihi, int &jhi, int &khi)
+{
+  ilo = static_cast<int> (xlo);
+  if (ilo < xlo) ilo++;
+
+  jlo = static_cast<int> (ylo);
+  if (jlo < ylo) jlo++;
+
+  klo = static_cast<int> (zlo);
+  if (klo < zlo) klo++;
+
+  ihi = static_cast<int> (xhi);
+  if (ihi >= xhi) ihi--;
+
+  jhi = static_cast<int> (yhi);
+  if (jhi >= yhi) jhi--;
+
+  khi = static_cast<int> (zhi);
+  if (khi >= zhi) khi--;
 }
 
 /* ----------------------------------------------------------------------
@@ -886,18 +991,20 @@ void CommTiled::exchange()
 
 void CommTiled::borders()
 {
-  int i,m,n,irecv,nlocal,nlast,nsend,nrecv,ncount,rmaxswap;
+  int i,m,n,irecv,nlast,nsend,nrecv,ncount,ncountall;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double *bbox;
   double **x;
   MPI_Status status;
   AtomVec *avec = atom->avec;
 
-  // smax = max size of single send in a swap/proc
-  // rmax = max size of recvs from all procs for a swap
+  // send/recv max one = max # of atoms in single send/recv for any swap
+  // send/recv max all = max # of atoms in all sends/recvs within any swap
 
-  int smax = 0;
-  int rmax = 0;
+  int smaxone = 0;
+  int smaxall = 0;
+  int rmaxone = 0;
+  int rmaxall = 0;
 
   // loop over swaps in all dimensions
 
@@ -911,36 +1018,30 @@ void CommTiled::borders()
     //       and for ngroup when bordergroup is set
 
     x = atom->x;
-
+    if (iswap % 2 == 0) nlast = atom->nlocal + atom->nghost;
+      
+    ncountall = 0;
     for (m = 0; m < nsendproc[iswap]; m++) {
       bbox = sendbox[iswap][m];
       xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
       xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
 
-      nlocal = atom->nlocal;
-      if (iswap < 2) nlast = atom->nlocal;
-      else nlast = atom->nlocal + atom->nghost;
-
       ncount = 0;
-      for (i = 0; i < nlocal; i++) {
-        if (x[i][0] >= xlo && x[i][0] <= xhi &&
-            x[i][1] >= ylo && x[i][1] <= yhi &&
-            x[i][2] >= zlo && x[i][2] <= zhi) {
+
+      for (i = 0; i < nlast; i++) {
+        if (x[i][0] >= xlo && x[i][0] < xhi &&
+            x[i][1] >= ylo && x[i][1] < yhi &&
+            x[i][2] >= zlo && x[i][2] < zhi) {
           if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
           sendlist[iswap][m][ncount++] = i;
         }
       }
 
-      for (i = atom->nlocal; i < nlast; i++)
-        if (x[i][0] >= xlo && x[i][0] <= xhi &&
-            x[i][1] >= ylo && x[i][1] <= yhi &&
-            x[i][2] >= zlo && x[i][2] <= zhi) {
-          if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-          sendlist[iswap][m][ncount++] = i;
-        }
       sendnum[iswap][m] = ncount;
-      smax = MAX(smax,ncount);
+      smaxone = MAX(smaxone,ncount);
+      ncountall += ncount;
     }
+    smaxall = MAX(smaxall,ncountall);
 
     // send sendnum counts to procs who recv from me except self
     // copy data to self if sendself is set
@@ -948,15 +1049,15 @@ void CommTiled::borders()
     nsend = nsendproc[iswap] - sendself[iswap];
     nrecv = nrecvproc[iswap] - sendself[iswap];
 
-    if (sendother[iswap]) {
+    if (recvother[iswap])
       for (m = 0; m < nrecv; m++)
         MPI_Irecv(&recvnum[iswap][m],1,MPI_INT,
                   recvproc[iswap][m],0,world,&requests[m]);
+    if (sendother[iswap])
       for (m = 0; m < nsend; m++)
         MPI_Send(&sendnum[iswap][m],1,MPI_INT,sendproc[iswap][m],0,world);
-    }
     if (sendself[iswap]) recvnum[iswap][nrecv] = sendnum[iswap][nsend];
-    if (sendother[iswap]) MPI_Waitall(nrecv,requests,statuses);
+    if (recvother[iswap]) MPI_Waitall(nrecv,requests,statuses);
 
     // setup other per swap/proc values from sendnum and recvnum
 
@@ -967,11 +1068,14 @@ void CommTiled::borders()
              reverse_recv_offset[iswap][m-1] + sendnum[iswap][m-1];
     }
 
-    rmaxswap = 0;
+    ncountall = 0;
     for (m = 0; m < nrecvproc[iswap]; m++) {
-      rmaxswap += recvnum[iswap][m];
-      size_forward_recv[iswap][m] = recvnum[iswap][m]*size_forward;
-      size_reverse_send[iswap][m] = recvnum[iswap][m]*size_reverse;
+      ncount = recvnum[iswap][m];
+      rmaxone = MAX(rmaxone,ncount);
+      ncountall += ncount;
+
+      size_forward_recv[iswap][m] = ncount*size_forward;
+      size_reverse_send[iswap][m] = ncount*size_reverse;
       if (m == 0) {
         firstrecv[iswap][0] = atom->nlocal + atom->nghost;
         forward_recv_offset[iswap][0] = 0;
@@ -981,28 +1085,31 @@ void CommTiled::borders()
           forward_recv_offset[iswap][m-1] + recvnum[iswap][m-1];
       }
     }
-    rmax = MAX(rmax,rmaxswap);
+    rmaxall = MAX(rmaxall,ncountall);
 
-    // insure send/recv buffers are large enough for border comm
+    // insure send/recv buffers are large enough for this border comm swap
 
-    if (smax*size_border > maxsend) grow_send(smax*size_border,0);
-    if (rmax*size_border > maxrecv) grow_recv(rmax*size_border);
+    if (smaxone*size_border > maxsend) grow_send(smaxone*size_border,0);
+    if (rmaxall*size_border > maxrecv) grow_recv(rmaxall*size_border);
 
     // swap atoms with other procs using pack_border(), unpack_border()
+    // use Waitall() instead of Waitany() because calls to unpack_border()
+    //   must increment per-atom arrays in ascending order
 
     if (ghost_velocity) {
-      if (sendother[iswap]) {
+      if (recvother[iswap]) {
         for (m = 0; m < nrecv; m++)
           MPI_Irecv(&buf_recv[size_border*forward_recv_offset[iswap][m]],
                     recvnum[iswap][m]*size_border,
                     MPI_DOUBLE,recvproc[iswap][m],0,world,&requests[m]);
+      }
+      if (sendother[iswap]) {
         for (m = 0; m < nsend; m++) {
           n = avec->pack_border_vel(sendnum[iswap][m],sendlist[iswap][m],
                                     buf_send,pbc_flag[iswap][m],pbc[iswap][m]);
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][m],0,world);
         }
       }
-
       if (sendself[iswap]) {
         n = avec->pack_border_vel(sendnum[iswap][nsend],sendlist[iswap][nsend],
                                   buf_send,pbc_flag[iswap][nsend],
@@ -1010,29 +1117,28 @@ void CommTiled::borders()
         avec->unpack_border_vel(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
                                 buf_send);
       }
-
-      if (sendother[iswap]) {
-        for (m = 0; m < nrecv; m++) {
-          MPI_Waitany(nrecv,requests,&irecv,&status);
-          avec->unpack_border(recvnum[iswap][irecv],firstrecv[iswap][irecv],
-                              &buf_recv[size_border*
-                                        forward_recv_offset[iswap][irecv]]);
-        }
+      if (recvother[iswap]) {
+        MPI_Waitall(nrecv,requests,statuses);
+        for (m = 0; m < nrecv; m++)
+          avec->unpack_border_vel(recvnum[iswap][m],firstrecv[iswap][m],
+                                  &buf_recv[size_border*
+                                            forward_recv_offset[iswap][m]]);
       }
 
     } else {
-      if (sendother[iswap]) {
+      if (recvother[iswap]) {
         for (m = 0; m < nrecv; m++)
           MPI_Irecv(&buf_recv[size_border*forward_recv_offset[iswap][m]],
                     recvnum[iswap][m]*size_border,
                     MPI_DOUBLE,recvproc[iswap][m],0,world,&requests[m]);
+      }
+      if (sendother[iswap]) {
         for (m = 0; m < nsend; m++) {
           n = avec->pack_border(sendnum[iswap][m],sendlist[iswap][m],
                                 buf_send,pbc_flag[iswap][m],pbc[iswap][m]);
           MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][m],0,world);
         }
       }
-
       if (sendself[iswap]) {
         n = avec->pack_border(sendnum[iswap][nsend],sendlist[iswap][nsend],
                               buf_send,pbc_flag[iswap][nsend],
@@ -1040,28 +1146,29 @@ void CommTiled::borders()
         avec->unpack_border(recvnum[iswap][nsend],firstrecv[iswap][nsend],
                             buf_send);
       }
-
-      if (sendother[iswap]) {
-        for (m = 0; m < nrecv; m++) {
-          MPI_Waitany(nrecv,requests,&irecv,&status);
-          avec->unpack_border(recvnum[iswap][irecv],firstrecv[iswap][irecv],
+      if (recvother[iswap]) {
+        MPI_Waitall(nrecv,requests,statuses);
+        for (m = 0; m < nrecv; m++)
+          avec->unpack_border(recvnum[iswap][m],firstrecv[iswap][m],
                               &buf_recv[size_border*
-                                        forward_recv_offset[iswap][irecv]]);
-        }
+                                        forward_recv_offset[iswap][m]]);
       }
     }
 
     // increment ghost atoms
 
     n = nrecvproc[iswap];
-    atom->nghost += forward_recv_offset[iswap][n-1] + recvnum[iswap][n-1];
+    if (n) 
+      atom->nghost += forward_recv_offset[iswap][n-1] + recvnum[iswap][n-1];
   }
 
   // insure send/recv buffers are long enough for all forward & reverse comm
+  // send buf is for one forward or reverse sends to one proc
+  // recv buf is for all forward or reverse recvs in one swap
 
-  int max = MAX(maxforward*smax,maxreverse*rmax);
+  int max = MAX(maxforward*smaxone,maxreverse*rmaxone);
   if (max > maxsend) grow_send(max,0);
-  max = MAX(maxforward*rmax,maxreverse*smax);
+  max = MAX(maxforward*rmaxall,maxreverse*smaxall);
   if (max > maxrecv) grow_recv(max);
 
   // reset global->local map
@@ -1075,20 +1182,90 @@ void CommTiled::borders()
 
   for (i = 0; i < nswap; i++) {
     if (nsendproc[i] == 1)
-      printf("BORDERS SEND %d %d: nsend %d snum0 %d\n",
-             i,me,nsendproc[i],sendnum[i][0]);
-    else 
-      printf("BORDERS SEND %d %d: nsend %d snums %d %d\n",
-             i,me,nsendproc[i],sendnum[i][0],sendnum[i][1]);
+      printf("BORDERS SEND %d %d: proc %d snum0 %d\n",
+             i,me,sendproc[i][0],sendnum[i][0]);
+    else if (nsendproc[i] == 2)
+      printf("BORDERS SEND %d %d: proc %d %d snums %d %d\n",
+             i,me,sendproc[i][0],sendproc[i][1],sendnum[i][0],sendnum[i][1]);
+    else if (nsendproc[i] == 3)
+      printf("BORDERS SEND %d %d: proc %d %d %d snums %d %d %d\n",
+             i,me,sendproc[i][0],sendproc[i][1],sendproc[i][2],
+             sendnum[i][0],sendnum[i][1],sendnum[i][2]);
+    else if (nsendproc[i] == 8)
+      printf("BORDERS SEND %d %d: proc %d %d %d %d: %d %d %d %d "
+             "snums %d %d %d %d: %d %d %d %d\n",
+             i,me,
+             sendproc[i][0],sendproc[i][1],sendproc[i][2],sendproc[i][3],
+             sendproc[i][4],sendproc[i][5],sendproc[i][6],sendproc[i][7],
+             sendnum[i][0],sendnum[i][1],sendnum[i][2],sendnum[i][3],
+             sendnum[i][4],sendnum[i][5],sendnum[i][6],sendnum[i][7]);
+    else if (nsendproc[i] >= 4)
+      printf("BORDERS SEND %d %d: proc %d %d %d %d snums %d %d %d %d\n",
+             i,me,sendproc[i][0],sendproc[i][1],sendproc[i][2],
+             sendproc[i][3],
+             sendnum[i][0],sendnum[i][1],sendnum[i][2],sendnum[i][3]);
     if (nrecvproc[i] == 1)
-      printf("BORDERS RECV %d %d: nrecv %d rnum0 %d\n",
-             i,me,nrecvproc[i],recvnum[i][0]);
-    else 
-      printf("BORDERS RECV %d %d: nrecv %d rnums %d %d\n",
-             i,me,nrecvproc[i],recvnum[i][0],recvnum[i][1]);
+      printf("BORDERS RECV %d %d: proc %d rnum0 %d\n",
+             i,me,recvproc[i][0],recvnum[i][0]);
+    else if (nrecvproc[i] == 2)
+      printf("BORDERS RECV %d %d: proc %d %d rnums %d %d\n",
+             i,me,recvproc[i][0],recvproc[i][1],recvnum[i][0],recvnum[i][1]);
+    else if (nrecvproc[i] == 3)
+      printf("BORDERS RECV %d %d: proc %d %d %d rnums %d %d %d\n",
+             i,me,recvproc[i][0],recvproc[i][1],recvproc[i][2],
+             recvnum[i][0],recvnum[i][1],recvnum[i][2]);
+    else if (nrecvproc[i] == 8)
+      printf("BORDERS RECV %d %d: proc %d %d %d %d: %d %d %d %d "
+             "rnums %d %d %d %d: %d %d %d %d\n",
+             i,me,
+             recvproc[i][0],recvproc[i][1],recvproc[i][2],recvproc[i][3],
+             recvproc[i][4],recvproc[i][5],recvproc[i][6],recvproc[i][7],
+             recvnum[i][0],recvnum[i][1],recvnum[i][2],recvnum[i][3],
+             recvnum[i][4],recvnum[i][5],recvnum[i][6],recvnum[i][7]);
+    else if (nrecvproc[i] >= 4)
+      printf("BORDERS RECV %d %d: proc %d %d %d %d rnums %d %d %d %d\n",
+             i,me,recvproc[i][0],recvproc[i][1],recvproc[i][2],recvproc[i][3],
+             recvnum[i][0],recvnum[i][1],recvnum[i][2],recvnum[i][3]);
   }
 
   MPI_Barrier(world);
+  /*
+
+  // DEBUG
+
+  // check that each proc owns exact atoms it should in its sub-box + ghosts
+  // lo/hi = first/last owned atom in lattice
+
+  /*
+  int ilo,jlo,klo,ihi,jhi,khi;
+  double ghostlo[3],ghosthi[3];
+
+  ghostlo[0] = sublo[0] - cutghost[0];
+  ghostlo[1] = sublo[1] - cutghost[1];
+  ghosthi[0] = subhi[0] + cutghost[0];
+  ghosthi[1] = subhi[1] + cutghost[1];
+  if (domain->dimension == 3) {
+    ghostlo[2] = sublo[2] - cutghost[2];
+    ghosthi[2] = subhi[2] + cutghost[2];
+  } else {
+    ghostlo[2] = sublo[2];
+    ghosthi[2] = subhi[2];
+  }
+
+  bounds(ghostlo[0],ghostlo[1],ghostlo[2],ghosthi[0],ghosthi[1],ghosthi[2],
+         ilo,jlo,klo,ihi,jhi,khi);
+  ncount = (ihi-ilo+1) * (jhi-jlo+1) * (khi-klo+1);
+  ncount -= atom->nlocal;
+
+  int nghost = atom->nghost;
+  if (ncount != nghost) 
+    printf("BORDERS proc %d: correct %d actual %d\n",me,ncount,nghost);
+  int flag = 0;
+  if (ncount != nghost) flag = 1;
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) error->all(FLERR,"Bad borders results");
+  else if (me == 0) printf("BORDERS is correct\n");
   */
 }
 
@@ -1101,31 +1278,41 @@ void CommTiled::borders()
 
 void CommTiled::forward_comm_pair(Pair *pair)
 {
-  int i,irecv,n;
+  int i,irecv,n,nsend,nrecv;
   MPI_Status status;
 
+  // NOTE: what to do about nsize ???
+  int nsize = 1;
+
   for (int iswap = 0; iswap < nswap; iswap++) {
-    if (sendproc[iswap][0] != me) {
-      for (i = 0; i < nrecvproc[iswap]; i++)
-        MPI_Irecv(&buf_recv[forward_recv_offset[iswap][i]],
-                  size_forward_recv[iswap][i],
+    nsend = nsendproc[iswap] - sendself[iswap];
+    nrecv = nrecvproc[iswap] - sendself[iswap];
+
+    if (recvother[iswap]) {
+      for (i = 0; i < nrecv; i++)
+        MPI_Irecv(&buf_recv[nsize*forward_recv_offset[iswap][i]],
+                  nsize*recvnum[iswap][i],
                   MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
+    }
+    if (sendother[iswap]) {
       for (i = 0; i < nsendproc[iswap]; i++) {
         n = pair->pack_comm(sendnum[iswap][i],sendlist[iswap][i],
                             buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
-        MPI_Send(buf_send,n*sendnum[iswap][i],MPI_DOUBLE,
-                 sendproc[iswap][i],0,world);
+        MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][i],0,world);
       }
-      for (i = 0; i < nrecvproc[iswap]; i++) {
-        MPI_Waitany(nrecvproc[iswap],requests,&irecv,&status);
+    }
+    if (sendself[iswap]) {
+      pair->pack_comm(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                      buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
+      pair->unpack_comm(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
+                        buf_send);
+    }
+    if (recvother[iswap]) {
+      for (i = 0; i < nrecv; i++) {
+        MPI_Waitany(nrecv,requests,&irecv,&status);
         pair->unpack_comm(recvnum[iswap][irecv],firstrecv[iswap][irecv],
-                          &buf_recv[forward_recv_offset[iswap][irecv]]);
+                          &buf_recv[nsize*forward_recv_offset[iswap][irecv]]);
       }
-
-    } else {
-      n = pair->pack_comm(sendnum[iswap][0],sendlist[iswap][0],
-                          buf_send,pbc_flag[iswap][0],pbc[iswap][0]);
-      pair->unpack_comm(recvnum[iswap][0],firstrecv[iswap][0],buf_send);
     }
   }
 }
@@ -1137,31 +1324,42 @@ void CommTiled::forward_comm_pair(Pair *pair)
 
 void CommTiled::reverse_comm_pair(Pair *pair)
 {
-  int i,irecv,n;
+  int i,irecv,n,nsend,nrecv;
   MPI_Status status;
 
+  // NOTE: what to do about nsize ???
+  int nsize = 1;
+
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
-    if (sendproc[iswap][0] != me) {
-      for (i = 0; i < nsendproc[iswap]; i++)
-        MPI_Irecv(&buf_recv[reverse_recv_offset[iswap][i]],
-                  size_reverse_recv[iswap][i],MPI_DOUBLE,
+    nsend = nsendproc[iswap] - sendself[iswap];
+    nrecv = nrecvproc[iswap] - sendself[iswap];
+
+    if (sendother[iswap]) {
+      for (i = 0; i < nsend; i++)
+        MPI_Irecv(&buf_recv[nsize*reverse_recv_offset[iswap][i]],
+                  nsize*sendnum[iswap][i],MPI_DOUBLE,
                   sendproc[iswap][i],0,world,&requests[i]);
-      for (i = 0; i < nrecvproc[iswap]; i++) {
+    }
+    if (recvother[iswap]) {
+      for (i = 0; i < nrecv; i++) {
         n = pair->pack_reverse_comm(recvnum[iswap][i],firstrecv[iswap][i],
                                     buf_send);
-        MPI_Send(buf_send,n*recvnum[iswap][i],MPI_DOUBLE,
-                 recvproc[iswap][i],0,world);
+        MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap][i],0,world);
       }
-      for (i = 0; i < nsendproc[iswap]; i++) {
-        MPI_Waitany(nsendproc[iswap],requests,&irecv,&status);
+    }
+    if (sendself[iswap]) {
+      pair->pack_reverse_comm(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],
+                              buf_send);
+      pair->unpack_reverse_comm(sendnum[iswap][nsend],sendlist[iswap][nsend],
+                                buf_send);
+    }
+    if (sendother[iswap]) {
+      for (i = 0; i < nsend; i++) {
+        MPI_Waitany(nsend,requests,&irecv,&status);
         pair->unpack_reverse_comm(sendnum[iswap][irecv],sendlist[iswap][irecv],
-                                  &buf_recv[reverse_recv_offset[iswap][irecv]]);
+                                  &buf_recv[nsize*
+                                            reverse_recv_offset[iswap][irecv]]);
       }
-
-    } else {
-      n = pair->pack_reverse_comm(recvnum[iswap][0],firstrecv[iswap][0],
-                                  buf_send);
-      pair->unpack_reverse_comm(sendnum[iswap][0],sendlist[iswap][0],buf_send);
     }
   }
 }
@@ -1404,11 +1602,63 @@ void CommTiled::reverse_comm_dump(Dump *dump)
 }
 
 /* ----------------------------------------------------------------------
-   forward communication of N values in array
+   forward communication of Nsize values in per-atom array
 ------------------------------------------------------------------------- */
 
-void CommTiled::forward_comm_array(int n, double **array)
-{
+void CommTiled::forward_comm_array(int nsize, double **array)
+{ 
+  int i,j,k,m,n,iatom,last,irecv,nsend,nrecv;
+  MPI_Status status;
+
+  // NOTE: should check that buf_send and buf_recv are big enough
+
+  for (int iswap = 0; iswap < nswap; iswap++) {
+    nsend = nsendproc[iswap] - sendself[iswap];
+    nrecv = nrecvproc[iswap] - sendself[iswap];
+
+    if (recvother[iswap]) {
+      for (i = 0; i < nrecv; i++)
+        MPI_Irecv(&buf_recv[nsize*forward_recv_offset[iswap][i]],
+                  nsize*recvnum[iswap][i],
+                  MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
+    }
+    if (sendother[iswap]) {
+      for (i = 0; i < nsendproc[iswap]; i++) {
+        m = 0;
+        for (iatom = 0; iatom < sendnum[iswap][i]; iatom++) {
+          j = sendlist[iswap][i][iatom];
+          for (k = 0; k < nsize; k++)
+            buf_send[m++] = array[j][k];
+        }
+        MPI_Send(buf_send,nsize*sendnum[iswap][i],
+                 MPI_DOUBLE,sendproc[iswap][i],0,world);
+      }
+    }
+    if (sendself[iswap]) {
+      m = 0;
+      for (iatom = 0; iatom < sendnum[iswap][nsend]; iatom++) {
+        j = sendlist[iswap][nsend][iatom];
+        for (k = 0; k < nsize; k++)
+          buf_send[m++] = array[j][k];
+      }
+      m = 0;
+      last = firstrecv[iswap][nrecv] + recvnum[iswap][nrecv];
+      for (iatom = firstrecv[iswap][nrecv]; iatom < last; iatom++)
+        for (k = 0; k < nsize; k++)
+          array[iatom][k] = buf_send[m++];
+    }
+
+    if (recvother[iswap]) {
+      for (i = 0; i < nrecv; i++) {
+        MPI_Waitany(nrecv,requests,&irecv,&status);
+        m = 0;
+        last = firstrecv[iswap][irecv] + recvnum[iswap][irecv];
+        for (iatom = firstrecv[iswap][irecv]; iatom < last; iatom++)
+          for (k = 0; k < nsize; k++)
+            array[iatom][k] = buf_recv[m++];
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1430,6 +1680,7 @@ int CommTiled::exchange_variable(int n, double *inbuf, double *&outbuf)
 void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
 {
   // NOTE: this is not triclinic compatible
+  // NOTE: there error messages are internal - should not occur
 
   int index,dir;
   if (hi[idim] == sublo[idim]) {
@@ -1444,7 +1695,7 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
   } else if (lo[idim] == boxlo[idim]) {
     index = 0;
     dir = 1;
-  }
+  } else error->one(FLERR,"Comm tiled: no match in box drop brick");
 
   int other1,other2,proc;
   double lower,upper;
@@ -1461,6 +1712,9 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
     split = zsplit;
   }
 
+  if (index < 0 || index > procgrid[idim]) 
+    error->one(FLERR,"Comm tiled: index error in box drop brick");
+
   while (1) {
     lower = boxlo[idim] + prd[idim]*split[index];
     if (index < procgrid[idim]-1) 
@@ -1470,7 +1724,7 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
 
     if (idim == 0) proc = grid2proc[index][other1][other2];
     else if (idim == 1) proc = grid2proc[other1][index][other2];
-    else proc = grid2proc[other1][other2][idim];
+    else proc = grid2proc[other1][other2][index];
 
     if (noverlap == maxoverlap) {
       maxoverlap += DELTA_PROCS;
@@ -1522,8 +1776,8 @@ void CommTiled::box_drop_tiled_recurse(double *lo, double *hi,
   // cut = position of cut
 
   int procmid = proclower + (procupper - proclower) / 2 + 1;
-  double cut = rcbinfo[procmid].cut;
   int idim = rcbinfo[procmid].dim;
+  double cut = boxlo[idim] + prd[idim]*rcbinfo[procmid].cutfrac;
   
   if (lo[idim] < cut) 
     box_drop_tiled_recurse(lo,hi,proclower,procmid-1,indexme);
@@ -1567,7 +1821,7 @@ void CommTiled::box_other_brick(int idim, int idir,
 
     if (idim == 0) oproc = grid2proc[index][other1][other2];
     else if (idim == 1) oproc = grid2proc[other1][index][other2];
-    else oproc = grid2proc[other1][other2][idim];
+    else oproc = grid2proc[other1][other2][index];
 
     if (proc == oproc) {
       lo[idim] = boxlo[idim] + prd[idim]*split[index];
@@ -1684,20 +1938,36 @@ int CommTiled::point_drop_tiled(int idim, double *x)
   int proc = point_drop_tiled_recurse(xnew,0,nprocs-1);
   if (proc == me) return me;
 
-  int done = 1;
   if (idim == 0) {
+    int done = 1;
     if (rcbinfo[proc].mysplit[1][0] == rcbinfo[me].mysplit[1][1]) {
       xnew[1] -= EPSILON * (subhi[1]-sublo[1]);
       done = 0;
     }
-  }
-  if (idim <= 1) {
     if (rcbinfo[proc].mysplit[2][0] == rcbinfo[me].mysplit[2][1]) {
       xnew[2] -= EPSILON * (subhi[2]-sublo[2]);
       done = 0;
     }
+    if (!done) {
+      proc = point_drop_tiled_recurse(xnew,0,nprocs-1);
+      done = 1;
+      if (rcbinfo[proc].mysplit[1][0] == rcbinfo[me].mysplit[1][1]) {
+        xnew[1] -= EPSILON * (subhi[1]-sublo[1]);
+        done = 0;
+      }
+      if (rcbinfo[proc].mysplit[2][0] == rcbinfo[me].mysplit[2][1]) {
+        xnew[2] -= EPSILON * (subhi[2]-sublo[2]);
+        done = 0;
+      }
+      if (!done) proc = point_drop_tiled_recurse(xnew,0,nprocs-1);
+    }
+  } else if (idim == 1) {
+    int done = 1;
+    if (rcbinfo[proc].mysplit[2][0] == rcbinfo[me].mysplit[2][1]) {
+      xnew[2] -= EPSILON * (subhi[2]-sublo[2]);
+      proc = point_drop_tiled_recurse(xnew,0,nprocs-1);
+    }
   }
-  if (!done) proc = point_drop_tiled_recurse(xnew,0,nprocs-1);
 
   return proc;
 }
@@ -1718,8 +1988,8 @@ int CommTiled::point_drop_tiled_recurse(double *x,
   // cut = position of cut
 
   int procmid = proclower + (procupper - proclower) / 2 + 1;
-  double cut = rcbinfo[procmid].cut;
   int idim = rcbinfo[procmid].dim;
+  double cut = boxlo[idim] + prd[idim]*rcbinfo[procmid].cutfrac;
 
   if (x[idim] < cut) return point_drop_tiled_recurse(x,proclower,procmid-1);
   else return point_drop_tiled_recurse(x,procmid,procupper);
@@ -1773,6 +2043,7 @@ void CommTiled::allocate_swap(int n)
   nsendproc = new int[n];
   nrecvproc = new int[n];
   sendother = new int[n];
+  recvother = new int[n];
   sendself = new int[n];
   nprocmax = new int[n];
 
@@ -1892,6 +2163,7 @@ void CommTiled::deallocate_swap(int n)
   delete [] nsendproc;
   delete [] nrecvproc;
   delete [] sendother;
+  delete [] recvother;
   delete [] sendself;
 
   for (int i = 0; i < n; i++) {

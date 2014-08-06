@@ -1285,17 +1285,17 @@ void CommBrick::reverse_comm_dump(Dump *dump)
 }
 
 /* ----------------------------------------------------------------------
-   forward communication of N values in array
+   forward communication of N values in per-atom array
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm_array(int n, double **array)
+void CommBrick::forward_comm_array(int nsize, double **array)
 {
   int i,j,k,m,iswap,last;
   double *buf;
   MPI_Request request;
   MPI_Status status;
 
-  // NOTE: check that buf_send and buf_recv are big enough
+  // NOTE: should check that buf_send and buf_recv are big enough
 
   for (iswap = 0; iswap < nswap; iswap++) {
 
@@ -1304,7 +1304,7 @@ void CommBrick::forward_comm_array(int n, double **array)
     m = 0;
     for (i = 0; i < sendnum[iswap]; i++) {
       j = sendlist[iswap][i];
-      for (k = 0; k < n; k++)
+      for (k = 0; k < nsize; k++)
         buf_send[m++] = array[j][k];
     }
 
@@ -1313,10 +1313,11 @@ void CommBrick::forward_comm_array(int n, double **array)
 
     if (sendproc[iswap] != me) {
       if (recvnum[iswap])
-        MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
                   world,&request);
       if (sendnum[iswap])
-        MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+        MPI_Send(buf_send,nsize*sendnum[iswap],MPI_DOUBLE,
+                 sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
@@ -1326,7 +1327,7 @@ void CommBrick::forward_comm_array(int n, double **array)
     m = 0;
     last = firstrecv[iswap] + recvnum[iswap];
     for (i = firstrecv[iswap]; i < last; i++)
-      for (k = 0; k < n; k++)
+      for (k = 0; k < nsize; k++)
         array[i][k] = buf[m++];
   }
 }

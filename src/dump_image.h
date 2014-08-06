@@ -30,8 +30,8 @@ class DumpImage : public DumpCustom {
 
   DumpImage(class LAMMPS *, int, char**);
   virtual ~DumpImage();
-  int pack_comm(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
 
  protected:
   int filetype;

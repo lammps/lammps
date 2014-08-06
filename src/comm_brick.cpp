@@ -1232,29 +1232,31 @@ void CommBrick::forward_comm_dump(Dump *dump)
   MPI_Request request;
   MPI_Status status;
 
+  int nsize = dump->comm_forward;
+
   for (iswap = 0; iswap < nswap; iswap++) {
 
     // pack buffer
 
-    n = dump->pack_comm(sendnum[iswap],sendlist[iswap],
-                        buf_send,pbc_flag[iswap],pbc[iswap]);
+    n = dump->pack_forward_comm(sendnum[iswap],sendlist[iswap],
+                                buf_send,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
       if (recvnum[iswap])
-        MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+        MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
                   world,&request);
       if (sendnum[iswap])
-        MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+        MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
       if (recvnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
 
     // unpack buffer
 
-    dump->unpack_comm(recvnum[iswap],firstrecv[iswap],buf);
+    dump->unpack_forward_comm(recvnum[iswap],firstrecv[iswap],buf);
   }
 }
 
@@ -1270,6 +1272,8 @@ void CommBrick::reverse_comm_dump(Dump *dump)
   MPI_Request request;
   MPI_Status status;
 
+  int nsize = dump->comm_reverse;
+
   for (iswap = nswap-1; iswap >= 0; iswap--) {
 
     // pack buffer
@@ -1281,10 +1285,10 @@ void CommBrick::reverse_comm_dump(Dump *dump)
 
     if (sendproc[iswap] != me) {
       if (sendnum[iswap])
-        MPI_Irecv(buf_recv,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
+        MPI_Irecv(buf_recv,nsize*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,
                   world,&request);
       if (recvnum[iswap])
-        MPI_Send(buf_send,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,world);
+        MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
       if (sendnum[iswap]) MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;

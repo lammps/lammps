@@ -949,7 +949,8 @@ void DumpImage::create_image()
 
 /* ---------------------------------------------------------------------- */
 
-int DumpImage::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int DumpImage::pack_forward_comm(int n, int *list, double *buf, 
+                                 int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -969,12 +970,12 @@ int DumpImage::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
     }
   }
 
-  return comm_forward;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void DumpImage::unpack_comm(int n, int first, double *buf)
+void DumpImage::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

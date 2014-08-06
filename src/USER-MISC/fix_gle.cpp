@@ -59,11 +59,11 @@ namespace GLE {
 #define midx(n,i,j) ((i)*(n)+(j))
 
 //"stabilized" cholesky decomposition. does a LDL^t decomposition, then sets to zero the negative diagonal elements and gets MM^t
-void StabCholesky(unsigned long n, const double* MMt, double* M)
+void StabCholesky(int n, const double* MMt, double* M)
 {
     double L[n*n], D[n];
 
-    unsigned long i,j,k;
+    int i,j,k;
     for(i=0; i<n; ++i) D[i]=0.;
     for(i=0; i<n*n; ++i) L[i]=0.;
 
@@ -86,11 +86,11 @@ void StabCholesky(unsigned long n, const double* MMt, double* M)
     for(i=0; i<n; ++i) for (j=0; j<n; j++) M[midx(n,i,j)]=L[midx(n,i,j)]*D[j];
 }
 
-void MyMult(unsigned long n, unsigned long m, unsigned long r, const double* A, const double* B, double* C, double cf=0.0)
+void MyMult(int n, int m, int r, const double* A, const double* B, double* C, double cf=0.0)
 {
    // !! TODO !! should probably call BLAS (or check if some efficient matrix-matrix multiply is implemented somewhere in LAMMPS)
    // (rows x cols)  :: A is n x r, B is r x m, C is n x m
-   unsigned long i,j,k; double *cij;
+   int i,j,k; double *cij;
    for (i=0; i<n; ++i)
       for (j=0; j<m; ++j)
       {
@@ -99,18 +99,18 @@ void MyMult(unsigned long n, unsigned long m, unsigned long r, const double* A, 
       }
 }
 
-void MyTrans(unsigned long n, const double* A, double* AT)
+void MyTrans(int n, const double* A, double* AT)
 {
-   for (unsigned long i=0; i<n; ++i) for (unsigned long j=0; j<n; ++j) AT[j*n+i]=A[i*n+j];
+   for (int i=0; i<n; ++i) for (int j=0; j<n; ++j) AT[j*n+i]=A[i*n+j];
 }
 
-void MyPrint(unsigned long n, const double* A)
+void MyPrint(int n, const double* A)
 {
-   for (unsigned long k=0; k<n*n; ++k) { printf("%10.5e ", A[k]); if ((k+1)%n==0) printf("\n");}
+   for (int k=0; k<n*n; ++k) { printf("%10.5e ", A[k]); if ((k+1)%n==0) printf("\n");}
 }
 
 //matrix exponential by scaling and squaring.
-void MatrixExp(unsigned long n, const double* M, double* EM, unsigned long j=8, unsigned long k=8)
+void MatrixExp(int n, const double* M, double* EM, int j=8, int k=8)
 {
    double tc[j+1], SM[n*n], TMP[n*n];
    double onetotwok=pow(0.5,1.0*k);
@@ -230,13 +230,13 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // set C matrix
-  const double cfac = force->boltz/force->mvv2e;
 
   if (fnoneq == 0) {
     t_target=t_start;
+    const double kT = t_target * force->boltz / force->mvv2e;
     memset(C,0,sizeof(double)*ns1sq);
     for (int i=0; i<ns1sq; i+=(ns+2))
-      C[i]=t_target*cfac;
+      C[i]=kT;
 
   } else {
     if (comm->me == 0) {
@@ -254,6 +254,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
     // read each line of the file, skipping blank lines or leading '#'
     ndone = eof = 0;
+    const double cfac = force->boltz / force->mvv2e;
 
     while (1) {
       if (comm->me == 0) {
@@ -605,12 +606,12 @@ void FixGLE::final_integrate()
   double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
   t_target = t_start + delta * (t_stop - t_start);
-  if (t_stop != t_start && fnoneq == 0)
-  {
-     // only updates if it is really necessary
-     for (int i=0; i<ns1sq; ++i) C[i]=0.0;
-     for (int i=0; i<ns1sq; i+=(ns+2)) C[i]=t_target*force->boltz/force->mvv2e;
-     init_gle();
+  if (t_stop != t_start && fnoneq == 0) {
+    // only updates if it is really necessary
+    const double kT = t_target * force->boltz / force->mvv2e;
+    memset(C,0,sizeof(double)*ns1sq);
+    for (int i=0; i<ns1sq; i+=(ns+2)) C[i]=kT;
+    init_gle();
   }
 
 }

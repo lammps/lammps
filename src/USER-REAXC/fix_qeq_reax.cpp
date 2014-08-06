@@ -104,6 +104,8 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   H.jlist = NULL;
   H.val = NULL;
 
+  comm_forward = comm_reverse = 1;
+
   // perform initial allocation of atom-based arrays
   // register with Atom class
 

@@ -67,7 +67,7 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
   nrepeat = atoi(arg[4]);
   global_freq = nfreq = atoi(arg[5]);
 
-  comm_forward = 1;
+  comm_forward = 5;
   
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all(FLERR,"Illegal fix reax/c/species command");

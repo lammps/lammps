@@ -99,6 +99,49 @@ void MyMult(int n, int m, int r, const double* A, const double* B, double* C, do
       }
 }
 
+#define MIN(A,B) ((A) < (B) ? (A) : (B))
+  // BLAS-like version of MyMult(). AK 2014-08-06
+
+inline void AkMult(const int n, const int m, const int r,
+            const double * const A, const double * const B,
+            double * const C, const double cf=0.0)
+{
+  // block buffer
+  const int blk=64;
+  double buf[blk*blk];
+  int i,j,k,ib,jb,kb;
+
+  for (i = 0; i < (n*m); ++i) C[i] *= cf;
+
+  for (kb = 0; kb < r; kb +=blk) {
+    // fill buffer
+    const int ke = MIN(kb+blk,r);
+    for (ib = 0; ib < n; ib += blk) {
+      const int ie = MIN(ib+blk,n);
+      for (i = ib; i < ie; ++i) {
+        for (k = kb; k < ke; ++k) {
+          buf[midx(blk,k-kb,i-ib)] = A[midx(r,i,k)];
+        }
+      }
+
+      for (jb = 0; jb < m; jb += blk) {
+        double tmp;
+        const int je = MIN(jb+blk,m);
+
+        for (j = jb; j < je; ++j) {
+          for (i = ib; i < ie; ++i) {
+            tmp = 0.0;
+            for (k = kb; k < ke; ++k)
+              tmp += buf[midx(blk,k-kb,i-ib)] * B[midx(m,k,j)];
+
+            C[midx(m,i,j)] += tmp;
+          }
+        }
+      }
+    }
+  }
+}
+
 void MyTrans(int n, const double* A, double* AT)
 {
    for (int i=0; i<n; ++i) for (int j=0; j<n; ++j) AT[j*n+i]=A[i*n+j];
@@ -425,18 +468,22 @@ void FixGLE::init_gles()
   GLE::StabCholesky(ns+1, C, rootC);
   GLE::MyTrans(ns+1,rootC,rootCT);
 
-  for (int i = 0; i < nlocal*3*(ns+1); ++i) { newg[i] = random->gaussian(); news[i]=0.0; }
-  GLE::MyMult(nlocal*3,ns+1,ns+1, newg, rootCT, news);
+  memset(news,0,sizeof(double)*3*(ns+1)*nlocal);
+  for (int i = 0; i < nlocal*3*(ns+1); ++i)
+    newg[i] = random->gaussian();
+
+  GLE::AkMult(nlocal*3,ns+1,ns+1, newg, rootCT, news);
 
   int nk=0; // unpacks temporary into gle_s
-  for (int i = 0; i < nlocal; i++) if (mask[i] & groupbit) {
-     for (int k = 0; k<3; k++)  // first loads velocities
-     {
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      // first loads velocities
+      for (int k = 0; k<3; k++) {
         for (int j=0; j<ns; ++j)
           gle_s[i][k*ns+j]=news[nk++];
-     }
+      }
+    }
   }
-
   delete[] rootC;
   delete[] rootCT;
   delete[] news;
@@ -473,11 +520,15 @@ void FixGLE::gle_integrate()
 
   // loads momentum data (mass-scaled) into the temporary vectors for the propagation
   int nk=0, ni=0; double deltae=0.0;
-  for (int i = 0; i < nlocal; i++) if (mask[i] & groupbit) {
-     ni++;
-     if (rmass) smi = sqrt(rmass[i]); else smi=sqrt_m[type[i]];
-     for (int k = 0; k<3; k++)
-     {
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      ni++;
+      if (rmass) {
+        smi = sqrt(rmass[i]);
+      } else {
+        smi=sqrt_m[type[i]];
+      }
+      for (int k = 0; k<3; k++) {
         //also zeroes tmp1
         gle_tmp1[nk]=0.0;
         // first loads velocities and accumulates conserved quantity
@@ -485,17 +536,18 @@ void FixGLE::gle_integrate()
         // then copies in the additional momenta
         for (int j=0; j<ns; ++j)
           gle_tmp2[nk++] = gle_s[i][k*ns+j];
-     }
+      }
+    }
   }
 
   // s(t+dt) = T.s ....
-  GLE::MyMult(ni*3,ns+1,ns+1,gle_tmp2,TT,gle_tmp1);
+  GLE::AkMult(ni*3,ns+1,ns+1,gle_tmp2,TT,gle_tmp1);
 
   //fills up a vector of random numbers
   for (int i = 0; i < 3*ni*(ns+1); i++) gle_tmp2[i] = random->gaussian();
 
   // ... + S \xi
-  GLE::MyMult(ni*3,ns+1,ns+1,gle_tmp2,ST,gle_tmp1,1.0);
+  GLE::AkMult(ni*3,ns+1,ns+1,gle_tmp2,ST,gle_tmp1,1.0);
 
   // unloads momentum data (mass-scaled) from the temporary vectors
   nk=0;

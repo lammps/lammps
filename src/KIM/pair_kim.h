@@ -18,7 +18,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Designed for use with the openkim-api-v1.2.0 (and newer) package
+   Designed for use with the openkim-api-v1.5.0 package and for use with
+   the kim-api-v1.6.0 (and newer) package
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
@@ -64,7 +65,7 @@ namespace LAMMPS_NS {
 
       // values set in allocate(), called by coeff()
       void allocate();
-      int* lmps_map_types_to_unique;
+      int* lmps_map_species_to_unique;
 
       // values set in coeff(), after calling allocate()
       char** lmps_unique_elements;  // names of unique elements given
@@ -95,8 +96,8 @@ namespace LAMMPS_NS {
       int kim_ind_coordinates;
       int kim_ind_numberOfParticles;
       int kim_ind_numberContributingParticles;
-      int kim_ind_numberParticleTypes;
-      int kim_ind_particleTypes;
+      int kim_ind_numberOfSpecies;
+      int kim_ind_particleSpecies;
       int kim_ind_get_neigh;
       int kim_ind_neighObject;
       int kim_ind_cutoff;
@@ -114,19 +115,19 @@ namespace LAMMPS_NS {
       // values set in set_statics(), called at end of kim_init(),
       //   then again in set_volatiles(), called in compute()
       int lmps_local_tot_num_atoms;
-      double kim_global_cutoff;     // KIM Model cutoff value
+      double kim_global_cutoff;       // KIM Model cutoff value
 
       // values set in compute()
-      int lmps_maxalloc;            // max allocated memory value
-      int* kim_particleTypes;       // array of KIM particle types
-      double** lmps_force_tmp;      // temp storage for f, when running in
-                                    // hybrid mode needed to avoid reseting
-                                    // f to zero in each object
-      int* lmps_stripped_neigh_list;// neighbors of one atom, used when LAMMPS
-                                    // is in molecular mode
+      int lmps_maxalloc;              // max allocated memory value
+      int* kim_particleSpecies;       // array of KIM particle species
+      double** lmps_force_tmp;        // temp storage for f, when running in
+                                      // hybrid mode needed to avoid reseting
+                                      // f to zero in each object
+      int* lmps_stripped_neigh_list;  // neighbors of one atom, used when LAMMPS
+                                      // is in molecular mode
 
       // values used in get_neigh()
-      int kim_iterator_position;    //get_neigh iterator current position
+      int kim_iterator_position;      //get_neigh iterator current position
       double *Rij;
 
       // KIM specific helper functions

@@ -195,8 +195,8 @@ void ComputeClusterAtom::compute_peratom()
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeClusterAtom::pack_comm(int n, int *list, double *buf,
-                                  int pbc_flag, int *pbc)
+int ComputeClusterAtom::pack_forward_comm(int n, int *list, double *buf,
+                                          int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -214,12 +214,12 @@ int ComputeClusterAtom::pack_comm(int n, int *list, double *buf,
     }
   }
 
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeClusterAtom::unpack_comm(int n, int first, double *buf)
+void ComputeClusterAtom::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

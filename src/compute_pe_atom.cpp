@@ -168,7 +168,7 @@ int ComputePEAtom::pack_reverse_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) buf[m++] = energy[i];
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

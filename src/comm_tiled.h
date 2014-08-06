@@ -140,6 +140,7 @@ class CommTiled : public Comm {
   int point_drop_brick(int, double *);
   int point_drop_tiled(int, double *);
   int point_drop_tiled_recurse(double *, int, int);
+  int closer_subbox_edge(int, double *);
 
   void grow_send(int, int);            // reallocate send buffer
   void grow_recv(int);                 // free/allocate recv buffer

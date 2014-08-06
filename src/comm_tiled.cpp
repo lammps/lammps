@@ -1023,7 +1023,9 @@ void CommTiled::borders()
 
   for (int iswap = 0; iswap < nswap; iswap++) {
 
-    // find atoms within rectangles using <= and >=
+    // find atoms within rectangles using >= and <
+    // hi test with ">" is important b/c don't want to send an atom
+    //   in lower dim (on boundary) that a proc will recv again in higher dim
     // for x-dim swaps, check owned atoms
     // for yz-dim swaps, check owned and ghost atoms
     // store sent atom indices in list for use in future timesteps
@@ -1982,18 +1984,8 @@ int CommTiled::box_touch_tiled(int proc, int idim, int idir)
 
 int CommTiled::point_drop_brick(int idim, double *x)
 {
-  double deltalo,deltahi;
-
-  if (sublo[idim] == boxlo[idim])
-    deltalo = fabs(x[idim]-prd[idim] - sublo[idim]);
-  else deltalo = fabs(x[idim] - sublo[idim]);
-
-  if (subhi[idim] == boxhi[idim])
-    deltahi = fabs(x[idim]+prd[idim] - subhi[idim]);
-  else deltahi = fabs(x[idim] - subhi[idim]);
-
-  if (deltalo < deltahi) return procneigh[idim][0];
-  return procneigh[idim][1];
+  if (closer_subbox_edge(idim,x)) return procneigh[idim][1];
+  return procneigh[idim][0];
 }
 
 /* ----------------------------------------------------------------------
@@ -2005,33 +1997,19 @@ int CommTiled::point_drop_brick(int idim, double *x)
 
 int CommTiled::point_drop_tiled(int idim, double *x)
 {
-  double deltalo,deltahi;
-
   double xnew[3];
   xnew[0] = x[0]; xnew[1] = x[1]; xnew[2] = x[2];
 
   if (idim == 0) {
     if (xnew[1] < sublo[1] || xnew[1] > subhi[1]) {
-      if (sublo[1] == boxlo[1])
-        deltalo = fabs(x[1]-prd[1] - sublo[1]);
-      else deltalo = fabs(x[1] - sublo[1]);
-      if (subhi[1] == boxhi[1])
-        deltahi = fabs(x[1]+prd[1] - subhi[1]);
-      else deltahi = fabs(x[1] - subhi[1]);
-      if (deltalo < deltahi) xnew[1] = sublo[1];
-      else xnew[1] = subhi[1];
+      if (closer_subbox_edge(1,x)) xnew[1] = subhi[1];
+      else xnew[1] = sublo[1];
     }
   }
   if (idim <= 1) {
     if (xnew[2] < sublo[2] || xnew[2] > subhi[2]) {
-      if (sublo[2] == boxlo[2])
-        deltalo = fabs(x[2]-prd[2] - sublo[2]);
-      else deltalo = fabs(x[2] - sublo[2]);
-      if (subhi[2] == boxhi[2])
-        deltahi = fabs(x[2]+prd[2] - subhi[2]);
-      else deltahi = fabs(x[2] - subhi[2]);
-      if (deltalo < deltahi) xnew[2] = sublo[2];
-      else xnew[2] = subhi[2];
+      if (closer_subbox_edge(2,x)) xnew[2] = subhi[2];
+      else xnew[2] = sublo[2];
     }
   }
 
@@ -2072,6 +2050,10 @@ int CommTiled::point_drop_tiled(int idim, double *x)
   return proc;
 }
 
+/* ----------------------------------------------------------------------
+   recursive form
+------------------------------------------------------------------------- */
+
 int CommTiled::point_drop_tiled_recurse(double *x, 
                                         int proclower, int procupper)
 {
@@ -2093,6 +2075,26 @@ int CommTiled::point_drop_tiled_recurse(double *x,
 
   if (x[idim] < cut) return point_drop_tiled_recurse(x,proclower,procmid-1);
   else return point_drop_tiled_recurse(x,procmid,procupper);
+}
+
+/* ----------------------------------------------------------------------
+   assume x[idim] is outside subbox bounds in same dim
+------------------------------------------------------------------------- */
+
+int CommTiled::closer_subbox_edge(int idim, double *x)
+{
+  double deltalo,deltahi;
+
+  if (sublo[idim] == boxlo[idim])
+    deltalo = fabs(x[idim]-prd[idim] - sublo[idim]);
+  else deltalo = fabs(x[idim] - sublo[idim]);
+
+  if (subhi[idim] == boxhi[idim])
+    deltahi = fabs(x[idim]+prd[idim] - subhi[idim]);
+  else deltahi = fabs(x[idim] - subhi[idim]);
+
+  if (deltalo < deltahi) return 0;
+  return 1;
 }
 
 /* ----------------------------------------------------------------------

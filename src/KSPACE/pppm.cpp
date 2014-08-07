@@ -220,13 +220,18 @@ void PPPM::init()
   qdist = 0.0;
 
   if (tip4pflag) {
+    if (me == 0) {
+      if (screen) fprintf(screen,"  extracting TIP4P info from pair style\n");
+      if (logfile) fprintf(logfile,"  extracting TIP4P info from pair style\n");
+    }
+
     double *p_qdist = (double *) force->pair->extract("qdist",itmp);
     int *p_typeO = (int *) force->pair->extract("typeO",itmp);
     int *p_typeH = (int *) force->pair->extract("typeH",itmp);
     int *p_typeA = (int *) force->pair->extract("typeA",itmp);
     int *p_typeB = (int *) force->pair->extract("typeB",itmp);
     if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
-      error->all(FLERR,"KSpace style is incompatible with Pair style");
+      error->all(FLERR,"Pair style is incompatible with KSpace style");
     qdist = *p_qdist;
     typeO = *p_typeO;
     typeH = *p_typeH;

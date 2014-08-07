@@ -62,6 +62,27 @@ Molecule::Molecule(LAMMPS *lmp, char *idarg, char *file) : Pointers(lmp)
   if (me == 0) open(file);
   read(1);
   if (me == 0) fclose(fp);
+
+  // stats
+  
+  if (me == 0) {
+    if (screen)
+      fprintf(screen,"Read molecule %s:\n"
+              "  %d atoms with %d types\n  %d bonds with %d types\n"
+              "  %d angles with %d types\n  %d dihedrals with %d types\n"
+              "  %d impropers with %d types\n",
+              id,natoms,ntypes,
+              nbonds,nbondtypes,nangles,nangletypes,
+              ndihedrals,ndihedraltypes,nimpropers,nimpropertypes);
+    if (logfile)
+      fprintf(logfile,"Read molecule %s:\n"
+              "  %d atoms with %d types\n  %d bonds with %d types\n"
+              "  %d angles with %d types\n  %d dihedrals with %d types\n"
+              "  %d impropers with %d types\n",
+              id,natoms,ntypes,
+              nbonds,nbondtypes,nangles,nangletypes,
+              ndihedrals,ndihedraltypes,nimpropers,nimpropertypes);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

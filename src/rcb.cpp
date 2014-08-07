@@ -22,10 +22,7 @@ using namespace LAMMPS_NS;
 
 #define MYHUGE 1.0e30
 #define TINY 1.0e-6
-
-// set this to bigger number after debugging
-
-#define DELTA 10
+#define DELTA 16384
 
 // prototypes for non-class functions
 

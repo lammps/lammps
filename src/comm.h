@@ -60,12 +60,12 @@ class Comm : protected Pointers {
   Comm(class LAMMPS *);
   virtual ~Comm();
   void copy_arrays(class Comm *);
+  virtual void init();
   void modify_params(int, char **);
 
   void set_processors(int, char **);      // set 3d processor grid attributes
   virtual void set_proc_grid(int outflag = 1); // setup 3d grid of procs
 
-  virtual void init() = 0;
   virtual void setup() = 0;                      // setup 3d comm pattern
   virtual void forward_comm(int dummy = 0) = 0;  // forward comm of atom coords
   virtual void reverse_comm() = 0;               // reverse comm of forces
@@ -103,6 +103,17 @@ class Comm : protected Pointers {
  protected:
   int mode;                  // 0 = single cutoff, 1 = multi-type cutoff
   int bordergroup;           // only communicate this group in borders
+
+  int triclinic;                    // 0 if domain is orthog, 1 if triclinic
+  int map_style;                    // non-0 if global->local mapping is done
+  int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
+
+  int size_forward;                 // # of per-atom datums in forward comm
+  int size_reverse;                 // # of datums in reverse comm
+  int size_border;                  // # of datums in forward border comm
+
+  int maxforward,maxreverse;        // max # of datums in forward/reverse comm
+  int maxexchange;                  // max # of datums/atom in exchange comm 
 
   int gridflag;                     // option for creating 3d grid
   int mapflag;                      // option for mapping procs to 3d grid

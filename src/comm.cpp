@@ -17,8 +17,15 @@
 #include "comm.h"
 #include "universe.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
+#include "pair.h"
+#include "modify.h"
+#include "fix.h"
+#include "compute.h"
 #include "domain.h"
+#include "output.h"
+#include "dump.h"
 #include "group.h"
 #include "procmap.h"
 #include "accelerator_kokkos.h"
@@ -30,6 +37,8 @@
 #endif
 
 using namespace LAMMPS_NS;
+
+#define BUFMIN 1000             // also in comm styles
 
 enum{SINGLE,MULTI};             // same as in Comm sub-styles
 enum{MULTIPLE};                   // same as in ProcMap
@@ -141,6 +150,67 @@ void Comm::copy_arrays(Comm *oldcomm)
     outfile = new char[n];
     strcpy(outfile,oldcomm->outfile);
   }
+}
+
+/* ----------------------------------------------------------------------
+   common to all Comm styles
+------------------------------------------------------------------------- */
+
+void Comm::init()
+{
+  triclinic = domain->triclinic;
+  map_style = atom->map_style;
+
+  // comm_only = 1 if only x,f are exchanged in forward/reverse comm
+  // comm_x_only = 0 if ghost_velocity since velocities are added
+
+  comm_x_only = atom->avec->comm_x_only;
+  comm_f_only = atom->avec->comm_f_only;
+  if (ghost_velocity) comm_x_only = 0;
+
+  // set per-atom sizes for forward/reverse/border comm
+  // augment by velocity and fix quantities if needed
+
+  size_forward = atom->avec->size_forward;
+  size_reverse = atom->avec->size_reverse;
+  size_border = atom->avec->size_border;
+
+  if (ghost_velocity) size_forward += atom->avec->size_velocity;
+  if (ghost_velocity) size_border += atom->avec->size_velocity;
+
+  for (int i = 0; i < modify->nfix; i++)
+    size_border += modify->fix[i]->comm_border;
+  
+  // maxexchange = max # of datums/atom in exchange communication
+  // maxforward = # of datums in largest forward communication
+  // maxreverse = # of datums in largest reverse communication
+  // query pair,fix,compute,dump for their requirements
+  // pair style can force reverse comm even if newton off
+
+  maxexchange = BUFMIN + maxexchange_fix;
+  maxforward = MAX(size_forward,size_border);
+  maxreverse = size_reverse;
+
+  if (force->pair) maxforward = MAX(maxforward,force->pair->comm_forward);
+  if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse);
+
+  for (int i = 0; i < modify->nfix; i++) {
+    maxforward = MAX(maxforward,modify->fix[i]->comm_forward);
+    maxreverse = MAX(maxreverse,modify->fix[i]->comm_reverse);
+  }
+
+  for (int i = 0; i < modify->ncompute; i++) {
+    maxforward = MAX(maxforward,modify->compute[i]->comm_forward);
+    maxreverse = MAX(maxreverse,modify->compute[i]->comm_reverse);
+  }
+
+  for (int i = 0; i < output->ndump; i++) {
+    maxforward = MAX(maxforward,output->dump[i]->comm_forward);
+    maxreverse = MAX(maxreverse,output->dump[i]->comm_reverse);
+  }
+
+  if (force->newton == 0) maxreverse = 0;
+  if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse_off);
 }
 
 /* ----------------------------------------------------------------------

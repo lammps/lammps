@@ -3770,7 +3770,7 @@ int FixSRD::pack_reverse_comm(int n, int first, double *buf)
     }
   }
 
-  return comm_reverse;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

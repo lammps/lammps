@@ -1083,7 +1083,8 @@ double PairEIM::funccoul(int i, int j, double r)
 
 /* ---------------------------------------------------------------------- */
 
-int PairEIM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairEIM::pack_forward_comm(int n, int *list, double *buf, 
+                               int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -1100,12 +1101,12 @@ int PairEIM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
       buf[m++] = fp[j];
     }
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairEIM::unpack_comm(int n, int first, double *buf)
+void PairEIM::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -1133,7 +1134,7 @@ int PairEIM::pack_reverse_comm(int n, int first, double *buf)
   if (rhofp == 2) {
     for (i = first; i < last; i++) buf[m++] = fp[i];
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

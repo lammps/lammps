@@ -149,8 +149,8 @@ class PairComb : public Pair {
   void Over_cor(Param *, double, int, double &, double &);
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
-  int pack_comm(int , int *, double *, int, int *);
-  void unpack_comm(int , int , double *);
+  int pack_forward_comm(int , int *, double *, int, int *);
+  void unpack_forward_comm(int , int , double *);
 
   void Short_neigh();
 

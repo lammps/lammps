@@ -57,8 +57,9 @@ class PairEAMCuda : public PairEAM
                 void init_list(int, class NeighList *);
                 void init_style();
                 void array2spline();
-                int pack_comm(int n, int *iswap, double *buf, int pbc_flag, int *pbc);
-                void unpack_comm(int n, int first, double *buf);
+                int pack_forward_comm(int n, int *iswap, double *buf, 
+                                      int pbc_flag, int *pbc);
+                void unpack_forward_comm(int n, int first, double *buf);
         protected:
                 class Cuda *cuda;
                 void allocate();

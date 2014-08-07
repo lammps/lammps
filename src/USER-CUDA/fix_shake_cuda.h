@@ -43,8 +43,8 @@ class FixShakeCuda : public Fix {
   void set_arrays(int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
-  int pack_comm(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
 
   int dof(int);
   void reset_dt();

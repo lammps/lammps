@@ -494,7 +494,8 @@ void PairCDEAM::read_h_coeff(char *filename)
 
 /* ---------------------------------------------------------------------- */
 
-int PairCDEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairCDEAM::pack_forward_comm(int n, int *list, double *buf, 
+                                 int pbc_flag, int *pbc)
 {
         int i,j,m;
 
@@ -508,7 +509,7 @@ int PairCDEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
                                 buf[m++] = rhoB[j];
                                 buf[m++] = D_values[j];
                         }
-                        return 4;
+                        return m;
                 }
                 else if(cdeamVersion == 2) {
                         for (i = 0; i < n; i++) {
@@ -517,7 +518,7 @@ int PairCDEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
                                 buf[m++] = rho[j];
                                 buf[m++] = rhoB[j];
                         }
-                        return 3;
+                        return m;
                 }
                 else { ASSERT(false); return 0; }
         }
@@ -526,14 +527,14 @@ int PairCDEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
                         j = list[i];
                         buf[m++] = D_values[j];
                 }
-                return 1;
+                return m;
         }
         else return 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairCDEAM::unpack_comm(int n, int first, double *buf)
+void PairCDEAM::unpack_forward_comm(int n, int first, double *buf)
 {
         int i,m,last;
 
@@ -580,14 +581,14 @@ int PairCDEAM::pack_reverse_comm(int n, int first, double *buf)
                                 buf[m++] = rhoB[i];
                                 buf[m++] = D_values[i];
                         }
-                        return 3;
+                        return m;
                 }
                 else if(cdeamVersion == 2) {
                         for(i = first; i < last; i++) {
                                 buf[m++] = rho[i];
                                 buf[m++] = rhoB[i];
                         }
-                        return 2;
+                        return m;
                 }
                 else { ASSERT(false); return 0; }
         }
@@ -595,7 +596,7 @@ int PairCDEAM::pack_reverse_comm(int n, int first, double *buf)
                 for(i = first; i < last; i++) {
                         buf[m++] = D_values[i];
                 }
-                return 1;
+                return m;
         }
         else return 0;
 }

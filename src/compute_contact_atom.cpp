@@ -170,7 +170,7 @@ int ComputeContactAtom::pack_reverse_comm(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++)
     buf[m++] = contact[i];
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

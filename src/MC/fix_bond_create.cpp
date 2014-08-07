@@ -1211,8 +1211,8 @@ void FixBondCreate::post_integrate_respa(int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-int FixBondCreate::pack_comm(int n, int *list, double *buf,
-                             int pbc_flag, int *pbc)
+int FixBondCreate::pack_forward_comm(int n, int *list, double *buf,
+                                     int pbc_flag, int *pbc)
 {
   int i,j,k,m,ns;
 
@@ -1223,7 +1223,7 @@ int FixBondCreate::pack_comm(int n, int *list, double *buf,
       j = list[i];
       buf[m++] = ubuf(bondcount[j]).d;
     }
-    return 1;
+    return m;
   }
 
   if (commflag == 2) {
@@ -1232,7 +1232,7 @@ int FixBondCreate::pack_comm(int n, int *list, double *buf,
       buf[m++] = ubuf(partner[j]).d;
       buf[m++] = probability[j];
     }
-    return 2;
+    return m;
   }
 
   int **nspecial = atom->nspecial;
@@ -1252,7 +1252,7 @@ int FixBondCreate::pack_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::unpack_comm(int n, int first, double *buf)
+void FixBondCreate::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,j,m,ns,last;
 
@@ -1298,14 +1298,14 @@ int FixBondCreate::pack_reverse_comm(int n, int first, double *buf)
   if (commflag == 1) {
     for (i = first; i < last; i++)
       buf[m++] = ubuf(bondcount[i]).d;
-    return 1;
+    return m;
   }
 
   for (i = first; i < last; i++) {
     buf[m++] = ubuf(partner[i]).d;
     buf[m++] = distsq[i];
   }
-  return 2;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

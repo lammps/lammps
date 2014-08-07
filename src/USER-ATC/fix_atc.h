@@ -69,15 +69,15 @@ namespace LAMMPS_NS {
        atom received from another processor. */
     int unpack_exchange(int, double *);
 
-    /** pack_comm called from comm->forward_comm_fix and
+    /** pack_forward_comm called from comm->forward_comm_fix and
        packs fix-specific data for a given ghost atom
        from exchange with another proc */
-    int pack_comm(int , int *, double *, int, int *);  
+    int pack_forward_comm(int , int *, double *, int, int *);  
  
     /** unpack_comm called from comm->forward_comm_fix and
        unpacks fix-specific data for a given ghost atom
        from exchange with another proc */
-    void unpack_comm(int, int, double *);
+    void unpack_forward_comm(int, int, double *);
 
     /** pre_neighbor is used to modify fix-specific data
        and is called before neighbor list is built in 

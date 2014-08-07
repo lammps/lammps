@@ -626,8 +626,8 @@ void PairPeriLPS::compute_dilatation()
    communication routines
  ---------------------------------------------------------------------- */
 
-int PairPeriLPS::pack_comm(int n, int *list, double *buf,
-                           int pbc_flag, int *pbc)
+int PairPeriLPS::pack_forward_comm(int n, int *list, double *buf,
+                                   int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -636,12 +636,12 @@ int PairPeriLPS::pack_comm(int n, int *list, double *buf,
     j = list[i];
     buf[m++] = theta[j];
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairPeriLPS::unpack_comm(int n, int first, double *buf)
+void PairPeriLPS::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

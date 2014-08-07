@@ -41,8 +41,8 @@ public:
   void coeff(int, char **);
 
   /// This is for MPI communication with neighbor nodes.
-  int pack_comm(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);
 

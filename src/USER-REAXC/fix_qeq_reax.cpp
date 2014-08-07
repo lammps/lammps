@@ -104,6 +104,8 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   H.jlist = NULL;
   H.val = NULL;
 
+  comm_forward = comm_reverse = 1;
+
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
@@ -802,8 +804,8 @@ void FixQEqReax::calculate_Q()
 
 /* ---------------------------------------------------------------------- */
 
-int FixQEqReax::pack_comm(int n, int *list, double *buf,
-                          int pbc_flag, int *pbc)
+int FixQEqReax::pack_forward_comm(int n, int *list, double *buf,
+                                  int pbc_flag, int *pbc)
 {
   int m;
 
@@ -816,12 +818,12 @@ int FixQEqReax::pack_comm(int n, int *list, double *buf,
   else if( pack_flag == 4 )
     for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
 
-  return 1;
+  return n;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReax::unpack_comm(int n, int first, double *buf)
+void FixQEqReax::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m;
 
@@ -841,7 +843,7 @@ int FixQEqReax::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, m;
   for(m = 0, i = first; m < n; m++, i++) buf[m] = q[i];
-  return 1;
+  return n;
 }
 
 /* ---------------------------------------------------------------------- */

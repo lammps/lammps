@@ -35,8 +35,8 @@ class PairEAMGPU : public PairEAM {
   double single(int, int, int, int, double, double, double, double &);
   double memory_usage();
 
-  int pack_comm(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
 
  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 

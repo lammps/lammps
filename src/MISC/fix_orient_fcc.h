@@ -52,8 +52,8 @@ class FixOrientFCC : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   double compute_scalar();
-  int pack_comm(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
   double memory_usage();
 
  private:

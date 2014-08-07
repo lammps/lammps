@@ -355,7 +355,7 @@ int ComputeStressAtom::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = stress[i][4];
     buf[m++] = stress[i][5];
   }
-  return 6;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

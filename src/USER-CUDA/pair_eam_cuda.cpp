@@ -231,17 +231,18 @@ void PairEAMCuda::array2spline()
 
 /* ---------------------------------------------------------------------- */
 
-int PairEAMCuda::pack_comm(int n, int* iswap, double* buf, int pbc_flag, int* pbc)
+int PairEAMCuda::pack_forward_comm(int n, int* iswap, double* buf, 
+                                   int pbc_flag, int* pbc)
 {
   Cuda_PairEAMCuda_PackComm(&cuda->shared_data, n, *iswap, buf);
 
-  if(sizeof(F_FLOAT) < sizeof(double)) return 1;
-  else return 1;
+  if(sizeof(F_FLOAT) < sizeof(double)) return n;
+  else return n;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairEAMCuda::unpack_comm(int n, int first, double* buf)
+void PairEAMCuda::unpack_forward_comm(int n, int first, double* buf)
 {
   Cuda_PairEAMCuda_UnpackComm(&cuda->shared_data, n, first, buf, cu_fp->dev_data());
 }

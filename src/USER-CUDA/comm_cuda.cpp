@@ -638,15 +638,17 @@ void CommCuda::forward_comm_pair(Pair *pair)
   MPI_Request request;
   MPI_Status status;
 
+  int nsize = pair->comm_forward;
+
   for (iswap = 0; iswap < nswap; iswap++) {
 
     // pack buffer
 
-    n = pair->pack_comm(sendnum[iswap],&iswap,
-                        buf_send,pbc_flag[iswap],pbc[iswap]);
-        int nrecv = recvnum[iswap]*n;
+    n = pair->pack_forward_comm(sendnum[iswap],&iswap,
+                                buf_send,pbc_flag[iswap],pbc[iswap]);
+        int nrecv = recvnum[iswap]*nsize;
         if(nrecv<0) nrecv=-(nrecv+1)/2;
-        int nsend = sendnum[iswap]*n;
+        int nsend = n;
         if(nsend<0) nsend=-(nsend+1)/2;
 
     // exchange with another proc
@@ -662,7 +664,7 @@ void CommCuda::forward_comm_pair(Pair *pair)
 
     // unpack buffer
 
-    pair->unpack_comm(recvnum[iswap],firstrecv[iswap],buf);
+    pair->unpack_forward_comm(recvnum[iswap],firstrecv[iswap],buf);
   }
 }
 
@@ -1176,6 +1178,8 @@ void CommCuda::forward_comm_fix(Fix *fix)
   MPI_Request request;
   MPI_Status status;
 
+  int nsize = fix->comm_forward;
+
   for (iswap = 0; iswap < nswap; iswap++) {
     // pack buffer
     if(fix->cudable_comm&&cuda->finished_setup)
@@ -1184,31 +1188,31 @@ void CommCuda::forward_comm_fix(Fix *fix)
         if(sendproc[iswap] == me) {swap=-iswap-1; buf=(double*)&(firstrecv[iswap]);}
         else buf=buf_send;
 
-        n = fix->pack_comm(sendnum[iswap],&swap,
-                        buf,pbc_flag[iswap],pbc[iswap]);
+        n = fix->pack_forward_comm(sendnum[iswap],&swap,
+                                   buf,pbc_flag[iswap],pbc[iswap]);
         if(sendproc[iswap] == me)
         {
                 continue;
         }
     }
     else
-    n = fix->pack_comm(sendnum[iswap],sendlist[iswap],
-                       buf_send,pbc_flag[iswap],pbc[iswap]);
+      n = fix->pack_forward_comm(sendnum[iswap],sendlist[iswap],
+                                 buf_send,pbc_flag[iswap],pbc[iswap]);
 
      // exchange with another proc
     // if self, set recv buffer to send buffer
 
     if (sendproc[iswap] != me) {
-      MPI_Irecv(buf_recv,n*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
+      MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
                 world,&request);
-      MPI_Send(buf_send,n*sendnum[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
+      MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
       MPI_Wait(&request,&status);
       buf = buf_recv;
     } else buf = buf_send;
 
     // unpack buffer
 
-    fix->unpack_comm(recvnum[iswap],firstrecv[iswap],buf);
+    fix->unpack_forward_comm(recvnum[iswap],firstrecv[iswap],buf);
   }
 }
 

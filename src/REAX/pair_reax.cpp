@@ -621,7 +621,8 @@ double PairREAX::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-int PairREAX::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairREAX::pack_forward_comm(int n, int *list, double *buf, 
+                                int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -640,12 +641,12 @@ int PairREAX::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
     }
   }
 
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairREAX::unpack_comm(int n, int first, double *buf)
+void PairREAX::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -673,7 +674,7 @@ int PairREAX::pack_reverse_comm(int n, int first, double *buf)
   for (i = first; i < last; i++)
     buf[m++] = wcg[i];
 
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

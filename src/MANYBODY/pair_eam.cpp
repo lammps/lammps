@@ -806,7 +806,8 @@ double PairEAM::single(int i, int j, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-int PairEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairEAM::pack_forward_comm(int n, int *list, double *buf, 
+                               int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -815,12 +816,12 @@ int PairEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
     j = list[i];
     buf[m++] = fp[j];
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairEAM::unpack_comm(int n, int first, double *buf)
+void PairEAM::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -838,7 +839,7 @@ int PairEAM::pack_reverse_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) buf[m++] = rho[i];
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

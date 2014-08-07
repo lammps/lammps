@@ -31,8 +31,8 @@ class ComputeClusterAtom : public Compute {
   void init();
   void init_list(int, class NeighList *);
   void compute_peratom();
-  int pack_comm(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
   double memory_usage();
 
  private:

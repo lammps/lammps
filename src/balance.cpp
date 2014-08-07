@@ -488,14 +488,16 @@ int *Balance::bisection(int sortflag)
   rcb->invert(sortflag);
   
   // NOTE: this logic is specific to orthogonal boxes, not triclinic
-  // NOTE: check this: insure comm->rcbcut will be exactly equal to sub-box boundaries it touches
+
+  // store RCB cut, dim, lo/hi box in CommTiled
+  // cut and lo/hi need to be in fractional form so can 
+  // OK if changes by epsilon from what RCB used since particles
+  //   will subsequently migrate to new owning procs by exchange() anyway
+  // ditto for particles exactly on lo/hi RCB box boundaries due to ties
 
   comm->rcbnew = 1;
 
   int idim = rcb->cutdim;
-  //double split = (rcb->cut - boxlo[idim]) / prd[idim];
-  //comm->rcbcut = boxlo[idim] + prd[idim]*split;
-
   comm->rcbcutfrac = (rcb->cut - boxlo[idim]) / prd[idim];
   comm->rcbcutdim = idim;
 

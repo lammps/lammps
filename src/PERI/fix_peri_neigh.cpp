@@ -506,8 +506,8 @@ int FixPeriNeigh::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPeriNeigh::pack_comm(int n, int *list, double *buf,
-                             int pbc_flag, int *pbc)
+int FixPeriNeigh::pack_forward_comm(int n, int *list, double *buf,
+                                    int pbc_flag, int *pbc)
 {
   int i,j,m;
 
@@ -516,12 +516,12 @@ int FixPeriNeigh::pack_comm(int n, int *list, double *buf,
     j = list[i];
     buf[m++] = wvolume[j];
   }
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPeriNeigh::unpack_comm(int n, int first, double *buf)
+void FixPeriNeigh::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

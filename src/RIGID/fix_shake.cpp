@@ -2583,7 +2583,8 @@ int FixShake::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixShake::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixShake::pack_forward_comm(int n, int *list, double *buf, 
+                                int pbc_flag, int *pbc)
 {
   int i,j,m;
   double dx,dy,dz;
@@ -2613,12 +2614,12 @@ int FixShake::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
       buf[m++] = xshake[j][2] + dz;
     }
   }
-  return 3;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixShake::unpack_comm(int n, int first, double *buf)
+void FixShake::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 

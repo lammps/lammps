@@ -702,8 +702,8 @@ void FixBondBreak::post_integrate_respa(int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-int FixBondBreak::pack_comm(int n, int *list, double *buf,
-                            int pbc_flag, int *pbc)
+int FixBondBreak::pack_forward_comm(int n, int *list, double *buf,
+                                    int pbc_flag, int *pbc)
 {
   int i,j,k,m,ns;
 
@@ -714,7 +714,7 @@ int FixBondBreak::pack_comm(int n, int *list, double *buf,
       buf[m++] = ubuf(partner[j]).d;
       buf[m++] = probability[j];
     }
-    return 2;
+    return m;
   }
 
   int **nspecial = atom->nspecial;
@@ -734,7 +734,7 @@ int FixBondBreak::pack_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondBreak::unpack_comm(int n, int first, double *buf)
+void FixBondBreak::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,j,m,ns,last;
 
@@ -775,7 +775,7 @@ int FixBondBreak::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = ubuf(partner[i]).d;
     buf[m++] = distsq[i];
   }
-  return 2;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

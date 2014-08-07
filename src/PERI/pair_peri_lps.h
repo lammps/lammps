@@ -31,8 +31,8 @@ class PairPeriLPS : public Pair {
 
   PairPeriLPS(class LAMMPS *);
   virtual ~PairPeriLPS();
-  int pack_comm(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
 
   virtual void compute(int, int);
   void settings(int, char **);

@@ -390,17 +390,15 @@ void CreateAtoms::command(int narg, char **arg)
 
     int molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
 
-    // for atom style template systems, increment total bonds,angles,etc 
+    // increment total bonds,angles,etc 
     
-    if (atom->molecular == 2) {
-      bigint nmolme = molcreate;
-      bigint nmoltotal;
-      MPI_Allreduce(&nmolme,&nmoltotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
-      atom->nbonds += nmoltotal * onemol->nbonds;
-      atom->nangles += nmoltotal * onemol->nangles;
-      atom->ndihedrals += nmoltotal * onemol->ndihedrals;
-      atom->nimpropers += nmoltotal * onemol->nimpropers;
-    }
+    bigint nmolme = molcreate;
+    bigint nmoltotal;
+    MPI_Allreduce(&nmolme,&nmoltotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    atom->nbonds += nmoltotal * onemol->nbonds;
+    atom->nangles += nmoltotal * onemol->nangles;
+    atom->ndihedrals += nmoltotal * onemol->ndihedrals;
+    atom->nimpropers += nmoltotal * onemol->nimpropers;
 
     // if atom style template
     // maxmol = max molecule ID across all procs, for previous atoms

@@ -13,9 +13,11 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>balance thresh style args keyword value ... 
+<PRE>balance thresh style args ... keyword value ... 
 </PRE>
 <UL><LI>thresh = imbalance threshhold that must be exceeded to perform a re-balance 
+
+<LI>one style/arg pair can be used (or multiple for <I>x</I>,<I>y</I>,<I>z</I>) 
 
 <LI>style = <I>x</I> or <I>y</I> or <I>z</I> or <I>shift</I> or <I>rcb</I> 
 
@@ -56,8 +58,6 @@ balance 1.0 shift x 20 1.0 out tmp.balance
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>IMPORTANT NOTE: The <I>rcb</I> style is not yet implemented.
-</P>
 <P>This command adjusts the size and shape of processor sub-domains
 within the simulation box, to attempt to balance the number of
 particles and thus the computational cost (load) evenly across
@@ -75,33 +75,42 @@ geometry containing void regions.  In this case, the LAMMPS default of
 dividing the simulation box volume into a regular-spaced grid of 3d
 bricks, with one equal-volume sub-domain per procesor, may assign very
 different numbers of particles per processor.  This can lead to poor
-performance in a scalability sense, when the simulation is run in
-parallel.
+performance when the simulation is run in parallel.
 </P>
 <P>Note that the <A HREF = "processors.html">processors</A> command allows some control
 over how the box volume is split across processors.  Specifically, for
 a Px by Py by Pz grid of processors, it allows choice of Px, Py, and
 Pz, subject to the constraint that Px * Py * Pz = P, the total number
 of processors.  This is sufficient to achieve good load-balance for
-many models on many processor counts.  However, all the processor
+some problems on some processor counts.  However, all the processor
 sub-domains will still have the same shape and same volume.
 </P>
 <P>The requested load-balancing operation is only performed if the
 current "imbalance factor" in particles owned by each processor
-exceeds the specified <I>thresh</I> parameter.  This factor is defined as
-the maximum number of particles owned by any processor, divided by the
-average number of particles per processor.  Thus an imbalance factor
-of 1.0 is perfect balance.  For 10000 particles running on 10
-processors, if the most heavily loaded processor has 1200 particles,
-then the factor is 1.2, meaning there is a 20% imbalance.  Note that a
-re-balance can be forced even if the current balance is perfect (1.0)
-be specifying a <I>thresh</I> < 1.0.
+exceeds the specified <I>thresh</I> parameter.  The imbalance factor is
+defined as the maximum number of particles owned by any processor,
+divided by the average number of particles per processor.  Thus an
+imbalance factor of 1.0 is perfect balance.
 </P>
-<P>When the balance command completes, it prints statistics about its
-results, including the change in the imbalance factor and the change
-in the maximum number of particles (on any processor).  For "grid"
-methods (defined below) that create a logical 3d grid of processors,
-the positions of all cutting planes in each of the 3 dimensions (as
+<P>As an example, for 10000 particles running on 10 processors, if the
+most heavily loaded processor has 1200 particles, then the factor is
+1.2, meaning there is a 20% imbalance.  Note that a re-balance can be
+forced even if the current balance is perfect (1.0) be specifying a
+<I>thresh</I> < 1.0.
+</P>
+<P>IMPORTANT NOTE: Balancing is performed even if the imbalance factor
+does not exceed the <I>thresh</I> parameter if a "grid" style is specified
+when the current partitioning is "tiled".  The meaning of "grid" vs
+"tiled" is explained below.  This is to allow forcing of the
+partitioning to "grid" so that the <A HREF = "comm_style.html">comm_style brick</A>
+command can then be used to replace a current <A HREF = "comm_style.html">comm_style
+tiled</A> setting.
+</P>
+<P>When the balance command completes, it prints statistics about the
+result, including the change in the imbalance factor and the change in
+the maximum number of particles on any processor.  For "grid" methods
+(defined below) that create a logical 3d grid of processors, the
+positions of all cutting planes in each of the 3 dimensions (as
 fractions of the box length) are also printed.
 </P>
 <P>IMPORTANT NOTE: This command attempts to minimize the imbalance
@@ -115,38 +124,41 @@ methods may be unable to achieve exact balance.  This is because
 entire lattice planes will be owned or not owned by a single
 processor.
 </P>
-<P>IMPORTANT NOTE: Computational cost is not strictly proportional to
-particle count, and changing the relative size and shape of processor
-sub-domains may lead to additional computational and communication
-overheads, e.g. in the PPPM solver used via the
-<A HREF = "kspace_style.html">kspace_style</A> command.  Thus you should benchmark
-the run times of a simulation before and after balancing.
+<P>IMPORTANT NOTE: The imbalance factor is also an estimate of the
+maximum speed-up you can hope to achieve by running a perfectly
+balanced simulation versus an imbalanced one.  In the example above,
+the 10000 particle simulation could run up to 20% faster if it were
+perfectly balanced, versus when imbalanced.  However, computational
+cost is not strictly proportional to particle count, and changing the
+relative size and shape of processor sub-domains may lead to
+additional computational and communication overheads, e.g. in the PPPM
+solver used via the <A HREF = "kspace_style.html">kspace_style</A> command.  Thus
+you should benchmark the run times of a simulation before and after
+balancing.
 </P>
 <HR>
 
 <P>The method used to perform a load balance is specified by one of the
-listed styles, which are described in detail below.  There are 2 kinds
-of styles.
+listed styles (or more in the case of <I>x</I>,<I>y</I>,<I>z</I>), which are
+described in detail below.  There are 2 kinds of styles.
 </P>
 <P>The <I>x</I>, <I>y</I>, <I>z</I>, and <I>shift</I> styles are "grid" methods which produce
 a logical 3d grid of processors.  They operate by changing the cutting
 planes (or lines) between processors in 3d (or 2d), to adjust the
 volume (area in 2d) assigned to each processor, as in the following 2d
-diagram.  The left diagram is the default partitioning of the
-simulation box across processors (one sub-box for each of 16
-processors); the right diagram is after balancing.
+diagram where processor sub-domains are shown and atoms are colored by
+the processor that owns them.  The leftmost diagram is the default
+partitioning of the simulation box across processors (one sub-box for
+each of 16 processors); the middle diagram is after a "grid" method
+has been applied.
 </P>
-<CENTER><IMG SRC = "JPG/balance.jpg">
+<CENTER><A HREF = "balance_uniform.jpg"><IMG SRC = "JPG/balance_uniform_small.jpg"></A><A HREF = "balance_nonuniform.jpg"><IMG SRC = "JPG/balance_nonuniform_small.jpg"></A><A HREF = "balance_rcb.jpg"><IMG SRC = "JPG/balance_rcb_small.jpg"></A>
 </CENTER>
 <P>The <I>rcb</I> style is a "tiling" method which does not produce a logical
 3d grid of processors.  Rather it tiles the simulation domain with
 rectangular sub-boxes of varying size and shape in an irregular
 fashion so as to have equal numbers of particles in each sub-box, as
-in the following 2d diagram.  Again the left diagram is the default
-partitioning of the simulation box across processors (one sub-box for
-each of 16 processors); the right diagram is after balancing.
-</P>
-<P>NOTE: Need a diagram of RCB partitioning.
+in the rightmost diagram above.
 </P>
 <P>The "grid" methods can be used with either of the
 <A HREF = "comm_style.html">comm_style</A> command options, <I>brick</I> or <I>tiled</I>.  The
@@ -154,7 +166,8 @@ each of 16 processors); the right diagram is after balancing.
 tiled</A>.  Note that it can be useful to use a "grid"
 method with <A HREF = "comm_style.html">comm_style tiled</A> to return the domain
 partitioning to a logical 3d grid of processors so that "comm_style
-brick" can be used for subsequent <A HREF = "run.html">run</A> commands.
+brick" can afterwords be specified for subsequent <A HREF = "run.html">run</A>
+commands.
 </P>
 <P>When a "grid" method is specified, the current domain partitioning can
 be either a logical 3d grid or a tiled partitioning.  In the former
@@ -172,9 +185,10 @@ from scratch.
 
 <P>The <I>x</I>, <I>y</I>, and <I>z</I> styles invoke a "grid" method for balancing, as
 described above.  Note that any or all of these 3 styles can be
-specified together, one after the other.  This style adjusts the
-position of cutting planes between processor sub-domains in specific
-dimensions.  Only the specified dimensions are altered.
+specified together, one after the other, but they cannot be used with
+any other style.  This style adjusts the position of cutting planes
+between processor sub-domains in specific dimensions.  Only the
+specified dimensions are altered.
 </P>
 <P>The <I>uniform</I> argument spaces the planes evenly, as in the left
 diagrams above.  The <I>numeric</I> argument requires listing Ps-1 numbers
@@ -252,9 +266,28 @@ initially close to the target value.
 
 <P>The <I>rcb</I> style invokes a "tiled" method for balancing, as described
 above.  It performs a recursive coordinate bisectioning (RCB) of the
-simulation domain.
+simulation domain. The basic idea is as follows.
 </P>
-<P>Need further description of RCB.
+<P>The simulation domain is cut into 2 boxes by an axis-aligned cut in
+the longest dimension, leaving one new box on either side of the cut.
+All the processors are also partitioned into 2 groups, half assigned
+to the box on the lower side of the cut, and half to the box on the
+upper side.  (If the processor count is odd, one side gets an extra
+processor.)  The cut is positioned so that the number of atoms in the
+lower box is exactly the number that the processors assigned to that
+box should own for load balance to be perfect.  This also makes load
+balance for the upper box perfect.  The positioning is done
+iteratively, by a bisectioning method.  Note that counting atoms on
+either side of the cut requires communication between all processors
+at each iteration.
+</P>
+<P>That is the procedure for the first cut.  Subsequent cuts are made
+recursively, in exactly the same manner.  The subset of processors
+assigned to each box make a new cut in the longest dimension of that
+box, splitting the box, the subset of processsors, and the atoms in
+the box in two.  The recursion continues until every processor is
+assigned a sub-box of the entire simulation domain, and owns the atoms
+in that sub-box.
 </P>
 <HR>
 
@@ -268,42 +301,48 @@ processors for a 2d problem:
 </P>
 <PRE>ITEM: TIMESTEP
 0
+ITEM: NUMBER OF NODES
+16
+ITEM: BOX BOUNDS
+0 10
+0 10
+0 10
+ITEM: NODES
+1 1 0 0 0
+2 1 5 0 0
+3 1 5 5 0
+4 1 0 5 0
+5 1 5 0 0
+6 1 10 0 0
+7 1 10 5 0
+8 1 5 5 0
+9 1 0 5 0
+10 1 5 5 0
+11 1 5 10 0
+12 1 10 5 0
+13 1 5 5 0
+14 1 10 5 0
+15 1 10 10 0
+16 1 5 10 0
+ITEM: TIMESTEP
+0
 ITEM: NUMBER OF SQUARES
 4
 ITEM: SQUARES
-1 1 1 2 7 6
-2 2 2 3 8 7
-3 3 3 4 9 8
-4 4 4 5 10 9
-ITEM: TIMESTEP
-0
-ITEM: NUMBER OF NODES
-10
-ITEM: BOX BOUNDS
--153.919 184.703
-0 15.3919
--0.769595 0.769595
-ITEM: NODES
-1 1 -153.919 0 0
-2 1 7.45545 0 0
-3 1 14.7305 0 0
-4 1 22.667 0 0
-5 1 184.703 0 0
-6 1 -153.919 15.3919 0
-7 1 7.45545 15.3919 0
-8 1 14.7305 15.3919 0
-9 1 22.667 15.3919 0
-10 1 184.703 15.3919 0 
+1 1 1 2 3 4
+2 1 5 6 7 8
+3 1 9 10 11 12
+4 1 13 14 15 16 
 </PRE>
-<P>The "SQUARES" lists the node IDs of the 4 vertices in a rectangle for
-each processor (1 to 4).  The first SQUARE 1 (for processor 0) is a
-rectangle of type 1 (equal to SQUARE ID) and contains vertices
-1,2,7,6.  The coordinates of all the vertices are listed in the NODES
-section.  Note that the 4 sub-domains share vertices, so there are
-only 10 unique vertices in total.
+<P>The coordinates of all the vertices are listed in the NODES section, 5
+per processor.  Note that the 4 sub-domains share vertices, so there
+will be duplicate nodes in the list.
 </P>
-<P>For a 3d problem, the syntax is similar with "SQUARES" replaced by
-"CUBES", and 8 vertices listed for each processor, instead of 4.
+<P>The "SQUARES" section lists the node IDs of the 4 vertices in a
+rectangle for each processor (1 to 4).  
+</P>
+<P>For a 3d problem, the syntax is similar with 8 vertices listed for
+each processor, instead of 4, and "SQUARES" replaced by "CUBES".
 </P>
 <HR>
 

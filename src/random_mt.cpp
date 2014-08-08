@@ -21,6 +21,7 @@
 #include "math.h"
 #include "random_mt.h"
 #include "random_mars.h"
+#include "math_inline.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -128,7 +129,8 @@ double RanMT::gaussian()
       rsq = v1*v1 + v2*v2;
       if (rsq < 1.0 && rsq != 0.0) again = 0;
     }
-    fac = sqrt(-2.0*log(rsq)/rsq);
+    // fac = sqrt(-2.0*log(rsq)/rsq);
+    fac = MathInline::sqrtlgx2byx(rsq);
     _second = v1*fac;
     first = v2*fac;
     _save = 1;

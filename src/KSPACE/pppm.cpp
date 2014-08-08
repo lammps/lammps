@@ -221,8 +221,8 @@ void PPPM::init()
 
   if (tip4pflag) {
     if (me == 0) {
-      if (screen) fprintf(screen,"  extracting TIP4P info from Pair style\n");
-      if (logfile) fprintf(logfile,"  extracting TIP4P info from Pair style\n");
+      if (screen) fprintf(screen,"  extracting TIP4P info from pair style\n");
+      if (logfile) fprintf(logfile,"  extracting TIP4P info from pair style\n");
     }
 
     double *p_qdist = (double *) force->pair->extract("qdist",itmp);

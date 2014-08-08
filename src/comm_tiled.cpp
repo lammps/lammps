@@ -37,9 +37,7 @@ using namespace LAMMPS_NS;
 #define BUFEXTRA 1000
 #define EPSILON 1.0e-6
 
-// NOTE: change this to 16 after debugged
-
-#define DELTA_PROCS 1
+#define DELTA_PROCS 16
 
 enum{SINGLE,MULTI};               // same as in Comm
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
@@ -49,6 +47,11 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 {
   error->all(FLERR,"Comm_style tiled is not yet supported");
+
+  if (lmp->cuda)
+    error->all(FLERR,"USER-CUDA package does not yet support comm_style tiled");
+  if (lmp->kokkos)
+    error->all(FLERR,"KOKKOS package does not yet support comm_style tiled");
 
   style = 1;
   layout = LAYOUT_UNIFORM;
@@ -60,6 +63,11 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
   error->all(FLERR,"Comm_style tiled is not yet supported");
+
+  if (lmp->cuda)
+    error->all(FLERR,"USER-CUDA package does not yet support comm_style tiled");
+  if (lmp->kokkos)
+    error->all(FLERR,"KOKKOS package does not yet support comm_style tiled");
 
   style = 1;
   layout = oldcomm->layout;
@@ -80,7 +88,6 @@ CommTiled::~CommTiled()
 
 /* ----------------------------------------------------------------------
    initialize comm buffers and other data structs local to CommTiled
-   NOTE: if this is identical to CommBrick, put it into Comm ??
 ------------------------------------------------------------------------- */
 
 void CommTiled::init_buffers()
@@ -102,14 +109,11 @@ void CommTiled::init_buffers()
   rcbinfo = NULL;
 }
 
-/* ----------------------------------------------------------------------
-   NOTE: if this is nearly identical to CommBrick, put it into Comm ??
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 void CommTiled::init()
 {
-  triclinic = domain->triclinic;
-  map_style = atom->map_style;
+  Comm::init();
 
   // temporary restrictions
 
@@ -117,57 +121,6 @@ void CommTiled::init()
     error->all(FLERR,"Cannot yet use comm_style tiled with triclinic box");
   if (mode == MULTI)
     error->all(FLERR,"Cannot yet use comm_style tiled with multi-mode comm");
-
-  // comm_only = 1 if only x,f are exchanged in forward/reverse comm
-  // comm_x_only = 0 if ghost_velocity since velocities are added
-
-  comm_x_only = atom->avec->comm_x_only;
-  comm_f_only = atom->avec->comm_f_only;
-  if (ghost_velocity) comm_x_only = 0;
-
-  // set per-atom sizes for forward/reverse/border comm
-  // augment by velocity and fix quantities if needed
-
-  size_forward = atom->avec->size_forward;
-  size_reverse = atom->avec->size_reverse;
-  size_border = atom->avec->size_border;
-
-  if (ghost_velocity) size_forward += atom->avec->size_velocity;
-  if (ghost_velocity) size_border += atom->avec->size_velocity;
-
-  for (int i = 0; i < modify->nfix; i++)
-    size_border += modify->fix[i]->comm_border;
-
-  // maxexchange = max # of datums/atom in exchange communication
-  // maxforward = # of datums in largest forward communication
-  // maxreverse = # of datums in largest reverse communication
-  // query pair,fix,compute,dump for their requirements
-  // pair style can force reverse comm even if newton off
-
-  maxexchange = BUFMIN + maxexchange_fix;
-  maxforward = MAX(size_forward,size_border);
-  maxreverse = size_reverse;
-
-  if (force->pair) maxforward = MAX(maxforward,force->pair->comm_forward);
-  if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse);
-
-  for (int i = 0; i < modify->nfix; i++) {
-    maxforward = MAX(maxforward,modify->fix[i]->comm_forward);
-    maxreverse = MAX(maxreverse,modify->fix[i]->comm_reverse);
-  }
-
-  for (int i = 0; i < modify->ncompute; i++) {
-    maxforward = MAX(maxforward,modify->compute[i]->comm_forward);
-    maxreverse = MAX(maxreverse,modify->compute[i]->comm_reverse);
-  }
-
-  for (int i = 0; i < output->ndump; i++) {
-    maxforward = MAX(maxforward,output->dump[i]->comm_forward);
-    maxreverse = MAX(maxreverse,output->dump[i]->comm_reverse);
-  }
-
-  if (force->newton == 0) maxreverse = 0;
-  if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse_off);
 }
 
 /* ----------------------------------------------------------------------
@@ -475,122 +428,6 @@ void CommTiled::setup()
     requests = new MPI_Request[maxreqstat];
     statuses = new MPI_Status[maxreqstat];
   }
-
-  // DEBUG
-
-  /*
-  MPI_Barrier(world);
-
-  printf("SUBBOX %d: %g %g %g: %g %g %g\n",
-         me,sublo[0],sublo[1],sublo[2],subhi[0],subhi[1],subhi[2]);
-  MPI_Barrier(world);
-
-  for (i = 0; i < nswap; i++) {
-    if (nsendproc[i] == 1)
-      printf("SETUP SEND %d %d: nsend %d self %d sproc0 %d: "
-             "%g %g %g: %g %g %g\n",
-             i,me,nsendproc[i],sendself[i],sendproc[i][0],
-             sendbox[i][0][0],
-             sendbox[i][0][1],
-             sendbox[i][0][2],
-             sendbox[i][0][3],
-             sendbox[i][0][4],
-             sendbox[i][0][5]);
-    else if (nsendproc[i] == 2) 
-      printf("SETUP SEND %d %d: nsend %d self %d sprocs %d %d: "
-             "%g %g %g: %g %g %g: %g %g %g: %g %g %g\n",
-             i,me,nsendproc[i],sendself[i],sendproc[i][0],sendproc[i][1],
-             sendbox[i][0][0],
-             sendbox[i][0][1],
-             sendbox[i][0][2],
-             sendbox[i][0][3],
-             sendbox[i][0][4],
-             sendbox[i][0][5],
-             sendbox[i][1][0],
-             sendbox[i][1][1],
-             sendbox[i][1][2],
-             sendbox[i][1][3],
-             sendbox[i][1][4],
-             sendbox[i][1][5]);
-    else if (nsendproc[i] == 3) 
-      printf("SETUP SEND %d %d: nsend %d self %d sprocs %d %d %d: "
-             "%g %g %g: %g %g %g: %g %g %g: %g %g %g: %g %g %g: %g %g %g\n",
-             i,me,nsendproc[i],sendself[i],sendproc[i][0],sendproc[i][1],
-             sendproc[i][2],
-             sendbox[i][0][0],
-             sendbox[i][0][1],
-             sendbox[i][0][2],
-             sendbox[i][0][3],
-             sendbox[i][0][4],
-             sendbox[i][0][5],
-             sendbox[i][1][0],
-             sendbox[i][1][1],
-             sendbox[i][1][2],
-             sendbox[i][1][3],
-             sendbox[i][1][4],
-             sendbox[i][1][5],
-             sendbox[i][2][0],
-             sendbox[i][2][1],
-             sendbox[i][2][2],
-             sendbox[i][2][3],
-             sendbox[i][2][4],
-             sendbox[i][2][5]);
-    else if (nsendproc[i] >= 4)
-      printf("SETUP SEND %d %d: nsend %d self %d sprocs %d %d %d %d: "
-             "%g %g %g: %g %g %g: %g %g %g: %g %g %g: %g %g %g: %g %g %g"
-             " %g %g %g: %g %g %g\n",
-             i,me,nsendproc[i],sendself[i],sendproc[i][0],sendproc[i][1],
-             sendproc[i][2],sendproc[i][3],
-             sendbox[i][0][0],
-             sendbox[i][0][1],
-             sendbox[i][0][2],
-             sendbox[i][0][3],
-             sendbox[i][0][4],
-             sendbox[i][0][5],
-             sendbox[i][1][0],
-             sendbox[i][1][1],
-             sendbox[i][1][2],
-             sendbox[i][1][3],
-             sendbox[i][1][4],
-             sendbox[i][1][5],
-             sendbox[i][2][0],
-             sendbox[i][2][1],
-             sendbox[i][2][2],
-             sendbox[i][2][3],
-             sendbox[i][2][4],
-             sendbox[i][2][5],
-             sendbox[i][3][0],
-             sendbox[i][3][1],
-             sendbox[i][3][2],
-             sendbox[i][3][3],
-             sendbox[i][3][4],
-             sendbox[i][3][5]);
-    if (nrecvproc[i] == 1)
-      printf("SETUP RECV %d %d: nrecv %d other %d rproc0 %d\n",
-             i,me,nrecvproc[i],sendother[i],recvproc[i][0]);
-    else if (nrecvproc[i] >= 2)
-      printf("SETUP RECV %d %d: nrecv %d other %d rprocs %d %d\n",
-             i,me,nrecvproc[i],sendother[i],recvproc[i][0],recvproc[i][1]);
-  }
-
-  for (i = 0; i < dimension; i++) {
-    if (nexchproc[i] == 1)
-      printf("SETUP EXCH %d %d: nexch %d exch %d\n",
-             i,me,nexchproc[i],exchproc[i][0]);
-    else if (nexchproc[i] == 2)
-      printf("SETUP EXCH %d %d: nexch %d exch %d %d\n",
-             i,me,nexchproc[i],exchproc[i][0],exchproc[i][1]);
-    else if (nexchproc[i] == 3)
-      printf("SETUP EXCH %d %d: nexch %d exch %d %d %d\n",
-             i,me,nexchproc[i],exchproc[i][0],exchproc[i][1],exchproc[i][2]);
-    else if (nexchproc[i] >= 4)
-      printf("SETUP EXCH %d %d: nexch %d exch %d %d %d %d\n",
-             i,me,nexchproc[i],exchproc[i][0],exchproc[i][1],
-             exchproc[i][2],exchproc[i][3]);
-  }
-
-  MPI_Barrier(world);
-  */
 }
 
 /* ----------------------------------------------------------------------
@@ -923,73 +760,6 @@ void CommTiled::exchange()
   }
 
   if (atom->firstgroupname) atom->first_reorder();
-
-  // DEBUG
-
-  // check that total count of atoms is correct
-
-  /*
-  nlocal = atom->nlocal;
-  int ntotal;
-  MPI_Allreduce(&nlocal,&ntotal,1,MPI_INT,MPI_SUM,world);
-  if (ntotal != atom->natoms) {
-    if (me == 0) printf("Atom counts: old %d new %d\n",atom->natoms,ntotal);
-    //error->all(FLERR,"Post-exchange atom count wrong");
-  }
-
-  // check that each proc owns exact atoms it should in its sub-box
-  // lo/hi = first/last owned atom in lattice
-
-  int ilo,jlo,klo,ihi,jhi,khi;
-  bounds(sublo[0],sublo[1],sublo[2],subhi[0],subhi[1],subhi[2],
-         ilo,jlo,klo,ihi,jhi,khi);
-  int ncount = (ihi-ilo+1) * (jhi-jlo+1) * (khi-klo+1);
-
-  if (ncount != nlocal) 
-    printf("EXCH proc %d: correct %d actual %d\n",me,ncount,nlocal);
-  int flag = 0;
-  if (ncount != nlocal) {
-    flag = 1;
-    //for (int i = 0; i < nlocal; i++)
-    //  printf("MISSING %d %d: %g %g %g\n",i,atom->tag[i],
-    //         atom->x[i][0],atom->x[i][1],atom->x[i][2]);
-  }
-  int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all(FLERR,"Bad exchange results");
-  else if (me == 0) printf("EXCH is correct\n");
-  */
-}
-
-/* ----------------------------------------------------------------------
-   convert box bounds into lattice indices
-   assume static_int can be below/above neg/pos floating point value
-   integer lo = integer >= floating point value
-   integer hi = integer < floating point value
-------------------------------------------------------------------------- */
-
-void CommTiled::bounds(double xlo, double ylo, double zlo, 
-                       double xhi, double yhi, double zhi,
-                       int &ilo, int &jlo, int &klo, 
-                       int &ihi, int &jhi, int &khi)
-{
-  ilo = static_cast<int> (xlo);
-  if (ilo < xlo) ilo++;
-
-  jlo = static_cast<int> (ylo);
-  if (jlo < ylo) jlo++;
-
-  klo = static_cast<int> (zlo);
-  if (klo < zlo) klo++;
-
-  ihi = static_cast<int> (xhi);
-  if (ihi >= xhi) ihi--;
-
-  jhi = static_cast<int> (yhi);
-  if (jhi >= yhi) jhi--;
-
-  khi = static_cast<int> (zhi);
-  if (khi >= zhi) khi--;
 }
 
 /* ----------------------------------------------------------------------
@@ -1014,10 +784,8 @@ void CommTiled::borders()
   // send/recv max one = max # of atoms in single send/recv for any swap
   // send/recv max all = max # of atoms in all sends/recvs within any swap
 
-  int smaxone = 0;
-  int smaxall = 0;
-  int rmaxone = 0;
-  int rmaxall = 0;
+  smaxone = smaxall = 0;
+  rmaxone = rmaxall = 0;
 
   // loop over swaps in all dimensions
 
@@ -1189,99 +957,6 @@ void CommTiled::borders()
   // reset global->local map
 
   if (map_style) atom->map_set();
-
-  // DEBUG
-
-  /*
-  MPI_Barrier(world);
-
-  for (i = 0; i < nswap; i++) {
-    if (nsendproc[i] == 1)
-      printf("BORDERS SEND %d %d: proc %d snum0 %d\n",
-             i,me,sendproc[i][0],sendnum[i][0]);
-    else if (nsendproc[i] == 2)
-      printf("BORDERS SEND %d %d: proc %d %d snums %d %d\n",
-             i,me,sendproc[i][0],sendproc[i][1],sendnum[i][0],sendnum[i][1]);
-    else if (nsendproc[i] == 3)
-      printf("BORDERS SEND %d %d: proc %d %d %d snums %d %d %d\n",
-             i,me,sendproc[i][0],sendproc[i][1],sendproc[i][2],
-             sendnum[i][0],sendnum[i][1],sendnum[i][2]);
-    else if (nsendproc[i] == 8)
-      printf("BORDERS SEND %d %d: proc %d %d %d %d: %d %d %d %d "
-             "snums %d %d %d %d: %d %d %d %d\n",
-             i,me,
-             sendproc[i][0],sendproc[i][1],sendproc[i][2],sendproc[i][3],
-             sendproc[i][4],sendproc[i][5],sendproc[i][6],sendproc[i][7],
-             sendnum[i][0],sendnum[i][1],sendnum[i][2],sendnum[i][3],
-             sendnum[i][4],sendnum[i][5],sendnum[i][6],sendnum[i][7]);
-    else if (nsendproc[i] >= 4)
-      printf("BORDERS SEND %d %d: proc %d %d %d %d snums %d %d %d %d\n",
-             i,me,sendproc[i][0],sendproc[i][1],sendproc[i][2],
-             sendproc[i][3],
-             sendnum[i][0],sendnum[i][1],sendnum[i][2],sendnum[i][3]);
-    if (nrecvproc[i] == 1)
-      printf("BORDERS RECV %d %d: proc %d rnum0 %d\n",
-             i,me,recvproc[i][0],recvnum[i][0]);
-    else if (nrecvproc[i] == 2)
-      printf("BORDERS RECV %d %d: proc %d %d rnums %d %d\n",
-             i,me,recvproc[i][0],recvproc[i][1],recvnum[i][0],recvnum[i][1]);
-    else if (nrecvproc[i] == 3)
-      printf("BORDERS RECV %d %d: proc %d %d %d rnums %d %d %d\n",
-             i,me,recvproc[i][0],recvproc[i][1],recvproc[i][2],
-             recvnum[i][0],recvnum[i][1],recvnum[i][2]);
-    else if (nrecvproc[i] == 8)
-      printf("BORDERS RECV %d %d: proc %d %d %d %d: %d %d %d %d "
-             "rnums %d %d %d %d: %d %d %d %d\n",
-             i,me,
-             recvproc[i][0],recvproc[i][1],recvproc[i][2],recvproc[i][3],
-             recvproc[i][4],recvproc[i][5],recvproc[i][6],recvproc[i][7],
-             recvnum[i][0],recvnum[i][1],recvnum[i][2],recvnum[i][3],
-             recvnum[i][4],recvnum[i][5],recvnum[i][6],recvnum[i][7]);
-    else if (nrecvproc[i] >= 4)
-      printf("BORDERS RECV %d %d: proc %d %d %d %d rnums %d %d %d %d\n",
-             i,me,recvproc[i][0],recvproc[i][1],recvproc[i][2],recvproc[i][3],
-             recvnum[i][0],recvnum[i][1],recvnum[i][2],recvnum[i][3]);
-  }
-
-  MPI_Barrier(world);
-  /*
-
-  // DEBUG
-
-  // check that each proc owns exact atoms it should in its sub-box + ghosts
-  // lo/hi = first/last owned atom in lattice
-
-  /*
-  int ilo,jlo,klo,ihi,jhi,khi;
-  double ghostlo[3],ghosthi[3];
-
-  ghostlo[0] = sublo[0] - cutghost[0];
-  ghostlo[1] = sublo[1] - cutghost[1];
-  ghosthi[0] = subhi[0] + cutghost[0];
-  ghosthi[1] = subhi[1] + cutghost[1];
-  if (domain->dimension == 3) {
-    ghostlo[2] = sublo[2] - cutghost[2];
-    ghosthi[2] = subhi[2] + cutghost[2];
-  } else {
-    ghostlo[2] = sublo[2];
-    ghosthi[2] = subhi[2];
-  }
-
-  bounds(ghostlo[0],ghostlo[1],ghostlo[2],ghosthi[0],ghosthi[1],ghosthi[2],
-         ilo,jlo,klo,ihi,jhi,khi);
-  ncount = (ihi-ilo+1) * (jhi-jlo+1) * (khi-klo+1);
-  ncount -= atom->nlocal;
-
-  int nghost = atom->nghost;
-  if (ncount != nghost) 
-    printf("BORDERS proc %d: correct %d actual %d\n",me,ncount,nghost);
-  int flag = 0;
-  if (ncount != nghost) flag = 1;
-  int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->all(FLERR,"Bad borders results");
-  else if (me == 0) printf("BORDERS is correct\n");
-  */
 }
 
 /* ----------------------------------------------------------------------
@@ -1469,8 +1144,6 @@ void CommTiled::reverse_comm_fix(Fix *fix)
   }
 }
 
-// NOTE: these two forward/reverse methods still need to be updated
-
 /* ----------------------------------------------------------------------
    forward communication invoked by a Fix
    n = total datums for all atoms, allows for variable number/atom
@@ -1479,6 +1152,8 @@ void CommTiled::reverse_comm_fix(Fix *fix)
 
 void CommTiled::forward_comm_variable_fix(Fix *fix)
 {
+// NOTE: these two forward/reverse methods still need to be updated
+
 }
 
 /* ----------------------------------------------------------------------
@@ -1689,7 +1364,14 @@ void CommTiled::forward_comm_array(int nsize, double **array)
   int i,j,k,m,n,iatom,last,irecv,nsend,nrecv;
   MPI_Status status;
 
-  // NOTE: should check that buf_send and buf_recv are big enough
+  // insure send/recv bufs are big enough for nsize
+  // based on smaxone/rmaxall from most recent borders() invocation
+
+  if (nsize > maxforward) {
+    maxforward = nsize;
+    if (maxforward*smaxone > maxsend) grow_send(maxforward*smaxone,0);
+    if (maxforward*rmaxall > maxrecv) grow_recv(maxforward*rmaxall);
+  }
 
   for (int iswap = 0; iswap < nswap; iswap++) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -1742,10 +1424,9 @@ void CommTiled::forward_comm_array(int nsize, double **array)
   }
 }
 
-// NOTE: this one is not used ???
-
 /* ----------------------------------------------------------------------
    exchange info provided with all 6 stencil neighbors
+   NOTE: this method is currently not used
 ------------------------------------------------------------------------- */
 
 int CommTiled::exchange_variable(int n, double *inbuf, double *&outbuf)
@@ -1764,6 +1445,7 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
 {
   // NOTE: this is not triclinic compatible
   // NOTE: there error messages are internal - should not occur
+  //       can remove at some point
 
   int index,dir;
   if (hi[idim] == sublo[idim]) {
@@ -1778,7 +1460,7 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
   } else if (lo[idim] == boxlo[idim]) {
     index = 0;
     dir = 1;
-  } else error->one(FLERR,"Comm tiled: no match in box drop brick");
+  } else error->one(FLERR,"Comm tiled mis-match in box drop brick");
 
   int other1,other2,proc;
   double lower,upper;
@@ -1796,7 +1478,7 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
   }
 
   if (index < 0 || index > procgrid[idim]) 
-    error->one(FLERR,"Comm tiled: index error in box drop brick");
+    error->one(FLERR,"Comm tiled invalid index in box drop brick");
 
   while (1) {
     lower = boxlo[idim] + prd[idim]*split[index];

@@ -51,11 +51,7 @@ class CommBrick : public Comm {
   int recvneed[3][2];               // # of procs away I recv atoms from
   int sendneed[3][2];               // # of procs away I send atoms to
   int maxneed[3];                   // max procs away any proc needs, per dim
-  int triclinic;                    // 0 if domain is orthog, 1 if triclinic
   int maxswap;                      // max # of swaps memory is allocated for
-  int size_forward;                 // # of per-atom datums in forward comm
-  int size_reverse;                 // # of datums in reverse comm
-  int size_border;                  // # of datums in forward border comm
   int *sendnum,*recvnum;            // # of atoms to send/recv in each swap
   int *sendproc,*recvproc;          // proc to send/recv to/from at each swap
   int *size_forward_recv;           // # of values to recv in each forward comm
@@ -66,8 +62,6 @@ class CommBrick : public Comm {
   double **cutghostmulti;           // cutghost on a per-type basis
   int *pbc_flag;                    // general flag for sending atoms thru PBC
   int **pbc;                        // dimension flags for PBC adjustments
-  int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
-  int map_style;                    // non-0 if global->local mapping is done
 
   int *firstrecv;                   // where to put 1st recv atom in each swap
   int **sendlist;                   // list of atoms to send in each swap
@@ -76,10 +70,8 @@ class CommBrick : public Comm {
   double *buf_send;                 // send buffer for all comm
   double *buf_recv;                 // recv buffer for all comm
   int maxsend,maxrecv;              // current size of send/recv buffer
-  int maxforward,maxreverse;        // max # of datums in forward/reverse comm
-
-  int maxexchange;                  // max # of datums/atom in exchange comm 
   int bufextra;                     // extra space beyond maxsend in send buffer
+  int smax,rmax;             // max size in atoms of single borders send/recv
 
   void init_buffers();
   int updown(int, int, int, double, int, double *);

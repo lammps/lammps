@@ -181,8 +181,18 @@ void Torsion_Angles( reax_system *system, control_params *control,
       bo_jk = &( pbond_jk->bo_data );
       BOA_jk = bo_jk->BO - control->thb_cut;
 
-      if( system->my_atoms[j].orig_id < system->my_atoms[k].orig_id &&
-          bo_jk->BO > control->thb_cut/*0*/ && Num_Entries(pk, thb_intrs) ) {
+      if( system->my_atoms[j].orig_id > system->my_atoms[k].orig_id )
+	continue;
+      if( system->my_atoms[j].orig_id == system->my_atoms[k].orig_id ) {
+        if (system->my_atoms[k].x[2] <  system->my_atoms[j].x[2]) continue;
+      	if (system->my_atoms[k].x[2] == system->my_atoms[j].x[2] && 
+      	    system->my_atoms[k].x[1] <  system->my_atoms[j].x[1]) continue;
+        if (system->my_atoms[k].x[2] == system->my_atoms[j].x[2] && 
+      	    system->my_atoms[k].x[1] == system->my_atoms[j].x[1] && 
+      	    system->my_atoms[k].x[0] <  system->my_atoms[j].x[0]) continue;
+      }
+
+      if( bo_jk->BO > control->thb_cut/*0*/ && Num_Entries(pk, thb_intrs) ) {
         pj = pbond_jk->sym_index; // pj points to j on k's list
 
         if( Num_Entries(pj, thb_intrs) ) {
@@ -463,7 +473,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
             } // pi check ends
           } // pi loop ends
         } // k-j neighbor check ends
-      } // j<k && j-k neighbor check ends
+      } // j-k neighbor check ends
     } // pk loop ends
   } // j loop
 }

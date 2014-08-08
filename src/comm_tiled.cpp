@@ -1139,7 +1139,7 @@ void CommTiled::reverse_comm_fix(Fix *fix, int size)
   MPI_Status status;
 
   if (size) nsize = size;
-  else nsize = fix->comm_forward;
+  else nsize = fix->comm_reverse;
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];

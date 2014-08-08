@@ -1004,7 +1004,7 @@ void CommBrick::reverse_comm_fix(Fix *fix, int size)
   MPI_Status status;
 
   if (size) nsize = size;
-  else nsize = fix->comm_forward;
+  else nsize = fix->comm_reverse;
 
   for (iswap = nswap-1; iswap >= 0; iswap--) {
 

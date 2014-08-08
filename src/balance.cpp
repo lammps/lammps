@@ -919,13 +919,38 @@ int Balance::binary(double value, int n, double *vec)
 void Balance::dumpout(bigint tstep, FILE *fp)
 {
   int dimension = domain->dimension;
+  int triclinic = domain->triclinic;
 
-  // write out nodal coords
+  // Allgather each proc's sub-box
+  // could use Gather, but that requires MPI to alloc memory
+
+  double *lo,*hi;
+  if (triclinic == 0) {
+    lo = domain->sublo;
+    hi = domain->subhi;
+  } else {
+    lo = domain->sublo_lamda;
+    hi = domain->subhi_lamda;
+  }
+
+  double box[6];
+  box[0] = lo[0]; box[1] = lo[1]; box[2] = lo[2];
+  box[3] = hi[0]; box[4] = hi[1]; box[5] = hi[2];
+
+  double **boxall;
+  memory->create(boxall,nprocs,6,"balance:dumpout");
+  MPI_Allgather(box,6,MPI_DOUBLE,&boxall[0][0],6,MPI_DOUBLE,world);
+  
+  if (me) {
+    memory->destroy(boxall);
+    return;
+  }
+
+  // proc 0 writes out nodal coords
   // some will be duplicates
-
-  /*
-  double *sublo = domain->sublo;
-  double *subhi = domain->subhi;
+  
+  double *boxlo = domain->boxlo;
+  double *boxhi = domain->boxhi;
 
   fprintf(fp,"ITEM: TIMESTEP\n");
   fprintf(fp,BIGINT_FORMAT "\n",tstep);
@@ -938,27 +963,67 @@ void Balance::dumpout(bigint tstep, FILE *fp)
   fprintf(fp,"%g %g\n",boxlo[2],boxhi[2]);
   fprintf(fp,"ITEM: NODES\n");
 
-  if (dimension == 2) {
-    int m = 0;
-    for (int j = 0; j < ny; j++)
-      for (int i = 0; i < nx; i++) {
+  if (triclinic == 0) {
+    if (dimension == 2) {
+      int m = 0;
+      for (int i = 0; i < nprocs; i++) {
+        fprintf(fp,"%d %d %g %g %g\n",m+1,1,boxall[i][0],boxall[i][1],0.0);
+        fprintf(fp,"%d %d %g %g %g\n",m+2,1,boxall[i][3],boxall[i][1],0.0);
+        fprintf(fp,"%d %d %g %g %g\n",m+3,1,boxall[i][3],boxall[i][4],0.0);
+        fprintf(fp,"%d %d %g %g %g\n",m+4,1,boxall[i][0],boxall[i][4],0.0);
+        m += 4;
+      }
+    } else {
+      int m = 0;
+      for (int i = 0; i < nprocs; i++) {
         fprintf(fp,"%d %d %g %g %g\n",m+1,1,
-                boxlo[0] + prd[0]*comm->xsplit[i],
-                boxlo[1] + prd[1]*comm->ysplit[j],
-                0.0);
-        m++;
+                boxall[i][0],boxall[i][1],boxall[i][2]);
+        fprintf(fp,"%d %d %g %g %g\n",m+2,1,
+                boxall[i][3],boxall[i][1],boxall[i][2]);
+        fprintf(fp,"%d %d %g %g %g\n",m+3,1,
+                boxall[i][3],boxall[i][4],boxall[i][2]);
+        fprintf(fp,"%d %d %g %g %g\n",m+4,1,
+                boxall[i][0],boxall[i][4],boxall[i][2]);
+        fprintf(fp,"%d %d %g %g %g\n",m+5,1,
+                boxall[i][0],boxall[i][1],boxall[i][5]);
+        fprintf(fp,"%d %d %g %g %g\n",m+6,1,
+                boxall[i][3],boxall[i][1],boxall[i][5]);
+        fprintf(fp,"%d %d %g %g %g\n",m+7,1,
+                boxall[i][3],boxall[i][4],boxall[i][5]);
+        fprintf(fp,"%d %d %g %g %g\n",m+8,1,
+                boxall[i][0],boxall[i][4],boxall[i][5]);
+        m += 8;
       }
+    }
+
   } else {
-    int m = 0;
-    for (int k = 0; k < nz; k++)
-      for (int j = 0; j < ny; j++)
-        for (int i = 0; i < nx; i++) {
-          fprintf(fp,"%d %d %g %g %g\n",m+1,1,
-                  boxlo[0] + prd[0]*comm->xsplit[i],
-                  boxlo[1] + prd[1]*comm->ysplit[j],
-                  boxlo[2] + prd[2]*comm->zsplit[k]);
-          m++;
+    double (*bc)[3] = domain->corners;
+
+    if (dimension == 2) {
+      int m = 0;
+      for (int i = 0; i < nprocs; i++) {
+        domain->lamda_box_corners(&boxall[i][0],&boxall[i][3]);
+        fprintf(fp,"%d %d %g %g %g\n",m+1,1,bc[i][0],bc[i][1],0.0);
+        fprintf(fp,"%d %d %g %g %g\n",m+2,1,bc[i][3],bc[i][1],0.0);
+        fprintf(fp,"%d %d %g %g %g\n",m+3,1,bc[i][3],bc[i][4],0.0);
+        fprintf(fp,"%d %d %g %g %g\n",m+4,1,bc[i][0],bc[i][4],0.0);
+        m += 4;
       }
+    } else {
+      int m = 0;
+      for (int i = 0; i < nprocs; i++) {
+        domain->lamda_box_corners(&boxall[i][0],&boxall[i][3]);
+        fprintf(fp,"%d %d %g %g %g\n",m+1,1,bc[i][0],bc[i][1],bc[i][2]);
+        fprintf(fp,"%d %d %g %g %g\n",m+2,1,bc[i][3],bc[i][1],bc[i][2]);
+        fprintf(fp,"%d %d %g %g %g\n",m+3,1,bc[i][3],bc[i][4],bc[i][2]);
+        fprintf(fp,"%d %d %g %g %g\n",m+4,1,bc[i][0],bc[i][4],bc[i][2]);
+        fprintf(fp,"%d %d %g %g %g\n",m+5,1,bc[i][0],bc[i][1],bc[i][5]);
+        fprintf(fp,"%d %d %g %g %g\n",m+6,1,bc[i][3],bc[i][1],bc[i][5]);
+        fprintf(fp,"%d %d %g %g %g\n",m+7,1,bc[i][3],bc[i][4],bc[i][5]);
+        fprintf(fp,"%d %d %g %g %g\n",m+8,1,bc[i][0],bc[i][4],bc[i][5]);
+        m += 8;
+      }
+    }
   }
 
   // write out one square/cube per processor for 2d/3d
@@ -971,41 +1036,22 @@ void Balance::dumpout(bigint tstep, FILE *fp)
   if (dimension == 2) fprintf(fp,"ITEM: SQUARES\n");
   else fprintf(fp,"ITEM: CUBES\n");
   
-  int nx = comm->procgrid[0] + 1;
-  int ny = comm->procgrid[1] + 1;
-  int nz = comm->procgrid[2] + 1;
-  
   if (dimension == 2) {
     int m = 0;
-    for (int j = 0; j < comm->procgrid[1]; j++)
-      for (int i = 0; i < comm->procgrid[0]; i++) {
-        int c1 = j*nx + i + 1;
-        int c2 = c1 + 1;
-        int c3 = c2 + nx;
-        int c4 = c3 - 1;
-        fprintf(fp,"%d %d %d %d %d %d\n",m+1,m+1,c1,c2,c3,c4);
-        m++;
-      }
-    
+    for (int i = 0; i < nprocs; i++) {
+      fprintf(fp,"%d %d %d %d %d %d\n",i+1,1,m+1,m+2,m+3,m+4);
+      m += 4;
+    }
   } else {
     int m = 0;
-    for (int k = 0; k < comm->procgrid[2]; k++)
-      for (int j = 0; j < comm->procgrid[1]; j++)
-        for (int i = 0; i < comm->procgrid[0]; i++) {
-          int c1 = k*ny*nx + j*nx + i + 1;
-          int c2 = c1 + 1;
-          int c3 = c2 + nx;
-          int c4 = c3 - 1;
-          int c5 = c1 + ny*nx;
-          int c6 = c2 + ny*nx;
-          int c7 = c3 + ny*nx;
-          int c8 = c4 + ny*nx;
-          fprintf(fp,"%d %d %d %d %d %d %d %d %d %d\n",
-                  m+1,m+1,c1,c2,c3,c4,c5,c6,c7,c8);
-          m++;
-        }
+    for (int i = 0; i < nprocs; i++) {
+      fprintf(fp,"%d %d %d %d %d %d %d %d %d %d\n",
+              i+1,1,m+1,m+2,m+3,m+4,m+5,m+6,m+7,m+8);
+      m += 8;
+    }
   }
-  */
+
+  memory->destroy(boxall);
 }
 
 /* ----------------------------------------------------------------------

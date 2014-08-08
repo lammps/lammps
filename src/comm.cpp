@@ -215,7 +215,7 @@ void Comm::init()
   // maxreverse = # of datums in largest reverse comm
   // query pair,fix,compute,dump for their requirements
   // pair style can force reverse comm even if newton off
-
+ 	 
   maxforward = MAX(size_forward,size_border);
   maxreverse = size_reverse;
 

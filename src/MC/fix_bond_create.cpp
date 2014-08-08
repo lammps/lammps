@@ -305,7 +305,7 @@ void FixBondCreate::setup(int vflag)
   // if newton_bond is set, need to sum bondcount
 
   commflag = 1;
-  if (newton_bond) comm->reverse_comm_fix(this);
+  if (newton_bond) comm->reverse_comm_fix(this,1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -336,7 +336,7 @@ void FixBondCreate::post_integrate()
   // forward comm of bondcount, so ghosts have it
 
   commflag = 1;
-  comm->forward_comm_fix(this);
+  comm->forward_comm_fix(this,1);
 
   // resize bond partner list and initialize it
   // probability array overlays distsq array
@@ -448,7 +448,7 @@ void FixBondCreate::post_integrate()
   }
 
   commflag = 2;
-  comm->forward_comm_fix(this);
+  comm->forward_comm_fix(this,2);
 
   // create bonds for atoms I own
   // only if both atoms list each other as winning bond partner
@@ -545,7 +545,7 @@ void FixBondCreate::post_integrate()
   // 1-2 neighs already reflect created bonds
 
   commflag = 3;
-  comm->forward_comm_variable_fix(this);
+  comm->forward_comm_fix(this);
 
   // create list of broken bonds that influence my owned atoms
   //   even if between owned-ghost or ghost-ghost atoms
@@ -1270,7 +1270,6 @@ void FixBondCreate::unpack_forward_comm(int n, int first, double *buf)
     }
 
   } else {
-
     int **nspecial = atom->nspecial;
     tagint **special = atom->special;
 

@@ -1875,10 +1875,6 @@ void PPPM::particle_map()
   int nlocal = atom->nlocal;
 
   int flag = 0;
-
-  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
-
   for (int i = 0; i < nlocal; i++) {
 
     // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
@@ -1897,9 +1893,8 @@ void PPPM::particle_map()
 
     if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
         ny+nlower < nylo_out || ny+nupper > nyhi_out ||
-        nz+nlower < nzlo_out || nz+nupper > nzhi_out) {
+        nz+nlower < nzlo_out || nz+nupper > nzhi_out)
       flag = 1;
-    }
   }
 
   if (flag) error->one(FLERR,"Out of range atoms - cannot compute PPPM");

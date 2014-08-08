@@ -99,6 +99,11 @@ void CommBrick::init_buffers()
   multilo = multihi = NULL;
   cutghostmulti = NULL;
 
+  // bufextra = max size of one exchanged atom
+  //          = allowed overflow of sendbuf in exchange()
+  // atomvec, fix reset these 2 maxexchange values if needed
+  // only necessary if their size > BUFEXTRA
+
   maxexchange = maxexchange_atom + maxexchange_fix;
   bufextra = maxexchange + BUFEXTRA;
 
@@ -558,7 +563,7 @@ void CommBrick::reverse_comm()
    exchange: move atoms to correct processors
    atoms exchanged with all 6 stencil neighbors
    send out atoms that have left my box, receive ones entering my box
-   atoms will be lost if not inside some proc's box
+   atoms will be lost if not inside a stencil proc's box
      can happen if atom moves outside of non-periodic bounary
      or if atom moves more than one proc away
    this routine called before every reneighboring
@@ -586,6 +591,7 @@ void CommBrick::exchange()
   atom->avec->clear_bonus();
 
   // insure send buf is large enough for single atom
+  // bufextra = max size of one atom = allowed overflow of sendbuf
   // fixes can change per-atom size requirement on-the-fly
 
   int bufextra_old = bufextra;
@@ -713,7 +719,7 @@ void CommBrick::borders()
       // check atoms between nfirst and nlast
       //   for first swaps in a dim, check owned and ghost
       //   for later swaps in a dim, only check newly arrived ghosts
-      // store sent atom indices in list for use in future timesteps
+      // store sent atom indices in sendlist for use in future timesteps
 
       x = atom->x;
       if (mode == SINGLE) {
@@ -739,8 +745,8 @@ void CommBrick::borders()
       else sendflag = 1;
 
       // find send atoms according to SINGLE vs MULTI
-      // all atoms eligible versus atoms in bordergroup
-      // only need to limit loop to bordergroup for first sends (ineed < 2)
+      // all atoms eligible versus only atoms in bordergroup
+      // can only limit loop to bordergroup for first sends (ineed < 2)
       // on these sends, break loop in two: owned (in group) and ghost
 
       if (sendflag) {
@@ -859,6 +865,7 @@ void CommBrick::borders()
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Pair
+   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommBrick::forward_comm_pair(Pair *pair)
@@ -898,7 +905,7 @@ void CommBrick::forward_comm_pair(Pair *pair)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Pair
-   n = constant number of datums per atom
+   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommBrick::reverse_comm_pair(Pair *pair)
@@ -937,17 +944,22 @@ void CommBrick::reverse_comm_pair(Pair *pair)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Fix
-   n = constant number of datums per atom
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Fix
+   size > 0 -> Fix passes max size per atom
+   the latter is only useful if Fix does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm_fix(Fix *fix)
+void CommBrick::forward_comm_fix(Fix *fix, int size)
 {
-  int iswap,n;
+  int iswap,n,nsize;
   double *buf;
   MPI_Request request;
   MPI_Status status;
 
-  int nsize = fix->comm_forward;
+  if (size) nsize = size;
+  else nsize = fix->comm_forward;
 
   for (iswap = 0; iswap < nswap; iswap++) {
 
@@ -977,17 +989,22 @@ void CommBrick::forward_comm_fix(Fix *fix)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Fix
-   n = constant number of datums per atom
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Fix
+   size > 0 -> Fix passes max size per atom
+   the latter is only useful if Fix does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommBrick::reverse_comm_fix(Fix *fix)
+void CommBrick::reverse_comm_fix(Fix *fix, int size)
 {
-  int iswap,n;
+  int iswap,n,nsize;
   double *buf;
   MPI_Request request;
   MPI_Status status;
 
-  int nsize = fix->comm_reverse;
+  if (size) nsize = size;
+  else nsize = fix->comm_forward;
 
   for (iswap = nswap-1; iswap >= 0; iswap--) {
 
@@ -1015,83 +1032,8 @@ void CommBrick::reverse_comm_fix(Fix *fix)
 }
 
 /* ----------------------------------------------------------------------
-   forward communication invoked by a Fix
-   n = total datums for all atoms, allows for variable number/atom
-------------------------------------------------------------------------- */
-
-void CommBrick::forward_comm_variable_fix(Fix *fix)
-{
-  int iswap,n;
-  double *buf;
-  MPI_Request request;
-  MPI_Status status;
-
-  for (iswap = 0; iswap < nswap; iswap++) {
-
-    // pack buffer
-
-    n = fix->pack_forward_comm(sendnum[iswap],sendlist[iswap],
-                               buf_send,pbc_flag[iswap],pbc[iswap]);
-
-    // exchange with another proc
-    // if self, set recv buffer to send buffer
-
-    if (sendproc[iswap] != me) {
-      if (recvnum[iswap])
-        MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,recvproc[iswap],0,
-                  world,&request);
-      if (sendnum[iswap])
-        MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-      if (recvnum[iswap]) MPI_Wait(&request,&status);
-      buf = buf_recv;
-    } else buf = buf_send;
-
-    // unpack buffer
-
-    fix->unpack_forward_comm(recvnum[iswap],firstrecv[iswap],buf);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   reverse communication invoked by a Fix
-   n = total datums for all atoms, allows for variable number/atom
-------------------------------------------------------------------------- */
-
-void CommBrick::reverse_comm_variable_fix(Fix *fix)
-{
-  int iswap,n;
-  double *buf;
-  MPI_Request request;
-  MPI_Status status;
-
-  for (iswap = nswap-1; iswap >= 0; iswap--) {
-
-    // pack buffer
-
-    n = fix->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
-
-    // exchange with another proc
-    // if self, set recv buffer to send buffer
-
-    if (sendproc[iswap] != me) {
-      if (sendnum[iswap])
-        MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,sendproc[iswap],0,
-                  world,&request);
-      if (recvnum[iswap])
-        MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
-      if (sendnum[iswap]) MPI_Wait(&request,&status);
-      buf = buf_recv;
-    } else buf = buf_send;
-
-    // unpack buffer
-
-    fix->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
-  }
-}
-
-/* ----------------------------------------------------------------------
    forward communication invoked by a Compute
-   n = constant number of datums per atom
+   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommBrick::forward_comm_compute(Compute *compute)
@@ -1131,7 +1073,7 @@ void CommBrick::forward_comm_compute(Compute *compute)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Compute
-   n = constant number of datums per atom
+   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommBrick::reverse_comm_compute(Compute *compute)
@@ -1170,7 +1112,7 @@ void CommBrick::reverse_comm_compute(Compute *compute)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Dump
-   n = constant number of datums per atom
+   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommBrick::forward_comm_dump(Dump *dump)
@@ -1210,7 +1152,7 @@ void CommBrick::forward_comm_dump(Dump *dump)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Dump
-   n = constant number of datums per atom
+   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommBrick::reverse_comm_dump(Dump *dump)

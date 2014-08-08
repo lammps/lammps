@@ -46,8 +46,6 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 {
-  error->all(FLERR,"Comm_style tiled is not yet supported");
-
   if (lmp->cuda)
     error->all(FLERR,"USER-CUDA package does not yet support comm_style tiled");
   if (lmp->kokkos)
@@ -62,8 +60,6 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 
 CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
-  error->all(FLERR,"Comm_style tiled is not yet supported");
-
   if (lmp->cuda)
     error->all(FLERR,"USER-CUDA package does not yet support comm_style tiled");
   if (lmp->kokkos)
@@ -92,6 +88,11 @@ CommTiled::~CommTiled()
 
 void CommTiled::init_buffers()
 {
+  // bufextra = max size of one exchanged atom
+  //          = allowed overflow of sendbuf in exchange()
+  // atomvec, fix reset these 2 maxexchange values if needed
+  // only necessary if their size > BUFEXTRA
+
   maxexchange = maxexchange_atom + maxexchange_fix;
   bufextra = maxexchange + BUFEXTRA;
 
@@ -617,10 +618,9 @@ void CommTiled::reverse_comm()
 
 /* ----------------------------------------------------------------------
    exchange: move atoms to correct processors
-   NOTE: need to re-doc this
-   atoms exchanged with all 6 stencil neighbors
+   atoms exchanged with procs that touch sub-box in each of 3 dims
    send out atoms that have left my box, receive ones entering my box
-   atoms will be lost if not inside some proc's box
+   atoms will be lost if not inside a touching proc's box
      can happen if atom moves outside of non-periodic bounary
      or if atom moves more than one proc away
    this routine called before every reneighboring
@@ -645,6 +645,7 @@ void CommTiled::exchange()
   atom->avec->clear_bonus();
 
   // insure send buf is large enough for single atom
+  // bufextra = max size of one atom = allowed overflow of sendbuf
   // fixes can change per-atom size requirement on-the-fly
 
   int bufextra_old = bufextra;
@@ -691,7 +692,7 @@ void CommTiled::exchange()
         /*
         // DEBUG:
         // test if proc is not in exch list, means will lose atom
-        // could be that should lose atom
+        // could be that *should* lose atom
         int flag = 0;
         for (int k = 0; k < nexchproc[dim]; k++)
           if (proc == exchproc[k]) flag = 1;
@@ -774,7 +775,7 @@ void CommTiled::exchange()
 
 void CommTiled::borders()
 {
-  int i,m,n,irecv,nlast,nsend,nrecv,ncount,ncountall;
+  int i,m,n,irecv,nlast,nsend,nrecv,ngroup,ncount,ncountall;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double *bbox;
   double **x;
@@ -791,14 +792,13 @@ void CommTiled::borders()
 
   for (int iswap = 0; iswap < nswap; iswap++) {
 
-    // find atoms within rectangles using >= and <
+    // find atoms within sendboxes using >= and <
     // hi test with ">" is important b/c don't want to send an atom
     //   in lower dim (on boundary) that a proc will recv again in higher dim
     // for x-dim swaps, check owned atoms
     // for yz-dim swaps, check owned and ghost atoms
-    // store sent atom indices in list for use in future timesteps
-    // NOTE: assume SINGLE mode, add back in logic for MULTI mode later
-    //       and for ngroup when bordergroup is set
+    // store sent atom indices in sendlist for use in future timesteps
+    // NOTE: assume SINGLE mode, add logic for MULTI mode later
 
     x = atom->x;
     if (iswap % 2 == 0) nlast = atom->nlocal + atom->nghost;
@@ -811,12 +811,32 @@ void CommTiled::borders()
 
       ncount = 0;
 
-      for (i = 0; i < nlast; i++) {
-        if (x[i][0] >= xlo && x[i][0] < xhi &&
-            x[i][1] >= ylo && x[i][1] < yhi &&
-            x[i][2] >= zlo && x[i][2] < zhi) {
-          if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
-          sendlist[iswap][m][ncount++] = i;
+      if (!bordergroup) {
+        for (i = 0; i < nlast; i++) {
+          if (x[i][0] >= xlo && x[i][0] < xhi &&
+              x[i][1] >= ylo && x[i][1] < yhi &&
+              x[i][2] >= zlo && x[i][2] < zhi) {
+            if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
+            sendlist[iswap][m][ncount++] = i;
+          }
+        }
+      } else {
+        ngroup = atom->nfirst;
+        for (i = 0; i < ngroup; i++) {
+          if (x[i][0] >= xlo && x[i][0] < xhi &&
+              x[i][1] >= ylo && x[i][1] < yhi &&
+              x[i][2] >= zlo && x[i][2] < zhi) {
+            if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
+            sendlist[iswap][m][ncount++] = i;
+          }
+        }
+        for (i = atom->nlocal; i < nlast; i++) {
+          if (x[i][0] >= xlo && x[i][0] < xhi &&
+              x[i][1] >= ylo && x[i][1] < yhi &&
+              x[i][2] >= zlo && x[i][2] < zhi) {
+            if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
+            sendlist[iswap][m][ncount++] = i;
+          }
         }
       }
 
@@ -961,6 +981,7 @@ void CommTiled::borders()
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Pair
+   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommTiled::forward_comm_pair(Pair *pair)
@@ -1007,7 +1028,7 @@ void CommTiled::forward_comm_pair(Pair *pair)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Pair
-   n = constant number of datums per atom
+   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommTiled::reverse_comm_pair(Pair *pair)
@@ -1053,15 +1074,20 @@ void CommTiled::reverse_comm_pair(Pair *pair)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Fix
-   n = constant number of datums per atom
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Fix
+   size > 0 -> Fix passes max size per atom
+   the latter is only useful if Fix does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommTiled::forward_comm_fix(Fix *fix)
+void CommTiled::forward_comm_fix(Fix *fix, int size)
 {
-  int i,irecv,n,nsend,nrecv;
+  int i,irecv,n,nsize,nsend,nrecv;
   MPI_Status status;
 
-  int nsize = fix->comm_forward;
+  if (size) nsize = size;
+  else nsize = fix->comm_forward;
 
   for (int iswap = 0; iswap < nswap; iswap++) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -1100,15 +1126,20 @@ void CommTiled::forward_comm_fix(Fix *fix)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Fix
-   n = constant number of datums per atom
+   size/nsize used only to set recv buffer limit
+   size = 0 (default) -> use comm_forward from Fix
+   size > 0 -> Fix passes max size per atom
+   the latter is only useful if Fix does several comm modes,
+     some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommTiled::reverse_comm_fix(Fix *fix)
+void CommTiled::reverse_comm_fix(Fix *fix, int size)
 {
-  int i,irecv,n,nsend,nrecv;
+  int i,irecv,n,nsize,nsend,nrecv;
   MPI_Status status;
 
-  int nsize = fix->comm_reverse;
+  if (size) nsize = size;
+  else nsize = fix->comm_forward;
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -1145,29 +1176,8 @@ void CommTiled::reverse_comm_fix(Fix *fix)
 }
 
 /* ----------------------------------------------------------------------
-   forward communication invoked by a Fix
-   n = total datums for all atoms, allows for variable number/atom
-   NOTE: complicated b/c don't know # to recv a priori
-------------------------------------------------------------------------- */
-
-void CommTiled::forward_comm_variable_fix(Fix *fix)
-{
-// NOTE: these two forward/reverse methods still need to be updated
-
-}
-
-/* ----------------------------------------------------------------------
-   reverse communication invoked by a Fix
-   n = total datums for all atoms, allows for variable number/atom
-------------------------------------------------------------------------- */
-
-void CommTiled::reverse_comm_variable_fix(Fix *fix)
-{
-}
-
-/* ----------------------------------------------------------------------
    forward communication invoked by a Compute
-   n = constant number of datums per atom
+   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommTiled::forward_comm_compute(Compute *compute)
@@ -1216,7 +1226,7 @@ void CommTiled::forward_comm_compute(Compute *compute)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Compute
-   n = constant number of datums per atom
+   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommTiled::reverse_comm_compute(Compute *compute)
@@ -1263,7 +1273,7 @@ void CommTiled::reverse_comm_compute(Compute *compute)
 
 /* ----------------------------------------------------------------------
    forward communication invoked by a Dump
-   n = constant number of datums per atom
+   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommTiled::forward_comm_dump(Dump *dump)
@@ -1311,7 +1321,7 @@ void CommTiled::forward_comm_dump(Dump *dump)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Dump
-   n = constant number of datums per atom
+   nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
 void CommTiled::reverse_comm_dump(Dump *dump)
@@ -1444,8 +1454,8 @@ int CommTiled::exchange_variable(int n, double *inbuf, double *&outbuf)
 void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
 {
   // NOTE: this is not triclinic compatible
-  // NOTE: there error messages are internal - should not occur
-  //       can remove at some point
+  // NOTE: these error messages are internal sanity checks
+  //       should not occur, can be removed at some point
 
   int index,dir;
   if (hi[idim] == sublo[idim]) {

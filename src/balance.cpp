@@ -268,7 +268,7 @@ void Balance::command(int narg, char **arg)
   // debug output of initial state
 
 #ifdef BALANCE_DEBUG
-  if (me == 0 && fp) dumpout(update->ntimestep,fp);
+  if (outflag) dumpout(update->ntimestep,fp);
 #endif
 
   int niter = 0;
@@ -328,7 +328,7 @@ void Balance::command(int narg, char **arg)
 
   // output of final result
 
-  if (outflag && me == 0) dumpout(update->ntimestep,fp);
+  if (outflag) dumpout(update->ntimestep,fp);
 
   // reset proc sub-domains
   // for either brick or tiled comm style
@@ -475,19 +475,59 @@ int *Balance::bisection(int sortflag)
 {
   if (!rcb) rcb = new RCB(lmp);
 
-  // NOTE: lo/hi args could be simulation box or particle bounding box
-  //       if particle bbox, then mysplit needs to be reset to sim box
-  // NOTE: triclinic needs to be in lamda coords
+  // NOTE: this logic is specific to orthogonal boxes, not triclinic
 
   int dim = domain->dimension;
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
   double *prd = domain->prd;
 
-  rcb->compute(dim,atom->nlocal,atom->x,NULL,boxlo,boxhi);
+  // shrink-wrap simulation box around atoms for input to RCB
+  // leads to better-shaped sub-boxes when atoms are far from box boundaries
+
+  double shrink[6],shrinkall[6];
+
+  shrink[0] = boxhi[0]; shrink[1] = boxhi[1]; shrink[2] = boxhi[2];
+  shrink[3] = boxlo[0]; shrink[4] = boxlo[1]; shrink[5] = boxlo[2];
+
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    shrink[0] = MIN(shrink[0],x[i][0]);
+    shrink[1] = MIN(shrink[1],x[i][1]);
+    shrink[2] = MIN(shrink[2],x[i][2]);
+    shrink[3] = MAX(shrink[3],x[i][0]);
+    shrink[4] = MAX(shrink[4],x[i][1]);
+    shrink[5] = MAX(shrink[5],x[i][2]);
+  }
+
+  shrink[3] = -shrink[3]; shrink[4] = -shrink[4]; shrink[5] = -shrink[5];
+  MPI_Allreduce(shrink,shrinkall,6,MPI_DOUBLE,MPI_MIN,world);
+  shrinkall[3] = -shrinkall[3];
+  shrinkall[4] = -shrinkall[4];
+  shrinkall[5] = -shrinkall[5];
+
+  double *shrinklo = &shrinkall[0];
+  double *shrinkhi = &shrinkall[3];
+
+  // invoke RCB
+  // then invert() to create list of proc assignements for my atoms 
+
+  //rcb->compute(dim,atom->nlocal,atom->x,NULL,boxlo,boxhi);
+  rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
   rcb->invert(sortflag);
+
+  // reset RCB lo/hi bounding box to full simulation box as needed
   
-  // NOTE: this logic is specific to orthogonal boxes, not triclinic
+  double *lo = rcb->lo;
+  double *hi = rcb->hi;
+
+  if (lo[0] == shrinklo[0]) lo[0] = boxlo[0];
+  if (lo[1] == shrinklo[1]) lo[1] = boxlo[1];
+  if (lo[2] == shrinklo[2]) lo[2] = boxlo[2];
+  if (hi[0] == shrinkhi[0]) hi[0] = boxhi[0];
+  if (hi[1] == shrinkhi[1]) hi[1] = boxhi[1];
+  if (hi[2] == shrinkhi[2]) hi[2] = boxhi[2];
 
   // store RCB cut, dim, lo/hi box in CommTiled
   // cut and lo/hi need to be in fractional form so can 
@@ -502,18 +542,18 @@ int *Balance::bisection(int sortflag)
   comm->rcbcutdim = idim;
 
   double (*mysplit)[2] = comm->mysplit;
+
+  mysplit[0][0] = (lo[0] - boxlo[0]) / prd[0];
+  if (hi[0] == boxhi[0]) mysplit[0][1] = 1.0;
+  else mysplit[0][1] = (hi[0] - boxlo[0]) / prd[0];
   
-  mysplit[0][0] = (rcb->lo[0] - boxlo[0]) / prd[0];
-  if (rcb->hi[0] == boxhi[0]) mysplit[0][1] = 1.0;
-  else mysplit[0][1] = (rcb->hi[0] - boxlo[0]) / prd[0];
+  mysplit[1][0] = (lo[1] - boxlo[1]) / prd[1];
+  if (hi[1] == boxhi[1]) mysplit[1][1] = 1.0;
+  else mysplit[1][1] = (hi[1] - boxlo[1]) / prd[1];
   
-  mysplit[1][0] = (rcb->lo[1] - boxlo[1]) / prd[1];
-  if (rcb->hi[1] == boxhi[1]) mysplit[1][1] = 1.0;
-  else mysplit[1][1] = (rcb->hi[1] - boxlo[1]) / prd[1];
-  
-  mysplit[2][0] = (rcb->lo[2] - boxlo[2]) / prd[2];
-  if (rcb->hi[2] == boxhi[2]) mysplit[2][1] = 1.0;
-  else mysplit[2][1] = (rcb->hi[2] - boxlo[2]) / prd[2];
+  mysplit[2][0] = (lo[2] - boxlo[2]) / prd[2];
+  if (hi[2] == boxhi[2]) mysplit[2][1] = 1.0;
+  else mysplit[2][1] = (hi[2] - boxlo[2]) / prd[2];
 
   // return list of procs to send my atoms to
 
@@ -669,7 +709,7 @@ int Balance::shift()
 
 #ifdef BALANCE_DEBUG
       if (me == 0) debug_shift_output(idim,m+1,np,split);
-      if (me == 0 && fp) dumpout(update->ntimestep,fp);
+      if (outflag) dumpout(update->ntimestep,fp);
 #endif
 
       // stop if no change in splits, b/c all targets are met exactly
@@ -873,89 +913,36 @@ int Balance::binary(double value, int n, double *vec)
    write xy lines around each proc's sub-domain for 2d
    write xyz cubes around each proc's sub-domain for 3d
    only called by proc 0
+   NOTE: only implemented for orthogonal boxes, not triclinic
 ------------------------------------------------------------------------- */
 
-void Balance::dumpout(bigint tstep, FILE *bfp)
+void Balance::dumpout(bigint tstep, FILE *fp)
 {
   int dimension = domain->dimension;
 
-  // write out one square/cube per processor for 2d/3d
-  // only write once since topology is static
+  // write out nodal coords
+  // some will be duplicates
 
-  if (firststep) {
-    firststep = 0;
-    fprintf(bfp,"ITEM: TIMESTEP\n");
-    fprintf(bfp,BIGINT_FORMAT "\n",tstep);
-    if (dimension == 2) fprintf(bfp,"ITEM: NUMBER OF SQUARES\n");
-    else fprintf(bfp,"ITEM: NUMBER OF CUBES\n");
-    fprintf(bfp,"%d\n",nprocs);
-    if (dimension == 2) fprintf(bfp,"ITEM: SQUARES\n");
-    else fprintf(bfp,"ITEM: CUBES\n");
+  /*
+  double *sublo = domain->sublo;
+  double *subhi = domain->subhi;
 
-    int nx = comm->procgrid[0] + 1;
-    int ny = comm->procgrid[1] + 1;
-    int nz = comm->procgrid[2] + 1;
-
-    if (dimension == 2) {
-      int m = 0;
-      for (int j = 0; j < comm->procgrid[1]; j++)
-        for (int i = 0; i < comm->procgrid[0]; i++) {
-          int c1 = j*nx + i + 1;
-          int c2 = c1 + 1;
-          int c3 = c2 + nx;
-          int c4 = c3 - 1;
-          fprintf(bfp,"%d %d %d %d %d %d\n",m+1,m+1,c1,c2,c3,c4);
-          m++;
-        }
-
-    } else {
-      int m = 0;
-      for (int k = 0; k < comm->procgrid[2]; k++)
-        for (int j = 0; j < comm->procgrid[1]; j++)
-          for (int i = 0; i < comm->procgrid[0]; i++) {
-            int c1 = k*ny*nx + j*nx + i + 1;
-            int c2 = c1 + 1;
-            int c3 = c2 + nx;
-            int c4 = c3 - 1;
-            int c5 = c1 + ny*nx;
-            int c6 = c2 + ny*nx;
-            int c7 = c3 + ny*nx;
-            int c8 = c4 + ny*nx;
-            fprintf(bfp,"%d %d %d %d %d %d %d %d %d %d\n",
-                    m+1,m+1,c1,c2,c3,c4,c5,c6,c7,c8);
-            m++;
-          }
-    }
-  }
-
-  // write out nodal coords, can be different every call
-  // scale xsplit,ysplit,zsplit values to full box
-  // only implmented for orthogonal boxes, not triclinic
-
-  int nx = comm->procgrid[0] + 1;
-  int ny = comm->procgrid[1] + 1;
-  int nz = comm->procgrid[2] + 1;
-
-  double *boxlo = domain->boxlo;
-  double *boxhi = domain->boxhi;
-  double *prd = domain->prd;
-
-  fprintf(bfp,"ITEM: TIMESTEP\n");
-  fprintf(bfp,BIGINT_FORMAT "\n",tstep);
-  fprintf(bfp,"ITEM: NUMBER OF NODES\n");
-  if (dimension == 2) fprintf(bfp,"%d\n",nx*ny);
-  else fprintf(bfp,"%d\n",nx*ny*nz);
-  fprintf(bfp,"ITEM: BOX BOUNDS\n");
-  fprintf(bfp,"%g %g\n",boxlo[0],boxhi[0]);
-  fprintf(bfp,"%g %g\n",boxlo[1],boxhi[1]);
-  fprintf(bfp,"%g %g\n",boxlo[2],boxhi[2]);
-  fprintf(bfp,"ITEM: NODES\n");
+  fprintf(fp,"ITEM: TIMESTEP\n");
+  fprintf(fp,BIGINT_FORMAT "\n",tstep);
+  fprintf(fp,"ITEM: NUMBER OF NODES\n");
+  if (dimension == 2) fprintf(fp,"%d\n",4*nprocs);
+  else fprintf(fp,"%d\n",8*nprocs);
+  fprintf(fp,"ITEM: BOX BOUNDS\n");
+  fprintf(fp,"%g %g\n",boxlo[0],boxhi[0]);
+  fprintf(fp,"%g %g\n",boxlo[1],boxhi[1]);
+  fprintf(fp,"%g %g\n",boxlo[2],boxhi[2]);
+  fprintf(fp,"ITEM: NODES\n");
 
   if (dimension == 2) {
     int m = 0;
     for (int j = 0; j < ny; j++)
       for (int i = 0; i < nx; i++) {
-        fprintf(bfp,"%d %d %g %g %g\n",m+1,1,
+        fprintf(fp,"%d %d %g %g %g\n",m+1,1,
                 boxlo[0] + prd[0]*comm->xsplit[i],
                 boxlo[1] + prd[1]*comm->ysplit[j],
                 0.0);
@@ -966,13 +953,59 @@ void Balance::dumpout(bigint tstep, FILE *bfp)
     for (int k = 0; k < nz; k++)
       for (int j = 0; j < ny; j++)
         for (int i = 0; i < nx; i++) {
-          fprintf(bfp,"%d %d %g %g %g\n",m+1,1,
+          fprintf(fp,"%d %d %g %g %g\n",m+1,1,
                   boxlo[0] + prd[0]*comm->xsplit[i],
                   boxlo[1] + prd[1]*comm->ysplit[j],
                   boxlo[2] + prd[2]*comm->zsplit[k]);
           m++;
       }
   }
+
+  // write out one square/cube per processor for 2d/3d
+
+  fprintf(fp,"ITEM: TIMESTEP\n");
+  fprintf(fp,BIGINT_FORMAT "\n",tstep);
+  if (dimension == 2) fprintf(fp,"ITEM: NUMBER OF SQUARES\n");
+  else fprintf(fp,"ITEM: NUMBER OF CUBES\n");
+  fprintf(fp,"%d\n",nprocs);
+  if (dimension == 2) fprintf(fp,"ITEM: SQUARES\n");
+  else fprintf(fp,"ITEM: CUBES\n");
+  
+  int nx = comm->procgrid[0] + 1;
+  int ny = comm->procgrid[1] + 1;
+  int nz = comm->procgrid[2] + 1;
+  
+  if (dimension == 2) {
+    int m = 0;
+    for (int j = 0; j < comm->procgrid[1]; j++)
+      for (int i = 0; i < comm->procgrid[0]; i++) {
+        int c1 = j*nx + i + 1;
+        int c2 = c1 + 1;
+        int c3 = c2 + nx;
+        int c4 = c3 - 1;
+        fprintf(fp,"%d %d %d %d %d %d\n",m+1,m+1,c1,c2,c3,c4);
+        m++;
+      }
+    
+  } else {
+    int m = 0;
+    for (int k = 0; k < comm->procgrid[2]; k++)
+      for (int j = 0; j < comm->procgrid[1]; j++)
+        for (int i = 0; i < comm->procgrid[0]; i++) {
+          int c1 = k*ny*nx + j*nx + i + 1;
+          int c2 = c1 + 1;
+          int c3 = c2 + nx;
+          int c4 = c3 - 1;
+          int c5 = c1 + ny*nx;
+          int c6 = c2 + ny*nx;
+          int c7 = c3 + ny*nx;
+          int c8 = c4 + ny*nx;
+          fprintf(fp,"%d %d %d %d %d %d %d %d %d %d\n",
+                  m+1,m+1,c1,c2,c3,c4,c5,c6,c7,c8);
+          m++;
+        }
+  }
+  */
 }
 
 /* ----------------------------------------------------------------------

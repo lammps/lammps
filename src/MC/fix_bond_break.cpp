@@ -263,7 +263,7 @@ void FixBondBreak::post_integrate()
   }
 
   commflag = 1;
-  comm->forward_comm_fix(this);
+  comm->forward_comm_fix(this,2);
 
   // break bonds
   // if both atoms list each other as winning bond partner
@@ -342,7 +342,7 @@ void FixBondBreak::post_integrate()
   // 1-2 neighs already reflect broken bonds
 
   commflag = 2;
-  comm->forward_comm_variable_fix(this);
+  comm->forward_comm_fix(this);
 
   // create list of broken bonds that influence my owned atoms
   //   even if between owned-ghost or ghost-ghost atoms

@@ -54,7 +54,6 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 {
   natoms = 0;
-  ns = 0; //!GLE
   nlocal = nghost = nmax = 0;
   ntypes = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
@@ -75,7 +74,6 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   type = mask = NULL;
   image = NULL;
   x = v = f = NULL;
-  s = NULL; //!GLE
 
   molecule = NULL;
   molindex = molatom = NULL;
@@ -209,7 +207,6 @@ Atom::~Atom()
   memory->destroy(x);
   memory->destroy(v);
   memory->destroy(f);
-  memory->destroy(s); //!GLE
 
   memory->destroy(molecule);
   memory->destroy(molindex);
@@ -572,7 +569,7 @@ void Atom::tag_check()
   if (minall < 0) error->all(FLERR,"Atom ID is negative");
   if (maxall >= MAXTAGINT) error->all(FLERR,"Atom ID is too big");
   if (maxall > 0 && minall == 0) error->all(FLERR,"Atom ID is zero");
-  if (maxall == 0 && tag_enable && natoms) 
+  if (maxall == 0 && tag_enable && natoms)
     error->all(FLERR,"Not all atom IDs are 0");
 }
 
@@ -690,23 +687,23 @@ void Atom::deallocate_topology()
   memory->destroy(atom->angle_atom3);
   atom->angle_type = NULL;
   atom->angle_atom1 = atom->angle_atom2 = atom->angle_atom3 = NULL;
-  
+
   memory->destroy(atom->dihedral_type);
   memory->destroy(atom->dihedral_atom1);
   memory->destroy(atom->dihedral_atom2);
   memory->destroy(atom->dihedral_atom3);
   memory->destroy(atom->dihedral_atom4);
   atom->dihedral_type = NULL;
-  atom->dihedral_atom1 = atom->dihedral_atom2 = 
+  atom->dihedral_atom1 = atom->dihedral_atom2 =
     atom->dihedral_atom3 = atom->dihedral_atom4 = NULL;
-  
+
   memory->destroy(atom->improper_type);
   memory->destroy(atom->improper_atom1);
   memory->destroy(atom->improper_atom2);
   memory->destroy(atom->improper_atom3);
   memory->destroy(atom->improper_atom4);
   atom->improper_type = NULL;
-  atom->improper_atom1 = atom->improper_atom2 = 
+  atom->improper_atom1 = atom->improper_atom2 =
     atom->improper_atom3 = atom->improper_atom4 = NULL;
 }
 
@@ -819,7 +816,7 @@ void Atom::data_atoms(int n, char *buf)
         (((imageint) (atoi(values[iptr+2]) + IMGMAX) & IMGMASK) << IMG2BITS);
     else imagedata = ((imageint) IMGMAX << IMG2BITS) |
            ((imageint) IMGMAX << IMGBITS) | IMGMAX;
-    
+
     xdata[0] = atof(values[xptr]);
     xdata[1] = atof(values[xptr+1]);
     xdata[2] = atof(values[xptr+2]);
@@ -1008,7 +1005,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count)
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d " 
+    sscanf(buf,"%d %d "
            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
     if (atom1 <= 0 || atom1 > map_tag_max ||
@@ -1086,7 +1083,7 @@ void Atom::data_impropers(int n, char *buf, int *count)
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d " 
+    sscanf(buf,"%d %d "
            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
     if (atom1 <= 0 || atom1 > map_tag_max ||
@@ -1405,7 +1402,7 @@ int Atom::shape_consistency(int itype,
 void Atom::add_molecule(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal molecule command");
-  if (find_molecule(arg[0]) >= 0) 
+  if (find_molecule(arg[0]) >= 0)
     error->all(FLERR,"Reuse of molecule template ID");
 
   int nprevious = nmolecule;
@@ -1446,7 +1443,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
   if (onemol->qflag && q_flag) q[ilocal] = onemol->q[iatom];
   if (onemol->radiusflag && radius_flag) radius[ilocal] = onemol->radius[iatom];
   if (onemol->rmassflag && rmass_flag) rmass[ilocal] = onemol->rmass[iatom];
-  else if (rmass_flag) 
+  else if (rmass_flag)
     rmass[ilocal] = 4.0*MY_PI/3.0 *
       radius[ilocal]*radius[ilocal]*radius[ilocal];
 
@@ -1912,7 +1909,6 @@ void *Atom::extract(char *name)
   if (strcmp(name,"x") == 0) return (void *) x;
   if (strcmp(name,"v") == 0) return (void *) v;
   if (strcmp(name,"f") == 0) return (void *) f;
-  if (strcmp(name,"s") == 0) return (void *) s; //!GLE
   if (strcmp(name,"molecule") == 0) return (void *) molecule;
   if (strcmp(name,"q") == 0) return (void *) q;
   if (strcmp(name,"mu") == 0) return (void *) mu;

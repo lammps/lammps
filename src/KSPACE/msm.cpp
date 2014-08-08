@@ -1428,6 +1428,9 @@ void MSM::particle_map()
 
   int flag = 0;
 
+  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
+    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+
   for (int i = 0; i < nlocal; i++) {
 
     // (nx,ny,nz) = global coords of grid pt to "lower left" of charge

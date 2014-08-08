@@ -679,6 +679,9 @@ void PPPMStagger::particle_map()
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
+  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
+    error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
+
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
 

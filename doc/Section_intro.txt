@@ -246,6 +246,7 @@ Specialized features :h4
 These are LAMMPS capabilities which you may not think of as typical
 molecular dynamics options:
 
+"static"_balance.html and "dynamic load-balancing"_fix_balance.html
 "generalized aspherical particles"_body.html
 "stochastic rotation dynamics (SRD)"_fix_srd.html
 "real-time visualization and interactive MD"_fix_imd.html

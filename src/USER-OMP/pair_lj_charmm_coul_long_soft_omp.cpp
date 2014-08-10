@@ -129,7 +129,6 @@ void PairLJCharmmCoulLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr
       const int jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        const double r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
           const double A1 =  0.254829592;

@@ -339,7 +339,6 @@ void Verlet::cleanup()
 
 void Verlet::force_clear()
 {
-  int i;
   size_t nbytes;
 
   if (external_force_clear) return;

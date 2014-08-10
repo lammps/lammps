@@ -775,11 +775,10 @@ void CommTiled::exchange()
 
 void CommTiled::borders()
 {
-  int i,m,n,irecv,nlast,nsend,nrecv,ngroup,ncount,ncountall;
+  int i,m,n,nlast,nsend,nrecv,ngroup,ncount,ncountall;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double *bbox;
   double **x;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
 
   // send/recv max one = max # of atoms in single send/recv for any swap
@@ -1371,7 +1370,7 @@ void CommTiled::reverse_comm_dump(Dump *dump)
 
 void CommTiled::forward_comm_array(int nsize, double **array)
 { 
-  int i,j,k,m,n,iatom,last,irecv,nsend,nrecv;
+  int i,j,k,m,iatom,last,irecv,nsend,nrecv;
   MPI_Status status;
 
   // insure send/recv bufs are big enough for nsize
@@ -1732,7 +1731,6 @@ int CommTiled::point_drop_tiled(int idim, double *x)
       if (!done) proc = point_drop_tiled_recurse(xnew,0,nprocs-1);
     }
   } else if (idim == 1) {
-    int done = 1;
     if (rcbinfo[proc].mysplit[2][0] == rcbinfo[me].mysplit[2][1]) {
       xnew[2] -= EPSILON * (subhi[2]-sublo[2]);
       proc = point_drop_tiled_recurse(xnew,0,nprocs-1);

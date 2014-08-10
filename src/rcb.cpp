@@ -176,7 +176,6 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
   // procmid = 1st proc in upper half of partition
 
   int procpartner,procpartner2;
-  int readnumber;                   
 
   int procmid;
   int proclower = 0;
@@ -656,7 +655,6 @@ void median_merge(void *in, void *inout, int *len, MPI_Datatype *dptr)
 
 void RCB::invert(int sortflag)
 {
-  Invert *sbuf,*rbuf;
 
   // only create Irregular if not previously created
   // allows Irregular to persist for multiple RCB calls by fix balance

@@ -73,12 +73,14 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
+  outflag = 0;
   int outarg = 0;
   fp = NULL;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"out") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix balance command");
+      outflag = 1;
       outarg = iarg+1;
       iarg += 2;
     } else error->all(FLERR,"Illegal fix balance command");
@@ -114,7 +116,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   // output file
 
-  if (outarg && comm->me == 0) {
+  if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
     if (fp == NULL) error->one(FLERR,"Cannot open fix balance output file");
   }
@@ -256,9 +258,9 @@ void FixBalance::rebalance()
     comm->layout = LAYOUT_TILED;
   }
 
-  // output of final result
+  // output of new decomposition
 
-  if (fp) balance->dumpout(update->ntimestep,fp);
+  if (outflag) balance->dumpout(update->ntimestep,fp);
 
   // reset proc sub-domains
 
@@ -269,12 +271,9 @@ void FixBalance::rebalance()
   // only needed if migrate_check() says an atom moves to far
   // else allow caller's comm->exchange() to do it
 
-  //NOTE: change back to migrate_check()
-
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (lbstyle == BISECTION) irregular->migrate_atoms(0,sendproc);
-  //else if (irregular->migrate_check()) irregular->migrate_atoms();
-  else irregular->migrate_atoms();
+  else if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // invoke KSpace setup_grid() to adjust to new proc sub-domains

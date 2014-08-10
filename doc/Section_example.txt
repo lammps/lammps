@@ -41,6 +41,7 @@ section of the "LAMMPS WWW Site"_lws.
 
 These are the sample problems in the examples sub-directories:
 
+balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 colloid:  big colloid particles in a small particle solvent, 2d system
 comb:	  models using the COMB potential

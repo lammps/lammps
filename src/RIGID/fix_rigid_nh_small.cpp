@@ -576,7 +576,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm_variable_fix(this);
+  comm->forward_comm_fix(this,26);
 
   // accumulate translational and rotational kinetic energies
 
@@ -704,7 +704,7 @@ void FixRigidNHSmall::final_integrate()
   // reverse communicate fcm, torque of all bodies
 
   commflag = FORCE_TORQUE;
-  comm->reverse_comm_variable_fix(this);
+  comm->reverse_comm_fix(this,6);
 
   // include Langevin thermostat forces and torques
 
@@ -774,7 +774,7 @@ void FixRigidNHSmall::final_integrate()
   // forward communicate updated info of all bodies
 
   commflag = FINAL;
-  comm->forward_comm_variable_fix(this);
+  comm->forward_comm_fix(this,10);
 
   // accumulate translational and rotational kinetic energies
 

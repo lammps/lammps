@@ -129,6 +129,7 @@ class Domain : protected Pointers {
   void bbox(double *, double *, double *, double *);
   void box_corners();
   void subbox_corners();
+  void lamda_box_corners(double *, double *);
 
   // minimum image convention check
   // return 1 if any distance > 1/2 of box size

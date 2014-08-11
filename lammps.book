@@ -128,9 +128,11 @@ doc/fix_external.html
 doc/fix_freeze.html
 doc/fix_gcmc.html
 doc/fix_gld.html
+doc/fix_gle.html
 doc/fix_gravity.html
 doc/fix_heat.html
 doc/fix_imd.html
+doc/fix_ipi.html
 doc/fix_indent.html
 doc/fix_langevin.html
 doc/fix_langevin_eff.html

@@ -33,10 +33,10 @@ class CommBrick : public Comm {
 
   virtual void forward_comm_pair(class Pair *);    // forward comm from a Pair
   virtual void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
-  virtual void forward_comm_fix(class Fix *);      // forward comm from a Fix
-  virtual void reverse_comm_fix(class Fix *);      // reverse comm from a Fix
-  virtual void forward_comm_variable_fix(class Fix *); // variable-size variant
-  virtual void reverse_comm_variable_fix(class Fix *); // variable-size variant
+  virtual void forward_comm_fix(class Fix *, int size=0);  
+                                                   // forward comm from a Fix
+  virtual void reverse_comm_fix(class Fix *, int size=0);
+                                                   // reverse comm from a Fix
   virtual void forward_comm_compute(class Compute *);  // forward from a Compute
   virtual void reverse_comm_compute(class Compute *);  // reverse from a Compute
   virtual void forward_comm_dump(class Dump *);    // forward comm from a Dump

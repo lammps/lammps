@@ -40,7 +40,7 @@ class FixBalance : public Fix {
   double memory_usage();
 
  private:
-  int nevery,lbstyle,nitermax;
+  int nevery,lbstyle,nitermax,outflag;
   double thresh,stopthresh;
   char bstr[3];
   FILE *fp;

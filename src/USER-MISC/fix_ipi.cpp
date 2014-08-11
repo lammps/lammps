@@ -43,6 +43,7 @@ using namespace FixConst;
  ******************************************************************************************/
 
 // socket interface
+#ifndef _WIN32
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -50,6 +51,7 @@ using namespace FixConst;
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <netdb.h>
+#endif
 
 #define MSGLEN 12
 

@@ -77,7 +77,7 @@ multiple time-step fashion. This should be used with care when doing
 non-equilibrium sampling, but should have no effect on equilibrium
 averages when using canonical sampling.
 
-The random # {seed} must be a positive integer.  A Marsaglia random
+The random number {seed} must be a positive integer.  A Marsaglia random
 number generator is used.  Each processor uses the input seed to
 generate its own unique seed and its own stream of random numbers.
 Thus the dynamics of the system will not be identical on two runs on

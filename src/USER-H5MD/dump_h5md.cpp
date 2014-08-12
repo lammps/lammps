@@ -94,12 +94,11 @@ void DumpH5MD::openfile()
     strcpy(group_name, group->names[igroup]);
     particles_data = h5md_create_particles_group(datafile, group_name);
     delete [] group_name;
-    dims[0] = domain->dimension;
-    dims[1] = count();
+    dims[0] = natoms;
+    dims[1] = domain->dimension;
     particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
-    h5md_create_box(&particles_data, dims[0], boundary, true, NULL);
+    h5md_create_box(&particles_data, dims[1], boundary, true, NULL);
   }
-
   for (int i=0; i<3; i++) {
     delete [] boundary[i];
   }

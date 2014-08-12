@@ -52,7 +52,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   bigint n = group->count(igroup);
   natoms = static_cast<int> (n);
 
-  memory->create(coords,3*natoms,"dump:coords");
+  memory->create(coords,domain->dimension*natoms,"dump:coords");
 
   openfile();
   ntotal = 0;
@@ -123,6 +123,7 @@ void DumpH5MD::pack(tagint *ids)
   imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int dim=domain->dimension;
 
   m = n = 0;
   if (unwrap_flag == 1) {
@@ -138,7 +139,7 @@ void DumpH5MD::pack(tagint *ids)
 
 	buf[m++] = (x[i][0] + ix * xprd);
 	buf[m++] = (x[i][1] + iy * yprd);
-	buf[m++] = (x[i][2] + iz * zprd);
+	if (dim>2) buf[m++] = (x[i][2] + iz * zprd);
         ids[n++] = tag[i];
       }
 
@@ -147,7 +148,7 @@ void DumpH5MD::pack(tagint *ids)
       if (mask[i] & groupbit) {
         buf[m++] = x[i][0];
         buf[m++] = x[i][1];
-        buf[m++] = x[i][2];
+        if (dim>2) buf[m++] = x[i][2];
         ids[n++] = tag[i];
       }
   }
@@ -161,10 +162,11 @@ void DumpH5MD::write_data(int n, double *mybuf)
 
   int m = 0;
   int k = 3*ntotal;
+  int dim = domain->dimension;
   for (int i = 0; i < n; i++) {
-    coords[k++] = mybuf[m++];
-    coords[k++] = mybuf[m++];
-    coords[k++] = mybuf[m++];
+    for (int j=0; j<dim; j++) {
+      coords[k++] = mybuf[m++];
+    }
     ntotal++;
   }
 

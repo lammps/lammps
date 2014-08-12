@@ -200,7 +200,7 @@ void DumpH5MD::write_frame()
   double local_time;
   double edges[3];
   local_step = update->ntimestep;
-  local_time = local_time * update->dt;
+  local_time = local_step * update->dt;
   h5md_append(particles_data.position, coords, local_step, local_time);
   edges[0] = boxxhi - boxxlo;
   edges[1] = boxyhi - boxylo;

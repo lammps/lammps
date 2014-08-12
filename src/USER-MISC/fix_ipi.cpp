@@ -34,10 +34,10 @@ using namespace FixConst;
 
 /******************************************************************************************
  * A fix to interface LAMMPS with i-PI - A Python interface for path integral molecular dynamics
- * Michele Ceriotti, EPFL (2014) 
+ * Michele Ceriotti, EPFL (2014)
  * Please cite:
- * Ceriotti, M., More, J., & Manolopoulos, D. E. (2014). 
- * i-PI: A Python interface for ab initio path integral molecular dynamics simulations. 
+ * Ceriotti, M., More, J., & Manolopoulos, D. E. (2014).
+ * i-PI: A Python interface for ab initio path integral molecular dynamics simulations.
  * Computer Physics Communications, 185, 1019–1026. doi:10.1016/j.cpc.2013.10.027
  * And see [http://github.com/i-pi/i-pi] to download a version of i-PI
  ******************************************************************************************/
@@ -55,114 +55,113 @@ using namespace FixConst;
 
 #define MSGLEN 12
 
-namespace sockets {
-/* These are a few utility functions to simplify the interface with the POSIX sockets library*/
+/* Utility functions to simplify the interface with POSIX sockets */
 
-void open_socket(int &sockfd, int inet, int port, char* host, Error *error)
+static void open_socket(int &sockfd, int inet, int port, char* host,
+                        Error *error)
 /* Opens a socket.
 
-Note that fortran passes an extra argument for the string length, but this is
-ignored here for C compatibility.
-
-Args:
+   Args:
    sockfd: The id of the socket that will be created.
    inet: An integer that determines whether the socket will be an inet or unix
-      domain socket. Gives unix if 0, inet otherwise.
+   domain socket. Gives unix if 0, inet otherwise.
    port: The port number for the socket to be created. Low numbers are often
-      reserved for important channels, so use of numbers of 4 or more digits is
-      recommended.
+   reserved for important channels, so use of numbers of 4 or more digits is
+   recommended.
    host: The name of the host server.
    error: pointer to a LAMMPS Error object
 */
-
 {
-   int ai_err;
-   
+  int ai_err;
+
 #ifdef _WIN32
-   error->one(FLERR,"i-PI socket implementation requires UNIX environment");
+  error->one(FLERR,"i-PI socket implementation requires UNIX environment");
 #else
-   if (inet>0)
-   {  // creates an internet socket
+  if (inet>0) {  // creates an internet socket
 
-      // fetches information on the host      
-      struct addrinfo hints, *res;  
-      char service[256];
-   
-      memset(&hints, 0, sizeof(hints));
-      hints.ai_socktype = SOCK_STREAM;
-      hints.ai_family = AF_UNSPEC;
-      hints.ai_flags = AI_PASSIVE;
+    // fetches information on the host
+    struct addrinfo hints, *res;
+    char service[256];
 
-      sprintf(service,"%d",port); // convert the port number to a string
-      ai_err = getaddrinfo(host, service, &hints, &res); 
-      if (ai_err!=0) error->one(FLERR,"Error fetching host data. Wrong host name?");
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_flags = AI_PASSIVE;
 
-      // creates socket
-      sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-      if (sockfd < 0) error->one(FLERR,"Error opening socket");
-    
-      // makes connection
-      if (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0) error->one(FLERR,"Error opening INET socket: wrong port or server unreachable"); 
-      freeaddrinfo(res);
-   }
-   else
-   {  // creates a unix socket
-      struct sockaddr_un serv_addr;    
+    sprintf(service,"%d",port); // convert the port number to a string
+    ai_err = getaddrinfo(host, service, &hints, &res);
+    if (ai_err!=0)
+      error->one(FLERR,"Error fetching host data. Wrong host name?");
 
-      // fills up details of the socket addres
-      memset(&serv_addr, 0, sizeof(serv_addr));
-      serv_addr.sun_family = AF_UNIX;
-      strcpy(serv_addr.sun_path, "/tmp/ipi_");
-      strcpy(serv_addr.sun_path+9, host);
-  
-      // creates the socket
-      sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    // creates socket
+    sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (sockfd < 0)
+      error->one(FLERR,"Error opening socket");
 
-      // connects
-      if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) error->one(FLERR,"Error opening UNIX socket: path unavailable, or already existing"); 
-   }
+    // makes connection
+    if (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0)
+      error->one(FLERR,"Error opening INET socket: wrong port or server unreachable");
+    freeaddrinfo(res);
+
+  } else {  // creates a unix socket
+    struct sockaddr_un serv_addr;
+
+    // fills up details of the socket addres
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sun_family = AF_UNIX;
+    strcpy(serv_addr.sun_path, "/tmp/ipi_");
+    strcpy(serv_addr.sun_path+9, host);
+
+    // creates the socket
+    sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+
+    // connects
+    if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+      error->one(FLERR,"Error opening UNIX socket: server may not be running "
+                 "or the path to the socket unavailable");
+  }
 #endif
 }
 
-void writebuffer(int sockfd, const char *data, int len, Error* error)
+static void writebuffer(int sockfd, const char *data, int len, Error* error)
 /* Writes to a socket.
 
-Args:
+   Args:
    sockfd: The id of the socket that will be written to.
    data: The data to be written to the socket.
    len: The length of the data in bytes.
 */
-
 {
-   int n;
+  int n;
 
-   n = write(sockfd,data,len);
-   if (n < 0) error->one(FLERR,"Error writing to socket: server has quit or connection broke");
+  n = write(sockfd,data,len);
+  if (n < 0)
+    error->one(FLERR,"Error writing to socket: broken connection");
 }
 
 
 
-void readbuffer(int sockfd, char *data, int len, Error* error)
+static void readbuffer(int sockfd, char *data, int len, Error* error)
 /* Reads from a socket.
 
-Args:
+   Args:
    sockfd: The id of the socket that will be read from.
    data: The storage array for data read from the socket.
    len: The length of the data in bytes.
 */
-
 {
-   int n, nr;
+  int n, nr;
 
-   n = nr = read(sockfd,data,len);
+  n = nr = read(sockfd,data,len);
 
-   while (nr>0 && n<len )
-   {  nr=read(sockfd,&data[n],len-n); n+=nr; }
+  while (nr>0 && n<len ) {
+    nr=read(sockfd,&data[n],len-n);
+    n+=nr;
+  }
 
-   if (n == 0) error->one(FLERR,"Error reading from socket: server has quit or connection broke");
+  if (n == 0)
+    error->one(FLERR,"Error reading from socket: broken connection");
 }
-
-}; // ends namespace socket
 
 /* ---------------------------------------------------------------------- */
 
@@ -171,22 +170,29 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
 {
   /* format for fix:
    *  fix  num  group_id ipi host port [unix]
-   */   
+   */
   if (strcmp(style,"ipi") != 0 && narg < 5)
     error->all(FLERR,"Illegal fix ipi command");
+
+  if (atom->tag_enable == 0)
+    error->all(FLERR,"Cannot use fix ipi without atom IDs");
+
+  if (atom->tag_consecutive() == 0)
+    error->all(FLERR,"Fix ipi requires consecutive atom IDs");
+
+  if (strcmp(arg[1],"all"))
+    error->warning(FLERR,"Fix ipi always uses group all");
 
   strcpy(host, arg[3]);
   port=force->inumeric(FLERR,arg[4]);
 
-  if (narg > 5 && strcmp(arg[5],"unix") ==0 ) inet=0; else inet=1;
-
-  if (comm->me==0) master=1; else master=0;
-
-  hasdata=0; bsize=0;
+  inet   = ((narg > 5) && (strcmp(arg[5],"unix") ==0) ) ? 0 : 1;
+  master = (comm->me==0) ? 1 : 0;
+  hasdata = bsize = 0;
 
   // creates a temperature compute for all atoms
   char** newarg = new char*[3];
-  newarg[0] = (char *) "ipi_temp";
+  newarg[0] = (char *) "IPI_TEMP";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "temp";
   modify->add_compute(3,newarg);
@@ -194,14 +200,24 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
 
   // creates a  pressure compute to extract the virial
   newarg = new char*[5];
-  newarg[0] = (char *) "ipi_press";
+  newarg[0] = (char *) "IPI_PRESS";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "pressure";
-  newarg[3] = (char *) "ipi_temp";
+  newarg[3] = (char *) "IPI_TEMP";
   newarg[4] = (char *) "virial";
   modify->add_compute(5,newarg);
   delete [] newarg;
 }
+
+/* ---------------------------------------------------------------------- */
+
+FixIPI::~FixIPI()
+{
+  if (bsize) delete[] buffer;
+  modify->delete_compute("IPI_TEMP");
+  modify->delete_compute("IPI_PRESS");
+}
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -217,8 +233,8 @@ int FixIPI::setmask()
 
 void FixIPI::init()
 {
-  //only opens socket on master process 
-  if (master) sockets::open_socket(ipisock, inet, port, host, error);
+  //only opens socket on master process
+  if (master) open_socket(ipisock, inet, port, host, error);
   else ipisock=0;
   //! should check for success in socket opening -- but the current open_socket routine dies brutally if unsuccessful
 
@@ -226,8 +242,7 @@ void FixIPI::init()
   modify->compute[modify->find_compute("thermo_pe")]->invoked_scalar = -1;
   modify->addstep_compute_all(update->ntimestep + 1);
 
-  if (force->kspace) kspace_flag = 1;
-  else kspace_flag = 0;
+  kspace_flag = (force->kspace) ? 1 : 0;
 
   // makes sure that neighbor lists are re-built at each step (cannot make assumptions when cycling over beads!)
   neighbor->delay = 0;
@@ -236,11 +251,12 @@ void FixIPI::init()
 
 void FixIPI::initial_integrate(int vflag)
 {
-  /* This is called at the beginning of the integration loop, and will be used to 
-   * read positions from the socket. Then, everything should be updated, since there
-   * is no guarantee that successive snapshots will be close together (think of parallel
-   * tempering for instance */
-   
+  /* This is called at the beginning of the integration loop,
+   * and will be used to read positions from the socket. Then,
+   * everything should be updated, since there is no guarantee
+   * that successive snapshots will be close together (think
+   * of parallel tempering for instance) */
+
   char header[MSGLEN+1];
 
   if (hasdata)
@@ -249,41 +265,52 @@ void FixIPI::initial_integrate(int vflag)
   double cellh[9], cellih[9];
   int nat;
   if (master)   { // only read positions on master
-    // waits until something happens 
-    while (true) {  // while i-PI just asks for status, signal we are ready and wait
-      sockets::readbuffer(ipisock, header, MSGLEN, error); header[MSGLEN]=0;
+
+    // wait until something happens
+    while (true) {
+      // while i-PI just asks for status, signal we are ready and wait
+      readbuffer(ipisock, header, MSGLEN, error); header[MSGLEN]=0;
 
       if (strcmp(header,"STATUS      ") == 0 )
-        sockets::writebuffer(ipisock,"READY       ",MSGLEN, error);
+        writebuffer(ipisock,"READY       ",MSGLEN, error);
       else break;
     }
-    
-    // when i-PI signals it has positions to evaluate new forces, read positions and cell data
-    if (strcmp(header,"POSDATA     ") == 0 )  {
-      sockets::readbuffer(ipisock, (char*) cellh, 9*8, error);
-      sockets::readbuffer(ipisock, (char*) cellih, 9*8, error);
-      sockets::readbuffer(ipisock, (char*) &nat, 4, error);
 
-      if (bsize==0) { bsize=3*nat; buffer = new double[bsize]; }
-      else if (bsize!=3*nat)
+    if (strcmp(header,"EXIT        ") == 0 )
+      error->one(FLERR, "Got EXIT message from i-PI. Now leaving!");
+
+    // when i-PI signals it has positions to evaluate new forces,
+    // read positions and cell data
+    if (strcmp(header,"POSDATA     ") == 0 )  {
+      readbuffer(ipisock, (char*) cellh, 9*8, error);
+      readbuffer(ipisock, (char*) cellih, 9*8, error);
+      readbuffer(ipisock, (char*) &nat, 4, error);
+
+      // allocate buffer, but only do this once.
+      if (bsize==0) {
+        bsize=3*nat;
+        buffer = new double[bsize];
+      } else if (bsize != 3*nat)
         error->one(FLERR, "Number of atoms changed along the way.");
 
-      sockets::readbuffer(ipisock, (char*) buffer, 8*bsize, error);
-    }
-    else error->one(FLERR, "Wrapper did not send positions, I will now die!");
-
+      // finally read position data into buffer
+      readbuffer(ipisock, (char*) buffer, 8*bsize, error);
+    } else
+      error->one(FLERR, "Wrapper did not send positions, I will now die!");
   }
 
-  //shares the atomic coordinates with everyone
+  // shares the atomic coordinates with everyone
   MPI_Bcast(&nat,1,MPI_INT,0,world);
-  //must also allocate the buffer on the non-head nodes
-  if (bsize==0) { bsize=3*nat; buffer = new double[bsize]; }
+  // must also allocate the buffer on the non-head nodes
+  if (bsize==0) {
+    bsize=3*nat;
+    buffer = new double[bsize];
+  }
   MPI_Bcast(cellh,9,MPI_DOUBLE,0,world);
   MPI_Bcast(cellih,9,MPI_DOUBLE,0,world);
   MPI_Bcast(buffer,bsize,MPI_DOUBLE,0,world);
 
-
-  //updates atomic coordinates and cell based on the data received  
+  //updates atomic coordinates and cell based on the data received
   double *boxhi = domain->boxhi;
   double *boxlo = domain->boxlo;
   double posconv;
@@ -297,23 +324,23 @@ void FixIPI::initial_integrate(int vflag)
   domain->xy = cellh[1]*posconv;
   domain->xz = cellh[2]*posconv;
   domain->yz = cellh[5]*posconv;
-  
+
   // signal that the box has (or may have) changed
   domain->reset_box();
   domain->box_change = 1;
-  if (kspace_flag) force->kspace->setup(); 
-  
+  if (kspace_flag) force->kspace->setup();
+
   // picks local atoms from the buffer
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
   for (int i = 0; i < nlocal; i++) {
-     if (mask[i] & groupbit) {
-       x[i][0]=buffer[3*(atom->tag[i]-1)+0]*posconv;
-       x[i][1]=buffer[3*(atom->tag[i]-1)+1]*posconv;
-       x[i][2]=buffer[3*(atom->tag[i]-1)+2]*posconv;
-     }
+    if (mask[i] & groupbit) {
+      x[i][0]=buffer[3*(atom->tag[i]-1)+0]*posconv;
+      x[i][1]=buffer[3*(atom->tag[i]-1)+1]*posconv;
+      x[i][2]=buffer[3*(atom->tag[i]-1)+2]*posconv;
+    }
   }
 
   // compute PE. makes sure that it will be evaluated at next step
@@ -325,49 +352,50 @@ void FixIPI::initial_integrate(int vflag)
 
 void FixIPI::final_integrate()
 {
-  /* This is called after forces and energy have been computed. Now we only need to 
+  /* This is called after forces and energy have been computed. Now we only need to
    * communicate them back to i-PI so that the integration can continue. */
-  char header[MSGLEN+1]; 
+  char header[MSGLEN+1];
   double vir[9], pot=0.0;
   double forceconv, potconv, posconv, pressconv, posconv3;
   char retstr[1024];
-  
+
   // conversions from LAMMPS units to atomic units, which are used by i-PI
   potconv=3.1668152e-06/force->boltz;
   posconv=0.52917721*force->angstrom;
   posconv3=posconv*posconv*posconv;
   forceconv=potconv*posconv;
   pressconv=1/force->nktv2p*potconv*posconv3;
-    
+
   // compute for potential energy
   pot=modify->compute[modify->find_compute("thermo_pe")]->compute_scalar();
   pot*=potconv;
-  
+
   // probably useless check
   if (!hasdata)
     error->all(FLERR, "i-PI got out of sync in final_integrate and will die!");
 
   int nat=bsize/3;
-  double **f= atom->f, lbuf[bsize];
+  double **f= atom->f;
+  double lbuf[bsize];
 
   // reassembles the force vector from the local arrays
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
   for (int i = 0; i < bsize; ++i) lbuf[i]=0.0;
-  for (int i = 0; i < nlocal; i++) {        // do these also contain ghost atoms???
-     lbuf[3*(atom->tag[i]-1)+0]=f[i][0]*forceconv;  
-     lbuf[3*(atom->tag[i]-1)+1]=f[i][1]*forceconv;
-     lbuf[3*(atom->tag[i]-1)+2]=f[i][2]*forceconv;
+  for (int i = 0; i < nlocal; i++) {
+    lbuf[3*(atom->tag[i]-1)+0]=f[i][0]*forceconv;
+    lbuf[3*(atom->tag[i]-1)+1]=f[i][1]*forceconv;
+    lbuf[3*(atom->tag[i]-1)+2]=f[i][2]*forceconv;
   }
   MPI_Allreduce(lbuf,buffer,bsize,MPI_DOUBLE,MPI_SUM,world);
 
   for (int i = 0; i < 9; ++i) vir[i]=0.0;
-  //Need the following lines in the input:
-  int press_id = modify->find_compute("ipi_press");
+
+  int press_id = modify->find_compute("IPI_PRESS");
   Compute* comp_p = modify->compute[press_id];
   comp_p->compute_vector();
   double myvol = domain->xprd*domain->yprd*domain->zprd/posconv3;
-  
+
   vir[0] = comp_p->vector[0]*pressconv*myvol;
   vir[4] = comp_p->vector[1]*pressconv*myvol;
   vir[8] = comp_p->vector[2]*pressconv*myvol;
@@ -378,22 +406,25 @@ void FixIPI::final_integrate()
 
   if (master) {
     while (true) {
-      sockets::readbuffer(ipisock, header, MSGLEN, error); header[MSGLEN]=0;
+      readbuffer(ipisock, header, MSGLEN, error); header[MSGLEN]=0;
 
       if (strcmp(header,"STATUS      ") == 0 )
-        sockets::writebuffer(ipisock,"HAVEDATA    ",MSGLEN, error);
+        writebuffer(ipisock,"HAVEDATA    ",MSGLEN, error);
       else break;
     }
 
+    if (strcmp(header,"EXIT        ") == 0 )
+      error->one(FLERR, "Got EXIT message from i-PI. Now leaving!");
+
     if (strcmp(header,"GETFORCE    ") == 0 )  {
 
-      sockets::writebuffer(ipisock,"FORCEREADY  ",MSGLEN, error);
-      sockets::writebuffer(ipisock,(char*) &pot,8, error);
-      sockets::writebuffer(ipisock,(char*) &nat,4, error);
-      sockets::writebuffer(ipisock,(char*) buffer, bsize*8, error);
-      sockets::writebuffer(ipisock,(char*) vir,9*8, error);
-      nat=strlen(retstr);  sockets::writebuffer(ipisock,(char*) &nat,4, error);
-      sockets::writebuffer(ipisock,(char*) retstr, nat, error);
+      writebuffer(ipisock,"FORCEREADY  ",MSGLEN, error);
+      writebuffer(ipisock,(char*) &pot,8, error);
+      writebuffer(ipisock,(char*) &nat,4, error);
+      writebuffer(ipisock,(char*) buffer, bsize*8, error);
+      writebuffer(ipisock,(char*) vir,9*8, error);
+      nat=strlen(retstr);  writebuffer(ipisock,(char*) &nat,4, error);
+      writebuffer(ipisock,(char*) retstr, nat, error);
     }
     else
       error->one(FLERR, "Wrapper did not ask for forces, I will now die!");

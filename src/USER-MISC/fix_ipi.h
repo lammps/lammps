@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixIPI : public Fix {
  public:
   FixIPI(class LAMMPS *, int, char **);
-  virtual ~FixIPI() {}
+  virtual ~FixIPI();
   int setmask();
   virtual void init();
   virtual void initial_integrate(int);

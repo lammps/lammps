@@ -1,4 +1,4 @@
-<simulation>
+<simulation verbosity="medium">
    <initialize nbeads='8'>
       <file mode='xyz' units="angstrom"> i-pi_positions.xyz  </file>
       <cell mode='manual' units="angstrom"> [ 51.8,0,0,0, 49.84,0,0,0, 200 ] </cell> 

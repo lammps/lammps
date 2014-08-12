@@ -13,20 +13,20 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>delete_bonds group-ID style args keyword ... 
+<PRE>delete_bonds group-ID style arg keyword ... 
 </PRE>
 <UL><LI>group-ID = group ID 
 
 <LI>style = <I>multi</I> or <I>atom</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or
         <I>improper</I> or <I>stats</I> 
 
-<PRE>  <I>multi</I> args = none
-  <I>atom</I> args = an atom type
-  <I>bond</I> args = a bond type
-  <I>angle</I> args = an angle type
-  <I>dihedral</I> args = a dihedral type
-  <I>improper</I> args = an improper type
-  <I>stats</I> args = none 
+<PRE>  <I>multi</I> arg = none
+  <I>atom</I> arg = an atom type or range of types (see below)
+  <I>bond</I> arg = a bond type or range of types (see below)
+  <I>angle</I> arg = an angle type or range of types (see below)
+  <I>dihedral</I> arg = a dihedral type or range of types (see below)
+  <I>improper</I> arg = an improper type or range of types (see below)
+  <I>stats</I> arg = none 
 </PRE>
 <LI>zero or more keywords may be appended 
 
@@ -38,6 +38,7 @@
 </P>
 <PRE>delete_bonds frozen multi remove
 delete_bonds all atom 4 special
+delete_bonds all bond 0*3 special
 delete_bonds all stats 
 </PRE>
 <P><B>Description:</B>
@@ -54,6 +55,20 @@ bond and angle interactions.
 <P>For all styles, by default, an interaction is only turned off (or on)
 if all the atoms involved are in the specified group.  See the <I>any</I>
 keyword to change the behavior.
+</P>
+<P>Several of the styles (<I>atom</I>, <I>bond</I>, <I>angle</I>, <I>dihedral</I>,
+<I>improper</I>) take a <I>type</I> as an argument.  The specified <I>type</I> should
+be an integer from 0 to N, where N is the number of relevant types
+(atom types, bond types, etc).  A value of 0 is only relevant for
+style <I>bond</I>; see details below.  In all cases, a wildcard asterisk
+can be used in place of or in conjunction with the <I>type</I> argument to
+specify a range of types.  This takes the form "*" or "*n" or "n*" or
+"m*n".  If N = the number of types, then an asterisk with no numeric
+values means all types from 0 to N.  A leading asterisk means all
+types from 0 to n (inclusive).  A trailing asterisk means all types
+from n to N (inclusive).  A middle asterisk means all types from m to
+n (inclusive).  Note that it is fine to include a type of 0 for
+non-bond styles; it will simply be ignored.
 </P>
 <P>For style <I>multi</I> all bond, angle, dihedral, and improper interactions
 of any type, involving atoms in the group, are turned off.
@@ -97,10 +112,11 @@ keyword is used).
 </P>
 <P>The <I>undo</I> keyword inverts the delete_bonds command so that the
 specified bonds, angles, etc are turned on if they are currently
-turned off.  This means a negative value is toggled to positive.
-Note that the <A HREF = "fix_shake.html">fix shake</A> command also sets bond and
-angle types negative, so this option should not be used on those
-interactions.
+turned off.  This means a negative value is toggled to positive.  For
+example, for style <I>angle</I>, if <I>type</I> is specified as 2, then all
+angles with current type = -2, are reset to type = 2.  Note that the
+<A HREF = "fix_shake.html">fix shake</A> command also sets bond and angle types
+negative, so this option should not be used on those interactions.
 </P>
 <P>The <I>remove</I> keyword is invoked at the end of the delete_bonds
 operation.  It causes turned-off bonds (angles, etc) to be removed

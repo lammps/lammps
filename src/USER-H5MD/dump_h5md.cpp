@@ -101,7 +101,7 @@ void DumpH5MD::openfile()
   }
 
   for (int i=0; i<3; i++) {
-    free [] boundary[i];
+    delete [] boundary[i];
   }
 
 }

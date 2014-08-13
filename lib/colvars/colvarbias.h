@@ -82,9 +82,9 @@ protected:
 };
 
 
-/// \brief Harmonic restraint, optionally moving towards a target
+/// \brief Bias restraint, optionally moving towards a target
 /// (implementation of \link colvarbias \endlink)
-class colvarbias_harmonic : public colvarbias {
+class colvarbias_restraint : public colvarbias {
 
 public:
 
@@ -110,13 +110,22 @@ public:
   virtual std::ostream & write_traj (std::ostream &os);
 
   /// \brief Constructor
-  colvarbias_harmonic (std::string const &conf, char const *key);
+  colvarbias_restraint (std::string const &conf, char const *key);
 
   /// Destructor
-  virtual ~colvarbias_harmonic();
+  virtual ~colvarbias_restraint();
 
 
 protected:
+
+  /// \brief Potential function
+  virtual cvm::real restraint_potential(cvm::real k, colvar* x, const colvarvalue& xcenter) const = 0;
+
+  /// \brief Force function
+  virtual colvarvalue restraint_force(cvm::real k, colvar* x, const colvarvalue& xcenter) const = 0;
+
+  ///\brief Unit scaling
+  virtual cvm::real restraint_convert_k(cvm::real k, cvm::real dist_measure) const = 0;
 
   /// \brief Restraint centers
   std::vector<colvarvalue> colvar_centers;
@@ -142,7 +151,6 @@ protected:
 
   /// \brief Accumulated work
   cvm::real acc_work;
-
 
   /// \brief Restraint force constant
   cvm::real force_k;
@@ -180,6 +188,42 @@ protected:
   /// \brief Number of steps required to reach the target force constant
   /// or restraint centers
   size_t target_nsteps;
+};
+
+/// \brief Harmonic bias restraint
+/// (implementation of \link colvarbias_restraint \endlink)
+class colvarbias_restraint_harmonic : public colvarbias_restraint {
+
+public:
+  colvarbias_restraint_harmonic(std::string const &conf, char const *key);
+
+protected: /// \brief Potential function
+  virtual cvm::real restraint_potential(cvm::real k,  colvar*  x, const colvarvalue& xcenter) const;
+
+  /// \brief Force function
+  virtual colvarvalue restraint_force(cvm::real k,  colvar* x,  const colvarvalue& xcenter) const;
+
+  ///\brief Unit scaling
+  virtual cvm::real restraint_convert_k(cvm::real k, cvm::real dist_measure) const;
+
+};
+
+/// \brief Linear bias restraint
+/// (implementation of \link colvarbias_restraint \endlink)
+class colvarbias_restraint_linear : public colvarbias_restraint {
+
+public:
+  colvarbias_restraint_linear(std::string const &conf, char const *key);
+
+protected: /// \brief Potential function
+  virtual cvm::real restraint_potential(cvm::real k,  colvar*  x, const colvarvalue& xcenter) const;
+
+  /// \brief Force function
+  virtual colvarvalue restraint_force(cvm::real k,  colvar* x,  const colvarvalue& xcenter) const;
+
+  ///\brief Unit scaling
+  virtual cvm::real restraint_convert_k(cvm::real k, cvm::real dist_measure) const;
+
 };
 
 

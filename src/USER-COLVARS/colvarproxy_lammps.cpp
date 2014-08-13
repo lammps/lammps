@@ -1,3 +1,4 @@
+
 #include "mpi.h"
 #include "lammps.h"
 #include "atom.h"

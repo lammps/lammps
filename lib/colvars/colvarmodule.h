@@ -2,7 +2,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2014-05-08"
+#define COLVARS_VERSION "2014-08-13"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -142,9 +142,9 @@ public:
   /// \brief Number of metadynamics biases initialized (in normal
   /// conditions should be 1)
   static size_t n_meta_biases;
-  /// \brief Number of harmonic biases initialized (no limit on the
+  /// \brief Number of restraint biases initialized (no limit on the
   /// number)
-  static size_t n_harm_biases;
+  static size_t n_rest_biases;
   /// \brief Number of histograms initialized (no limit on the
   /// number)
   static size_t n_histo_biases;

@@ -14,8 +14,9 @@ colvarbias::colvarbias (std::string const &conf, char const *key)
   if (to_lower_cppstr (key_str) == std::string ("abf")) {
     rank = cvm::n_abf_biases+1;
   }
-  if (to_lower_cppstr (key_str) == std::string ("harmonic")) {
-    rank = cvm::n_harm_biases+1;
+  if (to_lower_cppstr (key_str) == std::string ("harmonic") ||
+      to_lower_cppstr (key_str) == std::string ("linear")) {
+    rank = cvm::n_rest_biases+1;
   }
   if (to_lower_cppstr (key_str) == std::string ("histogram")) {
     rank = cvm::n_histo_biases+1;
@@ -118,20 +119,13 @@ std::ostream & colvarbias::write_traj (std::ostream &os)
 
 
 
-colvarbias_harmonic::colvarbias_harmonic (std::string const &conf,
+colvarbias_restraint::colvarbias_restraint (std::string const &conf,
                                           char const *key)
   : colvarbias (conf, key),
     target_nstages (0),
     target_nsteps (0)
 {
   get_keyval (conf, "forceConstant", force_k, 1.0);
-  for (size_t i = 0; i < colvars.size(); i++) {
-    if (colvars[i]->width != 1.0)
-      cvm::log ("The force constant for colvar \""+colvars[i]->name+
-                "\" will be rescaled to "+
-                cvm::to_str (force_k/(colvars[i]->width*colvars[i]->width))+
-                " according to the specified width.\n");
-  }
 
   // get the initial restraint centers
   colvar_centers.resize (colvars.size());
@@ -151,7 +145,7 @@ colvarbias_harmonic::colvarbias_harmonic (std::string const &conf,
   }
 
   if (colvar_centers.size() != colvars.size())
-    cvm::fatal_error ("Error: number of harmonic centers does not match "
+    cvm::fatal_error ("Error: number of centers does not match "
                       "that of collective variables.\n");
 
   if (get_keyval (conf, "targetCenters", target_centers, colvar_centers)) {
@@ -211,17 +205,17 @@ colvarbias_harmonic::colvarbias_harmonic (std::string const &conf,
   acc_work = 0.0;
 
   if (cvm::debug())
-    cvm::log ("Done initializing a new harmonic restraint bias.\n");
+    cvm::log ("Done initializing a new restraint bias.\n");
 }
 
-colvarbias_harmonic::~colvarbias_harmonic ()
+colvarbias_restraint::~colvarbias_restraint ()
 {
-  if (cvm::n_harm_biases > 0)
-    cvm::n_harm_biases -= 1;
+  if (cvm::n_rest_biases > 0)
+    cvm::n_rest_biases -= 1;
 }
 
 
-void colvarbias_harmonic::change_configuration (std::string const &conf)
+void colvarbias_restraint::change_configuration (std::string const &conf)
 {
   get_keyval (conf, "forceConstant", force_k, force_k);
   if (get_keyval (conf, "centers", colvar_centers, colvar_centers)) {
@@ -233,7 +227,7 @@ void colvarbias_harmonic::change_configuration (std::string const &conf)
 }
 
 
-cvm::real colvarbias_harmonic::energy_difference (std::string const &conf)
+cvm::real colvarbias_restraint::energy_difference (std::string const &conf)
 {
   std::vector<colvarvalue> alt_colvar_centers;
   cvm::real alt_force_k;
@@ -252,20 +246,21 @@ cvm::real colvarbias_harmonic::energy_difference (std::string const &conf)
   }
 
   for (size_t i = 0; i < colvars.size(); i++) {
-    alt_bias_energy += 0.5 * alt_force_k / (colvars[i]->width * colvars[i]->width) *
-      colvars[i]->dist2 (colvars[i]->value(), alt_colvar_centers[i]);
+    alt_bias_energy += restraint_potential(restraint_convert_k(alt_force_k, colvars[i]->width),
+					   colvars[i],
+					   alt_colvar_centers[i]);
   }
 
   return alt_bias_energy - bias_energy;
 }
 
 
-cvm::real colvarbias_harmonic::update()
+cvm::real colvarbias_restraint::update()
 {
   bias_energy = 0.0;
 
   if (cvm::debug())
-    cvm::log ("Updating the harmonic bias \""+this->name+"\".\n");
+    cvm::log ("Updating the restraint bias \""+this->name+"\".\n");
 
   // Setup first stage of staged variable force constant calculation
   if (b_chg_force_k && target_nstages && cvm::step_absolute() == 0) {
@@ -277,7 +272,7 @@ cvm::real colvarbias_harmonic::update()
     }
     force_k = starting_force_k + (target_force_k - starting_force_k)
               * std::pow (lambda, force_k_exp);
-    cvm::log ("Harmonic restraint " + this->name + ", stage " +
+    cvm::log ("Restraint " + this->name + ", stage " +
         cvm::to_str(stage) + " : lambda = " + cvm::to_str(lambda));
     cvm::log ("Setting force constant to " + cvm::to_str (force_k));
   }
@@ -297,7 +292,7 @@ cvm::real colvarbias_harmonic::update()
                                       (target_nsteps - cvm::step_absolute()));
       }
       if (cvm::debug())
-        cvm::log ("Center increment for the harmonic bias \""+
+        cvm::log ("Center increment for the restraint bias \""+
                   this->name+"\": "+cvm::to_str (centers_incr)+" at stage "+cvm::to_str (stage)+ ".\n");
 
     }
@@ -330,7 +325,7 @@ cvm::real colvarbias_harmonic::update()
     }
 
     if (cvm::debug())
-      cvm::log ("Current centers for the harmonic bias \""+
+      cvm::log ("Current centers for the restraint bias \""+
                 this->name+"\": "+cvm::to_str (colvar_centers)+".\n");
   }
 
@@ -380,7 +375,7 @@ cvm::real colvarbias_harmonic::update()
           }
           force_k = starting_force_k + (target_force_k - starting_force_k)
                     * std::pow (lambda, force_k_exp);
-          cvm::log ("Harmonic restraint " + this->name + ", stage " +
+          cvm::log ("Restraint " + this->name + ", stage " +
               cvm::to_str(stage) + " : lambda = " + cvm::to_str(lambda));
           cvm::log ("Setting force constant to " + cvm::to_str (force_k));
         }
@@ -394,21 +389,16 @@ cvm::real colvarbias_harmonic::update()
   }
 
   if (cvm::debug())
-    cvm::log ("Done updating the harmonic bias \""+this->name+"\".\n");
+    cvm::log ("Done updating the restraint bias \""+this->name+"\".\n");
 
   // Force and energy calculation
   for (size_t i = 0; i < colvars.size(); i++) {
-    colvar_forces[i] =
-      (-0.5) * force_k /
-      (colvars[i]->width * colvars[i]->width) *
-      colvars[i]->dist2_lgrad (colvars[i]->value(),
-                               colvar_centers[i]);
-    bias_energy += 0.5 * force_k / (colvars[i]->width * colvars[i]->width) *
-              colvars[i]->dist2(colvars[i]->value(), colvar_centers[i]);
-    if (cvm::debug())
-      cvm::log ("dist_grad["+cvm::to_str (i)+
-                "] = "+cvm::to_str (colvars[i]->dist2_lgrad (colvars[i]->value(),
-                               colvar_centers[i]))+"\n");
+    colvar_forces[i] = -restraint_force(restraint_convert_k(force_k, colvars[i]->width),
+					colvars[i],
+					colvar_centers[i]);
+    bias_energy += restraint_potential(restraint_convert_k(force_k, colvars[i]->width),
+				       colvars[i],
+				       colvar_centers[i]);
   }
 
   if (b_output_acc_work) {
@@ -421,26 +411,26 @@ cvm::real colvarbias_harmonic::update()
   }
 
   if (cvm::debug())
-    cvm::log ("Current forces for the harmonic bias \""+
+    cvm::log ("Current forces for the restraint bias \""+
               this->name+"\": "+cvm::to_str (colvar_forces)+".\n");
 
   return bias_energy;
 }
 
 
-std::istream & colvarbias_harmonic::read_restart (std::istream &is)
+std::istream & colvarbias_restraint::read_restart (std::istream &is)
 {
   size_t const start_pos = is.tellg();
 
-  cvm::log ("Restarting harmonic bias \""+
+  cvm::log ("Restarting restraint bias \""+
             this->name+"\".\n");
 
   std::string key, brace, conf;
-  if ( !(is >> key)   || !(key == "harmonic") ||
+  if ( !(is >> key)   || !(key == "restraint" || key == "harmonic") ||
        !(is >> brace) || !(brace == "{") ||
        !(is >> colvarparse::read_block ("configuration", conf)) ) {
 
-    cvm::log ("Error: in reading restart configuration for harmonic bias \""+
+    cvm::log ("Error: in reading restart configuration for restraint bias \""+
               this->name+"\" at position "+
               cvm::to_str (is.tellg())+" in stream.\n");
     is.clear();
@@ -456,10 +446,10 @@ std::istream & colvarbias_harmonic::read_restart (std::istream &is)
   if ( (colvarparse::get_keyval (conf, "name", name, std::string (""), colvarparse::parse_silent)) &&
        (name != this->name) )
     cvm::fatal_error ("Error: in the restart file, the "
-                      "\"harmonic\" block has a wrong name\n");
+                      "\"restraint\" block has a wrong name\n");
 //   if ( (id == -1) && (name == "") ) {
   if (name.size() == 0) {
-    cvm::fatal_error ("Error: \"harmonic\" block in the restart file "
+    cvm::fatal_error ("Error: \"restraint\" block in the restart file "
                       "has no identifiers.\n");
   }
 
@@ -490,7 +480,7 @@ std::istream & colvarbias_harmonic::read_restart (std::istream &is)
 
   is >> brace;
   if (brace != "}") {
-    cvm::fatal_error ("Error: corrupt restart information for harmonic bias \""+
+    cvm::fatal_error ("Error: corrupt restart information for restraint bias \""+
                       this->name+"\": no matching brace at position "+
                       cvm::to_str (is.tellg())+" in the restart file.\n");
     is.setstate (std::ios::failbit);
@@ -499,9 +489,9 @@ std::istream & colvarbias_harmonic::read_restart (std::istream &is)
 }
 
 
-std::ostream & colvarbias_harmonic::write_restart (std::ostream &os)
+std::ostream & colvarbias_restraint::write_restart (std::ostream &os)
 {
-  os << "harmonic {\n"
+  os << "restraint {\n"
      << "  configuration {\n"
     //      << "    id " << this->id << "\n"
      << "    name " << this->name << "\n";
@@ -541,7 +531,7 @@ std::ostream & colvarbias_harmonic::write_restart (std::ostream &os)
 }
 
 
-std::ostream & colvarbias_harmonic::write_traj_label (std::ostream &os)
+std::ostream & colvarbias_restraint::write_traj_label (std::ostream &os)
 {
   os << " ";
 
@@ -564,7 +554,7 @@ std::ostream & colvarbias_harmonic::write_traj_label (std::ostream &os)
 }
 
 
-std::ostream & colvarbias_harmonic::write_traj (std::ostream &os)
+std::ostream & colvarbias_restraint::write_traj (std::ostream &os)
 {
   os << " ";
 
@@ -588,3 +578,55 @@ std::ostream & colvarbias_harmonic::write_traj (std::ostream &os)
   return os;
 }
 
+colvarbias_restraint_harmonic::colvarbias_restraint_harmonic(std::string const &conf, char const *key) :
+  colvarbias_restraint(conf, key) {
+  for (size_t i = 0; i < colvars.size(); i++) {
+    if (colvars[i]->width != 1.0)
+      cvm::log ("The force constant for colvar \""+colvars[i]->name+
+                "\" will be rescaled to "+
+                cvm::to_str (restraint_convert_k(force_k, colvars[i]->width))+
+                " according to the specified width.\n");
+  }
+}
+
+cvm::real colvarbias_restraint_harmonic::restraint_potential(cvm::real k,  colvar* x,  const colvarvalue &xcenter) const
+{
+  return 0.5 * k * x->dist2(x->value(), xcenter);
+}
+
+colvarvalue colvarbias_restraint_harmonic::restraint_force(cvm::real k,  colvar* x,  const colvarvalue &xcenter) const
+{
+  return 0.5 * k * x->dist2_lgrad(x->value(), xcenter);
+}
+
+cvm::real colvarbias_restraint_harmonic::restraint_convert_k(cvm::real k, cvm::real dist_measure) const
+{
+  return k / (dist_measure * dist_measure);
+}
+
+
+colvarbias_restraint_linear::colvarbias_restraint_linear(std::string const &conf, char const *key) :
+  colvarbias_restraint(conf, key) {
+  for (size_t i = 0; i < colvars.size(); i++) {
+    if (colvars[i]->width != 1.0)
+      cvm::log ("The force constant for colvar \""+colvars[i]->name+
+                "\" will be rescaled to "+
+                cvm::to_str (restraint_convert_k(force_k, colvars[i]->width))+
+                " according to the specified width.\n");
+  }
+}
+
+cvm::real colvarbias_restraint_linear::restraint_potential(cvm::real k,  colvar* x,  const colvarvalue &xcenter) const
+{
+  return k * (x->value() - xcenter);
+}
+
+colvarvalue colvarbias_restraint_linear::restraint_force(cvm::real k,  colvar* x,  const colvarvalue &xcenter) const
+{
+  return k;
+}
+
+cvm::real colvarbias_restraint_linear::restraint_convert_k(cvm::real k, cvm::real dist_measure) const
+{
+  return k / dist_measure;
+}

@@ -601,7 +601,7 @@ protected:
   std::vector<cvm::atom_pos>  ref_pos;
 
   /// Geometric center of the reference coordinates
-  cvm::atom_pos               ref_pos_center;
+  cvm::atom_pos                ref_pos_center;
 
   /// Eigenvector (of a normal or essential mode): will always have zero center
   std::vector<cvm::rvector>   eigenvec;

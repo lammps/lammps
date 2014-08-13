@@ -84,7 +84,11 @@ void DumpH5MD::openfile()
   char *boundary[3];
   for (int i=0; i<3; i++) {
     boundary[i] = new char[9];
-    strcpy(boundary[i], "periodic");
+    if (domain->periodicity[i]==1) {
+      strcpy(boundary[i], "periodic");
+    } else {
+      strcpy(boundary[i], "none");
+    }
   }
 
   if (me == 0) {

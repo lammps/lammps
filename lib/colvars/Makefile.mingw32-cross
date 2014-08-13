@@ -20,7 +20,7 @@ SHELL =		/bin/sh
 SRC = colvaratoms.cpp colvarbias_abf.cpp colvarbias.cpp colvarbias_meta.cpp \
  colvar.cpp colvarcomp_angles.cpp colvarcomp.cpp colvarcomp_coordnums.cpp   \
  colvarcomp_distances.cpp colvarcomp_protein.cpp colvarcomp_rotations.cpp   \
- colvargrid.cpp colvarmodule.cpp colvarparse.cpp colvarvalue.cpp
+ colvargrid.cpp colvarmodule.cpp colvarparse.cpp colvarvalue.cpp colvarbias_alb.cpp
 
 DIR = Obj_mingw32/
 LIB = $(DIR)libcolvars.a
@@ -68,6 +68,9 @@ $(DIR)colvaratoms.o: colvaratoms.cpp colvarmodule.h colvartypes.h colvarproxy.h 
 $(DIR)colvarbias_abf.o: colvarbias_abf.cpp colvarmodule.h colvartypes.h \
  colvarproxy.h colvar.h colvarvalue.h colvarparse.h colvarbias_abf.h \
  colvarbias.h colvargrid.h
+$(DIR)colvarbias_alb.o: colvarbias_alb.cpp colvarmodule.h colvartypes.h \
+ colvar.h colvarvalue.h colvarparse.h colvarbias_alb.h \
+ colvarbias.h
 $(DIR)colvarbias.o: colvarbias.cpp colvarmodule.h colvartypes.h colvarproxy.h \
  colvarvalue.h colvarbias.h colvar.h colvarparse.h
 $(DIR)colvarbias_meta.o: colvarbias_meta.cpp colvar.h colvarmodule.h \
@@ -97,7 +100,7 @@ $(DIR)colvargrid.o: colvargrid.cpp colvarmodule.h colvartypes.h colvarproxy.h \
  colvargrid.h
 $(DIR)colvarmodule.o: colvarmodule.cpp colvarmodule.h colvartypes.h colvarproxy.h \
  colvarparse.h colvarvalue.h colvar.h colvarbias.h colvarbias_meta.h \
- colvargrid.h colvarbias_abf.h
+ colvargrid.h colvarbias_abf.h colvarbias_alb.h
 $(DIR)colvarparse.o: colvarparse.cpp colvarmodule.h colvartypes.h colvarproxy.h \
  colvarvalue.h colvarparse.h
 $(DIR)colvarvalue.o: colvarvalue.cpp colvarmodule.h colvartypes.h colvarproxy.h \

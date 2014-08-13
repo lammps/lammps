@@ -25,6 +25,8 @@
 #include "special.h"
 #include "error.h"
 
+#include <stdlib.h>
+
 using namespace LAMMPS_NS;
 
 enum{MULTI,ATOM,BOND,ANGLE,DIHEDRAL,IMPROPER,STATS};
@@ -80,7 +82,6 @@ void DeleteBonds::command(int narg, char **arg)
   int *tlist = NULL;
 
   int iarg = 2;
-  int which;
   if (style != MULTI && style != STATS) {
     if (narg < 3) error->all(FLERR,"Illegal delete_bonds command");
 
@@ -167,7 +168,7 @@ void DeleteBonds::command(int narg, char **arg)
           else if (style == ATOM) {
             if (tlist[type[i]] || tlist[type[atom1]]) flag = 1;
           } else if (style == BOND) {
-            itype = static_cast<int> (fabs(bond_type[i][m]));
+            itype = abs(bond_type[i][m]);
             if (tlist[itype]) flag = 1;
           }
           if (flag) {
@@ -205,7 +206,7 @@ void DeleteBonds::command(int narg, char **arg)
             if (tlist[type[atom1]] || tlist[type[atom2]] ||
                 tlist[type[atom3]]) flag = 1;
           } else if (style == ANGLE) {
-            itype = static_cast<int> (fabs(angle_type[i][m]));
+            itype = abs(angle_type[i][m]);
             if (tlist[itype]) flag = 1;
           }
           if (flag) {
@@ -245,7 +246,7 @@ void DeleteBonds::command(int narg, char **arg)
               if (tlist[type[atom1]] || tlist[type[atom2]] ||
                   tlist[type[atom3]] || tlist[type[atom4]]) flag = 1;
           } else if (style == DIHEDRAL) {
-            itype = static_cast<int> (fabs(dihedral_type[i][m]));
+            itype = abs(dihedral_type[i][m]);
             if (tlist[itype]) flag = 1;
           }
           if (flag) {
@@ -285,7 +286,7 @@ void DeleteBonds::command(int narg, char **arg)
               if (tlist[type[atom1]] || tlist[type[atom2]] ||
                   tlist[type[atom3]] || tlist[type[atom4]]) flag = 1;
           } else if (style == IMPROPER) {
-            itype = static_cast<int> (fabs(improper_type[i][m]));
+            itype = abs(improper_type[i][m]);
             if (tlist[itype]) flag = 1;
           }
           if (flag) {

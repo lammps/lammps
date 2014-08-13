@@ -73,11 +73,30 @@ void DeleteBonds::command(int narg, char **arg)
   else if (strcmp(arg[1],"stats") == 0) style = STATS;
   else error->all(FLERR,"Illegal delete_bonds command");
 
+  // setup list of types (atom,bond,etc) to consider
+  // use force->bounds() to allow setting of range of types
+  // range can be 0 to ntypes inclusive
+
+  int *tlist = NULL;
+
   int iarg = 2;
   int which;
   if (style != MULTI && style != STATS) {
     if (narg < 3) error->all(FLERR,"Illegal delete_bonds command");
-    which = force->inumeric(FLERR,arg[2]);
+
+    int n = -1;
+    if (style == ATOM) n = atom->ntypes;
+    if (style == BOND) n = atom->nbondtypes;
+    if (style == ANGLE) n = atom->nangletypes;
+    if (style == DIHEDRAL) n = atom->ndihedraltypes;
+    if (style == IMPROPER) n = atom->nimpropertypes;
+
+    tlist = new int[n+1];
+    for (int i = 0; i <= n; i++) tlist[i] = 0;
+    int nlo,nhi;
+    force->bounds(arg[2],n,nlo,nhi,0);
+    for (int i = nlo; i <= nhi; i++) tlist[i] = 1;
+
     iarg++;
   }
 
@@ -114,7 +133,7 @@ void DeleteBonds::command(int narg, char **arg)
   // criteria for an interaction to potentially be changed (set flag = 1)
   //   all atoms or any atom in interaction must be in group, based on any_flag
   //   for style = MULTI, all bond/angle/dihedral/improper, no other criteria
-  //   for style = ATOM, same as MULTI, at least one atom is specified type
+  //   for style = ATOM, same as MULTI, plus at least one atom is specified type
   //   for style = BOND/ANGLE/DIHEDRAL/IMPROPER, interaction is specified type
   //   for style = STATS only compute stats, flag is always 0
   // if flag = 1
@@ -125,7 +144,7 @@ void DeleteBonds::command(int narg, char **arg)
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  int i,m,n,consider,flag;
+  int i,m,n,consider,flag,itype;
   int atom1,atom2,atom3,atom4;
 
   if (atom->avec->bonds_allow && 
@@ -145,9 +164,12 @@ void DeleteBonds::command(int narg, char **arg)
         if (consider) {
           flag = 0;
           if (style == MULTI) flag = 1;
-          if (style == ATOM &&
-              (type[i] == which || type[atom1] == which)) flag = 1;
-          if (style == BOND && (bond_type[i][m] == which)) flag = 1;
+          else if (style == ATOM) {
+            if (tlist[type[i]] || tlist[type[atom1]]) flag = 1;
+          } else if (style == BOND) {
+            itype = static_cast<int> (fabs(bond_type[i][m]));
+            if (tlist[itype]) flag = 1;
+          }
           if (flag) {
             if (undo_flag == 0 && bond_type[i][m] > 0)
               bond_type[i][m] = -bond_type[i][m];
@@ -179,10 +201,13 @@ void DeleteBonds::command(int narg, char **arg)
         if (consider) {
           flag = 0;
           if (style == MULTI) flag = 1;
-          if (style == ATOM &&
-              (type[atom1] == which || type[atom2] == which ||
-               type[atom3] == which)) flag = 1;
-          if (style == ANGLE && (angle_type[i][m] == which)) flag = 1;
+          else if (style == ATOM) {
+            if (tlist[type[atom1]] || tlist[type[atom2]] ||
+                tlist[type[atom3]]) flag = 1;
+          } else if (style == ANGLE) {
+            itype = static_cast<int> (fabs(angle_type[i][m]));
+            if (tlist[itype]) flag = 1;
+          }
           if (flag) {
             if (undo_flag == 0 && angle_type[i][m] > 0)
               angle_type[i][m] = -angle_type[i][m];
@@ -216,10 +241,13 @@ void DeleteBonds::command(int narg, char **arg)
         if (consider) {
           flag = 0;
           if (style == MULTI) flag = 1;
-          if (style == ATOM &&
-              (type[atom1] == which || type[atom2] == which ||
-               type[atom3] == which || type[atom4] == which)) flag = 1;
-          if (style == DIHEDRAL && (dihedral_type[i][m] == which)) flag = 1;
+          else if (style == ATOM) {
+              if (tlist[type[atom1]] || tlist[type[atom2]] ||
+                  tlist[type[atom3]] || tlist[type[atom4]]) flag = 1;
+          } else if (style == DIHEDRAL) {
+            itype = static_cast<int> (fabs(dihedral_type[i][m]));
+            if (tlist[itype]) flag = 1;
+          }
           if (flag) {
             if (undo_flag == 0 && dihedral_type[i][m] > 0)
               dihedral_type[i][m] = -dihedral_type[i][m];
@@ -253,10 +281,13 @@ void DeleteBonds::command(int narg, char **arg)
         if (consider) {
           flag = 0;
           if (style == MULTI) flag = 1;
-          if (style == ATOM &&
-              (type[atom1] == which || type[atom2] == which ||
-               type[atom3] == which || type[atom4] == which)) flag = 1;
-          if (style == IMPROPER && (improper_type[i][m] == which)) flag = 1;
+          else if (style == ATOM) {
+              if (tlist[type[atom1]] || tlist[type[atom2]] ||
+                  tlist[type[atom3]] || tlist[type[atom4]]) flag = 1;
+          } else if (style == IMPROPER) {
+            itype = static_cast<int> (fabs(improper_type[i][m]));
+            if (tlist[itype]) flag = 1;
+          }
           if (flag) {
             if (undo_flag == 0 && improper_type[i][m] > 0)
               improper_type[i][m] = -improper_type[i][m];
@@ -268,6 +299,8 @@ void DeleteBonds::command(int narg, char **arg)
     }
   }
 
+  delete [] tlist;
+    
   // induce turn off of angles, dihedral, impropers due to turned off bonds
   // induce turn off of dihedrals due to turned off angles
   // all atoms or any atom in interaction must be in group, based on any_flag

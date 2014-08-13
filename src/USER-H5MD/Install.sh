@@ -15,16 +15,48 @@ action () {
         echo "  updating src/$1"
       fi
     fi
-  elif (test ! -n "$2") then
+  elif (test -n "$2") then
     if (test ! -e ../$2) then
       rm -f ../$1
     fi
   fi
 }
 
-# all package files
-# only a few files have dependencies
-
-for file in *.cpp *.h *.c; do
-    action $file
+for file in *.cpp *.h; do
+  action $file
 done
+
+# edit 2 Makefile.package files to include/exclude package info
+
+if (test $1 = 1) then
+
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*ch5md[^ \t]* //g' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/ch5md\/include |' ../Makefile.package
+    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/ch5md |' ../Makefile.package
+    sed -i -e 's|^PKG_LIB =[ \t]*|&-lch5md -lhdf5 |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(ch5md_SYSINC) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(ch5md_SYSLIB) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(ch5md_SYSPATH) |' ../Makefile.package
+  fi
+
+  if (test -e ../Makefile.package.settings) then
+    sed -i -e '/^include.*ch5md.*$/d' ../Makefile.package.settings
+    # multiline form needed for BSD sed on Macs
+    sed -i -e '4 i \
+include ..\/..\/lib\/ch5md\/Makefile.lammps
+' ../Makefile.package.settings
+
+  fi
+
+elif (test $1 = 0) then
+
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*ch5md[^ \t]* //g' ../Makefile.package
+  fi
+
+  if (test -e ../Makefile.package.settings) then
+    sed -i -e '/^include.*ch5md.*$/d' ../Makefile.package.settings
+  fi
+
+fi

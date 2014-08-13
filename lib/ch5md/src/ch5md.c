@@ -1,27 +1,8 @@
 /* Copyright (C) 2013-2014 Pierre de Buyl
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-  a.  Redistributions of source code must retain the above copyright
-     notice, this list of conditions and the following disclaimer.
-  b. Redistributions in binary form must reproduce the above copyright
-     notice, this list of conditions and the following disclaimer in the
-     documentation and/or other materials provided with the distribution.
-  c. Neither the name of the <organization> nor the
-     names of its contributors may be used to endorse or promote products
-     derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * All rights reserved.
+ *
+ * This software may be modified and distributed under the terms
+ * of the BSD license. See the LICENSE file for details.
  */
 
 #include "hdf5.h"
@@ -151,7 +132,7 @@ h5md_particles_group h5md_create_particles_group(h5md_file file, const char *nam
 {
   h5md_particles_group group;
   
-  group.group = H5Gcreate(file.particles, "beads", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  group.group = H5Gcreate(file.particles, name, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
   return group;
 }
@@ -165,7 +146,7 @@ h5md_element h5md_create_time_data(hid_t loc, const char *name, int rank, int in
   hsize_t dims[MAX_RANK], max_dims[MAX_RANK], chunks[MAX_RANK];
   herr_t status;
 
-  int i, tmp;
+  int i;
 
   dims[0] = 0 ;
   max_dims[0] = H5S_UNLIMITED ;
@@ -174,7 +155,6 @@ h5md_element h5md_create_time_data(hid_t loc, const char *name, int rank, int in
     max_dims[i+1] = int_dims[i];
   }
   chunks[0] = 1 ;
-  tmp = 256;
   if (MAX_CHUNK<int_dims[0]/4) {
     chunks[1] = MAX_CHUNK;
   } else {
@@ -263,7 +243,6 @@ h5md_element h5md_create_fixed_data_scalar(hid_t loc, const char *name, hid_t da
 
   hid_t spc;
   herr_t status;
-  int i;
 
   spc = H5Screate(H5S_SCALAR);
   fd.value = H5Dcreate(loc, name, datatype, spc, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -304,7 +283,7 @@ int h5md_append(h5md_element e, void *data, int step, double time) {
 
   hid_t mem_space, file_space;
   int i, rank;
-  hsize_t dims[H5S_MAX_RANK], maxdims[H5S_MAX_RANK];
+  hsize_t dims[H5S_MAX_RANK];
   hsize_t start[H5S_MAX_RANK], count[H5S_MAX_RANK];
 
   // If not a time-dependent H5MD element, do nothing
@@ -386,7 +365,7 @@ int h5md_create_box(h5md_particles_group *group, int dim, char *boundary[], bool
   herr_t status;
   int i;
   size_t boundary_length, tmp;
-  char *tmp_boundary;
+  //char *tmp_boundary;
 
   // Create box group
   group->box = H5Gcreate(group->group, "box", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -407,7 +386,7 @@ int h5md_create_box(h5md_particles_group *group, int dim, char *boundary[], bool
       boundary_length=tmp;
     }
   }
-  tmp_boundary = malloc(dim*sizeof(char)*boundary_length);
+  char *tmp_boundary = malloc(dim*sizeof(char)*boundary_length);
   for (i=0; i<dim; i++) {
     strcpy((tmp_boundary+i*boundary_length), boundary[i]);
   }

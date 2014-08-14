@@ -1,8 +1,8 @@
 EXTRAMAKE=Makefile.lammps.empty
 
-CC=gcc
+CC=h5cc
 HDF5_PATH=/usr
-INC=-I $(HDF5_PATH)/include -I include
+INC=-I include
 AR=ar
 ARFLAGS=rc
 LIB=libch5md.a
@@ -14,6 +14,9 @@ ch5md.o: src/ch5md.c
 
 lib: ch5md.o
 	$(AR) $(ARFLAGS) $(LIB) build/ch5md.o
+
+clean:
+	rm -f build/*.o $(LIB)
 
 ch5md_SYSINC=$(HDF5_PATH)/include
 ch5md_SYSLIB=$(HDF5_PATH)/lib

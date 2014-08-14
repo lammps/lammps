@@ -1618,17 +1618,21 @@ void Input::suffix()
   if (strcmp(arg[0],"off") == 0) lmp->suffix_enable = 0;
   else if (strcmp(arg[0],"on") == 0) lmp->suffix_enable = 1;
   else {
+    lmp->suffix_enable = 1;
+
     delete [] lmp->suffix;
     int n = strlen(arg[0]) + 1;
     lmp->suffix = new char[n];
     strcpy(lmp->suffix,arg[0]);
+
     // set 2nd suffix = "omp" when suffix = "intel"
-    if (strcmp(lmp->suffix,"intel") == 0) {
+    // but only if USER-OMP package is installed
+
+    if (strcmp(lmp->suffix,"intel") == 0 && modify->check_package("OMP")) {
       delete [] lmp->suffix2;
       lmp->suffix2 = new char[4];
       strcpy(lmp->suffix2,"omp");
     }
-    lmp->suffix_enable = 1;
   }
 }
 

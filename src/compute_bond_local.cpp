@@ -157,8 +157,8 @@ int ComputeBondLocal::compute_bonds(int flag)
         atom2 = atom->map(bond_atom[atom1][i]);
       } else {
         tagprev = tag[atom1] - iatom - 1;
-        btype = atom->map(onemols[imol]->bond_type[atom1][i]);
-        atom2 = atom->map(onemols[imol]->bond_atom[atom1][i]+tagprev);
+        btype = atom->map(onemols[imol]->bond_type[iatom][i]);
+        atom2 = atom->map(onemols[imol]->bond_atom[iatom][i]+tagprev);
       }
 
       if (atom2 < 0 || !(mask[atom2] & groupbit)) continue;

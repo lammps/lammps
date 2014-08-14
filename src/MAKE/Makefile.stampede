@@ -1,4 +1,4 @@
-# linux = RedHat Linux box, Intel icc, MPICH2, FFTW
+# Stampede, Intel Compiler, MKL FFT, Offload to Xeon Phi
 
 SHELL = /bin/sh
 
@@ -6,14 +6,15 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		icc
-CCFLAGS =	-O -DLAMMPS_MEMALIGN=64 -openmp -restrict
+CC =		mpicc -openmp -DLMP_INTEL_OFFLOAD -DLAMMPS_MEMALIGN=64
+MIC_OPT =       -offload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\""
+CCFLAGS =	-O3 -xAVX -fno-alias -ansi-alias -restrict -override-limits $(MIC_OPT)
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		icc
-LINKFLAGS =	-O -openmp
-LIB =           -lstdc++
+LINK =		mpicc -openmp
+LINKFLAGS =	-O3 -xAVX
+LIB =           
 SIZE =		size
 
 ARCHIVE =	ar
@@ -39,7 +40,7 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
 
 MPI_INC =       -DMPICH_SKIP_MPICXX 
 MPI_PATH = 
-MPI_LIB =	-lmpich -lmpl -lpthread
+MPI_LIB =
 
 # FFT library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 6)
@@ -48,9 +49,9 @@ MPI_LIB =	-lmpich -lmpl -lpthread
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW
+FFT_INC =      -DFFT_MKL -DFFT_SINGLE -I$(TACC_MKL_INC)
 FFT_PATH = 
-FFT_LIB =	-lfftw
+FFT_LIB =	-L$(TACC_MKL_LIB) -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
 
 # JPEG and/or PNG library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 7)

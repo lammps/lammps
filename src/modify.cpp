@@ -31,7 +31,7 @@ using namespace FixConst;
 
 #define DELTA 4
 #define BIG 1.0e20
-#define NEXCEPT 4       // change when add to exceptions in add_fix()
+#define NEXCEPT 5       // change when add to exceptions in add_fix()
 
 /* ---------------------------------------------------------------------- */
 
@@ -649,7 +649,7 @@ int Modify::min_reset_ref()
    add a new fix or replace one with same ID
 ------------------------------------------------------------------------- */
 
-void Modify::add_fix(int narg, char **arg, char *suffix)
+void Modify::add_fix(int narg, char **arg, int trysuffix)
 {
   if (narg < 3) error->all(FLERR,"Illegal fix command");
 
@@ -658,9 +658,10 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
   //   but can't think of better way
   // too late if instantiate fix, then check flag set in fix constructor,
   //   since some fixes access domain settings in their constructor
-  // change NEXCEPT above when add new fix to this list
+  // MUST change NEXCEPT above when add new fix to this list
 
-  const char *exceptions[NEXCEPT] = {"GPU","OMP","property/atom","cmap"};
+  const char *exceptions[NEXCEPT] = 
+    {"GPU","OMP","Intel","property/atom","cmap"};
 
   if (domain->box_exist == 0) {
     int m;
@@ -694,12 +695,27 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
 
   if (ifix < nfix) {
     newflag = 0;
-    if (strcmp(arg[2],fix[ifix]->style) != 0)
-      error->all(FLERR,"Replacing a fix, but new style != old style");
+    
+    int match = 0;
+    if (strcmp(arg[2],fix[ifix]->style) == 0) match = 1;
+    if (!match && trysuffix && lmp->suffix_enable) {
+      char estyle[256];
+      if (lmp->suffix) {
+        sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
+        if (strcmp(estyle,fix[ifix]->style) == 0) match = 1;
+      }
+      if (lmp->suffix2) {
+        sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
+        if (strcmp(estyle,fix[ifix]->style) == 0) match = 1;
+      }
+    }
+    if (!match) error->all(FLERR,"Replacing a fix, but new style != old style");
+
     if (fix[ifix]->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Replacing a fix, but new group != old group");
     delete fix[ifix];
     fix[ifix] = NULL;
+
   } else {
     newflag = 1;
     if (nfix == maxfix) {
@@ -714,12 +730,22 @@ void Modify::add_fix(int narg, char **arg, char *suffix)
 
   fix[ifix] = NULL;
 
-  if (suffix && lmp->suffix_enable) {
-    char estyle[256];
-    sprintf(estyle,"%s/%s",arg[2],suffix);
-    if (fix_map->find(estyle) != fix_map->end()) {
-      FixCreator fix_creator = (*fix_map)[estyle];
-      fix[ifix] = fix_creator(lmp,narg,arg);
+  if (trysuffix && lmp->suffix_enable) {
+    if (lmp->suffix) {
+      char estyle[256];
+      sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
+      if (fix_map->find(estyle) != fix_map->end()) {
+        FixCreator fix_creator = (*fix_map)[estyle];
+        fix[ifix] = fix_creator(lmp,narg,arg);
+      }
+    }
+    if (fix[ifix] == NULL && lmp->suffix2) {
+      char estyle[256];
+      sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
+      if (fix_map->find(estyle) != fix_map->end()) {
+        FixCreator fix_creator = (*fix_map)[estyle];
+        fix[ifix] = fix_creator(lmp,narg,arg);
+      }
     }
   }
 
@@ -838,7 +864,7 @@ int Modify::find_fix(const char *id)
    add a new compute
 ------------------------------------------------------------------------- */
 
-void Modify::add_compute(int narg, char **arg, char *suffix)
+void Modify::add_compute(int narg, char **arg, int trysuffix)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute command");
 
@@ -861,12 +887,22 @@ void Modify::add_compute(int narg, char **arg, char *suffix)
 
   compute[ncompute] = NULL;
 
-  if (suffix && lmp->suffix_enable) {
-    char estyle[256];
-    sprintf(estyle,"%s/%s",arg[2],suffix);
-    if (compute_map->find(estyle) != compute_map->end()) {
-      ComputeCreator compute_creator = (*compute_map)[estyle];
-      compute[ncompute] = compute_creator(lmp,narg,arg);
+  if (trysuffix && lmp->suffix_enable) {
+    if (lmp->suffix) {
+      char estyle[256];
+      sprintf(estyle,"%s/%s",arg[2],lmp->suffix);
+      if (compute_map->find(estyle) != compute_map->end()) {
+        ComputeCreator compute_creator = (*compute_map)[estyle];
+        compute[ncompute] = compute_creator(lmp,narg,arg);
+      }
+    }
+    if (compute[ncompute] == NULL && lmp->suffix2) {
+      char estyle[256];
+      sprintf(estyle,"%s/%s",arg[2],lmp->suffix2);
+      if (compute_map->find(estyle) != compute_map->end()) {
+        ComputeCreator compute_creator = (*compute_map)[estyle];
+        compute[ncompute] = compute_creator(lmp,narg,arg);
+      }
     }
   }
 

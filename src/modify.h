@@ -82,12 +82,12 @@ class Modify : protected Pointers {
   virtual int min_dof();
   virtual int min_reset_ref();
 
-  void add_fix(int, char **, char *suffix = NULL);
+  void add_fix(int, char **, int trysuffix=0);
   void modify_fix(int, char **);
   void delete_fix(const char *);
   int find_fix(const char *);
 
-  void add_compute(int, char **, char *suffix = NULL);
+  void add_compute(int, char **, int trysuffix=0);
   void modify_compute(int, char **);
   void delete_compute(const char *);
   int find_compute(const char *);

@@ -45,6 +45,7 @@
 #include "accelerator_cuda.h"
 #include "accelerator_kokkos.h"
 #include "accelerator_omp.h"
+#include "accelerator_intel.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"
@@ -84,7 +85,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int citeflag = 1;
   int helpflag = 0;
 
-  suffix = NULL;
+  suffix = suffix2 = NULL;
   suffix_enable = 0;
   char *rfile = NULL;
   char *dfile = NULL;
@@ -172,6 +173,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       int n = strlen(arg[iarg+1]) + 1;
       suffix = new char[n];
       strcpy(suffix,arg[iarg+1]);
+      // set 2nd suffix = "omp" when suffix = "intel"
+      if (strcmp(suffix,"intel") == 0) {
+        suffix2 = new char[4];
+        strcpy(suffix2,"omp");
+      }
       suffix_enable = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"-reorder") == 0 ||
@@ -535,6 +541,7 @@ LAMMPS::~LAMMPS()
   delete cuda;
   delete kokkos;
   delete [] suffix;
+  delete [] suffix2;
 
   delete input;
   delete universe;
@@ -571,7 +578,7 @@ void LAMMPS::create()
 
   if (kokkos) atom = new AtomKokkos(this);
   else atom = new Atom(this);
-  atom->create_avec("atomic",0,NULL,suffix);
+  atom->create_avec("atomic",0,NULL,1);
 
   group = new Group(this);
   force = new Force(this);    // must be after group, to create temperature
@@ -590,12 +597,19 @@ void LAMMPS::create()
    invoke package-specific setup commands
    called from LAMMPS constructor and after clear() command
    only invoke if suffix is set and enabled
+   also check if suffix2 is set
 ------------------------------------------------------------------------- */
 
 void LAMMPS::post_create()
 {
-  if (suffix && suffix_enable) {
+  if (!suffix_enable) return;
+  if (suffix) {
     if (strcmp(suffix,"gpu") == 0) input->one("package gpu force/neigh 0 0 1");
+    if (strcmp(suffix,"omp") == 0) input->one("package omp *");
+    if (strcmp(suffix,"intel") == 0) 
+      input->one("package intel * mixed balance -1");
+  }
+  if (suffix2) {
     if (strcmp(suffix,"omp") == 0) input->one("package omp *");
   }
 }

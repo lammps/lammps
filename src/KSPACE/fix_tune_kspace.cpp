@@ -218,7 +218,8 @@ void FixTuneKspace::store_old_kspace_settings()
    update the pair style if necessary, preserving the settings
 ------------------------------------------------------------------------- */
 
-void FixTuneKspace::update_pair_style(char *new_pair_style, double pair_cut_coul)
+void FixTuneKspace::update_pair_style(char *new_pair_style, 
+                                      double pair_cut_coul)
 {
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
@@ -235,7 +236,7 @@ void FixTuneKspace::update_pair_style(char *new_pair_style, double pair_cut_coul
 
   cout << "Creating new pair style: " << new_pair_style << endl;
   // delete old pair style and create new one
-  force->create_pair(new_pair_style,lmp->suffix);
+  force->create_pair(new_pair_style,1);
 
   // restore current pair settings from temporary file
   force->pair->read_restart(p_pair_settings_file);
@@ -252,7 +253,8 @@ void FixTuneKspace::update_pair_style(char *new_pair_style, double pair_cut_coul
    update the kspace style if necessary
 ------------------------------------------------------------------------- */
 
-void FixTuneKspace::update_kspace_style(char *new_kspace_style, char *new_acc_str)
+void FixTuneKspace::update_kspace_style(char *new_kspace_style, 
+                                        char *new_acc_str)
 {
   // create kspace style char string
 
@@ -269,8 +271,7 @@ void FixTuneKspace::update_kspace_style(char *new_kspace_style, char *new_acc_st
 
   // delete old kspace style and create new one
 
-  force->create_kspace(narg,arg,lmp->suffix);
-
+  force->create_kspace(narg,arg,1);
   force->kspace->differentiation_flag = old_differentiation_flag;
   force->kspace->slabflag = old_slabflag;
   force->kspace->slab_volfactor = old_slab_volfactor;

@@ -44,6 +44,7 @@ depend () {
 if (test $1 = "ASPHERE") then
   depend GPU
   depend USER-OMP
+  depend USER-INTEL
 fi
 
 if (test $1 = "CLASS2") then
@@ -72,6 +73,7 @@ if (test $1 = "KSPACE") then
   depend OPT
   depend USER-CUDA
   depend USER-OMP
+  depend USER-INTEL
   depend USER-PHONON
 fi
 
@@ -88,6 +90,7 @@ if (test $1 = "MOLECULE") then
   depend USER-CUDA
   depend USER-MISC
   depend USER-OMP
+  depend USER-INTEL
 fi
 
 if (test $1 = "PERI") then

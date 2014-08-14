@@ -246,6 +246,7 @@ void NeighList::print_attributes()
   printf("  %d = occasional\n",rq->occasional);
   printf("  %d = dnum\n",rq->dnum);
   printf("  %d = omp\n",rq->omp);
+  printf("  %d = intel\n",rq->intel);
   printf("  %d = ghost\n",rq->ghost);
   printf("  %d = cudable\n",rq->cudable);
   printf("  %d = omp\n",rq->omp);

@@ -333,7 +333,7 @@ void Atom::settings(Atom *old)
    called from lammps.cpp, input script, restart file, replicate
 ------------------------------------------------------------------------- */
 
-void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
+void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
 {
   delete [] atom_style;
   if (avec) delete avec;
@@ -362,14 +362,15 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
   //   so that x[0][0] can always be referenced even if proc has no atoms
 
   int sflag;
-  avec = new_avec(style,suffix,sflag);
+  avec = new_avec(style,trysuffix,sflag);
   avec->store_args(narg,arg);
   avec->process_args(narg,arg);
   avec->grow(1);
 
   if (sflag) {
     char estyle[256];
-    sprintf(estyle,"%s/%s",style,suffix);
+    if (sflag = 1) sprintf(estyle,"%s/%s",style,lmp->suffix);
+    else sprintf(estyle,"%s/%s",style,lmp->suffix2);
     int n = strlen(estyle) + 1;
     atom_style = new char[n];
     strcpy(atom_style,estyle);
@@ -394,26 +395,41 @@ void Atom::create_avec(const char *style, int narg, char **arg, char *suffix)
    generate an AtomVec class, first with suffix appended
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::new_avec(const char *style, char *suffix, int &sflag)
+AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
 {
-  if (suffix && lmp->suffix_enable) {
-    sflag = 1;
-    char estyle[256];
-    sprintf(estyle,"%s/%s",style,suffix);
+  if (trysuffix && lmp->suffix_enable) {
+    if (lmp->suffix) {
+      sflag = 1;
+      char estyle[256];
+      sprintf(estyle,"%s/%s",style,lmp->suffix);
 
-    if (0) return NULL;
+      if (0) return NULL;
 
 #define ATOM_CLASS
 #define AtomStyle(key,Class) \
-    else if (strcmp(estyle,#key) == 0) return new Class(lmp);
+      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
 #include "style_atom.h"
 #undef AtomStyle
 #undef ATOM_CLASS
+    }
 
+    if (lmp->suffix2) {
+      sflag = 1;
+      char estyle[256];
+      sprintf(estyle,"%s/%s",style,lmp->suffix2);
+
+      if (0) return NULL;
+
+#define ATOM_CLASS
+#define AtomStyle(key,Class) \
+      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
+#include "style_atom.h"
+#undef AtomStyle
+#undef ATOM_CLASS
+    }
   }
 
   sflag = 0;
-
   if (0) return NULL;
 
 #define ATOM_CLASS
@@ -423,7 +439,6 @@ AtomVec *Atom::new_avec(const char *style, char *suffix, int &sflag)
 #undef ATOM_CLASS
 
   else error->all(FLERR,"Invalid atom style");
-
   return NULL;
 }
 

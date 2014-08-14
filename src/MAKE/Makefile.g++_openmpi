@@ -1,4 +1,4 @@
-# linux = RedHat Linux box, Intel icc, MPICH2, FFTW
+# g++ = RedHat Linux box, g++4, OpenMPI, FFTW
 
 SHELL = /bin/sh
 
@@ -6,14 +6,14 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		icc
-CCFLAGS =	-O -DLAMMPS_MEMALIGN=64 -openmp -restrict
+CC =		g++
+CCFLAGS =	-g -O # -Wunused
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		icc
-LINKFLAGS =	-O -openmp
-LIB =           -lstdc++
+LINK =		g++
+LINKFLAGS =	-g -O
+LIB = 
 SIZE =		size
 
 ARCHIVE =	ar
@@ -37,9 +37,9 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_SKIP_MPICXX 
-MPI_PATH = 
-MPI_LIB =	-lmpich -lmpl -lpthread
+MPI_INC =       -DMPICH_SKIP_MPICXX -I/usr/local/openmpi/include
+MPI_PATH =      -L/usr/local/openmpi/lib
+MPI_LIB =	-lmpi -lmpi_cxx
 
 # FFT library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 6)
@@ -48,7 +48,7 @@ MPI_LIB =	-lmpich -lmpl -lpthread
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW
+FFT_INC =    	-DFFT_FFTW
 FFT_PATH = 
 FFT_LIB =	-lfftw
 

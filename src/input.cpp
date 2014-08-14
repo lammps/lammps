@@ -1083,7 +1083,7 @@ void Input::angle_style()
   if (narg < 1) error->all(FLERR,"Illegal angle_style command");
   if (atom->avec->angles_allow == 0)
     error->all(FLERR,"Angle_style command when no angles allowed");
-  force->create_angle(arg[0],lmp->suffix);
+  force->create_angle(arg[0],1);
   if (force->angle) force->angle->settings(narg-1,&arg[1]);
 }
 
@@ -1101,7 +1101,7 @@ void Input::atom_style()
   if (narg < 1) error->all(FLERR,"Illegal atom_style command");
   if (domain->box_exist)
     error->all(FLERR,"Atom_style command after simulation box is defined");
-  atom->create_avec(arg[0],narg-1,&arg[1],lmp->suffix);
+  atom->create_avec(arg[0],narg-1,&arg[1],1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1124,7 +1124,7 @@ void Input::bond_style()
   if (narg < 1) error->all(FLERR,"Illegal bond_style command");
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Bond_style command when no bonds allowed");
-  force->create_bond(arg[0],lmp->suffix);
+  force->create_bond(arg[0],1);
   if (force->bond) force->bond->settings(narg-1,&arg[1]);
 }
 
@@ -1175,7 +1175,7 @@ void Input::comm_style()
 
 void Input::compute()
 {
-  modify->add_compute(narg,arg,lmp->suffix);
+  modify->add_compute(narg,arg,1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1213,7 +1213,7 @@ void Input::dihedral_style()
   if (narg < 1) error->all(FLERR,"Illegal dihedral_style command");
   if (atom->avec->dihedrals_allow == 0)
     error->all(FLERR,"Dihedral_style command when no dihedrals allowed");
-  force->create_dihedral(arg[0],lmp->suffix);
+  force->create_dihedral(arg[0],1);
   if (force->dihedral) force->dihedral->settings(narg-1,&arg[1]);
 }
 
@@ -1253,7 +1253,7 @@ void Input::dump_modify()
 
 void Input::fix()
 {
-  modify->add_fix(narg,arg,lmp->suffix);
+  modify->add_fix(narg,arg,1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1290,7 +1290,7 @@ void Input::improper_style()
   if (narg < 1) error->all(FLERR,"Illegal improper_style command");
   if (atom->avec->impropers_allow == 0)
     error->all(FLERR,"Improper_style command when no impropers allowed");
-  force->create_improper(arg[0],lmp->suffix);
+  force->create_improper(arg[0],1);
   if (force->improper) force->improper->settings(narg-1,&arg[1]);
 }
 
@@ -1307,7 +1307,7 @@ void Input::kspace_modify()
 
 void Input::kspace_style()
 {
-  force->create_kspace(narg,arg,lmp->suffix);
+  force->create_kspace(narg,arg,1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1412,7 +1412,7 @@ void Input::package()
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "GPU";
     for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
-    modify->add_fix(2+narg,fixarg,NULL);
+    modify->add_fix(2+narg,fixarg);
     delete [] fixarg;
     force->newton_pair = 0;
 
@@ -1427,8 +1427,53 @@ void Input::package()
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "OMP";
     for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
-    modify->add_fix(2+narg,fixarg,NULL);
+    modify->add_fix(2+narg,fixarg);
     delete [] fixarg;
+
+ } else if (strcmp(arg[0],"intel") == 0) {
+
+    // add omp package for non-pair routines
+
+    /*
+    char **fixarg = new char*[2+narg];
+    fixarg[0] = (char *) "package_omp";
+    fixarg[1] = (char *) "all";
+    fixarg[2] = (char *) "OMP";
+    int omp_narg = 3;
+    if (narg > 1) {
+      fixarg[3] = arg[1];
+      omp_narg++;
+      if (narg > 2)
+	for (int i = 2; i < narg; i++)
+	  if (strcmp(arg[i],"mixed") == 0) {
+	    fixarg[4] = arg[i];
+	    omp_narg++;
+	  }
+    }
+    modify->add_fix(omp_narg,fixarg);
+
+    // add intel package for neighbor and pair routines
+    */
+
+    char **fixarg = new char*[2+narg];
+    fixarg[0] = (char *) "package_intel";
+    fixarg[1] = (char *) "all";
+    fixarg[2] = (char *) "Intel";
+    for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
+    modify->add_fix(2+narg,fixarg);
+    delete [] fixarg;
+
+    /*
+    // if running with offload, set run_style to verlet/intel
+
+    #ifdef LMP_INTEL_OFFLOAD
+    #ifdef __INTEL_OFFLOAD
+    char *str;
+    str = (char *) "verlet/intel";
+    update->create_integrate(1,&str,0);
+    #endif
+    #endif
+    */
 
   } else error->all(FLERR,"Illegal package command");
 }
@@ -1461,11 +1506,27 @@ void Input::pair_modify()
 void Input::pair_style()
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
-  if (force->pair && strcmp(arg[0],force->pair_style) == 0) {
-    force->pair->settings(narg-1,&arg[1]);
-    return;
+  if (force->pair) {
+    int match = 0;
+    if (strcmp(arg[0],force->pair_style) == 0) match = 1;
+    if (!match && lmp->suffix_enable) {
+      char estyle[256];
+      if (lmp->suffix) {
+        sprintf(estyle,"%s/%s",arg[0],lmp->suffix);
+        if (strcmp(estyle,force->pair_style) == 0) match = 1;
+      }
+      if (lmp->suffix2) {
+        sprintf(estyle,"%s/%s",arg[0],lmp->suffix2);
+        if (strcmp(estyle,force->pair_style) == 0) match = 1;
+      }
+    }
+    if (match) {
+      force->pair->settings(narg-1,&arg[1]);
+      return;
+    }
   }
-  force->create_pair(arg[0],lmp->suffix);
+
+  force->create_pair(arg[0],1);
   if (force->pair) force->pair->settings(narg-1,&arg[1]);
 }
 
@@ -1514,7 +1575,7 @@ void Input::run_style()
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Run_style command before simulation box is defined");
-  update->create_integrate(narg,arg,lmp->suffix);
+  update->create_integrate(narg,arg,1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1561,6 +1622,12 @@ void Input::suffix()
     int n = strlen(arg[0]) + 1;
     lmp->suffix = new char[n];
     strcpy(lmp->suffix,arg[0]);
+    // set 2nd suffix = "omp" when suffix = "intel"
+    if (strcmp(lmp->suffix,"intel") == 0) {
+      delete [] lmp->suffix2;
+      lmp->suffix2 = new char[4];
+      strcpy(lmp->suffix2,"omp");
+    }
     lmp->suffix_enable = 1;
   }
 }

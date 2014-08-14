@@ -797,7 +797,7 @@ void ReadRestart::header(int incompatible)
       char **argcopy = new char*[nargcopy];
       for (int i = 0; i < nargcopy; i++)
         argcopy[i] = read_string();
-      atom->create_avec(style,nargcopy,argcopy);
+      atom->create_avec(style,nargcopy,argcopy,0);
       for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
       delete [] argcopy;
       delete [] style;
@@ -891,31 +891,31 @@ void ReadRestart::force_fields()
 
     if (flag == PAIR) {
       style = read_string();
-      force->create_pair(style);
+      force->create_pair(style,0);
       delete [] style;
       force->pair->read_restart(fp);
 
     } else if (flag == BOND) {
       style = read_string();
-      force->create_bond(style);
+      force->create_bond(style,0);
       delete [] style;
       force->bond->read_restart(fp);
 
     } else if (flag == ANGLE) {
       style = read_string();
-      force->create_angle(style);
+      force->create_angle(style,0);
       delete [] style;
       force->angle->read_restart(fp);
 
     } else if (flag == DIHEDRAL) {
       style = read_string();
-      force->create_dihedral(style);
+      force->create_dihedral(style,0);
       delete [] style;
       force->dihedral->read_restart(fp);
 
     } else if (flag == IMPROPER) {
       style = read_string();
-      force->create_improper(style);
+      force->create_improper(style,0);
       delete [] style;
       force->improper->read_restart(fp);
 

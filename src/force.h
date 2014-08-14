@@ -77,28 +77,29 @@ class Force : protected Pointers {
   ~Force();
   void init();
 
-  void create_pair(const char *, const char *suffix = NULL);
-  class Pair *new_pair(const char *, const char *, int &);
+  void create_pair(const char *, int);
+  class Pair *new_pair(const char *, int, int &);
   class Pair *pair_match(const char *, int);
 
-  void create_bond(const char *, const char *suffix = NULL);
-  class Bond *new_bond(const char *, const char *, int &);
+  void create_bond(const char *, int);
+  class Bond *new_bond(const char *, int, int &);
   class Bond *bond_match(const char *);
 
-  void create_angle(const char *, const char *suffix = NULL);
-  class Angle *new_angle(const char *, const char *, int &);
+  void create_angle(const char *, int);
+  class Angle *new_angle(const char *, int, int &);
 
-  void create_dihedral(const char *, const char *suffix = NULL);
-  class Dihedral *new_dihedral(const char *, const char *, int &);
+  void create_dihedral(const char *, int);
+  class Dihedral *new_dihedral(const char *, int, int &);
 
-  void create_improper(const char *, const char *suffix = NULL);
-  class Improper *new_improper(const char *, const char *, int &);
+  void create_improper(const char *, int);
+  class Improper *new_improper(const char *, int, int &);
   class Improper *improper_match(const char *);
 
-  void create_kspace(int, char **, const char *suffix = NULL);
-  class KSpace *new_kspace(int, char **, const char *, int &);
+  void create_kspace(int, char **, int);
+  class KSpace *new_kspace(int, char **, int, int &);
   class KSpace *kspace_match(const char *, int);
 
+  void store_style(char *&, const char *, int);
   void set_special(int, char **);
   void bounds(char *, int, int &, int &, int nmin=1);
   void boundsbig(char *, bigint, bigint &, bigint &, bigint nmin=1);

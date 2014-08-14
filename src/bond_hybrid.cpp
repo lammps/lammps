@@ -207,7 +207,7 @@ void BondHybrid::settings(int narg, char **arg)
   // one exception is 1st arg of style "table", which is non-numeric
   // need a better way to skip these exceptions
 
-  int dummy;
+  int sflag;
   nstyles = 0;
   i = 0;
 
@@ -219,9 +219,10 @@ void BondHybrid::settings(int narg, char **arg)
       error->all(FLERR,"Bond style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[i],"none") == 0)
       error->all(FLERR,"Bond style hybrid cannot have none as an argument");
-    styles[nstyles] = force->new_bond(arg[i],lmp->suffix,dummy);
-    keywords[nstyles] = new char[strlen(arg[i])+1];
-    strcpy(keywords[nstyles],arg[i]);
+
+    styles[nstyles] = force->new_bond(arg[i],1,sflag);
+    force->store_style(keywords[nstyles],arg[i],sflag);
+
     istyle = i;
     if (strcmp(arg[i],"table") == 0) i++;
     i++;
@@ -330,7 +331,7 @@ void BondHybrid::read_restart(FILE *fp)
     keywords[m] = new char[n];
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_bond(keywords[m],lmp->suffix,dummy);
+    styles[m] = force->new_bond(keywords[m],0,dummy);
   }
 }
 

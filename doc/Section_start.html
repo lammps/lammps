@@ -1497,8 +1497,9 @@ if desired.
 default Intel settings, as if the command "package intel * mixed
 balance -1" were used at the top of your input script.  These settings
 can be changed by using the <A HREF = "package.html">package intel</A> command in
-your script if desired.  The intel suffix will attempt to use styles
-from the OMP package if they are not present in the Intel package.
+your script if desired.  If the USER-OMP package is installed, the
+intel suffix will make the omp suffix a second choice, if a requested
+style is not available in the USER-INTEL package.
 </P>
 <P>For the KOKKOS package, using this command-line switch also invokes
 the default KOKKOS settings, as if the command "package kokkos neigh
@@ -1511,9 +1512,9 @@ default OMP settings, as if the command "package omp *" were used at
 the top of your input script.  These settings can be changed by using
 the <A HREF = "package.html">package omp</A> command in your script if desired.
 </P>
-<P>The <A HREF = "suffix.html">suffix</A> command can also be used set a suffix and it
-can also turn off or back on any suffix setting made via the command
-line.
+<P>The <A HREF = "suffix.html">suffix</A> command can also be used to set a suffix and
+it can also turn off or back on any suffix setting made via the
+command line.
 </P>
 <PRE>-var name value1 value2 ... 
 </PRE>

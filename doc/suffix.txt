@@ -77,9 +77,9 @@ If the variant version does not exist, the standard version is
 created.
 
 When using the intel suffix, LAMMPS will first attempt to use a style
-with the intel suffix. If this does not exist, a style with the omp
-suffix is attempted. If this also does not exist, the style without
-any suffix is used.
+with the intel suffix.  If the USER-OMP package is installed, the the
+omp suffix will be tried as a second choice, if a requested style is
+not available in the USER-INTEL package.
 
 If the specified style is {off}, then any previously specified suffix
 is temporarily disabled, whether it was specified by a command-line

@@ -978,45 +978,52 @@ LAMMPS.
 <P>The USER-INTEL package was developed by Mike Brown at Intel
 Corporation. It provides a capability to accelerate simulations by
 offloading neighbor list and non-bonded force calculations to Intel
-coprocessors.  Additionally, it supports running simulations in
-single, mixed, or double precision with vectorization, even if a
-coprocessor is not present.  The same C++ code is used for both cases.
-When offloading to a coprocessor, the routine is run twice, once with
-an offload flag.
+coprocessors (Xeon Phi).  Additionally, it supports running
+simulations in single, mixed, or double precision with vectorization,
+even if a coprocessor is not present, i.e. on an Intel CPU.  The same
+C++ code is used for both cases.  When offloading to a coprocessor,
+the routine is run twice, once with an offload flag.
 </P>
-<P>The USER-INTEL package will work with the USER-OMP package. Specifying
-use of the Intel package implicitly includes the OMP package allowing
-it to be used for angle, bond, dihedral, and long-range
-electrostatics.  Using the <A HREF = "suffix.html">suffix intel</A> command will use
-styles from the Intel package if available; otherwise it will use
-styles from the OMP package if available.
+<P>The USER-INTEL package can be used in tandem with the USER-OMP
+package.  This is useful when a USER-INTEL pair style is used, so that
+other styles not supported by the USER-INTEL package, e.g. for bond,
+angle, dihedral, improper, and long-range electrostatics can be run
+with the USER-OMP package versions.  If you have built LAMMPS with
+both the USER-INTEL and USER-OMP packages, then this mode of operation
+is made easier, because the "-suffix intel" <A HREF = "Section_start.html#start_7">command-line
+switch</A> and the the <A HREF = "suffix.html">suffix
+intel</A> command will both set a second-choice suffix to
+"omp" so that styles from the USER-OMP package will be used if
+available.
 </P>
 <P><B>Building LAMMPS with the USER-INTEL package:</B>
 </P>
 <P>The procedure for building LAMMPS with the USER-INTEL package is
 simple.  You have to edit your machine specific makefile to add the
 flags to enable OpenMP support (<I>-openmp</I>) to both the CCFLAGS and
-LINKFLAGS variables.  You also need to add -restrict to CCFLAGS.  If
-you are compiling on the same architecture that will be used for the
-runs, adding the flag <I>-xHost</I> will enable vectorization with the
-Intel compiler. In order to build with support for an Intel
+LINKFLAGS variables.  You also need to add -DLAMMPS_MEMALIGN=64 and
+-restrict to CCFLAGS.
+</P>
+<P>If you are compiling on the same architecture that will be used for
+the runs, adding the flag <I>-xHost</I> will enable vectorization with the
+Intel compiler.  In order to build with support for an Intel
 coprocessor, the flag <I>-offload</I> should be added to the LINKFLAGS line
 and the flag <I>-DLMP_INTEL_OFFLOAD</I> should be added to the CCFLAGS
 line.
 </P>
 <P>The files src/MAKE/Makefile.intel and src/MAKE/Makefile.intel_offload
-are provided with options that perform well with the Intel
-compiler. The latter Makefile has support for offload to coprocessors
-and the former does not.
+are included in the src/MAKE directory with options that perform well
+with the Intel compiler. The latter Makefile has support for offload
+to coprocessors and the former does not.
 </P>
 <P>It is recommended that Intel Compiler 2013 SP1 update 1 be used for
 compiling. Newer versions have some performance issues that are being
 addressed. If using Intel MPI, version 5 or higher is recommended.
 </P>
 <P>The rest of the compilation is the same as for any other package that
-has no additional library dependencies:
+has no additional library dependencies, e.g.
 </P>
-<PRE>make yes-user-omp yes-user-intel
+<PRE>make yes-user-intel yes-user-omp
 make machine 
 </PRE>
 <P><B>Running an input script:</B>
@@ -1032,94 +1039,97 @@ commands, and is independent of the Intel package.
 <P>Input script requirements to run using pair styles with a <I>intel</I>
 suffix are as follows:
 </P>
-<P>To invoke specific styles from the Intel package, either append
+<P>To invoke specific styles from the UESR-INTEL package, either append
 "intel" to the style name (e.g. pair_style lj/cut/intel), or use the
 <A HREF = "Section_start.html#start_7">-suffix command-line switch</A>, or use the
 <A HREF = "suffix.html">suffix</A> command in the input script.
 </P>
 <P>Unless the <A HREF = "Section_start.html#start_7">-suffix intel command-line
-switch</A> is used, the <A HREF = "package.html">package
+switch</A> is used, a <A HREF = "package.html">package
 intel</A> command must be used near the beginning of the
-script. The default precision mode for the Intel package is <I>mixed</I>,
-meaning that accumulation is performed in double precision and other
-calculations are performed in single precision. In order to use all
-single or all double precision, the "package intel" line must be used
-in the input script with a "single" or "double" keyword specified.
+input script.  The default precision mode for the USER-INTEL package
+is <I>mixed</I>, meaning that accumulation is performed in double precision
+and other calculations are performed in single precision.  In order to
+use all single or all double precision, the <A HREF = "package.html">package
+intel</A> command must be used in the input script with a
+"single" or "double" keyword specified.
 </P>
 <P><B>Running with an Intel coprocessor:</B>
 </P>
-<P>The Intel package supports offload of a fraction of the work to Intel
-coprocessors. This is accomplished by setting a balance fraction on
-the <A HREF = "package.html">package intel</A> line. A balance of 0 runs all
-calculations on the CPU. A balance of 1 runs all calculations on the
-coprocessor. A balance of 0.5 runs half of the calculations on the
-coprocessor. Setting the balance to -1 will enable dynamic load
-balancing that continously adjusts the fraction of offloaded work
-throughout the simulation. This option is typically within 5 to 10
-percent of the optimal fixed balance. By default, using the suffix
-command or command-line switch will use offload to a coprocessor with
-the balance set to -1. If LAMMPS is built without offload support,
-this setting is ignored.
+<P>The USER-INTEL package supports offload of a fraction of the work to
+Intel coprocessors (Xeon Phi).  This is accomplished by setting a
+balance fraction on the <A HREF = "package.html">package intel</A> command. A
+balance of 0 runs all calculations on the CPU.  A balance of 1 runs
+all calculations on the coprocessor.  A balance of 0.5 runs half of
+the calculations on the coprocessor.  Setting the balance to -1 will
+enable dynamic load balancing that continously adjusts the fraction of
+offloaded work throughout the simulation.  This option typically
+produces results within 5 to 10 percent of the optimal fixed balance.
+By default, using the <A HREF = "suffix.html">suffix</A> command or <A HREF = "Section_start.html#start_7">-suffix
+command-line switch</A> will use offload to a
+coprocessor with the balance set to -1.  If LAMMPS is built without
+offload support, this setting is ignored.
 </P>
 <P>If one is running short benchmark runs with dynamic load balancing,
 adding a short warm-up run (10-20 steps) will allow the load-balancer
-to find a setting that will be carried over to additional runs.
+to find a setting that will carry over to additional runs.
 </P>
 <P>The default for the <A HREF = "package.html">package intel</A> command is to have
-all of the MPI tasks on a given compute node use a single
-coprocessor. In general, running with a large number of MPI tasks on
-each node will perform best with offload. Each MPI task will
+all the MPI tasks on a given compute node use a single coprocessor
+(Xeon Phi). In general, running with a large number of MPI tasks on
+each node will perform best with offload.  Each MPI task will
 automatically get affinity to a subset of the hardware threads
-available on the coprocessor. For example, if your card has 61 cores,
-with 60 cores available for offload and 4 hardware threads per core,
-running with 24 MPI tasks per node will cause each MPI task to use a
-subset of 10 threads on the coprocessor.  Fine tuning of the number of
-threads to use per MPI task or the number of threads to use per core
-can be accomplished with keywords to the <A HREF = "package.html">package intel</A>
-command.
+available on the coprocessor.  For example, if your card has 61 cores,
+with 60 cores available for offload and 4 hardware threads per core
+(240 total threads), running with 24 MPI tasks per node will cause
+each MPI task to use a subset of 10 threads on the coprocessor.  Fine
+tuning of the number of threads to use per MPI task or the number of
+threads to use per core can be accomplished with keywords to the
+<A HREF = "package.html">package intel</A> command.
 </P>
-<P>If LAMMPS is using offload to a coprocessor, a diagnostic line during
-the setup for a run is printed to the screen (not to log files)
-indicating that offload is being used and the number of coprocessor
-threads per MPI task. Additionally, an offload timing summary is
-printed at the end of each run. When using offload, the
-<A HREF = "atom_modify.html">sort</A> frequency for atom data is changed to 1 such
-that the data is sorted every neighbor build.
+<P>If LAMMPS is using offload to a coprocessor (Xeon Phi), a diagnostic
+line during the setup for a run is printed to the screen (not to log
+files) indicating that offload is being used and the number of
+coprocessor threads per MPI task.  Additionally, an offload timing
+summary is printed at the end of each run.  When using offload, the
+<A HREF = "atom_modify.html">sort</A> frequency for atom data is changed to 1 so
+that the per-atom data is sorted every neighbor build.
 </P>
-<P>In order to use multiple coprocessors on each compute node, the
+<P>To use multiple coprocessors (Xeon Phis) on each compute node, the
 <I>offload_cards</I> keyword can be specified with the <A HREF = "package.html">package
 intel</A> command to specify the number of coprocessors to
 use.
 </P>
-<P>For simulations involving long-range electrostatics or angle, bond,
-and dihedral calculations, computation and data transfer to the
+<P>For simulations with long-range electrostatics or bond, angle,
+dihedral, improper calculations, computation and data transfer to the
 coprocessor will run concurrently with computations and MPI
-communications for these routines on the host. The Intel package has
-two modes for deciding which atoms will be handled by the coprocessor.
-The setting is controlled with the "offload_ghost" option. When set to
-0, ghost atoms (atoms at the borders between MPI tasks) are not
-offloaded to the card. This allows for overlap of MPI communication of
-forces with computation on the coprocessor when the
-<A HREF = "newton.html">newton</A> setting is "on". The default is dependent on the
-style being used, however, better performance might be achieving by
+communications for these routines on the host.  The USER-INTEL package
+has two modes for deciding which atoms will be handled by the
+coprocessor.  The setting is controlled with the "offload_ghost"
+option.  When set to 0, ghost atoms (atoms at the borders between MPI
+tasks) are not offloaded to the card.  This allows for overlap of MPI
+communication of forces with computation on the coprocessor when the
+<A HREF = "newton.html">newton</A> setting is "on".  The default is dependent on the
+style being used, however, better performance might be achieved by
 setting this explictly.
 </P>
 <P>In order to control the number of OpenMP threads used on the host, the
 OMP_NUM_THREADS environment variable should be set. This variable will
 not influence the number of threads used on the coprocessor.  Only the
-"package intel" command can be used to control thread counts on the
-coprocessor.
+<A HREF = "package.html">package intel</A> command can be used to control thread
+counts on the coprocessor.
 </P>
 <P><B>Restrictions:</B>
 </P>
 <P>When using offload, <A HREF = "pair_hybrid.html">hybrid</A> styles that require skip
 lists for neighbor builds cannot be offloaded to the coprocessor.
-Using <A HREF = "pair_hybrid.html">hybrid/overlay</A> is allowed. Only one intel
-accelerated style may be used with hybrid styles. Exclusion lists are
+Using <A HREF = "pair_hybrid.html">hybrid/overlay</A> is allowed.  Only one intel
+accelerated style may be used with hybrid styles.  Exclusion lists are
 not currently supported with offload, however, the same effect can
-often be accomplished by setting cutoffs for excluded atom types to
-0. None of the pair styles in the USER-OMP package support the
-"inner", "middle", "outer" options for r-RESPA integration.
+often be accomplished by setting cutoffs for excluded atom types to 0.
+None of the pair styles in the USER-OMP package currently support the
+"inner", "middle", "outer" options for rRESPA integration via the
+<A HREF = "run_style.html">run_style respa</A> command.
 </P>
 <HR>
 

@@ -4,6 +4,7 @@
 #include "colvarproxy.h"
 #include "colvar.h"
 #include "colvarbias.h"
+#include "colvarbias_alb.h"
 #include "colvarbias_meta.h"
 #include "colvarbias_abf.h"
 
@@ -247,16 +248,55 @@ void colvarmodule::init_biases (std::string const &conf)
       if (harm_conf.size()) {
         cvm::log (cvm::line_marker);
         cvm::increase_depth();
-        biases.push_back (new colvarbias_harmonic (harm_conf, "harmonic"));
+        biases.push_back (new colvarbias_restraint_harmonic (harm_conf, "harmonic"));
         (biases.back())->check_keywords (harm_conf, "harmonic");
         cvm::decrease_depth();
-        n_harm_biases++;
+        n_rest_biases++;
       } else {
         cvm::log ("Warning: \"harmonic\" keyword found without configuration.\n");
       }
       harm_conf = "";
     }
   }
+
+  {
+    /// initialize linear restraints
+    std::string lin_conf = "";
+    size_t lin_pos = 0;
+    while (parse->key_lookup (conf, "linear", lin_conf, lin_pos)) {
+      if (lin_conf.size()) {
+        cvm::log (cvm::line_marker);
+        cvm::increase_depth();
+        biases.push_back (new colvarbias_restraint_linear (lin_conf, "linear"));
+        (biases.back())->check_keywords (lin_conf, "linear");
+        cvm::decrease_depth();
+        n_rest_biases++;
+      } else {
+        cvm::log ("Warning: \"linear\" keyword found without configuration.\n");
+      }
+      lin_conf = "";
+    }
+  }
+
+  {
+    /// initialize adaptive linear biases
+    std::string alb_conf = "";
+    size_t alb_pos = 0;
+    while (parse->key_lookup (conf, "ALB", alb_conf, alb_pos)) {
+      if (alb_conf.size()) {
+        cvm::log (cvm::line_marker);
+        cvm::increase_depth();
+        biases.push_back (new colvarbias_alb (alb_conf, "ALB"));
+        (biases.back())->check_keywords (alb_conf, "ALB");
+        cvm::decrease_depth();
+        n_rest_biases++;
+      } else {
+        cvm::log ("Warning: \"ALB\" keyword found without configuration.\n");
+      }
+      alb_conf = "";
+    }
+  }
+
 
   {
     /// initialize histograms
@@ -815,7 +855,6 @@ void cvm::read_index_file (char const *filename)
 
 }
 
-
 void cvm::load_atoms (char const *file_name,
                              std::vector<cvm::atom> &atoms,
                              std::string const &pdb_field,
@@ -893,7 +932,7 @@ void cvm::load_coords_xyz (char const *filename,
 std::vector<colvar *>     colvarmodule::colvars;
 std::vector<colvarbias *> colvarmodule::biases;
 size_t                    colvarmodule::n_abf_biases = 0;
-size_t                    colvarmodule::n_harm_biases = 0;
+size_t                    colvarmodule::n_rest_biases = 0;
 size_t                    colvarmodule::n_histo_biases = 0;
 size_t                    colvarmodule::n_meta_biases = 0;
 colvarproxy              *colvarmodule::proxy = NULL;

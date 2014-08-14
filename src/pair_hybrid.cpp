@@ -216,10 +216,12 @@ void PairHybrid::settings(int narg, char **arg)
   multiple = new int[narg];
 
   // allocate each sub-style
+  // allocate uses suffix, but don't store suffix version in keywords,
+  //   else syntax in coeff() will not match
   // call settings() with set of args that are not pair style names
   // use force->pair_map to determine which args these are
 
-  int iarg,jarg,sflag;
+  int iarg,jarg,dummy;
 
   iarg = 0;
   nstyles = 0;
@@ -229,8 +231,8 @@ void PairHybrid::settings(int narg, char **arg)
     if (strcmp(arg[iarg],"none") == 0)
       error->all(FLERR,"Pair style hybrid cannot have none as an argument");
 
-    styles[nstyles] = force->new_pair(arg[iarg],1,sflag);
-    force->store_style(keywords[nstyles],arg[iarg],sflag);
+    styles[nstyles] = force->new_pair(arg[iarg],1,dummy);
+    force->store_style(keywords[nstyles],arg[iarg],0);
 
     jarg = iarg + 1;
     while (jarg < narg && !force->pair_map->count(arg[jarg])) jarg++;

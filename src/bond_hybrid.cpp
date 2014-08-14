@@ -203,11 +203,13 @@ void BondHybrid::settings(int narg, char **arg)
   keywords = new char*[nstyles];
 
   // allocate each sub-style and call its settings() with subset of args
+  // allocate uses suffix, but don't store suffix version in keywords,
+  //   else syntax in coeff() will not match
   // define subset of args for a sub-style by skipping numeric args
   // one exception is 1st arg of style "table", which is non-numeric
   // need a better way to skip these exceptions
 
-  int sflag;
+  int dummy;
   nstyles = 0;
   i = 0;
 
@@ -220,8 +222,8 @@ void BondHybrid::settings(int narg, char **arg)
     if (strcmp(arg[i],"none") == 0)
       error->all(FLERR,"Bond style hybrid cannot have none as an argument");
 
-    styles[nstyles] = force->new_bond(arg[i],1,sflag);
-    force->store_style(keywords[nstyles],arg[i],sflag);
+    styles[nstyles] = force->new_bond(arg[i],1,dummy);
+    force->store_style(keywords[nstyles],arg[i],0);
 
     istyle = i;
     if (strcmp(arg[i],"table") == 0) i++;

@@ -1,0 +1,59 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+dump h5md command :h3
+
+[Syntax:]
+
+dump ID group-ID h5md N file.h5
+
+ID = user-assigned name for the dump :ulb,l
+group-ID = ID of the group of atoms to be imaged :l
+h5md = style of dump command (other styles {atom} or {cfg} or {dcd} or {xtc} or {xyz} or {local} or {custom} are discussed on the "dump"_dump.html doc page) :l
+N = dump every this many timesteps :l
+file.h5 = name of file to write to :l
+:ule
+
+[Examples:]
+
+dump h5md1 all h5md 100 dump_h5md.h5
+
+[Description:]
+
+Dump a snapshot of atom coordinates every N timesteps in the "HDF5"_HDF5_ws
+based "H5MD"_h5md file format.
+
+:link(h5md,http://nongnu.org/h5md/)
+
+This dump style will write only one file, on the root node.
+
+IMPORTANT NOTE: Because periodic boundary conditions are enforced only
+on timesteps when neighbor lists are rebuilt, the coordinates of an
+atom written to a dump file may be slightly outside the simulation
+box.
+
+:line
+
+[Restrictions:]
+
+The {h5md} dump style is part of the USER-H5MD package. It is only enabled if
+LAMMPS was built with that package. See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info. It also requires
+(i) building the ch5md library provided with LAMMPS (See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.) and
+(ii) having the "HDF5"_HDF5_ws library installed (C bindings are sufficient).
+The library ch5md is compiled with the h5cc wrapper provided by the HDF5 library.
+
+:link(HDF5_ws,http://www.hdfgroup.org/HDF5/)
+
+:line
+
+[Related commands:]
+
+"dump"_dump.html, "dump_modify"_dump_modify.html, "undump"_undump.html
+

@@ -1,0 +1,68 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dump h5md command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<P>dump ID group-ID h5md N file.h5
+</P>
+<UL><LI>ID = user-assigned name for the dump 
+
+<LI>group-ID = ID of the group of atoms to be imaged 
+
+<LI>h5md = style of dump command (other styles <I>atom</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>local</I> or <I>custom</I> are discussed on the <A HREF = "dump.html">dump</A> doc page) 
+
+<LI>N = dump every this many timesteps 
+
+<LI>file.h5 = name of file to write to 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<P>dump h5md1 all h5md 100 dump_h5md.h5
+</P>
+<P><B>Description:</B>
+</P>
+<P>Dump a snapshot of atom coordinates every N timesteps in the <A HREF = "http://www.hdfgroup.org/HDF5/">HDF5</A>
+based <A HREF = "http://nongnu.org/h5md/">H5MD</A> file format.
+</P>
+
+
+<P>This dump style will write only one file, on the root node.
+</P>
+<P>IMPORTANT NOTE: Because periodic boundary conditions are enforced only
+on timesteps when neighbor lists are rebuilt, the coordinates of an
+atom written to a dump file may be slightly outside the simulation
+box.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>h5md</I> dump style is part of the USER-H5MD package. It is only enabled if
+LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info. It also requires
+(i) building the ch5md library provided with LAMMPS (See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.) and
+(ii) having the <A HREF = "http://www.hdfgroup.org/HDF5/">HDF5</A> library installed (C bindings are sufficient).
+The library ch5md is compiled with the h5cc wrapper provided by the HDF5 library.
+</P>
+
+
+<HR>
+
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "dump_modify.html">dump_modify</A>, <A HREF = "undump.html">undump</A>
+</P>
+</HTML>

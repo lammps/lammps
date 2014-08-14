@@ -1,0 +1,59 @@
+# Gay-Berne benchmark
+# biaxial ellipsoid mesogens in isotropic phase
+# shape: 2 1.5 1
+# cutoff 4.0 with skin 0.8
+# NPT, T=2.4, P=8.0
+package intel * mixed balance $b
+suffix $s
+processors * * * grid numa
+
+variable        x index 4
+variable        y index 2
+variable        z index 2
+
+variable i equal $x*32
+variable j equal $y*32
+variable k equal $z*32
+
+units	      lj
+atom_style    ellipsoid
+
+# creation
+lattice	      sc 0.22
+region	      box block 0 $i 0 $j 0 $k
+create_box    1 box
+create_atoms  1 box
+
+# read_data     data.gb
+
+set type 1 mass 1.5
+set type 1 shape 1 1.5 2
+set	      group all quat/random 982381
+
+compute	      rot all temp/asphere
+group	      spheroid type 1
+variable      dof equal count(spheroid)+3
+compute_modify rot extra ${dof}
+
+velocity      all create 2.4 41787 loop geom
+
+pair_style    gayberne 1.0 3.0 1.0 4.0
+pair_coeff    1 1 1.0 1.0 1.0 0.5 0.2 1.0 0.5 0.2
+
+neighbor      0.8 bin
+
+timestep      0.002
+thermo	      300
+
+# equilibration run
+fix	      1 all npt/asphere temp 2.4 2.4 0.1 iso 5.0 8.0 0.1
+compute_modify 1_temp extra ${dof}
+run	      210
+thermo        100
+
+reset_timestep 0
+unfix 1
+fix         1 all nve/asphere
+run 10
+run	      50
+

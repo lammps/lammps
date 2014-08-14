@@ -861,6 +861,19 @@ int Modify::find_fix(const char *id)
 }
 
 /* ----------------------------------------------------------------------
+   check for fix associated with package name
+   return 1 if found else 0
+   used to determine whether LAMMPS was built with
+     GPU, USER-INTEL, USER-OMP packages
+------------------------------------------------------------------------- */
+
+int Modify::check_package(const char *package_fix_name)
+{
+  if (fix_map->find(package_fix_name) == fix_map->end()) return 0;
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
    add a new compute
 ------------------------------------------------------------------------- */
 

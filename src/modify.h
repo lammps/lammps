@@ -86,6 +86,7 @@ class Modify : protected Pointers {
   void modify_fix(int, char **);
   void delete_fix(const char *);
   int find_fix(const char *);
+  int check_package(const char *);
 
   void add_compute(int, char **, int trysuffix=0);
   void modify_compute(int, char **);

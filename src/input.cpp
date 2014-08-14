@@ -1403,10 +1403,14 @@ void Input::package()
 
   if (strcmp(arg[0],"cuda") == 0) {
     if (!lmp->cuda)
-      error->all(FLERR,"Package cuda command without USER-CUDA installed");
+      error->all(FLERR,
+                 "Package cuda command without USER-CUDA package installed");
     lmp->cuda->accelerator(narg-1,&arg[1]);
 
   } else if (strcmp(arg[0],"gpu") == 0) {
+    if (!modify->check_package("GPU"))
+      error->all(FLERR,"Package gpu command without GPU package installed");
+
     char **fixarg = new char*[2+narg];
     fixarg[0] = (char *) "package_gpu";
     fixarg[1] = (char *) "all";
@@ -1418,10 +1422,15 @@ void Input::package()
 
   } else if (strcmp(arg[0],"kokkos") == 0) {
     if (!lmp->kokkos)
-      error->all(FLERR,"Package kokkos command without KOKKOS installed");
+      error->all(FLERR,
+                 "Package kokkos command without KOKKOS package installed");
     lmp->kokkos->accelerator(narg-1,&arg[1]);
 
   } else if (strcmp(arg[0],"omp") == 0) {
+    if (!modify->check_package("OMP"))
+      error->all(FLERR,
+                 "Package omp command without USER-OMP package installed");
+
     char **fixarg = new char*[2+narg];
     fixarg[0] = (char *) "package_omp";
     fixarg[1] = (char *) "all";
@@ -1454,6 +1463,10 @@ void Input::package()
 
     // add intel package for neighbor and pair routines
     */
+
+    if (!modify->check_package("Intel"))
+      error->all(FLERR,
+                 "Package intel command without USER-INTEL package installed");
 
     char **fixarg = new char*[2+narg];
     fixarg[0] = (char *) "package_intel";

@@ -12,13 +12,14 @@ suffix command :h3
 
 suffix style :pre
 
-style = {off} or {on} or {cuda} or {gpu} or {kk} or {omp} or {opt} :ul
+style = {off} or {on} or {cuda} or {gpu} or {intel} or {kk} or {omp} or {opt} :ul
 
 [Examples:]
 
 suffix off
 suffix on
 suffix gpu
+suffix intel
 suffix kk :pre
 
 [Description:]
@@ -28,12 +29,14 @@ exist.  In that respect it operates the same as the "-suffix
 command-line switch"_Section_start.html#start_7.  It also has options
 to turn off or back on any suffix setting made via the command line.
 
-The specified style can be {cuda}, {gpu}, {kk}, {omp}, or {opt}.
-These refer to optional packages that LAMMPS can be built with, as
-described in "this section of the manual"_Section_start.html#start_3.
-The "cuda" style corresponds to the USER-CUDA package, the "gpu" style
-to the GPU package, the "kk" style to the KOKKOS package, the "omp"
-style to the USER-OMP package, and the "opt" style to the OPT package,
+The specified style can be {cuda}, {gpu}, {intel}, {kk}, {omp}, or
+{opt}.  These refer to optional packages that LAMMPS can be built
+with, as described in "this section of the
+manual"_Section_start.html#start_3.  The "cuda" style corresponds to
+the USER-CUDA package, the "gpu" style to the GPU package, the "intel"
+style to the USER-INTEL package, the "kk" style to the KOKKOS package,
+the "omp" style to the USER-OMP package, and the "opt" style to the
+OPT package,
 
 These are the variants these packages provide:
 
@@ -42,6 +45,10 @@ styles, optimized to run on one or more NVIDIA GPUs :ulb,l
 
 GPU = a handful of pair styles and the PPPM kspace_style, optimized to
 run on one or more GPUs or multicore CPU/GPU nodes :l
+
+USER-INTEL = a collection of pair styles and neighbor routines
+optimized to run in single, mixed, or double precision on CPUs and
+Intel coprocessors (Xeon Phi). :l
 
 KOKKOS = a collection of atom, pair, and fix styles optimized to run
 using the Kokkos library on various kinds of hardware, including GPUs
@@ -56,18 +63,23 @@ performance :ule,l
 
 As an example, all of the packages provide a "pair_style
 lj/cut"_pair_lj.html variant, with style names lj/cut/opt, lj/cut/omp,
-lj/cut/gpu, lj/cut/cuda, or lj/cut/kk.  A variant styles can be
-specified explicitly in your input script, e.g. pair_style lj/cut/gpu.
-If the suffix command is used with the appropriate style, you do not
-need to modify your input script.  The specified suffix
-(opt,omp,gpu,cuda,kk) is automatically appended whenever your input
-script command creates a new "atom"_atom_style.html,
+lj/cut/gpu, lj/cut/intel, lj/cut/cuda, or lj/cut/kk.  A variant styles
+can be specified explicitly in your input script, e.g. pair_style
+lj/cut/gpu. If the suffix command is used with the appropriate style,
+you do not need to modify your input script.  The specified suffix
+(opt,omp,gpu,intel,cuda,kk) is automatically appended whenever your
+input script command creates a new "atom"_atom_style.html,
 "pair"_pair_style.html, "bond"_bond_style.html,
 "angle"_angle_style.html, "dihedral"_dihedral_style.html,
 "improper"_improper_style.html, "kspace"_kspace_style.html,
 "fix"_fix.html, "compute"_compute.html, or "run"_run_style.html style.
 If the variant version does not exist, the standard version is
 created.
+
+When using the intel suffix, LAMMPS will first attempt to use a style
+with the intel suffix. If this does not exist, a style with the omp
+suffix is attempted. If this also does not exist, the style without
+any suffix is used.
 
 If the specified style is {off}, then any previously specified suffix
 is temporarily disabled, whether it was specified by a command-line

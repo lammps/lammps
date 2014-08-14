@@ -112,7 +112,8 @@ it gives quick access to documentation for all LAMMPS commands.
   5.6 "GPU package"_acc_6 :b
   5.7 "USER-CUDA package"_acc_7 :b
   5.8 "KOKKOS package"_acc_8 :b
-  5.9 "Comparison of GPU and USER-CUDA packages"_acc_9 :ule,b
+  5.9 "USER-INTEL package"_acc_9 :b
+  5.10 "Comparison of GPU and USER-CUDA packages"_acc_10 :ule,b
 "How-to discussions"_Section_howto.html :l
   6.1 "Restarting a simulation"_howto_1 :ulb,b
   6.2 "2d simulations"_howto_2 :b

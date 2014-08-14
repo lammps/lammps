@@ -1468,29 +1468,37 @@ partition screen files file.N.
 <PRE>-suffix style args 
 </PRE>
 <P>Use variants of various styles if they exist.  The specified style can
-be <I>cuda</I>, <I>gpu</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I>.  These refer to optional
-packages that LAMMPS can be built with, as described above in <A HREF = "#start_3">Section
-2.3</A>.  The "cuda" style corresponds to the USER-CUDA package,
-the "gpu" style to the GPU package, the "kk" style to the KOKKOS
-pacakge, the "opt" style to the OPT package, and the "omp" style to
-the USER-OMP package.
+be <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I>.  These refer to
+optional packages that LAMMPS can be built with, as described above in
+<A HREF = "#start_3">Section 2.3</A>.  The "cuda" style corresponds to the USER-CUDA
+package, the "gpu" style to the GPU package, the "intel" style to the
+USER-INTEL package, the "kk" style to the KOKKOS package, the "opt"
+style to the OPT package, and the "omp" style to the USER-OMP package.
 </P>
 <P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
 lj/cut</A> variant, with style names lj/cut/cuda,
-lj/cut/gpu, lj/cut/kk, lj/cut/omp, or lj/cut/opt.  A variant styles
-can be specified explicitly in your input script, e.g. pair_style
-lj/cut/gpu.  If the -suffix switch is used, you do not need to modify
-your input script.  The specified suffix (cuda,gpu,kk,omp,opt) is
-automatically appended whenever your input script command creates a
-new <A HREF = "atom_style.html">atom</A>, <A HREF = "pair_style.html">pair</A>, <A HREF = "fix.html">fix</A>,
-<A HREF = "compute.html">compute</A>, or <A HREF = "run_style.html">run</A> style.  If the variant
-version does not exist, the standard version is created.
+lj/cut/gpu, lj/cut/intel, lj/cut/kk, lj/cut/omp, or lj/cut/opt.  A
+variant styles can be specified explicitly in your input script,
+e.g. pair_style lj/cut/gpu.  If the -suffix switch is used, you do not
+need to modify your input script.  The specified suffix
+(cuda,gpu,intel,kk,omp,opt) is automatically appended whenever your
+input script command creates a new <A HREF = "atom_style.html">atom</A>,
+<A HREF = "pair_style.html">pair</A>, <A HREF = "fix.html">fix</A>, <A HREF = "compute.html">compute</A>, or
+<A HREF = "run_style.html">run</A> style.  If the variant version does not exist,
+the standard version is created.
 </P>
 <P>For the GPU package, using this command-line switch also invokes the
 default GPU settings, as if the command "package gpu force/neigh 0 0
 1" were used at the top of your input script.  These settings can be
 changed by using the <A HREF = "package.html">package gpu</A> command in your script
 if desired.
+</P>
+<P>For the Intel package, using this command-line switch also invokes the
+default Intel settings, as if the command "package intel * mixed
+balance -1" were used at the top of your input script.  These settings
+can be changed by using the <A HREF = "package.html">package intel</A> command in
+your script if desired.  The intel suffix will attempt to use styles
+from the OMP package if they are not present in the Intel package.
 </P>
 <P>For the KOKKOS package, using this command-line switch also invokes
 the default KOKKOS settings, as if the command "package kokkos neigh

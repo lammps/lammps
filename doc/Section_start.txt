@@ -1462,29 +1462,37 @@ partition screen files file.N.
 -suffix style args :pre
 
 Use variants of various styles if they exist.  The specified style can
-be {cuda}, {gpu}, {kk}, {omp}, or {opt}.  These refer to optional
-packages that LAMMPS can be built with, as described above in "Section
-2.3"_#start_3.  The "cuda" style corresponds to the USER-CUDA package,
-the "gpu" style to the GPU package, the "kk" style to the KOKKOS
-pacakge, the "opt" style to the OPT package, and the "omp" style to
-the USER-OMP package.
+be {cuda}, {gpu}, {intel}, {kk}, {omp}, or {opt}.  These refer to
+optional packages that LAMMPS can be built with, as described above in
+"Section 2.3"_#start_3.  The "cuda" style corresponds to the USER-CUDA
+package, the "gpu" style to the GPU package, the "intel" style to the
+USER-INTEL package, the "kk" style to the KOKKOS package, the "opt"
+style to the OPT package, and the "omp" style to the USER-OMP package.
 
 As an example, all of the packages provide a "pair_style
 lj/cut"_pair_lj.html variant, with style names lj/cut/cuda,
-lj/cut/gpu, lj/cut/kk, lj/cut/omp, or lj/cut/opt.  A variant styles
-can be specified explicitly in your input script, e.g. pair_style
-lj/cut/gpu.  If the -suffix switch is used, you do not need to modify
-your input script.  The specified suffix (cuda,gpu,kk,omp,opt) is
-automatically appended whenever your input script command creates a
-new "atom"_atom_style.html, "pair"_pair_style.html, "fix"_fix.html,
-"compute"_compute.html, or "run"_run_style.html style.  If the variant
-version does not exist, the standard version is created.
+lj/cut/gpu, lj/cut/intel, lj/cut/kk, lj/cut/omp, or lj/cut/opt.  A
+variant styles can be specified explicitly in your input script,
+e.g. pair_style lj/cut/gpu.  If the -suffix switch is used, you do not
+need to modify your input script.  The specified suffix
+(cuda,gpu,intel,kk,omp,opt) is automatically appended whenever your
+input script command creates a new "atom"_atom_style.html,
+"pair"_pair_style.html, "fix"_fix.html, "compute"_compute.html, or
+"run"_run_style.html style.  If the variant version does not exist,
+the standard version is created.
 
 For the GPU package, using this command-line switch also invokes the
 default GPU settings, as if the command "package gpu force/neigh 0 0
 1" were used at the top of your input script.  These settings can be
 changed by using the "package gpu"_package.html command in your script
 if desired.
+
+For the Intel package, using this command-line switch also invokes the
+default Intel settings, as if the command "package intel * mixed
+balance -1" were used at the top of your input script.  These settings
+can be changed by using the "package intel"_package.html command in
+your script if desired.  The intel suffix will attempt to use styles
+from the OMP package if they are not present in the Intel package.
 
 For the KOKKOS package, using this command-line switch also invokes
 the default KOKKOS settings, as if the command "package kokkos neigh

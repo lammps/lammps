@@ -15,13 +15,14 @@
 </P>
 <PRE>suffix style 
 </PRE>
-<UL><LI>style = <I>off</I> or <I>on</I> or <I>cuda</I> or <I>gpu</I> or <I>kk</I> or <I>omp</I> or <I>opt</I> 
+<UL><LI>style = <I>off</I> or <I>on</I> or <I>cuda</I> or <I>gpu</I> or <I>intel</I> or <I>kk</I> or <I>omp</I> or <I>opt</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>suffix off
 suffix on
 suffix gpu
+suffix intel
 suffix kk 
 </PRE>
 <P><B>Description:</B>
@@ -31,12 +32,14 @@ exist.  In that respect it operates the same as the <A HREF = "Section_start.htm
 command-line switch</A>.  It also has options
 to turn off or back on any suffix setting made via the command line.
 </P>
-<P>The specified style can be <I>cuda</I>, <I>gpu</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I>.
-These refer to optional packages that LAMMPS can be built with, as
-described in <A HREF = "Section_start.html#start_3">this section of the manual</A>.
-The "cuda" style corresponds to the USER-CUDA package, the "gpu" style
-to the GPU package, the "kk" style to the KOKKOS package, the "omp"
-style to the USER-OMP package, and the "opt" style to the OPT package,
+<P>The specified style can be <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or
+<I>opt</I>.  These refer to optional packages that LAMMPS can be built
+with, as described in <A HREF = "Section_start.html#start_3">this section of the
+manual</A>.  The "cuda" style corresponds to
+the USER-CUDA package, the "gpu" style to the GPU package, the "intel"
+style to the USER-INTEL package, the "kk" style to the KOKKOS package,
+the "omp" style to the USER-OMP package, and the "opt" style to the
+OPT package,
 </P>
 <P>These are the variants these packages provide:
 </P>
@@ -45,6 +48,10 @@ styles, optimized to run on one or more NVIDIA GPUs
 
 <LI>GPU = a handful of pair styles and the PPPM kspace_style, optimized to
 run on one or more GPUs or multicore CPU/GPU nodes 
+
+<LI>USER-INTEL = a collection of pair styles and neighbor routines
+optimized to run in single, mixed, or double precision on CPUs and
+Intel coprocessors (Xeon Phi). 
 
 <LI>KOKKOS = a collection of atom, pair, and fix styles optimized to run
 using the Kokkos library on various kinds of hardware, including GPUs
@@ -59,18 +66,23 @@ performance
 </UL>
 <P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
 lj/cut</A> variant, with style names lj/cut/opt, lj/cut/omp,
-lj/cut/gpu, lj/cut/cuda, or lj/cut/kk.  A variant styles can be
-specified explicitly in your input script, e.g. pair_style lj/cut/gpu.
-If the suffix command is used with the appropriate style, you do not
-need to modify your input script.  The specified suffix
-(opt,omp,gpu,cuda,kk) is automatically appended whenever your input
-script command creates a new <A HREF = "atom_style.html">atom</A>,
+lj/cut/gpu, lj/cut/intel, lj/cut/cuda, or lj/cut/kk.  A variant styles
+can be specified explicitly in your input script, e.g. pair_style
+lj/cut/gpu. If the suffix command is used with the appropriate style,
+you do not need to modify your input script.  The specified suffix
+(opt,omp,gpu,intel,cuda,kk) is automatically appended whenever your
+input script command creates a new <A HREF = "atom_style.html">atom</A>,
 <A HREF = "pair_style.html">pair</A>, <A HREF = "bond_style.html">bond</A>,
 <A HREF = "angle_style.html">angle</A>, <A HREF = "dihedral_style.html">dihedral</A>,
 <A HREF = "improper_style.html">improper</A>, <A HREF = "kspace_style.html">kspace</A>,
 <A HREF = "fix.html">fix</A>, <A HREF = "compute.html">compute</A>, or <A HREF = "run_style.html">run</A> style.
 If the variant version does not exist, the standard version is
 created.
+</P>
+<P>When using the intel suffix, LAMMPS will first attempt to use a style
+with the intel suffix. If this does not exist, a style with the omp
+suffix is attempted. If this also does not exist, the style without
+any suffix is used.
 </P>
 <P>If the specified style is <I>off</I>, then any previously specified suffix
 is temporarily disabled, whether it was specified by a command-line

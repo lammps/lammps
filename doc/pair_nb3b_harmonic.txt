@@ -87,17 +87,18 @@ simulation; LAMMPS ignores those entries.
 
 :line
 
-Styles with a {cuda}, {gpu}, {omp}, or {opt} suffix are functionally
-the same as the corresponding style without the suffix.  They have
-been optimized to run faster, depending on your available hardware, as
-discussed in "Section_accelerate"_Section_accelerate.html of the
-manual.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
+Styles with a {cuda}, {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
 
-These accelerated styles are part of the USER-CUDA, GPU, USER-OMP and OPT
-packages, respectively.  They are only enabled if LAMMPS was built with
-those packages.  See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
+These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the "-suffix command-line

@@ -12,7 +12,7 @@ package command :h3
 
 package style args :pre
 
-style = {cuda} or {gpu} or {kokkos} or {omp} :ulb,l
+style = {cuda} or {gpu} or {intel} or {kokkos} or {omp} :ulb,l
 args = arguments specific to the style :l
   {cuda} args = keyword value ...
     one or more keyword/value pairs may be appended
@@ -40,6 +40,20 @@ args = arguments specific to the style :l
         dist = length (distance units) in each dimension for neighbor bins
       {device} value = device_type
         device_type = {kepler} or {fermi} or {cypress} or {generic}
+  {intel} args = Nthreads precision keyword value ...
+    Nthreads = # of OpenMP threads to associate with each MPI process on host
+    precision = {single} or {mixed} or {double}
+    keywords = {balance} or {offload_cards} or {offload_ghost} or {offload_tpc} or {offload_threads}
+     {balance} value = split
+       split = fraction of work to offload to coprocessor, -1 for dynamic
+     {offload_cards} value = ncops
+       ncops = number of coprocessors to use on each node
+     {offload_ghost} value = offload_type
+       offload_type = 1 to include ghost atoms for offload, 0 for local only
+     {offload_tpc} value = tpc
+       tpc = number of threads to use on each core of coprocessor
+     {offload_threads} value = tptask
+       tptask = max number of threads to use on coprocessor for each MPI task
   {kokkos} args = keyword value ...
     one or more keyword/value pairs may be appended
     keywords = {neigh} or {comm/exchange} or {comm/forward}
@@ -61,12 +75,14 @@ package cuda gpu/node/special 2 0 2
 package cuda test 3948
 package kokkos neigh half/thread comm/forward device
 package omp * force/neigh
-package omp 4 force :pre
+package omp 4 force
+package intel * mixed balance -1 :pre
 
 [Description:]
 
 This command invokes package-specific settings.  Currently the
-following packages use it: USER-CUDA, GPU, KOKKOS, and USER-OMP.
+following packages use it: USER-CUDA, GPU, USER-INTEL, KOKKOS, and
+USER-OMP.
 
 To use the accelerated GPU and USER-OMP styles, the use of the package
 command is required.  However, as described in the "Defaults" section
@@ -210,6 +226,64 @@ device type can be specified when building LAMMPS with the GPU library.
 
 :line
 
+The {intel} style invokes options associated with the use of the
+USER-INTEL package.
+
+The {Nthreads} argument allows to one explicitly set the number of
+OpenMP threads to be allocated for each MPI process, An {Nthreads}
+value of '*' instructs LAMMPS to use whatever is the default for the
+given OpenMP environment. This is usually determined via the
+OMP_NUM_THREADS environment variable or the compiler runtime.
+
+The {precision} argument determines the precision mode to use and can
+take values of {single} (intel styles use single precision for all
+calculations), {mixed} (intel styles use double precision for
+accumulation and storage of forces, torques, energies, and virial
+terms and single precision for everything else), or {double} (intel
+styles use double precision for all calculations).
+
+Additional keyword-value pairs are available that are used to
+determine how work is offloaded to an Intel coprocessor. If LAMMPS is
+built without offload support, these values are ignored. The
+additional settings are as follows:
+
+The {balance} setting is used to set the fraction of work offloaded to
+the coprocessor for an intel style (in the inclusive range 0.0 to
+1.0). While this fraction of work is running on the coprocessor, other
+calculations will run on the host, including neighbor and pair
+calculations that are not offloaded, angle, bond, dihedral, kspace,
+and some MPI communications. If the balance is set to -1, the fraction
+of work is dynamically adjusted automatically throughout the run. This
+can typically give performance within 5 to 10 percent of the optimal
+fixed fraction.
+
+The {offload_cards} setting determines the number of coprocessors to
+use on each node.
+
+Additional options for fine tuning performance with offload are as
+follows:
+
+The {offload_ghost} setting determines whether or not ghost atoms,
+atoms at the borders between MPI tasks, are offloaded for neighbor and
+force calculations. When set to "0", ghost atoms are not offloaded.
+This option can reduce the amount of data transfer with the
+coprocessor and also can overlap MPI communication of forces with
+computation on the coprocessor when the "newton pair"_newton.html
+setting is "on".  When set to "1", ghost atoms are offloaded. In some
+cases this can provide better performance, especially if the offload
+fraction is high.
+
+The {offload_tpc} option sets the maximum number of threads that will
+run on each core of the coprocessor.
+
+The {offload_threads} option sets the maximum number of threads that
+will be used on the coprocessor for each MPI task. This, along with
+the {offload_tpc} setting, are the only methods for changing the
+number of threads on the coprocessor. The OMP_NUM_THREADS keyword and
+{Nthreads} options are only used for threads on the host.
+
+:line
+
 The {kokkos} style invokes options associated with the use of the
 KOKKOS package.
 
@@ -342,6 +416,12 @@ used then it is as if the command "package gpu force/neigh 0 0 1" were
 invoked, to specify default settings for the GPU package.  If the
 command-line switch is not used, then no defaults are set, and you
 must specify the appropriate package command in your input script.
+
+The default settings for the USER-INTEL package are "package intel *
+mixed balance -1 offload_cards 1 offload_tpc 4 offload_threads 240".
+The {offload_ghost} default setting is determined by the intel style
+being used.  The value used is output to the screen in the offload
+report at the end of each run.
 
 The default settings for the KOKKOS package are "package kk neigh full 
 comm/exchange host comm/forward host".  This is the case whether the

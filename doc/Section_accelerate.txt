@@ -22,7 +22,8 @@ kinds of machines.
 5.6 "GPU package"_#acc_6
 5.7 "USER-CUDA package"_#acc_7
 5.8 "KOKKOS package"_#acc_8
-5.9 "Comparison of GPU and USER-CUDA packages"_#acc_9 :all(b)
+5.9 "USER-INTEL package"_#acc_9
+5.10 "Comparison of GPU and USER-CUDA packages"_#acc_10 :all(b)
 
 :line
 :line
@@ -148,6 +149,7 @@ Lennard-Jones pair style "pair_style lj/cut"_pair_lj.html:
 
 "pair_style lj/cut/cuda"_pair_lj.html
 "pair_style lj/cut/gpu"_pair_lj.html
+"pair_style lj/cut/intel"_pair_lj.html
 "pair_style lj/cut/kk"_pair_lj.html
 "pair_style lj/cut/omp"_pair_lj.html
 "pair_style lj/cut/opt"_pair_lj.html :ul
@@ -165,6 +167,14 @@ Styles with a "cuda" or "gpu" suffix are part of the USER-CUDA or GPU
 packages, and can be run on NVIDIA GPUs associated with your CPUs.
 The speed-up due to GPU usage depends on a variety of factors, as
 discussed below.
+
+Styles with an "intel" suffix are part of the USER-INTEL
+package. These styles support vectorized single and mixed precision
+calculations, in addition to full double precision.  In extreme cases,
+this can provide speedups over 3.5x on CPUs.  The package also
+supports acceleration with offload to Intel corprocessors (Xeon
+Phi). This can result in additional speedup over 2x depending on the
+hardware configuration.
 
 Styles with a "kk" suffix are part of the KOKKOS package, and can be
 run using OpenMP, pthreads, or on an NVIDIA GPU.  The speed-up depends
@@ -249,15 +259,6 @@ other package which has no additional library dependencies:
 
 make yes-user-omp
 make machine :pre
-
-Please note that this will only install accelerated versions
-of styles that are already installed, so you want to install
-this package as the last package, or else you may be missing
-some accelerated styles. If you plan to uninstall some package,
-you should first uninstall the USER-OMP package then the other
-package and then re-install USER-OMP, to make sure that there
-are no orphaned {omp} style files present, which would lead to
-compilation errors.
 
 If your input script uses one of regular styles that are also
 exist as an OpenMP version in the USER-OMP package you can run
@@ -967,9 +968,158 @@ hope to support this in the future, similar to the GPU package in
 LAMMPS.
 
 :line
+
+5.9 USER-INTEL package :h4,link(acc_9)
+
+The USER-INTEL package was developed by Mike Brown at Intel
+Corporation. It provides a capability to accelerate simulations by
+offloading neighbor list and non-bonded force calculations to Intel
+coprocessors.  Additionally, it supports running simulations in
+single, mixed, or double precision with vectorization, even if a
+coprocessor is not present.  The same C++ code is used for both cases.
+When offloading to a coprocessor, the routine is run twice, once with
+an offload flag.
+
+The USER-INTEL package will work with the USER-OMP package. Specifying
+use of the Intel package implicitly includes the OMP package allowing
+it to be used for angle, bond, dihedral, and long-range
+electrostatics.  Using the "suffix intel"_suffix.html command will use
+styles from the Intel package if available; otherwise it will use
+styles from the OMP package if available.
+
+[Building LAMMPS with the USER-INTEL package:]
+
+The procedure for building LAMMPS with the USER-INTEL package is
+simple.  You have to edit your machine specific makefile to add the
+flags to enable OpenMP support ({-openmp}) to both the CCFLAGS and
+LINKFLAGS variables.  You also need to add -restrict to CCFLAGS.  If
+you are compiling on the same architecture that will be used for the
+runs, adding the flag {-xHost} will enable vectorization with the
+Intel compiler. In order to build with support for an Intel
+coprocessor, the flag {-offload} should be added to the LINKFLAGS line
+and the flag {-DLMP_INTEL_OFFLOAD} should be added to the CCFLAGS
+line.
+
+The files src/MAKE/Makefile.intel and src/MAKE/Makefile.intel_offload
+are provided with options that perform well with the Intel
+compiler. The latter Makefile has support for offload to coprocessors
+and the former does not.
+
+It is recommended that Intel Compiler 2013 SP1 update 1 be used for
+compiling. Newer versions have some performance issues that are being
+addressed. If using Intel MPI, version 5 or higher is recommended.
+
+The rest of the compilation is the same as for any other package that
+has no additional library dependencies:
+
+make yes-user-omp yes-user-intel
+make machine :pre
+
+[Running an input script:]
+
+The examples/intel directory has scripts that can be run with the
+USER-INTEL package, as well as detailed instructions on how to run
+them.
+
+The total number of MPI tasks used by LAMMPS (one or multiple per
+compute node) is set in the usual manner via the mpirun or mpiexec
+commands, and is independent of the Intel package.
+
+Input script requirements to run using pair styles with a {intel}
+suffix are as follows:
+
+To invoke specific styles from the Intel package, either append
+"intel" to the style name (e.g. pair_style lj/cut/intel), or use the
+"-suffix command-line switch"_Section_start.html#start_7, or use the
+"suffix"_suffix.html command in the input script.
+
+Unless the "-suffix intel command-line
+switch"_Section_start.html#start_7 is used, the "package
+intel"_package.html command must be used near the beginning of the
+script. The default precision mode for the Intel package is {mixed},
+meaning that accumulation is performed in double precision and other
+calculations are performed in single precision. In order to use all
+single or all double precision, the "package intel" line must be used
+in the input script with a "single" or "double" keyword specified.
+
+[Running with an Intel coprocessor:]
+
+The Intel package supports offload of a fraction of the work to Intel
+coprocessors. This is accomplished by setting a balance fraction on
+the "package intel"_package.html line. A balance of 0 runs all
+calculations on the CPU. A balance of 1 runs all calculations on the
+coprocessor. A balance of 0.5 runs half of the calculations on the
+coprocessor. Setting the balance to -1 will enable dynamic load
+balancing that continously adjusts the fraction of offloaded work
+throughout the simulation. This option is typically within 5 to 10
+percent of the optimal fixed balance. By default, using the suffix
+command or command-line switch will use offload to a coprocessor with
+the balance set to -1. If LAMMPS is built without offload support,
+this setting is ignored.
+
+If one is running short benchmark runs with dynamic load balancing,
+adding a short warm-up run (10-20 steps) will allow the load-balancer
+to find a setting that will be carried over to additional runs.
+
+The default for the "package intel"_package.html command is to have
+all of the MPI tasks on a given compute node use a single
+coprocessor. In general, running with a large number of MPI tasks on
+each node will perform best with offload. Each MPI task will
+automatically get affinity to a subset of the hardware threads
+available on the coprocessor. For example, if your card has 61 cores,
+with 60 cores available for offload and 4 hardware threads per core,
+running with 24 MPI tasks per node will cause each MPI task to use a
+subset of 10 threads on the coprocessor.  Fine tuning of the number of
+threads to use per MPI task or the number of threads to use per core
+can be accomplished with keywords to the "package intel"_package.html
+command.
+
+If LAMMPS is using offload to a coprocessor, a diagnostic line during
+the setup for a run is printed to the screen (not to log files)
+indicating that offload is being used and the number of coprocessor
+threads per MPI task. Additionally, an offload timing summary is
+printed at the end of each run. When using offload, the
+"sort"_atom_modify.html frequency for atom data is changed to 1 such
+that the data is sorted every neighbor build.
+
+In order to use multiple coprocessors on each compute node, the
+{offload_cards} keyword can be specified with the "package
+intel"_package.html command to specify the number of coprocessors to
+use.
+
+For simulations involving long-range electrostatics or angle, bond,
+and dihedral calculations, computation and data transfer to the
+coprocessor will run concurrently with computations and MPI
+communications for these routines on the host. The Intel package has
+two modes for deciding which atoms will be handled by the coprocessor.
+The setting is controlled with the "offload_ghost" option. When set to
+0, ghost atoms (atoms at the borders between MPI tasks) are not
+offloaded to the card. This allows for overlap of MPI communication of
+forces with computation on the coprocessor when the
+"newton"_newton.html setting is "on". The default is dependent on the
+style being used, however, better performance might be achieving by
+setting this explictly.
+
+In order to control the number of OpenMP threads used on the host, the
+OMP_NUM_THREADS environment variable should be set. This variable will
+not influence the number of threads used on the coprocessor.  Only the
+"package intel" command can be used to control thread counts on the
+coprocessor.
+
+[Restrictions:]
+
+When using offload, "hybrid"_pair_hybrid.html styles that require skip
+lists for neighbor builds cannot be offloaded to the coprocessor.
+Using "hybrid/overlay"_pair_hybrid.html is allowed. Only one intel
+accelerated style may be used with hybrid styles. Exclusion lists are
+not currently supported with offload, however, the same effect can
+often be accomplished by setting cutoffs for excluded atom types to
+0. None of the pair styles in the USER-OMP package support the
+"inner", "middle", "outer" options for r-RESPA integration.
+
 :line
 
-5.9 Comparison of GPU and USER-CUDA packages :h4,link(acc_9)
+5.10 Comparison of GPU and USER-CUDA packages :h4,link(acc_10)
 
 Both the GPU and USER-CUDA packages accelerate a LAMMPS calculation
 using NVIDIA hardware, but they do it in different ways.

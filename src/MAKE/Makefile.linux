@@ -7,12 +7,12 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		icc
-CCFLAGS =	-O -DLAMMPS_MEMALIGN=64 -openmp -restrict
+CCFLAGS =	-O
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		icc
-LINKFLAGS =	-O -openmp
+LINKFLAGS =	-O
 LIB =           -lstdc++
 SIZE =		size
 

@@ -165,8 +165,8 @@ void DumpH5MD::write_data(int n, double *mybuf)
   // copy buf atom coords into global array
 
   int m = 0;
-  int k = 3*ntotal;
   int dim = domain->dimension;
+  int k = dim*ntotal;
   for (int i = 0; i < n; i++) {
     for (int j=0; j<dim; j++) {
       coords[k++] = mybuf[m++];

@@ -53,6 +53,7 @@ elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*ch5md[^ \t]* //g' ../Makefile.package
+    sed -i -e 's/[^ \t]*hdf5[^ \t]* //g' ../Makefile.package
   fi
 
   if (test -e ../Makefile.package.settings) then

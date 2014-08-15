@@ -53,6 +53,15 @@ void Integrate::init()
   else pair_compute_flag = 0;
   if (force->kspace && force->kspace->compute_flag) kspace_compute_flag = 1;
   else kspace_compute_flag = 0;
+
+  // should add checks:
+  // for any acceleration package that has its own integrate/minimize
+  // in case input script has reset the run or minimize style explicitly
+  // e.g. invalid to have intel pair style with non-intel verlet
+  // but OK to have intel verlet with non intel pair style (just warn)
+  // ditto for USER-CUDA and KOKKOS package verlet with their pair, fix, etc
+  // making these checks would require all the pair, fix, etc styles have
+  //   cuda, kokkos, intel flags
 }
 
 /* ----------------------------------------------------------------------

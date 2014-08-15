@@ -1440,30 +1440,6 @@ void Input::package()
     delete [] fixarg;
 
  } else if (strcmp(arg[0],"intel") == 0) {
-
-    // add omp package for non-pair routines
-
-    /*
-    char **fixarg = new char*[2+narg];
-    fixarg[0] = (char *) "package_omp";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "OMP";
-    int omp_narg = 3;
-    if (narg > 1) {
-      fixarg[3] = arg[1];
-      omp_narg++;
-      if (narg > 2)
-	for (int i = 2; i < narg; i++)
-	  if (strcmp(arg[i],"mixed") == 0) {
-	    fixarg[4] = arg[i];
-	    omp_narg++;
-	  }
-    }
-    modify->add_fix(omp_narg,fixarg);
-
-    // add intel package for neighbor and pair routines
-    */
-
     if (!modify->check_package("Intel"))
       error->all(FLERR,
                  "Package intel command without USER-INTEL package installed");
@@ -1476,17 +1452,12 @@ void Input::package()
     modify->add_fix(2+narg,fixarg);
     delete [] fixarg;
 
-    /*
-    // if running with offload, set run_style to verlet/intel
+    // set integrator = verlet/intel
+    // -sf intel does same thing in Update constructor via suffix
 
-    #ifdef LMP_INTEL_OFFLOAD
-    #ifdef __INTEL_OFFLOAD
     char *str;
     str = (char *) "verlet/intel";
     update->create_integrate(1,&str,0);
-    #endif
-    #endif
-    */
 
   } else error->all(FLERR,"Illegal package command");
 }

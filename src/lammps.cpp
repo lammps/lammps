@@ -608,6 +608,8 @@ void LAMMPS::post_create()
 {
   if (!suffix_enable) return;
 
+  // suffix will always be set if suffix_enable = 1
+
   if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
     error->all(FLERR,"Using suffix gpu without GPU package installed");
   if (strcmp(suffix,"intel") == 0 && !modify->check_package("Intel"))
@@ -615,7 +617,10 @@ void LAMMPS::post_create()
   if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
     error->all(FLERR,"Using suffix omp without USER-OMP package installed");
 
-  if (strcmp(suffix2,"omp") == 0 && !modify->check_package("OMP")) {
+  // suffix2 only currently set by -sf intel
+  // need to unset if LAMMPS was not built with USER-OMP package
+
+  if (suffix2 && strcmp(suffix2,"omp") == 0 && !modify->check_package("OMP")) {
     delete [] suffix2;
     suffix2 = NULL;
   }

@@ -73,6 +73,7 @@ friction: frictional contact of spherical asperities between 2d surfaces
 gpu:      use of the GPU package for GPU acceleration
 hugoniostat: Hugoniostat shock dynamics
 indent:	  spherical indenter into a 2d solid
+intel:    use of the USER-INTEL package for CPU or Xeon Phi acceleration
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
 kokkos:   use of the KOKKOS package for multi-threading and GPU acceleration
 meam:	  MEAM test for SiC and shear (same as shear examples)

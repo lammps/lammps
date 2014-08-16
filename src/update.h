@@ -50,7 +50,7 @@ class Update : protected Pointers {
   ~Update();
   void init();
   void set_units(const char *);
-  void create_integrate(int, char **, char *);
+  void create_integrate(int, char **, int);
   void create_minimize(int, char **);
   void reset_timestep(int, char **);
   void reset_timestep(bigint);
@@ -58,7 +58,7 @@ class Update : protected Pointers {
   bigint memory_usage();
 
  private:
-  void new_integrate(char *, int, char **, char *, int &);
+  void new_integrate(char *, int, char **, int, int &);
 
 };
 

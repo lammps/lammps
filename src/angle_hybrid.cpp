@@ -204,6 +204,8 @@ void AngleHybrid::settings(int narg, char **arg)
   keywords = new char*[nstyles];
 
   // allocate each sub-style and call its settings() with subset of args
+  // allocate uses suffix, but don't store suffix version in keywords,
+  //   else syntax in coeff() will not match
   // define subset of args for a sub-style by skipping numeric args
   // one exception is 1st arg of style "table", which is non-numeric
   // need a better way to skip these exceptions
@@ -221,9 +223,10 @@ void AngleHybrid::settings(int narg, char **arg)
       error->all(FLERR,"Angle style hybrid cannot have hybrid as an argument");
     if (strcmp(arg[i],"none") == 0)
       error->all(FLERR,"Angle style hybrid cannot have none as an argument");
-    styles[nstyles] = force->new_angle(arg[i],lmp->suffix,dummy);
-    keywords[nstyles] = new char[strlen(arg[i])+1];
-    strcpy(keywords[nstyles],arg[i]);
+
+    styles[nstyles] = force->new_angle(arg[i],1,dummy);
+    force->store_style(keywords[nstyles],arg[i],0);
+
     istyle = i;
     if (strcmp(arg[i],"table") == 0) i++;
     i++;
@@ -346,7 +349,7 @@ void AngleHybrid::read_restart(FILE *fp)
     keywords[m] = new char[n];
     if (me == 0) fread(keywords[m],sizeof(char),n,fp);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_angle(keywords[m],lmp->suffix,dummy);
+    styles[m] = force->new_angle(keywords[m],0,dummy);
   }
 }
 

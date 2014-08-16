@@ -56,6 +56,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   ghost = 0;
   cudable = 0;
   omp = 0;
+  intel = 0;
   kokkos_host = kokkos_device = 0;
 
   // default is no copy or skip
@@ -126,6 +127,7 @@ int NeighRequest::identical(NeighRequest *other)
   if (ghost != other->ghost) same = 0;
   if (cudable != other->cudable) same = 0;
   if (omp != other->omp) same = 0;
+  if (intel != other->intel) same = 0;
 
   if (copy != other->copy_original) same = 0;
   if (same_skip(other) == 0) same = 0;
@@ -155,6 +157,7 @@ int NeighRequest::same_kind(NeighRequest *other)
   if (ghost != other->ghost) same = 0;
   if (cudable != other->cudable) same = 0;
   if (omp != other->omp) same = 0;
+  if (intel != other->intel) same = 0;
 
   return same;
 }
@@ -205,4 +208,5 @@ void NeighRequest::copy_request(NeighRequest *other)
   ghost = other->ghost;
   cudable = other->cudable;
   omp = other->omp;
+  intel = other->intel;
 }

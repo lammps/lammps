@@ -117,6 +117,7 @@ USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_Section_accelerate.html#acc_7, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferrand), "fix adapt/fep"_fix_adapt.html, USER/fep, -, -
+USER-INTEL, Vectorized CPU and Intel coprocessor styles, W. Michael Brown (Intel), "Section accelerate"_Section_accelerate.html#acc_9, examples/intel, -, -
 USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
 USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
 USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE

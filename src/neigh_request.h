@@ -79,9 +79,10 @@ class NeighRequest : protected Pointers {
 
   int cudable;
 
-  // 1 if using multi-threaded neighbor list build
+  // 1 if using multi-threaded neighbor list build for USER-OMP or USER-INTEL
 
   int omp;
+  int intel;
 
   // 1 if using Kokkos neighbor build
 

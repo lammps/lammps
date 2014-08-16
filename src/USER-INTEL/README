@@ -1,0 +1,35 @@
+
+                     --------------------------------
+                          LAMMPS Intel Package
+                     --------------------------------
+                     
+                        W. Michael Brown (Intel)
+                       michael.w.brown at intel.com
+
+-----------------------------------------------------------------------------
+
+This package is based on the USER-OMP package and provides LAMMPS styles that:
+
+   1. include support for single and mixed precision in addition to double.
+   2. include modifications to support vectorization for key routines
+   3. include modifications to support offload to Xeon Phi coprocessors
+
+-----------------------------------------------------------------------------
+
+When using the suffix command with "intel", intel styles will be used if they
+exist; if they do not, and an omp version exists, that style will be used.
+This is accomplished through the files *ompinto_intel.h that are created
+in the src directory when the intel package is installed. For example,
+
+      kspace_style     pppm/intel 1e-4
+
+is equivalent to:
+
+      kspace_style     pppm/omp   1e-4
+
+because no pppm style has been implemented for the Intel package.
+
+-----------------------------------------------------------------------------
+
+In order to use offload to Xeon Phi, the flag -DLMP_INTEL_OFFLOAD should be
+set in the Makefile. Offload requires the use of Intel compilers.

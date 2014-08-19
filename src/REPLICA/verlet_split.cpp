@@ -407,9 +407,11 @@ void VerletSplit::run(int n)
     // all output
 
     if (master) {
+      timer->stamp();
       if (n_post_force) modify->post_force(vflag);
       modify->final_integrate();
       if (n_end_of_step) modify->end_of_step();
+      timer->stamp(Timer::MODIFY);
 
       if (ntimestep == output->next) {
         timer->stamp();

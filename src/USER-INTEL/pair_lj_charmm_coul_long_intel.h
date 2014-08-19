@@ -62,8 +62,8 @@ class PairLJCharmmCoulLongIntel : public PairLJCharmmCoulLong {
   class ForceConst {
    public:
     typedef struct { flt_t r, dr, f, df; } table_t;
-    __declspec(align(64)) flt_t special_coul[4];
-    __declspec(align(64)) flt_t special_lj[4];
+    _alignvar(flt_t special_coul[4],64);
+    _alignvar(flt_t special_lj[4],64);
     flt_t **cutsq, g_ewald, tabinnersq;
     flt_t cut_coulsq, cut_ljsq;
     flt_t cut_lj_innersq;

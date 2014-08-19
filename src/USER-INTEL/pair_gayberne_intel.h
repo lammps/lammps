@@ -62,7 +62,10 @@ class PairGayBerneIntel : public PairGayBerne {
     typedef struct { flt_t lj3, lj4; } fc_packed2;
     typedef struct { flt_t shape2[4], well[4]; } fc_packed3;
 
-    __declspec(align(64)) flt_t special_lj[4], gamma, upsilon, mu;
+    _alignvar(flt_t special_lj[4],64);
+    _alignvar(flt_t gamma,64);
+    _alignvar(flt_t upsilon,64);
+    _alignvar(flt_t mu,64);
     fc_packed1 **ijc;
     fc_packed2 **lj34;
     fc_packed3 *ic;

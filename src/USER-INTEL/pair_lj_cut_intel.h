@@ -62,7 +62,7 @@ class PairLJCutIntel : public PairLJCut {
     typedef struct { flt_t cutsq, lj1, lj2, offset; } fc_packed1;
     typedef struct { flt_t lj3, lj4; } fc_packed2;
 
-    __declspec(align(64)) flt_t special_lj[4];
+    _alignvar(flt_t special_lj[4],64);
     fc_packed1 **ljc12o;
     fc_packed2 **lj34;
 

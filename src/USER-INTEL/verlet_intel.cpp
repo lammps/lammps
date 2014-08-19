@@ -17,6 +17,7 @@
 #include "domain.h"
 #include "comm.h"
 #include "atom.h"
+#include "atom_vec.h"
 #include "force.h"
 #include "pair.h"
 #include "bond.h"
@@ -81,14 +82,9 @@ void VerletIntel::init()
   // set flags for what arrays to clear in force_clear()
   // need to clear additionals arrays if they exist
 
-  torqueflag = 0;
+  torqueflag = extraflag = 0;
   if (atom->torque_flag) torqueflag = 1;
-  erforceflag = 0;
-  if (atom->erforce_flag) erforceflag = 1;
-  e_flag = 0;
-  if (atom->e_flag) e_flag = 1;
-  rho_flag = 0;
-  if (atom->rho_flag) rho_flag = 1;
+  if (atom->avec->forceclearflag) extraflag = 1;
 
   // orthogonal vs triclinic simulation box
 
@@ -276,8 +272,10 @@ void VerletIntel::run(int n)
 
     // initial time integration
 
+    timer->stamp();
     modify->initial_integrate(vflag);
     if (n_post_integrate) modify->post_integrate();
+    timer->stamp(Timer::MODIFY);
 
     // regular communication vs neighbor list rebuild
 
@@ -286,9 +284,13 @@ void VerletIntel::run(int n)
     if (nflag == 0) {
       timer->stamp();
       comm->forward_comm();
-      timer->stamp(TIME_COMM);
+      timer->stamp(Timer::COMM);
     } else {
-      if (n_pre_exchange) modify->pre_exchange();
+      if (n_pre_exchange) {
+        timer->stamp();
+        modify->pre_exchange();
+        timer->stamp(Timer::MODIFY);
+      }
       if (triclinic) domain->x2lamda(atom->nlocal);
       domain->pbc();
       if (domain->box_change) {
@@ -301,10 +303,13 @@ void VerletIntel::run(int n)
       if (sortflag && ntimestep >= atom->nextsort) atom->sort();
       comm->borders();
       if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-      timer->stamp(TIME_COMM);
-      if (n_pre_neighbor) modify->pre_neighbor();
+      timer->stamp(Timer::COMM);
+      if (n_pre_neighbor) {
+        modify->pre_neighbor();
+        timer->stamp(Timer::MODIFY);
+      }
       neighbor->build();
-      timer->stamp(TIME_NEIGHBOR);
+      timer->stamp(Timer::NEIGH);
     }
 
     // force computations
@@ -313,13 +318,18 @@ void VerletIntel::run(int n)
     // and Pair:ev_tally() needs to be called before any tallying
 
     force_clear();
-    if (n_pre_force) modify->pre_force(vflag);
 
     timer->stamp();
 
+    if (n_pre_force) {
+      modify->pre_force(vflag);
+      timer->stamp(Timer::MODIFY);
+    }
+
+
     if (pair_compute_flag) {
       force->pair->compute(eflag,vflag);
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
 
     if (atom->molecular) {
@@ -327,18 +337,18 @@ void VerletIntel::run(int n)
       if (force->angle) force->angle->compute(eflag,vflag);
       if (force->dihedral) force->dihedral->compute(eflag,vflag);
       if (force->improper) force->improper->compute(eflag,vflag);
-      timer->stamp(TIME_BOND);
+      timer->stamp(Timer::BOND);
     }
 
     if (kspace_compute_flag) {
       force->kspace->compute(eflag,vflag);
-      timer->stamp(TIME_KSPACE);
+      timer->stamp(Timer::KSPACE);
     }
 
     #ifdef _LMP_INTEL_OFFLOAD
     if (sync_mode == 1) {
       fix_intel->sync_coprocessor();
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
     #endif
 
@@ -346,13 +356,13 @@ void VerletIntel::run(int n)
 
     if (force->newton) {
       comm->reverse_comm();
-      timer->stamp(TIME_COMM);
+      timer->stamp(Timer::COMM);
     }
 
     #ifdef _LMP_INTEL_OFFLOAD
     if (sync_mode == 2) {
       fix_intel->sync_coprocessor();
-      timer->stamp(TIME_PAIR);
+      timer->stamp(Timer::PAIR);
     }
     #endif
 
@@ -361,13 +371,14 @@ void VerletIntel::run(int n)
     if (n_post_force) modify->post_force(vflag);
     modify->final_integrate();
     if (n_end_of_step) modify->end_of_step();
+    timer->stamp(Timer::MODIFY);
 
     // all output
 
     if (ntimestep == output->next) {
       timer->stamp();
       output->write(ntimestep);
-      timer->stamp(TIME_OUTPUT);
+      timer->stamp(Timer::OUTPUT);
     }
   }
 }
@@ -388,7 +399,7 @@ void VerletIntel::cleanup()
 
 void VerletIntel::force_clear()
 {
-  int i;
+  size_t nbytes;
 
   if (external_force_clear) return;
 
@@ -396,19 +407,16 @@ void VerletIntel::force_clear()
   // if either newton flag is set, also include ghosts
   // when using threads always clear all forces.
 
-  if (neighbor->includegroup == 0) {
-    int nall;
-    if (force->newton) nall = atom->nlocal + atom->nghost;
-    else nall = atom->nlocal;
+  int nlocal = atom->nlocal;
 
-    size_t nbytes = sizeof(double) * nall;
+  if (neighbor->includegroup == 0) {
+    nbytes = sizeof(double) * nlocal;
+    if (force->newton) nbytes += sizeof(double) * atom->nghost;
 
     if (nbytes) {
-      memset(&(atom->f[0][0]),0,3*nbytes);
-      if (torqueflag)  memset(&(atom->torque[0][0]),0,3*nbytes);
-      if (erforceflag) memset(&(atom->erforce[0]),  0,  nbytes);
-      if (e_flag)      memset(&(atom->de[0]),       0,  nbytes);
-      if (rho_flag)    memset(&(atom->drho[0]),     0,  nbytes);
+      memset(&atom->f[0][0],0,3*nbytes);
+      if (torqueflag) memset(&atom->torque[0][0],0,3*nbytes);
+      if (extraflag) atom->avec->force_clear(0,nbytes);
     }
 
   // neighbor includegroup flag is set
@@ -416,70 +424,21 @@ void VerletIntel::force_clear()
   // if either newton flag is set, also include ghosts
 
   } else {
-    int nall = atom->nfirst;
+    nbytes = sizeof(double) * atom->nfirst;
 
-    double **f = atom->f;
-    for (i = 0; i < nall; i++) {
-      f[i][0] = 0.0;
-      f[i][1] = 0.0;
-      f[i][2] = 0.0;
-    }
-
-    if (torqueflag) {
-      double **torque = atom->torque;
-      for (i = 0; i < nall; i++) {
-        torque[i][0] = 0.0;
-        torque[i][1] = 0.0;
-        torque[i][2] = 0.0;
-      }
-    }
-
-    if (erforceflag) {
-      double *erforce = atom->erforce;
-      for (i = 0; i < nall; i++) erforce[i] = 0.0;
-    }
-
-    if (e_flag) {
-      double *de = atom->de;
-      for (i = 0; i < nall; i++) de[i] = 0.0;
-    }
-
-    if (rho_flag) {
-      double *drho = atom->drho;
-      for (i = 0; i < nall; i++) drho[i] = 0.0;
+    if (nbytes) {
+      memset(&atom->f[0][0],0,3*nbytes);
+      if (torqueflag) memset(&atom->torque[0][0],0,3*nbytes);
+      if (extraflag) atom->avec->force_clear(0,nbytes);
     }
 
     if (force->newton) {
-      nall = atom->nlocal + atom->nghost;
+      nbytes = sizeof(double) * atom->nghost;
 
-      for (i = atom->nlocal; i < nall; i++) {
-        f[i][0] = 0.0;
-        f[i][1] = 0.0;
-        f[i][2] = 0.0;
-      }
-
-      if (torqueflag) {
-        double **torque = atom->torque;
-        for (i = atom->nlocal; i < nall; i++) {
-          torque[i][0] = 0.0;
-          torque[i][1] = 0.0;
-          torque[i][2] = 0.0;
-        }
-      }
-
-      if (erforceflag) {
-        double *erforce = atom->erforce;
-        for (i = atom->nlocal; i < nall; i++) erforce[i] = 0.0;
-      }
-
-      if (e_flag) {
-        double *de = atom->de;
-        for (i = 0; i < nall; i++) de[i] = 0.0;
-      }
-
-      if (rho_flag) {
-        double *drho = atom->drho;
-        for (i = 0; i < nall; i++) drho[i] = 0.0;
+      if (nbytes) {
+        memset(&atom->f[nlocal][0],0,3*nbytes);
+        if (torqueflag) memset(&atom->torque[nlocal][0],0,3*nbytes);
+        if (extraflag) atom->avec->force_clear(nlocal,nbytes);
       }
     }
   }

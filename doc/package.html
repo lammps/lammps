@@ -15,7 +15,7 @@
 </P>
 <PRE>package style args 
 </PRE>
-<UL><LI>style = <I>cuda</I> or <I>gpu</I> or <I>kokkos</I> or <I>omp</I> 
+<UL><LI>style = <I>cuda</I> or <I>gpu</I> or <I>intel</I> or <I>kokkos</I> or <I>omp</I> 
 
 <LI>args = arguments specific to the style 
 
@@ -45,6 +45,20 @@
         dist = length (distance units) in each dimension for neighbor bins
       <I>device</I> value = device_type
         device_type = <I>kepler</I> or <I>fermi</I> or <I>cypress</I> or <I>generic</I>
+  <I>intel</I> args = Nthreads precision keyword value ...
+    Nthreads = # of OpenMP threads to associate with each MPI process on host
+    precision = <I>single</I> or <I>mixed</I> or <I>double</I>
+    keywords = <I>balance</I> or <I>offload_cards</I> or <I>offload_ghost</I> or <I>offload_tpc</I> or <I>offload_threads</I>
+     <I>balance</I> value = split
+       split = fraction of work to offload to coprocessor, -1 for dynamic
+     <I>offload_cards</I> value = ncops
+       ncops = number of coprocessors to use on each node
+     <I>offload_ghost</I> value = offload_type
+       offload_type = 1 to include ghost atoms for offload, 0 for local only
+     <I>offload_tpc</I> value = tpc
+       tpc = number of threads to use on each core of coprocessor
+     <I>offload_threads</I> value = tptask
+       tptask = max number of threads to use on coprocessor for each MPI task
   <I>kokkos</I> args = keyword value ...
     one or more keyword/value pairs may be appended
     keywords = <I>neigh</I> or <I>comm/exchange</I> or <I>comm/forward</I>
@@ -67,12 +81,14 @@ package cuda gpu/node/special 2 0 2
 package cuda test 3948
 package kokkos neigh half/thread comm/forward device
 package omp * force/neigh
-package omp 4 force 
+package omp 4 force
+package intel * mixed balance -1 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>This command invokes package-specific settings.  Currently the
-following packages use it: USER-CUDA, GPU, KOKKOS, and USER-OMP.
+following packages use it: USER-CUDA, GPU, USER-INTEL, KOKKOS, and
+USER-OMP.
 </P>
 <P>To use the accelerated GPU and USER-OMP styles, the use of the package
 command is required.  However, as described in the "Defaults" section
@@ -216,6 +232,64 @@ device type can be specified when building LAMMPS with the GPU library.
 </P>
 <HR>
 
+<P>The <I>intel</I> style invokes options associated with the use of the
+USER-INTEL package.
+</P>
+<P>The <I>Nthreads</I> argument allows to one explicitly set the number of
+OpenMP threads to be allocated for each MPI process, An <I>Nthreads</I>
+value of '*' instructs LAMMPS to use whatever is the default for the
+given OpenMP environment. This is usually determined via the
+OMP_NUM_THREADS environment variable or the compiler runtime.
+</P>
+<P>The <I>precision</I> argument determines the precision mode to use and can
+take values of <I>single</I> (intel styles use single precision for all
+calculations), <I>mixed</I> (intel styles use double precision for
+accumulation and storage of forces, torques, energies, and virial
+terms and single precision for everything else), or <I>double</I> (intel
+styles use double precision for all calculations).
+</P>
+<P>Additional keyword-value pairs are available that are used to
+determine how work is offloaded to an Intel coprocessor. If LAMMPS is
+built without offload support, these values are ignored. The
+additional settings are as follows:
+</P>
+<P>The <I>balance</I> setting is used to set the fraction of work offloaded to
+the coprocessor for an intel style (in the inclusive range 0.0 to
+1.0). While this fraction of work is running on the coprocessor, other
+calculations will run on the host, including neighbor and pair
+calculations that are not offloaded, angle, bond, dihedral, kspace,
+and some MPI communications. If the balance is set to -1, the fraction
+of work is dynamically adjusted automatically throughout the run. This
+can typically give performance within 5 to 10 percent of the optimal
+fixed fraction.
+</P>
+<P>The <I>offload_cards</I> setting determines the number of coprocessors to
+use on each node.
+</P>
+<P>Additional options for fine tuning performance with offload are as
+follows:
+</P>
+<P>The <I>offload_ghost</I> setting determines whether or not ghost atoms,
+atoms at the borders between MPI tasks, are offloaded for neighbor and
+force calculations. When set to "0", ghost atoms are not offloaded.
+This option can reduce the amount of data transfer with the
+coprocessor and also can overlap MPI communication of forces with
+computation on the coprocessor when the <A HREF = "newton.html">newton pair</A>
+setting is "on".  When set to "1", ghost atoms are offloaded. In some
+cases this can provide better performance, especially if the offload
+fraction is high.
+</P>
+<P>The <I>offload_tpc</I> option sets the maximum number of threads that will
+run on each core of the coprocessor.
+</P>
+<P>The <I>offload_threads</I> option sets the maximum number of threads that
+will be used on the coprocessor for each MPI task. This, along with
+the <I>offload_tpc</I> setting, are the only methods for changing the
+number of threads on the coprocessor. The OMP_NUM_THREADS keyword and
+<I>Nthreads</I> options are only used for threads on the host.
+</P>
+<HR>
+
 <P>The <I>kokkos</I> style invokes options associated with the use of the
 KOKKOS package.
 </P>
@@ -348,6 +422,12 @@ used then it is as if the command "package gpu force/neigh 0 0 1" were
 invoked, to specify default settings for the GPU package.  If the
 command-line switch is not used, then no defaults are set, and you
 must specify the appropriate package command in your input script.
+</P>
+<P>The default settings for the USER-INTEL package are "package intel *
+mixed balance -1 offload_cards 1 offload_tpc 4 offload_threads 240".
+The <I>offload_ghost</I> default setting is determined by the intel style
+being used.  The value used is output to the screen in the offload
+report at the end of each run.
 </P>
 <P>The default settings for the KOKKOS package are "package kk neigh full 
 comm/exchange host comm/forward host".  This is the case whether the

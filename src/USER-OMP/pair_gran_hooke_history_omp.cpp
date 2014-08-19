@@ -35,9 +35,6 @@ PairGranHookeHistoryOMP::PairGranHookeHistoryOMP(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
-  // trigger use of OpenMP version of FixShearHistory
-  suffix = new char[4];
-  memcpy(suffix,"omp",4);
 }
 
 /* ---------------------------------------------------------------------- */

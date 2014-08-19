@@ -237,6 +237,7 @@ class Neighbor : protected Pointers {
 
 #define LMP_INSIDE_NEIGHBOR_H
 #include "accelerator_omp.h"
+#include "accelerator_intel.h"
 #undef LMP_INSIDE_NEIGHBOR_H
 
   // pairwise stencil creation functions

@@ -116,7 +116,7 @@ void Replicate::command(int narg, char **arg)
   Atom *old = atom;
   atom = new Atom(lmp);
   atom->settings(old);
-  atom->create_avec(old->atom_style,old->avec->nargcopy,old->avec->argcopy);
+  atom->create_avec(old->atom_style,old->avec->nargcopy,old->avec->argcopy,0);
 
   // check that new system will not be too large
   // new tags cannot exceed MAXTAGINT

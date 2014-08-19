@@ -54,7 +54,6 @@ class PairGranHookeHistory : public Pair {
   int freeze_group_bit;
   int history;
 
-  char *suffix;
   int neighprev;
   double *onerad_dynamic,*onerad_frozen;
   double *maxrad_dynamic,*maxrad_frozen;

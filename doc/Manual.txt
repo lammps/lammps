@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>LAMMPS-ICMS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="8 Aug 2014 version">
+<META NAME="docnumber" CONTENT="14 Aug 2014 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -18,7 +18,7 @@
 <H1></H1>
 
 LAMMPS-ICMS Documentation :c,h3
-8 Aug 2014 version :c,h4
+14 Aug 2014 version :c,h4
 
 Version info: :h4
 
@@ -127,7 +127,8 @@ it gives quick access to documentation for all LAMMPS commands.
   5.6 "GPU package"_acc_6 :b
   5.7 "USER-CUDA package"_acc_7 :b
   5.8 "KOKKOS package"_acc_8 :b
-  5.9 "Comparison of GPU and USER-CUDA packages"_acc_9 :ule,b
+  5.9 "USER-INTEL package"_acc_9 :b
+  5.10 "Comparison of GPU and USER-CUDA packages"_acc_10 :ule,b
 "How-to discussions"_Section_howto.html :l
   6.1 "Restarting a simulation"_howto_1 :ulb,b
   6.2 "2d simulations"_howto_2 :b

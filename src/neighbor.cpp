@@ -920,7 +920,7 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
 {
   PairPtr pb = NULL;
 
-  if (rq->omp == 0) {
+  if (rq->omp == 0 && rq->intel == 0) {
 
     if (rq->copy) pb = &Neighbor::copy_from;
 
@@ -1076,21 +1076,33 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
       } else if (style == BIN) {
         if (rq->newton == 0) {
           if (newton_pair == 0) {
-            if (rq->ghost == 0) pb = &Neighbor::half_bin_no_newton_omp;
-            else if (includegroup)
+            if (rq->ghost == 0) {
+	      if (rq->intel) pb = &Neighbor::half_bin_no_newton_intel;
+	      else pb = &Neighbor::half_bin_no_newton_omp;
+            } else if (includegroup)
               error->all(FLERR,"Neighbor include group not allowed "
                          "with ghost neighbors");
             else pb = &Neighbor::half_bin_no_newton_ghost_omp;
           } else if (triclinic == 0) {
-            pb = &Neighbor::half_bin_newton_omp;
-          } else if (triclinic == 1)
-            pb = &Neighbor::half_bin_newton_tri_omp;
+            if (rq->intel) pb = &Neighbor::half_bin_newton_intel;
+            else pb = &Neighbor::half_bin_newton_omp;
+          } else if (triclinic == 1) {
+            if (rq->intel) pb = &Neighbor::half_bin_newton_tri_intel;
+            else pb = &Neighbor::half_bin_newton_tri_omp;
+	  }
         } else if (rq->newton == 1) {
-          if (triclinic == 0) pb = &Neighbor::half_bin_newton_omp;
-          else if (triclinic == 1) pb = &Neighbor::half_bin_newton_tri_omp;
+          if (triclinic == 0) {
+	    if (rq->intel) pb = &Neighbor::half_bin_newton_intel;
+	    else pb = &Neighbor::half_bin_newton_omp;
+          } else if (triclinic == 1) {
+            if (rq->intel) pb = &Neighbor::half_bin_newton_tri_intel;
+            else pb = &Neighbor::half_bin_newton_tri_omp;
+	  }
         } else if (rq->newton == 2) {
-          if (rq->ghost == 0) pb = &Neighbor::half_bin_no_newton_omp;
-          else if (includegroup)
+          if (rq->ghost == 0) {
+	    if (rq->intel) pb = &Neighbor::half_bin_no_newton_intel;
+	    else pb = &Neighbor::half_bin_no_newton_omp;
+          } else if (includegroup)
             error->all(FLERR,"Neighbor include group not allowed "
                        "with ghost neighbors");
           else pb = &Neighbor::half_bin_no_newton_ghost_omp;

@@ -39,8 +39,7 @@ class VerletIntel : public Integrate {
 
  protected:
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic
-  int torqueflag,erforceflag;
-  int e_flag,rho_flag;
+  int torqueflag,extraflag;
 
   virtual void force_clear();
   #ifdef _LMP_INTEL_OFFLOAD

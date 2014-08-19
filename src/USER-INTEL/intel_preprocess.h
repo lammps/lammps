@@ -351,7 +351,7 @@ inline double MIC_Wtime() {
     for (int t = 1; t < nthreads; t++) {				\
       _Pragma("vector nontemporal")					\
       for (int n = iifrom; n < iito; n++) {				\
-        f_start[n].x += f_start[n + t_off].x;				\ 
+        f_start[n].x += f_start[n + t_off].x;				\
         f_start[n].y += f_start[n + t_off].y;				\
 	f_start[n].z += f_start[n + t_off].z;				\
 	f_start[n].w += f_start[n + t_off].w;				\
@@ -361,7 +361,7 @@ inline double MIC_Wtime() {
   } else {								\
     for (int t = 1; t < nthreads; t++) {				\
       _Pragma("vector nontemporal")   					\
-      for (int n = iifrom; n < iito; n++) {                             \ 
+      for (int n = iifrom; n < iito; n++) {                             \
 	f_start[n].x += f_start[n + t_off].x;                  	        \
         f_start[n].y += f_start[n + t_off].y;				\
         f_start[n].z += f_start[n + t_off].z;				\
@@ -372,7 +372,7 @@ inline double MIC_Wtime() {
 									\
   if (evflag) {								\
     if (vflag == 2) {							\
-      const ATOM_T * restrict const xo = x + minlocal;			\
+      const ATOM_T * _noalias const xo = x + minlocal;			\
       _Pragma("vector nontemporal")   					\
       for (int n = iifrom; n < iito; n++) {				\
 	ov0 += f_start[n].x * xo[n].x;					\

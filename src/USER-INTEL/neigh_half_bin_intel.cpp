@@ -105,7 +105,7 @@ inline int mcoord2bin(const flt_t x0, const flt_t x1, const flt_t x2,
 
 template <class flt_t, class acc_t>
 void Neighbor::bin_atoms(void * xin) {
-  const ATOM_T * restrict const x = (const ATOM_T * restrict const)xin;
+  const ATOM_T * _noalias const x = (const ATOM_T * _noalias const)xin;
   int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
 
@@ -243,8 +243,8 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
     return;
   }
 
-  const ATOM_T * restrict const x = buffers->get_x();
-  int * restrict const firstneigh = buffers->firstneigh(list);
+  const ATOM_T * _noalias const x = buffers->get_x();
+  int * _noalias const firstneigh = buffers->firstneigh(list);
 
   const int molecular = atom->molecular;
   int *ns = NULL, *s = NULL;
@@ -260,17 +260,17 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
     tag_size = 0;
     special_size = 0;
   }
-  const int * restrict const special = s;
-  const int * restrict const nspecial = ns;
+  const int * _noalias const special = s;
+  const int * _noalias const nspecial = ns;
   const int maxspecial = atom->maxspecial;
-  const int * restrict const tag = atom->tag;
+  const int * _noalias const tag = atom->tag;
 
-  int * restrict const ilist = list->ilist;
-  int * restrict numneigh = list->numneigh;
-  int * restrict const cnumneigh = buffers->cnumneigh(list);
+  int * _noalias const ilist = list->ilist;
+  int * _noalias numneigh = list->numneigh;
+  int * _noalias const cnumneigh = buffers->cnumneigh(list);
   const int nstencil = list->nstencil;
-  const int * restrict const stencil = list->stencil;
-  const flt_t * restrict const cutneighsq = buffers->get_cutneighsq()[0];
+  const int * _noalias const stencil = list->stencil;
+  const flt_t * _noalias const cutneighsq = buffers->get_cutneighsq()[0];
   const int ntypes = atom->ntypes + 1;
   const int nlocal = atom->nlocal;
 
@@ -316,8 +316,8 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
   }
 
   #ifdef _LMP_INTEL_OFFLOAD
-  const int * restrict const binhead = this->binhead;
-  const int * restrict const special_flag = this->special_flag;
+  const int * _noalias const binhead = this->binhead;
+  const int * _noalias const special_flag = this->special_flag;
   const int nbinx = this->nbinx;
   const int nbiny = this->nbiny;
   const int nbinz = this->nbinz;
@@ -327,7 +327,7 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
   const int mbinx = this->mbinx;
   const int mbiny = this->mbiny;
   const int mbinz = this->mbinz;
-  const int * restrict const bins = this->bins;
+  const int * _noalias const bins = this->bins;
   const int cop = fix->coprocessor_number();
   const int separate_buffers = fix->separate_buffers();
   #pragma offload target(mic:cop) if(offload) \
@@ -486,7 +486,7 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
 
       if (molecular) {
         for (int i = ifrom; i < ito; ++i) {
-          int * restrict jlist = firstneigh + cnumneigh[i];
+          int * _noalias jlist = firstneigh + cnumneigh[i];
           const int jnum = numneigh[i];
           for (int jj = 0; jj < jnum; jj++) {
             const int j = jlist[jj];
@@ -507,7 +507,7 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
       #ifdef _LMP_INTEL_OFFLOAD
       else if (separate_buffers) {
 	for (int i = ifrom; i < ito; ++i) {
-          int * restrict jlist = firstneigh + cnumneigh[i];
+          int * _noalias jlist = firstneigh + cnumneigh[i];
           const int jnum = numneigh[i];
 	  int jj = 0;
 	  for (jj = 0; jj < jnum; jj++)
@@ -662,8 +662,8 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
     return;
   }
 
-  const ATOM_T * restrict const x = buffers->get_x();
-  int * restrict const firstneigh = buffers->firstneigh(list);
+  const ATOM_T * _noalias const x = buffers->get_x();
+  int * _noalias const firstneigh = buffers->firstneigh(list);
   int nall_t = nall;
   if (offload_noghost && offload) nall_t = atom->nlocal;
   const int e_nall = nall_t;
@@ -682,17 +682,17 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
     tag_size = 0;
     special_size = 0;
   }
-  const int * restrict const special = s;
-  const int * restrict const nspecial = ns;
+  const int * _noalias const special = s;
+  const int * _noalias const nspecial = ns;
   const int maxspecial = atom->maxspecial;
-  const int * restrict const tag = atom->tag;
+  const int * _noalias const tag = atom->tag;
 
-  int * restrict const ilist = list->ilist;
-  int * restrict numneigh = list->numneigh;
-  int * restrict const cnumneigh = buffers->cnumneigh(list);
+  int * _noalias const ilist = list->ilist;
+  int * _noalias numneigh = list->numneigh;
+  int * _noalias const cnumneigh = buffers->cnumneigh(list);
   const int nstencil = list->nstencil;
-  const int * restrict const stencil = list->stencil;
-  const flt_t * restrict const cutneighsq = buffers->get_cutneighsq()[0];
+  const int * _noalias const stencil = list->stencil;
+  const flt_t * _noalias const cutneighsq = buffers->get_cutneighsq()[0];
   const int ntypes = atom->ntypes + 1;
   const int nlocal = atom->nlocal;
 
@@ -737,8 +737,8 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
   }
 
   #ifdef _LMP_INTEL_OFFLOAD
-  const int * restrict const binhead = this->binhead;
-  const int * restrict const special_flag = this->special_flag;
+  const int * _noalias const binhead = this->binhead;
+  const int * _noalias const special_flag = this->special_flag;
   const int nbinx = this->nbinx;
   const int nbiny = this->nbiny;
   const int nbinz = this->nbinz;
@@ -748,7 +748,7 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
   const int mbinx = this->mbinx;
   const int mbiny = this->mbiny;
   const int mbinz = this->mbinz;
-  const int * restrict const bins = this->bins;
+  const int * _noalias const bins = this->bins;
   const int cop = fix->coprocessor_number();
   const int separate_buffers = fix->separate_buffers();
   #pragma offload target(mic:cop) if(offload) \
@@ -948,7 +948,7 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
 
       if (molecular) {
         for (int i = ifrom; i < ito; ++i) {
-          int * restrict jlist = firstneigh + cnumneigh[i];
+          int * _noalias jlist = firstneigh + cnumneigh[i];
           const int jnum = numneigh[i];
           for (int jj = 0; jj < jnum; jj++) {
             const int j = jlist[jj];
@@ -970,7 +970,7 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
       #ifdef _LMP_INTEL_OFFLOAD
       else if (separate_buffers) {
 	for (int i = ifrom; i < ito; ++i) {
-          int * restrict jlist = firstneigh + cnumneigh[i];
+          int * _noalias jlist = firstneigh + cnumneigh[i];
           const int jnum = numneigh[i];
 	  int jj = 0;
 	  for (jj = 0; jj < jnum; jj++)
@@ -1127,8 +1127,8 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
     return;
   }
 
-  const ATOM_T * restrict const x = buffers->get_x();
-  int * restrict const firstneigh = buffers->firstneigh(list);
+  const ATOM_T * _noalias const x = buffers->get_x();
+  int * _noalias const firstneigh = buffers->firstneigh(list);
   int nall_t = nall;
   if (offload_noghost && offload) nall_t = atom->nlocal;
   const int e_nall = nall_t;
@@ -1147,17 +1147,17 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
     tag_size = 0;
     special_size = 0;
   }
-  const int * restrict const special = s;
-  const int * restrict const nspecial = ns;
+  const int * _noalias const special = s;
+  const int * _noalias const nspecial = ns;
   const int maxspecial = atom->maxspecial;
-  const int * restrict const tag = atom->tag;
+  const int * _noalias const tag = atom->tag;
 
-  int * restrict const ilist = list->ilist;
-  int * restrict numneigh = list->numneigh;
-  int * restrict const cnumneigh = buffers->cnumneigh(list);
+  int * _noalias const ilist = list->ilist;
+  int * _noalias numneigh = list->numneigh;
+  int * _noalias const cnumneigh = buffers->cnumneigh(list);
   const int nstencil = list->nstencil;
-  const int * restrict const stencil = list->stencil;
-  const flt_t * restrict const cutneighsq = buffers->get_cutneighsq()[0];
+  const int * _noalias const stencil = list->stencil;
+  const flt_t * _noalias const cutneighsq = buffers->get_cutneighsq()[0];
   const int ntypes = atom->ntypes + 1;
   const int nlocal = atom->nlocal;
 
@@ -1202,8 +1202,8 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
   }
 
   #ifdef _LMP_INTEL_OFFLOAD
-  const int * restrict const binhead = this->binhead;
-  const int * restrict const special_flag = this->special_flag;
+  const int * _noalias const binhead = this->binhead;
+  const int * _noalias const special_flag = this->special_flag;
   const int nbinx = this->nbinx;
   const int nbiny = this->nbiny;
   const int nbinz = this->nbinz;
@@ -1213,7 +1213,7 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
   const int mbinx = this->mbinx;
   const int mbiny = this->mbiny;
   const int mbinz = this->mbinz;
-  const int * restrict const bins = this->bins;
+  const int * _noalias const bins = this->bins;
   const int cop = fix->coprocessor_number();
   const int separate_buffers = fix->separate_buffers();
   #pragma offload target(mic:cop) if(offload) \
@@ -1386,7 +1386,7 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
 
       if (molecular) {
         for (int i = ifrom; i < ito; ++i) {
-          int * restrict jlist = firstneigh + cnumneigh[i];
+          int * _noalias jlist = firstneigh + cnumneigh[i];
           const int jnum = numneigh[i];
           for (int jj = 0; jj < jnum; jj++) {
             const int j = jlist[jj];
@@ -1407,7 +1407,7 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
       #ifdef _LMP_INTEL_OFFLOAD
       else if (separate_buffers) {
 	for (int i = ifrom; i < ito; ++i) {
-          int * restrict jlist = firstneigh + cnumneigh[i];
+          int * _noalias jlist = firstneigh + cnumneigh[i];
           const int jnum = numneigh[i];
 	  int jj = 0;
 	  for (jj = 0; jj < jnum; jj++)

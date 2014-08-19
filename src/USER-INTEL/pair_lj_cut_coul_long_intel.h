@@ -64,8 +64,8 @@ class PairLJCutCoulLongIntel : public PairLJCutCoulLong {
     typedef struct { flt_t cutsq, cut_ljsq, lj1, lj2; } c_force_t;
     typedef struct { flt_t lj3, lj4, offset, pad; } c_energy_t;
     typedef struct { flt_t r, dr, f, df; } table_t;
-    __declspec(align(64)) flt_t special_coul[4];
-    __declspec(align(64)) flt_t special_lj[4];
+    _alignvar(flt_t special_coul[4],64);
+    _alignvar(flt_t special_lj[4],64);
     flt_t g_ewald, tabinnersq;
     c_force_t **c_force;
     c_energy_t **c_energy;

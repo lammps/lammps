@@ -47,9 +47,6 @@ class LAMMPS {
   int cite_enable;               // 1 if generating log.cite, 0 if disabled
 
   class Cuda *cuda;              // CUDA accelerator class
-  //class GPU *gpu;                // GPU accelerator class
-  //class Intel *intel;            // Intel accelerator class
-  //class OMP *omp;                // OMP accelerator class
   class KokkosLMP *kokkos;       // KOKKOS accelerator class
 
   class CiteMe *citeme;          // citation info

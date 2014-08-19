@@ -22,8 +22,8 @@ using namespace LAMMPS_NS;
 
 template <class flt_t, class acc_t>
 IntelBuffers<flt_t, acc_t>::IntelBuffers(class LAMMPS *lmp_in) :
-    lmp(lmp_in), _x(0), _q(0), _quat(0), _f(0), _buf_size(0),
-    _buf_local_size(0), _off_threads(0) {
+    lmp(lmp_in), _x(0), _q(0), _quat(0), _f(0), _off_threads(0),
+    _buf_size(0), _buf_local_size(0) {
   _list_alloc_atoms = 0;
   _ntypes = 0;
   _off_map_maxlocal = 0;
@@ -423,6 +423,8 @@ double IntelBuffers<flt_t, acc_t>::memory_usage(const int nthreads)
   tmem += _off_map_maxlocal * sizeof(int);
   tmem += (_list_alloc_atoms + _off_threads) * get_max_nbors() * sizeof(int);
   tmem += _ntypes * _ntypes * sizeof(int);
+
+  return tmem;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -78,8 +78,8 @@ popd
 pushd ${MINGW_BUILD_DIR}
 
 TOOLDIR=lammps-current/tools
-MINGW32FLAGS="-DLAMMPS_SMALLSMALL -O2 -march=i686  -mtune=generic -mfpmath=387 -mpc64"
-MINGW64FLAGS="-DLAMMPS_SMALLBIG   -O2 -march=core2 -mtune=core2   -mpc64 -msse2"
+MINGW32FLAGS="-DLAMMPS_SMALLSMALL -DLAMMPS_MEMALIGN=64 -O2 -march=i686  -mtune=generic -mfpmath=387 -mpc64 "
+MINGW64FLAGS="-DLAMMPS_SMALLBIG   -DLAMMPS_MEMALIGN=64 -O2 -march=core2 -mtune=core2   -mpc64 -msse2"
 
 i686-w64-mingw32-g++   ${MINGW32FLAGS} -o mingw32/restart2data.exe ${TOOLDIR}/restart2data.cpp
 x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -o mingw64/restart2data.exe ${TOOLDIR}/restart2data.cpp

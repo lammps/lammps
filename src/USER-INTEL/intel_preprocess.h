@@ -26,6 +26,10 @@
 
 #ifndef LAMMPS_MEMALIGN
 #error Please set -DLAMMPS_MEMALIGN=64 in CCFLAGS for your LAMMPS makefile.
+#else
+#if (LAMMPS_MEMALIGN != 64)
+#error Please set -DLAMMPS_MEMALIGN=64 in CCFLAGS for your LAMMPS makefile.
+#endif
 #endif
 
 namespace LAMMPS_NS {

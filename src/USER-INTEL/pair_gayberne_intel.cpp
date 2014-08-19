@@ -433,9 +433,11 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 	__assume(packed_j % 8 == 0);
 	__assume(packed_j % INTEL_MIC_VECTOR_WIDTH == 0);
 	#endif
+        #if defined(__INTEL_COMPILER)
         #pragma vector aligned
 	#pragma simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp,t3tmp, \
 	                         sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
+        #endif
         for (int jj = 0; jj < packed_j; jj++) {
           flt_t a2_0, a2_1, a2_2, a2_3, a2_4, a2_5, a2_6, a2_7, a2_8;
           flt_t b2_0, b2_1, b2_2, b2_3, b2_4, b2_5, b2_6, b2_7, b2_8;
@@ -796,7 +798,9 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
       int t_off = f_stride;
       if (EFLAG && eatom) {
         for (int t = 1; t < nthreads; t++) {
+          #if defined(__INTEL_COMPILER)
 	  #pragma vector nontemporal
+          #endif
           for (int n = iifrom * 2; n < two_iito; n++) {
             f_start[n].x += f_start[n + t_off].x;
             f_start[n].y += f_start[n + t_off].y;
@@ -807,7 +811,9 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         }
       } else {
         for (int t = 1; t < nthreads; t++) {
+          #if defined(__INTEL_COMPILER)
 	  #pragma vector nontemporal
+          #endif
           for (int n = iifrom * 2; n < two_iito; n++) {
             f_start[n].x += f_start[n + t_off].x;
             f_start[n].y += f_start[n + t_off].y;
@@ -820,7 +826,9 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
       if (EVFLAG) {
         if (vflag==2) {
           const ATOM_T * _noalias const xo = x + minlocal;
+          #if defined(__INTEL_COMPILER)
 	  #pragma vector nontemporal
+          #endif
           for (int n = iifrom; n < iito; n++) {
             const int nt2 = n * 2;
             ov0 += f_start[nt2].x * xo[n].x;

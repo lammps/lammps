@@ -263,9 +263,11 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
 	  if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 	}
 
+        #if defined(__INTEL_COMPILER)
 	#pragma vector aligned
 	#pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, secoul, \
 	                       sv0, sv1, sv2, sv3, sv4, sv5)
+        #endif
         for (int jj = 0; jj < jnum; jj++) {
           flt_t forcecoul, forcelj, evdwl, ecoul;
           forcecoul = forcelj = evdwl = ecoul = (flt_t)0.0;

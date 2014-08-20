@@ -34,7 +34,8 @@ if (test $1 = 1) then
     sed -i -e 's/[^ \t]*ch5md[^ \t]* //g' ../Makefile.package
     sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/ch5md\/include |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/ch5md |' ../Makefile.package
-    sed -i -e 's|^PKG_LIB =[ \t]*|&-lch5md -lhdf5 |' ../Makefile.package
+    sed -i -e 's|^PKG_LIB =[ \t]*|&-lch5md |' ../Makefile.package
+    sed -i -e 's|^PKG_LIB =[ \t]*|&-lhdf5 |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(ch5md_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(ch5md_SYSLIB) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(ch5md_SYSPATH) |' ../Makefile.package

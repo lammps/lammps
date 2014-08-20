@@ -38,9 +38,12 @@ class DumpH5MD : public Dump {
   h5md_file datafile;
   h5md_particles_group particles_data;
 
-  // data arrays
+  // data arrays and intervals
+  int every_dump;
   double *dump_position;
+  int every_position;
   int *dump_image;
+  int every_image;
 
   void init_style();
   int modify_param(int, char **);
@@ -64,6 +67,11 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: Invalid number of arguments in dump h5md
+
+Make sure that each data item (position, etc.) is followed by a dump
+interval.
 
 E: Dump h5md requires sorting by atom ID
 

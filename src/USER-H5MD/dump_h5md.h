@@ -35,11 +35,11 @@ class DumpH5MD : public Dump {
   int natoms,ntotal;
   int nevery_save;
   int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
-  double *coords;
   h5md_file datafile;
   h5md_particles_group particles_data;
 
   // data arrays
+  double *dump_position;
   int *dump_image;
 
   void init_style();

@@ -39,6 +39,9 @@ class DumpH5MD : public Dump {
   h5md_file datafile;
   h5md_particles_group particles_data;
 
+  // data arrays
+  int *dump_image;
+
   void init_style();
   int modify_param(int, char **);
   void openfile();

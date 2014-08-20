@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 
 DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 {
-  if (narg != 5) error->all(FLERR,"Illegal dump xtc command");
+  if (narg<6) error->all(FLERR,"Illegal dump h5md command");
   if (binary || compressed || multifile || multiproc)
     error->all(FLERR,"Invalid dump h5md filename");
 
@@ -48,13 +48,40 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   flush_flag = 0;
   unwrap_flag = 0;
 
+  every_dump = force->inumeric(FLERR,arg[3]);
+  every_position = every_image = -1;
+
+  int iarg=5;
+  size_one=0;
+  while (iarg<narg) {
+    if (strcmp(arg[iarg], "position")==0) {
+      if (iarg+1>=narg) {
+        error->all(FLERR, "Invalid number of arguments in dump h5md");
+      }
+      every_position = atoi(arg[iarg+1]);
+      iarg+=2;
+      size_one+=domain->dimension;
+    } else if (strcmp(arg[iarg], "image")==0) {
+      if (iarg+1>=narg) {
+        error->all(FLERR, "Invalid number of arguments in dump h5md");
+      }
+      every_image = atoi(arg[iarg+1]);
+      iarg+=2;
+      size_one+=domain->dimension;
+    } else {
+      error->all(FLERR, "Invalid argument to dump h5md");
+    }
+  }
+
   // allocate global array for atom coords
 
   bigint n = group->count(igroup);
   natoms = static_cast<int> (n);
 
-  memory->create(dump_position,domain->dimension*natoms,"dump:position");
-  memory->create(dump_image,domain->dimension*natoms,"dump:image");
+  if (every_position>0)
+    memory->create(dump_position,domain->dimension*natoms,"dump:position");
+  if (every_image>0)
+    memory->create(dump_image,domain->dimension*natoms,"dump:image");
 
   openfile();
   ntotal = 0;
@@ -64,8 +91,10 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
 DumpH5MD::~DumpH5MD()
 {
-  memory->destroy(dump_position);
-  memory->destroy(dump_image);
+  if (every_position>0)
+    memory->destroy(dump_position);
+  if (every_image>0)
+    memory->destroy(dump_image);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -102,9 +131,12 @@ void DumpH5MD::openfile()
     delete [] group_name;
     dims[0] = natoms;
     dims[1] = domain->dimension;
-    particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
-    h5md_create_box(&particles_data, dims[1], boundary, true, NULL);
-    particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, NULL);
+    if (every_position>0) {
+      particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+      h5md_create_box(&particles_data, dims[1], boundary, true, NULL);
+    }
+    if (every_image>0)
+      particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, NULL);
   }
   for (int i=0; i<3; i++) {
     delete [] boundary[i];
@@ -144,12 +176,16 @@ void DumpH5MD::pack(tagint *ids)
         int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         int iz = (image[i] >> IMG2BITS) - IMGMAX;
 
-	buf[m++] = (x[i][0] + ix * xprd);
-	buf[m++] = (x[i][1] + iy * yprd);
-	if (dim>2) buf[m++] = (x[i][2] + iz * zprd);
-	buf[m++] = ix;
-	buf[m++] = iy;
-	if (dim>2) buf[m++] = iz;
+	if (every_position>0 && update->ntimestep % (every_position*every_dump) == 0) {
+	  buf[m++] = (x[i][0] + ix * xprd);
+	  buf[m++] = (x[i][1] + iy * yprd);
+	  if (dim>2) buf[m++] = (x[i][2] + iz * zprd);
+	}
+	if (every_image>0 && update->ntimestep % (every_image*every_dump) == 0) {
+	  buf[m++] = ix;
+	  buf[m++] = iy;
+	  if (dim>2) buf[m++] = iz;
+	}
         ids[n++] = tag[i];
       }
 
@@ -159,12 +195,16 @@ void DumpH5MD::pack(tagint *ids)
         int ix = (image[i] & IMGMASK) - IMGMAX;
         int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
         int iz = (image[i] >> IMG2BITS) - IMGMAX;
-        buf[m++] = x[i][0];
-        buf[m++] = x[i][1];
-        if (dim>2) buf[m++] = x[i][2];
-	buf[m++] = ix;
-	buf[m++] = iy;
-	if (dim>2) buf[m++] = iz;
+	if (every_position>0 && update->ntimestep % (every_position*every_dump) == 0) {
+	  buf[m++] = x[i][0];
+	  buf[m++] = x[i][1];
+	  if (dim>2) buf[m++] = x[i][2];
+	}
+	if (every_image>0 && update->ntimestep % (every_image*every_dump) == 0) {
+	  buf[m++] = ix;
+	  buf[m++] = iy;
+	  if (dim>2) buf[m++] = iz;
+	}
         ids[n++] = tag[i];
       }
   }
@@ -181,12 +221,14 @@ void DumpH5MD::write_data(int n, double *mybuf)
   int k = dim*ntotal;
   int k_image = dim*ntotal;
   for (int i = 0; i < n; i++) {
-    for (int j=0; j<dim; j++) {
-      dump_position[k++] = mybuf[m++];
-    }
-    for (int j=0; j<dim; j++) {
-      dump_image[k_image++] = mybuf[m++];
-    }
+    if (every_position>0 && update->ntimestep % (every_position*every_dump) == 0)
+	for (int j=0; j<dim; j++) {
+	  dump_position[k++] = mybuf[m++];
+	}
+    if (every_image>0 && update->ntimestep % (every_image*every_dump) == 0)
+	for (int j=0; j<dim; j++) {
+	  dump_image[k_image++] = mybuf[m++];
+	}
     ntotal++;
   }
 
@@ -221,11 +263,14 @@ void DumpH5MD::write_frame()
   double edges[3];
   local_step = update->ntimestep;
   local_time = local_step * update->dt;
-  h5md_append(particles_data.position, dump_position, local_step, local_time);
-  edges[0] = boxxhi - boxxlo;
-  edges[1] = boxyhi - boxylo;
-  edges[2] = boxzhi - boxzlo;
-  h5md_append(particles_data.box_edges, edges, local_step, local_time);
-  h5md_append(particles_data.image, dump_image, local_step, local_time);
+  if (every_position>0 && local_step % (every_position*every_dump) == 0) {
+    h5md_append(particles_data.position, dump_position, local_step, local_time);
+    edges[0] = boxxhi - boxxlo;
+    edges[1] = boxyhi - boxylo;
+    edges[2] = boxzhi - boxzlo;
+    h5md_append(particles_data.box_edges, edges, local_step, local_time);
+  }
+  if (every_image>0 && local_step % (every_image*every_dump) == 0)
+    h5md_append(particles_data.image, dump_image, local_step, local_time);
 }
 

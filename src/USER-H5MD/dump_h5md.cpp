@@ -62,12 +62,10 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       iarg+=2;
       size_one+=domain->dimension;
     } else if (strcmp(arg[iarg], "image")==0) {
-      if (iarg+1>=narg) {
-        error->all(FLERR, "Invalid number of arguments in dump h5md");
-      }
-      every_image = atoi(arg[iarg+1]);
-      iarg+=2;
+      if (every_position<=0) error->all(FLERR, "Illegal dump h5md command");
+      iarg+=1;
       size_one+=domain->dimension;
+      every_image = every_position;
     } else {
       error->all(FLERR, "Invalid argument to dump h5md");
     }
@@ -136,7 +134,7 @@ void DumpH5MD::openfile()
       h5md_create_box(&particles_data, dims[1], boundary, true, NULL);
     }
     if (every_image>0)
-      particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, NULL);
+      particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, &particles_data.position);
   }
   for (int i=0; i<3; i++) {
     delete [] boundary[i];

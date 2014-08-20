@@ -178,11 +178,11 @@ void DumpH5MD::pack(tagint *ids)
 	  buf[m++] = (x[i][0] + ix * xprd);
 	  buf[m++] = (x[i][1] + iy * yprd);
 	  if (dim>2) buf[m++] = (x[i][2] + iz * zprd);
-	}
-	if (every_image>0 && update->ntimestep % (every_image*every_dump) == 0) {
-	  buf[m++] = ix;
-	  buf[m++] = iy;
-	  if (dim>2) buf[m++] = iz;
+	  if (every_image>0) {
+	    buf[m++] = ix;
+	    buf[m++] = iy;
+	    if (dim>2) buf[m++] = iz;
+	  }
 	}
         ids[n++] = tag[i];
       }
@@ -197,11 +197,11 @@ void DumpH5MD::pack(tagint *ids)
 	  buf[m++] = x[i][0];
 	  buf[m++] = x[i][1];
 	  if (dim>2) buf[m++] = x[i][2];
-	}
-	if (every_image>0 && update->ntimestep % (every_image*every_dump) == 0) {
-	  buf[m++] = ix;
-	  buf[m++] = iy;
-	  if (dim>2) buf[m++] = iz;
+	  if (every_image>0) {
+	    buf[m++] = ix;
+	    buf[m++] = iy;
+	    if (dim>2) buf[m++] = iz;
+	  }
 	}
         ids[n++] = tag[i];
       }
@@ -219,14 +219,15 @@ void DumpH5MD::write_data(int n, double *mybuf)
   int k = dim*ntotal;
   int k_image = dim*ntotal;
   for (int i = 0; i < n; i++) {
-    if (every_position>0 && update->ntimestep % (every_position*every_dump) == 0)
-	for (int j=0; j<dim; j++) {
-	  dump_position[k++] = mybuf[m++];
-	}
-    if (every_image>0 && update->ntimestep % (every_image*every_dump) == 0)
+    if (every_position>0 && update->ntimestep % (every_position*every_dump) == 0) {
+      for (int j=0; j<dim; j++) {
+	dump_position[k++] = mybuf[m++];
+      }
+      if (every_image>0)
 	for (int j=0; j<dim; j++) {
 	  dump_image[k_image++] = mybuf[m++];
 	}
+    }
     ntotal++;
   }
 
@@ -267,8 +268,8 @@ void DumpH5MD::write_frame()
     edges[1] = boxyhi - boxylo;
     edges[2] = boxzhi - boxzlo;
     h5md_append(particles_data.box_edges, edges, local_step, local_time);
+    if (every_image>0)
+      h5md_append(particles_data.image, dump_image, local_step, local_time);
   }
-  if (every_image>0 && local_step % (every_image*every_dump) == 0)
-    h5md_append(particles_data.image, dump_image, local_step, local_time);
 }
 

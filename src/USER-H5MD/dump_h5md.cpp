@@ -53,7 +53,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   bigint n = group->count(igroup);
   natoms = static_cast<int> (n);
 
-  memory->create(coords,domain->dimension*natoms,"dump:coords");
+  memory->create(dump_position,domain->dimension*natoms,"dump:position");
   memory->create(dump_image,domain->dimension*natoms,"dump:image");
 
   openfile();
@@ -64,7 +64,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
 DumpH5MD::~DumpH5MD()
 {
-  memory->destroy(coords);
+  memory->destroy(dump_position);
   memory->destroy(dump_image);
 }
 
@@ -182,7 +182,7 @@ void DumpH5MD::write_data(int n, double *mybuf)
   int k_image = dim*ntotal;
   for (int i = 0; i < n; i++) {
     for (int j=0; j<dim; j++) {
-      coords[k++] = mybuf[m++];
+      dump_position[k++] = mybuf[m++];
     }
     for (int j=0; j<dim; j++) {
       dump_image[k_image++] = mybuf[m++];
@@ -221,7 +221,7 @@ void DumpH5MD::write_frame()
   double edges[3];
   local_step = update->ntimestep;
   local_time = local_step * update->dt;
-  h5md_append(particles_data.position, coords, local_step, local_time);
+  h5md_append(particles_data.position, dump_position, local_step, local_time);
   edges[0] = boxxhi - boxxlo;
   edges[1] = boxyhi - boxylo;
   edges[2] = boxzhi - boxzlo;

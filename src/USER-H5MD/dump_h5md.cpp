@@ -41,7 +41,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   if (binary || compressed || multifile || multiproc)
     error->all(FLERR,"Invalid dump h5md filename");
 
-  size_one = 3;
+  size_one = 6;
   sort_flag = 1;
   sortcol = 0;
   format_default = NULL;
@@ -54,6 +54,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   natoms = static_cast<int> (n);
 
   memory->create(coords,domain->dimension*natoms,"dump:coords");
+  memory->create(dump_image,domain->dimension*natoms,"dump:image");
 
   openfile();
   ntotal = 0;
@@ -64,7 +65,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 DumpH5MD::~DumpH5MD()
 {
   memory->destroy(coords);
-
+  memory->destroy(dump_image);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -103,6 +104,7 @@ void DumpH5MD::openfile()
     dims[1] = domain->dimension;
     particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
     h5md_create_box(&particles_data, dims[1], boundary, true, NULL);
+    particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, NULL);
   }
   for (int i=0; i<3; i++) {
     delete [] boundary[i];
@@ -145,15 +147,24 @@ void DumpH5MD::pack(tagint *ids)
 	buf[m++] = (x[i][0] + ix * xprd);
 	buf[m++] = (x[i][1] + iy * yprd);
 	if (dim>2) buf[m++] = (x[i][2] + iz * zprd);
+	buf[m++] = ix;
+	buf[m++] = iy;
+	if (dim>2) buf[m++] = iz;
         ids[n++] = tag[i];
       }
 
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
+        int ix = (image[i] & IMGMASK) - IMGMAX;
+        int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+        int iz = (image[i] >> IMG2BITS) - IMGMAX;
         buf[m++] = x[i][0];
         buf[m++] = x[i][1];
         if (dim>2) buf[m++] = x[i][2];
+	buf[m++] = ix;
+	buf[m++] = iy;
+	if (dim>2) buf[m++] = iz;
         ids[n++] = tag[i];
       }
   }
@@ -168,9 +179,13 @@ void DumpH5MD::write_data(int n, double *mybuf)
   int m = 0;
   int dim = domain->dimension;
   int k = dim*ntotal;
+  int k_image = dim*ntotal;
   for (int i = 0; i < n; i++) {
     for (int j=0; j<dim; j++) {
       coords[k++] = mybuf[m++];
+    }
+    for (int j=0; j<dim; j++) {
+      dump_image[k_image++] = mybuf[m++];
     }
     ntotal++;
   }
@@ -211,5 +226,6 @@ void DumpH5MD::write_frame()
   edges[1] = boxyhi - boxylo;
   edges[2] = boxzhi - boxzlo;
   h5md_append(particles_data.box_edges, edges, local_step, local_time);
+  h5md_append(particles_data.image, dump_image, local_step, local_time);
 }
 

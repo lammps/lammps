@@ -107,7 +107,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   if (every_force>0)
     memory->create(dump_force,domain->dimension*natoms,"dump:force");
   if (every_species>0)
-    memory->create(dump_species,domain->dimension*natoms,"dump:species");
+    memory->create(dump_species,natoms,"dump:species");
 
   openfile();
   ntotal = 0;
@@ -231,6 +231,18 @@ void DumpH5MD::pack(tagint *ids)
 	  buf[m++] = iy;
 	  if (dim>2) buf[m++] = iz;
 	}
+	if (every_velocity>0 && update->ntimestep % (every_velocity*every_dump) == 0) {
+	  buf[m++] = v[i][0];
+	  buf[m++] = v[i][1];
+	  if (dim>2) buf[m++] = v[i][2];
+	}
+	if (every_force>0 && update->ntimestep % (every_force*every_dump) == 0) {
+	  buf[m++] = f[i][0];
+	  buf[m++] = f[i][1];
+	  if (dim>2) buf[m++] = f[i][2];
+	}
+	if (every_species>0 && update->ntimestep % (every_species*every_dump) == 0)
+	  buf[m++] = species[i];
       }
       ids[n++] = tag[i];
     }
@@ -246,6 +258,9 @@ void DumpH5MD::write_data(int n, double *mybuf)
   int dim = domain->dimension;
   int k = dim*ntotal;
   int k_image = dim*ntotal;
+  int k_velocity = dim*ntotal;
+  int k_force = dim*ntotal;
+  int k_species = dim*ntotal;
   for (int i = 0; i < n; i++) {
     if (every_position>0 && update->ntimestep % (every_position*every_dump) == 0) {
       for (int j=0; j<dim; j++) {
@@ -256,6 +271,16 @@ void DumpH5MD::write_data(int n, double *mybuf)
 	  dump_image[k_image++] = mybuf[m++];
 	}
     }
+    if (every_velocity>0 && update->ntimestep % (every_velocity*every_dump) == 0)
+      for (int j=0; j<dim; j++) {
+	dump_velocity[k_velocity++] = mybuf[m++];
+      }
+    if (every_force>0 && update->ntimestep % (every_force*every_dump) == 0)
+      for (int j=0; j<dim; j++) {
+	dump_force[k_force++] = mybuf[m++];
+      }
+    if (every_species>0 && update->ntimestep % (every_species*every_dump) == 0)
+      dump_species[k_species++] = mybuf[m++];
     ntotal++;
   }
 
@@ -298,6 +323,15 @@ void DumpH5MD::write_frame()
     h5md_append(particles_data.box_edges, edges, local_step, local_time);
     if (every_image>0)
       h5md_append(particles_data.image, dump_image, local_step, local_time);
+  }
+  if (every_velocity>0 && local_step % (every_velocity*every_dump) == 0) {
+    h5md_append(particles_data.velocity, dump_velocity, local_step, local_time);
+  }
+  if (every_force>0 && local_step % (every_force*every_dump) == 0) {
+    h5md_append(particles_data.force, dump_force, local_step, local_time);
+  }
+  if (every_species>0 && local_step % (every_species*every_dump) == 0) {
+    h5md_append(particles_data.species, dump_species, local_step, local_time);
   }
 }
 

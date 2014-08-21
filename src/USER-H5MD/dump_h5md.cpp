@@ -213,7 +213,7 @@ void DumpH5MD::pack(tagint *ids)
   m = n = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (every_position>0 && update->ntimestep % (every_position*every_dump) == 0) {
+      if (every_position>0) {
 	int ix = (image[i] & IMGMASK) - IMGMAX;
 	int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
 	int iz = (image[i] >> IMG2BITS) - IMGMAX;
@@ -231,19 +231,19 @@ void DumpH5MD::pack(tagint *ids)
 	  buf[m++] = iy;
 	  if (dim>2) buf[m++] = iz;
 	}
-	if (every_velocity>0 && update->ntimestep % (every_velocity*every_dump) == 0) {
-	  buf[m++] = v[i][0];
-	  buf[m++] = v[i][1];
-	  if (dim>2) buf[m++] = v[i][2];
-	}
-	if (every_force>0 && update->ntimestep % (every_force*every_dump) == 0) {
-	  buf[m++] = f[i][0];
-	  buf[m++] = f[i][1];
-	  if (dim>2) buf[m++] = f[i][2];
-	}
-	if (every_species>0 && update->ntimestep % (every_species*every_dump) == 0)
-	  buf[m++] = species[i];
       }
+      if (every_velocity>0) {
+	buf[m++] = v[i][0];
+	buf[m++] = v[i][1];
+	if (dim>2) buf[m++] = v[i][2];
+      }
+      if (every_force>0) {
+	buf[m++] = f[i][0];
+	buf[m++] = f[i][1];
+	if (dim>2) buf[m++] = f[i][2];
+      }
+      if (every_species>0)
+	buf[m++] = species[i];
       ids[n++] = tag[i];
     }
 }
@@ -262,7 +262,7 @@ void DumpH5MD::write_data(int n, double *mybuf)
   int k_force = dim*ntotal;
   int k_species = dim*ntotal;
   for (int i = 0; i < n; i++) {
-    if (every_position>0 && update->ntimestep % (every_position*every_dump) == 0) {
+    if (every_position>0) {
       for (int j=0; j<dim; j++) {
 	dump_position[k++] = mybuf[m++];
       }
@@ -271,15 +271,15 @@ void DumpH5MD::write_data(int n, double *mybuf)
 	  dump_image[k_image++] = mybuf[m++];
 	}
     }
-    if (every_velocity>0 && update->ntimestep % (every_velocity*every_dump) == 0)
+    if (every_velocity>0)
       for (int j=0; j<dim; j++) {
 	dump_velocity[k_velocity++] = mybuf[m++];
       }
-    if (every_force>0 && update->ntimestep % (every_force*every_dump) == 0)
+    if (every_force>0)
       for (int j=0; j<dim; j++) {
 	dump_force[k_force++] = mybuf[m++];
       }
-    if (every_species>0 && update->ntimestep % (every_species*every_dump) == 0)
+    if (every_species>0)
       dump_species[k_species++] = mybuf[m++];
     ntotal++;
   }

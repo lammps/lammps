@@ -206,49 +206,34 @@ void DumpH5MD::pack(tagint *ids)
   int nlocal = atom->nlocal;
   int dim=domain->dimension;
 
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+  double zprd = domain->zprd;
+
   m = n = 0;
-  if (unwrap_flag == 1) {
-    double xprd = domain->xprd;
-    double yprd = domain->yprd;
-    double zprd = domain->zprd;
-
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-        int ix = (image[i] & IMGMASK) - IMGMAX;
-        int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-        int iz = (image[i] >> IMG2BITS) - IMGMAX;
-
-	if (every_position>0 && update->ntimestep % (every_position*every_dump) == 0) {
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      if (every_position>0 && update->ntimestep % (every_position*every_dump) == 0) {
+	int ix = (image[i] & IMGMASK) - IMGMAX;
+	int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+	int iz = (image[i] >> IMG2BITS) - IMGMAX;
+	if (unwrap_flag == 1) {
 	  buf[m++] = (x[i][0] + ix * xprd);
 	  buf[m++] = (x[i][1] + iy * yprd);
 	  if (dim>2) buf[m++] = (x[i][2] + iz * zprd);
-	  if (every_image>0) {
-	    buf[m++] = ix;
-	    buf[m++] = iy;
-	    if (dim>2) buf[m++] = iz;
-	  }
-	}
-        ids[n++] = tag[i];
-      }
-  } else {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-        int ix = (image[i] & IMGMASK) - IMGMAX;
-        int iy = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-        int iz = (image[i] >> IMG2BITS) - IMGMAX;
-	if (every_position>0 && update->ntimestep % (every_position*every_dump) == 0) {
+	} else {
 	  buf[m++] = x[i][0];
 	  buf[m++] = x[i][1];
 	  if (dim>2) buf[m++] = x[i][2];
-	  if (every_image>0) {
-	    buf[m++] = ix;
-	    buf[m++] = iy;
-	    if (dim>2) buf[m++] = iz;
-	  }
 	}
-        ids[n++] = tag[i];
+	if (every_image>0) {
+	  buf[m++] = ix;
+	  buf[m++] = iy;
+	  if (dim>2) buf[m++] = iz;
+	}
       }
-  }
+      ids[n++] = tag[i];
+    }
 }
 
 /* ---------------------------------------------------------------------- */

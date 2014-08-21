@@ -50,6 +50,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
   every_dump = force->inumeric(FLERR,arg[3]);
   every_position = every_image = -1;
+  every_velocity = every_force = every_species = -1;
 
   int iarg=5;
   size_one=0;
@@ -66,6 +67,27 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       iarg+=1;
       size_one+=domain->dimension;
       every_image = every_position;
+    } else if (strcmp(arg[iarg], "velocity")==0) {
+      if (iarg+1>=narg) {
+        error->all(FLERR, "Invalid number of arguments in dump h5md");
+      }
+      every_velocity = atoi(arg[iarg+1]);
+      iarg+=2;
+      size_one+=domain->dimension;
+    } else if (strcmp(arg[iarg], "force")==0) {
+      if (iarg+1>=narg) {
+        error->all(FLERR, "Invalid number of arguments in dump h5md");
+      }
+      every_force = atoi(arg[iarg+1]);
+      iarg+=2;
+      size_one+=domain->dimension;
+    } else if (strcmp(arg[iarg], "species")==0) {
+      if (iarg+1>=narg) {
+        error->all(FLERR, "Invalid number of arguments in dump h5md");
+      }
+      every_species = atoi(arg[iarg+1]);
+      iarg+=2;
+      size_one+=1;
     } else {
       error->all(FLERR, "Invalid argument to dump h5md");
     }
@@ -80,6 +102,12 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
     memory->create(dump_position,domain->dimension*natoms,"dump:position");
   if (every_image>0)
     memory->create(dump_image,domain->dimension*natoms,"dump:image");
+  if (every_velocity>0)
+    memory->create(dump_velocity,domain->dimension*natoms,"dump:velocity");
+  if (every_force>0)
+    memory->create(dump_force,domain->dimension*natoms,"dump:force");
+  if (every_species>0)
+    memory->create(dump_species,domain->dimension*natoms,"dump:species");
 
   openfile();
   ntotal = 0;
@@ -93,6 +121,12 @@ DumpH5MD::~DumpH5MD()
     memory->destroy(dump_position);
   if (every_image>0)
     memory->destroy(dump_image);
+  if (every_velocity>0)
+    memory->destroy(dump_velocity);
+  if (every_force>0)
+    memory->destroy(dump_force);
+  if (every_species>0)
+    memory->destroy(dump_species);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,6 +169,13 @@ void DumpH5MD::openfile()
     }
     if (every_image>0)
       particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, &particles_data.position);
+    if (every_velocity>0)
+      particles_data.velocity = h5md_create_time_data(particles_data.group, "velocity", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+    if (every_force>0)
+      particles_data.force = h5md_create_time_data(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+    if (every_species>0)
+      particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, NULL);
+
   }
   for (int i=0; i<3; i++) {
     delete [] boundary[i];
@@ -157,6 +198,9 @@ void DumpH5MD::pack(tagint *ids)
 
   tagint *tag = atom->tag;
   double **x = atom->x;
+  double **v = atom->v;
+  double **f = atom->f;
+  int *species = atom->type;
   imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -186,7 +230,6 @@ void DumpH5MD::pack(tagint *ids)
 	}
         ids[n++] = tag[i];
       }
-
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {

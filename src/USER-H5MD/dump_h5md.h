@@ -44,6 +44,12 @@ class DumpH5MD : public Dump {
   int every_position;
   int *dump_image;
   int every_image;
+  double *dump_velocity;
+  int every_velocity;
+  double *dump_force;
+  int every_force;
+  int *dump_species;
+  int every_species;
 
   void init_style();
   int modify_param(int, char **);

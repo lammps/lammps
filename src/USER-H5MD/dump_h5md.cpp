@@ -260,7 +260,7 @@ void DumpH5MD::write_data(int n, double *mybuf)
   int k_image = dim*ntotal;
   int k_velocity = dim*ntotal;
   int k_force = dim*ntotal;
-  int k_species = dim*ntotal;
+  int k_species = ntotal;
   for (int i = 0; i < n; i++) {
     if (every_position>0) {
       for (int j=0; j<dim; j++) {

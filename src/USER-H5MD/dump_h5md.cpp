@@ -165,7 +165,9 @@ void DumpH5MD::openfile()
     dims[1] = domain->dimension;
     if (every_position>0) {
       particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
-      h5md_create_box(&particles_data, dims[1], boundary, true, NULL);
+      h5md_create_box(&particles_data, dims[1], boundary, true, NULL, &particles_data.position);
+    } else {
+      h5md_create_box(&particles_data, dims[1], boundary, true, NULL, NULL);
     }
     if (every_image>0)
       particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, &particles_data.position);
@@ -315,14 +317,18 @@ void DumpH5MD::write_frame()
   double edges[3];
   local_step = update->ntimestep;
   local_time = local_step * update->dt;
-  if (every_position>0 && local_step % (every_position*every_dump) == 0) {
-    h5md_append(particles_data.position, dump_position, local_step, local_time);
-    edges[0] = boxxhi - boxxlo;
-    edges[1] = boxyhi - boxylo;
-    edges[2] = boxzhi - boxzlo;
+  edges[0] = boxxhi - boxxlo;
+  edges[1] = boxyhi - boxylo;
+  edges[2] = boxzhi - boxzlo;
+  if (every_position>0) {
+    if (local_step % (every_position*every_dump) == 0) {
+      h5md_append(particles_data.position, dump_position, local_step, local_time);
+      h5md_append(particles_data.box_edges, edges, local_step, local_time);
+      if (every_image>0)
+	h5md_append(particles_data.image, dump_image, local_step, local_time);
+    }
+  } else {
     h5md_append(particles_data.box_edges, edges, local_step, local_time);
-    if (every_image>0)
-      h5md_append(particles_data.image, dump_image, local_step, local_time);
   }
   if (every_velocity>0 && local_step % (every_velocity*every_dump) == 0) {
     h5md_append(particles_data.velocity, dump_velocity, local_step, local_time);

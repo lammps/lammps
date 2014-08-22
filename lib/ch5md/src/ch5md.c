@@ -358,7 +358,7 @@ int h5md_append(h5md_element e, void *data, int step, double time) {
   return 0;
 }
 
-int h5md_create_box(h5md_particles_group *group, int dim, char *boundary[], bool is_time, double value[])
+int h5md_create_box(h5md_particles_group *group, int dim, char *boundary[], bool is_time, double value[], h5md_element *link)
 {
   hid_t spc, att, t;
   hsize_t dims[1];
@@ -406,7 +406,7 @@ int h5md_create_box(h5md_particles_group *group, int dim, char *boundary[], bool
   // Check if the box is time-dependent or not
   int_dims[0]=dim;
   if (is_time) {
-    group->box_edges = h5md_create_time_data(group->box, "edges", 1, int_dims, H5T_NATIVE_DOUBLE, &group->position);
+    group->box_edges = h5md_create_time_data(group->box, "edges", 1, int_dims, H5T_NATIVE_DOUBLE, link);
   } else {
     if (NULL!=value) {
       group->box_edges = h5md_create_fixed_data_simple(group->box, "edges", 1, int_dims, H5T_NATIVE_DOUBLE, value);

@@ -351,7 +351,11 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
   #pragma omp parallel default(none)
   #endif
   {
+    #if defined(_OPENMP)
     const int tid = omp_get_thread_num();
+    #else
+    const int tid = 0;
+    #endif
     int ifrom, ito;
     IP_PRE_omp_range_align(ifrom, ito, tid, nall, _nthreads, sizeof(acc_t));
     if (atom->torque) {

@@ -10,7 +10,7 @@ OPENMP=
 
 CC =		env OMPI_CC=icc OMPI_CXX=icpc mpic++ $(OPENMP)
 CCFLAGS =	-O3 -xHOST -fno-rtti -fno-exceptions -finline-functions \
-			-no-prec-div -pc64 -fast-transcendentals -rcd \
+			-no-prec-div -pc64 -fast-transcendentals -rcd -restrict \
 			-funroll-loops -fstrict-aliasing -Wall -no-prec-sqrt
 SHFLAGS =       -fPIC
 DEPFLAGS =	-MM
@@ -29,7 +29,7 @@ SIZE =		size
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=16 -DLAMMPS_JPEG
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64 -DLAMMPS_JPEG
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)

@@ -199,7 +199,9 @@ typedef struct { int a,b,c,d,t;  } int5_t;
 #undef _noalias
 #endif
 
-#if defined(__GNUC__)
+#if defined(__INTEL_COMPILER)
+#define _noalias restrict
+#elif defined(__GNUC__)
 #define _noalias __restrict
 #else
 #define _noalias

@@ -176,8 +176,8 @@ discussed below.
 package. These styles support vectorized single and mixed precision
 calculations, in addition to full double precision.  In extreme cases,
 this can provide speedups over 3.5x on CPUs.  The package also
-supports acceleration with offload to Intel corprocessors (Xeon
-Phi). This can result in additional speedup over 2x depending on the
+supports acceleration with offload to Intel(R) Xeon Phi(TM) coprocessors.
+This can result in additional speedup over 2x depending on the
 hardware configuration.
 </P>
 <P>Styles with a "kk" suffix are part of the KOKKOS package, and can be
@@ -977,10 +977,10 @@ LAMMPS.
 </H4>
 <P>The USER-INTEL package was developed by Mike Brown at Intel
 Corporation. It provides a capability to accelerate simulations by
-offloading neighbor list and non-bonded force calculations to Intel
-coprocessors (Xeon Phi).  Additionally, it supports running
+offloading neighbor list and non-bonded force calculations to Intel(R)
+Xeon Phi(TM) coprocessors.  Additionally, it supports running
 simulations in single, mixed, or double precision with vectorization,
-even if a coprocessor is not present, i.e. on an Intel CPU.  The same
+even if a coprocessor is not present, i.e. on an Intel(R) CPU.  The same
 C++ code is used for both cases.  When offloading to a coprocessor,
 the routine is run twice, once with an offload flag.
 </P>
@@ -1006,19 +1006,19 @@ LINKFLAGS variables.  You also need to add -DLAMMPS_MEMALIGN=64 and
 </P>
 <P>If you are compiling on the same architecture that will be used for
 the runs, adding the flag <I>-xHost</I> will enable vectorization with the
-Intel compiler.  In order to build with support for an Intel
+Intel(R) compiler.  In order to build with support for an Intel(R)
 coprocessor, the flag <I>-offload</I> should be added to the LINKFLAGS line
 and the flag <I>-DLMP_INTEL_OFFLOAD</I> should be added to the CCFLAGS
 line.
 </P>
 <P>The files src/MAKE/Makefile.intel and src/MAKE/Makefile.intel_offload
 are included in the src/MAKE directory with options that perform well
-with the Intel compiler. The latter Makefile has support for offload
+with the Intel(R) compiler. The latter Makefile has support for offload
 to coprocessors and the former does not.
 </P>
-<P>It is recommended that Intel Compiler 2013 SP1 update 1 be used for
+<P>It is recommended that Intel(R) Compiler 2013 SP1 update 1 be used for
 compiling. Newer versions have some performance issues that are being
-addressed. If using Intel MPI, version 5 or higher is recommended.
+addressed. If using Intel(R) MPI, version 5 or higher is recommended.
 </P>
 <P>The rest of the compilation is the same as for any other package that
 has no additional library dependencies, e.g.
@@ -1034,7 +1034,7 @@ them.
 </P>
 <P>The total number of MPI tasks used by LAMMPS (one or multiple per
 compute node) is set in the usual manner via the mpirun or mpiexec
-commands, and is independent of the Intel package.
+commands, and is independent of the USER-INTEL package.
 </P>
 <P>Input script requirements to run using pair styles with a <I>intel</I>
 suffix are as follows:
@@ -1054,10 +1054,10 @@ use all single or all double precision, the <A HREF = "package.html">package
 intel</A> command must be used in the input script with a
 "single" or "double" keyword specified.
 </P>
-<P><B>Running with an Intel coprocessor:</B>
+<P><B>Running with an Intel(R) coprocessor:</B>
 </P>
 <P>The USER-INTEL package supports offload of a fraction of the work to
-Intel coprocessors (Xeon Phi).  This is accomplished by setting a
+Intel(R) Xeon Phi(TM) coprocessors.  This is accomplished by setting a
 balance fraction on the <A HREF = "package.html">package intel</A> command. A
 balance of 0 runs all calculations on the CPU.  A balance of 1 runs
 all calculations on the coprocessor.  A balance of 0.5 runs half of
@@ -1075,8 +1075,8 @@ adding a short warm-up run (10-20 steps) will allow the load-balancer
 to find a setting that will carry over to additional runs.
 </P>
 <P>The default for the <A HREF = "package.html">package intel</A> command is to have
-all the MPI tasks on a given compute node use a single coprocessor
-(Xeon Phi). In general, running with a large number of MPI tasks on
+all the MPI tasks on a given compute node use a single Xeon Phi(TM) coprocessor
+In general, running with a large number of MPI tasks on
 each node will perform best with offload.  Each MPI task will
 automatically get affinity to a subset of the hardware threads
 available on the coprocessor.  For example, if your card has 61 cores,
@@ -1087,7 +1087,7 @@ tuning of the number of threads to use per MPI task or the number of
 threads to use per core can be accomplished with keywords to the
 <A HREF = "package.html">package intel</A> command.
 </P>
-<P>If LAMMPS is using offload to a coprocessor (Xeon Phi), a diagnostic
+<P>If LAMMPS is using offload to a Intel(R) Xeon Phi(TM) coprocessor, a diagnostic
 line during the setup for a run is printed to the screen (not to log
 files) indicating that offload is being used and the number of
 coprocessor threads per MPI task.  Additionally, an offload timing
@@ -1095,7 +1095,7 @@ summary is printed at the end of each run.  When using offload, the
 <A HREF = "atom_modify.html">sort</A> frequency for atom data is changed to 1 so
 that the per-atom data is sorted every neighbor build.
 </P>
-<P>To use multiple coprocessors (Xeon Phis) on each compute node, the
+<P>To use multiple coprocessors on each compute node, the
 <I>offload_cards</I> keyword can be specified with the <A HREF = "package.html">package
 intel</A> command to specify the number of coprocessors to
 use.

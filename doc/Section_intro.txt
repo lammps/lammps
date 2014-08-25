@@ -105,7 +105,7 @@ General features :h4
   open-source distribution
   highly portable C++
   optional libraries used: MPI and single-processor FFT
-  GPU (CUDA and OpenCL), Intel Xeon Phi, and OpenMP support for many code features
+  GPU (CUDA and OpenCL), Intel(R) Xeon Phi(TM) coprocessors, and OpenMP support for many code features
   easy to extend with new features and functionality
   runs from an input script
   syntax for defining and using variables and formulas

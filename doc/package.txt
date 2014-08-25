@@ -243,7 +243,7 @@ terms and single precision for everything else), or {double} (intel
 styles use double precision for all calculations).
 
 Additional keyword-value pairs are available that are used to
-determine how work is offloaded to an Intel coprocessor. If LAMMPS is
+determine how work is offloaded to an Intel(R) coprocessor. If LAMMPS is
 built without offload support, these values are ignored. The
 additional settings are as follows:
 

@@ -36,4 +36,10 @@ In order to use offload to Intel(R) Xeon Phi(TM) coprocessors, the flag
 -DLMP_INTEL_OFFLOAD should be set in the Makefile. Offload requires the use of 
 Intel compilers.
 
+-----------------------------------------------------------------------------
+
+The files in this package must be compiled with the Intel C++
+compiler, i.e. icc/icpc.
+
+
 

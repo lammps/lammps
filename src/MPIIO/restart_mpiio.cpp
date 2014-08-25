@@ -58,7 +58,7 @@ void RestartMPIIO::openForRead(char *filename)
 
 void RestartMPIIO::openForWrite(char *filename)
 {
-  int err = MPI_File_open(world, filename, MPI_MODE_APPEND | MPI_MODE_WRONLY,
+  int err = MPI_File_open(world, filename, MPI_MODE_WRONLY,
                           MPI_INFO_NULL, &mpifh);
   if (err != MPI_SUCCESS) {
     char str[MPI_MAX_ERROR_STRING+128];

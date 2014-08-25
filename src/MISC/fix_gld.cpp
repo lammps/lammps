@@ -57,16 +57,16 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   // 1 = Group ID         (e.g., all)
   // 2 = gld              (name of this fix)
   // 3 = t_start          (Starting target temperature)
-  t_start = atof(arg[3]);
+  t_start = force->numeric(FLERR,arg[3]);
 
   // 4 = t_stop           (Stopping target temperature)
-  t_stop = atof(arg[4]);
+  t_stop = force->numeric(FLERR,arg[4]);
 
   // 5 = prony_terms      (number of terms in Prony series)
-  prony_terms = atoi(arg[5]);
+  prony_terms = force->inumeric(FLERR,arg[5]);
 
   // 6 = seed             (random seed)
-  int seed    = atoi(arg[6]);
+  int seed    = force->inumeric(FLERR,arg[6]);
 
   // 7 = series type
   if(strcmp(arg[7],"pprony") == 0) {
@@ -101,8 +101,8 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   int iarg = narg_min;
   int icoeff = 0;
   while (iarg < narg && icoeff < prony_terms) {
-    double pc = atof(arg[iarg]);
-    double ptau = atof(arg[iarg+1]);
+    double pc = force->numeric(FLERR,arg[iarg]);
+    double ptau = force->numeric(FLERR,arg[iarg+1]);
 
     if (pc < 0)
       error->all(FLERR,"Fix gld c coefficients must be >= 0");

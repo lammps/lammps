@@ -135,14 +135,7 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
 
   // setup scaling
 
-  double xscale,yscale,zscale;
-  if (scaleflag) {
-    xscale = domain->lattice->xlattice;
-    yscale = domain->lattice->ylattice;
-    zscale = domain->lattice->zlattice;
-  }
-  else xscale = yscale = zscale = 1.0;
-
+  const double zscale = (scaleflag) ? domain->lattice->zlattice : 1.0;
   vz *= zscale;
   z0 *= zscale;
   roughdist *= zscale;

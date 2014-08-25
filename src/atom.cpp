@@ -369,7 +369,7 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
 
   if (sflag) {
     char estyle[256];
-    if (sflag = 1) sprintf(estyle,"%s/%s",style,lmp->suffix);
+    if (sflag == 1) sprintf(estyle,"%s/%s",style,lmp->suffix);
     else sprintf(estyle,"%s/%s",style,lmp->suffix2);
     int n = strlen(estyle) + 1;
     atom_style = new char[n];

@@ -1004,6 +1004,10 @@ flags to enable OpenMP support (<I>-openmp</I>) to both the CCFLAGS and
 LINKFLAGS variables.  You also need to add -DLAMMPS_MEMALIGN=64 and
 -restrict to CCFLAGS.
 </P>
+<P>Note that currently you must use the Intel C++ compiler (icc/icpc) to
+build the package.  In the future, using other compilers (e.g. g++)
+may be possible.
+</P>
 <P>If you are compiling on the same architecture that will be used for
 the runs, adding the flag <I>-xHost</I> will enable vectorization with the
 Intel(R) compiler.  In order to build with support for an Intel(R)

@@ -235,7 +235,8 @@ class IntelBuffers {
 
   double memory_usage(const int nthreads);
 
-  int _special_holder, _nspecial_holder;
+  tagint _special_holder;
+  int _nspecial_holder;
 
  protected:
   LAMMPS *lmp;

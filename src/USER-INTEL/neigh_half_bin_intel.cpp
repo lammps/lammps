@@ -79,7 +79,7 @@ inline int mcoord2bin(const flt_t x0, const flt_t x1, const flt_t x2,
   const int n1 = nspecial[i * 3];                                     \
   const int n2 = nspecial[i * 3 + 1];                                 \
   const int n3 = nspecial[i * 3 + 2];                                 \
-  const int *sptr = special + i * maxspecial;                         \
+  const tagint *sptr = special + i * maxspecial;                      \
   for (int s = 0; s < n3; s++) {                                      \
     if (sptr[s] == tag) {                                             \
       if (s < n1) {                                                   \
@@ -247,7 +247,8 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
   int * _noalias const firstneigh = buffers->firstneigh(list);
 
   const int molecular = atom->molecular;
-  int *ns = NULL, *s = NULL;
+  int *ns = NULL;
+  tagint *s = NULL;
   int tag_size, special_size;
   if (molecular) {
     s = atom->special[0];
@@ -260,10 +261,10 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
     tag_size = 0;
     special_size = 0;
   }
-  const int * _noalias const special = s;
+  const tagint * _noalias const special = s;
   const int * _noalias const nspecial = ns;
   const int maxspecial = atom->maxspecial;
-  const int * _noalias const tag = atom->tag;
+  const tagint * _noalias const tag = atom->tag;
 
   int * _noalias const ilist = list->ilist;
   int * _noalias numneigh = list->numneigh;
@@ -276,7 +277,7 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
 
   #ifndef _LMP_INTEL_OFFLOAD
   int * const mask = atom->mask;
-  int * const molecule = atom->molecule;
+  tagint * const molecule = atom->molecule;
   #endif
 
   int tnum;
@@ -669,7 +670,8 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
   const int e_nall = nall_t;
 
   const int molecular = atom->molecular;
-  int *ns = NULL, *s = NULL;
+  int *ns = NULL;
+  tagint *s = NULL;
   int tag_size, special_size;
   if (molecular) {
     s = atom->special[0];
@@ -682,10 +684,10 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
     tag_size = 0;
     special_size = 0;
   }
-  const int * _noalias const special = s;
+  const tagint * _noalias const special = s;
   const int * _noalias const nspecial = ns;
   const int maxspecial = atom->maxspecial;
-  const int * _noalias const tag = atom->tag;
+  const tagint * _noalias const tag = atom->tag;
 
   int * _noalias const ilist = list->ilist;
   int * _noalias numneigh = list->numneigh;
@@ -698,7 +700,7 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
 
   #ifndef _LMP_INTEL_OFFLOAD
   int * const mask = atom->mask;
-  int * const molecule = atom->molecule;
+  tagint * const molecule = atom->molecule;
   #endif
 
   int tnum;
@@ -1134,7 +1136,8 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
   const int e_nall = nall_t;
 
   const int molecular = atom->molecular;
-  int *ns = NULL, *s = NULL;
+  int *ns = NULL;
+  tagint *s = NULL;
   int tag_size, special_size;
   if (molecular) {
     s = atom->special[0];
@@ -1147,10 +1150,10 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
     tag_size = 0;
     special_size = 0;
   }
-  const int * _noalias const special = s;
+  const tagint * _noalias const special = s;
   const int * _noalias const nspecial = ns;
   const int maxspecial = atom->maxspecial;
-  const int * _noalias const tag = atom->tag;
+  const tagint * _noalias const tag = atom->tag;
 
   int * _noalias const ilist = list->ilist;
   int * _noalias numneigh = list->numneigh;
@@ -1163,7 +1166,7 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
 
   #ifndef _LMP_INTEL_OFFLOAD
   int * const mask = atom->mask;
-  int * const molecule = atom->molecule;
+  tagint * const molecule = atom->molecule;
   #endif
 
   int tnum;

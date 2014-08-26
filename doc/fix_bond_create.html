@@ -155,13 +155,16 @@ data file with no atoms can be used if you wish to add unbonded atoms
 via the <A HREF = "create_atoms.html">create atoms</A> command, e.g. for a
 percolation simulation.
 </P>
-<P>IMPORTANT NOTE: LAMMPS also maintains a data structure that stores a
-list of 1st, 2nd, and 3rd neighbors of each atom (within the bond
+<P>IMPORTANT NOTE: LAMMPS stores and maintains a data structure with a
+list of the 1st, 2nd, and 3rd neighbors of each atom (within the bond
 topology of the system) for use in weighting pairwise interactions for
-bonded atoms.  Adding a bond adds a single entry to this list.  The
-"extra special per atom" parameter must typically be set to allow for
-it.  There are 3 ways to do this.  See the <A HREF = "read_data.html">read_data</A>
-or <A HREF = "create_box.html">create_box</A> or "special_bonds extra" commands for
+bonded atoms.  Note that adding a single bond always adds a new 1st
+neighbor but may also induce *many* new 2nd and 3rd neighbors,
+depending on the molecular topology of your system.  The "extra
+special per atom" parameter must typically be set to allow for the new
+maximum total size (1st + 2nd + 3rd neighbors) of this per-atom list.
+There are 3 ways to do this.  See the <A HREF = "read_data.html">read_data</A> or
+<A HREF = "create_box.html">create_box</A> or "special_bonds extra" commands for
 details.
 </P>
 <P>IMPORTANT NOTE: Even if you do not use the <I>atype</I>, <I>dtype</I>, or

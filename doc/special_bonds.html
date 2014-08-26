@@ -171,18 +171,24 @@ interaction between atoms 2 and 5 will be unaffected (full weighting
 of 1.0).  If the <I>dihedral</I> keyword is specified as <I>no</I> which is the
 default, then the 2,5 interaction will also be weighted by 0.5.
 </P>
-<P>The <I>extra</I> keyword is used when additional bonds will be created
+<P>The <I>extra</I> keyword can be used when additional bonds will be created
 during a simulation run, e.g. by the <A HREF = "fix_bond_create.html">fix
 bond/create</A> command.  It can also be used if
 molecules will be added to the system, e.g. via the <A HREF = "fix_deposit.html">fix
 deposit</A>, or <A HREF = "fix_pour.html">fix pour</A> commands, which
 will have atoms with more special neighbors than any atom in the
-current system has.  A list of 1-2,1-3,1-4 neighbors for each atom is
-calculated and stored by LAMMPS.  If new bonds are created (or
-molecules added with atoms with more special neighbors), the list
-needs to grow.  Using the <I>extra</I> keyword leaves empty space in the
-list for N additional bonds to be added.  If you do not do this, you
-may get an error when bonds (or molecules) are added.
+current system has.  
+</P>
+<P>IMPORTANT NOTE: LAMMPS stores and maintains a data structure with a
+list of the 1st, 2nd, and 3rd neighbors of each atom (within the bond
+topology of the system).  If new bonds are created (or molecules added
+containing atoms with more special neighbors), the size of this list
+needs to grow.  Note that adding a single bond always adds a new 1st
+neighbor but may also induce *many* new 2nd and 3rd neighbors,
+depending on the molecular topology of your syste.  Using the <I>extra</I>
+keyword leaves empty space in the list for this N additional 1st, 2nd,
+or 3rd neighbors to be added.  If you do not do this, you may get an
+error when bonds (or molecules) are added.
 </P>
 <P>IMPORTANT NOTE: If you reuse this command in an input script, you
 should set all the options you need each time.  This command cannot be

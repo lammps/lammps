@@ -84,22 +84,22 @@ void PairLJCharmmCoulLongOpt::eval()
   double evdwl = 0.0;
   double ecoul = 0.0;
 
-  double** __restrict__ x = atom->x;
-  double** __restrict__ f = atom->f;
-  double* __restrict__ q = atom->q;
-  int* __restrict__ type = atom->type;
+  double** _noalias x = atom->x;
+  double** _noalias f = atom->f;
+  double* _noalias q = atom->q;
+  int* _noalias type = atom->type;
   int nlocal = atom->nlocal;
-  double* __restrict__ special_coul = force->special_coul;
-  double* __restrict__ special_lj = force->special_lj;
+  double* _noalias special_coul = force->special_coul;
+  double* _noalias special_lj = force->special_lj;
   double qqrd2e = force->qqrd2e;
 
   inum = list->inum;
-  int* __restrict__ ilist = list->ilist;
-  int** __restrict__ firstneigh = list->firstneigh;
-  int* __restrict__ numneigh = list->numneigh;
+  int* _noalias ilist = list->ilist;
+  int** _noalias firstneigh = list->firstneigh;
+  int* _noalias numneigh = list->numneigh;
 
-  vec3_t* __restrict__ xx = (vec3_t*)x[0];
-  vec3_t* __restrict__ ff = (vec3_t*)f[0];
+  vec3_t* _noalias xx = (vec3_t*)x[0];
+  vec3_t* _noalias ff = (vec3_t*)f[0];
 
   int ntypes = atom->ntypes;
   int ntypes2 = ntypes*ntypes;
@@ -107,7 +107,7 @@ void PairLJCharmmCoulLongOpt::eval()
   double tmp_coef1 = 1.0/denom_lj;
   double tmp_coef2 = cut_ljsq - 3.0*cut_lj_innersq;
 
-  fast_alpha_t* __restrict__ fast_alpha =
+  fast_alpha_t* _noalias fast_alpha =
     (fast_alpha_t*)malloc(ntypes2*sizeof(fast_alpha_t));
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_alpha_t& a = fast_alpha[i*ntypes+j];
@@ -117,7 +117,7 @@ void PairLJCharmmCoulLongOpt::eval()
     a.lj3 = lj3[i+1][j+1];
     a.lj4 = lj4[i+1][j+1];
   }
-  fast_alpha_t* __restrict__ tabsix = fast_alpha;
+  fast_alpha_t* _noalias tabsix = fast_alpha;
 
   // loop over neighbors of my atoms
 
@@ -128,14 +128,14 @@ void PairLJCharmmCoulLongOpt::eval()
     double ytmp = xx[i].y;
     double ztmp = xx[i].z;
     itype = type[i] - 1;
-    int* __restrict__ jlist = firstneigh[i];
+    int* _noalias jlist = firstneigh[i];
     jnum = numneigh[i];
 
     double tmpfx = 0.0;
     double tmpfy = 0.0;
     double tmpfz = 0.0;
 
-    fast_alpha_t* __restrict__ tabsixi = (fast_alpha_t*) &tabsix[itype*ntypes];
+    fast_alpha_t* _noalias tabsixi = (fast_alpha_t*) &tabsix[itype*ntypes];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];

@@ -66,7 +66,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     for (i = 0; i < nstyles; i++)
       if (strcmp(arg[iarg],keywords[i]) == 0)
         error->all(FLERR,"Atom style hybrid cannot use same atom style twice");
-    styles[nstyles] = atom->new_avec(arg[iarg],NULL,dummy);
+    styles[nstyles] = atom->new_avec(arg[iarg],1,dummy);
     keywords[nstyles] = new char[strlen(arg[iarg])+1];
     strcpy(keywords[nstyles],arg[iarg]);
     jarg = iarg + 1;

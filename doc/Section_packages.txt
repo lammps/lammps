@@ -117,7 +117,7 @@ USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_Section_accelerate.html#acc_7, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferrand), "fix adapt/fep"_fix_adapt.html, USER/fep, -, -
-USER-INTEL, Vectorized CPU and Intel coprocessor styles, W. Michael Brown (Intel), "Section accelerate"_Section_accelerate.html#acc_9, examples/intel, -, -
+USER-INTEL, Vectorized CPU and Intel(R) coprocessor styles, W. Michael Brown (Intel), "Section accelerate"_Section_accelerate.html#acc_9, examples/intel, -, -
 USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
 USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
 USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
@@ -374,6 +374,22 @@ See these doc pages and their related commands to get started:
 The person who created this package is Agilio Padua at Universite
 Blaise Pascal Clermont-Ferrand (agilio.padua at univ-bpclermont.fr)
 Contact him directly if you have questions.
+
+:line
+
+USER-INTEL package :h4
+
+This package provides options for performing neighbor list and
+non-bonded force calculations in single, mixed, or double precision
+and also a capability for accelerating calculations with an
+Intel(R) Xeon Phi(TM) coprocessor.
+ 
+See this section of the manual to get started:
+
+"Section_accelerate"_Section_accelerate.html#acc_9
+
+The person who created this package is W. Michael Brown at Intel
+(michael.w.brown at intel.com).  Contact him directly if you have questions.
 
 :line
 

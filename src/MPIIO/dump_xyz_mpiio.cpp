@@ -118,7 +118,7 @@ void DumpXYZMPIIO::openfile()
   }
   else { // replace open
 
-    int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE | MPI_MODE_APPEND | MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
+    int err = MPI_File_open( world, filecurrent, MPI_MODE_CREATE |  MPI_MODE_WRONLY  , MPI_INFO_NULL, &mpifh);
     if (err != MPI_SUCCESS) {
       char str[128];
       sprintf(str,"Cannot open dump file %s",filecurrent);

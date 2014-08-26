@@ -49,8 +49,8 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC = -DFFT_MKL -I/opt/intel/composer_xe_2013.1.117/mkl/include
-FFT_PATH = -L/opt/intel/composer_xe_2013.1.117/mkl/lib/intel64
+FFT_INC = -DFFT_MKL -I$(INTEL_DIR)/mkl/include
+FFT_PATH = -L$(INTEL_DIR)/mkl/lib/intel64
 FFT_LIB = -Wl,-Bstatic,--start-group,-lmkl_intel_lp64,-lmkl_sequential,-lmkl_core,--end-group,-Bdynamic
 
 # JPEG library, OPTIONAL

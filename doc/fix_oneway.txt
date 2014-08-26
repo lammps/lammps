@@ -10,7 +10,7 @@ fix oneway command :h3
 
 [Syntax:]
 
-fix ID group-ID N oneway region-ID direction :pre
+fix ID group-ID oneway N region-ID direction :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 oneway = style name of this fix command :l
@@ -21,9 +21,9 @@ direction = {x} or {-x} or {y} or {-y} or {z} or {-z} = coordinate and direction
 
 [Examples:]
 
-fix ions 10 oneway semi -x
-fix all 1 oneway left -z
-fix all 1 oneway right z :pre
+fix ions oneway 10 semi -x
+fix all oneway 1 left -z
+fix all oneway 1 right z :pre
 
 [Description:]
 

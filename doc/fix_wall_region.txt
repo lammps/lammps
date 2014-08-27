@@ -32,7 +32,11 @@ the specified style.  The distance between a particle and the surface
 is the distance to the nearest point on the surface and the force the
 wall exerts on the particle is along the direction between that point
 and the particle, which is the direction normal to the surface at that
-point.
+point.  Note that if the region surface is comprised of multiple
+"faces", then each face can exert a force on the particle if it is
+close enough.  E.g. for "region_style block"_region.html, a particle
+in the interior, near a corner of the block, could feel wall forces
+from 1, 2, or 3 faces of the block.
 
 Regions are defined using the "region"_region.html command.  Note that
 the region volume can be interior or exterior to the bounding surface,

@@ -697,14 +697,20 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
 }
 
 /* ----------------------------------------------------------------------
-   modify parameters of the pair style
-   if 1st keyword is pair, then applies to one sub-style
-   else pass command args to every sub-style of hybrid
+   modify parameters of the pair style and its sub-styles
 ------------------------------------------------------------------------- */
 
 void PairHybrid::modify_params(int narg, char **arg)
 {
   if (narg == 0) error->all(FLERR,"Illegal pair_modify command");
+
+  // apply args to pair hybrid itself
+  // important for some keywords like tail or compute
+
+  Pair::modify_params(narg,arg);
+
+  // if 1st keyword is pair, then apply args to one sub-style
+  // else pass args to every sub-style
 
   if (strcmp(arg[0],"pair") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal pair_modify command");
@@ -724,7 +730,7 @@ void PairHybrid::modify_params(int narg, char **arg)
       styles[m]->modify_params(narg-3,&arg[3]);
     }
     
-  } else
+  } else 
     for (int m = 0; m < nstyles; m++) styles[m]->modify_params(narg,arg);
 }
 

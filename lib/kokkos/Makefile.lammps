@@ -1,55 +1,71 @@
-# This Makefile is intended to be include in an application Makefile.
-# It will append the OBJ variable with objects which need to be build for Kokkos. 
+# This Makefile is intended to be included in an application Makefile
+# It will append the OBJ variable with objects needed for building with Kokkos
 # It also will produce a KOKKOS_INC and a KOKKOS_LINK variable which must be 
-# appended to the compile and link flags of the application Makefile.
-# Note that you cannot compile and link at the same time!
-# If you want to include dependencies (i.e. trigger a rebuild of the application
-# object files when Kokkos files change, you can include KOKKOS_HEADERS in your
-# dependency list.
-# The Makefile uses a number of variables which can be set on the commandline, or
-# in the application Makefile prior to including this Makefile. These options set
-# certain build options and are explained in the following.
+#   appended to the compile and link flags in the application Makefile
 
-# Directory path to the Kokkos source directory (this could be the kokkos directory
-# in the Trilinos git repository
+# Note that you cannot compile and link at the same time!
+# If you want to include dependencies (i.e. trigger a rebuild 
+#   of the application object files when Kokkos files change,
+#   you can include KOKKOS_HEADERS in your dependency list)
+
+# This potion of the Makefile defines defaults for sevearl variables
+# they can be overridden on the make commandline
+# or in the application Makefile prior to including this Makefile
+
+# Directory path to the Kokkos source directory
+# this could be the kokkos directory in the Trilinos git repository
+
 KOKKOS_PATH ?= ../../lib/kokkos
 
-# Directory paths to libraries potentially used by Kokkos (if the respective options
-# are chosen)
+# Directory paths to libraries potentially used by Kokkos
+# if the corresponding options are chosen
+
 CUDA_PATH ?= /usr/local/cuda
 HWLOC_PATH ?= /usr/local/hwloc/default
 
-# Device options: enable Pthreads, OpenMP and/or CUDA device (if none is enabled 
-# the Serial device will be used)
+# Device options: enable Pthreads, OpenMP and/or CUDA device
+# if none is enabled the Serial device will be used
+
 PTHREADS ?= yes
 OMP ?= yes
 CUDA ?= no
 
 # Build for Debug mode: add debug flags and enable boundschecks within Kokkos
+
 DEBUG ?= no
 
-# Code generation options: use AVX instruction set; build for Xeon Phi (MIC); use
-# reduced precision math (sets compiler flags such --fast_math) 
-AVX ?= yes
+# Code generation options:
+# use AVX instruction set
+# build for Xeon Phi (MIC)
+# use reduced precision math (sets compiler flags like --fast_math) 
+
+AVX ?= no
 MIC ?= no
 RED_PREC ?=no
 
-# Optional Libraries: use hwloc for thread affinity; use librt for timers 
+# Optional Libraries:
+# use hwloc for thread affinity
+# use librt for timers 
+
 HWLOC ?= no
 LIBRT ?= no
 
-# CUDA specific options: use UVM (requires CUDA 6+); use LDG loads instead of 
-# texture fetches; compile for relocatable device code (function pointers) 
+# CUDA specific options:
+# use UVM (requires CUDA 6+)
+# use LDG loads instead of texture fetches
+# compile for relocatable device code (function pointers) 
+
 CUDA_UVM ?= no
 CUDA_LDG ?= no
 CUDA_RELOC ?= no 
 
-# Settings for replacing generic linear algebra kernels of Kokkos with vendor
-# libraries.
+# Settings for replacing generic linear algebra kernels of Kokkos
+# with vendor libraries
+
 CUSPARSE ?= no
 CUBLAS ?= no
 
-#Typically nothing should be changed after this point
+# Typically nothing should be changed after this point
 
 KOKKOS_INC = -I$(KOKKOS_PATH)/core/src -I$(KOKKOS_PATH)/containers/src -I$(KOKKOS_PATH)/algorithms/src -I$(KOKKOS_PATH)/linalg/src -I../ -DKOKKOS_DONT_INCLUDE_CORE_CONFIG_H 
 

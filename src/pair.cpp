@@ -110,7 +110,8 @@ Pair::~Pair()
 
 /* ----------------------------------------------------------------------
    modify parameters of the pair style
-   pair_hybrid has its own version of this routine for its sub-styles
+   pair_hybrid has its own version of this routine
+     to apply modifications to each of its sub-styles
 ------------------------------------------------------------------------- */
 
 void Pair::modify_params(int narg, char **arg)

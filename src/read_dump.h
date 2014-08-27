@@ -82,6 +82,7 @@ private:
 
   class Reader *reader;           // class that reads dump file
 
+  int whichtype(char *);
   void process_atoms(int);
   void delete_atoms();
 

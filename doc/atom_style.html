@@ -16,7 +16,7 @@
 <PRE>atom_style style args 
 </PRE>
 <UL><LI>style = <I>angle</I> or <I>atomic</I> or <I>body</I> or <I>bond</I> or <I>charge</I> or <I>dipole</I> or         <I>electron</I> or <I>ellipsoid</I> or <I>full</I> or <I>line</I> or <I>meso</I> or 	<I>molecular</I> or <I>peri</I> or <I>sphere</I> or <I>tri</I> or <I>template</I> or <I>hybrid</I> 
-</UL>
+
 <PRE>  args = none for any style except <I>body</I> and <I>hybrid</I>
   <I>body</I> args = bstyle bstyle-args
     bstyle = style of body particles
@@ -26,9 +26,9 @@
     template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
   <I>hybrid</I> args = list of one or more sub-styles, each with their args 
 </PRE>
-<P>accelerated styles (with same args):
-</P>
-<UL><LI>style = <I>angle/cuda</I> or <I>atomic/cuda</I> or <I>atomic/kokkos</I> or <I>charge/cuda</I> or <I>full/cuda</I> 
+<LI>accelerated styles (with same args) = <I>angle/cuda</I> or <I>angle/kokkos</I> or <I>atomic/cuda</I> or <I>atomic/kokkos</I> or <I>bond/kokkos</I> or <I>charge/cuda</I> or <I>charge/kokkos</I> or <I>full/cuda</I> or <I>full/kokkos</I> or <I>molecular/kokkos</I> 
+
+
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -215,9 +215,10 @@ accelerated styles take the same arguments and should produce the same
 results, except for round-off and precision issues.
 </P>
 <P>Note that other acceleration packages in LAMMPS, specifically the GPU,
-USER-OMP, and OPT packages do not use of accelerated atom styles.
+USER-INTEL, USER-OMP, and OPT packages do not use accelerated atom
+styles.
 </P>
-<P>These accelerated styles are part of the USER-CUDA and KOKKOS packages
+<P>The accelerated styles are part of the USER-CUDA and KOKKOS packages
 respectively.  They are only enabled if LAMMPS was built with those
 packages.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
 for more info.

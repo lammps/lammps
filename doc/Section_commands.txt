@@ -448,8 +448,9 @@ in the command's documentation.
 "write_dump"_write_dump.html,
 "write_restart"_write_restart.html :tb(c=6,ea=c)
 
-These are commands contributed by users, which can be used if "LAMMPS
-is built with the appropriate package"_Section_start.html#start_3.
+These are additional commands in USER packages, which can be used if
+"LAMMPS is built with the appropriate
+package"_Section_start.html#start_3.
 
 "group2ndx"_group2ndx.html :tb(c=1,ea=c)
 
@@ -457,13 +458,17 @@ is built with the appropriate package"_Section_start.html#start_3.
 
 Fix styles :h4
 
-See the "fix"_fix.html command for one-line descriptions
-of each style or click on the style itself for a full description:
+See the "fix"_fix.html command for one-line descriptions of each style
+or click on the style itself for a full description.  Some of the
+styles have accelerated versions, which can be used if LAMMPS is built
+with the "appropriate accelerated package"_Section_accelerate.html.
+This is indicated by additional letters in parenthesis: c = USER-CUDA,
+g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 
 "adapt"_fix_adapt.html,
-"addforce"_fix_addforce.html,
+"addforce (c)"_fix_addforce.html,
 "append/atoms"_fix_append_atoms.html,
-"aveforce"_fix_aveforce.html,
+"aveforce (c)"_fix_aveforce.html,
 "ave/atom"_fix_ave_atom.html,
 "ave/correlate"_fix_ave_correlate.html,
 "ave/histo"_fix_ave_histo.html,
@@ -479,41 +484,41 @@ of each style or click on the style itself for a full description:
 "drag"_fix_drag.html,
 "dt/reset"_fix_dt_reset.html,
 "efield"_fix_efield.html,
-"enforce2d"_fix_enforce2d.html,
+"enforce2d (c)"_fix_enforce2d.html,
 "evaporate"_fix_evaporate.html,
 "external"_fix_external.html,
-"freeze"_fix_freeze.html,
+"freeze (c)"_fix_freeze.html,
 "gcmc"_fix_gcmc.html,
 "gld"_fix_gld.html,
-"gravity"_fix_gravity.html,
+"gravity (co)"_fix_gravity.html,
 "heat"_fix_heat.html,
 "indent"_fix_indent.html,
-"langevin"_fix_langevin.html,
+"langevin (k)"_fix_langevin.html,
 "lineforce"_fix_lineforce.html,
 "momentum"_fix_momentum.html,
 "move"_fix_move.html,
 "msst"_fix_msst.html,
 "neb"_fix_neb.html,
-"nph"_fix_nh.html,
-"nphug"_fix_nphug.html,
-"nph/asphere"_fix_nph_asphere.html,
-"nph/sphere"_fix_nph_sphere.html,
-"npt"_fix_nh.html,
-"npt/asphere"_fix_npt_asphere.html,
-"npt/sphere"_fix_npt_sphere.html,
-"nve"_fix_nve.html,
+"nph (o)"_fix_nh.html,
+"nphug (o)"_fix_nphug.html,
+"nph/asphere (o)"_fix_nph_asphere.html,
+"nph/sphere (o)"_fix_nph_sphere.html,
+"npt (co)"_fix_nh.html,
+"npt/asphere (o)"_fix_npt_asphere.html,
+"npt/sphere (o)"_fix_npt_sphere.html,
+"nve (cko)"_fix_nve.html,
 "nve/asphere"_fix_nve_asphere.html,
 "nve/asphere/noforce"_fix_nve_asphere_noforce.html,
 "nve/body"_fix_nve_body.html,
 "nve/limit"_fix_nve_limit.html,
 "nve/line"_fix_nve_line.html,
 "nve/noforce"_fix_nve_noforce.html,
-"nve/sphere"_fix_nve_sphere.html,
+"nve/sphere (o)"_fix_nve_sphere.html,
 "nve/tri"_fix_nve_tri.html,
-"nvt"_fix_nh.html,
-"nvt/asphere"_fix_nvt_asphere.html,
-"nvt/sllod"_fix_nvt_sllod.html,
-"nvt/sphere"_fix_nvt_sphere.html,
+"nvt (co)"_fix_nh.html,
+"nvt/asphere (o)"_fix_nvt_asphere.html,
+"nvt/sllod (o)"_fix_nvt_sllod.html,
+"nvt/sphere (o)"_fix_nvt_sphere.html,
 "oneway"_fix_oneway.html,
 "orient/fcc"_fix_orient_fcc.html,
 "planeforce"_fix_planeforce.html,
@@ -522,38 +527,38 @@ of each style or click on the style itself for a full description:
 "press/berendsen"_fix_press_berendsen.html,
 "print"_fix_print.html,
 "property/atom"_fix_property_atom.html,
-"qeq/comb"_fix_qeq_comb.html,
+"qeq/comb (o)"_fix_qeq_comb.html,
 "reax/bonds"_fix_reax_bonds.html,
 "recenter"_fix_recenter.html,
 "restrain"_fix_restrain.html,
-"rigid"_fix_rigid.html,
-"rigid/nph"_fix_rigid.html,
-"rigid/npt"_fix_rigid.html,
-"rigid/nve"_fix_rigid.html,
-"rigid/nvt"_fix_rigid.html,
-"rigid/small"_fix_rigid.html,
+"rigid (o)"_fix_rigid.html,
+"rigid/nph (o)"_fix_rigid.html,
+"rigid/npt (o)"_fix_rigid.html,
+"rigid/nve (o)"_fix_rigid.html,
+"rigid/nvt (o)"_fix_rigid.html,
+"rigid/small (o)"_fix_rigid.html,
 "rigid/small/nph"_fix_rigid.html,
 "rigid/small/npt"_fix_rigid.html,
 "rigid/small/nve"_fix_rigid.html,
 "rigid/small/nvt"_fix_rigid.html,
-"setforce"_fix_setforce.html,
-"shake"_fix_shake.html,
+"setforce (c)"_fix_setforce.html,
+"shake (c)"_fix_shake.html,
 "spring"_fix_spring.html,
 "spring/rg"_fix_spring_rg.html,
 "spring/self"_fix_spring_self.html,
 "srd"_fix_srd.html,
 "store/force"_fix_store_force.html,
 "store/state"_fix_store_state.html,
-"temp/berendsen"_fix_temp_berendsen.html,
+"temp/berendsen (c)"_fix_temp_berendsen.html,
 "temp/csvr"_fix_temp_csvr.html,
-"temp/rescale"_fix_temp_rescale.html,
+"temp/rescale (c)"_fix_temp_rescale.html,
 "thermal/conductivity"_fix_thermal_conductivity.html,
 "tmd"_fix_tmd.html,
 "ttm"_fix_ttm.html,
 "tune/kspace"_fix_tune_kspace.html,
 "vector"_fix_vector.html,
 "viscosity"_fix_viscosity.html,
-"viscous"_fix_viscous.html,
+"viscous (c)"_fix_viscous.html,
 "wall/colloid"_fix_wall.html,
 "wall/gran"_fix_wall_gran.html,
 "wall/harmonic"_fix_wall.html,
@@ -565,7 +570,7 @@ of each style or click on the style itself for a full description:
 "wall/region"_fix_wall_region.html,
 "wall/srd"_fix_wall_srd.html :tb(c=8,ea=c)
 
-These are fix styles contributed by users, which can be used if
+These are additional fix styles in USER packages, which can be used if
 "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
@@ -597,53 +602,17 @@ package"_Section_start.html#start_3.
 "ti/rs"_fix_ti_rs.html,
 "ti/spring"_fix_ti_spring.html :tb(c=6,ea=c)
 
-These are accelerated fix styles, which can be used if LAMMPS is
-built with the "appropriate accelerated
-package"_Section_accelerate.html.
-
-"freeze/cuda"_fix_freeze.html,
-"addforce/cuda"_fix_addforce.html,
-"aveforce/cuda"_fix_aveforce.html,
-"enforce2d/cuda"_fix_enforce2d.html,
-"gravity/cuda"_fix_gravity.html,
-"gravity/omp"_fix_gravity.html,
-"nph/omp"_fix_nh.html,
-"nphug/omp"_fix_nphug.html,
-"nph/asphere/omp"_fix_nph_asphere.html,
-"nph/sphere/omp"_fix_nph_sphere.html,
-"npt/cuda"_fix_nh.html,
-"npt/omp"_fix_nh.html,
-"npt/asphere/omp"_fix_npt_asphere.html,
-"npt/sphere/omp"_fix_npt_sphere.html,
-"nve/cuda"_fix_nve.html,
-"nve/kk"_fix_nve.html,
-"nve/omp"_fix_nve.html,
-"nve/sphere/omp"_fix_nve_sphere.html,
-"nvt/cuda"_fix_nh.html,
-"nvt/omp"_fix_nh.html,
-"nvt/asphere/omp"_fix_nvt_asphere.html,
-"nvt/sllod/omp"_fix_nvt_sllod.html,
-"nvt/sphere/omp"_fix_nvt_sphere.html,
-"qeq/comb/omp"_fix_qeq_comb.html,
-"rigid/omp"_fix_rigid.html,
-"rigid/nph/omp"_fix_rigid.html,
-"rigid/npt/omp"_fix_rigid.html,
-"rigid/nve/omp"_fix_rigid.html,
-"rigid/nvt/omp"_fix_rigid.html,
-"rigid/small/omp"_fix_rigid.html,
-"setforce/cuda"_fix_setforce.html,
-"shake/cuda"_fix_shake.html,
-"temp/berendsen/cuda"_fix_temp_berendsen.html,
-"temp/rescale/cuda"_fix_temp_rescale.html,
-"temp/rescale/limit/cuda"_fix_temp_rescale.html,
-"viscous/cuda"_fix_viscous.html :tb(c=6,ea=c)
-
 :line
 
 Compute styles :h4
 
 See the "compute"_compute.html command for one-line descriptions of
-each style or click on the style itself for a full description:
+each style or click on the style itself for a full description.  Some
+of the styles have accelerated versions, which can be used if LAMMPS
+is built with the "appropriate accelerated
+package"_Section_accelerate.html.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
 
 "angle/local"_compute_angle_local.html,
 "atom/molecule"_compute_atom_molecule.html,
@@ -679,10 +648,10 @@ each style or click on the style itself for a full description:
 "msd/nongauss"_compute_msd_nongauss.html,
 "pair"_compute_pair.html,
 "pair/local"_compute_pair_local.html,
-"pe"_compute_pe.html,
+"pe (c)"_compute_pe.html,
 "pe/atom"_compute_pe_atom.html,
 "plasticity/atom"_compute_plasticity_atom.html,
-"pressure"_compute_pressure.html,
+"pressure (c)"_compute_pressure.html,
 "property/atom"_compute_property_atom.html,
 "property/local"_compute_property_local.html,
 "property/molecule"_compute_property_molecule.html,
@@ -691,11 +660,11 @@ each style or click on the style itself for a full description:
 "reduce/region"_compute_reduce.html,
 "slice"_compute_slice.html,
 "stress/atom"_compute_stress_atom.html,
-"temp"_compute_temp.html,
+"temp (c)"_compute_temp.html,
 "temp/asphere"_compute_temp_asphere.html,
 "temp/com"_compute_temp_com.html,
 "temp/deform"_compute_temp_deform.html,
-"temp/partial"_compute_temp_partial.html,
+"temp/partial (c)"_compute_temp_partial.html,
 "temp/profile"_compute_temp_profile.html,
 "temp/ramp"_compute_temp_ramp.html,
 "temp/region"_compute_temp_region.html,
@@ -704,8 +673,8 @@ each style or click on the style itself for a full description:
 "vacf"_compute_vacf.html,
 "voronoi/atom"_compute_voronoi_atom.html :tb(c=6,ea=c)
 
-These are compute styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate
+These are additional compute styles in USER packages, which can be
+used if "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
 "ackland/atom"_compute_ackland_atom.html,
@@ -721,146 +690,145 @@ package"_Section_start.html#start_3.
 "temp/region/eff"_compute_temp_region_eff.html,
 "temp/rotate"_compute_temp_rotate.html :tb(c=6,ea=c)
 
-These are accelerated compute styles, which can be used if LAMMPS is
-built with the "appropriate accelerated
-package"_Section_accelerate.html.
-
-"pe/cuda"_compute_pe.html,
-"pressure/cuda"_compute_pressure.html,
-"temp/cuda"_compute_temp.html,
-"temp/partial/cuda"_compute_temp_partial.html :tb(c=6,ea=c)
-
 :line
 
 Pair_style potentials :h4
 
 See the "pair_style"_pair_style.html command for an overview of pair
-potentials.  Click on the style itself for a full description:
+potentials.  Click on the style itself for a full description.  Many
+of the styles have accelerated versions, which can be used if LAMMPS
+is built with the "appropriate accelerated
+package"_Section_accelerate.html.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
+
+"lj/cut/experimental/cuda"_pair_lj.html,
 
 "none"_pair_none.html,
 "hybrid"_pair_hybrid.html,
 "hybrid/overlay"_pair_hybrid.html,
-"adp"_pair_adp.html,
-"airebo"_pair_airebo.html,
-"beck"_pair_beck.html,
+"adp (o)"_pair_adp.html,
+"airebo (o)"_pair_airebo.html,
+"beck (go)"_pair_beck.html,
 "body"_pair_body.html,
 "bop"_pair_bop.html,
-"born"_pair_born.html,
-"born/coul/long"_pair_born.html,
-"born/coul/msm"_pair_born.html,
-"born/coul/wolf"_pair_born.html,
-"brownian"_pair_brownian.html,
-"brownian/poly"_pair_brownian.html,
-"buck"_pair_buck.html,
-"buck/coul/cut"_pair_buck.html,
-"buck/coul/long"_pair_buck.html,
-"buck/coul/msm"_pair_buck.html,
-"buck/long/coul/long"_pair_buck_long.html,
-"colloid"_pair_colloid.html,
-"comb"_pair_comb.html,
+"born (go)"_pair_born.html,
+"born/coul/long (cgo)"_pair_born.html,
+"born/coul/msm (o)"_pair_born.html,
+"born/coul/wolf (go)"_pair_born.html,
+"brownian (o)"_pair_brownian.html,
+"brownian/poly (o)"_pair_brownian.html,
+"buck (cgo)"_pair_buck.html,
+"buck/coul/cut (cgo)"_pair_buck.html,
+"buck/coul/long (cgo)"_pair_buck.html,
+"buck/coul/msm (o)"_pair_buck.html,
+"buck/long/coul/long (o)"_pair_buck_long.html,
+"colloid (go)"_pair_colloid.html,
+"comb (o)"_pair_comb.html,
 "comb3"_pair_comb.html,
-"coul/cut"_pair_coul.html,
-"coul/debye"_pair_coul.html,
-"coul/dsf"_pair_coul.html,
-"coul/long"_pair_coul.html,
+"coul/cut (gko)"_pair_coul.html,
+"coul/debye (go)"_pair_coul.html,
+"coul/dsf (go)"_pair_coul.html,
+"coul/long (go)"_pair_coul.html,
 "coul/msm"_pair_coul.html,
-"coul/wolf"_pair_coul.html,
-"dpd"_pair_dpd.html,
-"dpd/tstat"_pair_dpd.html,
+"coul/wolf (o)"_pair_coul.html,
+"dpd (o)"_pair_dpd.html,
+"dpd/tstat (o)"_pair_dpd.html,
 "dsmc"_pair_dsmc.html,
-"eam"_pair_eam.html,
-"eam/alloy"_pair_eam.html,
-"eam/fs"_pair_eam.html,
-"eim"_pair_eim.html,
-"gauss"_pair_gauss.html,
-"gayberne"_pair_gayberne.html,
-"gran/hertz/history"_pair_gran.html,
-"gran/hooke"_pair_gran.html,
-"gran/hooke/history"_pair_gran.html,
-"hbond/dreiding/lj"_pair_hbond_dreiding.html,
-"hbond/dreiding/morse"_pair_hbond_dreiding.html,
+"eam (cgot)"_pair_eam.html,
+"eam/alloy (cgot)"_pair_eam.html,
+"eam/fs (cgot)"_pair_eam.html,
+"eim (o)"_pair_eim.html,
+"gauss (go)"_pair_gauss.html,
+"gayberne (gio)"_pair_gayberne.html,
+"gran/hertz/history (o)"_pair_gran.html,
+"gran/hooke (co)"_pair_gran.html,
+"gran/hooke/history (o)"_pair_gran.html,
+"hbond/dreiding/lj (o)"_pair_hbond_dreiding.html,
+"hbond/dreiding/morse (o)"_pair_hbond_dreiding.html,
 "kim"_pair_kim.html,
 "lcbop"_pair_lcbop.html,
-"line/lj"_pair_line_lj.html,
-"lj/charmm/coul/charmm"_pair_charmm.html,
-"lj/charmm/coul/charmm/implicit"_pair_charmm.html,
-"lj/charmm/coul/long"_pair_charmm.html,
+"line/lj (o)"_pair_line_lj.html,
+"lj/charmm/coul/charmm (co)"_pair_charmm.html,
+"lj/charmm/coul/charmm/implicit (co)"_pair_charmm.html,
+"lj/charmm/coul/long (cgio)"_pair_charmm.html,
 "lj/charmm/coul/msm"_pair_charmm.html,
-"lj/class2"_pair_class2.html,
-"lj/class2/coul/cut"_pair_class2.html,
-"lj/class2/coul/long"_pair_class2.html,
-"lj/cut"_pair_lj.html,
-"lj/cut/coul/cut"_pair_lj.html,
-"lj/cut/coul/debye"_pair_lj.html,
-"lj/cut/coul/dsf"_pair_lj.html,
-"lj/cut/coul/long"_pair_lj.html,
-"lj/cut/coul/msm"_pair_lj.html,
-"lj/cut/dipole/cut"_pair_dipole.html,
+"lj/class2 (cgo)"_pair_class2.html,
+"lj/class2/coul/cut (co)"_pair_class2.html,
+"lj/class2/coul/long (cgo)"_pair_class2.html,
+"lj/cut (cgikot)"_pair_lj.html,
+"lj/cut/coul/cut (cgko)"_pair_lj.html,
+"lj/cut/coul/debye (cgo)"_pair_lj.html,
+"lj/cut/coul/dsf (go)"_pair_lj.html,
+"lj/cut/coul/long (cgikot)"_pair_lj.html,
+"lj/cut/coul/msm (go)"_pair_lj.html,
+"lj/cut/dipole/cut (go)"_pair_dipole.html,
 "lj/cut/dipole/long"_pair_dipole.html,
-"lj/cut/tip4p/cut"_pair_lj.html,
-"lj/cut/tip4p/long"_pair_lj.html,
-"lj/expand"_pair_lj_expand.html,
-"lj/gromacs"_pair_gromacs.html,
-"lj/gromacs/coul/gromacs"_pair_gromacs.html,
-"lj/long/coul/long"_pair_lj_long.html,
+"lj/cut/tip4p/cut (o)"_pair_lj.html,
+"lj/cut/tip4p/long (ot)"_pair_lj.html,
+"lj/expand (cgo)"_pair_lj_expand.html,
+"lj/gromacs (cgo)"_pair_gromacs.html,
+"lj/gromacs/coul/gromacs (co)"_pair_gromacs.html,
+"lj/long/coul/long (o)"_pair_lj_long.html,
 "lj/long/dipole/long"_pair_dipole.html,
 "lj/long/tip4p/long"_pair_lj_long.html,
-"lj/smooth"_pair_lj_smooth.html,
-"lj/smooth/linear"_pair_lj_smooth_linear.html,
-"lj96/cut"_pair_lj96.html,
-"lubricate"_pair_lubricate.html,
-"lubricate/poly"_pair_lubricate.html,
+"lj/smooth (co)"_pair_lj_smooth.html,
+"lj/smooth/linear (o)"_pair_lj_smooth_linear.html,
+"lj96/cut (cgo)"_pair_lj96.html,
+"lubricate (o)"_pair_lubricate.html,
+"lubricate/poly (o)"_pair_lubricate.html,
 "lubricateU"_pair_lubricateU.html,
 "lubricateU/poly"_pair_lubricateU.html,
-"meam"_pair_meam.html,
-"mie/cut"_pair_mie.html,
-"morse"_pair_morse.html,
-"nb3b/harmonic"_pair_nb3b_harmonic.html,
-"nm/cut"_pair_nm.html,
-"nm/cut/coul/cut"_pair_nm.html,
-"nm/cut/coul/long"_pair_nm.html,
+"meam (o)"_pair_meam.html,
+"mie/cut (o)"_pair_mie.html,
+"morse (cgot)"_pair_morse.html,
+"nb3b/harmonic (o)"_pair_nb3b_harmonic.html,
+"nm/cut (o)"_pair_nm.html,
+"nm/cut/coul/cut (o)"_pair_nm.html,
+"nm/cut/coul/long (o)"_pair_nm.html,
 "peri/eps"_pair_peri.html,
-"peri/lps"_pair_peri.html,
-"peri/pmb"_pair_peri.html,
+"peri/lps (o)"_pair_peri.html,
+"peri/pmb (o)"_pair_peri.html,
 "peri/ves"_pair_peri.html,
 "reax"_pair_reax.html,
-"rebo"_pair_airebo.html,
-"resquared"_pair_resquared.html,
-"soft"_pair_soft.html,
-"sw"_pair_sw.html,
-"table"_pair_table.html,
-"tersoff"_pair_tersoff.html,
-"tersoff/mod"_pair_tersoff_mod.html,
-"tersoff/zbl"_pair_tersoff_zbl.html,
-"tip4p/cut"_pair_coul.html,
-"tip4p/long"_pair_coul.html,
-"tri/lj"_pair_tri_lj.html,
-"yukawa"_pair_yukawa.html,
-"yukawa/colloid"_pair_yukawa_colloid.html,
-"zbl"_pair_zbl.html :tb(c=4,ea=c)
+"rebo (o)"_pair_airebo.html,
+"resquared (go)"_pair_resquared.html,
+"soft (go)"_pair_soft.html,
+"sw (cgo)"_pair_sw.html,
+"table (gko)"_pair_table.html,
+"tersoff (co)"_pair_tersoff.html,
+"tersoff/mod (o)"_pair_tersoff_mod.html,
+"tersoff/zbl (o)"_pair_tersoff_zbl.html,
+"tip4p/cut (o)"_pair_coul.html,
+"tip4p/long (o)"_pair_coul.html,
+"tri/lj (o)"_pair_tri_lj.html,
+"yukawa (go)"_pair_yukawa.html,
+"yukawa/colloid (go)"_pair_yukawa_colloid.html,
+"zbl (o)"_pair_zbl.html :tb(c=4,ea=c)
 
-These are pair styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate
+These are additional pair styles in USER packages, which can be used
+if "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
 "awpmd/cut"_pair_awpmd.html,
-"coul/cut/soft"_pair_lj_soft.html,
-"coul/diel"_pair_coul_diel.html,
-"coul/long/soft"_pair_lj_soft.html,
-"eam/cd"_pair_eam.html,
-"edip"_pair_edip.html,
+"coul/cut/soft (o)"_pair_lj_soft.html,
+"coul/diel (o)"_pair_coul_diel.html,
+"coul/long/soft (o)"_pair_lj_soft.html,
+"eam/cd (o)"_pair_eam.html,
+"edip (o)"_pair_edip.html,
 "eff/cut"_pair_eff.html,
 "gauss/cut"_pair_gauss.html,
 "list"_pair_list.html,
-"lj/cut/coul/cut/soft"_pair_lj_soft.html,
-"lj/cut/coul/long/soft"_pair_lj_soft.html,
-"lj/cut/dipole/sf"_pair_dipole.html,
-"lj/cut/soft"_pair_lj_soft.html,
-"lj/cut/tip4p/long/soft"_pair_lj_soft.html,
-"lj/sdk"_pair_sdk.html,
-"lj/sdk/coul/long"_pair_sdk.html,
-"lj/sdk/coul/msm"_pair_sdk.html,
-"lj/sf"_pair_lj_sf.html,
+"lj/charmm/coul/long/soft (o)"_pair_charmm.html,
+"lj/cut/coul/cut/soft (o)"_pair_lj_soft.html,
+"lj/cut/coul/long/soft (o)"_pair_lj_soft.html,
+"lj/cut/dipole/sf (go)"_pair_dipole.html,
+"lj/cut/soft (o)"_pair_lj_soft.html,
+"lj/cut/tip4p/long/soft (o)"_pair_lj_soft.html,
+"lj/sdk (go)"_pair_sdk.html,
+"lj/sdk/coul/long (go)"_pair_sdk.html,
+"lj/sdk/coul/msm (o)"_pair_sdk.html,
+"lj/sf (o)"_pair_lj_sf.html,
 "meam/spline"_pair_meam_spline.html,
 "meam/sw/spline"_pair_meam_sw_spline.html,
 "reax/c"_pair_reax_c.html,
@@ -870,287 +838,73 @@ package"_Section_start.html#start_3.
 "sph/rhosum"_pair_sph_rhosum.html,
 "sph/taitwater"_pair_sph_taitwater.html,
 "sph/taitwater/morris"_pair_sph_taitwater_morris.html,
-"tersoff/table"_pair_tersoff.html,
-"tip4p/long/soft"_pair_lj_soft.html :tb(c=4,ea=c)
-
-These are accelerated pair styles, which can be used if LAMMPS is
-built with the "appropriate accelerated
-package"_Section_accelerate.html.
-
-"adp/omp"_pair_adp.html,
-"airebo/omp"_pair_airebo.html,
-"beck/gpu"_pair_beck.html,
-"beck/omp"_pair_beck.html,
-"born/coul/long/cuda"_pair_born.html,
-"born/coul/long/gpu"_pair_born.html,
-"born/coul/long/omp"_pair_born.html,
-"born/coul/msm/omp"_pair_born.html,
-"born/coul/wolf/gpu"_pair_born.html,
-"born/coul/wolf/omp"_pair_born.html,
-"born/gpu"_pair_born.html,
-"born/omp"_pair_born.html,
-"brownian/omp"_pair_brownian.html,
-"brownian/poly/omp"_pair_brownian.html,
-"buck/coul/cut/cuda"_pair_buck.html,
-"buck/coul/cut/gpu"_pair_buck.html,
-"buck/coul/cut/omp"_pair_buck.html,
-"buck/coul/long/cuda"_pair_buck.html,
-"buck/coul/long/gpu"_pair_buck.html,
-"buck/coul/long/omp"_pair_buck.html,
-"buck/coul/msm/omp"_pair_buck.html,
-"buck/cuda"_pair_buck.html,
-"buck/long/coul/long/omp"_pair_buck_long.html,
-"buck/gpu"_pair_buck.html,
-"buck/omp"_pair_buck.html,
-"colloid/gpu"_pair_colloid.html,
-"colloid/omp"_pair_colloid.html,
-"comb/omp"_pair_comb.html,
-"coul/cut/gpu"_pair_coul.html,
-"coul/cut/omp"_pair_coul.html,
-"coul/cut/soft/omp"_pair_lj_soft.html,
-"coul/debye/gpu"_pair_coul.html,
-"coul/debye/omp"_pair_coul.html,
-"coul/diel/omp"_pair_diel.html,
-"coul/dsf/gpu"_pair_coul.html,
-"coul/dsf/omp"_pair_coul.html,
-"coul/long/gpu"_pair_coul.html,
-"coul/long/omp"_pair_coul.html,
-"coul/long/soft/omp"_pair_lj_soft.html,
-"coul/msm/omp"_pair_coul.html,
-"coul/wolf"_pair_coul.html,
-"coul/cut/soft/omp"_pair_lj_soft.html,
-"coul/long/soft/omp"_pair_lj_soft.html,
-"dpd/omp"_pair_dpd.html,
-"dpd/tstat/omp"_pair_dpd.html,
-"eam/alloy/cuda"_pair_eam.html,
-"eam/alloy/gpu"_pair_eam.html,
-"eam/alloy/omp"_pair_eam.html,
-"eam/alloy/opt"_pair_eam.html,
-"eam/cd/omp"_pair_eam.html,
-"eam/cuda"_pair_eam.html,
-"eam/fs/cuda"_pair_eam.html,
-"eam/fs/gpu"_pair_eam.html,
-"eam/fs/omp"_pair_eam.html,
-"eam/fs/opt"_pair_eam.html,
-"eam/gpu"_pair_eam.html,
-"eam/omp"_pair_eam.html,
-"eam/opt"_pair_eam.html,
-"edip/omp"_pair_edip.html,
-"eim/omp"_pair_eim.html,
-"gauss/gpu"_pair_gauss.html,
-"gauss/omp"_pair_gauss.html,
-"gayberne/gpu"_pair_gayberne.html,
-"gayberne/intel"_pair_gayberne.html,
-"gayberne/omp"_pair_gayberne.html,
-"gran/hertz/history/omp"_pair_gran.html,
-"gran/hooke/cuda"_pair_gran.html,
-"gran/hooke/history/omp"_pair_gran.html,
-"gran/hooke/omp"_pair_gran.html,
-"hbond/dreiding/lj/omp"_pair_hbond_dreiding.html,
-"hbond/dreiding/morse/omp"_pair_hbond_dreiding.html,
-"line/lj/omp"_pair_line_lj.html,
-"lj/charmm/coul/charmm/cuda"_pair_charmm.html,
-"lj/charmm/coul/charmm/omp"_pair_charmm.html,
-"lj/charmm/coul/charmm/implicit/cuda"_pair_charmm.html,
-"lj/charmm/coul/charmm/implicit/omp"_pair_charmm.html,
-"lj/charmm/coul/long/cuda"_pair_charmm.html,
-"lj/charmm/coul/long/gpu"_pair_charmm.html,
-"lj/charmm/coul/long/intel"_pair_charmm.html,
-"lj/charmm/coul/long/omp"_pair_charmm.html,
-"lj/charmm/coul/long/soft"_pair_lj_soft.html,
-"lj/charmm/coul/long/soft/omp"_pair_lj_soft.html,
-"lj/class2/coul/cut/cuda"_pair_class2.html,
-"lj/class2/coul/cut/omp"_pair_class2.html,
-"lj/class2/coul/long/cuda"_pair_class2.html,
-"lj/class2/coul/long/gpu"_pair_class2.html,
-"lj/class2/coul/long/omp"_pair_class2.html,
-"lj/class2/coul/msm/omp"_pair_class2.html,
-"lj/class2/cuda"_pair_class2.html,
-"lj/class2/gpu"_pair_class2.html,
-"lj/class2/omp"_pair_class2.html,
-"lj/long/coul/long/omp"_pair_lj_long.html,
-"lj/cut/coul/cut/cuda"_pair_lj.html,
-"lj/cut/coul/cut/gpu"_pair_lj.html,
-"lj/cut/coul/cut/omp"_pair_lj.html,
-"lj/cut/coul/cut/soft/omp"_pair_lj_soft.html,
-"lj/cut/coul/debye/cuda"_pair_lj.html,
-"lj/cut/coul/debye/gpu"_pair_lj.html,
-"lj/cut/coul/debye/omp"_pair_lj.html,
-"lj/cut/coul/dsf/gpu"_pair_lj.html,
-"lj/cut/coul/dsf/omp"_pair_lj.html,
-"lj/cut/coul/long/cuda"_pair_lj.html,
-"lj/cut/coul/long/gpu"_pair_lj.html,
-"lj/cut/coul/long/intel"_pair_lj.html,
-"lj/cut/coul/long/omp"_pair_lj.html,
-"lj/cut/coul/long/opt"_pair_lj.html,
-"lj/cut/coul/msm/gpu"_pair_lj.html,
-"lj/cut/coul/msm/opt"_pair_lj.html,
-"lj/cut/coul/long/soft/omp"_pair_lj_soft.html,
-"lj/cut/cuda"_pair_lj.html,
-"lj/cut/dipole/cut/gpu"_pair_dipole.html,
-"lj/cut/dipole/cut/omp"_pair_dipole.html,
-"lj/cut/dipole/sf/gpu"_pair_dipole.html,
-"lj/cut/dipole/sf/omp"_pair_dipole.html,
-"lj/cut/experimental/cuda"_pair_lj.html,
-"lj/cut/gpu"_pair_lj.html,
-"lj/cut/intel"_pair_lj.html,
-"lj/cut/kk"_pair_lj.html,
-"lj/cut/omp"_pair_lj.html,
-"lj/cut/opt"_pair_lj.html,
-"lj/cut/soft/omp"_pair_lj_soft.html,
-"lj/cut/tip4p/cut/omp"_pair_lj.html,
-"lj/cut/tip4p/long/omp"_pair_lj.html,
-"lj/cut/tip4p/long/opt"_pair_lj.html,
-"lj/cut/tip4p/long/soft/omp"_pair_lj_soft.html,
-"lj/expand/cuda"_pair_lj_expand.html,
-"lj/expand/gpu"_pair_lj_expand.html,
-"lj/expand/omp"_pair_lj_expand.html,
-"lj/gromacs/coul/gromacs/cuda"_pair_gromacs.html,
-"lj/gromacs/coul/gromacs/omp"_pair_gromacs.html,
-"lj/gromacs/cuda"_pair_gromacs.html,
-"lj/gromacs/gpu"_pair_gromacs.html,
-"lj/gromacs/omp"_pair_gromacs.html,
-"lj/long/coul/long/opt"_pair_lj_long.html,
-"lj/sdk/gpu"_pair_sdk.html,
-"lj/sdk/omp"_pair_sdk.html,
-"lj/sdk/coul/long/gpu"_pair_sdk.html,
-"lj/sdk/coul/long/omp"_pair_sdk.html,
-"lj/sdk/coul/msm/omp"_pair_sdk.html,
-"lj/sf/omp"_pair_lj_sf.html,
-"lj/smooth/cuda"_pair_lj_smooth.html,
-"lj/smooth/omp"_pair_lj_smooth.html,
-"lj/smooth/linear/omp"_pair_lj_smooth_linear.html,
-"lj96/cut/cuda"_pair_lj96.html,
-"lj96/cut/gpu"_pair_lj96.html,
-"lj96/cut/omp"_pair_lj96.html,
-"lubricate/omp"_pair_lubricate.html,
-"lubricate/poly/omp"_pair_lubricate.html,
-"meam/spline/omp"_pair_meam_spline.html,
-"mie/cut/gpu"_pair_mie.html,
-"morse/cuda"_pair_morse.html,
-"morse/gpu"_pair_morse.html,
-"morse/omp"_pair_morse.html,
-"morse/opt"_pair_morse.html,
-"nb3b/harmonic/omp"_pair_nb3b_harmonic.html,
-"nm/cut/omp"_pair_nm.html,
-"nm/cut/coul/cut/omp"_pair_nm.html,
-"nm/cut/coul/long/omp"_pair_nm.html,
-"peri/lps/omp"_pair_peri.html,
-"peri/pmb/omp"_pair_peri.html,
-"rebo/omp"_pair_airebo.html,
-"resquared/gpu"_pair_resquared.html,
-"resquared/omp"_pair_resquared.html,
-"soft/gpu"_pair_soft.html,
-"soft/omp"_pair_soft.html,
-"sw/cuda"_pair_sw.html,
-"sw/gpu"_pair_sw.html,
-"sw/omp"_pair_sw.html,
-"table/gpu"_pair_table.html,
-"table/kk"_pair_table.html,
-"table/omp"_pair_table.html,
-"tersoff/cuda"_pair_tersoff.html,
-"tersoff/omp"_pair_tersoff.html,
-"tersoff/mod/omp"_pair_tersoff_mod.html,
-"tersoff/table/omp"_pair_tersoff.html,
-"tersoff/zbl/omp"_pair_tersoff_zbl.html,
-"tip4p/cut/omp"_pair_coul.html,
-"tip4p/long/omp"_pair_coul.html,
-"tip4p/long/soft/omp"_pair_lj_soft.html,
-"tri/lj/omp"_pair_tri_lj.html,
-"yukawa/gpu"_pair_yukawa.html,
-"yukawa/omp"_pair_yukawa.html,
-"yukawa/colloid/gpu"_pair_yukawa_colloid.html,
-"yukawa/colloid/omp"_pair_yukawa_colloid.html,
-"zbl/omp"_pair_zbl.html :tb(c=4,ea=c)
+"tersoff/table (o)"_pair_tersoff.html,
+"tip4p/long/soft (o)"_pair_lj_soft.html :tb(c=4,ea=c)
 
 :line
 
 Bond_style potentials :h4
 
 See the "bond_style"_bond_style.html command for an overview of bond
-potentials.  Click on the style itself for a full description:
+potentials.  Click on the style itself for a full description.  Some
+of the styles have accelerated versions, which can be used if LAMMPS
+is built with the "appropriate accelerated
+package"_Section_accelerate.html.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_bond_none.html,
 "hybrid"_bond_hybrid.html,
-"class2"_bond_class2.html,
-"fene"_bond_fene.html,
-"fene/expand"_bond_fene_expand.html,
-"harmonic"_bond_harmonic.html,
-"morse"_bond_morse.html,
-"nonlinear"_bond_nonlinear.html,
-"quartic"_bond_quartic.html,
-"table"_bond_table.html :tb(c=4,ea=c,w=100)
+"class2 (o)"_bond_class2.html,
+"fene (o)"_bond_fene.html,
+"fene/expand (o)"_bond_fene_expand.html,
+"harmonic (o)"_bond_harmonic.html,
+"morse (o)"_bond_morse.html,
+"nonlinear (o)"_bond_nonlinear.html,
+"quartic (o)"_bond_quartic.html,
+"table (o)"_bond_table.html :tb(c=4,ea=c)
 
-These are bond styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate
+These are additional bond styles in USER packages, which can be used
+if "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
-"harmonic/shift"_bond_harmonic_shift.html,
-"harmonic/shift/cut"_bond_harmonic_shift_cut.html :tb(c=4,ea=c)
-
-These are accelerated bond styles, which can be used if LAMMPS is
-built with the "appropriate accelerated
-package"_Section_accelerate.html.
-
-"class2/omp"_bond_class2.html,
-"fene/omp"_bond_fene.html,
-"fene/expand/omp"_bond_fene_expand.html,
-"harmonic/omp"_bond_harmonic.html,
-"harmonic/shift/omp"_bond_harmonic_shift.html,
-"harmonic/shift/cut/omp"_bond_harmonic_shift_cut.html,
-"morse/omp"_bond_morse.html,
-"nonlinear/omp"_bond_nonlinear.html,
-"quartic/omp"_bond_quartic.html,
-"table/omp"_bond_table.html :tb(c=4,ea=c,w=100)
+"harmonic/shift (o)"_bond_harmonic_shift.html,
+"harmonic/shift/cut (o)"_bond_harmonic_shift_cut.html :tb(c=4,ea=c)
 
 :line
 
 Angle_style potentials :h4
 
 See the "angle_style"_angle_style.html command for an overview of
-angle potentials.  Click on the style itself for a full description:
+angle potentials.  Click on the style itself for a full description.
+Some of the styles have accelerated versions, which can be used if
+LAMMPS is built with the "appropriate accelerated
+package"_Section_accelerate.html.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_angle_none.html,
 "hybrid"_angle_hybrid.html,
-"charmm"_angle_charmm.html,
-"class2"_angle_class2.html,
-"cosine"_angle_cosine.html,
-"cosine/delta"_angle_cosine_delta.html,
-"cosine/periodic"_angle_cosine_periodic.html,
-"cosine/squared"_angle_cosine_squared.html,
-"harmonic"_angle_harmonic.html,
-"table"_angle_table.html :tb(c=4,ea=c,w=100)
+"charmm (o)"_angle_charmm.html,
+"class2 (o)"_angle_class2.html,
+"cosine (o)"_angle_cosine.html,
+"cosine/delta (o)"_angle_cosine_delta.html,
+"cosine/periodic (o)"_angle_cosine_periodic.html,
+"cosine/squared (o)"_angle_cosine_squared.html,
+"harmonic (o)"_angle_harmonic.html,
+"table (o)"_angle_table.html :tb(c=4,ea=c)
 
-These are angle styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate
+These are additional angle styles in USER packages, which can be used
+if "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
-"sdk"_angle_sdk.html,
-"cosine/shift"_angle_cosine_shift.html,
-"cosine/shift/exp"_angle_cosine_shift_exp.html,
-"dipole"_angle_dipole.html,
-"fourier"_angle_fourier.html,
-"fourier/simple"_angle_fourier_simple.html,
-"quartic"_angle_quartic.html :tb(c=4,ea=c)
-
-These are accelerated angle styles, which can be used if LAMMPS is
-built with the "appropriate accelerated
-package"_Section_accelerate.html.
-
-"charmm/omp"_angle_charmm.html,
-"class2/omp"_angle_class2.html,
-"cosine/omp"_angle_cosine.html,
-"cosine/delta/omp"_angle_cosine_delta.html,
-"cosine/periodic/omp"_angle_cosine_periodic.html,
-"cosine/shift/omp"_angle_cosine_shift.html,
-"cosine/shift/exp/omp"_angle_cosine_shift_exp.html,
-"cosine/squared/omp"_angle_cosine_squared.html,
-"dipole/omp"_angle_dipole.html
-"fourier/omp"_angle_fourier.html,
-"fourier/simple/omp"_angle_fourier_simple.html,
-"harmonic/omp"_angle_harmonic.html,
-"quartic/omp"_angle_quartic.html
-"table/omp"_angle_table.html :tb(c=4,ea=c,w=100)
+"cosine/shift (o)"_angle_cosine_shift.html,
+"cosine/shift/exp (o)"_angle_cosine_shift_exp.html,
+"dipole (o)"_angle_dipole.html,
+"fourier (o)"_angle_fourier.html,
+"fourier/simple (o)"_angle_fourier_simple.html,
+"quartic (o)"_angle_quartic.html,
+"sdk"_angle_sdk.html :tb(c=4,ea=c)
 
 :line
 
@@ -1158,42 +912,30 @@ Dihedral_style potentials :h4
 
 See the "dihedral_style"_dihedral_style.html command for an overview
 of dihedral potentials.  Click on the style itself for a full
-description:
+description.  Some of the styles have accelerated versions, which can
+be used if LAMMPS is built with the "appropriate accelerated
+package"_Section_accelerate.html.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_dihedral_none.html,
 "hybrid"_dihedral_hybrid.html,
-"charmm"_dihedral_charmm.html,
-"class2"_dihedral_class2.html,
-"harmonic"_dihedral_harmonic.html,
-"helix"_dihedral_helix.html,
-"multi/harmonic"_dihedral_multi_harmonic.html,
-"opls"_dihedral_opls.html :tb(c=4,ea=c,w=100)
+"charmm (o)"_dihedral_charmm.html,
+"class2 (o)"_dihedral_class2.html,
+"harmonic (o)"_dihedral_harmonic.html,
+"helix (o)"_dihedral_helix.html,
+"multi/harmonic (o)"_dihedral_multi_harmonic.html,
+"opls (o)"_dihedral_opls.html :tb(c=4,ea=c)
 
-These are dihedral styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate
+These are additional dihedral styles in USER packages, which can be
+used if "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
-"cosine/shift/exp"_dihedral_cosine_shift_exp.html,
-"fourier"_dihedral_fourier.html,
-"nharmonic"_dihedral_nharmonic.html,
-"quadratic"_dihedral_quadratic.html,
-"table"_dihedral_table.html :tb(c=4,ea=c)
-
-These are accelerated dihedral styles, which can be used if LAMMPS is
-built with the "appropriate accelerated
-package"_Section_accelerate.html.
-
-"charmm/omp"_dihedral_charmm.html,
-"class2/omp"_dihedral_class2.html,
-"cosine/shift/exp/omp"_dihedral_cosine_shift_exp.html,
-"fourier/omp"_dihedral_fourier.html,
-"harmonic/omp"_dihedral_harmonic.html,
-"helix/omp"_dihedral_helix.html,
-"multi/harmonic/omp"_dihedral_multi_harmonic.html,
-"nharmonic/omp"_dihedral_nharmonic.html,
-"opls/omp"_dihedral_opls.html
-"quadratic/omp"_dihedral_quadratic.html,
-"table/omp"_dihedral_table.html :tb(c=4,ea=c,w=100)
+"cosine/shift/exp (o)"_dihedral_cosine_shift_exp.html,
+"fourier (o)"_dihedral_fourier.html,
+"nharmonic (o)"_dihedral_nharmonic.html,
+"quadratic (o)"_dihedral_quadratic.html,
+"table (o)"_dihedral_table.html :tb(c=4,ea=c)
 
 :line
 
@@ -1201,61 +943,45 @@ Improper_style potentials :h4
 
 See the "improper_style"_improper_style.html command for an overview
 of improper potentials.  Click on the style itself for a full
-description:
+description.  Some of the styles have accelerated versions, which can
+be used if LAMMPS is built with the "appropriate accelerated
+package"_Section_accelerate.html.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_improper_none.html,
 "hybrid"_improper_hybrid.html,
-"class2"_improper_class2.html,
-"cvff"_improper_cvff.html,
-"harmonic"_improper_harmonic.html,
-"umbrella"_improper_umbrella.html :tb(c=4,ea=c,w=100)
+"class2 (o)"_improper_class2.html,
+"cvff (o)"_improper_cvff.html,
+"harmonic (o)"_improper_harmonic.html,
+"umbrella (o)"_improper_umbrella.html :tb(c=4,ea=c)
 
-These are improper styles contributed by users, which can be used if
-"LAMMPS is built with the appropriate
+These are additional improper styles in USER packages, which can be
+used if "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
-"cossq"_improper_cossq.html,
-"fourier"_improper_fourier.html,
-"ring"_improper_ring.html :tb(c=4,ea=c)
-
-These are accelerated improper styles, which can be used if LAMMPS is
-built with the "appropriate accelerated
-package"_Section_accelerate.html.
-
-"class2/omp"_improper_class2.html,
-"cossq/omp"_improper_cossq.html,
-"cvff/omp"_improper_cvff.html,
-"fourier/omp"_improper_fourier.html,
-"harmonic/omp"_improper_harmonic.html,
-"ring/omp"_improper_ring.html,
-"umbrella/omp"_improper_umbrella.html :tb(c=4,ea=c,w=100)
+"cossq (o)"_improper_cossq.html,
+"fourier (o)"_improper_fourier.html,
+"ring (o)"_improper_ring.html :tb(c=4,ea=c)
 
 :line
 
 Kspace solvers :h4
 
 See the "kspace_style"_kspace_style.html command for an overview of
-Kspace solvers.  Click on the style itself for a full description:
+Kspace solvers.  Click on the style itself for a full description.
+Some of the styles have accelerated versions, which can be used if
+LAMMPS is built with the "appropriate accelerated
+package"_Section_accelerate.html.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.
 
-"ewald"_kspace_style.html,
+"ewald (o)"_kspace_style.html,
 "ewald/disp"_kspace_style.html,
-"msm"_kspace_style.html,
-"msm/cg"_kspace_style.html,
-"pppm"_kspace_style.html,
-"pppm/cg"_kspace_style.html,
+"msm (o)"_kspace_style.html,
+"msm/cg (o)"_kspace_style.html,
+"pppm (cgo)"_kspace_style.html,
+"pppm/cg (o)"_kspace_style.html,
 "pppm/disp"_kspace_style.html,
 "pppm/disp/tip4p"_kspace_style.html,
-"pppm/tip4p"_kspace_style.html :tb(c=4,ea=c,w=100)
-
-These are accelerated Kspace solvers, which can be used if LAMMPS is
-built with the "appropriate accelerated
-package"_Section_accelerate.html.
-
-"ewald/omp"_kspace_style.html,
-"msm/omp"_kspace_style.html,
-"msm/cg/omp"_kspace_style.html,
-"pppm/cuda"_kspace_style.html,
-"pppm/gpu"_kspace_style.html,
-"pppm/omp"_kspace_style.html,
-"pppm/cg/omp"_kspace_style.html,
-"pppm/tip4p/omp"_kspace_style.html :tb(c=4,ea=c)
+"pppm/tip4p (o)"_kspace_style.html :tb(c=4,ea=c)

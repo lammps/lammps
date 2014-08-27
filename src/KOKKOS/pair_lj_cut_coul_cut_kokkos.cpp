@@ -15,7 +15,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "pair_lj_cut_kokkos.h"
+#include "pair_lj_cut_coul_cut_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
@@ -40,36 +40,41 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairLJCutKokkos<DeviceType>::PairLJCutKokkos(LAMMPS *lmp) : PairLJCut(lmp)
+PairLJCutCoulCutKokkos<DeviceType>::PairLJCutCoulCutKokkos(LAMMPS *lmp):PairLJCutCoulCut(lmp)
 {
   respa_enable = 0;
 
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
   cutsq = NULL;
+  cut_ljsq = NULL;
+  cut_coulsq = NULL;
+
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairLJCutKokkos<DeviceType>::~PairLJCutKokkos()
+PairLJCutCoulCutKokkos<DeviceType>::~PairLJCutCoulCutKokkos()
 {
-  if (allocated) {
-    k_cutsq = DAT::tdual_ffloat_2d();
-    memory->sfree(cutsq);
-    cutsq = NULL;
+  if (allocated){
+    memory->destroy_kokkos(k_cutsq, cutsq);
+    memory->destroy_kokkos(k_cut_ljsq, cut_ljsq);
+    memory->destroy_kokkos(k_cut_coulsq, cut_coulsq);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairLJCutKokkos<DeviceType>::cleanup_copy() {
+void PairLJCutCoulCutKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
   cutsq = NULL;
+  cut_ljsq = NULL;
+  cut_coulsq = NULL;
   eatom = NULL;
   vatom = NULL;
 }
@@ -77,20 +82,22 @@ void PairLJCutKokkos<DeviceType>::cleanup_copy() {
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+void PairLJCutCoulCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
 
-
   if (neighflag == FULL || neighflag == FULLCLUSTER) no_virial_fdotr_compute = 1;
 
   double evdwl = 0.0;
+  double ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
   atomKK->sync(execution_space,datamask_read);
   k_cutsq.template sync<DeviceType>();
+  k_cut_ljsq.template sync<DeviceType>();
+  k_cut_coulsq.template sync<DeviceType>();
   k_params.template sync<DeviceType>();
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
@@ -98,22 +105,32 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = atomKK->k_x.view<DeviceType>();
   c_x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
+  q = atomKK->k_q.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
-  tag = atomKK->k_tag.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  newton_pair = force->newton_pair;
   special_lj[0] = force->special_lj[0];
   special_lj[1] = force->special_lj[1];
   special_lj[2] = force->special_lj[2];
   special_lj[3] = force->special_lj[3];
+  special_coul[0] = force->special_coul[0];
+  special_coul[1] = force->special_coul[1];
+  special_coul[2] = force->special_coul[2];
+  special_coul[3] = force->special_coul[3];
+  qqrd2e = force->qqrd2e;
+  newton_pair = force->newton_pair;
 
   // loop over neighbors of my atoms
 
-  EV_FLOAT ev = pair_compute<PairLJCutKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
+  EV_FLOAT ev = pair_compute<PairLJCutCoulCutKokkos<DeviceType>,void >
+    (this,(NeighListKokkos<DeviceType>*)list);
+
   DeviceType::fence();
 
-  if (eflag) eng_vdwl += ev.evdwl;
+  if (eflag) {
+    eng_vdwl += ev.evdwl;
+    eng_coul += ev.ecoul;
+  }
   if (vflag_global) {
     virial[0] += ev.v[0];
     virial[1] += ev.v[1];
@@ -123,39 +140,80 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[5] += ev.v[5];
   }
 
-  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/* ----------------------------------------------------------------------
+   compute LJ 12-6 pair force between atoms i and j
+   ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCutKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+F_FLOAT PairLJCutCoulCutKokkos<DeviceType>::
+compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
+              const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
+  F_FLOAT forcelj;
 
-  const F_FLOAT forcelj = r6inv *
+  forcelj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
 
   return forcelj*r2inv;
 }
 
+/* ----------------------------------------------------------------------
+   compute coulomb pair force between atoms i and j
+   ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCutKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+F_FLOAT PairLJCutCoulCutKokkos<DeviceType>::
+compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
+              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+  const F_FLOAT r2inv = 1.0/rsq;
+  const F_FLOAT rinv = sqrt(r2inv);
+  F_FLOAT forcecoul;
+
+  forcecoul = qqrd2e*qtmp*q(j) *rinv;
+
+  return factor_coul*forcecoul*r2inv;
+}
+
+/* ----------------------------------------------------------------------
+   compute LJ 12-6 pair potential energy between atoms i and j
+   ---------------------------------------------------------------------- */
+template<class DeviceType>
+template<bool STACKPARAMS, class Specialisation>
+KOKKOS_INLINE_FUNCTION
+F_FLOAT PairLJCutCoulCutKokkos<DeviceType>::
+compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
+              const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
 
-  return r6inv*((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
-                (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -
-                (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
+  return r6inv*
+    ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv
+     - (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4))
+    -  (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
+
+}
+
+/* ----------------------------------------------------------------------
+   compute coulomb pair potential energy between atoms i and j
+   ---------------------------------------------------------------------- */
+template<class DeviceType>
+template<bool STACKPARAMS, class Specialisation>
+KOKKOS_INLINE_FUNCTION
+F_FLOAT PairLJCutCoulCutKokkos<DeviceType>::
+compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
+              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+  const F_FLOAT r2inv = 1.0/rsq;
+  const F_FLOAT rinv = sqrt(r2inv);
+
+  return factor_coul*qqrd2e*qtmp*q(j)*rinv;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -163,15 +221,21 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairLJCutKokkos<DeviceType>::allocate()
+void PairLJCutCoulCutKokkos<DeviceType>::allocate()
 {
-  PairLJCut::allocate();
+  PairLJCutCoulCut::allocate();
 
   int n = atom->ntypes;
   memory->destroy(cutsq);
   memory->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
-  k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJCut::params",n+1,n+1);
+  memory->destroy(cut_ljsq);
+  memory->create_kokkos(k_cut_ljsq,cut_ljsq,n+1,n+1,"pair:cut_ljsq");
+  d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
+  memory->destroy(cut_coulsq);
+  memory->create_kokkos(k_cut_coulsq,cut_coulsq,n+1,n+1,"pair:cut_coulsq");
+  d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
+  k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJCutCoulCut::params",n+1,n+1);
   params = k_params.d_view;
 }
 
@@ -180,11 +244,11 @@ void PairLJCutKokkos<DeviceType>::allocate()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairLJCutKokkos<DeviceType>::settings(int narg, char **arg)
+void PairLJCutCoulCutKokkos<DeviceType>::settings(int narg, char **arg)
 {
   if (narg > 2) error->all(FLERR,"Illegal pair_style command");
 
-  PairLJCut::settings(1,arg);
+  PairLJCutCoulCut::settings(1,arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -192,9 +256,9 @@ void PairLJCutKokkos<DeviceType>::settings(int narg, char **arg)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairLJCutKokkos<DeviceType>::init_style()
+void PairLJCutCoulCutKokkos<DeviceType>::init_style()
 {
-  PairLJCut::init_style();
+  PairLJCutCoulCut::init_style();
 
   // error if rRESPA with inner levels
 
@@ -202,7 +266,7 @@ void PairLJCutKokkos<DeviceType>::init_style()
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-    if (respa) 
+    if (respa)
       error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
   }
 
@@ -212,7 +276,7 @@ void PairLJCutKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value && 
+    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
     !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
     kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
@@ -234,7 +298,7 @@ void PairLJCutKokkos<DeviceType>::init_style()
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
   } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");
+    error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/coul/cut/kk");
   }
 }
 
@@ -243,23 +307,33 @@ void PairLJCutKokkos<DeviceType>::init_style()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-double PairLJCutKokkos<DeviceType>::init_one(int i, int j)
+double PairLJCutCoulCutKokkos<DeviceType>::init_one(int i, int j)
 {
-  double cutone = PairLJCut::init_one(i,j);
+  double cutone = PairLJCutCoulCut::init_one(i,j);
+  double cut_ljsqm = cut_ljsq[i][j];
+  double cut_coulsqm = cut_coulsq[i][j];
 
   k_params.h_view(i,j).lj1 = lj1[i][j];
   k_params.h_view(i,j).lj2 = lj2[i][j];
   k_params.h_view(i,j).lj3 = lj3[i][j];
   k_params.h_view(i,j).lj4 = lj4[i][j];
   k_params.h_view(i,j).offset = offset[i][j];
-  k_params.h_view(i,j).cutsq = cutone*cutone;
+  k_params.h_view(i,j).cut_ljsq = cut_ljsqm;
+  k_params.h_view(i,j).cut_coulsq = cut_coulsqm;
+
   k_params.h_view(j,i) = k_params.h_view(i,j);
   if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
+    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsqm;
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsqm;
   }
   k_cutsq.h_view(i,j) = cutone*cutone;
   k_cutsq.template modify<LMPHostType>();
+  k_cut_ljsq.h_view(i,j) = cut_ljsqm;
+  k_cut_ljsq.template modify<LMPHostType>();
+  k_cut_coulsq.h_view(i,j) = cut_coulsqm;
+  k_cut_coulsq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 
   return cutone;
@@ -267,7 +341,7 @@ double PairLJCutKokkos<DeviceType>::init_one(int i, int j)
 
 
 
-template class PairLJCutKokkos<LMPDeviceType>;
+template class PairLJCutCoulCutKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
-template class PairLJCutKokkos<LMPHostType>;
+template class PairLJCutCoulCutKokkos<LMPHostType>;
 #endif

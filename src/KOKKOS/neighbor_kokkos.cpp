@@ -51,6 +51,16 @@ NeighborKokkos::~NeighborKokkos()
 
   delete [] pair_build_device;
   delete [] pair_build_host;
+
+  memory->destroy_kokkos(k_ex1_type,ex1_type);
+  memory->destroy_kokkos(k_ex2_type,ex2_type);
+  memory->destroy_kokkos(k_ex1_group,ex1_group);
+  memory->destroy_kokkos(k_ex2_group,ex2_group);
+  memory->destroy_kokkos(k_ex_mol_group,ex_mol_group);
+  memory->destroy_kokkos(k_ex1_bit,ex1_bit);
+  memory->destroy_kokkos(k_ex2_bit,ex2_bit);
+  memory->destroy_kokkos(k_ex_mol_bit,ex_mol_bit);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,7 +82,7 @@ void NeighborKokkos::init_cutneighsq_kokkos(int n)
 /* ---------------------------------------------------------------------- */
 
 int NeighborKokkos::init_lists_kokkos()
-{ 
+{
   int i;
 
   for (i = 0; i < nlist_host; i++) delete lists_host[i];
@@ -211,6 +221,32 @@ void NeighborKokkos::init_list_grow_kokkos(int i)
 
 /* ---------------------------------------------------------------------- */
 
+void NeighborKokkos::init_ex_type_kokkos(int n)
+{
+  memory->create_kokkos(k_ex_type,ex_type,n+1,n+1,"neigh:ex_type");
+  k_ex_type.modify<LMPHostType>();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NeighborKokkos::init_ex_bit_kokkos()
+{
+  memory->create_kokkos(k_ex1_bit, ex1_bit, nex_group, "neigh:ex1_bit");
+  k_ex1_bit.modify<LMPHostType>();
+  memory->create_kokkos(k_ex2_bit, ex2_bit, nex_group, "neigh:ex2_bit");
+  k_ex2_bit.modify<LMPHostType>();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NeighborKokkos::init_ex_mol_bit_kokkos()
+{
+  memory->create_kokkos(k_ex_mol_bit, ex_mol_bit, nex_mol, "neigh:ex_mol_bit");
+  k_ex_mol_bit.modify<LMPHostType>();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void NeighborKokkos::choose_build(int index, NeighRequest *rq)
 {
   if (rq->kokkos_host != 0) {
@@ -262,6 +298,29 @@ void NeighborKokkos::setup_bins_kokkos(int i)
     k_bins = DAT::tdual_int_2d("Neighbor::d_bins",maxhead,atoms_per_bin);
     k_bincount = DAT::tdual_int_1d("Neighbor::d_bincount",maxhead);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NeighborKokkos::modify_ex_type_grow_kokkos(){
+  memory->grow_kokkos(k_ex1_type,ex1_type,maxex_type,"neigh:ex1_type");
+  k_ex1_type.modify<LMPHostType>();
+  memory->grow_kokkos(k_ex2_type,ex2_type,maxex_type,"neigh:ex2_type");
+  k_ex2_type.modify<LMPHostType>();
+}
+
+/* ---------------------------------------------------------------------- */
+void NeighborKokkos::modify_ex_group_grow_kokkos(){
+  memory->grow_kokkos(k_ex1_group,ex1_group,maxex_group,"neigh:ex1_group");
+  k_ex1_group.modify<LMPHostType>();
+  memory->grow_kokkos(k_ex2_group,ex2_group,maxex_group,"neigh:ex2_group");
+  k_ex2_group.modify<LMPHostType>();
+}
+
+/* ---------------------------------------------------------------------- */
+void NeighborKokkos::modify_mol_group_grow_kokkos(){
+  memory->grow_kokkos(k_ex_mol_group,ex_mol_group,maxex_mol,"neigh:ex_mol_group");
+  k_ex_mol_group.modify<LMPHostType>();
 }
 
 // include to trigger instantiation of templated functions

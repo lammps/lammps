@@ -17,6 +17,7 @@
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"
 #include "kokkos_type.h"
+#include <math.h>
 
 namespace LAMMPS_NS {
 
@@ -33,8 +34,15 @@ class NeighborKokkosExecute
   typename AT::t_int_2d bins;
   typename AT::t_int_2d_const c_bins;
   const typename AT::t_x_array_randomread x;
-  const typename AT::t_int_1d_const type,mask;
-  const typename AT::t_tagint_1d_const molecule;
+  const typename AT::t_int_1d_const type,mask,molecule;
+
+  const typename AT::t_tagint_1d_const tag;
+  const typename AT::t_tagint_2d_const special;
+  const typename AT::t_int_2d_const nspecial;
+  const int molecular;
+  int moltemplate;
+
+  int special_flag[4];
 
   const int nbinx,nbiny,nbinz;
   const int mbinx,mbiny,mbinz;
@@ -44,38 +52,88 @@ class NeighborKokkosExecute
 
   const int nlocal;
 
+  const int exclude;
+
+  const int nex_type;
+  const int maxex_type;
+  const typename AT::t_int_1d_const ex1_type,ex2_type;
+  const typename AT::t_int_2d_const ex_type;
+
+  const int nex_group;
+  const int maxex_group;
+  const typename AT::t_int_1d_const ex1_group,ex2_group;
+  const typename AT::t_int_1d_const ex1_bit,ex2_bit;
+
+  const int nex_mol;
+  const int maxex_mol;
+  const typename AT::t_int_1d_const ex_mol_group;
+  const typename AT::t_int_1d_const ex_mol_bit;
+
   typename AT::t_int_scalar resize;
   typename AT::t_int_scalar new_maxneighs;
   typename ArrayTypes<LMPHostType>::t_int_scalar h_resize;
   typename ArrayTypes<LMPHostType>::t_int_scalar h_new_maxneighs;
 
+  const int xperiodic, yperiodic, zperiodic;
+  const int xprd_half, yprd_half, zprd_half;
+
   NeighborKokkosExecute(
-    const NeighListKokkos<Device> &_neigh_list,
-    const typename AT::t_xfloat_2d_randomread &_cutneighsq,
-    const typename AT::t_int_1d &_bincount,
-    const typename AT::t_int_2d &_bins,
-    const int _nlocal,
-        const typename AT::t_x_array_randomread &_x,
-    const typename AT::t_int_1d_const &_type,
-    const typename AT::t_int_1d_const &_mask,
-    const typename AT::t_tagint_1d_const &_molecule,
-    const int & _nbinx,const int & _nbiny,const int & _nbinz,
-    const int & _mbinx,const int & _mbiny,const int & _mbinz,
-    const int & _mbinxlo,const int & _mbinylo,const int & _mbinzlo,
-    const X_FLOAT &_bininvx,const X_FLOAT &_bininvy,const X_FLOAT &_bininvz,
-    const X_FLOAT *_bboxhi, const X_FLOAT* _bboxlo):
+                        const NeighListKokkos<Device> &_neigh_list,
+                        const typename AT::t_xfloat_2d_randomread &_cutneighsq,
+                        const typename AT::t_int_1d &_bincount,
+                        const typename AT::t_int_2d &_bins,
+                        const int _nlocal,
+                        const typename AT::t_x_array_randomread &_x,
+                        const typename AT::t_int_1d_const &_type,
+                        const typename AT::t_int_1d_const &_mask,
+                        const typename AT::t_int_1d_const &_molecule,
+                        const typename AT::t_tagint_1d_const &_tag,
+                        const typename AT::t_tagint_2d_const &_special,
+                        const typename AT::t_int_2d_const &_nspecial,
+                        const int &_molecular,
+                        const int & _nbinx,const int & _nbiny,const int & _nbinz,
+                        const int & _mbinx,const int & _mbiny,const int & _mbinz,
+                        const int & _mbinxlo,const int & _mbinylo,const int & _mbinzlo,
+                        const X_FLOAT &_bininvx,const X_FLOAT &_bininvy,const X_FLOAT &_bininvz,
+                        const int & _exclude,const int & _nex_type,const int & _maxex_type,
+                        const typename AT::t_int_1d_const & _ex1_type,
+                        const typename AT::t_int_1d_const & _ex2_type,
+                        const typename AT::t_int_2d_const & _ex_type,
+                        const int & _nex_group,const int & _maxex_group,
+                        const typename AT::t_int_1d_const & _ex1_group,
+                        const typename AT::t_int_1d_const & _ex2_group,
+                        const typename AT::t_int_1d_const & _ex1_bit,
+                        const typename AT::t_int_1d_const & _ex2_bit,
+                        const int & _nex_mol,const int & _maxex_mol,
+                        const typename AT::t_int_1d_const & _ex_mol_group,
+                        const typename AT::t_int_1d_const & _ex_mol_bit,
+                        const X_FLOAT *_bboxhi, const X_FLOAT* _bboxlo,
+                        const int & _xperiodic, const int & _yperiodic, const int & _zperiodic,
+                        const int & _xprd_half, const int & _yprd_half, const int & _zprd_half):
     neigh_list(_neigh_list), cutneighsq(_cutneighsq),
     bincount(_bincount),c_bincount(_bincount),bins(_bins),c_bins(_bins),
     nlocal(_nlocal),
     x(_x),type(_type),mask(_mask),molecule(_molecule),
+    tag(_tag),special(_special),nspecial(_nspecial),molecular(_molecular),
     nbinx(_nbinx),nbiny(_nbiny),nbinz(_nbinz),
     mbinx(_mbinx),mbiny(_mbiny),mbinz(_mbinz),
     mbinxlo(_mbinxlo),mbinylo(_mbinylo),mbinzlo(_mbinzlo),
-    bininvx(_bininvx),bininvy(_bininvy),bininvz(_bininvz) {
+    bininvx(_bininvx),bininvy(_bininvy),bininvz(_bininvz),
+    exclude(_exclude),nex_type(_nex_type),maxex_type(_maxex_type),
+    ex1_type(_ex1_type),ex2_type(_ex2_type),ex_type(_ex_type),
+    nex_group(_nex_group),maxex_group(_maxex_group),
+    ex1_group(_ex1_group),ex2_group(_ex2_group),
+    ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),nex_mol(_nex_mol),maxex_mol(_maxex_mol),
+    ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
+    xperiodic(_xperiodic),yperiodic(_yperiodic),zperiodic(_zperiodic),
+    xprd_half(_xprd_half),yprd_half(_yprd_half),zprd_half(_zprd_half){
+
+    if (molecular == 2) moltemplate = 1;
+    else moltemplate = 0;
 
     bboxlo[0] = _bboxlo[0]; bboxlo[1] = _bboxlo[1]; bboxlo[2] = _bboxlo[2];
     bboxhi[0] = _bboxhi[0]; bboxhi[1] = _bboxhi[1]; bboxhi[2] = _bboxhi[2];
-    
+
     resize = typename AT::t_int_scalar("NeighborKokkosFunctor::resize");
 #ifndef KOKKOS_USE_UVM
     h_resize = Kokkos::create_mirror_view(resize);
@@ -103,10 +161,10 @@ class NeighborKokkosExecute
   KOKKOS_FUNCTION
   void build_cluster_Item(const int &i) const;
 
-#if DEVICE==2
-  template<int HalfNeigh>
+#ifdef KOKKOS_HAVE_CUDA
+  template<int HalfNeigh, int GhostNewton>
   __device__ inline
-  void build_ItemCuda(Device dev) const;
+  void build_ItemCuda(typename Kokkos::TeamPolicy<Device>::member_type dev) const;
 #endif
 
   KOKKOS_INLINE_FUNCTION
@@ -143,6 +201,21 @@ class NeighborKokkosExecute
 
     return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
   }
+
+  KOKKOS_INLINE_FUNCTION
+  int exclusion(const int &i,const int &j, const int &itype,const int &jtype) const;
+
+  KOKKOS_INLINE_FUNCTION
+  int find_special(const int &i, const int &j) const;
+
+  KOKKOS_INLINE_FUNCTION
+  int minimum_image_check(double dx, double dy, double dz) const {
+    if (xperiodic && fabs(dx) > xprd_half) return 1;
+    if (yperiodic && fabs(dy) > yprd_half) return 1;
+    if (zperiodic && fabs(dz) > zprd_half) return 1;
+    return 0;
+  }
+
 };
 
 template<class Device>
@@ -175,12 +248,12 @@ struct NeighborKokkosBuildFunctor {
   void operator() (const int & i) const {
     c.template build_Item<HALF_NEIGH,GHOST_NEWTON>(i);
   }
-#if DEVICE==2
+#ifdef KOKKOS_HAVE_CUDA
   KOKKOS_INLINE_FUNCTION
-  void operator() (Device dev) const {
-    c.template build_ItemCuda<HALF_NEIGH>(dev);
+  void operator() (typename Kokkos::TeamPolicy<Device>::member_type dev) const {
+    c.template build_ItemCuda<HALF_NEIGH,GHOST_NEWTON>(dev);
   }
-  size_t shmem_size() const { return sharedsize; }
+  size_t shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
 #endif
 };
 
@@ -220,15 +293,28 @@ class NeighborKokkos : public Neighbor {
   DAT::tdual_int_1d k_bincount;
   DAT::tdual_int_2d k_bins;
 
+  DAT::tdual_int_1d k_ex1_type,k_ex2_type;
+  DAT::tdual_int_2d k_ex_type;
+  DAT::tdual_int_1d k_ex1_group,k_ex2_group;
+  DAT::tdual_int_1d k_ex1_bit,k_ex2_bit;
+  DAT::tdual_int_1d k_ex_mol_group;
+  DAT::tdual_int_1d k_ex_mol_bit;
+
   void init_cutneighsq_kokkos(int);
   int init_lists_kokkos();
   void init_list_flags1_kokkos(int);
   void init_list_flags2_kokkos(int);
   void init_list_grow_kokkos(int);
+  void init_ex_type_kokkos(int);
+  void init_ex_bit_kokkos();
+  void init_ex_mol_bit_kokkos();
   void choose_build(int, NeighRequest *);
   void build_kokkos(int);
   void setup_bins_kokkos(int);
-  
+  void modify_ex_type_grow_kokkos();
+  void modify_ex_group_grow_kokkos();
+  void modify_mol_group_grow_kokkos();
+
   typedef void (NeighborKokkos::*PairPtrHost)
     (class NeighListKokkos<LMPHostType> *);
   PairPtrHost *pair_build_host;

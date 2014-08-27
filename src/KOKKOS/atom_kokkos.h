@@ -21,14 +21,32 @@ namespace LAMMPS_NS {
 
 class AtomKokkos : public Atom {
  public:
-  DAT::tdual_tagint_1d k_tag, k_molecule;
-  DAT::tdual_imageint_1d k_image;
+  DAT::tdual_tagint_1d k_tag;
   DAT::tdual_int_1d k_type, k_mask;
+  DAT::tdual_imageint_1d k_image;
   DAT::tdual_x_array k_x;
   DAT::tdual_v_array k_v;
   DAT::tdual_f_array k_f;
 
+
   DAT::tdual_float_1d k_mass;
+
+  DAT::tdual_float_1d k_q;
+  DAT::tdual_tagint_1d k_molecule;
+  DAT::tdual_int_2d k_nspecial;
+  DAT::tdual_tagint_2d k_special;
+  DAT::tdual_int_1d k_num_bond;
+  DAT::tdual_int_2d k_bond_type;
+  DAT::tdual_tagint_2d k_bond_atom;
+  DAT::tdual_int_1d k_num_angle;
+  DAT::tdual_int_2d k_angle_type;
+  DAT::tdual_tagint_2d k_angle_atom1, k_angle_atom2, k_angle_atom3;
+  DAT::tdual_int_1d k_num_dihedral;
+  DAT::tdual_int_2d k_dihedral_type;
+  DAT::tdual_tagint_2d k_dihedral_atom1, k_dihedral_atom2, k_dihedral_atom3, k_dihedral_atom4;
+  DAT::tdual_int_1d k_num_improper;
+  DAT::tdual_int_2d k_improper_type;
+  DAT::tdual_tagint_2d k_improper_atom1, k_improper_atom2, k_improper_atom3, k_improper_atom4;
 
   AtomKokkos(class LAMMPS *);
   ~AtomKokkos();
@@ -37,6 +55,8 @@ class AtomKokkos : public Atom {
   void sync(const ExecutionSpace space, unsigned int mask);
   void modified(const ExecutionSpace space, unsigned int mask);
   virtual void sort();
+  virtual void grow(unsigned int mask);
+  virtual void deallocate_topology();
 };
 
 template<class ViewType, class IndexView>

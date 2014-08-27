@@ -23,8 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{FULL,HALFTHREAD,HALF};
-
 /* ---------------------------------------------------------------------- */
 
 KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
@@ -49,13 +47,13 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
                strcmp(arg[iarg],"gpus") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
       int ngpu = atoi(arg[iarg+1]);
-      iarg += 2;
 
       int skip_gpu = 9999;
       if (iarg+2 < narg && isdigit(arg[iarg+2][0])) {
         skip_gpu = atoi(arg[iarg+2]);
         iarg++;
       }
+      iarg += 2;
 
       char *str;
       if (str = getenv("SLURM_LOCALID")) {
@@ -89,7 +87,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // initialize Kokkos
 
-#if DEVICE==2
+#ifdef KOKKOS_HAVE_CUDA
   Kokkos::Cuda::host_mirror_device_type::initialize(num_threads,numa);
   Kokkos::Cuda::SelectDevice select_device(device);
   Kokkos::Cuda::initialize(select_device);
@@ -112,7 +110,7 @@ KokkosLMP::~KokkosLMP()
 {
   // finalize Kokkos
 
-#if DEVICE==2
+#ifdef KOKKOS_HAVE_CUDA
   Kokkos::Cuda::finalize();
   Kokkos::Cuda::host_mirror_device_type::finalize();
 #else

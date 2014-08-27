@@ -21,6 +21,13 @@
 #include "atom_masks.h"
 #include "error.h"
 #include "memory.h"
+#include "force.h"
+#include "pair.h"
+#include "fix.h"
+#include "compute.h"
+#include "dump.h"
+#include "output.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -43,15 +50,19 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
 
   // initialize comm buffers & exchange memory
 
-  maxsend = BUFMIN;
-  k_buf_send = ArrayTypes<LMPDeviceType>::
-    tdual_xfloat_2d("comm:k_buf_send",(maxsend+BUFEXTRA+5)/6,6);
-  buf_send = k_buf_send.view<LMPHostType>().ptr_on_device();
+  // maxsend = BUFMIN;
+  // k_buf_send = ArrayTypes<LMPDeviceType>::
+  //   tdual_xfloat_2d("comm:k_buf_send",(maxsend+BUFEXTRA+5)/6,6);
+  // buf_send = k_buf_send.view<LMPHostType>().ptr_on_device();
+  maxsend = 0;
+  buf_send = NULL;
 
-  maxrecv = BUFMIN;
-  k_buf_recv = ArrayTypes<LMPDeviceType>::
-    tdual_xfloat_2d("comm:k_buf_recv",(maxrecv+5)/6,6);
-  buf_recv = k_buf_recv.view<LMPHostType>().ptr_on_device();
+  // maxrecv = BUFMIN;
+  // k_buf_recv = ArrayTypes<LMPDeviceType>::
+  //   tdual_xfloat_2d("comm:k_buf_recv",(maxrecv+5)/6,6);
+  // buf_recv = k_buf_recv.view<LMPHostType>().ptr_on_device();
+  maxrecv = 0;
+  buf_recv = NULL;
 
   k_exchange_sendlist = ArrayTypes<LMPDeviceType>::
     tdual_int_1d("comm:k_exchange_sendlist",100);
@@ -89,6 +100,34 @@ void CommKokkos::init()
   forward_comm_on_host = lmp->kokkos->forward_comm_on_host;
 
   CommBrick::init();
+
+  int check_forward = 0;
+  int check_reverse = 0;
+  if (force->pair)
+    check_forward += force->pair->comm_forward;
+  if (force->pair)
+    check_reverse += force->pair->comm_reverse;
+
+  for (int i = 0; i < modify->nfix; i++) {
+    check_forward += modify->fix[i]->comm_forward;
+    check_reverse += modify->fix[i]->comm_reverse;
+  }
+
+  for (int i = 0; i < modify->ncompute; i++) {
+    check_forward += modify->compute[i]->comm_forward;
+    check_reverse += modify->compute[i]->comm_reverse;
+  }
+
+  for (int i = 0; i < output->ndump; i++) {
+    check_forward += output->dump[i]->comm_forward;
+    check_reverse += output->dump[i]->comm_reverse;
+  }
+
+  if (force->newton == 0) check_reverse = 0;
+  if (force->pair) check_reverse += force->pair->comm_reverse_off;
+
+  if(check_reverse || check_forward)
+    forward_comm_classic = true;
 }
 
 /* ----------------------------------------------------------------------
@@ -98,8 +137,7 @@ void CommKokkos::init()
 
 void CommKokkos::forward_comm(int dummy)
 {
-
- if (!forward_comm_classic) {
+  if (!forward_comm_classic) {
     if (forward_comm_on_host) forward_comm_device<LMPHostType>(dummy);
     else forward_comm_device<LMPDeviceType>(dummy);
     return;
@@ -205,6 +243,68 @@ void CommKokkos::forward_comm_device(int dummy)
     }
   }
 }
+void CommKokkos::reverse_comm()
+{
+  k_sendlist.sync<LMPHostType>();
+  if (comm_f_only)
+    atomKK->sync(Host,F_MASK);
+  else
+    atomKK->sync(Host,ALL_MASK);
+  CommBrick::reverse_comm();
+  if (comm_f_only)
+    atomKK->modified(Host,F_MASK);
+  else
+    atomKK->modified(Host,ALL_MASK);
+  atomKK->sync(Device,ALL_MASK);
+}
+
+void CommKokkos::forward_comm_fix(Fix *fix)
+{
+  k_sendlist.sync<LMPHostType>();
+  CommBrick::forward_comm_fix(fix);
+}
+
+void CommKokkos::reverse_comm_fix(Fix *fix)
+{
+  k_sendlist.sync<LMPHostType>();
+  CommBrick::reverse_comm_fix(fix);
+}
+
+void CommKokkos::forward_comm_compute(Compute *compute)
+{
+  k_sendlist.sync<LMPHostType>();
+  CommBrick::forward_comm_compute(compute);
+}
+
+void CommKokkos::reverse_comm_compute(Compute *compute)
+{
+  k_sendlist.sync<LMPHostType>();
+  CommBrick::reverse_comm_compute(compute);
+}
+
+void CommKokkos::forward_comm_pair(Pair *pair)
+{
+  k_sendlist.sync<LMPHostType>();
+  CommBrick::forward_comm_pair(pair);
+}
+
+void CommKokkos::reverse_comm_pair(Pair *pair)
+{
+  k_sendlist.sync<LMPHostType>();
+  CommBrick::reverse_comm_pair(pair);
+}
+
+void CommKokkos::forward_comm_dump(Dump *dump)
+{
+  k_sendlist.sync<LMPHostType>();
+  CommBrick::forward_comm_dump(dump);
+}
+
+void CommKokkos::reverse_comm_dump(Dump *dump)
+{
+  k_sendlist.sync<LMPHostType>();
+  CommBrick::reverse_comm_dump(dump);
+}
 
 /* ----------------------------------------------------------------------
    exchange: move atoms to correct processors
@@ -219,6 +319,16 @@ void CommKokkos::forward_comm_device(int dummy)
 
 void CommKokkos::exchange()
 {
+  if(atom->nextra_grow + atom->nextra_border) {
+    if(!exchange_comm_classic) {
+      static int print = 1;
+      if(print) {
+        error->warning(FLERR,"Kokkos communication does not currently support fixes sending data. Switching to classic communication.");
+        print = 0;
+      }
+      exchange_comm_classic = true;
+    }
+  }
   if (!exchange_comm_classic) {
     if (exchange_comm_on_host) exchange_device<LMPHostType>();
     else exchange_device<LMPDeviceType>();
@@ -463,10 +573,12 @@ void CommKokkos::borders()
   }
 
   atomKK->sync(Host,ALL_MASK);
+
   k_sendlist.modify<LMPHostType>();
   atomKK->modified(Host,ALL_MASK);
-
   CommBrick::borders();
+  k_sendlist.modify<LMPHostType>();
+  atomKK->modified(Host,ALL_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -496,7 +608,7 @@ struct BuildBorderListFunctor {
 
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (DeviceType dev) const {
+  void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
     const int chunk = ((nlast - nfirst + dev.league_size() - 1 ) / 
                        dev.league_size());
     const int teamstart = chunk*dev.league_rank() + nfirst;
@@ -517,7 +629,7 @@ struct BuildBorderListFunctor {
     }
   }
 
-  size_t shmem_size() const { return 1000u;}
+  size_t shmem_size(const int team_size) const { (void) team_size; return 1000u;}
 };
 
 /* ---------------------------------------------------------------------- */
@@ -591,16 +703,19 @@ void CommKokkos::borders_device() {
               total_send.template modify<DeviceType>();
               total_send.template sync<LMPDeviceType>();
             }
+
             BuildBorderListFunctor<DeviceType> f(atomKK->k_x,k_sendlist,
                 total_send,nfirst,nlast,dim,lo,hi,iswap,maxsendlist[iswap]);
-            Kokkos::ParallelWorkRequest config((nlast-nfirst+127)/128,128);
+            Kokkos::TeamPolicy<DeviceType> config((nlast-nfirst+127)/128,128);
             Kokkos::parallel_for(config,f);
             DeviceType::fence();
+
             total_send.template modify<DeviceType>();
             total_send.template sync<LMPHostType>();
 
             if(total_send.h_view(0) >= maxsendlist[iswap]) {
               grow_list(iswap,total_send.h_view(0));
+              k_sendlist.modify<DeviceType>();
               total_send.h_view(0) = 0;
               if(exec_space == Device) {
                 total_send.template modify<LMPHostType>();
@@ -608,7 +723,7 @@ void CommKokkos::borders_device() {
               }
               BuildBorderListFunctor<DeviceType> f(atomKK->k_x,k_sendlist,
                   total_send,nfirst,nlast,dim,lo,hi,iswap,maxsendlist[iswap]);
-              Kokkos::ParallelWorkRequest config((nlast-nfirst+127)/128,128);
+              Kokkos::TeamPolicy<DeviceType> config((nlast-nfirst+127)/128,128);
               Kokkos::parallel_for(config,f);
               DeviceType::fence();
               total_send.template modify<DeviceType>();
@@ -741,6 +856,25 @@ void CommKokkos::borders_device() {
   if (exec_space == Host) k_sendlist.sync<LMPDeviceType>();
   atomKK->modified(exec_space,ALL_MASK);
   DeviceType::fence();
+}
+/* ----------------------------------------------------------------------
+   realloc the size of the send buffer as needed with BUFFACTOR and bufextra
+   if flag = 1, realloc
+   if flag = 0, don't need to realloc with copy, just free/malloc
+------------------------------------------------------------------------- */
+
+void CommKokkos::grow_send(int n, int flag)
+{
+  grow_send_kokkos(n,flag,Host);
+}
+
+/* ----------------------------------------------------------------------
+   free/malloc the size of the recv buffer as needed with BUFFACTOR
+------------------------------------------------------------------------- */
+
+void CommKokkos::grow_recv(int n)
+{
+  grow_recv_kokkos(n,Host);
 }
 
 /* ----------------------------------------------------------------------

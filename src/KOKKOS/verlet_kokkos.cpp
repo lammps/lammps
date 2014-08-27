@@ -53,6 +53,7 @@ VerletKokkos::VerletKokkos(LAMMPS *lmp, int narg, char **arg) :
 
 void VerletKokkos::setup()
 {
+
   if (comm->me == 0 && screen) fprintf(screen,"Setting up run ...\n");
   update->setupflag = 1;
 
@@ -65,19 +66,24 @@ void VerletKokkos::setup()
   atomKK->setup();
   modify->setup_pre_exchange();
       // debug
-      atomKK->sync(Host,ALL_MASK);
-      atomKK->modified(Host,ALL_MASK);
+  atomKK->sync(Host,ALL_MASK);
+  atomKK->modified(Host,ALL_MASK);
   if (triclinic) domain->x2lamda(atomKK->nlocal);
   domain->pbc();
 
   atomKK->sync(Host,ALL_MASK);
 
+
   domain->reset_box();
   comm->setup();
   if (neighbor->style) neighbor->setup_bins();
+
   comm->exchange();
+
   if (atomKK->sortfreq > 0) atomKK->sort();
+
   comm->borders();
+
   if (triclinic) domain->lamda2x(atomKK->nlocal+atomKK->nghost);
 
   atomKK->sync(Host,ALL_MASK);
@@ -97,20 +103,47 @@ void VerletKokkos::setup()
   force_clear();
   modify->setup_pre_force(vflag);
 
-  if (pair_compute_flag) force->pair->compute(eflag,vflag);
+  if (pair_compute_flag) {
+    atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
+    atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
+    force->pair->compute(eflag,vflag);
+    timer->stamp(TIME_PAIR);
+  }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
+
   if (atomKK->molecular) {
-    if (force->bond) force->bond->compute(eflag,vflag);
-    if (force->angle) force->angle->compute(eflag,vflag);
-    if (force->dihedral) force->dihedral->compute(eflag,vflag);
-    if (force->improper) force->improper->compute(eflag,vflag);
+    if (force->bond) {
+      atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
+      atomKK->modified(force->bond->execution_space,force->bond->datamask_modify);
+      force->bond->compute(eflag,vflag);
+    }
+    if (force->angle) {
+      atomKK->sync(force->angle->execution_space,force->angle->datamask_read);
+      atomKK->modified(force->angle->execution_space,force->angle->datamask_modify);
+      force->angle->compute(eflag,vflag);
+    }
+    if (force->dihedral) {
+      atomKK->sync(force->dihedral->execution_space,force->dihedral->datamask_read);
+      atomKK->modified(force->dihedral->execution_space,force->dihedral->datamask_modify);
+      force->dihedral->compute(eflag,vflag);
+    }
+    if (force->improper) {
+      atomKK->sync(force->improper->execution_space,force->improper->datamask_read);
+      atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
+      force->improper->compute(eflag,vflag);
+    }
+    timer->stamp(TIME_BOND);
   }
 
-  if (force->kspace) {
+  if(force->kspace) {
     force->kspace->setup();
-    if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
-    else force->kspace->compute_dummy(eflag,vflag);
+    if (kspace_compute_flag) {
+      atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
+      atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
+      force->kspace->compute(eflag,vflag);
+      timer->stamp(TIME_KSPACE);
+    } else force->kspace->compute_dummy(eflag,vflag);
   }
 
   if (force->newton) comm->reverse_comm();
@@ -172,20 +205,47 @@ void VerletKokkos::setup_minimal(int flag)
   force_clear();
   modify->setup_pre_force(vflag);
 
-  if (pair_compute_flag) force->pair->compute(eflag,vflag);
+  if (pair_compute_flag) {
+    atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
+    atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
+    force->pair->compute(eflag,vflag);
+    timer->stamp(TIME_PAIR);
+  }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
+
   if (atomKK->molecular) {
-    if (force->bond) force->bond->compute(eflag,vflag);
-    if (force->angle) force->angle->compute(eflag,vflag);
-    if (force->dihedral) force->dihedral->compute(eflag,vflag);
-    if (force->improper) force->improper->compute(eflag,vflag);
+    if (force->bond) {
+      atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
+      atomKK->modified(force->bond->execution_space,force->bond->datamask_modify);
+      force->bond->compute(eflag,vflag);
+    }
+    if (force->angle) {
+      atomKK->sync(force->angle->execution_space,force->angle->datamask_read);
+      atomKK->modified(force->angle->execution_space,force->angle->datamask_modify);
+      force->angle->compute(eflag,vflag);
+    }
+    if (force->dihedral) {
+      atomKK->sync(force->dihedral->execution_space,force->dihedral->datamask_read);
+      atomKK->modified(force->dihedral->execution_space,force->dihedral->datamask_modify);
+      force->dihedral->compute(eflag,vflag);
+    }
+    if (force->improper) {
+      atomKK->sync(force->improper->execution_space,force->improper->datamask_read);
+      atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
+      force->improper->compute(eflag,vflag);
+    }
+    timer->stamp(TIME_BOND);
   }
 
-  if (force->kspace) {
+  if(force->kspace) {
     force->kspace->setup();
-    if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
-    else force->kspace->compute_dummy(eflag,vflag);
+    if (kspace_compute_flag) {
+      atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
+      atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
+      force->kspace->compute(eflag,vflag);
+      timer->stamp(TIME_KSPACE);
+    } else force->kspace->compute_dummy(eflag,vflag);
   }
 
   if (force->newton) comm->reverse_comm();
@@ -291,31 +351,47 @@ void VerletKokkos::run(int n)
     timer->stamp();
 
     if (pair_compute_flag) {
+      atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
+      atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
       force->pair->compute(eflag,vflag);
       timer->stamp(TIME_PAIR);
     }
 
     if (atomKK->molecular) {
-      if (force->bond) force->bond->compute(eflag,vflag);
-      if (force->angle) force->angle->compute(eflag,vflag);
-      if (force->dihedral) force->dihedral->compute(eflag,vflag);
-      if (force->improper) force->improper->compute(eflag,vflag);
+      if (force->bond) {
+        atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
+        atomKK->modified(force->bond->execution_space,force->bond->datamask_modify);
+        force->bond->compute(eflag,vflag);
+      }
+      if (force->angle) {
+        atomKK->sync(force->angle->execution_space,force->angle->datamask_read);
+        atomKK->modified(force->angle->execution_space,force->angle->datamask_modify);
+        force->angle->compute(eflag,vflag);
+      }
+      if (force->dihedral) {
+        atomKK->sync(force->dihedral->execution_space,force->dihedral->datamask_read);
+        atomKK->modified(force->dihedral->execution_space,force->dihedral->datamask_modify);
+        force->dihedral->compute(eflag,vflag);
+      }
+      if (force->improper) {
+        atomKK->sync(force->improper->execution_space,force->improper->datamask_read);
+        atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
+        force->improper->compute(eflag,vflag);
+      }
       timer->stamp(TIME_BOND);
     }
 
     if (kspace_compute_flag) {
+      atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
+      atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
       force->kspace->compute(eflag,vflag);
       timer->stamp(TIME_KSPACE);
     }
 
     // reverse communication of forces
 
-    if (force->newton) {
-      atomKK->sync(Host,F_MASK);
-      comm->reverse_comm();
-      atomKK->modified(Host,F_MASK);
-      timer->stamp(TIME_COMM);
-    }
+    if (force->newton) comm->reverse_comm();
+    timer->stamp(TIME_COMM);
 
     // force modifications, final time integration, diagnostics
 

@@ -584,21 +584,11 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
 
   iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"x") == 0) fieldtype[nfield++] = X;
-    else if (strcmp(arg[iarg],"y") == 0) fieldtype[nfield++] = Y;
-    else if (strcmp(arg[iarg],"z") == 0) fieldtype[nfield++] = Z;
-    else if (strcmp(arg[iarg],"vx") == 0) fieldtype[nfield++] = VX;
-    else if (strcmp(arg[iarg],"vy") == 0) fieldtype[nfield++] = VY;
-    else if (strcmp(arg[iarg],"vz") == 0) fieldtype[nfield++] = VZ;
-    else if (strcmp(arg[iarg],"q") == 0) {
-      if (!atom->q_flag)
-        error->all(FLERR,"Read dump of atom property that isn't allocated");
-      fieldtype[nfield++] = Q;
-    }
-    else if (strcmp(arg[iarg],"ix") == 0) fieldtype[nfield++] = IX;
-    else if (strcmp(arg[iarg],"iy") == 0) fieldtype[nfield++] = IY;
-    else if (strcmp(arg[iarg],"iz") == 0) fieldtype[nfield++] = IZ;
-    else break;
+    int type = whichtype(arg[iarg]);
+    if (type < 0) break;
+    if (type == Q && !atom->q_flag)
+      error->all(FLERR,"Read dump of atom property that isn't allocated");
+    fieldtype[nfield++] = type;
     iarg++;
   }
 
@@ -662,9 +652,10 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"label") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal read_dump command");
+      int type = whichtype(arg[iarg+1]);
       int i;
       for (i = 0; i < nfield; i++)
-        if (fieldlabel[i] && strcmp(arg[iarg+1],fieldlabel[i]) == 0) break;
+        if (type == fieldtype[i]) break;
       if (i == nfield) error->all(FLERR,"Illegal read_dump command");
       int n = strlen(arg[iarg+2]) + 1;
       fieldlabel[i] = new char[n];
@@ -697,6 +688,28 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
     error->all(FLERR,"If read_dump purges it cannot replace or trim");
 
   return narg-iarg;
+}
+
+/* ----------------------------------------------------------------------
+   check if str is a field argument
+   if yes, return index of which
+   if not, return -1
+------------------------------------------------------------------------- */
+
+int ReadDump::whichtype(char *str)
+{
+  int type = -1;
+  if (strcmp(str,"x") == 0) type = X;
+  else if (strcmp(str,"y") == 0) type = Y;
+  else if (strcmp(str,"z") == 0) type = Z;
+  else if (strcmp(str,"vx") == 0) type = VX;
+  else if (strcmp(str,"vy") == 0) type = VY;
+  else if (strcmp(str,"vz") == 0) type = VZ;
+  else if (strcmp(str,"q") == 0) type = Q;
+  else if (strcmp(str,"ix") == 0) type = IX;
+  else if (strcmp(str,"iy") == 0) type = IY;
+  else if (strcmp(str,"iz") == 0) type = IZ;
+  return type;
 }
 
 /* ----------------------------------------------------------------------

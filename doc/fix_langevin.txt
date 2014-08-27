@@ -241,15 +241,15 @@ not exactly conjugate to the positions.  As a result the temperature
 (computed from the discretized velocities) will be systematically
 lower than the target temperature, by a small amount which grows with
 the timestep.  Nonetheless, the distribution of atom positions will
-still be consistent with the target temperature. For molecules containing
-C-H bonds, configurational properties generated with dt = 2.5 fs and 
-tdamp = 100 fs are indistinguishable from dt = 0.5 fs.
-Because the velocity distribution systematically decreases with increasing
-timestep, the method should not be used to
-generate properties that depend on the velocity distribution, such as 
-the velocity autocorrelation function (VACF). In the above example, the
-velocity distribution at dt = 2.5fs generates an average temperature of 220 K,
-instead of 300 K. 
+still be consistent with the target temperature. For molecules
+containing C-H bonds, configurational properties generated with dt =
+2.5 fs and tdamp = 100 fs are indistinguishable from dt = 0.5 fs.
+Because the velocity distribution systematically decreases with
+increasing timestep, the method should not be used to generate
+properties that depend on the velocity distribution, such as the
+velocity autocorrelation function (VACF). In the above example, the
+velocity distribution at dt = 2.5fs generates an average temperature
+of 220 K, instead of 300 K.
 
 :line
 

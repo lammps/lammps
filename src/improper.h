@@ -32,6 +32,10 @@ class Improper : protected Pointers {
   unsigned int datamask;
   unsigned int datamask_ext;
 
+  // KOKKOS host/device flag and data masks
+  ExecutionSpace execution_space;
+  unsigned int datamask_read,datamask_modify;
+
   Improper(class LAMMPS *);
   virtual ~Improper();
   virtual void init();

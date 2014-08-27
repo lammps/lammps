@@ -69,6 +69,7 @@ class FixLangevin : public Fix {
 
   int nlevels_respa;
   class RanMars *random;
+  int seed;
 
   // comment next line to turn off templating
 #define TEMPLATED_FIX_LANGEVIN

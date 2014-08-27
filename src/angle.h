@@ -32,6 +32,10 @@ class Angle : protected Pointers {
   unsigned int datamask;
   unsigned int datamask_ext;
 
+  // KOKKOS host/device flag and data masks
+  ExecutionSpace execution_space;
+  unsigned int datamask_read,datamask_modify;
+
   Angle(class LAMMPS *);
   virtual ~Angle();
   virtual void init();

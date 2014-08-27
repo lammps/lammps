@@ -702,8 +702,6 @@ package"_Section_accelerate.html.  This is indicated by additional
 letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
-"lj/cut/experimental/cuda"_pair_lj.html,
-
 "none"_pair_none.html,
 "hybrid"_pair_hybrid.html,
 "hybrid/overlay"_pair_hybrid.html,

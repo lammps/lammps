@@ -51,60 +51,6 @@
 #include <impl/Kokkos_Error.hpp>
 #include <Cuda/Kokkos_Cuda_abort.hpp>
 
-/*--------------------------------------------------------------------------*/
-
-#if defined( __CUDACC__ )
-
-namespace Kokkos {
-namespace Impl {
-
-class CudaExec {
-public:
-
-  __device__ inline
-  CudaExec( const int shmem_begin , const int shmem_end )
-    : m_shmem_end(   shmem_end )
-    , m_shmem_iter(  shmem_begin )
-    {}
-
-  __device__ inline
-  void * get_shmem( const int size )
-  {
-    extern __shared__ int sh[];
-
-    // m_shmem_iter is in bytes, convert to integer offsets
-    const int offset = m_shmem_iter >> power_of_two<sizeof(int)>::value ;
-
-    m_shmem_iter += size ;
-
-    if ( m_shmem_end < m_shmem_iter ) {
-      cuda_abort("Cuda::get_shmem out of memory");
-    }
-
-    return sh + offset ;
-  }
-
-private:
-
-  const int m_shmem_end ;
-        int m_shmem_iter ;
-};
-
-} // namespace Impl
-} // namespace Kokkos
-
-#if defined( __CUDA_ARCH__ )
-
-namespace Kokkos {
-
-inline __device__ 
-void * Cuda::get_shmem( const int size ) { return m_exec.get_shmem( size ); }
-
-} // namespace Kokkos
-
-#endif /* defined( __CUDA_ARCH__ ) */
-#endif /* defined( __CUDACC__ ) */
-
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
@@ -161,6 +107,9 @@ CudaSpace::size_type * cuda_internal_scratch_unified( const CudaSpace::size_type
 #if defined( __CUDACC__ )
 
 /** \brief  Access to constant memory on the device */
+#ifdef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
+extern
+#endif
 __device__ __constant__
 Kokkos::Impl::CudaTraits::ConstantGlobalBufferType
 kokkos_impl_cuda_constant_memory_buffer ;
@@ -277,6 +226,9 @@ struct CudaParallelLaunch< DriverType , false > {
 
 } // namespace Impl
 } // namespace Kokkos
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 #endif /* defined( __CUDACC__ ) */
 

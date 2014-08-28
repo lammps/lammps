@@ -46,7 +46,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <KokkosCore_config.h>
+#include <Kokkos_Macros.hpp>
 #include <Kokkos_hwloc.hpp>
 #include <impl/Kokkos_Error.hpp>
 

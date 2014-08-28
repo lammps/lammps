@@ -153,8 +153,9 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
         const int teamsize = 1;
       #endif
       const int nteams = (list->inum*f_type::vectorization::increment+teamsize-1)/teamsize;
-      if (eflag || vflag) Kokkos::parallel_reduce(Kokkos::ParallelWorkRequest(nteams,teamsize),f,ev);
-      else Kokkos::parallel_for(Kokkos::ParallelWorkRequest(nteams,teamsize),f);
+      Kokkos::TeamPolicy<DeviceType> config(nteams,teamsize);
+      if (eflag || vflag) Kokkos::parallel_reduce(config,f,ev);
+      else Kokkos::parallel_for(config,f);
     }
   } else {
     if (neighflag == FULL) {
@@ -187,8 +188,9 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
         const int teamsize = 1;
       #endif
       const int nteams = (list->inum*f_type::vectorization::increment+teamsize-1)/teamsize;
-      if (eflag || vflag) Kokkos::parallel_reduce(Kokkos::ParallelWorkRequest(nteams,teamsize),f,ev);
-      else Kokkos::parallel_for(Kokkos::ParallelWorkRequest(nteams,teamsize),f);
+      Kokkos::TeamPolicy<DeviceType> config(nteams,teamsize);
+      if (eflag || vflag) Kokkos::parallel_reduce(config,f,ev);
+      else Kokkos::parallel_for(config,f);
     }
   }
   DeviceType::fence();
@@ -203,7 +205,7 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
     virial[5] += ev.v[5];
   }
 
-  if (vflag_fdotr) virial_fdotr_compute();
+  if (vflag_fdotr) pair_virial_fdotr_compute(this);
 }
 
 template<class DeviceType>
@@ -211,6 +213,8 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairTableKokkos<DeviceType>::
 compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
+  (void) i;
+  (void) j;
   union_int_float_t rsq_lookup;
   double fpair;
   const int tidx = d_table_const.tabindex(itype,jtype);
@@ -254,6 +258,8 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairTableKokkos<DeviceType>::
 compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
+  (void) i;
+  (void) j;
   double evdwl;
   union_int_float_t rsq_lookup;
   const int tidx = d_table_const.tabindex(itype,jtype);
@@ -291,128 +297,6 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
   }
   return evdwl;
 }
-
-/*
-template<class DeviceType>
-template<int EVFLAG, int NEIGHFLAG, int NEWTON_PAIR,int TABSTYLE>
-KOKKOS_FUNCTION
-EV_FLOAT PairTableKokkos<DeviceType>::
-compute_item(const int &ii, const NeighListKokkos<DeviceType> &list) const
-{
-  EV_FLOAT ev;
-  const int tlm1 = tablength - 1;
-  union_int_float_t rsq_lookup;
-  const int i = list.d_ilist[ii];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-  const int itype = type(i);
-
-  const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
-  const int jnum = list.d_numneigh[i];
-
-  F_FLOAT fxtmp = 0.0;
-  F_FLOAT fytmp = 0.0;
-  F_FLOAT fztmp = 0.0;
-
-  for (int jj = 0; jj < jnum; jj++) {
-    int j = neighbors_i(jj);
-    const F_FLOAT factor_lj = 1.0;  //special_lj[sbmask(j)];
-    j &= NEIGHMASK;
-    const X_FLOAT delx = xtmp - x(j,0);
-    const X_FLOAT dely = ytmp - x(j,1);
-    const X_FLOAT delz = ztmp - x(j,2);
-    const int jtype = type(j);
-    const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-
-      if (rsq < d_table_const.cutsq(itype,jtype)) {
-        double fpair; 
-        const int tidx = d_table_const.tabindex(itype,jtype);
-        //const Table* const tb = &tables[tabindex[itype][jtype]];
-        
-        //if (rsq < d_table_const.innersq(tidx))
-        //  error->one(FLERR,"Pair distance < table inner cutoff");
-
-        if (TABSTYLE == LOOKUP) {
-          const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-          //if (itable >= tlm1)
-          //  error->one(FLERR,"Pair distance > table outer cutoff");
-          fpair = factor_lj * d_table_const.f(tidx,itable);
-          if (EVFLAG)
-            ev.evdwl = d_table_const.e(tidx,itable);
-        } else if (TABSTYLE == LINEAR) {
-          const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-          //if (itable >= tlm1)
-          //  error->one(FLERR,"Pair distance > table outer cutoff");
-          const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
-          const double value = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);          
-          fpair = factor_lj * value;
-          if (EVFLAG)
-            ev.evdwl = d_table_const.e(tidx,itable) + fraction*d_table_const.de(tidx,itable);
-        } else if (TABSTYLE == SPLINE) {
-          const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-          //if (itable >= tlm1)
-          //  error->one(FLERR,"Pair distance > table outer cutoff");
-          const double b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
-          const double a = 1.0 - b;
-          const double value = a * d_table_const.f(tidx,itable) + b * d_table_const.f(tidx,itable+1) +
-            ((a*a*a-a)*d_table_const.f2(tidx,itable) + (b*b*b-b)*d_table_const.f2(tidx,itable+1)) *
-            d_table_const.deltasq6(tidx);
-          fpair = factor_lj * value;
-          if (EVFLAG)
-            ev.evdwl = a * d_table_const.e(tidx,itable) + b * d_table_const.e(tidx,itable+1) +
-              ((a*a*a-a)*d_table_const.e2(tidx,itable) + (b*b*b-b)*d_table_const.e2(tidx,itable+1)) *
-              d_table_const.deltasq6(tidx);
-        } else {
-          rsq_lookup.f = rsq;
-          int itable = rsq_lookup.i & d_table_const.nmask(tidx);
-          itable >>= d_table_const.nshiftbits(tidx);
-          const double fraction = (rsq_lookup.f - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
-          const double value = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
-          fpair = factor_lj * value;
-          if (EVFLAG)
-            ev.evdwl = d_table_const.e(tidx,itable) + fraction*d_table_const.de(tidx,itable);
-        }
-
-      fxtmp += delx*fpair;
-      fytmp += dely*fpair;
-      fztmp += delz*fpair;
-      if ((NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-        Kokkos::atomic_fetch_add(&f(j,0),-delx*fpair);
-        Kokkos::atomic_fetch_add(&f(j,1),-dely*fpair);
-        Kokkos::atomic_fetch_add(&f(j,2),-delz*fpair);
-      }
-
-      if ((NEIGHFLAG==HALF) && (NEWTON_PAIR || j < nlocal)) {
-        f(j,0) -= delx*fpair;
-        f(j,1) -= dely*fpair;
-        f(j,2) -= delz*fpair;
-      }
-
-      if(EVFLAG) {
-        if (eflag) {
-          ev.evdwl *= factor_lj;
-        }
-
-        if (evflag) ev_tally<NEIGHFLAG>(ev,i,j
-,fpair,delx,dely,delz);
-      }  
-    }
-  }
-
-  if (NEIGHFLAG == HALFTHREAD) {
-    Kokkos::atomic_fetch_add(&f(i,0),fxtmp);
-    Kokkos::atomic_fetch_add(&f(i,1),fytmp);
-    Kokkos::atomic_fetch_add(&f(i,2),fztmp);
-  } else {
-    f(i,0) += fxtmp;
-    f(i,1) += fytmp;
-    f(i,2) += fztmp;
-  }
-
-  return ev;
-}
-*/
 
 template<class DeviceType>
 void PairTableKokkos<DeviceType>::create_kokkos_tables()
@@ -880,7 +764,6 @@ void PairTableKokkos<DeviceType>::param_extract(Table *tb, char *line)
       word = strtok(NULL," \t\n\r\f");
       tb->fphi = atof(word);
     } else {
-      printf("WORD: %s\n",word);
       error->one(FLERR,"Invalid keyword in pair table parameters");
     }
     word = strtok(NULL," \t\n\r\f");
@@ -1494,7 +1377,7 @@ void PairTableKokkos<DeviceType>::cleanup_copy() {
 }
 
 template class PairTableKokkos<LMPDeviceType>;
-#if DEVICE==2
+#ifdef KOKKOS_HAVE_CUDA
 template class PairTableKokkos<LMPHostType>;
 #endif
 

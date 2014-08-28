@@ -14,7 +14,7 @@ atom_style style args :pre
 
 style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
         {electron} or {ellipsoid} or {full} or {line} or {meso} or \
-	{molecular} or {peri} or {sphere} or {tri} or {template} or {hybrid} :ul
+	{molecular} or {peri} or {sphere} or {tri} or {template} or {hybrid} :ulb,l
   args = none for any style except {body} and {hybrid}
   {body} args = bstyle bstyle-args
     bstyle = style of body particles
@@ -24,9 +24,8 @@ style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
   {hybrid} args = list of one or more sub-styles, each with their args :pre
 
-accelerated styles (with same args):
-
-style = {angle/cuda} or {atomic/cuda} or {atomic/kokkos} or {charge/cuda} or {full/cuda} :ul
+accelerated styles (with same args) = {angle/cuda} or {angle/kokkos} or {atomic/cuda} or {atomic/kokkos} or {bond/kokkos} or {charge/cuda} or {charge/kokkos} or {full/cuda} or {full/kokkos} or {molecular/kokkos} :l
+:ule
 
 [Examples:]
 
@@ -211,9 +210,10 @@ accelerated styles take the same arguments and should produce the same
 results, except for round-off and precision issues.
 
 Note that other acceleration packages in LAMMPS, specifically the GPU,
-USER-OMP, and OPT packages do not use of accelerated atom styles.
+USER-INTEL, USER-OMP, and OPT packages do not use accelerated atom
+styles.
 
-These accelerated styles are part of the USER-CUDA and KOKKOS packages
+The accelerated styles are part of the USER-CUDA and KOKKOS packages
 respectively.  They are only enabled if LAMMPS was built with those
 packages.  See the "Making LAMMPS"_Section_start.html#start_3 section
 for more info.

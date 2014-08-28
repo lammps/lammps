@@ -51,6 +51,7 @@
 
 #include <stddef.h>
 #include <impl/Kokkos_Traits.hpp>
+#include <impl/Kokkos_Tags.hpp>
 
 namespace Kokkos {
 
@@ -69,7 +70,11 @@ namespace Kokkos {
 /// Fortran stores multi-dimensional arrays.  For the special case of
 /// a two-dimensional array, "layout left" is also called "column
 /// major."
-struct LayoutLeft { typedef LayoutLeft array_layout ; };
+struct LayoutLeft {
+  //! The tag (what type of kokkos_object is this).
+  typedef Impl::LayoutTag       kokkos_tag ;
+  typedef LayoutLeft array_layout ;
+};
 
 //----------------------------------------------------------------------------
 /// \struct LayoutRight
@@ -85,13 +90,21 @@ struct LayoutLeft { typedef LayoutLeft array_layout ; };
 /// going left from there.  This layout imitates how C stores
 /// multi-dimensional arrays.  For the special case of a
 /// two-dimensional array, "layout right" is also called "row major."
-struct LayoutRight { typedef LayoutRight array_layout ; };
+struct LayoutRight {
+  //! The tag (what type of kokkos_object is this).
+  typedef Impl::LayoutTag       kokkos_tag ;
+  typedef LayoutRight array_layout ;
+};
 
 //----------------------------------------------------------------------------
 /// \struct LayoutStride
 /// \brief  Memory layout tag indicated arbitrarily strided
 ///         multi-index mapping into contiguous memory.
 struct LayoutStride {
+
+  //! The tag (what type of kokkos_object is this).
+  typedef Impl::LayoutTag       kokkos_tag ;
+
   typedef LayoutStride array_layout ;
 
   enum { MAX_RANK = 8 };
@@ -153,6 +166,9 @@ template < unsigned ArgN0 , unsigned ArgN1 ,
                                  Impl::is_power_of_two<ArgN1>::value )
          >
 struct LayoutTileLeft {
+  //! The tag (what type of kokkos_object is this).
+  typedef Impl::LayoutTag       kokkos_tag ;
+
   typedef LayoutTileLeft<ArgN0,ArgN1,IsPowerOfTwo> array_layout ;
   enum { N0 = ArgN0 };
   enum { N1 = ArgN1 };

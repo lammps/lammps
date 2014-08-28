@@ -175,7 +175,7 @@ template< typename T >
 T atomic_fetch_add( volatile T * const dest , const T val )
 {
   T retval;
-#pragma omp critical
+#pragma omp atomic capture
   {
     retval = dest[0];
     dest[0] += val;
@@ -194,7 +194,21 @@ void atomic_add(volatile T * const dest, const T src) {
   atomic_fetch_add(dest,src);
 }
 
+// Atomic increment
+template<typename T>
+KOKKOS_INLINE_FUNCTION
+void atomic_increment(volatile T* a) {
+  Kokkos::atomic_fetch_add(a,1);
 }
 
+template<typename T>
+KOKKOS_INLINE_FUNCTION
+void atomic_decrement(volatile T* a) {
+  Kokkos::atomic_fetch_add(a,-1);
+}
+
+}
+
+#include<impl/Kokkos_Atomic_Assembly_X86.hpp>
 #endif
 

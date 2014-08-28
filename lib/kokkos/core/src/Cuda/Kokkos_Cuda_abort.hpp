@@ -49,8 +49,10 @@
 
 #if defined( __CUDACC__ ) && defined( __CUDA_ARCH__ )
 
+#include <cuda.h>
+
 #if ! defined( CUDA_VERSION ) || ( CUDA_VERSION < 4010 )
-#errof "Cuda version 4.1 or greater required"
+#error "Cuda version 4.1 or greater required"
 #endif
 
 #if ( __CUDA_ARCH__ < 200 )

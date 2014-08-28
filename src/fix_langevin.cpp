@@ -73,7 +73,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   t_stop = force->numeric(FLERR,arg[4]);
   t_period = force->numeric(FLERR,arg[5]);
-  int seed = force->inumeric(FLERR,arg[6]);
+  seed = force->inumeric(FLERR,arg[6]);
 
   if (t_period <= 0.0) error->all(FLERR,"Fix langevin period must be > 0.0");
   if (seed <= 0) error->all(FLERR,"Illegal fix langevin command");

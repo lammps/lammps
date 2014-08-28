@@ -58,6 +58,12 @@
 #include <sstream>
 #include <string>
 
+#ifdef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
+__device__ __constant__
+Kokkos::Impl::CudaTraits::ConstantGlobalBufferType
+kokkos_impl_cuda_constant_memory_buffer ;
+#endif
+
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
@@ -65,14 +71,36 @@ namespace Impl {
 
 namespace {
 
+__global__
+void query_cuda_kernel_arch( int * d_arch )
+{
+#if defined( __CUDA_ARCH__ )
+  *d_arch = __CUDA_ARCH__ ;
+#else
+  *d_arch = 0 ;
+#endif
+}
+
+/** Query what compute capability is actually launched to the device: */
+int cuda_kernel_arch()
+{
+  int * d_arch = 0 ;
+  cudaMalloc( (void **) & d_arch , sizeof(int) );
+  query_cuda_kernel_arch<<<1,1>>>( d_arch );
+  int arch = 0 ;
+  cudaMemcpy( & arch , d_arch , sizeof(int) , cudaMemcpyDefault );
+  cudaFree( d_arch );
+  return arch ;
+}
+
 bool cuda_launch_blocking()
 {
   const char * env = getenv("CUDA_LAUNCH_BLOCKING");
+
   if (env == 0) return false;
 
   return atoi(env);
 }
-
 
 }
 
@@ -193,6 +221,7 @@ public:
   typedef Cuda::size_type size_type ;
 
   int         m_cudaDev ;
+  int         m_cudaArch ;
   unsigned    m_maxWarpCount ;
   unsigned    m_maxBlock ;
   unsigned    m_maxSharedWords ;
@@ -220,6 +249,7 @@ public:
 
   CudaInternal()
     : m_cudaDev( -1 )
+    , m_cudaArch( -1 )
     , m_maxWarpCount( 0 )
     , m_maxBlock( 0 ) 
     , m_maxSharedWords( 0 )
@@ -278,6 +308,7 @@ CudaInternal::~CudaInternal()
   }
 
   m_cudaDev             = -1 ;
+  m_cudaArch            = -1 ;
   m_maxWarpCount        = 0 ;
   m_maxBlock            = 0 ;
   m_maxSharedWords      = 0 ;
@@ -337,6 +368,18 @@ void CudaInternal::initialize( int cuda_device_id )
     CUDA_SAFE_CALL( cudaDeviceReset() );
     Kokkos::Impl::cuda_device_synchronize();
 
+    // Query what compute capability architecture a kernel executes:
+    m_cudaArch = cuda_kernel_arch();
+
+    if ( m_cudaArch != cudaProp.major * 100 + cudaProp.minor * 10 ) {
+      std::cerr << "Kokkos::Cuda::initialize WARNING: running kernels compiled for compute capability "
+                << ( m_cudaArch / 100 ) << "." << ( ( m_cudaArch % 100 ) / 10 )
+                << " on device with compute capability "
+                << cudaProp.major << "." << cudaProp.minor
+                << " , this will likely reduce potential performance."
+                << std::endl ;
+    }
+
     //----------------------------------
     // Maximum number of warps,
     // at most one warp per thread in a warp for reduction.
@@ -362,8 +405,9 @@ void CudaInternal::initialize( int cuda_device_id )
     m_maxSharedWords = cudaProp.sharedMemPerBlock / WordSize ;
 
     //----------------------------------
+    // Maximum number of blocks:
 
-    m_maxBlock = cudaProp.maxGridSize[0] ;
+    m_maxBlock = m_cudaArch < 300 ? 65535 : cudaProp.maxGridSize[0] ;
 
     //----------------------------------
 
@@ -553,6 +597,12 @@ int Cuda::is_initialized()
 void Cuda::initialize( const Cuda::SelectDevice config )
 { Impl::CudaInternal::singleton().initialize( config.cuda_device_id ); }
 
+void Cuda::initialize( const int device ) 
+{ initialize( SelectDevice(device) ); }
+
+void Cuda::initialize( const int device , const int )
+{ initialize( device ); }
+
 std::vector<unsigned>
 Cuda::detect_device_arch()
 {
@@ -601,6 +651,12 @@ void Cuda::fence()
 unsigned Cuda::team_max()
 {
   return Impl::CudaInternal::singleton().m_maxWarpCount << Impl::CudaTraits::WarpIndexShift ;
+}
+
+unsigned Cuda::team_recommended()
+{
+  // Recommend 8 warps to hide latency and be a power of two
+  return unsigned(8) << Impl::CudaTraits::WarpIndexShift ;
 }
 
 } // namespace Kokkos

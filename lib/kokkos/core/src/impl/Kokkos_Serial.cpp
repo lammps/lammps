@@ -42,43 +42,81 @@
 */
 
 #include <stdlib.h>
+#include <sstream>
 #include <Kokkos_Serial.hpp>
+#include <impl/Kokkos_Traits.hpp>
+#include <impl/Kokkos_Error.hpp>
 
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
+namespace Impl {
 namespace {
 
 struct Sentinel {
 
-  void *   m_reduce ;
-  unsigned m_reduce_size ;
+  void *   m_scratch ;
+  unsigned m_reduce_end ;
+  unsigned m_shared_end ;
 
-  Sentinel() : m_reduce(0), m_reduce_size(0) {}
+  Sentinel() : m_scratch(0), m_reduce_end(0), m_shared_end(0) {}
 
-  ~Sentinel() { if ( m_reduce ) { free( m_reduce ); } }
+  ~Sentinel()
+    {
+      if ( m_scratch ) { free( m_scratch ); }
+      m_scratch = 0 ;
+      m_reduce_end = 0 ;
+      m_shared_end = 0 ;
+    }
+
+  static Sentinel & singleton();
 };
 
+Sentinel & Sentinel::singleton()
+{
+  static Sentinel s ; return s ;
 }
 
-void * Serial::resize_reduce_scratch( unsigned size )
+inline
+unsigned align( unsigned n )
 {
-  static Sentinel s ;
+  enum { ALIGN = 0x0100 /* 256 */ , MASK = ALIGN - 1 };
+  return ( n + MASK ) & ~MASK ;
+}
 
-  const unsigned rem = size % Impl::MEMORY_ALIGNMENT ;
+} // namespace
 
-  if ( rem ) size += Impl::MEMORY_ALIGNMENT - rem ;
+SerialTeamMember::SerialTeamMember( int arg_league_rank
+                                  , int arg_league_size
+                                  , int arg_shared_size
+                                  )
+  : m_space( ((char *) Sentinel::singleton().m_scratch) + Sentinel::singleton().m_reduce_end
+           , arg_shared_size )
+  , m_league_rank( arg_league_rank )
+  , m_league_size( arg_league_size )
+{}
 
-  if ( ( 0 == size ) || ( s.m_reduce_size < size ) ) {
+} // namespace Impl
 
-    if ( s.m_reduce ) { free( s.m_reduce ); }
+void * Serial::scratch_memory_resize( unsigned reduce_size , unsigned shared_size )
+{
+  static Impl::Sentinel & s = Impl::Sentinel::singleton();
+
+  reduce_size = Impl::align( reduce_size );
+  shared_size = Impl::align( shared_size );
+
+  if ( ( s.m_reduce_end < reduce_size ) ||
+       ( s.m_shared_end < s.m_reduce_end + shared_size ) ) {
+
+    if ( s.m_scratch ) { free( s.m_scratch ); }
   
-    s.m_reduce_size = size ;
+    if ( s.m_reduce_end < reduce_size ) s.m_reduce_end = reduce_size ;
+    if ( s.m_shared_end < s.m_reduce_end + shared_size ) s.m_shared_end = s.m_reduce_end + shared_size ;
 
-    s.m_reduce = malloc( size );
+    s.m_scratch = malloc( s.m_shared_end );
   }
 
-  return s.m_reduce ;
+  return s.m_scratch ;
 }
 
 } // namespace Kokkos

@@ -41,15 +41,10 @@
 //@HEADER
 */
 
-#include <cstdlib>
-#include <string>
-#include <iostream>
-#include <stdexcept>
+#include <Kokkos_Macros.hpp>
 
-#include <KokkosCore_config.h>
-#include <Kokkos_Threads.hpp>
-
-/*--------------------------------------------------------------------------*/
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 #if defined( KOKKOS_HAVE_PTHREAD )
 
@@ -59,13 +54,19 @@
 #include <sched.h>
 #include <errno.h>
 
-/*--------------------------------------------------------------------------*/
+/* Standard C++ libaries */
 
-namespace Kokkos {
-namespace Impl {
+#include <cstdlib>
+#include <string>
+#include <iostream>
+#include <stdexcept>
+
+#include <Kokkos_Threads.hpp>
 
 //----------------------------------------------------------------------------
 
+namespace Kokkos {
+namespace Impl {
 namespace {
 
 pthread_mutex_t host_internal_pthread_mutex = PTHREAD_MUTEX_INITIALIZER ;
@@ -147,6 +148,7 @@ void ThreadsExec::wait_yield( volatile int & flag , const int value )
 } // namespace Impl
 } // namespace Kokkos
 
+/* end #if defined( KOKKOS_HAVE_PTHREAD ) */
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
@@ -155,6 +157,15 @@ void ThreadsExec::wait_yield( volatile int & flag , const int value )
 /* Windows libraries */
 #include <windows.h>
 #include <process.h>
+
+/* Standard C++ libaries */
+
+#include <cstdlib>
+#include <string>
+#include <iostream>
+#include <stdexcept>
+
+#include <Kokkos_Threads.hpp>
 
 //----------------------------------------------------------------------------
 // Driver for each created pthread
@@ -235,29 +246,9 @@ void ThreadsExec::wait_yield( volatile int & flag , const int value ) {}
 } // namespace Impl
 } // namespace Kokkos
 
+#endif /* end #elif defined( KOKKOS_HAVE_WINTHREAD ) */
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#else /* NO Threads */
 
-namespace Kokkos {
-namespace Impl {
-
-bool ThreadsExec::spawn()
-{
-  std::string msg("Kokkos::Threads ERROR : Attempting to spawn threads without configuring with a threading library.  Try configuring with KOKKOS_HAVE_PTHREAD");
-  throw std::runtime_error( msg );
-
-  return false ;
-}
-
-bool ThreadsExec::is_process() { return true ; }
-void ThreadsExec::global_lock() {}
-void ThreadsExec::global_unlock() {}
-void ThreadsExec::wait_yield( volatile int & , const int ) {}
-
-} // namespace Impl
-} // namespace Kokkos
-
-#endif /* End thread model */
 

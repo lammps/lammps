@@ -62,8 +62,22 @@ namespace Kokkos {
 class HostSpace {
 public:
 
-  typedef HostSpace  memory_space ;
-  typedef size_t     size_type ;
+  typedef Impl::MemorySpaceTag  kokkos_tag ;
+  typedef HostSpace             memory_space ;
+  typedef size_t                size_type ;
+
+  // Default execution space for this memory space
+#if defined( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_OPENMP )
+  typedef Kokkos::OpenMP   execution_space ;
+#elif defined( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_THREADS )
+  typedef Kokkos::Threads  execution_space ;
+#elif defined( KOKKOS_HAVE_OPENMP )
+  typedef Kokkos::OpenMP   execution_space ;
+#elif defined( KOKKOS_HAVE_PTHREAD )
+  typedef Kokkos::Threads  execution_space ;
+#else
+  typedef Kokkos::Serial   execution_space ;
+#endif
 
   /** \brief  Allocate a contiguous block of memory on the Cuda device
    *          with size = scalar_size * scalar_count.

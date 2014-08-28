@@ -40,12 +40,12 @@ if (test $1 = 1) then
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*kokkos[^ \t]* //g' ../Makefile.package
     sed -i -e 's/[^ \t]*KOKKOS[^ \t]* //g' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/kokkos\/core\/src -I../../lib/kokkos/containers/src -DLMP_KOKKOS |' ../Makefile.package
-    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/kokkos\/core\/src |' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_KOKKOS |' ../Makefile.package
+#    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/kokkos\/core\/src |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lkokkoscore |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(kokkos_SYSINC) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(kokkos_SYSLIB) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(kokkos_SYSPATH) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(KOKKOS_INC) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(KOKKOS_LINK) |' ../Makefile.package
+#    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(kokkos_SYSPATH) |' ../Makefile.package
   fi
 
   if (test -e ../Makefile.package.settings) then

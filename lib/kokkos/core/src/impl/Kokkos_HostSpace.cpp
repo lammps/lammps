@@ -65,7 +65,7 @@ public:
   HostMemoryTrackingEntry( const std::string & arg_label ,
                            const std::type_info & arg_info ,
                            void * const           arg_ptr ,
-                           const unsigned         arg_size )
+                           const size_t           arg_size )
     : Impl::MemoryTrackingEntry( arg_label , arg_info , arg_ptr , arg_size )
     , ptr_alloc( arg_ptr )
     {}

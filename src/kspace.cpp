@@ -88,6 +88,10 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   datamask = ALL_MASK;
   datamask_ext = ALL_MASK;
 
+  execution_space = Host;
+  datamask_read = ALL_MASK;
+  datamask_modify = ALL_MASK;
+
   memory->create(gcons,7,7,"kspace:gcons");
   gcons[2][0] = 15.0 / 8.0;
   gcons[2][1] = -5.0 / 4.0;

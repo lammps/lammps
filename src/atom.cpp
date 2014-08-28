@@ -414,7 +414,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
     }
 
     if (lmp->suffix2) {
-      sflag = 1;
+      sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
 

@@ -41,6 +41,7 @@ template<class DeviceType>
 class PairTableKokkos : public Pair {
  public:
 
+  enum {EnabledNeighFlags=FULL&HALFTHREAD&HALF&N2&FULLCLUSTER};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
 
@@ -208,67 +209,10 @@ class PairTableKokkos : public Pair {
   friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,BITMAP> >;
   friend class PairComputeFunctor<PairTableKokkos,N2,false,S_TableCompute<DeviceType,BITMAP> >;
   friend class PairComputeFunctor<PairTableKokkos,FULLCLUSTER,false,S_TableCompute<DeviceType,BITMAP> >;
-/*template<int FULL_NEIGH>
-  KOKKOS_INLINE_FUNCTION
-    void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-                  const F_FLOAT &fpair, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
-*/
-};
-/*
-template <class DeviceType, int NEIGHFLAG, int TABSTYLE>
-struct PairTableComputeFunctor  {
-  typedef DeviceType device_type ;
-  typedef EV_FLOAT value_type;
 
-  PairTableKokkos<DeviceType> c;
-  NeighListKokkos<DeviceType> list;
-
-  PairTableComputeFunctor(PairTableKokkos<DeviceType>* c_ptr,
-                          NeighListKokkos<DeviceType>* list_ptr):
-  c(*c_ptr),list(*list_ptr) {};
-  ~PairTableComputeFunctor() {c.cleanup_copy();list.clean_copy();};
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int i) const {
-    if (c.newton_pair) c.template compute_item<0,NEIGHFLAG,1,TABSTYLE>(i,list);
-    else c.template compute_item<0,NEIGHFLAG,0,TABSTYLE>(i,list);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int i, value_type &energy_virial) const {
-    if (c.newton_pair)
-      energy_virial += c.template compute_item<1,NEIGHFLAG,1,TABSTYLE>(i,list);
-    else
-      energy_virial += c.template compute_item<1,NEIGHFLAG,0,TABSTYLE>(i,list);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  static void init(volatile value_type &update) {
-    update.evdwl = 0;
-    update.ecoul = 0;
-    update.v[0] = 0;
-    update.v[1] = 0;
-    update.v[2] = 0;
-    update.v[3] = 0;
-    update.v[4] = 0;
-    update.v[5] = 0;
-  }
-  KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type &update,
-                   const volatile value_type &source) {
-    update.evdwl += source.evdwl;
-    update.ecoul += source.ecoul;
-    update.v[0] += source.v[0];
-    update.v[1] += source.v[1];
-    update.v[2] += source.v[2];
-    update.v[3] += source.v[3];
-    update.v[4] += source.v[4];
-    update.v[5] += source.v[5];
-  }
+  friend void pair_virial_fdotr_compute<PairTableKokkos>(PairTableKokkos*);
 };
 
-*/
 
 
 

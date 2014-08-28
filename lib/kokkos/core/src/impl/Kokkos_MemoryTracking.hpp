@@ -69,7 +69,7 @@ protected:
   MemoryTrackingEntry( const std::string    & arg_label ,
                        const std::type_info & arg_type ,
                        const void * const     arg_begin ,
-                       const unsigned         arg_bytes )
+                       const ptrdiff_t        arg_bytes )
     : label( arg_label )
     , type(  arg_type )
     , begin( reinterpret_cast<ptrdiff_t>( arg_begin ) )

@@ -45,15 +45,20 @@
 #ifndef KOKKOS_SPINWAIT_HPP
 #define KOKKOS_SPINWAIT_HPP
 
+#include <Kokkos_Macros.hpp>
+
 namespace Kokkos {
 namespace Impl {
 
+#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
 void spinwait( volatile int & flag , const int value );
+#else
+KOKKOS_INLINE_FUNCTION
+void spinwait( volatile int & , const int ) {}
+#endif
 
 } /* namespace Impl */
 } /* namespace Kokkos */
-
-#undef KOKKOS_YIELD
 
 #endif /* #ifndef KOKKOS_SPINWAIT_HPP */
 

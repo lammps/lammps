@@ -46,182 +46,186 @@
 #ifndef KOKKOS_MACROS_HPP
 #define KOKKOS_MACROS_HPP
 
+//----------------------------------------------------------------------------
+/** Pick up configure/build options via #define macros:
+ *
+ *  KOKKOS_HAVE_CUDA                Kokkos::Cuda execution and memory spaces
+ *  KOKKOS_HAVE_PTHREAD             Kokkos::Threads execution space
+ *  KOKKOS_HAVE_QTHREAD             Kokkos::Qthread execution space
+ *  KOKKOS_HAVE_OPENMP              Kokkos::OpenMP  execution space
+ *  KOKKOS_HAVE_HWLOC               HWLOC library is available
+ *  KOKKOS_HAVE_EXPRESSION_CHECK    insert array bounds checks, is expensive!
+ *  KOKKOS_HAVE_CXX11               enable C++11 features
+ *
+ *  KOKKOS_HAVE_MPI                 negotiate MPI/execution space interactions
+ *
+ *  KOKKOS_USE_CUDA_UVM             Use CUDA UVM for Cuda memory space
+ */
+
+#ifndef KOKKOS_DONT_INCLUDE_CORE_CONFIG_H
 #include <KokkosCore_config.h>
+#endif
+
+//----------------------------------------------------------------------------
+/** Pick up compiler specific #define macros:
+ *
+ *  Macros for known compilers evaluate to an integral version value
+ *
+ *  KOKKOS_COMPILER_NVCC
+ *  KOKKOS_COMPILER_GNU
+ *  KOKKOS_COMPILER_INTEL
+ *  KOKKOS_COMPILER_IBM
+ *  KOKKOS_COMPILER_CRAYC
+ *  KOKKOS_COMPILER_APPLECC
+ *  KOKKOS_COMPILER_CLANG
+ *  KOKKOS_COMPILER_PGI
+ *
+ *  Macros for which compiler extension to use for atomics on intrinsice types
+ *
+ *  KOKKOS_ATOMICS_USE_CUDA
+ *  KOKKOS_ATOMICS_USE_GNU
+ *  KOKKOS_ATOMICS_USE_INTEL
+ *  KOKKOS_ATOMICS_USE_OPENMP31
+ *
+ *  A suite of 'KOKKOS_HAVE_PRAGMA_...' are defined for internal use.
+ *
+ *  Macros for marking functions to run in an execution space:
+ *
+ *  KOKKOS_FUNCTION
+ *  KOKKOS_INLINE_FUNCTION        request compiler to inline
+ *  KOKKOS_FORCEINLINE_FUNCTION   force compiler to inline, use with care!
+ */
+
 #include <impl/Kokkos_Compiler_Macros.hpp>
 
-namespace Kokkos {
-class HostSpace ;
-class CudaSpace ;
-} // namespace Kokkos
+/** Define function marking macros if compiler specific macros are undefined: */
 
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-#if defined( __CUDACC__ )
-
-// Compiling with CUDA compiler.
-
-#if ! defined( KOKKOS_HAVE_CUDA )
-#error "Compiling Kokkos with Cuda compiler but KOKKOS_HAVE_CUDA is undefined"
-#endif
-
-#include <cuda.h>
-
-/*  Compiling with a CUDA compiler for device code.
- *
- *  Include <cuda.h> to pick up the CUDA_VERSION macro defined as:
- *    CUDA_VERSION = ( MAJOR_VERSION * 1000 ) + ( MINOR_VERSION * 10 )
- *
- *  When generating device code the __CUDA_ARCH__ macro is defined as:
- *    __CUDA_ARCH__ = ( MAJOR_CAPABILITY * 100 ) + ( MINOR_CAPABILITY * 10 )
- */
-#if ! defined( CUDA_VERSION )
-#error "#include <cuda.h> did not define CUDA_VERSION"
-#endif
-
-#if ( CUDA_VERSION < 4010 )
-#error "Cuda version 4.1 or greater required"
-#endif
-
-#endif /* #if defined( __CUDACC__ ) */
-
-//----------------------------------------------------------------------------
-
-#if defined( __CUDACC__ ) && defined( __CUDA_ARCH__ )
-
-/*  Compiling with CUDA compiler for device code. */
-
-#if ( __CUDA_ARCH__ < 200 )
-#error "Cuda device capability >= 2.0 is required"
-#endif
-
-#define KOKKOS_FORCEINLINE_FUNCTION  __device__  __host__  __forceinline__
-#define KOKKOS_INLINE_FUNCTION  __device__  __host__  inline
-#define KOKKOS_FUNCTION         __device__  __host__
-
-#endif /* #if defined( __CUDACC__ ) && #if defined( __CUDA_ARCH__ ) */
-
-//----------------------------------------------------------------------------
-
-#if defined( __CUDACC__ ) && ! defined( __CUDA_ARCH__ )
-
-/*  Compiling with CUDA compiler for host code. */
-
-#define KOKKOS_FORCEINLINE_FUNCTION  __forceinline__
-
-#endif /* #if defined( __CUDACC__ ) && ! defined( __CUDA_ARCH__ ) */
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-#if defined( __INTEL_COMPILER )
-
-#if (__INTEL_COMPILER < 1200)
-#define KOKKOS_DISABLE_ASM true;
-#endif
-
-/*  Compiling with Intel compiler */
-/*  TBD: Version testing */
-
-#ifndef KOKKOS_FORCEINLINE_FUNCTION
-#define KOKKOS_FORCEINLINE_FUNCTION  __forceinline
-#endif
-
-#if defined( __MIC__ )
-
-/*  Compiling with Intel compiler for execution on an Intel MIC device.
- *  These devices are used in no-offload mode so the HostSpace is the MIC space.
- */
-
-#else
-
-#ifndef KOKKOS_USE_PRAGMA_SIMD
-#define KOKKOS_USE_PRAGMA_SIMD
-#endif
-
-/*
-  #pragma simd vectorlength(N)
-  #pragma ivdep
-*/
-
-#endif /* #if defined( __MIC__ ) */
-
-#endif /* #if defined( __INTEL_COMPILER ) */
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-#if defined( __GNUC__ ) /* GNU C   */ || \
-    defined( __GNUG__ ) /* GNU C++ */
-
-/* Compiling with GNU compiler */
-
-#ifndef KOKKOS_FORCEINLINE_FUNCTION
-#define KOKKOS_FORCEINLINE_FUNCTION  inline __attribute__((always_inline))
-#endif
-
-/*  Compiling with GNU compatible compiler.  */
-
-#endif
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-#if defined( _OPENMP )
-
-#if ! defined( KOKKOS_HAVE_OPENMP )
-#error "Compiling Kokkos for OpenMP but KOKKOS_HAVE_OPENMP is undefined"
-#endif
-
-/*  Compiling with OpenMP.
- *  The value of _OPENMP is an integer value YYYYMM
- *  where YYYY and MM are the year and month designation
- *  of the supported OpenMP API version.
- */
-
-#endif /* END: #if defined( _OPENMP ) */
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-#ifndef KOKKOS_FUNCTION
-#define KOKKOS_FUNCTION /* */
-#endif
-
-#ifndef KOKKOS_INLINE_FUNCTION
-#define KOKKOS_INLINE_FUNCTION inline
-#endif
-
-#ifndef KOKKOS_FORCEINLINE_FUNCTION
+#if ! defined( KOKKOS_FORCEINLINE_FUNCTION )
 #define KOKKOS_FORCEINLINE_FUNCTION  inline
 #endif
 
+#if ! defined( KOKKOS_INLINE_FUNCTION )
+#define KOKKOS_INLINE_FUNCTION  inline
+#endif
+
+#if ! defined( KOKKOS_FUNCTION )
+#define KOKKOS_FUNCTION /**/
+#endif
+
+/** These should be part of the Atomics API */
+
+#if ! defined( KOKKOS_NONTEMPORAL_PREFETCH_LOAD )
+    #define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) ((void)0)
+    #define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) ((void)0)
+#endif
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+// Non-macro forward declaration placement in this file to be reconsidered...
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+// Forward declarations for enabled execution and memory spaces.
 
-#if defined( __CUDACC__ ) && defined( __CUDA_ARCH__ )
+namespace Kokkos {
 
-namespace Kokkos { typedef CudaSpace ExecutionSpace ; }
+class Serial ;    ///< Execution space for serial on CPU
+class HostSpace ; ///< Memory space for Serial, Threads, and OpenMP
 
-#else
+class Threads ; ///< Pthreads execution space
 
-namespace Kokkos { typedef HostSpace ExecutionSpace ; }
+#if defined( KOKKOS_HAVE_CUDA )
+class CudaSpace ; ///< Cuda memory space
+class Cuda ;      ///< Cuda execution space
+#endif
+
+#if defined( KOKKOS_HAVE_OPENMP )
+class OpenMP ; ///< OpenMP execution space
+#endif
+
+} // namespace Kokkos
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+// Set the default execution space.
+
+/// Define Kokkos::DefaultExecutionSpace as per configuration option
+/// or chosen from the enabled execution spaces in the following order:
+/// Kokkos::Cuda, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Serial
+
+namespace Kokkos {
+
+#if 1 < ( ( defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_CUDA ) ? 1 : 0 ) + \
+          ( defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_OPENMP ) ? 1 : 0 ) + \
+          ( defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_THREADS ) ? 1 : 0 ) + \
+          ( defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_SERIAL ) ? 1 : 0 ) )
+
+#error "More than one KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_* specified" ;
 
 #endif
 
+#if   defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_CUDA )
+  typedef Kokkos::Cuda DefaultExecutionSpace ;
+#elif defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_OPENMP )
+  typedef OpenMP DefaultExecutionSpace ;
+#elif defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_THREADS )
+  typedef Threads DefaultExecutionSpace ;
+#elif defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_SERIAL )
+  typedef Serial DefaultExecutionSpace ;
+#elif  defined ( KOKKOS_HAVE_CUDA )
+  #define KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_CUDA
+  typedef Kokkos::Cuda DefaultExecutionSpace ;
+#elif defined ( KOKKOS_HAVE_OPENMP )
+  #define KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_OPENMP
+  typedef Kokkos::OpenMP DefaultExecutionSpace ;
+#elif defined ( KOKKOS_HAVE_PTHREAD )
+  #define KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_THREADS
+  typedef Kokkos::Threads DefaultExecutionSpace ;
+#else
+  #define KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_SERIAL
+  typedef Kokkos::Serial DefaultExecutionSpace ;
+#endif
+
+} /* namespace Kokkos */
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+namespace Kokkos {
+namespace Impl {
+
+#if defined( __CUDACC__ ) && defined( __CUDA_ARCH__ )
+typedef Kokkos::CudaSpace  ActiveExecutionMemorySpace ;
+#define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA
+#else
+typedef Kokkos::HostSpace  ActiveExecutionMemorySpace ;
+#define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
+#endif
+
+template< class ActiveSpace , class MemorySpace >
+struct VerifyExecutionCanAccessMemorySpace {};
+
+template< class Space >
+struct VerifyExecutionCanAccessMemorySpace< Space , Space >
+{
+  KOKKOS_INLINE_FUNCTION static void verify(void) {}
+  KOKKOS_INLINE_FUNCTION static void verify(const void *) {}
+};
+
+} // namespace Impl
+} // namespace Kokkos
+
+// Currently executing in the CUDA space
+
 #define KOKKOS_RESTRICT_EXECUTION_TO_DATA( DATA_SPACE , DATA_PTR ) \
-  Kokkos::VerifyExecutionSpaceCanAccessDataSpace< \
-    Kokkos::ExecutionSpace , DATA_SPACE >::verify( DATA_PTR )
+  Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< \
+    Kokkos::Impl::ActiveExecutionMemorySpace , DATA_SPACE >::verify( DATA_PTR )
 
-#define KOKKOS_RESTRICT_EXECUTION_TO( DATA_SPACE ) \
-  Kokkos::VerifyExecutionSpaceCanAccessDataSpace< \
-    Kokkos::ExecutionSpace , DATA_SPACE >::verify()
+#define KOKKOS_RESTRICT_EXECUTION_TO_( DATA_SPACE ) \
+  Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< \
+    Kokkos::Impl::ActiveExecutionMemorySpace , DATA_SPACE >::verify()
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-
 
 #endif /* #ifndef KOKKOS_MACROS_HPP */
 

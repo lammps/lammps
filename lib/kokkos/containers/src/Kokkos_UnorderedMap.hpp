@@ -67,17 +67,6 @@
 #include <stdint.h>
 #include <stdexcept>
 
-#if (defined( __GNUC__ ) || defined( __GNUG__ )) && not defined( __CUDACC__ )
-
-#define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) __builtin_prefetch(addr,0,0)
-#define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) __builtin_prefetch(addr,1,0)
-
-#else
-
-#define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) ((void)0)
-#define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) ((void)0)
-
-#endif
 
 namespace Kokkos {
 
@@ -222,7 +211,7 @@ private:
 ///
 template <   typename Key
            , typename Value
-           , typename Device
+           , typename Device = Kokkos::DefaultExecutionSpace
            , typename Hasher = pod_hash<typename Impl::remove_const<Key>::type>
            , typename EqualTo = pod_equal_to<typename Impl::remove_const<Key>::type>
         >

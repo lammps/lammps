@@ -76,6 +76,10 @@ class KSpace : protected Pointers {
   unsigned int datamask;
   unsigned int datamask_ext;
 
+  // KOKKOS host/device flag and data masks
+  ExecutionSpace execution_space;
+  unsigned int datamask_read,datamask_modify;
+
   int compute_flag;               // 0 if skip compute()
   int fftbench;                   // 0 if skip FFT timing
   int collective_flag;            // 1 if use MPI collectives for FFT/remap

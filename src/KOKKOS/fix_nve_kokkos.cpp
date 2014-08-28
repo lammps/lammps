@@ -172,6 +172,6 @@ void FixNVEKokkos<DeviceType>::cleanup_copy()
 }
 
 template class FixNVEKokkos<LMPDeviceType>;
-#if DEVICE==2
+#ifdef KOKKOS_HAVE_CUDA
 template class FixNVEKokkos<LMPHostType>;
 #endif

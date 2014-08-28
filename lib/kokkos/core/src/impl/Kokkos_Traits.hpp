@@ -214,13 +214,30 @@ struct if_c< true , TrueType , FalseType >
   value_type & select( value_type & v , const F & ) { return v ; }
 };
 
+template< typename TrueType >
+struct if_c< false , TrueType , void >
+{
+  enum { value = false };
+
+  typedef void type ;
+  typedef void value_type ;
+};
+
+template< typename FalseType >
+struct if_c< true , void , FalseType >
+{
+  enum { value = true };
+
+  typedef void type ;
+  typedef void value_type ;
+};
 
 template <typename Cond, typename TrueType, typename FalseType>
 struct if_ : public if_c<Cond::value, TrueType, FalseType> {};
 
 //----------------------------------------------------------------------------
 
-template <size_t N>
+template < size_t N >
 struct is_power_of_two
 {
   enum type { value = (N > 0) && !(N & (N-1)) };
@@ -246,6 +263,28 @@ struct power_of_two<1,true>
 {
   enum type { value = 0 };
 };
+
+/** \brief  If power of two then return power,
+ *          otherwise return ~0u.
+ */
+static KOKKOS_FORCEINLINE_FUNCTION
+unsigned power_of_two_if_valid( const unsigned N )
+{
+  unsigned p = ~0u ;
+  if ( N && ! ( N & ( N - 1 ) ) ) {
+#if defined( __CUDA_ARCH__ )
+    p = __ffs(N) - 1 ;
+#elif defined( __GNUC__ ) || defined( __GNUG__ )
+    p = __builtin_ffs(N) - 1 ;
+#elif defined( __INTEL_COMPILER )
+    p = _bit_scan_forward(N);
+#else
+    p = 0 ;
+    for ( unsigned j = 1 ; ! ( N & j ) ; j <<= 1 ) { ++p ; }
+#endif
+  }
+  return p ;
+}
 
 //----------------------------------------------------------------------------
 

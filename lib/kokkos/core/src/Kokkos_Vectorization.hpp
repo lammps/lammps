@@ -47,27 +47,41 @@
 #define KOKKOS_VECTORIZATION_HPP
 
 #include <Kokkos_Macros.hpp>
+#include <Kokkos_ExecPolicy.hpp>
 
 namespace Kokkos {
 template<class Device, int N>
 struct Vectorization {
+  typedef Kokkos::TeamPolicy< Device >       team_policy ;
+  typedef typename team_policy::member_type  team_member ;
+
   enum {increment = 1};
 
   KOKKOS_FORCEINLINE_FUNCTION
   static int begin() { return 0;}
 
   KOKKOS_FORCEINLINE_FUNCTION
-  static int thread_rank(const Device &dev) {
+  static int thread_rank(const team_member &dev) {
     return dev.team_rank();
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  static int global_thread_rank(const Device &dev) {
+  static int team_rank(const team_member &dev) {
+    return dev.team_rank()/increment;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  static int team_size(const team_member &dev) {
+    return dev.team_size()/increment;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  static int global_thread_rank(const team_member &dev) {
     return (dev.league_rank()*dev.team_size()+dev.team_rank());
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  static bool is_lane_0(const Device &dev) {
+  static bool is_lane_0(const team_member &dev) {
     return true;
   }
 

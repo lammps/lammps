@@ -118,11 +118,11 @@ struct ViewOffset< ShapeType , LayoutLeft
 
   template< unsigned R >
   KOKKOS_INLINE_FUNCTION
-  void assign( unsigned n )
+  void assign( size_t n )
     { AssignViewOffsetDimension< ViewOffset , R >( *this , n ); }
 
   KOKKOS_INLINE_FUNCTION
-  void assign( unsigned n0 , unsigned n1 , unsigned n2 , unsigned n3
+  void assign( size_t n0 , unsigned n1 , unsigned n2 , unsigned n3
              , unsigned n4 , unsigned n5 , unsigned n6 , unsigned n7
              , unsigned = 0 )
     { shape_type::assign( *this , n0, n1, n2, n3, n4, n5, n6, n7 ); }
@@ -152,11 +152,11 @@ struct ViewOffset< ShapeType , LayoutLeft
 
   KOKKOS_INLINE_FUNCTION
   size_type cardinality() const
-    { return shape_type::N0 * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
+    { return size_type(shape_type::N0) * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
 
   KOKKOS_INLINE_FUNCTION
   size_type capacity() const
-    { return shape_type::N0 * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
+    { return size_type(shape_type::N0) * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
 
   // Stride with [ rank ] value is the total length
   template< typename iType >
@@ -299,15 +299,15 @@ struct ViewOffset< ShapeType , LayoutLeft
 
   enum { has_padding = true };
 
-  unsigned S0 ;
+  size_type S0 ;
 
   template< unsigned R >
   KOKKOS_INLINE_FUNCTION
-  void assign( unsigned n )
+  void assign( size_t n )
     { AssignViewOffsetDimension< ViewOffset , R >( *this , n ); }
 
   KOKKOS_INLINE_FUNCTION
-  void assign( unsigned n0 , unsigned n1 , unsigned n2 , unsigned n3
+  void assign( size_t n0 , unsigned n1 , unsigned n2 , unsigned n3
              , unsigned n4 , unsigned n5 , unsigned n6 , unsigned n7
              , unsigned = 0 )
     { shape_type::assign( *this , n0, n1, n2, n3, n4, n5, n6, n7 ); S0 = shape_type::N0 ; }
@@ -349,17 +349,19 @@ struct ViewOffset< ShapeType , LayoutLeft
 
       if ( align && MEMORY_ALIGNMENT_THRESHOLD * align < S0 ) {
 
-        const unsigned count_mod = S0 % ( div ? div : 1 );
+        const size_type count_mod = S0 % ( div ? div : 1 );
 
         if ( count_mod ) { S0 += align - count_mod ; }
       }
     }
 
   KOKKOS_INLINE_FUNCTION
-  size_type cardinality() const { return shape_type::N0 * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
+  size_type cardinality() const
+    { return size_type(shape_type::N0) * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
 
   KOKKOS_INLINE_FUNCTION
-  size_type capacity() const { return S0 * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
+  size_type capacity() const
+    { return size_type(S0) * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
 
   // Stride with [ rank ] as total length
   template< typename iType >
@@ -529,14 +531,16 @@ struct ViewOffset< ShapeType , LayoutRight
   void set_padding() {}
 
   KOKKOS_INLINE_FUNCTION
-  size_type cardinality() const { return shape_type::N0 * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
+  size_type cardinality() const
+    { return size_type(shape_type::N0) * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
 
   KOKKOS_INLINE_FUNCTION
-  size_type capacity() const { return shape_type::N0 * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
+  size_type capacity() const
+    { return size_type(shape_type::N0) * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
 
   size_type stride_R() const
     {
-      return shape_type::N1 * shape_type::N2 * shape_type::N3 *
+      return size_type(shape_type::N1) * shape_type::N2 * shape_type::N3 *
              shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ;
     };
 
@@ -673,7 +677,7 @@ struct ViewOffset< ShapeType , LayoutRight
 
   enum { has_padding = true };
 
-  unsigned SR ;
+  size_type SR ;
 
   template< unsigned R >
   KOKKOS_INLINE_FUNCTION
@@ -686,7 +690,7 @@ struct ViewOffset< ShapeType , LayoutRight
              , unsigned = 0 )
     {
       shape_type::assign( *this , n0, n1, n2, n3, n4, n5, n6, n7 );
-      SR = shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ;
+      SR = size_type(shape_type::N1) * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ;
     }
 
   template< class ShapeRHS >
@@ -726,14 +730,15 @@ struct ViewOffset< ShapeType , LayoutRight
 
       if ( align && MEMORY_ALIGNMENT_THRESHOLD * align < SR ) {
 
-        const unsigned count_mod = SR % ( div ? div : 1 );
+        const size_type count_mod = SR % ( div ? div : 1 );
 
         if ( count_mod ) { SR += align - count_mod ; }
       }
     }
 
   KOKKOS_INLINE_FUNCTION
-  size_type cardinality() const { return shape_type::N0 * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
+  size_type cardinality() const
+    { return size_type(shape_type::N0) * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
 
   KOKKOS_INLINE_FUNCTION
   size_type capacity() const { return shape_type::N0 * SR ; }
@@ -946,6 +951,9 @@ struct ViewOffset< ShapeType , LayoutStride
     }
 
   KOKKOS_INLINE_FUNCTION
+  void set_padding() {}
+
+  KOKKOS_INLINE_FUNCTION
   size_type cardinality() const
     { return shape_type::N0 * shape_type::N1 * shape_type::N2 * shape_type::N3 * shape_type::N4 * shape_type::N5 * shape_type::N6 * shape_type::N7 ; }
 
@@ -956,6 +964,30 @@ struct ViewOffset< ShapeType , LayoutStride
   KOKKOS_INLINE_FUNCTION
   void stride( iType * const s ) const
     { for ( int i = 0 ; i <= shape_type::rank ; ++i ) { s[i] = S[i] ; } }
+
+  KOKKOS_INLINE_FUNCTION
+  size_type stride_0() const { return S[0] ; }
+
+  KOKKOS_INLINE_FUNCTION
+  size_type stride_1() const { return S[1] ; }
+
+  KOKKOS_INLINE_FUNCTION
+  size_type stride_2() const { return S[2] ; }
+
+  KOKKOS_INLINE_FUNCTION
+  size_type stride_3() const { return S[3] ; }
+
+  KOKKOS_INLINE_FUNCTION
+  size_type stride_4() const { return S[4] ; }
+
+  KOKKOS_INLINE_FUNCTION
+  size_type stride_5() const { return S[5] ; }
+
+  KOKKOS_INLINE_FUNCTION
+  size_type stride_6() const { return S[6] ; }
+
+  KOKKOS_INLINE_FUNCTION
+  size_type stride_7() const { return S[7] ; }
 
   // rank 1
   template <typename I0 >

@@ -136,7 +136,7 @@ struct ViewTracking< ViewTraits , typename enable_if< ViewTraits::is_managed >::
 {
 private:
 
-  enum { is_host_space = is_same< HostSpace , ExecutionSpace >::value };
+  enum { is_host_space = is_same< Kokkos::HostSpace , Kokkos::Impl::ActiveExecutionMemorySpace >::value };
 
   bool m_flag ;
 

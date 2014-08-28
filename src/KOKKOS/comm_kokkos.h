@@ -33,8 +33,18 @@ class CommKokkos : public CommBrick {
   void init();
 
   void forward_comm(int dummy = 0);    // forward comm of atom coords
+  void reverse_comm();              // reverse comm of atom coords
   void exchange();                     // move atoms to new procs
   void borders();                      // setup list of atoms to comm
+
+  void forward_comm_pair(class Pair *);    // forward comm from a Pair
+  void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
+  void forward_comm_fix(class Fix *);      // forward comm from a Fix
+  void reverse_comm_fix(class Fix *);      // reverse comm from a Fix
+  void forward_comm_compute(class Compute *);  // forward from a Compute
+  void reverse_comm_compute(class Compute *);  // reverse from a Compute
+  void forward_comm_dump(class Dump *);    // forward comm from a Dump
+  void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
 
   template<class DeviceType> void forward_comm_device(int dummy);
   template<class DeviceType> void exchange_device();
@@ -48,6 +58,8 @@ class CommKokkos : public CommBrick {
   //double *buf_send;                 // send buffer for all comm
   //double *buf_recv;                 // recv buffer for all comm
 
+  void grow_send(int, int);
+  void grow_recv(int);
   void grow_send_kokkos(int, int, ExecutionSpace space = Host);
   void grow_recv_kokkos(int, ExecutionSpace space = Host);
   void grow_list(int, int);

@@ -46,44 +46,34 @@
 
 /*--------------------------------------------------------------------------*/
 
-#if ! defined( KOKKOS_DISABLE_ASM ) && \
-    ( defined( __GNUC__ ) || \
-      defined( __GNUG__ ) || \
-      defined( __INTEL_COMPILER ) )
-
-#ifndef __arm__
-/* Pause instruction to prevent excess processor bus usage */
-#define YIELD   asm volatile("pause\n":::"memory")
+#if ( KOKKOS_ENABLE_ASM )
+  #if defined( __arm__ )
+    /* No-operation instruction to idle the thread. */
+    #define YIELD   asm volatile("nop")
+  #else
+    /* Pause instruction to prevent excess processor bus usage */
+    #define YIELD   asm volatile("pause\n":::"memory")
+  #endif
+#elif defined( KOKKOS_HAVE_WINTHREAD )
+  #include <process.h>
+  #define YIELD  Sleep(0)
 #else
-/* No-operation instruction to idle the thread. */
-#define YIELD   asm volatile("nop")
-#endif
-
-#elif ! defined( KOKKOS_HAVE_WINTHREAD )
-
-#include <sched.h>
-
-#define YIELD  sched_yield()
-
-#else
-
-#include <process.h>
-
-#define YIELD  Sleep(0)
-
+  #include <sched.h>
+  #define YIELD  sched_yield()
 #endif
 
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
 namespace Impl {
-
+#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
 void spinwait( volatile int & flag , const int value )
 {
   while ( value == flag ) {
     YIELD ;
   }
 }
+#endif
 
 } /* namespace Impl */
 } /* namespace Kokkos */

@@ -8,7 +8,6 @@
 
 pair_style lj/cut command :h3
 pair_style lj/cut/cuda command :h3
-pair_style lj/cut/experimental/cuda command :h3
 pair_style lj/cut/gpu command :h3
 pair_style lj/cut/intel command :h3
 pair_style lj/cut/kk command :h3

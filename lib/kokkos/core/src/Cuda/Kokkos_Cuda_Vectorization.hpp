@@ -162,6 +162,8 @@ unsigned long shfl_down<unsigned long>(const unsigned long &val, const int& delt
 
 template<int N>
 struct Vectorization<Cuda,N> {
+  typedef Kokkos::TeamPolicy< Cuda >         team_policy ;
+  typedef typename team_policy::member_type  team_member ;
   enum {increment = N};
 
 #ifdef __CUDA_ARCH__
@@ -173,17 +175,27 @@ struct Vectorization<Cuda,N> {
 #endif
 
   KOKKOS_FORCEINLINE_FUNCTION
-  static int thread_rank(const Cuda &dev) {
+  static int thread_rank(const team_member &dev) {
     return dev.team_rank()/increment;
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  static int global_thread_rank(const Cuda &dev) {
+  static int team_rank(const team_member &dev) {
+    return dev.team_rank()/increment;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  static int team_size(const team_member &dev) {
+    return dev.team_size()/increment;
+  }
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  static int global_thread_rank(const team_member &dev) {
     return (dev.league_rank()*dev.team_size()+dev.team_rank())/increment;
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  static bool is_lane_0(const Cuda &dev) {
+  static bool is_lane_0(const team_member &dev) {
     return (dev.team_rank()%increment)==0;
   }
 

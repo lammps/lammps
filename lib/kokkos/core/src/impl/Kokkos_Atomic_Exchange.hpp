@@ -132,7 +132,7 @@ T atomic_exchange( volatile T * const dest ,
   typedef typename Kokkos::Impl::if_c< sizeof(T) == sizeof(int) , int , long >::type type ;
 
   const type v = *((type*)&val); // Extract to be sure the value doesn't change
-  
+
   type assumed ;
 
   union { T val_T ; type val_type ; } old ;
@@ -156,7 +156,7 @@ void atomic_assign( volatile T * const dest ,
   typedef typename Kokkos::Impl::if_c< sizeof(T) == sizeof(int) , int , long >::type type ;
 
   const type v = *((type*)&val); // Extract to be sure the value doesn't change
-  
+
   type assumed ;
 
   union { T val_T ; type val_type ; } old ;
@@ -178,7 +178,8 @@ KOKKOS_INLINE_FUNCTION
 T atomic_exchange( volatile T * const dest , const T val )
 {
   T retval;
-#pragma omp critical
+//#pragma omp atomic capture
+  #pragma omp critical
   {
     retval = dest[0];
     dest[0] = val;
@@ -190,7 +191,8 @@ template < typename T >
 KOKKOS_INLINE_FUNCTION
 void atomic_assign( volatile T * const dest , const T val )
 {
-#pragma omp critical
+//#pragma omp atomic
+  #pragma omp critical
   {
     dest[0] = val;
   }

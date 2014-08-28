@@ -76,7 +76,7 @@ public:
   inline
   void reset() {
     #ifdef KOKKOS_USE_LIBRT
-	  clock_gettime(&m_old);
+	  clock_gettime(CLOCK_REALTIME, &m_old);
     #else
 	  gettimeofday( & m_old , ((struct timezone *) NULL ) );
     #endif
@@ -93,7 +93,7 @@ public:
   {
     #ifdef KOKKOS_USE_LIBRT
       struct timespec m_new;
-      clock_gettime(&m_new);
+      clock_gettime(CLOCK_REALTIME, &m_new);
 
       return ( (double) ( m_new.tv_sec  - m_old.tv_sec ) ) +
              ( (double) ( m_new.tv_nsec - m_old.tv_nsec ) * 1.0e-9 );

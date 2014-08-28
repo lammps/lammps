@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //   Kokkos: Manycore Performance-Portable Multidimensional Arrays
 //              Copyright (2012) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov) 
-// 
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
@@ -65,8 +65,13 @@ namespace Kokkos {
 class CudaSpace {
 public:
 
-  typedef CudaSpace     memory_space ;
-  typedef unsigned int  size_type ;
+  typedef Impl::MemorySpaceTag  kokkos_tag ;
+  typedef CudaSpace             memory_space ;
+  typedef unsigned int          size_type ;
+
+#if defined( KOKKOS_HAVE_CUDA )
+  typedef Kokkos::Cuda  execution_space ;
+#endif
 
   /** \brief  Allocate a contiguous block of memory on the Cuda device
    *          with size = scalar_size * scalar_count.
@@ -140,41 +145,33 @@ struct DeepCopy<CudaSpace,CudaSpace> {
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+namespace Impl {
 
-/** \brief  Cuda code accessing Cuda data is good. */
+/** Running in HostSpace attempting to access CudaSpace */
 template<>
-struct VerifyExecutionSpaceCanAccessDataSpace< CudaSpace , CudaSpace >
+struct VerifyExecutionCanAccessMemorySpace< Kokkos::HostSpace , Kokkos::CudaSpace >
 {
-  KOKKOS_INLINE_FUNCTION static void verify( void ) {}
-  KOKKOS_INLINE_FUNCTION static void verify( const void * ) {}
-};
-
-/** \brief  Cuda code accessing non-Cuda data is bad. */
-template<>
-struct VerifyExecutionSpaceCanAccessDataSpace< CudaSpace , HostSpace >
-{
-  KOKKOS_INLINE_FUNCTION static void verify(void)
-  { Kokkos::cuda_abort("Cuda code called function restricted to HostSpace"); }
-
-  KOKKOS_INLINE_FUNCTION static void verify( const void * )
-  { Kokkos::cuda_abort("Cuda code attempted to access HostSpace memory"); }
-};
-
-/** \brief  Produce error message when trying to access Cuda 
- *          memory on the host.
- */
-template<>
-struct VerifyExecutionSpaceCanAccessDataSpace< HostSpace , CudaSpace >
-{
-#ifdef KOKKOS_USE_UVM
+#if defined( KOKKOS_USE_CUDA_UVM )
   inline static void verify( void ) { }
-  inline static void verify( const void * p ) { }
+  inline static void verify( const void * ) { }
 #else
   inline static void verify( void ) { CudaSpace::access_error(); }
   inline static void verify( const void * p ) { CudaSpace::access_error(p); }
 #endif
 };
 
+/** Running in CudaSpace attempting to access HostSpace */
+template<>
+struct VerifyExecutionCanAccessMemorySpace< Kokkos::CudaSpace , Kokkos::HostSpace >
+{
+  KOKKOS_INLINE_FUNCTION static void verify( void )
+    { Kokkos::cuda_abort("Cuda code attempted to access HostSpace memory"); }
+
+  KOKKOS_INLINE_FUNCTION static void verify( const void * )
+    { Kokkos::cuda_abort("Cuda code attempted to access HostSpace memory"); }
+};
+
+} // namespace Impl
 } // namespace Kokkos
 
 //----------------------------------------------------------------------------

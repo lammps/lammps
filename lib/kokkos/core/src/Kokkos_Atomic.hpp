@@ -86,11 +86,13 @@
 // Choose the best implementation for the detected compiler.
 // Preference: GCC, INTEL, OMP31
 
-#if defined( __GNUC__ ) || defined( __GNUG__ ) || defined( __clang__ )
+#if defined( KOKKOS_COMPILER_GNU ) || \
+    defined( KOKKOS_COMPILER_CLANG )
 
 #define KOKKOS_ATOMICS_USE_GCC
 
-#elif defined( __INTEL_COMPILER ) || defined( _CRAYC)
+#elif defined( KOKKOS_COMPILER_INTEL ) || \
+      defined( KOKKOS_COMPILER_CRAYC )
 
 #define KOKKOS_ATOMICS_USE_INTEL
 
@@ -167,7 +169,7 @@ const char * atomic_query_version()
 // Atomic fetch and and
 //
 // template<class T>
-// T atomic_fetch_or(volatile T* const dest, const T val)
+// T atomic_fetch_and(volatile T* const dest, const T val)
 // { T tmp = *dest ; *dest = tmp & val ; return tmp ; }
 
 #include "impl/Kokkos_Atomic_Fetch_And.hpp"
@@ -190,6 +192,8 @@ const char * atomic_query_version()
 // T safe_load(T const * const ptr
 
 #include "impl/Kokkos_Volatile_Load.hpp"
+
+#include "impl/Kokkos_Atomic_Generic.hpp"
 
 #endif /* KOKKOS_ATOMIC_HPP */
 

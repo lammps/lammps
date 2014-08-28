@@ -553,14 +553,15 @@ void AtomVecAtomicKokkos::unpack_comm_vel(int n, int first, double *buf)
 
 int AtomVecAtomicKokkos::pack_reverse(int n, int first, double *buf)
 {
-  int i,m,last;
+  if(n > 0)
+    sync(Host,F_MASK);
 
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    buf[m++] = f[i][0];
-    buf[m++] = f[i][1];
-    buf[m++] = f[i][2];
+  int m = 0;
+  const int last = first + n;
+  for (int i = first; i < last; i++) {
+    buf[m++] = h_f(i,0);
+    buf[m++] = h_f(i,1);
+    buf[m++] = h_f(i,2);
   }
   return m;
 }
@@ -569,14 +570,17 @@ int AtomVecAtomicKokkos::pack_reverse(int n, int first, double *buf)
 
 void AtomVecAtomicKokkos::unpack_reverse(int n, int *list, double *buf)
 {
-  int i,j,m;
+  if(n > 0) {
+    sync(Host,F_MASK);
+    modified(Host,F_MASK);
+  }
 
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    f[j][0] += buf[m++];
-    f[j][1] += buf[m++];
-    f[j][2] += buf[m++];
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    const int j = list[i];
+    h_f(j,0) += buf[m++];
+    h_f(j,1) += buf[m++];
+    h_f(j,2) += buf[m++];
   }
 }
 
@@ -588,11 +592,11 @@ struct AtomVecAtomicKokkos_PackBorder {
 
   typename ArrayTypes<DeviceType>::t_xfloat_2d _buf;
   const typename ArrayTypes<DeviceType>::t_int_2d_const _list;
+  const int _iswap;
   const typename ArrayTypes<DeviceType>::t_x_array_randomread _x;
   const typename ArrayTypes<DeviceType>::t_tagint_1d _tag;
   const typename ArrayTypes<DeviceType>::t_int_1d _type;
   const typename ArrayTypes<DeviceType>::t_int_1d _mask;
-  const int _iswap;
   X_FLOAT _dx,_dy,_dz;
 
   AtomVecAtomicKokkos_PackBorder(
@@ -694,9 +698,9 @@ int AtomVecAtomicKokkos::pack_border(int n, int *list, double *buf,
       buf[m++] = h_x(j,0);
       buf[m++] = h_x(j,1);
       buf[m++] = h_x(j,2);
-      buf[m++] = h_tag[j];
-      buf[m++] = h_type[j];
-      buf[m++] = h_mask[j];
+      buf[m++] = ubuf(h_tag(j)).d;
+      buf[m++] = ubuf(h_type(j)).d;
+      buf[m++] = ubuf(h_mask(j)).d;
     }
   } else {
     if (domain->triclinic == 0) {
@@ -713,11 +717,16 @@ int AtomVecAtomicKokkos::pack_border(int n, int *list, double *buf,
       buf[m++] = h_x(j,0) + dx;
       buf[m++] = h_x(j,1) + dy;
       buf[m++] = h_x(j,2) + dz;
-      buf[m++] = h_tag[j];
-      buf[m++] = h_type[j];
-      buf[m++] = h_mask[j];
+      buf[m++] = ubuf(h_tag(j)).d;
+      buf[m++] = ubuf(h_type(j)).d;
+      buf[m++] = ubuf(h_mask(j)).d;
     }
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
+
   return m;
 }
 
@@ -736,9 +745,9 @@ int AtomVecAtomicKokkos::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = h_x(j,0);
       buf[m++] = h_x(j,1);
       buf[m++] = h_x(j,2);
-      buf[m++] = h_tag[j];
-      buf[m++] = h_type[j];
-      buf[m++] = h_mask[j];
+      buf[m++] = ubuf(h_tag(j)).d;
+      buf[m++] = ubuf(h_type(j)).d;
+      buf[m++] = ubuf(h_mask(j)).d;
       buf[m++] = h_v(j,0);
       buf[m++] = h_v(j,1);
       buf[m++] = h_v(j,2);
@@ -759,9 +768,9 @@ int AtomVecAtomicKokkos::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = h_x(j,0) + dx;
         buf[m++] = h_x(j,1) + dy;
         buf[m++] = h_x(j,2) + dz;
-        buf[m++] = h_tag[j];
-        buf[m++] = h_type[j];
-        buf[m++] = h_mask[j];
+        buf[m++] = ubuf(h_tag(j)).d;
+        buf[m++] = ubuf(h_type(j)).d;
+        buf[m++] = ubuf(h_mask(j)).d;
         buf[m++] = h_v(j,0);
         buf[m++] = h_v(j,1);
         buf[m++] = h_v(j,2);
@@ -775,9 +784,9 @@ int AtomVecAtomicKokkos::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = h_x(j,0) + dx;
         buf[m++] = h_x(j,1) + dy;
         buf[m++] = h_x(j,2) + dz;
-        buf[m++] = h_tag[j];
-        buf[m++] = h_type[j];
-        buf[m++] = h_mask[j];
+        buf[m++] = ubuf(h_tag(j)).d;
+        buf[m++] = ubuf(h_type(j)).d;
+        buf[m++] = ubuf(h_mask(j)).d;
         if (mask[i] & deform_groupbit) {
           buf[m++] = h_v(j,0) + dvx;
           buf[m++] = h_v(j,1) + dvy;
@@ -790,6 +799,11 @@ int AtomVecAtomicKokkos::pack_border_vel(int n, int *list, double *buf,
       }
     }
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
+
   return m;
 }
 
@@ -861,10 +875,15 @@ void AtomVecAtomicKokkos::unpack_border(int n, int first, double *buf)
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
-    h_tag[i] = static_cast<int> (buf[m++]);
-    h_type[i] = static_cast<int> (buf[m++]);
-    h_mask[i] = static_cast<int> (buf[m++]);
+    h_tag(i) =  (tagint)  ubuf(buf[m++]).i;
+    h_type(i) = (int) ubuf(buf[m++]).i;
+    h_mask(i) = (int) ubuf(buf[m++]).i;
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->
+        unpack_border(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -880,13 +899,18 @@ void AtomVecAtomicKokkos::unpack_border_vel(int n, int first, double *buf)
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
-    h_tag[i] = static_cast<int> (buf[m++]);
-    h_type[i] = static_cast<int> (buf[m++]);
-    h_mask[i] = static_cast<int> (buf[m++]);
+    h_tag(i) =  (tagint)  ubuf(buf[m++]).i;
+    h_type(i) = (int) ubuf(buf[m++]).i;
+    h_mask(i) = (int) ubuf(buf[m++]).i;
     h_v(i,0) = buf[m++];
     h_v(i,1) = buf[m++];
     h_v(i,2) = buf[m++];
   }
+
+  if (atom->nextra_border)
+    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
+      m += modify->fix[atom->extra_border[iextra]]->
+        unpack_border(n,first,&buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -895,7 +919,6 @@ template<class DeviceType>
 struct AtomVecAtomicKokkos_PackExchangeFunctor {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  X_FLOAT _lo,_hi;
   typename AT::t_x_array_randomread _x;
   typename AT::t_v_array_randomread _v;
   typename AT::t_tagint_1d_randomread _tag;
@@ -910,9 +933,10 @@ struct AtomVecAtomicKokkos_PackExchangeFunctor {
   typename AT::t_imageint_1d _imagew;
 
   typename AT::t_xfloat_2d_um _buf;
-  int _nlocal,_dim;
   typename AT::t_int_1d_const _sendlist;
   typename AT::t_int_1d_const _copylist;
+  int _nlocal,_dim;
+  X_FLOAT _lo,_hi;
 
   AtomVecAtomicKokkos_PackExchangeFunctor(
       const AtomKokkos* atom,
@@ -977,7 +1001,7 @@ struct AtomVecAtomicKokkos_PackExchangeFunctor {
 
 int AtomVecAtomicKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d k_sendlist,DAT::tdual_int_1d k_copylist,ExecutionSpace space,int dim,X_FLOAT lo,X_FLOAT hi )
 {
-  if(nsend > (k_buf.view<LMPHostType>().dimension_0()*k_buf.view<LMPHostType>().dimension_1())/11) {
+  if(nsend > (int) (k_buf.view<LMPHostType>().dimension_0()*k_buf.view<LMPHostType>().dimension_1())/11) {
     int newsize = nsend*11/k_buf.view<LMPHostType>().dimension_1()+1;
     k_buf.resize(newsize,k_buf.view<LMPHostType>().dimension_1());
   }
@@ -1005,10 +1029,10 @@ int AtomVecAtomicKokkos::pack_exchange(int i, double *buf)
   buf[m++] = h_v(i,0);
   buf[m++] = h_v(i,1);
   buf[m++] = h_v(i,2);
-  buf[m++] = h_tag[i];
-  buf[m++] = h_type[i];
-  buf[m++] = h_mask[i];
-  *((tagint *) &buf[m++]) = h_image[i];
+  buf[m++] = ubuf(h_tag(i)).d;
+  buf[m++] = ubuf(h_type(i)).d;
+  buf[m++] = ubuf(h_mask(i)).d;
+  buf[m++] = ubuf(h_image(i)).d;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -1024,7 +1048,6 @@ template<class DeviceType>
 struct AtomVecAtomicKokkos_UnpackExchangeFunctor {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  X_FLOAT _lo,_hi;
   typename AT::t_x_array _x;
   typename AT::t_v_array _v;
   typename AT::t_tagint_1d _tag;
@@ -1033,8 +1056,9 @@ struct AtomVecAtomicKokkos_UnpackExchangeFunctor {
   typename AT::t_imageint_1d _image;
 
   typename AT::t_xfloat_2d_um _buf;
-  int _dim;
   typename AT::t_int_1d _nlocal;
+  int _dim;
+  X_FLOAT _lo,_hi;
 
   AtomVecAtomicKokkos_UnpackExchangeFunctor(
       const AtomKokkos* atom,
@@ -1113,10 +1137,10 @@ int AtomVecAtomicKokkos::unpack_exchange(double *buf)
   h_v(nlocal,0) = buf[m++];
   h_v(nlocal,1) = buf[m++];
   h_v(nlocal,2) = buf[m++];
-  h_tag[nlocal] = static_cast<int> (buf[m++]);
-  h_type[nlocal] = static_cast<int> (buf[m++]);
-  h_mask[nlocal] = static_cast<int> (buf[m++]);
-  h_image[nlocal] = static_cast<int> (buf[m++]);
+  h_tag(nlocal) = (tagint) ubuf(buf[m++]).i;
+  h_type(nlocal) = (int) ubuf(buf[m++]).i;
+  h_mask(nlocal) = (int) ubuf(buf[m++]).i;
+  h_image(nlocal) = (imageint) ubuf(buf[m++]).i;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -1159,10 +1183,10 @@ int AtomVecAtomicKokkos::pack_restart(int i, double *buf)
   buf[m++] = h_x(i,0);
   buf[m++] = h_x(i,1);
   buf[m++] = h_x(i,2);
-  buf[m++] = h_tag[i];
-  buf[m++] = h_type[i];
-  buf[m++] = h_mask[i];
-  buf[m++] = h_image[i];
+  buf[m++] = ubuf(h_tag(i)).d;
+  buf[m++] = ubuf(h_type(i)).d;
+  buf[m++] = ubuf(h_mask(i)).d;
+  buf[m++] = ubuf(h_image(i)).d;
   buf[m++] = h_v(i,0);
   buf[m++] = h_v(i,1);
   buf[m++] = h_v(i,2);
@@ -1192,17 +1216,17 @@ int AtomVecAtomicKokkos::unpack_restart(double *buf)
   h_x(nlocal,0) = buf[m++];
   h_x(nlocal,1) = buf[m++];
   h_x(nlocal,2) = buf[m++];
-  h_tag[nlocal] = static_cast<int> (buf[m++]);
-  h_type[nlocal] = static_cast<int> (buf[m++]);
-  h_mask[nlocal] = static_cast<int> (buf[m++]);
-  h_image[nlocal] = *((tagint *) &buf[m++]);
+  h_tag(nlocal) = (tagint) ubuf(buf[m++]).i;
+  h_type(nlocal) = (int) ubuf(buf[m++]).i;
+  h_mask(nlocal) = (int) ubuf(buf[m++]).i;
+  h_image(nlocal) = (imageint) ubuf(buf[m++]).i;
   h_v(nlocal,0) = buf[m++];
   h_v(nlocal,1) = buf[m++];
   h_v(nlocal,2) = buf[m++];
 
   double **extra = atom->extra;
   if (atom->nextra_store) {
-    int size = static_cast<int> (buf[0]) - m;
+    int size = static_cast<int> (ubuf(buf[m++]).i) - m;
     for (int i = 0; i < size; i++) extra[nlocal][i] = buf[m++];
   }
 

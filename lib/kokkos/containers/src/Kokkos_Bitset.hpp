@@ -57,10 +57,10 @@
 
 namespace Kokkos {
 
-template <typename Device>
+template <typename Device = Kokkos::DefaultExecutionSpace >
 class Bitset;
 
-template <typename Device>
+template <typename Device = Kokkos::DefaultExecutionSpace >
 class ConstBitset;
 
 template <typename DstDevice, typename SrcDevice>
@@ -73,7 +73,7 @@ template <typename DstDevice, typename SrcDevice>
 void deep_copy( ConstBitset<DstDevice> & dst, ConstBitset<SrcDevice> const& src);
 
 
-/// A thread safe bitset
+/// A thread safe view to a bitset
 template <typename Device>
 class Bitset
 {
@@ -99,6 +99,8 @@ private:
 public:
 
 
+  /// constructor
+  /// arg_size := number of bit in set
   Bitset(unsigned arg_size = 0u)
     : m_size(arg_size)
     , m_last_block_mask(0u)
@@ -109,6 +111,7 @@ public:
     }
   }
 
+  /// assignment
   Bitset<Device> & operator = (Bitset<Device> const & rhs)
   {
     this->m_size = rhs.m_size;
@@ -118,22 +121,29 @@ public:
     return *this;
   }
 
+  /// copy constructor
   Bitset( Bitset<Device> const & rhs)
     : m_size( rhs.m_size )
     , m_last_block_mask( rhs.m_last_block_mask )
     , m_blocks( rhs.m_blocks )
   {}
 
+  /// number of bits in the set
+  /// can be call from the host or the device
   KOKKOS_FORCEINLINE_FUNCTION
   unsigned size() const
   { return m_size; }
 
+  /// number of bits which are set to 1
+  /// can only be called from the host
   unsigned count() const
   {
     Impl::BitsetCount< Bitset<Device> > f(*this);
     return f.apply();
   }
 
+  /// set all bits to 1
+  /// can only be called from the host
   void set()
   {
     Kokkos::deep_copy(m_blocks, ~0u );
@@ -145,17 +155,22 @@ public:
     }
   }
 
+  /// set all bits to 0
+  /// can only be called from the host
   void reset()
   {
     Kokkos::deep_copy(m_blocks, 0u );
   }
 
+  /// set all bits to 0
+  /// can only be called from the host
   void clear()
   {
     Kokkos::deep_copy(m_blocks, 0u );
   }
 
-
+  /// set i'th bit to 1
+  /// can only be called from the device
   KOKKOS_FORCEINLINE_FUNCTION
   bool set( unsigned i ) const
   {
@@ -168,6 +183,8 @@ public:
     return false;
   }
 
+  /// set i'th bit to 0
+  /// can only be called from the device
   KOKKOS_FORCEINLINE_FUNCTION
   bool reset( unsigned i ) const
   {
@@ -180,6 +197,8 @@ public:
     return false;
   }
 
+  /// return true if the i'th bit set to 1
+  /// can only be called from the device
   KOKKOS_FORCEINLINE_FUNCTION
   bool test( unsigned i ) const
   {
@@ -191,12 +210,18 @@ public:
     return false;
   }
 
+  /// used with find_any_set_near or find_any_unset_near functions
+  /// returns the max number of times those functions should be call
+  /// when searching for an available bit
   KOKKOS_FORCEINLINE_FUNCTION
   unsigned max_hint() const
   {
     return m_blocks.size();
   }
 
+  /// find a bit set to 1 near the hint
+  /// returns a pair< bool, unsigned> where if result.first is true then result.second is the bit found
+  /// and if result.first is false the result.second is a new hint
   KOKKOS_INLINE_FUNCTION
   Kokkos::pair<bool, unsigned> find_any_set_near( unsigned hint , unsigned scan_direction = BIT_SCAN_FORWARD_MOVE_HINT_FORWARD ) const
   {
@@ -208,6 +233,9 @@ public:
     return find_any_helper(block_idx, offset, block, scan_direction);
   }
 
+  /// find a bit set to 0 near the hint
+  /// returns a pair< bool, unsigned> where if result.first is true then result.second is the bit found
+  /// and if result.first is false the result.second is a new hint
   KOKKOS_INLINE_FUNCTION
   Kokkos::pair<bool, unsigned> find_any_unset_near( unsigned hint , unsigned scan_direction = BIT_SCAN_FORWARD_MOVE_HINT_FORWARD ) const
   {
@@ -286,6 +314,8 @@ private:
   friend void deep_copy( Bitset<DstDevice> & dst, ConstBitset<SrcDevice> const& src);
 };
 
+/// a thread-safe view to a const bitset
+/// i.e. can only test bits
 template <typename Device>
 class ConstBitset
 {

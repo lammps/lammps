@@ -433,4 +433,3 @@ used then it is as if the command "package omp *" were invoked, to
 specify default settings for the USER-OMP package.  If the
 command-line switch is not used, then no defaults are set, and you
 must specify the appropriate package command in your input script.
-

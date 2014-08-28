@@ -28,6 +28,12 @@ kinds of machines.
 5.9 <A HREF = "#acc_9">USER-INTEL package</A><BR>
 5.10 <A HREF = "#acc_10">Comparison of USER-CUDA, GPU, and KOKKOS packages</A> <BR>
 
+<P>The <A HREF = "http://lammps.sandia.gov/bench.html">Benchmark page</A> of the LAMMPS
+web site gives performance results for the various accelerator
+packages discussed in this section for several of the standard LAMMPS
+benchmarks, as a function of problem size and number of compute nodes,
+on different hardware platforms.
+</P>
 <HR>
 
 <HR>
@@ -143,23 +149,26 @@ standard non-accelerated versions, if you have the appropriate
 hardware on your system.
 </P>
 <P>All of these commands are in <A HREF = "Section_packages.html">packages</A>.
-Currently, there are 6 such packages in LAMMPS:
+Currently, there are 6 such accelerator packages in LAMMPS, either as
+standard or user packages:
 </P>
-<UL><LI>USER-CUDA: for NVIDIA GPUs
-<LI>GPU: for NVIDIA GPUs as well as OpenCL support
-<LI>USER-INTEL: for Intel CPUs and Intel Xeon Phi
-<LI>KOKKOS: for GPUs, Intel Xeon Phi, and OpenMP threading
-<LI>USER-OMP: for OpenMP threading
-<LI>OPT: generic CPU optimizations 
-</UL>
-<P>The accelerated styles have the same name as the standard styles,
-except that a suffix is appended.  Otherwise, the syntax for the
-command is identical, their functionality is the same, and the
-numerical results it produces should also be identical, except for
-precision and round-off issues.
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >USER-CUDA </TD><TD > for NVIDIA GPUs</TD></TR>
+<TR><TD >GPU </TD><TD > for NVIDIA GPUs as well as OpenCL support</TD></TR>
+<TR><TD >USER-INTEL </TD><TD > for Intel CPUs and Intel Xeon Phi</TD></TR>
+<TR><TD >KOKKOS </TD><TD > for GPUs, Intel Xeon Phi, and OpenMP threading</TD></TR>
+<TR><TD >USER-OMP </TD><TD > for OpenMP threading</TD></TR>
+<TR><TD >OPT </TD><TD > generic CPU optimizations 
+</TD></TR></TABLE></DIV>
+
+<P>Any accelerated style has the same name as the corresponding standard
+style, except that a suffix is appended.  Otherwise, the syntax for
+the command that specifies the style is identical, their functionality
+is the same, and the numerical results it produces should also be the
+same, except for precision and round-off effects.
 </P>
 <P>For example, all of these styles are variants of the basic
-Lennard-Jones pair style <A HREF = "pair_lj.html">pair_style lj/cut</A>:
+Lennard-Jones <A HREF = "pair_lj.html">pair_style lj/cut</A>:
 </P>
 <UL><LI><A HREF = "pair_lj.html">pair_style lj/cut/cuda</A>
 <LI><A HREF = "pair_lj.html">pair_style lj/cut/gpu</A>
@@ -168,14 +177,13 @@ Lennard-Jones pair style <A HREF = "pair_lj.html">pair_style lj/cut</A>:
 <LI><A HREF = "pair_lj.html">pair_style lj/cut/omp</A>
 <LI><A HREF = "pair_lj.html">pair_style lj/cut/opt</A> 
 </UL>
-<P>Assuming you have built LAMMPS with the appropriate package, these
-styles can be invoked by specifying them explicitly in your input
-script.  Or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> to invoke the accelerated versions
-automatically, without changing your input script.  The
-<A HREF = "suffix.html">suffix</A> command allows you to set a suffix explicitly and
-to turn off and back on the comand-line switch setting, both from
-within your input script.
+<P>Assuming LAMMPS was built with the appropriate package, these styles
+can be invoked by specifying them explicitly in your input script.  Or
+the <A HREF = "Section_start.html#start_7">-suffix command-line switch</A> can be
+used to automatically invoke the accelerated versions, without
+changing the input script.  Use of the <A HREF = "suffix.html">suffix</A> command
+allows a suffix to be set explicitly and to be turned off and back on
+at various points within an input script.
 </P>
 <P>To see what styles are currently available in each of the accelerated
 packages, see <A HREF = "Section_commands.html#cmd_5">Section_commands 5</A> of the
@@ -186,34 +194,34 @@ accelerated variants available for that style.
 <P>Here is a brief summary of what the various packages provide.  Details
 are in individual sections below.
 </P>
-<P>Styles with a "cuda" or "gpu" suffix are part of the USER-CUDA or GPU
+<UL><LI>Styles with a "cuda" or "gpu" suffix are part of the USER-CUDA or GPU
 packages, and can be run on NVIDIA GPUs associated with your CPUs.
 The speed-up on a GPU depends on a variety of factors, as discussed
-below.
-</P>
-<P>Styles with an "intel" suffix are part of the USER-INTEL
+below. 
+
+<LI>Styles with an "intel" suffix are part of the USER-INTEL
 package. These styles support vectorized single and mixed precision
 calculations, in addition to full double precision.  In extreme cases,
 this can provide speedups over 3.5x on CPUs.  The package also
 supports acceleration with offload to Intel(R) Xeon Phi(TM)
 coprocessors.  This can result in additional speedup over 2x depending
-on the hardware configuration.
-</P>
-<P>Styles with a "kk" suffix are part of the KOKKOS package, and can be
+on the hardware configuration. 
+
+<LI>Styles with a "kk" suffix are part of the KOKKOS package, and can be
 run using OpenMP, on an NVIDIA GPU, or on an Intel(R) Xeon Phi(TM).
-The speed-up depends on a variety of factors, as discussed below.
-</P>
-<P>Styles with an "omp" suffix are part of the USER-OMP package and allow
+The speed-up depends on a variety of factors, as discussed below. 
+
+<LI>Styles with an "omp" suffix are part of the USER-OMP package and allow
 a pair-style to be run in multi-threaded mode using OpenMP.  This can
 be useful on nodes with high-core counts when using less MPI processes
 than cores is advantageous, e.g. when running with PPPM so that FFTs
 are run on fewer MPI processors or when the many MPI tasks would
-overload the available bandwidth for communication.
-</P>
-<P>Styles with an "opt" suffix are part of the OPT package and typically
+overload the available bandwidth for communication. 
+
+<LI>Styles with an "opt" suffix are part of the OPT package and typically
 speed-up the pairwise calculations of your simulation by 5-25% on a
-CPU.
-</P>
+CPU. 
+</UL>
 <P>The following sections explain:
 </P>
 <UL><LI>what hardware and software the accelerated package requires
@@ -250,7 +258,7 @@ make machine
 <P>No additional compile/link flags are needed in your lo-level
 src/MAKE/Makefile.machine.
 </P>
-<P><B>Running with the OPT package;</B>
+<P><B>Running with the OPT package:</B>
 </P>
 <P>You can explicitly add an "opt" suffix to the
 <A HREF = "pair_style.html">pair_style</A> command in your input script:
@@ -270,7 +278,7 @@ mpirun -np 4 lmp_machine -sf opt < in.script
 of a run.  On most machines for reasonable problem sizes, it will be a
 5 to 20% savings.
 </P>
-<P><B>Guidelines for best performance;</B>
+<P><B>Guidelines for best performance:</B>
 </P>
 <P>None.  Just try out an OPT pair style to see how it performs.
 </P>
@@ -298,7 +306,8 @@ MPI task running on a CPU.
 </P>
 <P>Include the package and build LAMMPS.  
 </P>
-<PRE>make yes-user-omp
+<PRE>cd lammps/src
+make yes-user-omp
 make machine 
 </PRE>
 <P>Your lo-level src/MAKE/Makefile.machine needs a flag for OpenMP
@@ -307,55 +316,62 @@ Intel compilers, this flag is <I>-fopenmp</I>.  Without this flag the
 USER-OMP styles will still be compiled and work, but will not support
 multi-threading.
 </P>
-<P><B>Running with the USER-OMP package;</B>
+<P><B>Running with the USER-OMP package:</B>
 </P>
-<P>You can explicitly add an "omp" suffix to any supported style in your
-input script:
+<P>There are 3 issues (a,b,c) to address:
+</P>
+<P>a) Specify how many threads per MPI task to use
+</P>
+<P>Note that the product of MPI tasks * threads/task should not exceed
+the physical number of cores, otherwise performance will suffer.
+</P>
+<P>By default LAMMPS uses 1 thread per MPI task.  If the environment
+variable OMP_NUM_THREADS is set to a valid value, this value is used.
+You can set this environment variable when you launch LAMMPS, e.g.
+</P>
+<PRE>env OMP_NUM_THREADS=4 lmp_machine -sf omp -in in.script
+env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
+mpirun -x OMP_NUM_THREADS=2 -np 2 lmp_machine -sf omp -in in.script 
+</PRE>
+<P>or you can set it permanently in your shell's start-up script.  
+All three of these examples use a total of 4 CPU cores.
+</P>
+<P>Note that different MPI implementations have different ways of passing
+the OMP_NUM_THREADS environment variable to all MPI processes.  The
+2nd line above is for MPICH; the 3rd line with -x is for OpenMPI.
+Check your MPI documentation for additional details.
+</P>
+<P>You can also set the number of threads per MPI task via the <A HREF = "package.html">package
+omp</A> command, which will override any OMP_NUM_THREADS
+setting.
+</P>
+<P>b) Enable the USER-OMP package
+</P>
+<P>This can be done in one of two ways.  Use a <A HREF = "package.html">package omp</A>
+command near the top of your input script.
+</P>
+<P>Or use the "-sf omp" <A HREF = "Section_start.html#start_7">command-line switch</A>,
+which will automatically invoke the command <A HREF = "package.html">package omp
+*</A>.
+</P>
+<P>c) Use OMP-accelerated styles
+</P>
+<P>This can be done by explicitly adding an "omp" suffix to any supported
+style in your input script:
 </P>
 <PRE>pair_style lj/cut/omp 2.5
 fix nve/omp 
 </PRE>
-<P>Or you can run with the -sf <A HREF = "Section_start.html#start_7">command-line
+<P>Or you can run with the "-sf omp" <A HREF = "Section_start.html#start_7">command-line
 switch</A>, which will automatically append
-"opt" to styles that support it.
+"omp" to styles that support it.
 </P>
-<PRE>lmp_machine -sf omp < in.script
-mpirun -np 4 lmp_machine -sf omp < in.script 
+<PRE>lmp_machine -sf omp -in in.script
+mpirun -np 4 lmp_machine -sf omp -in in.script 
 </PRE>
-<P>You must also specify how many threads to use per MPI task.  There are
-several ways to do this.  Note that the default value for this setting
-in the OpenMP environment is 1 thread/task, which may give poor
-performance.  Also note that the product of MPI tasks * threads/task
-should not exceed the physical number of cores, otherwise performance
-will suffer.
+<P>Using the "suffix omp" command in your input script does the same
+thing.
 </P>
-<P>a) You can set an environment variable, either in your shell
-or its start-up script:
-</P>
-<PRE>setenv OMP_NUM_THREADS 4 (for csh or tcsh)
-NOTE: setenv OMP_NUM_THREADS 4 (for bash) 
-</PRE>
-<P>This value will apply to all subsequent runs you perform.
-</P>
-<P>b) You can set the same environment variable when you launch LAMMPS:
-</P>
-<PRE>env OMP_NUM_THREADS=4 lmp_machine -sf omp -in in.script
-env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
-mpirun -x OMP_NUM_THREADS=2 -np 2 lmp_machine -sf omp -in in.script
-NOTE: which mpirun is for OpenMPI or MPICH? 
-</PRE>
-<P>All three examples use a total of 4 CPU cores.
-</P>
-<P>Different MPI implementations have differnet ways of passing the
-OMP_NUM_THREADS environment variable to all MPI processes.  The first
-variant above is for MPICH, the second is for OpenMPI.  Check the
-documentation of your MPI installation for additional details.
-</P>
-<P>c) Use the <A HREF = "package.html">package omp</A> command near the top of your
-script:
-</P>
-<PRE>package omp 4 
-</PRE>
 <P><B>Speed-ups to expect:</B>
 </P>
 <P>Depending on which styles are accelerated, you should look for a
@@ -379,7 +395,7 @@ sub-section.
 package and some performance examples are <A HREF = "http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1">presented
 here</A>
 </P>
-<P><B>Guidelines for best performance;</B>
+<P><B>Guidelines for best performance:</B>
 </P>
 <P>For many problems on current generation CPUs, running the USER-OMP
 package with a single thread/task is faster than running with multiple
@@ -416,14 +432,17 @@ particles, not via their distribution in space.
 <LI>A machine is being used in "capability mode", i.e. near the point
 where MPI parallelism is maxed out.  For example, this can happen when
 using the <A HREF = "kspace_style.html">PPPM solver</A> for long-range
-electrostatics on large numbers of nodes.  The scaling of the <A HREF = "kspace_style.html">kspace
-style</A> can become the the performance-limiting
-factor.  Using multi-threading allows less MPI tasks to be invoked and
-can speed-up the long-range solver, while increasing overall
-performance by parallelizing the pairwise and bonded calculations via
-OpenMP.  Likewise additional speedup can be sometimes be achived by
-increasing the length of the Coulombic cutoff and thus reducing the
-work done by the long-range solver. 
+electrostatics on large numbers of nodes.  The scaling of the KSpace
+calculation (see the <A HREF = "kspace_style.html">kspace_style</A> command) becomes
+the performance-limiting factor.  Using multi-threading allows less
+MPI tasks to be invoked and can speed-up the long-range solver, while
+increasing overall performance by parallelizing the pairwise and
+bonded calculations via OpenMP.  Likewise additional speedup can be
+sometimes be achived by increasing the length of the Coulombic cutoff
+and thus reducing the work done by the long-range solver.  Using the
+<A HREF = "run_style.html">run_style verlet/split</A> command, which is compatible
+with the USER-OMP package, is an alternative way to reduce the number
+of MPI tasks assigned to the KSpace calculation. 
 </UL>
 <P>Other performance tips are as follows:
 </P>
@@ -431,36 +450,32 @@ work done by the long-range solver.
 when there is at least one MPI task per physical processor,
 i.e. socket or die. 
 
-<LI>Using OpenMP threading (as opposed to all-MPI parallelism) on
-hyper-threading enabled cores is usually counter-productive (e.g. on
-IBM BG/Q), as the cost in additional memory bandwidth requirements is
-not offset by the gain in CPU utilization through
-hyper-threading. 
+<LI>It is usually most efficient to restrict threading to a single
+socket, i.e. use one or more MPI task per socket. 
+
+<LI>Several current MPI implementation by default use a processor affinity
+setting that restricts each MPI task to a single CPU core.  Using
+multi-threading in this mode will force the threads to share that core
+and thus is likely to be counterproductive.  Instead, binding MPI
+tasks to a (multi-core) socket, should solve this issue. 
 </UL>
 <P><B>Restrictions:</B>
 </P>
-<P>None of the pair styles in the USER-OMP package support the "inner",
-"middle", "outer" options for <A HREF = "run_style.html">rRESPA integration</A>.
-Only the rRESPA "pair" option is supported.
+<P>None.
 </P>
 <HR>
 
 <H4><A NAME = "acc_6"></A>5.6 GPU package 
 </H4>
-<P><B>Required hardware/software:</B>
-<B>Building LAMMPS with the OPT package:</B>
-<B>Running with the OPT package;</B>
-<B>Guidelines for best performance;</B>
-<B>Speed-ups to expect:</B>
-</P>
 <P>The GPU package was developed by Mike Brown at ORNL and his
-collaborators.  It provides GPU versions of several pair styles,
-including the 3-body Stillinger-Weber pair style, and for long-range
-Coulombics via the PPPM command.  It has the following features:
+collaborators, particularly Trung Nguyen (ORNL).  It provides GPU
+versions of many pair styles, including the 3-body Stillinger-Weber
+pair style, and for <A HREF = "kspace_style.html">kspace_style pppm</A> for
+long-range Coulombics.  It has the following general features:
 </P>
 <UL><LI>The package is designed to exploit common GPU hardware configurations
-where one or more GPUs are coupled with many cores of a multi-core
-CPUs, e.g. within a node of a parallel machine. 
+where one or more GPUs are coupled to many cores of one or more
+multi-core CPUs, e.g. within a node of a parallel machine. 
 
 <LI>Atom-based data (e.g. coordinates, forces) moves back-and-forth
 between the CPU(s) and GPU every timestep. 
@@ -475,8 +490,8 @@ between processors, runs on the CPU.
 CPU(s) and GPU. 
 
 <LI>It allows for GPU computations to be performed in single or double
-precision, or in mixed-mode precision. where pairwise forces are
-cmoputed in single precision, but accumulated into double-precision
+precision, or in mixed-mode precision, where pairwise forces are
+computed in single precision, but accumulated into double-precision
 force vectors. 
 
 <LI>LAMMPS-specific code is in the GPU package.  It makes calls to a
@@ -485,7 +500,7 @@ NVIDIA support as well as more general OpenCL support, so that the
 same functionality can eventually be supported on a variety of GPU
 hardware. 
 </UL>
-<P><B>Hardware and software requirements:</B>
+<P><B>Required hardware/software:</B>
 </P>
 <P>To use this package, you currently need to have an NVIDIA GPU and
 install the NVIDIA Cuda software on your system:
@@ -493,20 +508,20 @@ install the NVIDIA Cuda software on your system:
 <UL><LI>Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/cards/0
 <LI>Go to http://www.nvidia.com/object/cuda_get.html
 <LI>Install a driver and toolkit appropriate for your system (SDK is not necessary)
-<LI>Follow the instructions in lammps/lib/gpu/README to build the library (see below)
-<LI>Run lammps/lib/gpu/nvc_get_devices to list supported devices and properties 
+<LI>Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) to list supported devices and properties 
 </UL>
 <P><B>Building LAMMPS with the GPU package:</B>
 </P>
-<P>As with other packages that include a separately compiled library, you
-need to first build the GPU library, before building LAMMPS itself.
-General instructions for doing this are in <A HREF = "Section_start.html#start_3">this
-section</A> of the manual.  For this package,
-use a Makefile in lib/gpu appropriate for your system.
+<P>This requires two steps (a,b): build the GPU library, then build
+LAMMPS.
 </P>
-<P>Before building the library, you can set the precision it will use by
-editing the CUDA_PREC setting in the Makefile you are using, as
-follows:
+<P>a) Build the GPU library
+</P>
+<P>The GPU library is in lammps/lib/gpu.  Select a Makefile.machine (in
+lib/gpu) appropriate for your system.
+</P>
+<P>Before building the library, you can set its precision by editing the
+CUDA_PREC setting in Makefile.machine, as follows:
 </P>
 <PRE>CUDA_PREC = -D_SINGLE_SINGLE  # Single precision for all calculations
 CUDA_PREC = -D_DOUBLE_DOUBLE  # Double precision for all calculations
@@ -516,84 +531,125 @@ CUDA_PREC = -D_SINGLE_DOUBLE  # Accumulation of forces, etc, in double
 GPU must support double precision to use either the 2nd or 3rd of
 these settings.
 </P>
-<P>To build the library, then type:
+<P>To build the library, type:
 </P>
-<PRE>cd lammps/lib/gpu
-make -f Makefile.linux
-(see further instructions in lammps/lib/gpu/README) 
+<PRE>make -f Makefile.machine 
 </PRE>
-<P>If you are successful, you will produce the file lib/libgpu.a.
+<P>If successful, it will produce the files libgpu.a and Makefile.lammps.
 </P>
-<P>Now you are ready to build LAMMPS with the GPU package installed:
+<P>The latter file has 3 settings that need to be appropriate for the
+paths and settings for the CUDA system software on your machine.
+Makefile.lammps is a copy of the file specified by the EXTRAMAKE
+setting in Makefile.machine.  You can change EXTRAMAKE or create your
+own Makefile.lammps.machine if needed.
+</P>
+<P>Note that to change the precision of the GPU library, you need to
+re-build the entire library.  Do a "clean" first, e.g. "make -f
+Makefile.linux clean", followed by the make command above.
+</P>
+<P>b) Build LAMMPS
 </P>
 <PRE>cd lammps/src
 make yes-gpu
 make machine 
 </PRE>
-<P>Note that the lo-level Makefile (e.g. src/MAKE/Makefile.linux) has
-these settings: gpu_SYSINC, gpu_SYSLIB, gpu_SYSPATH.  These need to be
-set appropriately to include the paths and settings for the CUDA
-system software on your machine.  See src/MAKE/Makefile.g++ for an
-example.
+<P>Note that if you change the GPU library precision (discussed above),
+you also need to re-install the GPU package and re-build LAMMPS, so
+that all affected files are re-compiled and linked to the new GPU
+library.
 </P>
-<P>Also note that if you change the GPU library precision, you need to
-re-build the entire library.  You should do a "clean" first,
-e.g. "make -f Makefile.linux clean".  Then you must also re-build
-LAMMPS if the library precision has changed, so that it re-links with
-the new library.
-</P>
-<P><B>Running an input script:</B>
+<P><B>Running with the GPU package:</B>
 </P>
 <P>The examples/gpu and bench/GPU directories have scripts that can be
 run with the GPU package, as well as detailed instructions on how to
 run them.
+</P>
+<P>To run with the GPU package, there are 3 basic issues (a,b,c) to
+address:
+</P>
+<P>a) Use one or more MPI tasks per GPU
 </P>
 <P>The total number of MPI tasks used by LAMMPS (one or multiple per
 compute node) is set in the usual manner via the mpirun or mpiexec
 commands, and is independent of the GPU package.
 </P>
 <P>When using the GPU package, you cannot assign more than one physical
-GPU to an MPI task.  However multiple MPI tasks can share the same
-GPU, and in many cases it will be more efficient to run this way.
+GPU to a single MPI task.  However multiple MPI tasks can share the
+same GPU, and in many cases it will be more efficient to run this way.
 </P>
-<P>Input script requirements to run using pair or PPPM styles with a
-<I>gpu</I> suffix are as follows:
-</P>
-<UL><LI>To invoke specific styles from the GPU package, either append "gpu" to
-the style name (e.g. pair_style lj/cut/gpu), or use the <A HREF = "Section_start.html#start_7">-suffix
-command-line switch</A>, or use the
-<A HREF = "suffix.html">suffix</A> command in the input script. 
-
-<LI>The <A HREF = "newton.html">newton pair</A> setting in the input script must be
-<I>off</I>. 
-
-<LI>Unless the <A HREF = "Section_start.html#start_7">-suffix gpu command-line
-switch</A> is used, the <A HREF = "package.html">package
-gpu</A> command must be used near the beginning of the
-script to control the GPU selection and initialization settings.  It
-also has an option to enable asynchronous splitting of force
-computations between the CPUs and GPUs. 
-</UL>
-<P>The default for the <A HREF = "package.html">package gpu</A> command is to have all
-the MPI tasks on the compute node use a single GPU.  If you have
-multiple GPUs per node, then be sure to create one or more MPI tasks
-per GPU, and use the first/last settings in the <A HREF = "package.html">package
+<P>The default is to have all MPI tasks on a compute node use a single
+GPU.  To use multiple GPUs per node, be sure to create one or more MPI
+tasks per GPU, and use the first/last settings in the <A HREF = "package.html">package
 gpu</A> command to include all the GPU IDs on the node.
-E.g. first = 0, last = 1, for 2 GPUs.  For example, on an 8-core 2-GPU
-compute node, if you assign 8 MPI tasks to the node, the following
-command in the input script
+E.g. first = 0, last = 1, for 2 GPUs.  On a node with 8 CPU cores
+and 2 GPUs, this would specify that each GPU is shared by 4 MPI tasks.
 </P>
-<P>package gpu force/neigh 0 1 -1
+<P>b) Enable the GPU package
 </P>
-<P>would speciy each GPU is shared by 4 MPI tasks.  The final -1 will
-dynamically balance force calculations across the CPU cores and GPUs.
-I.e. each CPU core will perform force calculations for some small
-fraction of the particles, at the same time the GPUs perform force
-calcaultions for the majority of the particles.
+<P>This can be done in one of two ways.  Use a <A HREF = "package.html">package gpu</A>
+command near the top of your input script.
 </P>
-<P><B>Timing output:</B>
+<P>Or use the "-sf gpu" <A HREF = "Section_start.html#start_7">command-line switch</A>,
+which will automatically invoke the command <A HREF = "package.html">package gpu force/neigh 0
+0 1</A>.  Note that this specifies use of a single GPU (per
+node), so you must specify the package command in your input script
+explicitly if you want to use multiple GPUs per node.
 </P>
-<P>As described by the <A HREF = "package.html">package gpu</A> command, GPU
+<P>c) Use GPU-accelerated styles
+</P>
+<P>This can be done by explicitly adding a "gpu" suffix to any supported
+style in your input script:
+</P>
+<PRE>pair_style lj/cut/gpu 2.5 
+</PRE>
+<P>Or you can run with the "-sf gpu" <A HREF = "Section_start.html#start_7">command-line
+switch</A>, which will automatically append
+"gpu" to styles that support it.
+</P>
+<PRE>lmp_machine -sf gpu -in in.script
+mpirun -np 4 lmp_machine -sf gpu -in in.script 
+</PRE>
+<P>Using the "suffix gpu" command in your input script does the same
+thing.
+</P>
+<P>IMPORTANT NOTE: The input script must also use the
+<A HREF = "newton.html">newton</A> command with a pairwise setting of <I>off</I>,
+since <I>on</I> is the default.
+</P>
+<P><B>Speed-ups to expect:</B>
+</P>
+<P>The performance of a GPU versus a multi-core CPU is a function of your
+hardware, which pair style is used, the number of atoms/GPU, and the
+precision used on the GPU (double, single, mixed).
+</P>
+<P>See the <A HREF = "http://lammps.sandia.gov/bench.html">Benchmark page</A> of the
+LAMMPS web site for performance of the GPU package on various
+hardware, including the Titan HPC platform at ORNL.
+</P>
+<P>You should also experiment with how many MPI tasks per GPU to use to
+give the best performance for your problem and machine.  This is also
+a function of the problem size and the pair style being using.
+Likewise, you should experiment with the precision setting for the GPU
+library to see if single or mixed precision will give accurate
+results, since they will typically be faster.
+</P>
+<P><B>Guidelines for best performance:</B>
+</P>
+<UL><LI>Using multiple MPI tasks per GPU will often give the best performance,
+as allowed my most multi-core CPU/GPU configurations. 
+
+<LI>If the number of particles per MPI task is small (e.g. 100s of
+particles), it can be more efficient to run with fewer MPI tasks per
+GPU, even if you do not use all the cores on the compute node. 
+
+<LI>The <A HREF = "package.html">package gpu</A> command has several options for tuning
+performance.  Neighbor lists can be built on the GPU or CPU.  Force
+calculations can be dynamically balanced across the CPU cores and
+GPUs.  GPU-specific settings can be made which can be optimized
+for different hardware.  See the <A HREF = "package.html">packakge</A> command
+doc page for details. 
+
+<LI>As described by the <A HREF = "package.html">package gpu</A> command, GPU
 accelerated pair styles can perform computations asynchronously with
 CPU computations. The "Pair" time reported by LAMMPS will be the
 maximum of the time required to complete the CPU pair style
@@ -602,56 +658,34 @@ computations. Any time spent for GPU-enabled pair styles for
 computations that run simultaneously with <A HREF = "bond_style.html">bond</A>,
 <A HREF = "angle_style.html">angle</A>, <A HREF = "dihedral_style.html">dihedral</A>,
 <A HREF = "improper_style.html">improper</A>, and <A HREF = "kspace_style.html">long-range</A>
-calculations will not be included in the "Pair" time.
-</P>
-<P>When the <I>mode</I> setting for the package gpu command is force/neigh,
+calculations will not be included in the "Pair" time. 
+
+<LI>When the <I>mode</I> setting for the package gpu command is force/neigh,
 the time for neighbor list calculations on the GPU will be added into
 the "Pair" time, not the "Neigh" time.  An additional breakdown of the
 times required for various tasks on the GPU (data copy, neighbor
 calculations, force computations, etc) are output only with the LAMMPS
 screen output (not in the log file) at the end of each run.  These
 timings represent total time spent on the GPU for each routine,
-regardless of asynchronous CPU calculations.
-</P>
-<P>The output section "GPU Time Info (average)" reports "Max Mem / Proc".
+regardless of asynchronous CPU calculations. 
+
+<LI>The output section "GPU Time Info (average)" reports "Max Mem / Proc".
 This is the maximum memory used at one time on the GPU for data
-storage by a single MPI process.
+storage by a single MPI process. 
+</UL>
+<P><B>Restrictions:</B>
 </P>
-<P><B>Performance tips:</B>
-</P>
-<P>You should experiment with how many MPI tasks per GPU to use to see
-what gives the best performance for your problem.  This is a function
-of your problem size and what pair style you are using.  Likewise, you
-should also experiment with the precision setting for the GPU library
-to see if single or mixed precision will give accurate results, since
-they will typically be faster.
-</P>
-<P>Using multiple MPI tasks per GPU will often give the best performance,
-as allowed my most multi-core CPU/GPU configurations.
-</P>
-<P>If the number of particles per MPI task is small (e.g. 100s of
-particles), it can be more eefficient to run with fewer MPI tasks per
-GPU, even if you do not use all the cores on the compute node.
-</P>
-<P>The <A HREF = "http://lammps.sandia.gov/bench.html">Benchmark page</A> of the LAMMPS
-web site gives GPU performance on a desktop machine and the Titan HPC
-platform at ORNL for several of the LAMMPS benchmarks, as a function
-of problem size and number of compute nodes.
+<P>None.
 </P>
 <HR>
 
 <H4><A NAME = "acc_7"></A>5.7 USER-CUDA package 
 </H4>
-<P><B>Required hardware/software:</B>
-<B>Building LAMMPS with the OPT package:</B>
-<B>Running with the OPT package;</B>
-<B>Guidelines for best performance;</B>
-<B>Speed-ups to expect:</B>
-</P>
-<P>The USER-CUDA package was developed by Christian Trott at U Technology
-Ilmenau in Germany.  It provides NVIDIA GPU versions of many pair
-styles, many fixes, a few computes, and for long-range Coulombics via
-the PPPM command.  It has the following features:
+<P>The USER-CUDA package was developed by Christian Trott (Sandia) while
+at U Technology Ilmenau in Germany .  It provides NVIDIA GPU versions
+of many pair styles, many fixes, a few computes, and for long-range
+Coulombics via the PPPM command.  It has the following general
+features:
 </P>
 <UL><LI>The package is designed to allow an entire LAMMPS calculation, for
 many timesteps, to run entirely on the GPU (except for inter-processor
@@ -661,52 +695,48 @@ do not have to move back-and-forth between the CPU and GPU.
 <LI>The speed-up advantage of this approach is typically better when the
 number of atoms per GPU is large 
 
-<LI>Data will stay on the GPU until a timestep where a non-GPU-ized fix or
-compute is invoked.  Whenever a non-GPU operation occurs (fix,
+<LI>Data will stay on the GPU until a timestep where a non-USER-CUDA fix
+or compute is invoked.  Whenever a non-GPU operation occurs (fix,
 compute, output), data automatically moves back to the CPU as needed.
 This may incur a performance penalty, but should otherwise work
 transparently. 
 
-<LI>Neighbor lists for GPU-ized pair styles are constructed on the
-GPU. 
+<LI>Neighbor lists are constructed on the GPU. 
 
-<LI>The package only supports use of a single CPU (core) with each
-GPU. 
+<LI>The package only supports use of a single MPI task, running on a
+single CPU (core), assigned to each GPU. 
 </UL>
-<P><B>Hardware and software requirements:</B>
+<P><B>Required hardware/software:</B>
 </P>
-<P>To use this package, you need to have specific NVIDIA hardware and
-install specific NVIDIA CUDA software on your system.
+<P>To use this package, you need to have an NVIDIA GPU and
+install the NVIDIA Cuda software on your system:
 </P>
 <P>Your NVIDIA GPU needs to support Compute Capability 1.3. This list may
 help you to find out the Compute Capability of your card:
 </P>
 <P>http://en.wikipedia.org/wiki/Comparison_of_Nvidia_graphics_processing_units
 </P>
-<P>Install the Nvidia Cuda Toolkit in version 3.2 or higher and the
-corresponding GPU drivers. The Nvidia Cuda SDK is not required for
-LAMMPSCUDA but we recommend it be installed.  You can then make sure
-that its sample projects can be compiled without problems.
+<P>Install the Nvidia Cuda Toolkit (version 3.2 or higher) and the
+corresponding GPU drivers.  The Nvidia Cuda SDK is not required, but
+we recommend it also be installed.  You can then make sure its sample
+projects can be compiled without problems.
 </P>
 <P><B>Building LAMMPS with the USER-CUDA package:</B>
 </P>
-<P>As with other packages that include a separately compiled library, you
-need to first build the USER-CUDA library, before building LAMMPS
-itself.  General instructions for doing this are in <A HREF = "Section_start.html#start_3">this
-section</A> of the manual.  For this package,
-do the following, using settings in the lib/cuda Makefiles appropriate
-for your system:
+<P>This requires two steps (a,b): build the USER-CUDA library, then build
+LAMMPS.
 </P>
-<UL><LI>Go to the lammps/lib/cuda directory 
-
-<LI>If your <I>CUDA</I> toolkit is not installed in the default system directoy
-<I>/usr/local/cuda</I> edit the file <I>lib/cuda/Makefile.common</I>
-accordingly. 
-
-<LI>Type "make OPTIONS", where <I>OPTIONS</I> are one or more of the following
-options. The settings will be written to the
-<I>lib/cuda/Makefile.defaults</I> and used in the next step. 
-
+<P>a) Build the USER-CUDA library
+</P>
+<P>The USER-CUDA library is in lammps/lib/cuda.  If your <I>CUDA</I> toolkit
+is not installed in the default system directoy <I>/usr/local/cuda</I> edit
+the file <I>lib/cuda/Makefile.common</I> accordingly.
+</P>
+<P>To set options for the library build, type "make OPTIONS", where
+<I>OPTIONS</I> are one or more of the following. The settings will be
+written to the <I>lib/cuda/Makefile.defaults</I> and used when
+the library is built.
+</P>
 <PRE><I>precision=N</I> to set the precision level
   N = 1 for single precision (default)
   N = 2 for double precision
@@ -718,79 +748,110 @@ options. The settings will be written to the
   M = 13 for CC1.3 (GF200, e.g. C1060, GTX285)
 <I>prec_timer=0/1</I> to use hi-precision timers
   0 = do not use them (default)
-  1 = use these timers
+  1 = use them
   this is usually only useful for Mac machines 
 <I>dbg=0/1</I> to activate debug mode
   0 = no debug mode (default)
   1 = yes debug mode
   this is only useful for developers
-<I>cufft=1</I> to determine usage of CUDA FFT library
+<I>cufft=1</I> for use of the CUDA FFT library
   0 = no CUFFT support (default)
   in the future other CUDA-enabled FFT libraries might be supported 
 </PRE>
-<LI>Type "make" to build the library.  If you are successful, you will
-produce the file lib/libcuda.a. 
-</UL>
-<P>Now you are ready to build LAMMPS with the USER-CUDA package installed:
+<P>To build the library, simply type:
+</P>
+<PRE>make 
+</PRE>
+<P>If successful, it will produce the files libcuda.a and Makefile.lammps.
+</P>
+<P>Note that if you change any of the options (like precision), you need
+to re-build the entire library.  Do a "make clean" first, followed by
+"make".
+</P>
+<P>b) Build LAMMPS
 </P>
 <PRE>cd lammps/src
 make yes-user-cuda
 make machine 
 </PRE>
-<P>Note that the LAMMPS build references the lib/cuda/Makefile.common
-file to extract setting specific CUDA settings.  So it is important
-that you have first built the cuda library (in lib/cuda) using
-settings appropriate to your system.
+<P>Note that if you change the USER-CUDA library precision (discussed
+above), you also need to re-install the USER-CUDA package and re-build
+LAMMPS, so that all affected files are re-compiled and linked to the
+new USER-CUDA library.
 </P>
-<P><B>Input script requirements:</B>
+<P><B>Running with the USER-CUDA package:</B>
 </P>
-<P>Additional input script requirements to run styles with a <I>cuda</I>
-suffix are as follows:
+<P>The bench/GPU directories has scripts that can be run with the
+USER-CUDA package, as well as detailed instructions on how to run
+them.
 </P>
-<UL><LI>The <A HREF = "Section_start.html#start_7">-cuda on command-line switch</A> must be
-used when launching LAMMPS to enable the USER-CUDA package. 
-
-<LI>To invoke specific styles from the USER-CUDA package, you can either
-append "cuda" to the style name (e.g. pair_style lj/cut/cuda), or use
-the <A HREF = "Section_start.html#start_7">-suffix command-line switch</A>, or use
-the <A HREF = "suffix.html">suffix</A> command.  One exception is that the
-<A HREF = "kspace_style.html">kspace_style pppm/cuda</A> command has to be requested
-explicitly. 
-
-<LI>To use the USER-CUDA package with its default settings, no additional
-command is needed in your input script.  This is because when LAMMPS
-starts up, it detects if it has been built with the USER-CUDA package.
-See the <A HREF = "Section_start.html#start_7">-cuda command-line switch</A> for
-more details. 
-
-<LI>To change settings for the USER-CUDA package at run-time, the <A HREF = "package.html">package
-cuda</A> command can be used near the beginning of your
-input script.  See the <A HREF = "package.html">package</A> command doc page for
-details. 
-</UL>
-<P><B>Performance tips:</B>
+<P>To run with the USER-CUDA package, there are 3 basic issues (a,b,c) to
+address:
 </P>
-<P>The USER-CUDA package offers more speed-up relative to CPU performance
+<P>a) Use one MPI task per GPU
+</P>
+<P>This is a requirement of the USER-CUDA package, i.e. you cannot
+use multiple MPI tasks per physical GPU.  So if you are running
+on nodes with 1 or 2 GPUs, use the mpirun or mpiexec command
+to specify 1 or 2 MPI tasks per node.
+</P>
+<P>If the nodes have more than 1 GPU, you must use the <A HREF = "package.html">package
+cuda</A> command near the top of your input script to
+specify that more than 1 GPU will be used (the default = 1).
+</P>
+<P>b) Enable the USER-CUDA package
+</P>
+<P>The "-c on" or "-cuda on" <A HREF = "Section_start.html#start_7">command-line
+switch</A> must be used when launching LAMMPS.
+</P>
+<P>c) Use USER-CUDA-accelerated styles
+</P>
+<P>This can be done by explicitly adding a "cuda" suffix to any supported
+style in your input script:
+</P>
+<PRE>pair_style lj/cut/cuda 2.5 
+</PRE>
+<P>Or you can run with the "-sf cuda" <A HREF = "Section_start.html#start_7">command-line
+switch</A>, which will automatically append
+"cuda" to styles that support it.
+</P>
+<PRE>lmp_machine -sf cuda -in in.script
+mpirun -np 4 lmp_machine -sf cuda -in in.script 
+</PRE>
+<P>Using the "suffix cuda" command in your input script does the same
+thing.
+</P>
+<P><B>Speed-ups to expect:</B>
+</P>
+<P>The performance of a GPU versus a multi-core CPU is a function of your
+hardware, which pair style is used, the number of atoms/GPU, and the
+precision used on the GPU (double, single, mixed).
+</P>
+<P>See the <A HREF = "http://lammps.sandia.gov/bench.html">Benchmark page</A> of the
+LAMMPS web site for performance of the USER-CUDA package on various
+hardware.
+</P>
+<P><B>Guidelines for best performance:</B>
+</P>
+<UL><LI>The USER-CUDA package offers more speed-up relative to CPU performance
 when the number of atoms per GPU is large, e.g. on the order of tens
-or hundreds of 1000s.
-</P>
-<P>As noted above, this package will continue to run a simulation
+or hundreds of 1000s. 
+
+<LI>As noted above, this package will continue to run a simulation
 entirely on the GPU(s) (except for inter-processor MPI communication),
 for multiple timesteps, until a CPU calculation is required, either by
 a fix or compute that is non-GPU-ized, or until output is performed
 (thermo or dump snapshot or restart file).  The less often this
-occurs, the faster your simulation will run.
+occurs, the faster your simulation will run. 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>None.
 </P>
 <HR>
 
 <H4><A NAME = "acc_8"></A>5.8 KOKKOS package 
 </H4>
-<P><B>Required hardware/software:</B>
-<B>Building LAMMPS with the OPT package:</B>
-<B>Running with the OPT package;</B>
-<B>Guidelines for best performance;</B>
-<B>Speed-ups to expect:</B>
-</P>
 <P>The KOKKOS package contains versions of pair, fix, and atom styles
 that use data structures and methods and macros provided by the Kokkos
 library, which is included with LAMMPS in lib/kokkos.
@@ -863,7 +924,7 @@ Details of the various options are discussed below.
 <PRE>make yes-kokkos                           # install the KOKKOS package
 make g++ OMP=yes                          # build with OpenMP, no CUDA 
 </PRE>
-<PRE>mpirun -np 12 lmp_g++ < in.lj      # MPI-only mode with no Kokkos
+<PRE>mpirun -np 12 lmp_g++ -in in.lj      # MPI-only mode with no Kokkos
 mpirun -np 12 lmp_g++ -k on -sf kk < in.lj      # MPI-only mode with Kokkos
 mpirun -np 1 lmp_g++ -k on t 12 -sf kk < in.lj     # one MPI task, 12 threads
 mpirun -np 2 lmp_g++ -k on t 6 -sf kk < in.lj      # two MPI tasks, 6 threads/task 
@@ -1083,118 +1144,174 @@ LAMMPS.
 
 <H4><A NAME = "acc_9"></A>5.9 USER-INTEL package 
 </H4>
-<P><B>Required hardware/software:</B>
-<B>Building LAMMPS with the OPT package:</B>
-<B>Running with the OPT package;</B>
-<B>Guidelines for best performance;</B>
-<B>Speed-ups to expect:</B>
-</P>
 <P>The USER-INTEL package was developed by Mike Brown at Intel
-Corporation. It provides a capability to accelerate simulations by
+Corporation.  It provides a capability to accelerate simulations by
 offloading neighbor list and non-bonded force calculations to Intel(R)
 Xeon Phi(TM) coprocessors.  Additionally, it supports running
 simulations in single, mixed, or double precision with vectorization,
-even if a coprocessor is not present, i.e. on an Intel(R) CPU.  The same
-C++ code is used for both cases.  When offloading to a coprocessor,
-the routine is run twice, once with an offload flag.
+even if a coprocessor is not present, i.e. on an Intel(R) CPU.  The
+same C++ code is used for both cases.  When offloading to a
+coprocessor, the routine is run twice, once with an offload flag.
 </P>
 <P>The USER-INTEL package can be used in tandem with the USER-OMP
-package.  This is useful when a USER-INTEL pair style is used, so that
-other styles not supported by the USER-INTEL package, e.g. for bond,
-angle, dihedral, improper, and long-range electrostatics can be run
-with the USER-OMP package versions.  If you have built LAMMPS with
-both the USER-INTEL and USER-OMP packages, then this mode of operation
-is made easier, because the "-suffix intel" <A HREF = "Section_start.html#start_7">command-line
-switch</A> and the the <A HREF = "suffix.html">suffix
-intel</A> command will both set a second-choice suffix to
-"omp" so that styles from the USER-OMP package will be used if
-available.
+package.  This is useful when offloading pair style computations to
+coprocessors, so that other styles not supported by the USER-INTEL
+package, e.g. bond, angle, dihedral, improper, and long-range
+electrostatics, can be run simultaneously in threaded mode on CPU
+cores.  Since less MPI tasks than CPU cores will typically be invoked
+when running with coprocessors, this enables the extra cores to be
+utilized for useful computation.
+</P>
+<P>If LAMMPS is built with both the USER-INTEL and USER-OMP packages
+intsalled, this mode of operation is made easier to use, because the
+"-suffix intel" <A HREF = "Section_start.html#start_7">command-line switch</A> or
+the <A HREF = "suffix.html">suffix intel</A> command will both set a second-choice
+suffix to "omp" so that styles from the USER-OMP package will be used
+if available, after first testing if a style from the USER-INTEL
+package is available.
+</P>
+<P><B>Required hardware/software:</B>
+</P>
+<P>To take full advantage of vectorization optimizations, you need to run
+on Intel(R) CPUs.
+</P>
+<P>To use the offload option, you must have one or more Intel(R) Xeon
+Phi(TM) coprocessors.
+</P>
+<P>Use of an Intel C++ compiler is reccommended, but not required.  The
+compiler must support the OpenMP interface.
 </P>
 <P><B>Building LAMMPS with the USER-INTEL package:</B>
 </P>
-<P>The procedure for building LAMMPS with the USER-INTEL package is
-simple.  You have to edit your machine specific makefile to add the
-flags to enable OpenMP support (<I>-openmp</I>) to both the CCFLAGS and
-LINKFLAGS variables.  You also need to add -DLAMMPS_MEMALIGN=64 and
--restrict to CCFLAGS.
+<P>Include the package and build LAMMPS.  
 </P>
-<P>Note that currently you must use the Intel C++ compiler (icc/icpc) to
-build the package.  In the future, using other compilers (e.g. g++)
-may be possible.
-</P>
-<P>If you are compiling on the same architecture that will be used for
-the runs, adding the flag <I>-xHost</I> will enable vectorization with the
-Intel(R) compiler.  In order to build with support for an Intel(R)
-coprocessor, the flag <I>-offload</I> should be added to the LINKFLAGS line
-and the flag <I>-DLMP_INTEL_OFFLOAD</I> should be added to the CCFLAGS
-line.
-</P>
-<P>The files src/MAKE/Makefile.intel and src/MAKE/Makefile.intel_offload
-are included in the src/MAKE directory with options that perform well
-with the Intel(R) compiler. The latter Makefile has support for offload
-to coprocessors and the former does not.
-</P>
-<P>It is recommended that Intel(R) Compiler 2013 SP1 update 1 be used for
-compiling. Newer versions have some performance issues that are being
-addressed. If using Intel(R) MPI, version 5 or higher is recommended.
-</P>
-<P>The rest of the compilation is the same as for any other package that
-has no additional library dependencies, e.g.
-</P>
-<PRE>make yes-user-intel yes-user-omp
+<PRE>cd lammps/src
+make yes-user-intel
+make yes-user-omp (if desired)
 make machine 
 </PRE>
-<P><B>Running an input script:</B>
+<P>If the USER-OMP package is also installed, you can use styles from
+both packages, as described below.
+</P>
+<P>The lo-level src/MAKE/Makefile.machine needs a flag for OpenMP support
+in both the CCFLAGS and LINKFLAGS variables, which is <I>-openmp</I> for
+Intel compilers.  You also need to add -DLAMMPS_MEMALIGN=64 and
+-restrict to CCFLAGS.
+</P>
+<P>If you are compiling on the same architecture that will be used for
+the runs, adding the flag <I>-xHost</I> to CCFLAGS will enable
+vectorization with the Intel(R) compiler.
+</P>
+<P>In order to build with support for an Intel(R) coprocessor, the flag
+<I>-offload</I> should be added to the LINKFLAGS line and the flag
+<I>-DLMP_INTEL_OFFLOAD</I> should be added to the CCFLAGS line.
+</P>
+<P>Note that the machine makefiles Makefile.intel and
+Makefile.intel_offload are included in the src/MAKE directory with
+options that perform well with the Intel(R) compiler. The latter file
+has support for offload to coprocessors; the former does not.
+</P>
+<P>If using an Intel compiler, it is recommended that Intel(R) Compiler
+2013 SP1 update 1 be used.  Newer versions have some performance
+issues that are being addressed. If using Intel(R) MPI, version 5 or
+higher is recommended.
+</P>
+<P><B>Running with the USER-INTEL package:</B>
 </P>
 <P>The examples/intel directory has scripts that can be run with the
 USER-INTEL package, as well as detailed instructions on how to run
 them.
 </P>
-<P>The total number of MPI tasks used by LAMMPS (one or multiple per
-compute node) is set in the usual manner via the mpirun or mpiexec
-commands, and is independent of the USER-INTEL package.
+<P>Note that the total number of MPI tasks used by LAMMPS (one or
+multiple per compute node) is set in the usual manner via the mpirun
+or mpiexec commands, and is independent of the USER-INTEL package.
 </P>
-<P>Input script requirements to run using pair styles with a <I>intel</I>
-suffix are as follows:
+<P>To run with the USER-INTEL package, there are 3 basic issues (a,b,c)
+to address:
 </P>
-<P>To invoke specific styles from the UESR-INTEL package, either append
-"intel" to the style name (e.g. pair_style lj/cut/intel), or use the
-<A HREF = "Section_start.html#start_7">-suffix command-line switch</A>, or use the
-<A HREF = "suffix.html">suffix</A> command in the input script.
+<P>a) Specify how many threads per MPI task to use on the CPU.
 </P>
-<P>Unless the <A HREF = "Section_start.html#start_7">-suffix intel command-line
-switch</A> is used, a <A HREF = "package.html">package
-intel</A> command must be used near the beginning of the
-input script.  The default precision mode for the USER-INTEL package
-is <I>mixed</I>, meaning that accumulation is performed in double precision
-and other calculations are performed in single precision.  In order to
-use all single or all double precision, the <A HREF = "package.html">package
-intel</A> command must be used in the input script with a
-"single" or "double" keyword specified.
+<P>Whether using the USER-INTEL package to offload computations to
+Intel(R) Xeon Phi(TM) coprocessors or not, work performed on the CPU
+can be multi-threaded via the USER-OMP package, assuming the USER-OMP
+package was also installed when LAMMPS was built.
 </P>
-<P><B>Running with an Intel(R) coprocessor:</B>
+<P>In this case, the instructions above for the USER-OMP package, in its
+"Running with the USER-OMP package" sub-section apply here as well.
 </P>
-<P>The USER-INTEL package supports offload of a fraction of the work to
-Intel(R) Xeon Phi(TM) coprocessors.  This is accomplished by setting a
-balance fraction on the <A HREF = "package.html">package intel</A> command. A
-balance of 0 runs all calculations on the CPU.  A balance of 1 runs
-all calculations on the coprocessor.  A balance of 0.5 runs half of
-the calculations on the coprocessor.  Setting the balance to -1 will
-enable dynamic load balancing that continously adjusts the fraction of
-offloaded work throughout the simulation.  This option typically
-produces results within 5 to 10 percent of the optimal fixed balance.
-By default, using the <A HREF = "suffix.html">suffix</A> command or <A HREF = "Section_start.html#start_7">-suffix
-command-line switch</A> will use offload to a
-coprocessor with the balance set to -1.  If LAMMPS is built without
-offload support, this setting is ignored.
+<P>You can specify the number of threads per MPI task via the
+OMP_NUM_THREADS environment variable or the <A HREF = "package.html">package omp</A>
+command.  The product of MPI tasks * threads/task should not exceed
+the physical number of cores on the CPU (per node), otherwise
+performance will suffer.
 </P>
-<P>If one is running short benchmark runs with dynamic load balancing,
-adding a short warm-up run (10-20 steps) will allow the load-balancer
-to find a setting that will carry over to additional runs.
+<P>Note that the threads per MPI task setting is completely independent
+of the number of threads used on the coprocessor.  Only the <A HREF = "package.html">package
+intel</A> command can be used to control thread counts on
+the coprocessor.
 </P>
-<P>The default for the <A HREF = "package.html">package intel</A> command is to have
-all the MPI tasks on a given compute node use a single Xeon Phi(TM) coprocessor
-In general, running with a large number of MPI tasks on
+<P>b) Enable the USER-INTEL package
+</P>
+<P>This can be done in one of two ways.  Use a <A HREF = "package.html">package intel</A>
+command near the top of your input script.
+</P>
+<P>Or use the "-sf intel" <A HREF = "Section_start.html#start_7">command-line
+switch</A>, which will automatically invoke
+the command "package intel * mixed balance -1 offload_cards 1
+offload_tpc 4 offload_threads 240".  Note that this specifies mixed
+precision and use of a single Xeon Phi(TM) coprocessor (per node), so
+you must specify the package command in your input script explicitly
+if you want a different precision or to use multiple Phi coprocessor
+per node.  Also note that the balance and offload keywords are ignored
+if you did not build LAMMPS with offload support for a coprocessor, as
+descibed above.
+</P>
+<P>c) Use USER-INTEL-accelerated styles
+</P>
+<P>This can be done by explicitly adding an "intel" suffix to any
+supported style in your input script:
+</P>
+<PRE>pair_style lj/cut/intel 2.5 
+</PRE>
+<P>Or you can run with the "-sf intel" <A HREF = "Section_start.html#start_7">command-line
+switch</A>, which will automatically append
+"intel" to styles that support it.
+</P>
+<PRE>lmp_machine -sf intel -in in.script
+mpirun -np 4 lmp_machine -sf intel -in in.script 
+</PRE>
+<P>Using the "suffix intel" command in your input script does the same
+thing.
+</P>
+<P>IMPORTANT NOTE: Using an "intel" suffix in any of the above modes,
+actually invokes two suffixes, "intel" and "omp".  "Intel" is tried
+first, and if the style does not support it, "omp" is tried next.  If
+neither is supported, the default non-suffix style is used.
+</P>
+<P><B>Speed-ups to expect:</B>
+</P>
+<P>If LAMMPS was not built with coprocessor support when including the
+USER-INTEL package, then acclerated styles will run on the CPU using
+vectorization optimizations and the specified precision.  This may
+give a substantial speed-up for a pair style, particularly if mixed or
+single precision is used.
+</P>
+<P>If LAMMPS was built with coproccesor support, the pair styles will run
+on one or more Intel(R) Xeon Phi(TM) coprocessors (per node).  The
+performance of a Xeon Phi versus a multi-core CPU is a function of
+your hardware, which pair style is used, the number of
+atoms/coprocessor, and the precision used on the coprocessor (double,
+single, mixed).
+</P>
+<P>See the <A HREF = "http://lammps.sandia.gov/bench.html">Benchmark page</A> of the
+LAMMPS web site for performance of the USER-INTEL package on various
+hardware.
+</P>
+<P><B>Guidelines for best performance on an Intel(R) coprocessor:</B>
+</P>
+<UL><LI>The default for the <A HREF = "package.html">package intel</A> command is to have
+all the MPI tasks on a given compute node use a single Xeon Phi(TM)
+coprocessor.  In general, running with a large number of MPI tasks on
 each node will perform best with offload.  Each MPI task will
 automatically get affinity to a subset of the hardware threads
 available on the coprocessor.  For example, if your card has 61 cores,
@@ -1202,56 +1319,68 @@ with 60 cores available for offload and 4 hardware threads per core
 (240 total threads), running with 24 MPI tasks per node will cause
 each MPI task to use a subset of 10 threads on the coprocessor.  Fine
 tuning of the number of threads to use per MPI task or the number of
-threads to use per core can be accomplished with keywords to the
-<A HREF = "package.html">package intel</A> command.
-</P>
-<P>If LAMMPS is using offload to a Intel(R) Xeon Phi(TM) coprocessor, a diagnostic
-line during the setup for a run is printed to the screen (not to log
-files) indicating that offload is being used and the number of
-coprocessor threads per MPI task.  Additionally, an offload timing
-summary is printed at the end of each run.  When using offload, the
-<A HREF = "atom_modify.html">sort</A> frequency for atom data is changed to 1 so
-that the per-atom data is sorted every neighbor build.
-</P>
-<P>To use multiple coprocessors on each compute node, the
+threads to use per core can be accomplished with keyword settings of
+the <A HREF = "package.html">package intel</A> command. 
+
+<LI>If desired, only a fraction of the pair style computation can be
+offloaded to the coprocessors.  This is accomplished by setting a
+balance fraction in the <A HREF = "package.html">package intel</A> command.  A
+balance of 0 runs all calculations on the CPU.  A balance of 1 runs
+all calculations on the coprocessor.  A balance of 0.5 runs half of
+the calculations on the coprocessor.  Setting the balance to -1 (the
+default) will enable dynamic load balancing that continously adjusts
+the fraction of offloaded work throughout the simulation.  This option
+typically produces results within 5 to 10 percent of the optimal fixed
+balance. 
+
+<LI>If you have multiple coprocessors on each compute node, the
 <I>offload_cards</I> keyword can be specified with the <A HREF = "package.html">package
-intel</A> command to specify the number of coprocessors to
-use.
-</P>
-<P>For simulations with long-range electrostatics or bond, angle,
+intel</A> command. 
+
+<LI>If running short benchmark runs with dynamic load balancing, adding a
+short warm-up run (10-20 steps) will allow the load-balancer to find a
+near-optimal setting that will carry over to additional runs. 
+
+<LI>If pair computations are being offloaded to an Intel(R) Xeon Phi(TM)
+coprocessor, a diagnostic line is printed to the screen (not to the
+log file), during the setup phase of a run, indicating that offload
+mode is being used and indicating the number of coprocessor threads
+per MPI task.  Additionally, an offload timing summary is printed at
+the end of each run.  When offloading, the frequency for <A HREF = "atom_modify.html">atom
+sorting</A> is changed to 1 so that the per-atom data is
+effectively sorted at every rebuild of the neighbor lists. 
+
+<LI>For simulations with long-range electrostatics or bond, angle,
 dihedral, improper calculations, computation and data transfer to the
 coprocessor will run concurrently with computations and MPI
-communications for these routines on the host.  The USER-INTEL package
-has two modes for deciding which atoms will be handled by the
-coprocessor.  The setting is controlled with the "offload_ghost"
-option.  When set to 0, ghost atoms (atoms at the borders between MPI
-tasks) are not offloaded to the card.  This allows for overlap of MPI
-communication of forces with computation on the coprocessor when the
-<A HREF = "newton.html">newton</A> setting is "on".  The default is dependent on the
-style being used, however, better performance might be achieved by
-setting this explictly.
-</P>
-<P>In order to control the number of OpenMP threads used on the host, the
-OMP_NUM_THREADS environment variable should be set. This variable will
-not influence the number of threads used on the coprocessor.  Only the
-<A HREF = "package.html">package intel</A> command can be used to control thread
-counts on the coprocessor.
-</P>
+communications for these calculations on the host CPU.  The USER-INTEL
+package has two modes for deciding which atoms will be handled by the
+coprocessor.  This choice is controlled with the "offload_ghost"
+keyword of the <A HREF = "package.html">package intel</A> command.  When set to 0,
+ghost atoms (atoms at the borders between MPI tasks) are not offloaded
+to the card.  This allows for overlap of MPI communication of forces
+with computation on the coprocessor when the <A HREF = "newton.html">newton</A>
+setting is "on".  The default is dependent on the style being used,
+however, better performance may be achieved by setting this option
+explictly. 
+</UL>
 <P><B>Restrictions:</B>
 </P>
-<P>When using offload, <A HREF = "pair_hybrid.html">hybrid</A> styles that require skip
-lists for neighbor builds cannot be offloaded to the coprocessor.
+<P>When offloading to a coprocessor, <A HREF = "pair_hybrid.html">hybrid</A> styles
+that require skip lists for neighbor builds cannot be offloaded.
 Using <A HREF = "pair_hybrid.html">hybrid/overlay</A> is allowed.  Only one intel
-accelerated style may be used with hybrid styles.  Exclusion lists are
-not currently supported with offload, however, the same effect can
-often be accomplished by setting cutoffs for excluded atom types to 0.
-None of the pair styles in the USER-OMP package currently support the
+accelerated style may be used with hybrid styles.
+<A HREF = "special_bonds.html">Special_bonds</A> exclusion lists are not currently
+supported with offload, however, the same effect can often be
+accomplished by setting cutoffs for excluded atom types to 0.  None of
+the pair styles in the USER-INTEL package currently support the
 "inner", "middle", "outer" options for rRESPA integration via the
-<A HREF = "run_style.html">run_style respa</A> command.
+<A HREF = "run_style.html">run_style respa</A> command; only the "pair" option is
+supported.
 </P>
 <HR>
 
-<H4><A NAME = "acc_10"></A>5.10 Comparison of GPU and USER-CUDA packages 
+<H4><A NAME = "acc_10"></A>5.10 Comparison of GPU and USER-CUDA and KOKKOS packages 
 </H4>
 <P>Both the GPU and USER-CUDA packages accelerate a LAMMPS calculation
 using NVIDIA hardware, but they do it in different ways.

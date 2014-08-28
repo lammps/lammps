@@ -1204,7 +1204,7 @@ vectorization with the Intel(R) compiler.
 </P>
 <P>In order to build with support for an Intel(R) coprocessor, the flag
 <I>-offload</I> should be added to the LINKFLAGS line and the flag
-<I>-DLMP_INTEL_OFFLOAD</I> should be added to the CCFLAGS line.
+-DLMP_INTEL_OFFLOAD should be added to the CCFLAGS line.
 </P>
 <P>Note that the machine makefiles Makefile.intel and
 Makefile.intel_offload are included in the src/MAKE directory with
@@ -1307,7 +1307,8 @@ single, mixed).
 LAMMPS web site for performance of the USER-INTEL package on various
 hardware.
 </P>
-<P><B>Guidelines for best performance on an Intel(R) coprocessor:</B>
+<P><B>Guidelines for best performance on an Intel(R) Xeon Phi(TM)
+coprocessor:</B>
 </P>
 <UL><LI>The default for the <A HREF = "package.html">package intel</A> command is to have
 all the MPI tasks on a given compute node use a single Xeon Phi(TM)

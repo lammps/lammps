@@ -109,7 +109,7 @@ void DeleteAtoms::command(int narg, char **arg)
     atom->map_set();
   }
 
-  if (mol_flag) recount_topology();
+  recount_topology();
 
   // print before and after atom and topology counts
 

@@ -116,7 +116,7 @@ action pair_yukawa_gpu.h pair_yukawa.cpp
 action pppm_gpu.cpp pppm.cpp
 action pppm_gpu.h pppm.cpp
 
-# edit 2 Makefile.package files to include/exclude GPU info
+# edit 2 Makefile.package files to include/exclude package info
 
 if (test $1 = 1) then
 

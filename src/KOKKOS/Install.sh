@@ -27,11 +27,56 @@ action () {
 touch ../accelerator_kokkos.h
 touch ../memory.h
 
-# all package files with no dependencies
+# list of files with optional dependcies
 
-for file in *.cpp *.h; do
-  action $file
-done
+action atom_kokkos.cpp
+action atom_kokkos.h
+action atom_vec_angle_kokkos.cpp atom_vec_angle.cpp
+action atom_vec_angle_kokkos.h atom_vec_angle.h
+action atom_vec_atomic_kokkos.cpp
+action atom_vec_atomic_kokkos.h
+action atom_vec_bond_kokkos.cpp atom_vec_bond.cpp
+action atom_vec_bond_kokkos.h atom_vec_bond.h
+action atom_vec_charge_kokkos.cpp
+action atom_vec_charge_kokkos.h
+action atom_vec_full_kokkos.cpp atom_vec_full.cpp
+action atom_vec_full_kokkos.h atom_vec_full.h
+action atom_vec_kokkos.cpp
+action atom_vec_kokkos.h
+action atom_vec_molecular_kokkos.cpp atom_vec_molecular.cpp
+action atom_vec_molecular_kokkos.h atom_vec_molecular.h
+action comm_kokkos.cpp
+action comm_kokkos.h
+action domain_kokkos.cpp
+action domain_kokkos.h
+action fix_langevin_kokkos.cpp
+action fix_langevin_kokkos.h
+action fix_nve_kokkos.cpp
+action fix_nve_kokkos.h
+action kokkos.cpp
+action kokkos.h
+action kokkos_type.h
+action memory_kokkos.h
+action modify_kokkos.cpp
+action modify_kokkos.h
+action neigh_full_kokkos.h
+action neigh_list_kokkos.cpp
+action neigh_list_kokkos.h
+action neighbor_kokkos.cpp
+action neighbor_kokkos.h
+action pair_coul_cut_kokkos.cpp
+action pair_coul_cut_kokkos.h
+action pair_kokkos.h
+action pair_lj_cut_coul_cut_kokkos.cpp
+action pair_lj_cut_coul_cut_kokkos.h
+action pair_lj_cut_coul_long_kokkos.cpp pair_lj_cut_coul_long.cpp
+action pair_lj_cut_coul_long_kokkos.h pair_lj_cut_coul_long.h
+action pair_lj_cut_kokkos.cpp
+action pair_lj_cut_kokkos.h
+action pair_table_kokkos.cpp
+action pair_table_kokkos.h
+action verlet_kokkos.cpp
+action verlet_kokkos.h
 
 # edit 2 Makefile.package files to include/exclude package info
 

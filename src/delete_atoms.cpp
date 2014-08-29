@@ -143,9 +143,11 @@ void DeleteAtoms::command(int narg, char **arg)
                   ndelete_impropers,atom->nimpropers);
       }
     }
-    if (logfile) fprintf(logfile,"Deleted " BIGINT_FORMAT
-                         " atoms, new total = " BIGINT_FORMAT "\n",
-                         ndelete,atom->natoms);
+
+    if (logfile) {
+      fprintf(logfile,"Deleted " BIGINT_FORMAT
+              " atoms, new total = " BIGINT_FORMAT "\n",
+              ndelete,atom->natoms);
       if (mol_flag) {
         if (nbonds_previous) 
           fprintf(logfile,"Deleted " BIGINT_FORMAT
@@ -164,6 +166,7 @@ void DeleteAtoms::command(int narg, char **arg)
                   " impropers, new total = " BIGINT_FORMAT "\n",
                   ndelete_impropers,atom->nimpropers);
       }
+    }
   }
 }
 

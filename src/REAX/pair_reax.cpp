@@ -557,6 +557,8 @@ void PairREAX::init_style()
     error->all(FLERR,"Pair style reax requires atom IDs");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reax requires newton pair on");
+  if (!atom->q_flag)
+    error->all(FLERR,"Pair style reax requires atom attribute q");
   if (strcmp(update->unit_style,"real") != 0 && comm->me == 0)
     error->warning(FLERR,"Not using real units with pair reax");
 

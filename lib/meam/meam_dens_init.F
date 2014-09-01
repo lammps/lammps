@@ -245,14 +245,14 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
             aj = rij/re_meam(eltj,eltj) - 1.d0
             ro0i = rho0_meam(elti)
             ro0j = rho0_meam(eltj)
-            rhoa0j = ro0j*exp(-beta0_meam(eltj)*aj)*sij
-            rhoa1j = ro0j*exp(-beta1_meam(eltj)*aj)*sij
-            rhoa2j = ro0j*exp(-beta2_meam(eltj)*aj)*sij
-            rhoa3j = ro0j*exp(-beta3_meam(eltj)*aj)*sij
-            rhoa0i = ro0i*exp(-beta0_meam(elti)*ai)*sij
-            rhoa1i = ro0i*exp(-beta1_meam(elti)*ai)*sij
-            rhoa2i = ro0i*exp(-beta2_meam(elti)*ai)*sij
-            rhoa3i = ro0i*exp(-beta3_meam(elti)*ai)*sij
+            rhoa0j = ro0j*fm_exp(-beta0_meam(eltj)*aj)*sij
+            rhoa1j = ro0j*fm_exp(-beta1_meam(eltj)*aj)*sij
+            rhoa2j = ro0j*fm_exp(-beta2_meam(eltj)*aj)*sij
+            rhoa3j = ro0j*fm_exp(-beta3_meam(eltj)*aj)*sij
+            rhoa0i = ro0i*fm_exp(-beta0_meam(elti)*ai)*sij
+            rhoa1i = ro0i*fm_exp(-beta1_meam(elti)*ai)*sij
+            rhoa2i = ro0i*fm_exp(-beta2_meam(elti)*ai)*sij
+            rhoa3i = ro0i*fm_exp(-beta3_meam(elti)*ai)*sij
             if (ialloy.eq.1) then
               rhoa1j = rhoa1j * t1_meam(eltj)
               rhoa2j = rhoa2j * t2_meam(eltj)

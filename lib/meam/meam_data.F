@@ -2,6 +2,7 @@
       module meam_data
 
       integer, parameter :: maxelt = 5
+      real*8 , external :: fm_exp
 
 c cutforce = force cutoff
 c cutforcesq = force cutoff squared

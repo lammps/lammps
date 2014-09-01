@@ -558,7 +558,7 @@ c     screening)
         if (nn2_meam(a,a).eq.1) then
           call get_Zij2(Z2,arat,scrn,lattce_meam(a,a),
      $         Cmin_meam(a,a,a),Cmax_meam(a,a,a))
-          rho0_2nn = rho0_meam(a)*exp(-beta0_meam(a)*(arat-1))
+          rho0_2nn = rho0_meam(a)*fm_exp(-beta0_meam(a)*(arat-1))
           rho0 = rho0 + Z2*rho0_2nn*scrn
         endif
 
@@ -634,8 +634,8 @@ c     all neighbors are of the opposite type
         else
           a1  = r/re_meam(a,a) - 1.d0
           a2  = r/re_meam(b,b) - 1.d0
-          rhoa01 = rho0_meam(a)*exp(-beta0_meam(a)*a1)
-          rhoa02 = rho0_meam(b)*exp(-beta0_meam(b)*a2)
+          rhoa01 = rho0_meam(a)*fm_exp(-beta0_meam(a)*a1)
+          rhoa02 = rho0_meam(b)*fm_exp(-beta0_meam(b)*a2)
           if (latt.eq.'l12') then
             rho01 = 8*rhoa01 + 4*rhoa02
             t11av = (8*t11*rhoa01 + 4*t12*rhoa02)/rho01
@@ -777,14 +777,14 @@ c Calculate density functions, assuming reference configuration
       a1  = r/re_meam(a,a) - 1.d0
       a2  = r/re_meam(b,b) - 1.d0
 
-      rhoa01 = rho0_meam(a)*exp(-beta0_meam(a)*a1)
-      rhoa11 = rho0_meam(a)*exp(-beta1_meam(a)*a1)
-      rhoa21 = rho0_meam(a)*exp(-beta2_meam(a)*a1)
-      rhoa31 = rho0_meam(a)*exp(-beta3_meam(a)*a1)
-      rhoa02 = rho0_meam(b)*exp(-beta0_meam(b)*a2)
-      rhoa12 = rho0_meam(b)*exp(-beta1_meam(b)*a2)
-      rhoa22 = rho0_meam(b)*exp(-beta2_meam(b)*a2)
-      rhoa32 = rho0_meam(b)*exp(-beta3_meam(b)*a2)
+      rhoa01 = rho0_meam(a)*fm_exp(-beta0_meam(a)*a1)
+      rhoa11 = rho0_meam(a)*fm_exp(-beta1_meam(a)*a1)
+      rhoa21 = rho0_meam(a)*fm_exp(-beta2_meam(a)*a1)
+      rhoa31 = rho0_meam(a)*fm_exp(-beta3_meam(a)*a1)
+      rhoa02 = rho0_meam(b)*fm_exp(-beta0_meam(b)*a2)
+      rhoa12 = rho0_meam(b)*fm_exp(-beta1_meam(b)*a2)
+      rhoa22 = rho0_meam(b)*fm_exp(-beta2_meam(b)*a2)
+      rhoa32 = rho0_meam(b)*fm_exp(-beta3_meam(b)*a2)
 
       lat = lattce_meam(a,b)
       
@@ -862,8 +862,8 @@ c        call error('Lattice not defined in get_densref.')
         a1 = arat*r/re_meam(a,a) - 1.d0
         a2 = arat*r/re_meam(b,b) - 1.d0
         
-        rhoa01nn = rho0_meam(a)*exp(-beta0_meam(a)*a1)
-        rhoa02nn = rho0_meam(b)*exp(-beta0_meam(b)*a2)
+        rhoa01nn = rho0_meam(a)*fm_exp(-beta0_meam(a)*a1)
+        rhoa02nn = rho0_meam(b)*fm_exp(-beta0_meam(b)*a2)
 
         if (lat.eq.'l12') then
 c     As usual, L12 thinks it's special; we need to be careful computing
@@ -899,6 +899,7 @@ c---------------------------------------------------------------------
 c Compute ZBL potential  
 c  
       real*8 function zbl(r,z1,z2)  
+      use meam_data , only : fm_exp     
       implicit none  
       integer i,z1,z2 
       real*8 r,c,d,a,azero,cc,x  
@@ -912,7 +913,7 @@ c azero = (9pi^2/128)^1/3 (0.529) Angstroms
       zbl = 0.0  
       x = r/a  
       do i=1,4  
-        zbl = zbl + c(i)*exp(-d(i)*x) 
+        zbl = zbl + c(i)*fm_exp(-d(i)*x) 
       enddo
       if (r.gt.0.d0) zbl = zbl*z1*z2/r*cc
       return  
@@ -922,6 +923,7 @@ c---------------------------------------------------------------------
 c Compute Rose energy function, I.16
 c
       real*8 function erose(r,re,alpha,Ec,repuls,attrac,form)
+      use meam_data , only : fm_exp     
       implicit none
       real*8 r,re,alpha,Ec,repuls,attrac,astar,a3
       integer form
@@ -938,11 +940,11 @@ c
         endif
         if (form.eq.1) then
           erose = -Ec*(1+astar+(-attrac+repuls/r)*
-     $         (astar**3))*exp(-astar)
+     $         (astar**3))*fm_exp(-astar)
         else if (form.eq.2) then
-          erose = -Ec * (1 +astar + a3*(astar**3))*exp(-astar)
+          erose = -Ec * (1 +astar + a3*(astar**3))*fm_exp(-astar)
         else
-          erose = -Ec * (1 + astar + a3*(astar**3)/(r/re)) * exp(-astar)
+          erose = -Ec * (1+ astar + a3*(astar**3)/(r/re))*fm_exp(-astar)
         endif
       endif
 

@@ -28,6 +28,8 @@
 #include "pair_hybrid.h"
 #include "kspace.h"
 #include "input.h"
+#include "fix.h"
+#include "modify.h"
 #include "variable.h"
 #include "timer.h"
 #include "memory.h"
@@ -159,6 +161,7 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
 
   allocate_storage();
 
+  fixgpu = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -244,6 +247,11 @@ void ComputeFEP::init()
                  "compute tail corrections");
   }
 
+  // detect if package gpu is present
+
+  int ifixgpu = modify->find_fix("package_gpu");
+  if (ifixgpu >= 0) fixgpu = modify->fix[ifixgpu];
+
   if (comm->me == 0) {
     if (screen) {
       fprintf(screen, "FEP settings ...\n");
@@ -301,6 +309,10 @@ void ComputeFEP::compute_vector()
     force->kspace->compute(1,0);
     timer->stamp(Timer::KSPACE);
   }
+
+  // accumulate force/energy/virial from /gpu pair styles
+  if (fixgpu) fixgpu->post_force(0);
+
   pe0 = compute_epair();
 
   perturb_params();
@@ -314,6 +326,12 @@ void ComputeFEP::compute_vector()
     force->kspace->compute(1,0);
     timer->stamp(Timer::KSPACE);
   }
+
+  // accumulate force/energy/virial from /gpu pair styles
+  // this is required as to empty the answer queue, 
+  // otherwise the force compute on the GPU in the next step would be incorrect
+  if (fixgpu) fixgpu->post_force(0);
+    
   pe1 = compute_epair();
 
   restore_qfev();   // restore charge, force, energy, virial array values

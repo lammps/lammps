@@ -53,6 +53,8 @@ class ComputeFEP : public Compute {
   double kvirial_orig[6];
   double *keatom_orig,**kvatom_orig;
 
+  class Fix *fixgpu;
+
   struct Perturb {
     int which,ivar;
     char *var;

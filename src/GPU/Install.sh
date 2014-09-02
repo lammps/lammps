@@ -85,8 +85,8 @@ action pair_lj_cut_coul_dsf_gpu.cpp
 action pair_lj_cut_coul_dsf_gpu.h
 action pair_lj_cut_coul_long_gpu.cpp pair_lj_cut_coul_long.cpp
 action pair_lj_cut_coul_long_gpu.h pair_lj_cut_coul_long.cpp
-action pair_lj_cut_coul_msm_gpu.cpp
-action pair_lj_cut_coul_msm_gpu.h
+action pair_lj_cut_coul_msm_gpu.cpp pair_lj_cut_coul_msm.cpp
+action pair_lj_cut_coul_msm_gpu.h pair_lj_cut_coul_msm.h
 action pair_lj_cut_gpu.cpp
 action pair_lj_cut_gpu.h
 action pair_lj_expand_gpu.cpp
@@ -116,7 +116,7 @@ action pair_yukawa_gpu.h pair_yukawa.cpp
 action pppm_gpu.cpp pppm.cpp
 action pppm_gpu.h pppm.cpp
 
-# edit 2 Makefile.package files to include/exclude GPU info
+# edit 2 Makefile.package files to include/exclude package info
 
 if (test $1 = 1) then
 

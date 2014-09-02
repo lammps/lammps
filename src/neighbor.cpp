@@ -660,11 +660,13 @@ void Neighbor::init()
     // anyghostlist = 1 if any non-occasional list stores neighbors of ghosts
 
     anyghostlist = 0;
+    int anybuild = 0;
     for (i = 0; i < nrequest; i++) {
       if (lists[i]) {
         lists[i]->buildflag = 1;
         if (pair_build[i] == NULL) lists[i]->buildflag = 0;
         if (requests[i]->occasional) lists[i]->buildflag = 0;
+        if (lists[i]->buildflag) anybuild = 1;
 
         lists[i]->growflag = 1;
         if (requests[i]->copy) lists[i]->growflag = 0;
@@ -677,6 +679,17 @@ void Neighbor::init()
         if (requests[i]->ghost) lists[i]->ghostflag = 1;
         if (requests[i]->ghost && !requests[i]->occasional) anyghostlist = 1;
       } else init_list_flags1_kokkos(i);
+    }
+
+    // no request has the buildflag set. set it on the first request,
+    // so we have a usable binning for any occasional neighbor lists
+    if (!anybuild) {
+      for (i = 0; i < nrequest; i++) {
+        if (lists[i]) {
+          lists[i]->buildflag = 1;
+          break;
+        }
+      }
     }
 
 #ifdef NEIGH_LIST_DEBUG

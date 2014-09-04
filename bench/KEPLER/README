@@ -1,0 +1,68 @@
+These are input scripts used to run versions of several of the
+benchmarks in the top-level bench directory using the GPU and
+USER-CUDA accelerator packages.  The results of running these scripts
+on two different machines (a desktop with 2 Tesla GPUs and the ORNL
+Titan supercomputer) are shown on the "GPU (Fermi)" section of the
+Benchmark page of the LAMMPS WWW site: lammps.sandia.gov/bench.
+
+Examples are shown below of how to run these scripts.  This assumes
+you have built 3 executables with both the GPU and USER-CUDA packages
+installed, e.g.
+
+lmp_linux_single
+lmp_linux_mixed
+lmp_linux_double
+
+The precision (single, mixed, double) refers to the GPU and USER-CUDA
+pacakge precision.  See the README files in the lib/gpu and lib/cuda
+directories for instructions on how to build the packages with
+different precisions.  The doc/Section_accelerate.html file also has a
+summary description.
+
+------------------------------------------------------------------------
+
+If the script has "cpu" in its name, it is meant to be run in CPU-only
+mode (without using the GPU or USER-CUDA styles).  For example:
+
+mpirun -np 1 ../lmp_linux_double -v x 8 -v y 8 -v z 8 -v t 100 < in.lj.cpu
+mpirun -np 12 ../lmp_linux_double -v x 16 -v y 16 -v z 16 -v t 100 < in.lj.cpu
+
+The "xyz" settings determine the problem size.  The "t" setting
+determines the number of timesteps.
+
+------------------------------------------------------------------------
+
+If the script has "gpu" in its name, it is meant to be run using
+the GPU package.  For example:
+
+mpirun -np 12 ../lmp_linux_single -sf gpu -v g 1 -v x 32 -v y 32 -v z 64 -v t 100 < in.lj.gpu
+
+mpirun -np 8 ../lmp_linux_mixed -sf gpu -v g 2 -v x 32 -v y 32 -v z 64 -v t 100 < in.lj.gpu
+
+The "xyz" settings determine the problem size.  The "t" setting
+determines the number of timesteps.  The "np" setting determines how
+many MPI tasks per compute node the problem will run on, and the "g"
+setting determines how many GPUs per compute node the problem will run
+on, i.e. 1 or 2 in this case.  Note that you can use more MPI tasks
+than GPUs (both per compute node) with the GPU package.
+
+------------------------------------------------------------------------
+
+If the script has "cuda" in its name, it is meant to be run using
+the USER-CUDA package.  For example:
+
+mpirun -np 1 ../lmp_linux_single -c on -sf cuda -v g 1 -v x 16 -v y 16 -v z 16 -v t 100 < in.lj.cuda
+
+mpirun -np 2 ../lmp_linux_double -c on -sf cuda -v g 2 -v x 32 -v y 64 -v z 64 -v t 100 < in.eam.cuda
+
+The "xyz" settings determine the problem size.  The "t" setting
+determines the number of timesteps.  The "np" setting determines how
+many MPI tasks per compute node the problem will run on, and the "g"
+setting determines how many GPUs per compute node the problem will run
+on, i.e. 1 or 2 in this case.  For the USER-CUDA package, the number
+of MPI tasks and GPUs (both per compute node) must be equal.
+
+------------------------------------------------------------------------
+
+If the script has "titan" in its name, it was run on the Titan supercomputer
+at ORNL.

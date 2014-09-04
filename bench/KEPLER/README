@@ -58,13 +58,14 @@ when the input script is run.
 ------------------------------------------------------------------------
 
 The run*.sh scripts have sample mpirun commands for running the input
-scripts on a single node.  These are provided for illustration
-purposes, to show what command-line arguments are used with each
-accelerator package, in combination with settings in the input scripts
-themselves.
+scripts on a single node or on multiple nodes for the strong and weak
+scaling results shown on the benchmark web page.  These scripts are
+provided for illustration purposes, to show what command-line
+arguments are used with each accelerator package, in combination with
+settings in the input scripts themselves.
 
 Note that we generate these run scripts, either for interactive or
 batch submission, via Python scripts which produce a long list of runs
 to exercise a combination of options.  To perform a quick benchmark
 calculation on your platform, you will typically only want to run a
-few commands out of any run*.sh script
+few commands out of any of the run*.sh scripts.

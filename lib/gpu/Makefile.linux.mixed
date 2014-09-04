@@ -8,8 +8,11 @@
 EXTRAMAKE = Makefile.lammps.standard
 
 CUDA_HOME = /usr/local/cuda
+CUDA_HOME = /home/projects/openmpi/1.8.1/intel/13.1.SP1.106/cuda/6.0.37
 NVCC = nvcc
 
+# Kepler CUDA
+#CUDA_ARCH = -arch=sm_35
 # Tesla CUDA
 CUDA_ARCH = -arch=sm_21
 # newer CUDA

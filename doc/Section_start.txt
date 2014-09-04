@@ -1216,9 +1216,9 @@ supercomputer there may be dozens or 1000s of physical nodes.
 Either the full word or an abbreviation can be used for the keywords.
 Note that the keywords do not use a leading minus sign.  I.e. the
 keyword is "t", not "-t".  Also note that each of the keywords has a
-default setting.  More explanation as to when to use these options and
-what settings to use on different platforms is given in "this
-section"_Section_accerlerate.html#acc_8.
+default setting.  Example of when to use these options and what
+settings to use on different platforms is given in "Section
+5.8"_Section_accelerate.html#acc_8.
 
 d or device
 g or gpus

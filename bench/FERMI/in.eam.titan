@@ -1,0 +1,37 @@
+# bulk Cu lattice
+
+newton          off
+package         gpu force/neigh 0 0 1
+processors      * * * grid numa
+
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 20*$x
+variable	yy equal 20*$y
+variable	zz equal 20*$z
+
+units		metal
+atom_style	atomic
+
+lattice		fcc 3.615
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box	1 box
+create_atoms	1 box
+
+pair_style	eam/gpu
+pair_coeff	1 1 Cu_u3.eam
+
+velocity	all create 1600.0 376847 loop geom
+
+neighbor	1.0 bin
+neigh_modify    every 1 delay 5 check yes
+
+fix		1 all nve
+
+timestep	0.005
+thermo		50
+
+run             15
+run		100

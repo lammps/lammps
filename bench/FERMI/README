@@ -1,7 +1,9 @@
-These are input scripts used to run GPU versions of several of the
-benchmarks in the top-level bench directory.  The results of running
-these scripts on different machines are shown on the GPU section of
-the Benchmark page of the LAMMPS WWW site (lammps.sandia.gov/bench).
+These are input scripts used to run versions of several of the
+benchmarks in the top-level bench directory using the GPU and
+USER-CUDA accelerator packages.  The results of running these scripts
+on two different machines (a desktop with 2 Tesla GPUs and the ORNL
+Titan supercomputer) are shown on the "GPU (Fermi)" section of the
+Benchmark page of the LAMMPS WWW site: lammps.sandia.gov/bench.
 
 Examples are shown below of how to run these scripts.  This assumes
 you have built 3 executables with both the GPU and USER-CUDA packages
@@ -59,3 +61,8 @@ many MPI tasks per compute node the problem will run on, and the "g"
 setting determines how many GPUs per compute node the problem will run
 on, i.e. 1 or 2 in this case.  For the USER-CUDA package, the number
 of MPI tasks and GPUs (both per compute node) must be equal.
+
+------------------------------------------------------------------------
+
+If the script has "titan" in its name, it was run on the Titan supercomputer
+at ORNL.

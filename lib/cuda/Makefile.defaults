@@ -5,7 +5,7 @@ precision ?= 1
 #verbose setting: 0 no, 1 yes
 verbose ?= 1
 
-#GPU architecture (compute capability): 13, 20, 21
+#GPU architecture (compute capability): 13, 20, 21, 35
 arch ?= 20
 
 #Using cufft (should not be changed)

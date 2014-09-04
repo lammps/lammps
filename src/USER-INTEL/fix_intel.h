@@ -444,6 +444,7 @@ void FixIntel::balance_stamp() {
 /* ---------------------------------------------------------------------- */
 
 void FixIntel::acc_timers() {
+  _timers[TIME_OFFLOAD_PAIR] += *_stopwatch_offload_pair;
   if (neighbor->ago == 0) {
     _timers[TIME_OFFLOAD_NEIGHBOR] += *_stopwatch_offload_neighbor;
     if (_setup_time_cleared == false) {
@@ -451,7 +452,6 @@ void FixIntel::acc_timers() {
       _setup_time_cleared = true;
     }
   }
-  _timers[TIME_OFFLOAD_PAIR] += *_stopwatch_offload_pair;
 }
 
 /* ---------------------------------------------------------------------- */

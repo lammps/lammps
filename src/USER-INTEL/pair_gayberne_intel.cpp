@@ -800,6 +800,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         for (int t = 1; t < nthreads; t++) {
           #if defined(__INTEL_COMPILER)
 	  #pragma vector nontemporal
+	  #pragma novector
           #endif
           for (int n = iifrom * 2; n < two_iito; n++) {
             f_start[n].x += f_start[n + t_off].x;
@@ -813,6 +814,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         for (int t = 1; t < nthreads; t++) {
           #if defined(__INTEL_COMPILER)
 	  #pragma vector nontemporal
+	  #pragma novector
           #endif
           for (int n = iifrom * 2; n < two_iito; n++) {
             f_start[n].x += f_start[n + t_off].x;
@@ -828,6 +830,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
           const ATOM_T * _noalias const xo = x + minlocal;
           #if defined(__INTEL_COMPILER)
 	  #pragma vector nontemporal
+	  #pragma novector
           #endif
           for (int n = iifrom; n < iito; n++) {
             const int nt2 = n * 2;

@@ -27,6 +27,7 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "version.h"
 
 using namespace LAMMPS_NS;
 
@@ -155,7 +156,7 @@ void DumpH5MD::openfile()
   }
 
   if (me == 0) {
-    datafile = h5md_create_file(filename, "N/A", NULL, "lammps", "N/A");
+    datafile = h5md_create_file(filename, "N/A", NULL, "lammps", LAMMPS_VERSION);
     group_name_length = strlen(group->names[igroup]);
     group_name = new char[group_name_length];
     strcpy(group_name, group->names[igroup]);

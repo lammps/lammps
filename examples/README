@@ -81,7 +81,7 @@ melt:	  rapid melt of 3d LJ system
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
 min:	  energy minimization of 2d LJ melt
 msst:	  MSST shock dynamics
-nb3b:     use of NB3B pair style
+nb3b:     use of nonbonded 3-body harmonic pair style
 neb:	  nudged elastic band (NEB) calculation for barrier finding
 nemd:	  non-equilibrium MD of 2d sheared system
 obstacle: flow around two voids in a 2d channel

@@ -1290,7 +1290,7 @@ void PPPMCuda::poisson(int eflag, int vflag)
 {
 
 #ifndef FFT_CUFFT
-    PPPM::poisson(eflag,vflag);
+    PPPMOld::poisson();
     return;
 #endif
 #ifdef FFT_CUFFT

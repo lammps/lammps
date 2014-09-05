@@ -15,6 +15,7 @@
 #include "stdlib.h"
 #include "fix_addforce.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "update.h"
 #include "modify.h"
 #include "domain.h"
@@ -75,13 +76,19 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
+  nevery = 1;
   iregion = -1;
   idregion = NULL;
   estr = NULL;
 
   int iarg = 6;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"region") == 0) {
+    if (strcmp(arg[iarg],"every") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
+      nevery = atoi(arg[iarg+1]);
+      if (nevery <= 0) error->all(FLERR,"Illegal fix addforce command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
@@ -124,6 +131,8 @@ FixAddForce::~FixAddForce()
 
 int FixAddForce::setmask()
 {
+  datamask_read = datamask_modify = 0;
+
   int mask = 0;
   mask |= POST_FORCE;
   mask |= THERMO_ENERGY;
@@ -224,6 +233,11 @@ void FixAddForce::post_force(int vflag)
   int *mask = atom->mask;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
+
+  if (update->ntimestep % nevery) return;
+
+  atom->sync_modify((unsigned int) (F_MASK | MASK_MASK),
+                    (unsigned int) F_MASK);
 
   // update region if necessary
 

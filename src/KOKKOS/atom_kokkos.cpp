@@ -31,6 +31,7 @@ AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
   // set CommKokkos pointer to Atom class, since CommKokkos allocated first
 
   ((CommKokkos *) comm)->atomKK = this;
+  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -48,8 +49,7 @@ AtomKokkos::~AtomKokkos()
   memory->destroy_kokkos(k_f, f);
 
   memory->destroy_kokkos(k_mass, mass);
-
-  memory->destroy_kokkos(k_q,q);
+  memory->destroy_kokkos(k_q, q);
 
   memory->destroy_kokkos(k_nspecial, nspecial);
   memory->destroy_kokkos(k_special, special);
@@ -73,7 +73,6 @@ AtomKokkos::~AtomKokkos()
   memory->destroy_kokkos(k_improper_atom2, improper_atom2);
   memory->destroy_kokkos(k_improper_atom3, improper_atom3);
   memory->destroy_kokkos(k_improper_atom4, improper_atom4);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -204,6 +203,7 @@ void AtomKokkos::sort()
 /* ----------------------------------------------------------------------
    reallocate memory to the pointer selected by the mask
 ------------------------------------------------------------------------- */
+
 void AtomKokkos::grow(unsigned int mask){
 
   if (mask && SPECIAL_MASK){
@@ -216,6 +216,8 @@ void AtomKokkos::grow(unsigned int mask){
   }
 
 }
+
+/* ---------------------------------------------------------------------- */
 
 void AtomKokkos::deallocate_topology()
 {
@@ -240,3 +242,15 @@ void AtomKokkos::deallocate_topology()
   memory->destroy_kokkos(k_improper_atom4, improper_atom4);
 }
 
+/* ----------------------------------------------------------------------
+   perform sync and modify for each of 2 masks
+   called by individual styles to override default sync/modify calls
+     done at higher levels (Verlet,Modify,etc)
+------------------------------------------------------------------------- */
+
+void AtomKokkos::sync_modify(unsigned int datamask_read, 
+                             unsigned int datamask_modify)
+{
+  sync(execution_space,datamask_read);
+  modified(execution_space,datamask_modify);
+}

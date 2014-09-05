@@ -16,6 +16,7 @@
 #include "fix_addforce.h"
 #include "atom.h"
 #include "atom_masks.h"
+#include "accelerator_kokkos.h"
 #include "update.h"
 #include "modify.h"
 #include "domain.h"
@@ -236,8 +237,9 @@ void FixAddForce::post_force(int vflag)
 
   if (update->ntimestep % nevery) return;
 
-  atom->sync_modify((unsigned int) (F_MASK | MASK_MASK),
-                    (unsigned int) F_MASK);
+  if (lmp->kokkos->kokkos_exists)
+    atom->sync_modify(Host, (unsigned int) (F_MASK | MASK_MASK),
+                      (unsigned int) F_MASK);
 
   // update region if necessary
 

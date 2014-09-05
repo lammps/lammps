@@ -79,7 +79,7 @@ void PairGayBerneIntel::compute(int eflag, int vflag,
     fix->start_watch(TIME_PACK);
     const AtomVecEllipsoid::Bonus * const bonus = avec->bonus;
     const int * const ellipsoid = atom->ellipsoid;
-    QUAT_T * restrict const quat = buffers->get_quat();
+    QUAT_T * _noalias const quat = buffers->get_quat();
     #if defined(_OPENMP)
     #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
     #endif
@@ -150,8 +150,8 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
   fix->get_buffern(offload, nlocal, nall, minlocal);
 
   const int ago = neighbor->ago;
-  ATOM_T * restrict const x = buffers->get_x(offload);
-  QUAT_T * restrict const quat = buffers->get_quat(offload);
+  ATOM_T * _noalias const x = buffers->get_x(offload);
+  QUAT_T * _noalias const quat = buffers->get_quat(offload);
   const AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   const int *ellipsoid = atom->ellipsoid;
 
@@ -225,15 +225,15 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
   }									
   #endif
 
-  //  const int * restrict const ilist = list->ilist;
-  const int * restrict const numneigh = list->numneigh;
-  const int * restrict const cnumneigh = buffers->cnumneigh(list);
-  const int * restrict const firstneigh = buffers->firstneigh(list);
-  const flt_t * restrict const special_lj = fc.special_lj;
+  //  const int * _noalias const ilist = list->ilist;
+  const int * _noalias const numneigh = list->numneigh;
+  const int * _noalias const cnumneigh = buffers->cnumneigh(list);
+  const int * _noalias const firstneigh = buffers->firstneigh(list);
+  const flt_t * _noalias const special_lj = fc.special_lj;
 
-  const FC_PACKED1_T * restrict const ijc = fc.ijc[0];
-  const FC_PACKED2_T * restrict const lj34 = fc.lj34[0];
-  const FC_PACKED3_T * restrict const ic = fc.ic;
+  const FC_PACKED1_T * _noalias const ijc = fc.ijc[0];
+  const FC_PACKED2_T * _noalias const lj34 = fc.lj34[0];
+  const FC_PACKED3_T * _noalias const ic = fc.ic;
   const flt_t mu = fc.mu;
   const flt_t gamma = fc.gamma;
   const flt_t upsilon = fc.upsilon;
@@ -255,8 +255,8 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 		       x_size, q_size, ev_size, f_stride);
 
   int tc;
-  FORCE_T * restrict f_start;
-  acc_t * restrict ev_global;
+  FORCE_T * _noalias f_start;
+  acc_t * _noalias ev_global;
   IP_PRE_get_buffers(offload, buffers, fix, tc, f_start, ev_global);
   const int max_nbors = _max_nbors;
   const int nthreads = tc;
@@ -351,25 +351,25 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
       iifrom += astart;
       iito += astart;
 
-      FORCE_T * restrict const f = f_start - minlocal * 2 + (tid * f_stride);
+      FORCE_T * _noalias const f = f_start - minlocal * 2 + (tid * f_stride);
       memset(f + minlocal * 2, 0, f_stride * sizeof(FORCE_T));
 
-      flt_t * restrict const rsq_form = rsq_formi + tid * max_nbors;
-      flt_t * restrict const delx_form = delx_formi + tid * max_nbors;
-      flt_t * restrict const dely_form = dely_formi + tid * max_nbors;
-      flt_t * restrict const delz_form = delz_formi + tid * max_nbors;
-      int * restrict const jtype_form = jtype_formi + tid * max_nbors;
-      int * restrict const jlist_form = jlist_formi + tid * max_nbors;
+      flt_t * _noalias const rsq_form = rsq_formi + tid * max_nbors;
+      flt_t * _noalias const delx_form = delx_formi + tid * max_nbors;
+      flt_t * _noalias const dely_form = dely_formi + tid * max_nbors;
+      flt_t * _noalias const delz_form = delz_formi + tid * max_nbors;
+      int * _noalias const jtype_form = jtype_formi + tid * max_nbors;
+      int * _noalias const jlist_form = jlist_formi + tid * max_nbors;
 
       int ierror = 0;
       for (int i = iifrom; i < iito; ++i) {
         // const int i = ilist[ii];
         const int itype = x[i].w;
         const int ptr_off = itype * ntypes;
-        const FC_PACKED1_T * restrict const ijci = ijc + ptr_off;
-        const FC_PACKED2_T * restrict const lj34i = lj34 + ptr_off;
+        const FC_PACKED1_T * _noalias const ijci = ijc + ptr_off;
+        const FC_PACKED2_T * _noalias const lj34i = lj34 + ptr_off;
 
-        const int * restrict const jlist = firstneigh + cnumneigh[i];
+        const int * _noalias const jlist = firstneigh + cnumneigh[i];
         const int jnum = numneigh[i];
 
         const flt_t xtmp = x[i].x;
@@ -433,9 +433,11 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 	__assume(packed_j % 8 == 0);
 	__assume(packed_j % INTEL_MIC_VECTOR_WIDTH == 0);
 	#endif
+        #if defined(__INTEL_COMPILER)
         #pragma vector aligned
 	#pragma simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp,t3tmp, \
 	                         sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
+        #endif
         for (int jj = 0; jj < packed_j; jj++) {
           flt_t a2_0, a2_1, a2_2, a2_3, a2_4, a2_5, a2_6, a2_7, a2_8;
           flt_t b2_0, b2_1, b2_2, b2_3, b2_4, b2_5, b2_6, b2_7, b2_8;
@@ -796,7 +798,10 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
       int t_off = f_stride;
       if (EFLAG && eatom) {
         for (int t = 1; t < nthreads; t++) {
+          #if defined(__INTEL_COMPILER)
 	  #pragma vector nontemporal
+	  #pragma novector
+          #endif
           for (int n = iifrom * 2; n < two_iito; n++) {
             f_start[n].x += f_start[n + t_off].x;
             f_start[n].y += f_start[n + t_off].y;
@@ -807,7 +812,10 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
         }
       } else {
         for (int t = 1; t < nthreads; t++) {
+          #if defined(__INTEL_COMPILER)
 	  #pragma vector nontemporal
+	  #pragma novector
+          #endif
           for (int n = iifrom * 2; n < two_iito; n++) {
             f_start[n].x += f_start[n + t_off].x;
             f_start[n].y += f_start[n + t_off].y;
@@ -819,8 +827,11 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
       if (EVFLAG) {
         if (vflag==2) {
-          const ATOM_T * restrict const xo = x + minlocal;
+          const ATOM_T * _noalias const xo = x + minlocal;
+          #if defined(__INTEL_COMPILER)
 	  #pragma vector nontemporal
+	  #pragma novector
+          #endif
           for (int n = iifrom; n < iito; n++) {
             const int nt2 = n * 2;
             ov0 += f_start[nt2].x * xo[n].x;

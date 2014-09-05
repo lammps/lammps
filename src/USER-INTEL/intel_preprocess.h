@@ -26,6 +26,22 @@
 
 #ifndef LAMMPS_MEMALIGN
 #error Please set -DLAMMPS_MEMALIGN=64 in CCFLAGS for your LAMMPS makefile.
+#else
+#if (LAMMPS_MEMALIGN != 64)
+#error Please set -DLAMMPS_MEMALIGN=64 in CCFLAGS for your LAMMPS makefile.
+#endif
+#endif
+
+#if defined(_OPENMP)
+#define _use_omp_pragma(txt) _Pragma(txt)
+#else
+#define _use_omp_pragma(txt)
+#endif
+
+#if defined(__INTEL_COMPILER)
+#define _use_simd_pragma(txt) _Pragma(txt)
+#else
+#define _use_simd_pragma(txt)
 #endif
 
 namespace LAMMPS_NS {
@@ -141,7 +157,7 @@ inline double MIC_Wtime() {
     if (fix->separate_buffers() && ago != 0) {				\
     fix->start_watch(TIME_PACK);					\
     if (offload) {							\
-      _Pragma("omp parallel default(none) shared(buffers,nlocal,nall)")	\
+      _use_omp_pragma("omp parallel default(none) shared(buffers,nlocal,nall)")	\
       {									\
         int ifrom, ito, tid;						\
 	int nthreads = comm->nthreads;					\
@@ -343,15 +359,16 @@ inline double MIC_Wtime() {
   else									\
     o_range = nlocal;							\
   if (offload == 0) o_range -= minlocal;				\
-    IP_PRE_omp_range_align(iifrom, iito, tid, o_range, nthreads,		\
+    IP_PRE_omp_range_align(iifrom, iito, tid, o_range, nthreads,	\
 			 sizeof(acc_t));				\
 									\
   int t_off = f_stride;						        \
   if (eflag && eatom) {							\
     for (int t = 1; t < nthreads; t++) {				\
-      _Pragma("vector nontemporal")					\
+      _use_simd_pragma("vector nontemporal")				\
+      _use_simd_pragma("novector")					\
       for (int n = iifrom; n < iito; n++) {				\
-        f_start[n].x += f_start[n + t_off].x;				\ 
+        f_start[n].x += f_start[n + t_off].x;				\
         f_start[n].y += f_start[n + t_off].y;				\
 	f_start[n].z += f_start[n + t_off].z;				\
 	f_start[n].w += f_start[n + t_off].w;				\
@@ -360,8 +377,9 @@ inline double MIC_Wtime() {
     }									\
   } else {								\
     for (int t = 1; t < nthreads; t++) {				\
-      _Pragma("vector nontemporal")   					\
-      for (int n = iifrom; n < iito; n++) {                             \ 
+      _use_simd_pragma("vector nontemporal")  				\
+      _use_simd_pragma("novector")					\
+      for (int n = iifrom; n < iito; n++) {                             \
 	f_start[n].x += f_start[n + t_off].x;                  	        \
         f_start[n].y += f_start[n + t_off].y;				\
         f_start[n].z += f_start[n + t_off].z;				\
@@ -372,8 +390,9 @@ inline double MIC_Wtime() {
 									\
   if (evflag) {								\
     if (vflag == 2) {							\
-      const ATOM_T * restrict const xo = x + minlocal;			\
-      _Pragma("vector nontemporal")   					\
+      const ATOM_T * _noalias const xo = x + minlocal;			\
+      _use_simd_pragma("vector nontemporal")   				\
+      _use_simd_pragma("novector")					\
       for (int n = iifrom; n < iito; n++) {				\
 	ov0 += f_start[n].x * xo[n].x;					\
 	ov1 += f_start[n].y * xo[n].y;					\

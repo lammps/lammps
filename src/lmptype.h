@@ -167,6 +167,36 @@ typedef int bigint;
 
 }
 
+// preprocessor macros for compiler specific settings
+// clear previous definitions to avoid redefinition warning
+
+#ifdef _alignvar
+#undef _alignvar
+#endif
+#ifdef _noalias
+#undef _noalias
+#endif
+
+// define stack variable alignment
+
+#if defined(__INTEL_COMPILER)
+#define _alignvar(expr,val) __declspec(align(val)) expr
+#elif defined(__GNUC__)
+#define _alignvar(expr,val) expr __attribute((aligned(val)))
+#else
+#define _alignvar(expr,val) expr
+#endif
+
+// declaration to lift aliasing restrictions
+
+#if defined(__INTEL_COMPILER)
+#define _noalias restrict
+#elif defined(__GNUC__)
+#define _noalias __restrict
+#else
+#define _noalias
+#endif
+
 // settings to enable LAMMPS to build under Windows
 
 #ifdef _WIN32

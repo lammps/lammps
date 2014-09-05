@@ -22,11 +22,6 @@
 using namespace LAMMPS_NS;
 
 typedef struct { double x,y,z; } dbl3_t;
-#if defined(__GNUC__)
-#define _noalias __restrict
-#else
-#define _noalias
-#endif
 
 /* ----------------------------------------------------------------------
    enforce PBC and modify box image flags for each atom

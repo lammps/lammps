@@ -287,7 +287,7 @@
   if (fabs(aug_8) > fabs(aug_0)) {			\
     flt_t swapt;					\
     swapt = aug_0; aug_0 = aug_8; aug_8 = swapt;	\
-    swapt = aug_1; aug_1 = aug_9; aug_9 = swapt;        \ 
+    swapt = aug_1; aug_1 = aug_9; aug_9 = swapt;        \
     swapt = aug_2; aug_2 = aug_10; aug_10 = swapt;      \
     swapt = aug_3; aug_3 = aug_11; aug_11 = swapt;      \
   }							\

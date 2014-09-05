@@ -48,11 +48,6 @@ enum{ISO,ANISO,TRICLINIC};	// same as in FixRigid
 #define EINERTIA 0.4            // moment of inertia prefactor for ellipsoid
 
 typedef struct { double x,y,z; } dbl3_t;
-#if defined(__GNUC__)
-#define _noalias __restrict
-#else
-#define _noalias
-#endif
 
 /* ----------------------------------------------------------------------
    perform preforce velocity Verlet integration

@@ -143,25 +143,25 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
   const int ago = neighbor->ago;
   IP_PRE_pack_separate_buffers(fix, buffers, ago, offload, nlocal, nall);
 
-  ATOM_T * restrict const x = buffers->get_x(offload);
-  flt_t * restrict const q = buffers->get_q(offload);
+  ATOM_T * _noalias const x = buffers->get_x(offload);
+  flt_t * _noalias const q = buffers->get_q(offload);
 
-  const int * restrict const numneigh = list->numneigh;
-  const int * restrict const cnumneigh = buffers->cnumneigh(list);
-  const int * restrict const firstneigh = buffers->firstneigh(list);
+  const int * _noalias const numneigh = list->numneigh;
+  const int * _noalias const cnumneigh = buffers->cnumneigh(list);
+  const int * _noalias const firstneigh = buffers->firstneigh(list);
 
-  const flt_t * restrict const special_coul = fc.special_coul;
-  const flt_t * restrict const special_lj = fc.special_lj;
+  const flt_t * _noalias const special_coul = fc.special_coul;
+  const flt_t * _noalias const special_lj = fc.special_lj;
   const flt_t qqrd2e = force->qqrd2e;
   const flt_t inv_denom_lj = (flt_t)1.0/denom_lj;
 
-  const flt_t * restrict const cutsq = fc.cutsq[0];
-  const LJ_T * restrict const lj = fc.lj[0];
-  const TABLE_T * restrict const table = fc.table;
-  const flt_t * restrict const etable = fc.etable;
-  const flt_t * restrict const detable = fc.detable;
-  const flt_t * restrict const ctable = fc.ctable;
-  const flt_t * restrict const dctable = fc.dctable;
+  const flt_t * _noalias const cutsq = fc.cutsq[0];
+  const LJ_T * _noalias const lj = fc.lj[0];
+  const TABLE_T * _noalias const table = fc.table;
+  const flt_t * _noalias const etable = fc.etable;
+  const flt_t * _noalias const detable = fc.detable;
+  const flt_t * _noalias const ctable = fc.ctable;
+  const flt_t * _noalias const dctable = fc.dctable;
   const flt_t cut_ljsq = fc.cut_ljsq;
   const flt_t cut_lj_innersq = fc.cut_lj_innersq;
   const flt_t cut_coulsq = fc.cut_coulsq;
@@ -178,8 +178,8 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 		       x_size, q_size, ev_size, f_stride);
 		       
   int tc;
-  FORCE_T * restrict f_start;
-  acc_t * restrict ev_global;
+  FORCE_T * _noalias f_start;
+  acc_t * _noalias ev_global;
   IP_PRE_get_buffers(offload, buffers, fix, tc, f_start, ev_global);
 
   const int nthreads = tc;
@@ -242,7 +242,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
       iifrom += astart;
       iito += astart;
 
-      FORCE_T * restrict const f = f_start - minlocal + (tid * f_stride);
+      FORCE_T * _noalias const f = f_start - minlocal + (tid * f_stride);
       memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
       flt_t cutboth = cut_coulsq;
 
@@ -251,10 +251,10 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
         const int itype = x[i].w;
 
         const int ptr_off = itype * ntypes;
-        const flt_t * restrict const cutsqi = cutsq + ptr_off;
-        const LJ_T * restrict const lji = lj + ptr_off;
+        const flt_t * _noalias const cutsqi = cutsq + ptr_off;
+        const LJ_T * _noalias const lji = lj + ptr_off;
 
-        const int   * restrict const jlist = firstneigh + cnumneigh[i];
+        const int   * _noalias const jlist = firstneigh + cnumneigh[i];
         const int jnum = numneigh[i];
 
         acc_t fxtmp,fytmp,fztmp,fwtmp;
@@ -270,9 +270,11 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 	  if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 	}
 
+        #if defined(__INTEL_COMPILER)
 	#pragma vector aligned
 	#pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, secoul, \
 	                       sv0, sv1, sv2, sv3, sv4, sv5)
+        #endif
         for (int jj = 0; jj < jnum; jj++) {
           flt_t forcecoul, forcelj, evdwl, ecoul;
           forcecoul = forcelj = evdwl = ecoul = (flt_t)0.0;

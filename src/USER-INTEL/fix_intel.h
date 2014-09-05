@@ -128,7 +128,7 @@ class FixIntel : public Fix {
 
  protected:
   int _overflow_flag[5];
-  __declspec(align(64)) int _off_overflow_flag[5];
+  _alignvar(int _off_overflow_flag[5],64);
   int _allow_separate_buffers, _offload_ghost;
   #ifdef _LMP_INTEL_OFFLOAD
   double _balance_pair_time, _balance_other_time;
@@ -155,18 +155,18 @@ class FixIntel : public Fix {
   double _offload_balance, _balance_neighbor, _balance_pair, _balance_fixed;
   double _timers[NUM_ITIMERS];
   double _stopwatch[NUM_ITIMERS];
-  __declspec(align(64)) double _stopwatch_offload_neighbor[1];
-  __declspec(align(64)) double _stopwatch_offload_pair[1];
+  _alignvar(double _stopwatch_offload_neighbor[1],64);
+  _alignvar(double _stopwatch_offload_pair[1],64);
 
   template <class ft, class acc_t>
-  inline void add_results(const ft * restrict const f_in,
-                          const acc_t * restrict const ev_global,
+  inline void add_results(const ft * _noalias const f_in,
+                          const acc_t * _noalias const ev_global,
                           const int eatom, const int vatom,
 			  const int offload);
 
   template <class ft, class acc_t>
-  inline void add_oresults(const ft * restrict const f_in,
-			   const acc_t * restrict const ev_global,
+  inline void add_oresults(const ft * _noalias const f_in,
+			   const acc_t * _noalias const ev_global,
 			   const int eatom, const int vatom,
 			   const int out_offset, const int nall);
 
@@ -176,8 +176,8 @@ class FixIntel : public Fix {
   int _im_real_space_task;
   MPI_Comm _real_space_comm;
   template <class ft, class acc_t>
-  inline void add_off_results(const ft * restrict const f_in,
-                              const acc_t * restrict const ev_global);
+  inline void add_off_results(const ft * _noalias const f_in,
+                              const acc_t * _noalias const ev_global);
   #endif
 };
 
@@ -284,8 +284,8 @@ void FixIntel::add_result_array(IntelBuffers<float,float>::vec3_acc_t *f_in,
 /* ---------------------------------------------------------------------- */
 
 template <class ft, class acc_t>
-void FixIntel::add_results(const ft * restrict const f_in,
-                           const acc_t * restrict const ev_global,
+void FixIntel::add_results(const ft * _noalias const f_in,
+                           const acc_t * _noalias const ev_global,
                            const int eatom, const int vatom,
 			   const int offload) {
   start_watch(TIME_PACK);
@@ -295,7 +295,7 @@ void FixIntel::add_results(const ft * restrict const f_in,
     if (offload) {
       add_oresults(f_in, ev_global, eatom, vatom, 0, _offload_nlocal);
       if (force->newton_pair) {
-	const acc_t * restrict const enull = 0;
+	const acc_t * _noalias const enull = 0;
 	int offset = _offload_nlocal;
 	if (atom->torque) offset *= 2;
 	add_oresults(f_in + offset, enull, eatom, vatom, 
@@ -305,7 +305,7 @@ void FixIntel::add_results(const ft * restrict const f_in,
       add_oresults(f_in, ev_global, eatom, vatom,
 		   _host_min_local, _host_used_local);
       if (force->newton_pair) {
-	const acc_t * restrict const enull = 0;
+	const acc_t * _noalias const enull = 0;
 	int offset = _host_used_local;
 	if (atom->torque) offset *= 2;
 	add_oresults(f_in + offset, enull, eatom, 
@@ -333,11 +333,11 @@ void FixIntel::add_results(const ft * restrict const f_in,
 /* ---------------------------------------------------------------------- */
 
 template <class ft, class acc_t>
-void FixIntel::add_oresults(const ft * restrict const f_in,
-			    const acc_t * restrict const ev_global,
+void FixIntel::add_oresults(const ft * _noalias const f_in,
+			    const acc_t * _noalias const ev_global,
 			    const int eatom, const int vatom,
 			    const int out_offset, const int nall) {
-  lmp_ft * restrict const f = (lmp_ft *) lmp->atom->f[0] + out_offset;
+  lmp_ft * _noalias const f = (lmp_ft *) lmp->atom->f[0] + out_offset;
   if (atom->torque) {
     if (f_in[1].w)
       if (f_in[1].w == 1)
@@ -351,12 +351,16 @@ void FixIntel::add_oresults(const ft * restrict const f_in,
   #pragma omp parallel default(none)
   #endif
   {
+    #if defined(_OPENMP)
     const int tid = omp_get_thread_num();
+    #else
+    const int tid = 0;
+    #endif
     int ifrom, ito;
     IP_PRE_omp_range_align(ifrom, ito, tid, nall, _nthreads, sizeof(acc_t));
     if (atom->torque) {
       int ii = ifrom * 2;
-      lmp_ft * restrict const tor = (lmp_ft *) lmp->atom->torque[0] +
+      lmp_ft * _noalias const tor = (lmp_ft *) lmp->atom->torque[0] +
 	out_offset;
       if (eatom) {
         for (int i = ifrom; i < ito; i++) {
@@ -440,6 +444,7 @@ void FixIntel::balance_stamp() {
 /* ---------------------------------------------------------------------- */
 
 void FixIntel::acc_timers() {
+  _timers[TIME_OFFLOAD_PAIR] += *_stopwatch_offload_pair;
   if (neighbor->ago == 0) {
     _timers[TIME_OFFLOAD_NEIGHBOR] += *_stopwatch_offload_neighbor;
     if (_setup_time_cleared == false) {
@@ -447,7 +452,6 @@ void FixIntel::acc_timers() {
       _setup_time_cleared = true;
     }
   }
-  _timers[TIME_OFFLOAD_PAIR] += *_stopwatch_offload_pair;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -464,8 +468,8 @@ void FixIntel::set_neighbor_host_sizes() {
 /* ---------------------------------------------------------------------- */
 
 template <class ft, class acc_t>
-void FixIntel::add_off_results(const ft * restrict const f_in,
-                               const acc_t * restrict const ev_global) {
+void FixIntel::add_off_results(const ft * _noalias const f_in,
+                               const acc_t * _noalias const ev_global) {
   if (_offload_balance < 0.0)
     _balance_other_time = MPI_Wtime() - _balance_other_time;
 

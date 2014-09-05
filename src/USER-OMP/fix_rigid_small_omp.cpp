@@ -42,11 +42,6 @@ using namespace MathConst;
 enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 
 typedef struct { double x,y,z; } dbl3_t;
-#if defined(__GNUC__)
-#define _noalias __restrict
-#else
-#define _noalias
-#endif
 
 /* ---------------------------------------------------------------------- */
 

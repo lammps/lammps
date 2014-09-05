@@ -134,14 +134,14 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
   const int ago = neighbor->ago;
   IP_PRE_pack_separate_buffers(fix, buffers, ago, offload, nlocal, nall);
 
-  ATOM_T * restrict const x = buffers->get_x(offload);
+  ATOM_T * _noalias const x = buffers->get_x(offload);
 
-  const int * restrict const numneigh = list->numneigh;
-  const int * restrict const cnumneigh = buffers->cnumneigh(list);
-  const int * restrict const firstneigh = buffers->firstneigh(list);
-  const flt_t * restrict const special_lj = fc.special_lj;
-  const FC_PACKED1_T * restrict const ljc12o = fc.ljc12o[0];
-  const FC_PACKED2_T * restrict const lj34 = fc.lj34[0];
+  const int * _noalias const numneigh = list->numneigh;
+  const int * _noalias const cnumneigh = buffers->cnumneigh(list);
+  const int * _noalias const firstneigh = buffers->firstneigh(list);
+  const flt_t * _noalias const special_lj = fc.special_lj;
+  const FC_PACKED1_T * _noalias const ljc12o = fc.ljc12o[0];
+  const FC_PACKED2_T * _noalias const lj34 = fc.lj34[0];
 
   const int ntypes = atom->ntypes + 1;
   const int eatom = this->eflag_atom;
@@ -153,8 +153,8 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
 		       x_size, q_size, ev_size, f_stride);
 
   int tc;
-  FORCE_T * restrict f_start;
-  acc_t * restrict ev_global;
+  FORCE_T * _noalias f_start;
+  acc_t * _noalias ev_global;
   IP_PRE_get_buffers(offload, buffers, fix, tc, f_start, ev_global);
   const int nthreads = tc;
   int *overflow = fix->get_off_overflow_flag();
@@ -184,17 +184,17 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
       iifrom += astart;
       iito += astart;
 
-      FORCE_T * restrict const f = f_start - minlocal + (tid * f_stride);
+      FORCE_T * _noalias const f = f_start - minlocal + (tid * f_stride);
       memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 
       for (int i = iifrom; i < iito; ++i) {
         const int itype = x[i].w;
 
         const int ptr_off = itype * ntypes;
-        const FC_PACKED1_T * restrict const ljc12oi = ljc12o + ptr_off;
-        const FC_PACKED2_T * restrict const lj34i = lj34 + ptr_off;
+        const FC_PACKED1_T * _noalias const ljc12oi = ljc12o + ptr_off;
+        const FC_PACKED2_T * _noalias const lj34i = lj34 + ptr_off;
 
-        const int * restrict const jlist = firstneigh + cnumneigh[i];
+        const int * _noalias const jlist = firstneigh + cnumneigh[i];
         const int jnum = numneigh[i];
 
         acc_t fxtmp, fytmp, fztmp, fwtmp;
@@ -209,9 +209,11 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
           if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
         }
 
+        #if defined(__INTEL_COMPILER)
         #pragma vector aligned
 	#pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
 	                       sv0, sv1, sv2, sv3, sv4, sv5)
+        #endif
         for (int jj = 0; jj < jnum; jj++) {
           flt_t forcelj, evdwl;
           forcelj = evdwl = (flt_t)0.0;

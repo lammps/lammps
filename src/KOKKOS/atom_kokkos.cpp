@@ -31,7 +31,6 @@ AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
   // set CommKokkos pointer to Atom class, since CommKokkos allocated first
 
   ((CommKokkos *) comm)->atomKK = this;
-  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -248,7 +247,8 @@ void AtomKokkos::deallocate_topology()
      done at higher levels (Verlet,Modify,etc)
 ------------------------------------------------------------------------- */
 
-void AtomKokkos::sync_modify(unsigned int datamask_read, 
+void AtomKokkos::sync_modify(ExecutionSpace execution_space,
+                             unsigned int datamask_read, 
                              unsigned int datamask_modify)
 {
   sync(execution_space,datamask_read);

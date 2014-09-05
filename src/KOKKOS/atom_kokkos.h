@@ -47,8 +47,6 @@ class AtomKokkos : public Atom {
   DAT::tdual_int_2d k_improper_type;
   DAT::tdual_tagint_2d k_improper_atom1, k_improper_atom2, k_improper_atom3, k_improper_atom4;
 
-  ExecutionSpace execution_space;
-
   AtomKokkos(class LAMMPS *);
   ~AtomKokkos();
 
@@ -58,7 +56,7 @@ class AtomKokkos : public Atom {
   virtual void sort();
   virtual void grow(unsigned int mask);
   virtual void deallocate_topology();
-  void sync_modify(unsigned int, unsigned int);
+  void sync_modify(ExecutionSpace, unsigned int, unsigned int);
 };
 
 template<class ViewType, class IndexView>

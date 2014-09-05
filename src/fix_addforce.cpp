@@ -237,7 +237,7 @@ void FixAddForce::post_force(int vflag)
 
   if (update->ntimestep % nevery) return;
 
-  if (lmp->kokkos->kokkos_exists)
+  if (lmp->kokkos)
     atom->sync_modify(Host, (unsigned int) (F_MASK | MASK_MASK),
                       (unsigned int) F_MASK);
 

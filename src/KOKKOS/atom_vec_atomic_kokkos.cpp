@@ -1277,9 +1277,6 @@ void AtomVecAtomicKokkos::data_atom(double *coord, tagint imagetmp,
   if (nlocal == nmax) grow(0);
 
   h_tag[nlocal] = atoi(values[0]);
-  if (tag[nlocal] <= 0)
-    error->one(FLERR,"Invalid atom ID in Atoms section of data file");
-
   h_type[nlocal] = atoi(values[1]);
   if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
     error->one(FLERR,"Invalid atom type in Atoms section of data file");

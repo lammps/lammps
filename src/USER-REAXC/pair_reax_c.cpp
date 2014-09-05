@@ -330,7 +330,8 @@ void PairReaxC::coeff( int nargs, char **args )
 
 void PairReaxC::init_style( )
 {
-  if (!atom->q_flag) error->all(FLERR,"Pair reax/c requires atom attribute q");
+  if (!atom->q_flag)
+    error->all(FLERR,"Pair style reax/c requires atom attribute q");
 
   // firstwarn = 1;
 

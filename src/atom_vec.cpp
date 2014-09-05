@@ -293,7 +293,7 @@ void AtomVec::pack_dihedral(tagint **buf)
   if (newton_bond) {
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_dihedral[i]; j++) {
-        buf[m][0] = dihedral_type[i][j];
+        buf[m][0] = MAX(dihedral_type[i][j],-dihedral_type[i][j]);
         buf[m][1] = dihedral_atom1[i][j];
         buf[m][2] = dihedral_atom2[i][j];
         buf[m][3] = dihedral_atom3[i][j];
@@ -304,7 +304,7 @@ void AtomVec::pack_dihedral(tagint **buf)
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_dihedral[i]; j++)
         if (tag[i] == dihedral_atom2[i][j]) {
-          buf[m][0] = dihedral_type[i][j];
+          buf[m][0] = MAX(dihedral_type[i][j],-dihedral_type[i][j]);
           buf[m][1] = dihedral_atom1[i][j];
           buf[m][2] = dihedral_atom2[i][j];
           buf[m][3] = dihedral_atom3[i][j];

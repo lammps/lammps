@@ -109,7 +109,7 @@ void DeleteAtoms::command(int narg, char **arg)
     atom->map_set();
   }
 
-  if (mol_flag) recount_topology();
+  recount_topology();
 
   // print before and after atom and topology counts
 
@@ -143,9 +143,11 @@ void DeleteAtoms::command(int narg, char **arg)
                   ndelete_impropers,atom->nimpropers);
       }
     }
-    if (logfile) fprintf(logfile,"Deleted " BIGINT_FORMAT
-                         " atoms, new total = " BIGINT_FORMAT "\n",
-                         ndelete,atom->natoms);
+
+    if (logfile) {
+      fprintf(logfile,"Deleted " BIGINT_FORMAT
+              " atoms, new total = " BIGINT_FORMAT "\n",
+              ndelete,atom->natoms);
       if (mol_flag) {
         if (nbonds_previous) 
           fprintf(logfile,"Deleted " BIGINT_FORMAT
@@ -164,6 +166,7 @@ void DeleteAtoms::command(int narg, char **arg)
                   " impropers, new total = " BIGINT_FORMAT "\n",
                   ndelete_impropers,atom->nimpropers);
       }
+    }
   }
 }
 
@@ -483,20 +486,21 @@ void DeleteAtoms::recount_topology()
     }
   }
 
-  if (atom->avec->bonds_allow)
+  if (atom->avec->bonds_allow) {
     MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (atom->avec->angles_allow)
+    if (!force->newton_bond) atom->nbonds /= 2;
+  }
+  if (atom->avec->angles_allow) {
     MPI_Allreduce(&nangles,&atom->nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (atom->avec->dihedrals_allow)
+    if (!force->newton_bond) atom->nangles /= 3;
+  }
+  if (atom->avec->dihedrals_allow) {
     MPI_Allreduce(&ndihedrals,&atom->ndihedrals,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (atom->avec->impropers_allow)
+    if (!force->newton_bond) atom->ndihedrals /= 4;
+  }
+  if (atom->avec->impropers_allow) {
     MPI_Allreduce(&nimpropers,&atom->nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
-
-  if (!force->newton_bond) {
-    atom->nbonds /= 2;
-    atom->nangles /= 3;
-    atom->ndihedrals /= 4;
-    atom->nimpropers /= 4;
+    if (!force->newton_bond) atom->nimpropers /= 4;
   }
 }
 

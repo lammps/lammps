@@ -59,7 +59,7 @@ FFT3dCuda::FFT3dCuda(LAMMPS *lmp, MPI_Comm comm, int nfast, int nmid, int nslow,
   plan = fft_3d_create_plan(comm,nfast,nmid,nslow,
                             in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                             out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
-                            scaled,permute,nbuf);
+                            scaled,permute,nbuf,0);
 #endif
   if (plan == NULL) error->one(FLERR,"Could not create 3d FFT plan");
 }

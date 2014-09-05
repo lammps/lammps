@@ -1,0 +1,193 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style snap command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style snap 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style snap
+pair_coeff * * snap InP.snapcoeff In P InP.snapparam In In P P 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>snap</I> computes interactions 
+using the spectral neighbor analysis potential (SNAP)
+<A HREF = "#Thompson2014">(Thompson)</A>. Like the GAP potential of Bartok et al.
+<A HREF = "#Bartok2010">(Bartok)</A>, it uses bispectrum components
+to characterize the local neighborhood of each atom
+in a very general way. The mathematical definition of the
+bispectrum calculation used by SNAP is identical 
+to that used of <A HREF = "compute_sna_atom.html">compute sna/atom</A>. 
+In SNAP, the total energy is decomposed into a sum over
+atom energies. The energy of atom <I>i</I> is 
+expressed as a weighted sum over bispectrum components.
+</P>
+<CENTER><IMG SRC = "Eqs/pair_snap.jpg">
+</CENTER>
+<P>where <I>B_k^i</I> is the <I>k</I>-th bispectrum component of atom <I>i</I>, 
+and <I>beta_k^alpha_i</I> is the corresponding linear coefficient 
+that depends on <I>alpha_i</I>, the SNAP element of atom <I>i</I>. The
+number of bispectrum components used and their definitions
+depend on the values of <I>twojmax</I> and <I>diagonalstyle</I>
+defined in the SNAP parameter file described below.
+The bispectrum calculation is described in more detail 
+in <A HREF = "compute_sna_atom.html">compute sna/atom</A>.
+</P>
+<P>Note that unlike for other potentials, cutoffs for SNAP potentials are
+not set in the pair_style or pair_coeff command; they are specified in
+the SNAP potential files themselves.
+</P>
+<P>Only a single pair_coeff command is used with the <I>snap</I> style which
+specifies two SNAP files and the list SNAP element(s) to be
+extracted.  
+The SNAP elements are mapped to LAMMPS atom types by specifying
+N additional arguments after the 2nd filename in the pair_coeff
+command, where N is the number of LAMMPS atom types:
+</P>
+<UL><LI>SNAP element file
+<LI>Elem1, Elem2, ...
+<LI>SNAP parameter file
+<LI>N element names = mapping of SNAP elements to atom types 
+</UL>
+<P>As an example, if a LAMMPS indium phosphide simulation has 4 atoms 
+types, with the first two being indium and the 3rd and 4th being
+phophorous, the pair_coeff command would look like this:
+</P>
+<PRE>pair_coeff * * snap InP.snapcoeff In P InP.snapparam In In P P 
+</PRE>
+<P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types. 
+The two filenames are for the element and parameter files, respectively. 
+The 'In' and 'P' arguments (between the file names) are the two elements 
+which will be extracted from the element file. The 
+two trailing 'In' arguments map LAMMPS atom types 1 and 2 to the 
+SNAP 'In' element. The two trailing 'P' arguments map LAMMPS atom types 
+3 and 4 to the SNAP 'P' element.
+</P>
+<P>If a SNAP mapping value is 
+specified as NULL, the mapping is not performed. 
+This can be used when a <I>snap</I> potential is used as part of the
+<I>hybrid</I> pair style.  The NULL values are placeholders for atom types
+that will be used with other potentials.
+</P>
+<P>The name of the SNAP element file usually ends in the 
+".snapcoeff" extension. It may contain coefficients 
+for many SNAP elements.
+Only those elements listed in the pair_coeff command are extracted.
+The name of the SNAP parameter file usually ends in the ".snapparam"
+extension. It contains a small number 
+of parameters that define the overall form of the SNAP potential. 
+See the <A HREF = "pair_coeff.html">pair_coeff</A> doc page for alternate ways
+to specify the path for these files. 
+</P>
+<P>Quite commonly,
+SNAP potentials are combined with one or more other LAMMPS pair styles
+using the <I>hybrid/overlay</I> pair style. As an example, the SNAP 
+tantalum potential provided in the LAMMPS potentials directory 
+combines the <I>snap</I> and <I>zbl</I> pair styles. It is invoked 
+by the following commands: 
+</P>
+<PRE>	variable zblcutinner equal 4
+	variable zblcutouter equal 4.8
+	variable zblz equal 73
+	pair_style hybrid/overlay &
+	zbl ${zblcutinner} ${zblcutouter} snap
+	pair_coeff * * zbl 0.0 
+	pair_coeff 1 1 zbl ${zblz}
+	pair_coeff * * snap ../potentials/Ta06A.snapcoeff Ta &
+	../potentials/Ta06A.snapparam Ta 
+</PRE>
+<P>It is convenient to keep these commands in a separate file that can
+be inserted in any LAMMPS input script using the <A HREF = "include.html">include</A>
+command.
+</P>
+<P>The top of the SNAP element file can contain any number of blank and comment 
+lines (start with #), but follows a strict
+format after that. The first non-blank non-comment 
+line must contain two integers:
+</P>
+<UL><LI>nelem  = Number of elements
+<LI>ncoeff = Number of coefficients 
+</UL>
+<P>This is followed by one block for each of the <I>nelem</I> elements. 
+The first line of each block contains three entries:
+</P>
+<UL><LI>Element symbol (text string)
+<LI>R = Element radius (distance units)
+<LI>w = Element weight (dimensionless) 
+</UL>
+<P>This line is followed by <I>ncoeff</I> coefficients, one per line.
+</P>
+<P>The SNAP parameter file can contain blank and comment lines (start
+with #) anywhere. Each non-blank non-comment line must contain one
+keyword/value pair. The required keywords are <I>rcutfac</I> and
+<I>twojmax</I>. Optional keywords are <I>rfac0</I>, <I>rmin0</I>, <I>diagonalstyle</I>,
+and <I>switchflag</I>.
+</P>
+<P>The default values for these keywords are
+</P>
+<UL><LI><I>rfac0</I> = 0.99363
+<LI><I>rmin0</I> = 0.0
+<LI><I>diagonalstyle</I> = 3
+<LI><I>switchflag</I> = 0 
+</UL>
+<P>Detailed definitions of these keywords are given on the <A HREF = "compute_sna_atom.html">compute
+sna/atom</A> doc page.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, where types I and J correspond to
+two different element types, mixing is performed by LAMMPS with
+user-specifiable parameters as described above.  You never need to
+specify a pair_coeff command with I != J arguments for this style.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift, table, and tail options.
+</P>
+<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
+files</A>, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>None
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_sna_atom.html">compute sna/atom</A>,
+<A HREF = "compute_sna_atom.html">compute snad/atom</A>,
+<A HREF = "compute_sna_atom.html">compute snav/atom</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Thompson2014"></A>
+
+<P><B>(Thompson)</B> Thompson, Swiler, Trott, Foiles, Tucker, in preparation
+</P>
+<A NAME = "Bartok2010"></A>
+
+<P><B>(Bartok)</B> Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
+</P>
+</HTML>

@@ -1,0 +1,263 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute sna/atom command 
+</H3>
+<H3>compute snad/atom command 
+</H3>
+<H3>compute snav/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID sna/atom ntypes rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
+compute ID group-ID snad/atom ntypes rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
+compute ID group-ID snav/atom ntypes rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
+
+<LI>sna/atom = style name of this compute command 
+
+<LI>rcutfac = scale factor applied to all cutoff radii (positive real) 
+
+<LI>rfac0 = parameter in distance to angle conversion (0 < rcutfac < 1) 
+
+<LI>twojmax = band limit for bispectrum components (non-negative integer) 
+
+<LI>R_1, R_2,... = list of cutoff radii, one for each type (distance units) 
+
+<LI>w_1, w_2,... = list of neighbor weights, one for each type  
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>diagonal</I> or <I>rmin0</I> or <I>switchflag</I> 
+
+<PRE>  <I>diagonal</I> value = <I>0</I> or <I>1</I> or <I>2</I> or <I>3</I>
+     <I>0</I> = all j1, j2, j <= twojmax, j2 <= j1
+     <I>1</I> = subset satisfying j1 == j2
+     <I>2</I> = subset satisfying j1 == j2 == j3
+     <I>3</I> = subset satisfying j2 <= j1 <= j
+  <I>rmin0</I> value = parameter in distance to angle conversion (distance units)
+  <I>switchflag</I> value = <I>0</I> or <I>1</I> 
+     <I>0</I> = do not use switching function
+     <I>1</I> = use switching function 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute b all sna/atom 1.4 0.99363 6 2.0 2.4 0.75 1.0 diagonal 3 rmin0 0.0
+compute db all sna/atom 1.4 0.95 6 2.0 1.0
+compute vb all sna/atom 1.4 0.95 6 2.0 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates a set of bispectrum components
+for each atom in a group.
+</P>
+<P>Bispectrum components of an atom are order parameters
+characterizing the radial and angular distribution of neighbor
+atoms. The detailed mathematical definition is given in 
+the paper by Thompson et al. <A HREF = "#Thompson2014">(Thompson)</A>
+</P>
+<P>The position of a neighbor atom <I>i'</I> relative to a central atom <I>i</I> 
+is a point within the 3D ball of radius <I>R_ii' = rcutfac*(R_i + R_i')</I>
+</P>
+<P>Bartok et al. <A HREF = "#Bartok2010">(Bartok)</A>, proposed mapping this 3D ball
+onto the 3-sphere, the surface of the unit ball in a four-dimensional
+space.
+The radial distance <I>r</I> within <I>R_ii'</I> 
+is mapped on to a third polar angle <I>theta0</I> defined by,
+</P>
+<CENTER><IMG SRC = "Eqs/compute_sna_atom1.jpg">
+</CENTER>
+<P>In this way, all possible neighbor positions are mapped on to a 
+subset of the 3-sphere. 
+Points south of the latitude <I>theta0max=rfac0*Pi</I> are excluded.
+</P>
+<P>The natural basis for functions on the 3-sphere is formed by 
+the 4D hyperspherical harmonics <I>U^j_m,m'(theta, phi, theta0).</I> 
+These functions are better known as <I>D^j_m,m',</I> 
+the elements of the Wigner <I>D</I>-matrices <A HREF = "#Meremianin2006">(Meremianin</A>, 
+<A HREF = "#Varshalovich1987">Varshalovich)</A>.
+</P>
+<P>The density of neighbors on the 3-sphere can be written
+as a sum of Dirac-delta functions, one for each neighbor, 
+weighted by species and
+radial distance. Expanding this density function as a 
+generalized Fourier series in the basis functions, we can 
+write each Fourier coefficient as
+</P>
+<CENTER><IMG SRC = "Eqs/compute_sna_atom2.jpg">
+</CENTER>
+<P>The <I>w_i'</I> neighbor weights are dimensionless 
+numbers that are chosen to distinguish atoms of different types, 
+while the central atom is arbitrarily assigned a unit weight. 
+The function <I>fc(r)</I> ensures that the contribution of each neighbor 
+atom goes smoothly to zero at <I>R_ii'</I>:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_sna_atom4.jpg">
+</CENTER>
+<P>The expansion coefficients <I>u^j_m,m'</I> are complex-valued and they are not directly 
+useful as descriptors, because they are not invariant under rotation of the 
+polar coordinate frame. However, the following scalar triple products of 
+expansion coefficients can be shown to be real-valued and invariant under 
+rotation <A HREF = "#Bartok2010">(Bartok)</A>.
+</P>
+<CENTER><IMG SRC = "Eqs/compute_sna_atom3.jpg">
+</CENTER>
+<P>The constants <I>H^jmm'_j1m1m1'_j2m2m2'</I> are coupling coefficients, 
+analogous to Clebsch-Gordan 
+coefficients for rotations on the 2-sphere. These invariants are the
+components of the bispectrum and these are the quantities calculated
+by the compute <I>sna/atom</I>. They characterize the strength of density 
+correlations at three points on the 3-sphere. The j2=0 subset
+form the power spectrum, which characterizes the correlations of
+two points. The lowest-order components 
+describe the coarsest features of the density function, while higher-order 
+components reflect finer detail. 
+Note that the central atom is included in the expansion,
+so three point-correlations can be either due to three neighbors, or
+two neighbors and the central atom. 
+</P>
+<P>compute <I>snad/atom</I> calculates the derivative of the bispectrum components
+summed separately for each atom type:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_sna_atom5.jpg">
+</CENTER>
+<P>The sum is over all atoms <I>i'</I> of atom type <I>I</I>. 
+For each atom <I>i</I>, this compute 
+evaluates the above expression for each direction, 
+each atom type, and each bispectrum component.
+See section below on output for a detailed explanation.
+</P>
+<P>compute <I>snav/atom</I> calculates the virial contribution due to the 
+derivatives:
+</P>
+<CENTER><IMG SRC = "Eqs/compute_sna_atom6.jpg">
+</CENTER>
+<P>Again, the sum is over all atoms <I>i'</I> of atom type <I>I</I>. 
+For each atom <I>i</I>, this compute 
+evaluates the above expression for each of the six virial
+components, each atom type, and each bispectrum component.
+See section below on output for a detailed explanation.
+</P>
+<P>The value of all 
+bispectrum components will be zero for atoms not in the
+group. Neighbor atoms not in the group do not contribute to
+the bispectrum of atoms in the group. 
+</P>
+<P>The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently.
+</P>
+<P>The argument <I>rcutfac</I> is a scale factor that controls the
+ratio of atomic radius to radial cutoff distance.
+</P>
+<P>The argument <I>rfac0</I> and the optional keyword <I>rmin0</I> define the 
+linear mapping from radial distance to polar angle <I>theta0</I> on the
+3-sphere.
+</P>
+<P>The argument <I>twojmax</I> and the keyword <I>diagonal</I> define which
+bispectrum components are generated. See section below on output for
+a detailed explanation of the number of bispectrum components and
+the ordered in which they are listed
+</P>
+<P>The keyword <I>switchflag</I> can be used to turn off the switching
+function.
+</P>
+<P>IMPORTANT NOTE: If you have a bonded system, then the settings of
+<A HREF = "special_bonds.html">special_bonds</A> command can remove pairwise
+interactions between atoms in the same bond, angle, or dihedral.  This
+is the default setting for the <A HREF = "special_bonds.html">special_bonds</A>
+command, and means those pairwise interactions do not appear in the
+neighbor list.  Because this fix uses the neighbor list, it also means
+those pairs will not be included in the calculation.  One way
+to get around this, is to write a dump file, and use the
+<A HREF = "rerun.html">rerun</A> command to compute the bispectrum components 
+for snapshots in the dump file.  The rerun script can use a
+<A HREF = "special_bonds.html">special_bonds</A> command that includes all pairs in
+the neighbor list.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>Compute <I>sna/atom</I> calculates a per-atom array, 
+each column corresponding to a particular bispectrum component.
+The total number of columns
+and the identities of the bispectrum component contained in each 
+column depend on the values of <I>twojmax</I> and <I>diagonal</I>, as 
+described by the following piece of python code:
+</P>
+<PRE>for j1 in range(0,twojmax+1):
+    if(diagonal==2): 
+        print j1/2,j1/2,j1/2
+    elif(diagonal==1):
+        for j in range(0,min(twojmax,2*j1)+1,2): 
+            print j1/2,j1/2,j/2
+    elif(diagonal==0):
+        for j2 in range(0,j1+1):
+            for j in range(j1-j2,min(twojmax,j1+j2)+1,2): 
+                print j1/2,j2/2,j/2
+    elif(diagonal==3):
+        for j2 in range(0,j1+1):
+            for j in range(j1-j2,min(twojmax,j1+j2)+1,2): 
+                if (j>=j1): print j1/2,j2/2,j/2 
+</PRE>
+<P>Compute <I>snad/atom</I> evaluates a per-atom array. The columns 
+are arranged into <I>ntypes</I> blocks, listed in order of atom type <I>I</I>. 
+Each block contains three sub-blocks corresponding to the <I>x</I>, <I>y</I>,
+and <I>z</I> components of the atom position.  Each of these sub-blocks
+contains one column for each bispectrum component, the same as
+for compute <I>sna/atom</I> 
+</P>
+<P>Compute <I>snav/atom</I> evaluates a per-atom array. The columns 
+are arranged into <I>ntypes</I> blocks, listed in order of atom type <I>I</I>. 
+Each block contains six sub-blocks corresponding to the <I>xx</I>, <I>yy</I>,
+<I>zz</I>, <I>yz</I>, <I>xz</I>, and <I>xy</I> components of the virial tensor in Voigt notation.  
+Each of these sub-blocks contains one column for each bispectrum component, 
+the same as for compute <I>sna/atom</I> 
+</P>
+<P>These values can be accessed by any command that uses
+per-atom values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
+15</A> for an overview of LAMMPS output
+options. 
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_snap.html">pair_style snap</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The optional keyword defaults are <I>diagonal</I> = 0, <I>rmin0</I> = 0,
+<I>switchflag</I> = 1.
+</P>
+<HR>
+
+<A NAME = "Thompson2014"></A>
+
+<P><B>(Thompson)</B> Thompson, Swiler, Trott, Foiles, Tucker, in preparation
+</P>
+<A NAME = "Bartok2010"></A>
+
+<P><B>(Bartok)</B> Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
+</P>
+<A NAME = "Meremianin2006"></A>
+
+<P><B>(Meremianin)</B> Meremianin, J. Phys. A,  39, 3099 (2006).
+</P>
+<A NAME = "Varshalovich1987"></A>
+
+<P><B>(Varshalovich)</B> Varshalovich, Moskalev, Khersonskii, Quantum Theory
+of Angular Momentum, World Scientific, Singapore (1987).
+</P>
+</HTML>

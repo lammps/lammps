@@ -520,10 +520,16 @@ LAMMPS.
 <P>(a) Build the GPU library
 </P>
 <P>The GPU library is in lammps/lib/gpu.  Select a Makefile.machine (in
-lib/gpu) appropriate for your system.
+lib/gpu) appropriate for your system.  You should pay special
+attention to 3 settings in this makefile.
 </P>
-<P>Before building the library, you can set its precision by editing the
-CUDA_PREC setting in Makefile.machine, as follows:
+<UL><LI>CUDA_HOME = needs to be where NVIDIA Cuda software is installed on your system
+<LI>CUDA_ARCH = needs to be appropriate to your GPUs
+<LI>CUDA_PREC = precision (double, mixed, single) you desire 
+</UL>
+<P>See lib/gpu/Makefile.linux.double for examples of the ARCH settings
+for different GPU choices, e.g. Fermi vs Kepler.  It also lists the
+possible precision settings:
 </P>
 <PRE>CUDA_PREC = -D_SINGLE_SINGLE  # Single precision for all calculations
 CUDA_PREC = -D_DOUBLE_DOUBLE  # Double precision for all calculations
@@ -745,6 +751,7 @@ the library is built.
   N = 3 for positions in double precision
   N = 4 for positions and velocities in double precision
 <I>arch=M</I> to set GPU compute capability
+  M = 35 for Kepler GPUs
   M = 20 for CC2.0 (GF100/110, e.g. C2050,GTX580,GTX470) (default)
   M = 21 for CC2.1 (GF104/114,  e.g. GTX560, GTX460, GTX450)
   M = 13 for CC1.3 (GF200, e.g. C1060, GTX285)

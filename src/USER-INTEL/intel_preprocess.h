@@ -366,6 +366,7 @@ inline double MIC_Wtime() {
   if (eflag && eatom) {							\
     for (int t = 1; t < nthreads; t++) {				\
       _use_simd_pragma("vector nontemporal")				\
+      _use_simd_pragma("novector")					\
       for (int n = iifrom; n < iito; n++) {				\
         f_start[n].x += f_start[n + t_off].x;				\
         f_start[n].y += f_start[n + t_off].y;				\
@@ -377,6 +378,7 @@ inline double MIC_Wtime() {
   } else {								\
     for (int t = 1; t < nthreads; t++) {				\
       _use_simd_pragma("vector nontemporal")  				\
+      _use_simd_pragma("novector")					\
       for (int n = iifrom; n < iito; n++) {                             \
 	f_start[n].x += f_start[n + t_off].x;                  	        \
         f_start[n].y += f_start[n + t_off].y;				\
@@ -390,6 +392,7 @@ inline double MIC_Wtime() {
     if (vflag == 2) {							\
       const ATOM_T * _noalias const xo = x + minlocal;			\
       _use_simd_pragma("vector nontemporal")   				\
+      _use_simd_pragma("novector")					\
       for (int n = iifrom; n < iito; n++) {				\
 	ov0 += f_start[n].x * xo[n].x;					\
 	ov1 += f_start[n].y * xo[n].y;					\

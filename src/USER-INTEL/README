@@ -38,8 +38,6 @@ Intel compilers.
 
 -----------------------------------------------------------------------------
 
-The files in this package must be compiled with the Intel C++
-compiler, i.e. icc/icpc.
-
-
-
+For portability reasons, vectorization directives are currently only enabled 
+for Intel compilers. Using other compilers may result in significantly
+lower performance.

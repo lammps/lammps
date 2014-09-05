@@ -185,6 +185,7 @@ in the pair section of "this page"_Section_commands.html#cmd_5.
 "pair_style reax"_pair_reax.html - ReaxFF potential
 "pair_style rebo"_pair_airebo.html - 2nd generation REBO potential of Brenner
 "pair_style resquared"_pair_resquared.html - Everaers RE-Squared ellipsoidal potential
+"pair_style snap"_pair_snap.html - SNAP quantum-accurate potential
 "pair_style soft"_pair_soft.html - Soft (cosine) potential
 "pair_style sw"_pair_sw.html - Stillinger-Weber 3-body potential
 "pair_style table"_pair_table.html - tabulated pair potential

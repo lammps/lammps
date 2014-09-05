@@ -219,6 +219,9 @@ page"_Section_commands.html#cmd_5.
 "reduce"_compute_reduce.html - combine per-atom quantities into a single global value
 "reduce/region"_compute_reduce.html - same as compute reduce, within a region
 "slice"_compute_slice.html - extract values from global vector or array
+"sna/atom"_compute_sna.html - calculate bispectrum coefficients for each atom
+"snad/atom"_compute_sna.html - derivative of bispectrum coefficients for each atom
+"snav/atom"_compute_sna.html - virial contribution from bispectrum coefficients for each atom
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles

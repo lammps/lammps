@@ -47,114 +47,108 @@ compute vb all sna/atom 1.4 0.95 6 2.0 1.0 :pre
 Define a computation that calculates a set of bispectrum components
 for each atom in a group.
 
-Bispectrum components of an atom are order parameters
-characterizing the radial and angular distribution of neighbor
-atoms. The detailed mathematical definition is given in 
-the paper by Thompson et al. "(Thompson)"_#Thompson2014
+Bispectrum components of an atom are order parameters characterizing
+the radial and angular distribution of neighbor atoms. The detailed
+mathematical definition is given in the paper by Thompson et
+al. "(Thompson)"_#Thompson2014
 
-The position of a neighbor atom {i'} relative to a central atom {i} 
-is a point within the 3D ball of radius {R_ii' = rcutfac*(R_i + R_i')}
+The position of a neighbor atom {i'} relative to a central atom {i} is
+a point within the 3D ball of radius {R_ii' = rcutfac*(R_i + R_i')}
 
 Bartok et al. "(Bartok)"_#Bartok2010, proposed mapping this 3D ball
 onto the 3-sphere, the surface of the unit ball in a four-dimensional
-space.
-The radial distance {r} within {R_ii'} 
-is mapped on to a third polar angle {theta0} defined by,
+space.  The radial distance {r} within {R_ii'} is mapped on to a third
+polar angle {theta0} defined by,
 
 :c,image(Eqs/compute_sna_atom1.jpg) 
 
-In this way, all possible neighbor positions are mapped on to a 
-subset of the 3-sphere. 
-Points south of the latitude {theta0max=rfac0*Pi} are excluded.
+In this way, all possible neighbor positions are mapped on to a subset
+of the 3-sphere.  Points south of the latitude {theta0max=rfac0*Pi}
+are excluded.
  
-The natural basis for functions on the 3-sphere is formed by 
-the 4D hyperspherical harmonics {U^j_m,m'(theta, phi, theta0).} 
-These functions are better known as {D^j_m,m',} 
-the elements of the Wigner {D}-matrices "(Meremianin"_#Meremianin2006, 
+The natural basis for functions on the 3-sphere is formed by the 4D
+hyperspherical harmonics {U^j_m,m'(theta, phi, theta0).}  These
+functions are better known as {D^j_m,m',} the elements of the Wigner
+{D}-matrices "(Meremianin"_#Meremianin2006,
 "Varshalovich)"_#Varshalovich1987.
 
-The density of neighbors on the 3-sphere can be written
-as a sum of Dirac-delta functions, one for each neighbor, 
-weighted by species and
-radial distance. Expanding this density function as a 
-generalized Fourier series in the basis functions, we can 
-write each Fourier coefficient as
+The density of neighbors on the 3-sphere can be written as a sum of
+Dirac-delta functions, one for each neighbor, weighted by species and
+radial distance. Expanding this density function as a generalized
+Fourier series in the basis functions, we can write each Fourier
+coefficient as
 
 :c,image(Eqs/compute_sna_atom2.jpg) 
 
-The {w_i'} neighbor weights are dimensionless 
-numbers that are chosen to distinguish atoms of different types, 
-while the central atom is arbitrarily assigned a unit weight. 
-The function {fc(r)} ensures that the contribution of each neighbor 
-atom goes smoothly to zero at {R_ii'}:
+The {w_i'} neighbor weights are dimensionless numbers that are chosen
+to distinguish atoms of different types, while the central atom is
+arbitrarily assigned a unit weight.  The function {fc(r)} ensures that
+the contribution of each neighbor atom goes smoothly to zero at
+{R_ii'}:
 
 :c,image(Eqs/compute_sna_atom4.jpg) 
 
-The expansion coefficients {u^j_m,m'} are complex-valued and they are not directly 
-useful as descriptors, because they are not invariant under rotation of the 
-polar coordinate frame. However, the following scalar triple products of 
-expansion coefficients can be shown to be real-valued and invariant under 
-rotation "(Bartok)"_#Bartok2010.
+The expansion coefficients {u^j_m,m'} are complex-valued and they are
+not directly useful as descriptors, because they are not invariant
+under rotation of the polar coordinate frame. However, the following
+scalar triple products of expansion coefficients can be shown to be
+real-valued and invariant under rotation "(Bartok)"_#Bartok2010.
 
 :c,image(Eqs/compute_sna_atom3.jpg) 
 
-The constants {H^jmm'_j1m1m1'_j2m2m2'} are coupling coefficients, 
-analogous to Clebsch-Gordan 
-coefficients for rotations on the 2-sphere. These invariants are the
-components of the bispectrum and these are the quantities calculated
-by the compute {sna/atom}. They characterize the strength of density 
-correlations at three points on the 3-sphere. The j2=0 subset
-form the power spectrum, which characterizes the correlations of
-two points. The lowest-order components 
-describe the coarsest features of the density function, while higher-order 
-components reflect finer detail. 
-Note that the central atom is included in the expansion,
-so three point-correlations can be either due to three neighbors, or
-two neighbors and the central atom. 
+The constants {H^jmm'_j1m1m1'_j2m2m2'} are coupling coefficients,
+analogous to Clebsch-Gordan coefficients for rotations on the
+2-sphere. These invariants are the components of the bispectrum and
+these are the quantities calculated by the compute {sna/atom}. They
+characterize the strength of density correlations at three points on
+the 3-sphere. The j2=0 subset form the power spectrum, which
+characterizes the correlations of two points. The lowest-order
+components describe the coarsest features of the density function,
+while higher-order components reflect finer detail.  Note that the
+central atom is included in the expansion, so three point-correlations
+can be either due to three neighbors, or two neighbors and the central
+atom.
 
-compute {snad/atom} calculates the derivative of the bispectrum components
+Compute {snad/atom} calculates the derivative of the bispectrum components
 summed separately for each atom type:
 
 :c,image(Eqs/compute_sna_atom5.jpg) 
 
-The sum is over all atoms {i'} of atom type {I}. 
-For each atom {i}, this compute 
-evaluates the above expression for each direction, 
-each atom type, and each bispectrum component.
-See section below on output for a detailed explanation.
+The sum is over all atoms {i'} of atom type {I}.  For each atom {i},
+this compute evaluates the above expression for each direction, each
+atom type, and each bispectrum component.  See section below on output
+for a detailed explanation.
  
-compute {snav/atom} calculates the virial contribution due to the 
+Compute {snav/atom} calculates the virial contribution due to the
 derivatives:
 
 :c,image(Eqs/compute_sna_atom6.jpg) 
 
-Again, the sum is over all atoms {i'} of atom type {I}. 
-For each atom {i}, this compute 
-evaluates the above expression for each of the six virial
-components, each atom type, and each bispectrum component.
-See section below on output for a detailed explanation.
+Again, the sum is over all atoms {i'} of atom type {I}.  For each atom
+{i}, this compute evaluates the above expression for each of the six
+virial components, each atom type, and each bispectrum component.  See
+section below on output for a detailed explanation.
 
-The value of all 
-bispectrum components will be zero for atoms not in the
-group. Neighbor atoms not in the group do not contribute to
-the bispectrum of atoms in the group. 
+The value of all bispectrum components will be zero for atoms not in
+the group. Neighbor atoms not in the group do not contribute to the
+bispectrum of atoms in the group.
 
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently.
 
-The argument {rcutfac} is a scale factor that controls the
-ratio of atomic radius to radial cutoff distance.
+The argument {rcutfac} is a scale factor that controls the ratio of
+atomic radius to radial cutoff distance.
  
-The argument {rfac0} and the optional keyword {rmin0} define the 
+The argument {rfac0} and the optional keyword {rmin0} define the
 linear mapping from radial distance to polar angle {theta0} on the
 3-sphere.
 
 The argument {twojmax} and the keyword {diagonal} define which
-bispectrum components are generated. See section below on output for
-a detailed explanation of the number of bispectrum components and
-the ordered in which they are listed
+bispectrum components are generated. See section below on output for a
+detailed explanation of the number of bispectrum components and the
+ordered in which they are listed
 
 The keyword {switchflag} can be used to turn off the switching
 function.
@@ -165,20 +159,20 @@ interactions between atoms in the same bond, angle, or dihedral.  This
 is the default setting for the "special_bonds"_special_bonds.html
 command, and means those pairwise interactions do not appear in the
 neighbor list.  Because this fix uses the neighbor list, it also means
-those pairs will not be included in the calculation.  One way
-to get around this, is to write a dump file, and use the
-"rerun"_rerun.html command to compute the bispectrum components 
-for snapshots in the dump file.  The rerun script can use a
-"special_bonds"_special_bonds.html command that includes all pairs in
-the neighbor list.
+those pairs will not be included in the calculation.  One way to get
+around this, is to write a dump file, and use the "rerun"_rerun.html
+command to compute the bispectrum components for snapshots in the dump
+file.  The rerun script can use a "special_bonds"_special_bonds.html
+command that includes all pairs in the neighbor list.
+
+;line
 
 [Output info:]
 
-Compute {sna/atom} calculates a per-atom array, 
-each column corresponding to a particular bispectrum component.
-The total number of columns
-and the identities of the bispectrum component contained in each 
-column depend on the values of {twojmax} and {diagonal}, as 
+Compute {sna/atom} calculates a per-atom array, each column
+corresponding to a particular bispectrum component.  The total number
+of columns and the identities of the bispectrum component contained in
+each column depend on the values of {twojmax} and {diagonal}, as
 described by the following piece of python code:
 
 for j1 in range(0,twojmax+1):
@@ -196,24 +190,24 @@ for j1 in range(0,twojmax+1):
             for j in range(j1-j2,min(twojmax,j1+j2)+1,2): 
                 if (j>=j1): print j1/2,j2/2,j/2 :pre
 
-Compute {snad/atom} evaluates a per-atom array. The columns 
-are arranged into {ntypes} blocks, listed in order of atom type {I}. 
-Each block contains three sub-blocks corresponding to the {x}, {y},
-and {z} components of the atom position.  Each of these sub-blocks
-contains one column for each bispectrum component, the same as
-for compute {sna/atom} 
+Compute {snad/atom} evaluates a per-atom array. The columns are
+arranged into {ntypes} blocks, listed in order of atom type {I}.  Each
+block contains three sub-blocks corresponding to the {x}, {y}, and {z}
+components of the atom position.  Each of these sub-blocks contains
+one column for each bispectrum component, the same as for compute
+{sna/atom}
 
-Compute {snav/atom} evaluates a per-atom array. The columns 
-are arranged into {ntypes} blocks, listed in order of atom type {I}. 
-Each block contains six sub-blocks corresponding to the {xx}, {yy},
-{zz}, {yz}, {xz}, and {xy} components of the virial tensor in Voigt notation.  
-Each of these sub-blocks contains one column for each bispectrum component, 
-the same as for compute {sna/atom} 
+Compute {snav/atom} evaluates a per-atom array. The columns are
+arranged into {ntypes} blocks, listed in order of atom type {I}.  Each
+block contains six sub-blocks corresponding to the {xx}, {yy}, {zz},
+{yz}, {xz}, and {xy} components of the virial tensor in Voigt
+notation.  Each of these sub-blocks contains one column for each
+bispectrum component, the same as for compute {sna/atom}
 
-These values can be accessed by any command that uses
-per-atom values from a compute as input.  See "Section_howto
+These values can be accessed by any command that uses per-atom values
+from a compute as input.  See "Section_howto
 15"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options. 
+options.
 
 [Restrictions:] none
 

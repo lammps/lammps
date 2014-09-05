@@ -36,7 +36,10 @@ class DumpH5MD : public Dump {
   int nevery_save;
   int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
   h5md_file datafile;
+  int datafile_from_dump;
   h5md_particles_group particles_data;
+
+  bool do_box;
 
   // data arrays and intervals
   int every_dump;
@@ -59,6 +62,7 @@ class DumpH5MD : public Dump {
   void write_data(int, double *);
 
   void write_frame();
+  void write_fixed_frame();
 };
 
 }
@@ -90,5 +94,9 @@ The format of this file requires snapshots at regular intervals.
 E: Cannot change dump_modify every for dump xtc
 
 The frequency of writing dump xtc snapshots cannot be changed.
+
+E: Cannot specify nobox and position in dump_h5md
+
+A dump that writes the position element must also write the box.
 
 */

@@ -1,0 +1,117 @@
+# mingw64-cross = Windows 64-bit, cross-compiled on Fedora 18, gcc-4.7.1, MinGW, internal FFT, no MPI, OpenMP
+
+SHELL = /bin/sh
+
+# ---------------------------------------------------------------------
+# compiler/linker settings
+# specify flags and libraries needed for your compiler
+
+CC =		x86_64-w64-mingw32-g++
+CCFLAGS =	-O3 -march=core2 -mtune=core2 -mpc64 -msse2 -fopenmp	\
+		-ffast-math -fstrict-aliasing -Wall -W -Wno-uninitialized
+
+SHFLAGS =	# -fPIC (not needed on windows, all code is PIC)
+DEPFLAGS =	-M
+
+LINK =		x86_64-w64-mingw32-g++
+LINKFLAGS =	-O2 -march=core2 -mtune=core2 -mpc64 -msse2 -fopenmp
+LIB =           -lwsock32 -static-libgcc
+SIZE =		x86_64-w64-mingw32-size
+
+ARCHIVE =	x86_64-w64-mingw32-ar
+ARFLAGS =	-rc
+SHLIBFLAGS =	-shared
+
+# name of object file subdir for libraries in lib with leading '/'
+LIBOBJDIR = 	/Obj_mingw64
+
+# ---------------------------------------------------------------------
+# LAMMPS-specific settings
+# specify settings for LAMMPS features you will use
+# if you change any -D setting, do full re-compile after "make clean"
+
+# LAMMPS ifdef settings, OPTIONAL
+# see possible settings in doc/Section_start.html#2_2 (step 4)
+
+LMP_INC =	-DLAMMPS_SMALLBIG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_XDR -DLAMMPS_GZIP -DLAMMPS_FFMPEG
+
+# MPI library, REQUIRED
+# see discussion in doc/Section_start.html#2_2 (step 5)
+# can point to dummy MPI library in src/STUBS as in Makefile.serial
+# INC = path for mpi.h, MPI compiler settings
+# PATH = path for MPI library
+# LIB = name of MPI library
+
+MPI_INC =       -I../STUBS
+MPI_PATH =      -L../STUBS
+MPI_LIB =	-lmpi_mingw64
+
+# FFT library, OPTIONAL
+# see discussion in doc/Section_start.html#2_2 (step 6)
+# can be left blank to use provided KISS FFT library
+# INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
+# PATH = path for FFT library
+# LIB = name of FFT library
+
+FFT_INC =
+FFT_PATH = 
+FFT_LIB =
+
+# JPEG and/or PNG library, OPTIONAL
+# see discussion in doc/Section_start.html#2_2 (step 7)
+# only needed if -DLAMMPS_JPEG or -DLAMMPS_PNG listed with LMP_INC
+# INC = path(s) for jpeglib.h and/or png.h
+# PATH = path(s) for JPEG library and/or PNG library
+# LIB = name(s) of JPEG library and/or PNG library
+
+JPG_INC =       
+JPG_PATH = 	
+JPG_LIB =	-ljpeg -lpng -lz
+
+# ---------------------------------------------------------------------
+# build rules and dependencies
+# no need to edit this section
+
+include	Makefile.package.settings
+include	Makefile.package
+
+EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
+EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+
+# Path to src files
+
+vpath %.cpp ..
+vpath %.h ..
+
+# Link target
+
+$(EXE):	$(OBJ)
+	$(LINK) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ) $(EXTRA_LIB) $(LIB) -o $(EXE)
+	$(SIZE) $(EXE)
+
+# Library targets
+
+lib:	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(EXE) $(OBJ)
+
+shlib:	$(OBJ)
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(SHLIBFLAGS) $(EXTRA_PATH) -o $(EXE) \
+        $(OBJ) $(EXTRA_LIB) $(LIB)
+
+# Compilation rules
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
+
+%.d:%.cpp
+	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
+
+# Individual dependencies
+
+DEPENDS = $(OBJ:.o=.d)
+sinclude $(DEPENDS)
+
+# Local Variables:
+# mode: makefile
+# End:

@@ -102,17 +102,16 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal compute sna/atom command");
   }
 
-  // always unset use_shared_arrays 
-
-  int use_shared_arrays = 0;
-  int nthreads = omp_get_max_threads();
-
-  snaptr = new SNA*[nthreads];
-#pragma omp parallel shared(rfac0,twojmax,rmin0)
+  snaptr = new SNA*[comm->nthreads];
+#if defined(_OPENMP)
+#pragma omp parallel default(none) shared(lmp,rfac0,twojmax,rmin0,switchflag)
+#endif
   {
     int tid = omp_get_thread_num();
-    snaptr[tid] = new SNA(lmp,rfac0,twojmax,diagonalstyle,use_shared_arrays,
-			  rmin0,switchflag);
+
+    // always unset use_shared_arrays since it does not work with computes
+    snaptr[tid] = new SNA(lmp,rfac0,twojmax,diagonalstyle,
+                          0 /*use_shared_arrays*/, rmin0,switchflag);
   }
 
   ncoeff = snaptr[0]->ncoeff;
@@ -160,7 +159,9 @@ void ComputeSNAAtom::init()
     if (strcmp(modify->compute[i]->style,"sna/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute sna/atom");
-  #pragma omp parallel
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
   {
     int tid = omp_get_thread_num();
     snaptr[tid]->init();
@@ -197,7 +198,7 @@ void ComputeSNAAtom::compute_peratom()
   const int* const ilist = list->ilist;
   const int* const numneigh = list->numneigh;
   int** const firstneigh = list->firstneigh;
-  int *type = atom->type;
+  int * const type = atom->type;
 
   // compute sna for each atom in group
   // use full neighbor list to count atoms less than cutoff
@@ -205,7 +206,9 @@ void ComputeSNAAtom::compute_peratom()
   double** const x = atom->x;
   const int* const mask = atom->mask;
 
-  #pragma omp parallel for
+#if defined(_OPENMP)
+#pragma omp parallel for default(none)
+#endif
   for (int ii = 0; ii < inum; ii++) {
     const int tid = omp_get_thread_num();
     const int i = ilist[ii];
@@ -270,7 +273,7 @@ double ComputeSNAAtom::memory_usage()
   double bytes = nmax*size_peratom_cols * sizeof(double);
   bytes += 3*njmax*sizeof(double);
   bytes += njmax*sizeof(int);
-  bytes += snaptr[0]->memory_usage()*omp_get_max_threads();
+  bytes += snaptr[0]->memory_usage()*comm->nthreads;
   return bytes;
 }
 

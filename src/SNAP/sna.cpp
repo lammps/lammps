@@ -160,7 +160,6 @@ void SNA::build_indexlist()
 {
   if(diagonalstyle == 0) {
     int idxj_count = 0;
-    int ma2, mb2;
 
     for(int j1 = 0; j1 <= twojmax; j1++)
       for(int j2 = 0; j2 <= j1; j2++)
@@ -186,7 +185,6 @@ void SNA::build_indexlist()
 
   if(diagonalstyle == 1) {
     int idxj_count = 0;
-    int ma2, mb2;
 
     for(int j1 = 0; j1 <= twojmax; j1++)
       for(int j = 0; j <= MIN(twojmax, 2 * j1); j += 2) {
@@ -211,7 +209,6 @@ void SNA::build_indexlist()
 
   if(diagonalstyle == 2) {
     int idxj_count = 0;
-    int ma2, mb2;
 
     for(int j1 = 0; j1 <= twojmax; j1++) {
       idxj_count++;
@@ -234,7 +231,6 @@ void SNA::build_indexlist()
 
   if(diagonalstyle == 3) {
     int idxj_count = 0;
-    int ma2, mb2;
 
     for(int j1 = 0; j1 <= twojmax; j1++)
       for(int j2 = 0; j2 <= j1; j2++)
@@ -358,7 +354,9 @@ void SNA::compute_ui_omp(int jnum, int sub_threads)
     z0 = r / tan(theta0);
     omp_set_num_threads(sub_threads);
 
-    #pragma omp parallel shared(x,y,z,z0,r,sub_threads)
+#if defined(_OPENMP)
+#pragma omp parallel shared(x,y,z,z0,r,sub_threads) default(none)
+#endif
     {
       compute_uarray_omp(x, y, z, z0, r, sub_threads);
     }
@@ -464,7 +462,9 @@ void SNA::compute_zi_omp(int sub_threads)
   // compute_dbidrj() requires full j1/j2/j chunk of z elements
   // use zarray j1/j2 symmetry
 
-  #pragma omp parallel for schedule(auto)
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(auto) default(none)
+#endif
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
@@ -670,7 +670,7 @@ void SNA::compute_dbidrj_nonsymm()
   double* dbdr;
   double* dudr_r, *dudr_i;
   double sumb1_r[3], sumb1_i[3], dzdr_r[3], dzdr_i[3];
-  int ma2, mb2;
+  int ma2;
 
 #ifdef TIMING_INFO
   clock_gettime(CLOCK_REALTIME, &starttime);
@@ -1124,7 +1124,9 @@ void SNA::add_uarraytot_omp(double r, double wj, double rcut)
 
   sfac *= wj;
 
-  #pragma omp for
+#if defined(_OPENMP)
+#pragma omp for
+#endif
   for (int j = 0; j <= twojmax; j++)
     for (int ma = 0; ma <= j; ma++)
       for (int mb = 0; mb <= j; mb++) {
@@ -1232,7 +1234,9 @@ void SNA::compute_uarray_omp(double x, double y, double z,
   uarray_i[0][0][0] = 0.0;
 
   for (int j = 1; j <= twojmax; j++) {
-    #pragma omp for
+#if defined(_OPENMP)
+#pragma omp for
+#endif
     for (int mb = 0; mb < j; mb++) {
       uarray_r[j][0][mb] = 0.0;
       uarray_i[j][0][mb] = 0.0;
@@ -1264,7 +1268,9 @@ void SNA::compute_uarray_omp(double x, double y, double z,
     uarray_r[j][0][mb] = 0.0;
     uarray_i[j][0][mb] = 0.0;
 
-    #pragma omp for
+#if defined(_OPENMP)
+#pragma omp for
+#endif
     for (int ma = 0; ma < j; ma++) {
       rootpq = rootpqarray[j - ma][mb];
       uarray_r[j][ma][mb] +=
@@ -1917,6 +1923,7 @@ double SNA::compute_sfac(double r, double rcut)
       return 0.5 * (cos((r - rmin0) * rcutfac) + 1.0);
     }
   }
+  return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1932,6 +1939,7 @@ double SNA::compute_dsfac(double r, double rcut)
       return -0.5 * sin((r - rmin0) * rcutfac) * rcutfac;
     }
   }
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -2001,7 +2009,6 @@ void SNA::test()
 
   double rcut = 0.0;
   rfac0 = theta0 / MY_PI;
-  double rscale0 = MY_PI * rfac0;
 
   printf("SNA::test() validating bispectrum coefficients "
          "against Mathamatica calculation for BCC crystal\n");

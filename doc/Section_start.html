@@ -30,9 +30,9 @@ experienced users.
 
 <H4><A NAME = "start_1"></A>2.1 What's in the LAMMPS distribution 
 </H4>
-<P>When you download LAMMPS you will need to unzip and untar the
-downloaded file with the following commands, after placing the file in
-an appropriate directory.
+<P>When you download a LAMMPS tarball you will need to unzip and untar
+the downloaded file with the following commands, after placing the
+tarball in an appropriate directory.
 </P>
 <PRE>gunzip lammps*.tar.gz 
 tar xvf lammps*.tar 
@@ -51,21 +51,22 @@ sub-directories:
 <TR><TD >tools</TD><TD > pre- and post-processing tools 
 </TD></TR></TABLE></DIV>
 
-<P>If you download one of the Windows executables from the download page,
-then you get a single file:
+<P>Note that the <A HREF = "download">download page</A> also has links to download
+Windows exectubles and installers, as well as pre-built executables
+for a few specific Linux distributions.  It also has instructions for
+how to download/install LAMMPS for Macs (via Homebrew), and to
+download and update LAMMPS from SVN and Git repositories, which gives
+you the same files that are in the download tarball.
 </P>
-<PRE>lmp_windows.exe 
-</PRE>
-<P>Skip to the <A HREF = "#start_6">Running LAMMPS</A> sections for info on how to
-launch these executables on a Windows box.
-</P>
-<P>The Windows executables for serial or parallel only include certain
-packages and bug-fixes/upgrades listed on <A HREF = "http://lammps.sandia.gov/bug.html">this
+<P>The Windows and Linux executables for serial or parallel only include
+certain packages and bug-fixes/upgrades listed on <A HREF = "http://lammps.sandia.gov/bug.html">this
 page</A> up to a certain date, as
-stated on the download page.  If you want something with more packages
-or that is more current, you'll have to download the source tarball
-and build it yourself from source code using Microsoft Visual Studio,
-as described in the next section.
+stated on the download page.  If you want an executable with
+non-included packages or that is more current, then you'll need to
+build LAMMPS yourself, as discussed in the next section.
+</P>
+<P>Skip to the <A HREF = "#start_6">Running LAMMPS</A> sections for info on how to
+launch a LAMMPS Windows executable on a Windows box.
 </P>
 <HR>
 
@@ -84,27 +85,45 @@ as described in the next section.
 
 <A NAME = "start_2_1"></A><B><I>Read this first:</I></B> 
 
-<P>Building LAMMPS can be non-trivial.  You may need to edit a makefile,
-there are compiler options to consider, additional libraries can be
-used (MPI, FFT, JPEG, PNG), LAMMPS packages may be included or
-excluded, some of these packages use auxiliary libraries which need to
-be pre-built, etc.
+<P>If you want to avoid building LAMMPS, read the preceeding section
+about options available for downloading and installing executables.
+Details are discussed on the <A HREF = "download">download</A> page.
 </P>
-<P>Please read this section carefully.  If you are not comfortable with
-makefiles, or building codes on a Unix platform, or running an MPI job
-on your machine, please find a local expert to help you.  Many
-compiling, linking, and run problems that users have are often not
-LAMMPS issues - they are peculiar to the user's system, compilers,
-libraries, etc.  Such questions are better answered by a local expert.
+<P>Building LAMMPS can be simple or not-so-simple.  If MPI is already
+installed on your machine (or you just want to run LAMMPS in serial)
+and you can use one of the provided machine Makefiles and the build
+works on your platform, then it's simple.
+</P>
+<P>If you want to do one of these:
+</P>
+<UL><LI>use optional LAMMPS features that require additional libraries
+<LI>use optional packages that require additional libraries
+<LI>use optional accelerator packages that require special compiler/linker settings
+<LI>run on a specialized platform like a supercomputer that has its own compilers, settings, or other libs to use 
+</UL>
+<P>then building LAMMPS is more complicated.  You may need to find where
+auxiliary libraries exist on your machine or install them if they
+don't.  You may need to build additional libraries that are part of
+the LAMMPS package, before building LAMMPS.  You may need to edit a
+machine Makefile to make it compatible with your system.
+</P>
+<P>Please read the following sections carefully.  If you are not
+comfortable with makefiles, or building codes on a Unix platform, or
+running an MPI job on your machine, please find a local expert to help
+you.  Many compilation, linking, and run problems that users have are
+often not really LAMMPS issues - they are peculiar to the user's
+system, compilers, libraries, etc.  Such questions are better answered
+by a local expert.
 </P>
 <P>If you have a build problem that you are convinced is a LAMMPS issue
 (e.g. the compiler complains about a line of LAMMPS source code), then
-please post a question to the <A HREF = "http://lammps.sandia.gov/mail.html">LAMMPS mail
+please post the issue to the <A HREF = "http://lammps.sandia.gov/mail.html">LAMMPS mail
 list</A>.
 </P>
 <P>If you succeed in building LAMMPS on a new kind of machine, for which
-there isn't a similar Makefile for in the src/MAKE directory, send it
-to the developers and we can include it in the LAMMPS distribution.
+there isn't a similar machine Makefile included in the src/MAKE
+directory, then send it to the developers and we can include it in the
+LAMMPS distribution.
 </P>
 <HR>
 

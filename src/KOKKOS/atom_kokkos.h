@@ -28,7 +28,6 @@ class AtomKokkos : public Atom {
   DAT::tdual_v_array k_v;
   DAT::tdual_f_array k_f;
 
-
   DAT::tdual_float_1d k_mass;
 
   DAT::tdual_float_1d k_q;
@@ -57,6 +56,7 @@ class AtomKokkos : public Atom {
   virtual void sort();
   virtual void grow(unsigned int mask);
   virtual void deallocate_topology();
+  void sync_modify(ExecutionSpace, unsigned int, unsigned int);
 };
 
 template<class ViewType, class IndexView>

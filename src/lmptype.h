@@ -169,6 +169,7 @@ typedef int bigint;
 
 // preprocessor macros for compiler specific settings
 // clear previous definitions to avoid redefinition warning
+
 #ifdef _alignvar
 #undef _alignvar
 #endif
@@ -177,6 +178,7 @@ typedef int bigint;
 #endif
 
 // define stack variable alignment
+
 #if defined(__INTEL_COMPILER)
 #define _alignvar(expr,val) __declspec(align(val)) expr
 #elif defined(__GNUC__)
@@ -186,6 +188,7 @@ typedef int bigint;
 #endif
 
 // declaration to lift aliasing restrictions
+
 #if defined(__INTEL_COMPILER)
 #define _noalias restrict
 #elif defined(__GNUC__)

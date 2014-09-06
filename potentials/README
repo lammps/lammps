@@ -35,6 +35,9 @@ meam.spline   modified EAM (MEAM) spline potential
 meam.sw.spline modified EAM (MEAM) Stillinger-Weber spline potential
 nb3b.harmonic nonbonded 3-body harmonic potential
 reax	      ReaxFF potential (see README.reax for more info)
+snap          SNAP potential
+snapcoeff     SNAP potential
+snapparam     SNAP potential
 sw	      Stillinger-Weber potential
 tersoff	      Tersoff potential
 tersoff.mod   modified Tersoff potential

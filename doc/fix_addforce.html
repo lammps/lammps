@@ -27,9 +27,11 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>region</I> or <I>energy</I> 
+<LI>keyword = <I>every</I> or <I>region</I> or <I>energy</I> 
 
-<PRE>  <I>region</I> value = region-ID
+<PRE>  <I>every</I> value = Nevery
+    Nevery = add force every this many timesteps
+  <I>region</I> value = region-ID
     region-ID = ID of region atoms must be in to have added force
   <I>energy</I> value = v_name
     v_name = variable with name that calculates the potential energy of each atom in the added force field 
@@ -65,6 +67,10 @@ time.  Thus it is easy to specify a time-dependent force field.
 variables but can also include per-atom values, such as atom
 coordinates.  Thus it is easy to specify a spatially-dependent force
 field with optional time-dependence as well.
+</P>
+<P>If the <I>every</I> keyword is used, the <I>Nevery</I> setting determines how
+often the forces are applied.  The default value is 1, for every
+timestep.
 </P>
 <P>If the <I>region</I> keyword is used, the atom must also be in the
 specified geometric <A HREF = "region.html">region</A> in order to have force added
@@ -171,6 +177,8 @@ the system (the quantity being minimized), you MUST enable the
 </P>
 <P><A HREF = "fix_setforce.html">fix setforce</A>, <A HREF = "fix_aveforce.html">fix aveforce</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option default for the every keyword is every = 1.
 </P>
 </HTML>

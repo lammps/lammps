@@ -18,7 +18,9 @@ addforce = style name of this fix command :l
 fx,fy,fz = force component values (force units) :l
   any of fx,fy,fz can be a variable (see below) :pre
 zero or more keyword/value pairs may be appended to args :l
-keyword = {region} or {energy} :l
+keyword = {every} or {region} or {energy} :l
+  {every} value = Nevery
+    Nevery = add force every this many timesteps
   {region} value = region-ID
     region-ID = ID of region atoms must be in to have added force
   {energy} value = v_name
@@ -54,6 +56,10 @@ Atom-style variables can specify the same formulas as equal-style
 variables but can also include per-atom values, such as atom
 coordinates.  Thus it is easy to specify a spatially-dependent force
 field with optional time-dependence as well.
+
+If the {every} keyword is used, the {Nevery} setting determines how
+often the forces are applied.  The default value is 1, for every
+timestep.
 
 If the {region} keyword is used, the atom must also be in the
 specified geometric "region"_region.html in order to have force added
@@ -160,4 +166,6 @@ the system (the quantity being minimized), you MUST enable the
 
 "fix setforce"_fix_setforce.html, "fix aveforce"_fix_aveforce.html
 
-[Default:] none
+[Default:]
+
+The option default for the every keyword is every = 1.

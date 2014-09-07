@@ -1793,10 +1793,11 @@ pecified
       }
     }
 
-    int mySize = 3;
-    if (num_bond)
-      mySize += 1 + lammpsInterface_->bond_per_atom();
-    return mySize;
+    return m;
+    //int mySize = 3;
+    //if (num_bond)
+    //  mySize += 1 + lammpsInterface_->bond_per_atom();
+    //return mySize;
   }
 
   //-----------------------------------------------------------------

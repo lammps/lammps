@@ -15,7 +15,7 @@ OBJ = 	$(SRC:.cpp=.o)
 
 PACKAGE = asphere body class2 colloid dipole fld gpu granular kim \
 	  kokkos kspace manybody mc meam misc molecule mpiio opt peri poems \
-	  reax replica rigid shock srd voronoi xtc
+	  reax replica rigid shock snap srd voronoi xtc
 
 PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars \
 	   user-cuda user-eff user-fep user-intel user-lb user-misc \
@@ -38,8 +38,6 @@ help:
 	@echo ''
 	@echo 'make clean-all           delete all object files'
 	@echo 'make clean-machine       delete object files for one machine'
-	@echo 'make purge               purge obsolete copies of package sources'
-	@echo 'make tar                 create lmp_src.tar.gz of src dir and packages'
 	@echo 'make makelib             create Makefile.lib for static library build'
 	@echo 'make makeshlib           create Makefile.shlib for shared library build'
 	@echo 'make makelist            create Makefile.list used by old makes'
@@ -48,6 +46,7 @@ help:
 	@echo 'make -f Makefile.list machine     build LAMMPS from explicit list of files'
 	@echo 'make stubs               build dummy MPI library in STUBS'
 	@echo 'make install-python      install LAMMPS wrapper in Python'
+	@echo 'make tar                 create lmp_src.tar.gz of src dir and packages'
 	@echo ''
 	@echo 'make package             list available packages'
 	@echo 'make package-status (ps) status of all packages'
@@ -64,20 +63,29 @@ help:
 	@echo 'make package-update (pu) replace src files with updated package files'
 	@echo 'make package-overwrite   replace package files with src files'
 	@echo 'make package-diff (pd)   diff src files against package files'
+	@echo 'make package-purge       purge obsolete copies of package sources'
 	@echo ''
 	@echo 'make machine             build LAMMPS where machine is one of:'
 	@echo ''
 	@files="`ls MAKE/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
+	@echo 'or one of:'
+	@echo ''
+	@files="`ls MAKE/MORE/Makefile.*`"; \
+	  for file in $$files; do head -1 $$file; done
+	@echo ''
 
 # Build the code
 
 .DEFAULT:
-	@test -f MAKE/Makefile.$@
+	@test -f MAKE/Makefile.$@ -o -f MAKE/MORE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
 	@$(SHELL) Make.sh style
-	@cp MAKE/Makefile.$@ Obj_$@/Makefile
+	@if [ -f MAKE/Makefile.$@ ]; \
+	  then cp MAKE/Makefile.$@ Obj_$@/Makefile; fi
+	@if [ -f MAKE/MORE/Makefile.$@ ]; \
+	  then cp MAKE/MORE/Makefile.$@ Obj_$@/Makefile; fi
 	@if [ ! -e Makefile.package ]; \
 	  then cp Makefile.package.empty Makefile.package; fi
 	@if [ ! -e Makefile.package.settings ]; \
@@ -99,28 +107,6 @@ clean-all:
 clean-%:
 	rm -rf Obj_$(@:clean-%=%)
 
-purge: Purge.list
-	@echo 'Purging obsolete and auto-generated source files'
-	@for f in `grep -v '#' Purge.list` ;		\
-	    do test -f $$f && rm $$f && echo $$f || : ;		\
-	done
-
-# Create a tarball of src dir and packages
-
-tar:
-	@cd STUBS; $(MAKE) clean
-	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
-	  src/Make* src/Package.sh src/MAKE src/*.cpp src/*.h src/STUBS \
-	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
-          --exclude=*/.svn
-	@cd STUBS; $(MAKE)
-	@echo "Created $(ROOT)_src.tar.gz"
-
-# Make MPI STUBS library
-
-stubs:
-	@cd STUBS; $(MAKE) clean; $(MAKE)
-
 # Create Makefile.lib, Makefile.shlib, and Makefile.list
 
 makelib:
@@ -135,10 +121,26 @@ makelist:
 	@$(SHELL) Make.sh style
 	@$(SHELL) Make.sh Makefile.list
 
+# Make MPI STUBS library
+
+stubs:
+	@cd STUBS; $(MAKE) clean; $(MAKE)
+
 # install LAMMPS shared lib and Python wrapper for Python usage
 
 install-python:
 	@python ../python/install.py
+
+# Create a tarball of src dir and packages
+
+tar:
+	@cd STUBS; $(MAKE) clean
+	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
+	  src/Make* src/Package.sh src/MAKE src/*.cpp src/*.h src/STUBS \
+	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
+          --exclude=*/.svn
+	@cd STUBS; $(MAKE)
+	@echo "Created $(ROOT)_src.tar.gz"
 
 # Package management
 
@@ -218,6 +220,7 @@ no-%:
 # update = replace src files with newer package files
 # overwrite = overwrite package files with newer src files
 # diff = show differences between src and package files
+# purge = delete obsolete and auto-generated package files
 
 package-status ps:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p status; done
@@ -238,3 +241,9 @@ package-diff pd:
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p diff; done
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p diff; done
+
+package-purge: Purge.list
+	@echo 'Purging obsolete and auto-generated source files'
+	@for f in `grep -v '#' Purge.list` ;		\
+	    do test -f $$f && rm $$f && echo $$f || : ;		\
+	done

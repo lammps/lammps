@@ -1,0 +1,116 @@
+LAMMPS (29 Aug 2014)
+# Demonstrate SNAP Ta potential
+
+# Initialize simulation
+
+variable nsteps index 100
+variable nrep equal 4
+variable a equal 3.316
+units		metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable nx equal ${nrep}
+variable nx equal 4
+variable ny equal ${nrep}
+variable ny equal 4
+variable nz equal ${nrep}
+variable nz equal 4
+
+boundary	p p p
+
+lattice         bcc $a
+lattice         bcc 3.316
+Lattice spacing in x,y,z = 3.316 3.316 3.316
+region		box block 0 ${nx} 0 ${ny} 0 ${nz}
+region		box block 0 4 0 ${ny} 0 ${nz}
+region		box block 0 4 0 4 0 ${nz}
+region		box block 0 4 0 4 0 4
+create_box	1 box
+Created orthogonal box = (0 0 0) to (13.264 13.264 13.264)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 128 atoms
+
+mass 1 180.88
+
+# choose potential
+
+include Ta06A_pot.snap
+# Definition of SNAP potential Ta_Cand06A
+# Assumes 1 LAMMPS atom type
+
+variable zblcutinner equal 4
+variable zblcutouter equal 4.8
+variable zblz equal 73
+
+# Specify hybrid with SNAP, ZBL
+
+pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} snap
+pair_style hybrid/overlay zbl 4 ${zblcutouter} snap
+pair_style hybrid/overlay zbl 4 4.8 snap
+pair_coeff * * zbl 0.0 # Needed to activate hybrid cross-types
+pair_coeff 1 1 zbl ${zblz}
+pair_coeff 1 1 zbl 73
+pair_coeff * * snap Ta06A.snapcoeff Ta Ta06A.snapparam Ta
+SNAP Element = Ta, Radius 0.5, Weight 1 
+SNAP keyword rcutfac 4.67637 
+SNAP keyword twojmax 6 
+SNAP keyword gamma 1 
+SNAP keyword rfac0 0.99363 
+SNAP keyword rmin0 0 
+SNAP keyword diagonalstyle 3 
+
+
+# Setup output
+
+thermo		10
+thermo_modify norm yes
+
+# Set up NVE run
+
+timestep 0.5e-3
+neighbor 1.0 bin
+neigh_modify once no every 1 delay 0 check yes
+
+# Run MD
+
+velocity all create 300.0 4928459
+fix 1 all nve
+run             ${nsteps}
+run             100
+Memory usage per processor = 2.91109 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          300    -11.85157            0   -11.813095    2717.1661 
+      10     295.8664    -11.85104            0   -11.813095     2702.935 
+      20    283.95868   -11.849513            0   -11.813095    2301.3242 
+      30    265.29535   -11.847119            0   -11.813095    1870.3173 
+      40    241.09337   -11.844015            0   -11.813095    1568.1549 
+      50    212.86732   -11.840395            0   -11.813094    1409.2092 
+      60    182.35256   -11.836481            0   -11.813094    1389.0527 
+      70    151.38968    -11.83251            0   -11.813094    1474.9232 
+      80    121.80051   -11.828715            0   -11.813094    1627.6911 
+      90    95.262635   -11.825311            0   -11.813094    1812.9327 
+     100    73.194645   -11.822481            0   -11.813094    1995.2199 
+Loop time of 1.41452 on 4 procs for 100 steps with 128 atoms
+
+Pair  time (%) = 1.36282 (96.3451)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.0507569 (3.58828)
+Outpt time (%) = 0.000217676 (0.0153887)
+Other time (%) = 0.000724733 (0.0512353)
+
+Nlocal:    32 ave 32 max 32 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    431 ave 431 max 431 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    928 ave 928 max 928 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  1856 ave 1856 max 1856 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 7424
+Ave neighs/atom = 58
+Neighbor list builds = 0
+Dangerous builds = 0
+

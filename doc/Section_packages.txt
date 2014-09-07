@@ -61,6 +61,7 @@ REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.htm
 REPLICA, multi-replica methods, -, "Section_howto"_Section_howto.html#howto_5, tad, -
 RIGID, rigid bodies, -, "fix rigid"_fix_rigid.html, rigid, -
 SHOCK, shock loading methods, -, "fix msst"_fix_msst.html, -, -
+SNAP, quantum-fit potential, Aidan Thompson (Sandia), "pair snap"_pair_snap.html, snap, -
 SRD, stochastic rotation dynamics, -, "fix srd"_fix_srd.html, srd, -
 VORONOI, Voronoi tesselations, Daniel Schwen (LANL), "compute voronoi/atom"_compute_voronoi_atom.html, -, Voro++
 XTC, dumps in XTC format, -, "dump"_dump.html, -, -

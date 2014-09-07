@@ -5,4 +5,3 @@ CUDA_USRLIB_CONDITIONAL := -L$(CUDA_HOME)/lib -L$(CUDA_HOME)/lib64 -lcufft
 user-cuda_SYSINC = ${CUDA_FLAGS}
 user-cuda_SYSLIB = -lcuda -lcudart 
 user-cuda_SYSPATH = $(CUDA_USRLIB_CONDITIONAL)
-

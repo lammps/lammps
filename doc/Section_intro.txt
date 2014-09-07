@@ -141,7 +141,7 @@ commands)
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, \
-    REBO, AIREBO, ReaxFF, COMB
+    REBO, AIREBO, ReaxFF, COMB, SNAP
   electron force field (eFF, AWPMD)
   coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
   mesoscopic potentials: granular, Peridynamics, SPH

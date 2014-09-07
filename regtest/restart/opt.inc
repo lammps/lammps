@@ -1,3 +1,0 @@
-
-suffix opt
-suffix on

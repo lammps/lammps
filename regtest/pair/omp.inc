@@ -1,2 +1,0 @@
-suffix omp
-suffix on

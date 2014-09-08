@@ -1,0 +1,85 @@
+LAMMPS (5 Sep 2014)
+# This example demonstrates the use of various fix qeq variants with
+#   that defines and uses charges, in this case pair_style buck/coul/long
+
+units           metal
+atom_style      charge
+
+read_data 	data.aC
+  orthogonal box = (0 0 0) to (25.1583 25.1583 28.0203)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1200 atoms
+
+pair_style 	buck/coul/long 12.0
+pair_coeff 	2 2 1388.77 .3623188 175.0
+pair_coeff  	1 2 18003   .2052124  133.5381
+pair_coeff 	1 1 0 .1 0
+kspace_style  	ewald 1e-6
+
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+group    	type1 type 1
+400 atoms in group type1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+group    	type2 type 2
+800 atoms in group type2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+variable   	qtot equal count(type1)*c_q1+count(type2)*c_q2
+
+thermo_style  	custom step pe c_q1 c_q2 v_qtot
+thermo 		1
+
+timestep 	0.0001
+
+velocity  	all create 300.0 1281937
+fix  		1 all nve
+
+#fix             2 all qeq/point    1 10 1.0e-6 100 param.qeq2
+#fix             2 all qeq/shielded 1 10 1.0e-6 100 param.qeq2
+#fix             2 all qeq/slater   1 10 1.0e-6 100 param.qeq2
+fix             2 all qeq/dynamic  1 10 1.0e-2 100 param.qeq2
+
+run  		10
+Ewald initialization ...
+  G vector (1/distance) = 0.305064
+  estimated absolute RMS force accuracy = 2.07629e-05
+  estimated relative force accuracy = 1.44191e-06
+  KSpace vectors: actual max1d max3d = 1696 10 4630
+                  kxmax kymax kzmax  = 9 9 10
+Memory usage per processor = 11.8158 Mbytes
+Step PotEng q1 q2 qtot 
+       0   -15435.276   0.85155361   -0.4257768 1.9326762e-12 
+       1    -15435.28   0.85155361   -0.4257768 1.9326762e-12 
+       2   -15435.356   0.85155361   -0.4257768 1.9326762e-12 
+       3     -15435.5   0.85155361   -0.4257768 1.9326762e-12 
+       4   -15435.714   0.85155361   -0.4257768 1.9326762e-12 
+       5   -15437.489   0.85191124  -0.42595562 1.4210855e-12 
+       6   -15439.474    0.8523022   -0.4261511 1.1937118e-12 
+       7   -15444.065   0.85330143  -0.42665072 1.5347723e-12 
+       8   -15445.582   0.85354575  -0.42677288 1.4210855e-12 
+       9   -15447.225    0.8538033  -0.42690165 1.6484591e-12 
+      10   -15450.727   0.85448844  -0.42724422 1.6484591e-12 
+Loop time of 0.551397 on 1 procs for 10 steps with 1200 atoms
+
+Pair  time (%) = 0.190656 (34.5769)
+Kspce time (%) = 0.293027 (53.1427)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0.000636339 (0.115405)
+Outpt time (%) = 0.000331879 (0.0601887)
+Other time (%) = 0.0667453 (12.1048)
+
+Nlocal:    1200 ave 1200 max 1200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    8100 ave 8100 max 8100 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    367600 ave 367600 max 367600 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 367600
+Ave neighs/atom = 306.333
+Neighbor list builds = 0
+Dangerous builds = 0

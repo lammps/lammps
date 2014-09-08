@@ -527,6 +527,7 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "press/berendsen"_fix_press_berendsen.html,
 "print"_fix_print.html,
 "property/atom"_fix_property_atom.html,
+"qeq"_fix_qeq.html,
 "qeq/comb (o)"_fix_qeq_comb.html,
 "reax/bonds"_fix_reax_bonds.html,
 "recenter"_fix_recenter.html,

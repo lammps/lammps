@@ -11,6 +11,8 @@ Section</A>
 
 <HR>
 
+<P>NOTE: USER-CUDA: no newton setting needed?
+</P>
 <H3>5. Accelerating LAMMPS performance 
 </H3>
 <P>This section describes various methods for improving LAMMPS
@@ -44,12 +46,12 @@ on different hardware platforms.
 understand how it currently performs and where the bottlenecks are.
 </P>
 <P>The best way to do this is run the your system (actual number of
-atoms) for a modest number of timesteps (say 100, or a few 100 at
-most) on several different processor counts, including a single
-processor if possible.  Do this for an equilibrium version of your
-system, so that the 100-step timings are representative of a much
-longer run.  There is typically no need to run for 1000s or timesteps
-to get accurate timings; you can simply extrapolate from short runs.
+atoms) for a modest number of timesteps (say 100 steps) on several
+different processor counts, including a single processor if possible.
+Do this for an equilibrium version of your system, so that the
+100-step timings are representative of a much longer run.  There is
+typically no need to run for 1000s of timesteps to get accurate
+timings; you can simply extrapolate from short runs.
 </P>
 <P>For the set of runs, look at the timing data printed to the screen and
 log file at the end of each LAMMPS run.  <A HREF = "Section_start.html#start_8">This
@@ -244,6 +246,13 @@ Technologies).  It contains a handful of pair styles whose compute()
 methods were rewritten in C++ templated form to reduce the overhead
 due to if tests and other conditional code.
 </P>
+<P>Here is a quick overview of how to use the OPT package:
+</P>
+<UL><LI>include the OPT package and build LAMMPS
+<LI>use OPT pair styles in your input script 
+</UL>
+<P>Details follow.
+</P>
 <P><B>Required hardware/software:</B>
 </P>
 <P>None.
@@ -255,8 +264,8 @@ due to if tests and other conditional code.
 <PRE>make yes-opt
 make machine 
 </PRE>
-<P>No additional compile/link flags are needed in your lo-level
-src/MAKE/Makefile.machine.
+<P>No additional compile/link flags are needed in your machine
+Makefile in src/MAKE.
 </P>
 <P><B>Running with the OPT package:</B>
 </P>
@@ -295,6 +304,16 @@ University.  It provides multi-threaded versions of most pair styles,
 nearly all bonded styles (bond, angle, dihedral, improper), several
 Kspace styles, and a few fix styles.  The package currently
 uses the OpenMP interface for multi-threading.
+</P>
+<P>Here is a quick overview of how to use the USER-OMP package:
+</P>
+<UL><LI>specify the -fopenmp flag for compiling and linking in your machine Makefile
+<LI>include the USER-OMP package and build LAMMPS
+<LI>specify how many threads per MPI task to run with via an environment variable or the package omp command
+<LI>enable the USER-OMP package via the "-sf omp" command-line switch, or the package omp commmand
+<LI>use USER-OMP styles in your input script 
+</UL>
+<P>Details follow.
 </P>
 <P><B>Required hardware/software:</B>
 </P>
@@ -362,8 +381,7 @@ style in your input script:
 <PRE>pair_style lj/cut/omp 2.5
 fix nve/omp 
 </PRE>
-<P><
-Or you can run with the "-sf omp" <A HREF = "Section_start.html#start_7">command-line
+<P>Or you can run with the "-sf omp" <A HREF = "Section_start.html#start_7">command-line
 switch</A>, which will automatically append
 "omp" to styles that support it.
 </P>
@@ -393,7 +411,7 @@ benchmark runs for a specific simulation running on a specific
 machine, paying attention to guidelines discussed in the next
 sub-section.
 </P>
-<P>A description of the multi-threading strategy used in the UESR-OMP
+<P>A description of the multi-threading strategy used in the USER-OMP
 package and some performance examples are <A HREF = "http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1">presented
 here</A>
 </P>
@@ -502,6 +520,19 @@ NVIDIA support as well as more general OpenCL support, so that the
 same functionality can eventually be supported on a variety of GPU
 hardware. 
 </UL>
+<P>Here is a quick overview of how to use the GPU package:
+</P>
+<UL><LI>build the library in lib/gpu for your GPU hardware (CUDA_ARCH) with desired precision (CUDA_PREC)
+<LI>include the GPU package and build LAMMPS
+<LI>decide how many MPI tasks per GPU to run with, i.e. set MPI tasks/node via mpirun
+<LI>specify how many GPUs per node to use (default = 1) via the package gpu command
+<LI>enable the GPU package via the "-sf gpu" command-line switch, or the package gpu commmand
+<LI>use the newton command to turn off Newton's law for pairwise interactions
+<LI>use the package gpu command to enable neighbor list building on the GPU if desired
+<LI>use GPU pair styles and kspace styles in your input script 
+</UL>
+<P>Details follow.
+</P>
 <P><B>Required hardware/software:</B>
 </P>
 <P>To use this package, you currently need to have an NVIDIA GPU and
@@ -714,10 +745,20 @@ transparently.
 <LI>The package only supports use of a single MPI task, running on a
 single CPU (core), assigned to each GPU. 
 </UL>
+<P>Here is a quick overview of how to use the USER-CUDA package:
+</P>
+<UL><LI>build the library in lib/cuda for your GPU hardware (arch with desired precision (precision)
+<LI>include the USER-CUDA package and build LAMMPS
+<LI>use the mpirun command to specify 1 MPI task per GPU (on each node)
+<LI>specify how many GPUs per node to use (default = 1) via the package cuda command
+<LI>enable the USER-CUDA package via the "-c on" command-line switch
+<LI>use USER-CUDA styles in your input script 
+</UL>
+<P>Details follow.
+</P>
 <P><B>Required hardware/software:</B>
 </P>
-<P>To use this package, you need to have an NVIDIA GPU and
-install the NVIDIA Cuda software on your system:
+<P>To use this package, you need to have one or more NVIDIA GPUs and install the NVIDIA Cuda software on your system:
 </P>
 <P>Your NVIDIA GPU needs to support Compute Capability 1.3. This list may
 help you to find out the Compute Capability of your card:
@@ -1259,6 +1300,24 @@ the <A HREF = "suffix.html">suffix intel</A> command will both set a second-choi
 suffix to "omp" so that styles from the USER-OMP package will be used
 if available, after first testing if a style from the USER-INTEL
 package is available.
+</P>
+<P>Here is a quick overview of how to use the USER-INTEL package
+for CPU acceleration:
+</P>
+<UL><LI>specify these CCFLAGS in your machine Makefile: -fopenmp, -DLAMMPS_MEMALIGN=64, and -restrict, -xHost
+<LI>specify -fopenmp with LINKFLAGS in your machine Makefile
+<LI>include the USER-INTEL package and (optionally) USER-OMP package and build LAMMP
+<LI>if also using the USER-OMP package, specify how many threads per MPI task to run with via an environment variable or the package omp command
+<LI>use USER-INTEL styles in your input script 
+</UL>
+<P>Running with the USER-INTEL package to offload to the Intel(R) Xeon Phi(TM)
+is the same except for these additional steps:
+</P>
+<UL><LI>add the flag -DLMP_INTEL_OFFLOAD to CCFLAGS in your Machine makefile
+<LI>add the flag -offload to the LINKFLAGS in your Machine makefile
+<LI>the package intel command can be used to adjust threads per coprocessor 
+</UL>
+<P>Details follow.
 </P>
 <P><B>Required hardware/software:</B>
 </P>

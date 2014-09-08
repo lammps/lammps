@@ -1,0 +1,182 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix qeq/point command 
+</H3>
+<H3>fix qeq/shielded command 
+</H3>
+<H3>fix qeq/slater command 
+</H3>
+<H3>fix qeq/dynamic command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID style Nevery cutoff tolerance maxiter params 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>style = <I>qeq/point</I> or <I>qeq/shielded</I> or <I>qeq/slater</I> or <I>qeq/dynamic</I>
+<LI>Nevery = perform charge equilibration every this many steps
+<LI>cutoff = global cutoff for charge-charge interactions (distance unit)
+<LI>tolerance = precision to which charges will be equilibrated
+<LI>maxiter = maximum iterations to perform charge equilibration
+<LI>params = a filename 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all qeq/point 1 10 1.0e-6 200 param.qeq1
+fix 1 qeq qeq/shielded 1 8 1.0e-6 100 param.qeq2
+fix 1 all qeq/slater 5 10 1.0e-6 100 params
+fix 1 qeq qeq/dynamic 1 12 1.0e-3 100 my_qeq 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Perform the charge equilibration (QEq) method as described in <A HREF = "#Rappe">(Rappe
+and Goddard)</A> and formulated in <A HREF = "#Nakano">(Nakano)</A> (also 
+known as the matrix inversion method)
+and in <A HREF = "#Rick">(Rick and Stuart)</A> (also known as the extended 
+Lagrangian method) based on the electronegativity equilization principle.  
+These fixes can be used with any potential in LAMMPS, so long as it defines and
+uses charges on each atom and that QEq parameters are provided.
+</P>
+<P>IMPORTANT NOTE: The <A HREF = "fix_qeq_comb.html">fix qeq/comb</A>
+command should be used to perform charge equliibration with the <A HREF = "pair_comb.html">COMB
+potential</A>.  The <A HREF = "fix_qeq_reax.html">fix qeq/reax</A>
+command can be used to perform charge equilibration with the <A HREF = "pair_reax_c.html">ReaxFF force
+field</A>, although fix qeq/shielded yields exact same 
+results as fix qeq/reax if <I>Nevery</I>, cutoff</I>, and <I>tolerance</I> are the same.
+</P>
+<P>The QEq method minimizes the electrostatic energy of the system (or 
+equalizes the derivative of energy with respect to charge of all the 
+atoms) by adjusting the partial charge on individual atoms based on 
+interactions with their neighbors within <I>cutoff</I>.
+It reqires some parameters for each atom type provided in a file 
+specified by <I>params</I>.  First line of the file should be the unit 
+style of these parameters.  These
+fixes support real, metal, si, cgs, and electron units.  Using lj, 
+micro, and nano units will result in an error.
+Each of the following lines should be formatted as follows:
+</P>
+<PRE>itype chi eta gamma zeta qcore 
+</PRE>
+<P>where <I>itype</I> is the atom type from 1 to Ntypes, <I>chi</I> denotes the
+electronegativity in energy units, <I>eta</I> denotes the self-Coulomb
+potential in energy units, <I>gamma</I> denotes the shielded Coulomb 
+constant defined by <A HREF = "#vanDuin">ReaxFF force field</A> in distance units, 
+<I>zeta</I> denotes the Slater type orbital exponent defined by the 
+<A HREF = "#Streitz">Streitz-Mintmire</A> potential (not yet available in LAMMPS) 
+in reverse distance units, and <I>qcore</I> denotes the charge of the 
+nucleus defined by the Streitz-Mintmire potential in charge units.
+</P>
+<P>The <I>qeq/point</I> style describes partial charges on atoms as point charges.
+Interaction between a pair of charged particles is 1/r, which is the simplest
+description of the interaction between charges.  Only <I>chi</I> and <I>eta</I> 
+parameters in the <I>params</I> file are used.  Note that Coulomb catastrophe 
+can occur if repulsion between the pair of charged particles is too weak.
+This style solves partial charges on atoms via the matrix inversion method.
+A tolerance of 1.0e-6 is usually a good number.
+</P>
+<P>The <I>qeq/shielded</I> style describes partial charges on atoms also as point 
+charges, but uses a shielded Coulomb potential to describe
+the interaction between a pair of charged particles.  Interaction through 
+the shielded Coulomb is given by equation (13) of the 
+<A HREF = "#vanDuin">ReaxFF force field</A> paper.  The shielding accounts for charge overlap 
+between charged particles at small separation.  This style is the same as 
+<A HREF = "fix_qeq_reax.html">fix qeq/reax</A>, and can be used with 
+<A HREF = "pair_reax_c.html">pair_style reax/c</A>.  Only <I>chi</I>, <I>eta</I>, and <I>gamma</I> parameters 
+in the <I>params</I> file are used.
+This style solves partial charges on atoms via the matrix inversion method.
+A tolerance of 1.0e-6 is usually a good number.
+</P>
+<P>The <I>qeq/slater</I> style describes partial charges on atoms as spherical 
+charge densities centered around atoms via the Slater 1<I>s</I> orbital, so that 
+the interaction between a pair of charged particles is the product of two 
+Slater 1<I>s</I> orbitals.  The expression for the Slater 1<I>s</I> orbital is given under
+equation (6) of the <A HREF = "#Streitz">Streitz-Mintmire</A> paper.  <I>chi</I>, <I>eta</I>, <I>zeta</I>, 
+and <I>qcore</I> parameters in the <I>params</I> file are used. 
+This style solves partial charges on atoms via the matrix inversion method.
+A tolerance of 1.0e-6 is usually a good number.
+</P>
+<P>The <I>qeq/dynamic</I> style describes partial charges on atoms as point charges 
+that interact through 1/r, but the extended Lagrangian method is used to solve
+partial charges on atoms.  Only <I>chi</I> and <I>eta</I> parameters in the <I>params</I> file 
+are used.  Note that Coulomb catastrophe can occur if repulsion between the 
+pair of charged particles is too weak.
+A tolerance of 1.0e-3 is usually a good number.
+</P>
+<P>Note that <I>qeq/point</I>, <I>qeq/shielded</I>, and <I>qeq/slater</I> describe different charge
+models, whereas the matrix inversion method and the extended Lagrangian method 
+(<I>qeq/dynamic</I>) are different solvers.
+</P>
+<P>Note that the <I>qeq/point</I> and the <I>qeq/dynamic</I> styles both describe charges as 
+point charges that interact through 1/r relationship, but solve partial charges 
+on atoms using different solvers.  <I>qeq/point</I> and the <I>qeq/dynamic</I> styles should 
+yield comparable results if the QEq parameters and <I>Nevery</I>, cutoff</I>, 
+and <I>tolerance</I> are the same.  <I>qeq/point</I> is typically faster, but <I>qeq/dynamic</I> 
+scales better on larger sizes.
+</P>
+<P>IMPORTANT NOTE: To avoid the evaluation of the derivative of charge with 
+respect to position, which is typically ill-defined, the system should have a
+zero net charge.
+</P>
+<P>IMPORTANT NOTE: Developing QEq parameters (chi, eta, gamma, zeta, and qcore)
+is an "art".  Charges on atoms are not guaranteed to equilibrate with arbitrary 
+choices of these parameters.  We do not develop these QEq paramters.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about these fixes is written to <A HREF = "restart.html">binary restart
+files</A>.  No global scalar or vector or per-atom
+quantities are stored by these fixes for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of these fixes can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+</P>
+<P>Thexe fixes are invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>These fixes are part of the USER-QEQ package.  They are only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_qeq_reax.html">fix qeq/reax</A>
+<A HREF = "fix_qeq_comb.html">fix qeq/comb</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Rappe"></A>
+
+<P><B>(Rappe and Goddard)</B> A. K. Rappe and W. A. Goddard III, J Physical Chemistry, 105,
+3358-3363 (1991).
+</P>
+<A NAME = "Nakano"></A>
+
+<P><B>(Nakano)</B> A. Nakano, Computer Physics Communications, 104, 59-69 (1997).
+</P>
+<A NAME = "Rick"></A>
+
+<P><B>(Rick and Stuart)</B> S. W. Rick, S. J. Stuart, B. J. Berne, J Chemical Physics
+101, 16141 (1994).
+</P>
+<A NAME = "Streitz"></A>
+
+<P><B>(Streitz-Mintmire)</B> F. H. Streitz, J. W. Mintmire, Physical Review B, 50, 
+16, 11996 (1994)
+</P>
+<A NAME = "vanDuin"></A>
+
+<P><B>(ReaxFF)</B> A. C. T. van Duin, S. Dasgupta, F. Lorant, W. A. Goddard III, J 
+Physical Chemistry, 105, 9396-9049 (2001)
+</P>
+</HTML>

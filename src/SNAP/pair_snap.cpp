@@ -170,7 +170,6 @@ void PairSNAP::compute_regular(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
-  int *tag = atom->tag;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
   class SNA* snaptr = sna[0];
@@ -377,7 +376,9 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
   if (use_shared_arrays)
     build_per_atom_arrays();
 
-  #pragma omp parallel shared(time_dynamic,time_guided) firstprivate(numpairs)
+#if defined(_OPENMP)
+#pragma omp parallel shared(eflag,vflag,time_dynamic,time_guided) firstprivate(numpairs) default(none)
+#endif
   {
     // begin of pragma omp parallel
 
@@ -419,24 +420,28 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
     }
 
     int ielem;
-    int i,j,ii,jj,k,inum,jnum,itype,jtype,ninside;
+    int jj,k,inum,jnum,jtype,ninside;
     double delx,dely,delz,evdwl,rsq;
     double fij[3];
     int *ilist,*jlist,*numneigh,**firstneigh;
     evdwl = 0.0;
 
-    #pragma omp master
+#if defined(_OPENMP)
+#pragma omp master
+#endif
     {
       if (eflag || vflag) ev_setup(eflag,vflag);
       else evflag = vflag_fdotr = 0;
     }
 
-    #pragma omp barrier
+#if defined(_OPENMP)
+#pragma omp barrier
+    { ; }
+#endif
 
     double **x = atom->x;
     double **f = atom->f;
     int *type = atom->type;
-    int *tag = atom->tag;
     int nlocal = atom->nlocal;
     int newton_pair = force->newton_pair;
 
@@ -463,7 +468,9 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
     if (time_dynamic || time_guided)
       starttime = MPI_Wtime();
 
-    #pragma omp for schedule(runtime)
+#if defined(_OPENMP)
+#pragma omp for schedule(runtime)
+#endif
     for (int iijj = 0; iijj < numpairs; iijj++) {
       int i = 0;
       if (use_shared_arrays) {
@@ -571,7 +578,9 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
 	  fij[2] += bgb*sna[tid]->dbvec[k-1][2];
         }
 
-        #pragma omp critical
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
         {
           f[i][0] += fij[0];
           f[i][1] += fij[1];
@@ -602,7 +611,9 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
 	  for (int k = 1; k <= ncoeff; k++)
 	    evdwl += coeffi[k]*pow(sna[tid]->bvec[k-1],gamma);
 
-        #pragma omp critical
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
         ev_tally_full(i,2.0*evdwl,0.0,0.0,delx,dely,delz);
       }
 
@@ -724,17 +735,12 @@ void PairSNAP::load_balance()
   for (int i=0; i < list->inum; i++)
     if (ilistmask[i]) nlocal++;
   int ***grid2proc = comm->grid2proc;
-  int* myloc = comm->myloc;
   int* procgrid = comm->procgrid;
 
   int nlocal_up,nlocal_down;
   MPI_Status status;
   MPI_Request request;
 
-  double sendbuf[100];
-  double recvbuf[100];
-
-  double** x=atom->x;
   double sub_mid[3];
   for (int dim=0; dim<3; dim++)
     sub_mid[dim] = (subhi[dim] + sublo[dim])/2;
@@ -754,7 +760,6 @@ void PairSNAP::load_balance()
   int nrecv = ghostinum;
   int totalsend = 0;
   int nsend = 0;
-  int recvatoms[27][4];
   int depth = 1;
 
   for (int dx = -depth; dx < depth+1; dx++)
@@ -1163,10 +1168,11 @@ void PairSNAP::build_per_atom_arrays()
   clock_gettime(CLOCK_REALTIME,&starttime);
 #endif
 
-  #pragma omp parallel for shared(count)
+#if defined(_OPENMP)
+#pragma omp parallel for shared(count) default(none)
+#endif
   for (int ii=0; ii < count; ii++) {
     int tid = omp_get_thread_num();
-    int i=i_list[ii];
     set_sna_to_shared(tid,ii);
     //sna[tid]->compute_ui(i_ninside[ii]);
 #ifdef TIMING_INFO
@@ -1185,7 +1191,6 @@ void PairSNAP::build_per_atom_arrays()
 #endif
   for (int ii=0; ii < count; ii++) {
     int tid = 0;//omp_get_thread_num();
-    int i=i_list[ii];
     set_sna_to_shared(tid,ii);
     sna[tid]->compute_zi_omp(MAX(int(nthreads/count),1));
   }
@@ -1237,7 +1242,12 @@ void PairSNAP::settings(int narg, char **arg)
 			     " Too few arguments.");
     if (strcmp(arg[i],"nthreads")==0) {
       nthreads=atoi(arg[++i]);
+#if defined(LMP_USER_OMP)
+      error->all(FLERR,"Please set number of threads via package omp command");
+#else
       omp_set_num_threads(nthreads);
+      comm->nthreads=nthreads;
+#endif
       continue;
     }
     if (strcmp(arg[i],"optimized")==0) {
@@ -1295,12 +1305,13 @@ void PairSNAP::settings(int narg, char **arg)
   }
 
   if (nthreads < 0)
-    nthreads = omp_get_max_threads();
+    nthreads = comm->nthreads;
 
-  if (use_shared_arrays < 0)
-    if (nthreads > 1 && atom->nlocal <= 2*nthreads) 
+  if (use_shared_arrays < 0) {
+    if (nthreads > 1 && atom->nlocal <= 2*nthreads)
       use_shared_arrays = 1;
     else use_shared_arrays = 0;
+  }
 
   // check if running non-optimized code with
   // optimization flags set
@@ -1405,7 +1416,9 @@ void PairSNAP::coeff(int narg, char **arg)
   // allocate memory for per OpenMP thread data which
   // is wrapped into the sna class
 
-#pragma omp parallel shared(rfac0,twojmax,diagonalstyle,rmin0,switchflag)
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
   {
     int tid = omp_get_thread_num();
     sna[tid] = new SNA(lmp,rfac0,twojmax,
@@ -1443,7 +1456,9 @@ void PairSNAP::init_style()
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 
-  #pragma omp parallel
+#if defined(_OPENMP)
+#pragma omp parallel default(none)
+#endif
   {
     int tid = omp_get_thread_num();
     sna[tid]->init();

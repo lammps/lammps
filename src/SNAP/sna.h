@@ -28,7 +28,6 @@ public:
   ~SNA();
   void build_indexlist();
   void init();
-  void test();
   double memory_usage();
 
   int ncoeff;

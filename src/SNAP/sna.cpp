@@ -160,7 +160,6 @@ void SNA::build_indexlist()
 {
   if(diagonalstyle == 0) {
     int idxj_count = 0;
-    int ma2, mb2;
 
     for(int j1 = 0; j1 <= twojmax; j1++)
       for(int j2 = 0; j2 <= j1; j2++)
@@ -186,7 +185,6 @@ void SNA::build_indexlist()
 
   if(diagonalstyle == 1) {
     int idxj_count = 0;
-    int ma2, mb2;
 
     for(int j1 = 0; j1 <= twojmax; j1++)
       for(int j = 0; j <= MIN(twojmax, 2 * j1); j += 2) {
@@ -211,7 +209,6 @@ void SNA::build_indexlist()
 
   if(diagonalstyle == 2) {
     int idxj_count = 0;
-    int ma2, mb2;
 
     for(int j1 = 0; j1 <= twojmax; j1++) {
       idxj_count++;
@@ -234,7 +231,6 @@ void SNA::build_indexlist()
 
   if(diagonalstyle == 3) {
     int idxj_count = 0;
-    int ma2, mb2;
 
     for(int j1 = 0; j1 <= twojmax; j1++)
       for(int j2 = 0; j2 <= j1; j2++)
@@ -358,7 +354,9 @@ void SNA::compute_ui_omp(int jnum, int sub_threads)
     z0 = r / tan(theta0);
     omp_set_num_threads(sub_threads);
 
-    #pragma omp parallel shared(x,y,z,z0,r,sub_threads)
+#if defined(_OPENMP)
+#pragma omp parallel shared(x,y,z,z0,r,sub_threads) default(none)
+#endif
     {
       compute_uarray_omp(x, y, z, z0, r, sub_threads);
     }
@@ -464,7 +462,9 @@ void SNA::compute_zi_omp(int sub_threads)
   // compute_dbidrj() requires full j1/j2/j chunk of z elements
   // use zarray j1/j2 symmetry
 
-  #pragma omp parallel for schedule(auto)
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(auto) default(none)
+#endif
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
       for(int j = abs(j1 - j2); j <= MIN(twojmax, j1 + j2); j += 2) {
@@ -670,7 +670,7 @@ void SNA::compute_dbidrj_nonsymm()
   double* dbdr;
   double* dudr_r, *dudr_i;
   double sumb1_r[3], sumb1_i[3], dzdr_r[3], dzdr_i[3];
-  int ma2, mb2;
+  int ma2;
 
 #ifdef TIMING_INFO
   clock_gettime(CLOCK_REALTIME, &starttime);
@@ -1124,7 +1124,9 @@ void SNA::add_uarraytot_omp(double r, double wj, double rcut)
 
   sfac *= wj;
 
-  #pragma omp for
+#if defined(_OPENMP)
+#pragma omp for
+#endif
   for (int j = 0; j <= twojmax; j++)
     for (int ma = 0; ma <= j; ma++)
       for (int mb = 0; mb <= j; mb++) {
@@ -1232,7 +1234,9 @@ void SNA::compute_uarray_omp(double x, double y, double z,
   uarray_i[0][0][0] = 0.0;
 
   for (int j = 1; j <= twojmax; j++) {
-    #pragma omp for
+#if defined(_OPENMP)
+#pragma omp for
+#endif
     for (int mb = 0; mb < j; mb++) {
       uarray_r[j][0][mb] = 0.0;
       uarray_i[j][0][mb] = 0.0;
@@ -1264,7 +1268,9 @@ void SNA::compute_uarray_omp(double x, double y, double z,
     uarray_r[j][0][mb] = 0.0;
     uarray_i[j][0][mb] = 0.0;
 
-    #pragma omp for
+#if defined(_OPENMP)
+#pragma omp for
+#endif
     for (int ma = 0; ma < j; ma++) {
       rootpq = rootpqarray[j - ma][mb];
       uarray_r[j][ma][mb] +=
@@ -1917,6 +1923,7 @@ double SNA::compute_sfac(double r, double rcut)
       return 0.5 * (cos((r - rmin0) * rcutfac) + 1.0);
     }
   }
+  return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1932,151 +1939,6 @@ double SNA::compute_dsfac(double r, double rcut)
       return -0.5 * sin((r - rmin0) * rcutfac) * rcutfac;
     }
   }
-}
-
-/* ----------------------------------------------------------------------
-
-   This compares SNA results with Mathematica output for BCC crystal
-
-   To build this test with LAMMPS,
-   include sna.h in lammps.cpp
-   and add the line:
-
-   SNA *sna = new SNA(this);
-   sna->test();
-
-   to the bottom of LAMMPS::create()
-
-   To run the test, just run LAMMPS with no input script
-------------------------------------------------------------------------- */
-
-void SNA::test()
-{
-
-  // rotated nearest-neighbor bond vectors for BCC crystal
-
-  int natoms = 8;
-  double rijpolar[] = {
-    1.959, 0.9730636300319065, 0.825999311173714, 1.959,
-    0.8980297487727392, 2.423647971942037, 1.959, 0.93989780135463,
-    -2.2344890150374734, 1.959, 1.0127992115193267,
-    -0.6943594028137655, 1.959, 2.201694852235163, 0.9071036385523198,
-    1.959, 2.1287934420704664, 2.4472332507760277, 1.959,
-    2.1685290235578867, -2.3155933424160793, 1.959,
-    2.2435629048170536, -0.7179446816477564
-  };
-
-  // results from Mathematica
-  // the quantities bcbrt0 are the cube roots of the
-  // bispectrum coefficients, as plotted in Bartok's
-  // thesis, Fig 2.5.
-
-  twojmax = 4;
-  double bcbrt0[] = {
-    9., 4.199196953160132, 0.8023880044758301, 7.111020498078093,
-    6.698177303873683, 4.199196953160132, 3.3329048304340256,
-    -1.1951270630399309, -1.0440396551493507, 1.525005828080911,
-    1.3855597471974264, -2.289695002886823, -2.125564551555691,
-    0.8023880044758301, -1.0440396551493507, 1.5250058280809107,
-    0.5563447693070245, -0.19949645249634843, 0.32967616972020086,
-    1.2103979278766366, -1.7680017087520263, 0.2780596505135809,
-    1.4288971890382558, 7.111020498078093, 1.3855597471974261,
-    -2.289695002886823, 1.2103979278766366, -1.7680017087520263,
-    4.479662205881257, -1.606336156567859, 2.654537184765498,
-    -1.687061702582909, 2.464254031043488, 6.698177303873683,
-    -2.125564551555691, 0.2780596505135809, 1.428897189038256,
-    -1.687061702582909, 2.464254031043488, 3.917117850044296,
-    1.2051785645927136, -3.627660818200106
-  };
-
-  // assume fixed theta0, all neighbors are equidistant
-
-  double theta0 = rijpolar[0];
-  diagonalstyle = 0;
-  ncoeff = compute_ncoeff();
-  create_twojmax_arrays();
-
-  // theta0 = rfac0*MY_PI*r
-  // r = 1 by construction
-
-  double rcut = 0.0;
-  rfac0 = theta0 / MY_PI;
-  double rscale0 = MY_PI * rfac0;
-
-  printf("SNA::test() validating bispectrum coefficients "
-         "against Mathamatica calculation for BCC crystal\n");
-  printf("\n ncoeff = %d\n rcut = %g\n rfac0 = %g\n"
-	 "twojmax = %d\n diagonalstyle = %d\n", 
-	 ncoeff, rcut, rfac0, twojmax, diagonalstyle);
-
-  //double *bvec = (double *) malloc(ncoeff*sizeof(double));
-  memory->destroy(bvec);
-  memory->destroy(dbvec);
-  memory->create(bvec, ncoeff, "pair:bvec");
-  memory->create(dbvec, ncoeff, 3, "pair:dbvec");
-  double* data = (double*) malloc(3 * natoms * sizeof(double));
-  grow_rij(natoms);
-
-  double theta, phi;
-  int n = 0;
-
-  for (int iatom = 0; iatom < natoms; iatom++) {
-    rij[iatom] = &data[n];
-    n += 3;
-  }
-
-  n = 0;
-
-  for (int iatom = 0; iatom < natoms; iatom++) {
-    theta = rijpolar[n + 1];
-    phi = rijpolar[n + 2];
-    rij[iatom][0] = sin(theta) * cos(phi);
-    rij[iatom][1] = sin(theta) * sin(phi);
-    rij[iatom][2] = cos(theta);
-    n += 3;
-  }
-
-  init();
-
-  // compute Ui and Zi for atom I
-
-  compute_ui(natoms);
-  compute_zi();
-
-  compute_bi();
-  copy_bi2bvec();
-
-  double bcbrt, pcterr;
-
-  printf("\nBCC Bispectrum Coefficients (Bartok, Figure 2.5) \n");
-  printf("2x[J1,J2,J] Mathematica SNA Delta (%%) \n");
-
-  // use explicit nested loop because
-  // j2 > j1 coefficients skipped in bvec.
-
-  int k = 0;
-  int kk = 0;
-
-  for (int j1 = 0; j1 <= twojmax; j1++)
-    for (int j2 = 0; j2 <= twojmax; j2++)
-      for (int j = abs(j1 - j2);
-          j <= MIN(twojmax, j1 + j2); j += 2) {
-        if(j2 <= j1) {
-          bcbrt = cbrt(bvec[kk]);
-          pcterr = 100.0 * (bcbrt / bcbrt0[k] - 1);
-          kk++;
-        } else {
-          bcbrt = 0.0;
-          pcterr = 0.0;
-        }
-
-        printf("%3d %1d%1d%1d %g %g %g\n", k + 1, j1, j2, j, bcbrt0[k],
-               bcbrt, pcterr);
-        k++;
-      }
-
-  MPI_Finalize();
-  exit(1);
-
+  return 0.0;
 }
 

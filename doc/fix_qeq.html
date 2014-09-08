@@ -127,11 +127,11 @@ extended Lagrangian method (<I>qeq/dynamic</I>) are different solvers.
 </P>
 <P>Note that the <I>qeq/point</I> and the <I>qeq/dynamic</I> styles both describe
 charges as point charges that interact through 1/r relationship, but
-solve partial charges on atoms using different solvers.  <I>qeq/point</I>
-and the <I>qeq/dynamic</I> styles should yield comparable results if the
-QEq parameters and <I>Nevery</I>, cutoff</I>, and <I>tolerance</I> are the same.
-<I>qeq/point</I> is typically faster, but <I>qeq/dynamic</I> scales better on
-larger sizes.
+solve partial charges on atoms using different solvers.  Styles
+<I>qeq/point</I> and the <I>qeq/dynamic</I> should yield comparable results if
+the QEq parameters and <I>Nevery</I>, cutoff</I>, and <I>tolerance</I> are the
+same.  Style <I>qeq/point</I> is typically faster, but <I>qeq/dynamic</I> scales
+better on larger sizes.
 </P>
 <P>IMPORTANT NOTE: To avoid the evaluation of the derivative of charge
 with respect to position, which is typically ill-defined, the system
@@ -140,7 +140,8 @@ should have a zero net charge.
 <P>IMPORTANT NOTE: Developing QEq parameters (chi, eta, gamma, zeta, and
 qcore) is an "art".  Charges on atoms are not guaranteed to
 equilibrate with arbitrary choices of these parameters.  We do not
-develop these QEq paramters.
+develop these QEq paramters.  See the examples/qeq directory for some
+examples.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

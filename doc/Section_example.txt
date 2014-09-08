@@ -71,10 +71,11 @@ peptide:  dynamics of a small solvated peptide chain (5-mer)
 peri:	  Peridynamic model of cylinder impacted by indenter
 pour:     pouring of granular particles into a 3d box, then chute flow
 prd:      parallel replica dynamics of vacancy diffusion in bulk Si
+qeq:      use of the QEQ pacakge for charge equilibration
 reax:     RDX and TATB models using the ReaxFF
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
-snap:     use of SNAP potential for Ta
+snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
 srd:      stochastic rotation dynamics (SRD) particles as solvent
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 tri:      triangular particles in rigid bodies :tb(s=:)

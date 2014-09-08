@@ -8,8 +8,6 @@ Section"_Section_howto.html :c
 
 :line
 
-NOTE: USER-CUDA: no newton setting needed?
-
 5. Accelerating LAMMPS performance :h3
 
 This section describes various methods for improving LAMMPS

@@ -270,6 +270,7 @@ doc/compute_property_molecule.html
 doc/compute_rdf.html
 doc/compute_reduce.html
 doc/compute_slice.html
+doc/compute_sna_atom.html
 doc/compute_stress_atom.html
 doc/compute_temp.html
 doc/compute_temp_asphere.html
@@ -346,6 +347,7 @@ doc/pair_reax_c.html
 doc/pair_reax.html
 doc/pair_resquared.html
 doc/pair_sdk.html
+doc/pair_snap.html
 doc/pair_soft.html
 doc/pair_sph_heatconduction.html
 doc/pair_sph_idealgas.html

@@ -504,7 +504,7 @@ int FixQEq::CG( double *b, double *x )
 void FixQEq::sparse_matvec( sparse_matrix *A, double *x, double *b )
 {
   int i, j, itr_j;
-  int nn, NN, ii;
+  int nn, NN;
   int *ilist;
 
   nn = atom->nlocal;

@@ -1233,7 +1233,7 @@ void PairSNAP::settings(int narg, char **arg)
   nthreads = -1;
   use_shared_arrays=-1;
   do_load_balance = 0;
-  use_optimized = 0;
+  use_optimized = 1;
 
   // optional arguments
 
@@ -1241,7 +1241,7 @@ void PairSNAP::settings(int narg, char **arg)
     if (i+2>narg) error->all(FLERR,"Illegal pair_style command."
 			     " Too few arguments.");
     if (strcmp(arg[i],"nthreads")==0) {
-      nthreads=atoi(arg[++i]);
+      nthreads=force->inumeric(FLERR,arg[++i]);
 #if defined(LMP_USER_OMP)
       error->all(FLERR,"Please set number of threads via package omp command");
 #else
@@ -1251,15 +1251,15 @@ void PairSNAP::settings(int narg, char **arg)
       continue;
     }
     if (strcmp(arg[i],"optimized")==0) {
-      use_optimized=atoi(arg[++i]);
+      use_optimized=force->inumeric(FLERR,arg[++i]);
       continue;
     }
     if (strcmp(arg[i],"shared")==0) {
-      use_shared_arrays=atoi(arg[++i]);
+      use_shared_arrays=force->inumeric(FLERR,arg[++i]);
       continue;
     }
     if (strcmp(arg[i],"loadbalance")==0) {
-      do_load_balance = atoi(arg[++i]);
+      do_load_balance = force->inumeric(FLERR,arg[++i]);
       if (do_load_balance) {
 	double mincutoff = extra_cutoff() +
 	  rcutmax + neighbor->skin;
@@ -1321,8 +1321,8 @@ void PairSNAP::settings(int narg, char **arg)
 	use_shared_arrays || 
 	do_load_balance ||
 	schedule_user)
-      error->all(FLERR,"Illegal pair_style command.");
-	
+      error->all(FLERR,"Illegal pair_style command."
+                 "Advanced options require setting 'optimized 1'.");
 }
 
 /* ----------------------------------------------------------------------

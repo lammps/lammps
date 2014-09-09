@@ -83,8 +83,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Cannot use GPU package with USER-CUDA package enabled");
 
   if (narg < 4) error->all(FLERR,"Illegal package gpu command");
-  if (strcmp(arg[1],"all") != 0)
-    error->all(FLERR,"Illegal package gpu command");
 
   int ngpu = atoi(arg[3]);
   if (ngpu <= 0) error->all(FLERR,"Illegal package gpu command");

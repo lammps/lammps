@@ -11,11 +11,8 @@
 #include <ctime>
 
 namespace LAMMPS_NS {
-struct SNA_LOOPINDICES {
-  int j1, j2, j, ma, mb, ma1, ma2, mb1, mb2;
-};
 
-struct SNA_LOOPINDICES_J {
+struct SNA_LOOPINDICES {
   int j1, j2, j;
 };
 
@@ -77,9 +74,7 @@ private:
   double rmin0, rfac0;
 
   //use indexlist instead of loops, constructor generates these
-  SNA_LOOPINDICES* idx;
-  int idx_max;
-  SNA_LOOPINDICES_J* idxj;
+  SNA_LOOPINDICES* idxj;
   int idxj_max;
   // data for bispectrum coefficients
 

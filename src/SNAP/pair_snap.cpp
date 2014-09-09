@@ -101,8 +101,8 @@ PairSNAP::~PairSNAP()
 {
   if (nelements) {
     for (int i = 0; i < nelements; i++) 
-      delete [] elements[i];
-    delete elements;
+      delete[] elements[i];
+    delete[] elements;
     memory->destroy(radelem);
     memory->destroy(wjelem);
     memory->destroy(coeffelem);
@@ -1340,8 +1340,8 @@ void PairSNAP::coeff(int narg, char **arg)
 
   if (nelements) {
     for (int i = 0; i < nelements; i++) 
-      delete [] elements[i];
-    delete elements;
+      delete[] elements[i];
+    delete[] elements;
     memory->destroy(radelem);
     memory->destroy(wjelem);
     memory->destroy(coeffelem);
@@ -1486,7 +1486,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   FILE *fpcoeff;
   if (comm->me == 0) {
-    fpcoeff = fopen(coefffilename,"r");
+    fpcoeff = force->open_potential(coefffilename);
     if (fpcoeff == NULL) {
       char str[128];
       sprintf(str,"Cannot open SNAP coefficient file %s",coefffilename);
@@ -1514,7 +1514,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
     // strip comment, skip line if blank
 
-    if (ptr = strchr(line,'#')) *ptr = '\0';
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
     nwords = atom->count_words(line);
   }
   if (nwords != 2) 
@@ -1651,7 +1651,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   FILE *fpparam;
   if (comm->me == 0) {
-    fpparam = fopen(paramfilename,"r");
+    fpparam = force->open_potential(paramfilename);
     if (fpparam == NULL) {
       char str[128];
       sprintf(str,"Cannot open SNAP parameter file %s",paramfilename);
@@ -1675,7 +1675,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
     // strip comment, skip line if blank
 
-    if (ptr = strchr(line,'#')) *ptr = '\0';
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
 

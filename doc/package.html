@@ -19,30 +19,35 @@
 
 <LI>args = arguments specific to the style 
 
-<PRE>  <I>cuda</I> args = keyword value ...
-    one or more keyword/value pairs may be appended
-    keywords = <I>gpu/node</I> or <I>gpu/node/special</I> or <I>timing</I> or <I>test</I> or <I>override/bpa</I>
-      <I>gpu/node</I> value = N
-        N = number of GPUs to be used per node
-      <I>gpu/node/special</I> values = N gpu1 .. gpuN
-        N = number of GPUs to be used per node
-        gpu1 .. gpuN = N IDs of the GPUs to use
+<PRE>  <I>cuda</I> args = Ngpu keyword value ...
+    Ngpu = # of GPUs per node
+    zero or more keyword/value pairs may be appended
+    keywords = <I>gpuID</I> or <I>timing</I> or <I>test</I> or <I>thread</I>
+      <I>gpuID</I> values = gpu1 .. gpuN
+        gpu1 .. gpuN = IDs of the Ngpu GPUs to use
       <I>timing</I> values = none
       <I>test</I> values = id
         id = atom-ID of a test particle
-      <I>override/bpa</I> values = flag
-        flag = 0 for TpA algorithm, 1 for BpA algorithm 
-  <I>gpu</I> args = mode first last split keyword value ...
-    mode = force or force/neigh
-    first = ID of first GPU to be used on each node
-    last = ID of last GPU to be used on each node
-    split = fraction of particles assigned to the GPU
-    zero or more keyword/value pairs may be appended
-    keywords = <I>threads_per_atom</I> or <I>cellsize</I> or <I>device</I>
-      <I>threads_per_atom</I> value = Nthreads
+      <I>thread</I> = auto or tpa or bpa
+        auto = test whether tpa or bpa is faster
+        tpa = one thread per atom
+        bpa = one block per atom
+  <I>gpu</I> args = Ngpu keyword value ...
+    Ngpu = # of GPUs per node
+    zero or more keyword/value pairs may be appended 
+    keywords = <I>neigh</I> or <I>split</I> or <I>gpuID</I> or <I>tpa</I> or <I>binsize</I> or <I>device</I>
+      <I>neigh</I> value = <I>yes</I> or <I>no</I>
+        yes = neighbor list build on GPU (default)
+        no = neighbor list build on CPU
+      <I>split</I> = fraction
+        fraction = fraction of atoms assigned to GPU (default = 1.0)
+      <I>gpuID</I> values = first last
+        first = ID of first GPU to be used on each node
+        last = ID of last GPU to be used on each node
+      <I>tpa</I> value = Nthreads
         Nthreads = # of GPU threads used per atom
-      <I>cellsize</I> value = dist
-        dist = length (distance units) in each dimension for neighbor bins
+      <I>binsize</I> value = size
+        size = bin size for neighbor list construction (distance units)
       <I>device</I> value = device_type
         device_type = <I>kepler</I> or <I>fermi</I> or <I>cypress</I> or <I>generic</I>
   <I>intel</I> args = Nthreads precision keyword value ...
@@ -66,21 +71,20 @@
       <I>comm/exchange</I> value = <I>no</I> or <I>host</I> or <I>device</I>
       <I>comm/forward</I> value = <I>no</I> or <I>host</I> or <I>device</I>
   <I>omp</I> args = Nthreads keyword value ...
-    Nthreads = # of OpenMP threads to associate with each MPI process
+    Nthread = # of OpenMP threads to associate with each MPI process
     zero or more keyword/value pairs may be appended 
     keywords = <I>neigh</I>
       <I>neigh</I> value = <I>yes</I> or <I>no</I>
-        <I>yes</I> = threaded neighbor list build (default)
-        <I>no</I> = non-threaded neighbor list build 
+        yes = threaded neighbor list build (default)
+        no = non-threaded neighbor list build 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>package gpu force 0 0 1.0
-package gpu force 0 0 0.75
-package gpu force/neigh 0 0 1.0
-package gpu force/neigh 0 1 -1.0
+<PRE>package gpu 1
+package gpu 1 split 0.75
+package gpu 2 split -1.0
 package cuda gpu/node/special 2 0 2
 package cuda test 3948
 package kokkos neigh half/thread comm/forward device
@@ -93,6 +97,10 @@ package intel * mixed balance -1
 <P>This command invokes package-specific settings.  Currently the
 following packages use it: USER-CUDA, GPU, USER-INTEL, KOKKOS, and
 USER-OMP.
+</P>
+<P>Talk about command line switches
+</P>
+<P>When does it have to be invoked
 </P>
 <P>To use the accelerated GPU and USER-OMP styles, the use of the package
 command is required.  However, as described in the "Defaults" section
@@ -109,98 +117,105 @@ need to use the package command if you want to change the defaults.
 more details about using these various packages for accelerating
 LAMMPS calculations.
 </P>
+<P>Package GPU always sets newton pair off.  Not so for USER-CUDA>
+</P>
 <HR>
 
-<P>The <I>cuda</I> style invokes options associated with the use of the
-USER-CUDA package.  
+<P>The <I>cuda</I> style invokes settings associated with the use of the
+USER-CUDA package.
 </P>
-<P>The <I>gpu/node</I> keyword specifies the number <I>N</I> of GPUs to be used on
-each node.  An MPI process with rank <I>K</I> will use the GPU (K mod N).
-This implies that processes should be assigned with successive ranks
-on each node, which is the default with most (or even all) MPI
-implementations. The default value for <I>N</I> is 2.
+<P>The <I>Ngpus</I> argument sets the number of GPUs per node.  There must be
+exactly one MPI task per GPU, as set by the mpirun or mpiexec command.
 </P>
-<P>The <I>gpu/node/special</I> keyword also specifies the number (N) of GPUs
-to be used on each node, but allows more control over their
-specification.  An MPI process with rank <I>K</I> will use the GPU <I>gpuI</I>
-with l = (K mod N) + 1. This implies that processes should be assigned
-with successive ranks on each node, which is the default with most (or
-even all) MPI implementations.  For example if you have three GPUs on
-a machine, one of which is used for the X-Server (the GPU with the ID
-1) while the others (with IDs 0 and 2) are used for computations you
-would specify:
+<P>Optional keyword/value pairs can also be specified.  Each has a
+default value as listed below.
 </P>
-<PRE>package cuda gpu/node/special 2 0 2 
+<P>The <I>gpuID</I> keyword allows selection of which GPUs on each node will
+be used for a simulation.  GPU IDs range from 0 to N-1 where N is the
+physical number of GPUs/node.  An ID is specified for each of the
+Ngpus being used.  For example if you have three GPUs on a machine,
+one of which is used for the X-Server (the GPU with the ID 1) while
+the others (with IDs 0 and 2) are used for computations you would
+specify:
+</P>
+<PRE>package cuda 2 gpuID 0 2 
 </PRE>
-<P>A main purpose of the <I>gpu/node/special</I> optoin is to allow two (or
-more) simulations to be run on one workstation.  In that case one
-would set the first simulation to use GPU 0 and the second to use GPU
-1. This is not necessary though, if the GPUs are in what is called
-<I>compute exclusive</I> mode.  Using that setting, every process will get
-its own GPU automatically.  This <I>compute exclusive</I> mode can be set
-as root using the <I>nvidia-smi</I> tool which is part of the CUDA
-installation.
+<P>The purpose of the <I>gpuID</I> keyword is to allow two (or more)
+simulations to be run on one workstation.  In that case one could set
+the first simulation to use GPU 0 and the second to use GPU 1. This is
+not necessary however, if the GPUs are in what is called <I>compute
+exclusive</I> mode.  Using that setting, every process will get its own
+GPU automatically.  This <I>compute exclusive</I> mode can be set as root
+using the <I>nvidia-smi</I> tool which is part of the CUDA installation.
 </P>
-<P>Note that if the <I>gpu/node/special</I> keyword is not used, the USER-CUDA
+<P>Also note that if the <I>gpuID</I> keyword is not used, the USER-CUDA
 package sorts existing GPUs on each node according to their number of
 multiprocessors.  This way, compute GPUs will be priorized over
 X-Server GPUs.
 </P>
-<P>Use of the <I>timing</I> keyword will output detailed timing information
-for various subroutines.
+<P>If the <I>timing</I> keyword is specified, detailed timing information for
+various subroutines will be output.
 </P>
-<P>The <I>test</I> keyword will output info for the the specified atom at
-several points during each time step.  This is mainly usefull for
-debugging purposes.  Note that the simulation will be severly slowed
-down if this option is used.
+<P>If the <I>test</I> keyword is specified, information for the specified atom
+with atom-ID will be output at several points during each timestep.
+This is mainly usefull for debugging purposes.  Note that the
+simulation slow down dramatically if this option is used.
 </P>
-<P>The <I>override/bpa</I> keyword can be used to specify which mode is used
-for pair-force evaluation.  TpA = one thread per atom; BpA = one block
-per atom.  If this keyword is not used, a short test at the begin of
-each run will determine which method is more effective (the result of
-this test is part of the LAMMPS output).  Therefore it is usually not
-necessary to use this keyword.
+<P>The <I>thread</I> keyword can be used to specify how GPU threads are
+assigned work during pair style force evaluation.  If the value =
+<I>tpa</I>, one thread per atom is used.  If the value = <I>bpa</I>, one block
+per atom is used.  If the value = <I>auto</I>, a short test is performed at
+the beginning of each run to determing where <I>tpa</I> or <I>bpa</I> mode is
+faster.  The result of this test is output.  Since <I>auto</I> is the
+default value, it is usually not necessary to use this keyword.
 </P>
 <HR>
 
-<P>The <I>gpu</I> style invokes options associated with the use of the GPU
-package. 
+<P>The <I>gpu</I> style invokes settings settings associated with the use of
+the GPU package.
 </P>
-<P>The <I>mode</I> setting specifies where neighbor list calculations will be
-performed.  If <I>mode</I> is force, neighbor list calculation is performed
-on the CPU. If <I>mode</I> is force/neigh, neighbor list calculation is
-performed on the GPU. GPU neighbor list calculation currently cannot
-be used with a triclinic box. GPU neighbor list calculation currently
-cannot be used with <A HREF = "pair_hybrid.html">hybrid</A> pair styles.  GPU
-neighbor lists are not compatible with styles that are not
-GPU-enabled.  When a non-GPU enabled style requires a neighbor list,
-it will also be built using CPU routines. In these cases, it will
-typically be more efficient to only use CPU neighbor list builds.
+<P>The <I>Ngpu</I> argument sets the number of GPUs per node.  There must be
+at least as many MPI tasks per node as GPUs, as set by the mpirun or
+mpiexec command.  If there are more MPI tasks (per node) 
+than GPUs, multiple MPI tasks will share each GPU.
 </P>
-<P>The <I>first</I> and <I>last</I> settings specify the GPUs that will be used for
-simulation.  On each node, the GPU IDs in the inclusive range from
-<I>first</I> to <I>last</I> will be used.
+<P>Optional keyword/value pairs can also be specified.  Each has a
+default value as listed below.
 </P>
-<P>The <I>split</I> setting can be used for load balancing force calculation
-work between CPU and GPU cores in GPU-enabled pair styles. If 0 <
-<I>split</I> < 1.0, a fixed fraction of particles is offloaded to the GPU
-while force calculation for the other particles occurs simulataneously
-on the CPU. If <I>split</I><0, the optimal fraction (based on CPU and GPU
-timings) is calculated every 25 timesteps. If <I>split</I> = 1.0, all force
-calculations for GPU accelerated pair styles are performed on the
-GPU. In this case, <A HREF = "pair_hybrid.html">hybrid</A>, <A HREF = "bond_style.html">bond</A>,
-<A HREF = "angle_style.html">angle</A>, <A HREF = "dihedral_style.html">dihedral</A>,
-<A HREF = "improper_style.html">improper</A>, and <A HREF = "kspace_style.html">long-range</A>
-calculations can be performed on the CPU while the GPU is performing
-force calculations for the GPU-enabled pair style.  If all CPU force
-computations complete before the GPU, LAMMPS will block until the GPU
-has finished before continuing the timestep.
+<P>The <I>neigh</I> keyword specifies where neighbor lists for pair style
+computation will be built.  If <I>neigh</I> is <I>yes</I>, which is the default,
+neighbor list building is performed on the GPU.  If <I>neigh</I> is <I>no</I>,
+neighbor list building is performed on the CPU.  GPU neighbor list
+building currently cannot be used with a triclinic box.  GPU neighbor
+list calculation currently cannot be used with
+<A HREF = "pair_hybrid.html">hybrid</A> pair styles.  GPU neighbor lists are not
+compatible with comannds that are not GPU-enabled.  When a non-GPU
+enabled command requires a neighbor list, it will also be built on the
+CPU.  In these cases, it will typically be more efficient to only use
+CPU neighbor list builds.
+</P>
+<P>The <I>split</I> keyword can be used for load balancing force calculations
+between CPU and GPU cores in GPU-enabled pair styles. If 0 < <I>split</I> <
+1.0, a fixed fraction of particles is offloaded to the GPU while force
+calculation for the other particles occurs simulataneously on the
+CPU. If <I>split</I> < 0.0, the optimal fraction (based on CPU and GPU
+timings) is calculated every 25 timesteps.  If <I>split</I> = 1.0, all
+force calculations for GPU accelerated pair styles are performed on
+the GPU.  In this case, other <A HREF = "pair_hybrid.html">hybrid</A> pair
+interactions, <A HREF = "bond_style.html">bond</A>, <A HREF = "angle_style.html">angle</A>,
+<A HREF = "dihedral_style.html">dihedral</A>, <A HREF = "improper_style.html">improper</A>, and
+<A HREF = "kspace_style.html">long-range</A> calculations can be performed on the
+CPU while the GPU is performing force calculations for the GPU-enabled
+pair style.  If all CPU force computations complete before the GPU
+completes, LAMMPS will block until the GPU has finished before
+continuing the timestep.
 </P>
 <P>As an example, if you have two GPUs per node and 8 CPU cores per node,
 and would like to run on 4 nodes (32 cores) with dynamic balancing of
 force calculation across CPU and GPU cores, you could specify
 </P>
-<PRE>package gpu force/neigh 0 1 -1 
+<PRE>mpirun -np 32 -sf gpu -in in.script    # launch command
+package gpu 2 split -1                 # input script command 
 </PRE>
 <P>In this case, all CPU cores and GPU devices on the nodes would be
 utilized.  Each GPU device would be shared by 4 CPU cores. The CPU
@@ -208,38 +223,51 @@ cores would perform force calculations for some fraction of the
 particles at the same time the GPUs performed force calculation for
 the other particles.
 </P>
-<P>The <I>threads_per_atom</I> keyword allows control of the number of GPU
-threads used per-atom to perform the short range force calculation.
-By default, the value will be chosen based on the pair style, however,
-the value can be set with this keyword to fine-tune performance.  For
+<P>The <I>gpuID</I> keyword allows selection of which GPUs on each node will
+be used for a simulation.  The <I>first</I> and <I>last</I> values specify the
+GPU IDs to use (from 0 to Ngpu-1).  By default, first = 0 and last =
+Ngpu-1, so that all GPUs are used, assuming Ngpu is set to the number
+of physical GPUs.  If you only wish to use a subset, set Ngpu to a
+smaller number and first/last to a sub-range of the available GPUs.
+</P>
+<P>The <I>tpa</I> keyword sets the number of GPU thread per atom used to
+perform force calculations.  With a default value of 1, the number of
+threads will be chosen based on the pair style, however, the value can
+be set explicitly with this keyword to fine-tune performance.  For
 large cutoffs or with a small number of particles per GPU, increasing
 the value can improve performance. The number of threads per atom must
 be a power of 2 and currently cannot be greater than 32.
 </P>
-<P>The <I>cellsize</I> keyword can be used to control the size of the cells used
-for binning atoms in neighbor list calculations. Setting this value is 
-normally not needed; the optimal value is close to the default 
-(equal to the cutoff distance for the short range interactions 
-plus the neighbor skin). GPUs can perform efficiently with much larger cutoffs 
-than CPUs and this can be used to reduce the time required for long-range 
-calculations or in some cases to eliminate them with models such as 
-<A HREF = "pair_coul.html">coul/wolf</A> or <A HREF = "pair_coul.html">coul/dsf</A>. For very large cutoffs,
-it can be more efficient to use smaller values for cellsize in parallel
-simulations. For example, with a cutoff of 20*sigma and a neighbor skin of
-sigma, a cellsize of 5.25*sigma can be efficient for parallel simulations.
+<P>The <I>binsize</I> keyword sets the size of bins used to bin atoms in
+neighbor list builds.  Setting this value is normally not needed; the
+optimal value is close to the default, which is set equal to the
+cutoff distance for the short range interactions plus the neighbor
+skin.  Note that this is 2x larger than the default bin size for
+neighbor list builds on the CPU.  This is becuase GPUs can perform
+efficiently with much larger cutoffs than CPUs.  This can be used to
+reduce the time required for long-range calculations or in some cases
+to eliminate them with pair style models such as
+<A HREF = "pair_coul.html">coul/wolf</A> or <A HREF = "pair_coul.html">coul/dsf</A>.  For very
+large cutoffs, it can be more efficient to use smaller values for
+<I>binsize</I> in parallel simulations.  For example, with a cutoff of
+20*sigma in LJ <A HREF = "units.html">units</A> and a neighbor skin distance of
+sigma, a <I>binsize</I> = 5.25*sigma can be more efficient than the
+default.
 </P>
-<P>The <I>device</I> keyword can be used to tune parameters to optimize for a specific
-accelerator when using OpenCL. For CUDA, the <I>device</I> keyword is ignored.
-Currently, the device type is limited to NVIDIA Kepler, NVIDIA Fermi, 
-AMD Cypress, or a generic device. More devices will be added soon. The default
-device type can be specified when building LAMMPS with the GPU library.
+<P>The <I>device</I> keyword can be used to tune parameters optimized for a
+specific accelerator, when using OpenCL.  For CUDA, the <I>device</I>
+keyword is ignored.  Currently, the device type is limited to NVIDIA
+Kepler, NVIDIA Fermi, AMD Cypress, or a generic device.  More devices
+may be added later.  The default device type can be specified when
+building LAMMPS with the GPU library, via settings in the
+lib/gpu/Makefile that is used.
 </P>
 <HR>
 
 <P>The <I>intel</I> style invokes options associated with the use of the
 USER-INTEL package.
 </P>
-<P>The <I>Nthreads</I> argument allows to one explicitly set the number of
+<P>The <I>Nthread</I> argument allows to one explicitly set the number of
 OpenMP threads to be allocated for each MPI process, An <I>Nthreads</I>
 value of '*' instructs LAMMPS to use whatever is the default for the
 given OpenMP environment. This is usually determined via the
@@ -259,7 +287,7 @@ additional settings are as follows:
 </P>
 <P>The <I>balance</I> setting is used to set the fraction of work offloaded to
 the coprocessor for an intel style (in the inclusive range 0.0 to
-1.0). While this fraction of work is running on the coprocessor, other
+1.0).  While this fraction of work is running on the coprocessor, other
 calculations will run on the host, including neighbor and pair
 calculations that are not offloaded, angle, bond, dihedral, kspace,
 and some MPI communications. If the balance is set to -1, the fraction
@@ -350,19 +378,19 @@ multiple threads to pack/unpack communicated data.
 </P>
 <HR>
 
-<P>The <I>omp</I> style invokes options associated with the use of the
+<P>The <I>omp</I> style invokes settings associated with the use of the
 USER-OMP package.
 </P>
-<P>The first argument sets the number of OpenMP threads allocated for
-each MPI process or task.  For example, if your system has nodes with
-dual quad-core processors, it has a total of 8 cores per node.  You
-could two MPI tasks per node (e.g. using the -ppn option of the mpirun
-command), and set <I>Nthreads</I> = 4.  This would effectively use all 8
-cores on each node.  Note that the product of MPI tasks * threads/task
-should not exceed the physical number of cores (on a node), otherwise
-performance will suffer.
+<P>The <I>Nthread</I> argument sets the number of OpenMP threads allocated for
+each MPI task.  For example, if your system has nodes with dual
+quad-core processors, it has a total of 8 cores per node.  You could
+use two MPI tasks per node (e.g. using the -ppn option of the mpirun
+command), and set <I>Nthreads</I> = 4.  This would use all 8 cores on each
+node.  Note that the product of MPI tasks * threads/task should not
+exceed the physical number of cores (on a node), otherwise performance
+will suffer.
 </P>
-<P>An <I>Nthreads</I> value of 0 instructs LAMMPS to use whatever value is the
+<P>Setting <I>Nthread</I> = 0 instructs LAMMPS to use whatever value is the
 default for the given OpenMP environment. This is usually determined
 via the <I>OMP_NUM_THREADS</I> environment variable or the compiler
 runtime.  Note that in most cases the default for OpenMP capable
@@ -391,6 +419,9 @@ input.  Not all features of LAMMPS support OpenMP threading via the
 USER-OMP packaage and the parallel efficiency can be very different,
 too.
 </P>
+<P>Optional keyword/value pairs can also be specified.  Each has a
+default value as listed below.
+</P>
 <P>The <I>neigh</I> keyword specifies whether neighbor list building will be
 multi-threaded in addition to force calculations.  If <I>neigh</I> is set
 to <I>no</I> then neighbor list calculation is performed only by MPI tasks
@@ -416,6 +447,10 @@ LAMMPS</A> section for more info.
 with the GPU package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
+<P>The intel style of this command can only be invoked if LAMMPS was
+built with the USER-INTEL package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
 <P>The kk style of this command can only be invoked if LAMMPS was built
 with the KOKKOS package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
@@ -426,19 +461,24 @@ LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "suffix.html">suffix</A>
+<P><A HREF = "suffix.html">suffix</A>, "-pk" <A HREF = "Section_start.html#start_7">command-line
+setting</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The default settings for the USER-CUDA package are "package cuda gpu
-2".  This is the case whether the "-sf cuda" <A HREF = "Section_start.html#start_7">command-line
-switch</A> is used or not.
+<P>To use the USER-CUDA package, the package command must be invoked
+explicitly, either via the "-pk cuda" <A HREF = "Section_start.html#start_7">command-line
+switch</A> or by invoking the package cuda
+command in your input script.  This will set the # of GPUs/node.  The
+options defaults are gpuID = 0 to Ngpu-1, timing not enabled, test not
+enabled, and thread = auto.
 </P>
-<P>If the "-sf gpu" <A HREF = "Section_start.html#start_7">command-line switch</A> is
-used then it is as if the command "package gpu force/neigh 0 0 1" were
-invoked, to specify default settings for the GPU package.  If the
-command-line switch is not used, then no defaults are set, and you
-must specify the appropriate package command in your input script.
+<P>For the GPU package, the default is Ngpu = 1 and the option defaults
+are neigh = yes, split = 1.0, gpuID = 0 to Ngpu-1, tpa = 1, binsize =
+pair cutoff + neighbor skin, device = not used.  These settings are
+made if the "-sf gpu" <A HREF = "Section_start.html#start_7">command-line switch</A>
+is used.  If it is not used, you must invoke the package gpu command
+in your input script.
 </P>
 <P>The default settings for the USER-INTEL package are "package intel *
 mixed balance -1 offload_cards 1 offload_tpc 4 offload_threads 240".
@@ -451,11 +491,10 @@ full comm/exchange host comm/forward host".  This is the case whether
 the "-sf kk" <A HREF = "Section_start.html#start_7">command-line switch</A> is used
 or not.
 </P>
-<P>If the "-sf omp" <A HREF = "Section_start.html#start_7">command-line switch</A> is
-used then it is as if the command "package omp 0" were invoked, to
-specify settings for the USER-OMP package.  The option defaults are
-neigh = yes.  If the command-line switch is not used, then no defaults
-are set, and you must specify the appropriate "package omp" command in
-your input script.
+<P>For the OMP package, the default is Nthreads = 0 and the option
+defaults are neigh = yes.  These settings are made if the "-sf omp"
+<A HREF = "Section_start.html#start_7">command-line switch</A> is used.  If it is
+not used, you must invoke the package omp command in your input
+script.
 </P>
 </HTML>

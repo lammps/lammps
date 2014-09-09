@@ -364,6 +364,34 @@ capable compilers is to use one thread for each available CPU core
 when {OMP_NUM_THREADS} is not set, which can lead to extremely bad
 performance.
 
+
+
+
+By default LAMMPS uses 1 thread per MPI task.  If the environment
+variable OMP_NUM_THREADS is set to a valid value, this value is used.
+You can set this environment variable when you launch LAMMPS, e.g.
+
+env OMP_NUM_THREADS=4 lmp_machine -sf omp -in in.script
+env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
+mpirun -x OMP_NUM_THREADS=2 -np 2 lmp_machine -sf omp -in in.script :pre
+
+or you can set it permanently in your shell's start-up script.  
+All three of these examples use a total of 4 CPU cores.
+
+
+Note that different MPI implementations have different ways of passing
+the OMP_NUM_THREADS environment variable to all MPI processes.  The
+2nd line above is for MPICH; the 3rd line with -x is for OpenMPI.
+Check your MPI documentation for additional details.
+
+You can also set the number of threads per MPI task via the "package
+omp"_package.html command, which will override any OMP_NUM_THREADS
+setting.
+
+
+
+
+
 Which combination of threads and MPI tasks gives the best performance
 is difficult to predict and can depend on many components of your input.
 Not all features of LAMMPS support OpenMP and the parallel efficiency

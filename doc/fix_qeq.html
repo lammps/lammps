@@ -42,9 +42,29 @@ fix 1 qeq qeq/dynamic 1 12 1.0e-3 100 my_qeq
 and Goddard)</A> and formulated in <A HREF = "#Nakano">(Nakano)</A> (also known
 as the matrix inversion method) and in <A HREF = "#Rick">(Rick and Stuart)</A> (also
 known as the extended Lagrangian method) based on the
-electronegativity equilization principle.  These fixes can be used
-with any potential in LAMMPS, so long as it defines and uses charges
-on each atom and that QEq parameters are provided.
+electronegativity equilization principle.
+</P>
+<P>These fixes can be used with any <A HREF = "pair_style.html">pair style</A> in
+LAMMPS, so long as per-atom charges are defined.  The most typical
+use-case is in conjunction with a <A HREF = "pair_style.html">pair style</A> that
+performs charge equilibration periodically (e.g. every timestep), such
+as the ReaxFF or Streitz-Mintmire potential (the latter is not yet
+implemented in LAMMPS).  But these fixes can also be used with
+potentials that normally assume per-atom charges are fixed, e.g. a
+<A HREF = "pair_buck.html">Buckingham</A> or <A HREF = "pair_lj.html">LJ/Coulombic</A> potential.
+</P>
+<P>Because the charge equilibration calculation is effectively
+independent of the pair style, these fixes can also be used to perform
+a one-time assignment of charges to atoms.  For example, you could
+define the QEq fix, perform a zero-timestep run via the <A HREF = "run.html">run</A>
+command without any pair style defined which would set per-atom
+charges (based on the current atom configuration), then remove the fix
+via the <A HREF = "unfix.html">unfix</A> command before performing further dynamics.
+</P>
+<P>IMPORTANT NOTE: Computing and using charge values different from
+published values defined for a fixed-charge potential like Buckingham
+or CHARMM or AMBER, can have a strong effect on energies and forces,
+and produces a different model than the published versions.
 </P>
 <P>IMPORTANT NOTE: The <A HREF = "fix_qeq_comb.html">fix qeq/comb</A> command must
 still be used to perform charge equliibration with the <A HREF = "pair_comb.html">COMB

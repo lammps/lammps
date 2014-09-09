@@ -1390,8 +1390,9 @@ steps:
 coprocessor case can be done using the "-pk omp" and "-sf intel" and
 "-pk intel" <A HREF = "Section_start.html#start_7">command-line switches</A>
 respectively.  Or the effect of the "-pk" or "-sf" switches can be
-duplicated by adding the <A HREF = "package.html">package intel</A> or <A HREF = "suffix.html">suffix
-intel</A> commands respectively to your input script.
+duplicated by adding the <A HREF = "package.html">package omp</A> or <A HREF = "suffix.html">suffix
+intel</A> or <A HREF = "package.html">package intel</A> commands
+respectively to your input script.
 </P>
 <P><B>Required hardware/software:</B>
 </P>
@@ -1470,9 +1471,10 @@ maximum number of threads is also reduced.
 which will automatically append "intel" to styles that support it.  If
 a style does not support it, a "omp" suffix is tried next.  Use the
 "-pk omp Nt" <A HREF = "Section_start.html#start_7">command-line switch</A>, to set
-Nt = # of OpenMP threads per MPI task to use.  Use the "-pk intel Nt
-Nphi" <A HREF = "Section_start.html#start_7">command-line switch</A> to set Nphi = #
-of Xeon Phi(TM) coprocessors/node.  
+Nt = # of OpenMP threads per MPI task to use, if LAMMPS was built with
+the USER-OMP package.  Use the "-pk intel Nt Nphi" <A HREF = "Section_start.html#start_7">command-line
+switch</A> to set Nphi = # of Xeon Phi(TM)
+coprocessors/node, if LAMMPS was built with coprocessor support.
 </P>
 <PRE>CPU-only without USER-OMP (but using Intel vectorization on CPU):
 lmp_machine -sf intel -in in.script                 # 1 MPI task
@@ -1494,8 +1496,9 @@ mpirun -np 32 -ppn 4 lmp_machine -sf intel -pk intel 4 2 tptask 120 -in in.scrip
 default commands: <A HREF = "package.html">package omp 0</A> and <A HREF = "package.html">package intel
 1</A> command.  These set the number of OpenMP threads per
 MPI task via the OMP_NUM_THREADS environment variable, and the number
-of Xeon Phi(TM) coprocessors/node to 1.  The latter is ignored is
-LAMMPS was not built with coprocessor support.
+of Xeon Phi(TM) coprocessors/node to 1.  The former is ignored if
+LAMMPS was not built with the USER-OMP package.  The latter is ignored
+is LAMMPS was not built with coprocessor support.
 </P>
 <P>Using the "-pk omp" switch explicitly allows for direct setting of the
 number of OpenMP threads per MPI task, and additional options.  Using

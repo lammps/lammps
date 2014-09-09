@@ -1385,8 +1385,9 @@ The latter two steps in the first case and the last step in the
 coprocessor case can be done using the "-pk omp" and "-sf intel" and
 "-pk intel" "command-line switches"_Section_start.html#start_7
 respectively.  Or the effect of the "-pk" or "-sf" switches can be
-duplicated by adding the "package intel"_package.html or "suffix
-intel"_suffix.html commands respectively to your input script.
+duplicated by adding the "package omp"_package.html or "suffix
+intel"_suffix.html or "package intel"_package.html commands
+respectively to your input script.
 
 [Required hardware/software:]
 
@@ -1465,9 +1466,10 @@ Use the "-sf intel" "command-line switch"_Section_start.html#start_7,
 which will automatically append "intel" to styles that support it.  If
 a style does not support it, a "omp" suffix is tried next.  Use the
 "-pk omp Nt" "command-line switch"_Section_start.html#start_7, to set
-Nt = # of OpenMP threads per MPI task to use.  Use the "-pk intel Nt
-Nphi" "command-line switch"_Section_start.html#start_7 to set Nphi = #
-of Xeon Phi(TM) coprocessors/node.  
+Nt = # of OpenMP threads per MPI task to use, if LAMMPS was built with
+the USER-OMP package.  Use the "-pk intel Nt Nphi" "command-line
+switch"_Section_start.html#start_7 to set Nphi = # of Xeon Phi(TM)
+coprocessors/node, if LAMMPS was built with coprocessor support.
 
 CPU-only without USER-OMP (but using Intel vectorization on CPU):
 lmp_machine -sf intel -in in.script                 # 1 MPI task
@@ -1489,8 +1491,9 @@ Note that if the "-sf intel" switch is used, it also issues two
 default commands: "package omp 0"_package.html and "package intel
 1"_package.html command.  These set the number of OpenMP threads per
 MPI task via the OMP_NUM_THREADS environment variable, and the number
-of Xeon Phi(TM) coprocessors/node to 1.  The latter is ignored is
-LAMMPS was not built with coprocessor support.
+of Xeon Phi(TM) coprocessors/node to 1.  The former is ignored if
+LAMMPS was not built with the USER-OMP package.  The latter is ignored
+is LAMMPS was not built with coprocessor support.
 
 Using the "-pk omp" switch explicitly allows for direct setting of the
 number of OpenMP threads per MPI task, and additional options.  Using

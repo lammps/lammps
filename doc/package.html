@@ -50,20 +50,23 @@
         size = bin size for neighbor list construction (distance units)
       <I>device</I> value = device_type
         device_type = <I>kepler</I> or <I>fermi</I> or <I>cypress</I> or <I>generic</I>
-  <I>intel</I> args = Nthreads precision keyword value ...
-    Nthreads = # of OpenMP threads to associate with each MPI process on host
-    precision = <I>single</I> or <I>mixed</I> or <I>double</I>
-    keywords = <I>balance</I> or <I>offload_cards</I> or <I>offload_ghost</I> or <I>offload_tpc</I> or <I>offload_threads</I>
+  <I>intel</I> args = NPhi keyword value ...
+    Nphi = # of coprocessors per node
+    zero or more keyword/value pairs may be appended 
+    keywords = <I>prec</I> or <I>balance</I> or <I>ghost</I> or <I>tpc</I> or <I>tptask</I>
+      <I>prec</I> value = <I>single</I> or <I>mixed</I> or <I>double</I>
+        single = perform force calculations in single precision
+        mixed = perform force calculations in mixed precision
+        double = perform force calculations in double precision
      <I>balance</I> value = split
        split = fraction of work to offload to coprocessor, -1 for dynamic
-     <I>offload_cards</I> value = ncops
-       ncops = number of coprocessors to use on each node
-     <I>offload_ghost</I> value = offload_type
-       offload_type = 1 to include ghost atoms for offload, 0 for local only
-     <I>offload_tpc</I> value = tpc
-       tpc = number of threads to use on each core of coprocessor
-     <I>offload_threads</I> value = tptask
-       tptask = max number of threads to use on coprocessor for each MPI task
+     <I>ghost</I> value = <I>yes</I> or <I>no</I>
+       yes = include ghost atoms for offload
+       no = do not include ghost atoms for offload
+     <I>tpc</I> value = Ntpc
+       Ntpc = number of threads to use on each physical core of coprocessor
+     <I>tptask</I> value = Ntptask
+       Ntptask = max number of threads to use on coprocessor for each MPI task
   <I>kokkos</I> args = keyword value ...
     one or more keyword/value pairs may be appended
     keywords = <I>neigh</I> or <I>comm/exchange</I> or <I>comm/forward</I>
@@ -171,8 +174,8 @@ default value, it is usually not necessary to use this keyword.
 </P>
 <HR>
 
-<P>The <I>gpu</I> style invokes settings settings associated with the use of
-the GPU package.
+<P>The <I>gpu</I> style invokes settings associated with the use of the GPU
+package.
 </P>
 <P>The <I>Ngpu</I> argument sets the number of GPUs per node.  There must be
 at least as many MPI tasks per node as GPUs, as set by the mpirun or
@@ -264,65 +267,64 @@ lib/gpu/Makefile that is used.
 </P>
 <HR>
 
-<P>The <I>intel</I> style invokes options associated with the use of the
-USER-INTEL package.
+<P>The <I>intel</I> style invokes settings associated with the use of the
+USER-INTEL package.  All of its settings, except the <I>prec</I> keyword,
+are ignored if LAMMPS was not built with Xeon Phi coprocessor support,
+when building with the USER-INTEL package.  All of its settings,
+including the <I>prec</I> keyword are applicable if LAMMPS was built with
+coprocessor support.
 </P>
-<P>The <I>Nthread</I> argument allows to one explicitly set the number of
-OpenMP threads to be allocated for each MPI process, An <I>Nthreads</I>
-value of '*' instructs LAMMPS to use whatever is the default for the
-given OpenMP environment. This is usually determined via the
-OMP_NUM_THREADS environment variable or the compiler runtime.
+<P>The <I>Nphi</I> argument sets the number of coprocessors per node.
 </P>
-<P>The <I>precision</I> argument determines the precision mode to use and can
-take values of <I>single</I> (intel styles use single precision for all
-calculations), <I>mixed</I> (intel styles use double precision for
-accumulation and storage of forces, torques, energies, and virial
-terms and single precision for everything else), or <I>double</I> (intel
-styles use double precision for all calculations).
+<P>Optional keyword/value pairs can also be specified.  Each has a
+default value as listed below.
 </P>
-<P>Additional keyword-value pairs are available that are used to
-determine how work is offloaded to an Intel(R) coprocessor. If LAMMPS is
-built without offload support, these values are ignored. The
-additional settings are as follows:
+<P>The <I>prec</I> keyword argument determines the precision mode to use for
+computing pair style forces, either on the CPU or on the coprocessor,
+when using a USER-INTEL supported <A HREF = "pair_style.html">pair style</A>.  It
+can take a value of <I>single</I>, <I>mixed</I> which is the default, or
+<I>double</I>.  <I>Single</I> means single precision is used for the entire
+force calculation.  <I>Mixed</I> means forces between a pair of atoms are
+computed in single precision, but accumulated and stored in double
+precision, including storage of forces, torques, energies, and virial
+quantities.  <I>Double</I> means double precision is used for the entire
+force calculation.
 </P>
-<P>The <I>balance</I> setting is used to set the fraction of work offloaded to
-the coprocessor for an intel style (in the inclusive range 0.0 to
-1.0).  While this fraction of work is running on the coprocessor, other
-calculations will run on the host, including neighbor and pair
-calculations that are not offloaded, angle, bond, dihedral, kspace,
-and some MPI communications. If the balance is set to -1, the fraction
-of work is dynamically adjusted automatically throughout the run. This
-can typically give performance within 5 to 10 percent of the optimal
-fixed fraction.
+<P>The <I>balance</I> keyword sets the fraction of <A HREF = "pair_style.html">pair
+style</A> work offloaded to the coprocessor style for
+split values between 0.0 and 1.0 inclusive.  While this fraction of
+work is running on the coprocessor, other calculations will run on the
+host, including neighbor and pair calculations that are not offloaded,
+angle, bond, dihedral, kspace, and some MPI communications.  If
+<I>split</I> is set to -1, the fraction of work is dynamically adjusted
+automatically throughout the run.  This typically give performance
+within 5 to 10 percent of the optimal fixed fraction.
 </P>
-<P>The <I>offload_cards</I> setting determines the number of coprocessors to
-use on each node.
-</P>
-<P>Additional options for fine tuning performance with offload are as
-follows:
-</P>
-<P>The <I>offload_ghost</I> setting determines whether or not ghost atoms,
-atoms at the borders between MPI tasks, are offloaded for neighbor and
-force calculations. When set to "0", ghost atoms are not offloaded.
-This option can reduce the amount of data transfer with the
-coprocessor and also can overlap MPI communication of forces with
+<P>The <I>ghost</I> keyword determines whether or not ghost atoms, i.e. atoms
+at the boundaries of proessor sub-domains, are offloaded for neighbor
+and force calculations.  When the value = "no", ghost atoms are not
+offloaded.  This option can reduce the amount of data transfer with
+the coprocessor and can also overlap MPI communication of forces with
 computation on the coprocessor when the <A HREF = "newton.html">newton pair</A>
-setting is "on".  When set to "1", ghost atoms are offloaded. In some
-cases this can provide better performance, especially if the offload
-fraction is high.
+setting is "on".  When the value = "ues", ghost atoms are offloaded.
+In some cases this can provide better performance, especially if the
+<I>balance</I> fraction is high.
 </P>
-<P>The <I>offload_tpc</I> option sets the maximum number of threads that will
-run on each core of the coprocessor.
+<P>The <I>tpc</I> keyword sets the maximum # of threads <I>Ntpc</I> that will
+run on each physical core of the coprocessor.  The default value is
+set to 4, which is the number of hardware threads per core supported
+by the current generation Xeon Phi chips.
 </P>
-<P>The <I>offload_threads</I> option sets the maximum number of threads that
-will be used on the coprocessor for each MPI task. This, along with
-the <I>offload_tpc</I> setting, are the only methods for changing the
-number of threads on the coprocessor. The OMP_NUM_THREADS keyword and
-<I>Nthreads</I> options are only used for threads on the host.
+<P>The <I>tptask</I> keyword sets the maximum # of threads (Ntptask</I> that will
+be used on the coprocessor for each MPI task.  This, along with the
+<I>tpc</I> keyword setting, are the only methods for changing the number of
+threads used on the coprocessor.  The default value is set to 240 =
+60*4, which is the maximum # of threads supported by an entire current
+generation Xeon Phi chip.
 </P>
 <HR>
 
-<P>The <I>kokkos</I> style invokes options associated with the use of the
+<P>The <I>kokkos</I> style invokes settings associated with the use of the
 KOKKOS package.
 </P>
 <P>The <I>neigh</I> keyword determines what kinds of neighbor lists are built.
@@ -466,35 +468,45 @@ setting</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>To use the USER-CUDA package, the package command must be invoked
-explicitly, either via the "-pk cuda" <A HREF = "Section_start.html#start_7">command-line
-switch</A> or by invoking the package cuda
-command in your input script.  This will set the # of GPUs/node.  The
-options defaults are gpuID = 0 to Ngpu-1, timing not enabled, test not
-enabled, and thread = auto.
+<P>To use the USER-CUDA package, the package cuda command must be invoked
+explicitly in your input script or via the "-pk cuda" <A HREF = "Section_start.html#start_7">command-line
+switch</A>.  This will set the # of GPUs/node.
+The options defaults are gpuID = 0 to Ngpu-1, timing = not enabled,
+test = not enabled, and thread = auto.
 </P>
 <P>For the GPU package, the default is Ngpu = 1 and the option defaults
 are neigh = yes, split = 1.0, gpuID = 0 to Ngpu-1, tpa = 1, binsize =
 pair cutoff + neighbor skin, device = not used.  These settings are
-made if the "-sf gpu" <A HREF = "Section_start.html#start_7">command-line switch</A>
-is used.  If it is not used, you must invoke the package gpu command
-in your input script.
+made automatically if the "-sf gpu" <A HREF = "Section_start.html#start_7">command-line
+switch</A> is used.  If it is not used, you
+must invoke the package gpu command in your input script or via the
+"-pk gpu" <A HREF = "Section_start.html#start_7">command-line switch</A>.
 </P>
-<P>The default settings for the USER-INTEL package are "package intel *
-mixed balance -1 offload_cards 1 offload_tpc 4 offload_threads 240".
-The <I>offload_ghost</I> default setting is determined by the intel style
-being used.  The value used is output to the screen in the offload
-report at the end of each run.
+<P>For the USER-INTEL package, the default is Nphi = 1 and the option
+defaults are prec = mixed, balance = -1, tpc = 4, tptask = 240.  The
+default ghost option is determined by the pair style being used.  This
+value used is output to the screen in the offload report at the end of
+each run.  These settings are made automatically if the "-sf intel"
+<A HREF = "Section_start.html#start_7">command-line switch</A> is used.  If it is
+not used, you must invoke the package intel command in your input
+script or or via the "-pk intel" <A HREF = "Section_start.html#start_7">command-line
+switch</A>.
 </P>
 <P>The default settings for the KOKKOS package are "package kokkos neigh
 full comm/exchange host comm/forward host".  This is the case whether
 the "-sf kk" <A HREF = "Section_start.html#start_7">command-line switch</A> is used
 or not.
+To use the KOKKOS package, the package kokkos command must be invoked
+explicitly in your input script or via the "-pk kokkos" <A HREF = "Section_start.html#start_7">command-line
+switch</A>.  This will set the # of GPUs/node.
+The options defaults are gpuID = 0 to Ngpu-1, timing = not enabled,
+test = not enabled, and thread = auto.
 </P>
 <P>For the OMP package, the default is Nthreads = 0 and the option
-defaults are neigh = yes.  These settings are made if the "-sf omp"
-<A HREF = "Section_start.html#start_7">command-line switch</A> is used.  If it is
-not used, you must invoke the package omp command in your input
-script.
+defaults are neigh = yes.  These settings are made automatically if
+the "-sf omp" <A HREF = "Section_start.html#start_7">command-line switch</A> is
+used.  If it is not used, you must invoke the package omp command in
+your input script or via the "-pk omp" <A HREF = "Section_start.html#start_7">command-line
+switch</A>.
 </P>
 </HTML>

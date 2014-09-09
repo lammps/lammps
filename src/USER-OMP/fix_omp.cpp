@@ -105,7 +105,11 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
       else if (strcmp(arg[iarg]+1,"no") == 0) _neighbor = false;
       else error->all(FLERR,"Illegal package omp command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"mixed") == 0) {
+    }
+
+    // undocumented options
+
+    else if (strcmp(arg[iarg],"mixed") == 0) {
       _mixed = true;
       iarg++;
     } else if (strcmp(arg[iarg],"double") == 0) {

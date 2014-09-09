@@ -1418,7 +1418,6 @@ void Input::package()
     for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
     modify->add_fix(2+narg,fixarg);
     delete [] fixarg;
-    force->newton_pair = 0;
 
   } else if (strcmp(arg[0],"kokkos") == 0) {
     if (!lmp->kokkos)

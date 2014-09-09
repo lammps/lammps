@@ -627,12 +627,12 @@ void LAMMPS::post_create()
 
   if (suffix) {
     if (strcmp(suffix,"gpu") == 0) input->one("package gpu force/neigh 0 0 1");
-    if (strcmp(suffix,"omp") == 0) input->one("package omp *");
+    if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
     if (strcmp(suffix,"intel") == 0) 
-      input->one("package intel * mixed balance -1");
+      input->one("package intel mixed balance -1");
   }
   if (suffix2) {
-    if (strcmp(suffix,"omp") == 0) input->one("package omp *");
+    if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
   }
 }
 

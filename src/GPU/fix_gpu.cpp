@@ -80,68 +80,89 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   if (lmp->citeme) lmp->citeme->add(cite_gpu_package);
 
   if (lmp->cuda)
-    error->all(FLERR,"Cannot use fix GPU with USER-CUDA mode enabled");
+    error->all(FLERR,"Cannot use GPU package with USER-CUDA package enabled");
 
-  if (narg < 7) error->all(FLERR,"Illegal fix GPU command");
-  if (strcmp(arg[1],"all") != 0) error->all(FLERR,"Illegal fix GPU command");
+  if (narg < 4) error->all(FLERR,"Illegal package gpu command");
+  if (strcmp(arg[1],"all") != 0)
+    error->all(FLERR,"Illegal package gpu command");
 
-  int first_gpu, last_gpu;
+  int ngpu = atoi(arg[3]);
+  if (ngpu <= 0) error->all(FLERR,"Illegal package gpu command");
+  int first_gpu = 0;
+  int last_gpu = ngpu-1;
+  
+  // options
 
-  if (strcmp(arg[3],"force") == 0)
-    _gpu_mode = GPU_FORCE;
-  else if (strcmp(arg[3],"force/neigh") == 0) {
-    _gpu_mode = GPU_NEIGH;
-    if (domain->triclinic)
-      error->all(FLERR,"Cannot use force/neigh with triclinic box");
-  } else if (strcmp(arg[3],"force/hybrid_neigh") == 0) {
-    _gpu_mode = GPU_HYB_NEIGH;
-    if (domain->triclinic)
-      error->all(FLERR,
-                 "Cannot use force/hybrid_neigh with triclinic box");
-  } else
-    error->all(FLERR,"Illegal fix GPU command");
-
-  first_gpu = force->inumeric(FLERR,arg[4]);
-  last_gpu = force->inumeric(FLERR,arg[5]);
-
-  _particle_split = force->numeric(FLERR,arg[6]);
-  if (_particle_split==0 || _particle_split>1)
-    error->all(FLERR,"Illegal fix GPU command");
-
+  _gpu_mode = GPU_NEIGH;
+  _particle_split = 1.0;
+  int newtonflag = 0;
   int nthreads = 1;
   int threads_per_atom = -1;
-  double cell_size = -1;
-
-  int iarg = 7;
+  double binsize = -1;
   char *opencl_flags = NULL;
+
+  int iarg = 4;
   while (iarg < narg) {
-    if (iarg+2 > narg) error->all(FLERR,"Illegal fix GPU command");
-
-    if (strcmp(arg[iarg],"threads_per_atom") == 0)
+    if (strcmp(arg[iarg],"neigh") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (strcmp(arg[iarg]+1,"yes") == 0) _gpu_mode = GPU_NEIGH;
+      else if (strcmp(arg[iarg]+1,"no") == 0) _gpu_mode = GPU_FORCE;
+      else if (strcmp(arg[iarg]+1,"hybrid") == 0) _gpu_mode = GPU_HYB_NEIGH;
+      else error->all(FLERR,"Illegal package gpu command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"split") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      _particle_split = force->numeric(FLERR,arg[iarg+1]);
+      if (_particle_split <= 0.0 || _particle_split > 1.0)
+        error->all(FLERR,"Illegal package GPU command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"newton") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (strcmp(arg[iarg]+1,"off") == 0) newtonflag = 0;
+      else if (strcmp(arg[iarg]+1,"on") == 0) newtonflag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"gpuID") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal package gpu command");
+      first_gpu = force->inumeric(FLERR,arg[iarg+1]);
+      last_gpu = force->inumeric(FLERR,arg[iarg+2]);
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"tpa") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
       threads_per_atom = force->inumeric(FLERR,arg[iarg+1]);
-    else if (strcmp(arg[iarg],"nthreads") == 0)
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"nthreads") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
       nthreads = force->inumeric(FLERR,arg[iarg+1]);
-    else if (strcmp(arg[iarg],"cellsize") == 0)
-      cell_size = force->numeric(FLERR,arg[iarg+1]);
-    else if (strcmp(arg[iarg],"device") == 0)
+      if (nthreads < 1) error->all(FLERR,"Illegal fix GPU command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"binsize") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      binsize = force->numeric(FLERR,arg[iarg+1]);
+      if (binsize <= 0.0) error->all(FLERR,"Illegal fix GPU command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"device") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
       opencl_flags = arg[iarg+1];
-    else
-      error->all(FLERR,"Illegal fix GPU command");
-
-    iarg += 2;
+      iarg += 2;
+    } else error->all(FLERR,"Illegal package gpu command");
   }
 
-  if (nthreads < 1)
-    error->all(FLERR,"Illegal fix GPU command");
+  // error check
+
+  if ((_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH) && 
+      domain->triclinic)
+    error->all(FLERR,"Cannot use package gpu neigh yes with triclinic box");
 
   #ifndef _OPENMP
   if (nthreads > 1)
     error->all(FLERR,"No OpenMP support compiled in");
   #endif
 
+  // pass params to GPU library
+
   int gpu_flag = lmp_init_device(universe->uworld, world, first_gpu, last_gpu,
                                  _gpu_mode, _particle_split, nthreads,
-                                 threads_per_atom, cell_size, opencl_flags);
+                                 threads_per_atom, binsize, opencl_flags);
   GPU_EXTRA::check_flag(gpu_flag,error,world);
 }
 
@@ -214,10 +235,9 @@ void FixGPU::setup(int vflag)
       error->all(FLERR,
                  "Cannot use neigh_modify exclude with GPU neighbor builds");
 
-  if (strstr(update->integrate_style,"verlet"))
-    post_force(vflag);
+  if (strstr(update->integrate_style,"verlet")) post_force(vflag);
   else {
-    // In setup only, all forces calculated on gpu are put in the outer level
+    // in setup only, all forces calculated on GPU are put in the outer level
     ((Respa *) update->integrate)->copy_flevel_f(_nlevels_respa-1);
     post_force(vflag);
     ((Respa *) update->integrate)->copy_f_flevel(_nlevels_respa-1);
@@ -273,7 +293,7 @@ void FixGPU::post_force_respa(int vflag, int ilevel, int iloop)
 double FixGPU::memory_usage()
 {
   double bytes = 0.0;
-  // Memory usage currently returned by pair routine
+  // memory usage currently returned by pair routine
   return bytes;
 }
 

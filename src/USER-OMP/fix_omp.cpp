@@ -76,7 +76,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   int nthreads = 1;
   if (narg > 3) {
 #if defined(_OPENMP)
-    if (strcmp(arg[3],"*") == 0)
+    if (strcmp(arg[3],"0") == 0)
 #pragma omp parallel default(none) shared(nthreads)
       nthreads = omp_get_num_threads();
     else
@@ -96,22 +96,27 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
     comm->nthreads = nthreads;
   }
 
+  // optional keywords
+
   int iarg = 4;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"force/neigh") == 0)
-      _neighbor = true;
-    else if (strcmp(arg[iarg],"force") == 0)
-      _neighbor = false;
-    else if (strcmp(arg[iarg],"mixed") == 0)
+    if (strcmp(arg[iarg],"neigh") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package omp command");
+      if (strcmp(arg[iarg]+1,"yes") == 0) _neighbor = true;
+      else if (strcmp(arg[iarg]+1,"no") == 0) _neighbor = false;
+      else error->all(FLERR,"Illegal package omp command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"mixed") == 0) {
       _mixed = true;
-    else if (strcmp(arg[iarg],"double") == 0)
+      iarg++;
+    } else if (strcmp(arg[iarg],"double") == 0) {
       _mixed = false;
-    else
-      error->all(FLERR,"Illegal package omp mode requested");
-    ++iarg;
+      iarg++;
+    } else error->all(FLERR,"Illegal package omp command");
   }
 
   // print summary of settings
+
   if (comm->me == 0) {
     const char * const nmode = _neighbor ? "multi-threaded" : "serial";
     const char * const kmode = _mixed ? "mixed" : "double";

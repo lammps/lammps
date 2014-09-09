@@ -70,8 +70,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
      thr(NULL), last_omp_style(NULL), last_pair_hybrid(NULL),
      _nthr(-1), _neighbor(true), _mixed(false), _reduced(true)
 {
-  if ((narg < 4) || (narg > 7)) error->all(FLERR,"Illegal package omp command");
-  if (strcmp(arg[1],"all") != 0) error->all(FLERR,"fix OMP has to operate on group 'all'");
+  if (narg < 4) error->all(FLERR,"Illegal package omp command");
 
   int nthreads = 1;
   if (narg > 3) {

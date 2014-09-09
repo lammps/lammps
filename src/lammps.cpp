@@ -595,13 +595,12 @@ void LAMMPS::create()
 
 /* ----------------------------------------------------------------------
    check suffix consistency with installed packages
-     do this for GPU, USER-INTEL, USER-OMP
-     already done in constructor for USER-CUDA, KOKKOS
    turn off suffix2 = omp if USER-OMP is not installed
-   invoke package-specific setup commands
+   invoke package-specific deafult package commands
      only invoke if suffix is set and enabled
      also check if suffix2 is set
    called from LAMMPS constructor and after clear() command
+     so that package-specific core classes have been instantiated
 ------------------------------------------------------------------------- */
 
 void LAMMPS::post_create()
@@ -609,16 +608,25 @@ void LAMMPS::post_create()
   if (!suffix_enable) return;
 
   // suffix will always be set if suffix_enable = 1
+  // USER-CUDA and KOKKOS have package classes instantiated if enabled
+  //   via "-c on" and "-k on"
+  // GPU, INTEL, USER-OMP provide their own fixes which will have
+  //   been compiled with LAMMPS if those packages were installed
 
+  if (strcmp(suffix,"cuda") == 0 && (cuda == NULL || cuda->cuda_exists == 0))
+    error->all(FLERR,"Using suffix cuda without USER-CUDA package enabled");
   if (strcmp(suffix,"gpu") == 0 && !modify->check_package("GPU"))
     error->all(FLERR,"Using suffix gpu without GPU package installed");
-  if (strcmp(suffix,"intel") == 0 && !modify->check_package("Intel"))
+  if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
     error->all(FLERR,"Using suffix intel without USER-INTEL package installed");
+  if (strcmp(suffix,"kk") == 0 && 
+      (kokkos == NULL || kokkos->kokkos_exists == 0))
+    error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
   if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
     error->all(FLERR,"Using suffix omp without USER-OMP package installed");
 
   // suffix2 only currently set by -sf intel
-  // need to unset if LAMMPS was not built with USER-OMP package
+  // unset if LAMMPS was not built with USER-OMP package
 
   if (suffix2 && strcmp(suffix2,"omp") == 0 && !modify->check_package("OMP")) {
     delete [] suffix2;
@@ -626,10 +634,9 @@ void LAMMPS::post_create()
   }
 
   if (suffix) {
-    if (strcmp(suffix,"gpu") == 0) input->one("package gpu force/neigh 0 0 1");
+    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 1");
+    if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
     if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
-    if (strcmp(suffix,"intel") == 0) 
-      input->one("package intel mixed balance -1");
   }
   if (suffix2) {
     if (strcmp(suffix,"omp") == 0) input->one("package omp 0");

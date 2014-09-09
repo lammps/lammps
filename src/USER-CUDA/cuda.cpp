@@ -47,8 +47,6 @@
 
 using namespace LAMMPS_NS;
 
-
-
 Cuda::Cuda(LAMMPS* lmp) : Pointers(lmp)
 {
   cuda_exists = true;

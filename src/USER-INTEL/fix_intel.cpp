@@ -49,10 +49,9 @@ enum{NSQ,BIN,MULTI};
 
 FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 {
-  if (narg < 4)
-    error->all(FLERR, "Illegal package intel command");
-  if (strcmp(arg[1],"all") != 0)
-    error->all(FLERR, "fix Intel has to operate on group 'all'");
+  if (narg < 4) error->all(FLERR,"Illegal package intel command");
+
+  int ncops = force->inumeric(FLERR,arg[3]);
 
   _precision_mode = PREC_MODE_MIXED;
   _offload_balance = 1.0;
@@ -64,6 +63,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _offload_tpc = 4;
 
   #ifdef _LMP_INTEL_OFFLOAD
+  if (ncops < 1) error->all(FLERR,"Illegal package intel command");
   _offload_affinity_set = 0;
   _off_force_array_s = 0;
   _off_force_array_m = 0;
@@ -86,58 +86,61 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _offload_cores = offload_cores;
   _offload_threads = offload_cores;
   #endif
-  int ncops = 1;
+
+  // optional keywords
+
   _allow_separate_buffers = 1;
   _offload_ghost = -1;
 
   int iarg = 4;
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "mixed") == 0)
-      _precision_mode = PREC_MODE_MIXED;
-    else if (strcmp(arg[iarg], "double") == 0)
-      _precision_mode = PREC_MODE_DOUBLE;
-    else if (strcmp(arg[iarg], "single") == 0)
-      _precision_mode = PREC_MODE_SINGLE;
-    else if (strcmp(arg[iarg], "offload_affinity_balanced") == 0)
+    if (strcmp(arg[iarg],"prec") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      if (strcmp(arg[iarg+1],"single") == 0) 
+        _precision_mode = PREC_MODE_SINGLE;
+      else if (strcmp(arg[iarg+1],"mixed") == 0) 
+        _precision_mode = PREC_MODE_MIXED;
+      else if (strcmp(arg[iarg+1],"double") == 0) 
+        _precision_mode = PREC_MODE_DOUBLE;
+      else error->all(FLERR,"Illegal package intel command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"balance") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      _offload_balance = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "ghost") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      if (strcmp(arg[iarg+1],"yes") == 0) _offload_ghost = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) _offload_ghost = 0;
+      else error->all(FLERR,"Illegal package intel command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "tpc") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      _offload_tpc = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"tptask") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      _offload_threads = atoi(arg[iarg+1]);
+      iarg += 2;
+    }
+
+    // undocumented options
+
+    else if (strcmp(arg[iarg],"offload_affinity_balanced") == 0) {
       _offload_affinity_balanced = 1;
-    else if (strcmp(arg[iarg], "balance") == 0) {
-      if (iarg == narg - 1)
-        error->all(FLERR, "Illegal package intel mode requested");
-      ++iarg;
-      _offload_balance = force->numeric(FLERR,arg[iarg]);
-    } else if (strcmp(arg[iarg], "offload_threads") == 0) {
-      if (iarg == narg - 1)
-        error->all(FLERR, "Illegal package intel mode requested");
-      ++iarg;
-      _offload_threads = atoi(arg[iarg]);
-    } else if (strcmp(arg[iarg], "offload_tpc") == 0) {
-      if (iarg == narg - 1)
-        error->all(FLERR, "Illegal package intel mode requested");
-      ++iarg;
-      _offload_tpc = atoi(arg[iarg]);
-    } else if (strcmp(arg[iarg], "offload_cards") == 0) {
-      if (iarg == narg - 1)
-        error->all(FLERR, "Illegal package intel mode requested");
-      ++iarg;
-      ncops = atoi(arg[iarg]);
-    } else if (strcmp(arg[iarg], "buffers") == 0) {
-      if (iarg == narg - 1)
-        error->all(FLERR, "Illegal package intel mode requested");
-      ++iarg;
-      _allow_separate_buffers = atoi(arg[iarg]);
-    } else if (strcmp(arg[iarg], "offload_ghost") == 0) {
-      if (iarg == narg - 1)
-        error->all(FLERR, "Illegal package intel mode requested");
-      ++iarg;
-      _offload_ghost = atoi(arg[iarg]);
-    } else
-      error->all(FLERR, "Illegal package intel mode requested");
-    ++iarg;
+      iarg++;
+    } else if (strcmp(arg[iarg],"buffers") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      _allow_separate_buffers = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else error->all(FLERR,"Illegal package intel command");
   }
+
+  // error check
 
   if (_offload_balance > 1.0 || _offload_threads <= 0 ||
       _offload_tpc <= 0 || _offload_tpc > 4)
-    error->all(FLERR, "Illegal package intel mode requested");
+    error->all(FLERR,"Illegal package intel command");
 
   #ifdef _LMP_INTEL_OFFLOAD
   _ncops = ncops;

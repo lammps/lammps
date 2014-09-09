@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(Intel,FixIntel)
+FixStyle(INTEL,FixIntel)
 
 #else
 

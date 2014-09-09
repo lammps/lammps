@@ -242,11 +242,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
   atom->add_callback(1);
 
-  maxatom = atom->nmax;
-  if (displaceflag) memory->create(displace,maxatom,3,"move:displace");
-  else displace = NULL;
-  if (velocityflag) memory->create(velocity,maxatom,3,"move:velocity");
-  else velocity = NULL;
+  displace = velocity = NULL;
 
   // xoriginal = initial unwrapped positions of atoms
 
@@ -367,6 +363,14 @@ void FixMove::init()
     if (vyvarstr && vyvarstyle == ATOM) velocityflag = 1;
     if (vzvarstr && vzvarstyle == ATOM) velocityflag = 1;
   }
+
+  maxatom = atom->nmax;
+  memory->destroy(displace);
+  memory->destroy(velocity);
+  if (displaceflag) memory->create(displace,maxatom,3,"move:displace");
+  else displace = NULL;
+  if (velocityflag) memory->create(velocity,maxatom,3,"move:velocity");
+  else velocity = NULL;
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;

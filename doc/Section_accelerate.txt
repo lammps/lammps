@@ -1451,7 +1451,7 @@ performance will suffer.
 
 If LAMMPS was built with coprocessor support for the USER-INTEL
 package, you need to specify the number of coprocessor/node and the
-number of threads to use on the coproessor per MPI task.  Note that
+number of threads to use on the coprocessor per MPI task.  Note that
 coprocessor threads (which run on the coprocessor) are totally
 independent from OpenMP threads (which run on the CPU).  The product
 of MPI tasks * coprocessor threads/task should not exceed the maximum
@@ -1467,7 +1467,7 @@ which will automatically append "intel" to styles that support it.  If
 a style does not support it, a "omp" suffix is tried next.  Use the
 "-pk omp Nt" "command-line switch"_Section_start.html#start_7, to set
 Nt = # of OpenMP threads per MPI task to use, if LAMMPS was built with
-the USER-OMP package.  Use the "-pk intel Nt Nphi" "command-line
+the USER-OMP package.  Use the "-pk intel Nphi" "command-line
 switch"_Section_start.html#start_7 to set Nphi = # of Xeon Phi(TM)
 coprocessors/node, if LAMMPS was built with coprocessor support.
 
@@ -1493,7 +1493,8 @@ default commands: "package omp 0"_package.html and "package intel
 MPI task via the OMP_NUM_THREADS environment variable, and the number
 of Xeon Phi(TM) coprocessors/node to 1.  The former is ignored if
 LAMMPS was not built with the USER-OMP package.  The latter is ignored
-is LAMMPS was not built with coprocessor support.
+is LAMMPS was not built with coprocessor support, except for its
+optional precision setting.
 
 Using the "-pk omp" switch explicitly allows for direct setting of the
 number of OpenMP threads per MPI task, and additional options.  Using

@@ -122,7 +122,6 @@ void FixQEqPoint::compute_H()
   double **x, SMALL = 0.0001;
   double dx, dy, dz, r_sqr, r;
 
-  int *type = atom->type;
   tagint *tag = atom->tag;
   x = atom->x;
   int *mask = atom->mask;

@@ -162,7 +162,7 @@ void FixQEqDynamic::pre_force(int vflag)
     if (iloop == maxiter) {
       char str[128];
       sprintf(str,"Charges did not converge at step "BIGINT_FORMAT
-		  ": %lg",enegchk,update->ntimestep);
+		  ": %lg",update->ntimestep,enegchk);
       error->warning(FLERR,str);
     }
   }
@@ -173,13 +173,11 @@ void FixQEqDynamic::pre_force(int vflag)
 
 double FixQEqDynamic::compute_eneg()
 {
-  int i, j, ii, jj, inum, jnum, itype, jtype, flag;
+  int i, j, ii, jj, inum, jnum, itype;
   int *ilist, *jlist, *numneigh, **firstneigh;
   double eneg, enegtot;
   double r, rsq, delr[3], rinv;
 
-  int nlocal = atom->nlocal;
-  int *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   double *q = atom->q;

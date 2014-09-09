@@ -136,24 +136,19 @@ void FixQEqSlater::init_matvec()
 
 void FixQEqSlater::compute_H()
 {
-  int i, j, ii, jj, inum, jnum, itype, jtype, flag;
+  int i, j, ii, jj, inum, jnum, itype, jtype;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   double r, rsq, delr[3];
   double zei, zej, zj, zjtmp;
-  double SMALL = 0.0001;
 
-  int *tag = atom->tag;
   int *type = atom->type;
   double **x = atom->x;
-  double *q = atom->q;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
-  int nlocal = atom->nlocal;
 
   m_fill = 0;
 
@@ -207,7 +202,6 @@ double FixQEqSlater::calculate_H(double zei, double zej, double zj,
 		double r, double &zjtmp)
 {
   double rinv = 1.0/r;
-  double rinv2 = rinv*rinv;
 
   double exp2zir = exp(-2.0*zei*r);
   double zei2 = zei*zei;
@@ -261,7 +255,6 @@ double FixQEqSlater::calculate_H_wolf(double zei, double zej, double zj,
 		double r, double &zjtmp)
 {
   double rinv = 1.0/r;
-  double rinv2 = rinv*rinv;
 
   double exp2zir = exp(-2.0*zei*r);
   double zei2 = zei*zei;
@@ -398,7 +391,7 @@ int FixQEqSlater::CG( double *b, double *x )
 void FixQEqSlater::sparse_matvec( sparse_matrix *A, double *x, double *b )
 {
   int i, j, itr_j;
-  int nn, NN, ii;
+  int nn, NN;
   int *ilist;
 
   nn = atom->nlocal;

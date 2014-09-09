@@ -1,6 +1,17 @@
 Makefile.package*
 lmp_*
 
+fix_qeq.cpp
+fix_qeq.h
+fix_qeq_dynamic.cpp
+fix_qeq_dynamic.h
+fix_qeq_point.cpp
+fix_qeq_point.h
+fix_qeq_shielded.cpp
+fix_qeq_shielded.h
+fix_qeq_slater.cpp
+fix_qeq_slater.h
+
 colvarproxy_lammps.cpp
 colvarproxy_lammps.h
 fix_colvars.cpp

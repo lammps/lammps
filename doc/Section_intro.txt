@@ -142,6 +142,7 @@ commands)
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, \
     REBO, AIREBO, ReaxFF, COMB, SNAP
+  charge equilibration (QEq via dynamic, point, shielded, Slater methods)
   electron force field (eFF, AWPMD)
   coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
   mesoscopic potentials: granular, Peridynamics, SPH

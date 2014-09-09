@@ -65,9 +65,13 @@
       <I>neigh</I> value = <I>full</I> or <I>half/thread</I> or <I>half</I> or <I>n2</I> or <I>full/cluster</I>
       <I>comm/exchange</I> value = <I>no</I> or <I>host</I> or <I>device</I>
       <I>comm/forward</I> value = <I>no</I> or <I>host</I> or <I>device</I>
-  <I>omp</I> args = Nthreads mode
+  <I>omp</I> args = Nthreads keyword value ...
     Nthreads = # of OpenMP threads to associate with each MPI process
-    mode = force or force/neigh (optional) 
+    zero or more keyword/value pairs may be appended 
+    keywords = <I>neigh</I>
+      <I>neigh</I> value = <I>yes</I> or <I>no</I>
+        <I>yes</I> = threaded neighbor list build (default)
+        <I>no</I> = non-threaded neighbor list build 
 </PRE>
 
 </UL>
@@ -80,8 +84,8 @@ package gpu force/neigh 0 1 -1.0
 package cuda gpu/node/special 2 0 2
 package cuda test 3948
 package kokkos neigh half/thread comm/forward device
-package omp * force/neigh
-package omp 4 force
+package omp 0 neigh yes
+package omp 4
 package intel * mixed balance -1 
 </PRE>
 <P><B>Description:</B>
@@ -349,30 +353,25 @@ multiple threads to pack/unpack communicated data.
 <P>The <I>omp</I> style invokes options associated with the use of the
 USER-OMP package.
 </P>
-<P>The first argument allows to explicitly set the number of OpenMP
-threads to be allocated for each MPI process.  For example, if your
-system has nodes with dual quad-core processors, it has a total of 8
-cores per node.  You could run MPI on 2 cores on each node (e.g. using
-options for the mpirun command), and set the <I>Nthreads</I> setting to 4.
-This would effectively use all 8 cores on each node.  Since each MPI
-process would spawn 4 threads (one of which runs as part of the MPI
-process itself).
+<P>The first argument sets the number of OpenMP threads allocated for
+each MPI process or task.  For example, if your system has nodes with
+dual quad-core processors, it has a total of 8 cores per node.  You
+could two MPI tasks per node (e.g. using the -ppn option of the mpirun
+command), and set <I>Nthreads</I> = 4.  This would effectively use all 8
+cores on each node.  Note that the product of MPI tasks * threads/task
+should not exceed the physical number of cores (on a node), otherwise
+performance will suffer.
 </P>
-<P>For performance reasons, you should not set <I>Nthreads</I> to more threads
-than there are physical cores (per MPI task), but LAMMPS cannot check
-for this.
-</P>
-<P>An <I>Nthreads</I> value of '*' instructs LAMMPS to use whatever is the
+<P>An <I>Nthreads</I> value of 0 instructs LAMMPS to use whatever value is the
 default for the given OpenMP environment. This is usually determined
 via the <I>OMP_NUM_THREADS</I> environment variable or the compiler
-runtime.  Please note that in most cases the default for OpenMP
-capable compilers is to use one thread for each available CPU core
-when <I>OMP_NUM_THREADS</I> is not set, which can lead to extremely bad
+runtime.  Note that in most cases the default for OpenMP capable
+compilers is to use one thread for each available CPU core when
+<I>OMP_NUM_THREADS</I> is not explicitly set, which can lead to poor
 performance.
 </P>
-<P>By default LAMMPS uses 1 thread per MPI task.  If the environment
-variable OMP_NUM_THREADS is set to a valid value, this value is used.
-You can set this environment variable when you launch LAMMPS, e.g.
+<P>Here are examples of how to set the environment variable when
+launching LAMMPS:
 </P>
 <PRE>env OMP_NUM_THREADS=4 lmp_machine -sf omp -in in.script
 env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
@@ -383,26 +382,24 @@ All three of these examples use a total of 4 CPU cores.
 </P>
 <P>Note that different MPI implementations have different ways of passing
 the OMP_NUM_THREADS environment variable to all MPI processes.  The
-2nd line above is for MPICH; the 3rd line with -x is for OpenMPI.
-Check your MPI documentation for additional details.
+2nd example line above is for MPICH; the 3rd example line with -x is
+for OpenMPI.  Check your MPI documentation for additional details.
 </P>
-<P>You can also set the number of threads per MPI task via the <A HREF = "package.html">package
-omp</A> command, which will override any OMP_NUM_THREADS
-setting.
+<P>What combination of threads and MPI tasks gives the best performance
+is difficult to predict and can depend on many components of your
+input.  Not all features of LAMMPS support OpenMP threading via the
+USER-OMP packaage and the parallel efficiency can be very different,
+too.
 </P>
-<P>Which combination of threads and MPI tasks gives the best performance
-is difficult to predict and can depend on many components of your input.
-Not all features of LAMMPS support OpenMP and the parallel efficiency
-can be very different, too.
-</P>
-<P>The <I>mode</I> setting specifies where neighbor list calculations will be
-multi-threaded as well.  If <I>mode</I> is force, neighbor list calculation
-is performed in serial. If <I>mode</I> is force/neigh, a multi-threaded
-neighbor list build is used. Using the force/neigh setting is almost
-always faster and should produce idential neighbor lists at the
-expense of using some more memory (neighbor list pages are always
-allocated for all threads at the same time and each thread works on
-its own pages).
+<P>The <I>neigh</I> keyword specifies whether neighbor list building will be
+multi-threaded in addition to force calculations.  If <I>neigh</I> is set
+to <I>no</I> then neighbor list calculation is performed only by MPI tasks
+with no OpenMP threading.  If <I>mode</I> is <I>yes</I> (the default), a
+multi-threaded neighbor list build is used.  Using <I>neigh</I> = <I>yes</I> is
+almost always faster and should produce idential neighbor lists at the
+expense of using more memory.  Specifically, neighbor list pages are
+allocated for all threads at the same time and each thread works
+within its own pages.
 </P>
 <HR>
 
@@ -455,9 +452,10 @@ the "-sf kk" <A HREF = "Section_start.html#start_7">command-line switch</A> is u
 or not.
 </P>
 <P>If the "-sf omp" <A HREF = "Section_start.html#start_7">command-line switch</A> is
-used then it is as if the command "package omp *" were invoked, to
-specify default settings for the USER-OMP package.  If the
-command-line switch is not used, then no defaults are set, and you
-must specify the appropriate package command in your input script.
+used then it is as if the command "package omp 0" were invoked, to
+specify settings for the USER-OMP package.  The option defaults are
+neigh = yes.  If the command-line switch is not used, then no defaults
+are set, and you must specify the appropriate "package omp" command in
+your input script.
 </P>
 </HTML>

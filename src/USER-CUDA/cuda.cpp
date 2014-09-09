@@ -54,8 +54,7 @@ Cuda::Cuda(LAMMPS* lmp) : Pointers(lmp)
   cuda_exists = true;
   lmp->cuda = this;
 
-  if(universe->me == 0)
-    printf("# Using LAMMPS_CUDA \n");
+  if (universe->me == 0) printf("# Using LAMMPS_CUDA \n");
 
   shared_data.me = universe->me;
   device_set = false;
@@ -153,10 +152,9 @@ Cuda::Cuda(LAMMPS* lmp) : Pointers(lmp)
 
 Cuda::~Cuda()
 {
-
   print_timings();
 
-  if(universe->me == 0) printf("# CUDA: Free memory...\n");
+  if (universe->me == 0) printf("# CUDA: Free memory...\n");
 
   delete cu_q;
   delete cu_x;
@@ -203,79 +201,60 @@ Cuda::~Cuda()
 
 void Cuda::accelerator(int narg, char** arg)
 {
-  if(device_set) return;
+  if (device_set) return;
+  if (universe->me == 0) printf("# CUDA: Activate GPU \n");
 
-  if(universe->me == 0)
-    printf("# CUDA: Activate GPU \n");
+  int pppn = force->inumeric(FLERR,arg[0]);
+  if (pppn <= 0) error->all(FLERR,"Illegal package cuda command");
+
+  // optional args
 
   int* devicelist = NULL;
-  int pppn = 2;
 
-  for(int i = 0; i < narg; i++) {
-    if(strcmp(arg[i], "gpu/node") == 0) {
-      if(++i == narg)
-        error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a number after 'gpu/node' option.");
-
-      pppn = force->inumeric(FLERR,arg[i]);
-    }
-
-    if(strcmp(arg[i], "gpu/node/special") == 0) {
-      if(++i == narg)
-        error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting number of GPUs to be used per node after keyword 'gpu/node/special'.");
-
-      pppn = force->inumeric(FLERR,arg[i]);
-
-      if(pppn < 1) error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting number of GPUs to be used per node after keyword 'gpu/node special'.");
-
-      if(i + pppn == narg)
-        error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting list of device ids after keyword 'gpu/node special'.");
-
+  int iarg = 1;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"gpuID") == 0) {
+      if (iarg+pppn+1 > narg) error->all(FLERR,"Illegal package cuda command");
       devicelist = new int[pppn];
-
-      for(int k = 0; k < pppn; k++) {
-        i++;
-        devicelist[k] = force->inumeric(FLERR,arg[i]);
-      }
-    }
-
-    if(strcmp(arg[i], "pinned") == 0) {
-      if(++i == narg)
-        error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a number after 'pinned' option.");
-
-      pinned = force->inumeric(FLERR,arg[i]) == 0 ? false : true;
-
-      if((pinned == false) && (universe->me == 0)) printf(" #CUDA: Pinned memory is not used for communication\n");
-    }
-
-    if(strcmp(arg[i], "timing") == 0) {
+      for (int k = 0; k < pppn; k++)
+        devicelist[k] = force->inumeric(FLERR,arg[iarg+k+1]);
+      iarg += pppn + 1;
+    } else if (strcmp(arg[iarg],"timing") == 0) {
       dotiming = true;
-    }
-
-    if(strcmp(arg[i], "suffix") == 0) {
-      if(++i == narg)
-        error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a string after 'suffix' option.");
-
-      strcpy(lmp->suffix, arg[i]);
-    }
-
-    if(strcmp(arg[i], "overlap_comm") == 0) {
-      shared_data.overlap_comm = 1;
-    }
-
-    if(strcmp(arg[i], "test") == 0) {
-      if(++i == narg)
-        error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a number after 'test' option.");
-
-      testatom = force->numeric(FLERR,arg[i]);
+      iarg++;
+    } else if (strcmp(arg[iarg],"test") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package cuda command");
+      testatom = force->numeric(FLERR,arg[iarg+1]);
       dotestatom = true;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"thread") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package cuda command");
+      if (strcmp(arg[iarg+1],"auto") == 0) 
+        shared_data.pair.override_block_per_atom = -1;
+      else if (strcmp(arg[iarg+1],"tpa") == 0) 
+        shared_data.pair.override_block_per_atom = 0;
+      else if (strcmp(arg[iarg+1],"bpa") == 0) 
+        shared_data.pair.override_block_per_atom = 1;
+      else error->all(FLERR,"Illegal package cuda command");
+      iarg += 2;
     }
 
-    if(strcmp(arg[i], "override/bpa") == 0) {
-      if(++i == narg)
-        error->all(FLERR, "Invalid Options for 'accelerator' command. Expecting a number after 'override/bpa' option.");
+    // undocumented options
 
-      shared_data.pair.override_block_per_atom = force->inumeric(FLERR,arg[i]);
-    }
+    else if (strcmp(arg[iarg],"suffix") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package cuda command");
+      strcpy(lmp->suffix,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"overlap_comm") == 0) {
+      shared_data.overlap_comm = 1;
+      iarg++;
+    } else if (strcmp(arg[iarg],"pinned") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package cuda command");
+      pinned = force->inumeric(FLERR,arg[iarg+1]) == 0 ? false : true;
+      if ((pinned == false) && (universe->me == 0)) 
+        printf(" #CUDA: Pinned memory is not used for communication\n");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal package cuda command");
   }
 
   CudaWrapper_Init(0, (char**)0, universe->me, pppn, devicelist);

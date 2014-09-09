@@ -1439,14 +1439,14 @@ void Input::package()
     delete [] fixarg;
 
  } else if (strcmp(arg[0],"intel") == 0) {
-    if (!modify->check_package("Intel"))
+    if (!modify->check_package("INTEL"))
       error->all(FLERR,
                  "Package intel command without USER-INTEL package installed");
 
     char **fixarg = new char*[2+narg];
     fixarg[0] = (char *) "package_intel";
     fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "Intel";
+    fixarg[2] = (char *) "INTEL";
     for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
     modify->add_fix(2+narg,fixarg);
     delete [] fixarg;

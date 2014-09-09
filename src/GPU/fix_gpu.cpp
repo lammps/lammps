@@ -95,7 +95,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   _gpu_mode = GPU_NEIGH;
   _particle_split = 1.0;
-  int newtonflag = 0;
   int nthreads = 1;
   int threads_per_atom = -1;
   double binsize = -1;
@@ -113,13 +112,8 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"split") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
       _particle_split = force->numeric(FLERR,arg[iarg+1]);
-      if (_particle_split <= 0.0 || _particle_split > 1.0)
+      if (_particle_split == 0.0 || _particle_split > 1.0)
         error->all(FLERR,"Illegal package GPU command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"newton") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg]+1,"off") == 0) newtonflag = 0;
-      else if (strcmp(arg[iarg]+1,"on") == 0) newtonflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"gpuID") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -157,6 +151,12 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   if (nthreads > 1)
     error->all(FLERR,"No OpenMP support compiled in");
   #endif
+
+  // set newton_pair = 0 since required by all GPU pair styles
+
+  force->newton_pair = 0;
+  if (force->newton_pair || force->newton_bond) force->newton = 1;
+  else force->newton = 0;
 
   // pass params to GPU library
 

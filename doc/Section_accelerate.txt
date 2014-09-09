@@ -258,8 +258,9 @@ include the OPT package and build LAMMPS
 use OPT pair styles in your input script :ul
 
 The last step can be done using the "-sf opt" "command-line
-switch"_Section_start.html#start_7.  Or it can be done by adding a
-"suffix opt"_suffix.html command to your input script.
+switch"_Section_start.html#start_7.  Or the effect of the "-sf" switch
+can be duplicated by adding a "suffix opt"_suffix.html command to your
+input script.
 
 [Required hardware/software:]
 
@@ -325,8 +326,9 @@ use USER-OMP styles in your input script :ul
 
 The latter two steps can be done using the "-pk omp" and "-sf omp"
 "command-line switches"_Section_start.html#start_7 respectively.  Or
-either step can be done by adding the "package omp"_package.html or
-"suffix omp"_suffix.html commands respectively to your input script.
+the effect of the "-pk" or "-sf" switches can be duplicated by adding
+the "package omp"_package.html or "suffix omp"_suffix.html commands
+respectively to your input script.
 
 [Required hardware/software:]
 
@@ -535,8 +537,9 @@ use GPU styles in your input script :ul
 
 The latter two steps can be done using the "-pk gpu" and "-sf gpu"
 "command-line switches"_Section_start.html#start_7 respectively.  Or
-either step can be done by adding the "package gpu"_package.html or
-"suffix gpu"_suffix.html commands respectively to your input script.
+the effect of the "-pk" or "-sf" switches can be duplicated by adding
+the "package gpu"_package.html or "suffix gpu"_suffix.html commands
+respectively to your input script.
 
 [Required hardware/software:]
 
@@ -761,8 +764,9 @@ use USER-CUDA styles in your input script :ul
 
 The latter two steps can be done using the "-pk cuda" and "-sf cuda"
 "command-line switches"_Section_start.html#start_7 respectively.  Or
-either step can be done by adding the "package cuda"_package.html or
-"suffix cuda"_suffix.html commands respectively to your input script.
+the effect of the "-pk" or "-sf" switches can be duplicated by adding
+the "package cuda"_package.html or "suffix cuda"_suffix.html commands
+respectively to your input script.
 
 [Required hardware/software:]
 
@@ -888,7 +892,8 @@ Use the "suffix cuda"_suffix.html command, or you can explicitly add a
 pair_style lj/cut/cuda 2.5 :pre
 
 You only need to use the "package cuda"_package.html command if you
-wish to change the number of GPUs/node to use or its other options.
+wish to change the number of GPUs/node to use or its other option
+defaults.
 
 [Speed-ups to expect:]
 
@@ -982,22 +987,22 @@ use KOKKOS styles in your input script :ul
 
 The latter two steps can be done using the "-k on", "-pk kokkos" and
 "-sf kk" "command-line switches"_Section_start.html#start_7
-respectively.  Or either the steps can be done by adding the "package
-kokkod"_package.html or "suffix kk"_suffix.html commands respectively
-to your input script.
+respectively.  Or the effect of the "-pk" or "-sf" switches can be
+duplicated by adding the "package kokkos"_package.html or "suffix
+kk"_suffix.html commands respectively to your input script.
 
 [Required hardware/software:]
 
-The KOKKOS package can be used to build and run
-LAMMPS on the following kinds of hardware configurations:
+The KOKKOS package can be used to build and run LAMMPS on the
+following kinds of hardware:
 
 CPU-only: one MPI task per CPU core (MPI-only, but using KOKKOS styles)
 CPU-only: one or a few MPI tasks per node with additional threading via OpenMP
 Phi: on one or more Intel Phi coprocessors (per node)
 GPU: on the GPUs of a node with additional OpenMP threading on the CPUs :ul
 
-Intel Xeon Phi coprocessors are supported in "native" mode only, not
-"offload" mode.
+Note that Intel Xeon Phi coprocessors are supported in "native" mode,
+not "offload" mode like the USER-INTEL package supports.
 
 Only NVIDIA GPUs are currently supported.
 
@@ -1088,33 +1093,32 @@ tasks used per node.  E.g. the mpirun command does this via its -np
 and -ppn switches.
 
 When using KOKKOS built with host=OMP, you need to choose how many
-OpenMP threads per MPI task will be used.  Note that the product of
-MPI tasks * OpenMP threads/task should not exceed the physical number
-of cores (on a node), otherwise performance will suffer.
+OpenMP threads per MPI task will be used (via the "-k" command-line
+switch discussed below).  Note that the product of MPI tasks * OpenMP
+threads/task should not exceed the physical number of cores (on a
+node), otherwise performance will suffer.
 
 When using the KOKKOS package built with device=CUDA, you must use
 exactly one MPI task per physical GPU.
 
 When using the KOKKOS package built with host=MIC for Intel Xeon Phi
-coprocessor support you need to insure there is one or more MPI tasks
-per coprocessor and choose the number of threads to use on a
-coproessor per MPI task.  The product of MPI tasks * coprocessor
-threads/task should not exceed the maximum number of threads the
-coproprocessor is designed to run, otherwise performance will suffer.
-This value is 240 for current generation Xeon Phi(TM) chips, which is
-60 physical cores * 4 threads/core.
-
-NOTE: does not matter how many Phi per node, only concenred
-with MPI tasks 
-
-
+coprocessor support you need to insure there are one or more MPI tasks
+per coprocessor, and choose the number of coprocessor threads to use
+per MPI task (via the "-k" command-line switch discussed below).  The
+product of MPI tasks * coprocessor threads/task should not exceed the
+maximum number of threads the coproprocessor is designed to run,
+otherwise performance will suffer.  This value is 240 for current
+generation Xeon Phi(TM) chips, which is 60 physical cores * 4
+threads/core.  Note that with the KOKKOS package you do not need to
+specify how many Phi coprocessors there are per node; each
+coprocessors is simply treated as running some number of MPI tasks.
 
 You must use the "-k on" "command-line
 switch"_Section_start.html#start_7 to enable the KOKKOS package.  It
 takes additional arguments for hardware settings appropriate to your
-system.  Those arguments are documented
-"here"_Section_start.html#start_7.  The two commonly used ones are as
-follows:
+system.  Those arguments are "documented
+here"_Section_start.html#start_7.  The two most commonly used arguments
+are:
 
 -k on t Nt
 -k on g Ng :pre
@@ -1124,78 +1128,64 @@ host=MIC.  For host=OMP, it specifies how many OpenMP threads per MPI
 task to use with a node.  For host=MIC, it specifies how many Xeon Phi
 threads per MPI task to use within a node.  The default is Nt = 1.
 Note that for host=OMP this is effectively MPI-only mode which may be
-fine.  But for host=MIC this may run 240 MPI tasks on the coprocessor,
-which could give very poor perforamnce.
+fine.  But for host=MIC you will typically end up using far less than
+all the 240 available threads, which could give very poor performance.
 
 The "g Ng" option applies to device=CUDA.  It specifies how many GPUs
 per compute node to use.  The default is 1, so this only needs to be
 specified is you have 2 or more GPUs per compute node.
 
-This also issues a default "package cuda 2"_package.html command which
-sets the number of GPUs/node to use to 2.
-
-The "-k on" switch also issues a default "package kk neigh full
-comm/exchange host comm/forward host"_package.html command which sets
-some KOKKOS options to default values, discussed on the
-"package"_package.html command doc page.
+The "-k on" switch also issues a default "package kokkos neigh full
+comm host"_package.html command which sets various KOKKOS options to
+default values, as discussed on the "package"_package.html command doc
+page.
 
 Use the "-sf kk" "command-line switch"_Section_start.html#start_7,
-which will automatically append "kokkos" to styles that support it.
-Use the "-pk kokkos" "command-line switch"_Section_start.html#start_7
-if you wish to override any of the default values set by the "package
+which will automatically append "kk" to styles that support it.  Use
+the "-pk kokkos" "command-line switch"_Section_start.html#start_7 if
+you wish to override any of the default values set by the "package
 kokkos"_package.html command invoked by the "-k on" switch.
 
 host=OMP, dual hex-core nodes (12 threads/node):
-
-mpirun -np 12 lmp_g++ -in in.lj      # MPI-only mode with no Kokkos
-mpirun -np 12 lmp_g++ -k on -sf kk -in in.lj      # MPI-only mode with Kokkos
-mpirun -np 1 lmp_g++ -k on t 12 -sf kk -in in.lj     # one MPI task, 12 threads
-mpirun -np 2 lmp_g++ -k on t 6 -sf kk -in in.lj      # two MPI tasks, 6 threads/task :pre
+mpirun -np 12 lmp_g++ -in in.lj                           # MPI-only mode with no Kokkos
+mpirun -np 12 lmp_g++ -k on -sf kk -in in.lj              # MPI-only mode with Kokkos
+mpirun -np 1 lmp_g++ -k on t 12 -sf kk -in in.lj          # one MPI task, 12 threads
+mpirun -np 2 lmp_g++ -k on t 6 -sf kk -in in.lj           # two MPI tasks, 6 threads/task 
+mpirun -np 32 -ppn 2 lmp_g++ -k on t 6 -sf kk -in in.lj   # ditto on 16 nodes :pre
 
 host=MIC, Intel Phi with 61 cores (240 threads/phi via 4x hardware threading):
+mpirun -np 1 lmp_g++ -k on t 240 -sf kk -in in.lj           # 1 MPI task on 1 Phi, 1*240 = 240
+mpirun -np 30 lmp_g++ -k on t 8 -sf kk -in in.lj            # 30 MPI tasks on 1 Phi, 30*8 = 240
+mpirun -np 12 lmp_g++ -k on t 20 -sf kk -in in.lj           # 12 MPI tasks on 1 Phi, 12*20 = 240
+mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis
 
-mpirun -np 12 lmp_g++ -k on t 20 -sf kk -in in.lj      # 12*20 = 240
-mpirun -np 15 lmp_g++ -k on t 16 -sf kk -in in.lj
-mpirun -np 30 lmp_g++ -k on t 8 -sf kk -in in.lj
-mpirun -np 1 lmp_g++ -k on t 240 -sf kk -in in.lj :pre
 
 host=OMP, device=CUDA, node = dual hex-core CPUs and a single GPU:
-
-mpirun -np 1 lmp_cuda -k on t 6 -sf kk -in in.lj       # one MPI task, 6 threads on CPU :pre
+mpirun -np 1 lmp_cuda -k on t 6 -sf kk -in in.lj          # one MPI task, 6 threads on CPU
+mpirun -np 4 -ppn 1 lmp_cuda -k on t 6 -sf kk -in in.lj   # ditto on 4 nodes :pre
 
 host=OMP, device=CUDA, node = dual 8-core CPUs and 2 GPUs:
-
-Dual 8-core CPUs and 2 GPUs:
-
-mpirun -np 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj   # two MPI tasks, 8 threads per CPU :pre
-
+mpirun -np 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj           # two MPI tasks, 8 threads per CPU
+mpirun -np 32 -ppn 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj   # ditto on 16 nodes :pre
 
 [Or run with the KOKKOS package by editing an input script:]
 
 The discussion above for the mpirun/mpiexec command and setting
+appropriate thread and GPU values for host=OMP or host=MIC or
+device=CUDA are the same.
 
-of one MPI task per GPU is the same.
+You must still use the "-k on" "command-line
+switch"_Section_start.html#start_7 to enable the KOKKOS package, and
+specify its additional arguments for hardware options appopriate to
+your system, as documented above.
 
-You must still use the "-c on" "command-line
-switch"_Section_start.html#start_7 to enable the USER-CUDA package.
-This also issues a default "package cuda 2"_pacakge.html command which
-sets the number of GPUs/node to use to 2.
+Use the "suffix kk"_suffix.html command, or you can explicitly add a
+"kk" suffix to individual styles in your input script, e.g.
 
-Use the "suffix cuda"_suffix.html command, or you can explicitly add a
-"cuda" suffix to individual styles in your input script, e.g.
+pair_style lj/cut/kk 2.5 :pre
 
-pair_style lj/cut/cuda 2.5 :pre
-
-You only need to use the "package cuda"_package.html command if you
-wish to change the number of GPUs/node to use or its other options.
-
-
-
-
-
-
-
-
+You only need to use the "package kokkos"_package.html command if you
+wish to change any of its option defaults.
 
 [Speed-ups to expect:]
 
@@ -1215,8 +1205,8 @@ When running on CPUs only, with multiple threads per MPI task,
 performance of a KOKKOS style is a bit slower than the USER-OMP
 package. :l
 
-When running on GPUs, KOKKOS currently out-performs the 
-USER-CUDA and GPU packages. :l
+When running on GPUs, KOKKOS is typically faster than the USER-CUDA
+and GPU packages. :l
 
 When running on Intel Xeon Phi, KOKKOS is not as fast as
 the USER-INTEL package, which is optimized for that hardware. :l,ule
@@ -1227,8 +1217,8 @@ hardware.
 
 [Guidelines for best performance:]
 
-Here are guidline for using the KOKKOS package on the different hardware
-configurations listed above.
+Here are guidline for using the KOKKOS package on the different
+hardware configurations listed above.
 
 Many of the guidelines use the "package kokkos"_package.html command
 See its doc page for details and default settings.  Experimenting with
@@ -1239,7 +1229,7 @@ its options can provide a speed-up for specific calculations.
 If N is the number of physical cores/node, then the number of MPI
 tasks/node * number of threads/task should not exceed N, and should
 typically equal N.  Note that the default threads/task is 1, as set by
-the "t" keyword of the -k "command-line
+the "t" keyword of the "-k" "command-line
 switch"_Section_start.html#start_7.  If you do not change this, no
 additional parallelism (beyond MPI) will be invoked on the host
 CPU(s).
@@ -1250,15 +1240,14 @@ run with 1 MPI task/node and N threads/task
 run with N MPI tasks/node and 1 thread/task
 run with settings in between these extremes :ul
 
-Examples of mpirun commands in these modes, for nodes with dual
-hex-core CPUs and no GPU, are shown above.
+Examples of mpirun commands in these modes are shown above.
 
 When using KOKKOS to perform multi-threading, it is important for
 performance to bind both MPI tasks to physical cores, and threads to
 physical cores, so they do not migrate during a simulation.
 
 If you are not certain MPI tasks are being bound (check the defaults
-for your MPI installation), it can be forced with these flags:
+for your MPI installation), binding can be forced with these flags:
 
 OpenMPI 1.8: mpirun -np 2 -bind-to socket -map-by socket ./lmp_openmpi ...
 Mvapich2 2.0: mpiexec -np 2 -bind-to socket -map-by socket ./lmp_mvapich ... :pre
@@ -1281,7 +1270,7 @@ details).
 The -np setting of the mpirun command should set the number of MPI
 tasks/node to be equal to the # of physical GPUs on the node. 
 
-Use the "-kokkos command-line switch"_Section_commands.html#start_7 to
+Use the "-k" "command-line switch"_Section_commands.html#start_7 to
 specify the number of GPUs per node, and the number of threads per MPI
 task.  As above for multi-core CPUs (and no GPU), if N is the number
 of physical cores/node, then the number of MPI tasks/node * number of
@@ -1291,14 +1280,13 @@ threads/task to a smaller value.  This is because using all the cores
 on a dual-socket node will incur extra cost to copy memory from the
 2nd socket to the GPU.
 
-Examples of mpirun commands that follow these rules, for nodes with
-dual hex-core CPUs and one or two GPUs, are shown above.
+Examples of mpirun commands that follow these rules are shown above.
 
-When using a GPU, you will achieve the best performance if your input
-script does not use any fix or compute styles which are not yet
-Kokkos-enabled.  This allows data to stay on the GPU for multiple
-timesteps, without being copied back to the host CPU.  Invoking a
-non-Kokkos fix or compute, or performing I/O for
+IMPORTANT NOTE: When using a GPU, you will achieve the best
+performance if your input script does not use any fix or compute
+styles which are not yet Kokkos-enabled.  This allows data to stay on
+the GPU for multiple timesteps, without being copied back to the host
+CPU.  Invoking a non-Kokkos fix or compute, or performing I/O for
 "thermo"_thermo_style.html or "dump"_dump.html output will cause data
 to be copied back to the CPU.
 
@@ -1334,8 +1322,7 @@ threads/task as Nt.  The product of these 2 values should be N, i.e.
 4 so that logical threads from more than one MPI task do not run on
 the same physical core.
 
-Examples of mpirun commands that follow these rules, for Intel Phi
-nodes with 61 cores, are shown above.
+Examples of mpirun commands that follow these rules are shown above.
 
 [Restrictions:]
 
@@ -1400,9 +1387,9 @@ specify how many threads per coprocessor to use :ul
 The latter two steps in the first case and the last step in the
 coprocessor case can be done using the "-pk omp" and "-sf intel" and
 "-pk intel" "command-line switches"_Section_start.html#start_7
-respectively.  Or any of the 3 steps can be done by adding the
-"package intel"_package.html or "suffix cuda"_suffix.html or "package
-intel"_package.html commands respectively to your input script.
+respectively.  Or the effect of the "-pk" or "-sf" switches can be
+duplicated by adding the "package intel"_package.html or "suffix
+intel"_suffix.html commands respectively to your input script.
 
 [Required hardware/software:]
 
@@ -1519,7 +1506,7 @@ all its options if these switches are not specified, and how to set
 the number of OpenMP threads via the OMP_NUM_THREADS environment
 variable if desired.
 
-[Or run with the USER-OMP package by editing an input script:]
+[Or run with the USER-INTEL package by editing an input script:]
 
 The discussion above for the mpirun/mpiexec command, MPI tasks/node,
 OpenMP threads per MPI task, and coprocessor threads per MPI task is

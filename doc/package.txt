@@ -451,10 +451,10 @@ The {offload_ghost} default setting is determined by the intel style
 being used.  The value used is output to the screen in the offload
 report at the end of each run.
 
-The default settings for the KOKKOS package are "package kk neigh full 
-comm/exchange host comm/forward host".  This is the case whether the
-"-sf kk" "command-line switch"_Section_start.html#start_7 is used or
-not.
+The default settings for the KOKKOS package are "package kokkos neigh
+full comm/exchange host comm/forward host".  This is the case whether
+the "-sf kk" "command-line switch"_Section_start.html#start_7 is used
+or not.
 
 If the "-sf omp" "command-line switch"_Section_start.html#start_7 is
 used then it is as if the command "package omp *" were invoked, to

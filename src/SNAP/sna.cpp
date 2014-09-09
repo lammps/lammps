@@ -128,6 +128,7 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
   wj = NULL;
   rcutij = NULL;
   nmax = 0;
+  idxj = NULL;
 
   timers = new double[20];
 
@@ -153,7 +154,7 @@ SNA::~SNA()
     memory->destroy(bvec);
     memory->destroy(dbvec);
   }
-
+  delete[] idxj;
 }
 
 void SNA::build_indexlist()
@@ -168,7 +169,7 @@ void SNA::build_indexlist()
 
     // indexList can be changed here
 
-    idxj = new SNA_LOOPINDICES_J[idxj_count];
+    idxj = new SNA_LOOPINDICES[idxj_count];
     idxj_max = idxj_count;
 
     idxj_count = 0;
@@ -193,7 +194,7 @@ void SNA::build_indexlist()
 
     // indexList can be changed here
 
-    idxj = new SNA_LOOPINDICES_J[idxj_count];
+    idxj = new SNA_LOOPINDICES[idxj_count];
     idxj_max = idxj_count;
 
     idxj_count = 0;
@@ -216,7 +217,7 @@ void SNA::build_indexlist()
 
     // indexList can be changed here
 
-    idxj = new SNA_LOOPINDICES_J[idxj_count];
+    idxj = new SNA_LOOPINDICES[idxj_count];
     idxj_max = idxj_count;
 
     idxj_count = 0;
@@ -239,7 +240,7 @@ void SNA::build_indexlist()
 
     // indexList can be changed here
 
-    idxj = new SNA_LOOPINDICES_J[idxj_count];
+    idxj = new SNA_LOOPINDICES[idxj_count];
     idxj_max = idxj_count;
 
     idxj_count = 0;

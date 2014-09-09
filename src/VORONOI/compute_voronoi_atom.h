@@ -34,8 +34,8 @@ class ComputeVoronoi : public Compute {
   void compute_vector();
   double memory_usage();
 
-  int pack_comm(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
 
  private:
   voro::container *con_mono;

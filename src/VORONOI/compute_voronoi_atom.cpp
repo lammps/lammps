@@ -55,8 +55,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
 
   con_mono = NULL;
   con_poly = NULL;
-  tags = NULL;
-  occvec = sendocc = lroot = lnext = NULL;
+  tags = occvec = sendocc = lroot = lnext = NULL;
 
   int iarg = 3;
   while ( iarg<narg ) {
@@ -294,9 +293,10 @@ void ComputeVoronoi::buildCells()
                        int(n[0]),int(n[1]),int(n[2]),false,false,false,8);
 
     // pass coordinates for local and ghost atoms to voro++
-    for (i = 0; i < nall; i++)
+    for (i = 0; i < nall; i++) {
       if( !onlyGroup || (mask[i] & groupbit) )
         con_poly->put(i,x[i][0],x[i][1],x[i][2],rfield[i]);
+    }
   } else {
     // monodisperse voro++ container
     delete con_mono;
@@ -450,7 +450,7 @@ void ComputeVoronoi::processCell(voronoicell_neighbor &c, int i)
       if (!have_narea) c.face_areas(narea);
       voro[i][2] = 0.0;
 
-      // each entry in neigh should correspond to amn entry in narea
+      // each entry in neigh should correspond to an entry in narea
       if (neighs != narea.size())
         error->all(FLERR,"voro++ error: 'narea' and 'neigh' have a different size.");
 
@@ -519,19 +519,19 @@ void ComputeVoronoi::compute_vector()
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeVoronoi::pack_comm(int n, int *list, double *buf,
+int ComputeVoronoi::pack_forward_comm(int n, int *list, double *buf,
                                   int pbc_flag, int *pbc)
 {
   int i,m=0;
-  for (i = 0; i < n; i++) buf[m++] = rfield[list[i]];
+  for (i = 0; i < n; ++i) buf[m++] = rfield[list[i]];
   return 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeVoronoi::unpack_comm(int n, int first, double *buf)
+void ComputeVoronoi::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,last,m=0;
   last = first + n;
-  for (i = first; i < last; i++) rfield[i] = buf[m++];
+  for (i = first; i < last; ++i) rfield[i] = buf[m++];
 }

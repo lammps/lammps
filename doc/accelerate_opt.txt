@@ -7,7 +7,7 @@
 
 :line
 
-"Return to Section accelerate"_Section_accelerate.html
+"Return to Section accelerate overview"_Section_accelerate.html
 
 5.3.6 OPT package :h4
 

@@ -17,7 +17,10 @@ args = arguments specific to the style :l
   {cuda} args = Ngpu keyword value ...
     Ngpu = # of GPUs per node
     zero or more keyword/value pairs may be appended
-    keywords = {gpuID} or {timing} or {test} or {thread}
+    keywords = {newton} or {gpuID} or {timing} or {test} or {thread}
+      {newton} = {off} or {on}
+        off = set Newton pairwise and bonded flags off (default)
+        on = set Newton pairwise and bonded flags on
       {gpuID} values = gpu1 .. gpuN
         gpu1 .. gpuN = IDs of the Ngpu GPUs to use
       {timing} values = none
@@ -34,6 +37,9 @@ args = arguments specific to the style :l
       {neigh} value = {yes} or {no}
         yes = neighbor list build on GPU (default)
         no = neighbor list build on CPU
+      {newton} = {off} or {on}
+        off = set Newton pairwise flag off (default and required)
+        on = set Newton pairwise flag on (currently not allowed)
       {split} = fraction
         fraction = fraction of atoms assigned to GPU (default = 1.0)
       {gpuID} values = first last
@@ -71,6 +77,9 @@ args = arguments specific to the style :l
         half = half neighbor list, not thread-safe, only use when 1 thread/MPI task
         n2 = non-binning neighbor list build, O(N^2) algorithm
         full/cluster = full neighbor list with clustered groups of atoms
+      {newton} = {off} or {on}
+        off = set Newton pairwise and bonded flags off (default)
+        on = set Newton pairwise and bonded flags on
       {comm} value = {no} or {host} or {device}
         use value for both comm/exchange and comm/forward
       {comm/exchange} value = {no} or {host} or {device}
@@ -157,6 +166,12 @@ exactly one MPI task per GPU, as set by the mpirun or mpiexec command.
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
 
+The {newton} keyword sets the Newton flags for pairwise and bonded
+interactions to {off} or {on}, the same as the "newton"_newton.html
+command allows.  The default is {off} because this will almost always
+give better performance for the USER-CUDA package.  This means
+more computation is done, but less communication.
+
 The {gpuID} keyword allows selection of which GPUs on each node will
 be used for a simulation.  GPU IDs range from 0 to N-1 where N is the
 physical number of GPUs/node.  An ID is specified for each of the
@@ -220,6 +235,16 @@ compatible with comannds that are not GPU-enabled.  When a non-GPU
 enabled command requires a neighbor list, it will also be built on the
 CPU.  In these cases, it will typically be more efficient to only use
 CPU neighbor list builds.
+
+The {newton} keyword sets the Newton flags for pairwise (not bonded)
+interactions to {off} or {on}, the same as the "newton"_newton.html
+command allows.  Currently, only an {off} value is allowed, since all
+the GPU package pair styles require this setting.  This means more
+computation is done, but less communication.  In the future a value of
+{on} may be allowed, so the {newton} keyword is included as an option
+for compatibility with the package command for other accelerator
+styles.  Note that the newton setting for bonded interactions is not
+affected by this keyword.
 
 The {split} keyword can be used for load balancing force calculations
 between CPU and GPU cores in GPU-enabled pair styles. If 0 < {split} <
@@ -366,7 +391,10 @@ than the other methods, which use binning.
 A value of {full} uses a full neighbor lists and is the default.  This
 performs twice as much computation as the {half} option, however that
 is often a win because it is thread-safe and doesn't require atomic
-operations in the calculation of pair forces.
+operations in the calculation of pair forces.  For that reason, {full}
+is the default setting.  However, when running in MPI-only mode with 1
+thread per MPI task, {half} neighbor lists will typically be faster,
+just as it is for non-accelerated pair styles.
 
 A value of {full/cluster} is an experimental neighbor style, where
 particles interact with all particles within a small cluster, if at
@@ -375,6 +403,14 @@ range.  This potentially allows for better vectorization on
 architectures such as the Intel Phi.  If also reduces the size of the
 neighbor list by roughly a factor of the cluster size, thus reducing
 the total memory footprint considerably.
+
+The {newton} keyword sets the Newton flags for pairwise and bonded
+interactions to {off} or {on}, the same as the "newton"_newton.html
+command allows.  The default is {off} because this will almost always
+give better performance for the KOKKOS package.  This means more
+computation is done, but less communication.  However, when running in
+MPI-only mode with 1 thread per MPI task, a value of {on} will
+typically be faster, just as it is for non-accelerated pair styles.
 
 The {comm} and {comm/exchange} and {comm/forward} keywords determine
 whether the host or device performs the packing and unpacking of data
@@ -507,17 +543,17 @@ setting"_Section_start.html#start_7
 [Default:]
 
 For the USER-CUDA package, the default is Ngpu = 1 and the option
-defaults are gpuID = 0 to Ngpu-1, timing = not enabled, test = not
-enabled, and thread = auto.  These settings are made automatically by
-the required "-c on" "command-line switch"_Section_start.html#start_7.
-You can change them bu using the package cuda command in your input
-script or via the "-pk cuda" "command-line
-switch"_Section_start.html#start_7.
+defaults are newton = off, gpuID = 0 to Ngpu-1, timing = not enabled,
+test = not enabled, and thread = auto.  These settings are made
+automatically by the required "-c on" "command-line
+switch"_Section_start.html#start_7.  You can change them bu using the
+package cuda command in your input script or via the "-pk cuda"
+"command-line switch"_Section_start.html#start_7.
 
 For the GPU package, the default is Ngpu = 1 and the option defaults
-are neigh = yes, split = 1.0, gpuID = 0 to Ngpu-1, tpa = 1, binsize =
-pair cutoff + neighbor skin, device = not used.  These settings are
-made automatically if the "-sf gpu" "command-line
+are neigh = yes, newton = off, split = 1.0, gpuID = 0 to Ngpu-1, tpa =
+1, binsize = pair cutoff + neighbor skin, device = not used.  These
+settings are made automatically if the "-sf gpu" "command-line
 switch"_Section_start.html#start_7 is used.  If it is not used, you
 must invoke the package gpu command in your input script or via the
 "-pk gpu" "command-line switch"_Section_start.html#start_7.
@@ -533,11 +569,12 @@ switch"_Section_start.html#start_7 is used.  If it is not used, you
 must invoke the package intel command in your input script or or via
 the "-pk intel" "command-line switch"_Section_start.html#start_7.
 
-For the KOKKOS package, the option defaults neigh = full and comm =
-host.  These settings are made automatically by the required "-k on"
-"command-line switch"_Section_start.html#start_7.  You can change them
-bu using the package kokkos command in your input script or via the
-"-pk kokkos" "command-line switch"_Section_start.html#start_7.
+For the KOKKOS package, the option defaults neigh = full, newton =
+off, and comm = host.  These settings are made automatically by the
+required "-k on" "command-line switch"_Section_start.html#start_7.
+You can change them bu using the package kokkos command in your input
+script or via the "-pk kokkos" "command-line
+switch"_Section_start.html#start_7.
 
 For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if

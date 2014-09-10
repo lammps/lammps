@@ -1,0 +1,247 @@
+<HTML>
+<CENTER><A HREF = "Section_packages.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
+<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<P><A HREF = "Section_accelerate.html">Return to Section accelerate overview</A>
+</P>
+<H4>5.3.2 GPU package 
+</H4>
+<P>The GPU package was developed by Mike Brown at ORNL and his
+collaborators, particularly Trung Nguyen (ORNL).  It provides GPU
+versions of many pair styles, including the 3-body Stillinger-Weber
+pair style, and for <A HREF = "kspace_style.html">kspace_style pppm</A> for
+long-range Coulombics.  It has the following general features:
+</P>
+<UL><LI>It is designed to exploit common GPU hardware configurations where one
+or more GPUs are coupled to many cores of one or more multi-core CPUs,
+e.g. within a node of a parallel machine. 
+
+<LI>Atom-based data (e.g. coordinates, forces) moves back-and-forth
+between the CPU(s) and GPU every timestep. 
+
+<LI>Neighbor lists can be built on the CPU or on the GPU 
+
+<LI>The charge assignement and force interpolation portions of PPPM can be
+run on the GPU.  The FFT portion, which requires MPI communication
+between processors, runs on the CPU. 
+
+<LI>Asynchronous force computations can be performed simultaneously on the
+CPU(s) and GPU. 
+
+<LI>It allows for GPU computations to be performed in single or double
+precision, or in mixed-mode precision, where pairwise forces are
+computed in single precision, but accumulated into double-precision
+force vectors. 
+
+<LI>LAMMPS-specific code is in the GPU package.  It makes calls to a
+generic GPU library in the lib/gpu directory.  This library provides
+NVIDIA support as well as more general OpenCL support, so that the
+same functionality can eventually be supported on a variety of GPU
+hardware. 
+</UL>
+<P>Here is a quick overview of how to use the GPU package:
+</P>
+<UL><LI>build the library in lib/gpu for your GPU hardware wity desired precision
+<LI>include the GPU package and build LAMMPS
+<LI>use the mpirun command to set the number of MPI tasks/node which determines the number of MPI tasks/GPU
+<LI>specify the # of GPUs per node
+<LI>use GPU styles in your input script 
+</UL>
+<P>The latter two steps can be done using the "-pk gpu" and "-sf gpu"
+<A HREF = "Section_start.html#start_7">command-line switches</A> respectively.  Or
+the effect of the "-pk" or "-sf" switches can be duplicated by adding
+the <A HREF = "package.html">package gpu</A> or <A HREF = "suffix.html">suffix gpu</A> commands
+respectively to your input script.
+</P>
+<P><B>Required hardware/software:</B>
+</P>
+<P>To use this package, you currently need to have an NVIDIA GPU and
+install the NVIDIA Cuda software on your system:
+</P>
+<UL><LI>Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/0/information
+<LI>Go to http://www.nvidia.com/object/cuda_get.html
+<LI>Install a driver and toolkit appropriate for your system (SDK is not necessary)
+<LI>Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) to list supported devices and properties 
+</UL>
+<P><B>Building LAMMPS with the GPU package:</B>
+</P>
+<P>This requires two steps (a,b): build the GPU library, then build
+LAMMPS with the GPU package.
+</P>
+<P>(a) Build the GPU library
+</P>
+<P>The GPU library is in lammps/lib/gpu.  Select a Makefile.machine (in
+lib/gpu) appropriate for your system.  You should pay special
+attention to 3 settings in this makefile.
+</P>
+<UL><LI>CUDA_HOME = needs to be where NVIDIA Cuda software is installed on your system
+<LI>CUDA_ARCH = needs to be appropriate to your GPUs
+<LI>CUDA_PREC = precision (double, mixed, single) you desire 
+</UL>
+<P>See lib/gpu/Makefile.linux.double for examples of the ARCH settings
+for different GPU choices, e.g. Fermi vs Kepler.  It also lists the
+possible precision settings:
+</P>
+<PRE>CUDA_PREC = -D_SINGLE_SINGLE  # single precision for all calculations
+CUDA_PREC = -D_DOUBLE_DOUBLE  # double precision for all calculations
+CUDA_PREC = -D_SINGLE_DOUBLE  # accumulation of forces, etc, in double 
+</PRE>
+<P>The last setting is the mixed mode referred to above.  Note that your
+GPU must support double precision to use either the 2nd or 3rd of
+these settings.
+</P>
+<P>To build the library, type:
+</P>
+<PRE>make -f Makefile.machine 
+</PRE>
+<P>If successful, it will produce the files libgpu.a and Makefile.lammps.
+</P>
+<P>The latter file has 3 settings that need to be appropriate for the
+paths and settings for the CUDA system software on your machine.
+Makefile.lammps is a copy of the file specified by the EXTRAMAKE
+setting in Makefile.machine.  You can change EXTRAMAKE or create your
+own Makefile.lammps.machine if needed.
+</P>
+<P>Note that to change the precision of the GPU library, you need to
+re-build the entire library.  Do a "clean" first, e.g. "make -f
+Makefile.linux clean", followed by the make command above.
+</P>
+<P>(b) Build LAMMPS with the GPU package
+</P>
+<PRE>cd lammps/src
+make yes-gpu
+make machine 
+</PRE>
+<P>No additional compile/link flags are needed in your Makefile.machine
+in src/MAKE.
+</P>
+<P>Note that if you change the GPU library precision (discussed above)
+and rebuild the GPU library, then you also need to re-install the GPU
+package and re-build LAMMPS, so that all affected files are
+re-compiled and linked to the new GPU library.
+</P>
+<P><B>Run with the GPU package from the command line:</B>
+</P>
+<P>The mpirun or mpiexec command sets the total number of MPI tasks used
+by LAMMPS (one or multiple per compute node) and the number of MPI
+tasks used per node.  E.g. the mpirun command does this via its -np
+and -ppn switches.
+</P>
+<P>When using the GPU package, you cannot assign more than one GPU to a
+single MPI task.  However multiple MPI tasks can share the same GPU,
+and in many cases it will be more efficient to run this way.  Likewise
+it may be more efficient to use less MPI tasks/node than the available
+# of CPU cores.  Assignment of multiple MPI tasks to a GPU will happen
+automatically if you create more MPI tasks/node than there are
+GPUs/mode.  E.g. with 8 MPI tasks/node and 2 GPUs, each GPU will be
+shared by 4 MPI tasks.
+</P>
+<P>Use the "-sf gpu" <A HREF = "Section_start.html#start_7">command-line switch</A>,
+which will automatically append "gpu" to styles that support it.  Use
+the "-pk gpu Ng" <A HREF = "Section_start.html#start_7">command-line switch</A> to
+set Ng = # of GPUs/node to use.
+</P>
+<PRE>lmp_machine -sf gpu -pk gpu 1 -in in.script                         # 1 MPI task uses 1 GPU
+mpirun -np 12 lmp_machine -sf gpu -pk gpu 2 -in in.script           # 12 MPI tasks share 2 GPUs on a single 16-core (or whatever) node
+mpirun -np 48 -ppn 12 lmp_machine -sf gpu -pk gpu 2 -in in.script   # ditto on 4 16-core nodes 
+</PRE>
+<P>Note that if the "-sf gpu" switch is used, it also issues a default
+<A HREF = "package.html">package gpu 1</A> command, which sets the number of
+GPUs/node to use to 1.
+</P>
+<P>Using the "-pk" switch explicitly allows for direct setting of the
+number of GPUs/node to use and additional options.  Its syntax is the
+same as same as the "package gpu" command.  See the
+<A HREF = "package.html">package</A> command doc page for details, including the
+default values used for all its options if it is not specified.
+</P>
+<P><B>Or run with the GPU package by editing an input script:</B>
+</P>
+<P>The discussion above for the mpirun/mpiexec command, MPI tasks/node,
+and use of multiple MPI tasks/GPU is the same.
+</P>
+<P>Use the <A HREF = "suffix.html">suffix gpu</A> command, or you can explicitly add an
+"gpu" suffix to individual styles in your input script, e.g.
+</P>
+<PRE>pair_style lj/cut/gpu 2.5 
+</PRE>
+<P>You must also use the <A HREF = "package.html">package gpu</A> command to enable the
+GPU package, unless the "-sf gpu" or "-pk gpu" <A HREF = "Section_start.html#start_7">command-line
+switches</A> were used.  It specifies the
+number of GPUs/node to use, as well as other options.
+</P>
+<P>IMPORTANT NOTE: The input script must also use a newton pairwise
+setting of <I>off</I> in order to use GPU package pair styles.  This can be
+set via the <A HREF = "package.html">package gpu</A> or <A HREF = "newton.html">newton</A>
+commands.
+</P>
+<P><B>Speed-ups to expect:</B>
+</P>
+<P>The performance of a GPU versus a multi-core CPU is a function of your
+hardware, which pair style is used, the number of atoms/GPU, and the
+precision used on the GPU (double, single, mixed).
+</P>
+<P>See the <A HREF = "http://lammps.sandia.gov/bench.html">Benchmark page</A> of the
+LAMMPS web site for performance of the GPU package on various
+hardware, including the Titan HPC platform at ORNL.
+</P>
+<P>You should also experiment with how many MPI tasks per GPU to use to
+give the best performance for your problem and machine.  This is also
+a function of the problem size and the pair style being using.
+Likewise, you should experiment with the precision setting for the GPU
+library to see if single or mixed precision will give accurate
+results, since they will typically be faster.
+</P>
+<P><B>Guidelines for best performance:</B>
+</P>
+<UL><LI>Using multiple MPI tasks per GPU will often give the best performance,
+as allowed my most multi-core CPU/GPU configurations. 
+
+<LI>If the number of particles per MPI task is small (e.g. 100s of
+particles), it can be more efficient to run with fewer MPI tasks per
+GPU, even if you do not use all the cores on the compute node. 
+
+<LI>The <A HREF = "package.html">package gpu</A> command has several options for tuning
+performance.  Neighbor lists can be built on the GPU or CPU.  Force
+calculations can be dynamically balanced across the CPU cores and
+GPUs.  GPU-specific settings can be made which can be optimized
+for different hardware.  See the <A HREF = "package.html">packakge</A> command
+doc page for details. 
+
+<LI>As described by the <A HREF = "package.html">package gpu</A> command, GPU
+accelerated pair styles can perform computations asynchronously with
+CPU computations. The "Pair" time reported by LAMMPS will be the
+maximum of the time required to complete the CPU pair style
+computations and the time required to complete the GPU pair style
+computations. Any time spent for GPU-enabled pair styles for
+computations that run simultaneously with <A HREF = "bond_style.html">bond</A>,
+<A HREF = "angle_style.html">angle</A>, <A HREF = "dihedral_style.html">dihedral</A>,
+<A HREF = "improper_style.html">improper</A>, and <A HREF = "kspace_style.html">long-range</A>
+calculations will not be included in the "Pair" time. 
+
+<LI>When the <I>mode</I> setting for the package gpu command is force/neigh,
+the time for neighbor list calculations on the GPU will be added into
+the "Pair" time, not the "Neigh" time.  An additional breakdown of the
+times required for various tasks on the GPU (data copy, neighbor
+calculations, force computations, etc) are output only with the LAMMPS
+screen output (not in the log file) at the end of each run.  These
+timings represent total time spent on the GPU for each routine,
+regardless of asynchronous CPU calculations. 
+
+<LI>The output section "GPU Time Info (average)" reports "Max Mem / Proc".
+This is the maximum memory used at one time on the GPU for data
+storage by a single MPI process. 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>None.
+</P>
+</HTML>

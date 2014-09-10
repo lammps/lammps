@@ -101,9 +101,16 @@ package intel * mixed balance -1
 following packages use it: USER-CUDA, GPU, USER-INTEL, KOKKOS, and
 USER-OMP.
 </P>
-<P>Talk about command line switches
+<P>If allows calling multiple times, all options set to their
+defaults, whether specified or not.
 </P>
-<P>When does it have to be invoked
+<P>Talk about command line switch -pk as alternate option.
+</P>
+<P>Which packages require it to be invoked, only CUDA
+  this is b/c can only be invoked once
+vs optional: all others?  and allow multiple invokes
+</P>
+<P>Must be invoked early in script, before simulation box is defined.
 </P>
 <P>To use the accelerated GPU and USER-OMP styles, the use of the package
 command is required.  However, as described in the "Defaults" section
@@ -120,7 +127,8 @@ need to use the package command if you want to change the defaults.
 more details about using these various packages for accelerating
 LAMMPS calculations.
 </P>
-<P>Package GPU always sets newton pair off.  Not so for USER-CUDA>
+<P>Package GPU always sets newton pair off.  Not so for USER-CUDA
+add newton options to GPU, CUDA, KOKKOS.
 </P>
 <HR>
 

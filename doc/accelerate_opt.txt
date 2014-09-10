@@ -1,0 +1,72 @@
+"Previous Section"_Section_packages.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+"Return to Section accelerate"_Section_accelerate.html
+
+5.3.6 OPT package :h4
+
+The OPT package was developed by James Fischer (High Performance
+Technologies), David Richie, and Vincent Natoli (Stone Ridge
+Technologies).  It contains a handful of pair styles whose compute()
+methods were rewritten in C++ templated form to reduce the overhead
+due to if tests and other conditional code.
+
+Here is a quick overview of how to use the OPT package:
+
+include the OPT package and build LAMMPS
+use OPT pair styles in your input script :ul
+
+The last step can be done using the "-sf opt" "command-line
+switch"_Section_start.html#start_7.  Or the effect of the "-sf" switch
+can be duplicated by adding a "suffix opt"_suffix.html command to your
+input script.
+
+[Required hardware/software:]
+
+None.
+
+[Building LAMMPS with the OPT package:]
+
+Include the package and build LAMMPS:
+
+cd lammps/src
+make yes-opt
+make machine :pre
+
+No additional compile/link flags are needed in your Makefile.machine
+in src/MAKE.
+
+[Run with the OPT package from the command line:]
+
+Use the "-sf opt" "command-line switch"_Section_start.html#start_7,
+which will automatically append "opt" to styles that support it.
+
+lmp_machine -sf opt -in in.script
+mpirun -np 4 lmp_machine -sf opt -in in.script :pre
+
+[Or run with the OPT package by editing an input script:]
+
+Use the "suffix opt"_suffix.html command, or you can explicitly add an
+"opt" suffix to individual styles in your input script, e.g.
+
+pair_style lj/cut/opt 2.5 :pre
+
+[Speed-ups to expect:]
+
+You should see a reduction in the "Pair time" value printed at the end
+of a run.  On most machines for reasonable problem sizes, it will be a
+5 to 20% savings.
+
+[Guidelines for best performance:]
+
+None.  Just try out an OPT pair style to see how it performs.
+
+[Restrictions:]
+
+None.

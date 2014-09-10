@@ -95,9 +95,16 @@ This command invokes package-specific settings.  Currently the
 following packages use it: USER-CUDA, GPU, USER-INTEL, KOKKOS, and
 USER-OMP.
 
-Talk about command line switches
+If allows calling multiple times, all options set to their
+defaults, whether specified or not.
 
-When does it have to be invoked
+Talk about command line switch -pk as alternate option.
+
+Which packages require it to be invoked, only CUDA
+  this is b/c can only be invoked once
+vs optional: all others?  and allow multiple invokes
+
+Must be invoked early in script, before simulation box is defined.
 
 To use the accelerated GPU and USER-OMP styles, the use of the package
 command is required.  However, as described in the "Defaults" section
@@ -114,7 +121,8 @@ See "Section_accelerate"_Section_accelerate.html of the manual for
 more details about using these various packages for accelerating
 LAMMPS calculations.
 
-Package GPU always sets newton pair off.  Not so for USER-CUDA>
+Package GPU always sets newton pair off.  Not so for USER-CUDA
+add newton options to GPU, CUDA, KOKKOS.
 
 :line
 

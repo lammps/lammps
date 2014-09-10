@@ -1,0 +1,426 @@
+<HTML>
+<CENTER><A HREF = "Section_packages.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
+<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<P><A HREF = "Section_accelerate.html">Return to Section accelerate overview</A>
+</P>
+<H4>5.3.4 KOKKOS package 
+</H4>
+<P>The KOKKOS package was developed primaritly by Christian Trott
+(Sandia) with contributions of various styles by others, including
+Sikandar Mashayak (UIUC).  The underlying Kokkos library was written
+primarily by Carter Edwards, Christian Trott, and Dan Sunderland (all
+Sandia).
+</P>
+<P>The KOKKOS package contains versions of pair, fix, and atom styles
+that use data structures and macros provided by the Kokkos library,
+which is included with LAMMPS in lib/kokkos.
+</P>
+<P>The Kokkos library is part of
+<A HREF = "http://trilinos.sandia.gov/packages/kokkos">Trilinos</A> and is a
+templated C++ library that provides two key abstractions for an
+application like LAMMPS.  First, it allows a single implementation of
+an application kernel (e.g. a pair style) to run efficiently on
+different kinds of hardware, such as a GPU, Intel Phi, or many-core
+chip.
+</P>
+<P>The Kokkos library also provides data abstractions to adjust (at
+compile time) the memory layout of basic data structures like 2d and
+3d arrays and allow the transparent utilization of special hardware
+load and store operations.  Such data structures are used in LAMMPS to
+store atom coordinates or forces or neighbor lists.  The layout is
+chosen to optimize performance on different platforms.  Again this
+functionality is hidden from the developer, and does not affect how
+the kernel is coded.
+</P>
+<P>These abstractions are set at build time, when LAMMPS is compiled with
+the KOKKOS package installed.  This is done by selecting a "host" and
+"device" to build for, compatible with the compute nodes in your
+machine (one on a desktop machine or 1000s on a supercomputer).
+</P>
+<P>All Kokkos operations occur within the context of an individual MPI
+task running on a single node of the machine.  The total number of MPI
+tasks used by LAMMPS (one or multiple per compute node) is set in the
+usual manner via the mpirun or mpiexec commands, and is independent of
+Kokkos.
+</P>
+<P>Kokkos provides support for two different modes of execution per MPI
+task.  This means that computational tasks (pairwise interactions,
+neighbor list builds, time integration, etc) can be parallelized for
+one or the other of the two modes.  The first mode is called the
+"host" and is one or more threads running on one or more physical CPUs
+(within the node).  Currently, both multi-core CPUs and an Intel Phi
+processor (running in native mode, not offload mode like the
+USER-INTEL package) are supported.  The second mode is called the
+"device" and is an accelerator chip of some kind.  Currently only an
+NVIDIA GPU is supported.  If your compute node does not have a GPU,
+then there is only one mode of execution, i.e. the host and device are
+the same.
+</P>
+<P>Here is a quick overview of how to use the KOKKOS package
+for GPU acceleration:
+</P>
+<UL><LI>specify variables and settings in your Makefile.machine that enable GPU, Phi, or OpenMP support
+<LI>include the KOKKOS package and build LAMMPS
+<LI>enable the KOKKOS package and its hardware options via the "-k on" command-line switch
+<LI>use KOKKOS styles in your input script 
+</UL>
+<P>The latter two steps can be done using the "-k on", "-pk kokkos" and
+"-sf kk" <A HREF = "Section_start.html#start_7">command-line switches</A>
+respectively.  Or the effect of the "-pk" or "-sf" switches can be
+duplicated by adding the <A HREF = "package.html">package kokkos</A> or <A HREF = "suffix.html">suffix
+kk</A> commands respectively to your input script.
+</P>
+<P><B>Required hardware/software:</B>
+</P>
+<P>The KOKKOS package can be used to build and run LAMMPS on the
+following kinds of hardware:
+</P>
+<UL><LI>CPU-only: one MPI task per CPU core (MPI-only, but using KOKKOS styles)
+<LI>CPU-only: one or a few MPI tasks per node with additional threading via OpenMP
+<LI>Phi: on one or more Intel Phi coprocessors (per node)
+<LI>GPU: on the GPUs of a node with additional OpenMP threading on the CPUs 
+</UL>
+<P>Note that Intel Xeon Phi coprocessors are supported in "native" mode,
+not "offload" mode like the USER-INTEL package supports.
+</P>
+<P>Only NVIDIA GPUs are currently supported.
+</P>
+<P>IMPORTANT NOTE: For good performance of the KOKKOS package on GPUs,
+you must have Kepler generation GPUs (or later).  The Kokkos library
+exploits texture cache options not supported by Telsa generation GPUs
+(or older).
+</P>
+<P>To build the KOKKOS package for GPUs, NVIDIA Cuda software must be
+installed on your system.  See the discussion above for the USER-CUDA
+and GPU packages for details of how to check and do this.
+</P>
+<P><B>Building LAMMPS with the KOKKOS package:</B>
+</P>
+<P>Unlike other acceleration packages discussed in this section, the
+Kokkos library in lib/kokkos does not have to be pre-built before
+building LAMMPS itself.  Instead, options for the Kokkos library are
+specified at compile time, when LAMMPS itself is built.  This can be
+done in one of two ways, as discussed below.
+</P>
+<P>Here are examples of how to build LAMMPS for the different compute-node
+configurations listed above.
+</P>
+<P>CPU-only (run all-MPI or with OpenMP threading):
+</P>
+<PRE>cd lammps/src
+make yes-kokkos
+make g++ OMP=yes 
+</PRE>
+<P>Intel Xeon Phi:
+</P>
+<PRE>cd lammps/src
+make yes-kokkos
+make g++ OMP=yes MIC=yes 
+</PRE>
+<P>CPUs and GPUs:
+</P>
+<PRE>cd lammps/src
+make yes-kokkos
+make cuda CUDA=yes 
+</PRE>
+<P>These examples set the KOKKOS-specific OMP, MIC, CUDA variables on the
+make command line which requires a GNU-compatible make command.  Try
+"gmake" if your system's standard make complains.  
+</P>
+<P>IMPORTANT NOTE: If you build using make line variables and re-build
+LAMMPS twice with different KOKKOS options and the *same* target,
+e.g. g++ in the first two examples above, then you *must* perform a
+"make clean-all" or "make clean-machine" before each build.  This is
+to force all the KOKKOS-dependent files to be re-compiled with the new
+options.
+</P>
+<P>You can also hardwire these make variables in the specified machine
+makefile, e.g. src/MAKE/Makefile.g++ in the first two examples above,
+with a line like:
+</P>
+<PRE>MIC = yes 
+</PRE>
+<P>Note that if you build LAMMPS multiple times in this manner, using
+different KOKKOS options (defined in different machine makefiles), you
+do not have to worry about doing a "clean" in between.  This is
+because the targets will be different.
+</P>
+<P>IMPORTANT NOTE: The 3rd example above for a GPU, uses a different
+machine makefile, in this case src/MAKE/Makefile.cuda, which is
+included in the LAMMPS distribution.  To build the KOKKOS package for
+a GPU, this makefile must use the NVIDA "nvcc" compiler.  And it must
+have a CCFLAGS -arch setting that is appropriate for your NVIDIA
+hardware and installed software.  Typical values for -arch are given
+in <A HREF = "Section_start.html#start_3_4">Section 2.3.4</A> of the manual, as well
+as other settings that must be included in the machine makefile, if
+you create your own.
+</P>
+<P>There are other allowed options when building with the KOKKOS package.
+As above, They can be set either as variables on the make command line
+or in the machine makefile in the src/MAKE directory.  See <A HREF = "Section_start.html#start_3_4">Section
+2.3.4</A> of the manual for details.
+</P>
+<P>IMPORTANT NOTE: Currently, there are no precision options with the
+KOKKOS package.  All compilation and computation is performed in
+double precision.
+</P>
+<P><B>Run with the KOKKOS package from the command line:</B>
+</P>
+<P>The mpirun or mpiexec command sets the total number of MPI tasks used
+by LAMMPS (one or multiple per compute node) and the number of MPI
+tasks used per node.  E.g. the mpirun command does this via its -np
+and -ppn switches.
+</P>
+<P>When using KOKKOS built with host=OMP, you need to choose how many
+OpenMP threads per MPI task will be used (via the "-k" command-line
+switch discussed below).  Note that the product of MPI tasks * OpenMP
+threads/task should not exceed the physical number of cores (on a
+node), otherwise performance will suffer.
+</P>
+<P>When using the KOKKOS package built with device=CUDA, you must use
+exactly one MPI task per physical GPU.
+</P>
+<P>When using the KOKKOS package built with host=MIC for Intel Xeon Phi
+coprocessor support you need to insure there are one or more MPI tasks
+per coprocessor, and choose the number of coprocessor threads to use
+per MPI task (via the "-k" command-line switch discussed below).  The
+product of MPI tasks * coprocessor threads/task should not exceed the
+maximum number of threads the coproprocessor is designed to run,
+otherwise performance will suffer.  This value is 240 for current
+generation Xeon Phi(TM) chips, which is 60 physical cores * 4
+threads/core.  Note that with the KOKKOS package you do not need to
+specify how many Phi coprocessors there are per node; each
+coprocessors is simply treated as running some number of MPI tasks.
+</P>
+<P>You must use the "-k on" <A HREF = "Section_start.html#start_7">command-line
+switch</A> to enable the KOKKOS package.  It
+takes additional arguments for hardware settings appropriate to your
+system.  Those arguments are <A HREF = "Section_start.html#start_7">documented
+here</A>.  The two most commonly used arguments
+are:
+</P>
+<PRE>-k on t Nt
+-k on g Ng 
+</PRE>
+<P>The "t Nt" option applies to host=OMP (even if device=CUDA) and
+host=MIC.  For host=OMP, it specifies how many OpenMP threads per MPI
+task to use with a node.  For host=MIC, it specifies how many Xeon Phi
+threads per MPI task to use within a node.  The default is Nt = 1.
+Note that for host=OMP this is effectively MPI-only mode which may be
+fine.  But for host=MIC you will typically end up using far less than
+all the 240 available threads, which could give very poor performance.
+</P>
+<P>The "g Ng" option applies to device=CUDA.  It specifies how many GPUs
+per compute node to use.  The default is 1, so this only needs to be
+specified is you have 2 or more GPUs per compute node.
+</P>
+<P>The "-k on" switch also issues a default <A HREF = "package.html">package kokkos neigh full
+comm host</A> command which sets various KOKKOS options to
+default values, as discussed on the <A HREF = "package.html">package</A> command doc
+page.
+</P>
+<P>Use the "-sf kk" <A HREF = "Section_start.html#start_7">command-line switch</A>,
+which will automatically append "kk" to styles that support it.  Use
+the "-pk kokkos" <A HREF = "Section_start.html#start_7">command-line switch</A> if
+you wish to override any of the default values set by the <A HREF = "package.html">package
+kokkos</A> command invoked by the "-k on" switch.
+</P>
+<PRE>host=OMP, dual hex-core nodes (12 threads/node):
+mpirun -np 12 lmp_g++ -in in.lj                           # MPI-only mode with no Kokkos
+mpirun -np 12 lmp_g++ -k on -sf kk -in in.lj              # MPI-only mode with Kokkos
+mpirun -np 1 lmp_g++ -k on t 12 -sf kk -in in.lj          # one MPI task, 12 threads
+mpirun -np 2 lmp_g++ -k on t 6 -sf kk -in in.lj           # two MPI tasks, 6 threads/task 
+mpirun -np 32 -ppn 2 lmp_g++ -k on t 6 -sf kk -in in.lj   # ditto on 16 nodes 
+</PRE>
+<P>host=MIC, Intel Phi with 61 cores (240 threads/phi via 4x hardware threading):
+mpirun -np 1 lmp_g++ -k on t 240 -sf kk -in in.lj           # 1 MPI task on 1 Phi, 1*240 = 240
+mpirun -np 30 lmp_g++ -k on t 8 -sf kk -in in.lj            # 30 MPI tasks on 1 Phi, 30*8 = 240
+mpirun -np 12 lmp_g++ -k on t 20 -sf kk -in in.lj           # 12 MPI tasks on 1 Phi, 12*20 = 240
+mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis
+</P>
+<PRE>host=OMP, device=CUDA, node = dual hex-core CPUs and a single GPU:
+mpirun -np 1 lmp_cuda -k on t 6 -sf kk -in in.lj          # one MPI task, 6 threads on CPU
+mpirun -np 4 -ppn 1 lmp_cuda -k on t 6 -sf kk -in in.lj   # ditto on 4 nodes 
+</PRE>
+<PRE>host=OMP, device=CUDA, node = dual 8-core CPUs and 2 GPUs:
+mpirun -np 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj           # two MPI tasks, 8 threads per CPU
+mpirun -np 32 -ppn 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj   # ditto on 16 nodes 
+</PRE>
+<P><B>Or run with the KOKKOS package by editing an input script:</B>
+</P>
+<P>The discussion above for the mpirun/mpiexec command and setting
+appropriate thread and GPU values for host=OMP or host=MIC or
+device=CUDA are the same.
+</P>
+<P>You must still use the "-k on" <A HREF = "Section_start.html#start_7">command-line
+switch</A> to enable the KOKKOS package, and
+specify its additional arguments for hardware options appopriate to
+your system, as documented above.
+</P>
+<P>Use the <A HREF = "suffix.html">suffix kk</A> command, or you can explicitly add a
+"kk" suffix to individual styles in your input script, e.g.
+</P>
+<PRE>pair_style lj/cut/kk 2.5 
+</PRE>
+<P>You only need to use the <A HREF = "package.html">package kokkos</A> command if you
+wish to change any of its option defaults.
+</P>
+<P><B>Speed-ups to expect:</B>
+</P>
+<P>The performance of KOKKOS running in different modes is a function of
+your hardware, which KOKKOS-enable styles are used, and the problem
+size.
+</P>
+<P>Generally speaking, the following rules of thumb apply:
+</P>
+<UL><LI>When running on CPUs only, with a single thread per MPI task,
+performance of a KOKKOS style is somewhere between the standard
+(un-accelerated) styles (MPI-only mode), and those provided by the
+USER-OMP package.  However the difference between all 3 is small (less
+than 20%). 
+
+<LI>When running on CPUs only, with multiple threads per MPI task,
+performance of a KOKKOS style is a bit slower than the USER-OMP
+package. 
+
+<LI>When running on GPUs, KOKKOS is typically faster than the USER-CUDA
+and GPU packages. 
+
+<LI>When running on Intel Xeon Phi, KOKKOS is not as fast as
+the USER-INTEL package, which is optimized for that hardware. 
+</UL>
+<P>See the <A HREF = "http://lammps.sandia.gov/bench.html">Benchmark page</A> of the
+LAMMPS web site for performance of the KOKKOS package on different
+hardware.
+</P>
+<P><B>Guidelines for best performance:</B>
+</P>
+<P>Here are guidline for using the KOKKOS package on the different
+hardware configurations listed above.
+</P>
+<P>Many of the guidelines use the <A HREF = "package.html">package kokkos</A> command
+See its doc page for details and default settings.  Experimenting with
+its options can provide a speed-up for specific calculations.
+</P>
+<P><B>Running on a multi-core CPU:</B>
+</P>
+<P>If N is the number of physical cores/node, then the number of MPI
+tasks/node * number of threads/task should not exceed N, and should
+typically equal N.  Note that the default threads/task is 1, as set by
+the "t" keyword of the "-k" <A HREF = "Section_start.html#start_7">command-line
+switch</A>.  If you do not change this, no
+additional parallelism (beyond MPI) will be invoked on the host
+CPU(s).
+</P>
+<P>You can compare the performance running in different modes:
+</P>
+<UL><LI>run with 1 MPI task/node and N threads/task
+<LI>run with N MPI tasks/node and 1 thread/task
+<LI>run with settings in between these extremes 
+</UL>
+<P>Examples of mpirun commands in these modes are shown above.
+</P>
+<P>When using KOKKOS to perform multi-threading, it is important for
+performance to bind both MPI tasks to physical cores, and threads to
+physical cores, so they do not migrate during a simulation.
+</P>
+<P>If you are not certain MPI tasks are being bound (check the defaults
+for your MPI installation), binding can be forced with these flags:
+</P>
+<PRE>OpenMPI 1.8: mpirun -np 2 -bind-to socket -map-by socket ./lmp_openmpi ...
+Mvapich2 2.0: mpiexec -np 2 -bind-to socket -map-by socket ./lmp_mvapich ... 
+</PRE>
+<P>For binding threads with the KOKKOS OMP option, use thread affinity
+environment variables to force binding.  With OpenMP 3.1 (gcc 4.7 or
+later, intel 12 or later) setting the environment variable
+OMP_PROC_BIND=true should be sufficient.  For binding threads with the
+KOKKOS pthreads option, compile LAMMPS the KOKKOS HWLOC=yes option, as
+discussed in <A HREF = "Sections_start.html#start_3_4">Section 2.3.4</A> of the
+manual.
+</P>
+<P><B>Running on GPUs:</B>
+</P>
+<P>Insure the -arch setting in the machine makefile you are using,
+e.g. src/MAKE/Makefile.cuda, is correct for your GPU hardware/software
+(see <A HREF = "Section_start.html#start_3_4">this section</A> of the manual for
+details).
+</P>
+<P>The -np setting of the mpirun command should set the number of MPI
+tasks/node to be equal to the # of physical GPUs on the node. 
+</P>
+<P>Use the "-k" <A HREF = "Section_commands.html#start_7">command-line switch</A> to
+specify the number of GPUs per node, and the number of threads per MPI
+task.  As above for multi-core CPUs (and no GPU), if N is the number
+of physical cores/node, then the number of MPI tasks/node * number of
+threads/task should not exceed N.  With one GPU (and one MPI task) it
+may be faster to use less than all the available cores, by setting
+threads/task to a smaller value.  This is because using all the cores
+on a dual-socket node will incur extra cost to copy memory from the
+2nd socket to the GPU.
+</P>
+<P>Examples of mpirun commands that follow these rules are shown above.
+</P>
+<P>IMPORTANT NOTE: When using a GPU, you will achieve the best
+performance if your input script does not use any fix or compute
+styles which are not yet Kokkos-enabled.  This allows data to stay on
+the GPU for multiple timesteps, without being copied back to the host
+CPU.  Invoking a non-Kokkos fix or compute, or performing I/O for
+<A HREF = "thermo_style.html">thermo</A> or <A HREF = "dump.html">dump</A> output will cause data
+to be copied back to the CPU.
+</P>
+<P>You cannot yet assign multiple MPI tasks to the same GPU with the
+KOKKOS package.  We plan to support this in the future, similar to the
+GPU package in LAMMPS.
+</P>
+<P>You cannot yet use both the host (multi-threaded) and device (GPU)
+together to compute pairwise interactions with the KOKKOS package.  We
+hope to support this in the future, similar to the GPU package in
+LAMMPS.
+</P>
+<P><B>Running on an Intel Phi:</B>
+</P>
+<P>Kokkos only uses Intel Phi processors in their "native" mode, i.e.
+not hosted by a CPU.
+</P>
+<P>As illustrated above, build LAMMPS with OMP=yes (the default) and
+MIC=yes.  The latter insures code is correctly compiled for the Intel
+Phi.  The OMP setting means OpenMP will be used for parallelization on
+the Phi, which is currently the best option within Kokkos.  In the
+future, other options may be added.
+</P>
+<P>Current-generation Intel Phi chips have either 61 or 57 cores.  One
+core should be excluded for running the OS, leaving 60 or 56 cores.
+Each core is hyperthreaded, so there are effectively N = 240 (4*60) or
+N = 224 (4*56) cores to run on.
+</P>
+<P>The -np setting of the mpirun command sets the number of MPI
+tasks/node.  The "-k on t Nt" command-line switch sets the number of
+threads/task as Nt.  The product of these 2 values should be N, i.e.
+240 or 224.  Also, the number of threads/task should be a multiple of
+4 so that logical threads from more than one MPI task do not run on
+the same physical core.
+</P>
+<P>Examples of mpirun commands that follow these rules are shown above.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>As noted above, if using GPUs, the number of MPI tasks per compute
+node should equal to the number of GPUs per compute node.  In the
+future Kokkos will support assigning multiple MPI tasks to a single
+GPU.
+</P>
+<P>Currently Kokkos does not support AMD GPUs due to limits in the
+available backend programming models.  Specifically, Kokkos requires
+extensive C++ support from the Kernel language.  This is expected to
+change in the future.
+</P>
+</HTML>

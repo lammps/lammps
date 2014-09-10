@@ -1,0 +1,208 @@
+<HTML>
+<CENTER><A HREF = "Section_packages.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
+<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<P><A HREF = "Section_accelerate.html">Return to Section accelerate overview</A>
+</P>
+<H4>5.3.1 USER-CUDA package 
+</H4>
+<P>The USER-CUDA package was developed by Christian Trott (Sandia) while
+at U Technology Ilmenau in Germany.  It provides NVIDIA GPU versions
+of many pair styles, many fixes, a few computes, and for long-range
+Coulombics via the PPPM command.  It has the following general
+features:
+</P>
+<UL><LI>The package is designed to allow an entire LAMMPS calculation, for
+many timesteps, to run entirely on the GPU (except for inter-processor
+MPI communication), so that atom-based data (e.g. coordinates, forces)
+do not have to move back-and-forth between the CPU and GPU. 
+
+<LI>The speed-up advantage of this approach is typically better when the
+number of atoms per GPU is large 
+
+<LI>Data will stay on the GPU until a timestep where a non-USER-CUDA fix
+or compute is invoked.  Whenever a non-GPU operation occurs (fix,
+compute, output), data automatically moves back to the CPU as needed.
+This may incur a performance penalty, but should otherwise work
+transparently. 
+
+<LI>Neighbor lists are constructed on the GPU. 
+
+<LI>The package only supports use of a single MPI task, running on a
+single CPU (core), assigned to each GPU. 
+</UL>
+<P>Here is a quick overview of how to use the USER-CUDA package:
+</P>
+<UL><LI>build the library in lib/cuda for your GPU hardware with desired precision
+<LI>include the USER-CUDA package and build LAMMPS
+<LI>use the mpirun command to specify 1 MPI task per GPU (on each node)
+<LI>enable the USER-CUDA package via the "-c on" command-line switch
+<LI>specify the # of GPUs per node
+<LI>use USER-CUDA styles in your input script 
+</UL>
+<P>The latter two steps can be done using the "-pk cuda" and "-sf cuda"
+<A HREF = "Section_start.html#start_7">command-line switches</A> respectively.  Or
+the effect of the "-pk" or "-sf" switches can be duplicated by adding
+the <A HREF = "package.html">package cuda</A> or <A HREF = "suffix.html">suffix cuda</A> commands
+respectively to your input script.
+</P>
+<P><B>Required hardware/software:</B>
+</P>
+<P>To use this package, you need to have one or more NVIDIA GPUs and
+install the NVIDIA Cuda software on your system:
+</P>
+<P>Your NVIDIA GPU needs to support Compute Capability 1.3. This list may
+help you to find out the Compute Capability of your card:
+</P>
+<P>http://en.wikipedia.org/wiki/Comparison_of_Nvidia_graphics_processing_units
+</P>
+<P>Install the Nvidia Cuda Toolkit (version 3.2 or higher) and the
+corresponding GPU drivers.  The Nvidia Cuda SDK is not required, but
+we recommend it also be installed.  You can then make sure its sample
+projects can be compiled without problems.
+</P>
+<P><B>Building LAMMPS with the USER-CUDA package:</B>
+</P>
+<P>This requires two steps (a,b): build the USER-CUDA library, then build
+LAMMPS with the USER-CUDA package.
+</P>
+<P>(a) Build the USER-CUDA library
+</P>
+<P>The USER-CUDA library is in lammps/lib/cuda.  If your <I>CUDA</I> toolkit
+is not installed in the default system directoy <I>/usr/local/cuda</I> edit
+the file <I>lib/cuda/Makefile.common</I> accordingly.
+</P>
+<P>To set options for the library build, type "make OPTIONS", where
+<I>OPTIONS</I> are one or more of the following. The settings will be
+written to the <I>lib/cuda/Makefile.defaults</I> and used when
+the library is built.
+</P>
+<PRE><I>precision=N</I> to set the precision level
+  N = 1 for single precision (default)
+  N = 2 for double precision
+  N = 3 for positions in double precision
+  N = 4 for positions and velocities in double precision
+<I>arch=M</I> to set GPU compute capability
+  M = 35 for Kepler GPUs
+  M = 20 for CC2.0 (GF100/110, e.g. C2050,GTX580,GTX470) (default)
+  M = 21 for CC2.1 (GF104/114,  e.g. GTX560, GTX460, GTX450)
+  M = 13 for CC1.3 (GF200, e.g. C1060, GTX285)
+<I>prec_timer=0/1</I> to use hi-precision timers
+  0 = do not use them (default)
+  1 = use them
+  this is usually only useful for Mac machines 
+<I>dbg=0/1</I> to activate debug mode
+  0 = no debug mode (default)
+  1 = yes debug mode
+  this is only useful for developers
+<I>cufft=1</I> for use of the CUDA FFT library
+  0 = no CUFFT support (default)
+  in the future other CUDA-enabled FFT libraries might be supported 
+</PRE>
+<P>To build the library, simply type:
+</P>
+<PRE>make 
+</PRE>
+<P>If successful, it will produce the files libcuda.a and Makefile.lammps.
+</P>
+<P>Note that if you change any of the options (like precision), you need
+to re-build the entire library.  Do a "make clean" first, followed by
+"make".
+</P>
+<P>(b) Build LAMMPS with the USER-CUDA package
+</P>
+<PRE>cd lammps/src
+make yes-user-cuda
+make machine 
+</PRE>
+<P>No additional compile/link flags are needed in your Makefile.machine
+in src/MAKE.
+</P>
+<P>Note that if you change the USER-CUDA library precision (discussed
+above) and rebuild the USER-CUDA library, then you also need to
+re-install the USER-CUDA package and re-build LAMMPS, so that all
+affected files are re-compiled and linked to the new USER-CUDA
+library.
+</P>
+<P><B>Run with the USER-CUDA package from the command line:</B>
+</P>
+<P>The mpirun or mpiexec command sets the total number of MPI tasks used
+by LAMMPS (one or multiple per compute node) and the number of MPI
+tasks used per node.  E.g. the mpirun command does this via its -np
+and -ppn switches.
+</P>
+<P>When using the USER-CUDA package, you must use exactly one MPI task
+per physical GPU.
+</P>
+<P>You must use the "-c on" <A HREF = "Section_start.html#start_7">command-line
+switch</A> to enable the USER-CUDA package.
+</P>
+<P>Use the "-sf cuda" <A HREF = "Section_start.html#start_7">command-line switch</A>,
+which will automatically append "cuda" to styles that support it.  Use
+the "-pk cuda Ng" <A HREF = "Section_start.html#start_7">command-line switch</A> to
+set Ng = # of GPUs per node.
+</P>
+<PRE>lmp_machine -c on -sf cuda -pk cuda 1 -in in.script                       # 1 MPI task uses 1 GPU
+mpirun -np 2 lmp_machine -c on -sf cuda -pk cuda 2 -in in.script          # 2 MPI tasks use 2 GPUs on a single 16-core (or whatever) node
+mpirun -np 24 -ppn 2 lmp_machine -c on -sf cuda -pk cuda 2 -in in.script  # ditto on 12 16-core nodes 
+</PRE>
+<P>The "-pk" switch must be used (unless the <A HREF = "package.html">package cuda</A>
+command is used in the input script) to set the number of GPUs/node to
+use.  It also allows for setting of additional options.  Its syntax is
+the same as same as the "package cuda" command.  See the
+<A HREF = "package.html">package</A> command doc page for details.
+</P>
+<P><B>Or run with the USER-CUDA package by editing an input script:</B>
+</P>
+<P>The discussion above for the mpirun/mpiexec command and the requirement
+of one MPI task per GPU is the same.
+</P>
+<P>You must still use the "-c on" <A HREF = "Section_start.html#start_7">command-line
+switch</A> to enable the USER-CUDA package.
+</P>
+<P>Use the <A HREF = "suffix.html">suffix cuda</A> command, or you can explicitly add a
+"cuda" suffix to individual styles in your input script, e.g.
+</P>
+<PRE>pair_style lj/cut/cuda 2.5 
+</PRE>
+<P>You must use the <A HREF = "package.html">package cuda</A> command to set the the
+number of GPUs/node, unless the "-pk" <A HREF = "Section_start.html#start_7">command-line
+switch</A> was used.  The command also
+allows for setting of additional options.
+</P>
+<P><B>Speed-ups to expect:</B>
+</P>
+<P>The performance of a GPU versus a multi-core CPU is a function of your
+hardware, which pair style is used, the number of atoms/GPU, and the
+precision used on the GPU (double, single, mixed).
+</P>
+<P>See the <A HREF = "http://lammps.sandia.gov/bench.html">Benchmark page</A> of the
+LAMMPS web site for performance of the USER-CUDA package on different
+hardware.
+</P>
+<P><B>Guidelines for best performance:</B>
+</P>
+<UL><LI>The USER-CUDA package offers more speed-up relative to CPU performance
+when the number of atoms per GPU is large, e.g. on the order of tens
+or hundreds of 1000s. 
+
+<LI>As noted above, this package will continue to run a simulation
+entirely on the GPU(s) (except for inter-processor MPI communication),
+for multiple timesteps, until a CPU calculation is required, either by
+a fix or compute that is non-GPU-ized, or until output is performed
+(thermo or dump snapshot or restart file).  The less often this
+occurs, the faster your simulation will run. 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>None.
+</P>
+</HTML>

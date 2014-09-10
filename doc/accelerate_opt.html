@@ -1,0 +1,77 @@
+<HTML>
+<CENTER><A HREF = "Section_packages.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
+<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<P><A HREF = "Section_accelerate.html">Return to Section accelerate</A>
+</P>
+<H4>5.3.6 OPT package 
+</H4>
+<P>The OPT package was developed by James Fischer (High Performance
+Technologies), David Richie, and Vincent Natoli (Stone Ridge
+Technologies).  It contains a handful of pair styles whose compute()
+methods were rewritten in C++ templated form to reduce the overhead
+due to if tests and other conditional code.
+</P>
+<P>Here is a quick overview of how to use the OPT package:
+</P>
+<UL><LI>include the OPT package and build LAMMPS
+<LI>use OPT pair styles in your input script 
+</UL>
+<P>The last step can be done using the "-sf opt" <A HREF = "Section_start.html#start_7">command-line
+switch</A>.  Or the effect of the "-sf" switch
+can be duplicated by adding a <A HREF = "suffix.html">suffix opt</A> command to your
+input script.
+</P>
+<P><B>Required hardware/software:</B>
+</P>
+<P>None.
+</P>
+<P><B>Building LAMMPS with the OPT package:</B>
+</P>
+<P>Include the package and build LAMMPS:
+</P>
+<PRE>cd lammps/src
+make yes-opt
+make machine 
+</PRE>
+<P>No additional compile/link flags are needed in your Makefile.machine
+in src/MAKE.
+</P>
+<P><B>Run with the OPT package from the command line:</B>
+</P>
+<P>Use the "-sf opt" <A HREF = "Section_start.html#start_7">command-line switch</A>,
+which will automatically append "opt" to styles that support it.
+</P>
+<PRE>lmp_machine -sf opt -in in.script
+mpirun -np 4 lmp_machine -sf opt -in in.script 
+</PRE>
+<P><B>Or run with the OPT package by editing an input script:</B>
+</P>
+<P>Use the <A HREF = "suffix.html">suffix opt</A> command, or you can explicitly add an
+"opt" suffix to individual styles in your input script, e.g.
+</P>
+<PRE>pair_style lj/cut/opt 2.5 
+</PRE>
+<P><B>Speed-ups to expect:</B>
+</P>
+<P>You should see a reduction in the "Pair time" value printed at the end
+of a run.  On most machines for reasonable problem sizes, it will be a
+5 to 20% savings.
+</P>
+<P><B>Guidelines for best performance:</B>
+</P>
+<P>None.  Just try out an OPT pair style to see how it performs.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>None.
+</P>
+</HTML>

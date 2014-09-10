@@ -63,11 +63,21 @@ args = arguments specific to the style :l
      {tptask} value = Ntptask
        Ntptask = max number of threads to use on coprocessor for each MPI task
   {kokkos} args = keyword value ...
-    one or more keyword/value pairs may be appended
-    keywords = {neigh} or {comm/exchange} or {comm/forward}
+    zero or more keyword/value pairs may be appended
+    keywords = {neigh} or {comm} or {comm/exchange} or {comm/forward}
       {neigh} value = {full} or {half/thread} or {half} or {n2} or {full/cluster}
+        full = full neighbor list
+        half/thread = half neighbor list built in thread-safe manner
+        half = half neighbor list, not thread-safe, only use when 1 thread/MPI task
+        n2 = non-binning neighbor list build, O(N^2) algorithm
+        full/cluster = full neighbor list with clustered groups of atoms
+      {comm} value = {no} or {host} or {device}
+        use value for both comm/exchange and comm/forward
       {comm/exchange} value = {no} or {host} or {device}
       {comm/forward} value = {no} or {host} or {device}
+        no = perform communication pack/unpack in non-KOKKOS mode
+        host = perform pack/unpack on host (e.g. with OpenMP threading)
+        device = perform pack/unpack on device (e.g. on GPU)
   {omp} args = Nthreads keyword value ...
     Nthread = # of OpenMP threads to associate with each MPI process
     zero or more keyword/value pairs may be appended 
@@ -82,47 +92,59 @@ args = arguments specific to the style :l
 package gpu 1
 package gpu 1 split 0.75
 package gpu 2 split -1.0
-package cuda gpu/node/special 2 0 2
-package cuda test 3948
-package kokkos neigh half/thread comm/forward device
-package omp 0 neigh yes
+package cuda 2 gpuID 0 2
+package cuda 1 test 3948
+package kokkos neigh half/thread comm device
+package omp 0 neigh no
 package omp 4
 package intel * mixed balance -1 :pre
 
 [Description:]
 
-This command invokes package-specific settings.  Currently the
-following packages use it: USER-CUDA, GPU, USER-INTEL, KOKKOS, and
-USER-OMP.
+This command invokes package-specific settings for the various
+accelerator packages available in LAMMPS.  Currently the following
+packages use settings from this command: USER-CUDA, GPU, USER-INTEL,
+KOKKOS, and USER-OMP.
 
-If allows calling multiple times, all options set to their
-defaults, whether specified or not.
+If this command is specified in an input script, it must be near the
+top of the script, before the simulation box has been defined.  This
+is because it specifies settings that the accelerator packages use in
+their intialization, before a simultion is defined.
 
-Talk about command line switch -pk as alternate option.
+This command can also be specified from the command-line when
+launching LAMMPS, using the "-pk" "command-line
+switch"_Section_start.html#start_7.  The syntax is exactly the same as
+when used in an input script.
 
-Which packages require it to be invoked, only CUDA
-  this is b/c can only be invoked once
-vs optional: all others?  and allow multiple invokes
+Note that all of the accelerator packages require the package command
+to be specified (except the OPT package), if the package is to be used
+in a simulation (LAMMPS can be built with an accelerator package
+without using it in a particular simulation).  However, in all cases,
+a default version of the command is typically invoked by other
+accelerator settings.
 
-Must be invoked early in script, before simulation box is defined.
+The USER-CUDA and KOKKOS packages require a "-c on" or "-k on"
+"command-line switch"_Section_start.html#start_7 respectively, which
+invokes a "package cuda" or "package kokkos" command with default
+settings.
 
-To use the accelerated GPU and USER-OMP styles, the use of the package
-command is required.  However, as described in the "Defaults" section
-below, if you use the "-sf gpu" or "-sf omp" "command-line
-options"_Section_start.html#start_7 to enable use of these styles,
-then default package settings are enabled.  In that case you only need
-to use the package command if you want to change the defaults.
+For the GPU, USER-INTEL, and USER-OMP packages, if a "-sf gpu" or "-sf
+intel" or "-sf omp" "command-line switch"_Section_start.html#start_7
+is used to auto-append accelerator suffixes to various styles in the
+input script, then those switches also invoke a "package gpu",
+"package intel", or "package omp" command with default settings.
 
-To use the accelerated USER-CUDA and KOKKOS styles, the package
-command is not required as defaults are assigned internally.  You only
-need to use the package command if you want to change the defaults.
+IMPORTANT NOTE: A package command for a particular style can be
+invoked multiple times when a simulation is setup, e.g. by the "-c
+on", "-k on", "-sf", and "-pk" "command-line
+switches"_Section_start.html#start_7, and by using this command in an
+input script.  Each time it is used all of the style options are set,
+either to default values or to specified settings.  I.e. settings from
+previous invocations do not persist across multiple invocations.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
-more details about using these various packages for accelerating
-LAMMPS calculations.
-
-Package GPU always sets newton pair off.  Not so for USER-CUDA
-add newton options to GPU, CUDA, KOKKOS.
+See the "Section Accelerate"_Section_accelerate.html section of the
+manual for more details about using the various accelerator packages
+for speeding up LAMMPS simulations.
 
 :line
 
@@ -329,32 +351,44 @@ generation Xeon Phi chip.
 The {kokkos} style invokes settings associated with the use of the
 KOKKOS package.
 
-The {neigh} keyword determines what kinds of neighbor lists are built.
-A value of {half} uses half-neighbor lists, the same as used by most
-pair styles in LAMMPS.  A value of {half/thread} uses a threadsafe
-variant of the half-neighbor list.  It should be used instead of
-{half} when running with threads on a CPU.  A value of {full} uses a
-full-neighborlist, i.e. f_ij and f_ji are both calculated.  This
-performs twice as much computation as the {half} option, however that
-can be a win because it is threadsafe and doesn't require atomic
-operations.  A value of {full/cluster} is an experimental neighbor
-style, where particles interact with all particles within a small
-cluster, if at least one of the clusters particles is within the
-neighbor cutoff range.  This potentially allows for better
-vectorization on architectures such as the Intel Phi.  If also reduces
-the size of the neighbor list by roughly a factor of the cluster size,
-thus reducing the total memory footprint considerably.
+All of the settings are optional keyword/value pairs.  Each has a
+default value as listed below.
 
-The {comm/exchange} and {comm/forward} keywords determine whether the
-host or device performs the packing and unpacking of data when
-communicating information between processors.  "Exchange"
+The {neigh} keyword determines how neighbor lists are built.  A value
+of {half} uses half-neighbor lists, the same as used by most pair
+styles in LAMMPS.  A value of {half/thread} uses a thread-safe variant
+of the half-neighbor list.  It should be used instead of {half} when
+running with more than 1 threads per MPI task on a CPU.  A value of
+{n2} uses an O(N^2) algorithm to build the neighbor list without
+binning, where N = # of atoms on a processor.  It is typically slower
+than the other methods, which use binning.
+
+A value of {full} uses a full neighbor lists and is the default.  This
+performs twice as much computation as the {half} option, however that
+is often a win because it is thread-safe and doesn't require atomic
+operations in the calculation of pair forces.
+
+A value of {full/cluster} is an experimental neighbor style, where
+particles interact with all particles within a small cluster, if at
+least one of the clusters particles is within the neighbor cutoff
+range.  This potentially allows for better vectorization on
+architectures such as the Intel Phi.  If also reduces the size of the
+neighbor list by roughly a factor of the cluster size, thus reducing
+the total memory footprint considerably.
+
+The {comm} and {comm/exchange} and {comm/forward} keywords determine
+whether the host or device performs the packing and unpacking of data
+when communicating per-atom data between processors.  "Exchange"
 communication happens only on timesteps that neighbor lists are
 rebuilt.  The data is only for atoms that migrate to new processors.
 "Forward" communication happens every timestep.  The data is for atom
 coordinates and any other atom properties that needs to be updated for
 ghost atoms owned by each processor.
 
-The value options for these keywords are {no} or {host} or {device}.
+The {comm} keyword is simply a short-cut to set the same value
+for both the {comm/exchange} and {comm/forward} keywords.
+
+The value options for all 3 keywords are {no} or {host} or {device}.
 A value of {no} means to use the standard non-KOKKOS method of
 packing/unpacking data for the communication.  A value of {host} means
 to use the host, typically a multi-core CPU, and perform the
@@ -363,9 +397,11 @@ to use the device, typically a GPU, to perform the packing/unpacking
 operation.
 
 The optimal choice for these keywords depends on the input script and
-the hardware used.  The {no} value is useful for verifying that Kokkos
-code is working correctly.  It may also be the fastest choice when
-using Kokkos styles in MPI-only mode (i.e. with a thread count of 1).
+the hardware used.  The {no} value is useful for verifying that the
+Kokkos-based {host} and {device} values are working correctly.  It may
+also be the fastest choice when using Kokkos styles in MPI-only mode
+(i.e. with a thread count of 1).
+
 When running on CPUs or Xeon Phi, the {host} and {device} values work
 identically.  When using GPUs, the {device} value will typically be
 optimal if all of your styles used in your input script are supported
@@ -470,11 +506,13 @@ setting"_Section_start.html#start_7
 
 [Default:]
 
-To use the USER-CUDA package, the package cuda command must be invoked
-explicitly in your input script or via the "-pk cuda" "command-line
-switch"_Section_start.html#start_7.  This will set the # of GPUs/node.
-The options defaults are gpuID = 0 to Ngpu-1, timing = not enabled,
-test = not enabled, and thread = auto.
+For the USER-CUDA package, the default is Ngpu = 1 and the option
+defaults are gpuID = 0 to Ngpu-1, timing = not enabled, test = not
+enabled, and thread = auto.  These settings are made automatically by
+the required "-c on" "command-line switch"_Section_start.html#start_7.
+You can change them bu using the package cuda command in your input
+script or via the "-pk cuda" "command-line
+switch"_Section_start.html#start_7.
 
 For the GPU package, the default is Ngpu = 1 and the option defaults
 are neigh = yes, split = 1.0, gpuID = 0 to Ngpu-1, tpa = 1, binsize =
@@ -485,24 +523,21 @@ must invoke the package gpu command in your input script or via the
 "-pk gpu" "command-line switch"_Section_start.html#start_7.
 
 For the USER-INTEL package, the default is Nphi = 1 and the option
-defaults are prec = mixed, balance = -1, tpc = 4, tptask = 240.  The
-default ghost option is determined by the pair style being used.  This
-value used is output to the screen in the offload report at the end of
-each run.  These settings are made automatically if the "-sf intel"
-"command-line switch"_Section_start.html#start_7 is used.  If it is
-not used, you must invoke the package intel command in your input
-script or or via the "-pk intel" "command-line
-switch"_Section_start.html#start_7.
+defaults are prec = mixed, balance = -1, tpc = 4, tptask = 240.  Note
+that all of these settings, except "prec", are ignored if LAMMPS was
+not built with Xeon Phi coprocessor support.  The default ghost option
+is determined by the pair style being used.  This value is output to
+the screen in the offload report at the end of each run.  These
+settings are made automatically if the "-sf intel" "command-line
+switch"_Section_start.html#start_7 is used.  If it is not used, you
+must invoke the package intel command in your input script or or via
+the "-pk intel" "command-line switch"_Section_start.html#start_7.
 
-The default settings for the KOKKOS package are "package kokkos neigh
-full comm/exchange host comm/forward host".  This is the case whether
-the "-sf kk" "command-line switch"_Section_start.html#start_7 is used
-or not.
-To use the KOKKOS package, the package kokkos command must be invoked
-explicitly in your input script or via the "-pk kokkos" "command-line
-switch"_Section_start.html#start_7.  This will set the # of GPUs/node.
-The options defaults are gpuID = 0 to Ngpu-1, timing = not enabled,
-test = not enabled, and thread = auto.
+For the KOKKOS package, the option defaults neigh = full and comm =
+host.  These settings are made automatically by the required "-k on"
+"command-line switch"_Section_start.html#start_7.  You can change them
+bu using the package kokkos command in your input script or via the
+"-pk kokkos" "command-line switch"_Section_start.html#start_7.
 
 For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if
@@ -510,4 +545,3 @@ the "-sf omp" "command-line switch"_Section_start.html#start_7 is
 used.  If it is not used, you must invoke the package omp command in
 your input script or via the "-pk omp" "command-line
 switch"_Section_start.html#start_7.
-

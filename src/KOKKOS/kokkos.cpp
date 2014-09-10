@@ -17,6 +17,7 @@
 #include "ctype.h"
 #include "kokkos.h"
 #include "lammps.h"
+#include "force.h"
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "error.h"

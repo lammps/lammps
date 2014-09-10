@@ -677,7 +677,7 @@ void LAMMPS::post_create(int npack, int *pfirst, int *plast, char **arg)
         if (strlen(str) + strlen(arg[j]) + 2 > 128)
           error->all(FLERR,"Too many -pk arguments in command line");
         strcat(str," ");
-        strcpy(str,arg[j]);
+        strcat(str,arg[j]);
       }
       input->one(str);
     }

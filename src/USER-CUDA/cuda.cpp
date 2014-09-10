@@ -232,8 +232,8 @@ void Cuda::accelerator(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"newton") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package cuda command");
-      if (strcmp(arg[iarg]+1,"off") == 0) newtonflag = 0;
-      else if (strcmp(arg[iarg]+1,"on") == 0) newtonflag = 1;
+      if (strcmp(arg[iarg+1],"off") == 0) newtonflag = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) newtonflag = 1;
       else error->all(FLERR,"Illegal package cuda command");
     } else if (strcmp(arg[iarg],"gpuID") == 0) {
       if (iarg+pppn+1 > narg) error->all(FLERR,"Illegal package cuda command");

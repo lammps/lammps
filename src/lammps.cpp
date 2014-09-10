@@ -691,9 +691,6 @@ void LAMMPS::post_create(int npack, int *pfirst, int *plast, char **arg)
 
 void LAMMPS::init()
 {
-  if (cuda) cuda->accelerator(0,NULL);
-  if (kokkos) kokkos->accelerator(0,NULL);
-
   update->init();
   force->init();         // pair must come after update due to minimizer
   domain->init();

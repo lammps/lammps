@@ -144,21 +144,25 @@ per physical GPU.
 </P>
 <P>You must use the "-c on" <A HREF = "Section_start.html#start_7">command-line
 switch</A> to enable the USER-CUDA package.
+The "-c on" switch also issues a default <A HREF = "package.html">package cuda 1</A>
+command which sets various USER-CUDA options to default values, as
+discussed on the <A HREF = "package.html">package</A> command doc page.
 </P>
 <P>Use the "-sf cuda" <A HREF = "Section_start.html#start_7">command-line switch</A>,
 which will automatically append "cuda" to styles that support it.  Use
 the "-pk cuda Ng" <A HREF = "Section_start.html#start_7">command-line switch</A> to
-set Ng = # of GPUs per node.
+set Ng = # of GPUs per node to a different value than the default set
+by the "-c on" switch (1 GPU) or change other <A HREF = "package.html">package
+cuda</A> options.
 </P>
 <PRE>lmp_machine -c on -sf cuda -pk cuda 1 -in in.script                       # 1 MPI task uses 1 GPU
 mpirun -np 2 lmp_machine -c on -sf cuda -pk cuda 2 -in in.script          # 2 MPI tasks use 2 GPUs on a single 16-core (or whatever) node
 mpirun -np 24 -ppn 2 lmp_machine -c on -sf cuda -pk cuda 2 -in in.script  # ditto on 12 16-core nodes 
 </PRE>
-<P>The "-pk" switch must be used (unless the <A HREF = "package.html">package cuda</A>
-command is used in the input script) to set the number of GPUs/node to
-use.  It also allows for setting of additional options.  Its syntax is
-the same as same as the "package cuda" command.  See the
-<A HREF = "package.html">package</A> command doc page for details.
+<P>The syntax for the "-pk" switch is the same as same as the "package
+cuda" command.  See the <A HREF = "package.html">package</A> command doc page for
+details, including the default values used for all its options if it
+is not specified.
 </P>
 <P><B>Or run with the USER-CUDA package by editing an input script:</B>
 </P>
@@ -173,10 +177,10 @@ switch</A> to enable the USER-CUDA package.
 </P>
 <PRE>pair_style lj/cut/cuda 2.5 
 </PRE>
-<P>You must use the <A HREF = "package.html">package cuda</A> command to set the the
-number of GPUs/node, unless the "-pk" <A HREF = "Section_start.html#start_7">command-line
-switch</A> was used.  The command also
-allows for setting of additional options.
+<P>You only need to use the <A HREF = "package.html">package cuda</A> command if you
+wish to change any of its option defaults, including the number of
+GPUs/node (default = 1), as set by the "-c on" <A HREF = "Section_start.html#start_7">command-line
+switch</A>.
 </P>
 <P><B>Speed-ups to expect:</B>
 </P>

@@ -202,11 +202,10 @@ You must use the "-k on" "command-line
 switch"_Section_start.html#start_7 to enable the KOKKOS package.  It
 takes additional arguments for hardware settings appropriate to your
 system.  Those arguments are "documented
-here"_Section_start.html#start_7.  The two most commonly used arguments
-are:
+here"_Section_start.html#start_7.  The two most commonly used
+options are:
 
--k on t Nt
--k on g Ng :pre
+-k on t Nt g Ng :pre
 
 The "t Nt" option applies to host=OMP (even if device=CUDA) and
 host=MIC.  For host=OMP, it specifies how many OpenMP threads per MPI
@@ -220,16 +219,16 @@ The "g Ng" option applies to device=CUDA.  It specifies how many GPUs
 per compute node to use.  The default is 1, so this only needs to be
 specified is you have 2 or more GPUs per compute node.
 
-The "-k on" switch also issues a default "package kokkos neigh full
-comm host"_package.html command which sets various KOKKOS options to
-default values, as discussed on the "package"_package.html command doc
-page.
+The "-k on" switch also issues a "package kokkos" command (with no
+additional arguments) which sets various KOKKOS options to default
+values, as discussed on the "package"_package.html command doc page.
 
 Use the "-sf kk" "command-line switch"_Section_start.html#start_7,
 which will automatically append "kk" to styles that support it.  Use
 the "-pk kokkos" "command-line switch"_Section_start.html#start_7 if
-you wish to override any of the default values set by the "package
-kokkos"_package.html command invoked by the "-k on" switch.
+you wish to change any of the default "package kokkos"_package.html
+optionns set by the "-k on" "command-line
+switch"_Section_start.html#start_7.
 
 host=OMP, dual hex-core nodes (12 threads/node):
 mpirun -np 12 lmp_g++ -in in.lj                           # MPI-only mode with no Kokkos
@@ -243,7 +242,6 @@ mpirun -np 1 lmp_g++ -k on t 240 -sf kk -in in.lj           # 1 MPI task on 1 Ph
 mpirun -np 30 lmp_g++ -k on t 8 -sf kk -in in.lj            # 30 MPI tasks on 1 Phi, 30*8 = 240
 mpirun -np 12 lmp_g++ -k on t 20 -sf kk -in in.lj           # 12 MPI tasks on 1 Phi, 12*20 = 240
 mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis
-
 
 host=OMP, device=CUDA, node = dual hex-core CPUs and a single GPU:
 mpirun -np 1 lmp_cuda -k on t 6 -sf kk -in in.lj          # one MPI task, 6 threads on CPU
@@ -270,7 +268,8 @@ Use the "suffix kk"_suffix.html command, or you can explicitly add a
 pair_style lj/cut/kk 2.5 :pre
 
 You only need to use the "package kokkos"_package.html command if you
-wish to change any of its option defaults.
+wish to change any of its option defaults, as set by the "-k on"
+"command-line switch"_Section_start.html#start_7.
 
 [Speed-ups to expect:]
 

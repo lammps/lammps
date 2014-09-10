@@ -155,13 +155,13 @@ mpirun -np 48 -ppn 12 lmp_machine -sf gpu -pk gpu 2 -in in.script   # ditto on 4
 </PRE>
 <P>Note that if the "-sf gpu" switch is used, it also issues a default
 <A HREF = "package.html">package gpu 1</A> command, which sets the number of
-GPUs/node to use to 1.
+GPUs/node to 1.
 </P>
-<P>Using the "-pk" switch explicitly allows for direct setting of the
-number of GPUs/node to use and additional options.  Its syntax is the
-same as same as the "package gpu" command.  See the
-<A HREF = "package.html">package</A> command doc page for details, including the
-default values used for all its options if it is not specified.
+<P>Using the "-pk" switch explicitly allows for setting of the number of
+GPUs/node to use and additional options.  Its syntax is the same as
+same as the "package gpu" command.  See the <A HREF = "package.html">package</A>
+command doc page for details, including the default values used for
+all its options if it is not specified.
 </P>
 <P><B>Or run with the GPU package by editing an input script:</B>
 </P>
@@ -177,11 +177,6 @@ and use of multiple MPI tasks/GPU is the same.
 GPU package, unless the "-sf gpu" or "-pk gpu" <A HREF = "Section_start.html#start_7">command-line
 switches</A> were used.  It specifies the
 number of GPUs/node to use, as well as other options.
-</P>
-<P>IMPORTANT NOTE: The input script must also use a newton pairwise
-setting of <I>off</I> in order to use GPU package pair styles.  This can be
-set via the <A HREF = "package.html">package gpu</A> or <A HREF = "newton.html">newton</A>
-commands.
 </P>
 <P><B>Speed-ups to expect:</B>
 </P>

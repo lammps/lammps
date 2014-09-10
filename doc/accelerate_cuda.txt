@@ -141,21 +141,25 @@ per physical GPU.
 
 You must use the "-c on" "command-line
 switch"_Section_start.html#start_7 to enable the USER-CUDA package.
+The "-c on" switch also issues a default "package cuda 1"_package.html
+command which sets various USER-CUDA options to default values, as
+discussed on the "package"_package.html command doc page.
 
 Use the "-sf cuda" "command-line switch"_Section_start.html#start_7,
 which will automatically append "cuda" to styles that support it.  Use
 the "-pk cuda Ng" "command-line switch"_Section_start.html#start_7 to
-set Ng = # of GPUs per node.
+set Ng = # of GPUs per node to a different value than the default set
+by the "-c on" switch (1 GPU) or change other "package
+cuda"_package.html options.
 
 lmp_machine -c on -sf cuda -pk cuda 1 -in in.script                       # 1 MPI task uses 1 GPU
 mpirun -np 2 lmp_machine -c on -sf cuda -pk cuda 2 -in in.script          # 2 MPI tasks use 2 GPUs on a single 16-core (or whatever) node
 mpirun -np 24 -ppn 2 lmp_machine -c on -sf cuda -pk cuda 2 -in in.script  # ditto on 12 16-core nodes :pre
 
-The "-pk" switch must be used (unless the "package cuda"_package.html
-command is used in the input script) to set the number of GPUs/node to
-use.  It also allows for setting of additional options.  Its syntax is
-the same as same as the "package cuda" command.  See the
-"package"_package.html command doc page for details.
+The syntax for the "-pk" switch is the same as same as the "package
+cuda" command.  See the "package"_package.html command doc page for
+details, including the default values used for all its options if it
+is not specified.
 
 [Or run with the USER-CUDA package by editing an input script:]
 
@@ -170,10 +174,10 @@ Use the "suffix cuda"_suffix.html command, or you can explicitly add a
 
 pair_style lj/cut/cuda 2.5 :pre
 
-You must use the "package cuda"_package.html command to set the the
-number of GPUs/node, unless the "-pk" "command-line
-switch"_Section_start.html#start_7 was used.  The command also
-allows for setting of additional options.
+You only need to use the "package cuda"_package.html command if you
+wish to change any of its option defaults, including the number of
+GPUs/node (default = 1), as set by the "-c on" "command-line
+switch"_Section_start.html#start_7.
 
 [Speed-ups to expect:]
 

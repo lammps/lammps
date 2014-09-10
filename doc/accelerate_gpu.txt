@@ -152,13 +152,13 @@ mpirun -np 48 -ppn 12 lmp_machine -sf gpu -pk gpu 2 -in in.script   # ditto on 4
 
 Note that if the "-sf gpu" switch is used, it also issues a default
 "package gpu 1"_package.html command, which sets the number of
-GPUs/node to use to 1.
+GPUs/node to 1.
 
-Using the "-pk" switch explicitly allows for direct setting of the
-number of GPUs/node to use and additional options.  Its syntax is the
-same as same as the "package gpu" command.  See the
-"package"_package.html command doc page for details, including the
-default values used for all its options if it is not specified.
+Using the "-pk" switch explicitly allows for setting of the number of
+GPUs/node to use and additional options.  Its syntax is the same as
+same as the "package gpu" command.  See the "package"_package.html
+command doc page for details, including the default values used for
+all its options if it is not specified.
 
 [Or run with the GPU package by editing an input script:]
 
@@ -174,11 +174,6 @@ You must also use the "package gpu"_package.html command to enable the
 GPU package, unless the "-sf gpu" or "-pk gpu" "command-line
 switches"_Section_start.html#start_7 were used.  It specifies the
 number of GPUs/node to use, as well as other options.
-
-IMPORTANT NOTE: The input script must also use a newton pairwise
-setting of {off} in order to use GPU package pair styles.  This can be
-set via the "package gpu"_package.html or "newton"_newton.html
-commands.
 
 [Speed-ups to expect:]
 

@@ -205,11 +205,10 @@ coprocessors is simply treated as running some number of MPI tasks.
 switch</A> to enable the KOKKOS package.  It
 takes additional arguments for hardware settings appropriate to your
 system.  Those arguments are <A HREF = "Section_start.html#start_7">documented
-here</A>.  The two most commonly used arguments
-are:
+here</A>.  The two most commonly used
+options are:
 </P>
-<PRE>-k on t Nt
--k on g Ng 
+<PRE>-k on t Nt g Ng 
 </PRE>
 <P>The "t Nt" option applies to host=OMP (even if device=CUDA) and
 host=MIC.  For host=OMP, it specifies how many OpenMP threads per MPI
@@ -223,16 +222,16 @@ all the 240 available threads, which could give very poor performance.
 per compute node to use.  The default is 1, so this only needs to be
 specified is you have 2 or more GPUs per compute node.
 </P>
-<P>The "-k on" switch also issues a default <A HREF = "package.html">package kokkos neigh full
-comm host</A> command which sets various KOKKOS options to
-default values, as discussed on the <A HREF = "package.html">package</A> command doc
-page.
+<P>The "-k on" switch also issues a "package kokkos" command (with no
+additional arguments) which sets various KOKKOS options to default
+values, as discussed on the <A HREF = "package.html">package</A> command doc page.
 </P>
 <P>Use the "-sf kk" <A HREF = "Section_start.html#start_7">command-line switch</A>,
 which will automatically append "kk" to styles that support it.  Use
 the "-pk kokkos" <A HREF = "Section_start.html#start_7">command-line switch</A> if
-you wish to override any of the default values set by the <A HREF = "package.html">package
-kokkos</A> command invoked by the "-k on" switch.
+you wish to change any of the default <A HREF = "package.html">package kokkos</A>
+optionns set by the "-k on" <A HREF = "Section_start.html#start_7">command-line
+switch</A>.
 </P>
 <PRE>host=OMP, dual hex-core nodes (12 threads/node):
 mpirun -np 12 lmp_g++ -in in.lj                           # MPI-only mode with no Kokkos
@@ -272,7 +271,8 @@ your system, as documented above.
 <PRE>pair_style lj/cut/kk 2.5 
 </PRE>
 <P>You only need to use the <A HREF = "package.html">package kokkos</A> command if you
-wish to change any of its option defaults.
+wish to change any of its option defaults, as set by the "-k on"
+<A HREF = "Section_start.html#start_7">command-line switch</A>.
 </P>
 <P><B>Speed-ups to expect:</B>
 </P>

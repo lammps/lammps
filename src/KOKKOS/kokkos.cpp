@@ -135,6 +135,18 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"full/cluster") == 0) neighflag = FULLCLUSTER;
       else error->all(FLERR,"Illegal package command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"comm") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package command");
+      if (strcmp(arg[iarg+1],"no") == 0) {
+        exchange_comm_classic = forward_comm_classic = 1;
+      } else if (strcmp(arg[iarg+1],"host") == 0) {
+        exchange_comm_classic = forward_comm_classic = 0;
+        exchange_comm_on_host = forward_comm_on_host = 1;
+      } else if (strcmp(arg[iarg+1],"device") == 0) {
+        exchange_comm_classic = forward_comm_classic = 0;
+        exchange_comm_on_host = forward_comm_on_host = 0;
+      } else error->all(FLERR,"Illegal package command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"comm/exchange") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package command");
       if (strcmp(arg[iarg+1],"no") == 0) exchange_comm_classic = 1;

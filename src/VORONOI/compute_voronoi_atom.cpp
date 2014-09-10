@@ -45,6 +45,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
 
   size_peratom_cols = 2;
   peratom_flag = 1;
+  comm_forward = 1;
 
   surface = VOROSURF_NONE;
   maxedge = 0;
@@ -525,7 +526,7 @@ int ComputeVoronoi::pack_forward_comm(int n, int *list, double *buf,
 {
   int i,m=0;
   for (i = 0; i < n; ++i) buf[m++] = rfield[list[i]];
-  return 1;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

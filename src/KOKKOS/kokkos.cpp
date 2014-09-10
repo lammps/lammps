@@ -128,6 +128,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
 
   neighflag = FULL;
   int newtonflag = 0;
+  double binsize = 0.0;
   exchange_comm_classic = forward_comm_classic = 0;
   exchange_comm_on_host = forward_comm_on_host = 1;
 
@@ -141,6 +142,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"n2") == 0) neighflag = N2;
       else if (strcmp(arg[iarg+1],"full/cluster") == 0) neighflag = FULLCLUSTER;
       else error->all(FLERR,"Illegal package kokkos command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"binsize") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      binsize = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"newton") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
@@ -185,8 +190,13 @@ void KokkosLMP::accelerator(int narg, char **arg)
   }
 
   // set newton flags
+  // set neighbor binsize, same as neigh_modify command
 
   force->newton = force->newton_pair = force->newton_bond = newtonflag;
+
+  neighbor->binsize_user = binsize;
+  if (binsize <= 0.0) neighbor->binsizeflag = 0;
+  else neighbor->binsizeflag = 1;
 }
 
 /* ----------------------------------------------------------------------

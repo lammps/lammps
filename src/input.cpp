@@ -642,7 +642,7 @@ void Input::clear()
   if (narg > 0) error->all(FLERR,"Illegal clear command");
   lmp->destroy();
   lmp->create();
-  lmp->post_create();
+  lmp->post_create(0,NULL,NULL,NULL);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -108,17 +108,17 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg]+1,"hybrid") == 0) _gpu_mode = GPU_HYB_NEIGH;
       else error->all(FLERR,"Illegal package gpu command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"newton") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (strcmp(arg[iarg]+1,"off") == 0) newtonflag = 0;
+      else if (strcmp(arg[iarg]+1,"on") == 0) newtonflag = 1;
+      else error->all(FLERR,"Illegal package gpu command");
     } else if (strcmp(arg[iarg],"split") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
       _particle_split = force->numeric(FLERR,arg[iarg+1]);
       if (_particle_split == 0.0 || _particle_split > 1.0)
         error->all(FLERR,"Illegal package GPU command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"newton") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg]+1,"off") == 0) newtonflag = 0;
-      else if (strcmp(arg[iarg]+1,"on") == 0) newtonflag = 1;
-      else error->all(FLERR,"Illegal package gpu command");
     } else if (strcmp(arg[iarg],"gpuID") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal package gpu command");
       first_gpu = force->inumeric(FLERR,arg[iarg+1]);

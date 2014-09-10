@@ -661,7 +661,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   // MUST change NEXCEPT above when add new fix to this list
 
   const char *exceptions[NEXCEPT] = 
-    {"GPU","OMP","Intel","property/atom","cmap"};
+    {"GPU","OMP","INTEL","property/atom","cmap"};
 
   if (domain->box_exist == 0) {
     int m;

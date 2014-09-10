@@ -92,6 +92,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int wdfirst,wdlast;
   int kkfirst,kklast;
 
+  int npack = 0;
+  int *pfirst = NULL;
+  int *plast = NULL;
+
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"-partition") == 0 ||
@@ -165,6 +169,22 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       kkfirst = iarg;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
       kklast = iarg;
+    } else if (strcmp(arg[iarg],"-package") == 0 ||
+               strcmp(arg[iarg],"-pk") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      memory->grow(pfirst,npack+1,"lammps:pfirst");
+      memory->grow(plast,npack+1,"lammps:plast");
+      // delimit args for package command invocation
+      // any package arg with leading "-" will be followed by numeric digit
+      iarg++;
+      pfirst[npack] = iarg;
+      while (iarg < narg) {
+        if (arg[iarg][0] != '-') iarg++;
+        else if (isdigit(arg[iarg][1])) iarg++;
+        else break;
+      }
+      plast[npack++] = iarg;
     } else if (strcmp(arg[iarg],"-suffix") == 0 ||
                strcmp(arg[iarg],"-sf") == 0) {
       if (iarg+2 > narg)
@@ -480,7 +500,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // allocate top-level classes
 
   create();
-  post_create();
+  post_create(npack,pfirst,plast,arg);
+  memory->destroy(pfirst);
+  memory->destroy(plast);
 
   // if helpflag set, print help and quit
 
@@ -603,7 +625,7 @@ void LAMMPS::create()
      so that package-specific core classes have been instantiated
 ------------------------------------------------------------------------- */
 
-void LAMMPS::post_create()
+void LAMMPS::post_create(int npack, int *pfirst, int *plast, char **arg)
 {
   // default package commands triggered by "-c on" and "-k on"
 
@@ -643,6 +665,22 @@ void LAMMPS::post_create()
   }
   if (suffix2) {
     if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
+  }
+
+  // invoke any command-line package commands
+
+  if (npack) {
+    char str[128];
+    for (int i = 0; i < npack; i++) {
+      strcpy(str,"package");
+      for (int j = pfirst[i]; j < plast[i]; j++) {
+        if (strlen(str) + strlen(arg[j]) + 2 > 128)
+          error->all(FLERR,"Too many -pk arguments in command line");
+        strcat(str," ");
+        strcpy(str,arg[j]);
+      }
+      input->one(str);
+    }
   }
 }
 
@@ -705,14 +743,16 @@ void LAMMPS::help()
           "\nCommand line options:\n\n"
           "-cuda on/off                : turn CUDA mode on or off (-c)\n"
           "-echo none/screen/log/both  : echoing of input script (-e)\n"
-          "-in filename                : read input from file, not stdin (-i)\n"
           "-help                       : print this help message (-h)\n"
+          "-in filename                : read input from file, not stdin (-i)\n"
           "-kokkos on/off ...          : turn KOKKOS mode on or off (-k)\n"
           "-log none/filename          : where to send log output (-l)\n"
           "-nocite                     : disable writing log.cite file (-nc)\n"
+          "-package style ...          : invoke package command (-pk)\n"
           "-partition size1 size2 ...  : assign partition sizes (-p)\n"
           "-plog basename              : basename for partition logs (-pl)\n"
           "-pscreen basename           : basename for partition screens (-ps)\n"
+          "-restart rfile dfile ...    : convert restart to data file (-r)\n" 
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
           "-suffix cuda/gpu/opt/omp    : style suffix to apply (-sf)\n"

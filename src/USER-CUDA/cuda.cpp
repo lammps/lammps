@@ -226,10 +226,16 @@ void Cuda::accelerator(int narg, char **arg)
 
   delete [] devicelist;
   devicelist = NULL;
+  int newtonflag = 0;
 
   int iarg = 1;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"gpuID") == 0) {
+    if (strcmp(arg[iarg],"newton") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package cuda command");
+      if (strcmp(arg[iarg]+1,"off") == 0) newtonflag = 0;
+      else if (strcmp(arg[iarg]+1,"on") == 0) newtonflag = 1;
+      else error->all(FLERR,"Illegal package cuda command");
+    } else if (strcmp(arg[iarg],"gpuID") == 0) {
       if (iarg+pppn+1 > narg) error->all(FLERR,"Illegal package cuda command");
       devicelist = new int[pppn];
       for (int k = 0; k < pppn; k++)
@@ -272,6 +278,10 @@ void Cuda::accelerator(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal package cuda command");
   }
+
+  // set newton flags
+
+  force->newton = force->newton_pair = force->newton_bond = newtonflag;
 }
 
 /* ----------------------------------------------------------------------

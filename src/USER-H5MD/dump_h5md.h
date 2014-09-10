@@ -40,6 +40,7 @@ class DumpH5MD : public Dump {
   h5md_particles_group particles_data;
 
   bool do_box;
+  bool create_group;
 
   // data arrays and intervals
   int every_dump;
@@ -95,8 +96,9 @@ E: Cannot change dump_modify every for dump xtc
 
 The frequency of writing dump xtc snapshots cannot be changed.
 
-E: Cannot specify nobox and position in dump_h5md
+E: Cannot set file_from in dump h5md after box or create_group
 
-A dump that writes the position element must also write the box.
+The file_from option modifies the box and create_group options and
+they must appear after file_from if used.
 
 */

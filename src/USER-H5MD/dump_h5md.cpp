@@ -50,12 +50,15 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   unwrap_flag = 0;
   datafile_from_dump = -1;
 
-  do_box=true;
-
   every_dump = force->inumeric(FLERR,arg[3]);
   every_position = every_image = -1;
   every_velocity = every_force = every_species = -1;
 
+  do_box=true;
+  create_group=true;
+
+  bool box_is_set, create_group_is_set;
+  box_is_set = create_group_is_set = false;
   int iarg=5;
   size_one=0;
   while (iarg<narg) {
@@ -67,7 +70,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       iarg+=2;
       size_one+=domain->dimension;
     } else if (strcmp(arg[iarg], "image")==0) {
-      if (every_position<=0) error->all(FLERR, "Illegal dump h5md command");
+      if (every_position<0) error->all(FLERR, "Illegal dump h5md command");
       iarg+=1;
       size_one+=domain->dimension;
       every_image = every_position;
@@ -96,23 +99,45 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       if (iarg+1>=narg) {
         error->all(FLERR, "Invalid number of arguments in dump h5md");
       }
+      if (box_is_set||create_group_is_set)
+	error->all(FLERR, "Cannot set file_from in dump h5md after box or create_group");
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
 	if (strcmp(arg[iarg+1],output->dump[idump]->id) == 0) break;
       if (idump == output->ndump) error->all(FLERR,"Cound not find dump_modify ID");
       datafile_from_dump = idump;
-      iarg+=2;
-    } else if (strcmp(arg[iarg], "nobox")==0) {
-      if (every_position<=0) error->all(FLERR, "Illegal dump h5md command");
-      iarg+=1;
       do_box=false;
+      create_group=false;
+      iarg+=2;
+    } else if (strcmp(arg[iarg], "box")==0) {
+      if (iarg+1>=narg) {
+        error->all(FLERR, "Invalid number of arguments in dump h5md");
+      }
+      box_is_set = true;
+      if (strcmp(arg[iarg+1], "yes")==0)
+	do_box=true;
+      else if (strcmp(arg[iarg+1], "no")==0)
+	do_box=false;
+      else
+	error->all(FLERR, "Illegal dump h5md command");
+      iarg+=2;
+    } else  if (strcmp(arg[iarg], "create_group")==0) {
+      if (iarg+1>=narg) {
+        error->all(FLERR, "Invalid number of arguments in dump h5md");
+      }
+      create_group_is_set = true;
+      if (strcmp(arg[iarg+1], "yes")==0)
+	create_group=true;
+      else if (strcmp(arg[iarg+1], "no")==0) {
+	create_group=false;
+      }
+      else
+	error->all(FLERR, "Illegal dump h5md command");
+      iarg+=2;
     } else {
       error->all(FLERR, "Invalid argument to dump h5md");
     }
   }
-
-  if (do_box==false && every_position>=0)
-    error->all(FLERR, "Cannot specify nobox and position in dump_h5md");
 
   // allocate global array for atom coords
 
@@ -177,19 +202,21 @@ void DumpH5MD::openfile()
 
   if (me == 0) {
     if (datafile_from_dump<0) {
-    datafile = h5md_create_file(filename, "N/A", NULL, "lammps", LAMMPS_VERSION);
+      datafile = h5md_create_file(filename, "N/A", NULL, "lammps", LAMMPS_VERSION);
       group_name_length = strlen(group->names[igroup]);
       group_name = new char[group_name_length];
       strcpy(group_name, group->names[igroup]);
-      particles_data = h5md_create_particles_group(datafile, group_name);
+      if (create_group) {
+	particles_data = h5md_create_particles_group(datafile, group_name);
+      } else {
+	particles_data.group = H5Gopen(datafile.particles, group_name, H5P_DEFAULT);
+      }
       delete [] group_name;
       dims[0] = natoms;
       dims[1] = domain->dimension;
       if (every_position>0) {
 	particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
 	h5md_create_box(&particles_data, dims[1], boundary, true, NULL, &particles_data.position);
-      } else {
-	h5md_create_box(&particles_data, dims[1], boundary, true, NULL, NULL);
       }
       if (every_image>0)
 	particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, &particles_data.position);
@@ -206,7 +233,25 @@ void DumpH5MD::openfile()
       group_name_length = strlen(group->names[igroup]);
       group_name = new char[group_name_length];
       strcpy(group_name, group->names[igroup]);
-      particles_data.group = H5Gopen(datafile.particles, group_name, H5P_DEFAULT);
+      if (create_group) {
+	particles_data = h5md_create_particles_group(datafile, group_name);
+      } else {
+	particles_data = other_dump->particles_data;
+      }
+      dims[0] = natoms;
+      dims[1] = domain->dimension;
+      if (every_position>0) {
+	particles_data.position = h5md_create_time_data(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+	h5md_create_box(&particles_data, dims[1], boundary, true, NULL, &particles_data.position);
+      }
+      if (every_image>0)
+	particles_data.image = h5md_create_time_data(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, &particles_data.position);
+      if (every_velocity>0)
+	particles_data.velocity = h5md_create_time_data(particles_data.group, "velocity", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+      if (every_force>0)
+	particles_data.force = h5md_create_time_data(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, NULL);
+      if (every_species>0)
+	particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, NULL);
     }
   }
   for (int i=0; i<3; i++) {

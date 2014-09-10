@@ -605,13 +605,16 @@ void LAMMPS::create()
 
 void LAMMPS::post_create()
 {
-  if (!suffix_enable) return;
+  // default package commands triggered by "-c on" and "-k on"
+
+  if (cuda && cuda->cuda_exists) input->one("package cuda 1");
+  if (kokkos && kokkos->kokkos_exists) input->one("package kokkos");
 
   // suffix will always be set if suffix_enable = 1
-  // USER-CUDA and KOKKOS have package classes instantiated if enabled
-  //   via "-c on" and "-k on"
-  // GPU, INTEL, USER-OMP provide their own fixes which will have
-  //   been compiled with LAMMPS if those packages were installed
+  // check that USER-CUDA and KOKKOS package classes were instantiated
+  // check that GPU, INTEL, USER-OMP fixes were compiled with LAMMPS
+
+  if (!suffix_enable) return;
 
   if (strcmp(suffix,"cuda") == 0 && (cuda == NULL || cuda->cuda_exists == 0))
     error->all(FLERR,"Using suffix cuda without USER-CUDA package enabled");

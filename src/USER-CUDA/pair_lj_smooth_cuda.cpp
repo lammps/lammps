@@ -69,7 +69,6 @@ void PairLJSmoothCuda::allocate()
         if(! allocated) PairLJSmooth::allocate();
         if(! allocated2)
         {
-                cuda->accelerator(0,NULL);
                 allocated2 = true;
                 cuda->shared_data.pair.cut = cut;
                 cuda->shared_data.pair.cut_inner = cut_inner;

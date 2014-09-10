@@ -61,7 +61,6 @@ DomainCuda::DomainCuda(LAMMPS* lmp) : Domain(lmp)
 
 void DomainCuda::init()
 {
-  cuda->accelerator(0, NULL);
   Domain::init();
 
   if(not cuda->finished_run) {
@@ -77,6 +76,12 @@ void DomainCuda::init()
 
 void DomainCuda::set_global_box()
 {
+  // one-time activation of CUDA
+  // do it here, b/c is now too late for further package commands
+  // activation must occur before any USER-CUDA class communicates with GPUs
+
+  cuda->activate();
+
   Domain::set_global_box();
 
   if(not cuda->finished_run) {

@@ -76,7 +76,6 @@ void PairLJCharmmCoulLongCuda::allocate()
         if(! allocated) PairLJCharmmCoulLong::allocate();
         if(! allocated2)
         {
-                cuda->accelerator(0,NULL);
                 allocated2 = true;
                 //cuda->shared_data.pair.cut     = cut_lj;
                 cuda->shared_data.pair.coeff1  = lj1;

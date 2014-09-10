@@ -57,7 +57,6 @@ FixShakeCuda::FixShakeCuda(LAMMPS* lmp, int narg, char** arg) :
   if(atom->map_style != 1)
     error->all(FLERR, "Fix shake/cuda needs atom map style array. In particular it does not currently work with hash-tables.");
 
-  cuda->accelerator(0, NULL);
   MPI_Comm_rank(world, &me);
   MPI_Comm_size(world, &nprocs);
   neighbor_step = true;

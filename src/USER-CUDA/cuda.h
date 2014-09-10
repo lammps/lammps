@@ -47,6 +47,7 @@ class Cuda : protected Pointers
     void allocate();
 
     void accelerator(int, char**);
+    void activate();
 
     void setSharedDataZero();
     void setSystemParams();
@@ -148,6 +149,9 @@ class Cuda : protected Pointers
     int copy_buffersize;
 
   private:
+    int pppn;                  // number of GPUs/node
+    int *devicelist;           // IDs of GPUs
+
     std::map<class NeighList*, class CudaNeighList*> neigh_lists;
 };
 }

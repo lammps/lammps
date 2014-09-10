@@ -47,6 +47,8 @@
 
 using namespace LAMMPS_NS;
 
+/* ---------------------------------------------------------------------- */
+
 Cuda::Cuda(LAMMPS* lmp) : Pointers(lmp)
 {
   cuda_exists = true;
@@ -55,7 +57,9 @@ Cuda::Cuda(LAMMPS* lmp) : Pointers(lmp)
   if (universe->me == 0) printf("# Using LAMMPS_CUDA \n");
 
   shared_data.me = universe->me;
+
   device_set = false;
+  devicelist = NULL;
 
   Cuda_Cuda_GetCompileSettings(&shared_data);
 
@@ -148,11 +152,15 @@ Cuda::Cuda(LAMMPS* lmp) : Pointers(lmp)
   //cCudaData<double, float, yx >
 }
 
+/* ---------------------------------------------------------------------- */
+
 Cuda::~Cuda()
 {
   print_timings();
 
   if (universe->me == 0) printf("# CUDA: Free memory...\n");
+
+  delete [] devicelist;
 
   delete cu_q;
   delete cu_x;
@@ -197,17 +205,27 @@ Cuda::~Cuda()
   }
 }
 
-void Cuda::accelerator(int narg, char** arg)
-{
-  if (device_set) return;
-  if (universe->me == 0) printf("# CUDA: Activate GPU \n");
+/* ----------------------------------------------------------------------
+   package cuda command
+   can be invoked multiple times: -c on, -pk, package command
+   can only init GPUs once in activate(), so just store params here
+------------------------------------------------------------------------- */
 
-  int pppn = force->inumeric(FLERR,arg[0]);
+void Cuda::accelerator(int narg, char **arg)
+{
+  // this error should not happen 
+
+  if (device_set) error->all(FLERR,"USER-CUDA device is already activated");
+
+  // pppn = # of GPUs/node
+
+  pppn = force->inumeric(FLERR,arg[0]);
   if (pppn <= 0) error->all(FLERR,"Illegal package cuda command");
 
   // optional args
 
-  int* devicelist = NULL;
+  delete [] devicelist;
+  devicelist = NULL;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -254,6 +272,19 @@ void Cuda::accelerator(int narg, char** arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal package cuda command");
   }
+}
+
+/* ----------------------------------------------------------------------
+   activate the GPUs
+   only done once with whatever settings used by the last package command
+------------------------------------------------------------------------- */
+
+void Cuda::activate()
+{
+  if (device_set) return;
+  device_set = true;
+
+  if (universe->me == 0) printf("# CUDA: Activate GPU \n");
 
   CudaWrapper_Init(0, (char**)0, universe->me, pppn, devicelist);
   //if(shared_data.overlap_comm)
@@ -288,10 +319,10 @@ void Cuda::accelerator(int narg, char** arg)
 
   cu_binned_id  = 0;
   cu_binned_idnew = 0;
-  device_set = true;
   allocate();
-  delete devicelist;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void Cuda::setSharedDataZero()
 {
@@ -338,7 +369,6 @@ void Cuda::setSharedDataZero()
 
 void Cuda::allocate()
 {
-  accelerator(0, NULL);
   MYDBG(printf("# CUDA: Cuda::allocate ...\n");)
 
   if(not cu_virial) {
@@ -413,7 +443,6 @@ void Cuda::setDomainParams()
 void Cuda::checkResize()
 {
   MYDBG(printf("# CUDA: Cuda::checkResize ...\n");)
-  accelerator(0, NULL);
   cuda_shared_atom* cu_atom = & shared_data.atom;
   cuda_shared_pair* cu_pair = & shared_data.pair;
   cu_atom->q_flag      = atom->q_flag;

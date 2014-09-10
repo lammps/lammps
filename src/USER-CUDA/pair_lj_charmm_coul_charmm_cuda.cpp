@@ -69,7 +69,6 @@ void PairLJCharmmCoulCharmmCuda::allocate()
         if(! allocated) PairLJCharmmCoulCharmm::allocate();
         if(! allocated2)
         {
-                cuda->accelerator(0,NULL);
                 allocated2 = true;
                 cuda->shared_data.pair.coeff1  = lj1;
                 cuda->shared_data.pair.coeff2  = lj2;

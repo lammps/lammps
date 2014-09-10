@@ -55,8 +55,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
 
   con_mono = NULL;
   con_poly = NULL;
-  tags = NULL;
-  occvec = sendocc = lroot = lnext = NULL;
+  tags = occvec = sendocc = lroot = lnext = NULL;
 
   int iarg = 3;
   while ( iarg<narg ) {

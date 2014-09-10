@@ -36,9 +36,29 @@ Perform the charge equilibration (QEq) method as described in "(Rappe
 and Goddard)"_#Rappe and formulated in "(Nakano)"_#Nakano (also known
 as the matrix inversion method) and in "(Rick and Stuart)"_#Rick (also
 known as the extended Lagrangian method) based on the
-electronegativity equilization principle.  These fixes can be used
-with any potential in LAMMPS, so long as it defines and uses charges
-on each atom and that QEq parameters are provided.
+electronegativity equilization principle.
+
+These fixes can be used with any "pair style"_pair_style.html in
+LAMMPS, so long as per-atom charges are defined.  The most typical
+use-case is in conjunction with a "pair style"_pair_style.html that
+performs charge equilibration periodically (e.g. every timestep), such
+as the ReaxFF or Streitz-Mintmire potential (the latter is not yet
+implemented in LAMMPS).  But these fixes can also be used with
+potentials that normally assume per-atom charges are fixed, e.g. a
+"Buckingham"_pair_buck.html or "LJ/Coulombic"_pair_lj.html potential.
+
+Because the charge equilibration calculation is effectively
+independent of the pair style, these fixes can also be used to perform
+a one-time assignment of charges to atoms.  For example, you could
+define the QEq fix, perform a zero-timestep run via the "run"_run.html
+command without any pair style defined which would set per-atom
+charges (based on the current atom configuration), then remove the fix
+via the "unfix"_unfix.html command before performing further dynamics.
+
+IMPORTANT NOTE: Computing and using charge values different from
+published values defined for a fixed-charge potential like Buckingham
+or CHARMM or AMBER, can have a strong effect on energies and forces,
+and produces a different model than the published versions.
 
 IMPORTANT NOTE: The "fix qeq/comb"_fix_qeq_comb.html command must
 still be used to perform charge equliibration with the "COMB

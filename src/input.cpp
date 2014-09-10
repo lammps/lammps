@@ -1403,10 +1403,13 @@ void Input::package()
     error->all(FLERR,"Package command after simulation box is defined");
   if (narg < 1) error->all(FLERR,"Illegal package command");
 
+  // same checks for packages existing as in LAMMPS::post_create()
+  // since can be invoked here by package command in input script
+
   if (strcmp(arg[0],"cuda") == 0) {
-    if (!lmp->cuda)
+    if (lmp->cuda == NULL || lmp->cuda->cuda_exists == 0)
       error->all(FLERR,
-                 "Package cuda command without USER-CUDA package installed");
+                 "Package cuda command without USER-CUDA package enabled");
     lmp->cuda->accelerator(narg-1,&arg[1]);
 
   } else if (strcmp(arg[0],"gpu") == 0) {
@@ -1420,12 +1423,11 @@ void Input::package()
     for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
     modify->add_fix(2+narg,fixarg);
     delete [] fixarg;
-    force->newton_pair = 0;
 
   } else if (strcmp(arg[0],"kokkos") == 0) {
-    if (!lmp->kokkos)
+    if (lmp->kokkos == NULL || lmp->kokkos->kokkos_exists == 0)
       error->all(FLERR,
-                 "Package kokkos command without KOKKOS package installed");
+                 "Package kokkos command without KOKKOS package enabled");
     lmp->kokkos->accelerator(narg-1,&arg[1]);
 
   } else if (strcmp(arg[0],"omp") == 0) {
@@ -1442,14 +1444,14 @@ void Input::package()
     delete [] fixarg;
 
  } else if (strcmp(arg[0],"intel") == 0) {
-    if (!modify->check_package("Intel"))
+    if (!modify->check_package("INTEL"))
       error->all(FLERR,
                  "Package intel command without USER-INTEL package installed");
 
     char **fixarg = new char*[2+narg];
     fixarg[0] = (char *) "package_intel";
     fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "Intel";
+    fixarg[2] = (char *) "INTEL";
     for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
     modify->add_fix(2+narg,fixarg);
     delete [] fixarg;

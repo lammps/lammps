@@ -26,6 +26,11 @@ position is specified first. :l
   force N_force
   species N_species :pre
 
+  file_from ID: do not open a new file, re-use the already opened file from dump ID
+  box value = {yes} or {no}
+  create_group value = {yes} or {no} :pre
+
+
 :ule
 
 [Examples:]
@@ -40,18 +45,38 @@ based "H5MD"_h5md file format "(de Buyl et al.)"_#h5md_cpc.
 HDF5 files are binary, portable and self-describing.
 This dump style will write only one file, on the root node.
 
+Several dumps may write to the same file, by using file_from and referring to a
+previously defined dump.
+Several groups may also be stored within the same file by defining several dumps.
+A dump that refers (via {file_from}) to an already open dump ID and that
+concerns another particle group must specify {create_group yes}.
+
 :link(h5md,http://nongnu.org/h5md/)
 
 Each data element is written every N*N_element steps. For {image}, no
 subinterval is needed as it must be present at the same interval as {position}.
+{image} must be given after {position} in any case.
 The box information (edges in each dimension) is stored at the same interval
 than the {position} element, if present. Else it is stored every N steps.
-
 
 IMPORTANT NOTE: Because periodic boundary conditions are enforced only
 on timesteps when neighbor lists are rebuilt, the coordinates of an
 atom written to a dump file may be slightly outside the simulation
 box.
+
+[Use from write_dump:]
+
+It is possible to use this dump style with the "write_dump"_write_dump.html command.
+In this case, all relevant subintervals must be set to zero.
+{write_dump} can be used either alone or in conjunction with {file_from} so that
+fixed-in-time data can be stored in the same file as time-dependent data.
+
+Typically, the {species} data is fixed. The following two commands store the
+position data every 100 timesteps, with the image data, and store once the
+species data in the same file.
+
+dump h5md1 all h5md 100 dump.h5 position 1 image
+write_dump all h5md dump.h5 file_from h5md1 species 0 :pre
 
 :line
 
@@ -60,7 +85,6 @@ box.
 :ulb
 The number of atoms per snapshot cannot change with the h5md style. :l
 The position data is stored wrapped (box boundaries not enforced, see note above). :l
-It is not possible yet to store several groups in a single H5MD file. :l
 :ule
 
 The {h5md} dump style is part of the USER-H5MD package. It is only enabled if

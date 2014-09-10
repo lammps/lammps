@@ -161,6 +161,12 @@ cuda" command.  See the "package"_package.html command doc page for
 details, including the default values used for all its options if it
 is not specified.
 
+Note that the default for the "package cuda"_package.html command is
+to set the Newton flag to "off" for both pairwise and bonded
+interactions.  This typically gives fastest performance.  If the
+"newton"_newton.html command is used in the input script, it can
+override these defaults.
+
 [Or run with the USER-CUDA package by editing an input script:]
 
 The discussion above for the mpirun/mpiexec command and the requirement

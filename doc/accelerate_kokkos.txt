@@ -251,6 +251,18 @@ host=OMP, device=CUDA, node = dual 8-core CPUs and 2 GPUs:
 mpirun -np 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj           # two MPI tasks, 8 threads per CPU
 mpirun -np 32 -ppn 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj   # ditto on 16 nodes :pre
 
+Note that the default for the "package kokkos"_package.html command is
+to use "full" neighbor lists and set the Newton flag to "off" for both
+pairwise and bonded interactions.  This typically gives fastest
+performance.  If the "newton"_newton.html command is used in the input
+script, it can override the Newton flag defaults.
+
+However, when running in MPI-only mode with 1 thread per MPI task, it
+will typically be faster to use "half" neighbor lists and set the
+Newton flag to "on", just as is the case for non-accelerated pair
+styles.  You can do this with the "-pk" "command-line
+switch"_Section_start.html#start_7.
+
 [Or run with the KOKKOS package by editing an input script:]
 
 The discussion above for the mpirun/mpiexec command and setting

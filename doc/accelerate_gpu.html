@@ -163,6 +163,12 @@ same as the "package gpu" command.  See the <A HREF = "package.html">package</A>
 command doc page for details, including the default values used for
 all its options if it is not specified.
 </P>
+<P>Note that the default for the <A HREF = "package.html">package gpu</A> command is to
+set the Newton flag to "off" pairwise interactions.  It does not
+affect the setting for bonded interactions (LAMMPS default is "on").
+The "off" setting for pairwise interaction is currently required for
+GPU package pair styles.
+</P>
 <P><B>Or run with the GPU package by editing an input script:</B>
 </P>
 <P>The discussion above for the mpirun/mpiexec command, MPI tasks/node,

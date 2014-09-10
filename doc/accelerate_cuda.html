@@ -164,6 +164,12 @@ cuda" command.  See the <A HREF = "package.html">package</A> command doc page fo
 details, including the default values used for all its options if it
 is not specified.
 </P>
+<P>Note that the default for the <A HREF = "package.html">package cuda</A> command is
+to set the Newton flag to "off" for both pairwise and bonded
+interactions.  This typically gives fastest performance.  If the
+<A HREF = "newton.html">newton</A> command is used in the input script, it can
+override these defaults.
+</P>
 <P><B>Or run with the USER-CUDA package by editing an input script:</B>
 </P>
 <P>The discussion above for the mpirun/mpiexec command and the requirement

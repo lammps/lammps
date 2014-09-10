@@ -1158,11 +1158,12 @@ letter abbreviation can be used:
 </P>
 <UL><LI>-c or -cuda
 <LI>-e or -echo
-<LI>-i or -in
 <LI>-h or -help
+<LI>-i or -in
 <LI>-k or -kokkos
 <LI>-l or -log
 <LI>-nc or -nocite
+<LI>-pk or -package
 <LI>-p or -partition
 <LI>-pl or -plog
 <LI>-ps or -pscreen
@@ -1198,6 +1199,15 @@ can be useful to figure out which line of your script is causing an
 input error.  The default value is <I>log</I>.  The echo style can also be
 set by using the <A HREF = "echo.html">echo</A> command in the input script itself.
 </P>
+<PRE>-help 
+</PRE>
+<P>Print a brief help summary and a list of options compiled into this
+executable for each LAMMPS style (atom_style, fix, compute,
+pair_style, bond_style, etc).  This can tell you if the command you
+want to use was included via the appropriate package at compile time.
+LAMMPS will print the info and immediately exit if this switch is
+used.
+</P>
 <PRE>-in file 
 </PRE>
 <P>Specify a file to use as an input script.  This is an optional switch
@@ -1209,15 +1219,6 @@ an MPI implementation does not support it), then use the -in flag.
 Note that this is a required switch when running LAMMPS in
 multi-partition mode, since multiple processors cannot all read from
 stdin.
-</P>
-<PRE>-help 
-</PRE>
-<P>Print a brief help summary and a list of options compiled into this
-executable for each LAMMPS style (atom_style, fix, compute,
-pair_style, bond_style, etc).  This can tell you if the command you
-want to use was included via the appropriate package at compile time.
-LAMMPS will print the info and immediately exit if this switch is
-used.
 </P>
 <PRE>-kokkos on/off keyword/value ... 
 </PRE>
@@ -1325,6 +1326,20 @@ Option -plog will override the name of the partition log files file.N.
 references for specific cite-able features used during a LAMMPS run.
 See the <A HREF = "http://lammps.sandia.gov/cite.html">citation page</A> for more
 details.
+</P>
+<PRE>-package style args .... 
+</PRE>
+<P>Invoke the <A HREF = "package.html">package</A> command with style and args.  The
+syntax is the same as if the command appeared at the top of the input
+script.  For example "-package gpu 2" or "-pk gpu 2" is the same as
+<A HREF = "package.html">package gpu 2</A> in the input script.  The possible styles
+and args are documented on the <A HREF = "package.html">package</A> doc page.  This
+switch can be used multiple times, e.g. to set options for the
+USER-INTEL and USER-OMP packages which can be used together.
+</P>
+<P>Along with the "-suffix" command-line switch, this is a convenient
+mechanism for invoking accelerator packages and their options without
+having to edit an input script.
 </P>
 <PRE>-partition 8x2 4 5 ... 
 </PRE>
@@ -1484,7 +1499,7 @@ multi-partition mode, if the specified file is "none", then no screen
 output is performed. Option -pscreen will override the name of the
 partition screen files file.N.
 </P>
-<PRE>-suffix style args 
+<PRE>-suffix style 
 </PRE>
 <P>Use variants of various styles if they exist.  The specified style can
 be <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I>.  These refer to
@@ -1494,51 +1509,61 @@ package, the "gpu" style to the GPU package, the "intel" style to the
 USER-INTEL package, the "kk" style to the KOKKOS package, the "opt"
 style to the OPT package, and the "omp" style to the USER-OMP package.
 </P>
+<P>Along with the "-package" command-line switch, this is a convenient
+mechanism for invoking accelerator packages and their options without
+having to edit an input script.
+</P>
 <P>As an example, all of the packages provide a <A HREF = "pair_lj.html">pair_style
 lj/cut</A> variant, with style names lj/cut/cuda,
-lj/cut/gpu, lj/cut/intel, lj/cut/kk, lj/cut/omp, or lj/cut/opt.  A
-variant styles can be specified explicitly in your input script,
-e.g. pair_style lj/cut/gpu.  If the -suffix switch is used, you do not
-need to modify your input script.  The specified suffix
-(cuda,gpu,intel,kk,omp,opt) is automatically appended whenever your
-input script command creates a new <A HREF = "atom_style.html">atom</A>,
-<A HREF = "pair_style.html">pair</A>, <A HREF = "fix.html">fix</A>, <A HREF = "compute.html">compute</A>, or
-<A HREF = "run_style.html">run</A> style.  If the variant version does not exist,
-the standard version is created.
+lj/cut/gpu, lj/cut/intel, lj/cut/kk, lj/cut/omp, and lj/cut/opt.  A
+variant style can be specified explicitly in your input script,
+e.g. pair_style lj/cut/gpu.  If the -suffix switch is used the
+specified suffix (cuda,gpu,intel,kk,omp,opt) is automatically appended
+whenever your input script command creates a new
+<A HREF = "atom_style.html">atom</A>, <A HREF = "pair_style.html">pair</A>, <A HREF = "fix.html">fix</A>,
+<A HREF = "compute.html">compute</A>, or <A HREF = "run_style.html">run</A> style.  If the variant
+version does not exist, the standard version is created.
 </P>
 <P>For the GPU package, using this command-line switch also invokes the
-default GPU settings, as if the command "package gpu force/neigh 0 0
-1" were used at the top of your input script.  These settings can be
-changed by using the <A HREF = "package.html">package gpu</A> command in your script
-if desired.
+default GPU settings, as if the command "package gpu 1" were used at
+the top of your input script.  These settings can be changed by using
+the "-package gpu" command-line switch or the <A HREF = "package.html">package
+gpu</A> command in your script.
 </P>
-<P>For the USER-INTEL package, using this command-line switch also invokes the
-default USER-INTEL settings, as if the command "package intel * mixed
-balance -1" were used at the top of your input script.  These settings
-can be changed by using the <A HREF = "package.html">package intel</A> command in
-your script if desired.  If the USER-OMP package is installed, the
-intel suffix will make the omp suffix a second choice, if a requested
-style is not available in the USER-INTEL package.
+<P>For the USER-INTEL package, using this command-line switch also
+invokes the default USER-INTEL settings, as if the command "package
+intel 1" were used at the top of your input script.  These settings
+can be changed by using the "-package intel" command-line switch or
+the <A HREF = "package.html">package intel</A> command in your script.  If the
+USER-OMP package is also installed, the intel suffix will make the omp
+suffix a second choice, if a requested style is not available in the
+USER-INTEL package.  It will also invoke the default USER-OMP
+settings, as if the command "package omp 0" were used at the top of
+your input script.  These settings can be changed by using the
+"-package omp" command-line switch or the <A HREF = "package.html">package omp</A>
+command in your script.
 </P>
 <P>For the KOKKOS package, using this command-line switch also invokes
-the default KOKKOS settings, as if the command "package kokkos neigh
-full comm/exchange host comm/forward host " were used at the top of
-your input script.  These settings can be changed by using the
-<A HREF = "package.html">package kokkos</A> command in your script if desired.
+the default KOKKOS settings, as if the command "package kokkos" were
+used at the top of your input script.  These settings can be changed
+by using the "-package kokkos" command-line switch or the <A HREF = "package.html">package
+kokkos</A> command in your script.
 </P>
 <P>For the OMP package, using this command-line switch also invokes the
-default OMP settings, as if the command "package omp *" were used at
+default OMP settings, as if the command "package omp 0" were used at
 the top of your input script.  These settings can be changed by using
-the <A HREF = "package.html">package omp</A> command in your script if desired.
+the "-package omp" command-line switch or the <A HREF = "package.html">package
+omp</A> command in your script.
 </P>
-<P>The <A HREF = "suffix.html">suffix</A> command can also be used to set a suffix and
-it can also turn off or back on any suffix setting made via the
-command line.
+<P>The <A HREF = "suffix.html">suffix</A> command can also be used within an input
+script to set a suffix, or to turn off or back on any suffix setting
+made via the command line.
 </P>
 <PRE>-var name value1 value2 ... 
 </PRE>
 <P>Specify a variable that will be defined for substitution purposes when
-the input script is read.  "Name" is the variable name which can be a
+the input script is read.  This switch can be used multiple times to
+define multiple variables.  "Name" is the variable name which can be a
 single character (referenced as $x in the input script) or a full
 string (referenced as ${abc}).  An <A HREF = "variable.html">index-style
 variable</A> will be created and populated with the

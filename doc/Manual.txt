@@ -105,15 +105,15 @@ it gives quick access to documentation for all LAMMPS commands.
   4.2 "User packages"_pkg_2 :ule,b
 "Accelerating LAMMPS performance"_Section_accelerate.html :l
   5.1 "Measuring performance"_acc_1 :ulb,b
-  5.2 "General strategies"_acc_2 :b
-  5.3 "Packages with optimized styles"_acc_3 :b
-  5.4 "OPT package"_acc_4 :b
-  5.5 "USER-OMP package"_acc_5 :b
-  5.6 "GPU package"_acc_6 :b
-  5.7 "USER-CUDA package"_acc_7 :b
-  5.8 "KOKKOS package"_acc_8 :b
-  5.9 "USER-INTEL package"_acc_9 :b
-  5.10 "Comparison of GPU and USER-CUDA packages"_acc_10 :ule,b
+  5.2 "Algorithms and code options to boost performace"_acc_2 :b
+  5.3 "Accelerator packages with optimized styles"_acc_3 :b
+    5.3.1 "USER-CUDA package"_accelerate_cuda.html :ulb,b
+    5.3.2 "GPU package"_accelerate_gpu.html :b
+    5.3.3 "USER-INTEL package"_accelerate_intel.html :b
+    5.3.4 "KOKKOS package"_accelerate_kokkos.html :b
+    5.3.5 "USER-OMP package"_accelerate_omp.html :b
+    5.3.6 "OPT package"_accelerate_opt.html :ule,b
+  5.4 "Comparison of various accelerator packages"_acc_4 :ule,b
 "How-to discussions"_Section_howto.html :l
   6.1 "Restarting a simulation"_howto_1 :ulb,b
   6.2 "2d simulations"_howto_2 :b
@@ -201,11 +201,6 @@ it gives quick access to documentation for all LAMMPS commands.
 :link(acc_2,Section_accelerate.html#acc_2)
 :link(acc_3,Section_accelerate.html#acc_3)
 :link(acc_4,Section_accelerate.html#acc_4)
-:link(acc_5,Section_accelerate.html#acc_5)
-:link(acc_6,Section_accelerate.html#acc_6)
-:link(acc_7,Section_accelerate.html#acc_7)
-:link(acc_8,Section_accelerate.html#acc_8)
-:link(acc_9,Section_accelerate.html#acc_9)
 
 :link(howto_1,Section_howto.html#howto_1)
 :link(howto_2,Section_howto.html#howto_2)

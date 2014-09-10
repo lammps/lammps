@@ -4,8 +4,8 @@
 # cutoff 4.0 with skin 0.8
 # NPT, T=2.4, P=8.0
 
-package intel * mixed balance $b
-package omp *
+package intel 1 prec mixed balance $b
+package omp 0
 suffix $s
 processors * * * grid numa
 

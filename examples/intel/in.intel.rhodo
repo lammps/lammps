@@ -1,7 +1,7 @@
 # Rhodopsin model
 
-package intel * mixed balance $b
-package omp *
+package intel 1 prec mixed balance $b
+package omp 0
 suffix $s
 
 variable	x index 4

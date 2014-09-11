@@ -63,6 +63,7 @@ body:     body particles, 2d system
 colloid:  big colloid particles in a small particle solvent, 2d system
 comb:	  models using the COMB potential
 crack:	  crack propagation in a 2d solid
+cuda:     use of the USER-CUDA package for GPU acceleration
 deposit:  deposition of atoms and molecules onto a 3d substrate
 dipole:   point dipolar particles, 2d system
 dreiding: methanol via Dreiding FF

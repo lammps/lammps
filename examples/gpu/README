@@ -1,13 +1,16 @@
 These example scripts can be run with the USER-CUDA package, assuming
 you built LAMMPS with the package and the precision you want.
 
+Note that these benchmark problems are identical to those in the
+examples/gpu directory which use the GPU package.
+
 You can run any of the scripts as follows.  You can also reset the
 x,y,z variables in the command line to change the size of the problem.
 
 With the GPU package on 1 GPU:
 
 lmp_machine -sf gpu < in.gpu.melt.2.5
-mpirun -np 8 lmp_machine -sf gpu < in.gpu.phosphate
+mpirun -np 8 lmp_machine -sf gpu -v x 6 -v y 6 -v z 6 < in.gpu.phosphate
 
 With the GPU package on 2 GPUs:
 
@@ -18,7 +21,7 @@ CPU-only:
 
 lmp_machine < in.gpu.melt.2.5
 mpirun -np 4 lmp_machine < in.gpu.melt.5.0
-mpirun -np 8 lmp_machine < in.gpu.rhodo
+mpirun -np 8 lmp_machine -v x 1 -v y 1 -v z 2 < in.gpu.rhodo
 
 Note that with the GPU package you can have more MPI tasks
 than the number of GPUs (both per node).

@@ -1,11 +1,15 @@
 # GI-System
 
-units metal
+variable	x index 3
+variable	y index 3
+variable	z index 3
 
+units metal
 atom_style      charge 
+
 read_data 	data.phosphate
 
-replicate 	3 3 3
+replicate	$x $y $z
 
 pair_style      lj/cut/coul/long 15.0
 
@@ -20,9 +24,8 @@ kspace_style    pppm 1e-5
 
 neighbor	2.0 bin
 
-thermo 100
-
-timestep 0.001
+thermo          100
+timestep        0.001
 
 fix 		1 all npt temp 400 400 0.01 iso 1000.0 1000.0 1.0
 run 		200

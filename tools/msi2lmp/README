@@ -1,6 +1,12 @@
 Axel Kohlmeyer is the current maintainer of the msi2lmp tool.
 Please send any inquiries about msi2lmp to the lammps-users mailing list.
 
+11 Sep 2014 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Refactored ReadMdfFile.c so it more consistently honors
+the MAX_NAME and MAX_STRING string length defines and 
+potentially handles inputs with long names better.
+
 27 May 2014 Axel Kohlmeyer <akohlmey@gmail.com>
 
 Added TopoTools style type hints as comments to all Mass, PairCoeff,

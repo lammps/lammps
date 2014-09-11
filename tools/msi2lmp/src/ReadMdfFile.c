@@ -112,16 +112,16 @@ void ReadMdfFile(void)
      in starting and ending atom positions for each residue
   */
 
-  temp_string = (char *)calloc(16,sizeof(char));
+  temp_string = (char *)calloc(MAX_STRING,sizeof(char));
 
   for (n=0; n < no_molecules; n++) {
     molecule[n].no_residues = 1;
 
-    strncpy(temp_string,atoms[molecule[n].start].residue_string,16);
+    strncpy(temp_string,atoms[molecule[n].start].residue_string,MAX_NAME);
     for (i=molecule[n].start+1; i < molecule[n].end; i++) {
-      if (strncmp(temp_string,atoms[i].residue_string,16) != 0) {
+      if (strncmp(temp_string,atoms[i].residue_string,MAX_NAME) != 0) {
         molecule[n].no_residues++;
-        strncpy(temp_string,atoms[i].residue_string,16);
+        strncpy(temp_string,atoms[i].residue_string,MAX_NAME);
       }
     }
 
@@ -136,16 +136,16 @@ void ReadMdfFile(void)
   for (n=0; n < no_molecules; n++) {
     j = 0;
     strncpy(molecule[n].residue[j].name,
-            atoms[molecule[n].start].residue_string,16);
+            atoms[molecule[n].start].residue_string,MAX_NAME);
 
     molecule[n].residue[j].start = molecule[n].start;
     for (i=molecule[n].start+1; i < molecule[n].end; i++) {
       if (strncmp(molecule[n].residue[j].name,
-                  atoms[i].residue_string,16) != 0) {
+                  atoms[i].residue_string,MAX_NAME) != 0) {
 
         molecule[n].residue[j].end = i;
         molecule[n].residue[++j].start = i;
-        strncpy(molecule[n].residue[j].name,atoms[i].residue_string,16);
+        strncpy(molecule[n].residue[j].name,atoms[i].residue_string,MAX_NAME);
       }
     }
     molecule[n].residue[j].end = molecule[n].end;
@@ -171,7 +171,7 @@ void ReadMdfFile(void)
       for (i=molecule[n].residue[j].start; i < molecule[n].residue[j].end;
            i++) {
         for (l=0; l < atoms[i].no_connect; l++) {
-          strncpy(temp_string,atoms[i].connections[l],16);
+          strncpy(temp_string,atoms[i].connections[l],MAX_STRING);
           temp_residue = strtok(temp_string,":");
           temp_atom_name = strtok(NULL,"%");
 
@@ -334,7 +334,7 @@ void MakeConnectFullForm(int *counter) {
 
   int i;                /* Counter for character array */
   int j;                /* loop counter */
-  char tempname[MAX_STRING];   /* name of connection */
+  char tempname[2*MAX_STRING];   /* name of connection */
   char tempcell[10];   /* Values from connectivity record */
   char tempsym[5];              /* " " */
   char tempbo[6];               /* " " */
@@ -347,6 +347,8 @@ void MakeConnectFullForm(int *counter) {
       strcat(tempname,":");
       strcat(tempname,
              atoms[*counter].connections[j]);
+      /* truncate at capacity of target storage */
+      tempname[MAX_STRING-1] = '\0';
       sscanf(tempname, "%s",
              atoms[*counter].connections[j]);
     } else sscanf(atoms[*counter].connections[j], "%s", tempname);
@@ -396,8 +398,13 @@ void MakeConnectFullForm(int *counter) {
     strcat( tempname, tempsym);
     strcat( tempname, "/");
     strcat( tempname, tempbo);
-    if (strlen(tempname) > 25) printf("tempname overrun %s\n",tempname);
-    sscanf( tempname, "%s", atoms[*counter].connections[j]);
+    if (strlen(tempname) >= MAX_STRING) {
+      printf("tempname overrun %s. truncating to ",tempname);
+      /* truncate at capacity of target storage */
+      tempname[MAX_STRING-1] = '\0';
+      puts(tempname);
+    }
+    sscanf(tempname, "%s", atoms[*counter].connections[j]);
   }/*End for loop*/
 }/* End function MakeNameLong
   */

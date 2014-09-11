@@ -1,0 +1,21 @@
+These example scripts can be run with the USER-CUDA
+package, assuming you built LAMMPS with the package.
+
+You can run any of the scripts as follows.  You can also reset the
+x,y,z variables in the command line to change the size of the problem.
+
+With USER-CUDA on 1 GPU:
+
+lmp_machine -c on -sf cuda < in.cuda.melt.2.5
+lmp_machine -c on -sf cuda < in.cuda.phosphate
+
+With USER-CUDA on 2 GPUs:
+
+mpirun -np 2 lmp_machine -c on -sf cuda -pk cuda 2 < in.cuda.melt.2.5
+mpirun -np 2 lmp_machine -c on -sf cuda -pk cuda 2 < in.cuda.rhodo
+
+CPU-only:
+
+lmp_machine in.cuda.melt.2.5
+mpirun -np 4 lmp_machine < in.cuda.melt.5.0
+mpirun -np 8 lmp_machine < in.cuda.rhodo

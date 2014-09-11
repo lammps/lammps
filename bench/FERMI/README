@@ -25,7 +25,7 @@ To run on just CPUs (without using the GPU or USER-CUDA styles),
 do something like the following:
 
 mpirun -np 1 lmp_linux_double -v x 8 -v y 8 -v z 8 -v t 100 < in.lj
-mpirun -np 12 lmp_linux_double -v x 16 -v y 16 -v z 16 -v t 100 < in.lj
+mpirun -np 12 lmp_linux_double -v x 16 -v y 16 -v z 16 -v t 100 < in.eam
 
 The "xyz" settings determine the problem size.  The "t" setting
 determines the number of timesteps.
@@ -37,40 +37,37 @@ nodes, scale up the "-np" setting.
 
 To run with the GPU package, do something like the following:
 
-mpirun -np 12 lmp_linux_single -sf gpu -pk gpu 1 -v x 32 -v y 32 -v z 64 -v t 100 < in.lj
-mpirun -np 8 lmp_linux_mixed -sf gpu -pk gpu 2 -v x 32 -v y 32 -v z 64 -v t 100 < in.lj
+mpirun -np 12 lmp_linux_single -sf gpu -v x 32 -v y 32 -v z 64 -v t 100 < in.lj
+mpirun -np 8 lmp_linux_mixed -sf gpu -pk gpu 2 -v x 32 -v y 32 -v z 64 -v t 100 < in.eam
 
 The "xyz" settings determine the problem size.  The "t" setting
 determines the number of timesteps.  The "np" setting determines how
-many MPI tasks (per node) the problem will run on, The numeric
-argument to the "-pk" setting is the number of GPUs (per node).  Note
-that you can use more MPI tasks than GPUs (per node) with the GPU
-package.
+many MPI tasks (per node) the problem will run on.  The numeric
+argument to the "-pk" setting is the number of GPUs (per node); 1 GPU
+is the default.  Note that you can use more MPI tasks than GPUs (per
+node) with the GPU package.
 
-These mpirun commands run on a single node.  To run on multiple
-nodes, scale up the "-np" setting, and control the number of
-MPI tasks per node via a "-ppn" setting.
+These mpirun commands run on a single node.  To run on multiple nodes,
+scale up the "-np" setting, and control the number of MPI tasks per
+node via a "-ppn" setting.
 
 ------------------------------------------------------------------------
 
 To run with the USER-CUDA package, do something like the following:
 
-If the script has "cuda" in its name, it is meant to be run using
-the USER-CUDA package.  For example:
-
-mpirun -np 1 ../lmp_linux_single -c on -sf cuda -v g 1 -v x 16 -v y 16 -v z 16 -v t 100 < in.lj.cuda
-
-mpirun -np 2 ../lmp_linux_double -c on -sf cuda -v g 2 -v x 32 -v y 64 -v z 64 -v t 100 < in.eam.cuda
+mpirun -np 1 lmp_linux_single -c on -sf cuda -v x 16 -v y 16 -v z 16 -v t 100 < in.lj
+mpirun -np 2 lmp_linux_double -c on -sf cuda -pk cuda 2 -v x 32 -v y 64 -v z 64 -v t 100 < in.eam
 
 The "xyz" settings determine the problem size.  The "t" setting
 determines the number of timesteps.  The "np" setting determines how
-many MPI tasks per compute node the problem will run on, and the "g"
-setting determines how many GPUs per compute node the problem will run
-on, i.e. 1 or 2 in this case.  For the USER-CUDA package, the number
-of MPI tasks and GPUs (both per compute node) must be equal.
+many MPI tasks (per node) the problem will run on.  The numeric
+argument to the "-pk" setting is the number of GPUs (per node); 1 GPU
+is the default.  Note that the number of MPI tasks must equal the
+number of GPUs (both per node) with the USER-CUDA package.
 
-These mpirun commands run on a single node.  To run on multiple
-nodes, scale up the "-np" setting.
+These mpirun commands run on a single node.  To run on multiple nodes,
+scale up the "-np" setting, and control the number of MPI tasks per
+node via a "-ppn" setting.
 
 ------------------------------------------------------------------------
 

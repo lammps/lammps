@@ -1,35 +1,28 @@
-These are input scripts designed for use with the GPU package.
+These example scripts can be run with the USER-CUDA package, assuming
+you built LAMMPS with the package and the precision you want.
 
-To run them, you must first build LAMMPS with the GPU package
-installed, following the steps explained in Section 2.3 of
-doc/Section_start.html and lib/gpu/README.  An overview of building
-and running LAMMPS with the GPU package is given in Section 5.6 of
-doc/Section_accelerate.html.  Note that you can choose the precision
-at which computations are performed on the GPU in the build process.
+You can run any of the scripts as follows.  You can also reset the
+x,y,z variables in the command line to change the size of the problem.
 
-Note that lines such as this in each of the input scripts:
+With the GPU package on 1 GPU:
 
-package 	gpu force/neigh 0 1 1
+lmp_machine -sf gpu < in.gpu.melt.2.5
+mpirun -np 8 lmp_machine -sf gpu < in.gpu.phosphate
 
-are set for running on a compute node with 2 GPUs.  If you
-have a single GPU, you should comment out the line, since
-the default is 1 GPU per compute node.
+With the GPU package on 2 GPUs:
 
-The scripts can be run in the usual manner:
+mpirun -np 4 lmp_machine -sf gpu -pk gpu 2 tpa 8 < in.gpu.melt.5.0
+mpirun -np 12 lmp_machine -sf gpu -pk gpu 2 < in.gpu.rhodo
 
-lmp_g++ < in.gpu.melt.2.5
-lmp_g++ < in.gpu.melt.5.0
-lmp_g++ < in.gpu.phosphate
-lmp_g++ < in.gpu.rhodo
+CPU-only:
 
-mpirun -np 4 lmp_g++ < in.gpu.melt.2.5
-mpirun -np 4 lmp_g++ < in.gpu.melt.5.0
-mpirun -np 4 lmp_g++ < in.gpu.phosphate
-mpirun -np 4 lmp_g++ < in.gpu.rhodo
+lmp_machine < in.gpu.melt.2.5
+mpirun -np 4 lmp_machine < in.gpu.melt.5.0
+mpirun -np 8 lmp_machine < in.gpu.rhodo
 
-The first set of commmands will run a single MPI task using a single
-GPU (even if you have 2 GPUs).
+Note that with the GPU package you can have more MPI tasks
+than the number of GPUs (both per node).
 
-The second set of commands will run 4 MPI tasks, with 2 MPI tasks per
-GPU (if you have 2 GPUs), or 4 MPI tasks per GPU (if you have a single
-GPU).
+Also note that when running the in.gpu.melt.5.0 problem on the GPU,
+which has a long cutoff, the package gpu "tpa" setting should be > 1
+(e.g. 8) for best performance.

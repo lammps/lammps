@@ -1,7 +1,5 @@
 # 3d Lennard-Jones melt
 
-package 	gpu 1 tpa 8
-
 variable	x index 2
 variable	y index 2
 variable	z index 2
@@ -21,7 +19,7 @@ mass		1 1.0
 
 velocity	all create 1.44 87287 loop geom
 
-pair_style	lj/cut/gpu 5.0
+pair_style	lj/cut 5.0
 pair_coeff	1 1 1.0 1.0 5.0
 
 neighbor	0.3 bin

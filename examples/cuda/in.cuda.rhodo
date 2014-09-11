@@ -23,10 +23,11 @@ replicate	$x $y $z
 fix             1 all shake 0.0001 5 0 m 1.0 a 232
 fix             2 all npt temp 300.0 300.0 100.0 &
 		z 0.0 0.0 1000.0 mtk no pchain 0 tchain 1
+
 special_bonds   charmm
  
 thermo          100
 thermo_style    multi 
 timestep        2.0
 
-run		1000
+run		200

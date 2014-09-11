@@ -24,10 +24,8 @@ kspace_style    pppm 1e-5
 
 neighbor	2.0 bin
 
-thermo 100
+thermo          100
+timestep        0.001
 
-timestep 0.001
-
-fix 1 all npt temp 400 400 0.01 iso 1000.0 1000.0 1.0
-run 1000
-
+fix 		1 all npt temp 400 400 0.01 iso 1000.0 1000.0 1.0
+run 		200

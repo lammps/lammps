@@ -1,15 +1,18 @@
-These example scripts can be run with the USER-CUDA
-package, assuming you built LAMMPS with the package.
+These example scripts can be run with the USER-CUDA package, assuming
+you built LAMMPS with the package and the precision you want.
+
+Note that these benchmark problems are identical to those in the
+examples/cuda directory which use the USER-CUDA package.
 
 You can run any of the scripts as follows.  You can also reset the
 x,y,z variables in the command line to change the size of the problem.
 
-With USER-CUDA on 1 GPU:
+With the USER-CUDA package on 1 GPU:
 
 lmp_machine -c on -sf cuda < in.cuda.melt.2.5
-lmp_machine -c on -sf cuda < in.cuda.phosphate
+lmp_machine -c on -sf cuda -v x 6 -v y 6 -v z 6 < in.cuda.phosphate
 
-With USER-CUDA on 2 GPUs:
+With the USER-CUDA package on 2 GPUs:
 
 mpirun -np 2 lmp_machine -c on -sf cuda -pk cuda 2 < in.cuda.melt.2.5
 mpirun -np 2 lmp_machine -c on -sf cuda -pk cuda 2 < in.cuda.rhodo
@@ -18,4 +21,7 @@ CPU-only:
 
 lmp_machine in.cuda.melt.2.5
 mpirun -np 4 lmp_machine < in.cuda.melt.5.0
-mpirun -np 8 lmp_machine < in.cuda.rhodo
+mpirun -np 8 lmp_machine -v x 1 -v y 1 -v z 2 < in.cuda.rhodo
+
+Note that with the USER-CUDA package you must insure the number of MPI
+tasks equals the number of GPUs (both per node).

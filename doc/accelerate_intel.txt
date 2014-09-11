@@ -114,8 +114,8 @@ higher is recommended.
 
 The mpirun or mpiexec command sets the total number of MPI tasks used
 by LAMMPS (one or multiple per compute node) and the number of MPI
-tasks used per node.  E.g. the mpirun command does this via its -np
-and -ppn switches.
+tasks used per node.  E.g. the mpirun command in MPICH does this via
+its -np and -ppn switches.  Ditto OpenMPI via -np and -npernode.
 
 If LAMMPS was also built with the USER-OMP package, you need to choose
 how many OpenMP threads per MPI task will be used by the USER-OMP

@@ -482,10 +482,10 @@ The {Nthread} argument sets the number of OpenMP threads allocated for
 each MPI task.  For example, if your system has nodes with dual
 quad-core processors, it has a total of 8 cores per node.  You could
 use two MPI tasks per node (e.g. using the -ppn option of the mpirun
-command), and set {Nthreads} = 4.  This would use all 8 cores on each
-node.  Note that the product of MPI tasks * threads/task should not
-exceed the physical number of cores (on a node), otherwise performance
-will suffer.
+command in MPICH or -npernode in OpenMPI), and set {Nthreads} = 4.
+This would use all 8 cores on each node.  Note that the product of MPI
+tasks * threads/task should not exceed the physical number of cores
+(on a node), otherwise performance will suffer.
 
 Setting {Nthread} = 0 instructs LAMMPS to use whatever value is the
 default for the given OpenMP environment. This is usually determined

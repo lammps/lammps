@@ -13,6 +13,7 @@
 
 #include "mpi.h"
 #include "string.h"
+#include "ctype.h"
 #include "lammps.h"
 #include "style_angle.h"
 #include "style_atom.h"
@@ -98,58 +99,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int wdfirst,wdlast;
   int kkfirst,kklast;
 
-#if 0
-  // read .lammpsrc in home and current directory for overriding defaults
-
-  const char *rcpath;
-  char *homepath = NULL;
-#ifdef _WIN32
-  const char rcname[] = "lammps.rc";
-#else
-  const char rcname[] = ".lammpsrc";
-  const char *homedir = getenv("HOME");
-  if (homedir) {
-    int len = strlen(homedir) + strlen(rcname);
-    homepath = new char[len+2];
-    strcpy(homepath,homedir);
-    strcat(homepath,"/");
-    strcat(homepath,rcname);
-  }
-#endif
-  FILE *fd;
-  do {
-    if (homepath) rcpath = homepath;
-    else rcpath = rcname;
-    fd = fopen(rcpath,"r");
-    if (fd) {
-       char linebuf[1024];
-       char *key, *value;
-
-       // loop through file
-       while(1) {
-         fgets(linebuf,1024,fd);
-         if (feof(fd) || ferror(fd)) break;
-
-         // truncate line at comment character, if present
-         if ((key = strstr(linebuf,"#"))) *key = '\0';
-
-         key = strtok(linebuf," \t\n\r\f");
-         value = strtok(NULL," \t\n\r\f");
-
-         // skip empty lines
-         if (key == NULL) continue;
-
-       }
-       fclose(fd);
-    }
-    if (homepath) {
-      delete[] homepath;
-      homepath = NULL;
-    }
-  } while(rcpath != rcname);
-#endif
-
-  // parsing command line flags
+ int npack = 0;
+  int *pfirst = NULL;
+  int *plast = NULL;
 
   int iarg = 1;
   while (iarg < narg) {
@@ -224,6 +176,22 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       kkfirst = iarg;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
       kklast = iarg;
+    } else if (strcmp(arg[iarg],"-package") == 0 ||
+               strcmp(arg[iarg],"-pk") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      memory->grow(pfirst,npack+1,"lammps:pfirst");
+      memory->grow(plast,npack+1,"lammps:plast");
+      // delimit args for package command invocation
+      // any package arg with leading "-" will be followed by numeric digit
+      iarg++;
+      pfirst[npack] = iarg;
+      while (iarg < narg) {
+        if (arg[iarg][0] != '-') iarg++;
+        else if (isdigit(arg[iarg][1])) iarg++;
+        else break;
+      }
+      plast[npack++] = iarg;
     } else if (strcmp(arg[iarg],"-suffix") == 0 ||
                strcmp(arg[iarg],"-sf") == 0) {
       if (iarg+2 > narg)
@@ -539,7 +507,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   // allocate top-level classes
 
   create();
-  post_create();
+  post_create(npack,pfirst,plast,arg);
+  memory->destroy(pfirst);
+  memory->destroy(plast);
 
   // if helpflag set, print help and quit
 
@@ -662,15 +632,18 @@ void LAMMPS::create()
      so that package-specific core classes have been instantiated
 ------------------------------------------------------------------------- */
 
-void LAMMPS::post_create()
+void LAMMPS::post_create(int npack, int *pfirst, int *plast, char **arg)
 {
-  if (!suffix_enable) return;
+  // default package commands triggered by "-c on" and "-k on"
+
+  if (cuda && cuda->cuda_exists) input->one("package cuda 1");
+  if (kokkos && kokkos->kokkos_exists) input->one("package kokkos");
 
   // suffix will always be set if suffix_enable = 1
-  // USER-CUDA and KOKKOS have package classes instantiated if enabled
-  //   via "-c on" and "-k on"
-  // GPU, INTEL, USER-OMP provide their own fixes which will have
-  //   been compiled with LAMMPS if those packages were installed
+  // check that USER-CUDA and KOKKOS package classes were instantiated
+  // check that GPU, INTEL, USER-OMP fixes were compiled with LAMMPS
+
+  if (!suffix_enable) return;
 
   if (strcmp(suffix,"cuda") == 0 && (cuda == NULL || cuda->cuda_exists == 0))
     error->all(FLERR,"Using suffix cuda without USER-CUDA package enabled");
@@ -700,6 +673,22 @@ void LAMMPS::post_create()
   if (suffix2) {
     if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
   }
+
+  // invoke any command-line package commands
+
+  if (npack) {
+    char str[128];
+    for (int i = 0; i < npack; i++) {
+      strcpy(str,"package");
+      for (int j = pfirst[i]; j < plast[i]; j++) {
+        if (strlen(str) + strlen(arg[j]) + 2 > 128)
+          error->all(FLERR,"Too many -pk arguments in command line");
+        strcat(str," ");
+        strcat(str,arg[j]);
+      }
+      input->one(str);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -709,9 +698,6 @@ void LAMMPS::post_create()
 
 void LAMMPS::init()
 {
-  if (cuda) cuda->accelerator(0,NULL);
-  if (kokkos) kokkos->accelerator(0,NULL);
-
   update->init();
   force->init();         // pair must come after update due to minimizer
   domain->init();
@@ -795,6 +781,7 @@ void help_message(FILE *fp)
         " -kokkos on/off ...           : turn KOKKOS mode on or off     (-k)\n"
         " -log none/<filename>         : where to send log output       (-l)\n"
         " -nocite                      : disable writing log.cite file  (-nc)\n"
+        " -package style ...           : invoke package command (-pk)\n"
         " -partition <partition size>  : assign partition sizes         (-p)\n"
         " -plog <basename>             : basename for partition logs    (-pl)\n"
         " -pscreen <basename>          : basename for partition screens (-ps)\n"

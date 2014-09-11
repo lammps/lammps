@@ -1,0 +1,197 @@
+<HTML>
+<CENTER><A HREF = "Section_packages.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
+<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<P><A HREF = "Section_accelerate.html">Return to Section accelerate overview</A>
+</P>
+<H4>5.3.5 USER-OMP package 
+</H4>
+<P>The USER-OMP package was developed by Axel Kohlmeyer at Temple
+University.  It provides multi-threaded versions of most pair styles,
+nearly all bonded styles (bond, angle, dihedral, improper), several
+Kspace styles, and a few fix styles.  The package currently
+uses the OpenMP interface for multi-threading.
+</P>
+<P>Here is a quick overview of how to use the USER-OMP package:
+</P>
+<UL><LI>use the -fopenmp flag for compiling and linking in your Makefile.machine
+<LI>include the USER-OMP package and build LAMMPS
+<LI>use the mpirun command to set the number of MPI tasks/node
+<LI>specify how many threads per MPI task to use
+<LI>use USER-OMP styles in your input script 
+</UL>
+<P>The latter two steps can be done using the "-pk omp" and "-sf omp"
+<A HREF = "Section_start.html#start_7">command-line switches</A> respectively.  Or
+the effect of the "-pk" or "-sf" switches can be duplicated by adding
+the <A HREF = "package.html">package omp</A> or <A HREF = "suffix.html">suffix omp</A> commands
+respectively to your input script.
+</P>
+<P><B>Required hardware/software:</B>
+</P>
+<P>Your compiler must support the OpenMP interface.  You should have one
+or more multi-core CPUs so that multiple threads can be launched by an
+MPI task running on a CPU.
+</P>
+<P><B>Building LAMMPS with the USER-OMP package:</B>
+</P>
+<P>Include the package and build LAMMPS:
+</P>
+<PRE>cd lammps/src
+make yes-user-omp
+make machine 
+</PRE>
+<P>Your src/MAKE/Makefile.machine needs a flag for OpenMP support in both
+the CCFLAGS and LINKFLAGS variables.  For GNU and Intel compilers,
+this flag is "-fopenmp".  Without this flag the USER-OMP styles will
+still be compiled and work, but will not support multi-threading.
+</P>
+<P><B>Run with the USER-OMP package from the command line:</B>
+</P>
+<P>The mpirun or mpiexec command sets the total number of MPI tasks used
+by LAMMPS (one or multiple per compute node) and the number of MPI
+tasks used per node.  E.g. the mpirun command does this via its -np
+and -ppn switches.
+</P>
+<P>You need to choose how many threads per MPI task will be used by the
+USER-OMP package.  Note that the product of MPI tasks * threads/task
+should not exceed the physical number of cores (on a node), otherwise
+performance will suffer.
+</P>
+<P>Use the "-sf omp" <A HREF = "Section_start.html#start_7">command-line switch</A>,
+which will automatically append "omp" to styles that support it.  Use
+the "-pk omp Nt" <A HREF = "Section_start.html#start_7">command-line switch</A>, to
+set Nt = # of OpenMP threads per MPI task to use.
+</P>
+<PRE>lmp_machine -sf omp -pk omp 16 -in in.script                       # 1 MPI task on a 16-core node
+mpirun -np 4 lmp_machine -sf omp -pk omp 4 -in in.script           # 4 MPI tasks each with 4 threads on a single 16-core node
+mpirun -np 32 -ppn 4 lmp_machine -sf omp -pk omp 4 -in in.script   # ditto on 8 16-core nodes 
+</PRE>
+<P>Note that if the "-sf omp" switch is used, it also issues a default
+<A HREF = "package.html">package omp 0</A> command, which sets the number of threads
+per MPI task via the OMP_NUM_THREADS environment variable.
+</P>
+<P>Using the "-pk" switch explicitly allows for direct setting of the
+number of threads and additional options.  Its syntax is the same as
+the "package omp" command.  See the <A HREF = "package.html">package</A> command doc
+page for details, including the default values used for all its
+options if it is not specified, and how to set the number of threads
+via the OMP_NUM_THREADS environment variable if desired.
+</P>
+<P><B>Or run with the USER-OMP package by editing an input script:</B>
+</P>
+<P>The discussion above for the mpirun/mpiexec command, MPI tasks/node,
+and threads/MPI task is the same.
+</P>
+<P>Use the <A HREF = "suffix.html">suffix omp</A> command, or you can explicitly add an
+"omp" suffix to individual styles in your input script, e.g.
+</P>
+<PRE>pair_style lj/cut/omp 2.5 
+</PRE>
+<P>You must also use the <A HREF = "package.html">package omp</A> command to enable the
+USER-OMP package, unless the "-sf omp" or "-pk omp" <A HREF = "Section_start.html#start_7">command-line
+switches</A> were used.  It specifies how many
+threads per MPI task to use, as well as other options.  Its doc page
+explains how to set the number of threads via an environment variable
+if desired.
+</P>
+<P><B>Speed-ups to expect:</B>
+</P>
+<P>Depending on which styles are accelerated, you should look for a
+reduction in the "Pair time", "Bond time", "KSpace time", and "Loop
+time" values printed at the end of a run.  
+</P>
+<P>You may see a small performance advantage (5 to 20%) when running a
+USER-OMP style (in serial or parallel) with a single thread per MPI
+task, versus running standard LAMMPS with its standard
+(un-accelerated) styles (in serial or all-MPI parallelization with 1
+task/core).  This is because many of the USER-OMP styles contain
+similar optimizations to those used in the OPT package, as described
+above.
+</P>
+<P>With multiple threads/task, the optimal choice of MPI tasks/node and
+OpenMP threads/task can vary a lot and should always be tested via
+benchmark runs for a specific simulation running on a specific
+machine, paying attention to guidelines discussed in the next
+sub-section.
+</P>
+<P>A description of the multi-threading strategy used in the USER-OMP
+package and some performance examples are <A HREF = "http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1">presented
+here</A>
+</P>
+<P><B>Guidelines for best performance:</B>
+</P>
+<P>For many problems on current generation CPUs, running the USER-OMP
+package with a single thread/task is faster than running with multiple
+threads/task.  This is because the MPI parallelization in LAMMPS is
+often more efficient than multi-threading as implemented in the
+USER-OMP package.  The parallel efficiency (in a threaded sense) also
+varies for different USER-OMP styles.
+</P>
+<P>Using multiple threads/task can be more effective under the following
+circumstances:
+</P>
+<UL><LI>Individual compute nodes have a significant number of CPU cores but
+the CPU itself has limited memory bandwidth, e.g. for Intel Xeon 53xx
+(Clovertown) and 54xx (Harpertown) quad core processors. Running one
+MPI task per CPU core will result in significant performance
+degradation, so that running with 4 or even only 2 MPI tasks per node
+is faster.  Running in hybrid MPI+OpenMP mode will reduce the
+inter-node communication bandwidth contention in the same way, but
+offers an additional speedup by utilizing the otherwise idle CPU
+cores. 
+
+<LI>The interconnect used for MPI communication does not provide
+sufficient bandwidth for a large number of MPI tasks per node.  For
+example, this applies to running over gigabit ethernet or on Cray XT4
+or XT5 series supercomputers.  As in the aforementioned case, this
+effect worsens when using an increasing number of nodes. 
+
+<LI>The system has a spatially inhomogeneous particle density which does
+not map well to the <A HREF = "processors.html">domain decomposition scheme</A> or
+<A HREF = "balance.html">load-balancing</A> options that LAMMPS provides.  This is
+because multi-threading achives parallelism over the number of
+particles, not via their distribution in space. 
+
+<LI>A machine is being used in "capability mode", i.e. near the point
+where MPI parallelism is maxed out.  For example, this can happen when
+using the <A HREF = "kspace_style.html">PPPM solver</A> for long-range
+electrostatics on large numbers of nodes.  The scaling of the KSpace
+calculation (see the <A HREF = "kspace_style.html">kspace_style</A> command) becomes
+the performance-limiting factor.  Using multi-threading allows less
+MPI tasks to be invoked and can speed-up the long-range solver, while
+increasing overall performance by parallelizing the pairwise and
+bonded calculations via OpenMP.  Likewise additional speedup can be
+sometimes be achived by increasing the length of the Coulombic cutoff
+and thus reducing the work done by the long-range solver.  Using the
+<A HREF = "run_style.html">run_style verlet/split</A> command, which is compatible
+with the USER-OMP package, is an alternative way to reduce the number
+of MPI tasks assigned to the KSpace calculation. 
+</UL>
+<P>Additional performance tips are as follows:
+</P>
+<UL><LI>The best parallel efficiency from <I>omp</I> styles is typically achieved
+when there is at least one MPI task per physical processor,
+i.e. socket or die. 
+
+<LI>It is usually most efficient to restrict threading to a single
+socket, i.e. use one or more MPI task per socket. 
+
+<LI>Several current MPI implementation by default use a processor affinity
+setting that restricts each MPI task to a single CPU core.  Using
+multi-threading in this mode will force the threads to share that core
+and thus is likely to be counterproductive.  Instead, binding MPI
+tasks to a (multi-core) socket, should solve this issue. 
+</UL>
+<P><B>Restrictions:</B>
+</P>
+<P>None.
+</P>
+</HTML>

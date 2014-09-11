@@ -38,6 +38,9 @@ class Neighbor : protected Pointers {
   double cutneighmax;              // max neighbor cutoff for all type pairs
   double *cuttype;                 // for each type, max neigh cut w/ others
 
+  int binsizeflag;                 // user-chosen bin size
+  double binsize_user;             // set externally by some accelerator pkgs
+
   bigint ncalls;                   // # of times build has been called
   bigint ndanger;                  // # of dangerous builds
   bigint lastcall;                 // timestep of last neighbor::build() call
@@ -120,9 +123,6 @@ class Neighbor : protected Pointers {
   int mbins;                       // # of local bins and offset
   int mbinx,mbiny,mbinz;
   int mbinxlo,mbinylo,mbinzlo;
-
-  int binsizeflag;                 // user-chosen bin size
-  double binsize_user;
 
   double binsizex,binsizey,binsizez;  // actual bin sizes and inverse sizes
   double bininvx,bininvy,bininvz;

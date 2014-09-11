@@ -1,8 +1,7 @@
 # GI-System
 
 units metal
-newton off
-package		gpu force/neigh 0 1 1
+package		gpu 1
 
 atom_style      charge 
 read_data 	data.phosphate

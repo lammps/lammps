@@ -17,6 +17,7 @@
 #include "ctype.h"
 #include "kokkos.h"
 #include "lammps.h"
+#include "force.h"
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "error.h"
@@ -124,19 +125,48 @@ KokkosLMP::~KokkosLMP()
 
 void KokkosLMP::accelerator(int narg, char **arg)
 {
+  // defaults
+
+  neighflag = FULL;
+  int newtonflag = 0;
+  double binsize = 0.0;
+  exchange_comm_classic = forward_comm_classic = 0;
+  exchange_comm_on_host = forward_comm_on_host = 1;
+
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"full") == 0) neighflag = FULL;
       else if (strcmp(arg[iarg+1],"half/thread") == 0) neighflag = HALFTHREAD;
       else if (strcmp(arg[iarg+1],"half") == 0) neighflag = HALF;
       else if (strcmp(arg[iarg+1],"n2") == 0) neighflag = N2;
       else if (strcmp(arg[iarg+1],"full/cluster") == 0) neighflag = FULLCLUSTER;
-      else error->all(FLERR,"Illegal package command");
+      else error->all(FLERR,"Illegal package kokkos command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"binsize") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      binsize = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"newton") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"off") == 0) newtonflag = 0;
+      else if (strcmp(arg[iarg+1],"on") == 0) newtonflag = 1;
+      else error->all(FLERR,"Illegal package kokkos command");
+    } else if (strcmp(arg[iarg],"comm") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"no") == 0) {
+        exchange_comm_classic = forward_comm_classic = 1;
+      } else if (strcmp(arg[iarg+1],"host") == 0) {
+        exchange_comm_classic = forward_comm_classic = 0;
+        exchange_comm_on_host = forward_comm_on_host = 1;
+      } else if (strcmp(arg[iarg+1],"device") == 0) {
+        exchange_comm_classic = forward_comm_classic = 0;
+        exchange_comm_on_host = forward_comm_on_host = 0;
+      } else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"comm/exchange") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"no") == 0) exchange_comm_classic = 1;
       else if (strcmp(arg[iarg+1],"host") == 0) {
         exchange_comm_classic = 0;
@@ -144,10 +174,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"device") == 0) {
         exchange_comm_classic = 0;
         exchange_comm_on_host = 0;
-      } else error->all(FLERR,"Illegal package command");
+      } else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"comm/forward") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"no") == 0) forward_comm_classic = 1;
       else if (strcmp(arg[iarg+1],"host") == 0) {
         forward_comm_classic = 0;
@@ -155,10 +185,19 @@ void KokkosLMP::accelerator(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"device") == 0) {
         forward_comm_classic = 0;
         forward_comm_on_host = 0;
-      } else error->all(FLERR,"Illegal package command");
+      } else error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal package command");
+    } else error->all(FLERR,"Illegal package kokkos command");
   }
+
+  // set newton flags
+  // set neighbor binsize, same as neigh_modify command
+
+  force->newton = force->newton_pair = force->newton_bond = newtonflag;
+
+  neighbor->binsize_user = binsize;
+  if (binsize <= 0.0) neighbor->binsizeflag = 0;
+  else neighbor->binsizeflag = 1;
 }
 
 /* ----------------------------------------------------------------------

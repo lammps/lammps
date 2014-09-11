@@ -96,7 +96,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   int nthreads = 1;
   int newtonflag = 0;
   int threads_per_atom = -1;
-  double binsize = -1;
+  double binsize = 0.0;
   char *opencl_flags = NULL;
 
   int iarg = 4;
@@ -113,6 +113,11 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"off") == 0) newtonflag = 0;
       else if (strcmp(arg[iarg+1],"on") == 0) newtonflag = 1;
       else error->all(FLERR,"Illegal package gpu command");
+    } else if (strcmp(arg[iarg],"binsize") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      binsize = force->numeric(FLERR,arg[iarg+1]);
+      if (binsize <= 0.0) error->all(FLERR,"Illegal fix GPU command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"split") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
       _particle_split = force->numeric(FLERR,arg[iarg+1]);
@@ -132,11 +137,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
       nthreads = force->inumeric(FLERR,arg[iarg+1]);
       if (nthreads < 1) error->all(FLERR,"Illegal fix GPU command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"binsize") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      binsize = force->numeric(FLERR,arg[iarg+1]);
-      if (binsize <= 0.0) error->all(FLERR,"Illegal fix GPU command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"device") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -166,7 +166,9 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   else force->newton = 0;
 
   // pass params to GPU library
+  // change binsize default (0.0) to -1.0 used by GPU lib
 
+  if (binsize == 0.0) binsize = -1.0;
   int gpu_flag = lmp_init_device(universe->uworld, world, first_gpu, last_gpu,
                                  _gpu_mode, _particle_split, nthreads,
                                  threads_per_atom, binsize, opencl_flags);

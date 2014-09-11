@@ -153,6 +153,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (strcmp(arg[iarg+1],"off") == 0) newtonflag = 0;
       else if (strcmp(arg[iarg+1],"on") == 0) newtonflag = 1;
       else error->all(FLERR,"Illegal package kokkos command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"comm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"no") == 0) {

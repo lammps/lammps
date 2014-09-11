@@ -48,12 +48,11 @@ MPI task running on a CPU.
 make yes-user-omp
 make machine 
 </PRE>
-<P>Your src/MAKE/Makefile.machine needs a flag for OpenMP support in both
-the CCFLAGS and LINKFLAGS variables.  For GNU and Intel compilers,
-this flag is "-fopenmp".  Without this flag the USER-OMP styles will
-still be compiled and work, but will not support multi-threading.
-</P>
-<P><B>Run with the USER-OMP package from the command line:</B>
+<P>The CCFLAGS setting in your src/MAKE/Makefile.machine needs "-fopenmp"
+to add OpenMP support.  This works for both the GNU and Intel
+compilers.  Without this flag the USER-OMP styles will still be
+compiled and work, but will not support multi-threading.  For the
+Intel compilers the CCFLAGS setting also needs to include "-restrict".
 </P>
 <P>The mpirun or mpiexec command sets the total number of MPI tasks used
 by LAMMPS (one or multiple per compute node) and the number of MPI

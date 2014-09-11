@@ -42,8 +42,8 @@ input script.
 make yes-opt
 make machine 
 </PRE>
-<P>No additional compile/link flags are needed in your Makefile.machine
-in src/MAKE.
+<P>If you are using Intel compilers, then the CCFLAGS setting in your
+src/MAKE/Makefile.machine needs to include "-restrict".
 </P>
 <P><B>Run with the OPT package from the command line:</B>
 </P>

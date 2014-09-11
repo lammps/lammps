@@ -44,7 +44,7 @@ package is available.
 <P>Here is a quick overview of how to use the USER-INTEL package
 for CPU acceleration:
 </P>
-<UL><LI>specify these CCFLAGS in your Makefile.machine: -fopenmp, -DLAMMPS_MEMALIGN=64, and -restrict, -xHost
+<UL><LI>specify these CCFLAGS in your src/MAKE/Makefile.machine: -fopenmp, -DLAMMPS_MEMALIGN=64, -restrict, -xHost
 <LI>specify -fopenmp with LINKFLAGS in your Makefile.machine
 <LI>include the USER-INTEL package and (optionally) USER-OMP package and build LAMMPS
 <LI>if using the USER-OMP package, specify how many threads per MPI task to use

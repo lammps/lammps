@@ -1,12 +1,3 @@
-These example scripts can be run with the USER-INTEL package, assuming
-you built LAMMPS with the package, either for CPU-only or with Intel
-Xeon Phi coprocessor support.
-
-
-
-
-
-
 If you run in another directory, please edit the read_data line to point to
 the data.rhodo file. This is included in the LAMMPS distribution in the
 'bench' directory.
@@ -15,7 +6,6 @@ the data.rhodo file. This is included in the LAMMPS distribution in the
 Expected times are the expected LOOP times based on runs using dual-socket
 Intel Xeon processor E5-2697 V2 with Intel Xeon Phi coprocessor 7120P.
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 
 TO RUN WITHOUT A PACKAGE:
 -----------------------------------------------------------------------------

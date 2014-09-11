@@ -33,13 +33,15 @@ args = arguments specific to the style :l
   {gpu} args = Ngpu keyword value ...
     Ngpu = # of GPUs per node
     zero or more keyword/value pairs may be appended 
-    keywords = {neigh} or {split} or {gpuID} or {tpa} or {binsize} or {device}
+    keywords = {neigh} or {newton} or {binsize} or {split} or {gpuID} or {tpa} or {device}
       {neigh} value = {yes} or {no}
         yes = neighbor list build on GPU (default)
         no = neighbor list build on CPU
       {newton} = {off} or {on}
         off = set Newton pairwise flag off (default and required)
         on = set Newton pairwise flag on (currently not allowed)
+      {binsize} value = size
+        size = bin size for neighbor list construction (distance units)
       {split} = fraction
         fraction = fraction of atoms assigned to GPU (default = 1.0)
       {gpuID} values = first last
@@ -47,8 +49,6 @@ args = arguments specific to the style :l
         last = ID of last GPU to be used on each node
       {tpa} value = Nthreads
         Nthreads = # of GPU threads used per atom
-      {binsize} value = size
-        size = bin size for neighbor list construction (distance units)
       {device} value = device_type
         device_type = {kepler} or {fermi} or {cypress} or {generic}
   {intel} args = NPhi keyword value ...
@@ -70,7 +70,7 @@ args = arguments specific to the style :l
        Ntptask = max number of threads to use on coprocessor for each MPI task
   {kokkos} args = keyword value ...
     zero or more keyword/value pairs may be appended
-    keywords = {neigh} or {comm} or {comm/exchange} or {comm/forward}
+    keywords = {neigh} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward}
       {neigh} value = {full} or {half/thread} or {half} or {n2} or {full/cluster}
         full = full neighbor list
         half/thread = half neighbor list built in thread-safe manner
@@ -80,6 +80,8 @@ args = arguments specific to the style :l
       {newton} = {off} or {on}
         off = set Newton pairwise and bonded flags off (default)
         on = set Newton pairwise and bonded flags on
+      {binsize} value = size
+        size = bin size for neighbor list construction (distance units)
       {comm} value = {no} or {host} or {device}
         use value for both comm/exchange and comm/forward
       {comm/exchange} value = {no} or {host} or {device}
@@ -246,6 +248,26 @@ for compatibility with the package command for other accelerator
 styles.  Note that the newton setting for bonded interactions is not
 affected by this keyword.
 
+The {binsize} keyword sets the size of bins used to bin atoms in
+neighbor list builds performed on the GPU, if {neigh} = {yes} is set.
+If {binsize} is set to 0.0 (the default), then bins = the size of the
+pairwise cutoff + neighbor skin distance.  This is 2x larger than the
+LAMMPS default used for neighbor list building on the CPU.  This will
+be close to optimal for the GPU, so you do not normally need to use
+this keyword.  Note that if you use a longer-than-usual pairwise
+cutoff, e.g. to allow for a smaller fraction of KSpace work with a
+"long-range Coulombic solver"_kspace_style.html because the GPU is
+faster at performing pairwise interactions, then it may be optimal to
+make the {binsize} smaller than the default.  For example, with a
+cutoff of 20*sigma in LJ "units"_units.html and a neighbor skin
+distance of sigma, a {binsize} = 5.25*sigma can be more efficient than
+the default.
+
+
+
+
+
+
 The {split} keyword can be used for load balancing force calculations
 between CPU and GPU cores in GPU-enabled pair styles. If 0 < {split} <
 1.0, a fixed fraction of particles is offloaded to the GPU while force
@@ -289,22 +311,6 @@ be set explicitly with this keyword to fine-tune performance.  For
 large cutoffs or with a small number of particles per GPU, increasing
 the value can improve performance. The number of threads per atom must
 be a power of 2 and currently cannot be greater than 32.
-
-The {binsize} keyword sets the size of bins used to bin atoms in
-neighbor list builds.  Setting this value is normally not needed; the
-optimal value is close to the default, which is set equal to the
-cutoff distance for the short range interactions plus the neighbor
-skin.  Note that this is 2x larger than the default bin size for
-neighbor list builds on the CPU.  This is becuase GPUs can perform
-efficiently with much larger cutoffs than CPUs.  This can be used to
-reduce the time required for long-range calculations or in some cases
-to eliminate them with pair style models such as
-"coul/wolf"_pair_coul.html or "coul/dsf"_pair_coul.html.  For very
-large cutoffs, it can be more efficient to use smaller values for
-{binsize} in parallel simulations.  For example, with a cutoff of
-20*sigma in LJ "units"_units.html and a neighbor skin distance of
-sigma, a {binsize} = 5.25*sigma can be more efficient than the
-default.
 
 The {device} keyword can be used to tune parameters optimized for a
 specific accelerator, when using OpenCL.  For CUDA, the {device}
@@ -411,6 +417,21 @@ give better performance for the KOKKOS package.  This means more
 computation is done, but less communication.  However, when running in
 MPI-only mode with 1 thread per MPI task, a value of {on} will
 typically be faster, just as it is for non-accelerated pair styles.
+
+The {binsize} keyword sets the size of bins used to bin atoms in
+neighbor list builds.  The same value can be set by the "neigh_modify
+binsize"_neigh_modify.html command.  Making it an option in the
+package kokkos command allows it to be set from the command line.  The
+default value is 0.0, which means the LAMMPS default will be used,
+which is bins = 1/2 the size of the pairwise cutoff + neighbor skin
+distance.  This is fine when neighbor lists are built on the CPU.  For
+GPU builds, a 2x larger binsize equal to the pairwise cutoff +
+neighbor skin, is often faster, which can be set by this keyword.
+Note that if you use a longer-than-usual pairwise cutoff, e.g. to
+allow for a smaller fraction of KSpace work with a "long-range
+Coulombic solver"_kspace_style.html because the GPU is faster at
+performing pairwise interactions, then this rule of thumb may give too
+large a binsize.
 
 The {comm} and {comm/exchange} and {comm/forward} keywords determine
 whether the host or device performs the packing and unpacking of data
@@ -551,9 +572,9 @@ package cuda command in your input script or via the "-pk cuda"
 "command-line switch"_Section_start.html#start_7.
 
 For the GPU package, the default is Ngpu = 1 and the option defaults
-are neigh = yes, newton = off, split = 1.0, gpuID = 0 to Ngpu-1, tpa =
-1, binsize = pair cutoff + neighbor skin, device = not used.  These
-settings are made automatically if the "-sf gpu" "command-line
+are neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0
+to Ngpu-1, tpa = 1, and device = not used.  These settings are made
+automatically if the "-sf gpu" "command-line
 switch"_Section_start.html#start_7 is used.  If it is not used, you
 must invoke the package gpu command in your input script or via the
 "-pk gpu" "command-line switch"_Section_start.html#start_7.
@@ -570,11 +591,11 @@ must invoke the package intel command in your input script or or via
 the "-pk intel" "command-line switch"_Section_start.html#start_7.
 
 For the KOKKOS package, the option defaults neigh = full, newton =
-off, and comm = host.  These settings are made automatically by the
-required "-k on" "command-line switch"_Section_start.html#start_7.
-You can change them bu using the package kokkos command in your input
-script or via the "-pk kokkos" "command-line
-switch"_Section_start.html#start_7.
+off, binsize = 0.0, and comm = host.  These settings are made
+automatically by the required "-k on" "command-line
+switch"_Section_start.html#start_7.  You can change them bu using the
+package kokkos command in your input script or via the "-pk kokkos"
+"command-line switch"_Section_start.html#start_7.
 
 For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if

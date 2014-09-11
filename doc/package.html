@@ -38,13 +38,15 @@
   <I>gpu</I> args = Ngpu keyword value ...
     Ngpu = # of GPUs per node
     zero or more keyword/value pairs may be appended 
-    keywords = <I>neigh</I> or <I>split</I> or <I>gpuID</I> or <I>tpa</I> or <I>binsize</I> or <I>device</I>
+    keywords = <I>neigh</I> or <I>newton</I> or <I>binsize</I> or <I>split</I> or <I>gpuID</I> or <I>tpa</I> or <I>device</I>
       <I>neigh</I> value = <I>yes</I> or <I>no</I>
         yes = neighbor list build on GPU (default)
         no = neighbor list build on CPU
       <I>newton</I> = <I>off</I> or <I>on</I>
         off = set Newton pairwise flag off (default and required)
         on = set Newton pairwise flag on (currently not allowed)
+      <I>binsize</I> value = size
+        size = bin size for neighbor list construction (distance units)
       <I>split</I> = fraction
         fraction = fraction of atoms assigned to GPU (default = 1.0)
       <I>gpuID</I> values = first last
@@ -52,8 +54,6 @@
         last = ID of last GPU to be used on each node
       <I>tpa</I> value = Nthreads
         Nthreads = # of GPU threads used per atom
-      <I>binsize</I> value = size
-        size = bin size for neighbor list construction (distance units)
       <I>device</I> value = device_type
         device_type = <I>kepler</I> or <I>fermi</I> or <I>cypress</I> or <I>generic</I>
   <I>intel</I> args = NPhi keyword value ...
@@ -75,7 +75,7 @@
        Ntptask = max number of threads to use on coprocessor for each MPI task
   <I>kokkos</I> args = keyword value ...
     zero or more keyword/value pairs may be appended
-    keywords = <I>neigh</I> or <I>comm</I> or <I>comm/exchange</I> or <I>comm/forward</I>
+    keywords = <I>neigh</I> or <I>newton</I> or <I>binsize</I> or <I>comm</I> or <I>comm/exchange</I> or <I>comm/forward</I>
       <I>neigh</I> value = <I>full</I> or <I>half/thread</I> or <I>half</I> or <I>n2</I> or <I>full/cluster</I>
         full = full neighbor list
         half/thread = half neighbor list built in thread-safe manner
@@ -85,6 +85,8 @@
       <I>newton</I> = <I>off</I> or <I>on</I>
         off = set Newton pairwise and bonded flags off (default)
         on = set Newton pairwise and bonded flags on
+      <I>binsize</I> value = size
+        size = bin size for neighbor list construction (distance units)
       <I>comm</I> value = <I>no</I> or <I>host</I> or <I>device</I>
         use value for both comm/exchange and comm/forward
       <I>comm/exchange</I> value = <I>no</I> or <I>host</I> or <I>device</I>
@@ -252,6 +254,21 @@ for compatibility with the package command for other accelerator
 styles.  Note that the newton setting for bonded interactions is not
 affected by this keyword.
 </P>
+<P>The <I>binsize</I> keyword sets the size of bins used to bin atoms in
+neighbor list builds performed on the GPU, if <I>neigh</I> = <I>yes</I> is set.
+If <I>binsize</I> is set to 0.0 (the default), then bins = the size of the
+pairwise cutoff + neighbor skin distance.  This is 2x larger than the
+LAMMPS default used for neighbor list building on the CPU.  This will
+be close to optimal for the GPU, so you do not normally need to use
+this keyword.  Note that if you use a longer-than-usual pairwise
+cutoff, e.g. to allow for a smaller fraction of KSpace work with a
+<A HREF = "kspace_style.html">long-range Coulombic solver</A> because the GPU is
+faster at performing pairwise interactions, then it may be optimal to
+make the <I>binsize</I> smaller than the default.  For example, with a
+cutoff of 20*sigma in LJ <A HREF = "units.html">units</A> and a neighbor skin
+distance of sigma, a <I>binsize</I> = 5.25*sigma can be more efficient than
+the default.
+</P>
 <P>The <I>split</I> keyword can be used for load balancing force calculations
 between CPU and GPU cores in GPU-enabled pair styles. If 0 < <I>split</I> <
 1.0, a fixed fraction of particles is offloaded to the GPU while force
@@ -295,22 +312,6 @@ be set explicitly with this keyword to fine-tune performance.  For
 large cutoffs or with a small number of particles per GPU, increasing
 the value can improve performance. The number of threads per atom must
 be a power of 2 and currently cannot be greater than 32.
-</P>
-<P>The <I>binsize</I> keyword sets the size of bins used to bin atoms in
-neighbor list builds.  Setting this value is normally not needed; the
-optimal value is close to the default, which is set equal to the
-cutoff distance for the short range interactions plus the neighbor
-skin.  Note that this is 2x larger than the default bin size for
-neighbor list builds on the CPU.  This is becuase GPUs can perform
-efficiently with much larger cutoffs than CPUs.  This can be used to
-reduce the time required for long-range calculations or in some cases
-to eliminate them with pair style models such as
-<A HREF = "pair_coul.html">coul/wolf</A> or <A HREF = "pair_coul.html">coul/dsf</A>.  For very
-large cutoffs, it can be more efficient to use smaller values for
-<I>binsize</I> in parallel simulations.  For example, with a cutoff of
-20*sigma in LJ <A HREF = "units.html">units</A> and a neighbor skin distance of
-sigma, a <I>binsize</I> = 5.25*sigma can be more efficient than the
-default.
 </P>
 <P>The <I>device</I> keyword can be used to tune parameters optimized for a
 specific accelerator, when using OpenCL.  For CUDA, the <I>device</I>
@@ -417,6 +418,21 @@ give better performance for the KOKKOS package.  This means more
 computation is done, but less communication.  However, when running in
 MPI-only mode with 1 thread per MPI task, a value of <I>on</I> will
 typically be faster, just as it is for non-accelerated pair styles.
+</P>
+<P>The <I>binsize</I> keyword sets the size of bins used to bin atoms in
+neighbor list builds.  The same value can be set by the <A HREF = "neigh_modify.html">neigh_modify
+binsize</A> command.  Making it an option in the
+package kokkos command allows it to be set from the command line.  The
+default value is 0.0, which means the LAMMPS default will be used,
+which is bins = 1/2 the size of the pairwise cutoff + neighbor skin
+distance.  This is fine when neighbor lists are built on the CPU.  For
+GPU builds, a 2x larger binsize equal to the pairwise cutoff +
+neighbor skin, is often faster, which can be set by this keyword.
+Note that if you use a longer-than-usual pairwise cutoff, e.g. to
+allow for a smaller fraction of KSpace work with a <A HREF = "kspace_style.html">long-range
+Coulombic solver</A> because the GPU is faster at
+performing pairwise interactions, then this rule of thumb may give too
+large a binsize.
 </P>
 <P>The <I>comm</I> and <I>comm/exchange</I> and <I>comm/forward</I> keywords determine
 whether the host or device performs the packing and unpacking of data
@@ -557,9 +573,9 @@ package cuda command in your input script or via the "-pk cuda"
 <A HREF = "Section_start.html#start_7">command-line switch</A>.
 </P>
 <P>For the GPU package, the default is Ngpu = 1 and the option defaults
-are neigh = yes, newton = off, split = 1.0, gpuID = 0 to Ngpu-1, tpa =
-1, binsize = pair cutoff + neighbor skin, device = not used.  These
-settings are made automatically if the "-sf gpu" <A HREF = "Section_start.html#start_7">command-line
+are neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0
+to Ngpu-1, tpa = 1, and device = not used.  These settings are made
+automatically if the "-sf gpu" <A HREF = "Section_start.html#start_7">command-line
 switch</A> is used.  If it is not used, you
 must invoke the package gpu command in your input script or via the
 "-pk gpu" <A HREF = "Section_start.html#start_7">command-line switch</A>.
@@ -576,11 +592,11 @@ must invoke the package intel command in your input script or or via
 the "-pk intel" <A HREF = "Section_start.html#start_7">command-line switch</A>.
 </P>
 <P>For the KOKKOS package, the option defaults neigh = full, newton =
-off, and comm = host.  These settings are made automatically by the
-required "-k on" <A HREF = "Section_start.html#start_7">command-line switch</A>.
-You can change them bu using the package kokkos command in your input
-script or via the "-pk kokkos" <A HREF = "Section_start.html#start_7">command-line
-switch</A>.
+off, binsize = 0.0, and comm = host.  These settings are made
+automatically by the required "-k on" <A HREF = "Section_start.html#start_7">command-line
+switch</A>.  You can change them bu using the
+package kokkos command in your input script or via the "-pk kokkos"
+<A HREF = "Section_start.html#start_7">command-line switch</A>.
 </P>
 <P>For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if

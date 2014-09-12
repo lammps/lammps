@@ -1,9 +1,11 @@
 #!/bin/sh
 # do some cleaning up to fix permissions and remove cruft
 
-find ./ -name \*.orig -print | xargs rm -v
-find ./ -name \*~ -print | xargs rm -v
+for f in `find ./ -name \*.orig -or -name \*~ -or -name \*.rej -print`
+do rm -v $f
+done
 
-find ./ -name \*.cpp -print | xargs chmod -x
-find ./ -name \*.h -print | xargs chmod -x
+for f in `find ./ -name \*.cpp -or -name \*.c -or -name \*.h -print`
+do chmod -x $f
+done
 

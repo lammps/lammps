@@ -39,8 +39,8 @@ cd lammps/src
 make yes-opt
 make machine :pre
 
-No additional compile/link flags are needed in your Makefile.machine
-in src/MAKE.
+If you are using Intel compilers, then the CCFLAGS setting in your
+src/MAKE/Makefile.machine needs to include "-restrict".
 
 [Run with the OPT package from the command line:]
 

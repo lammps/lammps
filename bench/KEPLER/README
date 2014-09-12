@@ -17,7 +17,7 @@ openmpi/1.8.1/intel/13.1.SP1.106/cuda/6.0.37.
 ------------------------------------------------------------------------
 
 You can, of course, build LAMMPS yourself with any of the accelerator
-packages for your platform.
+packages installed for your platform.
 
 The build.py script will build LAMMPS for the various accelerlator
 packages using the Makefile.* files in this dir, which you can edit if
@@ -50,22 +50,19 @@ directory when the script finishes each build.
 
 ------------------------------------------------------------------------
 
-The in.* files have settings for the benchmark appopriate to each
-accelerator package.  Many of them, including the problem size,
-and number of timsteps, must be set as command-line arguments
-when the input script is run.
-
-------------------------------------------------------------------------
+The in.* files can be run with any of the accelerator packages,
+if you specify the appropriate command-line switches.  These
+include switches to set the problem size and number of timesteps
+to run.
 
 The run*.sh scripts have sample mpirun commands for running the input
 scripts on a single node or on multiple nodes for the strong and weak
 scaling results shown on the benchmark web page.  These scripts are
 provided for illustration purposes, to show what command-line
-arguments are used with each accelerator package, in combination with
-settings in the input scripts themselves.
+arguments are used with each accelerator package.
 
 Note that we generate these run scripts, either for interactive or
-batch submission, via Python scripts which produce a long list of runs
-to exercise a combination of options.  To perform a quick benchmark
-calculation on your platform, you will typically only want to run a
-few commands out of any of the run*.sh scripts.
+batch submission, via Python scripts which often produces a long list
+of runs to exercise a combination of options.  To perform a quick
+benchmark calculation on your platform, you will typically only want
+to run a few commands out of any of the run*.sh scripts.

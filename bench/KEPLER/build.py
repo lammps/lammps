@@ -76,11 +76,11 @@ def build_cuda(precision,arch):
 # main program
 # convert target keywords into target flags
 
-cpu = opt = omp = 0
-gpu_double = gpu_mixed = gpu_single = 0
-cuda_double = cuda_mixed = cuda_single = 0
-intel_cpu = intel_phi = 0
-kokkos_omp = kokkos_phi = kokkos_cuda = 0
+  cpu = opt = omp = 0
+gpu = gpu_double = gpu_mixed = gpu_single = 0
+cuda = cuda_double = cuda_mixed = cuda_single = 0
+intel = intel_cpu = intel_phi = 0
+kokkos = kokkos_omp = kokkos_phi = kokkos_cuda = 0
   
 targets = sys.argv[1:]
 for target in targets:
@@ -90,19 +90,25 @@ for target in targets:
   elif target == "gpu/double": gpu_double = 1
   elif target == "gpu/mixed": gpu_mixed = 1
   elif target == "gpu/single": gpu_single = 1
-  elif target == "gpu": gpu_double = gpu_mixed = gpu_single = 1
+  elif target == "gpu": gpu = 1
   elif target == "cuda/double": cuda_double = 1
   elif target == "cuda/mixed": cuda_mixed = 1
   elif target == "cuda/single": cuda_single = 1
-  elif target == "cuda": cuda_double = cuda_mixed = cuda_single = 1
+  elif target == "cuda": cuda = 1
   elif target == "intel/cpu": intel_cpu = 1
   elif target == "intel/phi": intel_phi = 1
-  elif target == "intel": intel_cpu = intel_phi = 1
+  elif target == "intel": intel = 1
   elif target == "kokkos/omp": kokkos_omp = 1
   elif target == "kokkos/phi": kokkos_phi = 1
   elif target == "kokkos/cuda": kokkos_cuda = 1
-  elif target == "kokkos": kokkos_omp = kokkos_phi = kokkos_cuda = 1
+  elif target == "kokkos": kokkos = 1
+  elif target == "all": cpu = omp = gpu = cuda = intel = kokkos = 1
   else: print "Target",target,"is unknown"
+
+if gpu: gpu_double = gpu_mixed = gpu_single = 1
+if cuda: cuda_double = cuda_mixed = cuda_single = 1
+if intel: intel_cpu = intel_phi = 1
+if kokkos: kokkos_omp = kokkos_phi = kokkos_cuda = 1
 
 # CPU
 

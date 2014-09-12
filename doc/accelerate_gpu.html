@@ -132,8 +132,8 @@ re-compiled and linked to the new GPU library.
 </P>
 <P>The mpirun or mpiexec command sets the total number of MPI tasks used
 by LAMMPS (one or multiple per compute node) and the number of MPI
-tasks used per node.  E.g. the mpirun command does this via its -np
-and -ppn switches.
+tasks used per node.  E.g. the mpirun command in MPICH does this via
+its -np and -ppn switches.  Ditto OpenMPI via -np and -npernode.
 </P>
 <P>When using the GPU package, you cannot assign more than one GPU to a
 single MPI task.  However multiple MPI tasks can share the same GPU,

@@ -15,7 +15,7 @@ the Benchmark page of the LAMMPS WWW site: lammps.sandia.gov/bench.
 
 The remainder of this file refers to the 5 problems in the top-level
 of this directory and how to run them on CPUs, either in serial or
-parallel.  The directories have their own README files which you
+parallel.  The sub-directories have their own README files which you
 should refer to before running those scripts.
 
 ----------------------------------------------------------------------

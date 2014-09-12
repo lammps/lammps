@@ -1,13 +1,15 @@
 # GI-System
 
-package 	cuda 
+variable	x index 3
+variable	y index 3
+variable	z index 3
+
 units metal
-newton off
 atom_style      charge 
 
 read_data 	data.phosphate
 
-replicate 	3 3 3
+replicate	$x $y $z
 
 pair_style      lj/cut/coul/long 15.0
 
@@ -18,15 +20,12 @@ pair_coeff 2 2  0.0 0.29
 pair_coeff 2 3  0.004251 1.91988674
 pair_coeff 3 3  0.012185 2.91706967
 
-kspace_style    pppm/cuda 1e-5
+kspace_style    pppm 1e-5
 
 neighbor	2.0 bin
 
-thermo 100
+thermo          100
+timestep        0.001
 
-timestep 0.001
-
-fix 1 all npt temp 400 400 0.01 iso 1000.0 1000.0 1.0
-run 1000
-unfix 1
-
+fix 		1 all npt temp 400 400 0.01 iso 1000.0 1000.0 1.0
+run 		200

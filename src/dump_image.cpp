@@ -841,7 +841,7 @@ void DumpImage::create_image()
   if (subboxflag) {
     double diameter = MIN(boxxhi-boxxlo,boxyhi-boxylo);
     if (domain->dimension == 3) diameter = MIN(diameter,boxzhi-boxzlo);
-    diameter *= boxdiam;
+    diameter *= subboxdiam;
 
     double *sublo = domain->sublo;
     double *subhi = domain->subhi;
@@ -863,7 +863,7 @@ void DumpImage::create_image()
       boxcorners = domain->corners;
     }
 
-    image->draw_box(boxcorners,subboxdiam);
+    image->draw_box(boxcorners,diameter);
   }
 
   // render outline of simulation box, orthogonal or triclinic

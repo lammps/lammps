@@ -863,7 +863,7 @@ void DumpImage::create_image()
       boxcorners = domain->corners;
     }
 
-    image->draw_box(boxcorners,diameter);
+    image->draw_box(boxcorners,subboxdiam);
   }
 
   // render outline of simulation box, orthogonal or triclinic

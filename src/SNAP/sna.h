@@ -1,6 +1,18 @@
+/* -*- c++ -*- -------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
-   Authors: Aidan Thompson and Christian Trott, Sandia National Labs, 2012
-   Property of Sandia National Labs: Not for External Distribution
+   Contributing authors: Aidan Thompson, Christian Trott, SNL
 ------------------------------------------------------------------------- */
 
 #ifndef LMP_SNA_H
@@ -47,10 +59,12 @@ public:
   double compute_sfac(double, double);
   double compute_dsfac(double, double);
 
+#ifdef TIMING_INFO
   double* timers;
   timespec starttime, endtime;
   int print;
   int counter;
+#endif
 
   //per sna class instance for OMP use
 

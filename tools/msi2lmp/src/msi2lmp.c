@@ -2,6 +2,9 @@
 *
 *  msi2lmp.exe
 *
+*   v3.9.6 AK- Refactoring of MDF file parser with more consistent
+*              handling of compile time constants MAX_NAME and MAX_STRING
+*
 *   v3.9.5 AK- Add TopoTools style force field parameter type hints
 *
 *   v3.9.4 AK- Make force field style hints optional with a flag

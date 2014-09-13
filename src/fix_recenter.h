@@ -30,6 +30,7 @@ class FixRecenter : public Fix {
   int setmask();
   void init();
   void initial_integrate(int);
+  void initial_integrate_respa(int, int, int);
   double compute_scalar();
   double compute_vector(int);
 
@@ -37,6 +38,7 @@ class FixRecenter : public Fix {
   int group2bit,scaleflag;
   int xflag,yflag,zflag;
   int xinitflag,yinitflag,zinitflag;
+  int nlevels_respa;
   double xcom,ycom,zcom,xinit,yinit,zinit,masstotal,distance,shift[3];
 };
 

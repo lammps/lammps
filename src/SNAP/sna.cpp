@@ -1,6 +1,18 @@
 /* ----------------------------------------------------------------------
-   Authors: Aidan Thompson and Christian Trott, Sandia National Labs, 2012
-   Property of Sandia National Labs: Not for External Distribution
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing authors: Aidan Thompson, Christian Trott, SNL
 ------------------------------------------------------------------------- */
 
 #include "sna.h"
@@ -130,12 +142,12 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in,
   nmax = 0;
   idxj = NULL;
 
+#ifdef TIMING_INFO
   timers = new double[20];
-
   for(int i = 0; i < 20; i++) timers[i] = 0;
-
   print = 0;
   counter = 0;
+#endif
 
   build_indexlist();
 
@@ -263,10 +275,6 @@ void SNA::init()
 {
   init_clebsch_gordan();
   init_rootpqarray();
-  // if(comm->me == 0) {
-  //   if(screen) print_clebsch_gordan(screen);
-  //   if(logfile) print_clebsch_gordan(logfile);
-  // }
 }
 
 
@@ -1540,7 +1548,6 @@ void SNA::destroy_twojmax_arrays()
     memory->destroy(zarray_i);
   }
 }
-
 
 /* ----------------------------------------------------------------------
    store n! and return it as needed

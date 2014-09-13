@@ -84,10 +84,13 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   i_zarray_i =NULL;
 
   use_shared_arrays = 0;
+
+#ifdef TIMING_INFO
   timers[0] = 0;
   timers[1] = 0;
   timers[2] = 0;
   timers[3] = 0;
+#endif
 
   // Need to set this because restart not handled by PairHybrid
 
@@ -112,6 +115,7 @@ PairSNAP::~PairSNAP()
 
   if (sna) {
 
+#ifdef TIMING_INFO
     double time[5];
     double timeave[5];
     double timeave_mpi[5];
@@ -129,6 +133,7 @@ PairSNAP::~PairSNAP()
     }
     MPI_Reduce(timeave, timeave_mpi, 5, MPI_DOUBLE, MPI_SUM, 0, world);
     MPI_Reduce(time, timemax_mpi, 5, MPI_DOUBLE, MPI_MAX, 0, world);
+#endif
     
     for (int tid = 0; tid<nthreads; tid++)
       delete sna[tid];
@@ -450,6 +455,7 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
 
+#ifdef TIMING_INFO
     // only update micro timers after setup
     static int count=0;
     if (count<2) {
@@ -460,6 +466,7 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
       sna[tid]->timers[4] = 0;
     }
     count++;
+#endif
 
     // did thread start working on interactions of new atom
     int iold = -1;

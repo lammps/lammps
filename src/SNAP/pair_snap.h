@@ -84,8 +84,11 @@ protected:
   int *i_ninside;
   double ****i_uarraytot_r, ****i_uarraytot_i;
   double ******i_zarray_r, ******i_zarray_i;
+
+#ifdef TIMING_INFO
   //  timespec starttime, endtime;
   double timers[4];
+#endif
   double gamma;
 
   double rcutmax;               // max cutoff for all elements

@@ -781,7 +781,7 @@ void help_message(FILE *fp)
         " -kokkos on/off ...           : turn KOKKOS mode on or off     (-k)\n"
         " -log none/<filename>         : where to send log output       (-l)\n"
         " -nocite                      : disable writing log.cite file  (-nc)\n"
-        " -package style ...           : invoke package command (-pk)\n"
+        " -package style ...           : invoke package command         (-pk)\n"
         " -partition <partition size>  : assign partition sizes         (-p)\n"
         " -plog <basename>             : basename for partition logs    (-pl)\n"
         " -pscreen <basename>          : basename for partition screens (-ps)\n"

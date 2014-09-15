@@ -1,0 +1,29 @@
+#Simulation of two-temperature aluminium, C_e = K*T_e
+
+log		test.txt
+
+atom_style	atomic
+boundary	p p p
+units		metal
+
+lattice		fcc 4.05
+
+region 		box block 0 10 0 10 0 5
+create_box	1 box
+create_atoms	1 box
+
+mass		1 26.98
+pair_style	eam/fs
+pair_coeff	* * ../../potentials/Al_mm.eam.fs Al
+
+velocity	all create 600.0 53284
+
+timestep	0.0005
+
+fix		1 all nve
+fix		thstat all temp/berendsen 300.0 300.0 1.0
+
+fix		ttm all ttm_mod 13423 10 10 1 ttm_t_init ./ttm_parameters 10 ttm_t_out    
+thermo_style	custom step temp f_ttm[1] f_ttm[2] etotal pe press
+thermo		10
+run		1000

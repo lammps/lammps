@@ -21,8 +21,9 @@ pair_coeff * * snap InP.snapcoeff In P InP.snapparam In In P P :pre
 
 Style {snap} computes interactions 
 using the spectral neighbor analysis potential (SNAP)
-"(Thompson)"_#Thompson2014. Like the GAP potential of Bartok et al.
-"(Bartok)"_#Bartok2010, it uses bispectrum components
+"(Thompson)"_#Thompson2014. Like the GAP framework of Bartok et al.
+"(Bartok2010)"_#Bartok2010, "(Bartok2013)"_#Bartok2013 
+it uses bispectrum components
 to characterize the local neighborhood of each atom
 in a very general way. The mathematical definition of the
 bispectrum calculation used by SNAP is identical 
@@ -167,7 +168,9 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-None
+This style is part of the SNAP package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
@@ -180,7 +183,10 @@ None
 :line
 
 :link(Thompson2014)
-[(Thompson)] Thompson, Swiler, Trott, Foiles, Tucker, in preparation
+[(Thompson)] Thompson, Swiler, Trott, Foiles, Tucker, in preparation.
 
 :link(Bartok2010)
-[(Bartok)] Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
+[(Bartok2010)] Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
+
+:link(Bartok2013)
+[(Bartok2013)] Bartok, Gillan, Manby, Csanyi, Phys Rev B 87, 184115 (2013).

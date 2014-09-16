@@ -24,8 +24,9 @@ pair_coeff * * snap InP.snapcoeff In P InP.snapparam In In P P
 </P>
 <P>Style <I>snap</I> computes interactions 
 using the spectral neighbor analysis potential (SNAP)
-<A HREF = "#Thompson2014">(Thompson)</A>. Like the GAP potential of Bartok et al.
-<A HREF = "#Bartok2010">(Bartok)</A>, it uses bispectrum components
+<A HREF = "#Thompson2014">(Thompson)</A>. Like the GAP framework of Bartok et al.
+<A HREF = "#Bartok2010">(Bartok2010)</A>, <A HREF = "#Bartok2013">(Bartok2013)</A> 
+it uses bispectrum components
 to characterize the local neighborhood of each atom
 in a very general way. The mathematical definition of the
 bispectrum calculation used by SNAP is identical 
@@ -170,7 +171,9 @@ script that reads a restart file.
 
 <P><B>Restrictions:</B>
 </P>
-<P>None
+<P>This style is part of the SNAP package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -184,10 +187,14 @@ script that reads a restart file.
 
 <A NAME = "Thompson2014"></A>
 
-<P><B>(Thompson)</B> Thompson, Swiler, Trott, Foiles, Tucker, in preparation
+<P><B>(Thompson)</B> Thompson, Swiler, Trott, Foiles, Tucker, in preparation.
 </P>
 <A NAME = "Bartok2010"></A>
 
-<P><B>(Bartok)</B> Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
+<P><B>(Bartok2010)</B> Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
+</P>
+<A NAME = "Bartok2013"></A>
+
+<P><B>(Bartok2013)</B> Bartok, Gillan, Manby, Csanyi, Phys Rev B 87, 184115 (2013).
 </P>
 </HTML>

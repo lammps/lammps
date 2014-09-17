@@ -227,7 +227,8 @@ The optional keyword defaults are {diagonal} = 0, {rmin0} = 0,
 :line
 
 :link(Thompson2014)
-[(Thompson)] Thompson, Swiler, Trott, Foiles, Tucker, in preparation
+[(Thompson)] Thompson, Swiler, Trott, Foiles, Tucker, under review, preprint 
+available at "arXiv:1409.3880"_http://arxiv.org/abs/1409.3880
 
 :link(Bartok2010)
 [(Bartok)] Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).

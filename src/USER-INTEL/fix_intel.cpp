@@ -89,7 +89,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   // optional keywords
 
-  nomp = 0;
+  int nomp = 0;
   _allow_separate_buffers = 1;
   _offload_ghost = -1;
 

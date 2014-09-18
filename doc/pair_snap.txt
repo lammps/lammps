@@ -183,7 +183,8 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 :line
 
 :link(Thompson2014)
-[(Thompson)] Thompson, Swiler, Trott, Foiles, Tucker, in preparation.
+[(Thompson)] Thompson, Swiler, Trott, Foiles, Tucker, under review, preprint 
+available at "arXiv:1409.3880"_http://arxiv.org/abs/1409.3880
 
 :link(Bartok2010)
 [(Bartok2010)] Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).

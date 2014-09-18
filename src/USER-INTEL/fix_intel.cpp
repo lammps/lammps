@@ -89,12 +89,17 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   // optional keywords
 
+  nomp = 0;
   _allow_separate_buffers = 1;
   _offload_ghost = -1;
 
   int iarg = 4;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"prec") == 0) {
+    if (strcmp(arg[iarg],"omp") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      nomp = force->inumeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
       if (strcmp(arg[iarg+1],"single") == 0) 
         _precision_mode = PREC_MODE_SINGLE;
@@ -142,6 +147,15 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       _offload_tpc <= 0 || _offload_tpc > 4)
     error->all(FLERR,"Illegal package intel command");
 
+  // set OpenMP threads
+
+
+  // NOTE: nomp is user setting, default = 0
+
+
+
+  // set offload params
+
   #ifdef _LMP_INTEL_OFFLOAD
   _ncops = ncops;
   if (_offload_balance < 0.0) {
@@ -159,6 +173,8 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   #else
   _offload_balance = 0.0;
   #endif
+
+  // set precision
 
   if (_precision_mode == PREC_MODE_SINGLE)
     _single_buffers = new IntelBuffers<float,float>(lmp);

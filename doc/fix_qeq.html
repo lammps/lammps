@@ -71,28 +71,22 @@ still be used to perform charge equliibration with the <A HREF = "pair_comb.html
 potential</A>.  The <A HREF = "fix_qeq_reax.html">fix qeq/reax</A>
 command can be used to perform charge equilibration with the <A HREF = "pair_reax_c.html">ReaxFF
 force field</A>, although fix qeq/shielded yields the
-same results as fix qeq/reax if <I>Nevery</I>, cutoff</I>, and <I>tolerance</I> are
+same results as fix qeq/reax if <I>Nevery</I>, <I>cutoff</I>, and <I>tolerance</I> are
 the same.  Eventually the fix qeq/reax command will be deprecated.
 </P>
 <P>The QEq method minimizes the electrostatic energy of the system (or
 equalizes the derivative of energy with respect to charge of all the
 atoms) by adjusting the partial charge on individual atoms based on
 interactions with their neighbors within <I>cutoff</I>.  It reqires a few
-parameters for each atom type which provided in a file specified by
-<I>qfile</I>.  The file has the following format
+parameters, in <I>metal</I> units, for each atom type which provided in a 
+file specified by <I>qfile</I>.  The file has the following format
 </P>
-<PRE>units
-1 chi eta gamma zeta qcore
+<PRE>1 chi eta gamma zeta qcore
 2 chi eta gamma zeta qcore
 ...
 Ntype chi eta gamma zeta qcore 
 </PRE>
-<P>The first line of the file specifies the units for these parameters,
-as explained on the <A HREF = "units.html">units</A> command doc page.  Currently,
-only the following units are supported: real, metal, si, cgs,
-electron.  Using other units (lj, micro, nano) will result in an error.
-</P>
-<P>Then there is one line per atom type with the following parameters.
+<P>There is one line per atom type with the following parameters.
 Only a subset of the parameters is used by each QEq style as descibed
 below, thus the others can be set to 0.0 if desired.
 </P>
@@ -149,7 +143,7 @@ extended Lagrangian method (<I>qeq/dynamic</I>) are different solvers.
 charges as point charges that interact through 1/r relationship, but
 solve partial charges on atoms using different solvers.  Styles
 <I>qeq/point</I> and the <I>qeq/dynamic</I> should yield comparable results if
-the QEq parameters and <I>Nevery</I>, cutoff</I>, and <I>tolerance</I> are the
+the QEq parameters and <I>Nevery</I>, <I>cutoff</I>, and <I>tolerance</I> are the
 same.  Style <I>qeq/point</I> is typically faster, but <I>qeq/dynamic</I> scales
 better on larger sizes.
 </P>

@@ -247,9 +247,9 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha)
     }
   if (nextra_global) modify->min_store();
 
-  // important diagnostic: test the gradient against energy
+  // // important diagnostic: test the gradient against energy
   // double etmp;
-  // double alphatmp = alphamax*1.0e-4;
+  // double alphatmp = alpha*1.0e-4;
   // etmp = alpha_step(alphatmp,1);
   // printf("alpha = %g dele = %g dele_force = %g err = %g\n",
   //        alphatmp,etmp-eoriginal,-alphatmp*fdothall,
@@ -405,7 +405,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
   engprev = eoriginal;
   alphaprev = 0.0;
 
-  // important diagnostic: test the gradient against energy
+  // // important diagnostic: test the gradient against energy
   // double etmp;
   // double alphatmp = alphamax*1.0e-4;
   // etmp = alpha_step(alphatmp,1);

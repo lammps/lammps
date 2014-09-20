@@ -282,7 +282,7 @@ void Min::setup()
   output->setup();
   update->setupflag = 0;
 
-  // stats for Finish to print
+  // stats for initial thermo output
 
   ecurrent = pe_compute->compute_scalar();
   if (nextra_global) ecurrent += modify->min_energy(fextra);

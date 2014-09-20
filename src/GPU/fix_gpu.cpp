@@ -103,9 +103,9 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg]+1,"yes") == 0) _gpu_mode = GPU_NEIGH;
-      else if (strcmp(arg[iarg]+1,"no") == 0) _gpu_mode = GPU_FORCE;
-      else if (strcmp(arg[iarg]+1,"hybrid") == 0) _gpu_mode = GPU_HYB_NEIGH;
+      if (strcmp(arg[iarg+1],"yes") == 0) _gpu_mode = GPU_NEIGH;
+      else if (strcmp(arg[iarg+1],"no") == 0) _gpu_mode = GPU_FORCE;
+      else if (strcmp(arg[iarg+1],"hybrid") == 0) _gpu_mode = GPU_HYB_NEIGH;
       else error->all(FLERR,"Illegal package gpu command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"newton") == 0) {

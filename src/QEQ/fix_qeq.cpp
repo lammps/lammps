@@ -41,6 +41,8 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace FixConst;
 
+#define MAXLINE 1024
+
 /* ---------------------------------------------------------------------- */
 
 FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
@@ -138,109 +140,6 @@ int FixQEq::setmask()
   mask |= PRE_FORCE;
   mask |= MIN_PRE_FORCE;
   return mask;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixQEq::read_file(char *arg)
-{
-
-  int i,itype,ntypes;
-  double v1,v2,v3,v4,v5;
-  char units[20];
-  FILE *pf;
-
-  ntypes = atom->ntypes;
-
-  memory->create(chi,ntypes+1,"qeq:chi");
-  memory->create(eta,ntypes+1,"qeq:eta");
-  memory->create(gamma,ntypes+1,"qeq:gamma");
-  memory->create(zeta,ntypes+1,"qeq:zeta");
-  memory->create(zcore,ntypes+1,"qeq:zcore");
-
-  if (comm->me == 0) {
-    if ((pf = fopen(arg,"r")) == NULL)
-      error->one(FLERR,"Fix qeq parameter file could not be found");
-
-    fscanf(pf,"%s",units);
-
-    if ((strcmp(units,"real") != 0) && (strcmp(units,"metal") != 0))
-      error->one(FLERR,"Fix qeq param file must be in real or metal units");
-
-    for (i = 1; i <= ntypes && !feof(pf); i++) {
-      fscanf(pf,"%d %lg %lg %lg %lg %lg",&itype,&v1,&v2,&v3,&v4,&v5);
-      if (itype < 1 || itype > ntypes)
-        error->one(FLERR,"Fix qeq invalid atom type in param file");
-      chi[itype] = v1;
-      eta[itype] = v2;
-      gamma[itype] = v3;
-      zeta[itype] = v4;
-      zcore[itype] = v5;
-
-      // unit conversion
-      if (strcmp(units,"real") == 0) {
-        if (strcmp(update->unit_style,"metal") == 0) {
-          chi[itype] *= 0.0433634;
-          eta[itype] *= 0.0433634;
-	  gamma[itype] *= 1.0;
-	  zeta[itype] *= 1.0;
-	  zcore[itype] *= 1.0;
-        } else if (strcmp(update->unit_style,"si") == 0) {
-          chi[itype] *= 6.95e-21;
-          eta[itype] *= 6.95e-21;
-	  gamma[itype] *= 1.0e-10;
-	  zeta[itype] *= 1.0e10;
-	  zcore[itype] *= 1.6021765e-19;
-        } else if (strcmp(update->unit_style,"cgs") == 0) {
-          chi[itype] *= 6.95e-14;
-          eta[itype] *= 6.95e-14;
-	  gamma[itype] *= 1.0e-8;
-	  zeta[itype] *= 1.0e8;
-	  zcore[itype] *= 4.8032044e-10;
-        } else if (strcmp(update->unit_style,"electron") == 0) {
-          chi[itype] *= 0.00159362;
-          eta[itype] *= 0.00159362;
-	  gamma[itype] *= 1.8903;
-	  zeta[itype] *= 0.5290;
-	  zcore[itype] *= 1.0;
-	}
-      } else if (strcmp(units,"metal") == 0) {
-        if (strcmp(update->unit_style,"real") == 0) {
-          chi[itype] *= 23.0609;
-          eta[itype] *= 23.0609;
-	  gamma[itype] *= 1.0;
-	  zeta[itype] *= 1.0;
-	  zcore[itype] *= 1.0;
-        } else if (strcmp(update->unit_style,"si") == 0) {
-          chi[itype] *= 1.6021e-19;
-          eta[itype] *= 1.6021e-19;
-	  gamma[itype] *= 1.0e-10;
-	  zeta[itype] *= 1.0e10;
-	  zcore[itype] *= 1.6021765e-19;
-        } else if (strcmp(update->unit_style,"cgs") == 0) {
-          chi[itype] *= 1.6021e-12;
-          eta[itype] *= 1.6021e-12;
-	  gamma[itype] *= 1.0e-8;
-	  zeta[itype] *= 1.0e8;
-	  zcore[itype] *= 4.8032044e-10;
-        } else if (strcmp(update->unit_style,"electron") == 0) {
-          chi[itype] *= 0.0367502;
-          eta[itype] *= 0.0367502;
-	  gamma[itype] *= 1.8903;
-	  zeta[itype] *= 0.5290;
-	  zcore[itype] *= 1.0;
-	}
-      }
-    }
-    if (i <= ntypes) error->one(FLERR,"Invalid param file for fix qeq");
-    fclose(pf);
-  }
-
-  MPI_Bcast(&chi[1],ntypes+1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&eta[1],ntypes+1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&gamma[1],ntypes+1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&zeta[1],ntypes+1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&zcore[1],ntypes+1,MPI_DOUBLE,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -793,3 +692,76 @@ void FixQEq::vector_add( double* dest, double c, double* v, int k )
 }
 
 /* ---------------------------------------------------------------------- */
+
+void FixQEq::read_file(char *file)
+{
+  int i,itype,ntypes;
+  int params_per_line = 6;
+  char **words = new char*[params_per_line+1];
+
+  ntypes = atom->ntypes;
+
+  memory->create(chi,ntypes+1,"qeq:chi");
+  memory->create(eta,ntypes+1,"qeq:eta");
+  memory->create(gamma,ntypes+1,"qeq:gamma");
+  memory->create(zeta,ntypes+1,"qeq:zeta");
+  memory->create(zcore,ntypes+1,"qeq:zcore");
+
+  // open file on proc 0
+
+  FILE *fp;
+  if (comm->me == 0) {
+    fp = force->open_potential(file);
+    if (fp == NULL) {
+      char str[128];
+      sprintf(str,"Cannot open Tersoff potential file %s",file);
+      error->one(FLERR,str);
+    }
+  }
+
+  // read each line out of file, skipping blank lines or leading '#'
+  // store line of params if all 3 element tags are in element list
+
+  int n,nwords,ielement,eof;
+  char line[MAXLINE],*ptr;
+
+  eof = ielement = 0;
+
+  while (1) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fp);
+      if (ptr == NULL) {
+        eof = 1;
+        fclose(fp);
+      } else n = strlen(line) + 1;
+    }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(&n,1,MPI_INT,0,world);
+    MPI_Bcast(line,n,MPI_CHAR,0,world);
+
+    ielement ++;
+    if (ielement > ntypes)
+      error->all(FLERR,"Invalid fix qeq parameter file");
+
+    // strip comment, skip line if blank
+
+    if ((ptr = strchr(line,'#'))) *ptr = '\0';
+    nwords = atom->count_words(line);
+    if (nwords == 0) continue;
+
+    // words = ptrs to all words in line
+
+    nwords = 0;
+    words[nwords++] = strtok(line," \t\n\r\f");
+    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+
+    itype = atoi(words[0]);
+    chi[itype]   = atof(words[1]);
+    eta[itype]   = atof(words[2]);
+    gamma[itype] = atof(words[3]);
+    zeta[itype]  = atof(words[4]);
+    zcore[itype] = atof(words[5]);
+  }
+  delete [] words;
+}

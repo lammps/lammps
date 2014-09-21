@@ -1,0 +1,4 @@
+LAMMPS (22 Jul 2014)
+#Simulation of two-temperature aluminium, C_e = K*T_e
+
+log		test.txt

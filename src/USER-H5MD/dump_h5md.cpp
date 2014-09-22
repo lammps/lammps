@@ -183,16 +183,29 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
 
 DumpH5MD::~DumpH5MD()
 {
-  if (every_position>=0)
+  if (every_position>=0) {
     memory->destroy(dump_position);
-  if (every_image>=0)
+    h5md_close_time_data(particles_data.position);
+    if (do_box)
+      h5md_close_time_data(particles_data.box_edges);
+  }
+  if (every_image>=0) {
     memory->destroy(dump_image);
-  if (every_velocity>=0)
+    h5md_close_time_data(particles_data.image);
+  }
+  if (every_velocity>=0) {
     memory->destroy(dump_velocity);
-  if (every_force>=0)
+    h5md_close_time_data(particles_data.velocity);
+  }
+  if (every_force>=0) {
     memory->destroy(dump_force);
-  if (every_species>=0)
+    h5md_close_time_data(particles_data.force);
+  }
+  if (every_species>=0) {
     memory->destroy(dump_species);
+    h5md_close_time_data(particles_data.species);
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -462,17 +475,17 @@ void DumpH5MD::write_fixed_frame()
   edges[1] = boxyhi - boxylo;
   edges[2] = boxzhi - boxzlo;
   if (every_position==0) {
-    h5md_create_fixed_data_simple(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, dump_position);
+    particles_data.position = h5md_create_fixed_data_simple(particles_data.group, "position", 2, dims, H5T_NATIVE_DOUBLE, dump_position);
     h5md_create_box(&particles_data, dims[1], boundary, false, edges, NULL);
     if (every_image==0)
-      h5md_create_fixed_data_simple(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, dump_image);
+      particles_data.image = h5md_create_fixed_data_simple(particles_data.group, "image", 2, dims, H5T_NATIVE_INT, dump_image);
   }
   if (every_velocity==0)
-    h5md_create_fixed_data_simple(particles_data.group, "velocity", 2, dims, H5T_NATIVE_DOUBLE, dump_velocity);
+    particles_data.velocity = h5md_create_fixed_data_simple(particles_data.group, "velocity", 2, dims, H5T_NATIVE_DOUBLE, dump_velocity);
   if (every_force==0)
-    h5md_create_fixed_data_simple(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, dump_force);
+    particles_data.force = h5md_create_fixed_data_simple(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, dump_force);
   if (every_species==0)
-    h5md_create_fixed_data_simple(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, dump_species);
+    particles_data.species = h5md_create_fixed_data_simple(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, dump_species);
 
   for (int i=0; i<3; i++) {
     delete [] boundary[i];

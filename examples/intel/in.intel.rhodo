@@ -1,6 +1,6 @@
 # Rhodopsin model
 
-package intel 1 prec mixed balance $b
+package intel 1 mode mixed balance $b
 package omp 0
 suffix $s
 

@@ -59,6 +59,9 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   if (binary || compressed || multifile || multiproc)
     error->all(FLERR,"Invalid dump h5md filename");
 
+  if (domain->triclinic!=0)
+    error->all(FLERR,"Invalid domain for dump h5md. Only triclinic domains supported.");
+
   size_one = 6;
   sort_flag = 1;
   sortcol = 0;

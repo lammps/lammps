@@ -202,8 +202,10 @@ int h5md_close_time_data(h5md_element e)
 
   if (!e.is_time) return 0;
 
-  status = H5Dclose(e.step);
-  status = H5Dclose(e.time);
+  if (e.link==NULL) {
+    status = H5Dclose(e.step);
+    status = H5Dclose(e.time);
+  }
   status = H5Dclose(e.value);
   status = H5Gclose(e.group);
 
@@ -412,6 +414,8 @@ int h5md_create_box(h5md_particles_group *group, int dim, char *boundary[], bool
       group->box_edges = h5md_create_fixed_data_simple(group->box, "edges", 1, int_dims, H5T_NATIVE_DOUBLE, value);
     }
   }
+
+  status = H5Gclose(group->box);
 
   return 0;
 }

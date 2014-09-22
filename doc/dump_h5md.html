@@ -29,22 +29,29 @@
 At least one element must be given and image may only be present if
 position is specified first. 
 
-<PRE>  position N_position
+<PRE>  position options
   image
-  velocity N_velocity
-  force N_force
-  species N_species 
-</PRE>
-<PRE>  file_from ID: do not open a new file, re-use the already opened file from dump ID
+  velocity options
+  force options
+  species options
+  file_from ID: do not open a new file, re-use the already opened file from dump ID
   box value = <I>yes</I> or <I>no</I>
   create_group value = <I>yes</I> or <I>no</I> 
 </PRE>
+<P>For the elements <I>position</I>, <I>velocity</I>, <I>force</I> and <I>species</I>, one may specify
+a sub-interval to write the data only every N_element iterations of the dump
+(i.e. every N*N_element time steps). This is specified by the option
+</P>
+<PRE>  every N_element 
+</PRE>
+<P>that follows directly the element declaration.
+</P>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>dump h5md1 all h5md 100 dump_h5md.h5 position 1 image
-dump h5md1 all h5md 100 dump_h5md.h5 position 1 velocity 10 
+<PRE>dump h5md1 all h5md 100 dump_h5md.h5 position image
+dump h5md1 all h5md 100 dump_h5md.h5 position velocity every 10 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -75,7 +82,7 @@ box.
 <P><B>Use from write_dump:</B>
 </P>
 <P>It is possible to use this dump style with the <A HREF = "write_dump.html">write_dump</A> command.
-In this case, all relevant subintervals must be set to zero.
+In this case, the subintervals must not be set at all.
 <I>write_dump</I> can be used either alone or in conjunction with <I>file_from</I> so that
 fixed-in-time data can be stored in the same file as time-dependent data.
 </P>
@@ -83,8 +90,8 @@ fixed-in-time data can be stored in the same file as time-dependent data.
 position data every 100 timesteps, with the image data, and store once the
 species data in the same file.
 </P>
-<PRE>dump h5md1 all h5md 100 dump.h5 position 1 image
-write_dump all h5md dump.h5 file_from h5md1 species 0 
+<PRE>dump h5md1 all h5md 100 dump.h5 position image
+write_dump all h5md dump.h5 file_from h5md1 species 
 </PRE>
 <HR>
 

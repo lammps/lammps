@@ -34,6 +34,23 @@ using namespace LAMMPS_NS;
 #define MYMIN(a,b) ((a) < (b) ? (a) : (b))
 #define MYMAX(a,b) ((a) > (b) ? (a) : (b))
 
+/** Scan common options for the dump elements
+ */
+int element_args(int narg, char **arg, int *every)
+{
+  int iarg=0;
+  while (iarg<narg) {
+    if (strcmp(arg[iarg], "every")==0) {
+      if (narg<2) return -1;
+      *every = atoi(arg[iarg+1]);
+      iarg+=2;
+    } else {
+      break;
+    }
+  }
+  return iarg;
+}
+
 /* ---------------------------------------------------------------------- */
 
 DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
@@ -60,14 +77,17 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   bool box_is_set, create_group_is_set;
   box_is_set = create_group_is_set = false;
   int iarg=5;
+  int n_parsed, default_every;
   size_one=0;
+  if (every_dump==0) default_every=0; else default_every=1;
+
   while (iarg<narg) {
     if (strcmp(arg[iarg], "position")==0) {
-      if (iarg+1>=narg) {
-        error->all(FLERR, "Invalid number of arguments in dump h5md");
-      }
-      every_position = atoi(arg[iarg+1]);
-      iarg+=2;
+      every_position=default_every;
+      iarg+=1;
+      n_parsed = element_args(narg-iarg, &arg[iarg], &every_position);
+      if (n_parsed<0) error->all(FLERR, "Illegal dump h5md command");
+      iarg += n_parsed;
       size_one+=domain->dimension;
     } else if (strcmp(arg[iarg], "image")==0) {
       if (every_position<0) error->all(FLERR, "Illegal dump h5md command");
@@ -75,25 +95,25 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       size_one+=domain->dimension;
       every_image = every_position;
     } else if (strcmp(arg[iarg], "velocity")==0) {
-      if (iarg+1>=narg) {
-        error->all(FLERR, "Invalid number of arguments in dump h5md");
-      }
-      every_velocity = atoi(arg[iarg+1]);
-      iarg+=2;
+      every_velocity = default_every;
+      iarg+=1;
+      n_parsed = element_args(narg-iarg, &arg[iarg], &every_velocity);
+      if (n_parsed<0) error->all(FLERR, "Illegal dump h5md command");
+      iarg += n_parsed;
       size_one+=domain->dimension;
     } else if (strcmp(arg[iarg], "force")==0) {
-      if (iarg+1>=narg) {
-        error->all(FLERR, "Invalid number of arguments in dump h5md");
-      }
-      every_force = atoi(arg[iarg+1]);
-      iarg+=2;
+      every_force = default_every;
+      iarg+=1;
+      n_parsed = element_args(narg-iarg, &arg[iarg], &every_force);
+      if (n_parsed<0) error->all(FLERR, "Illegal dump h5md command");
+      iarg += n_parsed;
       size_one+=domain->dimension;
     } else if (strcmp(arg[iarg], "species")==0) {
-      if (iarg+1>=narg) {
-        error->all(FLERR, "Invalid number of arguments in dump h5md");
-      }
-      every_species = atoi(arg[iarg+1]);
-      iarg+=2;
+      every_species=default_every;
+      iarg+=1;
+      n_parsed = element_args(narg-iarg, &arg[iarg], &every_species);
+      if (n_parsed<0) error->all(FLERR, "Illegal dump h5md command");
+      iarg += n_parsed;
       size_one+=1;
     } else if (strcmp(arg[iarg], "file_from")==0) {
       if (iarg+1>=narg) {

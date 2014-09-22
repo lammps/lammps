@@ -188,25 +188,27 @@ DumpH5MD::~DumpH5MD()
 {
   if (every_position>=0) {
     memory->destroy(dump_position);
-    h5md_close_time_data(particles_data.position);
-    if (do_box)
-      h5md_close_time_data(particles_data.box_edges);
+    if (me==0) {
+      h5md_close_time_data(particles_data.position);
+      if (do_box)
+	h5md_close_time_data(particles_data.box_edges);
+    }
   }
   if (every_image>=0) {
     memory->destroy(dump_image);
-    h5md_close_time_data(particles_data.image);
+    if (me==0) h5md_close_time_data(particles_data.image);
   }
   if (every_velocity>=0) {
     memory->destroy(dump_velocity);
-    h5md_close_time_data(particles_data.velocity);
+    if (me==0) h5md_close_time_data(particles_data.velocity);
   }
   if (every_force>=0) {
     memory->destroy(dump_force);
-    h5md_close_time_data(particles_data.force);
+    if (me==0) h5md_close_time_data(particles_data.force);
   }
   if (every_species>=0) {
     memory->destroy(dump_species);
-    h5md_close_time_data(particles_data.species);
+    if (me==0) h5md_close_time_data(particles_data.species);
   }
 
 }

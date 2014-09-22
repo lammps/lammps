@@ -91,6 +91,8 @@ write_dump all h5md dump.h5 file_from h5md1 species :pre
 :ulb
 The number of atoms per snapshot cannot change with the h5md style. :l
 The position data is stored wrapped (box boundaries not enforced, see note above). :l
+Only orthogonal domains are currently supported. This is a limitation of the
+present package and not of H5MD itself. :l
 :ule
 
 The {h5md} dump style is part of the USER-H5MD package. It is only enabled if

@@ -18,7 +18,7 @@ build/ch5md.o: src/ch5md.c | build
 Makefile.lammps:
 	@echo "# Settings that the LAMMPS build will import when this package library is used" > Makefile.lammps
 	@echo "ch5md_SYSINC = -I${HDF5_PATH}/include" >> Makefile.lammps
-	@echo "ch5md_SYSLIB = -I${HDF5_PATH}/lib" >> Makefile.lammps
+	@echo "ch5md_SYSLIB = -L${HDF5_PATH}/lib" >> Makefile.lammps
 
 $(LIB): build/ch5md.o
 	$(AR) $(ARFLAGS) $(LIB) build/ch5md.o

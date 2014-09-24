@@ -65,12 +65,13 @@ help:
 	@echo 'make package-diff (pd)   diff src files against package files'
 	@echo 'make package-purge       purge obsolete copies of package sources'
 	@echo ''
-	@echo 'make machine             build LAMMPS where machine is one of:'
+	@echo 'make machine             build LAMMPS where machine is one of'
+	@echo '                         these: (see src/MAKE)'
 	@echo ''
 	@files="`ls MAKE/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
-	@echo 'or one of:'
+	@echo 'or one of these: (see src/MAKE/MORE)'
 	@echo ''
 	@files="`ls MAKE/MORE/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done

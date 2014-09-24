@@ -9,7 +9,9 @@ LIB=libch5md.a
 
 all: lib
 
-build/ch5md.o: src/ch5md.c
+build:
+	mkdir -p build
+build/ch5md.o: src/ch5md.c | build
 	$(CC) $(INC) -c $< -o $@
 
 .PHONY: Makefile.lammps

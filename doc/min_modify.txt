@@ -44,22 +44,26 @@ highly overlapped atoms from being moved long distances (e.g. through
 another atom) due to large forces.
 
 The choice of line search algorithm for the {cg} and {sd} minimization
-styles can be selected via the {line} keyword.  The default
-backtracking search is robust and should always find a local energy
+styles can be selected via the {line} keyword.  
+The default {quadratic} line search algorithm starts out using 
+the robust backtracking method described below. However, once
+the system gets close to a local
+minimum and the linesearch steps get small, so that the energy
+is approximately quadratic in the step length, it uses the 
+estimated location of zero gradient as the linesearch step,
+provided the energy change is downhill. 
+This becomes more efficient than backtracking
+for highly-converged relaxations. The {forcezero} 
+line search algorithm is similar to {quadratic}.
+It may be more efficient than {quadratic} on some systems.
+
+The backtracking search is robust and should always find a local energy
 minimum.  However, it will "converge" when it can no longer reduce the
 energy of the system.  Individual atom forces may still be larger than
 desired at this point, because the energy change is measured as the
 difference of two large values (energy before and energy after) and
 that difference may be smaller than machine epsilon even if atoms
 could move in the gradient direction to reduce forces further.
-
-By contrast, the {quadratic} line search algorithm tries to 
-reduce the forces to zero, while guaranteeing that the energy
-changes is not positive (uphill). For some systems, it may also 
-be more efficient than the backtracking algorithm by 
-requiring fewer energy/force evaluations. The {forcezero} 
-line search algorithm is similar to {quadratic}.
-It may be more efficient than {quadratic} on some systems.
 
 [Restrictions:] none
 
@@ -69,4 +73,4 @@ It may be more efficient than {quadratic} on some systems.
 
 [Default:]
 
-The option defaults are dmax = 0.1 and line = backtrack.
+The option defaults are dmax = 0.1 and line = quadratic.

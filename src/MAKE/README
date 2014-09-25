@@ -35,42 +35,67 @@ dir for the same thing using the Intel icc compiler instead of g++.
 
 The OPTIONS directory has several Makefiles that extend either
 Makefile.mpi or Makefile.serial to enable use of different compilers,
-different MPIs, or several package and command options that LAMMPS
-supports.
+different MPIs, or package and command options that LAMMPS supports.
 
+Makefile.fftw          FFTW support added for long-range Coulombics (PPPM)
+Makefile.jpg           JPG support added to Makefile.mpi for dump image
+Makefile.png           PNG support added to Makefile.mpi for dump image
 
+These Makefiles are the same as Makefile.mpi except they each add
+settings for commonly used options (FFTW, JPG, PNG) to illustrate how
+they can be added to any Makefile.
 
+--------
 
-Makefile.serial_icc = build without MPI for serial execution (single core)
+Makefile.kokkos_omp    KOKKOS package with CUDA support via nvcc compiler
+Makefile.kokkos_cuda   KOKKOS package with CUDA support via nvcc compiler
+Makefile.kokkos_phi    KOKKOS package with CUDA support via nvcc compiler
 
-The fftw, jpg, and png Makefiles are the same as Makefile.mpi
-except they each add settings for commonly used options (FFTW, JPG, PNG)
-to illustrate how they can be added to any Makefile.
+These Makefiles are for building with the KOKKOS package for different
+architectures (multi-core with OpenMP threading, GPU, Xeon Phi).  Some
+Makefile variables are set and appended to.
 
+--------
 
-What about OPTIONS and MACHINES and CUSTOM/USER
+Makefile.intel          USER-INTEL package with CPU acceleration
+Makefile.intel_offload  USER-INTEL package with Xeon Phi support
 
+These Makefiles are for building with the USER-INTEL package with
+either CPU or Xeon Phi (offload) support.  Some Makefile variables are
+set and appended to.
 
+--------
 
-Makefile.fftw = add FFTW support to Makefile.mpi for long-range Coulombics
-Makefile.jpg = add JPG support to Makefile.mpi for dump image command
-Makefile.png = add PNG support to Makefile.mpi for dump image command
+Makefile.mpich_g++      compile with MPICH wrapper, set compiler to GNU g++
+Makefile.mpich_icc      compile with MPICH wrapper, set compiler to Intel icc
+Makefile.ompi_g++       compile with OpenMPI wrapper, set compiler to GNU g++
+Makefile.ompi_icc       compile with OpenMPI wrapper, set compiler to Intel icc
 
-Makefile.intel
-Makefile.intel_offload
-Makefile.kokkos_omp
-Makefile.kokkos_cuda
-Makefile.kokkos_phi
+Makefile.serial_icc     serial build with Intel icc compiler
 
+These Makefiles adapt Makefile.mpi and Makefile.serial to
+use specific compilers.
+
+--------
+
+Makefile.mpich_native_g++    compile with GNU g++, link to MPICH
+Makefile.mpich_native_icc    compile with Intel icc, link to MPICH
+Makefile.ompi_native_g++     compile with GNU g++, link to OpenMPI
+Makefile.ompi_native_icc     compile with Intel icc, link to OpenMPI
+
+These Makefiles show how to build with MPI support, but not using the
+MPI wrapper "mpicxx" for compiling.  Instead, g++ or icc is used
+directly to compile/link and the MPI library is linked to.  This
+requires knowing the path for the mpi.h and MPI library files.
 
 ------------------------------------
 
 The MACHINE sub-directory has many Makefiles, each of which has been
 setup for a specific kind of machine or a specific supercomputer.
 
-Examples include
+Examples include:
 
-Makefile.mac        Macintosh
+Makefile.mac        Apple Macintosh
 Makefile.xe6        Cray XE6
-Makefile.bgp        IBM BG/Q
+Makefile.bgq        IBM BG/Q
 Makefile.stampede   U Texas "stampede" machine

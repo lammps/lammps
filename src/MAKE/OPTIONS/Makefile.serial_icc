@@ -37,7 +37,7 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -I../STUBS -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
+MPI_INC =       -I../STUBS
 MPI_PATH =      -L../STUBS
 MPI_LIB =	-lmpi_stubs
 

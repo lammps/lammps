@@ -1,4 +1,4 @@
-# mpi = default MPI compiler, default MPI
+# kokkos_omp = KOKKOS package with OMP support, MPI compiler, default MPI
 
 SHELL = /bin/sh
 

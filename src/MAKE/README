@@ -1,0 +1,76 @@
+This directory and its sub-directories contain machine Makefiles for
+LAMMPS.  The use of machine Makefiles and their settings are discussed
+in Section 2 of the manual.
+
+If you are new to LAMMPS, try one of the files in this directory
+first.
+
+Then you can try files in the sub-directories with more options you
+may need, or that are specific to a machine you are running on.
+
+If none of the existing files work, you can edit a file in either
+directory to create your own customized Makefile.machine.  Put it in
+the USER directory if you want to avoid conflicts with the Makefiles
+distributed with LAMMPS.
+
+-----------------------------------
+
+This directory has two generic Makefiles which should work as-is on
+many platforms.
+
+Makefile.mpi      assumes MPI is installed on your machine
+Makefile.serial   build without MPI for serial execution (single core)
+
+Makefile.mpi builds with the mpicxx wrapper provided with all MPI
+installations.  It uses a default compiler (the one MPI was built
+with) and should work with whatever version of MPI is installed
+(OpenMPI, MPICH, vendor, etc).
+
+Makefile.serial builds without MPI, using the GNU g++ compiler.  It
+uses the dummy MPI library in src/STUBS, which you can pre-build via
+"make stubs" in the src dir.  See Makefile.serial_icc in the OPTIONS
+dir for the same thing using the Intel icc compiler instead of g++.
+
+-----------------------------------
+
+The OPTIONS directory has several Makefiles that extend either
+Makefile.mpi or Makefile.serial to enable use of different compilers,
+different MPIs, or several package and command options that LAMMPS
+supports.
+
+
+
+
+Makefile.serial_icc = build without MPI for serial execution (single core)
+
+The fftw, jpg, and png Makefiles are the same as Makefile.mpi
+except they each add settings for commonly used options (FFTW, JPG, PNG)
+to illustrate how they can be added to any Makefile.
+
+
+What about OPTIONS and MACHINES and CUSTOM/USER
+
+
+
+Makefile.fftw = add FFTW support to Makefile.mpi for long-range Coulombics
+Makefile.jpg = add JPG support to Makefile.mpi for dump image command
+Makefile.png = add PNG support to Makefile.mpi for dump image command
+
+Makefile.intel
+Makefile.intel_offload
+Makefile.kokkos_omp
+Makefile.kokkos_cuda
+Makefile.kokkos_phi
+
+
+------------------------------------
+
+The MACHINE sub-directory has many Makefiles, each of which has been
+setup for a specific kind of machine or a specific supercomputer.
+
+Examples include
+
+Makefile.mac        Macintosh
+Makefile.xe6        Cray XE6
+Makefile.bgp        IBM BG/Q
+Makefile.stampede   U Texas "stampede" machine

@@ -38,6 +38,7 @@ class DumpH5MD : public Dump {
   h5md_file datafile;
   int datafile_from_dump;
   h5md_particles_group particles_data;
+  char *author_name;
 
   bool do_box;
   bool create_group;

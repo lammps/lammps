@@ -36,7 +36,8 @@ position is specified first.
   species options
   file_from ID: do not open a new file, re-use the already opened file from dump ID
   box value = <I>yes</I> or <I>no</I>
-  create_group value = <I>yes</I> or <I>no</I> 
+  create_group value = <I>yes</I> or <I>no</I>
+  author value = quoted string 
 </PRE>
 <P>For the elements <I>position</I>, <I>velocity</I>, <I>force</I> and <I>species</I>, one may specify
 a sub-interval to write the data only every N_element iterations of the dump
@@ -52,6 +53,8 @@ a sub-interval to write the data only every N_element iterations of the dump
 </P>
 <PRE>dump h5md1 all h5md 100 dump_h5md.h5 position image
 dump h5md1 all h5md 100 dump_h5md.h5 position velocity every 10 
+</PRE>
+<PRE>dump h5md1 all h5md 100 dump_h5md.h5 velocity author "L. Ammps" 
 </PRE>
 <P><B>Description:</B>
 </P>

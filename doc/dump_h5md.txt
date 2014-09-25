@@ -27,7 +27,8 @@ position is specified first. :l
   species options
   file_from ID: do not open a new file, re-use the already opened file from dump ID
   box value = {yes} or {no}
-  create_group value = {yes} or {no} :pre
+  create_group value = {yes} or {no}
+  author value = quoted string :pre
 
 For the elements {position}, {velocity}, {force} and {species}, one may specify
 a sub-interval to write the data only every N_element iterations of the dump
@@ -43,6 +44,7 @@ that follows directly the element declaration.
 
 dump h5md1 all h5md 100 dump_h5md.h5 position image
 dump h5md1 all h5md 100 dump_h5md.h5 position velocity every 10 :pre
+dump h5md1 all h5md 100 dump_h5md.h5 velocity author "L. Ammps" :pre
 
 [Description:]
 

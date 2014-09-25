@@ -69,6 +69,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   flush_flag = 0;
   unwrap_flag = 0;
   datafile_from_dump = -1;
+  author_name=NULL;
 
   every_dump = force->inumeric(FLERR,arg[3]);
   every_position = every_image = -1;
@@ -157,6 +158,17 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       else
 	error->all(FLERR, "Illegal dump h5md command");
       iarg+=2;
+    } else if (strcmp(arg[iarg], "author")==0) {
+      if (iarg+1>=narg) {
+        error->all(FLERR, "Invalid number of arguments in dump h5md");
+      }
+      if (author_name==NULL) {
+	author_name = new char[strlen(arg[iarg]+1)];
+	strcpy(author_name, arg[iarg+1]);
+      } else {
+	error->all(FLERR, "Illegal dump h5md command: author argument repeated");
+      }
+      iarg+=2;
     } else {
       error->all(FLERR, "Invalid argument to dump h5md");
     }
@@ -240,7 +252,11 @@ void DumpH5MD::openfile()
 
   if (me == 0) {
     if (datafile_from_dump<0) {
-      datafile = h5md_create_file(filename, "N/A", NULL, "lammps", LAMMPS_VERSION);
+      if (author_name==NULL) {
+	datafile = h5md_create_file(filename, "N/A", NULL, "lammps", LAMMPS_VERSION);
+      } else {
+	datafile = h5md_create_file(filename, author_name, NULL, "lammps", LAMMPS_VERSION);
+      }
       group_name_length = strlen(group->names[igroup]);
       group_name = new char[group_name_length];
       strcpy(group_name, group->names[igroup]);
@@ -292,6 +308,8 @@ void DumpH5MD::openfile()
 	particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, NULL);
     }
   }
+
+  if (author_name!=NULL) delete [] author_name;
   for (int i=0; i<3; i++) {
     delete [] boundary[i];
   }

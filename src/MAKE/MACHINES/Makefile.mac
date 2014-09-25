@@ -55,7 +55,7 @@ FFT_PATH =
 FFT_LIB =	-lfftw
 
 # JPEG and/or PNG library
-# see discussion in doc/SSection 2.2 (step 7) of manual
+# see discussion in Section 2.2 (step 7) of manual
 # only needed if -DLAMMPS_JPEG or -DLAMMPS_PNG listed with LMP_INC
 # INC = path(s) for jpeglib.h and/or png.h
 # PATH = path(s) for JPEG library and/or PNG library

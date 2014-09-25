@@ -1,4 +1,4 @@
-# serial-clang = RedHat Linux box, clang, no MPI, no FFTs
+# linux = RedHat Linux box, Intel icc, MPICH2, FFTW
 
 SHELL = /bin/sh
 
@@ -6,19 +6,20 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		clang++
-CCFLAGS =	-O3  -fno-exceptions -Wall -Wno-sometimes-uninitialized -Wno-unused-variable
+CC =		icc
+CCFLAGS =	-O -fopenmp -DLAMMPS_MEMALIGN=64 -restrict -xHost -DLMP_INTEL_OFFLOAD -fno-alias -ansi-alias -override-limits -offload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\""
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		clang++
-LINKFLAGS =	-O3  -fno-exceptions
-LIB =          
+LINK =		icc
+LINKFLAGS =	-O -fopenmp -offload
+LIB =           -lstdc++
 SIZE =		size
 
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
+OMP =		yes
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings
@@ -28,7 +29,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings, OPTIONAL
 # see possible settings in doc/Section_start.html#2_2 (step 4)
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
 
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)
@@ -37,9 +38,9 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -I../STUBS
-MPI_PATH =      -L../STUBS
-MPI_LIB =	-lmpi_stubs
+MPI_INC =       -DMPICH_SKIP_MPICXX
+MPI_PATH = 
+MPI_LIB =	-lmpich -lmpl -lpthread
 
 # FFT library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 6)
@@ -48,20 +49,20 @@ MPI_LIB =	-lmpi_stubs
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =
+FFT_INC =       -DFFT_FFTW
 FFT_PATH = 
-FFT_LIB =       -lfftw3f
+FFT_LIB =	-lfftw
 
-# JPEG library, OPTIONAL
+# JPEG and/or PNG library, OPTIONAL
 # see discussion in doc/Section_start.html#2_2 (step 7)
-# only needed if -DLAMMPS_JPEG listed with LMP_INC
-# INC = path for jpeglib.h
-# PATH = path for JPEG library
-# LIB = name of JPEG library
+# only needed if -DLAMMPS_JPEG or -DLAMMPS_PNG listed with LMP_INC
+# INC = path(s) for jpeglib.h and/or png.h
+# PATH = path(s) for JPEG library and/or PNG library
+# LIB = name(s) of JPEG library and/or PNG library
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	
+JPG_LIB =	-ljpeg
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

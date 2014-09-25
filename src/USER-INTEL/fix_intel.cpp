@@ -148,11 +148,14 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
     error->all(FLERR,"Illegal package intel command");
 
   // set OpenMP threads
-
-
-  // NOTE: nomp is user setting, default = 0
-
-
+  // nomp is user setting, default = 0
+  
+#if defined(_OPENMP)
+  if (nomp != 0) {
+    omp_set_num_threads(nomp);
+    comm->nthreads = nomp;
+  }
+#endif
 
   // set offload params
 

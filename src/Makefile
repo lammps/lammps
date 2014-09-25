@@ -48,29 +48,30 @@ help:
 	@echo 'make install-python      install LAMMPS wrapper in Python'
 	@echo 'make tar                 create lmp_src.tar.gz of src dir and packages'
 	@echo ''
-	@echo 'make package             list available packages'
-	@echo 'make package-status (ps) status of all packages'
-	@echo 'make yes-package         install a single package in src dir'
-	@echo 'make no-package          remove a single package from src dir'
-	@echo 'make yes-all             install all packages in src dir'
-	@echo 'make no-all              remove all packages from src dir'
-	@echo 'make yes-standard        install all standard packages'
-	@echo 'make no-standard         remove all standard packages'
-	@echo 'make yes-user            install all user packages'
-	@echo 'make no-user             remove all user packages'
-	@echo 'make no-lib              remove all packages with external libs'
+	@echo 'make package                 list available packages'
+	@echo 'make package-status (ps)     status of all packages'
+	@echo 'make yes-package             install a single pgk in src dir'
+	@echo 'make no-package              remove a single pkg from src dir'
+	@echo 'make yes-all                 install all pgks in src dir'
+	@echo 'make no-all                  remove all pkgs from src dir'
+	@echo 'make yes-standard (yes-std)  install all standard pkgs'
+	@echo 'make no-standard (no-std)    remove all standard pkgs'
+	@echo 'make yes-user                install all user pkgs'
+	@echo 'make no-user                 remove all user pkgs'
+	@echo 'make no-lib                  remove all pkgs with external libs'
 	@echo ''
 	@echo 'make package-update (pu) replace src files with updated package files'
 	@echo 'make package-overwrite   replace package files with src files'
 	@echo 'make package-diff (pd)   diff src files against package files'
 	@echo 'make package-purge       purge obsolete copies of package sources'
 	@echo ''
-	@echo 'make machine             build LAMMPS where machine is one of:'
+	@echo 'make machine             build LAMMPS where machine is one of'
+	@echo '                         these: (see src/MAKE)'
 	@echo ''
 	@files="`ls MAKE/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
-	@echo 'or one of:'
+	@echo 'or one of these: (see src/MAKE/MORE)'
 	@echo ''
 	@files="`ls MAKE/MORE/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
@@ -149,18 +150,18 @@ package:
 	@echo ''
 	@echo 'User-contributed packages:' $(PACKUSER)
 	@echo ''
-	@echo 'make package              list available packages'
-	@echo 'make package-status (ps)  status of all packages'
-	@echo 'make yes-package          install a single package in src dir'
-	@echo 'make no-package           remove a single package from src dir'
-	@echo 'make yes-all              install all packages in src dir'
-	@echo 'make no-all               remove all packages from src dir'
-	@echo 'make yes-standard         install all standard packages'
-	@echo 'make no-standard          remove all standard packages'
-	@echo 'make yes-user             install all user packages'
-	@echo 'make no-user              remove all user packages'
-	@echo 'make no-lib               remove all packages with external libs'
+	@echo 'make package                 list available packages'
+	@echo 'make package-status (ps)     status of all packages'
+	@echo 'make yes-package             install a single pgk in src dir'
+	@echo 'make no-package              remove a single pkg from src dir'
+	@echo 'make yes-all                 install all pgks in src dir'
+	@echo 'make no-all                  remove all pkgs from src dir'
+	@echo 'make yes-standard (yes-std)  install all standard pkgs'
+	@echo 'make no-standard (no-srd)    remove all standard pkgs'
 	@echo ''
+	@echo 'make yes-user                install all user pkgs'
+	@echo 'make no-user                 remove all user pkgs'
+	@echo 'make no-lib                  remove all pkgs with external libs'
 	@echo 'make package-update (pu)  replace src files with package files'
 	@echo 'make package-overwrite    replace package files with src files'
 	@echo 'make package-diff (pd)    diff src files against package file'
@@ -171,10 +172,10 @@ yes-all:
 no-all:
 	@for p in $(PACKALL); do $(MAKE) no-$$p; done
 
-yes-standard:
+yes-standard yes-std:
 	@for p in $(PACKAGE); do $(MAKE) yes-$$p; done
 
-no-standard:
+no-standard no-std:
 	@for p in $(PACKAGE); do $(MAKE) no-$$p; done
 
 yes-user:

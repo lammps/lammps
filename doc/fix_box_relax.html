@@ -261,8 +261,11 @@ volume, it can be difficult for the minimizer to equilibrate the
 system the desired pressure with high precision, particularly for
 solids.  Some techniques that seem to help are (a) use the
 "min_modify line quadratic" option when minimizing with box
-relaxations, and (b) minimize several times in succession if need be,
-to drive the pressure closer to the target pressure.  Also note that
+relaxations, (b) minimize several times in succession if need be,
+to drive the pressure closer to the target pressure, (c) relax
+the atom positions before relaxing the box, and (d) relax the box
+to the target hydrostatic pressure before relaxing to a target
+shear stress state. Also note that
 some systems (e.g. liquids) will not sustain a non-hydrostatic applied
 pressure, which means the minimizer will not converge.
 </P>

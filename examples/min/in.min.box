@@ -1,5 +1,6 @@
-# 2d Lennard-Jones melt and subsequent energy minimization
-
+# 2d Lennard-Jones melt and subsequent energy minimization,
+# followed by box relaxation to a target stress state
+#
 units		lj
 dimension	2
 atom_style	atomic
@@ -36,15 +37,47 @@ thermo		100
 
 run		1000
 
+# perform the box relaxation by progressively
+# adding more degrees of freedom, for smoother
+# convergence
+
 neigh_modify	delay 0 every 1 check yes
 
 velocity	all create 0.0 1
 thermo		50
+
+# atoms only
+
 minimize	1.0e-6 0.001 1000 10000
 
-fix             3 all box/relax x 1.0 y 2.0 vmax 1.0e-4 nreset 100
+# isotropic volume relaxation to hydrostatic target
 
-thermo_style    custom step temp pe pxx pyy pxy
+fix             3 all box/relax iso 1.5 vmax 1.0e-3
 
-min_modify      line quadratic
-minimize	0.0 1.0e-6 10000 100000
+variable        emin equal pe+f_3/atoms
+thermo_style    custom step temp pe pxx pyy pxy f_3 v_emin
+
+# anisotropic volume relaxation to hydrostatic target
+
+minimize	0.0 10.0e0 10000 100000
+
+fix             3 all box/relax aniso 1.5 vmax 1.0e-3
+
+minimize	0.0 10.0 10000 100000
+
+# anisotropic volume relaxation to non-hydrostatic target
+
+fix             3 all box/relax x 1.0 y 2.0 vmax 1.0e-3
+
+minimize	0.0 10.0 10000 100000
+
+minimize	0.0 1.0 10000 100000
+
+minimize	0.0 1.0e-2 10000 100000
+
+# Final refinement uses nreset to eliminate stress offset
+
+fix             3 all box/relax x 1.0 y 2.0 vmax 1.0e-3 nreset 100
+
+minimize	0.0 1.0e-4 10000 100000
+

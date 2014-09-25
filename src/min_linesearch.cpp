@@ -48,6 +48,7 @@ using namespace LAMMPS_NS;
 #define ALPHA_REDUCE 0.5
 #define BACKTRACK_SLOPE 0.4
 #define QUADRATIC_TOL 0.1
+//#define EMACH 1.0e-8
 #define EMACH 1.0e-8
 #define EPS_QUAD 1.0e-28
 
@@ -277,12 +278,15 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha)
 
     alpha *= ALPHA_REDUCE;
 
-    // backtracked all the way to 0.0
-    // reset to starting point, exit with error
+    // backtracked too much
+    // reset to starting point
+    // if de is positive, exit with error
+    // if de is negative, exit with ETOL
 
     if (alpha <= 0.0 || de_ideal >= -EMACH) {
       ecurrent = alpha_step(0.0,0);
-      return ZEROALPHA;
+      if (de < 0.0) return ETOL;
+      else return ZEROALPHA;
     }
   }
 }

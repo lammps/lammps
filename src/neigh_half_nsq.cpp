@@ -251,8 +251,8 @@ void Neighbor::half_nsq_no_newton_ghost(NeighList *list)
 
 void Neighbor::half_nsq_newton(NeighList *list)
 {
-  int i,j,n,itype,jtype,itag,jtag,which,bitmask,imol,iatom,moltemplate;
-  tagint tagprev;
+  int i,j,n,itype,jtype,which,bitmask,imol,iatom,moltemplate;
+  tagint itag,jtag,tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
 

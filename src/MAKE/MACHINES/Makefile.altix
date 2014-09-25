@@ -21,18 +21,20 @@ ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
 
 # ---------------------------------------------------------------------
-# LAMMPS-specific settings
+# LAMMPS-specific settings, all OPTIONAL
 # specify settings for LAMMPS features you will use
 # if you change any -D setting, do full re-compile after "make clean"
 
-# LAMMPS ifdef settings, OPTIONAL
-# see possible settings in doc/Section_start.html#2_2 (step 4)
+# LAMMPS ifdef settings
+# see possible settings in Section 2.2 (step 4) of manual
 
 LMP_INC =	-DLAMMPS_GZIP
 
-# MPI library, REQUIRED
-# see discussion in doc/Section_start.html#2_2 (step 5)
+# MPI library
+# see discussion in Section 2.2 (step 5) of manual
+# MPI wrapper compiler/linker can provide this info
 # can point to dummy MPI library in src/STUBS as in Makefile.serial
+# use -D MPICH and OMPI settings in INC to avoid C++ lib conflicts
 # INC = path for mpi.h, MPI compiler settings
 # PATH = path for MPI library
 # LIB = name of MPI library
@@ -41,8 +43,8 @@ MPI_INC =       -DMPICH_SKIP_MPICXX
 MPI_PATH = 
 MPI_LIB =	-lmpi
 
-# FFT library, OPTIONAL
-# see discussion in doc/Section_start.html#2_2 (step 6)
+# FFT library
+# see discussion in Section 2.2 (step 6) of manaul
 # can be left blank to use provided KISS FFT library
 # INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library
@@ -52,8 +54,8 @@ FFT_INC =       -DFFT_SCSL
 FFT_PATH = 
 FFT_LIB =
 
-# JPEG and/or PNG library, OPTIONAL
-# see discussion in doc/Section_start.html#2_2 (step 7)
+# JPEG and/or PNG library
+# see discussion in doc/SSection 2.2 (step 7) of manual
 # only needed if -DLAMMPS_JPEG or -DLAMMPS_PNG listed with LMP_INC
 # INC = path(s) for jpeglib.h and/or png.h
 # PATH = path(s) for JPEG library and/or PNG library
@@ -65,7 +67,7 @@ JPG_LIB =
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
-# no need to edit this section
+# do not edit this section
 
 include	Makefile.package.settings
 include	Makefile.package

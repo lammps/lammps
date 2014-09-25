@@ -5,7 +5,7 @@ SHELL = /bin/bash
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
-# no need to edit this section
+# do not edit this section
 # select which compiler by editing Makefile.bgq.details
 
 include ../MAKE/Makefile.bgq.details

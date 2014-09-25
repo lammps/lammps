@@ -38,7 +38,7 @@ Makefile.mpi or Makefile.serial to enable use of different compilers,
 different MPIs, or package and command options that LAMMPS supports.
 
 Makefile.fftw          FFTW support added for long-range Coulombics (PPPM)
-Makefile.jpg           JPG support added to Makefile.mpi for dump image
+Makefile.jpeg          JPEG support added to Makefile.mpi for dump image
 Makefile.png           PNG support added to Makefile.mpi for dump image
 
 These Makefiles are the same as Makefile.mpi except they each add
@@ -57,8 +57,8 @@ Makefile variables are set and appended to.
 
 --------
 
-Makefile.intel          USER-INTEL package with CPU acceleration
-Makefile.intel_offload  USER-INTEL package with Xeon Phi support
+Makefile.intel_cpu     USER-INTEL package with CPU acceleration
+Makefile.intel_phi     USER-INTEL package with Xeon Phi support
 
 These Makefiles are for building with the USER-INTEL package with
 either CPU or Xeon Phi (offload) support.  Some Makefile variables are
@@ -72,6 +72,7 @@ Makefile.ompi_g++       compile with OpenMPI wrapper, set compiler to GNU g++
 Makefile.ompi_icc       compile with OpenMPI wrapper, set compiler to Intel icc
 
 Makefile.serial_icc     serial build with Intel icc compiler
+Makefile.pgi            MPI guild with the PGI compiler
 
 These Makefiles adapt Makefile.mpi and Makefile.serial to
 use specific compilers.

@@ -1,4 +1,4 @@
-# kokkos_cuda = KOKKOS package with CUDA support, nvcc compiler, MPICH2, FFTW
+# kokkos_phi = KOKKOS package with PHI support, MPI compiler, default MPI
 
 SHELL = /bin/sh
 
@@ -6,12 +6,12 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		nvcc
-CCFLAGS =	-g -O3 -arch=sm_20
+CC =		mpicxx
+CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		g++
+LINK =		mpicxx
 LINKFLAGS =	-g -O
 LIB = 
 SIZE =		size
@@ -19,7 +19,7 @@ SIZE =		size
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
-CUDA =		yes
+MIC =		yes
 OMP =		yes
 
 # ---------------------------------------------------------------------
@@ -30,7 +30,7 @@ OMP =		yes
 # LAMMPS ifdef settings
 # see possible settings in Section 2.2 (step 4) of manual
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
+LMP_INC =	-DLAMMPS_GZIP
 
 # MPI library
 # see discussion in Section 2.2 (step 5) of manual
@@ -43,18 +43,18 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
 
 MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
 MPI_PATH = 
-MPI_LIB =	-lmpich -lmpl -lpthread
+MPI_LIB =	
 
 # FFT library
-# see discussion in Section 2.2 (step 6) of manaul
+# see discussion in Section 2.2 (step 6) of manual
 # can be left blank to use provided KISS FFT library
 # INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =    	-DFFT_FFTW
+FFT_INC =    	
 FFT_PATH = 
-FFT_LIB =	-lfftw
+FFT_LIB =	
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual
@@ -65,7 +65,7 @@ FFT_LIB =	-lfftw
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	-ljpeg
+JPG_LIB =	
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
@@ -99,9 +99,6 @@ shlib:	$(OBJ)
         $(OBJ) $(EXTRA_LIB) $(LIB)
 
 # Compilation rules
-
-%.o:%.cu
-	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.o:%.cpp
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<

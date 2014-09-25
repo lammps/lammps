@@ -65,8 +65,9 @@ help:
 	@echo 'make package-diff (pd)   diff src files against package files'
 	@echo 'make package-purge       purge obsolete copies of package sources'
 	@echo ''
-	@echo 'make machine             build LAMMPS where machine is one of'
-	@echo '                         these from src/MAKE:'
+	@echo 'make machine             build LAMMPS where machine is ...'
+	@echo ''
+	@echo 'one of these from src/MAKE:'
 	@echo ''
 	@files="`ls MAKE/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
@@ -81,26 +82,27 @@ help:
 	@files="`ls MAKE/MACHINES/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
-	@echo 'or one of these from src/MAKE/USER:'
+	@echo 'or one of these from src/MAKE/MINE:'
 	@echo ''
-	@files="`ls MAKE/USER/Makefile.* 2>/dev/null`"; \
+	@files="`ls MAKE/MINE/Makefile.* 2>/dev/null`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
 
-# Build the code
+# Build LAMMPS
 
 .DEFAULT:
-	@test -f MAKE/Makefile.$@ -o -f MAKE/MORE/Makefile.$@
+	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
+	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
 	@$(SHELL) Make.sh style
-	@if [ -f MAKE/USER/Makefile.$@ ]; \
-	  then cp MAKE/USER/Makefile.$@ Obj_$@/Makefile; fi
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
 	  then cp MAKE/MACHINES/Makefile.$@ Obj_$@/Makefile; fi
 	@if [ -f MAKE/OPTIONS/Makefile.$@ ]; \
 	  then cp MAKE/OPTIONS/Makefile.$@ Obj_$@/Makefile; fi
 	@if [ -f MAKE/Makefile.$@ ]; \
 	  then cp MAKE/Makefile.$@ Obj_$@/Makefile; fi
+	@if [ -f MAKE/MINE/Makefile.$@ ]; \
+	  then cp MAKE/MINE/Makefile.$@ Obj_$@/Makefile; fi
 	@if [ ! -e Makefile.package ]; \
 	  then cp Makefile.package.empty Makefile.package; fi
 	@if [ ! -e Makefile.package.settings ]; \

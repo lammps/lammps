@@ -1,4 +1,4 @@
-# Stampede, Intel Compiler, MKL FFT, Offload to Xeon Phi
+# stampede = Intel Compiler, MKL FFT, Offload to Xeon Phi
 
 SHELL = /bin/sh
 

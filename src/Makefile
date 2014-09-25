@@ -66,14 +66,24 @@ help:
 	@echo 'make package-purge       purge obsolete copies of package sources'
 	@echo ''
 	@echo 'make machine             build LAMMPS where machine is one of'
-	@echo '                         these: (see src/MAKE)'
+	@echo '                         these from src/MAKE:'
 	@echo ''
 	@files="`ls MAKE/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
-	@echo 'or one of these: (see src/MAKE/MORE)'
+	@echo 'or one of these from src/MAKE/OPTIONS:'
 	@echo ''
-	@files="`ls MAKE/MORE/Makefile.*`"; \
+	@files="`ls MAKE/OPTIONS/Makefile.*`"; \
+	  for file in $$files; do head -1 $$file; done
+	@echo ''
+	@echo 'or one of these from src/MAKE/MACHINES:'
+	@echo ''
+	@files="`ls MAKE/MACHINES/Makefile.*`"; \
+	  for file in $$files; do head -1 $$file; done
+	@echo ''
+	@echo 'or one of these from src/MAKE/USER:'
+	@echo ''
+	@files="`ls MAKE/USER/Makefile.* 2>/dev/null`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
 
@@ -83,10 +93,14 @@ help:
 	@test -f MAKE/Makefile.$@ -o -f MAKE/MORE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
 	@$(SHELL) Make.sh style
+	@if [ -f MAKE/USER/Makefile.$@ ]; \
+	  then cp MAKE/USER/Makefile.$@ Obj_$@/Makefile; fi
+	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
+	  then cp MAKE/MACHINES/Makefile.$@ Obj_$@/Makefile; fi
+	@if [ -f MAKE/OPTIONS/Makefile.$@ ]; \
+	  then cp MAKE/OPTIONS/Makefile.$@ Obj_$@/Makefile; fi
 	@if [ -f MAKE/Makefile.$@ ]; \
 	  then cp MAKE/Makefile.$@ Obj_$@/Makefile; fi
-	@if [ -f MAKE/MORE/Makefile.$@ ]; \
-	  then cp MAKE/MORE/Makefile.$@ Obj_$@/Makefile; fi
 	@if [ ! -e Makefile.package ]; \
 	  then cp Makefile.package.empty Makefile.package; fi
 	@if [ ! -e Makefile.package.settings ]; \

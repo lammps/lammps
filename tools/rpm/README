@@ -14,7 +14,7 @@ Make sure the following additional packages (and dependencies) are installed
     vim-enhanced openssh-clients python tar screen
     yum-utils rpmdevtools rpm-build redhat-rpm-config createrepo
     git make gcc-c++ gcc-gfortran
-    mpich2-devel openmpi-devel fftw-devel libjpeg-devel libpng-devel
+    mpich2-devel openmpi-devel fftw-devel libjpeg-turbo-devel libpng-devel
 
   + on OpenSuSE
     yast2-online-update-frontend

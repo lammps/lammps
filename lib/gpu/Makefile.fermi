@@ -1,7 +1,8 @@
 #CUDA_DIR = $(HOME)/cuda-4.0
 ifeq ($(CUDA_DIR),)
-CUDA_HOME=/usr/loca/cuda
-else
+CUDA_DIR=/usr/local/cuda
+endif
+ifeq ($(CUDA_HOME),)
 CUDA_HOME=$(CUDA_DIR)
 endif
 NVCC  = $(CUDA_HOME)/bin/nvcc #-ccbin /opt/gcc-34/bin

@@ -43,8 +43,8 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20140123
-Release:        7%{?dist}
+Version:        20140926
+Release:        8%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
 
@@ -165,7 +165,7 @@ This package contains the LAMMPS Python module
 cd lib/atc
 make -f Makefile.g++ CC=g++ CCFLAGS="-fPIC -I../../src -I../../src/STUBS  ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.linalg
 cd ../awpmd
-make -f Makefile.openmpi CC=g++ CCFLAGS="-fPIC -Isystems/interact/TCP/ -Isystems/interact -Iivutils/include ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.linalg
+make -f Makefile.mpicc CC=g++ CCFLAGS="-fPIC -Isystems/interact/TCP/ -Isystems/interact -Iivutils/include ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.linalg
 cd ../colvars
 make -f Makefile.g++ CXX=g++ CXXFLAGS="-fPIC ${RPM_OPT_FLAGS} %{bigintsize}" EXTRAMAKE=Makefile.lammps.empty
 cd ../linalg

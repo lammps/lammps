@@ -2,7 +2,7 @@
 
 SHELL=/bin/sh
 
-TARGETS= openmpi mingw32-cross mingw64-cross
+TARGETS= mpicc mingw32-cross mingw64-cross
 CLEAN = $(patsubst %,clean-%,$(TARGETS))
 
 default:

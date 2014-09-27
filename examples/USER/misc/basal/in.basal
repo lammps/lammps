@@ -4,7 +4,7 @@
 # This script requires a Mg pair potential file to be in the same directory.
 
 # fname is the file name.  It is necessary for loops to work correctly. (See jump command)
-variable fname index Mg_SC_BPV.in
+variable fname index in.basal
 
 ######################################
 # POTENTIAL VARIABLES

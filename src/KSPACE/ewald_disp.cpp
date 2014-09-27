@@ -408,8 +408,15 @@ void EwaldDisp::allocate_peratom()
 
 void EwaldDisp::deallocate_peratom()                        // free memory
 {
-  memory->destroy(energy_self_peratom);
-  memory->destroy(virial_self_peratom);
+  if (energy_self_peratom) {
+    memory->destroy(energy_self_peratom);
+    energy_self_peratom = NULL;
+  }
+
+  if (virial_self_peratom) {
+    memory->destroy(virial_self_peratom);
+    virial_self_peratom = NULL;
+  }
 }
 
 

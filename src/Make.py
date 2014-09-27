@@ -4,21 +4,23 @@
 
 import sys,os,commands,re,copy
 
-# switch abbrevs for classes
-# lib classes = all auxiliary libs in LAMMPS
+# switch abbrevs
+# switch classes = created class for each switch
+# lib classes = all auxiliary libs in LAMMPS plus "all"
+# extra classes = packages that need extra build options
 # setargs = allowed settings
-# actionargs = allowed actions
+# actionargs = allowed actions (also lib-dir and machine)
 
 abbrevs = "adhjmoprsv"
 
-classes = ("actions","dir","help","jmake","makefile",
-           "output","packages","redo","settings","verbose")
+switchclasses = ("actions","dir","help","jmake","makefile",
+                 "output","packages","redo","settings","verbose")
 libclasses = ("atc","awpmd","colvars","cuda","gpu",
               "meam","poems","qmmm","reax")
 extraclasses = ("intel","kokkos")
 
 setargs = ("gzip","#gzip","ffmpeg","#ffmpeg","smallbig","bigbig","smallsmall")
-actionargs = ("libs","file","clean","exe")
+actionargs = ("lib-all","file","clean","exe")
 
 # ----------------------------------------------------------------
 # functions
@@ -34,46 +36,34 @@ def error(str):
 # key = switch letter, value = list of following args
 # order = list of switches in order specified
 # enforce no switch more than once
-# if any arg is an action, store remaining args as -a switch
-
+# once any arg is an action, store remaining args as -a switch
+# can specify explicit -a
+  
 def parse_args(args):
   narg = len(args)
   sw = {}
   order = []
   iarg = 0
   while iarg < narg:
-    if args[iarg][0] != '-': switch = 'a'
-    else: switch = args[iarg][1:]
+    if args[iarg][0] != '-':
+      switch = 'a'
+      first = iarg
+    else:
+      switch = args[iarg][1:]
+      first = iarg+1
     if switch in sw: error("Duplicate switch %s" % args[iarg])
     order.append(switch)
     if switch == 'a':
-      sw[switch] = args[iarg:]
+      sw[switch] = args[first:]
       break
-    first = iarg+1
-    last = iarg+1
+    last = first+1
     while last < narg and args[last][0] != '-' and \
           args[last] not in actionargs and \
-          not args[last].startswith("lib-") and \
-          not args[last].startswith("exe-"):
+          not args[last].startswith("lib-"):
       last += 1
     sw[switch] = args[first:last]
     iarg = last
-
-  # convert any "exe-machine" action to "exe"
-  # add -m and -o switches if not already specified
-
-  if 'a' in sw:
-    actions = sw['a']
-    for i,action in enumerate(actions):
-      if not action.startswith("exe-"): continue
-      actions[i] = "exe"
-      if 'm' not in sw:
-        sw['m'] = [action[4:]]
-        order.insert(-1,'m')
-      if 'o' not in sw:
-        sw['o'] = [action[4:]]
-        order.insert(-1,'o')
-
+    
   return sw,order
 
 # convert switches in sw back to a string, in switch_order
@@ -102,69 +92,89 @@ class Actions:
   def help(self):
     return """
 Actions:
-  possible actions: libs, lib-dir, file, clean, exe or exe-machine
+  possible actions: lib-all, lib-dir, file, clean, exe or machine
   can specify zero or more actions in any order
+    except machine must be last (if used)
+    each action can appear no more than once
+    if switches used and machine is only action, prefix by "-a" switch
   actions happen in order below, indpendent of specified order
-  some actions depend on installed packages =
-    currently installed + result of -p switch
-  libs or lib-dir = build libraries
-    libs builds all auxiliary libs needed by installed packages
+  some actions depend on installed packages
+    installed packages = currently installed + result of -p switch
+  lib-all or lib-dir = build auxiliary libraries
+    lib-all builds all auxiliary libs needed by installed packages
     lib-dir builds a specific lib whether package installed or not
-      dir can be any dir in lib directory (atc, cuda, meam, etc)
+      dir is any dir in lib directory (atc, cuda, meam, etc) except linalg
+      can be specified multiple times for different dirs
   file = create src/MAKE/MINE/Makefile.auto
     use -m switch for Makefile.machine to start from
       else use existing Makefile.auto
-    adds flags needed for installed accelerator packages
+    adds settings needed for installed accelerator packages
   clean = invoke "make clean-auto", insures full build
     useful if compiler flags have changed
-  exe or exe-machine = build LAMMPS
-    exe-machine can specify any existing Makefile.machine suffix
-      exe-machine is simply converted to exe as follows:
-        adds "-m machine" if -m switch not specified
-        adds "-o machine" if -o switch not specified
+  exe or machine = build LAMMPS
+    machine can be any existing Makefile.machine suffix
+      machine is simply converted to exe, as well as:
+        "-m machine" added if -m switch not specified
+        "-o machine" added if -o switch not specified
         if either "-m"  or "-o" are specified, they are not overridden
     exe builds using Makefile.auto
     if no file action, first generates a src/MAKE/MINE/Makefile.auto
       use -m switch to make copy of existing Makefile.machine
         or Makefile.auto must already exist
       unlike file action, this does not change Makefile.auto
-    does not invoke "libs" action, since libs could be previously built
+    does not invoke and lib actions, since libs could be previously built
     produces src/lmp_auto or error message if unsuccessful
 """
   
   def check(self):
-    inlist = self.inlist
     alist = []
-    for one in self.inlist:
-      if one in alist: error("Actions are invalid")
+    nlib = 0
+    for i,one in enumerate(self.inlist):
+      if one in alist: error("An action is duplicated")
       if one.startswith("lib-"):
         lib = one[4:]
-        if lib not in libclasses: error("Actions are invalid")
-        alist.insert(0,one)
-      elif one == "libs": alist.insert(0,"libs")
+        if lib != "all" and lib not in libclasses: error("Actions are invalid")
+        alist.insert(nlib,one)
+        nlib += 1
       elif one == "file":
-        if "libs" not in alist: alist.insert(0,"file")
+        if nlib == 0: alist.insert(0,"file")
         else: alist.insert(1,"file")
       elif one == "clean":
-        if "libs" not in alist: alist.insert(0,"clean")
+        if nlib == 0: alist.insert(0,"clean")
         elif "file" not in alist: alist.insert(1,"clean")
         else: alist.insert(2,"clean")
       elif one == "exe": alist.append("exe")
+      # allow last action to be unknown in case is a machine (checked in setup)
+      elif i == len(self.inlist)-1: alist.append(one)
       else: error("Actions are invalid")
-    self.alist = alist    
+    self.alist = alist
+
+  # if last action is unknown, assume machine and convert to exe
+  # only done if action is a suffix for an existing Makefile.machine
+  # return machine if conversion done, else None
+    
+  def setup(self):
+    machine = self.alist[-1]
+    if machine in actionargs or machine.startswith("lib-"): return None
+    make = MakeReader(machine,2)
+    self.alist[-1] = "exe"
+    return machine
 
   # build libraries needed in installed packages
   
-  def libs(self):
-    final = packages.final
-    for one in packages.lib:
-      if final[one]:
-        if "user" in one: pkg = one[5:]
-        else: pkg = one
-
-        print "  building library",pkg
-        str = "%s.build()" % pkg
-        exec(str)
+  def lib(self,suffix):
+    if suffix != "all":
+      print "  building library",suffix
+      exec("%s.build()" % suffix)
+    else:
+      final = packages.final
+      for one in packages.lib:
+        if final[one]:
+          if "user" in one: pkg = one[5:]
+          else: pkg = one
+          print "  building library",pkg
+          str = "%s.build()" % pkg
+          exec(str)
 
   # read existing Makefile.machine
   # if tweak = 1: tweak file if accelerator packages will be installed
@@ -180,6 +190,8 @@ Actions:
       final = packages.final
       if final["user-omp"]:
         make.addvar("CCFLAGS","-fopenmp")
+        make.addvar("CCFLAGS","-restrict")
+        make.addvar("LINKFLAGS","-fopenmp")
 
       if final["user-intel"]:
         if intel.mode == "cpu":
@@ -315,8 +327,8 @@ class Help:
     return """
 Syntax: Make.py switch args ... {action1} {action2} ...
   actions:
-    libs, lib-dir, clean, file, exe or machine
-    zero or more actions, in any order
+    lib-all, lib-dir, clean, file, exe or machine
+    zero or more actions, in any order (machine must be last)
   switches:
     -d (dir), -j (jmake), -m (makefile), -o (output),
     -p (packages), -r (redo), -s (settings), -v (verbose)
@@ -1173,9 +1185,11 @@ class MakeReader:
 
   # read a makefile
   # flag = 0 if file is full path name
-  # file = 1 if file is suffix for any Makefile.machine under src/MAKE
+  # flag = 1,2 if file is suffix for any Makefile.machine under src/MAKE
   #   look for this file in same order that src/Makefile does
-  
+  #   if flag = 1, read the file
+  #   if flag = 2, just check if file exists
+
   def __init__(self,file,flag=0):
     if flag == 0:
       if not os.path.isfile(file): error("Makefile %s does not exist" % file)
@@ -1190,7 +1204,8 @@ class MakeReader:
             mfile = "%s/MAKE/MACHINES/Makefile.%s" % (dir.src,file)
             if not os.path.isfile(mfile):
               error("Makefile.%s does not exist" % file)
-      lines = open(mfile,'r').readlines()
+      if flag == 1: lines = open(mfile,'r').readlines()
+      else: return
 
     # scan lines of makefile
     # if not a variable line, just copy to newlines
@@ -1391,45 +1406,45 @@ while 1:
   else:
     switches = cmd_switches
     switch_order = cmd_switch_order
-    argstr = switch2str(switches,switch_order)
 
   # initialize all class variables to None
 
-  for one in classes: exec("%s = None" % one)
+  for one in switchclasses: exec("%s = None" % one)
   for one in libclasses: exec("%s = None" % one)
   for one in extraclasses: exec("%s = None" % one)
 
-  # create classes for specified switches
-  # change switches dict so value = class
-    
+  # classes = dictionary of created classes
+  # key = switch, value = class instance
+
+  classes = {}
   for switch in switches:
     if len(switch) == 1 and switch in abbrevs:
       i = abbrevs.index(switch)
-      capitalized = classes[i][0].upper() + classes[i][1:]
-      txt = '%s = switches["%s"] = %s(switches["%s"])' % \
-          (classes[i],switch,capitalized,switch)
+      capitalized = switchclasses[i][0].upper() + switchclasses[i][1:]
+      txt = '%s = classes["%s"] = %s(switches["%s"])' % \
+          (switchclasses[i],switch,capitalized,switch)
       exec(txt)
     elif len(switch) > 1 and switch in libclasses:
       i = libclasses.index(switch)
-      txt = '%s = switches["%s"] = %s(switches["%s"])' % \
+      txt = '%s = classes["%s"] = %s(switches["%s"])' % \
           (libclasses[i],switch,libclasses[i].upper(),switch)
       exec(txt)
     elif len(switch) > 1 and switch in extraclasses:
       i = extraclasses.index(switch)
       capitalized = extraclasses[i][0].upper() + extraclasses[i][1:]
-      txt = '%s = switches["%s"] = %s(switches["%s"])' % \
+      txt = '%s = classes["%s"] = %s(switches["%s"])' % \
           (extraclasses[i],switch,capitalized,switch)
       exec(txt)
     else: error("Unknown command-line switch -%s" % switch)
 
   # print help messages and exit
 
-  if help or (actions and "-h" in actions.inlist):
+  if help or (actions and "-h" in actions.inlist) or not switches:
     if not help: help = Help(None)
     print help.help()
     for switch in switch_order:
       if switch == "h": continue
-      print switches[switch].help()[1:]
+      print classes[switch].help()[1:]
     sys.exit()
 
   # create needed default classes if not specified with switch
@@ -1449,12 +1464,29 @@ while 1:
 
   # error check on args for all classes
 
-  for switch in switches: switches[switch].check()
+  for switch in classes: classes[switch].check()
 
   # prep for action
-
+  # actions.setup() detects if last action = machine
+  # if yes, induces addition of "-m" and "-o" switches
+  
   dir.setup()
   packages.setup()
+
+  if actions:
+    machine = actions.setup()
+    if machine:
+      switches['a'][-1] = "exe"
+      if 'm' not in switches:
+        switches['m'] = [machine]
+        switch_order.insert(-1,'m')
+        classes['m'] = Makefile(switches['m'])
+        classes['m'].check()
+      if 'o' not in switches:
+        switches['o'] = [machine]
+        switch_order.insert(-1,'o')
+        classes['o'] = Makefile(switches['o'])
+        classes['o'].check()
 
   # perform actions
 
@@ -1463,11 +1495,9 @@ while 1:
   if actions:
     for action in actions.alist:
       print "Action %s ..." % action
-      if action.startswith("lib-"):
-        lib = action[4:]
-        exec("%s.build()" % lib)
-      elif action == "libs": actions.libs()
+      if action.startswith("lib-"): actions.lib(action[4:])
       elif action == "file": actions.file(1)
+      elif action == "clean": actions.clean()
       elif action == "exe": actions.exe()
 
   packages.uninstall()
@@ -1480,6 +1510,7 @@ while 1:
       
   # write current Make.py command to src/Make.py.last
 
+  argstr = switch2str(switches,switch_order)
   open("%s/Make.py.last" % dir.src,'w').write(argstr + '\n')
 
   # if not redoflag, done

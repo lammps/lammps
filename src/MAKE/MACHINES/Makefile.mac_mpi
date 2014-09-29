@@ -1,4 +1,4 @@
-# mac_mpi = Apple laptop, gcc 4.6, gfortran, Open MPI 1.4.3, FFTW 2.1.5, QUIP
+# mac_mpi = Apple laptop, MacPorts Open MPI 1.4.3, gcc 4.8, fftw, jpeg
 
 SHELL = /bin/sh
 
@@ -7,12 +7,12 @@ SHELL = /bin/sh
 # generally no need to edit this section
 # unless additional compiler/linker flags or libraries needed for your machine
 
-CC =		${MPI_GCC46_PATH}/mpic++
+CC =	 	/opt/local/bin/mpicxx-openmpi-mp
 CCFLAGS =	-O3 
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		${MPI_GCC46_PATH}/mpic++
+LINK =		/opt/local/bin/mpicxx-openmpi-mp
 LINKFLAGS =	-O3
 LIB =           
 SIZE =		size
@@ -29,7 +29,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings
 # see possible settings in Section 2.2 (step 4) of manual
 
-LMP_INC =	-DLAMMPS_GZIP -DQUIP_GFORTRAN -DLAMMPS_JPEG
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
 
 # MPI library
 # see discussion in Section 2.2 (step 5) of manual

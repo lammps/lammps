@@ -48,7 +48,7 @@ undump		1
 undump		2
 undump          3
 
-fix		1 all nvt/eff 1 2000 1.0
+fix		1 all nvt/eff temp 1 2000 1.0
 dump            2 all custom 10 ${sname}.nvt.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
 
 run		10000

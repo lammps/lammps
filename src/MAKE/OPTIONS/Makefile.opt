@@ -1,4 +1,4 @@
-# omp = default MPI compiler, default MPI, switches added for USER-OMP package
+# opt = default MPI compiler, default MPI, switches added for OPT package
 
 SHELL = /bin/sh
 
@@ -7,12 +7,12 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpicxx
-CCFLAGS =	-g -O3 -restrict -fopenmp
+CCFLAGS =	-g -O3 -restrict
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpicxx
-LINKFLAGS =	-g -O -fopenmp
+LINKFLAGS =	-g -O
 LIB = 
 SIZE =		size
 

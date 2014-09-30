@@ -1,4 +1,4 @@
-# opt = default MPI compiler, default MPI, switches added for OPT package
+# opt = OPT package with default MPI compiler, default MPI
 
 SHELL = /bin/sh
 

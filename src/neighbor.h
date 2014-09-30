@@ -78,7 +78,7 @@ class Neighbor : protected Pointers {
   void setup_bins();                // setup bins based on box and cutoff
   virtual void build(int topoflag=1);  // create all neighbor lists (pair,bond)
   virtual void build_topology();    // create all topology neighbor lists
-  void build_one(int, int preflag=0);  // create a single neighbor list
+  void build_one(class NeighList *list, int preflag=0);  // create a single neighbor list
   void set(int, char **);           // set neighbor style and skin distance
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();

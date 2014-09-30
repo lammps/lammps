@@ -1491,31 +1491,36 @@ void Neighbor::build_topology()
    called by other classes
 ------------------------------------------------------------------------- */
 
-void Neighbor::build_one(int i, int preflag)
+void Neighbor::build_one(class NeighList *mylist, int preflag)
 {
+  // check if list structure is initialized
+  if (mylist == NULL)
+    error->all(FLERR,"Trying to build an occasional neighbor list "
+               "before initialization is completed.");
+
   // no need to build if already built since last re-neighbor
   // preflag is set by fix bond/create and fix bond/swap
   //   b/c they invoke build_one() on same step neigh list is re-built,
   //   but before re-build, so need to use ">" instead of ">="
 
   if (preflag) {
-    if (lists[i]->last_build > lastcall) return;
+    if (mylist->last_build > lastcall) return;
   } else {
-    if (lists[i]->last_build >= lastcall) return;
+    if (mylist->last_build >= lastcall) return;
   }
 
-  lists[i]->last_build = update->ntimestep;
+  mylist->last_build = update->ntimestep;
 
   // update stencils and grow atom arrays as needed
   // only for relevant settings of stencilflag and growflag
   // grow atom array for this list to current size of perpetual lists
 
-  if (lists[i]->stencilflag) {
-    lists[i]->stencil_allocate(smax,style);
-    (this->*stencil_create[i])(lists[i],sx,sy,sz);
+  if (mylist->stencilflag) {
+    mylist->stencil_allocate(smax,style);
+    (this->*stencil_create[mylist->index])(mylist,sx,sy,sz);
   }
 
-  if (lists[i]->growflag) lists[i]->grow(maxatom);
+  if (mylist->growflag) mylist->grow(maxatom);
 
   // build list I, turning off atom binning
   // binning results from last re-neighbor should be used instead
@@ -1523,7 +1528,7 @@ void Neighbor::build_one(int i, int preflag)
   //   leading to errors or even a crash
 
   binatomflag = 0;
-  (this->*pair_build[i])(lists[i]);
+  (this->*pair_build[mylist->index])(mylist);
   binatomflag = 1;
 }
 

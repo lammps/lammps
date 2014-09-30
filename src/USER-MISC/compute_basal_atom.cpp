@@ -118,7 +118,7 @@ void ComputeBasalAtom::compute_peratom()
 
   // invoke full neighbor list (will copy or build if necessary)
 
-  neighbor->build_one(list->index);
+  neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;

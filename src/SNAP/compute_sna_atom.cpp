@@ -192,7 +192,7 @@ void ComputeSNAAtom::compute_peratom()
 
   // invoke full neighbor list (will copy or build if necessary)
 
-  neighbor->build_one(list->index);
+  neighbor->build_one(list);
 
   const int inum = list->inum;
   const int* const ilist = list->ilist;

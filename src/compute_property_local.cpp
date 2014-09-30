@@ -346,7 +346,7 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
 
   // invoke half neighbor list (will copy or build if necessary)
 
-  if (allflag == 0) neighbor->build_one(list->index);
+  if (allflag == 0) neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;

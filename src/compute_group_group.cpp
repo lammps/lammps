@@ -211,7 +211,7 @@ void ComputeGroupGroup::pair_contribution()
 
   // invoke half neighbor list (will copy or build if necessary)
 
-  neighbor->build_one(list->index);
+  neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;

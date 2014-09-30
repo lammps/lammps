@@ -231,7 +231,7 @@ void FixBondSwap::post_integrate()
   type = atom->type;
   x = atom->x;
 
-  neighbor->build_one(list->index,1);
+  neighbor->build_one(list,1);
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;

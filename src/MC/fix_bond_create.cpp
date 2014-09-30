@@ -374,7 +374,7 @@ void FixBondCreate::post_integrate()
   int *mask = atom->mask;
   int *type = atom->type;
 
-  neighbor->build_one(list->index,1);
+  neighbor->build_one(list,1);
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;

@@ -287,7 +287,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   // build neighbor list this command needs based on earlier request
 
   NeighList *list = neighbor->lists[irequest];
-  neighbor->build_one(irequest);
+  neighbor->build_one(list);
 
   // allocate and initialize deletion list
   // must be after exchange potentially changes nlocal

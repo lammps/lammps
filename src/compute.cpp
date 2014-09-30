@@ -75,6 +75,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   invoked_scalar = invoked_vector = invoked_array = -1;
   invoked_peratom = invoked_local = -1;
+  invoked_flag = 0;
 
   // set modify defaults
 

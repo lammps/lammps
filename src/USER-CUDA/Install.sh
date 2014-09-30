@@ -153,10 +153,10 @@ action pair_tersoff_cuda.cpp pair_tersoff.cpp
 action pair_tersoff_cuda.h pair_tersoff.cpp
 action pair_tersoff_zbl_cuda.cpp pair_tersoff_zbl.cpp
 action pair_tersoff_zbl_cuda.h pair_tersoff_zbl.cpp
-action pppm_cuda.cpp
-action pppm_cuda.h
-action pppm_old.cpp
-action pppm_old.h
+action pppm_cuda.cpp pppm.cpp
+action pppm_cuda.h pppm.cpp
+action pppm_old.cpp pppm.cpp
+action pppm_old.h pppm.cpp
 action verlet_cuda.cpp
 action verlet_cuda.h
 

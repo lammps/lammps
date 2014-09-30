@@ -410,8 +410,7 @@ int DumpCustom::count()
     if (update->whichflag == 0) {
       for (i = 0; i < ncompute; i++)
         if (compute[i]->invoked_peratom != update->ntimestep)
-          error->all(FLERR,"Compute used in write_dump between runs "
-                     "is not current");
+          error->all(FLERR,"Compute used in dump between runs is not current");
     } else {
       for (i = 0; i < ncompute; i++) {
         if (!(compute[i]->invoked_flag & INVOKED_PERATOM)) {

@@ -81,6 +81,5 @@ void WriteDump::command(int narg, char **arg)
   // delete the Dump instance and local storage
 
   delete dump;
-  delete[] dumpargs;
+  delete [] dumpargs;
 }
-

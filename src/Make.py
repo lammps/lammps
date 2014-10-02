@@ -1,14 +1,17 @@
 #!/usr/bin/python
 
-# Make.py tool for building LAMMPS and its package libs
+# Make.py tool for managing packages and their auxiliary libs,
+#   auto-editing machine Makefiles, and building LAMMPS
+# Sytax: Make.py -h (for help)
 
 import sys,os,commands,re,copy
 
 # switch abbrevs
 # switch classes = created class for each switch
-# lib classes = all auxiliary libs in LAMMPS plus "all"
-# extra classes = packages that need extra build options
-# setargs = allowed settings
+# lib classes = auxiliary package libs
+# build classes = used to build with certain packages
+# option classes = used for options
+# setargs = makefile settings
 # actionargs = allowed actions (also lib-dir and machine)
 
 abbrevs = "adhjmoprsv"
@@ -17,7 +20,8 @@ switchclasses = ("actions","dir","help","jmake","makefile",
                  "output","packages","redo","settings","verbose")
 libclasses = ("atc","awpmd","colvars","cuda","gpu",
               "meam","poems","qmmm","reax")
-extraclasses = ("intel","kokkos")
+buildclasses = ("cc","intel","kokkos")
+optionclasses = ("jpg","png","fft")
 
 setargs = ("gzip","#gzip","ffmpeg","#ffmpeg","smallbig","bigbig","smallsmall")
 actionargs = ("lib-all","file","clean","exe")
@@ -26,11 +30,15 @@ actionargs = ("lib-all","file","clean","exe")
 # functions
 # ----------------------------------------------------------------
 
-# print error str and exit
+# if flag = 1, print str and exit
+# if flag = 0, print str as warning and do not exit
 
-def error(str):
-  print "ERROR:",str
-  sys.exit()
+def error(str,flag=1):
+  if flag:
+    print "ERROR:",str
+    sys.exit()
+  else:
+    print "WARNING:",str
 
 # store command-line args as sw = dict of key/value
 # key = switch letter, value = list of following args
@@ -56,7 +64,7 @@ def parse_args(args):
     if switch == 'a':
       sw[switch] = args[first:]
       break
-    last = first+1
+    last = first
     while last < narg and args[last][0] != '-' and \
           args[last] not in actionargs and \
           not args[last].startswith("lib-"):
@@ -96,7 +104,7 @@ Actions:
   can specify zero or more actions in any order
     except machine must be last (if used)
     each action can appear no more than once
-    if switches used and machine is only action, prefix by "-a" switch
+    if switches used and machine is only action, must prefix with "-a" switch
   actions happen in order below, indpendent of specified order
   some actions depend on installed packages
     installed packages = currently installed + result of -p switch
@@ -160,12 +168,13 @@ Actions:
     self.alist[-1] = "exe"
     return machine
 
-  # build libraries needed in installed packages
+  # build one or more auxiliary package libraries
   
   def lib(self,suffix):
     if suffix != "all":
       print "  building library",suffix
-      exec("%s.build()" % suffix)
+      str = "%s.build()" % suffix
+      exec(str)
     else:
       final = packages.final
       for one in packages.lib:
@@ -185,27 +194,58 @@ Actions:
     if makefile: machine = makefile.machine
     else: machine = "auto"
     make = MakeReader(machine,1)
+
+    # if compiler not explicitly set, examine CC makefile setting
+    # if mpi, use "mpicxx -show" (for example) to determine underlying compiler
     
+    if not cc.compiler:
+      ccfile = make.getvar("CC")
+      if "mpi" in ccfile[0]:
+        showtxt = commands.getoutput("%s -show" % ccfile[0])
+        words = showtxt.split()
+        if words[0] == "g++" or words[0] == "c++": cc.compiler = "g++"
+        elif words[0] == "icc": cc.compiler = "icc"
+        else: cc.compiler = "mpi"
+      elif "icc" in ccfile: cc.compiler = "icc"
+      elif "g++" in ccfile: cc.compiler = "g++"
+      elif "nvcc" in ccfile: cc.compiler = "nvcc"
+      if cc.compiler == "mpi":
+        error("Makefile.auto using compiler = mpi, b/c could not grok " +
+              "%s result from %s -show" % (words[0],ccfile[0]),0)
+
+    # be careful to match makefile settings to compiler being used
+        
     if tweak:
       final = packages.final
+      if final["opt"]:
+        if cc.compiler == "icc": make.addvar("CCFLAGS","-restrict")
+
       if final["user-omp"]:
-        make.addvar("CCFLAGS","-fopenmp")
-        make.addvar("CCFLAGS","-restrict")
-        make.addvar("LINKFLAGS","-fopenmp")
+        if cc.compiler == "icc": make.addvar("CCFLAGS","-restrict")
+        # KOKKOS Cuda build will add -Xcompiler -fopenmp
+        if cc.compiler != "nvcc": make.addvar("CCFLAGS","-fopenmp")
+        if cc.compiler != "nvcc": make.addvar("LINKFLAGS","-fopenmp")
 
       if final["user-intel"]:
         if intel.mode == "cpu":
+          if cc.compiler != "icc":
+            error("Makefile.auto for intel/cpu but without some settings " +
+                  "b/c may not be using Intel icc compiler",0)
           make.addvar("CCFLAGS","-fopenmp")
-          make.addvar("CCFLAGS","-DLAMMPS_MEMALIGN=64")
-          make.addvar("CCFLAGS","-restrict")
-          make.addvar("CCFLAGS","-xHost")
-          make.addvar("CCFLAGS","-fno-alias")
-          make.addvar("CCFLAGS","-ansi-alias")
-          make.addvar("CCFLAGS","-override-limits")
           make.addvar("LINKFLAGS","-fopenmp")
+          make.addvar("CCFLAGS","-DLAMMPS_MEMALIGN=64")
+          if cc.compiler == "icc": make.addvar("CCFLAGS","-restrict")
+          make.addvar("CCFLAGS","-xHost")
+          if cc.compiler == "icc": make.addvar("CCFLAGS","-fno-alias")
+          if cc.compiler == "icc": make.addvar("CCFLAGS","-ansi-alias")
+          if cc.compiler == "icc": make.addvar("CCFLAGS","-override-limits")
+          if cc.compiler == "icc": make.addvar("LINKFLAGS","-xHost")
           make.delvar("CCFLAGS","-DLMP_INTEL_OFFLOAD")
           make.delvar("LINKFLAGS","-offload")
         elif intel.mode == "phi":
+          if cc.compiler != "icc":
+            error("Makefile.auto for intel/phi but may not be " +
+                  "using Intel icc compiler",0)
           make.addvar("CCFLAGS","-fopenmp")
           make.addvar("CCFLAGS","-DLAMMPS_MEMALIGN=64")
           make.addvar("CCFLAGS","-restrict")
@@ -227,6 +267,9 @@ Actions:
           make.delvar("CUDA")
           make.delvar("MIC")
         elif kokkos.mode == "cuda":
+          if cc.compiler != "nvcc":
+            error("Makefile.auto for kokkos/cuda but may not be " +
+                  "using NVIDIA nvcc compiler",0)
           make.addvar("OMP","yes")
           make.addvar("CUDA","yes")
           make.delvar("MIC")
@@ -258,6 +301,49 @@ Actions:
             make.delvar("LMP_INC","-DLAMMPS_BIGBIG")
             make.addvar("LMP_INC","-DLAMMPS_SMALLSMALL")
           
+      if jpg:
+        if jpg.on == 0:
+          make.delvar("LMP_INC","-DLAMMPS_JPEG")
+          make.delvar("JPG_LIB","-ljpeg")
+        else:
+          make.addvar("LMP_INC","-DLAMMPS_JPEG")
+          make.addvar("JPG_LIB","-ljpeg")
+          if jpg.dir:
+            make.addvar("JPG_INC","-I%s/include" % jpg.dir)
+            make.addvar("JPG_PATH","-L%s/lib" % jpg.dir)
+          else:
+            if jpg.incdir: make.addvar("JPG_INC","-I%s" % jpg.incdir)
+            if jpg.libdir: make.addvar("JPG_PATH","-L%s" % jpg.libdir)
+
+      if png:
+        if png.on == 0:
+          make.delvar("LMP_INC","-DLAMMPS_PNG")
+          make.delvar("JPG_LIB","-lpng")
+        else:
+          make.addvar("LMP_INC","-DLAMMPS_PNG")
+          make.addvar("JPG_LIB","-lpng")
+          if png.dir:
+            make.addvar("JPG_INC","-I%s/include" % png.dir)
+            make.addvar("JPG_PATH","-L%s/lib" % png.dir)
+          else:
+            if png.incdir: make.addvar("JPG_INC","-I%s" % png.incdir)
+            if png.libdir: make.addvar("JPG_PATH","-L%s" % png.libdir)
+
+      if fft:
+        make.delvar("FFT_INC","*")
+        make.delvar("FFT_PATH","*")
+        make.delvar("FFT_LIB","*")
+        if fft.mode == "none": make.addvar("FFT_INC","-DFFT_NONE")
+        else:
+          make.addvar("FFT_INC","-DFFT_%s" % fft.mode.upper())
+          make.addvar("FFT_LIB",fft.lib)
+          if fft.dir:
+            make.addvar("FFT_INC","-I%s/include" % fft.dir)
+            make.addvar("FFT_PATH","-L%s/lib" % fft.dir)
+          else:
+            if fft.incdir: make.addvar("FFT_INC","-I%s" % fft.incdir)
+            if fft.libdir: make.addvar("FFT_PATH","-L%s" % fft.libdir)
+                    
     make.write("%s/MAKE/MINE/Makefile.auto" % dir.src,1)
     print "Created src/MAKE/MINE/Makefile.auto"
 
@@ -281,7 +367,7 @@ Actions:
     if not os.path.isfile("%s/lmp_auto" % dir.src):
       if not verbose: print txt
       error('Unsuccessful "make auto"')
-    else: print "Created src/lmp_auto"
+    elif not output: print "Created src/lmp_auto"
     
 # dir switch
 
@@ -335,11 +421,12 @@ Syntax: Make.py switch args ... {action1} {action2} ...
   switches for libs:
     -atc, -awpmd, -colvars, -cuda
     -gpu, -meam, -poems, -qmmm, -reax
-  switches for extra package options:
-    -intel, -kokkos
+  switches for build and makefile options:
+    -intel, -kokkos, -jpg, -png, -fft
 
 add -h switch to command line to print this message
   and help on other specified switches or actions
+  add -a switch if not seeing action help
 """
 
 # jmake switch
@@ -420,9 +507,9 @@ class Packages:
     lib = all standard and user packages with auxiliary libs
   can abbreviate package names and yes/no
     omp = user-omp = yes-user-omp
-    #omp = #user-omp = no-user-omp
-    user = yes-user, #user = no-user
-    all = yes-all, #all = no-all
+    ^omp = ^user-omp = no-user-omp
+    user = yes-user, ^user = no-user
+    all = yes-all, ^all = no-all
   when action performed, list is processed in order,
     as if typed "make yes/no" for each
   if "orig" or "original" is last package in list,
@@ -455,17 +542,17 @@ class Packages:
           plist.append("yes-%s" % one)
         elif "user-"+one in user:
           plist.append("yes-user-%s" % one)
-        elif one == '#' and one[1:] in std:
+        elif one == '^' and one[1:] in std:
           plist.append("no-%s" % one[1:])
-        elif one[0] == '#' and one[1:] in user:
+        elif one[0] == '^' and one[1:] in user:
           plist.append("no-%s" % one[1:])
-        elif one[0] == '#' and "user-"+one[1:] in user:
+        elif one[0] == '^' and "user-"+one[1:] in user:
           plist.append("no-user-%s" % one[1:])
         elif one == "std" or one == "standard" or one == "user" or \
               one == "lib" or one == "all": 
           plist.append("yes-%s" % one)
-        elif one == "#std" or one == "#standard" or one == "#user" or \
-              one == "#lib" or one == "#all": 
+        elif one == "^std" or one == "^standard" or one == "^user" or \
+              one == "^lib" or one == "^all": 
           plist.append("no-%s" % one[1:])
         elif one == "orig": plist.append(one)
         else: error("Invalid package name %s" % one)
@@ -1115,8 +1202,29 @@ class REAX:
     else: print "Created lib/reax library"
 
 # ----------------------------------------------------------------
-# extra classes for intel and kokkos package options
+# classes for cc and intel and kokkos build options
 # ----------------------------------------------------------------
+
+# Cc class
+
+class Cc:
+  def __init__(self,list):
+    if list == None: self.inlist = None
+    else: self.inlist = list[:]
+    self.compiler = ""
+    
+  def help(self):
+    return """
+-cc compiler
+  compiler = g++ or icc or nvcc
+    def = CC setting in Makefile.auto, result of "mpicxx -show" if MPI wrapper
+  used to tailor some Makefile.machine settings for specific compilers
+"""
+
+  def check(self):
+    if self.inlist == None: return
+    if len(self.inlist) != 1: error("-cc args are invalid")
+    self.compiler = self.inlist[0]
 
 # Intel class
 
@@ -1174,6 +1282,120 @@ class Kokkos:
         self.arch = words[1]
         self.archflag = 1
       else: error("-kokkos args are invalid")
+      
+# ----------------------------------------------------------------
+# classes for JPG, PNG, FFT makefile options
+# ----------------------------------------------------------------
+
+# Jpg class
+
+class Jpg:
+  def __init__(self,list):
+    self.inlist = list[:]
+    self.on = 1
+    self.dir = self.incdir = self.libdir = ""
+
+  def help(self):
+    return """
+-jpg flag dir=homedir idir=incdir ldir=libdir
+  all args are optional, flag must come first if specified
+  flag = yes or no (def = yes)
+    include or exclude JPEG support
+    adds/removes -DLAMMPS_JPEG and -ljpeg settings
+  dir = home dir for include and library files (def = none)
+    adds -Idir/include and -Ldir/lib settings
+    if set, overrides idir and ldir args
+  idir = dir for include file (def = none)
+    adds -Iidir setting
+  ldir = dir for library file (def = none)
+    adds -Lldir setting
+"""
+
+  def check(self):
+    for i,one in enumerate(self.inlist):
+      if one == "no" and i == 0: self.on = 0
+      elif one == "yes" and i == 0: self.on = 1
+      else:
+        words = one.split('=')
+        if len(words) != 2: error("-jpeg args are invalid")
+        if words[0] == "dir": self.dir = words[1]
+        elif words[0] == "idir": self.incdir = words[1]
+        elif words[0] == "ldir": self.libdir = words[1]
+        else: error("-jpeg args are invalid")
+
+# Png class
+
+class Png:
+  def __init__(self,list):
+    self.inlist = list[:]
+    self.on = 1
+    self.dir = self.incdir = self.libdir = ""
+
+  def help(self):
+    return """
+-png flag dir=homedir idir=incdir ldir=libdir
+  all args are optional, flag must come first if specified
+  flag = yes or no (def = yes)
+    include or exclude PNG support
+    adds/removes -DLAMMPS_PNG and -lpng settings
+  dir = home dir for include and library files (def = none)
+    adds -Idir/include and -Ldir/lib settings
+    if set, overrides idir and ldir args
+  idir = dir for include file (def = none)
+    adds -Iidir setting
+  ldir = dir for library file (def = none)
+    adds -Lldir setting
+"""
+
+  def check(self):
+    for i,one in enumerate(self.inlist):
+      if one == "no" and i == 0: self.on = 0
+      elif one == "yes" and i == 0: self.on = 1
+      else:
+        words = one.split('=')
+        if len(words) != 2: error("-png args are invalid")
+        if words[0] == "dir": self.dir = words[1]
+        elif words[0] == "idir": self.incdir = words[1]
+        elif words[0] == "ldir": self.libdir = words[1]
+        else: error("-png args are invalid")
+
+# Fft class
+
+class Fft:
+  def __init__(self,list):
+    self.inlist = list[:]
+    self.dir = self.incdir = self.libdir = ""
+
+  def help(self):
+    return """
+-fft mode lib=libname dir=homedir idir=incdir ldir=libdir
+  mode is required, all other args are optional
+  removes all current FFT variable settings
+  mode = none or fftw or ...
+    adds -DFFT_MODE setting
+  lib = name of FFT library to link with (def is libname = mode)
+    adds -lliblibname setting
+  dir = home dir for include and library files (def = none)
+    adds -Idir/include and -Ldir/lib settings
+    if set, overrides idir and ldir args
+  idir = dir for include file (def = none)
+    adds -Iidir setting
+  ldir = dir for library file (def = none)
+    adds -Lldir setting
+"""
+
+  def check(self):
+    if not len(self.inlist): error("-fft args are invalid")
+    self.mode = self.inlist[0]
+    self.lib = "-l%s" % self.mode
+    for one in self.inlist[1:]:
+      words = one.split('=')
+      if len(words) != 2: error("-fft args are invalid")
+      if words[0] == "lib": self.lib = "-l%s" % words[1]
+      elif words[0] == "dir": self.dir = words[1]
+      elif words[0] == "idir": self.incdir = words[1]
+      elif words[0] == "ldir": self.libdir = words[1]
+      else: error("-fft args are invalid")
 
 # ----------------------------------------------------------------
 # auxiliary classes
@@ -1344,6 +1566,11 @@ class MakeReader:
         
 cmd_switches,cmd_switch_order = parse_args(sys.argv[1:])
 
+if "v" in cmd_switches:
+  print "Command-line parsing:"
+  for switch in cmd_switch_order:
+    print "  %s: %s" % (switch,' '.join(cmd_switches[switch]))
+
 # check for redo switch, process redo file
 # redolist = list of commands to execute
 
@@ -1411,8 +1638,9 @@ while 1:
 
   for one in switchclasses: exec("%s = None" % one)
   for one in libclasses: exec("%s = None" % one)
-  for one in extraclasses: exec("%s = None" % one)
-
+  for one in buildclasses: exec("%s = None" % one)
+  for one in optionclasses: exec("%s = None" % one)
+  
   # classes = dictionary of created classes
   # key = switch, value = class instance
 
@@ -1424,16 +1652,22 @@ while 1:
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
           (switchclasses[i],switch,capitalized,switch)
       exec(txt)
-    elif len(switch) > 1 and switch in libclasses:
+    elif switch in libclasses:
       i = libclasses.index(switch)
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
           (libclasses[i],switch,libclasses[i].upper(),switch)
       exec(txt)
-    elif len(switch) > 1 and switch in extraclasses:
-      i = extraclasses.index(switch)
-      capitalized = extraclasses[i][0].upper() + extraclasses[i][1:]
+    elif switch in buildclasses:
+      i = buildclasses.index(switch)
+      capitalized = buildclasses[i][0].upper() + buildclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (extraclasses[i],switch,capitalized,switch)
+          (buildclasses[i],switch,capitalized,switch)
+      exec(txt)
+    elif switch in optionclasses:
+      i = optionclasses.index(switch)
+      capitalized = optionclasses[i][0].upper() + optionclasses[i][1:]
+      txt = '%s = classes["%s"] = %s(switches["%s"])' % \
+          (optionclasses[i],switch,capitalized,switch)
       exec(txt)
     else: error("Unknown command-line switch -%s" % switch)
 
@@ -1448,7 +1682,7 @@ while 1:
     sys.exit()
 
   # create needed default classes if not specified with switch
-  # dir and packages, all lib classes so defaults are set
+  # dir and packages plus lib and build classes so defaults are set
 
   if not dir: dir = Dir(None)
   if not packages: packages = Packages(None)
@@ -1457,7 +1691,7 @@ while 1:
     txt = "if not %s: %s = %s(None)" % (one,one,one.upper())
     exec(txt)
 
-  for one in extraclasses:
+  for one in buildclasses:
     capitalized = one[0].upper() + one[1:]
     txt = "if not %s: %s = %s(None)" % (one,one,capitalized)
     exec(txt)
@@ -1468,7 +1702,7 @@ while 1:
 
   # prep for action
   # actions.setup() detects if last action = machine
-  # if yes, induces addition of "-m" and "-o" switches
+  # if yes, induce addition of "-m" and "-o" switches
   
   dir.setup()
   packages.setup()
@@ -1480,13 +1714,13 @@ while 1:
       if 'm' not in switches:
         switches['m'] = [machine]
         switch_order.insert(-1,'m')
-        classes['m'] = Makefile(switches['m'])
-        classes['m'].check()
+        makefile = classes['m'] = Makefile(switches['m'])
+        makefile.check()
       if 'o' not in switches:
         switches['o'] = [machine]
         switch_order.insert(-1,'o')
-        classes['o'] = Makefile(switches['o'])
-        classes['o'].check()
+        output = classes['o'] = Makefile(switches['o'])
+        output.check()
 
   # perform actions
 
@@ -1507,7 +1741,8 @@ while 1:
   if output and actions and "exe" in actions.alist:
     txt = "cp %s/lmp_auto %s/lmp_%s" % (dir.src,dir.cwd,output.machine)
     commands.getoutput(txt)
-      
+    print "Created lmp_%s in %s" % (output.machine,dir.cwd)
+
   # write current Make.py command to src/Make.py.last
 
   argstr = switch2str(switches,switch_order)

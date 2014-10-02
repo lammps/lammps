@@ -95,6 +95,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 
   maxhold = 0;
   xhold = NULL;
+  lastcall = -1;
 
   // binning
 

@@ -1,4 +1,4 @@
-# intel_phi = USER-INTEL package with Phi offload support, Intel MPI, MKL FFT
+# opt = OPT package with default MPI compiler, default MPI
 
 SHELL = /bin/sh
 
@@ -6,17 +6,14 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpiicpc 
-MIC_OPT =       -offload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\""
-CCFLAGS =	-g -O3 -openmp -DLMP_INTEL_OFFLOAD -DLAMMPS_MEMALIGN=64 \
-                -xHost -fno-alias -ansi-alias -restrict \
-                -override-limits $(MIC_OPT)
+CC =		mpicxx
+CCFLAGS =	-g -O3 -restrict
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpiicpc
-LINKFLAGS =	-g -O3 -xHost -openmp -offload
-LIB =           
+LINK =		mpicxx
+LINKFLAGS =	-g -O
+LIB = 
 SIZE =		size
 
 ARCHIVE =	ar
@@ -31,7 +28,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings
 # see possible settings in Section 2.2 (step 4) of manual
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
+LMP_INC =	-DLAMMPS_GZIP
 
 # MPI library
 # see discussion in Section 2.2 (step 5) of manual
@@ -44,18 +41,18 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
 
 MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
 MPI_PATH = 
-MPI_LIB =
+MPI_LIB =	
 
 # FFT library
-# see discussion in Section 2.2 (step 6) of manaul
+# see discussion in Section 2.2 (step 6) of manual
 # can be left blank to use provided KISS FFT library
 # INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =      -DFFT_MKL -DFFT_SINGLE
+FFT_INC =    	
 FFT_PATH = 
-FFT_LIB =	-L$(MKLROOT)/lib/intel64/ -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core
+FFT_LIB =	
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual
@@ -66,7 +63,7 @@ FFT_LIB =	-L$(MKLROOT)/lib/intel64/ -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_c
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	-ljpeg
+JPG_LIB =	
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

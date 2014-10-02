@@ -45,7 +45,7 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
   comm = MPI_COMM_WORLD;
 
   /* open force field file */
-  if ( (fp = fopen( ffield_file, "r" ) ) == NULL ) {
+  if ( (fp = lmp_open_potential( ffield_file ) ) == NULL ) {
     fprintf( stderr, "error opening the force field file! terminating...\n" );
     MPI_Abort( comm, FILE_NOT_FOUND );
   }

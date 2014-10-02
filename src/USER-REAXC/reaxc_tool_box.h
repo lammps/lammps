@@ -64,5 +64,5 @@ int   Tokenize( char*, char*** );
 void *smalloc( long, const char*, MPI_Comm );
 void *scalloc( int, int, const char*, MPI_Comm );
 void sfree( void*, const char* );
-
+FILE *lmp_open_potential(const char *);
 #endif

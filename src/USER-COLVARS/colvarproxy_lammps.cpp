@@ -48,9 +48,12 @@ static int my_backup_file(const char *filename, const char *extension)
       if ( !sys_err_msg ) sys_err_msg = (char *) "(unknown error)";
       fprintf(stderr,"Error renaming file %s to %s: %s\n",
               filename, backup, sys_err_msg);
+      delete [] backup;
+      return COLVARS_ERROR;
     }
     delete [] backup;
   }
+  return COLVARS_OK;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -340,6 +343,7 @@ int colvarproxy_lammps::load_coords(char const *pdb_filename,
 {
   cvm::fatal_error("Reading collective variable coordinates "
                    "from a PDB file is currently not supported.\n");
+  return COLVARS_ERROR;
 }
 
 int colvarproxy_lammps::load_atoms(char const *pdb_filename,
@@ -349,6 +353,7 @@ int colvarproxy_lammps::load_atoms(char const *pdb_filename,
 {
   cvm::fatal_error("Selecting collective variable atoms "
                     "from a PDB file is currently not supported.\n");
+  return COLVARS_ERROR;
 }
 
 int colvarproxy_lammps::backup_file(char const *filename)

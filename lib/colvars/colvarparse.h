@@ -1,3 +1,5 @@
+/// -*- c++ -*-
+
 #ifndef COLVARPARSE_H
 #define COLVARPARSE_H
 
@@ -125,7 +127,7 @@ public:
   /// \brief Check that all the keywords within "conf" are in the list
   /// of allowed keywords; this will invoke strip_values() first and
   /// then loop over all words
-  void check_keywords (std::string &conf, char const *key);
+  int check_keywords (std::string &conf, char const *key);
 
 
   /// \brief Return a lowercased copy of the string
@@ -194,8 +196,3 @@ public:
 
 
 #endif
-
-// Emacs
-// Local Variables:
-// mode: C++
-// End:

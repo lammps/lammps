@@ -1,3 +1,5 @@
+/// -*- c++ -*-
+
 #include <vector>
 
 #include "colvarmodule.h"
@@ -18,14 +20,14 @@ size_t const      colvarvalue::dof_num[  colvarvalue::type_quaternion+1] =
 
 void colvarvalue::undef_op() const
 {
-  cvm::fatal_error ("Error: Undefined operation on a colvar of type \""+
+  cvm::error ("Error: Undefined operation on a colvar of type \""+
                     colvarvalue::type_desc[this->value_type]+"\".\n");
 }
 
 void colvarvalue::error_rside
 (colvarvalue::Type const &vt) const
 {
-  cvm::fatal_error ("Trying to assign a colvar value with type \""+
+  cvm::error ("Trying to assign a colvar value with type \""+
                     type_desc[this->value_type]+"\" to one with type \""+
                     type_desc[vt]+"\".\n");
 }
@@ -33,7 +35,7 @@ void colvarvalue::error_rside
 void colvarvalue::error_lside
 (colvarvalue::Type const &vt) const
 {
-  cvm::fatal_error ("Trying to use a colvar value with type \""+
+  cvm::error ("Trying to use a colvar value with type \""+
                     type_desc[vt]+"\" as one of type \""+
                     type_desc[this->value_type]+"\".\n");
 }
@@ -120,8 +122,9 @@ void colvarvalue::p2leg_opt (colvarvalue const                        &x,
 
   switch (x.value_type) {
   case colvarvalue::type_scalar:
-    cvm::fatal_error ("Error: cannot calculate Legendre polynomials "
+    cvm::error ("Error: cannot calculate Legendre polynomials "
                       "for scalar variables.\n");
+    return;
     break;
   case colvarvalue::type_vector:
     while (xvi != xv_end) {
@@ -162,7 +165,7 @@ void colvarvalue::p2leg_opt (colvarvalue const                        &x,
 
   switch (x.value_type) {
   case colvarvalue::type_scalar:
-    cvm::fatal_error ("Error: cannot calculate Legendre polynomials "
+    cvm::error ("Error: cannot calculate Legendre polynomials "
                       "for scalar variables.\n");
     break;
   case colvarvalue::type_vector:
@@ -219,8 +222,9 @@ std::ostream & operator << (std::ostream &os, std::vector<colvarvalue> const &v)
 std::istream & operator >> (std::istream &is, colvarvalue &x)
 {
   if (x.type() == colvarvalue::type_notset) {
-    cvm::fatal_error ("Trying to read from a stream a colvarvalue, "
-                      "which has not yet been assigned a data type.\n");
+    cvm::error ("Trying to read from a stream a colvarvalue, "
+                "which has not yet been assigned a data type.\n");
+    return is;
   }
 
   switch (x.type()) {

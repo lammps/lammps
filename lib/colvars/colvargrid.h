@@ -1,4 +1,4 @@
-// -*- c++ -*-
+/// -*- c++ -*-
 
 #ifndef COLVARGRID_H
 #define COLVARGRID_H
@@ -55,8 +55,10 @@ protected:
     for (size_t i = 0; i < nd; i++) {
       addr += ix[i]*nxc[i];
       if (cvm::debug()) {
-        if (ix[i] >= nx[i])
-          cvm::fatal_error ("Error: exceeding bounds in colvar_grid.\n");
+        if (ix[i] >= nx[i]) {
+          cvm::error ("Error: exceeding bounds in colvar_grid.\n");
+          return 0;
+        }
       }
     }
     return addr;
@@ -135,9 +137,11 @@ public:
 
     nt = mult;
     for (int i = nd-1; i >= 0; i--) {
-      if (nx_i[i] <= 0)
-        cvm::fatal_error ("Error: providing an invalid number of points, "+
+      if (nx_i[i] <= 0) {
+        cvm::error ("Error: providing an invalid number of points, "+
                           cvm::to_str (nx_i[i])+".\n");
+        return;
+      }
       nxc[i] = nt;
       nt *= nx[i];
     }
@@ -220,20 +224,23 @@ public:
     for (size_t i =  0; i < cv.size(); i++) {
 
       if (cv[i]->type() != colvarvalue::type_scalar) {
-        cvm::fatal_error ("Colvar grids can only be automatically "
-                          "constructed for scalar variables.  "
-                          "ABF and histogram can not be used; metadynamics "
-                          "can be used with useGrids disabled.\n");
+        cvm::error ("Colvar grids can only be automatically "
+                    "constructed for scalar variables.  "
+                    "ABF and histogram can not be used; metadynamics "
+                    "can be used with useGrids disabled.\n");
+        return;
       }
 
       if (cv[i]->width <= 0.0) {
-        cvm::fatal_error ("Tried to initialize a grid on a "
+        cvm::error ("Tried to initialize a grid on a "
                           "variable with negative or zero width.\n");
+        return;
       }
 
       if (!cv[i]->tasks[colvar::task_lower_boundary] || !cv[i]->tasks[colvar::task_upper_boundary]) {
-        cvm::fatal_error ("Tried to initialize a grid on a "
-                          "variable with undefined boundaries.\n");
+        cvm::error ("Tried to initialize a grid on a "
+                    "variable with undefined boundaries.\n");
+        return;
       }
 
       widths.push_back (cv[i]->width);
@@ -303,8 +310,9 @@ public:
         ix[i] = (ix[i] + nx[i]) % nx[i]; //to ensure non-negative result
       } else {
         if (ix[i] < 0 || ix[i] >= nx[i])
-          cvm::fatal_error ("Trying to wrap illegal index vector (non-PBC): "
-                            + cvm::to_str (ix));
+          cvm::error ("Trying to wrap illegal index vector (non-PBC): "
+                     + cvm::to_str (ix));
+          return;
       }
     }
   }
@@ -437,9 +445,11 @@ public:
   /// of whether it fits or not.
   void map_grid (colvar_grid<T> const &other_grid)
   {
-    if (other_grid.multiplicity() != this->multiplicity())
-      cvm::fatal_error ("Error: trying to merge two grids with values of "
+    if (other_grid.multiplicity() != this->multiplicity()) {
+      cvm::error ("Error: trying to merge two grids with values of "
                         "different multiplicity.\n");
+      return;
+    }
 
     std::vector<colvarvalue> const &gb  = this->lower_boundaries;
     std::vector<cvm::real> const &gw    = this->widths;
@@ -479,9 +489,11 @@ public:
   void add_grid (colvar_grid<T> const &other_grid,
                  cvm::real scale_factor = 1.0)
   {
-    if (other_grid.multiplicity() != this->multiplicity())
-      cvm::fatal_error ("Error: trying to sum togetehr two grids with values of "
+    if (other_grid.multiplicity() != this->multiplicity()) {
+      cvm::error ("Error: trying to sum togetehr two grids with values of "
                         "different multiplicity.\n");
+      return;
+    }
     if (scale_factor != 1.0)
       for (size_t i = 0; i < data.size(); i++) {
         data[i] += scale_factor * other_grid.data[i];
@@ -570,25 +582,26 @@ public:
   /// \brief Write the grid parameters (number of colvars, boundaries, width and number of points)
   std::ostream & write_params (std::ostream &os)
   {
+    size_t i;
     os << "grid_parameters {\n  n_colvars " << nd << "\n";
 
     os << "  lower_boundaries ";
-    for (size_t i = 0; i < nd; i++)
+    for (i = 0; i < nd; i++)
       os << " " << lower_boundaries[i];
     os << "\n";
 
     os << "  upper_boundaries ";
-    for (size_t i = 0; i < nd; i++)
+    for (i = 0; i < nd; i++)
       os << " " << upper_boundaries[i];
     os << "\n";
 
     os << "  widths ";
-    for (size_t i = 0; i < nd; i++)
+    for (i = 0; i < nd; i++)
       os << " " << widths[i];
     os << "\n";
 
     os << "  sizes ";
-    for (size_t i = 0; i < nd; i++)
+    for (i = 0; i < nd; i++)
       os << " " << nx[i];
     os << "\n";
 
@@ -605,12 +618,14 @@ public:
     {
       size_t nd_in = 0;
       colvarparse::get_keyval (conf, "n_colvars", nd_in, nd, colvarparse::parse_silent);
-      if (nd_in != nd)
-        cvm::fatal_error ("Error: trying to read data for a grid "
-                          "that contains a different number of colvars ("+
-                          cvm::to_str (nd_in)+") than the grid defined "
-                          "in the configuration file ("+cvm::to_str (nd)+
-                          ").\n");
+      if (nd_in != nd) {
+        cvm::error ("Error: trying to read data for a grid "
+                    "that contains a different number of colvars ("+
+                    cvm::to_str (nd_in)+") than the grid defined "
+                    "in the configuration file ("+cvm::to_str (nd)+
+                    ").\n");
+        return false;
+      }
     }
 
     colvarparse::get_keyval (conf, "lower_boundaries",
@@ -653,8 +668,9 @@ public:
                                      upper_boundaries[i])) > 1.0E-10) ||
            (std::sqrt (cv[i]->dist2 (cv[i]->width,
                                      widths[i])) > 1.0E-10) ) {
-        cvm::fatal_error ("Error: restart information for a grid is "
-                          "inconsistent with that of its colvars.\n");
+        cvm::error ("Error: restart information for a grid is "
+                    "inconsistent with that of its colvars.\n");
+        return;
       }
     }
   }
@@ -675,9 +691,10 @@ public:
            (std::fabs (other_grid.widths[i] -
                        widths[i]) > 1.0E-10) ||
            (data.size() != other_grid.data.size()) ) {
-      cvm::fatal_error ("Error: inconsistency between "
-                        "two grids that are supposed to be equal, "
-                        "aside from the data stored.\n");
+      cvm::error ("Error: inconsistency between "
+                  "two grids that are supposed to be equal, "
+                  "aside from the data stored.\n");
+      return;
     }
   }
 }
@@ -710,169 +727,167 @@ public:
     return os;
   }
 
-/// \brief Read data written by colvar_grid::write_raw()
-std::istream & read_raw (std::istream &is)
-{
-  size_t const start_pos = is.tellg();
+  /// \brief Read data written by colvar_grid::write_raw()
+  std::istream & read_raw (std::istream &is)
+  {
+    size_t const start_pos = is.tellg();
 
-  for (std::vector<int> ix = new_index(); index_ok (ix); incr (ix)) {
-    for (size_t imult = 0; imult < mult; imult++) {
-      T new_value;
-      if (is >> new_value) {
-        value_input (ix, new_value, imult);
-      } else {
-        is.clear();
-        is.seekg (start_pos, std::ios::beg);
-        is.setstate (std::ios::failbit);
-        return is;
-      }
-    }
-  }
-
-  has_data = true;
-  return is;
-}
-
-/// \brief To be called after colvar_grid::read_raw() returns an error
-void read_raw_error()
-{
-  cvm::fatal_error ("Error: failed to read all of the grid points from file.  Possible explanations: grid parameters in the configuration (lowerBoundary, upperBoundary, width) are different from those in the file, or the file is corrupt/incomplete.\n");
-}
-
-/// \brief Write the grid in a format which is both human readable
-/// and suitable for visualization e.g. with gnuplot
-void write_multicol (std::ostream &os)
-{
-  std::streamsize const w = os.width();
-  std::streamsize const p = os.precision();
-
-  // Data in the header: nColvars, then for each
-  // xiMin, dXi, nPoints, periodic
-
-  os << std::setw (2) << "# " << nd << "\n";
-  for (size_t i = 0; i < nd; i++) {
-    os << "# "
-       << std::setw (10) << lower_boundaries[i]
-       << std::setw (10) << widths[i]
-       << std::setw (10) << nx[i] << "  "
-       << periodic[i] << "\n";
-  }
-
-  for (std::vector<int> ix = new_index(); index_ok (ix); incr (ix) ) {
-
-    if (ix.back() == 0) {
-      // if the last index is 0, add a new line to mark the new record
-      os << "\n";
-    }
-
-    for (size_t i = 0; i < nd; i++) {
-      os << " "
-         << std::setw (w) << std::setprecision (p)
-         << bin_to_value_scalar (ix[i], i);
-    }
-    os << " ";
-    for (size_t imult = 0; imult < mult; imult++) {
-      os << " "
-         << std::setw (w) << std::setprecision (p)
-         << value_output (ix, imult);
-    }
-    os << "\n";
-  }
-}
-
-/// \brief Read a grid written by colvar_grid::write_multicol()
-/// Adding data if add is true, replacing if false
-std::istream & read_multicol (std::istream &is, bool add = false)
-{
-  // Data in the header: nColvars, then for each
-  // xiMin, dXi, nPoints, periodic
-
-  std::string   hash;
-  cvm::real     lower, width, x;
-  size_t        n, periodic;
-  bool          remap;
-  std::vector<T>        new_value;
-  std::vector<int>      nx_read;
-  std::vector<int>      bin;
-
-  if ( cv.size() != nd ) {
-    cvm::fatal_error ("Cannot read grid file: missing reference to colvars.");
-  }
-
-  if ( !(is >> hash) || (hash != "#") ) {
-    cvm::fatal_error ("Error reading grid at position "+
-                      cvm::to_str (is.tellg())+" in stream (read \"" + hash + "\")\n");
-  }
-
-  is >> n;
-  if ( n != nd ) {
-    cvm::fatal_error ("Error reading grid: wrong number of collective variables.\n");
-  }
-
-  nx_read.resize (n);
-  bin.resize (n);
-  new_value.resize (mult);
-
-  if (this->has_parent_data && add) {
-    new_data.resize (data.size());
-  }
-
-  remap = false;
-  for (size_t i = 0; i < nd; i++ ) {
-    if ( !(is >> hash) || (hash != "#") ) {
-      cvm::fatal_error ("Error reading grid at position "+
-                        cvm::to_str (is.tellg())+" in stream (read \"" + hash + "\")\n");
-    }
-
-    is >> lower >> width >> nx_read[i] >> periodic;
-
-
-    if ( (std::fabs (lower - lower_boundaries[i].real_value) > 1.0e-10) ||
-         (std::fabs (width - widths[i] ) > 1.0e-10) ||
-         (nx_read[i] != nx[i]) ) {
-      cvm::log ("Warning: reading from different grid definition (colvar "
-                + cvm::to_str (i+1) + "); remapping data on new grid.\n");
-      remap = true;
-    }
-  }
-
-  if ( remap ) {
-    // re-grid data
-    while (is.good()) {
-      bool end_of_file = false;
-
-      for (size_t i = 0; i < nd; i++ ) {
-        if ( !(is >> x) ) end_of_file = true;
-        bin[i] = value_to_bin_scalar (x, i);
-      }
-      if (end_of_file) break;
-
+    for (std::vector<int> ix = new_index(); index_ok (ix); incr (ix)) {
       for (size_t imult = 0; imult < mult; imult++) {
-        is >> new_value[imult];
-      }
-
-      if ( index_ok(bin) ) {
-        for (size_t imult = 0; imult < mult; imult++) {
-          value_input (bin, new_value[imult], imult, add);
+        T new_value;
+        if (is >> new_value) {
+          value_input (ix, new_value, imult);
+        } else {
+          is.clear();
+          is.seekg (start_pos, std::ios::beg);
+          is.setstate (std::ios::failbit);
+          cvm::error ("Error: failed to read all of the grid points from file.  Possible explanations: grid parameters in the configuration (lowerBoundary, upperBoundary, width) are different from those in the file, or the file is corrupt/incomplete.\n");
+          return is;
         }
       }
     }
-  } else {
-    // do not re-grid the data but assume the same grid is used
+
+    has_data = true;
+    return is;
+  }
+
+  /// \brief Write the grid in a format which is both human readable
+  /// and suitable for visualization e.g. with gnuplot
+  void write_multicol (std::ostream &os)
+  {
+    std::streamsize const w = os.width();
+    std::streamsize const p = os.precision();
+
+    // Data in the header: nColvars, then for each
+    // xiMin, dXi, nPoints, periodic
+
+    os << std::setw (2) << "# " << nd << "\n";
+    for (size_t i = 0; i < nd; i++) {
+      os << "# "
+        << std::setw (10) << lower_boundaries[i]
+        << std::setw (10) << widths[i]
+        << std::setw (10) << nx[i] << "  "
+        << periodic[i] << "\n";
+    }
+
     for (std::vector<int> ix = new_index(); index_ok (ix); incr (ix) ) {
-      for (size_t i = 0; i < nd; i++ ) {
-        is >> x;
+
+      if (ix.back() == 0) {
+        // if the last index is 0, add a new line to mark the new record
+        os << "\n";
       }
+
+      for (size_t i = 0; i < nd; i++) {
+        os << " "
+          << std::setw (w) << std::setprecision (p)
+          << bin_to_value_scalar (ix[i], i);
+      }
+      os << " ";
       for (size_t imult = 0; imult < mult; imult++) {
-        is >> new_value[imult];
-        value_input (ix, new_value[imult], imult, add);
+        os << " "
+          << std::setw (w) << std::setprecision (p)
+          << value_output (ix, imult);
       }
+      os << "\n";
     }
   }
-  has_data = true;
-  return is;
-}
 
+  /// \brief Read a grid written by colvar_grid::write_multicol()
+  /// Adding data if add is true, replacing if false
+  std::istream & read_multicol (std::istream &is, bool add = false)
+  {
+    // Data in the header: nColvars, then for each
+    // xiMin, dXi, nPoints, periodic
+
+    std::string   hash;
+    cvm::real     lower, width, x;
+    size_t        n, periodic;
+    bool          remap;
+    std::vector<T>        new_value;
+    std::vector<int>      nx_read;
+    std::vector<int>      bin;
+
+    if ( cv.size() != nd ) {
+      cvm::error ("Cannot read grid file: missing reference to colvars.");
+      return is;
+    }
+
+    if ( !(is >> hash) || (hash != "#") ) {
+      cvm::error ("Error reading grid at position "+
+                  cvm::to_str (is.tellg())+" in stream (read \"" + hash + "\")\n");
+      return is;
+    }
+
+    is >> n;
+    if ( n != nd ) {
+      cvm::error ("Error reading grid: wrong number of collective variables.\n");
+      return is;
+    }
+
+    nx_read.resize (n);
+    bin.resize (n);
+    new_value.resize (mult);
+
+    if (this->has_parent_data && add) {
+      new_data.resize (data.size());
+    }
+
+    remap = false;
+    for (size_t i = 0; i < nd; i++ ) {
+      if ( !(is >> hash) || (hash != "#") ) {
+        cvm::error ("Error reading grid at position "+
+                    cvm::to_str (is.tellg())+" in stream (read \"" + hash + "\")\n");
+        return is;
+      }
+
+      is >> lower >> width >> nx_read[i] >> periodic;
+
+
+      if ( (std::fabs (lower - lower_boundaries[i].real_value) > 1.0e-10) ||
+          (std::fabs (width - widths[i] ) > 1.0e-10) ||
+          (nx_read[i] != nx[i]) ) {
+        cvm::log ("Warning: reading from different grid definition (colvar "
+                  + cvm::to_str (i+1) + "); remapping data on new grid.\n");
+        remap = true;
+      }
+    }
+
+    if ( remap ) {
+      // re-grid data
+      while (is.good()) {
+        bool end_of_file = false;
+
+        for (size_t i = 0; i < nd; i++ ) {
+          if ( !(is >> x) ) end_of_file = true;
+          bin[i] = value_to_bin_scalar (x, i);
+        }
+        if (end_of_file) break;
+
+        for (size_t imult = 0; imult < mult; imult++) {
+          is >> new_value[imult];
+        }
+
+        if ( index_ok(bin) ) {
+          for (size_t imult = 0; imult < mult; imult++) {
+            value_input (bin, new_value[imult], imult, add);
+          }
+        }
+      }
+    } else {
+      // do not re-grid the data but assume the same grid is used
+      for (std::vector<int> ix = new_index(); index_ok (ix); incr (ix) ) {
+        for (size_t i = 0; i < nd; i++ ) {
+          is >> x;
+        }
+        for (size_t imult = 0; imult < mult; imult++) {
+          is >> new_value[imult];
+          value_input (ix, new_value[imult], imult, add);
+        }
+      }
+    }
+    has_data = true;
+    return is;
+  }
 };
 
 
@@ -981,8 +996,11 @@ public:
   {
     cvm::real A0, A1;
     std::vector<int> ix;
-    if (nd != 2) cvm::fatal_error ("Finite differences available in dimension 2 only.");
-    for (int n = 0; n < nd; n++) {
+    if (nd != 2) {
+      cvm::error ("Finite differences available in dimension 2 only.");
+      return grad;
+    }
+    for (unsigned int n = 0; n < nd; n++) {
       ix = ix0;
       A0 = data[address (ix)];
       ix[n]++; wrap (ix);
@@ -1001,9 +1019,11 @@ public:
   virtual cvm::real value_output (std::vector<int> const &ix,
                                   size_t const &imult = 0)
   {
-    if (imult > 0)
-      cvm::fatal_error ("Error: trying to access a component "
-                        "larger than 1 in a scalar data grid.\n");
+    if (imult > 0) {
+      cvm::error ("Error: trying to access a component "
+                  "larger than 1 in a scalar data grid.\n");
+      return 0.;
+    }
     if (samples)
       return (samples->value (ix) > 0) ?
         (data[address (ix)] / cvm::real (samples->value (ix))) :
@@ -1020,9 +1040,11 @@ public:
                             size_t const &imult = 0,
                             bool add = false)
   {
-    if (imult > 0)
-      cvm::fatal_error ("Error: trying to access a component "
-                        "larger than 1 in a scalar data grid.\n");
+    if (imult > 0) {
+      cvm::error ("Error: trying to access a component "
+                  "larger than 1 in a scalar data grid.\n");
+      return;
+    }
     if (add) {
       if (samples)
         data[address (ix)] += new_value * samples->new_count (ix);

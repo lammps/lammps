@@ -110,9 +110,10 @@ class colvarproxy_lammps : public colvarproxy {
   void add_energy (cvm::real energy) { bias_energy = energy; };
   void request_system_force (bool yesno) { system_force_requested = yesno; };
 
-  void log (std::string const &message);
-  void fatal_error (std::string const &message);
-  void exit (std::string const &message);
+  void log(std::string const &message);
+  void error(std::string const &message);
+  void fatal_error(std::string const &message);
+  void exit(std::string const &message);
 
   cvm::rvector position_distance (cvm::atom_pos const &pos1,
                                   cvm::atom_pos const &pos2);
@@ -121,18 +122,18 @@ class colvarproxy_lammps : public colvarproxy {
   void select_closest_image (cvm::atom_pos &pos,
                              cvm::atom_pos const &ref_pos);
 
-  void load_atoms(char const *filename,
+  int load_atoms(char const *filename,
                   std::vector<cvm::atom> &atoms,
-                  std::string const pdb_field,
+                  std::string const &pdb_field,
                   double const pdb_field_value = 0.0);
 
-  void load_coords(char const *filename,
+  int load_coords(char const *filename,
                    std::vector<cvm::atom_pos> &pos,
                    const std::vector<int> &indices,
-                   std::string const pdb_field,
+                   std::string const &pdb_field,
                    double const pdb_field_value = 0.0);
 
-  void backup_file(char const *filename);
+  int backup_file(char const *filename);
 
   cvm::real rand_gaussian(void) { return _random->gaussian(); };
 

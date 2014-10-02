@@ -1,4 +1,4 @@
-// -*- c++ -*-
+/// -*- c++ -*-
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"

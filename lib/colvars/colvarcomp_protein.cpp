@@ -1,3 +1,5 @@
+/// -*- c++ -*-
+
 #include <cmath>
 
 #include "colvarmodule.h"
@@ -162,10 +164,11 @@ void colvar::alpha_angles::calc_value()
 
 void colvar::alpha_angles::calc_gradients()
 {
-  for (size_t i = 0; i < theta.size(); i++)
+  size_t i;
+  for (i = 0; i < theta.size(); i++)
     (theta[i])->calc_gradients();
 
-  for (size_t i = 0; i < hb.size(); i++)
+  for (i = 0; i < hb.size(); i++)
     (hb[i])->calc_gradients();
 }
 

@@ -179,7 +179,7 @@ void FixPeriNeigh::setup(int vflag)
 
   // build full neighbor list, will copy or build as necessary
 
-  neighbor->build_one(list->index);
+  neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;

@@ -1,3 +1,5 @@
+/// -*- c++ -*-
+
 #ifndef COLVARBIAS_META_H
 #define COLVARBIAS_META_H
 
@@ -224,7 +226,7 @@ protected:
   std::ofstream          replica_hills_os;
 
   /// Position within replica_hills_file (when reading it)
-  size_t                 replica_hills_file_pos;
+  int                    replica_hills_file_pos;
 
 };
 
@@ -417,9 +419,3 @@ public:
 
 
 #endif
-
-
-// Emacs
-// Local Variables:
-// mode: C++
-// End:

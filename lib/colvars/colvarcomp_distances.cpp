@@ -1,3 +1,5 @@
+/// -*- c++ -*-
+
 #include <cmath>
 
 #include "colvarmodule.h"
@@ -40,6 +42,7 @@ colvar::distance::distance()
   b_inverse_gradients = true;
   b_Jacobian_derivative = true;
   b_1site_force = false;
+  b_no_PBC = false;
   x.type (colvarvalue::type_scalar);
 }
 
@@ -143,8 +146,9 @@ colvar::distance_z::distance_z (std::string const &conf)
     b_periodic = true;
 
   if ((wrap_center != 0.0) && (period == 0.0)) {
-    cvm::fatal_error ("Error: wrapAround was defined in a distanceZ component,"
-                      " but its period has not been set.\n");
+    cvm::error ("Error: wrapAround was defined in a distanceZ component,"
+                " but its period has not been set.\n");
+    return;
   }
 
   parse_group (conf, "main", main);
@@ -162,8 +166,10 @@ colvar::distance_z::distance_z (std::string const &conf)
       cvm::log ("Warning: explicit axis definition will be ignored!");
   } else {
     if (get_keyval (conf, "axis", axis, cvm::rvector (0.0, 0.0, 1.0))) {
-      if (axis.norm2() == 0.0)
-        cvm::fatal_error ("Axis vector is zero!");
+      if (axis.norm2() == 0.0) {
+        cvm::error ("Axis vector is zero!");
+        return;
+      }
       if (axis.norm2() != 1.0) {
         axis = axis.unit();
         cvm::log ("The normalized axis is: "+cvm::to_str (axis)+".\n");
@@ -233,6 +239,15 @@ void colvar::distance_z::calc_gradients()
       ref2.set_weighted_gradient ( 1.0 / axis_norm * (
         cvm::position_distance (main.center_of_mass(), ref1.center_of_mass()) + x.real_value * axis ));
     }
+  }
+
+  if (b_debug_gradients) {
+    cvm::log ("Debugging gradients for group main:\n");
+    debug_gradients (main);
+    cvm::log ("Debugging gradients for group ref1:\n");
+    debug_gradients (ref1);
+    cvm::log ("Debugging gradients for group ref2:\n");
+    debug_gradients (ref2);
   }
 }
 
@@ -422,16 +437,19 @@ colvar::distance_inv::distance_inv (std::string const &conf)
   function_type = "distance_inv";
   get_keyval (conf, "exponent", exponent, 6);
   if (exponent%2) {
-    cvm::fatal_error ("Error: odd exponent provided, can only use even ones.\n");
+    cvm::error ("Error: odd exponent provided, can only use even ones.\n");
+    return;
   }
   if (exponent <= 0) {
-    cvm::fatal_error ("Error: negative or zero exponent provided.\n");
+    cvm::error ("Error: negative or zero exponent provided.\n");
+    return;
   }
 
   for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++) {
     for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
       if (ai1->id == ai2->id)
-        cvm::fatal_error ("Error: group1 and group1 have some atoms in common: this is not allowed for distanceInv.\n");
+        cvm::error ("Error: group1 and group1 have some atoms in common: this is not allowed for distanceInv.\n");
+      return;
     }
   }
 
@@ -640,8 +658,10 @@ colvar::inertia_z::inertia_z (std::string const &conf)
 {
   function_type = "inertia_z";
   if (get_keyval (conf, "axis", axis, cvm::rvector (0.0, 0.0, 1.0))) {
-    if (axis.norm2() == 0.0)
-      cvm::fatal_error ("Axis vector is zero!");
+    if (axis.norm2() == 0.0) {
+      cvm::error ("Axis vector is zero!");
+      return;
+    }
     if (axis.norm2() != 1.0) {
       axis = axis.unit();
       cvm::log ("The normalized axis is: "+cvm::to_str (axis)+".\n");
@@ -700,8 +720,10 @@ colvar::rmsd::rmsd (std::string const &conf)
   parse_group (conf, "atoms", atoms);
   atom_groups.push_back (&atoms);
 
-  if (atoms.b_dummy)
-    cvm::fatal_error ("Error: \"atoms\" cannot be a dummy atom.");
+  if (atoms.b_dummy) {
+    cvm::error ("Error: \"atoms\" cannot be a dummy atom.");
+    return;
+  }
 
   if (atoms.ref_pos_group != NULL) {
     cvm::log ("The option \"refPositionsGroup\" (alternative group for fitting) was enabled: "
@@ -715,10 +737,11 @@ colvar::rmsd::rmsd (std::string const &conf)
   if (get_keyval (conf, "refPositions", ref_pos, ref_pos)) {
     cvm::log ("Using reference positions from configuration file to calculate the variable.\n");
     if (ref_pos.size() != atoms.size()) {
-      cvm::fatal_error ("Error: the number of reference positions provided ("+
-                        cvm::to_str (ref_pos.size())+
-                        ") does not match the number of atoms of group \"atoms\" ("+
-                        cvm::to_str (atoms.size())+").\n");
+      cvm::error ("Error: the number of reference positions provided ("+
+                  cvm::to_str (ref_pos.size())+
+                  ") does not match the number of atoms of group \"atoms\" ("+
+                  cvm::to_str (atoms.size())+").\n");
+      return;
     }
   }
   {
@@ -726,8 +749,9 @@ colvar::rmsd::rmsd (std::string const &conf)
     if (get_keyval (conf, "refPositionsFile", ref_pos_file, std::string (""))) {
 
       if (ref_pos.size()) {
-        cvm::fatal_error ("Error: cannot specify \"refPositionsFile\" and "
+        cvm::error ("Error: cannot specify \"refPositionsFile\" and "
                           "\"refPositions\" at the same time.\n");
+        return;
       }
 
       std::string ref_pos_col;
@@ -737,8 +761,9 @@ colvar::rmsd::rmsd (std::string const &conf)
         // if provided, use PDB column to select coordinates
         bool found = get_keyval (conf, "refPositionsColValue", ref_pos_col_value, 0.0);
         if (found && !ref_pos_col_value)
-          cvm::fatal_error ("Error: refPositionsColValue, "
+          cvm::error ("Error: refPositionsColValue, "
                             "if provided, must be non-zero.\n");
+          return;
       } else {
         // if not, rely on existing atom indices for the group
         atoms.create_sorted_ids();
@@ -897,25 +922,30 @@ colvar::eigenvector::eigenvector (std::string const &conf)
     if (b_inline) {
       cvm::log ("Using reference positions from input file.\n");
       if (ref_pos.size() != atoms.size()) {
-        cvm::fatal_error ("Error: reference positions do not "
+        cvm::error ("Error: reference positions do not "
                           "match the number of requested atoms.\n");
+        return;
       }
     }
 
     std::string file_name;
     if (get_keyval (conf, "refPositionsFile", file_name)) {
 
-      if (b_inline)
-        cvm::fatal_error ("Error: refPositions and refPositionsFile cannot be specified at the same time.\n");
+      if (b_inline) {
+        cvm::error ("Error: refPositions and refPositionsFile cannot be specified at the same time.\n");
+        return;
+      }
 
       std::string file_col;
       double file_col_value;
       if (get_keyval (conf, "refPositionsCol", file_col, std::string (""))) {
         // use PDB flags if column is provided
         bool found = get_keyval (conf, "refPositionsColValue", file_col_value, 0.0);
-        if (found && !file_col_value)
-          cvm::fatal_error ("Error: refPositionsColValue, "
+        if (found && !file_col_value) {
+          cvm::error ("Error: refPositionsColValue, "
                             "if provided, must be non-zero.\n");
+          return;
+        }
       } else {
         // if not, use atom indices
         atoms.create_sorted_ids();
@@ -965,17 +995,20 @@ colvar::eigenvector::eigenvector (std::string const &conf)
     std::string file_name;
     if (get_keyval (conf, "vectorFile", file_name)) {
 
-      if (b_inline)
-        cvm::fatal_error ("Error: vector and vectorFile cannot be specified at the same time.\n");
+      if (b_inline) {
+        cvm::error ("Error: vector and vectorFile cannot be specified at the same time.\n");
+        return;
+      }
 
       std::string file_col;
       double file_col_value;
       if (get_keyval (conf, "vectorCol", file_col, std::string (""))) {
         // use PDB flags if column is provided
         bool found = get_keyval (conf, "vectorColValue", file_col_value, 0.0);
-        if (found && !file_col_value)
-          cvm::fatal_error ("Error: vectorColValue, "
-                            "if provided, must be non-zero.\n");
+        if (found && !file_col_value) {
+          cvm::error ("Error: vectorColValue, if provided, must be non-zero.\n");
+          return;
+        }
       } else {
         // if not, use atom indices
         atoms.create_sorted_ids();
@@ -987,13 +1020,14 @@ colvar::eigenvector::eigenvector (std::string const &conf)
   }
 
   if (!ref_pos.size() || !eigenvec.size()) {
-    cvm::fatal_error ("Error: both reference coordinates"
+    cvm::error ("Error: both reference coordinates"
                       "and eigenvector must be defined.\n");
+    return;
   }
 
   cvm::atom_pos eig_center (0.0, 0.0, 0.0);
-  for (size_t i = 0; i < atoms.size(); i++) {
-    eig_center += eigenvec[i];
+  for (size_t eil = 0; eil < atoms.size(); eil++) {
+    eig_center += eigenvec[eil];
   }
   eig_center *= 1.0 / atoms.size();
   cvm::log ("Geometric center of the provided vector: "+cvm::to_str (eig_center)+"\n");
@@ -1038,8 +1072,8 @@ colvar::eigenvector::eigenvector (std::string const &conf)
 
   // for inverse gradients
   eigenvec_invnorm2 = 0.0;
-  for (size_t i = 0; i < atoms.size(); i++) {
-    eigenvec_invnorm2 += eigenvec[i].norm2();
+  for (size_t ein = 0; ein < atoms.size(); ein++) {
+    eigenvec_invnorm2 += eigenvec[ein].norm2();
   }
   eigenvec_invnorm2 = 1.0 / eigenvec_invnorm2;
 

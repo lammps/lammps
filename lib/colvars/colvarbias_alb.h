@@ -2,7 +2,7 @@
 #define COLVARBIAS_ALB_H
 
 #include "colvar.h"
-#include "colvarbias.h"
+#include "colvarbias_restraint.h"
 
 class colvarbias_alb : public colvarbias {
 

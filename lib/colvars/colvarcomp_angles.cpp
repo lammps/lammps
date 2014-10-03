@@ -1,10 +1,10 @@
+/// -*- c++ -*-
 
 #include "colvarmodule.h"
 #include "colvar.h"
 #include "colvarcomp.h"
 
 #include <cmath>
-
 
 
 colvar::angle::angle (std::string const &conf)
@@ -75,6 +75,7 @@ void colvar::angle::calc_value()
 
 void colvar::angle::calc_gradients()
 {
+  size_t i;
   cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
   cvm::real const dxdcos = -1.0 / std::sqrt (1.0 - cos_theta*cos_theta);
 
@@ -84,17 +85,17 @@ void colvar::angle::calc_gradients()
   dxdr3 = (180.0/PI) * dxdcos *
     (1.0/r23l) * ( r21/r21l + (-1.0) * cos_theta * r23/r23l );
 
-  for (size_t i = 0; i < group1.size(); i++) {
+  for (i = 0; i < group1.size(); i++) {
     group1[i].grad = (group1[i].mass/group1.total_mass) *
       (dxdr1);
   }
 
-  for (size_t i = 0; i < group2.size(); i++) {
+  for (i = 0; i < group2.size(); i++) {
     group2[i].grad = (group2[i].mass/group2.total_mass) *
       (dxdr1 + dxdr3) * (-1.0);
   }
 
-  for (size_t i = 0; i < group3.size(); i++) {
+  for (i = 0; i < group3.size(); i++) {
     group3[i].grad = (group3[i].mass/group3.total_mass) *
       (dxdr3);
   }
@@ -307,16 +308,17 @@ void colvar::dihedral::calc_gradients()
               +dsindB.y*r34.x - dsindB.x*r34.y);
   }
 
-  for (size_t i = 0; i < group1.size(); i++)
+  size_t i;
+  for (i = 0; i < group1.size(); i++)
     group1[i].grad = (group1[i].mass/group1.total_mass) * (-f1);
 
-  for (size_t i = 0; i < group2.size(); i++)
+  for (i = 0; i < group2.size(); i++)
     group2[i].grad = (group2[i].mass/group2.total_mass) * (-f2 + f1);
 
-  for (size_t i = 0; i < group3.size(); i++)
+  for (i = 0; i < group3.size(); i++)
 	group3[i].grad = (group3[i].mass/group3.total_mass) * (-f3 + f2);
 
-  for (size_t i = 0; i < group4.size(); i++)
+  for (i = 0; i < group4.size(); i++)
     group4[i].grad = (group4[i].mass/group4.total_mass) * (f3);
 }
 

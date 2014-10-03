@@ -1,4 +1,4 @@
-// -*- c++ -*-
+/// -*- c++ -*-
 
 #ifndef COLVAR_H
 #define COLVAR_H
@@ -155,6 +155,8 @@ public:
   /// Tasks performed by this colvar
   bool tasks[task_ntot];
 
+  /// List of biases that depend on this colvar
+  std::vector<colvarbias *> biases;
 protected:
 
 
@@ -283,7 +285,7 @@ public:
   colvar (std::string const &conf);
 
   /// Enable the specified task
-  void enable (colvar::task const &t);
+  int enable (colvar::task const &t);
 
   /// Disable the specified task
   void disable (colvar::task const &t);
@@ -355,7 +357,7 @@ public:
 
 
   /// Read the analysis tasks
-  void parse_analysis (std::string const &conf);
+  int parse_analysis (std::string const &conf);
   /// Perform analysis tasks
   void analyse();
 
@@ -374,7 +376,7 @@ public:
   std::ostream & write_restart (std::ostream &os);
 
   /// Write output files (if defined, e.g. in analysis mode)
-  void write_output_files();
+  int write_output_files();
 
 
 protected:
@@ -430,7 +432,7 @@ protected:
   acf_type_e             acf_type;
 
   /// \brief Velocity ACF, scalar product between v(0) and v(t)
-  void calc_vel_acf (std::list<colvarvalue> &v_history,
+  int calc_vel_acf (std::list<colvarvalue> &v_history,
                      colvarvalue const      &v);
 
   /// \brief Coordinate ACF, scalar product between x(0) and x(t)
@@ -444,7 +446,7 @@ protected:
                         colvarvalue const      &x);
 
   /// Calculate the auto-correlation function (ACF)
-  void calc_acf();
+  int calc_acf();
   /// Save the ACF to a file
   void write_acf (std::ostream &os);
 
@@ -485,6 +487,7 @@ public:
   class h_bond;
   class rmsd;
   class orientation_angle;
+  class orientation_proj;
   class tilt;
   class spin_angle;
   class gyration;
@@ -522,20 +525,6 @@ public:
     return cvcs.size();
   }
 };
-
-
-inline colvar * cvm::colvar_p (std::string const &name)
-{
-  for (std::vector<colvar *>::iterator cvi = cvm::colvars.begin();
-       cvi != cvm::colvars.end();
-       cvi++) {
-    if ((*cvi)->name == name) {
-      return (*cvi);
-    }
-  }
-  return NULL;
-}
-
 
 inline colvarvalue::Type colvar::type() const
 {

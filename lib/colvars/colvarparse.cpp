@@ -1,12 +1,11 @@
+/// -*- c++ -*-
+
 #include <sstream>
 #include <iostream>
-
-
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
 #include "colvarparse.h"
-
 
 
 // space & tab
@@ -51,8 +50,8 @@ size_t      colvarparse::dummy_pos = 0;
       if (is >> x)                                                      \
         value = x;                                                      \
       else                                                              \
-        cvm::fatal_error ("Error: in parsing \""+                       \
-                          std::string (key)+"\".\n");                   \
+        cvm::error ("Error: in parsing \""+                             \
+                     std::string (key)+"\".\n", INPUT_ERROR);           \
       if (parse_mode != parse_silent) {                                 \
         cvm::log ("# "+std::string (key)+" = "+                         \
                   cvm::to_str (value)+"\n");                            \
@@ -60,8 +59,8 @@ size_t      colvarparse::dummy_pos = 0;
     } else {                                                            \
                                                                         \
       if (b_found_any)                                                  \
-        cvm::fatal_error ("Error: improper or missing value "           \
-                          "for \""+std::string (key)+"\".\n");          \
+        cvm::error ("Error: improper or missing value "                 \
+                    "for \""+std::string (key)+"\".\n", INPUT_ERROR);   \
       value = def_value;                                                \
       if (parse_mode != parse_silent) {                                 \
         cvm::log ("# "+std::string (key)+" = \""+                       \
@@ -112,9 +111,9 @@ size_t      colvarparse::dummy_pos = 0;
         cvm::fatal_error ("Error: in parsing \""+                       \
                           std::string (key)+"\".\n");                   \
       if (data_count > 1)                                               \
-        cvm::fatal_error ("Error: multiple values "                     \
-                          "are not allowed for keyword \""+             \
-                          std::string (key)+"\".\n");                   \
+        cvm::error ("Error: multiple values "                           \
+                    "are not allowed for keyword \""+                   \
+                    std::string (key)+"\".\n", INPUT_ERROR);            \
       if (parse_mode != parse_silent) {                                 \
         cvm::log ("# "+std::string (key)+" = "+                         \
                   cvm::to_str (value)+"\n");                            \
@@ -122,8 +121,8 @@ size_t      colvarparse::dummy_pos = 0;
     } else {                                                            \
                                                                         \
       if (b_found_any)                                                  \
-        cvm::fatal_error ("Error: improper or missing value "           \
-                          "for \""+std::string (key)+"\".\n");          \
+        cvm::error ("Error: improper or missing value "                  \
+                   "for \""+std::string (key)+"\".\n", INPUT_ERROR);    \
       value = def_value;                                                \
       if (parse_mode != parse_silent) {                                 \
         cvm::log ("# "+std::string (key)+" = "+                         \
@@ -189,8 +188,8 @@ size_t      colvarparse::dummy_pos = 0;
           if (is >> x)                                                  \
             values[i] = x;                                              \
           else                                                          \
-            cvm::fatal_error ("Error: in parsing \""+                   \
-                              std::string (key)+"\".\n");               \
+            cvm::error ("Error: in parsing \""+                         \
+                         std::string (key)+"\".\n", INPUT_ERROR);       \
         }                                                               \
       }                                                                 \
                                                                         \
@@ -202,8 +201,8 @@ size_t      colvarparse::dummy_pos = 0;
     } else {                                                            \
                                                                         \
       if (b_found_any)                                                  \
-        cvm::fatal_error ("Error: improper or missing values for \""+   \
-                          std::string (key)+"\".\n");                   \
+        cvm::error ("Error: improper or missing values for \""+         \
+                    std::string (key)+"\".\n", INPUT_ERROR);            \
                                                                         \
       for (size_t i = 0; i < values.size(); i++)                        \
         values[i] = def_values[ (i > def_values.size()) ? 0 : i ];      \
@@ -267,7 +266,6 @@ bool colvarparse::get_keyval (std::string const &conf,
               std::string (key)+"\".\n");
 
   if (data.size()) {
-    std::istringstream is (data);
     if ( (data == std::string ("on")) ||
          (data == std::string ("yes")) ||
          (data == std::string ("true")) ) {
@@ -349,7 +347,7 @@ void colvarparse::strip_values (std::string &conf)
 }
 
 
-void colvarparse::check_keywords (std::string &conf, char const *key)
+int colvarparse::check_keywords (std::string &conf, char const *key)
 {
   if (cvm::debug())
     cvm::log ("Configuration string for \""+std::string (key)+
@@ -383,10 +381,17 @@ void colvarparse::check_keywords (std::string &conf, char const *key)
         break;
       }
     }
-    if (!found_keyword)
-      cvm::fatal_error ("Error: keyword \""+uk+"\" is not supported, "
+    if (!found_keyword) {
+      cvm::log ("Error: keyword \""+uk+"\" is not supported, "
                         "or not recognized in this context.\n");
+      cvm::set_error_bits(INPUT_ERROR);
+      return COLVARS_ERROR;
+    }
   }
+  allowed_keywords.clear();
+  data_begin_pos.clear();
+  data_end_pos.clear();
+  return COLVARS_OK;
 }
 
 
@@ -635,9 +640,3 @@ bool colvarparse::brace_check (std::string const &conf,
   else
     return true;
 }
-
-
-// Emacs
-// Local Variables:
-// mode: C++
-// End:

@@ -1,3 +1,5 @@
+/// -*- c++ -*-
+
 #ifndef COLVARCOMP_H
 #define COLVARCOMP_H
 
@@ -296,8 +298,8 @@ inline cvm::real colvar::cvc::compare (colvarvalue const &x1,
   if (this->type() == colvarvalue::type_scalar) {
     return cvm::real (x1 - x2);
   } else {
-    cvm::fatal_error ("Error: you requested an operation which requires "
-                      "comparison between two non-scalar values.\n");
+    cvm::error ("Error: you requested an operation which requires "
+                "comparison between two non-scalar values.\n");
     return 0.0;
   }
 }
@@ -1050,6 +1052,31 @@ public:
 };
 
 
+/// \brief Colvar component: cosine of the angle of rotation with respect to a set
+/// of reference coordinates (colvarvalue::type_scalar type, range
+/// [-1:1])
+class colvar::orientation_proj
+  : public colvar::orientation
+{
+public:
+
+  orientation_proj (std::string const &conf);
+  orientation_proj();
+  virtual inline ~orientation_proj() {}
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force (colvarvalue const &force);
+  virtual cvm::real dist2 (colvarvalue const &x1,
+                           colvarvalue const &x2) const;
+  virtual colvarvalue dist2_lgrad (colvarvalue const &x1,
+                                   colvarvalue const &x2) const;
+  virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
+                                   colvarvalue const &x2) const;
+  virtual cvm::real compare (colvarvalue const &x1,
+                             colvarvalue const &x2) const;
+};
+
+
 /// \brief Colvar component: projection of the orientation vector onto
 /// a predefined axis (colvarvalue::type_scalar type, range [-1:1])
 class colvar::tilt
@@ -1199,6 +1226,7 @@ public:
   simple_scalar_dist_functions (inertia_z)
   simple_scalar_dist_functions (rmsd)
   simple_scalar_dist_functions (orientation_angle)
+  simple_scalar_dist_functions (orientation_proj)
   simple_scalar_dist_functions (tilt)
   simple_scalar_dist_functions (eigenvector)
   //  simple_scalar_dist_functions (alpha_dihedrals)
@@ -1379,7 +1407,7 @@ inline colvarvalue colvar::distance_vec::dist2_rgrad (colvarvalue const &x1,
 inline cvm::real colvar::distance_vec::compare (colvarvalue const &x1,
                                                 colvarvalue const &x2) const
 {
-  cvm::fatal_error ("Error: cannot compare() two distance vectors.\n");
+  cvm::error ("Error: cannot compare() two distance vectors.\n");
   return 0.0;
 }
 
@@ -1404,7 +1432,7 @@ inline colvarvalue colvar::distance_dir::dist2_rgrad (colvarvalue const &x1,
 inline cvm::real colvar::distance_dir::compare (colvarvalue const &x1,
                                                 colvarvalue const &x2) const
 {
-  cvm::fatal_error ("Error: cannot compare() two distance directions.\n");
+  cvm::error ("Error: cannot compare() two distance directions.\n");
   return 0.0;
 }
 
@@ -1431,15 +1459,9 @@ inline colvarvalue colvar::orientation::dist2_rgrad (colvarvalue const &x1,
 inline cvm::real colvar::orientation::compare (colvarvalue const &x1,
                                                colvarvalue const &x2) const
 {
-  cvm::fatal_error ("Error: cannot compare() two quaternions.\n");
+  cvm::error ("Error: cannot compare() two quaternions.\n");
   return 0.0;
 }
 
 
 #endif
-
-
-// Emacs
-// Local Variables:
-// mode: C++
-// End:

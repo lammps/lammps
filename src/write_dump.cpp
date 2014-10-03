@@ -22,6 +22,8 @@
 #include "dump_image.h"
 #include "atom.h"
 #include "group.h"
+#include "input.h"
+#include "update.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -75,12 +77,16 @@ void WriteDump::command(int narg, char **arg)
   if (strcmp(arg[1],"cfg") == 0)
     ((DumpCFG *) dump)->multifile_override = 1;
 
+  if (update->first_update == 0)
+    input->one("run 0 post no");
+  else
+    lmp->init();
+
   dump->init();
   dump->write();
 
   // delete the Dump instance and local storage
 
   delete dump;
-  delete[] dumpargs;
+  delete [] dumpargs;
 }
-

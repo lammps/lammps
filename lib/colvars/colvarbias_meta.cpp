@@ -712,6 +712,7 @@ void colvarbias_meta::calc_hills_force (size_t const &i,
 
   case colvarvalue::type_vector:
   case colvarvalue::type_unitvector:
+  case colvarvalue::type_unitvectorderiv:
     for (h = h_first; h != h_last; h++) {
       if (h->value() == 0.0) continue;
       colvarvalue const &center = h->centers[i];
@@ -722,7 +723,7 @@ void colvarbias_meta::calc_hills_force (size_t const &i,
     }
     break;
 
-  case colvarvalue::type_quaternion:
+  case colvarvalue::type_quaternionderiv:
     for (h = h_first; h != h_last; h++) {
       if (h->value() == 0.0) continue;
       colvarvalue const &center = h->centers[i];
@@ -734,6 +735,7 @@ void colvarbias_meta::calc_hills_force (size_t const &i,
     break;
 
   case colvarvalue::type_notset:
+  case colvarvalue::type_all:
     break;
   }
 }

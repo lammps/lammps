@@ -243,6 +243,7 @@ int colvarscript::proc_colvar (int argc, char const *argv[]) {
     std::string f_str = argv[3];
     std::istringstream is (f_str);
     colvarvalue force (cv->type());
+    force.is_derivative();
     if (!(is >> force)) {
       result = "Error parsing force value";
       return COLVARSCRIPT_ERROR;

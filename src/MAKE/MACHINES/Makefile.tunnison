@@ -114,6 +114,9 @@ shlib:	$(OBJ)
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
 
+%.o:%.cu
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
+
 # Individual dependencies
 
 DEPENDS = $(OBJ:.o=.d)

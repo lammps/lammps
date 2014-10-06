@@ -11,7 +11,7 @@ CCFLAGS =	-g -O3 -arch=sm_20
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		g++
+LINK =		nvcc
 LINKFLAGS =	-g -O
 LIB = 
 SIZE =		size

@@ -12,7 +12,20 @@ SiC = Silicon and Carbon
 Au_u3 = Gold universal 3
 
 For many of the files, comments in the header section give origin and
-citation information.
+citation information. Note that these files are provided primarily to 
+demonstrate the different types of interatomic potentials that LAMMPS 
+supports. In most cases we have confirmed that when used with the
+latest LAMMPS code, it reproduces results in the cited publication.
+In some cases, it may be necessary to specify other parameters not 
+contained in the potential file. Also, for particular
+materials and applications, a different potential file may be more 
+suitable than the one provided here. For best results, users should 
+do a thorough search of published literature and on-line databases
+such as Knowledgebase of Interatomic Models (KIM) and Interatomic 
+Potentials Repository Project (NIST).
+They should then choose the best potential for their 
+application, and verify that they have defined it correctly in LAMMPS 
+by comparing with published results for that potential.
 
 The suffix of each file indicates the pair style it is used with:
 
@@ -28,7 +41,6 @@ eam.alloy     EAM multi-element alloy, DYNAMO setfl format
 eam.fs	      Finnis-Sinclair EAM format (single element or alloy)
 edip          EDIP potential for silicon-based materials
 eim           embedded-ion method (EIM) potential
-nb3d.harmonic non-bonded 3-body harmonic potential
 lcbop         LCBOP long-range bond-order potential
 meam	      modified EAM (MEAM) library and individual elements/alloys
 meam.spline   modified EAM (MEAM) spline potential

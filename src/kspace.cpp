@@ -68,6 +68,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   suffix_flag = Suffix::NONE;
   adjust_cutoff_flag = 1;
   scalar_pressure_flag = 0;
+  qsum_update_flag = 0;
 
   accuracy_absolute = -1.0;
   accuracy_real_6 = -1.0;

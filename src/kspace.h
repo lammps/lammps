@@ -51,6 +51,7 @@ class KSpace : protected Pointers {
                                  // for LJ coefficients
   int slabflag;
   int scalar_pressure_flag;      // 1 if using MSM fast scalar pressure
+  int qsum_update_flag;          // 1 if setup() needs to call qsum_qsq()
   double slab_volfactor;
 
 

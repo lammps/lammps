@@ -30,6 +30,7 @@
 #include "force.h"
 #include "group.h"
 #include "pair.h"
+#include "kspace.h"
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
@@ -167,6 +168,7 @@ void FixQEqDynamic::pre_force(int vflag)
     }
   }
 
+  if (force->kspace) force->kspace->setup();
 }
 
 /* ---------------------------------------------------------------------- */

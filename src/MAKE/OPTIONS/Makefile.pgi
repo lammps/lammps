@@ -51,9 +51,9 @@ MPI_LIB =	-lmpich
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW
+FFT_INC =       -DFFT_FFTW3
 FFT_PATH = 
-FFT_LIB =	-lfftw
+FFT_LIB =	-lfftw3
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual

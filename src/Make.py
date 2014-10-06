@@ -1528,10 +1528,10 @@ class Fft:
   change FFT settings in makefile
   mode is required, all other args are optional
   removes all current FFT variable settings
-  mode = none or fftw or ...
+  mode = none or fftw or fftw3 of ...
     adds -DFFT_MODE setting
   lib = name of FFT library to link with (def is libname = mode)
-    adds -lliblibname setting
+    adds -lliblib setting, e.g. -llibfftw3
   dir = home dir for include and library files (def = none)
     adds -Idir/include and -Ldir/lib settings
     if set, overrides idir and ldir args

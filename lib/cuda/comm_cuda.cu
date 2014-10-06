@@ -34,7 +34,7 @@
 
 void Cuda_CommCuda_UpdateBuffer(cuda_shared_data* sdata, int n)
 {
-  int size = n * 3 * sizeof(X_FLOAT);
+  int size = n * 3 * sizeof(X_CFLOAT);
 
   if(sdata->buffersize < size) {
     MYDBG(printf("Cuda_ComputeTempCuda Resizing Buffer at %p with %i kB to\n", sdata->buffer, sdata->buffersize);)
@@ -53,9 +53,9 @@ void Cuda_CommCuda_UpdateNmax(cuda_shared_data* sdata)
 {
   cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nmax)    , & sdata->atom.nmax          , sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(x)       , & sdata->atom.x    .dev_data, sizeof(X_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.v    .dev_data, sizeof(X_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(f)       , & sdata->atom.f    .dev_data, sizeof(F_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(x)       , & sdata->atom.x    .dev_data, sizeof(X_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.v    .dev_data, sizeof(X_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(f)       , & sdata->atom.f    .dev_data, sizeof(F_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(type)    , & sdata->atom.type .dev_data, sizeof(int*));
 }
 
@@ -65,7 +65,7 @@ void Cuda_CommCuda_Init(cuda_shared_data* sdata)
   Cuda_CommCuda_UpdateNmax(sdata);
   int ntypesp = sdata->atom.ntypes + 1;
   cudaMemcpyToSymbol(MY_AP(cuda_ntypes)   , &ntypesp, sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(prd)   , sdata->domain.prd, 3 * sizeof(X_FLOAT));
+  cudaMemcpyToSymbol(MY_AP(prd)   , sdata->domain.prd, 3 * sizeof(X_CFLOAT));
   cudaMemcpyToSymbol(MY_AP(flag)  , &sdata->flag, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(debugdata)  , &sdata->debugdata, sizeof(int*));
 }
@@ -81,14 +81,14 @@ int Cuda_CommCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* buf_
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
-  int size = n * 3 * sizeof(X_FLOAT);
+  int size = n * 3 * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_CommCuda_UpdateBuffer(sdata, n);
 
-  X_FLOAT dx = 0.0;
-  X_FLOAT dy = 0.0;
-  X_FLOAT dz = 0.0;
+  X_CFLOAT dx = 0.0;
+  X_CFLOAT dy = 0.0;
+  X_CFLOAT dz = 0.0;
 
   if(pbc_flag != 0) {
     if(sdata->domain.triclinic == 0) {
@@ -123,8 +123,8 @@ int Cuda_CommCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* buf_
     CUT_CHECK_ERROR("Cuda_CommCuda_PackComm: Kernel execution failed");
 
     if(not sdata->overlap_comm)
-      cudaMemcpy(buf_send, sdata->buffer, n * 3 * sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
-    //cudaMemcpy(buf_send, sdata->comm.buf_send_dev[iswap], n*3*sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
+      cudaMemcpy(buf_send, sdata->buffer, n * 3 * sizeof(X_CFLOAT), cudaMemcpyDeviceToHost);
+    //cudaMemcpy(buf_send, sdata->comm.buf_send_dev[iswap], n*3*sizeof(X_CFLOAT), cudaMemcpyDeviceToHost);
 
     my_gettime(CLOCK_REALTIME, &time1);
     sdata->cuda_timings.comm_forward_download +=
@@ -151,14 +151,14 @@ int Cuda_CommCuda_PackCommVel(cuda_shared_data* sdata, int n, int iswap, void* b
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
-  int size = n * 6 * sizeof(X_FLOAT);
+  int size = n * 6 * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_CommCuda_UpdateBuffer(sdata, n);
 
-  X_FLOAT dx = 0.0;
-  X_FLOAT dy = 0.0;
-  X_FLOAT dz = 0.0;
+  X_CFLOAT dx = 0.0;
+  X_CFLOAT dy = 0.0;
+  X_CFLOAT dz = 0.0;
 
   if(pbc_flag != 0) {
     if(sdata->domain.triclinic == 0) {
@@ -193,8 +193,8 @@ int Cuda_CommCuda_PackCommVel(cuda_shared_data* sdata, int n, int iswap, void* b
     CUT_CHECK_ERROR("Cuda_CommCuda_PackComm: Kernel execution failed");
 
     if(not sdata->overlap_comm)
-      cudaMemcpy(buf_send, sdata->buffer, n * 6 * sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
-    //cudaMemcpy(buf_send, sdata->comm.buf_send_dev[iswap], n*3*sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
+      cudaMemcpy(buf_send, sdata->buffer, n * 6 * sizeof(X_CFLOAT), cudaMemcpyDeviceToHost);
+    //cudaMemcpy(buf_send, sdata->comm.buf_send_dev[iswap], n*3*sizeof(X_CFLOAT), cudaMemcpyDeviceToHost);
 
     my_gettime(CLOCK_REALTIME, &time1);
     sdata->cuda_timings.comm_forward_download +=
@@ -221,16 +221,16 @@ int Cuda_CommCuda_PackComm_Self(cuda_shared_data* sdata, int n, int iswap, int f
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
-  int size = n * 3 * sizeof(X_FLOAT);
+  int size = n * 3 * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_CommCuda_UpdateBuffer(sdata, n);
 
   static int count = -1;
   count++;
-  X_FLOAT dx = 0.0;
-  X_FLOAT dy = 0.0;
-  X_FLOAT dz = 0.0;
+  X_CFLOAT dx = 0.0;
+  X_CFLOAT dy = 0.0;
+  X_CFLOAT dz = 0.0;
 
   if(pbc_flag != 0) {
     if(sdata->domain.triclinic == 0) {
@@ -278,16 +278,16 @@ int Cuda_CommCuda_PackCommVel_Self(cuda_shared_data* sdata, int n, int iswap, in
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
-  int size = n * 6 * sizeof(X_FLOAT);
+  int size = n * 6 * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_CommCuda_UpdateBuffer(sdata, n);
 
   static int count = -1;
   count++;
-  X_FLOAT dx = 0.0;
-  X_FLOAT dy = 0.0;
-  X_FLOAT dz = 0.0;
+  X_CFLOAT dx = 0.0;
+  X_CFLOAT dy = 0.0;
+  X_CFLOAT dz = 0.0;
 
   if(pbc_flag != 0) {
     if(sdata->domain.triclinic == 0) {
@@ -334,7 +334,7 @@ void Cuda_CommCuda_UnpackComm(cuda_shared_data* sdata, int n, int first, void* b
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
-  int size = n * 3 * sizeof(X_FLOAT);
+  int size = n * 3 * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_CommCuda_UpdateBuffer(sdata, n);
@@ -347,7 +347,7 @@ void Cuda_CommCuda_UnpackComm(cuda_shared_data* sdata, int n, int first, void* b
     my_gettime(CLOCK_REALTIME, &time1);
 
     if(not sdata->overlap_comm || iswap < 0)
-      cudaMemcpy(sdata->buffer, (void*)buf_recv, n * 3 * sizeof(X_FLOAT), cudaMemcpyHostToDevice);
+      cudaMemcpy(sdata->buffer, (void*)buf_recv, n * 3 * sizeof(X_CFLOAT), cudaMemcpyHostToDevice);
 
     my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_forward_upload +=
@@ -375,7 +375,7 @@ void Cuda_CommCuda_UnpackCommVel(cuda_shared_data* sdata, int n, int first, void
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
-  int size = n * 6 * sizeof(X_FLOAT);
+  int size = n * 6 * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_CommCuda_UpdateBuffer(sdata, n);
@@ -388,7 +388,7 @@ void Cuda_CommCuda_UnpackCommVel(cuda_shared_data* sdata, int n, int first, void
     my_gettime(CLOCK_REALTIME, &time1);
 
     if(not sdata->overlap_comm || iswap < 0)
-      cudaMemcpy(sdata->buffer, (void*)buf_recv, n * 6 * sizeof(X_FLOAT), cudaMemcpyHostToDevice);
+      cudaMemcpy(sdata->buffer, (void*)buf_recv, n * 6 * sizeof(X_CFLOAT), cudaMemcpyHostToDevice);
 
     my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_forward_upload +=
@@ -414,22 +414,22 @@ int Cuda_CommCuda_PackReverse(cuda_shared_data* sdata, int n, int first, void* b
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
-  int size = n * 3 * sizeof(F_FLOAT);
+  int size = n * 3 * sizeof(F_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_CommCuda_UpdateBuffer(sdata, n);
 
 
-  F_FLOAT* buf = (F_FLOAT*)buf_send;
-  F_FLOAT* f_dev = (F_FLOAT*)sdata->atom.f.dev_data;
+  F_CFLOAT* buf = (F_CFLOAT*)buf_send;
+  F_CFLOAT* f_dev = (F_CFLOAT*)sdata->atom.f.dev_data;
   f_dev += first;
-  cudaMemcpy(buf, f_dev, n * sizeof(F_FLOAT), cudaMemcpyDeviceToHost);
+  cudaMemcpy(buf, f_dev, n * sizeof(F_CFLOAT), cudaMemcpyDeviceToHost);
   buf += n;
   f_dev += sdata->atom.nmax;
-  cudaMemcpy(buf, f_dev, n * sizeof(F_FLOAT), cudaMemcpyDeviceToHost);
+  cudaMemcpy(buf, f_dev, n * sizeof(F_CFLOAT), cudaMemcpyDeviceToHost);
   buf += n;
   f_dev += sdata->atom.nmax;
-  cudaMemcpy(buf, f_dev, n * sizeof(F_FLOAT), cudaMemcpyDeviceToHost);
+  cudaMemcpy(buf, f_dev, n * sizeof(F_CFLOAT), cudaMemcpyDeviceToHost);
   return 	n * 3;
 }
 
@@ -442,7 +442,7 @@ void Cuda_CommCuda_UnpackReverse(cuda_shared_data* sdata, int n, int iswap, void
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
-  int size = n * 3 * sizeof(F_FLOAT);
+  int size = n * 3 * sizeof(F_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_CommCuda_UpdateBuffer(sdata, n);
@@ -468,7 +468,7 @@ void Cuda_CommCuda_UnpackReverse_Self(cuda_shared_data* sdata, int n, int iswap,
   if(sdata->atom.update_nlocal)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
-  int size = n * 3 * sizeof(X_FLOAT);
+  int size = n * 3 * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_CommCuda_UpdateBuffer(sdata, n);
@@ -520,9 +520,9 @@ int Cuda_CommCuda_BuildSendlist(cuda_shared_data* sdata, int bordergroup, int in
   my_gettime(CLOCK_REALTIME, &time1);
 
   if(style == 1)
-    Cuda_CommCuda_BuildSendlist_Single <<< grid, threads, (threads.x + 1)*sizeof(int) >>> (bordergroup, ineed, atom_nfirst, nfirst, nlast, dim, iswap, (X_FLOAT*) sdata->comm.slablo.dev_data, (X_FLOAT*) sdata->comm.slabhi.dev_data, (int*) sdata->comm.sendlist.dev_data, sdata->comm.maxlistlength);
+    Cuda_CommCuda_BuildSendlist_Single <<< grid, threads, (threads.x + 1)*sizeof(int) >>> (bordergroup, ineed, atom_nfirst, nfirst, nlast, dim, iswap, (X_CFLOAT*) sdata->comm.slablo.dev_data, (X_CFLOAT*) sdata->comm.slabhi.dev_data, (int*) sdata->comm.sendlist.dev_data, sdata->comm.maxlistlength);
   else
-    Cuda_CommCuda_BuildSendlist_Multi <<< grid, threads, (threads.x + 1)*sizeof(int) >>> (bordergroup, ineed, atom_nfirst, nfirst, nlast, dim, iswap, (X_FLOAT*) sdata->comm.multilo.dev_data, (X_FLOAT*) sdata->comm.multihi.dev_data, (int*) sdata->comm.sendlist.dev_data, sdata->comm.maxlistlength);
+    Cuda_CommCuda_BuildSendlist_Multi <<< grid, threads, (threads.x + 1)*sizeof(int) >>> (bordergroup, ineed, atom_nfirst, nfirst, nlast, dim, iswap, (X_CFLOAT*) sdata->comm.multilo.dev_data, (X_CFLOAT*) sdata->comm.multihi.dev_data, (int*) sdata->comm.sendlist.dev_data, sdata->comm.maxlistlength);
 
   cudaThreadSynchronize();
   my_gettime(CLOCK_REALTIME, &time2);

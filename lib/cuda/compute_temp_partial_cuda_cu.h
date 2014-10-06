@@ -24,7 +24,7 @@
 #include "cuda_shared.h"
 
 extern "C" void Cuda_ComputeTempPartialCuda_Init(cuda_shared_data* sdata);
-extern "C" void Cuda_ComputeTempPartialCuda_Vector(cuda_shared_data* sdata, int groupbit, ENERGY_FLOAT* t, int xflag, int yflag, int zflag);
-extern "C" void Cuda_ComputeTempPartialCuda_Scalar(cuda_shared_data* sdata, int groupbit, ENERGY_FLOAT* t, int xflag, int yflag, int zflag);
+extern "C" void Cuda_ComputeTempPartialCuda_Vector(cuda_shared_data* sdata, int groupbit, ENERGY_CFLOAT* t, int xflag, int yflag, int zflag);
+extern "C" void Cuda_ComputeTempPartialCuda_Scalar(cuda_shared_data* sdata, int groupbit, ENERGY_CFLOAT* t, int xflag, int yflag, int zflag);
 extern "C" void Cuda_ComputeTempPartialCuda_RemoveBiasAll(cuda_shared_data* sdata, int groupbit, int xflag, int yflag, int zflag, void* vbiasall);
 extern "C" void Cuda_ComputeTempPartialCuda_RestoreBiasAll(cuda_shared_data* sdata, int groupbit, int xflag, int yflag, int zflag, void* vbiasall);

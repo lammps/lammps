@@ -32,21 +32,21 @@
 
 void Cuda_FixNHCuda_UpdateNmax(cuda_shared_data* sdata)
 {
-  cudaMemcpyToSymbol(MY_AP(f)       , & sdata->atom.f    .dev_data, sizeof(F_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(f)       , & sdata->atom.f    .dev_data, sizeof(F_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(mask)    , & sdata->atom.mask .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(tag)     , & sdata->atom.tag  .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(debugdata)     , & sdata->debugdata, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nmax)    , & sdata->atom.nmax          , sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(rmass)   , & sdata->atom.rmass.dev_data, sizeof(V_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(mass)    , & sdata->atom.mass.dev_data, sizeof(V_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(rmass)   , & sdata->atom.rmass.dev_data, sizeof(V_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(mass)    , & sdata->atom.mass.dev_data, sizeof(V_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(type)    , & sdata->atom.type .dev_data, sizeof(int*));
-  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.v    .dev_data, sizeof(V_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(x)       , & sdata->atom.x    .dev_data, sizeof(X_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(xhold)   , & sdata->atom.xhold.dev_data, sizeof(X_FLOAT*));  //might be moved to a neighbor record in sdata
+  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.v    .dev_data, sizeof(V_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(x)       , & sdata->atom.x    .dev_data, sizeof(X_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(xhold)   , & sdata->atom.xhold.dev_data, sizeof(X_CFLOAT*));  //might be moved to a neighbor record in sdata
   cudaMemcpyToSymbol(MY_AP(maxhold)   , & sdata->atom.maxhold, sizeof(int));  //might be moved to a neighbor record in sdata
   cudaMemcpyToSymbol(MY_AP(reneigh_flag), & sdata->buffer, sizeof(int*));  //might be moved to a neighbor record in sdata
-  cudaMemcpyToSymbol(MY_AP(triggerneighsq), & sdata->atom.triggerneighsq, sizeof(X_FLOAT)); //might be moved to a neighbor record in sdata
+  cudaMemcpyToSymbol(MY_AP(triggerneighsq), & sdata->atom.triggerneighsq, sizeof(X_CFLOAT)); //might be moved to a neighbor record in sdata
 }
 
 void Cuda_FixNHCuda_UpdateBuffer(cuda_shared_data* sdata)
@@ -67,12 +67,12 @@ void Cuda_FixNHCuda_UpdateBuffer(cuda_shared_data* sdata)
   cudaMemcpyToSymbol(MY_AP(reneigh_flag), & sdata->buffer, sizeof(int*));  //might be moved to a neighbor record in sdata
 }
 
-void Cuda_FixNHCuda_Init(cuda_shared_data* sdata, X_FLOAT dtv, V_FLOAT dtf)
+void Cuda_FixNHCuda_Init(cuda_shared_data* sdata, X_CFLOAT dtv, V_CFLOAT dtf)
 {
-  cudaMemcpyToSymbol(MY_AP(mass)    , & sdata->atom.mass.dev_data , sizeof(V_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(dtf)     , & dtf                       		, sizeof(V_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(dtv)     , & dtv                            , sizeof(X_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(triggerneighsq), &sdata->atom.triggerneighsq, sizeof(X_FLOAT));
+  cudaMemcpyToSymbol(MY_AP(mass)    , & sdata->atom.mass.dev_data , sizeof(V_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(dtf)     , & dtf                       		, sizeof(V_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(dtv)     , & dtv                            , sizeof(X_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(triggerneighsq), &sdata->atom.triggerneighsq, sizeof(X_CFLOAT));
   cudaMemcpyToSymbol(MY_AP(dist_check), & sdata->atom.dist_check       , sizeof(int));
   cudaMemcpyToSymbol(MY_AP(rmass_flag), & sdata->atom.rmass_flag       , sizeof(int));       //
   Cuda_FixNHCuda_UpdateNmax(sdata);
@@ -97,8 +97,8 @@ void Cuda_FixNHCuda_nh_v_press(cuda_shared_data* sdata, int groupbit, double* fa
   if(sdata->buffer_new)
     Cuda_FixNHCuda_UpdateBuffer(sdata);
 
-  F_FLOAT3 factor = {factor_h[0], factor_h[1], factor_h[2]};
-  F_FLOAT3 factor2;
+  F_CFLOAT3 factor = {factor_h[0], factor_h[1], factor_h[2]};
+  F_CFLOAT3 factor2;
 
   if(p_triclinic) {
     factor2.x = factor_h[3], factor2.y = factor_h[4];
@@ -125,8 +125,8 @@ void Cuda_FixNHCuda_nh_v_press_and_nve_v_NoBias(cuda_shared_data* sdata, int gro
   if(sdata->buffer_new)
     Cuda_FixNHCuda_UpdateBuffer(sdata);
 
-  F_FLOAT3 factor = {factor_h[0], factor_h[1], factor_h[2]};
-  F_FLOAT3 factor2;
+  F_CFLOAT3 factor = {factor_h[0], factor_h[1], factor_h[2]};
+  F_CFLOAT3 factor2;
 
   if(p_triclinic) {
     factor2.x = factor_h[3], factor2.y = factor_h[4];
@@ -143,7 +143,7 @@ void Cuda_FixNHCuda_nh_v_press_and_nve_v_NoBias(cuda_shared_data* sdata, int gro
 
 }
 
-void Cuda_FixNHCuda_nh_v_temp(cuda_shared_data* sdata, int groupbit, F_FLOAT factor_eta, int mynlocal) //mynlocal can be nfirst if firstgroup==igroup  see cpp
+void Cuda_FixNHCuda_nh_v_temp(cuda_shared_data* sdata, int groupbit, F_CFLOAT factor_eta, int mynlocal) //mynlocal can be nfirst if firstgroup==igroup  see cpp
 {
   my_times atime1, atime2;
   my_gettime(CLOCK_REALTIME, &atime1);
@@ -237,8 +237,8 @@ void Cuda_FixNHCuda_nve_v_and_nh_v_press_NoBias(cuda_shared_data* sdata, int gro
   if(sdata->buffer_new)
     Cuda_FixNHCuda_UpdateBuffer(sdata);
 
-  F_FLOAT3 factor = {factor_h[0], factor_h[1], factor_h[2]};
-  F_FLOAT3 factor2;
+  F_CFLOAT3 factor = {factor_h[0], factor_h[1], factor_h[2]};
+  F_CFLOAT3 factor2;
 
   if(p_triclinic) {
     factor2.x = factor_h[3], factor2.y = factor_h[4];

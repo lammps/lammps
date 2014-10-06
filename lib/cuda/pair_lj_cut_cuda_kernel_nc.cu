@@ -21,10 +21,10 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-__device__ inline F_FLOAT PairLJCutCuda_Eval(const F_FLOAT &rsq, const int ij_type, F_FLOAT &factor_lj, int &eflag, ENERGY_FLOAT &evdwl)
+__device__ inline F_CFLOAT PairLJCutCuda_Eval(const F_CFLOAT &rsq, const int ij_type, F_CFLOAT &factor_lj, int &eflag, ENERGY_CFLOAT &evdwl)
 {
-  const F_FLOAT r2inv = F_F(1.0) / rsq;
-  const F_FLOAT r6inv = r2inv * r2inv * r2inv;
+  const F_CFLOAT r2inv = F_F(1.0) / rsq;
+  const F_CFLOAT r6inv = r2inv * r2inv * r2inv;
 
   if(eflag) evdwl += factor_lj * (r6inv * (_lj3[ij_type] * r6inv -
                                     _lj4[ij_type]) - _offset[ij_type]);

@@ -32,10 +32,10 @@
 
 #include <time.h>
 
-void Cuda_PairLJCharmmCoulLongCuda_Init(cuda_shared_data* sdata, F_FLOAT denom_lj_inv)
+void Cuda_PairLJCharmmCoulLongCuda_Init(cuda_shared_data* sdata, F_CFLOAT denom_lj_inv)
 {
   Cuda_Pair_Init_AllStyles(sdata, 4, true, true, true);
-  cudaMemcpyToSymbol(MY_AP(denom_lj_inv) , &denom_lj_inv  , sizeof(F_FLOAT));
+  cudaMemcpyToSymbol(MY_AP(denom_lj_inv) , &denom_lj_inv  , sizeof(F_CFLOAT));
 
   return;
 }
@@ -43,7 +43,7 @@ void Cuda_PairLJCharmmCoulLongCuda_Init(cuda_shared_data* sdata, F_FLOAT denom_l
 
 
 void Cuda_PairLJCharmmCoulLongCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist, int eflag, int vflag,
-                                   int eflag_atom, int vflag_atom, F_FLOAT denom_lj)
+                                   int eflag_atom, int vflag_atom, F_CFLOAT denom_lj)
 {
 
   static  short init = 0;
@@ -62,10 +62,10 @@ void Cuda_PairLJCharmmCoulLongCuda(cuda_shared_data* sdata, cuda_shared_neighlis
 
   if(sdata->pair.use_block_per_atom)
     Pair_Kernel_BpA<PAIR_LJ_CHARMM, COUL_LONG, DATA_NONE>
-    <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
+    <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
   else
     Pair_Kernel_TpA<PAIR_LJ_CHARMM, COUL_LONG, DATA_NONE>
-    <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
+    <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
 
   Cuda_Pair_PostKernel_AllStyles(sdata, grid, sharedperproc, eflag, vflag);
 }

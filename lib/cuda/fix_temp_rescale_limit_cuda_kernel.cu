@@ -23,15 +23,15 @@
 
 
 
-__global__ void Cuda_FixTempRescaleLimitCuda_EndOfStep_Kernel(int groupbit, V_FLOAT factor, V_FLOAT limit)
+__global__ void Cuda_FixTempRescaleLimitCuda_EndOfStep_Kernel(int groupbit, V_CFLOAT factor, V_CFLOAT limit)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nlocal)
     if(_mask[i] & groupbit) {
-      V_FLOAT vx = _v[i];
-      V_FLOAT vy = _v[i + _nmax];
-      V_FLOAT vz = _v[i + 2 * _nmax];
+      V_CFLOAT vx = _v[i];
+      V_CFLOAT vy = _v[i + _nmax];
+      V_CFLOAT vz = _v[i + 2 * _nmax];
       vx *= factor;
       vy *= factor;
       vz *= factor;

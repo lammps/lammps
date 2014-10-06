@@ -22,10 +22,10 @@
 ------------------------------------------------------------------------- */
 #include "cuda_shared.h"
 
-extern "C" void Cuda_FixShakeCuda_Init(cuda_shared_data* sdata, X_FLOAT dtv, F_FLOAT dtfsq,
+extern "C" void Cuda_FixShakeCuda_Init(cuda_shared_data* sdata, X_CFLOAT dtv, F_CFLOAT dtfsq,
                                        void* shake_flag, void* shake_atom, void* shake_type, void* xshake,
                                        void* bond_distance, void* angle_distance, void* virial,
-                                       int max_iter, X_FLOAT tolerance);
+                                       int max_iter, X_CFLOAT tolerance);
 extern "C" void Cuda_FixShakeCuda_UnconstrainedUpdate(cuda_shared_data* sdata);
 extern "C" void Cuda_FixShakeCuda_Shake(cuda_shared_data* sdata, int vflag, int vflag_atom, int* list, int nlist);
 extern "C" int Cuda_FixShakeCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* buf_send, int* pbc, int pbc_flag);

@@ -38,7 +38,7 @@
 #define _nex_group     	MY_AP(nex_group)
 #define _ex_mol_bit     MY_AP(ex_mol_bit)
 #define _nex_mol     	MY_AP(nex_mol)
-__device__ __constant__ CUDA_FLOAT* _cutneighsq;
+__device__ __constant__ CUDA_CFLOAT* _cutneighsq;
 __device__ __constant__ int* _ex_type;
 __device__ __constant__ int _nex_type;
 __device__ __constant__ int* _ex1_bit;
@@ -54,7 +54,7 @@ void Cuda_Neighbor_UpdateBuffer(cuda_shared_data* sdata, cuda_shared_neighlist* 
 {
   CUT_CHECK_ERROR("Cuda_PairLJCutCuda: before updateBuffer failed");
 
-  int size = (unsigned)(sizeof(int) * 20 + sneighlist->bin_dim[0] * sneighlist->bin_dim[1] * sneighlist->bin_dim[2] * (sizeof(int) + sneighlist->bin_nmax * 3 * sizeof(CUDA_FLOAT)));
+  int size = (unsigned)(sizeof(int) * 20 + sneighlist->bin_dim[0] * sneighlist->bin_dim[1] * sneighlist->bin_dim[2] * (sizeof(int) + sneighlist->bin_nmax * 3 * sizeof(CUDA_CFLOAT)));
 
   if(sdata->buffersize < size) {
     MYDBG(printf("Cuda_Neighbor Resizing Buffer at %p with %i kB to\n", sdata->buffer, sdata->buffersize);)
@@ -77,7 +77,7 @@ int Cuda_BinAtoms(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
     Cuda_Neighbor_UpdateBuffer(sdata, sneighlist);
 
   // initialize only on first call
-  CUDA_FLOAT rez_bin_size[3] = {
+  CUDA_CFLOAT rez_bin_size[3] = {
     (1.0 * sneighlist->bin_dim[0] - 4.0) / (sdata->domain.subhi[0] - sdata->domain.sublo[0]),
     (1.0 * sneighlist->bin_dim[1] - 4.0) / (sdata->domain.subhi[1] - sdata->domain.sublo[1]),
     (1.0 * sneighlist->bin_dim[2] - 4.0) / (sdata->domain.subhi[2] - sdata->domain.sublo[2])
@@ -87,10 +87,10 @@ int Cuda_BinAtoms(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
 
   if(! init) {
     init = 0;
-    cudaMemcpyToSymbol(MY_AP(x)              , & sdata->atom.x         .dev_data, sizeof(X_FLOAT*));
+    cudaMemcpyToSymbol(MY_AP(x)              , & sdata->atom.x         .dev_data, sizeof(X_CFLOAT*));
     cudaMemcpyToSymbol(MY_AP(nall)         , & sdata->atom.nall                    , sizeof(unsigned));
     cudaMemcpyToSymbol(MY_AP(nmax)           , & sdata->atom.nmax                    , sizeof(unsigned));
-    cudaMemcpyToSymbol(MY_AP(sublo)          ,   sdata->domain.sublo                 , sizeof(X_FLOAT) * 3);
+    cudaMemcpyToSymbol(MY_AP(sublo)          ,   sdata->domain.sublo                 , sizeof(X_CFLOAT) * 3);
   }
 
 
@@ -101,7 +101,7 @@ int Cuda_BinAtoms(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
   my_times starttime, endtime;
   my_gettime(CLOCK_REALTIME, &starttime);
 
-  cudaMemset((int*)(sdata->buffer), 0, sizeof(int) * (20 + (sneighlist->bin_dim[0]) * (sneighlist->bin_dim[1]) * (sneighlist->bin_dim[2])) + 3 * sizeof(CUDA_FLOAT) * (sneighlist->bin_dim[0]) * (sneighlist->bin_dim[1]) * (sneighlist->bin_dim[2]) * (sneighlist->bin_nmax));
+  cudaMemset((int*)(sdata->buffer), 0, sizeof(int) * (20 + (sneighlist->bin_dim[0]) * (sneighlist->bin_dim[1]) * (sneighlist->bin_dim[2])) + 3 * sizeof(CUDA_CFLOAT) * (sneighlist->bin_dim[0]) * (sneighlist->bin_dim[1]) * (sneighlist->bin_dim[2]) * (sneighlist->bin_nmax));
 
   Binning_Kernel <<< grid, threads>>> (sneighlist->binned_id, sneighlist->bin_nmax, sneighlist->bin_dim[0], sneighlist->bin_dim[1], sneighlist->bin_dim[2], rez_bin_size[0], rez_bin_size[1], rez_bin_size[2]);
   cudaThreadSynchronize();
@@ -126,7 +126,7 @@ int Cuda_BinAtoms(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
 int Cuda_NeighborBuildFullBin(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
 {
   //Cuda_Neighbor_UpdateBuffer(sdata,sneighlist);
-  CUDA_FLOAT globcutoff = -1.0;
+  CUDA_CFLOAT globcutoff = -1.0;
 
   short init = 0;
 
@@ -137,11 +137,11 @@ int Cuda_NeighborBuildFullBin(cuda_shared_data* sdata, cuda_shared_neighlist* sn
 
     unsigned cuda_ntypes = sdata->atom.ntypes + 1;
 
-    unsigned nx = sizeof(CUDA_FLOAT) * cuda_ntypes * cuda_ntypes;
+    unsigned nx = sizeof(CUDA_CFLOAT) * cuda_ntypes * cuda_ntypes;
 
-    CUDA_FLOAT* acutneighsq = (CUDA_FLOAT*) malloc(nx);
+    CUDA_CFLOAT* acutneighsq = (CUDA_CFLOAT*) malloc(nx);
     //printf("Allocate: %i\n",nx);
-    sneighlist->cu_cutneighsq = (CUDA_FLOAT*) CudaWrapper_AllocCudaData(nx);
+    sneighlist->cu_cutneighsq = (CUDA_CFLOAT*) CudaWrapper_AllocCudaData(nx);
 
     if(sneighlist->cutneighsq) {
       int cutoffsdiffer = 0;
@@ -149,13 +149,13 @@ int Cuda_NeighborBuildFullBin(cuda_shared_data* sdata, cuda_shared_neighlist* sn
 
       for(int i = 1; i <= sdata->atom.ntypes; ++i) {
         for(int j = 1; j <= sdata->atom.ntypes; ++j) {
-          acutneighsq[i * cuda_ntypes + j] = (CUDA_FLOAT)(sneighlist->cutneighsq[i][j]);
+          acutneighsq[i * cuda_ntypes + j] = (CUDA_CFLOAT)(sneighlist->cutneighsq[i][j]);
 
           if((sneighlist->cutneighsq[i][j] - cutoff0) * (sneighlist->cutneighsq[i][j] - cutoff0) > 1e-6) cutoffsdiffer++;
         }
       }
 
-      if(not cutoffsdiffer) globcutoff = (CUDA_FLOAT) cutoff0;
+      if(not cutoffsdiffer) globcutoff = (CUDA_CFLOAT) cutoff0;
     } else {
       MYEMUDBG(printf("# CUDA: Cuda_NeighborBuild: cutneighsq == NULL\n");)
       return 0;
@@ -173,7 +173,7 @@ int Cuda_NeighborBuildFullBin(cuda_shared_data* sdata, cuda_shared_neighlist* sn
     }
 
     CudaWrapper_UploadCudaData(acutneighsq, sneighlist->cu_cutneighsq, nx);
-    cudaMemcpyToSymbol(MY_AP(cutneighsq)       , &sneighlist->cu_cutneighsq       , sizeof(CUDA_FLOAT*));
+    cudaMemcpyToSymbol(MY_AP(cutneighsq)       , &sneighlist->cu_cutneighsq       , sizeof(CUDA_CFLOAT*));
 
     cudaMemcpyToSymbol(MY_AP(cuda_ntypes)      , & cuda_ntypes                    , sizeof(unsigned));
     cudaMemcpyToSymbol(MY_AP(special_flag)     , sdata->atom.special_flag         , 4 * sizeof(int));
@@ -218,14 +218,14 @@ int Cuda_NeighborBuildFullBin(cuda_shared_data* sdata, cuda_shared_neighlist* sn
   dim3 threads(MIN(128, sneighlist->bin_nmax), 1, 1);
   dim3 grid(sneighlist->bin_dim[0]*sneighlist->bin_dim[1], sneighlist->bin_dim[2], 1);
 
-  //printf("Configuration: %i %i %i %i %i\n",grid.x,grid.y,threads.x,(sizeof(int)+3*sizeof(X_FLOAT))*threads.x,sneighlist->bin_nmax);
+  //printf("Configuration: %i %i %i %i %i\n",grid.x,grid.y,threads.x,(sizeof(int)+3*sizeof(X_CFLOAT))*threads.x,sneighlist->bin_nmax);
   int buffer[20];
   buffer[0] = 1;
   buffer[1] = 0;
   CudaWrapper_UploadCudaData(buffer, sdata->buffer, 2 * sizeof(int));
   CUT_CHECK_ERROR("Cuda_NeighborBuild: pre neighbor build kernel error");
   //cudaMemset(sdata->debugdata,0,100*sizeof(int));
-  unsigned int shared_size = (sizeof(int) + 3 * sizeof(CUDA_FLOAT)) * threads.x;
+  unsigned int shared_size = (sizeof(int) + 3 * sizeof(CUDA_CFLOAT)) * threads.x;
   MYDBG(printf("Configuration: %i %i %i %u %i\n", grid.x, grid.y, threads.x, shared_size, sneighlist->bin_nmax);)
   //shared_size=2056;
   my_times starttime, endtime;
@@ -245,7 +245,7 @@ int Cuda_NeighborBuildFullBin(cuda_shared_data* sdata, cuda_shared_neighlist* sn
         NeighborBuildFullBin_Kernel<0> <<< grid, threads, shared_size>>>
         (sneighlist->binned_id, sneighlist->bin_nmax, sneighlist->bin_dim[0], sneighlist->bin_dim[1], globcutoff, sdata->pair.use_block_per_atom, sdata->pair.neighall);
     }
-    //NeighborBuildFullBin_Kernel_Restrict<<<grid,threads,(2*sizeof(int)+3*sizeof(X_FLOAT))*threads.x+sizeof(int)>>>
+    //NeighborBuildFullBin_Kernel_Restrict<<<grid,threads,(2*sizeof(int)+3*sizeof(X_CFLOAT))*threads.x+sizeof(int)>>>
     //	(sneighlist->binned_id,sneighlist->bin_nmax,sneighlist->bin_dim[0],sneighlist->bin_dim[1],globcutoff);
 
     cudaThreadSynchronize();
@@ -301,13 +301,13 @@ int Cuda_NeighborBuildFullNsq(cuda_shared_data* sdata, cuda_shared_neighlist* sn
              "(assumed at compile time). re-compile with -DCUDA_MAX_TYPES_PLUS_ONE=32 "
              "or ajust this in cuda_common.h\n", cuda_ntypes, CUDA_MAX_TYPES2);
 
-    unsigned nx = sizeof(CUDA_FLOAT) * cuda_ntypes * cuda_ntypes;
-    CUDA_FLOAT* acutneighsq = (CUDA_FLOAT*) malloc(nx);
+    unsigned nx = sizeof(CUDA_CFLOAT) * cuda_ntypes * cuda_ntypes;
+    CUDA_CFLOAT* acutneighsq = (CUDA_CFLOAT*) malloc(nx);
 
     if(sneighlist->cutneighsq) {
       for(int i = 1; i <= sdata->atom.ntypes; ++i) {
         for(int j = 1; j <= sdata->atom.ntypes; ++j) {
-          acutneighsq[i * cuda_ntypes + j] = (CUDA_FLOAT)(sneighlist->cutneighsq[i][j]);
+          acutneighsq[i * cuda_ntypes + j] = (CUDA_CFLOAT)(sneighlist->cutneighsq[i][j]);
           //printf("CUTOFFS: %i %i %i %e\n",i,j,cuda_ntypes,acutneighsq[i * cuda_ntypes + j]);
         }
       }
@@ -339,7 +339,7 @@ int Cuda_NeighborBuildFullNsq(cuda_shared_data* sdata, cuda_shared_neighlist* sn
     cudaMemcpyToSymbol(MY_AP(nmax)             , & sdata->atom.nmax               , sizeof(int));
     cudaMemcpyToSymbol(MY_AP(numneigh)         , & sneighlist->numneigh  .dev_data, sizeof(int*));
     cudaMemcpyToSymbol(MY_AP(type)             , & sdata->atom.type      .dev_data, sizeof(int*));
-    cudaMemcpyToSymbol(MY_AP(x)                , & sdata->atom.x         .dev_data, sizeof(X_FLOAT*));
+    cudaMemcpyToSymbol(MY_AP(x)                , & sdata->atom.x         .dev_data, sizeof(X_CFLOAT*));
     cudaMemcpyToSymbol(MY_AP(maxneighbors)     , & sneighlist->maxneighbors	 , sizeof(int));
 
     free(acutneighsq);

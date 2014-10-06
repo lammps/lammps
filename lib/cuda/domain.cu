@@ -49,8 +49,8 @@ void Cuda_Domain_UpdateNmax(cuda_shared_data* sdata)
 {
   cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nmax)    , & sdata->atom.nmax          , sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(x)       , & sdata->atom.x    .dev_data, sizeof(X_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.v    .dev_data, sizeof(V_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(x)       , & sdata->atom.x    .dev_data, sizeof(X_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.v    .dev_data, sizeof(V_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(mask)    , & sdata->atom.mask .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(tag)    , & sdata->atom.tag .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(image)   , & sdata->atom.image.dev_data, sizeof(int*));
@@ -58,19 +58,19 @@ void Cuda_Domain_UpdateNmax(cuda_shared_data* sdata)
 
 void Cuda_Domain_UpdateDomain(cuda_shared_data* sdata)
 {
-  cudaMemcpyToSymbol(MY_AP(boxlo)   ,  sdata->domain.boxlo       , 3 * sizeof(X_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(boxhi)   ,  sdata->domain.boxhi       , 3 * sizeof(X_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(sublo)   ,  sdata->domain.sublo       , 3 * sizeof(X_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(subhi)   ,  sdata->domain.subhi       , 3 * sizeof(X_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(prd)     ,  sdata->domain.prd         , 3 * sizeof(X_FLOAT));
+  cudaMemcpyToSymbol(MY_AP(boxlo)   ,  sdata->domain.boxlo       , 3 * sizeof(X_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(boxhi)   ,  sdata->domain.boxhi       , 3 * sizeof(X_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(sublo)   ,  sdata->domain.sublo       , 3 * sizeof(X_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(subhi)   ,  sdata->domain.subhi       , 3 * sizeof(X_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(prd)     ,  sdata->domain.prd         , 3 * sizeof(X_CFLOAT));
   cudaMemcpyToSymbol(MY_AP(periodicity)   ,   sdata->domain.periodicity , 3 * sizeof(int));
   cudaMemcpyToSymbol(MY_AP(triclinic)     , & sdata->domain.triclinic   , sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(boxlo_lamda)   ,   sdata->domain.boxlo_lamda , 3 * sizeof(X_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(boxhi_lamda)   ,   sdata->domain.boxhi_lamda , 3 * sizeof(X_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(prd_lamda)	   ,   sdata->domain.prd_lamda   , 3 * sizeof(X_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(h)	   	 ,   sdata->domain.h   		  , 6 * sizeof(X_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(h_inv)	 ,   sdata->domain.h_inv   	  , 6 * sizeof(X_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(h_rate)	 ,   sdata->domain.h_rate     , 6 * sizeof(V_FLOAT));
+  cudaMemcpyToSymbol(MY_AP(boxlo_lamda)   ,   sdata->domain.boxlo_lamda , 3 * sizeof(X_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(boxhi_lamda)   ,   sdata->domain.boxhi_lamda , 3 * sizeof(X_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(prd_lamda)	   ,   sdata->domain.prd_lamda   , 3 * sizeof(X_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(h)	   	 ,   sdata->domain.h   		  , 6 * sizeof(X_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(h_inv)	 ,   sdata->domain.h_inv   	  , 6 * sizeof(X_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(h_rate)	 ,   sdata->domain.h_rate     , 6 * sizeof(V_CFLOAT));
   cudaMemcpyToSymbol(MY_AP(flag)	 ,   &sdata->flag     , sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(debugdata)	 ,   &sdata->debugdata     , sizeof(int*));
 }
@@ -94,15 +94,15 @@ void Cuda_Domain_PBC(cuda_shared_data* sdata, int deform_remap, int deform_group
 
   int sharedmem = 0;
 
-  if(box_change) sharedmem = 6 * sizeof(X_FLOAT);
+  if(box_change) sharedmem = 6 * sizeof(X_CFLOAT);
 
   int3 layout = getgrid(sdata->atom.nlocal, sharedmem);
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
   sharedmem *= threads.x;
 
-  if((box_change) && (sdata->buffer_new or (6 * sizeof(X_FLOAT)*grid.x * grid.y > sdata->buffersize)))
-    Cuda_Domain_UpdateBuffer(sdata, layout.x * layout.y * 6 * sizeof(X_FLOAT));
+  if((box_change) && (sdata->buffer_new or (6 * sizeof(X_CFLOAT)*grid.x * grid.y > sdata->buffersize)))
+    Cuda_Domain_UpdateBuffer(sdata, layout.x * layout.y * 6 * sizeof(X_CFLOAT));
 
 
   Domain_PBC_Kernel <<< grid, threads, sharedmem>>>(deform_remap, deform_groupbit, box_change);
@@ -111,13 +111,13 @@ void Cuda_Domain_PBC(cuda_shared_data* sdata, int deform_remap, int deform_group
   CUT_CHECK_ERROR("Cuda_Domain_PBC: Kernel execution failed");
 
   if(box_change) {
-    X_FLOAT buf2[6 * layout.x * layout.y];
-    X_FLOAT* buf = buf2;
+    X_CFLOAT buf2[6 * layout.x * layout.y];
+    X_CFLOAT* buf = buf2;
     int flag;
-    cudaMemcpy(buf, sdata->buffer, 6 * layout.x * layout.y * sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
+    cudaMemcpy(buf, sdata->buffer, 6 * layout.x * layout.y * sizeof(X_CFLOAT), cudaMemcpyDeviceToHost);
     cudaMemcpy(&flag, sdata->flag, sizeof(int), cudaMemcpyDeviceToHost);
     //printf("Flag: %i\n",flag);
-    X_FLOAT min, max;
+    X_CFLOAT min, max;
     min = 1.0 * BIG;
     max = -1.0 * BIG;
 
@@ -160,7 +160,7 @@ void Cuda_Domain_PBC(cuda_shared_data* sdata, int deform_remap, int deform_group
     	   if(n<128) threads.x=32;
     	   else if(n<256) threads.x=64;
     	   else threads.x=128;
-    	   sharedmem=n*sizeof(X_FLOAT);
+    	   sharedmem=n*sizeof(X_CFLOAT);
     	   grid.x=6;
     	   grid.y=1;
     	   Domain_reduceBoxExtent<<<grid, threads,sharedmem>>>(extent,n);

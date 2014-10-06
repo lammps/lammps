@@ -23,6 +23,6 @@
 
 #include "cuda_shared.h"
 
-extern "C" void Cuda_FixNVECuda_Init(cuda_shared_data* sdata, X_FLOAT dtv, V_FLOAT dtf);
+extern "C" void Cuda_FixNVECuda_Init(cuda_shared_data* sdata, X_CFLOAT dtv, V_CFLOAT dtf);
 extern "C" void Cuda_FixNVECuda_InitialIntegrate(cuda_shared_data* sdata, int groupbit, int mynlocal);
 extern "C" void Cuda_FixNVECuda_FinalIntegrate(cuda_shared_data* sdata, int groupbit, int mynlocal);

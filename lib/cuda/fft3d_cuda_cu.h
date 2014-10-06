@@ -23,7 +23,7 @@
 
 #include "cuda_shared.h"
 
-extern "C" void initfftdata(double* in, FFT_FLOAT* out, int nfast, int nmid, int nslow);
+extern "C" void initfftdata(double* in, FFT_CFLOAT* out, int nfast, int nmid, int nslow);
 extern "C" void permute(FFT_DATA* in, FFT_DATA* out, int nfast, int nmid, int nslow);
 extern "C" void permute_scale(FFT_DATA* in, FFT_DATA* out, int nfast, int nmid, int nslow);
 extern "C" void permute_part(FFT_DATA* in, FFT_DATA* out, int nfast, int nmid, int nslow, int ihi, int ilo, int jhi, int jlo, int khi, int klo);

@@ -21,12 +21,12 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-extern __shared__ ENERGY_FLOAT sharedmem[];
+extern __shared__ ENERGY_CFLOAT sharedmem[];
 
 static inline __device__ void PairVirialCompute_A_Kernel(int eflag, int vflag, int coulflag = 0)
 {
   __syncthreads();
-  ENERGY_FLOAT* shared = sharedmem;
+  ENERGY_CFLOAT* shared = sharedmem;
 
   if(eflag) {
     reduceBlock(shared);
@@ -49,7 +49,7 @@ static inline __device__ void PairVirialCompute_A_Kernel(int eflag, int vflag, i
 
   if(threadIdx.x == 0) {
     shared = sharedmem;
-    ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+    ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
 
     if(eflag) {
       buffer[blockIdx.x * gridDim.y + blockIdx.y] = ENERGY_F(0.5) * shared[0];
@@ -79,8 +79,8 @@ static inline __device__ void PairVirialCompute_A_Kernel(int eflag, int vflag, i
 __global__ void MY_AP(PairVirialCompute_reduce)(int n)
 {
   sharedmem[threadIdx.x] = ENERGY_F(0.0);
-  ENERGY_FLOAT sum = ENERGY_F(0.0);
-  ENERGY_FLOAT* buf = (ENERGY_FLOAT*) _buffer;
+  ENERGY_CFLOAT sum = ENERGY_F(0.0);
+  ENERGY_CFLOAT* buf = (ENERGY_CFLOAT*) _buffer;
   buf = &buf[blockIdx.x * n];
   //if(blockIdx.x==2) buf=&buf[n];
 

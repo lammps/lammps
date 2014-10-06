@@ -20,14 +20,14 @@
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
-__device__ inline F_FLOAT PairLJExpandCuda_Eval(const F_FLOAT &rsq, const int ij_type, F_FLOAT &factor_lj, int &eflag, ENERGY_FLOAT &evdwl)
+__device__ inline F_CFLOAT PairLJExpandCuda_Eval(const F_CFLOAT &rsq, const int ij_type, F_CFLOAT &factor_lj, int &eflag, ENERGY_CFLOAT &evdwl)
 {
-  const F_FLOAT r = _SQRT_(rsq);
-  const F_FLOAT rshift = r - _shift[ij_type];
-  const F_FLOAT rshiftsq = rshift * rshift;
-  const F_FLOAT r2inv = F_F(1.0) / rshiftsq;
-  const F_FLOAT r6inv = r2inv * r2inv * r2inv;
-  const F_FLOAT forcelj = r6inv * (_lj1[ij_type] * r6inv - _lj2[ij_type]);
+  const F_CFLOAT r = _SQRT_(rsq);
+  const F_CFLOAT rshift = r - _shift[ij_type];
+  const F_CFLOAT rshiftsq = rshift * rshift;
+  const F_CFLOAT r2inv = F_F(1.0) / rshiftsq;
+  const F_CFLOAT r6inv = r2inv * r2inv * r2inv;
+  const F_CFLOAT forcelj = r6inv * (_lj1[ij_type] * r6inv - _lj2[ij_type]);
 
   if(eflag) evdwl += factor_lj * (r6inv * (_lj3[ij_type] * r6inv - _lj4[ij_type]) - _offset[ij_type]);
 

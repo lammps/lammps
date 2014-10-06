@@ -37,10 +37,10 @@
 #define _coulsw1 MY_AP(coulsw1)
 #define _coulsw2 MY_AP(coulsw2)
 #define _coulsw5 MY_AP(coulsw5)
-__device__ __constant__ F_FLOAT _cut_coul_inner_global;
-__device__ __constant__ F_FLOAT _coulsw1;
-__device__ __constant__ F_FLOAT _coulsw2;
-__device__ __constant__ F_FLOAT _coulsw5;
+__device__ __constant__ F_CFLOAT _cut_coul_inner_global;
+__device__ __constant__ F_CFLOAT _coulsw1;
+__device__ __constant__ F_CFLOAT _coulsw2;
+__device__ __constant__ F_CFLOAT _coulsw5;
 
 
 #include "pair_lj_gromacs_coul_gromacs_cuda_cu.h"
@@ -48,13 +48,13 @@ __device__ __constant__ F_FLOAT _coulsw5;
 
 #include <time.h>
 
-void Cuda_PairLJGromacsCoulGromacsCuda_Init(cuda_shared_data* sdata, F_FLOAT cut_coul_inner, F_FLOAT coulsw1, F_FLOAT coulsw2, F_FLOAT coulsw5)
+void Cuda_PairLJGromacsCoulGromacsCuda_Init(cuda_shared_data* sdata, F_CFLOAT cut_coul_inner, F_CFLOAT coulsw1, F_CFLOAT coulsw2, F_CFLOAT coulsw5)
 {
   Cuda_Pair_Init_AllStyles(sdata, 9, true, true, true);
-  cudaMemcpyToSymbol(MY_AP(cut_coul_inner_global) , &cut_coul_inner  , sizeof(F_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(coulsw1) , &coulsw1  , sizeof(F_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(coulsw2) , &coulsw2  , sizeof(F_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(coulsw5) , &coulsw5  , sizeof(F_FLOAT));
+  cudaMemcpyToSymbol(MY_AP(cut_coul_inner_global) , &cut_coul_inner  , sizeof(F_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(coulsw1) , &coulsw1  , sizeof(F_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(coulsw2) , &coulsw2  , sizeof(F_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(coulsw5) , &coulsw5  , sizeof(F_CFLOAT));
 
   return;
 }
@@ -62,7 +62,7 @@ void Cuda_PairLJGromacsCoulGromacsCuda_Init(cuda_shared_data* sdata, F_FLOAT cut
 
 
 void Cuda_PairLJGromacsCoulGromacsCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist, int eflag, int vflag,
-                                       int eflag_atom, int vflag_atom, F_FLOAT cut_coul_inner, F_FLOAT coulsw1, F_FLOAT coulsw2, F_FLOAT coulsw5)
+                                       int eflag_atom, int vflag_atom, F_CFLOAT cut_coul_inner, F_CFLOAT coulsw1, F_CFLOAT coulsw2, F_CFLOAT coulsw5)
 {
   static  short init = 0;
 
@@ -80,10 +80,10 @@ void Cuda_PairLJGromacsCoulGromacsCuda(cuda_shared_data* sdata, cuda_shared_neig
 
   if(sdata->pair.use_block_per_atom)
     Pair_Kernel_BpA<PAIR_LJ_GROMACS, COUL_GROMACS, DATA_NONE>
-    <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
+    <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
   else
     Pair_Kernel_TpA<PAIR_LJ_GROMACS, COUL_GROMACS, DATA_NONE>
-    <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
+    <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
 
   Cuda_Pair_PostKernel_AllStyles(sdata, grid, sharedperproc, eflag, vflag);
 }

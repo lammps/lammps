@@ -36,7 +36,7 @@ void Cuda_FixTempRescaleCuda_UpdateNmax(cuda_shared_data* sdata)
   cudaMemcpyToSymbol(MY_AP(mask)    , & sdata->atom.mask .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nmax)    , & sdata->atom.nmax          , sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.v    .dev_data, sizeof(X_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.v    .dev_data, sizeof(X_CFLOAT*));
 }
 
 void Cuda_FixTempRescaleCuda_Init(cuda_shared_data* sdata)
@@ -48,7 +48,7 @@ void Cuda_FixTempRescaleCuda_Init(cuda_shared_data* sdata)
 
 void Cuda_FixTempRescaleCuda_EndOfStep(cuda_shared_data* sdata, int groupbit, double afactor)
 {
-  V_FLOAT factor = afactor;
+  V_CFLOAT factor = afactor;
   //if(sdata->atom.update_nmax) //fix temp rescale is usually not called every timestep so it might miss an update step
   Cuda_FixTempRescaleCuda_UpdateNmax(sdata);
   //if(sdata->atom.update_nlocal)

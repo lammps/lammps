@@ -21,7 +21,7 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-extern __shared__ F_FLOAT sharedmem[];
+extern __shared__ F_CFLOAT sharedmem[];
 
 
 __global__ void Cuda_FixAveForceCuda_PostForce_FOrg_Kernel(int groupbit)
@@ -44,7 +44,7 @@ __global__ void Cuda_FixAveForceCuda_PostForce_FOrg_Kernel(int groupbit)
   reduceBlock(&sharedmem[blockDim.x]);
   reduceBlock(&sharedmem[2 * blockDim.x]);
   reduceBlock(&sharedmem[3 * blockDim.x]);
-  F_FLOAT* buffer = (F_FLOAT*) _buffer;
+  F_CFLOAT* buffer = (F_CFLOAT*) _buffer;
 
   if(threadIdx.x == 0) {
     buffer[blockIdx.x * gridDim.y + blockIdx.y] = sharedmem[0];
@@ -55,12 +55,12 @@ __global__ void Cuda_FixAveForceCuda_PostForce_FOrg_Kernel(int groupbit)
 }
 
 
-__global__ void Cuda_FixAveForceCuda_reduce_foriginal(int n, F_FLOAT* foriginal)
+__global__ void Cuda_FixAveForceCuda_reduce_foriginal(int n, F_CFLOAT* foriginal)
 {
   int i = 0;
   sharedmem[threadIdx.x] = 0;
-  F_FLOAT myforig = 0.0;
-  F_FLOAT* buf = (F_FLOAT*) _buffer;
+  F_CFLOAT myforig = 0.0;
+  F_CFLOAT* buf = (F_CFLOAT*) _buffer;
   buf = &buf[blockIdx.x * n];
 
   while(i < n) {
@@ -81,7 +81,7 @@ __global__ void Cuda_FixAveForceCuda_reduce_foriginal(int n, F_FLOAT* foriginal)
     foriginal[blockIdx.x] = myforig;
 }
 
-__global__ void Cuda_FixAveForceCuda_PostForce_Set_Kernel(int groupbit, int xflag, int yflag, int zflag, F_FLOAT xvalue, F_FLOAT yvalue, F_FLOAT zvalue)
+__global__ void Cuda_FixAveForceCuda_PostForce_Set_Kernel(int groupbit, int xflag, int yflag, int zflag, F_CFLOAT xvalue, F_CFLOAT yvalue, F_CFLOAT zvalue)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 

@@ -23,9 +23,9 @@
 
 #include "cuda_shared.h"
 
-extern "C" void Cuda_FixNHCuda_Init(cuda_shared_data* sdata, X_FLOAT dtv, V_FLOAT dtf);
+extern "C" void Cuda_FixNHCuda_Init(cuda_shared_data* sdata, X_CFLOAT dtv, V_CFLOAT dtf);
 extern "C" void Cuda_FixNHCuda_nh_v_press(cuda_shared_data* sdata, int groupbit, double* factor_h, int mynlocal, int p_triclinic); //mynlocal can be nfirst if firstgroup==igroup  see cpp
-extern "C" void Cuda_FixNHCuda_nh_v_temp(cuda_shared_data* sdata, int groupbit, F_FLOAT factor_eta, int mynlocal); //mynlocal can be nfirst if firstgroup==igroup  see cpp
+extern "C" void Cuda_FixNHCuda_nh_v_temp(cuda_shared_data* sdata, int groupbit, F_CFLOAT factor_eta, int mynlocal); //mynlocal can be nfirst if firstgroup==igroup  see cpp
 extern "C" void Cuda_FixNHCuda_nh_v_press_and_nve_v_NoBias(cuda_shared_data* sdata, int groupbit, double* factor_h, int mynlocal, int p_triclinic); //mynlocal can be nfirst if firstgroup==igroup  see cpp
 extern "C" void Cuda_FixNHCuda_nve_v(cuda_shared_data* sdata, int groupbit, int mynlocal); //mynlocal can be nfirst if firstgroup==igroup  see cpp
 extern "C" void Cuda_FixNHCuda_nve_x(cuda_shared_data* sdata, int groupbit, int mynlocal); //mynlocal can be nfirst if firstgroup==igroup  see cpp

@@ -35,8 +35,8 @@ void Cuda_FixViscousCuda_UpdateNmax(cuda_shared_data* sdata)
   cudaMemcpyToSymbol(MY_AP(mask)    , & sdata->atom.mask .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nmax)    , & sdata->atom.nmax          , sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.x    .dev_data, sizeof(X_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(f)       , & sdata->atom.f    .dev_data, sizeof(F_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.x    .dev_data, sizeof(X_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(f)       , & sdata->atom.f    .dev_data, sizeof(F_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(type)    , & sdata->atom.type .dev_data, sizeof(int*));
 }
 
@@ -60,7 +60,7 @@ void Cuda_FixViscousCuda_PostForce(cuda_shared_data* sdata, int groupbit, void* 
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
 
-  Cuda_FixViscousCuda_PostForce_Kernel <<< grid, threads, 0>>> (groupbit, (F_FLOAT*) gamma);
+  Cuda_FixViscousCuda_PostForce_Kernel <<< grid, threads, 0>>> (groupbit, (F_CFLOAT*) gamma);
   cudaThreadSynchronize();
   CUT_CHECK_ERROR("Cuda_Cuda_FixViscousCuda_PostForce: Kernel execution failed");
 

@@ -6,7 +6,7 @@ precision ?= 1
 verbose ?= 1
 
 #GPU architecture (compute capability): 13, 20, 21, 35
-arch ?= 21
+arch ?= 20
 
 #Using cufft (should not be changed)
 cufft ?= 1

@@ -85,15 +85,15 @@ void Cuda_AtomVecCuda_UpdateNmax(cuda_shared_data* sdata)
 {
   cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nmax)    , & sdata->atom.nmax          , sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(x)       , & sdata->atom.x    .dev_data, sizeof(X_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.v    .dev_data, sizeof(V_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(f)       , & sdata->atom.f    .dev_data, sizeof(F_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(x)       , & sdata->atom.x    .dev_data, sizeof(X_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.v    .dev_data, sizeof(V_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(f)       , & sdata->atom.f    .dev_data, sizeof(F_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(tag)     , & sdata->atom.tag  .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(type)    , & sdata->atom.type .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(mask)    , & sdata->atom.mask .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(image)   , & sdata->atom.image.dev_data, sizeof(int*));
 
-  if(data_mask & Q_MASK) cudaMemcpyToSymbol(MY_AP(q)       , & sdata->atom.q    .dev_data, sizeof(F_FLOAT*));
+  if(data_mask & Q_MASK) cudaMemcpyToSymbol(MY_AP(q)       , & sdata->atom.q    .dev_data, sizeof(F_CFLOAT*));
 
   if(data_mask & MOLECULE_MASK) cudaMemcpyToSymbol(MY_AP(molecule)   , & sdata->atom.molecule.dev_data, sizeof(int*));
 
@@ -121,9 +121,9 @@ void Cuda_AtomVecCuda_Init(cuda_shared_data* sdata)
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
   MYDBG(printf("# CUDA: Cuda_AtomVecCuda_Init ... post Nmax\n");)
-  cudaMemcpyToSymbol(MY_AP(prd)   , sdata->domain.prd, 3 * sizeof(X_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(sublo)   , & sdata->domain.sublo, 3 * sizeof(X_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(subhi)   , & sdata->domain.subhi, 3 * sizeof(X_FLOAT));
+  cudaMemcpyToSymbol(MY_AP(prd)   , sdata->domain.prd, 3 * sizeof(X_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(sublo)   , & sdata->domain.sublo, 3 * sizeof(X_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(subhi)   , & sdata->domain.subhi, 3 * sizeof(X_CFLOAT));
   cudaMemcpyToSymbol(MY_AP(flag)   , & sdata->flag, sizeof(int*));
   cudaThreadSynchronize();
   MYDBG(printf("# CUDA: Cuda_AtomVecCuda_Init ... end\n");)
@@ -143,14 +143,14 @@ int Cuda_AtomVecCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* b
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
   int n_data_items = AtomVecCuda_CountDataItems(data_mask);
-  int size = (n * n_data_items) * sizeof(X_FLOAT);
+  int size = (n * n_data_items) * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_AtomVecCuda_UpdateBuffer(sdata, size);
 
-  X_FLOAT dx = 0.0;
-  X_FLOAT dy = 0.0;
-  X_FLOAT dz = 0.0;
+  X_CFLOAT dx = 0.0;
+  X_CFLOAT dy = 0.0;
+  X_CFLOAT dz = 0.0;
 
   if(pbc_flag != 0) {
     if(sdata->domain.triclinic == 0) {
@@ -185,8 +185,8 @@ int Cuda_AtomVecCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* b
     CUT_CHECK_ERROR("Cuda_AtomVecCuda_PackComm: Kernel execution failed");
 
     if(not sdata->overlap_comm)
-      cudaMemcpy(buf_send, sdata->buffer, n* n_data_items* sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
-    //cudaMemcpy(buf_send, sdata->comm.buf_send_dev[iswap], n*3*sizeof(X_FLOAT), cudaMemcpyDeviceToHost);
+      cudaMemcpy(buf_send, sdata->buffer, n* n_data_items* sizeof(X_CFLOAT), cudaMemcpyDeviceToHost);
+    //cudaMemcpy(buf_send, sdata->comm.buf_send_dev[iswap], n*3*sizeof(X_CFLOAT), cudaMemcpyDeviceToHost);
 
     my_gettime(CLOCK_REALTIME, &time1);
     sdata->cuda_timings.comm_forward_download +=
@@ -216,16 +216,16 @@ int Cuda_AtomVecCuda_PackComm_Self(cuda_shared_data* sdata, int n, int iswap, in
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
   int n_data_items = AtomVecCuda_CountDataItems(data_mask);
-  int size = (n * n_data_items) * sizeof(X_FLOAT);
+  int size = (n * n_data_items) * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_AtomVecCuda_UpdateBuffer(sdata, size);
 
   static int count = -1;
   count++;
-  X_FLOAT dx = 0.0;
-  X_FLOAT dy = 0.0;
-  X_FLOAT dz = 0.0;
+  X_CFLOAT dx = 0.0;
+  X_CFLOAT dy = 0.0;
+  X_CFLOAT dz = 0.0;
 
   if(pbc_flag != 0) {
     if(sdata->domain.triclinic == 0) {
@@ -276,7 +276,7 @@ void Cuda_AtomVecCuda_UnpackComm(cuda_shared_data* sdata, int n, int first, void
     cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
 
   int n_data_items = AtomVecCuda_CountDataItems(data_mask);
-  int size = (n * n_data_items) * sizeof(X_FLOAT);
+  int size = (n * n_data_items) * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_AtomVecCuda_UpdateBuffer(sdata, size);
@@ -289,7 +289,7 @@ void Cuda_AtomVecCuda_UnpackComm(cuda_shared_data* sdata, int n, int first, void
     my_gettime(CLOCK_REALTIME, &time1);
 
     if(not sdata->overlap_comm || iswap < 0)
-      cudaMemcpy(sdata->buffer, (void*)buf_recv, n_data_items * n * sizeof(X_FLOAT), cudaMemcpyHostToDevice);
+      cudaMemcpy(sdata->buffer, (void*)buf_recv, n_data_items * n * sizeof(X_CFLOAT), cudaMemcpyHostToDevice);
 
     my_gettime(CLOCK_REALTIME, &time2);
     sdata->cuda_timings.comm_forward_upload +=
@@ -463,14 +463,14 @@ int Cuda_AtomVecCuda_PackBorder(cuda_shared_data* sdata, int nsend, int iswap, v
 
   int n_data_items = AtomVecCuda_CountDataItems(data_mask);
 
-  int size = nsend * n_data_items * sizeof(X_FLOAT);
+  int size = nsend * n_data_items * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_AtomVecCuda_UpdateBuffer(sdata, size);
 
-  X_FLOAT dx = 0.0;
-  X_FLOAT dy = 0.0;
-  X_FLOAT dz = 0.0;
+  X_CFLOAT dx = 0.0;
+  X_CFLOAT dy = 0.0;
+  X_CFLOAT dz = 0.0;
 
   if(pbc_flag != 0) {
     if(sdata->domain.triclinic == 0) {
@@ -522,14 +522,14 @@ int Cuda_AtomVecCuda_PackBorder_Self(cuda_shared_data* sdata, int n, int iswap, 
 
   int n_data_items = AtomVecCuda_CountDataItems(data_mask);
 
-  int size = n * n_data_items * sizeof(X_FLOAT);
+  int size = n * n_data_items * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_AtomVecCuda_UpdateBuffer(sdata, size);
 
-  X_FLOAT dx = 0.0;
-  X_FLOAT dy = 0.0;
-  X_FLOAT dz = 0.0;
+  X_CFLOAT dx = 0.0;
+  X_CFLOAT dy = 0.0;
+  X_CFLOAT dz = 0.0;
 
   if(pbc_flag != 0) {
     if(sdata->domain.triclinic == 0) {
@@ -584,7 +584,7 @@ int Cuda_AtomVecCuda_UnpackBorder(cuda_shared_data* sdata, int n, int first, voi
 
   int n_data_items = AtomVecCuda_CountDataItems(data_mask);
 
-  int size = n * n_data_items * sizeof(X_FLOAT);
+  int size = n * n_data_items * sizeof(X_CFLOAT);
 
   if(sdata->buffer_new or (size > sdata->buffersize))
     Cuda_AtomVecCuda_UpdateBuffer(sdata, size);

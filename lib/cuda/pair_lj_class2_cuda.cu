@@ -52,7 +52,7 @@ void Cuda_PairLJClass2Cuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneig
   dim3 grid, threads;
   int sharedperproc;
 
-  //int maxthreads=192*sizeof(double)/sizeof(F_FLOAT);
+  //int maxthreads=192*sizeof(double)/sizeof(F_CFLOAT);
   //if(CUDA_ARCH==20) maxthreads*=2;
   //cudaFuncSetCacheConfig(Pair_Kernel_TpA_opt<PAIR_LJ_CUT,COUL_NONE,DATA_NONE>,cudaFuncCachePreferL1);
   Cuda_Pair_PreKernel_AllStyles(sdata, sneighlist, eflag, vflag, grid, threads, sharedperproc, false, 192);
@@ -60,10 +60,10 @@ void Cuda_PairLJClass2Cuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneig
 
   if(sdata->pair.use_block_per_atom)
     Pair_Kernel_BpA<PAIR_LJ_CLASS2, COUL_NONE, DATA_NONE>
-    <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
+    <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
   else
     Pair_Kernel_TpA<PAIR_LJ_CLASS2, COUL_NONE, DATA_NONE>
-    <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
+    <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
 
   Cuda_Pair_PostKernel_AllStyles(sdata, grid, sharedperproc, eflag, vflag);
 }

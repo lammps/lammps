@@ -30,9 +30,9 @@
 #define _cut_coul_innersq_global MY_AP(cut_coul_innersq_global)
 #define _denom_lj_inv MY_AP(denom_lj_inv)
 #define _denom_coul_inv MY_AP(denom_coul_inv)
-__device__ __constant__ F_FLOAT _cut_coul_innersq_global;
-__device__ __constant__ F_FLOAT _denom_lj_inv;
-__device__ __constant__ F_FLOAT _denom_coul_inv;
+__device__ __constant__ F_CFLOAT _cut_coul_innersq_global;
+__device__ __constant__ F_CFLOAT _denom_lj_inv;
+__device__ __constant__ F_CFLOAT _denom_coul_inv;
 
 
 #include "pair_lj_charmm_coul_charmm_implicit_cuda_cu.h"
@@ -40,12 +40,12 @@ __device__ __constant__ F_FLOAT _denom_coul_inv;
 
 #include <time.h>
 
-void Cuda_PairLJCharmmCoulCharmmImplicitCuda_Init(cuda_shared_data* sdata, F_FLOAT cut_coul_innersq, F_FLOAT denom_lj_inv, F_FLOAT denom_coul_inv)
+void Cuda_PairLJCharmmCoulCharmmImplicitCuda_Init(cuda_shared_data* sdata, F_CFLOAT cut_coul_innersq, F_CFLOAT denom_lj_inv, F_CFLOAT denom_coul_inv)
 {
   Cuda_Pair_Init_AllStyles(sdata, 4, true, true, true);
-  cudaMemcpyToSymbol(MY_AP(cut_coul_innersq_global) , &cut_coul_innersq  , sizeof(F_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(denom_lj_inv) , &denom_lj_inv  , sizeof(F_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(denom_coul_inv) , &denom_coul_inv  , sizeof(F_FLOAT));
+  cudaMemcpyToSymbol(MY_AP(cut_coul_innersq_global) , &cut_coul_innersq  , sizeof(F_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(denom_lj_inv) , &denom_lj_inv  , sizeof(F_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(denom_coul_inv) , &denom_coul_inv  , sizeof(F_CFLOAT));
 
   return;
 }
@@ -53,7 +53,7 @@ void Cuda_PairLJCharmmCoulCharmmImplicitCuda_Init(cuda_shared_data* sdata, F_FLO
 
 
 void Cuda_PairLJCharmmCoulCharmmImplicitCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist, int eflag, int vflag,
-    int eflag_atom, int vflag_atom, F_FLOAT denom_lj, F_FLOAT cut_coul_innersq, F_FLOAT denom_coul)
+    int eflag_atom, int vflag_atom, F_CFLOAT denom_lj, F_CFLOAT cut_coul_innersq, F_CFLOAT denom_coul)
 {
 
   static  short init = 0;
@@ -72,10 +72,10 @@ void Cuda_PairLJCharmmCoulCharmmImplicitCuda(cuda_shared_data* sdata, cuda_share
 
   if(sdata->pair.use_block_per_atom)
     Pair_Kernel_BpA<PAIR_LJ_CHARMM, COUL_CHARMM_IMPLICIT, DATA_NONE>
-    <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
+    <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
   else
     Pair_Kernel_TpA<PAIR_LJ_CHARMM, COUL_CHARMM_IMPLICIT, DATA_NONE>
-    <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
+    <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
 
   Cuda_Pair_PostKernel_AllStyles(sdata, grid, sharedperproc, eflag, vflag);
 }

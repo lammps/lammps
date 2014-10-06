@@ -24,26 +24,26 @@
 #define SBBITS 30
 
 __global__ void Binning_Kernel(int* binned_id, int bin_nmax, int bin_dim_x, int bin_dim_y, int bin_dim_z,
-                               CUDA_FLOAT rez_bin_size_x, CUDA_FLOAT rez_bin_size_y, CUDA_FLOAT rez_bin_size_z)
+                               CUDA_CFLOAT rez_bin_size_x, CUDA_CFLOAT rez_bin_size_y, CUDA_CFLOAT rez_bin_size_z)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   /*int* bin_count=(int*) _buffer;
   bin_count=bin_count+20;
-  CUDA_FLOAT* binned_x=(CUDA_FLOAT*)(bin_count+bin_dim_x*bin_dim_y*bin_dim_z);*/
-  CUDA_FLOAT* binned_x = (CUDA_FLOAT*) _buffer;
+  CUDA_CFLOAT* binned_x=(CUDA_CFLOAT*)(bin_count+bin_dim_x*bin_dim_y*bin_dim_z);*/
+  CUDA_CFLOAT* binned_x = (CUDA_CFLOAT*) _buffer;
   binned_x = &binned_x[2];
   int* bin_count = (int*) &binned_x[3 * bin_dim_x * bin_dim_y * bin_dim_z * bin_nmax];
 
   if(i < _nall) {
     // copy atom position from global device memory to local register
     // in this 3 steps to get as much coalesced access as possible
-    X_FLOAT* my_x = _x + i;
-    CUDA_FLOAT x_i = *my_x;
+    X_CFLOAT* my_x = _x + i;
+    CUDA_CFLOAT x_i = *my_x;
     my_x += _nmax;
-    CUDA_FLOAT y_i = *my_x;
+    CUDA_CFLOAT y_i = *my_x;
     my_x += _nmax;
-    CUDA_FLOAT z_i = *my_x;
+    CUDA_CFLOAT z_i = *my_x;
 
 
     // calculate flat bin index
@@ -102,7 +102,7 @@ __device__ inline int exclusion(int &i, int &j, int &itype, int &jtype)
   return 0;
 }
 
-extern __shared__ CUDA_FLOAT shared[];
+extern __shared__ CUDA_CFLOAT shared[];
 
 __device__ inline int find_special(int3 &n, int* list, int &tag, int3 flag)
 {
@@ -114,12 +114,12 @@ __device__ inline int find_special(int3 &n, int* list, int &tag, int3 flag)
 }
 
 template <const unsigned int exclude>
-__global__ void NeighborBuildFullBin_Kernel(int* binned_id, int bin_nmax, int bin_dim_x, int bin_dim_y, CUDA_FLOAT globcutoff, int block_style, bool neighall)
+__global__ void NeighborBuildFullBin_Kernel(int* binned_id, int bin_nmax, int bin_dim_x, int bin_dim_y, CUDA_CFLOAT globcutoff, int block_style, bool neighall)
 {
   int natoms = neighall ? _nall : _nlocal;
   //const bool domol=false;
   int bin_dim_z = gridDim.y;
-  CUDA_FLOAT* binned_x = (CUDA_FLOAT*) _buffer;
+  CUDA_CFLOAT* binned_x = (CUDA_CFLOAT*) _buffer;
   binned_x = &binned_x[2];
   int* bin_count = (int*) &binned_x[3 * bin_dim_x * bin_dim_y * bin_dim_z * bin_nmax];
   int bin = __mul24(gridDim.y, blockIdx.x) + blockIdx.y;
@@ -129,19 +129,19 @@ __global__ void NeighborBuildFullBin_Kernel(int* binned_id, int bin_nmax, int bi
   int bin_c = bin_count[bin];
 
 
-  CUDA_FLOAT cut;
+  CUDA_CFLOAT cut;
 
   if(globcutoff > 0)
     cut = globcutoff;
 
   int i = _nall;
-  CUDA_FLOAT* my_x;
-  CUDA_FLOAT x_i, y_i, z_i;
+  CUDA_CFLOAT* my_x;
+  CUDA_CFLOAT x_i, y_i, z_i;
 
   for(int actOffset = 0; actOffset < bin_c; actOffset += blockDim.x) {
 
     int actIdx = threadIdx.x + actOffset;
-    CUDA_FLOAT* other_x = shared;
+    CUDA_CFLOAT* other_x = shared;
     int* other_id = (int*) &other_x[3 * blockDim.x];
 
     if(actIdx < bin_c) {
@@ -206,10 +206,10 @@ __global__ void NeighborBuildFullBin_Kernel(int* binned_id, int bin_nmax, int bi
             cut = _cutneighsq[itype * _cuda_ntypes + jtype];
           }
 
-          CUDA_FLOAT delx = x_i - other_x[kk];
-          CUDA_FLOAT dely = y_i - other_x[kk + blockDim.x];
-          CUDA_FLOAT delz = z_i - other_x[kk + 2 * blockDim.x];
-          CUDA_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+          CUDA_CFLOAT delx = x_i - other_x[kk];
+          CUDA_CFLOAT dely = y_i - other_x[kk + blockDim.x];
+          CUDA_CFLOAT delz = z_i - other_x[kk + 2 * blockDim.x];
+          CUDA_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
 
 
           if(rsq <= cut && i != j) {
@@ -268,10 +268,10 @@ __global__ void NeighborBuildFullBin_Kernel(int* binned_id, int bin_nmax, int bi
                   cut = _cutneighsq[itype * _cuda_ntypes + jtype];
                 }
 
-                CUDA_FLOAT delx = x_i - other_x[k];
-                CUDA_FLOAT dely = y_i - other_x[k + blockDim.x];
-                CUDA_FLOAT delz = z_i - other_x[k + 2 * blockDim.x];
-                CUDA_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+                CUDA_CFLOAT delx = x_i - other_x[k];
+                CUDA_CFLOAT dely = y_i - other_x[k + blockDim.x];
+                CUDA_CFLOAT delz = z_i - other_x[k + 2 * blockDim.x];
+                CUDA_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
 
                 if(rsq <= cut && i != j) {
                   if(jnum < _maxneighbors) {
@@ -378,10 +378,10 @@ __global__ void FindSpecial(int block_style)
   _numneigh[i] = jnum;
 }
 
-__global__ void NeighborBuildFullBin_OverlapComm_Kernel(int* binned_id, int bin_nmax, int bin_dim_x, int bin_dim_y, CUDA_FLOAT globcutoff, int block_style)
+__global__ void NeighborBuildFullBin_OverlapComm_Kernel(int* binned_id, int bin_nmax, int bin_dim_x, int bin_dim_y, CUDA_CFLOAT globcutoff, int block_style)
 {
   int bin_dim_z = gridDim.y;
-  CUDA_FLOAT* binned_x = (CUDA_FLOAT*) _buffer;
+  CUDA_CFLOAT* binned_x = (CUDA_CFLOAT*) _buffer;
   binned_x = &binned_x[2];
   int* bin_count = (int*) &binned_x[3 * bin_dim_x * bin_dim_y * bin_dim_z * bin_nmax];
   int bin = __mul24(gridDim.y, blockIdx.x) + blockIdx.y;
@@ -391,19 +391,19 @@ __global__ void NeighborBuildFullBin_OverlapComm_Kernel(int* binned_id, int bin_
   int bin_c = bin_count[bin];
 
 
-  CUDA_FLOAT cut;
+  CUDA_CFLOAT cut;
 
   if(globcutoff > 0)
     cut = globcutoff;
 
   int i = _nall;
-  CUDA_FLOAT* my_x;
-  CUDA_FLOAT x_i, y_i, z_i;
+  CUDA_CFLOAT* my_x;
+  CUDA_CFLOAT x_i, y_i, z_i;
 
   for(int actOffset = 0; actOffset < bin_c; actOffset += blockDim.x) {
 
     int actIdx = threadIdx.x + actOffset;
-    CUDA_FLOAT* other_x = shared;
+    CUDA_CFLOAT* other_x = shared;
     int* other_id = (int*) &other_x[3 * blockDim.x];
 
     if(actIdx < bin_c) {
@@ -469,10 +469,10 @@ __global__ void NeighborBuildFullBin_OverlapComm_Kernel(int* binned_id, int bin_
             cut = _cutneighsq[itype * _cuda_ntypes + jtype];
           }
 
-          CUDA_FLOAT delx = x_i - other_x[kk];
-          CUDA_FLOAT dely = y_i - other_x[kk + blockDim.x];
-          CUDA_FLOAT delz = z_i - other_x[kk + 2 * blockDim.x];
-          CUDA_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+          CUDA_CFLOAT delx = x_i - other_x[kk];
+          CUDA_CFLOAT dely = y_i - other_x[kk + blockDim.x];
+          CUDA_CFLOAT delz = z_i - other_x[kk + 2 * blockDim.x];
+          CUDA_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
 
 
           if(rsq <= cut && i != j) {
@@ -549,10 +549,10 @@ __global__ void NeighborBuildFullBin_OverlapComm_Kernel(int* binned_id, int bin_
                   cut = _cutneighsq[itype * _cuda_ntypes + jtype];
                 }
 
-                CUDA_FLOAT delx = x_i - other_x[k];
-                CUDA_FLOAT dely = y_i - other_x[k + blockDim.x];
-                CUDA_FLOAT delz = z_i - other_x[k + 2 * blockDim.x];
-                CUDA_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+                CUDA_CFLOAT delx = x_i - other_x[k];
+                CUDA_CFLOAT dely = y_i - other_x[k + blockDim.x];
+                CUDA_CFLOAT delz = z_i - other_x[k + 2 * blockDim.x];
+                CUDA_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
 
                 if(rsq <= cut && i != j) {
                   if((j >= _nlocal) && (i_border < 0))
@@ -612,12 +612,12 @@ __global__ void NeighborBuildFullNsq_Kernel()
   int* buffer = (int*) _buffer;
 
   if(i < _nlocal) {
-    X_FLOAT* my_x = _x + i;
-    CUDA_FLOAT x_i = *my_x;
+    X_CFLOAT* my_x = _x + i;
+    CUDA_CFLOAT x_i = *my_x;
     my_x += _nmax;
-    CUDA_FLOAT y_i = *my_x;
+    CUDA_CFLOAT y_i = *my_x;
     my_x += _nmax;
-    CUDA_FLOAT z_i = *my_x;
+    CUDA_CFLOAT z_i = *my_x;
     int jnum = 0;
     int* jlist = _firstneigh[i];
     _ilist[i] = i;
@@ -627,15 +627,15 @@ __global__ void NeighborBuildFullNsq_Kernel()
 
     for(int j = 0; j < _nall; ++j) {
       my_x = _x + j;
-      CUDA_FLOAT x_j = *my_x;
+      CUDA_CFLOAT x_j = *my_x;
       my_x += _nmax;
-      CUDA_FLOAT y_j = *my_x;
+      CUDA_CFLOAT y_j = *my_x;
       my_x += _nmax;
-      CUDA_FLOAT z_j = *my_x;
-      CUDA_FLOAT delx = x_i - x_j;
-      CUDA_FLOAT dely = y_i - y_j;
-      CUDA_FLOAT delz = z_i - z_j;
-      CUDA_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+      CUDA_CFLOAT z_j = *my_x;
+      CUDA_CFLOAT delx = x_i - x_j;
+      CUDA_CFLOAT dely = y_i - y_j;
+      CUDA_CFLOAT delz = z_i - z_j;
+      CUDA_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
       int jtype = _type[j];
 
       if(rsq <= _cutneighsq[itype * _cuda_ntypes + jtype] && i != j) {

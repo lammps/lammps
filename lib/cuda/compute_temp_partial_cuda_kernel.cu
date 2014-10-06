@@ -21,7 +21,7 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-extern __shared__ ENERGY_FLOAT sharedmem[];
+extern __shared__ ENERGY_CFLOAT sharedmem[];
 
 
 __global__ void Cuda_ComputeTempPartialCuda_Scalar_Kernel(int groupbit, int xflag, int yflag, int zflag)
@@ -40,7 +40,7 @@ __global__ void Cuda_ComputeTempPartialCuda_Scalar_Kernel(int groupbit, int xfla
   }
 
   reduceBlock(sharedmem);
-  ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+  ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
 
   if(threadIdx.x == 0) {
     buffer[blockIdx.x * gridDim.y + blockIdx.y] = sharedmem[0];
@@ -59,7 +59,7 @@ __global__ void Cuda_ComputeTempPartialCuda_Vector_Kernel(int groupbit, int xfla
 
   if(i < _nlocal)
     if(_mask[i] & groupbit) {
-      V_FLOAT massone;
+      V_CFLOAT massone;
 
       if(_rmass_flag) massone = _rmass[i];
       else massone = _mass[_type[i]];
@@ -78,7 +78,7 @@ __global__ void Cuda_ComputeTempPartialCuda_Vector_Kernel(int groupbit, int xfla
   reduceBlock(&sharedmem[3 * blockDim.x]);
   reduceBlock(&sharedmem[4 * blockDim.x]);
   reduceBlock(&sharedmem[5 * blockDim.x]);
-  ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+  ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
 
   if(threadIdx.x == 0) {
     buffer[blockIdx.x * gridDim.y + blockIdx.y] = sharedmem[0];
@@ -91,12 +91,12 @@ __global__ void Cuda_ComputeTempPartialCuda_Vector_Kernel(int groupbit, int xfla
 }
 
 
-__global__ void Cuda_ComputeTempPartialCuda_Reduce_Kernel(int n, ENERGY_FLOAT* t)
+__global__ void Cuda_ComputeTempPartialCuda_Reduce_Kernel(int n, ENERGY_CFLOAT* t)
 {
   int i = 0;
   sharedmem[threadIdx.x] = 0;
-  ENERGY_FLOAT myforig = 0.0;
-  ENERGY_FLOAT* buf = (ENERGY_FLOAT*) _buffer;
+  ENERGY_CFLOAT myforig = 0.0;
+  ENERGY_CFLOAT* buf = (ENERGY_CFLOAT*) _buffer;
   buf = &buf[blockIdx.x * n];
 
   while(i < n) {
@@ -117,7 +117,7 @@ __global__ void Cuda_ComputeTempPartialCuda_Reduce_Kernel(int n, ENERGY_FLOAT* t
     t[blockIdx.x] = myforig;
 }
 
-__global__ void Cuda_ComputeTempPartialCuda_RemoveBiasAll_Kernel(int groupbit, int xflag, int yflag, int zflag, V_FLOAT* vbiasall)
+__global__ void Cuda_ComputeTempPartialCuda_RemoveBiasAll_Kernel(int groupbit, int xflag, int yflag, int zflag, V_CFLOAT* vbiasall)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
@@ -140,7 +140,7 @@ __global__ void Cuda_ComputeTempPartialCuda_RemoveBiasAll_Kernel(int groupbit, i
     }
 }
 
-__global__ void Cuda_ComputeTempPartialCuda_RestoreBiasAll_Kernel(int groupbit, int xflag, int yflag, int zflag, V_FLOAT* vbiasall)
+__global__ void Cuda_ComputeTempPartialCuda_RestoreBiasAll_Kernel(int groupbit, int xflag, int yflag, int zflag, V_CFLOAT* vbiasall)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 

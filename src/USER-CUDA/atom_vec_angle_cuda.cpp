@@ -46,7 +46,7 @@
 #include "fix.h"
 #include "memory.h"
 #include "error.h"
-#include "cuda.h"
+#include "user_cuda.h"
 #include "universe.h"
 #include "comm.h"
 

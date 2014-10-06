@@ -59,7 +59,7 @@
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
-#include "cuda.h"
+#include "user_cuda.h"
 
 using namespace LAMMPS_NS;
 

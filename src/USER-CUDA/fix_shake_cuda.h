@@ -66,8 +66,8 @@ class FixShakeCuda : public Fix {
   bool neighbor_step;                                         // was neighboring done in this step -> need to run the Cuda_FixShake_Init
 
   double *bond_distance,*angle_distance; // constraint distances
-  cCudaData<double           , X_FLOAT , xx >* cu_bond_distance;
-  cCudaData<double           , X_FLOAT , xx >* cu_angle_distance;
+  cCudaData<double           , X_CFLOAT , xx >* cu_bond_distance;
+  cCudaData<double           , X_CFLOAT , xx >* cu_angle_distance;
 
   int ifix_respa;                        // rRESPA fix needed by SHAKE
   int nlevels_respa;                     // copies of needed rRESPA variables
@@ -93,9 +93,9 @@ class FixShakeCuda : public Fix {
   cCudaData<int           , int            , xx >* cu_shake_flag;
   cCudaData<int           , int            , yx >* cu_shake_atom;
   cCudaData<int           , int            , yx >* cu_shake_type;
-  cCudaData<double           , X_FLOAT , xy >* cu_xshake;
+  cCudaData<double           , X_CFLOAT , xy >* cu_xshake;
   cCudaData<int           , int            , xx >* cu_list;
-  cCudaData<double           , ENERGY_FLOAT , xx >* cu_virial;
+  cCudaData<double           , ENERGY_CFLOAT , xx >* cu_virial;
   int* countoccur;
 
   int vflag;                            // virial flag

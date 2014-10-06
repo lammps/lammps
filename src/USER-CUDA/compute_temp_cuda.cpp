@@ -112,10 +112,10 @@ double ComputeTempCuda::compute_scalar()
 {
   if(cuda->begin_setup)
   {
-          if(not cu_t_vector) cu_t_vector = new cCudaData<double, ENERGY_FLOAT, x> (t_vector,6);
-          if(not cu_t_scalar) cu_t_scalar = new cCudaData<double, ENERGY_FLOAT, x> (&t_scalar,1);
+          if(not cu_t_vector) cu_t_vector = new cCudaData<double, ENERGY_CFLOAT, x> (t_vector,6);
+          if(not cu_t_scalar) cu_t_scalar = new cCudaData<double, ENERGY_CFLOAT, x> (&t_scalar,1);
     invoked_scalar = update->ntimestep;
-    Cuda_ComputeTempCuda_Scalar(&cuda->shared_data,groupbit,(ENERGY_FLOAT*) cu_t_scalar->dev_data());
+    Cuda_ComputeTempCuda_Scalar(&cuda->shared_data,groupbit,(ENERGY_CFLOAT*) cu_t_scalar->dev_data());
     cu_t_scalar->download();
   }
   else
@@ -170,12 +170,12 @@ void ComputeTempCuda::compute_vector()
   int i;
   if(cuda->begin_setup)
   {
-  if(not cu_t_vector) cu_t_vector = new cCudaData<double, ENERGY_FLOAT, x> (t_vector,6);
-  if(not cu_t_scalar) cu_t_scalar = new cCudaData<double, ENERGY_FLOAT, x> (&t_scalar,1);
+  if(not cu_t_vector) cu_t_vector = new cCudaData<double, ENERGY_CFLOAT, x> (t_vector,6);
+  if(not cu_t_scalar) cu_t_scalar = new cCudaData<double, ENERGY_CFLOAT, x> (&t_scalar,1);
 
   invoked_vector = update->ntimestep;
 
-  Cuda_ComputeTempCuda_Vector(&cuda->shared_data,groupbit,(ENERGY_FLOAT*) cu_t_vector->dev_data());
+  Cuda_ComputeTempCuda_Vector(&cuda->shared_data,groupbit,(ENERGY_CFLOAT*) cu_t_vector->dev_data());
   cu_t_vector->download();
   }
   else

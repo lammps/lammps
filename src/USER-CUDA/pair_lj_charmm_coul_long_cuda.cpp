@@ -85,10 +85,10 @@ void PairLJCharmmCoulLongCuda::allocate()
                 cuda->shared_data.pair.offset  = offset;
                 cuda->shared_data.pair.special_lj  = force->special_lj;
                 cuda->shared_data.pair.special_coul  = force->special_coul;
-            cu_lj1_gm = new cCudaData<double, F_FLOAT, x> ((double*)lj1, &cuda->shared_data.pair.coeff1_gm, (atom->ntypes+1)*(atom->ntypes+1));
-            cu_lj2_gm = new cCudaData<double, F_FLOAT, x> ((double*)lj2, &cuda->shared_data.pair.coeff2_gm, (atom->ntypes+1)*(atom->ntypes+1));
-            cu_lj3_gm = new cCudaData<double, F_FLOAT, x> ((double*)lj3, &cuda->shared_data.pair.coeff3_gm, (atom->ntypes+1)*(atom->ntypes+1));
-            cu_lj4_gm = new cCudaData<double, F_FLOAT, x> ((double*)lj4, &cuda->shared_data.pair.coeff4_gm, (atom->ntypes+1)*(atom->ntypes+1));
+            cu_lj1_gm = new cCudaData<double, F_CFLOAT, x> ((double*)lj1, &cuda->shared_data.pair.coeff1_gm, (atom->ntypes+1)*(atom->ntypes+1));
+            cu_lj2_gm = new cCudaData<double, F_CFLOAT, x> ((double*)lj2, &cuda->shared_data.pair.coeff2_gm, (atom->ntypes+1)*(atom->ntypes+1));
+            cu_lj3_gm = new cCudaData<double, F_CFLOAT, x> ((double*)lj3, &cuda->shared_data.pair.coeff3_gm, (atom->ntypes+1)*(atom->ntypes+1));
+            cu_lj4_gm = new cCudaData<double, F_CFLOAT, x> ((double*)lj4, &cuda->shared_data.pair.coeff4_gm, (atom->ntypes+1)*(atom->ntypes+1));
         }
 }
 
@@ -119,9 +119,9 @@ void PairLJCharmmCoulLongCuda::compute(int eflag, int vflag)
 void PairLJCharmmCoulLongCuda::settings(int narg, char **arg)
 {
         PairLJCharmmCoulLong::settings(narg, arg);
-        cuda->shared_data.pair.cut_global = (X_FLOAT) cut_lj;
-        cuda->shared_data.pair.cut_coulsq_global = (X_FLOAT) cut_coulsq;
-        cuda->shared_data.pair.cut_inner_global = (F_FLOAT) cut_lj_inner;
+        cuda->shared_data.pair.cut_global = (X_CFLOAT) cut_lj;
+        cuda->shared_data.pair.cut_coulsq_global = (X_CFLOAT) cut_coulsq;
+        cuda->shared_data.pair.cut_inner_global = (F_CFLOAT) cut_lj_inner;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -188,9 +188,9 @@ void PairLJCharmmCoulLongCuda::ev_setup(int eflag, int vflag)
         PairLJCharmmCoulLong::ev_setup(eflag,vflag);
 
   if (eflag_atom && atom->nmax > maxeatomold)
-        {delete cuda->cu_eatom; cuda->cu_eatom = new cCudaData<double, ENERGY_FLOAT, x > ((double*)eatom, & cuda->shared_data.atom.eatom , atom->nmax  );}
+        {delete cuda->cu_eatom; cuda->cu_eatom = new cCudaData<double, ENERGY_CFLOAT, x > ((double*)eatom, & cuda->shared_data.atom.eatom , atom->nmax  );}
 
   if (vflag_atom && atom->nmax > maxeatomold)
-        {delete cuda->cu_vatom; cuda->cu_vatom = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)vatom, & cuda->shared_data.atom.vatom , atom->nmax, 6  );}
+        {delete cuda->cu_vatom; cuda->cu_vatom = new cCudaData<double, ENERGY_CFLOAT, yx > ((double*)vatom, & cuda->shared_data.atom.vatom , atom->nmax, 6  );}
 
 }

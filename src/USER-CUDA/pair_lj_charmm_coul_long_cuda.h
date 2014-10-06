@@ -50,10 +50,10 @@ class PairLJCharmmCoulLongCuda : public PairLJCharmmCoulLong
                 void allocate();
                 bool allocated2;
                 class CudaNeighList* cuda_neigh_list;
-                cCudaData<double  , F_FLOAT , x >* cu_lj1_gm;
-                cCudaData<double  , F_FLOAT , x >* cu_lj2_gm;
-                cCudaData<double  , F_FLOAT , x >* cu_lj3_gm;
-                cCudaData<double  , F_FLOAT , x >* cu_lj4_gm;
+                cCudaData<double  , F_CFLOAT , x >* cu_lj1_gm;
+                cCudaData<double  , F_CFLOAT , x >* cu_lj2_gm;
+                cCudaData<double  , F_CFLOAT , x >* cu_lj3_gm;
+                cCudaData<double  , F_CFLOAT , x >* cu_lj4_gm;
 };
 
 }

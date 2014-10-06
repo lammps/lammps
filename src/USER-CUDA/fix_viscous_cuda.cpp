@@ -73,7 +73,7 @@ int FixViscousCuda::setmask()
 void FixViscousCuda::setup(int vflag)
 {
    if(not cu_gamma)
-   cu_gamma = new cCudaData<double, F_FLOAT, x> (gamma,atom->ntypes+1);
+   cu_gamma = new cCudaData<double, F_CFLOAT, x> (gamma,atom->ntypes+1);
    Cuda_FixViscousCuda_Init(&cuda->shared_data);
    cu_gamma->upload();
  // if (strcmp(update->integrate_style,"verlet/cuda") == 0)

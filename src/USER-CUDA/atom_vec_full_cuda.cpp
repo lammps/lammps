@@ -56,7 +56,7 @@ using namespace LAMMPS_NS;
 #define BUFEXTRA 1000
 #define NCUDAEXCHANGE 13 //nextra x y z vx vy vz tag type mask image q molecule
 
-#define BUF_FLOAT double
+#define BUF_CFLOAT double
 /* ---------------------------------------------------------------------- */
 
 AtomVecFullCuda::AtomVecFullCuda(LAMMPS *lmp) :
@@ -146,8 +146,8 @@ int AtomVecFullCuda::pack_comm(int n, int* iswap, double *buf,
           return AtomVecFull::pack_comm(n,iswap,buf,pbc_flag,pbc);
 
         int m = Cuda_CommCuda_PackComm(&cuda->shared_data,n,*iswap,(void*) buf,pbc,pbc_flag);
-        if((sizeof(X_FLOAT)!=sizeof(double)) && m)
-          m=(m+1)*sizeof(X_FLOAT)/sizeof(double);
+        if((sizeof(X_CFLOAT)!=sizeof(double)) && m)
+          m=(m+1)*sizeof(X_CFLOAT)/sizeof(double);
         return m;
 }
 
@@ -158,8 +158,8 @@ int AtomVecFullCuda::pack_comm_vel(int n, int* iswap, double *buf,
           return AtomVecFull::pack_comm_vel(n,iswap,buf,pbc_flag,pbc);
 
         int m = Cuda_CommCuda_PackCommVel(&cuda->shared_data,n,*iswap,(void*) buf,pbc,pbc_flag);
-        if((sizeof(X_FLOAT)!=sizeof(double)) && m)
-          m=(m+1)*sizeof(X_FLOAT)/sizeof(double);
+        if((sizeof(X_CFLOAT)!=sizeof(double)) && m)
+          m=(m+1)*sizeof(X_CFLOAT)/sizeof(double);
         return m;
 }
 

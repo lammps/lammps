@@ -52,11 +52,11 @@ class PairLJSDKCuda : public PairLJSDK
                 bool allocated2;
                 class CudaNeighList* cuda_neigh_list;
                 double** lj_type_double;
-                cCudaData<double  , F_FLOAT , x >* cu_lj1_gm;
-                cCudaData<double  , F_FLOAT , x >* cu_lj2_gm;
-                cCudaData<double  , F_FLOAT , x >* cu_lj3_gm;
-                cCudaData<double  , F_FLOAT , x >* cu_lj4_gm;
-                cCudaData<double  , F_FLOAT , x >* cu_lj_type_double_gm;
+                cCudaData<double  , F_CFLOAT , x >* cu_lj1_gm;
+                cCudaData<double  , F_CFLOAT , x >* cu_lj2_gm;
+                cCudaData<double  , F_CFLOAT , x >* cu_lj3_gm;
+                cCudaData<double  , F_CFLOAT , x >* cu_lj4_gm;
+                cCudaData<double  , F_CFLOAT , x >* cu_lj_type_double_gm;
 };
 
 }

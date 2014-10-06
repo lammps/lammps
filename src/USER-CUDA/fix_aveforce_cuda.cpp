@@ -143,7 +143,7 @@ int FixAveForceCuda::setmask()
 void FixAveForceCuda::init()
 {
   if(not cu_foriginal)
-  cu_foriginal = new cCudaData<double, F_FLOAT, x> (foriginal,4);
+  cu_foriginal = new cCudaData<double, F_CFLOAT, x> (foriginal,4);
 
   if (xstr) {
     xvar = input->variable->find(xstr);
@@ -207,7 +207,7 @@ void FixAveForceCuda::post_force(int vflag)
   // sum forces on participating atoms
 
   cu_foriginal->memset_device(0);
-  Cuda_FixAveForceCuda_PostForce_FOrg(&cuda->shared_data, groupbit,(F_FLOAT*) cu_foriginal->dev_data());
+  Cuda_FixAveForceCuda_PostForce_FOrg(&cuda->shared_data, groupbit,(F_CFLOAT*) cu_foriginal->dev_data());
   cu_foriginal->download();
 
   // average the force on participating atoms

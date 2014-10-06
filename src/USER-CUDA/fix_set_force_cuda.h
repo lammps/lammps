@@ -52,7 +52,7 @@ class FixSetForceCuda : public Fix {
   int flagx,flagy,flagz;
   double xvalue,yvalue,zvalue;
   double foriginal[3],foriginal_all[3];
-  cCudaData<double     , F_FLOAT                   , x>* cu_foriginal;
+  cCudaData<double     , F_CFLOAT                   , x>* cu_foriginal;
   int force_flag;
   int nlevels_respa;
 };

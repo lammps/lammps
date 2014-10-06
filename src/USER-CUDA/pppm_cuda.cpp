@@ -747,7 +747,7 @@ void PPPMCuda::compute(int eflag, int vflag)
   else
   {
      #ifdef FFT_CUFFT
-     pppm_initfftdata(&cuda->shared_data,(PPPM_FLOAT*)cu_density_brick->dev_data(),(FFT_FLOAT*)cu_work2->dev_data());
+     pppm_initfftdata(&cuda->shared_data,(PPPM_CFLOAT*)cu_density_brick->dev_data(),(FFT_CFLOAT*)cu_work2->dev_data());
      #endif
   }
 
@@ -836,7 +836,7 @@ void PPPMCuda::allocate()
                           nxlo_out,nxhi_out,"pppm:density_brick_int");
 
 
-  cu_density_brick = new cCudaData<double, PPPM_FLOAT, x> ((double*) &(density_brick[nzlo_out][nylo_out][nxlo_out]), & (dev_tmp[n_cudata++]),
+  cu_density_brick = new cCudaData<double, PPPM_CFLOAT, x> ((double*) &(density_brick[nzlo_out][nylo_out][nxlo_out]), & (dev_tmp[n_cudata++]),
                                      (nzhi_out-nzlo_out+1)*(nyhi_out-nylo_out+1)*(nxhi_out-nxlo_out+1));
 
   cu_density_brick_int = new cCudaData<int, int, x> ((int*) &(density_brick_int[nzlo_out][nylo_out][nxlo_out]), & (dev_tmp[n_cudata++]),
@@ -847,48 +847,48 @@ void PPPMCuda::allocate()
   memory->create3d_offset(vdx_brick_tmp,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:vdx_brick_tmp");
 
-  cu_vdx_brick = new cCudaData<double, PPPM_FLOAT, x> ((double*) &(vdx_brick[nzlo_out][nylo_out][nxlo_out]), & (dev_tmp[n_cudata++]),
+  cu_vdx_brick = new cCudaData<double, PPPM_CFLOAT, x> ((double*) &(vdx_brick[nzlo_out][nylo_out][nxlo_out]), & (dev_tmp[n_cudata++]),
                                      (nzhi_out-nzlo_out+1)*(nyhi_out-nylo_out+1)*(nxhi_out-nxlo_out+1));
 
   memory->create3d_offset(vdy_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:vdy_brick");
-  cu_vdy_brick = new cCudaData<double, PPPM_FLOAT, x> ((double*) &(vdy_brick[nzlo_out][nylo_out][nxlo_out]), & (dev_tmp[n_cudata++]),
+  cu_vdy_brick = new cCudaData<double, PPPM_CFLOAT, x> ((double*) &(vdy_brick[nzlo_out][nylo_out][nxlo_out]), & (dev_tmp[n_cudata++]),
                                      (nzhi_out-nzlo_out+1)*(nyhi_out-nylo_out+1)*(nxhi_out-nxlo_out+1));
 
   memory->create3d_offset(vdz_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:vdz_brick");
-  cu_vdz_brick = new cCudaData<double, PPPM_FLOAT, x> ((double*) &(vdz_brick[nzlo_out][nylo_out][nxlo_out]), & (dev_tmp[n_cudata++]),
+  cu_vdz_brick = new cCudaData<double, PPPM_CFLOAT, x> ((double*) &(vdz_brick[nzlo_out][nylo_out][nxlo_out]), & (dev_tmp[n_cudata++]),
                                      (nzhi_out-nzlo_out+1)*(nyhi_out-nylo_out+1)*(nxhi_out-nxlo_out+1));
 
   memory->create(density_fft,nfft_both,"pppm:density_fft");
 
-  cu_density_fft = new cCudaData<double, PPPM_FLOAT, x> (density_fft, & (dev_tmp[n_cudata++]),nfft_both);
+  cu_density_fft = new cCudaData<double, PPPM_CFLOAT, x> (density_fft, & (dev_tmp[n_cudata++]),nfft_both);
 
-  cu_energy = new cCudaData<double, ENERGY_FLOAT, x> (NULL, &(dev_tmp[n_cudata++]),ny_pppm*nz_pppm);
-  cu_virial = new cCudaData<double, ENERGY_FLOAT, x> (NULL, &(dev_tmp[n_cudata++]),ny_pppm*nz_pppm*6);
+  cu_energy = new cCudaData<double, ENERGY_CFLOAT, x> (NULL, &(dev_tmp[n_cudata++]),ny_pppm*nz_pppm);
+  cu_virial = new cCudaData<double, ENERGY_CFLOAT, x> (NULL, &(dev_tmp[n_cudata++]),ny_pppm*nz_pppm*6);
 
   memory->create(greensfn,nfft_both,"pppm:greensfn");
-  cu_greensfn = new cCudaData<double, PPPM_FLOAT, x> (greensfn, & (dev_tmp[n_cudata++]) , nx_pppm*ny_pppm*nz_pppm);
+  cu_greensfn = new cCudaData<double, PPPM_CFLOAT, x> (greensfn, & (dev_tmp[n_cudata++]) , nx_pppm*ny_pppm*nz_pppm);
 
   memory->create(work1,2*nx_pppm*ny_pppm*nz_pppm,"pppm:work1");
   memory->create(work2,2*nx_pppm*ny_pppm*nz_pppm,"pppm:work2");
   memory->create(work3,2*nx_pppm*ny_pppm*nz_pppm,"pppm:work3");
 
-  cu_work1 = new cCudaData<double, FFT_FLOAT, x> (work1, & (dev_tmp[n_cudata++]) , 2*nx_pppm*ny_pppm*nz_pppm);
-  cu_work2 = new cCudaData<double, FFT_FLOAT, x> (work2, & (dev_tmp[n_cudata++]) , 2*nx_pppm*ny_pppm*nz_pppm);
-  cu_work3 = new cCudaData<double, FFT_FLOAT, x> (work3, & (dev_tmp[n_cudata++]) , 2*nx_pppm*ny_pppm*nz_pppm);
+  cu_work1 = new cCudaData<double, FFT_CFLOAT, x> (work1, & (dev_tmp[n_cudata++]) , 2*nx_pppm*ny_pppm*nz_pppm);
+  cu_work2 = new cCudaData<double, FFT_CFLOAT, x> (work2, & (dev_tmp[n_cudata++]) , 2*nx_pppm*ny_pppm*nz_pppm);
+  cu_work3 = new cCudaData<double, FFT_CFLOAT, x> (work3, & (dev_tmp[n_cudata++]) , 2*nx_pppm*ny_pppm*nz_pppm);
 
 
   memory->create(fkx,nx_pppm,"pppmcuda:fkx");
-  cu_fkx = new cCudaData<double, PPPM_FLOAT, x> (fkx, & (dev_tmp[n_cudata++]) , nx_pppm);
+  cu_fkx = new cCudaData<double, PPPM_CFLOAT, x> (fkx, & (dev_tmp[n_cudata++]) , nx_pppm);
   memory->create(fky,ny_pppm,"pppmcuda:fky");
-  cu_fky = new cCudaData<double, PPPM_FLOAT, x> (fky, & (dev_tmp[n_cudata++]) , ny_pppm);
+  cu_fky = new cCudaData<double, PPPM_CFLOAT, x> (fky, & (dev_tmp[n_cudata++]) , ny_pppm);
   memory->create(fkz,nz_pppm,"pppmcuda:fkz");
-  cu_fkz = new cCudaData<double, PPPM_FLOAT, x> (fkz, & (dev_tmp[n_cudata++]) , nz_pppm);
+  cu_fkz = new cCudaData<double, PPPM_CFLOAT, x> (fkz, & (dev_tmp[n_cudata++]) , nz_pppm);
 
   memory->create(vg,nfft_both,6,"pppm:vg");
 
-  cu_vg = new cCudaData<double, PPPM_FLOAT, xy> ((double*)vg, & (dev_tmp[n_cudata++]) , nfft_both,6);
+  cu_vg = new cCudaData<double, PPPM_CFLOAT, xy> ((double*)vg, & (dev_tmp[n_cudata++]) , nfft_both,6);
 
   memory->create(buf1,nbuf,"pppm:buf1");
   memory->create(buf2,nbuf,"pppm:buf2");
@@ -898,14 +898,14 @@ void PPPMCuda::allocate()
 
 
   gf_b = new double[order];
-  cu_gf_b = new cCudaData<double,PPPM_FLOAT,x> (gf_b, &(dev_tmp[n_cudata++]) , order);
+  cu_gf_b = new cCudaData<double,PPPM_CFLOAT,x> (gf_b, &(dev_tmp[n_cudata++]) , order);
   memory->create2d_offset(rho1d,3,-order/2,order/2,"pppm:rho1d");
   memory->create2d_offset(rho_coeff,order,(1-order)/2,order/2,"pppm:rho_coeff");
 
-  cu_rho_coeff = new cCudaData<double, PPPM_FLOAT, x> ((double*) &(rho_coeff[0][(1-order)/2]), & (dev_tmp[n_cudata++]) , order*(order/2-(1-order)/2+1));
+  cu_rho_coeff = new cCudaData<double, PPPM_CFLOAT, x> ((double*) &(rho_coeff[0][(1-order)/2]), & (dev_tmp[n_cudata++]) , order*(order/2-(1-order)/2+1));
 
-  debugdata=new PPPM_FLOAT[100];
-  cu_debugdata = new cCudaData<PPPM_FLOAT, PPPM_FLOAT, x> (debugdata,& (dev_tmp[n_cudata++]),100);
+  debugdata=new PPPM_CFLOAT[100];
+  cu_debugdata = new cCudaData<PPPM_CFLOAT, PPPM_CFLOAT, x> (debugdata,& (dev_tmp[n_cudata++]),100);
   cu_flag = new cCudaData<int, int, x> (&global_flag,& (dev_tmp[n_cudata++]),3);
 
   // create 2 FFTs and a Remap
@@ -1308,7 +1308,7 @@ void PPPMCuda::poisson(int eflag, int vflag)
 
   if (eflag || vflag) {
     poisson_energy(nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,vflag);
-    ENERGY_FLOAT gpuvirial[6];
+    ENERGY_CFLOAT gpuvirial[6];
     energy+=sum_energy(cu_virial->dev_data(),cu_energy->dev_data(),nx_pppm,ny_pppm,nz_pppm,vflag,gpuvirial);
     if(vflag)
     {
@@ -1395,19 +1395,19 @@ void PPPMCuda::slabcorr(int eflag)
   // compute local contribution to global dipole moment
   if(slabbuf==NULL)
   {
-          slabbuf=new ENERGY_FLOAT[(atom->nmax+31)/32];
-          cu_slabbuf = new cCudaData<ENERGY_FLOAT,ENERGY_FLOAT, x> (slabbuf, (atom->nmax+31)/32);
+          slabbuf=new ENERGY_CFLOAT[(atom->nmax+31)/32];
+          cu_slabbuf = new cCudaData<ENERGY_CFLOAT,ENERGY_CFLOAT, x> (slabbuf, (atom->nmax+31)/32);
   }
-  if(unsigned((atom->nlocal+31)/32)*sizeof(ENERGY_FLOAT)>=unsigned(cu_slabbuf->dev_size()))
+  if(unsigned((atom->nlocal+31)/32)*sizeof(ENERGY_CFLOAT)>=unsigned(cu_slabbuf->dev_size()))
   {
           delete [] slabbuf;
           delete cu_slabbuf;
-          slabbuf=new ENERGY_FLOAT[(atom->nmax+31)/32];
-          cu_slabbuf = new cCudaData<ENERGY_FLOAT,ENERGY_FLOAT, x> (slabbuf, (atom->nmax+31)/32);
+          slabbuf=new ENERGY_CFLOAT[(atom->nmax+31)/32];
+          cu_slabbuf = new cCudaData<ENERGY_CFLOAT,ENERGY_CFLOAT, x> (slabbuf, (atom->nmax+31)/32);
   }
 
 
-  double dipole = cuda_slabcorr_energy(&cuda->shared_data,slabbuf,(ENERGY_FLOAT*) cu_slabbuf->dev_data());
+  double dipole = cuda_slabcorr_energy(&cuda->shared_data,slabbuf,(ENERGY_CFLOAT*) cu_slabbuf->dev_data());
 
   double dipole_all;
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);

@@ -25,7 +25,7 @@ KSpaceStyle(pppm/old,PPPMOld)
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
-#define MPI_FFT_SCALAR MPI_FLOAT
+#define MPI_FFT_SCALAR MPI_CFLOAT
 #else
 typedef double FFT_SCALAR;
 #define MPI_FFT_SCALAR MPI_DOUBLE

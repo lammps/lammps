@@ -135,10 +135,10 @@ double ComputeTempPartialCuda::compute_scalar()
 {
   if(cuda->begin_setup)
   {
-          if(not cu_t_vector) cu_t_vector = new cCudaData<double, ENERGY_FLOAT, x> (t_vector,6);
-          if(not cu_t_scalar) cu_t_scalar = new cCudaData<double, ENERGY_FLOAT, x> (&t_scalar,1);
+          if(not cu_t_vector) cu_t_vector = new cCudaData<double, ENERGY_CFLOAT, x> (t_vector,6);
+          if(not cu_t_scalar) cu_t_scalar = new cCudaData<double, ENERGY_CFLOAT, x> (&t_scalar,1);
     invoked_scalar = update->ntimestep;
-    Cuda_ComputeTempPartialCuda_Scalar(&cuda->shared_data,groupbit,(ENERGY_FLOAT*) cu_t_scalar->dev_data(),xflag,yflag,zflag);
+    Cuda_ComputeTempPartialCuda_Scalar(&cuda->shared_data,groupbit,(ENERGY_CFLOAT*) cu_t_scalar->dev_data(),xflag,yflag,zflag);
     cu_t_scalar->download();
   }
   else
@@ -193,12 +193,12 @@ void ComputeTempPartialCuda::compute_vector()
   int i;
   if(cuda->begin_setup)
   {
-  if(not cu_t_vector) cu_t_vector = new cCudaData<double, ENERGY_FLOAT, x> (t_vector,6);
-  if(not cu_t_scalar) cu_t_scalar = new cCudaData<double, ENERGY_FLOAT, x> (&t_scalar,1);
+  if(not cu_t_vector) cu_t_vector = new cCudaData<double, ENERGY_CFLOAT, x> (t_vector,6);
+  if(not cu_t_scalar) cu_t_scalar = new cCudaData<double, ENERGY_CFLOAT, x> (&t_scalar,1);
 
   invoked_vector = update->ntimestep;
 
-  Cuda_ComputeTempPartialCuda_Vector(&cuda->shared_data,groupbit,(ENERGY_FLOAT*) cu_t_vector->dev_data(),xflag,yflag,zflag);
+  Cuda_ComputeTempPartialCuda_Vector(&cuda->shared_data,groupbit,(ENERGY_CFLOAT*) cu_t_vector->dev_data(),xflag,yflag,zflag);
   cu_t_vector->download();
   }
   else
@@ -269,7 +269,7 @@ void ComputeTempPartialCuda::remove_bias_all()
     maxbias = atom->nmax;
     memory->create(vbiasall,maxbias,3,"temp/partial:vbiasall");
         delete cu_vbiasall;
-        cu_vbiasall = new cCudaData<double, V_FLOAT, yx> ((double*)vbiasall, atom->nmax, 3);
+        cu_vbiasall = new cCudaData<double, V_CFLOAT, yx> ((double*)vbiasall, atom->nmax, 3);
   }
   if(cuda->begin_setup)
   {

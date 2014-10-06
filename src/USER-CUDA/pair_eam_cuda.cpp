@@ -92,14 +92,14 @@ void PairEAMCuda::allocate()
   if(! allocated) PairEAM::allocate();
 
   cuda->shared_data.pair.cutsq     = cutsq;
-  cuda->shared_data.pair.cut_global = (F_FLOAT) cutforcesq;
+  cuda->shared_data.pair.cut_global = (F_CFLOAT) cutforcesq;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairEAMCuda::compute(int eflag, int vflag)
 {
-  cuda->shared_data.pair.cut_global = (F_FLOAT) cutforcesq;
+  cuda->shared_data.pair.cut_global = (F_CFLOAT) cutforcesq;
   cuda->shared_data.pair.use_block_per_atom = 0;
   cuda->shared_data.pair.collect_forces_later = 0;
 
@@ -111,8 +111,8 @@ void PairEAMCuda::compute(int eflag, int vflag)
     memory->create(fp, nmax, "pair:fp");
     delete cu_rho;
     delete cu_fp;
-    cu_rho = new cCudaData<double, F_FLOAT, x> (rho, atom->nmax);
-    cu_fp  = new cCudaData<double, F_FLOAT, x> (fp, atom->nmax);
+    cu_rho = new cCudaData<double, F_CFLOAT, x> (rho, atom->nmax);
+    cu_fp  = new cCudaData<double, F_CFLOAT, x> (fp, atom->nmax);
     Cuda_PairEAMCuda_Init(&cuda->shared_data, rdr, rdrho, nfrho, nrhor, nr, nrho, nz2r,
                           cu_frho_spline->dev_data(), cu_rhor_spline->dev_data(), cu_z2r_spline->dev_data(),
                           cu_rho->dev_data(), cu_fp->dev_data(), type2frho, type2z2r, type2rhor);
@@ -142,7 +142,7 @@ void PairEAMCuda::compute(int eflag, int vflag)
 void PairEAMCuda::settings(int narg, char** arg)
 {
   PairEAM::settings(narg, arg);
-  cuda->shared_data.pair.cut_global = (F_FLOAT) cutforcesq;
+  cuda->shared_data.pair.cut_global = (F_CFLOAT) cutforcesq;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -171,9 +171,9 @@ void PairEAMCuda::init_style()
   delete cu_z2r_spline;
   delete cu_frho_spline;
 
-  cu_rhor_spline = new cCudaData<double, F_FLOAT, xyz>((double*)rhor_spline, nrhor, nr + 1, EAM_COEFF_LENGTH);
-  cu_z2r_spline = new cCudaData<double, F_FLOAT, xyz>((double*)z2r_spline, nz2r, nr + 1, EAM_COEFF_LENGTH);
-  cu_frho_spline = new cCudaData<double, F_FLOAT, xyz>((double*)frho_spline, nfrho, nrho + 1, EAM_COEFF_LENGTH);
+  cu_rhor_spline = new cCudaData<double, F_CFLOAT, xyz>((double*)rhor_spline, nrhor, nr + 1, EAM_COEFF_LENGTH);
+  cu_z2r_spline = new cCudaData<double, F_CFLOAT, xyz>((double*)z2r_spline, nz2r, nr + 1, EAM_COEFF_LENGTH);
+  cu_frho_spline = new cCudaData<double, F_CFLOAT, xyz>((double*)frho_spline, nfrho, nrho + 1, EAM_COEFF_LENGTH);
 
   cu_rhor_spline->upload();
   cu_z2r_spline->upload();
@@ -236,7 +236,7 @@ int PairEAMCuda::pack_forward_comm(int n, int* iswap, double* buf,
 {
   Cuda_PairEAMCuda_PackComm(&cuda->shared_data, n, *iswap, buf);
 
-  if(sizeof(F_FLOAT) < sizeof(double)) return n;
+  if(sizeof(F_CFLOAT) < sizeof(double)) return n;
   else return n;
 }
 
@@ -254,12 +254,12 @@ void PairEAMCuda::ev_setup(int eflag, int vflag)
 
   if(eflag_atom && atom->nmax > maxeatomold) {
     delete cuda->cu_eatom;
-    cuda->cu_eatom = new cCudaData<double, ENERGY_FLOAT, x > ((double*)eatom, & cuda->shared_data.atom.eatom , atom->nmax);
+    cuda->cu_eatom = new cCudaData<double, ENERGY_CFLOAT, x > ((double*)eatom, & cuda->shared_data.atom.eatom , atom->nmax);
   }
 
   if(vflag_atom && atom->nmax > maxeatomold) {
     delete cuda->cu_vatom;
-    cuda->cu_vatom = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)vatom, & cuda->shared_data.atom.vatom , atom->nmax, 6);
+    cuda->cu_vatom = new cCudaData<double, ENERGY_CFLOAT, yx > ((double*)vatom, & cuda->shared_data.atom.vatom , atom->nmax, 6);
   }
 
 }

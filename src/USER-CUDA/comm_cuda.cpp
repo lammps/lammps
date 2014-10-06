@@ -121,11 +121,11 @@ void CommCuda::init()
   cu_pbc->upload();
 
   delete cu_slablo;
-  cu_slablo = new cCudaData<double, X_FLOAT,x>(slablo,cuda->shared_data.comm.maxswap);
+  cu_slablo = new cCudaData<double, X_CFLOAT,x>(slablo,cuda->shared_data.comm.maxswap);
   cu_slablo->upload();
 
   delete cu_slabhi;
-  cu_slabhi = new cCudaData<double, X_FLOAT,x>(slabhi,cuda->shared_data.comm.maxswap);
+  cu_slabhi = new cCudaData<double, X_CFLOAT,x>(slabhi,cuda->shared_data.comm.maxswap);
   cu_slabhi->upload();
 
   cuda->shared_data.comm.pbc.dev_data=cu_pbc->dev_data();
@@ -214,8 +214,8 @@ void CommCuda::forward_comm_cuda()
 
         int size_forward_recv_now=0;
 
-        if((sizeof(X_FLOAT)!=sizeof(double)) && size_forward_recv[iswap]) //some complicated way to safe some transfer size if single precision is used
-          size_forward_recv_now=(size_forward_recv[iswap]+1)*sizeof(X_FLOAT)/sizeof(double);
+        if((sizeof(X_CFLOAT)!=sizeof(double)) && size_forward_recv[iswap]) //some complicated way to safe some transfer size if single precision is used
+          size_forward_recv_now=(size_forward_recv[iswap]+1)*sizeof(X_CFLOAT)/sizeof(double);
         else
           size_forward_recv_now=size_forward_recv[iswap];
 my_gettime(CLOCK_REALTIME,&time1);
@@ -226,8 +226,8 @@ my_gettime(CLOCK_REALTIME,&time1);
 
 my_gettime(CLOCK_REALTIME,&time2);
 
-        if((sizeof(X_FLOAT)!=sizeof(double)) && n) //some complicated way to safe some transfer size if single precision is used
-          n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
+        if((sizeof(X_CFLOAT)!=sizeof(double)) && n) //some complicated way to safe some transfer size if single precision is used
+          n=(n+1)*sizeof(X_CFLOAT)/sizeof(double);
 
                 //printf("RecvSize: %i SendSize: %i\n",size_forward_recv_now,n);
             MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
@@ -285,8 +285,8 @@ cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
                 {
           n = Cuda_CommCuda_PackComm_Self(&cuda->shared_data,sendnum[iswap],iswap,firstrecv[iswap],pbc[iswap],pbc_flag[iswap]);
           if(n<0) error->all(FLERR," # CUDA ERRROR on PackComm_Self");
-          if((sizeof(X_FLOAT)!=sizeof(double)) && n)
-            n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
+          if((sizeof(X_CFLOAT)!=sizeof(double)) && n)
+            n=(n+1)*sizeof(X_CFLOAT)/sizeof(double);
                 }
       }
       else if (ghost_velocity)
@@ -346,8 +346,8 @@ my_gettime(CLOCK_REALTIME,&time1);
 
 my_gettime(CLOCK_REALTIME,&time2);
 
-        if((sizeof(X_FLOAT)!=sizeof(double)) && n) //some complicated way to safe some transfer size if single precision is used
-          n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
+        if((sizeof(X_CFLOAT)!=sizeof(double)) && n) //some complicated way to safe some transfer size if single precision is used
+          n=(n+1)*sizeof(X_CFLOAT)/sizeof(double);
                 cuda->shared_data.comm.send_size[iswap]=n;
       }
       else if (ghost_velocity)
@@ -358,8 +358,8 @@ my_gettime(CLOCK_REALTIME,&time1);
 
 my_gettime(CLOCK_REALTIME,&time2);
 
-        if((sizeof(X_FLOAT)!=sizeof(double)) && n) //some complicated way to safe some transfer size if single precision is used
-          n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
+        if((sizeof(X_CFLOAT)!=sizeof(double)) && n) //some complicated way to safe some transfer size if single precision is used
+          n=(n+1)*sizeof(X_CFLOAT)/sizeof(double);
                 cuda->shared_data.comm.send_size[iswap]=n;
        }
       else
@@ -388,8 +388,8 @@ my_gettime(CLOCK_REALTIME,&time2);
                 {
           n = Cuda_CommCuda_PackComm_Self(&cuda->shared_data,sendnum[iswap],iswap,firstrecv[iswap],pbc[iswap],pbc_flag[iswap]);
           if(n<0) error->all(FLERR," # CUDA ERRROR on PackComm_Self");
-          if((sizeof(X_FLOAT)!=sizeof(double)) && n)
-            n=(n+1)*sizeof(X_FLOAT)/sizeof(double);
+          if((sizeof(X_CFLOAT)!=sizeof(double)) && n)
+            n=(n+1)*sizeof(X_CFLOAT)/sizeof(double);
                 }
       }
       else if (ghost_velocity)
@@ -441,8 +441,8 @@ void CommCuda::forward_comm_transfer_cuda()
 
         int size_forward_recv_now=0;
 
-        if((sizeof(X_FLOAT)!=sizeof(double)) && size_forward_recv[iswap]) //some complicated way to safe some transfer size if single precision is used
-          size_forward_recv_now=(size_forward_recv[iswap]+1)*sizeof(X_FLOAT)/sizeof(double);
+        if((sizeof(X_CFLOAT)!=sizeof(double)) && size_forward_recv[iswap]) //some complicated way to safe some transfer size if single precision is used
+          size_forward_recv_now=(size_forward_recv[iswap]+1)*sizeof(X_CFLOAT)/sizeof(double);
         else
           size_forward_recv_now=size_forward_recv[iswap];
 
@@ -485,8 +485,8 @@ cuda->shared_data.cuda_timings.comm_forward_mpi_upper+=
       {
  /*       int size_forward_recv_now=0;
 
-        if((sizeof(X_FLOAT)!=sizeof(double)) && size_forward_recv[iswap]) //some complicated way to safe some transfer size if single precision is used
-          size_forward_recv_now=(size_forward_recv[iswap]+1)*sizeof(X_FLOAT)/sizeof(double);
+        if((sizeof(X_CFLOAT)!=sizeof(double)) && size_forward_recv[iswap]) //some complicated way to safe some transfer size if single precision is used
+          size_forward_recv_now=(size_forward_recv[iswap]+1)*sizeof(X_CFLOAT)/sizeof(double);
         else
           size_forward_recv_now=size_forward_recv[iswap];
 
@@ -693,8 +693,8 @@ void CommCuda::reverse_comm()
       if (comm_f_only) {
 
     int size_recv_now=size_reverse_recv[iswap];
-        if((sizeof(F_FLOAT)!=sizeof(double))&& size_reverse_recv[iswap])
-          size_recv_now=(size_recv_now+1)*sizeof(F_FLOAT)/sizeof(double);
+        if((sizeof(F_CFLOAT)!=sizeof(double))&& size_reverse_recv[iswap])
+          size_recv_now=(size_recv_now+1)*sizeof(F_CFLOAT)/sizeof(double);
         MPI_Irecv(buf_recv,size_recv_now,MPI_DOUBLE,
                   sendproc[iswap],0,world,&request);
 
@@ -705,8 +705,8 @@ void CommCuda::reverse_comm()
     }
     else buf=NULL;
     int size_reverse_send_now=size_reverse_send[iswap];
-        if((sizeof(F_FLOAT)!=sizeof(double))&& size_reverse_send[iswap])
-          size_reverse_send_now=(size_reverse_send_now+1)*sizeof(F_FLOAT)/sizeof(double);
+        if((sizeof(F_CFLOAT)!=sizeof(double))&& size_reverse_send[iswap])
+          size_reverse_send_now=(size_reverse_send_now+1)*sizeof(F_CFLOAT)/sizeof(double);
         MPI_Send(buf,size_reverse_send_now,MPI_DOUBLE,
                  recvproc[iswap],0,world);
         MPI_Wait(&request,&status);
@@ -1371,8 +1371,8 @@ void CommCuda::allocate_swap(int n)
           if(cu_sendlist)
           {
             cu_pbc=new cCudaData<int, int, xy> ((int*)pbc,n,6);
-            cu_slablo = new cCudaData<double, X_FLOAT,x>(slablo,n);
-            cu_slabhi = new cCudaData<double, X_FLOAT,x>(slabhi,n);
+            cu_slablo = new cCudaData<double, X_CFLOAT,x>(slablo,n);
+            cu_slabhi = new cCudaData<double, X_CFLOAT,x>(slabhi,n);
 
             cuda->shared_data.comm.pbc.dev_data=cu_pbc->dev_data();
             cuda->shared_data.comm.slablo.dev_data=cu_slablo->dev_data();
@@ -1400,8 +1400,8 @@ void CommCuda::allocate_multi(int n)
 
           delete cu_multilo;
           delete cu_multihi;
-          cu_multilo = new cCudaData<double, X_FLOAT,xy>(slablo,n,atom->ntypes+1);
-          cu_multihi = new cCudaData<double, X_FLOAT,xy>(slabhi,n,atom->ntypes+1);
+          cu_multilo = new cCudaData<double, X_CFLOAT,xy>(slablo,n,atom->ntypes+1);
+          cu_multihi = new cCudaData<double, X_CFLOAT,xy>(slabhi,n,atom->ntypes+1);
 
           cuda->shared_data.comm.multilo.dev_data=cu_multilo->dev_data();
           cuda->shared_data.comm.multihi.dev_data=cu_multihi->dev_data();

@@ -48,10 +48,10 @@ public:
  protected:
   class Cuda *cuda;
   cCudaData<int, int, xy>* cu_pbc;
-  cCudaData<double, X_FLOAT, x>* cu_slablo;
-  cCudaData<double, X_FLOAT, x>* cu_slabhi;
-  cCudaData<double, X_FLOAT, xy>* cu_multilo;
-  cCudaData<double, X_FLOAT, xy>* cu_multihi;
+  cCudaData<double, X_CFLOAT, x>* cu_slablo;
+  cCudaData<double, X_CFLOAT, x>* cu_slabhi;
+  cCudaData<double, X_CFLOAT, xy>* cu_multilo;
+  cCudaData<double, X_CFLOAT, xy>* cu_multihi;
 
   cCudaData<int, int, xy>* cu_sendlist;
   virtual void grow_send(int,int);          // reallocate send buffer

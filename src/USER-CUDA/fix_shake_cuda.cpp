@@ -82,7 +82,7 @@ FixShakeCuda::FixShakeCuda(LAMMPS* lmp, int narg, char** arg) :
   cu_list = NULL;
   cu_bond_distance = NULL;
   cu_angle_distance = NULL;
-  cu_virial = new cCudaData<double           , ENERGY_FLOAT , xx >(virial, 6);
+  cu_virial = new cCudaData<double           , ENERGY_CFLOAT , xx >(virial, 6);
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 
@@ -174,8 +174,8 @@ FixShakeCuda::FixShakeCuda(LAMMPS* lmp, int narg, char** arg) :
   bond_distance = new double[atom->nbondtypes + 1];
   angle_distance = new double[atom->nangletypes + 1];
 
-  cu_bond_distance = new cCudaData<double, X_FLOAT, xx> (bond_distance, atom->nbondtypes + 1);
-  cu_angle_distance = new cCudaData<double, X_FLOAT, xx> (angle_distance, atom->nangletypes + 1);
+  cu_bond_distance = new cCudaData<double, X_CFLOAT, xx> (bond_distance, atom->nbondtypes + 1);
+  cu_angle_distance = new cCudaData<double, X_CFLOAT, xx> (angle_distance, atom->nangletypes + 1);
 
   // allocate statistics arrays
 
@@ -2564,7 +2564,7 @@ void FixShakeCuda::grow_arrays(int nmax)
   delete cu_shake_type;
   cu_shake_type = new cCudaData<int, int, yx> ((int*)shake_type, nmax, 3);
   delete cu_xshake;
-  cu_xshake = new cCudaData<double, X_FLOAT, xy> ((double*)xshake, nmax, 3);
+  cu_xshake = new cCudaData<double, X_CFLOAT, xy> ((double*)xshake, nmax, 3);
   cu_shake_flag->upload();
   cu_shake_atom->upload();
   cu_shake_type->upload();

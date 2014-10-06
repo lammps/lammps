@@ -101,7 +101,7 @@ int FixAddForceCuda::setmask()
 void FixAddForceCuda::init()
 {
   if(not cu_foriginal)
-  cu_foriginal = new cCudaData<double, F_FLOAT, x> (foriginal,4);
+  cu_foriginal = new cCudaData<double, F_CFLOAT, x> (foriginal,4);
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
@@ -144,7 +144,7 @@ void FixAddForceCuda::post_force(int vflag)
   MYDBG( printf("# CUDA: FixAddForceCuda::postforce start\n"); )
   force_flag = 0;
   cu_foriginal->memset_device(0);
-  Cuda_FixAddForceCuda_PostForce(&cuda->shared_data, groupbit, xvalue, yvalue,zvalue,(F_FLOAT*) cu_foriginal->dev_data());
+  Cuda_FixAddForceCuda_PostForce(&cuda->shared_data, groupbit, xvalue, yvalue,zvalue,(F_CFLOAT*) cu_foriginal->dev_data());
   cu_foriginal->download();
 }
 

@@ -73,9 +73,9 @@ class ComputeTempPartialCuda : public Compute {
   void dof_compute();
   double t_vector[6];
   double t_scalar;
-  cCudaData<double     , ENERGY_FLOAT                   , x>* cu_t_scalar;
-  cCudaData<double     , ENERGY_FLOAT                   , x>* cu_t_vector;
-  cCudaData<double, V_FLOAT, yx>* cu_vbiasall;
+  cCudaData<double     , ENERGY_CFLOAT                   , x>* cu_t_scalar;
+  cCudaData<double     , ENERGY_CFLOAT                   , x>* cu_t_vector;
+  cCudaData<double, V_CFLOAT, yx>* cu_vbiasall;
 };
 
 }

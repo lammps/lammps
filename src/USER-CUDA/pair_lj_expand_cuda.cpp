@@ -120,7 +120,7 @@ void PairLJExpandCuda::compute(int eflag, int vflag)
 void PairLJExpandCuda::settings(int narg, char **arg)
 {
         PairLJExpand::settings(narg, arg);
-        cuda->shared_data.pair.cut_global = (F_FLOAT) cut_global;
+        cuda->shared_data.pair.cut_global = (F_CFLOAT) cut_global;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -172,9 +172,9 @@ void PairLJExpandCuda::ev_setup(int eflag, int vflag)
         PairLJExpand::ev_setup(eflag,vflag);
 
   if (eflag_atom && atom->nmax > maxeatomold)
-        {delete cuda->cu_eatom; cuda->cu_eatom = new cCudaData<double, ENERGY_FLOAT, x > ((double*)eatom, & cuda->shared_data.atom.eatom , atom->nmax  );}
+        {delete cuda->cu_eatom; cuda->cu_eatom = new cCudaData<double, ENERGY_CFLOAT, x > ((double*)eatom, & cuda->shared_data.atom.eatom , atom->nmax  );}
 
   if (vflag_atom && atom->nmax > maxeatomold)
-        {delete cuda->cu_vatom; cuda->cu_vatom = new cCudaData<double, ENERGY_FLOAT, yx > ((double*)vatom, & cuda->shared_data.atom.vatom , atom->nmax, 6  );}
+        {delete cuda->cu_vatom; cuda->cu_vatom = new cCudaData<double, ENERGY_CFLOAT, yx > ((double*)vatom, & cuda->shared_data.atom.vatom , atom->nmax, 6  );}
 
 }

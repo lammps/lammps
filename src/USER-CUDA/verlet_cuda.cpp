@@ -116,7 +116,7 @@ void VerletCuda::setup()
 
 
   if(cuda->shared_data.me == 0)
-    printf("# CUDA: Using precision: Global: %u X: %u V: %u F: %u PPPM: %u \n", CUDA_PRECISION == 1 ? 4 : 8, (int) sizeof(X_FLOAT), (int) sizeof(V_FLOAT), (int) sizeof(F_FLOAT), (int) sizeof(PPPM_FLOAT));
+    printf("# CUDA: Using precision: Global: %u X: %u V: %u F: %u PPPM: %u \n", CUDA_PRECISION == 1 ? 4 : 8, (int) sizeof(X_CFLOAT), (int) sizeof(V_CFLOAT), (int) sizeof(F_CFLOAT), (int) sizeof(PPPM_CFLOAT));
 
   cuda->allocate();
 
@@ -638,9 +638,9 @@ void VerletCuda::run(int n)
 
   if(cuda->neighbor_decide_by_integrator && cuda->cu_xhold) {
     const int n = cuda->shared_data.atom.maxhold;
-    CudaWrapper_CopyData(cuda->cu_xhold->dev_data(), cuda->cu_x->dev_data(), n * sizeof(X_FLOAT));
-    CudaWrapper_CopyData((void*) & ((X_FLOAT*)cuda->cu_xhold->dev_data())[n], (void*) & ((X_FLOAT*)cuda->cu_x->dev_data())[atom->nmax], n * sizeof(X_FLOAT));
-    CudaWrapper_CopyData((void*) & ((X_FLOAT*)cuda->cu_xhold->dev_data())[2 * n], (void*) & ((X_FLOAT*)cuda->cu_x->dev_data())[2 * atom->nmax], n * sizeof(X_FLOAT));
+    CudaWrapper_CopyData(cuda->cu_xhold->dev_data(), cuda->cu_x->dev_data(), n * sizeof(X_CFLOAT));
+    CudaWrapper_CopyData((void*) & ((X_CFLOAT*)cuda->cu_xhold->dev_data())[n], (void*) & ((X_CFLOAT*)cuda->cu_x->dev_data())[atom->nmax], n * sizeof(X_CFLOAT));
+    CudaWrapper_CopyData((void*) & ((X_CFLOAT*)cuda->cu_xhold->dev_data())[2 * n], (void*) & ((X_CFLOAT*)cuda->cu_x->dev_data())[2 * atom->nmax], n * sizeof(X_CFLOAT));
   }
 
   cuda->shared_data.atom.reneigh_flag = 0;

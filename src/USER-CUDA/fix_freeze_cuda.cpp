@@ -79,7 +79,7 @@ int FixFreezeCuda::setmask()
 void FixFreezeCuda::init()
 {
   if(not cu_foriginal)
-  cu_foriginal = new cCudaData<double, F_FLOAT, x> (foriginal,3);
+  cu_foriginal = new cCudaData<double, F_CFLOAT, x> (foriginal,3);
   int count = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"freeze") == 0) count++;
@@ -113,7 +113,7 @@ void FixFreezeCuda::post_force(int vflag)
   MYDBG( printf("# CUDA: FixFreezeCuda::postforce start\n"); )
   force_flag = 0;
   cu_foriginal->memset_device(0);
-  Cuda_FixFreezeCuda_PostForce(&cuda->shared_data, groupbit, (F_FLOAT*) cu_foriginal->dev_data());
+  Cuda_FixFreezeCuda_PostForce(&cuda->shared_data, groupbit, (F_CFLOAT*) cu_foriginal->dev_data());
   cu_foriginal->download();
 }
 

@@ -90,18 +90,19 @@ def switch2str(switches,switch_order):
 # check if compiler works with ccflags on dummy one-line tmpauto.cpp file
 # return 1 if successful, else 0
 # warn = 1 = print warning if not successful, warn = 0 = no warning
+# NOTE: unrecognized -override-limits can leave verride-limits file
 
 def compile_check(compiler,ccflags,warn):
   open("tmpauto.cpp",'w').write("int main(int, char **) {}")
   str = "%s %s -c tmpauto.cpp" % (compiler,ccflags)
   txt = commands.getoutput(str)
+  flag = 1
   if txt or not os.path.isfile("tmpauto.o"):
     flag = 0
     if warn:
       print str
       if txt: print txt
       else: print "compile produced no output"
-  else: flag = 1
   os.remove("tmpauto.cpp")
   if os.path.isfile("tmpauto.o"): os.remove("tmpauto.o")
   return flag
@@ -114,13 +115,13 @@ def link_check(linker,linkflags,warn):
   open("tmpauto.cpp",'w').write("int main(int, char **) {}")
   str = "%s %s -o tmpauto tmpauto.cpp" % (linker,linkflags)
   txt = commands.getoutput(str)
+  flag = 1
   if txt or not os.path.isfile("tmpauto"):
     flag = 0
     if warn:
       print str
       if txt: print txt
       else: print "link produced no output"
-  else: flag = 1
   os.remove("tmpauto.cpp")
   if os.path.isfile("tmpauto"): os.remove("tmpauto")
   return flag

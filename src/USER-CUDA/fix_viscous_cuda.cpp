@@ -31,7 +31,7 @@
 #include "respa.h"
 #include "error.h"
 #include "cuda_modify_flags.h"
-#include "cuda.h"
+#include "user_cuda.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -34,7 +34,7 @@
 #include "memory.h"
 #include "error.h"
 
-#include "cuda.h"
+#include "user_cuda.h"
 #include "domain_cu.h"
 
 using namespace LAMMPS_NS;

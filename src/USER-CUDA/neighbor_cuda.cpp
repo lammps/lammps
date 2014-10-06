@@ -13,7 +13,7 @@
 
 #include "math.h"
 #include "neighbor_cuda.h"
-#include "cuda.h"
+#include "user_cuda.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"

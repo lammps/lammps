@@ -49,7 +49,7 @@
 #include "cuda_wrapper_cu.h"
 #include "thermo.h"
 #include "cuda_pair_cu.h"
-#include "cuda.h"
+#include "user_cuda.h"
 #include <ctime>
 #include <cmath>
 #ifdef _OPENMP

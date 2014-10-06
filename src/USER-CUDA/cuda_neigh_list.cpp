@@ -27,7 +27,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include "cuda.h"
+#include "user_cuda.h"
 #include "atom.h"
 #include "error.h"
 

@@ -47,7 +47,6 @@ action compute_temp_cuda.h
 action compute_temp_partial_cuda.cpp
 action compute_temp_partial_cuda.h
 action cuda.cpp
-action cuda.h
 action cuda_data.h
 action cuda_modify_flags.h
 action cuda_neigh_list.cpp
@@ -157,6 +156,7 @@ action pppm_cuda.cpp pppm.cpp
 action pppm_cuda.h pppm.cpp
 action pppm_old.cpp pppm.cpp
 action pppm_old.h pppm.cpp
+action user_cuda.h
 action verlet_cuda.cpp
 action verlet_cuda.h
 

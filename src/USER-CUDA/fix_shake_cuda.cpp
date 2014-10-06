@@ -32,7 +32,7 @@
 #include "fix_respa.h"
 #include "memory.h"
 #include "error.h"
-#include "cuda.h"
+#include "user_cuda.h"
 #include "cuda_modify_flags.h"
 #include "math_const.h"
 

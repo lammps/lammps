@@ -24,7 +24,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
-#include "cuda.h"
+#include "user_cuda.h"
 #include "atom.h"
 #include "domain.h"
 #include "force.h"

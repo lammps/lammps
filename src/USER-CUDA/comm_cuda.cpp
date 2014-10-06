@@ -35,7 +35,7 @@
 #include "fix.h"
 #include "group.h"
 #include "compute.h"
-#include "cuda.h"
+#include "user_cuda.h"
 #include "error.h"
 #include "memory.h"
 #include "comm_cuda_cu.h"

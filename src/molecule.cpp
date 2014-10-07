@@ -1129,8 +1129,8 @@ void Molecule::allocate()
   if (radiusflag) memory->create(radius,natoms,"molecule:radius");
   if (rmassflag) memory->create(rmass,natoms,"molecule:rmass");
 
-  // always allocate num_bond,num_angle,etc and nspecial even if not in file
-  // initialize to 0 even if not in molecule file
+  // always allocate num_bond,num_angle,etc and special+nspecial
+  // even if not in molecule file, initialize to 0
   // this is so methods that use these arrays don't have to check they exist
 
   memory->create(num_bond,natoms,"molecule:num_bond");
@@ -1141,8 +1141,10 @@ void Molecule::allocate()
   for (int i = 0; i < natoms; i++) num_dihedral[i] = 0;
   memory->create(num_improper,natoms,"molecule:num_improper");
   for (int i = 0; i < natoms; i++) num_improper[i] = 0;
+
+  memory->create(special,natoms,maxspecial,"molecule:special");
   memory->create(nspecial,natoms,3,"molecule:nspecial");
-  for (int i = 0; i < natoms; i++) 
+  for (int i = 0; i < natoms; i++)
     nspecial[i][0] = nspecial[i][1] = nspecial[i][2] = 0;
 
   if (bondflag) {
@@ -1188,9 +1190,6 @@ void Molecule::allocate()
     memory->create(improper_atom4,natoms,improper_per_atom,
 		   "molecule:improper_atom4");
   }
-
-  if (specialflag)
-    memory->create(special,natoms,maxspecial,"molecule:special");
 
   if (shakeflag) {
     memory->create(shake_flag,natoms,"molecule:shake_flag");

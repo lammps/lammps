@@ -42,17 +42,27 @@ MPI task running on a CPU.
 </P>
 <P><B>Building LAMMPS with the USER-OMP package:</B>
 </P>
-<P>Include the package and build LAMMPS:
+<P>To do this in one line, use the src/Make.py script, described in
+<A HREF = "Section_start.html#start_4">Section 2.4</A> of the manual.  Type "Make.py
+-h" for help.  If run from the src directory, this command will create
+src/lmp_omp using src/MAKE/Makefile.mpi as the starting
+Makefile.machine:
+</P>
+<PRE>Make.py -p omp -o omp file mpi 
+</PRE>
+<P>Or you can follow these steps:
 </P>
 <PRE>cd lammps/src
 make yes-user-omp
 make machine 
 </PRE>
-<P>The CCFLAGS setting in your src/MAKE/Makefile.machine needs "-fopenmp"
-to add OpenMP support.  This works for both the GNU and Intel
-compilers.  Without this flag the USER-OMP styles will still be
-compiled and work, but will not support multi-threading.  For the
-Intel compilers the CCFLAGS setting also needs to include "-restrict".
+<P>The CCFLAGS setting in Makefile.machine needs "-fopenmp" to add OpenMP
+support.  This works for both the GNU and Intel compilers.  Without
+this flag the USER-OMP styles will still be compiled and work, but
+will not support multi-threading.  For the Intel compilers the CCFLAGS
+setting also needs to include "-restrict".
+</P>
+<P><B>Run with the USER-OMP package from the command line:</B>
 </P>
 <P>The mpirun or mpiexec command sets the total number of MPI tasks used
 by LAMMPS (one or multiple per compute node) and the number of MPI

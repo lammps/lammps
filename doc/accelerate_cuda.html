@@ -74,16 +74,30 @@ projects can be compiled without problems.
 <P>This requires two steps (a,b): build the USER-CUDA library, then build
 LAMMPS with the USER-CUDA package.
 </P>
+<P>You can do both these steps in one line, using the src/Make.py script,
+described in <A HREF = "Section_start.html#start_4">Section 2.4</A> of the manual.
+Type "Make.py -h" for help.  If run from the src directory, this
+command will create src/lmp_cuda using src/MAKE/Makefile.mpi as the
+starting Makefile.machine:
+</P>
+<PRE>Make.py -p cuda -cuda mode=single arch=20 -o cuda lib-cuda file mpi 
+</PRE>
+<P>Or you can follow these two (a,b) steps:
+</P>
 <P>(a) Build the USER-CUDA library
 </P>
 <P>The USER-CUDA library is in lammps/lib/cuda.  If your <I>CUDA</I> toolkit
 is not installed in the default system directoy <I>/usr/local/cuda</I> edit
 the file <I>lib/cuda/Makefile.common</I> accordingly.
 </P>
-<P>To set options for the library build, type "make OPTIONS", where
+<P>To build the library with the settings in lib/cuda/Makefile.default,
+simply type:
+</P>
+<PRE>make 
+</PRE>
+<P>To set options when the library is built, type "make OPTIONS", where
 <I>OPTIONS</I> are one or more of the following. The settings will be
-written to the <I>lib/cuda/Makefile.defaults</I> and used when
-the library is built.
+written to the <I>lib/cuda/Makefile.defaults</I> before the build.
 </P>
 <PRE><I>precision=N</I> to set the precision level
   N = 1 for single precision (default)
@@ -107,11 +121,8 @@ the library is built.
   0 = no CUFFT support (default)
   in the future other CUDA-enabled FFT libraries might be supported 
 </PRE>
-<P>To build the library, simply type:
-</P>
-<PRE>make 
-</PRE>
-<P>If successful, it will produce the files libcuda.a and Makefile.lammps.
+<P>If the build is successful, it will produce the files liblammpscuda.a and
+Makefile.lammps.
 </P>
 <P>Note that if you change any of the options (like precision), you need
 to re-build the entire library.  Do a "make clean" first, followed by
@@ -123,8 +134,7 @@ to re-build the entire library.  Do a "make clean" first, followed by
 make yes-user-cuda
 make machine 
 </PRE>
-<P>No additional compile/link flags are needed in your Makefile.machine
-in src/MAKE.
+<P>No additional compile/link flags are needed in Makefile.machine.
 </P>
 <P>Note that if you change the USER-CUDA library precision (discussed
 above) and rebuild the USER-CUDA library, then you also need to

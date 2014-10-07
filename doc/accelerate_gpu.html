@@ -76,6 +76,16 @@ install the NVIDIA Cuda software on your system:
 <P>This requires two steps (a,b): build the GPU library, then build
 LAMMPS with the GPU package.
 </P>
+<P>You can do both these steps in one line, using the src/Make.py script,
+described in <A HREF = "Section_start.html#start_4">Section 2.4</A> of the manual.
+Type "Make.py -h" for help.  If run from the src directory, this
+command will create src/lmp_gpu using src/MAKE/Makefile.mpi as the
+starting Makefile.machine:
+</P>
+<PRE>Make.py -p gpu -gpu mode=single arch=31 -o gpu lib-gpu file mpi 
+</PRE>
+<P>Or you can follow these two (a,b) steps:
+</P>
 <P>(a) Build the GPU library
 </P>
 <P>The GPU library is in lammps/lib/gpu.  Select a Makefile.machine (in
@@ -120,8 +130,7 @@ Makefile.linux clean", followed by the make command above.
 make yes-gpu
 make machine 
 </PRE>
-<P>No additional compile/link flags are needed in your Makefile.machine
-in src/MAKE.
+<P>No additional compile/link flags are needed in Makefile.machine.
 </P>
 <P>Note that if you change the GPU library precision (discussed above)
 and rebuild the GPU library, then you also need to re-install the GPU

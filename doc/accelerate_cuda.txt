@@ -71,16 +71,30 @@ projects can be compiled without problems.
 This requires two steps (a,b): build the USER-CUDA library, then build
 LAMMPS with the USER-CUDA package.
 
+You can do both these steps in one line, using the src/Make.py script,
+described in "Section 2.4"_Section_start.html#start_4 of the manual.
+Type "Make.py -h" for help.  If run from the src directory, this
+command will create src/lmp_cuda using src/MAKE/Makefile.mpi as the
+starting Makefile.machine:
+
+Make.py -p cuda -cuda mode=single arch=20 -o cuda lib-cuda file mpi :pre
+
+Or you can follow these two (a,b) steps:
+
 (a) Build the USER-CUDA library
 
 The USER-CUDA library is in lammps/lib/cuda.  If your {CUDA} toolkit
 is not installed in the default system directoy {/usr/local/cuda} edit
 the file {lib/cuda/Makefile.common} accordingly.
 
-To set options for the library build, type "make OPTIONS", where
+To build the library with the settings in lib/cuda/Makefile.default,
+simply type:
+
+make :pre
+
+To set options when the library is built, type "make OPTIONS", where
 {OPTIONS} are one or more of the following. The settings will be
-written to the {lib/cuda/Makefile.defaults} and used when
-the library is built.
+written to the {lib/cuda/Makefile.defaults} before the build.
 
 {precision=N} to set the precision level
   N = 1 for single precision (default)
@@ -104,11 +118,8 @@ the library is built.
   0 = no CUFFT support (default)
   in the future other CUDA-enabled FFT libraries might be supported :pre
 
-To build the library, simply type:
-
-make :pre
-
-If successful, it will produce the files libcuda.a and Makefile.lammps.
+If the build is successful, it will produce the files liblammpscuda.a and
+Makefile.lammps.
 
 Note that if you change any of the options (like precision), you need
 to re-build the entire library.  Do a "make clean" first, followed by
@@ -120,8 +131,7 @@ cd lammps/src
 make yes-user-cuda
 make machine :pre
 
-No additional compile/link flags are needed in your Makefile.machine
-in src/MAKE.
+No additional compile/link flags are needed in Makefile.machine.
 
 Note that if you change the USER-CUDA library precision (discussed
 above) and rebuild the USER-CUDA library, then you also need to

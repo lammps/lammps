@@ -58,12 +58,12 @@ section of the LAMMPS WWW Site.
 These are the sample problems and their output in the various
 sub-directories:
 
+accelerate:  use of all the various accelerator packages
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 colloid:  big colloid particles in a small particle solvent, 2d system
 comb:	  models using the COMB potential
 crack:	  crack propagation in a 2d solid
-cuda:     use of the USER-CUDA package for GPU acceleration
 deposit:  deposition of atoms and molecules onto a 3d substrate
 dipole:   point dipolar particles, 2d system
 dreiding: methanol via Dreiding FF
@@ -71,12 +71,9 @@ eim:      NaCl using the EIM potential
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
-gpu:      use of the GPU package for GPU acceleration
 hugoniostat: Hugoniostat shock dynamics
 indent:	  spherical indenter into a 2d solid
-intel:    use of the USER-INTEL package for CPU or Xeon Phi acceleration
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
-kokkos:   use of the KOKKOS package for multi-threading and GPU acceleration
 meam:	  MEAM test for SiC and shear (same as shear examples)
 melt:	  rapid melt of 3d LJ system
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers

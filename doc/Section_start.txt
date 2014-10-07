@@ -87,26 +87,31 @@ Building LAMMPS can be simple or not-so-simple.  If all you need are
 the default packages installed in LAMMPS, and MPI is already installed
 on your machine, or you just want to run LAMMPS in serial, then you
 can typically use the Makefile.mpi or Makefile.serial files in
-src/MAKE and type one of these lines (from the src dir):
+src/MAKE by typing one of these lines (from the src dir):
 
 make mpi
 make serial :pre
 
-Or if one of the other Makefile.machine files in the src/MAKE
-sub-directories matches your system (type "make" to see a list), you
-can use it as-is by typing (for example):
+Note that on a facility supercomputer, there are often "modules"
+loaded in your environment that provide the compilers and MPI you
+should use.  In this case, the "mpicxx" compile/link command in
+Makefile.mpi should just work by accessing those modules.
+
+It may be the case that one of the other Makefile.machine files in the
+src/MAKE sub-directories is a better match to your system (type "make"
+to see a list), you can use it as-is by typing (for example):
 
 make stampede :pre
 
-If any of these builds with an existing Makefile.machine works on your
-system, then you're done!
+If any of these builds (with an existing Makefile.machine) works on
+your system, then you're done!
 
-If you want to do one of these:
+If you want to do one of the following:
 
 use optional LAMMPS features that require additional libraries
 use optional packages that require additional libraries
 use optional accelerator packages that require special compiler/linker settings
-run on a specialized platform like a supercomputer that has its own compilers, settings, or other libs to use :ul
+run on a specialized platform that has its own compilers, settings, or other libs to use :ul
 
 then building LAMMPS is more complicated.  You may need to find where
 auxiliary libraries exist on your machine or install them if they
@@ -135,9 +140,9 @@ please post the issue to the "LAMMPS mail
 list"_http://lammps.sandia.gov/mail.html.
 
 If you succeed in building LAMMPS on a new kind of machine, for which
-there isn't a similar machine Makefile included in the src/MAKE/MORE
-directory, then send it to the developers and we can include it in the
-LAMMPS distribution.
+there isn't a similar machine Makefile included in the
+src/MAKE/MACHINES directory, then send it to the developers and we can
+include it in the LAMMPS distribution.
 
 :line
 

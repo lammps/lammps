@@ -169,6 +169,7 @@ class KSpace : protected Pointers {
   int minorder,overlap_allowed;
   int adjust_cutoff_flag;
   int suffix_flag;                  // suffix compatibility flag
+  int warn_neutral;                 // warn about non-neutral system if 1
   bigint natoms_original;
   double scale,qqrd2e;
   double qsum,qsqsum,q2;

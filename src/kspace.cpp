@@ -69,6 +69,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   adjust_cutoff_flag = 1;
   scalar_pressure_flag = 0;
   qsum_update_flag = 0;
+  warn_neutral = 1;
 
   accuracy_absolute = -1.0;
   accuracy_real_6 = -1.0;
@@ -285,10 +286,11 @@ void KSpace::qsum_qsq(int flag)
   if (fabs(qsum) > SMALL) {
     char str[128];
     sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    if (comm->me) {
+    if (warn_neutral && (comm->me == 0)) {
       if (flag) error->all(FLERR,str);
       else error->warning(FLERR,str);
     }
+    warn_neutral = 0;
   }
 }
 

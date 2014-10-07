@@ -1,19 +1,20 @@
-# odin = 1400 cluster, g++, MPICH, no FFTs
+# power = IBM Power5+, mpCC_r, native MPI, FFTW
 
 SHELL = /bin/sh
+.SUFFIXES: .cpp .u
 
 # ---------------------------------------------------------------------
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		g++
-CCFLAGS =	-O
+CC =		mpCC_r
+CCFLAGS =	-O3 -qnoipa -qlanglvl=oldmath
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		G++
-LINKFLAGS =	-O
-LIB =           
+LINK =		mpCC_r
+LINKFLAGS =	-O -qnoipa -qlanglvl=oldmath -bmaxdata:0x70000000
+LIB =           -lm
 SIZE =		size
 
 ARCHIVE =	ar
@@ -39,9 +40,9 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -I/opt/mpich-mx/include
-MPI_PATH =	-L/opt/mpich-mx/lib -L/opt/mx/lib
-MPI_LIB =	-lmpich -lmyriexpress
+MPI_INC =       
+MPI_PATH = 
+MPI_LIB =	
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manaul
@@ -50,9 +51,9 @@ MPI_LIB =	-lmpich -lmyriexpress
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_NONE
-FFT_PATH = 
-FFT_LIB =	
+FFT_INC =       -DFFT_FFTW -I/scr/oppe/LAMMPS/fftw-2.1.5/include
+FFT_PATH =	-L/scr/oppe/LAMMPS/fftw-2.1.5/lib
+FFT_LIB =	-lfftw
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual

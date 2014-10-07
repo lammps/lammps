@@ -1,10 +1,4 @@
-# mkl = Intel Cluster Tools, mpiicc, MKL MPI, MKL FFT
-
-# Intel recommends Intel Cluster Tools Compiler Edition
-# to build libfftw2xc_intel.a: 
-# > cd /opt/intel/mkl/10.0.011/interfaces/fftw2xc
-# > become root via su
-# > gmake libem64t
+# myrinet = cluster, g++, myrinet MPI, no FFTs
 
 SHELL = /bin/sh
 
@@ -12,14 +6,14 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpiicc
-CCFLAGS =	-O3 -fno-alias -ip -unroll0
+CC =		g++
+CCFLAGS =	-O
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpiicc
-LINKFLAGS =	-O -L/opt/intel/mkl/10.0.011/lib/em64t 
-LIB =           -lstdc++ -lpthread -lmkl_em64t -lguide 
+LINK =		G++
+LINKFLAGS =	-O
+LIB =           
 SIZE =		size
 
 ARCHIVE =	ar
@@ -45,9 +39,9 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_SKIP_MPICXX 
-MPI_PATH = 
-MPI_LIB =	-mt_mpi
+MPI_INC =       -I/opt/mpich-mx/include
+MPI_PATH =	-L/opt/mpich-mx/lib -L/opt/mx/lib
+MPI_LIB =	-lmpich -lmyriexpress
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manaul
@@ -56,9 +50,9 @@ MPI_LIB =	-mt_mpi
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =       -DFFT_FFTW -I/opt/intel/mkl/10.0.011/include/fftw 
+FFT_INC =       -DFFT_NONE
 FFT_PATH = 
-FFT_LIB =	/opt/intel/mkl/10.0.011/lib/em64t/libfftw2xc_intel.a
+FFT_LIB =	
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual

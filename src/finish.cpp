@@ -219,7 +219,7 @@ void Finish::end(int flag)
       // Gromacs/NAMD-like performance metric for MD with suitable units
 
       if ( timeflag && !minflag && !prdflag && !tadflag &&
-           (update->nsteps > 0) &&
+           (update->nsteps > 0) && (update->dt != 0.0) &&
            ((strcmp(update->unit_style,"metal") == 0) ||
             (strcmp(update->unit_style,"real") == 0)) ) {
         double t_step, ns_day, hrs_ns, tps, one_fs = 1.0;

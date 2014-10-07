@@ -1,4 +1,4 @@
-# kokkos_cuda = KOKKOS package with CUDA support, nvcc compiler, MPICH2, FFTW
+# kokkos_cuda = KOKKOS package with CUDA support, nvcc/mpicxx compiler
 
 SHELL = /bin/sh
 
@@ -6,12 +6,12 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		nvcc
+CC =		nvcc -ccbin=mpicxx
 CCFLAGS =	-g -O3 -arch=sm_20
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		nvcc
+LINK =		nvcc -ccbin=mpicxx
 LINKFLAGS =	-g -O
 LIB = 
 SIZE =		size
@@ -30,7 +30,7 @@ OMP =		yes
 # LAMMPS ifdef settings
 # see possible settings in Section 2.2 (step 4) of manual
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
+LMP_INC =	-DLAMMPS_GZIP
 
 # MPI library
 # see discussion in Section 2.2 (step 5) of manual
@@ -43,7 +43,7 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_JPEG
 
 MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
 MPI_PATH = 
-MPI_LIB =	-lmpich -lmpl -lpthread
+MPI_LIB =	
 
 # FFT library
 # see discussion in Section 2.2 (step 6) of manaul
@@ -52,9 +52,9 @@ MPI_LIB =	-lmpich -lmpl -lpthread
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =    	-DFFT_FFTW3
+FFT_INC =    	
 FFT_PATH = 
-FFT_LIB =	-lfftw3
+FFT_LIB =	
 
 # JPEG and/or PNG library
 # see discussion in Section 2.2 (step 7) of manual
@@ -65,7 +65,7 @@ FFT_LIB =	-lfftw3
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	-ljpeg
+JPG_LIB =	
 
 # ---------------------------------------------------------------------
 # build rules and dependencies
@@ -100,14 +100,14 @@ shlib:	$(OBJ)
 
 # Compilation rules
 
-%.o:%.cu
-	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
-
 %.o:%.cpp
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
+
+%.o:%.cu
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 # Individual dependencies
 

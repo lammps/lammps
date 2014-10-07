@@ -38,6 +38,8 @@
 
 using namespace LAMMPS_NS;
 
+#define MAXLINE 1024
+
 /* ---------------------------------------------------------------------- */
 
 Force::Force(LAMMPS *lmp) : Pointers(lmp)
@@ -888,8 +890,8 @@ tagint Force::tnumeric(const char *file, int line, char *str)
 }
 
 /* ----------------------------------------------------------------------
-   open a potential file as specified by name; failing that,
-   search in dir specified by env variable LAMMPS_POTENTIALS
+   open a potential file as specified by name
+   if fails, search in dir specified by env variable LAMMPS_POTENTIALS
 ------------------------------------------------------------------------- */
 
 FILE *Force::open_potential(const char *name)
@@ -902,14 +904,19 @@ FILE *Force::open_potential(const char *name)
   // if successful, return ptr
 
   fp = fopen(name,"r");
-  if (fp) return fp;
+  if (fp) {
+    potential_date(fp,name);
+    fclose(fp);
+    fp = fopen(name,"r");
+    return fp;
+  }
 
   // try the environment variable directory
 
   const char *path = getenv("LAMMPS_POTENTIALS");
   if (path == NULL) return NULL;
 
-  const char *pot = potname(name);
+  const char *pot = potential_name(name);
   if (pot == NULL) return NULL;
 
   size_t len1 = strlen(path);
@@ -927,7 +934,11 @@ FILE *Force::open_potential(const char *name)
   strcat(newpath,pot);
 
   fp = fopen(newpath,"r");
-  delete[] newpath;
+  potential_date(fp,name);
+  fclose(fp);
+  fp = fopen(newpath,"r");
+
+  delete [] newpath;
   return fp;
 }
 
@@ -935,7 +946,7 @@ FILE *Force::open_potential(const char *name)
    strip off leading part of path, return just the filename
 ------------------------------------------------------------------------- */
 
-const char *Force::potname(const char *path)
+const char *Force::potential_name(const char *path)
 {
   const char *pot;
 
@@ -956,6 +967,33 @@ const char *Force::potname(const char *path)
   }
 
   return pot;
+}
+
+/* ----------------------------------------------------------------------
+   read first line of potential file
+   if has DATE field, print following word
+------------------------------------------------------------------------- */
+
+void Force::potential_date(FILE *fp, const char *name)
+{
+  char line[MAXLINE];
+  char *ptr = fgets(line,MAXLINE,fp);
+  if (ptr == NULL) return;
+
+  char *word;
+  word = strtok(line," \t\n\r\f");
+  while (word) {
+    if (strcmp(word,"DATE:") == 0) {
+      word = strtok(NULL," \t\n\r\f");
+      if (word == NULL) return;
+      if (screen)
+        fprintf(screen,"Reading potential file %s with DATE: %s\n",name,word);
+      if (logfile)
+        fprintf(logfile,"Reading potential file %s with DATE: %s\n",name,word);
+      return;
+    }
+    word = strtok(NULL," \t\n\r\f");
+  }
 }
 
 /* ----------------------------------------------------------------------

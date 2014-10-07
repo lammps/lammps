@@ -15,6 +15,7 @@
 #define LMP_FORCE_H
 
 #include "pointers.h"
+#include "stdio.h"
 #include <map>
 #include <string>
 
@@ -109,7 +110,8 @@ class Force : protected Pointers {
   tagint tnumeric(const char *, int, char *);
 
   FILE *open_potential(const char *);
-  const char *potname(const char *);
+  const char *potential_name(const char *);
+  void potential_date(FILE *, const char *);
 
   bigint memory_usage();
 

@@ -1,0 +1,41 @@
+# desktop builds for dual hex-core Xeons and Fermi GPUs
+# use mpicxx or nvcc with its default compiler
+# use default FFT support = KISS library
+
+# build with one accelerator package
+
+cpu: -d ../.. -j 16 -p none asphere molecule kspace rigid orig -o cpu file clean mpi
+
+omp: -d ../.. -j 16 -p none asphere molecule kspace rigid omp orig -o omp file clean mpi
+
+opt: -d ../.. -j 16 -p none asphere molecule kspace rigid opt orig -o opt file clean mpi
+
+cuda_double: -d ../.. -j 16 -p none asphere molecule kspace rigid cuda orig -cuda mode=double arch=21 -o cuda_double lib-cuda file clean mpi
+
+cuda_mixed: -d ../.. -j 16 -p none asphere molecule kspace rigid cuda orig -cuda mode=mixed arch=21 -o cuda_mixed lib-cuda file clean mpi
+
+cuda_single: -d ../.. -j 16 -p none asphere molecule kspace rigid cuda orig -cuda mode=single arch=21 -o cuda_single lib-cuda file clean mpi
+
+gpu_double: -d ../.. -j 16 -p none asphere molecule kspace rigid gpu orig -gpu mode=double arch=21 -o gpu_double lib-gpu file clean mpi
+
+gpu_mixed: -d ../.. -j 16 -p none asphere molecule kspace rigid gpu orig -gpu mode=mixed arch=21 -o gpu_mixed lib-gpu file clean mpi
+
+gpu_single: -d ../.. -j 16 -p none asphere molecule kspace rigid gpu orig -gpu mode=single arch=21 -o gpu_single lib-gpu file clean mpi
+
+intel_cpu: -d ../.. -j 16 -p none asphere molecule kspace rigid intel omp orig -cc mpi wrap=icc -intel cpu -o intel_cpu file clean mpi
+
+#intel_phi: -d ../.. -j 16 -p none asphere molecule kspace rigid intel omp orig -intel phi -o intel_phi file clean mpi 
+
+kokkos_omp: -d ../.. -j 16 -p none asphere molecule kspace rigid kokkos orig -kokkos omp -o kokkos_omp file clean mpi 
+
+kokkos_cuda: -d ../.. -j 16 -p none asphere molecule kspace rigid kokkos orig -cc nvcc wrap=mpi -kokkos cuda arch=21 -o kokkos_cuda file clean mpi
+
+#kokkos_phi: -d ../.. -j 16 -p none asphere molecule kspace rigid kokkos orig -kokkos phi -o kokkos_phi file clean mpi 
+
+# build with all accelerator packages for CPU
+
+all_cpu: -d ../.. -j 16 -p asphere molecule kspace rigid none opt omp intel kokkos orig -cc mpi wrap=icc -intel cpu -kokkos omp -o all_cpu file clean mpi
+
+# build with all accelerator packages for GPU
+
+all_gpu: -d ../.. -j 16 -p none asphere molecule kspace rigid omp gpu cuda kokkos orig -cc nvcc wrap=mpi -cuda mode=double arch=21 -gpu mode=double arch=21 -kokkos cuda arch=21 -o all_gpu lib-all file clean mpi

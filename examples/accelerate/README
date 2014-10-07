@@ -1,0 +1,158 @@
+These are example scripts that can be run with any of
+the acclerator packages in LAMMPS:
+
+USER-CUDA, GPU, USER-INTEL, KOKKOS, USER-OMP, OPT
+
+The easiest way to build LAMMPS with these packages
+is via the src/Make.py tool described in Section 2.4
+of the manual.  You can also type "Make.py -h" to see
+its options.  The easiest way to run these scripts
+is by using the appropriate
+
+Details on the individual accelerator packages
+can be found in doc/Section_accelerate.html.
+
+---------------------
+
+Build LAMMPS with one or more of the accelerator packages
+
+The following command will invoke the src/Make.py tool with one of the
+command-lines from the Make.list file:
+
+../../src/Make.py -r Make.list target
+
+target = one or more of the following:
+  cpu, omp, opt
+  cuda_double, cuda_mixed, cuda_single
+  gpu_double, gpu_mixed, gpu_single
+  intel_cpu, intel_phi
+  kokkos_omp, kokkos_cuda, kokkos_phi
+
+If successful, the build will produce the file lmp_target in this
+directory.
+
+Note that in addition to any accelerator packages, these packages also
+need to be installed to run all of the example scripts: ASPHERE,
+MOLECULE, KSPACE, RIGID.
+
+These two targets will build a single LAMMPS executable with all the
+CPU accelerator packages installed (USER-INTEL for CPU, KOKKOS for
+OMP, USER-OMP, OPT) or all the GPU accelerator packages installed
+(USER-CUDA, GPU, KOKKOS for CUDA):
+
+target = all_cpu, all_gpu
+
+Note that the Make.py commands in Make.list assume an MPI environment
+exists on your machine and use mpicxx as the wrapper compiler with
+whatever underlying compiler it wraps by default.  If you add "-cc mpi
+wrap=g++" or "-cc mpi wrap=icc" after the target, you can choose the
+underlying compiler for mpicxx to invoke.  E.g.
+
+../../src/Make.py -r Make.list intel_cpu -cc mpi wrap=icc
+
+You should do this for any build that includes the USER-INTEL
+package, since it will perform best with the Intel compilers.
+
+Note that for kokkos_cuda, it needs to be "-cc nvcc" instead of "mpi",
+since a KOKKOS for CUDA build requires NVIDIA nvcc as the wrapper
+compiler.
+
+Also note that the Make.py commands in Make.list use the default
+FFT support which is via the KISS library.  If you want to
+build with another FFT library, e.g. FFTW3, then you can add
+"-fft fftw3" after the target, e.g.
+
+../../src/Make.py -r Make.list gpu -fft fftw3
+
+For any build with USER-CUDA, GPU, or KOKKOS for CUDA, be sure to set
+the arch=XX setting to the appropriate value for the GPUs and Cuda
+environment on your system.  What is defined in the Make.list file is
+arch=21 for older Fermi GPUs.  This can be overridden as follows,
+e.g. for Kepler GPUs:
+
+../../src/Make.py -r Make.list gpu_double -gpu mode=double arch=35
+
+---------------------
+
+Running with each of the accelerator packages
+
+All of the input scripts have a default problem size and number of
+timesteps:
+
+in.lj = LJ melt with cutoff of 2.5 = 32K atoms for 100 steps
+in.lj.5.0 = same with cutoff of 5.0 = 32K atoms for 100 steps
+in.phosphate = 11K atoms for 100 steps
+in.rhodo = 32K atoms for 100 steps
+in.lc = 33K atoms for 100 steps (after 200 steps equilibration)
+
+These can be reset using the x,y,z and t variables in the command
+line.  E.g. adding "-v x 2 -v y 2 -v z 4 -t 1000" to any of the run
+command below would run a 16x larger problem (2x2x4) for 1000 steps.
+
+Here are example run commands using each of the accelerator packages:
+
+** CPU only
+
+lmp_cpu < in.lj
+mpirun -np 4 lmp_cpu -in in.lj
+
+** OPT package
+
+lmp_opt -sf opt < in.lj
+mpirun -np 4 lmp_opt -sf opt -in in.lj
+
+** USER-OMP package
+
+lmp_omp -sf omp -pk omp 1 < in.lj
+mpirun -np 4 lmp_omp -sf opt -pk omp 1 -in in.lj   # 4 MPI, 1 thread/MPI
+mpirun -np 2 lmp_omp -sf opt -pk omp 4 -in in.lj   # 2 MPI, 4 thread/MPI
+
+** GPU package
+
+lmp_gpu_double -sf gpu < in.lj               
+mpirun -np 8 lmp_gpu_double -sf gpu < in.lj        # 8 MPI, 8 MPI/GPU
+mpirun -np 12 lmp_gpu_double -sf gpu -pk gpu 2 < in.lj  # 12 MPI, 6 MPI/GPU
+mpirun -np 4 lmp_gpu_double -sf gpu -pk gpu 2 tpa 8 < in.lj.5.0   # 4 MPI, 2 MPI/GPU
+
+Note that when running in.lj.5.0 (which has a long cutoff) with the
+GPU package, the "-pk tpa" setting should be > 1 (e.g. 8) for best
+performance.
+
+** USER-CUDA package
+
+lmp_machine -c on -sf cuda < in.lj
+mpirun -np 1 lmp_machine -c on -sf cuda < in.lj    # 1 MPI, 1 MPI/GPU
+mpirun -np 2 lmp_machine -c on -sf cuda -pk cuda 2 < in.lj  # 2 MPI, 1 MPI/GPU
+
+** KOKKOS package for OMP
+
+lmp_kokkos_omp -k on t 1 -sf kk -pk kokkos neigh half < in.lj
+mpirun -np 2 lmp_kokkos_omp -k on t 4 -sf kk < in.lj  # 2 MPI, 4 thread/MPI
+
+Note that when running with just 1 thread/MPI, "-pk kokkos neigh half"
+was speficied to use half neighbor lists which are faster when running
+on just 1 thread.
+
+** KOKKOS package for CUDA
+
+lmp_kokkos_cuda -k on t 1 -sf kk < in.lj    # 1 thread, 1 GPU
+mpirun -np 2 lmp_kokkos_cuda -k on t 6 g 2 -sf kk < in.lj   # 2 MPI, 6 thread/MPI, 1 MPI/GPU
+
+** KOKKOS package for PHI
+
+mpirun -np 1 lmp_kokkos_phi -k on t 240 -sf kk -in in.lj   # 1 MPI, 240 threads/MPI
+mpirun -np 30 lmp_kokkos_phi -k on t 8 -sf kk -in in.lj    # 30 MPI, 8 threads/MPI
+
+** USER-INTEL package for CPU
+
+lmp_intel_cpu -sf intel < in.lj
+mpirun -np 4 lmp_intl_cpu -sf intel < in.lj             # 4 MPI
+mpirun -np 4 lmp_intl_cpu -sf intel -pk omp 2 < in.lj   # 4 MPI, 2 thread/MPI
+
+** USER-INTEL package for PHI
+
+lmp_intel_phi -sf intel -pk intel 1 omp 16 < in.lc      # 1 MPI, 16 CPU thread/MPI, 1 Phi, 240 Phi thread/MPI
+mpirun -np 4 lmp_intel_phi -sf intel -pk intel 1 omp 2 < in.lc  # 4 MPI, 2 CPU threads/MPI, 1 Phi, 60 Phi thread/MPI
+
+Note that there is currently no Phi support for pair_style lj/cut in
+the USER-INTEL package.

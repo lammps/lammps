@@ -1143,9 +1143,9 @@ void Molecule::allocate()
   for (int i = 0; i < natoms; i++) num_improper[i] = 0;
   memory->create(special,natoms,maxspecial,"molecule:special");
   memory->create(nspecial,natoms,3,"molecule:nspecial");
-  for (int i = 0; i < natoms; i++) {
+  for (int i = 0; i < natoms; i++)
     nspecial[i][0] = nspecial[i][1] = nspecial[i][2] = 0;
-  }
+
   if (bondflag) {
     memory->create(bond_type,natoms,bond_per_atom,
 		   "molecule:bond_type");
@@ -1189,7 +1189,6 @@ void Molecule::allocate()
     memory->create(improper_atom4,natoms,improper_per_atom,
 		   "molecule:improper_atom4");
   }
-
 
   if (shakeflag) {
     memory->create(shake_flag,natoms,"molecule:shake_flag");

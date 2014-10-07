@@ -922,7 +922,7 @@ Here are examples of build tasks you can perform with Make.py:
 Install/uninstall packages: Make.py -p no-lib kokkos omp intel
 Build specific auxiliary libs: Make.py lib-atc lib-meam
 Build libs for all installed packages: Make.py -p cuda gpu -gpu mode=double arch=31 lib-all
-Create a Makefile from scratch with a compiler and MPI: Make.py -m none -cc g++ -mpi mpich file
+Create a Makefile from scratch with compiler and MPI settings: Make.py -m none -cc g++ -mpi mpich file
 Augment Makefile.serial with settings for installed packages: Make.py -p intel -intel cpu -m serial file
 Add JPG and FFTW support to Makefile.mpi: Make.py -m mpi -jpg -fft fftw file
 Build LAMMPS with a parallel make using Makefile.mpi: Make.py -j 16 -m mpi exe

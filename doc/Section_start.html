@@ -929,7 +929,7 @@ Python.  And you may need to insure the script is executable:
 <TR><TD >Install/uninstall packages</TD><TD > Make.py -p no-lib kokkos omp intel</TD></TR>
 <TR><TD >Build specific auxiliary libs</TD><TD > Make.py lib-atc lib-meam</TD></TR>
 <TR><TD >Build libs for all installed packages</TD><TD > Make.py -p cuda gpu -gpu mode=double arch=31 lib-all</TD></TR>
-<TR><TD >Create a Makefile from scratch with a compiler and MPI</TD><TD > Make.py -m none -cc g++ -mpi mpich file</TD></TR>
+<TR><TD >Create a Makefile from scratch with compiler and MPI settings</TD><TD > Make.py -m none -cc g++ -mpi mpich file</TD></TR>
 <TR><TD >Augment Makefile.serial with settings for installed packages</TD><TD > Make.py -p intel -intel cpu -m serial file</TD></TR>
 <TR><TD >Add JPG and FFTW support to Makefile.mpi</TD><TD > Make.py -m mpi -jpg -fft fftw file</TD></TR>
 <TR><TD >Build LAMMPS with a parallel make using Makefile.mpi</TD><TD > Make.py -j 16 -m mpi exe</TD></TR>

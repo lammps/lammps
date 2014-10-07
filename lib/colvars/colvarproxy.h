@@ -10,12 +10,14 @@
 
 
 #include "colvarmodule.h"
+#include "colvarvalue.h"
+
 
 // return values for the frame() routine
 #define COLVARS_NO_SUCH_FRAME -1
 #define COLVARS_NOT_IMPLEMENTED -2
 
-// forward declaration
+// forward declarations
 class colvarscript;
 
 /// \brief Interface between the collective variables module and
@@ -143,7 +145,17 @@ public:
   bool have_scripts;
 
   /// Run a user-defined colvar forces script
-  virtual int run_force_script() {return 0;}
+  virtual int run_force_callback() { return COLVARS_NOT_IMPLEMENTED; }
+
+  virtual int run_colvar_callback(std::string const &name,
+                                std::vector<const colvarvalue *> const &cvcs,
+                                colvarvalue &value)
+  { return COLVARS_NOT_IMPLEMENTED; }
+
+  virtual int run_colvar_gradient_callback(std::string const &name,
+                                         std::vector<const colvarvalue *> const &cvcs,
+                                         std::vector<colvarvalue> &gradient)
+  { return COLVARS_NOT_IMPLEMENTED; }
 
   // **************** INPUT/OUTPUT ****************
 
@@ -179,7 +191,8 @@ public:
                             double const pdb_field_value = 0.0) = 0;
 
   /// \brief Rename the given file, before overwriting it
-  virtual int backup_file (char const *filename) {return 0;}
+  virtual int backup_file (char const *filename)
+  { return COLVARS_NOT_IMPLEMENTED; }
 };
 
 

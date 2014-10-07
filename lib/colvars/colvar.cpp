@@ -5,15 +5,14 @@
 #include "colvarparse.h"
 #include "colvar.h"
 #include "colvarcomp.h"
+#include "colvarscript.h"
 #include <algorithm>
 
-
-// XX TODO make the acf code handle forces as well as values and velocities
 
 
 colvar::colvar (std::string const &conf)
 {
-  size_t i;
+  size_t i, j;
   cvm::log ("Initializing a new collective variable.\n");
 
   get_keyval (conf, "name", this->name,
@@ -146,6 +145,47 @@ colvar::colvar (std::string const &conf)
 
   cvm::log ("All components initialized.\n");
 
+  // Setup colvar as scripted function of components
+  if (get_keyval (conf, "scriptedFunction", scripted_function,
+    "", colvarparse::parse_silent)) {
+
+    enable(task_scripted);
+    cvm::log("This colvar is a scripted function.");
+
+    std::string type_str;
+    get_keyval (conf, "scriptedFunctionType", type_str, "scalar");
+
+    x.type(colvarvalue::type_notset);
+    for (i = 0; i < colvarvalue::type_all; i++) {
+      if (type_str == colvarvalue::type_keyword[i]) {
+        x.type(colvarvalue::Type(i));
+        break;
+      }
+    }
+    if (x.type() == colvarvalue::type_notset) {
+      cvm::error("Could not parse scripted colvar type.");
+      return;
+    }
+    x_reported.type (x.type());
+    cvm::log(std::string("Expecting colvar value of type ")
+      + colvarvalue::type_desc[x.type()]);
+
+    // Build ordered list of component values that will be
+    // passed to the script
+    for (i = 1; i <= cvcs.size(); i++) {
+      for (j = 0; j < cvcs.size(); j++) {
+        if (cvcs[j]->sup_np == int(i)) {
+          sorted_cvc_values.push_back(cvcs[j]->p_value());
+          break;
+        }
+      }
+    }
+    if (sorted_cvc_values.size() != cvcs.size()) {
+      cvm::error("Could not find order numbers for all components"
+                  "in componentExp values.");
+      return;
+    }
+  }
 
   // this is set false if any of the components has an exponent
   // different from 1 in the polynomial
@@ -203,23 +243,26 @@ colvar::colvar (std::string const &conf)
     if (! (cvcs[i])->b_Jacobian_derivative)
       b_Jacobian_force = false;
 
-    for (size_t j = i; j < cvcs.size(); j++) {
-      if ( (cvcs[i])->type() != (cvcs[j])->type() ) {
-        cvm::log ("ERROR: you are definining this collective variable "
-                          "by using components of different types, \""+
-                          colvarvalue::type_desc[(cvcs[i])->type()]+
-                          "\" and \""+
-                          colvarvalue::type_desc[(cvcs[j])->type()]+
-                          "\". "
-                          "You must use the same type in order to "
-                          " sum them together.\n");
-        cvm::set_error_bits(INPUT_ERROR);
+    if (!tasks[task_scripted]) {
+      // If the combination of components is a scripted function,
+      // the components may have different types
+      for (size_t j = i; j < cvcs.size(); j++) {
+        if ( (cvcs[i])->type() != (cvcs[j])->type() ) {
+          cvm::log ("ERROR: you are definining this collective variable "
+                            "by using components of different types, \""+
+                            colvarvalue::type_desc[(cvcs[i])->type()]+
+                            "\" and \""+
+                            colvarvalue::type_desc[(cvcs[j])->type()]+
+                            "\". "
+                            "You must use the same type in order to "
+                            " sum them together.\n");
+          cvm::set_error_bits(INPUT_ERROR);
+        }
       }
     }
   }
 
-
-  {
+  if (!tasks[task_scripted]) {
     colvarvalue::Type const value_type = (cvcs[0])->type();
     if (cvm::debug())
       cvm::log ("This collective variable is a "+
@@ -632,6 +675,7 @@ int colvar::enable (colvar::task const &t)
   case task_ntot:
   case task_langevin:
   case task_output_energy:
+  case task_scripted:
     break;
 
   case task_gradients:
@@ -702,6 +746,7 @@ void colvar::disable (colvar::task const &t)
   case task_langevin:
   case task_output_energy:
   case task_collect_gradients:
+  case task_scripted:
     break;
   }
 
@@ -745,14 +790,15 @@ colvar::~colvar()
 
 void colvar::calc()
 {
+  size_t i, ig;
   if (cvm::debug())
     cvm::log ("Calculating colvar \""+this->name+"\".\n");
 
   // prepare atom groups for calculation
   if (cvm::debug())
     cvm::log ("Collecting data from atom groups.\n");
-  for (size_t i = 0; i < cvcs.size(); i++) {
-    for (size_t ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
+  for (i = 0; i < cvcs.size(); i++) {
+    for (ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
       cvm::atom_group &atoms = *(cvcs[i]->atom_groups[ig]);
       atoms.reset_atoms_data();
       atoms.read_positions();
@@ -763,15 +809,15 @@ void colvar::calc()
     }
   }
   if (tasks[task_output_velocity]) {
-    for (size_t i = 0; i < cvcs.size(); i++) {
-      for (size_t ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
+    for (i = 0; i < cvcs.size(); i++) {
+      for (ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
         cvcs[i]->atom_groups[ig]->read_velocities();
       }
     }
   }
   if (tasks[task_system_force]) {
-    for (size_t i = 0; i < cvcs.size(); i++) {
-      for (size_t ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
+    for (i = 0; i < cvcs.size(); i++) {
+      for (ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
         cvcs[i]->atom_groups[ig]->read_system_forces();
       }
     }
@@ -782,35 +828,42 @@ void colvar::calc()
   if (cvm::debug())
     cvm::log ("Calculating colvar components.\n");
   x.reset();
-  if (x.type() == colvarvalue::type_scalar) {
-    // polynomial combination allowed
 
-    for (size_t i = 0; i < cvcs.size(); i++) {
-      cvm::increase_depth();
-      (cvcs[i])->calc_value();
-      cvm::decrease_depth();
-      if (cvm::debug())
-        cvm::log ("Colvar component no. "+cvm::to_str (i+1)+
-                  " within colvar \""+this->name+"\" has value "+
-                  cvm::to_str ((cvcs[i])->value(),
-                               cvm::cv_width, cvm::cv_prec)+".\n");
+  // First, update component values
+  for (i = 0; i < cvcs.size(); i++) {
+    cvm::increase_depth();
+    (cvcs[i])->calc_value();
+    cvm::decrease_depth();
+    if (cvm::debug())
+      cvm::log ("Colvar component no. "+cvm::to_str (i+1)+
+                " within colvar \""+this->name+"\" has value "+
+                cvm::to_str ((cvcs[i])->value(),
+                cvm::cv_width, cvm::cv_prec)+".\n");
+  }
+
+  // Then combine them appropriately
+  if (tasks[task_scripted]) {
+    // cvcs combined by user script
+    int res = cvm::proxy->run_colvar_callback(scripted_function, sorted_cvc_values, x);
+    if (res == COLVARS_NOT_IMPLEMENTED) {
+      cvm::error("Scripted colvars are not implemented.");
+      return;
+    }
+    if (res != COLVARS_OK) {
+      cvm::error("Error running scripted colvar");
+      return;
+    }
+  } else if (x.type() == colvarvalue::type_scalar) {
+    // polynomial combination allowed
+    for (i = 0; i < cvcs.size(); i++) {
       x += (cvcs[i])->sup_coeff *
-        ( ((cvcs[i])->sup_np != 1) ?
-          std::pow ((cvcs[i])->value().real_value, (cvcs[i])->sup_np) :
-          (cvcs[i])->value().real_value );
+      ( ((cvcs[i])->sup_np != 1) ?
+        std::pow ((cvcs[i])->value().real_value, (cvcs[i])->sup_np) :
+        (cvcs[i])->value().real_value );
     }
   } else {
     // only linear combination allowed
-
-    for (size_t i = 0; i < cvcs.size(); i++) {
-      cvm::increase_depth();
-      (cvcs[i])->calc_value();
-      cvm::decrease_depth();
-      if (cvm::debug())
-        cvm::log ("Colvar component no. "+cvm::to_str (i+1)+
-                  " within colvar \""+this->name+"\" has value "+
-                  cvm::to_str ((cvcs[i])->value(),
-                               cvm::cv_width, cvm::cv_prec)+".\n");
+    for (i = 0; i < cvcs.size(); i++) {
       x += (cvcs[i])->sup_coeff * (cvcs[i])->value();
     }
   }
@@ -824,7 +877,7 @@ void colvar::calc()
     if (cvm::debug())
       cvm::log ("Calculating gradients of colvar \""+this->name+"\".\n");
 
-    for (size_t i = 0; i < cvcs.size(); i++) {
+    for (i = 0; i < cvcs.size(); i++) {
       // calculate the gradients of each component
       cvm::increase_depth();
 
@@ -832,7 +885,7 @@ void colvar::calc()
 
       // if requested, propagate (via chain rule) the gradients above
       // to the atoms used to define the roto-translation
-      for (size_t ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
+      for (ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
         if (cvcs[i]->atom_groups[ig]->b_fit_gradients)
           cvcs[i]->atom_groups[ig]->calc_fit_gradients();
       }
@@ -844,11 +897,18 @@ void colvar::calc()
       cvm::log ("Done calculating gradients of colvar \""+this->name+"\".\n");
 
     if (tasks[task_collect_gradients]) {
+
+      if (tasks[task_scripted]) {
+        cvm::error("Collecting atomic gradients is not implemented for "
+          "scripted colvars.");
+        return;
+      }
+
       // Collect the atomic gradients inside colvar object
       for (unsigned int a = 0; a < atomic_gradients.size(); a++) {
         atomic_gradients[a].reset();
       }
-      for (size_t i = 0; i < cvcs.size(); i++) {
+      for (i = 0; i < cvcs.size(); i++) {
         // Coefficient: d(a * x^n) = a * n * x^(n-1) * dx
         cvm::real coeff = (cvcs[i])->sup_coeff * cvm::real ((cvcs[i])->sup_np) *
           std::pow ((cvcs[i])->value().real_value, (cvcs[i])->sup_np-1);
@@ -882,6 +942,13 @@ void colvar::calc()
 
   if (tasks[task_system_force]) {
 
+    if (tasks[task_scripted]) {
+      // TODO see if this could reasonably be done in a generic way
+      // from generic inverse gradients
+      cvm::error("System force is not implemented for "
+        "scripted colvars.");
+      return;
+    }
     if (cvm::debug())
       cvm::log ("Calculating system force of colvar \""+this->name+"\".\n");
 
@@ -893,7 +960,7 @@ void colvar::calc()
 
     if(cvm::step_relative() > 0) {
       // get from the cvcs the system forces from the PREVIOUS step
-      for (size_t i = 0; i < cvcs.size(); i++) {
+      for (i = 0; i < cvcs.size(); i++) {
         (cvcs[i])->calc_force_invgrads();
         // linear combination is assumed
         cvm::increase_depth();
@@ -1067,12 +1134,32 @@ cvm::real colvar::update()
 
 void colvar::communicate_forces()
 {
+  size_t i;
   if (cvm::debug())
     cvm::log ("Communicating forces from colvar \""+this->name+"\".\n");
 
-  if (x.type() == colvarvalue::type_scalar) {
+  if (tasks[task_scripted]) {
+    std::vector<colvarvalue> func_grads(cvcs.size());
+    int res = cvm::proxy->run_colvar_gradient_callback(scripted_function, sorted_cvc_values, func_grads);
 
-    for (size_t i = 0; i < cvcs.size(); i++) {
+    if (res == COLVARS_NOT_IMPLEMENTED) {
+      cvm::error("Colvar gradient scripts are not implemented.");
+      return;
+    }
+    if (res != COLVARS_OK) {
+      cvm::error("Error running colvar gradient script");
+      return;
+    }
+
+    for (i = 0; i < cvcs.size(); i++) {
+      cvm::increase_depth();
+      // Note: we need a dot product here
+      (cvcs[i])->apply_force (f * func_grads[i]);
+      cvm::decrease_depth();
+    }
+  } else if (x.type() == colvarvalue::type_scalar) {
+
+    for (i = 0; i < cvcs.size(); i++) {
       cvm::increase_depth();
       (cvcs[i])->apply_force (f * (cvcs[i])->sup_coeff *
                               cvm::real ((cvcs[i])->sup_np) *
@@ -1083,7 +1170,7 @@ void colvar::communicate_forces()
 
   } else {
 
-    for (size_t i = 0; i < cvcs.size(); i++) {
+    for (i = 0; i < cvcs.size(); i++) {
       cvm::increase_depth();
       (cvcs[i])->apply_force (f * (cvcs[i])->sup_coeff);
       cvm::decrease_depth();

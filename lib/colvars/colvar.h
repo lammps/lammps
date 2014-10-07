@@ -148,6 +148,8 @@ public:
     task_runave,
     /// \brief Compute time correlation function
     task_corrfunc,
+    /// \brief Value and gradients computed by user script
+    task_scripted,
     /// \brief Number of possible tasks
     task_ntot
   };
@@ -511,6 +513,14 @@ protected:
   /// \brief Initialize the sorted list of atom IDs for atoms involved
   /// in all cvcs (called when enabling task_collect_gradients)
   void build_atom_list (void);
+
+private:
+  /// Name of scripted function to be used
+  std::string scripted_function;
+
+  /// Current cvc values in the order requested by script
+  /// when using scriptedFunction
+  std::vector<const colvarvalue *> sorted_cvc_values;
 
 public:
   /// \brief Sorted array of (zero-based) IDs for all atoms involved

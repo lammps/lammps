@@ -86,6 +86,8 @@ public:
 
   /// Runtime description of value types
   std::string static const type_desc[colvarvalue::type_all+1];
+  /// User keywords for specifying value types
+  std::string static const type_keyword[colvarvalue::type_all+1];
   /// Number of degrees of freedom for each type
   size_t static const      dof_num[  colvarvalue::type_all+1];
 

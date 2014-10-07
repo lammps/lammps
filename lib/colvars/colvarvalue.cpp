@@ -17,6 +17,16 @@ std::string const colvarvalue::type_desc[colvarvalue::type_all+1] =
     "4-dimensional tangent vector",
   };
 
+std::string const colvarvalue::type_keyword[colvarvalue::type_all+1] =
+  { "not_set",
+    "scalar",
+    "vector",
+    "unit_vector",
+    "",
+    "unit_quaternion",
+    "",
+  };
+
 size_t const      colvarvalue::dof_num[  colvarvalue::type_all+1] =
   { 0, 1, 3, 2, 2, 3, 3 };
 

@@ -155,6 +155,9 @@ public:
   /// \brief Return the previously calculated value
   virtual colvarvalue value() const;
 
+  /// \brief Return const pointer to the previously calculated value
+  virtual const colvarvalue *p_value() const;
+
   /// \brief Return the previously calculated system force
   virtual colvarvalue system_force() const;
 
@@ -261,6 +264,11 @@ inline colvarvalue::Type colvar::cvc::type() const
 inline colvarvalue colvar::cvc::value() const
 {
   return x;
+}
+
+inline const colvarvalue * colvar::cvc::p_value() const
+{
+  return &x;
 }
 
 inline colvarvalue colvar::cvc::system_force() const

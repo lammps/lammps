@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2014-10-02"
+#define COLVARS_VERSION "2014-10-07"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -49,6 +49,7 @@ class colvarparse;
 class colvar;
 class colvarbias;
 class colvarproxy;
+class colvarscript;
 
 
 /// \brief Collective variables module (main class)
@@ -441,8 +442,11 @@ protected:
   /// Output restart file
   std::ofstream restart_out_os;
 
-  /// \brief Counter for the current depth in the object hierarchy (useg e.g. in outpu
+  /// \brief Counter for the current depth in the object hierarchy (useg e.g. in output
   static size_t depth;
+
+  /// Use scripted colvars forces?
+  bool use_scripted_forces;
 
 public:
   /// \brief Pointer to the proxy object, used to retrieve atomic data

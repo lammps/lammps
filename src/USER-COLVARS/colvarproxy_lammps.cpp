@@ -32,7 +32,7 @@
 // local helper functions
 
 // safely move filename to filename.extension
-static void my_backup_file(const char *filename, const char *extension)
+static int my_backup_file(const char *filename, const char *extension)
 {
   struct stat sbuf;
   if (stat(filename, &sbuf) == 0) {
@@ -48,9 +48,12 @@ static void my_backup_file(const char *filename, const char *extension)
       if ( !sys_err_msg ) sys_err_msg = (char *) "(unknown error)";
       fprintf(stderr,"Error renaming file %s to %s: %s\n",
               filename, backup, sys_err_msg);
+      delete [] backup;
+      return COLVARS_ERROR;
     }
     delete [] backup;
   }
+  return COLVARS_OK;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -74,6 +77,10 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   do_exit=false;
   restart_every=0;
 
+  // User-scripted forces are not available in LAMMPS
+  force_script_defined = false;
+  have_scripts = false;
+
   // set input restart name and strip the extension, if present
   input_prefix_str = std::string(inp_name ? inp_name : "");
   if (input_prefix_str.rfind(".colvars.state") != std::string::npos)
@@ -84,6 +91,12 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   output_prefix_str = std::string(out_name);
   // not so for restarts
   restart_prefix_str = std::string("rest");
+
+  // check if it is possible to save output configuration
+  if ((!output_prefix_str.size()) && (!restart_output_prefix_str.size())) {
+    fatal_error ("Error: neither the final output state file or "
+                 "the output restart file could be defined, exiting.\n");
+  }
 
   // try to extract a restart prefix from a potential restart command.
   LAMMPS_NS::Output *outp = _lmp->output;
@@ -101,7 +114,12 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 void colvarproxy_lammps::init(const char *conf_file)
 {
   // create the colvarmodule instance
-  colvars = new colvarmodule(conf_file,this);
+  colvars = new colvarmodule (this);
+
+  // TODO move one or more of these to setup() if needed
+  colvars->config_file (conf_file);
+  colvars->setup_input();
+  colvars->setup_output();
 
   if (_lmp->update->ntimestep != 0) {
     cvm::log ("Initializing step number as firstTimestep.\n");
@@ -245,6 +263,12 @@ void colvarproxy_lammps::log(std::string const &message)
   }
 }
 
+void colvarproxy_lammps::error(std::string const &message)
+{
+  // In LAMMPS, all errors are fatal
+  fatal_error(message);
+}
+
 void colvarproxy_lammps::fatal_error(std::string const &message)
 {
   log(message);
@@ -311,33 +335,34 @@ e_pdb_field pdb_field_str2enum(std::string const &pdb_field_str)
   return pdb_field;
 }
 
-void colvarproxy_lammps::load_coords(char const *pdb_filename,
+int colvarproxy_lammps::load_coords(char const *pdb_filename,
                                     std::vector<cvm::atom_pos> &pos,
                                     const std::vector<int> &indices,
-                                    std::string const pdb_field_str,
+                                    std::string const &pdb_field_str,
                                     double const pdb_field_value)
 {
-
   cvm::fatal_error("Reading collective variable coordinates "
-                    "from a PDB file is currently not supported.\n");
+                   "from a PDB file is currently not supported.\n");
+  return COLVARS_ERROR;
 }
 
-void colvarproxy_lammps::load_atoms(char const *pdb_filename,
+int colvarproxy_lammps::load_atoms(char const *pdb_filename,
                                    std::vector<cvm::atom> &atoms,
-                                   std::string const pdb_field_str,
+                                   std::string const &pdb_field_str,
                                    double const pdb_field_value)
 {
   cvm::fatal_error("Selecting collective variable atoms "
                     "from a PDB file is currently not supported.\n");
+  return COLVARS_ERROR;
 }
 
-void colvarproxy_lammps::backup_file(char const *filename)
+int colvarproxy_lammps::backup_file(char const *filename)
 {
   if (std::string(filename).rfind(std::string(".colvars.state"))
       != std::string::npos) {
-    my_backup_file(filename, ".old");
+    return my_backup_file(filename, ".old");
   } else {
-    my_backup_file(filename, ".BAK");
+    return my_backup_file(filename, ".BAK");
   }
 }
 

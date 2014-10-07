@@ -1,23 +1,45 @@
+/// -*- c++ -*-
+
 #ifndef COLVARPROXY_H
 #define COLVARPROXY_H
 
 
+#ifndef COLVARPROXY_VERSION
+#define COLVARPROXY_VERSION "2014-09-19"
+#endif
+
 
 #include "colvarmodule.h"
+#include "colvarvalue.h"
 
 
-/// \brief Interface class between the collective variables module and
-/// the simulation program
+// return values for the frame() routine
+#define COLVARS_NO_SUCH_FRAME -1
+#define COLVARS_NOT_IMPLEMENTED -2
+
+// forward declarations
+class colvarscript;
+
+/// \brief Interface between the collective variables module and
+/// the simulation or analysis program.
+/// This is the base class: each program is supported by a derived class.
+/// Only pure virtual functions ("= 0") must be reimplemented in a new interface.
 
 class colvarproxy {
 
 public:
 
-  /// Pointer to the instance of colvarmodule
+  /// Pointer to the main object
   colvarmodule *colvars;
+
+  /// Default constructor
+  inline colvarproxy() : script (NULL) {}
 
   /// Default destructor
   virtual inline ~colvarproxy() {}
+
+  /// (Re)initialize member data after construction
+  virtual void setup() {}
 
 
   // **************** SYSTEM-WIDE PHYSICAL QUANTITIES ****************
@@ -38,19 +60,38 @@ public:
   /// \brief Pseudo-random number with Gaussian distribution
   virtual cvm::real rand_gaussian (void) = 0;
 
+  /// \brief Get the current frame number
+  virtual int frame() { return COLVARS_NOT_IMPLEMENTED; }
+
+  /// \brief Set the current frame number
+  // return 0 on success, -1 on failure
+  virtual int frame (int) { return COLVARS_NOT_IMPLEMENTED; }
+
 
   // **************** SIMULATION PARAMETERS ****************
 
+
   /// \brief Prefix to be used for input files (restarts, not
   /// configuration)
-  virtual std::string input_prefix() = 0;
+  std::string input_prefix_str, output_prefix_str, restart_output_prefix_str;
+
+  inline std::string input_prefix()
+  {
+    return input_prefix_str;
+  }
 
   /// \brief Prefix to be used for output restart files
-  virtual std::string restart_output_prefix() = 0;
+  inline std::string restart_output_prefix()
+  {
+    return restart_output_prefix_str;
+  }
 
   /// \brief Prefix to be used for output files (final system
   /// configuration)
-  virtual std::string output_prefix() = 0;
+  inline std::string output_prefix()
+  {
+    return output_prefix_str;
+  }
 
   /// \brief Restarts will be fritten each time this number of steps has passed
   virtual size_t restart_frequency() = 0;
@@ -91,12 +132,38 @@ public:
   void select_closest_images (std::vector<cvm::atom_pos> &pos,
                               cvm::atom_pos const &ref_pos);
 
+  // **************** SCRIPTING INTERFACE ****************
 
+  /// Pointer to the scripting interface object
+  /// (does not need to be allocated in a new interface)
+  colvarscript *script;
+
+  /// is a user force script defined?
+  bool force_script_defined;
+
+  /// Do we have a scripting interface?
+  bool have_scripts;
+
+  /// Run a user-defined colvar forces script
+  virtual int run_force_callback() { return COLVARS_NOT_IMPLEMENTED; }
+
+  virtual int run_colvar_callback(std::string const &name,
+                                std::vector<const colvarvalue *> const &cvcs,
+                                colvarvalue &value)
+  { return COLVARS_NOT_IMPLEMENTED; }
+
+  virtual int run_colvar_gradient_callback(std::string const &name,
+                                         std::vector<const colvarvalue *> const &cvcs,
+                                         std::vector<colvarvalue> &gradient)
+  { return COLVARS_NOT_IMPLEMENTED; }
 
   // **************** INPUT/OUTPUT ****************
 
   /// Print a message to the main log
   virtual void log (std::string const &message) = 0;
+
+  /// Print a message to the main log and let the rest of the program handle the error
+  virtual void error (std::string const &message) = 0;
 
   /// Print a message to the main log and exit with error code
   virtual void fatal_error (std::string const &message) = 0;
@@ -109,23 +176,23 @@ public:
   /// from "filename" will be appended \param pdb_field (optiona) if
   /// "filename" is a PDB file, use this field to determine which are
   /// the atoms to be set
-  virtual void load_atoms (char const *filename,
+  virtual int load_atoms (char const *filename,
                            std::vector<cvm::atom> &atoms,
-                           std::string const pdb_field,
-                           double const pdb_field_value = 0.0) {}
+                           std::string const &pdb_field,
+                           double const pdb_field_value = 0.0) = 0;
 
   /// \brief Load the coordinates for a group of atoms from a file
   /// (usually a PDB); if "pos" is already allocated, the number of its
   /// elements must match the number of atoms in "filename"
-  virtual void load_coords (char const *filename,
+  virtual int load_coords (char const *filename,
                             std::vector<cvm::atom_pos> &pos,
                             const std::vector<int> &indices,
-                            std::string const pdb_field,
+                            std::string const &pdb_field,
                             double const pdb_field_value = 0.0) = 0;
 
   /// \brief Rename the given file, before overwriting it
-  virtual void backup_file (char const *filename) {}
-
+  virtual int backup_file (char const *filename)
+  { return COLVARS_NOT_IMPLEMENTED; }
 };
 
 
@@ -133,7 +200,7 @@ inline void colvarproxy::select_closest_images (std::vector<cvm::atom_pos> &pos,
                                                 cvm::atom_pos const &ref_pos)
 {
   for (std::vector<cvm::atom_pos>::iterator pi = pos.begin();
-       pi != pos.end(); pi++) {
+       pi != pos.end(); ++pi) {
     select_closest_image (*pi, ref_pos);
   }
 }
@@ -146,8 +213,3 @@ inline cvm::real colvarproxy::position_dist2 (cvm::atom_pos const &pos1,
 
 #endif
 
-
-// Emacs
-// Local Variables:
-// mode: C++
-// End:

@@ -1,8 +1,10 @@
+/// -*- c++ -*-
+
 #ifndef COLVARMODULE_H
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2014-08-13"
+#define COLVARS_VERSION "2014-10-07"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -17,6 +19,19 @@
 /// class, because several variables are made static (i.e. they are
 /// shared between all object instances) to be accessed from other
 /// objects.
+
+// Internal method return codes
+#define COLVARS_ERROR -1
+#define COLVARS_OK 0
+
+// On error, values of the colvars module error register
+#define GENERAL_ERROR   1
+#define FILE_ERROR      (1<<1)
+#define MEMORY_ERROR    (1<<2)
+#define BUG_ERROR       (1<<3) // Inconsistent state indicating bug
+#define INPUT_ERROR     (1<<4) // out of bounds or inconsistent input
+#define DELETE_COLVARS  (1<<5) // Instruct the caller to delete cvm
+#define FATAL_ERROR     (1<<6) // Should be set, or not, together with other bits
 
 
 #include <iostream>
@@ -34,6 +49,7 @@ class colvarparse;
 class colvar;
 class colvarbias;
 class colvarproxy;
+class colvarscript;
 
 
 /// \brief Collective variables module (main class)
@@ -55,6 +71,8 @@ private:
 public:
 
   friend class colvarproxy;
+  // TODO colvarscript should be unaware of colvarmodule's internals
+  friend class colvarscript;
 
   /// Defining an abstract real number allows to switch precision
   typedef  double    real;
@@ -85,6 +103,22 @@ public:
   typedef std::vector<atom>::iterator       atom_iter;
   typedef std::vector<atom>::const_iterator atom_const_iter;
 
+  /// Module-wide error state
+  /// see constants at the top of this file
+  static int errorCode;
+  static inline void set_error_bits(int code)
+  {
+    errorCode |= code;
+  }
+  static inline int get_error()
+  {
+    return errorCode;
+  }
+  static inline void clear_error()
+  {
+    errorCode = 0;
+  }
+
   /// Current step number
   static size_t it;
   /// Starting step number for this run
@@ -114,9 +148,6 @@ public:
 
   /// Prefix for all output files for this run
   static std::string output_prefix;
-
-  /// Prefix for files from a previous run (including restart/output)
-  static std::string input_prefix;
 
   /// input restart file name (determined from input_prefix)
   static std::string restart_in_name;
@@ -158,26 +189,79 @@ public:
 
   /// \brief Constructor \param config_name Configuration file name
   /// \param restart_name (optional) Restart file name
-  colvarmodule (char const *config_name,
-                colvarproxy *proxy_in);
+  colvarmodule (colvarproxy *proxy);
 
   /// Destructor
   ~colvarmodule();
 
-  /// Initialize collective variables
-  void init_colvars (std::string const &conf);
+  /// Actual function called by the destructor
+  int reset();
 
-  /// Initialize collective variable biases
-  void init_biases (std::string const &conf);
+  /// Open a config file, load its contents, and pass it to config_string()
+  int config_file (char const *config_file_name);
 
-  /// Re-initialize data at the beginning of a run. For use with
-  /// MD codes that can change system parameters like atom masses
-  /// between run commands.
-  void setup();
+  /// \brief Parse a config string assuming it is a complete configuration
+  /// (i.e. calling all parse functions)
+  int config_string (std::string const &conf);
+
+  /// \brief Parse a "clean" config string (no comments)
+  int config (std::string &conf);
+
+
+  // Parse functions (setup internal data based on a string)
+
+  /// Parse the few module's global parameters
+  int parse_global_params (std::string const &conf);
+
+  /// Parse and initialize collective variables
+  int parse_colvars (std::string const &conf);
+
+  /// Parse and initialize collective variable biases
+  int parse_biases (std::string const &conf);
+
+
+  // "Setup" functions (change internal data based on related data
+  // from the proxy that may change during program execution)
+  // No additional parsing is done within these functions
+
+  /// (Re)initialize internal data (currently used by LAMMPS)
+  /// Also calls setup() member functions of colvars and biases
+  int setup();
+
+  /// (Re)initialize and (re)read the input state file calling read_restart()
+  int setup_input();
+
+  /// (Re)initialize the output trajectory and state file (does not write it yet)
+  int setup_output();
+
+  /// Read the input restart file
+  std::istream & read_restart (std::istream &is);
+  /// Write the output restart file
+  std::ostream & write_restart (std::ostream &os);
+
+  /// Open a trajectory file if requested (and leave it open)
+  int open_traj_file (std::string const &file_name);
+  /// Close it
+  int close_traj_file();
+  /// Write in the trajectory file
+  std::ostream & write_traj (std::ostream &os);
+  /// Write explanatory labels in the trajectory file
+  std::ostream & write_traj_label (std::ostream &os);
+
+  /// Write all FINAL output files
+  int write_output_files();
+  /// Backup a file before writing it
+  static int backup_file (char const *filename);
+
+  /// Look up a bias by name; returns NULL if not found
+  static colvarbias * bias_by_name(std::string const &name);
+
+  /// Look up a colvar by name; returns NULL if not found
+  static colvar * colvar_by_name(std::string const &name);
 
   /// Load new configuration for the given bias -
   /// currently works for harmonic (force constant and/or centers)
-  void change_configuration (std::string const &bias_name, std::string const &conf);
+  int change_configuration (std::string const &bias_name, std::string const &conf);
 
   /// Read a colvar value
   std::string read_colvar(std::string const &name);
@@ -187,26 +271,15 @@ public:
   real energy_difference (std::string const &bias_name, std::string const &conf);
 
   /// Calculate collective variables and biases
-  void calc();
-  /// Read the input restart file
-  std::istream & read_restart (std::istream &is);
-  /// Write the output restart file
-  std::ostream & write_restart (std::ostream &os);
-  /// Write all output files (called by the proxy)
-  void write_output_files();
-  /// \brief Call colvarproxy::backup_file()
-  static void backup_file (char const *filename);
+  int calc();
 
   /// Perform analysis
-  void analyze();
+  int analyze();
   /// \brief Read a collective variable trajectory (post-processing
   /// only, not called at runtime)
-  bool read_traj (char const *traj_filename,
+  int read_traj (char const *traj_filename,
                   size_t      traj_read_begin,
                   size_t      traj_read_end);
-
-  /// Get the pointer of a colvar from its name (returns NULL if not found)
-  static colvar * colvar_p (std::string const &name);
 
   /// Quick conversion of an object to a string
   template<typename T> static std::string to_str (T const &x,
@@ -267,6 +340,9 @@ public:
   /// Print a message to the main log and exit with error code
   static void fatal_error (std::string const &message);
 
+  /// Print a message to the main log and set global error code
+  static void error (std::string const &message, int code = GENERAL_ERROR);
+
   /// Print a message to the main log and exit normally
   static void exit (std::string const &message);
 
@@ -307,21 +383,21 @@ public:
   static std::list<std::vector<int> > index_groups;
 
   /// \brief Read a Gromacs .ndx file
-  static void read_index_file (char const *filename);
+  static int read_index_file (char const *filename);
 
 
   /// \brief Create atoms from a file \param filename name of the file
   /// (usually a PDB) \param atoms array of the atoms to be allocated
   /// \param pdb_field (optiona) if "filename" is a PDB file, use this
   /// field to determine which are the atoms to be set
-  static void load_atoms (char const *filename,
+  static int load_atoms (char const *filename,
                           std::vector<atom> &atoms,
                           std::string const &pdb_field,
                           double const pdb_field_value = 0.0);
 
   /// \brief Load the coordinates for a group of atoms from a file
   /// (PDB or XYZ)
-  static void load_coords (char const *filename,
+  static int load_coords (char const *filename,
                            std::vector<atom_pos> &pos,
                            const std::vector<int> &indices,
                            std::string const &pdb_field,
@@ -329,7 +405,7 @@ public:
 
   /// \brief Load the coordinates for a group of atoms from an
   /// XYZ file
-  static void load_coords_xyz (char const *filename,
+  static int load_coords_xyz (char const *filename,
                               std::vector<atom_pos> &pos,
                               const std::vector<int> &indices);
 
@@ -366,15 +442,18 @@ protected:
   /// Output restart file
   std::ofstream restart_out_os;
 
+  /// \brief Counter for the current depth in the object hierarchy (useg e.g. in output
+  static size_t depth;
+
+  /// Use scripted colvars forces?
+  bool use_scripted_forces;
+
+public:
   /// \brief Pointer to the proxy object, used to retrieve atomic data
   /// from the hosting program; it is static in order to be accessible
   /// from static functions in the colvarmodule class
   static colvarproxy *proxy;
 
-  /// \brief Counter for the current depth in the object hierarchy (useg e.g. in outpu
-  static size_t depth;
-
-public:
 
   /// Increase the depth (number of indentations in the output)
   static void increase_depth();
@@ -489,9 +568,3 @@ inline cvm::real cvm::rand_gaussian (void)
 }
 
 #endif
-
-
-// Emacs
-// Local Variables:
-// mode: C++
-// End:

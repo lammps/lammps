@@ -1,3 +1,5 @@
+/// -*- c++ -*-
+
 #include <cmath>
 
 #include "colvarmodule.h"
@@ -276,7 +278,7 @@ colvar::h_bond::h_bond()
 
 colvar::h_bond::~h_bond()
 {
-  for (int i=0; i<atom_groups.size(); i++) {
+  for (unsigned int i=0; i<atom_groups.size(); i++) {
     delete atom_groups[i];
   }
 }

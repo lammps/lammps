@@ -97,11 +97,19 @@ snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 voronoi:  test of Voronoi tesselation in compute voronoi/atom
 
+Here is a src/Make.py command which will build a LAMMPS executable
+"lmp_mpi" with all the packages needed by all the examples, with the
+exception of the accelerate example.  See the accelerate/README for
+Make.py commands suitable for its example scripts.
+
+cd src
+Make.py -p none std no-lib reax meam poems reaxc orig lib-all mpi
+
 Here is how you might run and visualize one of the sample problems:
 
 cd indent
-cp ../../src/lmp_linux .           # copy LAMMPS executable to this dir
-lmp_linux < in.indent              # run the problem
+cp ../../src/lmp_mpi .           # copy LAMMPS executable to this dir
+lmp_mpi < in.indent              # run the problem
 
 Running the simulation produces the files {dump.indent} and
 {log.lammps}.  You can visualize the dump file as follows:

@@ -1135,7 +1135,7 @@ void PPPMDisp::compute(int eflag, int vflag)
     energy_1 *= 0.5*volume;
     energy_6 *= 0.5*volume;
     
-    if (atom->natoms != natoms_original) {
+    if (qsum_update_flag || (atom->natoms != natoms_original)) {
       qsum_qsq(0);
       natoms_original = atom->natoms;
     }

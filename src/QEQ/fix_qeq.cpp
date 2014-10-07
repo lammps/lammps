@@ -262,6 +262,7 @@ void FixQEq::reallocate_matrix()
 void FixQEq::init_list(int id, NeighList *ptr)
 {
   list = ptr;
+  if (force->kspace) force->kspace->qsum_update_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

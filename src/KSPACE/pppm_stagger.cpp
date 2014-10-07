@@ -212,7 +212,7 @@ void PPPMStagger::compute(int eflag, int vflag)
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
 
-    if (atom->natoms != natoms_original) {
+    if (qsum_update_flag || (atom->natoms != natoms_original)) {
       qsum_qsq(0);
       natoms_original = atom->natoms;
     }

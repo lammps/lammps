@@ -28,6 +28,7 @@
 #include "neigh_request.h"
 #include "update.h"
 #include "force.h"
+#include "kspace.h"
 #include "group.h"
 #include "respa.h"
 #include "memory.h"
@@ -81,6 +82,8 @@ void FixQEqPoint::pre_force(int vflag)
   matvecs = CG(b_s, s);    	// CG on s - parallel
   matvecs += CG(b_t, t); 	// CG on t - parallel
   calculate_Q();
+
+  if (force->kspace) force->kspace->setup();
 
 }
 

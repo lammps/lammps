@@ -20,13 +20,14 @@
 #include "stdlib.h"
 #include "fix_adapt_fep.h"
 #include "atom.h"
-#include "comm.h"
 #include "update.h"
+#include "group.h"
 #include "modify.h"
 #include "force.h"
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "kspace.h"
+#include "fix_store.h"
 #include "input.h"
 #include "variable.h"
 #include "math_const.h"
@@ -40,8 +41,6 @@ using namespace MathConst;
 enum{PAIR,KSPACE,ATOM};
 enum{DIAMETER,CHARGE};
 
-#undef ADAPT_DEBUG
-
 /* ---------------------------------------------------------------------- */
 
 FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
@@ -50,6 +49,8 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 5) error->all(FLERR,"Illegal fix adapt/fep command");
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery < 0) error->all(FLERR,"Illegal fix adapt/fep command");
+
+  dynamic_group_allow = 1;
 
   // count # of adaptations
 
@@ -169,6 +170,8 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
   for (int m = 0; m < nadapt; m++)
     if (adapt[m].which == PAIR)
       memory->create(adapt[m].array_orig,n+1,n+1,"adapt:array_orig");
+
+  id_fix_diam = id_fix_chg = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -184,6 +187,13 @@ FixAdaptFEP::~FixAdaptFEP()
     }
   }
   delete [] adapt;
+
+  // check nfix in case all fixes have already been deleted
+
+  if (id_fix_diam && modify->nfix) modify->delete_fix(id_fix_diam);
+  if (id_fix_chg && modify->nfix) modify->delete_fix(id_fix_chg);
+  delete [] id_fix_diam;
+  delete [] id_fix_chg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -196,12 +206,92 @@ int FixAdaptFEP::setmask()
   return mask;
 }
 
+/* ----------------------------------------------------------------------
+   if need to restore per-atom quantities, create new fix STORE styles
+------------------------------------------------------------------------- */
+
+void FixAdaptFEP::post_constructor()
+{
+  if (!resetflag) return;
+  if (!diamflag && !chgflag) return;
+
+  // new id = fix-ID + FIX_STORE_ATTRIBUTE
+  // new fix group = group for this fix
+
+  id_fix_diam = NULL;
+  id_fix_chg = NULL;
+
+  char **newarg = new char*[5];
+  newarg[1] = group->names[igroup];
+  newarg[2] = (char *) "STORE";
+  newarg[3] = (char *) "1";
+  newarg[4] = (char *) "1";
+
+  if (diamflag) {
+    int n = strlen(id) + strlen("_FIX_STORE_DIAM") + 1;
+    id_fix_diam = new char[n];
+    strcpy(id_fix_diam,id);
+    strcat(id_fix_diam,"_FIX_STORE_DIAM");
+    newarg[0] = id_fix_diam;
+    modify->add_fix(5,newarg);
+    fix_diam = (FixStore *) modify->fix[modify->nfix-1];
+
+    if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
+    else {
+      double *vec = fix_diam->vstore;
+      double *radius = atom->radius;
+      int *mask = atom->mask;
+      int nlocal = atom->nlocal;
+
+      for (int i = 0; i < nlocal; i++) {
+        if (mask[i] & groupbit) vec[i] = radius[i];
+        else vec[i] = 0.0;
+      }
+    }
+  }
+
+  if (chgflag) {
+    int n = strlen(id) + strlen("_FIX_STORE_CHG") + 1;
+    id_fix_chg = new char[n];
+    strcpy(id_fix_chg,id);
+    strcat(id_fix_chg,"_FIX_STORE_CHG");
+    newarg[0] = id_fix_chg;
+    modify->add_fix(5,newarg);
+    fix_chg = (FixStore *) modify->fix[modify->nfix-1];
+
+    if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
+    else {
+      double *vec = fix_chg->vstore;
+      double *q = atom->q;
+      int *mask = atom->mask;
+      int nlocal = atom->nlocal;
+
+      for (int i = 0; i < nlocal; i++) {
+        if (mask[i] & groupbit) vec[i] = q[i];
+        else vec[i] = 0.0;
+      }
+    }
+  }
+
+  delete [] newarg;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixAdaptFEP::init()
 {
   int i,j;
 
+  // allow a dynamic group only if ATOM attribute not used
+
+  if (group->dynamic[igroup])
+    for (int i = 0; i < nadapt; i++)
+      if (adapt[i].which == ATOM) 
+        error->all(FLERR,"Cannot use dynamic group with fix adapt/fep atom");
+
+  // when using kspace, we need to recompute some additional parameters in kspace->setup()
+  if (force->kspace) force->kspace->qsum_update_flag = 1;
+  
   // setup and error checks
 
   anypair = 0;
@@ -217,9 +307,18 @@ void FixAdaptFEP::init()
 
     if (ad->which == PAIR) {
       anypair = 1;
+      Pair *pair = NULL;
 
-      Pair *pair = force->pair_match(ad->pstyle,1);
-      if (pair == NULL) error->all(FLERR,"Fix adapt/fep pair style does not exist");
+      if (lmp->suffix_enable) {
+        char psuffix[128];
+        strcpy(psuffix,ad->pstyle);
+        strcat(psuffix,"/");
+        strcat(psuffix,lmp->suffix);
+        pair = force->pair_match(psuffix,1);
+      }
+      if (pair == NULL) pair = force->pair_match(ad->pstyle,1);
+      if (pair == NULL)
+        error->all(FLERR, "Fix adapt/fep pair style does not exist");
       void *ptr = pair->extract(ad->pparam,ad->pdim);
       if (ptr == NULL) 
         error->all(FLERR,"Fix adapt/fep pair style param not supported");
@@ -268,22 +367,18 @@ void FixAdaptFEP::init()
     }
   }
 
-#ifdef ADAPT_DEBUG
-  if (comm->me == 0 && screen) {
-    for (int m = 0; m < nadapt; m++) {
-      Adapt *ad = &adapt[m];
-      if (ad->which == PAIR && ad->pdim == 2) {
-        fprintf(screen, "###ADAPT original %s %s\n", ad->pstyle, ad->pparam);
-        fprintf(screen, "###ADAPT  I  J   old_param\n");
-        for (i = ad->ilo; i <= ad->ihi; i++)
-          for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
-            fprintf(screen, "###ADAPT %2d %2d %9.5f\n", i, j,
-                    ad->array_orig[i][j]);
-      }
-    }
+  // fixes that store initial per-atom values
+  
+  if (id_fix_diam) {
+    int ifix = modify->find_fix(id_fix_diam);
+    if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
+    fix_diam = (FixStore *) modify->fix[ifix];
   }
-#endif
-
+  if (id_fix_chg) {
+    int ifix = modify->find_fix(id_fix_chg);
+    if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
+    fix_chg = (FixStore *) modify->fix[ifix];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -349,17 +444,6 @@ void FixAdaptFEP::change_settings()
           for (i = ad->ilo; i <= ad->ihi; i++)
             for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
               ad->array[i][j] = value;
-
-#ifdef ADAPT_DEBUG
-        if (comm->me == 0 && screen) {
-          fprintf(screen, "###ADAPT change %s %s\n", ad->pstyle, ad->pparam);
-          fprintf(screen, "###ADAPT  I  J   param\n");
-          for (i = ad->ilo; i <= ad->ihi; i++)
-            for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
-              fprintf(screen, "###ADAPT %2d %2d %9.5f\n", i, j, ad->array[i][j]);
-        }
-#endif
-
       }
 
     // set kspace scale factor
@@ -369,7 +453,7 @@ void FixAdaptFEP::change_settings()
 
     } else if (ad->which == ATOM) {
 
-      // set radius from diameter
+      // reset radius from diameter
       // also scale rmass to new value
 
       if (ad->aparam == DIAMETER) {
@@ -381,15 +465,16 @@ void FixAdaptFEP::change_settings()
         double *radius = atom->radius;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
-        int natom = atom->nlocal + atom->nghost;
+        int nlocal = atom->nlocal;
+        int nall = nlocal + atom->nghost;
 
         if (mflag == 0) {
-          for (i = 0; i < natom; i++)
+          for (i = 0; i < nall; i++)
             if (atype[i] >= ad->ilo && atype[i] <= ad->ihi)
               if (mask[i] & groupbit)
                 radius[i] = 0.5*value;
         } else {
-          for (i = 0; i < natom; i++)
+          for (i = 0; i < nall; i++)
             if (atype[i] >= ad->ilo && atype[i] <= ad->ihi)
               if (mask[i] & groupbit) {
                 density = rmass[i] / (4.0*MY_PI/3.0 *
@@ -403,22 +488,12 @@ void FixAdaptFEP::change_settings()
         int *atype = atom->type;
         double *q = atom->q; 
         int *mask = atom->mask;
-        int natom = atom->nlocal + atom->nghost;
+        int nlocal = atom->nlocal;
+        int nall = nlocal + atom->nghost;
 
-        for (i = 0; i < natom; i++)
+        for (i = 0; i < nall; i++)
           if (atype[i] >= ad->ilo && atype[i] <= ad->ihi)
             if (mask[i] & groupbit) q[i] = value;
-
-#ifdef ADAPT_DEBUG
-        if (comm->me == 0 && screen) {
-          fprintf(screen, "###ADAPT change charge\n");
-          fprintf(screen, "###ADAPT  atom  I   q\n");
-          for (i = 0; i < atom->nlocal; i++)
-            if (atype[i] >= ad->ilo && atype[i] <= ad->ihi)
-              if (mask[i] & groupbit)
-                fprintf(screen, "###ADAPT %5d %2d %9.5f\n", i, atype[i], q[i]);
-        }
-#endif
       }
     }
   }
@@ -430,6 +505,10 @@ void FixAdaptFEP::change_settings()
   // and also offset and tail corrections
 
   if (anypair) force->pair->reinit();
+
+  if (force->kspace)
+    force->kspace->setup();
+
 }
 
 /* ----------------------------------------------------------------------
@@ -452,9 +531,36 @@ void FixAdaptFEP::restore_settings()
       *kspace_scale = 1.0;
 
     } else if (ad->which == ATOM) {
+      if (diamflag) {
+        double density;
 
+        double *vec = fix_diam->vstore;
+        double *radius = atom->radius;
+        double *rmass = atom->rmass;
+        int *mask = atom->mask;
+        int nlocal = atom->nlocal;
+
+        for (int i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) {
+            density = rmass[i] / (4.0*MY_PI/3.0 *
+                                  radius[i]*radius[i]*radius[i]);
+            radius[i] = vec[i];
+            rmass[i] = 4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i] * density;
+          }
+      }
+      if (chgflag) {
+        double *vec = fix_chg->vstore;
+        double *q = atom->q;
+        int *mask = atom->mask;
+        int nlocal = atom->nlocal;
+
+        for (int i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit) q[i] = vec[i];
+      }
     }
   }
 
   if (anypair) force->pair->reinit();
+
+  if (force->kspace) force->kspace->setup();
 }

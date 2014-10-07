@@ -709,18 +709,31 @@ class Packages:
           plist.append("yes-%s" % one)
         elif "user-"+one in user:
           plist.append("yes-user-%s" % one)
-        elif one == '^' and one[1:] in std:
-          plist.append("no-%s" % one[1:])
-        elif one[0] == '^' and one[1:] in user:
-          plist.append("no-%s" % one[1:])
-        elif one[0] == '^' and "user-"+one[1:] in user:
-          plist.append("no-user-%s" % one[1:])
         elif one == "std" or one == "standard" or one == "user" or \
-              one == "lib" or one == "all": 
-          plist.append("yes-%s" % one)
-        elif one == "^std" or one == "^standard" or one == "^user" or \
-              one == "^lib" or one == "^all": 
-          plist.append("no-%s" % one[1:])
+              one == "lib" or one == "all": plist.append("yes-%s" % one)
+        elif one.startswith("yes-"):
+          if one[4:] in std: plist.append("yes-%s" % one[4:])
+          elif one[4:] in user: plist.append("yes-%s" % one[4:])
+          elif "user-"+one[4:] in user: plist.append("yes-user-%s" % one[4:])
+          elif one == "yes-std" or one == "yes-standard" or \
+                one == "yes-user" or one == "yes-lib" or one == "yes-all":
+            plist.append("yes-%s" % one[4:])
+          else: error("Invalid package name %s" % one)
+        elif one.startswith("no-"):
+          if one[3:] in std: plist.append("no-%s" % one[3:])
+          elif one[3:] in user: plist.append("no-%s" % one[3:])
+          elif "user-"+one[3:] in user: plist.append("no-user-%s" % one[3:])
+          elif one == "no-std" or one == "no-standard" or one == "no-user" or \
+              one == "no-lib" or one == "no-all":
+            plist.append("no-%s" % one[3:])
+          else: error("Invalid package name %s" % one)
+        elif one.startswith('^'):
+          if one[1:] in std: plist.append("no-%s" % one[1:])
+          elif one[1:] in user: plist.append("no-%s" % one[1:])
+          elif "user-"+one[1:] in user: plist.append("no-user-%s" % one[1:])
+          elif one == "^std" or one == "^standard" or one == "^user" or \
+              one == "^lib" or one == "^all": plist.append("no-%s" % one[1:])
+          else: error("Invalid package name %s" % one)
         elif one == "none": plist.append("no-all")
         elif one == "orig": plist.append(one)
         else: error("Invalid package name %s" % one)

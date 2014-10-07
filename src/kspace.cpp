@@ -285,8 +285,10 @@ void KSpace::qsum_qsq(int flag)
   if (fabs(qsum) > SMALL) {
     char str[128];
     sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    if (flag) error->all(FLERR,str);
-    else if (comm->me == 0) error->warning(FLERR,str);
+    if (comm->me) {
+      if (flag) error->all(FLERR,str);
+      else error->warning(FLERR,str);
+    }
   }
 }
 

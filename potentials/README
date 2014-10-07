@@ -4,28 +4,43 @@ description of the "pair_style" and "pair_coeff" commands for details
 of the file formats and the various styles in LAMMPS that read these
 files.
 
+IMPORTANT NOTE: These files are provided primarily to demonstrate the
+different types of interatomic potentials that LAMMPS supports.  Each
+file has a header line with a date for when it was added to the LAMMPS
+distribution.  Also a citation and contact info for the person who
+contributed it to LAMMPS (if we remember who that is).  This info is
+not meant to "guarantee" that the potential is correct.  I.e. that the
+contributor transcribed the info from the paper correctly or that the
+paper itself had no errors.  In many cases (but not all), we or other
+LAMMPS users have confirmed that when the potential file is used with
+the current version of LAMMPS, it reproduces results in the cited
+publication.  In some cases, this accuracy check may require other
+parameters not contained in the potential file to be specified as part
+of a LAMMPS simulation, e.g. a distance cutoff.  Also, for particular
+materials and applications modeled with a pair style coded in LAMMPS,
+a different potential file may be more suitable than the one provided
+here.  For best results when choosing a potential, you should do a
+thorough search of published literature and on-line databases such as
+the Interatomic Potentials Repository Project (NIST) or the
+Knowledgebase of Interatomic Models (KIM).  Whatever potential you
+choose for your application, you should verify that you have defined
+it and are using it correctly in LAMMPS, by comparing with published
+results for that potential.
+
+2nd IMPORTANT NOTE: The DATE field in the first line of each of these
+files is printed to the screen and log file when it is read by a
+LAMMPS input script.  If an updated or corrected version of the same
+potential file is later added to the LAMMPS distribution, then a new
+DATE will be added to the file.  This means you can "diff" an old and
+new log file and see that the potential file changed, which could
+affect your simulation results.
+
 The prefix of each file indicates the element(s) it is parameterized
 for.  An additional lower-case identification tag may be appended.
 
 Si = Silicon
 SiC = Silicon and Carbon
 Au_u3 = Gold universal 3
-
-For many of the files, comments in the header section give origin and
-citation information. Note that these files are provided primarily to 
-demonstrate the different types of interatomic potentials that LAMMPS 
-supports. In most cases we have confirmed that when used with the
-latest LAMMPS code, it reproduces results in the cited publication.
-In some cases, it may be necessary to specify other parameters not 
-contained in the potential file. Also, for particular
-materials and applications, a different potential file may be more 
-suitable than the one provided here. For best results, users should 
-do a thorough search of published literature and on-line databases
-such as Knowledgebase of Interatomic Models (KIM) and Interatomic 
-Potentials Repository Project (NIST).
-They should then choose the best potential for their 
-application, and verify that they have defined it correctly in LAMMPS 
-by comparing with published results for that potential.
 
 The suffix of each file indicates the pair style it is used with:
 

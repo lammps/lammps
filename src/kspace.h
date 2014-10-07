@@ -54,7 +54,6 @@ class KSpace : protected Pointers {
   int qsum_update_flag;          // 1 if setup() needs to call qsum_qsq()
   double slab_volfactor;
 
-
   int order,order_6,order_allocated;
   double accuracy;                  // accuracy of KSpace solver (force units)
   double accuracy_absolute;         // user-specifed accuracy in force units

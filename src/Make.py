@@ -156,21 +156,23 @@ Actions:
     use -m switch for Makefile.machine to start from
       else use existing Makefile.auto
     adds settings needed for installed accelerator packages
+    Makefile.auto is NOT edited unless "file" action is specified
   clean = invoke "make clean-auto", insures full build
     useful if compiler flags have changed
   exe or machine = build LAMMPS
     machine can be any existing Makefile.machine suffix
-      machine is simply converted to exe, as well as:
+      machine is simply changed to "exe" action, as well as:
         "-m machine" added if -m switch not specified
         "-o machine" added if -o switch not specified
         if either "-m"  or "-o" are specified, they are not overridden
-    exe builds using Makefile.auto
+    exe always builds using Makefile.auto
     if no file action, first generates a src/MAKE/MINE/Makefile.auto
       use -m switch to make copy of existing Makefile.machine
         or Makefile.auto must already exist
-      unlike file action, this does not change Makefile.auto
+      unlike file action, this does NOT change Makefile.auto
     does not invoke and lib actions, since libs could be previously built
     produces src/lmp_auto or error message if unsuccessful
+      use -o switch to copy src/lmp_auto to new filename
 """
   
   def check(self):
@@ -211,7 +213,7 @@ Actions:
   
   def lib(self,suffix):
     if suffix != "all":
-      print "building library",suffix,"..."
+      print "building",suffix,"library ..."
       str = "%s.build()" % suffix
       exec(str)
     else:
@@ -220,7 +222,7 @@ Actions:
         if final[one]:
           if "user" in one: pkg = one[5:]
           else: pkg = one
-          print "building library",pkg,"..."
+          print "building",pkg,"library ..."
           str = "%s.build()" % pkg
           exec(str)
 
@@ -475,6 +477,11 @@ Actions:
             if png.incdir: make.addvar("JPG_INC","-I%s" % png.incdir)
             if png.libdir: make.addvar("JPG_PATH","-L%s" % png.libdir)
 
+    # set self.stubs if Makefile.auto uses STUBS lib in MPI settings
+
+    if "-lmpi_stubs" in make.getvar("MPI_LIB"): self.stubs = 1
+    else: self.stubs = 0
+    
     # write out Makefile.auto
     # unless caller = "exe" and "file" action already invoked
 
@@ -482,6 +489,7 @@ Actions:
       make.write("%s/MAKE/MINE/Makefile.auto" % dir.src,1)
       print "Created src/MAKE/MINE/Makefile.auto"
 
+      
     # test full compile and link
     # unless caller = "file" and "exe" action will be invoked later
 
@@ -504,10 +512,19 @@ Actions:
   # build LAMMPS using Makefile.auto and -j setting
   # invoke self.file() first, to test makefile compile/link
   # delete existing lmp_auto, so can detect if build fails
-
+  # build STUBS lib (if unbuilt) if Makefile.auto MPI settings need it
+    
   def exe(self):
     self.file("exe")
     commands.getoutput("cd %s; rm -f lmp_auto" % dir.src)
+    if self.stubs and not os.path.isfile("%s/STUBS/libmpi_stubs.a" % dir.src):
+      print "building serial STUBS library ..."
+      str = "cd %s/STUBS; make clean; make" % dir.src
+      txt = commands.getoutput(str)
+      if not os.path.isfile("%s/STUBS/libmpi_stubs.a" % dir.src):
+        print txt
+        error('Unsuccessful "make stubs"')
+      print "Created src/STUBS/libmpi_stubs.a"
     if jmake: str = "cd %s; make -j %d auto" % (dir.src,jmake.n)
     else: str = "cd %s; make auto" % dir.src
     txt = commands.getoutput(str)
@@ -1081,10 +1098,10 @@ class CUDA:
     if self.mode == "double": n = 2
     elif self.mode == "mixed": n = 3
     elif self.mode == "single": n = 1
-    str = "cd %s; make prec=%d arch=%s" % (libdir,n,self.arch)
-    commands.getoutput(str)
-    if jmake: str = "cd %s; make -j %d" % (libdir,jmake.n)
-    else: str = "cd %s; make" % libdir
+    if jmake: str = "cd %s; make -j %d precision=%d arch=%s" % \
+          (libdir,jmake.n,n,self.arch)
+    else: str = str = "cd %s; make precision=%d arch=%s" % \
+          (libdir,n,self.arch)
     txt = commands.getoutput(str)
     if verbose: print txt
     if not os.path.isfile("%s/liblammpscuda.a" % libdir) or \

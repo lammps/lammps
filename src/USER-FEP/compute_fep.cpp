@@ -292,6 +292,9 @@ void ComputeFEP::compute_vector()
 {
   double pe0,pe1;
 
+  eflag = 1;
+  vflag = 0;
+
   invoked_vector = update->ntimestep;
 
   if (atom->nmax > nmax) {  // reallocate working arrays if necessary
@@ -304,16 +307,16 @@ void ComputeFEP::compute_vector()
 
   timer->stamp();
   if (force->pair && force->pair->compute_flag) {
-    force->pair->compute(1,0);
+    force->pair->compute(eflag,vflag);
     timer->stamp(Timer::PAIR);
   }
   if (chgflag && force->kspace && force->kspace->compute_flag) {
-    force->kspace->compute(1,0);
+    force->kspace->compute(eflag,vflag);
     timer->stamp(Timer::KSPACE);
   }
 
   // accumulate force/energy/virial from /gpu pair styles
-  if (fixgpu) fixgpu->post_force(0);
+  if (fixgpu) fixgpu->post_force(vflag);
 
   pe0 = compute_epair();
 
@@ -321,18 +324,18 @@ void ComputeFEP::compute_vector()
 
   timer->stamp();
   if (force->pair && force->pair->compute_flag) {
-    force->pair->compute(1,0);
+    force->pair->compute(eflag,vflag);
     timer->stamp(Timer::PAIR);
   }
   if (chgflag && force->kspace && force->kspace->compute_flag) {
-    force->kspace->compute(1,0);
+    force->kspace->compute(eflag,vflag);
     timer->stamp(Timer::KSPACE);
   }
 
   // accumulate force/energy/virial from /gpu pair styles
   // this is required as to empty the answer queue, 
   // otherwise the force compute on the GPU in the next step would be incorrect
-  if (fixgpu) fixgpu->post_force(0);
+  if (fixgpu) fixgpu->post_force(vflag);
     
   pe1 = compute_epair();
 

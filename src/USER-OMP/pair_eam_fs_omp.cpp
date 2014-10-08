@@ -225,6 +225,7 @@ void PairEAMFSOMP::file2array()
   nr = fs->nr;
   drho = fs->drho;
   dr = fs->dr;
+  rhomax = (nrho-1) * drho;
 
   // ------------------------------------------------------------------
   // setup frho arrays

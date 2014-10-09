@@ -21,11 +21,11 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-static inline __device__ void check_distance(X_FLOAT &xtmp, X_FLOAT &ytmp, X_FLOAT &ztmp, int &i, int groupbit)
+static inline __device__ void check_distance(X_CFLOAT &xtmp, X_CFLOAT &ytmp, X_CFLOAT &ztmp, int &i, int groupbit)
 {
   if(_dist_check) {
-    X_FLOAT tmp = xtmp - _xhold[i];
-    X_FLOAT d = tmp * tmp;
+    X_CFLOAT tmp = xtmp - _xhold[i];
+    X_CFLOAT d = tmp * tmp;
     tmp = ytmp - _xhold[i + _maxhold];
     d += tmp * tmp;
     tmp = ztmp - _xhold[i + 2 * _maxhold];
@@ -41,7 +41,7 @@ static inline __device__ void check_distance(X_FLOAT &xtmp, X_FLOAT &ytmp, X_FLO
 
 __global__ void FixNVECuda_InitialIntegrate_Kernel(int groupbit)
 {
-  X_FLOAT xtmp, ytmp, ztmp;
+  X_CFLOAT xtmp, ytmp, ztmp;
 #ifdef CUDA_USE_BINNING
 
   const unsigned bin = gridDim.y * blockIdx.x + blockIdx.y;
@@ -50,16 +50,16 @@ __global__ void FixNVECuda_InitialIntegrate_Kernel(int groupbit)
     const int i = 3 * blockDim.x * bin + threadIdx.x;
 
     if(_mask[i] & groupbit) {
-      F_FLOAT* my_f = _binned_f + i;
-      V_FLOAT* my_v = _binned_v + i;
-      X_FLOAT* my_x = _binned_x + i;
+      F_CFLOAT* my_f = _binned_f + i;
+      V_CFLOAT* my_v = _binned_v + i;
+      X_CFLOAT* my_x = _binned_x + i;
 
-      V_FLOAT 		dtfm = _dtf
+      V_CFLOAT 		dtfm = _dtf
 
                          if(_rmass_flag) dtfm *= V_F(1.0) / _binned_rmass[i];
       else 			dtfm *= V_F(1.0) / _mass[_binned_type[blockDim.x * bin + threadIdx.x]];
 
-      V_FLOAT v_mem;
+      V_CFLOAT v_mem;
       v_mem = *my_v += dtfm * (*my_f);
       xtmp = *my_x += _dtv * v_mem;
       my_f += blockDim.x;
@@ -80,16 +80,16 @@ __global__ void FixNVECuda_InitialIntegrate_Kernel(int groupbit)
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nlocal && _mask[i] & groupbit) {
-    F_FLOAT* my_f = _f + i;
-    V_FLOAT* my_v = _v + i;
-    X_FLOAT* my_x = _x + i;
+    F_CFLOAT* my_f = _f + i;
+    V_CFLOAT* my_v = _v + i;
+    X_CFLOAT* my_x = _x + i;
 
-    V_FLOAT 		dtfm = _dtf;
+    V_CFLOAT 		dtfm = _dtf;
 
     if(_rmass_flag) dtfm *= V_F(1.0) / _rmass[i];
     else 			dtfm *= V_F(1.0) / _mass[_type[i]];
 
-    V_FLOAT v_mem;
+    V_CFLOAT v_mem;
     v_mem = *my_v += dtfm * (*my_f);
     xtmp = *my_x += _dtv * v_mem;
     my_f += _nmax;
@@ -119,10 +119,10 @@ __global__ void FixNVECuda_FinalIntegrate_Kernel(int groupbit)
     const int i = 3 * blockDim.x * bin + threadIdx.x;
 
     if(_mask[i] & groupbit) {
-      F_FLOAT* my_f = _binned_f + i;
-      V_FLOAT* my_v = _binned_v + i;
+      F_CFLOAT* my_f = _binned_f + i;
+      V_CFLOAT* my_v = _binned_v + i;
 
-      V_FLOAT 		dtfm = _dtf
+      V_CFLOAT 		dtfm = _dtf
 
                          if(_rmass_flag) dtfm *= V_F(1.0) / _binned_rmass[i];
       else 			dtfm *= V_F(1.0) / _mass[_binned_type[blockDim.x * bin + threadIdx.x]];
@@ -142,10 +142,10 @@ __global__ void FixNVECuda_FinalIntegrate_Kernel(int groupbit)
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nlocal && _mask[i] & groupbit) {
-    F_FLOAT* my_f = _f + i;
-    V_FLOAT* my_v = _v + i;
+    F_CFLOAT* my_f = _f + i;
+    V_CFLOAT* my_v = _v + i;
 
-    V_FLOAT 		dtfm = _dtf;
+    V_CFLOAT 		dtfm = _dtf;
 
     if(_rmass_flag) dtfm *= V_F(1.0) / _rmass[i];
     else 			dtfm *= V_F(1.0) / _mass[_type[i]];

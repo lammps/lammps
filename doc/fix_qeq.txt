@@ -178,7 +178,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 :link(Rappe)
 [(Rappe and Goddard)] A. K. Rappe and W. A. Goddard III, J Physical
-Chemistry, 105, 3358-3363 (1991).
+Chemistry, 95, 3358-3363 (1991).
 
 :link(Nakano)
 [(Nakano)] A. Nakano, Computer Physics Communications, 104, 59-69 (1997).

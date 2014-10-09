@@ -30,7 +30,7 @@
 #include "update.h"
 #include "domain.h"
 #include "respa.h"
-#include "cuda.h"
+#include "user_cuda.h"
 #include "cuda_modify_flags.h"
 #include "math_const.h"
 #include "error.h"

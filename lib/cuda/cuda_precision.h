@@ -25,7 +25,7 @@
 #define CUDA_PRECISION_H_
 /* This File gives Type definitions for mixed precision calculation in the cuda part of LAMMPS-CUDA.
  * Predefined behaviour is given by global CUDA_PRECISION (can be overwritten during compilation).
- * ***_FLOAT: type definition of given property
+ * ***_CFLOAT: type definition of given property
  * ***_F: constant extension in code (1.0 is interpreted as double while 1.0f is interpreted as float, now use: 1.0CUDA_F)
  */
 
@@ -39,17 +39,17 @@
 
 #ifdef CUDA_PRECISION
 #if CUDA_PRECISION == 1
-#define CUDA_FLOAT float
+#define CUDA_CFLOAT float
 #define CUDA_F(x) x##f
 #endif
 #if CUDA_PRECISION == 2
-#define CUDA_FLOAT double
+#define CUDA_CFLOAT double
 #define CUDA_F(x) x
 #endif
 #endif
 
 #ifndef CUDA_PRECISION
-#define CUDA_FLOAT double
+#define CUDA_CFLOAT double
 #define CUDA_F(x) x
 #define CUDA_PRECISION 2
 #endif
@@ -59,17 +59,17 @@
 
 #ifdef FFT_PRECISION_CU
 #if FFT_PRECISION_CU == 1
-#define FFT_FLOAT float
+#define FFT_CFLOAT float
 #define FFT_F(x) x##f
 #endif
 #if FFT_PRECISION_CU == 2
-#define FFT_FLOAT double
+#define FFT_CFLOAT double
 #define FFT_F(x) x
 #endif
 #endif
 
 #ifndef FFT_PRECISION_CU
-#define FFT_FLOAT CUDA_FLOAT
+#define FFT_CFLOAT CUDA_CFLOAT
 #define FFT_F(x) CUDA_F(x)
 #define FFT_PRECISION_CU CUDA_PRECISION
 #endif
@@ -84,24 +84,24 @@
 
 #ifdef PPPM_PRECISION
 #if PPPM_PRECISION == 1
-#define PPPM_FLOAT float
+#define PPPM_CFLOAT float
 #ifdef float3
-#define PPPM_FLOAT3 float3
+#define PPPM_CFLOAT3 float3
 #else
-struct PPPM_FLOAT3 {
-  PPPM_FLOAT x;
-  PPPM_FLOAT y;
-  PPPM_FLOAT z;
+struct PPPM_CFLOAT3 {
+  PPPM_CFLOAT x;
+  PPPM_CFLOAT y;
+  PPPM_CFLOAT z;
 };
 #endif
 #define PPPM_F(x) x##f
 #endif
 #if PPPM_PRECISION == 2
-#define PPPM_FLOAT double
-struct PPPM_FLOAT3 {
-  PPPM_FLOAT x;
-  PPPM_FLOAT y;
-  PPPM_FLOAT z;
+#define PPPM_CFLOAT double
+struct PPPM_CFLOAT3 {
+  PPPM_CFLOAT x;
+  PPPM_CFLOAT y;
+  PPPM_CFLOAT z;
 };
 #define PPPM_F(x) x
 #endif
@@ -115,17 +115,17 @@ struct PPPM_FLOAT3 {
 
 #ifdef F_PRECISION
 #if F_PRECISION == 1
-#define F_FLOAT float
+#define F_CFLOAT float
 #define F_F(x) x##f
 #endif
 #if F_PRECISION == 2
-#define F_FLOAT double
+#define F_CFLOAT double
 #define F_F(x) x
 #endif
 #endif
 
 #ifndef F_PRECISION
-#define F_FLOAT CUDA_FLOAT
+#define F_CFLOAT CUDA_CFLOAT
 #define F_F(x) CUDA_F(x)
 #define F_PRECISION CUDA_PRECISION
 #endif
@@ -141,48 +141,49 @@ struct PPPM_FLOAT3 {
 #endif
 
 #if F_PRECISION == 2
-struct F_FLOAT2 {
-  F_FLOAT x;
-  F_FLOAT y;
+struct F_CFLOAT2 {
+  F_CFLOAT x;
+  F_CFLOAT y;
 };
-struct F_FLOAT3 {
-  F_FLOAT x;
-  F_FLOAT y;
-  F_FLOAT z;
+struct F_CFLOAT3 {
+  F_CFLOAT x;
+  F_CFLOAT y;
+  F_CFLOAT z;
 };
-struct F_FLOAT4 {
-  F_FLOAT x;
-  F_FLOAT y;
-  F_FLOAT z;
-  F_FLOAT w;
+struct F_CFLOAT4 {
+  F_CFLOAT x;
+  F_CFLOAT y;
+  F_CFLOAT z;
+  F_CFLOAT w;
 };
 #else
-#define F_FLOAT2 float2
-#define F_FLOAT3 float3
-#define F_FLOAT4 float4
+#define F_CFLOAT2 float2
+#define F_CFLOAT3 float3
+#define F_CFLOAT4 float4
 #endif
+
 //--------------------------------
 //-----------ENERGY-----------------
 //--------------------------------
 
 #ifndef ENERGY_PRECISION
-#define ENERGY_FLOAT CUDA_FLOAT
+#define ENERGY_CFLOAT CUDA_CFLOAT
 #define ENERGY_F(x) CUDA_F(x)
 #endif
 
 #ifdef ENERGY_PRECISION
 #if ENERGY_PRECISION == 1
-#define ENERGY_FLOAT float
+#define ENERGY_CFLOAT float
 #define ENERGY_F(x) x##f
 #endif
 #if ENERGY_PRECISION == 2
-#define ENERGY_FLOAT double
+#define ENERGY_CFLOAT double
 #define ENERGY_F(x) x
 #endif
 #endif
 
 #ifndef ENERGY_PRECISION
-#define ENERGY_FLOAT CUDA_FLOAT
+#define ENERGY_CFLOAT CUDA_CFLOAT
 #define ENERGY_F(x) CUDA_F(x)
 #define ENERGY_PRECISION CUDA_PRECISION
 #endif
@@ -193,41 +194,41 @@ struct F_FLOAT4 {
 
 #ifdef X_PRECISION
 #if X_PRECISION == 1
-#define X_FLOAT float
+#define X_CFLOAT float
 #define X_F(x) x##f
 #endif
 #if X_PRECISION == 2
-#define X_FLOAT double
+#define X_CFLOAT double
 #define X_F(x) x
 #endif
 #endif
 
 #ifndef X_PRECISION
-#define X_FLOAT CUDA_FLOAT
+#define X_CFLOAT CUDA_CFLOAT
 #define X_F(x) CUDA_F(x)
 #define X_PRECISION CUDA_PRECISION
 #endif
 
 #if X_PRECISION == 2
-struct X_FLOAT2 {
-  X_FLOAT x;
-  X_FLOAT y;
+struct X_CFLOAT2 {
+  X_CFLOAT x;
+  X_CFLOAT y;
 };
-struct X_FLOAT3 {
-  X_FLOAT x;
-  X_FLOAT y;
-  X_FLOAT z;
+struct X_CFLOAT3 {
+  X_CFLOAT x;
+  X_CFLOAT y;
+  X_CFLOAT z;
 };
-struct X_FLOAT4 {
-  X_FLOAT x;
-  X_FLOAT y;
-  X_FLOAT z;
-  X_FLOAT w;
+struct X_CFLOAT4 {
+  X_CFLOAT x;
+  X_CFLOAT y;
+  X_CFLOAT z;
+  X_CFLOAT w;
 };
 #else
-#define X_FLOAT2 float2
-#define X_FLOAT3 float3
-#define X_FLOAT4 float4
+#define X_CFLOAT2 float2
+#define X_CFLOAT3 float3
+#define X_CFLOAT4 float4
 #endif
 
 //--------------------------------
@@ -236,30 +237,30 @@ struct X_FLOAT4 {
 
 #ifdef V_PRECISION
 #if V_PRECISION == 1
-#define V_FLOAT float
+#define V_CFLOAT float
 #define V_F(x) x##f
 #endif
 #if V_PRECISION == 2
-#define V_FLOAT double
+#define V_CFLOAT double
 #define V_F(x) x
 #endif
 #endif
 
 #ifndef V_PRECISION
-#define V_FLOAT CUDA_FLOAT
+#define V_CFLOAT CUDA_CFLOAT
 #define V_F(x) CUDA_F(x)
 #define V_PRECISION CUDA_PRECISION
 #endif
 
 #if V_PRECISION == 2
-struct V_FLOAT4 {
-  V_FLOAT x;
-  V_FLOAT y;
-  V_FLOAT z;
-  V_FLOAT w;
+struct V_CFLOAT4 {
+  V_CFLOAT x;
+  V_CFLOAT y;
+  V_CFLOAT z;
+  V_CFLOAT w;
 };
 #else
-#define V_FLOAT4 float4
+#define V_CFLOAT4 float4
 #endif
 
 #ifdef NO_PREC_TIMING

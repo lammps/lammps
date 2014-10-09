@@ -21,13 +21,13 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-__global__ void Cuda_FixGravityCuda_PostForce_Kernel(int groupbit, F_FLOAT xacc, F_FLOAT yacc, F_FLOAT zacc)
+__global__ void Cuda_FixGravityCuda_PostForce_Kernel(int groupbit, F_CFLOAT xacc, F_CFLOAT yacc, F_CFLOAT zacc)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nlocal)
     if(_mask[i] & groupbit) {
-      F_FLOAT mass = _rmass_flag ? _rmass[i] : _mass[_type[i]];
+      F_CFLOAT mass = _rmass_flag ? _rmass[i] : _mass[_type[i]];
       _f[i] += mass * xacc;
       _f[i + 1 * _nmax] += mass * yacc;
       _f[i + 2 * _nmax] += mass * zacc;

@@ -27,10 +27,10 @@
 
 
 
-__device__ void twobody(int iparam, F_FLOAT rsq, F_FLOAT &fforce,
-                        int eflag, ENERGY_FLOAT &eng)
+__device__ void twobody(int iparam, F_CFLOAT rsq, F_CFLOAT &fforce,
+                        int eflag, ENERGY_CFLOAT &eng)
 {
-  F_FLOAT r, rp, rq, rainv, expsrainv;
+  F_CFLOAT r, rp, rq, rainv, expsrainv;
 
   r = sqrt(rsq);
   rp = pow(r, -params_sw[iparam].powerp);
@@ -44,14 +44,14 @@ __device__ void twobody(int iparam, F_FLOAT rsq, F_FLOAT &fforce,
 }
 
 __device__ void threebody(int paramij, int paramik, int paramijk,
-                          F_FLOAT4 &delr1,
-                          F_FLOAT4 &delr2,
-                          F_FLOAT3 &fj, F_FLOAT3 &fk, int eflag, ENERGY_FLOAT &eng)
+                          F_CFLOAT4 &delr1,
+                          F_CFLOAT4 &delr2,
+                          F_CFLOAT3 &fj, F_CFLOAT3 &fk, int eflag, ENERGY_CFLOAT &eng)
 {
-  F_FLOAT r1, rinvsq1, rainv1, gsrainv1, gsrainvsq1, expgsrainv1;
-  F_FLOAT r2, rinvsq2, rainv2, gsrainv2, gsrainvsq2, expgsrainv2;
-  F_FLOAT rinv12, cs, delcs, delcssq, facexp, facrad, frad1, frad2;
-  F_FLOAT facang, facang12, csfacang, csfac1, csfac2;
+  F_CFLOAT r1, rinvsq1, rainv1, gsrainv1, gsrainvsq1, expgsrainv1;
+  F_CFLOAT r2, rinvsq2, rainv2, gsrainv2, gsrainvsq2, expgsrainv2;
+  F_CFLOAT rinv12, cs, delcs, delcssq, facexp, facrad, frad1, frad2;
+  F_CFLOAT facang, facang12, csfacang, csfac1, csfac2;
 
   r1 = sqrt(delr1.w);
   rinvsq1 = F_F(1.0) / delr1.w;
@@ -99,14 +99,14 @@ __device__ void threebody(int paramij, int paramik, int paramijk,
 }
 
 __device__ void threebody_fj(int paramij, int paramik, int paramijk,
-                             F_FLOAT4 &delr1,
-                             F_FLOAT4 &delr2,
-                             F_FLOAT3 &fj)
+                             F_CFLOAT4 &delr1,
+                             F_CFLOAT4 &delr2,
+                             F_CFLOAT3 &fj)
 {
-  F_FLOAT r1, rinvsq1, rainv1, gsrainv1, gsrainvsq1, expgsrainv1;
-  F_FLOAT r2, rainv2, gsrainv2, expgsrainv2;
-  F_FLOAT rinv12, cs, delcs, delcssq, facexp, facrad, frad1;
-  F_FLOAT facang, facang12, csfacang, csfac1;
+  F_CFLOAT r1, rinvsq1, rainv1, gsrainv1, gsrainvsq1, expgsrainv1;
+  F_CFLOAT r2, rainv2, gsrainv2, expgsrainv2;
+  F_CFLOAT rinv12, cs, delcs, delcssq, facexp, facrad, frad1;
+  F_CFLOAT facang, facang12, csfacang, csfac1;
 
   r1 = sqrt(delr1.w);
   rinvsq1 = F_F(1.0) / delr1.w;
@@ -143,15 +143,15 @@ __device__ void threebody_fj(int paramij, int paramik, int paramijk,
 }
 
 
-__global__ void Pair_SW_Kernel_TpA_RIJ()//F_FLOAT4* _glob_r_ij,int* _glob_numneigh_red,int* _glob_neighbors_red,int* _glob_neightype_red)
+__global__ void Pair_SW_Kernel_TpA_RIJ()//F_CFLOAT4* _glob_r_ij,int* _glob_numneigh_red,int* _glob_neighbors_red,int* _glob_neightype_red)
 {
   int ii = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(ii >= _nall) return;
 
-  X_FLOAT4 myxtype;
-  F_FLOAT4 delij;
-  F_FLOAT xtmp, ytmp, ztmp;
+  X_CFLOAT4 myxtype;
+  F_CFLOAT4 delij;
+  F_CFLOAT xtmp, ytmp, ztmp;
   int itype, jnum, i, j;
   int* jlist;
   int neigh_red = 0;
@@ -195,18 +195,18 @@ __global__ void Pair_SW_Kernel_TpA_RIJ()//F_FLOAT4* _glob_r_ij,int* _glob_numnei
 
 
 template <int eflag, int vflagm>
-__global__ void Pair_SW_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLOAT* _glob_zeta_ij,F_FLOAT4* _glob_r_ij,int* _glob_numneigh_red,int* _glob_neighbors_red,int* _glob_neightype_red)
+__global__ void Pair_SW_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_CFLOAT* _glob_zeta_ij,F_CFLOAT4* _glob_r_ij,int* _glob_numneigh_red,int* _glob_neighbors_red,int* _glob_neightype_red)
 {
-  ENERGY_FLOAT evdwl = ENERGY_F(0.0);
+  ENERGY_CFLOAT evdwl = ENERGY_F(0.0);
 
-  ENERGY_FLOAT* sharedE = &sharedmem[threadIdx.x];
-  ENERGY_FLOAT* sharedV = &sharedmem[threadIdx.x];
+  ENERGY_CFLOAT* sharedE = &sharedmem[threadIdx.x];
+  ENERGY_CFLOAT* sharedV = &sharedmem[threadIdx.x];
 
-  F_FLOAT* shared_F_F = (F_FLOAT*) sharedmem;
+  F_CFLOAT* shared_F_F = (F_CFLOAT*) sharedmem;
 
-  if((eflag || eflag_atom) && (vflagm || vflag_atom)) shared_F_F = (F_FLOAT*) &sharedmem[7 * blockDim.x];
-  else if(eflag) shared_F_F = (F_FLOAT*) &sharedmem[blockDim.x];
-  else if(vflagm) shared_F_F = (F_FLOAT*) &sharedmem[6 * blockDim.x];
+  if((eflag || eflag_atom) && (vflagm || vflag_atom)) shared_F_F = (F_CFLOAT*) &sharedmem[7 * blockDim.x];
+  else if(eflag) shared_F_F = (F_CFLOAT*) &sharedmem[blockDim.x];
+  else if(vflagm) shared_F_F = (F_CFLOAT*) &sharedmem[6 * blockDim.x];
 
   shared_F_F += threadIdx.x;
 
@@ -231,9 +231,9 @@ __global__ void Pair_SW_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLOAT* _
   //#define jnum_red (static_cast <int> (shared_F_F[3*blockDim.x]))
 
   int ii = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
-  X_FLOAT4 myxtype_i, myxtype_j, myxtype_k;
-  F_FLOAT4 delij, delik, deljk;
-  F_FLOAT fpair;
+  X_CFLOAT4 myxtype_i, myxtype_j, myxtype_k;
+  F_CFLOAT4 delij, delik, deljk;
+  F_CFLOAT fpair;
 
   int itype, i, j;
   int* jlist_red;
@@ -277,7 +277,7 @@ __global__ void Pair_SW_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLOAT* _
       volatile int iparam_ji = elem2param[(jtype * nelements + itype) * nelements + itype];
 
       if(delij.w < params_sw[iparam_ij].cutsq) {
-        F_FLOAT dxfp, dyfp, dzfp;
+        F_CFLOAT dxfp, dyfp, dzfp;
         twobody(iparam_ij, delij.w, fpair, eflag, evdwl);
         fxtmp += dxfp = delij.x * fpair;
         fytmp += dyfp = delij.y * fpair;
@@ -316,7 +316,7 @@ __global__ void Pair_SW_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLOAT* _
           vec3_scale(F_F(-1.0), delik, delik);
 
           if(delik.w <= params_sw[iparam_ijk].cutsq) {
-            F_FLOAT3 fj, fk;
+            F_CFLOAT3 fj, fk;
             threebody(iparam_ij, iparam_ik, iparam_ijk,
                       delij, delik, fj, fk, eflag, evdwl);
             fxtmp -= fj.x + fk.x;
@@ -377,7 +377,7 @@ __global__ void Pair_SW_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLOAT* _
           vec3_scale(F_F(-1.0), delij, delij);
 
           if(deljk.w <= params_sw[iparam_jik].cutsq) {
-            F_FLOAT3 fj;
+            F_CFLOAT3 fj;
 
             threebody_fj(iparam_ji, iparam_jk, iparam_jik,
                          delij, deljk, fj);
@@ -397,10 +397,10 @@ __global__ void Pair_SW_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLOAT* _
   __syncthreads();
 
   if(ii < _inum) {
-    F_FLOAT* my_f;
+    F_CFLOAT* my_f;
 
     if(_collect_forces_later) {
-      ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+      ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
 
       if(eflag) {
         buffer = &buffer[1 * gridDim.x * gridDim.y];
@@ -410,7 +410,7 @@ __global__ void Pair_SW_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLOAT* _
         buffer = &buffer[6 * gridDim.x * gridDim.y];
       }
 
-      my_f = (F_FLOAT*) buffer;
+      my_f = (F_CFLOAT*) buffer;
       my_f += i;
       *my_f = fxtmp;
       my_f += _nmax;

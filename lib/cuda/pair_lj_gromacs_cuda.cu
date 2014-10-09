@@ -64,10 +64,10 @@ void Cuda_PairLJGromacsCuda(cuda_shared_data* sdata, cuda_shared_neighlist* snei
 
   if(sdata->pair.use_block_per_atom)
     Pair_Kernel_BpA<PAIR_LJ_GROMACS, COUL_NONE, DATA_NONE>
-    <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
+    <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
   else
     Pair_Kernel_TpA<PAIR_LJ_GROMACS, COUL_NONE, DATA_NONE>
-    <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
+    <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x, streams[1]>>> (eflag, vflag, eflag_atom, vflag_atom);
 
   Cuda_Pair_PostKernel_AllStyles(sdata, grid, sharedperproc, eflag, vflag);
 

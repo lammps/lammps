@@ -118,7 +118,7 @@ class FixNHCuda : public Fix {
   void compute_press_target();
   void nh_omega_dot();
 
-  X_FLOAT triggerneighsq;
+  X_CFLOAT triggerneighsq;
 };
 
 }

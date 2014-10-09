@@ -43,7 +43,7 @@ class FixViscousCuda : public FixViscous {
   void setup(int);
   void min_setup(int);
   void post_force(int);
-  cCudaData<double, F_FLOAT, x>* cu_gamma;
+  cCudaData<double, F_CFLOAT, x>* cu_gamma;
 
   private:
   class Cuda *cuda;

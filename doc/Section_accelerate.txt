@@ -152,8 +152,8 @@ coprocessors.
 
 All of these commands are in packages provided with LAMMPS.  An
 overview of packages is give in "Section
-packages"_Section_packages.html.  Currently, there are 6 accelerator
-packages in LAMMPS, either as standard or user packages:
+packages"_Section_packages.html.  These are the accelerator packages
+currently in LAMMPS, either as standard or user packages:
 
 "USER-CUDA"_accelerate_cuda.html : for NVIDIA GPUs
 "GPU"_accelerate_gpu.html : for NVIDIA GPUs as well as OpenCL support
@@ -186,8 +186,8 @@ for that style.
 
 To use an accelerator package in LAMMPS, and one or more of the styles
 it provides, follow these general steps.  Details vary from package to
-package and are explained in the individual accelerator sub-section
-doc pages, listed above:
+package and are explained in the individual accelerator doc pages,
+listed above:
 
 build the accelerator library |
   only for USER-CUDA and GPU packages |
@@ -211,26 +211,48 @@ use accelerated styles in your input script |
   via "-sf" "command-line switch"_Section_start.html#start_7 or
   "suffix"_suffix.html command :tb(c=2,s=|)
 
-The first 4 steps typically only need to be done once, to create an
-executable that uses one or more accelerator packages.  We are working
-to create a "make" tool that will perform all these 4 steps in a
-single command.
+The first 4 steps can be done as a single command, using the
+src/Make.py tool.  The Make.py tool is discussed in "Section
+2.4"_Section_start.html#start_4 of the manual, and its use is
+illustrated in the individual accelerator sections.  Typically these
+steps only need to be done once, to create an executable that uses one
+or more accelerator packages.
 
 The last 4 steps can all be done from the command-line when LAMMPS is
-launched, without changing your input script.  Or you can add
+launched, without changing your input script, as illustrated in the
+individual accelerator sections.  Or you can add
 "package"_package.html and "suffix"_suffix.html commands to your input
 script.
 
-The examples directory has several sub-directories with scripts and
-README files for how to use the following accelerator packages:
+IMPORTANT NOTE: With a few exceptions, you can build a single LAMMPS
+executable with all its accelerator packages installed.  Note that the
+USER-INTEL and KOKKOS packages require you to choose one of their
+options when building.  I.e. CPU or Phi for USER-INTEL.  OpenMP, Cuda,
+or Phi for KOKKOS.  Here are the exceptions; you cannot build a single
+executable with:
 
-examples/cuda for USER-CUDA package
-examples/gpu for GPU package
-examples/intel for USER-INTEL package
-examples/kokkos for KOKKOS package :ul
+both the USER-INTEL Phi and KOKKOS Phi options
+the USER-INTEL Phi or Kokkos Phi option, and either the USER-CUDA or GPU packages :ul
 
-Likewise, the bench directory has FERMI and KEPLER sub-directories
-with scripts and README files for using all the accelerator packages.
+See the examples/accelerate/README and make.list files for sample
+Make.py commands that build LAMMPS with any or all of the accelerator
+packages.  As an example, here is a command that builds with all the
+GPU related packages installed (USER-CUDA, GPU, KOKKOS with Cuda),
+including settings to build the needed auxiliary USER-CUDA and GPU
+libraries for Kepler GPUs:
+
+Make.py -j 16 -p omp gpu cuda kokkos -cc nvcc wrap=mpi \
+  -cuda mode=double arch=35 -gpu mode=double arch=35 \\
+  -kokkos cuda arch=35 lib-all file mpi :pre
+
+The examples/accelerate directory also has input scripts that can be
+used with all of the accelerator packages.  See its README file for
+details.
+
+Likewise, the bench directory has FERMI and KEPLER and PHI
+sub-directories with Make.py commands and input scripts for using all
+the accelerator packages on various machines.  See the README files in
+those dirs.
 
 As mentioned above, the "Benchmark
 page"_http://lammps.sandia.gov/bench.html of the LAMMPS web site gives
@@ -239,23 +261,25 @@ of the standard LAMMPS benchmark problems, as a function of problem
 size and number of compute nodes, on different hardware platforms.
 
 Here is a brief summary of what the various packages provide.  Details
-are in the individual package sub-sections listed above.
+are in the individual accelerator sections.
 
 Styles with a "cuda" or "gpu" suffix are part of the USER-CUDA or GPU
 packages, and can be run on NVIDIA GPUs.  The speed-up on a GPU
-depends on a variety of factors, as discussed below. :ulb,l
+depends on a variety of factors, discussed in the accelerator
+sections. :ulb,l
 
 Styles with an "intel" suffix are part of the USER-INTEL
 package. These styles support vectorized single and mixed precision
 calculations, in addition to full double precision.  In extreme cases,
 this can provide speedups over 3.5x on CPUs.  The package also
-supports acceleration with offload to Intel(R) Xeon Phi(TM)
+supports acceleration in "offload" mode to Intel(R) Xeon Phi(TM)
 coprocessors.  This can result in additional speedup over 2x depending
 on the hardware configuration. :l
 
 Styles with a "kk" suffix are part of the KOKKOS package, and can be
-run using OpenMP, on an NVIDIA GPU, or on an Intel Xeon Phi.  The
-speed-up depends on a variety of factors, as discussed below. :l
+run using OpenMP on multicore CPUs, on an NVIDIA GPU, or on an Intel
+Xeon Phi in "native" mode.  The speed-up depends on a variety of
+factors, as discussed on the KOKKOS accelerator page. :l
 
 Styles with an "omp" suffix are part of the USER-OMP package and allow
 a pair-style to be run in multi-threaded mode using OpenMP.  This can
@@ -268,7 +292,7 @@ Styles with an "opt" suffix are part of the OPT package and typically
 speed-up the pairwise calculations of your simulation by 5-25% on a
 CPU. :l,ule
 
-The individual accelerator package sub-sections explain:
+The individual accelerator package doc pages explain:
 
 what hardware and software the accelerated package requires
 how to build LAMMPS with the accelerated package

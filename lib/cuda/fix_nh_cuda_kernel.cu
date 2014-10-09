@@ -21,14 +21,14 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-static inline __device__ void check_distance(X_FLOAT &xtmp, X_FLOAT &ytmp, X_FLOAT &ztmp, int &i, int groupbit)
+static inline __device__ void check_distance(X_CFLOAT &xtmp, X_CFLOAT &ytmp, X_CFLOAT &ztmp, int &i, int groupbit)
 {
   if(_dist_check) {
 
-    X_FLOAT d = X_F(0.0);
+    X_CFLOAT d = X_F(0.0);
 
     if(i < _nlocal) {
-      X_FLOAT tmp = xtmp - _xhold[i];
+      X_CFLOAT tmp = xtmp - _xhold[i];
       d = tmp * tmp;
       tmp = ytmp - _xhold[i + _maxhold];
       d += tmp * tmp;
@@ -43,15 +43,15 @@ static inline __device__ void check_distance(X_FLOAT &xtmp, X_FLOAT &ytmp, X_FLO
   }
 }
 
-__global__ void FixNHCuda_nh_v_press_Kernel(int groupbit, F_FLOAT3 factor, int p_triclinic, F_FLOAT3 factor2)
+__global__ void FixNHCuda_nh_v_press_Kernel(int groupbit, F_CFLOAT3 factor, int p_triclinic, F_CFLOAT3 factor2)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nlocal && _mask[i] & groupbit) {
-    V_FLOAT* my_v = _v + i;
-    V_FLOAT vx = my_v[0];
-    V_FLOAT vy = my_v[_nmax];
-    V_FLOAT vz = my_v[2 * _nmax];
+    V_CFLOAT* my_v = _v + i;
+    V_CFLOAT vx = my_v[0];
+    V_CFLOAT vy = my_v[_nmax];
+    V_CFLOAT vz = my_v[2 * _nmax];
     vx *= factor.x;
     vy *= factor.y;
     vz *= factor.z;
@@ -71,12 +71,12 @@ __global__ void FixNHCuda_nh_v_press_Kernel(int groupbit, F_FLOAT3 factor, int p
 
 }
 
-__global__ void FixNHCuda_nh_v_temp_Kernel(int groupbit, F_FLOAT factor_eta)
+__global__ void FixNHCuda_nh_v_temp_Kernel(int groupbit, F_CFLOAT factor_eta)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nlocal && _mask[i] & groupbit) {
-    V_FLOAT* my_v = _v + i;
+    V_CFLOAT* my_v = _v + i;
     my_v[0] *= factor_eta;
     my_v[_nmax] *= factor_eta;
     my_v[2 * _nmax] *= factor_eta;
@@ -84,22 +84,22 @@ __global__ void FixNHCuda_nh_v_temp_Kernel(int groupbit, F_FLOAT factor_eta)
 
 }
 
-__global__ void FixNHCuda_nh_v_press_and_nve_v_NoBias_Kernel(int groupbit, F_FLOAT3 factor, int p_triclinic, F_FLOAT3 factor2)
+__global__ void FixNHCuda_nh_v_press_and_nve_v_NoBias_Kernel(int groupbit, F_CFLOAT3 factor, int p_triclinic, F_CFLOAT3 factor2)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nlocal && _mask[i] & groupbit) {
-    F_FLOAT* my_f = _f + i;
-    V_FLOAT* my_v = _v + i;
+    F_CFLOAT* my_f = _f + i;
+    V_CFLOAT* my_v = _v + i;
 
-    V_FLOAT 		dtfm = _dtf;
+    V_CFLOAT 		dtfm = _dtf;
 
     if(_rmass_flag) dtfm *= V_F(1.0) / _rmass[i];
     else 			dtfm *= V_F(1.0) / _mass[_type[i]];
 
-    V_FLOAT vx = my_v[0];
-    V_FLOAT vy = my_v[_nmax];
-    V_FLOAT vz = my_v[2 * _nmax];
+    V_CFLOAT vx = my_v[0];
+    V_CFLOAT vy = my_v[_nmax];
+    V_CFLOAT vz = my_v[2 * _nmax];
     vx *= factor.x;
     vy *= factor.y;
     vz *= factor.z;
@@ -125,10 +125,10 @@ __global__ void FixNHCuda_nve_v_Kernel(int groupbit)
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nlocal && _mask[i] & groupbit) {
-    F_FLOAT* my_f = _f + i;
-    V_FLOAT* my_v = _v + i;
+    F_CFLOAT* my_f = _f + i;
+    V_CFLOAT* my_v = _v + i;
 
-    V_FLOAT 		dtfm = _dtf;
+    V_CFLOAT 		dtfm = _dtf;
 
     if(_rmass_flag) dtfm *= V_F(1.0) / _rmass[i];
     else 			dtfm *= V_F(1.0) / _mass[_type[i]];
@@ -145,13 +145,13 @@ __global__ void FixNHCuda_nve_v_Kernel(int groupbit)
 
 __global__ void FixNHCuda_nve_x_Kernel(int groupbit)
 {
-  X_FLOAT xtmp, ytmp, ztmp;
+  X_CFLOAT xtmp, ytmp, ztmp;
 
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nlocal && _mask[i] & groupbit) {
-    V_FLOAT* my_v = _v + i;
-    X_FLOAT* my_x = _x + i;
+    V_CFLOAT* my_v = _v + i;
+    X_CFLOAT* my_x = _x + i;
 
     xtmp = *my_x += _dtv * *my_v;
     my_v += _nmax;
@@ -166,23 +166,23 @@ __global__ void FixNHCuda_nve_x_Kernel(int groupbit)
 }
 
 
-__global__ void FixNHCuda_nve_v_and_nh_v_press_NoBias_Kernel(int groupbit, F_FLOAT3 factor, int p_triclinic, F_FLOAT3 factor2)
+__global__ void FixNHCuda_nve_v_and_nh_v_press_NoBias_Kernel(int groupbit, F_CFLOAT3 factor, int p_triclinic, F_CFLOAT3 factor2)
 {
 
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nlocal && _mask[i] & groupbit) {
-    F_FLOAT* my_f = _f + i;
-    V_FLOAT* my_v = _v + i;
+    F_CFLOAT* my_f = _f + i;
+    V_CFLOAT* my_v = _v + i;
 
-    V_FLOAT 		dtfm = _dtf;
+    V_CFLOAT 		dtfm = _dtf;
 
     if(_rmass_flag) dtfm *= V_F(1.0) / _rmass[i];
     else 			dtfm *= V_F(1.0) / _mass[_type[i]];
 
-    V_FLOAT vx = my_v[0] + dtfm * my_f[0];
-    V_FLOAT vy = my_v[_nmax] + dtfm * my_f[_nmax];
-    V_FLOAT vz = my_v[2 * _nmax] + dtfm * my_f[2 * _nmax];
+    V_CFLOAT vx = my_v[0] + dtfm * my_f[0];
+    V_CFLOAT vy = my_v[_nmax] + dtfm * my_f[_nmax];
+    V_CFLOAT vz = my_v[2 * _nmax] + dtfm * my_f[2 * _nmax];
 
     vx *= factor.x;
     vy *= factor.y;

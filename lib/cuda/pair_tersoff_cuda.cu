@@ -26,8 +26,8 @@
 
 #include "pair_tersoff_cuda_cu.h"
 __device__ __constant__ Param_Float params[MANYBODY_NPAIR* MANYBODY_NPAIR* MANYBODY_NPAIR];
-__device__ __constant__ F_FLOAT* _glob_zeta_ij; //zeta_ij
-__device__ __constant__ F_FLOAT4* _glob_r_ij; //r_ij (x,y,z,r^2) for pairs within force cutoff
+__device__ __constant__ F_CFLOAT* _glob_zeta_ij; //zeta_ij
+__device__ __constant__ F_CFLOAT4* _glob_r_ij; //r_ij (x,y,z,r^2) for pairs within force cutoff
 __device__ __constant__ bool _zbl; //is tersoff zbl?
 
 
@@ -39,16 +39,16 @@ __device__ __constant__ bool _zbl; //is tersoff zbl?
 void Cuda_PairTersoffCuda_Init(cuda_shared_data* sdata, Param_Float* params_host, void* map_host, void* elem2param_host, int nelements_h, bool zbl)
 {
   unsigned cuda_ntypes = sdata->atom.ntypes + 1;
-  X_FLOAT box_size[3] = {
+  X_CFLOAT box_size[3] = {
     sdata->domain.subhi[0] - sdata->domain.sublo[0],
     sdata->domain.subhi[1] - sdata->domain.sublo[1],
     sdata->domain.subhi[2] - sdata->domain.sublo[2]
   };
 
-  cudaMemcpyToSymbol(MY_AP(box_size)     , box_size                      , sizeof(X_FLOAT) * 3);
+  cudaMemcpyToSymbol(MY_AP(box_size)     , box_size                      , sizeof(X_CFLOAT) * 3);
   cudaMemcpyToSymbol(MY_AP(cuda_ntypes)  , &cuda_ntypes                   , sizeof(unsigned));
-  cudaMemcpyToSymbol(MY_AP(virial)       , &sdata->pair.virial.dev_data   , sizeof(ENERGY_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(eng_vdwl)     , &sdata->pair.eng_vdwl.dev_data , sizeof(ENERGY_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(virial)       , &sdata->pair.virial.dev_data   , sizeof(ENERGY_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(eng_vdwl)     , &sdata->pair.eng_vdwl.dev_data , sizeof(ENERGY_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(periodicity)  , sdata->domain.periodicity     , sizeof(int) * 3);
   cudaMemcpyToSymbol(MY_AP(collect_forces_later), &sdata->pair.collect_forces_later  , sizeof(int));
   cudaMemcpyToSymbol(params, params_host  , sizeof(Param_Float)*nelements_h * nelements_h * nelements_h);
@@ -61,15 +61,15 @@ void Cuda_PairTersoffCuda_Init(cuda_shared_data* sdata, Param_Float* params_host
 
 void Cuda_PairTersoffCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist, int eflag, int vflag, int eflag_atom, int vflag_atom)
 {
-  static F_FLOAT* glob_zeta_ij = NULL;
+  static F_CFLOAT* glob_zeta_ij = NULL;
   static int glob_zeta_ij_size = 0;
-  static F_FLOAT4* glob_r_ij = NULL;
+  static F_CFLOAT4* glob_r_ij = NULL;
   static int* glob_numneigh_red = NULL;
   static int* glob_neighbors_red = NULL;
   static int* glob_neightype_red = NULL;
 
-  if(glob_zeta_ij_size < sdata->atom.nall * sneighlist->maxneighbors * sizeof(F_FLOAT)) {
-    glob_zeta_ij_size = sdata->atom.nall * sneighlist->maxneighbors * sizeof(F_FLOAT);
+  if(glob_zeta_ij_size < sdata->atom.nall * sneighlist->maxneighbors * sizeof(F_CFLOAT)) {
+    glob_zeta_ij_size = sdata->atom.nall * sneighlist->maxneighbors * sizeof(F_CFLOAT);
     cudaFree(glob_zeta_ij);
     cudaFree(glob_r_ij);
     cudaFree(glob_numneigh_red);
@@ -83,8 +83,8 @@ void Cuda_PairTersoffCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneigh
     cudaMemcpyToSymbol(_glob_numneigh_red, &glob_numneigh_red  , sizeof(int*));
     cudaMemcpyToSymbol(_glob_neighbors_red, &glob_neighbors_red  , sizeof(int*));
     cudaMemcpyToSymbol(_glob_neightype_red, &glob_neightype_red  , sizeof(int*));
-    cudaMemcpyToSymbol(_glob_r_ij, &glob_r_ij  , sizeof(F_FLOAT4*));
-    cudaMemcpyToSymbol(_glob_zeta_ij, &glob_zeta_ij  , sizeof(F_FLOAT*));
+    cudaMemcpyToSymbol(_glob_r_ij, &glob_r_ij  , sizeof(F_CFLOAT4*));
+    cudaMemcpyToSymbol(_glob_zeta_ij, &glob_zeta_ij  , sizeof(F_CFLOAT*));
   }
 
   dim3 grid, threads;
@@ -127,7 +127,7 @@ void Cuda_PairTersoffCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneigh
   my_gettime(CLOCK_REALTIME, &time1);
 
   //actual force calculation
-  unsigned int sharedsize = (sharedperproc * sizeof(ENERGY_FLOAT) + 4 * sizeof(F_FLOAT)) * threads.x; //extra 4 floats per thread used to reduce register pressure
+  unsigned int sharedsize = (sharedperproc * sizeof(ENERGY_CFLOAT) + 4 * sizeof(F_CFLOAT)) * threads.x; //extra 4 floats per thread used to reduce register pressure
 
   if(eflag) {
     if(vflag)

@@ -640,11 +640,11 @@ static __device__ inline double tex1Dfetch_double(texture<int2, 1> t, int i)
   return __hiloint2double(v.y, v.x);
 }
 
-static __device__ inline X_FLOAT4 tex1Dfetch_double(texture<int4, 1> t, int i)
+static __device__ inline X_CFLOAT4 tex1Dfetch_double(texture<int4, 1> t, int i)
 {
   int4 v = tex1Dfetch(t, 2 * i);
   int4 u = tex1Dfetch(t, 2 * i + 1);
-  X_FLOAT4 w;
+  X_CFLOAT4 w;
 
   w.x = __hiloint2double(v.y, v.x);
   w.y = __hiloint2double(v.w, v.z);
@@ -664,7 +664,7 @@ inline void BindXTypeTexture(cuda_shared_data* sdata)
 
 #if X_PRECISION == 1
   cudaChannelFormatDesc channelDescXType = cudaCreateChannelDesc<float4>();
-  cudaBindTexture(0, x_type_texture_ptr, sdata->atom.x_type.dev_data, &channelDescXType, sdata->atom.nmax * sizeof(X_FLOAT4));
+  cudaBindTexture(0, x_type_texture_ptr, sdata->atom.x_type.dev_data, &channelDescXType, sdata->atom.nmax * sizeof(X_CFLOAT4));
 #else
   cudaChannelFormatDesc channelDescXType = cudaCreateChannelDesc<int4>();
   cudaBindTexture(0, x_type_texture_ptr, sdata->atom.x_type.dev_data, &channelDescXType, sdata->atom.nmax * 2 * sizeof(int4));
@@ -672,7 +672,7 @@ inline void BindXTypeTexture(cuda_shared_data* sdata)
 #endif
 }
 
-static __device__ inline X_FLOAT4 fetchXType(int i)
+static __device__ inline X_CFLOAT4 fetchXType(int i)
 {
 #ifdef CUDA_USE_TEXTURE
 #if X_PRECISION == 1
@@ -692,11 +692,11 @@ static __device__ inline double tex1Dfetch_double_v(texture<int2, 1> t, int i)
   return __hiloint2double(v.y, v.x);
 }
 
-static __device__ inline V_FLOAT4 tex1Dfetch_double_v(texture<int4, 1> t, int i)
+static __device__ inline V_CFLOAT4 tex1Dfetch_double_v(texture<int4, 1> t, int i)
 {
   int4 v = tex1Dfetch(t, 2 * i);
   int4 u = tex1Dfetch(t, 2 * i + 1);
-  V_FLOAT4 w;
+  V_CFLOAT4 w;
 
   w.x = __hiloint2double(v.y, v.x);
   w.y = __hiloint2double(v.w, v.z);
@@ -716,7 +716,7 @@ inline void BindVRadiusTexture(cuda_shared_data* sdata)
 
 #if V_PRECISION == 1
   cudaChannelFormatDesc channelDescVRadius = cudaCreateChannelDesc<float4>();
-  cudaBindTexture(0, v_radius_texture_ptr, sdata->atom.v_radius.dev_data, &channelDescVRadius, sdata->atom.nmax * sizeof(X_FLOAT4));
+  cudaBindTexture(0, v_radius_texture_ptr, sdata->atom.v_radius.dev_data, &channelDescVRadius, sdata->atom.nmax * sizeof(X_CFLOAT4));
 #else
   cudaChannelFormatDesc channelDescVRadius = cudaCreateChannelDesc<int4>();
   cudaBindTexture(0, v_radius_texture_ptr, sdata->atom.v_radius.dev_data, &channelDescVRadius, sdata->atom.nmax * 2 * sizeof(int4));
@@ -724,7 +724,7 @@ inline void BindVRadiusTexture(cuda_shared_data* sdata)
 #endif
 }
 
-static __device__ inline V_FLOAT4 fetchVRadius(int i)
+static __device__ inline V_CFLOAT4 fetchVRadius(int i)
 {
 #ifdef CUDA_USE_TEXTURE
 #if V_PRECISION == 1
@@ -747,7 +747,7 @@ inline void BindOmegaRmassTexture(cuda_shared_data* sdata)
 
 #if V_PRECISION == 1
   cudaChannelFormatDesc channelDescOmegaRmass = cudaCreateChannelDesc<float4>();
-  cudaBindTexture(0, omega_rmass_texture_ptr, sdata->atom.omega_rmass.dev_data, &channelDescOmegaRmass, sdata->atom.nmax * sizeof(X_FLOAT4));
+  cudaBindTexture(0, omega_rmass_texture_ptr, sdata->atom.omega_rmass.dev_data, &channelDescOmegaRmass, sdata->atom.nmax * sizeof(X_CFLOAT4));
 #else
   cudaChannelFormatDesc channelDescOmegaRmass = cudaCreateChannelDesc<int4>();
   cudaBindTexture(0, omega_rmass_texture_ptr, sdata->atom.omega_rmass.dev_data, &channelDescOmegaRmass, sdata->atom.nmax * 2 * sizeof(int4));
@@ -755,7 +755,7 @@ inline void BindOmegaRmassTexture(cuda_shared_data* sdata)
 #endif
 }
 
-static __device__ inline V_FLOAT4 fetchOmegaRmass(int i)
+static __device__ inline V_CFLOAT4 fetchOmegaRmass(int i)
 {
 #ifdef CUDA_USE_TEXTURE
 #if V_PRECISION == 1
@@ -775,11 +775,11 @@ static __device__ inline double tex1Dfetch_double_f(texture<int2, 1> t, int i)
   return __hiloint2double(v.y, v.x);
 }
 
-static __device__ inline F_FLOAT4 tex1Dfetch_double_f(texture<int4, 1> t, int i)
+static __device__ inline F_CFLOAT4 tex1Dfetch_double_f(texture<int4, 1> t, int i)
 {
   int4 v = tex1Dfetch(t, 2 * i);
   int4 u = tex1Dfetch(t, 2 * i + 1);
-  F_FLOAT4 w;
+  F_CFLOAT4 w;
 
   w.x = __hiloint2double(v.y, v.x);
   w.y = __hiloint2double(v.w, v.z);
@@ -799,7 +799,7 @@ inline void BindQTexture(cuda_shared_data* sdata)
 
 #if F_PRECISION == 1
   cudaChannelFormatDesc channelDescQ = cudaCreateChannelDesc<float>();
-  cudaBindTexture(0, q_texture_ptr, sdata->atom.q.dev_data, &channelDescQ, sdata->atom.nmax * sizeof(F_FLOAT));
+  cudaBindTexture(0, q_texture_ptr, sdata->atom.q.dev_data, &channelDescQ, sdata->atom.nmax * sizeof(F_CFLOAT));
 #else
   cudaChannelFormatDesc channelDescQ = cudaCreateChannelDesc<int2>();
   cudaBindTexture(0, q_texture_ptr, sdata->atom.q.dev_data, &channelDescQ, sdata->atom.nmax * sizeof(int2));
@@ -807,7 +807,7 @@ inline void BindQTexture(cuda_shared_data* sdata)
 #endif
 }
 
-static __device__ inline F_FLOAT fetchQ(int i)
+static __device__ inline F_CFLOAT fetchQ(int i)
 {
 #ifdef CUDA_USE_TEXTURE
 #if F_PRECISION == 1
@@ -835,7 +835,7 @@ inline void BindPairCoeffTypeTexture(cuda_shared_data* sdata,coeff_tex)
 
 		#if F_PRECISION == 1
 		cudaChannelFormatDesc channelDescXType = cudaCreateChannelDesc<float4>();
-		cudaBindTexture(0,x_type_texture_ptr, sdata->atom.x_type.dev_data, &channelDescXType, sdata->atom.nmax*sizeof(X_FLOAT4));
+		cudaBindTexture(0,x_type_texture_ptr, sdata->atom.x_type.dev_data, &channelDescXType, sdata->atom.nmax*sizeof(X_CFLOAT4));
 		#else
 		cudaChannelFormatDesc channelDescXType = cudaCreateChannelDesc<int4>();
 		cudaBindTexture(0,x_type_texture_ptr, sdata->atom.x_type.dev_data, &channelDescXType, sdata->atom.nmax*2*sizeof(int4));
@@ -843,7 +843,7 @@ inline void BindPairCoeffTypeTexture(cuda_shared_data* sdata,coeff_tex)
 	#endif
 }
 
-static __device__ inline X_FLOAT4 fetchXType(int i)
+static __device__ inline X_CFLOAT4 fetchXType(int i)
 {
 		#ifdef CUDA_USE_TEXTURE
 		  #if X_PRECISION == 1
@@ -863,7 +863,7 @@ static inline __device__ int sbmask(int j)
   return j >> SBBITS & 3;
 }
 
-static inline __device__ void minimum_image(X_FLOAT4 &delta)
+static inline __device__ void minimum_image(X_CFLOAT4 &delta)
 {
   if(_triclinic == 0) {
     if(_periodicity[0]) {
@@ -907,7 +907,7 @@ static inline __device__ void minimum_image(X_FLOAT4 &delta)
   }
 }
 
-static inline __device__ void closest_image(X_FLOAT4 &x1, X_FLOAT4 &x2, X_FLOAT4 &ci)
+static inline __device__ void closest_image(X_CFLOAT4 &x1, X_CFLOAT4 &x2, X_CFLOAT4 &ci)
 {
   ci.x = x2.x - x1.x;
   ci.y = x2.y - x1.y;

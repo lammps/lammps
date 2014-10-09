@@ -131,7 +131,11 @@ KOKKOS_INC += -Xcompiler -fopenmp
 else
 KOKKOS_INC += -fopenmp
 endif
+ifeq ($(CUDA), yes) 
+KOKKOS_LINK += -Xcompiler -fopenmp
+else
 KOKKOS_LINK += -fopenmp
+endif
 endif
 
 ifeq ($(HWLOC),yes)

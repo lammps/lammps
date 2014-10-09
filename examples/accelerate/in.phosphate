@@ -1,0 +1,33 @@
+# GI-System
+
+variable	x index 1
+variable	y index 1
+variable	z index 1
+variable	t index 100
+
+units metal
+atom_style      charge 
+
+read_data 	data.phosphate
+
+replicate	$x $y $z
+
+pair_style      lj/cut/coul/long 15.0
+
+pair_coeff 1 1  0.0 0.29
+pair_coeff 1 2  0.0 0.29
+pair_coeff 1 3  0.000668 2.5738064
+pair_coeff 2 2  0.0 0.29
+pair_coeff 2 3  0.004251 1.91988674
+pair_coeff 3 3  0.012185 2.91706967
+
+kspace_style    pppm 1e-5
+
+neighbor	2.0 bin
+
+thermo          100
+timestep        0.001
+
+fix 		1 all npt temp 400 400 0.01 iso 1000.0 1000.0 1.0
+
+run 		$t

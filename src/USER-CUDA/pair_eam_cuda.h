@@ -66,11 +66,11 @@ class PairEAMCuda : public PairEAM
                 bool allocated2;
                 virtual void ev_setup(int eflag, int vflag);
                 class CudaNeighList* cuda_neigh_list;
-                cCudaData<double, F_FLOAT, x>* cu_rho;
-                cCudaData<double, F_FLOAT, x>* cu_fp;
-            cCudaData<double, F_FLOAT, xyz>* cu_rhor_spline;
-            cCudaData<double, F_FLOAT, xyz>* cu_z2r_spline;
-            cCudaData<double, F_FLOAT, xyz>* cu_frho_spline;
+                cCudaData<double, F_CFLOAT, x>* cu_rho;
+                cCudaData<double, F_CFLOAT, x>* cu_fp;
+            cCudaData<double, F_CFLOAT, xyz>* cu_rhor_spline;
+            cCudaData<double, F_CFLOAT, xyz>* cu_z2r_spline;
+            cCudaData<double, F_CFLOAT, xyz>* cu_frho_spline;
 
 };
 

@@ -32,10 +32,10 @@
 
 void Cuda_FixFreezeCuda_UpdateBuffer(cuda_shared_data* sdata)
 {
-  int3 layout = getgrid(sdata->atom.nlocal, 3 * sizeof(F_FLOAT));
+  int3 layout = getgrid(sdata->atom.nlocal, 3 * sizeof(F_CFLOAT));
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
-  int size = (unsigned)(layout.z * layout.y * layout.x) * 3 * sizeof(F_FLOAT);
+  int size = (unsigned)(layout.z * layout.y * layout.x) * 3 * sizeof(F_CFLOAT);
 
   if(sdata->buffersize < size) {
     MYDBG(printf("Cuda_FixFreezeCuda Resizing Buffer at %p with %i kB to\n", sdata->buffer, sdata->buffersize);)
@@ -55,9 +55,9 @@ void Cuda_FixFreezeCuda_UpdateNmax(cuda_shared_data* sdata)
   cudaMemcpyToSymbol(MY_AP(mask)    , & sdata->atom.mask .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nmax)    , & sdata->atom.nmax          , sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(x)       , & sdata->atom.x    .dev_data, sizeof(X_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(f)       , & sdata->atom.f    .dev_data, sizeof(F_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(torque)  , & sdata->atom.torque .dev_data, sizeof(F_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(x)       , & sdata->atom.x    .dev_data, sizeof(X_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(f)       , & sdata->atom.f    .dev_data, sizeof(F_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(torque)  , & sdata->atom.torque .dev_data, sizeof(F_CFLOAT*));
 }
 
 
@@ -68,7 +68,7 @@ void Cuda_FixFreezeCuda_Init(cuda_shared_data* sdata)
 }
 
 
-void Cuda_FixFreezeCuda_PostForce(cuda_shared_data* sdata, int groupbit, F_FLOAT* foriginal)
+void Cuda_FixFreezeCuda_PostForce(cuda_shared_data* sdata, int groupbit, F_CFLOAT* foriginal)
 {
   if(sdata->atom.update_nmax)
     Cuda_FixFreezeCuda_UpdateNmax(sdata);
@@ -80,18 +80,18 @@ void Cuda_FixFreezeCuda_PostForce(cuda_shared_data* sdata, int groupbit, F_FLOAT
     Cuda_FixFreezeCuda_UpdateBuffer(sdata);
 
 
-  int3 layout = getgrid(sdata->atom.nlocal, 3 * sizeof(F_FLOAT));
+  int3 layout = getgrid(sdata->atom.nlocal, 3 * sizeof(F_CFLOAT));
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
 
-  Cuda_FixFreezeCuda_PostForce_Kernel <<< grid, threads, threads.x* 3* sizeof(F_FLOAT)>>> (groupbit);
+  Cuda_FixFreezeCuda_PostForce_Kernel <<< grid, threads, threads.x* 3* sizeof(F_CFLOAT)>>> (groupbit);
   cudaThreadSynchronize();
   CUT_CHECK_ERROR("Cuda_Cuda_FixFreezeCuda_PostForce: fix add_force post_force compute Kernel execution failed");
 
   int oldgrid = grid.x;
   grid.x = 3;
   threads.x = 512;
-  Cuda_FixFreezeCuda_Reduce_FOriginal <<< grid, threads, threads.x* sizeof(F_FLOAT)>>> (oldgrid, foriginal);
+  Cuda_FixFreezeCuda_Reduce_FOriginal <<< grid, threads, threads.x* sizeof(F_CFLOAT)>>> (oldgrid, foriginal);
   cudaThreadSynchronize();
   CUT_CHECK_ERROR("Cuda_Cuda_FixFreezeCuda_PostForce: fix add_force post_force reduce Kernel execution failed");
 

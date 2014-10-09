@@ -32,10 +32,10 @@
 
 void Cuda_FixGravityCuda_UpdateBuffer(cuda_shared_data* sdata)
 {
-  int3 layout = getgrid(sdata->atom.nlocal, 3 * sizeof(F_FLOAT));
+  int3 layout = getgrid(sdata->atom.nlocal, 3 * sizeof(F_CFLOAT));
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
-  int size = (unsigned)(layout.z * layout.y * layout.x) * 3 * sizeof(F_FLOAT);
+  int size = (unsigned)(layout.z * layout.y * layout.x) * 3 * sizeof(F_CFLOAT);
 
   if(sdata->buffersize < size) {
     MYDBG(printf("Cuda_FixGravityCuda Resizing Buffer at %p with %i kB to\n", sdata->buffer, sdata->buffersize);)
@@ -55,12 +55,12 @@ void Cuda_FixGravityCuda_UpdateNmax(cuda_shared_data* sdata)
   cudaMemcpyToSymbol(MY_AP(mask)    , & sdata->atom.mask .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nmax)    , & sdata->atom.nmax          , sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(x)       , & sdata->atom.x    .dev_data, sizeof(X_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(f)       , & sdata->atom.f    .dev_data, sizeof(F_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(x)       , & sdata->atom.x    .dev_data, sizeof(X_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(f)       , & sdata->atom.f    .dev_data, sizeof(F_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(type)       , & sdata->atom.type    .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(rmass_flag)       , & sdata->atom.rmass_flag, sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(rmass)       , & sdata->atom.rmass    .dev_data, sizeof(V_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(mass)       , & sdata->atom.mass    .dev_data, sizeof(V_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(rmass)       , & sdata->atom.rmass    .dev_data, sizeof(V_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(mass)       , & sdata->atom.mass    .dev_data, sizeof(V_CFLOAT*));
 }
 
 void Cuda_FixGravityCuda_Init(cuda_shared_data* sdata)
@@ -70,7 +70,7 @@ void Cuda_FixGravityCuda_Init(cuda_shared_data* sdata)
 }
 
 
-void Cuda_FixGravityCuda_PostForce(cuda_shared_data* sdata, int groupbit, F_FLOAT xacc, F_FLOAT yacc, F_FLOAT zacc)
+void Cuda_FixGravityCuda_PostForce(cuda_shared_data* sdata, int groupbit, F_CFLOAT xacc, F_CFLOAT yacc, F_CFLOAT zacc)
 {
   if(sdata->atom.update_nmax)
     Cuda_FixGravityCuda_UpdateNmax(sdata);

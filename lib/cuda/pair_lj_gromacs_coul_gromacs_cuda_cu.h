@@ -23,4 +23,4 @@
 
 #include "cuda_shared.h"
 
-extern "C" void Cuda_PairLJGromacsCoulGromacsCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist, int eflag, int vflag, int eflag_atom, int vflag_atom, F_FLOAT cut_coul_inner, F_FLOAT coulsw1, F_FLOAT coulsw2, F_FLOAT coulsw5);
+extern "C" void Cuda_PairLJGromacsCoulGromacsCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist, int eflag, int vflag, int eflag_atom, int vflag_atom, F_CFLOAT cut_coul_inner, F_CFLOAT coulsw1, F_CFLOAT coulsw2, F_CFLOAT coulsw5);

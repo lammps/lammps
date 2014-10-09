@@ -21,16 +21,16 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-__device__ inline F_FLOAT CoulCharmmImplicitCuda_Eval(const F_FLOAT &rsq, F_FLOAT &factor_coul, int &eflag, ENERGY_FLOAT &ecoul, F_FLOAT qij)
+__device__ inline F_CFLOAT CoulCharmmImplicitCuda_Eval(const F_CFLOAT &rsq, F_CFLOAT &factor_coul, int &eflag, ENERGY_CFLOAT &ecoul, F_CFLOAT qij)
 {
-  F_FLOAT forcecoul;
-  ENERGY_FLOAT ecoul_tmp = forcecoul = _qqrd2e * qij * (F_F(1.0) / rsq) * factor_coul;
+  F_CFLOAT forcecoul;
+  ENERGY_CFLOAT ecoul_tmp = forcecoul = _qqrd2e * qij * (F_F(1.0) / rsq) * factor_coul;
 
   if(rsq > _cut_coul_innersq_global) {
-    const F_FLOAT switch1 = (_cut_coulsq_global - rsq) * (_cut_coulsq_global - rsq) *
+    const F_CFLOAT switch1 = (_cut_coulsq_global - rsq) * (_cut_coulsq_global - rsq) *
                             (_cut_coulsq_global + F_F(2.0) * rsq - F_F(3.0) * _cut_coul_innersq_global) * _denom_coul_inv;
     ecoul_tmp *= switch1;
-    const F_FLOAT switch2 = F_F(12.0) * rsq * (_cut_coulsq_global - rsq) *
+    const F_CFLOAT switch2 = F_F(12.0) * rsq * (_cut_coulsq_global - rsq) *
                             (rsq - _cut_coul_innersq_global) * _denom_coul_inv;
     forcecoul *= (switch1 + switch2);
   }

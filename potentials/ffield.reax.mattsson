@@ -1,4 +1,4 @@
-Reactive MD-force field: general-purpose hydrocarbon parameterization: T. R. Mattsson, J. M. D. Lane, K. R. Cochrane, M. P. Desjarlais, A. P. Thompson, F. Pierce, and G. S. Grest, Phys. Rev. B, 81 054103 (2010).
+DATE: 2010-02-19 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Mattsson, Lane, Cochrane, Desjarlais, Thompson, Pierce and Grest, Phys Rev B, 81, 054103 (2010) COMMENT: Reactive MD-force field: general-purpose hydrocarbon parameterization: T. R. Mattsson, J. M. D. Lane, K. R. Cochrane, M. P. Desjarlais, A. P. Thompson, F. Pierce, and G. S. Grest, Phys. Rev. B, 81 054103 (2010).
  39       ! Number of general parameters                                        
    50.0000 !Overcoordination parameter                                          
     9.5469 !Overcoordination parameter                                          

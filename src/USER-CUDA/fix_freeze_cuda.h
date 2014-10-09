@@ -47,7 +47,7 @@ class FixFreezeCuda : public Fix {
  private:
   class Cuda *cuda;
   double foriginal[3],foriginal_all[3];
-  cCudaData<double     , F_FLOAT                   , x>* cu_foriginal;
+  cCudaData<double     , F_CFLOAT                   , x>* cu_foriginal;
   int force_flag;
 };
 

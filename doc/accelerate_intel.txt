@@ -38,6 +38,10 @@ suffix to "omp" so that styles from the USER-OMP package will be used
 if available, after first testing if a style from the USER-INTEL
 package is available.
 
+When using the USER-INTEL package, you must choose at build time
+whether you are building for CPU-only acceleration or for using the
+Xeon Phi in offload mode.
+
 Here is a quick overview of how to use the USER-INTEL package
 for CPU-only acceleration:
 
@@ -46,6 +50,9 @@ specify -openmp with LINKFLAGS in your Makefile.machine
 include the USER-INTEL package and (optionally) USER-OMP package and build LAMMPS
 specify how many OpenMP threads per MPI task to use
 use USER-INTEL and (optionally) USER-OMP styles in your input script :ul
+
+Note that many of these settings can only be used with the Intel
+compiler, as discussed below.
 
 Using the USER-INTEL package to offload work to the Intel(R)
 Xeon Phi(TM) coprocessor is the same except for these additional
@@ -71,25 +78,41 @@ Optimizations for vectorization have only been tested with the
 Intel(R) compiler.  Use of other compilers may not result in
 vectorization or give poor performance.
 
-Use of an Intel C++ compiler is reccommended, but not required.  The
-compiler must support the OpenMP interface.
+Use of an Intel C++ compiler is recommended, but not required (though
+g++ will not recognize some of the settings, so they cannot be used).
+The compiler must support the OpenMP interface.
 
 [Building LAMMPS with the USER-INTEL package:]
 
-Include the package(s) and build LAMMPS:  
+You must choose at build time whether to build for CPU acceleration or
+to use the Xeon Phi in offload mode.
+
+You can do either in one line, using the src/Make.py script, described
+in "Section 2.4"_Section_start.html#start_4 of the manual.  Type
+"Make.py -h" for help.  If run from the src directory, these commands
+will create src/lmp_intel_cpu and lmp_intel_phi using
+src/MAKE/Makefile.mpi as the starting Makefile.machine:
+
+Make.py -p intel omp -intel cpu -o intel_cpu -cc icc file mpi 
+Make.py -p intel omp -intel phi -o intel_phi -cc icc file mpi :pre
+
+Note that this assumes that your MPI and its mpicxx wrapper
+is using the Intel compiler.  If it is not, you should
+leave off the "-cc icc" switch.
+
+Or you can follow these steps:
 
 cd lammps/src
 make yes-user-intel
 make yes-user-omp (if desired)
 make machine :pre
 
-If the USER-OMP package is also installed, you can use styles from
-both packages, as described below.
+Note that if the USER-OMP package is also installed, you can use
+styles from both packages, as described below.
 
-The lo-level src/MAKE/Makefile.machine needs a flag for OpenMP support
-in both the CCFLAGS and LINKFLAGS variables, which is {-openmp} for
-Intel compilers.  You also need to add -DLAMMPS_MEMALIGN=64 and
--restrict to CCFLAGS.
+The Makefile.machine needs a "-fopenmp" flag for OpenMP support in
+both the CCFLAGS and LINKFLAGS variables.  You also need to add
+-DLAMMPS_MEMALIGN=64 and -restrict to CCFLAGS.
 
 If you are compiling on the same architecture that will be used for
 the runs, adding the flag {-xHost} to CCFLAGS will enable
@@ -99,10 +122,10 @@ In order to build with support for an Intel(R) Xeon Phi(TM)
 coprocessor, the flag {-offload} should be added to the LINKFLAGS line
 and the flag -DLMP_INTEL_OFFLOAD should be added to the CCFLAGS line.
 
-Note that the machine makefiles Makefile.intel and
-Makefile.intel_offload are included in the src/MAKE directory with
-options that perform well with the Intel(R) compiler. The latter file
-has support for offload to coprocessors; the former does not.
+Example makefiles Makefile.intel_cpu and Makefile.intel_phi are
+included in the src/MAKE/OPTIONS directory with settings that perform
+well with the Intel(R) compiler. The latter file has support for
+offload to coprocessors; the former does not.
 
 If using an Intel compiler, it is recommended that Intel(R) Compiler
 2013 SP1 update 1 be used.  Newer versions have some performance

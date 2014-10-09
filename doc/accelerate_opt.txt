@@ -35,12 +35,22 @@ None.
 
 Include the package and build LAMMPS:
 
+To do this in one line, use the src/Make.py script, described in
+"Section 2.4"_Section_start.html#start_4 of the manual.  Type "Make.py
+-h" for help.  If run from the src directory, this command will create
+src/lmp_opt using src/MAKE/Makefile.mpi as the starting
+Makefile.machine:
+
+Make.py -p opt -o opt file mpi :pre
+
+Or you can follow these steps:
+
 cd lammps/src
 make yes-opt
 make machine :pre
 
-If you are using Intel compilers, then the CCFLAGS setting in your
-src/MAKE/Makefile.machine needs to include "-restrict".
+If you are using Intel compilers, then the CCFLAGS setting in
+Makefile.machine needs to include "-restrict".
 
 [Run with the OPT package from the command line:]
 

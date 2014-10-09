@@ -21,7 +21,7 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-extern __shared__ X_FLOAT sharedmem[];
+extern __shared__ X_CFLOAT sharedmem[];
 
 #define BIG 1e10
 __global__ void Domain_PBC_Kernel(int deform_remap, int deform_groupbit, int box_change)
@@ -29,9 +29,9 @@ __global__ void Domain_PBC_Kernel(int deform_remap, int deform_groupbit, int box
   int idim, otherdims;
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
-  X_FLOAT lo[3];
-  X_FLOAT hi[3];
-  X_FLOAT* period;
+  X_CFLOAT lo[3];
+  X_CFLOAT hi[3];
+  X_CFLOAT* period;
 
   if(_triclinic == 0) {
     lo[0] = _boxlo[0];
@@ -54,11 +54,11 @@ __global__ void Domain_PBC_Kernel(int deform_remap, int deform_groupbit, int box
   }
 
 
-  X_FLOAT tmpx = X_F(0.5) * (hi[0] + lo[0]);
-  X_FLOAT tmpy = X_F(0.5) * (hi[1] + lo[1]);
-  X_FLOAT tmpz = X_F(0.5) * (hi[2] + lo[2]);
+  X_CFLOAT tmpx = X_F(0.5) * (hi[0] + lo[0]);
+  X_CFLOAT tmpy = X_F(0.5) * (hi[1] + lo[1]);
+  X_CFLOAT tmpz = X_F(0.5) * (hi[2] + lo[2]);
 
-  X_FLOAT* buf = (X_FLOAT*) _buffer;
+  X_CFLOAT* buf = (X_CFLOAT*) _buffer;
   buf += blockIdx.x * gridDim.y + blockIdx.y;
   buf[0] = tmpx;
   buf += gridDim.x * gridDim.y;
@@ -181,12 +181,12 @@ __global__ void Domain_PBC_Kernel(int deform_remap, int deform_groupbit, int box
   __syncthreads();
 
   if(box_change) {
-    X_FLOAT minx = BIG;
-    X_FLOAT maxx = -BIG;
-    X_FLOAT miny = BIG;
-    X_FLOAT maxy = -BIG;
-    X_FLOAT minz = BIG;
-    X_FLOAT maxz = -BIG;
+    X_CFLOAT minx = BIG;
+    X_CFLOAT maxx = -BIG;
+    X_CFLOAT miny = BIG;
+    X_CFLOAT maxy = -BIG;
+    X_CFLOAT minz = BIG;
+    X_CFLOAT maxz = -BIG;
 
     if(not _periodicity[0]) {
       sharedmem[threadIdx.x] = tmpx;
@@ -231,7 +231,7 @@ __global__ void Domain_PBC_Kernel(int deform_remap, int deform_groupbit, int box
     }
 
     if(threadIdx.x == 0) {
-      buf = (X_FLOAT*) _buffer;
+      buf = (X_CFLOAT*) _buffer;
       buf += blockIdx.x * gridDim.y + blockIdx.y;
       buf[0] = minx;
       buf += gridDim.x * gridDim.y;
@@ -250,7 +250,7 @@ __global__ void Domain_PBC_Kernel(int deform_remap, int deform_groupbit, int box
 
 __global__ void Domain_reduceBoxExtent(double* extent, int n)
 {
-  X_FLOAT* buf = (X_FLOAT*) _buffer;
+  X_CFLOAT* buf = (X_CFLOAT*) _buffer;
   buf += blockIdx.x * n;
   copyGlobToShared(buf, sharedmem, n);
 
@@ -267,8 +267,8 @@ __global__ void Domain_lamda2x_Kernel(int n)
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < n) {
-    X_FLOAT ytmp = _x[i + _nmax];
-    X_FLOAT ztmp = _x[i + 2 * _nmax];
+    X_CFLOAT ytmp = _x[i + _nmax];
+    X_CFLOAT ztmp = _x[i + 2 * _nmax];
     _x[i] = _h[0] * _x[i] + _h[5] * ytmp + _h[4] * ztmp + _boxlo[0];
     _x[i + _nmax] = _h[1] * ytmp + _h[3] * ztmp + _boxlo[1];
     _x[i + 2 * _nmax] = _h[2] * ztmp + _boxlo[2];
@@ -279,7 +279,7 @@ __global__ void Domain_x2lamda_Kernel(int n)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
-  X_FLOAT delta[3];
+  X_CFLOAT delta[3];
 
   if(i < n) {
     delta[0] = _x[i] - _boxlo[0];

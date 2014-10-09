@@ -1,6 +1,6 @@
+DATE: 2007-10-12 CONTRIBUTOR: G. Ziegenhain, gerolf@ziegenhain.com CITATION: Zhou et al, Acta Mater, 49, 4005 (2001)
 #-> LAMMPS Potential File in DYNAMO 86 setfl Format <-#
 # Zhou Cu Acta mater(2001)49:4005
-# Implemented by G. Ziegenhain (2007) gerolf@ziegenhain.com
 1 Cu
 10001 0.00883648198928199680 10001 0.00090365963403659646 9.03750000000000142109
 1 63.54999999999999715783 3.61500000000000021316 FCC

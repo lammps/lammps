@@ -25,15 +25,15 @@
 #include "cuda_precision.h"
 #include "cuda_common.h"
 struct  FFT_DATA {
-  FFT_FLOAT re;
-  FFT_FLOAT im;
+  FFT_CFLOAT re;
+  FFT_CFLOAT im;
 };
 
 #include "fft3d_cuda_cu.h"
 #include "fft3d_cuda_kernel.cu"
 #include <stdio.h>
 
-void initfftdata(double* in, FFT_FLOAT* out, int nfast, int nmid, int nslow)
+void initfftdata(double* in, FFT_CFLOAT* out, int nfast, int nmid, int nslow)
 {
 
   dim3 grid;
@@ -62,7 +62,7 @@ void permute(FFT_DATA* in, FFT_DATA* out, int nfast, int nmid, int nslow)
   threads.x = nfast * 2;
   threads.y = 1;
   threads.z = 1;
-  permute_kernel <<< grid, threads, 0>>>((FFT_FLOAT*)in, (FFT_FLOAT*)out);
+  permute_kernel <<< grid, threads, 0>>>((FFT_CFLOAT*)in, (FFT_CFLOAT*)out);
   cudaThreadSynchronize();
   MYDBG(printf("ERROR-CUDA permute_kernel: %s\n", cudaGetErrorString(cudaGetLastError())));
 }
@@ -78,7 +78,7 @@ void permute_scale(FFT_DATA* in, FFT_DATA* out, int nfast, int nmid, int nslow)
   threads.x = nfast * 2;
   threads.y = 1;
   threads.z = 1;
-  permute_kernel <<< grid, threads, 0>>>((FFT_FLOAT*)in, (FFT_FLOAT*)out);
+  permute_kernel <<< grid, threads, 0>>>((FFT_CFLOAT*)in, (FFT_CFLOAT*)out);
   cudaThreadSynchronize();
 }
 void permute_part(FFT_DATA* in, FFT_DATA* out, int nfast, int nmid, int nslow, int ihi, int ilo, int jhi, int jlo, int khi, int klo)
@@ -92,7 +92,7 @@ void permute_part(FFT_DATA* in, FFT_DATA* out, int nfast, int nmid, int nslow, i
   threads.x = (khi - klo + 1) * 2;
   threads.y = 1;
   threads.z = 1;
-  permute_part_kernel <<< grid, threads, 0>>>((FFT_FLOAT*)in, (FFT_FLOAT*)out, nfast, nmid, nslow, ihi, ilo, jhi, jlo, khi, klo);
+  permute_part_kernel <<< grid, threads, 0>>>((FFT_CFLOAT*)in, (FFT_CFLOAT*)out, nfast, nmid, nslow, ihi, ilo, jhi, jlo, khi, klo);
   cudaThreadSynchronize();
 }
 

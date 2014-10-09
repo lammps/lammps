@@ -65,13 +65,13 @@ __device__ void reduceBlock(double* data)
   }
 }
 
-extern __shared__ PPPM_FLOAT sharedmem[];
+extern __shared__ PPPM_CFLOAT sharedmem[];
 
-__global__ void setup_fkxyz_vg(PPPM_FLOAT unitkx, PPPM_FLOAT unitky, PPPM_FLOAT unitkz, PPPM_FLOAT g_ewald)
+__global__ void setup_fkxyz_vg(PPPM_CFLOAT unitkx, PPPM_CFLOAT unitky, PPPM_CFLOAT unitkz, PPPM_CFLOAT g_ewald)
 {
-  PPPM_FLOAT my_fkx = unitkx * (int(threadIdx.x) - nx_pppm * (2 * int(threadIdx.x) / nx_pppm));
-  PPPM_FLOAT my_fky = unitky * (int(blockIdx.y) - ny_pppm * (2 * int(blockIdx.y) / ny_pppm));
-  PPPM_FLOAT my_fkz = unitkz * (int(blockIdx.x) - nz_pppm * (2 * int(blockIdx.x) / nz_pppm));
+  PPPM_CFLOAT my_fkx = unitkx * (int(threadIdx.x) - nx_pppm * (2 * int(threadIdx.x) / nx_pppm));
+  PPPM_CFLOAT my_fky = unitky * (int(blockIdx.y) - ny_pppm * (2 * int(blockIdx.y) / ny_pppm));
+  PPPM_CFLOAT my_fkz = unitkz * (int(blockIdx.x) - nz_pppm * (2 * int(blockIdx.x) / nz_pppm));
 
   if((blockIdx.x == 0) && (blockIdx.y == 0)) fkx[threadIdx.x] = my_fkx;
 
@@ -85,8 +85,8 @@ __global__ void setup_fkxyz_vg(PPPM_FLOAT unitkx, PPPM_FLOAT unitky, PPPM_FLOAT 
       (blockIdx.y >= nylo_fft) && (blockIdx.y <= nyhi_fft) &&
       (threadIdx.x >= nxlo_fft) && (threadIdx.x <= nxhi_fft)) {
     int n = ((int(blockIdx.x) - nzlo_fft) * (nyhi_fft - nylo_fft + 1) + int(blockIdx.y) - nylo_fft) * (nxhi_fft - nxlo_fft + 1) + int(threadIdx.x) - nxlo_fft;
-    PPPM_FLOAT sqk = my_fkx * my_fkx + my_fky * my_fky + my_fkz * my_fkz;
-    PPPM_FLOAT vterm = (sqk == PPPM_F(0.0)) ? PPPM_F(0.0) : PPPM_F(-2.0) * (PPPM_F(1.0) / sqk + PPPM_F(0.25) / (g_ewald * g_ewald));
+    PPPM_CFLOAT sqk = my_fkx * my_fkx + my_fky * my_fky + my_fkz * my_fkz;
+    PPPM_CFLOAT vterm = (sqk == PPPM_F(0.0)) ? PPPM_F(0.0) : PPPM_F(-2.0) * (PPPM_F(1.0) / sqk + PPPM_F(0.25) / (g_ewald * g_ewald));
     vg[6 * n + 0] = (sqk == PPPM_F(0.0)) ? PPPM_F(0.0) : PPPM_F(1.0) + vterm * my_fkx * my_fkx;
     vg[6 * n + 1] = (sqk == PPPM_F(0.0)) ? PPPM_F(0.0) : PPPM_F(1.0) + vterm * my_fky * my_fky;
     vg[6 * n + 2] = (sqk == PPPM_F(0.0)) ? PPPM_F(0.0) : PPPM_F(1.0) + vterm * my_fkz * my_fkz;
@@ -97,9 +97,9 @@ __global__ void setup_fkxyz_vg(PPPM_FLOAT unitkx, PPPM_FLOAT unitky, PPPM_FLOAT 
   }
 }
 
-__device__ PPPM_FLOAT gf_denom(PPPM_FLOAT x, PPPM_FLOAT y, PPPM_FLOAT z)
+__device__ PPPM_CFLOAT gf_denom(PPPM_CFLOAT x, PPPM_CFLOAT y, PPPM_CFLOAT z)
 {
-  PPPM_FLOAT sx, sy, sz;
+  PPPM_CFLOAT sx, sy, sz;
   sz = sy = sx = PPPM_F(0.0);
 
   for(int l = order - 1; l >= 0; l--) {
@@ -108,22 +108,22 @@ __device__ PPPM_FLOAT gf_denom(PPPM_FLOAT x, PPPM_FLOAT y, PPPM_FLOAT z)
     sz = gf_b[l] + sz * z;
   }
 
-  PPPM_FLOAT s = sx * sy * sz;
+  PPPM_CFLOAT s = sx * sy * sz;
   return s * s;
 }
 
-__global__ void setup_greensfn(PPPM_FLOAT unitkx, PPPM_FLOAT unitky, PPPM_FLOAT unitkz, PPPM_FLOAT g_ewald,
+__global__ void setup_greensfn(PPPM_CFLOAT unitkx, PPPM_CFLOAT unitky, PPPM_CFLOAT unitkz, PPPM_CFLOAT g_ewald,
                                int nbx, int nby, int nbz,
-                               PPPM_FLOAT xprd, PPPM_FLOAT yprd, PPPM_FLOAT zprd_slab)
+                               PPPM_CFLOAT xprd, PPPM_CFLOAT yprd, PPPM_CFLOAT zprd_slab)
 {
-  PPPM_FLOAT sqk;
+  PPPM_CFLOAT sqk;
   int nx, ny, nz, kper, lper, mper, k, l, m;
-  PPPM_FLOAT snx, sny, snz, snx2, sny2, snz2;
-  PPPM_FLOAT argx, argy, argz, wx, wy, wz, sx, sy, sz, qx, qy, qz;
-  PPPM_FLOAT sum1, dot1, dot2;
-  PPPM_FLOAT numerator, denominator;
+  PPPM_CFLOAT snx, sny, snz, snx2, sny2, snz2;
+  PPPM_CFLOAT argx, argy, argz, wx, wy, wz, sx, sy, sz, qx, qy, qz;
+  PPPM_CFLOAT sum1, dot1, dot2;
+  PPPM_CFLOAT numerator, denominator;
 
-  PPPM_FLOAT form = PPPM_F(1.0);
+  PPPM_CFLOAT form = PPPM_F(1.0);
   int n = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
   m = blockIdx.x;
   l = blockIdx.y;
@@ -188,7 +188,7 @@ __global__ void setup_greensfn(PPPM_FLOAT unitkx, PPPM_FLOAT unitky, PPPM_FLOAT 
 __global__ void poisson_scale_kernel()
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
-  FFT_FLOAT scaleinv = FFT_F(1.0) / (gridDim.x * gridDim.y * blockDim.x);
+  FFT_CFLOAT scaleinv = FFT_F(1.0) / (gridDim.x * gridDim.y * blockDim.x);
   work1[2 * i] *= scaleinv * greensfn[i];
   work1[2 * i + 1] *= scaleinv * greensfn[i];
 }
@@ -249,10 +249,10 @@ __global__ void poisson_vdz_brick_kernel(int ilo, int jlo, int klo)
 
 __global__ void poisson_energy_kernel(int nxlo_fft, int nylo_fft, int nzlo_fft, int vflag)
 {
-  ENERGY_FLOAT scaleinv = FFT_F(1.0) / (nx_pppm * ny_pppm * nz_pppm);
+  ENERGY_CFLOAT scaleinv = FFT_F(1.0) / (nx_pppm * ny_pppm * nz_pppm);
   int i = (blockIdx.x + nzlo_fft) * ny_pppm * nx_pppm + (blockIdx.y + nylo_fft) * nx_pppm + threadIdx.x + nxlo_fft;
-  ENERGY_FLOAT* s_energy = (ENERGY_FLOAT*) sharedmem;
-  ENERGY_FLOAT myenergy = scaleinv * scaleinv * greensfn[i] * (work1[2 * i] * work1[2 * i] + work1[2 * i + 1] * work1[2 * i + 1]);
+  ENERGY_CFLOAT* s_energy = (ENERGY_CFLOAT*) sharedmem;
+  ENERGY_CFLOAT myenergy = scaleinv * scaleinv * greensfn[i] * (work1[2 * i] * work1[2 * i] + work1[2 * i + 1] * work1[2 * i + 1]);
   s_energy[threadIdx.x] = myenergy;
 
   __syncthreads();
@@ -278,8 +278,8 @@ __global__ void poisson_energy_kernel(int nxlo_fft, int nylo_fft, int nzlo_fft, 
 
 __global__ void sum_energy_kernel1(int vflag)
 {
-  ENERGY_FLOAT myenergy = energy[(blockIdx.x * ny_pppm + threadIdx.x)];
-  ENERGY_FLOAT* s_energy = (ENERGY_FLOAT*) sharedmem;
+  ENERGY_CFLOAT myenergy = energy[(blockIdx.x * ny_pppm + threadIdx.x)];
+  ENERGY_CFLOAT* s_energy = (ENERGY_CFLOAT*) sharedmem;
   s_energy[threadIdx.x] = myenergy;
   __syncthreads();
   reduceBlock(s_energy);
@@ -305,8 +305,8 @@ __global__ void sum_energy_kernel1(int vflag)
 
 __global__ void sum_energy_kernel2(int vflag)
 {
-  ENERGY_FLOAT myenergy = energy[threadIdx.x * ny_pppm];
-  ENERGY_FLOAT* s_energy = (ENERGY_FLOAT*) sharedmem;
+  ENERGY_CFLOAT myenergy = energy[threadIdx.x * ny_pppm];
+  ENERGY_CFLOAT* s_energy = (ENERGY_CFLOAT*) sharedmem;
   s_energy[threadIdx.x] = myenergy;
   __syncthreads();
   reduceBlock(s_energy);
@@ -329,9 +329,9 @@ __global__ void sum_energy_kernel2(int vflag)
   }
 }
 
-__device__ PPPM_FLOAT rho1d(int k, PPPM_FLOAT d, PPPM_FLOAT* srho_coeff)
+__device__ PPPM_CFLOAT rho1d(int k, PPPM_CFLOAT d, PPPM_CFLOAT* srho_coeff)
 {
-  PPPM_FLOAT rho1d_tmp = PPPM_F(0.0);
+  PPPM_CFLOAT rho1d_tmp = PPPM_F(0.0);
 
   for(int l = order - 1; l >= 0; l--)
     rho1d_tmp = srho_coeff[l * order + k - (1 - order) / 2] + rho1d_tmp * d;
@@ -345,7 +345,7 @@ __global__ void particle_map_kernel(int* flag)
 
   if(i < nlocal) {
     int nx, ny, nz;
-    PPPM_FLOAT shift = PPPM_F(0.5) - shiftone; //+OFFSET;
+    PPPM_CFLOAT shift = PPPM_F(0.5) - shiftone; //+OFFSET;
     nx = (int)((_x[i] - _boxlo[0]) * delxinv + shift); // - OFFSET;
     ny = (int)((_x[i + nmax] - _boxlo[1]) * delyinv + shift); // - OFFSET;
     nz = (int)((_x[i + 2 * nmax] - _boxlo[2]) * delzinv + shift); // - OFFSET;
@@ -391,7 +391,7 @@ __global__ void make_rho_kernelA()
 
   if(i < nlocal) {
 
-    PPPM_FLOAT dx, dy, dz, x0, y0, z0;
+    PPPM_CFLOAT dx, dy, dz, x0, y0, z0;
     nx = part2grid[i];
     ny = part2grid[i + nmax];
     nz = part2grid[i + 2 * nmax];
@@ -442,7 +442,7 @@ __global__ void make_rho_kernel(int* flag, int read_threads_at_same_time)
   int nelements = nupper - nlower + 1;
   int* idx = (int*) sharedmem;
   int* sdensity_brick_int = &idx[blockDim.x];
-  PPPM_FLOAT* srho_coeff = (PPPM_FLOAT*) &sdensity_brick_int[nelements * blockDim.x];
+  PPPM_CFLOAT* srho_coeff = (PPPM_CFLOAT*) &sdensity_brick_int[nelements * blockDim.x];
 
   if(threadIdx.x < order * (order / 2 - (1 - order) / 2 + 1))
     srho_coeff[threadIdx.x] = rho_coeff[threadIdx.x];
@@ -454,7 +454,7 @@ __global__ void make_rho_kernel(int* flag, int read_threads_at_same_time)
   if(false) {
     if(i < nlocal) {
 
-      PPPM_FLOAT dx, dy, dz, x0, y0, z0;
+      PPPM_CFLOAT dx, dy, dz, x0, y0, z0;
       nx = part2grid[i];
       ny = part2grid[i + nmax];
       nz = part2grid[i + 2 * nmax];
@@ -497,7 +497,7 @@ __global__ void make_rho_kernel(int* flag, int read_threads_at_same_time)
   i = blockIdx.x * blockDim.x + threadIdx.x;
   {
 
-    PPPM_FLOAT dx, dy, dz, x0, y0, z0, qtmp;
+    PPPM_CFLOAT dx, dy, dz, x0, y0, z0, qtmp;
 
     if(i < nlocal) {
       qtmp = _q[i];
@@ -575,8 +575,8 @@ __global__ void fieldforce_kernel(int elements_per_thread, int read_threads_at_s
   // ek = 3 components of E-field on particle
   i = blockIdx.x * blockDim.x + threadIdx.x;
   int* idx = (int*) sharedmem;
-  PPPM_FLOAT* tmp_brick = (PPPM_FLOAT*) &idx[blockDim.x];
-  PPPM_FLOAT* srho_coeff = (PPPM_FLOAT*) &tmp_brick[3 * blockDim.x * elements_per_thread];
+  PPPM_CFLOAT* tmp_brick = (PPPM_CFLOAT*) &idx[blockDim.x];
+  PPPM_CFLOAT* srho_coeff = (PPPM_CFLOAT*) &tmp_brick[3 * blockDim.x * elements_per_thread];
 
   if(threadIdx.x < order * (order / 2 - (1 - order) / 2 + 1))
     srho_coeff[threadIdx.x] = rho_coeff[threadIdx.x];
@@ -584,8 +584,8 @@ __global__ void fieldforce_kernel(int elements_per_thread, int read_threads_at_s
   __syncthreads();
   {
     int l, m, n, nx, ny, nz, my, mz;
-    PPPM_FLOAT dx, dy, dz, x0, y0, z0;
-    PPPM_FLOAT ek[3];
+    PPPM_CFLOAT dx, dy, dz, x0, y0, z0;
+    PPPM_CFLOAT ek[3];
 
     if(i < nlocal) {
       nx = part2grid[i];
@@ -652,9 +652,9 @@ __global__ void fieldforce_kernel(int elements_per_thread, int read_threads_at_s
   }
 }
 
-__global__ void slabcorr_energy_kernel(ENERGY_FLOAT* buf)
+__global__ void slabcorr_energy_kernel(ENERGY_CFLOAT* buf)
 {
-  ENERGY_FLOAT* dipole = (ENERGY_FLOAT*) sharedmem;
+  ENERGY_CFLOAT* dipole = (ENERGY_CFLOAT*) sharedmem;
   int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   if(i < nlocal)
@@ -668,7 +668,7 @@ __global__ void slabcorr_energy_kernel(ENERGY_FLOAT* buf)
   if(threadIdx.x == 0) buf[blockIdx.x] = dipole[0];
 }
 
-__global__ void slabcorr_force_kernel(F_FLOAT ffact)
+__global__ void slabcorr_force_kernel(F_CFLOAT ffact)
 {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -677,13 +677,13 @@ __global__ void slabcorr_force_kernel(F_FLOAT ffact)
 }
 
 
-__global__ void initfftdata_core_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
+__global__ void initfftdata_core_kernel(PPPM_CFLOAT* in, FFT_CFLOAT* out)
 {
   out[2 * (((blockIdx.x * (nyhi_in - nylo_in + 1) + blockIdx.y) * (nxhi_in - nxlo_in + 1)) + threadIdx.x)] = in[(((blockIdx.x + nzlo_in - nzlo_out) * (nyhi_out - nylo_out + 1) + blockIdx.y + nylo_in - nylo_out) * (nxhi_out - nxlo_out + 1)) + threadIdx.x + nxlo_in - nxlo_out];
   out[2 * (((blockIdx.x * (nyhi_in - nylo_in + 1) + blockIdx.y) * (nxhi_in - nxlo_in + 1)) + threadIdx.x) + 1] = 0;
 }
 
-__global__ void initfftdata_z_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
+__global__ void initfftdata_z_kernel(PPPM_CFLOAT* in, FFT_CFLOAT* out)
 {
   if(slabflag) {
     if(blockIdx.x < nzlo_in - nzlo_out)
@@ -697,7 +697,7 @@ __global__ void initfftdata_z_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
     out[2 * ((((blockIdx.x) * (nyhi_in - nylo_in + 1) + blockIdx.y) * (nxhi_in - nxlo_in + 1)) + threadIdx.x)] += in[(((blockIdx.x + (nzhi_out - nzlo_in)) * (nyhi_out - nylo_out + 1) + blockIdx.y + nylo_in - nylo_out) * (nxhi_out - nxlo_out + 1)) + threadIdx.x + nxlo_in - nxlo_out];
 }
 
-__global__ void initfftdata_y_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
+__global__ void initfftdata_y_kernel(PPPM_CFLOAT* in, FFT_CFLOAT* out)
 {
   if(blockIdx.y < nylo_in - nylo_out)
     out[2 * (((blockIdx.x * (nyhi_in - nylo_in + 1) + (2 * (nyhi_in + 1) - nylo_in - nyhi_out) + blockIdx.y) * (nxhi_in - nxlo_in + 1)) + threadIdx.x)] += in[(((blockIdx.x + nzlo_in - nzlo_out) * (nyhi_out - nylo_out + 1) + blockIdx.y) * (nxhi_out - nxlo_out + 1)) + threadIdx.x + nxlo_in - nxlo_out];
@@ -706,7 +706,7 @@ __global__ void initfftdata_y_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
     out[2 * (((blockIdx.x * (nyhi_in - nylo_in + 1) + blockIdx.y) * (nxhi_in - nxlo_in + 1)) + threadIdx.x)] += in[(((blockIdx.x + nzlo_in - nzlo_out) * (nyhi_out - nylo_out + 1) + blockIdx.y + (nyhi_out - nylo_in)) * (nxhi_out - nxlo_out + 1)) + threadIdx.x + nxlo_in - nxlo_out];
 }
 
-__global__ void initfftdata_x_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
+__global__ void initfftdata_x_kernel(PPPM_CFLOAT* in, FFT_CFLOAT* out)
 {
   if(threadIdx.x < nxlo_in - nxlo_out)
     out[2 * (((blockIdx.x * (nyhi_in - nylo_in + 1) + blockIdx.y) * (nxhi_in - nxlo_in + 1)) + threadIdx.x + 2 * (nxhi_in + 1) - nxlo_in - nxhi_out)] += in[(((blockIdx.x + nzlo_in - nzlo_out) * (nyhi_out - nylo_out + 1) + blockIdx.y + nylo_in - nylo_out) * (nxhi_out - nxlo_out + 1)) + threadIdx.x];
@@ -715,7 +715,7 @@ __global__ void initfftdata_x_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
     out[2 * (((blockIdx.x * (nyhi_in - nylo_in + 1) + blockIdx.y) * (nxhi_in - nxlo_in + 1)) + threadIdx.x)] += in[(((blockIdx.x + nzlo_in - nzlo_out) * (nyhi_out - nylo_out + 1) + blockIdx.y + nylo_in - nylo_out) * (nxhi_out - nxlo_out + 1)) + threadIdx.x + nxhi_in - nxlo_out + 1];
 }
 
-__global__ void initfftdata_yz_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
+__global__ void initfftdata_yz_kernel(PPPM_CFLOAT* in, FFT_CFLOAT* out)
 {
   if(slabflag) {
     if(blockIdx.x < nzlo_in - nzlo_out)
@@ -744,7 +744,7 @@ __global__ void initfftdata_yz_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
       out[2 * (((blockIdx.x * (nyhi_in - nylo_in + 1) + blockIdx.y + 2 * (nyhi_in + 1) - nylo_in - nyhi_out) * (nxhi_in - nxlo_in + 1)) + threadIdx.x)] += in[(((blockIdx.x + nzhi_in - nzlo_out + 1) * (nyhi_out - nylo_out + 1) + blockIdx.y) * (nxhi_out - nxlo_out + 1)) + threadIdx.x + nxlo_in - nxlo_out];
 }
 
-__global__ void initfftdata_xz_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
+__global__ void initfftdata_xz_kernel(PPPM_CFLOAT* in, FFT_CFLOAT* out)
 {
   if(blockIdx.x < nzhi_out - nzhi_in)
     if(threadIdx.x < nxlo_in - nxlo_out)
@@ -773,7 +773,7 @@ __global__ void initfftdata_xz_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
   }
 }
 
-__global__ void initfftdata_xy_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
+__global__ void initfftdata_xy_kernel(PPPM_CFLOAT* in, FFT_CFLOAT* out)
 {
   if(blockIdx.y < nyhi_out - nyhi_in)
     if(threadIdx.x < nxlo_in - nxlo_out)
@@ -792,7 +792,7 @@ __global__ void initfftdata_xy_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
       out[2 * (((blockIdx.x * (nyhi_in - nylo_in + 1) + blockIdx.y + 2 * (nyhi_in + 1) - nylo_in - nyhi_out) * (nxhi_in - nxlo_in + 1)) + threadIdx.x)] += in[(((blockIdx.x + nzlo_in - nzlo_out) * (nyhi_out - nylo_out + 1) + blockIdx.y) * (nxhi_out - nxlo_out + 1)) + threadIdx.x + nxhi_in - nxlo_out + 1];
 }
 
-__global__ void initfftdata_xyz_kernel(PPPM_FLOAT* in, FFT_FLOAT* out)
+__global__ void initfftdata_xyz_kernel(PPPM_CFLOAT* in, FFT_CFLOAT* out)
 {
   if(blockIdx.x < nzhi_out - nzhi_in)
     if(blockIdx.y < nyhi_out - nyhi_in)

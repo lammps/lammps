@@ -30,10 +30,10 @@ extern "C" void pppm_device_init(void* cu_density_brick, void* cu_vdx_brick, voi
                                  , int cu_nxlo_fft, int cu_nxhi_fft, int cu_nylo_fft, int cu_nyhi_fft, int cu_nzlo_fft, int cu_nzhi_fft, void* cu_gf_b
                                  , double cu_qqrd2e, int cu_order, void* cu_rho_coeff, void* cu_debugdata, void* cu_density_brick_lock, int slabflag
                                 );
-extern "C" void pppm_device_init_setup(cuda_shared_data* sdata, PPPM_FLOAT shiftone, PPPM_FLOAT delxinv, PPPM_FLOAT delyinv, PPPM_FLOAT delzinv, int nlower, int nupper);
-extern "C" void Cuda_PPPM_Setup_fkxyz_vg(int nx_pppma, int ny_pppma, int nz_pppma, PPPM_FLOAT unitkx, PPPM_FLOAT unitky, PPPM_FLOAT unitkz, PPPM_FLOAT g_ewald);
-extern "C" void Cuda_PPPM_setup_greensfn(int nx_pppma, int ny_pppma, int nz_pppma, PPPM_FLOAT unitkx, PPPM_FLOAT unitky, PPPM_FLOAT unitkz, PPPM_FLOAT g_ewald,
-    int nbx, int nby, int nbz, PPPM_FLOAT xprd, PPPM_FLOAT yprd, PPPM_FLOAT zprd_slab);
+extern "C" void pppm_device_init_setup(cuda_shared_data* sdata, PPPM_CFLOAT shiftone, PPPM_CFLOAT delxinv, PPPM_CFLOAT delyinv, PPPM_CFLOAT delzinv, int nlower, int nupper);
+extern "C" void Cuda_PPPM_Setup_fkxyz_vg(int nx_pppma, int ny_pppma, int nz_pppma, PPPM_CFLOAT unitkx, PPPM_CFLOAT unitky, PPPM_CFLOAT unitkz, PPPM_CFLOAT g_ewald);
+extern "C" void Cuda_PPPM_setup_greensfn(int nx_pppma, int ny_pppma, int nz_pppma, PPPM_CFLOAT unitkx, PPPM_CFLOAT unitky, PPPM_CFLOAT unitkz, PPPM_CFLOAT g_ewald,
+    int nbx, int nby, int nbz, PPPM_CFLOAT xprd, PPPM_CFLOAT yprd, PPPM_CFLOAT zprd_slab);
 
 extern "C" void pppm_device_update(cuda_shared_data* sdata, void* cu_part2grid, int nlocala, int nmaxa);
 extern "C" void pppm_update_nlocal(int nlocala);
@@ -45,11 +45,11 @@ extern "C" void poisson_vdx_brick(int ihi, int ilo, int jhi, int jlo, int khi, i
 extern "C" void poisson_vdy_brick(int ihi, int ilo, int jhi, int jlo, int khi, int klo, int nx_pppm, int ny_pppm, int nz_pppm);
 extern "C" void poisson_vdz_brick(int ihi, int ilo, int jhi, int jlo, int khi, int klo, int nx_pppm, int ny_pppm, int nz_pppm);
 extern "C" void poisson_energy(int nxlo_fft, int nxhi_fft, int nylo_fft, int nyhi_fft, int nzlo_fft, int nzhi_fft, int vflag);
-extern "C" ENERGY_FLOAT sum_energy(void* cu_virial, void* cu_energy, int nx_pppma, int ny_pppma, int nz_pppma, int vflag, ENERGY_FLOAT* cpu_virial);
+extern "C" ENERGY_CFLOAT sum_energy(void* cu_virial, void* cu_energy, int nx_pppma, int ny_pppma, int nz_pppma, int vflag, ENERGY_CFLOAT* cpu_virial);
 extern "C" int cuda_particle_map(cuda_shared_data* sdata, void* flag);
-extern "C" void cuda_make_rho(cuda_shared_data* sdata, void* flag, PPPM_FLOAT* cu_density_intScale, int ihi, int ilo, int jhi, int jlo, int khi, int klo, void* cu_density_brick, void* cu_density_brick_int);
+extern "C" void cuda_make_rho(cuda_shared_data* sdata, void* flag, PPPM_CFLOAT* cu_density_intScale, int ihi, int ilo, int jhi, int jlo, int khi, int klo, void* cu_density_brick, void* cu_density_brick_int);
 extern "C" void cuda_fieldforce(cuda_shared_data* sdata, void* flag);
-extern "C" double cuda_slabcorr_energy(cuda_shared_data* sdata, ENERGY_FLOAT* buf, ENERGY_FLOAT* dev_buf);
-extern "C" void cuda_slabcorr_force(cuda_shared_data* sdata, F_FLOAT ffact);
-extern "C" void pppm_initfftdata(cuda_shared_data* sdata, PPPM_FLOAT* in, FFT_FLOAT* out);
+extern "C" double cuda_slabcorr_energy(cuda_shared_data* sdata, ENERGY_CFLOAT* buf, ENERGY_CFLOAT* dev_buf);
+extern "C" void cuda_slabcorr_force(cuda_shared_data* sdata, F_CFLOAT ffact);
+extern "C" void pppm_initfftdata(cuda_shared_data* sdata, PPPM_CFLOAT* in, FFT_CFLOAT* out);
 #endif /*PPPM_CUDA_CU_H_*/

@@ -20,13 +20,13 @@
 
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
-__device__ inline F_FLOAT PairMorseR6Cuda_Eval(const F_FLOAT &rsq, const int ij_type, F_FLOAT &factor_lj, int &eflag, ENERGY_FLOAT &evdwl)
+__device__ inline F_CFLOAT PairMorseR6Cuda_Eval(const F_CFLOAT &rsq, const int ij_type, F_CFLOAT &factor_lj, int &eflag, ENERGY_CFLOAT &evdwl)
 {
-  const F_FLOAT r2inv = F_F(1.0) / rsq;
-  const F_FLOAT r = _SQRT_(rsq);
-  const F_FLOAT r4inv = r2inv * r2inv;
-  const F_FLOAT dr = r - _r0[ij_type];
-  const F_FLOAT dexp = _EXP_(-_alpha[ij_type] * dr);
+  const F_CFLOAT r2inv = F_F(1.0) / rsq;
+  const F_CFLOAT r = _SQRT_(rsq);
+  const F_CFLOAT r4inv = r2inv * r2inv;
+  const F_CFLOAT dr = r - _r0[ij_type];
+  const F_CFLOAT dexp = _EXP_(-_alpha[ij_type] * dr);
 
   if(eflag) evdwl += factor_lj * (_d0[ij_type] * (dexp * dexp - F_F(2.0) * dexp) + _c0[ij_type] * r4inv * r4inv * r4inv
                                     - _offset[ij_type]);

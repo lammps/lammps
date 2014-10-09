@@ -1,3 +1,5 @@
+# DATE: 2009-04-15 CONTRIBUTOR: Stephen Foiles, foiles@sandia.gov CITATION: Devanathan et al, J Nucl Mater, 253, 47 (1998)
+
 # Tersoff parameters for various elements and mixtures
 # multiple entries can be added to this file, LAMMPS reads the ones it needs
 # these entries are in LAMMPS "metal" units:

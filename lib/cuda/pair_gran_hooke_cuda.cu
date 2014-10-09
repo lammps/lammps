@@ -37,10 +37,10 @@
 void Cuda_PairGranHookeCuda_UpdateBuffer(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
 {
   CUT_CHECK_ERROR("Cuda_PairGranHookeCuda: before updateBuffer failed");
-  int3 layout = getgrid(sneighlist->inum, 7 * sizeof(ENERGY_FLOAT));
+  int3 layout = getgrid(sneighlist->inum, 7 * sizeof(ENERGY_CFLOAT));
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
-  int size = (unsigned)(layout.y * layout.x) * 7 * sizeof(ENERGY_FLOAT);
+  int size = (unsigned)(layout.y * layout.x) * 7 * sizeof(ENERGY_CFLOAT);
 
   if(sdata->buffersize < size) {
     MYDBG(printf("Cuda_PairGranHookeCuda Resizing Buffer at %p with %i kB to\n", sdata->buffer, sdata->buffersize);)
@@ -72,15 +72,15 @@ void Cuda_PairGranHookeCuda_UpdateNmax(cuda_shared_data* sdata, cuda_shared_neig
   cudaMemcpyToSymbol(MY_AP(type)      , & sdata->atom.type      .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(tag)       , & sdata->atom.tag       .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(mask)      , & sdata->atom.mask      .dev_data, sizeof(int*));
-  cudaMemcpyToSymbol(MY_AP(f)         , & sdata->atom.f         .dev_data, sizeof(F_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(x)         , & sdata->atom.x         .dev_data, sizeof(X_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(x_type)    , & sdata->atom.x_type    .dev_data, sizeof(X_FLOAT4*));
-  cudaMemcpyToSymbol(MY_AP(v_radius)  , & sdata->atom.v_radius  .dev_data, sizeof(V_FLOAT4*));
-  cudaMemcpyToSymbol(MY_AP(omega_rmass), & sdata->atom.omega_rmass.dev_data, sizeof(V_FLOAT4*));
-  cudaMemcpyToSymbol(MY_AP(torque)    , & sdata->atom.torque    .dev_data, sizeof(F_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(f)         , & sdata->atom.f         .dev_data, sizeof(F_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(x)         , & sdata->atom.x         .dev_data, sizeof(X_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(x_type)    , & sdata->atom.x_type    .dev_data, sizeof(X_CFLOAT4*));
+  cudaMemcpyToSymbol(MY_AP(v_radius)  , & sdata->atom.v_radius  .dev_data, sizeof(V_CFLOAT4*));
+  cudaMemcpyToSymbol(MY_AP(omega_rmass), & sdata->atom.omega_rmass.dev_data, sizeof(V_CFLOAT4*));
+  cudaMemcpyToSymbol(MY_AP(torque)    , & sdata->atom.torque    .dev_data, sizeof(F_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(maxneighbors), &sneighlist->maxneighbors	 	  , sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(eatom)     , & sdata->atom.eatom     .dev_data, sizeof(ENERGY_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(vatom)     , & sdata->atom.vatom     .dev_data, sizeof(ENERGY_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(eatom)     , & sdata->atom.eatom     .dev_data, sizeof(ENERGY_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(vatom)     , & sdata->atom.vatom     .dev_data, sizeof(ENERGY_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(debugdata) , & sdata->debugdata      		  , sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(freeze_group_bit) , & sdata->pair.freeze_group_bit, sizeof(int));
 
@@ -101,32 +101,32 @@ void Cuda_PairGranHookeCuda_Init(cuda_shared_data* sdata)
            "or ajust this in cuda_common.h\n", cuda_ntypes, CUDA_MAX_TYPES_PLUS_ONE - 1);
 
   unsigned cuda_ntypes2 = cuda_ntypes * cuda_ntypes;
-  unsigned n = sizeof(F_FLOAT) * cuda_ntypes2;
+  unsigned n = sizeof(F_CFLOAT) * cuda_ntypes2;
 
-  F_FLOAT coeffs1[cuda_ntypes2];
-  coeffs1[0] = (F_FLOAT) sdata->pair.coeff1[0][0];
-  coeffs1[1] = (F_FLOAT) sdata->pair.coeff1[0][1];
-  coeffs1[2] = (F_FLOAT) sdata->pair.coeff1[1][0];
-  F_FLOAT coeffs3[cuda_ntypes2];
-  coeffs3[0] = (F_FLOAT) sdata->pair.coeff1[1][1];
-  F_FLOAT coeffs2[cuda_ntypes2];
-  coeffs2[0] = (F_FLOAT) sdata->pair.coeff2[0][0];
-  coeffs2[1] = (F_FLOAT) sdata->pair.coeff2[0][1];
+  F_CFLOAT coeffs1[cuda_ntypes2];
+  coeffs1[0] = (F_CFLOAT) sdata->pair.coeff1[0][0];
+  coeffs1[1] = (F_CFLOAT) sdata->pair.coeff1[0][1];
+  coeffs1[2] = (F_CFLOAT) sdata->pair.coeff1[1][0];
+  F_CFLOAT coeffs3[cuda_ntypes2];
+  coeffs3[0] = (F_CFLOAT) sdata->pair.coeff1[1][1];
+  F_CFLOAT coeffs2[cuda_ntypes2];
+  coeffs2[0] = (F_CFLOAT) sdata->pair.coeff2[0][0];
+  coeffs2[1] = (F_CFLOAT) sdata->pair.coeff2[0][1];
 
 
-  X_FLOAT box_size[3] = {
+  X_CFLOAT box_size[3] = {
     sdata->domain.subhi[0] - sdata->domain.sublo[0],
     sdata->domain.subhi[1] - sdata->domain.sublo[1],
     sdata->domain.subhi[2] - sdata->domain.sublo[2]
   };
   //printf("n: %i %i\n",n,CUDA_MAX_TYPES2);
-  cudaMemcpyToSymbol(MY_AP(box_size)   , box_size                 , sizeof(X_FLOAT) * 3);
+  cudaMemcpyToSymbol(MY_AP(box_size)   , box_size                 , sizeof(X_CFLOAT) * 3);
   cudaMemcpyToSymbol(MY_AP(cuda_ntypes), & cuda_ntypes            , sizeof(unsigned));
   cudaMemcpyToSymbol(MY_AP(coeff1)        , coeffs1                   , n);
   cudaMemcpyToSymbol(MY_AP(coeff2)        , coeffs2                   , n);
   cudaMemcpyToSymbol(MY_AP(coeff3)        , coeffs3                   , n);
-  cudaMemcpyToSymbol(MY_AP(virial)     , &sdata->pair.virial.dev_data   , sizeof(ENERGY_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(eng_vdwl)     , &sdata->pair.eng_vdwl.dev_data   , sizeof(ENERGY_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(virial)     , &sdata->pair.virial.dev_data   , sizeof(ENERGY_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(eng_vdwl)     , &sdata->pair.eng_vdwl.dev_data   , sizeof(ENERGY_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(periodicity), sdata->domain.periodicity, sizeof(int) * 3);
   CUT_CHECK_ERROR("Cuda_PairGranHookeCuda: init failed");
 }
@@ -156,7 +156,7 @@ void Cuda_PairGranHookeCuda(cuda_shared_data* sdata, cuda_shared_neighlist* snei
 
   if(vflag) sharedperproc += 6;
 
-  int3 layout = getgrid(sneighlist->inum, sharedperproc * sizeof(ENERGY_FLOAT), 128);
+  int3 layout = getgrid(sneighlist->inum, sharedperproc * sizeof(ENERGY_CFLOAT), 128);
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
 
@@ -168,11 +168,11 @@ void Cuda_PairGranHookeCuda(cuda_shared_data* sdata, cuda_shared_neighlist* snei
     Cuda_PairGranHookeCuda_Init(sdata);
   }
 
-  MYDBG(printf("# CUDA: Cuda_PairGranHookeCuda: kernel start eflag: %i vflag: %i config: %i %i %i %i\n", eflag, vflag, grid.x, grid.y, threads.x, sharedperproc * sizeof(ENERGY_FLOAT)*threads.x);)
+  MYDBG(printf("# CUDA: Cuda_PairGranHookeCuda: kernel start eflag: %i vflag: %i config: %i %i %i %i\n", eflag, vflag, grid.x, grid.y, threads.x, sharedperproc * sizeof(ENERGY_CFLOAT)*threads.x);)
 
   CUT_CHECK_ERROR("Cuda_PairGranHookeCuda: (no binning) pre pair lj cut Kernel problems before kernel invocation");
-  PairGranHookeCuda_Kernel <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x>>> (eflag, vflag, eflag_atom, vflag_atom, (int**)sneighlist->firstneigh.dev_data, sneighlist->binned_id
-      , (F_FLOAT) sdata->pair.coeff1[0][0], (F_FLOAT) sdata->pair.coeff1[1][0], (F_FLOAT) sdata->pair.coeff1[1][1], (F_FLOAT) sdata->pair.coeff2[0][0]);
+  PairGranHookeCuda_Kernel <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x>>> (eflag, vflag, eflag_atom, vflag_atom, (int**)sneighlist->firstneigh.dev_data, sneighlist->binned_id
+      , (F_CFLOAT) sdata->pair.coeff1[0][0], (F_CFLOAT) sdata->pair.coeff1[1][0], (F_CFLOAT) sdata->pair.coeff1[1][1], (F_CFLOAT) sdata->pair.coeff2[0][0]);
   cudaThreadSynchronize();
   CUT_CHECK_ERROR("Cuda_PairGranHookeCuda: (no binning) pair lj cut Kernel execution failed");
 
@@ -181,7 +181,7 @@ void Cuda_PairGranHookeCuda(cuda_shared_data* sdata, cuda_shared_neighlist* snei
     grid.x = sharedperproc;
     grid.y = 1;
     threads.x = 256;
-    MY_AP(PairVirialCompute_reduce) <<< grid, threads, threads.x* sizeof(ENERGY_FLOAT)>>>(n);
+    MY_AP(PairVirialCompute_reduce) <<< grid, threads, threads.x* sizeof(ENERGY_CFLOAT)>>>(n);
     cudaThreadSynchronize();
     CUT_CHECK_ERROR("Cuda_PairGranHookeCuda: (no binning) virial compute Kernel execution failed");
   }

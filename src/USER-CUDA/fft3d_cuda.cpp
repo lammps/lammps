@@ -118,9 +118,9 @@ if(nprocs>1)
   {
         if(nprocs>1)
         {
-      if(sizeof(FFT_FLOAT)==sizeof(double))cudaMemcpy((void*) (plan->cudata2), (void*) data, plan->cudatasize/2,cudaMemcpyHostToDevice);
-      if(sizeof(FFT_FLOAT)==sizeof(float)) cudaMemcpy((void*) (plan->cudata2), (void*) data, plan->cudatasize,cudaMemcpyHostToDevice);
-      initfftdata((double*)plan->cudata2,(FFT_FLOAT*)plan->cudata,plan->nfast,plan->nmid,plan->nslow);
+      if(sizeof(FFT_CFLOAT)==sizeof(double))cudaMemcpy((void*) (plan->cudata2), (void*) data, plan->cudatasize/2,cudaMemcpyHostToDevice);
+      if(sizeof(FFT_CFLOAT)==sizeof(float)) cudaMemcpy((void*) (plan->cudata2), (void*) data, plan->cudatasize,cudaMemcpyHostToDevice);
+      initfftdata((double*)plan->cudata2,(FFT_CFLOAT*)plan->cudata,plan->nfast,plan->nmid,plan->nslow);
     }
   }
     if (flag == -1)

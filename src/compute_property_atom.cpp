@@ -330,14 +330,14 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       int flag;
       index[i] = atom->find_custom(&arg[iarg][2],flag);
       if (index[i] < 0 || flag != 0)
-        error->all(FLERR,"Compute property/atom floating point "
+        error->all(FLERR,"Compute property/atom integer "
                    "vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_iname;
     } else if (strstr(arg[iarg],"d_") == arg[iarg]) {
       int flag;
       index[i] = atom->find_custom(&arg[iarg][2],flag);
       if (index[i] < 0 || flag != 1)
-        error->all(FLERR,"Compute property/atom integer "
+        error->all(FLERR,"Compute property/atom floating point "
                    "vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_dname;
 

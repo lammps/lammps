@@ -19,7 +19,7 @@
 
 #ifdef LMP_USER_CUDA
 
-#include "cuda.h"
+#include "user_cuda.h"
 #include "comm_cuda.h"
 #include "domain_cuda.h"
 #include "neighbor_cuda.h"

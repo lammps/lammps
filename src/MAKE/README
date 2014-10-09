@@ -35,15 +35,18 @@ dir for the same thing using the Intel icc compiler instead of g++.
 
 The OPTIONS directory has several Makefiles that extend either
 Makefile.mpi or Makefile.serial to enable use of different compilers,
-different MPIs, or package and command options that LAMMPS supports.
+different MPIs, or accelerator package and command options that LAMMPS
+supports.
 
-Makefile.fftw          FFTW support added for long-range Coulombics (PPPM)
-Makefile.jpeg          JPEG support added to Makefile.mpi for dump image
-Makefile.png           PNG support added to Makefile.mpi for dump image
+--------
 
-These Makefiles are the same as Makefile.mpi except they each add
-settings for commonly used options (FFTW, JPG, PNG) to illustrate how
-they can be added to any Makefile.
+Makefile.fftw          FFTW support for long-range Coulombics (PPPM)
+Makefile.jpeg          JPEG support for dump image
+Makefile.png           PNG support for dump image
+
+These Makefiles are the same as Makefile.mpi except they add settings
+for commonly used options (FFTW, JPG, PNG) to illustrate how they can
+be added to any Makefile.
 
 --------
 
@@ -74,8 +77,8 @@ Makefile.ompi_icc       compile with OpenMPI wrapper, set compiler to Intel icc
 Makefile.serial_icc     serial build with Intel icc compiler
 Makefile.pgi            MPI guild with the PGI compiler
 
-These Makefiles adapt Makefile.mpi and Makefile.serial to
-use specific compilers.
+These Makefiles adapt Makefile.mpi and Makefile.serial to use specific
+compilers.
 
 --------
 
@@ -86,8 +89,9 @@ Makefile.ompi_native_icc     compile with Intel icc, link to OpenMPI
 
 These Makefiles show how to build with MPI support, but not using the
 MPI wrapper "mpicxx" for compiling.  Instead, g++ or icc is used
-directly to compile/link and the MPI library is linked to.  This
-requires knowing the path for the mpi.h and MPI library files.
+directly to compile and the MPI library is linked to.  This requires
+extra settings for the MPI variables to specify the MPI include and
+library files.
 
 ------------------------------------
 

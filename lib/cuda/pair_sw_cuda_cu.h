@@ -24,14 +24,14 @@
 #include "cuda_shared.h"
 
 struct ParamSW_Float {
-  F_FLOAT epsilon, sigma;
-  F_FLOAT littlea, lambda, gamma, costheta;
-  F_FLOAT biga, bigb;
-  F_FLOAT powerp, powerq;
-  F_FLOAT tol;
-  F_FLOAT cut, cutsq;
-  F_FLOAT sigma_gamma, lambda_epsilon, lambda_epsilon2;
-  F_FLOAT c1, c2, c3, c4, c5, c6;
+  F_CFLOAT epsilon, sigma;
+  F_CFLOAT littlea, lambda, gamma, costheta;
+  F_CFLOAT biga, bigb;
+  F_CFLOAT powerp, powerq;
+  F_CFLOAT tol;
+  F_CFLOAT cut, cutsq;
+  F_CFLOAT sigma_gamma, lambda_epsilon, lambda_epsilon2;
+  F_CFLOAT c1, c2, c3, c4, c5, c6;
   int ielement, jelement, kelement;
 };
 

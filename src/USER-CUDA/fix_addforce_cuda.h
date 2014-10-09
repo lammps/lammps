@@ -53,7 +53,7 @@ class FixAddForceCuda : public Fix {
   int iregion;
   double xvalue,yvalue,zvalue;
   double foriginal[4],foriginal_all[4];
-  cCudaData<double     , F_FLOAT                   , x>* cu_foriginal;
+  cCudaData<double     , F_CFLOAT                   , x>* cu_foriginal;
   int force_flag;
   int nlevels_respa;
 };

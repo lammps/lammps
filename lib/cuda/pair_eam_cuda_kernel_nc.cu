@@ -24,7 +24,7 @@
 
 
 
-static __device__ inline F_FLOAT4 fetchRhor(int i)
+static __device__ inline F_CFLOAT4 fetchRhor(int i)
 {
 #ifdef CUDA_USE_TEXTURE
 #if F_PRECISION == 1
@@ -37,7 +37,7 @@ static __device__ inline F_FLOAT4 fetchRhor(int i)
 #endif
 }
 
-static __device__ inline F_FLOAT4 fetchZ2r(int i)
+static __device__ inline F_CFLOAT4 fetchZ2r(int i)
 {
 #ifdef CUDA_USE_TEXTURE
 #if F_PRECISION == 1
@@ -52,8 +52,8 @@ static __device__ inline F_FLOAT4 fetchZ2r(int i)
 
 __global__ void PairEAMCuda_Kernel1(int eflag, int vflag, int eflag_atom, int vflag_atom)
 {
-  ENERGY_FLOAT* sharedE;
-  ENERGY_FLOAT* sharedV = &sharedmem[threadIdx.x];
+  ENERGY_CFLOAT* sharedE;
+  ENERGY_CFLOAT* sharedV = &sharedmem[threadIdx.x];
 
 
   if(eflag || eflag_atom) {
@@ -73,9 +73,9 @@ __global__ void PairEAMCuda_Kernel1(int eflag, int vflag, int eflag_atom, int vf
 
   int ii = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
-  X_FLOAT xtmp, ytmp, ztmp;
-  X_FLOAT4 myxtype;
-  F_FLOAT delx, dely, delz;
+  X_CFLOAT xtmp, ytmp, ztmp;
+  X_CFLOAT4 myxtype;
+  F_CFLOAT delx, dely, delz;
   int itype;
   int i = _nlocal;
   int jnum = 0;
@@ -109,17 +109,17 @@ __global__ void PairEAMCuda_Kernel1(int eflag, int vflag, int eflag_atom, int vf
         dely = ytmp - myxtype.y;
         delz = ztmp - myxtype.z;
         int jtype = static_cast <int>(myxtype.w);
-        const F_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+        const F_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
 
         if(rsq < _cutsq_global) {
-          F_FLOAT p = sqrt(rsq) * _rdr + F_F(1.0);
+          F_CFLOAT p = sqrt(rsq) * _rdr + F_F(1.0);
           int m = static_cast<int>(p);
           m = MIN(m, _nr - 1);
           p -= m;
           p = MIN(p, F_F(1.0));
 
           int k = (static_cast <int>(_type2rhor[jtype * _cuda_ntypes + itype]) * (_nr + 1) + m) * 2;
-          F_FLOAT4 c = fetchRhor(k + 1);
+          F_CFLOAT4 c = fetchRhor(k + 1);
           _rho[i] += ((c.w * p + c.x) * p + c.y) * p + c.z;
         }
       }
@@ -127,12 +127,12 @@ __global__ void PairEAMCuda_Kernel1(int eflag, int vflag, int eflag_atom, int vf
 
   if(ii < _inum) {
 
-    F_FLOAT p = _rho[i] * _rdrho + F_F(1.0);
+    F_CFLOAT p = _rho[i] * _rdrho + F_F(1.0);
     int m = static_cast<int>(p);
     m = MAX(1, MIN(m, _nrho - 1));
     p -= m;
     p = MIN(p, F_F(1.0));
-    F_FLOAT* coeff = &_frho_spline[(static_cast <int>(_type2frho[itype]) * (_nrho + 1) + m) * EAM_COEFF_LENGTH];
+    F_CFLOAT* coeff = &_frho_spline[(static_cast <int>(_type2frho[itype]) * (_nrho + 1) + m) * EAM_COEFF_LENGTH];
     _fp[i] = (coeff[0] * p + coeff[1]) * p + coeff[2];
 
     if(eflag || eflag_atom) {
@@ -148,17 +148,17 @@ __global__ void PairEAMCuda_Kernel1(int eflag, int vflag, int eflag_atom, int vf
       _eatom[i] += sharedmem[threadIdx.x];
 
     reduceBlock(sharedmem);
-    ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+    ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
     buffer[blockIdx.x * gridDim.y + blockIdx.y] = ENERGY_F(2.0) * sharedmem[0];
   }
 }
 
 __global__ void PairEAMCuda_Kernel2(int eflag, int vflag, int eflag_atom, int vflag_atom)
 {
-  ENERGY_FLOAT evdwl = ENERGY_F(0.0);
+  ENERGY_CFLOAT evdwl = ENERGY_F(0.0);
 
-  ENERGY_FLOAT* sharedE;
-  ENERGY_FLOAT* sharedV = &sharedmem[threadIdx.x];
+  ENERGY_CFLOAT* sharedE;
+  ENERGY_CFLOAT* sharedV = &sharedmem[threadIdx.x];
 
 
   if(eflag || eflag_atom) {
@@ -178,10 +178,10 @@ __global__ void PairEAMCuda_Kernel2(int eflag, int vflag, int eflag_atom, int vf
 
   int ii = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
-  X_FLOAT xtmp, ytmp, ztmp;
-  X_FLOAT4 myxtype;
-  F_FLOAT fxtmp, fytmp, fztmp, fpair;
-  F_FLOAT delx, dely, delz;
+  X_CFLOAT xtmp, ytmp, ztmp;
+  X_CFLOAT4 myxtype;
+  F_CFLOAT fxtmp, fytmp, fztmp, fpair;
+  F_CFLOAT delx, dely, delz;
   int itype, i;
   int jnum = 0;
   int* jlist;
@@ -206,7 +206,7 @@ __global__ void PairEAMCuda_Kernel2(int eflag, int vflag, int eflag_atom, int vf
       _rho[i] = F_F(0.0);
   }
 
-  if(ii < gridDim.x * gridDim.y) evdwl = ((ENERGY_FLOAT*) _buffer)[ii];
+  if(ii < gridDim.x * gridDim.y) evdwl = ((ENERGY_CFLOAT*) _buffer)[ii];
 
   __syncthreads();
 
@@ -219,35 +219,35 @@ __global__ void PairEAMCuda_Kernel2(int eflag, int vflag, int eflag_atom, int vf
         dely = ytmp - myxtype.y;
         delz = ztmp - myxtype.z;
         int jtype = static_cast <int>(myxtype.w);
-        const F_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+        const F_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
 
         if(rsq < _cutsq_global) {
-          F_FLOAT r = _SQRT_(rsq);
-          F_FLOAT p = r * _rdr + F_F(1.0);
+          F_CFLOAT r = _SQRT_(rsq);
+          F_CFLOAT p = r * _rdr + F_F(1.0);
           int m = static_cast<int>(p);
           m = MIN(m, _nr - 1);
           p -= m;
           p = MIN(p, F_F(1.0));
 
           int k = (static_cast <int>(_type2rhor[itype * _cuda_ntypes + jtype]) * (_nr + 1) + m) * 2;
-          F_FLOAT4 c = fetchRhor(k);
-          F_FLOAT rhoip = (c.x * p + c.y) * p + c.z;
+          F_CFLOAT4 c = fetchRhor(k);
+          F_CFLOAT rhoip = (c.x * p + c.y) * p + c.z;
           k = (static_cast <int>(_type2rhor[jtype * _cuda_ntypes + itype]) * (_nr + 1) + m) * 2;
           c = fetchRhor(k);
-          F_FLOAT rhojp = (c.x * p + c.y) * p + c.z;
+          F_CFLOAT rhojp = (c.x * p + c.y) * p + c.z;
           k = (static_cast <int>(_type2z2r[itype * _cuda_ntypes + jtype]) * (_nr + 1) + m) * 2;
           c = fetchZ2r(k);
-          F_FLOAT z2p = (c.x * p + c.y) * p + c.z;
+          F_CFLOAT z2p = (c.x * p + c.y) * p + c.z;
           c = fetchZ2r(k + 1);
-          F_FLOAT z2 = ((c.w * p + c.x) * p + c.y) * p + c.z;
+          F_CFLOAT z2 = ((c.w * p + c.x) * p + c.y) * p + c.z;
 
-          F_FLOAT recip = F_F(1.0) / r;
-          F_FLOAT phi = z2 * recip;
-          F_FLOAT phip = z2p * recip - phi * recip;
-          F_FLOAT psip = _fp[i] * rhojp + _fp[j] * rhoip + phip;
+          F_CFLOAT recip = F_F(1.0) / r;
+          F_CFLOAT phi = z2 * recip;
+          F_CFLOAT phip = z2p * recip - phi * recip;
+          F_CFLOAT psip = _fp[i] * rhojp + _fp[j] * rhoip + phip;
           fpair = -psip * recip;
 
-          F_FLOAT dxfp, dyfp, dzfp;
+          F_CFLOAT dxfp, dyfp, dzfp;
           fxtmp += dxfp = delx * fpair;
           fytmp += dyfp = dely * fpair;
           fztmp += dzfp = delz * fpair;
@@ -268,10 +268,10 @@ __global__ void PairEAMCuda_Kernel2(int eflag, int vflag, int eflag_atom, int vf
   __syncthreads();
 
   if(ii < _inum) {
-    F_FLOAT* my_f;
+    F_CFLOAT* my_f;
 
     if(_collect_forces_later) {
-      ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+      ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
 
       if(eflag) {
         buffer = &buffer[1 * gridDim.x * gridDim.y];
@@ -281,7 +281,7 @@ __global__ void PairEAMCuda_Kernel2(int eflag, int vflag, int eflag_atom, int vf
         buffer = &buffer[6 * gridDim.x * gridDim.y];
       }
 
-      my_f = (F_FLOAT*) buffer;
+      my_f = (F_CFLOAT*) buffer;
       my_f += i;
       *my_f = fxtmp;
       my_f += _nmax;
@@ -320,7 +320,7 @@ __global__ void PairEAMCuda_Kernel2(int eflag, int vflag, int eflag_atom, int vf
   if(vflag || eflag) PairVirialCompute_A_Kernel(eflag, vflag, 0);
 }
 
-__global__ void PairEAMCuda_PackComm_Kernel(int* sendlist, int n, int maxlistlength, int iswap, F_FLOAT* buffer)
+__global__ void PairEAMCuda_PackComm_Kernel(int* sendlist, int n, int maxlistlength, int iswap, F_CFLOAT* buffer)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
   int* list = sendlist + iswap * maxlistlength;
@@ -331,7 +331,7 @@ __global__ void PairEAMCuda_PackComm_Kernel(int* sendlist, int n, int maxlistlen
   }
 }
 
-__global__ void PairEAMCuda_UnpackComm_Kernel(int n, int first, F_FLOAT* buffer)
+__global__ void PairEAMCuda_UnpackComm_Kernel(int n, int first, F_CFLOAT* buffer)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 

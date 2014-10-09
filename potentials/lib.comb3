@@ -1,4 +1,4 @@
- 0.3200000E+01  0.3700000E+01  0.2000000E+01  0.3000000E+01  0.3200000E+01  0.3700000E+01    #cccuts,radcuts,chcuts
+ 0.3200000E+01  0.3700000E+01  0.2000000E+01  0.3000000E+01  0.3200000E+01  0.3700000E+01 ### DATE: 2014-02-01 DATE: 2013-11-04 CONTRIBUTOR: Tzu-Ray Shan, tnshan@sandia.gov CITATION: Liang, Shan, Cheng, Devine, Noordhoek, Li, Lu, Phillpot and  Sinnott, Mater Sci Eng Rep, 74, 255-279 (2013) COMMENT: cccuts,radcuts,chcuts
 -0.4005944E-02  0.4719551E+00  0.1621693E+00 -0.2101856E-01  0.2410780E+00 -0.1209284E-01 -0.1471218E+00  #CH angle function when 
  4  3  1    # # of bonds for PCN,rad,tor spl
  4  4  4          # max # of PCN spline func

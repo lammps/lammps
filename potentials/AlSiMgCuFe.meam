@@ -1,3 +1,4 @@
+# DATE: 2012-06-29 CONTRIBUTOR: Greg Wagner, gjwagne@sandia.gov CITATION: Jelinek, Groh, Horstemeyer, Houze, Kim, Wagner, Moitra and Baskes, Phys Rev B, 85, 245102 (2012) 
 # MEAM Al, Si, Mg, Cu, Fe alloy potential
 # use with AlS SiS MgS CuS FeS from library.meam
 # http://dx.doi.org/10.1103/PhysRevB.85.245102

@@ -1,6 +1,6 @@
-Sourse: M.I. Mendelev, will be published
-Contact information: mendelev@ameslab.gov
+DATE: 2007-06-11 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Unknown
 Sunday, Jun 10, 2007  The potential was taken from v1_3_Cu (in C:\SIMULATION.MD\Cu-Zr\v1_3)
+################################################
 2  Cu  Zr  
 10000   3.00000000000000E-0002  10000   7.60000000000000E-0004   7.60000000000000E+0000
 29   6.35460000000000E+0001   3.63908700000000E+0000  fcc

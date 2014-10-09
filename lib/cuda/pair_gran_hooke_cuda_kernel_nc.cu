@@ -23,12 +23,12 @@
 
 
 __global__ void PairGranHookeCuda_Kernel(int eflag, int vflag, int eflag_atom, int vflag_atom, int** firstneight, int* binned_id
-    , F_FLOAT kn, F_FLOAT gamman, F_FLOAT gammat, F_FLOAT xmu)
+    , F_CFLOAT kn, F_CFLOAT gamman, F_CFLOAT gammat, F_CFLOAT xmu)
 {
-  ENERGY_FLOAT evdwl = ENERGY_F(0.0);
+  ENERGY_CFLOAT evdwl = ENERGY_F(0.0);
 
-  ENERGY_FLOAT* sharedE;
-  ENERGY_FLOAT* sharedV;
+  ENERGY_CFLOAT* sharedE;
+  ENERGY_CFLOAT* sharedV;
 
   if(eflag || eflag_atom) {
     sharedE = &sharedmem[threadIdx.x];
@@ -51,18 +51,18 @@ __global__ void PairGranHookeCuda_Kernel(int eflag, int vflag, int eflag_atom, i
 
   MYEMUDBG(if(ii == 0) printf("# CUDA: PairGranHookeCuda_Kernel: -- no binning --\n");)
 
-    X_FLOAT xtmp, ytmp, ztmp;
+    X_CFLOAT xtmp, ytmp, ztmp;
 
-  X_FLOAT4 myxtype;
-  V_FLOAT4 myvradius, ovradius;
-  F_FLOAT fxtmp, fytmp, fztmp, torquextmp, torqueytmp, torqueztmp;
-  F_FLOAT delx, dely, delz;
-  F_FLOAT radi, radj, radsum, r, rsqinv;
-  F_FLOAT vr1, vr2, vr3, vnnr, vn1, vn2, vn3, vt1, vt2, vt3;
-  F_FLOAT wr1, wr2, wr3;
-  F_FLOAT vtr1, vtr2, vtr3, vrel;
-  F_FLOAT meff, damp, ccel, tor1, tor2, tor3;
-  F_FLOAT fn, fs, ft, fs1, fs2, fs3;
+  X_CFLOAT4 myxtype;
+  V_CFLOAT4 myvradius, ovradius;
+  F_CFLOAT fxtmp, fytmp, fztmp, torquextmp, torqueytmp, torqueztmp;
+  F_CFLOAT delx, dely, delz;
+  F_CFLOAT radi, radj, radsum, r, rsqinv;
+  F_CFLOAT vr1, vr2, vr3, vnnr, vn1, vn2, vn3, vt1, vt2, vt3;
+  F_CFLOAT wr1, wr2, wr3;
+  F_CFLOAT vtr1, vtr2, vtr3, vrel;
+  F_CFLOAT meff, damp, ccel, tor1, tor2, tor3;
+  F_CFLOAT fn, fs, ft, fs1, fs2, fs3;
 
   int jnum = 0;
   int i, j;
@@ -108,10 +108,10 @@ __global__ void PairGranHookeCuda_Kernel(int eflag, int vflag, int eflag_atom, i
         radj = ovradius.w;
         radsum = radi + radj;
 
-        const F_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+        const F_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
 
         if(rsq < radsum * radsum) {
-          const F_FLOAT rinv = _RSQRT_(rsq);
+          const F_CFLOAT rinv = _RSQRT_(rsq);
           r = F_F(1.0) / rinv;
           rsqinv = F_F(1.0) / rsq;
 
@@ -135,8 +135,8 @@ __global__ void PairGranHookeCuda_Kernel(int eflag, int vflag, int eflag_atom, i
           vt3 = vr3 - vn3;
 
           // relative rotational velocity
-          V_FLOAT4 omegarmass_i = fetchOmegaRmass(i);
-          V_FLOAT4 omegarmass_j = fetchOmegaRmass(j);
+          V_CFLOAT4 omegarmass_i = fetchOmegaRmass(i);
+          V_CFLOAT4 omegarmass_j = fetchOmegaRmass(j);
 
           wr1 = (radi * omegarmass_i.x + radj * omegarmass_j.x) * rinv;
           wr2 = (radi * omegarmass_i.y + radj * omegarmass_j.y) * rinv;
@@ -165,7 +165,7 @@ __global__ void PairGranHookeCuda_Kernel(int eflag, int vflag, int eflag_atom, i
           fs2 = -ft * vtr2;
           fs3 = -ft * vtr3;
 
-          F_FLOAT dxfp, dyfp, dzfp;
+          F_CFLOAT dxfp, dyfp, dzfp;
           fxtmp += dxfp = delx * ccel + fs1;
           fytmp += dyfp = dely * ccel + fs2;
           fztmp += dzfp = delz * ccel + fs3;
@@ -194,13 +194,13 @@ __global__ void PairGranHookeCuda_Kernel(int eflag, int vflag, int eflag_atom, i
   __syncthreads();
 
   if(ii < _inum) {
-    F_FLOAT* my_f = _f + i;
+    F_CFLOAT* my_f = _f + i;
     *my_f += fxtmp;
     my_f += _nmax;
     *my_f += fytmp;
     my_f += _nmax;
     *my_f += fztmp;
-    F_FLOAT* my_torque = _torque + i;
+    F_CFLOAT* my_torque = _torque + i;
     *my_torque += torquextmp;
     my_torque += _nmax;
     *my_torque += torqueytmp;

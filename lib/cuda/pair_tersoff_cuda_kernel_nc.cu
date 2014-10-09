@@ -28,7 +28,7 @@ template <const int eflag, const int vflag>
 static inline __device__ void PairVirialCompute_A_Kernel_Template()
 {
   __syncthreads();
-  ENERGY_FLOAT* shared = sharedmem;
+  ENERGY_CFLOAT* shared = sharedmem;
 
   if(eflag) {
     reduceBlock(shared);
@@ -46,7 +46,7 @@ static inline __device__ void PairVirialCompute_A_Kernel_Template()
 
   if(threadIdx.x == 0) {
     shared = sharedmem;
-    ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+    ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
 
     if(eflag) {
       buffer[blockIdx.x * gridDim.y + blockIdx.y] = ENERGY_F(0.5) * shared[0];
@@ -70,19 +70,19 @@ static inline __device__ void PairVirialCompute_A_Kernel_Template()
 __global__ void virial_fdotr_compute_kernel(int eflag)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
-  ENERGY_FLOAT* sharedE = (ENERGY_FLOAT*) &sharedmem[0];
-  ENERGY_FLOAT* sharedVirial = (ENERGY_FLOAT*) &sharedE[blockDim.x];
+  ENERGY_CFLOAT* sharedE = (ENERGY_CFLOAT*) &sharedmem[0];
+  ENERGY_CFLOAT* sharedVirial = (ENERGY_CFLOAT*) &sharedE[blockDim.x];
   sharedE += threadIdx.x;
   sharedVirial += threadIdx.x;
 
   if(i < _nlocal) {
 
-    F_FLOAT x = _x[i];
-    F_FLOAT y = _x[i + _nmax];
-    F_FLOAT z = _x[i + 2 * _nmax];
-    F_FLOAT fx = _f[i];
-    F_FLOAT fy = _f[i + _nmax];
-    F_FLOAT fz = _f[i + 2 * _nmax];
+    F_CFLOAT x = _x[i];
+    F_CFLOAT y = _x[i + _nmax];
+    F_CFLOAT z = _x[i + 2 * _nmax];
+    F_CFLOAT fx = _f[i];
+    F_CFLOAT fy = _f[i + _nmax];
+    F_CFLOAT fz = _f[i + 2 * _nmax];
     //if(fz*z*fz*z>1e-5) printf("V %i %i %e %e %e %e %e %e\n",i,_tag[i],x,y,z,fx,fy,fz);
     sharedVirial[0] = fx * x;
     sharedVirial[1 * blockDim.x] = fy * y;
@@ -99,7 +99,7 @@ __global__ void virial_fdotr_compute_kernel(int eflag)
     sharedVirial[5 * blockDim.x] = 0;
   }
 
-  sharedVirial = (ENERGY_FLOAT*) &sharedmem[0];
+  sharedVirial = (ENERGY_CFLOAT*) &sharedmem[0];
   sharedVirial += blockDim.x;
   reduceBlockP2(sharedVirial);
   reduceBlockP2(&sharedVirial[1 * blockDim.x]);
@@ -109,7 +109,7 @@ __global__ void virial_fdotr_compute_kernel(int eflag)
   reduceBlockP2(&sharedVirial[5 * blockDim.x]);
 
   if(threadIdx.x < 6) {
-    ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+    ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
 
     if(eflag) buffer = &buffer[gridDim.x * gridDim.y];
 
@@ -122,47 +122,47 @@ __global__ void virial_fdotr_compute_kernel(int eflag)
 #define vec3_add(X,Y,Z) Z.x = X.x+Y.x;  Z.y = X.y+Y.y;  Z.z = X.z+Y.z;
 #define vec3_dot(X,Y) (X.x*Y.x + X.y*Y.y + X.z*Y.z)*/
 
-__device__ inline void vec3_scale(F_FLOAT k, F_FLOAT3 &x, F_FLOAT3 &y)
+__device__ inline void vec3_scale(F_CFLOAT k, F_CFLOAT3 &x, F_CFLOAT3 &y)
 {
   y.x = k * x.x;
   y.y = k * x.y;
   y.z = k * x.z;
 }
 
-__device__ inline void vec3_scale(F_FLOAT k, F_FLOAT4 &x, F_FLOAT3 &y)
+__device__ inline void vec3_scale(F_CFLOAT k, F_CFLOAT4 &x, F_CFLOAT3 &y)
 {
   y.x = k * x.x;
   y.y = k * x.y;
   y.z = k * x.z;
 }
 
-__device__ inline void vec3_scale(F_FLOAT k, F_FLOAT4 &x, F_FLOAT4 &y)
+__device__ inline void vec3_scale(F_CFLOAT k, F_CFLOAT4 &x, F_CFLOAT4 &y)
 {
   y.x = k * x.x;
   y.y = k * x.y;
   y.z = k * x.z;
 }
 
-__device__ inline void vec3_scaleadd(F_FLOAT k, F_FLOAT3 &x, F_FLOAT3 &y, F_FLOAT3 &z)
+__device__ inline void vec3_scaleadd(F_CFLOAT k, F_CFLOAT3 &x, F_CFLOAT3 &y, F_CFLOAT3 &z)
 {
   z.x = k * x.x + y.x;
   z.y = k * x.y + y.y;
   z.z = k * x.z + y.z;
 }
 
-__device__ inline void vec3_add(F_FLOAT3 &x, F_FLOAT3 &y, F_FLOAT3 &z)
+__device__ inline void vec3_add(F_CFLOAT3 &x, F_CFLOAT3 &y, F_CFLOAT3 &z)
 {
   z.x = x.x + y.x;
   z.y = x.y + y.y;
   z.z = x.z + y.z;
 }
 
-__device__ inline F_FLOAT vec3_dot(F_FLOAT3 x, F_FLOAT3 y)
+__device__ inline F_CFLOAT vec3_dot(F_CFLOAT3 x, F_CFLOAT3 y)
 {
   return x.x * y.x + x.y * y.y + x.z * y.z;
 }
 
-__device__ inline F_FLOAT vec3_dot(F_FLOAT4 x, F_FLOAT4 y)
+__device__ inline F_CFLOAT vec3_dot(F_CFLOAT4 x, F_CFLOAT4 y)
 {
   return x.x * y.x + x.y * y.y + x.z * y.z;
 }
@@ -171,7 +171,7 @@ __device__ inline F_FLOAT vec3_dot(F_FLOAT4 x, F_FLOAT4 y)
    Fermi-like smoothing function
 ------------------------------------------------------------------------- */
 
-__device__ inline F_FLOAT F_fermi(F_FLOAT &r, int &iparam)
+__device__ inline F_CFLOAT F_fermi(F_CFLOAT &r, int &iparam)
 {
   return F_F(1.0) / (F_F(1.0) + exp(-params[iparam].ZBLexpscale * (r - params[iparam].ZBLcut)));
 }
@@ -180,56 +180,56 @@ __device__ inline F_FLOAT F_fermi(F_FLOAT &r, int &iparam)
    Fermi-like smoothing function derivative with respect to r
 ------------------------------------------------------------------------- */
 
-__device__ inline F_FLOAT F_fermi_d(F_FLOAT &r, int &iparam)
+__device__ inline F_CFLOAT F_fermi_d(F_CFLOAT &r, int &iparam)
 {
-  volatile const F_FLOAT tmp =  exp(-params[iparam].ZBLexpscale * (r - params[iparam].ZBLcut));
+  volatile const F_CFLOAT tmp =  exp(-params[iparam].ZBLexpscale * (r - params[iparam].ZBLcut));
   return params[iparam].ZBLexpscale * tmp /
          ((F_F(1.0) + tmp) * (F_F(1.0) + tmp));
 }
 
-__device__ inline F_FLOAT ters_fc(F_FLOAT r, F_FLOAT ters_R, F_FLOAT ters_D)
+__device__ inline F_CFLOAT ters_fc(F_CFLOAT r, F_CFLOAT ters_R, F_CFLOAT ters_D)
 {
   return (r < ters_R - ters_D) ? F_F(1.0) : ((r > ters_R + ters_D) ?
          F_F(0.0) : F_F(0.5) * (F_F(1.0) - sin(PI2 * (r - ters_R) / ters_D)));
 }
 
-__device__ inline F_FLOAT ters_fc_d(F_FLOAT r, F_FLOAT ters_R, F_FLOAT ters_D)
+__device__ inline F_CFLOAT ters_fc_d(F_CFLOAT r, F_CFLOAT ters_R, F_CFLOAT ters_D)
 {
   return ((r < ters_R - ters_D) || (r > ters_R + ters_D)) ?
          F_F(0.0) : -(PI4 / ters_D) * cos(PI2 * (r - ters_R) / ters_D);
 }
 
 
-__device__ inline F_FLOAT ters_gijk(F_FLOAT &cos_theta, int iparam)
+__device__ inline F_CFLOAT ters_gijk(F_CFLOAT &cos_theta, int iparam)
 {
-  F_FLOAT ters_c = params[iparam].c;
-  F_FLOAT ters_d = params[iparam].d;
+  F_CFLOAT ters_c = params[iparam].c;
+  F_CFLOAT ters_d = params[iparam].d;
 
   return params[iparam].gamma * (F_F(1.0) + pow(params[iparam].c / params[iparam].d, F_F(2.0)) -
                                  pow(ters_c, F_F(2.0)) / (pow(ters_d, F_F(2.0)) + pow(params[iparam].h - cos_theta, F_F(2.0))));
 }
 
-__device__ F_FLOAT ters_gijk2(F_FLOAT &cos_theta, int iparam)
+__device__ F_CFLOAT ters_gijk2(F_CFLOAT &cos_theta, int iparam)
 {
-  F_FLOAT ters_c = params[iparam].c;
-  F_FLOAT ters_d = params[iparam].d;
+  F_CFLOAT ters_c = params[iparam].c;
+  F_CFLOAT ters_d = params[iparam].d;
 
   return params[iparam].gamma * (F_F(1.0) + pow(ters_c / ters_d, F_F(2.0)) -
                                  pow(ters_c, F_F(2.0)) / (pow(ters_d, F_F(2.0)) + pow(params[iparam].h - cos_theta, F_F(2.0))));
 }
 
-__device__ inline F_FLOAT ters_gijk_d(F_FLOAT costheta, int iparam)
+__device__ inline F_CFLOAT ters_gijk_d(F_CFLOAT costheta, int iparam)
 {
-  F_FLOAT numerator = -F_F(2.0) * pow(params[iparam].c, F_F(2.0)) * (params[iparam].h - costheta);
-  F_FLOAT denominator = pow(pow(params[iparam].d, F_F(2.0)) +
+  F_CFLOAT numerator = -F_F(2.0) * pow(params[iparam].c, F_F(2.0)) * (params[iparam].h - costheta);
+  F_CFLOAT denominator = pow(pow(params[iparam].d, F_F(2.0)) +
                             pow(params[iparam].h - costheta, F_F(2.0)), F_F(2.0));
   return params[iparam].gamma * numerator / denominator;
 }
 
-__device__ inline F_FLOAT zeta(int iparam, const F_FLOAT rsqij, const F_FLOAT rsqik,
-                               F_FLOAT3 &delij, F_FLOAT3 &delik)
+__device__ inline F_CFLOAT zeta(int iparam, const F_CFLOAT rsqij, const F_CFLOAT rsqik,
+                               F_CFLOAT3 &delij, F_CFLOAT3 &delik)
 {
-  F_FLOAT rij, rik, costheta, arg, ex_delr;
+  F_CFLOAT rij, rik, costheta, arg, ex_delr;
 
   rij = sqrt(rsqij);
   rik = sqrt(rsqik);
@@ -245,13 +245,13 @@ __device__ inline F_FLOAT zeta(int iparam, const F_FLOAT rsqij, const F_FLOAT rs
          (params[iparam].c * params[iparam].c) / ((params[iparam].d * params[iparam].d) + (params[iparam].h - costheta) * (params[iparam].h - costheta)));
 }
 
-__device__ void repulsive(int iparam, F_FLOAT rsq, F_FLOAT &fforce,
-                          int eflag, ENERGY_FLOAT &eng)
+__device__ void repulsive(int iparam, F_CFLOAT rsq, F_CFLOAT &fforce,
+                          int eflag, ENERGY_CFLOAT &eng)
 {
-  F_FLOAT r, tmp_fc, tmp_fc_d, tmp_exp;
+  F_CFLOAT r, tmp_fc, tmp_fc_d, tmp_exp;
 
-  F_FLOAT ters_R = params[iparam].bigr;
-  F_FLOAT ters_D = params[iparam].bigd;
+  F_CFLOAT ters_R = params[iparam].bigr;
+  F_CFLOAT ters_D = params[iparam].bigd;
   r = sqrt(rsq);
   tmp_fc = ters_fc(r, ters_R, ters_D);
   tmp_fc_d = ters_fc_d(r, ters_R, ters_D);
@@ -262,18 +262,18 @@ __device__ void repulsive(int iparam, F_FLOAT rsq, F_FLOAT &fforce,
 
     if(eflag) eng += tmp_fc * params[iparam].biga * tmp_exp;
   } else {
-    F_FLOAT const fforce_ters = params[iparam].biga * tmp_exp * (tmp_fc_d - tmp_fc * params[iparam].lam1);
-    ENERGY_FLOAT eng_ters = tmp_fc * params[iparam].biga * tmp_exp;
+    F_CFLOAT const fforce_ters = params[iparam].biga * tmp_exp * (tmp_fc_d - tmp_fc * params[iparam].lam1);
+    ENERGY_CFLOAT eng_ters = tmp_fc * params[iparam].biga * tmp_exp;
 
-    F_FLOAT r_ov_a = r / params[iparam].a_ij;
-    F_FLOAT phi = F_F(0.1818) * exp(-F_F(3.2) * r_ov_a) + F_F(0.5099) * exp(-F_F(0.9423) * r_ov_a) +
+    F_CFLOAT r_ov_a = r / params[iparam].a_ij;
+    F_CFLOAT phi = F_F(0.1818) * exp(-F_F(3.2) * r_ov_a) + F_F(0.5099) * exp(-F_F(0.9423) * r_ov_a) +
                   F_F(0.2802) * exp(-F_F(0.4029) * r_ov_a) + F_F(0.02817) * exp(-F_F(0.2016) * r_ov_a);
-    F_FLOAT dphi = (F_F(1.0) / params[iparam].a_ij) * (-F_F(3.2) * F_F(0.1818) * exp(-F_F(3.2) * r_ov_a) -
+    F_CFLOAT dphi = (F_F(1.0) / params[iparam].a_ij) * (-F_F(3.2) * F_F(0.1818) * exp(-F_F(3.2) * r_ov_a) -
                    F_F(0.9423) * F_F(0.5099) * exp(-F_F(0.9423) * r_ov_a) -
                    F_F(0.4029) * F_F(0.2802) * exp(-F_F(0.4029) * r_ov_a) -
                    F_F(0.2016) * F_F(0.02817) * exp(-F_F(0.2016) * r_ov_a));
-    F_FLOAT fforce_ZBL = params[iparam].premult / (-r * r) * phi + params[iparam].premult / r * dphi;
-    ENERGY_FLOAT eng_ZBL = params[iparam].premult * (F_F(1.0) / r) * phi;
+    F_CFLOAT fforce_ZBL = params[iparam].premult / (-r * r) * phi + params[iparam].premult / r * dphi;
+    ENERGY_CFLOAT eng_ZBL = params[iparam].premult * (F_F(1.0) / r) * phi;
 
     fforce = -(-F_fermi_d(r, iparam) * (eng_ZBL - eng_ters) + fforce_ZBL + F_fermi(r, iparam) * (fforce_ters - fforce_ZBL)) / r;
 
@@ -286,7 +286,7 @@ __device__ void repulsive(int iparam, F_FLOAT rsq, F_FLOAT &fforce,
 
 /* ---------------------------------------------------------------------- */
 
-__device__ inline F_FLOAT ters_fa(F_FLOAT r, int iparam, F_FLOAT ters_R, F_FLOAT ters_D)
+__device__ inline F_CFLOAT ters_fa(F_CFLOAT r, int iparam, F_CFLOAT ters_R, F_CFLOAT ters_D)
 {
   if(r > ters_R + ters_D) return F_F(0.0);
 
@@ -298,7 +298,7 @@ __device__ inline F_FLOAT ters_fa(F_FLOAT r, int iparam, F_FLOAT ters_R, F_FLOAT
 
 /* ---------------------------------------------------------------------- */
 
-__device__ inline F_FLOAT ters_fa_d(F_FLOAT r, int iparam, F_FLOAT ters_R, F_FLOAT ters_D)
+__device__ inline F_CFLOAT ters_fa_d(F_CFLOAT r, int iparam, F_CFLOAT ters_R, F_CFLOAT ters_D)
 {
   if(r > ters_R + ters_D) return F_F(0.0);
 
@@ -313,9 +313,9 @@ __device__ inline F_FLOAT ters_fa_d(F_FLOAT r, int iparam, F_FLOAT ters_R, F_FLO
 
 /* ---------------------------------------------------------------------- */
 
-__device__ inline F_FLOAT ters_bij(F_FLOAT zeta, int iparam)
+__device__ inline F_CFLOAT ters_bij(F_CFLOAT zeta, int iparam)
 {
-  F_FLOAT tmp = params[iparam].beta * zeta;
+  F_CFLOAT tmp = params[iparam].beta * zeta;
 
   if(tmp > params[iparam].c1) return F_F(1.0) / sqrt(tmp);
 
@@ -332,9 +332,9 @@ __device__ inline F_FLOAT ters_bij(F_FLOAT zeta, int iparam)
 
 /* ---------------------------------------------------------------------- */
 
-__device__ inline F_FLOAT ters_bij_d(F_FLOAT zeta, int iparam)
+__device__ inline F_CFLOAT ters_bij_d(F_CFLOAT zeta, int iparam)
 {
-  F_FLOAT tmp = params[iparam].beta * zeta;
+  F_CFLOAT tmp = params[iparam].beta * zeta;
 
   if(tmp > params[iparam].c1) return params[iparam].beta * -F_F(0.5) * pow(tmp, -F_F(1.5));
 
@@ -348,17 +348,17 @@ __device__ inline F_FLOAT ters_bij_d(F_FLOAT zeta, int iparam)
   if(tmp < params[iparam].c3)
     return -F_F(0.5) * params[iparam].beta * pow(tmp, params[iparam].powern - F_F(1.0));
 
-  F_FLOAT tmp_n = pow(tmp, params[iparam].powern);
+  F_CFLOAT tmp_n = pow(tmp, params[iparam].powern);
   return -F_F(0.5) * pow(F_F(1.0) + tmp_n, -F_F(1.0) - (F_F(1.0) / (F_F(2.0) * params[iparam].powern))) * tmp_n / zeta;
 }
 
-__device__ void force_zeta(int iparam, F_FLOAT rsq, F_FLOAT zeta_ij,
-                           F_FLOAT &fforce, F_FLOAT &prefactor,
-                           int eflag, F_FLOAT &eng)
+__device__ void force_zeta(int iparam, F_CFLOAT rsq, F_CFLOAT zeta_ij,
+                           F_CFLOAT &fforce, F_CFLOAT &prefactor,
+                           int eflag, F_CFLOAT &eng)
 {
-  F_FLOAT r, fa, fa_d, bij;
-  F_FLOAT ters_R = params[iparam].bigr;
-  F_FLOAT ters_D = params[iparam].bigd;
+  F_CFLOAT r, fa, fa_d, bij;
+  F_CFLOAT ters_R = params[iparam].bigr;
+  F_CFLOAT ters_D = params[iparam].bigd;
   r = sqrt(rsq);
   fa = ters_fa(r, iparam, ters_R, ters_D);
   fa_d = ters_fa_d(r, iparam, ters_R, ters_D);
@@ -369,12 +369,12 @@ __device__ void force_zeta(int iparam, F_FLOAT rsq, F_FLOAT zeta_ij,
   if(eflag) eng += bij * fa;
 }
 
-__device__ void force_zeta_prefactor_force(int iparam, F_FLOAT rsq, F_FLOAT zeta_ij,
-    F_FLOAT &fforce, F_FLOAT &prefactor)
+__device__ void force_zeta_prefactor_force(int iparam, F_CFLOAT rsq, F_CFLOAT zeta_ij,
+    F_CFLOAT &fforce, F_CFLOAT &prefactor)
 {
-  F_FLOAT r, fa, fa_d, bij;
-  F_FLOAT ters_R = params[iparam].bigr;
-  F_FLOAT ters_D = params[iparam].bigd;
+  F_CFLOAT r, fa, fa_d, bij;
+  F_CFLOAT ters_R = params[iparam].bigr;
+  F_CFLOAT ters_D = params[iparam].bigd;
   r = sqrt(rsq);
   fa = ters_fa(r, iparam, ters_R, ters_D);
   fa_d = ters_fa_d(r, iparam, ters_R, ters_D);
@@ -383,23 +383,23 @@ __device__ void force_zeta_prefactor_force(int iparam, F_FLOAT rsq, F_FLOAT zeta
   prefactor = -F_F(0.5) * fa * ters_bij_d(zeta_ij, iparam);
 }
 
-__device__ void force_zeta_prefactor(int iparam, F_FLOAT rsq, F_FLOAT zeta_ij,
-                                     F_FLOAT &prefactor)
+__device__ void force_zeta_prefactor(int iparam, F_CFLOAT rsq, F_CFLOAT zeta_ij,
+                                     F_CFLOAT &prefactor)
 {
-  F_FLOAT r, fa;
+  F_CFLOAT r, fa;
   r = sqrt(rsq);
   fa = ters_fa(r, iparam, params[iparam].bigr, params[iparam].bigd);
   prefactor = -F_F(0.5) * fa * ters_bij_d(zeta_ij, iparam);
 }
 
 
-__device__ void costheta_d(F_FLOAT3 &rij_hat, F_FLOAT &rij,
-                           F_FLOAT3 &rik_hat, F_FLOAT &rik,
-                           F_FLOAT3 &dri, F_FLOAT3 &drj, F_FLOAT3 &drk)
+__device__ void costheta_d(F_CFLOAT3 &rij_hat, F_CFLOAT &rij,
+                           F_CFLOAT3 &rik_hat, F_CFLOAT &rik,
+                           F_CFLOAT3 &dri, F_CFLOAT3 &drj, F_CFLOAT3 &drk)
 {
   // first element is derivative wrt Ri, second wrt Rj, third wrt Rk
 
-  F_FLOAT cos_theta = vec3_dot(rij_hat, rik_hat);
+  F_CFLOAT cos_theta = vec3_dot(rij_hat, rik_hat);
 
   vec3_scaleadd(-cos_theta, rij_hat, rik_hat, drj);
   vec3_scale(F_F(1.0) / rij, drj, drj);
@@ -409,14 +409,14 @@ __device__ void costheta_d(F_FLOAT3 &rij_hat, F_FLOAT &rij,
   vec3_scale(-F_F(1.0), dri, dri);
 }
 
-__device__ void ters_zetaterm_d(F_FLOAT prefactor,
-                                F_FLOAT3 &rij_hat, F_FLOAT rij,
-                                F_FLOAT3 &rik_hat, F_FLOAT rik,
-                                F_FLOAT3 &dri, F_FLOAT3 &drj, F_FLOAT3 &drk,
+__device__ void ters_zetaterm_d(F_CFLOAT prefactor,
+                                F_CFLOAT3 &rij_hat, F_CFLOAT rij,
+                                F_CFLOAT3 &rik_hat, F_CFLOAT rik,
+                                F_CFLOAT3 &dri, F_CFLOAT3 &drj, F_CFLOAT3 &drk,
                                 int iparam)
 {
-  F_FLOAT ex_delr, ex_delr_d, tmp;
-  F_FLOAT3 dcosdri, dcosdrj, dcosdrk;
+  F_CFLOAT ex_delr, ex_delr_d, tmp;
+  F_CFLOAT3 dcosdri, dcosdrj, dcosdrk;
 
   if(params[iparam].powermint == 3) tmp = (params[iparam].lam3 * (rij - rik) * params[iparam].lam3 * (rij - rik) * params[iparam].lam3 * (rij - rik));
   else tmp = params[iparam].lam3 * (rij - rik);
@@ -430,20 +430,20 @@ __device__ void ters_zetaterm_d(F_FLOAT prefactor,
   else ex_delr_d = params[iparam].lam3 * ex_delr;
 
 
-  const F_FLOAT cos_theta = vec3_dot(rij_hat, rik_hat);
+  const F_CFLOAT cos_theta = vec3_dot(rij_hat, rik_hat);
   costheta_d(rij_hat, rij, rik_hat, rik, dcosdri, dcosdrj, dcosdrk);
 
-  const F_FLOAT gijk = params[iparam].gamma * (F_F(1.0) + (params[iparam].c * params[iparam].c) / (params[iparam].d * params[iparam].d) -
+  const F_CFLOAT gijk = params[iparam].gamma * (F_F(1.0) + (params[iparam].c * params[iparam].c) / (params[iparam].d * params[iparam].d) -
                        (params[iparam].c * params[iparam].c) / (params[iparam].d * params[iparam].d + (params[iparam].h - cos_theta) * (params[iparam].h - cos_theta)));
-  const F_FLOAT numerator = -F_F(2.0) * params[iparam].c * params[iparam].c * (params[iparam].h - cos_theta);
-  const F_FLOAT denominator = (params[iparam].d * params[iparam].d) +
+  const F_CFLOAT numerator = -F_F(2.0) * params[iparam].c * params[iparam].c * (params[iparam].h - cos_theta);
+  const F_CFLOAT denominator = (params[iparam].d * params[iparam].d) +
                               (params[iparam].h - cos_theta) * (params[iparam].h - cos_theta);
-  const F_FLOAT gijk_d = params[iparam].gamma * numerator / (denominator * denominator); // compute the derivative wrt Ri
+  const F_CFLOAT gijk_d = params[iparam].gamma * numerator / (denominator * denominator); // compute the derivative wrt Ri
   // dri = -dfc*gijk*ex_delr*rik_hat;
   // dri += fc*gijk_d*ex_delr*dcosdri;
   // dri += fc*gijk*ex_delr_d*(rik_hat - rij_hat);
-  const F_FLOAT fc = ters_fc(rik, params[iparam].bigr, params[iparam].bigd);
-  const F_FLOAT dfc = ters_fc_d(rik, params[iparam].bigr, params[iparam].bigd);
+  const F_CFLOAT fc = ters_fc(rik, params[iparam].bigr, params[iparam].bigd);
+  const F_CFLOAT dfc = ters_fc_d(rik, params[iparam].bigr, params[iparam].bigd);
 
 
   vec3_scale(-dfc * gijk * ex_delr, rik_hat, dri);
@@ -470,12 +470,12 @@ __device__ void ters_zetaterm_d(F_FLOAT prefactor,
   vec3_scale(prefactor, drk, drk);
 }
 
-__device__ void ters_zetaterm_d_fi(F_FLOAT &prefactor,
-                                   F_FLOAT3 &rij_hat, F_FLOAT &rij,
-                                   F_FLOAT3 &rik_hat, F_FLOAT &rik,
-                                   F_FLOAT3 &dri,  int &iparam)
+__device__ void ters_zetaterm_d_fi(F_CFLOAT &prefactor,
+                                   F_CFLOAT3 &rij_hat, F_CFLOAT &rij,
+                                   F_CFLOAT3 &rik_hat, F_CFLOAT &rik,
+                                   F_CFLOAT3 &dri,  int &iparam)
 {
-  F_FLOAT ex_delr, ex_delr_d, tmp;
+  F_CFLOAT ex_delr, ex_delr_d, tmp;
 
   if(params[iparam].powermint == 3) tmp = (params[iparam].lam3 * (rij - rik) * params[iparam].lam3 * (rij - rik) * params[iparam].lam3 * (rij - rik));
   else tmp = params[iparam].lam3 * (rij - rik);
@@ -488,11 +488,11 @@ __device__ void ters_zetaterm_d_fi(F_FLOAT &prefactor,
     ex_delr_d = F_F(3.0) * (params[iparam].lam3 * params[iparam].lam3 * params[iparam].lam3) * (rij - rik) * (rij - rik) * ex_delr;
   else ex_delr_d = params[iparam].lam3 * ex_delr;
 
-  const F_FLOAT cos_theta = vec3_dot(rij_hat, rik_hat);
+  const F_CFLOAT cos_theta = vec3_dot(rij_hat, rik_hat);
   //costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
 
 
-  F_FLOAT3 dcosdri;
+  F_CFLOAT3 dcosdri;
   vec3_scaleadd(-cos_theta, rij_hat, rik_hat, dri);
   vec3_scale(F_F(1.0) / rij, dri, dri);
   vec3_scaleadd(-cos_theta, rik_hat, rij_hat, dcosdri);
@@ -500,15 +500,15 @@ __device__ void ters_zetaterm_d_fi(F_FLOAT &prefactor,
   vec3_add(dri, dcosdri, dcosdri);
   vec3_scale(-F_F(1.0), dcosdri, dcosdri);
 
-  const F_FLOAT gijk = params[iparam].gamma * (F_F(1.0) + (params[iparam].c * params[iparam].c) / (params[iparam].d * params[iparam].d) -
+  const F_CFLOAT gijk = params[iparam].gamma * (F_F(1.0) + (params[iparam].c * params[iparam].c) / (params[iparam].d * params[iparam].d) -
                        (params[iparam].c * params[iparam].c) / (params[iparam].d * params[iparam].d + (params[iparam].h - cos_theta) * (params[iparam].h - cos_theta)));
-  const F_FLOAT numerator = -F_F(2.0) * params[iparam].c * params[iparam].c * (params[iparam].h - cos_theta);
-  const F_FLOAT denominator = (params[iparam].d * params[iparam].d) +
+  const F_CFLOAT numerator = -F_F(2.0) * params[iparam].c * params[iparam].c * (params[iparam].h - cos_theta);
+  const F_CFLOAT denominator = (params[iparam].d * params[iparam].d) +
                               (params[iparam].h - cos_theta) * (params[iparam].h - cos_theta);
-  const F_FLOAT gijk_d = params[iparam].gamma * numerator / (denominator * denominator); // compute the derivative wrt Ri
+  const F_CFLOAT gijk_d = params[iparam].gamma * numerator / (denominator * denominator); // compute the derivative wrt Ri
   //
-  const F_FLOAT fc = ters_fc(rik, params[iparam].bigr, params[iparam].bigd);
-  const F_FLOAT dfc = ters_fc_d(rik, params[iparam].bigr, params[iparam].bigd);
+  const F_CFLOAT fc = ters_fc(rik, params[iparam].bigr, params[iparam].bigd);
+  const F_CFLOAT dfc = ters_fc_d(rik, params[iparam].bigr, params[iparam].bigd);
 
   vec3_scale(-dfc * gijk * ex_delr, rik_hat, dri);
   vec3_scaleadd(fc * gijk_d * ex_delr, dcosdri, dri, dri);
@@ -518,12 +518,12 @@ __device__ void ters_zetaterm_d_fi(F_FLOAT &prefactor,
 
 }
 
-__device__ void ters_zetaterm_d_fj(F_FLOAT &prefactor,
-                                   F_FLOAT3 &rij_hat, F_FLOAT &rij,
-                                   F_FLOAT3 &rik_hat, F_FLOAT &rik,
-                                   F_FLOAT3 &drj, int &iparam)
+__device__ void ters_zetaterm_d_fj(F_CFLOAT &prefactor,
+                                   F_CFLOAT3 &rij_hat, F_CFLOAT &rij,
+                                   F_CFLOAT3 &rik_hat, F_CFLOAT &rik,
+                                   F_CFLOAT3 &drj, int &iparam)
 {
-  F_FLOAT ex_delr, ex_delr_d, tmp;
+  F_CFLOAT ex_delr, ex_delr_d, tmp;
 
   if(params[iparam].powermint == 3) tmp = (params[iparam].lam3 * (rij - rik) * params[iparam].lam3 * (rij - rik) * params[iparam].lam3 * (rij - rik));
   else tmp = params[iparam].lam3 * (rij - rik);
@@ -536,30 +536,30 @@ __device__ void ters_zetaterm_d_fj(F_FLOAT &prefactor,
     ex_delr_d = F_F(3.0) * (params[iparam].lam3 * params[iparam].lam3 * params[iparam].lam3) * (rij - rik) * (rij - rik) * ex_delr;
   else ex_delr_d = params[iparam].lam3 * ex_delr;
 
-  const F_FLOAT cos_theta = vec3_dot(rij_hat, rik_hat);
+  const F_CFLOAT cos_theta = vec3_dot(rij_hat, rik_hat);
   vec3_scaleadd(-cos_theta, rij_hat, rik_hat, drj);
   vec3_scale(F_F(1.0) / rij, drj, drj);
 
-  const F_FLOAT gijk = params[iparam].gamma * (F_F(1.0) + (params[iparam].c * params[iparam].c) / (params[iparam].d * params[iparam].d) -
+  const F_CFLOAT gijk = params[iparam].gamma * (F_F(1.0) + (params[iparam].c * params[iparam].c) / (params[iparam].d * params[iparam].d) -
                        (params[iparam].c * params[iparam].c) / (params[iparam].d * params[iparam].d + (params[iparam].h - cos_theta) * (params[iparam].h - cos_theta)));
-  const F_FLOAT numerator = -F_F(2.0) * params[iparam].c * params[iparam].c * (params[iparam].h - cos_theta);
-  const F_FLOAT denominator = (params[iparam].d * params[iparam].d) +
+  const F_CFLOAT numerator = -F_F(2.0) * params[iparam].c * params[iparam].c * (params[iparam].h - cos_theta);
+  const F_CFLOAT denominator = (params[iparam].d * params[iparam].d) +
                               (params[iparam].h - cos_theta) * (params[iparam].h - cos_theta);
-  const F_FLOAT gijk_d = params[iparam].gamma * numerator / (denominator * denominator); // compute the derivative wrt Ri
+  const F_CFLOAT gijk_d = params[iparam].gamma * numerator / (denominator * denominator); // compute the derivative wrt Ri
 
-  const F_FLOAT fc = ters_fc(rik, params[iparam].bigr, params[iparam].bigd);
+  const F_CFLOAT fc = ters_fc(rik, params[iparam].bigr, params[iparam].bigd);
 
   vec3_scale(fc * gijk_d * ex_delr, drj, drj);
   vec3_scaleadd(fc * gijk * ex_delr_d, rij_hat, drj, drj);
   vec3_scale(prefactor, drj, drj);
 }
 
-__device__ void ters_zetaterm_d_fk(F_FLOAT &prefactor,
-                                   F_FLOAT3 &rij_hat, F_FLOAT &rij,
-                                   F_FLOAT3 &rik_hat, F_FLOAT &rik,
-                                   F_FLOAT3 &drk, int &iparam)
+__device__ void ters_zetaterm_d_fk(F_CFLOAT &prefactor,
+                                   F_CFLOAT3 &rij_hat, F_CFLOAT &rij,
+                                   F_CFLOAT3 &rik_hat, F_CFLOAT &rik,
+                                   F_CFLOAT3 &drk, int &iparam)
 {
-  F_FLOAT ex_delr, ex_delr_d, tmp;
+  F_CFLOAT ex_delr, ex_delr_d, tmp;
 
   if(params[iparam].powermint == 3) tmp = (params[iparam].lam3 * (rij - rik) * params[iparam].lam3 * (rij - rik) * params[iparam].lam3 * (rij - rik));
   else tmp = params[iparam].lam3 * (rij - rik);
@@ -572,19 +572,19 @@ __device__ void ters_zetaterm_d_fk(F_FLOAT &prefactor,
     ex_delr_d = F_F(3.0) * (params[iparam].lam3 * params[iparam].lam3 * params[iparam].lam3) * (rij - rik) * (rij - rik) * ex_delr;
   else ex_delr_d = params[iparam].lam3 * ex_delr;
 
-  const F_FLOAT cos_theta = vec3_dot(rij_hat, rik_hat);
+  const F_CFLOAT cos_theta = vec3_dot(rij_hat, rik_hat);
   vec3_scaleadd(-cos_theta, rik_hat, rij_hat, drk);
   vec3_scale(F_F(1.0) / rik, drk, drk);
 
-  const F_FLOAT gijk = params[iparam].gamma * (F_F(1.0) + (params[iparam].c * params[iparam].c) / (params[iparam].d * params[iparam].d) -
+  const F_CFLOAT gijk = params[iparam].gamma * (F_F(1.0) + (params[iparam].c * params[iparam].c) / (params[iparam].d * params[iparam].d) -
                        (params[iparam].c * params[iparam].c) / (params[iparam].d * params[iparam].d + (params[iparam].h - cos_theta) * (params[iparam].h - cos_theta)));
-  const F_FLOAT numerator = -F_F(2.0) * params[iparam].c * params[iparam].c * (params[iparam].h - cos_theta);
-  const F_FLOAT denominator = (params[iparam].d * params[iparam].d) +
+  const F_CFLOAT numerator = -F_F(2.0) * params[iparam].c * params[iparam].c * (params[iparam].h - cos_theta);
+  const F_CFLOAT denominator = (params[iparam].d * params[iparam].d) +
                               (params[iparam].h - cos_theta) * (params[iparam].h - cos_theta);
-  const F_FLOAT gijk_d = params[iparam].gamma * numerator / (denominator * denominator); // compute the derivative wrt Ri
+  const F_CFLOAT gijk_d = params[iparam].gamma * numerator / (denominator * denominator); // compute the derivative wrt Ri
 
-  const F_FLOAT fc = ters_fc(rik, params[iparam].bigr, params[iparam].bigd);
-  const F_FLOAT dfc = ters_fc_d(rik, params[iparam].bigr, params[iparam].bigd);
+  const F_CFLOAT fc = ters_fc(rik, params[iparam].bigr, params[iparam].bigd);
+  const F_CFLOAT dfc = ters_fc_d(rik, params[iparam].bigr, params[iparam].bigd);
 
   vec3_scale(fc * gijk_d * ex_delr, drk, drk);
   vec3_scaleadd(dfc * gijk * ex_delr, rik_hat, drk, drk);
@@ -592,13 +592,13 @@ __device__ void ters_zetaterm_d_fk(F_FLOAT &prefactor,
   vec3_scale(prefactor, drk, drk);
 }
 
-__device__ void attractive(int iparam, F_FLOAT prefactor,
-                           F_FLOAT4 &delij,
-                           F_FLOAT4 &delik,
-                           F_FLOAT3 &fi, F_FLOAT3 &fj, F_FLOAT3 &fk)
+__device__ void attractive(int iparam, F_CFLOAT prefactor,
+                           F_CFLOAT4 &delij,
+                           F_CFLOAT4 &delik,
+                           F_CFLOAT3 &fi, F_CFLOAT3 &fj, F_CFLOAT3 &fk)
 {
-  F_FLOAT3 rij_hat, rik_hat;
-  F_FLOAT rij, rijinv, rik, rikinv;
+  F_CFLOAT3 rij_hat, rik_hat;
+  F_CFLOAT rij, rijinv, rik, rikinv;
 
   rij = sqrt(delij.w);
   rijinv = F_F(1.0) / rij;
@@ -611,13 +611,13 @@ __device__ void attractive(int iparam, F_FLOAT prefactor,
   ters_zetaterm_d(prefactor, rij_hat, rij, rik_hat, rik, fi, fj, fk, iparam);
 }
 
-__device__ void attractive_fi(int &iparam, F_FLOAT &prefactor,
-                              F_FLOAT4 &delij,
-                              F_FLOAT4 &delik,
-                              F_FLOAT3 &f)
+__device__ void attractive_fi(int &iparam, F_CFLOAT &prefactor,
+                              F_CFLOAT4 &delij,
+                              F_CFLOAT4 &delik,
+                              F_CFLOAT3 &f)
 {
-  F_FLOAT3 rij_hat, rik_hat;
-  F_FLOAT rij, rijinv, rik, rikinv;
+  F_CFLOAT3 rij_hat, rik_hat;
+  F_CFLOAT rij, rijinv, rik, rikinv;
 
   rij = sqrt(delij.w);
   rijinv = F_F(1.0) / rij;
@@ -630,13 +630,13 @@ __device__ void attractive_fi(int &iparam, F_FLOAT &prefactor,
   ters_zetaterm_d_fi(prefactor, rij_hat, rij, rik_hat, rik, f, iparam);
 }
 
-__device__ void attractive_fj(int iparam, F_FLOAT prefactor,
-                              F_FLOAT4 &delij,
-                              F_FLOAT4 &delik,
-                              F_FLOAT3 &f)
+__device__ void attractive_fj(int iparam, F_CFLOAT prefactor,
+                              F_CFLOAT4 &delij,
+                              F_CFLOAT4 &delik,
+                              F_CFLOAT3 &f)
 {
-  F_FLOAT3 rij_hat, rik_hat;
-  F_FLOAT rij, rijinv, rik, rikinv;
+  F_CFLOAT3 rij_hat, rik_hat;
+  F_CFLOAT rij, rijinv, rik, rikinv;
 
   rij = sqrt(delij.w);
   rijinv = F_F(1.0) / rij;
@@ -649,13 +649,13 @@ __device__ void attractive_fj(int iparam, F_FLOAT prefactor,
   ters_zetaterm_d_fj(prefactor, rij_hat, rij, rik_hat, rik, f, iparam);
 }
 
-__device__ void attractive_fk(int iparam, F_FLOAT prefactor,
-                              F_FLOAT4 &delij,
-                              F_FLOAT4 &delik,
-                              F_FLOAT3 &f)
+__device__ void attractive_fk(int iparam, F_CFLOAT prefactor,
+                              F_CFLOAT4 &delij,
+                              F_CFLOAT4 &delik,
+                              F_CFLOAT3 &f)
 {
-  F_FLOAT3 rij_hat, rik_hat;
-  F_FLOAT rij, rijinv, rik, rikinv;
+  F_CFLOAT3 rij_hat, rik_hat;
+  F_CFLOAT rij, rijinv, rik, rikinv;
 
   rij = sqrt(delij.w);
   rijinv = F_F(1.0) / rij;
@@ -668,15 +668,15 @@ __device__ void attractive_fk(int iparam, F_FLOAT prefactor,
   ters_zetaterm_d_fk(prefactor, rij_hat, rij, rik_hat, rik, f, iparam);
 }
 
-__global__ void Pair_Tersoff_Kernel_TpA_RIJ()//F_FLOAT4* _glob_r_ij,int* _glob_numneigh_red,int* _glob_neighbors_red,int* _glob_neightype_red)
+__global__ void Pair_Tersoff_Kernel_TpA_RIJ()//F_CFLOAT4* _glob_r_ij,int* _glob_numneigh_red,int* _glob_neighbors_red,int* _glob_neightype_red)
 {
   int ii = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(ii >= _nall) return;
 
-  X_FLOAT4 myxtype;
-  F_FLOAT4 delij;
-  F_FLOAT xtmp, ytmp, ztmp;
+  X_CFLOAT4 myxtype;
+  F_CFLOAT4 delij;
+  F_CFLOAT xtmp, ytmp, ztmp;
   int itype, jnum, i, j;
   int* jlist;
   int neigh_red = 0;
@@ -719,7 +719,7 @@ __global__ void Pair_Tersoff_Kernel_TpA_RIJ()//F_FLOAT4* _glob_r_ij,int* _glob_n
 }
 
 
-__global__ void Pair_Tersoff_Kernel_TpA_ZetaIJ()//F_FLOAT* _glob_zeta_ij,F_FLOAT4* _glob_r_ij,int* _glob_numneigh_red,int* _glob_neighbors_red,int* _glob_neightype_red)
+__global__ void Pair_Tersoff_Kernel_TpA_ZetaIJ()//F_CFLOAT* _glob_zeta_ij,F_CFLOAT4* _glob_r_ij,int* _glob_numneigh_red,int* _glob_neighbors_red,int* _glob_neightype_red)
 {
 
   int ii = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
@@ -727,8 +727,8 @@ __global__ void Pair_Tersoff_Kernel_TpA_ZetaIJ()//F_FLOAT* _glob_zeta_ij,F_FLOAT
   if(ii >= _nall) return;
 
 
-  F_FLOAT4 delij;
-  F_FLOAT4 delik;
+  F_CFLOAT4 delij;
+  F_CFLOAT4 delik;
 
   int itype, jnum, i, j;
   int* jlist;
@@ -751,8 +751,8 @@ __global__ void Pair_Tersoff_Kernel_TpA_ZetaIJ()//F_FLOAT* _glob_zeta_ij,F_FLOAT
       int iparam_ij = elem2param[(itype * nelements + jtype) * nelements + jtype];
 
       if(delij.w < params[iparam_ij].cutsq) {
-        F_FLOAT zeta_ij = 0.0;
-        F_FLOAT3 delij3 = {delij.x, delij.y, delij.z};
+        F_CFLOAT zeta_ij = 0.0;
+        F_CFLOAT3 delij3 = {delij.x, delij.y, delij.z};
 
         for(int kk = 0; kk < jnum; kk++) {
           if(jj == kk) continue;
@@ -762,9 +762,9 @@ __global__ void Pair_Tersoff_Kernel_TpA_ZetaIJ()//F_FLOAT* _glob_zeta_ij,F_FLOAT
 
           int ktype = _glob_neightype_red[i + kk * _nall];
           delik = _glob_r_ij[i + kk * _nall];
-          F_FLOAT3 delik3 = {delik.x, delik.y, delik.z};
+          F_CFLOAT3 delik3 = {delik.x, delik.y, delik.z};
           int iparam_ijk = elem2param[(itype * nelements + jtype) * nelements + ktype];
-          const F_FLOAT rsqki = delik.w;
+          const F_CFLOAT rsqki = delik.w;
 
           if(rsqki <= params[iparam_ijk].cutsq)
             zeta_ij += zeta(iparam_ijk, delij.w, rsqki, delij3, delik3);
@@ -783,18 +783,18 @@ __global__ void Pair_Tersoff_Kernel_TpA_ZetaIJ()//F_FLOAT* _glob_zeta_ij,F_FLOAT
 //back15: num 12 steps 10: ZetaIJ/TPA 0.0137/0.0287 //pow beseitigt
 //        num 12 steps 10: ZetaIJ/TPA 0.0137/0.027
 template <int eflag, int vflagm>
-__global__ void Pair_Tersoff_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLOAT* _glob_zeta_ij,F_FLOAT4* _glob_r_ij,int* _glob_numneigh_red,int* _glob_neighbors_red,int* _glob_neightype_red)
+__global__ void Pair_Tersoff_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_CFLOAT* _glob_zeta_ij,F_CFLOAT4* _glob_r_ij,int* _glob_numneigh_red,int* _glob_neighbors_red,int* _glob_neightype_red)
 {
-  ENERGY_FLOAT evdwl = ENERGY_F(0.0);
+  ENERGY_CFLOAT evdwl = ENERGY_F(0.0);
 
-  ENERGY_FLOAT* sharedE = &sharedmem[threadIdx.x];
-  ENERGY_FLOAT* sharedV = &sharedmem[threadIdx.x];
+  ENERGY_CFLOAT* sharedE = &sharedmem[threadIdx.x];
+  ENERGY_CFLOAT* sharedV = &sharedmem[threadIdx.x];
 
-  F_FLOAT* shared_F_F = (F_FLOAT*) sharedmem;
+  F_CFLOAT* shared_F_F = (F_CFLOAT*) sharedmem;
 
-  if((eflag || eflag_atom) && (vflagm || vflag_atom)) shared_F_F = (F_FLOAT*) &sharedmem[7 * blockDim.x];
-  else if(eflag) shared_F_F = (F_FLOAT*) &sharedmem[blockDim.x];
-  else if(vflagm) shared_F_F = (F_FLOAT*) &sharedmem[6 * blockDim.x];
+  if((eflag || eflag_atom) && (vflagm || vflag_atom)) shared_F_F = (F_CFLOAT*) &sharedmem[7 * blockDim.x];
+  else if(eflag) shared_F_F = (F_CFLOAT*) &sharedmem[blockDim.x];
+  else if(vflagm) shared_F_F = (F_CFLOAT*) &sharedmem[6 * blockDim.x];
 
   shared_F_F += threadIdx.x;
 
@@ -820,10 +820,10 @@ __global__ void Pair_Tersoff_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLO
 
   int ii = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
-  X_FLOAT4 myxtype_i, myxtype_j, myxtype_k;
-  F_FLOAT4 delij, delik, deljk;
-  F_FLOAT fpair;
-  F_FLOAT prefactor_ij, prefactor_ji;
+  X_CFLOAT4 myxtype_i, myxtype_j, myxtype_k;
+  F_CFLOAT4 delij, delik, deljk;
+  F_CFLOAT fpair;
+  F_CFLOAT prefactor_ij, prefactor_ji;
 
   int itype, i, j;
   int* jlist_red;
@@ -868,7 +868,7 @@ __global__ void Pair_Tersoff_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLO
       volatile int iparam_ji = elem2param[(jtype * nelements + itype) * nelements + itype];
 
       if(delij.w < params[iparam_ij].cutsq) {
-        F_FLOAT dxfp, dyfp, dzfp;
+        F_CFLOAT dxfp, dyfp, dzfp;
         repulsive(iparam_ij, delij.w, fpair, eflag, evdwl);
         fxtmp += dxfp = delij.x * fpair;
         fytmp += dyfp = delij.y * fpair;
@@ -941,7 +941,7 @@ __global__ void Pair_Tersoff_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLO
 
           if(delik.w <= params[iparam_ijk].cutsq) {
             if(vflagm) {
-              F_FLOAT3 fi, fj, fk;
+              F_CFLOAT3 fi, fj, fk;
               attractive(iparam_ijk, prefactor_ij,
                          delij, delik, fi, fj, fk);
               fxtmp += fi.x;
@@ -969,7 +969,7 @@ __global__ void Pair_Tersoff_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLO
               sharedV[4 * blockDim.x] += ENERGY_F(2.0) * myxtype_k.x * fk.z;
               sharedV[5 * blockDim.x] += ENERGY_F(2.0) * myxtype_k.y * fk.z;
             } else {
-              F_FLOAT3 fi; //local variable
+              F_CFLOAT3 fi; //local variable
               attractive_fi(iparam_ijk, prefactor_ij,
                             delij, delik, fi);
               fxtmp += fi.x;
@@ -1008,7 +1008,7 @@ __global__ void Pair_Tersoff_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLO
           vec3_scale(F_F(-1.0), delij, delij);
 
           if(deljk.w <= params[iparam_jik].cutsq) {
-            F_FLOAT3 ftmp; //local variable
+            F_CFLOAT3 ftmp; //local variable
 
             attractive_fj(iparam_jik, prefactor_ji,
                           delij, deljk, ftmp);
@@ -1016,7 +1016,7 @@ __global__ void Pair_Tersoff_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLO
             fytmp += ftmp.y;
             fztmp += ftmp.z;
             int iparam_jk = elem2param[(jtype * nelements + ktype) * nelements + ktype];
-            F_FLOAT prefactor_jk;
+            F_CFLOAT prefactor_jk;
             force_zeta_prefactor(iparam_jk, deljk.w, _glob_zeta_ij[j + kk * _nall], prefactor_jk);
 
             attractive_fk(iparam_jki, prefactor_jk,
@@ -1037,10 +1037,10 @@ __global__ void Pair_Tersoff_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLO
   __syncthreads();
 
   if(ii < _inum) {
-    F_FLOAT* my_f;
+    F_CFLOAT* my_f;
 
     if(_collect_forces_later) {
-      ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+      ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
 
       if(eflag) {
         buffer = &buffer[1 * gridDim.x * gridDim.y];
@@ -1050,7 +1050,7 @@ __global__ void Pair_Tersoff_Kernel_TpA(int eflag_atom, int vflag_atom) //,F_FLO
         buffer = &buffer[6 * gridDim.x * gridDim.y];
       }
 
-      my_f = (F_FLOAT*) buffer;
+      my_f = (F_CFLOAT*) buffer;
       my_f += i;
       *my_f = fxtmp;
       my_f += _nmax;

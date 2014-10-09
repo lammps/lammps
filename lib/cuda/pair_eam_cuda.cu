@@ -39,18 +39,18 @@
 #define _rho MY_AP(rho)
 #define _fp MY_AP(fp)
 
-__device__ __constant__ F_FLOAT MY_AP(rdr);
-__device__ __constant__ F_FLOAT MY_AP(rdrho);
+__device__ __constant__ F_CFLOAT MY_AP(rdr);
+__device__ __constant__ F_CFLOAT MY_AP(rdrho);
 __device__ __constant__ int MY_AP(nr);
 __device__ __constant__ int MY_AP(nrho);
 __device__ __constant__ int MY_AP(nfrho);
 __device__ __constant__ int MY_AP(nrhor);
 __device__ __constant__ int MY_AP(nz2r);
-__device__ __constant__ F_FLOAT* MY_AP(frho_spline);
-__device__ __constant__ F_FLOAT* MY_AP(rhor_spline);
-__device__ __constant__ F_FLOAT* MY_AP(z2r_spline);
-__device__ __constant__ F_FLOAT* MY_AP(rho);
-__device__ __constant__ F_FLOAT* MY_AP(fp);
+__device__ __constant__ F_CFLOAT* MY_AP(frho_spline);
+__device__ __constant__ F_CFLOAT* MY_AP(rhor_spline);
+__device__ __constant__ F_CFLOAT* MY_AP(z2r_spline);
+__device__ __constant__ F_CFLOAT* MY_AP(rho);
+__device__ __constant__ F_CFLOAT* MY_AP(fp);
 
 #define _rhor_spline_tex         MY_AP(rhor_spline_tex)
 #if F_PRECISION == 1
@@ -115,10 +115,10 @@ inline void BindEAMTextures(cuda_shared_data* sdata)
 void Cuda_PairEAMCuda_UpdateBuffer(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
 {
   CUT_CHECK_ERROR("Cuda_PairEAMCuda: before updateBuffer failed");
-  int3 layout = getgrid(sneighlist->inum, 7 * sizeof(F_FLOAT));
+  int3 layout = getgrid(sneighlist->inum, 7 * sizeof(F_CFLOAT));
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
-  int size = (unsigned)(layout.y * layout.x) * 7 * sizeof(F_FLOAT);
+  int size = (unsigned)(layout.y * layout.x) * 7 * sizeof(F_CFLOAT);
 
   if(sdata->buffersize < size) {
     MYDBG(printf("Cuda_PairEAMCuda Resizing Buffer at %p with %i kB to\n", sdata->buffer, sdata->buffersize);)
@@ -151,13 +151,13 @@ void Cuda_PairEAMCuda_UpdateNeighbor(cuda_shared_data* sdata, cuda_shared_neighl
 void Cuda_PairEAMCuda_UpdateNmax(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist)
 {
   CUT_CHECK_ERROR("Cuda_PairEAMCuda: before updateNmax failed");
-  cudaMemcpyToSymbol(MY_AP(x)         , & sdata->atom.x         .dev_data, sizeof(X_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(x_type)         	, & sdata->atom.x_type    .dev_data, sizeof(X_FLOAT4*));
-  cudaMemcpyToSymbol(MY_AP(f)         			, & sdata->atom.f         .dev_data, sizeof(F_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(x)         , & sdata->atom.x         .dev_data, sizeof(X_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(x_type)         	, & sdata->atom.x_type    .dev_data, sizeof(X_CFLOAT4*));
+  cudaMemcpyToSymbol(MY_AP(f)         			, & sdata->atom.f         .dev_data, sizeof(F_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(type)      			, & sdata->atom.type      .dev_data, sizeof(int*));
   cudaMemcpyToSymbol(MY_AP(tag)      			, & sdata->atom.tag       .dev_data, sizeof(int*));
-  cudaMemcpyToSymbol(MY_AP(eatom)     			, & sdata->atom.eatom     .dev_data, sizeof(ENERGY_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(vatom)     			, & sdata->atom.vatom     .dev_data, sizeof(ENERGY_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(eatom)     			, & sdata->atom.eatom     .dev_data, sizeof(ENERGY_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(vatom)     			, & sdata->atom.vatom     .dev_data, sizeof(ENERGY_CFLOAT*));
   CUT_CHECK_ERROR("Cuda_PairEAMCuda: updateNmax failed");
 }
 
@@ -175,18 +175,18 @@ void Cuda_PairEAMCuda_Init(cuda_shared_data* sdata, double rdr, double rdrho, in
            "(assumed at compile time). re-compile with -DCUDA_MAX_TYPES_PLUS_ONE=99 "
            "or ajust this in cuda_common.h\n", cuda_ntypes, CUDA_MAX_TYPES2);
 
-  unsigned nI = sizeof(F_FLOAT) * cuda_ntypes * cuda_ntypes;
+  unsigned nI = sizeof(F_CFLOAT) * cuda_ntypes * cuda_ntypes;
 
-  X_FLOAT cutsq_global;
-  cutsq_global = (X_FLOAT)(sdata->pair.cut_global);
-  cudaMemcpyToSymbol(MY_AP(cutsq_global)	, &cutsq_global  				, sizeof(X_FLOAT));
+  X_CFLOAT cutsq_global;
+  cutsq_global = (X_CFLOAT)(sdata->pair.cut_global);
+  cudaMemcpyToSymbol(MY_AP(cutsq_global)	, &cutsq_global  				, sizeof(X_CFLOAT));
 
 
-  F_FLOAT* coeff_buf = new F_FLOAT[cuda_ntypes * cuda_ntypes];
+  F_CFLOAT* coeff_buf = new F_CFLOAT[cuda_ntypes * cuda_ntypes];
 
   for(int i = 0; i < cuda_ntypes; i++) coeff_buf[i] = type2frho[i];
 
-  cudaMemcpyToSymbol(MY_AP(coeff1)        , coeff_buf             , cuda_ntypes * sizeof(F_FLOAT));
+  cudaMemcpyToSymbol(MY_AP(coeff1)        , coeff_buf             , cuda_ntypes * sizeof(F_CFLOAT));
 
   for(int i = 0; i < cuda_ntypes * cuda_ntypes; i++) coeff_buf[i] = (&type2rhor[0][0])[i];
 
@@ -197,34 +197,34 @@ void Cuda_PairEAMCuda_Init(cuda_shared_data* sdata, double rdr, double rdrho, in
   cudaMemcpyToSymbol(MY_AP(coeff3)        , coeff_buf             , nI);
 
   delete [] coeff_buf;
-  X_FLOAT box_size[3] = {
+  X_CFLOAT box_size[3] = {
     sdata->domain.subhi[0] - sdata->domain.sublo[0],
     sdata->domain.subhi[1] - sdata->domain.sublo[1],
     sdata->domain.subhi[2] - sdata->domain.sublo[2]
   };
-  F_FLOAT rdr_F = rdr;
-  F_FLOAT rdrho_F = rdrho;
-  cudaMemcpyToSymbol(MY_AP(box_size)   , box_size                 , sizeof(X_FLOAT) * 3);
+  F_CFLOAT rdr_F = rdr;
+  F_CFLOAT rdrho_F = rdrho;
+  cudaMemcpyToSymbol(MY_AP(box_size)   , box_size                 , sizeof(X_CFLOAT) * 3);
   cudaMemcpyToSymbol(MY_AP(cuda_ntypes), & cuda_ntypes            , sizeof(unsigned));
-  cudaMemcpyToSymbol(MY_AP(virial)     , &sdata->pair.virial.dev_data   , sizeof(ENERGY_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(eng_vdwl)     , &sdata->pair.eng_vdwl.dev_data   , sizeof(ENERGY_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(virial)     , &sdata->pair.virial.dev_data   , sizeof(ENERGY_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(eng_vdwl)     , &sdata->pair.eng_vdwl.dev_data   , sizeof(ENERGY_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(periodicity), sdata->domain.periodicity, sizeof(int) * 3);
   cudaMemcpyToSymbol(MY_AP(collect_forces_later), &sdata->pair.collect_forces_later  , sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(rdr), &rdr_F, sizeof(F_FLOAT));
-  cudaMemcpyToSymbol(MY_AP(rdrho), &rdrho_F, sizeof(F_FLOAT));
+  cudaMemcpyToSymbol(MY_AP(rdr), &rdr_F, sizeof(F_CFLOAT));
+  cudaMemcpyToSymbol(MY_AP(rdrho), &rdrho_F, sizeof(F_CFLOAT));
   cudaMemcpyToSymbol(MY_AP(nr), &nr, sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nrho), &nrho, sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nfrho), &nfrho, sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nrhor), &nrhor, sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(rho), &rho, sizeof(F_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(fp), &fp, sizeof(F_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(frho_spline), &frho_spline, sizeof(F_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(rhor_spline), &rhor_spline, sizeof(F_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(z2r_spline), &z2r_spline, sizeof(F_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(rho), &rho, sizeof(F_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(fp), &fp, sizeof(F_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(frho_spline), &frho_spline, sizeof(F_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(rhor_spline), &rhor_spline, sizeof(F_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(z2r_spline), &z2r_spline, sizeof(F_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(nrhor), &nrhor, sizeof(int));
 
-  rhor_spline_size = nrhor * (nr + 1) * EAM_COEFF_LENGTH * sizeof(F_FLOAT);
-  z2r_spline_size = nz2r * (nr + 1) * EAM_COEFF_LENGTH * sizeof(F_FLOAT);
+  rhor_spline_size = nrhor * (nr + 1) * EAM_COEFF_LENGTH * sizeof(F_CFLOAT);
+  z2r_spline_size = nz2r * (nr + 1) * EAM_COEFF_LENGTH * sizeof(F_CFLOAT);
   rhor_spline_pointer = rhor_spline;
   z2r_spline_pointer = z2r_spline;
 
@@ -249,8 +249,8 @@ void Cuda_PairEAM1Cuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlis
   if(sdata->buffer_new)
     Cuda_PairEAMCuda_UpdateBuffer(sdata, sneighlist);
 
-  cudaMemcpyToSymbol(MY_AP(eatom)     			, & sdata->atom.eatom     .dev_data, sizeof(ENERGY_FLOAT*));
-  cudaMemcpyToSymbol(MY_AP(vatom)     			, & sdata->atom.vatom     .dev_data, sizeof(ENERGY_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(eatom)     			, & sdata->atom.eatom     .dev_data, sizeof(ENERGY_CFLOAT*));
+  cudaMemcpyToSymbol(MY_AP(vatom)     			, & sdata->atom.vatom     .dev_data, sizeof(ENERGY_CFLOAT*));
 
   int sharedperproc = 0;
 
@@ -258,7 +258,7 @@ void Cuda_PairEAM1Cuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlis
 
   if(vflag || vflag_atom) sharedperproc = 7;
 
-  int3 layout = getgrid(sneighlist->inum, sharedperproc * sizeof(ENERGY_FLOAT));
+  int3 layout = getgrid(sneighlist->inum, sharedperproc * sizeof(ENERGY_CFLOAT));
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
 
@@ -270,7 +270,7 @@ void Cuda_PairEAM1Cuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlis
 
   MYDBG(printf("# CUDA: Cuda_PairEAMCuda: kernel start eflag: %i vflag: %i\n", eflag, vflag);)
   CUT_CHECK_ERROR("Cuda_PairEAMCuda: pre pair Kernel 1 problems before kernel invocation");
-  PairEAMCuda_Kernel1 <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x>>> (eflag, vflag, eflag_atom, vflag_atom);
+  PairEAMCuda_Kernel1 <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x>>> (eflag, vflag, eflag_atom, vflag_atom);
   cudaThreadSynchronize();
   CUT_CHECK_ERROR("Cuda_PairEAMCuda: pair Kernel 1 execution failed");
 
@@ -288,7 +288,7 @@ void Cuda_PairEAM2Cuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlis
 
   if(vflag || vflag_atom) sharedperproc = 7;
 
-  int3 layout = getgrid(sneighlist->inum, sharedperproc * sizeof(ENERGY_FLOAT));
+  int3 layout = getgrid(sneighlist->inum, sharedperproc * sizeof(ENERGY_CFLOAT));
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
 
@@ -300,7 +300,7 @@ void Cuda_PairEAM2Cuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlis
 
   MYDBG(printf("# CUDA: Cuda_PairEAMCuda: kernel start eflag: %i vflag: %i\n", eflag, vflag);)
   CUT_CHECK_ERROR("Cuda_PairEAMCuda: pre pair Kernel 2 problems before kernel invocation");
-  PairEAMCuda_Kernel2 <<< grid, threads, sharedperproc* sizeof(ENERGY_FLOAT)*threads.x>>> (eflag, vflag, eflag_atom, vflag_atom);
+  PairEAMCuda_Kernel2 <<< grid, threads, sharedperproc* sizeof(ENERGY_CFLOAT)*threads.x>>> (eflag, vflag, eflag_atom, vflag_atom);
   CUT_CHECK_ERROR("Cuda_PairEAMCuda: pair Kernel 2 start failed");
   cudaThreadSynchronize();
   CUT_CHECK_ERROR("Cuda_PairEAMCuda: pair Kernel 2 execution failed");
@@ -310,7 +310,7 @@ void Cuda_PairEAM2Cuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlis
     grid.x = sharedperproc;
     grid.y = 1;
     threads.x = 256;
-    MY_AP(PairVirialCompute_reduce) <<< grid, threads, threads.x* sizeof(ENERGY_FLOAT)*sharedperproc>>>(n);
+    MY_AP(PairVirialCompute_reduce) <<< grid, threads, threads.x* sizeof(ENERGY_CFLOAT)*sharedperproc>>>(n);
     cudaThreadSynchronize();
     CUT_CHECK_ERROR("Cuda_PairEAMCuda: virial compute Kernel execution failed");
   }
@@ -324,19 +324,19 @@ void Cuda_PairEAMCuda_PackComm(cuda_shared_data* sdata, int n, int iswap, void* 
   int3 layout = getgrid(n, 0);
   dim3 threads(layout.z, 1, 1);
   dim3 grid(layout.x, layout.y, 1);
-  F_FLOAT* buf = (F_FLOAT*)(& ((double*)sdata->buffer)[eam_buff_offset]);
+  F_CFLOAT* buf = (F_CFLOAT*)(& ((double*)sdata->buffer)[eam_buff_offset]);
 
   PairEAMCuda_PackComm_Kernel <<< grid, threads, 0>>> ((int*) sdata->comm.sendlist.dev_data, n
       , sdata->comm.maxlistlength, iswap, buf);
   cudaThreadSynchronize();
-  cudaMemcpy(buf_send, buf, n* sizeof(F_FLOAT), cudaMemcpyDeviceToHost);
+  cudaMemcpy(buf_send, buf, n* sizeof(F_CFLOAT), cudaMemcpyDeviceToHost);
   cudaThreadSynchronize();
 }
 
 void Cuda_PairEAMCuda_UnpackComm(cuda_shared_data* sdata, int n, int first, void* buf_recv, void* fp)
 {
-  F_FLOAT* fp_first = &(((F_FLOAT*) fp)[first]);
-  cudaMemcpy(fp_first, buf_recv, n * sizeof(F_FLOAT), cudaMemcpyHostToDevice);
+  F_CFLOAT* fp_first = &(((F_CFLOAT*) fp)[first]);
+  cudaMemcpy(fp_first, buf_recv, n * sizeof(F_CFLOAT), cudaMemcpyHostToDevice);
 }
 
 #undef _type2frho

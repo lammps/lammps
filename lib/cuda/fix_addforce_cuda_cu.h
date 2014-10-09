@@ -24,4 +24,4 @@
 #include "cuda_shared.h"
 
 extern "C" void Cuda_FixAddForceCuda_Init(cuda_shared_data* sdata);
-extern "C" void Cuda_FixAddForceCuda_PostForce(cuda_shared_data* sdata, int groupbit, F_FLOAT axvalue, F_FLOAT ayvalue, F_FLOAT azvalue, F_FLOAT* aforiginal);
+extern "C" void Cuda_FixAddForceCuda_PostForce(cuda_shared_data* sdata, int groupbit, F_CFLOAT axvalue, F_CFLOAT ayvalue, F_CFLOAT azvalue, F_CFLOAT* aforiginal);

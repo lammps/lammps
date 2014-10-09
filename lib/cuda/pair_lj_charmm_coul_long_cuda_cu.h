@@ -23,4 +23,4 @@
 
 #include "cuda_shared.h"
 
-extern "C" void Cuda_PairLJCharmmCoulLongCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist, int eflag, int vflag, int eflag_atom, int vflag_atom, F_FLOAT denom_lj);
+extern "C" void Cuda_PairLJCharmmCoulLongCuda(cuda_shared_data* sdata, cuda_shared_neighlist* sneighlist, int eflag, int vflag, int eflag_atom, int vflag_atom, F_CFLOAT denom_lj);

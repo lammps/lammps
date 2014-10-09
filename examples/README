@@ -58,12 +58,12 @@ section of the LAMMPS WWW Site.
 These are the sample problems and their output in the various
 sub-directories:
 
+accelerate:  use of all the various accelerator packages
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 colloid:  big colloid particles in a small particle solvent, 2d system
 comb:	  models using the COMB potential
 crack:	  crack propagation in a 2d solid
-cuda:     use of the USER-CUDA package for GPU acceleration
 deposit:  deposition of atoms and molecules onto a 3d substrate
 dipole:   point dipolar particles, 2d system
 dreiding: methanol via Dreiding FF
@@ -71,12 +71,9 @@ eim:      NaCl using the EIM potential
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
-gpu:      use of the GPU package for GPU acceleration
 hugoniostat: Hugoniostat shock dynamics
 indent:	  spherical indenter into a 2d solid
-intel:    use of the USER-INTEL package for CPU or Xeon Phi acceleration
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
-kokkos:   use of the KOKKOS package for multi-threading and GPU acceleration
 meam:	  MEAM test for SiC and shear (same as shear examples)
 melt:	  rapid melt of 3d LJ system
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
@@ -100,11 +97,21 @@ snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 voronoi:  test of Voronoi tesselation in compute voronoi/atom
 
+Here is a src/Make.py command which will perform a parallel build of a
+LAMMPS executable "lmp_mpi" with all the packages needed by all the
+examples, with the exception of the accelerate sub-directory.  See the
+accelerate/README for Make.py commands suitable for its example
+scripts.
+
+cd src
+Make.py -j 16 -p none std no-lib no-kokkos reax meam poems reaxc orig \
+  lib-all mpi
+
 Here is how you might run and visualize one of the sample problems:
 
 cd indent
-cp ../../src/lmp_linux .           # copy LAMMPS executable to this dir
-lmp_linux < in.indent              # run the problem
+cp ../../src/lmp_mpi .           # copy LAMMPS executable to this dir
+lmp_mpi < in.indent              # run the problem
 
 Running the simulation produces the files {dump.indent} and
 {log.lammps}.  You can visualize the dump file as follows:

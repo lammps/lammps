@@ -43,7 +43,7 @@
 #include "update.h"
 #include "respa.h"
 #include "error.h"
-#include "cuda.h"
+#include "user_cuda.h"
 #include "cuda_modify_flags.h"
 
 using namespace LAMMPS_NS;

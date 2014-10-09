@@ -71,33 +71,49 @@ integration
 
 ----------------------------------------------------------------------
 
+Here is a src/Make.py command which will perform a parallel build of a
+LAMMPS executable "lmp_mpi" with all the packages needed by all the
+examples.  This assumes you have an MPI installed on your machine so
+that "mpicxx" can be used as the wrapper compiler.  It also assumes
+you have an Intel compiler to use as the base compiler.  You can leave
+off the "-cc mpi wrap=icc" switch if that is not the case.  You can
+also leave off the "-fft fftw3" switch if you do not have the FFTW
+(v3) installed as an FFT package, in which case the default KISS FFT
+library will be used.
+
+cd src
+Make.py -j 16 -p none molecule manybody kspace granular orig \
+  -cc mpi wrap=icc -fft fftw3 -a file mpi
+
+----------------------------------------------------------------------
+
 Here is how to run each problem, assuming the LAMMPS executable is
-named lmp_foo, and you are using the mpirun command to launch parallel
+named lmp_mpi, and you are using the mpirun command to launch parallel
 runs:
 
 Serial (one processor runs):
 
-lmp_foo < in.lj
-lmp_foo < in.chain
-lmp_foo < in.eam
-lmp_foo < in.chute
-lmp_foo < in.rhodo
+lmp_mpi < in.lj
+lmp_mpi < in.chain
+lmp_mpi < in.eam
+lmp_mpi < in.chute
+lmp_mpi < in.rhodo
 
 Parallel fixed-size runs (on 8 procs in this case):
 
-mpirun -np 8 lmp_foo < in.lj
-mpirun -np 8 lmp_foo < in.chain
-mpirun -np 8 lmp_foo < in.eam
-mpirun -np 8 lmp_foo < in.chute
-mpirun -np 8 lmp_foo < in.rhodo
+mpirun -np 8 lmp_mpi < in.lj
+mpirun -np 8 lmp_mpi < in.chain
+mpirun -np 8 lmp_mpi < in.eam
+mpirun -np 8 lmp_mpi < in.chute
+mpirun -np 8 lmp_mpi < in.rhodo
 
 Parallel scaled-size runs (on 16 procs in this case):
 
-mpirun -np 16 lmp_foo -var x 2 -var y 2 -var z 4 < in.lj
-mpirun -np 16 lmp_foo -var x 2 -var y 2 -var z 4 < in.chain.scaled
-mpirun -np 16 lmp_foo -var x 2 -var y 2 -var z 4 < in.eam
-mpirun -np 16 lmp_foo -var x 4 -var y 4 < in.chute.scaled
-mpirun -np 16 lmp_foo -var x 2 -var y 2 -var z 4 < in.rhodo.scaled
+mpirun -np 16 lmp_mpi -var x 2 -var y 2 -var z 4 < in.lj
+mpirun -np 16 lmp_mpi -var x 2 -var y 2 -var z 4 < in.chain.scaled
+mpirun -np 16 lmp_mpi -var x 2 -var y 2 -var z 4 < in.eam
+mpirun -np 16 lmp_mpi -var x 4 -var y 4 < in.chute.scaled
+mpirun -np 16 lmp_mpi -var x 2 -var y 2 -var z 4 < in.rhodo.scaled
 
 For each of the scaled-size runs you must set 3 variables as -var
 command line switches.  The variables x,y,z are used in the input

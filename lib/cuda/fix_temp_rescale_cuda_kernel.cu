@@ -23,7 +23,7 @@
 
 
 
-__global__ void Cuda_FixTempRescaleCuda_EndOfStep_Kernel(int groupbit, V_FLOAT factor)
+__global__ void Cuda_FixTempRescaleCuda_EndOfStep_Kernel(int groupbit, V_CFLOAT factor)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 

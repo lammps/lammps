@@ -28,7 +28,7 @@
 #include "group.h"
 #include "error.h"
 #include "cuda_neigh_list.h"
-#include "cuda.h"
+#include "user_cuda.h"
 #include "neighbor_cu.h"
 #include <cmath>
 using namespace LAMMPS_NS;

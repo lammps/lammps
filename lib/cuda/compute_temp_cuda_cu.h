@@ -24,5 +24,5 @@
 #include "cuda_shared.h"
 
 extern "C" void Cuda_ComputeTempCuda_Init(cuda_shared_data* sdata);
-extern "C" void Cuda_ComputeTempCuda_Vector(cuda_shared_data* sdata, int groupbit, ENERGY_FLOAT* t);
-extern "C" void Cuda_ComputeTempCuda_Scalar(cuda_shared_data* sdata, int groupbit, ENERGY_FLOAT* t);
+extern "C" void Cuda_ComputeTempCuda_Vector(cuda_shared_data* sdata, int groupbit, ENERGY_CFLOAT* t);
+extern "C" void Cuda_ComputeTempCuda_Scalar(cuda_shared_data* sdata, int groupbit, ENERGY_CFLOAT* t);

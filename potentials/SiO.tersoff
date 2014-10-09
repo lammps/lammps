@@ -1,3 +1,5 @@
+# DATE: 2010-08-16 CONTRIBUTOR: Teodoro Laino, teodoro.laino@gmail.com CITATION: S. Mumetoh et al, Comp Mat Sci, 39, 334-339 (2007)
+
 # Tersoff parameters for various elements and mixtures
 # multiple entries can be added to this file, LAMMPS reads the ones it needs
 # these entries are in LAMMPS "metal" units:

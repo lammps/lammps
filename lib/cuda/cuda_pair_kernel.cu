@@ -32,12 +32,12 @@
 template <const PAIR_FORCES pair_type, const COUL_FORCES coul_type, const unsigned int extended_data>
 __global__ void Pair_Kernel_TpA(int eflag, int vflag, int eflag_atom, int vflag_atom)
 {
-  ENERGY_FLOAT evdwl = ENERGY_F(0.0);
-  ENERGY_FLOAT ecoul = ENERGY_F(0.0);
+  ENERGY_CFLOAT evdwl = ENERGY_F(0.0);
+  ENERGY_CFLOAT ecoul = ENERGY_F(0.0);
 
-  ENERGY_FLOAT* sharedE;
-  ENERGY_FLOAT* sharedECoul;
-  ENERGY_FLOAT* sharedV = &sharedmem[threadIdx.x];
+  ENERGY_CFLOAT* sharedE;
+  ENERGY_CFLOAT* sharedECoul;
+  ENERGY_CFLOAT* sharedV = &sharedmem[threadIdx.x];
 
   if(eflag || eflag_atom) {
     sharedE = &sharedmem[threadIdx.x];
@@ -62,12 +62,12 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag, int eflag_atom, int vflag_
 
   int ii = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
-  X_FLOAT xtmp, ytmp, ztmp;
-  X_FLOAT4 myxtype;
-  F_FLOAT fxtmp, fytmp, fztmp, fpair;
-  F_FLOAT delx, dely, delz;
-  F_FLOAT factor_lj, factor_coul;
-  F_FLOAT qtmp;
+  X_CFLOAT xtmp, ytmp, ztmp;
+  X_CFLOAT4 myxtype;
+  F_CFLOAT fxtmp, fytmp, fztmp, fpair;
+  F_CFLOAT delx, dely, delz;
+  F_CFLOAT factor_lj, factor_coul;
+  F_CFLOAT qtmp;
   int itype, i, j;
   int jnum = 0;
   int* jlist;
@@ -114,7 +114,7 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag, int eflag_atom, int vflag_
         int jtype = static_cast <int>(myxtype.w);
 
 
-        const F_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+        const F_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
 
         bool in_cutoff = rsq < (_cutsq_global > X_F(0.0) ? _cutsq_global : _cutsq[itype * _cuda_ntypes + jtype]);
 
@@ -171,7 +171,7 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag, int eflag_atom, int vflag_
         }
 
         if(coul_type != COUL_NONE) {
-          const F_FLOAT qiqj = qtmp * fetchQ(j);
+          const F_CFLOAT qiqj = qtmp * fetchQ(j);
 
           if(qiqj * qiqj > 1e-8) {
             const bool in_coul_cutoff =
@@ -188,7 +188,7 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag, int eflag_atom, int vflag_
                   break;
 
                 case COUL_CUT: {
-                  const F_FLOAT forcecoul = factor_coul * _qqrd2e * qiqj * _RSQRT_(rsq);
+                  const F_CFLOAT forcecoul = factor_coul * _qqrd2e * qiqj * _RSQRT_(rsq);
 
                   if(eflag) {
                     ecoul += forcecoul;
@@ -199,11 +199,11 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag, int eflag_atom, int vflag_
                 break;
 
                 case COUL_DEBYE: {
-                  const F_FLOAT r2inv = F_F(1.0) / rsq;
-                  const X_FLOAT r = _RSQRT_(r2inv);
-                  const X_FLOAT rinv = F_F(1.0) / r;
-                  const F_FLOAT screening = _EXP_(-_kappa * r);
-                  F_FLOAT forcecoul = factor_coul * _qqrd2e * qiqj * screening ;
+                  const F_CFLOAT r2inv = F_F(1.0) / rsq;
+                  const X_CFLOAT r = _RSQRT_(r2inv);
+                  const X_CFLOAT rinv = F_F(1.0) / r;
+                  const F_CFLOAT screening = _EXP_(-_kappa * r);
+                  F_CFLOAT forcecoul = factor_coul * _qqrd2e * qiqj * screening ;
 
                   if(eflag) {
                     ecoul += forcecoul * rinv;
@@ -219,14 +219,14 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag, int eflag_atom, int vflag_
                   break;
 
                 case COUL_LONG: {
-                  const F_FLOAT r2inv = F_F(1.0) / rsq;
-                  const F_FLOAT r = _RSQRT_(r2inv);
-                  const F_FLOAT grij = _g_ewald * r;
-                  const F_FLOAT expm2 = _EXP_(-grij * grij);
-                  const F_FLOAT t = F_F(1.0) / (F_F(1.0) + EWALD_P * grij);
-                  const F_FLOAT erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-                  const F_FLOAT prefactor = _qqrd2e * qiqj * (F_F(1.0) / r);
-                  F_FLOAT forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
+                  const F_CFLOAT r2inv = F_F(1.0) / rsq;
+                  const F_CFLOAT r = _RSQRT_(r2inv);
+                  const F_CFLOAT grij = _g_ewald * r;
+                  const F_CFLOAT expm2 = _EXP_(-grij * grij);
+                  const F_CFLOAT t = F_F(1.0) / (F_F(1.0) + EWALD_P * grij);
+                  const F_CFLOAT erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+                  const F_CFLOAT prefactor = _qqrd2e * qiqj * (F_F(1.0) / r);
+                  F_CFLOAT forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
 
                   if(factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
 
@@ -248,7 +248,7 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag, int eflag_atom, int vflag_
 
 
         if(in_cutoff) {
-          F_FLOAT dxfp, dyfp, dzfp;
+          F_CFLOAT dxfp, dyfp, dzfp;
           fxtmp += dxfp = delx * fpair;
           fytmp += dyfp = dely * fpair;
           fztmp += dzfp = delz * fpair;
@@ -268,10 +268,10 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag, int eflag_atom, int vflag_
   __syncthreads();
 
   if(ii < _inum) {
-    F_FLOAT* my_f;
+    F_CFLOAT* my_f;
 
     if(_collect_forces_later) {
-      ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+      ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
 
       if(eflag) {
         buffer = &buffer[1 * gridDim.x * gridDim.y];
@@ -284,7 +284,7 @@ __global__ void Pair_Kernel_TpA(int eflag, int vflag, int eflag_atom, int vflag_
         buffer = &buffer[6 * gridDim.x * gridDim.y];
       }
 
-      my_f = (F_FLOAT*) buffer;
+      my_f = (F_CFLOAT*) buffer;
       my_f += i;
       *my_f = fxtmp;
       my_f += _nmax;
@@ -337,14 +337,14 @@ __global__ void Pair_Kernel_BpA(int eflag, int vflag, int eflag_atom, int vflag_
   if(ii >= _inum)
     return;
 
-  ENERGY_FLOAT evdwl = ENERGY_F(0.0);
-  ENERGY_FLOAT ecoul = ENERGY_F(0.0);
-  F_FLOAT3* sharedVirial1;
-  F_FLOAT3* sharedVirial2;
-  F_FLOAT* sharedEnergy;
-  F_FLOAT* sharedEnergyCoul;
+  ENERGY_CFLOAT evdwl = ENERGY_F(0.0);
+  ENERGY_CFLOAT ecoul = ENERGY_F(0.0);
+  F_CFLOAT3* sharedVirial1;
+  F_CFLOAT3* sharedVirial2;
+  F_CFLOAT* sharedEnergy;
+  F_CFLOAT* sharedEnergyCoul;
 
-  F_FLOAT3* sharedForce = (F_FLOAT3*) &sharedmem[0];
+  F_CFLOAT3* sharedForce = (F_CFLOAT3*) &sharedmem[0];
 
   if(vflag) {
     sharedVirial1 = &sharedForce[64];
@@ -356,25 +356,25 @@ __global__ void Pair_Kernel_BpA(int eflag, int vflag, int eflag_atom, int vflag_
 
   if(eflag) {
     if(vflag || vflag_atom)
-      sharedEnergy = (F_FLOAT*) &sharedVirial2[64];
+      sharedEnergy = (F_CFLOAT*) &sharedVirial2[64];
     else
-      sharedEnergy = (F_FLOAT*) &sharedForce[64];
+      sharedEnergy = (F_CFLOAT*) &sharedForce[64];
 
     if(coul_type != COUL_NONE)
-      sharedEnergyCoul = (F_FLOAT*) &sharedEnergy[64];
+      sharedEnergyCoul = (F_CFLOAT*) &sharedEnergy[64];
 
   }
 
-  F_FLOAT3 partialForce = { F_F(0.0),  F_F(0.0),  F_F(0.0) };
-  F_FLOAT3 partialVirial1 = {  F_F(0.0),  F_F(0.0),  F_F(0.0) };
-  F_FLOAT3 partialVirial2 = {  F_F(0.0),  F_F(0.0),  F_F(0.0) };
+  F_CFLOAT3 partialForce = { F_F(0.0),  F_F(0.0),  F_F(0.0) };
+  F_CFLOAT3 partialVirial1 = {  F_F(0.0),  F_F(0.0),  F_F(0.0) };
+  F_CFLOAT3 partialVirial2 = {  F_F(0.0),  F_F(0.0),  F_F(0.0) };
 
-  X_FLOAT xtmp, ytmp, ztmp;
-  X_FLOAT4 myxtype;
-  F_FLOAT delx, dely, delz;
-  F_FLOAT factor_lj, factor_coul;
-  F_FLOAT fpair;
-  F_FLOAT qtmp;
+  X_CFLOAT xtmp, ytmp, ztmp;
+  X_CFLOAT4 myxtype;
+  F_CFLOAT delx, dely, delz;
+  F_CFLOAT factor_lj, factor_coul;
+  F_CFLOAT fpair;
+  F_CFLOAT qtmp;
   int itype, jnum, i, j;
   int* jlist;
 
@@ -413,7 +413,7 @@ __global__ void Pair_Kernel_BpA(int eflag, int vflag, int eflag_atom, int vflag_
       delz = ztmp - myxtype.z;
       int jtype = static_cast <int>(myxtype.w);
 
-      const F_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+      const F_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
 
       bool in_cutoff = rsq < (_cutsq_global > X_F(0.0) ? _cutsq_global : _cutsq[itype * _cuda_ntypes + jtype]);
       bool in_coul_cutoff;
@@ -471,7 +471,7 @@ __global__ void Pair_Kernel_BpA(int eflag, int vflag, int eflag_atom, int vflag_
       }
 
       if(coul_type != COUL_NONE) {
-        const F_FLOAT qiqj = qtmp * fetchQ(j);
+        const F_CFLOAT qiqj = qtmp * fetchQ(j);
 
         if(qiqj * qiqj > (1e-8f)) {
           in_coul_cutoff =
@@ -492,14 +492,14 @@ __global__ void Pair_Kernel_BpA(int eflag, int vflag, int eflag_atom, int vflag_
                 break;
 
               case COUL_LONG: {
-                const F_FLOAT r2inv = F_F(1.0) / rsq;
-                const F_FLOAT r = _RSQRT_(r2inv);
-                const F_FLOAT grij = _g_ewald * r;
-                const F_FLOAT expm2 = _EXP_(-grij * grij);
-                const F_FLOAT t = F_F(1.0) / (F_F(1.0) + EWALD_P * grij);
-                const F_FLOAT erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-                const F_FLOAT prefactor = _qqrd2e * qiqj * (F_F(1.0) / r);
-                F_FLOAT forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
+                const F_CFLOAT r2inv = F_F(1.0) / rsq;
+                const F_CFLOAT r = _RSQRT_(r2inv);
+                const F_CFLOAT grij = _g_ewald * r;
+                const F_CFLOAT expm2 = _EXP_(-grij * grij);
+                const F_CFLOAT t = F_F(1.0) / (F_F(1.0) + EWALD_P * grij);
+                const F_CFLOAT erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+                const F_CFLOAT prefactor = _qqrd2e * qiqj * (F_F(1.0) / r);
+                F_CFLOAT forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
 
                 if(factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
 
@@ -514,11 +514,11 @@ __global__ void Pair_Kernel_BpA(int eflag, int vflag, int eflag_atom, int vflag_
               break;
 
               case COUL_DEBYE: {
-                const F_FLOAT r2inv = F_F(1.0) / rsq;
-                const X_FLOAT r = _RSQRT_(r2inv);
-                const X_FLOAT rinv = F_F(1.0) / r;
-                const F_FLOAT screening = _EXP_(-_kappa * r);
-                F_FLOAT forcecoul = factor_coul * _qqrd2e * qiqj * screening ;
+                const F_CFLOAT r2inv = F_F(1.0) / rsq;
+                const X_CFLOAT r = _RSQRT_(r2inv);
+                const X_CFLOAT rinv = F_F(1.0) / r;
+                const F_CFLOAT screening = _EXP_(-_kappa * r);
+                F_CFLOAT forcecoul = factor_coul * _qqrd2e * qiqj * screening ;
 
                 if(eflag) {
                   ecoul += forcecoul * rinv;
@@ -530,7 +530,7 @@ __global__ void Pair_Kernel_BpA(int eflag, int vflag, int eflag_atom, int vflag_
               break;
 
               case COUL_CUT: {
-                const F_FLOAT forcecoul = factor_coul * _qqrd2e * qiqj * _RSQRT_(rsq);
+                const F_CFLOAT forcecoul = factor_coul * _qqrd2e * qiqj * _RSQRT_(rsq);
 
                 if(eflag) {
                   ecoul += forcecoul;
@@ -549,7 +549,7 @@ __global__ void Pair_Kernel_BpA(int eflag, int vflag, int eflag_atom, int vflag_
 
 
       if(in_cutoff || in_coul_cutoff) {
-        F_FLOAT dxfp, dyfp, dzfp;
+        F_CFLOAT dxfp, dyfp, dzfp;
         partialForce.x += dxfp = delx * fpair;
         partialForce.y += dyfp = dely * fpair;
         partialForce.z += dzfp = delz * fpair;
@@ -613,10 +613,10 @@ __global__ void Pair_Kernel_BpA(int eflag, int vflag, int eflag_atom, int vflag_
 
   if(threadIdx.x == 0) {
 
-    ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+    ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
 
     if(eflag) {
-      ENERGY_FLOAT tmp_evdwl;
+      ENERGY_CFLOAT tmp_evdwl;
       buffer[blockIdx.x * gridDim.y + blockIdx.y + 0 * gridDim.x * gridDim.y] = tmp_evdwl = ENERGY_F(0.5) * sharedEnergy[0];
 
       if(eflag_atom)
@@ -635,7 +635,7 @@ __global__ void Pair_Kernel_BpA(int eflag, int vflag, int eflag_atom, int vflag_
     }
 
     if(vflag) {
-      ENERGY_FLOAT tmp;
+      ENERGY_CFLOAT tmp;
       buffer[blockIdx.x * gridDim.y + blockIdx.y + 0 * gridDim.x * gridDim.y] = tmp = ENERGY_F(0.5) * sharedVirial1[0].x;
 
       if(vflag_atom) _vatom[i + 0 * _nmax] = tmp;
@@ -663,10 +663,10 @@ __global__ void Pair_Kernel_BpA(int eflag, int vflag, int eflag_atom, int vflag_
       buffer = &buffer[6 * gridDim.x * gridDim.y];
     }
 
-    F_FLOAT* my_f;
+    F_CFLOAT* my_f;
 
     if(_collect_forces_later) {
-      my_f = (F_FLOAT*) buffer;
+      my_f = (F_CFLOAT*) buffer;
       my_f += i;
       *my_f = sharedForce[0].x;
       my_f += _nmax;
@@ -688,12 +688,12 @@ __global__ void Pair_Kernel_BpA(int eflag, int vflag, int eflag_atom, int vflag_
 template <const PAIR_FORCES pair_type, const COUL_FORCES coul_type, const unsigned int extended_data>
 __global__ void Pair_Kernel_TpA_opt(int eflag, int vflag, int eflag_atom, int vflag_atom, int comm_phase)
 {
-  ENERGY_FLOAT evdwl = ENERGY_F(0.0);
-  ENERGY_FLOAT ecoul = ENERGY_F(0.0);
+  ENERGY_CFLOAT evdwl = ENERGY_F(0.0);
+  ENERGY_CFLOAT ecoul = ENERGY_F(0.0);
 
-  ENERGY_FLOAT* sharedE;
-  ENERGY_FLOAT* sharedECoul;
-  ENERGY_FLOAT* sharedV = &sharedmem[threadIdx.x];
+  ENERGY_CFLOAT* sharedE;
+  ENERGY_CFLOAT* sharedECoul;
+  ENERGY_CFLOAT* sharedV = &sharedmem[threadIdx.x];
 
   if(eflag || eflag_atom) {
     sharedE = &sharedmem[threadIdx.x];
@@ -718,12 +718,12 @@ __global__ void Pair_Kernel_TpA_opt(int eflag, int vflag, int eflag_atom, int vf
 
   int ii = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
-  X_FLOAT xtmp, ytmp, ztmp;
-  X_FLOAT4 myxtype;
-  F_FLOAT fxtmp, fytmp, fztmp, fpair;
-  F_FLOAT delx, dely, delz;
-  F_FLOAT factor_lj, factor_coul;
-  F_FLOAT qtmp;
+  X_CFLOAT xtmp, ytmp, ztmp;
+  X_CFLOAT4 myxtype;
+  F_CFLOAT fxtmp, fytmp, fztmp, fpair;
+  F_CFLOAT delx, dely, delz;
+  F_CFLOAT factor_lj, factor_coul;
+  F_CFLOAT qtmp;
   int itype, i, j;
   int jnum = 0;
   int* jlist;
@@ -774,7 +774,7 @@ __global__ void Pair_Kernel_TpA_opt(int eflag, int vflag, int eflag_atom, int vf
         int jtype = static_cast <int>(myxtype.w);
 
 
-        const F_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+        const F_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
 
         bool in_cutoff = rsq < (_cutsq_global > X_F(0.0) ? _cutsq_global : _cutsq[itype * _cuda_ntypes + jtype]);
 
@@ -831,7 +831,7 @@ __global__ void Pair_Kernel_TpA_opt(int eflag, int vflag, int eflag_atom, int vf
         }
 
         if(coul_type != COUL_NONE) {
-          const F_FLOAT qiqj = qtmp * fetchQ(j);
+          const F_CFLOAT qiqj = qtmp * fetchQ(j);
 
           if(qiqj * qiqj > 1e-8) {
             const bool in_coul_cutoff =
@@ -848,7 +848,7 @@ __global__ void Pair_Kernel_TpA_opt(int eflag, int vflag, int eflag_atom, int vf
                   break;
 
                 case COUL_CUT: {
-                  const F_FLOAT forcecoul = factor_coul * _qqrd2e * qiqj * _RSQRT_(rsq);
+                  const F_CFLOAT forcecoul = factor_coul * _qqrd2e * qiqj * _RSQRT_(rsq);
 
                   if(eflag) {
                     ecoul += forcecoul;
@@ -859,11 +859,11 @@ __global__ void Pair_Kernel_TpA_opt(int eflag, int vflag, int eflag_atom, int vf
                 break;
 
                 case COUL_DEBYE: {
-                  const F_FLOAT r2inv = F_F(1.0) / rsq;
-                  const X_FLOAT r = _RSQRT_(r2inv);
-                  const X_FLOAT rinv = F_F(1.0) / r;
-                  const F_FLOAT screening = _EXP_(-_kappa * r);
-                  F_FLOAT forcecoul = factor_coul * _qqrd2e * qiqj * screening ;
+                  const F_CFLOAT r2inv = F_F(1.0) / rsq;
+                  const X_CFLOAT r = _RSQRT_(r2inv);
+                  const X_CFLOAT rinv = F_F(1.0) / r;
+                  const F_CFLOAT screening = _EXP_(-_kappa * r);
+                  F_CFLOAT forcecoul = factor_coul * _qqrd2e * qiqj * screening ;
 
                   if(eflag) {
                     ecoul += forcecoul * rinv;
@@ -879,14 +879,14 @@ __global__ void Pair_Kernel_TpA_opt(int eflag, int vflag, int eflag_atom, int vf
                   break;
 
                 case COUL_LONG: {
-                  const F_FLOAT r2inv = F_F(1.0) / rsq;
-                  const F_FLOAT r = _RSQRT_(r2inv);
-                  const F_FLOAT grij = _g_ewald * r;
-                  const F_FLOAT expm2 = _EXP_(-grij * grij);
-                  const F_FLOAT t = F_F(1.0) / (F_F(1.0) + EWALD_P * grij);
-                  const F_FLOAT erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-                  const F_FLOAT prefactor = _qqrd2e * qiqj * (F_F(1.0) / r);
-                  F_FLOAT forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
+                  const F_CFLOAT r2inv = F_F(1.0) / rsq;
+                  const F_CFLOAT r = _RSQRT_(r2inv);
+                  const F_CFLOAT grij = _g_ewald * r;
+                  const F_CFLOAT expm2 = _EXP_(-grij * grij);
+                  const F_CFLOAT t = F_F(1.0) / (F_F(1.0) + EWALD_P * grij);
+                  const F_CFLOAT erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+                  const F_CFLOAT prefactor = _qqrd2e * qiqj * (F_F(1.0) / r);
+                  F_CFLOAT forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
 
                   if(factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
 
@@ -909,7 +909,7 @@ __global__ void Pair_Kernel_TpA_opt(int eflag, int vflag, int eflag_atom, int vf
 
 
         if(in_cutoff) {
-          F_FLOAT dxfp, dyfp, dzfp;
+          F_CFLOAT dxfp, dyfp, dzfp;
           fxtmp += dxfp = delx * fpair;
           fytmp += dyfp = dely * fpair;
           fztmp += dzfp = delz * fpair;
@@ -929,10 +929,10 @@ __global__ void Pair_Kernel_TpA_opt(int eflag, int vflag, int eflag_atom, int vf
   __syncthreads();
 
   if(ii < (comm_phase < 2 ? _inum : _inum_border[0])) {
-    F_FLOAT* my_f;
+    F_CFLOAT* my_f;
 
     if(_collect_forces_later) {
-      ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+      ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
 
       if(eflag) {
         buffer = &buffer[1 * gridDim.x * gridDim.y];
@@ -945,7 +945,7 @@ __global__ void Pair_Kernel_TpA_opt(int eflag, int vflag, int eflag_atom, int vf
         buffer = &buffer[6 * gridDim.x * gridDim.y];
       }
 
-      my_f = (F_FLOAT*) buffer;
+      my_f = (F_CFLOAT*) buffer;
       my_f += i;
       *my_f = fxtmp;
       my_f += _nmax;
@@ -998,14 +998,14 @@ __global__ void Pair_Kernel_BpA_opt(int eflag, int vflag, int eflag_atom, int vf
   if(ii >= (comm_phase < 2 ? _inum : _inum_border[0]))
     return;
 
-  ENERGY_FLOAT evdwl = ENERGY_F(0.0);
-  ENERGY_FLOAT ecoul = ENERGY_F(0.0);
-  F_FLOAT3* sharedVirial1;
-  F_FLOAT3* sharedVirial2;
-  F_FLOAT* sharedEnergy;
-  F_FLOAT* sharedEnergyCoul;
+  ENERGY_CFLOAT evdwl = ENERGY_F(0.0);
+  ENERGY_CFLOAT ecoul = ENERGY_F(0.0);
+  F_CFLOAT3* sharedVirial1;
+  F_CFLOAT3* sharedVirial2;
+  F_CFLOAT* sharedEnergy;
+  F_CFLOAT* sharedEnergyCoul;
 
-  F_FLOAT3* sharedForce = (F_FLOAT3*) &sharedmem[0];
+  F_CFLOAT3* sharedForce = (F_CFLOAT3*) &sharedmem[0];
 
   if(vflag) {
     sharedVirial1 = &sharedForce[64];
@@ -1017,25 +1017,25 @@ __global__ void Pair_Kernel_BpA_opt(int eflag, int vflag, int eflag_atom, int vf
 
   if(eflag) {
     if(vflag || vflag_atom)
-      sharedEnergy = (F_FLOAT*) &sharedVirial2[64];
+      sharedEnergy = (F_CFLOAT*) &sharedVirial2[64];
     else
-      sharedEnergy = (F_FLOAT*) &sharedForce[64];
+      sharedEnergy = (F_CFLOAT*) &sharedForce[64];
 
     if(coul_type != COUL_NONE)
-      sharedEnergyCoul = (F_FLOAT*) &sharedEnergy[64];
+      sharedEnergyCoul = (F_CFLOAT*) &sharedEnergy[64];
 
   }
 
-  F_FLOAT3 partialForce = { F_F(0.0),  F_F(0.0),  F_F(0.0) };
-  F_FLOAT3 partialVirial1 = {  F_F(0.0),  F_F(0.0),  F_F(0.0) };
-  F_FLOAT3 partialVirial2 = {  F_F(0.0),  F_F(0.0),  F_F(0.0) };
+  F_CFLOAT3 partialForce = { F_F(0.0),  F_F(0.0),  F_F(0.0) };
+  F_CFLOAT3 partialVirial1 = {  F_F(0.0),  F_F(0.0),  F_F(0.0) };
+  F_CFLOAT3 partialVirial2 = {  F_F(0.0),  F_F(0.0),  F_F(0.0) };
 
-  X_FLOAT xtmp, ytmp, ztmp;
-  X_FLOAT4 myxtype;
-  F_FLOAT delx, dely, delz;
-  F_FLOAT factor_lj, factor_coul;
-  F_FLOAT fpair;
-  F_FLOAT qtmp;
+  X_CFLOAT xtmp, ytmp, ztmp;
+  X_CFLOAT4 myxtype;
+  F_CFLOAT delx, dely, delz;
+  F_CFLOAT factor_lj, factor_coul;
+  F_CFLOAT fpair;
+  F_CFLOAT qtmp;
   int itype, jnum, i, j;
   int* jlist;
 
@@ -1074,7 +1074,7 @@ __global__ void Pair_Kernel_BpA_opt(int eflag, int vflag, int eflag_atom, int vf
       delz = ztmp - myxtype.z;
       int jtype = static_cast <int>(myxtype.w);
 
-      const F_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+      const F_CFLOAT rsq = delx * delx + dely * dely + delz * delz;
 
       bool in_cutoff = rsq < (_cutsq_global > X_F(0.0) ? _cutsq_global : _cutsq[itype * _cuda_ntypes + jtype]);
       bool in_coul_cutoff;
@@ -1132,7 +1132,7 @@ __global__ void Pair_Kernel_BpA_opt(int eflag, int vflag, int eflag_atom, int vf
       }
 
       if(coul_type != COUL_NONE) {
-        const F_FLOAT qiqj = qtmp * fetchQ(j);
+        const F_CFLOAT qiqj = qtmp * fetchQ(j);
 
         if(qiqj * qiqj > (1e-8f)) {
           in_coul_cutoff =
@@ -1153,14 +1153,14 @@ __global__ void Pair_Kernel_BpA_opt(int eflag, int vflag, int eflag_atom, int vf
                 break;
 
               case COUL_LONG: {
-                const F_FLOAT r2inv = F_F(1.0) / rsq;
-                const F_FLOAT r = _RSQRT_(r2inv);
-                const F_FLOAT grij = _g_ewald * r;
-                const F_FLOAT expm2 = _EXP_(-grij * grij);
-                const F_FLOAT t = F_F(1.0) / (F_F(1.0) + EWALD_P * grij);
-                const F_FLOAT erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-                const F_FLOAT prefactor = _qqrd2e * qiqj * (F_F(1.0) / r);
-                F_FLOAT forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
+                const F_CFLOAT r2inv = F_F(1.0) / rsq;
+                const F_CFLOAT r = _RSQRT_(r2inv);
+                const F_CFLOAT grij = _g_ewald * r;
+                const F_CFLOAT expm2 = _EXP_(-grij * grij);
+                const F_CFLOAT t = F_F(1.0) / (F_F(1.0) + EWALD_P * grij);
+                const F_CFLOAT erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+                const F_CFLOAT prefactor = _qqrd2e * qiqj * (F_F(1.0) / r);
+                F_CFLOAT forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
 
                 if(factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
 
@@ -1175,11 +1175,11 @@ __global__ void Pair_Kernel_BpA_opt(int eflag, int vflag, int eflag_atom, int vf
               break;
 
               case COUL_DEBYE: {
-                const F_FLOAT r2inv = F_F(1.0) / rsq;
-                const X_FLOAT r = _RSQRT_(r2inv);
-                const X_FLOAT rinv = F_F(1.0) / r;
-                const F_FLOAT screening = _EXP_(-_kappa * r);
-                F_FLOAT forcecoul = factor_coul * _qqrd2e * qiqj * screening ;
+                const F_CFLOAT r2inv = F_F(1.0) / rsq;
+                const X_CFLOAT r = _RSQRT_(r2inv);
+                const X_CFLOAT rinv = F_F(1.0) / r;
+                const F_CFLOAT screening = _EXP_(-_kappa * r);
+                F_CFLOAT forcecoul = factor_coul * _qqrd2e * qiqj * screening ;
 
                 if(eflag) {
                   ecoul += forcecoul * rinv;
@@ -1191,7 +1191,7 @@ __global__ void Pair_Kernel_BpA_opt(int eflag, int vflag, int eflag_atom, int vf
               break;
 
               case COUL_CUT: {
-                const F_FLOAT forcecoul = factor_coul * _qqrd2e * qiqj * _RSQRT_(rsq);
+                const F_CFLOAT forcecoul = factor_coul * _qqrd2e * qiqj * _RSQRT_(rsq);
 
                 if(eflag) {
                   ecoul += forcecoul;
@@ -1210,7 +1210,7 @@ __global__ void Pair_Kernel_BpA_opt(int eflag, int vflag, int eflag_atom, int vf
 
 
       if(in_cutoff || in_coul_cutoff) {
-        F_FLOAT dxfp, dyfp, dzfp;
+        F_CFLOAT dxfp, dyfp, dzfp;
         partialForce.x += dxfp = delx * fpair;
         partialForce.y += dyfp = dely * fpair;
         partialForce.z += dzfp = delz * fpair;
@@ -1274,10 +1274,10 @@ __global__ void Pair_Kernel_BpA_opt(int eflag, int vflag, int eflag_atom, int vf
 
   if(threadIdx.x == 0) {
 
-    ENERGY_FLOAT* buffer = (ENERGY_FLOAT*) _buffer;
+    ENERGY_CFLOAT* buffer = (ENERGY_CFLOAT*) _buffer;
 
     if(eflag) {
-      ENERGY_FLOAT tmp_evdwl;
+      ENERGY_CFLOAT tmp_evdwl;
       buffer[blockIdx.x * gridDim.y + blockIdx.y + 0 * gridDim.x * gridDim.y] = tmp_evdwl = ENERGY_F(0.5) * sharedEnergy[0];
 
       if(eflag_atom)
@@ -1296,7 +1296,7 @@ __global__ void Pair_Kernel_BpA_opt(int eflag, int vflag, int eflag_atom, int vf
     }
 
     if(vflag) {
-      ENERGY_FLOAT tmp;
+      ENERGY_CFLOAT tmp;
       buffer[blockIdx.x * gridDim.y + blockIdx.y + 0 * gridDim.x * gridDim.y] = tmp = ENERGY_F(0.5) * sharedVirial1[0].x;
 
       if(vflag_atom) _vatom[i + 0 * _nmax] = tmp;
@@ -1324,10 +1324,10 @@ __global__ void Pair_Kernel_BpA_opt(int eflag, int vflag, int eflag_atom, int vf
       buffer = &buffer[6 * gridDim.x * gridDim.y];
     }
 
-    F_FLOAT* my_f;
+    F_CFLOAT* my_f;
 
     if(_collect_forces_later) {
-      my_f = (F_FLOAT*) buffer;
+      my_f = (F_CFLOAT*) buffer;
       my_f += i;
       *my_f = sharedForce[0].x;
       my_f += _nmax;
@@ -1350,7 +1350,7 @@ __global__ void Pair_GenerateXType_Kernel()
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nall) {
-    X_FLOAT4 xtype;
+    X_CFLOAT4 xtype;
     xtype.x = _x[i];
     xtype.y = _x[i + _nmax];
     xtype.z = _x[i + 2 * _nmax];
@@ -1365,7 +1365,7 @@ __global__ void Pair_GenerateVRadius_Kernel()
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nall) {
-    V_FLOAT4 vradius;
+    V_CFLOAT4 vradius;
     vradius.x = _v[i];
     vradius.y = _v[i + _nmax];
     vradius.z = _v[i + 2 * _nmax];
@@ -1379,7 +1379,7 @@ __global__ void Pair_GenerateOmegaRmass_Kernel()
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nall) {
-    V_FLOAT4 omegarmass;
+    V_CFLOAT4 omegarmass;
     omegarmass.x = _omega[i];
     omegarmass.y = _omega[i + _nmax];
     omegarmass.z = _omega[i + 2 * _nmax];
@@ -1393,7 +1393,7 @@ __global__ void Pair_RevertXType_Kernel()
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nall) {
-    X_FLOAT4 xtype = _x_type[i];
+    X_CFLOAT4 xtype = _x_type[i];
     _x[i] = xtype.x;
     _x[i + _nmax] = xtype.y;
     _x[i + 2 * _nmax] = xtype.z;
@@ -1407,7 +1407,7 @@ __global__ void Pair_BuildXHold_Kernel()
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
   if(i < _nall) {
-    X_FLOAT4 xtype = _x_type[i];
+    X_CFLOAT4 xtype = _x_type[i];
     _xhold[i] = xtype.x;
     _xhold[i + _nmax] = xtype.y;
     _xhold[i + 2 * _nmax] = xtype.z;
@@ -1421,10 +1421,10 @@ __global__ void Pair_CollectForces_Kernel(int nperblock, int n)
 
   if(i >= _nlocal) return;
 
-  ENERGY_FLOAT* buf = (ENERGY_FLOAT*) _buffer;
+  ENERGY_CFLOAT* buf = (ENERGY_CFLOAT*) _buffer;
 
-  F_FLOAT* buf_f = (F_FLOAT*) &buf[nperblock * n];
-  F_FLOAT* my_f = _f + i;
+  F_CFLOAT* buf_f = (F_CFLOAT*) &buf[nperblock * n];
+  F_CFLOAT* my_f = _f + i;
   buf_f += i;
   *my_f += * buf_f;
   my_f += _nmax;

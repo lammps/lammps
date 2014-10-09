@@ -61,9 +61,9 @@ struct cuda_shared_atom {	// relevent data from atom class
   int need_eatom;
   int need_vatom;
 
-  dev_array x_type;		// position + type in X_FLOAT4 struct
-  dev_array v_radius;		// velociyt + radius in V_FLOAT4 struct currently only used for granular atom_style
-  dev_array omega_rmass;		// velociyt + radius in V_FLOAT4 struct currently only used for granular atom_style
+  dev_array x_type;		// position + type in X_CFLOAT4 struct
+  dev_array v_radius;		// velociyt + radius in V_CFLOAT4 struct currently only used for granular atom_style
+  dev_array omega_rmass;		// velociyt + radius in V_CFLOAT4 struct currently only used for granular atom_style
 
   double* mass_host;		// remember per-type host pointer to masses
   //int natoms;				// total # of atoms in system, could be 0
@@ -82,7 +82,7 @@ struct cuda_shared_atom {	// relevent data from atom class
   int update_neigh;
 
   dev_array xhold;	    // position at last neighboring
-  X_FLOAT triggerneighsq;		// maximum square movement before reneighboring
+  X_CFLOAT triggerneighsq;		// maximum square movement before reneighboring
   int reneigh_flag;		// is reneighboring necessary
   int maxhold;			// size of xhold
   int dist_check; 		//perform distance check for reneighboring
@@ -96,9 +96,9 @@ struct cuda_shared_atom {	// relevent data from atom class
 
 struct cuda_shared_pair {	// relevent data from pair class
   char cudable_force;		// check for (cudable_force!=0)
-  X_FLOAT cut_global;
-  X_FLOAT cut_inner_global;
-  X_FLOAT cut_coul_global;
+  X_CFLOAT cut_global;
+  X_CFLOAT cut_inner_global;
+  X_CFLOAT cut_coul_global;
   double** cut;			// type-type cutoff
   double** cutsq;			// type-type cutoff
   double** cut_inner;			// type-type cutoff for coul
@@ -116,11 +116,11 @@ struct cuda_shared_pair {	// relevent data from pair class
   double** offset;
   double* special_lj;
   double* special_coul;
-  dev_array virial; // ENERGY_FLOAT
-  dev_array eng_vdwl; // ENERGY_FLOAT
-  dev_array eng_coul; // ENERGY_FLOAT
-  X_FLOAT cut_coulsq_global;
-  F_FLOAT g_ewald, kappa;
+  dev_array virial; // ENERGY_CFLOAT
+  dev_array eng_vdwl; // ENERGY_CFLOAT
+  dev_array eng_coul; // ENERGY_CFLOAT
+  X_CFLOAT cut_coulsq_global;
+  F_CFLOAT g_ewald, kappa;
   int freeze_group_bit;
 
   dev_array coeff1_gm;
@@ -144,48 +144,48 @@ struct cuda_shared_pair {	// relevent data from pair class
 };
 
 struct cuda_shared_domain {	// relevent data from domain class
-  X_FLOAT sublo[3];			// orthogonal box -> sub-box bounds on this proc
-  X_FLOAT subhi[3];
-  X_FLOAT boxlo[3];
-  X_FLOAT boxhi[3];
-  X_FLOAT prd[3];
+  X_CFLOAT sublo[3];			// orthogonal box -> sub-box bounds on this proc
+  X_CFLOAT subhi[3];
+  X_CFLOAT boxlo[3];
+  X_CFLOAT boxhi[3];
+  X_CFLOAT prd[3];
   int periodicity[3];		// xyz periodicity as array
 
   int triclinic;
-  X_FLOAT xy;
-  X_FLOAT xz;
-  X_FLOAT yz;
-  X_FLOAT boxlo_lamda[3];
-  X_FLOAT boxhi_lamda[3];
-  X_FLOAT prd_lamda[3];
-  X_FLOAT h[6];
-  X_FLOAT h_inv[6];
-  V_FLOAT h_rate[6];
+  X_CFLOAT xy;
+  X_CFLOAT xz;
+  X_CFLOAT yz;
+  X_CFLOAT boxlo_lamda[3];
+  X_CFLOAT boxhi_lamda[3];
+  X_CFLOAT prd_lamda[3];
+  X_CFLOAT h[6];
+  X_CFLOAT h_inv[6];
+  V_CFLOAT h_rate[6];
   int update;
 };
 
 struct cuda_shared_pppm {
   char cudable_force;
 #ifdef FFT_CUFFT
-  FFT_FLOAT* work1;
-  FFT_FLOAT* work2;
-  FFT_FLOAT* work3;
-  PPPM_FLOAT* greensfn;
-  PPPM_FLOAT* fkx;
-  PPPM_FLOAT* fky;
-  PPPM_FLOAT* fkz;
-  PPPM_FLOAT* vg;
+  FFT_CFLOAT* work1;
+  FFT_CFLOAT* work2;
+  FFT_CFLOAT* work3;
+  PPPM_CFLOAT* greensfn;
+  PPPM_CFLOAT* fkx;
+  PPPM_CFLOAT* fky;
+  PPPM_CFLOAT* fkz;
+  PPPM_CFLOAT* vg;
 #endif
   int* part2grid;
-  PPPM_FLOAT* density_brick;
+  PPPM_CFLOAT* density_brick;
   int* density_brick_int;
-  PPPM_FLOAT density_intScale;
-  PPPM_FLOAT* vdx_brick;
-  PPPM_FLOAT* vdy_brick;
-  PPPM_FLOAT* vdz_brick;
-  PPPM_FLOAT* density_fft;
-  ENERGY_FLOAT* energy;
-  ENERGY_FLOAT* virial;
+  PPPM_CFLOAT density_intScale;
+  PPPM_CFLOAT* vdx_brick;
+  PPPM_CFLOAT* vdy_brick;
+  PPPM_CFLOAT* vdz_brick;
+  PPPM_CFLOAT* density_fft;
+  ENERGY_CFLOAT* energy;
+  ENERGY_CFLOAT* virial;
   int nxlo_in;
   int nxhi_in;
   int nxlo_out;
@@ -201,20 +201,20 @@ struct cuda_shared_pppm {
   int nx_pppm;
   int ny_pppm;
   int nz_pppm;
-  PPPM_FLOAT qqrd2e;
+  PPPM_CFLOAT qqrd2e;
   int order;
   // float3 sublo;
-  PPPM_FLOAT* rho_coeff;
+  PPPM_CFLOAT* rho_coeff;
   int nmax;
   int nlocal;
-  PPPM_FLOAT* debugdata;
-  PPPM_FLOAT delxinv;
-  PPPM_FLOAT delyinv;
-  PPPM_FLOAT delzinv;
+  PPPM_CFLOAT* debugdata;
+  PPPM_CFLOAT delxinv;
+  PPPM_CFLOAT delyinv;
+  PPPM_CFLOAT delzinv;
   int nlower;
   int nupper;
-  PPPM_FLOAT shiftone;
-  PPPM_FLOAT3* fH;
+  PPPM_CFLOAT shiftone;
+  PPPM_CFLOAT3* fH;
 };
 
 struct cuda_shared_comm {
@@ -262,7 +262,7 @@ struct cuda_shared_neighlist { // member of CudaNeighList, has no instance in cu
   int maxneighbors;
   int neigh_lists_per_page;
   double** cutneighsq;
-  CUDA_FLOAT* cu_cutneighsq;
+  CUDA_CFLOAT* cu_cutneighsq;
   int* binned_id;
   int* bin_dim;
   int bin_nmax;

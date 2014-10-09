@@ -91,6 +91,8 @@ help:
 # Build LAMMPS
 
 .DEFAULT:
+	@if [ $@ = "serial" -a ! -f STUBS/libmpi_stubs.a ]; \
+	  then $(MAKE) stubs; fi
 	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi

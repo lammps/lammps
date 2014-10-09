@@ -32,7 +32,7 @@
 #include "memory.h"
 #include "error.h"
 #include "math_extra.h"
-#include "cuda.h"
+#include "user_cuda.h"
 #include "fix_nh_cuda_cu.h"
 #include "cuda_modify_flags.h"
 

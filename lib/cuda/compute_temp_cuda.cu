@@ -33,7 +33,7 @@
 
 void Cuda_ComputeTempCuda_UpdateBuffer(cuda_shared_data* sdata)
 {
-  int size = (unsigned)((sdata->atom.nlocal + 63) / 64.0) * 6 * sizeof(ENERGY_FLOAT);
+  int size = (unsigned)((sdata->atom.nlocal + 63) / 64.0) * 6 * sizeof(ENERGY_CFLOAT);
 
   if(sdata->buffersize < size) {
     MYDBG(printf("Cuda_ComputeTempCuda Resizing Buffer at %p with %i kB to\n", sdata->buffer, sdata->buffersize);)
@@ -50,15 +50,15 @@ void Cuda_ComputeTempCuda_UpdateBuffer(cuda_shared_data* sdata)
 void Cuda_ComputeTempCuda_UpdateNmax(cuda_shared_data* sdata)
 {
   cudaMemcpyToSymbol(MY_AP(mask)    , & sdata->atom.mask .dev_data, sizeof(int*));
-  cudaMemcpyToSymbol(MY_AP(mass)    , & sdata->atom.mass .dev_data, sizeof(V_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(mass)    , & sdata->atom.mass .dev_data, sizeof(V_CFLOAT*));
 
   if(sdata->atom.rmass_flag)
-    cudaMemcpyToSymbol(MY_AP(rmass)   , & sdata->atom.rmass.dev_data, sizeof(V_FLOAT*));
+    cudaMemcpyToSymbol(MY_AP(rmass)   , & sdata->atom.rmass.dev_data, sizeof(V_CFLOAT*));
 
   cudaMemcpyToSymbol(MY_AP(rmass_flag)   , & sdata->atom.rmass_flag, sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nlocal)  , & sdata->atom.nlocal        , sizeof(int));
   cudaMemcpyToSymbol(MY_AP(nmax)    , & sdata->atom.nmax          , sizeof(int));
-  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.v    .dev_data, sizeof(V_FLOAT*));
+  cudaMemcpyToSymbol(MY_AP(v)       , & sdata->atom.v    .dev_data, sizeof(V_CFLOAT*));
   cudaMemcpyToSymbol(MY_AP(type)       , & sdata->atom.type    .dev_data, sizeof(int*));
 }
 
@@ -68,7 +68,7 @@ void Cuda_ComputeTempCuda_Init(cuda_shared_data* sdata)
 }
 
 
-void Cuda_ComputeTempCuda_Vector(cuda_shared_data* sdata, int groupbit, ENERGY_FLOAT* t)
+void Cuda_ComputeTempCuda_Vector(cuda_shared_data* sdata, int groupbit, ENERGY_CFLOAT* t)
 {
   //if(sdata->atom.update_nmax) //is most likely not called every timestep, therefore update of constants is necessary
   Cuda_ComputeTempCuda_UpdateNmax(sdata);
@@ -82,7 +82,7 @@ void Cuda_ComputeTempCuda_Vector(cuda_shared_data* sdata, int groupbit, ENERGY_F
   dim3 grid(layout.x, layout.y, 1);
 
   if(sdata->atom.nlocal > 0) {
-    Cuda_ComputeTempCuda_Vector_Kernel <<< grid, threads, threads.x* 6* sizeof(ENERGY_FLOAT)>>> (groupbit);
+    Cuda_ComputeTempCuda_Vector_Kernel <<< grid, threads, threads.x* 6* sizeof(ENERGY_CFLOAT)>>> (groupbit);
     cudaThreadSynchronize();
     CUT_CHECK_ERROR("Cuda_ComputeTempCuda_Vector: compute_vector Kernel execution failed");
 
@@ -90,13 +90,13 @@ void Cuda_ComputeTempCuda_Vector(cuda_shared_data* sdata, int groupbit, ENERGY_F
     grid.x = 6;
     grid.y = 1;
     threads.x = 512;
-    Cuda_ComputeTempCuda_Reduce_Kernel <<< grid, threads, threads.x* sizeof(ENERGY_FLOAT)>>> (oldgrid, t);
+    Cuda_ComputeTempCuda_Reduce_Kernel <<< grid, threads, threads.x* sizeof(ENERGY_CFLOAT)>>> (oldgrid, t);
     cudaThreadSynchronize();
     CUT_CHECK_ERROR("Cuda_ComputeTempCuda_Vector: reduce_vector Kernel execution failed");
   }
 }
 
-void Cuda_ComputeTempCuda_Scalar(cuda_shared_data* sdata, int groupbit, ENERGY_FLOAT* t)
+void Cuda_ComputeTempCuda_Scalar(cuda_shared_data* sdata, int groupbit, ENERGY_CFLOAT* t)
 {
   //if(sdata->atom.update_nmax) //is most likely not called every timestep, therefore update of constants is necessary
   Cuda_ComputeTempCuda_UpdateNmax(sdata);
@@ -111,7 +111,7 @@ void Cuda_ComputeTempCuda_Scalar(cuda_shared_data* sdata, int groupbit, ENERGY_F
 
   if(sdata->atom.nlocal > 0) {
     CUT_CHECK_ERROR("Cuda_ComputeTempCuda_Scalar: pre compute_scalar Kernel");
-    Cuda_ComputeTempCuda_Scalar_Kernel <<< grid, threads, threads.x* sizeof(ENERGY_FLOAT)>>> (groupbit);
+    Cuda_ComputeTempCuda_Scalar_Kernel <<< grid, threads, threads.x* sizeof(ENERGY_CFLOAT)>>> (groupbit);
     cudaThreadSynchronize();
     CUT_CHECK_ERROR("Cuda_ComputeTempCuda_Scalar: compute_scalar Kernel execution failed");
 
@@ -119,7 +119,7 @@ void Cuda_ComputeTempCuda_Scalar(cuda_shared_data* sdata, int groupbit, ENERGY_F
     grid.x = 1;
     grid.y = 1;
     threads.x = 512;
-    Cuda_ComputeTempCuda_Reduce_Kernel <<< grid, threads, threads.x* sizeof(ENERGY_FLOAT)>>> (oldgrid, t);
+    Cuda_ComputeTempCuda_Reduce_Kernel <<< grid, threads, threads.x* sizeof(ENERGY_CFLOAT)>>> (oldgrid, t);
     cudaThreadSynchronize();
     CUT_CHECK_ERROR("Cuda_ComputeTempCuda_Scalar: reduce_scalar Kernel execution failed");
   }

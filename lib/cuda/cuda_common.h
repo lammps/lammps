@@ -60,7 +60,7 @@
 //#define &MY_AP(var) (MY_VAR_TO_STR2(MY_PREFIX) "_" MY_VAR_TO_STR2(var))
 //#define &MY_AP(var) &(MY_AP(var))
 #define CUDA_USE_TEXTURE
-#define CUDA_USE_FLOAT4
+#define CUDA_USE_CFLOAT4
 
 //constants used by many classes
 
@@ -79,20 +79,20 @@
 #define _h		 	 MY_AP(h)
 #define _h_inv	 	 MY_AP(h_inv)
 #define _h_rate		 MY_AP(h_rate)
-__device__ __constant__ X_FLOAT _boxhi[3];
-__device__ __constant__ X_FLOAT _boxlo[3];
-__device__ __constant__ X_FLOAT _subhi[3];
-__device__ __constant__ X_FLOAT _sublo[3];
-__device__ __constant__ X_FLOAT _box_size[3];
-__device__ __constant__ X_FLOAT _prd[3];
+__device__ __constant__ X_CFLOAT _boxhi[3];
+__device__ __constant__ X_CFLOAT _boxlo[3];
+__device__ __constant__ X_CFLOAT _subhi[3];
+__device__ __constant__ X_CFLOAT _sublo[3];
+__device__ __constant__ X_CFLOAT _box_size[3];
+__device__ __constant__ X_CFLOAT _prd[3];
 __device__ __constant__ int _periodicity[3];
 __device__ __constant__ int _triclinic;
-__device__ __constant__ X_FLOAT _boxhi_lamda[3];
-__device__ __constant__ X_FLOAT _boxlo_lamda[3];
-__device__ __constant__ X_FLOAT _prd_lamda[3];
-__device__ __constant__ X_FLOAT _h[6];
-__device__ __constant__ X_FLOAT _h_inv[6];
-__device__ __constant__ V_FLOAT _h_rate[6];
+__device__ __constant__ X_CFLOAT _boxhi_lamda[3];
+__device__ __constant__ X_CFLOAT _boxlo_lamda[3];
+__device__ __constant__ X_CFLOAT _prd_lamda[3];
+__device__ __constant__ X_CFLOAT _h[6];
+__device__ __constant__ X_CFLOAT _h_inv[6];
+__device__ __constant__ V_CFLOAT _h_rate[6];
 
 
 //atom properties
@@ -123,31 +123,31 @@ __device__ __constant__ V_FLOAT _h_rate[6];
 #define _omega_rmass MY_AP(omega_rmass)
 #define _freeze_group_bit MY_AP(freeze_group_bit)
 #define _map_array   MY_AP(map_array)
-__device__ __constant__ X_FLOAT* _x;  //holds pointer to positions
-__device__ __constant__ V_FLOAT* _v;
-__device__ __constant__ F_FLOAT* _f;
+__device__ __constant__ X_CFLOAT* _x;  //holds pointer to positions
+__device__ __constant__ V_CFLOAT* _v;
+__device__ __constant__ F_CFLOAT* _f;
 __device__ __constant__ int* _tag;
 __device__ __constant__ int* _type;
 __device__ __constant__ int* _mask;
 __device__ __constant__ int* _image;
-__device__ __constant__ V_FLOAT* _mass;
-__device__ __constant__ F_FLOAT* _q;
-__device__ __constant__ V_FLOAT* _rmass;
+__device__ __constant__ V_CFLOAT* _mass;
+__device__ __constant__ F_CFLOAT* _q;
+__device__ __constant__ V_CFLOAT* _rmass;
 __device__ __constant__ int _rmass_flag;
-__device__ __constant__ ENERGY_FLOAT* _eatom;
-__device__ __constant__ ENERGY_FLOAT* _vatom;
-__device__ __constant__ X_FLOAT4* _x_type;  //holds pointer to positions
-__device__ __constant__ X_FLOAT* _radius;
-__device__ __constant__ F_FLOAT* _density;
-__device__ __constant__ V_FLOAT* _omega;
-__device__ __constant__ F_FLOAT* _torque;
+__device__ __constant__ ENERGY_CFLOAT* _eatom;
+__device__ __constant__ ENERGY_CFLOAT* _vatom;
+__device__ __constant__ X_CFLOAT4* _x_type;  //holds pointer to positions
+__device__ __constant__ X_CFLOAT* _radius;
+__device__ __constant__ F_CFLOAT* _density;
+__device__ __constant__ V_CFLOAT* _omega;
+__device__ __constant__ F_CFLOAT* _torque;
 __device__ __constant__ int* _special;
 __device__ __constant__ int _maxspecial;
 __device__ __constant__ int* _nspecial;
 __device__ __constant__ int _special_flag[4];
 __device__ __constant__ int* _molecule;
-__device__ __constant__ V_FLOAT4* _v_radius;  //holds pointer to positions
-__device__ __constant__ V_FLOAT4* _omega_rmass;  //holds pointer to positions
+__device__ __constant__ V_CFLOAT4* _v_radius;  //holds pointer to positions
+__device__ __constant__ V_CFLOAT4* _omega_rmass;  //holds pointer to positions
 __device__ __constant__ int _freeze_group_bit;
 __device__ __constant__ int* _map_array;
 
@@ -226,8 +226,8 @@ __device__ __constant__ int* _neighbors;
 __device__ __constant__ int* _neighbors_border;
 __device__ __constant__ int* _neighbors_inner;
 __device__ __constant__ int* _reneigh_flag;
-__device__ __constant__ X_FLOAT _triggerneighsq;
-__device__ __constant__ X_FLOAT* _xhold;  //holds pointer to positions
+__device__ __constant__ X_CFLOAT _triggerneighsq;
+__device__ __constant__ X_CFLOAT* _xhold;  //holds pointer to positions
 __device__ __constant__ int _maxhold;
 __device__ __constant__ int _dist_check;
 __device__ __constant__ int _neighbor_maxlocal;
@@ -253,12 +253,12 @@ __device__ __constant__ unsigned _nghost;
 __device__ __constant__ unsigned _nlocal;
 __device__ __constant__ unsigned _nmax;
 __device__ __constant__ unsigned _cuda_ntypes;
-__device__ __constant__ V_FLOAT _dtf;
-__device__ __constant__ X_FLOAT _dtv;
-__device__ __constant__ V_FLOAT _factor;
-__device__ __constant__ ENERGY_FLOAT* _virial;
-__device__ __constant__ ENERGY_FLOAT* _eng_vdwl;
-__device__ __constant__ ENERGY_FLOAT* _eng_coul;
+__device__ __constant__ V_CFLOAT _dtf;
+__device__ __constant__ X_CFLOAT _dtv;
+__device__ __constant__ V_CFLOAT _factor;
+__device__ __constant__ ENERGY_CFLOAT* _virial;
+__device__ __constant__ ENERGY_CFLOAT* _eng_vdwl;
+__device__ __constant__ ENERGY_CFLOAT* _eng_coul;
 __device__ __constant__ int _molecular;
 
 //other general constants

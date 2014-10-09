@@ -1,4 +1,4 @@
-Reactive MD-force field for Ammonia Borane: Weismiller, M.R.; van Duin, A.C.T.; Lee, J.; Yetter, R.A. J. Phys. Chem. A 2010, 114, 5485-5492
+DATE: 2011-02-18 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Weismiller, van Duin,  Lee, Yetter, J Phys Chem A, 114, 5485-5492 (2010) COMMENT: Reactive MD-force field for Ammonia Borane: Weismiller, M.R.; van Duin, A.C.T.; Lee, J.; Yetter, R.A. J. Phys. Chem. A 2010, 114, 5485-5492
  39       ! Number of general parameters                                        
    50.0000 !Overcoordination parameter                                          
     9.4514 !Overcoordination parameter                                          

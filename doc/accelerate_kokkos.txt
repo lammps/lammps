@@ -58,14 +58,17 @@ one or the other of the two modes.  The first mode is called the
 processor (running in native mode, not offload mode like the
 USER-INTEL package) are supported.  The second mode is called the
 "device" and is an accelerator chip of some kind.  Currently only an
-NVIDIA GPU is supported.  If your compute node does not have a GPU,
-then there is only one mode of execution, i.e. the host and device are
-the same.
+NVIDIA GPU is supported via Cuda.  If your compute node does not have
+a GPU, then there is only one mode of execution, i.e. the host and
+device are the same.
 
-Here is a quick overview of how to use the KOKKOS package
-for GPU acceleration:
+When using the KOKKOS package, you must choose at build time whether
+you are building for OpenMP, GPU, or for using the Xeon Phi in native
+mode.
 
-specify variables and settings in your Makefile.machine that enable GPU, Phi, or OpenMP support
+Here is a quick overview of how to use the KOKKOS package:
+
+specify variables and settings in your Makefile.machine that enable OpenMP, GPU, or Phi support
 include the KOKKOS package and build LAMMPS
 enable the KOKKOS package and its hardware options via the "-k on" command-line switch
 use KOKKOS styles in your input script :ul
@@ -102,14 +105,23 @@ and GPU packages for details of how to check and do this.
 
 [Building LAMMPS with the KOKKOS package:]
 
-Unlike other acceleration packages discussed in this section, the
-Kokkos library in lib/kokkos does not have to be pre-built before
-building LAMMPS itself.  Instead, options for the Kokkos library are
-specified at compile time, when LAMMPS itself is built.  This can be
-done in one of two ways, as discussed below.
+You must choose at build time whether to build for OpenMP, Cuda, or
+Phi.
 
-Here are examples of how to build LAMMPS for the different compute-node
-configurations listed above.
+You can do any of these in one line, using the src/Make.py script,
+described in "Section 2.4"_Section_start.html#start_4 of the manual.
+Type "Make.py -h" for help.  If run from the src directory, these
+commands will create src/lmp_kokkos_omp, lmp_kokkos_cuda, and
+lmp_kokkos_phi.  The OMP and PHI options use src/MAKE/Makefile.mpi as
+the starting Makefile.machine.  The CUDA option uses
+src/MAKE/OPTIONS/Makefile.cuda since the NVIDIA nvcc compiler is
+required.
+
+Make.py -p kokkos -kokkos omp -o kokkos_omp file mpi 
+Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda file kokkos_cuda
+Make.py -p kokkos -kokkos phi -o kokkos_phi file mpi 
+
+Or you can follow these steps:
 
 CPU-only (run all-MPI or with OpenMP threading):
 
@@ -161,14 +173,75 @@ in "Section 2.3.4"_Section_start.html#start_3_4 of the manual, as well
 as other settings that must be included in the machine makefile, if
 you create your own.
 
-There are other allowed options when building with the KOKKOS package.
-As above, They can be set either as variables on the make command line
-or in the machine makefile in the src/MAKE directory.  See "Section
-2.3.4"_Section_start.html#start_3_4 of the manual for details.
-
 IMPORTANT NOTE: Currently, there are no precision options with the
 KOKKOS package.  All compilation and computation is performed in
 double precision.
+
+There are other allowed options when building with the KOKKOS package.
+As above, they can be set either as variables on the make command line
+or in Makefile.machine.  This is the full list of options, including
+those discussed above, Each takes a value of {yes} or {no}.  The
+default value is listed, which is set in the
+lib/kokkos/Makefile.lammps file.
+
+OMP, default = {yes}
+CUDA, default = {no}
+HWLOC, default = {no}
+AVX, default = {no}
+MIC, default = {no}
+LIBRT, default = {no}
+DEBUG, default = {no} :ul
+
+OMP sets the parallelization method used for Kokkos code (within
+LAMMPS) that runs on the host.  OMP=yes means that OpenMP will be
+used.  OMP=no means that pthreads will be used.
+
+CUDA sets the parallelization method used for Kokkos code (within
+LAMMPS) that runs on the device.  CUDA=yes means an NVIDIA GPU running
+CUDA will be used.  CUDA=no means that the OMP=yes or OMP=no setting
+will be used for the device as well as the host.
+
+If CUDA=yes, then the lo-level Makefile in the src/MAKE directory must
+use "nvcc" as its compiler, via its CC setting.  For best performance
+its CCFLAGS setting should use -O3 and have an -arch setting that
+matches the compute capability of your NVIDIA hardware and software
+installation, e.g. -arch=sm_20.  Generally Fermi Generation GPUs are
+sm_20, while Kepler generation GPUs are sm_30 or sm_35 and Maxwell
+cards are sm_50.  A complete list can be found on
+"wikipedia"_http://en.wikipedia.org/wiki/CUDA#Supported_GPUs. You can
+also use the deviceQuery tool that comes with the CUDA samples.  Note
+the minimal required compute capability is 2.0, but this will give
+signicantly reduced performance compared to Kepler generation GPUs
+with compute capability 3.x.  For the LINK setting, "nvcc" should not
+be used; instead use g++ or another compiler suitable for linking C++
+applications.  Often you will want to use your MPI compiler wrapper
+for this setting (i.e. mpicxx).  Finally, the lo-level Makefile must
+also have a "Compilation rule" for creating *.o files from *.cu files.
+See src/Makefile.cuda for an example of a lo-level Makefile with all
+of these settings.
+
+HWLOC binds threads to hardware cores, so they do not migrate during a
+simulation.  HWLOC=yes should always be used if running with OMP=no
+for pthreads.  It is not necessary for OMP=yes for OpenMP, because
+OpenMP provides alternative methods via environment variables for
+binding threads to hardware cores.  More info on binding threads to
+cores is given in "this section"_Section_accelerate.html#acc_8.
+
+AVX enables Intel advanced vector extensions when compiling for an
+Intel-compatible chip.  AVX=yes should only be set if your host
+hardware supports AVX.  If it does not support it, this will cause a
+run-time crash.
+
+MIC enables compiler switches needed when compling for an Intel Phi
+processor.
+
+LIBRT enables use of a more accurate timer mechanism on most Unix
+platforms.  This library is not available on all platforms.
+
+DEBUG is only useful when developing a Kokkos-enabled style within
+LAMMPS.  DEBUG=yes enables printing of run-time debugging information
+that can be useful.  It also enables runtime bounds checking on Kokkos
+data structures.
 
 [Run with the KOKKOS package from the command line:]
 

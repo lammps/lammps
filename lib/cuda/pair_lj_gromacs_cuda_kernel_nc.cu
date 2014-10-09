@@ -21,14 +21,14 @@
    This software is distributed under the GNU General Public License.
 ------------------------------------------------------------------------- */
 
-__device__ inline F_FLOAT PairLJGromacsCuda_Eval(const F_FLOAT &rsq, const int ij_type, F_FLOAT &factor_lj, int &eflag, ENERGY_FLOAT &evdwl)
+__device__ inline F_CFLOAT PairLJGromacsCuda_Eval(const F_CFLOAT &rsq, const int ij_type, F_CFLOAT &factor_lj, int &eflag, ENERGY_CFLOAT &evdwl)
 {
-  F_FLOAT tlj;
-  const F_FLOAT r2inv = F_F(1.0) / rsq;
-  const F_FLOAT r = _RSQRT_(r2inv);
-  const F_FLOAT r6inv = r2inv * r2inv * r2inv;
-  F_FLOAT	forcelj = r6inv * (_lj1[ij_type] * r6inv - _lj2[ij_type]);
-  const X_FLOAT cut_lj_innersq = (_cut_innersq_global > X_F(0.0) ? _cut_innersq_global : _cut_innersq[ij_type]);
+  F_CFLOAT tlj;
+  const F_CFLOAT r2inv = F_F(1.0) / rsq;
+  const F_CFLOAT r = _RSQRT_(r2inv);
+  const F_CFLOAT r6inv = r2inv * r2inv * r2inv;
+  F_CFLOAT	forcelj = r6inv * (_lj1[ij_type] * r6inv - _lj2[ij_type]);
+  const X_CFLOAT cut_lj_innersq = (_cut_innersq_global > X_F(0.0) ? _cut_innersq_global : _cut_innersq[ij_type]);
 
   if(rsq > cut_lj_innersq) {
     tlj = r - _SQRT_(cut_lj_innersq);
@@ -36,7 +36,7 @@ __device__ inline F_FLOAT PairLJGromacsCuda_Eval(const F_FLOAT &rsq, const int i
   }
 
   if(eflag) {
-    ENERGY_FLOAT evdwl_tmp = r6inv * (_lj3[ij_type] * r6inv - _lj4[ij_type]);
+    ENERGY_CFLOAT evdwl_tmp = r6inv * (_lj3[ij_type] * r6inv - _lj4[ij_type]);
 
     if(rsq > cut_lj_innersq) {
       evdwl_tmp += tlj * tlj * tlj *

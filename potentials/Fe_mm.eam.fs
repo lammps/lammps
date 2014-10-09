@@ -1,6 +1,6 @@
-Sourse: Potential #2 from [M.I. Mendelev, S. Han, D.J. Srolovitz, G.J. Ackland, D.Y. Sun and M. Asta, Phil. Mag. A, 83, 3977-3994 (2003).]
-Contact information: mendelev@ameslab.gov
+DATE: 2007-06-11 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Mendelev, Han, Srolovitz, Ackland, Sun and Asta, Phil Mag A, 83, 3977-3994 (2003)
 Sunday, Jun 10, 2007  The potential was taken from v9_4_bcc (in C:\SIMULATION.MD\Fe\Results\ab_initio+Interstitials)
+################################################
 1  Fe  
 10000   3.00000000000000E-0002  10000   5.30000000000000E-0004   5.30000000000000E+0000
 26   5.58450000000000E+0001   2.85532400000000E+0000  bcc

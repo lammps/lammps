@@ -27,7 +27,7 @@
 extern __shared__ int shared[];
 
 template <const unsigned int data_mask>
-__global__ void Cuda_AtomVecCuda_PackComm_Kernel(int* sendlist, int n, int maxlistlength, int iswap, X_FLOAT dx, X_FLOAT dy, X_FLOAT dz, void* buffer)
+__global__ void Cuda_AtomVecCuda_PackComm_Kernel(int* sendlist, int n, int maxlistlength, int iswap, X_CFLOAT dx, X_CFLOAT dy, X_CFLOAT dz, void* buffer)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
   int* list = sendlist + iswap * maxlistlength;
@@ -40,44 +40,44 @@ __global__ void Cuda_AtomVecCuda_PackComm_Kernel(int* sendlist, int n, int maxli
     int k = 0;
 
     if(data_mask & X_MASK) {
-      ((X_FLOAT*) buffer)[i + k * n] = _x[j] + dx;
+      ((X_CFLOAT*) buffer)[i + k * n] = _x[j] + dx;
       k++;
-      ((X_FLOAT*) buffer)[i + k * n] = _x[j + _nmax] + dy;
+      ((X_CFLOAT*) buffer)[i + k * n] = _x[j + _nmax] + dy;
       k++;
-      ((X_FLOAT*) buffer)[i + k * n] = _x[j + 2 * _nmax] + dz;
+      ((X_CFLOAT*) buffer)[i + k * n] = _x[j + 2 * _nmax] + dz;
       k++;
     }
 
     if(data_mask & V_MASK) {
-      ((X_FLOAT*) buffer)[i + k * n] = _v[j];
+      ((X_CFLOAT*) buffer)[i + k * n] = _v[j];
       k++;
-      ((X_FLOAT*) buffer)[i + k * n] = _v[j + _nmax];
+      ((X_CFLOAT*) buffer)[i + k * n] = _v[j + _nmax];
       k++;
-      ((X_FLOAT*) buffer)[i + k * n] = _v[j + 2 * _nmax];
+      ((X_CFLOAT*) buffer)[i + k * n] = _v[j + 2 * _nmax];
       k++;
     }
 
     if(data_mask & OMEGA_MASK) {
-      ((X_FLOAT*) buffer)[i + k * n] = _omega[j];
+      ((X_CFLOAT*) buffer)[i + k * n] = _omega[j];
       k++;
-      ((X_FLOAT*) buffer)[i + k * n] = _omega[j + _nmax];
+      ((X_CFLOAT*) buffer)[i + k * n] = _omega[j + _nmax];
       k++;
-      ((X_FLOAT*) buffer)[i + k * n] = _omega[j + 2 * _nmax];
+      ((X_CFLOAT*) buffer)[i + k * n] = _omega[j + 2 * _nmax];
       k++;
     }
 
-    if(data_mask & RADIUS_MASK)((X_FLOAT*) buffer)[i + k * n] = _radius[j];
+    if(data_mask & RADIUS_MASK)((X_CFLOAT*) buffer)[i + k * n] = _radius[j];
 
     k++;
 
-    if(data_mask & RMASS_MASK)((X_FLOAT*) buffer)[i + k * n] = _rmass[j];
+    if(data_mask & RMASS_MASK)((X_CFLOAT*) buffer)[i + k * n] = _rmass[j];
 
     k++;
   }
 }
 
 template <const unsigned int data_mask>
-__global__ void Cuda_AtomVecCuda_PackComm_Self_Kernel(int* sendlist, int n, int maxlistlength, int iswap, X_FLOAT dx, X_FLOAT dy, X_FLOAT dz, int first)
+__global__ void Cuda_AtomVecCuda_PackComm_Self_Kernel(int* sendlist, int n, int maxlistlength, int iswap, X_CFLOAT dx, X_CFLOAT dy, X_CFLOAT dz, int first)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
 
@@ -121,37 +121,37 @@ __global__ void Cuda_AtomVecCuda_UnpackComm_Kernel(int n, int first, void* buffe
     int k = 0;
 
     if(data_mask & X_MASK) {
-      _x[i + first] = ((X_FLOAT*) buffer)[i + k * n];
+      _x[i + first] = ((X_CFLOAT*) buffer)[i + k * n];
       k++;
-      _x[i + first + _nmax] = ((X_FLOAT*) buffer)[i + k * n];
+      _x[i + first + _nmax] = ((X_CFLOAT*) buffer)[i + k * n];
       k++;
-      _x[i + first + 2 * _nmax] = ((X_FLOAT*) buffer)[i + k * n];
+      _x[i + first + 2 * _nmax] = ((X_CFLOAT*) buffer)[i + k * n];
       k++;
     }
 
     if(data_mask & V_MASK) {
-      _v[i + first] = ((X_FLOAT*) buffer)[i + k * n];
+      _v[i + first] = ((X_CFLOAT*) buffer)[i + k * n];
       k++;
-      _v[i + first + _nmax] = ((X_FLOAT*) buffer)[i + k * n];
+      _v[i + first + _nmax] = ((X_CFLOAT*) buffer)[i + k * n];
       k++;
-      _v[i + first + 2 * _nmax] = ((X_FLOAT*) buffer)[i + k * n];
+      _v[i + first + 2 * _nmax] = ((X_CFLOAT*) buffer)[i + k * n];
       k++;
     }
 
     if(data_mask & OMEGA_MASK) {
-      _omega[i + first] = ((X_FLOAT*) buffer)[i + k * n];
+      _omega[i + first] = ((X_CFLOAT*) buffer)[i + k * n];
       k++;
-      _omega[i + first + _nmax] = ((X_FLOAT*) buffer)[i + k * n];
+      _omega[i + first + _nmax] = ((X_CFLOAT*) buffer)[i + k * n];
       k++;
-      _omega[i + first + 2 * _nmax] = ((X_FLOAT*) buffer)[i + k * n];
+      _omega[i + first + 2 * _nmax] = ((X_CFLOAT*) buffer)[i + k * n];
       k++;
     }
 
-    if(data_mask & RADIUS_MASK) _radius[i + first] = ((X_FLOAT*) buffer)[i + k * n];
+    if(data_mask & RADIUS_MASK) _radius[i + first] = ((X_CFLOAT*) buffer)[i + k * n];
 
     k++;
 
-    if(data_mask & RMASS_MASK) _rmass[i + first] = ((X_FLOAT*) buffer)[i + k * n];
+    if(data_mask & RMASS_MASK) _rmass[i + first] = ((X_CFLOAT*) buffer)[i + k * n];
 
     k++;
   }
@@ -163,8 +163,8 @@ __global__ void Cuda_AtomVecCuda_PackExchangeList_Kernel(int n, int dim)
   double* buf = (double*) _buffer;
   buf = &buf[1];
 
-  //X_FLOAT lo=slablo[iswap];
-  //X_FLOAT hi=slabhi[iswap];
+  //X_CFLOAT lo=slablo[iswap];
+  //X_CFLOAT hi=slabhi[iswap];
 
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
   bool add = false;
@@ -369,7 +369,7 @@ __global__ void Cuda_AtomVecCuda_UnpackExchange_Kernel(int dim, int nsend, int* 
 }
 
 template <const unsigned int data_mask>
-__global__ void Cuda_AtomVecCuda_PackBorder_Kernel(int* sendlist, int n, int maxlistlength, int iswap, X_FLOAT dx, X_FLOAT dy, X_FLOAT dz)
+__global__ void Cuda_AtomVecCuda_PackBorder_Kernel(int* sendlist, int n, int maxlistlength, int iswap, X_CFLOAT dx, X_CFLOAT dy, X_CFLOAT dz)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
   int* list = sendlist + iswap * maxlistlength;
@@ -379,37 +379,37 @@ __global__ void Cuda_AtomVecCuda_PackBorder_Kernel(int* sendlist, int n, int max
     int m = 0;
 
     if(data_mask & X_MASK) {
-      ((X_FLOAT*) _buffer)[i + (m++)*n] = _x[j] + dx;
-      ((X_FLOAT*) _buffer)[i + (m++)*n] = _x[j + _nmax] + dy;
-      ((X_FLOAT*) _buffer)[i + (m++)*n] = _x[j + 2 * _nmax] + dz;
+      ((X_CFLOAT*) _buffer)[i + (m++)*n] = _x[j] + dx;
+      ((X_CFLOAT*) _buffer)[i + (m++)*n] = _x[j + _nmax] + dy;
+      ((X_CFLOAT*) _buffer)[i + (m++)*n] = _x[j + 2 * _nmax] + dz;
     }
 
     if(data_mask & V_MASK) {
-      ((X_FLOAT*) _buffer)[i + (m++)*n] = _v[j];
-      ((X_FLOAT*) _buffer)[i + (m++)*n] = _v[j + _nmax];
-      ((X_FLOAT*) _buffer)[i + (m++)*n] = _v[j + 2 * _nmax];
+      ((X_CFLOAT*) _buffer)[i + (m++)*n] = _v[j];
+      ((X_CFLOAT*) _buffer)[i + (m++)*n] = _v[j + _nmax];
+      ((X_CFLOAT*) _buffer)[i + (m++)*n] = _v[j + 2 * _nmax];
     }
 
-    if(data_mask & TAG_MASK)((X_FLOAT*) _buffer)[i + (m++)*n] = _tag[j];
+    if(data_mask & TAG_MASK)((X_CFLOAT*) _buffer)[i + (m++)*n] = _tag[j];
 
-    if(data_mask & TYPE_MASK)((X_FLOAT*) _buffer)[i + (m++)*n] = _type[j];
+    if(data_mask & TYPE_MASK)((X_CFLOAT*) _buffer)[i + (m++)*n] = _type[j];
 
-    if(data_mask & MASK_MASK)((X_FLOAT*) _buffer)[i + (m++)*n] = _mask[j];
+    if(data_mask & MASK_MASK)((X_CFLOAT*) _buffer)[i + (m++)*n] = _mask[j];
 
-    if(data_mask & Q_MASK)((X_FLOAT*) _buffer)[i + (m++)*n] = _q[j];
+    if(data_mask & Q_MASK)((X_CFLOAT*) _buffer)[i + (m++)*n] = _q[j];
 
-    if(data_mask & MOLECULE_MASK)((X_FLOAT*) _buffer)[i + (m++)*n] = _molecule[j];
+    if(data_mask & MOLECULE_MASK)((X_CFLOAT*) _buffer)[i + (m++)*n] = _molecule[j];
 
-    if(data_mask & RADIUS_MASK)((X_FLOAT*) _buffer)[i + (m++)*n] = _radius[i];
+    if(data_mask & RADIUS_MASK)((X_CFLOAT*) _buffer)[i + (m++)*n] = _radius[i];
 
-    if(data_mask & DENSITY_MASK)((X_FLOAT*) _buffer)[i + (m++)*n] = _density[i];
+    if(data_mask & DENSITY_MASK)((X_CFLOAT*) _buffer)[i + (m++)*n] = _density[i];
 
-    if(data_mask & RMASS_MASK)((X_FLOAT*) _buffer)[i + (m++)*n] = _rmass[i];
+    if(data_mask & RMASS_MASK)((X_CFLOAT*) _buffer)[i + (m++)*n] = _rmass[i];
 
     if(data_mask & OMEGA_MASK) {
-      ((X_FLOAT*) _buffer)[i + (m++)*n] = _omega[i];
-      ((X_FLOAT*) _buffer)[i + (m++)*n] = _omega[i + _nmax];
-      ((X_FLOAT*) _buffer)[i + (m++)*n] = _omega[i + 2 * _nmax];
+      ((X_CFLOAT*) _buffer)[i + (m++)*n] = _omega[i];
+      ((X_CFLOAT*) _buffer)[i + (m++)*n] = _omega[i + _nmax];
+      ((X_CFLOAT*) _buffer)[i + (m++)*n] = _omega[i + 2 * _nmax];
     }
   }
 }
@@ -417,7 +417,7 @@ __global__ void Cuda_AtomVecCuda_PackBorder_Kernel(int* sendlist, int n, int max
 
 
 template <const unsigned int data_mask>
-__global__ void Cuda_AtomVecCuda_PackBorder_Self_Kernel(int* sendlist, int n, int maxlistlength, int iswap, X_FLOAT dx, X_FLOAT dy, X_FLOAT dz, int first)
+__global__ void Cuda_AtomVecCuda_PackBorder_Self_Kernel(int* sendlist, int n, int maxlistlength, int iswap, X_CFLOAT dx, X_CFLOAT dy, X_CFLOAT dz, int first)
 {
   int i = (blockIdx.x * gridDim.y + blockIdx.y) * blockDim.x + threadIdx.x;
   int* list = sendlist + iswap * maxlistlength;
@@ -471,37 +471,37 @@ __global__ void Cuda_AtomVecCuda_UnpackBorder_Kernel(int n, int first)
       int m = 0;
 
       if(data_mask & X_MASK) {
-        _x[i + first] = ((X_FLOAT*) _buffer)[i + (m++) * n];
-        _x[i + first + _nmax] = ((X_FLOAT*) _buffer)[i + (m++) * n];
-        _x[i + first + 2 * _nmax] = ((X_FLOAT*) _buffer)[i + (m++) * n];
+        _x[i + first] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
+        _x[i + first + _nmax] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
+        _x[i + first + 2 * _nmax] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
       }
 
       if(data_mask & V_MASK) {
-        _v[i + first] = ((X_FLOAT*) _buffer)[i + (m++) * n];
-        _v[i + first + _nmax] = ((X_FLOAT*) _buffer)[i + (m++) * n];
-        _v[i + first + 2 * _nmax] = ((X_FLOAT*) _buffer)[i + (m++) * n];
+        _v[i + first] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
+        _v[i + first + _nmax] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
+        _v[i + first + 2 * _nmax] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
       }
 
-      if(data_mask & TAG_MASK) _tag[i + first] = static_cast<int>(((X_FLOAT*) _buffer)[i + (m++) * n]);
+      if(data_mask & TAG_MASK) _tag[i + first] = static_cast<int>(((X_CFLOAT*) _buffer)[i + (m++) * n]);
 
-      if(data_mask & TYPE_MASK) _type[i + first] = static_cast<int>(((X_FLOAT*) _buffer)[i + (m++) * n]);
+      if(data_mask & TYPE_MASK) _type[i + first] = static_cast<int>(((X_CFLOAT*) _buffer)[i + (m++) * n]);
 
-      if(data_mask & MASK_MASK) _mask[i + first] = static_cast<int>(((X_FLOAT*) _buffer)[i + (m++) * n]);
+      if(data_mask & MASK_MASK) _mask[i + first] = static_cast<int>(((X_CFLOAT*) _buffer)[i + (m++) * n]);
 
-      if(data_mask & Q_MASK) _q[i + first] = ((X_FLOAT*) _buffer)[i + (m++) * n];
+      if(data_mask & Q_MASK) _q[i + first] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
 
-      if(data_mask & MOLECULE_MASK) _molecule[i + first] = static_cast<int>(((X_FLOAT*) _buffer)[i + (m++) * n]);
+      if(data_mask & MOLECULE_MASK) _molecule[i + first] = static_cast<int>(((X_CFLOAT*) _buffer)[i + (m++) * n]);
 
-      if(data_mask & RADIUS_MASK) _radius[i + first] = ((X_FLOAT*) _buffer)[i + (m++) * n];
+      if(data_mask & RADIUS_MASK) _radius[i + first] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
 
-      if(data_mask & DENSITY_MASK) _density[i + first] = ((X_FLOAT*) _buffer)[i + (m++) * n];
+      if(data_mask & DENSITY_MASK) _density[i + first] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
 
-      if(data_mask & RMASS_MASK) _rmass[i + first] = ((X_FLOAT*) _buffer)[i + (m++) * n];
+      if(data_mask & RMASS_MASK) _rmass[i + first] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
 
       if(data_mask & OMEGA_MASK) {
-        _omega[i + first] = ((X_FLOAT*) _buffer)[i + (m++) * n];
-        _omega[i + first + _nmax] = ((X_FLOAT*) _buffer)[i + (m++) * n];
-        _omega[i + first + 2 * _nmax] = ((X_FLOAT*) _buffer)[i + (m++) * n];
+        _omega[i + first] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
+        _omega[i + first + _nmax] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
+        _omega[i + first + 2 * _nmax] = ((X_CFLOAT*) _buffer)[i + (m++) * n];
       }
     } else {
       _flag[0] = 1;

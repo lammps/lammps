@@ -230,7 +230,11 @@ in the fix section of "this page"_Section_commands.html#cmd_5.
      Berendsen barostat
 "print"_fix_print.html - print text and variables during a simulation
 "property/atom"_fix_property_atom.html - add customized per-atom values
-"qeq/comb"_fix_qeq/comb.html - charge equilibration for COMB potential \
+"qeq/comb"_fix_qeq_comb.html - charge equilibration for COMB potential \
+"qeq/dynamic"_fix_qeq.html - charge equilibration via dynamic method \
+"qeq/point"_fix_qeq.html - charge equilibration via point method \
+"qeq/shielded"_fix_qeq.html - charge equilibration via shielded method \
+"qeq/slater"_fix_qeq.html - charge equilibration via Slater method \
 "reax/bonds"_fix_reax_bonds.html - write out ReaxFF bond information \
 "recenter"_fix_recenter.html - constrain the center-of-mass position \
   of a group of atoms

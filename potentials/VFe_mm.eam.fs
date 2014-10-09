@@ -1,6 +1,6 @@
-Sourse: M.I. Mendelev, will be published
-Contact information: mendelev@ameslab.gov
+DATE: 2007-06-11 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Unknown
 Sunday, Jun 10, 2007  The potential was taken from v1_20_V (in C:\SIMULATION.MD\V-Fe\v1_20)
+################################################
 2  V  Fe  
 10000   5.00000000000000E-0002  10000   5.30000000000000E-0004   5.30000000000000E+0000
 23   5.09415000000000E+0001   3.02987000000000E+0000  bcc

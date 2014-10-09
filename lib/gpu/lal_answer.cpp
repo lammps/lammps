@@ -221,7 +221,7 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
     return energy_virial(eatom,vatom,virial);
 
   double evdwl=0.0;
-  int vstart=0, iend=_inum;
+  int ii, vstart=0, iend=_inum;
   if (_eflag) {
     iend=_inum*2;
     for (int i=0; i<_inum; i++)
@@ -235,10 +235,10 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
         for (int i=_inum; i<iend; i++)
           eatom[i]+=engv[i];
       } else {
-        for (int i=0; i<_inum; i++)
-          eatom[_ilist[i]]+=engv[i];
-        for (int i=_inum; i<iend; i++)
-          eatom[_ilist[i]]+=engv[i];
+        for (int i=0, ii=0; i<_inum; i++)
+          eatom[_ilist[ii++]]+=engv[i];
+        for (int i=_inum, ii=0; i<iend; i++)
+          eatom[_ilist[ii++]]+=engv[i];
       }
     vstart=iend;
     iend+=_inum;
@@ -249,12 +249,10 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
         virial[j]+=engv[i];
       if (_vf_atom)
         if (_ilist==NULL) {
-          int ii=0;
           for (int i=vstart; i<iend; i++)
-            vatom[ii++][j]+=engv[i];
+            vatom[i++][j]+=engv[i];
         } else {
-          int ii=0;
-          for (int i=vstart; i<iend; i++)
+          for (int i=vstart, ii=0; i<iend; i++)
             vatom[_ilist[ii++]][j]+=engv[i];
         }  
       vstart+=_inum;

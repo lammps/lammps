@@ -1,3 +1,4 @@
+# DATE: 2013-03-21 CONTRIBUTOR: Cem Sevik CITATION: Kinaci, Haskins, Sevik and Cagin,  Phys Rev B, 86, 115410 (2012) 
 # Tersoff parameters for B, C, and BN-C hybrid based graphene like nano structures
 # multiple entries can be added to this file, LAMMPS reads the ones it needs
 

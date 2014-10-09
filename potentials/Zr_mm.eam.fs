@@ -1,6 +1,6 @@
-Sourse: Potential #3 from [M.I. Mendelev and  G.J. Ackland, Phil. Mag. Letters 87, 349-359 (2007).]
-Contact information: mendelev@ameslab.gov
+DATE: 2007-06-11 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Mendelev and  Ackland, Phil Mag Lett 87, 349-359 (2007)
 Sunday, Jun 10, 2007  The potential was taken from v3_10_hcp (in C:\SIMULATION.MD\Zr\Results\v3_10)
+################################################
 1  Zr  
 10000   5.00000000000000E-0002  10000   7.60000000000000E-0004   7.60000000000000E+0000
 40   9.12240000000000E+0001   3.22029900000000E+0000  hcp

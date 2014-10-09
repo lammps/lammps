@@ -1,6 +1,6 @@
+DATE: 2011-06-20 CONTRIBUTOR: Unknown CITATION: Mishin et al, Acta Mater, 53, 4029 (2005)
 Nickel ADP potential: Mishin et al. Acta Mater 2005 pp 4029  
-Data below r=1.5 A is extrapolated 
-F(rho) data not extrapolated 
+Data below r=1.5 A is extrapolated; F(rho) data not extrapolated 
 1 Ni 
 3001 9.7054386687161695E-04 10000 5.1685168516851690E-04 5.1680000000000001E+00 
 28 58.690000 3.520000 bcc 

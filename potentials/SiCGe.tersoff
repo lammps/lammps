@@ -1,3 +1,5 @@
+# DATE: 2009-03-18 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Tersoff, Phys Rev B, 39, 5566 (1989)
+
 # Tersoff parameters for various elements and mixtures
 # multiple entries can be added to this file, LAMMPS reads the ones it needs
 # these entries are in LAMMPS "metal" units:

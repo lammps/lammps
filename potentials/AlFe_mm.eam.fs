@@ -1,6 +1,6 @@
-Sourse: M.I. Mendelev,  D.J. Srolovitz,  G.J. Ackland and  S. Han, J. Mater. Res. 20, 208-218 (2005).
-Contact information: mendelev@ameslab.gov
+DATE: 2007-06-11 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Mendelev, Srolovitz, Ackland and Han, J Mater Res 20, 208-218 (2005) 
 Sunday, Jun 10, 2007  The potential was taken from Al3Fe_D03 (in C:\SIMULATION.MD\Al-Fe\T=0)
+################################################
 2  Al  Fe  
 10000   3.00000000000000E-0002  10000   6.50000000000000E-0004   6.50000000000000E+0000
 13   2.69815400000000E+0001   4.04527000000000E+0000  fcc

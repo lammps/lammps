@@ -1,6 +1,6 @@
+DATE: 2007-10-12 CONTRIBUTOR: G. Ziegenhain, gerolf@ziegenhain.com CITATION: Zhou et al, Acta Mater, 49, 4005 (2001)
 #-> LAMMPS Potential File in DYNAMO 86 setfl Format <-#
 # Zhou Al Acta mater(2001)49:4005
-# Implemented by G. Ziegenhain (2007) gerolf@ziegenhain.com
 1 Al
 10001 0.00559521603477821424 10001 0.00101014898510148996 10.10250000000000092371
 1 26.98199999999999931788 4.04100000000000036948 FCC

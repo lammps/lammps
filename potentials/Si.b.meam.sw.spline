@@ -1,4 +1,4 @@
-# Spline-based MEAM+SW potential for Si (F.H. Stillinger and T.A. Weber, Phys. Rev. B 31, 5262 (1985) with Balamane parameters: Balamane et al., Phys Rev B 46, 2250 (1992)).
+# DATE: 2012-10-26 CONTRIBUTOR: Robert Rudd, robert.rudd@llnl.gov CITATION: Balamane et al, Phys Rev B 46, 2250 (1992) COMMENT: Spline-based MEAM+SW potential for Si (F.H. Stillinger and T.A. Weber, Phys. Rev. B 31, 5262 (1985) with Balamane parameters: Balamane et al., Phys Rev B 46, 2250 (1992)).
 37
 -5.511362311759948+02 0.000000000000000000e+00
 1 0 1 0

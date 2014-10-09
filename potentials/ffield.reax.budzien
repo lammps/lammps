@@ -1,4 +1,4 @@
-Reactive MD-force field: PETN: J. Budzien, A. P. Thompson, and S. V. Zybin, J. Phys. Chem., 113 13142 (2009).
+DATE: 2010-02-19 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Budzien, Thompson and Zybin, J Phys Chem, 113, 13142 (2009) COMMENT: Reactive MD-force field: PETN: J. Budzien, A. P. Thompson, and S. V. Zybin, J. Phys. Chem., 113 13142 (2009).
  39       ! Number of general parameters                                        
    50.0000 !Overcoordination parameter                                          
     9.4514 !Overcoordination parameter                                          

@@ -1,4 +1,4 @@
-# Spline-based MEAM potential for Si. Reference: T. J. Lenosky, B. Sadigh, E. Alonso, V. V. Bulatov, T. D. de la Rubia, J. Kim, A. F. Voter, and J. D. Kress, Modell. Simul. Mater. Sci. Eng. 8, 825 (2000)
+DATE: 2012-02-01 CONTRIBUTOR: Alexander Stukowski, stukowski@mm.tu-darmstadt.de CITATION: Lenosky, Sadigh, Alonso, Bulatov, de la Rubia, Kim, Voter and Kress, Modell Simul Mater Sci Eng, 8, 825 (2000) COMMENT: Spline-based MEAM potential for Si. Reference: T. J. Lenosky, B. Sadigh, E. Alonso, V. V. Bulatov, T. D. de la Rubia, J. Kim, A. F. Voter, and J. D. Kress, Modell. Simul. Mater. Sci. Eng. 8, 825 (2000)
 10
 -4.266966781858503300e+01 0.000000000000000000e+00
 1 0 1 0

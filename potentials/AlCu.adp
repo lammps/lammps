@@ -1,4 +1,4 @@
-AlCu ADP EAM from Apostol & Mishin, Phys. Rev. B 83, 054116 (2011).
+DATE: 2011-06-20 CONTRIBUTOR: CV Singh, cvs5@cornell.edu CITATION: Apostol and Mishin, Phys Rev B 83, 054116 (2011)
 LAMMPS setfl format from  plt files of Florin & Mishin
 Conversion by CV Singh: cvs5@cornell.edu using MATLAB
 2 Al  Cu

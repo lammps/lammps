@@ -1,6 +1,6 @@
-Sourse: Al1 M.I. Mendelev, will be published
-Contact information: mendelev@ameslab.gov
+DATE: 2007-06-11 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Unknown
 Sunday, Jun 10, 2007  The potential was taken from v2_5_fcc (in C:\SIMULATION.MD\Al\Results\BGB_v2_5)
+################################################
 1  Al  
 10000   5.00000000000000E-0002  10000   6.50000000000000E-0004   6.50000000000000E+0000
 13   2.69815400000000E+0001   4.04527000000000E+0000  fcc

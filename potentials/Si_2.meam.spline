@@ -1,4 +1,4 @@
-# Spline-based MEAM potential for Si. Reference: Y. A. Du, T. J. Lenosky, R. G. Hennig, S. Goedecker, J. W. Wilkins, physica status solidi (b) 248, p. 2050 (2011)
+# DATE: 2012-02-01 CONTRIBUTOR: Alexander Stukowski, stukowski@mm.tu-darmstadt.de CITATION: Du, Lenosky, Hennig, Goedecker, Wilkins, Phys Stat Sol, 248, 2050 (2011) COMMENT: Spline-based MEAM potential for Si. Reference: Y. A. Du, T. J. Lenosky, R. G. Hennig, S. Goedecker, J. W. Wilkins, physica status solidi (b) 248, p. 2050 (2011)
 8
 -8.981284530036851566e-01 0.000000000000000000e+00
 1 0 1 0

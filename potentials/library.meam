@@ -1,3 +1,4 @@
+# DATE: 2012-06-29 DATE: 2007-06-11 CONTRIBUTOR: Greg Wagner, gjwagne@sandia.gov CITATION: Baskes, Phys Rev B, 46, 2727-2742 (1992) 
 # meam data from vax files fcc,bcc,dia    11/4/92
 # elt        lat     z       ielement     atwt
 # alpha      b0      b1      b2           b3    alat    esub    asub

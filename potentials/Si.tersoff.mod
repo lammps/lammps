@@ -1,3 +1,5 @@
+# DATE: 2013-07-26 CONTRIBUTOR: Unknown CITATION: Kumagai, Izumi, Hara and Sakai, Comp Mat Sci, 39, 457 (2007)
+
 # Modified Tersoff potential (named MOD potential) parameters for various elements and mixtures
 # multiple entries can be added to this file, LAMMPS reads the ones it needs
 # these entries are in LAMMPS "metal" units:

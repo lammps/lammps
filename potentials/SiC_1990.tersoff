@@ -1,3 +1,5 @@
+# DATE: 2011-05-03 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Tersoff, Phys Rev Lett, 64, 1757 (1990)
+
 # Si and C mixture, parameterized for Tersoff potential
 # this file is from Saurav Goel - sg258@hw.ac.uk
 # J. Tersoff, Phys. Rev. Lett. 64, 1757 (1990).

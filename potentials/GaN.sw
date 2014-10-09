@@ -1,3 +1,4 @@
+# DATE: 2008-01-29 CONTRIBUTOR: Unknown CITATION: Bere and Serra, Phil Mag 86, 2159 (2006)
 # GaN potential: A. Bere, and A. Serra, Phil. Mag. 86, 2159(2006)
 # note that the parameters for this literature potential are pairwise
 # so that there are some flexibility in the way the 

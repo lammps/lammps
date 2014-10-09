@@ -1,6 +1,6 @@
-Co-Co EAM potential : R. Passianot and E.J. Savino, Phys. Rev. B 45, 12704 (1992).
-Co-Al EAM potential : C. Vailhe and D. Farkas, J. Mater. Res., 12, 2559 (1997).
-Al-Al EAM potential : A. Voter and S. Chen, Mater. Res. Soc. Symp. Proc., 82, 175 (1987).
+DATE: 2007-06-11 CONTRIBUTOR: Unknown CITATION: Vailhe and Farkas, J Mater Res, 12, 2559 (1997)
+Co-Al potential 
+Also retains pure Co-Co and Al-Al EAM potentials : R. Passianot and E.J. Savino, Phys. Rev. B 45, 12704 (1992), A. Voter and S. Chen, Mater. Res. Soc. Symp. Proc., 82, 175 (1987).
    2  Co  Al
  3000   8.7279093031e-04    3000    1.8673037679e-03   5.600044e+00
    27   58.9332   2.507   HCP

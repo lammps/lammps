@@ -1,3 +1,5 @@
+# DATE: 2007-06-11 CONTRIBUTOR: Unknown CITATION: Wang, Stroud and Markworth, Phys Rev B, 40, 3129 (1989).
+
 # CdTe Stillinger-Weber potential: Z. Q. Wang, D. Stroud,
 # and A. J. Markworth, Phys. Rev. B, 40, 3129(1989).
 

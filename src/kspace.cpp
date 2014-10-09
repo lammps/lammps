@@ -264,17 +264,20 @@ void KSpace::ev_setup(int eflag, int vflag)
 
 void KSpace::qsum_qsq(int flag)
 {
-  qsum = qsqsum = 0.0;
-  for (int i = 0; i < atom->nlocal; i++) {
-    qsum += atom->q[i];
-    qsqsum += atom->q[i]*atom->q[i];
+  const double * const q = atom->q;
+  const int nlocal = atom->nlocal;
+  double qsum_local(0.0), qsqsum_local(0.0);
+
+#if defined(_OPENMP)
+#pragma omp parallel for default(none) reduction(+:qsum_local,qsqsum_local)
+#endif
+  for (int i = 0; i < nlocal; i++) {
+    qsum_local += q[i];
+    qsqsum_local += q[i]*q[i];
   }
 
-  double tmp;
-  MPI_Allreduce(&qsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsum = tmp;
-  MPI_Allreduce(&qsqsum,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
-  qsqsum = tmp;
+  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (qsqsum == 0.0)
     error->all(FLERR,"Cannot use kspace solver on system with no charge");

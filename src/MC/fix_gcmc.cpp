@@ -153,7 +153,8 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix gcmc molecule must have coordinates");
     if (onemols[imol]->typeflag == 0)
       error->all(FLERR,"Fix gcmc molecule must have atom types");
-    if (ngcmc_type+onemols[imol]->ntypes <= 0 || ngcmc_type+onemols[imol]->ntypes > atom->ntypes)
+    if (ngcmc_type+onemols[imol]->ntypes <= 0 || 
+        ngcmc_type+onemols[imol]->ntypes > atom->ntypes)
       error->all(FLERR,"Invalid atom type in fix gcmc mol command");
 
     if (atom->molecular == 2 && onemols != atom->avec->onemols)

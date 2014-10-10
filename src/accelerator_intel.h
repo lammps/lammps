@@ -32,7 +32,7 @@
   void *fix_intel;
 
   template <class flt_t, class acc_t>
-  void bin_atoms(void *);
+  void bin_atoms(void *, int *);
 
 template <class flt_t, class acc_t, int>
   void hbni(const int, NeighList *, void *, const int, const int, void *,

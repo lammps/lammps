@@ -8027,7 +8027,7 @@ void PairBOP::read_file(char *filename)
 
   MPI_Comm_rank(world,&me);
 
-// read file on proc 0
+  // read file on proc 0
 
   rcore=0.1;
 
@@ -8039,7 +8039,7 @@ void PairBOP::read_file(char *filename)
       error->one(FLERR,str);
     }
 
-// read parameters
+    // read parameters
 
     fgets(s,MAXLINE,fp);
     fgets(s,MAXLINE,fp);
@@ -8047,6 +8047,7 @@ void PairBOP::read_file(char *filename)
     fclose(fp);
     npairs=bop_types*(bop_types+1)/2;
   }
+
   MPI_Bcast(&bop_types,1,MPI_INT,0,world);
   MPI_Bcast(&npairs,1,MPI_INT,0,world);
   allocate();
@@ -8262,6 +8263,7 @@ void PairBOP::read_table(char *filename)
       sprintf(str,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
     }
+    fgets(s,MAXLINE,fp);  // skip first comment line
     fgets(s,MAXLINE,fp);
     sscanf(s,"%d",&bop_types);
     words = new char*[bop_types];

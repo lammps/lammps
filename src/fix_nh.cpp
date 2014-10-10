@@ -24,6 +24,7 @@
 #include "force.h"
 #include "group.h"
 #include "comm.h"
+#include "neighbor.h"
 #include "irregular.h"
 #include "modify.h"
 #include "fix_deform.h"

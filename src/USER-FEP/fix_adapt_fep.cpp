@@ -188,6 +188,8 @@ FixAdaptFEP::~FixAdaptFEP()
   }
   delete [] adapt;
 
+  if (force->kspace) force->kspace->qsum_update_flag = 0;
+
   // check nfix in case all fixes have already been deleted
 
   if (id_fix_diam && modify->nfix) modify->delete_fix(id_fix_diam);
@@ -289,7 +291,9 @@ void FixAdaptFEP::init()
       if (adapt[i].which == ATOM) 
         error->all(FLERR,"Cannot use dynamic group with fix adapt/fep atom");
 
-  // when using kspace, we need to recompute some additional parameters in kspace->setup()
+  // when using kspace, we need to recompute 
+  // some additional parameters in kspace->setup()
+
   if (force->kspace) force->kspace->qsum_update_flag = 1;
   
   // setup and error checks
@@ -506,13 +510,13 @@ void FixAdaptFEP::change_settings()
 
   if (anypair) force->pair->reinit();
 
-  if (force->kspace)
-    force->kspace->setup();
+  // re-setup KSpace if using it, since charges may have changed
 
+  if (force->kspace) force->kspace->setup();
 }
 
 /* ----------------------------------------------------------------------
-   restore pair,kspace.atom parameters to original values
+   restore pair,kspace,atom parameters to original values
 ------------------------------------------------------------------------- */
 
 void FixAdaptFEP::restore_settings()
@@ -561,6 +565,5 @@ void FixAdaptFEP::restore_settings()
   }
 
   if (anypair) force->pair->reinit();
-
   if (force->kspace) force->kspace->setup();
 }

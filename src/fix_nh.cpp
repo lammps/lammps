@@ -24,6 +24,7 @@
 #include "force.h"
 #include "group.h"
 #include "comm.h"
+#include "neighbor.h"
 #include "irregular.h"
 #include "modify.h"
 #include "fix_deform.h"
@@ -836,12 +837,13 @@ void FixNH::final_integrate()
   nve_v();
 
   // re-compute temp before nh_v_press()
-  // only needed for temperature computes with BIAS:
+  // only needed for temperature computes with BIAS on reneighboring steps:
   //   b/c some biases store per-atom values (e.g. temp/profile) 
   //   per-atom values are invalid if reneigh/comm occurred
   //     since temp->compute() in initial_integrate()
 
-  if (which == BIAS) t_current = temperature->compute_scalar();
+  if (which == BIAS && neighbor->ago == 0) 
+    t_current = temperature->compute_scalar();
 
   if (pstat_flag) nh_v_press();
 

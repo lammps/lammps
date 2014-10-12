@@ -126,6 +126,7 @@ class IntelBuffers {
   inline int * firstneigh(const NeighList *list) { return _list_alloc; }
   inline int * cnumneigh(const NeighList *list) { return _cnumneigh; }
 
+  inline int * get_atombin() { return _atombin; }
   inline atom_t * get_x(const int offload = 1) { 
     #ifdef _LMP_INTEL_OFFLOAD
     if (_separate_buffers && offload == 0) return _host_x;
@@ -249,6 +250,7 @@ class IntelBuffers {
   int _list_alloc_atoms;
   int * _list_alloc;
   int * _cnumneigh;
+  int * _atombin;
 
   flt_t **_cutneighsq;
   int _ntypes;

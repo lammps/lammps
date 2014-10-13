@@ -25,17 +25,17 @@ __kernel void kernel_unpack(__global int *dev_nbor,
   int ii=fast_mul((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom)+tid/t_per_atom;
 
   if (ii<inum) {
-    int nbor=ii+inum;
-    int numj=dev_nbor[nbor];
+    __global int *nbor=dev_nbor+ii+inum;
+    int numj=*nbor;
     nbor+=inum;
-    int list=dev_nbor[nbor];
-    int list_end=list+numj;
+    const __global int *list=dev_ij+*nbor;
+    const __global int *list_end=list+numj;
     list+=offset;
     nbor+=fast_mul(ii,t_per_atom-1)+offset;
     int stride=fast_mul(t_per_atom,inum);
       
     for ( ; list<list_end; list++) {
-      dev_nbor[nbor]=dev_ij[list];
+      *nbor=*list;
       nbor+=stride;
     }
   } // if ii

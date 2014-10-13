@@ -65,11 +65,6 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
   else
     _alloc_packed=false;
 
-  if (pre_cut)
-    _packed_permissions=UCL_READ_WRITE;
-  else
-    _packed_permissions=UCL_READ_ONLY;
-
   bool success=true;
     
   // Initialize timers for the selected GPU
@@ -126,7 +121,7 @@ void Neighbor::alloc(bool &success) {
   if (_alloc_packed) {
     dev_packed.clear();
     success=success && (dev_packed.alloc((_max_nbors+2)*_max_atoms,*dev,
-                                         _packed_permissions)==UCL_SUCCESS);
+                                         UCL_READ_ONLY)==UCL_SUCCESS);
     _c_bytes+=dev_packed.row_bytes();                                         
   } 
   if (_max_host>0) {

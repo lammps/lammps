@@ -119,7 +119,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
 
   if (ii<inum) {
-    int nbor, nbor_end;
+    const __global int *nbor, *nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
@@ -140,7 +140,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-      int j=dev_nbor[nbor];
+      int j=*nbor;
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 

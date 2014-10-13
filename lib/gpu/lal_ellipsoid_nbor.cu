@@ -41,19 +41,20 @@ __kernel void kernel_nbor(const __global numtyp4 *restrict x_,
   int ii=GLOBAL_ID_X+start;
 
   if (ii<inum) {
-    int i=dev_ij[ii];
-    int nbor=ii+nbor_pitch;
-    int numj=dev_ij[nbor];
+    const __global int *nbor=dev_ij+ii;
+    int i=*nbor;
     nbor+=nbor_pitch;
-    int nbor_end=nbor+fast_mul(numj,nbor_pitch);
-    int packed=ii+nbor_pitch+nbor_pitch;
+    int numj=*nbor;
+    nbor+=nbor_pitch;
+    const __global int *list_end=nbor+fast_mul(numj,nbor_pitch);
+    __global int *packed=dev_nbor+ii+nbor_pitch+nbor_pitch;
   
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
     int itype=fast_mul(iw,ntypes);
     int newj=0;  
-    for ( ; nbor<nbor_end; nbor+=nbor_pitch) {
-      int j=dev_ij[nbor];
+    for ( ; nbor<list_end; nbor+=nbor_pitch) {
+      int j=*nbor;
       j &= NEIGHMASK;
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
@@ -69,7 +70,7 @@ __kernel void kernel_nbor(const __global numtyp4 *restrict x_,
         rsq+=t*t;
 
         if (rsq<cf.x) {
-          dev_nbor[packed]=j;
+          *packed=j;
           packed+=nbor_pitch;
           newj++;
         }
@@ -104,20 +105,21 @@ __kernel void kernel_nbor_fast(const __global numtyp4 *restrict x_,
   __syncthreads();
 
   if (ii<inum) {
-    int i=dev_ij[ii];
-    int nbor=ii+nbor_pitch;
-    int numj=dev_ij[nbor];
+    const __global int *nbor=dev_ij+ii;
+    int i=*nbor;
     nbor+=nbor_pitch;
-    int nbor_end=nbor+fast_mul(numj,nbor_pitch);
-    int packed=ii+nbor_pitch+nbor_pitch;
+    int numj=*nbor;
+    nbor+=nbor_pitch;
+    const __global int *list_end=nbor+fast_mul(numj,nbor_pitch);
+    __global int *packed=dev_nbor+ii+nbor_pitch+nbor_pitch;
   
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     int newj=0;  
-    for ( ; nbor<nbor_end; nbor+=nbor_pitch) {
-      int j=dev_ij[nbor];
+    for ( ; nbor<list_end; nbor+=nbor_pitch) {
+      int j=*nbor;
       j &= NEIGHMASK;
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
@@ -133,7 +135,7 @@ __kernel void kernel_nbor_fast(const __global numtyp4 *restrict x_,
         rsq+=t*t;
 
         if (rsq<cutsq[mtype]) {
-          dev_nbor[packed]=j;
+          *packed=j;
           packed+=nbor_pitch;
           newj++;
         }

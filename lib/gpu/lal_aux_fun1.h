@@ -23,21 +23,22 @@
   ii=fast_mul((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom)+tid/t_per_atom;
 
 #define nbor_info(nbor_mem, packed_mem, nbor_stride, t_per_atom, ii, offset, \
-                  i, numj, stride, nbor_end, nbor_begin)                     \
-  i=nbor_mem[ii];                                                            \
-  nbor_begin=ii+nbor_stride;                                                 \
-  numj=nbor_mem[nbor_begin];                                                 \
+                  i, numj, stride, list_end, nbor)                           \
+  nbor=nbor_mem+ii;                                                          \
+  i=*nbor;                                                                   \
+  nbor+=nbor_stride;                                                         \
+  numj=*nbor;                                                                \
   if (nbor_mem==packed_mem) {                                                \
-    nbor_begin+=nbor_stride+fast_mul(ii,t_per_atom-1);                       \
+    nbor+=nbor_stride+fast_mul(ii,t_per_atom-1);                             \
     stride=fast_mul(t_per_atom,nbor_stride);                                 \
-    nbor_end=nbor_begin+fast_mul(numj/t_per_atom,stride)+(numj & (t_per_atom-1)); \
-    nbor_begin+=offset;                                                      \
+    list_end=nbor+fast_mul(numj/t_per_atom,stride)+ (numj & (t_per_atom-1)); \
+    nbor+=offset;                                                            \
   } else {                                                                   \
-    nbor_begin+=nbor_stride;                                                 \
-    nbor_begin=nbor_mem[nbor_begin];                                         \
-    nbor_end=nbor_begin+numj;                                                \
+    nbor+=nbor_stride;                                                       \
+    nbor=packed_mem+*nbor;                                                   \
+    list_end=nbor+numj;                                                      \
     stride=t_per_atom;                                                       \
-    nbor_begin+=offset;                                                      \
+    nbor+=offset;                                                            \
   }
 
 #if (ARCH < 300)
@@ -74,15 +75,15 @@
     }                                                                       \
   }                                                                         \
   if (offset==0) {                                                          \
-    int ei=ii;                                                              \
+    engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      engv[ei]=energy*(acctyp)0.5;                                          \
-      ei+=inum;                                                             \
+      *engv=energy*(acctyp)0.5;                                             \
+      engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        engv[ei]=virial[i]*(acctyp)0.5;                                     \
-        ei+=inum;                                                           \
+        *engv=virial[i]*(acctyp)0.5;                                        \
+        engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \
     ans[ii]=f;                                                              \
@@ -122,17 +123,17 @@
     }                                                                       \
   }                                                                         \
   if (offset==0) {                                                          \
-    int ei=ii;                                                              \
+    engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      engv[ei]=energy*(acctyp)0.5;                                          \
-      ei+=inum;                                                             \
-      engv[ei]=e_coul*(acctyp)0.5;                                          \
-      ei+=inum;                                                             \
+      *engv=energy*(acctyp)0.5;                                             \
+      engv+=inum;                                                           \
+      *engv=e_coul*(acctyp)0.5;                                             \
+      engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        engv[ei]=virial[i]*(acctyp)0.5;                                     \
-        ei+=inum;                                                           \
+        *engv=virial[i]*(acctyp)0.5;                                        \
+        engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \
     ans[ii]=f;                                                              \
@@ -157,15 +158,15 @@
     }                                                                       \
   }                                                                         \
   if (offset==0) {                                                          \
-    int ei=ii;                                                              \
+    engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      engv[ei]=energy*(acctyp)0.5;                                          \
-      ei+=inum;                                                             \
+      *engv=energy*(acctyp)0.5;                                             \
+      engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        engv[ei]=virial[i]*(acctyp)0.5;                                     \
-        ei+=inum;                                                           \
+        *engv=virial[i]*(acctyp)0.5;                                        \
+        engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \
     ans[ii]=f;                                                              \
@@ -189,17 +190,17 @@
     }                                                                       \
   }                                                                         \
   if (offset==0) {                                                          \
-    int ei=ii;                                                              \
+    engv+=ii;                                                               \
     if (eflag>0) {                                                          \
-      engv[ei]=energy*(acctyp)0.5;                                          \
-      ei+=inum;                                                             \
-      engv[ei]=e_coul*(acctyp)0.5;                                          \
-      ei+=inum;                                                             \
+      *engv=energy*(acctyp)0.5;                                             \
+      engv+=inum;                                                           \
+      *engv=e_coul*(acctyp)0.5;                                             \
+      engv+=inum;                                                           \
     }                                                                       \
     if (vflag>0) {                                                          \
       for (int i=0; i<6; i++) {                                             \
-        engv[ei]=virial[i]*(acctyp)0.5;                                     \
-        ei+=inum;                                                           \
+        *engv=virial[i]*(acctyp)0.5;                                        \
+        engv+=inum;                                                         \
       }                                                                     \
     }                                                                       \
     ans[ii]=f;                                                              \

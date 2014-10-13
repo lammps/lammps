@@ -145,12 +145,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal package gpu command");
   }
 
-  // error check
-
-  if ((_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH) && 
-      domain->triclinic)
-    error->all(FLERR,"Cannot use package gpu neigh yes with triclinic box");
-
   #ifndef _OPENMP
   if (nthreads > 1)
     error->all(FLERR,"No OpenMP support compiled in");
@@ -215,6 +209,17 @@ void FixGPU::init()
       error->all(FLERR,"GPU split param must be positive "
                  "for hybrid pair styles");
 
+  // neighbor list builds on the GPU with a triclinic box is not supported (yet)
+
+  if ((_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH) && 
+      domain->triclinic)
+    error->all(FLERR,"Cannot use package gpu neigh yes with triclinic box");
+
+  // give a warning if no pair style is defined
+
+  if (!force->pair)
+    error->warning(FLERR,"Using package gpu without any pair style defined");
+
   // make sure fdotr virial is not accumulated multiple times
   
   if (force->pair_match("hybrid",1) != NULL) {
@@ -264,6 +269,8 @@ void FixGPU::min_setup(int vflag)
 
 void FixGPU::post_force(int vflag)
 {
+  if (!force->pair) return;
+
   timer->stamp();
   double lvirial[6];
   for (int i = 0; i < 6; i++) lvirial[i] = 0.0;

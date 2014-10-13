@@ -192,9 +192,6 @@ void ComputeFEP::init()
       fepinitflag = 1;
   else return;
 
-  // when using kspace, we need to recompute some additional parameters in kspace->setup()
-  if (chgflag && force->kspace) force->kspace->qsum_update_flag = 1;
-
   // setup and error checks
 
   pairflag = 0;
@@ -415,7 +412,15 @@ void ComputeFEP::perturb_params()
 
   if (pairflag) force->pair->reinit();
 
-  if (chgflag && force->kspace) force->kspace->setup();
+  // when perturbing charge and using kspace, 
+  // need to recompute additional params in kspace->setup()
+  // first backup the state of kspace->qsum_update_flag
+
+  if (chgflag && force->kspace) {
+    sys_qsum_update_flag = force->kspace->qsum_update_flag;
+    force->kspace->qsum_update_flag = 1;
+    force->kspace->setup();
+  }
 }
 
 
@@ -455,13 +460,12 @@ void ComputeFEP::restore_params()
     }
   }
 
-  // re-initialize pair styles if any PAIR settings were changed
-  // this resets other coeffs that may depend on changed values,
-  // and also offset and tail corrections
-
   if (pairflag) force->pair->reinit();
-
-  if (chgflag && force->kspace) force->kspace->setup();
+  if (chgflag && force->kspace) {
+    force->kspace->setup();
+    // restore kspace->qsum_update_flag to original state
+    force->kspace->qsum_update_flag = sys_qsum_update_flag; 
+  }
 }
 
 

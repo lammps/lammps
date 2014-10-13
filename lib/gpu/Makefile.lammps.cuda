@@ -1,10 +1,5 @@
 # Settings that the LAMMPS build will import when this package library is used
 # settings for Nvidia CUDA and OpenCL builds
-ifeq ($(CUDA_DIR),)
-CUDA_HOME=/usr/local/cuda
-else
-CUDA_HOME=$(CUDA_DIR)
-endif
 gpu_SYSINC = -I$(CUDA_HOME)/include
 gpu_SYSLIB =  -lcudart -lcuda
 gpu_SYSPATH = -L$(CUDA_LIB) -Wl,-rpath,$(CUDA_LIB)

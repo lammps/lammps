@@ -1,4 +1,4 @@
-# openmpi-omp = Fedora 12, gcc-4.4.3 /w OpenMP, OpenMPI-1.4.1, FFTW-2.1.5
+# openmpi-big = Fedora, gcc-4.x /w OpenMP, OpenMPI, FFTW-3.x -DLAMMPS_BIGBIG
 # to select openmpi (over mpich) do: module load openmpi-x86_64
 SHELL = /bin/sh
 
@@ -9,7 +9,7 @@ SHELL = /bin/sh
 OPENMP= -fopenmp
 
 CC =		mpic++ $(OPENMP)
-CCFLAGS =	-O3 -fomit-frame-pointer -fno-rtti -fno-exceptions            \
+CCFLAGS =	-O3 -fomit-frame-pointer -fno-exceptions            \
 			-march=native -ffast-math -mpc64 -g -fstrict-aliasing \
 			-Wall -W -Wno-unused-parameter -Wno-maybe-uninitialized
 DEPFLAGS =	-MM

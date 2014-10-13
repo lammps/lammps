@@ -1,4 +1,4 @@
-# openmpi-small = Fedora 20, gcc-4.8.2 /w OpenMP, OpenMPI-1.7.x, FFTW-3.x
+# openmpi-small = Fedora 20, gcc-4.8.2 /w OpenMP, OpenMPI-1.7.x, FFTW-3.x, -DLAMMPS_SMALLSMALL
 # to select openmpi (over mpich) do: module load mpi/openmpi-x86_64
 SHELL = /bin/sh
 

@@ -1,4 +1,4 @@
-# openmpi-omp-intel = Redhat Enterprise Linux 6.x, OpenMPI-1.5.4, Intel 13.x, MKL, OpenMP
+# openmpi-omp-intel = Fedora, OpenMPI, Intel 13.x, MKL, OpenMP
 
 SHELL = /bin/sh
 

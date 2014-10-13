@@ -1,4 +1,4 @@
-# openmpi-intel = Redhat Enterprise Linux 6.x, OpenMPI-1.5.4, Intel 13.x, MKL
+# openmpi-intel = Fedora, OpenMPI, Intel 13.x, MKL_FFT
 
 SHELL = /bin/sh
 
@@ -9,13 +9,13 @@ SHELL = /bin/sh
 OPENMP=
 
 CC =		env OMPI_CC=icc OMPI_CXX=icpc mpic++ $(OPENMP)
-CCFLAGS =	-O3 -xHOST -fno-rtti -fno-exceptions -finline-functions \
+CCFLAGS =	-O3 -xHOST -fno-exceptions -finline-functions \
 			-no-prec-div -pc64 -fast-transcendentals -rcd -restrict \
 			-funroll-loops -fstrict-aliasing -Wall -no-prec-sqrt
 SHFLAGS =       -fPIC
 DEPFLAGS =	-MM
 LINK =		env OMPI_CC=icc OMPI_CXX=icpc mpic++ $(OPENMP)
-LINKFLAGS =	-O -xHOST -fno-rtti -fno-exceptions -pc64 -static-intel
+LINKFLAGS =	-O -xHOST -fno-exceptions -pc64 -static-intel
 LIB =           -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rcsv

@@ -159,6 +159,12 @@ class UCL_Device {
   /// Returns true if double precision is support for the device
   inline bool double_precision(const int i) {return arch(i)>=1.3;}
   
+  /// Get the number of compute units on the current device
+  inline unsigned cus() { return cus(_device); }
+  /// Get the number of compute units
+  inline unsigned cus(const int i) 
+    { return _properties[i].multiProcessorCount; }
+
   /// Get the number of cores in the current device
   inline unsigned cores() { return cores(_device); }
   /// Get the number of cores

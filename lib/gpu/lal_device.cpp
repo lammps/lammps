@@ -175,6 +175,12 @@ int DeviceT::set_ocl_params(char *ocl_vendor) {
   } else if (s_vendor=="cypress") {    
     _ocl_vendor_name="AMD Cypress";
     _ocl_vendor_string="-DCYPRESS_OCL";
+  } else if (s_vendor=="phi") {    
+    _ocl_vendor_name="Intel Phi";
+    _ocl_vendor_string="-DPHI_OCL";
+  } else if (s_vendor=="intel") {    
+    _ocl_vendor_name="Intel CPU";
+    _ocl_vendor_string="-DINTEL_OCL";
   } else if (s_vendor=="generic") {    
     _ocl_vendor_name="GENERIC";
     _ocl_vendor_string="-DGENERIC_OCL";
@@ -356,10 +362,10 @@ void DeviceT::init_message(FILE *screen, const char *name,
     for (int i=first_gpu; i<last; i++) {
       std::string sname;
       if (i==first_gpu)
-        sname=gpu->name(i)+", "+toa(gpu->cores(i))+" cores, "+fs+
+        sname=gpu->name(i)+", "+toa(gpu->cus(i))+" CUs, "+fs+
               toa(gpu->gigabytes(i))+" GB, "+toa(gpu->clock_rate(i))+" GHZ (";
       else              
-        sname=gpu->name(i)+", "+toa(gpu->cores(i))+" cores, "+fs+
+        sname=gpu->name(i)+", "+toa(gpu->cus(i))+" CUs, "+fs+
               toa(gpu->clock_rate(i))+" GHZ (";
       if (sizeof(PRECISION)==4) {
         if (sizeof(ACC_PRECISION)==4)

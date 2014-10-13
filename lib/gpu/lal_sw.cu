@@ -156,18 +156,18 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
   __syncthreads();
 
   if (ii<inum) {
-    const __global int *nbor, *list_end;
+    int nbor, nbor_end;
     int i, numj;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,list_end,nbor);
+              n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     itype=map[itype];
     
-    for ( ; nbor<list_end; nbor+=n_stride) {
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
   
-      int j=*nbor;
+      int j=nbor;
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -359,21 +359,21 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
   __syncthreads();
   
   if (ii<inum) {
-    const __global int *nbor_j, *list_end;
+    int nbor_j, nbor_end;
     int i, numj;
 
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
-              n_stride,list_end,nbor_j);
+              n_stride,nbor_end,nbor_j);
     int offset_k=tid & (t_per_atom-1);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w; 
     itype=map[itype];
 
-    for ( ; nbor_j<list_end; nbor_j+=n_stride) {
+    for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
   
-      int j=*nbor_j;
+      int j=nbor_j;
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -395,12 +395,12 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
       sw_sigma_gamma_ij=sw1_ijparam.y*sw1_ijparam.w; //sw_sigma*sw_gamma;
       sw_cut_ij=sw3_ijparam.x;
 
-      const __global int *nbor_k=nbor_j-offset_j+offset_k;
+      int nbor_k=nbor_j-offset_j+offset_k;
       if (nbor_k<=nbor_j)
         nbor_k+=n_stride;
 
-      for ( ; nbor_k<list_end; nbor_k+=n_stride) {
-        int k=*nbor_k;
+      for ( ; nbor_k<nbor_end; nbor_k+=n_stride) {
+        int k=nbor_k;
         k &= NEIGHMASK;
 
         numtyp4 kx; fetch4(kx,k,pos_tex);
@@ -482,20 +482,20 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
   __syncthreads();
   
   if (ii<inum) {
-    const __global int *nbor_j, *list_end, *k_end;
+    int nbor_j, nbor_end, k_end;
     int i, numj;
 
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
-              n_stride,list_end,nbor_j);
+              n_stride,nbor_end,nbor_j);
     int offset_k=tid & (t_per_atom-1);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     itype=map[itype];
 
-    for ( ; nbor_j<list_end; nbor_j+=n_stride) {
-      int j=*nbor_j;
+    for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
+      int j=nbor_j;
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -519,21 +519,21 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
       sw_sigma_gamma_ij=sw1_jiparam.y*sw1_jiparam.w; //sw_sigma*sw_gamma;
       sw_cut_ij=sw3_jiparam.x;
 
-      const __global int *nbor_k=dev_nbor+j+nbor_pitch;
-      int numk=*nbor_k;
+      int nbor_k=*dev_nbor+j+nbor_pitch;
+      int numk=nbor_k;
       if (dev_nbor==dev_packed) {
         nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
         k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
         nbor_k+=offset_k;
       } else {
         nbor_k+=nbor_pitch;
-        nbor_k=dev_packed+*nbor_k;
+        nbor_k=*dev_packed+nbor_k;
         k_end=nbor_k+numk;
         nbor_k+=offset_k;
       }
 
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=*nbor_k;
+        int k=nbor_k;
         k &= NEIGHMASK;
 
         if (k == i) continue;
@@ -618,20 +618,20 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
   __syncthreads();
   
   if (ii<inum) {
-    const __global int *nbor_j, *list_end, *k_end;
+    int nbor_j, nbor_end, k_end;
     int i, numj;
 
     int offset_j=offset/t_per_atom;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
-              n_stride,list_end,nbor_j);
+              n_stride,nbor_end,nbor_j);
     int offset_k=tid & (t_per_atom-1);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     itype=map[itype];
 
-    for ( ; nbor_j<list_end; nbor_j+=n_stride) {
-      int j=*nbor_j;
+    for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
+      int j=nbor_j;
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -654,22 +654,22 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
       numtyp4 sw3_jiparam; fetch4(sw3_jiparam,jiparam,sw3_tex);
       sw_sigma_gamma_ij=sw1_jiparam.y*sw1_jiparam.w; //sw_sigma*sw_gamma;
       sw_cut_ij=sw3_jiparam.x;
-       
-      const __global int *nbor_k=dev_nbor+j+nbor_pitch;
-      int numk=*nbor_k;
+
+      int nbor_k=*dev_nbor+j+nbor_pitch;
+      int numk=nbor_k;
       if (dev_nbor==dev_packed) {
         nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
         k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
         nbor_k+=offset_k;
       } else {
         nbor_k+=nbor_pitch;
-        nbor_k=dev_packed+*nbor_k;
+        nbor_k=*dev_packed+nbor_k;
         k_end=nbor_k+numk;
         nbor_k+=offset_k;
       }
 
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=*nbor_k;
+        int k=nbor_k;
         k &= NEIGHMASK;
 
         if (k == i) continue;

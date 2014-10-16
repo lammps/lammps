@@ -350,22 +350,22 @@ void colvarmodule::rotation::calc_optimal_rotation
 
     // derivative of the S matrix
     ds_1.reset();
-    ds_1[0][0] = cvm::rvector ( a2x,  a2y,  a2z);
-    ds_1[1][0] = cvm::rvector ( 0.0,  a2z, -a2y);
+    ds_1[0][0].set( a2x,  a2y,  a2z);
+    ds_1[1][0].set( 0.0,  a2z, -a2y);
     ds_1[0][1] = ds_1[1][0];
-    ds_1[2][0] = cvm::rvector (-a2z,  0.0,  a2x);
+    ds_1[2][0].set(-a2z,  0.0,  a2x);
     ds_1[0][2] = ds_1[2][0];
-    ds_1[3][0] = cvm::rvector ( a2y, -a2x,  0.0);
+    ds_1[3][0].set( a2y, -a2x,  0.0);
     ds_1[0][3] = ds_1[3][0];
-    ds_1[1][1] = cvm::rvector ( a2x, -a2y, -a2z);
-    ds_1[2][1] = cvm::rvector ( a2y,  a2x,  0.0);
+    ds_1[1][1].set( a2x, -a2y, -a2z);
+    ds_1[2][1].set( a2y,  a2x,  0.0);
     ds_1[1][2] = ds_1[2][1];
-    ds_1[3][1] = cvm::rvector ( a2z,  0.0,  a2x);
+    ds_1[3][1].set( a2z,  0.0,  a2x);
     ds_1[1][3] = ds_1[3][1];
-    ds_1[2][2] = cvm::rvector (-a2x,  a2y, -a2z);
-    ds_1[3][2] = cvm::rvector ( 0.0,  a2z,  a2y);
+    ds_1[2][2].set(-a2x,  a2y, -a2z);
+    ds_1[3][2].set( 0.0,  a2z,  a2y);
     ds_1[2][3] = ds_1[3][2];
-    ds_1[3][3] = cvm::rvector (-a2x, -a2y,  a2z);
+    ds_1[3][3].set(-a2x, -a2y,  a2z);
 
     cvm::rvector              &dl0_1 = dL0_1[ia];
     vector1d<cvm::rvector, 4> &dq0_1 = dQ0_1[ia];
@@ -404,22 +404,22 @@ void colvarmodule::rotation::calc_optimal_rotation
     matrix2d<cvm::rvector, 4, 4> &ds_2 =  dS_2[ia];
 
     ds_2.reset();
-    ds_2[0][0] = cvm::rvector ( a1x,  a1y,  a1z);
-    ds_2[1][0] = cvm::rvector ( 0.0, -a1z,  a1y);
+    ds_2[0][0].set( a1x,  a1y,  a1z);
+    ds_2[1][0].set( 0.0, -a1z,  a1y);
     ds_2[0][1] = ds_2[1][0];
-    ds_2[2][0] = cvm::rvector ( a1z,  0.0, -a1x);
+    ds_2[2][0].set( a1z,  0.0, -a1x);
     ds_2[0][2] = ds_2[2][0];
-    ds_2[3][0] = cvm::rvector (-a1y,  a1x,  0.0);
+    ds_2[3][0].set(-a1y,  a1x,  0.0);
     ds_2[0][3] = ds_2[3][0];
-    ds_2[1][1] = cvm::rvector ( a1x, -a1y, -a1z);
-    ds_2[2][1] = cvm::rvector ( a1y,  a1x,  0.0);
+    ds_2[1][1].set( a1x, -a1y, -a1z);
+    ds_2[2][1].set( a1y,  a1x,  0.0);
     ds_2[1][2] = ds_2[2][1];
-    ds_2[3][1] = cvm::rvector ( a1z,  0.0,  a1x);
+    ds_2[3][1].set( a1z,  0.0,  a1x);
     ds_2[1][3] = ds_2[3][1];
-    ds_2[2][2] = cvm::rvector (-a1x,  a1y, -a1z);
-    ds_2[3][2] = cvm::rvector ( 0.0,  a1z,  a1y);
+    ds_2[2][2].set(-a1x,  a1y, -a1z);
+    ds_2[3][2].set( 0.0,  a1z,  a1y);
     ds_2[2][3] = ds_2[3][2];
-    ds_2[3][3] = cvm::rvector (-a1x, -a1y,  a1z);
+    ds_2[3][3].set(-a1x, -a1y,  a1z);
 
     cvm::rvector              &dl0_2 = dL0_2[ia];
     vector1d<cvm::rvector, 4> &dq0_2 = dQ0_2[ia];

@@ -37,8 +37,17 @@ public:
   {}
 
   /// \brief Set all components to a scalar value
-  inline void set (cvm::real const &value = 0.0) {
+  inline void set (cvm::real const &value) {
     x = y = z = value;
+  }
+
+  /// \brief Assign all components
+  inline void set (cvm::real const &x_i,
+                   cvm::real const &y_i,
+                   cvm::real const &z_i) {
+    x = x_i;
+    y = y_i;
+    z = z_i;
   }
 
   /// \brief Set all components to zero

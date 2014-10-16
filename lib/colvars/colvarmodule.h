@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2014-10-07"
+#define COLVARS_VERSION "2014-10-13"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -219,6 +219,9 @@ public:
   /// Parse and initialize collective variable biases
   int parse_biases (std::string const &conf);
 
+  /// Test error condition and keyword parsing
+  /// on error, delete new bias
+  bool check_new_bias(std::string &conf, char const *key);
 
   // "Setup" functions (change internal data based on related data
   // from the proxy that may change during program execution)

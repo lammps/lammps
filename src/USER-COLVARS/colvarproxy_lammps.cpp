@@ -90,7 +90,7 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   // output prefix is always given
   output_prefix_str = std::string(out_name);
   // not so for restarts
-  restart_prefix_str = std::string("rest");
+  restart_output_prefix_str = std::string("rest");
 
   // check if it is possible to save output configuration
   if ((!output_prefix_str.size()) && (!restart_output_prefix_str.size())) {
@@ -101,13 +101,13 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   // try to extract a restart prefix from a potential restart command.
   LAMMPS_NS::Output *outp = _lmp->output;
   if ((outp->restart_every_single > 0) && (outp->restart1 != 0)) {
-      restart_prefix_str = std::string(outp->restart1);
+      restart_output_prefix_str = std::string(outp->restart1);
   } else if  ((outp->restart_every_double > 0) && (outp->restart2a != 0)) {
-    restart_prefix_str = std::string(outp->restart2a);
+    restart_output_prefix_str = std::string(outp->restart2a);
   }
   // trim off unwanted stuff from the restart prefix
-  if (restart_prefix_str.rfind(".*") != std::string::npos)
-    restart_prefix_str.erase(restart_prefix_str.rfind(".*"),2);
+  if (restart_output_prefix_str.rfind(".*") != std::string::npos)
+    restart_output_prefix_str.erase(restart_output_prefix_str.rfind(".*"),2);
 }
 
 

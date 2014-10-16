@@ -44,10 +44,6 @@ class colvarproxy_lammps : public colvarproxy {
   int  restart_every;
   int  previous_step;
 
-  std::string input_prefix_str;
-  std::string output_prefix_str;
-  std::string restart_prefix_str;
-
   bool first_timestep;
   bool system_force_requested;
   bool do_exit;
@@ -102,9 +98,6 @@ class colvarproxy_lammps : public colvarproxy {
   cvm::real temperature() { return t_target; };
   cvm::real dt() { return _lmp->update->dt * _lmp->force->femtosecond; };
 
-  inline std::string input_prefix() { return input_prefix_str; };
-  inline std::string output_prefix() { return output_prefix_str; };
-  inline std::string restart_output_prefix() { return restart_prefix_str; };
   inline size_t restart_frequency() { return restart_every; };
 
   void add_energy (cvm::real energy) { bias_energy = energy; };

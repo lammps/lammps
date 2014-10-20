@@ -20,6 +20,7 @@ LIB =           -lstdc++
 ARCHIVE =	ar
 ARFLAGS =	-rcsv
 SIZE =		size
+SHLIBFLAGS =	-shared
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings
@@ -102,6 +103,9 @@ shlib:	$(OBJ)
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
+
+%.o:%.cu
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 # Individual dependencies
 

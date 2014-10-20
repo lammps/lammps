@@ -269,6 +269,9 @@ void FixQEq::init_list(int id, NeighList *ptr)
 
 void FixQEq::setup_pre_force(int vflag)
 {
+  if (force->newton_pair == 0)
+    error->all(FLERR,"QEQ with 'newton pair off' not supported");
+
   neighbor->build_one(list);
 
   deallocate_storage();

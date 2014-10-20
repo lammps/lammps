@@ -284,21 +284,24 @@ void PPPMGPU::compute(int eflag, int vflag)
 
   if (evflag_atom) fieldforce_peratom();
 
+  // update qsum and qsqsum, if needed
+
+  if (eflag_global || eflag_atom) {
+    if (qsum_update_flag || (atom->natoms != natoms_original)) {
+      qsum_qsq(0);
+      natoms_original = atom->natoms;
+    }
+  }
+
   // sum energy across procs and add in volume-dependent term
-  // reset qsum and qsqsum if atom count has changed
 
   if (eflag_global) {
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
 
-    if (atom->natoms != natoms_original) {
-      qsum_qsq(0);
-      natoms_original = atom->natoms;
-    }
-
     energy *= 0.5*volume;
-    energy -= g_ewald*qsqsum/1.772453851 +
+    energy -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qscale;
   }

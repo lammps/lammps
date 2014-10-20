@@ -86,6 +86,16 @@ void EwaldOMP::compute(int eflag, int vflag)
   MPI_Allreduce(sfacrl,sfacrl_all,kcount,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(sfacim,sfacim_all,kcount,MPI_DOUBLE,MPI_SUM,world);
 
+  // update qsum and qsqsum, if needed
+  // (n.b. needs to be done outside of the multi-threaded region)
+
+  if (eflag_global || eflag_atom) {
+    if (qsum_update_flag || (atom->natoms != natoms_original)) {
+      qsum_qsq(0);
+      natoms_original = atom->natoms;
+    }
+  }
+
   // K-space portion of electric field
   // double loop over K-vectors and local atoms
 

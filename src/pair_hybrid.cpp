@@ -745,7 +745,7 @@ void *PairHybrid::extract(const char *str, int &dim)
 {
   void *cutptr = NULL;
   void *ptr;
-  double cutvalue;
+  double cutvalue = 0.0;
 
   for (int m = 0; m < nstyles; m++) {
     ptr = styles[m]->extract(str,dim);

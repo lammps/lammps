@@ -246,6 +246,9 @@ void EwaldDisp::setup()
     error->all(FLERR,"KSpace accuracy too low");
   }
 
+  if (qsum_update_flag)
+    error->all(FLERR,"Kspace style ewald/disp does not support dynamic charges");
+
   bigint natoms = atom->natoms;
   double err;
   int kxmax = 1;

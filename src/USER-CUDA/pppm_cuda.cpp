@@ -690,17 +690,18 @@ void PPPMCuda::compute(int eflag, int vflag)
   }
 
   // extend size of per-atom arrays if necessary
+  // and force update of device data, if charges can change
 
-  if ((cu_atom->update_nmax)||(old_nmax==0)) {
+  if ((cu_atom->update_nmax)||(old_nmax==0)||qsum_update_flag) {
     memory->destroy(part2grid);
     nmax = atom->nmax;
     memory->create(part2grid,nmax,3,"pppm:part2grid");
-         delete cu_part2grid;
-         delete [] adev_data_array;
-         adev_data_array=new dev_array[1];
-         cu_part2grid = new cCudaData<int  , int   , yx > ((int*)part2grid,adev_data_array, nmax,3);
+    delete cu_part2grid;
+    delete [] adev_data_array;
+    adev_data_array=new dev_array[1];
+    cu_part2grid = new cCudaData<int  , int   , yx > ((int*)part2grid,adev_data_array, nmax,3);
 
-          pppm_device_update(&cuda->shared_data,cu_part2grid->dev_data(),atom->nlocal,atom->nmax);
+    pppm_device_update(&cuda->shared_data,cu_part2grid->dev_data(),atom->nlocal,atom->nmax);
     old_nmax=nmax;
   }
   if(cu_atom->update_nlocal) {pppm_update_nlocal(cu_atom->nlocal);}

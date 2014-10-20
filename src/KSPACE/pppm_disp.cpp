@@ -1121,8 +1121,16 @@ void PPPMDisp::compute(int eflag, int vflag)
     if (evflag_atom) fieldforce_none_peratom();
   }
 
+  // update qsum and qsqsum, if needed
+
+  if (eflag_global || eflag_atom) {
+    if (qsum_update_flag || (atom->natoms != natoms_original)) {
+      qsum_qsq(0);
+      natoms_original = atom->natoms;
+    }
+  }
+
   // sum energy across procs and add in volume-dependent term
-  // reset qsum and qsqsum if atom count has changed
 
   const double qscale = force->qqrd2e * scale;
   if (eflag_global) {
@@ -1135,11 +1143,6 @@ void PPPMDisp::compute(int eflag, int vflag)
     energy_1 *= 0.5*volume;
     energy_6 *= 0.5*volume;
     
-    if (qsum_update_flag || (atom->natoms != natoms_original)) {
-      qsum_qsq(0);
-      natoms_original = atom->natoms;
-    }
-
     energy_1 -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy_6 += - MY_PI*MY_PIS/(6*volume)*pow(g_ewald_6,3)*csumij +

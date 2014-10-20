@@ -1738,6 +1738,7 @@ void FixRigidSmall::setup_bodies_static()
     if (atom->line_flag) orientflag = 1;
     if (atom->tri_flag) orientflag = 4;
     if (atom->mu_flag) dorientflag = 1;
+    grow_arrays(atom->nmax);
 
     for (i = 0; i < nlocal; i++) {
       eflags[i] = 0;

@@ -1,4 +1,4 @@
-# LAMMPS shared library multiple-machine Makefile
+# LAMMPS shared library multiple-machine -*- Makefile -*-
 
 SHELL = /bin/sh
 
@@ -19,16 +19,40 @@ help:
 	@echo 'Type "make target" where target is one of:'
 	@echo ''
 	@files="`ls MAKE/Makefile.*`"; \
-	for file in $$files; do head -1 $$file; done
+	  for file in $$files; do head -1 $$file; done
+	@echo ''
+	@echo 'or one of these from src/MAKE/OPTIONS:'
+	@echo ''
+	@files="`ls MAKE/OPTIONS/Makefile.*`"; \
+	  for file in $$files; do head -1 $$file; done
+	@echo ''
+	@echo 'or one of these from src/MAKE/MACHINES:'
+	@echo ''
+	@files="`ls MAKE/MACHINES/Makefile.*`"; \
+	  for file in $$files; do head -1 $$file; done
+	@echo ''
+	@echo 'or one of these from src/MAKE/MINE:'
+	@echo ''
+	@files="`ls MAKE/MINE/Makefile.* 2>/dev/null`"; \
+	  for file in $$files; do head -1 $$file; done
+	@echo ''
 
-clean:
-	rm -rf Obj_shlib_*
 
 .DEFAULT:
-	@test -f MAKE/Makefile.$@
+	@if [ $@ = "serial" -a ! -f STUBS/libmpi_stubs.a ]; \
+	  then $(MAKE) stubs; fi
+	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
+	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d Obj_shlib_$@ ]; then mkdir Obj_shlib_$@; fi
-	@cp -p $(SRC) $(INC) Obj_shlib_$@
-	@cp MAKE/Makefile.$@ Obj_shlib_$@/Makefile
+	@$(SHELL) Make.sh style
+	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
+	  then cp MAKE/MACHINES/Makefile.$@ Obj_shlib_$@/Makefile; fi
+	@if [ -f MAKE/OPTIONS/Makefile.$@ ]; \
+	  then cp MAKE/OPTIONS/Makefile.$@ Obj_shlib_$@/Makefile; fi
+	@if [ -f MAKE/Makefile.$@ ]; \
+	  then cp MAKE/Makefile.$@ Obj_shlib_$@/Makefile; fi
+	@if [ -f MAKE/MINE/Makefile.$@ ]; \
+	  then cp MAKE/MINE/Makefile.$@ Obj_shlib_$@/Makefile; fi
 	@if [ ! -e Makefile.package ]; \
 	  then cp Makefile.package.empty Makefile.package; fi
 	@if [ ! -e Makefile.package.settings ]; \
@@ -41,3 +65,16 @@ clean:
 	@ln -s $(EXE) liblammps.so
 	@if [ -d Obj_shlib_$@ ]; then cd Obj_shlib_$@; \
           rm -f $(SRC) $(INC) Makefile*; fi
+
+# Remove machine-specific object files
+
+clean:
+	@echo 'make clean-all           delete all object files'
+	@echo 'make clean-machine       delete object files for one machine'
+
+clean-all:
+	rm -rf Obj_shlib_*
+
+clean-%:
+	rm -rf Obj_shlib_$(@:clean-%=%)
+

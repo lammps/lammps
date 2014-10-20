@@ -1,4 +1,4 @@
-# LAMMPS multiple-machine Makefile
+# LAMMPS multiple-machine -*- Makefile -*-
 
 SHELL = /bin/bash
 #.IGNORE:

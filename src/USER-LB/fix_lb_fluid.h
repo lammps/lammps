@@ -1,4 +1,4 @@
-/* -----------------------------------------------------------------------
+/* -*- c++ -*- -----------------------------------------------------------
    LAMMPS 2003 (July 31) - Molecular Dynamics Simulator
    Sandia National Laboratories, www.cs.sandia.gov/~sjplimp/lammps.html
    Steve Plimpton, sjplimp@sandia.gov

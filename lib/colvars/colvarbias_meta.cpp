@@ -723,6 +723,7 @@ void colvarbias_meta::calc_hills_force (size_t const &i,
     }
     break;
 
+  case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
     for (h = h_first; h != h_last; h++) {
       if (h->value() == 0.0) continue;

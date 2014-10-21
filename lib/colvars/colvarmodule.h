@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2014-10-13"
+#define COLVARS_VERSION "2014-10-21"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -273,6 +273,17 @@ public:
   /// currently works for harmonic (force constant and/or centers)
   real energy_difference (std::string const &bias_name, std::string const &conf);
 
+  /// Give the bin width in the units of the colvar.
+  real read_width(std::string const &name);
+  /// Give the total number of bins for a given bias.
+  size_t bias_bin_num(std::string const &bias_name);
+  /// Calculate the bin index for a given bias.
+  size_t bias_current_bin(std::string const &bias_name);
+  //// Give the count at a given bin index.
+  size_t bias_bin_count(std::string const &bias_name, size_t bin_index);
+  //// Share among replicas.
+  void bias_share(std::string const &bias_name);
+
   /// Calculate collective variables and biases
   int calc();
 
@@ -349,6 +360,13 @@ public:
   /// Print a message to the main log and exit normally
   static void exit (std::string const &message);
 
+  // Replica exchange commands.
+  static bool replica_enabled();
+  static int replica_index();
+  static int replica_num();
+  static void replica_comm_barrier();
+  static int replica_comm_recv(char* msg_data, int buf_len, int src_rep);
+  static int replica_comm_send(char* msg_data, int msg_len, int dest_rep);
 
   /// \brief Get the distance between two atomic positions with pbcs handled
   /// correctly
@@ -535,6 +553,27 @@ inline cvm::real cvm::dt()
 {
   return proxy->dt();
 }
+
+// Replica exchange commands
+inline bool cvm::replica_enabled() {
+  return proxy->replica_enabled();
+}
+inline int cvm::replica_index() {
+  return proxy->replica_index();
+}
+inline int cvm::replica_num() {
+  return proxy->replica_num();
+}
+inline void cvm::replica_comm_barrier() {
+  return proxy->replica_comm_barrier();
+}
+inline int cvm::replica_comm_recv(char* msg_data, int buf_len, int src_rep) {
+  return proxy->replica_comm_recv(msg_data,buf_len,src_rep);
+}
+inline int cvm::replica_comm_send(char* msg_data, int msg_len, int dest_rep) {
+  return proxy->replica_comm_send(msg_data,msg_len,dest_rep);
+}
+
 
 inline void cvm::request_system_force()
 {

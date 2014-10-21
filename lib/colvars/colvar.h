@@ -83,6 +83,10 @@ public:
   /// combination of \link cvc \endlink elements
   bool b_linear;
 
+  /// \brief True if this \link colvar \endlink is equal to
+  /// its only constituent cvc
+  bool b_single_cvc;
+
   /// \brief True if all \link cvc \endlink objects are capable
   /// of calculating inverse gradients
   bool b_inverse_gradients;
@@ -343,13 +347,6 @@ public:
   /// Handles correctly symmetries and periodic boundary conditions
   colvarvalue dist2_rgrad (colvarvalue const &x1,
                            colvarvalue const &x2) const;
-
-  /// \brief Use the internal metrics (as from \link cvc
-  /// \endlink objects) to compare colvar values
-  ///
-  /// Handles correctly symmetries and periodic boundary conditions
-  cvm::real compare (colvarvalue const &x1,
-                     colvarvalue const &x2) const;
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to wrap a value into a standard interval

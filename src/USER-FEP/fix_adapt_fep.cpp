@@ -171,6 +171,11 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
     if (adapt[m].which == PAIR)
       memory->create(adapt[m].array_orig,n+1,n+1,"adapt:array_orig");
 
+  // when adapting charge and using kspace, 
+  // need to recompute additional params in kspace->setup()
+
+  if (chgflag && force->kspace) force->kspace->qsum_update_flag = 1;
+
   id_fix_diam = id_fix_chg = NULL;
 }
 
@@ -188,7 +193,7 @@ FixAdaptFEP::~FixAdaptFEP()
   }
   delete [] adapt;
 
-  if (force->kspace) force->kspace->qsum_update_flag = 0;
+  if (chgflag && force->kspace) force->kspace->qsum_update_flag = 0;
 
   // check nfix in case all fixes have already been deleted
 
@@ -291,11 +296,6 @@ void FixAdaptFEP::init()
       if (adapt[i].which == ATOM) 
         error->all(FLERR,"Cannot use dynamic group with fix adapt/fep atom");
 
-  // when using kspace, we need to recompute 
-  // some additional parameters in kspace->setup()
-
-  if (force->kspace) force->kspace->qsum_update_flag = 1;
-  
   // setup and error checks
 
   anypair = 0;
@@ -455,6 +455,8 @@ void FixAdaptFEP::change_settings()
     } else if (ad->which == KSPACE) {
       *kspace_scale = value;
 
+    // set per atom values, also make changes for ghost atoms
+
     } else if (ad->which == ATOM) {
 
       // reset radius from diameter
@@ -510,13 +512,14 @@ void FixAdaptFEP::change_settings()
 
   if (anypair) force->pair->reinit();
 
-  // re-setup KSpace if using it, since charges may have changed
+  // re-setup KSpace if it exists and adapting charges
+  // since charges have changed
 
-  if (force->kspace) force->kspace->setup();
+  if (chgflag && force->kspace) force->kspace->setup();
 }
 
 /* ----------------------------------------------------------------------
-   restore pair,kspace,atom parameters to original values
+   restore pair,kspace.atom parameters to original values
 ------------------------------------------------------------------------- */
 
 void FixAdaptFEP::restore_settings()
@@ -565,5 +568,5 @@ void FixAdaptFEP::restore_settings()
   }
 
   if (anypair) force->pair->reinit();
-  if (force->kspace) force->kspace->setup();
+  if (chgflag && force->kspace) force->kspace->setup();
 }

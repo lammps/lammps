@@ -269,6 +269,9 @@ void FixQEq::init_list(int id, NeighList *ptr)
 
 void FixQEq::setup_pre_force(int vflag)
 {
+  if (force->newton_pair == 0)
+    error->all(FLERR,"QEQ with 'newton pair off' not supported");
+
   neighbor->build_one(list);
 
   deallocate_storage();
@@ -405,11 +408,9 @@ void FixQEq::sparse_matvec( sparse_matrix *A, double *x, double *b )
 {
   int i, j, itr_j;
   int nn, NN;
-  int *ilist;
 
   nn = atom->nlocal;
   NN = atom->nlocal + atom->nghost;
-  ilist = list->ilist;
 
   for( i = 0; i < nn; ++i ) {
     if (atom->mask[i] & groupbit)
@@ -696,7 +697,7 @@ void FixQEq::vector_add( double* dest, double c, double* v, int k )
 
 void FixQEq::read_file(char *file)
 {
-  int i,itype,ntypes;
+  int itype,ntypes;
   int params_per_line = 6;
   char **words = new char*[params_per_line+1];
 

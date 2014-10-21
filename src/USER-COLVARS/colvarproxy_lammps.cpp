@@ -2,7 +2,6 @@
 #include "mpi.h"
 #include "lammps.h"
 #include "atom.h"
-#include "comm.h"
 #include "error.h"
 #include "output.h"
 #include "random_park.h"
@@ -62,8 +61,9 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
                                        const char *inp_name,
                                        const char *out_name,
                                        const int seed,
-                                       const double temp)
-  : _lmp(lmp)
+                                       const double temp,
+                                       MPI_Comm root2root)
+  : _lmp(lmp), inter_comm(root2root)
 {
   if (cvm::debug())
     log("Initializing the colvars proxy object.\n");
@@ -108,6 +108,12 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   // trim off unwanted stuff from the restart prefix
   if (restart_output_prefix_str.rfind(".*") != std::string::npos)
     restart_output_prefix_str.erase(restart_output_prefix_str.rfind(".*"),2);
+
+  // initialize multi-replica support, if available
+  if (replica_enabled()) {
+    MPI_Comm_rank(inter_comm, &inter_me);
+    MPI_Comm_size(inter_comm, &inter_num);
+  }
 }
 
 
@@ -391,6 +397,36 @@ int colvarproxy_lammps::init_lammps_atom(const int &aid, cvm::atom *atom)
   applied_forces.push_back(c);
 
   return colvars_atoms.size()-1;
+}
+
+// multi-replica support
+
+void colvarproxy_lammps::replica_comm_barrier() {
+  MPI_Barrier(inter_comm);
+}
+
+int colvarproxy_lammps::replica_comm_recv(char* msg_data,
+                                          int buf_len, int src_rep)
+{
+  MPI_Status status;
+  int retval;
+
+  retval = MPI_Recv(msg_data,buf_len,MPI_CHAR,src_rep,0,inter_comm,&status);
+  if (retval == MPI_SUCCESS) {
+    MPI_Get_count(&status, MPI_CHAR, &retval);
+  } else retval = 0;
+  return retval;
+}
+
+int colvarproxy_lammps::replica_comm_send(char* msg_data,
+                                                  int msg_len, int dest_rep)
+{
+  int retval;
+  retval = MPI_Send(msg_data,msg_len,MPI_CHAR,dest_rep,0,inter_comm);
+  if (retval == MPI_SUCCESS) {
+    retval = msg_len;
+  } else retval = 0;
+  return retval;
 }
 
 // atom member functions, LAMMPS specific implementations

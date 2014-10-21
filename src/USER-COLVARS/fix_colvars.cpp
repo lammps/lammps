@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "respa.h"
+#include "universe.h"
 #include "update.h"
 #include "citeme.h"
 
@@ -276,6 +277,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
 
   me = comm->me;
+  root2root = MPI_COMM_NULL;
 
   conf_file = strdup(arg[3]);
   rng_seed = 1966;
@@ -352,6 +354,9 @@ FixColvars::~FixColvars()
     delete hashtable;
   }
 
+  if (root2root != MPI_COMM_NULL)
+    MPI_Comm_free(&root2root);
+
   --instances;
 }
 
@@ -397,7 +402,14 @@ void FixColvars::one_time_init()
   if (init_flag) return;
   init_flag = 1;
 
-   // create and initialize the colvars proxy
+  if (universe->nworlds > 1) {
+    // create inter root communicator
+    int color = 1;
+    if (me == 0) color = 0;
+    MPI_Comm_split(universe->uworld,color,universe->iworld,&root2root);
+  }
+  
+  // create and initialize the colvars proxy
 
   if (me == 0) {
     if (screen) fputs("colvars: Creating proxy instance\n",screen);
@@ -428,7 +440,8 @@ void FixColvars::one_time_init()
       }
     }
 
-    proxy = new colvarproxy_lammps(lmp,inp_name,out_name,rng_seed,t_target);
+    proxy = new colvarproxy_lammps(lmp,inp_name,out_name,
+                                   rng_seed,t_target,root2root);
     proxy->init(conf_file);
     coords = proxy->get_coords();
     forces = proxy->get_forces();

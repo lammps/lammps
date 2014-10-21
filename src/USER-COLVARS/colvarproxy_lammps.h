@@ -55,10 +55,13 @@ class colvarproxy_lammps : public colvarproxy {
   std::vector<struct commdata> applied_forces;
   std::vector<struct commdata> previous_applied_forces;
 
+  MPI_Comm inter_comm;     // MPI comm with 1 root proc from each world
+  int inter_me, inter_num; // rank for the inter replica comm
+
  public:
   friend class cvm::atom;
   colvarproxy_lammps (LAMMPS_NS::LAMMPS *lmp, const char *,
-                      const char *, const int, const double);
+                      const char *, const int, const double, MPI_Comm);
   virtual ~colvarproxy_lammps();
   void init(const char*);
   void setup();
@@ -130,6 +133,26 @@ class colvarproxy_lammps : public colvarproxy {
 
   cvm::real rand_gaussian(void) { return _random->gaussian(); };
 
+  // implementation of optional methods from base class
+ public:
+  // Multi-replica support
+  // Indicate if multi-replica support is available and active
+  virtual bool replica_enabled() { return (inter_comm != MPI_COMM_NULL); }
+
+  // Index of this replica
+  virtual int replica_index() { return inter_me; }
+
+  // Total number of replica
+  virtual int replica_num() { return inter_num; }
+
+  // Synchronize replica
+  virtual void replica_comm_barrier();
+
+  // Receive data from other replica
+  virtual int replica_comm_recv(char* msg_data, int buf_len, int src_rep);
+
+  // Send data to other replica
+  virtual int replica_comm_send(char* msg_data, int msg_len, int dest_rep);
 };
 
 #endif

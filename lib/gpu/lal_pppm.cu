@@ -31,9 +31,16 @@ texture<int2> q_tex;
 #endif
 
 #else
+
 #define pos_tex x_
 #define q_tex q_
 #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics: enable
+#if defined(cl_amd_fp64)
+#pragma OPENCL EXTENSION cl_amd_fp64 : enable
+#else
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#endif
+
 #endif
 
 // Number of threads per pencil for charge spread

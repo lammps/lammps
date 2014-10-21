@@ -12,7 +12,12 @@
 
 #ifdef MPI_GERYON
 #include "mpi.h"
-#define OCL_GERYON_EXIT MPI_Abort(MPI_COMM_WORLD,-1)
+#define OCL_GERYON_EXIT do {                                               \
+  int is_final;                                                            \
+  MPI_Finalized(&is_final);                                                \
+  if (!is_final)                                                           \
+    MPI_Abort(MPI_COMM_WORLD,-1);                                          \
+  } while(0)
 #else
 #define OCL_GERYON_EXIT assert(0==1)
 #endif

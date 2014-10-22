@@ -12,10 +12,8 @@
 #include "colvarmodule.h"
 #include "colvarvalue.h"
 
-
 // return values for the frame() routine
 #define COLVARS_NO_SUCH_FRAME -1
-#define COLVARS_NOT_IMPLEMENTED -2
 
 // forward declarations
 class colvarscript;

@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2014-10-21"
+#define COLVARS_VERSION "2014-10-22"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -21,6 +21,7 @@
 /// objects.
 
 // Internal method return codes
+#define COLVARS_NOT_IMPLEMENTED -2
 #define COLVARS_ERROR -1
 #define COLVARS_OK 0
 
@@ -276,13 +277,13 @@ public:
   /// Give the bin width in the units of the colvar.
   real read_width(std::string const &name);
   /// Give the total number of bins for a given bias.
-  size_t bias_bin_num(std::string const &bias_name);
+  int bias_bin_num(std::string const &bias_name);
   /// Calculate the bin index for a given bias.
-  size_t bias_current_bin(std::string const &bias_name);
+  int bias_current_bin(std::string const &bias_name);
   //// Give the count at a given bin index.
-  size_t bias_bin_count(std::string const &bias_name, size_t bin_index);
+  int bias_bin_count(std::string const &bias_name, size_t bin_index);
   //// Share among replicas.
-  void bias_share(std::string const &bias_name);
+  int bias_share(std::string const &bias_name);
 
   /// Calculate collective variables and biases
   int calc();

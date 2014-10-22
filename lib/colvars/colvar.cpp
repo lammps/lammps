@@ -187,39 +187,19 @@ colvar::colvar (std::string const &conf)
     for (j = 0; j < cvcs.size(); j++) {
       sorted_cvc_values.push_back(cvcs[j]->p_value());
     }
-  }
 
-  if (!tasks[task_scripted]) {
-    // this is set false if any of the components has an exponent
-    // different from 1 in the polynomial
-    b_linear = true;
-    // these will be set to false if any of the cvcs has them false
-    b_inverse_gradients = true;
-    b_Jacobian_force    = true;
-  }
-
-  // Test whether this is a single-component variable
-  // Decide whether the colvar is periodic
-  // Used to wrap extended DOF if extendedLagrangian is on
-  if (cvcs.size() == 1  && (cvcs[0])->sup_np == 1
-                        && (cvcs[0])->sup_coeff == 1.0
-                        && !tasks[task_scripted]) {
-
-    b_single_cvc = true;
-    b_periodic = (cvcs[0])->b_periodic;
-    period = (cvcs[0])->period;
-    // TODO write explicit wrap() function for colvars to allow for
-    // sup_coeff different from 1
-    // this->period = (cvcs[0])->period * (cvcs[0])->sup_coeff;
-  } else {
-    b_single_cvc = false;
+    b_homogeneous = false;
+    // Scripted functions are deemed non-periodic
     b_periodic = false;
     period = 0.0;
+    b_inverse_gradients = false;
+    b_Jacobian_force = false;
   }
 
-  // check the available features of each cvc
-  for (i = 0; i < cvcs.size(); i++) {
+  // check for linear combinations
 
+  b_linear = !tasks[task_scripted];
+  for (i = 0; i < cvcs.size(); i++) {
     if ((cvcs[i])->b_debug_gradients)
       enable (task_gradients);
 
@@ -237,7 +217,41 @@ colvar::colvar (std::string const &conf)
                   (cvcs[i])->function_type+"\" approaches zero.\n");
       }
     }
+  }
 
+  // Colvar is homogeneous iff:
+  // - it is not scripted
+  // - it is linear
+  // - all cvcs have coefficient 1 or -1
+  // i.e. sum or difference of cvcs
+
+  b_homogeneous = !tasks[task_scripted] && b_linear;
+  for (i = 0; i < cvcs.size(); i++) {
+    if ((std::fabs(cvcs[i]->sup_coeff) - 1.0) > 1.0e-10) {
+      b_homogeneous = false;
+    }
+  }
+
+  // Colvar is deemed periodic iff:
+  // - it is homogeneous
+  // - all cvcs are periodic
+  // - all cvcs have the same period
+
+  b_periodic = cvcs[0]->b_periodic && b_homogeneous;
+  period = cvcs[0]->period;
+  for (i = 1; i < cvcs.size(); i++) {
+    if (!cvcs[i]->b_periodic || cvcs[i]->period != period) {
+      b_periodic = false;
+      period = 0.0;
+    }
+  }
+
+  // these will be set to false if any of the cvcs has them false
+  b_inverse_gradients = !tasks[task_scripted];
+  b_Jacobian_force    = !tasks[task_scripted];
+
+  // check the available features of each cvc
+  for (i = 0; i < cvcs.size(); i++) {
     if ((cvcs[i])->b_periodic && !b_periodic) {
         cvm::log ("Warning: although this component is periodic, the colvar will "
                   "not be treated as periodic, either because the exponent is not "
@@ -251,22 +265,17 @@ colvar::colvar (std::string const &conf)
     if (! (cvcs[i])->b_Jacobian_derivative)
       b_Jacobian_force = false;
 
-    if (!tasks[task_scripted]) {
-      // If the combination of components is a scripted function,
-      // the components may have different types
-      for (size_t j = i; j < cvcs.size(); j++) {
-        if ( (cvcs[i])->type() != (cvcs[j])->type() ) {
-          cvm::log ("ERROR: you are definining this collective variable "
-                            "by using components of different types, \""+
-                            colvarvalue::type_desc[(cvcs[i])->type()]+
-                            "\" and \""+
-                            colvarvalue::type_desc[(cvcs[j])->type()]+
-                            "\". "
-                            "You must use the same type in order to "
-                            " sum them together.\n");
-          cvm::set_error_bits(INPUT_ERROR);
-        }
-      }
+    // components may have different types only for scripted functions
+    if (!tasks[task_scripted] && (cvcs[i])->type() != (cvcs[0])->type() ) {
+      cvm::error("ERROR: you are definining this collective variable "
+                        "by using components of different types, \""+
+                        colvarvalue::type_desc[(cvcs[0])->type()]+
+                        "\" and \""+
+                        colvarvalue::type_desc[(cvcs[i])->type()]+
+                        "\". "
+                        "You must use the same type in order to "
+                        " sum them together.\n", INPUT_ERROR);
+      return;
     }
   }
 
@@ -1235,7 +1244,7 @@ bool colvar::periodic_boundaries() const
 cvm::real colvar::dist2 (colvarvalue const &x1,
                          colvarvalue const &x2) const
 {
-  if (b_single_cvc) {
+  if (b_homogeneous) {
     return (cvcs[0])->dist2(x1, x2);
   } else {
     return x1.dist2(x2);
@@ -1245,7 +1254,7 @@ cvm::real colvar::dist2 (colvarvalue const &x1,
 colvarvalue colvar::dist2_lgrad (colvarvalue const &x1,
                                  colvarvalue const &x2) const
 {
-  if (b_single_cvc) {
+  if (b_homogeneous) {
     return (cvcs[0])->dist2_lgrad (x1, x2);
   } else {
     return x1.dist2_grad(x2);
@@ -1255,7 +1264,7 @@ colvarvalue colvar::dist2_lgrad (colvarvalue const &x1,
 colvarvalue colvar::dist2_rgrad (colvarvalue const &x1,
                                  colvarvalue const &x2) const
 {
-  if (b_single_cvc) {
+  if (b_homogeneous) {
     return (cvcs[0])->dist2_rgrad (x1, x2);
   } else {
     return x2.dist2_grad(x1);
@@ -1264,7 +1273,7 @@ colvarvalue colvar::dist2_rgrad (colvarvalue const &x1,
 
 void colvar::wrap (colvarvalue &x) const
 {
-  if (b_single_cvc) {
+  if (b_homogeneous) {
     (cvcs[0])->wrap (x);
   }
   return;

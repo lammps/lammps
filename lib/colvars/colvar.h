@@ -83,9 +83,9 @@ public:
   /// combination of \link cvc \endlink elements
   bool b_linear;
 
-  /// \brief True if this \link colvar \endlink is equal to
-  /// its only constituent cvc
-  bool b_single_cvc;
+  /// \brief True if this \link colvar \endlink is a linear
+  /// combination of cvcs with coefficients 1 or -1
+  bool b_homogeneous;
 
   /// \brief True if all \link cvc \endlink objects are capable
   /// of calculating inverse gradients

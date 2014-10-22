@@ -408,7 +408,7 @@ void FixColvars::one_time_init()
     if (me == 0) color = 0;
     MPI_Comm_split(universe->uworld,color,universe->iworld,&root2root);
   }
-  
+
   // create and initialize the colvars proxy
 
   if (me == 0) {

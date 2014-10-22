@@ -15,6 +15,7 @@
    Contributing author: Daniel Schwen
 ------------------------------------------------------------------------- */
 
+#include "mpi.h"
 #include "math.h"
 #include "string.h"
 #include "stdlib.h"

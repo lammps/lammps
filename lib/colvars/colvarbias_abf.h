@@ -64,7 +64,7 @@ private:
   size_t   shared_freq;
   int   shared_last_step;
   // Share between replicas -- may be called independently of update
-  virtual void replica_share();
+  virtual int replica_share();
 
   // Store the last set for shared ABF
   colvar_grid_gradient  *last_gradients;

@@ -175,7 +175,8 @@ public:
     return cvm::rvector (v.x/a, v.y/a, v.z/a);
   }
 
-
+  std::string to_simple_string() const;
+  int from_simple_string(std::string const &s);
 };
 
 
@@ -638,6 +639,9 @@ public:
   {
     return 4*real_width + 13;
   }
+
+  std::string to_simple_string() const;
+  int from_simple_string(std::string const &s);
 
   /// \brief Formatted output operator
   friend std::ostream & operator << (std::ostream &os, cvm::quaternion const &q);

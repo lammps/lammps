@@ -282,17 +282,17 @@ cvm::real colvarbias_abf::update()
   return 0.0;
 }
 
-void colvarbias_abf::replica_share () {
+int colvarbias_abf::replica_share () {
   int p;
 
   if( !cvm::replica_enabled() ) {
     cvm::error ("Error: shared ABF: No replicas.\n");
-    return;
+    return COLVARS_ERROR;
   }
   // We must have stored the last_gradients and last_samples.
   if (shared_last_step < 0 ) {
     cvm::error ("Error: shared ABF: Tried to apply shared ABF before any sampling had occurred.\n");
-    return;
+    return COLVARS_ERROR;
   }
 
   // Share gradients for shared ABF.
@@ -355,6 +355,8 @@ void colvarbias_abf::replica_share () {
   last_gradients->copy_grid(*gradients);
   last_samples->copy_grid(*samples);
   shared_last_step = cvm::step_absolute();
+
+  return COLVARS_OK;
 }
 
 void colvarbias_abf::write_gradients_samples (const std::string &prefix, bool append)

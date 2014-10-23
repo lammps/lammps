@@ -34,9 +34,9 @@ public:
   /// Calculate the bin index for a given bias.
   virtual int current_bin();
   //// Give the count at a given bin index.
-  virtual int bin_count(int bin_index);  
+  virtual int bin_count(int bin_index);
   //// Share information between replicas, whatever it may be.
-  virtual void replica_share() {};
+  virtual int replica_share();
 
   /// Perform analysis tasks
   virtual inline void analyse() {}

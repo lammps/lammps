@@ -196,6 +196,23 @@ colvar::colvar (std::string const &conf)
     b_Jacobian_force = false;
   }
 
+  if (!tasks[task_scripted]) {
+    colvarvalue::Type const value_type = (cvcs[0])->type();
+    if (cvm::debug())
+      cvm::log ("This collective variable is a "+
+                colvarvalue::type_desc[value_type]+", corresponding to "+
+                cvm::to_str (colvarvalue::dof_num[value_type])+
+                " internal degrees of freedom.\n");
+    x.type (value_type);
+    x_reported.type (value_type);
+  }
+
+  // If using scripted biases, any colvar may receive bias forces
+  // and will need its gradient
+  if (cvm::scripted_forces()) {
+    enable(task_gradients);
+  }
+
   // check for linear combinations
 
   b_linear = !tasks[task_scripted];
@@ -277,17 +294,6 @@ colvar::colvar (std::string const &conf)
                         " sum them together.\n", INPUT_ERROR);
       return;
     }
-  }
-
-  if (!tasks[task_scripted]) {
-    colvarvalue::Type const value_type = (cvcs[0])->type();
-    if (cvm::debug())
-      cvm::log ("This collective variable is a "+
-                colvarvalue::type_desc[value_type]+", corresponding to "+
-                cvm::to_str (colvarvalue::dof_num[value_type])+
-                " internal degrees of freedom.\n");
-    x.type (value_type);
-    x_reported.type (value_type);
   }
 
   get_keyval (conf, "width", width, 1.0);

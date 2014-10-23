@@ -287,6 +287,11 @@ public:
   /// characters for a real number
   size_t output_width(size_t const &real_width) const;
 
+  /// Formats value as a script-friendly string (space separated list)
+  std::string to_simple_string() const;
+
+  /// Parses value from a script-friendly string (space separated list)
+  int from_simple_string(std::string const &s);
 
   // optimized routines for operations with an array; xv and inner as
   // vectors are assumed to have the same number of elements (i.e. the

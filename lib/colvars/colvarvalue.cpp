@@ -214,6 +214,51 @@ void colvarvalue::p2leg_opt(colvarvalue const                        &x,
   };
 }
 
+std::string colvarvalue::to_simple_string() const
+{
+  switch (type()) {
+  case colvarvalue::type_scalar:
+    return cvm::to_str(real_value, 0, cvm::cv_prec);
+    break;
+  case colvarvalue::type_vector:
+  case colvarvalue::type_unitvector:
+  case colvarvalue::type_unitvectorderiv:
+    return rvector_value.to_simple_string();
+    break;
+  case colvarvalue::type_quaternion:
+  case colvarvalue::type_quaternionderiv:
+    return quaternion_value.to_simple_string();
+    break;
+  case colvarvalue::type_notset:
+    undef_op();
+    break;
+  }
+  return std::string();
+}
+
+int colvarvalue::from_simple_string(std::string const &s)
+{
+  switch (type()) {
+  case colvarvalue::type_scalar:
+    return ((std::istringstream(s) >> real_value)
+            ? COLVARS_OK : COLVARS_ERROR);
+    break;
+  case colvarvalue::type_vector:
+  case colvarvalue::type_unitvector:
+  case colvarvalue::type_unitvectorderiv:
+    return rvector_value.from_simple_string(s);
+    break;
+  case colvarvalue::type_quaternion:
+  case colvarvalue::type_quaternionderiv:
+    return quaternion_value.from_simple_string(s);
+    break;
+  case colvarvalue::type_notset:
+    break;
+  default:
+    undef_op();
+  }
+  return COLVARS_ERROR;
+}
 
 std::ostream & operator << (std::ostream &os, colvarvalue const &x)
 {

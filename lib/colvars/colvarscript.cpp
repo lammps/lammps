@@ -209,14 +209,19 @@ int colvarscript::proc_colvar (int argc, char const *argv[]) {
   std::string subcmd = argv[2];
 
   if (subcmd == "value") {
-    result = cvm::to_str(cv->value(), 0, cvm::cv_prec);
+    result = (cv->value()).to_simple_string();
+    return COLVARSCRIPT_OK;
+  }
+
+  if (subcmd == "width") {
+    result = cvm::to_str(cv->width, 0, cvm::cv_prec);
     return COLVARSCRIPT_OK;
   }
 
   if (subcmd == "update") {
     cv->calc();
     cv->update();
-    result = cvm::to_str(cv->value(), 0, cvm::cv_prec);
+    result = (cv->value()).to_simple_string();
     return COLVARSCRIPT_OK;
   }
 
@@ -234,7 +239,7 @@ int colvarscript::proc_colvar (int argc, char const *argv[]) {
 
   if (subcmd == "addforce") {
     if (argc < 4) {
-      result = "Missing parameter: force value";
+      result = "addforce: missing parameter: force value";
       return COLVARSCRIPT_ERROR;
     }
     std::string f_str = argv[3];
@@ -243,12 +248,12 @@ int colvarscript::proc_colvar (int argc, char const *argv[]) {
     is.precision(cvm::cv_prec);
     colvarvalue force (cv->type());
     force.is_derivative();
-    if (!(is >> force)) {
-      result = "Error parsing force value";
+    if (force.from_simple_string(is.str()) != COLVARS_OK) {
+      result = "addforce : error parsing force value";
       return COLVARSCRIPT_ERROR;
     }
     cv->add_bias_force(force);
-    result = cvm::to_str(force, cvm::cv_width, cvm::cv_prec);
+    result = force.to_simple_string();
     return COLVARSCRIPT_OK;
   }
 
@@ -282,6 +287,38 @@ int colvarscript::proc_bias (int argc, char const *argv[]) {
     return COLVARSCRIPT_OK;
   }
 
+  // Subcommands for MW ABF
+  if (subcmd == "bin") {
+    int r = b->current_bin();
+    if (r < 0) {
+      result = "Error: calling current_bin() for bias " + b->name;
+      return COLVARSCRIPT_ERROR;
+    }
+    result = cvm::to_str(r);
+    return COLVARSCRIPT_OK;
+  }
+
+  if (subcmd == "binnum") {
+    int r = b->bin_num();
+    if (r < 0) {
+      result = "Error: calling bin_num() for bias " + b->name;
+      return COLVARSCRIPT_ERROR;
+    }
+    result = cvm::to_str(r);
+    return COLVARSCRIPT_OK;
+  }
+
+  if (subcmd == "share") {
+    int r = b->replica_share();
+    if (r < 0) {
+      result = "Error: calling replica_share() for bias " + b->name;
+      return COLVARSCRIPT_ERROR;
+    }
+    result = cvm::to_str(r);
+    return COLVARSCRIPT_OK;
+  }
+  // End commands for MW ABF
+
   if (subcmd == "delete") {
     // the bias destructor takes care of the cleanup at cvm level
     delete b;
@@ -291,7 +328,16 @@ int colvarscript::proc_bias (int argc, char const *argv[]) {
   }
 
   if (argc >= 4) {
-//    std::string param = argv[3];
+    std::string param = argv[3];
+    if (subcmd == "count") {
+      int index;
+      if (!(std::istringstream(param) >> index)) {
+        result = "bin_count: error parsing bin index";
+        return COLVARSCRIPT_ERROR;
+      }
+      result = cvm::to_str(b->bin_count(index));
+      return COLVARSCRIPT_OK;
+    }
 
     result = "Syntax error";
     return COLVARSCRIPT_ERROR;

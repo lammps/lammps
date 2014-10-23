@@ -128,19 +128,23 @@ cvm::real colvarbias::energy_difference(std::string const &conf)
 int colvarbias::bin_num()
 {
   cvm::error ("Error: bin_num() not implemented.\n");
-  return -1;
+  return COLVARS_NOT_IMPLEMENTED;
 }
 int colvarbias::current_bin()
 {
   cvm::error ("Error: current_bin() not implemented.\n");
-  return -1;
+  return COLVARS_NOT_IMPLEMENTED;
 }
 int colvarbias::bin_count(int bin_index)
 {
   cvm::error ("Error: bin_count() not implemented.\n");
-  return -1;
+  return COLVARS_NOT_IMPLEMENTED;
 }
-
+int colvarbias::replica_share()
+{
+  cvm::error ("Error: replica_share() not implemented.\n");
+  return COLVARS_NOT_IMPLEMENTED;
+}
 
 std::ostream & colvarbias::write_traj_label (std::ostream &os)
 {

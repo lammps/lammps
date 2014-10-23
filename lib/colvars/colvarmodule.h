@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2014-10-22"
+#define COLVARS_VERSION "2014-10-23"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -468,7 +468,7 @@ protected:
   static size_t depth;
 
   /// Use scripted colvars forces?
-  bool use_scripted_forces;
+  static bool use_scripted_forces;
 
 public:
   /// \brief Pointer to the proxy object, used to retrieve atomic data
@@ -482,6 +482,8 @@ public:
 
   /// Decrease the depth (number of indentations in the output)
   static void decrease_depth();
+
+  static inline const bool scripted_forces () { return use_scripted_forces; }
 };
 
 

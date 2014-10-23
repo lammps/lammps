@@ -169,7 +169,7 @@ int colvarmodule::parse_global_params (std::string const &conf)
                      colvarparse::parse_silent);
 
   if (use_scripted_forces && !proxy->force_script_defined) {
-    cvm::fatal_error("User script for scripted colvars forces not found.");
+    cvm::fatal_error("User script for scripted colvar forces not found.");
   }
 
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
@@ -1303,7 +1303,7 @@ bool      colvarmodule::b_analysis = false;
 cvm::real colvarmodule::rotation::crossing_threshold = 1.0E-04;
 std::list<std::string> colvarmodule::index_group_names;
 std::list<std::vector<int> > colvarmodule::index_groups;
-
+bool     colvarmodule::use_scripted_forces = false;
 
 // file name prefixes
 std::string colvarmodule::output_prefix = "";

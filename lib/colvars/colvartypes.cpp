@@ -4,6 +4,25 @@
 #include "colvartypes.h"
 #include "colvarparse.h"
 
+std::string cvm::rvector::to_simple_string() const
+{
+  std::ostringstream os;
+  os.setf (std::ios::scientific, std::ios::floatfield);
+  os.precision(cvm::cv_prec);
+  os << x << " " << y << " " << z;
+  return os.str();
+}
+
+int cvm::rvector::from_simple_string(std::string const &s)
+{
+  std::stringstream stream(s);
+  if ( !(stream >> x) ||
+       !(stream >> y) ||
+       !(stream >> z) ) {
+    return COLVARS_ERROR;
+  }
+  return COLVARS_OK;
+}
 
 std::ostream & operator << (std::ostream &os, colvarmodule::rvector const &v)
 {
@@ -38,7 +57,26 @@ std::istream & operator >> (std::istream &is, colvarmodule::rvector &v)
   return is;
 }
 
+std::string cvm::quaternion::to_simple_string() const
+{
+  std::ostringstream os;
+  os.setf (std::ios::scientific, std::ios::floatfield);
+  os.precision(cvm::cv_prec);
+  os << q0 << " " << q1 << " " << q2 << " " << q3;
+  return os.str();
+}
 
+int cvm::quaternion::from_simple_string(std::string const &s)
+{
+  std::stringstream stream(s);
+  if ( !(stream >> q0) ||
+       !(stream >> q1) ||
+       !(stream >> q2) ||
+       !(stream >> q3) ) {
+    return COLVARS_ERROR;
+  }
+  return COLVARS_OK;
+}
 
 std::ostream & operator << (std::ostream &os, colvarmodule::quaternion const &q)
 {

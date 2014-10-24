@@ -448,30 +448,6 @@ cvm::real colvarmodule::energy_difference (std::string const &bias_name,
   return energy_diff;
 }
 
-// For shared ABF
-cvm::real colvarmodule::read_width(std::string const &name)
-{
-  cvm::increase_depth();
-  int found = 0;
-  real width = -1.0;
-  for (std::vector<colvar *>::iterator cvi = colvars.begin();
-       cvi != colvars.end();
-       cvi++) {
-    if ( (*cvi)->name == name ) {
-      ++found;
-      width = (*cvi)->width;
-    }
-  }
-  if (found < 1) {
-    cvm::error ("Error: bias not found.\n");
-  } else if (found > 1) {
-    cvm::error ("Error: duplicate bias name.\n");
-  } else {
-    cvm::decrease_depth();
-  }
-  return width;
-}
-
 int colvarmodule::bias_current_bin (std::string const &bias_name)
 {
   cvm::increase_depth();

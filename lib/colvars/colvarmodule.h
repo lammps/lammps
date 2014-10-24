@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2014-10-23"
+#define COLVARS_VERSION "2014-10-24"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -274,8 +274,6 @@ public:
   /// currently works for harmonic (force constant and/or centers)
   real energy_difference (std::string const &bias_name, std::string const &conf);
 
-  /// Give the bin width in the units of the colvar.
-  real read_width(std::string const &name);
   /// Give the total number of bins for a given bias.
   int bias_bin_num(std::string const &bias_name);
   /// Calculate the bin index for a given bias.

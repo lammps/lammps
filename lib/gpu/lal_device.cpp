@@ -48,7 +48,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
                          const int last_gpu, const int gpu_mode, 
                          const double p_split, const int nthreads, 
                          const int t_per_atom, const double cell_size,
-                         char *ocl_vendor) {
+                         char *ocl_vendor, const int block_pair) {
   _nthreads=nthreads;
   #ifdef _OPENMP
   omp_set_num_threads(nthreads);
@@ -66,6 +66,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
   _gpu_mode=gpu_mode;
   _particle_split=p_split;
   _cell_size=cell_size;
+  _block_pair=block_pair;
 
   // Get the rank/size within the world
   MPI_Comm_rank(_comm_world,&_world_me);
@@ -340,11 +341,7 @@ void DeviceT::init_message(FILE *screen, const char *name,
   if (_replica_me == 0 && screen) {
     fprintf(screen,"\n-------------------------------------");
     fprintf(screen,"-------------------------------------\n");
-    #ifdef USE_OPENCL
-    fprintf(screen,"- Using OpenCL acceleration for %s:\n",name);
-    #else
-    fprintf(screen,"- Using CUDA acceleration for %s:\n",name);
-    #endif
+    fprintf(screen,"- Using acceleration for %s:\n",name);
     fprintf(screen,"-  with %d proc(s) per device.\n",_procs_per_gpu);
     #ifdef _OPENMP
     fprintf(screen,"-  with %d thread(s) per proc.\n",_nthreads);
@@ -530,7 +527,7 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
     if (screen && times[5]>0.0) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
-      fprintf(screen,"    Device Time Info (average): ");
+      fprintf(screen,"      Device Time Info (average): ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
@@ -592,7 +589,7 @@ void DeviceT::output_kspace_times(UCL_Timer &time_in,
     if (screen && times[6]>0.0) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
-      fprintf(screen,"      Device Time Info (average): ");
+      fprintf(screen,"    Device Time Info (average): ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
@@ -682,7 +679,7 @@ int DeviceT::compile_kernels() {
     _threads_per_charge=gpu_lib_data[13];
   _pppm_max_spline=gpu_lib_data[4];
   _pppm_block=gpu_lib_data[5];
-  _block_pair=gpu_lib_data[6];
+  if (_block_pair == -1) _block_pair=gpu_lib_data[6];
   _max_shared_types=gpu_lib_data[7];
   _block_cell_2d=gpu_lib_data[8];
   _block_cell_id=gpu_lib_data[9];
@@ -724,10 +721,10 @@ int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
                     const int last_gpu, const int gpu_mode, 
                     const double particle_split, const int nthreads,
                     const int t_per_atom, const double cell_size, 
-                    char *opencl_vendor) {
+                    char *opencl_vendor, const int block_pair) {
   return global_device.init_device(world,replica,first_gpu,last_gpu,gpu_mode,
                                    particle_split,nthreads,t_per_atom, 
-                                   cell_size,opencl_vendor);
+                                   cell_size,opencl_vendor,block_pair);
 }
 
 void lmp_clear_device() {

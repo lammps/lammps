@@ -55,8 +55,7 @@ __kernel void k_lj_gromacs(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
 
   if (ii<inum) {
-    int nbor, nbor_end;
-    int i, numj;
+    int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
@@ -67,7 +66,7 @@ __kernel void k_lj_gromacs(const __global numtyp4 *restrict x_,
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
-      int j=nbor;
+      int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
@@ -161,8 +160,7 @@ __kernel void k_lj_gromacs_fast(const __global numtyp4 *restrict x_,
   __syncthreads();
   
   if (ii<inum) {
-    int nbor, nbor_end;
-    int i, numj;
+    int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
@@ -174,7 +172,7 @@ __kernel void k_lj_gromacs_fast(const __global numtyp4 *restrict x_,
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
-      int j=nbor;
+      int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 

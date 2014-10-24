@@ -128,6 +128,7 @@ inline int _host_view(mat_type &mat, copy_type &cm, const size_t n) {
   
   mat.cbegin()=clCreateBuffer(context, CL_MEM_USE_HOST_PTR | orig_flags, n,
                               *mat.host_ptr(), &error_flag);
+
   CL_CHECK_ERR(error_flag);
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
   return UCL_SUCCESS;

@@ -30,19 +30,19 @@ texture<int2> q_tex;
 #endif
 
 __kernel void k_coul_debye(const __global numtyp4 *restrict x_,
-                         const __global numtyp *restrict scale,
-                         const int lj_types, 
-                         const __global numtyp *restrict sp_cl_in,
-                         const __global int *dev_nbor, 
-                         const __global int *dev_packed, 
-                         __global acctyp4 *restrict ans,
-                         __global acctyp *restrict engv,
-                         const int eflag, const int vflag, const int inum,
-                         const int nbor_pitch,
-                         const __global numtyp *restrict q_ ,
-                         const __global numtyp *restrict cutsq, 
-                         const numtyp qqrd2e, const numtyp kappa,
-                         const int t_per_atom) {
+                           const __global numtyp *restrict scale,
+                           const int lj_types, 
+                           const __global numtyp *restrict sp_cl_in,
+                           const __global int *dev_nbor, 
+                           const __global int *dev_packed, 
+                           __global acctyp4 *restrict ans,
+                           __global acctyp *restrict engv,
+                           const int eflag, const int vflag, const int inum,
+                           const int nbor_pitch,
+                           const __global numtyp *restrict q_ ,
+                           const __global numtyp *restrict cutsq, 
+                           const numtyp qqrd2e, const numtyp kappa,
+                           const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
@@ -61,8 +61,7 @@ __kernel void k_coul_debye(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    int nbor, nbor_end;
-    int i, numj;
+    int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
@@ -71,10 +70,11 @@ __kernel void k_coul_debye(const __global numtyp4 *restrict x_,
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
 
+    numtyp factor_coul;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+  
       int j=dev_packed[nbor];
-
-      numtyp factor_coul = sp_cl[sbmask(j)];
+      factor_coul = sp_cl[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -158,8 +158,7 @@ __kernel void k_coul_debye_fast(const __global numtyp4 *restrict x_,
   __syncthreads();
   
   if (ii<inum) {
-    int nbor, nbor_end;
-    int i, numj;
+    int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
@@ -169,10 +168,11 @@ __kernel void k_coul_debye_fast(const __global numtyp4 *restrict x_,
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
+    numtyp factor_coul;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-      int j=dev_packed[nbor];
 
-      numtyp factor_coul = sp_cl[sbmask(j)];
+      int j=dev_packed[nbor];
+      factor_coul = sp_cl[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];

@@ -170,11 +170,11 @@ protected:
     extended:
     H = H_{0} + \sum_{i} 1/2*\lambda*(S_i(x(t))-s_i(t))^2 \\
     + \sum_{i} 1/2*m_i*(ds_i(t)/dt)^2 \\
-    + \sum_{t'<t} W * exp (-1/2*\sum_{i} (s_i(t')-s_i(t))^2/(\delta{}s_i)^2) \\
+    + \sum_{t'<t} W * exp(-1/2*\sum_{i} (s_i(t')-s_i(t))^2/(\delta{}s_i)^2) \\
     + \sum_{w} (\sum_{i}c_{w,i}s_i(t) - D_w)^M/(\Sigma_w)^M
 
     normal:
-    H = H_{0} + \sum_{t'<t} W * exp (-1/2*\sum_{i} (S_i(x(t'))-S_i(x(t)))^2/(\delta{}S_i)^2) \\
+    H = H_{0} + \sum_{t'<t} W * exp(-1/2*\sum_{i} (S_i(x(t'))-S_i(x(t)))^2/(\delta{}S_i)^2) \\
     + \sum_{w} (\sum_{i}c_{w,i}S_i(t) - D_w)^M/(\Sigma_w)^M
 
     output:
@@ -196,7 +196,7 @@ protected:
   /// Finite-difference velocity
   colvarvalue v_fdiff;
 
-  inline colvarvalue fdiff_velocity (colvarvalue const &xold,
+  inline colvarvalue fdiff_velocity(colvarvalue const &xold,
                                      colvarvalue const &xnew)
   {
     // using the gradient of the square distance to calculate the
@@ -204,7 +204,7 @@ protected:
     // account)
     cvm::real dt = cvm::dt();
     return ( ( (dt > 0.0) ? (1.0/dt) : 1.0 ) *
-             0.5 * dist2_lgrad (xnew, xold) );
+             0.5 * dist2_lgrad(xnew, xold) );
   }
 
   /// Cached reported velocity
@@ -284,17 +284,17 @@ public:
   bool periodic_boundaries() const;
 
   /// \brief Is the interval defined by the two boundaries periodic?
-  bool periodic_boundaries (colvarvalue const &lb, colvarvalue const &ub) const;
+  bool periodic_boundaries(colvarvalue const &lb, colvarvalue const &ub) const;
 
 
   /// Constructor
-  colvar (std::string const &conf);
+  colvar(std::string const &conf);
 
   /// Enable the specified task
-  int enable (colvar::task const &t);
+  int enable(colvar::task const &t);
 
   /// Disable the specified task
-  void disable (colvar::task const &t);
+  void disable(colvar::task const &t);
 
   /// Get ready for a run and possibly re-initialize internal data
   void setup();
@@ -308,13 +308,13 @@ public:
   void calc();
 
   /// \brief Calculate just the value, and store it in the argument
-  void calc_value (colvarvalue &xn);
+  void calc_value(colvarvalue &xn);
 
   /// Set the total biasing force to zero
   void reset_bias_force();
 
   /// Add to the total force from biases
-  void add_bias_force (colvarvalue const &force);
+  void add_bias_force(colvarvalue const &force);
 
   /// \brief Collect all forces on this colvar, integrate internal
   /// equations of motion of internal degrees of freedom; see also
@@ -331,48 +331,48 @@ public:
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
-  cvm::real dist2 (colvarvalue const &x1,
+  cvm::real dist2(colvarvalue const &x1,
                    colvarvalue const &x2) const;
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
-  colvarvalue dist2_lgrad (colvarvalue const &x1,
+  colvarvalue dist2_lgrad(colvarvalue const &x1,
                            colvarvalue const &x2) const;
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to calculate square distances and gradients
   ///
   /// Handles correctly symmetries and periodic boundary conditions
-  colvarvalue dist2_rgrad (colvarvalue const &x1,
+  colvarvalue dist2_rgrad(colvarvalue const &x1,
                            colvarvalue const &x2) const;
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to wrap a value into a standard interval
   ///
   /// Handles correctly symmetries and periodic boundary conditions
-  void wrap (colvarvalue &x) const;
+  void wrap(colvarvalue &x) const;
 
 
   /// Read the analysis tasks
-  int parse_analysis (std::string const &conf);
+  int parse_analysis(std::string const &conf);
   /// Perform analysis tasks
   void analyse();
 
 
   /// Read the value from a collective variable trajectory file
-  std::istream & read_traj (std::istream &is);
+  std::istream & read_traj(std::istream &is);
   /// Output formatted values to the trajectory file
-  std::ostream & write_traj (std::ostream &os);
+  std::ostream & write_traj(std::ostream &os);
   /// Write a label to the trajectory file (comment line)
-  std::ostream & write_traj_label (std::ostream &os);
+  std::ostream & write_traj_label(std::ostream &os);
 
 
   /// Read the collective variable from a restart file
-  std::istream & read_restart (std::istream &is);
+  std::istream & read_restart(std::istream &is);
   /// Write the collective variable to a restart file
-  std::ostream & write_restart (std::ostream &os);
+  std::ostream & write_restart(std::ostream &os);
 
   /// Write output files (if defined, e.g. in analysis mode)
   int write_output_files();
@@ -431,23 +431,23 @@ protected:
   acf_type_e             acf_type;
 
   /// \brief Velocity ACF, scalar product between v(0) and v(t)
-  int calc_vel_acf (std::list<colvarvalue> &v_history,
+  int calc_vel_acf(std::list<colvarvalue> &v_history,
                      colvarvalue const      &v);
 
   /// \brief Coordinate ACF, scalar product between x(0) and x(t)
   /// (does not work with scalar numbers)
-  void calc_coor_acf (std::list<colvarvalue> &x_history,
+  void calc_coor_acf(std::list<colvarvalue> &x_history,
                       colvarvalue const      &x);
 
   /// \brief Coordinate ACF, second order Legendre polynomial between
   /// x(0) and x(t) (does not work with scalar numbers)
-  void calc_p2coor_acf (std::list<colvarvalue> &x_history,
+  void calc_p2coor_acf(std::list<colvarvalue> &x_history,
                         colvarvalue const      &x);
 
   /// Calculate the auto-correlation function (ACF)
   int calc_acf();
   /// Save the ACF to a file
-  void write_acf (std::ostream &os);
+  void write_acf(std::ostream &os);
 
   /// Length of running average series
   size_t         runave_length;
@@ -509,7 +509,7 @@ protected:
 
   /// \brief Initialize the sorted list of atom IDs for atoms involved
   /// in all cvcs (called when enabling task_collect_gradients)
-  void build_atom_list (void);
+  void build_atom_list(void);
 
 private:
   /// Name of scripted function to be used
@@ -528,7 +528,7 @@ public:
   /// For scalar variables only!
   std::vector<cvm::rvector> atomic_gradients;
 
-  inline size_t n_components () const {
+  inline size_t n_components() const {
     return cvcs.size();
   }
 };
@@ -563,7 +563,7 @@ inline colvarvalue const & colvar::system_force() const
 }
 
 
-inline void colvar::add_bias_force (colvarvalue const &force)
+inline void colvar::add_bias_force(colvarvalue const &force)
 {
   fb += force;
 }

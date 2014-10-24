@@ -23,26 +23,26 @@ public:
   cvm::real x, y, z;
 
   inline rvector()
-    : x (0.0), y (0.0), z (0.0)
+    : x(0.0), y(0.0), z(0.0)
   {}
 
-  inline rvector (cvm::real const &x_i,
+  inline rvector(cvm::real const &x_i,
                   cvm::real const &y_i,
                   cvm::real const &z_i)
-    : x (x_i), y (y_i), z (z_i)
+    : x(x_i), y(y_i), z(z_i)
   {}
 
-  inline rvector (cvm::real v)
-    : x (v), y (v), z (v)
+  inline rvector(cvm::real v)
+    : x(v), y(v), z(v)
   {}
 
   /// \brief Set all components to a scalar value
-  inline void set (cvm::real const &value) {
+  inline void set(cvm::real const &value) {
     x = y = z = value;
   }
 
   /// \brief Assign all components
-  inline void set (cvm::real const &x_i,
+  inline void set(cvm::real const &x_i,
                    cvm::real const &y_i,
                    cvm::real const &z_i) {
     x = x_i;
@@ -109,31 +109,31 @@ public:
 
   inline cvm::real norm() const
   {
-    return std::sqrt (this->norm2());
+    return std::sqrt(this->norm2());
   }
 
   inline cvm::rvector unit() const
   {
     const cvm::real n = this->norm();
-    return (n > 0. ? cvm::rvector (x, y, z)/n : cvm::rvector (1., 0., 0.));
+    return (n > 0. ? cvm::rvector(x, y, z)/n : cvm::rvector(1., 0., 0.));
   }
 
-  static inline size_t output_width (size_t const &real_width)
+  static inline size_t output_width(size_t const &real_width)
   {
     return 3*real_width + 10;
   }
 
 
-  static inline cvm::rvector outer (cvm::rvector const &v1, cvm::rvector const &v2)
+  static inline cvm::rvector outer(cvm::rvector const &v1, cvm::rvector const &v2)
   {
-    return cvm::rvector ( v1.y*v2.z - v2.y*v1.z,
+    return cvm::rvector( v1.y*v2.z - v2.y*v1.z,
                          -v1.x*v2.z + v2.x*v1.z,
                           v1.x*v2.y - v2.x*v1.y);
   }
 
   friend inline cvm::rvector operator - (cvm::rvector const &v)
   {
-    return cvm::rvector (-v.x, -v.y, -v.z);
+    return cvm::rvector(-v.x, -v.y, -v.z);
   }
 
   friend inline int operator == (cvm::rvector const &v1, cvm::rvector const &v2)
@@ -148,11 +148,11 @@ public:
 
   friend inline cvm::rvector operator + (cvm::rvector const &v1, cvm::rvector const &v2)
   {
-    return cvm::rvector (v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+    return cvm::rvector(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
   }
   friend inline cvm::rvector operator - (cvm::rvector const &v1, cvm::rvector const &v2)
   {
-    return cvm::rvector (v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+    return cvm::rvector(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
   }
 
   friend inline cvm::real operator * (cvm::rvector const &v1, cvm::rvector const &v2)
@@ -162,17 +162,17 @@ public:
 
   friend inline cvm::rvector operator * (cvm::real const &a, cvm::rvector const &v)
   {
-    return cvm::rvector (a*v.x, a*v.y, a*v.z);
+    return cvm::rvector(a*v.x, a*v.y, a*v.z);
   }
 
   friend inline cvm::rvector operator * (cvm::rvector const &v, cvm::real const &a)
   {
-    return cvm::rvector (a*v.x, a*v.y, a*v.z);
+    return cvm::rvector(a*v.x, a*v.y, a*v.z);
   }
 
   friend inline cvm::rvector operator / (cvm::rvector const &v, cvm::real const &a)
   {
-    return cvm::rvector (v.x/a, v.y/a, v.z/a);
+    return cvm::rvector(v.x/a, v.y/a, v.z/a);
   }
 
   std::string to_simple_string() const;
@@ -200,7 +200,7 @@ public:
   }
 
   /// Default constructor
-  inline vector1d (T const &t = T())
+  inline vector1d(T const &t = T())
   {
     array = new T[length];
     reset();
@@ -210,12 +210,12 @@ public:
   inline void reset()
   {
     for (size_t i = 0; i < length; i++) {
-      array[i] = T (0.0);
+      array[i] = T(0.0);
     }
   }
 
   /// Constructor from a 1-d C array
-  inline vector1d (T const *v)
+  inline vector1d(T const *v)
   {
     array = new T[length];
     for (size_t i = 0; i < length; i++) {
@@ -224,7 +224,7 @@ public:
   }
 
   /// Copy constructor
-  inline vector1d (vector1d<T, length> const &v)
+  inline vector1d(vector1d<T, length> const &v)
   {
     array = new T[length];
     for (size_t i = 0; i < length; i++) {
@@ -256,7 +256,7 @@ public:
   inline friend T operator * (vector1d<T, length> const &v1,
                               vector1d<T, length> const &v2)
   {
-    T prod (0.0);
+    T prod(0.0);
     for (size_t i = 0; i < length; i++) {
       prod += v1.array[i] * v2.array[i];
     }
@@ -272,10 +272,10 @@ public:
 
     os << "( ";
     for (size_t i = 0; i < length-1; i++) {
-      os.width (w); os.precision (p);
+      os.width(w); os.precision(p);
       os << v.array[i] << " , ";
     }
-    os.width (w); os.precision (p);
+    os.width(w); os.precision(p);
     os << v.array[length-1] << " )";
     return os;
   }
@@ -311,7 +311,7 @@ public:
   {
     for (size_t i = 0; i < outer_length; i++) {
       for (size_t j = 0; j < inner_length; j++) {
-        array[i][j] = T (0.0);
+        array[i][j] = T(0.0);
       }
     }
   }
@@ -324,7 +324,7 @@ public:
   }
 
   /// Constructor from a 2-d C array
-  inline matrix2d (T const **m)
+  inline matrix2d(T const **m)
   {
     this->alloc();
     for (size_t i = 0; i < outer_length; i++) {
@@ -334,7 +334,7 @@ public:
   }
 
   /// Copy constructor
-  inline matrix2d (matrix2d<T, outer_length, inner_length> const &m)
+  inline matrix2d(matrix2d<T, outer_length, inner_length> const &m)
   {
     this->alloc();
     for (size_t i = 0; i < outer_length; i++) {
@@ -403,12 +403,12 @@ public:
     for (size_t i = 0; i < outer_length; i++) {
       os << " ( ";
       for (size_t j = 0; j < inner_length-1; j++) {
-        os.width (w);
-        os.precision (p);
+        os.width(w);
+        os.precision(p);
         os << m.array[i][j] << " , ";
       }
-      os.width (w);
-      os.precision (p);
+      os.width(w);
+      os.precision(p);
       os << m.array[i][inner_length-1] << " )";
     }
 
@@ -466,7 +466,7 @@ public:
   inline cvm::real zz() const { return array[2][2]; }
 
   /// Constructor from a 2-d C array
-  inline rmatrix (cvm::real const **m)
+  inline rmatrix(cvm::real const **m)
     : cvm::matrix2d<cvm::real, 3, 3> (m)
   {}
 
@@ -476,7 +476,7 @@ public:
   {}
 
   /// Constructor component by component
-  inline rmatrix (cvm::real const &xxi,
+  inline rmatrix(cvm::real const &xxi,
                   cvm::real const &xyi,
                   cvm::real const &xzi,
                   cvm::real const &yxi,
@@ -513,7 +513,7 @@ public:
 
   inline cvm::rmatrix transpose() const
   {
-    return cvm::rmatrix (this->xx(),
+    return cvm::rmatrix(this->xx(),
                          this->yx(),
                          this->zx(),
                          this->xy(),
@@ -544,20 +544,20 @@ public:
 inline cvm::rvector operator * (cvm::rmatrix const &m,
                                 cvm::rvector const &r)
 {
-  return cvm::rvector (m.xx()*r.x + m.xy()*r.y + m.xz()*r.z,
+  return cvm::rvector(m.xx()*r.x + m.xy()*r.y + m.xz()*r.z,
                        m.yx()*r.x + m.yy()*r.y + m.yz()*r.z,
                        m.zx()*r.x + m.zy()*r.y + m.zz()*r.z);
 }
 
 
 /// Numerical recipes diagonalization
-void jacobi (cvm::real **a, cvm::real d[], cvm::real **v, int *nrot);
+void jacobi(cvm::real **a, cvm::real d[], cvm::real **v, int *nrot);
 
 /// Eigenvector sort
-void eigsrt (cvm::real d[], cvm::real **v);
+void eigsrt(cvm::real d[], cvm::real **v);
 
 /// Transpose the matrix
-void transpose (cvm::real **v);
+void transpose(cvm::real **v);
 
 
 
@@ -571,41 +571,41 @@ public:
   cvm::real q0, q1, q2, q3;
 
   /// Constructor from a 3-d vector
-  inline quaternion (cvm::real const &x, cvm::real const &y, cvm::real const &z)
-    : q0 (0.0), q1 (x), q2 (y), q3 (z)
+  inline quaternion(cvm::real const &x, cvm::real const &y, cvm::real const &z)
+    : q0(0.0), q1(x), q2(y), q3(z)
   {}
 
   /// Constructor component by component
-  inline quaternion (cvm::real const qv[4])
-    : q0 (qv[0]), q1 (qv[1]), q2 (qv[2]), q3 (qv[3])
+  inline quaternion(cvm::real const qv[4])
+    : q0(qv[0]), q1(qv[1]), q2(qv[2]), q3(qv[3])
   {}
 
   /// Constructor component by component
-  inline quaternion (cvm::real const &q0i,
+  inline quaternion(cvm::real const &q0i,
                      cvm::real const &q1i,
                      cvm::real const &q2i,
                      cvm::real const &q3i)
-    : q0 (q0i), q1 (q1i), q2 (q2i), q3 (q3i)
+    : q0(q0i), q1(q1i), q2(q2i), q3(q3i)
   {}
 
   /// "Constructor" after Euler angles (in radians)
   ///
   /// http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-  inline void set_from_euler_angles (cvm::real const &phi_in,
+  inline void set_from_euler_angles(cvm::real const &phi_in,
                                      cvm::real const &theta_in,
                                      cvm::real const &psi_in)
   {
-    q0 = ( (std::cos (phi_in/2.0)) * (std::cos (theta_in/2.0)) * (std::cos (psi_in/2.0)) +
-           (std::sin (phi_in/2.0)) * (std::sin (theta_in/2.0)) * (std::sin (psi_in/2.0)) );
+    q0 = ( (std::cos(phi_in/2.0)) * (std::cos(theta_in/2.0)) * (std::cos(psi_in/2.0)) +
+           (std::sin(phi_in/2.0)) * (std::sin(theta_in/2.0)) * (std::sin(psi_in/2.0)) );
 
-    q1 = ( (std::sin (phi_in/2.0)) * (std::cos (theta_in/2.0)) * (std::cos (psi_in/2.0)) -
-           (std::cos (phi_in/2.0)) * (std::sin (theta_in/2.0)) * (std::sin (psi_in/2.0)) );
+    q1 = ( (std::sin(phi_in/2.0)) * (std::cos(theta_in/2.0)) * (std::cos(psi_in/2.0)) -
+           (std::cos(phi_in/2.0)) * (std::sin(theta_in/2.0)) * (std::sin(psi_in/2.0)) );
 
-    q2 = ( (std::cos (phi_in/2.0)) * (std::sin (theta_in/2.0)) * (std::cos (psi_in/2.0)) +
-           (std::sin (phi_in/2.0)) * (std::cos (theta_in/2.0)) * (std::sin (psi_in/2.0)) );
+    q2 = ( (std::cos(phi_in/2.0)) * (std::sin(theta_in/2.0)) * (std::cos(psi_in/2.0)) +
+           (std::sin(phi_in/2.0)) * (std::cos(theta_in/2.0)) * (std::sin(psi_in/2.0)) );
 
-    q3 = ( (std::cos (phi_in/2.0)) * (std::cos (theta_in/2.0)) * (std::sin (psi_in/2.0)) -
-           (std::sin (phi_in/2.0)) * (std::sin (theta_in/2.0)) * (std::cos (psi_in/2.0)) );
+    q3 = ( (std::cos(phi_in/2.0)) * (std::cos(theta_in/2.0)) * (std::sin(psi_in/2.0)) -
+           (std::sin(phi_in/2.0)) * (std::sin(theta_in/2.0)) * (std::cos(psi_in/2.0)) );
   }
 
   /// \brief Default constructor
@@ -615,7 +615,7 @@ public:
   }
 
   /// \brief Set all components to a scalar
-  inline void set (cvm::real const &value = 0.0)
+  inline void set(cvm::real const &value = 0.0)
   {
     q0 = q1 = q2 = q3 = value;
   }
@@ -635,7 +635,7 @@ public:
   }
 
   /// Tell the number of characters required to print a quaternion, given that of a real number
-  static inline size_t output_width (size_t const &real_width)
+  static inline size_t output_width(size_t const &real_width)
   {
     return 4*real_width + 13;
   }
@@ -660,7 +660,7 @@ public:
     case 3:
       return this->q3;
     default:
-      cvm::error ("Error: incorrect quaternion component.\n");
+      cvm::error("Error: incorrect quaternion component.\n");
       return q0;
     }
   }
@@ -677,7 +677,7 @@ public:
     case 3:
       return this->q3;
     default:
-      cvm::error ("Error: trying to access a quaternion "
+      cvm::error("Error: trying to access a quaternion "
                  "component which is not between 0 and 3.\n");
       return 0.0;
     }
@@ -692,13 +692,13 @@ public:
   /// Norm of the quaternion
   inline cvm::real norm() const
   {
-    return std::sqrt (this->norm2());
+    return std::sqrt(this->norm2());
   }
 
   /// Return the conjugate quaternion
   inline cvm::quaternion conjugate() const
   {
-    return cvm::quaternion (q0, -q1, -q2, -q3);
+    return cvm::quaternion(q0, -q1, -q2, -q3);
   }
 
   inline void operator *= (cvm::real const &a)
@@ -730,32 +730,32 @@ public:
   }
 
   /// Promote a 3-vector to a quaternion
-  static inline cvm::quaternion promote (cvm::rvector const &v)
+  static inline cvm::quaternion promote(cvm::rvector const &v)
   {
-    return cvm::quaternion (0.0, v.x, v.y, v.z);
+    return cvm::quaternion(0.0, v.x, v.y, v.z);
   }
   /// Return the vector component
   inline cvm::rvector get_vector() const
   {
-    return cvm::rvector (q1, q2, q3);
+    return cvm::rvector(q1, q2, q3);
   }
 
 
   friend inline cvm::quaternion operator + (cvm::quaternion const &h, cvm::quaternion const &q)
   {
-    return cvm::quaternion (h.q0+q.q0, h.q1+q.q1, h.q2+q.q2, h.q3+q.q3);
+    return cvm::quaternion(h.q0+q.q0, h.q1+q.q1, h.q2+q.q2, h.q3+q.q3);
   }
 
   friend inline cvm::quaternion operator - (cvm::quaternion const &h, cvm::quaternion const &q)
   {
-    return cvm::quaternion (h.q0-q.q0, h.q1-q.q1, h.q2-q.q2, h.q3-q.q3);
+    return cvm::quaternion(h.q0-q.q0, h.q1-q.q1, h.q2-q.q2, h.q3-q.q3);
   }
 
   /// \brief Provides the quaternion product.  \b NOTE: for the inner
   /// product use: \code h.inner (q); \endcode
   friend inline cvm::quaternion operator * (cvm::quaternion const &h, cvm::quaternion const &q)
   {
-    return cvm::quaternion (h.q0*q.q0 - h.q1*q.q1 - h.q2*q.q2 - h.q3*q.q3,
+    return cvm::quaternion(h.q0*q.q0 - h.q1*q.q1 - h.q2*q.q2 - h.q3*q.q3,
                             h.q0*q.q1 + h.q1*q.q0 + h.q2*q.q3 - h.q3*q.q2,
                             h.q0*q.q2 + h.q2*q.q0 + h.q3*q.q1 - h.q1*q.q3,
                             h.q0*q.q3 + h.q3*q.q0 + h.q1*q.q2 - h.q2*q.q1);
@@ -764,33 +764,33 @@ public:
   friend inline cvm::quaternion operator * (cvm::real const &c,
                                             cvm::quaternion const &q)
   {
-    return cvm::quaternion (c*q.q0, c*q.q1, c*q.q2, c*q.q3);
+    return cvm::quaternion(c*q.q0, c*q.q1, c*q.q2, c*q.q3);
   }
   friend inline cvm::quaternion operator * (cvm::quaternion const &q,
                                             cvm::real const &c)
   {
-    return cvm::quaternion (q.q0*c, q.q1*c, q.q2*c, q.q3*c);
+    return cvm::quaternion(q.q0*c, q.q1*c, q.q2*c, q.q3*c);
   }
   friend inline cvm::quaternion operator / (cvm::quaternion const &q,
                                             cvm::real const &c)
   {
-    return cvm::quaternion (q.q0/c, q.q1/c, q.q2/c, q.q3/c);
+    return cvm::quaternion(q.q0/c, q.q1/c, q.q2/c, q.q3/c);
   }
 
 
   /// \brief Rotate v through this quaternion (put it in the rotated
   /// reference frame)
-  inline cvm::rvector rotate (cvm::rvector const &v) const
+  inline cvm::rvector rotate(cvm::rvector const &v) const
   {
-    return ((*this) * promote (v) * ((*this).conjugate())).get_vector();
+    return ((*this) * promote(v) * ((*this).conjugate())).get_vector();
   }
 
   /// \brief Rotate Q2 through this quaternion (put it in the rotated
   /// reference frame)
-  inline cvm::quaternion rotate (cvm::quaternion const &Q2) const
+  inline cvm::quaternion rotate(cvm::quaternion const &Q2) const
   {
-    cvm::rvector const vq_rot = this->rotate (Q2.get_vector());
-    return cvm::quaternion (Q2.q0, vq_rot.x, vq_rot.y, vq_rot.z);
+    cvm::rvector const vq_rot = this->rotate(Q2.get_vector());
+    return cvm::quaternion(Q2.q0, vq_rot.x, vq_rot.y, vq_rot.z);
   }
 
   /// Return the 3x3 matrix associated to this quaternion
@@ -817,27 +817,27 @@ public:
 
   /// \brief Multiply the given vector by the derivative of the given
   /// (rotated) position with respect to the quaternion
-  cvm::quaternion position_derivative_inner (cvm::rvector const &pos,
+  cvm::quaternion position_derivative_inner(cvm::rvector const &pos,
                                              cvm::rvector const &vec) const;
 
 
   /// \brief Return the cosine between the orientation frame
   /// associated to this quaternion and another
-  inline cvm::real cosine (cvm::quaternion const &q) const
+  inline cvm::real cosine(cvm::quaternion const &q) const
   {
-    cvm::real const iprod = this->inner (q);
+    cvm::real const iprod = this->inner(q);
     return 2.0*iprod*iprod - 1.0;
   }
 
   /// \brief Square distance from another quaternion on the
   /// 4-dimensional unit sphere: returns the square of the angle along
   /// the shorter of the two geodesics
-  inline cvm::real dist2 (cvm::quaternion const &Q2) const
+  inline cvm::real dist2(cvm::quaternion const &Q2) const
   {
     cvm::real const cos_omega = this->q0*Q2.q0 + this->q1*Q2.q1 +
       this->q2*Q2.q2 + this->q3*Q2.q3;
 
-    cvm::real const omega = std::acos ( (cos_omega > 1.0) ? 1.0 :
+    cvm::real const omega = std::acos( (cos_omega > 1.0) ? 1.0 :
                                      ( (cos_omega < -1.0) ? -1.0 : cos_omega) );
 
     // get the minimum distance: x and -x are the same quaternion
@@ -849,20 +849,20 @@ public:
 
   /// Gradient of the square distance: returns a 4-vector equivalent
   /// to that provided by slerp
-  inline cvm::quaternion dist2_grad (cvm::quaternion const &Q2) const
+  inline cvm::quaternion dist2_grad(cvm::quaternion const &Q2) const
   {
     cvm::real const cos_omega = this->q0*Q2.q0 + this->q1*Q2.q1 + this->q2*Q2.q2 + this->q3*Q2.q3;
-    cvm::real const omega = std::acos ( (cos_omega > 1.0) ? 1.0 :
+    cvm::real const omega = std::acos( (cos_omega > 1.0) ? 1.0 :
                                      ( (cos_omega < -1.0) ? -1.0 : cos_omega) );
-    cvm::real const sin_omega = std::sin (omega);
+    cvm::real const sin_omega = std::sin(omega);
 
-    if (std::fabs (sin_omega) < 1.0E-14) {
+    if (std::fabs(sin_omega) < 1.0E-14) {
       // return a null 4d vector
-      return cvm::quaternion (0.0, 0.0, 0.0, 0.0);
+      return cvm::quaternion(0.0, 0.0, 0.0, 0.0);
     }
 
     cvm::quaternion const
-      grad1 ((-1.0)*sin_omega*Q2.q0 + cos_omega*(this->q0-cos_omega*Q2.q0)/sin_omega,
+      grad1((-1.0)*sin_omega*Q2.q0 + cos_omega*(this->q0-cos_omega*Q2.q0)/sin_omega,
              (-1.0)*sin_omega*Q2.q1 + cos_omega*(this->q1-cos_omega*Q2.q1)/sin_omega,
              (-1.0)*sin_omega*Q2.q2 + cos_omega*(this->q2-cos_omega*Q2.q2)/sin_omega,
              (-1.0)*sin_omega*Q2.q3 + cos_omega*(this->q3-cos_omega*Q2.q3)/sin_omega);
@@ -877,7 +877,7 @@ public:
 
   /// \brief Choose the closest between Q2 and -Q2 and save it back.
   /// Not required for dist2() and dist2_grad()
-  inline void match (cvm::quaternion &Q2) const
+  inline void match(cvm::quaternion &Q2) const
   {
     cvm::real const cos_omega = this->q0*Q2.q0 + this->q1*Q2.q1 +
       this->q2*Q2.q2 + this->q3*Q2.q3;
@@ -886,7 +886,7 @@ public:
 
   /// \brief Inner product (as a 4-d vector) with Q2; requires match()
   /// if the largest overlap is looked for
-  inline cvm::real inner (cvm::quaternion const &Q2) const
+  inline cvm::real inner(cvm::quaternion const &Q2) const
   {
     cvm::real const prod = this->q0*Q2.q0 + this->q1*Q2.q1 +
       this->q2*Q2.q2 + this->q3*Q2.q3;
@@ -924,18 +924,18 @@ public:
   std::vector< cvm::vector1d<cvm::rvector, 4> >    dQ0_1, dQ0_2;
 
   /// Allocate space for the derivatives of the rotation
-  inline void request_group1_gradients (size_t const &n)
+  inline void request_group1_gradients(size_t const &n)
   {
     dS_1.resize  (n, cvm::matrix2d<cvm::rvector, 4, 4>());
-    dL0_1.resize (n, cvm::rvector (0.0, 0.0, 0.0));
-    dQ0_1.resize (n, cvm::vector1d<cvm::rvector, 4>());
+    dL0_1.resize(n, cvm::rvector(0.0, 0.0, 0.0));
+    dQ0_1.resize(n, cvm::vector1d<cvm::rvector, 4>());
   }
 
-  inline void request_group2_gradients (size_t const &n)
+  inline void request_group2_gradients(size_t const &n)
   {
     dS_2.resize  (n, cvm::matrix2d<cvm::rvector, 4, 4>());
-    dL0_2.resize (n, cvm::rvector (0.0, 0.0, 0.0));
-    dQ0_2.resize (n, cvm::vector1d<cvm::rvector, 4>());
+    dL0_2.resize(n, cvm::rvector(0.0, 0.0, 0.0));
+    dQ0_2.resize(n, cvm::vector1d<cvm::rvector, 4>());
   }
 
   /// \brief Calculate the optimal rotation and store the
@@ -948,28 +948,28 @@ public:
   /// Using quaternions to calculate RMSD.
   /// J Comput Chem. 25(15):1849-57 (2004)
   /// DOI: 10.1002/jcc.20110  PubMed: 15376254
-  void calc_optimal_rotation (std::vector<atom_pos> const &pos1,
+  void calc_optimal_rotation(std::vector<atom_pos> const &pos1,
                               std::vector<atom_pos> const &pos2);
 
   /// Default constructor
   inline rotation()
-    : b_debug_gradients (false)
+    : b_debug_gradients(false)
   {}
 
   /// Constructor after a quaternion
-  inline rotation (cvm::quaternion const &qi)
-    : q (qi),
-      b_debug_gradients (false)
+  inline rotation(cvm::quaternion const &qi)
+    : q(qi),
+      b_debug_gradients(false)
   {
   }
 
   /// Constructor after an axis of rotation and an angle (in radians)
-  inline rotation (cvm::real const &angle, cvm::rvector const &axis)
-    : b_debug_gradients (false)
+  inline rotation(cvm::real const &angle, cvm::rvector const &axis)
+    : b_debug_gradients(false)
   {
     cvm::rvector const axis_n = axis.unit();
-    cvm::real const sina = std::sin (angle/2.0);
-    q = cvm::quaternion (std::cos (angle/2.0),
+    cvm::real const sina = std::sin(angle/2.0);
+    q = cvm::quaternion(std::cos(angle/2.0),
                          sina * axis_n.x, sina * axis_n.y, sina * axis_n.z);
   }
 
@@ -978,15 +978,15 @@ public:
   {}
 
   /// Return the rotated vector
-  inline cvm::rvector rotate (cvm::rvector const &v) const
+  inline cvm::rvector rotate(cvm::rvector const &v) const
   {
-    return q.rotate (v);
+    return q.rotate(v);
   }
 
   /// Return the inverse of this rotation
   inline cvm::rotation inverse() const
   {
-    return cvm::rotation (this->q.conjugate());
+    return cvm::rotation(this->q.conjugate());
   }
 
   /// Return the associated 3x3 matrix
@@ -998,10 +998,10 @@ public:
 
   /// \brief Return the spin angle (in degrees) with respect to the
   /// provided axis (which MUST be normalized)
-  inline cvm::real spin_angle (cvm::rvector const &axis) const
+  inline cvm::real spin_angle(cvm::rvector const &axis) const
   {
     cvm::rvector const q_vec = q.get_vector();
-    cvm::real alpha = (180.0/PI) * 2.0 * std::atan2 (axis * q_vec, q.q0);
+    cvm::real alpha = (180.0/PI) * 2.0 * std::atan2(axis * q_vec, q.q0);
     while (alpha >  180.0) alpha -= 360;
     while (alpha < -180.0) alpha += 360;
     return alpha;
@@ -1009,7 +1009,7 @@ public:
 
   /// \brief Return the derivative of the spin angle with respect to
   /// the quaternion
-  inline cvm::quaternion dspin_angle_dq (cvm::rvector const &axis) const
+  inline cvm::quaternion dspin_angle_dq(cvm::rvector const &axis) const
   {
     cvm::rvector const q_vec = q.get_vector();
     cvm::real const iprod = axis * q_vec;
@@ -1021,27 +1021,27 @@ public:
       cvm::real const dspindx = (180.0/PI) * 2.0 * (1.0 / (1.0 + (iprod*iprod)/(q.q0*q.q0)));
 
       return
-        cvm::quaternion ( dspindx * (iprod * (-1.0) / (q.q0*q.q0)),
+        cvm::quaternion( dspindx * (iprod * (-1.0) / (q.q0*q.q0)),
                           dspindx * ((1.0/q.q0) * axis.x),
                           dspindx * ((1.0/q.q0) * axis.y),
                           dspindx * ((1.0/q.q0) * axis.z));
     } else {
       // (1/(1+x^2)) ~ (1/x)^2
       return
-        cvm::quaternion ((180.0/PI) * 2.0 * ((-1.0)/iprod), 0.0, 0.0, 0.0);
+        cvm::quaternion((180.0/PI) * 2.0 * ((-1.0)/iprod), 0.0, 0.0, 0.0);
       // XX TODO: What if iprod == 0? XX
     }
   }
 
   /// \brief Return the projection of the orientation vector onto a
   /// predefined axis
-  inline cvm::real cos_theta (cvm::rvector const &axis) const
+  inline cvm::real cos_theta(cvm::rvector const &axis) const
   {
     cvm::rvector const q_vec = q.get_vector();
     cvm::real const alpha =
-      (180.0/PI) * 2.0 * std::atan2 (axis * q_vec, q.q0);
+      (180.0/PI) * 2.0 * std::atan2(axis * q_vec, q.q0);
 
-    cvm::real const cos_spin_2 = std::cos (alpha * (PI/180.0) * 0.5);
+    cvm::real const cos_spin_2 = std::cos(alpha * (PI/180.0) * 0.5);
     cvm::real const cos_theta_2 = ( (cos_spin_2 != 0.0) ?
                                     (q.q0 / cos_spin_2) :
                                     (0.0) );
@@ -1050,12 +1050,12 @@ public:
   }
 
    /// Return the derivative of the tilt wrt the quaternion
-  inline cvm::quaternion dcos_theta_dq (cvm::rvector const &axis) const
+  inline cvm::quaternion dcos_theta_dq(cvm::rvector const &axis) const
   {
     cvm::rvector const q_vec = q.get_vector();
     cvm::real const iprod = axis * q_vec;
 
-    cvm::real const cos_spin_2 = std::cos (std::atan2 (iprod, q.q0));
+    cvm::real const cos_spin_2 = std::cos(std::atan2(iprod, q.q0));
 
     if (q.q0 != 0.0)  {
 
@@ -1067,7 +1067,7 @@ public:
         (4.0 * q.q0 / (cos_spin_2*cos_spin_2) *
          (iprod/q.q0) / (1.0 + (iprod*iprod)/(q.q0*q.q0)));
 
-      return cvm::quaternion (d_cos_theta_dq0,
+      return cvm::quaternion(d_cos_theta_dq0,
                               d_cos_theta_dqn * axis.x,
                               d_cos_theta_dqn * axis.y,
                               d_cos_theta_dqn * axis.z);
@@ -1076,7 +1076,7 @@ public:
       cvm::real const d_cos_theta_dqn =
         (4.0 / (cos_spin_2*cos_spin_2 * iprod));
 
-      return cvm::quaternion (0.0,
+      return cvm::quaternion(0.0,
                               d_cos_theta_dqn * axis.x,
                               d_cos_theta_dqn * axis.y,
                               d_cos_theta_dqn * axis.z);
@@ -1094,12 +1094,12 @@ protected:
   cvm::quaternion q_old;
 
   /// Build the overlap matrix S (used by calc_optimal_rotation())
-  void build_matrix (std::vector<cvm::atom_pos> const &pos1,
+  void build_matrix(std::vector<cvm::atom_pos> const &pos1,
                      std::vector<cvm::atom_pos> const &pos2,
                      cvm::matrix2d<real, 4, 4>        &S);
 
   /// Diagonalize the overlap matrix S (used by calc_optimal_rotation())
-  void diagonalize_matrix (cvm::matrix2d<cvm::real, 4, 4> &S,
+  void diagonalize_matrix(cvm::matrix2d<cvm::real, 4, 4> &S,
                            cvm::real                       S_eigval[4],
                            cvm::matrix2d<cvm::real, 4, 4> &S_eigvec);
 };

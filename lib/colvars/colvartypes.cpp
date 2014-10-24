@@ -7,7 +7,7 @@
 std::string cvm::rvector::to_simple_string() const
 {
   std::ostringstream os;
-  os.setf (std::ios::scientific, std::ios::floatfield);
+  os.setf(std::ios::scientific, std::ios::floatfield);
   os.precision(cvm::cv_prec);
   os << x << " " << y << " " << z;
   return os.str();
@@ -29,13 +29,13 @@ std::ostream & operator << (std::ostream &os, colvarmodule::rvector const &v)
   std::streamsize const w = os.width();
   std::streamsize const p = os.precision();
 
-  os.width (2);
+  os.width(2);
   os << "( ";
-  os.width (w); os.precision (p);
+  os.width(w); os.precision(p);
   os << v.x << " , ";
-  os.width (w); os.precision (p);
+  os.width(w); os.precision(p);
   os << v.y << " , ";
-  os.width (w); os.precision (p);
+  os.width(w); os.precision(p);
   os << v.z << " )";
   return os;
 }
@@ -50,8 +50,8 @@ std::istream & operator >> (std::istream &is, colvarmodule::rvector &v)
        !(is >> v.y) || !(is >> sep)  || !(sep == ',') ||
        !(is >> v.z) || !(is >> sep)  || !(sep == ')') ) {
     is.clear();
-    is.seekg (start_pos, std::ios::beg);
-    is.setstate (std::ios::failbit);
+    is.seekg(start_pos, std::ios::beg);
+    is.setstate(std::ios::failbit);
     return is;
   }
   return is;
@@ -60,7 +60,7 @@ std::istream & operator >> (std::istream &is, colvarmodule::rvector &v)
 std::string cvm::quaternion::to_simple_string() const
 {
   std::ostringstream os;
-  os.setf (std::ios::scientific, std::ios::floatfield);
+  os.setf(std::ios::scientific, std::ios::floatfield);
   os.precision(cvm::cv_prec);
   os << q0 << " " << q1 << " " << q2 << " " << q3;
   return os.str();
@@ -83,15 +83,15 @@ std::ostream & operator << (std::ostream &os, colvarmodule::quaternion const &q)
   std::streamsize const w = os.width();
   std::streamsize const p = os.precision();
 
-  os.width (2);
+  os.width(2);
   os << "( ";
-  os.width (w); os.precision (p);
+  os.width(w); os.precision(p);
   os << q.q0 << " , ";
-  os.width (w); os.precision (p);
+  os.width(w); os.precision(p);
   os << q.q1 << " , ";
-  os.width (w); os.precision (p);
+  os.width(w); os.precision(p);
   os << q.q2 << " , ";
-  os.width (w); os.precision (p);
+  os.width(w); os.precision(p);
   os << q.q3 << " )";
   return os;
 }
@@ -101,10 +101,10 @@ std::istream & operator >> (std::istream &is, colvarmodule::quaternion &q)
 {
   size_t const start_pos = is.tellg();
 
-  std::string euler ("");
+  std::string euler("");
 
-  if ( (is >> euler) && (colvarparse::to_lower_cppstr (euler) ==
-                         std::string ("euler")) ) {
+  if ( (is >> euler) && (colvarparse::to_lower_cppstr(euler) ==
+                         std::string("euler")) ) {
 
     // parse the Euler angles
 
@@ -115,18 +115,18 @@ std::istream & operator >> (std::istream &is, colvarmodule::quaternion &q)
          !(is >> theta) || !(is >> sep)  || !(sep == ',') ||
          !(is >> psi)   || !(is >> sep)  || !(sep == ')') ) {
       is.clear();
-      is.seekg (start_pos, std::ios::beg);
-      is.setstate (std::ios::failbit);
+      is.seekg(start_pos, std::ios::beg);
+      is.setstate(std::ios::failbit);
       return is;
     }
 
-    q = colvarmodule::quaternion (phi, theta, psi);
+    q = colvarmodule::quaternion(phi, theta, psi);
 
   } else {
 
     // parse the quaternion components
 
-    is.seekg (start_pos, std::ios::beg);
+    is.seekg(start_pos, std::ios::beg);
     char sep;
     if ( !(is >> sep)  || !(sep == '(') ||
          !(is >> q.q0) || !(is >> sep)  || !(sep == ',') ||
@@ -134,8 +134,8 @@ std::istream & operator >> (std::istream &is, colvarmodule::quaternion &q)
          !(is >> q.q2) || !(is >> sep)  || !(sep == ',') ||
          !(is >> q.q3) || !(is >> sep)  || !(sep == ')') ) {
       is.clear();
-      is.seekg (start_pos, std::ios::beg);
-      is.setstate (std::ios::failbit);
+      is.seekg(start_pos, std::ios::beg);
+      is.setstate(std::ios::failbit);
       return is;
     }
   }
@@ -145,10 +145,10 @@ std::istream & operator >> (std::istream &is, colvarmodule::quaternion &q)
 
 
 cvm::quaternion
-cvm::quaternion::position_derivative_inner (cvm::rvector const &pos,
+cvm::quaternion::position_derivative_inner(cvm::rvector const &pos,
                                             cvm::rvector const &vec) const
 {
-  cvm::quaternion result (0.0, 0.0, 0.0, 0.0);
+  cvm::quaternion result(0.0, 0.0, 0.0, 0.0);
 
 
   result.q0 =   2.0 * pos.x * q0 * vec.x
@@ -219,7 +219,7 @@ cvm::quaternion::position_derivative_inner (cvm::rvector const &pos,
 // Seok C, Dill KA.  Using quaternions to calculate RMSD.  J Comput
 // Chem. 25(15):1849-57 (2004) DOI: 10.1002/jcc.20110 PubMed: 15376254
 
-void colvarmodule::rotation::build_matrix (std::vector<cvm::atom_pos> const &pos1,
+void colvarmodule::rotation::build_matrix(std::vector<cvm::atom_pos> const &pos1,
                                            std::vector<cvm::atom_pos> const &pos2,
                                            matrix2d<cvm::real, 4, 4>        &S)
 {
@@ -262,8 +262,8 @@ void colvarmodule::rotation::build_matrix (std::vector<cvm::atom_pos> const &pos
   //     for (size_t i = 0; i < 4; i++) {
   //       std::string line ("");
   //       for (size_t j = 0; j < 4; j++) {
-  //         line += std::string (" S["+cvm::to_str (i)+
-  //                              "]["+cvm::to_str (j)+"] ="+cvm::to_str (S[i][j]));
+  //         line += std::string(" S["+cvm::to_str (i)+
+  //                              "]["+cvm::to_str(j)+"] ="+cvm::to_str (S[i][j]));
   //       }
   //       cvm::log (line+"\n");
   //     }
@@ -271,23 +271,23 @@ void colvarmodule::rotation::build_matrix (std::vector<cvm::atom_pos> const &pos
 }
 
 
-void colvarmodule::rotation::diagonalize_matrix (matrix2d<cvm::real, 4, 4> &S,
+void colvarmodule::rotation::diagonalize_matrix(matrix2d<cvm::real, 4, 4> &S,
                                                  cvm::real                  S_eigval[4],
                                                  matrix2d<cvm::real, 4, 4> &S_eigvec)
 {
   // diagonalize
   int jac_nrot = 0;
-  jacobi (S, S_eigval, S_eigvec, &jac_nrot);
-  eigsrt (S_eigval, S_eigvec);
+  jacobi(S, S_eigval, S_eigvec, &jac_nrot);
+  eigsrt(S_eigval, S_eigvec);
   // jacobi saves eigenvectors by columns
-  transpose (S_eigvec);
+  transpose(S_eigvec);
 
   // normalize eigenvectors
   for (size_t ie = 0; ie < 4; ie++) {
     cvm::real norm2 = 0.0;
     size_t i;
-    for (i = 0; i < 4; i++) norm2 += std::pow (S_eigvec[ie][i], int (2));
-    cvm::real const norm = std::sqrt (norm2);
+    for (i = 0; i < 4; i++) norm2 += std::pow(S_eigvec[ie][i], int(2));
+    cvm::real const norm = std::sqrt(norm2);
     for (i = 0; i < 4; i++) S_eigvec[ie][i] /= norm;
   }
 }
@@ -320,16 +320,16 @@ void colvarmodule::rotation::calc_optimal_rotation
 //               " and "+cvm::to_str (cog2, cvm::cv_width, cvm::cv_prec)+".\n");
 //   }
 
-  build_matrix (pos1, pos2, S);
+  build_matrix(pos1, pos2, S);
   S_backup = S;
 
   if (cvm::debug()) {
     if (b_debug_gradients) {
-      cvm::log ("S     = "+cvm::to_str (cvm::to_str (S_backup), cvm::cv_width, cvm::cv_prec)+"\n");
+      cvm::log("S     = "+cvm::to_str(cvm::to_str(S_backup), cvm::cv_width, cvm::cv_prec)+"\n");
     }
   }
 
-  diagonalize_matrix (S, S_eigval, S_eigvec);
+  diagonalize_matrix(S, S_eigval, S_eigvec);
 
   // eigenvalues and eigenvectors
   cvm::real const &L0 = S_eigval[0];
@@ -342,34 +342,34 @@ void colvarmodule::rotation::calc_optimal_rotation
   cvm::real const *Q3 = S_eigvec[3];
 
   lambda = L0;
-  q = cvm::quaternion (Q0);
+  q = cvm::quaternion(Q0);
 
   if (q_old.norm2() > 0.0) {
-    q.match (q_old);
-    if (q_old.inner (q) < (1.0 - crossing_threshold)) {
-      cvm::log ("Warning: one molecular orientation has changed by more than "+
-                cvm::to_str (crossing_threshold)+": discontinuous rotation ?\n");
+    q.match(q_old);
+    if (q_old.inner(q) < (1.0 - crossing_threshold)) {
+      cvm::log("Warning: one molecular orientation has changed by more than "+
+                cvm::to_str(crossing_threshold)+": discontinuous rotation ?\n");
     }
   }
   q_old = q;
 
   if (cvm::debug()) {
     if (b_debug_gradients) {
-      cvm::log ("L0 = "+cvm::to_str (L0, cvm::cv_width, cvm::cv_prec)+
-                ", Q0 = "+cvm::to_str (cvm::quaternion (Q0), cvm::cv_width, cvm::cv_prec)+
-                ", Q0*Q0 = "+cvm::to_str (cvm::quaternion (Q0).inner (cvm::quaternion (Q0)), cvm::cv_width, cvm::cv_prec)+
+      cvm::log("L0 = "+cvm::to_str(L0, cvm::cv_width, cvm::cv_prec)+
+                ", Q0 = "+cvm::to_str(cvm::quaternion(Q0), cvm::cv_width, cvm::cv_prec)+
+                ", Q0*Q0 = "+cvm::to_str(cvm::quaternion(Q0).inner(cvm::quaternion(Q0)), cvm::cv_width, cvm::cv_prec)+
                 "\n");
-      cvm::log ("L1 = "+cvm::to_str (L1, cvm::cv_width, cvm::cv_prec)+
-                ", Q1 = "+cvm::to_str (cvm::quaternion (Q1), cvm::cv_width, cvm::cv_prec)+
-                ", Q0*Q1 = "+cvm::to_str (cvm::quaternion (Q0).inner (cvm::quaternion (Q1)), cvm::cv_width, cvm::cv_prec)+
+      cvm::log("L1 = "+cvm::to_str(L1, cvm::cv_width, cvm::cv_prec)+
+                ", Q1 = "+cvm::to_str(cvm::quaternion(Q1), cvm::cv_width, cvm::cv_prec)+
+                ", Q0*Q1 = "+cvm::to_str(cvm::quaternion(Q0).inner(cvm::quaternion(Q1)), cvm::cv_width, cvm::cv_prec)+
                 "\n");
-      cvm::log ("L2 = "+cvm::to_str (L2, cvm::cv_width, cvm::cv_prec)+
-                ", Q2 = "+cvm::to_str (cvm::quaternion (Q2), cvm::cv_width, cvm::cv_prec)+
-                ", Q0*Q2 = "+cvm::to_str (cvm::quaternion (Q0).inner (cvm::quaternion (Q2)), cvm::cv_width, cvm::cv_prec)+
+      cvm::log("L2 = "+cvm::to_str(L2, cvm::cv_width, cvm::cv_prec)+
+                ", Q2 = "+cvm::to_str(cvm::quaternion(Q2), cvm::cv_width, cvm::cv_prec)+
+                ", Q0*Q2 = "+cvm::to_str(cvm::quaternion(Q0).inner(cvm::quaternion(Q2)), cvm::cv_width, cvm::cv_prec)+
                 "\n");
-      cvm::log ("L3 = "+cvm::to_str (L3, cvm::cv_width, cvm::cv_prec)+
-                ", Q3 = "+cvm::to_str (cvm::quaternion (Q3), cvm::cv_width, cvm::cv_prec)+
-                ", Q0*Q3 = "+cvm::to_str (cvm::quaternion (Q0).inner (cvm::quaternion (Q3)), cvm::cv_width, cvm::cv_prec)+
+      cvm::log("L3 = "+cvm::to_str(L3, cvm::cv_width, cvm::cv_prec)+
+                ", Q3 = "+cvm::to_str(cvm::quaternion(Q3), cvm::cv_width, cvm::cv_prec)+
+                ", Q0*Q3 = "+cvm::to_str(cvm::quaternion(Q0).inner(cvm::quaternion(Q3)), cvm::cv_width, cvm::cv_prec)+
                 "\n");
     }
   }
@@ -502,24 +502,24 @@ void colvarmodule::rotation::calc_optimal_rotation
             }
           }
 
-//           cvm::log ("S_new = "+cvm::to_str (cvm::to_str (S_new), cvm::cv_width, cvm::cv_prec)+"\n");
+//           cvm::log("S_new = "+cvm::to_str(cvm::to_str (S_new), cvm::cv_width, cvm::cv_prec)+"\n");
 
-          diagonalize_matrix (S_new, S_new_eigval, S_new_eigvec);
+          diagonalize_matrix(S_new, S_new_eigval, S_new_eigvec);
 
           cvm::real const &L0_new = S_new_eigval[0];
           cvm::real const *Q0_new = S_new_eigvec[0];
 
           cvm::real const DL0 = (dl0_2[comp]) * colvarmodule::debug_gradients_step_size;
-          cvm::quaternion const q0 (Q0);
-          cvm::quaternion const DQ0 (dq0_2[0][comp] * colvarmodule::debug_gradients_step_size,
+          cvm::quaternion const q0(Q0);
+          cvm::quaternion const DQ0(dq0_2[0][comp] * colvarmodule::debug_gradients_step_size,
                                      dq0_2[1][comp] * colvarmodule::debug_gradients_step_size,
                                      dq0_2[2][comp] * colvarmodule::debug_gradients_step_size,
                                      dq0_2[3][comp] * colvarmodule::debug_gradients_step_size);
 
-          cvm::log (  "|(l_0+dl_0) - l_0^new|/l_0 = "+
-                      cvm::to_str (std::fabs (L0+DL0 - L0_new)/L0, cvm::cv_width, cvm::cv_prec)+
+          cvm::log(  "|(l_0+dl_0) - l_0^new|/l_0 = "+
+                      cvm::to_str(std::fabs(L0+DL0 - L0_new)/L0, cvm::cv_width, cvm::cv_prec)+
                       ", |(q_0+dq_0) - q_0^new| = "+
-                      cvm::to_str ((Q0+DQ0 - Q0_new).norm(), cvm::cv_width, cvm::cv_prec)+
+                      cvm::to_str((Q0+DQ0 - Q0_new).norm(), cvm::cv_width, cvm::cv_prec)+
                       "\n");
         }
       }
@@ -542,8 +542,8 @@ void jacobi(cvm::real **a, cvm::real d[], cvm::real **v, int *nrot)
   int j,iq,ip,i;
   cvm::real tresh,theta,tau,t,sm,s,h,g,c;
 
-  std::vector<cvm::real> b (n, 0.0);
-  std::vector<cvm::real> z (n, 0.0);
+  std::vector<cvm::real> b(n, 0.0);
+  std::vector<cvm::real> z(n, 0.0);
 
   for (ip=0;ip<n;ip++) {
     for (iq=0;iq<n;iq++) v[ip][iq]=0.0;
@@ -613,7 +613,7 @@ void jacobi(cvm::real **a, cvm::real d[], cvm::real **v, int *nrot)
       z[ip]=0.0;
     }
   }
-  cvm::error ("Too many iterations in routine jacobi.\n");
+  cvm::error("Too many iterations in routine jacobi.\n");
 }
 
 void eigsrt(cvm::real d[], cvm::real **v)

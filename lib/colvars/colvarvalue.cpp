@@ -33,7 +33,7 @@ size_t const      colvarvalue::dof_num[  colvarvalue::type_all+1] =
 
 void colvarvalue::undef_op() const
 {
-  cvm::error ("Error: Undefined operation on a colvar of type \""+
+  cvm::error("Error: Undefined operation on a colvar of type \""+
               colvarvalue::type_desc[this->value_type]+"\".\n");
 }
 
@@ -81,7 +81,7 @@ void colvarvalue::inner_opt(colvarvalue                        const &x,
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
     while (xvi != xv_end) {
-      *(ii++) += ((xvi++)->quaternion_value).cosine (x.quaternion_value);
+      *(ii++) += ((xvi++)->quaternion_value).cosine(x.quaternion_value);
     }
     break;
   default:
@@ -116,7 +116,7 @@ void colvarvalue::inner_opt(colvarvalue const                      &x,
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
     while (xvi != xv_end) {
-      *(ii++) += ((xvi++)->quaternion_value).cosine (x.quaternion_value);
+      *(ii++) += ((xvi++)->quaternion_value).cosine(x.quaternion_value);
     }
     break;
   default:
@@ -161,7 +161,7 @@ void colvarvalue::p2leg_opt(colvarvalue const                        &x,
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
     while (xvi != xv_end) {
-      cvm::real const cosine = (xvi++)->quaternion_value.cosine (x.quaternion_value);
+      cvm::real const cosine = (xvi++)->quaternion_value.cosine(x.quaternion_value);
       *(ii++) += 1.5*cosine*cosine - 0.5;
     }
     break;
@@ -205,7 +205,7 @@ void colvarvalue::p2leg_opt(colvarvalue const                        &x,
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
     while (xvi != xv_end) {
-      cvm::real const cosine = (xvi++)->quaternion_value.cosine (x.quaternion_value);
+      cvm::real const cosine = (xvi++)->quaternion_value.cosine(x.quaternion_value);
       *(ii++) += 1.5*cosine*cosine - 0.5;
     }
     break;

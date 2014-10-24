@@ -161,7 +161,7 @@ public:
   /// Array of named (reusable) collective variable components
   static std::vector<cvc *>     cvcs;
   /// Named cvcs register themselves at initialization time
-  inline void register_cvc (cvc *p) {
+  inline void register_cvc(cvc *p) {
     cvcs.push_back(p);
   }
   */
@@ -190,7 +190,7 @@ public:
 
   /// \brief Constructor \param config_name Configuration file name
   /// \param restart_name (optional) Restart file name
-  colvarmodule (colvarproxy *proxy);
+  colvarmodule(colvarproxy *proxy);
 
   /// Destructor
   ~colvarmodule();
@@ -199,26 +199,26 @@ public:
   int reset();
 
   /// Open a config file, load its contents, and pass it to config_string()
-  int config_file (char const *config_file_name);
+  int config_file(char const *config_file_name);
 
   /// \brief Parse a config string assuming it is a complete configuration
   /// (i.e. calling all parse functions)
-  int config_string (std::string const &conf);
+  int config_string(std::string const &conf);
 
   /// \brief Parse a "clean" config string (no comments)
-  int config (std::string &conf);
+  int config(std::string &conf);
 
 
   // Parse functions (setup internal data based on a string)
 
   /// Parse the few module's global parameters
-  int parse_global_params (std::string const &conf);
+  int parse_global_params(std::string const &conf);
 
   /// Parse and initialize collective variables
-  int parse_colvars (std::string const &conf);
+  int parse_colvars(std::string const &conf);
 
   /// Parse and initialize collective variable biases
-  int parse_biases (std::string const &conf);
+  int parse_biases(std::string const &conf);
 
   /// Test error condition and keyword parsing
   /// on error, delete new bias
@@ -239,23 +239,23 @@ public:
   int setup_output();
 
   /// Read the input restart file
-  std::istream & read_restart (std::istream &is);
+  std::istream & read_restart(std::istream &is);
   /// Write the output restart file
-  std::ostream & write_restart (std::ostream &os);
+  std::ostream & write_restart(std::ostream &os);
 
   /// Open a trajectory file if requested (and leave it open)
-  int open_traj_file (std::string const &file_name);
+  int open_traj_file(std::string const &file_name);
   /// Close it
   int close_traj_file();
   /// Write in the trajectory file
-  std::ostream & write_traj (std::ostream &os);
+  std::ostream & write_traj(std::ostream &os);
   /// Write explanatory labels in the trajectory file
-  std::ostream & write_traj_label (std::ostream &os);
+  std::ostream & write_traj_label(std::ostream &os);
 
   /// Write all FINAL output files
   int write_output_files();
   /// Backup a file before writing it
-  static int backup_file (char const *filename);
+  static int backup_file(char const *filename);
 
   /// Look up a bias by name; returns NULL if not found
   static colvarbias * bias_by_name(std::string const &name);
@@ -265,14 +265,14 @@ public:
 
   /// Load new configuration for the given bias -
   /// currently works for harmonic (force constant and/or centers)
-  int change_configuration (std::string const &bias_name, std::string const &conf);
+  int change_configuration(std::string const &bias_name, std::string const &conf);
 
   /// Read a colvar value
   std::string read_colvar(std::string const &name);
 
   /// Calculate change in energy from using alt. config. for the given bias -
   /// currently works for harmonic (force constant and/or centers)
-  real energy_difference (std::string const &bias_name, std::string const &conf);
+  real energy_difference(std::string const &bias_name, std::string const &conf);
 
   /// Give the total number of bins for a given bias.
   int bias_bin_num(std::string const &bias_name);
@@ -290,29 +290,29 @@ public:
   int analyze();
   /// \brief Read a collective variable trajectory (post-processing
   /// only, not called at runtime)
-  int read_traj (char const *traj_filename,
+  int read_traj(char const *traj_filename,
                   size_t      traj_read_begin,
                   size_t      traj_read_end);
 
   /// Quick conversion of an object to a string
-  template<typename T> static std::string to_str (T const &x,
+  template<typename T> static std::string to_str(T const &x,
                                                   size_t const &width = 0,
                                                   size_t const &prec = 0);
   /// Quick conversion of a vector of objects to a string
-  template<typename T> static std::string to_str (std::vector<T> const &x,
+  template<typename T> static std::string to_str(std::vector<T> const &x,
                                                   size_t const &width = 0,
                                                   size_t const &prec = 0);
 
   /// Reduce the number of characters in a string
-  static inline std::string wrap_string (std::string const &s,
+  static inline std::string wrap_string(std::string const &s,
                                          size_t const &nchars)
   {
     if (!s.size())
-      return std::string (nchars, ' ');
+      return std::string(nchars, ' ');
     else
-      return ( (s.size() <= size_t (nchars)) ?
-               (s+std::string (nchars-s.size(), ' ')) :
-               (std::string (s, 0, nchars)) );
+      return ( (s.size() <= size_t(nchars)) ?
+               (s+std::string(nchars-s.size(), ' ')) :
+               (std::string(s, 0, nchars)) );
   }
 
   /// Number of characters to represent a time step
@@ -348,16 +348,16 @@ public:
   static void request_system_force();
 
   /// Print a message to the main log
-  static void log (std::string const &message);
+  static void log(std::string const &message);
 
   /// Print a message to the main log and exit with error code
-  static void fatal_error (std::string const &message);
+  static void fatal_error(std::string const &message);
 
   /// Print a message to the main log and set global error code
-  static void error (std::string const &message, int code = GENERAL_ERROR);
+  static void error(std::string const &message, int code = GENERAL_ERROR);
 
   /// Print a message to the main log and exit normally
-  static void exit (std::string const &message);
+  static void exit(std::string const &message);
 
   // Replica exchange commands.
   static bool replica_enabled();
@@ -369,7 +369,7 @@ public:
 
   /// \brief Get the distance between two atomic positions with pbcs handled
   /// correctly
-  static rvector position_distance (atom_pos const &pos1,
+  static rvector position_distance(atom_pos const &pos1,
                                     atom_pos const &pos2);
 
 
@@ -379,20 +379,20 @@ public:
   /// Note: in the case of periodic boundary conditions, this provides
   /// an analytical square distance (while taking the square of
   /// position_distance() would produce leads to a cusp)
-  static real position_dist2 (atom_pos const &pos1,
+  static real position_dist2(atom_pos const &pos1,
                               atom_pos const &pos2);
 
   /// \brief Get the closest periodic image to a reference position
   /// \param pos The position to look for the closest periodic image
   /// \param ref_pos (optional) The reference position
-  static void select_closest_image (atom_pos &pos,
+  static void select_closest_image(atom_pos &pos,
                                     atom_pos const &ref_pos);
 
   /// \brief Perform select_closest_image() on a set of atomic positions
   ///
   /// After that, distance vectors can then be calculated directly,
   /// without using position_distance()
-  static void select_closest_images (std::vector<atom_pos> &pos,
+  static void select_closest_images(std::vector<atom_pos> &pos,
                                      atom_pos const &ref_pos);
 
 
@@ -403,21 +403,21 @@ public:
   static std::list<std::vector<int> > index_groups;
 
   /// \brief Read a Gromacs .ndx file
-  static int read_index_file (char const *filename);
+  static int read_index_file(char const *filename);
 
 
   /// \brief Create atoms from a file \param filename name of the file
   /// (usually a PDB) \param atoms array of the atoms to be allocated
   /// \param pdb_field (optiona) if "filename" is a PDB file, use this
   /// field to determine which are the atoms to be set
-  static int load_atoms (char const *filename,
+  static int load_atoms(char const *filename,
                           std::vector<atom> &atoms,
                           std::string const &pdb_field,
                           double const pdb_field_value = 0.0);
 
   /// \brief Load the coordinates for a group of atoms from a file
   /// (PDB or XYZ)
-  static int load_coords (char const *filename,
+  static int load_coords(char const *filename,
                            std::vector<atom_pos> &pos,
                            const std::vector<int> &indices,
                            std::string const &pdb_field,
@@ -425,7 +425,7 @@ public:
 
   /// \brief Load the coordinates for a group of atoms from an
   /// XYZ file
-  static int load_coords_xyz (char const *filename,
+  static int load_coords_xyz(char const *filename,
                               std::vector<atom_pos> &pos,
                               const std::vector<int> &indices);
 
@@ -441,7 +441,7 @@ public:
   std::string   restart_out_name;
 
   /// Pseudo-random number with Gaussian distribution
-  static real rand_gaussian (void);
+  static real rand_gaussian(void);
 protected:
 
   /// Configuration file
@@ -481,7 +481,7 @@ public:
   /// Decrease the depth (number of indentations in the output)
   static void decrease_depth();
 
-  static inline const bool scripted_forces () { return use_scripted_forces; }
+  static inline bool scripted_forces() { return use_scripted_forces; }
 };
 
 
@@ -496,35 +496,35 @@ std::ostream & operator << (std::ostream &os, cvm::rvector const &v);
 std::istream & operator >> (std::istream &is, cvm::rvector &v);
 
 
-template<typename T> std::string cvm::to_str (T const &x,
+template<typename T> std::string cvm::to_str(T const &x,
                                               size_t const &width,
                                               size_t const &prec) {
   std::ostringstream os;
-  if (width) os.width (width);
+  if (width) os.width(width);
   if (prec) {
-    os.setf (std::ios::scientific, std::ios::floatfield);
-    os.precision (prec);
+    os.setf(std::ios::scientific, std::ios::floatfield);
+    os.precision(prec);
   }
   os << x;
   return os.str();
 }
 
-template<typename T> std::string cvm::to_str (std::vector<T> const &x,
+template<typename T> std::string cvm::to_str(std::vector<T> const &x,
                                               size_t const &width,
                                               size_t const &prec) {
-  if (!x.size()) return std::string ("");
+  if (!x.size()) return std::string("");
   std::ostringstream os;
   if (prec) {
-    os.setf (std::ios::scientific, std::ios::floatfield);
+    os.setf(std::ios::scientific, std::ios::floatfield);
   }
   os << "{ ";
-  if (width) os.width (width);
-  if (prec) os.precision (prec);
+  if (width) os.width(width);
+  if (prec) os.precision(prec);
   os << x[0];
   for (size_t i = 1; i < x.size(); i++) {
     os << ", ";
-    if (width) os.width (width);
-    if (prec) os.precision (prec);
+    if (width) os.width(width);
+    if (prec) os.precision(prec);
     os << x[i];
   }
   os << " }";
@@ -578,34 +578,34 @@ inline int cvm::replica_comm_send(char* msg_data, int msg_len, int dest_rep) {
 
 inline void cvm::request_system_force()
 {
-  proxy->request_system_force (true);
+  proxy->request_system_force(true);
 }
 
-inline void cvm::select_closest_image (atom_pos &pos,
+inline void cvm::select_closest_image(atom_pos &pos,
                                        atom_pos const &ref_pos)
 {
-  proxy->select_closest_image (pos, ref_pos);
+  proxy->select_closest_image(pos, ref_pos);
 }
 
-inline void cvm::select_closest_images (std::vector<atom_pos> &pos,
+inline void cvm::select_closest_images(std::vector<atom_pos> &pos,
                                         atom_pos const &ref_pos)
 {
-  proxy->select_closest_images (pos, ref_pos);
+  proxy->select_closest_images(pos, ref_pos);
 }
 
-inline cvm::rvector cvm::position_distance (atom_pos const &pos1,
+inline cvm::rvector cvm::position_distance(atom_pos const &pos1,
                                             atom_pos const &pos2)
 {
-  return proxy->position_distance (pos1, pos2);
+  return proxy->position_distance(pos1, pos2);
 }
 
-inline cvm::real cvm::position_dist2 (cvm::atom_pos const &pos1,
+inline cvm::real cvm::position_dist2(cvm::atom_pos const &pos1,
                                       cvm::atom_pos const &pos2)
 {
-  return proxy->position_dist2 (pos1, pos2);
+  return proxy->position_dist2(pos1, pos2);
 }
 
-inline cvm::real cvm::rand_gaussian (void)
+inline cvm::real cvm::rand_gaussian(void)
 {
   return proxy->rand_gaussian();
 }

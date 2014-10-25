@@ -104,7 +104,7 @@ void colvarbias::communicate_forces()
     if (cvm::debug()) {
       cvm::log("Communicating a force to colvar \""+
                 colvars[i]->name+"\", of type \""+
-                colvarvalue::type_desc[colvars[i]->type()]+"\".\n");
+                colvarvalue::type_desc(colvars[i]->type())+"\".\n");
     }
     colvars[i]->add_bias_force(colvar_forces[i]);
   }

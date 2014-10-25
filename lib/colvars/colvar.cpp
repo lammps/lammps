@@ -199,9 +199,9 @@ colvar::colvar(std::string const &conf)
   if (!tasks[task_scripted]) {
     colvarvalue::Type const value_type = (cvcs[0])->type();
     if (cvm::debug())
-      cvm::log("This collective variable is a "+
-                colvarvalue::type_desc[value_type]+", corresponding to "+
-                cvm::to_str(colvarvalue::dof_num[value_type])+
+      cvm::log ("This collective variable is a "+
+                colvarvalue::type_desc(value_type)+", corresponding to "+
+                cvm::to_str (colvarvalue::num_df(value_type))+
                 " internal degrees of freedom.\n");
     x.type(value_type);
     x_reported.type(value_type);
@@ -285,13 +285,13 @@ colvar::colvar(std::string const &conf)
     // components may have different types only for scripted functions
     if (!tasks[task_scripted] && (cvcs[i])->type() != (cvcs[0])->type() ) {
       cvm::error("ERROR: you are definining this collective variable "
-                        "by using components of different types, \""+
-                        colvarvalue::type_desc[(cvcs[0])->type()]+
-                        "\" and \""+
-                        colvarvalue::type_desc[(cvcs[i])->type()]+
-                        "\". "
-                        "You must use the same type in order to "
-                        " sum them together.\n", INPUT_ERROR);
+                 "by using components of different types, \""+
+                 colvarvalue::type_desc((cvcs[0])->type())+
+                 "\" and \""+
+                 colvarvalue::type_desc((cvcs[i])->type())+
+                 "\". "
+                 "You must use the same type in order to "
+                 " sum them together.\n", INPUT_ERROR);
       return;
     }
   }

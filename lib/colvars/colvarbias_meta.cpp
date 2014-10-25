@@ -736,7 +736,6 @@ void colvarbias_meta::calc_hills_force(size_t const &i,
     break;
 
   case colvarvalue::type_notset:
-  case colvarvalue::type_all:
     break;
   }
 }
@@ -1732,3 +1731,5 @@ std::ostream & operator << (std::ostream &os, colvarbias_meta::hill const &h)
 
   return os;
 }
+
+

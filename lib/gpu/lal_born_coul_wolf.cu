@@ -124,7 +124,7 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
           fetch(prefactor,j,q_tex);
           prefactor *= qqrd2e * qtmp/r;
 
-          erfcc = erfc(arij);
+          const numtyp erfcc = erfc(arij);
           v_sh = (erfcc - e_shift*r)*prefactor;
           numtyp dvdrr = (erfcc/rsq + (numtyp)2.0*alf/MY_PIS * erfcd/r) + f_shift;
           forcecoul = prefactor * dvdrr*rsq;
@@ -260,7 +260,7 @@ __kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
           fetch(prefactor,j,q_tex);
           prefactor *= qqrd2e * qtmp/r;
 
-          erfcc = erfc(arij);
+          const numtyp erfcc = erfc(arij);
           v_sh = (erfcc - e_shift*r)*prefactor;
           numtyp dvdrr = (erfcc/rsq + (numtyp)2.0*alf/MY_PIS * erfcd/r) + f_shift;
           forcecoul = prefactor * dvdrr*rsq;

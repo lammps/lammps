@@ -731,6 +731,19 @@ void Neighbor::init()
       } else init_list_flags2_kokkos(i);
     }
 
+    // no request had the buildflag set and we set it on the first valid request.
+    // we also have to fix up the build for other occasional neighbor list properties
+    if (!anybuild) {
+      for (i = 0; i < nrequest; i++) {
+        if ((lists[i]) && (lists[i]->buildflag)) {
+          if (lists[i]->growflag)
+            glist[nglist++] = i;
+          if (lists[i]->stencilflag)
+            slist[nslist++] = i;
+        }
+      }
+    }
+
 #ifdef NEIGH_LIST_DEBUG
     print_lists_of_lists();
 #endif

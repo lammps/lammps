@@ -4,11 +4,6 @@
 #define COLVARPROXY_H
 
 
-#ifndef COLVARPROXY_VERSION
-#define COLVARPROXY_VERSION "2014-10-21"
-#endif
-
-
 #include "colvarmodule.h"
 #include "colvarvalue.h"
 

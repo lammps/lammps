@@ -15,7 +15,7 @@
 /// treat different data types.  By default, a \link colvarvalue
 /// \endlink variable is a scalar number.  To use it as
 /// another type, declare and initialize it as
-/// \code colvarvalue x (colvarvalue::type_xxx), use \link x.type
+/// \code colvarvalue x(colvarvalue::type_xxx), use \link x.type
 /// (colvarvalue::type_xxx) \endlink at a later stage, or if unset,
 //  assign the type with \code x = y; \endcode, provided y is correctly set.
 ///
@@ -100,7 +100,7 @@ public:
   }
 
   /// Number of degrees of freedom for each type
-  inline size_t static const num_df(Type t)
+  inline size_t static num_df(Type t)
   {
     switch (t) {
     case colvarvalue::type_notset:
@@ -827,8 +827,8 @@ inline void colvarvalue::check_types(colvarvalue const &x1,
 
 inline void colvarvalue::undef_op() const
 {
-  cvm::error ("Error: Undefined operation on a colvar of type \""+
-              type_desc(this->value_type)+"\".\n");
+  cvm::error("Error: Undefined operation on a colvar of type \""+
+             type_desc(this->value_type)+"\".\n");
 }
 
 inline void colvarvalue::error_rside
@@ -875,7 +875,7 @@ inline void colvarvalue::inner_opt(colvarvalue                        const &x,
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
     while (xvi != xv_end) {
-      *(ii++) += ((xvi++)->quaternion_value).cosine (x.quaternion_value);
+      *(ii++) += ((xvi++)->quaternion_value).cosine(x.quaternion_value);
     }
     break;
   default:
@@ -910,7 +910,7 @@ inline void colvarvalue::inner_opt(colvarvalue const                      &x,
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
     while (xvi != xv_end) {
-      *(ii++) += ((xvi++)->quaternion_value).cosine (x.quaternion_value);
+      *(ii++) += ((xvi++)->quaternion_value).cosine(x.quaternion_value);
     }
     break;
   default:
@@ -955,7 +955,7 @@ inline void colvarvalue::p2leg_opt(colvarvalue const                        &x,
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
     while (xvi != xv_end) {
-      cvm::real const cosine = (xvi++)->quaternion_value.cosine (x.quaternion_value);
+      cvm::real const cosine = (xvi++)->quaternion_value.cosine(x.quaternion_value);
       *(ii++) += 1.5*cosine*cosine - 0.5;
     }
     break;
@@ -999,7 +999,7 @@ inline void colvarvalue::p2leg_opt(colvarvalue const                        &x,
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
     while (xvi != xv_end) {
-      cvm::real const cosine = (xvi++)->quaternion_value.cosine (x.quaternion_value);
+      cvm::real const cosine = (xvi++)->quaternion_value.cosine(x.quaternion_value);
       *(ii++) += 1.5*cosine*cosine - 0.5;
     }
     break;

@@ -47,10 +47,12 @@ CiteMe::~CiteMe()
 
   delete cs;
 
-  if (screen) fprintf(screen,cite_nagline);
-  if (logfile) fprintf(logfile,cite_nagline);
+  if (fp) {
+    if (screen) fprintf(screen,cite_nagline);
+    if (logfile) fprintf(logfile,cite_nagline);
 
-  if (fp) fclose(fp);
+    fclose(fp);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -65,7 +67,7 @@ void CiteMe::add(const char *ref)
 
   if (!fp) {
     fp = fopen("log.cite","w");
-    if (!fp) error->universe_one(FLERR,"Cannot open log.cite file");
+    if (!fp) return;
     fputs(cite_header,fp);
     fflush(fp);
   }

@@ -548,7 +548,7 @@ std::istream & colvarbias_abf::read_restart(std::istream& is)
 
 colvarbias_histogram::colvarbias_histogram(std::string const &conf, char const *key)
   : colvarbias(conf, key),
-    grid(NULL)
+    grid(NULL), out_name("")
 {
   get_keyval(conf, "outputfreq", output_freq, cvm::restart_out_freq);
 
@@ -558,9 +558,6 @@ colvarbias_histogram::colvarbias_histogram(std::string const &conf, char const *
 
   grid   = new colvar_grid_count    (colvars);
   bin.assign(colvars.size(), 0);
-
-  out_name = cvm::output_prefix + "." + this->name + ".dat";
-  cvm::log("Histogram will be written to file " + out_name);
 
   cvm::log("Finished histogram setup.\n");
 }
@@ -583,6 +580,14 @@ colvarbias_histogram::~colvarbias_histogram()
 cvm::real colvarbias_histogram::update()
 {
   if (cvm::debug()) cvm::log("Updating Grid bias " + this->name);
+
+  // At the first timestep, we need to assign out_name since
+  // output_prefix is unset during the constructor
+
+  if (cvm::step_relative() == 0) {
+    out_name = cvm::output_prefix + "." + this->name + ".dat";
+    cvm::log("Histogram " + this->name + " will be written to file \"" + out_name + "\"");
+  }
 
   for (size_t i=0; i<colvars.size(); i++) {
     bin[i] = grid->current_bin_scalar(i);

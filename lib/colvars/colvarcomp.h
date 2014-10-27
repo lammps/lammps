@@ -107,9 +107,9 @@ public:
   /// \brief Within the constructor, make a group parse its own
   /// options from the provided configuration string
   void parse_group(std::string const &conf,
-                    char const *group_key,
-                    cvm::atom_group &group,
-                    bool optional = false);
+                   char const *group_key,
+                   cvm::atom_group &group,
+                   bool optional = false);
 
   /// \brief Default constructor (used when \link cvc \endlink
   /// objects are declared within other ones)
@@ -153,17 +153,17 @@ public:
 
 
   /// \brief Return the previously calculated value
-  virtual colvarvalue value() const;
+  virtual colvarvalue const & value() const;
 
-  /// \brief Return const pointer to the previously calculated value
-  virtual const colvarvalue *p_value() const;
+  // /// \brief Return const pointer to the previously calculated value
+  // virtual const colvarvalue *p_value() const;
 
   /// \brief Return the previously calculated system force
-  virtual colvarvalue system_force() const;
+  virtual colvarvalue const & system_force() const;
 
   /// \brief Return the previously calculated divergence of the
   /// inverse atomic gradients
-  virtual colvarvalue Jacobian_derivative() const;
+  virtual colvarvalue const & Jacobian_derivative() const;
 
   /// \brief Apply the collective variable force, by communicating the
   /// atomic forces to the simulation program (\b Note: the \link ft
@@ -205,19 +205,19 @@ public:
   /// (x2.real_value-x1.real_value)*(x2.real_value-x1.real_value) in
   /// case of a scalar \link colvarvalue \endlink type.
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
 
   /// \brief Gradient(with respect to x1) of the square distance (can
   /// be redefined to transparently implement constraints, symmetries
   /// and periodicities)
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 
   /// \brief Gradient(with respect to x2) of the square distance (can
   /// be redefined to transparently implement constraints, symmetries
   /// and periodicities)
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 
   /// \brief Wrapp value (for periodic/symmetric cvcs)
   virtual void wrap(colvarvalue &x) const;
@@ -253,41 +253,41 @@ inline colvarvalue::Type colvar::cvc::type() const
   return x.type();
 }
 
-inline colvarvalue colvar::cvc::value() const
+inline colvarvalue const & colvar::cvc::value() const
 {
   return x;
 }
 
-inline const colvarvalue * colvar::cvc::p_value() const
-{
-  return &x;
-}
+// inline const colvarvalue * colvar::cvc::p_value() const
+// {
+//   return &x;
+// }
 
-inline colvarvalue colvar::cvc::system_force() const
+inline colvarvalue const & colvar::cvc::system_force() const
 {
   return ft;
 }
 
-inline colvarvalue colvar::cvc::Jacobian_derivative() const
+inline colvarvalue const & colvar::cvc::Jacobian_derivative() const
 {
   return jd;
 }
 
 
 inline cvm::real colvar::cvc::dist2(colvarvalue const &x1,
-                                     colvarvalue const &x2) const
+                                    colvarvalue const &x2) const
 {
   return x1.dist2(x2);
 }
 
 inline colvarvalue colvar::cvc::dist2_lgrad(colvarvalue const &x1,
-                                             colvarvalue const &x2) const
+                                            colvarvalue const &x2) const
 {
   return x1.dist2_grad(x2);
 }
 
 inline colvarvalue colvar::cvc::dist2_rgrad(colvarvalue const &x1,
-                                             colvarvalue const &x2) const
+                                            colvarvalue const &x2) const
 {
   return x2.dist2_grad(x1);
 }
@@ -331,16 +331,16 @@ public:
   virtual void calc_Jacobian_derivative();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
 // \brief Colvar component: distance vector between centers of mass
-// of two groups (\link colvarvalue::type_vector \endlink type,
+// of two groups (\link colvarvalue::type_3vector \endlink type,
 // range (-*:*)x(-*:*)x(-*:*))
 class colvar::distance_vec
   : public colvar::distance
@@ -354,18 +354,18 @@ public:
   virtual void apply_force(colvarvalue const &force);
   /// Redefined to handle the box periodicity
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   /// Redefined to handle the box periodicity
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   /// Redefined to handle the box periodicity
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
 /// \brief Colvar component: distance unit vector (direction) between
-/// centers of mass of two groups (colvarvalue::type_unitvector type,
+/// centers of mass of two groups (colvarvalue::type_unit3vector type,
 /// range [-1:1]x[-1:1]x[-1:1])
 class colvar::distance_dir
   : public colvar::distance
@@ -378,11 +378,11 @@ public:
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -421,11 +421,11 @@ public:
   virtual void calc_Jacobian_derivative();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   /// \brief Redefined to make use of the user-provided period
   virtual void wrap(colvarvalue &x) const;
 };
@@ -451,11 +451,11 @@ public:
   virtual void calc_Jacobian_derivative();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -475,11 +475,11 @@ public:
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -503,11 +503,11 @@ public:
   virtual void calc_Jacobian_derivative();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -525,11 +525,11 @@ public:
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -550,11 +550,11 @@ public:
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -591,11 +591,11 @@ public:
   virtual void calc_Jacobian_derivative();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -639,11 +639,11 @@ public:
   virtual void calc_Jacobian_derivative();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -685,13 +685,13 @@ public:
 
   /// Redefined to handle the 2*PI periodicity
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   /// Redefined to handle the 2*PI periodicity
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   /// Redefined to handle the 2*PI periodicity
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   /// Redefined to handle the 2*PI periodicity
   virtual void wrap(colvarvalue &x) const;
 };
@@ -731,8 +731,8 @@ public:
   /// coordination number \param exp_num \i n exponent \param exp_den
   /// \i m exponent \param A1 atom \param A2 atom
   static cvm::real switching_function(cvm::real const &r0,
-                                       int const &exp_num, int const &exp_den,
-                                       cvm::atom &A1, cvm::atom &A2);
+                                      int const &exp_num, int const &exp_den,
+                                      cvm::atom &A1, cvm::atom &A2);
 
   template<bool b_gradients>
   /// \brief Calculate a coordination number through the function
@@ -741,15 +741,15 @@ public:
   /// exp_num \i n exponent \param exp_den \i m exponent \param A1
   /// atom \param A2 atom
   static cvm::real switching_function(cvm::rvector const &r0_vec,
-                                       int const &exp_num, int const &exp_den,
-                                       cvm::atom &A1, cvm::atom &A2);
+                                      int const &exp_num, int const &exp_den,
+                                      cvm::atom &A1, cvm::atom &A2);
 
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 /// \brief Colvar component: self-coordination number within a group
@@ -778,15 +778,15 @@ public:
   /// coordination number \param exp_num \i n exponent \param exp_den
   /// \i m exponent \param A1 atom \param A2 atom
   static cvm::real switching_function(cvm::real const &r0,
-                                       int const &exp_num, int const &exp_den,
-                                       cvm::atom &A1, cvm::atom &A2);
+                                      int const &exp_num, int const &exp_den,
+                                      cvm::atom &A1, cvm::atom &A2);
 
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 /// \brief Colvar component: hydrogen bond, defined as the product of
@@ -808,8 +808,8 @@ public:
   h_bond(std::string const &conf);
   /// Constructor for atoms already allocated
   h_bond(cvm::atom const &acceptor,
-          cvm::atom const &donor,
-          cvm::real r0, int en, int ed);
+         cvm::atom const &donor,
+         cvm::real r0, int en, int ed);
   h_bond();
   virtual ~h_bond();
   virtual void calc_value();
@@ -817,11 +817,11 @@ public:
   virtual void apply_force(colvarvalue const &force);
 
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -899,11 +899,11 @@ public:
   void calc_gradients();
   void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 /// \brief Colvar component: dihedPC
@@ -927,11 +927,11 @@ public:
   void calc_gradients();
   void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 /// \brief Colvar component: orientation in space of an atom group,
@@ -967,11 +967,11 @@ public:
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -990,11 +990,11 @@ public:
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -1013,11 +1013,11 @@ public:
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -1039,11 +1039,11 @@ public:
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -1067,13 +1067,13 @@ public:
   virtual void apply_force(colvarvalue const &force);
   /// Redefined to handle the 2*PI periodicity
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   /// Redefined to handle the 2*PI periodicity
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   /// Redefined to handle the 2*PI periodicity
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   /// Redefined to handle the 2*PI periodicity
   virtual void wrap(colvarvalue &x) const;
 };
@@ -1106,11 +1106,11 @@ public:
   virtual void calc_Jacobian_derivative();
   virtual void apply_force(colvarvalue const &force);
   virtual cvm::real dist2(colvarvalue const &x1,
-                           colvarvalue const &x2) const;
+                          colvarvalue const &x2) const;
   virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
-                                   colvarvalue const &x2) const;
+                                  colvarvalue const &x2) const;
 };
 
 
@@ -1125,131 +1125,131 @@ public:
 
 #define simple_scalar_dist_functions(TYPE)                              \
                                                                         \
-  inline cvm::real colvar::TYPE::dist2(colvarvalue const &x1,          \
-                                        colvarvalue const &x2) const    \
+  inline cvm::real colvar::TYPE::dist2(colvarvalue const &x1,           \
+                                       colvarvalue const &x2) const     \
   {                                                                     \
     return (x1.real_value - x2.real_value)*(x1.real_value - x2.real_value); \
   }                                                                     \
                                                                         \
-  inline colvarvalue colvar::TYPE::dist2_lgrad(colvarvalue const &x1,  \
-                                                colvarvalue const &x2) const \
+  inline colvarvalue colvar::TYPE::dist2_lgrad(colvarvalue const &x1,   \
+                                               colvarvalue const &x2) const \
   {                                                                     \
     return 2.0 * (x1.real_value - x2.real_value);                       \
   }                                                                     \
                                                                         \
-  inline colvarvalue colvar::TYPE::dist2_rgrad(colvarvalue const &x1,  \
-                                                colvarvalue const &x2) const \
+  inline colvarvalue colvar::TYPE::dist2_rgrad(colvarvalue const &x1,   \
+                                               colvarvalue const &x2) const \
   {                                                                     \
-    return this->dist2_lgrad(x2, x1);                                  \
+    return this->dist2_lgrad(x2, x1);                                   \
   }                                                                     \
                                                                         \
 
-  simple_scalar_dist_functions(distance)
-  // NOTE: distance_z has explicit functions, see below
-  simple_scalar_dist_functions(distance_xy)
-  simple_scalar_dist_functions(distance_inv)
-  simple_scalar_dist_functions(angle)
-  simple_scalar_dist_functions(coordnum)
-  simple_scalar_dist_functions(selfcoordnum)
-  simple_scalar_dist_functions(h_bond)
-  simple_scalar_dist_functions(gyration)
-  simple_scalar_dist_functions(inertia)
-  simple_scalar_dist_functions(inertia_z)
-  simple_scalar_dist_functions(rmsd)
-  simple_scalar_dist_functions(orientation_angle)
-  simple_scalar_dist_functions(orientation_proj)
-  simple_scalar_dist_functions(tilt)
-  simple_scalar_dist_functions(eigenvector)
-  //  simple_scalar_dist_functions (alpha_dihedrals)
-  simple_scalar_dist_functions(alpha_angles)
-  simple_scalar_dist_functions(dihedPC)
+simple_scalar_dist_functions(distance)
+// NOTE: distance_z has explicit functions, see below
+simple_scalar_dist_functions(distance_xy)
+simple_scalar_dist_functions(distance_inv)
+simple_scalar_dist_functions(angle)
+simple_scalar_dist_functions(coordnum)
+simple_scalar_dist_functions(selfcoordnum)
+simple_scalar_dist_functions(h_bond)
+simple_scalar_dist_functions(gyration)
+simple_scalar_dist_functions(inertia)
+simple_scalar_dist_functions(inertia_z)
+simple_scalar_dist_functions(rmsd)
+simple_scalar_dist_functions(orientation_angle)
+simple_scalar_dist_functions(orientation_proj)
+simple_scalar_dist_functions(tilt)
+simple_scalar_dist_functions(eigenvector)
+//  simple_scalar_dist_functions (alpha_dihedrals)
+simple_scalar_dist_functions(alpha_angles)
+simple_scalar_dist_functions(dihedPC)
 
 
 // metrics functions for cvc implementations with a periodicity
 
 inline cvm::real colvar::dihedral::dist2(colvarvalue const &x1,
-                                          colvarvalue const &x2) const
+                                           colvarvalue const &x2) const
 {
-  cvm::real diff = x1.real_value - x2.real_value;
-  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
-  return diff * diff;
+cvm::real diff = x1.real_value - x2.real_value;
+diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+return diff * diff;
 }
 
 inline colvarvalue colvar::dihedral::dist2_lgrad(colvarvalue const &x1,
-                                                  colvarvalue const &x2) const
+                                                   colvarvalue const &x2) const
 {
-  cvm::real diff = x1.real_value - x2.real_value;
-  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
-  return 2.0 * diff;
+cvm::real diff = x1.real_value - x2.real_value;
+diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+return 2.0 * diff;
 }
 
 inline colvarvalue colvar::dihedral::dist2_rgrad(colvarvalue const &x1,
-                                                  colvarvalue const &x2) const
+                                                   colvarvalue const &x2) const
 {
-  cvm::real diff = x1.real_value - x2.real_value;
-  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
-  return (-2.0) * diff;
+cvm::real diff = x1.real_value - x2.real_value;
+diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+return (-2.0) * diff;
 }
 
 inline void colvar::dihedral::wrap(colvarvalue &x) const
 {
-  if ((x.real_value - wrap_center) >= 180.0) {
-    x.real_value -= 360.0;
-    return;
-  }
+if ((x.real_value - wrap_center) >= 180.0) {
+x.real_value -= 360.0;
+return;
+}
 
-  if ((x.real_value - wrap_center) < -180.0) {
-    x.real_value += 360.0;
-    return;
-  }
+if ((x.real_value - wrap_center) < -180.0) {
+x.real_value += 360.0;
+return;
+}
 
-  return;
+return;
 }
 
 inline cvm::real colvar::spin_angle::dist2(colvarvalue const &x1,
-                                          colvarvalue const &x2) const
+                                             colvarvalue const &x2) const
 {
-  cvm::real diff = x1.real_value - x2.real_value;
-  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
-  return diff * diff;
+cvm::real diff = x1.real_value - x2.real_value;
+diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+return diff * diff;
 }
 
 inline colvarvalue colvar::spin_angle::dist2_lgrad(colvarvalue const &x1,
-                                                  colvarvalue const &x2) const
+                                                     colvarvalue const &x2) const
 {
-  cvm::real diff = x1.real_value - x2.real_value;
-  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
-  return 2.0 * diff;
+cvm::real diff = x1.real_value - x2.real_value;
+diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+return 2.0 * diff;
 }
 
 inline colvarvalue colvar::spin_angle::dist2_rgrad(colvarvalue const &x1,
-                                                  colvarvalue const &x2) const
+                                                     colvarvalue const &x2) const
 {
-  cvm::real diff = x1.real_value - x2.real_value;
-  diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
-  return (-2.0) * diff;
+cvm::real diff = x1.real_value - x2.real_value;
+diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
+return (-2.0) * diff;
 }
 
 inline void colvar::spin_angle::wrap(colvarvalue &x) const
 {
-  if ((x.real_value - wrap_center) >= 180.0) {
-    x.real_value -= 360.0;
-    return;
-  }
+if ((x.real_value - wrap_center) >= 180.0) {
+x.real_value -= 360.0;
+return;
+}
 
-  if ((x.real_value - wrap_center) < -180.0) {
-    x.real_value += 360.0;
-    return;
-  }
+if ((x.real_value - wrap_center) < -180.0) {
+x.real_value += 360.0;
+return;
+}
 
-  return;
+return;
 }
 
 
 // Projected distance
 // Differences should always be wrapped around 0 (ignoring wrap_center)
 inline cvm::real colvar::distance_z::dist2(colvarvalue const &x1,
-                                            colvarvalue const &x2) const
+                                             colvarvalue const &x2) const
 {
   cvm::real diff = x1.real_value - x2.real_value;
   if (period != 0.0) {
@@ -1260,7 +1260,7 @@ inline cvm::real colvar::distance_z::dist2(colvarvalue const &x1,
 }
 
 inline colvarvalue colvar::distance_z::dist2_lgrad(colvarvalue const &x1,
-                                                    colvarvalue const &x2) const
+                                                   colvarvalue const &x2) const
 {
   cvm::real diff = x1.real_value - x2.real_value;
   if (period != 0.0) {
@@ -1271,7 +1271,7 @@ inline colvarvalue colvar::distance_z::dist2_lgrad(colvarvalue const &x1,
 }
 
 inline colvarvalue colvar::distance_z::dist2_rgrad(colvarvalue const &x1,
-                                                    colvarvalue const &x2) const
+                                                   colvarvalue const &x2) const
 {
   cvm::real diff = x1.real_value - x2.real_value;
   if (period != 0.0) {
@@ -1300,57 +1300,57 @@ inline void colvar::distance_z::wrap(colvarvalue &x) const
 // Note: differences should be centered around (0, 0, 0)!
 
 inline cvm::real colvar::distance_vec::dist2(colvarvalue const &x1,
-                                              colvarvalue const &x2) const
+                                             colvarvalue const &x2) const
 {
   return cvm::position_dist2(x1.rvector_value, x2.rvector_value);
 }
 
 inline colvarvalue colvar::distance_vec::dist2_lgrad(colvarvalue const &x1,
-                                                      colvarvalue const &x2) const
+                                                     colvarvalue const &x2) const
 {
   return 2.0 * cvm::position_distance(x2.rvector_value, x1.rvector_value);
 }
 
 inline colvarvalue colvar::distance_vec::dist2_rgrad(colvarvalue const &x1,
-                                                      colvarvalue const &x2) const
+                                                     colvarvalue const &x2) const
 {
   return 2.0 * cvm::position_distance(x2.rvector_value, x1.rvector_value);
 }
 
 inline cvm::real colvar::distance_dir::dist2(colvarvalue const &x1,
-                                              colvarvalue const &x2) const
+                                             colvarvalue const &x2) const
 {
   return (x1.rvector_value - x2.rvector_value).norm2();
 }
 
 inline colvarvalue colvar::distance_dir::dist2_lgrad(colvarvalue const &x1,
-                                                      colvarvalue const &x2) const
+                                                     colvarvalue const &x2) const
 {
-  return colvarvalue((x1.rvector_value - x2.rvector_value), colvarvalue::type_unitvector);
+  return colvarvalue((x1.rvector_value - x2.rvector_value), colvarvalue::type_unit3vector);
 }
 
 inline colvarvalue colvar::distance_dir::dist2_rgrad(colvarvalue const &x1,
-                                                      colvarvalue const &x2) const
+                                                     colvarvalue const &x2) const
 {
-  return colvarvalue((x2.rvector_value - x1.rvector_value), colvarvalue::type_unitvector);
+  return colvarvalue((x2.rvector_value - x1.rvector_value), colvarvalue::type_unit3vector);
 }
 
 // distance between quaternions
 
 inline cvm::real colvar::orientation::dist2(colvarvalue const &x1,
-                                             colvarvalue const &x2) const
+                                            colvarvalue const &x2) const
 {
   return x1.quaternion_value.dist2(x2);
 }
 
 inline colvarvalue colvar::orientation::dist2_lgrad(colvarvalue const &x1,
-                                                     colvarvalue const &x2) const
+                                                    colvarvalue const &x2) const
 {
   return x1.quaternion_value.dist2_grad(x2);
 }
 
 inline colvarvalue colvar::orientation::dist2_rgrad(colvarvalue const &x1,
-                                                     colvarvalue const &x2) const
+                                                    colvarvalue const &x2) const
 {
   return x2.quaternion_value.dist2_grad(x1);
 }

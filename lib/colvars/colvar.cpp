@@ -185,7 +185,7 @@ colvar::colvar(std::string const &conf)
     // Build ordered list of component values that will be
     // passed to the script
     for (j = 0; j < cvcs.size(); j++) {
-      sorted_cvc_values.push_back(cvcs[j]->p_value());
+      sorted_cvc_values.push_back(&(cvcs[j]->value()));
     }
 
     b_homogeneous = false;
@@ -302,10 +302,10 @@ colvar::colvar(std::string const &conf)
   }
 
   lower_boundary.type(this->type());
-  lower_wall.type     (this->type());
+  lower_wall.type(this->type());
 
   upper_boundary.type(this->type());
-  upper_wall.type     (this->type());
+  upper_wall.type(this->type());
 
   if (this->type() == colvarvalue::type_scalar) {
 
@@ -702,7 +702,7 @@ int colvar::enable(colvar::task const &t)
     break;
 
   case task_gradients:
-    f.type  (this->type());
+    f.type(this->type());
     fb.type(this->type());
     break;
 

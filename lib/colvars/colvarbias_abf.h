@@ -85,7 +85,7 @@ private:
   /// Read human-readable FE gradients and sample count (if not using restart)
   void		  read_gradients_samples();
 
-  std::istream& read_restart  (std::istream&);
+  std::istream& read_restart(std::istream&);
   std::ostream& write_restart(std::ostream&);
 };
 
@@ -111,7 +111,7 @@ private:
   void		  write_grid();
   std::ofstream	  grid_os;  /// Stream for writing grid to disk
 
-  std::istream& read_restart  (std::istream&);
+  std::istream& read_restart(std::istream&);
   std::ostream& write_restart(std::ostream&);
 };
 

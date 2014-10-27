@@ -192,6 +192,8 @@ double colvarproxy_lammps::compute()
     applied_forces[i].x = applied_forces[i].y = applied_forces[i].z = 0.0;
   }
 
+  bias_energy = 0.0;
+
   // call the collective variable module
   colvars->calc();
 

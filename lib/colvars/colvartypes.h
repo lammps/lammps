@@ -27,8 +27,8 @@ public:
   {}
 
   inline rvector(cvm::real const &x_i,
-                  cvm::real const &y_i,
-                  cvm::real const &z_i)
+                 cvm::real const &y_i,
+                 cvm::real const &z_i)
     : x(x_i), y(y_i), z(z_i)
   {}
 
@@ -43,8 +43,8 @@ public:
 
   /// \brief Assign all components
   inline void set(cvm::real const &x_i,
-                   cvm::real const &y_i,
-                   cvm::real const &z_i) {
+                  cvm::real const &y_i,
+                  cvm::real const &z_i) {
     x = x_i;
     y = y_i;
     z = z_i;
@@ -128,7 +128,7 @@ public:
   {
     return cvm::rvector( v1.y*v2.z - v2.y*v1.z,
                          -v1.x*v2.z + v2.x*v1.z,
-                          v1.x*v2.y - v2.x*v1.y);
+                         v1.x*v2.y - v2.x*v1.y);
   }
 
   friend inline cvm::rvector operator - (cvm::rvector const &v)
@@ -184,14 +184,25 @@ public:
 /// \brief Arbitrary size array (one dimensions) suitable for linear
 /// algebra operations (i.e. for floating point numbers it can be used
 /// with library functions)
-template <class T, size_t const length> class colvarmodule::vector1d
+template <class T> class colvarmodule::vector1d
 {
 protected:
 
   /// Underlying C-array
   T *array;
+  size_t length;
 
 public:
+
+  /// Allocation routine, used by all constructors
+  inline void alloc() {
+    array = new T [length];
+  }
+
+  /// Deallocation routine
+  inline void dealloc() {
+    delete [] array;
+  }
 
   /// Length of the array
   inline size_t size()
@@ -200,10 +211,31 @@ public:
   }
 
   /// Default constructor
-  inline vector1d(T const &t = T())
+  inline vector1d(size_t const n = 1, T const &t = T())
   {
-    array = new T[length];
+    length = n;
+    this->alloc();
     reset();
+  }
+
+  /// Constructor from a 1-d C array
+  inline vector1d(size_t const n, T const *v)
+  {
+    length = n;
+    this->alloc();
+    for (size_t i = 0; i < length; i++) {
+      array[i] = v[i];
+    }
+  }
+
+  /// Copy constructor
+  inline vector1d(vector1d<T> const &v)
+  {
+    length = v.length;
+    this->alloc();
+    for (size_t i = 0; i < length; i++) {
+      array[i] = v.array[i];
+    }
   }
 
   /// Set all elements to zero
@@ -214,27 +246,15 @@ public:
     }
   }
 
-  /// Constructor from a 1-d C array
-  inline vector1d(T const *v)
-  {
-    array = new T[length];
-    for (size_t i = 0; i < length; i++) {
-      array[i] = v[i];
-    }
-  }
-
-  /// Copy constructor
-  inline vector1d(vector1d<T, length> const &v)
-  {
-    array = new T[length];
-    for (size_t i = 0; i < length; i++) {
-      array[i] = v.array[i];
-    }
-  }
-
   /// Assignment
-  inline vector1d<T, length> & operator = (vector1d<T, length> const &v)
+  inline vector1d<T> & operator = (vector1d<T> const &v)
   {
+    if (length != v.length) {
+      this->dealloc();
+      length = v.length;
+      this->alloc();
+      reset();
+    }
     for (size_t i = 0; i < length; i++) {
       this->array[i] = v.array[i];
     }
@@ -243,7 +263,7 @@ public:
 
   /// Destructor
   inline ~vector1d() {
-    delete [] array;
+    this->dealloc();
   }
 
   /// Return the 1-d C array
@@ -253,11 +273,12 @@ public:
   inline operator T *() { return array; }
 
   /// Inner product
-  inline friend T operator * (vector1d<T, length> const &v1,
-                              vector1d<T, length> const &v2)
+  inline friend T operator * (vector1d<T> const &v1,
+                              vector1d<T> const &v2)
   {
     T prod(0.0);
-    for (size_t i = 0; i < length; i++) {
+    size_t const min_length = (v1.length > v2.length) ? v1.length : v2.length;
+    for (size_t i = 0; i < min_length; i++) {
       prod += v1.array[i] * v2.array[i];
     }
     return prod;
@@ -265,18 +286,18 @@ public:
 
   /// Formatted output
   friend std::ostream & operator << (std::ostream &os,
-                                     vector1d<T, length> const &v)
+                                     vector1d<T> const &v)
   {
     std::streamsize const w = os.width();
     std::streamsize const p = os.precision();
 
     os << "( ";
-    for (size_t i = 0; i < length-1; i++) {
+    for (size_t i = 0; i < v.length-1; i++) {
       os.width(w); os.precision(p);
       os << v.array[i] << " , ";
     }
     os.width(w); os.precision(p);
-    os << v.array[length-1] << " )";
+    os << v.array[v.length-1] << " )";
     return os;
   }
 
@@ -287,14 +308,14 @@ public:
 /// \brief Arbitrary size array (two dimensions) suitable for linear
 /// algebra operations (i.e. for floating point numbers it can be used
 /// with library functions)
-template <class T,
-          size_t const outer_length,
-          size_t const inner_length> class colvarmodule::matrix2d
+template <class T> class colvarmodule::matrix2d
 {
 protected:
 
   /// Underlying C array
   T **array;
+  size_t outer_length;
+  size_t inner_length;
 
 public:
 
@@ -304,6 +325,14 @@ public:
     for (size_t i = 0; i < outer_length; i++) {
       array[i] = new T [inner_length];
     }
+  }
+
+  /// Deallocation routine
+  inline void dealloc() {
+    for (size_t i = 0; i < outer_length; i++) {
+      delete [] array[i];
+    }
+    delete [] array;
   }
 
   /// Set all elements to zero
@@ -317,14 +346,16 @@ public:
   }
 
   /// Default constructor
-  inline matrix2d()
+  inline matrix2d(size_t const no = 1, size_t const ni = 1, T const &t = T())
+    : outer_length(no), inner_length(ni)
   {
     this->alloc();
     reset();
   }
 
   /// Constructor from a 2-d C array
-  inline matrix2d(T const **m)
+  inline matrix2d(size_t const no, size_t const ni, T const **m)
+    : outer_length(no), inner_length(ni)
   {
     this->alloc();
     for (size_t i = 0; i < outer_length; i++) {
@@ -334,7 +365,8 @@ public:
   }
 
   /// Copy constructor
-  inline matrix2d(matrix2d<T, outer_length, inner_length> const &m)
+  inline matrix2d(matrix2d<T> const &m)
+    : outer_length(m.outer_length), inner_length(m.inner_length)
   {
     this->alloc();
     for (size_t i = 0; i < outer_length; i++) {
@@ -344,9 +376,15 @@ public:
   }
 
   /// Assignment
-  inline matrix2d<T, outer_length, inner_length> &
-  operator = (matrix2d<T, outer_length, inner_length> const &m)
+  inline matrix2d<T> & operator = (matrix2d<T> const &m)
   {
+    if ((outer_length != m.outer_length) || (inner_length != m.inner_length)){
+      this->dealloc();
+      outer_length = m.outer_length;
+      inner_length = m.inner_length;
+      this->alloc();
+      reset();
+    }
     for (size_t i = 0; i < outer_length; i++) {
       for (size_t j = 0; j < inner_length; j++)
         this->array[i][j] = m.array[i][j];
@@ -356,10 +394,7 @@ public:
 
   /// Destructor
   inline ~matrix2d() {
-    for (size_t i = 0; i < outer_length; i++) {
-      delete [] array[i];
-    }
-    delete [] array;
+    this->dealloc();
   }
 
   /// Return the 2-d C array
@@ -368,48 +403,24 @@ public:
   /// Return the 2-d C array
   inline operator T **() { return array; }
 
-//   /// Matrix addi(c)tion
-//   inline friend matrix2d<T, outer_length, inner_length>
-//   operator + (matrix2d<T, outer_length, inner_length> const &mat1,
-//               matrix2d<T, outer_length, inner_length> const &mat2) {
-//     matrix2d<T, outer_length, inner_length> sum;
-//     for (size_t i = 0; i < outer_length; i++) {
-//       for (size_t j = 0; j < inner_length; j++) {
-//         sum[i][j] = mat1[i][j] + mat2[i][j];
-//       }
-//     }
-//   }
-
-//   /// Matrix subtraction
-//   inline friend matrix2d<T, outer_length, inner_length>
-//   operator - (matrix2d<T, outer_length, inner_length> const &mat1,
-//               matrix2d<T, outer_length, inner_length> const &mat2) {
-//     matrix2d<T, outer_length, inner_length> sum;
-//     for (size_t i = 0; i < outer_length; i++) {
-//       for (size_t j = 0; j < inner_length; j++) {
-//         sum[i][j] = mat1[i][j] - mat2[i][j];
-//       }
-//     }
-//   }
-
   /// Formatted output
   friend std::ostream & operator << (std::ostream &os,
-                                     matrix2d<T, outer_length, inner_length> const &m)
+                                     cvm::matrix2d<T> const &m)
   {
     std::streamsize const w = os.width();
     std::streamsize const p = os.precision();
 
     os << "(";
-    for (size_t i = 0; i < outer_length; i++) {
+    for (size_t i = 0; i < m.outer_length; i++) {
       os << " ( ";
-      for (size_t j = 0; j < inner_length-1; j++) {
+      for (size_t j = 0; j < m.inner_length-1; j++) {
         os.width(w);
         os.precision(p);
         os << m.array[i][j] << " , ";
       }
       os.width(w);
       os.precision(p);
-      os << m.array[i][inner_length-1] << " )";
+      os << m.array[i][m.inner_length-1] << " )";
     }
 
     os << " )";
@@ -422,7 +433,7 @@ public:
 /// \brief 2-dimensional array of real numbers with three components
 /// along each dimension (works with colvarmodule::rvector)
 class colvarmodule::rmatrix
-  : public colvarmodule::matrix2d<colvarmodule::real, 3, 3> {
+  : public colvarmodule::matrix2d<colvarmodule::real> {
 private:
 
 public:
@@ -467,25 +478,25 @@ public:
 
   /// Constructor from a 2-d C array
   inline rmatrix(cvm::real const **m)
-    : cvm::matrix2d<cvm::real, 3, 3> (m)
+    : cvm::matrix2d<cvm::real> (3, 3, m)
   {}
 
   /// Default constructor
   inline rmatrix()
-    : cvm::matrix2d<cvm::real, 3, 3>()
+    : cvm::matrix2d<cvm::real>(3, 3, 0.0)
   {}
 
   /// Constructor component by component
   inline rmatrix(cvm::real const &xxi,
-                  cvm::real const &xyi,
-                  cvm::real const &xzi,
-                  cvm::real const &yxi,
-                  cvm::real const &yyi,
-                  cvm::real const &yzi,
-                  cvm::real const &zxi,
-                  cvm::real const &zyi,
-                  cvm::real const &zzi)
-    : cvm::matrix2d<cvm::real, 3, 3>()
+                 cvm::real const &xyi,
+                 cvm::real const &xzi,
+                 cvm::real const &yxi,
+                 cvm::real const &yyi,
+                 cvm::real const &yzi,
+                 cvm::real const &zxi,
+                 cvm::real const &zyi,
+                 cvm::real const &zzi)
+    : cvm::matrix2d<cvm::real>(3, 3, 0.0)
   {
     this->xx() = xxi;
     this->xy() = xyi;
@@ -514,14 +525,14 @@ public:
   inline cvm::rmatrix transpose() const
   {
     return cvm::rmatrix(this->xx(),
-                         this->yx(),
-                         this->zx(),
-                         this->xy(),
-                         this->yy(),
-                         this->zy(),
-                         this->xz(),
-                         this->yz(),
-                         this->zz());
+                        this->yx(),
+                        this->zx(),
+                        this->xy(),
+                        this->yy(),
+                        this->zy(),
+                        this->xz(),
+                        this->yz(),
+                        this->zz());
   }
 
   friend cvm::rvector operator * (cvm::rmatrix const &m, cvm::rvector const &r);
@@ -545,8 +556,8 @@ inline cvm::rvector operator * (cvm::rmatrix const &m,
                                 cvm::rvector const &r)
 {
   return cvm::rvector(m.xx()*r.x + m.xy()*r.y + m.xz()*r.z,
-                       m.yx()*r.x + m.yy()*r.y + m.yz()*r.z,
-                       m.zx()*r.x + m.zy()*r.y + m.zz()*r.z);
+                      m.yx()*r.x + m.yy()*r.y + m.yz()*r.z,
+                      m.zx()*r.x + m.zy()*r.y + m.zz()*r.z);
 }
 
 
@@ -582,9 +593,9 @@ public:
 
   /// Constructor component by component
   inline quaternion(cvm::real const &q0i,
-                     cvm::real const &q1i,
-                     cvm::real const &q2i,
-                     cvm::real const &q3i)
+                    cvm::real const &q1i,
+                    cvm::real const &q2i,
+                    cvm::real const &q3i)
     : q0(q0i), q1(q1i), q2(q2i), q3(q3i)
   {}
 
@@ -592,8 +603,8 @@ public:
   ///
   /// http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
   inline void set_from_euler_angles(cvm::real const &phi_in,
-                                     cvm::real const &theta_in,
-                                     cvm::real const &psi_in)
+                                    cvm::real const &theta_in,
+                                    cvm::real const &psi_in)
   {
     q0 = ( (std::cos(phi_in/2.0)) * (std::cos(theta_in/2.0)) * (std::cos(psi_in/2.0)) +
            (std::sin(phi_in/2.0)) * (std::sin(theta_in/2.0)) * (std::sin(psi_in/2.0)) );
@@ -756,9 +767,9 @@ public:
   friend inline cvm::quaternion operator * (cvm::quaternion const &h, cvm::quaternion const &q)
   {
     return cvm::quaternion(h.q0*q.q0 - h.q1*q.q1 - h.q2*q.q2 - h.q3*q.q3,
-                            h.q0*q.q1 + h.q1*q.q0 + h.q2*q.q3 - h.q3*q.q2,
-                            h.q0*q.q2 + h.q2*q.q0 + h.q3*q.q1 - h.q1*q.q3,
-                            h.q0*q.q3 + h.q3*q.q0 + h.q1*q.q2 - h.q2*q.q1);
+                           h.q0*q.q1 + h.q1*q.q0 + h.q2*q.q3 - h.q3*q.q2,
+                           h.q0*q.q2 + h.q2*q.q0 + h.q3*q.q1 - h.q1*q.q3,
+                           h.q0*q.q3 + h.q3*q.q0 + h.q1*q.q2 - h.q2*q.q1);
   }
 
   friend inline cvm::quaternion operator * (cvm::real const &c,
@@ -818,7 +829,7 @@ public:
   /// \brief Multiply the given vector by the derivative of the given
   /// (rotated) position with respect to the quaternion
   cvm::quaternion position_derivative_inner(cvm::rvector const &pos,
-                                             cvm::rvector const &vec) const;
+                                            cvm::rvector const &vec) const;
 
 
   /// \brief Return the cosine between the orientation frame
@@ -838,7 +849,7 @@ public:
       this->q2*Q2.q2 + this->q3*Q2.q3;
 
     cvm::real const omega = std::acos( (cos_omega > 1.0) ? 1.0 :
-                                     ( (cos_omega < -1.0) ? -1.0 : cos_omega) );
+                                       ( (cos_omega < -1.0) ? -1.0 : cos_omega) );
 
     // get the minimum distance: x and -x are the same quaternion
     if (cos_omega > 0.0)
@@ -853,7 +864,7 @@ public:
   {
     cvm::real const cos_omega = this->q0*Q2.q0 + this->q1*Q2.q1 + this->q2*Q2.q2 + this->q3*Q2.q3;
     cvm::real const omega = std::acos( (cos_omega > 1.0) ? 1.0 :
-                                     ( (cos_omega < -1.0) ? -1.0 : cos_omega) );
+                                       ( (cos_omega < -1.0) ? -1.0 : cos_omega) );
     cvm::real const sin_omega = std::sin(omega);
 
     if (std::fabs(sin_omega) < 1.0E-14) {
@@ -863,9 +874,9 @@ public:
 
     cvm::quaternion const
       grad1((-1.0)*sin_omega*Q2.q0 + cos_omega*(this->q0-cos_omega*Q2.q0)/sin_omega,
-             (-1.0)*sin_omega*Q2.q1 + cos_omega*(this->q1-cos_omega*Q2.q1)/sin_omega,
-             (-1.0)*sin_omega*Q2.q2 + cos_omega*(this->q2-cos_omega*Q2.q2)/sin_omega,
-             (-1.0)*sin_omega*Q2.q3 + cos_omega*(this->q3-cos_omega*Q2.q3)/sin_omega);
+            (-1.0)*sin_omega*Q2.q1 + cos_omega*(this->q1-cos_omega*Q2.q1)/sin_omega,
+            (-1.0)*sin_omega*Q2.q2 + cos_omega*(this->q2-cos_omega*Q2.q2)/sin_omega,
+            (-1.0)*sin_omega*Q2.q3 + cos_omega*(this->q3-cos_omega*Q2.q3)/sin_omega);
 
     if (cos_omega > 0.0) {
       return 2.0*omega*grad1;
@@ -917,25 +928,26 @@ public:
   std::vector< cvm::atom_pos > pos1, pos2;
 
   /// Derivatives of S
-  std::vector< cvm::matrix2d<cvm::rvector, 4, 4> > dS_1,  dS_2;
+  std::vector< cvm::matrix2d<cvm::rvector> > dS_1,  dS_2;
   /// Derivatives of leading eigenvalue
-  std::vector< cvm::rvector >                      dL0_1, dL0_2;
+  std::vector< cvm::rvector >                dL0_1, dL0_2;
   /// Derivatives of leading eigenvector
-  std::vector< cvm::vector1d<cvm::rvector, 4> >    dQ0_1, dQ0_2;
+  std::vector< cvm::vector1d<cvm::rvector> > dQ0_1, dQ0_2;
 
   /// Allocate space for the derivatives of the rotation
   inline void request_group1_gradients(size_t const &n)
   {
-    dS_1.resize  (n, cvm::matrix2d<cvm::rvector, 4, 4>());
+    dS_1.resize(n, cvm::matrix2d<cvm::rvector>(4, 4, cvm::rvector(0.0, 0.0, 0.0)));
     dL0_1.resize(n, cvm::rvector(0.0, 0.0, 0.0));
-    dQ0_1.resize(n, cvm::vector1d<cvm::rvector, 4>());
+    dQ0_1.resize(n, cvm::vector1d<cvm::rvector>(4, cvm::rvector(0.0, 0.0, 0.0)));
   }
 
+  /// Allocate space for the derivatives of the rotation
   inline void request_group2_gradients(size_t const &n)
   {
-    dS_2.resize  (n, cvm::matrix2d<cvm::rvector, 4, 4>());
+    dS_2.resize(n, cvm::matrix2d<cvm::rvector>(4, 4, cvm::rvector(0.0, 0.0, 0.0)));
     dL0_2.resize(n, cvm::rvector(0.0, 0.0, 0.0));
-    dQ0_2.resize(n, cvm::vector1d<cvm::rvector, 4>());
+    dQ0_2.resize(n, cvm::vector1d<cvm::rvector>(4, cvm::rvector(0.0, 0.0, 0.0)));
   }
 
   /// \brief Calculate the optimal rotation and store the
@@ -949,7 +961,7 @@ public:
   /// J Comput Chem. 25(15):1849-57 (2004)
   /// DOI: 10.1002/jcc.20110  PubMed: 15376254
   void calc_optimal_rotation(std::vector<atom_pos> const &pos1,
-                              std::vector<atom_pos> const &pos2);
+                             std::vector<atom_pos> const &pos2);
 
   /// Default constructor
   inline rotation()
@@ -970,7 +982,7 @@ public:
     cvm::rvector const axis_n = axis.unit();
     cvm::real const sina = std::sin(angle/2.0);
     q = cvm::quaternion(std::cos(angle/2.0),
-                         sina * axis_n.x, sina * axis_n.y, sina * axis_n.z);
+                        sina * axis_n.x, sina * axis_n.y, sina * axis_n.z);
   }
 
   /// Destructor
@@ -1022,9 +1034,9 @@ public:
 
       return
         cvm::quaternion( dspindx * (iprod * (-1.0) / (q.q0*q.q0)),
-                          dspindx * ((1.0/q.q0) * axis.x),
-                          dspindx * ((1.0/q.q0) * axis.y),
-                          dspindx * ((1.0/q.q0) * axis.z));
+                         dspindx * ((1.0/q.q0) * axis.x),
+                         dspindx * ((1.0/q.q0) * axis.y),
+                         dspindx * ((1.0/q.q0) * axis.z));
     } else {
       // (1/(1+x^2)) ~ (1/x)^2
       return
@@ -1049,7 +1061,7 @@ public:
     return 2.0 * (cos_theta_2*cos_theta_2) - 1.0;
   }
 
-   /// Return the derivative of the tilt wrt the quaternion
+  /// Return the derivative of the tilt wrt the quaternion
   inline cvm::quaternion dcos_theta_dq(cvm::rvector const &axis) const
   {
     cvm::rvector const q_vec = q.get_vector();
@@ -1068,18 +1080,18 @@ public:
          (iprod/q.q0) / (1.0 + (iprod*iprod)/(q.q0*q.q0)));
 
       return cvm::quaternion(d_cos_theta_dq0,
-                              d_cos_theta_dqn * axis.x,
-                              d_cos_theta_dqn * axis.y,
-                              d_cos_theta_dqn * axis.z);
+                             d_cos_theta_dqn * axis.x,
+                             d_cos_theta_dqn * axis.y,
+                             d_cos_theta_dqn * axis.z);
     } else {
 
       cvm::real const d_cos_theta_dqn =
         (4.0 / (cos_spin_2*cos_spin_2 * iprod));
 
       return cvm::quaternion(0.0,
-                              d_cos_theta_dqn * axis.x,
-                              d_cos_theta_dqn * axis.y,
-                              d_cos_theta_dqn * axis.z);
+                             d_cos_theta_dqn * axis.x,
+                             d_cos_theta_dqn * axis.y,
+                             d_cos_theta_dqn * axis.z);
     }
   }
 
@@ -1095,13 +1107,13 @@ protected:
 
   /// Build the overlap matrix S (used by calc_optimal_rotation())
   void build_matrix(std::vector<cvm::atom_pos> const &pos1,
-                     std::vector<cvm::atom_pos> const &pos2,
-                     cvm::matrix2d<real, 4, 4>        &S);
+                    std::vector<cvm::atom_pos> const &pos2,
+                    cvm::matrix2d<cvm::real>         &S);
 
   /// Diagonalize the overlap matrix S (used by calc_optimal_rotation())
-  void diagonalize_matrix(cvm::matrix2d<cvm::real, 4, 4> &S,
-                           cvm::real                       S_eigval[4],
-                           cvm::matrix2d<cvm::real, 4, 4> &S_eigvec);
+  void diagonalize_matrix(cvm::matrix2d<cvm::real> &S,
+                          cvm::vector1d<cvm::real> &S_eigval,
+                          cvm::matrix2d<cvm::real> &S_eigvec);
 };
 
 

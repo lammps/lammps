@@ -81,11 +81,8 @@ public:
   typedef  int       residue_id;
 
   class rvector;
-  template <class T,
-            size_t const length> class vector1d;
-  template <class T,
-            size_t const outer_length,
-            size_t const inner_length> class matrix2d;
+  template <class T> class vector1d;
+  template <class T> class matrix2d;
   class quaternion;
   class rotation;
 

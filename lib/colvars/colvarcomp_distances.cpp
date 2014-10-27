@@ -867,13 +867,13 @@ void colvar::rmsd::calc_Jacobian_derivative()
   if (atoms.b_rotate) {
 
     // gradient of the rotation matrix
-    cvm::matrix2d <cvm::rvector, 3, 3> grad_rot_mat;
+    cvm::matrix2d<cvm::rvector> grad_rot_mat(3, 3, cvm::rvector(0.0, 0.0, 0.0));
     // gradients of products of 2 quaternion components
     cvm::rvector g11, g22, g33, g01, g02, g03, g12, g13, g23;
     for (size_t ia = 0; ia < atoms.size(); ia++) {
 
       // Gradient of optimal quaternion wrt current Cartesian position
-      cvm::vector1d< cvm::rvector, 4 >      &dq = atoms.rot.dQ0_1[ia];
+      cvm::vector1d<cvm::rvector> &dq = atoms.rot.dQ0_1[ia];
 
       g11 = 2.0 * (atoms.rot.q)[1]*dq[1];
       g22 = 2.0 * (atoms.rot.q)[2]*dq[2];
@@ -1143,7 +1143,7 @@ void colvar::eigenvector::calc_force_invgrads()
 void colvar::eigenvector::calc_Jacobian_derivative()
 {
   // gradient of the rotation matrix
-  cvm::matrix2d <cvm::rvector, 3, 3> grad_rot_mat;
+  cvm::matrix2d<cvm::rvector> grad_rot_mat(3, 3, cvm::rvector(0.0, 0.0, 0.0));
   cvm::quaternion &quat0 = atoms.rot.q;
 
   // gradients of products of 2 quaternion components
@@ -1156,7 +1156,7 @@ void colvar::eigenvector::calc_Jacobian_derivative()
     // Gradient of optimal quaternion wrt current Cartesian position
     // trick: d(R^-1)/dx = d(R^t)/dx = (dR/dx)^t
     // we can just transpose the derivatives of the direct matrix
-    cvm::vector1d< cvm::rvector, 4 >      &dq_1 = atoms.rot.dQ0_1[ia];
+    cvm::vector1d<cvm::rvector> &dq_1 = atoms.rot.dQ0_1[ia];
 
     g11 = 2.0 * quat0[1]*dq_1[1];
     g22 = 2.0 * quat0[2]*dq_1[2];

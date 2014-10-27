@@ -220,8 +220,8 @@ cvm::quaternion::position_derivative_inner(cvm::rvector const &pos,
 // Chem. 25(15):1849-57 (2004) DOI: 10.1002/jcc.20110 PubMed: 15376254
 
 void colvarmodule::rotation::build_matrix(std::vector<cvm::atom_pos> const &pos1,
-                                           std::vector<cvm::atom_pos> const &pos2,
-                                           matrix2d<cvm::real, 4, 4>        &S)
+                                          std::vector<cvm::atom_pos> const &pos2,
+                                          cvm::matrix2d<cvm::real>         &S)
 {
   cvm::rmatrix C;
 
@@ -271,9 +271,9 @@ void colvarmodule::rotation::build_matrix(std::vector<cvm::atom_pos> const &pos1
 }
 
 
-void colvarmodule::rotation::diagonalize_matrix(matrix2d<cvm::real, 4, 4> &S,
-                                                 cvm::real                  S_eigval[4],
-                                                 matrix2d<cvm::real, 4, 4> &S_eigvec)
+void colvarmodule::rotation::diagonalize_matrix(cvm::matrix2d<cvm::real> &S,
+                                                cvm::vector1d<cvm::real> &S_eigval,
+                                                cvm::matrix2d<cvm::real> &S_eigvec)
 {
   // diagonalize
   int jac_nrot = 0;
@@ -299,26 +299,10 @@ void colvarmodule::rotation::calc_optimal_rotation
 (std::vector<cvm::atom_pos> const &pos1,
  std::vector<cvm::atom_pos> const &pos2)
 {
-  matrix2d<cvm::real, 4, 4> S;
-  matrix2d<cvm::real, 4, 4> S_backup;
-  cvm::real                 S_eigval[4];
-  matrix2d<cvm::real, 4, 4> S_eigvec;
-
-//   if (cvm::debug()) {
-//     cvm::atom_pos cog1 (0.0, 0.0, 0.0);
-//     for (size_t i = 0; i < pos1.size(); i++) {
-//       cog1 += pos1[i];
-//     }
-//     cog1 /= cvm::real (pos1.size());
-//     cvm::atom_pos cog2 (0.0, 0.0, 0.0);
-//     for (size_t i = 0; i < pos2.size(); i++) {
-//       cog2 += pos2[i];
-//     }
-//     cog2 /= cvm::real (pos1.size());
-//     cvm::log ("calc_optimal_rotation: centers of geometry are: "+
-//               cvm::to_str (cog1, cvm::cv_width, cvm::cv_prec)+
-//               " and "+cvm::to_str (cog2, cvm::cv_width, cvm::cv_prec)+".\n");
-//   }
+  cvm::matrix2d<cvm::real> S(4, 4, 0.0);
+  cvm::matrix2d<cvm::real> S_backup(4, 4, 0.0);
+  cvm::vector1d<cvm::real> S_eigval(4, 0.0);
+  cvm::matrix2d<cvm::real> S_eigvec(4, 4, 0.0);
 
   build_matrix(pos1, pos2, S);
   S_backup = S;
@@ -384,7 +368,7 @@ void colvarmodule::rotation::calc_optimal_rotation
     cvm::real const &a2y = pos2[ia].y;
     cvm::real const &a2z = pos2[ia].z;
 
-    matrix2d<cvm::rvector, 4, 4>    &ds_1 =  dS_1[ia];
+    cvm::matrix2d<cvm::rvector> &ds_1 = dS_1[ia];
 
     // derivative of the S matrix
     ds_1.reset();
@@ -405,8 +389,8 @@ void colvarmodule::rotation::calc_optimal_rotation
     ds_1[2][3] = ds_1[3][2];
     ds_1[3][3].set(-a2x, -a2y,  a2z);
 
-    cvm::rvector              &dl0_1 = dL0_1[ia];
-    vector1d<cvm::rvector, 4> &dq0_1 = dQ0_1[ia];
+    cvm::rvector                &dl0_1 = dL0_1[ia];
+    cvm::vector1d<cvm::rvector> &dq0_1 = dQ0_1[ia];
 
     // matrix multiplications; derivatives of L_0 and Q_0 are
     // calculated using Hellmann-Feynman theorem (i.e. exploiting the
@@ -439,7 +423,7 @@ void colvarmodule::rotation::calc_optimal_rotation
     cvm::real const &a1y = pos1[ia].y;
     cvm::real const &a1z = pos1[ia].z;
 
-    matrix2d<cvm::rvector, 4, 4> &ds_2 =  dS_2[ia];
+    cvm::matrix2d<cvm::rvector> &ds_2 = dS_2[ia];
 
     ds_2.reset();
     ds_2[0][0].set( a1x,  a1y,  a1z);
@@ -459,8 +443,8 @@ void colvarmodule::rotation::calc_optimal_rotation
     ds_2[2][3] = ds_2[3][2];
     ds_2[3][3].set(-a1x, -a1y,  a1z);
 
-    cvm::rvector              &dl0_2 = dL0_2[ia];
-    vector1d<cvm::rvector, 4> &dq0_2 = dQ0_2[ia];
+    cvm::rvector                &dl0_2 = dL0_2[ia];
+    cvm::vector1d<cvm::rvector> &dq0_2 = dQ0_2[ia];
 
     dl0_2.reset();
     for (size_t i = 0; i < 4; i++) {
@@ -485,9 +469,9 @@ void colvarmodule::rotation::calc_optimal_rotation
 
       if (b_debug_gradients) {
 
-      matrix2d<cvm::real, 4, 4> S_new;
-      cvm::real                 S_new_eigval[4];
-      matrix2d<cvm::real, 4, 4> S_new_eigvec;
+        cvm::matrix2d<cvm::real> S_new(4, 4, 0.0);
+        cvm::vector1d<cvm::real> S_new_eigval(4, 0.0);
+        cvm::matrix2d<cvm::real> S_new_eigvec(4, 4, 0.0);
 
         // make an infitesimal move along each cartesian coordinate of
         // this atom, and solve again the eigenvector problem
@@ -502,7 +486,7 @@ void colvarmodule::rotation::calc_optimal_rotation
             }
           }
 
-//           cvm::log("S_new = "+cvm::to_str(cvm::to_str (S_new), cvm::cv_width, cvm::cv_prec)+"\n");
+          //           cvm::log("S_new = "+cvm::to_str(cvm::to_str (S_new), cvm::cv_width, cvm::cv_prec)+"\n");
 
           diagonalize_matrix(S_new, S_new_eigval, S_new_eigvec);
 
@@ -512,15 +496,15 @@ void colvarmodule::rotation::calc_optimal_rotation
           cvm::real const DL0 = (dl0_2[comp]) * colvarmodule::debug_gradients_step_size;
           cvm::quaternion const q0(Q0);
           cvm::quaternion const DQ0(dq0_2[0][comp] * colvarmodule::debug_gradients_step_size,
-                                     dq0_2[1][comp] * colvarmodule::debug_gradients_step_size,
-                                     dq0_2[2][comp] * colvarmodule::debug_gradients_step_size,
-                                     dq0_2[3][comp] * colvarmodule::debug_gradients_step_size);
+                                    dq0_2[1][comp] * colvarmodule::debug_gradients_step_size,
+                                    dq0_2[2][comp] * colvarmodule::debug_gradients_step_size,
+                                    dq0_2[3][comp] * colvarmodule::debug_gradients_step_size);
 
           cvm::log(  "|(l_0+dl_0) - l_0^new|/l_0 = "+
-                      cvm::to_str(std::fabs(L0+DL0 - L0_new)/L0, cvm::cv_width, cvm::cv_prec)+
-                      ", |(q_0+dq_0) - q_0^new| = "+
-                      cvm::to_str((Q0+DQ0 - Q0_new).norm(), cvm::cv_width, cvm::cv_prec)+
-                      "\n");
+                     cvm::to_str(std::fabs(L0+DL0 - L0_new)/L0, cvm::cv_width, cvm::cv_prec)+
+                     ", |(q_0+dq_0) - q_0^new| = "+
+                     cvm::to_str((Q0+DQ0 - Q0_new).norm(), cvm::cv_width, cvm::cv_prec)+
+                     "\n");
         }
       }
     }

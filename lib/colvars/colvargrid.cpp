@@ -13,13 +13,13 @@ colvar_grid_count::colvar_grid_count()
 {}
 
 colvar_grid_count::colvar_grid_count(std::vector<int> const &nx_i,
-                                      size_t const           &def_count)
-  : colvar_grid<size_t> (nx_i, def_count)
+                                     size_t const           &def_count)
+  : colvar_grid<size_t>(nx_i, def_count)
 {}
 
 colvar_grid_count::colvar_grid_count(std::vector<colvar *>  &colvars,
-                                      size_t const           &def_count)
-  : colvar_grid<size_t> (colvars, def_count)
+                                     size_t const           &def_count)
+  : colvar_grid<size_t>(colvars, def_count)
 {}
 
 std::istream & colvar_grid_count::read_restart(std::istream &is)
@@ -52,19 +52,19 @@ colvar_grid_scalar::colvar_grid_scalar()
 {}
 
 colvar_grid_scalar::colvar_grid_scalar(colvar_grid_scalar const &g)
-  : colvar_grid<cvm::real> (g), samples(NULL), grad(NULL)
+  : colvar_grid<cvm::real>(g), samples(NULL), grad(NULL)
 {
   grad = new cvm::real[nd];
 }
 
 colvar_grid_scalar::colvar_grid_scalar(std::vector<int> const &nx_i)
-  : colvar_grid<cvm::real> (nx_i, 0.0, 1), samples(NULL)
+  : colvar_grid<cvm::real>(nx_i, 0.0, 1), samples(NULL)
 {
   grad = new cvm::real[nd];
 }
 
 colvar_grid_scalar::colvar_grid_scalar(std::vector<colvar *> &colvars, bool margin)
-  : colvar_grid<cvm::real> (colvars, 0.0, 1, margin), samples(NULL)
+  : colvar_grid<cvm::real>(colvars, 0.0, 1, margin), samples(NULL)
 {
   grad = new cvm::real[nd];
 }
@@ -107,11 +107,11 @@ colvar_grid_gradient::colvar_grid_gradient()
 {}
 
 colvar_grid_gradient::colvar_grid_gradient(std::vector<int> const &nx_i)
-  : colvar_grid<cvm::real> (nx_i, 0.0, nx_i.size()), samples(NULL)
+  : colvar_grid<cvm::real>(nx_i, 0.0, nx_i.size()), samples(NULL)
 {}
 
 colvar_grid_gradient::colvar_grid_gradient(std::vector<colvar *> &colvars)
-  : colvar_grid<cvm::real> (colvars, 0.0, colvars.size()), samples(NULL)
+  : colvar_grid<cvm::real>(colvars, 0.0, colvars.size()), samples(NULL)
 {}
 
 std::istream & colvar_grid_gradient::read_restart(std::istream &is)
@@ -192,26 +192,4 @@ void colvar_grid_gradient::write_1D_integral(std::ostream &os)
 }
 
 
-
-
-// quaternion_grid::quaternion_grid (std::vector<colvar *>      const &cv_i,
-//                                   std::vector<std::string>   const &grid_str)
-// {
-//   cv = cv_i;
-
-//   std::istringstream is (grid_str[0]);
-//   is >> grid_size;
-
-//   min.assign (3, -1.0);
-//   max.assign (3,  1.0);
-//   np.assign  (3, grid_size);
-//   dx.assign  (3, 2.0/(cvm::real (grid_size)));
-
-//   // assumes a uniform grid in the three directions; change
-//   // get_value() if you want to use different sizes
-//   cvm::log("Allocating quaternion grid("+cvm::to_str (np.size())+" dimensional)...");
-//   data.create (np, 0.0);
-//   cvm::log ("done.\n");
-//   if (cvm::debug()) cvm::log ("Grid size = "+data.size());
-// }
 

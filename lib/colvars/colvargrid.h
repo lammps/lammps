@@ -30,7 +30,7 @@ protected:
   std::vector<int> nxc;
 
   /// \brief Multiplicity of each datum (allow the binning of
-  /// non-scalar types)
+  /// non-scalar types such as atomic gradients)
   size_t mult;
 
   /// Total number of grid points

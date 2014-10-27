@@ -107,7 +107,7 @@ class colvarproxy_lammps : public colvarproxy {
 
   inline size_t restart_frequency() { return restart_every; };
 
-  void add_energy (cvm::real energy) { bias_energy = energy; };
+  void add_energy (cvm::real energy) { bias_energy += energy; };
   void request_system_force (bool yesno) { system_force_requested = yesno; };
 
   void log(std::string const &message);

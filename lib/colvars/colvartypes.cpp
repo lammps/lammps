@@ -4,6 +4,7 @@
 #include "colvartypes.h"
 #include "colvarparse.h"
 
+
 std::string cvm::rvector::to_simple_string() const
 {
   std::ostringstream os;
@@ -12,6 +13,7 @@ std::string cvm::rvector::to_simple_string() const
   os << x << " " << y << " " << z;
   return os.str();
 }
+
 
 int cvm::rvector::from_simple_string(std::string const &s)
 {
@@ -23,6 +25,7 @@ int cvm::rvector::from_simple_string(std::string const &s)
   }
   return COLVARS_OK;
 }
+
 
 std::ostream & operator << (std::ostream &os, colvarmodule::rvector const &v)
 {
@@ -277,10 +280,13 @@ void colvarmodule::rotation::diagonalize_matrix(cvm::matrix2d<cvm::real> &S,
 {
   // diagonalize
   int jac_nrot = 0;
-  jacobi(S, S_eigval, S_eigvec, &jac_nrot);
-  eigsrt(S_eigval, S_eigvec);
+  jacobi(S, S_eigval.c_array(), S_eigvec, &jac_nrot);
+  eigsrt(S_eigval.c_array(), S_eigvec);
   // jacobi saves eigenvectors by columns
   transpose(S_eigvec);
+
+  S_eigval.update_from_c_array();
+  S_eigval.delete_c_array();
 
   // normalize eigenvectors
   for (size_t ie = 0; ie < 4; ie++) {
@@ -301,7 +307,7 @@ void colvarmodule::rotation::calc_optimal_rotation
 {
   cvm::matrix2d<cvm::real> S(4, 4, 0.0);
   cvm::matrix2d<cvm::real> S_backup(4, 4, 0.0);
-  cvm::vector1d<cvm::real> S_eigval(4, 0.0);
+  cvm::vector1d<cvm::real> S_eigval(4);
   cvm::matrix2d<cvm::real> S_eigvec(4, 4, 0.0);
 
   build_matrix(pos1, pos2, S);
@@ -470,7 +476,7 @@ void colvarmodule::rotation::calc_optimal_rotation
       if (b_debug_gradients) {
 
         cvm::matrix2d<cvm::real> S_new(4, 4, 0.0);
-        cvm::vector1d<cvm::real> S_new_eigval(4, 0.0);
+        cvm::vector1d<cvm::real> S_new_eigval(4);
         cvm::matrix2d<cvm::real> S_new_eigvec(4, 4, 0.0);
 
         // make an infitesimal move along each cartesian coordinate of
@@ -519,6 +525,7 @@ void colvarmodule::rotation::calc_optimal_rotation
   h=a[k][l];                \
   a[i][j]=g-s*(h+g*tau);    \
   a[k][l]=h+s*(g-h*tau);
+
 #define n 4
 
 void jacobi(cvm::real **a, cvm::real d[], cvm::real **v, int *nrot)

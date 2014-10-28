@@ -190,6 +190,13 @@ protected:
   /// Value of the colvar
   colvarvalue x;
 
+  // TODO: implement functionality to treat these
+  // /// Vector of individual values from CVCs
+  // colvarvalue x_cvc;
+
+  // /// Jacobian matrix of individual values from CVCs
+  // colvarvalue dx_cvc;
+
   /// Cached reported value (x may be manipulated)
   colvarvalue x_reported;
 

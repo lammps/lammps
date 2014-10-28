@@ -188,6 +188,15 @@ colvar::colvar(std::string const &conf)
       sorted_cvc_values.push_back(&(cvcs[j]->value()));
     }
 
+    // // these two are the vector value and the Jacobian matrix of the scripted function, respectively
+    // x_cvc.type(type_vector);
+    // dx_cvc.type(type_matrix); // TODO: not implemented yet
+    // for (j = 0; j < cvcs.size(); j++) {
+    //   x_cvc.add_elem(cvcs[j]->value());
+    //   dx_cvc.add_elem(cvcs[j]->value());
+    // }
+
+
     b_homogeneous = false;
     // Scripted functions are deemed non-periodic
     b_periodic = false;

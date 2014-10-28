@@ -138,6 +138,7 @@ int cvm::atom_group::parse (std::string const &conf,
         for (size_t i = 0; i < atom_indexes.size(); i++) {
           this->push_back (cvm::atom (atom_indexes[i]));
         }
+        if (cvm::get_error()) return COLVARS_ERROR;
       } else {
         cvm::error ("Error: no numbers provided for \""
                     "atomNumbers\".\n", INPUT_ERROR);
@@ -166,6 +167,7 @@ int cvm::atom_group::parse (std::string const &conf,
       for (size_t i = 0; i < index_groups_i->size(); i++) {
         this->push_back (cvm::atom ((*index_groups_i)[i]));
       }
+      if (cvm::get_error()) return COLVARS_ERROR;
     }
   }
 
@@ -185,6 +187,7 @@ int cvm::atom_group::parse (std::string const &conf,
           for (int anum = initial; anum <= final; anum++) {
             this->push_back (cvm::atom (anum));
           }
+          if (cvm::get_error()) return COLVARS_ERROR;
           range_conf = "";
           continue;
         }
@@ -235,6 +238,7 @@ int cvm::atom_group::parse (std::string const &conf,
           for (int resid = initial; resid <= final; resid++) {
             this->push_back (cvm::atom (resid, atom_name, psf_segid));
           }
+          if (cvm::get_error()) return COLVARS_ERROR;
           range_conf = "";
         } else {
           cvm::error ("Error: cannot parse definition for \""
@@ -271,6 +275,9 @@ int cvm::atom_group::parse (std::string const &conf,
       cvm::load_atoms (atoms_file_name.c_str(), *this, atoms_col, atoms_col_value);
     }
   }
+
+  // Catch any errors from all the initialization steps above
+  if (cvm::get_error()) return COLVARS_ERROR;
 
   for (std::vector<cvm::atom>::iterator a1 = this->begin();
        a1 != this->end(); ++a1) {
@@ -433,6 +440,10 @@ int cvm::atom_group::parse (std::string const &conf,
               std::string (key)+"\".\n");
 
   this->check_keywords (group_conf, key);
+  if (cvm::get_error()) {
+    cvm::error("Error setting up atom group \""+std::string (key)+"\".");
+    return COLVARS_ERROR;
+  }
 
   cvm::log ("Atom group \""+std::string (key)+"\" defined, "+
             cvm::to_str (this->size())+" atoms initialized: total mass = "+

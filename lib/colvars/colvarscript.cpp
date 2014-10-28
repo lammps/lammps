@@ -214,10 +214,7 @@ int colvarscript::proc_colvar (int argc, char const *argv[]) {
   }
 
   if (subcmd == "update") {
-    // note: this is not sufficient for a newly created colvar
-    // as atom coordinates may not be properly loaded
-    // a full CVM update is required
-    // or otherwise updating atom positions
+    cv->calc();
     cv->update();
     result = cvm::to_str(cv->value(), 0, cvm::cv_prec);
     return COLVARSCRIPT_OK;

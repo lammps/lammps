@@ -124,6 +124,24 @@ cvm::real colvarbias::energy_difference(std::string const &conf)
 }
 
 
+// So far, these are only implemented in colvarsbias_abf
+int colvarbias::bin_num()
+{
+  cvm::error ("Error: bin_num() not implemented.\n");
+  return -1;
+}
+int colvarbias::current_bin()
+{
+  cvm::error ("Error: current_bin() not implemented.\n");
+  return -1;
+}
+int colvarbias::bin_count(int bin_index)
+{
+  cvm::error ("Error: bin_count() not implemented.\n");
+  return -1;
+}
+
+
 std::ostream & colvarbias::write_traj_label (std::ostream &os)
 {
   os << " ";

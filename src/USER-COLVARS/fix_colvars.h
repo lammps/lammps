@@ -84,6 +84,7 @@ class FixColvars : public Fix {
   int init_flag;       // 1 if initialized, 0 if not
   static  int instances; // count fix instances, since colvars currently
                          // only supports one instance at a time
+  MPI_Comm root2root;   // inter-root communicator for multi-replica support
   void one_time_init(); // one time initialization
 };
 

@@ -1,7 +1,7 @@
 # Settings that the LAMMPS build will import when this package library is used
 CUDA_FLAGS := -I/usr/local/cuda/include -DUNIX  -DFFT_CUFFT -DCUDA_PRECISION=2 -DCUDA_ARCH=20 
-CUDA_USRLIB_CONDITIONAL := -L/usr/local/cuda/lib -L/usr/local/cuda/lib64 -lcufft
+CUDA_USRLIB_CONDITIONAL := -L/usr/local/cuda/lib -L/usr/local/cuda/lib64
  
 user-cuda_SYSINC = ${CUDA_FLAGS}
-user-cuda_SYSLIB = -lcuda -lcudart 
+user-cuda_SYSLIB =  -lcufft -lcuda -lcudart 
 user-cuda_SYSPATH = $(CUDA_USRLIB_CONDITIONAL)

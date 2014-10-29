@@ -31,14 +31,13 @@ texture<int4,1> pos_tex, quat_tex;
 #endif
 
 #define nbor_info_e(nbor_mem, nbor_stride, t_per_atom, ii, offset,           \
-                    i, numj, stride, list_end, nbor)                         \
-    nbor=nbor_mem+ii;                                                        \
-    i=*nbor;                                                                 \
-    nbor+=nbor_stride;                                                       \
-    numj=*nbor;                                                              \
-    nbor+=nbor_stride;                                                       \
-    list_end=nbor+fast_mul(nbor_stride,numj);                                \
-    nbor+=fast_mul(offset,nbor_stride);                                      \
+                    i, numj, stride, nbor_end, nbor_begin)                   \
+    i=nbor_mem[ii];                                                          \
+    nbor_begin=ii+nbor_stride;                                               \
+    numj=nbor_mem[nbor_begin];                                               \
+    nbor_begin+=nbor_stride;                                                 \
+    nbor_end=nbor_begin+fast_mul(nbor_stride,numj);                          \
+    nbor_begin+=fast_mul(offset,nbor_stride);                                \
     stride=fast_mul(t_per_atom,nbor_stride);
 
 #if (ARCH < 300)

@@ -334,6 +334,54 @@ inline double shfl_xor(double var, int laneMask, int width) {
 #endif
 
 // -------------------------------------------------------------------------
+//                           INTEL CPU OPENCL DEFINITIONS
+// -------------------------------------------------------------------------
+
+#ifdef INTEL_OCL
+
+#define USE_OPENCL
+#define MEM_THREADS 16
+#define THREADS_PER_ATOM 1
+#define THREADS_PER_CHARGE 1
+#define BLOCK_PAIR 1
+#define MAX_SHARED_TYPES 0
+#define BLOCK_NBOR_BUILD 4
+#define BLOCK_BIO_PAIR 2
+#define BLOCK_ELLIPSE 2
+
+#define WARP_SIZE 1
+#define PPPM_BLOCK_1D 32
+#define BLOCK_CELL_2D 1
+#define BLOCK_CELL_ID 2
+#define MAX_BIO_SHARED_TYPES 0
+
+#endif
+
+// -------------------------------------------------------------------------
+//                           INTEL PHI OPENCL DEFINITIONS
+// -------------------------------------------------------------------------
+
+#ifdef PHI_OCL
+
+#define USE_OPENCL
+#define MEM_THREADS 16
+#define THREADS_PER_ATOM 1
+#define THREADS_PER_CHARGE 1
+#define BLOCK_PAIR 16
+#define MAX_SHARED_TYPES 0
+#define BLOCK_NBOR_BUILD 16
+#define BLOCK_BIO_PAIR 16
+#define BLOCK_ELLIPSE 16
+
+#define WARP_SIZE 1
+#define PPPM_BLOCK_1D 32
+#define BLOCK_CELL_2D 4
+#define BLOCK_CELL_ID 16
+#define MAX_BIO_SHARED_TYPES 0
+
+#endif
+
+// -------------------------------------------------------------------------
 //                            GENERIC OPENCL DEFINITIONS
 // -------------------------------------------------------------------------
 
@@ -433,7 +481,9 @@ inline double shfl_xor(double var, int laneMask, int width) {
 //                  ARCHITECTURE INDEPENDENT DEFINITIONS
 // -------------------------------------------------------------------------
 
+#ifndef PPPM_MAX_SPLINE
 #define PPPM_MAX_SPLINE 8
+#endif
 
 #ifdef _DOUBLE_DOUBLE
 #define numtyp double

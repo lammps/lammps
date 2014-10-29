@@ -185,13 +185,12 @@ class UCL_Device {
   inline bool double_precision(const int i) 
     {return _properties[i].double_precision;}
    
-  /// Get the number of cores in the current device
-  inline unsigned cores() { return cores(_device); }
-  /// Get the number of cores
-  inline unsigned cores(const int i) 
-    { if (device_type(i)==UCL_CPU) return _properties[i].compute_units;
-      else return _properties[i].compute_units*8; }
-  
+  /// Get the number of compute units on the current device
+  inline unsigned cus() { return cus(_device); }
+  /// Get the number of compute units
+  inline unsigned cus(const int i) 
+    { return _properties[i].compute_units; }
+
   /// Get the gigabytes of global memory in the current device
   inline double gigabytes() { return gigabytes(_device); }
   /// Get the gigabytes of global memory

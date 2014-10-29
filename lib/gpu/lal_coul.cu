@@ -60,20 +60,19 @@ __kernel void k_coul(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    const __global int *nbor, *list_end;
-    int i, numj;
+    int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,list_end,nbor);
+              n_stride,nbor_end,nbor);
   
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
 
-    for ( ; nbor<list_end; nbor+=n_stride) {
-      int j=*nbor;
+    numtyp factor_coul;
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
 
-      numtyp factor_coul;
+      int j=dev_packed[nbor];
       factor_coul = sp_cl[sbmask(j)];
       j &= NEIGHMASK;
 
@@ -152,21 +151,21 @@ __kernel void k_coul_fast(const __global numtyp4 *restrict x_,
   __syncthreads();
   
   if (ii<inum) {
-    const __global int *nbor, *list_end;
-    int i, numj;
+    int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,list_end,nbor);
+              n_stride,nbor_end,nbor);
   
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
-    for ( ; nbor<list_end; nbor+=n_stride) {
-      int j=*nbor;
+    numtyp factor_coul;
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
 
-      numtyp factor_coul = sp_cl[sbmask(j)];
+      int j=dev_packed[nbor];
+      factor_coul = sp_cl[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];

@@ -58,20 +58,20 @@ __kernel void k_yukawa_colloid(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    const __global int *nbor, *list_end;
+    int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,list_end,nbor);
+              n_stride,nbor_end,nbor);
   
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp radi; fetch(radi,i,rad_tex);
     int itype=ix.w;
 
     numtyp factor_lj;
-    for ( ; nbor<list_end; nbor+=n_stride) {
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
   
-      int j=*nbor;
+      int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
@@ -150,11 +150,11 @@ __kernel void k_yukawa_colloid_fast(const __global numtyp4 *restrict x_,
   __syncthreads();
   
   if (ii<inum) {
-    const __global int *nbor, *list_end;
+    int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,list_end,nbor);
+              n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp radi; fetch(radi,i,rad_tex);
@@ -162,9 +162,9 @@ __kernel void k_yukawa_colloid_fast(const __global numtyp4 *restrict x_,
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     numtyp factor_lj;
-    for ( ; nbor<list_end; nbor+=n_stride) {
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
   
-      int j=*nbor;
+      int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 

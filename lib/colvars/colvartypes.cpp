@@ -215,8 +215,6 @@ cvm::quaternion::position_derivative_inner(cvm::rvector const &pos,
 
 
 
-
-
 // Calculate the optimal rotation between two groups, and implement it
 // as a quaternion.  Uses the method documented in: Coutsias EA,
 // Seok C, Dill KA.  Using quaternions to calculate RMSD.  J Comput
@@ -226,11 +224,11 @@ void colvarmodule::rotation::build_matrix(std::vector<cvm::atom_pos> const &pos1
                                           std::vector<cvm::atom_pos> const &pos2,
                                           cvm::matrix2d<cvm::real>         &S)
 {
-  cvm::rmatrix C;
-
   // build the correlation matrix
+  C.resize(3, 3);
   C.reset();
-  for (size_t i = 0; i < pos1.size(); i++) {
+  size_t i;
+  for (i = 0; i < pos1.size(); i++) {
     C.xx() += pos1[i].x * pos2[i].x;
     C.xy() += pos1[i].x * pos2[i].y;
     C.xz() += pos1[i].x * pos2[i].z;
@@ -260,17 +258,6 @@ void colvarmodule::rotation::build_matrix(std::vector<cvm::atom_pos> const &pos1
   S[3][2] =   C.yz() + C.zy();
   S[2][3] = S[3][2];
   S[3][3] = - C.xx() - C.yy() + C.zz();
-
-  //   if (cvm::debug()) {
-  //     for (size_t i = 0; i < 4; i++) {
-  //       std::string line ("");
-  //       for (size_t j = 0; j < 4; j++) {
-  //         line += std::string(" S["+cvm::to_str (i)+
-  //                              "]["+cvm::to_str(j)+"] ="+cvm::to_str (S[i][j]));
-  //       }
-  //       cvm::log (line+"\n");
-  //     }
-  //   }
 }
 
 
@@ -278,39 +265,44 @@ void colvarmodule::rotation::diagonalize_matrix(cvm::matrix2d<cvm::real> &S,
                                                 cvm::vector1d<cvm::real> &S_eigval,
                                                 cvm::matrix2d<cvm::real> &S_eigvec)
 {
+  S_eigval.resize(4);
+  S_eigval.reset();
+  S_eigvec.resize(4,4);
+  S_eigvec.reset();
+
   // diagonalize
   int jac_nrot = 0;
-  jacobi(S, S_eigval.c_array(), S_eigvec, &jac_nrot);
-  eigsrt(S_eigval.c_array(), S_eigvec);
+  jacobi(S.c_array(), S_eigval.c_array(), S_eigvec.c_array(), &jac_nrot);
+  eigsrt(S_eigval.c_array(), S_eigvec.c_array());
   // jacobi saves eigenvectors by columns
-  transpose(S_eigvec);
-
-  S_eigval.update_from_c_array();
-  S_eigval.delete_c_array();
+  transpose(S_eigvec.c_array());
 
   // normalize eigenvectors
   for (size_t ie = 0; ie < 4; ie++) {
     cvm::real norm2 = 0.0;
     size_t i;
-    for (i = 0; i < 4; i++) norm2 += std::pow(S_eigvec[ie][i], int(2));
+    for (i = 0; i < 4; i++) {
+      norm2 += std::pow(S_eigvec[ie][i], int(2));
+    }
     cvm::real const norm = std::sqrt(norm2);
-    for (i = 0; i < 4; i++) S_eigvec[ie][i] /= norm;
+    for (i = 0; i < 4; i++) {
+      S_eigvec[ie][i] /= norm;
+    }
   }
 }
 
 
 // Calculate the rotation, plus its derivatives
 
-void colvarmodule::rotation::calc_optimal_rotation
-(std::vector<cvm::atom_pos> const &pos1,
- std::vector<cvm::atom_pos> const &pos2)
+void colvarmodule::rotation::calc_optimal_rotation(std::vector<cvm::atom_pos> const &pos1,
+                                                   std::vector<cvm::atom_pos> const &pos2)
 {
-  cvm::matrix2d<cvm::real> S(4, 4, 0.0);
-  cvm::matrix2d<cvm::real> S_backup(4, 4, 0.0);
-  cvm::vector1d<cvm::real> S_eigval(4);
-  cvm::matrix2d<cvm::real> S_eigvec(4, 4, 0.0);
+  S.resize(4,4);
+  S.reset();
 
   build_matrix(pos1, pos2, S);
+
+  S_backup.resize(4,4);
   S_backup = S;
 
   if (cvm::debug()) {
@@ -322,23 +314,23 @@ void colvarmodule::rotation::calc_optimal_rotation
   diagonalize_matrix(S, S_eigval, S_eigvec);
 
   // eigenvalues and eigenvectors
-  cvm::real const &L0 = S_eigval[0];
-  cvm::real const &L1 = S_eigval[1];
-  cvm::real const &L2 = S_eigval[2];
-  cvm::real const &L3 = S_eigval[3];
-  cvm::real const *Q0 = S_eigvec[0];
-  cvm::real const *Q1 = S_eigvec[1];
-  cvm::real const *Q2 = S_eigvec[2];
-  cvm::real const *Q3 = S_eigvec[3];
+  cvm::real const L0 = S_eigval[0];
+  cvm::real const L1 = S_eigval[1];
+  cvm::real const L2 = S_eigval[2];
+  cvm::real const L3 = S_eigval[3];
+  cvm::quaternion const Q0(S_eigvec[0]);
+  cvm::quaternion const Q1(S_eigvec[1]);
+  cvm::quaternion const Q2(S_eigvec[2]);
+  cvm::quaternion const Q3(S_eigvec[3]);
 
   lambda = L0;
-  q = cvm::quaternion(Q0);
+  q = Q0;
 
   if (q_old.norm2() > 0.0) {
     q.match(q_old);
     if (q_old.inner(q) < (1.0 - crossing_threshold)) {
       cvm::log("Warning: one molecular orientation has changed by more than "+
-                cvm::to_str(crossing_threshold)+": discontinuous rotation ?\n");
+               cvm::to_str(crossing_threshold)+": discontinuous rotation ?\n");
     }
   }
   q_old = q;
@@ -346,21 +338,21 @@ void colvarmodule::rotation::calc_optimal_rotation
   if (cvm::debug()) {
     if (b_debug_gradients) {
       cvm::log("L0 = "+cvm::to_str(L0, cvm::cv_width, cvm::cv_prec)+
-                ", Q0 = "+cvm::to_str(cvm::quaternion(Q0), cvm::cv_width, cvm::cv_prec)+
-                ", Q0*Q0 = "+cvm::to_str(cvm::quaternion(Q0).inner(cvm::quaternion(Q0)), cvm::cv_width, cvm::cv_prec)+
-                "\n");
+               ", Q0 = "+cvm::to_str(Q0, cvm::cv_width, cvm::cv_prec)+
+               ", Q0*Q0 = "+cvm::to_str(Q0.inner(Q0), cvm::cv_width, cvm::cv_prec)+
+               "\n");
       cvm::log("L1 = "+cvm::to_str(L1, cvm::cv_width, cvm::cv_prec)+
-                ", Q1 = "+cvm::to_str(cvm::quaternion(Q1), cvm::cv_width, cvm::cv_prec)+
-                ", Q0*Q1 = "+cvm::to_str(cvm::quaternion(Q0).inner(cvm::quaternion(Q1)), cvm::cv_width, cvm::cv_prec)+
-                "\n");
+               ", Q1 = "+cvm::to_str(Q1, cvm::cv_width, cvm::cv_prec)+
+               ", Q0*Q1 = "+cvm::to_str(Q0.inner(Q1), cvm::cv_width, cvm::cv_prec)+
+               "\n");
       cvm::log("L2 = "+cvm::to_str(L2, cvm::cv_width, cvm::cv_prec)+
-                ", Q2 = "+cvm::to_str(cvm::quaternion(Q2), cvm::cv_width, cvm::cv_prec)+
-                ", Q0*Q2 = "+cvm::to_str(cvm::quaternion(Q0).inner(cvm::quaternion(Q2)), cvm::cv_width, cvm::cv_prec)+
-                "\n");
+               ", Q2 = "+cvm::to_str(Q2, cvm::cv_width, cvm::cv_prec)+
+               ", Q0*Q2 = "+cvm::to_str(Q0.inner(Q2), cvm::cv_width, cvm::cv_prec)+
+               "\n");
       cvm::log("L3 = "+cvm::to_str(L3, cvm::cv_width, cvm::cv_prec)+
-                ", Q3 = "+cvm::to_str(cvm::quaternion(Q3), cvm::cv_width, cvm::cv_prec)+
-                ", Q0*Q3 = "+cvm::to_str(cvm::quaternion(Q0).inner(cvm::quaternion(Q3)), cvm::cv_width, cvm::cv_prec)+
-                "\n");
+               ", Q3 = "+cvm::to_str(Q3, cvm::cv_width, cvm::cv_prec)+
+               ", Q0*Q3 = "+cvm::to_str(Q0.inner(Q3), cvm::cv_width, cvm::cv_prec)+
+               "\n");
     }
   }
 
@@ -475,9 +467,9 @@ void colvarmodule::rotation::calc_optimal_rotation
 
       if (b_debug_gradients) {
 
-        cvm::matrix2d<cvm::real> S_new(4, 4, 0.0);
+        cvm::matrix2d<cvm::real> S_new(4, 4);
         cvm::vector1d<cvm::real> S_new_eigval(4);
-        cvm::matrix2d<cvm::real> S_new_eigvec(4, 4, 0.0);
+        cvm::matrix2d<cvm::real> S_new_eigvec(4, 4);
 
         // make an infitesimal move along each cartesian coordinate of
         // this atom, and solve again the eigenvector problem
@@ -497,7 +489,7 @@ void colvarmodule::rotation::calc_optimal_rotation
           diagonalize_matrix(S_new, S_new_eigval, S_new_eigvec);
 
           cvm::real const &L0_new = S_new_eigval[0];
-          cvm::real const *Q0_new = S_new_eigvec[0];
+          cvm::quaternion const Q0_new(S_new_eigvec[0]);
 
           cvm::real const DL0 = (dl0_2[comp]) * colvarmodule::debug_gradients_step_size;
           cvm::quaternion const q0(Q0);
@@ -522,22 +514,24 @@ void colvarmodule::rotation::calc_optimal_rotation
 // Numerical Recipes routine for diagonalization
 
 #define ROTATE(a,i,j,k,l) g=a[i][j]; \
-  h=a[k][l];                \
-  a[i][j]=g-s*(h+g*tau);    \
+  h=a[k][l];                         \
+  a[i][j]=g-s*(h+g*tau);             \
   a[k][l]=h+s*(g-h*tau);
 
 #define n 4
 
-void jacobi(cvm::real **a, cvm::real d[], cvm::real **v, int *nrot)
+void jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot)
 {
   int j,iq,ip,i;
   cvm::real tresh,theta,tau,t,sm,s,h,g,c;
 
-  std::vector<cvm::real> b(n, 0.0);
-  std::vector<cvm::real> z(n, 0.0);
+  cvm::vector1d<cvm::real> b(n);
+  cvm::vector1d<cvm::real> z(n);
 
   for (ip=0;ip<n;ip++) {
-    for (iq=0;iq<n;iq++) v[ip][iq]=0.0;
+    for (iq=0;iq<n;iq++) {
+      v[ip][iq]=0.0;
+    }
     v[ip][ip]=1.0;
   }
   for (ip=0;ip<n;ip++) {
@@ -607,7 +601,7 @@ void jacobi(cvm::real **a, cvm::real d[], cvm::real **v, int *nrot)
   cvm::error("Too many iterations in routine jacobi.\n");
 }
 
-void eigsrt(cvm::real d[], cvm::real **v)
+void eigsrt(cvm::real *d, cvm::real **v)
 {
   int k,j,i;
   cvm::real p;
@@ -631,8 +625,9 @@ void eigsrt(cvm::real d[], cvm::real **v)
 void transpose(cvm::real **v)
 {
   cvm::real p;
-  for (int i=0;i<n;i++) {
-    for (int j=i+1;j<n;j++) {
+  int i,j;
+  for (i=0;i<n;i++) {
+    for (j=i+1;j<n;j++) {
       p=v[i][j];
       v[i][j]=v[j][i];
       v[j][i]=p;

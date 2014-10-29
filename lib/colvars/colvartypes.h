@@ -4,6 +4,9 @@
 #define COLVARTYPES_H
 
 #include <cmath>
+#include <vector>
+
+#include "colvarmodule.h"
 
 #ifndef PI
 #define PI 3.14159265358979323846
@@ -18,94 +21,113 @@
 /// \brief Arbitrary size array (one dimensions) suitable for linear
 /// algebra operations (i.e. for floating point numbers it can be used
 /// with library functions)
-template <class T> class colvarmodule::vector1d : public std::vector<T>
+template <class T> class colvarmodule::vector1d
 {
 protected:
 
-  // member used to exchange with functions expecting a C-style array
-  T *array;
-  size_t length;
+  std::vector<T> data;
 
 public:
 
+  size_t length;
+
   /// Default constructor
-  inline vector1d(size_t const n = 0) : array (NULL)
+  inline vector1d(size_t const n = 0)
   {
     length = n;
-    this->resize(n);
+    data.resize(n);
     reset();
   }
 
-  /// Create a copy (unless it exists already), and return it
+  /// Constructor from C array
+  inline vector1d(size_t const n, T const *t)
+  {
+    length = n;
+    data.resize(n);
+    reset();
+    size_t i;
+    for (i = 0; i < size(); i++) {
+      data[i] = t[i];
+    }
+  }
+
+  /// Return a pointer to the data location
   inline T * c_array()
   {
-    if (array == NULL) {
-      array = new T[this->size()];
-      for (size_t i = 0; i < this->size(); i++) {
-        array[i] = (*this)[i];
-      }
+    if (data.size() > 0) {
+      return &(data[0]);
+    } else {
+      return NULL;
     }
-    return array;
-  }
-
-  inline void update_from_c_array()
-  {
-    for (size_t i = 0; i < this->size(); i++) {
-      (*this)[i] = array[i];
-    }
-  }
-
-  inline void delete_c_array()
-  {
-    delete [] array;
-    array = NULL;
   }
 
   inline ~vector1d()
   {
-    this->delete_c_array();
+    data.clear();
   }
 
   /// Set all elements to zero
   inline void reset()
   {
-    this->assign(this->size(), T(0.0));
+    data.assign(data.size(), T(0.0));
   }
 
-  inline static void check_sizes(size_t const n1, size_t const n2)
+  inline size_t size() const
   {
-    if (n1 != n2) {
+    return data.size();
+  }
+
+  inline void resize(size_t const n)
+  {
+    data.resize(n);
+  }
+
+  inline T & operator [] (size_t const i) {
+    return data[i];
+  }
+
+  inline T const & operator [] (size_t const i) const {
+    return data[i];
+  }
+
+  inline static void check_sizes(vector1d<T> const &v1, vector1d<T> const &v2)
+  {
+    if (v1.size() != v2.size()) {
       cvm::error("Error: trying to perform an operation between vectors of different sizes, "+
-                 cvm::to_str(n1)+" and "+cvm::to_str(n2)+".\n");
+                 cvm::to_str(v1.size())+" and "+cvm::to_str(v2.size())+".\n");
     }
   }
 
   inline void operator += (vector1d<T> const &v)
   {
-    check_sizes(this->size(), v.size());
-    for (size_t i = 0; i < this->size(); i++) {
+    check_sizes(*this, v);
+    size_t i;
+    for (i = 0; i < this->size(); i++) {
       (*this)[i] += v[i];
     }
   }
 
   inline void operator -= (vector1d<T> const &v)
   {
-    check_sizes(this->size(), v.size());
-    for (size_t i = 0; i < this->size(); i++) {
+    check_sizes(*this, v);
+    size_t i;
+    for (i = 0; i < this->size(); i++) {
       (*this)[i] -= v[i];
     }
   }
 
   inline void operator *= (cvm::real const &a)
   {
-    for (size_t i = 0; i < this->size(); i++) {
+    size_t i;
+    for (i = 0; i < this->size(); i++) {
       (*this)[i] *= a;
     }
   }
 
   inline void operator /= (cvm::real const &a)
   {
-    for (size_t i = 0; i < this->size(); i++) {
+    size_t i;
+    for (i = 0; i < this->size(); i++) {
       (*this)[i] /= a;
     }
   }
@@ -114,7 +136,8 @@ public:
   {
     check_sizes(v1.size(), v2.size());
     vector1d<T> result(v1.size());
-    for (size_t i = 0; i < v1.size(); i++) {
+    size_t i;
+    for (i = 0; i < v1.size(); i++) {
       result[i] = v1[i] + v2[i];
     }
     return result;
@@ -124,7 +147,8 @@ public:
   {
     check_sizes(v1.size(), v2.size());
     vector1d<T> result(v1.size());
-    for (size_t i = 0; i < v1.size(); i++) {
+    size_t i;
+    for (i = 0; i < v1.size(); i++) {
       result[i] = v1[i] - v2[i];
     }
     return result;
@@ -133,7 +157,8 @@ public:
   inline friend vector1d<T> operator * (vector1d<T> const &v, cvm::real const &a)
   {
     vector1d<T> result(v.size());
-    for (size_t i = 0; i < v.size(); i++) {
+    size_t i;
+    for (i = 0; i < v.size(); i++) {
       result[i] = v[i] * a;
     }
     return result;
@@ -147,7 +172,8 @@ public:
   inline friend vector1d<T> operator / (vector1d<T> const &v, cvm::real const &a)
   {
     vector1d<T> result(v.size());
-    for (size_t i = 0; i < v.size(); i++) {
+    size_t i;
+    for (i = 0; i < v.size(); i++) {
       result[i] = v[i] / a;
     }
     return result;
@@ -158,7 +184,8 @@ public:
   {
     check_sizes(v1.size(), v2.size());
     T prod(0.0);
-    for (size_t i = 0; i < v1.size(); i++) {
+    size_t i;
+    for (i = 0; i < v1.size(); i++) {
       prod += v1[i] * v2[i];
     }
     return prod;
@@ -168,7 +195,8 @@ public:
   inline cvm::real norm2() const
   {
     cvm::real result = 0.0;
-    for (size_t i = 0; i < this->size(); i++) {
+    size_t i;
+    for (i = 0; i < this->size(); i++) {
       result += (*this)[i] * (*this)[i];
     }
     return result;
@@ -186,7 +214,8 @@ public:
       cvm::error("Error: trying to slice a vector using incorrect boundaries.\n");
     }
     vector1d<T> result(i2 - i1);
-    for (size_t i = 0; i < (i2 - i1); i++) {
+    size_t i;
+    for (i = 0; i < (i2 - i1); i++) {
       result[i] = (*this)[i1+i];
     }
     return result;
@@ -198,7 +227,8 @@ public:
     if ((i2 < i1) || (i1 < 0) || (i2 >= this->size())) {
       cvm::error("Error: trying to slice a vector using incorrect boundaries.\n");
     }
-    for (size_t i = 0; i < (i2 - i1); i++) {
+    size_t i;
+    for (i = 0; i < (i2 - i1); i++) {
       (*this)[i1+i] = v[i];
     }
   }
@@ -211,7 +241,8 @@ public:
     std::streamsize const p = os.precision();
 
     os << "( ";
-    for (size_t i = 0; i < v.size()-1; i++) {
+    size_t i;
+    for (i = 0; i < v.size()-1; i++) {
       os.width(w); os.precision(p);
       os << v[i] << " , ";
     }
@@ -220,7 +251,6 @@ public:
     return os;
   }
 
-
   inline std::string to_simple_string() const
   {
     if (this->size() == 0) return std::string("");
@@ -228,12 +258,12 @@ public:
     os.setf(std::ios::scientific, std::ios::floatfield);
     os.precision(cvm::cv_prec);
     os << (*this)[0];
-    for (size_t i = 1; i < this->size(); i++) {
+    size_t i;
+    for (i = 1; i < this->size(); i++) {
       os << " " << (*this)[i];
     }
     return os.str();
   }
-
 
   inline int from_simple_string(std::string const &s)
   {
@@ -243,6 +273,328 @@ public:
       i++;
     }
     if (i < this->size()) {
+      return COLVARS_ERROR;
+    }
+    return COLVARS_OK;
+  }
+
+};
+
+
+/// \brief Arbitrary size array (two dimensions) suitable for linear
+/// algebra operations (i.e. for floating point numbers it can be used
+/// with library functions)
+template <class T> class colvarmodule::matrix2d
+{
+public:
+
+  friend class row;
+  size_t outer_length;
+  size_t inner_length;
+
+protected:
+
+  class row {
+  public:
+    T * data;
+    size_t length;
+    friend class matrix2d;
+    inline row(T * const row_data, size_t const inner_length)
+      : data(row_data), length(inner_length)
+    {}
+    inline T & operator [] (size_t const j) {
+      return *(data+j);
+    }
+    inline T const & operator [] (size_t const j) const {
+      return *(data+j);
+    }
+    inline operator vector1d<T>() const
+    {
+      return vector1d<T>(length, data);
+    }
+  };
+
+  std::vector<T> data;
+  std::vector<row> rows;
+  std::vector<T *> pointers;
+
+public:
+
+  /// Allocation routine, used by all constructors
+  inline void resize(size_t const ol, size_t const il)
+  {
+    if ((ol > 0) && (il > 0)) {
+
+      if (data.size() > 0) {
+        // copy previous data
+        size_t i, j;
+        std::vector<T> new_data(ol * il);
+        for (i = 0; i < outer_length; i++) {
+          for (j = 0; j < inner_length; j++) {
+            new_data[il*i+j] = data[inner_length*i+j];
+          }
+        }
+        data.resize(ol * il);
+        // copy them back
+        data = new_data;
+      } else {
+        data.resize(ol * il);
+      }
+
+      outer_length = ol;
+      inner_length = il;
+
+      if (data.size() > 0) {
+        // rebuild rows
+        size_t i;
+        rows.clear();
+        rows.reserve(outer_length);
+        pointers.clear();
+        pointers.reserve(outer_length);
+        for (i = 0; i < outer_length; i++) {
+          rows.push_back(row(&(data[0])+inner_length*i, inner_length));
+          pointers.push_back(&(data[0])+inner_length*i);
+        }
+     }
+    } else {
+      // zero size
+      data.clear();
+      rows.clear();
+    }
+  }
+
+  /// Deallocation routine
+  inline void clear() {
+    rows.clear();
+    data.clear();
+  }
+
+  /// Set all elements to zero
+  inline void reset()
+  {
+    data.assign(data.size(), T(0.0));
+  }
+
+  /// Default constructor
+  inline matrix2d()
+    : outer_length(0), inner_length(0)
+  {
+    this->resize(0, 0);
+  }
+
+  inline matrix2d(size_t const ol, size_t const il)
+    : outer_length(ol), inner_length(il)
+  {
+    this->resize(outer_length, inner_length);
+    reset();
+  }
+
+  /// Copy constructor
+  inline matrix2d(matrix2d<T> const &m)
+    : outer_length(m.outer_length), inner_length(m.inner_length)
+  {
+    // reinitialize data and rows arrays
+    this->resize(outer_length, inner_length);
+    // copy data
+    data = m.data;
+  }
+
+  /// Destructor
+  inline ~matrix2d() {
+    this->clear();
+  }
+
+  inline row & operator [] (size_t const i)
+  {
+    return rows[i];
+  }
+  inline row const & operator [] (size_t const i) const
+  {
+    return rows[i];
+  }
+
+  /// Assignment
+  inline matrix2d<T> & operator = (matrix2d<T> const &m)
+  {
+    if ((outer_length != m.outer_length) || (inner_length != m.inner_length)){
+      this->clear();
+      outer_length = m.outer_length;
+      inner_length = m.inner_length;
+      this->resize(outer_length, inner_length);
+    }
+    data = m.data;
+    return *this;
+  }
+
+  /// Return the 2-d C array
+  inline T ** c_array() {
+    if (rows.size() > 0) {
+      return &(pointers[0]);
+    } else {
+      return NULL;
+    }
+  }
+
+  inline static void check_sizes(matrix2d<T> const &m1, matrix2d<T> const &m2)
+  {
+    if ((m1.outer_length != m2.outer_length) ||
+        (m1.inner_length != m2.inner_length)) {
+      cvm::error("Error: trying to perform an operation between matrices of different sizes, "+
+                 cvm::to_str(m1.outer_length)+"x"+cvm::to_str(m1.inner_length)+" and "+
+                 cvm::to_str(m2.outer_length)+"x"+cvm::to_str(m2.inner_length)+".\n");
+    }
+  }
+
+  inline void operator += (matrix2d<T> const &m)
+  {
+    check_sizes(*this, m);
+    size_t i;
+    for (i = 0; i < data.size(); i++) {
+      data[i] += m.data[i];
+    }
+  }
+
+  inline void operator -= (matrix2d<T> const &m)
+  {
+    check_sizes(*this, m);
+    size_t i;
+    for (i = 0; i < data.size(); i++) {
+      data[i] -= m.data[i];
+    }
+  }
+
+  inline void operator *= (cvm::real const &a)
+  {
+    size_t i;
+    for (i = 0; i < data.size(); i++) {
+      data[i] *= a;
+    }
+  }
+
+  inline void operator /= (cvm::real const &a)
+  {
+    size_t i;
+    for (i = 0; i < data.size(); i++) {
+      data[i] /= a;
+    }
+  }
+
+  inline friend matrix2d<T> operator + (matrix2d<T> const &m1, matrix2d<T> const &m2)
+  {
+    check_sizes(m1, m2);
+    matrix2d<T> result(m1.outer_length, m1.inner_length);
+    size_t i;
+    for (i = 0; i < m1.data.size(); i++) {
+      result.data[i] = m1.data[i] + m2.data[i];
+    }
+    return result;
+  }
+
+  inline friend matrix2d<T> operator - (matrix2d<T> const &m1, matrix2d<T> const &m2)
+  {
+    check_sizes(m1, m2);
+    matrix2d<T> result(m1.outer_length, m1.inner_length);
+    size_t i;
+    for (i = 0; i < m1.data.size(); i++) {
+      result.data[i] = m1.data[i] - m1.data[i];
+    }
+    return result;
+  }
+
+  inline friend matrix2d<T> operator * (matrix2d<T> const &m, cvm::real const &a)
+  {
+    matrix2d<T> result(m.outer_length, m.inner_length);
+    size_t i;
+    for (i = 0; i < m.data.size(); i++) {
+      result.data[i] = m.data[i] * a;
+    }
+    return result;
+  }
+
+  inline friend matrix2d<T> operator * (cvm::real const &a, matrix2d<T> const &m)
+  {
+    return m * a;
+  }
+
+  inline friend matrix2d<T> operator / (matrix2d<T> const &m, cvm::real const &a)
+  {
+    matrix2d<T> result(m.outer_length, m.inner_length);
+    size_t i;
+    for (i = 0; i < m.data.size(); i++) {
+      result.data[i] = m.data[i] * a;
+    }
+    return result;
+  }
+
+  /// Matrix multiplication
+  inline friend matrix2d<T> const & operator * (matrix2d<T> const &m1, matrix2d<T> const &m2)
+  {
+    matrix2d<T> result(m1.outer_length, m2.inner_length);
+    if (m1.inner_length != m2.outer_length) {
+      cvm::error("Error: trying to multiply two matrices of incompatible sizes, "+
+                 cvm::to_str(m1.outer_length)+"x"+cvm::to_str(m1.inner_length)+" and "+
+                 cvm::to_str(m2.outer_length)+"x"+cvm::to_str(m2.inner_length)+".\n");
+    } else {
+      size_t i, j, k;
+      for (i = 0; i < m1.outer_length; i++) {
+        for (j = 0; j < m2.inner_length; j++) {
+          for (k = 0; k < m1.inner_length; k++) {
+            result[i][j] += m1[i][k] * m2[k][j];
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Formatted output
+  friend std::ostream & operator << (std::ostream &os,
+                                     matrix2d<T> const &m)
+  {
+    std::streamsize const w = os.width();
+    std::streamsize const p = os.precision();
+
+    os << "(";
+    size_t i;
+    for (i = 0; i < m.outer_length; i++) {
+      os << " ( ";
+      size_t j;
+      for (j = 0; j < m.inner_length-1; j++) {
+        os.width(w);
+        os.precision(p);
+        os << m[i][j] << " , ";
+      }
+      os.width(w);
+      os.precision(p);
+      os << m[i][m.inner_length-1] << " )";
+    }
+
+    os << " )";
+    return os;
+  }
+
+  inline std::string to_simple_string() const
+  {
+    if (this->size() == 0) return std::string("");
+    std::ostringstream os;
+    os.setf(std::ios::scientific, std::ios::floatfield);
+    os.precision(cvm::cv_prec);
+    os << (*this)[0];
+    size_t i;
+    for (i = 1; i < data.size(); i++) {
+      os << " " << data[i];
+    }
+    return os.str();
+  }
+
+  inline int from_simple_string(std::string const &s)
+  {
+    std::stringstream stream(s);
+    size_t i = 0;
+    while ((stream >> data[i]) && (i < data.size())) {
+      i++;
+    }
+    if (i < data.size()) {
       return COLVARS_ERROR;
     }
     return COLVARS_OK;
@@ -428,136 +780,6 @@ public:
 };
 
 
-
-/// \brief Arbitrary size array (two dimensions) suitable for linear
-/// algebra operations (i.e. for floating point numbers it can be used
-/// with library functions)
-template <class T> class colvarmodule::matrix2d
-{
-protected:
-
-  /// Underlying C array
-  T **array;
-  size_t outer_length;
-  size_t inner_length;
-
-public:
-
-  /// Allocation routine, used by all constructors
-  inline void alloc() {
-    if ((outer_length > 0) && (inner_length > 0)) {
-      array = new T * [outer_length];
-      for (size_t i = 0; i < outer_length; i++) {
-        array[i] = new T [inner_length];
-      }
-    } else {
-      array = NULL;
-    }
-  }
-
-  /// Deallocation routine
-  inline void dealloc() {
-    if (array != NULL) {
-      for (size_t i = 0; i < outer_length; i++) {
-        delete [] array[i];
-      }
-      delete [] array;
-    }
-  }
-  /// Set all elements to zero
-  inline void reset()
-  {
-    for (size_t i = 0; i < outer_length; i++) {
-      for (size_t j = 0; j < inner_length; j++) {
-        array[i][j] = T(0.0);
-      }
-    }
-  }
-
-  /// Default constructor
-  inline matrix2d(size_t const no = 0, size_t const ni = 0, T const &t = T())
-    : outer_length(no), inner_length(ni)
-  {
-    this->alloc();
-    reset();
-  }
-
-  /// Constructor from a 2-d C array
-  inline matrix2d(size_t const no, size_t const ni, T const **m)
-    : outer_length(no), inner_length(ni)
-  {
-    this->alloc();
-    for (size_t i = 0; i < outer_length; i++) {
-      for (size_t j = 0; j < inner_length; j++) {
-        array[i][j] = m[i][j];
-      }
-    }
-  }
-
-  /// Copy constructor
-  inline matrix2d(matrix2d<T> const &m)
-    : outer_length(m.outer_length), inner_length(m.inner_length)
-  {
-    this->alloc();
-    for (size_t i = 0; i < outer_length; i++) {
-      for (size_t j = 0; j < inner_length; j++) {
-        this->array[i][j] = m.array[i][j];
-      }
-    }
-  }
-
-  /// Assignment
-  inline matrix2d<T> & operator = (matrix2d<T> const &m)
-  {
-    if ((outer_length != m.outer_length) || (inner_length != m.inner_length)){
-      this->dealloc();
-      outer_length = m.outer_length;
-      inner_length = m.inner_length;
-      this->alloc();
-    }
-    for (size_t i = 0; i < outer_length; i++) {
-      for (size_t j = 0; j < inner_length; j++) {
-        this->array[i][j] = m.array[i][j];
-      }
-    }
-    return *this;
-  }
-
-  /// Destructor
-  inline ~matrix2d() {
-    this->dealloc();
-  }
-
-  /// Return the 2-d C array
-  inline operator T **() { return array; }
-
-  /// Formatted output
-  friend std::ostream & operator << (std::ostream &os,
-                                     cvm::matrix2d<T> const &m)
-  {
-    std::streamsize const w = os.width();
-    std::streamsize const p = os.precision();
-
-    os << "(";
-    for (size_t i = 0; i < m.outer_length; i++) {
-      os << " ( ";
-      for (size_t j = 0; j < m.inner_length-1; j++) {
-        os.width(w);
-        os.precision(p);
-        os << m.array[i][j] << " , ";
-      }
-      os.width(w);
-      os.precision(p);
-      os << m.array[i][m.inner_length-1] << " )";
-    }
-
-    os << " )";
-    return os;
-  }
-
-};
-
-
 /// \brief 2-dimensional array of real numbers with three components
 /// along each dimension (works with colvarmodule::rvector)
 class colvarmodule::rmatrix
@@ -567,51 +789,46 @@ private:
 public:
 
   /// Return the xx element
-  inline cvm::real & xx() { return array[0][0]; }
+  inline cvm::real & xx() { return (*this)[0][0]; }
   /// Return the xy element
-  inline cvm::real & xy() { return array[0][1]; }
+  inline cvm::real & xy() { return (*this)[0][1]; }
   /// Return the xz element
-  inline cvm::real & xz() { return array[0][2]; }
+  inline cvm::real & xz() { return (*this)[0][2]; }
   /// Return the yx element
-  inline cvm::real & yx() { return array[1][0]; }
+  inline cvm::real & yx() { return (*this)[1][0]; }
   /// Return the yy element
-  inline cvm::real & yy() { return array[1][1]; }
+  inline cvm::real & yy() { return (*this)[1][1]; }
   /// Return the yz element
-  inline cvm::real & yz() { return array[1][2]; }
+  inline cvm::real & yz() { return (*this)[1][2]; }
   /// Return the zx element
-  inline cvm::real & zx() { return array[2][0]; }
+  inline cvm::real & zx() { return (*this)[2][0]; }
   /// Return the zy element
-  inline cvm::real & zy() { return array[2][1]; }
+  inline cvm::real & zy() { return (*this)[2][1]; }
   /// Return the zz element
-  inline cvm::real & zz() { return array[2][2]; }
+  inline cvm::real & zz() { return (*this)[2][2]; }
 
   /// Return the xx element
-  inline cvm::real xx() const { return array[0][0]; }
+  inline cvm::real xx() const { return (*this)[0][0]; }
   /// Return the xy element
-  inline cvm::real xy() const { return array[0][1]; }
+  inline cvm::real xy() const { return (*this)[0][1]; }
   /// Return the xz element
-  inline cvm::real xz() const { return array[0][2]; }
+  inline cvm::real xz() const { return (*this)[0][2]; }
   /// Return the yx element
-  inline cvm::real yx() const { return array[1][0]; }
+  inline cvm::real yx() const { return (*this)[1][0]; }
   /// Return the yy element
-  inline cvm::real yy() const { return array[1][1]; }
+  inline cvm::real yy() const { return (*this)[1][1]; }
   /// Return the yz element
-  inline cvm::real yz() const { return array[1][2]; }
+  inline cvm::real yz() const { return (*this)[1][2]; }
   /// Return the zx element
-  inline cvm::real zx() const { return array[2][0]; }
+  inline cvm::real zx() const { return (*this)[2][0]; }
   /// Return the zy element
-  inline cvm::real zy() const { return array[2][1]; }
+  inline cvm::real zy() const { return (*this)[2][1]; }
   /// Return the zz element
-  inline cvm::real zz() const { return array[2][2]; }
-
-  /// Constructor from a 2-d C array
-  inline rmatrix(cvm::real const **m)
-    : cvm::matrix2d<cvm::real> (3, 3, m)
-  {}
+  inline cvm::real zz() const { return (*this)[2][2]; }
 
   /// Default constructor
   inline rmatrix()
-    : cvm::matrix2d<cvm::real>(3, 3, 0.0)
+    : cvm::matrix2d<cvm::real>(3, 3)
   {}
 
   /// Constructor component by component
@@ -624,7 +841,7 @@ public:
                  cvm::real const &zxi,
                  cvm::real const &zyi,
                  cvm::real const &zzi)
-    : cvm::matrix2d<cvm::real>(3, 3, 0.0)
+    : cvm::matrix2d<cvm::real>(3, 3)
   {
     this->xx() = xxi;
     this->xy() = xyi;
@@ -690,10 +907,10 @@ inline cvm::rvector operator * (cvm::rmatrix const &m,
 
 
 /// Numerical recipes diagonalization
-void jacobi(cvm::real **a, cvm::real d[], cvm::real **v, int *nrot);
+void jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot);
 
 /// Eigenvector sort
-void eigsrt(cvm::real d[], cvm::real **v);
+void eigsrt(cvm::real *d, cvm::real **v);
 
 /// Transpose the matrix
 void transpose(cvm::real **v);
@@ -1067,7 +1284,16 @@ public:
 
   /// \brief Positions to superimpose: the rotation should brings pos1
   /// into pos2
-  std::vector< cvm::atom_pos > pos1, pos2;
+  std::vector<cvm::atom_pos> pos1, pos2;
+
+  cvm::rmatrix C;
+
+  cvm::matrix2d<cvm::real> S;
+  cvm::vector1d<cvm::real> S_eigval;
+  cvm::matrix2d<cvm::real> S_eigvec;
+
+  /// Used for debugging gradients
+  cvm::matrix2d<cvm::real> S_backup;
 
   /// Derivatives of S
   std::vector< cvm::matrix2d<cvm::rvector> > dS_1,  dS_2;
@@ -1079,7 +1305,7 @@ public:
   /// Allocate space for the derivatives of the rotation
   inline void request_group1_gradients(size_t const &n)
   {
-    dS_1.resize(n, cvm::matrix2d<cvm::rvector>(4, 4, cvm::rvector(0.0, 0.0, 0.0)));
+    dS_1.resize(n, cvm::matrix2d<cvm::rvector>(4, 4));
     dL0_1.resize(n, cvm::rvector(0.0, 0.0, 0.0));
     dQ0_1.resize(n, cvm::vector1d<cvm::rvector>(4));
   }
@@ -1087,7 +1313,7 @@ public:
   /// Allocate space for the derivatives of the rotation
   inline void request_group2_gradients(size_t const &n)
   {
-    dS_2.resize(n, cvm::matrix2d<cvm::rvector>(4, 4, cvm::rvector(0.0, 0.0, 0.0)));
+    dS_2.resize(n, cvm::matrix2d<cvm::rvector>(4, 4));
     dL0_2.resize(n, cvm::rvector(0.0, 0.0, 0.0));
     dQ0_2.resize(n, cvm::vector1d<cvm::rvector>(4));
   }

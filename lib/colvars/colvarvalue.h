@@ -817,7 +817,8 @@ inline void colvarvalue::apply_constraints()
   case colvarvalue::type_vector:
     if (elem_types.size() > 0) {
       // if we have information about non-scalar types, use it
-      for (size_t i = 0; i < elem_types.size(); i++) {
+      size_t i;
+      for (i = 0; i < elem_types.size(); i++) {
         if (elem_sizes[i] == 1) continue; // TODO this can be optimized further
         colvarvalue cvtmp(vector1d_value.slice(elem_indices[i],
                                                elem_indices[i] + elem_sizes[i]), elem_types[i]);
@@ -873,7 +874,8 @@ inline cvm::real colvarvalue::norm2() const
     if (elem_types.size() > 0) {
       // if we have information about non-scalar types, use it
       cvm::real result = 0.0;
-      for (size_t i = 0; i < elem_types.size(); i++) {
+      size_t i;
+      for (i = 0; i < elem_types.size(); i++) {
         result += (this->get_elem(i)).norm2();
       }
       return result;

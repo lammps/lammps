@@ -95,12 +95,14 @@ colvarvalue colvarvalue::inverse() const
       cvm::vector1d<cvm::real> result(vector1d_value);
       if (elem_types.size() > 0) {
         // if we have information about non-scalar types, use it
-        for (size_t i = 0; i < elem_types.size(); i++) {
+        size_t i;
+        for (i = 0; i < elem_types.size(); i++) {
           result.sliceassign(elem_indices[i], elem_indices[i]+elem_sizes[i],
                              cvm::vector1d<cvm::real>((this->get_elem(i)).inverse()));
         }
       } else {
-        for (size_t i = 0; i < result.size(); i++) {
+        size_t i;
+        for (i = 0; i < result.size(); i++) {
           if (result[i] != 0.0) {
             result = 1.0/result[i];
           }
@@ -380,7 +382,8 @@ std::ostream & operator << (std::ostream &os, colvarvalue const &x)
 
 std::ostream & operator << (std::ostream &os, std::vector<colvarvalue> const &v)
 {
-  for (size_t i = 0; i < v.size(); i++) {
+  size_t i;
+  for (i = 0; i < v.size(); i++) {
     os << v[i];
   }
   return os;

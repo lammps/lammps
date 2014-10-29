@@ -867,7 +867,7 @@ void colvar::rmsd::calc_Jacobian_derivative()
   if (atoms.b_rotate) {
 
     // gradient of the rotation matrix
-    cvm::matrix2d<cvm::rvector> grad_rot_mat(3, 3, cvm::rvector(0.0, 0.0, 0.0));
+    cvm::matrix2d<cvm::rvector> grad_rot_mat(3, 3);
     // gradients of products of 2 quaternion components
     cvm::rvector g11, g22, g33, g01, g02, g03, g12, g13, g23;
     for (size_t ia = 0; ia < atoms.size(); ia++) {
@@ -1143,7 +1143,7 @@ void colvar::eigenvector::calc_force_invgrads()
 void colvar::eigenvector::calc_Jacobian_derivative()
 {
   // gradient of the rotation matrix
-  cvm::matrix2d<cvm::rvector> grad_rot_mat(3, 3, cvm::rvector(0.0, 0.0, 0.0));
+  cvm::matrix2d<cvm::rvector> grad_rot_mat(3, 3);
   cvm::quaternion &quat0 = atoms.rot.q;
 
   // gradients of products of 2 quaternion components

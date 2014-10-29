@@ -52,12 +52,12 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
                      ramp(x,y), stagger(x,y), logfreq(x,y,z), stride(x,y,z), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
-		      bound(group,xmin), gyration(group), ke(group),
+		      bound(group,dir), gyration(group), ke(group),
 		      angmom(group,dim), torque(group,dim),
                       inertia(group,dimdim), omega(group,dim)
     region functions = count(group,region), mass(group,region), charge(group,region),
 		      xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
-		      bound(group,xmin,region), gyration(group,region), ke(group,reigon),
+		      bound(group,dir,region), gyration(group,region), ke(group,reigon),
 		      angmom(group,dim,region), torque(group,dim,region), 
 		      inertia(group,dimdim,region), omega(group,dim,region)
     special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x)
@@ -588,8 +588,8 @@ timestep-startstep.
 Group and Region Functions :h4
 
 Group functions are specified as keywords followed by one or two
-parenthesized arguments.  The first argument is the group-ID.  The
-{dim} argument, if it exists, is {x} or {y} or {z}.  The {dir}
+parenthesized arguments.  The first argument {ID} is the group-ID.
+The {dim} argument, if it exists, is {x} or {y} or {z}.  The {dir}
 argument, if it exists, is {xmin}, {xmax}, {ymin}, {ymax}, {zmin}, or
 {zmax}.  The {dimdim} argument, if it exists, is {xx} or {yy} or {zz}
 or {xy} or {yz} or {xz}.
@@ -612,9 +612,9 @@ Omega() returns components of the angular velocity of the group of
 atoms around its center of mass.
 
 Region functions are specified exactly the same way as group functions
-except they take an extra argument which is the region ID.  The
-function is computed for all atoms that are in both the group and the
-region.  If the group is "all", then the only criteria for atom
+except they take an extra final argument {IDR} which is the region ID.
+The function is computed for all atoms that are in both the group and
+the region.  If the group is "all", then the only criteria for atom
 inclusion is that it be in the region.
 
 :line

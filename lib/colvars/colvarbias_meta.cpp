@@ -735,6 +735,17 @@ void colvarbias_meta::calc_hills_force(size_t const &i,
     }
     break;
 
+  case colvarvalue::type_vector:
+    for (h = h_first; h != h_last; h++) {
+      if (h->value() == 0.0) continue;
+      colvarvalue const &center = h->centers[i];
+      cvm::real const    half_width = 0.5 * h->widths[i];
+      forces[i].vector1d_value +=
+        ( h->weight() * h->value() * (0.5 / (half_width*half_width)) *
+          (colvars[i]->dist2_lgrad(x, center)).vector1d_value );
+    }
+    break;
+
   case colvarvalue::type_notset:
     break;
   }

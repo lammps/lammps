@@ -235,6 +235,34 @@ public:
 
   /// Formatted output
 
+  inline size_t output_width(size_t const &real_width) const
+  {
+    return real_width*this->size() + real_width*(this->size()-1) + 4;
+  }
+
+  inline friend std::istream & operator >> (std::istream &is, cvm::vector1d<T> &v)
+  {
+    if (v.size() == 0) return is;
+    size_t const start_pos = is.tellg();
+    char sep;
+    if ( !(is >> sep) || !(sep == '(') ) {
+      is.clear();
+      is.seekg(start_pos, std::ios::beg);
+      is.setstate(std::ios::failbit);
+      return is;
+    }
+    size_t count = 0;
+    while ( (is >> v[count]) && (is >> sep) && (sep == ',') && (count < v.size()) ) {
+      count++;
+    }
+    if (count < v.size()) {
+      is.clear();
+      is.seekg(start_pos, std::ios::beg);
+      is.setstate(std::ios::failbit);
+    }
+    return is;
+  }
+
   inline friend std::ostream & operator << (std::ostream &os, cvm::vector1d<T> const &v)
   {
     std::streamsize const w = os.width();

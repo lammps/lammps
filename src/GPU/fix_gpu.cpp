@@ -40,7 +40,8 @@ extern int lmp_init_device(MPI_Comm world, MPI_Comm replica,
                            const int first_gpu, const int last_gpu,
                            const int gpu_mode, const double particle_split,
                            const int nthreads, const int t_per_atom,
-                           const double cell_size, char *opencl_flags);
+                           const double cell_size, char *opencl_flags, 
+                           const int block_pair);
 extern void lmp_clear_device();
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
                              double **vatom, double *virial, double &ecoul);
@@ -98,6 +99,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   int threads_per_atom = -1;
   double binsize = 0.0;
   char *opencl_flags = NULL;
+  int block_pair = -1;
 
   int iarg = 4;
   while (iarg < narg) {
@@ -142,14 +144,12 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
       opencl_flags = arg[iarg+1];
       iarg += 2;
+    } else if (strcmp(arg[iarg],"blocksize") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      block_pair = force->inumeric(FLERR,arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal package gpu command");
   }
-
-  // error check
-
-  if ((_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH) && 
-      domain->triclinic)
-    error->all(FLERR,"Cannot use package gpu neigh yes with triclinic box");
 
   #ifndef _OPENMP
   if (nthreads > 1)
@@ -171,7 +171,8 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   if (binsize == 0.0) binsize = -1.0;
   int gpu_flag = lmp_init_device(universe->uworld, world, first_gpu, last_gpu,
                                  _gpu_mode, _particle_split, nthreads,
-                                 threads_per_atom, binsize, opencl_flags);
+                                 threads_per_atom, binsize, opencl_flags, 
+                                 block_pair);
   GPU_EXTRA::check_flag(gpu_flag,error,world);
 }
 
@@ -215,6 +216,17 @@ void FixGPU::init()
       error->all(FLERR,"GPU split param must be positive "
                  "for hybrid pair styles");
 
+  // neighbor list builds on the GPU with triclinic box is not yet supported
+
+  if ((_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH) && 
+      domain->triclinic)
+    error->all(FLERR,"Cannot use package gpu neigh yes with triclinic box");
+
+  // give a warning if no pair style is defined
+
+  if (!force->pair)
+    error->warning(FLERR,"Using package gpu without any pair style defined");
+
   // make sure fdotr virial is not accumulated multiple times
   
   if (force->pair_match("hybrid",1) != NULL) {
@@ -246,7 +258,7 @@ void FixGPU::setup(int vflag)
 
   if (strstr(update->integrate_style,"verlet")) post_force(vflag);
   else {
-    // in setup only, all forces calculated on GPU are put in the outer level
+    // In setup only, all forces calculated on GPU are put in the outer level
     ((Respa *) update->integrate)->copy_flevel_f(_nlevels_respa-1);
     post_force(vflag);
     ((Respa *) update->integrate)->copy_f_flevel(_nlevels_respa-1);
@@ -264,6 +276,8 @@ void FixGPU::min_setup(int vflag)
 
 void FixGPU::post_force(int vflag)
 {
+  if (!force->pair) return;
+
   timer->stamp();
   double lvirial[6];
   for (int i = 0; i < 6; i++) lvirial[i] = 0.0;

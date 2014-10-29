@@ -1,4 +1,4 @@
-LAMMPS (21 Oct 2014-ICMS)
+LAMMPS (28 Oct 2014-ICMS)
 WARNING: OMP_NUM_THREADS environment is not set. (../comm.cpp:88)
   using 1 OpenMP thread(s) per MPI task
 # Solvated 5-mer peptide
@@ -115,21 +115,21 @@ SHAKE stats (type/ave/delta) on step 100
   31 104.52 0.00239929
      100    260.35617   -5387.2297   -6434.6686    1047.4389   -6534.1956    20.246734  0.075048996 
 
-Loop time of 1.09682 on 2 procs for 100 steps with 2004 atoms
-98.9% CPU use with 2 MPI tasks x 1 OpenMP threads
-Performance: 15.755 ns/day  1.523 hours/ns  91.173 timesteps/s
+Loop time of 1.09647 on 2 procs for 100 steps with 2004 atoms
+99.3% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 15.760 ns/day  1.523 hours/ns  91.202 timesteps/s
 
 MPI task timings breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.78922    | 0.80112    | 0.81303    |   1.3 | 73.04
-Bond    | 0.002424   | 0.0027145  | 0.003005   |   0.6 |  0.25
-Kspace  | 0.087813   | 0.099052   | 0.11029    |   3.6 |  9.03
-Neigh   | 0.14968    | 0.14972    | 0.14975    |   0.0 | 13.65
-Comm    | 0.017241   | 0.017689   | 0.018136   |   0.3 |  1.61
-Output  | 0.00024891 | 0.00035346 | 0.000458   |   0.6 |  0.03
-Modify  | 0.023808   | 0.023815   | 0.023821   |   0.0 |  2.17
-Other   |            | 0.002359   |            |       |  0.22
+Pair    | 0.79979    | 0.8003     | 0.80081    |   0.1 | 72.99
+Bond    | 0.0024881  | 0.0027114  | 0.0029347  |   0.4 |  0.25
+Kspace  | 0.09569    | 0.096587   | 0.097485   |   0.3 |  8.81
+Neigh   | 0.15267    | 0.15268    | 0.1527     |   0.0 | 13.92
+Comm    | 0.0175     | 0.018023   | 0.018546   |   0.4 |  1.64
+Output  | 0.00023913 | 0.00033844 | 0.00043774 |   0.5 |  0.03
+Modify  | 0.023529   | 0.023566   | 0.023602   |   0.0 |  2.15
+Other   |            | 0.002269   |            |       |  0.21
 
 Nlocal:    1002 ave 1010 max 994 min
 Histogram: 1 0 0 0 0 0 0 0 0 1

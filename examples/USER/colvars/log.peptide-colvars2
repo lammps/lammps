@@ -1,4 +1,4 @@
-LAMMPS (21 Oct 2014-ICMS)
+LAMMPS (28 Oct 2014-ICMS)
 WARNING: OMP_NUM_THREADS environment is not set. (../comm.cpp:88)
   using 1 OpenMP thread(s) per MPI task
 # Solvated 5-mer peptide
@@ -86,8 +86,8 @@ PPPM initialization ...
   3d grid and FFT values/proc = 6776 1800
 colvars: Creating proxy instance
 colvars: ----------------------------------------------------------------------
-colvars: Initializing the collective variables module, version 2014-10-26.
-colvars: Using LAMMPS interface, version 2014-10-26.
+colvars: Initializing the collective variables module, version 2014-10-29.
+colvars: Using LAMMPS interface, version 2014-10-29.
 colvars: ----------------------------------------------------------------------
 colvars: Reading new configuration from file "peptide.colvars2":
 colvars: # indexFile = "" [default]
@@ -193,21 +193,21 @@ SHAKE stats (type/ave/delta) on step 100
   31 104.52 0.00239929
      100    260.35617   -5387.2297   -6434.6686    1047.4389   -6534.1956    20.246734  0.075048996 
 
-Loop time of 1.09685 on 2 procs for 100 steps with 2004 atoms
-99.1% CPU use with 2 MPI tasks x 1 OpenMP threads
-Performance: 15.754 ns/day  1.523 hours/ns  91.170 timesteps/s
+Loop time of 1.09409 on 2 procs for 100 steps with 2004 atoms
+99.0% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 15.794 ns/day  1.520 hours/ns  91.400 timesteps/s
 
 MPI task timings breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.79732    | 0.80134    | 0.80536    |   0.4 | 73.06
-Bond    | 0.0024555  | 0.002741   | 0.0030265  |   0.5 |  0.25
-Kspace  | 0.090389   | 0.095391   | 0.10039    |   1.6 |  8.70
-Neigh   | 0.15028    | 0.15029    | 0.15029    |   0.0 | 13.70
-Comm    | 0.017451   | 0.018635   | 0.019819   |   0.9 |  1.70
-Output  | 0.00022626 | 0.00031698 | 0.0004077  |   0.5 |  0.03
-Modify  | 0.025696   | 0.025744   | 0.025793   |   0.0 |  2.35
-Other   |            | 0.002393   |            |       |  0.22
+Pair    | 0.79387    | 0.79926    | 0.80465    |   0.6 | 73.05
+Bond    | 0.0024891  | 0.00272    | 0.0029509  |   0.4 |  0.25
+Kspace  | 0.089782   | 0.095341   | 0.1009     |   1.8 |  8.71
+Neigh   | 0.15014    | 0.15017    | 0.1502     |   0.0 | 13.73
+Comm    | 0.017509   | 0.017886   | 0.018263   |   0.3 |  1.63
+Output  | 0.00023246 | 0.00033939 | 0.00044632 |   0.6 |  0.03
+Modify  | 0.025947   | 0.025976   | 0.026005   |   0.0 |  2.37
+Other   |            | 0.002401   |            |       |  0.22
 
 Nlocal:    1002 ave 1010 max 994 min
 Histogram: 1 0 0 0 0 0 0 0 0 1

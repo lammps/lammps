@@ -1,4 +1,4 @@
-LAMMPS (21 Oct 2014-ICMS)
+LAMMPS (28 Oct 2014-ICMS)
 WARNING: OMP_NUM_THREADS environment is not set. (../comm.cpp:88)
   using 1 OpenMP thread(s) per MPI task
 # Solvated 5-mer peptide
@@ -87,8 +87,8 @@ PPPM initialization ...
   3d grid and FFT values/proc = 6776 1800
 colvars: Creating proxy instance
 colvars: ----------------------------------------------------------------------
-colvars: Initializing the collective variables module, version 2014-10-27.
-colvars: Using LAMMPS interface, version 2014-10-26.
+colvars: Initializing the collective variables module, version 2014-10-29.
+colvars: Using LAMMPS interface, version 2014-10-29.
 colvars: ----------------------------------------------------------------------
 colvars: Reading new configuration from file "peptide.meta":
 colvars: # indexFile = "" [default]
@@ -279,21 +279,21 @@ SHAKE stats (type/ave/delta) on step 100
   31 104.52 0.000738854
      100    271.72192   -5234.6681   -6327.8325    1093.1645   -6417.4352    16.437782 0.0022862156 
 
-Loop time of 1.06262 on 2 procs for 100 steps with 2004 atoms
-98.5% CPU use with 2 MPI tasks x 1 OpenMP threads
-Performance: 16.262 ns/day  1.476 hours/ns  94.107 timesteps/s
+Loop time of 1.05115 on 2 procs for 100 steps with 2004 atoms
+98.8% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 16.439 ns/day  1.460 hours/ns  95.134 timesteps/s
 
 MPI task timings breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.80172    | 0.80716    | 0.81261    |   0.6 | 75.96
-Bond    | 0.0025158  | 0.0026805  | 0.0028453  |   0.3 |  0.25
-Kspace  | 0.099035   | 0.10394    | 0.10885    |   1.5 |  9.78
-Neigh   | 0.099657   | 0.099668   | 0.09968    |   0.0 |  9.38
-Comm    | 0.017277   | 0.017677   | 0.018077   |   0.3 |  1.66
-Output  | 0.00022078 | 0.00031364 | 0.0004065  |   0.5 |  0.03
-Modify  | 0.028789   | 0.028797   | 0.028805   |   0.0 |  2.71
-Other   |            | 0.002382   |            |       |  0.22
+Pair    | 0.8083     | 0.81185    | 0.81541    |   0.4 | 77.23
+Bond    | 0.002435   | 0.0026462  | 0.0028574  |   0.4 |  0.25
+Kspace  | 0.092542   | 0.095508   | 0.098474   |   1.0 |  9.09
+Neigh   | 0.092974   | 0.092999   | 0.093023   |   0.0 |  8.85
+Comm    | 0.016783   | 0.017117   | 0.017452   |   0.3 |  1.63
+Output  | 0.00023127 | 0.00032663 | 0.000422   |   0.5 |  0.03
+Modify  | 0.028247   | 0.028249   | 0.02825    |   0.0 |  2.69
+Other   |            | 0.002451   |            |       |  0.23
 
 Nlocal:    1002 ave 1010 max 994 min
 Histogram: 1 0 0 0 0 0 0 0 0 1
@@ -353,21 +353,21 @@ SHAKE stats (type/ave/delta) on step 200
   31 104.52 0.00114656
      200    280.25149   -5323.7989   -6451.2787    1127.4798   -6532.4552    19.301584 0.0022862156 
 
-Loop time of 1.05578 on 2 procs for 100 steps with 2004 atoms
-98.8% CPU use with 2 MPI tasks x 1 OpenMP threads
-Performance: 16.367 ns/day  1.466 hours/ns  94.717 timesteps/s
+Loop time of 1.05726 on 2 procs for 100 steps with 2004 atoms
+99.4% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 16.344 ns/day  1.468 hours/ns  94.584 timesteps/s
 
 MPI task timings breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.80312    | 0.81043    | 0.81773    |   0.8 | 76.76
-Bond    | 0.0024135  | 0.0026567  | 0.0028999  |   0.5 |  0.25
-Kspace  | 0.091724   | 0.098712   | 0.1057     |   2.2 |  9.35
-Neigh   | 0.096549   | 0.096557   | 0.096564   |   0.0 |  9.15
-Comm    | 0.016843   | 0.016979   | 0.017116   |   0.1 |  1.61
-Output  | 0.00022674 | 0.0003258  | 0.00042486 |   0.5 |  0.03
-Modify  | 0.027771   | 0.027793   | 0.027815   |   0.0 |  2.63
-Other   |            | 0.002333   |            |       |  0.22
+Pair    | 0.81472    | 0.81648    | 0.81824    |   0.2 | 77.23
+Bond    | 0.0025082  | 0.002708   | 0.0029078  |   0.4 |  0.26
+Kspace  | 0.094113   | 0.095593   | 0.097073   |   0.5 |  9.04
+Neigh   | 0.093044   | 0.093048   | 0.093053   |   0.0 |  8.80
+Comm    | 0.017248   | 0.017325   | 0.017401   |   0.1 |  1.64
+Output  | 0.00023341 | 0.00033283 | 0.00043225 |   0.5 |  0.03
+Modify  | 0.029212   | 0.029252   | 0.029293   |   0.0 |  2.77
+Other   |            | 0.002524   |            |       |  0.24
 
 Nlocal:    1002 ave 1003 max 1001 min
 Histogram: 1 0 0 0 0 0 0 0 0 1
@@ -397,8 +397,8 @@ PPPM initialization ...
   3d grid and FFT values/proc = 6776 1800
 colvars: Creating proxy instance
 colvars: ----------------------------------------------------------------------
-colvars: Initializing the collective variables module, version 2014-10-27.
-colvars: Using LAMMPS interface, version 2014-10-26.
+colvars: Initializing the collective variables module, version 2014-10-29.
+colvars: Using LAMMPS interface, version 2014-10-29.
 colvars: ----------------------------------------------------------------------
 colvars: Reading new configuration from file "peptide.meta":
 colvars: # indexFile = "" [default]
@@ -597,21 +597,21 @@ SHAKE stats (type/ave/delta) on step 300
   31 104.52 0.000409147
      300    274.74107   -5299.7239   -6405.0346    1105.3108   -6481.7288    20.379233 0.0022862156 
 
-Loop time of 1.05509 on 2 procs for 100 steps with 2004 atoms
-98.6% CPU use with 2 MPI tasks x 1 OpenMP threads
-Performance: 16.378 ns/day  1.465 hours/ns  94.779 timesteps/s
+Loop time of 1.06301 on 2 procs for 100 steps with 2004 atoms
+99.4% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 16.256 ns/day  1.476 hours/ns  94.072 timesteps/s
 
 MPI task timings breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.8074     | 0.81302    | 0.81864    |   0.6 | 77.06
-Bond    | 0.0025964  | 0.0026951  | 0.0027938  |   0.2 |  0.26
-Kspace  | 0.091072   | 0.096739   | 0.10241    |   1.8 |  9.17
-Neigh   | 0.095231   | 0.095247   | 0.095263   |   0.0 |  9.03
-Comm    | 0.016739   | 0.016798   | 0.016857   |   0.0 |  1.59
-Output  | 0.00023532 | 0.00033247 | 0.00042963 |   0.5 |  0.03
-Modify  | 0.027783   | 0.027819   | 0.027855   |   0.0 |  2.64
-Other   |            | 0.002441   |            |       |  0.23
+Pair    | 0.81579    | 0.8195     | 0.82321    |   0.4 | 77.09
+Bond    | 0.002522   | 0.00266    | 0.0027981  |   0.3 |  0.25
+Kspace  | 0.093284   | 0.096691   | 0.1001     |   1.1 |  9.10
+Neigh   | 0.094059   | 0.094065   | 0.09407    |   0.0 |  8.85
+Comm    | 0.017479   | 0.017852   | 0.018225   |   0.3 |  1.68
+Output  | 0.00023055 | 0.0003289  | 0.00042725 |   0.5 |  0.03
+Modify  | 0.029282   | 0.02935    | 0.029417   |   0.0 |  2.76
+Other   |            | 0.002561   |            |       |  0.24
 
 Nlocal:    1002 ave 1004 max 1000 min
 Histogram: 1 0 0 0 0 0 0 0 0 1

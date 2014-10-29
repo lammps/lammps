@@ -111,7 +111,12 @@ void SearchAndFill(struct FrcFieldItem *item)
     /* equivalences */
 
     for(i = 0; i < item->number_of_members; i++ ) {
-      sscanf(strtok(NULL, " "), "%s", atom_types[i]);
+      charptr = strtok(NULL, " ");
+      if (strlen(charptr) > 4) {
+        fprintf(stderr,"Warning: type name overflow for '%s'. "
+                "Truncating to 4 characters.\n",charptr);
+      }
+      sscanf(charptr,"%4s",atom_types[i]);
     }
 
     /* parameters -- Because of symmetrical terms, bonang, angtor, and

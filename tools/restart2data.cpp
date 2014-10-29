@@ -548,6 +548,7 @@ int main (int narg, char **arg)
     FILE *fp2 = fopen(inputfile,"w");
     if (fp2 == NULL) {
       printf("ERROR: Cannot open input file %s\n",inputfile);
+      fclose(fp);
       return 1;
     }
 

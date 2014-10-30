@@ -186,6 +186,8 @@ void CreateAtoms::command(int narg, char **arg)
       axisone[2] = force->numeric(FLERR,arg[iarg+4]);
       if (axisone[0] == 0.0 && axisone[1] == 0.0 && axisone[2] == 0.0)
         error->all(FLERR,"Illegal create_atoms command");
+      if (domain->dimension == 2 && (axisone[0] != 0.0 || axisone[1] != 0.0))
+        error->all(FLERR,"Invalid create_atoms rotation vector for 2d model");
       MathExtra::norm3(axisone);
       MathExtra::axisangle_to_quat(axisone,thetaone,quatone);
       iarg += 5;

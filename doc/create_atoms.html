@@ -44,6 +44,9 @@
   <I>set</I> values = dim vname
     dim = <I>x</I> or <I>y</I> or <I>z</I>
     name = name of variable to set with x,y,z atom position
+  <I>rotate</I> values = Rx Ry Rz theta
+    Rx,Ry,Rz = rotation vector for single molecule
+    theta = rotation angle for single molecule (degrees)
   <I>units</I> value = <I>lattice</I> or <I>box</I>
     <I>lattice</I> = the geometry is defined in lattice units
     <I>box</I> = the geometry is defined in simulation box units 
@@ -235,6 +238,16 @@ create_atoms	1 box var v set x xx set y yy
 </PRE>
 <CENTER><A HREF = "JPG/sinusoid.jpg"><IMG SRC = "JPG/sinusoid_small.jpg"></A>
 </CENTER>
+<P>The <I>rotate</I> keyword can be used with the <I>single</I> style, when adding
+a single molecule to specify the orientation at which the molecule is
+inserted.  The axis of rotation is determined by the rotation vector
+(Rx,Ry,Rz) that goes through the insertion point.  The specified
+<I>theta</I> determines the angle of rotation around that axis.  Note that
+the direction of rotation for the atoms around the rotation axis is
+consistent with the right-hand rule: if your right-hand's thumb points
+along <I>R</I>, then your fingers wrap around the axis in the direction of
+rotation.
+</P>
 <P>The <I>units</I> keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the <I>single</I>
 style.  A <I>box</I> value selects standard distance units as defined by
@@ -307,7 +320,7 @@ command.
 </P>
 <P>The default for the <I>basis</I> keyword is that all created atoms are
 assigned the argument <I>type</I> as their atom type (when single atoms are
-being created).  The other defaults are <I>remap</I> = no and <I>units</I> =
-lattice.
+being created).  The other defaults are <I>remap</I> = no, <I>rotate</I> =
+random, and <I>units</I> = lattice.
 </P>
 </HTML>

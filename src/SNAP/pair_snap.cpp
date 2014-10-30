@@ -1021,9 +1021,11 @@ void PairSNAP::build_per_atom_arrays()
   for (int ii = 0; ii < list->inum; ii++)
     if ((do_load_balance <= 0) || ilistmask[ii]) {
       neighmax=MAX(neighmax,list->numneigh[list->ilist[ii]]);
+      ++count;
     }
   for (int ii = 0; ii < ghostinum; ii++) {
     neighmax=MAX(neighmax,ghostnumneigh[ghostilist[ii]]);
+    ++count;
   }
 
   if (i_max < count || i_neighmax < neighmax) {

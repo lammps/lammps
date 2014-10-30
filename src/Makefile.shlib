@@ -16,7 +16,7 @@ OBJ =	$(SRC:.cpp=.o)
 # Targets
 
 help:
-	@echo 'Type "make target" where target is one of:'
+	@echo 'Type "make -f Makefile.shlib target" where target is one of:'
 	@echo ''
 	@files="`ls MAKE/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done

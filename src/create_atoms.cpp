@@ -108,6 +108,7 @@ void CreateAtoms::command(int narg, char **arg)
   int molseed;
   varflag = 0;
   vstr = xstr = ystr = zstr = NULL;
+  quatone[0] = quatone[1] = quatone[2] = 0.0;
 
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
@@ -173,6 +174,21 @@ void CreateAtoms::command(int narg, char **arg)
         strcpy(zstr,arg[iarg+2]);
       } else error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
+    } else if (strcmp(arg[iarg],"rotate") == 0) {
+      if (style != SINGLE)
+        error->all(FLERR,"Cannot use create_atoms rotate unless single style");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal create_atoms command");
+      double thetaone;
+      double axisone[3];
+      thetaone = force->numeric(FLERR,arg[iarg+1]);
+      axisone[0] = force->numeric(FLERR,arg[iarg+2]);
+      axisone[1] = force->numeric(FLERR,arg[iarg+3]);
+      axisone[2] = force->numeric(FLERR,arg[iarg+4]);
+      if (axisone[0] == 0.0 && axisone[1] == 0.0 && axisone[2] == 0.0)
+        error->all(FLERR,"Illegal create_atoms command");
+      MathExtra::norm3(axisone);
+      MathExtra::axisangle_to_quat(axisone,thetaone,quatone);
+      iarg += 5;
     } else error->all(FLERR,"Illegal create_atoms command");
   }
 
@@ -561,7 +577,9 @@ void CreateAtoms::add_single()
       coord[1] >= sublo[1] && coord[1] < subhi[1] &&
       coord[2] >= sublo[2] && coord[2] < subhi[2]) {
     if (mode == ATOM) atom->avec->create_atom(ntype,xone);
-    else add_molecule(xone);
+    else if (quatone[0] == 0.0 && quatone[1] == 0.0 && quatone[2] == 0.0)
+      add_molecule(xone);
+    else add_molecule(xone,&quatone[0]);
   }
 }
 
@@ -765,9 +783,10 @@ void CreateAtoms::add_lattice()
 
 /* ----------------------------------------------------------------------
    add a randomly rotated molecule with its center at center
+   if quat_user set, perform requested rotation
 ------------------------------------------------------------------------- */
 
-void CreateAtoms::add_molecule(double *center)
+void CreateAtoms::add_molecule(double *center, double *quat_user)
 {
   int n;
   double r[3],rotmat[3][3],quat[4],xnew[3];
@@ -780,9 +799,15 @@ void CreateAtoms::add_molecule(double *center)
     r[0] = r[1] = 0.0;
     r[2] = 1.0;
   }
-  double theta = ranmol->uniform() * MY_2PI;
-  MathExtra::norm3(r);
-  MathExtra::axisangle_to_quat(r,theta,quat);
+
+  if (quat_user) {
+    quat[0] = quat_user[0]; quat[1] = quat_user[1];
+    quat[2] = quat_user[2]; quat[3] = quat_user[3];
+  } else {
+    double theta = ranmol->uniform() * MY_2PI;
+    MathExtra::norm3(r);
+    MathExtra::axisangle_to_quat(r,theta,quat);
+  }
   MathExtra::quat_to_mat(quat,rotmat);
 
   // create atoms in molecule with atom ID = 0 and mol ID = 0

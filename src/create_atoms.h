@@ -32,7 +32,7 @@ class CreateAtoms : protected Pointers {
  private:
   int ntype,style,mode,nregion,nbasis,nrandom,seed;
   int *basistype;
-  double xone[3];
+  double xone[3],quatone[4];
   int remapflag;
 
   int varflag,vvar,xvar,yvar,zvar;
@@ -48,7 +48,7 @@ class CreateAtoms : protected Pointers {
   void add_single();
   void add_random();
   void add_lattice();
-  void add_molecule(double *);
+  void add_molecule(double *, double * = NULL);
   int vartest(double *);        // evaluate a variable with new atom position
 };
 

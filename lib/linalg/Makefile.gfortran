@@ -1,4 +1,4 @@
-# *
+# -*- makefile -*-
 # *_________________________________________________________________________*
 # *      Minimal BLAS/LAPACK Library for use by other LAMMPS packages
 
@@ -6,12 +6,7 @@ SHELL = /bin/sh
 
 # ------ FILES ------
 
-SRC =	dasum.f daxpy.f dcopy.f ddot.f dgecon.f dgemm.f dgemv.f dger.f 	\
-	dgetf2.f dgetrf.f dgetri.f disnan.f dlabad.f dlaisnan.f dlamch.f\
-	dlacn2.f dlange.f dlassq.f dlaswp.f dlatrs.f drscl.f dscal.f	\
-	dswap.f dtrmm.f dtrmv.f dtrsm.f dtrsv.f dtrti2.f dtrtri.f	\
-	idamax.f ieeeck.f ilaenv.f iparmq.f lsame.f xerbla.f zdotc.f	\
-	zdscal.f zhpr.f zpptrf.f zpptri.f zscal.f ztpmv.f ztpsv.f ztptri.f
+SRC =	$(wildcard *.f)
 
 FILES = $(SRC) Makefile.* README
 

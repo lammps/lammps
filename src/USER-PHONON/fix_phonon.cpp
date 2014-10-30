@@ -760,7 +760,9 @@ void FixPhonon::postprocess( )
         for (int iz = 0; iz < nz; ++iz){
           double qz = double(iz)/double(nz);
           fprintf(flog,"%lg %lg %lg", qx, qy, qz);
-          for (idim = 0; idim < fft_dim2; ++idim) fprintf(flog, " %lg %lg", real(Phi_all[idq][idim]), imag(Phi_all[idq][idim]));
+          for (idim = 0; idim < fft_dim2; ++idim)
+            fprintf(flog, " %lg %lg", std::real(Phi_all[idq][idim]),
+                                      std::imag(Phi_all[idq][idim]));
           fprintf(flog, "\n");
           ++idq;
         }
@@ -870,12 +872,12 @@ void FixPhonon::EnforceASR()
         double sum = 0.;
         for (int kp = 0; kp < nucell; ++kp){
           int idx = (k*sysdim+a)*fft_dim + kp*sysdim + b;
-          sum += real(Phi_all[0][idx]);
+          sum += std::real(Phi_all[0][idx]);
         }
         sum /= double(nucell);
         for (int kp = 0; kp < nucell; ++kp){
           int idx = (k*sysdim+a)*fft_dim + kp*sysdim + b;
-          real(Phi_all[0][idx]) -= sum;
+          Phi_all[0][idx] -= sum;
         }
       }
     }
@@ -888,8 +890,9 @@ void FixPhonon::EnforceASR()
       for (int b = 0; b < sysdim; ++b){
         int idx = (k*sysdim+a)*fft_dim + kp*sysdim + b;
         int jdx = (kp*sysdim+b)*fft_dim + k*sysdim + a;
-        csum = (real(Phi_all[0][idx])+real(Phi_all[0][jdx]))*0.5;
-        real(Phi_all[0][idx]) = real(Phi_all[0][jdx]) = csum;
+        csum = (std::real(Phi_all[0][idx])+std::real(Phi_all[0][jdx]))*0.5;
+        Phi_all[0][idx] = std::complex<double>(csum, std::imag(Phi_all[0][idx]));
+        Phi_all[0][jdx] = std::complex<double>(csum, std::imag(Phi_all[0][jdx]));
       }
     }
   }
@@ -901,14 +904,15 @@ void FixPhonon::EnforceASR()
       double sum = 0.;
       for (int kp = 0; kp < nucell; ++kp){
         int idx = (k*sysdim+a)*fft_dim + kp*sysdim + b;
-        sum += real(Phi_all[0][idx]);
+        sum += std::real(Phi_all[0][idx]);
       }
       sum /= double(nucell-k);
       for (int kp = k; kp < nucell; ++kp){
         int idx = (k*sysdim+a)*fft_dim + kp*sysdim + b;
         int jdx = (kp*sysdim+b)*fft_dim + k*sysdim + a;
-        real(Phi_all[0][idx]) -= sum;
-        real(Phi_all[0][jdx]) = real(Phi_all[0][idx]);
+        Phi_all[0][idx] -= sum;
+        Phi_all[0][jdx] = std::complex<double>(std::real(Phi_all[0][idx]),
+                                               std::imag(Phi_all[0][jdx]));
       }
     }
   }

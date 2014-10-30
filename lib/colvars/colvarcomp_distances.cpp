@@ -527,6 +527,99 @@ void colvar::distance_inv::apply_force(colvarvalue const &force)
 
 
 
+colvar::distance_pairs::distance_pairs(std::string const &conf)
+  : cvc(conf)
+{
+  function_type = "distance_pairs";
+  b_inverse_gradients = false;
+  b_Jacobian_derivative = false;
+
+  if (get_keyval(conf, "forceNoPBC", b_no_PBC, false)) {
+    cvm::log("Computing distance using absolute positions (not minimal-image)");
+  }
+
+  parse_group(conf, "group1", group1);
+  atom_groups.push_back(&group1);
+
+  parse_group(conf, "group2", group2);
+  atom_groups.push_back(&group2);
+
+  x.type(colvarvalue::type_vector);
+  x.vector1d_value.resize(group1.size() * group2.size());
+}
+
+
+colvar::distance_pairs::distance_pairs()
+{
+  function_type = "distance_pairs";
+  b_inverse_gradients = false;
+  b_Jacobian_derivative = false;
+  x.type(colvarvalue::type_vector);
+}
+
+
+void colvar::distance_pairs::calc_value()
+{
+  x.vector1d_value.resize(group1.size() * group2.size());
+
+  if (b_no_PBC) {
+    size_t i1, i2;
+    for (i1 = 0; i1 < group1.size(); i1++) {
+      for (i2 = 0; i2 < group2.size(); i2++) {
+        cvm::rvector const dv = group2[i2].pos - group1[i1].pos;
+        cvm::real const d = dv.norm();
+        x.vector1d_value[i1*group2.size() + i2] = d;
+        group1[i1].grad = -1.0 * dv.unit();
+        group2[i2].grad =  dv.unit();
+      }
+    }
+  } else {
+    size_t i1, i2;
+    for (i1 = 0; i1 < group1.size(); i1++) {
+      for (i2 = 0; i2 < group2.size(); i2++) {
+        cvm::rvector const dv = cvm::position_distance(group1[i1].pos, group2[i2].pos);
+        cvm::real const d = dv.norm();
+        x.vector1d_value[i1*group2.size() + i2] = d;
+        group1[i1].grad = -1.0 * dv.unit();
+        group2[i2].grad =  dv.unit();
+      }
+    }
+  }
+}
+
+void colvar::distance_pairs::calc_gradients()
+{
+  // will be calculated on the fly in apply_force()
+  if (b_debug_gradients) {
+    cvm::log("Debugging gradients:\n");
+    debug_gradients(group1);
+  }
+}
+
+void colvar::distance_pairs::apply_force(colvarvalue const &force)
+{
+  if (b_no_PBC) {
+    size_t i1, i2;
+    for (i1 = 0; i1 < group1.size(); i1++) {
+      for (i2 = 0; i2 < group2.size(); i2++) {
+        cvm::rvector const dv = group2[i2].pos - group1[i1].pos;
+        group1[i1].apply_force(force[i1*group2.size() + i2] * (-1.0) * dv.unit());
+        group2[i2].apply_force(force[i1*group2.size() + i2] * dv.unit());
+      }
+    }
+  } else {
+    size_t i1, i2;
+    for (i1 = 0; i1 < group1.size(); i1++) {
+      for (i2 = 0; i2 < group2.size(); i2++) {
+        cvm::rvector const dv = cvm::position_distance(group1[i1].pos, group2[i2].pos);
+        group1[i1].apply_force(force[i1*group2.size() + i2] * (-1.0) * dv.unit());
+        group2[i2].apply_force(force[i1*group2.size() + i2] * dv.unit());
+      }
+    }
+  }
+}
+
+
 colvar::gyration::gyration(std::string const &conf)
   : cvc(conf)
 {

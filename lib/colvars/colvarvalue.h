@@ -170,23 +170,25 @@ public:
   {
     // reset the value based on the previous type
     reset();
-    if (value_type == type_vector) {
-      // delete allocated data if necessary
+    if ((value_type == type_vector) && (vti != type_vector)) {
       vector1d_value.resize(0);
     }
     value_type = vti;
-    // reset the value based on the new type
-    reset();
   }
 
   /// Set the type after another \link colvarvalue \endlink
   inline void type(colvarvalue const &x)
   {
-    // reset the value based on the previous type
+    // reset the value held from based on the previous type
     reset();
+    if (x.type() == type_vector) {
+      vector1d_value.resize(x.vector1d_value.size());
+    } else {
+      if (value_type == type_vector) {
+        vector1d_value.resize(0);
+      }
+    }
     value_type = x.type();
-    // reset the value based on the new type
-    reset();
   }
 
   /// Make the type a derivative of the original type
@@ -319,10 +321,10 @@ public:
 
 
   /// Ensure that the two types are the same within a binary operator
-  void static check_types(colvarvalue const &x1, colvarvalue const &x2);
+  int static check_types(colvarvalue const &x1, colvarvalue const &x2);
 
   /// Ensure that the two types are the same within an assignment, or that the left side is type_notset
-  void static check_types_assign(Type const &vt1, Type const &vt2);
+  int static check_types_assign(Type const &vt1, Type const &vt2);
 
   /// Undefined operation
   void undef_op() const;
@@ -530,10 +532,10 @@ inline colvarvalue::colvarvalue(cvm::vector1d<cvm::real> const &v, Type const &v
 {
   // reset the value based on the previous type
   reset();
-  if (v.size() != num_dimensions(value_type)) {
+  if ((vti != type_vector) && (v.size() != num_dimensions(value_type))) {
     cvm::error("Error: trying to initialize a variable of type \""+type_desc(vti)+
-               "\" using a vector of size \""+cvm::to_str(v.size())+
-               "\".\n");
+               "\" using a vector of size "+cvm::to_str(v.size())+
+               ".\n");
     value_type = type_notset;
   } else {
     value_type = vti;
@@ -561,10 +563,12 @@ inline colvarvalue::colvarvalue(cvm::vector1d<cvm::real> const &v, Type const &v
 }
 
 
-inline void colvarvalue::check_types(colvarvalue const &x1,
-                                     colvarvalue const &x2)
+inline int colvarvalue::check_types(colvarvalue const &x1,
+                                    colvarvalue const &x2)
 {
-  if (!colvarvalue::type_checking()) return;
+  if (!colvarvalue::type_checking()) {
+    return COLVARS_OK;
+  }
 
   if (x1.type() != x2.type()) {
     if (((x1.type() == type_unit3vector) &&
@@ -575,39 +579,49 @@ inline void colvarvalue::check_types(colvarvalue const &x1,
          (x2.type() == type_quaternionderiv)) ||
         ((x2.type() == type_quaternion) &&
          (x1.type() == type_quaternionderiv))) {
-      return;
+      return COLVARS_OK;
+    } else {
+      cvm::error("Trying to perform an operation between two colvar "
+                 "values with different types, \""+
+                 colvarvalue::type_desc(x1.type())+
+                 "\" and \""+
+                 colvarvalue::type_desc(x2.type())+
+                 "\".\n");
+      return COLVARS_ERROR;
     }
-    cvm::error("Performing an operation between two colvar "
-               "values with different types, \""+
-               colvarvalue::type_desc(x1.type())+
-               "\" and \""+
-               colvarvalue::type_desc(x2.type())+
-               "\".\n");
   }
 
   if (x1.type() == type_vector) {
     if (x1.vector1d_value.size() != x2.vector1d_value.size()) {
-      cvm::error("Performing an operation between two vector colvar "
+      cvm::error("Trying to perform an operation between two vector colvar "
                  "values with different sizes, "+
                  cvm::to_str(x1.vector1d_value.size())+
                  " and "+
                  cvm::to_str(x2.vector1d_value.size())+
                  ".\n");
+      return COLVARS_ERROR;
     }
   }
+  return COLVARS_OK;
 }
 
 
-inline void colvarvalue::check_types_assign(colvarvalue::Type const &vt1,
-                                            colvarvalue::Type const &vt2)
+inline int colvarvalue::check_types_assign(colvarvalue::Type const &vt1,
+                                           colvarvalue::Type const &vt2)
 {
+  if (!colvarvalue::type_checking()) {
+    return COLVARS_OK;
+  }
+
   if (vt1 != type_notset) {
     if (vt1 != vt2) {
       cvm::error("Trying to assign a colvar value with type \""+
                  type_desc(vt2)+"\" to one with type \""+
                  type_desc(vt1)+"\".\n");
+      return COLVARS_ERROR;
     }
   }
+  return COLVARS_OK;
 }
 
 

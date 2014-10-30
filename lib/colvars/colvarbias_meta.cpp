@@ -646,7 +646,7 @@ void colvarbias_meta::calc_hills(colvarbias_meta::hill_iter      h_first,
 {
   std::vector<colvarvalue> curr_values(colvars.size());
   for (size_t i = 0; i < colvars.size(); i++) {
-    curr_values[i].type(colvars[i]->type());
+    curr_values[i].type(colvars[i]->value());
   }
 
   if (colvar_values.size()) {
@@ -689,15 +689,14 @@ void colvarbias_meta::calc_hills_force(size_t const &i,
                                         std::vector<colvarvalue> const &values)
 {
   // Retrieve the value of the colvar
-  colvarvalue x(values.size() ? values[i].type() : colvars[i]->type());
-  x = (values.size() ? values[i] : colvars[i]->value());
+  colvarvalue const x(values.size() ? values[i] : colvars[i]->value());
 
   // do the type check only once (all colvarvalues in the hills series
   // were already saved with their types matching those in the
   // colvars)
 
   hill_iter h;
-  switch (colvars[i]->type()) {
+  switch (colvars[i]->value().type()) {
 
   case colvarvalue::type_scalar:
     for (h = h_first; h != h_last; h++) {
@@ -1433,7 +1432,7 @@ std::istream & colvarbias_meta::read_hill(std::istream &is)
 
   std::vector<colvarvalue> h_centers(colvars.size());
   for (size_t i = 0; i < colvars.size(); i++) {
-    h_centers[i].type((colvars[i]->value()).type());
+    h_centers[i].type(colvars[i]->value());
   }
   {
     // it is safer to read colvarvalue objects one at a time;

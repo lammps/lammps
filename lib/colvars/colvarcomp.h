@@ -79,10 +79,6 @@ public:
   /// this variable definition should be set within the constructor.
   std::string function_type;
 
-  /// \brief Type of \link colvarvalue \endlink that this cvc
-  /// provides
-  colvarvalue::Type type() const;
-
   /// \brief Coefficient in the polynomial combination (default: 1.0)
   cvm::real sup_coeff;
   /// \brief Exponent in the polynomial combination (default: 1)
@@ -247,11 +243,6 @@ protected:
 
 
 
-
-inline colvarvalue::Type colvar::cvc::type() const
-{
-  return x.type();
-}
 
 inline colvarvalue const & colvar::cvc::value() const
 {
@@ -471,6 +462,34 @@ public:
   distance_inv(std::string const &conf);
   distance_inv();
   virtual inline ~distance_inv() {}
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+  virtual cvm::real dist2(colvarvalue const &x1,
+                          colvarvalue const &x2) const;
+  virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+};
+
+
+/// \brief Colvar component: N1xN2 vector of pairwise distances
+/// (colvarvalue::type_vector type, range (0:*) for each component)
+class colvar::distance_pairs
+  : public colvar::cvc
+{
+protected:
+  /// First atom group
+  cvm::atom_group  group1;
+  /// Second atom group
+  cvm::atom_group  group2;
+  /// Use absolute positions, ignoring PBCs when present
+  bool b_no_PBC;
+public:
+  distance_pairs(std::string const &conf);
+  distance_pairs();
+  virtual inline ~distance_pairs() {}
   virtual void calc_value();
   virtual void calc_gradients();
   virtual void apply_force(colvarvalue const &force);
@@ -1334,6 +1353,25 @@ inline colvarvalue colvar::distance_dir::dist2_rgrad(colvarvalue const &x1,
 {
   return colvarvalue((x2.rvector_value - x1.rvector_value), colvarvalue::type_unit3vector);
 }
+
+inline cvm::real colvar::distance_pairs::dist2(colvarvalue const &x1,
+                                               colvarvalue const &x2) const
+{
+  return (x1.vector1d_value - x2.vector1d_value).norm2();
+}
+
+inline colvarvalue colvar::distance_pairs::dist2_lgrad(colvarvalue const &x1,
+                                                       colvarvalue const &x2) const
+{
+  return colvarvalue((x1.vector1d_value - x2.vector1d_value), colvarvalue::type_vector);
+}
+
+inline colvarvalue colvar::distance_pairs::dist2_rgrad(colvarvalue const &x1,
+                                                       colvarvalue const &x2) const
+{
+  return colvarvalue((x2.vector1d_value - x1.vector1d_value), colvarvalue::type_vector);
+}
+
 
 // distance between quaternions
 

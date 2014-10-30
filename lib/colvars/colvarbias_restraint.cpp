@@ -6,42 +6,61 @@
 
 
 colvarbias_restraint::colvarbias_restraint(std::string const &conf,
-                                          char const *key)
+                                           char const *key)
   : colvarbias(conf, key),
     target_nstages(0),
     target_nsteps(0)
 {
   get_keyval(conf, "forceConstant", force_k, 1.0);
 
-  // get the initial restraint centers
-  colvar_centers.resize(colvars.size());
-  colvar_centers_raw.resize(colvars.size());
-  for (size_t i = 0; i < colvars.size(); i++) {
-    colvar_centers[i].type(colvars[i]->type());
-    colvar_centers_raw[i].type(colvars[i]->type());
-  }
-  if (get_keyval(conf, "centers", colvar_centers, colvar_centers)) {
-    for (size_t i = 0; i < colvars.size(); i++) {
-      colvar_centers[i].apply_constraints();
-      colvar_centers_raw[i] = colvar_centers[i];
+  {
+    // get the initial restraint centers
+    colvar_centers.resize(colvars.size());
+    colvar_centers_raw.resize(colvars.size());
+    size_t i;
+    for (i = 0; i < colvars.size(); i++) {
+      colvar_centers[i].type(colvars[i]->value());
+      colvar_centers_raw[i].type(colvars[i]->value());
+      if (cvm::debug()) {
+        cvm::log("colvarbias_restraint: center size = "+
+                 cvm::to_str(colvar_centers[i].vector1d_value.size())+"\n");
+      }
     }
-  } else {
-    colvar_centers.clear();
-    cvm::error("Error: must define the initial centers of the restraints.\n");
+    if (get_keyval(conf, "centers", colvar_centers, colvar_centers)) {
+      for (i = 0; i < colvars.size(); i++) {
+        if (cvm::debug()) {
+          cvm::log("colvarbias_restraint: parsing initial centers, i = "+cvm::to_str(i)+".\n");
+        }
+
+        colvar_centers[i].apply_constraints();
+        colvar_centers_raw[i] = colvar_centers[i];
+      }
+    } else {
+      colvar_centers.clear();
+      cvm::error("Error: must define the initial centers of the restraints.\n");
+    }
+
+    if (colvar_centers.size() != colvars.size()) {
+      cvm::error("Error: number of centers does not match "
+                 "that of collective variables.\n");
+    }
   }
 
-  if (colvar_centers.size() != colvars.size())
-    cvm::error("Error: number of centers does not match "
-                      "that of collective variables.\n");
-
-  if (get_keyval(conf, "targetCenters", target_centers, colvar_centers)) {
-    b_chg_centers = true;
-    for (size_t i = 0; i < target_centers.size(); i++) {
-      target_centers[i].apply_constraints();
+  {
+    if (cvm::debug()) {
+      cvm::log("colvarbias_restraint: parsing target centers.\n");
     }
-  } else {
-    b_chg_centers = false;
-    target_centers.clear();
+
+    size_t i;
+    if (get_keyval(conf, "targetCenters", target_centers, colvar_centers)) {
+      b_chg_centers = true;
+      for (i = 0; i < target_centers.size(); i++) {
+        target_centers[i].apply_constraints();
+      }
+    } else {
+      b_chg_centers = false;
+      target_centers.clear();
+    }
   }
 
   if (get_keyval(conf, "targetForceConstant", target_force_k, 0.0)) {
@@ -110,7 +129,9 @@ void colvarbias_restraint::change_configuration(std::string const &conf)
   get_keyval(conf, "forceConstant", force_k, force_k);
   if (get_keyval(conf, "centers", colvar_centers, colvar_centers)) {
     for (size_t i = 0; i < colvars.size(); i++) {
+      colvar_centers[i].type(colvars[i]->value());
       colvar_centers[i].apply_constraints();
+      colvar_centers_raw[i].type(colvars[i]->value());
       colvar_centers_raw[i] = colvar_centers[i];
     }
   }
@@ -128,10 +149,11 @@ cvm::real colvarbias_restraint::energy_difference(std::string const &conf)
   alt_colvar_centers.resize(colvars.size());
   size_t i;
   for (i = 0; i < colvars.size(); i++) {
-    alt_colvar_centers[i].type(colvars[i]->type());
+    alt_colvar_centers[i].type(colvars[i]->value());
   }
   if (get_keyval(conf, "centers", alt_colvar_centers, colvar_centers)) {
     for (i = 0; i < colvars.size(); i++) {
+      colvar_centers[i].type(colvars[i]->value());
       colvar_centers[i].apply_constraints();
     }
   }
@@ -177,7 +199,7 @@ cvm::real colvarbias_restraint::update()
       //  if we are restarting a staged calculation)
       centers_incr.resize(colvars.size());
       for (size_t i = 0; i < colvars.size(); i++) {
-        centers_incr[i].type(colvars[i]->type());
+        centers_incr[i].type(colvars[i]->value());
         centers_incr[i] = (target_centers[i] - colvar_centers_raw[i]) /
           cvm::real( target_nstages ? (target_nstages - stage) :
                                       (target_nsteps - cvm::step_absolute()));
@@ -285,6 +307,7 @@ cvm::real colvarbias_restraint::update()
 
   // Force and energy calculation
   for (size_t i = 0; i < colvars.size(); i++) {
+    colvar_forces[i].type(colvars[i]->value());
     colvar_forces[i] = -1.0 * restraint_force(restraint_convert_k(force_k, colvars[i]->width),
                                               colvars[i],
                                               colvar_centers[i]);

@@ -31,7 +31,7 @@ colvarbias_alb::colvarbias_alb(std::string const &conf, char const *key) :
 
 
   for (i = 0; i < colvars.size(); i++) {
-    colvar_centers[i].type(colvars[i]->type());
+    colvar_centers[i].type(colvars[i]->value());
     //zero moments
     means[i] = ssd[i] = 0;
 

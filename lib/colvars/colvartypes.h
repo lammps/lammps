@@ -237,7 +237,7 @@ public:
 
   inline size_t output_width(size_t const &real_width) const
   {
-    return real_width*this->size() + real_width*(this->size()-1) + 4;
+    return real_width*(this->size()) + 3*(this->size()-1) + 4;
   }
 
   inline friend std::istream & operator >> (std::istream &is, cvm::vector1d<T> &v)
@@ -252,8 +252,9 @@ public:
       return is;
     }
     size_t count = 0;
-    while ( (is >> v[count]) && (is >> sep) && (sep == ',') && (count < v.size()) ) {
-      count++;
+    while ( (is >> v[count]) &&
+            (count < (v.size()-1) ? ((is >> sep) && (sep == ',')) : true) ) {
+      if (++count == v.size()) break;
     }
     if (count < v.size()) {
       is.clear();
@@ -268,6 +269,7 @@ public:
     std::streamsize const w = os.width();
     std::streamsize const p = os.precision();
 
+    os.width(2);
     os << "( ";
     size_t i;
     for (i = 0; i < v.size()-1; i++) {
@@ -582,7 +584,8 @@ public:
     std::streamsize const w = os.width();
     std::streamsize const p = os.precision();
 
-    os << "(";
+    os.width(2);
+    os << "( ";
     size_t i;
     for (i = 0; i < m.outer_length; i++) {
       os << " ( ";

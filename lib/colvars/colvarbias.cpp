@@ -83,17 +83,19 @@ colvarbias::~colvarbias()
 
 void colvarbias::add_colvar(std::string const &cv_name)
 {
-  if (colvar *cvp = cvm::colvar_by_name(cv_name)) {
-    cvp->enable(colvar::task_gradients);
+  if (colvar *cv = cvm::colvar_by_name(cv_name)) {
+    cv->enable(colvar::task_gradients);
     if (cvm::debug())
       cvm::log("Applying this bias to collective variable \""+
-                cvp->name+"\".\n");
-    colvars.push_back(cvp);
-    colvar_forces.push_back(colvarvalue(cvp->type()));
-    cvp->biases.push_back(this); // add back-reference to this bias to colvar
+                cv->name+"\".\n");
+    colvars.push_back(cv);
+    colvar_forces.push_back(colvarvalue());
+    colvar_forces.back().type(cv->value()); // make sure each forces is initialized to zero
+    colvar_forces.back().reset();
+    cv->biases.push_back(this); // add back-reference to this bias to colvar
   } else {
     cvm::error("Error: cannot find a colvar named \""+
-                 cv_name+"\".\n");
+               cv_name+"\".\n");
   }
 }
 
@@ -103,8 +105,7 @@ void colvarbias::communicate_forces()
   for (size_t i = 0; i < colvars.size(); i++) {
     if (cvm::debug()) {
       cvm::log("Communicating a force to colvar \""+
-                colvars[i]->name+"\", of type \""+
-                colvarvalue::type_desc(colvars[i]->type())+"\".\n");
+               colvars[i]->name+"\".\n");
     }
     colvars[i]->add_bias_force(colvar_forces[i]);
   }

@@ -246,7 +246,7 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
     std::istringstream is(f_str);
     is.width(cvm::cv_width);
     is.precision(cvm::cv_prec);
-    colvarvalue force(cv->type());
+    colvarvalue force(cv->value());
     force.is_derivative();
     if (force.from_simple_string(is.str()) != COLVARS_OK) {
       result = "addforce : error parsing force value";

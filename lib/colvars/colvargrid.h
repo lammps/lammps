@@ -223,7 +223,7 @@ public:
 
     for (size_t i =  0; i < cv.size(); i++) {
 
-      if (cv[i]->type() != colvarvalue::type_scalar) {
+      if (cv[i]->value().type() != colvarvalue::type_scalar) {
         cvm::error("Colvar grids can only be automatically "
                     "constructed for scalar variables.  "
                     "ABF and histogram can not be used; metadynamics "

@@ -90,7 +90,8 @@ void colvar::cvc::debug_gradients(cvm::atom_group &group)
   cvm::rotation const rot_0 = group.rot;
   cvm::rotation const rot_inv = group.rot.inverse();
 
-  cvm::real const x_0 = x.real_value;
+  cvm::real x_0 = x.real_value;
+  if ((x.type() == colvarvalue::type_vector) && (x.size() == 1)) x_0 = x[0];
 
   // cvm::log("gradients     = "+cvm::to_str (gradients)+"\n");
 
@@ -130,7 +131,8 @@ void colvar::cvc::debug_gradients(cvm::atom_group &group)
         group.calc_apply_roto_translation();
       }
       calc_value();
-      cvm::real const x_1 = x.real_value;
+      cvm::real x_1 = x.real_value;
+      if ((x.type() == colvarvalue::type_vector) && (x.size() == 1)) x_1 = x[0];
       cvm::log("Atom "+cvm::to_str(ia)+", component "+cvm::to_str(id)+":\n");
       cvm::log("dx(actual) = "+cvm::to_str(x_1 - x_0,
                              21, 14)+"\n");

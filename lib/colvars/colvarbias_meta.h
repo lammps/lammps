@@ -280,7 +280,7 @@ public:
       replica(replica_in)
   {
     for (size_t i = 0; i < cv.size(); i++) {
-      centers[i].type(cv[i]->type());
+      centers[i].type(cv[i]->value());
       centers[i] = cv[i]->value();
       widths[i] = cv[i]->width * hill_width;
     }

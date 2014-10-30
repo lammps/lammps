@@ -31,9 +31,8 @@
 ///
 /// Please note that most of its members are \link colvarvalue
 /// \endlink objects, i.e. they can handle different data types
-/// together, and must all be set to the same type of colvar::x by
-/// using the colvarvalue::type() member function before using them
-/// together in assignments or other operations; this is usually done
+/// together, and must all be set to the same type of colvar::value()
+/// before using them together in assignments or other operations; this is usually done
 /// automatically in the constructor.  If you add a new member of
 /// \link colvarvalue \endlink type, you should also add its
 /// initialization line in the \link colvar \endlink constructor.
@@ -45,16 +44,13 @@ public:
   /// Name
   std::string name;
 
-  /// Type of value
-  colvarvalue::Type type() const;
-
-  /// \brief Current value (previously obtained from calc() or read_traj())
+  /// \brief Current value (previously set by calc() or by read_traj())
   colvarvalue const & value() const;
 
   /// \brief Current actual value (not extended DOF)
   colvarvalue const & actual_value() const;
 
-  /// \brief Current velocity (previously obtained from calc() or read_traj())
+  /// \brief Current velocity (previously set by calc() or by read_traj())
   colvarvalue const & velocity() const;
 
   /// \brief Current system force (previously obtained from calc() or
@@ -486,6 +482,7 @@ public:
   class distance_z;
   class distance_xy;
   class distance_inv;
+  class distance_pairs;
   class angle;
   class dihedral;
   class coordnum;
@@ -540,11 +537,6 @@ public:
   }
 };
 
-inline colvarvalue::Type colvar::type() const
-{
-  return x.type();
-}
-
 
 inline colvarvalue const & colvar::value() const
 {
@@ -577,6 +569,7 @@ inline void colvar::add_bias_force(colvarvalue const &force)
 
 
 inline void colvar::reset_bias_force() {
+  fb.type(value());
   fb.reset();
 }
 

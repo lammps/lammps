@@ -107,6 +107,8 @@ colvar::colvar(std::string const &conf)
                          "on a plane",       "distanceXY",     distance_xy);
   initialize_components("average distance weighted by inverse power",
                          "distanceInv", distance_inv);
+  initialize_components("N1xN2-long vector of pairwise distances",
+                         "distancePairs", distance_pairs);
 
   initialize_components("coordination "
                          "number",           "coordNum",       coordnum);
@@ -163,7 +165,7 @@ colvar::colvar(std::string const &conf)
     // might accept other types when the infrastructure is in place
     // for derivatives of vectors wrt vectors
     x.type(colvarvalue::type_scalar);
-    x_reported.type(x.type());
+    x_reported.type(x);
 
     // Sort array of cvcs based on values of componentExp
     std::vector<cvc *> temp_vec;
@@ -206,14 +208,15 @@ colvar::colvar(std::string const &conf)
   }
 
   if (!tasks[task_scripted]) {
-    colvarvalue::Type const value_type = (cvcs[0])->type();
+    colvarvalue const &cvc_value = (cvcs[0])->value();
     if (cvm::debug())
       cvm::log ("This collective variable is a "+
-                colvarvalue::type_desc(value_type)+", corresponding to "+
-                cvm::to_str (colvarvalue::num_df(value_type))+
-                " internal degrees of freedom.\n");
-    x.type(value_type);
-    x_reported.type(value_type);
+                colvarvalue::type_desc(cvc_value.type())+
+                ((cvc_value.size() > 1) ? " with "+
+                 cvm::to_str(cvc_value.size())+" individual components.\n" :
+                 ".\n"));
+    x.type(cvc_value);
+    x_reported.type(cvc_value);
   }
 
   // If using scripted biases, any colvar may receive bias forces
@@ -292,13 +295,10 @@ colvar::colvar(std::string const &conf)
       b_Jacobian_force = false;
 
     // components may have different types only for scripted functions
-    if (!tasks[task_scripted] && (cvcs[i])->type() != (cvcs[0])->type() ) {
+    if (!tasks[task_scripted] && (colvarvalue::check_types(cvcs[i]->value(),
+                                                           cvcs[0]->value())) ) {
       cvm::error("ERROR: you are definining this collective variable "
-                 "by using components of different types, \""+
-                 colvarvalue::type_desc((cvcs[0])->type())+
-                 "\" and \""+
-                 colvarvalue::type_desc((cvcs[i])->type())+
-                 "\". "
+                 "by using components of different types. "
                  "You must use the same type in order to "
                  " sum them together.\n", INPUT_ERROR);
       return;
@@ -310,13 +310,13 @@ colvar::colvar(std::string const &conf)
     cvm::error("Error: \"width\" must be positive.\n", INPUT_ERROR);
   }
 
-  lower_boundary.type(this->type());
-  lower_wall.type(this->type());
+  lower_boundary.type(value());
+  lower_wall.type(value());
 
-  upper_boundary.type(this->type());
-  upper_wall.type(this->type());
+  upper_boundary.type(value());
+  upper_wall.type(value());
 
-  if (this->type() == colvarvalue::type_scalar) {
+  if (value().type() == colvarvalue::type_scalar) {
 
     if (get_keyval(conf, "lowerBoundary", lower_boundary, lower_boundary)) {
       enable(task_lower_boundary);
@@ -399,9 +399,9 @@ colvar::colvar(std::string const &conf)
 
       enable(task_extended_lagrangian);
 
-      xr.type(this->type());
-      vr.type(this->type());
-      fr.type(this->type());
+      xr.type(value());
+      vr.type(value());
+      fr.type(value());
 
       const bool found = get_keyval(conf, "extendedTemp", temp, cvm::temperature());
       if (temp <= 0.0) {
@@ -645,7 +645,7 @@ int colvar::enable(colvar::task const &t)
         cvm::log("Enabling calculation of the Jacobian force "
                   "on this colvar.\n");
     }
-    fj.type(this->type());
+    fj.type(value());
     break;
 
   case task_system_force:
@@ -658,8 +658,8 @@ int colvar::enable(colvar::task const &t)
       }
       cvm::request_system_force();
     }
-    ft.type(this->type());
-    ft_reported.type(this->type());
+    ft.type(value());
+    ft_reported.type(value());
     break;
 
   case task_output_applied_force:
@@ -670,9 +670,9 @@ int colvar::enable(colvar::task const &t)
     break;
 
   case task_fdiff_velocity:
-    x_old.type(this->type());
-    v_fdiff.type(this->type());
-    v_reported.type(this->type());
+    x_old.type(value());
+    v_fdiff.type(value());
+    v_reported.type(value());
     break;
 
   case task_output_velocity:
@@ -680,7 +680,7 @@ int colvar::enable(colvar::task const &t)
     break;
 
   case task_grid:
-    if (this->type() != colvarvalue::type_scalar) {
+    if (value().type() != colvarvalue::type_scalar) {
       cvm::error("Cannot calculate a grid for collective variable, \""+
                         this->name+"\", because its value is not a scalar number.\n",
                   INPUT_ERROR);
@@ -689,12 +689,12 @@ int colvar::enable(colvar::task const &t)
 
   case task_extended_lagrangian:
     enable(task_gradients);
-    v_reported.type(this->type());
+    v_reported.type(value());
     break;
 
   case task_lower_boundary:
   case task_upper_boundary:
-    if (this->type() != colvarvalue::type_scalar) {
+    if (value().type() != colvarvalue::type_scalar) {
       cvm::error("Error: this colvar is not a scalar value "
                         "and cannot produce a grid.\n",
                 INPUT_ERROR);
@@ -711,12 +711,12 @@ int colvar::enable(colvar::task const &t)
     break;
 
   case task_gradients:
-    f.type(this->type());
-    fb.type(this->type());
+    f.type(value());
+    fb.type(value());
     break;
 
   case task_collect_gradients:
-    if (this->type() != colvarvalue::type_scalar) {
+    if (value().type() != colvarvalue::type_scalar) {
       cvm::error("Collecting atomic gradients for non-scalar collective variable \""+
                         this->name+"\" is not yet implemented.\n",
                   INPUT_ERROR);
@@ -1056,8 +1056,8 @@ cvm::real colvar::update()
   if (cvm::debug())
     cvm::log("Updating colvar \""+this->name+"\".\n");
 
-
   // set to zero the applied force
+  f.type(value());
   f.reset();
 
   // add the biases' force, which at this point should already have
@@ -1068,7 +1068,11 @@ cvm::real colvar::update()
   if (tasks[task_lower_wall] || tasks[task_upper_wall]) {
 
     // wall force
-    colvarvalue fw(this->type());
+    colvarvalue fw(value());
+    fw.reset();
+
+    if (cvm::debug())
+      cvm::log("Calculating wall forces for colvar \""+this->name+"\".\n");
 
     // if the two walls are applied concurrently, decide which is the
     // closer one (on a periodic colvar, both walls may be applicable
@@ -1313,36 +1317,36 @@ std::istream & colvar::read_restart(std::istream &is)
   {
     std::string check_name = "";
     if ( (get_keyval(conf, "name", check_name,
-                      std::string(""), colvarparse::parse_silent)) &&
+                     std::string(""), colvarparse::parse_silent)) &&
          (check_name != name) )  {
       cvm::error("Error: the state file does not match the "
-                        "configuration file, at colvar \""+name+"\".\n");
+                 "configuration file, at colvar \""+name+"\".\n");
     }
     if (check_name.size() == 0) {
       cvm::error("Error: Collective variable in the "
-                        "restart file without any identifier.\n");
+                 "restart file without any identifier.\n");
     }
   }
 
   if ( !(get_keyval(conf, "x", x,
-                     colvarvalue(x.type()), colvarparse::parse_silent)) ) {
+                    colvarvalue(x.type()), colvarparse::parse_silent)) ) {
     cvm::log("Error: restart file does not contain "
-              "the value of the colvar \""+
-              name+"\" .\n");
+             "the value of the colvar \""+
+             name+"\" .\n");
   } else {
     cvm::log("Restarting collective variable \""+name+"\" from value: "+
-              cvm::to_str(x)+"\n");
+             cvm::to_str(x)+"\n");
   }
 
   if (tasks[colvar::task_extended_lagrangian]) {
 
     if ( !(get_keyval(conf, "extended_x", xr,
-                       colvarvalue(x.type()), colvarparse::parse_silent)) &&
+                      colvarvalue(x.type()), colvarparse::parse_silent)) &&
          !(get_keyval(conf, "extended_v", vr,
-                       colvarvalue(x.type()), colvarparse::parse_silent)) ) {
+                      colvarvalue(x.type()), colvarparse::parse_silent)) ) {
       cvm::log("Error: restart file does not contain "
-                "\"extended_x\" or \"extended_v\" for the colvar \""+
-                name+"\", but you requested \"extendedLagrangian\".\n");
+               "\"extended_x\" or \"extended_v\" for the colvar \""+
+               name+"\", but you requested \"extendedLagrangian\".\n");
     }
   }
 
@@ -1355,10 +1359,10 @@ std::istream & colvar::read_restart(std::istream &is)
   if (tasks[task_output_velocity]) {
 
     if ( !(get_keyval(conf, "v", v_fdiff,
-                       colvarvalue(x.type()), colvarparse::parse_silent)) ) {
+                      colvarvalue(x.type()), colvarparse::parse_silent)) ) {
       cvm::log("Error: restart file does not contain "
-                "the velocity for the colvar \""+
-                name+"\", but you requested \"outputVelocity\".\n");
+               "the velocity for the colvar \""+
+               name+"\", but you requested \"outputVelocity\".\n");
     }
 
     if (tasks[task_extended_lagrangian]) {
@@ -1636,11 +1640,11 @@ int colvar::calc_acf()
     colvar *cfcv = (acf_colvar_name.size() ?
                     cvm::colvar_by_name(acf_colvar_name) :
                     this);
-    if (cfcv->type() != this->type()) {
+    if (colvarvalue::check_types(cfcv->value(), value())) {
       cvm::error("Error: correlation function between \""+cfcv->name+
-                        "\" and \""+this->name+"\" cannot be calculated, "
-                        "because their value types are different.\n",
-                        INPUT_ERROR);
+                 "\" and \""+this->name+"\" cannot be calculated, "
+                 "because their value types are different.\n",
+                 INPUT_ERROR);
     }
     acf_nframes = 0;
 
@@ -1823,7 +1827,7 @@ void colvar::calc_runave()
 {
   if (x_history.empty()) {
 
-    runave.type(x.type());
+    runave.type(value().type());
     runave.reset();
 
     // first-step operations

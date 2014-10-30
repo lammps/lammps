@@ -64,7 +64,7 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
 
   for (size_t i = 0; i < colvars.size(); i++) {
 
-    if (colvars[i]->type() != colvarvalue::type_scalar) {
+    if (colvars[i]->value().type() != colvarvalue::type_scalar) {
       cvm::error("Error: ABF bias can only use scalar-type variables.\n");
     }
 

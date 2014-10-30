@@ -302,6 +302,9 @@ default settings.
 An "atom_style"_atom_style.html must be previously defined to use this
 command.
 
+A rotation vector specified for a single molecule must be in
+the z-direction for a 2d model.
+
 [Related commands:]
 
 "lattice"_lattice.html, "region"_region.html, "create_box"_create_box.html,

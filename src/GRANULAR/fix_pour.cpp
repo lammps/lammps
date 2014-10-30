@@ -217,7 +217,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   // volume_one = volume of inserted particle (with max possible radius)
   // in 3d, insure dy >= 1, for quasi-2d simulations
 
-  double volume,volume_one;
+  double volume,volume_one=1.0;
 
   molradius_max = 0.0;
   if (mode == MOLECULE) {

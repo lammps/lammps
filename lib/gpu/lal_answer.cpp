@@ -248,9 +248,9 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
       for (int i=vstart; i<iend; i++)
         virial[j]+=engv[i];
       if (_vf_atom)
-        if (_ilist==NULL) {
-          for (int i=vstart; i<iend; i++)
-            vatom[i++][j]+=engv[i];
+        if (_ilist==NULL) {  
+          for (int i=vstart, ii=0; i<iend; i++)
+            vatom[ii++][j]+=engv[i];
         } else {
           for (int i=vstart, ii=0; i<iend; i++)
             vatom[_ilist[ii++]][j]+=engv[i];

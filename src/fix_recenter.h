@@ -40,6 +40,7 @@ class FixRecenter : public Fix {
   int xinitflag,yinitflag,zinitflag;
   int nlevels_respa;
   double xcom,ycom,zcom,xinit,yinit,zinit,masstotal,distance,shift[3];
+  int nlevels_respa;
 };
 
 }

@@ -335,10 +335,12 @@ void ComputePropertyLocal::compute_local()
 int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
 {
   int i,j,m,ii,jj,inum,jnum,itype,jtype;
+  tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double **x = atom->x;
+  tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -355,6 +357,9 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
 
   // loop over neighbors of my atoms
   // skip if I or J are not in group
+  // for newton = 0 and J = ghost atom,
+  //   need to insure I,J pair is only output by one proc
+  //   use same itag,jtag logic as in Neighbor::neigh_half_nsq()
 
   double **cutsq = force->pair->cutsq;
 
@@ -366,6 +371,7 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    itag = tag[i];
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -375,7 +381,23 @@ int ComputePropertyLocal::count_pairs(int allflag, int forceflag)
       j &= NEIGHMASK;
 
       if (!(mask[j] & groupbit)) continue;
-      if (newton_pair == 0 && j >= nlocal) continue;
+
+      // itag = jtag is possible for long cutoffs that include images of self
+
+      if (newton_pair == 0 && j >= nlocal) {
+        jtag = tag[j];
+        if (itag > jtag) {
+          if ((itag+jtag) % 2 == 0) continue;
+        } else if (itag < jtag) {
+          if ((itag+jtag) % 2 == 1) continue;
+        } else {
+          if (x[j][2] < ztmp) continue;
+          if (x[j][2] == ztmp) {
+            if (x[j][1] < ytmp) continue;
+            if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+          }
+        }
+      }
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];

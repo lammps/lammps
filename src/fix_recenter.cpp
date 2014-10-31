@@ -208,6 +208,16 @@ void FixRecenter::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixRecenter::initial_integrate_respa(int vflag, int ilevel, int iloop)
+{
+  // outermost level - operate recenter
+  // all other levels - nothing
+
+  if (ilevel == nlevels_respa-1) initial_integrate(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 double FixRecenter::compute_scalar()
 {
   return distance;
@@ -219,14 +229,3 @@ double FixRecenter::compute_vector(int n)
 {
   return shift[n];
 }
-
-/* ---------------------------------------------------------------------- */
-
-void FixRecenter::initial_integrate_respa(int vflag, int ilevel, int iloop)
-{
-  // outermost level - operate recenter
-  // all other levels - nothing
-
-  if (ilevel == nlevels_respa-1) initial_integrate(vflag);
-}
-

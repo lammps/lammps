@@ -662,6 +662,7 @@ void Neighbor::init()
 
     anyghostlist = 0;
     int anybuild = 0;
+
     for (i = 0; i < nrequest; i++) {
       if (lists[i]) {
         lists[i]->buildflag = 1;
@@ -682,8 +683,9 @@ void Neighbor::init()
       } else init_list_flags1_kokkos(i);
     }
 
-    // no request has the buildflag set. set it on the first request,
-    // so we have a usable binning for any occasional neighbor lists
+    // no request has the buildflag set, so set it for the first request only
+    // this insure binning is done for any occasional neighbor lists
+
     if (!anybuild) {
       for (i = 0; i < nrequest; i++) {
         if (lists[i]) {
@@ -731,18 +733,15 @@ void Neighbor::init()
       } else init_list_flags2_kokkos(i);
     }
 
-    // no request had the buildflag set and we set it on the first valid request.
-    // we also have to fix up the build for other occasional neighbor list properties
-    if (!anybuild) {
-      for (i = 0; i < nrequest; i++) {
-        if ((lists[i]) && (lists[i]->buildflag)) {
-          if (lists[i]->growflag)
-            glist[nglist++] = i;
-          if (lists[i]->stencilflag)
-            slist[nslist++] = i;
+    // no request had buildflag set, so we set it for the first request
+    // we also need to set other occasional neighbor list properties
+
+    if (!anybuild)
+      for (i = 0; i < nrequest; i++)
+        if (lists[i] && lists[i]->buildflag) {
+          if (lists[i]->growflag) glist[nglist++] = i;
+          if (lists[i]->stencilflag) slist[nslist++] = i;
         }
-      }
-    }
 
 #ifdef NEIGH_LIST_DEBUG
     print_lists_of_lists();

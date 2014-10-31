@@ -406,11 +406,11 @@ colvar::colvar(std::string const &conf)
       const bool found = get_keyval(conf, "extendedTemp", temp, cvm::temperature());
       if (temp <= 0.0) {
         if (found)
-          cvm::log("Error: \"extendedTemp\" must be positive.\n");
+          cvm::error("Error: \"extendedTemp\" must be positive.\n", INPUT_ERROR);
         else
           cvm::error("Error: a positive temperature must be provided, either "
-                            "by enabling a thermostat, or through \"extendedTemp\".\n",
-                      INPUT_ERROR);
+                     "by enabling a thermostat, or through \"extendedTemp\".\n",
+                     INPUT_ERROR);
       }
 
       get_keyval(conf, "extendedFluctuation", tolerance);

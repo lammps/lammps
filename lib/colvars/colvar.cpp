@@ -53,11 +53,17 @@ colvar::colvar (std::string const &conf)
       if (cvcp != NULL) {                                               \
         cvcs.push_back (cvcp);                                          \
         cvcp->check_keywords (def_conf, def_config_key);                \
+        if (cvm::get_error()) {                                         \
+          cvm::error("Error: in setting up component \""                \
+                      def_config_key"\".\n");                           \
+          return;                                                       \
+        }                                                               \
         cvm::decrease_depth();                                          \
       } else {                                                          \
-        cvm::error ("Error: in allocating component \""                 \
+        cvm::error("Error: in allocating component \""                  \
                           def_config_key"\".\n",                        \
                           MEMORY_ERROR);                                \
+        return;                                                         \
       }                                                                 \
       if ( (cvcp->period != 0.0) || (cvcp->wrap_center != 0.0) ) {      \
         if ( (cvcp->function_type != std::string ("distance_z")) &&     \
@@ -70,6 +76,7 @@ colvar::colvar (std::string const &conf)
                             "Period: "+cvm::to_str(cvcp->period) +      \
                         " wrapAround: "+cvm::to_str(cvcp->wrap_center), \
                         INPUT_ERROR);                                   \
+          return;                                                       \
         }                                                               \
       }                                                                 \
       if ( ! cvcs.back()->name.size())                                  \
@@ -150,63 +157,64 @@ colvar::colvar (std::string const &conf)
     "", colvarparse::parse_silent)) {
 
     enable(task_scripted);
-    cvm::log("This colvar is a scripted function.");
+    cvm::log("This colvar uses scripted function \"" + scripted_function + "\".");
 
-    std::string type_str;
-    get_keyval (conf, "scriptedFunctionType", type_str, "scalar");
+    // Only accept scalar scripted colvars
+    // might accept other types when the infrastructure is in place
+    // for derivatives of vectors wrt vectors
+    x.type(colvarvalue::type_scalar);
+    x_reported.type(x.type());
 
-    x.type(colvarvalue::type_notset);
-    for (i = 0; i < colvarvalue::type_all; i++) {
-      if (type_str == colvarvalue::type_keyword[i]) {
-        x.type(colvarvalue::Type(i));
-        break;
-      }
-    }
-    if (x.type() == colvarvalue::type_notset) {
-      cvm::error("Could not parse scripted colvar type.");
-      return;
-    }
-    x_reported.type (x.type());
-    cvm::log(std::string("Expecting colvar value of type ")
-      + colvarvalue::type_desc[x.type()]);
-
-    // Build ordered list of component values that will be
-    // passed to the script
+    // Sort array of cvcs based on values of componentExp
+    std::vector<cvc *> temp_vec;
     for (i = 1; i <= cvcs.size(); i++) {
       for (j = 0; j < cvcs.size(); j++) {
         if (cvcs[j]->sup_np == int(i)) {
-          sorted_cvc_values.push_back(cvcs[j]->p_value());
+          temp_vec.push_back(cvcs[j]);
           break;
         }
       }
     }
-    if (sorted_cvc_values.size() != cvcs.size()) {
-      cvm::error("Could not find order numbers for all components"
+    if (temp_vec.size() != cvcs.size()) {
+      cvm::error("Could not find order numbers for all components "
                   "in componentExp values.");
       return;
     }
+    cvcs = temp_vec;
+
+    // Build ordered list of component values that will be
+    // passed to the script
+    for (j = 0; j < cvcs.size(); j++) {
+      sorted_cvc_values.push_back(cvcs[j]->p_value());
+    }
   }
 
-  // this is set false if any of the components has an exponent
-  // different from 1 in the polynomial
-  b_linear = true;
+  if (!tasks[task_scripted]) {
+    // this is set false if any of the components has an exponent
+    // different from 1 in the polynomial
+    b_linear = true;
+    // these will be set to false if any of the cvcs has them false
+    b_inverse_gradients = true;
+    b_Jacobian_force    = true;
+  }
 
-  // these will be set to false if any of the cvcs has them false
-  b_inverse_gradients = true;
-  b_Jacobian_force    = true;
-
+  // Test whether this is a single-component variable
   // Decide whether the colvar is periodic
   // Used to wrap extended DOF if extendedLagrangian is on
-  if (cvcs.size() == 1 && (cvcs[0])->b_periodic && (cvcs[0])->sup_np == 1
-                                                && (cvcs[0])->sup_coeff == 1.0 ) {
-    this->b_periodic = true;
-    this->period = (cvcs[0])->period;
+  if (cvcs.size() == 1  && (cvcs[0])->sup_np == 1
+                        && (cvcs[0])->sup_coeff == 1.0
+                        && !tasks[task_scripted]) {
+
+    b_single_cvc = true;
+    b_periodic = (cvcs[0])->b_periodic;
+    period = (cvcs[0])->period;
     // TODO write explicit wrap() function for colvars to allow for
     // sup_coeff different from 1
     // this->period = (cvcs[0])->period * (cvcs[0])->sup_coeff;
   } else {
-    this->b_periodic = false;
-    this->period = 0.0;
+    b_single_cvc = false;
+    b_periodic = false;
+    period = 0.0;
   }
 
   // check the available features of each cvc
@@ -808,13 +816,14 @@ void colvar::calc()
       // each atom group will take care of its own ref_pos_group, if defined
     }
   }
-  if (tasks[task_output_velocity]) {
-    for (i = 0; i < cvcs.size(); i++) {
-      for (ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
-        cvcs[i]->atom_groups[ig]->read_velocities();
-      }
-    }
-  }
+////  Don't try to get atom velocities, as no back-end currently implements it
+//   if (tasks[task_output_velocity] && !tasks[task_fdiff_velocity]) {
+//     for (i = 0; i < cvcs.size(); i++) {
+//       for (ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
+//         cvcs[i]->atom_groups[ig]->read_velocities();
+//       }
+//     }
+//   }
   if (tasks[task_system_force]) {
     for (i = 0; i < cvcs.size(); i++) {
       for (ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
@@ -1153,8 +1162,11 @@ void colvar::communicate_forces()
 
     for (i = 0; i < cvcs.size(); i++) {
       cvm::increase_depth();
-      // Note: we need a dot product here
-      (cvcs[i])->apply_force (f * func_grads[i]);
+      // Force is scalar times colvarvalue (scalar or vector)
+      // Note: this can only handle scalar colvars (scalar values of f)
+      // A non-scalar colvar would need the gradient to be expressed
+      // as an order-2 tensor
+      (cvcs[i])->apply_force (f.real_value * func_grads[i]);
       cvm::decrease_depth();
     }
   } else if (x.type() == colvarvalue::type_scalar) {
@@ -1223,30 +1235,38 @@ bool colvar::periodic_boundaries() const
 cvm::real colvar::dist2 (colvarvalue const &x1,
                          colvarvalue const &x2) const
 {
-  return (cvcs[0])->dist2 (x1, x2);
+  if (b_single_cvc) {
+    return (cvcs[0])->dist2(x1, x2);
+  } else {
+    return x1.dist2(x2);
+  }
 }
 
 colvarvalue colvar::dist2_lgrad (colvarvalue const &x1,
                                  colvarvalue const &x2) const
 {
-  return (cvcs[0])->dist2_lgrad (x1, x2);
+  if (b_single_cvc) {
+    return (cvcs[0])->dist2_lgrad (x1, x2);
+  } else {
+    return x1.dist2_grad(x2);
+  }
 }
 
 colvarvalue colvar::dist2_rgrad (colvarvalue const &x1,
                                  colvarvalue const &x2) const
 {
-  return (cvcs[0])->dist2_rgrad (x1, x2);
-}
-
-cvm::real colvar::compare (colvarvalue const &x1,
-                           colvarvalue const &x2) const
-{
-  return (cvcs[0])->compare (x1, x2);
+  if (b_single_cvc) {
+    return (cvcs[0])->dist2_rgrad (x1, x2);
+  } else {
+    return x2.dist2_grad(x1);
+  }
 }
 
 void colvar::wrap (colvarvalue &x) const
 {
-  (cvcs[0])->wrap (x);
+  if (b_single_cvc) {
+    (cvcs[0])->wrap (x);
+  }
   return;
 }
 

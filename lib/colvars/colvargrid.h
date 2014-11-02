@@ -362,6 +362,70 @@ public:
     has_data = true;
   }
 
+ /// \brief Get the change from this to other_grid
+  /// and store the result in this.
+  /// this_grid := other_grid - this_grid
+  /// Grids must have the same dimensions.
+  void delta_grid (colvar_grid<T> const &other_grid)
+  {
+
+    if (other_grid.multiplicity() != this->multiplicity()) {
+      cvm::error ("Error: trying to subtract two grids with "
+                        "different multiplicity.\n");
+      return;
+	}	
+
+    if (other_grid.data.size() != this->data.size()) {
+      cvm::error ("Error: trying to subtract two grids with "
+                        "different size.\n");
+      return;
+    }
+
+    for (size_t i = 0; i < data.size(); i++) {
+      data[i] = other_grid.data[i] - data[i];
+    }
+    has_data = true;
+  }
+
+  /// \brief Copy data from another grid of the same type, AND
+  /// identical definition (boundaries, widths)
+  /// Added for shared ABF.
+  void copy_grid (colvar_grid<T> const &other_grid)
+  {
+    if (other_grid.multiplicity() != this->multiplicity()) {
+      cvm::error ("Error: trying to copy two grids with "
+                        "different multiplicity.\n");
+	  return;    
+	}
+
+    if (other_grid.data.size() != this->data.size()) {
+      cvm::error ("Error: trying to copy two grids with "
+                        "different size.\n");
+      return;
+    }
+
+
+    for (size_t i = 0; i < data.size(); i++) {
+      data[i] = other_grid.data[i];
+    }
+    has_data = true;
+  }
+
+  /// \brief Extract the grid data as they are represented in memory.
+  /// Put the results in "out_data".
+  void raw_data_out (T* out_data) const
+  {
+    for (size_t i = 0; i < data.size(); i++) out_data[i] = data[i];
+  }
+  /// \brief Input the data as they are represented in memory.
+  void raw_data_in (const T* in_data)
+  {
+    for (size_t i = 0; i < data.size(); i++) data[i] = in_data[i];
+    has_data = true;
+  }
+  /// \brief Size of the data as they are represented in memory.
+  size_t raw_data_num() const { return data.size(); }
+
 
   /// \brief Get the binned value indexed by ix, or the first of them
   /// if the multiplicity is larger than 1

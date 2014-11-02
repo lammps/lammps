@@ -20,10 +20,12 @@
 #include "fix_recenter.h"
 #include "atom.h"
 #include "group.h"
+#include "update.h"
 #include "domain.h"
 #include "lattice.h"
 #include "modify.h"
 #include "comm.h"
+#include "respa.h"
 #include "error.h"
 #include "force.h"
 
@@ -110,6 +112,7 @@ int FixRecenter::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
+  mask |= INITIAL_INTEGRATE_RESPA;
   return mask;
 }
 
@@ -139,6 +142,9 @@ void FixRecenter::init()
     yinit = xcm[1];
     zinit = xcm[2];
   }
+
+  if (strstr(update->integrate_style,"respa"))
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -202,6 +208,16 @@ void FixRecenter::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixRecenter::initial_integrate_respa(int vflag, int ilevel, int iloop)
+{
+  // outermost level - operate recenter
+  // all other levels - nothing
+
+  if (ilevel == nlevels_respa-1) initial_integrate(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 double FixRecenter::compute_scalar()
 {
   return distance;
@@ -213,4 +229,3 @@ double FixRecenter::compute_vector(int n)
 {
   return shift[n];
 }
-

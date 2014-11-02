@@ -163,10 +163,10 @@ void PairSNAP::compute(int eflag, int vflag)
 
 void PairSNAP::compute_regular(int eflag, int vflag)
 {
-  int i,j,inum,jnum,ninside;
+  int i,j,jnum,ninside;
   double delx,dely,delz,evdwl,rsq;
   double fij[3];
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *jlist,*numneigh,**firstneigh;
   evdwl = 0.0;
 
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -179,8 +179,6 @@ void PairSNAP::compute_regular(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   class SNA* snaptr = sna[0];
 
-  inum = list->inum;
-  ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
@@ -425,10 +423,10 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
     }
 
     int ielem;
-    int jj,k,inum,jnum,jtype,ninside;
+    int jj,k,jnum,jtype,ninside;
     double delx,dely,delz,evdwl,rsq;
     double fij[3];
-    int *ilist,*jlist,*numneigh,**firstneigh;
+    int *jlist,*numneigh,**firstneigh;
     evdwl = 0.0;
 
 #if defined(_OPENMP)
@@ -450,8 +448,6 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
     int nlocal = atom->nlocal;
     int newton_pair = force->newton_pair;
 
-    inum = list->inum;
-    ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
 
@@ -1020,17 +1016,16 @@ void PairSNAP::build_per_atom_arrays()
   clock_gettime(CLOCK_REALTIME,&starttime);
 #endif
 
-  int i_list[list->inum+ghostinum];
   int count = 0;
   int neighmax = 0;
   for (int ii = 0; ii < list->inum; ii++)
     if ((do_load_balance <= 0) || ilistmask[ii]) {
       neighmax=MAX(neighmax,list->numneigh[list->ilist[ii]]);
-      i_list[count++]=list->ilist[ii];
+      ++count;
     }
   for (int ii = 0; ii < ghostinum; ii++) {
     neighmax=MAX(neighmax,ghostnumneigh[ghostilist[ii]]);
-    i_list[count++]=ghostilist[ii];
+    ++count;
   }
 
   if (i_max < count || i_neighmax < neighmax) {

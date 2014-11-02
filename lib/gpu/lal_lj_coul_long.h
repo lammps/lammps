@@ -46,6 +46,11 @@ class LJCoulLong : public BaseCharge<numtyp, acctyp> {
            const double host_cut_coulsq, double *host_special_coul,
            const double qqrd2e, const double g_ewald);
 
+  /// Send updated coeffs from host to device (to be compatible with fix adapt)
+  void reinit(const int ntypes, double **host_cutsq,
+              double **host_lj1, double **host_lj2, double **host_lj3,
+              double **host_lj4, double **host_offset, double **host_cut_ljsq);
+
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear();

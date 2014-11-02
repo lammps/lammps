@@ -69,11 +69,11 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
   
   if (ii<inum) {
-    const __global int *nbor, *list_end;
+    int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,list_end,nbor);
+              n_stride,nbor_end,nbor);
   
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
@@ -85,8 +85,8 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
       e_coul += (acctyp)2.0*e_self;
     }
 
-    for ( ; nbor<list_end; nbor+=n_stride) {
-      int j=*nbor;
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+      int j=dev_packed[nbor];
 
       numtyp factor_lj, factor_coul;
       factor_lj = sp_lj[sbmask(j)];
@@ -105,7 +105,7 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
       int mtype=itype*lj_types+jtype;
       if (rsq<cutsq_sigma[mtype].x) { // cutsq
         numtyp r2inv = ucl_recip(rsq);
-        numtyp forcecoul, forceborn, force, r6inv, prefactor, erfcc;
+        numtyp forcecoul, forceborn, force, r6inv, prefactor;
         numtyp v_sh = (numtyp)0.0;
         numtyp rexp = (numtyp)0.0;
         
@@ -124,10 +124,11 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
           fetch(prefactor,j,q_tex);
           prefactor *= qqrd2e * qtmp/r;
 
-          erfcc = erfc(arij);
+          const numtyp erfcc = erfc(arij);
           v_sh = (erfcc - e_shift*r)*prefactor;
           numtyp dvdrr = (erfcc/rsq + (numtyp)2.0*alf/MY_PIS * erfcd/r) + f_shift;
-          forcecoul = prefactor * dvdrr*rsq*factor_coul;
+          forcecoul = prefactor * dvdrr*rsq;
+          if (factor_coul < (numtyp)1.0) forcecoul -= ((numtyp)1.0-factor_coul)*prefactor;
         } else forcecoul = (numtyp)0.0;
 
         force = (forceborn + forcecoul) * r2inv;
@@ -137,8 +138,11 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (eflag>0) {
-          if (rsq < cut_coulsq)
-            e_coul += v_sh*factor_coul;
+          if (rsq < cut_coulsq) {
+            numtyp e=v_sh;
+            if (factor_coul < (numtyp)1.0) e -= ((numtyp)1.0-factor_coul)*prefactor;
+            e_coul += e;
+          }
           if (rsq < cutsq_sigma[mtype].y) {
             numtyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv
               + coeff2[mtype].z*r2inv*r6inv;
@@ -201,11 +205,11 @@ __kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
   __syncthreads();
   
   if (ii<inum) {
-    const __global int *nbor, *list_end;
+    int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,list_end,nbor);
+              n_stride,nbor_end,nbor);
   
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
@@ -218,8 +222,8 @@ __kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
       e_coul += (acctyp)2.0*e_self;
     }
 
-    for ( ; nbor<list_end; nbor+=n_stride) {
-      int j=*nbor;
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+      int j=dev_packed[nbor];
 
       numtyp factor_lj, factor_coul;
       factor_lj = sp_lj[sbmask(j)];
@@ -237,7 +241,7 @@ __kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
 
       if (rsq<cutsq_sigma[mtype].x) {
         numtyp r2inv=ucl_recip(rsq);
-        numtyp forcecoul, forceborn, force, r6inv, prefactor, erfcc;
+        numtyp forcecoul, forceborn, force, r6inv, prefactor;
         numtyp v_sh = (numtyp)0.0;
         numtyp rexp = (numtyp)0.0;
         
@@ -256,10 +260,11 @@ __kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
           fetch(prefactor,j,q_tex);
           prefactor *= qqrd2e * qtmp/r;
 
-          erfcc = erfc(arij);
+          const numtyp erfcc = erfc(arij);
           v_sh = (erfcc - e_shift*r)*prefactor;
           numtyp dvdrr = (erfcc/rsq + (numtyp)2.0*alf/MY_PIS * erfcd/r) + f_shift;
-          forcecoul = prefactor * dvdrr*rsq*factor_coul;
+          forcecoul = prefactor * dvdrr*rsq;
+          if (factor_coul < (numtyp)1.0) forcecoul -= ((numtyp)1.0-factor_coul)*prefactor;
         } else forcecoul = (numtyp)0.0;
 
         force = (forceborn + forcecoul) * r2inv;
@@ -269,8 +274,11 @@ __kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (eflag>0) {
-          if (rsq < cut_coulsq)
-            e_coul += v_sh*factor_coul;
+          if (rsq < cut_coulsq) {
+            numtyp e=v_sh;
+            if (factor_coul < (numtyp)1.0) e -= ((numtyp)1.0-factor_coul)*prefactor;
+            e_coul += e;
+          }
           if (rsq < cutsq_sigma[mtype].y) {
             numtyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv
               + coeff2[mtype].z*r2inv*r6inv;

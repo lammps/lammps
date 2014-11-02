@@ -219,14 +219,6 @@ public:
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
 
-  /// \brief Return a positive number if x2>x1, zero if x2==x1,
-  /// negative otherwise (can be redefined to transparently implement
-  /// constraints, symmetries and periodicities) \b Note: \b it \b
-  /// only \b works \b with \b scalar \b variables, otherwise raises
-  /// an error
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
-
   /// \brief Wrapp value (for periodic/symmetric cvcs)
   virtual void wrap (colvarvalue &x) const;
 
@@ -300,18 +292,6 @@ inline colvarvalue colvar::cvc::dist2_rgrad (colvarvalue const &x1,
   return x2.dist2_grad (x1);
 }
 
-inline cvm::real colvar::cvc::compare (colvarvalue const &x1,
-                                       colvarvalue const &x2) const
-{
-  if (this->type() == colvarvalue::type_scalar) {
-    return cvm::real (x1 - x2);
-  } else {
-    cvm::error ("Error: you requested an operation which requires "
-                "comparison between two non-scalar values.\n");
-    return 0.0;
-  }
-}
-
 inline void colvar::cvc::wrap (colvarvalue &x) const
 {
   return;
@@ -356,8 +336,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -383,9 +361,6 @@ public:
   /// Redefined to handle the box periodicity
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  /// Redefined to handle the box periodicity
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -408,8 +383,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -453,8 +426,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
   /// \brief Redefined to make use of the user-provided period
   virtual void wrap (colvarvalue &x) const;
 };
@@ -485,8 +456,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -511,8 +480,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -541,8 +508,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -565,8 +530,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -592,8 +555,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -635,8 +596,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -685,8 +644,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -735,9 +692,6 @@ public:
   /// Redefined to handle the 2*PI periodicity
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  /// Redefined to handle the 2*PI periodicity
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
   /// Redefined to handle the 2*PI periodicity
   virtual void wrap (colvarvalue &x) const;
 };
@@ -796,8 +750,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 /// \brief Colvar component: self-coordination number within a group
@@ -835,8 +787,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 /// \brief Colvar component: hydrogen bond, defined as the product of
@@ -872,8 +822,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -915,8 +863,6 @@ public:
 //                                    colvarvalue const &x2) const;
 //   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
 //                                    colvarvalue const &x2) const;
-//   virtual cvm::real compare (colvarvalue const &x1,
-//                              colvarvalue const &x2) const;
 // };
 
 
@@ -958,8 +904,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 /// \brief Colvar component: dihedPC
@@ -988,8 +932,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 /// \brief Colvar component: orientation in space of an atom group,
@@ -1030,8 +972,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -1055,8 +995,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -1080,8 +1018,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -1108,8 +1044,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -1140,9 +1074,6 @@ public:
   /// Redefined to handle the 2*PI periodicity
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  /// Redefined to handle the 2*PI periodicity
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
   /// Redefined to handle the 2*PI periodicity
   virtual void wrap (colvarvalue &x) const;
 };
@@ -1180,8 +1111,6 @@ public:
                                    colvarvalue const &x2) const;
   virtual colvarvalue dist2_rgrad (colvarvalue const &x1,
                                    colvarvalue const &x2) const;
-  virtual cvm::real compare (colvarvalue const &x1,
-                             colvarvalue const &x2) const;
 };
 
 
@@ -1212,12 +1141,6 @@ public:
                                                 colvarvalue const &x2) const \
   {                                                                     \
     return this->dist2_lgrad (x2, x1);                                  \
-  }                                                                     \
-                                                                        \
-  inline cvm::real colvar::TYPE::compare (colvarvalue const &x1,        \
-                                          colvarvalue const &x2) const  \
-  {                                                                     \
-    return this->dist2_lgrad (x1, x2);                                  \
   }                                                                     \
                                                                         \
 
@@ -1268,12 +1191,6 @@ inline colvarvalue colvar::dihedral::dist2_rgrad (colvarvalue const &x1,
   return (-2.0) * diff;
 }
 
-inline cvm::real colvar::dihedral::compare (colvarvalue const &x1,
-                                            colvarvalue const &x2) const
-{
-  return dist2_lgrad (x1, x2);
-}
-
 inline void colvar::dihedral::wrap (colvarvalue &x) const
 {
   if ((x.real_value - wrap_center) >= 180.0) {
@@ -1311,12 +1228,6 @@ inline colvarvalue colvar::spin_angle::dist2_rgrad (colvarvalue const &x1,
   cvm::real diff = x1.real_value - x2.real_value;
   diff = (diff < -180.0 ? diff + 360.0 : (diff > 180.0 ? diff - 360.0 : diff));
   return (-2.0) * diff;
-}
-
-inline cvm::real colvar::spin_angle::compare (colvarvalue const &x1,
-                                            colvarvalue const &x2) const
-{
-  return dist2_lgrad (x1, x2);
 }
 
 inline void colvar::spin_angle::wrap (colvarvalue &x) const
@@ -1370,12 +1281,6 @@ inline colvarvalue colvar::distance_z::dist2_rgrad (colvarvalue const &x1,
   return (-2.0) * diff;
 }
 
-inline cvm::real colvar::distance_z::compare (colvarvalue const &x1,
-                                              colvarvalue const &x2) const
-{
-  return dist2_lgrad (x1, x2);
-}
-
 inline void colvar::distance_z::wrap (colvarvalue &x) const
 {
   if (! this->b_periodic) {
@@ -1412,13 +1317,6 @@ inline colvarvalue colvar::distance_vec::dist2_rgrad (colvarvalue const &x1,
   return 2.0 * cvm::position_distance(x2.rvector_value, x1.rvector_value);
 }
 
-inline cvm::real colvar::distance_vec::compare (colvarvalue const &x1,
-                                                colvarvalue const &x2) const
-{
-  cvm::error ("Error: cannot compare() two distance vectors.\n");
-  return 0.0;
-}
-
 inline cvm::real colvar::distance_dir::dist2 (colvarvalue const &x1,
                                               colvarvalue const &x2) const
 {
@@ -1435,13 +1333,6 @@ inline colvarvalue colvar::distance_dir::dist2_rgrad (colvarvalue const &x1,
                                                       colvarvalue const &x2) const
 {
   return colvarvalue ((x2.rvector_value - x1.rvector_value), colvarvalue::type_unitvector);
-}
-
-inline cvm::real colvar::distance_dir::compare (colvarvalue const &x1,
-                                                colvarvalue const &x2) const
-{
-  cvm::error ("Error: cannot compare() two distance directions.\n");
-  return 0.0;
 }
 
 // distance between quaternions
@@ -1462,13 +1353,6 @@ inline colvarvalue colvar::orientation::dist2_rgrad (colvarvalue const &x1,
                                                      colvarvalue const &x2) const
 {
   return x2.quaternion_value.dist2_grad (x1);
-}
-
-inline cvm::real colvar::orientation::compare (colvarvalue const &x1,
-                                               colvarvalue const &x2) const
-{
-  cvm::error ("Error: cannot compare() two quaternions.\n");
-  return 0.0;
 }
 
 

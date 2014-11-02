@@ -56,6 +56,9 @@ int ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   double **host_cut_ljsq, double host_cut_coulsq,
                   double *host_special_coul, const double qqrd2e,
                   const double g_ewald);
+int ljcl_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
+                    double **host_lj2, double **host_lj3, double **host_lj4,
+                    double **offset, double **host_lj_cutsq);
 void ljcl_gpu_clear();
 int ** ljcl_gpu_compute_n(const int ago, const int inum,
                           const int nall, double **host_x, int *host_type,
@@ -79,7 +82,6 @@ PairLJCutCoulLongGPU::PairLJCutCoulLongGPU(LAMMPS *lmp) :
   PairLJCutCoulLong(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
-  reinitflag = 0;
   cpu_time = 0.0;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -191,6 +193,15 @@ void PairLJCutCoulLongGPU::init_style()
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJCutCoulLongGPU::reinit()
+{
+  Pair::reinit();
+  
+  ljcl_gpu_reinit(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4, offset, cut_ljsq);
 }
 
 /* ---------------------------------------------------------------------- */

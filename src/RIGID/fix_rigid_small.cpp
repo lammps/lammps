@@ -1734,11 +1734,11 @@ void FixRigidSmall::setup_bodies_static()
   // dorientflag = 1 if any particle stores dipole orientation
 
   if (extended) {
-    grow_arrays(atom->nmax);
     if (atom->ellipsoid_flag) orientflag = 4;
     if (atom->line_flag) orientflag = 1;
     if (atom->tri_flag) orientflag = 4;
     if (atom->mu_flag) dorientflag = 1;
+    grow_arrays(atom->nmax);
 
     for (i = 0; i < nlocal; i++) {
       eflags[i] = 0;

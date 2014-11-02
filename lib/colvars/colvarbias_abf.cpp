@@ -44,6 +44,18 @@ colvarbias_abf::colvarbias_abf (std::string const &conf, char const *key)
   get_keyval (conf, "historyFreq", history_freq, 0);
   b_history_files = (history_freq > 0);
 
+  // shared ABF
+  get_keyval (conf, "shared", shared_on, false);
+  if (shared_on) {
+    if (!cvm::replica_enabled || cvm::replica_num() <= 1)
+      cvm::error ("Error: shared ABF requires more than one replica.");
+    else
+      cvm::log ("shared ABF will be applied among "+ cvm::to_str(cvm::replica_num()) + " replicas.\n");
+
+    // If shared_freq is not set, we default to output_freq
+    get_keyval (conf, "sharedFreq", shared_freq, output_freq);
+  }
+
   // ************* checking the associated colvars *******************
 
   if (colvars.size() == 0) {
@@ -109,6 +121,15 @@ colvarbias_abf::colvarbias_abf (std::string const &conf, char const *key)
   gradients->samples = samples;
   samples->has_parent_data = true;
 
+  // For shared ABF, we store a second set of grids.
+  // This used to be only if "shared" was defined,
+  // but now we allow calling share externally (e.g. from Tcl).
+  last_samples   = new colvar_grid_count    (colvars);
+  last_gradients = new colvar_grid_gradient (colvars);
+  last_gradients->samples = last_samples;
+  last_samples->has_parent_data = true;
+  shared_last_step = -1;
+
   // If custom grids are provided, read them
   if ( input_prefix.size() > 0 ) {
     read_gradients_samples ();
@@ -128,6 +149,19 @@ colvarbias_abf::~colvarbias_abf()
   if (gradients) {
     delete gradients;
     gradients = NULL;
+  }
+
+  // shared ABF
+  // We used to only do this if "shared" was defined,
+  // but now we can call shared externally
+  if (last_samples) {
+    delete last_samples;
+    last_samples = NULL;
+  }
+
+  if (last_gradients) {
+    delete last_gradients;
+    last_gradients = NULL;
   }
 
   delete [] force;
@@ -225,13 +259,103 @@ cvm::real colvarbias_abf::update()
     write_gradients_samples (output_prefix);
   }
   if (b_history_files && (cvm::step_absolute() % history_freq) == 0) {
+    cvm::log ("ABFHISTORYFILE "+cvm::to_str(cvm::step_absolute()));
     // append to existing file only if cvm::step_absolute() > 0
     // otherwise, backup and replace
     write_gradients_samples (output_prefix + ".hist", (cvm::step_absolute() > 0));
   }
+
+  if (shared_on && shared_last_step >= 0 && cvm::step_absolute() % shared_freq == 0) {
+    // Share gradients and samples for shared ABF.
+    replica_share();
+  }
+
+  // Prepare for the first sharing.
+  if (shared_last_step < 0) {
+    // Copy the current gradient and count values into last.
+    last_gradients->copy_grid(*gradients);
+    last_samples->copy_grid(*samples);
+    shared_last_step = cvm::step_absolute();
+    cvm::log ("Prepared sample and gradient buffers at step "+cvm::to_str(cvm::step_absolute())+".");
+  }
+
   return 0.0;
 }
 
+void colvarbias_abf::replica_share () {
+  int p;
+
+  if( !cvm::replica_enabled() ) {
+    cvm::error ("Error: shared ABF: No replicas.\n");
+    return;
+  }
+  // We must have stored the last_gradients and last_samples.
+  if (shared_last_step < 0 ) {
+    cvm::error ("Error: shared ABF: Tried to apply shared ABF before any sampling had occurred.\n");
+    return;
+  }
+
+  // Share gradients for shared ABF.
+  cvm::log ("shared ABF: Sharing gradient and samples among replicas at step "+cvm::to_str(cvm::step_absolute()) );
+
+  // Count of data items.
+  size_t data_n = gradients->raw_data_num();
+  size_t samp_start = data_n*sizeof(cvm::real);
+  size_t msg_total = data_n*sizeof(size_t) + samp_start;
+  char* msg_data = new char[msg_total];
+
+  if (cvm::replica_index() == 0) {
+    // Replica 0 collects the delta gradient and count from the others.
+    for (p = 1; p < cvm::replica_num(); p++) {
+      // Receive the deltas.
+      cvm::replica_comm_recv(msg_data, msg_total, p);
+
+      // Map the deltas from the others into the grids.
+      last_gradients->raw_data_in((cvm::real*)(&msg_data[0]));
+      last_samples->raw_data_in((size_t*)(&msg_data[samp_start]));
+
+      // Combine the delta gradient and count of the other replicas
+      // with Replica 0's current state (including its delta).
+      gradients->add_grid( *last_gradients );
+      samples->add_grid( *last_samples );
+    }
+
+    // Now we must send the combined gradient to the other replicas.
+    gradients->raw_data_out((cvm::real*)(&msg_data[0]));
+    samples->raw_data_out((size_t*)(&msg_data[samp_start]));
+    for (p = 1; p < cvm::replica_num(); p++) {
+      cvm::replica_comm_send(msg_data, msg_total, p);
+    }
+
+  } else {
+    // All other replicas send their delta gradient and count.
+    // Calculate the delta gradient and count.
+    last_gradients->delta_grid (*gradients);
+    last_samples->delta_grid (*samples);
+
+    // Cast the raw char data to the gradient and samples.
+    last_gradients->raw_data_out((cvm::real*)(&msg_data[0]));
+    last_samples->raw_data_out((size_t*)(&msg_data[samp_start]));
+    cvm::replica_comm_send(msg_data, msg_total, 0);
+
+    // We now receive the combined gradient from Replica 0.
+    cvm::replica_comm_recv(msg_data, msg_total, 0);
+    // We sync to the combined gradient computed by Replica 0.
+    gradients->raw_data_in((cvm::real*)(&msg_data[0]));
+    samples->raw_data_in((size_t*)(&msg_data[samp_start]));
+  }
+
+  // Without a barrier it's possible that one replica starts
+  // share 2 when other replicas haven't finished share 1.
+  cvm::replica_comm_barrier();
+  // Done syncing the replicas.
+  delete[] msg_data;
+
+  // Copy the current gradient and count values into last.
+  last_gradients->copy_grid(*gradients);
+  last_samples->copy_grid(*samples);
+  shared_last_step = cvm::step_absolute();
+}
 
 void colvarbias_abf::write_gradients_samples (const std::string &prefix, bool append)
 {
@@ -267,6 +391,27 @@ void colvarbias_abf::write_gradients_samples (const std::string &prefix, bool ap
   }
   return;
 }
+
+
+// For Tcl implementation of selection rules.
+/// Give the total number of bins for a given bias.
+int colvarbias_abf::bin_num() {
+  return samples->number_of_points(0);
+}
+/// Calculate the bin index for a given bias.
+int colvarbias_abf::current_bin() {
+  return samples->current_bin_scalar(0);
+}
+/// Give the count at a given bin index.
+int colvarbias_abf::bin_count(int bin_index) {
+  if (bin_index < 0 || bin_index >= bin_num()) {
+    cvm::error ("Error: Tried to get bin count from invalid bin index "+cvm::to_str(bin_index));
+    return -1;
+  }
+  std::vector<int> ix(1,(int)bin_index);
+  return samples->value(ix);
+}
+
 
 void colvarbias_abf::read_gradients_samples ()
 {

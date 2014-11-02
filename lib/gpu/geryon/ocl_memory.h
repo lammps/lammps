@@ -127,7 +127,8 @@ inline int _host_view(mat_type &mat, copy_type &cm, const size_t n) {
   orig_flags=orig_flags & ~CL_MEM_ALLOC_HOST_PTR;
   
   mat.cbegin()=clCreateBuffer(context, CL_MEM_USE_HOST_PTR | orig_flags, n,
-                              mat.host_ptr(), &error_flag);
+                              *mat.host_ptr(), &error_flag);
+
   CL_CHECK_ERR(error_flag);
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
   return UCL_SUCCESS;
@@ -174,7 +175,7 @@ template <class mat_type>
 inline int _host_view(mat_type &mat, UCL_Device &dev, const size_t n) {
   cl_int error_flag;
   mat.cbegin()=clCreateBuffer(dev.context(), CL_MEM_USE_HOST_PTR,
-                              n,mat.host_ptr(),&error_flag);
+                              n,*mat.host_ptr(),&error_flag);
   CL_CHECK_ERR(error_flag);
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
   return UCL_SUCCESS;

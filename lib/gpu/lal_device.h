@@ -51,7 +51,7 @@ class Device {
                   const int last_gpu, const int gpu_mode, 
                   const double particle_split, const int nthreads,
                   const int t_per_atom, const double cell_size, 
-                  char *vendor_string);
+                  char *vendor_string, const int block_pair);
 
   /// Initialize the device for Atom and Neighbor storage
   /** \param rot True if quaternions need to be stored
@@ -96,12 +96,12 @@ class Device {
                     const int first_gpu, const int last_gpu);
 
   /// Perform charge assignment asynchronously for PPPM
-	void set_single_precompute(PPPM<numtyp,acctyp,
-	                                         float,_lgpu_float4> *pppm);
+  void set_single_precompute(PPPM<numtyp,acctyp,
+                             float,_lgpu_float4> *pppm);
 
   /// Perform charge assignment asynchronously for PPPM
-	void set_double_precompute(PPPM<numtyp,acctyp,
-	                                         double,_lgpu_double4> *pppm);
+  void set_double_precompute(PPPM<numtyp,acctyp,
+                             double,_lgpu_double4> *pppm);
 
   /// Esimate the overhead from GPU calls from multiple procs
   /** \param kernel_calls Number of kernel calls/timestep for timing estimated

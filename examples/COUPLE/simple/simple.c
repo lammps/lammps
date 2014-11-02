@@ -13,7 +13,7 @@
 
 /* c_driver = simple example of how an umbrella program
               can invoke LAMMPS as a library on some subset of procs
-   Syntax: c_driver P in.lammps
+   Syntax: simpleC P in.lammps
            P = # of procs to run LAMMPS on
                must be <= # of procs the driver code itself runs on
            in.lammps = LAMMPS input script
@@ -34,7 +34,7 @@ int main(int narg, char **arg)
   MPI_Init(&narg,&arg);
 
   if (narg != 3) {
-    printf("Syntax: c_driver P in.lammps\n");
+    printf("Syntax: simpleC P in.lammps\n");
     exit(1);
   }
 

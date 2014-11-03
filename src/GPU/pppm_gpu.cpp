@@ -206,13 +206,13 @@ void PPPMGPU::compute(int eflag, int vflag)
   else evflag = evflag_atom = eflag_global = vflag_global = 
         eflag_atom = vflag_atom = 0;
 
-  // If need per-atom energies/virials, also do particle map on host
-  // concurrently with GPU calculations
+  // If need per-atom energies/virials, allocate per-atom arrays here
+  // so that particle map on host can be done concurrently with GPU calculations
+
   if (evflag_atom && !peratom_allocate_flag) {
     allocate_peratom();
     cg_peratom->ghost_notify();
     cg_peratom->setup();
-    peratom_allocate_flag = 1;
   }
 
   bool success = true;
@@ -233,12 +233,19 @@ void PPPMGPU::compute(int eflag, int vflag)
     domain->x2lamda(atom->nlocal);
   }
 
-  // extend size of per-atom arrays if necessary
+  // If need per-atom energies/virials, also do particle map on host
+  // concurrently with GPU calculations
 
-  if (evflag_atom && atom->nlocal > nmax) {
-    memory->destroy(part2grid);
-    nmax = atom->nmax;
-    memory->create(part2grid,nmax,3,"pppm:part2grid");
+  if (evflag_atom) {
+
+    // extend size of per-atom arrays if necessary
+
+    if (atom->nlocal > nmax) {
+      memory->destroy(part2grid);
+      nmax = atom->nmax;
+      memory->create(part2grid,nmax,3,"pppm:part2grid");
+    }
+
     particle_map();
   }
 

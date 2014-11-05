@@ -26,8 +26,5 @@ are printed.
 Dump file snapshots or images or a movie of the MC relaxation can be
 produced by uncommenting the appropriate dump lines in the script.
 
-At some point, we will add a Python script to the python/examples
-directory that performs the same operation as this script.  It will
-invoke LAMMPS as a library and use Python to implement the MC
-accept/reject logic more cleanly than the LAMMPS input script can do
-it.
+See the Python script mc.py in python/examples for similar
+functionality encoded in a script that invokes LAMMPS as a library.

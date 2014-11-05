@@ -12,10 +12,11 @@ libfwrapper.c  is the Fortran-to-C wrapper
 
 The 3 codes do the same thing, so you can compare them to see how to
 drive LAMMPS in this manner. The C driver is similar in spirit to what
-one could use to write a scripting language interface.  The Fortran
-driver in addition requires a wrapper library that interfaces the C
-interface of the LAMMPS library to Fortran and also translates the MPI
-communicator from Fortran to C.
+one could use to write a scripting language interface.  See
+python/examples/simple.py for an example of using Python as a wrapper
+in that way.  The Fortran driver in addition requires a wrapper
+library that interfaces the C interface of the LAMMPS library to
+Fortran and also translates the MPI communicator from Fortran to C.
 
 First, you must build LAMMPS as a library, either static or shared.
 See http://lammps.sandia.gov/doc/Section_start.html#start_5 for

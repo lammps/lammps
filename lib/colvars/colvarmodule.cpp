@@ -230,143 +230,56 @@ bool colvarmodule::check_new_bias(std::string &conf, char const *key)
   return false;
 }
 
+
+template <class bias_type>
+int colvarmodule::parse_biases_type(std::string const &conf,
+                                    char const *keyword,
+                                    size_t &bias_count)
+{
+  std::string bias_conf = "";
+  size_t conf_saved_pos = 0;
+  while (parse->key_lookup(conf, keyword, bias_conf, conf_saved_pos)) {
+    if (bias_conf.size()) {
+      cvm::log(cvm::line_marker);
+      cvm::increase_depth();
+      biases.push_back(new bias_type(bias_conf, keyword));
+      if (cvm::check_new_bias(bias_conf, keyword)) {
+        return COLVARS_ERROR;
+      }
+      cvm::decrease_depth();
+      bias_count++;
+    } else {
+      cvm::error("Error: keyword \""+std::string(keyword)+"\" found without configuration.\n",
+                 INPUT_ERROR);
+      return COLVARS_ERROR;
+    }
+    bias_conf = "";
+  }
+}
+
+
 int colvarmodule::parse_biases(std::string const &conf)
 {
   if (cvm::debug())
     cvm::log("Initializing the collective variables biases.\n");
 
-  {
-    /// initialize ABF instances
-    std::string abf_conf = "";
-    size_t abf_pos = 0;
-    while (parse->key_lookup(conf, "abf", abf_conf, abf_pos)) {
-      if (abf_conf.size()) {
-        cvm::log(cvm::line_marker);
-        cvm::increase_depth();
-        biases.push_back(new colvarbias_abf(abf_conf, "abf"));
-        if (cvm::check_new_bias(abf_conf, "abf")) {
-          return COLVARS_ERROR;
-        }
-        cvm::decrease_depth();
-        n_abf_biases++;
-      } else {
-        cvm::error("Error: \"abf\" keyword found without configuration.\n", INPUT_ERROR);
-        return COLVARS_ERROR;
-      }
-      abf_conf = "";
-    }
-  }
+  /// initialize ABF instances
+  parse_biases_type<colvarbias_abf>(conf, "abf", n_abf_biases);
 
-  {
-    /// initialize harmonic restraints
-    std::string harm_conf = "";
-    size_t harm_pos = 0;
-    while (parse->key_lookup(conf, "harmonic", harm_conf, harm_pos)) {
-      if (harm_conf.size()) {
-        cvm::log(cvm::line_marker);
-        cvm::increase_depth();
-        biases.push_back(new colvarbias_restraint_harmonic(harm_conf, "harmonic"));
-        if (cvm::check_new_bias(harm_conf, "harmonic")) {
-          return COLVARS_ERROR;
-        }
-        cvm::decrease_depth();
-        n_rest_biases++;
-      } else {
-        cvm::error("Error: \"harmonic\" keyword found without configuration.\n", INPUT_ERROR);
-        return COLVARS_ERROR;
-      }
-      harm_conf = "";
-    }
-  }
+  /// initialize adaptive linear biases
+  parse_biases_type<colvarbias_alb>(conf, "ALB", n_rest_biases);
 
-  {
-    /// initialize linear restraints
-    std::string lin_conf = "";
-    size_t lin_pos = 0;
-    while (parse->key_lookup(conf, "linear", lin_conf, lin_pos)) {
-      if (lin_conf.size()) {
-        cvm::log(cvm::line_marker);
-        cvm::increase_depth();
-        biases.push_back(new colvarbias_restraint_linear(lin_conf, "linear"));
-        if (cvm::check_new_bias(lin_conf, "linear")) {
-          return COLVARS_ERROR;
-        }
-        cvm::decrease_depth();
-        n_rest_biases++;
-      } else {
-        cvm::error("Error: \"linear\" keyword found without configuration.\n", INPUT_ERROR);
-        return COLVARS_ERROR;
-      }
-      lin_conf = "";
-    }
-  }
+  /// initialize harmonic restraints
+  parse_biases_type<colvarbias_restraint_harmonic>(conf, "harmonic", n_rest_biases);
 
-  {
-    /// initialize adaptive linear biases
-    std::string alb_conf = "";
-    size_t alb_pos = 0;
-    while (parse->key_lookup(conf, "ALB", alb_conf, alb_pos)) {
-      if (alb_conf.size()) {
-        cvm::log(cvm::line_marker);
-        cvm::increase_depth();
-        biases.push_back(new colvarbias_alb(alb_conf, "ALB"));
-        if (cvm::check_new_bias(alb_conf, "ALB")) {
-          return COLVARS_ERROR;
-        }
-        cvm::decrease_depth();
-        n_rest_biases++;
-      } else {
-        cvm::error("Error: \"ALB\" keyword found without configuration.\n", INPUT_ERROR);
-        return COLVARS_ERROR;
-      }
-      alb_conf = "";
-    }
-  }
+  /// initialize histograms
+  parse_biases_type<colvarbias_histogram>(conf, "histogram", n_histo_biases);
 
+  /// initialize linear restraints
+  parse_biases_type<colvarbias_restraint_linear>(conf, "linear", n_rest_biases);
 
-  {
-    /// initialize histograms
-    std::string histo_conf = "";
-    size_t histo_pos = 0;
-    while (parse->key_lookup(conf, "histogram", histo_conf, histo_pos)) {
-      if (histo_conf.size()) {
-        cvm::log(cvm::line_marker);
-        cvm::increase_depth();
-        biases.push_back(new colvarbias_histogram(histo_conf, "histogram"));
-        if (cvm::check_new_bias(histo_conf, "histogram")) {
-          return COLVARS_ERROR;
-        }
-        cvm::decrease_depth();
-        n_histo_biases++;
-      } else {
-        cvm::error("Error: \"histogram\" keyword found without configuration.\n", INPUT_ERROR);
-        return COLVARS_ERROR;
-      }
-      histo_conf = "";
-    }
-  }
-
-  {
-    /// initialize metadynamics instances
-    std::string meta_conf = "";
-    size_t meta_pos = 0;
-    while (parse->key_lookup(conf, "metadynamics", meta_conf, meta_pos)) {
-      if (meta_conf.size()) {
-        cvm::log(cvm::line_marker);
-        cvm::increase_depth();
-        biases.push_back(new colvarbias_meta(meta_conf, "metadynamics"));
-        if (cvm::check_new_bias(meta_conf, "metadynamics")) {
-          return COLVARS_ERROR;
-        }
-        cvm::decrease_depth();
-        n_meta_biases++;
-      } else {
-        cvm::error("Error: \"metadynamics\" keyword found without configuration.\n", INPUT_ERROR);
-        return COLVARS_ERROR;
-      }
-      meta_conf = "";
-    }
-  }
+  /// initialize metadynamics instances
+  parse_biases_type<colvarbias_meta>(conf, "metadynamics", n_meta_biases);
 
   if (use_scripted_forces) {
     cvm::log(cvm::line_marker);
@@ -375,10 +288,15 @@ int colvarmodule::parse_biases(std::string const &conf)
     cvm::decrease_depth();
   }
 
-  if (biases.size() || use_scripted_forces)
+  if (biases.size() || use_scripted_forces) {
     cvm::log(cvm::line_marker);
-  cvm::log("Collective variables biases initialized, "+
-            cvm::to_str(biases.size())+" in total.\n");
+    cvm::log("Collective variables biases initialized, "+
+             cvm::to_str(biases.size())+" in total.\n");
+  } else {
+    if (!use_scripted_forces) {
+      cvm::log("No collective variables biases were defined.\n");
+    }
+  }
 
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }

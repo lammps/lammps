@@ -1,0 +1,67 @@
+If you run in another directory, please edit the read_data line to point to
+the data.rhodo file. This is included in the LAMMPS distribution in the
+'bench' directory.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Expected times are the expected LOOP times based on runs using dual-socket
+Intel Xeon processor E5-2697 V2 with Intel Xeon Phi coprocessor 7120P.
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+TO RUN WITHOUT A PACKAGE:
+-----------------------------------------------------------------------------
+mpirun -np 48 ../../../src/lmp_YOUR_MACHINE -in in.intel.rhodo -log none -v b 0 -v s off
+mpirun -np 48 ../../../src/lmp_YOUR_MACHINE -in in.intel.lc -log none -v b 0 -v s off
+
+
+TO RUN WITH OMP PACKAGE
+-----------------------------------------------------------------------------
+env OMP_NUM_THREADS=2 mpirun -np 24 ../../../src/lmp_YOUR_MACHINE -in in.intel.rhodo -log none -v b 0 -v s omp
++++++++++++++++++++++++
++ EXPECTED TIME: 20.33s
++++++++++++++++++++++++
+
+env OMP_NUM_THREADS=1 mpirun -np 48 ../../../src/lmp_YOUR_MACHINE -in in.intel.lc -log none -v b 0 -v s omp
++++++++++++++++++++++++
++ EXPECTED TIME: 19.92s
++++++++++++++++++++++++
+
+
+TO RUN WITH INTEL+OMP PACKAGE WITHOUT OFFLOAD:
+-----------------------------------------------------------------------------
+env OMP_NUM_THREADS=2 mpirun -np 24 ../../../src/lmp_YOUR_MACHINE -in in.intel.rhodo -log none -v b 0 -v s intel
++++++++++++++++++++++++
++ EXPECTED TIME: 16.94s
++++++++++++++++++++++++
+
+env OMP_NUM_THREADS=2 mpirun -np 24 ../../../src/lmp_YOUR_MACHINE -in in.intel.lc -log none -v b 0 -v s intel
++++++++++++++++++++++++
++ EXPECTED TIME: 5.80s
++++++++++++++++++++++++
+
+
+TO RUN WITH INTEL+OMP PACKAGE WITH OFFLOAD TO XEON PHI (AUTO-BALANCED):
+-----------------------------------------------------------------------------
+env OMP_NUM_THREADS=1 mpirun -np 24 ../../../src/lmp_YOUR_MACHINE -in in.intel.rhodo -log none -v b -1 -v s intel
++++++++++++++++++++++++
++ EXPECTED TIME: 12.31s
++++++++++++++++++++++++
+
+env OMP_NUM_THREADS=1 mpirun -np 24 ../../../src/lmp_YOUR_MACHINE -in in.intel.lc -log none -v b -1 -v s intel
++++++++++++++++++++++++
++ EXPECTED TIME: 4.00s
++++++++++++++++++++++++
+
+
+TO RUN WITH INTEL+OMP PACKAGE WITH OFFLOAD TO XEON PHI (FIXED BALANCE):
+-----------------------------------------------------------------------------
+env OMP_NUM_THREADS=1 mpirun -np 24 ../../../src/lmp_YOUR_MACHINE -in in.intel.rhodo -log none -v b 0.68 -v s intel
++++++++++++++++++++++++
++ EXPECTED TIME: 11.40s
++++++++++++++++++++++++
+
+env OMP_NUM_THREADS=1 mpirun -np 24 ../../../src/lmp_YOUR_MACHINE -in in.intel.lc -log none -v b 0.53 -v s intel
++++++++++++++++++++++++
++ EXPECTED TIME: 3.93s
++++++++++++++++++++++++
+

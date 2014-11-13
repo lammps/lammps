@@ -275,12 +275,13 @@ the default.
 <P>The <I>split</I> keyword can be used for load balancing force calculations
 between CPU and GPU cores in GPU-enabled pair styles. If 0 < <I>split</I> <
 1.0, a fixed fraction of particles is offloaded to the GPU while force
-calculation for the other particles occurs simulataneously on the
-CPU. If <I>split</I> < 0.0, the optimal fraction (based on CPU and GPU
-timings) is calculated every 25 timesteps.  If <I>split</I> = 1.0, all
-force calculations for GPU accelerated pair styles are performed on
-the GPU.  In this case, other <A HREF = "pair_hybrid.html">hybrid</A> pair
-interactions, <A HREF = "bond_style.html">bond</A>, <A HREF = "angle_style.html">angle</A>,
+calculation for the other particles occurs simulataneously on the CPU.
+If <I>split</I> < 0.0, the optimal fraction (based on CPU and GPU timings)
+is calculated every 25 timesteps, i.e. dynamic load-balancing across
+the CPU and GPU is performed.  If <I>split</I> = 1.0, all force
+calculations for GPU accelerated pair styles are performed on the GPU.
+In this case, other <A HREF = "pair_hybrid.html">hybrid</A> pair interactions,
+<A HREF = "bond_style.html">bond</A>, <A HREF = "angle_style.html">angle</A>,
 <A HREF = "dihedral_style.html">dihedral</A>, <A HREF = "improper_style.html">improper</A>, and
 <A HREF = "kspace_style.html">long-range</A> calculations can be performed on the
 CPU while the GPU is performing force calculations for the GPU-enabled
@@ -299,7 +300,7 @@ package gpu 2 split -1                 # input script command
 utilized.  Each GPU device would be shared by 4 CPU cores. The CPU
 cores would perform force calculations for some fraction of the
 particles at the same time the GPUs performed force calculation for
-the other particles.
+the other particles.  
 </P>
 <P>The <I>gpuID</I> keyword allows selection of which GPUs on each node will
 be used for a simulation.  The <I>first</I> and <I>last</I> values specify the

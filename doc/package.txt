@@ -269,12 +269,13 @@ the default.
 The {split} keyword can be used for load balancing force calculations
 between CPU and GPU cores in GPU-enabled pair styles. If 0 < {split} <
 1.0, a fixed fraction of particles is offloaded to the GPU while force
-calculation for the other particles occurs simulataneously on the
-CPU. If {split} < 0.0, the optimal fraction (based on CPU and GPU
-timings) is calculated every 25 timesteps.  If {split} = 1.0, all
-force calculations for GPU accelerated pair styles are performed on
-the GPU.  In this case, other "hybrid"_pair_hybrid.html pair
-interactions, "bond"_bond_style.html, "angle"_angle_style.html,
+calculation for the other particles occurs simulataneously on the CPU.
+If {split} < 0.0, the optimal fraction (based on CPU and GPU timings)
+is calculated every 25 timesteps, i.e. dynamic load-balancing across
+the CPU and GPU is performed.  If {split} = 1.0, all force
+calculations for GPU accelerated pair styles are performed on the GPU.
+In this case, other "hybrid"_pair_hybrid.html pair interactions,
+"bond"_bond_style.html, "angle"_angle_style.html,
 "dihedral"_dihedral_style.html, "improper"_improper_style.html, and
 "long-range"_kspace_style.html calculations can be performed on the
 CPU while the GPU is performing force calculations for the GPU-enabled
@@ -293,7 +294,7 @@ In this case, all CPU cores and GPU devices on the nodes would be
 utilized.  Each GPU device would be shared by 4 CPU cores. The CPU
 cores would perform force calculations for some fraction of the
 particles at the same time the GPUs performed force calculation for
-the other particles.
+the other particles.  
 
 The {gpuID} keyword allows selection of which GPUs on each node will
 be used for a simulation.  The {first} and {last} values specify the

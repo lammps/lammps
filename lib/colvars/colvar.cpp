@@ -161,11 +161,33 @@ colvar::colvar(std::string const &conf)
     enable(task_scripted);
     cvm::log("This colvar uses scripted function \"" + scripted_function + "\".");
 
-    // Only accept scalar scripted colvars
-    // might accept other types when the infrastructure is in place
-    // for derivatives of vectors wrt vectors
-    x.type(colvarvalue::type_scalar);
-    x_reported.type(x);
+    std::string type_str;
+    get_keyval(conf, "scriptedFunctionType", type_str, "scalar");
+
+    x.type(colvarvalue::type_notset);
+    int t;
+    for (t = 0; t < colvarvalue::type_all; t++) {
+      if (type_str == colvarvalue::type_keyword(colvarvalue::Type(t))) {
+        x.type(colvarvalue::Type(t));
+        break;
+      }
+    }
+    if (x.type() == colvarvalue::type_notset) {
+      cvm::error("Could not parse scripted colvar type.");
+      return;
+    }
+    x_reported.type (x.type());
+    cvm::log(std::string("Expecting colvar value of type ")
+      + colvarvalue::type_desc(x.type()));
+
+    if (x.type() == colvarvalue::type_vector) {
+      int size;
+      if (!get_keyval(conf, "scriptedFunctionVectorSize", size)) {
+        cvm::error("Error: no size specified for vector scripted function.");
+        return;
+      }
+      x.vector1d_value.resize(size);
+    }
 
     // Sort array of cvcs based on values of componentExp
     std::vector<cvc *> temp_vec;
@@ -189,15 +211,6 @@ colvar::colvar(std::string const &conf)
     for (j = 0; j < cvcs.size(); j++) {
       sorted_cvc_values.push_back(&(cvcs[j]->value()));
     }
-
-    // // these two are the vector value and the Jacobian matrix of the scripted function, respectively
-    // x_cvc.type(type_vector);
-    // dx_cvc.type(type_matrix); // TODO: not implemented yet
-    // for (j = 0; j < cvcs.size(); j++) {
-    //   x_cvc.add_elem(cvcs[j]->value());
-    //   dx_cvc.add_elem(cvcs[j]->value());
-    // }
-
 
     b_homogeneous = false;
     // Scripted functions are deemed non-periodic
@@ -1176,25 +1189,28 @@ void colvar::communicate_forces()
     cvm::log("Communicating forces from colvar \""+this->name+"\".\n");
 
   if (tasks[task_scripted]) {
-    std::vector<colvarvalue> func_grads(cvcs.size());
+    std::vector<cvm::matrix2d<cvm::real> > func_grads;
+    for (i = 0; i < cvcs.size(); i++) {
+      func_grads.push_back(cvm::matrix2d<cvm::real> (x.size(),
+                                                     cvcs[i]->value().size()));
+    }
     int res = cvm::proxy->run_colvar_gradient_callback(scripted_function, sorted_cvc_values, func_grads);
 
-    if (res == COLVARS_NOT_IMPLEMENTED) {
-      cvm::error("Colvar gradient scripts are not implemented.");
-      return;
-    }
     if (res != COLVARS_OK) {
-      cvm::error("Error running colvar gradient script");
+      if (res == COLVARS_NOT_IMPLEMENTED) {
+        cvm::error("Colvar gradient scripts are not implemented.");
+      } else {
+        cvm::error("Error running colvar gradient script");
+      }
       return;
     }
 
     for (i = 0; i < cvcs.size(); i++) {
       cvm::increase_depth();
-      // Force is scalar times colvarvalue (scalar or vector)
-      // Note: this can only handle scalar colvars (scalar values of f)
-      // A non-scalar colvar would need the gradient to be expressed
-      // as an order-2 tensor
-      (cvcs[i])->apply_force(f.real_value * func_grads[i]);
+      // cvc force is colvar force times colvar/cvc Jacobian
+      // (vector-matrix product)
+      (cvcs[i])->apply_force(colvarvalue(f.as_vector() * func_grads[i],
+                             cvcs[i]->value().type()));
       cvm::decrease_depth();
     }
   } else if (x.type() == colvarvalue::type_scalar) {

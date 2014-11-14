@@ -16,19 +16,20 @@
 /// treat different data types.  By default, a \link colvarvalue
 /// \endlink variable is a scalar number.  To use it as
 /// another type, declare and initialize it as
-/// \code colvarvalue x(colvarvalue::type_xxx), use \link x.type
+/// \code colvarvalue x(colvarvalue::type_xxx)\endcode, use \link x.type
 /// (colvarvalue::type_xxx) \endlink at a later stage, or if unset,
-//  assign the type with \code x = y; \endcode, provided y is correctly set.
+///  assign the type with \code x = y; \endcode, provided y is correctly set.
 ///
 /// All operators (either unary or binary) on a \link
 /// colvarvalue \endlink object performs one or more checks on the
 /// \link Type \endlink, except when reading from a stream, when there is no way to
 /// detect the \link Type \endlink.  To use  \code is >> x; \endcode x \b MUST
 /// already have a type correcly set up for properly parsing the
-/// stream. No problem of course with the output streams: \code os << x;
+/// stream. No problem of course with the output streams: \code os << x; \endcode
 ///
 /// \em Note \em on \em performance: to avoid type checks in a long array of \link
 /// colvarvalue \endlink objects, use one of the existing "_opt" functions or implement a new one
+
 
 class colvarvalue {
 
@@ -55,7 +56,9 @@ public:
     /// 4-dimensional vector that is a derivative of a quaternion
     type_quaternionderiv,
     /// vector (arbitrary dimension)
-    type_vector
+    type_vector,
+    /// Needed to iterate through enum
+    type_all
   };
 
   /// Current type of this colvarvalue object
@@ -501,9 +504,6 @@ inline size_t colvarvalue::size() const
 inline colvarvalue::colvarvalue(colvarvalue const &x)
   : value_type(x.type())
 {
-  // reset the value based on the previous type
-  reset();
-
   switch (x.type()) {
   case type_scalar:
     real_value = x.real_value;
@@ -530,9 +530,7 @@ inline colvarvalue::colvarvalue(colvarvalue const &x)
 
 inline colvarvalue::colvarvalue(cvm::vector1d<cvm::real> const &v, Type const &vti)
 {
-  // reset the value based on the previous type
-  reset();
-  if ((vti != type_vector) && (v.size() != num_dimensions(value_type))) {
+  if ((vti != type_vector) && (v.size() != num_dimensions(vti))) {
     cvm::error("Error: trying to initialize a variable of type \""+type_desc(vti)+
                "\" using a vector of size "+cvm::to_str(v.size())+
                ".\n");
@@ -770,7 +768,7 @@ inline cvm::vector1d<cvm::real> const colvarvalue::as_vector() const
   case colvarvalue::type_scalar:
     {
       cvm::vector1d<cvm::real> v(1);
-      v = real_value;
+      v[0] = real_value;
       return v;
     }
   case colvarvalue::type_3vector:

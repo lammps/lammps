@@ -1,3 +1,5 @@
+// -*- c++ -*-
+
 #ifndef COLVARBIAS_ALB_H
 #define COLVARBIAS_ALB_H
 

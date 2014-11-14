@@ -29,12 +29,9 @@ protected:
 
 public:
 
-  size_t length;
-
   /// Default constructor
   inline vector1d(size_t const n = 0)
   {
-    length = n;
     data.resize(n);
     reset();
   }
@@ -42,7 +39,6 @@ public:
   /// Constructor from C array
   inline vector1d(size_t const n, T const *t)
   {
-    length = n;
     data.resize(n);
     reset();
     size_t i;
@@ -405,6 +401,11 @@ public:
     data.assign(data.size(), T(0.0));
   }
 
+  inline size_t size() const
+  {
+    return data.size();
+  }
+
   /// Default constructor
   inline matrix2d()
     : outer_length(0), inner_length(0)
@@ -557,25 +558,62 @@ public:
   }
 
   /// Matrix multiplication
-  inline friend matrix2d<T> const & operator * (matrix2d<T> const &m1, matrix2d<T> const &m2)
+//   inline friend matrix2d<T> const & operator * (matrix2d<T> const &m1, matrix2d<T> const &m2)
+//   {
+//     matrix2d<T> result(m1.outer_length, m2.inner_length);
+//     if (m1.inner_length != m2.outer_length) {
+//       cvm::error("Error: trying to multiply two matrices of incompatible sizes, "+
+//                  cvm::to_str(m1.outer_length)+"x"+cvm::to_str(m1.inner_length)+" and "+
+//                  cvm::to_str(m2.outer_length)+"x"+cvm::to_str(m2.inner_length)+".\n");
+//     } else {
+//       size_t i, j, k;
+//       for (i = 0; i < m1.outer_length; i++) {
+//         for (j = 0; j < m2.inner_length; j++) {
+//           for (k = 0; k < m1.inner_length; k++) {
+//             result[i][j] += m1[i][k] * m2[k][j];
+//           }
+//         }
+//       }
+//     }
+//     return result;
+//   }
+
+  /// vector-matrix multiplication
+  inline friend vector1d<T> operator * (vector1d<T> const &v, matrix2d<T> const &m)
   {
-    matrix2d<T> result(m1.outer_length, m2.inner_length);
-    if (m1.inner_length != m2.outer_length) {
-      cvm::error("Error: trying to multiply two matrices of incompatible sizes, "+
-                 cvm::to_str(m1.outer_length)+"x"+cvm::to_str(m1.inner_length)+" and "+
-                 cvm::to_str(m2.outer_length)+"x"+cvm::to_str(m2.inner_length)+".\n");
+    vector1d<T> result(m.inner_length);
+    if (m.outer_length != v.size()) {
+      cvm::error("Error: trying to multiply a vector and a matrix of incompatible sizes, "+
+                  cvm::to_str(v.size()) + " and " + cvm::to_str(m.outer_length)+"x"+cvm::to_str(m.inner_length) + ".\n");
     } else {
-      size_t i, j, k;
-      for (i = 0; i < m1.outer_length; i++) {
-        for (j = 0; j < m2.inner_length; j++) {
-          for (k = 0; k < m1.inner_length; k++) {
-            result[i][j] += m1[i][k] * m2[k][j];
-          }
+      size_t i, k;
+      for (i = 0; i < m.inner_length; i++) {
+        for (k = 0; k < m.outer_length; k++) {
+          result[i] += m[k][i] * v[k];
         }
       }
     }
     return result;
   }
+
+//   /// matrix-vector multiplication (unused for now)
+//   inline friend vector1d<T> const & operator * (matrix2d<T> const &m, vector1d<T> const &v)
+//   {
+//     vector1d<T> result(m.outer_length);
+//     if (m.inner_length != v.size()) {
+//       cvm::error("Error: trying to multiply a matrix and a vector of incompatible sizes, "+
+//                   cvm::to_str(m.outer_length)+"x"+cvm::to_str(m.inner_length)
+//                   + " and " + cvm::to_str(v.length) + ".\n");
+//     } else {
+//       size_t i, k;
+//       for (i = 0; i < m.outer_length; i++) {
+//         for (k = 0; k < m.inner_length; k++) {
+//           result[i] += m[i][k] * v[k];
+//         }
+//       }
+//     }
+//     return result;
+//   }
 
   /// Formatted output
   friend std::ostream & operator << (std::ostream &os,

@@ -170,7 +170,7 @@ public:
 
   virtual int run_colvar_gradient_callback(std::string const &name,
                                          std::vector<const colvarvalue *> const &cvcs,
-                                         std::vector<colvarvalue> &gradient)
+                                         std::vector<cvm::matrix2d<cvm::real> > &gradient)
   { return COLVARS_NOT_IMPLEMENTED; }
 
   // **************** INPUT/OUTPUT ****************

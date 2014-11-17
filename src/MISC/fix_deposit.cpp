@@ -96,13 +96,6 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Deposition region extends outside simulation box");
   }
 
-  printf("BOUNDX %g %g: %g %g\n",xlo,xhi,
-         domain->boxlo_bound[0],domain->boxhi_bound[0]);
-  printf("BOUNDy %g %g: %g %g\n",ylo,yhi,
-         domain->boxlo_bound[1],domain->boxhi_bound[1]);
-  printf("BOUNDz %g %g: %g %g\n",zlo,zhi,
-         domain->boxlo_bound[2],domain->boxhi_bound[2]);
-
   // error check and further setup for mode = MOLECULE
 
   if (atom->tag_enable == 0)
@@ -479,10 +472,6 @@ void FixDeposit::pre_exchange()
               newcoord[0] >= sublo[0] && newcoord[0] < subhi[0]) flag = 1;
         }
       }
-
-      printf("INSERT %ld: %g %g %g: %g %g %g: %d\n",update->ntimestep,
-             coords[0][0],coords[0][1],coords[0][2],
-             newcoord[0],newcoord[1],newcoord[2],flag);
 
       if (flag) {
         if (mode == ATOM) atom->avec->create_atom(ntype,coords[m]);

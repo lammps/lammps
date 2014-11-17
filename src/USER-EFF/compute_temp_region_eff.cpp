@@ -83,6 +83,8 @@ void ComputeTempRegionEff::init()
 
 void ComputeTempRegionEff::setup()
 {
+  dynamic = 0;
+  if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
   dof = 0.0;
 }
 

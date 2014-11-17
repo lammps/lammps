@@ -271,7 +271,12 @@ void Modify::init()
 void Modify::setup(int vflag)
 {
   // compute setup needs to come before fix setup
-  // b/c NH fixes need DOF of temperature computes
+  //   b/c NH fixes need DOF of temperature computes
+  // fix group setup() is special case since populates a dynamic group
+  //   needs to be done before temperature compute setup
+
+  for (int i = 0; i < nfix; i++)
+    if (strcmp(fix[i]->style,"GROUP") == 0) fix[i]->setup(vflag);
 
   for (int i = 0; i < ncompute; i++) compute[i]->setup();
 

@@ -70,6 +70,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   timeflag = 0;
   comm_forward = comm_reverse = 0;
+  dynamic = 0;
   dynamic_group_allow = 1;
   cudable = 0;
 
@@ -80,7 +81,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // set modify defaults
 
   extra_dof = domain->dimension;
-  dynamic = 0;
+  dynamic_user = 0;
 
   // setup list of timesteps
 
@@ -120,8 +121,8 @@ void Compute::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"dynamic") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
-      if (strcmp(arg[iarg+1],"no") == 0) dynamic = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) dynamic = 1;
+      if (strcmp(arg[iarg+1],"no") == 0) dynamic_user = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) dynamic_user = 1;
       else error->all(FLERR,"Illegal compute_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"thermo") == 0) {

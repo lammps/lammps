@@ -86,6 +86,8 @@ void ComputeTempDeform::init()
 
 void ComputeTempDeform::setup()
 {
+  dynamic = 0;
+  if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
   fix_dof = -1;
   dof_compute();
 }

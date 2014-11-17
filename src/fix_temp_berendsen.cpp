@@ -135,6 +135,8 @@ void FixTempBerendsen::init()
 void FixTempBerendsen::end_of_step()
 {
   double t_current = temperature->compute_scalar();
+  double tdof = temperature->dof;
+
   if (t_current == 0.0)
     error->all(FLERR,
                "Computed temperature for fix temp/berendsen cannot be 0.0");
@@ -162,7 +164,7 @@ void FixTempBerendsen::end_of_step()
   //   OK to not test returned v = 0, since lamda is multiplied by v
 
   double lamda = sqrt(1.0 + update->dt/t_period*(t_target/t_current - 1.0));
-  double efactor = 0.5 * force->boltz * temperature->dof;
+  double efactor = 0.5 * force->boltz * tdof;
   energy += t_current * (1.0-lamda*lamda) * efactor;
 
   double **v = atom->v;

@@ -25,6 +25,7 @@
 #include "modify.h"
 #include "domain.h"
 #include "region.h"
+#include "group.h"
 #include "memory.h"
 #include "error.h"
 

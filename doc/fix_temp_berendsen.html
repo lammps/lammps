@@ -161,7 +161,15 @@ calculated by this fix is "extensive".
 </P>
 <P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
-<P><B>Restrictions:</B> none
+<P><B>Restrictions:</B>
+</P>
+<P>This fix can be used with dynamic groups as defined by the
+<A HREF = "group.html">group</A> command.  Likewise it can be used with groups to
+which atoms are added or deleted over time, e.g. a deposition
+simulation.  However, the conservation properties of the thermostat
+and barostat are defined for systems with a static set of atoms.  You
+may observe odd behavior if the atoms in a group vary dramatically
+over time or the atom count becomes very small.
 </P>
 <P><B>Related commands:</B>
 </P>

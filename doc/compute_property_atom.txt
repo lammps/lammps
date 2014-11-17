@@ -54,7 +54,7 @@ input = one or more atom attributes :l
       tqx,tqy,tqz = torque on finite-size particles
       end12x, end12y, end12z = end points of line segment
       corner123x, corner123y, corner123z = corner points of triangle
-      nbonds = number of bonds :pre
+      nbonds = number of bonds assigned to an atom :pre
 
       PERI package per-atom properties:
       vfrac = ???
@@ -123,8 +123,13 @@ line segment particles and define the end points of each line segment.
 {corner2z}, {corner3x}, {corner3y}, {corner3z}, are defined for
 triangular particles and define the corner points of each triangle.
 
-{nbonds} is available for all molecular atom styles and refers to
-the number of explicit bonds attached to an atom.
+{Nbonds} is available for all molecular atom styles and refers to the
+number of explicit bonds assigned to an atom.  Note that if the
+"newton bond"_newton.html command is set to {on}, which is the
+default, then every bond in the system is assigned to only one of the
+two atoms in the bond.  Thus a bond between atoms I,J may be tallied
+for either atom I or atom J.  If "newton bond off"_newton.html is set,
+it will be tallied with both atom I and atom J.
 
 The {i_name} and {d_name} attributes refer to custom integer and
 floating-point properties that have been added to each atom via the

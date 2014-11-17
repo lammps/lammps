@@ -41,6 +41,7 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   // Berendsen thermostat should be applied every step
 
+  dynamic_group_allow = 1;
   nevery = 1;
   scalar_flag = 1;
   global_freq = nevery;

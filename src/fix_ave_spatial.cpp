@@ -40,6 +40,7 @@ enum{V,F,DENSITY_NUMBER,DENSITY_MASS,COMPUTE,FIX,VARIABLE};
 enum{SAMPLE,ALL};
 enum{BOX,LATTICE,REDUCED};
 enum{ONE,RUNNING,WINDOW};
+enum{NODISCARD,MIXED,YESDISCARD};
 
 #define INVOKED_PERATOM 8
 
@@ -159,12 +160,19 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
-  normflag = ALL;
-  scaleflag = LATTICE;
   regionflag = 0;
   idregion = NULL;
-  fp = NULL;
+  minflag[0] = LOWER;
+  minflag[1] = LOWER;
+  minflag[2] = LOWER;
+  maxflag[0] = UPPER;
+  maxflag[1] = UPPER;
+  maxflag[2] = UPPER;
+  discard = MIXED;
+  normflag = ALL;
   ave = ONE;
+  scaleflag = LATTICE;
+  fp = NULL;
   nwindow = 0;
   overwrite = 0;
   char *title1 = NULL;
@@ -172,20 +180,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   char *title3 = NULL;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"norm") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
-      if (strcmp(arg[iarg+1],"all") == 0) normflag = ALL;
-      else if (strcmp(arg[iarg+1],"sample") == 0) normflag = SAMPLE;
-      else error->all(FLERR,"Illegal fix ave/spatial command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
-      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = BOX;
-      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = LATTICE;
-      else if (strcmp(arg[iarg+1],"reduced") == 0) scaleflag = REDUCED;
-      else error->all(FLERR,"Illegal fix ave/spatial command");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"region") == 0) {
+    if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
       int iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
@@ -195,16 +190,35 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       strcpy(idregion,arg[iarg+1]);
       regionflag = 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"file") == 0) {
+    } else if (strcmp(arg[iarg],"bound") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
+      int idim;
+      if (strcmp(arg[iarg+1],"x") == 0) idim = 0;
+      else if (strcmp(arg[iarg+1],"y") == 0) idim = 1;
+      else if (strcmp(arg[iarg+1],"z") == 0) idim = 2;
+      else error->all(FLERR,"Illegal fix ave/spatial command");
+      if (strcmp(arg[iarg+2],"lower") == 0) minflag[idim] = LOWER;
+      else minflag[idim] = COORD;
+      if (minflag[idim] == COORD) 
+        minvalue[idim] = force->numeric(FLERR,arg[iarg+2]);
+      if (strcmp(arg[iarg+3],"upper") == 0) maxflag[idim] = UPPER;
+      else maxflag[idim] = COORD;
+      if (maxflag[idim] == COORD) 
+        maxvalue[idim] = force->numeric(FLERR,arg[iarg+3]);
+      else error->all(FLERR,"Illegal fix ave/spatial command");
+      iarg += 4;
+    } else if (strcmp(arg[iarg],"discard") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
-      if (me == 0) {
-        fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL) {
-          char str[128];
-          sprintf(str,"Cannot open fix ave/spatial file %s",arg[iarg+1]);
-          error->one(FLERR,str);
-        }
-      }
+      if (strcmp(arg[iarg+1],"mixed") == 0) discard = MIXED;
+      else if (strcmp(arg[iarg+1],"no") == 0) discard = NODISCARD;
+      else if (strcmp(arg[iarg+1],"yes") == 0) discard = YESDISCARD;
+      else error->all(FLERR,"Illegal fix ave/spatial command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"norm") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
+      if (strcmp(arg[iarg+1],"all") == 0) normflag = ALL;
+      else if (strcmp(arg[iarg+1],"sample") == 0) normflag = SAMPLE;
+      else error->all(FLERR,"Illegal fix ave/spatial command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
@@ -219,6 +233,24 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
+    } else if (strcmp(arg[iarg],"units") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
+      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = BOX;
+      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = LATTICE;
+      else if (strcmp(arg[iarg+1],"reduced") == 0) scaleflag = REDUCED;
+      else error->all(FLERR,"Illegal fix ave/spatial command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"file") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
+      if (me == 0) {
+        fp = fopen(arg[iarg+1],"w");
+        if (fp == NULL) {
+          char str[128];
+          sprintf(str,"Cannot open fix ave/spatial file %s",arg[iarg+1]);
+          error->one(FLERR,str);
+        }
+      }
+      iarg += 2;
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;
       iarg += 1;
@@ -345,8 +377,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     xscale = domain->lattice->xlattice;
     yscale = domain->lattice->ylattice;
     zscale = domain->lattice->zlattice;
-  }
-  else xscale = yscale = zscale = 1.0;
+  } else xscale = yscale = zscale = 1.0;
 
   // apply scaling factors
 
@@ -356,8 +387,10 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
     else if (dim[idim] == 1) scale = yscale;
     else if (dim[idim] == 2) scale = zscale;
     delta[idim] *= scale;
-    if (originflag[idim] == COORD) origin[idim] *= scale;
     invdelta[idim] = 1.0/delta[idim];
+    if (originflag[idim] == COORD) origin[idim] *= scale;
+    if (minflag[idim] == COORD) minvalue[idim] *= scale;
+    if (maxflag[idim] == COORD) maxvalue[idim] *= scale;
   }
 
   // initializations
@@ -569,11 +602,12 @@ void FixAveSpatial::end_of_step()
 
       if (!regionflag) {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit)
+          if (mask[i] & groupbit && bin[i] >= 0)
             values_one[bin[i]][m] += attribute[i][j];
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) && 
+              bin[i] >= 0)
             values_one[bin[i]][m] += attribute[i][j];
       }
 
@@ -583,11 +617,12 @@ void FixAveSpatial::end_of_step()
 
       if (!regionflag) {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit)
+          if (mask[i] & groupbit && bin[i] >= 0)
             values_one[bin[i]][m] += 1.0;
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) && 
+              bin[i] >= 0)
             values_one[bin[i]][m] += 1.0;
       }
 
@@ -600,13 +635,14 @@ void FixAveSpatial::end_of_step()
 
       if (!regionflag) {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) {
+          if (mask[i] & groupbit && bin[i] >= 0) {
             if (rmass) values_one[bin[i]][m] += rmass[i];
             else values_one[bin[i]][m] += mass[type[i]];
           }
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) && 
+              bin[i] >= 0) {
             if (rmass) values_one[bin[i]][m] += rmass[i];
             else values_one[bin[i]][m] += mass[type[i]];
           }
@@ -627,13 +663,14 @@ void FixAveSpatial::end_of_step()
 
       if (!regionflag) {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) {
+          if (mask[i] & groupbit && bin[i] >= 0) {
             if (j == 0) values_one[bin[i]][m] += vector[i];
             else values_one[bin[i]][m] += array[i][jm1];
           }
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) && 
+              bin[i] >= 0) {
             if (j == 0) values_one[bin[i]][m] += vector[i];
             else values_one[bin[i]][m] += array[i][jm1];
           }
@@ -649,13 +686,14 @@ void FixAveSpatial::end_of_step()
 
       if (!regionflag) {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) {
+          if (mask[i] & groupbit && bin[i] >= 0) {
             if (j == 0) values_one[bin[i]][m] += vector[i];
             else values_one[bin[i]][m] += array[i][jm1];
           }
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) && 
+              bin[i] >= 0) {
             if (j == 0) values_one[bin[i]][m] += vector[i];
             else values_one[bin[i]][m] += array[i][jm1];
           }
@@ -675,11 +713,12 @@ void FixAveSpatial::end_of_step()
 
       if (!regionflag) {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit)
+          if (mask[i] & groupbit && bin[i] >= 0)
             values_one[bin[i]][m] += varatom[i];
       } else {
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
+          if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]) && 
+              bin[i] >= 0)
             values_one[bin[i]][m] += varatom[i];
       }
     }
@@ -808,7 +847,7 @@ void FixAveSpatial::end_of_step()
   if (fp && me == 0) {
     if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nbins);
-    if (ndim == 1)
+    if (ndim == 1) {
       for (m = 0; m < nbins; m++) {
         fprintf(fp,"  %d %g %g",m+1,coord[m][0],
                 count_total[m]/norm);
@@ -816,7 +855,7 @@ void FixAveSpatial::end_of_step()
           fprintf(fp," %g",values_total[m][i]/norm);
         fprintf(fp,"\n");
       }
-    else if (ndim == 2)
+    } else if (ndim == 2)
       for (m = 0; m < nbins; m++) {
         fprintf(fp,"  %d %g %g %g",m+1,coord[m][0],coord[m][1],
                 count_total[m]/norm);
@@ -848,23 +887,39 @@ void FixAveSpatial::end_of_step()
 
 void FixAveSpatial::setup_bins()
 {
-  int i,j,k,m,n;
+  int i,j,k,m,n,idim;
   double lo,hi,coord1,coord2;
 
-  // lo = bin boundary immediately below boxlo
-  // hi = bin boundary immediately above boxhi
+  // lo = bin boundary immediately below boxlo or minvalue
+  // hi = bin boundary immediately above boxhi or maxvalue
   // allocate and initialize arrays based on new bin count
 
-  double *boxlo,*boxhi,*prd;
+  double binlo[3],binhi[3];
+  double *prd;
   if (scaleflag == REDUCED) {
-    boxlo = domain->boxlo_lamda;
-    boxhi = domain->boxhi_lamda;
+    binlo[0] = domain->boxlo_lamda[0];
+    binlo[1] = domain->boxlo_lamda[1];
+    binlo[2] = domain->boxlo_lamda[2];
+    binhi[0] = domain->boxhi_lamda[0];
+    binhi[1] = domain->boxhi_lamda[1];
+    binhi[2] = domain->boxhi_lamda[2];
     prd = domain->prd_lamda;
   } else {
-    boxlo = domain->boxlo;
-    boxhi = domain->boxhi;
+    binlo[0] = domain->boxlo[0];
+    binlo[1] = domain->boxlo[1];
+    binlo[2] = domain->boxlo[2];
+    binhi[0] = domain->boxhi[0];
+    binhi[1] = domain->boxhi[1];
+    binhi[2] = domain->boxhi[2];
     prd = domain->prd;
   }
+
+  if (minflag[0] == COORD) binlo[0] = minvalue[0];
+  if (minflag[1] == COORD) binlo[1] = minvalue[1];
+  if (minflag[2] == COORD) binlo[2] = minvalue[2];
+  if (maxflag[0] == COORD) binhi[0] = maxvalue[0];
+  if (maxflag[1] == COORD) binhi[1] = maxvalue[1];
+  if (maxflag[2] == COORD) binhi[2] = maxvalue[2];
 
   if (domain->dimension == 3)
     bin_volume = domain->xprd * domain->yprd * domain->zprd;
@@ -872,32 +927,35 @@ void FixAveSpatial::setup_bins()
   nbins = 1;
 
   for (m = 0; m < ndim; m++) {
-    if (originflag[m] == LOWER) origin[m] = boxlo[dim[m]];
-    else if (originflag[m] == UPPER) origin[m] = boxhi[dim[m]];
+    idim = dim[m];
+    if (originflag[m] == LOWER) origin[m] = binlo[idim];
+    else if (originflag[m] == UPPER) origin[m] = binhi[idim];
     else if (originflag[m] == CENTER)
-      origin[m] = 0.5 * (boxlo[dim[m]] + boxhi[dim[m]]);
+      origin[m] = 0.5 * (binlo[idim] + binhi[idim]);
 
-    if (origin[m] < boxlo[dim[m]]) {
-      n = static_cast<int> ((boxlo[dim[m]] - origin[m]) * invdelta[m]);
+    if (origin[m] < binlo[idim]) {
+      n = static_cast<int> ((binlo[idim] - origin[m]) * invdelta[m]);
       lo = origin[m] + n*delta[m];
     } else {
-      n = static_cast<int> ((origin[m] - boxlo[dim[m]]) * invdelta[m]);
+      n = static_cast<int> ((origin[m] - binlo[idim]) * invdelta[m]);
       lo = origin[m] - n*delta[m];
-      if (lo > boxlo[dim[m]]) lo -= delta[m];
+      if (lo > binlo[idim]) lo -= delta[m];
     }
-    if (origin[m] < boxhi[dim[m]]) {
-      n = static_cast<int> ((boxhi[dim[m]] - origin[m]) * invdelta[m]);
+    if (origin[m] < binhi[idim]) {
+      n = static_cast<int> ((binhi[idim] - origin[m]) * invdelta[m]);
       hi = origin[m] + n*delta[m];
-      if (hi < boxhi[dim[m]]) hi += delta[m];
+      if (hi < binhi[idim]) hi += delta[m];
     } else {
-      n = static_cast<int> ((origin[m] - boxhi[dim[m]]) * invdelta[m]);
+      n = static_cast<int> ((origin[m] - binhi[idim]) * invdelta[m]);
       hi = origin[m] - n*delta[m];
     }
+
+    if (lo > hi) error->all(FLERR,"Invalid bin bounds in fix ave/spatial");
 
     offset[m] = lo;
     nlayers[m] = static_cast<int> ((hi-lo) * invdelta[m] + 0.5);
     nbins *= nlayers[m];
-    bin_volume *= delta[m]/prd[dim[m]];
+    bin_volume *= delta[m]/prd[idim];
   }
 
   size_array_rows = nbins;
@@ -981,7 +1039,7 @@ void FixAveSpatial::atom2bin1d()
   int nlocal = atom->nlocal;
 
   int idim = dim[0];
-  int nlayerm1 = nlayers[0] - 1;
+  int nlayer1m1 = nlayers[0] - 1;
   int periodicity = domain->periodicity[idim];
 
   if (periodicity) {
@@ -997,20 +1055,36 @@ void FixAveSpatial::atom2bin1d()
   }
 
   // remap each atom's relevant coord back into box via PBC if necessary
+  // apply discard rule
   // if scaleflag = REDUCED, box coords -> lamda coords
 
   if (!regionflag) {
     if (scaleflag == REDUCED) domain->x2lamda(nlocal);
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
+        bin[i] = -1;
+
         xremap = x[i][idim];
         if (periodicity) {
           if (xremap < boxlo[idim]) xremap += prd[idim];
           if (xremap >= boxhi[idim]) xremap -= prd[idim];
         }
+
         ibin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
-        ibin = MAX(ibin,0);
-        ibin = MIN(ibin,nlayerm1);
+        if (xremap < offset[0]) ibin--;
+
+        if (discard== MIXED) {
+          if (!minflag[idim]) ibin = MAX(ibin,0);
+          else if (ibin < 0) continue;
+          if (!maxflag[idim]) ibin = MIN(ibin,nlayer1m1);
+          else if (ibin > nlayer1m1) continue;
+        } else if (discard == NODISCARD) {
+          ibin = MAX(ibin,0);
+          ibin = MIN(ibin,nlayer1m1);
+        } else {
+          if (ibin < 0 || ibin > nlayer1m1) continue;
+        }
+
         bin[i] = ibin;
         count_one[ibin] += 1.0;
       }
@@ -1019,6 +1093,8 @@ void FixAveSpatial::atom2bin1d()
   } else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+        bin[i] = -1;
+
         if (scaleflag == REDUCED) {
           domain->x2lamda(x[i],lamda);
           xremap = lamda[idim];
@@ -1027,9 +1103,22 @@ void FixAveSpatial::atom2bin1d()
           if (xremap < boxlo[idim]) xremap += prd[idim];
           if (xremap >= boxhi[idim]) xremap -= prd[idim];
         }
+
         ibin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
-        ibin = MAX(ibin,0);
-        ibin = MIN(ibin,nlayerm1);
+        if (xremap < offset[0]) ibin--;
+
+        if (discard == MIXED) {
+          if (!minflag[idim]) ibin = MAX(ibin,0);
+          else if (ibin < 0) continue;
+          if (!maxflag[idim]) ibin = MIN(ibin,nlayer1m1);
+          else if (ibin > nlayer1m1) continue;
+        } else if (discard == NODISCARD) {
+          ibin = MAX(ibin,0);
+          ibin = MIN(ibin,nlayer1m1);
+        } else {
+          if (ibin < 0 || ibin > nlayer1m1) continue;
+        }
+
         bin[i] = ibin;
         count_one[ibin] += 1.0;
       }
@@ -1070,29 +1159,56 @@ void FixAveSpatial::atom2bin2d()
   }
 
   // remap each atom's relevant coord back into box via PBC if necessary
+  // apply discard rule
   // if scaleflag = REDUCED, box coords -> lamda coords
 
   if (!regionflag) {
     if (scaleflag == REDUCED) domain->x2lamda(nlocal);
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
+        bin[i] = -1;
+
         xremap = x[i][idim];
         if (periodicity[idim]) {
           if (xremap < boxlo[idim]) xremap += prd[idim];
           if (xremap >= boxhi[idim]) xremap -= prd[idim];
         }
+
         i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
-        i1bin = MAX(i1bin,0);
-        i1bin = MIN(i1bin,nlayer1m1);
+        if (xremap < offset[0]) i1bin--;
+
+        if (discard == MIXED) {
+          if (!minflag[idim]) i1bin = MAX(i1bin,0);
+          else if (i1bin < 0) continue;
+          if (!maxflag[idim]) i1bin = MIN(i1bin,nlayer1m1);
+          else if (i1bin > nlayer1m1) continue;
+        } else if (discard == NODISCARD) {
+          i1bin = MAX(i1bin,0);
+          i1bin = MIN(i1bin,nlayer1m1);
+        } else {
+          if (i1bin < 0 || i1bin > nlayer1m1) continue;
+        }
 
         yremap = x[i][jdim];
         if (periodicity[jdim]) {
           if (yremap < boxlo[jdim]) yremap += prd[jdim];
           if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
         }
+
         i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
-        i2bin = MAX(i2bin,0);
-        i2bin = MIN(i2bin,nlayer2m1);
+        if (yremap < offset[1]) i2bin--;
+
+        if (discard == MIXED) {
+          if (!minflag[jdim]) i2bin = MAX(i2bin,0);
+          else if (i2bin < 0) continue;
+          if (!maxflag[jdim]) i2bin = MIN(i2bin,nlayer2m1);
+          else if (i2bin > nlayer1m1) continue;
+        } else if (discard == NODISCARD) {
+          i2bin = MAX(i2bin,0);
+          i2bin = MIN(i2bin,nlayer2m1);
+        } else {
+          if (i2bin < 0 || i2bin > nlayer2m1) continue;
+        }
 
         ibin = i1bin*nlayers[1] + i2bin;
         bin[i] = ibin;
@@ -1103,6 +1219,8 @@ void FixAveSpatial::atom2bin2d()
   } else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+        bin[i] = -1;
+
         if (scaleflag == REDUCED) {
           domain->x2lamda(x[i],lamda);
           xremap = lamda[idim];
@@ -1116,17 +1234,41 @@ void FixAveSpatial::atom2bin2d()
           if (xremap < boxlo[idim]) xremap += prd[idim];
           if (xremap >= boxhi[idim]) xremap -= prd[idim];
         }
+
         i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
-        i1bin = MAX(i1bin,0);
-        i1bin = MIN(i1bin,nlayer1m1-1);
+        if (xremap < offset[0]) i1bin--;
+
+        if (discard == MIXED) {
+          if (!minflag[idim]) i1bin = MAX(i1bin,0);
+          else if (i1bin < 0) continue;
+          if (!maxflag[idim]) i1bin = MIN(i1bin,nlayer1m1);
+          else if (i1bin > nlayer1m1) continue;
+        } else if (discard == NODISCARD) {
+          i1bin = MAX(i1bin,0);
+          i1bin = MIN(i1bin,nlayer1m1);
+        } else {
+          if (i1bin < 0 || i1bin > nlayer1m1) continue;
+        }
 
         if (periodicity[jdim]) {
           if (yremap < boxlo[jdim]) yremap += prd[jdim];
           if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
         }
+
         i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
-        i2bin = MAX(i2bin,0);
-        i2bin = MIN(i2bin,nlayer2m1-1);
+        if (yremap < offset[1]) i2bin--;
+
+        if (discard == MIXED) {
+          if (!minflag[jdim]) i2bin = MAX(i2bin,0);
+          else if (i2bin < 0) continue;
+          if (!maxflag[jdim]) i2bin = MIN(i2bin,nlayer2m1);
+          else if (i2bin > nlayer1m1) continue;
+        } else if (discard == NODISCARD) {
+          i2bin = MAX(i2bin,0);
+          i2bin = MIN(i2bin,nlayer2m1);
+        } else {
+          if (i2bin < 0 || i2bin > nlayer2m1) continue;
+        }
 
         ibin = i1bin*nlayers[1] + i2bin;
         bin[i] = ibin;
@@ -1171,38 +1313,77 @@ void FixAveSpatial::atom2bin3d()
   }
 
   // remap each atom's relevant coord back into box via PBC if necessary
+  // apply discard rule
   // if scaleflag = REDUCED, box coords -> lamda coords
 
   if (!regionflag) {
     if (scaleflag == REDUCED) domain->x2lamda(nlocal);
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
+        bin[i] = -1;
+
         xremap = x[i][idim];
         if (periodicity[idim]) {
           if (xremap < boxlo[idim]) xremap += prd[idim];
           if (xremap >= boxhi[idim]) xremap -= prd[idim];
         }
+
         i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
-        i1bin = MAX(i1bin,0);
-        i1bin = MIN(i1bin,nlayer1m1);
+        if (xremap < offset[0]) i1bin--;
+
+        if (discard == MIXED) {
+          if (!minflag[idim]) i1bin = MAX(i1bin,0);
+          else if (i1bin < 0) continue;
+          if (!maxflag[idim]) i1bin = MIN(i1bin,nlayer1m1);
+          else if (i1bin > nlayer1m1) continue;
+        } else if (discard == NODISCARD) {
+          i1bin = MAX(i1bin,0);
+          i1bin = MIN(i1bin,nlayer1m1);
+        } else {
+          if (i1bin < 0 || i1bin > nlayer1m1) continue;
+        }
 
         yremap = x[i][jdim];
         if (periodicity[jdim]) {
           if (yremap < boxlo[jdim]) yremap += prd[jdim];
           if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
         }
+
         i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
-        i2bin = MAX(i2bin,0);
-        i2bin = MIN(i2bin,nlayer2m1);
+        if (yremap < offset[1]) i2bin--;
+
+        if (discard == MIXED) {
+          if (!minflag[jdim]) i2bin = MAX(i2bin,0);
+          else if (i2bin < 0) continue;
+          if (!maxflag[jdim]) i2bin = MIN(i2bin,nlayer2m1);
+          else if (i2bin > nlayer1m1) continue;
+        } else if (discard == NODISCARD) {
+          i2bin = MAX(i2bin,0);
+          i2bin = MIN(i2bin,nlayer2m1);
+        } else {
+          if (i2bin < 0 || i2bin > nlayer2m1) continue;
+        }
 
         zremap = x[i][kdim];
         if (periodicity[kdim]) {
           if (zremap < boxlo[kdim]) zremap += prd[kdim];
           if (zremap >= boxhi[kdim]) zremap -= prd[kdim];
         }
+
         i3bin = static_cast<int> ((zremap - offset[2]) * invdelta[2]);
-        i3bin = MAX(i3bin,0);
-        i3bin = MIN(i3bin,nlayer3m1);
+        if (zremap < offset[2]) i3bin--;
+
+        if (discard == MIXED) {
+          if (!minflag[kdim]) i3bin = MAX(i3bin,0);
+          else if (i3bin < 0) continue;
+          if (!maxflag[kdim]) i3bin = MIN(i3bin,nlayer3m1);
+          else if (i3bin > nlayer3m1) continue;
+        } else if (discard == NODISCARD) {
+          i3bin = MAX(i3bin,0);
+          i3bin = MIN(i3bin,nlayer3m1);
+        } else {
+          if (i3bin < 0 || i3bin > nlayer3m1) continue;
+        }
 
         ibin = i1bin*nlayers[1]*nlayers[2] + i2bin*nlayers[2] + i3bin;
         bin[i] = ibin;
@@ -1213,6 +1394,8 @@ void FixAveSpatial::atom2bin3d()
   } else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
+        bin[i] = -1;
+
         if (scaleflag == REDUCED) {
           domain->x2lamda(x[i],lamda);
           xremap = lamda[idim];
@@ -1228,25 +1411,61 @@ void FixAveSpatial::atom2bin3d()
           if (xremap < boxlo[idim]) xremap += prd[idim];
           if (xremap >= boxhi[idim]) xremap -= prd[idim];
         }
+
         i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
-        i1bin = MAX(i1bin,0);
-        i1bin = MIN(i1bin,nlayer1m1);
+        if (xremap < offset[0]) i1bin--;
+
+        if (discard == MIXED) {
+          if (!minflag[idim]) i1bin = MAX(i1bin,0);
+          else if (i1bin < 0) continue;
+          if (!maxflag[idim]) i1bin = MIN(i1bin,nlayer1m1);
+          else if (i1bin > nlayer1m1) continue;
+        } else if (discard == NODISCARD) {
+          i1bin = MAX(i1bin,0);
+          i1bin = MIN(i1bin,nlayer1m1);
+        } else {
+          if (i1bin < 0 || i1bin > nlayer1m1) continue;
+        }
 
         if (periodicity[jdim]) {
           if (yremap < boxlo[jdim]) yremap += prd[jdim];
           if (yremap >= boxhi[jdim]) yremap -= prd[jdim];
         }
+
         i2bin = static_cast<int> ((yremap - offset[1]) * invdelta[1]);
-        i2bin = MAX(i2bin,0);
-        i2bin = MIN(i2bin,nlayer2m1);
+        if (yremap < offset[1]) i2bin--;
+
+        if (discard == MIXED) {
+          if (!minflag[jdim]) i2bin = MAX(i2bin,0);
+          else if (i2bin < 0) continue;
+          if (!maxflag[jdim]) i2bin = MIN(i2bin,nlayer2m1);
+          else if (i2bin > nlayer1m1) continue;
+        } else if (discard == NODISCARD) {
+          i2bin = MAX(i2bin,0);
+          i2bin = MIN(i2bin,nlayer2m1);
+        } else {
+          if (i2bin < 0 || i2bin > nlayer2m1) continue;
+        }
 
         if (periodicity[kdim]) {
           if (zremap < boxlo[kdim]) zremap += prd[kdim];
           if (zremap >= boxhi[kdim]) zremap -= prd[kdim];
         }
+
         i3bin = static_cast<int> ((zremap - offset[2]) * invdelta[2]);
-        i3bin = MAX(i3bin,0);
-        i3bin = MIN(i3bin,nlayer3m1);
+        if (zremap < offset[2]) i3bin--;
+
+        if (discard == MIXED) {
+          if (!minflag[kdim]) i3bin = MAX(i3bin,0);
+          else if (i3bin < 0) continue;
+          if (!maxflag[kdim]) i3bin = MIN(i3bin,nlayer3m1);
+          else if (i3bin > nlayer3m1) continue;
+        } else if (discard == NODISCARD) {
+          i3bin = MAX(i3bin,0);
+          i3bin = MIN(i3bin,nlayer3m1);
+        } else {
+          if (i3bin < 0 || i3bin > nlayer3m1) continue;
+        }
 
         ibin = i1bin*nlayers[1]*nlayers[2] + i2bin*nlayers[2] + i3bin;
         bin[i] = ibin;

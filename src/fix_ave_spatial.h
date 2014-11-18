@@ -41,7 +41,7 @@ class FixAveSpatial : public Fix {
   int me,nvalues;
   int nrepeat,nfreq,irepeat;
   bigint nvalid;
-  int ndim,normflag,regionflag,overwrite;
+  int ndim,normflag,regionflag,overwrite,discard;
   char *tstring,*sstring,*idregion;
   int *which,*argindex,*value2index;
   char **ids;
@@ -70,6 +70,9 @@ class FixAveSpatial : public Fix {
   double **values_one,**values_many,**values_sum;
   double *count_total,**count_list;
   double **values_total,***values_list;
+
+  int minflag[3],maxflag[3];
+  double minvalue[3],maxvalue[3];
 
   void setup_bins();
   void atom2bin1d();

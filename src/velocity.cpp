@@ -236,7 +236,6 @@ void Velocity::create(double t_desired, int seed)
         vx = random->gaussian();
         vy = random->gaussian();
         vz = random->gaussian();
-        sum += vx;
       }
       m = atom->map(i);
       if (m >= 0 && m < nlocal) {

@@ -16,7 +16,6 @@
                          Carolyn Phillips (University of Michigan)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "string.h"

@@ -15,7 +15,6 @@
    Contributing authors: Mike Brown (ORNL), Axel Kohlmeyer (Temple)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "mpi.h"
 #include "string.h"
 #include "stdio.h"

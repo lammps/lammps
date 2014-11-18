@@ -711,13 +711,13 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
   // reset neighprev to 0 as necessary
 
   int jnum = list->numneigh[i];
-  int *touch = list->listgranhistory->firstneigh[i];
+  int *jlist = list->firstneigh[i];
   double *allshear = list->listgranhistory->firstdouble[i];
 
   for (int jj = 0; jj < jnum; jj++) {
     neighprev++;
     if (neighprev >= jnum) neighprev = 0;
-    if (touch[neighprev] == j) break;
+    if (jlist[neighprev] == j) break;
   }
 
   double *shear = &allshear[3*neighprev];

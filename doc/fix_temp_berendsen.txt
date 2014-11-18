@@ -153,7 +153,15 @@ This fix can ramp its target temperature over multiple runs, using the
 
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] none
+[Restrictions:]
+
+This fix can be used with dynamic groups as defined by the
+"group"_group.html command.  Likewise it can be used with groups to
+which atoms are added or deleted over time, e.g. a deposition
+simulation.  However, the conservation properties of the thermostat
+and barostat are defined for systems with a static set of atoms.  You
+may observe odd behavior if the atoms in a group vary dramatically
+over time or the atom count becomes very small.
 
 [Related commands:]
 

@@ -213,12 +213,12 @@ means atoms will be (re)assigned to the group periodically as a
 simulation runs.  This is in contrast to static groups where atoms are
 permanently assigned to the group.  The way the assignment occurs is
 as follows.  Only atoms in the group specified as the parent group via
-the parent-ID are initially assigned to the dynamic group.  If the
-<I>region</I> keyword is used, atoms not in the specified region are
-removed from the dynamic group.  If the <I>var</I> keyword is used, the
-variable name must be an atom-style or atomfile-style variable.  The
-variable is evaluated and atoms whose per-atom values are 0.0, are
-removed from the dynamic group.
+the parent-ID are assigned to the dynamic group before the following
+conditions are applied.  If the <I>region</I> keyword is used, atoms not in
+the specified region are removed from the dynamic group.  If the <I>var</I>
+keyword is used, the variable name must be an atom-style or
+atomfile-style variable.  The variable is evaluated and atoms whose
+per-atom values are 0.0, are removed from the dynamic group.
 </P>
 <P>The assignment of atoms to a dynamic group is done at the beginning of
 each run and on every timestep that is a multiple of <I>N</I>, which is the
@@ -233,6 +233,14 @@ has been performed, and before neighbor lists or forces are computed.
 This is the point in the timestep where atom positions have just
 changed due to the time integration, so the region criterion should be
 accurate, if applied.
+</P>
+<P>IMPORTANT NOTE: If the <I>region</I> keyword is used to determine what
+atoms are in the dynamic group, atoms can move outside of the
+simulation box between reneighboring events.  Thus if you want to
+include all atoms on the left side of the simulation box, you probably
+want to set the left boundary of the region to be outside the
+simulation box by some reasonable amount (e.g. up to the cutoff of the
+potential), else they may be excluded from the dynamic region.
 </P>
 <P>Here is an example of using a dynamic group to shrink the set of atoms
 being integrated by using a spherical region with a variable radius

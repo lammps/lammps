@@ -70,15 +70,9 @@ ComputeTempDeformEff::~ComputeTempDeformEff()
 
 void ComputeTempDeformEff::init()
 {
-  int i;
-
-  fix_dof = 0;
-  for (i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
-  dof_compute();
-
   // check fix deform remap settings
 
+  int i;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag == X_REMAP &&
@@ -88,7 +82,18 @@ void ComputeTempDeformEff::init()
       break;
     }
   if (i == modify->nfix && comm->me == 0)
-    error->warning(FLERR,"Using compute temp/deform/eff with no fix deform defined");
+    error->warning(FLERR,
+                   "Using compute temp/deform/eff with no fix deform defined");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempDeformEff::setup()
+{
+  dynamic = 0;
+  if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
+  fix_dof = -1;
+  dof_compute();
 }
 
 /* ---------------------------------------------------------------------- */

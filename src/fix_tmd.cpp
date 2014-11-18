@@ -16,7 +16,6 @@
                          Christian Burisch (Bochum Univeristy, Germany)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"

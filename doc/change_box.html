@@ -101,6 +101,21 @@ conditions are invoked (see the <A HREF = "boundary.html">boundary</A> command)
 which may change simulation box boundaries, and atoms are migrated to
 new owning processors.
 </P>
+<P>IMPORTANT_NOTE: This means that you cannot use the change_box command
+to enlarge a shrink-wrapped box, e.g. to make room to insert more
+atoms via the <A HREF = "create_atoms.html">create_atoms</A> command, because the
+simulation box will be re-shrink-wrapped before the change_box command
+completes.  Instead you could do something like this, assuming the
+simulation box is non-periodic and atoms extend from 0 to 20 in all
+dimensions:
+</P>
+<PRE>change_box all x final -10 20
+create_atoms 1 single -5 5 5   # this will fail to insert an atom 
+</PRE>
+<PRE>change_box all x final -10 20 boundary f s s
+create_atoms 1 single -5 5 5
+change_box boundary s s s      # this will work 
+</PRE>
 <P>IMPORTANT NOTE: Unlike the earlier "displace_box" version of this
 command, atom remapping is NOT performed by default.  This command
 allows remapping to be done in a more general way, exactly when you

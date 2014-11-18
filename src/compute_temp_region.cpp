@@ -19,6 +19,7 @@
 #include "force.h"
 #include "domain.h"
 #include "region.h"
+#include "group.h"
 #include "memory.h"
 #include "error.h"
 
@@ -74,6 +75,8 @@ void ComputeTempRegion::init()
 
 void ComputeTempRegion::setup()
 {
+  dynamic = 0;
+  if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
   dof = 0.0;
 }
 

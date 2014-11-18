@@ -14,7 +14,6 @@
 // C or Fortran style library interface to LAMMPS
 // customize by adding new LAMMPS-specific functions
 
-#include "lmptype.h"
 #include "mpi.h"
 #include "string.h"
 #include "stdlib.h"

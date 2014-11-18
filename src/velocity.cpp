@@ -229,13 +229,14 @@ void Velocity::create(double t_desired, int seed)
 
     for (i = 1; i <= natoms; i++) {
       if (dist_flag == 0) {
-        vx = random->uniform();
-        vy = random->uniform();
-        vz = random->uniform();
+        vx = random->uniform() - 0.5;
+        vy = random->uniform() - 0.5;
+        vz = random->uniform() - 0.5;
       } else {
         vx = random->gaussian();
         vy = random->gaussian();
         vz = random->gaussian();
+        sum += vx;
       }
       m = atom->map(i);
       if (m >= 0 && m < nlocal) {
@@ -264,9 +265,9 @@ void Velocity::create(double t_desired, int seed)
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (dist_flag == 0) {
-          vx = random->uniform();
-          vy = random->uniform();
-          vz = random->uniform();
+          vx = random->uniform() - 0.5;
+          vy = random->uniform() - 0.5;
+          vz = random->uniform() - 0.5;
         } else {
           vx = random->gaussian();
           vy = random->gaussian();
@@ -289,9 +290,9 @@ void Velocity::create(double t_desired, int seed)
       if (mask[i] & groupbit) {
         random->reset(seed,x[i]);
         if (dist_flag == 0) {
-          vx = random->uniform();
-          vy = random->uniform();
-          vz = random->uniform();
+          vx = random->uniform() - 0.5;
+          vy = random->uniform() - 0.5;
+          vz = random->uniform() - 0.5;
         } else {
           vx = random->gaussian();
           vy = random->gaussian();

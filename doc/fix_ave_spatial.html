@@ -45,16 +45,24 @@
 </PRE>
 <LI>zero or more keyword/arg pairs may be appended 
 
-<LI>keyword = <I>norm</I> or <I>units</I> or <I>file</I> or <I>ave</I> or <I>overwrite</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
+<LI>keyword = <I>region</I> or <I>discard</I> or <I>norm</I> or <I>ave</I> or <I>units</I> or <I>file</I> or <I>overwrite</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
 
-<PRE>  <I>units</I> arg = <I>box</I> or <I>lattice</I> or <I>reduced</I>
+<PRE>  <I>region</I> arg = region-ID
+  <I>bound</I> args = x/y/z lo hi
+    x/y/z = <I>x</I> or <I>y</I> or <I>z</I> to bound bins in this dimension
+    lo = <I>lower</I> or coordinate value (distance units)
+    hi = <I>upper</I> or coordinate value (distance units)
+  <I>discard</I> arg = <I>mixed</I> or <I>no</I> or <I>yes</I>
+    mixed = discard atoms outside bins only if bin bounds are explicitly set
+    no = always keep out-of-bounds atoms
+    yes = always discard out-of-bounds atoms
   <I>norm</I> arg = <I>all</I> or <I>sample</I>
-  <I>region</I> arg = region-ID
     region-ID = ID of region atoms must be in to contribute to spatial averaging
   <I>ave</I> args = <I>one</I> or <I>running</I> or <I>window M</I>
     one = output new average value every Nfreq steps
     running = output cumulative average of all previous Nfreq steps
     window M = output average of M most recent Nfreq steps
+  <I>units</I> arg = <I>box</I> or <I>lattice</I> or <I>reduced</I>
   <I>file</I> arg = filename
     filename = file to write results to
   <I>overwrite</I> arg = none = overwrite output file with only latest output
@@ -142,24 +150,62 @@ averaging is done; values are simply generated on timesteps
 </P>
 <HR>
 
-<P>Each per-atom property is also averaged over atoms in each bin.  Bins
-can be 1d layers or slabs, 2d pencils, or 3d boxes.  This depends on
-how many times (1, 2, or 3) the <I>dim</I>, <I>origin</I>, and <I>delta</I> settings
-are specified in the fix ave/spatial command.  For 2d or 3d bins,
-there is no restriction on specifying dim = x before dim = y, or dim =
-y before dim = z.  Bins in a particular <I>dim</I> have a bin size in that
-dimension given by <I>delta</I>.  Every Nfreq steps, when averaging is
+<P>Each per-atom property is also averaged over atoms in each bin.  The
+way the averaging is one across the <I>Nrepeat</I> timesteps to produce
+output on the <I>Nfreq</I> timesteps, and across multiple <I>Nfreq</I> outputs,
+is determined by the <I>norm</I> and <I>av</I> keyword settings, as discussed
+below.
+</P>
+<P>Bins can be 1d layers or slabs, 2d pencils, or 3d boxes.  This depends
+on how many times (1, 2, or 3) the <I>dim</I>, <I>origin</I>, and <I>delta</I>
+settings are specified in the fix ave/spatial command.  For 2d or 3d
+bins, there is no restriction on specifying dim = x before dim = y, or
+dim = y before dim = z.  Bins in a particular <I>dim</I> have a bin size in
+that dimension given by <I>delta</I>.  Every Nfreq steps, when averaging is
 being performed and the per-atom property is calculated for the first
 time, the number of bins and the bin sizes and boundaries are
 computed.  Thus if the simulation box changes size during a
 simulation, the number of bins and their boundaries may also change.
 In each dimension, bins are defined relative to a specified <I>origin</I>,
-which may be the lower/upper edge of the simulation box (in <I>dim</I>) or
-its center point, or a specified coordinate value.  Starting at the
-origin, sufficient bins are created in both directions to completely
-cover the box.  On subsequent timesteps every atom is mapped to one of
-the bins.  Atoms beyond the lowermost/uppermost bin in a dimension are
-counted in the first/last bin in that dimension.
+which may be the lower/upper edge of the simulation box in that
+dimension, or its center point, or a specified coordinate value.
+Starting at the origin, sufficient bins are created in both directions
+to completely span the bin extent in that dimension.  By default the
+bin extent is the entire simulation box.
+</P>
+<P>The <I>bound</I> keyword can be used to limit the extent of bin coverage in
+any dimension, i.e. to only bin a portion of the box.  If the <I>lo</I>
+setting is <I>lower</I> or the <I>hi</I> setting is <I>upper</I>, the bin extent in
+that direction extends to the box boundary.  If a numeric value is
+used for <I>lo</I> and/or <I>hi</I>, then the bin extent in the <I>lo</I> or <I>hi</I>
+direction extends only to that value, which is assumed to be inside
+(or at least near) the simulation box boundaries, though LAMMPS does
+not check for this.
+</P>
+<P>On each sampling timestep, each atom is mapped to the bin it currently
+belongs to, based on its current position.  Note that the group-ID and
+region keyword can exclude specific atoms from this operation, as
+discussed above.  Note that between reneighboring timesteps, atoms can
+move outside the current simulation box.  If the box is periodic (in
+that dimension) the atom is remapping into the periodic box for
+purposes of binning.  If the box in not periodic, the atom may have
+moved outside the bounds of any bin.
+</P>
+<P>The <I>discard</I> keyword determines what is done with any atom which is
+outside the bounds of any bin.  If <I>discard</I> is set to <I>yes</I>, the atom
+will be ignored and not contribute to any bin averages.  If <I>discard</I>
+is set to <I>no</I>, the atom will be counted as if it were in the first or
+last bin in that dimension.  If (discard</I> is set to <I>mixed</I>, which is
+the default, it will only be counted in the first or last bin if bins
+extend to the box boundary in that dimension.  This is the case if the
+<I>bound</I> keyword settings are <I>lower</I> and <I>upper</I>, which is the
+default.  If the <I>bound</I> keyword settings are numeric values, then the
+atom will be ignored if it is outside the bounds of any bin.  Note
+that in this case, it is possible that the first or last bin extends
+beyond the numeric <I>bounds</I> settings, depending on the specified
+<I>origin</I>.  If this is the case, the atom is only ignored if it is
+outside the first or last bin, not if it is simply outside the numeric
+<I>bounds</I> setting.
 </P>
 <P>For orthogonal simulation boxes, the bins are also layers, pencils, or
 boxes aligned with the xyz coordinate axes.  For triclinic
@@ -217,30 +263,7 @@ quantities to spatially average.
 <HR>
 
 <P>Additional optional keywords also affect the operation of this fix.
-</P>
-<P>The <I>units</I> keyword determines the meaning of the distance units used
-for the bin size <I>delta</I> and for <I>origin</I> if it is a coordinate
-value.  For orthogonal simulation boxes, any of the 3 options may be
-used.  For non-orthogonal (triclinic) simulation boxes, only the
-<I>reduced</I> option may be used.
-</P>
-<P>A <I>box</I> value selects standard distance units as defined by the
-<A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or metal.
-A <I>lattice</I> value means the distance units are in lattice spacings.
-The <A HREF = "lattice.html">lattice</A> command must have been previously used to
-define the lattice spacing.  A <I>reduced</I> value means normalized
-unitless values between 0 and 1, which represent the lower and upper
-faces of the simulation box respectively.  Thus an <I>origin</I> value of
-0.5 means the center of the box in any dimension.  A <I>delta</I> value of
-0.1 means 10 bins span the box in that dimension.
-</P>
-<P>Consider a non-orthogonal box, with bins that are 1d layers or slabs
-in the x dimension.  No matter how the box is tilted, an <I>origin</I> of
-0.0 means start layers at the lower "b" cross "c" plane of the
-simulation box and an <I>origin</I> of 1.0 means to start layers at the
-upper "b" cross "c" face of the box.  A <I>delta</I> value of 0.1 means
-there will be 10 layers from 0.0 to 1.0, regardless of the current
-size or shape of the simulation box.
+The <I>region</I>, <I>bound</I>, and <I>discard</I> keywords were discussed above.
 </P>
 <P>The <I>norm</I> keyword affects how averaging is done for the output
 produced every <I>Nfreq</I> timesteps.  For an <I>all</I> setting, a bin
@@ -248,10 +271,6 @@ quantity is summed over all atoms in all <I>Nrepeat</I> samples, as is the
 count of atoms in the bin.  The printed value for the bin is
 Total-quantity / Total-count.  In other words it is an average over
 the entire <I>Nfreq</I> timescale.
-</P>
-<P>As described above, if the <I>region</I> keyword is used, the atom must be
-in both the group and the specified geometric <A HREF = "region.html">region</A> in
-order to contribute to bin averages.
 </P>
 <P>For a <I>sample</I> setting, the bin quantity is summed over atoms for only
 a single sample, as is the count, and a "average sample value" is
@@ -284,6 +303,30 @@ are used to produce the output.  E.g. if M = 3 and Nfreq = 1000, then
 the output on step 10000 will be the average of the individual bin
 values on steps 8000,9000,10000.  Outputs on early steps will average
 over less than M values if they are not available.
+</P>
+<P>The <I>units</I> keyword determines the meaning of the distance units used
+for the bin size <I>delta</I> and for <I>origin</I> and <I>bounds</I> values if they
+are coordinate value.  For orthogonal simulation boxes, any of the 3
+options may be used.  For non-orthogonal (triclinic) simulation boxes,
+only the <I>reduced</I> option may be used.
+</P>
+<P>A <I>box</I> value selects standard distance units as defined by the
+<A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or metal.
+A <I>lattice</I> value means the distance units are in lattice spacings.
+The <A HREF = "lattice.html">lattice</A> command must have been previously used to
+define the lattice spacing.  A <I>reduced</I> value means normalized
+unitless values between 0 and 1, which represent the lower and upper
+faces of the simulation box respectively.  Thus an <I>origin</I> value of
+0.5 means the center of the box in any dimension.  A <I>delta</I> value of
+0.1 means 10 bins span the box in that dimension.
+</P>
+<P>Consider a non-orthogonal box, with bins that are 1d layers or slabs
+in the x dimension.  No matter how the box is tilted, an <I>origin</I> of
+0.0 means start layers at the lower "b" cross "c" plane of the
+simulation box and an <I>origin</I> of 1.0 means to start layers at the
+upper "b" cross "c" face of the box.  A <I>delta</I> value of 0.1 means
+there will be 10 layers from 0.0 to 1.0, regardless of the current
+size or shape of the simulation box.
 </P>
 <P>The <I>file</I> keyword allows a filename to be specified.  Every <I>Nfreq</I>
 timesteps, a section of bin info will be written to a text file in the
@@ -365,7 +408,8 @@ ave/histo</A>, <A HREF = "fix_ave_time.html">fix ave/time</A>,
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are units = lattice, norm = all, no file output,
-and ave = one, title 1,2,3 = strings as described above.
+<P>The option defaults are bound = lower and upper in all dimensions,
+discard = mixed, norm = all, ave = one, units = lattice, no file
+output, and title 1,2,3 = strings as described above.
 </P>
 </HTML>

@@ -45,7 +45,7 @@
 </PRE>
 <LI>zero or more keyword/arg pairs may be appended 
 
-<LI>keyword = <I>region</I> or <I>discard</I> or <I>norm</I> or <I>ave</I> or <I>units</I> or <I>file</I> or <I>overwrite</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
+<LI>keyword = <I>region</I> or <I>bound</I> or <I>discard</I> or <I>norm</I> or <I>ave</I> or <I>units</I> or <I>file</I> or <I>overwrite</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
 
 <PRE>  <I>region</I> arg = region-ID
   <I>bound</I> args = x/y/z lo hi
@@ -174,14 +174,14 @@ Starting at the origin, sufficient bins are created in both directions
 to completely span the bin extent in that dimension.  By default the
 bin extent is the entire simulation box.
 </P>
-<P>The <I>bound</I> keyword can be used to limit the extent of bin coverage in
-any dimension, i.e. to only bin a portion of the box.  If the <I>lo</I>
-setting is <I>lower</I> or the <I>hi</I> setting is <I>upper</I>, the bin extent in
-that direction extends to the box boundary.  If a numeric value is
-used for <I>lo</I> and/or <I>hi</I>, then the bin extent in the <I>lo</I> or <I>hi</I>
-direction extends only to that value, which is assumed to be inside
-(or at least near) the simulation box boundaries, though LAMMPS does
-not check for this.
+<P>The <I>bound</I> keyword can be used one or more times to limit the extent
+of bin coverage in specified dimensions, i.e. to only bin a portion of
+the box.  If the <I>lo</I> setting is <I>lower</I> or the <I>hi</I> setting is
+<I>upper</I>, the bin extent in that direction extends to the box boundary.
+If a numeric value is used for <I>lo</I> and/or <I>hi</I>, then the bin extent
+in the <I>lo</I> or <I>hi</I> direction extends only to that value, which is
+assumed to be inside (or at least near) the simulation box boundaries,
+though LAMMPS does not check for this.
 </P>
 <P>On each sampling timestep, each atom is mapped to the bin it currently
 belongs to, based on its current position.  Note that the group-ID and

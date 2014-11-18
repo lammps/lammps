@@ -32,7 +32,7 @@ value = vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID\[I\], f
   v_name = per-atom vector calculated by an atom-style variable with name :pre
 
 zero or more keyword/arg pairs may be appended :l
-keyword = {region} or {discard} or {norm} or {ave} or {units} or {file} or {overwrite} or {title1} or {title2} or {title3} :l
+keyword = {region} or {bound} or {discard} or {norm} or {ave} or {units} or {file} or {overwrite} or {title1} or {title2} or {title3} :l
   {region} arg = region-ID
   {bound} args = x/y/z lo hi
     x/y/z = {x} or {y} or {z} to bound bins in this dimension
@@ -159,14 +159,14 @@ Starting at the origin, sufficient bins are created in both directions
 to completely span the bin extent in that dimension.  By default the
 bin extent is the entire simulation box.
 
-The {bound} keyword can be used to limit the extent of bin coverage in
-any dimension, i.e. to only bin a portion of the box.  If the {lo}
-setting is {lower} or the {hi} setting is {upper}, the bin extent in
-that direction extends to the box boundary.  If a numeric value is
-used for {lo} and/or {hi}, then the bin extent in the {lo} or {hi}
-direction extends only to that value, which is assumed to be inside
-(or at least near) the simulation box boundaries, though LAMMPS does
-not check for this.
+The {bound} keyword can be used one or more times to limit the extent
+of bin coverage in specified dimensions, i.e. to only bin a portion of
+the box.  If the {lo} setting is {lower} or the {hi} setting is
+{upper}, the bin extent in that direction extends to the box boundary.
+If a numeric value is used for {lo} and/or {hi}, then the bin extent
+in the {lo} or {hi} direction extends only to that value, which is
+assumed to be inside (or at least near) the simulation box boundaries,
+though LAMMPS does not check for this.
 
 On each sampling timestep, each atom is mapped to the bin it currently
 belongs to, based on its current position.  Note that the group-ID and

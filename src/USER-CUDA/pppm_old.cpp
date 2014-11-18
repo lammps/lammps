@@ -704,7 +704,7 @@ void PPPMOld::compute(int eflag, int vflag)
   // return gradients (electric fields) in 3d brick decomposition
   // also performs per-atom calculations via poisson_peratom()
 
-  poisson();
+  poisson(eflag,vflag);
 
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
@@ -1914,7 +1914,7 @@ void PPPMOld::make_rho()
    FFT-based Poisson solver
 ------------------------------------------------------------------------- */
 
-void PPPMOld::poisson()
+void PPPMOld::poisson(int,int)
 {
   int i,j,k,n;
   double eng;

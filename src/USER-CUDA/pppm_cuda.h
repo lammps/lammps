@@ -98,7 +98,7 @@ class PPPMCuda : public PPPMOld {
 
   virtual void particle_map();
   virtual void make_rho();
-  void poisson(int, int);
+  virtual void poisson(int, int);
   virtual void fieldforce();
   virtual void slabcorr(int);
   double*** vdx_brick_tmp;

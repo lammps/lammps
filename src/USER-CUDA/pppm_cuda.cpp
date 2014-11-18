@@ -1291,7 +1291,7 @@ void PPPMCuda::poisson(int eflag, int vflag)
 {
 
 #ifndef FFT_CUFFT
-    PPPMOld::poisson();
+    PPPMOld::poisson(eflag,vflag);
     return;
 #endif
 #ifdef FFT_CUFFT

@@ -6,21 +6,21 @@
 
 :line
 
-fix ave/spatial command :h3
+fix ave/spatial/sphere command :h3
 
 [Syntax:]
 
-fix ID group-ID ave/spatial Nevery Nrepeat Nfreq dim origin delta ... value1 value2 ... keyword args ... :pre
+fix ID group-ID ave/spatial/sphere Nevery Nrepeat Nfreq origin_x origin_y origin_z r_min r_max nbins value1 value2 ... keyword args ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 ave/spatial = style name of this fix command :l
 Nevery = use input values every this many timesteps :l
 Nrepeat = # of times to use input values for calculating averages :l
 Nfreq = calculate averages every this many timesteps :l
-dim, origin, delta can be repeated 1, 2, or 3 times for 1d, 2d, or 3d bins :l
-  dim = {x} or {y} or {z}
-  origin = {lower} or {center} or {upper} or coordinate value (distance units)
-  delta = thickness of spatial bins in dim (distance units) :pre
+origin_x, origin_y, origin_z = center of the sphere. can be the result of variables or computes (see below) :l
+r_min = radial distance at which binning begins :l
+r_max = radial distance at which binning ends :l
+nbins = number of spherical shells to create between r_min and r_max :l
 one or more input values can be listed :l
 value = vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name :l
   vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
@@ -32,23 +32,15 @@ value = vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID\[I\], f
   v_name = per-atom vector calculated by an atom-style variable with name :pre
 
 zero or more keyword/arg pairs may be appended :l
-keyword = {region} or {discard} or {norm} or {ave} or {units} or {file} or {overwrite} or {title1} or {title2} or {title3} :l
+keyword = {region} or {norm} or {units} or {ave} or {file} or {overwrite} or {title1} or {title2} or {title3} :l
   {region} arg = region-ID
-  {bound} args = x/y/z lo hi
-    x/y/z = {x} or {y} or {z} to bound bins in this dimension
-    lo = {lower} or coordinate value (distance units)
-    hi = {upper} or coordinate value (distance units)
-  {discard} arg = {mixed} or {no} or {yes}
-    mixed = discard atoms outside bins only if bin bounds are explicitly set
-    no = always keep out-of-bounds atoms
-    yes = always discard out-of-bounds atoms
-  {norm} arg = {all} or {sample}
     region-ID = ID of region atoms must be in to contribute to spatial averaging
+  {norm} arg = {all} or {sample}
+  {units} arg = {box} or {lattice} or {reduced}
   {ave} args = {one} or {running} or {window M}
     one = output new average value every Nfreq steps
     running = output cumulative average of all previous Nfreq steps
     window M = output average of M most recent Nfreq steps
-  {units} arg = {box} or {lattice} or {reduced}
   {file} arg = filename
     filename = file to write results to
   {overwrite} arg = none = overwrite output file with only latest output
@@ -62,24 +54,21 @@ keyword = {region} or {discard} or {norm} or {ave} or {units} or {file} or {over
 
 [Examples:]
 
-fix 1 all ave/spatial 10000 1 10000 z lower 0.02 c_myCentro units reduced &
-                      title1 "My output values"
-fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vx vz norm sample file vel.profile
-fix 1 flow ave/spatial 100 5 1000 z lower 1.0 y 0.0 2.5 density/mass ave running
-fix 1 flow ave/spatial 100 5 1000 z lower 1.0 y 0.0 2.5 density/mass bound y 5.0 20.0 discard yes ave running :pre
+fix 1 all ave/spatial/sphere 10000 1 10000 0.5 0.5 0.5 0.1 0.5 5 density/number vx vy vz units reduced title1 "My output values"
+fix 1 flow ave/spatial/sphere 100 10 1000 20.0 20.0 20.0 0.0 20.0 20 vx vz norm sample file vel.profile :pre
 
 [Description:]
 
 Use one or more per-atom vectors as inputs every few timesteps, bin
-their values spatially into 1d, 2d, or 3d bins based on current atom
+their values spatially into spherical shells based on current atom
 coordinates, and average the bin values over longer timescales.  The
 resulting bin averages can be used by other "output
 commands"_Section_howto.html#howto_15 such as "thermo_style
 custom"_thermo_style.html, and can also be written to a file.
 
 The group specified with the command means only atoms within the group
-contribute to bin averages.  If the {region} keyword is used, the
-atom must be in both the group and the specified geometric
+contribute to bin averages.  If the {region} keyword is used, the atom
+must be in both the group and the specified geometric
 "region"_region.html in order to contribute to bin averages.
 
 Each listed value can be an atom attribute (position, velocity, force
@@ -101,19 +90,17 @@ produce global quantities.
 The per-atom values of each input vector are binned and averaged
 independently of the per-atom values in other input vectors.
 
-The size and dimensionality of the bins (1d = layers or slabs, 2d =
-pencils, 3d = boxes) are determined by the {dim}, {origin}, and
-{delta} settings and how many times they are specified (1, 2, or 3).
-See details below.
+{Nbins} specifies the number of spherical shells which will be created
+between r_min and r_max centered at (origin_x, origin_y, origin_z).
 
 IMPORTANT NOTE: This fix works by creating an array of size Nbins by
 Nvalues on each processor.  Nbins is the total number of bins; Nvalues
 is the number of input values specified.  Each processor loops over
 its atoms, tallying its values to the appropriate bin.  Then the
 entire array is summed across all processors.  This means that using a
-large number of bins (easy to do for 2d or 3d bins) will incur an
-overhead in memory and computational cost (summing across processors),
-so be careful to use reasonable numbers of bins.
+large number of bins will incur an overhead in memory and computational 
+cost (summing across processors), so be careful to use reasonable numbers 
+of bins.
 
 :line
 
@@ -136,76 +123,13 @@ averaging is done; values are simply generated on timesteps
 
 :line
 
-Each per-atom property is also averaged over atoms in each bin.  The
-way the averaging is one across the {Nrepeat} timesteps to produce
-output on the {Nfreq} timesteps, and across multiple {Nfreq} outputs,
-is determined by the {norm} and {av} keyword settings, as discussed
-below.
-
-Bins can be 1d layers or slabs, 2d pencils, or 3d boxes.  This depends
-on how many times (1, 2, or 3) the {dim}, {origin}, and {delta}
-settings are specified in the fix ave/spatial command.  For 2d or 3d
-bins, there is no restriction on specifying dim = x before dim = y, or
-dim = y before dim = z.  Bins in a particular {dim} have a bin size in
-that dimension given by {delta}.  Every Nfreq steps, when averaging is
-being performed and the per-atom property is calculated for the first
-time, the number of bins and the bin sizes and boundaries are
-computed.  Thus if the simulation box changes size during a
-simulation, the number of bins and their boundaries may also change.
-In each dimension, bins are defined relative to a specified {origin},
-which may be the lower/upper edge of the simulation box in that
-dimension, or its center point, or a specified coordinate value.
-Starting at the origin, sufficient bins are created in both directions
-to completely span the bin extent in that dimension.  By default the
-bin extent is the entire simulation box.
-
-The {bound} keyword can be used to limit the extent of bin coverage in
-any dimension, i.e. to only bin a portion of the box.  If the {lo}
-setting is {lower} or the {hi} setting is {upper}, the bin extent in
-that direction extends to the box boundary.  If a numeric value is
-used for {lo} and/or {hi}, then the bin extent in the {lo} or {hi}
-direction extends only to that value, which is assumed to be inside
-(or at least near) the simulation box boundaries, though LAMMPS does
-not check for this.
-
-On each sampling timestep, each atom is mapped to the bin it currently
-belongs to, based on its current position.  Note that the group-ID and
-region keyword can exclude specific atoms from this operation, as
-discussed above.  Note that between reneighboring timesteps, atoms can
-move outside the current simulation box.  If the box is periodic (in
-that dimension) the atom is remapping into the periodic box for
-purposes of binning.  If the box in not periodic, the atom may have
-moved outside the bounds of any bin.
-
-The {discard} keyword determines what is done with any atom which is
-outside the bounds of any bin.  If {discard} is set to {yes}, the atom
-will be ignored and not contribute to any bin averages.  If {discard}
-is set to {no}, the atom will be counted as if it were in the first or
-last bin in that dimension.  If (discard} is set to {mixed}, which is
-the default, it will only be counted in the first or last bin if bins
-extend to the box boundary in that dimension.  This is the case if the
-{bound} keyword settings are {lower} and {upper}, which is the
-default.  If the {bound} keyword settings are numeric values, then the
-atom will be ignored if it is outside the bounds of any bin.  Note
-that in this case, it is possible that the first or last bin extends
-beyond the numeric {bounds} settings, depending on the specified
-{origin}.  If this is the case, the atom is only ignored if it is
-outside the first or last bin, not if it is simply outside the numeric
-{bounds} setting.
-
-For orthogonal simulation boxes, the bins are also layers, pencils, or
-boxes aligned with the xyz coordinate axes.  For triclinic
-(non-orthogonal) simulation boxes, the bins are so that they are
-parallel to the tilted faces of the simulation box.  See "this
-section"_Section_howto.html#howto_12 of the manual for a discussion of
-the geometry of triclinic boxes in LAMMPS.  As described there, a
-tilted simulation box has edge vectors a,b,c.  In that nomenclature,
-bins in the x dimension have faces with normals in the "b" cross "c"
-direction.  Bins in y have faces normal to the "a" cross "c"
-direction.  And bins in z have faces normal to the "a" cross "b"
-direction.  Note that in order to define the size and position of
-these bins in an unambiguous fashion, the {units} option must be set
-to {reduced} when using a triclinic simulation box, as noted below.
+The {origin_x}, {origin_y}, and {origin_z} parameters may be specified
+by either a compute or a variable. This allows, for example, the
+center of the spherical bins to be attached to the center of mass of a
+group of atoms. If a variable origin is used and periodic boundary
+conditions are in effect, then the origin will be wrapped across
+periodic boundaries whenever it changes so that it is always inside
+the simulation box.
 
 :line
 
@@ -217,11 +141,13 @@ an input value from that compute.
 
 The {density/number} value means the number density is computed in
 each bin, i.e. a weighting of 1 for each atom.  The {density/mass}
-value means the mass density is computed in each bind, i.e. each atom
+value means the mass density is computed in each bin, i.e. each atom
 is weighted by its mass.  The resulting density is normalized by the
 volume of the bin so that units of number/volume or density are
 output.  See the "units"_units.html command doc page for the
 definition of density for each choice of units, e.g. gram/cm^3.
+The bin volume will always be calculated in box units, independent 
+of the use of the {units} keyword in this command.
 
 If a value begins with "c_", a compute ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
@@ -249,7 +175,7 @@ quantities to spatially average.
 :line
 
 Additional optional keywords also affect the operation of this fix.
-The {region}, {bound}, and {discard} keywords were discussed above.
+The {region} keyword was discussed above.
 
 The {norm} keyword affects how averaging is done for the output
 produced every {Nfreq} timesteps.  For an {all} setting, a bin
@@ -291,36 +217,32 @@ values on steps 8000,9000,10000.  Outputs on early steps will average
 over less than M values if they are not available.
 
 The {units} keyword determines the meaning of the distance units used
-for the bin size {delta} and for {origin} and {bounds} values if they
-are coordinate value.  For orthogonal simulation boxes, any of the 3
-options may be used.  For non-orthogonal (triclinic) simulation boxes,
-only the {reduced} option may be used.
+for the sphere origin and the two radial lengths.  For orthogonal
+simulation boxes, any of the 3 options may be used.  For
+non-orthogonal (triclinic) simulation boxes, only the {reduced} option
+may be used.
 
 A {box} value selects standard distance units as defined by the
 "units"_units.html command, e.g. Angstroms for units = real or metal.
 A {lattice} value means the distance units are in lattice spacings.
 The "lattice"_lattice.html command must have been previously used to
-define the lattice spacing.  A {reduced} value means normalized
-unitless values between 0 and 1, which represent the lower and upper
-faces of the simulation box respectively.  Thus an {origin} value of
-0.5 means the center of the box in any dimension.  A {delta} value of
-0.1 means 10 bins span the box in that dimension.
+define the lattice spacing.
 
-Consider a non-orthogonal box, with bins that are 1d layers or slabs
-in the x dimension.  No matter how the box is tilted, an {origin} of
-0.0 means start layers at the lower "b" cross "c" plane of the
-simulation box and an {origin} of 1.0 means to start layers at the
-upper "b" cross "c" face of the box.  A {delta} value of 0.1 means
-there will be 10 layers from 0.0 to 1.0, regardless of the current
-size or shape of the simulation box.
+IMPORTANT NOTE: The {lattice} style may only be used if the lattice
+spacing is the same in each direction.
+
+A {reduced} value means normalized unitless values between 0 and 1,
+which represent the lower and upper faces of the simulation box
+respectively.  Thus an {origin} value of 0.5 means the center of the
+box in any dimension.
 
 The {file} keyword allows a filename to be specified.  Every {Nfreq}
 timesteps, a section of bin info will be written to a text file in the
 following format.  A line with the timestep and number of bin is
 written.  Then one line per bin is written, containing the bin ID
-(1-N), the coordinate of the center of the bin, the number of atoms
-in the bin, and one or more calculated values.  The number of values
-in each line corresponds to the number of values specified in the fix
+(1-N), the coordinate of the center of the bin, the number of atoms in
+the bin, and one or more calculated values.  The number of values in
+each line corresponds to the number of values specified in the fix
 ave/spatial command.  The number of atoms and the value(s) are average
 quantities.  If the value of the {units} keyword is {box} or
 {lattice}, the "coord" is printed in box units.  If the value of the
@@ -340,7 +262,7 @@ By default, these header lines are as follows:
 
 # Spatial-averaged data for fix ID and group name
 # Timestep Number-of-bins
-# Bin Coord1 Coord2 Coord3 Count value1 value2 ... :pre
+# Bin r Count value1 value2 ... :pre
 
 In the first line, ID and name are replaced with the fix-ID and group
 name.  The second line describes the two values that are printed at
@@ -362,17 +284,15 @@ This fix computes a global array of values which can be accessed by
 various "output commands"_Section_howto.html#howto_15.  The values can
 only be accessed on timesteps that are multiples of {Nfreq} since that
 is when averaging is performed.  The global array has # of rows =
-Nbins and # of columns = Ndim+1+Nvalues, where Ndim = 1,2,3 for
-1d,2d,3d bins.  The first 1 or 2 or 3 columns have the bin coordinates
-(center of the bin) in the appropriate dimensions, the next column has
-the count of atoms in that bin, and the remaining columns are the
-Nvalue quantities.  When the array is accessed with an I that exceeds
-the current number of bins, than a 0.0 is returned by the fix instead
-of an error, since the number of bins can vary as a simulation runs,
-depending on the simulation box size.  2d or 3d bins are ordered so
-that the last dimension(s) vary fastest.  The array values calculated
-by this fix are "intensive", since they are already normalized by the
-count of atoms in each bin.
+Nbins and # of columns = 2+Nvalues.  The first column contains the
+radius at the center of the shell. For units {reduced}, this is in
+reduced units, while for units {box} and {lattice} this is in box
+units. The next column has the count of atoms in that bin, and the
+remaining columns are the Nvalue quantities.  When the array is
+accessed with an I that exceeds the current number of bins, than a 0.0
+is returned by the fix instead of an error.  The array values
+calculated by this fix are "intensive", since they are already
+normalized by the count of atoms in each bin.
 
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
@@ -386,15 +306,18 @@ appropriate averaging can be done.  This will be the case if the
 simulation box size doesn't change or if the {units} keyword is set to
 {reduced}.
 
+This style is part of the USER-MISC package. It is only enabled if
+LAMMPS is build with that package. See the "Making of
+LAMMPS"_Section_start.html#3 section for more info.
+
 [Related commands:]
 
 "compute"_compute.html, "fix ave/atom"_fix_ave_atom.html, "fix
 ave/histo"_fix_ave_histo.html, "fix ave/time"_fix_ave_time.html,
 "variable"_variable.html, "fix ave/correlate"_fix_ave_correlate.html,
-"fix ave/spatial/sphere"_fix_ave_spatial_sphere.html
+"fix ave/spatial"_fix_ave_spatial.html,
 
 [Default:]
 
-The option defaults are bound = lower and upper in all dimensions,
-discard = mixed, norm = all, ave = one, units = lattice, no file
-output, and title 1,2,3 = strings as described above.
+The option defaults are norm = all, ave = one, units = lattice, no
+file output, and title 1,2,3 = strings as described above.

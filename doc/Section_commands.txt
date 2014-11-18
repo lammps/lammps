@@ -581,6 +581,7 @@ package"_Section_start.html#start_3.
 "adapt/fep"_fix_adapt_fep.html,
 "addtorque"_fix_addtorque.html,
 "atc"_fix_atc.html,
+"ave/spatial/sphere"_fix_ave_spatial_sphere.html,
 "colvars"_fix_colvars.html,
 "imd"_fix_imd.html,
 "langevin/eff"_fix_langevin_eff.html,

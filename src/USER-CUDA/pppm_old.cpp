@@ -16,7 +16,6 @@
      per-atom energy/virial & group/group energy/force added by Stan Moore (BYU)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "mpi.h"
 #include "string.h"
 #include "stdio.h"

@@ -15,7 +15,6 @@
    Contributing authors: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"

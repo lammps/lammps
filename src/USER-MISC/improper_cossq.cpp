@@ -16,7 +16,6 @@
      gvog@chemeng.ntua.gr
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"

@@ -15,7 +15,6 @@
    Contributing author: Ray Shan (Sandia, tnshan@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "stdlib.h"
 #include "string.h"
 #include "fix_ave_atom.h"

@@ -122,6 +122,16 @@ insertion volume.  The specified region must have been previously
 defined with a <A HREF = "region.html">region</A> command.  It must be defined with
 side = <I>in</I>.
 </P>
+<P>IMPORTANT NOTE: LAMMPS checks that the specified region is wholly
+inside the simulation box.  It can do this correctly for orthonormal
+simulation boxes.  However for <A HREF = "Section_howto.html#howto_12">triclinic
+boxes</A>, it only tests against the larger
+orthonormal box that bounds the tilted simulation box.  If the
+specified region includes volume outside the tilted box, then an
+insertion will likely fail, leading to a "lost atoms" error.  Thus for
+triclinic boxes you should insure the specified region is wholly
+inside the simulation box.
+</P>
 <P>Individual atoms are inserted, unless the <I>mol</I> keyword is used.  It
 specifies a <I>template-ID</I> previously defined using the
 <A HREF = "molecule.html">molecule</A> command, which reads files that define one or

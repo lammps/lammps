@@ -15,7 +15,6 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "mpi.h"
 #include "string.h"
 #include "stdio.h"

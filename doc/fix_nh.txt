@@ -573,6 +573,14 @@ can only be used if the 2nd dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
 {tri}, {yz}, {xz}, and {xy}.
   
+These fixes can be used with dynamic groups as defined by the
+"group"_group.html command.  Likewise they can be used with groups to
+which atoms are added or deleted over time, e.g. a deposition
+simulation.  However, the conservation properties of the thermostat
+and barostat are defined for systems with a static set of atoms.  You
+may observe odd behavior if the atoms in a group vary dramatically
+over time or the atom count becomes very small.
+
 [Related commands:]
 
 "fix nve"_fix_nve.html, "fix_modify"_fix_modify.html,

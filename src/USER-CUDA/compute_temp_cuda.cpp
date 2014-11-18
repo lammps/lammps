@@ -89,6 +89,9 @@ ComputeTempCuda::~ComputeTempCuda()
 
 void ComputeTempCuda::setup()
 {
+  dynamic = 0;
+  if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
+
   fix_dof = 0;
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);

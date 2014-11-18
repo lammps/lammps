@@ -11,7 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "mpi.h"
 #include "stdlib.h"
 #include "string.h"

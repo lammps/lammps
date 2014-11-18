@@ -131,7 +131,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] = force->numeric(FLERR,arg[iarg+3]);
+      p_period[0] = p_period[1] = p_period[2] = 
+        force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -143,7 +144,8 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       pcouple = NONE;
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] = force->numeric(FLERR,arg[iarg+3]);
+      p_period[0] = p_period[1] = p_period[2] = 
+        force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -156,11 +158,13 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       scalexy = scalexz = scaleyz = 0;
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] = force->numeric(FLERR,arg[iarg+3]);
+      p_period[0] = p_period[1] = p_period[2] = 
+        force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       p_start[3] = p_start[4] = p_start[5] = 0.0;
       p_stop[3] = p_stop[4] = p_stop[5] = 0.0;
-      p_period[3] = p_period[4] = p_period[5] = force->numeric(FLERR,arg[iarg+3]);
+      p_period[3] = p_period[4] = p_period[5] = 
+        force->numeric(FLERR,arg[iarg+3]);
       p_flag[3] = p_flag[4] = p_flag[5] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -692,10 +696,6 @@ void FixNH::init()
 
 void FixNH::setup(int vflag)
 {
-  // initialize some quantities that were not available earlier
-
-  tdof = temperature->dof;
-
   // t_target is needed by NPH and NPT in compute_scalar()
   // If no thermostat or using fix nphug,
   // t_target must be defined by other means.
@@ -723,6 +723,8 @@ void FixNH::setup(int vflag)
   if (pstat_flag) compute_press_target();
 
   t_current = temperature->compute_scalar();
+  tdof = temperature->dof;
+
   if (pstat_flag) {
     if (pstyle == ISO) pressure->compute_scalar();
     else pressure->compute_vector();
@@ -851,6 +853,8 @@ void FixNH::final_integrate()
   // compute appropriately coupled elements of mvv_current
 
   t_current = temperature->compute_scalar();
+  tdof = temperature->dof;
+
   if (pstat_flag) {
     if (pstyle == ISO) pressure->compute_scalar();
     else pressure->compute_vector();
@@ -903,7 +907,7 @@ void FixNH::initial_integrate_respa(int vflag, int ilevel, int iloop)
         temperature->compute_scalar();
         pressure->compute_scalar();
       } else {
-               temperature->compute_vector();
+        temperature->compute_vector();
         pressure->compute_vector();
       }
       couple();

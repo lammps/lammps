@@ -15,7 +15,6 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "mpi.h"
 #include "math.h"
 #include "string.h"

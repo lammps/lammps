@@ -16,7 +16,6 @@
    			 Oleg Sergeev (VNIIA, sergeev@vniia.ru)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "stdlib.h"
 #include "math.h"
 #include "atom.h"

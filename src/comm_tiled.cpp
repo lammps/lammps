@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "string.h"
-#include "lmptype.h"
 #include "comm_tiled.h"
 #include "comm_brick.h"
 #include "atom.h"

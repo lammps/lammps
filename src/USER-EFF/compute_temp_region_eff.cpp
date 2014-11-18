@@ -25,6 +25,7 @@
 #include "modify.h"
 #include "domain.h"
 #include "region.h"
+#include "group.h"
 #include "memory.h"
 #include "error.h"
 
@@ -83,6 +84,8 @@ void ComputeTempRegionEff::init()
 
 void ComputeTempRegionEff::setup()
 {
+  dynamic = 0;
+  if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
   dof = 0.0;
 }
 

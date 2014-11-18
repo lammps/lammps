@@ -16,7 +16,6 @@
    [ based on dihedral_helix.cpp Paul Crozier (SNL) ]
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "math.h"
 #include "stdlib.h"
 #include "dihedral_quadratic.h"

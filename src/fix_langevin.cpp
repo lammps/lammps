@@ -55,6 +55,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all(FLERR,"Illegal fix langevin command");
 
+  dynamic_group_allow = 1;
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;

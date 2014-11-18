@@ -18,7 +18,6 @@
      triclinic added by Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
 #include "mpi.h"
 #include "string.h"
 #include "stdio.h"

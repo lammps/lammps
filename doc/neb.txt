@@ -273,9 +273,9 @@ for the NEB procedure.
 The damped dynamics "minimizers"_min_style.html, such as {quickmin}
 and {fire}), adjust the position and velocity of the atoms via an
 Euler integration step.  Thus you must define an appropriate
-"timestep"_timestep.html to use with NEB.  Using the same timestep
-that would be used for a dynamics "run"_run.html of your system is
-advised.
+"timestep"_timestep.html to use with NEB.  As mentioned above, NEB
+will often converge more quickly if you use a timestep about 10x
+larger than you would normally use for dynamics simulations.
 
 :line
 

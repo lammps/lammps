@@ -357,7 +357,7 @@ void KSpace::x2lamdaT(double *v, double *lamda)
 
 void KSpace::lamda2xT(double *lamda, double *v)
 {
-  double h[5];
+  double h[6];
   h[0] = domain->h[0];
   h[1] = domain->h[1];
   h[2] = domain->h[2];

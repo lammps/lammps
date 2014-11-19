@@ -2144,25 +2144,25 @@ void AtomVecFullKokkos::sync(ExecutionSpace space, unsigned int mask)
     if (mask & TYPE_MASK) atomKK->k_type.sync<LMPDeviceType>();
     if (mask & MASK_MASK) atomKK->k_mask.sync<LMPDeviceType>();
     if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPDeviceType>();
-    if (mask && Q_MASK) atomKK->k_q.sync<LMPDeviceType>();
-    if (mask && MOLECULE_MASK) atomKK->k_molecule.sync<LMPDeviceType>();
-    if (mask && SPECIAL_MASK) {
+    if (mask & Q_MASK) atomKK->k_q.sync<LMPDeviceType>();
+    if (mask & MOLECULE_MASK) atomKK->k_molecule.sync<LMPDeviceType>();
+    if (mask & SPECIAL_MASK) {
       atomKK->k_nspecial.sync<LMPDeviceType>();
       atomKK->k_special.sync<LMPDeviceType>();
     }
-    if (mask && BOND_MASK) {
+    if (mask & BOND_MASK) {
       atomKK->k_num_bond.sync<LMPDeviceType>();
       atomKK->k_bond_type.sync<LMPDeviceType>();
       atomKK->k_bond_atom.sync<LMPDeviceType>();
     }
-    if (mask && ANGLE_MASK) {
+    if (mask & ANGLE_MASK) {
       atomKK->k_num_angle.sync<LMPDeviceType>();
       atomKK->k_angle_type.sync<LMPDeviceType>();
       atomKK->k_angle_atom1.sync<LMPDeviceType>();
       atomKK->k_angle_atom2.sync<LMPDeviceType>();
       atomKK->k_angle_atom3.sync<LMPDeviceType>();
     }
-    if (mask && DIHEDRAL_MASK) {
+    if (mask & DIHEDRAL_MASK) {
       atomKK->k_num_dihedral.sync<LMPDeviceType>();
       atomKK->k_dihedral_type.sync<LMPDeviceType>();
       atomKK->k_dihedral_atom1.sync<LMPDeviceType>();
@@ -2170,7 +2170,7 @@ void AtomVecFullKokkos::sync(ExecutionSpace space, unsigned int mask)
       atomKK->k_dihedral_atom3.sync<LMPDeviceType>();
       atomKK->k_dihedral_atom4.sync<LMPDeviceType>();
     }
-    if (mask && IMPROPER_MASK) {
+    if (mask & IMPROPER_MASK) {
       atomKK->k_num_improper.sync<LMPDeviceType>();
       atomKK->k_improper_type.sync<LMPDeviceType>();
       atomKK->k_improper_atom1.sync<LMPDeviceType>();
@@ -2186,25 +2186,25 @@ void AtomVecFullKokkos::sync(ExecutionSpace space, unsigned int mask)
     if (mask & TYPE_MASK) atomKK->k_type.sync<LMPHostType>();
     if (mask & MASK_MASK) atomKK->k_mask.sync<LMPHostType>();
     if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPHostType>();
-    if (mask && Q_MASK) atomKK->k_q.sync<LMPHostType>();
-    if (mask && MOLECULE_MASK) atomKK->k_molecule.sync<LMPHostType>();
-    if (mask && SPECIAL_MASK) {
+    if (mask & Q_MASK) atomKK->k_q.sync<LMPHostType>();
+    if (mask & MOLECULE_MASK) atomKK->k_molecule.sync<LMPHostType>();
+    if (mask & SPECIAL_MASK) {
       atomKK->k_nspecial.sync<LMPHostType>();
       atomKK->k_special.sync<LMPHostType>();
     }
-    if (mask && BOND_MASK) {
+    if (mask & BOND_MASK) {
       atomKK->k_num_bond.sync<LMPHostType>();
       atomKK->k_bond_type.sync<LMPHostType>();
       atomKK->k_bond_atom.sync<LMPHostType>();
     }
-    if (mask && ANGLE_MASK) {
+    if (mask & ANGLE_MASK) {
       atomKK->k_num_angle.sync<LMPHostType>();
       atomKK->k_angle_type.sync<LMPHostType>();
       atomKK->k_angle_atom1.sync<LMPHostType>();
       atomKK->k_angle_atom2.sync<LMPHostType>();
       atomKK->k_angle_atom3.sync<LMPHostType>();
     }
-    if (mask && DIHEDRAL_MASK) {
+    if (mask & DIHEDRAL_MASK) {
       atomKK->k_num_dihedral.sync<LMPHostType>();
       atomKK->k_dihedral_type.sync<LMPHostType>();
       atomKK->k_dihedral_atom1.sync<LMPHostType>();
@@ -2212,7 +2212,7 @@ void AtomVecFullKokkos::sync(ExecutionSpace space, unsigned int mask)
       atomKK->k_dihedral_atom3.sync<LMPHostType>();
       atomKK->k_dihedral_atom4.sync<LMPHostType>();
     }
-    if (mask && IMPROPER_MASK) {
+    if (mask & IMPROPER_MASK) {
       atomKK->k_num_improper.sync<LMPHostType>();
       atomKK->k_improper_type.sync<LMPHostType>();
       atomKK->k_improper_atom1.sync<LMPHostType>();
@@ -2235,25 +2235,25 @@ void AtomVecFullKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & TYPE_MASK) atomKK->k_type.modify<LMPDeviceType>();
     if (mask & MASK_MASK) atomKK->k_mask.modify<LMPDeviceType>();
     if (mask & IMAGE_MASK) atomKK->k_image.modify<LMPDeviceType>();
-    if (mask && Q_MASK) atomKK->k_q.modify<LMPDeviceType>();
-    if (mask && MOLECULE_MASK) atomKK->k_molecule.modify<LMPDeviceType>();
-    if (mask && SPECIAL_MASK) {
+    if (mask & Q_MASK) atomKK->k_q.modify<LMPDeviceType>();
+    if (mask & MOLECULE_MASK) atomKK->k_molecule.modify<LMPDeviceType>();
+    if (mask & SPECIAL_MASK) {
       atomKK->k_nspecial.modify<LMPDeviceType>();
       atomKK->k_special.modify<LMPDeviceType>();
     }
-    if (mask && BOND_MASK) {
+    if (mask & BOND_MASK) {
       atomKK->k_num_bond.modify<LMPDeviceType>();
       atomKK->k_bond_type.modify<LMPDeviceType>();
       atomKK->k_bond_atom.modify<LMPDeviceType>();
     }
-    if (mask && ANGLE_MASK) {
+    if (mask & ANGLE_MASK) {
       atomKK->k_num_angle.modify<LMPDeviceType>();
       atomKK->k_angle_type.modify<LMPDeviceType>();
       atomKK->k_angle_atom1.modify<LMPDeviceType>();
       atomKK->k_angle_atom2.modify<LMPDeviceType>();
       atomKK->k_angle_atom3.modify<LMPDeviceType>();
     }
-    if (mask && DIHEDRAL_MASK) {
+    if (mask & DIHEDRAL_MASK) {
       atomKK->k_num_dihedral.modify<LMPDeviceType>();
       atomKK->k_dihedral_type.modify<LMPDeviceType>();
       atomKK->k_dihedral_atom1.modify<LMPDeviceType>();
@@ -2261,7 +2261,7 @@ void AtomVecFullKokkos::modified(ExecutionSpace space, unsigned int mask)
       atomKK->k_dihedral_atom3.modify<LMPDeviceType>();
       atomKK->k_dihedral_atom4.modify<LMPDeviceType>();
     }
-    if (mask && IMPROPER_MASK) {
+    if (mask & IMPROPER_MASK) {
       atomKK->k_num_improper.modify<LMPDeviceType>();
       atomKK->k_improper_type.modify<LMPDeviceType>();
       atomKK->k_improper_atom1.modify<LMPDeviceType>();
@@ -2277,25 +2277,25 @@ void AtomVecFullKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & TYPE_MASK) atomKK->k_type.modify<LMPHostType>();
     if (mask & MASK_MASK) atomKK->k_mask.modify<LMPHostType>();
     if (mask & IMAGE_MASK) atomKK->k_image.modify<LMPHostType>();
-    if (mask && Q_MASK) atomKK->k_q.modify<LMPHostType>();
-    if (mask && MOLECULE_MASK) atomKK->k_molecule.modify<LMPHostType>();
-    if (mask && SPECIAL_MASK) {
+    if (mask & Q_MASK) atomKK->k_q.modify<LMPHostType>();
+    if (mask & MOLECULE_MASK) atomKK->k_molecule.modify<LMPHostType>();
+    if (mask & SPECIAL_MASK) {
       atomKK->k_nspecial.modify<LMPHostType>();
       atomKK->k_special.modify<LMPHostType>();
     }
-    if (mask && BOND_MASK) {
+    if (mask & BOND_MASK) {
       atomKK->k_num_bond.modify<LMPHostType>();
       atomKK->k_bond_type.modify<LMPHostType>();
       atomKK->k_bond_atom.modify<LMPHostType>();
     }
-    if (mask && ANGLE_MASK) {
+    if (mask & ANGLE_MASK) {
       atomKK->k_num_angle.modify<LMPHostType>();
       atomKK->k_angle_type.modify<LMPHostType>();
       atomKK->k_angle_atom1.modify<LMPHostType>();
       atomKK->k_angle_atom2.modify<LMPHostType>();
       atomKK->k_angle_atom3.modify<LMPHostType>();
     }
-    if (mask && DIHEDRAL_MASK) {
+    if (mask & DIHEDRAL_MASK) {
       atomKK->k_num_dihedral.modify<LMPHostType>();
       atomKK->k_dihedral_type.modify<LMPHostType>();
       atomKK->k_dihedral_atom1.modify<LMPHostType>();
@@ -2303,7 +2303,7 @@ void AtomVecFullKokkos::modified(ExecutionSpace space, unsigned int mask)
       atomKK->k_dihedral_atom3.modify<LMPHostType>();
       atomKK->k_dihedral_atom4.modify<LMPHostType>();
     }
-    if (mask && IMPROPER_MASK) {
+    if (mask & IMPROPER_MASK) {
       atomKK->k_num_improper.modify<LMPHostType>();
       atomKK->k_improper_type.modify<LMPHostType>();
       atomKK->k_improper_atom1.modify<LMPHostType>();

@@ -54,7 +54,7 @@
     math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
-                     ramp(x,y), stagger(x,y), logfreq(x,y,z), stride(x,y,z), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
+                     ramp(x,y), stagger(x,y), logfreq(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,dir), gyration(group), ke(group),
@@ -378,7 +378,7 @@ references to other variables.
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
 <TR><TD >Math operators</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, x%y, </TD></TR>
 <TR><TD >Math operators</TD><TD > (), -x, x+y, x-y, x*y, x/y, x^y, x%y, x == y, x != y, x &lt y, x &lt= y, x &gt y, x &gt= y, x && y, x || y, !x</TD></TR>
-<TR><TD >Math functions</TD><TD > sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), stride(x,y,z), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)</TD></TR>
+<TR><TD >Math functions</TD><TD > sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)</TD></TR>
 <TR><TD >Group functions</TD><TD > count(ID), mass(ID), charge(ID), xcm(ID,dim),                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), 		 gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), 		 inertia(ID,dimdim), omega(ID,dim)</TD></TR>
 <TR><TD >Region functions</TD><TD > count(ID,IDR), mass(ID,IDR), charge(ID,IDR), 		  xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), 		  bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), 		  angmom(ID,dim,IDR), torque(ID,dim,IDR),                   inertia(ID,dimdim,IDR), omega(ID,dim,IDR)</TD></TR>
 <TR><TD >Special functions</TD><TD > sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x)</TD></TR>
@@ -542,15 +542,32 @@ output timesteps:
 </PRE>
 <P>The stride(x,y,z) function uses the current timestep to generate a new
 timestep.  X,y >= 0 and z > 0 and x <= y are required.  The generated
-timesteps increase in increments of z, from x to y, I.e. it generates
+timesteps increase in increments of z, from x to y, i.e. it generates
 the sequece x,x+z,x+2z,...,y.  If y-x is not a multiple of z, then
 similar to the way a for loop operates, the last value will be one
 that does not exceed y.  For any current timestep, the next timestep
-in the sequence is returned.  Thus if stagger(1000,2000,100) is used
+in the sequence is returned.  Thus if stride(1000,2000,100) is used
 in a variable by the <A HREF = "dump_modify.html">dump_modify every</A> command, it
 will generate the sequence of output timesteps:
 </P>
 <PRE>1000,1100,1200, ... ,1900,2000 
+</PRE>
+<P>The stride2(x,y,z,a,b,c) function is similar to the stride() function
+except it generates two sets of strided timesteps, one at a coarser
+level and one at a finer level.  Thus it is useful for debugging,
+e.g. to produce output every timestep at the point in simulation when
+a problem occurs.  X,y >= 0 and z > 0 and x <= y are required, as are
+a,b >= 0 and c > 0 and a < b.  Also, a >= x and b <= y are required so
+that the second stride is inside the first.  The generated timesteps
+increase in increments of z, starting at x, until a is reached.  At
+that point the timestep increases in increments of c, from a to b,
+then after b, increments by z are resumed until y is reached.  For any
+current timestep, the next timestep in the sequence is returned.  Thus
+if stride(1000,2000,100,1350,1360,1) is used in a variable by the
+<A HREF = "dump_modify.html">dump_modify every</A> command, it will generate the
+sequence of output timesteps:
+</P>
+<PRE>1000,1100,1200,1300,1350,1351,1352, ... 1359,1360,1400,1500, ... ,2000 
 </PRE>
 <P>The vdisplace(x,y) function takes 2 arguments: x = value0 and y =
 velocity, and uses the elapsed time to change the value by a linear

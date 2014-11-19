@@ -639,6 +639,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "erotate/sphere"_compute_erotate_sphere.html,
 "erotate/sphere/atom"_compute_erotate_sphere_atom.html,
 "event/displace"_compute_event_displace.html,
+"force/molecule"_compute_force_molecule.html,
 "group/group"_compute_group_group.html,
 "gyration"_compute_gyration.html,
 "gyration/molecule"_compute_gyration_molecule.html,
@@ -679,6 +680,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "temp/sphere"_compute_temp_sphere.html,
 "ti"_compute_ti.html,
 "vacf"_compute_vacf.html,
+"vcm/molecule"_compute_vcm_molecule.html,
 "voronoi/atom"_compute_voronoi_atom.html :tb(c=6,ea=c)
 
 These are additional compute styles in USER packages, which can be

@@ -1,0 +1,60 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute vcm/molecule command :h3
+
+[Syntax:]
+
+compute ID group-ID vcm/molecule :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+vcm/molecule = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 fluid vcm/molecule :pre
+
+[Description:]
+
+Define a computation that calculates the center-of-mass velocity of
+individual molecules.  The x,y,z components of the velocity of each
+molecule are computed.  This is calcualted by summing mass*velocity
+for each atom in the molecule and dividing the sum by the total mass
+of the molecule.
+
+The velocity of a particular molecule is only computed if one or more
+of its atoms are in the specified group.  Normally all atoms in the
+molecule should be in the group, however this is not required.  LAMMPS
+will warn you if this is not the case.  Only atoms in the group
+contribute to the velocity calculation for the molecule.
+
+The ordering of per-molecule quantities produced by this compute is
+consistent with the ordering produced by other compute commands that
+generate per-molecule datums.  Conceptually, them molecule IDs will be
+in ascending order for any molecule with one or more of its atoms in
+the specified group.
+
+[Output info:]
+
+This compute calculates a global array where the number of rows =
+Nmolecules and the number of columns = 3 for the vx,vy,vz components
+of the center-of-mass velocity of each molecule.  These values can be
+accessed by any command that uses global array values from a compute
+as input.  See "Section_howto 15"_Section_howto.html#howto_15 for an
+overview of LAMMPS output options.
+
+The array values are "intensive".  The array values will be in
+distance "units"_units.html.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute force/molecule"_compute_force_molecule.html
+
+[Default:] none

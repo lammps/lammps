@@ -255,6 +255,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nper = static_cast<int> (volfrac*volume/volume_one);
+  if (nper == 0) error->all(FLERR,"Fix pour insertion count per timestep is 0");
   int nfinal = update->ntimestep + 1 + (ninsert-1)/nper * nfreq;
 
   // print stats

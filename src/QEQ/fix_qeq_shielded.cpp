@@ -28,7 +28,6 @@
 #include "neigh_request.h"
 #include "update.h"
 #include "force.h"
-#include "kspace.h"
 #include "group.h"
 #include "respa.h"
 #include "memory.h"
@@ -126,8 +125,6 @@ void FixQEqShielded::pre_force(int vflag)
   matvecs += CG(b_t, t); 	// CG on t - parallel
   calculate_Q();
 
-  if (force->kspace) force->kspace->setup();
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -190,7 +187,7 @@ void FixQEqShielded::compute_H()
 
       for( jj = 0; jj < jnum; jj++ ) {
         j = jlist[jj];
-        j &= NEIGHMASK;
+	j &= NEIGHMASK;
 
         dx = x[j][0] - x[i][0];
         dy = x[j][1] - x[i][1];

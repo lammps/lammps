@@ -28,7 +28,6 @@
 #include "neigh_request.h"
 #include "update.h"
 #include "force.h"
-#include "kspace.h"
 #include "group.h"
 #include "respa.h"
 #include "memory.h"
@@ -53,8 +52,8 @@ void FixQEqPoint::init()
   int irequest = neighbor->request(this);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 1;
-  neighbor->requests[irequest]->full = 0;
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
 
   int ntypes = atom->ntypes;
   memory->create(shld,ntypes+1,ntypes+1,"qeq:shileding");
@@ -68,6 +67,7 @@ void FixQEqPoint::init()
 
 void FixQEqPoint::pre_force(int vflag)
 {
+
   if (update->ntimestep % nevery) return;
 
   n = atom->nlocal;
@@ -82,8 +82,6 @@ void FixQEqPoint::pre_force(int vflag)
   matvecs = CG(b_s, s);    	// CG on s - parallel
   matvecs += CG(b_t, t); 	// CG on t - parallel
   calculate_Q();
-
-  if (force->kspace) force->kspace->setup();
 
 }
 
@@ -146,7 +144,7 @@ void FixQEqPoint::compute_H()
 
       for( jj = 0; jj < jnum; jj++ ) {
         j = jlist[jj];
-        j &= NEIGHMASK;
+	j &= NEIGHMASK;
 
         dx = x[j][0] - x[i][0];
         dy = x[j][1] - x[i][1];

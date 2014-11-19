@@ -129,10 +129,12 @@ void PairCDEAMOMP::compute(int eflag, int vflag)
       break;
 
     default:
+      {
 #if defined(_OPENMP)
 #pragma omp master
 #endif
-    error->all(FLERR,"unsupported eam/cd pair style variant");
+        error->all(FLERR,"unsupported eam/cd pair style variant");
+      }
     }
 
     thr->timer(Timer::PAIR);

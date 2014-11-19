@@ -258,16 +258,16 @@ void CommKokkos::reverse_comm()
   atomKK->sync(Device,ALL_MASK);
 }
 
-void CommKokkos::forward_comm_fix(Fix *fix)
+void CommKokkos::forward_comm_fix(Fix *fix, int size)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::forward_comm_fix(fix);
+  CommBrick::forward_comm_fix(fix,size);
 }
 
-void CommKokkos::reverse_comm_fix(Fix *fix)
+void CommKokkos::reverse_comm_fix(Fix *fix, int size)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::reverse_comm_fix(fix);
+  CommBrick::reverse_comm_fix(fix, size);
 }
 
 void CommKokkos::forward_comm_compute(Compute *compute)
@@ -388,10 +388,10 @@ struct BuildExchangeListFunctor {
 template<class DeviceType>
 void CommKokkos::exchange_device()
 {
-  int i,m,nsend,nrecv,nrecv1,nrecv2,nlocal;
-  double lo,hi,value;
+  int i,nsend,nrecv,nrecv1,nrecv2,nlocal;
+  double lo,hi;
   double **x;
-  double *sublo,*subhi,*buf;
+  double *sublo,*subhi;
   MPI_Request request;
   MPI_Status status;
   AtomVecKokkos *avec = (AtomVecKokkos *) atom->avec;
@@ -496,7 +496,6 @@ void CommKokkos::exchange_device()
 
     if (procgrid[dim] == 1) {
       nrecv = nsend;
-      buf = buf_send;
       if (nrecv) {
         atom->nlocal=avec->
           unpack_exchange_kokkos(k_buf_send,nrecv,atom->nlocal,dim,lo,hi,
@@ -530,7 +529,6 @@ void CommKokkos::exchange_device()
         MPI_Wait(&request,&status);
       }
 
-      buf = buf_recv;
       if (nrecv) {
         atom->nlocal = avec->
           unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,

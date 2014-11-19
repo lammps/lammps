@@ -714,11 +714,14 @@ void ThreadsExec::finalize()
 
 namespace Kokkos {
 
+// you cannot dereference a NULL pointer!
+#if 0
 Threads & Threads::instance(int)
 {
   static Threads * const t = 0 ;
   return *t ;
 }
+#endif
 
 int Threads::thread_pool_size( int depth )
 {

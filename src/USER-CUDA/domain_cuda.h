@@ -29,8 +29,8 @@ class DomainCuda : public Domain {
   void reset_box();
   void pbc();
 
-  void lamda2x(int);
-  void x2lamda(int);
+  virtual void lamda2x(int);
+  virtual void x2lamda(int);
 
  protected:
   class Cuda *cuda;

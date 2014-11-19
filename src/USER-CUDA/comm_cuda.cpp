@@ -1171,7 +1171,7 @@ cuda->shared_data.cuda_timings.comm_border_mpi+=
 
 
 
-void CommCuda::forward_comm_fix(Fix *fix)
+void CommCuda::forward_comm_fix(Fix *fix, int size)
 {
   int iswap,n;
   double *buf;

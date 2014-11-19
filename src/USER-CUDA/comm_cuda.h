@@ -40,7 +40,7 @@ public:
   virtual void borders();                   // setup list of atoms to communicate
   virtual void borders_cuda();                   // setup list of atoms to communicate
   virtual void borders_cuda_overlap_forward_comm();
-  virtual void forward_comm_fix(class Fix *);          // forward comm from a Fix
+  virtual void forward_comm_fix(class Fix *, int size=0);          // forward comm from a Fix
 
 
 

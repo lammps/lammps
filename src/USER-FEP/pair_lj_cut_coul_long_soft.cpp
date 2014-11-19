@@ -759,9 +759,9 @@ double PairLJCutCoulLongSoft::init_one(int i, int j)
     double rc3 = cut_lj[i][j]*cut_lj[i][j]*cut_lj[i][j];
     double rc6 = rc3*rc3;
     double rc9 = rc3*rc6;
-    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
+    etail_ij = 8.0*MY_PI*all[0]*all[1]* lj1[i][j] * epsilon[i][j] *
       sig6 * (sig6 - 3.0*rc6) / (9.0*rc9);
-    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
+    ptail_ij = 16.0*MY_PI*all[0]*all[1]* lj1[i][j] * epsilon[i][j] *
       sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9);
   }
 

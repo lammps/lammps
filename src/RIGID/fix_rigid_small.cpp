@@ -421,7 +421,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   mass_body = NULL;
   nmax_mass = 0;
 
-  staticflag = 1;
+  staticflag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

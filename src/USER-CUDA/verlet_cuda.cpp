@@ -105,8 +105,6 @@ void VerletCuda::setup()
   atom->setup();
 
   cuda_shared_atom*   cu_atom   = & cuda->shared_data.atom;
-  cuda_shared_domain* cu_domain = & cuda->shared_data.domain;
-  cuda_shared_pair*   cu_pair   = & cuda->shared_data.pair;
   cu_atom->update_nlocal = 1;
   cu_atom->update_nmax = 1;
 
@@ -408,8 +406,6 @@ void VerletCuda::setup_minimal(int flag)
   //cuda->allocate();
 
   cuda_shared_atom*   cu_atom   = & cuda->shared_data.atom;
-  cuda_shared_domain* cu_domain = & cuda->shared_data.domain;
-  cuda_shared_pair*   cu_pair   = & cuda->shared_data.pair;
   cu_atom->update_nlocal = 1;
   cu_atom->update_nmax = 1;
 
@@ -590,20 +586,9 @@ void VerletCuda::run(int n)
 
   cuda->setTimingsZero();
 
-  static double testtime = 0.0;
-  //                                my_gettime(CLOCK_REALTIME,&starttime);
-  //                                  my_gettime(CLOCK_REALTIME,&endtime);
-  //                                testtime+=endtime.tv_sec-starttime.tv_sec+1.0*(endtime.tv_nsec-starttime.tv_nsec)/1000000000;
-  //                                 printf("Time: %lf\n",testtime);*/
-
-
-  cuda_shared_domain* cu_domain = & cuda->shared_data.domain;
-
   int nflag, ntimestep, sortflag;
 
-  int n_initial_integrate = modify_cuda->n_initial_integrate;
   int n_post_integrate = modify_cuda->n_post_integrate;
-  int n_final_integrate = modify_cuda->n_final_integrate;
   int n_pre_exchange = modify_cuda->n_pre_exchange;
   int n_pre_neighbor = modify_cuda->n_pre_neighbor;
   int n_pre_force = modify_cuda->n_pre_force;
@@ -1181,7 +1166,7 @@ void VerletCuda::force_clear()
   }
 }
 
-void VerletCuda::test_atom(int aatom, char* string)  //printing properties of one atom for test purposes
+void VerletCuda::test_atom(int aatom, const char* string)  //printing properties of one atom for test purposes
 {
   if(not dotestatom) return;
 

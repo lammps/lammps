@@ -355,18 +355,10 @@ int AtomVecChargeCuda::unpack_exchange(double *buf)
 {
   if(cuda->oncpu)
           return AtomVecCharge::unpack_exchange(buf);
-  double *sublo,*subhi;
 
   int dim=cuda->shared_data.exchange_dim;
   if(domain->box_change)
   Cuda_AtomVecChargeCuda_Init(&cuda->shared_data);
-  if (domain->triclinic == 0) {
-    sublo = domain->sublo;
-    subhi = domain->subhi;
-  } else {
-    sublo = domain->sublo_lamda;
-    subhi = domain->subhi_lamda;
-  }
 
   int mfirst=0;
   for(int pi=0;pi<(comm->procgrid[dim]>2?2:1);pi++)

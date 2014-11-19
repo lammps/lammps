@@ -63,29 +63,55 @@ Cuda::Cuda(LAMMPS* lmp) : Pointers(lmp)
 
   Cuda_Cuda_GetCompileSettings(&shared_data);
 
-  if(shared_data.compile_settings.prec_glob != sizeof(CUDA_CFLOAT) / 4) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: Global Precision: cuda %i cpp %i\n\n", shared_data.compile_settings.prec_glob, sizeof(CUDA_CFLOAT) / 4);
+  if (universe->me == 0) {
 
-  if(shared_data.compile_settings.prec_x != sizeof(X_CFLOAT) / 4) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: X Precision: cuda %i cpp %i\n\n", shared_data.compile_settings.prec_x, sizeof(X_CFLOAT) / 4);
+    if(shared_data.compile_settings.prec_glob != sizeof(CUDA_CFLOAT) / 4) 
+      printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n"
+                 " # CUDA WARNING: Global Precision: cuda %i cpp %i\n\n",
+             shared_data.compile_settings.prec_glob, (int) sizeof(CUDA_CFLOAT) / 4);
 
-  if(shared_data.compile_settings.prec_v != sizeof(V_CFLOAT) / 4) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: V Precision: cuda %i cpp %i\n\n", shared_data.compile_settings.prec_v, sizeof(V_CFLOAT) / 4);
+    if(shared_data.compile_settings.prec_x != sizeof(X_CFLOAT) / 4)
+      printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n"
+                 " # CUDA WARNING: X Precision: cuda %i cpp %i\n\n",
+             shared_data.compile_settings.prec_x, (int) sizeof(X_CFLOAT) / 4);
 
-  if(shared_data.compile_settings.prec_f != sizeof(F_CFLOAT) / 4) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: F Precision: cuda %i cpp %i\n\n", shared_data.compile_settings.prec_f, sizeof(F_CFLOAT) / 4);
+    if(shared_data.compile_settings.prec_v != sizeof(V_CFLOAT) / 4)
+      printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n"
+                 " # CUDA WARNING: V Precision: cuda %i cpp %i\n\n",
+             shared_data.compile_settings.prec_v, (int) sizeof(V_CFLOAT) / 4);
 
-  if(shared_data.compile_settings.prec_pppm != sizeof(PPPM_CFLOAT) / 4) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: PPPM Precision: cuda %i cpp %i\n\n", shared_data.compile_settings.prec_pppm, sizeof(PPPM_CFLOAT) / 4);
+    if(shared_data.compile_settings.prec_f != sizeof(F_CFLOAT) / 4)
+      printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n"
+                 " # CUDA WARNING: F Precision: cuda %i cpp %i\n\n",
+             shared_data.compile_settings.prec_f, (int) sizeof(F_CFLOAT) / 4);
 
-  if(shared_data.compile_settings.prec_fft != sizeof(FFT_CFLOAT) / 4) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: FFT Precision: cuda %i cpp %i\n\n", shared_data.compile_settings.prec_fft, sizeof(FFT_CFLOAT) / 4);
+    if(shared_data.compile_settings.prec_pppm != sizeof(PPPM_CFLOAT) / 4)
+      printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n"
+                 " # CUDA WARNING: PPPM Precision: cuda %i cpp %i\n\n",
+             shared_data.compile_settings.prec_pppm, (int) sizeof(PPPM_CFLOAT) / 4);
+
+    if(shared_data.compile_settings.prec_fft != sizeof(FFT_CFLOAT) / 4)
+      printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n"
+                 " # CUDA WARNING: FFT Precision: cuda %i cpp %i\n\n",
+             shared_data.compile_settings.prec_fft, (int) sizeof(FFT_CFLOAT) / 4);
 
 #ifdef FFT_CUFFT
-
-  if(shared_data.compile_settings.cufft != 1) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: cufft: cuda %i cpp %i\n\n", shared_data.compile_settings.cufft, 1);
-
+    if(shared_data.compile_settings.cufft != 1)
+      printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n"
+                 " # CUDA WARNING: cufft: cuda %i cpp %i\n\n",
+             shared_data.compile_settings.cufft, 1);
 #else
-
-  if(shared_data.compile_settings.cufft != 0) printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: cufft: cuda %i cpp %i\n\n", shared_data.compile_settings.cufft, 0);
-
+    if(shared_data.compile_settings.cufft != 0)
+      printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n"
+                 " # CUDA WARNING: cufft: cuda %i cpp %i\n\n",
+             shared_data.compile_settings.cufft, 0);
 #endif
 
-  if(shared_data.compile_settings.arch != CUDA_ARCH)  printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n # CUDA WARNING: arch: cuda %i cpp %i\n\n", shared_data.compile_settings.cufft, CUDA_ARCH);
+    if(shared_data.compile_settings.arch != CUDA_ARCH)
+      printf("\n\n # CUDA WARNING: Compile Settings of cuda and cpp code differ! \n"
+                 " # CUDA WARNING: arch: cuda %i cpp %i\n\n",
+             shared_data.compile_settings.cufft, CUDA_ARCH);
+  }
 
   cu_x          = 0;
   cu_v          = 0;
@@ -454,7 +480,6 @@ void Cuda::checkResize()
 {
   MYDBG(printf("# CUDA: Cuda::checkResize ...\n");)
   cuda_shared_atom* cu_atom = & shared_data.atom;
-  cuda_shared_pair* cu_pair = & shared_data.pair;
   cu_atom->q_flag      = atom->q_flag;
   cu_atom->rmass_flag  = atom->rmass ? 1 : 0;
   cu_atom->nall = atom->nlocal + atom->nghost;

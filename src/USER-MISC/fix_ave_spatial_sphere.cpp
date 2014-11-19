@@ -602,7 +602,6 @@ void FixAveSpatialSphere::end_of_step()
   }
   
   //bin each atom
-  double **x= atom->x;
   int *mask= atom->mask;
   int nlocal= atom->nlocal;
   
@@ -869,10 +868,8 @@ void FixAveSpatialSphere::setup_bins()
   }
   
   //set the bin coordinates
-  for(int i= 0; i < nbins; i++) {
+  for(int i= 0; i < nbins; i++)
     coord[i]= r_min + (i+0.5)*deltar;
-    double temp_r= r_min + (i+1)*deltar;
-  }
 
   set_bin_volumes();
 }
@@ -942,17 +939,13 @@ void FixAveSpatialSphere::bin_atoms()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   
-  double *boxlo,*boxhi,*prd,*prd_half;
+  double *prd,*prd_half;
   //deal with the periodic boundary conditions
   if(domain->periodicity[0] || domain->periodicity[1] || domain->periodicity[2]) {
     if(scaleflag == REDUCED) {
-      boxlo= domain->boxlo_lamda;
-      boxhi= domain->boxhi_lamda;
       prd= domain->prd_lamda;
       prd_half= domain->prd_half_lamda;
     } else {
-      boxlo= domain->boxlo;
-      boxhi= domain->boxhi;
       prd= domain->prd;
       prd_half= domain->prd_half;
     }

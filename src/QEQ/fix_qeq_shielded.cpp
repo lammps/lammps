@@ -190,6 +190,7 @@ void FixQEqShielded::compute_H()
 
       for( jj = 0; jj < jnum; jj++ ) {
         j = jlist[jj];
+        j &= NEIGHMASK;
 
         dx = x[j][0] - x[i][0];
         dy = x[j][1] - x[i][1];

@@ -213,7 +213,8 @@ double FixQEqDynamic::compute_eneg()
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-
+        j &= NEIGHMASK;
+      
         delr[0] = x[i][0] - x[j][0];
         delr[1] = x[i][1] - x[j][1];
         delr[2] = x[i][2] - x[j][2];

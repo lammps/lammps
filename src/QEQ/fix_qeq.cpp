@@ -268,7 +268,7 @@ void FixQEq::init_list(int id, NeighList *ptr)
 
 void FixQEq::setup_pre_force(int vflag)
 {
-  neighbor->build_one(list->index);
+  neighbor->build_one(list);
 
   deallocate_storage();
   allocate_storage();

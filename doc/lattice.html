@@ -82,6 +82,15 @@ are the edge vectors of the unit cell.  This is the nomenclature for
 unit cell they determine does not have to be a "primitive cell" of
 minimum volume.
 </P>
+<P>Note that the lattice command can be used multiple times in an input
+script.  Each time it is invoked, the lattice attributes are
+re-defined and are used for all subsequent commands (that use lattice
+attributes).  For example, a sequence of lattice,
+<A HREF = "region.html">region</A>, and <A HREF = "create_atoms.html">create_atoms</A> commands
+can be repeated multiple times to build a poly-crystalline model with
+different geometric regions populated with atoms in different lattice
+orientations.
+</P>
 <HR>
 
 <P>A lattice of style <I>none</I> does not define a unit cell and basis set,
@@ -168,61 +177,73 @@ mapping it into the simulation box.  The <I>dim</I> argument is one of the
 the crystallographic direction in the lattice that you want to orient
 along that axis, specified as integers.  E.g. "orient x 2 1 0" means
 the x-axis in the simulation box will be the [210] lattice
-direction.  The 3 lattice directions you specify must be mutually
+direction, and similarly for y and z.  The 3 lattice directions you
+specify do not have to be unit vectors, but they must be mutually
 orthogonal and obey the right-hand rule, i.e. (X cross Y) points in
-the Z direction.  Note that this description is really only valid for
-orthogonal lattices.  If you are using the more general lattice style
-<I>custom</I> with non-orthogonal a1,a2,a3 vectors, then think of the 3
-<I>orient</I> options as creating a 3x3 rotation matrix which is applied to
-a1,a2,a3 to rotate the original unit cell to a new orientation in the
-simulation box.
+the Z direction.
+</P>
+<P>IMPORTANT NOTE: The preceding paragraph describing lattice directions
+is only valid for orthogonal cubic unit cells (or square in 2d).  If
+you are using a <I>hcp</I> or <I>hex</I> lattice or the more general lattice
+style <I>custom</I> with non-orthogonal a1,a2,a3 vectors, then you should
+think of the 3 <I>orient</I> vectors as creating a 3x3 rotation matrix
+which is applied to a1,a2,a3 to rotate the original unit cell to a new
+orientation in the simulation box.
 </P>
 <HR>
 
 <P>Several LAMMPS commands have the option to use distance units that are
-inferred from "lattice spacing" in the x,y,z box directions.  E.g. the
-<A HREF = "region.html">region</A> command can create a block of size 10x20x20,
-where 10 means 10 lattice spacings in the x direction.
+inferred from "lattice spacings" in the x,y,z box directions.
+E.g. the <A HREF = "region.html">region</A> command can create a block of size
+10x20x20, where 10 means 10 lattice spacings in the x direction.  
 </P>
-<P>The <I>spacing</I> option sets the 3 lattice spacings directly.  All must
-be non-zero (use 1.0 for dz in a 2d simulation).  The specified values
-are multiplied by the multiplicative factor described above that is
-associated with the scale factor.  Thus a spacing of 1.0 means one
-unit cell independent of the scale factor.  This option can be useful
-if the spacings LAMMPS computes are inconvenient to use in subsequent
-commands, which can be the case for non-orthogonal or rotated
-lattices.
+<P>IMPORTANT NOTE: Though they are called lattice spacings, all the
+commands that have a "units lattice" option, simply use the 3 values
+as scale factors on the distance units defined by the
+<A HREF = "units.html">units</A> command.  Thus if you do not like the lattice
+spacings computed by LAMMPS (e.g. for a non-orthogonal or rotated unit
+cell), you can define the 3 values to be whatever you wish, via the
+<I>spacing</I> option.
 </P>
 <P>If the <I>spacing</I> option is not specified, the lattice spacings are
 computed by LAMMPS in the following way.  A unit cell of the lattice
-is mapped into the simulation box (scaled, shifted, rotated), so that
-it now has (perhaps) a modified size and orientation.  The lattice
-spacing in X is defined as the difference between the min/max extent
-of the x coordinates of the 8 corner points of the modified unit cell.
-Similarly, the Y and Z lattice spacings are defined as the difference
-in the min/max of the y and z coordinates.
+is mapped into the simulation box (scaled and rotated), so that it now
+has (perhaps) a modified size and orientation.  The lattice spacing in
+X is defined as the difference between the min/max extent of the x
+coordinates of the 8 corner points of the modified unit cell (4 in
+2d).  Similarly, the Y and Z lattice spacings are defined as the
+difference in the min/max of the y and z coordinates.
 </P>
-<P>Note that if the unit cell is orthogonal with axis-aligned edges (not
-rotated via the <I>orient</I> keyword), then the lattice spacings in each
+<P>Note that if the unit cell is orthogonal with axis-aligned edges (no
+rotation via the <I>orient</I> keyword), then the lattice spacings in each
 dimension are simply the scale factor (described above) multiplied by
 the length of a1,a2,a3.  Thus a <I>hex</I> style lattice with a scale
 factor of 3.0 Angstroms, would have a lattice spacing of 3.0 in x and
 3*sqrt(3.0) in y.
 </P>
 <P>IMPORTANT NOTE: For non-orthogonal unit cells and/or when a rotation
-is applied via the <I>orient</I> keyword, then the lattice spacings may be
-less intuitive.  In particular, in these cases, there is no guarantee
-that the lattice spacing is an integer multiple of the periodicity of
-the lattice in that direction.  Thus, if you create an orthogonal
-periodic simulation box whose size in a dimension is a multiple of the
-lattice spacing, and then fill it with atoms via the
-<A HREF = "create_atoms.html">create_atoms</A> command, you will NOT necessarily
-create a periodic system.  I.e. atoms may overlap incorrectly at the
-faces of the simulation box.
+is applied via the <I>orient</I> keyword, then the lattice spacings
+computed by LAMMPS are typically less intuitive.  In particular, in
+these cases, there is no guarantee that a particular lattice spacing
+is an integer multiple of the periodicity of the lattice in that
+direction.  Thus, if you create an orthogonal periodic simulation box
+whose size in a dimension is a multiple of the lattice spacing, and
+then fill it with atoms via the <A HREF = "create_atoms.html">create_atoms</A>
+command, you will NOT necessarily create a periodic system.
+I.e. atoms may overlap incorrectly at the faces of the simulation box.
 </P>
-<P>Regardless of these issues, the values of the lattice spacings LAMMPS
-calculates are printed out, so their effect in commands that use the
-spacings should be decipherable.
+<P>The <I>spacing</I> option sets the 3 lattice spacings directly.  All must
+be non-zero (use 1.0 for dz in a 2d simulation).  The specified values
+are multiplied by the multiplicative factor described above that is
+associated with the scale factor.  Thus a spacing of 1.0 means one
+unit cell edge length independent of the scale factor.  As mentioned
+above, this option can be useful if the spacings LAMMPS computes are
+inconvenient to use in subsequent commands, which can be the case for
+non-orthogonal or rotated lattices.
+</P>
+<P>Note that whenever the lattice command is used, the values of the
+lattice spacings LAMMPS calculates are printed out.  Thus their effect
+in commands that use the spacings should be decipherable.
 </P>
 <HR>
 

@@ -199,12 +199,14 @@ bond/create</A> command.  This will pre-allocate
 space in LAMMPS data structures for storing the new bonds (angles,
 dihedrals, impropers).
 </P>
-<P>The "extra special per atom" setting is only needed if new molecules
+<P>The "extra special per atom" setting is typically only needed if new
+bonds/angles/etc will be added to the system, e.g. by using the <A HREF = "fix_bond_create.html">fix
+bond/create</A> command.  Or if entire new molecules
 will be added to the system, e.g. by using the <A HREF = "fix_deposit.html">fix
 deposit</A> or <A HREF = "fix_pour.html">fix pour</A> commands, which
 will have more special 1-2,1-3,1-4 neighbors than any other molecules
-defined in the data file.  This will pre-allocate space in the LAMMPS
-data structures for storing these neighbors.  See the
+defined in the data file.  Using this setting will pre-allocate space
+in the LAMMPS data structures for storing these neighbors.  See the
 <A HREF = "special_bonds.html">special_bonds</A> and <A HREF = "molecule.html">molecule</A> doc
 pages for more discussion of 1-2,1-3,1-4 neighbors.
 </P>

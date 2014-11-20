@@ -1164,7 +1164,7 @@ void FixBondCreate::create_impropers(int m)
         if (n < ncreate) {
           // NOTE: this is place to check atom types of i3,i2,i1,i4
           if (num_improper < atom->improper_per_atom) {
-            improper_type[num_improper] = dtype;
+            improper_type[num_improper] = itype;
             improper_atom1[num_improper] = i1;
             improper_atom2[num_improper] = i2;
             improper_atom3[num_improper] = i3;

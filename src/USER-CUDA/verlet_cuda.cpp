@@ -1177,7 +1177,9 @@ void VerletCuda::test_atom(int aatom, const char* string)  //printing properties
   for(int i = 0; i < atom->nlocal + atom->nghost; i++) {
     if((atom->tag[i] == aatom) && (i < atom->nlocal)) {
 
-      printf("%i # CUDA %s: %i %i %e %e %e %i ", comm->me, string, update->ntimestep, atom->tag[i], atom->x[i][0], atom->v[i][0], atom->f[i][0], i);
+      printf("%i # CUDA %s: " BIGINT_FORMAT " %i %e %e %e %i ",
+             comm->me, string, update->ntimestep, atom->tag[i],
+             atom->x[i][0], atom->v[i][0], atom->f[i][0], i);
 
       if(atom->molecular && (i < atom->nlocal)) {
         printf(" // %i %i %i ", atom->num_bond[i], atom->num_angle[i], atom->num_dihedral[i]);

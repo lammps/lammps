@@ -1413,10 +1413,6 @@ void PPPMCuda::slabcorr(int eflag)
   double dipole_all;
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
 
-  // compute corrections
-
-  double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
-
   //if (eflag) energy += qqrd2e*scale * e_slabcorr;
   // need to add a correction to make non-neutral systems and per-atom energy translationally invariant
   if (eflag || fabs(qsum) > SMALL)

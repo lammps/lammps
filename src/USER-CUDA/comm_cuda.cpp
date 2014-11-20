@@ -102,8 +102,6 @@ CommCuda::~CommCuda()
 
 void CommCuda::init()
 {
-  int factor = 1;
-  if(cuda->shared_data.overlap_comm) factor=maxswap;
   if(not buf_send)
   grow_send(maxsend,0);
   if(not buf_recv)
@@ -176,16 +174,12 @@ void CommCuda::forward_comm(int mode)
 
 void CommCuda::forward_comm_cuda()
 {
-  static int count=0;
-  static double kerneltime=0.0;
-  static double copytime=0.0;
   my_times time1,time2,time3;
 
   int n;
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-  double **x = atom->x;
 
   cuda->shared_data.domain.xy=domain->xy;
   cuda->shared_data.domain.xz=domain->xz;
@@ -308,16 +302,12 @@ cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
 
 void CommCuda::forward_comm_pack_cuda()
 {
-        static int count=0;
-        static double kerneltime=0.0;
-        static double copytime=0.0;
-    my_times time1,time2,time3;
+  my_times time1,time2;
   int n;  // initialize comm buffers & exchange memory
 
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-  double **x = atom->x;
 
   cuda->shared_data.domain.xy=domain->xy;
   cuda->shared_data.domain.xz=domain->xz;
@@ -411,15 +401,11 @@ my_gettime(CLOCK_REALTIME,&time2);
 
 void CommCuda::forward_comm_transfer_cuda()
 {
-        static int count=0;
-        static double kerneltime=0.0;
-        static double copytime=0.0;
-    my_times time1,time2,time3;
+  my_times time1,time2,time3;
   int n;
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-  double **x = atom->x;
   cuda->shared_data.domain.xy=domain->xy;
   cuda->shared_data.domain.xz=domain->xz;
   cuda->shared_data.domain.yz=domain->yz;
@@ -549,15 +535,10 @@ cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
 
 void CommCuda::forward_comm_unpack_cuda()
 {
-        static int count=0;
-        static double kerneltime=0.0;
-        static double copytime=0.0;
-    my_times time1,time2,time3;
   int n;
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-  double **x = atom->x;
 
   cuda->shared_data.domain.xy=domain->xy;
   cuda->shared_data.domain.xz=domain->xz;
@@ -679,7 +660,6 @@ void CommCuda::reverse_comm()
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-  double **f = atom->f;
   double *buf;
 
   if(not comm_f_only && not avec->cudable) cuda->downloadAll();  //not yet implemented in CUDA but only needed for non standard atom styles
@@ -761,14 +741,12 @@ void CommCuda::exchange()
 
 void CommCuda::exchange_cuda()
 {
-  int i,m,nsend,nrecv,nrecv1,nrecv2,nlocal;
-  double lo,hi,value;
-  double **x;
-  double *sublo,*subhi,*buf;
+  int nsend,nrecv,nrecv1,nrecv2,nlocal;
+  double *buf;
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-    my_times time1,time2,time3;
+  my_times time1,time2;
 
   // clear global->local map for owned and ghost atoms
   // b/c atoms migrate to new procs in exchange() and
@@ -780,23 +758,13 @@ void CommCuda::exchange_cuda()
 
   if (map_style) atom->map_clear();
 
-  // subbox bounds for orthogonal or triclinic
-
-  if (triclinic == 0) {
-    sublo = domain->sublo;
-    subhi = domain->subhi;
-  } else {
-    sublo = domain->sublo_lamda;
-    subhi = domain->subhi_lamda;
-  }
-
   // loop over dimensions
 
   for (int dim = 0; dim < 3; dim++) {
     // fill buffer with atoms leaving my box, using < and >=
     // when atom is deleted, fill it in with last atom
 
-          cuda->shared_data.exchange_dim=dim;
+    cuda->shared_data.exchange_dim=dim;
 
     nlocal = atom->nlocal;
     avec->maxsend=&maxsend;
@@ -899,16 +867,13 @@ void CommCuda::borders()
 
 void CommCuda::borders_cuda()
 {
-  int i,n,itype,iswap,dim,ineed,twoneed,smax,rmax;
-  int nsend,nrecv,nfirst,nlast,ngroup;
-  double lo,hi;
-  int *type;
-  double **x;
-  double *buf,*mlo,*mhi;
+  int n,iswap,dim,ineed,twoneed,smax,rmax;
+  int nsend,nrecv,nfirst,nlast;
+  double *buf;
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-    my_times time1,time2,time3;
+  my_times time1,time2;
 
   // clear old ghosts
 
@@ -931,15 +896,6 @@ void CommCuda::borders_cuda()
       //   for later swaps in a dim, only check newly arrived ghosts
       // store sent atom indices in list for use in future timesteps
 
-      x = atom->x;
-      if (style == SINGLE) {
-        lo = slablo[iswap];
-        hi = slabhi[iswap];
-      } else {
-        type = atom->type;
-        mlo = multilo[iswap];
-        mhi = multihi[iswap];
-      }
       if (ineed % 2 == 0) {
         nfirst = nlast;
         nlast = atom->nlocal + atom->nghost;
@@ -1034,16 +990,13 @@ cuda->shared_data.cuda_timings.comm_border_mpi+=
 
 void CommCuda::borders_cuda_overlap_forward_comm()
 {
-  int i,n,itype,iswap,dim,ineed,twoneed,smax,rmax;
-  int nsend,nrecv,nfirst,nlast,ngroup;
-  double lo,hi;
-  int *type;
-  double **x;
-  double *buf,*mlo,*mhi;
+  int n,iswap,dim,ineed,twoneed,smax,rmax;
+  int nsend,nrecv,nfirst,nlast;
+  double *buf;
   MPI_Request request;
   MPI_Status status;
   AtomVec *avec = atom->avec;
-    my_times time1,time2,time3;
+  my_times time1,time2;
 
   // clear old ghosts
 
@@ -1066,15 +1019,6 @@ void CommCuda::borders_cuda_overlap_forward_comm()
       //   for later swaps in a dim, only check newly arrived ghosts
       // store sent atom indices in list for use in future timesteps
 
-      x = atom->x;
-      if (style == SINGLE) {
-        lo = slablo[iswap];
-        hi = slabhi[iswap];
-      } else {
-        type = atom->type;
-        mlo = multilo[iswap];
-        mhi = multihi[iswap];
-      }
       if (ineed % 2 == 0) {
         nfirst = nlast;
         nlast = atom->nlocal + atom->nghost;

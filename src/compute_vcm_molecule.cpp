@@ -97,7 +97,6 @@ void ComputeVCMMolecule::compute_array()
 {
   tagint imol;
   double massone;
-  double unwrap[3];
 
   invoked_array = update->ntimestep;
 
@@ -108,7 +107,6 @@ void ComputeVCMMolecule::compute_array()
   int *mask = atom->mask;
   tagint *molecule = atom->molecule;
   int *type = atom->type;
-  imageint *image = atom->image;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;

@@ -66,8 +66,6 @@ void ComputeForceMolecule::init()
 void ComputeForceMolecule::compute_array()
 {
   tagint imol;
-  double massone;
-  double unwrap[3];
 
   invoked_array = update->ntimestep;
 

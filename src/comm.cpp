@@ -162,33 +162,12 @@ void Comm::init()
   triclinic = domain->triclinic;
   map_style = atom->map_style;
 
-  // warn if any proc's sub-box is smaller than neigh skin
-  // since may lead to lost atoms in exchange()
+  // check warn if any proc's subbox is smaller than neigh skin
+  //   since may lead to lost atoms in exchange()
   // really should check every exchange() in case box size is shrinking
-  // but seems overkill to do that
+  //   but seems overkill to do that (fix balance does perform this check)
 
-  int flag = 0;
-  if (!triclinic) {
-    if (domain->subhi[0] - domain->sublo[0] < neighbor->skin) flag = 1;
-    if (domain->subhi[1] - domain->sublo[1] < neighbor->skin) flag = 1;
-    if (domain->dimension == 3)
-      if (domain->subhi[2] - domain->sublo[2] < neighbor->skin) flag = 1;
-  } else {
-    double delta = domain->subhi_lamda[0] - domain->sublo_lamda[0];
-    if (delta*domain->prd[0] < neighbor->skin) flag = 1;
-    delta = domain->subhi_lamda[1] - domain->sublo_lamda[1];
-    if (delta*domain->prd[1] < neighbor->skin) flag = 1;
-    if (domain->dimension == 3) {
-      delta = domain->subhi_lamda[2] - domain->sublo_lamda[2];
-      if (delta*domain->prd[2] < neighbor->skin) flag = 1;
-    }
-  }
-
-  int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall && me == 0) 
-    error->warning(FLERR,"Proc sub-domain size < neighbor skin - "
-                   "could lead to lost atoms");
+  domain->subbox_too_small_check(neighbor->skin);
 
   // comm_only = 1 if only x,f are exchanged in forward/reverse comm
   // comm_x_only = 0 if ghost_velocity since velocities are added

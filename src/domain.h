@@ -101,6 +101,7 @@ class Domain : protected Pointers {
   virtual void pbc();
   void image_check();
   void box_too_small_check();
+  void subbox_too_small_check(double);
   void minimum_image(double &, double &, double &);
   void minimum_image(double *);
   int closest_image(int, int);

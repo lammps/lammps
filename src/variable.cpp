@@ -3536,7 +3536,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     if (narg != 1)
       error->all(FLERR,"Invalid special function isdef in variable formula");
 
-    if (find(arg1) == -1)
+    if (find(args[0]) == -1)
       argstack[nargstack++] = 0.0;
     else 
       argstack[nargstack++] = 1.0;

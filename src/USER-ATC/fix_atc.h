@@ -69,7 +69,7 @@ namespace LAMMPS_NS {
        atom received from another processor. */
     int unpack_exchange(int, double *);
 
-    /** pack_forward_comm called from comm->forward_comm_fix and
+    /** pack_comm called from comm->forward_comm_fix and
        packs fix-specific data for a given ghost atom
        from exchange with another proc */
     int pack_forward_comm(int , int *, double *, int, int *);  

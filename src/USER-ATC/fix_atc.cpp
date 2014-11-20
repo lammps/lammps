@@ -38,7 +38,6 @@
 #include "stdio.h"
 #include "string.h"
 #include <sstream>
-#include <string>
 
 using namespace LAMMPS_NS; 
 using namespace FixConst;
@@ -232,7 +231,6 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     - \ref man_filter_type
     - \ref man_equilibrium_start
     - \ref man_extrinsic_exchange
-    - \ref man_charge_control
     - \ref man_poisson_solver
 
     fix_modify commands for output: \n
@@ -289,7 +287,7 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 
   int me = ATC::LammpsInterface::instance()->comm_rank();
 
-  std::string groupName(arg[1]);
+  string groupName(arg[1]);
   int igroup = group->find(groupName.c_str());
   int atomCount = group->count(igroup);
 
@@ -445,16 +443,6 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
                                            array_atom, this,
                                            matParamFile,
                                            ATC::SHEAR);
-    }
-    else if (strcmp(arg[3],"electrostatic_equilibrium")==0) 
-    {
-      string matParamFile = arg[4];
-      if (me==0) printf("Constructing ATC transfer (electrostatic_equilibrium) with parameter file %s\n",arg[4]);
-      atc_ = new ATC::ATC_CouplingMomentum(groupName,
-                                           array_atom, this,
-                                           matParamFile,
-                                           ATC::ELASTIC,
-                                           ATC::ELECTROSTATIC_EQUILIBRIUM);
     }
     else if (strcmp(arg[3],"species")==0)
     {
@@ -679,8 +667,7 @@ int FixATC::unpack_exchange(int nlocal, double * buf)
   return num;
 }
 
-int FixATC::pack_forward_comm(int n, int *list, double *buf, 
-                              int pbc_flag, int *pbc)
+int FixATC::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int num = atc_->pack_comm(n, list, buf, pbc_flag, pbc);
   return num;
@@ -690,6 +677,7 @@ void FixATC::unpack_forward_comm(int n, int first, double *buf)
 {
   atc_->unpack_comm(n, first, buf);
 }
+
 
 /* ----------------------------------------------------------------------
    pack values in local atom-based arrays for restart file

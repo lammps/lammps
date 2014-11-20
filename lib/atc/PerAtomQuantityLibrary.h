@@ -1382,9 +1382,6 @@ namespace ATC {
     /** handles resetting of data */
     virtual void reset() const;
 
-    /** atomic masses */
-    FundamentalAtomQuantity * atomMasses_;
-
     /** atomic lambdas */
     PerAtomQuantity<double> * atomLambdas_;
 
@@ -1392,6 +1389,86 @@ namespace ATC {
     
     // do not define
     AtomicVelocityRescaleFactor();
+
+  };
+
+  /**
+   *  @class  AtomicFluctuatingVelocityRescaled 
+   *  @brief  Class for computing the atomic rescaling of the velocity fluctuations by the rescaling thermostat 
+   */
+ 
+  class AtomicFluctuatingVelocityRescaled : public ProtectedAtomQuantity<double> {
+
+  public:
+
+    // constructor
+    AtomicFluctuatingVelocityRescaled(ATC_Method * atc,
+                                      PerAtomQuantity<double> * atomRescaleFactor = NULL,
+                                      PerAtomQuantity<double> * atomFluctuatingVelocity = NULL,
+                                      AtomType atomType = INTERNAL);
+
+    // destructor
+    virtual ~AtomicFluctuatingVelocityRescaled();
+
+  protected:
+
+    /** handles resetting of data */
+    virtual void reset() const;
+
+    /** atomic rescaling factor */
+    PerAtomQuantity<double> * atomRescaleFactor_;
+
+    /** atomic fluctuating velocity */
+    PerAtomQuantity<double> * atomFluctuatingVelocity_;
+
+  private:
+    
+    // do not define
+    AtomicFluctuatingVelocityRescaled();
+
+  };
+
+  /**
+   *  @class  AtomicCombinedRescaleThermostatError 
+   *  @brief  Class for computing the atomic error in the rescaling thermostat when used in combination with a specified streaming velocity 
+   */
+ 
+  class AtomicCombinedRescaleThermostatError : public ProtectedAtomQuantity<double> {
+
+  public:
+
+    // constructor
+    AtomicCombinedRescaleThermostatError(ATC_Method * atc,
+                                         PerAtomQuantity<double> * atomFluctuatingMomentumRescaled = NULL,
+                                         PerAtomQuantity<double> * atomMeanVelocity = NULL,
+                                         PerAtomQuantity<double> * atomStreamingVelocity = NULL,
+                                         PerAtomQuantity<double> * atomMass = NULL,
+                                         AtomType atomType = INTERNAL);
+
+    // destructor
+    virtual ~AtomicCombinedRescaleThermostatError();
+
+  protected:
+
+    /** handles resetting of data */
+    virtual void reset() const;
+
+    /** atomic rescaled fluctuating momentum */
+    PerAtomQuantity<double> * atomFluctuatingMomentumRescaled_;
+
+    /** atomic mean (prolonged FE) velocity */
+    PerAtomQuantity<double> * atomMeanVelocity_;
+
+    /** atomic streaming velocity, as computed by rescaling kinetothermostat */
+    PerAtomQuantity<double> * atomStreamingVelocity_;
+
+    /** atomic masses */
+    PerAtomQuantity<double> * atomMass_;
+
+  private:
+    
+    // do not define
+    AtomicCombinedRescaleThermostatError();
 
   };
 

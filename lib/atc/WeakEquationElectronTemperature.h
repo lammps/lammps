@@ -136,7 +136,7 @@ class WeakEquationElectronTemperatureJouleHeating :
    */
 
 class WeakEquationElectronTemperatureConvection : 
-  public WeakEquationElectronTemperature  
+  public WeakEquationElectronTemperatureJouleHeating
 {
   public:
   

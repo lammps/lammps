@@ -52,7 +52,9 @@ namespace ATC
   enum IntegrationDomainType {
     FULL_DOMAIN=0,
     ATOM_DOMAIN,
-    FE_DOMAIN
+    FE_DOMAIN,
+    FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE, 
+    FULL_DOMAIN_FREE_ONLY
   };
   /** domain decomposition */
   enum DomainDecompositionType {
@@ -479,6 +481,7 @@ namespace ATC
     SOURCE,             // has a source term weighted by the shape function
     PRESCRIBED_SOURCE,  // has a prescribed source term
     ROBIN_SOURCE,       // has a Robin source term
+    OPEN_SOURCE,        // has a open boundary source term
     EXTRINSIC_SOURCE,   // has an extrinsic source term
     NUM_FLUX
   };
@@ -549,6 +552,7 @@ namespace ATC
   class UXT_Function;
   typedef std::map<FieldName, std::map<PAIR, Array<XT_Function*> > > SURFACE_SOURCE;
   typedef std::map<FieldName, std::map<PAIR, Array<UXT_Function*> > > ROBIN_SURFACE_SOURCE;
+  typedef std::map<FieldName, std::set<PAIR> > OPEN_SURFACE;
   typedef std::map<FieldName, Array2D<XT_Function *> > VOLUME_SOURCE;
   typedef std::map<std::string, ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double> > ATOMIC_DATA;
   
@@ -609,12 +613,14 @@ namespace ATC
           || rhsMask(field,SOURCE)           
           || rhsMask(field,PRESCRIBED_SOURCE)
           || rhsMask(field,ROBIN_SOURCE)
+          || rhsMask(field,OPEN_SOURCE)
           || rhsMask(field,EXTRINSIC_SOURCE))  {
         msg = "RHS_MASK: " + name;
         if (rhsMask(field,FLUX))              msg += " flux";
         if (rhsMask(field,SOURCE))            msg += " source";
         if (rhsMask(field,PRESCRIBED_SOURCE)) msg += " prescribed_src";
         if (rhsMask(field,ROBIN_SOURCE))      msg += " robin_src";
+        if (rhsMask(field,OPEN_SOURCE))       msg += " open_src";
         if (rhsMask(field,EXTRINSIC_SOURCE))  msg += " extrinsic_src";
       }
     }

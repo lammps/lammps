@@ -592,17 +592,17 @@ namespace ATC {
     this->construct_regulated_nodes();
 
     InterscaleManager & interscaleManager(atc_->interscale_manager());
-    nodeToOverlapMap_ = static_cast<NodeToSubset * >(interscaleManager.dense_matrix_int("NodeToOverlapMap"));
+    nodeToOverlapMap_ = static_cast<NodeToSubset * >(interscaleManager.dense_matrix_int(regulatorPrefix_+"NodeToOverlapMap"));
     if (!nodeToOverlapMap_) {
       nodeToOverlapMap_ = new NodeToSubset(atc_,regulatedNodes_);
       interscaleManager.add_dense_matrix_int(nodeToOverlapMap_,
-                                                  regulatorPrefix_+"NodeToOverlapMap");
+                                             regulatorPrefix_+"NodeToOverlapMap");
     }
-    overlapToNodeMap_ = static_cast<SubsetToNode * >(interscaleManager.dense_matrix_int("OverlapToNodeMap"));
+    overlapToNodeMap_ = static_cast<SubsetToNode * >(interscaleManager.dense_matrix_int(regulatorPrefix_+"OverlapToNodeMap"));
     if (!overlapToNodeMap_) {
       overlapToNodeMap_ = new SubsetToNode(nodeToOverlapMap_);
       interscaleManager.add_dense_matrix_int(overlapToNodeMap_,
-                                                  regulatorPrefix_+"OverlapToNodeMap");
+                                             regulatorPrefix_+"OverlapToNodeMap");
     }
     
   }
@@ -681,7 +681,7 @@ namespace ATC {
       throw ATC_Error("RegulatorShapeFunction::initialize - unsupported solver type");
     }
 
-    compute_sparsity();    
+    compute_sparsity();
   }
 
   //--------------------------------------------------------
@@ -828,7 +828,7 @@ namespace ATC {
   void RegulatorShapeFunction::construct_regulated_nodes()
   {
     InterscaleManager & interscaleManager(atc_->interscale_manager());
-    regulatedNodes_ = static_cast<RegulatedNodes *>(interscaleManager.set_int("RegulatedNodes"));
+    regulatedNodes_ = interscaleManager.set_int("RegulatedNodes");
 
     if (!regulatedNodes_) {
       if (!(atomicRegulator_->use_localized_lambda())) {
@@ -848,9 +848,12 @@ namespace ATC {
 
     // special set of boundary elements
     if (atomicRegulator_->use_localized_lambda()) {
-      elementMask_ = new ElementMaskNodeSet(atc_,boundaryNodes_);
-      interscaleManager.add_dense_matrix_bool(elementMask_,
-                                                   regulatorPrefix_+"BoundaryElementMask");
+      elementMask_ = interscaleManager.dense_matrix_bool(regulatorPrefix_+"BoundaryElementMask");
+      if (!elementMask_) {
+        elementMask_ = new ElementMaskNodeSet(atc_,boundaryNodes_);
+        interscaleManager.add_dense_matrix_bool(elementMask_,
+                                                regulatorPrefix_+"BoundaryElementMask");
+      }
     }
   }
 
@@ -921,7 +924,7 @@ namespace ATC {
   //  Constructor
   //         Grab references to necessary data
   //--------------------------------------------------------
-  LambdaMatrixSolverLumped::LambdaMatrixSolverLumped(SPAR_MAN & matrixTemplate, SPAR_MAN * shapeFunctionMatrix, int maxIterations, double tolerance, const RegulatedNodes * applicationNodes, const NodeToSubset * nodeToOverlapMap) :
+  LambdaMatrixSolverLumped::LambdaMatrixSolverLumped(SPAR_MAN & matrixTemplate, SPAR_MAN * shapeFunctionMatrix, int maxIterations, double tolerance, const SetDependencyManager<int> * applicationNodes, const NodeToSubset * nodeToOverlapMap) :
     LambdaMatrixSolver(matrixTemplate,shapeFunctionMatrix,maxIterations,tolerance),
     applicationNodes_(applicationNodes),
     nodeToOverlapMap_(nodeToOverlapMap)

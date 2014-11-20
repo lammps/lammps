@@ -219,6 +219,27 @@ void LammpsInterface::sparse_allsum(SparseMatrix<double> &toShare) const
 }
 #endif
 
+std::string LammpsInterface::read_file(std::string filename) const
+{
+  FILE *fp = NULL;
+  if (! comm_rank()) {
+    fp = fopen(filename.c_str(),"r");
+    if (!fp) throw ATC_Error("can't open file: "+filename);
+  }
+  const int MAXLINE = 256;
+  const int CHUNK   = 1024;
+  char * buffer = new char[CHUNK*MAXLINE];
+  std::stringstream s;
+  bool eof = false;
+  while ( ! eof) {
+    eof = lammps_->comm->read_lines_from_file(fp,1,MAXLINE,buffer);
+    s << buffer;
+  }
+  delete [] buffer;
+  return s.str(); // can't copy the stream itself
+}
+
+
 // -----------------------------------------------------------------
 //  atom interface methods
 // -----------------------------------------------------------------

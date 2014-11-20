@@ -42,12 +42,6 @@ namespace ATC {
     /** pre time integration */
     virtual void initialize();
 
-    /** set up LAMMPS display variables */
-    virtual int size_vector(int externalSize);
-
-    /** get LAMMPS display variables */
-    virtual bool compute_vector(int n, double & value);
-
     /** Predictor phase, executed before Verlet */
     virtual void pre_init_integrate();
 
@@ -57,6 +51,12 @@ namespace ATC {
     /** Add model-specific output data */
     virtual void output(OUTPUT_LIST & outputData);
   
+    /** set up LAMMPS display variables */
+    virtual int size_vector(int externalSize);
+
+    /** get LAMMPS display variables */
+    virtual bool compute_vector(int n, double & value);
+
   protected:
     /** electron time integration flag */
     TimeIntegrator::TimeIntegrationType electronTimeIntegration_;

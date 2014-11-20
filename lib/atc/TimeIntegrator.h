@@ -109,13 +109,15 @@ namespace ATC {
 
     /** types of time integration */
     enum TimeIntegrationType {
+      NONE=0,
       STEADY,
       VERLET,
       GEAR,
       FRACTIONAL_STEP,
       EXPLICIT,
       IMPLICIT,
-      CRANK_NICOLSON
+      CRANK_NICOLSON,
+      DIRECT
     };
       
     // constructor

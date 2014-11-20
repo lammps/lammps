@@ -52,6 +52,9 @@ namespace ATC {
     /** Predictor phase, executed before Verlet */
     virtual void pre_init_integrate();
 
+    /** Set sources to AtC equation */
+    virtual void set_sources(FIELDS & fields, FIELDS & sources);
+
     /** Add model-specific output data */
     virtual void output(OUTPUT_LIST & outputData);
 
@@ -117,6 +120,7 @@ namespace ATC {
     std::string oneDnodesetName_;
     std::set<int> oneDnodeset_;
     Array< std::set<int> > oneDslices_;
+    Array< double > oneDdxs_;
     int oneDconserve_;
 
     DENS_MAT JE_;

@@ -154,7 +154,7 @@ namespace ATC {
     AliasArray<int> element_connectivity_unique(const int eltID) const;
 
     void face_connectivity(const PAIR & faceID,
-                                  Array<int> & nodes) const
+                           Array<int> & nodes) const
     { int nNodesPerFace = num_nodes_per_face();
       nodes.reset(nNodesPerFace);
       int eltID = faceID.first;
@@ -271,9 +271,10 @@ namespace ATC {
                                        std::set<int> &nodeSet) const;
 
     void elementset_to_nodeset(const std::string &name, 
-                               std::set<int> &nodeSet) const;
+                               std::set<int> nodeSet) const;
     void elementset_to_nodeset(const std::set<int> &elemSet, 
-                               std::set<int> &nodeSet) const;
+                               std::set<int> nodeSet) const;
+    std::set<int> elementset_to_nodeset(const std::string &name) const;
 
     /** convert faceset to nodeset in _unique_ node numbering */
     void faceset_to_nodeset(const std::string &name, 
@@ -400,6 +401,12 @@ namespace ATC {
     bool is_owned_elt(int elt) const;
     
   protected:
+
+    void parse_plane(int & argIdx, int narg, char ** arg,  
+      int & ndir, int * idir, int & isgn, double xlimits[][2]);
+
+    void parse_units(int & argIdx, int narg, char ** arg,  
+      double & xmin, double & xmax, double & ymin, double & ymax, double & zmin, double & zmax);
 
     /** will this mesh use data decomposition? */
     bool decomposition_;

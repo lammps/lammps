@@ -51,6 +51,7 @@ PoissonSolver::PoissonSolver(
     rhsMask_(fieldName,FLUX)   = true; 
     rhsMask_(fieldName,SOURCE) = true; 
   }
+  
   if (prescribedDataMgr_->has_robin_source(fieldName)) {
     
     
@@ -114,6 +115,9 @@ void PoissonSolver::initialize(void)
 {
   nNodes_ = feEngine_->num_nodes();
 
+  if (atc_->source_atomic_quadrature(fieldName_))  
+    integrationType_ = FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE;
+
   // compute penalty for Dirichlet boundaries
   if (prescribedDataMgr_->none_fixed(fieldName_))  
     throw ATC_Error("Poisson solver needs Dirichlet data");
@@ -125,6 +129,7 @@ void PoissonSolver::initialize(void)
       pair<FieldName,FieldName> row_col(fieldName_,fieldName_);
       Array2D <bool> rhsMask(NUM_FIELDS,NUM_FLUX);
       rhsMask = false; rhsMask(fieldName_,FLUX) = true;
+
       if (prescribedDataMgr_->has_robin_source(fieldName_)) {
         rhsMask(fieldName_,ROBIN_SOURCE) = true;
       }
@@ -132,7 +137,7 @@ void PoissonSolver::initialize(void)
       atc_->compute_rhs_tangent(row_col, rhsMask, atc_->fields(),
         stiffness_, FULL_DOMAIN, physicsModel_);
       // create solver
-      solver_ = new LinearSolver(stiffness_,bcs,solverType_,-1,parallel_);
+      solver_ = new LinearSolver(stiffness_,bcs,solverType_,LinearSolver::AUTO_HANDLE_CONSTRAINTS,parallel_);
     }
     else {
 

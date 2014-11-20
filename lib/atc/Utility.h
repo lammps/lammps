@@ -20,10 +20,11 @@
 namespace ATC_Utility
 {
   /** constants */
-  static const double Pi = 4.0*atan(1.0);
-  static const double Big = 1.e20;
-  const static double parsetol = 1.0e-10;  
-  const static double parsebig = 1.0e10;
+  static const double Pi_ = 4.0*atan(1.0);
+  static const double Big_ = 1.e20;
+  const static double parsetol_ = 1.0e-8; 
+  //const static double parsetol_ = 1.0e-10; 
+  const static double parsebig_ = 1.0e10;
 
   /** scalar triple product */
   inline double det3(double * v1, double * v2, double * v3) {
@@ -49,6 +50,7 @@ namespace ATC_Utility
   inline double norm3(double * v) {return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]); }
 
   inline int sgn(double x) { return (int) ((x>0) - (x<0)); }
+//  template <typename T> int sgn(T val) { return (T(0) < val) - (val < T(0)); }
   inline int rnd(double x) { return (int) (x+sgn(x)*0.5); }
 
   /** Compares doubles acceptably */
@@ -63,22 +65,28 @@ namespace ATC_Utility
                        tolMult * std::max(abs(dblL), abs(dblR))))));
   }
 
-    
+  inline double tolerance(double x, double tol = parsetol_) {
+    return std::max(tol,tol*fabs(x));    
+  }
+  inline double nudge_up(double x)   { return x+tolerance(x); }
+  inline double nudge_down(double x) { return x-tolerance(x); }
   inline double parse_min(const char * arg) {
-    if (std::strcmp(arg,"INF") == 0)  return -parsebig;
-    else                         return atof(arg);  }   
+    if      (std::strcmp(arg,"INF") == 0)  return -parsebig_;
+    else if (std::strcmp(arg,"-INF") == 0) return -parsebig_;
+    else                                   return (atof(arg)); 
+  } 
   inline double parse_max(const char * arg) {    
-     if (std::strcmp(arg,"INF") == 0)  return parsebig;    
-     else                         return atof(arg);
+     if (std::strcmp(arg,"INF") == 0)  return parsebig_;    
+     else                              return (atof(arg));
   }   
   inline double parse_minmax(const char * arg) {
-    if      (std::strcmp(arg,"-INF") == 0)  return -parsebig;
-    else if (std::strcmp(arg,"INF") == 0)   return  parsebig;
-    else                         return atof(arg);  }   
+    if      (std::strcmp(arg,"-INF") == 0)  return -parsebig_;
+    else if (std::strcmp(arg,"INF") == 0)   return  parsebig_;
+    else                         return atof(arg);  
+  }   
   inline void split_values(double & min, double & max) {
-    double eps = std::max(parsetol,parsetol*fabs(min));    
-    min -= eps;
-    max += eps;
+    min = nudge_down(min);
+    max = nudge_up(max);
   }   
     
 
@@ -165,9 +173,23 @@ namespace ATC_Utility
   inline std::string to_string(const T &v, int precision=0)
   {
     std::ostringstream out;
-    if (precision) out << std::setprecision(precision);
+    if (precision) {
+      out << std::setprecision(precision);
+      out << std::setw(precision+3);
+      out << std::showpoint;
+    }
     out << v;
+    out << std::noshowpoint;
     return out.str();
+  }
+
+  /** formatted double to a string  */
+  inline std::string to_string(int precision, const double v)
+  {
+    char b[50];
+    sprintf(b, "%*.*f",4+precision,precision, v); 
+    std::string s(b);
+    return s;
   }
 
   /** conversion to string */
@@ -204,6 +226,13 @@ namespace ATC_Utility
     strtod(s.c_str(), &endptr);
     if(endptr != NULL && *endptr == '\0') return true;
     return false;
+  }
+
+  inline bool is_number(const std::string& s)
+  {
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
   }
   
   /** convert a string to an int */

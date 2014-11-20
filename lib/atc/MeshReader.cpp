@@ -45,6 +45,9 @@ namespace ATC {
   /** destructor */
   MeshReader::~MeshReader()
   {
+    if (conn_) delete conn_;
+    if (nodeCoords_) delete nodeCoords_;
+    if (nodeSets_) delete nodeSets_;
   }
 
   /** creates handle to new mesh object */

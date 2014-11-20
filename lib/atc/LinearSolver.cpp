@@ -41,7 +41,8 @@ LinearSolver::LinearSolver(
     matrix_(A),
     matrixDense_(),
     matrixFreeFree_(), matrixFreeFixed_(),matrixInverse_(),
-    penalty_(0),maxIterations_(0), maxRestarts_(0), tol_(0),
+    penalty_(1),
+    maxIterations_(0), maxRestarts_(0), tol_(0),
     parallel_(parallel)
 {
   // deep copy 
@@ -70,7 +71,8 @@ LinearSolver::LinearSolver(
     matrix_(A),
     matrixDense_(), 
     matrixFreeFree_(), matrixFreeFixed_(),matrixInverse_(),
-    penalty_(0),maxIterations_(0), maxRestarts_(0), tol_(0),
+    penalty_(1),
+    maxIterations_(0), maxRestarts_(0), tol_(0),
     parallel_(parallel)
 {
   // shallow copy
@@ -84,7 +86,6 @@ LinearSolver::LinearSolver(
 // --------------------------------------------------------------------
 void LinearSolver::setup(void)
 {
-  penalty_ = kPenalty; // relative to matrix diagonal
   tol_     = kTol;
   nVariables_ = matrix_.nRows();
   maxIterations_=2*nVariables_;
@@ -106,8 +107,7 @@ void LinearSolver::setup(void)
     if (solverType_ == DIRECT_SOLVE) constraintHandlerType_ = CONDENSE_CONSTRAINTS;
   }
   if ( solverType_ == DIRECT_SOLVE && constraintHandlerType_ == CONDENSE_CONSTRAINTS ) allowReinitialization_ = true;
-  if ( solverType_ == ITERATIVE_SOLVE_SYMMETRIC && constraintHandlerType_ == CONDENSE_CONSTRAINTS ) 
-    throw ATC_Error("LinearSolver::unimplemented method");
+  if ( solverType_ == ITERATIVE_SOLVE_SYMMETRIC && constraintHandlerType_ == CONDENSE_CONSTRAINTS )  { throw ATC_Error("LinearSolver::unimplemented method"); }
 }
 
 // --------------------------------------------------------------------
@@ -217,6 +217,7 @@ void LinearSolver::initialize_rhs(void)
 // --------------------------------------------------------------------
 void LinearSolver::add_matrix_penalty(void)
 {
+  penalty_ = kPenalty; // relative to matrix diagonal
   SPAR_MAT & A = matrixCopy_;
   penalty_ *= (A.diag()).maxabs(); 
   BC_SET::const_iterator itr;

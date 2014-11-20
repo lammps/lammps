@@ -86,6 +86,25 @@ namespace ATC {
       electronRecombinationInvTau_(0),
       electronChargeDensity_(NULL)
   {
+    /*! \page man_material material
+      \section syntax
+        material <tag> <units> \n
+           <commands> \n
+        end \n
+        tag - a unique identifier for the material type which can be referenced in input decks.  Multiple materials are specified using different tag regions, terminated with an 'end', in the material file.
+        units - the LAMMPS units system the material is based on, used as a check against the actual LAMMPS units.  AtC units are consistent units using the LAMMPS length, mass, time, charge, and volts.  The only units conversion occuring within AtC are LAMMPS to AtC units and charge to volts units. 
+        \section examples
+        material Argon real
+           -------
+        end
+        \section description
+        Starts a section in which material properties can be specified.  Materials are organized by material, identified by a tag, and all associated material models are specified within its scope.  Unspecified material properties use defaults as indicated or are considered as null.  Null material properties contribute no value to integrals using them.  Material properties defined which are not part of the physics model are ignored.  Functions which are specified correspond to those implemented in the code and there is no mechanism for user-specified material models unless they are added to the main code.\n 
+        \section restrictions
+        Material models are only used for evaluating finite element integrals with for physics models they are associated with.
+        \section related
+        \section default
+        Default for all material properties is null.  The null material using the tag 'null' is the only material defined by default. \n
+      */
     linearFlux_.reset(NUM_FIELDS);
     linearFlux_ = false;
     linearSource_.reset(NUM_FIELDS);
@@ -114,6 +133,20 @@ namespace ATC {
           return;
         }
       }
+      /*! \page man_mat_heat_capacity material heat_capcity 
+        \section syntax
+        heat_capacity constant\n
+          capacity <value> \n
+        end \n 
+        \section description
+        Overrides use of lattice heat capacity using Dulong-Petit law for continuum regions. \n 
+        \section restrictions
+        Only valid with AtC models incorporating a phonon temperature:  thermal, two-temperature, drift-diffusion
+        \section related
+        material
+        \section default
+        If no value is given, the Dulong-Petit value for the lattice is used. \n
+      */
       if      (line[0] == "heat_capacity") { // over-ride default
         registry_. insert("heat_capacity");
         registry_. insert("thermal_energy");
@@ -130,6 +163,20 @@ namespace ATC {
           }
         }
       }
+      /*! \page man_mat_heat_flux material heat_flux 
+        \section syntax
+        heat_flux linear\n
+          conductivity <value> \n
+        end \n 
+        \section description
+        Specifies a heat flux proportional to the temperature gradient. \n 
+        \section restrictions
+        Only valid with AtC models incorporating a phonon temperature:  thermal, two-temperature, drift-diffusion
+        \section related
+        material
+        \section default
+        Null. \n
+      */
       else if (line[0] == "heat_flux") {
         registry_. insert("heat_flux");
         if (line[1] == "linear") {
@@ -145,6 +192,24 @@ namespace ATC {
           }
         }
       }
+      /*! \page man_mat_electron_heat_flux material electron_heat_flux 
+        \section syntax
+        electron_heat_flux <null|linear|power_law|thermopower>\n
+          <parameter> <value> \n
+        end \n 
+        null - no electron heat flux contributions \n
+        linear - a heat flux proportional to the temperature gradient, parameter is 'conductivity'\n
+        power_law - a heat flux proportional to the temperature gradient and ratio of electron to phonon temperatures, parameter is 'conductivity'\n
+        thermopower - same as power_law but with an addition proportional to the electron current, parameters are 'conductivity' but it also uses the Seebeck coefficient defined elsewhere
+        \section description
+        Specifies the form for the electron heat flux. \n 
+        \section restrictions
+        Only valid with AtC models incorporating an electron temperature:  two-temperature, drift-diffusion
+        \section related
+        material
+        \section default
+        Null. \n
+      */
       else if (line[0] == "electron_heat_flux") {
         registry_. insert("electron_heat_flux");
         if      (line[1] == "null") {
@@ -183,6 +248,23 @@ namespace ATC {
             parameters_, electronFlux_);
         }
       }
+      /*! \page man_mat_electron_heat_capacity material electron_heat_capacity 
+        \section syntax
+        electron_heat_capacity <constant|linear> <no_density>\n
+          capacity <value> \n
+        end \n 
+        no_density - if this keyword is present, the electron density does not multiply the capacity\n
+        constant - a constant electron heat flux \n
+        linear - a heat flux proportional to the electron temperature\n
+        \section description
+        Specifies the form for the electron heat capacity. \n 
+        \section restrictions
+        Only valid with AtC models incorporating an electron temperature:  two-temperature, drift-diffusion
+        \section related
+        material
+        \section default
+        Null. \n
+      */
       else if (line[0] == "electron_heat_capacity") {
         registry_. insert("electron_heat_capacity");
         registry_. insert("electron_thermal_energy");
@@ -214,6 +296,24 @@ namespace ATC {
           }
         }
       }
+      /*! \page man_mat_electron_phonon_exchange material electron_phonon_exchange 
+        \section syntax
+        electron_phonon_exchange <null|linear|power_law|hertel>\n
+          <parameter> <value> \n
+        end \n 
+        null - no electron heat flux contributions \n
+        linear - an energy exchange proportional to the temperature difference between the electron and phonon temperatures, parameter is 'coefficient'\n
+        power_law - same as linear, but the temperature difference is raised to a specified power, parameters are 'coefficient' and 'exponent'\n
+        hertel - exchange proportional to temperature difference to the 5th divided by the electron temperature, the coefficient is a function of the mass enhancement and Debeye temperature, parameters are 'debeye_temperature' and 'mass_enhancement'
+        \section description
+        Specifies the form for the electron/phonon heat exchange. \n 
+        \section restrictions
+        Only valid with AtC models incorporating an electron temperature:  two-temperature, drift-diffusion
+        \section related
+        material
+        \section default
+        Null. \n
+      */
       else if (line[0] == "electron_phonon_exchange") {
         registry_. insert("electron_phonon_exchange");
         if      (line[1] == "null") {
@@ -239,6 +339,23 @@ namespace ATC {
           electronPhononExchange_ = new ElectronPhononExchangeHertel(fileId,parameters_,this);
         }
       }
+      /*! \page man_mass_density material mass_density 
+        \section syntax
+        mass_density <no entry|basis|constant>\n
+          <keyword> <values> \n
+        end \n 
+        no entry - compute mass density from the lattice using the mass of the first type, no keyword or values\n
+        basis - compute mass density for the given number of atoms of each type in the lattice, no keyword, values are one integer per type specifying the number of atoms of that type in the lattice\n
+        constant - prescribed mass density, keyword = density, value = desired mass density
+        \section description
+        Specifies the mass density of the system. \n 
+        \section restrictions
+        Valid for all AtC physics models.
+        \section related
+        material
+        \section default
+        Compute from the basis. \n
+      */
       else if (line[0] == "mass_density") { // over-ride default
         registry_. insert("mass_density");
         registry_. insert("kinetic_energy");
@@ -280,6 +397,25 @@ namespace ATC {
           }
         }
       }
+      /*! \page man_mat_stress material stress
+        \section syntax
+        stress <linear|cubic|damped_cubic|cauchy_born>\n
+          <keyword> <values> \n
+        end \n 
+        null - no electron heat flux contributions \n
+        linear - a stress tensor proportional to the displacements, keywords are 'modulus' and 'poissons_ratio'\n
+        cubic - an anisotropic linear stress tensor, keywords are 'c11', 'c12', and 'c44'\n
+        damped_cubic - same as cubic, with a damping term proportional to the velocity vector, keywords are 'c11', 'c12', 'c44', and the damping parameter 'gamma'\n
+        cauchy_born - stress tensor is computed using the Cauchy-Born formalism from the lattice and given potential, keywords are 'pairstyle', 'linear' (linearizes the Cauchy-Born relationship), or 'temperature' (the temperature used to determine the Cauchy-Born stress).  The 'pairstyle' lines are followed by values of 'lj/cut', 'lj/smooth/linear', and 'eam', the latter two of which are followed on the line by the value for the cut-off radius.  The 'lj/cut' and 'lj/smooth/linear' pairstyles are followed on the next line using the keyword 'pair_coeff' followed by value of the pair-coefficients \sigma and \epsilon.
+        \section description
+        Specifies the form for the mechanical stress tensor. \n 
+        \section restrictions
+        Only valid with AtC models incorporating a mechanical stress:  elastic
+        \section related
+        material
+        \section default
+        Null. \n
+      */
       else if (line[0] == "stress") {
         registry_. insert("stress");
         registry_. insert("elastic_energy");
@@ -321,6 +457,22 @@ namespace ATC {
           viscousStress_ = new ViscousStressConstant(fileId);
         }
       }
+      /*! \page man_body_force material body_force 
+        \section syntax
+        body_force <electric_field|viscous>\n
+          <keyword> <values> \n
+        end \n 
+        electric_field - adds body force proportional to the electric field and charge density, no keywords or values\n
+        viscous - adds a body force proportional to the velocity vector, keyword = gamma (damping parameter) followed by its value\n
+        \section description
+        Specifies body forces acting on the system. \n 
+        \section restrictions
+        Valid for all AtC mechanical models:  elastic
+        \section related
+        material
+        \section default
+        Null. \n
+      */
       else if (line[0] == "body_force") {
         registry_. insert("body_force");
         if (line.size() > 1) {
@@ -363,6 +515,21 @@ namespace ATC {
           electronFlux_ = new ElectronFluxConvection(fileId, parameters_);
         }
       }
+      /*! \page man_electric_field material electric_field
+        \section syntax
+        electric_field linear\n
+          permittivity <value> \n
+        end \n 
+        Provide a value for the permittivity or use LAMMPS' value if no value is given.\n
+        \section description
+        Specifies the electric displacement vector to be proportional to the electric field. \n 
+        \section restrictions
+        Valid for AtC physics models using electric fields:  fem_efield, drift-diffusion
+        \section related
+        material
+        \section default
+        Use LAMMPS' permittivity. \n
+      */
       else if (line[0] == "electric_field") {
         registry_. insert("electric_field");
         registry_. insert("electric_displacement");
@@ -383,9 +550,11 @@ namespace ATC {
               }
               // convert relative permitivity (dielectric) to abs internal units
               stringstream ss;
-              ss << "permittivity : " << permittivity_ ;
+              ss << "permittivity: relative= " << permittivity_ ;
               permittivity_ *= LammpsInterface::instance()->epsilon0();
-              ss << " -> " << permittivity_ ;
+              ss << ", absolute= " << permittivity_ ;
+              ss << ", lattice constant= " << LammpsInterface::instance()->max_lattice_constant()  ;
+              ATC::LammpsInterface::instance()->print_msg_once(ss.str());
               LammpsInterface::UnitsType utype = LammpsInterface::instance()->units_style();
               if ( utype != LammpsInterface::REAL 
                 && utype != LammpsInterface::METAL) {
@@ -454,6 +623,25 @@ namespace ATC {
           }
         }
       }
+      /*! \page man_mat_electron_density material electron_density 
+        \section syntax
+        electron_density <null|linear|interpolation|exponential|fermi_dirac>\n
+          <keyword> <values> \n
+        end \n 
+        null - no electron density constitutive model, uses the state variable \n
+        linear - density is proportional to the electric field, keyword is 'coefficient' followed by its value\n
+        interpolation - interpolates in a look-up table contained in a file provided after the 'interpolation' word, keywords are 'scale' and 'number_of_points', followed by their values \n
+        exponential - density is based on Boltzmann statistics for the electric potential above an activation energy, keywords are 'intrinsic_concentration', 'intrinsic_energy', and reference_temperature', followed by their values\n
+        fermi_dirac - density is based on Fermi-Dirac statistics for the electric potential relative to an activation energy, keywords are 'fermi_energy', 'reference_temperature', 'band_edge', 'donor_ionization_energy', and 'donor_concentration'
+        \section description
+        Specifies the form for the electron density. \n 
+        \section restrictions
+        Only valid with AtC models incorporating an electrons:  electrostatic, two-temperature, drift-diffusion
+        \section related
+        material
+        \section default
+        Null. \n
+      */
       else if (line[0] == "electron_density") { // density is converted to charge
         registry_. insert("electron_charge_density");
         if (line[1] == "null") {

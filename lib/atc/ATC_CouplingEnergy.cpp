@@ -155,10 +155,10 @@ namespace ATC {
       // kinetic temperature measure for post-processing
       // nodal restriction of the atomic energy quantity for the temperature definition
       AtfShapeFunctionRestriction * nodalAtomicTwiceKineticEnergy = new AtfShapeFunctionRestriction(this,
-        atomicTwiceKineticEnergy,
-        shpFcn_);
+                                                                                                    atomicTwiceKineticEnergy,
+                                                                                                    shpFcn_);
       interscaleManager_.add_dense_matrix(nodalAtomicTwiceKineticEnergy,
-                                               "NodalAtomicTwiceKineticEnergy");
+                                          "NodalAtomicTwiceKineticEnergy");
       nodalAtomicKineticTemperature_ = new AtfShapeFunctionMdProjection(this,
         nodalAtomicTwiceKineticEnergy,
         TEMPERATURE);
@@ -171,12 +171,12 @@ namespace ATC {
         atomicFluctuatingPotentialEnergy,
         shpFcn_);
       interscaleManager_.add_dense_matrix(nodalAtomicFluctuatingPotentialEnergy,
-        "NodalAtomicFluctuatingPotentialEnergy");
+                                          "NodalAtomicFluctuatingPotentialEnergy");
       nodalAtomicConfigurationalTemperature_ = new AtfShapeFunctionMdProjection(this,
         nodalAtomicFluctuatingPotentialEnergy,
         TEMPERATURE);
       interscaleManager_.add_dense_matrix(nodalAtomicConfigurationalTemperature_,
-        "NodalAtomicConfigurationalTemperature");
+                                          "NodalAtomicConfigurationalTemperature");
     }
 
     // register the per-atom quantity for the temperature definition
@@ -185,10 +185,10 @@ namespace ATC {
     
     // nodal restriction of the atomic energy quantity for the temperature definition
     AtfShapeFunctionRestriction * nodalAtomicEnergy = new AtfShapeFunctionRestriction(this,
-        atomEnergyForTemperature,
-        shpFcn_);
+                                                                                      atomEnergyForTemperature,
+                                                                                      shpFcn_);
     interscaleManager_.add_dense_matrix(nodalAtomicEnergy,
-                                             "NodalAtomicEnergy");
+                                        "NodalAtomicEnergy");
     
     // nodal atomic temperature field
     

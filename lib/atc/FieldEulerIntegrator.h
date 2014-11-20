@@ -40,6 +40,10 @@ class FieldEulerIntegrator {
   /** Destructor */
   virtual ~FieldEulerIntegrator() {};
 
+  /** initialize */
+  virtual void initialize(const double dt, const double time,
+    FIELDS & fields) {};
+
   /** update */
   virtual void update(const double dt, const double time,
     FIELDS & fields,  FIELDS & rhs) = 0;
@@ -131,6 +135,47 @@ class FieldImplicitEulerIntegrator : public FieldEulerIntegrator {
 
   /** convergence tolerance */
   double tol_;
+};
+
+/**
+ *  @class FieldImplicitDirectEulerIntegrator
+ *  @brief implicit Euler method with direct solve
+ */
+class FieldImplicitDirectEulerIntegrator : public FieldEulerIntegrator {
+
+ public:
+
+  /** Constructor */
+  FieldImplicitDirectEulerIntegrator(
+    const FieldName fieldName,
+    const PhysicsModel * physicsModel,
+    /*const*/ FE_Engine * feEngine,
+    /*const*/ ATC_Coupling * atc,
+    const Array2D< bool > & rhsMask, // copy
+    const double alpha = 0.5 // default to trap/midpt
+  );
+
+  /** Destructor */
+  virtual ~FieldImplicitDirectEulerIntegrator();
+
+  /** initalize - init the matrices and inverses */
+  void initialize(const double dt, const double time,
+    FIELDS & fields);
+
+  /** update */
+  void update(const double dt, const double time,
+    FIELDS & fields,  FIELDS & rhs);
+
+ protected:
+  /** euler update factor */
+  double alpha_;
+
+  /** matrices */
+  SPAR_MAT  _M_;
+  SPAR_MAT  _K_;
+  SPAR_MAT  _lhsMK_;
+  SPAR_MAT  _rhsMK_;
+  class LinearSolver * solver_;
 };
 
 } // namespace ATC

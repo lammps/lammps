@@ -3,6 +3,7 @@
 #include "KinetoThermostat.h"
 #include "ATC_Error.h"
 #include "PrescribedDataManager.h"
+#include "FieldManager.h"
 
 // Other Headers
 #include <vector>
@@ -181,11 +182,14 @@ namespace ATC {
                                           "NodalAtomicDisplacement");
     }
 
-    // always need kinetic energy
+    // always need fluctuating velocity and kinetic energy
+    
     FtaShapeFunctionProlongation * atomicMeanVelocity = new FtaShapeFunctionProlongation(this,&fields_[VELOCITY],shpFcn_);
     interscaleManager_.add_per_atom_quantity(atomicMeanVelocity,
-                                             "AtomicMeanVelocity");
-    AtomicEnergyForTemperature * atomicTwiceKineticEnergy = new TwiceFluctuatingKineticEnergy(this);
+                                             field_to_prolongation_name(VELOCITY));
+    FieldManager fieldManager(this);
+    PerAtomQuantity<double> * fluctuatingAtomicVelocity = fieldManager.per_atom_quantity("AtomicFluctuatingVelocity"); // also creates ProlongedVelocity
+    AtomicEnergyForTemperature * atomicTwiceKineticEnergy = new TwiceKineticEnergy(this,fluctuatingAtomicVelocity);
     AtomicEnergyForTemperature * atomEnergyForTemperature = NULL;
 
     // Appropriate per-atom quantity based on desired temperature definition

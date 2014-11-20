@@ -26,12 +26,13 @@ namespace ATC {
     /** types of ghost boundary conditions in momentum */
     enum BoundaryDynamicsType {
       NO_BOUNDARY_DYNAMICS=0,
-      VERLET,
-      PRESCRIBED,
-      DAMPED_HARMONIC,
-      COUPLED,
-      SWAP,
-      SWAP_VERLET
+      VERLET,  // performs velocity-verlet 
+      PRESCRIBED,  // forces ghost locations to conform to interpolated finite element locations
+      DAMPED_HARMONIC, // turns ghost atoms into spring-mass-dashpot systems
+      DAMPED_LAYERS, // oer layer DAMPED_HARMONIC
+      COUPLED,  // applies a spring-dashpot force to the ghosts
+      SWAP, // exchanges ghost and real atoms when they cross AtC boundaries
+      SWAP_VERLET // like above, but integrates the ghosts using velocity verlet
     };
 
     // constructor
@@ -91,13 +92,13 @@ namespace ATC {
     bool needReset_;
 
     /** spring constant for some models */
-    double kappa_;
+    std::vector<double> kappa_;
 
     /** damping constant for some models */
-    double gamma_;
+    std::vector<double> gamma_;
 
     /** ratio between mass of ghost types and desired mass for some models */
-    double mu_;
+    std::vector<double> mu_;
 
   private:
 
@@ -214,20 +215,22 @@ namespace ATC {
 
     // constructor
     GhostModifierDampedHarmonic(GhostManager * ghostManager,
-                                double kappa_, double gamma, double mu);
+                                const std::vector<double> & kappa,
+                                const std::vector<double> & gamma,
+                                const std::vector<double> & mu);
 
     // destructor
     virtual ~GhostModifierDampedHarmonic(){};
 
     /** create and get necessary transfer operators */
     virtual void construct_transfers();
-
+#if true
     /** Predictor phase, Verlet first step for velocity */
     virtual void init_integrate_velocity(double dt);
 
     /** Predictor phase, Verlet first step for position */
     virtual void init_integrate_position(double dt);
-
+#endif
     /** set positions after integration */
     virtual void post_init_integrate(){};
 
@@ -245,14 +248,17 @@ namespace ATC {
     /** atom forces */
     PerAtomQuantity<double> * atomForces_;
 
+    /** effective spring constant for potential */
+    double k0_;
+
     /** spring constant */
-    double kappa_, k0_;
+    const std::vector<double> & kappa_;
 
     /** damping constant */
-    double gamma_;
+    const std::vector<double> & gamma_;
 
     /** ratio between mass of ghost types and desired mass */
-    double mu_;
+    const std::vector<double> & mu_;
 
     // workspace
     DENS_MAT _forces_;
@@ -263,6 +269,56 @@ namespace ATC {
     GhostModifierDampedHarmonic();
 
   };
+
+  /**
+   *  @class  GhostModifierDampedHarmonicLayers
+   *  @brief  Integrates ghost atoms using velocity-verlet with a damped harmonic force based on which layer the atom resides in
+   */
+
+  class GhostModifierDampedHarmonicLayers : public GhostModifierDampedHarmonic {
+  
+  public:
+
+    // constructor
+    GhostModifierDampedHarmonicLayers(GhostManager * ghostManager,
+                                      const std::vector<double> & kappa,
+                                      const std::vector<double> & gamma,
+                                      const std::vector<double> & mu);
+
+    // destructor
+    virtual ~GhostModifierDampedHarmonicLayers(){};
+
+    /** create and get necessary transfer operators */
+    virtual void construct_transfers();
+
+    /** pre time integration initialization of data */
+    virtual void initialize();
+
+    /** Corrector phase, Verlet second step for velocity */
+    virtual void final_integrate(double dt);
+
+  protected:
+
+    // methods
+    /** compute distance of ghost atom to boundary */
+    void compute_distances();
+    /** sorting heuristics to identify layers */
+    int find_layers();
+
+    // data
+    /** distance from all ghost atoms to boundary, i.e. boundary face of containing element */
+    PerAtomQuantity<double> * ghostToBoundaryDistance_;
+    
+    /** layer id for ghost atoms */
+    PerAtomQuantity<int> * layerId_;
+
+  private:
+
+    // DO NOT define this
+    GhostModifierDampedHarmonicLayers();
+
+  };
+
 
   /**
    *  @class  GhostIntegratorSwap

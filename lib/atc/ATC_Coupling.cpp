@@ -16,6 +16,10 @@ using std::string;
 using std::map;
 using std::pair;
 using std::set;
+using std::ifstream;
+using std::stringstream;
+using ATC_Utility::is_numeric;
+using ATC_Utility::to_string;
 
 namespace ATC {
   //--------------------------------------------------
@@ -138,11 +142,11 @@ namespace ATC {
 
       /*! \page man_fix_nodes fix_modify AtC fix 
         \section syntax
-        fix_modify AtC fix <field> <nodeset> <constant | function>
+        fix_modify AtC fix <field> <nodeset> <constant | function | >
         - <field> = field name valid for type of physics
         - <nodeset> = name of set of nodes to apply boundary condition
-        - <constant | function> = value or name of function followed by its
-          parameters
+        - <constant | function | > = value or name of function followed by its
+          parameters or nothing to fix the field at its current state
         \section examples
         <TT> fix_modify AtC fix temperature groupNAME 10. </TT> \n
         <TT> fix_modify AtC fix temperature groupNAME 0 0 0 10.0 0 0 1.0 </TT> \n
@@ -174,10 +178,30 @@ namespace ATC {
             prescribedDataMgr_->fix_field(one,thisField,thisIndex,f);
           }
          }
-        // parse constant
+        // parse constant or file
         else if (narg == argIdx+1) {
-          f = XT_Function_Mgr::instance()->constant_function(atof(arg[argIdx]));
-          prescribedDataMgr_->fix_field(nsetName,thisField,thisIndex,f);
+          string a(arg[argIdx]);
+          if (is_numeric(a)) { // constant
+            f = XT_Function_Mgr::instance()->constant_function(atof(arg[argIdx]));
+            prescribedDataMgr_->fix_field(nsetName,thisField,thisIndex,f);
+          } 
+          else {
+            ATC::LammpsInterface::instance()->print_msg("reading "+field_to_string(thisField)+" on nodeset "+nsetName+" from file "+a);
+            string s = ATC::LammpsInterface::instance()->read_file(a);
+            stringstream ss; ss << s; 
+            double v; 
+            set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nsetName);
+            set<int>::const_iterator iset;
+            for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
+              int inode = *iset;
+              int i;
+              ss >> i >>  v;
+              if (i != inode) ATC::LammpsInterface::instance()->print_msg_once("WARNING: node mismatch in file read");
+              f = XT_Function_Mgr::instance()->constant_function(v);
+              set<int> one; one.insert(inode);
+              prescribedDataMgr_->fix_field(one,thisField,thisIndex,f);
+            }
+          }
         }
         // parse function
         else {
@@ -237,13 +261,38 @@ namespace ATC {
         XT_Function * f = NULL;
         // parse constant
         if (narg == argIdx+1) {
-          f = XT_Function_Mgr::instance()->constant_function(atof(arg[argIdx]));
+          string a(arg[argIdx]);
+          if (is_numeric(a)) { // constant
+            f = XT_Function_Mgr::instance()->constant_function(atof(arg[argIdx]));
+            prescribedDataMgr_->fix_source(esetName,thisField,thisIndex,f);
+          } 
+          else {
+            ATC::LammpsInterface::instance()->print_msg("reading "+field_to_string(thisField)+" source on node set "+esetName+" from file "+a);
+            string s = ATC::LammpsInterface::instance()->read_file(arg[argIdx]);
+            stringstream ss; ss << s; 
+            double v; 
+            set<int> nset = (feEngine_->fe_mesh())->nodeset(esetName);
+            set< pair < int, double > > src; 
+            set<int>::const_iterator iset;
+            double sum = 0.;
+            for (iset = nset.begin(); iset != nset.end(); iset++) {
+              int inode = *iset;
+              int i;
+              ss >> i >> v;
+              if (i != inode) ATC::LammpsInterface::instance()->print_msg_once("WARNING: node mismatch in file read");
+              src.insert(pair<int,double> (inode,v));
+              sum += v;
+            }
+            if (ss.gcount()) ATC::LammpsInterface::instance()->print_msg_once("WARNING: not all of file read");
+            ATC::LammpsInterface::instance()->print_msg_once("total source: "+to_string(sum));
+            prescribedDataMgr_->fix_source(thisField,thisIndex,src);
+          }
         }
         // parse function
         else {
           f = XT_Function_Mgr::instance()->function(&(arg[argIdx]),narg-argIdx);
+          prescribedDataMgr_->fix_source(esetName,thisField,thisIndex,f);
         }
-        prescribedDataMgr_->fix_source(esetName,thisField,thisIndex,f);
         fieldMask_(thisField,PRESCRIBED_SOURCE) = true;
         match = true;
       }
@@ -271,6 +320,30 @@ namespace ATC {
         fieldMask_(thisField,PRESCRIBED_SOURCE) = false;
         match = true;
       }
+      else if (strcmp(arg[argIdx],"write_source")==0) {
+        argIdx++;
+        FieldName thisField;
+        int thisIndex;
+        parse_field(arg,argIdx,thisField,thisIndex);
+        string nsetName(arg[argIdx++]);
+        string filename(arg[argIdx++]);
+        set_sources();
+        FIELDS * s = & sources_; // PRESCRIBED_SOURCES
+        if (argIdx < narg && strcmp(arg[argIdx],"extrinsic")==0) s = & extrinsicSources_;
+//s = & extrinsicSources_;
+        stringstream  f;
+        set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nsetName);
+        set<int>::const_iterator iset;
+        const DENS_MAT & source =(s->find(thisField)->second).quantity();
+        for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
+          int inode = *iset;
+          double v = source(inode,thisIndex);
+          f << inode << " " << std::setprecision(17) << v << "\n";
+        }
+        LammpsInterface::instance()->write_file(filename,f.str());
+        match = true;
+      }
+
   
     /*! \page man_fix_flux fix_modify AtC fix_flux
       \section syntax
@@ -478,6 +551,24 @@ namespace ATC {
         match = true;
       }
 
+      
+      else if (strcmp(arg[argIdx],"fix_open")==0) {
+        argIdx++;
+        parse_field(arg,argIdx,thisField);
+        string fsetName(arg[argIdx++]);
+        prescribedDataMgr_->fix_open(fsetName,thisField);
+        fieldMask_(thisField,OPEN_SOURCE) = true;
+        match = true;
+      }
+      else if (strcmp(arg[argIdx],"unfix_open")==0) {
+        argIdx++;
+        parse_field(arg,argIdx,thisField);
+        string fsetName(arg[argIdx++]);
+        prescribedDataMgr_->unfix_open(fsetName,thisField);
+        fieldMask_(thisField,OPEN_SOURCE) = false;
+        match = true;
+      }
+
       /*! \page man_atomic_charge fix_modify AtC atomic_charge
       \section syntax
       fix_modify AtC <include | omit> atomic_charge
@@ -524,6 +615,9 @@ namespace ATC {
         argIdx++;
         if (strcmp(arg[argIdx],"fe")==0) {
           sourceIntegration_ = FULL_DOMAIN;
+        }
+        else {
+          sourceIntegration_ = FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE;
         }
         match = true;
       }
@@ -816,9 +910,8 @@ namespace ATC {
   //--------------------------------------------------------
   void ATC_Coupling::set_sources()
   {
-    // set fields
-    prescribedDataMgr_->set_sources(time(),sources_);
-
+    prescribedDataMgr_->set_sources(time(),sources_); // PRESCRIBED_SOURCE
+    extrinsicModelManager_.set_sources(fields_,extrinsicSources_); // EXTRINSIC_SOURCE
   }
   //-----------------------------------------------------------------
   // this is w_a source_a
@@ -902,10 +995,45 @@ namespace ATC {
     const PhysicsModel * physicsModel)
   {
 
+    if (integrationType  == FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE) {
+      RHS_MASK rhsMaskFE = rhsMask;
+      RHS_MASK rhsMaskMD = rhsMask; rhsMaskMD = false;
+      for (FIELDS::const_iterator field = fields.begin(); 
+           field != fields.end(); field++) {
+        FieldName thisFieldName = field->first;
+        if ( rhsMaskFE(thisFieldName,SOURCE) ) {
+          rhsMaskFE(thisFieldName,SOURCE) = false;
+          rhsMaskMD(thisFieldName,SOURCE) = true;
+        }
+      }
+      feEngine_->compute_tangent_matrix(rhsMaskFE, row_col,
+        fields , physicsModel, elementToMaterialMap_, stiffness);
+      masked_atom_domain_rhs_tangent(row_col,
+                                     rhsMaskMD,
+                                     fields,
+                                     stiffnessAtomDomain_,
+                                     physicsModel);
+      stiffness += stiffnessAtomDomain_; 
+
+    }
+    else {
       feEngine_->compute_tangent_matrix(rhsMask, row_col,
         fields , physicsModel, elementToMaterialMap_, stiffness);
+    }
     ROBIN_SURFACE_SOURCE & robinFcn = *(prescribedDataMgr_->robin_functions()); 
     feEngine_->add_robin_tangent(rhsMask, fields, time(), robinFcn, stiffness);
+    OPEN_SURFACE & openFaces = *(prescribedDataMgr_->open_faces());
+    feEngine_->add_open_tangent(rhsMask, fields, openFaces, stiffness);
+  }
+  //-----------------------------------------------------------------
+  void ATC_Coupling::tangent_matrix(
+    const pair<FieldName,FieldName> row_col,
+    const RHS_MASK & rhsMask,
+    const PhysicsModel * physicsModel,
+    SPAR_MAT & stiffness)
+  {
+    feEngine_->compute_tangent_matrix(rhsMask, row_col,
+      fields_ , physicsModel, elementToMaterialMap_, stiffness);
   }
   //-----------------------------------------------------------------
   void ATC_Coupling::compute_rhs_vector(const RHS_MASK & rhsMask,
@@ -916,7 +1044,6 @@ namespace ATC {
   {
     if (!physicsModel) physicsModel = physicsModel_;
     
-
     // compute FE contributions
     
     evaluate_rhs_integral(rhsMask,fields,rhs,domain,physicsModel);
@@ -943,8 +1070,10 @@ namespace ATC {
       }
       
     }
-    ROBIN_SURFACE_SOURCE & robinFcn = *(prescribedDataMgr_->robin_functions()); 
+    ROBIN_SURFACE_SOURCE & robinFcn = *(prescribedDataMgr_->robin_functions());
     feEngine_->add_robin_fluxes(rhsMask, fields, time(), robinFcn, rhs);
+    OPEN_SURFACE & openFaces = *(prescribedDataMgr_->open_faces());
+    feEngine_->add_open_fluxes(rhsMask, fields, openFaces, rhs);
   }
   //-----------------------------------------------------------------
   void ATC_Coupling::masked_atom_domain_rhs_integral(
@@ -988,7 +1117,7 @@ namespace ATC {
                                     fields, 
                                     physicsModel,
                                     elementToMaterialMap_,
-                                    rhs, 
+                                    rhs, false,
                                     &(elementMask_->quantity()));
       masked_atom_domain_rhs_integral(rhsMask,
                                       fields,
@@ -1006,6 +1135,42 @@ namespace ATC {
                                       fields,
                                       rhs,
                                       physicsModel);
+    }
+    else if (integrationType  == FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE) {
+      RHS_MASK rhsMaskFE = rhsMask;
+      RHS_MASK rhsMaskMD = rhsMask; rhsMaskMD = false;
+      for (FIELDS::const_iterator field = fields.begin(); 
+           field != fields.end(); field++) {
+        FieldName thisFieldName = field->first;
+        if ( rhsMaskFE(thisFieldName,SOURCE) ) {
+          rhsMaskFE(thisFieldName,SOURCE) = false;
+          rhsMaskMD(thisFieldName,SOURCE) = true;
+        }
+      }
+      feEngine_->compute_rhs_vector(rhsMaskFE,
+                                    fields,
+                                    physicsModel,
+                                    elementToMaterialMap_,
+                                    rhs);
+      masked_atom_domain_rhs_integral(rhsMaskMD,
+                                      fields,
+                                      rhsAtomDomain_,
+                                      physicsModel);
+      for (FIELDS::const_iterator field = fields.begin(); 
+           field != fields.end(); field++) {
+        FieldName thisFieldName = field->first;
+
+        if ( ((rhs[thisFieldName].quantity()).size() > 0)
+         && ((rhsAtomDomain_[thisFieldName].quantity()).size() > 0) )
+          rhs[thisFieldName] += rhsAtomDomain_[thisFieldName].quantity();
+      }
+    }
+    else if (integrationType  == FULL_DOMAIN_FREE_ONLY) {
+      feEngine_->compute_rhs_vector(rhsMask,
+                                    fields,
+                                    physicsModel,
+                                    elementToMaterialMap_,
+                                    rhs, true);
     }
     else { // domain == FULL_DOMAIN
       feEngine_->compute_rhs_vector(rhsMask,
@@ -1336,7 +1501,7 @@ namespace ATC {
       if (internalElementSet_.size()) {
         // when geometry is based on elements, there are no mixed elements
         elementMask_ = new MatrixDependencyManager<DenseMatrix, bool>;
-        (elementMask_->set_quantity()).reset(feEngine_->num_elements(),1,false);
+        (elementMask_->set_quantity()).reset(feEngine_->num_elements(),1);
       }
       else {
         elementMask_ = new ElementMask(this);
@@ -1375,7 +1540,7 @@ namespace ATC {
   }
   //--------------------------------------------------------
   //  construct_interpolant
-  //    constructs: interpolatn, accumulant, weights, and spatial derivatives
+  //    constructs: interpolant, accumulant, weights, and spatial derivatives
   //--------------------------------------------------------
   void ATC_Coupling::construct_interpolant()
   {
@@ -1593,6 +1758,23 @@ namespace ATC {
       // brute force computation of inverse
       consistentMassMatsInv_[thisField] = inv((consistentMassMats_[thisField].quantity()).dense_copy());
     }
+    else if (! is_intrinsic(thisField)) {
+      Array<FieldName> massMask(1);
+      massMask(0) = thisField; 
+      
+      feEngine_->compute_lumped_mass_matrix(massMask,fields_,physicsModel,
+                                            elementToMaterialMap_,massMats_,
+                                            &(elementMask_->quantity()));
+      const DIAG_MAT & myMassMat(massMats_[thisField].quantity());
+      DIAG_MAT & myMassMatInv(massMatsInv_[thisField].set_quantity());
+      for (int iNode = 0; iNode < nNodes_; iNode++) {
+        
+        if (fabs(myMassMat(iNode,iNode))>0)
+          myMassMatInv(iNode,iNode) = 1./myMassMat(iNode,iNode);
+        else
+          myMassMatInv(iNode,iNode) = 0.;
+      }
+    }
     else { // lumped mass matrix
       // compute FE mass matrix in full domain
       Array<FieldName> massMask(1);
@@ -1631,6 +1813,7 @@ namespace ATC {
         // fully remove contributions from internal nodes
         
         DIAG_MAT & myMassMatFE(massMatsFE_[thisField].set_quantity());
+        //myMassMatFE.print("MMFE");
         if (!atomQuadForInternal_) {
           const INT_ARRAY & nodeType(nodalGeometryType_->quantity());
           for (int iNode = 0; iNode < nNodes_; iNode++)
@@ -1939,7 +2122,7 @@ namespace ATC {
     // Set sources
     prescribedDataMgr_->set_sources(time()+0.5*dt,sources_);
     extrinsicModelManager_.pre_final_integrate();
-    
+
     bool needsSources = false;
     for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
       if ((_tiIt_->second)->has_final_predictor()) {
@@ -1953,7 +2136,7 @@ namespace ATC {
       compute_atomic_sources(intrinsicMask_,fields_,atomicSources_);
     }
     atomicRegulator_->apply_pre_corrector(dt,lammpsInterface_->ntimestep());
-
+    
     // Compute atom-integrated rhs
     // parallel communication happens within FE_Engine
     compute_rhs_vector(intrinsicMask_,fields_,rhs_,FE_DOMAIN);
@@ -1966,7 +2149,7 @@ namespace ATC {
     for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
       (_tiIt_->second)->post_final_integrate1(dt);
     }
-    
+
    // fix nodes, non-group bcs applied through FE
     set_fixed_nodes();
         
@@ -1993,6 +2176,7 @@ namespace ATC {
     }
     
     // apply corrector phase of thermostat
+    set_fixed_nodes();
     atomicRegulator_->apply_post_corrector(dt,lammpsInterface_->ntimestep());
 
     // final phase of time integration
@@ -2037,7 +2221,7 @@ namespace ATC {
                                            const DIAG_MAN * atomicWeights,
                                            
                                            const MatrixDependencyManager<DenseMatrix, bool> * elementMask,
-                                           const RegulatedNodes * nodeSet)
+                                           const SetDependencyManager<int> * nodeSet)
   {
     if (bndyIntType_ == FE_QUADRATURE) {
       feEngine_->compute_boundary_flux(rhsMask,
@@ -2094,7 +2278,8 @@ if (thisFieldName >= rhsMask.nRows()) break;
   void ATC_Coupling::compute_flux(const Array2D<bool> & rhsMask,
                                   const FIELDS & fields, 
                                   GRAD_FIELD_MATS & flux,
-                                  const PhysicsModel * physicsModel) 
+                                  const PhysicsModel * physicsModel,
+                                  bool project) 
   {
     if (! physicsModel) { physicsModel = physicsModel_; }
     feEngine_->compute_flux(rhsMask,
@@ -2102,8 +2287,21 @@ if (thisFieldName >= rhsMask.nRows()) break;
                             physicsModel,
                             elementToMaterialMap_,
                             flux);
+    if (project) {
+      for (FIELDS::const_iterator field = fields.begin(); 
+           field != fields.end(); field++) {
+        FieldName name = field->first;
+        if ( rhsMask(name,FLUX) ) {
+          for(int i=0; i < nsd_ ; ++i) {
+            DENS_MAT & f = flux[name][i];
+if (i==0) f.print("pre flux_"+field_to_string(name)+"_"+ATC_Utility::to_string(i));
+            apply_inverse_mass_matrix(f);
+if (i==0) f.print("flux_"+field_to_string(name)+"_"+ATC_Utility::to_string(i));
+          }
+        }
+      }
+    }
   }
-
 
   //--------------------------------------------------------
 

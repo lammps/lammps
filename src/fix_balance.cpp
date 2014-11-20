@@ -272,7 +272,7 @@ void FixBalance::rebalance()
   // else allow caller's comm->exchange() to do it
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  if (lbstyle == BISECTION) irregular->migrate_atoms(0,sendproc);
+  if (lbstyle == BISECTION) irregular->migrate_atoms(0,1,sendproc);
   else if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 

@@ -27,7 +27,8 @@ class Irregular : protected Pointers {
 
   Irregular(class LAMMPS *);
   ~Irregular();
-  void migrate_atoms(int sortflag = 0, int *procassign = NULL);
+  void migrate_atoms(int sortflag = 0, int preassign = 0,
+                     int *procassign = NULL);
   int migrate_check();
   int create_data(int, int *, int sortflag = 0);
   void exchange_data(char *, int, char *);
@@ -38,12 +39,6 @@ class Irregular : protected Pointers {
   int me,nprocs;
   int triclinic;
   int map_style;
-  int layout;
-  double *xsplit,*ysplit,*zsplit;   // ptrs to comm
-  int *procgrid;                    // ptr to comm
-  int ***grid2proc;                 // ptr to comm
-  double *boxlo;                    // ptr to domain
-  double *prd;                      // ptr to domain
 
   int maxsend,maxrecv;              // size of buf send/recv in # of doubles
   double *buf_send,*buf_recv;       // bufs used in migrate_atoms
@@ -90,7 +85,6 @@ class Irregular : protected Pointers {
   void exchange_atom(double *, int *, double *);
   void destroy_atom();
 
-  int coord2proc(double *, int &, int &, int &);
   int binary(double, int, double *);
 
   void grow_send(int,int);          // reallocate send buffer

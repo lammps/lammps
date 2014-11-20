@@ -159,29 +159,32 @@ void CommTiled::setup()
 
   // if RCB decomp exists and just changed, gather needed global RCB info
 
-  if (rcbnew) {
-    if (!rcbinfo) 
-      rcbinfo = (RCBinfo *) 
-        memory->smalloc(nprocs*sizeof(RCBinfo),"comm:rcbinfo");
-    rcbnew = 0;
-    RCBinfo rcbone;
-    memcpy(&rcbone.mysplit[0][0],&mysplit[0][0],6*sizeof(double));
-    rcbone.cutfrac = rcbcutfrac;
-    rcbone.dim = rcbcutdim;
-    MPI_Allgather(&rcbone,sizeof(RCBinfo),MPI_CHAR,
-                  rcbinfo,sizeof(RCBinfo),MPI_CHAR,world);
-  }
+  if (layout == LAYOUT_TILED) coord2proc_setup();
 
+  // set cutoff for comm forward and comm reverse
   // check that cutoff < any periodic box length
 
   double cut = MAX(neighbor->cutneighmax,cutghostuser);
   cutghost[0] = cutghost[1] = cutghost[2] = cut;
-  
+
   if ((periodicity[0] && cut > prd[0]) ||
       (periodicity[1] && cut > prd[1]) ||
       (dimension == 3 && periodicity[2] && cut > prd[2]))
     error->all(FLERR,"Communication cutoff for comm_style tiled "
                "cannot exceed periodic box length");
+
+  // if cut = 0.0, set to epsilon to induce nearest neighbor comm
+  // this is b/c sendproc is used below to infer touching exchange procs
+  // exchange procs will be empty (leading to lost atoms) if sendproc = 0
+  // will reset sendproc/etc to 0 after exchange is setup, down below
+
+  int cutzero = 0;
+  if (cut == 0.0) {
+    cutzero = 1;
+    cut = MIN(prd[0],prd[1]);
+    if (dimension == 3) cut = MIN(cut,prd[3]);
+    cut *= EPSILON*EPSILON;
+  }
 
   // setup forward/reverse communication
   // loop over 6 swap directions
@@ -414,6 +417,15 @@ void CommTiled::setup()
 
     nexchproc[idim] = noverlap;
     for (i = 0; i < noverlap; i++) exchproc[idim][i] = overlap[i];
+  }
+
+  // reset sendproc/etc to 0 if cut is really 0.0
+
+  if (cutzero) {
+    for (i = 0; i < nswap; i++) {
+      nsendproc[i] = nrecvproc[i] = 
+        sendother[i] = recvother[i] = sendself[i] = 0;
+    }
   }
 
   // reallocate MPI Requests and Statuses as needed
@@ -999,13 +1011,15 @@ void CommTiled::forward_comm_pair(Pair *pair)
                   nsize*recvnum[iswap][i],
                   MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
     }
+
     if (sendother[iswap]) {
-      for (i = 0; i < nsendproc[iswap]; i++) {
+      for (i = 0; i < nsend; i++) {
         n = pair->pack_forward_comm(sendnum[iswap][i],sendlist[iswap][i],
                                     buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
         MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][i],0,world);
       }
     }
+
     if (sendself[iswap]) {
       pair->pack_forward_comm(sendnum[iswap][nsend],sendlist[iswap][nsend],
                               buf_send,pbc_flag[iswap][nsend],
@@ -1098,7 +1112,7 @@ void CommTiled::forward_comm_fix(Fix *fix, int size)
                   MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
     }
     if (sendother[iswap]) {
-      for (i = 0; i < nsendproc[iswap]; i++) {
+      for (i = 0; i < nsend; i++) {
         n = fix->pack_forward_comm(sendnum[iswap][i],sendlist[iswap][i],
                                    buf_send,pbc_flag[iswap][i],pbc[iswap][i]);
         MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap][i],0,world);
@@ -1196,7 +1210,7 @@ void CommTiled::forward_comm_compute(Compute *compute)
                   MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
     }
     if (sendother[iswap]) {
-      for (i = 0; i < nsendproc[iswap]; i++) {
+      for (i = 0; i < nsend; i++) {
         n = compute->pack_forward_comm(sendnum[iswap][i],sendlist[iswap][i],
                                        buf_send,pbc_flag[iswap][i],
                                        pbc[iswap][i]);
@@ -1292,7 +1306,7 @@ void CommTiled::forward_comm_dump(Dump *dump)
                   MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
     }
     if (sendother[iswap]) {
-      for (i = 0; i < nsendproc[iswap]; i++) {
+      for (i = 0; i < nsend; i++) {
         n = dump->pack_forward_comm(sendnum[iswap][i],sendlist[iswap][i],
                                     buf_send,pbc_flag[iswap][i],
                                     pbc[iswap][i]);
@@ -1394,7 +1408,7 @@ void CommTiled::forward_comm_array(int nsize, double **array)
                   MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
     }
     if (sendother[iswap]) {
-      for (i = 0; i < nsendproc[iswap]; i++) {
+      for (i = 0; i < nsend; i++) {
         m = 0;
         for (iatom = 0; iatom < sendnum[iswap][i]; iatom++) {
           j = sendlist[iswap][i][iatom];
@@ -1740,7 +1754,7 @@ int CommTiled::point_drop_tiled(int idim, double *x)
 }
 
 /* ----------------------------------------------------------------------
-   recursive form
+   recursive point drop thru RCB tree
 ------------------------------------------------------------------------- */
 
 int CommTiled::point_drop_tiled_recurse(double *x, 
@@ -1787,11 +1801,45 @@ int CommTiled::closer_subbox_edge(int idim, double *x)
 }
 
 /* ----------------------------------------------------------------------
+   if RCB decomp exists and just changed, gather needed global RCB info
+------------------------------------------------------------------------- */
+
+void CommTiled::coord2proc_setup()
+{
+  if (!rcbnew) return;
+
+  if (!rcbinfo) 
+    rcbinfo = (RCBinfo *) 
+      memory->smalloc(nprocs*sizeof(RCBinfo),"comm:rcbinfo");
+  rcbnew = 0;
+  RCBinfo rcbone;
+  memcpy(&rcbone.mysplit[0][0],&mysplit[0][0],6*sizeof(double));
+  rcbone.cutfrac = rcbcutfrac;
+  rcbone.dim = rcbcutdim;
+  MPI_Allgather(&rcbone,sizeof(RCBinfo),MPI_CHAR,
+                rcbinfo,sizeof(RCBinfo),MPI_CHAR,world);
+}
+
+/* ----------------------------------------------------------------------
+   determine which proc owns atom with coord x[3] based on current decomp
+   x will be in box (orthogonal) or lamda coords (triclinic)
+   if layout = UNIFORM or NONUNIFORM, invoke parent method
+   if layout = TILED, use point_drop_recurse()
+   return owning proc ID, ignore igx,igy,igz
+------------------------------------------------------------------------- */
+
+int CommTiled::coord2proc(double *x, int &igx, int &igy, int &igz)
+{
+  if (layout != LAYOUT_TILED) return Comm::coord2proc(x,igx,igy,igz);
+  return point_drop_tiled_recurse(x,0,nprocs-1);
+}
+
+/* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR and bufextra
    if flag = 1, realloc
    if flag = 0, don't need to realloc with copy, just free/malloc
 ------------------------------------------------------------------------- */
-
+  
 void CommTiled::grow_send(int n, int flag)
 {
   maxsend = static_cast<int> (BUFFACTOR * n);

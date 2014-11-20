@@ -44,6 +44,7 @@ enum{SINGLE,MULTI};             // same as in Comm sub-styles
 enum{MULTIPLE};                   // same as in ProcMap
 enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
 enum{CART,CARTREORDER,XYZ};
+enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -563,6 +564,84 @@ void Comm::set_proc_grid(int outflag)
                universe->uworld);
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   determine which proc owns atom with coord x[3] based on current decomp
+   x will be in box (orthogonal) or lamda coords (triclinic)
+   if layout = UNIFORM, calculate owning proc directly
+   if layout = NONUNIFORM, iteratively find owning proc via binary search
+   if layout = TILED, CommTiled has its own method
+   return owning proc ID via grid2proc
+   return igx,igy,igz = logical grid loc of owing proc within 3d grid of procs
+------------------------------------------------------------------------- */
+
+int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
+{
+  double *prd = domain->prd;
+  double *boxlo = domain->boxlo;
+
+  if (layout == LAYOUT_UNIFORM) {
+    if (triclinic == 0) {
+      igx = static_cast<int> (procgrid[0] * (x[0]-boxlo[0]) / prd[0]);
+      igy = static_cast<int> (procgrid[1] * (x[1]-boxlo[1]) / prd[1]);
+      igz = static_cast<int> (procgrid[2] * (x[2]-boxlo[2]) / prd[2]);
+    } else {
+      igx = static_cast<int> (procgrid[0] * x[0]);
+      igy = static_cast<int> (procgrid[1] * x[1]);
+      igz = static_cast<int> (procgrid[2] * x[2]);
+    }
+
+  } else if (layout == LAYOUT_NONUNIFORM) {
+    if (triclinic == 0) {
+      igx = binary((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
+      igy = binary((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
+      igz = binary((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
+    } else {
+      igx = binary(x[0],procgrid[0],xsplit);
+      igy = binary(x[1],procgrid[1],ysplit);
+      igz = binary(x[2],procgrid[2],zsplit);
+    }
+  }
+
+  if (igx < 0) igx = 0;
+  if (igx >= procgrid[0]) igx = procgrid[0] - 1;
+  if (igy < 0) igy = 0;
+  if (igy >= procgrid[1]) igy = procgrid[1] - 1;
+  if (igz < 0) igz = 0;
+  if (igz >= procgrid[2]) igz = procgrid[2] - 1;
+
+  return grid2proc[igx][igy][igz];
+}
+
+/* ----------------------------------------------------------------------
+   binary search for value in N-length ascending vec
+   value may be outside range of vec limits
+   always return index from 0 to N-1 inclusive
+   return 0 if value < vec[0]
+   reutrn N-1 if value >= vec[N-1]
+   return index = 1 to N-2 if vec[index] <= value < vec[index+1]
+------------------------------------------------------------------------- */
+
+int Comm::binary(double value, int n, double *vec)
+{
+  int lo = 0;
+  int hi = n-1;
+
+  if (value < vec[lo]) return lo;
+  if (value >= vec[hi]) return hi;
+
+  // insure vec[lo] <= value < vec[hi] at every iteration
+  // done when lo,hi are adjacent
+
+  int index = (lo+hi)/2;
+  while (lo < hi-1) {
+    if (value < vec[index]) hi = index;
+    else if (value >= vec[index]) lo = index;
+    index = (lo+hi)/2;
+  }
+
+  return index;
 }
 
 /* ----------------------------------------------------------------------

@@ -9,7 +9,7 @@ SHELL = /bin/sh
 OPENMP=
 
 CC =		env OMPI_CC=clang OMPI_CXX=clang++ mpic++ $(OPENMP)
-CCFLAGS =	-O3 -fomit-frame-pointer -fno-rtti -fno-exceptions     \
+CCFLAGS =	-O3 -fomit-frame-pointer -fno-exceptions     \
 			-march=native -ffast-math -g -fstrict-aliasing \
 			-Wall -W -Wextra \
 		-Wno-unused-parameter -Wno-sometimes-uninitialized -Wno-sign-compare

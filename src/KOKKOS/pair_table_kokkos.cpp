@@ -98,7 +98,6 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 
   if (neighflag == FULL || neighflag == FULLCLUSTER) no_virial_fdotr_compute = 1;
 
-  double evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 

@@ -1102,8 +1102,7 @@ void VerletCuda::force_clear()
 
   if(cuda->cu_torque) cuda->cu_torque->memset_device(0);
 
-  return;
-
+#if 0
   //The rest should not be necessary
   int i;
 
@@ -1164,6 +1163,7 @@ void VerletCuda::force_clear()
       }
     }
   }
+#endif
 }
 
 void VerletCuda::test_atom(int aatom, const char* string)  //printing properties of one atom for test purposes

@@ -955,7 +955,7 @@ void PairComb3::compute(int eflag, int vflag)
   int sht_jnum,*sht_jlist,sht_lnum,*sht_llist;
   int sht_mnum,*sht_mlist,sht_pnum,*sht_plist;
   int *ilist,*jlist,*numneigh,**firstneigh,mr1,mr2,mr3,inty,nj;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2,rsq3,iq,jq,yaself;
   double eng_tmp,vionij,fvionij,sr1,sr2,sr3; 
   double zeta_ij,prefac_ij1,prefac_ij2,prefac_ij3,prefac_ij4,prefac_ij5;
@@ -986,7 +986,7 @@ void PairComb3::compute(int eflag, int vflag)
   double delrl[3], delrm[3], delrp[3], ddprx[3], srmu; 
   double zet_addi,zet_addj;
 
-  evdwl = ecoul = eng_tmp = 0.0;
+  evdwl = eng_tmp = 0.0;
 
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = vflag_atom = 0;
@@ -1953,7 +1953,7 @@ double PairComb3::self(Param *param, double qi)
 void PairComb3::comb_fa(double r, Param *parami, Param *paramj, double iq, 
 	double jq, double &att_eng, double &att_force)
 {
-  double bigB,Bsi,FBsi;
+  double Bsi;
   double qi,qj,Di,Dj;
   double AlfDiAlfDj, YYBn, YYBj;
   double alfij1= parami->alpha1;
@@ -1965,7 +1965,7 @@ void PairComb3::comb_fa(double r, Param *parami, Param *paramj, double iq,
   if (r > parami->bigr + parami->bigd) Bsi = 0.0;
 
   qi = iq; qj = jq;
-  Di = Dj = Bsi = FBsi = bigB = 0.0;
+  Di = Dj = Bsi = 0.0;
   Di = parami->DU + pow(fabs(parami->bD*(parami->QU-qi)),parami->nD);
   Dj = paramj->DU + pow(fabs(paramj->bD*(paramj->QU-qj)),paramj->nD);
   YYBn = (parami->aB-fabs(pow(parami->bB*(qi-parami->Qo),10)));
@@ -3265,7 +3265,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
   int *ilist,*jlist,*numneigh,**firstneigh;
   int mr1,mr2,mr3,inty,nj;
   double xtmp,ytmp,ztmp,rsq1,delrj[3];
-  double iq,jq,fqi,fqj,fqij,fqji,sr1,sr2,sr3;
+  double iq,jq,fqi,fqij,fqji,sr1,sr2,sr3;
   double potal,fac11,fac11e;
   int sht_jnum,*sht_jlist;
   tagint itag, jtag;
@@ -3300,7 +3300,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
 
   // loop over full neighbor list of my atoms
 
-  fqi = fqj = fqij = fqji = 0.0;
+  fqi = fqij = fqji = 0.0;
 
   for (ii = 0; ii < inum; ii ++) {
     i = ilist[ii];

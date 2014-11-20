@@ -59,7 +59,7 @@ PairLJCutCoulLongKokkos<DeviceType>::PairLJCutCoulLongKokkos(LAMMPS *lmp):PairLJ
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
   cutsq = NULL;
   cut_ljsq = NULL;
-  cut_coulsq = NULL;
+  cut_coulsq = 0.0;
 
 }
 
@@ -97,8 +97,6 @@ void PairLJCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL || neighflag == FULLCLUSTER) no_virial_fdotr_compute = 1;
 
-  double evdwl = 0.0;
-  double ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 

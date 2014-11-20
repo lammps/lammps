@@ -222,12 +222,12 @@ double FixQEqSlater::calculate_H(double zei, double zej, double zj,
   double erfcr = erfc(alpha*r);
   double qqrd2e = force->qqrd2e;
 
-  double etmp1, etmp2, etmp3, etmp4;
+  double etmp1, etmp2;
   double e1, e2, e3, e4;
   double ci_jfi, ci_fifj;
 
   e1 = e2 = e3 = e4 = 0.0;
-  etmp1 = etmp2 = etmp3 = etmp4 = 0.0;
+  etmp1 = etmp2 = 0.0;
 
   ci_jfi = -zei*exp2zir - rinv*exp2zir;
 

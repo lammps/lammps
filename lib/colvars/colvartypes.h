@@ -206,7 +206,7 @@ public:
   /// Slicing
   inline vector1d<T> const slice(size_t const i1, size_t const i2) const
   {
-    if ((i2 < i1) || (i1 < 0) || (i2 >= this->size())) {
+    if ((i2 < i1) || (i2 >= this->size())) {
       cvm::error("Error: trying to slice a vector using incorrect boundaries.\n");
     }
     vector1d<T> result(i2 - i1);
@@ -220,7 +220,7 @@ public:
   /// Assign a vector to a slice of this vector
   inline void sliceassign(size_t const i1, size_t const i2, vector1d<T> const &v)
   {
-    if ((i2 < i1) || (i1 < 0) || (i2 >= this->size())) {
+    if ((i2 < i1) || (i2 >= this->size())) {
       cvm::error("Error: trying to slice a vector using incorrect boundaries.\n");
     }
     size_t i;

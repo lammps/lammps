@@ -390,9 +390,6 @@ public:
 inline std::string const colvarvalue::type_desc(Type t)
 {
   switch (t) {
-  case colvarvalue::type_notset:
-  default:
-    return "not set"; break;
   case colvarvalue::type_scalar:
     return "scalar number"; break;
   case colvarvalue::type_3vector:
@@ -407,6 +404,10 @@ inline std::string const colvarvalue::type_desc(Type t)
     return "4-dimensional tangent vector"; break;
   case colvarvalue::type_vector:
     return "n-dimensional vector"; break;
+  case colvarvalue::type_notset:
+    // fallthrough
+  default:
+    return "not set"; break;
   }
 }
 

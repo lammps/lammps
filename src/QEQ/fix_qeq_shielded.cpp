@@ -28,8 +28,8 @@
 #include "neigh_request.h"
 #include "update.h"
 #include "force.h"
-#include "kspace.h"
 #include "group.h"
+#include "kspace.h"
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
@@ -190,6 +190,7 @@ void FixQEqShielded::compute_H()
 
       for( jj = 0; jj < jnum; jj++ ) {
         j = jlist[jj];
+	j &= NEIGHMASK;
 
         dx = x[j][0] - x[i][0];
         dy = x[j][1] - x[i][1];

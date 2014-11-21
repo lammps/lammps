@@ -1,8 +1,4 @@
-# library build -*- makefile -*-
 SHELL = /bin/sh
-
-# which file will be copied to Makefile.lammps
-EXTRAMAKE = Makefile.lammps.installed
 # ------ FILES ------
 SRC = $(wildcard *.cpp)
 INC = $(wildcard *.h)
@@ -10,21 +6,17 @@ INC = $(wildcard *.h)
 LIB = libatc.a
 OBJ =   $(SRC:.cpp=.o)
 # ------ SETTINGS ------
-
-# include any MPI settings needed for the ATC library to build with
-# must be the same MPI library that LAMMPS is built with
-
 CC =	        mpic++
-CCFLAGS =       -O -g -I../../src -fPIC -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1
+CCFLAGS =       -O -g -I../../src -fPIC -DMPICH_IGNORE_CXX_SEEK
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 DEPFLAGS =      -M
-LINK =         	$(CC)
+LINK =         	${CC}
 LINKFLAGS =	-O
 # ------ MAKE PROCEDURE ------
 lib: 	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
-	@cp $(EXTRAMAKE) Makefile.lammps
+	@cp Makefile.lammps.installed Makefile.lammps
 # ------ COMPILE RULES ------
 %.o:%.cpp
 	$(CC) $(CCFLAGS) -c $<
@@ -34,6 +26,4 @@ lib: 	$(OBJ)
 DEPENDS = $(OBJ:.o=.d)
 # ------ CLEAN ------
 clean:
-	@rm *.o *.d *~ $(LIB)
-
-sinclude $(DEPENDS)
+	@rm *.o *.d $(LIB)

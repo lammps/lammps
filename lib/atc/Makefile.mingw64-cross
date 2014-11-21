@@ -1,15 +1,14 @@
 # library build -*- makefile -*-
 SHELL = /bin/sh
 
-# which file will be copied to Makefile.lammps
-EXTRAMAKE = Makefile.lammps.linalg
-
 # ------ FILES ------
-
 SRC = $(wildcard *.cpp)
 INC = $(wildcard *.h)
 
 # ------ DEFINITIONS ------
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.linalg
 
 DIR = Obj_mingw64/
 LIB = $(DIR)libatc.a
@@ -28,7 +27,7 @@ CCFLAGS =	-I../../src -I../../src/STUBS -DMPICH_IGNORE_CXX_SEEK	\
 ARCHIVE =	x86_64-w64-mingw32-ar
 ARCHFLAG =	-rcs
 DEPFLAGS =      -M
-LINK =         	$(CC)
+LINK =         	x86_64-w64-mingw32-g++
 LINKFLAGS =	-O
 USRLIB =
 SYSLIB =
@@ -43,7 +42,7 @@ $(DIR):
 Makefile.lammps:
 	@cp $(EXTRAMAKE) Makefile.lammps
 
-$(LIB): $(OBJ)
+$(LIB): 	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
 	@cp $(EXTRAMAKE) Makefile.lammps
 

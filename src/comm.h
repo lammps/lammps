@@ -21,9 +21,8 @@ namespace LAMMPS_NS {
 class Comm : protected Pointers {
  public:
   int style;     // comm pattern: 0 = 6-way stencil, 1 = irregular tiling
-  int layout;    // LAYOUT_UNIFORM = logical equal-sized bricks
-                 // LAYOUT_NONUNIFORM = logical bricks, 
-                 //                     but different sizes due to LB
+  int layout;    // LAYOUT_UNIFORM = equal-sized bricks
+                 // LAYOUT_NONUNIFORM = logical bricks, but diff sizes via LB
                  // LAYOUT_TILED = general tiling, due to RCB LB
 
   int me,nprocs;                    // proc info
@@ -89,6 +88,15 @@ class Comm : protected Pointers {
 
   virtual void forward_comm_array(int, double **) = 0;  
   virtual int exchange_variable(int, double *, double *&) = 0;
+  int binary(double, int, double *);
+
+  // map a point to a processor, based on current decomposition
+
+  virtual void coord2proc_setup() {}
+  virtual int coord2proc(double *, int &, int &, int &);
+
+  // memory usage
+
   virtual bigint memory_usage() = 0;
 
   // non-virtual functions common to all Comm styles

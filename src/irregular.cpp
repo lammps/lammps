@@ -92,12 +92,13 @@ Irregular::~Irregular()
    unlike exchange(), allows atoms to have moved arbitrarily long distances
    sets up irregular plan, invokes it, destroys it
    sortflag = flag for sorting order of received messages by proc ID
-   procassign = non-NULL if already know procs atoms are assigned to (from RCB)
+   preassign = 1 if already know procs that atoms are assigned to via RCB
+   procassign = list of proc assignments for each owned atom
    atoms MUST be remapped to be inside simulation box before this is called
    for triclinic: atoms must be in lamda coords (0-1) before this is called
 ------------------------------------------------------------------------- */
 
-void Irregular::migrate_atoms(int sortflag, int *procassign)
+void Irregular::migrate_atoms(int sortflag, int preassign, int *procassign)
 {
   // clear global->local map since atoms move to new procs
   // clear old ghosts so map_set() at end will operate only on local atoms
@@ -109,7 +110,6 @@ void Irregular::migrate_atoms(int sortflag, int *procassign)
   atom->avec->clear_bonus();
 
   // subbox bounds for orthogonal or triclinic box
-  // other comm/domain data used by coord2proc()
 
   double *sublo,*subhi;
   if (triclinic == 0) {
@@ -120,19 +120,14 @@ void Irregular::migrate_atoms(int sortflag, int *procassign)
     subhi = domain->subhi_lamda;
   }
 
-  layout = comm->layout;
-  xsplit = comm->xsplit;
-  ysplit = comm->ysplit;
-  zsplit = comm->zsplit;
-  boxlo = domain->boxlo;
-  prd = domain->prd;
+  // if Comm will be called to assign new atom coords to procs,
+  // may need to setup RCB info
 
-  procgrid = comm->procgrid;
-  grid2proc = comm->grid2proc;
+  if (!preassign) comm->coord2proc_setup();
 
   // loop over atoms, flag any that are not in my sub-box
   // fill buffer with atoms leaving my box, using < and >=
-  // assign which proc it belongs to via coord2proc()
+  // assign which proc it belongs to via Comm::coord2proc()
   // if coord2proc() returns me, due to round-off
   //   in triclinic x2lamda(), then keep atom and don't send
   // when atom is deleted, fill it in with last atom
@@ -154,7 +149,7 @@ void Irregular::migrate_atoms(int sortflag, int *procassign)
   int nsendatom = 0;
   int i = 0;
 
-  if (procassign) {
+  if (preassign) {
     while (i < nlocal) {
       if (procassign[i] == me) i++;
       else {
@@ -174,7 +169,7 @@ void Irregular::migrate_atoms(int sortflag, int *procassign)
       if (x[i][0] < sublo[0] || x[i][0] >= subhi[0] ||
           x[i][1] < sublo[1] || x[i][1] >= subhi[1] ||
           x[i][2] < sublo[2] || x[i][2] >= subhi[2]) {
-        mproclist[nsendatom] = coord2proc(x[i],igx,igy,igz);
+        mproclist[nsendatom] = comm->coord2proc(x[i],igx,igy,igz);
         if (mproclist[nsendatom] == me) i++;
         else {
           if (nsend > maxsend) grow_send(nsend,1);
@@ -211,6 +206,7 @@ void Irregular::migrate_atoms(int sortflag, int *procassign)
 /* ----------------------------------------------------------------------
    check if any atoms need to migrate further than one proc away in any dim
    if not, caller can decide to use comm->exchange() instead
+   should not be called for layout = TILED
    atoms must be remapped to be inside simulation box before this is called
    for triclinic: atoms must be in lamda coords (0-1) before this is called
    return 1 if migrate required, 0 if not
@@ -224,7 +220,6 @@ int Irregular::migrate_check()
   if (comm->layout == LAYOUT_TILED) return 1;
 
   // subbox bounds for orthogonal or triclinic box
-  // other comm/domain data used by coord2proc()
 
   double *sublo,*subhi;
   if (triclinic == 0) {
@@ -235,18 +230,8 @@ int Irregular::migrate_check()
     subhi = domain->subhi_lamda;
   }
 
-  layout = comm->layout;
-  xsplit = comm->xsplit;
-  ysplit = comm->ysplit;
-  zsplit = comm->zsplit;
-  boxlo = domain->boxlo;
-  prd = domain->prd;
-
-  procgrid = comm->procgrid;
-  grid2proc = comm->grid2proc;
-
   // loop over atoms, check for any that are not in my sub-box
-  // assign which proc it belongs to via coord2proc()
+  // assign which proc it belongs to via Comm::coord2proc()
   // if logical igx,igy,igz of newproc > one away from myloc, set flag = 1
   // this check needs to observe PBC
   // cannot check via comm->procneigh since it ignores PBC
@@ -264,7 +249,7 @@ int Irregular::migrate_check()
     if (x[i][0] < sublo[0] || x[i][0] >= subhi[0] ||
         x[i][1] < sublo[1] || x[i][1] >= subhi[1] ||
         x[i][2] < sublo[2] || x[i][2] >= subhi[2]) {
-      coord2proc(x[i],igx,igy,igz);
+      comm->coord2proc(x[i],igx,igy,igz);
 
       glo = myloc[0] - 1;
       ghi = myloc[0] + 1;
@@ -777,80 +762,6 @@ void Irregular::destroy_data()
   delete [] index_self;
   delete [] request;
   delete [] status;
-}
-
-/* ----------------------------------------------------------------------
-   determine which proc owns atom with coord x[3]
-   x will be in box (orthogonal) or lamda coords (triclinic)
-   if layout = UNIFORM, calculate owning proc directly
-   else layout = NONUNIFORM, iteratively find owning proc via binary search
-   return owning proc ID via grid2proc
-   return igx,igy,igz = logical grid loc of owing proc within 3d grid of procs
-------------------------------------------------------------------------- */
-
-int Irregular::coord2proc(double *x, int &igx, int &igy, int &igz)
-{
-  if (layout == 0) {
-    if (triclinic == 0) {
-      igx = static_cast<int> (procgrid[0] * (x[0]-boxlo[0]) / prd[0]);
-      igy = static_cast<int> (procgrid[1] * (x[1]-boxlo[1]) / prd[1]);
-      igz = static_cast<int> (procgrid[2] * (x[2]-boxlo[2]) / prd[2]);
-    } else {
-      igx = static_cast<int> (procgrid[0] * x[0]);
-      igy = static_cast<int> (procgrid[1] * x[1]);
-      igz = static_cast<int> (procgrid[2] * x[2]);
-    }
-
-  } else {
-    if (triclinic == 0) {
-      igx = binary((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
-      igy = binary((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
-      igz = binary((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
-    } else {
-      igx = binary(x[0],procgrid[0],xsplit);
-      igy = binary(x[1],procgrid[1],ysplit);
-      igz = binary(x[2],procgrid[2],zsplit);
-    }
-  }
-
-  if (igx < 0) igx = 0;
-  if (igx >= procgrid[0]) igx = procgrid[0] - 1;
-  if (igy < 0) igy = 0;
-  if (igy >= procgrid[1]) igy = procgrid[1] - 1;
-  if (igz < 0) igz = 0;
-  if (igz >= procgrid[2]) igz = procgrid[2] - 1;
-
-  return grid2proc[igx][igy][igz];
-}
-
-/* ----------------------------------------------------------------------
-   binary search for value in N-length ascending vec
-   value may be outside range of vec limits
-   always return index from 0 to N-1 inclusive
-   return 0 if value < vec[0]
-   reutrn N-1 if value >= vec[N-1]
-   return index = 1 to N-2 if vec[index] <= value < vec[index+1]
-------------------------------------------------------------------------- */
-
-int Irregular::binary(double value, int n, double *vec)
-{
-  int lo = 0;
-  int hi = n-1;
-
-  if (value < vec[lo]) return lo;
-  if (value >= vec[hi]) return hi;
-
-  // insure vec[lo] <= value < vec[hi] at every iteration
-  // done when lo,hi are adjacent
-
-  int index = (lo+hi)/2;
-  while (lo < hi-1) {
-    if (value < vec[index]) hi = index;
-    else if (value >= vec[index]) lo = index;
-    index = (lo+hi)/2;
-  }
-
-  return index;
 }
 
 /* ----------------------------------------------------------------------

@@ -34,12 +34,11 @@ class SchrodingerSolver {
     const FE_Engine * feEngine,
     const PrescribedDataManager * prescribedDataMgr,
     /*const*/ ATC_Coupling * atc,
-    const int solverType = ATC::LinearSolver::DIRECT_SOLVE,
-    bool parallel = false
+    bool parallel = true
   );
 
   /** Destructor */
-  virtual ~SchrodingerSolver();
+  virtual ~SchrodingerSolver(){};
 
   /** parser */
   bool modify(int narg, char **arg){ return false;}
@@ -70,24 +69,20 @@ class SchrodingerSolver {
   /** field to solve for */
   FieldName fieldName_;
 
-  /** linear solver */
-  LinearSolver * solver_;
-  int solverType_;
-
   /** number of nodes */
   int nNodes_;
 
-  /** stiffness matrix */
-
-  //SPAR_MAT stiffness_;
-
-  //SPAR_MAT massMatrix_;
+  /** mass matrix */
   DENS_MAT M_;
 
   bool parallel_;
 
 };
 
+/**
+ *  @class SchrodingerSolver
+ *  @brief a class to solve the Schrodinger equation on slices
+ */
 class SliceSchrodingerSolver : public SchrodingerSolver {
 
  public:
@@ -100,12 +95,12 @@ class SliceSchrodingerSolver : public SchrodingerSolver {
     const PrescribedDataManager * prescribedDataMgr,
     /*const*/ ATC_Coupling * atc,
     const Array< std::set<int> > & oneDslices,
-    const int solverType = ATC::LinearSolver::DIRECT_SOLVE,
-    bool parallel = false
+    const Array< double > & oneDdxs,
+    bool parallel = true
   );
 
   /** Destructor */
-  virtual ~SliceSchrodingerSolver();
+  virtual ~SliceSchrodingerSolver(){};
 
   /** parser */
   bool modify(int narg, char **arg){return false;}
@@ -117,13 +112,19 @@ class SliceSchrodingerSolver : public SchrodingerSolver {
   virtual bool solve(FIELDS & fields); 
 
   Array< std::set<int> > & slices(void){ return oneDslices_;} 
+  Array< double > & dxs(void){ return oneDdxs_;} 
 
  protected:
 
   Array< std::set<int> > oneDslices_;
+  Array< double > oneDdxs_;
 
 };
 
+/**
+ *  @class SchrodingerSolver
+ *  @brief a class to solve the Schrodinger-Poisson system
+ */
 class SchrodingerPoissonSolver  {
   public:
     SchrodingerPoissonSolver(
@@ -133,7 +134,7 @@ class SchrodingerPoissonSolver  {
       const PhysicsModel * physicsModel,
       int maxConsistencyIter
     );
-    virtual ~SchrodingerPoissonSolver(void);
+    virtual ~SchrodingerPoissonSolver(void){};
     virtual void solve(
       FIELDS & rhs,
       GRAD_FIELD_MATS & fluxes
@@ -144,9 +145,18 @@ class SchrodingerPoissonSolver  {
     PoissonSolver * poissonSolver_;
     const PhysicsModel * physicsModel_;
     int maxConsistencyIter_;
+    int maxConstraintIter_;
     int nNodes_;
+    double Ef0_;
+    double Ef_shift_;
+    double safe_dEf_;
+    double tol_;
 };
 
+/**
+ *  @class SchrodingerSolver
+ *  @brief a class to solve the Schrodinger-Poisson system on slices
+ */
 class SliceSchrodingerPoissonSolver : public SchrodingerPoissonSolver  {
   public:
     SliceSchrodingerPoissonSolver(
@@ -160,27 +170,78 @@ class SliceSchrodingerPoissonSolver : public SchrodingerPoissonSolver  {
       double Ef_shift,
       double safe_dEf
     );
-    virtual ~SliceSchrodingerPoissonSolver(void);
+    virtual ~SliceSchrodingerPoissonSolver(void){};
     virtual void solve(
       FIELDS & rhs,
       GRAD_FIELD_MATS & fluxes
     );
   protected:
+    int nslices_;
     double update_fermi_energy(double target, bool first, 
       GRAD_FIELD_MATS & fluxes);
-    int maxConstraintIter_;
     int oneDconserve_;
     int oneDcoor_;
-    double Ef_shift_;
-    double safe_dEf_;
     Array< std::set<int> > & oneDslices_;
+    Array< double > & oneDdxs_;
     Array2D<double> EfHistory_;
 };
 
+/**
+ *  @class SchrodingerSolver
+ *  @brief a class to solve the Schrodinger-Poisson system on slices
+ */
+class GlobalSliceSchrodingerPoissonSolver : public SliceSchrodingerPoissonSolver  {
+  public:
+    GlobalSliceSchrodingerPoissonSolver(
+      /*const*/ ATC_Coupling * atc,
+      SchrodingerSolver * schrodingerSolver,
+      PoissonSolver * poissonSolver,
+      const PhysicsModel * physicsModel,
+      int maxConsistencyIter,
+      int maxConstraintIter,
+      int oneDconserve,
+      double Ef0,
+      double alpha,
+      double safe_dEf,
+      double tol,
+      double mu, double D
+    );
+    virtual ~GlobalSliceSchrodingerPoissonSolver(void);
+    virtual void solve(
+      FIELDS & rhs,
+      GRAD_FIELD_MATS & fluxes
+    );
+  protected:
+    void compute_flux(const DENS_MAT & n, const DENS_MAT & phi);
+    void update_fermi_level();
+    void report(int i);
+    void exponential_electron_density();
+    class LinearSolver * solver_;
+    double alpha_;
+    int sliceSize_, nNodes_, nfreeSlices_, nfixed_, nLambda_;
+    SPAR_MAT K_;
+    SPAR_MAT G_,G2_; // 1D & 2D grad mats = int N gradN dv
+    DENS_VEC J_;
+    DENS_VEC flux_;
+    DENS_VEC dJ_;
+    DENS_VEC lambda_;
+    DENS_VEC F_;
+    DENS_VEC Phi_;
+    DENS_VEC n_;
+    Array2D <bool> rhsMask_;
+    double mobility_;
+    double diffusivity_;
+    double norm_, norm0_;
+};
+
+/**
+ *  @class SchrodingerSolver
+ *  @brief a manager class 
+ */
 class SchrodingerPoissonManager  {
   public:
     SchrodingerPoissonManager();
-    ~SchrodingerPoissonManager();
+    ~SchrodingerPoissonManager(){};
 
     /** parser */
     bool modify(int narg, char **arg);
@@ -199,6 +260,9 @@ class SchrodingerPoissonManager  {
     int oneDconserve_;
     double Ef_shift_;
     double safe_dEf_;
+    double alpha_;
+    double tol_;
+    double mu_, D_;
 };
 } // namespace ATC
 #endif

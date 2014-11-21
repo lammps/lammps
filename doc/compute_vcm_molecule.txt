@@ -55,6 +55,6 @@ distance "units"_units.html.
 
 [Related commands:]
 
-"compute force/molecule"_compute_force_molecule.html
+"compute atom/molecule"_compute_atom_molecule.html
 
 [Default:] none

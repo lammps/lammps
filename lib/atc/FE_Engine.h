@@ -222,6 +222,7 @@ namespace ATC {
                     const PhysicsModel      *physicsModel,
                     const Array<int>        &elementMaterials,
                     FIELDS                  &rhs,
+                    bool                     freeOnly=false,
                     const DenseMatrix<bool> *elementMask=NULL) const;
 
     /** compute RHS for given quadrature */
@@ -295,7 +296,7 @@ namespace ATC {
       add_fluxes(fieldMask,  time, sourceFunctions, nodalSources);
     }
 
-    /** compute prescribed flux given an array of functions of u, x & t */
+    /** compute robin flux given an array of functions of u, x & t */
     void add_robin_fluxes(const Array2D<bool> &rhsMask,
                           const FIELDS        &fields,
                           const double        time,
@@ -308,10 +309,28 @@ namespace ATC {
                            const ROBIN_SURFACE_SOURCE &sourceFunctions,
                            SPAR_MAT            &tangent) const;
 
+    /** compute open flux given a face set */
+    
+    void add_open_fluxes(const Array2D<bool> &rhsMask,
+                         const FIELDS        &fields,
+                         const OPEN_SURFACE &openFaces,
+                         FIELDS              &nodalSources,
+                         const FieldName velocity = ELECTRON_VELOCITY) const;
+
+    void add_open_tangent(const Array2D<bool> &rhsMask,
+                          const FIELDS        &fields,
+                          const OPEN_SURFACE &openFaces,
+                          SPAR_MAT            &tangent,
+                          const FieldName velocity = ELECTRON_VELOCITY) const;
+
     /** compute nodal vector of volume based sources */
     void add_sources(const Array<bool>   &fieldMask, 
                      const double        time,
                      const VOLUME_SOURCE &sourceFunctions, 
+                     FIELDS              &nodalSources) const;
+    void add_sources(const Array<bool>   &fieldMask, 
+                     const double        time,
+                     const FIELDS        &sources, 
                      FIELDS              &nodalSources) const;
 
     /** compute surface flux of a nodal field */
@@ -495,6 +514,10 @@ namespace ATC {
  
     /** initialized flag */ 
     bool initialized_;
+
+    void parse_partitions(int & argIdx, int narg, char ** arg,
+      int idof, Array<double> & dx ) const;
+    void print_partitions(double xmin, double xmax, Array<double> &dx) const;
 
     /** create a uniform, structured mesh */
     void create_mesh(Array<double> &dx, 

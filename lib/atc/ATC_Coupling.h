@@ -35,6 +35,7 @@ namespace ATC {
     friend class ExtrinsicModelElectrostaticMomentum;
     friend class SchrodingerPoissonSolver;
     friend class SliceSchrodingerPoissonSolver;
+    friend class GlobalSliceSchrodingerPoissonSolver;
 
     /** constructor */
     ATC_Coupling(std::string groupName, double **& perAtomArray, LAMMPS_NS::Fix * thisFix);
@@ -116,9 +117,14 @@ namespace ATC {
                                const SPAR_MAN * shpFcn = NULL,
                                const DIAG_MAN * atomicWeights = NULL,
                                const MatrixDependencyManager<DenseMatrix, bool> * elementMask = NULL,
-                               const RegulatedNodes * nodeSet = NULL);
+                               const SetDependencyManager<int> * nodeSet = NULL);
     /** access to full right hand side / forcing vector */
     FIELDS &rhs() {return rhs_;};
+    Array2D <bool> rhs_mask() const {
+      Array2D <bool> mask(NUM_FIELDS,NUM_FLUX);
+      mask = false;
+      return mask;
+    }
 
     DENS_MAN &field_rhs(FieldName thisField) { return rhs_[thisField]; };
     /** allow FE_Engine to construct ATC structures after mesh is constructed */
@@ -126,7 +132,7 @@ namespace ATC {
 
 // public for FieldIntegrator
     bool source_atomic_quadrature(FieldName field)  
-      { return false; }
+      { return (sourceIntegration_ == FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE); }
     ATC::IntegrationDomainType source_integration() 
       { return sourceIntegration_; }
 
@@ -154,6 +160,10 @@ namespace ATC {
                             SPAR_MAT & stiffness,
                             const IntegrationDomainType integrationType,
                             const PhysicsModel * physicsModel=NULL);
+   void tangent_matrix(const std::pair<FieldName,FieldName> row_col,
+                            const RHS_MASK & rhsMask,      
+                            const PhysicsModel * physicsModel,
+                            SPAR_MAT & stiffness);
 
    /** PDE type */
    WeakEquation::PDE_Type pde_type(const FieldName fieldName) const;
@@ -165,8 +175,41 @@ namespace ATC {
     PrescribedDataManager * prescribed_data_manager() 
       { return prescribedDataMgr_; }
 // public for Kinetostat
+    // TODO rename to "mass_matrix"
     DIAG_MAT &get_mass_mat(FieldName thisField)
       { return massMats_[thisField].set_quantity();};
+    /** access to underlying mass matrices */
+    MATRIX * mass_matrix(FieldName thisField)
+    {
+      if (!useConsistentMassMatrix_(thisField)) {
+        return & massMats_[thisField].set_quantity();
+      }
+      else {
+        return & consistentMassMats_[thisField].set_quantity();
+      }
+    }
+    /** const access to underlying mass matrices */
+    const MATRIX * mass_matrix(FieldName thisField) const
+    {
+      if (!useConsistentMassMatrix_(thisField)) {
+        MASS_MATS::const_iterator it = massMats_.find(thisField);
+        if (it != massMats_.end()) {
+          return & (it->second).quantity();
+        }
+        else {
+          return NULL;
+        }
+      }
+      else {
+        CON_MASS_MATS::const_iterator it = consistentMassMats_.find(thisField);
+        if (it != consistentMassMats_.end()) {
+          return & (it->second).quantity();
+        }
+        else {
+          return NULL;
+        }
+      }
+    }
     /** */
     DENS_MAN &atomic_source(FieldName thisField){return atomicSources_[thisField];};
 
@@ -279,7 +322,8 @@ namespace ATC {
     void compute_flux(const Array2D<bool> & rhs_mask,
                       const FIELDS &fields, 
                       GRAD_FIELD_MATS &flux,
-                      const PhysicsModel * physicsModel=NULL);
+                      const PhysicsModel * physicsModel=NULL,
+                      const bool normalize = false);
     /** evaluate rhs on the atomic domain which is near the FE region */
     void masked_atom_domain_rhs_integral(const Array2D<bool> & rhs_mask,
                                          const FIELDS &fields, 

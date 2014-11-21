@@ -339,7 +339,7 @@ void Balance::command(int narg, char **arg)
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   Irregular *irregular = new Irregular(lmp);
-  if (style == BISECTION) irregular->migrate_atoms(1,rcb->sendproc);
+  if (style == BISECTION) irregular->migrate_atoms(1,1,rcb->sendproc);
   else irregular->migrate_atoms(1);
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -537,7 +537,8 @@ int *Balance::bisection(int sortflag)
   comm->rcbnew = 1;
 
   int idim = rcb->cutdim;
-  comm->rcbcutfrac = (rcb->cut - boxlo[idim]) / prd[idim];
+  if (idim >= 0) comm->rcbcutfrac = (rcb->cut - boxlo[idim]) / prd[idim];
+  else comm->rcbcutfrac = 0.0;
   comm->rcbcutdim = idim;
 
   double (*mysplit)[2] = comm->mysplit;

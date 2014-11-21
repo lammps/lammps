@@ -93,7 +93,8 @@ namespace ATC {
         FIELD_MATS::const_iterator edField = fields.find(ELECTRON_DENSITY);
         GRAD_FIELD_MATS::const_iterator dEdField = gradFields.find(ELECTRON_DENSITY);
         GRAD_FIELD_MATS::const_iterator dPhiField = gradFields.find(ELECTRIC_POTENTIAL);
-         // J_n = - \mu n grad \phi  - D grad n
+         // J_n = - \mu n E  - D grad n
+        // note electrons move counter to electric field grad E = - grad \phi
         const DENS_MAT & n = edField->second;
         const DENS_MAT_VEC & dn   = dEdField->second;
         const DENS_MAT_VEC & dphi = dPhiField->second;
@@ -112,21 +113,21 @@ namespace ATC {
         if (maskX_)
           flux[0] = 0.;
         else {
-          flux[0] *= -electronMobility_*dphi[0]; // scale by n to get : -n \mu grad(\phi)
+          flux[0] *= electronMobility_*dphi[0]; // scale by n to get : n \mu grad(\phi)
           flux[0] += -electronDiffusivity_* dn[0];
         }
 
         if (maskY_)
           flux[1] = 0.;
         else {
-          flux[1] *= -electronMobility_* dphi[1] ;
+          flux[1] *= electronMobility_* dphi[1] ;
           flux[1] += -electronDiffusivity_* dn[1];
         }
 
         if (maskZ_)
           flux[2] = 0.;
         else {
-          flux[2] *= -electronMobility_*dphi[2];
+          flux[2] *= electronMobility_*dphi[2];
           flux[2] += -electronDiffusivity_* dn[2];
         }
 

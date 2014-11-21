@@ -30,6 +30,7 @@ namespace MPI_Wrappers {
   void allgatherv(MPI_Comm comm, double *send_buf, int send_count,
                   double *rec_buf, int *rec_counts, int *displacements);
   void gather(MPI_Comm comm, double send, double * recv);
+  void int_allgather(MPI_Comm comm, int send, int* recv);
   void logical_or(MPI_Comm comm, void *send_buf, int *rec_buf, int count = 1);
   void barrier(MPI_Comm comm);
   void stop(MPI_Comm comm, std::string msg="");

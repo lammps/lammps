@@ -172,6 +172,7 @@ bool WeakEquationElectronMomentumDDM::N_integrand(
 
   FIELD_MATS::const_iterator nField = fields.find(ELECTRON_DENSITY);
   const DENS_MAT & n = nField->second;
+
   
   CLON_VEC tsx(flux,CLONE_COL,0);
   CLON_VEC tsy(flux,CLONE_COL,1);

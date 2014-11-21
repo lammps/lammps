@@ -52,6 +52,8 @@ namespace ATC {
     /** parser/modifier */
     virtual bool modify(int narg, char **arg);
     void parse_field(/*const*/ char ** args, int &argIndex,
+                     FieldName &thisField);
+    void parse_field(/*const*/ char ** args, int &argIndex,
                    FieldName &thisField, int &thisIndex);
 
     /** initialize any computes that will be needed prior to the first timestep */
@@ -111,7 +113,7 @@ namespace ATC {
     void copy_arrays(int, int);
     int pack_exchange(int, double *);
     int unpack_exchange(int, double *);
-    int comm_forward(void) {return sizeComm_;}
+    int comm_forward(void);
     int pack_comm(int , int *, double *, int, int *);
     void unpack_comm(int, int, double *);
     /*@}*/
@@ -331,6 +333,9 @@ namespace ATC {
     //----------------------------------------------------------------
     /** \name mass matrix operations */
     //----------------------------------------------------------------
+    void apply_inverse_mass_matrix(MATRIX & data) {
+      data = massMatInv_*data;
+    }
     //      inverted using GMRES
     void apply_inverse_mass_matrix(MATRIX & data, FieldName thisField)
     {
@@ -360,6 +365,7 @@ namespace ATC {
 
     DIAG_MAN &mass_mat(FieldName thisField)
       { return massMats_[thisField];};
+    
 
     //---------------------------------------------------------------
     /** \name mass matrices  */
@@ -503,6 +509,7 @@ namespace ATC {
     void pack_fields(RESTART_LIST & data); 
 
    /** mass matrices */
+    DIAG_MAT  massMatInv_;
     MASS_MATS massMats_;
     MASS_MATS massMatsInv_;
     MASS_MATS massMatsMd_;

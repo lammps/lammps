@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#! /usr/bin/evn python2
 
-#
 # This is amber2lammps, a program written by Keir E. Novik to convert
 # Amber files to Lammps files.
 #

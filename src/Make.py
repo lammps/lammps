@@ -1,8 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 # Make.py tool for managing packages and their auxiliary libs,
 #   auto-editing machine Makefiles, and building LAMMPS
 # Sytax: Make.py -h (for help)
+# Notes: needs python 2.7 (not Python 3)
 
 import sys,os,commands,re,copy
 

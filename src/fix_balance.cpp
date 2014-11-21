@@ -16,9 +16,10 @@
 #include "fix_balance.h"
 #include "balance.h"
 #include "update.h"
-#include "domain.h"
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
+#include "neighbor.h"
 #include "irregular.h"
 #include "force.h"
 #include "kspace.h"
@@ -263,16 +264,19 @@ void FixBalance::rebalance()
   if (outflag) balance->dumpout(update->ntimestep,fp);
 
   // reset proc sub-domains
+  // check and warn if any proc's subbox is smaller than neigh skin
+  //   since may lead to lost atoms in exchange()
 
   if (domain->triclinic) domain->set_lamda_box();
   domain->set_local_box();
+  domain->subbox_too_small_check(neighbor->skin);
 
   // move atoms to new processors via irregular()
   // only needed if migrate_check() says an atom moves to far
   // else allow caller's comm->exchange() to do it
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  if (lbstyle == BISECTION) irregular->migrate_atoms(0,sendproc);
+  if (lbstyle == BISECTION) irregular->migrate_atoms(0,1,sendproc);
   else if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 

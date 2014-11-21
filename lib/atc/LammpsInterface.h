@@ -7,9 +7,11 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include <utility>
 #include "mpi.h"
 #include "lammps.h"
+#include "comm.h"
 #include "modify.h"
 #include "memory.h"
 #include "random_park.h"
@@ -89,6 +91,14 @@ class LammpsInterface {
     REAL,
     METAL,
     SI
+  };
+
+  // Enumeration for atom data style
+  enum AtomStyle {
+    UNKNOWN_STYLE=0,
+    ATOMIC_STYLE,
+    CHARGE_STYLE,
+    FULL_STYLE
   };
 
   // Provides a struct for easily passing/recovering data about SparseMats
@@ -212,10 +222,14 @@ class LammpsInterface {
     MPI_Wrappers::send(lammps_->world, send_buf, send_size);
   }
   void allgatherv(double * send_buf, int send_count,
-               double * rec_buf, int * rec_counts, int * displacements) const
+                  double * rec_buf, int * rec_counts, int * displacements) const
   {
     MPI_Wrappers::allgatherv(lammps_->world, send_buf, send_count, rec_buf,
                              rec_counts, displacements);
+  }
+  void int_allgather(int send, int* recv)
+  {
+    MPI_Wrappers::int_allgather(lammps_->world,send,recv);
   }
   void int_scatter(int * send_buf, int * rec_buf, int count = 1)
   {
@@ -232,6 +246,16 @@ class LammpsInterface {
   void stop(std::string msg="") const
   {
     MPI_Wrappers::stop(lammps_->world, msg);
+  }
+  std::string read_file(std::string filename) const;
+  void write_file(std::string filename, std::string contents, 
+     std::ofstream::openmode mode = std::ofstream::out) const {
+     if (! comm_rank()) {
+       std::ofstream f(filename.c_str(),mode);
+       f << contents;
+       f.close();
+     } 
+     // ignore other ranks and assume they are consistent
   }
 // end MPI --------------------------------------------------------------------
 

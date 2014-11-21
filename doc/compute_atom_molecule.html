@@ -87,6 +87,16 @@ invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of generating per-atom quantities to sum
 on a per-molecule basis.
 </P>
+<P>Here is an example of using this command to sum up the components of
+total force on each molecule and print them to a file every 1000
+timesteps.  The printed values could also be time-averaged by the fix
+ave/time command if desired, by changing "1000 1 1000" to "10 100
+1000" (for example):
+</P>
+<PRE>compute 1 all property/atom fx fy fz
+compute 2 all atom/molecule c_1[1] c_1[2] c_1[3]
+fix 1 all ave/time 1000 1 1000 c_2 mode vector file tmp.molecule.force 
+</PRE>
 <HR>
 
 <P><B>Output info:</B>

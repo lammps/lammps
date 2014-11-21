@@ -836,10 +836,12 @@ namespace ATC {
     double qV2e = LammpsInterface::instance()->qv2e();
     double qqrd2e = LammpsInterface::instance()->qqrd2e();
     //double ** fatom = LammpsInterface::instance()->fatom();
-    double *  qatom = LammpsInterface::instance()->atom_charge();
+    //double *  qatom = LammpsInterface::instance()->atom_charge();
+    InterscaleManager & interscaleManager(atc_->interscale_manager());
+    const DENS_MAT & qatom((interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_CHARGE))->quantity());
     double cutoffRadius = LammpsInterface::instance()->pair_cutoff();
     double cutoffSq = cutoffRadius*cutoffRadius;
-    int nLocal = atc_->nlocal();
+    int nLocal = qatom.nRows();
     int nsd = atc_->nsd();
     int nNodes = atc_->num_nodes();
     double penalty = poissonSolver_->penalty_coefficient();
@@ -859,8 +861,7 @@ namespace ATC {
         PerAtomQuantity<double> * atomicCoords = (atc_->interscale_manager()).per_atom_quantity("AtomicCoarseGrainingPositions");
         const DENS_MAT & myAtomicCoords(atomicCoords->quantity());
         for (int i = 0; i < nLocal; i++) {
-          int atomIdx = atc_->internalToAtom_(i);
-          if (abs(qatom[atomIdx]) > 0) { 
+          if (abs(qatom(i,0)) > 0) { 
             double distanceSq = 0.;
             double deltaX[3];
             for (int j = 0; j < nsd; j++) {
@@ -870,7 +871,7 @@ namespace ATC {
             if (distanceSq < cutoffSq) { 
               // first apply pairwise coulombic interaction
               if (!useSlab_) { 
-                double coulForce = qqrd2e*nodalCharge*qatom[atomIdx]/(distanceSq*sqrtf(distanceSq));
+                double coulForce = qqrd2e*nodalCharge*qatom(i,0)/(distanceSq*sqrtf(distanceSq));
                 for (int j = 0; j < nsd; j++)
                   //fatom[atomIdx][j] += deltaX[j]*coulForce;
                   _atomElectricalForce_(i,j) += deltaX[j]*coulForce;
@@ -882,7 +883,6 @@ namespace ATC {
               
               vector<SparseVector<double> > derivativeVectors;
               derivativeVectors.reserve(nsd);
-              InterscaleManager & interscaleManager(atc_->interscale_manager());
               const SPAR_MAT_VEC & shapeFunctionDerivatives((interscaleManager.vector_sparse_matrix("InterpolantGradient"))->quantity());
               for (int j = 0; j < nsd; j++) {
                 DenseVector<INDEX> nodeIndices;
@@ -906,7 +906,7 @@ namespace ATC {
               
               // apply correction in atomic forces
               //double c = qE2f*qatom[atomIdx];
-              double c = qV2e*qatom[atomIdx];
+              double c = qV2e*qatom(i,0);
               for (int j = 0; j < nsd; j++)
                 if ((!useSlab_) || (j==nsd)) { 
                   //fatom[atomIdx][j] -= c*efield(j);

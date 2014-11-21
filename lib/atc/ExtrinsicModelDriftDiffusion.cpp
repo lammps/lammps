@@ -16,6 +16,7 @@
 #include <utility>
 
 using ATC_Utility::to_string;
+using std::cout;
 using std::string;
 using std::set;
 using std::pair;
@@ -26,8 +27,6 @@ const double zero_tol = 1.e-12;
 const double f_tol = 1.e-8; 
 
 namespace ATC {
-
-enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
 
   //--------------------------------------------------------
   //--------------------------------------------------------
@@ -56,7 +55,7 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
     schrodingerPoissonSolver_(NULL),
     maxConsistencyIter_(0), maxConstraintIter_(1), 
     safe_dEf_(0.1), Ef_shift_(0.0),
-    oneD_(false), oneDcoor_(0), oneDconserve_(ONED_DENSITY)
+    oneD_(false), oneDcoor_(0), oneDconserve_(0)
   {
      // delete base class's version of the physics model
      if (physicsModel_) delete physicsModel_; 
@@ -78,6 +77,8 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
        physicsModel_ = new PhysicsModelDriftDiffusion(matFileName); 
      }
      atc_->useConsistentMassMatrix_(ELECTRON_DENSITY) = true;
+     rhsMaskIntrinsic_(ELECTRON_TEMPERATURE,SOURCE) = true;
+     //atc_->fieldMask_(ELECTRON_TEMPERATURE,EXTRINSIC_SOURCE) = true;
   }
   
   //--------------------------------------------------------
@@ -157,21 +158,16 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
 
     // set up schrodinger solver
     if ( electronDensityEqn_ == ELECTRON_SCHRODINGER ) {
-      int type = ATC::LinearSolver::ITERATIVE_SOLVE_SYMMETRIC;
-      if (schrodingerSolverType_ == DIRECT) {  
-        type = ATC::LinearSolver::DIRECT_SOLVE;
-      }
       if ( schrodingerSolver_ )  delete schrodingerSolver_;
       if ( oneD_ ) { 
         EfHistory_.reset(oneDslices_.size(),2);
         schrodingerSolver_ = new SliceSchrodingerSolver(ELECTRON_DENSITY,
           physicsModel_, atc_->feEngine_, atc_->prescribedDataMgr_, atc_,
-          oneDslices_, type, true);
+          oneDslices_,oneDdxs_);
       } 
       else {
         schrodingerSolver_ = new SchrodingerSolver(ELECTRON_DENSITY,
-          physicsModel_, atc_->feEngine_, atc_->prescribedDataMgr_, atc_,
-          type, true);
+          physicsModel_, atc_->feEngine_, atc_->prescribedDataMgr_, atc_);
       }
       schrodingerSolver_->initialize();
 
@@ -187,6 +183,10 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
       ((atc_->fields())[ELECTRON_WAVEFUNCTION_ENERGIES].set_quantity()).reset(nNodes_,1);
     }
 
+#if 0
+    cout << " RHS MASK\n";
+    print_mask(rhsMask);
+#endif
   }
 
   //--------------------------------------------------------
@@ -219,27 +219,53 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
           poissonSolver_->solve(atc_->fields(),rhs_);
       } 
       else if (electronDensityEqn_ == ELECTRON_SCHRODINGER) {
-        schrodingerPoissonSolver_->solve(rhs_,fluxes_);
+        if ( (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_DENSITY) ) 
+          || (! atc_->prescribedDataMgr_->all_fixed(ELECTRIC_POTENTIAL) )  )
+          schrodingerPoissonSolver_->solve(rhs_,fluxes_);
       }
       // update electron temperature
-      if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_TEMPERATURE) ) 
+      if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_TEMPERATURE) 
+        && temperatureIntegrator_ )  {
+#ifdef ATC_VERBOSE
+        ATC::LammpsInterface::instance()->stream_msg_once("start temperature integration...",true,false);
+#endif
         temperatureIntegrator_->update(idt,time,atc_->fields_,rhs_);
+#ifdef ATC_VERBOSE
+        ATC::LammpsInterface::instance()->stream_msg_once(" done",false,true);
+#endif
+      }
       atc_->set_fixed_nodes(); 
     }
 
     
+  }
+  //--------------------------------------------------------
+  //  set coupling source terms
+  //-------------------------------------------------------
+  void ExtrinsicModelDriftDiffusion::set_sources(FIELDS & fields, FIELDS & sources)
+  {
+    atc_->evaluate_rhs_integral(rhsMaskIntrinsic_, fields,
+                            sources,
+                            atc_->source_integration(), physicsModel_);
+
   }
 
   //--------------------------------------------------------
   //  output
   //--------------------------------------------------------
   void ExtrinsicModelDriftDiffusion::output(OUTPUT_LIST & outputData)
-  {
+  { 
+#ifdef ATC_VERBOSE
+//  ATC::LammpsInterface::instance()->print_msg_once("start output",true,false);
+#endif
     ExtrinsicModelTwoTemperature::output(outputData);
     // fields
 
     outputData["dot_electron_density"] = & (atc_->dot_field(ELECTRON_DENSITY)).set_quantity();
-    outputData["joule_heating"]        = & rhs_[ELECTRON_TEMPERATURE].set_quantity();
+    DENS_MAT & JE = rhs_[ELECTRON_TEMPERATURE].set_quantity();
+    double totalJouleHeating =JE.sum();
+    outputData["joule_heating"]        = & JE;
+    atc_->feEngine_->add_global("total_joule_heating",totalJouleHeating);
     Array2D <bool> rhsMask(NUM_FIELDS,NUM_FLUX); rhsMask = false;
     rhsMask(ELECTRON_DENSITY,FLUX) = true;
     rhsMask(ELECTRIC_POTENTIAL,FLUX) = true;
@@ -275,6 +301,9 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
     // globals
     double nSum = ((atc_->field(ELECTRON_DENSITY)).quantity()).col_sum();
     atc_->feEngine_->add_global("total_electron_density",nSum);
+#ifdef ATC_VERBOSE
+//  ATC::LammpsInterface::instance()->print_msg_once("... done",false,true);
+#endif
   }
 
   //--------------------------------------------------------
@@ -284,7 +313,7 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
   {
     int xSize = ExtrinsicModelTwoTemperature::size_vector(intrinsicSize);
     baseSize_ = intrinsicSize  + xSize;
-    xSize += 1;
+    xSize += 2;
     return xSize;
   }
 
@@ -294,6 +323,7 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
   bool ExtrinsicModelDriftDiffusion::compute_vector(int n, double & value)
   {
     // output[1] = total electron density
+    // output[2] = total joule heating
 
     bool match = ExtrinsicModelTwoTemperature::compute_vector(n,value);
     if (match) return match;
@@ -301,6 +331,12 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
     if (n == baseSize_) {
       double nSum = ((atc_->field(ELECTRON_DENSITY)).quantity()).col_sum();
       value = nSum;
+      return true;
+    }
+    if (n == baseSize_+1) {
+      DENS_MAT & JE = rhs_[ELECTRON_TEMPERATURE].set_quantity();
+      double totalJouleHeating =JE.sum();
+      value = totalJouleHeating;
       return true;
     }
     return false;
@@ -332,8 +368,8 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
      else {
        physicsModel_ = new PhysicsModelDriftDiffusionConvection(matFileName); 
      }
-     atc_->useConsistentMassMatrix_(ELECTRON_VELOCITY) = true;
-     atc_->useConsistentMassMatrix_(ELECTRON_TEMPERATURE) = true;
+     atc_->useConsistentMassMatrix_(ELECTRON_VELOCITY) = false;
+     atc_->useConsistentMassMatrix_(ELECTRON_TEMPERATURE) = false;
   }
 
   //--------------------------------------------------------
@@ -353,21 +389,6 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
   void ExtrinsicModelDriftDiffusionConvection::initialize()
   {
     ExtrinsicModelDriftDiffusion::initialize();
-
-    // change temperature integrator to be Crank-Nicolson
-    if (electronTimeIntegration_ == TimeIntegrator::IMPLICIT) {
-      if (temperatureIntegrator_) delete temperatureIntegrator_;
-      Array2D <bool> rhsMask(NUM_FIELDS,NUM_FLUX);
-      rhsMask = false;
-      for (int i = 0; i < NUM_FLUX; i++) {
-        rhsMask(ELECTRON_TEMPERATURE,i) = atc_->fieldMask_(ELECTRON_TEMPERATURE,i);
-      }
-      temperatureIntegrator_ = new FieldImplicitEulerIntegrator(ELECTRON_TEMPERATURE,
-                                                                physicsModel_,
-                                                                atc_->feEngine_, atc_, 
-                                                                rhsMask);
-    }
-
     nNodes_ = atc_->num_nodes();
     nsd_ = atc_->nsd();
     rhs_[ELECTRON_VELOCITY].reset(nNodes_,nsd_);
@@ -433,17 +454,31 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
         rhsMask = false;
         rhsMask(ELECTRON_VELOCITY,SOURCE) = atc_->fieldMask_(ELECTRON_VELOCITY,SOURCE);
         rhsMask(ELECTRON_VELOCITY,FLUX) = atc_->fieldMask_(ELECTRON_VELOCITY,FLUX);
+        rhsMask(ELECTRON_VELOCITY,OPEN_SOURCE) = atc_->fieldMask_(ELECTRON_VELOCITY,OPEN_SOURCE);
         FIELDS rhs;
         rhs[ELECTRON_VELOCITY].reset(nNodes_,nsd_);
         atc_->compute_rhs_vector(rhsMask, atc_->fields_, rhs, atc_->source_integration(), physicsModel_);
         const DENS_MAT & velocityRhs =  rhs[ELECTRON_VELOCITY].quantity();
+
         // add a solver for electron momentum  
         DENS_MAT & velocity = (atc_->field(ELECTRON_VELOCITY)).set_quantity();
         for (int j = 0; j < nsd_; ++j) {
           if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_VELOCITY,j) ) {
-            CLON_VEC v = column(velocity,j);
-            const CLON_VEC r = column(velocityRhs,j);
-            (velocitySolvers_[j])->solve(v,r);
+            if (atc_->useConsistentMassMatrix_(ELECTRON_VELOCITY)) {
+              //#ifdef ATC_PRINT_DEBUGGING
+              const SPAR_MAT & velocityMassMat = (atc_->consistentMassMats_[ELECTRON_VELOCITY]).quantity();
+              velocityMassMat.print("VMASS");
+              //#endif
+              CLON_VEC v = column(velocity,j);
+              const CLON_VEC r = column(velocityRhs,j);
+              (velocitySolvers_[j])->solve(v,r);
+            }
+            else {
+              //velocityRhs.print("VRHS");
+              //const DIAG_MAT & velocityMassMat = (atc_->massMats_[ELECTRON_VELOCITY]).quantity();
+              //velocityMassMat.print("MASS");
+              atc_->apply_inverse_mass_matrix(velocityRhs,velocity,ELECTRON_VELOCITY);
+            }
           }
         }
       }
@@ -452,18 +487,25 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
       
       if (electronDensityEqn_ == ELECTRON_CONTINUITY) {
         // update continuity eqn
+        Array2D <bool> rhsMask(NUM_FIELDS,NUM_FLUX); 
+        rhsMask = false;
+        rhsMask(ELECTRON_DENSITY,FLUX) = atc_->fieldMask_(ELECTRON_DENSITY,FLUX);
+        rhsMask(ELECTRON_DENSITY,SOURCE) = atc_->fieldMask_(ELECTRON_DENSITY,SOURCE);
+        rhsMask(ELECTRON_DENSITY,PRESCRIBED_SOURCE) = atc_->fieldMask_(ELECTRON_DENSITY,PRESCRIBED_SOURCE);
+        FIELDS rhs;
+        rhs[ELECTRON_DENSITY].reset(nNodes_,1);
+        atc_->compute_rhs_vector(rhsMask, atc_->fields_, rhs, atc_->source_integration(), physicsModel_);
         if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_DENSITY) ) 
-          continuityIntegrator_->update(idt,time,atc_->fields_,rhs_);
+          continuityIntegrator_->update(idt,time,atc_->fields_,rhs);
         atc_->set_fixed_nodes(); 
         // solve poisson eqn for electric potential
         
         if (! atc_->prescribedDataMgr_->all_fixed(ELECTRIC_POTENTIAL) ) {
         //poissonSolver_->solve(atc_->fields_,rhs_);
-          Array2D <bool> rhsMask(NUM_FIELDS,NUM_FLUX); 
           rhsMask = false;
           rhsMask(ELECTRIC_POTENTIAL,SOURCE) = atc_->fieldMask_(ELECTRIC_POTENTIAL,SOURCE);
           rhsMask(ELECTRIC_POTENTIAL,PRESCRIBED_SOURCE) = atc_->fieldMask_(ELECTRIC_POTENTIAL,PRESCRIBED_SOURCE);
-          FIELDS rhs;
+          // FIELDS rhs;
           rhs[ELECTRIC_POTENTIAL].reset(nNodes_,1);
           atc_->compute_rhs_vector(rhsMask, atc_->fields_, rhs, atc_->source_integration(), physicsModel_);
           CLON_VEC x =column((atc_->field(ELECTRIC_POTENTIAL)).set_quantity(),0);
@@ -479,8 +521,14 @@ enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX};
       // update electron temperature mass matrix
       atc_->compute_mass_matrix(ELECTRON_TEMPERATURE,physicsModel_);
       // update electron temperature
-      if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_TEMPERATURE) ) 
-        temperatureIntegrator_->update(idt,time,atc_->fields_,rhs_);
+      if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_TEMPERATURE) ) {
+        //if (atc_->useConsistentMassMatrix_(ELECTRON_TEMPERATURE)) {
+          temperatureIntegrator_->update(idt,time,atc_->fields_,rhs_);
+          //}
+          //else { // lumped mass matrix
+          
+        //}
+      }
       atc_->set_fixed_nodes(); 
       
     }

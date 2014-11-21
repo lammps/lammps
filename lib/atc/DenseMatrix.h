@@ -16,7 +16,7 @@ template <typename T>
 class DenseMatrix : public Matrix<T>
 {
 public:
-  DenseMatrix(INDEX rows=0, INDEX cols=0, bool z=1) { _create(rows, cols, z); }
+  DenseMatrix(INDEX rows=0, INDEX cols=0, bool z=1): _data(NULL){ _create(rows, cols, z); }
   DenseMatrix(const DenseMatrix<T>& c) : _data(NULL){ _copy(c); }
   DenseMatrix(const SparseMatrix<T>& c): _data(NULL){ c.dense_copy(*this);}
   DenseMatrix(const Matrix<T>& c)      : _data(NULL){ _copy(c); }
@@ -25,6 +25,9 @@ public:
   ~DenseMatrix()                                    { _delete();}
 
   void reset (INDEX rows, INDEX cols, bool zero=true);
+  void reset (const DenseMatrix<T>& c)   {_delete(); _copy(c); };
+  void reset (const SparseMatrix<T> & c) {_delete(); c.dense_copy(*this);};
+  void reset (const Matrix<T>& c)        {_delete(); _copy(c); }
   void resize(INDEX rows, INDEX cols, bool copy=false);
   void copy (const T * ptr, INDEX rows, INDEX cols);
   /** returns transpose(this) * B */
@@ -57,6 +60,7 @@ public:
   virtual bool check_range(T min, T max) const;
 
 protected:
+  void _set_equal(const Matrix<T> &r);
   void _delete();
   void _create(INDEX rows, INDEX cols, bool zero=false);
   void _copy(const Matrix<T> &c);
@@ -257,6 +261,7 @@ void DenseMatrix<T>::_delete()
   _nRows = _nCols = 0;
   if (_data){ 
     delete [] _data;
+    _data = NULL;
   }
 }
 //----------------------------------------------------------------------------
@@ -333,7 +338,22 @@ DenseMatrix<T>& DenseMatrix<T>::operator=(const SparseMatrix<T> &c)
   }
   return *this;
 }
-
+//----------------------------------------------------------------------------
+// general matrix assignment (for densely packed matrices)
+//----------------------------------------------------------------------------
+template<typename T>
+void DenseMatrix<T>::_set_equal(const Matrix<T> &r)
+{
+  this->resize(r.nRows(), r.nCols());
+  const Matrix<T> *pr = &r;
+  const DenseMatrix<T>   *pdd = dynamic_cast<const DenseMatrix<T>*> (pr);
+  if (pdd) this->reset(*pdd);
+  else
+  {
+    std::cout <<"Error in general dense matrix assignment\n";
+    exit(1);
+  }
+}
 //* Returns the transpose of the cofactor matrix of A.
 //* see http://en.wikipedia.org/wiki/Adjugate_matrix 
 //* symmetric flag only affects cases N>3 

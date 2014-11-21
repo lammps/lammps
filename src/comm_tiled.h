@@ -44,6 +44,10 @@ class CommTiled : public Comm {
 
   void forward_comm_array(int, double **);          // forward comm of array
   int exchange_variable(int, double *, double *&);  // exchange on neigh stencil
+
+  void coord2proc_setup();
+  int coord2proc(double *, int &, int &, int &);
+
   bigint memory_usage();
 
  private:

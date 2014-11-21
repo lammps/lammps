@@ -178,6 +178,26 @@ static const double localCoordinatesTolerance = 1.e-09;
       xi(1) = J2/J;
       xi(2) = J3/J;
     }
+    else if (projectionGuess_ == TWOD_ANALYTIC) { 
+      // assume x-y planar and HEX8
+      double x0 = x(0), y0 = x(1);
+      double X[4] = {eltCoords(0,0),eltCoords(0,1),eltCoords(0,2),eltCoords(0,3)};
+      double Y[4] = {eltCoords(1,0),eltCoords(1,1),eltCoords(1,2),eltCoords(1,3)};
+      double c[3]={0,0,0};
+      c[0] = y0*X[0] - y0*X[1] - y0*X[2] + y0*X[3] - x0*Y[0] + (X[1]*Y[0])*0.5 + (X[2]*Y[0])*0.5 + x0*Y[1] - (X[0]*Y[1])*0.5 - (X[3]*Y[1])*0.5 + x0*Y[2] - (X[0]*Y[2])*0.5 - (X[3]*Y[2])*0.5 - x0*Y[3] + (X[1]*Y[3])*0.5 + (X[2]*Y[3])*0.5;
+      c[1] = -(y0*X[0]) + y0*X[1] - y0*X[2] + y0*X[3] + x0*Y[0] - X[1]*Y[0] - x0*Y[1] + X[0]*Y[1] + x0*Y[2] - X[3]*Y[2] - x0*Y[3] + X[2]*Y[3];
+      c[1] = (X[1]*Y[0])*0.5 - (X[2]*Y[0])*0.5 - (X[0]*Y[1])*0.5 + (X[3]*Y[1])*0.5 + (X[0]*Y[2])*0.5 - (X[3]*Y[2])*0.5 - (X[1]*Y[3])*0.5 + (X[2]*Y[3])*0.5;
+      double xi2[2]={0,0};
+      int nroots = solve_quadratic(c,xi2);
+      if (nroots == 0) throw ATC_Error("no real roots in 2D analytic projection guess");
+      double xi1[2]={0,0};
+      xi1[0] = (4*x0 - X[0] + xi2[0]*X[0] - X[0] + xi2[0]*X[0] - X[0] - xi2[0]*X[0] - X[0] - xi2[0]*X[0])/(-X[0] + xi2[0]*X[0] + X[0] - xi2[0]*X[0] + X[0] + xi2[0]*X[0] - X[0] - xi2[0]*X[0]);
+      xi1[1] = (4*x0 - X[0] + xi2[0]*X[0] - X[0] + xi2[0]*X[0] - X[0] - xi2[0]*X[0] - X[0] - xi2[0]*X[0])/(-X[0] + xi2[0]*X[0] + X[0] - xi2[0]*X[0] + X[0] + xi2[0]*X[0] - X[0] - xi2[0]*X[0]);
+      // choose which one gives back x
+      xi(0) = xi1[0]; 
+      xi(1) = xi2[0]; 
+      xi(2) = 0; 
+    }
   }
 
  

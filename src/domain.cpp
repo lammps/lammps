@@ -801,6 +801,36 @@ void Domain::box_too_small_check()
 }
 
 /* ----------------------------------------------------------------------
+  check warn if any proc's subbox is smaller than thresh
+    since may lead to lost atoms in comm->exchange()
+  current callers set thresh = neighbor skin
+------------------------------------------------------------------------- */
+
+void Domain::subbox_too_small_check(double thresh)
+{
+  int flag = 0;
+  if (!triclinic) {
+    if (subhi[0]-sublo[0] < thresh || subhi[1]-sublo[1] < thresh) flag = 1;
+    if (dimension == 3 && subhi[2]-sublo[2] < thresh) flag = 1;
+  } else {
+    double delta = subhi_lamda[0] - sublo_lamda[0];
+    if (delta*prd[0] < thresh) flag = 1;
+    delta = subhi_lamda[1] - sublo_lamda[1];
+    if (delta*prd[1] < thresh) flag = 1;
+    if (dimension == 3) {
+      delta = subhi_lamda[2] - sublo_lamda[2];
+      if (delta*prd[2] < thresh) flag = 1;
+    }
+  }
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall && comm->me == 0) 
+    error->warning(FLERR,"Proc sub-domain size < neighbor skin, "
+                   "could lead to lost atoms");
+}
+
+/* ----------------------------------------------------------------------
    minimum image convention
    use 1/2 of box size as test
    for triclinic, also add/subtract tilt factors in other dims as needed

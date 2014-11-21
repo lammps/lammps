@@ -21,12 +21,12 @@ public:
   virtual ~Matrix() {}
 
   //* stream output functions
-  void print(std::ostream &o) const { o << to_string(); }
-  void print(std::ostream &o, const std::string &name) const;
+  void print(std::ostream &o, int p=myPrecision) const { o << this->to_string(p); }
+  void print(std::ostream &o, const std::string &name, int p=myPrecision) const;
   friend std::ostream& operator<<(std::ostream &o, const Matrix<T> &m){m.print(o); return o;}
   void print() const;
-  virtual void print(const std::string &name) const;
-  virtual std::string to_string() const;
+  virtual void print(const std::string &name, int p = myPrecision) const;
+  virtual std::string to_string(int p = myPrecision) const;
 
   // element by element operations
   DenseMatrix<T> operator/(const Matrix<T>& B) const;
@@ -144,7 +144,7 @@ public:
   virtual bool check_range(T min, T max) const;
 
 protected:
-  virtual void _set_equal(const Matrix<T> &r);
+  virtual void _set_equal(const Matrix<T> &r) = 0;
 };
 
 //* Matrix operations 
@@ -286,16 +286,14 @@ void MultAB(const Matrix<T> &A, const Matrix<T> &B, DenseMatrix<T> &C,
 //-----------------------------------------------------------------------------
 //* output operator
 template<typename T>
-std::string Matrix<T>::to_string() const
+std::string Matrix<T>::to_string(int p) const
 {
   std::string s;
-  for (INDEX i=0; i<nRows(); i++)
-  {
+  for (INDEX i=0; i<nRows(); i++) {
     if (i) s += '\n';
-    for (INDEX j=0; j<nCols(); j++)
-    {
-      if (j) s+= '\t';
-      s += ATC_Utility::to_string((*this)(i,j),myPrecision)+"   ";
+    for (INDEX j=0; j<nCols(); j++) {
+      //if (j) s+= '\t';
+      s += ATC_Utility::to_string((*this)(i,j),p)+" ";
     }
   }
   return s;
@@ -303,10 +301,10 @@ std::string Matrix<T>::to_string() const
 //-----------------------------------------------------------------------------
 //* output operator that wraps the matrix in a nice labeled box
 template<typename T>
-void Matrix<T>::print(std::ostream &o, const std::string &name) const
+void Matrix<T>::print(std::ostream &o, const std::string &name, int p) const
 {
   o << "------- Begin "<<name<<" -----------------\n";
-  this->print(o);
+  this->print(o,p);
   o << "\n------- End "<<name<<" -------------------\n";
 }
 //-----------------------------------------------------------------------------
@@ -319,9 +317,9 @@ void Matrix<T>::print() const
 //-----------------------------------------------------------------------------
 //* named print operator, use cout by default
 template<typename T>
-void Matrix<T>::print(const std::string &name) const 
+void Matrix<T>::print(const std::string &name, int p) const 
 {
-  print(std::cout, name); 
+  print(std::cout, name, p); 
 }
 //-----------------------------------------------------------------------------
 //* element by element division
@@ -647,24 +645,6 @@ Matrix<T>& Matrix<T>::operator=(const Matrix<T> &r)
 {
   this->_set_equal(r);
   return *this;
-}
-//----------------------------------------------------------------------------
-// general matrix assignment (for densely packed matrices)
-//----------------------------------------------------------------------------
-template<typename T>
-void Matrix<T>::_set_equal(const Matrix<T> &r)
-{
-  this->resize(r.nRows(), r.nCols());
-  const Matrix<T> *pr = &r;
-  if (const SparseMatrix<T> *ps = sparse_cast(pr)) 
-    copy_sparse_to_matrix(ps, *this);
-  
-  else if (diag_cast(pr))  // r is Diagonal?
-  {
-    this->zero();
-    for (INDEX i=0; i<r.size(); i++) (*this)(i,i) = r[i];
-  }
-  else memcpy(this->ptr(), r.ptr(), r.size()*sizeof(T));
 }
 //-----------------------------------------------------------------------------
 //* sets all elements to a constant

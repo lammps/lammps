@@ -89,7 +89,7 @@ namespace ATC{
     // now do all FE_Engine data structure partitioning
 
     // partition nullElements_
-    /*for (vector<int>::const_iterator elemsIter = feMesh_->processor_elts().begin();
+    /*for (vector<int>::iterator elemsIter = feMesh_->processor_elts().begin();
          elemsIter != feMesh_->processor_elts().end();
          ++elemsIter)
     {
@@ -182,33 +182,15 @@ namespace ATC{
           dx = 0;
           dy = 0;
           dz = 0;
-          double x[3] = {0,0,0}; 
           while (argIdx < narg) {
-            if      (strcmp(arg[argIdx++],"dx")==0) {
-              // parse relative values for each element
-              if (is_numeric(arg[argIdx])) {
-                for (int i = 0; i < nx; ++i) { 
-                  if (is_numeric(arg[argIdx])) { dx(i) = atof(arg[argIdx++]); }
-                  else throw ATC_Error("not enough element partitions");
-                }
-              }
-              // construct relative values from a density function
-              // evaluate for a domain (0,1)
-              else {
-                XT_Function * f = XT_Function_Mgr::instance()->function(&(arg[argIdx]),narg-argIdx);
-                for (int i = 0; i < nx; ++i) { 
-                  x[0] = (i+0.5)/nx; dx(i) = f->f(x,0.); 
-                }
-              }
-
-
-              break ;
+            if      (strcmp(arg[argIdx],"dx")==0) {
+              parse_partitions(++argIdx, narg, arg, 0, dx);
             }
-            else if (strcmp(arg[argIdx++],"dy")==0) {
-              for (int i = 0; i < ny; ++i) { dy(i) = atof(arg[argIdx++]); }
+            else if (strcmp(arg[argIdx],"dy")==0) {
+              parse_partitions(++argIdx, narg, arg, 1, dy);
             }
-            else if (strcmp(arg[argIdx++],"dz")==0) {
-              for (int i = 0; i < nz; ++i) { dz(i) = atof(arg[argIdx++]); }
+            else if (strcmp(arg[argIdx],"dz")==0) {
+              parse_partitions(++argIdx, narg, arg, 2, dz);
             }
           }
 
@@ -353,6 +335,65 @@ namespace ATC{
       match = feMesh_->modify(narg,arg);
     }
     return match;
+  }
+  //-----------------------------------------------------------------
+  void FE_Engine::parse_partitions(int & argIdx, int narg, char ** arg, 
+    int idof, Array<double> & dx ) const
+  {
+    double x[3] = {0,0,0}; 
+    int nx = dx.size();
+    // parse relative values for each element
+    if (is_numeric(arg[argIdx])) {
+      for (int i = 0; i < nx; ++i) { 
+        if (is_numeric(arg[argIdx])) { dx(i) = atof(arg[argIdx++]); }
+        else throw ATC_Error("not enough element partitions");
+      }
+    }
+    // each segment of the piecewise funcion is length-normalized separately
+    else if (strcmp(arg[argIdx],"position-number-density")==0) { 
+      argIdx++;
+      double y[nx],w[nx];
+      int n[nx];
+      int nn = 0;
+      while (argIdx < narg) { 
+        if (! is_numeric(arg[argIdx])) break;
+        y[nn]   = atof(arg[argIdx++]);
+        n[nn]   = atoi(arg[argIdx++]);
+        w[nn++] = atof(arg[argIdx++]);
+      }
+      if (n[nn-1] != nx)  throw ATC_Error("total element partitions do not match");
+      int k = 0;
+      for (int i = 1; i < nn; ++i) { 
+        int dn = n[i]-n[i-1];
+        double dy = y[i]-y[i-1];
+        double w0 = w[i-1];
+        double dw = w[i]-w0;
+        double lx = 0;
+        double l[dn];
+        for (int j = 0; j < dn; ++j) {
+          double x = (j+0.5)/dn; 
+          double dl = w0+x*dw;
+          lx += dl;
+          l[j]= dl;
+        }
+        double scale = dy/lx;
+        for (int j = 0; j < dn; ++j) {
+          dx(k++) = scale*l[j];
+        }
+      }
+    }
+    // construct relative values from a density function
+    // evaluate for a domain (0,1)
+    else {
+      XT_Function * f = XT_Function_Mgr::instance()->function(&(arg[argIdx]),narg-argIdx);
+      argIdx++;
+      while (argIdx < narg) { 
+        if (! is_numeric(arg[argIdx++])) break;
+      }
+      for (int i = 0; i < nx; ++i) { 
+        x[idof] = (i+0.5)/nx; dx(i) = f->f(x,0.); 
+      }
+    }
   }
 
   //-----------------------------------------------------------------
@@ -550,7 +591,7 @@ namespace ATC{
     DENS_MAT elementMassMatrix(nNodesPerElement_,nNodesPerElement_); 
 
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::const_iterator elemsIter = myElems.begin();
+    for (vector<int>::iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -604,7 +645,7 @@ namespace ATC{
     DENS_MAT coefsAtIPs;
 
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::const_iterator elemsIter = myElems.begin();
+    for (vector<int>::iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -782,7 +823,7 @@ namespace ATC{
 
     // element wise assembly
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::const_iterator elemsIter = myElems.begin(); 
+    for (vector<int>::iterator elemsIter = myElems.begin(); 
          elemsIter != myElems.end();
          ++elemsIter) 
     {
@@ -849,7 +890,7 @@ namespace ATC{
     massMatrix.reset(nNodesUnique_,nNodesUnique_);// zero since partial fill
     DENS_MAT elementMassMatrix(nNodesPerElement_,nNodesPerElement_); 
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::const_iterator elemsIter = myElems.begin();
+    for (vector<int>::iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -905,7 +946,7 @@ namespace ATC{
     // assemble lumped diagonal mass 
     DENS_VEC Nvec(nNodesPerElement_);
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::const_iterator elemsIter = myElems.begin();
+    for (vector<int>::iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -944,7 +985,7 @@ namespace ATC{
     }
     // assemble diagonal matrix
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::const_iterator elemsIter = myElems.begin();
+    for (vector<int>::iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -1028,9 +1069,13 @@ namespace ATC{
       // treat single material point sets specially
       int nMatls = pointMaterialGroups.size();
       int atomMatls = 0;
+      int iatomMat = 0;
       for (int imat = 0; imat < nMatls; imat++) {
         const set<int> & indices = pointMaterialGroups(imat);
-        if ( indices.size() > 0) atomMatls++;
+        if ( indices.size() > 0) {
+          iatomMat = imat;
+          atomMatls++;
+        }
       }
       if (atomMatls == 0) {
         throw ATC_Error("no materials in atom region - atoms may have migrated to FE-only region");
@@ -1045,12 +1090,11 @@ namespace ATC{
       FIELD_MATS capacities;
       // evaluate physics model & compute capacity|density for requested fields
       if (singleMaterial) {
-        int imat = 0; 
-        const Material * mat = physicsModel->material(imat);
+        const Material * mat = physicsModel->material(iatomMat);
         for (int j = 0; j < nfields; ++j) {
           _fieldName_ = field_mask(j);
           // mass matrix needs to be invertible so null matls have cap=1
-          if (physicsModel->null(_fieldName_,imat)) {
+          if (physicsModel->null(_fieldName_,iatomMat)) {
              throw ATC_Error("null material not supported for atomic region (single material)");
              const FIELD &  f = (fields.find(_fieldName_))->second;
              capacities[_fieldName_].reset(f.nRows(),f.nCols());
@@ -1143,7 +1187,7 @@ namespace ATC{
     Array<int> count(nNodesUnique_); count = 0;
     set_quadrature(NODAL);
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::const_iterator elemsIter = myElems.begin();
+    for (vector<int>::iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -1204,7 +1248,7 @@ namespace ATC{
 
     DENS_MAT elementEnergy(nNodesPerElement_,1); // workspace
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::const_iterator elemsIter = myElems.begin();
+    for (vector<int>::iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -1249,6 +1293,7 @@ namespace ATC{
     const PhysicsModel * physicsModel,
     const Array<int>   & elementMaterials,
     FIELDS &rhs,
+    bool freeOnly,
     const DenseMatrix<bool> *elementMask) const
   {
     vector<FieldName> usedFields;
@@ -1269,7 +1314,7 @@ namespace ATC{
 
     // Iterate over elements partitioned onto current processor.
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::const_iterator elemsIter = myElems.begin(); 
+    for (vector<int>::iterator elemsIter = myElems.begin(); 
          elemsIter != myElems.end();
          ++elemsIter) 
     {
@@ -1337,7 +1382,7 @@ namespace ATC{
       } 
     }
 
-    vector<FieldName>::const_iterator _fieldIter_;
+    vector<FieldName>::iterator _fieldIter_;
     for (_fieldIter_ = usedFields.begin(); _fieldIter_ != usedFields.end(); 
          ++_fieldIter_) {
       // myRhs is where we put the global result for this field.
@@ -1660,7 +1705,7 @@ namespace ATC{
 
     // element wise assembly
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::const_iterator elemsIter = myElems.begin();
+    for (vector<int>::iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -1740,7 +1785,7 @@ namespace ATC{
     }
   
     // element wise assembly
-    set< PAIR >::const_iterator iter;
+    set< PAIR >::iterator iter;
     for (iter = faceSet.begin(); iter != faceSet.end(); iter++) {
       // get connectivity
       int ielem = iter->first;
@@ -1841,10 +1886,11 @@ namespace ATC{
     
     // R_I    = - int_Omega    Delta _N_I .q dV
     compute_rhs_vector(rhsMask, fields, physicsModel, elementMaterials, rhs, elementMask);
+
     // R_I^md = - int_Omega^md Delta _N_I .q dV
     compute_rhs_vector(rhsMask, fields, physicsModel, pointMaterialGroups, 
       _weights_, N, dN, rhsSubset);
-    
+
     // flux_I = 1/Delta V_I V_I^md R_I + R_I^md
     //   where : Delta V_I = int_Omega _N_I dV
     for (int n = 0; n < rhsMask.nRows(); n++) {
@@ -1920,21 +1966,16 @@ namespace ATC{
     DENS_MAT localField;
     DENS_MAT xAtIPs(nSD_,nIPsPerFace_);
     DENS_MAT uAtIPs(nIPsPerFace_,1); 
-
+    FIELDS myNodalSources;
 
     // element wise assembly
     ROBIN_SURFACE_SOURCE::const_iterator src_iter;
-    if (!(rank_zero(communicator_))) {
-      // Zero out unmasked nodal sources on all non-main processors.
-      // This is to avoid counting the previous nodal source values
-      // multiple times when we aggregate.
-      for (src_iter=sourceFunctions.begin(); src_iter!=sourceFunctions.end(); src_iter++)
-      {
-        _fieldName_ = src_iter->first;
-        if (!rhsMask((int)_fieldName_,ROBIN_SOURCE)) continue; 
-        DENS_MAT & myNodalSources(nodalSources[_fieldName_].set_quantity());
-        myNodalSources.reset(myNodalSources.nRows(), myNodalSources.nCols());
-      }
+    for (src_iter=sourceFunctions.begin(); src_iter!=sourceFunctions.end(); src_iter++)
+    {
+      _fieldName_ = src_iter->first;
+      if (!rhsMask((int)_fieldName_,ROBIN_SOURCE)) continue; 
+      DENS_MAT & s(nodalSources[_fieldName_].set_quantity());
+      myNodalSources[_fieldName_] = DENS_MAT(s.nRows(),s.nCols());
     }
     for (src_iter=sourceFunctions.begin(); src_iter!=sourceFunctions.end(); src_iter++)
     {
@@ -1982,12 +2023,12 @@ namespace ATC{
         }
         
         // assemble
-        DENS_MAT & myNodalSources(nodalSources[_fieldName_].set_quantity());
+        DENS_MAT & s(myNodalSources[_fieldName_].set_quantity());
         _Nmat_ = _fN_.transMat(_fweights_*faceSource);
         for (int i = 0; i < nNodesPerElement_; ++i) {
           int inode = _conn_(i);
           for (int idof = 0; idof < nFieldDOF; ++idof) {
-            myNodalSources(inode,idof) += _Nmat_(i,idof);
+            s(inode,idof) += _Nmat_(i,idof);
           }  
         } 
       }  
@@ -1996,8 +2037,10 @@ namespace ATC{
     for (src_iter=sourceFunctions.begin(); src_iter!=sourceFunctions.end(); src_iter++) {
       _fieldName_ = src_iter->first;
       if (!rhsMask((int) _fieldName_,ROBIN_SOURCE)) continue; 
-      DENS_MAT & myNodalSources(nodalSources[_fieldName_].set_quantity());
-      allsum(communicator_,MPI_IN_PLACE, myNodalSources.ptr(), myNodalSources.size());  
+      DENS_MAT & s(myNodalSources[_fieldName_].set_quantity());
+      allsum(communicator_,MPI_IN_PLACE, s.ptr(), s.size());  
+      DENS_MAT & src(nodalSources[_fieldName_].set_quantity());
+      src += s;
     }
   }
 
@@ -2021,11 +2064,7 @@ namespace ATC{
 
     // element wise assembly
     ROBIN_SURFACE_SOURCE::const_iterator src_iter;
-    if (!(rank_zero(communicator_))) {
-      // Zero out result (tangent) matrix on all non-main processors
-      // to avoid multiple-counting of the values already in tangent 
-      tangent.reset(tangent.nRows(), tangent.nCols());
-    }
+    SPAR_MAT K(tangent.nRows(), tangent.nCols());
     for (src_iter=sourceFunctions.begin(); src_iter!=sourceFunctions.end(); src_iter++)
     {
       _fieldName_ = src_iter->first;
@@ -2068,24 +2107,221 @@ namespace ATC{
         // assemble
         DIAG_MAT D(column(coefsAtIPs,0)); 
         D *= -1; 
-
         D *= _fweights_; 
         _Nmat_ = _fN_.transMat(D*_fN_);
         for (int i = 0; i < nNodesPerElement_; ++i) {
           int inode = _conn_(i);
           for (int j = 0; j < nNodesPerElement_; ++j) {
             int jnode = _conn_(j);
-            tangent.add(inode, jnode, _Nmat_(i,j));
+            K.add(inode, jnode, _Nmat_(i,j));
           }  
         } 
       }  
     } 
     // assemble partial result matrices
 #ifdef ISOLATE_FE
-    sparse_allsum(communicator_,tangent);
+    sparse_allsum(communicator_,K);
 #else
-    LammpsInterface::instance()->sparse_allsum(tangent);
+    LammpsInterface::instance()->sparse_allsum(K);
 #endif
+    tangent += K;
+  }
+
+  //-----------------------------------------------------------------
+  // Robin boundary flux using native quadrature 
+  // integrate \int_delV _N_I s(x,t).n dA
+  //-----------------------------------------------------------------
+  void FE_Engine::add_open_fluxes(const Array2D<bool> &rhsMask,
+                                  const FIELDS        & fields,
+                                  const OPEN_SURFACE  & openFaces,
+                                  FIELDS &nodalSources,
+                                  const FieldName Velocity) const
+  {
+    
+    // sizing working arrays
+    DENS_MAT xCoords(nSD_,nNodesPerElement_);
+    DENS_MAT faceSource;
+    DENS_MAT localField;
+    DENS_MAT xAtIPs(nSD_,nIPsPerFace_);
+    DENS_MAT uAtIPs; // (nIPsPerFace_,field nCols);
+    DENS_MAT aAtIPs(nIPsPerFace_,1);
+    FIELDS myNodalSources;
+
+    // throw error if electron velocity is not defined
+
+    // element wise assembly
+    OPEN_SURFACE::const_iterator face_iter;
+    for (face_iter=openFaces.begin(); face_iter!=openFaces.end(); face_iter++)
+    {
+      _fieldName_ = face_iter->first;
+      if (!rhsMask((int)_fieldName_,OPEN_SOURCE)) continue; 
+      DENS_MAT & s(nodalSources[_fieldName_].set_quantity());
+      myNodalSources[_fieldName_] = DENS_MAT(s.nRows(),s.nCols());
+    }
+    for (face_iter=openFaces.begin(); face_iter!=openFaces.end(); face_iter++)
+    {
+      _fieldName_ = face_iter->first;
+      if (!rhsMask((int)_fieldName_,OPEN_SOURCE)) continue; 
+      
+      typedef set<PAIR> FSET;
+      const FSET *fset = (const FSET *)&(face_iter->second);
+      FSET::const_iterator fset_iter;
+      for (fset_iter = fset->begin(); fset_iter != fset->end(); fset_iter++)
+      {
+        const PAIR &face = *fset_iter;
+        const int elem = face.first;
+        // if this is not our element, do not do calculations
+        if (!feMesh_->is_owned_elt(elem)) continue;
+        // get velocity, multiply with field (vector gives tensor)
+        // dot with face normal
+        _conn_ = feMesh_->element_connectivity_unique(elem);
+        // evaluate location at ips
+        feMesh_->face_shape_function(face, _fN_, _fdN_, _nN_, _fweights_);
+        // collect field at ips
+        _fieldItr_ = fields.find(_fieldName_);
+        const DENS_MAT & field = (_fieldItr_->second).quantity();
+        feMesh_->element_field(elem, field, localField);
+        int nFieldDOF = field.nCols();
+        // "u" is the quantity being advected
+        uAtIPs.reset(nIPsPerFace_,nFieldDOF);
+        uAtIPs = _fN_*localField;
+        // collect velocity at ips for "advection" = v.n
+        _fieldItr_ = fields.find(Velocity);
+        const DENS_MAT & advection = (_fieldItr_->second).quantity(); // advection velocity
+        feMesh_->element_field(elem, advection, localField);
+        for (int j = 0; j < nSD_; ++j) { // nSD_ == nDOF for the velocity
+          for (int ip = 0; ip < nIPsPerFace_; ++ip) {
+            for (int I = 0; I < nNodesPerElement_; ++I) {
+              aAtIPs(ip,0) += (_nN_[j])(ip,I)*localField(I,j);
+            }
+          }
+        }
+        // construct open flux at ips of this element
+        // flux = field \otimes advection_vector \dot n
+        FSET::const_iterator face_iter = fset->find(face);
+        faceSource.reset(nIPsPerFace_,nFieldDOF);
+        for (int ip = 0; ip < nIPsPerFace_; ++ip) {
+          for (int idof = 0; idof<nFieldDOF; ++idof) {
+            // multiply field DOF value times advection vector
+            faceSource(ip,idof) = aAtIPs(ip,1)*uAtIPs(ip,idof);//(v.n) u
+          }
+        }
+        // assemble contributions for this direction of the face normal
+        // _nN_[j](ip,I) nodal shapefunction(I) at ip X face normal(j)
+        // _fweights_ diagonal nips X nips ==> facesource is nips X ndofs
+        DENS_MAT & s(myNodalSources[_fieldName_].set_quantity());
+        _Nmat_ = _fN_.transMat(_fweights_*faceSource);
+        // s_Ii = \sum_ip N_I (u_i v.n)_ip wg_ip
+        for (int i = 0; i < nNodesPerElement_; ++i) {
+          int inode = _conn_(i);
+          for (int idof = 0; idof < nFieldDOF; ++idof) {
+            s(inode,idof) += _Nmat_(i,idof);
+          }  
+        }
+      }  
+    } 
+    // assemble partial result matrices
+    for (face_iter=openFaces.begin(); face_iter!=openFaces.end(); face_iter++) {
+      _fieldName_ = face_iter->first;
+      if (!rhsMask((int) _fieldName_,OPEN_SOURCE)) continue; 
+      DENS_MAT & s(myNodalSources[_fieldName_].set_quantity());
+      allsum(communicator_,MPI_IN_PLACE, s.ptr(), s.size());  
+      DENS_MAT & src(nodalSources[_fieldName_].set_quantity());
+      src += s;
+    }
+  }
+
+  //-----------------------------------------------------------------
+  // Open boundary flux stiffness using native quadrature 
+  // integrate \int_delV _N_I ds/du(x,t).n dA
+  //-----------------------------------------------------------------
+  void FE_Engine::add_open_tangent(const Array2D<bool> &rhsMask,
+    const FIELDS        & fields,
+    const OPEN_SURFACE  & openFaces,
+    SPAR_MAT &tangent,
+    const FieldName Velocity) const
+  {
+    
+    // sizing working arrays
+    DENS_MAT xCoords(nSD_,nNodesPerElement_);
+    DENS_MAT faceSource;
+    DENS_MAT localField;
+    DENS_MAT xAtIPs(nSD_,nIPsPerFace_);
+    DENS_MAT uAtIPs; // (nIPsPerFace_,field nCols);
+    DENS_MAT aAtIPs(nIPsPerFace_,nSD_);
+    SPAR_MAT K(tangent.nRows(), tangent.nCols());
+    // element wise assembly
+    OPEN_SURFACE::const_iterator face_iter;
+    for (face_iter=openFaces.begin(); face_iter!=openFaces.end(); face_iter++)
+    {
+      _fieldName_ = face_iter->first;
+      if (!rhsMask((int)_fieldName_,OPEN_SOURCE)) continue; 
+      bool convective = false;
+      if (_fieldName_ == Velocity) convective = true;
+      
+      typedef set<PAIR> FSET;
+      const FSET *fset = (const FSET *)&(face_iter->second);
+      FSET::const_iterator fset_iter;
+      for (fset_iter = fset->begin(); fset_iter != fset->end(); fset_iter++)
+      {
+        const PAIR &face = *fset_iter;
+        const int elem = face.first;
+        // if this is not our element, do not do calculations
+        if (!feMesh_->is_owned_elt(elem)) continue;
+        _conn_ = feMesh_->element_connectivity_unique(elem);
+        // evaluate location at ips
+        feMesh_->face_shape_function(face, _fN_, _fdN_, _nN_, _fweights_);
+        // collect field at ips
+        _fieldItr_ = fields.find(_fieldName_);
+        const DENS_MAT & field = (_fieldItr_->second).quantity();
+        feMesh_->element_field(elem, field, localField);
+        int nFieldDOF = field.nCols();
+        // "u" is the quantity being advected
+        uAtIPs.reset(nIPsPerFace_,nFieldDOF);
+        uAtIPs = _fN_*localField;
+        // collect velocity at ips for "advection" = v.n
+        _fieldItr_ = fields.find(Velocity);
+        const DENS_MAT & advection = (_fieldItr_->second).quantity(); // advection velocity
+        feMesh_->element_field(elem, advection, localField);
+        for (int j = 0; j < nSD_; ++j) { // nSD_ == nDOF for the velocity
+          for (int ip = 0; ip < nIPsPerFace_; ++ip) {
+            for (int I = 0; I < nNodesPerElement_; ++I) {
+              aAtIPs(ip,0) += (_nN_[j])(ip,I)*localField(I,j);
+            }
+          }
+        }
+        // K_IJ = \sum_ip N_I ( v.n I + u (x) n ) N_J wg_ip
+        DENS_MAT D(nFieldDOF,nFieldDOF);
+        DENS_VEC n(nSD_);
+        for (int ip = 0; ip < nIPsPerFace_; ++ip) {
+          for (int idof = 0; idof<nFieldDOF; ++idof) {
+            D(idof,idof) -= aAtIPs(ip,0);
+            if (convective) {
+              feMesh_->face_normal(face,ip,n);
+              for (int jdof = 0; jdof<nFieldDOF; ++jdof) {
+                D(idof,jdof) -=  uAtIPs(ip,idof)*n(jdof);
+              }
+            }
+          }
+        }
+        // assemble
+        _Nmat_ = _fN_.transMat(D*_fN_);
+        for (int i = 0; i < nNodesPerElement_; ++i) {
+          int inode = _conn_(i);
+          for (int j = 0; j < nNodesPerElement_; ++j) {
+            int jnode = _conn_(j);
+            K.add(inode, jnode, _Nmat_(i,j));
+          }  
+        } 
+      }  
+    } 
+    // assemble partial result matrices
+#ifdef ISOLATE_FE
+    sparse_allsum(communicator_,K);
+#else
+    LammpsInterface::instance()->sparse_allsum(K);
+#endif
+    tangent += K;
   }
   
   //-----------------------------------------------------------------
@@ -2102,20 +2338,16 @@ namespace ATC{
     DENS_MAT xCoords(nSD_,nNodesPerElement_);
     DENS_MAT xAtIPs(nSD_,nIPsPerFace_);
     DENS_MAT faceSource;
+    FIELDS myNodalSources;
 
     // element wise assembly
     SURFACE_SOURCE::const_iterator src_iter;
-    if (!(rank_zero(communicator_))) {
-      // Zero out unmasked nodal sources on all non-main processors.
-      // This is to avoid counting the previous nodal source values
-      // multiple times when we aggregate.
-      for (src_iter=sourceFunctions.begin(); src_iter!=sourceFunctions.end(); src_iter++)
-      {
-        _fieldName_ = src_iter->first;
-        if (!fieldMask((int)_fieldName_)) continue; 
-        DENS_MAT & myNodalSources(nodalSources[_fieldName_].set_quantity());
-        myNodalSources.reset(myNodalSources.nRows(), myNodalSources.nCols());
-      }
+    for (src_iter=sourceFunctions.begin(); src_iter!=sourceFunctions.end(); src_iter++)
+    {
+      _fieldName_ = src_iter->first;
+      if (!fieldMask((int)_fieldName_)) continue; 
+      DENS_MAT & s(nodalSources[_fieldName_].set_quantity());
+      myNodalSources[_fieldName_] = DENS_MAT(s.nRows(),s.nCols());
     }
     for (src_iter=sourceFunctions.begin(); src_iter!=sourceFunctions.end(); src_iter++)
     {
@@ -2162,14 +2394,14 @@ namespace ATC{
         }
         
         // assemble
-        DENS_MAT & myNodalSources(nodalSources[_fieldName_].set_quantity());
+        DENS_MAT & s(myNodalSources[_fieldName_].set_quantity());
         _Nmat_ = _fN_.transMat(_fweights_*faceSource);
         for (int i = 0; i < nNodesPerElement_; ++i) 
         {
           int inode = _conn_(i);
           for (int idof = 0; idof < nFieldDOF; ++idof) 
           {
-            myNodalSources(inode,idof) += _Nmat_(i,idof);
+            s(inode,idof) += _Nmat_(i,idof);
           }  // end assemble nFieldDOF
         }  // end assemble nNodesPerElement_
       }  // end fset loop
@@ -2178,8 +2410,10 @@ namespace ATC{
     for (src_iter=sourceFunctions.begin(); src_iter!=sourceFunctions.end(); src_iter++) {
       _fieldName_ = src_iter->first;
       if (!fieldMask((int)_fieldName_)) continue; 
-      DENS_MAT & myNodalSources(nodalSources[_fieldName_].set_quantity());
-      allsum(communicator_,MPI_IN_PLACE, myNodalSources.ptr(), myNodalSources.size());  
+      DENS_MAT & s(myNodalSources[_fieldName_].set_quantity());
+      allsum(communicator_,MPI_IN_PLACE, s.ptr(), s.size());  
+      DENS_MAT & src(nodalSources[_fieldName_].set_quantity());
+      src += s;
     }
   }
 
@@ -2197,24 +2431,18 @@ namespace ATC{
     DENS_MAT elemSource;
     DENS_MAT xCoords(nSD_,nNodesPerElement_);
     DENS_MAT xAtIPs(nSD_,nIPsPerElement_);
+    FIELDS myNodalSources;
 
-    if (!(rank_zero(communicator_))) {
-      // Zero out unmasked nodal sources on all non-main processors.
-      // This is to avoid counting the previous nodal source values
-      // multiple times when we aggregate.
-      for (VOLUME_SOURCE::const_iterator src_iter = sourceFunctions.begin(); 
-           src_iter != sourceFunctions.end(); src_iter++) {
-        _fieldName_ = src_iter->first;
-        int index = (int) _fieldName_;
-        if (fieldMask(index)) {
-          DENS_MAT & myNodalSources(nodalSources[_fieldName_].set_quantity());
-          myNodalSources.reset(myNodalSources.nRows(), myNodalSources.nCols());
-        }
-      }
+    for (VOLUME_SOURCE::const_iterator src_iter = sourceFunctions.begin(); 
+         src_iter != sourceFunctions.end(); src_iter++) {
+      _fieldName_ = src_iter->first;
+      int index = (int) _fieldName_;
+      if (! fieldMask(index)) continue;
+      DENS_MAT & s(nodalSources[_fieldName_].set_quantity());
+      myNodalSources[_fieldName_] = DENS_MAT(s.nRows(),s.nCols());
     }
-
     vector<int> myElems = feMesh_->owned_elts();
-    for (vector<int>::const_iterator elemsIter = myElems.begin();
+    for (vector<int>::iterator elemsIter = myElems.begin();
          elemsIter != myElems.end();
          ++elemsIter)
     {
@@ -2244,12 +2472,12 @@ namespace ATC{
           }
           // assemble
           _Nmat_ = _N_.transMat(_weights_*elemSource);
-          DENS_MAT & myNodalSources(nodalSources[_fieldName_].set_quantity());
+          DENS_MAT & s(myNodalSources[_fieldName_].set_quantity());
           
           for (int i = 0; i < nNodesPerElement_; ++i) {
             int inode = _conn_(i);
             for (int idof = 0; idof < nFieldDOF; ++idof) {
-              myNodalSources(inode,idof) += _Nmat_(i,idof);
+              s(inode,idof) += _Nmat_(i,idof);
             }
           }
         }
@@ -2260,9 +2488,31 @@ namespace ATC{
          src_iter != sourceFunctions.end(); src_iter++) {
       _fieldName_ = src_iter->first;
       int index = (int) _fieldName_;
-      if (fieldMask(index)) {
-        DENS_MAT & myNodalSources(nodalSources[_fieldName_].set_quantity());
-        allsum(communicator_,MPI_IN_PLACE, myNodalSources.ptr(), myNodalSources.size());  
+      if (!fieldMask(index)) continue;
+      DENS_MAT & s(myNodalSources[_fieldName_].set_quantity());
+      allsum(communicator_,MPI_IN_PLACE, s.ptr(), s.size());  
+      DENS_MAT & src(nodalSources[_fieldName_].set_quantity());
+      src += s;
+    }
+  }
+  //-----------------------------------------------------------------
+  // previously computed nodal sources
+  //-----------------------------------------------------------------
+  void FE_Engine::add_sources(const Array<bool> &fieldMask,
+    const double time,
+    const FIELDS &sources,
+    FIELDS &nodalSources) const
+  {
+    FIELDS::const_iterator itr;
+    for (itr=sources.begin(); itr!=sources.end(); itr++) {
+      _fieldName_ = itr->first;
+      if (!fieldMask((int)_fieldName_)) continue; 
+      DENS_MAT & src(nodalSources[_fieldName_].set_quantity());
+      const DENS_MAT &  s((sources.find(_fieldName_)->second).quantity());
+      for (int inode = 0; inode < nNodesUnique_; ++inode) {
+        for (int j = 0; j < src.nCols(); ++j) {
+          src(inode,j) += s(inode,j);
+        }
       }
     }
   }
@@ -2291,7 +2541,7 @@ namespace ATC{
                           // the data member?
 
     // element wise assembly
-    set< pair <int,int> >::const_iterator iter;
+    set< pair <int,int> >::iterator iter;
     for (iter = faceSet.begin(); iter != faceSet.end(); iter++) {
       int ielem = iter->first;
       // if this is not our element, do not do calculations
@@ -2644,31 +2894,43 @@ namespace ATC{
        << feMesh_->num_elements() << " elements";
     print_msg_once(communicator_,ss.str());
 #ifdef ATC_VERBOSE
-    string msg = "element sizes in x:\n";
+    print_partitions(xmin,xmax,dx);
+    print_partitions(ymin,ymax,dy);
+    print_partitions(zmin,zmax,dz);
+#endif
+  }
+  //-----------------------------------------------------------------
+  void FE_Engine::print_partitions(double xmin, double xmax, Array<double> & dx) const {
+    stringstream msg;
+    msg.precision(3);
+    msg << std::fixed;
+    msg <<  "\nindex weight fraction location size[A] size[uc]:\n";
     double sum = 0;
     for (int i = 0; i < dx.size(); ++i) { sum += dx(i); }
     double xn= 1.0/sum;
     double xs= xn*(xmax-xmin);
     double xl= xs/(ATC::LammpsInterface::instance()->xlattice());
     double sumn = 0, sums = 0, suml = 0;
+    double x = xmin;
     for (int i = 0; i < dx.size(); ++i) { 
        double dxn = dx(i)*xn; sumn += dxn;
        double dxs = dx(i)*xs; sums += dxs;
        double dxl = dx(i)*xl; suml += dxl;
-       msg += "   "+to_string(i+1)
-             +" "+to_string(dx(i))
-             +" "+to_string(dxn)
-             +" "+to_string(dxs)
-             +" "+to_string(dxl)+"\n";
+       msg << std::setw(5) << i+1
+           << std::setw(7) << dx(i)
+           << std::setw(9) << dxn
+           << std::setw(9) << x
+           << std::setw(8) << dxs
+           << std::setw(9) << dxl << "\n";
+       x += dxs;
      }
-     msg += "sum "+to_string(sum)+" "
-                  +to_string(sumn)+" "
-                  +to_string(sums)+" "
-                  +to_string(suml)+"\n";
-     print_msg_once(communicator_,msg);
-#endif
+     msg << "sum  " << setw(7) << sum
+                    << setw(9) << sumn
+                    << setw(9) << x
+                    << setw(8) << sums
+                    << setw(9) << suml << "\n";
+     print_msg_once(communicator_,msg.str());
   }
-
   //-----------------------------------------------------------------
   // create a uniform rectangular mesh on a rectangular region
   //-----------------------------------------------------------------

@@ -719,7 +719,7 @@ namespace ATC {
     InterscaleManager & interscaleManager(atc->interscale_manager());
     if (!atomVelocities_)
       atomVelocities_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_VELOCITY,
-                                                                        atomType);
+                                                                    atomType);
     if (!atomMasses_)
       atomMasses_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_MASS,
                                                                     atomType);
@@ -835,7 +835,7 @@ namespace ATC {
         LammpsInterface::ATOM_VELOCITY, atomType);
     }
     if (!atomMeanVelocities_) {
-      atomMeanVelocities_ = interscaleManager.per_atom_quantity("AtomicMeanVelocity");
+      atomMeanVelocities_ = interscaleManager.per_atom_quantity(field_to_prolongation_name(VELOCITY));
     }
 
     atomVelocities_->register_dependence(this);
@@ -980,6 +980,7 @@ namespace ATC {
       }
     }
   }
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class TwiceFluctuatingKineticEnergy
@@ -1009,7 +1010,7 @@ namespace ATC {
                                                                 atomType);
     }
     if (!atomMeanVelocities_) {
-      atomMeanVelocities_ = interscaleManager.per_atom_quantity("AtomicMeanVelocity");
+      atomMeanVelocities_ = interscaleManager.per_atom_quantity(field_to_prolongation_name(VELOCITY));
     }
 
     atomVelocities_->register_dependence(this);
@@ -1144,7 +1145,7 @@ namespace ATC {
                                                                 atomType);
     }
     if (!atomMeanVelocities_) {
-      atomMeanVelocities_ = interscaleManager.per_atom_quantity("AtomicMeanVelocity");
+      atomMeanVelocities_ = interscaleManager.per_atom_quantity(field_to_prolongation_name(VELOCITY));
     }
 
     atomVelocities_->register_dependence(this);
@@ -1428,7 +1429,7 @@ namespace ATC {
     InterscaleManager & interscaleManager(atc->interscale_manager());
     if (!atomVelocities_)
       atomVelocities_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_VELOCITY,
-                                                                        atomType);
+                                                                    atomType);
     atomVelocities_->register_dependence(this);
   }
 
@@ -1923,17 +1924,12 @@ namespace ATC {
                                                            PerAtomQuantity<double> * atomLambdas,
                                                            AtomType atomType) :
     ProtectedAtomQuantity<double>(atc,1,atomType),
-    atomMasses_(NULL),
     atomLambdas_(atomLambdas)
   {
     InterscaleManager & interscaleManager(atc->interscale_manager());
-    atomMasses_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_MASS,
-                                                                  atomType);
     if (!atomLambdas) {
       atomLambdas_ = interscaleManager.per_atom_quantity("AtomLambdaEnergy");
     }
-
-    atomMasses_->register_dependence(this);
     atomLambdas_->register_dependence(this);
   }
 
@@ -1942,7 +1938,6 @@ namespace ATC {
   //--------------------------------------------------------
   AtomicVelocityRescaleFactor::~AtomicVelocityRescaleFactor()
   {
-    atomMasses_->remove_dependence(this);
     atomLambdas_->remove_dependence(this);
   }
 
@@ -1953,11 +1948,143 @@ namespace ATC {
   {
     if (need_reset()) {
       PerAtomQuantity<double>::reset();
-      const DENS_MAT & mass(atomMasses_->quantity());
       const DENS_MAT & lambda(atomLambdas_->quantity());
 
       for (int i = 0; i < quantity_.nRows(); i++) {
-        quantity_(i,0) = sqrt(lambda(i,0)/mass(i,0));
+        quantity_(i,0) = sqrt(lambda(i,0));
+      }
+    }
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class AtomicFluctuatingVelocityRescaled
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+
+  //--------------------------------------------------------
+  //  constructor
+  //--------------------------------------------------------
+  AtomicFluctuatingVelocityRescaled::AtomicFluctuatingVelocityRescaled(ATC_Method * atc,
+                                                                       PerAtomQuantity<double> * atomRescaleFactor,
+                                                                       PerAtomQuantity<double> * atomFluctuatingVelocity,
+                                                                       AtomType atomType) :
+    ProtectedAtomQuantity<double>(atc,atc->nsd(),atomType),
+    atomRescaleFactor_(atomRescaleFactor),
+    atomFluctuatingVelocity_(atomFluctuatingVelocity)
+  {
+    InterscaleManager & interscaleManager(atc->interscale_manager());
+    if (!atomRescaleFactor_) {
+      atomRescaleFactor_ = interscaleManager.per_atom_quantity("AtomVelocityRescaling");
+    }
+    if (!atomFluctuatingVelocity_) {
+      atomFluctuatingVelocity_ = interscaleManager.per_atom_quantity("AtomicFluctuatingVelocity");
+    }
+
+    atomRescaleFactor_->register_dependence(this);
+    atomFluctuatingVelocity_->register_dependence(this);
+  }
+
+  //--------------------------------------------------------
+  //  destructor
+  //--------------------------------------------------------
+  AtomicFluctuatingVelocityRescaled::~AtomicFluctuatingVelocityRescaled()
+  {
+    atomRescaleFactor_->remove_dependence(this);
+    atomFluctuatingVelocity_->remove_dependence(this);
+  }
+
+  //--------------------------------------------------------
+  //  reset
+  //--------------------------------------------------------
+  void AtomicFluctuatingVelocityRescaled::reset() const
+  {
+    if (need_reset()) {
+      PerAtomQuantity<double>::reset();
+      const DENS_MAT & factor(atomRescaleFactor_->quantity());
+      const DENS_MAT & v(atomFluctuatingVelocity_->quantity());
+
+      for (int i = 0; i < quantity_.nRows(); i++) {
+        for (int j = 0; j < quantity_.nCols(); j++) {
+          quantity_(i,j) = factor(i,0)*v(i,j);
+        }
+      }
+    }
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class AtomicCombinedRescaleThermostatError
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+
+  //--------------------------------------------------------
+  //  constructor
+  //--------------------------------------------------------
+  AtomicCombinedRescaleThermostatError::AtomicCombinedRescaleThermostatError(ATC_Method * atc,
+                                                                             PerAtomQuantity<double> * atomFluctuatingMomentumRescaled,
+                                                                             PerAtomQuantity<double> * atomMeanVelocity,
+                                                                             PerAtomQuantity<double> * atomStreamingVelocity,
+                                                                             PerAtomQuantity<double> * atomMass,
+                                                                             AtomType atomType) :
+    ProtectedAtomQuantity<double>(atc,1,atomType),
+    atomFluctuatingMomentumRescaled_(atomFluctuatingMomentumRescaled),
+    atomMeanVelocity_(atomMeanVelocity),
+    atomStreamingVelocity_(atomStreamingVelocity),
+    atomMass_(atomMass)
+  {
+    InterscaleManager & interscaleManager(atc->interscale_manager());
+    if (!atomFluctuatingMomentumRescaled_) {
+      atomFluctuatingMomentumRescaled_ = interscaleManager.per_atom_quantity("AtomFluctuatingMomentumRescaled");
+    }
+    if (!atomMeanVelocity_) {
+      atomMeanVelocity_ = interscaleManager.per_atom_quantity(field_to_prolongation_name(VELOCITY));
+    }
+    if (!atomStreamingVelocity_) {
+      atomStreamingVelocity_ = interscaleManager.per_atom_quantity("AtomLambdaMomentum");
+    }
+    if (!atomMass_) {
+      atomMass_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_MASS,
+                                                              atomType);
+    }
+
+    atomFluctuatingMomentumRescaled_->register_dependence(this);
+    atomMeanVelocity_->register_dependence(this);
+    atomStreamingVelocity_->register_dependence(this);
+    atomMass_->register_dependence(this);
+  }
+
+  //--------------------------------------------------------
+  //  destructor
+  //--------------------------------------------------------
+  AtomicCombinedRescaleThermostatError::~AtomicCombinedRescaleThermostatError()
+  {
+    atomFluctuatingMomentumRescaled_->remove_dependence(this);
+    atomMeanVelocity_->remove_dependence(this);
+    atomStreamingVelocity_->remove_dependence(this);
+    atomMass_->remove_dependence(this);
+  }
+
+  //--------------------------------------------------------
+  //  reset
+  //--------------------------------------------------------
+  void AtomicCombinedRescaleThermostatError::reset() const
+  {
+    if (need_reset()) {
+      PerAtomQuantity<double>::reset();
+      const DENS_MAT & m(atomMass_->quantity());
+      const DENS_MAT & p(atomFluctuatingMomentumRescaled_->quantity());
+      const DENS_MAT & v(atomMeanVelocity_->quantity());
+      const DENS_MAT & s(atomStreamingVelocity_->quantity());
+
+      double diff;
+      for (int i = 0; i < quantity_.nRows(); i++) {
+        diff = s(i,0)-v(i,0);
+        quantity_(i,0) = 2.*p(i,0)*diff + m(i,0)*diff*diff;
+        for (int j = 1; j < p.nCols(); j++) {
+          diff = s(i,j)-v(i,j);
+          quantity_(i,0) += 2.*p(i,j)*diff + m(i,0)*diff*diff;
+        }
       }
     }
   }

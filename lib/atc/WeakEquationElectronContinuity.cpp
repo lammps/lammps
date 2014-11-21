@@ -82,6 +82,7 @@ void WeakEquationElectronEquilibrium::M_integrand(
 }
 
 //---------------------------------------------------------------------
+
 bool WeakEquationElectronEquilibrium::N_integrand(
   const FIELD_MATS &fields,
   const GRAD_FIELD_MATS &grad_fields,

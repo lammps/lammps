@@ -1,11 +1,10 @@
-# library build -*- makefile -*-
 SHELL = /bin/sh
 
 # which file will be copied to Makefile.lammps
-EXTRAMAKE = Makefile.lammps.linalg
+
+EXTRAMAKE = Makefile.lammps.installed
 
 # ------ FILES ------
-
 SRC = $(wildcard *.cpp)
 INC = $(wildcard *.h)
 
@@ -19,13 +18,19 @@ OBJ =   $(SRC:.cpp=.o)
 # include any MPI settings needed for the ATC library to build with
 # must be the same MPI library that LAMMPS is built with
 
-CC =	        g++
-CCFLAGS =       -O -g -fPIC -I../../src -I../../src/STUBS
+CC =       env OMPI_CC=clang OMPI_CXX=clang++ mpic++ $(OPENMP)
+CCFLAGS =  -O3 -fomit-frame-pointer -I../../src -DOMPI_SKIP_MPICXX=1 \
+           -march=native -ffast-math -g -fstrict-aliasing \
+           -Wall -W -Wextra -DMPICH_IGNORE_CXX_SEEK \
+           -Wno-unused-parameter -Wno-sometimes-uninitialized -Wno-sign-compare 
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 DEPFLAGS =      -M
-LINK =         	$(CC)
+LINK =         $(CC)	
 LINKFLAGS =	-O
+USRLIB =
+SYSLIB =
+
 # ------ MAKE PROCEDURE ------
 
 lib: 	$(OBJ)
@@ -46,6 +51,4 @@ DEPENDS = $(OBJ:.o=.d)
 # ------ CLEAN ------
 
 clean:
-	@rm *.o *.d *~ $(LIB)
-
-sinclude $(DEPENDS)
+	-rm *.o *.d *~ $(LIB)

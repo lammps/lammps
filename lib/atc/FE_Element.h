@@ -70,10 +70,10 @@ namespace ATC {
     const Array2D<int> &local_face_conn() const { return localFaceConn_; }
 
     /** return volume of the element */
-    const double vol() const { return vol_; }
+    double vol() const { return vol_; }
 
     /** return area of a face */
-    const double face_area() const { return faceArea_; } 
+    double face_area() const { return faceArea_; }
 
     // the following two are pass-throughs to the interpolate class, and
     // can thus only be declared in the class body (or else the

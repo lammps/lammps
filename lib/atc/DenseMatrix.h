@@ -17,9 +17,9 @@ class DenseMatrix : public Matrix<T>
 {
 public:
   DenseMatrix(INDEX rows=0, INDEX cols=0, bool z=1): _data(NULL){ _create(rows, cols, z); }
-  DenseMatrix(const DenseMatrix<T>& c) : _data(NULL){ _copy(c); }
-  DenseMatrix(const SparseMatrix<T>& c): _data(NULL){ c.dense_copy(*this);}
-  DenseMatrix(const Matrix<T>& c)      : _data(NULL){ _copy(c); }
+  DenseMatrix(const DenseMatrix<T>& c) : Matrix<T>(), _data(NULL){ _copy(c); }
+  DenseMatrix(const SparseMatrix<T>& c): Matrix<T>(), _data(NULL){ c.dense_copy(*this);}
+  DenseMatrix(const Matrix<T>& c)      : Matrix<T>(), _data(NULL){ _copy(c); }
 //  const SparseMatrix<T> * p = sparse_cast(&c);
 //  (p) ? p->dense_copy(*this) : _copy(c); }
   ~DenseMatrix()                                    { _delete();}

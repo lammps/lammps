@@ -140,7 +140,8 @@ namespace ATC {
     /** returns a pointer to the DENS_MAN associated with the tag, creates a new data member if necessary */
     DENS_MAN * regulator_data(const std::string tag, int nCols);
     /** can externally set regulator dynamic contributions */
-    virtual void reset_lambda_contribution(const DENS_MAT & target, const FieldName field=NUM_TOTAL_FIELDS) {};
+    virtual void reset_lambda_contribution(const DENS_MAT & target, const FieldName field) {};
+    virtual void reset_lambda_contribution(const DENS_MAT & target) { reset_lambda_contribution(target,NUM_TOTAL_FIELDS); }
     /** returns a const pointer to the DENS_MAN associated with the tag, or NULL */
     const DENS_MAN * regulator_data(const std::string tag) const;
     /** return the maximum number of iterations */

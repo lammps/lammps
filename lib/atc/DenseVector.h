@@ -16,9 +16,9 @@ class DenseVector : public Vector<T>
 {
 public:
   explicit DenseVector(INDEX n=0, bool z=1)          { _create(n,z); }
-  DenseVector(const DenseVector<T> &c) : _data(NULL) { _copy(c); } 
-  DenseVector(const Vector<T> &c)      : _data(NULL) { _copy(c); } 
-  DenseVector(const T * ptr, INDEX nrows) : _data(NULL) { copy(ptr,nrows); } 
+  DenseVector(const DenseVector<T> &c) : Vector<T>(), _data(NULL) { _copy(c); }
+  DenseVector(const Vector<T> &c)      : Vector<T>(), _data(NULL) { _copy(c); }
+  DenseVector(const T * ptr, INDEX nrows) : Vector<T>(), _data(NULL) { copy(ptr,nrows); }
   virtual ~DenseVector()               { _delete();    }
   
   //* resizes the Vector, ignores nCols, optionally copys what fits

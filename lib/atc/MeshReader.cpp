@@ -24,8 +24,7 @@ namespace ATC {
     : meshfile_(filename),
       periodicity_(periodicity),
       nNodes_(0),
-      nElements_(0),
-      coordTol_(tol)
+      nElements_(0)
   {
     conn_ = new Array2D<int>();
     nodeCoords_ = new DENS_MAT;

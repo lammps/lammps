@@ -22,10 +22,6 @@ using std::set;
 using std::pair;
 using std::vector;
 
-const double tol = 1.e-8; 
-const double zero_tol = 1.e-12; 
-const double f_tol = 1.e-8; 
-
 namespace ATC {
 
   //--------------------------------------------------------
@@ -98,7 +94,6 @@ namespace ATC {
   bool ExtrinsicModelDriftDiffusion::modify(int narg, char **arg)
   {
     bool match = false;
-    int argIndx = 0;
     if (!match) {
       match = ExtrinsicModelTwoTemperature::modify(narg, arg);
     }

@@ -117,7 +117,7 @@ namespace ATC {
     virtual void clear();
 
     /** initialize global data */
-    virtual void initialize();
+    virtual void initialize(std::map<int, double> * globalAtomsPerMolecule = NULL);
 
     /** access molecule atoms by lammps id */
     std::set<int> atoms_by_global_molecule(int id) const;

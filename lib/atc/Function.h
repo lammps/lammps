@@ -28,10 +28,6 @@ namespace ATC {
     /** depdendencies */
     virtual inline ARG_NAMES args(void) {ARG_NAMES names; return names;};
 
-    /** function value */
-    virtual inline double f(ARGS& args) {return 0.0;};
-    virtual inline void   f(ARGS& args, DENS_MAT vals) {};
-
     /** (1st) derivative of function wrt to a field */
     virtual inline double dfd(FieldName field, ARGS& args ) {return 0.0;};
     virtual inline void   dfd(FieldName field, ARGS& args, DENS_MAT vals ) {};

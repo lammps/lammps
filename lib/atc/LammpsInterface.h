@@ -10,17 +10,17 @@
 #include <fstream>
 #include <utility>
 #include "mpi.h"
-#include "lammps.h"
-#include "comm.h"
-#include "modify.h"
-#include "memory.h"
-#include "random_park.h"
+#include "../../src/lmptype.h"
+#include "../../src/lammps.h"
+#include "../../src/comm.h"
+#include "../../src/modify.h"
+#include "../../src/memory.h"
+#include "../../src/random_park.h"
 typedef LAMMPS_NS::RanPark* RNG_POINTER;
-#include "lmptype.h"
-#include "compute.h"
+#include "../../src/compute.h"
 typedef const LAMMPS_NS::Compute* COMPUTE_POINTER;
-#include "update.h"
-#include "min.h"
+#include "../../src/update.h"
+#include "../../src/min.h"
 #include "ATC_Error.h"
 #include "ATC_TypeDefs.h"
 #include "MatrixDef.h"

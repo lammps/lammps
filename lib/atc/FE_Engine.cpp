@@ -2198,7 +2198,6 @@ namespace ATC{
         }
         // construct open flux at ips of this element
         // flux = field \otimes advection_vector \dot n
-        FSET::const_iterator face_iter = fset->find(face);
         faceSource.reset(nIPsPerFace_,nFieldDOF);
         for (int ip = 0; ip < nIPsPerFace_; ++ip) {
           for (int idof = 0; idof<nFieldDOF; ++idof) {

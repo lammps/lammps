@@ -39,7 +39,7 @@ class WeakEquationElectronContinuity : public WeakEquation {
                            DENS_MAT_VEC &flux) const;
 
   /** flux that is integrated with N as its weight */
-  virtual bool has_N_integrand(void) {return true;}
+  virtual bool has_N_integrand(void) const {return true;}
   virtual bool N_integrand(const FIELD_MATS &fields, 
                            const GRAD_FIELD_MATS &grad_fields,
                            const Material * material,

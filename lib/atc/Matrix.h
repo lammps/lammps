@@ -26,7 +26,8 @@ public:
   friend std::ostream& operator<<(std::ostream &o, const Matrix<T> &m){m.print(o); return o;}
   void print() const;
   virtual void print(const std::string &name, int p = myPrecision) const;
-  virtual std::string to_string(int p = myPrecision) const;
+  virtual std::string to_string(int p) const;
+  virtual std::string to_string() const { return to_string(myPrecision); }
 
   // element by element operations
   DenseMatrix<T> operator/(const Matrix<T>& B) const;

@@ -185,7 +185,7 @@ namespace ATC {
     virtual void operator/=(const MatrixDependencyManager<T,U> & divisor) {get_quantity()/=divisor.quantity(); propagate_reset();};
 
     /** execute the matrix print command */
-    virtual void const print(const std::string &name) {get_quantity().print(name);};
+    virtual void print(const std::string &name) const {get_quantity().print(name);};
 
   protected:
 

@@ -1284,5 +1284,51 @@ void colvar::eigenvector::calc_Jacobian_derivative()
 }
 
 
+colvar::cartesian::cartesian(std::string const &conf)
+  : cvc(conf)
+{
+  b_inverse_gradients = false;
+  b_Jacobian_derivative = false;
+  function_type = "cartesian";
 
+  parse_group(conf, "atoms", atoms);
+  atom_groups.push_back(&atoms);
+
+  x.type(colvarvalue::type_vector);
+  x.vector1d_value.resize(atoms.size() * 3);
+}
+
+
+void colvar::cartesian::calc_value()
+{
+  int ia, j;
+  for (ia = 0; ia < atoms.size(); ia++) {
+    for (j = 0; j < 3; j++) {
+      x.vector1d_value[3*ia + j] = atoms[ia].pos[j];
+    }
+  }
+}
+
+
+void colvar::cartesian::calc_gradients()
+{
+  // we're not using the "grad" member of each
+  // atom object, because it only can represent the gradient of a
+  // scalar colvar
+}
+
+
+void colvar::cartesian::apply_force(colvarvalue const &force)
+{
+  int ia, j;
+  if (!atoms.noforce) {
+    cvm::rvector f;
+    for (ia = 0; ia < atoms.size(); ia++) {
+      for (j = 0; j < 3; j++) {
+        f[j] = force.vector1d_value[3*ia + j];
+      }
+      atoms[ia].apply_force(f);
+    }
+  }
+}
 

@@ -99,6 +99,7 @@ colvar::colvar(std::string const &conf)
 
   initialize_components("distance",         "distance",       distance);
   initialize_components("distance vector",  "distanceVec",    distance_vec);
+  initialize_components("Cartesian coordinates", "cartesian",  cartesian);
   initialize_components("distance vector "
                          "direction",        "distanceDir",    distance_dir);
   initialize_components("distance projection "

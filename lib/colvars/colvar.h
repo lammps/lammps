@@ -504,6 +504,7 @@ public:
   // non-scalar components
   class distance_vec;
   class distance_dir;
+  class cartesian;
   class orientation;
 
 protected:

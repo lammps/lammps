@@ -1133,6 +1133,23 @@ public:
 };
 
 
+// \brief Colvar component: flat vector of Cartesian coordinates
+// Mostly useful to compute scripted colvar values
+class colvar::cartesian
+  : public colvar::cvc
+{
+protected:
+  /// Atom group
+  cvm::atom_group atoms;
+public:
+  cartesian(std::string const &conf);
+  cartesian();
+  virtual inline ~cartesian() {}
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+};
+
 
 // metrics functions for cvc implementations
 

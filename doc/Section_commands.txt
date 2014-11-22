@@ -846,6 +846,7 @@ package"_Section_start.html#start_3.
 "sph/rhosum"_pair_sph_rhosum.html,
 "sph/taitwater"_pair_sph_taitwater.html,
 "sph/taitwater/morris"_pair_sph_taitwater_morris.html,
+"srp"_pair_srp.html,
 "tersoff/table (o)"_pair_tersoff.html,
 "tip4p/long/soft (o)"_pair_lj_soft.html :tb(c=4,ea=c)
 

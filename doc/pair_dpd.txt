@@ -95,6 +95,11 @@ except that A is not included.
 The GPU-accelerated versions of these styles are implemented based on
 the work of "(Afshar)"_#Afshar and "(Phillips)"_#Phillips.
 
+IMPORTANT NOTE: If you are modeling DPD polymer chains, you may want
+to use the "pair_style srp"_pair_srp.html command in conjuction with
+these pair styles.  It is a soft segmental repulsive potential (SRP)
+that can prevent DPD polymer chains from crossing each other.
+
 :line
 
 Styles with a {cuda}, {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
@@ -181,7 +186,7 @@ compute depend on atom velocities.  See the
 [Related commands:]
 
 "pair_coeff"_pair_coeff.html, "fix nvt"_fix_nh.html, "fix
-langevin"_fix_langevin.html
+langevin"_fix_langevin.html, "pair_style srp"_pair_srp.html
 
 [Default:] none
 

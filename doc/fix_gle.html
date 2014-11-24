@@ -1,0 +1,156 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix gle command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID id-group gle Ns Tstart Tstop seed Amatrix <B>noneq Cmatrix</B> <B>every stride</B> 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>gle = style name of this fix command 
+
+<LI>Ns = number of additional fictitious momenta 
+
+<LI>Tstart, Tstop = temperature ramp during the run 
+
+<LI>Amatrix = file to read the drift matrix A from 
+
+<LI>seed = random number seed to use for generating noise (positive integer) 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+keyword = <I>noneq</I> and/or <I>every</I>
+  <I>noneq</I> Cmatrix  = file to read the non-equilibrium covariance matrix from 
+  <I>every</I> stride   = apply the GLE once every time steps. Reduces the accuracy
+      of the integration of the GLE, but has *no effect* on the accuracy of equilibrium
+      sampling. It might change sampling properties when used together with <I>noneq</I>.
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<P>fix 3 boundary gle 6 300 300 31415 smart.A
+fix 1 all gle 6 300 300 31415 qt-300k.A noneq qt-300k.C
+</P>
+<P><B>Description:</B>
+</P>
+<P>Apply a Generalized Langevin Equation (GLE) thermostat as described
+in <A HREF = "#Ceriotti">(Ceriotti)</A>. The formalism allows one to obtain a number
+of different effects ranging from efficient sampling of all 
+vibrational modes in the system to inexpensive (approximate) 
+modelling of nuclear quantum effects. Contrary to 
+<A HREF = "fix_langevin.html">fix langevin</A>, this fix performs both 
+thermostatting and evolution of the Hamiltonian equations of motion, so it 
+does not need to be used together with <A HREF = "fix_nve.html">fix nve</A>.
+</P>
+<P>Each degree of freedom in the thermostatted group is supplemented
+with Ns additional degrees of freedom s, and the equations of motion
+become
+</P>
+<P>dq/dt=p/m
+d(p,s)/dt=(F,0) - A(p,s) + B dW/dt
+</P>
+<P>where F is the physical force, A is the drift matrix (that generalizes 
+the friction in Langevin dynamics), B is the diffusion term and dW/dt 
+un-correlated Gaussian random forces. The A matrix couples the physical
+(q,p) dynamics with that of the additional degrees of freedom, 
+and makes it possible to obtain effectively a history-dependent 
+noise and friction kernel. 
+</P>
+<P>The drift matrix should be given as an external file <I>Afile</I>,
+as a (Ns+1 x Ns+1) matrix in inverse time units. Matrices that are
+optimal for a given application and the system of choice can be 
+obtained from <A HREF = "#GLE4MD">(GLE4MD)</A>.
+</P>
+<P>Equilibrium sampling a temperature T is obtained by specifiying the 
+target value as the <I>Tstart</I> and <I>Tstop</I> arguments, so that the diffusion 
+matrix that gives canonical sampling for a given A is computed automatically.
+However, the GLE framework also allow for non-equilibrium sampling, that
+can be used for instance to model inexpensively zero-point energy
+effects <A HREF = "#Ceriotti2">(Ceriotti2)</A>. This is achieved specifying the 
+<I>noneq</I> keyword followed by the name of the file that contains the
+static covariance matrix for the non-equilibrium dynamics.
+</P>
+<P>Since integrating GLE dynamics can be costly when used together with 
+simple potentials, one can use the <I>every</I> optional keyword to 
+apply the Langevin terms only once every several MD steps, in a 
+multiple time-step fashion. This should be used with care when doing
+non-equilibrium sampling, but should have no effect on equilibrium
+averages when using canonical sampling.
+</P>
+<P>The random number <I>seed</I> must be a positive integer.  A Marsaglia random
+number generator is used.  Each processor uses the input seed to
+generate its own unique seed and its own stream of random numbers.
+Thus the dynamics of the system will not be identical on two runs on
+different numbers of processors. 
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>The instantaneous values of the extended variables are written to
+<A HREF = "restart.html">binary restart files</A>.  Because the state of the random
+number generator is not saved in restart files, this means you cannot
+do "exact" restarts with this fix, where the simulation continues on
+the same as if no restart had taken place. However, in a statistical
+sense, a restarted simulation should produce the same behavior.
+Note however that you should use a different seed each time you
+restart, otherwise the same sequence of random numbers will be used 
+each time, which might lead to stochastic synchronization and 
+subtle artefacts in the sampling. 
+</P>
+<P>This fix can ramp its target temperature over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy change induced by Langevin thermostatting to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.  
+</P>
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+cummulative energy change due to this fix.  The scalar value
+calculated by this fix is "extensive".  
+</P>
+<P><B>Restrictions:</B> 
+</P>
+<P>The GLE thermostat in its current implementation should not be used
+with rigid bodies, SHAKE or RATTLE. It is expected that all the
+thermostatted degrees of freedom are fully flexible, and the sampled
+ensemble will not be correct otherwise.
+</P>
+<P>This fix is part of the USER-MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>, <A HREF = "fix_viscous.html">fix
+viscous</A>, <A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "pair_dpd.html">pair_style
+dpd/tstat</A>, <A HREF = "fix_gld.html">fix_gld</A>
+</P>
+<HR>
+
+<A NAME = "Ceriotti"></A>
+
+<P><B>(Ceriotti)</B> Ceriotti, Bussi and Parrinello, J Chem Theory Comput 6, 
+1170-80 (2010)
+</P>
+<A NAME = "GLE4MD"></A>
+
+<P><B>(GLE4MD)</B> <A HREF = "http://epfl-cosmo.github.io/gle4md/">http://epfl-cosmo.github.io/gle4md/</A>
+</P>
+<A NAME = "Ceriotti2"></A>
+
+<P><B>(Ceriotti2)</B> Ceriotti, Bussi and Parrinello, Phys Rev Lett 103, 
+030603 (2009)
+</P>
+</HTML>

@@ -25,7 +25,7 @@
 
 <LI>group-ID = ID of the group of atoms to be dumped 
 
-<LI>style = <I>atom</I> or <I>atom/mpiio</I> or <I>cfg</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>xyz/mpiio</I> or <I>image</I> or <I>movie</I> or <I>molfile</I> or <I>local</I> or <I>custom</I> or <I>custom/mpiio</I> 
+<LI>style = <I>atom</I> or <I>atom/mpiio</I> or <I>cfg</I> or <I>cfg/mpiio</I> or <I>dcd</I> or <I>xtc</I> or <I>xyz</I> or <I>xyz/mpiio</I> or <I>image</I> or <I>movie</I> or <I>molfile</I> or <I>local</I> or <I>custom</I> or <I>custom/mpiio</I> 
 
 <LI>N = dump every this many timesteps 
 
@@ -36,6 +36,7 @@
 <PRE>  <I>atom</I> args = none
   <I>atom/mpiio</I> args = none
   <I>cfg</I> args = same as <I>custom</I> args, see below
+  <I>cfg/mpiio</I> args = same as <I>custom</I> args, see below
   <I>dcd</I> args = none
   <I>xtc</I> args = none
   <I>xyz</I> args = none 
@@ -149,14 +150,14 @@ default.  For the <I>dcd</I>, <I>xtc</I>, <I>xyz</I>, and <I>molfile</I> styles,
 atom ID is on by default. See the <A HREF = "dump_modify.html">dump_modify</A> doc
 page for details.
 </P>
-<P>As explained below, the <I>atom/mpiio</I>, <I>custom/mpiio</I>, and <I>xyz/mpiio</I>
-styles are identical in command syntax and in the format of the dump
-files they create, to the corresponding styles without "mpiio", except
-the single dump file they produce is written in parallel via the
-MPI-IO library.  For the remainder of this doc page, you should thus
-consider the <I>atom</I> and <I>atom/mpiio</I> styles (etc) to be
-inter-changeable.  The one exception is how the filename is specified
-for the MPI-IO styles, as explained below.
+<P>As explained below, the <I>atom/mpiio</I>, <I>cfg/mpiio</I>, <I>custom/mpiio</I>, and
+<I>xyz/mpiio</I> styles are identical in command syntax and in the format
+of the dump files they create, to the corresponding styles without
+"mpiio", except the single dump file they produce is written in
+parallel via the MPI-IO library.  For the remainder of this doc page,
+you should thus consider the <I>atom</I> and <I>atom/mpiio</I> styles (etc) to
+be inter-changeable.  The one exception is how the filename is
+specified for the MPI-IO styles, as explained below.
 </P>
 <HR>
 
@@ -367,10 +368,11 @@ when running on large numbers of processors.
 <P>Note that using the "*" and "%" characters together can produce a
 large number of small dump files!
 </P>
-<P>For the <I>atom/mpiio</I>, <I>custom/mpiio</I>, and <I>xyz/mpiio</I> styles, a single
-dump file is written in parallel via the MPI-IO library, which is part
-of the MPI standard for versions 2.0 and above.  Using MPI-IO requires
-two steps.  First, build LAMMPS with its MPIIO package installed, e.g.
+<P>For the <I>atom/mpiio</I>, <I>cfg/mpiio</I>, <I>custom/mpiio</I>, and <I>xyz/mpiio</I>
+styles, a single dump file is written in parallel via the MPI-IO
+library, which is part of the MPI standard for versions 2.0 and above.
+Using MPI-IO requires two steps.  First, build LAMMPS with its MPIIO
+package installed, e.g.
 </P>
 <PRE>make yes-mpiio    # installs the MPIIO package
 make g++          # build LAMMPS for your platform 
@@ -585,10 +587,10 @@ per-atom quantities which could then be output into dump files.
 -DLAMMPS_GZIP option - see the <A HREF = "Section_start.html#start_2">Making
 LAMMPS</A> section of the documentation.
 </P>
-<P>The <I>atom/mpiio</I>, <I>custom/mpiio</I>, and <I>xyz/mpiio</I> styles are part of
-the MPIIO package.  They are only enabled if LAMMPS was built with
-that package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
-section for more info.
+<P>The <I>atom/mpiio</I>, <I>cfg/mpiio</I>, <I>custom/mpiio</I>, and <I>xyz/mpiio</I> styles
+are part of the MPIIO package.  They are only enabled if LAMMPS was
+built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P>The <I>xtc</I> style is part of the XTC package.  It is only enabled if
 LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making

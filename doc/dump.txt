@@ -17,13 +17,14 @@ dump ID group-ID style N file args :pre
 
 ID = user-assigned name for the dump :ulb,l
 group-ID = ID of the group of atoms to be dumped :l
-style = {atom} or {atom/mpiio} or {cfg} or {dcd} or {xtc} or {xyz} or {xyz/mpiio} or {image} or {movie} or {molfile} or {local} or {custom} or {custom/mpiio} :l
+style = {atom} or {atom/mpiio} or {cfg} or {cfg/mpiio} or {dcd} or {xtc} or {xyz} or {xyz/mpiio} or {image} or {movie} or {molfile} or {local} or {custom} or {custom/mpiio} :l
 N = dump every this many timesteps :l
 file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
   {atom} args = none
   {atom/mpiio} args = none
   {cfg} args = same as {custom} args, see below
+  {cfg/mpiio} args = same as {custom} args, see below
   {dcd} args = none
   {xtc} args = none
   {xyz} args = none :pre
@@ -135,14 +136,14 @@ default.  For the {dcd}, {xtc}, {xyz}, and {molfile} styles, sorting by
 atom ID is on by default. See the "dump_modify"_dump_modify.html doc
 page for details.
 
-As explained below, the {atom/mpiio}, {custom/mpiio}, and {xyz/mpiio}
-styles are identical in command syntax and in the format of the dump
-files they create, to the corresponding styles without "mpiio", except
-the single dump file they produce is written in parallel via the
-MPI-IO library.  For the remainder of this doc page, you should thus
-consider the {atom} and {atom/mpiio} styles (etc) to be
-inter-changeable.  The one exception is how the filename is specified
-for the MPI-IO styles, as explained below.
+As explained below, the {atom/mpiio}, {cfg/mpiio}, {custom/mpiio}, and
+{xyz/mpiio} styles are identical in command syntax and in the format
+of the dump files they create, to the corresponding styles without
+"mpiio", except the single dump file they produce is written in
+parallel via the MPI-IO library.  For the remainder of this doc page,
+you should thus consider the {atom} and {atom/mpiio} styles (etc) to
+be inter-changeable.  The one exception is how the filename is
+specified for the MPI-IO styles, as explained below.
 
 :line
 
@@ -353,10 +354,11 @@ when running on large numbers of processors.
 Note that using the "*" and "%" characters together can produce a
 large number of small dump files!
 
-For the {atom/mpiio}, {custom/mpiio}, and {xyz/mpiio} styles, a single
-dump file is written in parallel via the MPI-IO library, which is part
-of the MPI standard for versions 2.0 and above.  Using MPI-IO requires
-two steps.  First, build LAMMPS with its MPIIO package installed, e.g.
+For the {atom/mpiio}, {cfg/mpiio}, {custom/mpiio}, and {xyz/mpiio}
+styles, a single dump file is written in parallel via the MPI-IO
+library, which is part of the MPI standard for versions 2.0 and above.
+Using MPI-IO requires two steps.  First, build LAMMPS with its MPIIO
+package installed, e.g.
 
 make yes-mpiio    # installs the MPIIO package
 make g++          # build LAMMPS for your platform :pre
@@ -571,10 +573,10 @@ To write gzipped dump files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option - see the "Making
 LAMMPS"_Section_start.html#start_2 section of the documentation.
 
-The {atom/mpiio}, {custom/mpiio}, and {xyz/mpiio} styles are part of
-the MPIIO package.  They are only enabled if LAMMPS was built with
-that package.  See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
+The {atom/mpiio}, {cfg/mpiio}, {custom/mpiio}, and {xyz/mpiio} styles
+are part of the MPIIO package.  They are only enabled if LAMMPS was
+built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 The {xtc} style is part of the XTC package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making

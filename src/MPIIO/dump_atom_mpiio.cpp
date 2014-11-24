@@ -34,7 +34,6 @@ using namespace LAMMPS_NS;
 #define DUMP_BUF_CHUNK_SIZE 16384
 #define DUMP_BUF_INCREMENT_SIZE 4096
 
-
 /* ---------------------------------------------------------------------- */
 
 DumpAtomMPIIO::DumpAtomMPIIO(LAMMPS *lmp, int narg, char **arg) :

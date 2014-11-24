@@ -19,12 +19,10 @@ PACKAGE = asphere body class2 colloid dipole fld gpu granular kim \
 
 PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars \
 	   user-cuda user-eff user-fep user-intel user-lb user-misc \
-	   user-molfile user-omp user-phonon user-pimd \
-	   user-qmmm user-reaxc user-sph
+	   user-molfile user-omp user-phonon user-qmmm user-reaxc user-sph
 
 PACKLIB = gpu kim meam poems reax voronoi \
-	  user-atc user-awpmd user-colvars user-pimd \
-	  user-qmmm user-cuda user-molfile
+	  user-atc user-awpmd user-colvars user-qmmm user-cuda user-molfile
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 

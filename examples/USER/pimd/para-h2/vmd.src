@@ -1,0 +1,94 @@
+###################################################################
+
+mol new H2.xyz type xyz first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+animate delete  beg 0 end 0 skip 0 0
+mol addfile dcd/H2_0.dcd type dcd first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+
+mol representation CPK
+mol color Name
+mol material Opaque
+mol addrep top
+
+
+###################################################################
+
+mol new H2.xyz type xyz first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+animate delete  beg 0 end 0 skip 0 1
+mol addfile dcd/H2_1.dcd type dcd first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+
+mol representation CPK
+mol color Name
+mol material Opaque
+mol addrep top
+
+###################################################################
+
+mol new H2.xyz type xyz first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+animate delete  beg 0 end 0 skip 0 2
+mol addfile dcd/H2_2.dcd type dcd first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+
+mol representation CPK
+mol color Name
+mol material Opaque
+mol addrep top
+
+###################################################################
+
+mol new H2.xyz type xyz first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+animate delete  beg 0 end 0 skip 0 3
+mol addfile dcd/H2_3.dcd type dcd first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+
+mol representation CPK
+mol color Name
+mol material Opaque
+mol addrep top
+
+###################################################################
+
+mol new H2.xyz type xyz first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+animate delete  beg 0 end 0 skip 0 4
+mol addfile dcd/H2_4.dcd type dcd first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+
+mol representation CPK
+mol color Name
+mol material Opaque
+mol addrep top
+
+###################################################################
+
+mol new H2.xyz type xyz first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+animate delete  beg 0 end 0 skip 0 5
+mol addfile dcd/H2_5.dcd type dcd first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+
+mol representation CPK
+mol color Name
+mol material Opaque
+mol addrep top
+
+###################################################################
+
+mol new H2.xyz type xyz first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+animate delete  beg 0 end 0 skip 0 6
+mol addfile dcd/H2_6.dcd type dcd first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+
+mol representation CPK
+mol color Name
+mol material Opaque
+mol addrep top
+
+###################################################################
+
+mol new H2.xyz type xyz first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+animate delete  beg 0 end 0 skip 0 7
+mol addfile dcd/H2_7.dcd type dcd first 0 last -1 step 1 filebonds 1 autobonds 1 waitfor all
+
+mol representation CPK
+mol color Name
+mol material Opaque
+mol addrep top
+
+
+
+display projection Orthographic
+display depthcue off
+rotate x by -90.0

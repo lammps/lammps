@@ -1,0 +1,121 @@
+fix quantum
+Syntax:
+fix ID group-ID quantum keyword values 
+ID, group-ID are documented in fix command
+poems = style name of this fix command
+keyword = group or file or molecule
+  method values = pimd or nmpimd or cmd
+  fmass values = real number for scaling factor of mass
+  sp values = real number for scaling factor of plank constant
+  temp values = real number for temperature in unit K
+  nhc values = N number of chains in Nose-Hoover chain thermostat
+Examples:
+fix 1 all quantum method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4
+Description:
+
+This command conducts quantum molecular dynamics simulations based on
+the Feynman path integral to include effects of tunneling and
+zero-point motion. In this formalism, the isomorphism of the quantum
+partition function of the original system and a classical partition
+function of a ring-polymer system is exploited to efficiently sample
+configurations from the canonical ensemble. [Ref. 1, Chapter 7]
+
+The interested user is referred to any of the numerous references on
+this methodology, but briefly, each quantum particle in a path
+integral simulation is represented by a ring-polymer of P quasi-beads,
+labeled from 1 to P. During the simulation, each quasi-bead interacts
+with beads on the other ring-polymers with the same imaginary time
+index (the second part of the effective potential above). The
+quasi-beads also interact with the two neighboring quasi-beads through
+the spring potential in imaginary-time space (first term in effective
+potential). To sample the canonical ensemble, the Nose-Hoover massive
+chain thermostat is applied. [Ref. 2] With this massive chain
+algorithm, a chain of NH thermostats is coupled to each degree of
+freedom for each quasi-bead. The keyword temp sets the target
+temperature for the system and the keyword nhc sets the number of
+thermostats in each chain. For example, if one simulated a system of N
+particles with P beads in each ring-polymer, the total number of NH
+thermostats equals 3 x N x P x nhc.
+
+The selection of the bead’s mass (referred to as the fictitious mass)
+is arbitrary according to the formula. A common choice is to use mi =
+m/P, which results in the mass of the ring-polymer being equal to the
+real quantum particle. It can be difficult to efficiently integrate
+the equations of motion for the stiff harmonic interactions in the
+ring polymers. A useful approach to resolve this is integrating the
+equations of motion in a normal mode representation, which here is
+referred to as Normal Mode Path-Integral Molecular Dynamics
+(NMPIMD). [Ref. 3] In NMPIMD, the NH chains are attached to each
+normal mode of the ring-polymer and the fictitious mass of each mode
+is chosen to be mk =, where is the eigen-value the k-th normal mode
+for k>0. The mode of k=0, referred to as the zero-frequency mode or
+centroid, corresponds to overall translation of the ring-polymer and
+is assigned the mass of the real particle. Motion of the centroid can
+be effectively uncoupled from the other normal modes by scaling the
+fictitious masses to achieve a partial adiabatic separation. In this
+Centroid Molecular Dynamics (CMD) approximation [Ref. 4], the
+time-evolution (and resulting dynamics) of the quantum particles can
+be used to obtain centroid time correlation functions, which can be
+further used to obtain the true quantum correlation function for the
+original system. The keyword method is used to indicate the approach
+PIMD, NMPIMD or CMD. The CMD method also uses normal modes to evolve
+the system except only the k>0 modes are thermostatted, not the
+centroid degrees of freedom. The keyword fmass is used as a further
+scaling factor for the fictitious masses of beads, which can be used
+for the Partial Adiabatic CMD [Ref. 5], or to be set as P, which
+results in the fictitious masses to be equal to the real particle
+masses. The last keyword sp is a scaling factor for Plank’s constant,
+which can be useful for debugging or other purposes. The default value
+of 1.0 is appropriate for most situations.  The PIMD algorithm in
+LAMMPS is implemented as a hyper-parallel scheme [Ref. 6] and use of
+this fix command requires use of the multi-partition feature in
+LAMMPS, where each quasi-particle system is calculated on a separate
+partition of processors. For a quantum system that is discretized into
+32 imaginary time slices (32 beads in a ring-polymer), 32 partitions
+are required to run the simulation. Below is an example of running a
+PIMD simulation with M quasi-beads in each ring polymer using N
+MPI-tasks for the domain-decomposition on each partition.  mpirun –np
+P lmp_mpi –partition MxN –in script where, P = M x N.
+
+In the LAMMPS input script, it is very useful to define a uloop type
+variable such as, variable ibead uloop M pad where M is the number of
+quasi-beads (partitions) used in the calculation. The uloop variable
+can then be used to manage I/O related tasks for each of the
+partitions, such as read_data system_${ibead}.restart dump dcd all dcd
+10 system_${ibead}.dcd restart 10 system_${ibead}.restart1
+system_${ibead}.restart2
+
+Restrictions:
+
+To run PIMD simulations users must install the package
+USER-QUANTUM. Users must use the multi-partition feature of LAMMPS and
+the number of partitions needs to be consistent with the uloop
+variable defined for the ring-polymer model. Meanwhile, USER-QUANTUM
+is not compatible with any other modules that use the multi-partition
+feature.  The “quantum” fix-object already contains a complete
+velocity-verlet integrator combined with NH massive chain thermostat,
+so users shouldn’t use any other integration fix.  The PIMD simulation
+can be started with a single DATA file through the command
+“read_data”, however, all the quasi-beads would then have identical
+positions and velocities, resulting in identical trajectories for all
+quasi-beads. To avoid this, users can simply initial a new set of
+velocities with random number seeds defined by the uloop variable.
+velocity all create 300.0 1234${ibead} rot yes dist gaussian
+
+The keyword defaults are method=pimd, fmass=1.0, sp=1.0, temp=300.0,
+nhc=2.
+
+:line
+
+1. Feynman, R. P. and Hibbs, A. R. (1965). Quantum Mechanics and Path Integrals. New York: McGraw-Hill. (PIMD)
+
+2. Tuckerman, M. E., Berne, B. J., J. Chem. Phys. 99, 2796. (Nose-Hoove)
+
+3. Cao, J, Berne, B. J., J. Chem. Phys. 99, 2902  (NMPIMD)
+
+4. Cao, J.; Voth, G. A. , J. Chem. Phys. 100, 5093 (CMD)
+
+5. Hone T. D., Rossky P. J., Voth G. A.., J. Chem. Phys. , 124, 154103. (PACMD)
+
+6. Calhoun, A., Pavese, M., Voth, G. A., Chem. Phys. Let., 262, 415
+

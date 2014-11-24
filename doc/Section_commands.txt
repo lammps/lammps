@@ -600,6 +600,7 @@ package"_Section_start.html#start_3.
 "nvt/eff"_fix_nh_eff.html,
 "nvt/sllod/eff"_fix_nvt_sllod_eff.html,
 "phonon"_fix_phonon.html,
+"pimd"_fix_pimd.html,
 "qeq/reax"_fix_qeq_reax.html,
 "qmmm"_fix_qmmm.html,
 "reax/c/bonds"_fix_reax_bonds.html,

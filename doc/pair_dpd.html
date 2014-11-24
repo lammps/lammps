@@ -103,6 +103,11 @@ except that A is not included.
 <P>The GPU-accelerated versions of these styles are implemented based on
 the work of <A HREF = "#Afshar">(Afshar)</A> and <A HREF = "#Phillips">(Phillips)</A>.
 </P>
+<P>IMPORTANT NOTE: If you are modeling DPD polymer chains, you may want
+to use the <A HREF = "pair_srp.html">pair_style srp</A> command in conjuction with
+these pair styles.  It is a soft segmental repulsive potential (SRP)
+that can prevent DPD polymer chains from crossing each other.
+</P>
 <HR>
 
 <P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
@@ -189,7 +194,7 @@ compute depend on atom velocities.  See the
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "fix_langevin.html">fix
-langevin</A>
+langevin</A>, <A HREF = "pair_srp.html">pair_style srp</A>
 </P>
 <P><B>Default:</B> none
 </P>

@@ -1,0 +1,164 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style srp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<P>pair_style srp cutoff bond_type dist keyword value ...
+</P>
+<UL><LI>cutoff = global cutoff for SRP interactions (distance units) 
+
+<LI>bond_type = bond type to apply SRP interactions 
+
+<LI>dist = <I>min</I> or <I>mid</I> 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>exclude</I> 
+
+<PRE>  <I>exclude</I> value = <I>yes</I> or <I>no</I> 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 1 mid exclude yes
+pair_coeff 1 1 dpd 60.0 4.5 1.0 
+pair_coeff 1 2 none 
+pair_coeff 2 2 srp 100.0 0.8 
+</PRE>
+<PRE>pair_style hybrid srp 0.8 1 mid exclude yes
+pair_coeff 1 1 none 
+pair_coeff 1 2 none 
+pair_coeff 2 2 srp 100.0 0.8 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>srp</I> computes a soft segmental repulsive potential (SRP) that
+acts between bonds. This potential is useful in preventing bonds from
+passing through one another when a soft non-bonded potential acts
+between beads in, for example, DPD polymer chains.
+An example input script that uses this command is provided
+in examples/USER/srp.
+</P>
+<P>Bonds of type <I>btype</I> interact with one another through a
+bond-pairwise potential, such that the force on bond <I>i</I> due to bond
+<I>j</I> is as follows
+</P>
+<CENTER><IMG SRC = "Eqs/pair_srp1.jpg">
+</CENTER>
+<P>where <I>r</I> and <I>rij</I> are the distance and unit vector between the two
+bonds. The <I>mid</I> option computes <I>r</I> and <I>rij</I> from the midpoint
+distance between bonds. The <I>min</I> option computes <I>r</I> and <I>rij</I> from
+the minimum distance between bonds. The force acting on a bond is
+mapped onto the two bond atoms according to the lever rule,
+</P>
+<CENTER><IMG SRC = "Eqs/pair_srp2.jpg">
+</CENTER>
+<P>where <I>L</I> is the normalized distance from the atom to the point of
+closest approach of bond <I>i</I> and <I>j</I>. The <I>mid</I> option takes <I>L</I> as
+0.5 for each interaction as described in <A HREF = "#Sirk">(Sirk)</A>.
+</P>
+<P>The following coefficients must be defined via the
+<A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples above, or in
+the data file or restart file read by the <A HREF = "read_data.html">read_data</A>
+or <A HREF = "read_restart.html">read_restart</A> commands:
+</P>
+<UL><LI><I>C</I> (force units)
+<LI><I>Rc</I> (distance units) 
+</UL>
+<P>The last coefficient is optional. If not specified, the global cutoff
+is used.
+</P>
+<P>IMPORTANT NOTE: Pair style srp considers each bond of type <I>btype</I> as
+a fictitious particle of type <I>bptype</I>, where <I>bptype</I> is the largest
+atom type in the system.  These "bond particles" are inserted at the
+beginning of the run, and serve as placeholders that define the
+position of the bonds.  This allows neighbor lists to be constructed
+and pairwise interactions to be computed in almost the same way as is
+done for point particles.  Because bonds interact only with other
+bonds, <A HREF = "pair_hybrid.html">pair_style hybrid</A> should be used to turn off
+interactions between atom type <I>bptype</I> and all other types of atoms.
+An error will be flagged if <A HREF = "pair_hybrid.html">pair_style hybrid</A> is
+not used.  Further, only bond particles should be given an atom type
+of <I>bptype</I>; a check is done at the beginning of the run to ensure
+there are no regular atoms of <I>bptype</I>.
+</P>
+<P>The optional <I>exclude</I> keyword determines if forces are computed
+between first neighbor (directly connected) bonds.  For a setting of
+<I>yes</I> they are, for <I>no</I> they are not.
+</P>
+<P>Pair style <I>srp</I> turns off normalization of thermodynamic properties
+by particle number, as if the command <A HREF = "thermo_modify.html">thermo_modify norm
+no</A> had been issued.  A warning will be given if
+this setting is overridden in the input script.
+</P>
+<P>The pairwise energy associated with style <I>srp</I> is shifted to be zero
+at the cutoff distance <I>Rc</I>.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>This pair styles does not support mixing.  
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option for the energy of the pair interaction. Note that as
+discussed above, the energy term is already shifted to be 0.0 at the
+cutoff distance <I>rc</I>.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant for
+this pair style.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections to energy and
+pressure.
+</P>
+<P>This pair style writes global and per-atom information to <A HREF = "restart.html">binary
+restart files</A>. Pair srp should be used with <A HREF = "pair_hybrid.html">pair_style
+hybrid</A>, thus the pair_coeff commands need to be
+specified in the input script when reading a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This pair style is part of the USER-MISC package. It is only enabled
+if LAMMPS was built with that package. See the Making LAMMPS section
+for more info.
+</P>
+<P>This pair style must be used with <A HREF = "pair_hybrid.html">pair_style hybrid</A>.
+</P>
+<P>This pair style requires the <A HREF = "newton.html">newton</A> command to be <I>on</I>
+for non-bonded interactions.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_hybrid.html">pair_style hybrid</A>, <A HREF = "pair_coeff.html">pair_coeff</A>,
+<A HREF = "pair_dpd.html">pair dpd</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The default keyword value is exclude = yes.
+</P>
+<HR>
+
+<A NAME = "Sirk"></A>
+
+<P><B>(Sirk)</B> Sirk TW, Slizoberg YR, Brennan JK, Lisal M, Andzelm JW, J
+Chem Phys, 136 (13) 134903, 2012.
+</P>
+</HTML>

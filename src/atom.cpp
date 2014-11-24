@@ -519,7 +519,7 @@ void Atom::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) tag_enable = 2;
       else error->all(FLERR,"Illegal atom_modify command");
       iarg += 2;
-    } if (strcmp(arg[iarg],"map") == 0) {
+    } else if (strcmp(arg[iarg],"map") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
       if (domain->box_exist)
         error->all(FLERR,

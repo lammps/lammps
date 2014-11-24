@@ -1,0 +1,152 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style srp command :h3
+
+[Syntax:]
+
+pair_style srp cutoff bond_type dist keyword value ...
+
+cutoff = global cutoff for SRP interactions (distance units) :ulb,l
+bond_type = bond type to apply SRP interactions :l
+dist = {min} or {mid} :l
+zero or more keyword/value pairs may be appended :l
+keyword = {exclude} :l
+  {exclude} value = {yes} or {no} :pre
+:ule
+
+[Examples:]
+
+pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 1 mid exclude yes
+pair_coeff 1 1 dpd 60.0 4.5 1.0 
+pair_coeff 1 2 none 
+pair_coeff 2 2 srp 100.0 0.8 :pre
+
+pair_style hybrid srp 0.8 1 mid exclude yes
+pair_coeff 1 1 none 
+pair_coeff 1 2 none 
+pair_coeff 2 2 srp 100.0 0.8 :pre 
+
+[Description:]
+
+Style {srp} computes a soft segmental repulsive potential (SRP) that
+acts between bonds. This potential is useful in preventing bonds from
+passing through one another when a soft non-bonded potential acts
+between beads in, for example, DPD polymer chains.
+An example input script that uses this command is provided
+in examples/USER/srp.
+
+Bonds of type {btype} interact with one another through a
+bond-pairwise potential, such that the force on bond {i} due to bond
+{j} is as follows
+
+:c,image(Eqs/pair_srp1.jpg)
+
+where {r} and {rij} are the distance and unit vector between the two
+bonds. The {mid} option computes {r} and {rij} from the midpoint
+distance between bonds. The {min} option computes {r} and {rij} from
+the minimum distance between bonds. The force acting on a bond is
+mapped onto the two bond atoms according to the lever rule,
+
+:c,image(Eqs/pair_srp2.jpg)
+
+where {L} is the normalized distance from the atom to the point of
+closest approach of bond {i} and {j}. The {mid} option takes {L} as
+0.5 for each interaction as described in "(Sirk)"_#Sirk.
+
+The following coefficients must be defined via the
+"pair_coeff"_pair_coeff.html command as in the examples above, or in
+the data file or restart file read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+{C} (force units)
+{Rc} (distance units) :ul
+
+The last coefficient is optional. If not specified, the global cutoff
+is used.
+
+IMPORTANT NOTE: Pair style srp considers each bond of type {btype} as
+a fictitious particle of type {bptype}, where {bptype} is the largest
+atom type in the system.  These "bond particles" are inserted at the
+beginning of the run, and serve as placeholders that define the
+position of the bonds.  This allows neighbor lists to be constructed
+and pairwise interactions to be computed in almost the same way as is
+done for point particles.  Because bonds interact only with other
+bonds, "pair_style hybrid"_pair_hybrid.html should be used to turn off
+interactions between atom type {bptype} and all other types of atoms.
+An error will be flagged if "pair_style hybrid"_pair_hybrid.html is
+not used.  Further, only bond particles should be given an atom type
+of {bptype}; a check is done at the beginning of the run to ensure
+there are no regular atoms of {bptype}.
+
+The optional {exclude} keyword determines if forces are computed
+between first neighbor (directly connected) bonds.  For a setting of
+{yes} they are, for {no} they are not.
+
+Pair style {srp} turns off normalization of thermodynamic properties
+by particle number, as if the command "thermo_modify norm
+no"_thermo_modify.html had been issued.  A warning will be given if
+this setting is overridden in the input script.
+
+The pairwise energy associated with style {srp} is shifted to be zero
+at the cutoff distance {Rc}.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+This pair styles does not support mixing.  
+
+This pair style does not support the "pair_modify"_pair_modify.html
+shift option for the energy of the pair interaction. Note that as
+discussed above, the energy term is already shifted to be 0.0 at the
+cutoff distance {rc}.
+
+The "pair_modify"_pair_modify.html table option is not relevant for
+this pair style.
+
+This pair style does not support the "pair_modify"_pair_modify.html
+tail option for adding long-range tail corrections to energy and
+pressure.
+
+This pair style writes global and per-atom information to "binary
+restart files"_restart.html. Pair srp should be used with "pair_style
+hybrid"_pair_hybrid.html, thus the pair_coeff commands need to be
+specified in the input script when reading a restart file.
+
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords.
+
+:line
+
+[Restrictions:]
+
+This pair style is part of the USER-MISC package. It is only enabled
+if LAMMPS was built with that package. See the Making LAMMPS section
+for more info.
+
+This pair style must be used with "pair_style hybrid"_pair_hybrid.html.
+
+This pair style requires the "newton"_newton.html command to be {on}
+for non-bonded interactions.
+
+[Related commands:]
+
+"pair_style hybrid"_pair_hybrid.html, "pair_coeff"_pair_coeff.html,
+"pair dpd"_pair_dpd.html
+
+[Default:]
+
+The default keyword value is exclude = yes.
+
+:line
+
+:link(Sirk)
+[(Sirk)] Sirk TW, Slizoberg YR, Brennan JK, Lisal M, Andzelm JW, J
+Chem Phys, 136 (13) 134903, 2012.

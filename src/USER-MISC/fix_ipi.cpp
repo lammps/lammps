@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Michele Ceriotti (EPFL)
+------------------------------------------------------------------------- */
+
 #include "mpi.h"
 #include "stdio.h"
 #include "string.h"

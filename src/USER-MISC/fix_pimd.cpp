@@ -406,7 +406,7 @@ void FixPIMD::nhc_update_v()
 }
 
 /* ----------------------------------------------------------------------
-   NM PIMD Operations
+   Normal Mode PIMD
 ------------------------------------------------------------------------- */
 
 void FixPIMD::nmpimd_init()
@@ -537,7 +537,7 @@ void FixPIMD::spring_force()
 }
 
 /* ----------------------------------------------------------------------
-   Comm Operations
+   Comm operations
 ------------------------------------------------------------------------- */
 
 void FixPIMD::comm_init()
@@ -730,7 +730,7 @@ void FixPIMD::unpack_comm(int n, int first, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   Memory Operations
+   Memory operations
 ------------------------------------------------------------------------- */
 
 double FixPIMD::memory_usage()

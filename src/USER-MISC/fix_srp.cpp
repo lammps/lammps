@@ -126,8 +126,8 @@ void FixSRP::init()
   // BPs do not interact with other types
   // type bptype only interacts with itself
   char* arg1[4];
-  arg1[0] = "exclude"; 
-  arg1[1] = "type"; 
+  arg1[0] = (char *) "exclude"; 
+  arg1[1] = (char *) "type"; 
   char c0[20];
   char c1[20];
 

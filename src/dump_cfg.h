@@ -31,7 +31,7 @@ class DumpCFG : public DumpCustom {
   DumpCFG(class LAMMPS *, int, char **);
   virtual ~DumpCFG();
 
- private:
+ protected:
   char **auxname;            // name strings of auxiliary properties
   int unwrapflag;            // 1 if unwrapped coordinates are requested
 

@@ -1,0 +1,70 @@
+ -- Examples of i-PI working with LAMMPS --
+ 
+ -- Example with Tersoff graphene potential --
+
+   Uses the Tersoff parameters of Lindsay and Broido PRB 81, 205441 (2010)
+   to run a short simulation of graphene with the LAMMPS MD code.
+ 
+ -- Example with the q-TIP4P-F water potential --
+
+ * This gives an example of water with the q-TIP4P-F potential
+   of Scott Habershon, Thomas E. Markland and David E. Manolopoulos,
+   J. Chem. Phys., 131, 024501, (2009).
+
+ * State point: (N, V, T) = (216 water molecules, 43737 a_0**3, 298 K)
+
+ * This demonstrates the convergence of the kinetic and potential energy
+   using the ring polymer contraction (RPC) method of Thomas E. Markland and
+   David E. Manolopoulos, J. Chem. Phys. 129, 024105, (2008), and
+   the PIGLET method of Michele Ceriotti and 
+   David Manolopoulos, Phys. Rev. Lett., 109, 100604, (2012).
+
+
+** Run the examples automatically:
+
+ * First, it is necessary to patch and compile LAMMPS, and create a make.in
+   file containing the path to the executable and i-pi, e.g.
+
+LAMMPS:=~/bin/lmp_serial
+IPI:=~/bin/i-pi
+ 
+ * The runs can be done automatically using the Makefile provided. The make 
+   targets are self-explanatory. To run the RPC example, for instance, just type:
+
+$ make h2o-rpc
+
+ * To clean up output files:
+
+$ make clean
+
+
+** Run the examples manually:
+
+ * Go back to the example directory and run
+
+$ python path/i-pi input.xml
+ 
+   the wrapper will start and sit waiting on the UDS /tmp/ipi.
+ 
+ * Open a separate terminal and run the LAMMPS driver code using:
+ 
+$ path/lammps/src/lmp_serial < in.water
+
+   For the RPC run, instead use:
+
+$ path/lammps/src/lmp_serial < in.water_longrange
+$ path/lammps/src/lmp_serial < in.water_shortrange
+
+   You can run multiple instances of the code; it is so fast that parallel 
+   scaling won't be appreciable.
+
+ * If your system does not support Unix domain sockets, just set in input.xml
+   <socket mode="unix"> <port> port_no </port>
+
+   To make the client socket connect, the in.water file should 
+   be changed so that it has the line:
+
+   fix 1 all driver hostname port_no
+
+   where hostname is the address the socket is binding to; either graphene, piglet_2,
+   piglet_4, piglet_8, rpc_long, rpc_short or no_rpc depending on the run.

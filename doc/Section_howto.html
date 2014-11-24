@@ -348,7 +348,8 @@ periodically.
 <UL><LI><A HREF = "neb.html">neb</A> for nudged elastic band calculations
 <LI><A HREF = "prd.html">prd</A> for parallel replica dynamics
 <LI><A HREF = "tad.html">tad</A> for temperature accelerated dynamics
-<LI><A HREF = "temper.html">temper</A> for parallel tempering 
+<LI><A HREF = "temper.html">temper</A> for parallel tempering
+<LI><A HREF = "fix_pimd.html">fix pimd</A> for path-integral molecular dynamics (PIMD) 
 </UL>
 <P>NEB is a method for finding transition states and barrier energies.
 PRD and TAD are methods for performing accelerated dynamics to find
@@ -356,7 +357,14 @@ and perform infrequent events.  Parallel tempering or replica exchange
 runs different replicas at a series of temperature to facilitate
 rare-event sampling.
 </P>
-<P>These command can only be used if LAMMPS was built with the "replica"
+<P>These commands can only be used if LAMMPS was built with the REPLICA
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info on packages.
+</P>
+<P>PIMD runs different replicas whose individual particles are coupled
+together by springs to model a system or ring-polymers.
+</P>
+<P>This commands can only be used if LAMMPS was built with the USER-MISC
 package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
 for more info on packages.
 </P>

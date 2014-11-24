@@ -1,123 +1,195 @@
 <HTML>
-<P>fix quantum
-Syntax:
-fix ID group-ID quantum keyword values 
-ID, group-ID are documented in fix command
-poems = style name of this fix command
-keyword = group or file or molecule
-  method values = pimd or nmpimd or cmd
-  fmass values = real number for scaling factor of mass
-  sp values = real number for scaling factor of plank constant
-  temp values = real number for temperature in unit K
-  nhc values = N number of chains in Nose-Hoover chain thermostat
-Examples:
-fix 1 all quantum method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4
-Description:
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix pimd command 
+</H3>
+<P><B>Syntax:</B>
 </P>
-<P>This command conducts quantum molecular dynamics simulations based on
+<PRE>fix ID group-ID pimd keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>pimd = style name of this fix command 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>method</I> or <I>fmass</I> or <I>sp</I> or <I>temp</I> or <I>nhc</I> 
+
+<PRE>  <I>method</I> value = <I>pimd</I> or <I>nmpimd</I> or <I>cmd</I>
+  <I>fmass</I> value = scaling factor on mass
+  <I>sp</I> value = scaling factor on Planck constant
+  <I>temp</I> value = temperature (temperarate units)
+  <I>nhc</I> value = Nc = number of chains in Nose-Hoover thermostat 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all quantum method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command performs quantum molecular dynamics simulations based on
 the Feynman path integral to include effects of tunneling and
-zero-point motion. In this formalism, the isomorphism of the quantum
-partition function of the original system and a classical partition
-function of a ring-polymer system is exploited to efficiently sample
-configurations from the canonical ensemble. <B>Ref. 1, Chapter 7</B>
+zero-point motion.  In this formalism, the isomorphism of a quantum
+partition function for the original system to a classical partition
+function for a ring-polymer system is exploited, to efficiently sample
+configurations from the canonical ensemble <A HREF = "#Feynman">(Feynman)</A>.
+The classical partition function and its components are given
+by the following equations:
 </P>
+<CENTER><IMG SRC = "Eqs/fix_pimd.jpg">
+</CENTER>
 <P>The interested user is referred to any of the numerous references on
 this methodology, but briefly, each quantum particle in a path
 integral simulation is represented by a ring-polymer of P quasi-beads,
-labeled from 1 to P. During the simulation, each quasi-bead interacts
+labeled from 1 to P.  During the simulation, each quasi-bead interacts
 with beads on the other ring-polymers with the same imaginary time
-index (the second part of the effective potential above). The
+index (the second term in the effective potential above).  The
 quasi-beads also interact with the two neighboring quasi-beads through
 the spring potential in imaginary-time space (first term in effective
-potential). To sample the canonical ensemble, the Nose-Hoover massive
-chain thermostat is applied. <B>Ref. 2</B> With this massive chain
-algorithm, a chain of NH thermostats is coupled to each degree of
-freedom for each quasi-bead. The keyword temp sets the target
-temperature for the system and the keyword nhc sets the number of
-thermostats in each chain. For example, if one simulated a system of N
-particles with P beads in each ring-polymer, the total number of NH
-thermostats equals 3 x N x P x nhc.
+potential).  To sample the canonical ensemble, a Nose-Hoover massive
+chain thermostat is applied <A HREF = "#Tuckerman">(Tuckerman)</A>.  With the
+massive chain algorithm, a chain of NH thermostats is coupled to each
+degree of freedom for each quasi-bead.  The keyword <I>temp</I> sets the
+target temperature for the system and the keyword <I>nhc</I> sets the
+number <I>Nc</I> of thermostats in each chain.  For example, for a
+simulation of N particles with P beads in each ring-polymer, the total
+number of NH thermostats would be 3 x N x P x Nc.
 </P>
-<P>The selection of the bead’s mass (referred to as the fictitious mass)
-is arbitrary according to the formula. A common choice is to use mi =
-m/P, which results in the mass of the ring-polymer being equal to the
-real quantum particle. It can be difficult to efficiently integrate
-the equations of motion for the stiff harmonic interactions in the
-ring polymers. A useful approach to resolve this is integrating the
-equations of motion in a normal mode representation, which here is
-referred to as Normal Mode Path-Integral Molecular Dynamics
-(NMPIMD). <B>Ref. 3</B> In NMPIMD, the NH chains are attached to each
-normal mode of the ring-polymer and the fictitious mass of each mode
-is chosen to be mk =, where is the eigen-value the k-th normal mode
-for k>0. The mode of k=0, referred to as the zero-frequency mode or
-centroid, corresponds to overall translation of the ring-polymer and
-is assigned the mass of the real particle. Motion of the centroid can
-be effectively uncoupled from the other normal modes by scaling the
-fictitious masses to achieve a partial adiabatic separation. In this
-Centroid Molecular Dynamics (CMD) approximation <B>Ref. 4</B>, the
-time-evolution (and resulting dynamics) of the quantum particles can
-be used to obtain centroid time correlation functions, which can be
-further used to obtain the true quantum correlation function for the
-original system. The keyword method is used to indicate the approach
-PIMD, NMPIMD or CMD. The CMD method also uses normal modes to evolve
-the system except only the k>0 modes are thermostatted, not the
-centroid degrees of freedom. The keyword fmass is used as a further
-scaling factor for the fictitious masses of beads, which can be used
-for the Partial Adiabatic CMD <B>Ref. 5</B>, or to be set as P, which
-results in the fictitious masses to be equal to the real particle
-masses. The last keyword sp is a scaling factor for Plank’s constant,
-which can be useful for debugging or other purposes. The default value
-of 1.0 is appropriate for most situations.  The PIMD algorithm in
-LAMMPS is implemented as a hyper-parallel scheme <B>Ref. 6</B> and use of
-this fix command requires use of the multi-partition feature in
-LAMMPS, where each quasi-particle system is calculated on a separate
-partition of processors. For a quantum system that is discretized into
-32 imaginary time slices (32 beads in a ring-polymer), 32 partitions
-are required to run the simulation. Below is an example of running a
-PIMD simulation with M quasi-beads in each ring polymer using N
-MPI-tasks for the domain-decomposition on each partition.  mpirun –np
-P lmp_mpi –partition MxN –in script where, P = M x N.
+<P>IMPORTANT NOTE: This fix implements a complete velocity-verlet
+integrator combined with NH massive chain thermostat, so no
+other time integration fix should be used.
 </P>
-<P>In the LAMMPS input script, it is very useful to define a uloop type
-variable such as, variable ibead uloop M pad where M is the number of
-quasi-beads (partitions) used in the calculation. The uloop variable
-can then be used to manage I/O related tasks for each of the
-partitions, such as read_data system_$<I>ibead</I>.restart dump dcd all dcd
-10 system_$<I>ibead</I>.dcd restart 10 system_$<I>ibead</I>.restart1
-system_$<I>ibead</I>.restart2
+<P>The <I>method</I> keyword determines what style of PIMD is performed.  A
+value of <I>pimd</I> is standard PIMD.  A value of <I>nmpimd</I> is for
+normal-mode PIMD.  A value of <I>cmd</I> is for centroid molecular dynamics
+(CMD).  The difference between the styles is as follows.
 </P>
-<P>Restrictions:
+<P>In standard PIMD, the value used for a bead's fictitious mass is
+arbitrary.  A common choice is to use Mi = m/P, which results in the
+mass of the entire ring-polymer being equal to the real quantum
+particle.  But it can be difficult to efficiently integrate the
+equations of motion for the stiff harmonic interactions in the ring
+polymers.
 </P>
-<P>To run PIMD simulations users must install the package
-USER-QUANTUM. Users must use the multi-partition feature of LAMMPS and
-the number of partitions needs to be consistent with the uloop
-variable defined for the ring-polymer model. Meanwhile, USER-QUANTUM
-is not compatible with any other modules that use the multi-partition
-feature.  The “quantum” fix-object already contains a complete
-velocity-verlet integrator combined with NH massive chain thermostat,
-so users shouldn’t use any other integration fix.  The PIMD simulation
-can be started with a single DATA file through the command
-“read_data”, however, all the quasi-beads would then have identical
-positions and velocities, resulting in identical trajectories for all
-quasi-beads. To avoid this, users can simply initial a new set of
-velocities with random number seeds defined by the uloop variable.
-velocity all create 300.0 1234$<I>ibead</I> rot yes dist gaussian
+<P>A useful way to resolve this issue is to integrate the equations of
+motion in a normal mode representation, using Normal Mode
+Path-Integral Molecular Dynamics (NMPIMD) <A HREF = "#Cao1">(Cao1)</A>.  In NMPIMD,
+the NH chains are attached to each normal mode of the ring-polymer and
+the fictitious mass of each mode is chosen as Mk = the eigenvalue of
+the Kth normal mode for k > 0. The k = 0 mode, referred to as the
+zero-frequency mode or centroid, corresponds to overall translation of
+the ring-polymer and is assigned the mass of the real particle.
 </P>
-<P>The keyword defaults are method=pimd, fmass=1.0, sp=1.0, temp=300.0,
-nhc=2.
+<P>Motion of the centroid can be effectively uncoupled from the other
+normal modes by scaling the fictitious masses to achieve a partial
+adiabatic separation.  This is called a Centroid Molecular Dynamics
+(CMD) approximation <A HREF = "#Cao2">(Cao2)</A>.  The time-evolution (and resulting
+dynamics) of the quantum particles can be used to obtain centroid time
+correlation functions, which can be further used to obtain the true
+quantum correlation function for the original system.  The CMD method
+also uses normal modes to evolve the system, except only the k > 0
+modes are thermostatted, not the centroid degrees of freedom.
+</P>
+<P>The keyword <I>fmass</I> sets a further scaling factor for the fictitious
+masses of beads, which can be used for the Partial Adiabatic CMD
+<A HREF = "#Hone">(Hone)</A>, or to be set as P, which results in the fictitious
+masses to be equal to the real particle masses. 
+</P>
+<P>The keyword <I>sp</I> is a scaling factor on Planck’s constant, which can
+be useful for debugging or other purposes.  The default value of 1.0
+is appropriate for most situations.
+</P>
+<P>The PIMD algorithm in LAMMPS is implemented as a hyper-parallel scheme
+as described in <A HREF = "#Calhoun">(Calhoun)</A>.  In LAMMPS this is done by using
+<A HREF = "Section_howto.html#howto_5">multi-replica feature</A> in LAMMPS, where
+each quasi-particle system is stored and simulated on a separate
+partition of processors.  The following diagram illustrates this
+approach.  The original system with 2 ring polymers is shown in red.
+Since each ring has 4 quasi-beads (imaginary time slices), there are 4
+replicas of the system, each running on one of the 4 partitions of
+processors.  Each replica (shown in green) owns one quasi-bead in each
+ring.
+</P>
+<CENTER><IMG SRC = "JPG/pimd.jpg">
+</CENTER>
+<P>To run a PIMD simulation with M quasi-beads in each ring polymer using
+N MPI tasks for each partition's domain-decomposition, you would use P
+= MxN processors (cores) and run the simulation as follows:
+</P>
+<PRE>mpirun -np P lmp_mpi -partition MxN -in script 
+</PRE>
+<P>Note that in the LAMMPS input script for a multi-partition simulation,
+it is often very useful to define a <A HREF = "variable.html">uloop-style
+variable</A> such as
+</P>
+<PRE>variable ibead uloop M pad 
+</PRE>
+<P>where M is the number of quasi-beads (partitions) used in the
+calculation.  The uloop variable can then be used to manage I/O
+related tasks for each of the partitions, e.g.
+</P>
+<PRE>dump dcd all dcd 10 system_${ibead}.dcd
+restart 1000 system_${ibead}.restart1 system_${ibead}.restart2
+read_restart system_${ibead}.restart2 
+</PRE>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.  
+</P>
+<P>A PIMD simulation can be initialized with a single data file read via
+the <A HREF = "read_data.html">read_data</A> command.  However, this means all
+quasi-beads in a ring polymer will have identical positions and
+velocities, resulting in identical trajectories for all quasi-beads.
+To avoid this, users can simply initialize velocities with different
+random number seeds assigned to each partition, as defined by the
+uloop variable, e.g.
+</P>
+<PRE>velocity all create 300.0 1234${ibead} rot yes dist gaussian 
+</PRE>
+<P><B>Default:</B>
+</P>
+<P>The keyword defaults are method = pimd, fmass = 1.0, sp = 1.0, temp = 300.0,
+and nhc = 2.
 </P>
 <HR>
 
-<P>1. Feynman, R. P. and Hibbs, A. R. (1965). Quantum Mechanics and Path Integrals. New York: McGraw-Hill. (PIMD)
+<A NAME = "Feynman"></A>
+
+<P><B>(Feynman)</B> R. Feynman and A. Hibbs, Chapter 7, Quantum Mechanics and
+Path Integrals, McGraw-Hill, New York (1965).
 </P>
-<P>2. Tuckerman, M. E., Berne, B. J., J. Chem. Phys. 99, 2796. (Nose-Hoove)
+<A NAME = "Tuckerman"></A>
+
+<P><B>(Tuckerman)</B> M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (xxxx).
 </P>
-<P>3. Cao, J, Berne, B. J., J. Chem. Phys. 99, 2902  (NMPIMD)
+<A NAME = "Cao1"></A>
+
+<P><B>(Cao1)</B> J. Cao and B. Berne, J Chem Phys, 99, 2902 (xxxx).
 </P>
-<P>4. Cao, J.; Voth, G. A. , J. Chem. Phys. 100, 5093 (CMD)
+<A NAME = "Cao2"></A>
+
+<P><B>(Cao2)</B> J. Cao and G. Voth, J Chem Phys, 100, 5093 (xxxx).
 </P>
-<P>5. Hone T. D., Rossky P. J., Voth G. A.., J. Chem. Phys. , 124, 154103. (PACMD)
+<A NAME = "Hone"></A>
+
+<P><B>(Hone)</B> T. Hone, P. Rossky, G. Voth, J Chem Phys, 124,
+154103 (xxxx).
 </P>
-<P>6. Calhoun, A., Pavese, M., Voth, G. A., Chem. Phys. Let., 262, 415
+<A NAME = "Calhoun"></A>
+
+<P><B>(Calhoun)</B> A. Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262,
+415 (xxxx).
 </P>
 </HTML>

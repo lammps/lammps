@@ -1,0 +1,26 @@
+<simulation verbosity='high'>
+   <initialize nbeads='4'>
+      <file mode='pdb' units='angstrom'> our_ref.pdb </file>
+      <velocities mode='thermal' units='kelvin'> 25 </velocities>
+   </initialize>
+   <output prefix='tut1'>
+      <properties filename='md' stride='1'> [step, time{picosecond}, conserved{kelvin}, temperature{kelvin}, potential{kelvin}, kinetic_cv{kelvin}] </properties>
+      <properties filename='force' stride='20'> [atom_f{piconewton}(atom=0;bead=0)] </properties>
+      <trajectory filename='pos' stride='100' format='pdb' cell_units='angstrom'> positions{angstrom} </trajectory>
+      <checkpoint filename='checkpoint' stride='1000' overwrite='True'/>
+   </output>
+   <total_steps> 5000 </total_steps>
+   <forces>
+      <socket mode="inet">
+         <address>localhost</address>
+         <port> 31415 </port>
+      </socket>
+   </forces>
+   <ensemble mode='nvt'>
+      <thermostat mode='pile_g'>
+         <tau units='femtosecond'> 25 </tau>
+      </thermostat>
+      <timestep units='femtosecond'> 1 </timestep>
+      <temperature units='kelvin'> 25 </temperature>
+   </ensemble>
+</simulation>

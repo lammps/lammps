@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Michele Ceriotti (EPFL), Joe Morrone (Stony Brook)
+   Contributing authors: Michele Ceriotti (EPFL), Joe Morrone (Stony Brook),
+                         Axel Kohylmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "mpi.h"

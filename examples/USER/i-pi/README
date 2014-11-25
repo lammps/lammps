@@ -1,11 +1,13 @@
 i-PI path integral interface examples
 =====================================
 
-This folder contains a couple of examples to run LAMMPS as a client, exchanging
-information on the atomic configurations, energy and forces with the i-PI
-Python interface [http://epfl-cosmo.github.io/gle4md/index.html?page=ipi].
-At present these examples require a working copy of i-PI and compiling 
-LAMMPS in a UNIX environment. 
+This folder contains a couple of examples to run LAMMPS as a client,
+exchanging information on the atomic configurations, energy and forces
+with the i-PI Python interface
+[http://epfl-cosmo.github.io/gle4md/index.html?page=ipi].  These
+examples require a working copy of i-PI and compiling LAMMPS in a UNIX
+environment.  Note that a copy of i-PI is provided with LAMMPS, in the
+tools/i-pi directory.
 
 Note that the i-PI examples listed here are designed for the public V1.0
 version of i-PI. Refer to the LAMMPS examples distributed with i-PI if you

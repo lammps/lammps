@@ -1,0 +1,6 @@
+ -- Example with the rudimentary PH2 code --
+
+ * This gives an example of para-H2 with the isotropic Silvera-Goldman 
+   pair potential, as discussed in the tutorial section of the user manual.
+   Please refer to this section for more detailed instructions
+   on how to run this example.

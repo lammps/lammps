@@ -51,6 +51,7 @@ own sub-directories with their own Makefiles.
 "eff"_#eff
 "emacs"_#emacs
 "fep"_#fep
+"i-pi"_#ipi
 "ipp"_#ipp
 "kate"_#kate
 "lmp2arc"_#arc
@@ -243,6 +244,23 @@ The scripts were contributed by Agilio Padua (Universite Blaise
 Pascal Clermont-Ferrand), agilio.padua at univ-bpclermont.fr.
 
 See README file in the tools/fep directory.
+
+:line
+
+i-pi tool :h4,link(ipi)
+
+The tools/i-pi directory contains a version of the i-PI package, with
+all the LAMMPS-unrelated files removed.  It is provided so that it can
+be used with the "fix ipi"_fix_ipi.html command to perform
+path-integral molecular dynamics (PIMD).
+
+The i-PI package was created and is maintained by Michele Ceriotti,
+michele.ceriotti at gmail.com, to interface to a variety of molecular
+dynamics codes.
+
+See the tools/i-pi/manual.pdf file for an overview of i-PI, and the
+"fix ipi"_fix_ipi.html doc page for further details on running PIMD
+calculations with LAMMPS.
 
 :line
 

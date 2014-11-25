@@ -85,7 +85,6 @@ different numbers of processors.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-
 The instantaneous values of the extended variables are written to
 "binary restart files"_restart.html.  Because the state of the random
 number generator is not saved in restart files, this means you cannot

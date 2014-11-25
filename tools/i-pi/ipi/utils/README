@@ -1,0 +1,21 @@
+ -- Utility functions directory --
+
+ * This is the directory containing functions that are used in the other 
+   modules in the code.
+
+ * Files:
+   - depend.py: Deals with the dependency detection, value caching and 
+      automatic updating of variables.
+   - inputvalue.py: Contains the base classes used in reading the xml
+      input file, and creating the restart file.
+   - mathtools.py: Contains the algorithms used in various parts of the code.
+   - messages.py: Contains the classes to generate info and warning messages
+      to standard output during the simulation.
+   - nmtransform.py: Contains the algorithms that deal with the normal mode
+      and ring polymer contraction transformations.
+   - prng.py: Deals with random number generation.
+   - softexit: Contains the classes to deal with calls for a soft exit.
+   - units.py: Holds atomic masses, fundamental constants, and unit conversions.
+
+ * Directories:
+   - io: Holds the modules that deal with reading and outputting files.

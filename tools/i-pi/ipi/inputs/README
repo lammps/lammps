@@ -1,0 +1,24 @@
+ -- Input files directory --
+
+ * This is the directory containing the input classes.
+
+ * Files:
+   - atoms.py: Creates objects that deal with classical simulations.
+   - barostats.py: Creates objects that deal with constant pressure and 
+      stress simulations.
+   - beads.py: Creates objects that deal with quantum simulations.
+   - cell.py: Creates objects that deal with the simulation box.
+   - ensembles.py: Creates objects that deal with the different ensembles.
+   - forces.py: Creates objects that deal with the jobs to send to 
+      the driver code.
+   - initializer.py: Creates the objects that deal with initializing the
+      simulation.
+   - interface.py: Creates objects that deal with socket creation.
+   - normalmodes.py: Creates the objects that deal with the normal mode
+      transformation.
+   - outputs.py: Creates objects that deal with output files.
+   - prng.py: Creates the objects that deal with random number generation.
+   - simulation.py: Creates objects that deal with all the top level 
+      information, such as input/output.
+   - thermostats.py: Creates objects that deal with constant temperature 
+      simulations.

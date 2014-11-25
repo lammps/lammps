@@ -713,12 +713,12 @@ void FixIMD::setup(int)
   taginthash_init(hashtable, num_coords);
   idmap = (void *)hashtable;
 
-  MPI_Status status;
-  MPI_Request request;
   int tmp, ndata;
   struct commdata *buf = static_cast<struct commdata *>(comm_buf);
 
   if (me == 0) {
+    MPI_Status status;
+    MPI_Request request;
     tagint *taglist = new tagint[num_coords];
     int numtag=0; /* counter to map atom tags to a 0-based consecutive index list */
 
@@ -763,7 +763,7 @@ void FixIMD::setup(int)
       }
     }
     /* blocking receive to wait until it is our turn to send data. */
-    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
+    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
@@ -1012,12 +1012,12 @@ void FixIMD::post_force(int vflag)
     comm_buf = memory->smalloc(maxbuf,"imd:comm_buf");
   }
 
-  MPI_Status status;
-  MPI_Request request;
   int tmp, ndata;
   buf = static_cast<struct commdata *>(comm_buf);
 
   if (me == 0) {
+    MPI_Status status;
+    MPI_Request request;
     /* collect data into new array. we bypass the IMD API to save
      * us one extra copy of the data. */
     msglen = 3*sizeof(float)*num_coords+IMDHEADERSIZE;
@@ -1145,7 +1145,7 @@ void FixIMD::post_force(int vflag)
       }
     }
     /* blocking receive to wait until it is our turn to send data. */
-    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
+    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 

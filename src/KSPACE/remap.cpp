@@ -65,7 +65,6 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
   // use point-to-point communication
 
   if (!plan->usecollective) { 
-    MPI_Status status;
     int i,isend,irecv;
     FFT_SCALAR *scratch;
 
@@ -105,7 +104,7 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
     // unpack all messages from scratch -> out
 
     for (i = 0; i < plan->nrecv; i++) {
-      MPI_Waitany(plan->nrecv,plan->request,&irecv,&status);
+      MPI_Waitany(plan->nrecv,plan->request,&irecv,MPI_STATUS_IGNORE);
       plan->unpack(&scratch[plan->recv_bufloc[irecv]],
                    &out[plan->recv_offset[irecv]],&plan->unpackplan[irecv]);
     }

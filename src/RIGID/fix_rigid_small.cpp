@@ -2484,10 +2484,10 @@ void FixRigidSmall::write_restart_file(char *file)
   // all other procs wait for ping, send their chunk to proc 0
 
   int tmp,recvrow;
-  MPI_Status status;
-  MPI_Request request;
 
   if (me == 0) {
+    MPI_Status status;
+    MPI_Request request;
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
@@ -2506,7 +2506,7 @@ void FixRigidSmall::write_restart_file(char *file)
     }
     
   } else {
-    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(&buf[0][0],sendrow*ncol,MPI_DOUBLE,0,0,world);
   }
 

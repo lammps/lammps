@@ -1061,7 +1061,6 @@ void FixSRD::vbin_comm(int ishift)
 {
   BinComm *bcomm1,*bcomm2;
   MPI_Request request1,request2;
-  MPI_Status status;
 
   // send/recv bins in both directions in each dimension
   // don't send if nsend = 0
@@ -1109,11 +1108,11 @@ void FixSRD::vbin_comm(int ishift)
                  bcomm2->sendproc,0,world);
       }
       if (bcomm1->nrecv) {
-        MPI_Wait(&request1,&status);
+        MPI_Wait(&request1,MPI_STATUS_IGNORE);
         vbin_unpack(rbuf1,vbin,bcomm1->nrecv,bcomm1->recvlist);
       }
       if (bcomm2->nrecv) {
-        MPI_Wait(&request2,&status);
+        MPI_Wait(&request2,MPI_STATUS_IGNORE);
         vbin_unpack(rbuf2,vbin,bcomm2->nrecv,bcomm2->recvlist);
       }
     }
@@ -1164,7 +1163,6 @@ void FixSRD::xbin_comm(int ishift, int nval)
 {
   BinComm *bcomm1,*bcomm2;
   MPI_Request request1,request2;
-  MPI_Status status;
 
   // send/recv bins in both directions in each dimension
   // don't send if nsend = 0
@@ -1212,11 +1210,11 @@ void FixSRD::xbin_comm(int ishift, int nval)
                  bcomm2->sendproc,0,world);
       }
       if (bcomm1->nrecv) {
-        MPI_Wait(&request1,&status);
+        MPI_Wait(&request1,MPI_STATUS_IGNORE);
         xbin_unpack(rbuf1,vbin,bcomm1->nrecv,bcomm1->recvlist,nval);
       }
       if (bcomm2->nrecv) {
-        MPI_Wait(&request2,&status);
+        MPI_Wait(&request2,MPI_STATUS_IGNORE);
         xbin_unpack(rbuf2,vbin,bcomm2->nrecv,bcomm2->recvlist,nval);
       }
     }

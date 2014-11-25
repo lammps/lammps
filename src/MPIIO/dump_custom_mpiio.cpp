@@ -319,8 +319,6 @@ void DumpCustomMPIIO::write_header(bigint ndump)
 
 void DumpCustomMPIIO::header_binary(bigint ndump)
 {
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
     headerBuffer = (char *) malloc((2*sizeof(bigint)) + (9*sizeof(int)) + (6*sizeof(double)));
@@ -364,7 +362,7 @@ void DumpCustomMPIIO::header_binary(bigint ndump)
   }
   else { // write data
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_BYTE,&mpiStatus);
+      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_BYTE,MPI_STATUS_IGNORE);
     mpifo += headerSize;
     free(headerBuffer);
   }
@@ -374,8 +372,6 @@ void DumpCustomMPIIO::header_binary(bigint ndump)
 
 void DumpCustomMPIIO::header_binary_triclinic(bigint ndump)
 {
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
     headerBuffer = (char *) malloc((2*sizeof(bigint)) + (9*sizeof(int)) + (6*sizeof(double)));
@@ -430,7 +426,7 @@ void DumpCustomMPIIO::header_binary_triclinic(bigint ndump)
   else { // write data
 
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_BYTE,&mpiStatus);
+      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_BYTE,MPI_STATUS_IGNORE);
     mpifo += headerSize;
     free(headerBuffer);
   }
@@ -440,8 +436,6 @@ void DumpCustomMPIIO::header_binary_triclinic(bigint ndump)
 
 void DumpCustomMPIIO::header_item(bigint ndump)
 {
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
     headerBuffer = (char *) malloc(MAX_TEXT_HEADER_SIZE);
@@ -460,7 +454,7 @@ void DumpCustomMPIIO::header_item(bigint ndump)
   else { // write data
 
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,&mpiStatus);
+      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,MPI_STATUS_IGNORE);
     mpifo += headerSize;
     free(headerBuffer);
   }
@@ -470,8 +464,6 @@ void DumpCustomMPIIO::header_item(bigint ndump)
 
 void DumpCustomMPIIO::header_item_triclinic(bigint ndump)
 {
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
     headerBuffer = (char *) malloc(MAX_TEXT_HEADER_SIZE);
@@ -490,7 +482,7 @@ void DumpCustomMPIIO::header_item_triclinic(bigint ndump)
   else { // write data
 
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,&mpiStatus);
+      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,MPI_STATUS_IGNORE);
     mpifo += headerSize;
     free(headerBuffer);
   }
@@ -507,7 +499,6 @@ void DumpCustomMPIIO::write_data(int n, double *mybuf)
 
 void DumpCustomMPIIO::write_binary(int n, double *mybuf)
 {
-  MPI_Status mpiStatus;
   n *= size_one;
 
   if (performEstimate) {
@@ -525,7 +516,7 @@ void DumpCustomMPIIO::write_binary(int n, double *mybuf)
     memory->create(bufWithSize,byteBufSize,"dump:bufWithSize");
     memcpy(bufWithSize,(char*)(&n),sizeof(int));
     memcpy(&((char*)bufWithSize)[sizeof(int)],mybuf,(n*sizeof(double)));
-    MPI_File_write_at_all(mpifh,mpifo+offsetFromHeader,bufWithSize,byteBufSize,MPI_BYTE,&mpiStatus);
+    MPI_File_write_at_all(mpifh,mpifo+offsetFromHeader,bufWithSize,byteBufSize,MPI_BYTE,MPI_STATUS_IGNORE);
     memory->destroy(bufWithSize);
 
     if (flush_flag)
@@ -537,8 +528,6 @@ void DumpCustomMPIIO::write_binary(int n, double *mybuf)
 
 void DumpCustomMPIIO::write_string(int n, double *mybuf)
 {
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
 #if defined(_OPENMP)
@@ -558,7 +547,7 @@ void DumpCustomMPIIO::write_string(int n, double *mybuf)
     offsetFromHeader = ((incPrefix-bigintNsme)*sizeof(char));
   }
   else {
-    MPI_File_write_at_all(mpifh,mpifo+offsetFromHeader,sbuf,nsme,MPI_CHAR,&mpiStatus);
+    MPI_File_write_at_all(mpifh,mpifo+offsetFromHeader,sbuf,nsme,MPI_CHAR,MPI_STATUS_IGNORE);
     if (flush_flag)
       MPI_File_sync(mpifh);
   }

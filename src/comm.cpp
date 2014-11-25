@@ -407,14 +407,13 @@ void Comm::set_proc_grid(int outflag)
   // recv 3d proc grid of another partition if my 3d grid depends on it
 
   if (recv_from_partition >= 0) {
-    MPI_Status status;
     if (me == 0) {
       MPI_Recv(other_procgrid,3,MPI_INT,
                universe->root_proc[recv_from_partition],0,
-               universe->uworld,&status);
+               universe->uworld,MPI_STATUS_IGNORE);
       MPI_Recv(other_coregrid,3,MPI_INT,
                universe->root_proc[recv_from_partition],0,
-               universe->uworld,&status);
+               universe->uworld,MPI_STATUS_IGNORE);
     }
     MPI_Bcast(other_procgrid,3,MPI_INT,0,world);
     MPI_Bcast(other_coregrid,3,MPI_INT,0,world);

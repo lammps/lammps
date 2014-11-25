@@ -178,7 +178,6 @@ void CommCuda::forward_comm_cuda()
 
   int n;
   MPI_Request request;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
 
   cuda->shared_data.domain.xy=domain->xy;
@@ -225,7 +224,7 @@ my_gettime(CLOCK_REALTIME,&time2);
 
                 //printf("RecvSize: %i SendSize: %i\n",size_forward_recv_now,n);
             MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-            MPI_Wait(&request,&status);
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
 
 my_gettime(CLOCK_REALTIME,&time3);
 cuda->shared_data.cuda_timings.comm_forward_mpi_upper+=
@@ -249,7 +248,7 @@ cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
                                 buf_send,pbc_flag[iswap],pbc[iswap]);
 
             MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-            MPI_Wait(&request,&status);
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
             avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
       else
@@ -265,7 +264,7 @@ cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
                             buf_send,pbc_flag[iswap],pbc[iswap]);
 
             MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-            MPI_Wait(&request,&status);
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
             avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
 
@@ -306,7 +305,6 @@ void CommCuda::forward_comm_pack_cuda()
   int n;  // initialize comm buffers & exchange memory
 
   MPI_Request request;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
 
   cuda->shared_data.domain.xy=domain->xy;
@@ -365,7 +363,7 @@ my_gettime(CLOCK_REALTIME,&time2);
                             cuda->shared_data.comm.buf_send[iswap],pbc_flag[iswap],pbc[iswap]);
 
             MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-            MPI_Wait(&request,&status);
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
             avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
 
@@ -404,7 +402,6 @@ void CommCuda::forward_comm_transfer_cuda()
   my_times time1,time2,time3;
   int n;
   MPI_Request request;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
   cuda->shared_data.domain.xy=domain->xy;
   cuda->shared_data.domain.xz=domain->xz;
@@ -450,7 +447,7 @@ my_gettime(CLOCK_REALTIME,&time2);
 cuda->shared_data.cuda_timings.comm_forward_download+=
       time2.tv_sec-time1.tv_sec+1.0*(time2.tv_nsec-time1.tv_nsec)/1000000000;
             MPI_Send(buf_send,cuda->shared_data.comm.send_size[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
-            MPI_Wait(&request,&status);
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
         //printf("D: %i \n",cuda->shared_data.comm.send_size[iswap]/1024*4);
                 CudaWrapper_UploadCudaDataAsync((void*) buf_recv,cuda->shared_data.comm.buf_recv_dev[iswap], size_forward_recv_now*sizeof(double),2);
 my_gettime(CLOCK_REALTIME,&time1);
@@ -484,7 +481,7 @@ my_gettime(CLOCK_REALTIME,&time1);
 my_gettime(CLOCK_REALTIME,&time2);
 
             MPI_Send(cuda->shared_data.comm.buf_send[iswap],cuda->shared_data.comm.send_size[iswap],MPI_DOUBLE,sendproc[iswap],0,world);
-            MPI_Wait(&request,&status);
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
 
 my_gettime(CLOCK_REALTIME,&time3);
 cuda->shared_data.cuda_timings.comm_forward_mpi_upper+=
@@ -506,7 +503,7 @@ cuda->shared_data.cuda_timings.comm_forward_mpi_lower+=
                             buf_send,pbc_flag[iswap],pbc[iswap]);
 
             MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-            MPI_Wait(&request,&status);
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
             avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
 
@@ -537,7 +534,6 @@ void CommCuda::forward_comm_unpack_cuda()
 {
   int n;
   MPI_Request request;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
 
   cuda->shared_data.domain.xy=domain->xy;
@@ -580,7 +576,7 @@ void CommCuda::forward_comm_unpack_cuda()
                             buf_send,pbc_flag[iswap],pbc[iswap]);
 
             MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-            MPI_Wait(&request,&status);
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
             avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
 
@@ -617,7 +613,6 @@ void CommCuda::forward_comm_pair(Pair *pair)
   int iswap,n;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
 
   int nsize = pair->comm_forward;
 
@@ -639,7 +634,7 @@ void CommCuda::forward_comm_pair(Pair *pair)
       MPI_Irecv(buf_recv,nrecv,MPI_DOUBLE,recvproc[iswap],0,
                 world,&request);
       MPI_Send(buf_send,nsend,MPI_DOUBLE,sendproc[iswap],0,world);
-      MPI_Wait(&request,&status);
+      MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -658,7 +653,6 @@ void CommCuda::reverse_comm()
 {
   int n;
   MPI_Request request;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
   double *buf;
 
@@ -689,7 +683,7 @@ void CommCuda::reverse_comm()
           size_reverse_send_now=(size_reverse_send_now+1)*sizeof(F_CFLOAT)/sizeof(double);
         MPI_Send(buf,size_reverse_send_now,MPI_DOUBLE,
                  recvproc[iswap],0,world);
-        MPI_Wait(&request,&status);
+        MPI_Wait(&request,MPI_STATUS_IGNORE);
         Cuda_CommCuda_UnpackReverse(&cuda->shared_data,sendnum[iswap],iswap,buf_recv);
 
       } else {
@@ -697,7 +691,7 @@ void CommCuda::reverse_comm()
                   sendproc[iswap],0,world,&request);
         n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
         MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
-        MPI_Wait(&request,&status);
+        MPI_Wait(&request,MPI_STATUS_IGNORE);
 
       avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_recv);
       }
@@ -744,7 +738,6 @@ void CommCuda::exchange_cuda()
   int nsend,nrecv,nrecv1,nrecv2,nlocal;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
   my_times time1,time2;
 
@@ -787,11 +780,11 @@ void CommCuda::exchange_cuda()
 
     } else {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
-                   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,&status);
+                   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,MPI_STATUS_IGNORE);
       nrecv = nrecv1;
       if (procgrid[dim] > 2) {
         MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
-                     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,&status);
+                     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,MPI_STATUS_IGNORE);
         nrecv += nrecv2;
       }
       if (nrecv+1 > maxrecv) grow_recv(nrecv+1);
@@ -799,13 +792,13 @@ void CommCuda::exchange_cuda()
       MPI_Irecv(buf_recv,nrecv1,MPI_DOUBLE,procneigh[dim][1],0,
                 world,&request);
       MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][0],0,world);
-      MPI_Wait(&request,&status);
+      MPI_Wait(&request,MPI_STATUS_IGNORE);
 
       if (procgrid[dim] > 2) {
         MPI_Irecv(&buf_recv[nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
                   world,&request);
         MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][1],0,world);
-        MPI_Wait(&request,&status);
+        MPI_Wait(&request,MPI_STATUS_IGNORE);
 
             if((nrecv1==0)||(nrecv2==0)) buf_recv[nrecv]=0;
       }
@@ -871,7 +864,6 @@ void CommCuda::borders_cuda()
   int nsend,nrecv,nfirst,nlast;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
   my_times time1,time2;
 
@@ -931,13 +923,13 @@ void CommCuda::borders_cuda()
 my_gettime(CLOCK_REALTIME,&time1);
       if (sendproc[iswap] != me) {
         MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
-                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
+                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,MPI_STATUS_IGNORE);
         if (nrecv*size_border > maxrecv)
           grow_recv(nrecv*size_border);
         MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
                   recvproc[iswap],0,world,&request);
         MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-        MPI_Wait(&request,&status);
+        MPI_Wait(&request,MPI_STATUS_IGNORE);
         buf = buf_recv;
       } else {
         nrecv = nsend;
@@ -994,7 +986,6 @@ void CommCuda::borders_cuda_overlap_forward_comm()
   int nsend,nrecv,nfirst,nlast;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
   my_times time1,time2;
 
@@ -1055,13 +1046,13 @@ void CommCuda::borders_cuda_overlap_forward_comm()
 my_gettime(CLOCK_REALTIME,&time1);
       if (sendproc[iswap] != me) {
         MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
-                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
+                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,MPI_STATUS_IGNORE);
         if (nrecv*size_border > maxrecv)
           grow_recv(nrecv*size_border);
         MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
                   recvproc[iswap],0,world,&request);
         MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-        MPI_Wait(&request,&status);
+        MPI_Wait(&request,MPI_STATUS_IGNORE);
         buf = buf_recv;
       } else {
         nrecv = nsend;
@@ -1120,7 +1111,6 @@ void CommCuda::forward_comm_fix(Fix *fix, int size)
   int iswap,n;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
 
   int nsize = fix->comm_forward;
 
@@ -1150,7 +1140,7 @@ void CommCuda::forward_comm_fix(Fix *fix, int size)
       MPI_Irecv(buf_recv,nsize*recvnum[iswap],MPI_DOUBLE,recvproc[iswap],0,
                 world,&request);
       MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-      MPI_Wait(&request,&status);
+      MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
 

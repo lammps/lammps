@@ -264,7 +264,6 @@ int Write_Init_Desc( reax_system *system, control_params *control,
 {
   int i, me, np, cnt, buffer_len, buffer_req;
   reax_atom *p_atom;
-  //MPI_Request request;
   MPI_Status status;
 
   me = system->my_rank;

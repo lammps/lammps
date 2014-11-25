@@ -112,7 +112,6 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
   double cutof3;
   double *buf;
   MPI_Request irequest;
-  MPI_Status istatus;
 
   MPI_Comm_size(world,&nprocs);
 
@@ -198,7 +197,7 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
       } else {
         MPI_Irecv(&buf[0],nbuf,MPI_DOUBLE,inode,0,world,&irequest);
         MPI_Send(&itmp,0,MPI_INT,inode,0,world);
-        MPI_Wait(&irequest,&istatus);
+        MPI_Wait(&irequest,MPI_STATUS_IGNORE);
         nlocal_tmp = nint(buf[j++]);
       }
 
@@ -237,7 +236,7 @@ void FixReaxBonds::OutputReaxBonds(bigint ntimestep, FILE *fp)
     }
 
   } else {
-    MPI_Recv(&itmp,0,MPI_INT,0,0,world,&istatus);
+    MPI_Recv(&itmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(&buf[0],nbuf_local,MPI_DOUBLE,0,0,world);
   }
 

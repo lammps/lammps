@@ -92,7 +92,6 @@ class CommTiled : public Comm {
 
   int maxreqstat;               // max size of Request and Status vectors
   MPI_Request *requests;
-  MPI_Status *statuses;
 
   struct RCBinfo {
     double mysplit[3][2];      // fractional RCB bounding box for one proc

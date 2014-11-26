@@ -1,17 +1,17 @@
-# verified on Fedora 17     / x86_64 / 2014-01-23
-# verified on Fedora 17     / i386   / 2014-01-23
-# verified on Fedora 18     / x86_64 / 2014-01-23
-# verified on Fedora 18     / i386   / 2014-01-23
-# verified on Fedora 19     / x86_64 / 2014-01-23
-# verified on Fedora 19     / i386   / 2014-01-23
-# verified on Fedora 20     / x86_64 / 2014-01-23
-# verified on Fedora 20     / i386   / 2014-01-23
-# verified on CentOS 6.4    / x86_64 / 2014-01-23
-# verified on CentOS 6.4    / i386   / 2014-01-23
-# verified on OpenSuSE 12.3 / x86_64 / 2014-01-23
-# verified on OpenSuSE 12.3 / i586   / 2014-01-23
-# verified on OpenSuSE 13.1 / x86_64 / 2014-01-23
-# verified on OpenSuSE 13.1 / i586   / 2014-01-23
+# verified on Fedora 17     / x86_64 / 2014-11-26
+# verified on Fedora 17     / i386   / 2014-11-26
+# verified on Fedora 18     / x86_64 / 2014-11-26
+# verified on Fedora 18     / i386   / 2014-11-26
+# verified on Fedora 19     / x86_64 / 2014-11-26
+# verified on Fedora 19     / i386   / 2014-11-26
+# verified on Fedora 20     / x86_64 / 2014-11-26
+# verified on Fedora 20     / i386   / 2014-11-26
+# verified on CentOS 6.6    / x86_64 / 2014-11-26
+# verified on CentOS 6.6    / i386   / 2014-11-26
+# verified on OpenSuSE 12.3 / x86_64 / 2014-11-26
+# verified on OpenSuSE 12.3 / i586   / 2014-11-26
+# verified on OpenSuSE 13.1 / x86_64 / 2014-11-26
+# verified on OpenSuSE 13.1 / i586   / 2014-11-26
 
 %ifnarch s390 s390x
 %global with_openmpi 1

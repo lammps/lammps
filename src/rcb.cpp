@@ -115,7 +115,6 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
   double tolerance;
   MPI_Comm comm,comm_half;
   MPI_Request request,request2;
-  MPI_Status status;
   Median med,medme;
 
   // create list of my Dots
@@ -469,9 +468,9 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
     MPI_Send(&outgoing,1,MPI_INT,procpartner,0,world);
     incoming = 0;
     if (readnumber) {
-      MPI_Recv(&incoming,1,MPI_INT,procpartner,0,world,&status);
+      MPI_Recv(&incoming,1,MPI_INT,procpartner,0,world,MPI_STATUS_IGNORE);
       if (readnumber == 2) {
-	MPI_Recv(&incoming2,1,MPI_INT,procpartner2,0,world,&status);
+	MPI_Recv(&incoming2,1,MPI_INT,procpartner2,0,world,MPI_STATUS_IGNORE);
 	incoming += incoming2;
       }
     }
@@ -527,7 +526,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
       MPI_Send(NULL,0,MPI_INT,procpartner,0,world);
       if (readnumber == 2) MPI_Send(NULL,0,MPI_INT,procpartner2,0,world);
     }
-    MPI_Recv(NULL,0,MPI_INT,procpartner,0,world,&status);
+    MPI_Recv(NULL,0,MPI_INT,procpartner,0,world,MPI_STATUS_IGNORE);
 
     // send dots to partner
 
@@ -536,8 +535,8 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
     // wait until all dots are received
 
     if (readnumber > 0) {
-      MPI_Wait(&request,&status);
-      if (readnumber == 2) MPI_Wait(&request2,&status);
+      MPI_Wait(&request,MPI_STATUS_IGNORE);
+      if (readnumber == 2) MPI_Wait(&request2,MPI_STATUS_IGNORE);
     }
 
     ndot = ndotnew;

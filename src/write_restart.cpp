@@ -393,10 +393,10 @@ void WriteRestart::write(char *file)
 
   else {
     int tmp,recv_size;
-    MPI_Status status;
-    MPI_Request request;
 
     if (filewriter) {
+      MPI_Status status;
+      MPI_Request request;
       for (int iproc = 0; iproc < nclusterprocs; iproc++) {
         if (iproc) {
           MPI_Irecv(buf,max_size,MPI_DOUBLE,me+iproc,0,world,&request);
@@ -410,7 +410,7 @@ void WriteRestart::write(char *file)
       fclose(fp);
 
     } else {
-      MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,&status);
+      MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
       MPI_Rsend(buf,send_size,MPI_DOUBLE,fileproc,0,world);
     }
   }

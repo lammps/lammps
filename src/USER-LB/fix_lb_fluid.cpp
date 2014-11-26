@@ -802,7 +802,6 @@ void FixLbFluid::calc_fluidforce(void)
   double **x = atom->x;
   int i,j,k,m;
   MPI_Request requests[20];
-  MPI_Status statuses[20];
   double forceloc[3],force[3];
   double torqueloc[3],torque[3];
   
@@ -901,7 +900,7 @@ void FixLbFluid::calc_fluidforce(void)
   MPI_Irecv(&Fftempx[2][0][0][0],1,passxtemp,comm->procneigh[0][0],30,world,&requests[7]);
   MPI_Irecv(&Fftempx[3][0][0][0],1,passxtemp,comm->procneigh[0][0],40,world,&requests[8]);
   MPI_Irecv(&Fftempx[4][0][0][0],1,passxtemp,comm->procneigh[0][0],50,world,&requests[9]);
-  MPI_Waitall(10,requests,statuses);
+  MPI_Waitall(10,requests,MPI_STATUS_IGNORE);
   
   for(j=0; j<subNby+3; j++){
     for(k=0; k<subNbz+3; k++){
@@ -927,7 +926,7 @@ void FixLbFluid::calc_fluidforce(void)
   MPI_Irecv(&Fftempy[0][2][0][0],1,passytemp,comm->procneigh[1][0],30,world,&requests[7]);
   MPI_Irecv(&Fftempy[0][3][0][0],1,passytemp,comm->procneigh[1][0],40,world,&requests[8]);
   MPI_Irecv(&Fftempy[0][4][0][0],1,passytemp,comm->procneigh[1][0],50,world,&requests[9]);
-  MPI_Waitall(10,requests,statuses);
+  MPI_Waitall(10,requests,MPI_STATUS_IGNORE);
 
   for(i=0; i<subNbx+3; i++){
     for(k=0; k<subNbz+3; k++){
@@ -953,7 +952,7 @@ void FixLbFluid::calc_fluidforce(void)
   MPI_Irecv(&Fftempz[0][0][2][0],1,passztemp,comm->procneigh[2][0],30,world,&requests[7]);
   MPI_Irecv(&Fftempz[0][0][3][0],1,passztemp,comm->procneigh[2][0],40,world,&requests[8]);
   MPI_Irecv(&Fftempz[0][0][4][0],1,passztemp,comm->procneigh[2][0],50,world,&requests[9]);
-  MPI_Waitall(10,requests,statuses);  
+  MPI_Waitall(10,requests,MPI_STATUS_IGNORE);  
 
   for(i=0; i<subNbx+3; i++){
     for(j=0; j<subNby+3; j++){
@@ -1837,7 +1836,6 @@ void FixLbFluid::initialize_feq(void)
 {
   int i,j,k,p;
   MPI_Request requests[8];
-  MPI_Status statuses[8];
   int numrequests;
 
   // If using the standary LB integrator, do not need to send feqn.
@@ -1870,7 +1868,7 @@ void FixLbFluid::initialize_feq(void)
       MPI_Isend(&feqn[subNbx-2][1][1][0],1,passxf,comm->procneigh[0][1],20,world,&requests[6]);
       MPI_Irecv(&feqn[subNbx-1][1][1][0],1,passxf,comm->procneigh[0][1],10,world,&requests[7]);
     }  
-    MPI_Waitall(numrequests,requests,statuses);
+    MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
     
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
@@ -1884,7 +1882,7 @@ void FixLbFluid::initialize_feq(void)
       MPI_Isend(&feqn[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],20,world,&requests[6]);
       MPI_Irecv(&feqn[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],10,world,&requests[7]);
     }
-    MPI_Waitall(numrequests,requests,statuses);
+    MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
     
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
@@ -1898,7 +1896,7 @@ void FixLbFluid::initialize_feq(void)
       MPI_Isend(&feqn[0][0][subNbz-2][0],1,passzf,comm->procneigh[2][1],20,world,&requests[6]);
       MPI_Irecv(&feqn[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],10,world,&requests[7]);
     } 
-    MPI_Waitall(numrequests,requests,statuses);
+    MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
     
     //Save feqold.
     if(typeLB == 2){
@@ -1926,7 +1924,7 @@ void FixLbFluid::initialize_feq(void)
       MPI_Irecv(&feqoldn[0][1][1][0],1,passxf,comm->procneigh[0][0],20,world,&requests[5]);
       MPI_Isend(&feqoldn[subNbx-2][1][1][0],1,passxf,comm->procneigh[0][1],20,world,&requests[6]);
       MPI_Irecv(&feqoldn[subNbx-1][1][1][0],1,passxf,comm->procneigh[0][1],10,world,&requests[7]);  
-      MPI_Waitall(8,requests,statuses);
+      MPI_Waitall(8,requests,MPI_STATUS_IGNORE);
       
       for(i=0; i<8; i++)
 	requests[i]=MPI_REQUEST_NULL;
@@ -1938,7 +1936,7 @@ void FixLbFluid::initialize_feq(void)
       MPI_Irecv(&feqoldn[0][0][1][0],1,passyf,comm->procneigh[1][0],20,world,&requests[5]);   
       MPI_Isend(&feqoldn[0][subNby-2][1][0],1,passyf,comm->procneigh[1][1],20,world,&requests[6]);
       MPI_Irecv(&feqoldn[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],10,world,&requests[7]);
-      MPI_Waitall(8,requests,statuses);
+      MPI_Waitall(8,requests,MPI_STATUS_IGNORE);
       
       for(i=0; i<8; i++)
 	requests[i]=MPI_REQUEST_NULL;
@@ -1950,7 +1948,7 @@ void FixLbFluid::initialize_feq(void)
       MPI_Irecv(&feqoldn[0][0][0][0],1,passzf,comm->procneigh[2][0],20,world,&requests[5]);
       MPI_Isend(&feqoldn[0][0][subNbz-2][0],1,passzf,comm->procneigh[2][1],20,world,&requests[6]);
       MPI_Irecv(&feqoldn[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],10,world,&requests[7]); 
-      MPI_Waitall(8,requests,statuses);
+      MPI_Waitall(8,requests,MPI_STATUS_IGNORE);
     }
     parametercalc_full();
   }
@@ -2325,9 +2323,7 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
 void FixLbFluid::parametercalc_full(void)
 {
   MPI_Request requests[4];
-  MPI_Status statuses[4];
   MPI_Request requests2[12];
-  MPI_Status statuses2[12];
   int numrequests;
   int i;
 
@@ -2343,7 +2339,7 @@ void FixLbFluid::parametercalc_full(void)
   MPI_Isend(&f_lb[subNbx-2][1][1][0],1,passxf,comm->procneigh[0][1],20,world,&requests[2]);
   MPI_Irecv(&f_lb[subNbx-1][1][1][0],1,passxf,comm->procneigh[0][1],10,world,&requests[3]);
   parametercalc_part(1,subNbx-1,1,subNby-1,1,subNbz-1);
-  MPI_Waitall(4,requests,statuses);
+  MPI_Waitall(4,requests,MPI_STATUS_IGNORE);
 
   for(i=0; i<4; i++)
     requests[i]=MPI_REQUEST_NULL;
@@ -2353,7 +2349,7 @@ void FixLbFluid::parametercalc_full(void)
   MPI_Irecv(&f_lb[0][subNby-1][1][0],1,passyf,comm->procneigh[1][1],10,world,&requests[3]);
   parametercalc_part(0,1,1,subNby-1,1,subNbz-1);
   parametercalc_part(subNbx-1,subNbx,1,subNby-1,1,subNbz-1);
-  MPI_Waitall(4,requests,statuses);
+  MPI_Waitall(4,requests,MPI_STATUS_IGNORE);
 
   for(i=0; i<4; i++)
     requests[i]=MPI_REQUEST_NULL;
@@ -2363,7 +2359,7 @@ void FixLbFluid::parametercalc_full(void)
   MPI_Irecv(&f_lb[0][0][subNbz-1][0],1,passzf,comm->procneigh[2][1],10,world,&requests[3]);
   parametercalc_part(0,subNbx,0,1,1,subNbz-1);
   parametercalc_part(0,subNbx,subNby-1,subNby,1,subNbz-1);
-  MPI_Waitall(4,requests,statuses);
+  MPI_Waitall(4,requests,MPI_STATUS_IGNORE);
   
   parametercalc_part(0,subNbx,0,subNby,0,1);
   parametercalc_part(0,subNbx,0,subNby,subNbz-1,subNbz);
@@ -2391,7 +2387,7 @@ void FixLbFluid::parametercalc_full(void)
     MPI_Irecv(&density_lb[subNbx+1][0][0],1,passxrho,comm->procneigh[0][1],50,world,&requests2[10]);
     MPI_Irecv(&density_lb[subNbx+2][0][0],1,passxrho,comm->procneigh[0][0],60,world,&requests2[11]);
   }
-  MPI_Waitall(numrequests,requests2,statuses2);
+  MPI_Waitall(numrequests,requests2,MPI_STATUS_IGNORE);
 
   for(i=0; i<numrequests; i++)
     requests2[i]=MPI_REQUEST_NULL;
@@ -2409,7 +2405,7 @@ void FixLbFluid::parametercalc_full(void)
     MPI_Irecv(&density_lb[0][subNby+1][0],1,passyrho,comm->procneigh[1][1],50,world,&requests2[10]);
     MPI_Irecv(&density_lb[0][subNby+2][0],1,passyrho,comm->procneigh[1][0],60,world,&requests2[11]);
   }
-  MPI_Waitall(numrequests,requests2,statuses2);
+  MPI_Waitall(numrequests,requests2,MPI_STATUS_IGNORE);
 
   for(i=0; i<12; i++)
     requests2[i]=MPI_REQUEST_NULL;
@@ -2438,7 +2434,7 @@ void FixLbFluid::parametercalc_full(void)
       requestcount=requestcount+3;
     }
   }    
-  MPI_Waitall(requestcount,requests2,statuses2); 
+  MPI_Waitall(requestcount,requests2,MPI_STATUS_IGNORE); 
 
 }
 
@@ -2670,7 +2666,6 @@ void FixLbFluid::update_full15(void)
    MPI_Request req_send15,req_recv15;
    MPI_Request req_send25,req_recv25;
    MPI_Request requests[8];
-   MPI_Status statuses[8];
    int numrequests;
    double tmp1;
    MPI_Status status;
@@ -2706,7 +2701,7 @@ void FixLbFluid::update_full15(void)
        MPI_Irecv(&feqn[subNbx-1][1][1][0],1,passxf,comm->procneigh[0][1],10,world,&requests[7]);
      }
      update_periodic(2,subNbx-2,2,subNby-2,2,subNbz-2);
-     MPI_Waitall(numrequests,requests,statuses);
+     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
 
 
      for(i=0; i<numrequests; i++)
@@ -2723,7 +2718,7 @@ void FixLbFluid::update_full15(void)
      }
      update_periodic(1,2,2,subNby-2,2,subNbz-2);
      update_periodic(subNbx-2,subNbx-1,2,subNby-2,2,subNbz-2);
-     MPI_Waitall(numrequests,requests,statuses);
+     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
      
      for(i=0; i<numrequests; i++)
        requests[i]=MPI_REQUEST_NULL;
@@ -2739,7 +2734,7 @@ void FixLbFluid::update_full15(void)
      } 
      update_periodic(1,subNbx-1,1,2,2,subNbz-2);
      update_periodic(1,subNbx-1,subNby-2,subNby-1,2,subNbz-2);
-     MPI_Waitall(numrequests,requests,statuses);
+     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
 
      if(typeLB==1){
        update_periodic(1,subNbx-1,1,subNby-1,1,2);
@@ -2981,7 +2976,7 @@ void FixLbFluid::update_full15(void)
        MPI_Irecv(&feqn[subNbx-1][1][1][0],1,passxf,comm->procneigh[0][1],10,world,&requests[7]);
      }
      update_periodic(2,subNbx-2,2,subNby-2,2,subNbz-2);
-     MPI_Waitall(numrequests,requests,statuses);
+     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
 
      for(i=0; i<numrequests; i++)
        requests[i]=MPI_REQUEST_NULL;
@@ -2997,7 +2992,7 @@ void FixLbFluid::update_full15(void)
      }
      update_periodic(1,2,2,subNby-2,2,subNbz-2);
      update_periodic(subNbx-2,subNbx-1,2,subNby-2,2,subNbz-2);
-     MPI_Waitall(numrequests,requests,statuses);
+     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
 
      for(i=0; i<numrequests; i++)
        requests[i]=MPI_REQUEST_NULL;
@@ -3013,7 +3008,7 @@ void FixLbFluid::update_full15(void)
      }  
      update_periodic(1,subNbx-1,1,2,2,subNbz-2);
      update_periodic(1,subNbx-1,subNby-2,subNby-1,2,subNbz-2);
-     MPI_Waitall(numrequests,requests,statuses);
+     MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
      
      update_periodic(1,subNbx-1,1,subNby-1,1,2);
      update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);
@@ -3031,7 +3026,6 @@ void FixLbFluid::update_full19(void)
   MPI_Request req_send15,req_recv15;
   MPI_Request req_send25,req_recv25;
   MPI_Request requests[8];
-  MPI_Status statuses[8];
   int numrequests;
   double tmp1,tmp2,tmp3;
   MPI_Status status;
@@ -3067,7 +3061,7 @@ void FixLbFluid::update_full19(void)
       MPI_Irecv(&feqn[subNbx-1][1][1][0],1,passxf,comm->procneigh[0][1],10,world,&requests[7]);
     }
     update_periodic(2,subNbx-2,2,subNby-2,2,subNbz-2);
-    MPI_Waitall(numrequests,requests,statuses);
+    MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
     
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
@@ -3083,7 +3077,7 @@ void FixLbFluid::update_full19(void)
     }
     update_periodic(1,2,2,subNby-2,2,subNbz-2);
     update_periodic(subNbx-2,subNbx-1,2,subNby-2,2,subNbz-2);
-    MPI_Waitall(numrequests,requests,statuses);
+    MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
     
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
@@ -3099,7 +3093,7 @@ void FixLbFluid::update_full19(void)
     } 
     update_periodic(1,subNbx-1,1,2,2,subNbz-2);
     update_periodic(1,subNbx-1,subNby-2,subNby-1,2,subNbz-2);
-    MPI_Waitall(numrequests,requests,statuses);
+    MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
     
     if(typeLB==1){
       update_periodic(1,subNbx-1,1,subNby-1,1,2);
@@ -3331,7 +3325,7 @@ void FixLbFluid::update_full19(void)
       MPI_Irecv(&feqn[subNbx-1][1][1][0],1,passxf,comm->procneigh[0][1],10,world,&requests[7]);
     }
     update_periodic(2,subNbx-2,2,subNby-2,2,subNbz-2);
-    MPI_Waitall(numrequests,requests,statuses);
+    MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
     
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
@@ -3347,7 +3341,7 @@ void FixLbFluid::update_full19(void)
     }
     update_periodic(1,2,2,subNby-2,2,subNbz-2);
     update_periodic(subNbx-2,subNbx-1,2,subNby-2,2,subNbz-2);
-    MPI_Waitall(numrequests,requests,statuses);
+    MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
     
     for(i=0; i<numrequests; i++)
       requests[i]=MPI_REQUEST_NULL;
@@ -3363,7 +3357,7 @@ void FixLbFluid::update_full19(void)
     }  
     update_periodic(1,subNbx-1,1,2,2,subNbz-2);
     update_periodic(1,subNbx-1,subNby-2,subNby-1,2,subNbz-2);
-    MPI_Waitall(numrequests,requests,statuses);
+    MPI_Waitall(numrequests,requests,MPI_STATUS_IGNORE);
     
     update_periodic(1,subNbx-1,1,subNby-1,1,2);
     update_periodic(1,subNbx-1,1,subNby-1,subNbz-2,subNbz-1);

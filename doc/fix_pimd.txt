@@ -25,7 +25,7 @@ keyword = {method} or {fmass} or {sp} or {temp} or {nhc} :l
 
 [Examples:]
 
-fix 1 all quantum method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4 :pre
+fix 1 all pimd method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4 :pre
 
 [Description:]
 
@@ -97,7 +97,7 @@ masses of beads, which can be used for the Partial Adiabatic CMD
 "(Hone)"_#Hone, or to be set as P, which results in the fictitious
 masses to be equal to the real particle masses. 
 
-The keyword {sp} is a scaling factor on Planck’s constant, which can
+The keyword {sp} is a scaling factor on Planck's constant, which can
 be useful for debugging or other purposes.  The default value of 1.0
 is appropriate for most situations.
 
@@ -157,23 +157,22 @@ and nhc = 2.
 
 :line
 
-:link(Feynman) 
-[(Feynman)] R. Feynman and A. Hibbs, Chapter 7, Quantum Mechanics and
-Path Integrals, McGraw-Hill, New York (1965).
+:link(Feynman) [(Feynman)] R. Feynman and A. Hibbs, Chapter 7, Quantum
+Mechanics and Path Integrals, McGraw-Hill, New York (1965).
 
 :link(Tuckerman) 
-[(Tuckerman)] M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (xxxx).
+[(Tuckerman)] M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).
 
 :link(Cao1) 
-[(Cao1)] J. Cao and B. Berne, J Chem Phys, 99, 2902 (xxxx).
+[(Cao1)] J. Cao and B. Berne, J Chem Phys, 99, 2902 (1993).
 
 :link(Cao2) 
-[(Cao2)] J. Cao and G. Voth, J Chem Phys, 100, 5093 (xxxx).
+[(Cao2)] J. Cao and G. Voth, J Chem Phys, 100, 5093 (1994).
 
 :link(Hone) 
 [(Hone)] T. Hone, P. Rossky, G. Voth, J Chem Phys, 124,
-154103 (xxxx).
+154103 (2006).
 
 :link(Calhoun) 
 [(Calhoun)] A. Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262,
-415 (xxxx).
+415 (1996).

@@ -20,7 +20,7 @@ thermo		${out_freq}
 
 velocity all create 1.0 1985 rot yes dist gaussian
 
-fix 1 all quantum method nmpimd fmass 1.0 temp 25.0 nhc 4
+fix 1 all pimd method nmpimd fmass 1.0 temp 25.0 nhc 4
 
 dump dcd all dcd ${out_freq} dcd/${job_name}_${ibead}.dcd
 

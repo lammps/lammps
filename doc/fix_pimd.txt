@@ -157,8 +157,9 @@ and nhc = 2.
 
 :line
 
-:link(Feynman) [(Feynman)] R. Feynman and A. Hibbs, Chapter 7, Quantum
-Mechanics and Path Integrals, McGraw-Hill, New York (1965).
+:link(Feynman) 
+[(Feynman)] R. Feynman and A. Hibbs, Chapter 7, Quantum Mechanics and
+Path Integrals, McGraw-Hill, New York (1965).
 
 :link(Tuckerman) 
 [(Tuckerman)] M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).

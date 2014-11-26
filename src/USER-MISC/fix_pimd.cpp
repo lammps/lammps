@@ -653,31 +653,15 @@ void FixPIMD::comm_exec(double **ptr)
     for(int i=0; i<nsend; i++)
     {
       int index = atom->map(tag_send[i]);
-    
-#define ERR_HEAD "FEYNMAN|"
-#define ERR_LAST "Aborted in \"fix pimd\""
-#define _ECHO if(universe->me==0 && screen) fprintf(screen,
-#define _END );
 
       if(index<0)
       {
-        _ECHO "%s Error: Atom %d is missing at world [%d] rank [%d] required by  rank [%d].\n",
-          ERR_HEAD, tag_send[i], universe->iworld, comm->me, plan_recv[iplan] _END
+        char error_line[256];
+      
+        sprintf(error_line, "Atom %d is missing at world [%d] rank [%d] required by  rank [%d].\n",
+          tag_send[i], universe->iworld, comm->me, plan_recv[iplan]);
 	  
-/* --------------------------------------------------------------------------------------------------- */
-
-  char fname[100];
-  sprintf(fname,"err_%d_%d.xyz", universe->iworld, comm->me);
-  FILE *fp = fopen(fname,"w");
-  int n = atom->nlocal + atom->nghost;
-  fprintf(fp,"%d\n\n", n);
-  for(int i=0; i<atom->nlocal; i++) fprintf(fp, "O  %lf %lf %lf %d\n", atom->x[i][0], atom->x[i][1], atom->x[i][2],atom->tag[i]);
-  for(int i=nlocal; i<n; i++) fprintf(fp, "H  %lf %lf %lf %d\n", atom->x[i][0], atom->x[i][1], atom->x[i][2],atom->tag[i]);
-  fclose(fp);
-  
-/* --------------------------------------------------------------------------------------------------- */
-	  
-        error->universe_one(FLERR,ERR_LAST);
+        error->universe_one(FLERR,error_line);
       }
     
       memcpy(wrap_ptr, ptr[index], ncpy);

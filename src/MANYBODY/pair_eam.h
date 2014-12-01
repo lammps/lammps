@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 
 class PairEAM : public Pair {
  public:
+  friend class FixSemiGrandCanonicalMC;
 
   // public variables so USER-ATC package can access them
 

@@ -83,8 +83,8 @@ environment.
 :line
 
 :link(IPICPC)
-[(IPI-CPC)] Ceriotti, More and Manolopoulos, 
-Comp. Phys. Comm., 185, 1019–1026 (2014)
+[(IPI-CPC)] Ceriotti, More and Manolopoulos, Comp Phys Comm, 185,
+1019-1026 (2014).
 
 :link(IPI)
 [(IPI)]

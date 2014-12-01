@@ -15,7 +15,7 @@
    Package      FixPIMD
    Purpose      Quantum Path Integral Algorithm for Quantum Chemistry
    Copyright    Voth Group @ University of Chicago
-   Authors      Chris Knight & Yuxing Peng
+   Authors      Chris Knight & Yuxing Peng (yuxing at uchicago.edu)
    
    Updated      Oct-01-2011
    Version      1.0

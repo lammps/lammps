@@ -116,7 +116,7 @@ class PPPMOld : public KSpace {
   virtual void brick2fft();
   virtual void fillbrick();
   virtual void fillbrick_peratom();
-  virtual void poisson();
+  virtual void poisson(int,int);
   virtual void poisson_peratom();
   virtual void fieldforce();
   virtual void fieldforce_peratom();

@@ -741,7 +741,6 @@ void PairSNAP::load_balance()
   int* procgrid = comm->procgrid;
 
   int nlocal_up,nlocal_down;
-  MPI_Status status;
   MPI_Request request;
 
   double sub_mid[3];
@@ -802,9 +801,9 @@ void PairSNAP::load_balance()
         // two stage process, first upstream movement, then downstream
 
         MPI_Sendrecv(&nlocal,1,MPI_INT,sendproc,0,
-                     &nlocal_up,1,MPI_INT,recvproc,0,world,&status);
+                     &nlocal_up,1,MPI_INT,recvproc,0,world,MPI_STATUS_IGNORE);
         MPI_Sendrecv(&nlocal,1,MPI_INT,recvproc,0,
-                     &nlocal_down,1,MPI_INT,sendproc,0,world,&status);
+                     &nlocal_down,1,MPI_INT,sendproc,0,world,MPI_STATUS_IGNORE);
         nsend = 0;
 
         // send upstream
@@ -835,7 +834,7 @@ void PairSNAP::load_balance()
         if (nlocal < nlocal_down-1) {
           nlocal++;
           int get_tag = -1;
-          MPI_Recv(&get_tag,1,MPI_INT,sendproc,0,world,&status);
+          MPI_Recv(&get_tag,1,MPI_INT,sendproc,0,world,MPI_STATUS_IGNORE);
 
           // if get_tag -1 the other process didnt have local atoms to send
 
@@ -907,9 +906,9 @@ void PairSNAP::load_balance()
         // second pass through the grid
 
         MPI_Sendrecv(&nlocal,1,MPI_INT,sendproc,0,
-                     &nlocal_up,1,MPI_INT,recvproc,0,world,&status);
+                     &nlocal_up,1,MPI_INT,recvproc,0,world,MPI_STATUS_IGNORE);
         MPI_Sendrecv(&nlocal,1,MPI_INT,recvproc,0,
-                     &nlocal_down,1,MPI_INT,sendproc,0,world,&status);
+                     &nlocal_down,1,MPI_INT,sendproc,0,world,MPI_STATUS_IGNORE);
 
         // send downstream
 
@@ -938,7 +937,7 @@ void PairSNAP::load_balance()
           nlocal++;
           int get_tag = -1;
 
-          MPI_Recv(&get_tag,1,MPI_INT,recvproc,0,world,&status);
+          MPI_Recv(&get_tag,1,MPI_INT,recvproc,0,world,MPI_STATUS_IGNORE);
 
           if (get_tag >= 0) {
             if (ghostinum >= ghostilist_max) {

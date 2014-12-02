@@ -294,7 +294,6 @@ void Image::clear()
 void Image::merge()
 {
   MPI_Request requests[3];
-  MPI_Status statuses[3];
 
   int nhalf = 1;
   while (nhalf < nprocs) nhalf *= 2;
@@ -307,8 +306,8 @@ void Image::merge()
       if (ssao)
         MPI_Irecv(surfacecopy,npixels*2,MPI_DOUBLE,
                   me+nhalf,0,world,&requests[2]);
-      if (ssao) MPI_Waitall(3,requests,statuses);
-      else MPI_Waitall(2,requests,statuses);
+      if (ssao) MPI_Waitall(3,requests,MPI_STATUS_IGNORE);
+      else MPI_Waitall(2,requests,MPI_STATUS_IGNORE);
 
       for (int i = 0; i < npixels; i++) {
         if (depthBuffer[i] < 0 || (depthcopy[i] >= 0 &&

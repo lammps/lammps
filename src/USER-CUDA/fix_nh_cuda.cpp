@@ -833,8 +833,6 @@ void FixNHCuda::final_integrate()
 
 void FixNHCuda::initial_integrate_respa(int vflag, int ilevel, int iloop)
 {
-  int i;
-
   // set timesteps by level
 
   dtv = step_respa[ilevel];
@@ -1430,7 +1428,6 @@ double FixNHCuda::compute_vector(int n)
     }
   }
 
-  int i;
   double volume;
   double kt = boltz * t_target;
   double lkt = tdof * kt;
@@ -1653,7 +1650,7 @@ void FixNHCuda::nhc_temp_integrate()
 void FixNHCuda::nhc_press_integrate()
 {
   int ich,i;
-  double expfac,factor_etap,wmass,kecurrent;
+  double expfac,factor_etap,kecurrent;
   double kt = boltz * t_target;
   double lkt_press = kt;
 

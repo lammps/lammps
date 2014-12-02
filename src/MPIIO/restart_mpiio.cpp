@@ -81,7 +81,6 @@ void RestartMPIIO::openForWrite(char *filename)
 
 void RestartMPIIO::write(MPI_Offset headerOffset, int send_size, double *buf)
 {
-  MPI_Status mpiStatus;
   bigint incPrefix = 0;
   bigint bigintSendSize = (bigint) send_size;
   MPI_Scan(&bigintSendSize,&incPrefix,1,MPI_LMP_BIGINT,MPI_SUM,world);
@@ -103,7 +102,7 @@ void RestartMPIIO::write(MPI_Offset headerOffset, int send_size, double *buf)
 
   err = MPI_File_write_at_all(mpifh,headerOffset +
                               ((incPrefix-bigintSendSize)*sizeof(double)),
-                              buf,send_size,MPI_DOUBLE,&mpiStatus);
+                              buf,send_size,MPI_DOUBLE,MPI_STATUS_IGNORE);
   if (err != MPI_SUCCESS) {
     char str[MPI_MAX_ERROR_STRING+128];
     char mpiErrorString[MPI_MAX_ERROR_STRING];
@@ -126,8 +125,6 @@ void RestartMPIIO::write(MPI_Offset headerOffset, int send_size, double *buf)
 
 void RestartMPIIO::read(MPI_Offset chunkOffset, bigint chunkSize, double *buf)
 {
-  MPI_Status mpiStatus;
-
   int intChunkSize;
   bigint remainingSize = 0;
   if (chunkSize > INT_MAX) {
@@ -137,7 +134,7 @@ void RestartMPIIO::read(MPI_Offset chunkOffset, bigint chunkSize, double *buf)
   else intChunkSize = (int) chunkSize;
 
   int err = MPI_File_read_at_all(mpifh,chunkOffset,buf,intChunkSize,
-                                 MPI_DOUBLE,&mpiStatus);
+                                 MPI_DOUBLE,MPI_STATUS_IGNORE);
   if (err != MPI_SUCCESS) {
     char str[MPI_MAX_ERROR_STRING+128];
     char mpiErrorString[MPI_MAX_ERROR_STRING];
@@ -161,7 +158,7 @@ void RestartMPIIO::read(MPI_Offset chunkOffset, bigint chunkSize, double *buf)
       remainingSize = 0;
     }
     int err = MPI_File_read_at(mpifh,currentOffset,&buf[bufOffset],
-                               currentChunkSize,MPI_DOUBLE,&mpiStatus);
+                               currentChunkSize,MPI_DOUBLE,MPI_STATUS_IGNORE);
     if (err != MPI_SUCCESS) {
       char str[MPI_MAX_ERROR_STRING+128];
       char mpiErrorString[MPI_MAX_ERROR_STRING];

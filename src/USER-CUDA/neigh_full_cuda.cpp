@@ -63,8 +63,6 @@ void NeighborCuda::full_bin_cuda(NeighList *list)
   }
   int bin_dim_tmp[3];
   int bin_nmax_tmp;
-//printf("Hallo\n");
-  timespec starttime,endtime;
   do
   {
     do
@@ -98,8 +96,6 @@ void NeighborCuda::full_bin_cuda(NeighList *list)
 
  // cuda->cu_debugdata->memset_device(0);
   int maxneighbors=slist->maxneighbors;
-  int *ilist = list->ilist;
-  int *numneigh = list->numneigh;
 
   if((nex_type!=slist->nex_type)||
   (nex_group!=slist->nex_group)||
@@ -136,12 +132,8 @@ void NeighborCuda::full_bin_cuda(NeighList *list)
           //printf("C %i %i %i\n",nex_type,nex_group,nex_mol);
   }
   int overflow = 0;
-  int inum = 0;
-  int npnt = 0;
   do
   {
-          npnt=0;
-          inum=0;
     overflow=0;
     clist->grow_device();
     slist->cutneighsq=cutneighsq;

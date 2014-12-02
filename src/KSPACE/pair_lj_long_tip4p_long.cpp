@@ -1580,10 +1580,16 @@ void *PairLJLongTIP4PLong::extract(const char *str, int &dim)
     &mix_flag, &cut_lj_global, NULL};
   int i;
 
-  for (i=0; ids[i]&&strcmp(ids[i], str); ++i);
-  if (i <= 2) dim = 2;
-  else dim = 0;
-  return ptrs[i];
+  i=0;
+  while (ids[i] != NULL) {
+    if (i <=2) dim = 2;
+    else dim = 0;
+
+    if (strcmp(ids[i],str) == 0)
+      return ptrs[i];
+ 
+    ++i;
+  }
   return NULL;
 }
 

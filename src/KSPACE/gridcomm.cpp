@@ -146,37 +146,37 @@ void GridComm::ghost_notify()
   int nplanes = inxlo - outxlo;
   if (procxlo != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,procxlo,0,
-                   &ghostxhi,1,MPI_INT,procxhi,0,gridcomm,&status);
+                   &ghostxhi,1,MPI_INT,procxhi,0,gridcomm,MPI_STATUS_IGNORE);
   else ghostxhi = nplanes;
 
   nplanes = outxhi - inxhi;
   if (procxhi != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,procxhi,0,
-                   &ghostxlo,1,MPI_INT,procxlo,0,gridcomm,&status);
+                   &ghostxlo,1,MPI_INT,procxlo,0,gridcomm,MPI_STATUS_IGNORE);
   else ghostxlo = nplanes;
 
   nplanes = inylo - outylo;
   if (procylo != me)
     MPI_Sendrecv(&nplanes,1,MPI_INT,procylo,0,
-                 &ghostyhi,1,MPI_INT,procyhi,0,gridcomm,&status);
+                 &ghostyhi,1,MPI_INT,procyhi,0,gridcomm,MPI_STATUS_IGNORE);
   else ghostyhi = nplanes;
 
   nplanes = outyhi - inyhi;
   if (procyhi != me)
     MPI_Sendrecv(&nplanes,1,MPI_INT,procyhi,0,
-                 &ghostylo,1,MPI_INT,procylo,0,gridcomm,&status);
+                 &ghostylo,1,MPI_INT,procylo,0,gridcomm,MPI_STATUS_IGNORE);
   else ghostylo = nplanes;
 
   nplanes = inzlo - outzlo;
   if (proczlo != me)
     MPI_Sendrecv(&nplanes,1,MPI_INT,proczlo,0,
-                 &ghostzhi,1,MPI_INT,proczhi,0,gridcomm,&status);
+                 &ghostzhi,1,MPI_INT,proczhi,0,gridcomm,MPI_STATUS_IGNORE);
   else ghostzhi = nplanes;
 
   nplanes = outzhi - inzhi;
   if (proczhi != me)
     MPI_Sendrecv(&nplanes,1,MPI_INT,proczhi,0,
-                 &ghostzlo,1,MPI_INT,proczlo,0,gridcomm,&status);
+                 &ghostzlo,1,MPI_INT,proczlo,0,gridcomm,MPI_STATUS_IGNORE);
   else ghostzlo = nplanes;
 }
 
@@ -243,7 +243,7 @@ void GridComm::setup()
 
     if (procxlo != me)
       MPI_Sendrecv(&sendplanes,1,MPI_INT,procxlo,0,
-                   &recvplanes,1,MPI_INT,procxhi,0,gridcomm,&status);
+                   &recvplanes,1,MPI_INT,procxhi,0,gridcomm,MPI_STATUS_IGNORE);
     else recvplanes = sendplanes;
 
     swap[nswap].nunpack = 
@@ -285,7 +285,7 @@ void GridComm::setup()
 
     if (procxhi != me)
       MPI_Sendrecv(&sendplanes,1,MPI_INT,procxhi,0,
-                   &recvplanes,1,MPI_INT,procxlo,0,gridcomm,&status);
+                   &recvplanes,1,MPI_INT,procxlo,0,gridcomm,MPI_STATUS_IGNORE);
     else recvplanes = sendplanes;
 
     swap[nswap].nunpack = 
@@ -327,7 +327,7 @@ void GridComm::setup()
 
     if (procylo != me)
       MPI_Sendrecv(&sendplanes,1,MPI_INT,procylo,0,
-                   &recvplanes,1,MPI_INT,procyhi,0,gridcomm,&status);
+                   &recvplanes,1,MPI_INT,procyhi,0,gridcomm,MPI_STATUS_IGNORE);
     else recvplanes = sendplanes;
 
     swap[nswap].nunpack = 
@@ -369,7 +369,7 @@ void GridComm::setup()
 
     if (procyhi != me)
       MPI_Sendrecv(&sendplanes,1,MPI_INT,procyhi,0,
-                   &recvplanes,1,MPI_INT,procylo,0,gridcomm,&status);
+                   &recvplanes,1,MPI_INT,procylo,0,gridcomm,MPI_STATUS_IGNORE);
     else recvplanes = sendplanes;
 
     swap[nswap].nunpack = 
@@ -411,7 +411,7 @@ void GridComm::setup()
 
     if (proczlo != me)
       MPI_Sendrecv(&sendplanes,1,MPI_INT,proczlo,0,
-                   &recvplanes,1,MPI_INT,proczhi,0,gridcomm,&status);
+                   &recvplanes,1,MPI_INT,proczhi,0,gridcomm,MPI_STATUS_IGNORE);
     else recvplanes = sendplanes;
 
     swap[nswap].nunpack = 
@@ -453,7 +453,7 @@ void GridComm::setup()
 
     if (proczhi != me)
       MPI_Sendrecv(&sendplanes,1,MPI_INT,proczhi,0,
-                   &recvplanes,1,MPI_INT,proczlo,0,gridcomm,&status);
+                   &recvplanes,1,MPI_INT,proczlo,0,gridcomm,MPI_STATUS_IGNORE);
     else recvplanes = sendplanes;
 
     swap[nswap].nunpack = 
@@ -500,7 +500,7 @@ void GridComm::forward_comm(KSpace *kspace, int which)
                 swap[m].recvproc,0,gridcomm,&request);
       MPI_Send(buf1,nforward*swap[m].npack,MPI_FFT_SCALAR,
                swap[m].sendproc,0,gridcomm);
-      MPI_Wait(&request,&status);
+      MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
     
     kspace->unpack_forward(which,buf2,swap[m].nunpack,swap[m].unpacklist);
@@ -525,7 +525,7 @@ void GridComm::reverse_comm(KSpace *kspace, int which)
                 swap[m].sendproc,0,gridcomm,&request);
       MPI_Send(buf1,nreverse*swap[m].nunpack,MPI_FFT_SCALAR,
                swap[m].recvproc,0,gridcomm);
-      MPI_Wait(&request,&status);
+      MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
     
     kspace->unpack_reverse(which,buf2,swap[m].npack,swap[m].packlist);

@@ -144,7 +144,6 @@ void FixThermalConductivity::end_of_step()
 {
   int i,j,m,insert;
   double coord,ke;
-  MPI_Status status;
   struct {
     double value;
     int proc;
@@ -283,7 +282,7 @@ void FixThermalConductivity::end_of_step()
       if (rmass) sbuf[3] = rmass[j];
       else sbuf[3] = mass[type[j]];
       MPI_Sendrecv(sbuf,4,MPI_DOUBLE,all[1].proc,0,
-                   rbuf,4,MPI_DOUBLE,all[1].proc,0,world,&status);
+                   rbuf,4,MPI_DOUBLE,all[1].proc,0,world,MPI_STATUS_IGNORE);
       vcm[0] = (sbuf[3]*sbuf[0] + rbuf[3]*rbuf[0]) / (sbuf[3] + rbuf[3]);
       vcm[1] = (sbuf[3]*sbuf[1] + rbuf[3]*rbuf[1]) / (sbuf[3] + rbuf[3]);
       vcm[2] = (sbuf[3]*sbuf[2] + rbuf[3]*rbuf[2]) / (sbuf[3] + rbuf[3]);
@@ -302,7 +301,7 @@ void FixThermalConductivity::end_of_step()
       if (rmass) sbuf[3] = rmass[j];
       else sbuf[3] = mass[type[j]];
       MPI_Sendrecv(sbuf,4,MPI_DOUBLE,all[0].proc,0,
-                   rbuf,4,MPI_DOUBLE,all[0].proc,0,world,&status);
+                   rbuf,4,MPI_DOUBLE,all[0].proc,0,world,MPI_STATUS_IGNORE);
       vcm[0] = (sbuf[3]*sbuf[0] + rbuf[3]*rbuf[0]) / (sbuf[3] + rbuf[3]);
       vcm[1] = (sbuf[3]*sbuf[1] + rbuf[3]*rbuf[1]) / (sbuf[3] + rbuf[3]);
       vcm[2] = (sbuf[3]*sbuf[2] + rbuf[3]*rbuf[2]) / (sbuf[3] + rbuf[3]);

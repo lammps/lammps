@@ -279,8 +279,6 @@ void DumpCFGMPIIO::write_header(bigint n)
   // for unwrapped coords, set to UNWRAPEXPAND (10.0)
   //   so molecules are not split across periodic box boundaries
 
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
     headerBuffer = (char *) malloc(MAX_TEXT_HEADER_SIZE);
@@ -313,7 +311,7 @@ void DumpCFGMPIIO::write_header(bigint n)
   else { // write data
 
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,&mpiStatus);
+      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,MPI_STATUS_IGNORE);
     mpifo += headerSize;
     free(headerBuffer);
   }
@@ -329,7 +327,6 @@ void DumpCFGMPIIO::write_header(bigint n)
 int DumpCFGMPIIO::convert_string_omp(int n, double *mybuf)
 {
 
-  MPI_Status mpiStatus;
   char **mpifh_buffer_line_per_thread;
   int mpifhStringCount;
   int *mpifhStringCountPerThread, *bufOffset, *bufRange, *bufLength;
@@ -483,8 +480,6 @@ void DumpCFGMPIIO::write_data(int n, double *mybuf)
 
 void DumpCFGMPIIO::write_string(int n, double *mybuf)
 {
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
 #if defined(_OPENMP)
@@ -504,7 +499,7 @@ void DumpCFGMPIIO::write_string(int n, double *mybuf)
     offsetFromHeader = ((incPrefix-bigintNsme)*sizeof(char));
   }
   else {
-    MPI_File_write_at_all(mpifh,mpifo+offsetFromHeader,sbuf,nsme,MPI_CHAR,&mpiStatus);
+    MPI_File_write_at_all(mpifh,mpifo+offsetFromHeader,sbuf,nsme,MPI_CHAR,MPI_STATUS_IGNORE);
     if (flush_flag)
       MPI_File_sync(mpifh);
   }

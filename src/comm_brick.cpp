@@ -444,7 +444,6 @@ void CommBrick::forward_comm(int dummy)
 {
   int n;
   MPI_Request request;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
   double **x = atom->x;
   double *buf;
@@ -465,7 +464,7 @@ void CommBrick::forward_comm(int dummy)
         n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
                             buf_send,pbc_flag[iswap],pbc[iswap]);
         if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-        if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
+        if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       } else if (ghost_velocity) {
         if (size_forward_recv[iswap])
           MPI_Irecv(buf_recv,size_forward_recv[iswap],MPI_DOUBLE,
@@ -473,7 +472,7 @@ void CommBrick::forward_comm(int dummy)
         n = avec->pack_comm_vel(sendnum[iswap],sendlist[iswap],
                                 buf_send,pbc_flag[iswap],pbc[iswap]);
         if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-        if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
+        if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
         avec->unpack_comm_vel(recvnum[iswap],firstrecv[iswap],buf_recv);
       } else {
         if (size_forward_recv[iswap])
@@ -482,7 +481,7 @@ void CommBrick::forward_comm(int dummy)
         n = avec->pack_comm(sendnum[iswap],sendlist[iswap],
                             buf_send,pbc_flag[iswap],pbc[iswap]);
         if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-        if (size_forward_recv[iswap]) MPI_Wait(&request,&status);
+        if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
         avec->unpack_comm(recvnum[iswap],firstrecv[iswap],buf_recv);
       }
 
@@ -513,7 +512,6 @@ void CommBrick::reverse_comm()
 {
   int n;
   MPI_Request request;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
   double **f = atom->f;
   double *buf;
@@ -534,14 +532,14 @@ void CommBrick::reverse_comm()
           MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,
                    recvproc[iswap],0,world);
         }
-        if (size_reverse_recv[iswap]) MPI_Wait(&request,&status);
+        if (size_reverse_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       } else {
         if (size_reverse_recv[iswap])
           MPI_Irecv(buf_recv,size_reverse_recv[iswap],MPI_DOUBLE,
                     sendproc[iswap],0,world,&request);
         n = avec->pack_reverse(recvnum[iswap],firstrecv[iswap],buf_send);
         if (n) MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
-        if (size_reverse_recv[iswap]) MPI_Wait(&request,&status);
+        if (size_reverse_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       }
       avec->unpack_reverse(sendnum[iswap],sendlist[iswap],buf_recv);
 
@@ -576,7 +574,6 @@ void CommBrick::exchange()
   double **x;
   double *sublo,*subhi;
   MPI_Request request;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
 
   // clear global->local map for owned and ghost atoms
@@ -644,11 +641,11 @@ void CommBrick::exchange()
     if (procgrid[dim] == 1) nrecv = 0;
     else {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
-                   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,&status);
+                   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,MPI_STATUS_IGNORE);
       nrecv = nrecv1;
       if (procgrid[dim] > 2) {
         MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
-                     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,&status);
+                     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,MPI_STATUS_IGNORE);
         nrecv += nrecv2;
       }
       if (nrecv > maxrecv) grow_recv(nrecv);
@@ -656,13 +653,13 @@ void CommBrick::exchange()
       MPI_Irecv(buf_recv,nrecv1,MPI_DOUBLE,procneigh[dim][1],0,
                 world,&request);
       MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][0],0,world);
-      MPI_Wait(&request,&status);
+      MPI_Wait(&request,MPI_STATUS_IGNORE);
 
       if (procgrid[dim] > 2) {
         MPI_Irecv(&buf_recv[nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
                   world,&request);
         MPI_Send(buf_send,nsend,MPI_DOUBLE,procneigh[dim][1],0,world);
-        MPI_Wait(&request,&status);
+        MPI_Wait(&request,MPI_STATUS_IGNORE);
       }
     }
 
@@ -701,7 +698,6 @@ void CommBrick::borders()
   double **x;
   double *buf,*mlo,*mhi;
   MPI_Request request;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
 
   // do swaps over all 3 dimensions
@@ -816,12 +812,12 @@ void CommBrick::borders()
 
       if (sendproc[iswap] != me) {
         MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
-                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,&status);
+                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,MPI_STATUS_IGNORE);
         if (nrecv*size_border > maxrecv) grow_recv(nrecv*size_border);
         if (nrecv) MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
                              recvproc[iswap],0,world,&request);
         if (n) MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-        if (nrecv) MPI_Wait(&request,&status);
+        if (nrecv) MPI_Wait(&request,MPI_STATUS_IGNORE);
         buf = buf_recv;
       } else {
         nrecv = nsend;
@@ -872,7 +868,6 @@ void CommBrick::forward_comm_pair(Pair *pair)
   int iswap,n;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
 
   int nsize = pair->comm_forward;
 
@@ -892,7 +887,7 @@ void CommBrick::forward_comm_pair(Pair *pair)
                   recvproc[iswap],0,world,&request);
       if (sendnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-      if (recvnum[iswap]) MPI_Wait(&request,&status);
+      if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -912,7 +907,6 @@ void CommBrick::reverse_comm_pair(Pair *pair)
   int iswap,n;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
 
   int nsize = MAX(pair->comm_reverse,pair->comm_reverse_off);
 
@@ -931,7 +925,7 @@ void CommBrick::reverse_comm_pair(Pair *pair)
                   world,&request);
       if (recvnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
-      if (sendnum[iswap]) MPI_Wait(&request,&status);
+      if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -955,7 +949,6 @@ void CommBrick::forward_comm_fix(Fix *fix, int size)
   int iswap,n,nsize;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
 
   if (size) nsize = size;
   else nsize = fix->comm_forward;
@@ -976,7 +969,7 @@ void CommBrick::forward_comm_fix(Fix *fix, int size)
                   world,&request);
       if (sendnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-      if (recvnum[iswap]) MPI_Wait(&request,&status);
+      if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1000,7 +993,6 @@ void CommBrick::reverse_comm_fix(Fix *fix, int size)
   int iswap,n,nsize;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
 
   if (size) nsize = size;
   else nsize = fix->comm_reverse;
@@ -1020,7 +1012,7 @@ void CommBrick::reverse_comm_fix(Fix *fix, int size)
                   world,&request);
       if (recvnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
-      if (sendnum[iswap]) MPI_Wait(&request,&status);
+      if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
     
@@ -1040,7 +1032,6 @@ void CommBrick::forward_comm_compute(Compute *compute)
   int iswap,n;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
 
   int nsize = compute->comm_forward;
 
@@ -1060,7 +1051,7 @@ void CommBrick::forward_comm_compute(Compute *compute)
                   world,&request);
       if (sendnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-      if (recvnum[iswap]) MPI_Wait(&request,&status);
+      if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1080,7 +1071,6 @@ void CommBrick::reverse_comm_compute(Compute *compute)
   int iswap,n;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
 
   int nsize = compute->comm_reverse;
 
@@ -1099,7 +1089,7 @@ void CommBrick::reverse_comm_compute(Compute *compute)
                   world,&request);
       if (recvnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
-      if (sendnum[iswap]) MPI_Wait(&request,&status);
+      if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1119,7 +1109,6 @@ void CommBrick::forward_comm_dump(Dump *dump)
   int iswap,n;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
 
   int nsize = dump->comm_forward;
 
@@ -1139,7 +1128,7 @@ void CommBrick::forward_comm_dump(Dump *dump)
                   world,&request);
       if (sendnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,sendproc[iswap],0,world);
-      if (recvnum[iswap]) MPI_Wait(&request,&status);
+      if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1159,7 +1148,6 @@ void CommBrick::reverse_comm_dump(Dump *dump)
   int iswap,n;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
 
   int nsize = dump->comm_reverse;
 
@@ -1178,7 +1166,7 @@ void CommBrick::reverse_comm_dump(Dump *dump)
                   world,&request);
       if (recvnum[iswap])
         MPI_Send(buf_send,n,MPI_DOUBLE,recvproc[iswap],0,world);
-      if (sendnum[iswap]) MPI_Wait(&request,&status);
+      if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1197,7 +1185,6 @@ void CommBrick::forward_comm_array(int nsize, double **array)
   int i,j,k,m,iswap,last;
   double *buf;
   MPI_Request request;
-  MPI_Status status;
 
   // insure send/recv bufs are big enough for nsize
   // based on smax/rmax from most recent borders() invocation
@@ -1229,7 +1216,7 @@ void CommBrick::forward_comm_array(int nsize, double **array)
       if (sendnum[iswap])
         MPI_Send(buf_send,nsize*sendnum[iswap],MPI_DOUBLE,
                  sendproc[iswap],0,world);
-      if (recvnum[iswap]) MPI_Wait(&request,&status);
+      if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
 
@@ -1251,7 +1238,6 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
 {
   int nsend,nrecv,nrecv1,nrecv2;
   MPI_Request request;
-  MPI_Status status;
 
   nrecv = n;
   if (nrecv > maxrecv) grow_recv(nrecv);
@@ -1271,11 +1257,11 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
 
     nsend = nrecv;
     MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
-                 &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,&status);
+                 &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,MPI_STATUS_IGNORE);
     nrecv += nrecv1;
     if (procgrid[dim] > 2) {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
-                   &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,&status);
+                   &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,MPI_STATUS_IGNORE);
       nrecv += nrecv2;
     } else nrecv2 = 0;
 
@@ -1284,13 +1270,13 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
     MPI_Irecv(&buf_recv[nsend],nrecv1,MPI_DOUBLE,procneigh[dim][1],0,
               world,&request);
     MPI_Send(buf_recv,nsend,MPI_DOUBLE,procneigh[dim][0],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
     
     if (procgrid[dim] > 2) {
       MPI_Irecv(&buf_recv[nsend+nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
                 world,&request);
       MPI_Send(buf_recv,nsend,MPI_DOUBLE,procneigh[dim][1],0,world);
-      MPI_Wait(&request,&status);
+      MPI_Wait(&request,MPI_STATUS_IGNORE);
     }
   }
 

@@ -49,6 +49,7 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
 
   nevery = 1;
   global_freq = nevery;
+  dynamic_group_allow = 1;
 
   tstr = NULL;
   if (strstr(arg[3],"v_") == arg[3]) {

@@ -38,8 +38,8 @@ class FixRecenter : public Fix {
   int group2bit,scaleflag;
   int xflag,yflag,zflag;
   int xinitflag,yinitflag,zinitflag;
-  double xcom,ycom,zcom,xinit,yinit,zinit,masstotal,distance,shift[3];
   int nlevels_respa;
+  double xcom,ycom,zcom,xinit,yinit,zinit,masstotal,distance,shift[3];
 };
 
 }

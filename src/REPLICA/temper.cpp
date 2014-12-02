@@ -181,7 +181,6 @@ void Temper::command(int narg, char **arg)
 
   int i,which,partner,swap,partner_set_temp,partner_world;
   double pe,pe_partner,boltz_factor,new_temp;
-  MPI_Status status;
 
   if (me_universe == 0 && universe->uscreen)
     fprintf(universe->uscreen,"Setting up tempering ...\n");
@@ -254,7 +253,7 @@ void Temper::command(int narg, char **arg)
       if (me_universe > partner)
         MPI_Send(&pe,1,MPI_DOUBLE,partner,0,universe->uworld);
       else
-        MPI_Recv(&pe_partner,1,MPI_DOUBLE,partner,0,universe->uworld,&status);
+        MPI_Recv(&pe_partner,1,MPI_DOUBLE,partner,0,universe->uworld,MPI_STATUS_IGNORE);
 
       if (me_universe < partner) {
         boltz_factor = (pe - pe_partner) *
@@ -267,7 +266,7 @@ void Temper::command(int narg, char **arg)
       if (me_universe < partner)
         MPI_Send(&swap,1,MPI_INT,partner,0,universe->uworld);
       else
-        MPI_Recv(&swap,1,MPI_INT,partner,0,universe->uworld,&status);
+        MPI_Recv(&swap,1,MPI_INT,partner,0,universe->uworld,MPI_STATUS_IGNORE);
 
 #ifdef TEMPER_DEBUG
       if (me_universe < partner)

@@ -602,8 +602,6 @@ void FixPIMD::comm_init()
 
 void FixPIMD::comm_exec(double **ptr)
 {
-  MPI_Status status;
-
   int nlocal = atom->nlocal;
   
   if(nlocal > max_nlocal)
@@ -629,7 +627,7 @@ void FixPIMD::comm_exec(double **ptr)
     int nsend;
     
     MPI_Sendrecv( &(nlocal), 1, MPI_INT, plan_send[iplan], 0, 
-                  &(nsend),  1, MPI_INT, plan_recv[iplan], 0, universe->uworld, &status);
+                  &(nsend),  1, MPI_INT, plan_recv[iplan], 0, universe->uworld, MPI_STATUS_IGNORE);
   
     // allocate arrays
     
@@ -643,7 +641,7 @@ void FixPIMD::comm_exec(double **ptr)
     // send tags 
   
     MPI_Sendrecv( atom->tag, nlocal, MPI_INT, plan_send[iplan], 0, 
-                  tag_send,  nsend,  MPI_INT, plan_recv[iplan], 0, universe->uworld, &status);
+                  tag_send,  nsend,  MPI_INT, plan_recv[iplan], 0, universe->uworld, MPI_STATUS_IGNORE);
 
     // wrap positions
   
@@ -671,7 +669,7 @@ void FixPIMD::comm_exec(double **ptr)
     // sendrecv x 
   
     MPI_Sendrecv( buf_send, nsend*3,  MPI_DOUBLE, plan_recv[iplan], 0, 
-                  buf_recv, nlocal*3, MPI_DOUBLE, plan_send[iplan], 0, universe->uworld, &status);
+                  buf_recv, nlocal*3, MPI_DOUBLE, plan_send[iplan], 0, universe->uworld, MPI_STATUS_IGNORE);
   
     // copy x
     

@@ -332,48 +332,47 @@ void PPPMOld::init()
     // if no neighbor proc, value is from self since I have ghosts regardless
 
     int nplanes;
-    MPI_Status status;
 
     nplanes = nxlo_in - nxlo_out;
     if (comm->procneigh[0][0] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][0],0,
                    &nxhi_ghost,1,MPI_INT,comm->procneigh[0][1],0,
-                   world,&status);
+                   world,MPI_STATUS_IGNORE);
     else nxhi_ghost = nplanes;
 
     nplanes = nxhi_out - nxhi_in;
     if (comm->procneigh[0][1] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][1],0,
                    &nxlo_ghost,1,MPI_INT,comm->procneigh[0][0],
-                   0,world,&status);
+                   0,world,MPI_STATUS_IGNORE);
     else nxlo_ghost = nplanes;
 
     nplanes = nylo_in - nylo_out;
     if (comm->procneigh[1][0] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][0],0,
                    &nyhi_ghost,1,MPI_INT,comm->procneigh[1][1],0,
-                   world,&status);
+                   world,MPI_STATUS_IGNORE);
     else nyhi_ghost = nplanes;
 
     nplanes = nyhi_out - nyhi_in;
     if (comm->procneigh[1][1] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][1],0,
                    &nylo_ghost,1,MPI_INT,comm->procneigh[1][0],0,
-                   world,&status);
+                   world,MPI_STATUS_IGNORE);
     else nylo_ghost = nplanes;
 
     nplanes = nzlo_in - nzlo_out;
     if (comm->procneigh[2][0] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][0],0,
                    &nzhi_ghost,1,MPI_INT,comm->procneigh[2][1],0,
-                   world,&status);
+                   world,MPI_STATUS_IGNORE);
     else nzhi_ghost = nplanes;
 
     nplanes = nzhi_out - nzhi_in;
     if (comm->procneigh[2][1] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][1],0,
                    &nzlo_ghost,1,MPI_INT,comm->procneigh[2][0],0,
-                   world,&status);
+                   world,MPI_STATUS_IGNORE);
     else nzlo_ghost = nplanes;
 
     // test that ghost overlap is not bigger than my sub-domain
@@ -704,7 +703,7 @@ void PPPMOld::compute(int eflag, int vflag)
   // return gradients (electric fields) in 3d brick decomposition
   // also performs per-atom calculations via poisson_peratom()
 
-  poisson();
+  poisson(eflag,vflag);
 
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
@@ -1198,7 +1197,6 @@ void PPPMOld::brick2fft()
 {
   int i,n,ix,iy,iz;
   MPI_Request request;
-  MPI_Status status;
 
   // pack my ghosts for +x processor
   // pass data to self or +x processor
@@ -1215,7 +1213,7 @@ void PPPMOld::brick2fft()
   else {
     MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
     MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1239,7 +1237,7 @@ void PPPMOld::brick2fft()
   else {
     MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
     MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1263,7 +1261,7 @@ void PPPMOld::brick2fft()
   else {
     MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
     MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1287,7 +1285,7 @@ void PPPMOld::brick2fft()
   else {
     MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
     MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1311,7 +1309,7 @@ void PPPMOld::brick2fft()
   else {
     MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
     MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1335,7 +1333,7 @@ void PPPMOld::brick2fft()
   else {
     MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
     MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1366,7 +1364,6 @@ void PPPMOld::fillbrick()
 {
   int i,n,ix,iy,iz;
   MPI_Request request;
-  MPI_Status status;
 
   // pack my real cells for +z processor
   // pass data to self or +z processor
@@ -1386,7 +1383,7 @@ void PPPMOld::fillbrick()
   else {
     MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world,&request);
     MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1416,7 +1413,7 @@ void PPPMOld::fillbrick()
   else {
     MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world,&request);
     MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1446,7 +1443,7 @@ void PPPMOld::fillbrick()
   else {
     MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world,&request);
     MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1476,7 +1473,7 @@ void PPPMOld::fillbrick()
   else {
     MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world,&request);
     MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1506,7 +1503,7 @@ void PPPMOld::fillbrick()
   else {
     MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world,&request);
     MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1536,7 +1533,7 @@ void PPPMOld::fillbrick()
   else {
     MPI_Irecv(buf2,nbuf,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world,&request);
     MPI_Send(buf1,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1557,7 +1554,6 @@ void PPPMOld::fillbrick_peratom()
 {
   int i,n,ix,iy,iz;
   MPI_Request request;
-  MPI_Status status;
 
   // pack my real cells for +z processor
   // pass data to self or +z processor
@@ -1584,7 +1580,7 @@ void PPPMOld::fillbrick_peratom()
     MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
               comm->procneigh[2][0],0,world,&request);
     MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[2][1],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1627,7 +1623,7 @@ void PPPMOld::fillbrick_peratom()
     MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
               comm->procneigh[2][1],0,world,&request);
     MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[2][0],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1670,7 +1666,7 @@ void PPPMOld::fillbrick_peratom()
     MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
               comm->procneigh[1][0],0,world,&request);
     MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[1][1],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1713,7 +1709,7 @@ void PPPMOld::fillbrick_peratom()
     MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
               comm->procneigh[1][1],0,world,&request);
     MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[1][0],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1756,7 +1752,7 @@ void PPPMOld::fillbrick_peratom()
     MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
               comm->procneigh[0][0],0,world,&request);
     MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[0][1],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1799,7 +1795,7 @@ void PPPMOld::fillbrick_peratom()
     MPI_Irecv(buf4,nbuf_peratom,MPI_FFT_SCALAR,
               comm->procneigh[0][1],0,world,&request);
     MPI_Send(buf3,n,MPI_FFT_SCALAR,comm->procneigh[0][0],0,world);
-    MPI_Wait(&request,&status);
+    MPI_Wait(&request,MPI_STATUS_IGNORE);
   }
 
   n = 0;
@@ -1914,7 +1910,7 @@ void PPPMOld::make_rho()
    FFT-based Poisson solver
 ------------------------------------------------------------------------- */
 
-void PPPMOld::poisson()
+void PPPMOld::poisson(int,int)
 {
   int i,j,k,n;
   double eng;
@@ -2245,7 +2241,6 @@ void PPPMOld::fieldforce_peratom()
 
   double *q = atom->q;
   double **x = atom->x;
-  double **f = atom->f;
 
   int nlocal = atom->nlocal;
 
@@ -2578,7 +2573,7 @@ void PPPMOld::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
     error->all(FLERR,"Cannot (yet) use K-space slab "
                "correction with compute group/group");
 
-  int i,j;
+  int i;
 
   if (!group_allocate_flag) {
     allocate_groups();
@@ -2589,11 +2584,6 @@ void PPPMOld::compute_group_group(int groupbit_A, int groupbit_B, int BA_flag)
   f2group[0] = 0; //force in x-direction
   f2group[1] = 0; //force in y-direction
   f2group[2] = 0; //force in z-direction
-
-  double *q = atom->q;
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-
 
   // map my particle charge onto my local 3d density grid
 
@@ -2758,7 +2748,6 @@ void PPPMOld::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 void PPPMOld::poisson_groups(int BA_flag)
 {
   int i,j,k,n;
-  double eng;
 
   // reuse memory (already declared)
 

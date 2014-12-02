@@ -170,10 +170,6 @@ void FixAveForceCuda::init()
   if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL) varflag = EQUAL;
   else varflag = CONSTANT;
 
-  // ncount = total # of atoms in group
-
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -498,8 +498,6 @@ void VerletSplit::rk_setup()
 
 void VerletSplit::r2k_comm()
 {
-  MPI_Status status;
-
   int n = 0;
   if (master) n = atom->nlocal;
   MPI_Gatherv(atom->x[0],n*3,MPI_DOUBLE,atom->x[0],xsize,xdisp,
@@ -513,7 +511,7 @@ void VerletSplit::r2k_comm()
     MPI_Send(flags,2,MPI_INT,0,0,block);
   } else if (!master) {
     int flags[2];
-    MPI_Recv(flags,2,MPI_DOUBLE,1,0,block,&status);
+    MPI_Recv(flags,2,MPI_DOUBLE,1,0,block,MPI_STATUS_IGNORE);
     eflag = flags[0]; vflag = flags[1];
   }
 
@@ -524,8 +522,8 @@ void VerletSplit::r2k_comm()
       MPI_Send(domain->boxlo,3,MPI_DOUBLE,0,0,block);
       MPI_Send(domain->boxhi,3,MPI_DOUBLE,0,0,block);
     } else if (!master) {
-      MPI_Recv(domain->boxlo,3,MPI_DOUBLE,1,0,block,&status);
-      MPI_Recv(domain->boxhi,3,MPI_DOUBLE,1,0,block,&status);
+      MPI_Recv(domain->boxlo,3,MPI_DOUBLE,1,0,block,MPI_STATUS_IGNORE);
+      MPI_Recv(domain->boxhi,3,MPI_DOUBLE,1,0,block,MPI_STATUS_IGNORE);
       domain->set_global_box();
       domain->set_local_box();
       force->kspace->setup();

@@ -383,7 +383,7 @@ void Dump::write()
       if (flush_flag) fflush(fp);
     
     } else {
-      MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,&status);
+      MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
       MPI_Rsend(buf,nme*size_one,MPI_DOUBLE,fileproc,0,world);
     }
 
@@ -404,7 +404,7 @@ void Dump::write()
       if (flush_flag) fflush(fp);
       
     } else {
-      MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,&status);
+      MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
       MPI_Rsend(sbuf,nsme,MPI_CHAR,fileproc,0,world);
     }
   }

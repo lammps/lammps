@@ -234,10 +234,10 @@ void DumpMolfile::write()
   sort();
 
   int tmp,nlines;
-  MPI_Status status;
-  MPI_Request request;
 
   if (me == 0) {
+    MPI_Status status;
+    MPI_Request request;
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(buf,maxbuf*size_one,MPI_DOUBLE,iproc,0,world,&request);
@@ -251,7 +251,7 @@ void DumpMolfile::write()
     }
 
   } else {
-    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(buf,nme*size_one,MPI_DOUBLE,0,0,world);
   }
 }

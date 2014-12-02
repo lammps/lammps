@@ -127,7 +127,7 @@ void PairComb::compute(int eflag, int vflag)
   int i,j,k,ii,jj,kk,inum,jnum,iparam_i;
   int itype,jtype,ktype,iparam_ij,iparam_ijk;
   tagint itag,jtag;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
   double zeta_ij,prefactor;
@@ -141,7 +141,7 @@ void PairComb::compute(int eflag, int vflag)
   double vionij,fvionij,sr1,sr2,sr3,Eov,Fov;
   int sht_jnum, *sht_jlist, nj;
 
-  evdwl = ecoul = 0.0;
+  evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = vflag_atom = 0;
 
@@ -1637,7 +1637,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
   double xtmp,ytmp,ztmp;
   double rsq1,delr1[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double iq,jq,fqi,fqj,fqij,fqjj;
+  double iq,jq,fqi,fqij,fqjj;
   double potal,fac11,fac11e,sr1,sr2,sr3;
   int mr1,mr2,mr3,inty,nj;
 
@@ -1672,7 +1672,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
 
   // loop over full neighbor list of my atoms
 
-  fqi = fqj = fqij = fqjj = 0.0;
+  fqi = fqij = fqjj = 0.0;
 
   for (ii = 0; ii < inum; ii ++) {
     i = ilist[ii];
@@ -1871,9 +1871,9 @@ void PairComb::qfo_short(Param *param, int i, int j, double rsq,
                          double iq, double jq, double &fqij, double &fqjj)
 {
   double r,tmp_fc,tmp_exp1,tmp_exp2;
-  double bigA,Asi,Asj,vrcs;
+  double Asi,Asj,vrcs;
   double romi = param->addrep,rrcs = param->bigr + param->bigd;
-  double qi,qj,Di,Dj,bigB,Bsi,Bsj;
+  double qi,qj,Di,Dj,Bsi,Bsj;
   double QUchi,QOchi,QUchj,QOchj,YYDiqp,YYDjqp;
   double YYAsiqp,YYAsjqp,YYBsiqp,YYBsjqp;
   double caj,cbj,bij,cfqr,cfqs;
@@ -1883,7 +1883,7 @@ void PairComb::qfo_short(Param *param, int i, int j, double rsq,
   double rslp,rslp2,rslp4,arr1,arr2,fc2j,fc3j;
 
   qi = iq; qj = jq; r = sqrt(rsq);
-  Di = Dj = Asi = Asj = bigA = Bsi = Bsj = bigB = 0.0;
+  Di = Dj = Asi = Asj = Bsi = Bsj = 0.0;
   QUchi = QOchi = QUchj = QOchj = YYDiqp = YYDjqp =0.0;
   YYAsiqp = YYAsjqp = YYBsiqp = YYBsjqp = 0.0;
   caj = cbj = vrcs = cfqr = cfqs = 0.0;

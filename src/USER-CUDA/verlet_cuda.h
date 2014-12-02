@@ -43,7 +43,7 @@ class VerletCuda : public Verlet
                  void setup_minimal(int);
                   void run(int);
 
-                void test_atom(int atom,char* astring); //debugging purpose
+                void test_atom(int atom,const char* astring); //debugging purpose
                 int dotestatom;        //debugging purpose
 
         protected:

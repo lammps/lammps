@@ -679,7 +679,6 @@ void ProcMap::output(char *file, int *procgrid, int ***grid2proc)
   int tmp;
   int vec[6];
   char procname[MPI_MAX_PROCESSOR_NAME+1];
-  MPI_Status status;
 
   vec[0] = me;
   vec[1] = universe->me;
@@ -696,9 +695,9 @@ void ProcMap::output(char *file, int *procgrid, int ***grid2proc)
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Send(&tmp,0,MPI_INT,iproc,0,world);
-        MPI_Recv(vec,6,MPI_INT,iproc,0,world,&status);
+        MPI_Recv(vec,6,MPI_INT,iproc,0,world,MPI_STATUS_IGNORE);
         MPI_Recv(procname,MPI_MAX_PROCESSOR_NAME+1,MPI_CHAR,
-                 iproc,0,world,&status);
+                 iproc,0,world,MPI_STATUS_IGNORE);
       }
 
       fprintf(fp,"%d %d %d: %d %d %d: %s\n",
@@ -706,7 +705,7 @@ void ProcMap::output(char *file, int *procgrid, int ***grid2proc)
     }
 
   } else {
-    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Send(vec,6,MPI_INT,0,0,world);
     MPI_Send(procname,strlen(procname)+1,MPI_CHAR,0,0,world);
   }

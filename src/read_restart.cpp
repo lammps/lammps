@@ -369,7 +369,6 @@ void ReadRestart::command(int narg, char **arg)
     MPI_Bcast(&procsperfile,1,MPI_INT,0,clustercomm);
 
     int tmp,iproc;
-    MPI_Status status;
     MPI_Request request;
 
     for (int i = 0; i < procsperfile; i++) {
@@ -389,12 +388,12 @@ void ReadRestart::command(int narg, char **arg)
         if (i % nclusterprocs) {
           iproc = me + (i % nclusterprocs);
           MPI_Send(&n,1,MPI_INT,iproc,0,world);
-          MPI_Recv(&tmp,0,MPI_INT,iproc,0,world,&status);
+          MPI_Recv(&tmp,0,MPI_INT,iproc,0,world,MPI_STATUS_IGNORE);
           MPI_Rsend(buf,n,MPI_DOUBLE,iproc,0,world);
         }
 
       } else if (i % nclusterprocs == me - fileproc) {
-        MPI_Recv(&n,1,MPI_INT,fileproc,0,world,&status);
+        MPI_Recv(&n,1,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
         if (n > maxbuf) {
           maxbuf = n;
           memory->destroy(buf);
@@ -402,7 +401,7 @@ void ReadRestart::command(int narg, char **arg)
         }
         MPI_Irecv(buf,n,MPI_DOUBLE,fileproc,0,world,&request);
         MPI_Send(&tmp,0,MPI_INT,fileproc,0,world);
-        MPI_Wait(&request,&status);
+        MPI_Wait(&request,MPI_STATUS_IGNORE);
       }
 
       if (i % nclusterprocs == me - fileproc) {

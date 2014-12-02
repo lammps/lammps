@@ -395,8 +395,6 @@ void FixQMMM::exchange_positions()
   }
 
   if (qmmm_role == QMMM_ROLE_MASTER) {
-    MPI_Status status;
-    MPI_Request request;
     int i,tmp;
 
     /* check and potentially grow local communication buffers. */
@@ -408,6 +406,8 @@ void FixQMMM::exchange_positions()
     struct commdata *buf = static_cast<struct commdata *>(comm_buf);    
 
     if (comm->me == 0) {
+      MPI_Status status;
+      MPI_Request request;
       // insert local atoms into comm buffer
       for (i=0; i<nlocal; ++i) {
         if (mask[i] & groupbit) {
@@ -642,8 +642,6 @@ void FixQMMM::init()
     taginthash_init(qm_hash, num_qm);
     qm_idmap = (void *)qm_hash;
 
-    MPI_Status status;
-    MPI_Request request;
     const int nlocal = atom->nlocal;
     int i, j, tmp, ndata, qm_ntag;
     tagint *tag = atom->tag;
@@ -651,6 +649,8 @@ void FixQMMM::init()
     struct commdata *buf = static_cast<struct commdata *>(comm_buf);
 
     if (me == 0) {
+      MPI_Status status;
+      MPI_Request request;
       tagint *qm_taglist = new tagint[num_qm];
       qm_ntag = 0;
       for (i=0; i < nlocal; ++i) {

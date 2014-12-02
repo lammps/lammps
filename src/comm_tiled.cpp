@@ -436,9 +436,7 @@ void CommTiled::setup()
   if (nmax > maxreqstat) {
     maxreqstat = nmax;
     delete [] requests;
-    delete [] statuses;
     requests = new MPI_Request[maxreqstat];
-    statuses = new MPI_Status[maxreqstat];
   }
 }
 
@@ -450,7 +448,6 @@ void CommTiled::setup()
 void CommTiled::forward_comm(int dummy)
 {
   int i,irecv,n,nsend,nrecv;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
   double **x = atom->x;
 
@@ -483,7 +480,7 @@ void CommTiled::forward_comm(int dummy)
                         x[firstrecv[iswap][nrecv]],pbc_flag[iswap][nsend],
                         pbc[iswap][nsend]);
       }
-      if (recvother[iswap]) MPI_Waitall(nrecv,requests,statuses);
+      if (recvother[iswap]) MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
 
     } else if (ghost_velocity) {
       if (recvother[iswap]) {
@@ -507,7 +504,7 @@ void CommTiled::forward_comm(int dummy)
       }
       if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
-          MPI_Waitany(nrecv,requests,&irecv,&status);
+          MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
           avec->unpack_comm_vel(recvnum[iswap][irecv],firstrecv[iswap][irecv],
                                 &buf_recv[size_forward*
                                           forward_recv_offset[iswap][irecv]]);
@@ -536,7 +533,7 @@ void CommTiled::forward_comm(int dummy)
       }
       if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
-          MPI_Waitany(nrecv,requests,&irecv,&status);
+          MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
           avec->unpack_comm(recvnum[iswap][irecv],firstrecv[iswap][irecv],
                             &buf_recv[size_forward*
                                       forward_recv_offset[iswap][irecv]]);
@@ -554,7 +551,6 @@ void CommTiled::forward_comm(int dummy)
 void CommTiled::reverse_comm()
 {
   int i,irecv,n,nsend,nrecv;
-  MPI_Status status;
   AtomVec *avec = atom->avec;
   double **f = atom->f;
 
@@ -588,7 +584,7 @@ void CommTiled::reverse_comm()
       }
       if (sendother[iswap]) {
         for (i = 0; i < nsend; i++) {
-          MPI_Waitany(nsend,requests,&irecv,&status);
+          MPI_Waitany(nsend,requests,&irecv,MPI_STATUS_IGNORE);
           avec->unpack_reverse(sendnum[iswap][irecv],sendlist[iswap][irecv],
                                &buf_recv[size_reverse*
                                          reverse_recv_offset[iswap][irecv]]);
@@ -617,7 +613,7 @@ void CommTiled::reverse_comm()
       }
       if (sendother[iswap]) {
         for (i = 0; i < nsend; i++) {
-          MPI_Waitany(nsend,requests,&irecv,&status);
+          MPI_Waitany(nsend,requests,&irecv,MPI_STATUS_IGNORE);
           avec->unpack_reverse(sendnum[iswap][irecv],sendlist[iswap][irecv],
                                &buf_recv[size_reverse*
                                          reverse_recv_offset[iswap][irecv]]);
@@ -736,7 +732,7 @@ void CommTiled::exchange()
                 exchproc[dim][m],0,world,&requests[m]);
     for (m = 0; m < nexch; m++)
       MPI_Send(&nsend,1,MPI_INT,exchproc[dim][m],0,world);
-    MPI_Waitall(nexch,requests,statuses);
+    MPI_Waitall(nexch,requests,MPI_STATUS_IGNORE);
 
     nrecv = 0;
     for (m = 0; m < nexch; m++) nrecv += exchnum[dim][m];
@@ -750,7 +746,7 @@ void CommTiled::exchange()
     }
     for (m = 0; m < nexch; m++)
       MPI_Send(buf_send,nsend,MPI_DOUBLE,exchproc[dim][m],0,world);
-    MPI_Waitall(nexch,requests,statuses);
+    MPI_Waitall(nexch,requests,MPI_STATUS_IGNORE);
 
     // check incoming atoms to see if I own it and they are in my box
     // if so, add to my list
@@ -870,7 +866,7 @@ void CommTiled::borders()
       for (m = 0; m < nsend; m++)
         MPI_Send(&sendnum[iswap][m],1,MPI_INT,sendproc[iswap][m],0,world);
     if (sendself[iswap]) recvnum[iswap][nrecv] = sendnum[iswap][nsend];
-    if (recvother[iswap]) MPI_Waitall(nrecv,requests,statuses);
+    if (recvother[iswap]) MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
 
     // setup other per swap/proc values from sendnum and recvnum
 
@@ -931,7 +927,7 @@ void CommTiled::borders()
                                 buf_send);
       }
       if (recvother[iswap]) {
-        MPI_Waitall(nrecv,requests,statuses);
+        MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
         for (m = 0; m < nrecv; m++)
           avec->unpack_border_vel(recvnum[iswap][m],firstrecv[iswap][m],
                                   &buf_recv[size_border*
@@ -960,7 +956,7 @@ void CommTiled::borders()
                             buf_send);
       }
       if (recvother[iswap]) {
-        MPI_Waitall(nrecv,requests,statuses);
+        MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
         for (m = 0; m < nrecv; m++)
           avec->unpack_border(recvnum[iswap][m],firstrecv[iswap][m],
                               &buf_recv[size_border*
@@ -997,7 +993,6 @@ void CommTiled::borders()
 void CommTiled::forward_comm_pair(Pair *pair)
 {
   int i,irecv,n,nsend,nrecv;
-  MPI_Status status;
 
   int nsize = pair->comm_forward;
 
@@ -1029,7 +1024,7 @@ void CommTiled::forward_comm_pair(Pair *pair)
     }
     if (recvother[iswap]) {
       for (i = 0; i < nrecv; i++) {
-        MPI_Waitany(nrecv,requests,&irecv,&status);
+        MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
         pair->unpack_forward_comm(recvnum[iswap][irecv],firstrecv[iswap][irecv],
                                   &buf_recv[nsize*
                                             forward_recv_offset[iswap][irecv]]);
@@ -1046,7 +1041,6 @@ void CommTiled::forward_comm_pair(Pair *pair)
 void CommTiled::reverse_comm_pair(Pair *pair)
 {
   int i,irecv,n,nsend,nrecv;
-  MPI_Status status;
 
   int nsize = MAX(pair->comm_reverse,pair->comm_reverse_off);
 
@@ -1075,7 +1069,7 @@ void CommTiled::reverse_comm_pair(Pair *pair)
     }
     if (sendother[iswap]) {
       for (i = 0; i < nsend; i++) {
-        MPI_Waitany(nsend,requests,&irecv,&status);
+        MPI_Waitany(nsend,requests,&irecv,MPI_STATUS_IGNORE);
         pair->unpack_reverse_comm(sendnum[iswap][irecv],sendlist[iswap][irecv],
                                   &buf_recv[nsize*
                                             reverse_recv_offset[iswap][irecv]]);
@@ -1096,7 +1090,6 @@ void CommTiled::reverse_comm_pair(Pair *pair)
 void CommTiled::forward_comm_fix(Fix *fix, int size)
 {
   int i,irecv,n,nsize,nsend,nrecv;
-  MPI_Status status;
 
   if (size) nsize = size;
   else nsize = fix->comm_forward;
@@ -1127,7 +1120,7 @@ void CommTiled::forward_comm_fix(Fix *fix, int size)
     }
     if (recvother[iswap]) {
       for (i = 0; i < nrecv; i++) {
-        MPI_Waitany(nrecv,requests,&irecv,&status);
+        MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
         fix->unpack_forward_comm(recvnum[iswap][irecv],firstrecv[iswap][irecv],
                                  &buf_recv[nsize*
                                            forward_recv_offset[iswap][irecv]]);
@@ -1148,7 +1141,6 @@ void CommTiled::forward_comm_fix(Fix *fix, int size)
 void CommTiled::reverse_comm_fix(Fix *fix, int size)
 {
   int i,irecv,n,nsize,nsend,nrecv;
-  MPI_Status status;
 
   if (size) nsize = size;
   else nsize = fix->comm_reverse;
@@ -1178,7 +1170,7 @@ void CommTiled::reverse_comm_fix(Fix *fix, int size)
     }
     if (sendother[iswap]) {
       for (i = 0; i < nsend; i++) {
-        MPI_Waitany(nsend,requests,&irecv,&status);
+        MPI_Waitany(nsend,requests,&irecv,MPI_STATUS_IGNORE);
         fix->unpack_reverse_comm(sendnum[iswap][irecv],sendlist[iswap][irecv],
                                  &buf_recv[nsize*
                                            reverse_recv_offset[iswap][irecv]]);
@@ -1195,7 +1187,6 @@ void CommTiled::reverse_comm_fix(Fix *fix, int size)
 void CommTiled::forward_comm_compute(Compute *compute)
 {
   int i,irecv,n,nsend,nrecv;
-  MPI_Status status;
 
   int nsize = compute->comm_forward;
 
@@ -1226,7 +1217,7 @@ void CommTiled::forward_comm_compute(Compute *compute)
     }
     if (recvother[iswap]) {
       for (i = 0; i < nrecv; i++) {
-        MPI_Waitany(nrecv,requests,&irecv,&status);
+        MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
         compute->
           unpack_forward_comm(recvnum[iswap][irecv],firstrecv[iswap][irecv],
                               &buf_recv[nsize*
@@ -1244,7 +1235,6 @@ void CommTiled::forward_comm_compute(Compute *compute)
 void CommTiled::reverse_comm_compute(Compute *compute)
 {
   int i,irecv,n,nsend,nrecv;
-  MPI_Status status;
 
   int nsize = compute->comm_reverse;
 
@@ -1273,7 +1263,7 @@ void CommTiled::reverse_comm_compute(Compute *compute)
     }
     if (sendother[iswap]) {
       for (i = 0; i < nsend; i++) {
-        MPI_Waitany(nsend,requests,&irecv,&status);
+        MPI_Waitany(nsend,requests,&irecv,MPI_STATUS_IGNORE);
         compute->
           unpack_reverse_comm(sendnum[iswap][irecv],sendlist[iswap][irecv],
                               &buf_recv[nsize*
@@ -1291,7 +1281,6 @@ void CommTiled::reverse_comm_compute(Compute *compute)
 void CommTiled::forward_comm_dump(Dump *dump)
 {
   int i,irecv,n,nsend,nrecv;
-  MPI_Status status;
 
   int nsize = dump->comm_forward;
 
@@ -1322,7 +1311,7 @@ void CommTiled::forward_comm_dump(Dump *dump)
     }
     if (recvother[iswap]) {
       for (i = 0; i < nrecv; i++) {
-        MPI_Waitany(nrecv,requests,&irecv,&status);
+        MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
         dump->unpack_forward_comm(recvnum[iswap][irecv],firstrecv[iswap][irecv],
                                   &buf_recv[nsize*
                                             forward_recv_offset[iswap][irecv]]);
@@ -1339,7 +1328,6 @@ void CommTiled::forward_comm_dump(Dump *dump)
 void CommTiled::reverse_comm_dump(Dump *dump)
 {
   int i,irecv,n,nsend,nrecv;
-  MPI_Status status;
 
   int nsize = dump->comm_reverse;
 
@@ -1368,7 +1356,7 @@ void CommTiled::reverse_comm_dump(Dump *dump)
     }
     if (sendother[iswap]) {
       for (i = 0; i < nsend; i++) {
-        MPI_Waitany(nsend,requests,&irecv,&status);
+        MPI_Waitany(nsend,requests,&irecv,MPI_STATUS_IGNORE);
         dump->unpack_reverse_comm(sendnum[iswap][irecv],sendlist[iswap][irecv],
                                   &buf_recv[nsize*
                                             reverse_recv_offset[iswap][irecv]]);
@@ -1384,7 +1372,6 @@ void CommTiled::reverse_comm_dump(Dump *dump)
 void CommTiled::forward_comm_array(int nsize, double **array)
 { 
   int i,j,k,m,iatom,last,irecv,nsend,nrecv;
-  MPI_Status status;
 
   // insure send/recv bufs are big enough for nsize
   // based on smaxone/rmaxall from most recent borders() invocation
@@ -1435,7 +1422,7 @@ void CommTiled::forward_comm_array(int nsize, double **array)
 
     if (recvother[iswap]) {
       for (i = 0; i < nrecv; i++) {
-        MPI_Waitany(nrecv,requests,&irecv,&status);
+        MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
         m = nsize*forward_recv_offset[iswap][irecv];
         last = firstrecv[iswap][irecv] + recvnum[iswap][irecv];
         for (iatom = firstrecv[iswap][irecv]; iatom < last; iatom++)
@@ -1919,7 +1906,6 @@ void CommTiled::allocate_swap(int n)
 
   maxreqstat = 0;
   requests = NULL;
-  statuses = NULL;
 
   for (int i = 0; i < n; i++) {
     nprocmax[i] = DELTA_PROCS;
@@ -2044,7 +2030,6 @@ void CommTiled::deallocate_swap(int n)
   delete [] sendlist;
 
   delete [] requests;
-  delete [] statuses;
 
   delete [] nprocmax;
 

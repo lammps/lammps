@@ -411,48 +411,47 @@ void PPPMCuda::init()
     // if no neighbor proc, value is from self since I have ghosts regardless
 
     int nplanes;
-    MPI_Status status;
 
     nplanes = nxlo_in - nxlo_out;
     if (comm->procneigh[0][0] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][0],0,
                    &nxhi_ghost,1,MPI_INT,comm->procneigh[0][1],0,
-                   world,&status);
+                   world,MPI_STATUS_IGNORE);
     else nxhi_ghost = nplanes;
 
     nplanes = nxhi_out - nxhi_in;
     if (comm->procneigh[0][1] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[0][1],0,
                    &nxlo_ghost,1,MPI_INT,comm->procneigh[0][0],
-                   0,world,&status);
+                   0,world,MPI_STATUS_IGNORE);
     else nxlo_ghost = nplanes;
 
     nplanes = nylo_in - nylo_out;
     if (comm->procneigh[1][0] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][0],0,
                    &nyhi_ghost,1,MPI_INT,comm->procneigh[1][1],0,
-                   world,&status);
+                   world,MPI_STATUS_IGNORE);
     else nyhi_ghost = nplanes;
 
     nplanes = nyhi_out - nyhi_in;
     if (comm->procneigh[1][1] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[1][1],0,
                    &nylo_ghost,1,MPI_INT,comm->procneigh[1][0],0,
-                   world,&status);
+                   world,MPI_STATUS_IGNORE);
     else nylo_ghost = nplanes;
 
     nplanes = nzlo_in - nzlo_out;
     if (comm->procneigh[2][0] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][0],0,
                    &nzhi_ghost,1,MPI_INT,comm->procneigh[2][1],0,
-                   world,&status);
+                   world,MPI_STATUS_IGNORE);
     else nzhi_ghost = nplanes;
 
     nplanes = nzhi_out - nzhi_in;
     if (comm->procneigh[2][1] != me)
       MPI_Sendrecv(&nplanes,1,MPI_INT,comm->procneigh[2][1],0,
                    &nzlo_ghost,1,MPI_INT,comm->procneigh[2][0],0,
-                   world,&status);
+                   world,MPI_STATUS_IGNORE);
     else nzlo_ghost = nplanes;
 
     // test that ghost overlap is not bigger than my sub-domain
@@ -1291,7 +1290,7 @@ void PPPMCuda::poisson(int eflag, int vflag)
 {
 
 #ifndef FFT_CUFFT
-    PPPMOld::poisson();
+    PPPMOld::poisson(eflag,vflag);
     return;
 #endif
 #ifdef FFT_CUFFT
@@ -1412,10 +1411,6 @@ void PPPMCuda::slabcorr(int eflag)
 
   double dipole_all;
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
-
-  // compute corrections
-
-  double e_slabcorr = 2.0*MY_PI*dipole_all*dipole_all/volume;
 
   //if (eflag) energy += qqrd2e*scale * e_slabcorr;
   // need to add a correction to make non-neutral systems and per-atom energy translationally invariant

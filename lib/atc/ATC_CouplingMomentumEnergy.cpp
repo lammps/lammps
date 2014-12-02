@@ -321,9 +321,7 @@ namespace ATC {
   //--------------------------------------------------------
   bool ATC_CouplingMomentumEnergy::modify(int narg, char **arg)
   {
-    bool foundMatch = false;
-    int argIndex = 0;
-    return foundMatch;
+    return false;
   }
 
   //--------------------------------------------------------------------

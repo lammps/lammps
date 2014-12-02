@@ -19,9 +19,6 @@ using std::map;
 using std::pair;
 using std::set;
 
-static const double kTol_ = 1.0e-8; 
-static const double tol_sparse = 1.e-30;//tolerance for compaction from dense
-
 namespace ATC {
 
   //--------------------------------------------------------

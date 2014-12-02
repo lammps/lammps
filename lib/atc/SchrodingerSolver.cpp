@@ -18,7 +18,6 @@ using std::min;
 using ATC_Utility::to_string;
 using ATC_Utility::sgn;
 
-const double tol = 1.e-8; 
 const double zero_tol = 1.e-12; 
 const double f_tol = 1.e-8; 
 
@@ -779,7 +778,6 @@ double fermi_dirac(const double E, const double T)
   {
     std::cout << "******************HACK******************\n";
 
-    const DENS_MAT & phi = (atc_->fields_[ELECTRIC_POTENTIAL]).quantity();
     DENS_MAT & n   = (atc_->fields_[ELECTRON_DENSITY]  ).set_quantity();
     DENS_MAT       & Ef  = (atc_->field(FERMI_ENERGY)).set_quantity();
     double T = 300;

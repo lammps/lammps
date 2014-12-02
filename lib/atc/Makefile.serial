@@ -1,10 +1,11 @@
+# library build -*- makefile -*-
 SHELL = /bin/sh
 
 # which file will be copied to Makefile.lammps
-
-EXTRAMAKE = Makefile.lammps.installed
+EXTRAMAKE = Makefile.lammps.linalg
 
 # ------ FILES ------
+
 SRC = $(wildcard *.cpp)
 INC = $(wildcard *.h)
 
@@ -23,11 +24,8 @@ CCFLAGS =       -O -g -fPIC -I../../src -I../../src/STUBS
 ARCHIVE =	ar
 ARCHFLAG =	-rc
 DEPFLAGS =      -M
-LINK =         	g++
+LINK =         	$(CC)
 LINKFLAGS =	-O
-USRLIB =
-SYSLIB =
-
 # ------ MAKE PROCEDURE ------
 
 lib: 	$(OBJ)
@@ -48,4 +46,6 @@ DEPENDS = $(OBJ:.o=.d)
 # ------ CLEAN ------
 
 clean:
-	rm *.o *.d *~ $(LIB)
+	@rm *.o *.d *~ $(LIB)
+
+sinclude $(DEPENDS)

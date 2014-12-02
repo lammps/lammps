@@ -213,7 +213,7 @@ DiagonalMatrix<T>::DiagonalMatrix(INDEX rows, bool zero)
 //-----------------------------------------------------------------------------
 template<typename T>
 DiagonalMatrix<T>::DiagonalMatrix(const DiagonalMatrix<T>& c)
- : _data(NULL)
+ : Matrix<T>(), _data(NULL)
 {
   reset(c);
 }
@@ -222,7 +222,7 @@ DiagonalMatrix<T>::DiagonalMatrix(const DiagonalMatrix<T>& c)
 //-----------------------------------------------------------------------------
 template<typename T>
 DiagonalMatrix<T>::DiagonalMatrix(const Vector<T>& v)
- : _data(NULL)
+ : Matrix<T>(), _data(NULL)
 {
   reset(v);
 }

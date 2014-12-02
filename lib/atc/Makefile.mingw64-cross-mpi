@@ -1,14 +1,15 @@
 # library build -*- makefile -*-
 SHELL = /bin/sh
 
+# which file will be copied to Makefile.lammps
+EXTRAMAKE = Makefile.lammps.linalg
+
 # ------ FILES ------
+
 SRC = $(wildcard *.cpp)
 INC = $(wildcard *.h)
 
 # ------ DEFINITIONS ------
-# which file will be copied to Makefile.lammps
-
-EXTRAMAKE = Makefile.lammps.linalg
 
 DIR = Obj_mingw64-mpi/
 LIB = $(DIR)libatc.a
@@ -21,14 +22,14 @@ OBJ = $(SRC:%.cpp=$(DIR)%.o)
 
 CC =		  x86_64-w64-mingw32-g++
 CCFLAGS =	-I../../tools/mingw-cross/mpich2-win64/include/		\
-		-I../../src -I../../src/STUBS -DMPICH_IGNORE_CXX_SEEK	\
+		-I../../src -DMPICH_IGNORE_CXX_SEEK	\
 		-O3 -march=core2 -mtune=core2 -mpc64 -msse2    \
                 -ffast-math -funroll-loops -fstrict-aliasing		\
 		-DLAMMPS_SMALLBIG -Wno-uninitialized
 ARCHIVE =	x86_64-w64-mingw32-ar
 ARCHFLAG =	-rcs
 DEPFLAGS =      -M
-LINK =         	x86_64-w64-mingw32-g++
+LINK =         	$(CC)
 LINKFLAGS =	-O
 USRLIB =
 SYSLIB =
@@ -43,7 +44,7 @@ $(DIR):
 Makefile.lammps:
 	@cp $(EXTRAMAKE) Makefile.lammps
 
-$(LIB): 	$(OBJ)
+$(LIB): $(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
 	@cp $(EXTRAMAKE) Makefile.lammps
 

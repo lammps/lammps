@@ -588,7 +588,8 @@ namespace ATC {
     void distribute_mesh_data();
   protected:
     /** create global-to-unique node mapping */
-    virtual void setup_periodicity(double tol = 1.e-8);
+    virtual void setup_periodicity(double tol);
+    virtual void setup_periodicity() { setup_periodicity(1.e-8); }
     void fix_periodicity  (int idim);
     int find_boundary_nodes(int idim, std::set<int> & nodes);
     bool match_nodes(int idim, std::set<int> & top, std::set<int> & bot,
@@ -691,7 +692,7 @@ namespace ATC {
     void departition_mesh(void);
     
     virtual void element_size(const int ielem, 
-                              double hx, double hy, double hz) 
+                              double &hx, double &hy, double &hz)
     { hx = L_[0]/n_[0]; hy = L_[1]/n_[1]; hz = L_[2]/n_[2]; }
 
     virtual double min_element_size(void) const

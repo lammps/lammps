@@ -1058,7 +1058,7 @@ namespace ATC {
     virtual int unpack_comm(int index, double *buf) {return 0;};
 
     /** returns size of per-atom communication */
-    virtual int size_comm() {return 0;};
+    virtual int size_comm() const {return 0;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
     virtual void grow_lammps_array(int nmax, const std::string & tag) {};

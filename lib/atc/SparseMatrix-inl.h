@@ -24,7 +24,7 @@ SparseMatrix<T>::SparseMatrix(INDEX rows, INDEX cols)
 //-----------------------------------------------------------------------------
 template<typename T>
 SparseMatrix<T>::SparseMatrix(const SparseMatrix<T>& C)
- : _val(NULL), _ia(NULL), _ja(NULL), hasTemplate_(false)
+ : Matrix<T>(), _val(NULL), _ia(NULL), _ja(NULL), hasTemplate_(false)
 {
   _copy(C); 
 }
@@ -33,7 +33,7 @@ SparseMatrix<T>::SparseMatrix(const SparseMatrix<T>& C)
 //-----------------------------------------------------------------------------
 template<typename T>
 SparseMatrix<T>::SparseMatrix(const DenseMatrix<T>& C) 
-: _val(NULL), _ia(NULL), _ja(NULL), hasTemplate_(false)
+: Matrix<T>(), _val(NULL), _ia(NULL), _ja(NULL), hasTemplate_(false)
 {
   reset(C); 
 }

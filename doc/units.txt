@@ -42,7 +42,7 @@ results from a unitless LJ simulation into physical quantities.
 
 mass = mass or m
 distance = sigma, where x* = x / sigma
-time = tau, where tau = t* = t (epsilon / m / sigma^2)^1/2
+time = tau, where t* = t (epsilon / m / sigma^2)^1/2
 energy = epsilon, where E* = E / epsilon
 velocity = sigma/tau, where v* = v tau / sigma
 force = epsilon/sigma, where f* = f sigma / epsilon

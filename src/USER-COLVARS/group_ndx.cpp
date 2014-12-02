@@ -88,10 +88,11 @@ static void write_group(FILE *fp, int gid, Atom *atom, Group *group, int me,
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) sendlist[lnum++] = tag[i];
 
-    MPI_Status status;
-    MPI_Request request;
     int nrecv,allrecv;
     if (me == 0) {
+      MPI_Status status;
+      MPI_Request request;
+
       for (i=0; i < lnum; i++)
         recvlist[i] = sendlist[i];
 
@@ -107,7 +108,7 @@ static void write_group(FILE *fp, int gid, Atom *atom, Group *group, int me,
       // sort received list
       qsort((void *)recvlist, num, sizeof(tagint), cmptagint);
     } else {
-      MPI_Recv(&nrecv,0,MPI_INT,0,0,world,&status);
+      MPI_Recv(&nrecv,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
       MPI_Rsend(sendlist,lnum,MPI_LMP_TAGINT,0,0,world);
     }
     delete [] sendlist;

@@ -35,16 +35,16 @@ static int my_backup_file(const char *filename, const char *extension)
 {
   struct stat sbuf;
   if (stat(filename, &sbuf) == 0) {
-    if ( ! extension ) extension = ".BAK";
+    if (!extension) extension = ".BAK";
     char *backup = new char[strlen(filename)+strlen(extension)+1];
     strcpy(backup, filename);
     strcat(backup, extension);
 #if defined(_WIN32) && !defined(__CYGWIN__)
     remove(backup);
 #endif
-    if ( rename(filename,backup) ) {
+    if (rename(filename,backup)) {
       char *sys_err_msg = strerror(errno);
-      if ( !sys_err_msg ) sys_err_msg = (char *) "(unknown error)";
+      if (!sys_err_msg)  sys_err_msg = (char *) "(unknown error)";
       fprintf(stderr,"Error renaming file %s to %s: %s\n",
               filename, backup, sys_err_msg);
       delete [] backup;
@@ -94,7 +94,7 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 
   // check if it is possible to save output configuration
   if ((!output_prefix_str.size()) && (!restart_output_prefix_str.size())) {
-    fatal_error ("Error: neither the final output state file or "
+    fatal_error("Error: neither the final output state file or "
                  "the output restart file could be defined, exiting.\n");
   }
 
@@ -120,15 +120,18 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
 void colvarproxy_lammps::init(const char *conf_file)
 {
   // create the colvarmodule instance
-  colvars = new colvarmodule (this);
+  colvars = new colvarmodule(this);
+
+  cvm::log("Using LAMMPS interface, version "+
+            cvm::to_str(COLVARPROXY_VERSION)+".\n");
 
   // TODO move one or more of these to setup() if needed
-  colvars->config_file (conf_file);
+  colvars->config_file(conf_file);
   colvars->setup_input();
   colvars->setup_output();
 
   if (_lmp->update->ntimestep != 0) {
-    cvm::log ("Initializing step number as firstTimestep.\n");
+    cvm::log("Initializing step number as firstTimestep.\n");
     colvars->it = colvars->it_restart = _lmp->update->ntimestep;
   }
 
@@ -188,6 +191,8 @@ double colvarproxy_lammps::compute()
   for (size_t i = 0; i < applied_forces.size(); i++) {
     applied_forces[i].x = applied_forces[i].y = applied_forces[i].z = 0.0;
   }
+
+  bias_energy = 0.0;
 
   // call the collective variable module
   colvars->calc();

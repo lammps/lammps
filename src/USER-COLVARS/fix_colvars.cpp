@@ -408,7 +408,7 @@ void FixColvars::one_time_init()
     if (me == 0) color = 0;
     MPI_Comm_split(universe->uworld,color,universe->iworld,&root2root);
   }
-  
+
   // create and initialize the colvars proxy
 
   if (me == 0) {
@@ -601,7 +601,7 @@ void FixColvars::setup(int vflag)
       }
     }
     /* blocking receive to wait until it is our turn to send data. */
-    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
+    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
@@ -744,7 +744,7 @@ void FixColvars::post_force(int vflag)
       }
     }
     /* blocking receive to wait until it is our turn to send data. */
-    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
+    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
@@ -875,7 +875,7 @@ void FixColvars::end_of_step()
         }
       }
       /* blocking receive to wait until it is our turn to send data. */
-      MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
+      MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
       MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
     }
   }

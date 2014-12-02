@@ -14,6 +14,10 @@
 #include <vector>
 #include <iostream>
 
+#ifndef COLVARPROXY_VERSION
+#define COLVARPROXY_VERSION "2014-10-29"
+#endif
+
 /* struct for packed data communication of coordinates and forces. */
 struct commdata {
   int tag,type;
@@ -103,20 +107,20 @@ class colvarproxy_lammps : public colvarproxy {
 
   inline size_t restart_frequency() { return restart_every; };
 
-  void add_energy (cvm::real energy) { bias_energy = energy; };
-  void request_system_force (bool yesno) { system_force_requested = yesno; };
+  void add_energy(cvm::real energy) { bias_energy += energy; };
+  void request_system_force(bool yesno) { system_force_requested = yesno; };
 
   void log(std::string const &message);
   void error(std::string const &message);
   void fatal_error(std::string const &message);
   void exit(std::string const &message);
 
-  cvm::rvector position_distance (cvm::atom_pos const &pos1,
-                                  cvm::atom_pos const &pos2);
-  cvm::real position_dist2 (cvm::atom_pos const &pos1,
-                            cvm::atom_pos const &pos2);
-  void select_closest_image (cvm::atom_pos &pos,
-                             cvm::atom_pos const &ref_pos);
+  cvm::rvector position_distance(cvm::atom_pos const &pos1,
+                                 cvm::atom_pos const &pos2);
+  cvm::real position_dist2(cvm::atom_pos const &pos1,
+                           cvm::atom_pos const &pos2);
+  void select_closest_image(cvm::atom_pos &pos,
+                            cvm::atom_pos const &ref_pos);
 
   int load_atoms(char const *filename,
                   std::vector<cvm::atom> &atoms,

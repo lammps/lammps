@@ -43,20 +43,20 @@ protected:
   bool save_delimiters;
 
   /// \brief Add a new valid keyword to the list
-  void add_keyword (char const *key);
+  void add_keyword(char const *key);
 
   /// \brief Remove all the values from the config string
-  void strip_values (std::string &conf);
+  void strip_values(std::string &conf);
 
 public:
 
   inline colvarparse()
-    : save_delimiters (true)
+    : save_delimiters(true)
   {}
 
   /// How a keyword is parsed in a string
   enum Parse_Mode {
-    /// \brief (default) Read the first instance of a keyword (if
+    /// \brief(default) Read the first instance of a keyword (if
     /// any), report its value, and print a warning when there is more
     /// than one
     parse_normal,
@@ -92,50 +92,50 @@ public:
   /// wrapper class (colvarvalue.h).
 
 #define _get_keyval_scalar_proto_(_type_,_def_value_)           \
-  bool get_keyval (std::string const &conf,                     \
+  bool get_keyval(std::string const &conf,                     \
                    char const *key,                             \
                    _type_ &value,                               \
                    _type_ const &def_value = _def_value_,       \
                    Parse_Mode const parse_mode = parse_normal)
 
-    _get_keyval_scalar_proto_ (int, (int)0);
-    _get_keyval_scalar_proto_ (size_t, (size_t)0);
-    _get_keyval_scalar_proto_ (std::string, std::string (""));
-    _get_keyval_scalar_proto_ (cvm::real, (cvm::real)0.0);
-    _get_keyval_scalar_proto_ (cvm::rvector, cvm::rvector());
-    _get_keyval_scalar_proto_ (cvm::quaternion, cvm::quaternion());
-    _get_keyval_scalar_proto_ (colvarvalue, colvarvalue (colvarvalue::type_notset));
-    _get_keyval_scalar_proto_ (bool, false);
+    _get_keyval_scalar_proto_(int, (int)0);
+    _get_keyval_scalar_proto_(size_t, (size_t)0);
+    _get_keyval_scalar_proto_(std::string, std::string(""));
+    _get_keyval_scalar_proto_(cvm::real, (cvm::real)0.0);
+    _get_keyval_scalar_proto_(cvm::rvector, cvm::rvector());
+    _get_keyval_scalar_proto_(cvm::quaternion, cvm::quaternion());
+    _get_keyval_scalar_proto_(colvarvalue, colvarvalue(colvarvalue::type_notset));
+    _get_keyval_scalar_proto_(bool, false);
 
 #define _get_keyval_vector_proto_(_type_,_def_value_)                   \
-  bool get_keyval (std::string const &conf,                             \
+  bool get_keyval(std::string const &conf,                             \
                    char const *key,                                     \
                    std::vector<_type_> &values,                         \
                    std::vector<_type_> const &def_values =              \
                    std::vector<_type_> (0, static_cast<_type_>(_def_value_)),                \
                    Parse_Mode const parse_mode = parse_normal)
 
-    _get_keyval_vector_proto_ (int, 0);
-    _get_keyval_vector_proto_ (size_t, 0);
-    _get_keyval_vector_proto_ (std::string, std::string (""));
-    _get_keyval_vector_proto_ (cvm::real, 0.0);
-    _get_keyval_vector_proto_ (cvm::rvector, cvm::rvector());
-    _get_keyval_vector_proto_ (cvm::quaternion, cvm::quaternion());
-    _get_keyval_vector_proto_ (colvarvalue, colvarvalue (colvarvalue::type_notset));
+    _get_keyval_vector_proto_(int, 0);
+    _get_keyval_vector_proto_(size_t, 0);
+    _get_keyval_vector_proto_(std::string, std::string(""));
+    _get_keyval_vector_proto_(cvm::real, 0.0);
+    _get_keyval_vector_proto_(cvm::rvector, cvm::rvector());
+    _get_keyval_vector_proto_(cvm::quaternion, cvm::quaternion());
+    _get_keyval_vector_proto_(colvarvalue, colvarvalue(colvarvalue::type_notset));
 
 
   /// \brief Check that all the keywords within "conf" are in the list
   /// of allowed keywords; this will invoke strip_values() first and
   /// then loop over all words
-  int check_keywords (std::string &conf, char const *key);
+  int check_keywords(std::string &conf, char const *key);
 
 
   /// \brief Return a lowercased copy of the string
-  static inline std::string to_lower_cppstr (std::string const &in)
+  static inline std::string to_lower_cppstr(std::string const &in)
   {
     std::string out = "";
     for (size_t i = 0; i < in.size(); i++) {
-      out.append (1, (char) ::tolower (in[i]) );
+      out.append(1, (char) ::tolower(in[i]) );
     }
     return out;
   }
@@ -153,8 +153,8 @@ public:
     std::string * const data;
 
   public:
-    inline read_block (std::string const &key_in, std::string &data_in)
-      : key (key_in), data (&data_in)
+    inline read_block(std::string const &key_in, std::string &data_in)
+      : key(key_in), data(&data_in)
     {}
     inline ~read_block() {}
     friend std::istream & operator >> (std::istream &is, read_block const &rb);
@@ -172,7 +172,7 @@ public:
   /// \param save_pos (optional) stores the position of the keyword
   /// within "conf", useful when doing multiple calls \param
   /// save_delimiters (optional)
-  bool key_lookup (std::string const &conf,
+  bool key_lookup(std::string const &conf,
                    char const *key,
                    std::string &data = dummy_string,
                    size_t &save_pos = dummy_pos);
@@ -184,12 +184,12 @@ public:
 
   /// \brief Works as std::getline() but also removes everything
   /// between a comment character and the following newline
-  static std::istream & getline_nocomments (std::istream &is,
+  static std::istream & getline_nocomments(std::istream &is,
                                             std::string &s,
                                             char const delim = '\n');
 
   /// Check if the content of the file has matching braces
-  bool brace_check (std::string const &conf,
+  bool brace_check(std::string const &conf,
                     size_t const start_pos = 0);
 
 };

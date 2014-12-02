@@ -28,7 +28,7 @@ public:
   Communication comm;
 
   /// Constructor
-  colvarbias_meta (std::string const &conf, char const *key);
+  colvarbias_meta(std::string const &conf, char const *key);
 
   /// Default constructor
   colvarbias_meta();
@@ -38,9 +38,9 @@ public:
 
   virtual cvm::real update();
 
-  virtual std::istream & read_restart (std::istream &is);
+  virtual std::istream & read_restart(std::istream &is);
 
-  virtual std::ostream & write_restart (std::ostream &os);
+  virtual std::ostream & write_restart(std::ostream &os);
 
   virtual void write_pmf();
 
@@ -79,11 +79,11 @@ protected:
   hill_iter new_hills_off_grid_begin;
 
   /// Regenerate the hills_off_grid list
-  void recount_hills_off_grid (hill_iter h_first, hill_iter h_last,
+  void recount_hills_off_grid(hill_iter h_first, hill_iter h_last,
                                colvar_grid_scalar *ge);
 
   /// Read a hill from a file
-  std::istream & read_hill (std::istream &is);
+  std::istream & read_hill(std::istream &is);
 
   /// \brief step present in a state file
   ///
@@ -95,15 +95,15 @@ protected:
   /// \brief Add a new hill; if a .hills trajectory is written,
   /// write it there; if there is more than one replica, communicate
   /// it to the others
-  virtual std::list<hill>::const_iterator create_hill (hill const &h);
+  virtual std::list<hill>::const_iterator create_hill(hill const &h);
 
   /// \brief Remove a previously saved hill (returns an iterator for
   /// the next hill in the list)
-  virtual std::list<hill>::const_iterator delete_hill (hill_iter &h);
+  virtual std::list<hill>::const_iterator delete_hill(hill_iter &h);
 
   /// \brief Calculate the values of the hills, incrementing
   /// bias_energy
-  virtual void calc_hills (hill_iter  h_first,
+  virtual void calc_hills(hill_iter  h_first,
                            hill_iter  h_last,
                            cvm::real &energy,
                            std::vector<colvarvalue> const &values = std::vector<colvarvalue> (0));
@@ -111,7 +111,7 @@ protected:
   /// \brief Calculate the forces acting on the i-th colvar,
   /// incrementing colvar_forces[i]; must be called after calc_hills
   /// each time the values of the colvars are changed
-  virtual void calc_hills_force (size_t const &i,
+  virtual void calc_hills_force(size_t const &i,
                                  hill_iter h_first,
                                  hill_iter h_last,
                                  std::vector<colvarvalue> &forces,
@@ -167,7 +167,7 @@ protected:
   colvar_grid_gradient  *hills_energy_gradients;
 
   /// \brief Project the selected hills onto grids
-  void project_hills (hill_iter h_first, hill_iter h_last,
+  void project_hills(hill_iter h_first, hill_iter h_last,
                       colvar_grid_scalar *ge, colvar_grid_gradient *gf,
                       bool print_progress = false);
 
@@ -268,28 +268,28 @@ public:
   /// cv Pointer to the array of collective variables involved \param
   /// replica (optional) Identity of the replica which creates the
   /// hill
-  inline hill (cvm::real             const &W_in,
+  inline hill(cvm::real             const &W_in,
                std::vector<colvar *>       &cv,
                cvm::real             const &hill_width,
                std::string           const &replica_in = "")
-    : sW (1.0),
-      W (W_in),
-      centers (cv.size()),
-      widths (cv.size()),
-      it (cvm::it),
-      replica (replica_in)
+    : sW(1.0),
+      W(W_in),
+      centers(cv.size()),
+      widths(cv.size()),
+      it(cvm::it),
+      replica(replica_in)
   {
     for (size_t i = 0; i < cv.size(); i++) {
-      centers[i].type (cv[i]->type());
+      centers[i].type(cv[i]->value());
       centers[i] = cv[i]->value();
       widths[i] = cv[i]->width * hill_width;
     }
     if (cvm::debug())
-      cvm::log ("New hill, applied to "+cvm::to_str (cv.size())+
+      cvm::log("New hill, applied to "+cvm::to_str(cv.size())+
                 " collective variables, with centers "+
-                cvm::to_str (centers)+", widths "+
-                cvm::to_str (widths)+" and weight "+
-                cvm::to_str (W)+".\n");
+                cvm::to_str(centers)+", widths "+
+                cvm::to_str(widths)+" and weight "+
+                cvm::to_str(W)+".\n");
   }
 
   /// \brief General constructor: all data are explicitly passed as
@@ -298,27 +298,27 @@ public:
   /// weight Weight of the hill \param centers Center of the hill
   /// \param widths Width of the hill around centers \param replica
   /// (optional) Identity of the replica which creates the hill
-  inline hill (size_t                    const &it_in,
+  inline hill(size_t                    const &it_in,
                cvm::real                 const &W_in,
                std::vector<colvarvalue>  const &centers_in,
                std::vector<cvm::real>    const &widths_in,
                std::string               const &replica_in = "")
-    : sW (1.0),
-      W (W_in),
-      centers (centers_in),
-      widths (widths_in),
-      it (it_in),
-      replica (replica_in)
+    : sW(1.0),
+      W(W_in),
+      centers(centers_in),
+      widths(widths_in),
+      it(it_in),
+      replica(replica_in)
   {}
 
   /// Copy constructor
-  inline hill (colvarbias_meta::hill const &h)
-    : sW (1.0),
-      W (h.W),
-      centers (h.centers),
-      widths (h.widths),
-      it (h.it),
-      replica (h.replica)
+  inline hill(colvarbias_meta::hill const &h)
+    : sW(1.0),
+      W(h.W),
+      centers(h.centers),
+      widths(h.widths),
+      it(h.it),
+      replica(h.replica)
   {}
 
   /// Destructor
@@ -332,7 +332,7 @@ public:
   }
 
   /// Get the energy using another hill weight
-  inline cvm::real energy (cvm::real const &new_weight)
+  inline cvm::real energy(cvm::real const &new_weight)
   {
     return new_weight * sW * hill_value;
   }
@@ -344,7 +344,7 @@ public:
   }
 
   /// Set the hill value as specified
-  inline void value (cvm::real const &new_value)
+  inline void value(cvm::real const &new_value)
   {
     hill_value = new_value;
   }
@@ -356,7 +356,7 @@ public:
   }
 
   /// Scale the weight with this factor (by default 1.0 is used)
-  inline void scale (cvm::real const &new_scale_fac)
+  inline void scale(cvm::real const &new_scale_fac)
   {
     sW = new_scale_fac;
   }
@@ -368,7 +368,7 @@ public:
   }
 
   /// Get the i-th component of the center
-  inline colvarvalue & center (size_t const &i)
+  inline colvarvalue & center(size_t const &i)
   {
     return centers[i];
   }

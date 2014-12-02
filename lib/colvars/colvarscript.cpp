@@ -1,28 +1,31 @@
 // -*- c++ -*-
 
 #include <cstdlib>
+#include <stdlib.h>
+#include <string.h>
+
 #include "colvarscript.h"
 
 
-colvarscript::colvarscript (colvarproxy *p)
- : proxy (p),
-   colvars (p->colvars),
-   proxy_error (0)
+colvarscript::colvarscript(colvarproxy *p)
+ : proxy(p),
+   colvars(p->colvars),
+   proxy_error(0)
 {
 }
 
 /// Run method based on given arguments
-int colvarscript::run (int argc, char const *argv[]) {
+int colvarscript::run(int argc, char const *argv[]) {
 
   result = "";
 
   if (cvm::debug()) {
-    cvm::log ("Called script run with " + cvm::to_str(argc) + " args");
-    for (int i = 0; i < argc; i++) { cvm::log (argv[i]); }
+    cvm::log("Called script run with " + cvm::to_str(argc) + " args");
+    for (int i = 0; i < argc; i++) { cvm::log(argv[i]); }
   }
 
   if (argc < 2) {
-    result = "usage: "+std::string (argv[0])+" <subcommand> [args...]\n\
+    result = "usage: "+std::string(argv[0])+" <subcommand> [args...]\n\
 \n\
 Managing the colvars module:\n\
   configfile <file name>      -- read configuration from a file\n\
@@ -63,11 +66,11 @@ Accessing biases:\n\
   std::string cmd = argv[1];
 
   if (cmd == "colvar") {
-    return proc_colvar (argc-1, &(argv[1]));
+    return proc_colvar(argc-1, &(argv[1]));
   }
 
   if (cmd == "bias") {
-    return proc_bias (argc-1, &(argv[1]));
+    return proc_bias(argc-1, &(argv[1]));
   }
 
   if (cmd == "reset") {
@@ -116,7 +119,7 @@ Accessing biases:\n\
       result = "Missing arguments";
       return COLVARSCRIPT_ERROR;
     }
-    if (colvars->config_file (argv[2]) == COLVARS_OK) {
+    if (colvars->config_file(argv[2]) == COLVARS_OK) {
       return COLVARSCRIPT_OK;
     } else {
       return COLVARSCRIPT_ERROR;
@@ -130,7 +133,7 @@ Accessing biases:\n\
       return COLVARSCRIPT_ERROR;
     }
     std::string conf = argv[2];
-    if (colvars->config_string (conf) == COLVARS_OK) {
+    if (colvars->config_string(conf) == COLVARS_OK) {
       return COLVARSCRIPT_OK;
     } else {
       return COLVARSCRIPT_ERROR;
@@ -156,13 +159,13 @@ Accessing biases:\n\
   /// Print the values that would go on colvars.traj
   if (cmd == "printframelabels") {
     std::ostringstream os;
-    colvars->write_traj_label (os);
+    colvars->write_traj_label(os);
     result = os.str();
     return COLVARSCRIPT_OK;
   }
   if (cmd == "printframe") {
     std::ostringstream os;
-    colvars->write_traj (os);
+    colvars->write_traj(os);
     result = os.str();
     return COLVARSCRIPT_OK;
   }
@@ -171,7 +174,7 @@ Accessing biases:\n\
     if (argc == 2) {
       int f = proxy->frame();
       if (f >= 0) {
-        result = cvm::to_str (f);
+        result = cvm::to_str(f);
         return COLVARSCRIPT_OK;
       } else {
         result = "Frame number is not available";
@@ -182,7 +185,7 @@ Accessing biases:\n\
       // returns the plain result to let scripts detect available frames
       long int f = proxy->frame(strtol(argv[2], NULL, 10));
       colvars->it = proxy->frame();
-      result = cvm::to_str (f);
+      result = cvm::to_str(f);
       return COLVARSCRIPT_OK;
     } else {
       result = "Wrong arguments to command \"frame\"";
@@ -195,9 +198,9 @@ Accessing biases:\n\
 }
 
 
-int colvarscript::proc_colvar (int argc, char const *argv[]) {
+int colvarscript::proc_colvar(int argc, char const *argv[]) {
   std::string name = argv[1];
-  colvar *cv = cvm::colvar_by_name (name);
+  colvar *cv = cvm::colvar_by_name(name);
   if (cv == NULL) {
     result = "Colvar not found: " + name;
     return COLVARSCRIPT_ERROR;
@@ -209,14 +212,19 @@ int colvarscript::proc_colvar (int argc, char const *argv[]) {
   std::string subcmd = argv[2];
 
   if (subcmd == "value") {
-    result = cvm::to_str(cv->value(), 0, cvm::cv_prec);
+    result = (cv->value()).to_simple_string();
+    return COLVARSCRIPT_OK;
+  }
+
+  if (subcmd == "width") {
+    result = cvm::to_str(cv->width, 0, cvm::cv_prec);
     return COLVARSCRIPT_OK;
   }
 
   if (subcmd == "update") {
     cv->calc();
     cv->update();
-    result = cvm::to_str(cv->value(), 0, cvm::cv_prec);
+    result = (cv->value()).to_simple_string();
     return COLVARSCRIPT_OK;
   }
 
@@ -228,27 +236,27 @@ int colvarscript::proc_colvar (int argc, char const *argv[]) {
     // colvar destructor is tasked with the cleanup
     delete cv;
     // TODO this could be done by the destructors
-    colvars->write_traj_label (colvars->cv_traj_os);
+    colvars->write_traj_label(colvars->cv_traj_os);
     return COLVARSCRIPT_OK;
   }
 
   if (subcmd == "addforce") {
     if (argc < 4) {
-      result = "Missing parameter: force value";
+      result = "addforce: missing parameter: force value";
       return COLVARSCRIPT_ERROR;
     }
     std::string f_str = argv[3];
-    std::istringstream is (f_str);
+    std::istringstream is(f_str);
     is.width(cvm::cv_width);
     is.precision(cvm::cv_prec);
-    colvarvalue force (cv->type());
+    colvarvalue force(cv->value());
     force.is_derivative();
-    if (!(is >> force)) {
-      result = "Error parsing force value";
+    if (force.from_simple_string(is.str()) != COLVARS_OK) {
+      result = "addforce : error parsing force value";
       return COLVARSCRIPT_ERROR;
     }
     cv->add_bias_force(force);
-    result = cvm::to_str(force, cvm::cv_width, cvm::cv_prec);
+    result = force.to_simple_string();
     return COLVARSCRIPT_OK;
   }
 
@@ -257,9 +265,9 @@ int colvarscript::proc_colvar (int argc, char const *argv[]) {
 }
 
 
-int colvarscript::proc_bias (int argc, char const *argv[]) {
+int colvarscript::proc_bias(int argc, char const *argv[]) {
   std::string name = argv[1];
-  colvarbias *b = cvm::bias_by_name (name);
+  colvarbias *b = cvm::bias_by_name(name);
   if (b == NULL) {
     result = "Bias not found: " + name;
     return COLVARSCRIPT_ERROR;
@@ -282,16 +290,53 @@ int colvarscript::proc_bias (int argc, char const *argv[]) {
     return COLVARSCRIPT_OK;
   }
 
+  // Subcommands for MW ABF
+  if (subcmd == "bin") {
+    int r = b->current_bin();
+    result = cvm::to_str(r);
+    return COLVARSCRIPT_OK;
+  }
+
+  if (subcmd == "binnum") {
+    int r = b->bin_num();
+    if (r < 0) {
+      result = "Error: calling bin_num() for bias " + b->name;
+      return COLVARSCRIPT_ERROR;
+    }
+    result = cvm::to_str(r);
+    return COLVARSCRIPT_OK;
+  }
+
+  if (subcmd == "share") {
+    int r = b->replica_share();
+    if (r < 0) {
+      result = "Error: calling replica_share() for bias " + b->name;
+      return COLVARSCRIPT_ERROR;
+    }
+    result = cvm::to_str(r);
+    return COLVARSCRIPT_OK;
+  }
+  // End commands for MW ABF
+
   if (subcmd == "delete") {
     // the bias destructor takes care of the cleanup at cvm level
     delete b;
     // TODO this could be done by the destructors
-    colvars->write_traj_label (colvars->cv_traj_os);
+    colvars->write_traj_label(colvars->cv_traj_os);
     return COLVARSCRIPT_OK;
   }
 
   if (argc >= 4) {
-//    std::string param = argv[3];
+    std::string param = argv[3];
+    if (subcmd == "count") {
+      int index;
+      if (!(std::istringstream(param) >> index)) {
+        result = "bin_count: error parsing bin index";
+        return COLVARSCRIPT_ERROR;
+      }
+      result = cvm::to_str(b->bin_count(index));
+      return COLVARSCRIPT_OK;
+    }
 
     result = "Syntax error";
     return COLVARSCRIPT_ERROR;

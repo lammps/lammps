@@ -58,32 +58,32 @@ public:
   cvm::rvector   grad;
 
   /// \brief Default constructor, setting index and id to invalid numbers
-  atom() : index (-1), id (-1) { reset_data(); }
+  atom() : index(-1), id(-1) { reset_data(); }
 
   /// \brief Initialize an atom for collective variable calculation
   /// and get its internal identifier \param atom_number Atom index in
   /// the system topology (starting from 1)
-  atom (int const &atom_number);
+  atom(int const &atom_number);
 
   /// \brief Initialize an atom for collective variable calculation
   /// and get its internal identifier \param residue Residue number
   /// \param atom_name Name of the atom in the residue \param
   /// segment_id For PSF topologies, the segment identifier; for other
   /// type of topologies, may not be required
-  atom (cvm::residue_id const &residue,
+  atom(cvm::residue_id const &residue,
         std::string const     &atom_name,
-        std::string const     &segment_id = std::string (""));
+        std::string const     &segment_id = std::string(""));
 
   /// Copy constructor
-  atom (atom const &a);
+  atom(atom const &a);
 
   /// Destructor
   ~atom();
 
   /// Set non-constant data (everything except id and mass) to zero
   inline void reset_data() {
-    pos = atom_pos (0.0);
-    vel = grad = system_force = rvector (0.0);
+    pos = atom_pos(0.0);
+    vel = grad = system_force = rvector(0.0);
   }
 
   /// Get the current position
@@ -102,7 +102,7 @@ public:
   /// motion.  Multiple calls to this function by either the same
   /// \link atom \endlink object or different objects with identical
   /// \link id \endlink, will all add to the existing MD force.
-  void apply_force (cvm::rvector const &new_force);
+  void apply_force(cvm::rvector const &new_force);
 };
 
 
@@ -137,7 +137,7 @@ public:
   std::vector<int> sorted_ids;
 
   /// Allocates and populates the sorted list of atom ids
-  int create_sorted_ids (void);
+  int create_sorted_ids(void);
 
 
   /// \brief When updating atomic coordinates, translate them to align with the
@@ -188,24 +188,24 @@ public:
   /// string in conf and parsing it; this is actually done by parse(),
   /// which is a member function so that a group can be initialized
   /// also after construction
-  atom_group (std::string const &conf,
+  atom_group(std::string const &conf,
               char const        *key);
 
   /// \brief Initialize the group by looking up its configuration
   /// string in conf and parsing it
-  int parse (std::string const &conf,
+  int parse(std::string const &conf,
               char const        *key);
 
   /// \brief Initialize the group after a temporary vector of atoms
-  atom_group (std::vector<cvm::atom> const &atoms);
+  atom_group(std::vector<cvm::atom> const &atoms);
 
   /// \brief Add an atom to this group
-  void add_atom (cvm::atom const &a);
+  void add_atom(cvm::atom const &a);
 
   /// \brief Re-initialize the total mass of a group.
   /// This is needed in case the hosting MD code has an option to
   /// change atom masses after their initialization.
-  void reset_mass (std::string &name, int i, int j);
+  void reset_mass(std::string &name, int i, int j);
 
   /// \brief Default constructor
   atom_group();
@@ -225,10 +225,10 @@ public:
   void center_ref_pos();
 
   /// \brief Move all positions
-  void apply_translation (cvm::rvector const &t);
+  void apply_translation(cvm::rvector const &t);
 
   /// \brief Rotate all positions
-  void apply_rotation (cvm::rotation const &q);
+  void apply_rotation(cvm::rotation const &q);
 
 
   /// \brief Get the current velocities; this must be called always
@@ -254,7 +254,7 @@ public:
   std::vector<cvm::atom_pos> positions() const;
 
   /// \brief Return a copy of the current atom positions, shifted by a constant vector
-  std::vector<cvm::atom_pos> positions_shifted (cvm::rvector const &shift) const;
+  std::vector<cvm::atom_pos> positions_shifted(cvm::rvector const &shift) const;
 
   /// \brief Return the center of geometry of the positions, assuming
   /// that coordinates are already pbc-wrapped
@@ -281,7 +281,7 @@ public:
   /// \brief Shorthand: save the specified gradient on each atom,
   /// weighting with the atom mass (mostly used in combination with
   /// \link center_of_mass() \endlink)
-  void set_weighted_gradient (cvm::rvector const &grad);
+  void set_weighted_gradient(cvm::rvector const &grad);
 
   /// \brief Calculate the derivatives of the fitting transformation
   void calc_fit_gradients();
@@ -301,7 +301,7 @@ public:
   /// the group is being rotated to a reference frame (e.g. to express
   /// the colvar independently from the solute rotation), the
   /// gradients are temporarily rotated to the original frame.
-  void apply_colvar_force (cvm::real const &force);
+  void apply_colvar_force(cvm::real const &force);
 
   /// \brief Apply a force "to the center of mass", i.e. the force is
   /// distributed on each atom according to its mass
@@ -312,7 +312,7 @@ public:
   /// are not used, either because they were not defined (e.g because
   /// the colvar has not a scalar value) or the biases require to
   /// micromanage the force.
-  void apply_force (cvm::rvector const &force);
+  void apply_force(cvm::rvector const &force);
 
   /// \brief Apply an array of forces directly on the individual
   /// atoms; the length of the specified vector must be the same of
@@ -324,7 +324,7 @@ public:
   /// are not used, either because they were not defined (e.g because
   /// the colvar has not a scalar value) or the biases require to
   /// micromanage the forces.
-  void apply_forces (std::vector<cvm::rvector> const &forces);
+  void apply_forces(std::vector<cvm::rvector> const &forces);
 
 };
 

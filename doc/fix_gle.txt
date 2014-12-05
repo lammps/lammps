@@ -40,7 +40,8 @@ vibrational modes in the system to inexpensive (approximate)
 modelling of nuclear quantum effects. Contrary to 
 "fix langevin"_fix_langevin.html, this fix performs both 
 thermostatting and evolution of the Hamiltonian equations of motion, so it 
-does not need to be used together with "fix nve"_fix_nve.html.
+should not be used together with "fix nve"_fix_nve.html -- at least not 
+on the same atom groups. 
 
 Each degree of freedom in the thermostatted group is supplemented
 with Ns additional degrees of freedom s, and the equations of motion
@@ -83,6 +84,14 @@ generate its own unique seed and its own stream of random numbers.
 Thus the dynamics of the system will not be identical on two runs on
 different numbers of processors. 
 
+Note also that the Generalized Langevin Dynamics scheme that is 
+implemented by the "fix gld"_fix_gld.html scheme is closely related
+to the present one. In fact, it should be always possible to cast the
+Prony series form of the memory kernel used by GLD into an appropriate
+input matrix for "fix_gle"_fix_gle.html. While the GLE scheme is more
+general, the form used by "fix gld"_fix_gld.html can be more directly
+related to the representation of an implicit solvent environment. 
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 The instantaneous values of the extended variables are written to
@@ -116,6 +125,11 @@ The GLE thermostat in its current implementation should not be used
 with rigid bodies, SHAKE or RATTLE. It is expected that all the
 thermostatted degrees of freedom are fully flexible, and the sampled
 ensemble will not be correct otherwise.
+
+In order to perform constant-pressure simulations please use 
+"fix press/berendsen"_fix_press_berendsen.html, rather than 
+"fix_npt"_fix_npt.html, to avoid duplicate integration of the
+equations of motion. 
 
 This fix is part of the USER-MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the "Making

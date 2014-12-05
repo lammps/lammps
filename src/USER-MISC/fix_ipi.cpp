@@ -319,12 +319,12 @@ void FixIPI::initial_integrate(int vflag)
   double *boxlo = domain->boxlo;
   double posconv;
   posconv=0.52917721*force->angstrom;
-  boxlo[0] = 0;
-  boxlo[1] = 0;
-  boxlo[2] = 0;
-  boxhi[0] = cellh[0]*posconv;
-  boxhi[1] = cellh[4]*posconv;
-  boxhi[2] = cellh[8]*posconv;
+  boxlo[0] = -0.5*cellh[0]*posconv;
+  boxlo[1] = -0.5*cellh[4]*posconv;
+  boxlo[2] = -0.5*cellh[8]*posconv;
+  boxhi[0] = -boxlo[0];
+  boxhi[1] = -boxlo[1];
+  boxhi[2] = -boxlo[2];
   domain->xy = cellh[1]*posconv;
   domain->xz = cellh[2]*posconv;
   domain->yz = cellh[5]*posconv;
@@ -421,7 +421,6 @@ void FixIPI::final_integrate()
       error->one(FLERR, "Got EXIT message from i-PI. Now leaving!");
 
     if (strcmp(header,"GETFORCE    ") == 0 )  {
-
       writebuffer(ipisock,"FORCEREADY  ",MSGLEN, error);
       writebuffer(ipisock,(char*) &pot,8, error);
       writebuffer(ipisock,(char*) &nat,4, error);
@@ -432,7 +431,6 @@ void FixIPI::final_integrate()
     }
     else
       error->one(FLERR, "Wrapper did not ask for forces, I will now die!");
-
   }
 
   hasdata=0;

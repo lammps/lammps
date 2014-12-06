@@ -50,7 +50,8 @@ vibrational modes in the system to inexpensive (approximate)
 modelling of nuclear quantum effects. Contrary to 
 <A HREF = "fix_langevin.html">fix langevin</A>, this fix performs both 
 thermostatting and evolution of the Hamiltonian equations of motion, so it 
-does not need to be used together with <A HREF = "fix_nve.html">fix nve</A>.
+should not be used together with <A HREF = "fix_nve.html">fix nve</A> -- at least not 
+on the same atom groups. 
 </P>
 <P>Each degree of freedom in the thermostatted group is supplemented
 with Ns additional degrees of freedom s, and the equations of motion
@@ -93,6 +94,14 @@ generate its own unique seed and its own stream of random numbers.
 Thus the dynamics of the system will not be identical on two runs on
 different numbers of processors. 
 </P>
+<P>Note also that the Generalized Langevin Dynamics scheme that is 
+implemented by the <A HREF = "fix_gld.html">fix gld</A> scheme is closely related
+to the present one. In fact, it should be always possible to cast the
+Prony series form of the memory kernel used by GLD into an appropriate
+input matrix for <A HREF = "fix_gle.html">fix_gle</A>. While the GLE scheme is more
+general, the form used by <A HREF = "fix_gld.html">fix gld</A> can be more directly
+related to the representation of an implicit solvent environment. 
+</P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
 <P>The instantaneous values of the extended variables are written to
@@ -126,6 +135,11 @@ calculated by this fix is "extensive".
 with rigid bodies, SHAKE or RATTLE. It is expected that all the
 thermostatted degrees of freedom are fully flexible, and the sampled
 ensemble will not be correct otherwise.
+</P>
+<P>In order to perform constant-pressure simulations please use 
+<A HREF = "fix_press_berendsen.html">fix press/berendsen</A>, rather than 
+<A HREF = "fix_npt.html">fix_npt</A>, to avoid duplicate integration of the
+equations of motion. 
 </P>
 <P>This fix is part of the USER-MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the <A HREF = "Section_start.html#start_3">Making

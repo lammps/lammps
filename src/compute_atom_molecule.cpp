@@ -106,7 +106,7 @@ ComputeAtomMolecule(LAMMPS *lmp, int narg, char **arg) :
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for compute atom/molecule does not exist");
-      if (modify->fix[ifix]->peratom_flag)
+      if (modify->fix[ifix]->peratom_flag == 0)
         error->all(FLERR,"Compute atom/molecule fix does not "
                    "calculate per-atom values");
       if (argindex[i] == 0 &&

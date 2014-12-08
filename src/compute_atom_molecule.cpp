@@ -299,9 +299,8 @@ void ComputeAtomMolecule::compute_one(int m)
       peratom = compute->vector_atom;
       nstride = 1;
     } else {
-      if (compute->array_atom) peratom = &compute->array_atom[0][aidx-1];
-      else peratom = NULL;
-      nstride = compute->size_array_cols;
+      peratom = &compute->array_atom[0][aidx-1];
+      nstride = compute->size_peratom_cols;
     }
 
   // access fix fields, check if fix frequency is a match
@@ -317,7 +316,7 @@ void ComputeAtomMolecule::compute_one(int m)
       nstride = 1;
     } else {
       peratom = &fix->array_atom[0][aidx-1];
-      nstride = fix->size_array_cols;
+      nstride = fix->size_peratom_cols;
     }
 
   // evaluate atom-style variable

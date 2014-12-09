@@ -162,6 +162,14 @@ checking the rdf.  The rdf is not exactly unity beyond the cutoff for
 each pair of interaction types, so the tail correction is necessarily
 an approximation. 
 
+<P>The tail corrections are computed at the beginning of each simulation
+run.  If the number of atoms changes during the run, e.g. due to atoms
+leaving the simulation domain, or use of the <A HREF = "fix_gcmc.html">fix gcmc</A>
+command, then the corrections are not updates to relect the changed
+atom count.  If this is a large effect in your simulation, you should
+break the long run into several short runs, so that the correction
+factors are re-computed multiple times.
+</P>
 <LI>Thermophysical properties obtained from calculations with this option
 enabled will not be thermodynamically consistent with the truncated
 force-field that was used.  In other words, atoms do not feel any LJ

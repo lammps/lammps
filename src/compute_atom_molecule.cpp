@@ -106,7 +106,7 @@ ComputeAtomMolecule(LAMMPS *lmp, int narg, char **arg) :
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for compute atom/molecule does not exist");
-      if (modify->fix[ifix]->peratom_flag)
+      if (modify->fix[ifix]->peratom_flag == 0)
         error->all(FLERR,"Compute atom/molecule fix does not "
                    "calculate per-atom values");
       if (argindex[i] == 0 &&
@@ -299,9 +299,8 @@ void ComputeAtomMolecule::compute_one(int m)
       peratom = compute->vector_atom;
       nstride = 1;
     } else {
-      if (compute->array_atom) peratom = &compute->array_atom[0][aidx-1];
-      else peratom = NULL;
-      nstride = compute->size_array_cols;
+      peratom = &compute->array_atom[0][aidx-1];
+      nstride = compute->size_peratom_cols;
     }
 
   // access fix fields, check if fix frequency is a match
@@ -317,7 +316,7 @@ void ComputeAtomMolecule::compute_one(int m)
       nstride = 1;
     } else {
       peratom = &fix->array_atom[0][aidx-1];
-      nstride = fix->size_array_cols;
+      nstride = fix->size_peratom_cols;
     }
 
   // evaluate atom-style variable

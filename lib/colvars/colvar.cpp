@@ -177,7 +177,7 @@ colvar::colvar(std::string const &conf)
       cvm::error("Could not parse scripted colvar type.");
       return;
     }
-    x_reported.type (x.type());
+    x_reported.type(x.type());
     cvm::log(std::string("Expecting colvar value of type ")
       + colvarvalue::type_desc(x.type()));
 

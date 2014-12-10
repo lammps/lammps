@@ -305,14 +305,16 @@ public:
   /// also checks validity of non-periodic indices
   inline void wrap(std::vector<int> & ix) const
   {
-    for (size_t i = 0; i < nd; i++) {
+    size_t i;
+    for (i = 0; i < nd; i++) {
       if (periodic[i]) {
         ix[i] = (ix[i] + nx[i]) % nx[i]; //to ensure non-negative result
       } else {
-        if (ix[i] < 0 || ix[i] >= nx[i])
+        if (ix[i] < 0 || ix[i] >= nx[i]) {
           cvm::error("Trying to wrap illegal index vector(non-PBC): "
                      + cvm::to_str(ix));
           return;
+        }
       }
     }
   }

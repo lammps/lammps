@@ -199,7 +199,7 @@ void ReadDump::setup_reader(int narg, char **arg)
 
   // unrecognized style
 
-  else error->all(FLERR,"Invalid dump reader style");
+  else error->all(FLERR,"Unknown dump reader style");
 
   // pass any arguments to reader
 

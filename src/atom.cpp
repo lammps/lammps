@@ -438,7 +438,7 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
 #include "style_atom.h"
 #undef ATOM_CLASS
 
-  else error->all(FLERR,"Invalid atom style");
+  else error->all(FLERR,"Unknown atom style");
   return NULL;
 }
 

@@ -1424,7 +1424,7 @@ void Domain::add_region(int narg, char **arg)
 
   // create the Region
 
-  if (strcmp(arg[1],"none") == 0) error->all(FLERR,"Invalid region style");
+  if (strcmp(arg[1],"none") == 0) error->all(FLERR,"Unknown region style");
 
 #define REGION_CLASS
 #define RegionStyle(key,Class) \
@@ -1433,7 +1433,7 @@ void Domain::add_region(int narg, char **arg)
 #include "style_region.h"
 #undef REGION_CLASS
 
-  else error->all(FLERR,"Invalid region style");
+  else error->all(FLERR,"Unknown region style");
 
   // initialize any region variables via init()
   // in case region is used between runs, e.g. to print a variable

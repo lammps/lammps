@@ -62,7 +62,7 @@ void WriteDump::command(int narg, char **arg)
 #include "style_dump.h"
 #undef DUMP_CLASS
 
-  else error->all(FLERR,"Invalid dump style");
+  else error->all(FLERR,"Unknown dump style");
 
   if (modindex < narg) dump->modify_params(narg-modindex-1,&arg[modindex+1]);
 

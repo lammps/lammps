@@ -759,7 +759,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     fix[ifix] = fix_creator(lmp,narg,arg);
   }
 
-  if (fix[ifix] == NULL) error->all(FLERR,"Invalid fix style");
+  if (fix[ifix] == NULL) error->all(FLERR,"Unknown fix style");
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -930,7 +930,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     compute[ncompute] = compute_creator(lmp,narg,arg);
   }
 
-  if (compute[ncompute] == NULL) error->all(FLERR,"Invalid compute style");
+  if (compute[ncompute] == NULL) error->all(FLERR,"Unknown compute style");
 
   ncompute++;
 }

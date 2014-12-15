@@ -915,7 +915,7 @@ void Thermo::parse_fields(char *str)
 
       delete [] id;
 
-    } else error->all(FLERR,"Invalid keyword in thermo_style custom command");
+    } else error->all(FLERR,"Unknown keyword in thermo_style custom command");
 
     word = strtok(NULL," \0");
   }

@@ -67,12 +67,15 @@ translations are attempted 100% of the time. For MC exchanges of either
 molecular or atomic gasses, deletions and insertions are each attempted
 with 50% probability.
 
-If inserted particles are individual atoms, they are assigned the
-specified atom type.  If they are molecules, the type of each atom in
-the inserted molecule is specified in the file read by the
-"molecule"_molecule.html command, and those values are added to the
-specified atom type.  E.g. if {type} = 2, and the file specifies atom
-types 1,2,3, then the inserted molecule will have atom types 3,4,5.
+All inserted particles are assigned to two groups: the default group
+"all" and the group specified in the fix gcmc command (which can also
+be "all").  If inserted particles are individual atoms, they are
+assigned the specified atom type.  If they are molecules, the type of
+each atom in the inserted molecule is specified in the file read by
+the "molecule"_molecule.html command, and those values are added to
+the specified atom type.  E.g. if {type} = 2, and the file specifies
+atom types 1,2,3, then the inserted molecule will have atom types
+3,4,5.
 
 This fix cannot be used to perform MC insertions of gas atoms or
 molecules other than the exchanged type, but MC deletions, translations,

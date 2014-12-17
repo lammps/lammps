@@ -1024,9 +1024,10 @@ double Variable::evaluate(char *str, Tree **tree)
         // parse zero or one or two trailing brackets
         // point i beyond last bracket
         // nbracket = # of bracket pairs
-        // index1,index2 = int inside each bracket pair
+        // index1,index2 = int inside each bracket pair, possibly an atom ID
 
-        int nbracket,index1,index2;
+        int nbracket;
+        tagint index1,index2;
         if (str[i] != '[') nbracket = 0;
         else {
           nbracket = 1;
@@ -1243,9 +1244,10 @@ double Variable::evaluate(char *str, Tree **tree)
         // parse zero or one or two trailing brackets
         // point i beyond last bracket
         // nbracket = # of bracket pairs
-        // index1,index2 = int inside each bracket pair
+        // index1,index2 = int inside each bracket pair, possibly an atom ID
 
-        int nbracket,index1,index2;
+        int nbracket;
+        tagint index1,index2;
         if (str[i] != '[') nbracket = 0;
         else {
           nbracket = 1;
@@ -1420,9 +1422,10 @@ double Variable::evaluate(char *str, Tree **tree)
         // parse zero or one trailing brackets
         // point i beyond last bracket
         // nbracket = # of bracket pairs
-        // index = int inside bracket
+        // index = int inside bracket, possibly an atom ID
 
-        int nbracket,index;
+        int nbracket;
+        tagint index;
         if (str[i] != '[') nbracket = 0;
         else {
           nbracket = 1;
@@ -1535,7 +1538,7 @@ double Variable::evaluate(char *str, Tree **tree)
                        "Variable evaluation before simulation box is defined");
 
           ptr = &str[i];
-          int id = int_between_brackets(ptr,1);
+          tagint id = int_between_brackets(ptr,1);
           i = ptr-str+1;
 
           peratom2global(0,word,NULL,0,id,
@@ -2597,6 +2600,7 @@ int Variable::find_matching_paren(char *str, int i,char *&contents)
 
 /* ----------------------------------------------------------------------
    find int between brackets and return it
+   return a tagint, since value can be an atom ID
    ptr initially points to left bracket
    return it pointing to right bracket
    error if no right bracket or brackets are empty or index = 0
@@ -2604,9 +2608,10 @@ int Variable::find_matching_paren(char *str, int i,char *&contents)
    if varallow = 1: also allow for v_name, where name is variable name
 ------------------------------------------------------------------------- */
 
-int Variable::int_between_brackets(char *&ptr, int varallow)
+tagint Variable::int_between_brackets(char *&ptr, int varallow)
 {
-  int varflag,index;
+  int varflag;
+  tagint index;
 
   char *start = ++ptr;
 
@@ -2633,7 +2638,7 @@ int Variable::int_between_brackets(char *&ptr, int varallow)
 
   *ptr = '\0';
 
-  // evaluate index as variable or as simple integer via atoi()
+  // evaluate index as floating point variable or as tagint via ATOTAGINT()
 
   if (varflag) {
     char *id = start+2;
@@ -2646,11 +2651,9 @@ int Variable::int_between_brackets(char *&ptr, int varallow)
     char *var = retrieve(id);
     if (var == NULL)
       error->all(FLERR,"Invalid variable evaluation in variable formula");
-    index = static_cast<int> (atof(var));
+    index = static_cast<tagint> (atof(var));
 
-  } else {
-    index = atoi(start);
-  }
+  } else index = ATOTAGINT(start);
 
   *ptr = ']';
 
@@ -3332,7 +3335,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
-        index = int_between_brackets(ptr2,0);
+        index = (int) int_between_brackets(ptr2,0);
         *ptr1 = '\0';
       } else index = 0;
 
@@ -3371,7 +3374,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
-        index = int_between_brackets(ptr2,0);
+        index = (int) int_between_brackets(ptr2,0);
         *ptr1 = '\0';
       } else index = 0;
 
@@ -3594,20 +3597,29 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
    extract a global value from a per-atom quantity in a formula
    flag = 0 -> word is an atom vector
    flag = 1 -> vector is a per-atom compute or fix quantity with nstride
-   id = positive global ID of atom, converted to local index
+   id = global ID of atom, converted to local index
    push result onto tree or arg stack
    customize by adding an atom vector:
      id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz,q
 ------------------------------------------------------------------------- */
 
 void Variable::peratom2global(int flag, char *word,
-                              double *vector, int nstride, int id,
+                              double *vector, int nstride, tagint id,
                               Tree **tree, Tree **treestack, int &ntreestack,
                               double *argstack, int &nargstack)
 {
+  // error check for ID larger than any atom
+  // int_between_brackets() already checked for ID <= 0
+
   if (atom->map_style == 0)
     error->all(FLERR,
                "Indexed per-atom vector in variable formula without atom map");
+
+  if (id > atom->map_tag_max)
+    error->all(FLERR,"Variable atom ID is too large");
+
+  // if ID does not exist, index will be -1 for all procs,
+  // and mine will be set to 0.0
 
   int index = atom->map(id);
 

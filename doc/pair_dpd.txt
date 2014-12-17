@@ -100,6 +100,10 @@ to use the "pair_style srp"_pair_srp.html command in conjuction with
 these pair styles.  It is a soft segmental repulsive potential (SRP)
 that can prevent DPD polymer chains from crossing each other.
 
+IMPORTANT NOTE: The virial calculation for pressure when using this
+pair style includes all the components of force listed above,
+including the random force.
+
 :line
 
 Styles with a {cuda}, {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are

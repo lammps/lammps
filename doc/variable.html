@@ -721,7 +721,7 @@ operates.
 
 <H4>Atom Values and Vectors 
 </H4>
-<P>Atom values take an integer argument I from 1 to N, where I is the an
+<P>Atom values take an integer argument I from 1 to N, where I is the
 atom-ID, e.g. x[243], which means use the x coordinate of the atom
 with ID = 243.  Or they can take a variable name, specified as v_name,
 where name is the name of the variable, like x[v_myIndex].  The
@@ -732,6 +732,10 @@ must be a value from 1 to N.  Note that a "formula" cannot be used as
 the argument between the brackets, e.g. x[243+10] or
 x[v_myIndex+1] are not allowed.  To do this a single variable can be
 defined that contains the needed formula.
+</P>
+<P>Note that the 0 < atom-ID <= N, where N is the largest atom ID
+in the system.  If an ID is specified for an atom that does not
+currently exist, then the generated value is 0.0.
 </P>
 <P>Atom vectors generate one value per atom, so that a reference like
 "vx" means the x-component of each atom's velocity will be used when

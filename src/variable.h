@@ -33,7 +33,7 @@ class Variable : protected Pointers {
   double compute_equal(int);
   double compute_equal(char *);
   void compute_atom(int, int, double *, int, int);
-  int int_between_brackets(char *&, int);
+  tagint int_between_brackets(char *&, int);
   double evaluate_boolean(char *);
 
   void equal_save(int, char *&);
@@ -90,7 +90,7 @@ class Variable : protected Pointers {
   int region_function(char *);
   int special_function(char *, char *, Tree **, Tree **,
                        int &, double *, int &);
-  void peratom2global(int, char *, double *, int, int,
+  void peratom2global(int, char *, double *, int, tagint,
                       Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
   void atom_vector(char *, Tree **, Tree **, int &);

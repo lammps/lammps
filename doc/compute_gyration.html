@@ -28,19 +28,22 @@
 group of atoms, including all effects due to atoms passing thru
 periodic boundaries.
 </P>
-<P>Rg is a measure of the size of the group of atoms, and is computed by
-this formula
+<P>Rg is a measure of the size of the group of atoms, and is computed as
+the square root of the Rg^2 value in this formula
 </P>
 <CENTER><IMG SRC = "Eqs/compute_gyration.jpg">
 </CENTER>
 <P>where M is the total mass of the group, Rcm is the center-of-mass
 position of the group, and the sum is over all atoms in the group.
 </P>
-<P>A Rg tensor, stored as a 6-element vector, is also calculated by this
-compute.  The formula for the components of the tensor is the same as
-the above formula, except that (Ri - Rcm)^2 is replaced by (Rix -
-Rcmx) * (Riy - Rcmy) for the xy component, etc.  The 6 components of
-the vector are ordered xx, yy, zz, xy, xz, yz.
+<P>A Rg^2 tensor, stored as a 6-element vector, is also calculated by
+this compute.  The formula for the components of the tensor is the
+same as the above formula, except that (Ri - Rcm)^2 is replaced by
+(Rix - Rcmx) * (Riy - Rcmy) for the xy component, etc.  The 6
+components of the vector are ordered xx, yy, zz, xy, xz, yz.  Note
+that unlike the scalar Rg, each of the 6 values of the tensor is
+effectively a "squared" value, since the cross-terms may be negative
+and taking a sqrt() would be invalid.
 </P>
 <P>IMPORTANT NOTE: The coordinates of an atom contribute to Rg in
 "unwrapped" form, by using the image flags associated with each atom.
@@ -54,16 +57,15 @@ image</A> command.
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a global scalar (Rg) and a global vector of
-length 6 (Rg tensor), which can be accessed by indices 1-6.  These
+length 6 (Rg^2 tensor), which can be accessed by indices 1-6.  These
 values can be used by any command that uses a global scalar value or
 vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
 15</A> for an overview of LAMMPS output
 options.
 </P>
 <P>The scalar and vector values calculated by this compute are
-"intensive".  The scalar and vector values will be in distance
-<A HREF = "units.html">units</A>, since they are the square root of values
-represented by the formula above.
+"intensive".  The scalar and vector values will be in distance and
+distance^2 <A HREF = "units.html">units</A> respectively.
 </P>
 <P><B>Restrictions:</B> none
 </P>

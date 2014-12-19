@@ -56,9 +56,13 @@ periodic boundaries since that is consistent with maintaining the
 velocity profile created by fix nvt/sllod.  LAMMPS will give an
 error if this setting is not consistent.
 </P>
-<P>The SLLOD equations of motion coupled to a Nose/Hoover thermostat are
-discussed in <A HREF = "#Tuckerman">(Tuckerman)</A> (eqs 4 and 5), which is what is
-implemented in LAMMPS in a velocity Verlet formulation.
+<P>The SLLOD equations of motion, originally proposed by Hoover and Ladd
+(see <A HREF = "#Evans">(Evans and Morriss)</A>), were proven to be identical to
+Newton's equations of motion for all forms of homogeneous flow by
+<A HREF = "#Daivis">(Daivis and Todd)</A>.  As implemented in LAMMPS, they are
+coupled to a Nose/Hoover chain thermostat in a velocity Verlet
+formulation, closely following the implementation used for the <A HREF = "fix_nh.html">fix
+nvt</A> command.
 </P>
 <P>Additional parameters affecting the thermostat are specified by
 keywords and values documented with the <A HREF = "fix_nh.html">fix nvt</A>
@@ -170,9 +174,12 @@ temp/deform</A>
 </P>
 <HR>
 
-<A NAME = "Tuckerman"></A>
+<A NAME = "Evans"></A>
 
-<P><B>(Tuckerman)</B> Tuckerman, Mundy, Balasubramanian, Klein, J Chem Phys,
-106, 5615 (1997).
+<P><B>(Evans and Morriss)</B> Evans and Morriss, Phys Rev A, 30, 1528 (1984).
+</P>
+<A NAME = "Daivis"></A>
+
+<P><B>(Daivis and Todd)</B> Daivis and Todd, J Chem Phys, 124, 194103 (2006).
 </P>
 </HTML>

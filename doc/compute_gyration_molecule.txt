@@ -30,8 +30,8 @@ Define a computation that calculates the radius of gyration Rg of
 individual molecules.  The calculation includes all effects due to
 atoms passing thru periodic boundaries.
 
-Rg is a measure of the size of a molecule, and is computed by this
-formula
+Rg is a measure of the size of a molecule, and is computed as the
+square root of the Rg^2 value in this formula
 
 :c,image(Eqs/compute_gyration.jpg)
 
@@ -40,11 +40,14 @@ position of the molecule, and the sum is over all atoms in the
 molecule and in the group.
 
 If the {tensor} keyword is specified, then the scalar Rg value is not
-calculated, but an Rg tensor is instead calculated for each molecule.
-The formula for the components of the tensor is the same as the above
-formula, except that (Ri - Rcm)^2 is replaced by (Rix - Rcmx) * (Riy -
-Rcmy) for the xy component, etc.  The 6 components of the tensor are
-ordered xx, yy, zz, xy, xz, yz.
+calculated, but a 6-element Rg^2 tensor is instead calculated for each
+molecule.  The formula for the components of the tensor is the same as
+the above formula, except that (Ri - Rcm)^2 is replaced by (Rix -
+Rcmx) * (Riy - Rcmy) for the xy component, etc.  The 6 components of
+the tensor are ordered xx, yy, zz, xy, xz, yz.  Note
+that unlike the scalar Rg, each of the 6 values of the tensor is
+effectively a "squared" value, since the cross-terms may be negative
+and taking a sqrt() would be invalid.
 
 Rg for a particular molecule is only computed if one or more of its
 atoms are in the specified group.  Normally all atoms in the molecule
@@ -79,9 +82,8 @@ section"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
 All the vector or array values calculated by this compute are
-"intensive".  The vector or array values will be in distance
-"units"_units.html, since they are the square root of values
-represented by the formula above.
+"intensive".  The vector and aray values will be in distance and
+distance^2 "units"_units.html respectively.
 
 [Restrictions:] none
 

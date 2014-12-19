@@ -132,18 +132,27 @@ with "real" units, but some close pairs may be computed directly
 
 When the {tail} keyword is set to {yes}, certain pair styles will add
 a long-range VanderWaals tail "correction" to the energy and pressure.
-See the doc page for individual styles to see which support this
-option.  These corrections are included in the calculation and
-printing of thermodynamic quantities (see the
-"thermo_style"_thermo_style.html command).  Their effect will also be
-included in constant NPT or NPH simulations where the pressure
-influences the simulation box dimensions (e.g. the "fix
-npt"_fix_nh.html and "fix nph"_fix_nh.html commands).  The formulas
-used for the long-range corrections come from equation 5 of
-"(Sun)"_#Sun.
+These corrections are bookkeeping terms which do not affect dynamics,
+unless a constant-pressure simulation is being performed.  See the doc
+page for individual styles to see which support this option.  These
+corrections are included in the calculation and printing of
+thermodynamic quantities (see the "thermo_style"_thermo_style.html
+command).  Their effect will also be included in constant NPT or NPH
+simulations where the pressure influences the simulation box
+dimensions (e.g. the "fix npt"_fix_nh.html and "fix nph"_fix_nh.html
+commands).  The formulas used for the long-range corrections come from
+equation 5 of "(Sun)"_#Sun.
 
-Several assumptions are inherent in using tail corrections, including
-the following:
+IMPORTANT NOTE: The tail correction terms are computed at the
+beginning of each run, using the current atom counts of each atom
+type.  If atoms are deleted (or lost) or created during a simulation,
+e.g. via the "fix gcmc"_fix_gcmc.html command, the correction factors
+are not re-computed.  If you expect the counts to change dramatically,
+you can break a run into a series of shorter runs so that the
+correction factors are re-computed more frequently.
+
+Several additional assumptions are inherent in using tail corrections,
+including the following:
 
 The simulated system is a 3d bulk homogeneous liquid. This option
 should not be used for systems that are non-liquid, 2d, have a slab

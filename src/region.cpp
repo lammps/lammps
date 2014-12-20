@@ -88,8 +88,6 @@ void Region::init()
 /* ----------------------------------------------------------------------
    return 1 if region is dynamic (moves/rotates) or has variable shape
    else return 0 if static
-   only primitive regions define it here
-   union/intersect regions have their own dynamic_check()
 ------------------------------------------------------------------------- */
 
 int Region::dynamic_check()

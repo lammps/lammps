@@ -49,11 +49,13 @@ RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
     list[nregion++] = iregion;
   }
 
-  // this region is variable shape if any of sub-regions are
+  // this region is variable shape or dynamic if any of sub-regions are
 
   Region **regions = domain->regions;
-  for (int ilist = 0; ilist < nregion; ilist++)
+  for (int ilist = 0; ilist < nregion; ilist++) {
     if (regions[list[ilist]]->varshape) varshape = 1;
+    if (regions[list[ilist]]->dynamic) dynamic = 1;
+  }
 
   // extent of union of regions
   // has bounding box if interior and all sub-regions have bounding box
@@ -117,19 +119,6 @@ void RegUnion::init()
   Region **regions = domain->regions;
   for (int ilist = 0; ilist < nregion; ilist++)
     regions[list[ilist]]->init();
-}
-
-/* ----------------------------------------------------------------------
-   return 1 if region is dynamic, 0 if static
-   dynamic if any sub-region is dynamic, else static
-------------------------------------------------------------------------- */
-
-int RegUnion::dynamic_check()
-{
-  Region **regions = domain->regions;
-  for (int ilist = 0; ilist < nregion; ilist++)
-    if (regions[list[ilist]]->dynamic_check()) return 1;
-  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -244,4 +233,15 @@ void RegUnion::shape_update()
   Region **regions = domain->regions;
   for (int ilist = 0; ilist < nregion; ilist++)
     regions[list[ilist]]->shape_update();
+}
+
+/* ----------------------------------------------------------------------
+   move/rotate all sub-regions
+------------------------------------------------------------------------- */
+
+void RegUnion::pretransform()
+{
+  Region **regions = domain->regions;
+  for (int ilist = 0; ilist < nregion; ilist++)
+    regions[list[ilist]]->pretransform();
 }

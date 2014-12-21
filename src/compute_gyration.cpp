@@ -109,5 +109,5 @@ void ComputeGyration::compute_vector()
   MPI_Allreduce(rg,vector,6,MPI_DOUBLE,MPI_SUM,world);
 
   if (masstotal == 0.0) return;
-  for (int i = 0; i < 6; i++) vector[i] = sqrt(vector[i]/masstotal);
+  for (int i = 0; i < 6; i++) vector[i] = vector[i]/masstotal;
 }

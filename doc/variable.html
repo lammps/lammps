@@ -374,7 +374,7 @@ operators, math functions, group functions, region functions, atom
 values, atom vectors, compute references, fix references, and
 references to other variables.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >Number</TD><TD > 0.2, 100, 1.0e20, -15.4, etc</TD></TR>
 <TR><TD >Constant</TD><TD > PI</TD></TR>
 <TR><TD >Thermo keywords</TD><TD > vol, pe, ebond, etc</TD></TR>
@@ -533,22 +533,24 @@ command, it will generate the sequence of output timesteps:
 </PRE>
 <P>The logfreq(x,y,z) function uses the current timestep to generate a
 new timestep.  X,y,z > 0 and y < z are required.  The generated
-timesteps are gridpoints on a base-z logarithmic scale
-i.e. they follow the sequence 
-x,2x,3x,...y*x,x*z,2x*z,3x*z,...y*x*z,x*z^2,2x*z^2,etc.  For any
-current timestep, the next timestep in the sequence is returned.  Thus
-if logfreq(100,4,10) is used in a variable by the <A HREF = "dump_modify.html">dump_modify
-every</A> command, it will generate the sequence of
+timesteps are on a base-z logarithmic scale, starting with x, and the
+y value is how many of the z-1 possible timesteps within one
+logarithmic interval are generated.  I.e. the timesteps follow the
+sequence x,2x,3x,...y*x,x*z,2x*z,3x*z,...y*x*z,x*z^2,2x*z^2,etc.  For
+any current timestep, the next timestep in the sequence is returned.
+Thus if logfreq(100,4,10) is used in a variable by the <A HREF = "dump_modify.html">dump_modify
+every</A> command, it will generate this sequence of
 output timesteps:
 </P>
 <PRE>100,200,300,400,1000,2000,3000,4000,10000,20000,etc 
 </PRE>
-<P>The logfreq2(x,y,z) function is similar to logfreq, except 
-the y timesteps generated on the range [x,x*z) are always 
-evenly spaced, and y < z is not required. 
-Thus, if logfreq2(100,18,10) is used in a variable by the 
-<A HREF = "dump_modify.html">dump_modify every</A> command, it will generate 
-the sequence of output timesteps:
+<P>The logfreq2(x,y,z) function is similar to logfreq, except a single
+logarithmic interval is divided into y equally-spaced timesteps and
+all of them are output.  Y < z is not required.  Thus, if
+logfreq2(100,18,10) is used in a variable by the <A HREF = "dump_modify.html">dump_modify
+every</A> command, then the interval between 100 and
+1000 is divided as 900/18 = 50 steps, and it will generate the
+sequence of output timesteps:
 </P>
 <PRE>100,150,200,...950,1000,1500,2000,...9500,10000,15000,etc 
 </PRE>
@@ -785,7 +787,7 @@ kind of values they produce.
 There is no ambiguity as to what a reference means, since computes
 only produce global or per-atom quantities, never both.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >c_ID</TD><TD > global scalar, or per-atom vector</TD></TR>
 <TR><TD >c_ID[I]</TD><TD > Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array</TD></TR>
 <TR><TD >c_ID[I][J]</TD><TD > I,J element of global array, or atom I's Jth value in per-atom array 
@@ -822,7 +824,7 @@ compute references listed in the above table, where "c_" is replaced
 by "f_".  Again, there is no ambiguity as to what a reference means,
 since fixes only produce global or per-atom quantities, never both.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >f_ID</TD><TD > global scalar, or per-atom vector</TD></TR>
 <TR><TD >f_ID[I]</TD><TD > Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array</TD></TR>
 <TR><TD >f_ID[I][J]</TD><TD > I,J element of global array, or atom I's Jth value in per-atom array 
@@ -868,7 +870,7 @@ other atom-style or atomfile-style variables.
 There is no ambiguity as to what a reference means, since variables
 produce only a global scalar or a per-atom vector, never both.
 </P>
-<DIV ALIGN=center><TABLE  WIDTH="0%"  BORDER=1 >
+<DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >v_name</TD><TD > scalar, or per-atom vector</TD></TR>
 <TR><TD >v_name[I]</TD><TD > atom I's value in per-atom vector 
 </TD></TR></TABLE></DIV>

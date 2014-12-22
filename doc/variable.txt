@@ -49,7 +49,9 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
     math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
-                     ramp(x,y), stagger(x,y), logfreq(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
+                     ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), 
+		     stride(x,y,z), stride2(x,y,z,a,b,c), 
+		     vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
     group functions = count(group), mass(group), charge(group),
 		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
 		      bound(group,dir), gyration(group), ke(group),
@@ -371,7 +373,7 @@ Constant: PI
 Thermo keywords: vol, pe, ebond, etc
 Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x%y, 
 Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x%y, x == y, x != y, x &lt y, x &lt= y, x &gt y, x &gt= y, x && y, x || y, !x
-Math functions: sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
+Math functions: sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
 Group functions: count(ID), mass(ID), charge(ID), xcm(ID,dim), \
                  vcm(ID,dim), fcm(ID,dim), bound(ID,dir), \
 		 gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), \
@@ -531,14 +533,24 @@ command, it will generate the sequence of output timesteps:
 
 The logfreq(x,y,z) function uses the current timestep to generate a
 new timestep.  X,y,z > 0 and y < z are required.  The generated
-timesteps increase in a logarithmic fashion, as the sequence
-x,2x,3x,...y*x,z*x,2*z*x,3*z*x,...y*z*x,z*z*x,2*z*x*x,etc.  For any
+timesteps are gridpoints on a base-z logarithmic scale
+i.e. they follow the sequence 
+x,2x,3x,...y*x,x*z,2x*z,3x*z,...y*x*z,x*z^2,2x*z^2,etc.  For any
 current timestep, the next timestep in the sequence is returned.  Thus
 if logfreq(100,4,10) is used in a variable by the "dump_modify
 every"_dump_modify.html command, it will generate the sequence of
 output timesteps:
 
 100,200,300,400,1000,2000,3000,4000,10000,20000,etc :pre
+
+The logfreq2(x,y,z) function is similar to logfreq, except 
+the y timesteps generated on the range \[x,x*z) are always 
+evenly spaced, and y < z is not required. 
+Thus, if logfreq2(100,18,10) is used in a variable by the 
+"dump_modify every"_dump_modify.html command, it will generate 
+the sequence of output timesteps:
+
+100,150,200,...950,1000,1500,2000,...9500,10000,15000,etc :pre
 
 The stride(x,y,z) function uses the current timestep to generate a new
 timestep.  X,y >= 0 and z > 0 and x <= y are required.  The generated

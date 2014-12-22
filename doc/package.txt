@@ -54,7 +54,7 @@ args = arguments specific to the style :l
   {intel} args = NPhi keyword value ...
     Nphi = # of coprocessors per node
     zero or more keyword/value pairs may be appended 
-    keywords = {omp} or {mode} or {balance} or {ghost} or {tpc} or {tptask}
+    keywords = {omp} or {mode} or {balance} or {ghost} or {tpc} or {tptask} or {no_affinity}
       {omp} value = Nthreads
         Nthreads = number of OpenMP threads to use on CPU (default = 0)
       {mode} value = {single} or {mixed} or {double}
@@ -70,6 +70,7 @@ args = arguments specific to the style :l
         Ntpc = max number of coprocessor threads per coprocessor core (default = 4)
       {tptask} value = Ntptask
         Ntptask = max number of coprocessor threads per MPI task (default = 240)
+      {no_affinity} values = none
   {kokkos} args = keyword value ...
     zero or more keyword/value pairs may be appended
     keywords = {neigh} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward}
@@ -420,6 +421,13 @@ with 16 threads, for a total of 128.
 
 Note that the default settings for {tpc} and {tptask} are fine for
 most problems, regardless of how many MPI tasks you assign to a Phi.
+
+The {no_affinity} keyword will turn off automatic setting of core
+affinity for MPI tasks and OpenMP threads on the host when using
+offload to a coprocessor. Affinity settings are used when possible 
+to prevent MPI tasks and OpenMP threads from being on separate NUMA 
+domains and to prevent offload threads from interfering with other 
+processes/threads used for LAMMPS.
 
 :line
 

@@ -61,6 +61,8 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #define INTEL_NBOR_PAD INTEL_VECTOR_WIDTH
 #define INTEL_LB_MEAN_WEIGHT 0.1
 #define INTEL_BIGP 1e15
+#define INTEL_MAX_HOST_CORE_COUNT 512
+#define INTEL_MAX_COI_CORES 2
 
 #define IP_PRE_get_stride(stride, n, datasize, torque)	\
   {								\

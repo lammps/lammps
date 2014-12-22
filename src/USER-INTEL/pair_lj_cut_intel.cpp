@@ -336,16 +336,14 @@ void PairLJCutIntel::init_style()
     error->all(FLERR,
           "Offload for lj/cut/intel is not yet available. Set balance to 0.");
   #endif
-  if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-    fix->get_mixed_buffers()->free_all_nbor_buffers();
+
+  fix->pair_init_check();
+  if (fix->precision() == FixIntel::PREC_MODE_MIXED)
     pack_force_const(force_const_single, fix->get_mixed_buffers());
-  } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-    fix->get_double_buffers()->free_all_nbor_buffers();
+  else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
     pack_force_const(force_const_double, fix->get_double_buffers());
-  } else {
-    fix->get_single_buffers()->free_all_nbor_buffers();
+  else
     pack_force_const(force_const_single, fix->get_single_buffers());
-  }
 }
 
 /* ---------------------------------------------------------------------- */

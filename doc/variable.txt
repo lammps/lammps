@@ -533,22 +533,24 @@ command, it will generate the sequence of output timesteps:
 
 The logfreq(x,y,z) function uses the current timestep to generate a
 new timestep.  X,y,z > 0 and y < z are required.  The generated
-timesteps are gridpoints on a base-z logarithmic scale
-i.e. they follow the sequence 
-x,2x,3x,...y*x,x*z,2x*z,3x*z,...y*x*z,x*z^2,2x*z^2,etc.  For any
-current timestep, the next timestep in the sequence is returned.  Thus
-if logfreq(100,4,10) is used in a variable by the "dump_modify
-every"_dump_modify.html command, it will generate the sequence of
+timesteps are on a base-z logarithmic scale, starting with x, and the
+y value is how many of the z-1 possible timesteps within one
+logarithmic interval are generated.  I.e. the timesteps follow the
+sequence x,2x,3x,...y*x,x*z,2x*z,3x*z,...y*x*z,x*z^2,2x*z^2,etc.  For
+any current timestep, the next timestep in the sequence is returned.
+Thus if logfreq(100,4,10) is used in a variable by the "dump_modify
+every"_dump_modify.html command, it will generate this sequence of
 output timesteps:
 
 100,200,300,400,1000,2000,3000,4000,10000,20000,etc :pre
 
-The logfreq2(x,y,z) function is similar to logfreq, except 
-the y timesteps generated on the range \[x,x*z) are always 
-evenly spaced, and y < z is not required. 
-Thus, if logfreq2(100,18,10) is used in a variable by the 
-"dump_modify every"_dump_modify.html command, it will generate 
-the sequence of output timesteps:
+The logfreq2(x,y,z) function is similar to logfreq, except a single
+logarithmic interval is divided into y equally-spaced timesteps and
+all of them are output.  Y < z is not required.  Thus, if
+logfreq2(100,18,10) is used in a variable by the "dump_modify
+every"_dump_modify.html command, then the interval between 100 and
+1000 is divided as 900/18 = 50 steps, and it will generate the
+sequence of output timesteps:
 
 100,150,200,...950,1000,1500,2000,...9500,10000,15000,etc :pre
 

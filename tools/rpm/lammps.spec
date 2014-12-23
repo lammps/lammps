@@ -44,7 +44,7 @@
 
 Name:           lammps
 Version:        20140926
-Release:        8%{?dist}
+Release:        9%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
 
@@ -181,8 +181,8 @@ make -f Makefile.g++ CXX=g++ CXXFLAGS="-fPIC ${RPM_OPT_FLAGS} %{bigintsize}" EXT
 cd ../../src
 
 # install packages
-# fortran reax is obsolete, no GPU support, QM/MM requires a Q-E library, USER-LB and MPIIO require MPI-IO.
-make yes-all no-kim no-kokkos no-gpu no-user-cuda no-reax no-user-qmmm no-user-lb no-mpiio
+# fortran reax is obsolete, no GPU support, QM/MM requires a Q-E library, USER-INTEL requires Intel Compiler, USER-LB and MPIIO require MPI-IO.
+make yes-all no-kim no-kokkos no-gpu no-user-cuda no-reax no-user-qmmm no-user-intel no-user-lb no-mpiio
 
 make -C STUBS
 

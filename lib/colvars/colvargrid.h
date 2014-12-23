@@ -305,8 +305,7 @@ public:
   /// also checks validity of non-periodic indices
   inline void wrap(std::vector<int> & ix) const
   {
-    size_t i;
-    for (i = 0; i < nd; i++) {
+    for (size_t i = 0; i < nd; i++) {
       if (periodic[i]) {
         ix[i] = (ix[i] + nx[i]) % nx[i]; //to ensure non-negative result
       } else {
@@ -375,7 +374,7 @@ public:
       cvm::error("Error: trying to subtract two grids with "
                         "different multiplicity.\n");
       return;
-	}
+    }
 
     if (other_grid.data.size() != this->data.size()) {
       cvm::error("Error: trying to subtract two grids with "
@@ -397,8 +396,8 @@ public:
     if (other_grid.multiplicity() != this->multiplicity()) {
       cvm::error("Error: trying to copy two grids with "
                         "different multiplicity.\n");
-	  return;
-	}
+      return;
+    }
 
     if (other_grid.data.size() != this->data.size()) {
       cvm::error("Error: trying to copy two grids with "

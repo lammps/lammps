@@ -448,7 +448,7 @@ colvar::distance_inv::distance_inv(std::string const &conf)
   for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++) {
     for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
       if (ai1->id == ai2->id) {
-        cvm::error("Error: group1 and group1 have some atoms in common: this is not allowed for distanceInv.\n");
+        cvm::error("Error: group1 and group2 have some atoms in common: this is not allowed for distanceInv.\n");
         return;
       }
     }
@@ -855,7 +855,8 @@ colvar::rmsd::rmsd(std::string const &conf)
         // if provided, use PDB column to select coordinates
         bool found = get_keyval(conf, "refPositionsColValue", ref_pos_col_value, 0.0);
         if (found && !ref_pos_col_value) {
-          cvm::error("Error: refPositionsColValue, if provided, must be non-zero.\n");
+          cvm::error("Error: refPositionsColValue, "
+                     "if provided, must be non-zero.\n");
           return;
         }
       } else {

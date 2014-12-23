@@ -776,10 +776,11 @@ std::istream & colvarmodule::read_restart(std::istream &is)
   for (std::vector<colvarbias *>::iterator bi = biases.begin();
        bi != biases.end();
        bi++) {
-    if (!((*bi)->read_restart(is)))
+    if (!((*bi)->read_restart(is))) {
       cvm::error("Error: in reading restart configuration for bias \""+
                  (*bi)->name+"\".\n",
                  INPUT_ERROR);
+    }
   }
   cvm::decrease_depth();
 
@@ -1046,10 +1047,11 @@ void cvm::exit(std::string const &message)
 int cvm::read_index_file(char const *filename)
 {
   std::ifstream is(filename, std::ios::binary);
-  if (!is.good())
+  if (!is.good()) {
     cvm::error("Error: in opening index file \""+
                std::string(filename)+"\".\n",
                FILE_ERROR);
+  }
 
   while (is.good()) {
     char open, close;

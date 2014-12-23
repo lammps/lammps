@@ -47,20 +47,22 @@ size_t      colvarparse::dummy_pos = 0;
     if (data.size()) {                                                  \
       std::istringstream is(data);                                      \
       TYPE x(def_value);                                                \
-      if (is >> x)                                                      \
+      if (is >> x) {                                                    \
         value = x;                                                      \
-      else                                                              \
+      } else {                                                          \
         cvm::error("Error: in parsing \""+                              \
                    std::string(key)+"\".\n", INPUT_ERROR);              \
+      }                                                                 \
       if (parse_mode != parse_silent) {                                 \
         cvm::log("# "+std::string(key)+" = "+                           \
                  cvm::to_str(value)+"\n");                              \
       }                                                                 \
     } else {                                                            \
                                                                         \
-      if (b_found_any)                                                  \
+      if (b_found_any) {                                                \
         cvm::error("Error: improper or missing value "                  \
                    "for \""+std::string(key)+"\".\n", INPUT_ERROR);     \
+      }                                                                 \
       value = def_value;                                                \
       if (parse_mode != parse_silent) {                                 \
         cvm::log("# "+std::string(key)+" = \""+                         \
@@ -110,19 +112,21 @@ size_t      colvarparse::dummy_pos = 0;
       if (data_count == 0)                                              \
         cvm::fatal_error("Error: in parsing \""+                        \
                          std::string(key)+"\".\n");                     \
-      if (data_count > 1)                                               \
+      if (data_count > 1) {                                             \
         cvm::error("Error: multiple values "                            \
                    "are not allowed for keyword \""+                    \
                    std::string(key)+"\".\n", INPUT_ERROR);              \
+      }                                                                 \
       if (parse_mode != parse_silent) {                                 \
         cvm::log("# "+std::string(key)+" = "+                           \
                  cvm::to_str(value)+"\n");                              \
       }                                                                 \
     } else {                                                            \
                                                                         \
-      if (b_found_any)                                                  \
+      if (b_found_any) {                                                \
         cvm::error("Error: improper or missing value "                  \
                    "for \""+std::string(key)+"\".\n", INPUT_ERROR);     \
+      }                                                                 \
       value = def_value;                                                \
       if (parse_mode != parse_silent) {                                 \
         cvm::log("# "+std::string(key)+" = "+                           \
@@ -185,11 +189,12 @@ size_t      colvarparse::dummy_pos = 0;
         size_t i = 0;                                                   \
         for ( ; i < values.size(); i++) {                               \
           TYPE x(values[i]);                                            \
-          if (is >> x)                                                  \
+          if (is >> x) {                                                \
             values[i] = x;                                              \
-          else                                                          \
+          } else {                                                      \
             cvm::error("Error: in parsing \""+                          \
                        std::string(key)+"\".\n", INPUT_ERROR);          \
+          }                                                             \
         }                                                               \
       }                                                                 \
                                                                         \
@@ -200,9 +205,10 @@ size_t      colvarparse::dummy_pos = 0;
                                                                         \
     } else {                                                            \
                                                                         \
-      if (b_found_any)                                                  \
+      if (b_found_any) {                                                \
         cvm::error("Error: improper or missing values for \""+          \
                    std::string(key)+"\".\n", INPUT_ERROR);              \
+      }                                                                 \
                                                                         \
       for (size_t i = 0; i < values.size(); i++)                        \
         values[i] = def_values[ (i > def_values.size()) ? 0 : i ];      \

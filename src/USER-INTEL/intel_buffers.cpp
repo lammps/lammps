@@ -385,7 +385,7 @@ void IntelBuffers<flt_t, acc_t>::set_ntypes(const int ntypes)
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * cutneighsqo = _cutneighsq[0];
-      if (cutneighsqo != 0) {
+      if (_off_threads > 0 && cutneighsqo != 0) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(cutneighsqo:alloc_if(0) free_if(1))
       }
@@ -396,7 +396,7 @@ void IntelBuffers<flt_t, acc_t>::set_ntypes(const int ntypes)
       lmp->memory->create(_cutneighsq, ntypes, ntypes, "_cutneighsq");
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * cutneighsqo = _cutneighsq[0];
-      if (cutneighsqo != NULL) {
+      if (_off_threads > 0 && cutneighsqo != NULL) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(cutneighsqo:length(ntypes * ntypes) alloc_if(1) free_if(0))
       }

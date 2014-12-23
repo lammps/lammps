@@ -60,8 +60,8 @@ enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      NOT,EQ,NE,LT,LE,GT,GE,AND,OR,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
-     RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,STRIDE,STRIDE2,
-     VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
+     RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
+     STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
      VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY};
 
 // customize by adding a special function
@@ -1758,7 +1758,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
 /* ----------------------------------------------------------------------
    one-time collapse of an atom-style variable parse tree
-   tree was created by one-time parsing of formula string via evaulate()
+   tree was created by one-time parsing of formula string via evaluate()
    only keep tree nodes that depend on 
      ATOMARRAY, TYPEARRAY, INTARRAY, BIGINTARRAY
    remainder is converted to single VALUE
@@ -1766,8 +1766,8 @@ double Variable::evaluate(char *str, Tree **tree)
    customize by adding a function:
      sqrt(),exp(),ln(),log(),abs(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
-     ramp(x,y),stagger(x,y),logfreq(x,y,z),stride(x,y,z),
-     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z),
+     ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
+     stride(x,y,z),vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z),
      gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
@@ -2139,6 +2139,30 @@ double Variable::collapse_tree(Tree *tree)
     return tree->value;
   }
 
+  if (tree->type == LOGFREQ2) {
+    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
+    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
+    int ivalue3 = static_cast<int> (collapse_tree(tree->extra[0]));
+    if (tree->first->type != VALUE || tree->second->type != VALUE ||
+        tree->extra[0]->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 )
+      error->all(FLERR,"Invalid math function in variable formula");
+    if (update->ntimestep < ivalue1) tree->value = ivalue1;
+    else {
+      tree->value = ivalue1;
+      double delta = ivalue1*(ivalue3-1.0)/ivalue2;
+      int count = 0;
+      while (update->ntimestep >= tree->value) {
+	tree->value += delta;
+	count++;
+	if (count % ivalue2 == 0) delta *= ivalue3;
+      }
+    }
+    tree->value = ceil(tree->value);
+    return tree->value;
+  }
+
   if (tree->type == STRIDE) {
     int ivalue1 = static_cast<int> (collapse_tree(tree->first));
     int ivalue2 = static_cast<int> (collapse_tree(tree->second));
@@ -2252,9 +2276,9 @@ double Variable::collapse_tree(Tree *tree)
    customize by adding a function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
-     ramp(x,y),stagger(x,y),logfreq(x,y,z),stride(x,y,z),
-     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z),
-     gmask(x),rmask(x),grmask(x,y)
+     ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
+     stride(x,y,z),stride2(x,y,z),vdisplace(x,y),swiggle(x,y,z),
+     cwiggle(x,y,z),gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
@@ -2443,6 +2467,27 @@ double Variable::eval_tree(Tree *tree, int i)
       if (multiple < ivalue2) arg = (multiple+1)*lower;
       else arg = lower*ivalue3;
     }
+    return arg;
+  }
+
+  if (tree->type == LOGFREQ2) {
+    int ivalue1 = static_cast<int> (eval_tree(tree->first,i));
+    int ivalue2 = static_cast<int> (eval_tree(tree->second,i));
+    int ivalue3 = static_cast<int> (eval_tree(tree->extra[0],i));
+    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 )
+      error->all(FLERR,"Invalid math function in variable formula");
+    if (update->ntimestep < ivalue1) arg = ivalue1;
+    else {
+      arg = ivalue1;
+      double delta = ivalue1*(ivalue3-1.0)/ivalue2;
+      int count = 0;
+      while (update->ntimestep >= arg) {
+	arg += delta;
+	count++;
+	if (count % ivalue2 == 0) delta *= ivalue3;
+      }
+    }
+    arg = ceil(arg);
     return arg;
   }
 
@@ -2671,8 +2716,9 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
    customize by adding a math function:
      sqrt(),exp(),ln(),log(),abs(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
-     ramp(x,y),stagger(x,y),logfreq(x,y,z),stride(x,y,z),stride2(x,y,z,a,b,c),
-     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z)
+     ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
+     stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),swiggle(x,y,z),
+     cwiggle(x,y,z)
 ------------------------------------------------------------------------- */
 
 int Variable::math_function(char *word, char *contents, Tree **tree,
@@ -2691,9 +2737,10 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       strcmp(word,"normal") && strcmp(word,"ceil") &&
       strcmp(word,"floor") && strcmp(word,"round") &&
       strcmp(word,"ramp") && strcmp(word,"stagger") &&
-      strcmp(word,"logfreq") && strcmp(word,"stride") &&
-      strcmp(word,"stride2") && strcmp(word,"vdisplace") &&
-      strcmp(word,"swiggle") && strcmp(word,"cwiggle"))
+      strcmp(word,"logfreq") && strcmp(word,"logfreq2") && 
+      strcmp(word,"stride") && strcmp(word,"stride2") && 
+      strcmp(word,"vdisplace") && strcmp(word,"swiggle") && 
+      strcmp(word,"cwiggle"))
     return 0;
 
   // parse contents for comma-separated args
@@ -2922,6 +2969,31 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
         else value = lower*ivalue3;
       }
       argstack[nargstack++] = value;
+    }
+
+  } else if (strcmp(word,"logfreq2") == 0) {
+    if (narg != 3)
+      error->all(FLERR,"Invalid math function in variable formula");
+    if (tree) newtree->type = LOGFREQ2;
+    else {
+      int ivalue1 = static_cast<int> (value1);
+      int ivalue2 = static_cast<int> (value2);
+      int ivalue3 = static_cast<int> (values[0]);
+      if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 )
+        error->all(FLERR,"Invalid math function in variable formula");
+      double value;
+      if (update->ntimestep < ivalue1) value = ivalue1;
+      else {
+        value = ivalue1;
+	double delta = ivalue1*(ivalue3-1.0)/ivalue2;
+	int count = 0;
+        while (update->ntimestep >= value) {
+	  value += delta;
+	  count++;
+	  if (count % ivalue2 == 0) delta *= ivalue3;
+	}
+      }
+      argstack[nargstack++] = ceil(value);
     }
 
   } else if (strcmp(word,"stride") == 0) {

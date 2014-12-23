@@ -38,6 +38,8 @@ class FixIntel : public Fix {
   virtual ~FixIntel();
   virtual int setmask();
   virtual void init();
+  virtual void setup(int);
+  void pair_init_check();
 
   // Get all forces, calculation results from coprocesser
   void sync_coprocessor();
@@ -135,7 +137,7 @@ class FixIntel : public Fix {
   int _offload_nlocal, _offload_nall, _offload_min_ghost, _offload_nghost;
   int _host_min_local, _host_min_ghost, _host_nall;
   int _host_used_local, _host_used_ghost;
-  int _separate_buffers, _offload_noghost, _sync_at_pair;
+  int _separate_buffers, _offload_noghost, _sync_at_pair, _separate_coi;
   bool _setup_time_cleared, _timers_allocated;
   void output_timing_data();
   FILE *_tscreen;
@@ -149,6 +151,7 @@ class FixIntel : public Fix {
   int _full_host_list, _cop, _ncops;
 
   int get_ppn(int &);
+  int set_host_affinity(const int);
   #endif
   void check_neighbor_intel();
 
@@ -540,6 +543,14 @@ E: The 'package intel' command is required for /intel styles
 
 Self-explanatory.
 
+W: Could not set host affinity for offload tasks
+
+When using offload to a coprocessor, the application will try to set affinity
+for host MPI tasks and OpenMP threads and will generate a warning if unable
+to do so successfully. In the unsuccessful case, you might wish to set
+affinity outside of the application and performance might suffer if
+hyperthreading is disable on the CPU.
+
 E: Neighbor list overflow, boost neigh_modify one
 
 Increase the value for neigh_modify one to allow for larger allocations for
@@ -578,6 +589,17 @@ E: Currently, cannot use neigh_modify exclude with Intel package.
 
 This is a current restriction of the Intel package.
 
+W: Unknown Intel Compiler Version
+
+The compiler version used to build LAMMPS has not been tested with
+offload to a coprocessor.
+
+W: Unsupported Intel Compiler
+
+The compiler version used to build LAMMPS is not supported when using
+offload to a coprocessor. There could be performance or correctness
+issues. Please use 14.0.1.106 or 15.1.133 or later.
+
 E: Currently, cannot use more than one intel style with hybrid.
 
 Currently, hybrid pair styles can only use the intel suffix for one of the
@@ -589,9 +611,21 @@ The hybrid pair style configuration is not yet supported by the Intel
 package. Support is limited to hybrid/overlay or a hybrid style that does 
 not require a skip list.
 
+W: Leaving a core/node free can improve performance for offload
+
+When each CPU is fully subscribed with MPI tasks and OpenMP threads,
+context switching with threads used for offload can sometimes decrease
+performance. If you see this warning, try using fewer MPI tasks/OpenMP threads
+per node to leave a physical CPU core free on each node.
+
 E: MPI tasks per node must be multiple of offload_cards
 
 For offload to multiple coprocessors on a single node, the Intel package
 requires that each coprocessor is used by the same number of MPI tasks.
+
+W: More MPI tasks/OpenMP threads than available cores
+
+Using more MPI tasks/OpenMP threads than available cores will typically
+decrease performance.
 
 */

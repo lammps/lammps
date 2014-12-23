@@ -965,7 +965,7 @@ double FixRigidNH::compute_scalar()
 
   ke_t = 0.0;
   for (ibody = 0; ibody < nbody; ibody++)
-    ke_t += 0.5 * masstotal[ibody] * (vcm[ibody][0]*vcm[ibody][0] +
+    ke_t += masstotal[ibody] * (vcm[ibody][0]*vcm[ibody][0] +
       vcm[ibody][1]*vcm[ibody][1] +
       vcm[ibody][2]*vcm[ibody][2]);
   
@@ -996,12 +996,12 @@ double FixRigidNH::compute_scalar()
       tmp *= tmp;
     
       if (fabs(inertia[ibody][k-1]) < 1e-6) tmp = 0.0;
-      else tmp /= (8.0 * inertia[ibody][k-1]); 
+      else tmp /= (4.0 * inertia[ibody][k-1]);
       ke_q += tmp;
     }
   }
   
-  energy = (ke_t + ke_q) * mvv2e;
+  energy = (ke_t + ke_q) * tfactor;
   
   if (tstat_flag) {
   

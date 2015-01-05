@@ -147,12 +147,13 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   }
 
   global_freq = nevery;
+  time_depend = 1;
 
   // ncount = current size of vector or array
 
   vector = NULL;
   array = NULL;
-  ncount = 0;
+  ncount = ncountmax = 0;
   if (nvalues == 1) size_vector = 0;
   else size_array_rows = 0;
 
@@ -161,9 +162,13 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   // since don't know a priori which are invoked by this fix
   // once in end_of_step() can set timestep for ones actually invoked
 
-  bigint nextstep = (update->ntimestep/nevery)*nevery;
+  nextstep = (update->ntimestep/nevery)*nevery;
   if (nextstep < update->ntimestep) nextstep += nevery;
   modify->addstep_compute_all(nextstep);
+
+  // initialstep = first step the vector/array will store values for
+
+  initialstep = nextstep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -216,16 +221,15 @@ void FixVector::init()
     }
   }
 
-  // reallocate vector or array for size at end of run
-  // nsize = # of entries this run will add
+  // reallocate vector or array for accumulated size at end of run
+  // use endstep to allow for subsequent runs with "pre no"
+  // nsize = # of entries from initialstep to finalstep 
 
-  bigint nfirst = update->firststep/nevery * nevery;
-  if (nfirst < update->firststep) nfirst += nevery;
-  bigint nlast = update->laststep/nevery * nevery;
-  if (nlast > update->laststep) nlast -= nevery;
-  int nsize = (nlast-nfirst)/nevery + 1;
-  if (nvalues == 1) memory->grow(vector,ncount+nsize,"vector:vector");
-  else memory->grow(array,ncount+nsize,nvalues,"vector:array");
+  bigint finalstep = update->endstep/nevery * nevery;
+  if (finalstep > update->endstep) finalstep -= nevery;
+  ncountmax = (finalstep-initialstep)/nevery + 1;
+  if (nvalues == 1) memory->grow(vector,ncountmax,"vector:vector");
+  else memory->grow(array,ncountmax,nvalues,"vector:array");
 }
 
 /* ----------------------------------------------------------------------
@@ -243,7 +247,9 @@ void FixVector::end_of_step()
 {
   // skip if not step which requires doing something
 
-  if (update->ntimestep % nevery) return;
+  if (update->ntimestep != nextstep) return;
+  if (ncount == ncountmax) 
+    error->all(FLERR,"Overflow of allocated fix vector storage");
 
   // accumulate results of computes,fixes,variables to local copy
   // compute/fix/variable may invoke computes so wrap with clear/add
@@ -292,7 +298,8 @@ void FixVector::end_of_step()
 
   // trigger computes on next needed step
 
-  modify->addstep_compute(update->ntimestep + nevery);
+  nextstep += nevery;
+  modify->addstep_compute(nextstep);
 
   // update size of vector or array
 

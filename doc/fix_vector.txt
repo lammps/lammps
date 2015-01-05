@@ -33,7 +33,7 @@ fix 1 all vector 5 c_myTemp v_integral :pre
 
 Use one or more global values as inputs every few timesteps, and
 simply store them.  For a single specified value, the values are
-stored as a global vector of growing length For multiple specified
+stored as a global vector of growing length.  For multiple specified
 values, they are stored as rows in a global array, whose number of
 rows is growing.  The resulting vector or array can be used by other
 "output commands"_Section_howto.html#howto_15.
@@ -67,8 +67,15 @@ be used with this fix.  Variables of style {atom} cannot be used,
 since they produce per-atom values.
 
 The {Nevery} argument specifies on what timesteps the input values
-will be used in order to be stored.  Only timesteps that a multiple
-of {Nevery}, including timestep 0, will contribute values.
+will be used in order to be stored.  Only timesteps that are a
+multiple of {Nevery}, including timestep 0, will contribute values.
+
+Note that if you perform multiple runs, using the "pre no" option of
+the "run"_run.html command to avoid initialization on subsequent runs,
+then you need to use the {stop} keyword with the first "run"_run.html
+command with a timestep value that encompasses all the runs.  This is
+so that the vector or array stored by this fix can be allocated to a
+sufficient size.
 
 :line
 
@@ -135,9 +142,14 @@ stored, then the compute or fix determines whether the value is
 intensive or extensive; see the doc page for that compute or fix for
 further info.  Values produced by a variable are treated as intensive.
 
-No parameter of this fix can be used with the {start/stop} keywords of
-the "run"_run.html command.  This fix is not invoked during "energy
-minimization"_minimize.html.
+This fix can allocate storage for stored values accumulated over
+multiple runs, using the {start} and {stop} keywords of the
+"run"_run.html command.  See the "run"_run.html command for details of
+how to do this.  If using the "run pre no"_run.html command option,
+this is required to allow the fix to allocate sufficient storage for
+stored values.
+
+This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:] none
 

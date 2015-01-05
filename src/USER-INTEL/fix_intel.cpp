@@ -33,6 +33,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef _LMP_INTEL_OFFLOAD
+#ifndef INTEL_OFFLOAD_NOAFFINITY
+#include <unistd.h>
+#endif
+#endif
+
 #include "suffix.h"
 
 using namespace LAMMPS_NS;
@@ -64,7 +70,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _offload_tpc = 4;
 
   #ifdef _LMP_INTEL_OFFLOAD
-  if (ncops < 1) error->all(FLERR,"Illegal package intel command");
+  if (ncops < 0) error->all(FLERR,"Illegal package intel command");
   _offload_affinity_set = 0;
   _off_force_array_s = 0;
   _off_force_array_m = 0;
@@ -130,6 +136,12 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       _allow_separate_buffers = atoi(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal package intel command");
+  }
+
+  // if ncops is zero, just run on the cpu
+  if (ncops < 1) {
+    _cop = -1;
+    _offload_balance = 0.0;
   }
 
   // error check
@@ -246,52 +258,19 @@ int FixIntel::setmask()
 void FixIntel::init()
 {
   #ifdef _LMP_INTEL_OFFLOAD
-  if (_offload_balance != 0.0) atom->sortfreq = 1;
-  
-  if (force->newton_pair == 0)
-    _offload_noghost = 0;
-  else if (_offload_ghost == 0)
-    _offload_noghost = 1;
-
-  set_offload_affinity();
-
   output_timing_data();
-  if (!_timers_allocated) {
-    double *time1 = off_watch_pair();
-    double *time2 = off_watch_neighbor();
-    int *overflow = get_off_overflow_flag();
-    if (_offload_balance !=0.0 && time1 != NULL && time2 != NULL && 
-	overflow != NULL) {
-      #pragma offload_transfer target(mic:_cop)  \
-        nocopy(time1,time2:length(1) alloc_if(1) free_if(0)) \
-        in(overflow:length(5) alloc_if(1) free_if(0))
-    }
-    _timers_allocated = true;
-  }
-
-  if (update->whichflag == 2 && _offload_balance != 0.0) {
-    if (_offload_balance == 1.0 && _offload_noghost == 0)
-      _sync_at_pair = 1;
-    else
-      _sync_at_pair = 2;
-  } else {
-    _sync_at_pair = 0;
-    if (strstr(update->integrate_style,"intel") == 0)
-      error->all(FLERR,
-		 "Specified run_style does not support the Intel package.");
-  }
   #endif
 
   int nstyles = 0;
   if (force->pair_match("hybrid", 1) != NULL) {
     PairHybrid *hybrid = (PairHybrid *) force->pair;
     for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") == NULL)
+      if (strstr(hybrid->keywords[i], "/intel") != NULL)
         nstyles++;
   } else if (force->pair_match("hybrid/overlay", 1) != NULL) {
     PairHybridOverlay *hybrid = (PairHybridOverlay *) force->pair;
     for (int i = 0; i < hybrid->nstyles; i++)
-      if (strstr(hybrid->keywords[i], "/intel") == NULL)
+      if (strstr(hybrid->keywords[i], "/intel") != NULL)
         nstyles++;
       else
 	force->pair->no_virial_fdotr_compute = 1;
@@ -301,7 +280,6 @@ void FixIntel::init()
 	       "Currently, cannot use more than one intel style with hybrid.");
 
   neighbor->fix_intel = (void *)this;
-  _nthreads = comm->nthreads;
 
   check_neighbor_intel();
   if (_precision_mode == PREC_MODE_SINGLE)
@@ -311,7 +289,6 @@ void FixIntel::init()
   else
     _double_buffers->zero_ev();
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -329,6 +306,44 @@ void FixIntel::setup(int vflag)
 
 void FixIntel::pair_init_check()
 {
+  #ifdef _LMP_INTEL_OFFLOAD
+  if (_offload_balance != 0.0) atom->sortfreq = 1;
+  
+  if (force->newton_pair == 0)
+    _offload_noghost = 0;
+  else if (_offload_ghost == 0)
+    _offload_noghost = 1;
+
+  set_offload_affinity();
+
+  if (!_timers_allocated) {
+    double *time1 = off_watch_pair();
+    double *time2 = off_watch_neighbor();
+    int *overflow = get_off_overflow_flag();
+    if (_offload_balance !=0.0 && time1 != NULL && time2 != NULL && 
+	overflow != NULL) {
+      #pragma offload_transfer target(mic:_cop)  \
+        nocopy(time1,time2:length(1) alloc_if(1) free_if(0)) \
+        in(overflow:length(5) alloc_if(1) free_if(0))
+    }
+    _timers_allocated = true;
+  }
+
+
+  if (update->whichflag == 2 && _offload_balance != 0.0) {
+    if (_offload_balance == 1.0 && _offload_noghost == 0)
+      _sync_at_pair = 1;
+    else
+      _sync_at_pair = 2;
+  } else {
+    _sync_at_pair = 0;
+    if (strstr(update->integrate_style,"intel") == 0)
+      error->all(FLERR,
+		 "Specified run_style does not support the Intel package.");
+  }
+  #endif
+  _nthreads = comm->nthreads;
+
   if (_offload_balance != 0.0 && comm->me == 0) {
     #ifndef __INTEL_COMPILER_BUILD_DATE
     error->warning(FLERR, "Unknown Intel Compiler Version\n");

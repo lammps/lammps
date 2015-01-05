@@ -189,7 +189,9 @@ Ensembles, constraints, and boundary conditions :h4
   harmonic (umbrella) constraint forces
   rigid body constraints
   SHAKE bond and angle constraints
-  bond breaking, formation, swapping
+  Monte Carlo bond breaking, formation, swapping
+  Monte Carlo atom swapping
+  atom/molecule insertion and deletion
   walls of various kinds
   non-equilibrium molecular dynamics (NEMD)
   variety of additional boundary conditions and constraints :ul

@@ -1374,7 +1374,7 @@ int FixBondCreate::unpack_exchange(int nlocal, double *buf)
 
 double FixBondCreate::compute_vector(int n)
 {
-  if (n == 1) return (double) createcount;
+  if (n == 0) return (double) createcount;
   return (double) createcounttotal;
 }
 

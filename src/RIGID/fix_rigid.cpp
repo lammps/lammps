@@ -1141,7 +1141,9 @@ int FixRigid::dof(int tgroup)
 
   for (int i = 0; i < nlocal; i++)
     if (body[i] >= 0 && mask[i] & tgroupbit) {
-      if (extended && eflags[i]) mcount[body[i]]++;
+      // do not count point particles or point dipoles as extended particles
+      // a spheroid dipole will be counted as extended
+      if (extended && (eflags[i] & ~(POINT | DIPOLE))) mcount[body[i]]++;
       else ncount[body[i]]++;
     }
 

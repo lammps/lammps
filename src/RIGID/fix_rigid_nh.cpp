@@ -955,53 +955,11 @@ void FixRigidNH::nhc_press_integrate()
 
 double FixRigidNH::compute_scalar()
 {
-  int i,k,ibody;
-  double kt = boltz * t_target;
-  double energy,ke_t,ke_q,tmp,Pkq[4];
+  const double kt = boltz * t_target;
+  double energy;
+  int i;
   
-  // compute the kinetic parts of H_NVE in Kameraj et al (JCP 2005, pp 224114)
-  
-  // translational kinetic energy
-
-  ke_t = 0.0;
-  for (ibody = 0; ibody < nbody; ibody++)
-    ke_t += 0.5 * masstotal[ibody] * (vcm[ibody][0]*vcm[ibody][0] +
-      vcm[ibody][1]*vcm[ibody][1] +
-      vcm[ibody][2]*vcm[ibody][2]);
-  
-  // rotational kinetic energy
-
-  ke_q = 0.0;
-  for (ibody = 0; ibody < nbody; ibody++) {
-    for (k = 1; k < 4; k++) {
-      if (k == 1) {
-        Pkq[0] = -quat[ibody][1];
-        Pkq[1] =  quat[ibody][0];
-        Pkq[2] =  quat[ibody][3];
-        Pkq[3] = -quat[ibody][2];
-      } else if (k == 2) {
-        Pkq[0] = -quat[ibody][2];
-        Pkq[1] = -quat[ibody][3];
-        Pkq[2] =  quat[ibody][0];
-        Pkq[3] =  quat[ibody][1];
-      } else if (k == 3) {
-        Pkq[0] = -quat[ibody][3];
-        Pkq[1] =  quat[ibody][2];
-        Pkq[2] = -quat[ibody][1];
-        Pkq[3] =  quat[ibody][0];      
-      }
-   
-      tmp = conjqm[ibody][0]*Pkq[0] + conjqm[ibody][1]*Pkq[1] +
-        conjqm[ibody][2]*Pkq[2] + conjqm[ibody][3]*Pkq[3];
-      tmp *= tmp;
-    
-      if (fabs(inertia[ibody][k-1]) < 1e-6) tmp = 0.0;
-      else tmp /= (8.0 * inertia[ibody][k-1]); 
-      ke_q += tmp;
-    }
-  }
-  
-  energy = (ke_t + ke_q) * mvv2e;
+  energy = FixRigid::compute_scalar();
   
   if (tstat_flag) {
   

@@ -14,7 +14,7 @@ pair_style srp cutoff bond_type dist keyword value ...
 
 cutoff = global cutoff for SRP interactions (distance units) :ulb,l
 bond_type = bond type to apply SRP interactions :l
-dist = {min} or {mid} :l
+distance = {min} or {mid} :l
 zero or more keyword/value pairs may be appended :l
 keyword = {exclude} :l
   {exclude} value = {yes} or {no} :pre
@@ -27,7 +27,12 @@ pair_coeff 1 1 dpd 60.0 4.5 1.0
 pair_coeff 1 2 none 
 pair_coeff 2 2 srp 100.0 0.8 :pre
 
-pair_style hybrid srp 0.8 1 mid exclude yes
+pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 1 min exclude yes
+pair_coeff 1 1 dpd 60.0 50 1.0 
+pair_coeff 1 2 none 
+pair_coeff 2 2 srp 40.0 :pre 
+
+pair_style hybrid srp 0.8 2 mid 
 pair_coeff 1 1 none 
 pair_coeff 1 2 none 
 pair_coeff 2 2 srp 100.0 0.8 :pre 
@@ -65,7 +70,7 @@ the data file or restart file read by the "read_data"_read_data.html
 or "read_restart"_read_restart.html commands:
 
 {C} (force units)
-{Rc} (distance units) :ul
+{rc} (distance units) :ul
 
 The last coefficient is optional. If not specified, the global cutoff
 is used.
@@ -86,15 +91,16 @@ there are no regular atoms of {bptype}.
 
 The optional {exclude} keyword determines if forces are computed
 between first neighbor (directly connected) bonds.  For a setting of
-{yes} they are, for {no} they are not.
+{no}, first neighbor forces are computed; for {yes} they are not computed. A setting of {no}
+cannot be used with the {min} option for distance calculation because the the minimum distance between 
+directly connected bonds is zero.
 
 Pair style {srp} turns off normalization of thermodynamic properties
 by particle number, as if the command "thermo_modify norm
-no"_thermo_modify.html had been issued.  A warning will be given if
-this setting is overridden in the input script.
+no"_thermo_modify.html had been issued.  
 
 The pairwise energy associated with style {srp} is shifted to be zero
-at the cutoff distance {Rc}.
+at the cutoff distance {rc}.
 
 :line
 
@@ -148,5 +154,5 @@ The default keyword value is exclude = yes.
 :line
 
 :link(Sirk)
-[(Sirk)] Sirk TW, Slizoberg YR, Brennan JK, Lisal M, Andzelm JW, J
+[(Sirk)] Sirk TW, Sliozberg YR, Brennan JK, Lisal M, Andzelm JW, J
 Chem Phys, 136 (13) 134903, 2012.

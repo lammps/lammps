@@ -279,7 +279,6 @@ void Neighbor::init()
   cutneighmaxsq = cutneighmax * cutneighmax;
 
   // check other classes that can induce reneighboring in decide()
-  // don't check if build_once is set
 
   restart_check = 0;
   if (output->restart_flag) restart_check = 1;
@@ -295,7 +294,6 @@ void Neighbor::init()
 
   must_check = 0;
   if (restart_check || fix_check) must_check = 1;
-  if (build_once) must_check = 0;
 
   // set special_flag for 1-2, 1-3, 1-4 neighbors
   // flag[0] is not used, flag[1] = 1-2, flag[2] = 1-3, flag[3] = 1-4
@@ -1411,7 +1409,7 @@ int Neighbor::check_distance()
 /* ----------------------------------------------------------------------
    build perpetuals neighbor lists
    called at setup and every few timesteps during run or minimization
-   topology lists only built if topoflag = 1, USER-CUDA calls with topoflag = 0
+   topology lists also built if topoflag = 1, USER-CUDA calls with topoflag = 0
 ------------------------------------------------------------------------- */
 
 void Neighbor::build(int topoflag)

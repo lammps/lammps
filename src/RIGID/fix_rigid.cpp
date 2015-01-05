@@ -965,56 +965,6 @@ void FixRigid::final_integrate()
   set_v();
 }
 
-/* ----------------------------------------------------------------------
-   apply evolution operators to quat, quat momentum
-   see Miller paper cited in fix rigid/nvt and fix rigid/npt
-------------------------------------------------------------------------- */
-
-void FixRigid::no_squish_rotate(int k, double *p, double *q,
-                                double *inertia, double dt) const
-{
-  double phi,c_phi,s_phi,kp[4],kq[4];
-
-  // apply permuation operator on p and q, get kp and kq
-
-  if (k == 1) {
-    kq[0] = -q[1];  kp[0] = -p[1];
-    kq[1] =  q[0];  kp[1] =  p[0];
-    kq[2] =  q[3];  kp[2] =  p[3];
-    kq[3] = -q[2];  kp[3] = -p[2];
-  } else if (k == 2) {
-    kq[0] = -q[2];  kp[0] = -p[2];
-    kq[1] = -q[3];  kp[1] = -p[3];
-    kq[2] =  q[0];  kp[2] =  p[0];
-    kq[3] =  q[1];  kp[3] =  p[1];
-  } else if (k == 3) {
-    kq[0] = -q[3];  kp[0] = -p[3];
-    kq[1] =  q[2];  kp[1] =  p[2];
-    kq[2] = -q[1];  kp[2] = -p[1];
-    kq[3] =  q[0];  kp[3] =  p[0];
-  }
-
-  // obtain phi, cosines and sines
-
-  phi = p[0]*kq[0] + p[1]*kq[1] + p[2]*kq[2] + p[3]*kq[3];
-  if (fabs(inertia[k-1]) < 1e-6) phi *= 0.0;
-  else phi /= 4.0 * inertia[k-1];
-  c_phi = cos(dt * phi);
-  s_phi = sin(dt * phi);
-
-  // advance p and q
-
-  p[0] = c_phi*p[0] + s_phi*kp[0];
-  p[1] = c_phi*p[1] + s_phi*kp[1];
-  p[2] = c_phi*p[2] + s_phi*kp[2];
-  p[3] = c_phi*p[3] + s_phi*kp[3];
-
-  q[0] = c_phi*q[0] + s_phi*kq[0];
-  q[1] = c_phi*q[1] + s_phi*kq[1];
-  q[2] = c_phi*q[2] + s_phi*kq[2];
-  q[3] = c_phi*q[3] + s_phi*kq[3];
-}
-
 /* ---------------------------------------------------------------------- */
 
 void FixRigid::initial_integrate_respa(int vflag, int ilevel, int iloop)

@@ -140,7 +140,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   // if ncops is zero, just run on the cpu
   if (ncops < 1) {
-    _cop = -1;
+    ncops = -1;
     _offload_balance = 0.0;
   }
 

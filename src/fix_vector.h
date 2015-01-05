@@ -40,7 +40,10 @@ class FixVector : public Fix {
   int *which,*argindex,*value2index;
   char **ids;
 
+  bigint nextstep,initialstep;
+
   int ncount;        // # of values currently in growing vector or array
+  int ncountmax;     // max # of values vector/array can hold
   double *vector;
   double **array;
 };

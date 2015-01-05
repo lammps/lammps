@@ -26,6 +26,7 @@
 #include "error.h"
 #include "neighbor.h"
 #include "atom_vec.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -66,11 +67,11 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       array[i][m] = 0.0; 
 
   // assume setup of fix is needed to insert particles
-  // yes if reading datafile
-  // maybe if reading restart
-  // a datafile cannot contain BPs
-  // a restart file written during the run has BPs as per atom data
-  // a restart file written after the run does not have BPs
+  // is true if reading from datafile
+  // since a datafile cannot contain bond particles
+  // might be true if reading from restart
+  // a restart file written during the run has bond particles as per atom data
+  // a restart file written after the run does not have bond particles
   setup = 1; 
 }
 
@@ -80,7 +81,7 @@ FixSRP::~FixSRP()
 {
   // unregister callbacks to this fix from Atom class
   atom->delete_callback(id,0);
-  atom->delete_callback(id,1); // for restart
+  atom->delete_callback(id,1);
   atom->delete_callback(id,2);
   memory->destroy(array);
 }
@@ -104,18 +105,16 @@ void FixSRP::init()
   if (force->pair_match("hybrid",1) == NULL)
     error->all(FLERR,"Cannot use pair srp without pair_style hybrid");
 
-  // reserve the highest numbered atom type for bond particles (BPs)
-  // set bptype if not read from restart 
+  // the highest numbered atom type should be reserved for bond particles (bptype)
+  // set bptype, unless it will be read from restart 
   if(!restart_reset) bptype = atom->ntypes;
 
-  // check for prescense of extra atom type for bond particle
-  // if reading a rst file written in the middle of run
-  // then bond particles are already present
-  // otherwise need to insert particles in setup
+  // check if bptype is already in use
    for(int i=0; i < atom->nlocal; i++)
       if(atom->type[i] == bptype){
-        // error if missing extra atom type in either
-        // data file or rst file without this fix
+        // error if bptype is already in use
+        // unless starting from a rst file
+        // since rst can contain the bond particles as per atom data
         if(!restart_reset)
           error->all(FLERR,"Fix SRP requires an extra atom type");
         else
@@ -123,7 +122,7 @@ void FixSRP::init()
       }
  
   // setup neigh exclusions for diff atom types
-  // BPs do not interact with other types
+  // bond particles do not interact with other types
   // type bptype only interacts with itself
   char* arg1[4];
   arg1[0] = (char *) "exclude"; 
@@ -155,8 +154,8 @@ void FixSRP::setup_pre_force(int zz)
   bigint nall = atom->nlocal + atom->nghost;
   double xold[nall][3];
 
-  // make a copy of coordinates and tags
-  // create_atom overwrites ghost atoms
+  // make a copy of all coordinates and tags
+  // need this because create_atom overwrites ghost atoms
   for(int i = 0; i < nall; i++){
     xold[i][0] = x[i][0];
     xold[i][1] = x[i][1];
@@ -189,7 +188,8 @@ void FixSRP::setup_pre_force(int zz)
    xone[1] = (xold[i][1] + xold[j][1])*0.5;
    xone[2] = (xold[i][2] + xold[j][2])*0.5;
 
-   // record longest bond for ghostcut
+   // record longest bond 
+   // this used to set ghost cutoff
     delx = xold[j][0] - xold[i][0];
     dely = xold[j][1] - xold[i][1];
     delz = xold[j][2] - xold[i][2];
@@ -262,11 +262,20 @@ void FixSRP::setup_pre_force(int zz)
   // move owned to new procs
   // get ghosts
   // build neigh lists again
+  
+  // if triclinic, lambda coords needed for pbc, exchange, borders
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   comm->setup();
+  if (neighbor->style) neighbor->setup_bins();
   comm->exchange();
   if (atom->sortfreq > 0) atom->sort();
   comm->borders();
+  // back to box coords
+  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  domain->image_check();
+  domain->box_too_small_check();
+  modify->setup_pre_neighbor();
   neighbor->build();
   neighbor->ncalls = 0;
 
@@ -295,7 +304,7 @@ void FixSRP::pre_exchange()
   comm->forward_comm();
 
   // reassign bond particle coordinates to midpoint of bonds
-  // only needed before neigh rebuild
+  // only need to do this before neigh rebuild
   double **x=atom->x;
   int i,j;
   int nlocal = atom->nlocal;
@@ -422,7 +431,7 @@ void FixSRP::post_run()
 {
   // all bond particles are removed after each run
   // useful for write_data and write_restart commands 
-  // since it occurs between runs
+  // since those commands occur between runs
  
   bigint natoms_previous = atom->natoms;
   int nlocal = atom->nlocal;
@@ -481,11 +490,16 @@ void FixSRP::post_run()
   // verlet calls box_too_small_check() in post_run
   // this check maps all bond partners
   // therefore need ghosts
+
+  // need to convert to lambda coords before apply pbc
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   comm->setup();
   comm->exchange();
   if (atom->sortfreq > 0) atom->sort();
   comm->borders();
+  // change back to box coordinates
+  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
 } 
 
 /* ----------------------------------------------------------------------
@@ -572,8 +586,8 @@ void FixSRP::restart(char *buf)
 }
 
 /* ----------------------------------------------------------------------
-   interface with other classes
-   pair srp sets the bond type for this fix
+   interface with pair class
+   pair srp sets the bond type in this fix
 ------------------------------------------------------------------------- */
 
 int FixSRP::modify_param(int narg, char **arg)

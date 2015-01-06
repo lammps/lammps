@@ -67,6 +67,9 @@ void DeleteAtoms::command(int narg, char **arg)
   else if (strcmp(arg[0],"porosity") == 0) delete_porosity(narg,arg);
   else error->all(FLERR,"Illegal delete_atoms command");
 
+  // optionally delete additional bonds or atoms in molecules
+
+  if (bond_flag) delete_bond();
   if (mol_flag) delete_molecule();
 
   // delete local atoms flagged in dlist
@@ -124,7 +127,7 @@ void DeleteAtoms::command(int narg, char **arg)
       fprintf(screen,"Deleted " BIGINT_FORMAT
               " atoms, new total = " BIGINT_FORMAT "\n",
               ndelete,atom->natoms);
-      if (mol_flag) {
+      if (bond_flag || mol_flag) {
         if (nbonds_previous) 
           fprintf(screen,"Deleted " BIGINT_FORMAT
                   " bonds, new total = " BIGINT_FORMAT "\n",
@@ -148,7 +151,7 @@ void DeleteAtoms::command(int narg, char **arg)
       fprintf(logfile,"Deleted " BIGINT_FORMAT
               " atoms, new total = " BIGINT_FORMAT "\n",
               ndelete,atom->natoms);
-      if (mol_flag) {
+      if (bond_flag || mol_flag) {
         if (nbonds_previous) 
           fprintf(logfile,"Deleted " BIGINT_FORMAT
                   " bonds, new total = " BIGINT_FORMAT "\n",
@@ -404,6 +407,41 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   delete all topology interactions that include deleted atoms
+------------------------------------------------------------------------- */
+
+void DeleteAtoms::delete_bond()
+{
+  // hash = for atom IDs being deleted by one processor
+  // list of these IDs is sent around ring
+  // at each stage of ring pass, hash is re-populated with received IDs
+
+  hash = new std::map<tagint,int>();
+
+  // list = set of unique molecule IDs from which I deleted atoms
+  // pass list to all other procs via comm->ring()
+
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  int n = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (dlist[i]) n++;
+  tagint *list;
+  memory->create(list,n,"delete_atoms:list");
+
+  n = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (dlist[i]) list[n++] = tag[i];
+
+  cptr = this;
+  comm->ring(n,sizeof(tagint),list,1,bondring,NULL);
+
+  delete hash;
+  memory->destroy(list);
+}
+
+/* ----------------------------------------------------------------------
    delete atoms in molecules with any deletions
    use dlist marked with atom deletions, and mark additional atoms
    do not include molID = 0
@@ -505,9 +543,121 @@ void DeleteAtoms::recount_topology()
 }
 
 /* ----------------------------------------------------------------------
-   callback from comm->ring()
-   cbuf = list of N molecule IDs, put them in hash
-   loop over my atoms, if matches molecule ID in hash, delete that atom
+   callback from comm->ring() in delete_bond()
+------------------------------------------------------------------------- */
+
+void DeleteAtoms::bondring(int nbuf, char *cbuf)
+{
+  tagint *list = (tagint *) cbuf;
+  std::map<tagint,int> *hash = cptr->hash;
+
+  int *num_bond = cptr->atom->num_bond;
+  int *num_angle = cptr->atom->num_angle;
+  int *num_dihedral = cptr->atom->num_dihedral;
+  int *num_improper = cptr->atom->num_improper;
+
+  int **bond_type = cptr->atom->bond_type;
+  int **bond_atom = cptr->atom->bond_atom;
+
+  int **angle_type = cptr->atom->angle_type;
+  int **angle_atom1 = cptr->atom->angle_atom1;
+  int **angle_atom2 = cptr->atom->angle_atom2;
+  int **angle_atom3 = cptr->atom->angle_atom3;
+
+  int **dihedral_type = cptr->atom->dihedral_type;
+  int **dihedral_atom1 = cptr->atom->dihedral_atom1;
+  int **dihedral_atom2 = cptr->atom->dihedral_atom2;
+  int **dihedral_atom3 = cptr->atom->dihedral_atom3;
+  int **dihedral_atom4 = cptr->atom->dihedral_atom4;
+
+  int **improper_type = cptr->atom->improper_type;
+  int **improper_atom1 = cptr->atom->improper_atom1;
+  int **improper_atom2 = cptr->atom->improper_atom2;
+  int **improper_atom3 = cptr->atom->improper_atom3;
+  int **improper_atom4 = cptr->atom->improper_atom4;
+
+  int nlocal = cptr->atom->nlocal;
+
+  // cbuf = list of N deleted atom IDs from other proc, put them in hash
+
+  hash->clear();
+  for (int i = 0; i < nbuf; i++) (*hash)[list[i]] = 1;
+
+  // loop over my atoms and their bond topology lists
+  // if any atom in an interaction matches atom ID in hash, delete interaction
+
+  int m,n;
+  for (int i = 0; i < nlocal; i++) {
+    if (num_bond) {
+      m = 0;
+      n = num_bond[i];
+      while (m < n) {
+        if (hash->find(bond_atom[i][m]) != hash->end()) {
+          bond_type[i][m] = bond_type[i][n-1];
+          bond_atom[i][m] = bond_atom[i][n-1];
+          n--;
+        } else m++;
+      }
+      num_bond[i] = n;
+    }
+
+    if (num_angle) {
+      m = 0;
+      n = num_angle[i];
+      while (m < n) {
+        if (hash->find(angle_atom1[i][m]) != hash->end() ||
+            hash->find(angle_atom2[i][m]) != hash->end() ||
+            hash->find(angle_atom3[i][m]) != hash->end()) {
+          angle_type[i][m] = angle_type[i][n-1];
+          angle_atom1[i][m] = angle_atom1[i][n-1];
+          angle_atom2[i][m] = angle_atom2[i][n-1];
+          angle_atom3[i][m] = angle_atom3[i][n-1];
+          n--;
+        } else m++;
+      }
+      num_angle[i] = n;
+    }
+
+    if (num_dihedral) {
+      m = 0;
+      n = num_dihedral[i];
+      while (m < n) {
+        if (hash->find(dihedral_atom1[i][m]) != hash->end() ||
+            hash->find(dihedral_atom2[i][m]) != hash->end() ||
+            hash->find(dihedral_atom3[i][m]) != hash->end()) {
+          dihedral_type[i][m] = dihedral_type[i][n-1];
+          dihedral_atom1[i][m] = dihedral_atom1[i][n-1];
+          dihedral_atom2[i][m] = dihedral_atom2[i][n-1];
+          dihedral_atom3[i][m] = dihedral_atom3[i][n-1];
+          dihedral_atom4[i][m] = dihedral_atom4[i][n-1];
+          n--;
+        } else m++;
+      }
+      num_dihedral[i] = n;
+    }
+
+    if (num_improper) {
+      m = 0;
+      n = num_improper[i];
+      while (m < n) {
+        if (hash->find(improper_atom1[i][m]) != hash->end() ||
+            hash->find(improper_atom2[i][m]) != hash->end() ||
+            hash->find(improper_atom3[i][m]) != hash->end()) {
+          improper_type[i][m] = improper_type[i][n-1];
+          improper_atom1[i][m] = improper_atom1[i][n-1];
+          improper_atom2[i][m] = improper_atom2[i][n-1];
+          improper_atom3[i][m] = improper_atom3[i][n-1];
+          improper_atom4[i][m] = improper_atom4[i][n-1];
+          n--;
+        } else m++;
+      }
+      num_improper[i] = n;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   callback from comm->ring() in delete_molecule()
 ------------------------------------------------------------------------- */
 
 void DeleteAtoms::molring(int n, char *cbuf)
@@ -518,8 +668,12 @@ void DeleteAtoms::molring(int n, char *cbuf)
   int nlocal = cptr->atom->nlocal;
   tagint *molecule = cptr->atom->molecule;
 
+  // cbuf = list of N molecule IDs from other proc, put them in hash
+
   hash->clear();
   for (int i = 0; i < n; i++) (*hash)[list[i]] = 1;
+
+  // loop over my atoms, if matches molecule ID in hash, delete that atom
 
   for (int i = 0; i < nlocal; i++)
     if (hash->find(molecule[i]) != hash->end()) dlist[i] = 1;
@@ -532,7 +686,7 @@ void DeleteAtoms::molring(int n, char *cbuf)
 void DeleteAtoms::options(int narg, char **arg)
 {
   compress_flag = 1;
-  mol_flag = 0;
+  bond_flag = mol_flag = 0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -540,6 +694,15 @@ void DeleteAtoms::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
       if (strcmp(arg[iarg+1],"yes") == 0) compress_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) compress_flag = 0;
+      else error->all(FLERR,"Illegal delete_atoms command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"bond") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
+      if (atom->molecular == 0) 
+        error->all(FLERR,"Cannot delete_atoms bond yes for "
+                   "non-molecular systems");
+      if (strcmp(arg[iarg+1],"yes") == 0) bond_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) bond_flag = 0;
       else error->all(FLERR,"Illegal delete_atoms command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"mol") == 0) {

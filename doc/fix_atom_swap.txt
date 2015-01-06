@@ -1,0 +1,161 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix atom/swap command :h3
+
+[Syntax:]
+
+fix ID group-ID atom/swap N X type_1 type_2 seed T keyword values ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+atom/swap = style name of this fix command :l
+N = invoke this fix every N steps :l
+X = number of swaps to attempt every N steps :l
+type_1 = first atom type to swap :l
+type_2 = second atom type to swap :l
+seed = random # seed (positive integer) :l
+T = scaling temperature of the MC swaps (temperature units) :l
+zero or more keyword/value pairs may be appended to args :l
+keyword = {region} :l
+  {region} value = region-ID
+    region-ID = ID of region to use as a swap volume :pre
+:ule
+
+[Examples:]
+
+fix 2 all atom/swap 1 1 1 2 29494 300.0 
+fix atom_swap_fix all atom/swap 100 1 5 6 12345 298.0 region my_swap_region :pre
+
+[Description:]
+
+This fix performs Monte Carlo swaps of atoms of one type with atoms of
+a second type.  The specified temperature {T} is used to scale the
+energy in the criterion for accepting or rejecting each swap.  The fix
+is invoked once every {N} steps.  Each time the fix is invoked {X}
+swap attempts are made, one after the other, bewteen pairs of randomly
+selected atoms.  Two attributes of the atoms in the pair are swapped:
+the atom type and the atom charge (if defined).  Each attempted swap
+is accepted or rejected based on the Metropolis criterion using the
+Boltzmann factor exp(-Edelta / kT), where Edelta is the change in the
+system potential energy due to the swap, k is the Boltzmann constant,
+and {T} is the specified temperature.
+
+In addition to the MC swaps, atoms in the simulation domain will move
+via normal dynamic timestepping if a time integration fix is defined,
+e.g. "fix_nvt"_fix_nvt.html, which will result in a hybrid MC+MD
+simulation.  If a swap produces a poorly equilibrated system, a
+smaller-than-usual timestep size may be needed when running such a
+simulation.
+
+If the {region} keyword is not used, all atoms of {type_1} and
+{type_2} which are in the specified group are candidates for swapping.
+If the {region} keyword is used, swappable atoms must also be in the
+specified region.  Each time a swap is performed one random atom is
+chosen from the list of candidate {type_1} atoms, and one random atom
+from the list of candidate {type_2} atoms.  A pair of swapped atoms
+can thus be far apart geometrically.  If multiple swaps are attempted
+in the same timestep, an individual atom may be swapped multiple
+times.
+
+An additional requirement for charged systems is that all swappable
+atoms of {type_1} must have the same charge, and likewise for {type_2}.
+Atoms of {type_1} need not have the same charge as atoms of {type_2}.
+
+Note that this fix computes total potential energies before and after
+attempted swaps, so even systems with complicated potential energy
+calculations can be used, including the following:
+
+long-range electrostatics (KSpace)
+many-body pair styles
+hybrid pair styles
+EAM pair styles
+triclinic systems :ul
+
+Some fixes have an associated potential energy.  Currently, the
+potential energy contribution due to these fixes is not included in
+the Metropolis criterion dictating atom swap probabilities. Examples
+of such fixes include: "efield"_fix_efield.html,
+"gravity"_fix_gravity.html, "addforce"_fix_addforce.html,
+"restrain"_fix_restrain.html, and "wall fixes"_fix_wall.html.
+
+IMPORTANT NOTE: During the swaps performed within a single timestep,
+this fix performs minimal communication to update the state of the
+system.  If the cutoff distance for all type pairs, as defined by the
+"pair_style"_pair_style.html is the same, the neighbor list does not
+need to be rebuilt when a swap takes place.  The CPU cost per swap
+will then be equivalent to roughly a single MD timestep.  If the
+cutoff distances are not the same for all type pairs, then the
+neighbor list will be rebuilt, and the CPU cost per swap will be
+higher.
+
+:line
+
+IMPORTANT NOTE: If you only wish to use this fix to relax a system
+without dynamics, e.g. to model surface segregation in an alloy, then
+you do not need to define a time integration fix.  In this scenario an
+MC-only simulation can be run in a single timestep or multiple
+timesteps as follows:
+
+fix mc all atom/swap 1 100000 ... 
+run 1 :pre
+
+or 
+
+fix mc all atom/swap 1 1000 ... 
+run 100 :pre
+
+In the first case, 100000 swaps are attempted in the first (only)
+timestep.  A neighbor list will only be built once, which is
+sufficient since atoms are not moving.
+
+In the second case, the same 100000 swaps are spread across 100
+timesteps.  This will require 100 neighbor list builds (once each time
+the fix is invoked, which should still be relatively cheap), but also
+allows you to monitor or analyze various quantities such as the
+evolution of the system energy as a function of timestep, as if the
+system were evolving over time.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+This fix writes the state of the fix to "binary restart
+files"_restart.html.  This includes information about the random
+number generator seed, the next timestep for MC exchanges, etc.  See
+the "read_restart"_read_restart.html command for info on how to
+re-specify a fix in an input script that reads a restart file, so that
+the operation of the fix continues in an uninterrupted fashion.
+
+None of the "fix_modify"_fix_modify.html options are relevant to this
+fix.
+
+This fix computes a global vector of length 2, which can be accessed
+by various "output commands"_Section_howto.html#howto_15.  The vector
+values are the following global cumulative quantities:
+
+1 = swap attempts
+2 = swap successes :ul
+
+The vector values calculated by this fix are "extensive".
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+[Restrictions:]
+
+This fix is part of the MC package.  It is only enabled if LAMMPS was
+built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"fix bond/swap"_fix_bond_swap.html, "fix_nvt"_fix_nvt.html,
+"neighbor"_neighbor.html, "fix_deposit"_fix_deposit.html,
+"fix_evaporate"_fix_evaporate.html, "delete_atoms"_delete_atoms.html,
+"fix_gcmc"_fix_gcmc.html
+
+[Default:] none

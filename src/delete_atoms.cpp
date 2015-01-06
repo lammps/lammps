@@ -701,6 +701,9 @@ void DeleteAtoms::options(int narg, char **arg)
       if (atom->molecular == 0) 
         error->all(FLERR,"Cannot delete_atoms bond yes for "
                    "non-molecular systems");
+      if (atom->molecular == 2) 
+        error->all(FLERR,"Cannot use delete_atoms bond yes with "
+                   "atom_style template");
       if (strcmp(arg[iarg+1],"yes") == 0) bond_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) bond_flag = 0;
       else error->all(FLERR,"Illegal delete_atoms command");

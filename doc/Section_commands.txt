@@ -468,6 +468,7 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "adapt"_fix_adapt.html,
 "addforce (c)"_fix_addforce.html,
 "append/atoms"_fix_append_atoms.html,
+"atom/swap"_fix_atom_swap.html,
 "aveforce (c)"_fix_aveforce.html,
 "ave/atom"_fix_ave_atom.html,
 "ave/correlate"_fix_ave_correlate.html,

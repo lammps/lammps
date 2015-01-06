@@ -38,6 +38,7 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathExtra;
 
 enum{NONE,XYZ,XY,YZ,XZ};     // same as in FixRigid
 enum{ISO,ANISO,TRICLINIC};   // same as in FixRigid
@@ -216,7 +217,7 @@ void FixRigidNHSmall::init()
 
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
-  
+
   // see Table 1 in Kamberaj et al
   
   if (tstat_flag || pstat_flag) {
@@ -231,19 +232,19 @@ void FixRigidNHSmall::init()
       w[3] = w[0];
       w[4] = w[0];
     }
-  }  
+  }
 
   int icompute;
   if (tcomputeflag) {  
     icompute = modify->find_compute(id_temp);
     if (icompute < 0) 
-      error->all(FLERR,"Temp ID for fix rigid npt/nph does not exist");
+      error->all(FLERR,"Temperature ID for fix rigid nvt/npt/nph does not exist");
     temperature = modify->compute[icompute];
   }
 
   if (pstat_flag) {
     if (domain->triclinic) 
-      error->all(FLERR,"fix rigid npt/nph does not yet allow triclinic box");
+      error->all(FLERR,"Fix rigid npt/nph does not yet allow triclinic box");
   
     // ensure no conflict with fix deform
 
@@ -275,7 +276,7 @@ void FixRigidNHSmall::init()
 
     icompute = modify->find_compute(id_press);
     if (icompute < 0) 
-      error->all(FLERR,"Press ID for fix rigid npt/nph does not exist");
+      error->all(FLERR,"Pressure ID for fix rigid npt/nph does not exist");
     pressure = modify->compute[icompute];
     
     // detect if any rigid fixes exist so rigid bodies move on remap
@@ -305,12 +306,20 @@ void FixRigidNHSmall::setup(int vflag)
 
   // total translational and rotational degrees of freedom
   
-  int k,ibody;
-
-  nf_t = nf_r = dimension * nlocal_body;
-  for (ibody = 0; ibody < nlocal_body; ibody++) {
-    for (k = 0; k < domain->dimension; k++) 
-      if (fabs(body[ibody].inertia[k]) < EPSILON) nf_r--;
+  nf_t = dimension * nlocal_body;  
+  if (dimension == 3) {
+    nf_r = dimension * nlocal_body;
+    for (int ibody = 0; ibody < nlocal_body; ibody++) {
+      Body *b = &body[ibody];
+      for (int k = 0; k < domain->dimension; k++) 
+        if (fabs(b->inertia[k]) < EPSILON) nf_r--;
+    }
+  } else if (dimension == 2) {
+    nf_r = nlocal_body;
+    for (int ibody = 0; ibody < nlocal_body; ibody++) {
+      Body *b = &body[ibody];
+      if (fabs(b->inertia[2]) < EPSILON) nf_r--;
+    }
   }
 
   double nf[2], nfall[2];
@@ -438,35 +447,6 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   double dtfm,mbody[3],tbody[3],fquat[4];
   double dtf2 = dtf * 2.0;
   
-  // compute target temperature
-  // update thermostat chains coupled to particles
-  
-  if (tstat_flag) {
-    compute_temp_target();
-    nhc_temp_integrate();
-  }
-
-  // compute target pressure
-  // update epsilon dot
-  // update thermostat coupled to barostat
-  
-  if (pstat_flag) {
-    nhc_press_integrate();
-    
-    if (pstyle == ISO) {
-      temperature->compute_scalar();
-      pressure->compute_scalar();
-    } else {
-      temperature->compute_vector();
-      pressure->compute_vector();
-    }
-    couple();
-    pressure->addstep(update->ntimestep+1);
-  
-    compute_press_target();
-    nh_epsilon_dot();
-  }  
-  
   // compute scale variables
 
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
@@ -568,11 +548,6 @@ void FixRigidNHSmall::initial_integrate(int vflag)
                                b->ez_space,b->inertia,b->omega);
   }
   
-  // virial setup before call to set_xv
-
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
-
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
@@ -598,6 +573,27 @@ void FixRigidNHSmall::initial_integrate(int vflag)
     akin_t = keall[0];
     akin_r = keall[1];
   }
+
+  // compute target temperature
+  // update thermostat chains using akin_t and akin_r
+  // refer to update_nhcp() in Kamberaj et al.
+
+  if (tstat_flag) {
+    compute_temp_target();
+    nhc_temp_integrate();
+  }
+    
+  // update thermostat chains coupled with barostat
+  // refer to update_nhcb() in Kamberaj et al.
+
+  if (pstat_flag) {
+    nhc_press_integrate();
+  }
+
+  // virial setup before call to set_xv
+
+  if (vflag) v_setup(vflag);
+  else evflag = 0;
 
   // remap simulation box by 1/2 step
 
@@ -802,25 +798,27 @@ void FixRigidNHSmall::final_integrate()
 
   set_v();
 
-  // compute temperature and pressure tensor
-  // couple to compute current pressure components
-  // trigger virial computation on next timestep
-  
+  // compute current temperature
   if (tcomputeflag) t_current = temperature->compute_scalar();
+
+  // compute current and target pressures
+  // update epsilon dot using akin_t and akin_r
+  
   if (pstat_flag) {
-    if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    if (pstyle == ISO) {
+      temperature->compute_scalar();
+      pressure->compute_scalar();
+    } else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
-  }
 
-  if (pstat_flag) nh_epsilon_dot();  
-  
-  // update eta_dot_t and eta_dot_r
-  // update eta_dot_b
-      
-  if (tstat_flag) nhc_temp_integrate();
-  if (pstat_flag) nhc_press_integrate();  
+    compute_press_target();
+
+    nh_epsilon_dot();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -906,7 +904,7 @@ void FixRigidNHSmall::nhc_temp_integrate()
         s2 = s * s;
         eta_dot_r[k] = eta_dot_r[k] * s2 + wdti2[j] * f_eta_r[k] * s * ms;
         tmp = q_r[k] * eta_dot_r[k] * eta_dot_r[k] - kt;
-          f_eta_r[k+1] = tmp / q_r[k+1];
+        f_eta_r[k+1] = tmp / q_r[k+1];
       }
       
       eta_dot_t[t_chain-1] += wdti2[j] * f_eta_t[t_chain-1];
@@ -919,7 +917,7 @@ void FixRigidNHSmall::nhc_temp_integrate()
 
 void FixRigidNHSmall::nhc_press_integrate()
 {
-  int i,k;
+  int i,j,k;
   double tmp,s,s2,ms,kecurrent;
   double kt = boltz * t_target;
   double lkt_press = kt;
@@ -927,7 +925,7 @@ void FixRigidNHSmall::nhc_press_integrate()
   // update thermostat masses
   
   double tb_mass = kt / (p_freq_max * p_freq_max);
-  q_b[0] = tb_mass;
+  q_b[0] = dimension * dimension * tb_mass;
   for (int i = 1; i < p_chain; i++) {
     q_b[i] = tb_mass;
     f_eta_b[i] = q_b[i-1] * eta_dot_b[i-1] * eta_dot_b[i-1] - kt;
@@ -942,54 +940,55 @@ void FixRigidNHSmall::nhc_press_integrate()
       epsilon_mass[i] = (g_f + dimension) * kt / (p_freq[i] * p_freq[i]);
       kecurrent += epsilon_mass[i] * epsilon_dot[i] * epsilon_dot[i];
     }
+  kecurrent /= pdim;
 
   f_eta_b[0] = (kecurrent - lkt_press) / q_b[0];
-  
-  // update thermostat velocities a half step
-  
-  eta_dot_b[p_chain-1] += 0.5 * dtq * f_eta_b[p_chain-1];
-  
-  for (k = 0; k < p_chain-1; k++) {
-    tmp = 0.5 * dtq * eta_dot_b[p_chain-k-1];
-    ms = maclaurin_series(tmp);
-    s = exp(-0.5 * tmp);
-    s2 = s * s;
-    eta_dot_b[p_chain-k-2] = eta_dot_b[p_chain-k-2] * s2 + 
-      dtq * f_eta_b[p_chain-k-2] * s * ms;
-  }
-  
-  // update thermostat positions
-  
-  for (k = 0; k < p_chain; k++)
-    eta_b[k] += dtv * eta_dot_b[k];
-  
-  // update epsilon dot
-  
-  s = exp(-1.0 * dtq * eta_dot_b[0]);
-  for (i = 0; i < 3; i++) 
-    if (p_flag[i]) epsilon_dot[i] *= s;
-      
-  kecurrent = 0.0;
-  for (i = 0; i < 3; i++) 
-    if (p_flag[i]) 
-      kecurrent += epsilon_mass[i] * epsilon_dot[i] * epsilon_dot[i];
- 
-  f_eta_b[0] = (kecurrent - lkt_press) / q_b[0];
-  
-  // update thermostat velocites a full step
-  
-  for (k = 0; k < p_chain-1; k++) {
-    tmp = 0.5 * dtq * eta_dot_b[k+1];
-    ms = maclaurin_series(tmp);
-    s = exp(-0.5 * tmp);
-    s2 = s * s;
-    eta_dot_b[k] = eta_dot_b[k] * s2 + dtq * f_eta_b[k] * s * ms;
-    tmp = q_b[k] * eta_dot_b[k] * eta_dot_b[k] - kt;
-    f_eta_b[k+1] = tmp / q_b[k+1];
-  }
-  
-  eta_dot_b[p_chain-1] += 0.5 * dtq * f_eta_b[p_chain-1];
 
+  // multiple timestep iteration
+  
+  for (i = 0; i < t_iter; i++) {
+    for (j = 0; j < t_order; j++) {
+
+      // update thermostat velocities a half step
+  
+      eta_dot_b[p_chain-1] += wdti2[j] * f_eta_b[p_chain-1];
+  
+      for (k = 1; k < p_chain; k++) {
+        tmp = wdti4[j] * eta_dot_b[p_chain-k];
+        ms = maclaurin_series(tmp);
+        s = exp(-0.5 * tmp);
+        s2 = s * s;
+        eta_dot_b[p_chain-k-1] = eta_dot_b[p_chain-k-1] * s2 + 
+          wdti2[j] * f_eta_b[p_chain-k-1] * s * ms;
+      }
+  
+      // update thermostat positions
+  
+      for (k = 0; k < p_chain; k++)
+        eta_b[k] += wdti1[j] * eta_dot_b[k];
+  
+      // update thermostat forces
+  
+      for (k = 1; k < p_chain; k++) {
+        f_eta_b[k] = q_b[k-1] * eta_dot_b[k-1] * eta_dot_b[k-1] - kt;
+        f_eta_b[k] /= q_b[k];
+      }
+
+      // update thermostat velocites a full step
+  
+      for (k = 0; k < p_chain-1; k++) {
+        tmp = wdti4[j] * eta_dot_b[k+1];
+        ms = maclaurin_series(tmp);
+        s = exp(-0.5 * tmp);
+        s2 = s * s;
+        eta_dot_b[k] = eta_dot_b[k] * s2 + wdti2[j] * f_eta_b[k] * s * ms;
+        tmp = q_b[k] * eta_dot_b[k] * eta_dot_b[k] - kt;
+        f_eta_b[k+1] = tmp / q_b[k+1];
+      }
+  
+      eta_dot_b[p_chain-1] += wdti2[j] * f_eta_b[p_chain-1];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- 
@@ -1074,8 +1073,11 @@ double FixRigidNHSmall::compute_scalar()
 
     // using equation 22 in Kameraj et al for H_NPT
 
+    double e = 0.0;
     for (i = 0; i < 3; i++)
-      energy += 0.5 * epsilon_mass[i] * epsilon_dot[i] * epsilon_dot[i];
+      if (p_flag[i])
+        e += epsilon_mass[i] * epsilon_dot[i] * epsilon_dot[i];
+    energy += e*(0.5/pdim);
   
     double vol;
     if (dimension == 2) vol = domain->xprd * domain->yprd;
@@ -1083,7 +1085,7 @@ double FixRigidNHSmall::compute_scalar()
 
     double p0 = (p_target[0] + p_target[1] + p_target[2]) / 3.0;
     energy += p0 * vol / nktv2p;
-  
+
     for (i = 0;  i < p_chain; i++) {
       energy += kt * eta_b[i];
       energy += 0.5 * q_b[i] * (eta_dot_b[i] * eta_dot_b[i]);
@@ -1209,56 +1211,6 @@ void FixRigidNHSmall::compute_press_target()
       p_hydro += p_target[i];
     }
   p_hydro /= pdim;
-}
-
-/* ----------------------------------------------------------------------
-   apply evolution operators to quat, quat momentum
-   see Miller paper cited in fix rigid/nvt and fix rigid/npt
-------------------------------------------------------------------------- */
-
-void FixRigidNHSmall::no_squish_rotate(int k, double *p, double *q,
-                                       double *inertia, double dt)
-{
-  double phi,c_phi,s_phi,kp[4],kq[4];
-
-  // apply permuation operator on p and q, get kp and kq
-
-  if (k == 1) {
-    kq[0] = -q[1];  kp[0] = -p[1];
-    kq[1] =  q[0];  kp[1] =  p[0];
-    kq[2] =  q[3];  kp[2] =  p[3];
-    kq[3] = -q[2];  kp[3] = -p[2];
-  } else if (k == 2) {
-    kq[0] = -q[2];  kp[0] = -p[2];
-    kq[1] = -q[3];  kp[1] = -p[3];
-    kq[2] =  q[0];  kp[2] =  p[0];
-    kq[3] =  q[1];  kp[3] =  p[1];
-  } else if (k == 3) {
-    kq[0] = -q[3];  kp[0] = -p[3];
-    kq[1] =  q[2];  kp[1] =  p[2];
-    kq[2] = -q[1];  kp[2] = -p[1];
-    kq[3] =  q[0];  kp[3] =  p[0];
-  }
-
-  // obtain phi, cosines and sines
-
-  phi = p[0]*kq[0] + p[1]*kq[1] + p[2]*kq[2] + p[3]*kq[3];
-  if (fabs(inertia[k-1]) < 1e-6) phi *= 0.0;
-  else phi /= 4.0 * inertia[k-1];
-  c_phi = cos(dt * phi);
-  s_phi = sin(dt * phi);
-
-  // advance p and q
-
-  p[0] = c_phi*p[0] + s_phi*kp[0];
-  p[1] = c_phi*p[1] + s_phi*kp[1];
-  p[2] = c_phi*p[2] + s_phi*kp[2];
-  p[3] = c_phi*p[3] + s_phi*kp[3];
-
-  q[0] = c_phi*q[0] + s_phi*kq[0];
-  q[1] = c_phi*q[1] + s_phi*kq[1];
-  q[2] = c_phi*q[2] + s_phi*kq[2];
-  q[3] = c_phi*q[3] + s_phi*kq[3];
 }
 
 /* ----------------------------------------------------------------------

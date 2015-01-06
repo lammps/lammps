@@ -1,0 +1,177 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix atom/swap command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID atom/swap N X type_1 type_2 seed T keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>atom/swap = style name of this fix command 
+
+<LI>N = invoke this fix every N steps 
+
+<LI>X = number of swaps to attempt every N steps 
+
+<LI>type_1 = first atom type to swap 
+
+<LI>type_2 = second atom type to swap 
+
+<LI>seed = random # seed (positive integer) 
+
+<LI>T = scaling temperature of the MC swaps (temperature units) 
+
+<LI>zero or more keyword/value pairs may be appended to args 
+
+<LI>keyword = <I>region</I> 
+
+<PRE>  <I>region</I> value = region-ID
+    region-ID = ID of region to use as a swap volume 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 2 all atom/swap 1 1 1 2 29494 300.0 
+fix atom_swap_fix all atom/swap 100 1 5 6 12345 298.0 region my_swap_region 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This fix performs Monte Carlo swaps of atoms of one type with atoms of
+a second type.  The specified temperature <I>T</I> is used to scale the
+energy in the criterion for accepting or rejecting each swap.  The fix
+is invoked once every <I>N</I> steps.  Each time the fix is invoked <I>X</I>
+swap attempts are made, one after the other, bewteen pairs of randomly
+selected atoms.  Two attributes of the atoms in the pair are swapped:
+the atom type and the atom charge (if defined).  Each attempted swap
+is accepted or rejected based on the Metropolis criterion using the
+Boltzmann factor exp(-Edelta / kT), where Edelta is the change in the
+system potential energy due to the swap, k is the Boltzmann constant,
+and <I>T</I> is the specified temperature.
+</P>
+<P>In addition to the MC swaps, atoms in the simulation domain will move
+via normal dynamic timestepping if a time integration fix is defined,
+e.g. <A HREF = "fix_nvt.html">fix_nvt</A>, which will result in a hybrid MC+MD
+simulation.  If a swap produces a poorly equilibrated system, a
+smaller-than-usual timestep size may be needed when running such a
+simulation.
+</P>
+<P>If the <I>region</I> keyword is not used, all atoms of <I>type_1</I> and
+<I>type_2</I> which are in the specified group are candidates for swapping.
+If the <I>region</I> keyword is used, swappable atoms must also be in the
+specified region.  Each time a swap is performed one random atom is
+chosen from the list of candidate <I>type_1</I> atoms, and one random atom
+from the list of candidate <I>type_2</I> atoms.  A pair of swapped atoms
+can thus be far apart geometrically.  If multiple swaps are attempted
+in the same timestep, an individual atom may be swapped multiple
+times.
+</P>
+<P>An additional requirement for charged systems is that all swappable
+atoms of <I>type_1</I> must have the same charge, and likewise for <I>type_2</I>.
+Atoms of <I>type_1</I> need not have the same charge as atoms of <I>type_2</I>.
+</P>
+<P>Note that this fix computes total potential energies before and after
+attempted swaps, so even systems with complicated potential energy
+calculations can be used, including the following:
+</P>
+<UL><LI>long-range electrostatics (KSpace)
+<LI>many-body pair styles
+<LI>hybrid pair styles
+<LI>EAM pair styles
+<LI>triclinic systems 
+</UL>
+<P>Some fixes have an associated potential energy.  Currently, the
+potential energy contribution due to these fixes is not included in
+the Metropolis criterion dictating atom swap probabilities. Examples
+of such fixes include: <A HREF = "fix_efield.html">efield</A>,
+<A HREF = "fix_gravity.html">gravity</A>, <A HREF = "fix_addforce.html">addforce</A>,
+<A HREF = "fix_restrain.html">restrain</A>, and <A HREF = "fix_wall.html">wall fixes</A>.
+</P>
+<P>IMPORTANT NOTE: During the swaps performed within a single timestep,
+this fix performs minimal communication to update the state of the
+system.  If the cutoff distance for all type pairs, as defined by the
+<A HREF = "pair_style.html">pair_style</A> is the same, the neighbor list does not
+need to be rebuilt when a swap takes place.  The CPU cost per swap
+will then be equivalent to roughly a single MD timestep.  If the
+cutoff distances are not the same for all type pairs, then the
+neighbor list will be rebuilt, and the CPU cost per swap will be
+higher.
+</P>
+<HR>
+
+<P>IMPORTANT NOTE: If you only wish to use this fix to relax a system
+without dynamics, e.g. to model surface segregation in an alloy, then
+you do not need to define a time integration fix.  In this scenario an
+MC-only simulation can be run in a single timestep or multiple
+timesteps as follows:
+</P>
+<PRE>fix mc all atom/swap 1 100000 ... 
+run 1 
+</PRE>
+<P>or 
+</P>
+<PRE>fix mc all atom/swap 1 1000 ... 
+run 100 
+</PRE>
+<P>In the first case, 100000 swaps are attempted in the first (only)
+timestep.  A neighbor list will only be built once, which is
+sufficient since atoms are not moving.
+</P>
+<P>In the second case, the same 100000 swaps are spread across 100
+timesteps.  This will require 100 neighbor list builds (once each time
+the fix is invoked, which should still be relatively cheap), but also
+allows you to monitor or analyze various quantities such as the
+evolution of the system energy as a function of timestep, as if the
+system were evolving over time.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the state of the fix to <A HREF = "restart.html">binary restart
+files</A>.  This includes information about the random
+number generator seed, the next timestep for MC exchanges, etc.  See
+the <A HREF = "read_restart.html">read_restart</A> command for info on how to
+re-specify a fix in an input script that reads a restart file, so that
+the operation of the fix continues in an uninterrupted fashion.
+</P>
+<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
+fix.
+</P>
+<P>This fix computes a global vector of length 2, which can be accessed
+by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The vector
+values are the following global cumulative quantities:
+</P>
+<UL><LI>1 = swap attempts
+<LI>2 = swap successes 
+</UL>
+<P>The vector values calculated by this fix are "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the MC package.  It is only enabled if LAMMPS was
+built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_bond_swap.html">fix bond/swap</A>, <A HREF = "fix_nvt.html">fix_nvt</A>,
+<A HREF = "neighbor.html">neighbor</A>, <A HREF = "fix_deposit.html">fix_deposit</A>,
+<A HREF = "fix_evaporate.html">fix_evaporate</A>, <A HREF = "delete_atoms.html">delete_atoms</A>,
+<A HREF = "fix_gcmc.html">fix_gcmc</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

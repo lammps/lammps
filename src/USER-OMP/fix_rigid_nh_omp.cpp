@@ -41,6 +41,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
+using namespace MathExtra;
 
 enum{SINGLE,MOLECULE,GROUP};	// same as in FixRigid
 enum{ISO,ANISO,TRICLINIC};	// same as in FixRigid

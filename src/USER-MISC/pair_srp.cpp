@@ -45,7 +45,7 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
  
 using namespace LAMMPS_NS; 
  
-#define SMALL 1.0e-3
+#define SMALL 1.0e-10
 #define BIG 1e10
 #define ONETWOBIT 0x40000000
 
@@ -155,8 +155,9 @@ void PairSRP::compute(int eflag, int vflag)
     }
 
   // this pair style only used with hybrid
-  // so each atom i is type bptype  
-  // each neigh j is type bptype due to exclusions
+  // due to exclusions
+  // each atom i is type bptype  
+  // each neigh j is type bptype 
   
   // using midpoint distance option
   if(midpoint){
@@ -179,7 +180,7 @@ void PairSRP::compute(int eflag, int vflag)
           continue;
 
         j &= NEIGHMASK;
-        //atoms inside bond particle
+        //retrieve atoms from bond particle
         i1 = segment[j][0];
         j1 = segment[j][1];
 
@@ -190,13 +191,13 @@ void PairSRP::compute(int eflag, int vflag)
         dijsq = dx*dx + dy*dy + dz*dz;
 
         if (dijsq < cutsq[bptype][bptype]){
-        dij = pow(dijsq, 0.5);
+        dij = sqrt(dijsq);
 
-       if (dij < SMALL)
-         dij = SMALL; // prevent explosions 
+        if (dij < SMALL) 
+          continue;     // dij can be 0.0 with soft potentials
 
         wd = 1.0 - dij / cut[bptype][bptype];
-        fpair = 0.5 * a0[bptype][bptype] * wd / dij;
+        fpair = 0.5 * a0[bptype][bptype] * wd / dij; // 0.5 factor for lever rule 
 
         // force for bond 0, beads 0,1
         //force between bonds
@@ -266,13 +267,13 @@ void PairSRP::compute(int eflag, int vflag)
 
         if (dijsq < cutsq[bptype][bptype]){
 
-        dij = pow(dijsq, 0.5); 
+        dij = sqrt(dijsq); 
 
-        if (dij < SMALL) 
-         dij = SMALL; // prevent explosions 
+        if (dij < SMALL)
+ 	  continue;     // dij can be 0.0 with soft potentials
 
         wd = 1.0 - dij / cut[bptype][bptype];
-        fpair = a0[bptype][bptype] * wd / dij;
+        fpair = a0[bptype][bptype] * wd / dij; 
 
         // force for bond 0, beads 0,1
         lever0 = 0.5 + ti; // assign force according to lever rule
@@ -281,6 +282,7 @@ void PairSRP::compute(int eflag, int vflag)
         fx = fpair * dx;
         fy = fpair * dy;
         fz = fpair * dz;
+
         //decompose onto atoms
         fxlever0 = fx * lever0;
         fylever0 = fy * lever0;
@@ -353,16 +355,18 @@ void PairSRP::settings(int narg, char **arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"exclude") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair srp exclude command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair srp command");
       if (strcmp(arg[iarg+1],"yes") == 0)
-      exclude = 1;
-      if (strcmp(arg[iarg+1],"no") == 0)
-      exclude = 0;
+        exclude = 1;
+      if (strcmp(arg[iarg+1],"no") == 0){
+        if (min) error->all(FLERR,"Illegal exclude option in pair srp command");
+        exclude = 0;
+      }
       iarg += 2;
     } else error->all(FLERR,"Illegal pair srp command");
   }
 
-  // highest atom type is saved for bond particles (BPs)
+  // highest atom type is saved for bond particles
   bptype = atom->ntypes;
 
   // reset cutoffs if explicitly set
@@ -372,7 +376,6 @@ void PairSRP::settings(int narg, char **arg)
       for (j = i+1; j <= bptype; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -422,16 +425,16 @@ void PairSRP::init_style()
   // need fix srp
   // invoke here instead of constructor
   // to make restart possible
-  char **newarg = new char*[3];
-  newarg[0] = (char *) "pair_srp";
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "SRP";
-  modify->add_fix(3,newarg);
+  char **fixarg = new char*[3];
+  fixarg[0] = (char *) "mysrp";
+  fixarg[1] = (char *) "all";
+  fixarg[2] = (char *) "SRP";
+  modify->add_fix(3,fixarg);
   f_srp = (FixSRP *) modify->fix[modify->nfix-1];
-  delete [] newarg;
+  delete [] fixarg;
 
   // set bond type in fix srp
-  // bonds of this type will be represented by bond particles (BPs)
+  // bonds of this type will be represented by bond particles
   // btype = bond type
   // bptype = bond particle type
   char c0[20];
@@ -441,10 +444,10 @@ void PairSRP::init_style()
   arg0[1] = c0;
   f_srp->modify_params(2, arg0);
 
-  // BPs do not contribute to energy or virial
-  // BPs do not belong to group all
-  // but thermo normalization is by nall
-  // turn off normalization
+  // bond particles do not contribute to energy or virial
+  // bond particles do not belong to group all
+  // but thermo normalization is by nall 
+  // therefore should turn off normalization
   int me;
   MPI_Comm_rank(world,&me);
   char *arg1[2];

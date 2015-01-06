@@ -892,12 +892,12 @@ void PairGayBerneIntel::init_style()
                "The 'package intel' command is required for /intel styles");
   fix = static_cast<FixIntel *>(modify->fix[ifix]);
 
+  fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
   if (force->newton_pair) fix->set_offload_noghost(1);
   _cop = fix->coprocessor_number();
   #endif
 
-  fix->pair_init_check();
   if (fix->precision() == FixIntel::PREC_MODE_MIXED)
     pack_force_const(force_const_single, fix->get_mixed_buffers());
   else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)

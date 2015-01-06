@@ -68,12 +68,17 @@ has passed).  If the {check} setting is {no}, the list is built on the
 {check} setting is {yes}, then the list is only built on a particular
 step if some atom has moved more than half the skin distance
 (specified in the "neighbor"_neighbor.html command) since the last
-build. If the {once} setting is yes, then the neighbor list is only
-built once at the beginning of each run, and never rebuilt.  This
-should only be done if you are certain atoms will not move far enough
-that the list should be rebuilt.  E.g. running a simulation of a cold
-crystal.  Note that it is not that expensive to check if neighbor
-lists should be rebuilt.
+build.
+
+If the {once} setting is yes, then the neighbor list is only built
+once at the beginning of each run, and never rebuilt, except on steps
+when a restart file is written, or steps when a fix forces a rebuild
+to occur (e.g. fixes that create or delete atoms, such as "fix
+deposit"_fix_deposit.html or "fix evaporate"_fix_evaporate.html).
+This setting should only be made if you are certain atoms will not
+move far enough that the neighbor list should be rebuilt, e.g. running
+a simulation of a cold crystal.  Note that it is not that expensive to
+check if neighbor lists should be rebuilt.
 
 When the rRESPA integrator is used (see the "run_style"_run_style.html
 command), the {every} and {delay} parameters refer to the longest

@@ -841,7 +841,7 @@ void FixBondBreak::print_copy(const char *str, tagint m,
 
 double FixBondBreak::compute_vector(int n)
 {
-  if (n == 1) return (double) breakcount;
+  if (n == 0) return (double) breakcount;
   return (double) breakcounttotal;
 }
 

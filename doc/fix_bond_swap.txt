@@ -180,7 +180,9 @@ Currently, energy changes in dihedral and improper interactions due to
 a bond swap are not considered.  Thus a simulation that uses this fix
 cannot use a dihedral or improper potential.
 
-[Related commands:] none
+[Related commands:]
+
+"fix atom/swap"_fix_atom_swap.html
 
 [Default:] none
 

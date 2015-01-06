@@ -84,7 +84,6 @@ class FixRigidNHSmall : public FixRigidSmall {
   void deallocate_chain();
   void deallocate_order();
 
-  void no_squish_rotate(int, double *, double *, double *, double);
   inline double maclaurin_series(double);
 };
 

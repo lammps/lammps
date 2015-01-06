@@ -30,9 +30,10 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>compress</I> or <I>mol</I> 
+<LI>keyword = <I>compress</I> or <I>bond</I> or <I>mol</I> 
 
 <PRE>  <I>compress</I> value = <I>no</I> or <I>yes</I>
+  <I>bond</I> value = <I>no</I> or <I>yes</I>
   <I>mol</I> value = <I>no</I> or <I>yes</I> 
 </PRE>
 
@@ -43,7 +44,7 @@
 delete_atoms region sphere compress no
 delete_atoms overlap 0.3 all all
 delete_atoms overlap 0.5 solvent colloid
-delete_atoms porosity cube 0.1 482793 
+delete_atoms porosity cube 0.1 482793 bond yes 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -84,19 +85,35 @@ different numbers of processors.
 </P>
 <P>If the <I>compress</I> keyword is set to <I>yes</I>, then after atoms are
 deleted, then atom IDs are re-assigned so that they run from 1 to the
-number of atoms in the system.  This is not done for molecular systems
-(see the <A HREF = "atom_style.html">atom_style</A> command), regardless of the
-<I>compress</I> setting, since it would foul up the bond connectivity that
-has already been assigned.
+number of atoms in the system.  Note that this is not done for
+molecular systems (see the <A HREF = "atom_style.html">atom_style</A> command),
+regardless of the <I>compress</I> setting, since it would foul up the bond
+connectivity that has already been assigned.
+</P>
+<P>A molecular system with fixed bonds, angles, dihedrals, or improper
+interactions, is one where the topology of the interactions is
+typically defined in the data file read by the
+<A HREF = "read_data.html">read_data</A> command, and where the interactions
+themselves are defined with the <A HREF = "bond_style.html">bond_style</A>,
+<A HREF = "angle_style.html">angle_style</A>, etc commands.  If you delete atoms
+from such a system, you must be careful not to end up with bonded
+interactions that are stored by remaining atoms but which include
+deleted atoms.  This will cause LAMMPS to generate a "missing atoms"
+error when the bonded interaction is computed.  The <I>bond</I> and <I>mol</I>
+keywords offer two ways to do that.
+</P>
+<P>It the <I>bond</I> keyword is set to <I>yes</I> then any bond or angle or
+dihedral or improper interaction that includes a deleted atom is also
+removed from the lists of such interactions stored by non-deleted
+atoms.  Note that simply deleting interactions due to dangling bonds
+(e.g. at a surface) may result in a inaccurate or invalid model for
+the remaining atoms.
 </P>
 <P>It the <I>mol</I> keyword is set to <I>yes</I>, then for every atom that is
 deleted, all other atoms in the same molecule (with the same molecule
 ID) will also be deleted.  This is not done for atoms with molecule ID
-= 0, since it is assumed to flag isolated atoms that are not part of
-molecules.  This is a way to insure that entire molecules are deleted
-instead of only a subset of atoms in the molecule which will typically
-lead to errors because of bond, angle, or dihedral interactions stored
-by remaining atoms which reference deleted atoms.
+= 0, since such an ID is assumed to flag isolated atoms that are not
+part of molecules.
 </P>
 <P>IMPORTANT NOTE: The molecule deletion operation in invoked after all
 individual atoms have been deleted using the rules described above for
@@ -128,6 +145,6 @@ deleting one atom in a bonded pair anyway.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are compress = yes and mol = no.
+<P>The option defaults are compress = yes, bond = no, mol = no.
 </P>
 </HTML>

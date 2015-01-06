@@ -131,6 +131,10 @@ appear in the neighbor list, and thus will not be considered for
 deletion by the {overlap} styles.  You probably don't want to be
 deleting one atom in a bonded pair anyway.
 
+The {bond yes} option cannot be used with molecular systems defined
+using molecule template files via the "molecule"_molecular.html and
+"atom_style template"_atom_style.html commands.
+
 [Related commands:]
 
 "create_atoms"_create_atoms.html

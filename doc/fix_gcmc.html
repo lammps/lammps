@@ -60,28 +60,28 @@ fix 4 my_gas gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk
 <P><B>Description:</B>
 </P>
 <P>This fix performs grand canonical Monte Carlo (GCMC) exchanges of
-atoms or molecules of the given type with an imaginary ideal gas reservoir at
-the specified T and chemical potential (mu) as discussed in
-<A HREF = "#Frenkel">(Frenkel)</A>. If used with the <A HREF = "fix_nh.html">fix nvt</A> command,
-simulations in the grand canonical enemble (muVT, constant chemical
-potential, constant volume, and constant temperature) can be
+atoms or molecules of the given type with an imaginary ideal gas
+reservoir at the specified T and chemical potential (mu) as discussed
+in <A HREF = "#Frenkel">(Frenkel)</A>. If used with the <A HREF = "fix_nh.html">fix nvt</A>
+command, simulations in the grand canonical enemble (muVT, constant
+chemical potential, constant volume, and constant temperature) can be
 performed.  Specific uses include computing isotherms in microporous
 materials, or computing vapor-liquid coexistence curves.
 </P>
-<P>Perform up to X exchanges (on average) of gas atoms or molecules of the 
-given type between the simulation domain and the imaginary reservoir every N 
-timesteps. Also perform M (on average) Monte Carlo displacements or rotations 
-(for molecules) of gas of the given type within the simulation domain.
-M should typically be chosen to be approximately equal to the expected
-number of gas atoms or molecules of the given type within the domain, 
-which will result in roughly one MC translation per atom or molecule 
-per MC cycle.
+<P>Perform up to X exchanges (on average) of gas atoms or molecules of
+the given type between the simulation domain and the imaginary
+reservoir every N timesteps. Also perform M (on average) Monte Carlo
+displacements or rotations (for molecules) of gas of the given type
+within the simulation domain.  M should typically be chosen to be
+approximately equal to the expected number of gas atoms or molecules
+of the given type within the domain, which will result in roughly one
+MC translation per atom or molecule per MC cycle.
 </P>
-<P>For MC moves of molecular gasses, rotations and translations are each 
-attempted with 50% probability. For MC moves of atomic gasses, 
-translations are attempted 100% of the time. For MC exchanges of either
-molecular or atomic gasses, deletions and insertions are each attempted
-with 50% probability.
+<P>For MC moves of molecular gasses, rotations and translations are each
+attempted with 50% probability. For MC moves of atomic gasses,
+translations are attempted 100% of the time. For MC exchanges of
+either molecular or atomic gasses, deletions and insertions are each
+attempted with 50% probability.
 </P>
 <P>All inserted particles are assigned to two groups: the default group
 "all" and the group specified in the fix gcmc command (which can also
@@ -94,24 +94,25 @@ atom types 1,2,3, then the inserted molecule will have atom types
 3,4,5.
 </P>
 <P>This fix cannot be used to perform MC insertions of gas atoms or
-molecules other than the exchanged type, but MC deletions, translations,
-and rotations can be performed on any atom/molecule in the fix group. 
-All atoms in the simulation domain can be moved using regular time 
-integration displacements, e.g. via <A HREF = "fix_nvt.html">fix_nvt</A>, resulting
-in a hybrid GCMC+MD simulation. A smaller-than-usual timestep size 
-may be needed when running such a hybrid simulation, especially if 
-the inserted molecules are not well equilibrated.
+molecules other than the exchanged type, but MC deletions,
+translations, and rotations can be performed on any atom/molecule in
+the fix group.  All atoms in the simulation domain can be moved using
+regular time integration displacements, e.g. via
+<A HREF = "fix_nvt.html">fix_nvt</A>, resulting in a hybrid GCMC+MD simulation. A
+smaller-than-usual timestep size may be needed when running such a
+hybrid simulation, especially if the inserted molecules are not well
+equilibrated.
 </P>
-<P>This command may optionally use the <I>region</I> keyword to define an 
-exchange and move volume.  The specified region must have been 
-previously defined with a <A HREF = "region.html">region</A> command.  It must be 
-defined with side = <I>in</I>.  Insertion attempts occur only within the 
-specified region. Move and deletion attempt candidates are selected 
-from gas atoms or molecules within the region. If no candidate can be 
-found within the specified region after randomly selecting candidates 
-1000 times, the move or deletion attempt is considered a failure. Moves 
-must start within the specified region, but may move the atom or molecule
-slightly outside of the region.
+<P>This command may optionally use the <I>region</I> keyword to define an
+exchange and move volume.  The specified region must have been
+previously defined with a <A HREF = "region.html">region</A> command.  It must be
+defined with side = <I>in</I>.  Insertion attempts occur only within the
+specified region. Move and deletion attempt candidates are selected
+from gas atoms or molecules within the region. If no candidate can be
+found within the specified region after randomly selecting candidates
+1000 times, the move or deletion attempt is considered a
+failure. Moves must start within the specified region, but may move
+the atom or molecule slightly outside of the region.
 </P>
 <P>If used with <A HREF = "fix_nvt.html">fix_nvt</A>, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature
@@ -125,13 +126,13 @@ interactions. Specifically, avoid performing so many MC displacements
 per timestep that atoms can move beyond the neighbor list skin
 distance. See the <A HREF = "neighbor.html">neighbor</A> command for details.
 </P>
-<P>When an atom or molecule is to be inserted, its center-of-mass 
-coordinates are chosen as a random position within the current 
-simulation domain, and new atom velocities are randomly chosen 
-from the specified temperature distribution given by T.  Relative 
+<P>When an atom or molecule is to be inserted, its center-of-mass
+coordinates are chosen as a random position within the current
+simulation domain, and new atom velocities are randomly chosen from
+the specified temperature distribution given by T.  Relative
 coordinates for atoms in a molecule are taken from the template
-molecule provided by the user. A random initial rotation is used in the
-case of molecule insertions.
+molecule provided by the user. A random initial rotation is used in
+the case of molecule insertions.
 </P>
 <P>Individual atoms are inserted, unless the <I>mol</I> keyword is used.  It
 specifies a <I>template-ID</I> previously defined using the
@@ -142,12 +143,11 @@ be specified in the molecule file.  See the <A HREF = "molecule.html">molecule</
 command for details.  The only settings required to be in this file
 are the coordinates and types of atoms in the molecule.
 </P>
-<P>When not using the <I>mol</I> keyword, you should ensure you do not
-delete only a portion of a molecule (only some of its atoms), or
-LAMMPS will soon generate an error when it tries to find those atoms.
-LAMMPS will warn you if any of the atoms eligible for deletion have a
-non-zero molecule ID, but does not check for this at the time of
-deletion.
+<P>When not using the <I>mol</I> keyword, you should ensure you do not delete
+only a portion of a molecule (only some of its atoms), or LAMMPS will
+soon generate an error when it tries to find those atoms.  LAMMPS will
+warn you if any of the atoms eligible for deletion have a non-zero
+molecule ID, but does not check for this at the time of deletion.
 </P>
 <P>If you wish to insert molecules via the <I>mol</I> keyword, that will have
 their bonds or angles constrained via SHAKE, use the <I>shake</I> keyword,

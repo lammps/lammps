@@ -32,13 +32,15 @@ class DeleteAtoms : protected Pointers {
 
  private:
   int *dlist;
-  int compress_flag,mol_flag;
+  int compress_flag,bond_flag,mol_flag;
   std::map<tagint,int> *hash;
 
   void delete_group(int, char **);
   void delete_region(int, char **);
   void delete_overlap(int, char **);
   void delete_porosity(int, char **);
+
+  void delete_bond();
   void delete_molecule();
   void recount_topology();
   void options(int, char **);
@@ -51,6 +53,7 @@ class DeleteAtoms : protected Pointers {
   // callback functions for ring communication
 
   static DeleteAtoms *cptr;
+  static void bondring(int, char *);
   static void molring(int, char *);
 };
 

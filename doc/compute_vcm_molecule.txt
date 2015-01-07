@@ -35,7 +35,7 @@ contribute to the velocity calculation for the molecule.
 
 The ordering of per-molecule quantities produced by this compute is
 consistent with the ordering produced by other compute commands that
-generate per-molecule datums.  Conceptually, them molecule IDs will be
+generate per-molecule datums.  Conceptually, the molecule IDs will be
 in ascending order for any molecule with one or more of its atoms in
 the specified group.
 

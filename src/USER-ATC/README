@@ -12,7 +12,9 @@ There are example scripts for using this package in examples/USER/atc.
 This package uses an external library in lib/atc which must be
 compiled before making LAMMPS.  See the lib/atc/README file and the
 LAMMPS manual for information on building LAMMPS with external
-libraries.
+libraries.  The settings in the Makefile.lammps file in that directory
+must be correct for LAMMPS to build correctly with this package
+installed.
 
 The primary people who created this package are Reese Jones
 (rjones at sandia.gov), Jeremy Templeton (jatempl at sandia.gov) and Jon

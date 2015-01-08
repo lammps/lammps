@@ -28,12 +28,11 @@ Type "python install.py" for instructions.
        % make install
 
 4.  Create two soft links in this dir (lib/voronoi)
-    to where the Voro++ src directory is.  E.g if you
-    built Voro++ in this dir:
+    to the Voro++ src directory is.  E.g if you built Voro++ in this dir:
       % ln -s voro++-0.4.6/src includelink
       % ln -s voro++-0.4.6/src liblink
     Note that these links could also be set to the include and lib
-    directories created by a Voro++ install, if you prefer, e.g.
+    directories created by a Voro++ install, e.g.
       % ln -s /usr/local/include includelink
       % ln -s /usr/local/lib liblink
 

@@ -761,15 +761,18 @@ you get a LAMMPS build error about a missing library, this is likely
 the reason.  See the "Section_packages"_Section_packages.html doc page
 for a list of packages that have auxiliary libraries.
 
-Code for most of these auxiliary libraries is included in the LAMMPS
-distribution under the lib directory.  Examples are the USER-ATC and
-MEAM packages.  A few auxiliary libraries are NOT included with
-LAMMPS; to use the associated package you must download and install
-the auxiliary library yourself.  Examples are the KIM and VORONOI and
-USER-MOLFILE packages.
+The lib directory in the distribution has sub-directories with package
+names that correspond to the needed auxiliary libs, e.g.  lib/reax.
+Each sub-directory has a README file that gives more details.  Code
+for most of the auxiliary libraries is included in that directory.
+Examples are the USER-ATC and MEAM packages.  A few of the
+sub-directories do not include code, but do include instructions and
+sometimes scripts that automate the process of downloading the
+auxiliary library and installing it so LAMMPS can link to it.
+Examples are the KIM and VORONOI and USER-MOLFILE packages.
 
-For provided libraries, each lib directory has a README file
-(e.g. lib/reax/README) with instructions on how to build that library.
+For libraries with provided code, the sub-directory README file
+(e.g. lib/reax/README) has instructions on how to build that library.
 Typically this is done by typing something like:
 
 make -f Makefile.g++ :pre
@@ -802,20 +805,20 @@ is built with, typically requires additional Fortran-to-C libraries be
 included in the link.  Another example are the BLAS and LAPACK
 libraries needed to use the USER-ATC or USER-AWPMD packages.
 
-For libraries without provided source code, the file
-src/package/README has information on where to find the library and
-how to build it, e.g. src/VORONOI/README.  There is also a
-Makefile.lammps file in the src/package directory.  E.g. files
-src/KIM/Makefile.lammps or src/VORONOI/Makefile.lammps or
-src/UESR-MOLFILE/Makefile.lammps.  These files serve the same purpose
-as the lib/package/Makefile.lammps files described above.  The files
-have settings needed when LAMMPS is built to link with the
-corresponding auxiliary library.
+For libraries without provided code, the sub-directory README file has
+information on where to download the library and how to build it,
+e.g. lib/voronoi/README.  The README files also describe how you must
+create soft links, via the "ln" command, in those directories to point
+to where you built or installed the packages.  Some of the
+directories, e.g. lib/voronoi, also have an install.py script which
+can be used to automate the process of downloading/building/installing
+the auxiliary library, and setting the needed soft links.  Type
+"python install.py" for further instructions.
 
-Again, you must insure that the settings in
-src/package/Makefile.lammps are appropriate for your system and where
-you installed the auxiliary library.  If they are not, the LAMMPS
-build will typically fail.
+Siimlar to directories with provided code, these directories also have
+Makefile.lammps files which serve the same purpose as described above.
+If the soft links or settings in the lib/package/Makefile.lammps files
+are not correct, the LAMMPS build will typically fail.
 
 :line
 

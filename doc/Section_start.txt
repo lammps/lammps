@@ -906,6 +906,13 @@ can be used to automate various steps of the build process.  It is
 particularly useful for working with the accelerator packages, as well
 as other packages which require auxiliary libraries to be built.
 
+The goal of the Make.py tool is to allow any complex multi-step LAMMPS
+build to be performed as a single Make.py command.  And you can
+archive the commands, so they can be re-invoked later via the -r
+(redo) switch.  If you find some LAMMPS build procedure that can't be
+done in a single Make.py command, let the developers know, and we'll
+see if we can augment the tool.
+
 You can run Make.py from the src directory by typing either:
 
 Make.py -h
@@ -920,13 +927,13 @@ chmod +x Make.py :pre
 Here are examples of build tasks you can perform with Make.py:
 
 Install/uninstall packages: Make.py -p no-lib kokkos omp intel
-Build specific auxiliary libs: Make.py lib-atc lib-meam
-Build libs for all installed packages: Make.py -p cuda gpu -gpu mode=double arch=31 lib-all
-Create a Makefile from scratch with compiler and MPI settings: Make.py -m none -cc g++ -mpi mpich file
-Augment Makefile.serial with settings for installed packages: Make.py -p intel -intel cpu -m serial file
-Add JPG and FFTW support to Makefile.mpi: Make.py -m mpi -jpg -fft fftw file
-Build LAMMPS with a parallel make using Makefile.mpi: Make.py -j 16 -m mpi exe
-Build LAMMPS and libs it needs using Makefile.serial with accelerator settings: Make.py -p gpu intel -intel cpu lib-all file serial :tb(s=:)
+Build specific auxiliary libs: Make.py -a lib-atc lib-meam
+Build libs for all installed packages: Make.py -p cuda gpu -gpu mode=double arch=31 -a lib-all
+Create a Makefile from scratch with compiler and MPI settings: Make.py -m none -cc g++ -mpi mpich -a file
+Augment Makefile.serial with settings for installed packages: Make.py -p intel -intel cpu -m serial -a file
+Add JPG and FFTW support to Makefile.mpi: Make.py -m mpi -jpg -fft fftw -a file
+Build LAMMPS with a parallel make using Makefile.mpi: Make.py -j 16 -m mpi -a exe
+Build LAMMPS and libs it needs using Makefile.serial with accelerator settings: Make.py -p gpu intel -intel cpu -a lib-all file serial :tb(s=:)
 
 The bench and examples directories give Make.py commands that can be
 used to build LAMMPS with the various packages and options needed to
@@ -946,11 +953,15 @@ the "-h" switch.
 
 E.g. typing "Make.py -h" gives
 
-Syntax: Make.py switch args ... {action1} {action2} ...
-  actions:
-    lib-all, lib-dir, clean, file, exe or machine
-    zero or more actions, in any order (machine must be last)
-  switches:
+Syntax: Make.py switch args ...
+  switches can be listed in any order
+  help switch:
+    -h prints help and syntax for all other specified switches
+  switch for actions:
+    -a lib-all, lib-dir, clean, file, exe or machine
+    list one or more actions, in any order
+    machine is a Makefile.machine suffix, must be last if used
+  one-letter switches:
     -d (dir), -j (jmake), -m (makefile), -o (output),
     -p (packages), -r (redo), -s (settings), -v (verbose)
   switches for libs:

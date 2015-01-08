@@ -42,11 +42,9 @@ def error(str,flag=1):
     print "WARNING:",str
 
 # store command-line args as sw = dict of key/value
-# key = switch letter, value = list of following args
+# key = switch word, value = list of following args
 # order = list of switches in order specified
 # enforce no switch more than once
-# once any arg is an action, store remaining args as -a switch
-# can specify explicit -a
   
 def parse_args(args):
   narg = len(args)
@@ -54,38 +52,25 @@ def parse_args(args):
   order = []
   iarg = 0
   while iarg < narg:
-    if args[iarg][0] != '-':
-      switch = 'a'
-      first = iarg
-    else:
-      switch = args[iarg][1:]
-      first = iarg+1
+    if args[iarg][0] != '-': error("Arg %s is not a switch" % args[iarg])
+    switch = args[iarg][1:]
     if switch in sw: error("Duplicate switch %s" % args[iarg])
     order.append(switch)
-    if switch == 'a':
-      sw[switch] = args[first:]
-      break
+    first = iarg+1
     last = first
-    while last < narg and args[last][0] != '-' and \
-          args[last] not in actionargs and \
-          not args[last].startswith("lib-"):
-      last += 1
+    while last < narg and args[last][0] != '-': last += 1
     sw[switch] = args[first:last]
     iarg = last
-
   return sw,order
 
-# convert switches in sw back to a string, in switch_order
-# just append action args
+# convert info in switches dict back to a string, in switch_order
 
 def switch2str(switches,switch_order):
   txt = ""
   for switch in switch_order:
     if txt: txt += ' '
-    if switch == 'a': txt += ' '.join(switches[switch])
-    else:
-      txt += "-%s" % switch
-      if switches[switch]: txt += ' ' + ' '.join(switches[switch])
+    txt += "-%s" % switch
+    txt += ' ' + ' '.join(switches[switch])
   return txt
 
 # check if compiler works with ccflags on dummy one-line tmpauto.cpp file
@@ -128,7 +113,7 @@ def link_check(linker,linkflags,warn):
   return flag
 
 # ----------------------------------------------------------------
-# switch classes, one per switch
+# switch classes, one per single-letter switch
 # ----------------------------------------------------------------
 
 # actions
@@ -139,47 +124,48 @@ class Actions:
     
   def help(self):
     return """
-Actions:
-  possible actions: lib-all, lib-dir, file, clean, exe or machine
-  can specify zero or more actions in any order
-    except machine must be last (if used)
-    each action can appear no more than once
-    if switches used and machine is only action, must prefix with "-a" switch
-  actions happen in order below, indpendent of specified order
+-a action1 action2 ...
+  possible actions = lib-all, lib-dir, file, clean, exe or machine
+    machine is a Makefile.machine suffix
+  actions can be specified in any order
+  each action can appear only once
+    lib-dir can appear multiple times for different dirs
   some actions depend on installed packages
     installed packages = currently installed + result of -p switch
-  lib-all or lib-dir = build auxiliary libraries
+  actions are invoked in this order, independent of specified order
+  (1) lib-all or lib-dir = build auxiliary libraries
     lib-all builds all auxiliary libs needed by installed packages
     lib-dir builds a specific lib whether package installed or not
       dir is any dir in lib directory (atc, cuda, meam, etc) except linalg
-      can be specified multiple times for different dirs
-  file = create src/MAKE/MINE/Makefile.auto
-    use -m switch for Makefile.machine to start from
+  (2) file = create src/MAKE/MINE/Makefile.auto
+    use -m switch for Makefile.machine to start from,
       else use existing Makefile.auto
     adds settings needed for installed accelerator packages
-    Makefile.auto is NOT edited unless "file" action is specified
-  clean = invoke "make clean-auto", insures full build
+    existing Makefile.auto is NOT changed unless "file" action is specified
+  (3) clean = invoke "make clean-auto" to insure full build
     useful if compiler flags have changed
-  exe or machine = build LAMMPS
+  (4) exe or machine = build LAMMPS
     machine can be any existing Makefile.machine suffix
-      machine is simply changed to "exe" action, as well as:
-        "-m machine" added if -m switch not specified
-        "-o machine" added if -o switch not specified
+      machine is converted to "exe" action, as well as:
+        "-m machine" is added if -m switch is not specified
+        "-o machine" is added if -o switch is not specified
         if either "-m"  or "-o" are specified, they are not overridden
-    exe always builds using Makefile.auto
-    if no file action, first generates a src/MAKE/MINE/Makefile.auto
-      use -m switch to make copy of existing Makefile.machine
-        or Makefile.auto must already exist
-      unlike file action, this does NOT change Makefile.auto
-    does not invoke and lib actions, since libs could be previously built
-    produces src/lmp_auto or error message if unsuccessful
+    does not invoke any lib builds, since libs could be previously built
+    exe always builds using src/MAKE/MINE/Makefile.auto
+      if file action also specified, it creates Makefile.auto
+      else if -m switch specified,
+        existing Makefile.machine is copied to create Makefile.auto
+      else Makefile.auto must already exist and is not changed
+    produces src/lmp_auto, or error message if unsuccessful
       use -o switch to copy src/lmp_auto to new filename
 """
   
   def check(self):
+    if not self.inlist: error("-a args are invalid")
     alist = []
+    machine = 0
     nlib = 0
-    for i,one in enumerate(self.inlist):
+    for one in self.inlist:
       if one in alist: error("An action is duplicated")
       if one.startswith("lib-"):
         lib = one[4:]
@@ -193,12 +179,32 @@ Actions:
         if nlib == 0: alist.insert(0,"clean")
         elif "file" not in alist: alist.insert(1,"clean")
         else: alist.insert(2,"clean")
-      elif one == "exe": alist.append("exe")
-      # allow last action to be unknown in case is a machine (checked in setup)
-      elif i == len(self.inlist)-1: alist.append(one)
+      elif one == "exe":
+        if machine == 0: alist.append("exe")
+        else: error("Actions are invalid")
+        machine = 1
+      # one action can be unknown in case is a machine (checked in setup)
+      elif machine == 0:
+        alist.append(one)
+        machine = 1
       else: error("Actions are invalid")
     self.alist = alist
 
+  # dedup list of actions concatenated from two lists
+  # current self.inlist = specified -a switch + redo command -a switch
+  # specified exe/machine action replaces redo exe/machine action
+  # operates on and replaces self.inlist
+    
+  def dedup(self):
+    alist = []
+    exemachine = 0
+    for one in self.inlist:
+      if one == "exe" or (one not in actionargs and not one.startswith("lib-")):
+        if exemachine: continue
+        exemachine = 1
+      if one not in alist: alist.append(one)
+    self.inlist = alist
+  
   # if last action is unknown, assume machine and convert to exe
   # only done if action is a suffix for an existing Makefile.machine
   # return machine if conversion done, else None
@@ -577,11 +583,15 @@ class Help:
 
   def help(self):
     return """
-Syntax: Make.py switch args ... {action1} {action2} ...
-  actions:
-    lib-all, lib-dir, clean, file, exe or machine
-    zero or more actions, in any order (machine must be last)
-  switches:
+Syntax: Make.py switch args ...
+  switches can be listed in any order
+  help switch:
+    -h prints help and syntax for all other specified switches
+  switch for actions:
+    -a lib-all, lib-dir, clean, file, exe or machine
+    list one or more actions, in any order
+    machine is a Makefile.machine suffix, must be last if used
+  one-letter switches:
     -d (dir), -j (jmake), -m (makefile), -o (output),
     -p (packages), -r (redo), -s (settings), -v (verbose)
   switches for libs:
@@ -589,10 +599,6 @@ Syntax: Make.py switch args ... {action1} {action2} ...
     -gpu, -meam, -poems, -qmmm, -reax
   switches for build and makefile options:
     -intel, -kokkos, -cc, -mpi, -fft, -jpg, -png
-
-add -h switch to command line to print this message
-  and help on other specified switches or actions
-  add -a switch if not seeing action help
 """
 
 # jmake switch
@@ -824,21 +830,25 @@ class Redo:
     return """
 -r file label1 label2 ...
   all args are optional
+  invoke Make.py commands from a file
+    other specified switches are merged with file commands (see below)
   redo file format:
     blank lines and lines starting with "#" are skipped
     other lines are treated as commands
     each command is a list of Make.py args, as if typed at command-line
     commands can have leading label, followed by ":"
     commands cannot contain a "-r" switch
-  if no args, execute previous command from src/Make.py.last
+  if no args, execute previous command, which is stored in src/Make.py.last
   if one arg, execute all commands from specified file
     unlabeled or labeled commands are all executed
   if multiple args, execute only matching labeled commands from file
   if other switches are specified,
-    they replace matching switches in file command(s)
-    or they are added to file command(s)
-  if other actions are specified,
-    they are added to any actions in file command(s), without de-duplication
+    if file command does not have the switch, it is added
+    if file command has the switch, the specified switch replaces it
+    except if -a (action) switch is both specified and in the file command,
+      two sets of actions are merged and duplicates removed
+      if both switches have "exe or machine" action,
+        the specified exe/machine overrides the file exe/machine
 """
   
   def check(self):
@@ -1872,9 +1882,10 @@ while 1:
   # if redo:
   #   parse next command from redo file
   #   use command-line switches to add/replace file command switches
-  #     if actions in both, are just concatenated
   #     do not add -r, since already processed
   #       and don't want -r swtich to appear in Make.py.last file
+  #     if -a in both: concatenate, de-dup,
+  #       specified exe/machine action replaces file exe/machine action
   #   print resulting new command
   # else just use command-line switches
 
@@ -1886,17 +1897,13 @@ while 1:
     
     for switch in cmd_switches:
       if switch == 'r': continue
-      if switch == 'a':
-        if switch in switches:
-          switches[switch] = switches[switch] + cmd_switches[switch]
-        else:
-          switches[switch] = cmd_switches[switch]
-          switch_order.append('a')
-      else:
-        if switch not in switches:
-          if 'a' in switches: switch_order.insert(-1,switch)
-          else: switch_order.append(switch)
-        switches[switch] = cmd_switches[switch]
+      if switch == 'a' and switch in switches:
+        tmp = Actions(cmd_switches[switch] + switches[switch])
+        tmp.dedup()
+        switches[switch] = tmp.inlist
+        continue
+      if switch not in switches: switch_order.append(switch)
+      switches[switch] = cmd_switches[switch]
 
     argstr = switch2str(switches,switch_order)
     print "Redo command: Make.py",argstr

@@ -1,0 +1,11 @@
+This package implements GPU optimizations of various LAMMPS styles.
+
+This package uses an external library in lib/gpu which must be
+compiled before making LAMMPS.  See the lib/gpu/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.  The settings in the Makefile.lammps file in that directory
+must be correct for LAMMPS to build correctly with this package
+installed.
+
+The people who created this package are Mike Brown (while at Sandia
+and ORNL) and Trung Nguyen (while at ORNL).

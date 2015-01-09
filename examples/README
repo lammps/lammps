@@ -105,7 +105,7 @@ scripts.
 
 cd src
 Make.py -j 16 -p none std no-lib no-kokkos reax meam poems reaxc orig \
-  lib-all mpi
+  -a lib-all mpi
 
 Here is how you might run and visualize one of the sample problems:
 

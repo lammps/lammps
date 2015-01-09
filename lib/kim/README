@@ -1,0 +1,64 @@
+This directory contains links to the KIM library which is required to
+use the KIM package and its pair_style kim command in a LAMMPS input
+script.
+
+Information about the KIM project can be found at https://openkim.org.
+It's PIs are Ellad Tadmor and Ryan Elliott (U Minn).
+
+To download, build, and install the KIM API on your system, follow
+these steps.  We are working on scripts that will automate this
+process.
+
+The KIM API is available for download from "this
+site"_https://openkim.org, namely https://openkim.org.  The tarball
+you download is "kim-api-vX.X.X.tgz", which can be unpacked in
+this directory or whereever you wish:
+
+tar xvfz kim*tgz
+
+Note that if you unpack and build KIM in this directory, when you
+download a new LAMMPS tarball, the files you have added here will
+be lost.  So you likely want to build it somewhere else.
+
+The kim-api-vX.X.X/docs/ directory has further documentation for the
+KIM API.  In order to compile and install the KIM API follow the
+instructions found in the file kim-api-vX.X.X/INSTALL.  (Don't forget
+to download and compile any Model Drivers and Models that you want to
+use.)
+
+Once you have successfully compiled and installed the KIM API, you
+need to make sure the utility kim-api-build-config is in your PATH
+so that the LAMMPS build system can properly work with the KIM API.
+
+The following are example commands that perform these steps:
+
+# replace X.X.X as appropriate here and below
+wget http://s3.openkim.org/kim-api/kim-api-vX.X.X.tgz     
+tar zxvf kim-api-vX.X.X.tgz
+
+# get OpenKIM models, setup and compile
+cd kim-api-vX.X.X
+cp Makefile.KIM_Config.example Makefile.KIM_Config
+
+# edit this file as appropriate following the instructions given in INSTALL
+vi Makefile.KIM_Config  
+
+make add-EAM_Dynamo_Angelo_Moody_NiAlH__MO_418978237058_001
+make
+make install
+
+# replace X with the KIM API major version number
+make install-set-default-to-vX  
+
+# add example for setting the PATH to include kim-api-build-config ??
+
+When these steps are complete you can build LAMMPS with the KIM
+package installed:
+
+% cd lammps/src
+% make yes-kim
+% make g++ (or whatever target you wish)
+
+Note that the Makefile.lammps file in this directory is required
+to allow the LAMMPS build to find the necessary KIM files.  You
+should not normally need to edit this file.

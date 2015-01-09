@@ -2,7 +2,7 @@
 
 # Make.py tool for managing packages and their auxiliary libs,
 #   auto-editing machine Makefiles, and building LAMMPS
-# Sytax: Make.py -h (for help)
+# Syntax: Make.py -h (for help)
 # Notes: needs python 2.7 (not Python 3)
 
 import sys,os,commands,re,copy
@@ -20,7 +20,7 @@ abbrevs = "adhjmoprsv"
 switchclasses = ("actions","dir","help","jmake","makefile",
                  "output","packages","redo","settings","verbose")
 libclasses = ("atc","awpmd","colvars","cuda","gpu",
-              "meam","poems","qmmm","reax")
+              "meam","poems","qmmm","reax","voronoi")
 buildclasses = ("intel","kokkos")
 makeclasses = ("cc","mpi","fft","jpg","png")
 
@@ -596,7 +596,7 @@ Syntax: Make.py switch args ...
     -p (packages), -r (redo), -s (settings), -v (verbose)
   switches for libs:
     -atc, -awpmd, -colvars, -cuda
-    -gpu, -meam, -poems, -qmmm, -reax
+    -gpu, -meam, -poems, -qmmm, -reax, -voronoi
   switches for build and makefile options:
     -intel, -kokkos, -cc, -mpi, -fft, -jpg, -png
 """
@@ -1391,6 +1391,41 @@ class REAX:
       if not verbose: print txt
       error("Unsuccessful build of lib/reax library")
     else: print "Created lib/reax library"
+
+# VORONOI lib
+
+class VORONOI:
+  def __init__(self,list):
+    if list == None: self.inlist = None
+    else: self.inlist = list[:]
+    self.install = ""
+    
+  def help(self):
+    return """
+-voronoi install="-d dir -v version -g -b -i installdir -l incdir libdir"
+  arg is optional, only needed if want to run install.py script
+  install = args to use with lib/voronoi/install.py script
+    must enclose in quotes since install.py args have switches
+    install.py can download, build, install, setup links to the Voro++ library
+    see lib/voronoi/README for details on Voro++ and using install.py
+"""
+
+  def check(self):
+    if self.inlist != None and len(self.inlist) == 0:
+      error("-voronoi args are invalid")
+    for one in self.inlist:
+      words = one.split('=')
+      if len(words) != 2: error("-voronoi args are invalid")
+      if words[0] == "install": self.install = words[1]
+      else: error("-voronoi args are invalid")
+
+  def build(self):
+    if not self.install: return
+    libdir = dir.lib + "/voronoi"
+    cmd = "cd %s; python install.py %s" % (libdir,self.install)
+    txt = commands.getoutput(cmd)
+    if verbose: print txt
+    print "Created lib/voronoi library"
 
 # ----------------------------------------------------------------
 # build classes for intel, kokkos build options

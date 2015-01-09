@@ -1,0 +1,24 @@
+The KIM package adds a pair_style kim command which is a wrapper on
+the Knowledge Base for Interatomic Models (KIM) repository of
+interatomic potentials, so that they can be used by LAMMPS scripts.
+
+Information about the KIM project can be found at https://openkim.org.
+It's PIs are ...
+
+Using this package requires the KIM library and its models
+(interatomic potentials) to be downloaded and installed on your
+system.  The library can be downloaded and built in lib/kim or
+elsewhere on your system, which must be done before bulding LAMMPS
+with this package.  Details of the download, build, and install
+process for KIM are given in the lib/kim/README file, and scripts will
+soon be provided to help automate the process.  Also see the LAMMPS
+manual for general information on building LAMMPS with external
+libraries.  The settings in the Makefile.lammps file in lib/kim must
+be correct for LAMMPS to build correctly with this package installed.
+
+Once you have successfully built LAMMPS with this package and the KIM
+library you can test it using an input file from the examples dir:
+
+./lmp_serial < lammps/examples/kim/in.kim.lj
+
+This pair_style was written by ...

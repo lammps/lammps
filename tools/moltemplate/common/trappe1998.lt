@@ -1,0 +1,53 @@
+# This file stores complete LAMMPS data for the TraPPE model of saturated
+# hydrocarbon chains.  In this "united-atom" model, each methyl group is 
+# represented by a single atom.  Forces between "atoms" are taken from the 
+# TraPPE force-field. (J Phys Chem B, 1998, volume 102, pp.2569-2577)
+
+TraPPE {
+
+  write_once("Data Masses") {
+    @atom:CH2 14.1707
+    @atom:CH3 15.2507
+    @atom:CH4 16.3307
+  }
+
+  write_once("Data Angles By Type") {
+    @angle:backbone @atom:CH? @atom:CH? @atom:CH? @bond:saturated @bond:saturated
+  }
+
+  write_once("Data Dihedrals By Type") {
+    @dihedral:backbone @atom:CH? @atom:CH? @atom:CH? @atom:CH? @bond:saturated @bond:saturated @bond:saturated
+  }
+
+  write_once("In Settings") {
+    pair_coeff @atom:CH2 @atom:CH2 lj/charmm/coul/charmm 0.091411522 3.95
+    pair_coeff @atom:CH3 @atom:CH3 lj/charmm/coul/charmm 0.194746286 3.75
+    pair_coeff @atom:CH4 @atom:CH4 lj/charmm/coul/charmm 0.294106636 3.73
+    bond_coeff     @bond:saturated    harmonic   120.0   1.54
+    angle_coeff    @angle:backbone    harmonic   62.0022 114
+    dihedral_coeff @dihedral:backbone opls 1.411036 -0.271016 3.145034 0.0
+  }
+
+  # Optional: Create a group corresponding to atoms used by the TraPPE force-
+  #           field.  (This is useful if you mix force-fields together.)
+
+  write_once("In Settings") {
+    group TraPPE type @atom:CH2 @atom:CH3 @atom:CH4
+  }
+
+  write_once("In Init") {
+    # -- Default styles for "TraPPE" --
+    units           real
+    atom_style      full
+    # (Hybrid force field styles were used for portability.)
+    bond_style      hybrid harmonic
+    angle_style     hybrid harmonic
+    dihedral_style  hybrid opls
+    improper_style  none
+    pair_style      hybrid lj/charmm/coul/charmm 9.0 11.0 9.0 11.0
+    pair_modify     mix arithmetic
+    special_bonds   lj 0.0 0.0 0.0
+  }
+
+}  # class TraPPE
+

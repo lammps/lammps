@@ -1,0 +1,191 @@
+# Note:
+#
+#    This example may require additional features to be added to LAMMPS.  If
+# LAMMPS complains about an "Invalid pair_style", then download copy the
+# "additional_lammps_code" from moltemplate.org, unpack it into your LAMMPS
+# "src" directory and recompile LAMMPS.
+#
+# -------- Description --------
+#
+# This example contains an implementation of the DPPC lipid bilayer described in
+#      G. Brannigan, P.F. Philips, and F.L.H. Brown,
+#      Physical Review E, Vol 72, 011915 (2005)
+# and:
+#      M.C. Watson, E.S. Penev, P.M. Welch, and F.L.H. Brown
+#      J. Chem. Phys. 135, 244701 (2011)
+#
+# As in Watson(JCP 2011), rigid bond-length constraints have been replaced 
+# by harmonic bonds.
+#
+# --- DLPC lipids ---
+#   A truncated version of the DPPC lipid (named "DLPC") has also been added.
+# Unlike the original "DPPC" molecule model, "DLPC" has not been carefully
+# parameterized to reproduce the correct behavior in a lipid bilayer/mixture.
+# (You may need to stiffen the bond-angle forces to make it behave correctly,
+#  but I did not do this here.)
+#
+#   Units:
+#
+# The "epsilon" parameter in their model is approximately 2.75 kJ/mole
+#     ( = 0.657265774378585 kCal/mole, using 1kCal=4.184kJ)
+# The "sigma" parameter corresponds to 7.5 angstroms.
+#
+#
+# The new DLPC model is a truncated version of DPPC, 
+# (Its behaviour has not been rigorously tested.)
+
+
+CGLipidBr2005 {
+
+
+  write_once("In Init") {
+    # -- Default styles for "CGLipidBr2005" --
+    units           real
+    atom_style      full
+    # (Hybrid force field styles were used for portability.)
+    bond_style      hybrid harmonic
+    angle_style     hybrid cosine/delta
+    dihedral_style  none
+    improper_style  none
+    pair_style  hybrid table linear 1130 &
+                lj/charmm/coul/charmm/inter es4k4l 14.5 15
+    pair_modify     mix arithmetic
+    special_bonds   lj 0.0 0.0 1.0   # turn off pairs if "less than 3 bonds"
+
+    neighbor    2.0 multi    # <- perhaps unnecessary
+    comm_modify mode multi   # <- perhaps unnecessary
+  }
+
+
+  DPPC {
+    write("Data Atoms") {
+      $atom:h  $mol:. @atom:head     0.0  0.00  0.00  33.75 # DPPC head atom
+      $atom:i  $mol:. @atom:../int   0.0 -1.00  0.00  26.25
+      $atom:t1 $mol:. @atom:../tail  0.0  1.00  0.00  18.75
+      $atom:t2 $mol:. @atom:../tail  0.0 -1.00  0.00  11.25
+      $atom:t3 $mol:. @atom:../tail  0.0  1.00  0.00   3.75
+    }
+    write("Data Bonds") {
+      $bond:b1    @bond:../backbone   $atom:h  $atom:i
+      $bond:b2    @bond:../backbone   $atom:i  $atom:t1
+      $bond:b3    @bond:../backbone   $atom:t1 $atom:t2
+      $bond:b4    @bond:../backbone   $atom:t2 $atom:t3
+    }
+    write("Data Angles") {
+      $angle:a1   @angle:../backbone  $atom:h   $atom:i   $atom:t1
+      $angle:a2   @angle:../backbone  $atom:i   $atom:t1  $atom:t2
+      $angle:a3   @angle:../backbone  $atom:t1  $atom:t2  $atom:t3
+    }
+
+    # Define properties of the local (lipid-specific) atom:head type atom:
+    write_once("Data Masses") {
+      @atom:head  200.0
+    }
+    write_once("In Settings") {
+      pair_coeff @atom:head @atom:head   lj/charmm/coul/charmm/inter 0.1643 7.5 0.4 0
+      pair_coeff @atom:../int @atom:head lj/charmm/coul/charmm/inter 0.1643 7.5 0.4 0
+    }
+
+  } #DPPC
+
+
+  DLPC {
+    write("Data Atoms") {
+      $atom:h  $mol:. @atom:head     0.0  0.00  0.00  30.00 # DLPC head atom
+      $atom:i  $mol:. @atom:../int   0.0 -1.00  0.00  22.50
+      $atom:t1 $mol:. @atom:../tail  0.0  1.00  0.00  15.00
+      $atom:t2 $mol:. @atom:../tail  0.0 -1.00  0.00   7.50
+    }
+    write("Data Bonds") {
+      $bond:b1    @bond:../backbone   $atom:h  $atom:i
+      $bond:b2    @bond:../backbone   $atom:i  $atom:t1
+      $bond:b3    @bond:../backbone   $atom:t1 $atom:t2
+    }
+    write("Data Angles") {
+      $angle:a1   @angle:../backbone  $atom:h   $atom:i   $atom:t1
+      $angle:a2   @angle:../backbone  $atom:i   $atom:t1  $atom:t2
+    }
+    # Define properties of the local (lipid-specific) atom:head type atom:
+    write_once("Data Masses") {
+      @atom:head  200.0
+    }
+    write_once("In Settings") {
+      pair_coeff @atom:head @atom:head lj/charmm/coul/charmm/inter 0.1643 7.5 0.4 0
+      pair_coeff @atom:../int @atom:head lj/charmm/coul/charmm/inter 0.1643 7.5 0.4 0
+    }
+  } #DLPC
+
+
+  # Particles shared by all lipid types
+  write_once("Data Masses") {
+    @atom:int     200.0
+    @atom:tail    200.0
+    @atom:head    200.0  #<- Default head type.  We may override it later.
+  }
+
+  write_once("In Settings") {
+    # -- Default settings/parameters for "CGLipidBr2005" --
+    # (Hybrid bond & angle styles were used for portability.)
+
+    #  As in Watson(JCP 2011), rigid bond-length constraints 
+    #  have been replaced by harmonic bonds.
+    #  The k_theta parameter should lie in between 5*epsilon and 10*epsilon.
+    bond_coeff   @bond:backbone   harmonic     116.847 7.5 #<--2*5000*eps/sig^2
+  }
+
+  write_once("In Settings") {
+    angle_coeff  @angle:backbone  cosine/delta  4.60086042   180 #<--  7*eps
+    #angle_coeff  @angle:backbone  cosine/delta   6.57265774   180 #<-- 10*eps
+  }
+
+  write_once("In Settings") {
+
+    # The interaction of "atom:int" with other "atom:int" atoms is given by
+    # epsilon*(0.4*(sigma/r)^12 - 3.0*(sigma/r)^2), shifted and cutoff at 
+    # r=3*sigma.  This was implemented using pair_style table.
+    # Unfortunately, mixing lj/charmm and "table" pair styles in the same
+    # simulation is very inneficient.
+
+  pair_coeff @atom:int  @atom:int  table  table_int.dat  INT
+
+    # The interaction of tail beads with eachother is given by the formula below
+    # and with other atoms ...using Lorenz-Berthelot and "repulsive wins" rules:
+    # epsilon*(0.4*(sigma/r)^12 - 1.0*(sigma/r)^6),
+  pair_coeff @atom:tail @atom:tail lj/charmm/coul/charmm/inter 0.1643 7.5 0.4 -1
+  pair_coeff @atom:int  @atom:tail lj/charmm/coul/charmm/inter 0.1643 7.5 0.4 -1
+
+    # The interaction of head beads which all other beads is given by:
+    # epsilon*(0.4*(sigma/r)^12 - 0.0*(sigma/r)^6),
+
+  pair_coeff @atom:head @atom:head lj/charmm/coul/charmm/inter 0.1643 7.5 0.4 0
+  pair_coeff @atom:int  @atom:head lj/charmm/coul/charmm/inter 0.1643 7.5 0.4 0
+
+
+  }  # write_once("In Settings")
+
+  # Note: I divided epsilon by 4 to get "0.1643" because we are using the 
+  # "es4k4l" coeffstyle, corresponding to U(r)=eps(4*K*(s/r)^12 + 4*L*(s/r)^6)
+  # (The "es4k4l" coeffstyle is the default.) Using this convention makes it
+  # easier to mix this coarse-grained lipid model with other molecular models.
+
+
+
+} # CGLipidBr2005
+
+
+
+
+
+
+
+
+# Note: This example has not been optimized for speed.
+#
+# Unfortunately, using both lj/charmm and "table" pair styles in the same
+# simulation seems to be very inneficient.  (The simulation is twice as slow
+# as using only the "lj/charmm" pair styles for every pairwise interaction, 
+# ...and about 25% slower than using "table" for every pairwise interaction.
+# However the lennard-jones pair styles support mixing, so we use them to
+# make it easier to run these molecules with other molecules which don't use
+# pair_table.  I felt that portability was worth the extra 25% slow down.)
+

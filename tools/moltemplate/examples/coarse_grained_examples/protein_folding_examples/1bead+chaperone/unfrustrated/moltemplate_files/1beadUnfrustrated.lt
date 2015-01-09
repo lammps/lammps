@@ -1,0 +1,255 @@
+# This file defines a pair of coarse-grained protein models used in:
+# AI Jewett, A Baumketner and J-E Shea, PNAS, 101 (36), 13192-13197, (2004)
+# (http://www.pnas.org/content/101/36/13192)
+
+
+1beadUnfrustrated {
+
+  # Note: the "unfrustrated" model is kind of funny looking.  (My apologies.)
+
+  # There are 3 atom types (referred to above as B, L, and N)
+  # Define their masses:
+
+  write_once("Data Masses") {
+    @atom:B   1.0
+    @atom:L   1.0
+    @atom:N   1.0
+  }
+
+  # AtomID  MoleculeID  AtomType  Charge   X        Y         Z
+
+  write("Data Atoms") {
+    $atom:a1  $mol  @atom:L  0.0   -1.3969548 1.7525716 -0.28565118
+    $atom:a2  $mol  @atom:B  0.0   -0.66847917 1.0738923 -0.39651074
+    $atom:a3  $mol  @atom:L  0.0   -0.16610379 1.0893417 0.44519456
+    $atom:a4  $mol  @atom:B  0.0   0.42244126 0.35006314 0.15979926
+    $atom:a5  $mol  @atom:L  0.0   1.2844393 0.55103218 0.64505356
+    $atom:a6  $mol  @atom:N  0.0   1.9703715 0.37775946 -0.05267634
+    $atom:a7  $mol  @atom:N  0.0   2.574926 -0.30399114 0.34330503
+    $atom:a8  $mol  @atom:N  0.0   2.029546 -1.1256647 0.19829852
+    $atom:a9  $mol  @atom:B  0.0   1.0936146 -0.76054936 0.1043528
+    $atom:a10 $mol  @atom:L  0.0   0.74888247 -0.81165991 1.0334863
+    $atom:a11 $mol  @atom:B  0.0   -0.069536333 -0.26815389 0.94356636
+    $atom:a12 $mol  @atom:L  0.0   -0.65671052 -0.522532 1.7113065
+    $atom:a13 $mol  @atom:N  0.0   -1.5278507 -0.10774689 1.4611921
+    $atom:a14 $mol  @atom:L  0.0   -2.1958878 -0.8403146 1.5521738
+    $atom:a15 $mol  @atom:N  0.0   -2.6058074 -0.86553455 0.64397232
+    $atom:a16 $mol  @atom:N  0.0   -1.8447588 -1.1286421 0.042924693
+    $atom:a17 $mol  @atom:N  0.0   -1.5328721 -0.28576244 -0.40564841
+    $atom:a18 $mol  @atom:B  0.0   -0.69593879 0.027664412 0.064884008
+    $atom:a19 $mol  @atom:B  0.0   0.0026517494 -0.66355162 -0.11470678
+    $atom:a20 $mol  @atom:L  0.0   -0.35479285 -1.2282381 -0.86455878
+    $atom:a21 $mol  @atom:L  0.0   -0.60202976 -0.47829758 -1.4411001
+    $atom:a22 $mol  @atom:B  0.0   -0.14616501 0.20157397 -0.87098365
+    $atom:a23 $mol  @atom:B  0.0   0.7755198 -0.14153019 -0.76838748
+    $atom:a24 $mol  @atom:L  0.0   1.2465693 0.19738595 -1.5794731
+    $atom:a25 $mol  @atom:L  0.0   0.77604792 1.0612244 -1.637442
+    $atom:a26 $mol  @atom:B  0.0   0.44801303 1.1110219 -0.6900789
+    $atom:a27 $mol  @atom:L  0.0   1.0908651 1.7386382 -0.24229241
+  }
+
+  # bond-ID   bond-Type       atom-ID  atom-ID
+
+  write("Data Bonds") {
+    $bond:b1 @bond:backbone  $atom:a1 $atom:a2
+    $bond:b2 @bond:backbone  $atom:a2 $atom:a3
+    $bond:b3 @bond:backbone  $atom:a3 $atom:a4
+    $bond:b4 @bond:backbone  $atom:a4 $atom:a5
+    $bond:b5 @bond:backbone  $atom:a5 $atom:a6
+    $bond:b6 @bond:backbone  $atom:a6 $atom:a7
+    $bond:b7 @bond:backbone  $atom:a7 $atom:a8
+    $bond:b8 @bond:backbone  $atom:a8 $atom:a9
+    $bond:b9 @bond:backbone  $atom:a9 $atom:a10
+    $bond:b10 @bond:backbone  $atom:a10 $atom:a11
+    $bond:b11 @bond:backbone  $atom:a11 $atom:a12
+    $bond:b12 @bond:backbone  $atom:a12 $atom:a13
+    $bond:b13 @bond:backbone  $atom:a13 $atom:a14
+    $bond:b14 @bond:backbone  $atom:a14 $atom:a15
+    $bond:b15 @bond:backbone  $atom:a15 $atom:a16
+    $bond:b16 @bond:backbone  $atom:a16 $atom:a17
+    $bond:b17 @bond:backbone  $atom:a17 $atom:a18
+    $bond:b18 @bond:backbone  $atom:a18 $atom:a19
+    $bond:b19 @bond:backbone  $atom:a19 $atom:a20
+    $bond:b20 @bond:backbone  $atom:a20 $atom:a21
+    $bond:b21 @bond:backbone  $atom:a21 $atom:a22
+    $bond:b22 @bond:backbone  $atom:a22 $atom:a23
+    $bond:b23 @bond:backbone  $atom:a23 $atom:a24
+    $bond:b24 @bond:backbone  $atom:a24 $atom:a25
+    $bond:b25 @bond:backbone  $atom:a25 $atom:a26
+    $bond:b26 @bond:backbone  $atom:a26 $atom:a27
+  }
+
+  # (3-body) Angles are specified below
+
+  # (4-body) Dihedrals must be defined explicitly for every quartet of atoms.
+  #          (These interactions are not determined by atom type.)
+  #
+  #          Note that some quartets of atoms are listed because their
+  #          potentials contain multiple terms in the Fourier expansion.
+  #          (IE. multiple cosines... Be sure to use "-overlay-dihedrals"!)
+  #
+  # dihedral-ID   dihedral-Type    atom-ID  atom-ID  atom-ID  atom-ID
+
+  write("Data Dihedrals") {
+    $dihedral:d1a @dihedral:beta1  $atom:a1 $atom:a2 $atom:a3 $atom:a4
+    $dihedral:d1b @dihedral:beta2  $atom:a1 $atom:a2 $atom:a3 $atom:a4
+    $dihedral:d2a @dihedral:beta1  $atom:a2 $atom:a3 $atom:a4 $atom:a5
+    $dihedral:d2b @dihedral:beta2  $atom:a2 $atom:a3 $atom:a4 $atom:a5
+    $dihedral:d3a @dihedral:beta1  $atom:a3 $atom:a4 $atom:a5 $atom:a6
+    $dihedral:d3b @dihedral:beta2  $atom:a3 $atom:a4 $atom:a5 $atom:a6
+    $dihedral:d4a @dihedral:beta1  $atom:a4 $atom:a5 $atom:a6 $atom:a7
+    $dihedral:d4b @dihedral:beta2  $atom:a4 $atom:a5 $atom:a6 $atom:a7
+    $dihedral:d5  @dihedral:turn1  $atom:a5 $atom:a6 $atom:a7 $atom:a8
+    $dihedral:d6  @dihedral:turn2  $atom:a6 $atom:a7 $atom:a8 $atom:a9
+    $dihedral:d7  @dihedral:turn3  $atom:a7 $atom:a8 $atom:a9 $atom:a10
+    $dihedral:d8a @dihedral:beta1  $atom:a8 $atom:a9 $atom:a10 $atom:a11
+    $dihedral:d8b @dihedral:beta2  $atom:a8 $atom:a9 $atom:a10 $atom:a11
+    $dihedral:d9a @dihedral:beta1  $atom:a9 $atom:a10 $atom:a11 $atom:a12
+    $dihedral:d9b @dihedral:beta2  $atom:a9 $atom:a10 $atom:a11 $atom:a12
+    $dihedral:d10a @dihedral:beta1  $atom:a10 $atom:a11 $atom:a12 $atom:a13
+    $dihedral:d10b @dihedral:beta2  $atom:a10 $atom:a11 $atom:a12 $atom:a13
+    $dihedral:d11a @dihedral:beta1  $atom:a11 $atom:a12 $atom:a13 $atom:a14
+    $dihedral:d11b @dihedral:beta2  $atom:a11 $atom:a12 $atom:a13 $atom:a14
+    $dihedral:d12a @dihedral:beta1  $atom:a12 $atom:a13 $atom:a14 $atom:a15
+    $dihedral:d12b @dihedral:beta2  $atom:a12 $atom:a13 $atom:a14 $atom:a15
+    $dihedral:d13  @dihedral:turn4  $atom:a13 $atom:a14 $atom:a15 $atom:a16
+    $dihedral:d14  @dihedral:turn5  $atom:a14 $atom:a15 $atom:a16 $atom:a17
+    $dihedral:d15a @dihedral:alpha1  $atom:a15 $atom:a16 $atom:a17 $atom:a18
+    $dihedral:d15b @dihedral:alpha2  $atom:a15 $atom:a16 $atom:a17 $atom:a18
+    $dihedral:d16a @dihedral:alpha1  $atom:a16 $atom:a17 $atom:a18 $atom:a19
+    $dihedral:d16b @dihedral:alpha2  $atom:a16 $atom:a17 $atom:a18 $atom:a19
+    $dihedral:d17a @dihedral:alpha1  $atom:a17 $atom:a18 $atom:a19 $atom:a20
+    $dihedral:d17b @dihedral:alpha2  $atom:a17 $atom:a18 $atom:a19 $atom:a20
+    $dihedral:d18a @dihedral:alpha1  $atom:a18 $atom:a19 $atom:a20 $atom:a21
+    $dihedral:d18b @dihedral:alpha2  $atom:a18 $atom:a19 $atom:a20 $atom:a21
+    $dihedral:d19a @dihedral:alpha1  $atom:a19 $atom:a20 $atom:a21 $atom:a22
+    $dihedral:d19b @dihedral:alpha2  $atom:a19 $atom:a20 $atom:a21 $atom:a22
+    $dihedral:d20a @dihedral:alpha1  $atom:a20 $atom:a21 $atom:a22 $atom:a23
+    $dihedral:d20b @dihedral:alpha2  $atom:a20 $atom:a21 $atom:a22 $atom:a23
+    $dihedral:d21a @dihedral:alpha1  $atom:a21 $atom:a22 $atom:a23 $atom:a24
+    $dihedral:d21b @dihedral:alpha2  $atom:a21 $atom:a22 $atom:a23 $atom:a24
+    $dihedral:d22a @dihedral:alpha1  $atom:a22 $atom:a23 $atom:a24 $atom:a25
+    $dihedral:d22b @dihedral:alpha2  $atom:a22 $atom:a23 $atom:a24 $atom:a25
+    $dihedral:d23a @dihedral:alpha1  $atom:a23 $atom:a24 $atom:a25 $atom:a26
+    $dihedral:d23b @dihedral:alpha2  $atom:a23 $atom:a24 $atom:a25 $atom:a26
+    $dihedral:d24a @dihedral:alpha1  $atom:a24 $atom:a25 $atom:a26 $atom:a27
+    $dihedral:d24b @dihedral:alpha2  $atom:a24 $atom:a25 $atom:a26 $atom:a27
+  }
+
+  # All consecutively bonded triplets of atoms same 3-body bond-angle 
+  # interaction parameters.  Of coarse, we could specify them all explicitly
+  # (as we did for the dihedrals above), but I wanted to show how to specify
+  # angles by atom type instead.  (You can do this for dihedrals & impropers
+  # also.)
+
+  #     angle-Type     atom-Type  atom-Type  atom-Type   bond-Type bond-Type
+
+  write_once("Data Angles By Type") {
+    @angle:backbone @atom:* @atom:* @atom:*  @bond:* @bond:*
+  }
+
+  # (The "*" is a wildcard character.  I use "*" to denote any atom-type or
+  #  bond-type which is defined within the current namespace: 1beadUnfrustrated)
+
+
+  # 2-body (non-bonded) interactions:
+  #
+  #   Uij(r) = 4*eps_ij * (K*(sig_ij/r)^12 + L*(sig_ij/r)^6)
+  #
+  #              i       j           pairstylename             eps      sig K L
+  #
+  write_once("In Settings") {
+    pair_coeff @atom:B @atom:B lj/charmm/coul/charmm/inter 1.0          1.0 1 -1
+    pair_coeff @atom:B @atom:L lj/charmm/coul/charmm/inter 0.5833333333 1.0 1 0
+    pair_coeff @atom:B @atom:N lj/charmm/coul/charmm/inter 0.6666666667 1.0 1 0
+    pair_coeff @atom:L @atom:L lj/charmm/coul/charmm/inter 0.1666666667 1.0 1 1
+    pair_coeff @atom:L @atom:N lj/charmm/coul/charmm/inter 0.25         1.0 1 0
+    pair_coeff @atom:N @atom:N lj/charmm/coul/charmm/inter 0.3333333333 1.0 1 0
+  }
+
+
+  # 2-body (bonded) interactions:
+  #
+  #   Ubond(r) = (k/2)*(r-0)^2
+  #
+  #   The corresponding command is:
+  #
+  #                  bond-Type   bondstylename     k    r0
+
+  write_once("In Settings") {
+    bond_coeff     @bond:backbone   harmonic    100.0  1.0
+  }
+
+  # 3-body interactions in this example are listed by atomType and bondType
+  # The atomIDs involved are determined automatically.  The forumula used is:
+  #
+  # Uangle(theta) = (k/2)*(theta-theta0)^2   
+  #     (k in kcal/mol/rad^2, theta0 in degrees)
+  #
+  #                 angle-Type   anglestylename    k         theta0
+
+  write_once("In Settings") {
+    angle_coeff    @angle:backbone  harmonic   13.3333333333  105.0
+  }
+
+  # 4-body interactions in this example are listed by atomType and bondType
+  # The atomIDs involved are determined automatically.  The forumula used is:
+  #
+  # Udihedral(phi) = K * (1 + cos(n*phi - d))
+  #
+  #     The d parameter is in degrees, K is in kcal/mol/rad^2.
+  #
+  # The corresponding command is:
+  #
+  # dihedral_coeff dihedralType   dihedralstylename  K  n   d   w
+  #    ("w" is the weight for 1-4 pair interactions, which we set to 0)
+
+  # NOTE: Currently, dihedral_coeff charmm does not allow non-integer d 
+  #       parameters.  I'm hoping this will be fixed eventually.
+
+  write_once("In Settings") {
+    # Correct version:
+    #dihedral_coeff @dihedral:alpha1  charmm  -1.5   1  57.2957795   0.0
+    # Replacing with
+    dihedral_coeff @dihedral:alpha1  charmm  -1.5    1  57           0.0
+    # Correct version:
+    #dihedral_coeff @dihedral:alpha2  charmm   0.375 2  114.591559   0.0
+    # Replacing with
+    dihedral_coeff @dihedral:alpha2  charmm   0.375  2  115          0.0
+    dihedral_coeff @dihedral:beta1   charmm  -1.5    1  180          0.0
+    dihedral_coeff @dihedral:beta2   charmm   0.375  2  360          0.0
+    dihedral_coeff @dihedral:turn1   charmm  -3.0    1   90          0.0
+    # Correct version:
+    # dihedral_coeff @dihedral:turn2   charmm  -3.0  1  11.4591559   0.0
+    # Replacing with
+    dihedral_coeff @dihedral:turn2   charmm  -3.0    1  11           0.0
+    dihedral_coeff @dihedral:turn3   charmm  -3.0    1 -90           0.0
+    dihedral_coeff @dihedral:turn4   charmm   0.0    1   0           0.0
+    dihedral_coeff @dihedral:turn5   charmm   0.0    1   0           0.0
+  }
+
+  write_once("In Settings") {
+    # Optional: define the atoms in the "proteins" group
+    group proteins type @atom:B
+    group proteins type @atom:L
+    group proteins type @atom:N
+  }
+
+  # LAMMPS has many available force field styles (and atom styles). 
+  # Here, we pick the ones which work well for this molecular model:
+
+  write_once("In Init") {
+    # --- Default options for the "1BeadUnfrustrated" protein model ---
+    # ---             (These can be overridden later.)              ---
+    units           lj
+    atom_style      full
+    bond_style      hybrid harmonic
+    angle_style     hybrid harmonic
+    dihedral_style  hybrid charmm
+    pair_style      hybrid lj/charmm/coul/charmm/inter es4k4l maxmax 3.5 4.0
+    pair_modify     mix arithmetic
+    special_bonds   lj 0.0 0.0 1.0   #(turn on "1-4" interactions)
+  }
+
+} # 1beadUnfrustrated
+

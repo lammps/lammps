@@ -2057,9 +2057,11 @@ while 1:
 
   # write current Make.py command to src/Make.py.last
 
-  argstr = switch2str(switches,switch_order)
-  open("%s/Make.py.last" % dir.src,'w').write(argstr + '\n')
-
+  fp = open("%s/Make.py.last" % dir.src,'w')
+  print >>fp,"# last invoked Make.py command"
+  print >>fp,switch2str(switches,switch_order)
+  fp.close()
+  
   # if not redoflag, done
 
   if not redoflag: break

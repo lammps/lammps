@@ -1,0 +1,37 @@
+# This file contains the hooks to build and link LAMMPS with the VMD
+# molfile plugins described here:
+# 
+# http://www.ks.uiuc.edu/Research/vmd/plugins/molfile
+# 
+# When you build LAMMPS with the USER-MOLFILE package installed, it will
+# use the 3 settings in this file.  They should be set as follows.
+# 
+# The molfile_SYSLIB setting is for a system dynamic loading library
+# that will be used to load the molfile plugins.  It contains functions
+# like dlopen(), dlsym() and so on for dynamic linking of executable
+# code into an executable.  For Linux and most current Unix-like
+# operating systems, the setting of "-ldl" will work.  On some platforms
+# you may need "-ldld".  For compilation on Windows, a different
+# mechanism is used that is part of the Windows programming environment
+# and thus molfile_SYSLIB can be left blank.
+# 
+# The molfile_SYSINC and molfile_SYSPATH variables do not typically need
+# to be set.  If the dl library is not in a place the linker can find
+# it, specify its directory via the molfile_SYSPATH variable, e.g.
+# -Ldir.
+
+# -----------------------------------------------------------
+
+# Settings that the LAMMPS build will import when this package is installed
+
+molfile_SYSINC =
+ifneq ($(LIBOBJDIR),/Obj_mingw32)
+ifneq ($(LIBOBJDIR),/Obj_mingw64)
+ifneq ($(LIBOBJDIR),/Obj_mingw32-mpi)
+ifneq ($(LIBOBJDIR),/Obj_mingw64-mpi)
+molfile_SYSLIB = -ldl
+endif
+endif
+endif
+endif
+molfile_SYSPATH =

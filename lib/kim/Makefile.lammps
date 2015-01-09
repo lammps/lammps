@@ -1,0 +1,25 @@
+# This file contains the hooks to build and link LAMMPS with the OpenKIM
+# library so that a LAMMPS input script can use a KIM potential, via the
+# pair_style kim command.
+# 
+# You should first download KIM from www.openkim.org.  Then build its
+# library API in KIM_API, with the models (potentials) you want to use.
+# You should then have the files:
+# 
+# openkim-api-vX.X.X/KIM_API/libkim.a
+# openkim-api-vX.X.X/KIM_API/libkim.so
+# 
+# When you build LAMMPS with the KIM package installed, it will use the
+# 3 settings in this file.  They should be set as follows.
+# 
+# kim_SYSINC = a path to the KIM_API directory that contains *.h files
+# kim_SYSLIB = compiler flag to use the KIM library
+# kim_SYSPATH = a path to the KIM library
+
+# -----------------------------------------------------------
+
+# Settings that the LAMMPS build will import when this package is installed
+
+kim_SYSINC  = $(shell kim-api-build-config --includes)
+kim_SYSLIB  = $(shell kim-api-build-config --ldlibs)
+kim_SYSPATH = $(shell kim-api-build-config --ldflags)

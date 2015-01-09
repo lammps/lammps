@@ -71,104 +71,10 @@ case it is also useful to check the kim.log file for additional error
 information.  This file kim.log should be generated in the same
 directory where LAMMPS is running.
 
-:line
-
-Here is information on how to build KIM for use with LAMMPS.
-
-The KIM API is available for download from "this
-site"_https://openkim.org, namely https://openkim.org.  The tarball
-you download is "kim-api-vX.X.X.tgz", which can be unpacked via
-
-tar xvfz kim*tgz :pre
-
-The kim-api-vX.X.X/docs/ directory has further documentation.  In
-order to compile and install the KIM API follow the instructions found
-in the file kim-api-vX.X.X/INSTALL.  (Don't forget to download and
-compile any Model Drivers and Models that you want to use.)
-
-Once you have successfully compiled and installed the KIM API, you
-need to make sure the utility kim-api-build-config is on your PATH
-so that the LAMMPS build system can properly work with the KIM API.
-
-
-The following is an example of how to download, compile, and run
-LAMMPS with the KIM API:
-
-<pre>
-mkdir lammps-kim
-cd lammps-kim :
-
-#
-# download lammps and the KIM API
-# :
-
-wget http://lammps.sandia.gov/tars/lammps-DDMMMYY.tar.gz  # replace DDMMMYY as appropriate here and below
-wget http://s3.openkim.org/kim-api/kim-api-vX.X.X.tgz     # replace X.X.X as appropriate here and below
-tar zxvf kim-api-vX.X.X.tgz :
-
-#
-# Get OpenKIM models, setup and compile
-# :
-
-cd kim-api-vX.X.X
-cp Makefile.KIM_Config.example Makefile.KIM_Config
-vi Makefile.KIM_Config  # edit file as appropriate following the instructions given in the INSTALL file
-make add-EAM_Dynamo_Angelo_Moody_NiAlH__MO_418978237058_001
-make
-make install
-make install-set-default-to-vX  # replace X with the KIM API major version number :
-
-#
-# setup and compile lammps
-# :
-
-tar zxvf lammps-DDMMMYY.tar.gz
-cd lammps-DDMMMYY/src
-make yes-kim
-cd STUBS
-make
-cd ../
-make serial :
-
-#
-# run simple example with KIM model
-# :
-
-cd ../../
-vi al-input  # create file with the following content
-#----------------------------------------------------------------------------------------
-variable        x index 1
-variable        y index 1
-variable        z index 1 :
-
-variable        xx equal 20*$x
-variable        yy equal 20*$y
-variable        zz equal 20*$z :
-
-units           metal
-atom_style      atomic :
-
-lattice         fcc 4.0500
-region          box block 0.0 $\{xx\} 0.0 $\{yy\} 0.0 $\{zz\}
-create_box      1 box
-create_atoms    1 box :
-
-pair_style      kim KIMvirial EAM_Dynamo_Angelo_Moody_NiAlH__MO_418978237058_001
-pair_coeff      * * Al :
-
-mass            1 26.98
-velocity        all create 200.0 232345 loop geom :
-
-neighbor        0.3 bin
-neigh_modify    delay 0 every 1 check yes :
-
-fix             1 all nve :
-
-run             100
-#---------------------------------------------------------------------------------------- :
-
-./lammps-DDMMYY/src/lmp_serial -in al-input :
-</pre>
+To download, build, and install the KIM library on your system, see
+the lib/kim/README file.  Once you have done this and built LAMMPS
+with the KIM package installed you can run the example input scripts
+in examples/kim.
 
 :line
 

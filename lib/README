@@ -1,11 +1,11 @@
 This directory contains libraries that can be linked with when
 building LAMMPS, if particular packages are included in a LAMMPS
-build.  The library itself must be built first, so that a lib*.a file
+build.  The library itself must be built first, so that a library file
 exists for LAMMPS to link against.
 
 Each library directory contains a README with additional info about
-how to build the library.  This may require you to edit one of the
-provided Makefiles to make it suitable for your machine.
+how to acquire and/or build the library.  This may require you to edit
+one of the provided Makefiles to make it suitable for your machine.
 
 The libraries included in the LAMMPS distribution are the following:
 
@@ -19,6 +19,8 @@ cuda	      NVIDIA GPU routines, USER-CUDA package
                 from Christian Trott (U Tech Ilmenau)
 gpu	      general GPU routines, GPU package
 	        from Mike Brown (ORNL)
+kim           hooks to KIM library, used by KIM package
+                from Ryan Elliott and Ellad Tadmor (U Minn)
 kokkos        Kokkos package for GPU and many-core acceleration
                 from Kokkos development team (Sandia)
 linalg        set of BLAS and LAPACK routines needed by USER-ATC package
@@ -31,3 +33,5 @@ qmmm	      quantum mechanics/molecular mechanics coupling interface
                 from Axel Kohlmeyer (Temple U)
 reax          ReaxFF potential, REAX package
 	        from Adri van Duin (Penn State) and Aidan Thompson (Sandia)
+voronoi       hooks to Voro++ library, used by compute voronoi/atom command
+	        from Daniel Schwen (LANL)

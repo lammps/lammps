@@ -761,15 +761,18 @@ you get a LAMMPS build error about a missing library, this is likely
 the reason.  See the "Section_packages"_Section_packages.html doc page
 for a list of packages that have auxiliary libraries.
 
-Code for most of these auxiliary libraries is included in the LAMMPS
-distribution under the lib directory.  Examples are the USER-ATC and
-MEAM packages.  A few auxiliary libraries are NOT included with
-LAMMPS; to use the associated package you must download and install
-the auxiliary library yourself.  Examples are the KIM and VORONOI and
-USER-MOLFILE packages.
+The lib directory in the distribution has sub-directories with package
+names that correspond to the needed auxiliary libs, e.g.  lib/reax.
+Each sub-directory has a README file that gives more details.  Code
+for most of the auxiliary libraries is included in that directory.
+Examples are the USER-ATC and MEAM packages.  A few of the
+sub-directories do not include code, but do include instructions and
+sometimes scripts that automate the process of downloading the
+auxiliary library and installing it so LAMMPS can link to it.
+Examples are the KIM and VORONOI and USER-MOLFILE packages.
 
-For provided libraries, each lib directory has a README file
-(e.g. lib/reax/README) with instructions on how to build that library.
+For libraries with provided code, the sub-directory README file
+(e.g. lib/reax/README) has instructions on how to build that library.
 Typically this is done by typing something like:
 
 make -f Makefile.g++ :pre
@@ -802,20 +805,20 @@ is built with, typically requires additional Fortran-to-C libraries be
 included in the link.  Another example are the BLAS and LAPACK
 libraries needed to use the USER-ATC or USER-AWPMD packages.
 
-For libraries without provided source code, the file
-src/package/README has information on where to find the library and
-how to build it, e.g. src/VORONOI/README.  There is also a
-Makefile.lammps file in the src/package directory.  E.g. files
-src/KIM/Makefile.lammps or src/VORONOI/Makefile.lammps or
-src/UESR-MOLFILE/Makefile.lammps.  These files serve the same purpose
-as the lib/package/Makefile.lammps files described above.  The files
-have settings needed when LAMMPS is built to link with the
-corresponding auxiliary library.
+For libraries without provided code, the sub-directory README file has
+information on where to download the library and how to build it,
+e.g. lib/voronoi/README.  The README files also describe how you must
+create soft links, via the "ln" command, in those directories to point
+to where you built or installed the packages.  Some of the
+directories, e.g. lib/voronoi, also have an install.py script which
+can be used to automate the process of downloading/building/installing
+the auxiliary library, and setting the needed soft links.  Type
+"python install.py" for further instructions.
 
-Again, you must insure that the settings in
-src/package/Makefile.lammps are appropriate for your system and where
-you installed the auxiliary library.  If they are not, the LAMMPS
-build will typically fail.
+Siimlar to directories with provided code, these directories also have
+Makefile.lammps files which serve the same purpose as described above.
+If the soft links or settings in the lib/package/Makefile.lammps files
+are not correct, the LAMMPS build will typically fail.
 
 :line
 
@@ -906,6 +909,13 @@ can be used to automate various steps of the build process.  It is
 particularly useful for working with the accelerator packages, as well
 as other packages which require auxiliary libraries to be built.
 
+The goal of the Make.py tool is to allow any complex multi-step LAMMPS
+build to be performed as a single Make.py command.  And you can
+archive the commands, so they can be re-invoked later via the -r
+(redo) switch.  If you find some LAMMPS build procedure that can't be
+done in a single Make.py command, let the developers know, and we'll
+see if we can augment the tool.
+
 You can run Make.py from the src directory by typing either:
 
 Make.py -h
@@ -920,13 +930,13 @@ chmod +x Make.py :pre
 Here are examples of build tasks you can perform with Make.py:
 
 Install/uninstall packages: Make.py -p no-lib kokkos omp intel
-Build specific auxiliary libs: Make.py lib-atc lib-meam
-Build libs for all installed packages: Make.py -p cuda gpu -gpu mode=double arch=31 lib-all
-Create a Makefile from scratch with compiler and MPI settings: Make.py -m none -cc g++ -mpi mpich file
-Augment Makefile.serial with settings for installed packages: Make.py -p intel -intel cpu -m serial file
-Add JPG and FFTW support to Makefile.mpi: Make.py -m mpi -jpg -fft fftw file
-Build LAMMPS with a parallel make using Makefile.mpi: Make.py -j 16 -m mpi exe
-Build LAMMPS and libs it needs using Makefile.serial with accelerator settings: Make.py -p gpu intel -intel cpu lib-all file serial :tb(s=:)
+Build specific auxiliary libs: Make.py -a lib-atc lib-meam
+Build libs for all installed packages: Make.py -p cuda gpu -gpu mode=double arch=31 -a lib-all
+Create a Makefile from scratch with compiler and MPI settings: Make.py -m none -cc g++ -mpi mpich -a file
+Augment Makefile.serial with settings for installed packages: Make.py -p intel -intel cpu -m serial -a file
+Add JPG and FFTW support to Makefile.mpi: Make.py -m mpi -jpg -fft fftw -a file
+Build LAMMPS with a parallel make using Makefile.mpi: Make.py -j 16 -m mpi -a exe
+Build LAMMPS and libs it needs using Makefile.serial with accelerator settings: Make.py -p gpu intel -intel cpu -a lib-all file serial :tb(s=:)
 
 The bench and examples directories give Make.py commands that can be
 used to build LAMMPS with the various packages and options needed to
@@ -946,11 +956,15 @@ the "-h" switch.
 
 E.g. typing "Make.py -h" gives
 
-Syntax: Make.py switch args ... {action1} {action2} ...
-  actions:
-    lib-all, lib-dir, clean, file, exe or machine
-    zero or more actions, in any order (machine must be last)
-  switches:
+Syntax: Make.py switch args ...
+  switches can be listed in any order
+  help switch:
+    -h prints help and syntax for all other specified switches
+  switch for actions:
+    -a lib-all, lib-dir, clean, file, exe or machine
+    list one or more actions, in any order
+    machine is a Makefile.machine suffix, must be last if used
+  one-letter switches:
     -d (dir), -j (jmake), -m (makefile), -o (output),
     -p (packages), -r (redo), -s (settings), -v (verbose)
   switches for libs:

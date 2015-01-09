@@ -12,7 +12,9 @@ examples/USER/cuda.
 This package uses an external library in lib/cuda which must be
 compiled before making LAMMPS.  See the lib/cuda/README file and the
 LAMMPS manual for information on building LAMMPS with external
-libraries.
+libraries.  The settings in the Makefile.lammps file in that directory
+must be correct for LAMMPS to build correctly with this package
+installed.
 
 The person who created this package is Christian Trott at the
 University of Technology Ilmenau, Germany (christian.trott at

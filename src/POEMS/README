@@ -1,0 +1,12 @@
+This package implements the fix poems command for coupling multiple
+rigid bodies together.
+
+This package uses an external library in lib/poems which must be
+compiled before making LAMMPS.  See the lib/poems/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.  The settings in the Makefile.lammps file in that directory
+must be correct for LAMMPS to build correctly with this package
+installed.
+
+The people who created the POEMS library and this fix are Rudranarayan
+Mukherjee (while at RPI, now at NASA) and Kurt Anderson (RPI).

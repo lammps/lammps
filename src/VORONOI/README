@@ -2,35 +2,22 @@ The VORONOI package adds a compute voronoi/atom command which
 calculates a Voronoi tesselation of the system.
 
 It uses the Voro++ library, available at http://math.lbl.gov/voro++ to
-compute the tesselation locally on each processor.  
+compute the tesselation locally on each processor.  Voro++ was
+develped by Chris H. Rycroft while at UC Berkeley / Lawrence Berkeley
+Laboratory.
 
-== Installation of the Voro++ library ==
+That library can be downloaded and built in lib/voronoi or elsewhere
+on your system, which must be done before bulding LAMMPS with this
+package.  Details of the download, build, and install process for
+Voro++ are given in the lib/voronoi/README file, and scripts are
+provided to help automate the process.  Also see the LAMMPS manual for
+general information on building LAMMPS with external libraries.  The
+settings in the Makefile.lammps file in lib/voronoi must be correct
+for LAMMPS to build correctly with this package installed.
 
-1.  Download Voro++ at http://math.lbl.gov/voro++/download
-    which gives instructions for using SVN to check-out the source:
-    % svn checkout https://codeforge.lbl.gov/anonscm/voro/trunk
+Once you have successfully built LAMMPS with this package and Voro++,
+you can test it using an input file from the examples dir:
 
-2.  compile Voro++
-    % make 
-
-3.  install Voro++ at the default location (/usr/local) 
-    % sudo make install
-
-3b. ..or change the PREFIX variable in the config.mk file 
-    to a location that is writable by the user i.e.
-    PREFIX=/home/maxuser/install/
-
-4.  In the LAMMPS src directory add the VORONOI package
-    % make yes-voronoi
-
-4b. if a different PREFIX than the default was used to install Voro++
-    update the paths in the src/VORONOI/Makefile.lammps file
-
-5.  Compile LAMMPS (you should know how that works)
-
-== Run tests ==
-
-Run the includes test input file
 ./lmp_serial < lammps/examples/voronoi/in.voronoi | grep '^TEST_'
 
 The output should conclude with 'TEST_DONE' and every line should 

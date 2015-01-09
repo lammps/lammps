@@ -1,36 +1,37 @@
 This package implements the "fix colvars" command which can be used
 in a LAMMPS input script.
 
-This fix allows to use "collective variables" to implement
-Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
-Sampling and Restraints. This code consists of two parts:
+This fix allows use of "collective variables" to implement Adaptive
+Biasing Force, Metadynamics, Steered MD, Umbrella Sampling and
+Restraints.
 
-- a portable collective variable module library written
-  and maintained by Giacomo Fiorin (ICMS, Temple University,
-  Philadelphia, PA, USA) and Jerome Henin (IBPC, CNRS,
-  Paris, France).
+This package uses an external library in lib/colvars which must be
+compiled before making LAMMPS.  See the lib/colvars/README file and
+the LAMMPS manual for information on building LAMMPS with external
+libraries.  The settings in the Makefile.lammps file in that directory
+must be correct for LAMMPS to build correctly with this package
+installed.
 
-  A copy of this code is located in the directory lib/colvars
-  and needs to be compiled first. More info about this code
-  can be found at: http://colvars.github.io
+The external library is a portable collective variable module library
+written and maintained by Giacomo Fiorin (ICMS, Temple University,
+Philadelphia, PA, USA) and Jerome Henin (IBPC, CNRS, Paris, France).
 
-  and in the publications:
+More info about this library can be found at: http://colvars.github.io
 
-  Using collective variables to drive molecular dynamics
-  simulations,
+and in these publications:
 
-   Giacomo Fiorin, Michael L. Klein & Jérôme Hénin:
-   Molecular Physics, 111, 3345-3362 (2013)
+Using collective variables to drive molecular dynamics simulations,
+Giacomo Fiorin, Michael L. Klein & Jérôme Hénin: Molecular Physics,
+111, 3345-3362 (2013)
 
-  Exploring Multidimensional Free Energy Landscapes Using
-  Time-Dependent Biases on Collective Variables,
-   J. Hénin, G. Fiorin, C. Chipot, and M. L. Klein,
-   J. Chem. Theory Comput., 6, 35-47 (2010).
+Exploring Multidimensional Free Energy Landscapes Using Time-Dependent
+Biases on Collective Variables, J. Hénin, G. Fiorin, C. Chipot, and
+M. L. Klein, J. Chem. Theory Comput., 6, 35-47 (2010).
 
-- the colvars fix and a thin interface layer, which exchanges
-  information between LAMMPS and the collective variable module.
-  This interface was written and is maintained by
-  Axel Kohlmeyer (akohlmey@gmail.com)
+The colvars fix implementes a thin interface layer, which exchanges
+information between LAMMPS and the collective variable module.  This
+interface was written and is maintained by Axel Kohlmeyer
+(akohlmey@gmail.com)
 
 See the doc page of fix colvars for more details.
 
@@ -44,6 +45,5 @@ The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.
 
 ---------------------------------
-
 
 Version: 2014-08-13

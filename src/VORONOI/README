@@ -3,7 +3,7 @@ calculates a Voronoi tesselation of the system.
 
 It uses the Voro++ library, available at http://math.lbl.gov/voro++ to
 compute the tesselation locally on each processor.  Voro++ was
-develped by Chris H. Rycroft while at UC Berkeley / Lawrence Berkeley
+developed by Chris H. Rycroft while at UC Berkeley / Lawrence Berkeley
 Laboratory.
 
 That library can be downloaded and built in lib/voronoi or elsewhere

@@ -1,0 +1,139 @@
+# The "2beadFF" is a force-field environment object containing 
+# force-field data, atomic masses, and bond rules.
+# Later, when we define molecules (such as "H" and "P"), we can inherit
+# atom types and bond-rules from this force-field.  This will automatically
+# assign bonds and angular interactions according to atom (and bond) type.
+# (You can also assign charge by atom type.  However in this example I assigned
+#  charge to each atom manually (not by type).  The OPLSAA examples in the 
+#  "all_atoms" directory demonstrate how to assign charge by atom type.)
+
+
+
+2beadFF {
+
+  # There are 3 atom types:
+
+  write_once("Data Masses") {
+    @atom:CA   13.0
+    @atom:HR   50.0
+    @atom:PR   50.0
+  }
+
+  # 2-body (non-bonded) interactions:
+  #
+  #   Uij(r) = 4*eps_ij * ( (sig_ij/r)^12 - (sig_ij/r)^6 )
+  #
+  # Hydrophobic side-chain (R) atoms are attractive (large epsilon parameter).
+  # Polar side-chains and backbone atoms are not attractive (small epsilon).
+  #
+  #                 i        j       pairstylename   eps sig
+  #
+  write_once("In Settings") {
+    pair_coeff  @atom:CA  @atom:CA   lj/cut         0.10 2.0
+    pair_coeff  @atom:HR  @atom:HR   lj/cut         2.50 3.6
+    pair_coeff  @atom:PR  @atom:PR   lj/cut         0.10 3.6
+  }
+
+  # (By default, interactions between different AtomTypes use "arithmetic"rules:
+  #     eps_ij=sqrt(eps_ii*eps_ij)      and      sig_ij=0.5*(sig_ii+sig_jj)
+  #  Look for the line containing "pair_modify mix arithmetic" below...)
+
+  # Optional: Assign bond types @bond:Backbone or @bond:Sidechain
+  #           according to atom type.  (This can be overridden.)
+
+  write_once("Data Bonds By Type") {
+    @bond:Backbone   @atom:CA @atom:CA
+    @bond:Sidechain  @atom:CA @atom:HR
+    @bond:Sidechain  @atom:CA @atom:PR
+  }
+
+  # 2-body (bonded) interactions:
+  #
+  #   Ubond(r) = (k/2)*(r-0)^2
+  #
+  #   The corresponding command is:
+  #
+  #   bond_coeff     bondType    bondstylename   k     r0
+  #
+
+  write_once("In Settings") {
+    bond_coeff     @bond:Sidechain  harmonic    30.0   3.4
+    bond_coeff     @bond:Backbone   harmonic    30.0   3.7
+  }
+
+
+  #  Rules for determining 3 and 4-body bonded interactions by type
+
+  # angle-type      atomType1 atomType2 atomType3
+
+  write_once("Data Angles By Type") {
+    @angle:Backbone  @atom:CA @atom:CA  @atom:CA
+    @angle:Sidechain @atom:CA @atom:CA  @atom:*R  # Note: "*R" <--> "HR" or "PR"
+  }
+
+  # dihedral-type AtomType1 AtomType2 AtomType3 AtomType4
+
+  write_once("Data Dihedrals By Type") {
+    @dihedral:CCCC @atom:CA  @atom:CA @atom:CA @atom:CA
+    @dihedral:RCCR @atom:*R  @atom:CA @atom:CA @atom:*R  #"*R" <--> "HR" or "PR"
+  }
+
+  # 3-body interactions in this example are listed by atomType and bondType
+  # The atomIDs involved are determined automatically.  The forumula used is:
+  #
+  # Uangle(theta) = (k/2)*(theta-theta0)^2   
+  #     (k in kcal/mol/rad^2, theta0 in degrees)
+  #
+  # The corresponding command is:
+  #
+  #   angle_coeff  angleType  anglestylename   k   theta0
+
+  write_once("In Settings") {
+    angle_coeff @angle:Backbone   harmonic   30.00  114
+    angle_coeff @angle:Sidechain  harmonic   30.00  123
+  }
+
+
+  # 4-body interactions in this example are listed by atomType and bondType
+  # The atomIDs involved are determined automatically.  The forumula used is:
+  #
+  # Udihedral(phi) = K * (1 + cos(n*phi - d))
+  #
+  #     The d parameter is in degrees, K is in kcal/mol/rad^2.
+  #
+  # The corresponding command is 
+  # dihedral_coeff dihedralType dihedralstylename  K  n   d  w  (ignore "w")
+
+  write_once("In Settings") {
+    dihedral_coeff  @dihedral:CCCC   charmm      -0.5 1 -180 0.0
+    dihedral_coeff  @dihedral:RCCR   charmm      -1.5 1 -180 0.0
+  } # write_once("In Settings") 
+
+
+  # LAMMPS supports a large number of force-field styles.  We must select
+  # which ones we need.  This information belongs in the "In Init" section.
+  # (Hybrid styles used for portability. These choices can be overridden later.)
+
+  write_once("In Init") {
+    # -- Default styles for "2bead" --
+    # (Hybrid force fields were not necessary but are used for portability.)
+    units           real
+    atom_style      full
+    bond_style      hybrid harmonic
+    angle_style     hybrid harmonic
+    dihedral_style  hybrid charmm
+    pair_style      hybrid lj/cut 11.0
+
+    # If charges are needed, (assuming biopolymers), try one of:
+    #dielectric      80.0
+    #pair_style      hybrid lj/cut/coul/debye 0.1 11.0
+    # or (for short distances, below a couple nm)
+    #pair_style      hybrid lj/charmm/coul/charmm/implicit 9.0 11.0
+
+    pair_modify     mix arithmetic
+    special_bonds   lj 0.0 0.0 0.0
+  }
+
+
+}  # 2beadFF
+

@@ -1,0 +1,40 @@
+# PREREQUISITES:
+#
+#     You must use moltemplate.sh to create 3 files:
+#        system.data  system.in.init  system.in.settings
+#     (Follow the instructions in README_setup.sh, 
+#      or run the file as a script using ./README_setup.sh)
+#
+# ------------------------------- Initialization Section --------------------
+
+include         "system.in.init"
+
+# ------------------------------- Atom Definition Section -------------------
+
+read_data       "system.data"
+
+# ------------------------------- Settings Section --------------------------
+
+include         "system.in.settings"
+include         "system.in.charges"
+
+# ------------------------------- Run Section -------------------------------
+
+
+# -- minimization protocol --
+
+# Note: The minimization step is not necessary in this example.  However
+#       in general, it's always a good idea to minimize the system beforehand.
+#       (The "fShakeSPCE" fix was defined in system.in.settings. 
+#        It is incompatible with "minimize", so we disable it first.)
+thermo        50
+dump            1 all custom 50 traj_min.lammpstrj id mol type x y z ix iy iz
+minimize 1.0e-4 1.0e-6 100000 400000
+
+
+# (The "write_restart" and "read_restart" commands were buggy in 2012, 
+#  but they should work also.  I prefer "write_data" and "read_data".)
+
+write_data   system_after_min.data
+
+

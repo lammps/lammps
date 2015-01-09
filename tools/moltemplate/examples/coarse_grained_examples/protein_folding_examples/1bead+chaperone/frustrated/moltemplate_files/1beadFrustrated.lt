@@ -1,0 +1,216 @@
+# This file defines the "frustrated" coarse-grained protein model used in:
+# AI Jewett, A Baumketner and J-E Shea, PNAS, 101 (36), 13192-13197, (2004)
+# (http://www.pnas.org/content/101/36/13192)
+
+
+1beadFrustrated {
+
+  # There are 3 atom types (referred to above as B, L, and N)
+  # Define their masses:
+
+  write_once("Data Masses") {
+    @atom:B   1.0
+    @atom:L   1.0
+    @atom:N   1.0
+  }
+
+  #  AtomID  MoleculeID  AtomType  Charge  X        Y         Z
+
+  write("Data Atoms") {
+    $atom:a1  $mol  @atom:L  0.0   -0.92636654 -1.8409904 -2.1482679
+    $atom:a2  $mol  @atom:B  0.0   -0.57313354 -1.0670787 -1.6182341
+    $atom:a3  $mol  @atom:L  0.0   -0.85707399 -1.2358703 -0.69350966
+    $atom:a4  $mol  @atom:B  0.0   -0.44231274 -0.4584993 -0.23418709
+    $atom:a5  $mol  @atom:L  0.0   -0.75081182 -0.62868078 0.69786737
+    $atom:a6  $mol  @atom:B  0.0   -0.36201977 0.11619615 1.2249098
+    $atom:a7  $mol  @atom:N  0.0   -0.63708237 -0.15973084 2.1723919
+    $atom:a8  $mol  @atom:N  0.0   0.20516047 0.10417157 2.624901
+    $atom:a9  $mol  @atom:B  0.0   0.57223743 0.44728103 1.7695617
+    $atom:a10 $mol  @atom:L  0.0   0.77646279 -0.40630393 1.3168043
+    $atom:a11 $mol  @atom:B  0.0   0.45475664 -0.2077937 0.40045721
+    $atom:a12 $mol  @atom:L  0.0   0.72712495 -1.0397637 -0.087614951
+    $atom:a13 $mol  @atom:B  0.0   0.36971183 -0.85840501 -0.9933019
+    $atom:a14 $mol  @atom:L  0.0   0.74784336 -1.5700415 -1.5859217
+    $atom:a15 $mol  @atom:N  0.0   0.43423905 -1.2758917 -2.4853429
+    $atom:a16 $mol  @atom:N  0.0   0.70583191 -0.30726921 -2.4987711
+    $atom:a17 $mol  @atom:N  0.0   -0.091688915 0.23323014 -2.2051358
+    $atom:a18 $mol  @atom:B  0.0   -0.34243283 -0.035822049 -1.2644719
+    $atom:a19 $mol  @atom:B  0.0   0.41961247 0.18475451 -0.65971014
+    $atom:a20 $mol  @atom:L  0.0   0.51968465 1.1546791 -0.77877053
+    $atom:a21 $mol  @atom:L  0.0   -0.40827985 1.2765273 -0.52550748
+    $atom:a22 $mol  @atom:B  0.0   -0.368141 0.58090904 0.19152224
+    $atom:a23 $mol  @atom:B  0.0   0.40327249 0.86101769 0.7336255
+    $atom:a24 $mol  @atom:L  0.0   0.22707289 1.8326235 0.89673346
+    $atom:a25 $mol  @atom:L  0.0   -0.66500182 1.7285809 1.2783166
+    $atom:a26 $mol  @atom:B  0.0   -0.39205603 1.0475436 1.9328097
+    $atom:a27 $mol  @atom:L  0.0   0.25339027 1.5246265 2.5388463
+  }
+
+  # bond-ID   bond-Type      atom-ID  atom-ID
+
+  write("Data Bonds") {
+    $bond:b1 @bond:backbone  $atom:a1 $atom:a2
+    $bond:b2 @bond:backbone  $atom:a2 $atom:a3
+    $bond:b3 @bond:backbone  $atom:a3 $atom:a4
+    $bond:b4 @bond:backbone  $atom:a4 $atom:a5
+    $bond:b5 @bond:backbone  $atom:a5 $atom:a6
+    $bond:b6 @bond:backbone  $atom:a6 $atom:a7
+    $bond:b7 @bond:backbone  $atom:a7 $atom:a8
+    $bond:b8 @bond:backbone  $atom:a8 $atom:a9
+    $bond:b9 @bond:backbone  $atom:a9 $atom:a10
+    $bond:b10 @bond:backbone  $atom:a10 $atom:a11
+    $bond:b11 @bond:backbone  $atom:a11 $atom:a12
+    $bond:b12 @bond:backbone  $atom:a12 $atom:a13
+    $bond:b13 @bond:backbone  $atom:a13 $atom:a14
+    $bond:b14 @bond:backbone  $atom:a14 $atom:a15
+    $bond:b15 @bond:backbone  $atom:a15 $atom:a16
+    $bond:b16 @bond:backbone  $atom:a16 $atom:a17
+    $bond:b17 @bond:backbone  $atom:a17 $atom:a18
+    $bond:b18 @bond:backbone  $atom:a18 $atom:a19
+    $bond:b19 @bond:backbone  $atom:a19 $atom:a20
+    $bond:b20 @bond:backbone  $atom:a20 $atom:a21
+    $bond:b21 @bond:backbone  $atom:a21 $atom:a22
+    $bond:b22 @bond:backbone  $atom:a22 $atom:a23
+    $bond:b23 @bond:backbone  $atom:a23 $atom:a24
+    $bond:b24 @bond:backbone  $atom:a24 $atom:a25
+    $bond:b25 @bond:backbone  $atom:a25 $atom:a26
+    $bond:b26 @bond:backbone  $atom:a26 $atom:a27
+  }
+
+  # (3-body) Angles are specified below
+
+  # (4-body) Dihedrals must be defined explicitly for every quartet of atoms.
+  #          (These interactions are not determined by atom type.)
+
+  # dihedral-ID   dihedral-Type    atom-ID  atom-ID  atom-ID  atom-ID
+
+  write("Data Dihedrals") {
+
+    $dihedral:d1  @dihedral:beta  $atom:a1 $atom:a2 $atom:a3 $atom:a4
+    $dihedral:d2  @dihedral:beta  $atom:a2 $atom:a3 $atom:a4 $atom:a5
+    $dihedral:d3  @dihedral:beta  $atom:a3 $atom:a4 $atom:a5 $atom:a6
+    $dihedral:d4  @dihedral:beta  $atom:a4 $atom:a5 $atom:a6 $atom:a7
+
+    #    Dihedral angle forces in the turn regions were switched off
+    #    (in this model) so just I comment them out (and \ the variable names).
+    # \$dihedral:d5  \@dihedral:turn  $atom:a5 $atom:a6 $atom:a7 $atom:a8
+    # \$dihedral:d6  \@dihedral:turn  $atom:a6 $atom:a7 $atom:a8 $atom:a9
+    # \$dihedral:d7  \@dihedral:turn  $atom:a7 $atom:a8 $atom:a9 $atom:a10
+
+    $dihedral:d8  @dihedral:beta  $atom:a8 $atom:a9 $atom:a10 $atom:a11
+    $dihedral:d9  @dihedral:beta  $atom:a9 $atom:a10 $atom:a11 $atom:a12
+    $dihedral:d10  @dihedral:beta  $atom:a10 $atom:a11 $atom:a12 $atom:a13
+    $dihedral:d11  @dihedral:beta  $atom:a11 $atom:a12 $atom:a13 $atom:a14
+    $dihedral:d12  @dihedral:beta  $atom:a12 $atom:a13 $atom:a14 $atom:a15
+
+    #    Dihedral angle forces in the turn regions were switched off
+    #    (in this model) so just I comment them out (and \ the variable names).
+    # \$dihedral:d13  \@dihedral:turn  $atom:a13 $atom:a14 $atom:a15 $atom:a16
+    # \$dihedral:d14  \@dihedral:turn  $atom:a14 $atom:a15 $atom:a16 $atom:a17
+
+    $dihedral:d15  @dihedral:alpha  $atom:a15 $atom:a16 $atom:a17 $atom:a18
+    $dihedral:d16  @dihedral:alpha  $atom:a16 $atom:a17 $atom:a18 $atom:a19
+    $dihedral:d17  @dihedral:alpha  $atom:a17 $atom:a18 $atom:a19 $atom:a20
+    $dihedral:d18  @dihedral:alpha  $atom:a18 $atom:a19 $atom:a20 $atom:a21
+    $dihedral:d19  @dihedral:alpha  $atom:a19 $atom:a20 $atom:a21 $atom:a22
+    $dihedral:d20  @dihedral:alpha  $atom:a20 $atom:a21 $atom:a22 $atom:a23
+    $dihedral:d21  @dihedral:alpha  $atom:a21 $atom:a22 $atom:a23 $atom:a24
+    $dihedral:d22  @dihedral:alpha  $atom:a22 $atom:a23 $atom:a24 $atom:a25
+    $dihedral:d23  @dihedral:alpha  $atom:a23 $atom:a24 $atom:a25 $atom:a26
+    $dihedral:d24  @dihedral:alpha  $atom:a24 $atom:a25 $atom:a26 $atom:a27
+  }
+
+  # All consecutively bonded triplets of atoms same 3-body bond-angle 
+  # interaction parameters.  Of coarse, we could specify them all explicitly
+  # (as we did for the dihedrals above), but I wanted to show how to specify
+  # angles by atom type instead.  (You can do this for dihedrals & impropers
+  # also.)
+
+  #     angle-Type     atom-Type  atom-Type  atom-Type   bond-Type bond-Type
+
+  write_once("Data Angles By Type") {
+    @angle:backbone @atom:* @atom:* @atom:*  @bond:* @bond:*
+  }
+
+  # (The "*" is a wildcard character.  I use "*" to denote any atom-type or
+  #  bond-type which is defined within the current namespace: 1beadFrustrated)
+
+
+  # 2-body (non-bonded) interactions:
+  #
+  #   Uij(r) = 4*eps_ij * (K*(sig_ij/r)^12 + L*(sig_ij/r)^6)
+  #
+  #              i       j           pairstylename             eps      sig K L
+  #
+  write_once("In Settings") {
+    pair_coeff @atom:B @atom:B lj/charmm/coul/charmm/inter 1.0          1.0 1 -1
+    pair_coeff @atom:B @atom:L lj/charmm/coul/charmm/inter 0.5833333333 1.0 1 0
+    pair_coeff @atom:B @atom:N lj/charmm/coul/charmm/inter 0.6666666667 1.0 1 0
+    pair_coeff @atom:L @atom:L lj/charmm/coul/charmm/inter 0.1666666667 1.0 1 1
+    pair_coeff @atom:L @atom:N lj/charmm/coul/charmm/inter 0.25         1.0 1 0
+    pair_coeff @atom:N @atom:N lj/charmm/coul/charmm/inter 0.3333333333 1.0 1 0
+  }
+
+
+  # 2-body (bonded) interactions:
+  #
+  #   Ubond(r) = (k/2)*(r-0)^2
+  #
+  #   The corresponding command is:
+  #
+  #                  bond-Type   bondstylename     k    r0
+
+  write_once("In Settings") {
+    bond_coeff     @bond:backbone   harmonic    100.0  1.0
+  }
+
+  # 3-body interactions in this example are listed by atomType and bondType
+  # The atomIDs involved are determined automatically.  The forumula used is:
+  #
+  # Uangle(theta) = (k/2)*(theta-theta0)^2   
+  #     (k in kcal/mol/rad^2, theta0 in degrees)
+  #
+  #                 angle-Type   anglestylename    k         theta0
+
+  write_once("In Settings") {
+    angle_coeff    @angle:backbone  harmonic   13.3333333333  105.0
+  }
+
+
+  # We use tabular dihedral potentials to implement the dihedral forces.
+  # (Actually there is a way to use Fourier series, using multiple charmm 
+  #  style dihedral interactions, but it's slower and messier.)
+
+  write_once("In Settings") {
+    #                              style           file                 keyword
+    dihedral_coeff @dihedral:alpha table  table_dihedral_frustrated.dat FRUSTRATED_ALPHA
+    dihedral_coeff @dihedral:beta  table  table_dihedral_frustrated.dat FRUSTRATED_BETA
+    # No need to specify dihedral interactions in the turn regions. (none exist)
+  }
+
+  write_once("In Settings") {
+    # Optional: define the atoms in the "proteins" group
+    group proteins type @atom:B
+    group proteins type @atom:L
+    group proteins type @atom:N
+  }
+
+  # LAMMPS has many available force field styles (and atom styles). 
+  # Here, we pick the ones which work well for this molecular model:
+
+  write_once("In Init") {
+    # --- Default options for the "1BeadFrustrated" protein model ---
+    # ---            (These can be overridden later.)             ---
+    units           lj
+    atom_style      full
+    bond_style      hybrid harmonic
+    angle_style     hybrid harmonic
+    dihedral_style  hybrid table spline 360
+    pair_style      hybrid lj/charmm/coul/charmm/inter es4k4l maxmax 3.5 4.0
+    pair_modify     mix arithmetic
+    special_bonds   lj 0.0 0.0 1.0   #(turn on "1-4" interactions)
+  }
+
+} # 1beadFrustrated
+
+

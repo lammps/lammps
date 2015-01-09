@@ -14,15 +14,9 @@ with VMD are usually installed in a directory inside the VMD
 installation tree named "plugins/<VMDARCH>/molfile".
 
 To be able to dynamically load and execute the plugins from inside
-LAMMPS, you need to link with a system library containing functions
-like dlopen(), dlsym() and so on for dynamic linking of executable
-code into an executable.  This library is defined by setting the
-molfile_SYSLIB variable in lib/molfile/Makefile.lammps.  For Linux and
-most current unix-like operating systems, this can be kept at the
-default setting of "-ldl" (on some platforms this library is called
-"-ldld").  For compilation on Windows, a slightly different mechanism
-is used that is part of the Windows programming environment and this
-library is not needed.
+LAMMPS, you need to link with an appropriate system library, which
+is done using the settings in lib/molfile/Makefile.lammps.  See
+that file and the lib/molfile/README file for more details.
 
 NOTE: while the programming interface (API) to the molfile plugins is
 backward compatible (i.e. you can expect to be able to compile this
@@ -31,10 +25,11 @@ package for plugins from newer VMD packages), the binary interface
 molfile plugin header files (vmdplugin.h and molfile_plugin.h) taken
 from the _same_ VMD installation that the (binary) plugin files are
 taken from.  These header files can be found inside the VMD
-installation tree under: "plugins/include".  For your convenience,
-this package ships with a set of header files compatible with VMD 1.9
-and 1.9.1 (the current version in June 2012) and should be compilable
-with VMD versions back to about version 1.8.4
+installation tree under: "plugins/include".
+
+For convenience, this package includes a set of header files that is
+compatible with VMD 1.9 and 1.9.1 (the current version in June 2012)
+and should be compilable with VMD versions back to about version 1.8.4
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.

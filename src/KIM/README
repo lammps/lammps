@@ -1,4 +1,4 @@
-The KIM package adds a pair_style kim command which is a wrapper on
+This package provides a pair_style kim command which is a wrapper on
 the Knowledge Base for Interatomic Models (KIM) repository of
 interatomic potentials, so that they can be used by LAMMPS scripts.
 
@@ -23,4 +23,3 @@ library you can test it using an input file from the examples dir:
 
 This pair_style was written by Valeriu Smirichinski and Ryan
 S. Elliott (U Minn).
-                         

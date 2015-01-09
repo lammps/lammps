@@ -38,7 +38,6 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathExtra;
 
 enum{NONE,XYZ,XY,YZ,XZ};     // same as in FixRigid
 enum{ISO,ANISO,TRICLINIC};   // same as in FixRigid
@@ -355,11 +354,13 @@ void FixRigidNH::setup(int vflag)
   // trigger virial computation on next timestep
     
   if (pstat_flag) { 
-    compute_press_target();
-    
-    temperature->compute_scalar();
-    if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    if (pstyle == ISO) {
+      temperature->compute_scalar();
+      pressure->compute_scalar();
+    } else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
   }
@@ -407,6 +408,11 @@ void FixRigidNH::setup(int vflag)
       wdti2[i] = wdti1[i] / 2.0;
       wdti4[i] = wdti1[i] / 4.0;
     }
+  }
+
+  if (pstat_flag) { 
+    compute_press_target();
+    nh_epsilon_dot();
   }
 }
 
@@ -507,11 +513,11 @@ void FixRigidNH::initial_integrate(int vflag)
     
     // step 1.4 to 1.13 - use no_squish rotate to update p and q
   
-    no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
-    no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
-    no_squish_rotate(1,conjqm[ibody],quat[ibody],inertia[ibody],dtv);
-    no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
-    no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
+    MathExtra::no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
+    MathExtra::no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
+    MathExtra::no_squish_rotate(1,conjqm[ibody],quat[ibody],inertia[ibody],dtv);
+    MathExtra::no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
+    MathExtra::no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
   
     // update exyz_space
     // transform p back to angmom

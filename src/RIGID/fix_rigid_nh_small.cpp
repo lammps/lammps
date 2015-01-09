@@ -383,9 +383,14 @@ void FixRigidNHSmall::setup(int vflag)
   if (pstat_flag) { 
     compute_press_target();
     
-    temperature->compute_scalar();
-    if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    if (pstyle == ISO) {
+      temperature->compute_scalar();
+      pressure->compute_scalar();
+    } else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
+
     couple();
     pressure->addstep(update->ntimestep+1);
   }
@@ -433,6 +438,11 @@ void FixRigidNHSmall::setup(int vflag)
       wdti2[i] = wdti1[i] / 2.0;
       wdti4[i] = wdti1[i] / 4.0;
     }
+  }
+
+  if (pstat_flag) { 
+    compute_press_target();
+    nh_epsilon_dot();
   }
 }
 

@@ -41,7 +41,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-using namespace MathExtra;
 
 enum{SINGLE,MOLECULE,GROUP};	// same as in FixRigid
 enum{ISO,ANISO,TRICLINIC};	// same as in FixRigid
@@ -58,35 +57,6 @@ typedef struct { double x,y,z; } dbl3_t;
 void FixRigidNHOMP::initial_integrate(int vflag)
 {
   double scale_r,scale_t[3],scale_v[3];
-  
-  // compute target temperature
-  // update thermostat chains coupled to particles
-  
-  if (tstat_flag) {
-    compute_temp_target();
-    nhc_temp_integrate();
-  }
-
-  // compute target pressure
-  // update epsilon dot
-  // update thermostat coupled to barostat
-  
-  if (pstat_flag) {
-    nhc_press_integrate();
-    
-    if (pstyle == ISO) {
-      temperature->compute_scalar();
-      pressure->compute_scalar();
-    } else {
-      temperature->compute_vector();
-      pressure->compute_vector();
-    }
-    couple();
-    pressure->addstep(update->ntimestep+1);
-  
-    compute_press_target();
-    nh_epsilon_dot();
-  }  
   
   // compute scale variables
 
@@ -181,11 +151,11 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     
     // step 1.4 to 1.13 - use no_squish rotate to update p and q
   
-    no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
-    no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
-    no_squish_rotate(1,conjqm[ibody],quat[ibody],inertia[ibody],dtv);
-    no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
-    no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
+    MathExtra::no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
+    MathExtra::no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
+    MathExtra::no_squish_rotate(1,conjqm[ibody],quat[ibody],inertia[ibody],dtv);
+    MathExtra::no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
+    MathExtra::no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
   
     // update exyz_space
     // transform p back to angmom
@@ -213,6 +183,22 @@ void FixRigidNHOMP::initial_integrate(int vflag)
   if (pstat_flag || tstat_flag) {
     akin_t = akt;
     akin_r = akr;
+  }
+
+  // compute target temperature
+  // update thermostat chains using akin_t and akin_r
+  // refer to update_nhcp() in Kamberaj et al.
+
+  if (tstat_flag) {
+    compute_temp_target();
+    nhc_temp_integrate();
+  }
+    
+  // update thermostat chains coupled with barostat
+  // refer to update_nhcb() in Kamberaj et al.
+
+  if (pstat_flag) {
+    nhc_press_integrate();
   }
 
   // virial setup before call to set_xv
@@ -506,25 +492,27 @@ void FixRigidNHOMP::final_integrate()
   else
     set_v_thr<0,0>();
   
-  // compute temperature and pressure tensor
-  // couple to compute current pressure components
-  // trigger virial computation on next timestep
-  
+  // compute current temperature
   if (tcomputeflag) t_current = temperature->compute_scalar();
+
+  // compute current and target pressures
+  // update epsilon dot using akin_t and akin_r
+  
   if (pstat_flag) {
-    if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    if (pstyle == ISO) {
+      temperature->compute_scalar();
+      pressure->compute_scalar();
+    } else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
-  }
 
-  if (pstat_flag) nh_epsilon_dot();  
-  
-  // update eta_dot_t and eta_dot_r
-  // update eta_dot_b
-      
-  if (tstat_flag) nhc_temp_integrate();
-  if (pstat_flag) nhc_press_integrate();  
+    compute_press_target();
+
+    nh_epsilon_dot();
+  }
 }
 
 /* ---------------------------------------------------------------------- */

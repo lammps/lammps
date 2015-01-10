@@ -43,7 +43,7 @@ if (test $1 = 1) then
     sed -i -e '/^include.*molfile.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
-include ..\/..\/molfile\/kim\/Makefile.lammps
+include ..\/..\/lib\/molfile\/Makefile.lammps
 ' ../Makefile.package.settings
   fi
 

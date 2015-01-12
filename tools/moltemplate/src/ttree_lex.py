@@ -917,23 +917,9 @@ class OSrcLoc(object):
         every tree, so that if a syntax error or broken link in that node
         is discovered, an error message can be provided to the user.
 
-        "order"
-            Later on, during development, the "order" member was added.  Why:
-        If you want to know whether block of text comes before or after a
-        different block of text, unfortunately you can not just compare the 
-        corresponding line numbers of the files they come from because the 
-        files may differ, and multiple short blocks of text may occupy the 
-        same line.  Consequently, "OSrcLoc" also maintains an internal 
-        counter which keeps track of how many OSrcLoc() objects have been
-        created so far.  (This can be useful if the user requests that 
-        variables and commands be assigned in a non-standard order.)
-        The "order" member is assigned to this counter.
-        Most of the time, the "order" member can be ignored.
-
     """
 
-    __slots__=["infile","lineno","order"]
-
+    __slots__ = ["infile","lineno","order"]
     count = 0
 
     def __init__(self, infile='', lineno=-1):
@@ -1073,7 +1059,7 @@ class VarBinding(object):
                  nptr      = None,
                  value     = None,
                  refs      = None,
-                 order     = None,
+                 order     = -1,
                  category  = None):
         self.full_name = full_name
         self.nptr      = nptr

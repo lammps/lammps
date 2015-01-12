@@ -1,0 +1,79 @@
+DPPC {
+
+  write_once("In Init") {
+    units           real
+    atom_style      full
+    bond_style      hybrid harmonic
+    angle_style     hybrid cosine/squared 
+    dihedral_style  none
+    improper_style  none
+    #pair_style      hybrid lj/gromacs/coul/gromacs 9 12 0.000001 12  
+    pair_style      hybrid lj/gromacs/coul/gromacs 9 12 0.000001 12
+    special_bonds   lj/coul 0 1 1
+    dielectric      15
+    neigh_modify    every 10
+  }
+
+  write("Data Atoms") {
+    $atom:1  $mol:. @atom:Q0  1.0  9.09   9.83   0.75 
+    $atom:2  $mol:. @atom:Qa -1.0  5.68   7.31   0.00
+    $atom:3  $mol:. @atom:Na  0.0  5.50   5.61   3.28
+    $atom:4  $mol:. @atom:Na  0.0  6.65   2.22   3.04
+    $atom:5  $mol:. @atom:C1  0.0  5.15   7.65   7.06
+    $atom:6  $mol:. @atom:C1  0.0  7.91   7.17   10.54
+    $atom:7  $mol:. @atom:C1  0.0  9.24   8.25   14.96
+    $atom:8  $mol:. @atom:C1  0.0  12.19  11.75  16.38
+    $atom:9  $mol:. @atom:C1  0.0  5.52   1.61   7.40
+    $atom:10 $mol:. @atom:C1  0.0  6.53   2.26   12.25
+    $atom:11 $mol:. @atom:C1  0.0  3.51   1.81   16.01
+    $atom:12 $mol:. @atom:C1  0.0  0.00   0.00   18.19
+  }
+  write("Data Bonds") {
+    $bond:b1    @bond:Bo   $atom:1  $atom:2
+    $bond:b2    @bond:Bo   $atom:2  $atom:3
+    $bond:b3    @bond:Short $atom:3  $atom:4
+    $bond:b4    @bond:Bo   $atom:3  $atom:5
+    $bond:b5    @bond:Bo   $atom:5  $atom:6
+    $bond:b6    @bond:Bo   $atom:6  $atom:7
+    $bond:b7    @bond:Bo   $atom:7  $atom:8
+    $bond:b8    @bond:Bo   $atom:4  $atom:9
+    $bond:b9    @bond:Bo   $atom:9  $atom:10
+    $bond:b10   @bond:Bo   $atom:10 $atom:11
+    $bond:b11   @bond:Bo   $atom:11 $atom:12
+  }
+  write("Data Angles") {
+    $angle:a1   @angle:An1  $atom:1   $atom:2   $atom:3
+    $angle:a2   @angle:An2  $atom:2   $atom:3   $atom:5
+    $angle:a3   @angle:An2  $atom:2   $atom:3   $atom:4
+    $angle:a4   @angle:An2  $atom:4   $atom:3   $atom:5
+    $angle:a5   @angle:An1  $atom:3   $atom:4   $atom:9
+    $angle:a6   @angle:An1  $atom:3   $atom:5   $atom:6
+    $angle:a7   @angle:An1  $atom:5   $atom:6   $atom:7
+    $angle:a8   @angle:An1  $atom:6   $atom:7   $atom:8
+    $angle:a9   @angle:An1  $atom:4   $atom:9   $atom:10
+    $angle:a10  @angle:An1  $atom:9   $atom:10  $atom:11
+    $angle:a11  @angle:An1  $atom:10  $atom:11  $atom:12
+  }
+  write_once("Data Masses") {
+    @atom:Q0  72.0
+    @atom:Qa  72.0
+    @atom:Na  72.0
+    @atom:C1  72.0
+  }
+  write_once("In Settings") {
+    pair_coeff @atom:Q0 @atom:Q0 lj/gromacs/coul/gromacs  0.8365200764818 4.7
+    pair_coeff @atom:Q0 @atom:Qa lj/gromacs/coul/gromacs  1.0755258126195 4.7
+    pair_coeff @atom:Q0 @atom:Na lj/gromacs/coul/gromacs  0.9560229445507 4.7
+    pair_coeff @atom:Q0 @atom:C1 lj/gromacs/coul/gromacs  0.4780114722753 6.2
+    pair_coeff @atom:Qa @atom:Qa lj/gromacs/coul/gromacs  1.1950286806883 4.7
+    pair_coeff @atom:Qa @atom:Na lj/gromacs/coul/gromacs  0.9560229445507 4.7
+    pair_coeff @atom:Qa @atom:C1 lj/gromacs/coul/gromacs  0.4780114722753 6.2
+    pair_coeff @atom:Na @atom:Na lj/gromacs/coul/gromacs  0.9560229445507 4.7
+    pair_coeff @atom:Na @atom:C1 lj/gromacs/coul/gromacs  0.6453154875717 4.7
+    pair_coeff @atom:C1 @atom:C1 lj/gromacs/coul/gromacs  0.8365200764818 4.7
+    bond_coeff @bond:Bo           harmonic              1.4937858508604 4.7 
+    bond_coeff @bond:Short        harmonic              1.4937858508604 3.7
+    angle_coeff  @angle:An1       cosine/squared        2.9875717017208 180 
+    angle_coeff  @angle:An2       cosine/squared        2.9875717017208 120 
+  }
+} #DPPC

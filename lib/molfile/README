@@ -1,0 +1,22 @@
+This directory has a Makefile.lammps file with settings that allows
+LAMMPS to dynamically link to the VMD molfile library.  This is
+required to use the USER-MOLFILE package and its interface to the dump
+and write_dump commands in a LAMMPS input script.
+
+More information about the VMD molfile plugins can be found at
+http://www.ks.uiuc.edu/Research/vmd/plugins/molfile.
+
+More specifically, to be able to dynamically load and execute the
+plugins from inside LAMMPS, you need to link with a system library
+containing functions like dlopen(), dlsym() and so on for dynamic
+linking of executable code into an executable.  This library is
+defined by setting the molfile_SYSLIB variable in the Makefile.lammps
+file in this dir.
+
+For Linux and most current unix-like operating systems, this can be
+kept at the default setting of "-ldl" (on some platforms this library
+is called "-ldld").  For compilation on Windows, a slightly different
+mechanism is used that is part of the Windows programming environment
+and this library is not needed.
+
+See the header of Makefile.lammps for more info.

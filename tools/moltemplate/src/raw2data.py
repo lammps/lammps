@@ -4,8 +4,8 @@
 from dump2data import *
 
 g_program_name = 'raw2data.py'
-g_date_str     = '2013-9-19'
-g_version_str  = 'v0.42'
+g_date_str     = '2014-12-19'
+g_version_str  = 'v0.43'
 
 #######  Main Code Below: #######
 sys.stderr.write(g_program_name+' '+g_version_str+' '+g_date_str)
@@ -86,6 +86,8 @@ try:
                          frame_coords_ixiyiz,
                          frame_vects,
                          frame_velocities,
+                         None,
+                         None,
                          frame_xlo_str, frame_xhi_str, 
                          frame_ylo_str, frame_yhi_str, 
                          frame_zlo_str, frame_zhi_str,

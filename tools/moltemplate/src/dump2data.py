@@ -562,6 +562,8 @@ def WriteFrameToData(out_file,
                      coords_ixiyiz,
                      vects,
                      velocities,
+                     atomtypes,
+                     molids,
                      xlo_str, xhi_str, 
                      ylo_str, yhi_str, 
                      zlo_str, zhi_str,
@@ -632,6 +634,14 @@ def WriteFrameToData(out_file,
                 if (section == 'Atoms'):
                     tokens = line.split()
                     atomid = tokens[0]
+
+                    # update the atomtype and molID
+                    # (which may change during the simulation)
+                    if atomtypes:
+                        tokens[data_settings.i_atomtype] = atomtypes[atomid]
+                    if molids and data_settings.i_molid:
+                        tokens[data_settings.i_molid] = molids[atomid]
+
                     if atomid in coords:
                         # Loop over all of the vector degrees of
                         # freedom of the particle, excluding coords
@@ -748,8 +758,8 @@ def WriteFrameToData(out_file,
 if __name__ == "__main__":
 
     g_program_name = 'dump2data.py'
-    g_date_str     = '2013-10-30'
-    g_version_str  = 'v0.43'
+    g_date_str     = '2014-12-19'
+    g_version_str  = 'v0.50'
 
     #######  Main Code Below: #######
     sys.stderr.write(g_program_name+' '+g_version_str+' '+g_date_str+' ')
@@ -788,6 +798,8 @@ if __name__ == "__main__":
         frame_coords_ixiyiz = defaultdict(list)
         frame_vects = defaultdict(list)
         frame_velocities = defaultdict(list)
+        frame_atomtypes = defaultdict(list)
+        frame_molid = defaultdict(list)
         frame_xlo_str = frame_xhi_str = None
         frame_ylo_str = frame_yhi_str = None
         frame_zlo_str = frame_zhi_str = None
@@ -826,14 +838,20 @@ if __name__ == "__main__":
                       ColNames2AidAtypeMolid(dump_column_names)
                     #ii_coords = ColNames2Coords(dump_column_names)
 
+                    x_already_unwrapped = False
+                    y_already_unwrapped = False
+                    z_already_unwrapped = False
+
                     if 'x' in dump_column_names:
                         i_x = dump_column_names.index('x')
                     elif 'xu' in dump_column_names:
                         i_xu = dump_column_names.index('xu')
+                        x_already_unwrapped = True
                     elif 'xs' in dump_column_names:
                         i_xs = dump_column_names.index('xs')
                     elif 'xsu' in dump_column_names:
                         i_xsu = dump_column_names.index('xsu')
+                        x_already_unwrapped = True
                     else:
                         raise InputError('Error(dump2data): \"ATOMS\" section of dump file lacks a \"x\" column.\n'+
                                          '       (excerpt below)\n' + line)
@@ -842,10 +860,12 @@ if __name__ == "__main__":
                         i_y = dump_column_names.index('y')
                     elif 'yu' in dump_column_names:
                         i_yu = dump_column_names.index('yu')
+                        y_already_unwrapped = True
                     elif 'ys' in dump_column_names:
                         i_ys = dump_column_names.index('ys')
                     elif 'ysu' in dump_column_names:
                         i_ysu = dump_column_names.index('ysu')
+                        y_already_unwrapped = True
                     else:
                         raise InputError('Error(dump2data): \"ATOMS\" section of dump file lacks a \"y\" column.\n'+
                                          '       (excerpt below)\n' + line)
@@ -854,10 +874,12 @@ if __name__ == "__main__":
                         i_z = dump_column_names.index('z')
                     elif 'zu' in dump_column_names:
                         i_zu = dump_column_names.index('zu')
+                        z_already_unwrapped = True
                     elif 'zs' in dump_column_names:
                         i_zs = dump_column_names.index('zs')
                     elif 'zsu' in dump_column_names:
                         i_zsu = dump_column_names.index('zsu')
+                        z_already_unwrapped = True
                     else:
                         raise InputError('Error(dump2data): \"ATOMS\" section of dump file lacks a \"z\" column.\n'+
                                          '       (excerpt below)\n' + line)
@@ -888,7 +910,6 @@ if __name__ == "__main__":
                     if 'vz' in dump_column_names:
                         i_vz = dump_column_names.index('vz')
 
-
                 elif (section.find('ITEM: BOX BOUNDS') == 0):
                     avec=[1.0, 0.0, 0.0]
                     bvec=[0.0, 1.0, 0.0]
@@ -906,6 +927,8 @@ if __name__ == "__main__":
                     frame_coords_ixiyiz = defaultdict(list)
                     frame_vects  = defaultdict(list)
                     frame_velocities = defaultdict(list)
+                    frame_atomtypes = defaultdict(list)
+                    frame_molids = defaultdict(list)
                     frame_xlo_str = frame_xhi_str = None
                     frame_ylo_str = frame_yhi_str = None
                     frame_zlo_str = frame_zhi_str = None
@@ -954,6 +977,11 @@ if __name__ == "__main__":
                 elif (section.find('ITEM: ATOMS') == 0):
                     tokens = line.split()
                     atomid = tokens[i_atomid]
+                    atomtype = tokens[i_atomtype]
+                    frame_atomtypes[atomid] = atomtype
+                    if i_molid:
+                        molid = tokens[i_molid]
+                        frame_molids[atomid] = molid
 
                     if ((i_x != -1) and (i_y != -1) and (i_z != -1)):
                         x  = float(tokens[i_x]) #i_x determined above
@@ -987,47 +1015,44 @@ if __name__ == "__main__":
                         z = float(zlo_str) + xsu*avec[2] + ysu*bvec[2] + zsu*cvec[2]
 
                     # Now deal with ix, iy, iz
-                    if i_ix != -1:
+                    if (i_ix != -1) and (not x_already_unwrapped):
                         ix = int(tokens[i_ix])
                         if (misc_settings.center_frame or
                             (misc_settings.output_format != 'data')):
-                            #sys.stderr.write('ix = '+str(ix)+', avec='+str(avec)+'\n')
+                            #sys.stderr.write('atomid='+str(atomid)+', ix = '+str(ix)+', avec='+str(avec)+'\n')
                             x += ix*avec[0]
                             y += ix*avec[1]
                             z += ix*avec[2]
                         else:
                             if atomid not in frame_coords_ixiyiz:
                                 frame_coords_ixiyiz[atomid] = ["0", "0", "0"]
-                            else:
-                                frame_coords_ixiyiz[atomid][0] = str(ix)
+                            frame_coords_ixiyiz[atomid][0] = str(ix)
 
-                    if i_iy != -1:
+                    if (i_iy != -1) and (not y_already_unwrapped):
                         iy = int(tokens[i_iy])
                         if (misc_settings.center_frame or
                             (misc_settings.output_format != 'data')):
-                            #sys.stderr.write('iy = '+str(iy)+', bvec='+str(bvec)+'\n')
+                            #sys.stderr.write('atomid='+str(atomid)+', iy = '+str(iy)+', bvec='+str(bvec)+'\n')
                             x += iy*bvec[0]
                             y += iy*bvec[1]
                             z += iy*bvec[2]
                         else:
                             if atomid not in frame_coords_ixiyiz:
                                 frame_coords_ixiyiz[atomid] = ["0", "0", "0"]
-                            else:
-                                frame_coords_ixiyiz[atomid][1] = str(iy)
+                            frame_coords_ixiyiz[atomid][1] = str(iy)
 
-                    if i_iz != -1:
+                    if (i_iz != -1) and (not z_already_unwrapped):
                         iz = int(tokens[i_iz])
                         if (misc_settings.center_frame or
                             (misc_settings.output_format != 'data')):
-                            #sys.stderr.write('iz = '+str(iz)+', cvec='+str(cvec)+'\n')
+                            #sys.stderr.write('atomid='+str(atomid)+', iz = '+str(iz)+', cvec='+str(cvec)+'\n')
                             x += iz*cvec[0]
                             y += iz*cvec[1]
                             z += iz*cvec[2]
                         else:
                             if atomid not in frame_coords_ixiyiz:
                                 frame_coords_ixiyiz[atomid] = ["0", "0", "0"]
-                            else:
-                                frame_coords_ixiyiz[atomid][2] = str(iz)
+                            frame_coords_ixiyiz[atomid][2] = str(iz)
 
                     #frame_coords[atomid] = [str(x), str(y), str(z)]
                     frame_coords[atomid] = [x, y, z]
@@ -1234,6 +1259,8 @@ if __name__ == "__main__":
                                          frame_coords_ixiyiz,
                                          frame_vects,
                                          frame_velocities,
+                                         frame_atomtypes,
+                                         frame_molids,
                                          frame_xlo_str, frame_xhi_str, 
                                          frame_ylo_str, frame_yhi_str, 
                                          frame_zlo_str, frame_zhi_str,

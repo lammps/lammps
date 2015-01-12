@@ -59,14 +59,14 @@
       suitable command line from below.
     </p>
     <ul>
-      <li>Enabling the repository for Fedora 17 and later:<br>
+      <li>Enabling the repository for Fedora 18 and later:<br>
         <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
           &nbsp;<code>
             su -c 'yum localinstall --nogpgcheck http://git.icms.temple.edu/rpm/fedora/lammps-fedora-repo-1-2.noarch.rpm'
           </code><br>
         </div>
         </li>
-      <li>Enabling the repository for CentOS or RedHat Enterprise Linux 6.4 and later:<br>
+      <li>Enabling the repository for CentOS or RedHat Enterprise Linux 6.6 and later:<br>
         <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
           &nbsp;<code>
             su -c 'yum localinstall --nogpgcheck http://git.icms.temple.edu/rpm/centos/lammps-centos-rhel-repo-1-2.noarch.rpm'
@@ -94,7 +94,20 @@
             su -c 'zypper ar -t rpm-md -G -f -c http://git.icms.temple.edu/rpm/suse/12.3/x86_64 lammps-icms'
           </code><br>
         </div>
-        </li>
+      </li>
+      <li>Enabling the repository on openSuSE 13.1 for 32-bit x86:<br>
+        <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
+          &nbsp;<code>
+            su -c 'zypper ar -t rpm-md -G -f -c http://git.icms.temple.edu/rpm/suse/13.1/i586 lammps-icms'
+          </code><br>
+        </div>
+      <li>Enabling the repository on openSuSE 13.1 for 64-bit x86:<br>
+        <div style="background-color: #e8e8f0; padding: 5px; margin: 5px;">
+          &nbsp;<code>
+            su -c 'zypper ar -t rpm-md -G -f -c http://git.icms.temple.edu/rpm/suse/13.1/x86_64 lammps-icms'
+          </code><br>
+        </div>
+      </li>
     </ul>
     <hr width="100%">
 
@@ -180,7 +193,7 @@
     <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
 <!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
 <!-- hhmts start -->
-Last modified: Thu Jun 27 14:28:16 CEST 2013
+Last modified: Mon Jan 12 17:13:45 EST 2015
 <!-- hhmts end -->
   </body>
 </html>

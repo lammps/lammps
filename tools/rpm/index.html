@@ -36,7 +36,7 @@
       resolved automatically when using yum to install the packages.
 
       The LAMMPS binaries contain <b>all</b> optional packages included in
-      the source distribution <b>except</b>: GPU, KIM, KOKKOS, USER-CUDA,
+      the source distribution <b>except</b>: GPU, KIM, KOKKOS, REAX, USER-CUDA,
       and USER-INTEL since those depend on libraries that do not exist as
       regular RPM packages and/or where the license is incompatible with
       including them in a binary distribution like this one. In addition
@@ -44,6 +44,9 @@
       has been superseded by the C/C++ version in the USER-REAXC package.
       The USER-REAXC code has been proven to produce results consistent
       with the Fortran version and be faster and more flexible.
+      In addition, the serial and python packages do <b>not</b> include
+      the MPIIO and USER-LB packages, since those depend on MPI-IO functions
+      which are not available with the serial MPI stub library in LAMMPS.
     </p>
     <div style="clear:both;"></div>
     <hr>
@@ -75,11 +78,11 @@
           <strong><code>module load</code></strong> and
           <strong><code>module unload</code></strong> commands</dd>
 
-        <dt><b>lammps-mpich2</b></dt>
-        <dd>LAMMPS executable compiled with MPICH2 and multi-threading via OpenMP.
+        <dt><b>lammps-mpich</b> or <b>lammps-mpich2</b></dt>
+        <dd>LAMMPS executable compiled with MPICH3 or MPICH2 and multi-threading via OpenMP.
           The name of the executable is: <strong><code>lmp_g++</code></strong>.
           Switching between the serial and parallel executable is done via
-          loading the MPICH2 environment module using the
+          loading the MPICH or MPICH2 environment module using the
           <strong><code>module load</code></strong> and
           <strong><code>module unload</code></strong> commands</dd>
 
@@ -119,9 +122,9 @@
       Binary RPMs are currently provided for up-to-date versions of
       <a href="http://www.redhat.com/rhel/" target="_blank">Red Hat Enterprise Linux</a>
       or <a href="http://www.centos.org/" target="_blank">CentOS</a>
-      (version 6.4 at the time of this writing),
+      (version 6.6 or 7.0 at the time of this writing),
       <a href="http://fedoraproject.org" target="_blank">Fedora</a>
-      (versions 17, 18, 19 and 20 at the time of this writing)
+      (versions 18, 19, 20 and 21 at the time of this writing)
       and <a href="http://www.opensuse.org/" target="_blank">OpenSuSE</a>
       (versions 12.3 and 13.1 as of this writing) for 32-bit (i386/i586) and
       64-bit (x86_64) Intel/AMD x86 CPU versions. Binaries for
@@ -180,14 +183,14 @@
     <p align="justify">
       For Gentoo Linux LAMMPS has been integrated by Nicolas Bock and Christoph Junghans
       into the portage system and LAMMPS can be configured and installed using the emerge
-      command. Basinc instructions are on the
+      command. Basic instructions are on the
       <a href="http://lammps.sandia.gov/download.html#gentoo">LAMMPS Download page</a>.
     </p>
     <hr>
     <address><a href="http://goo.gl/1wk0" target="_blank">Axel Kohlmeyer</a></address>
 <!-- Created: Fri Jun 14 08:59:35 CEST 2013 -->
 <!-- hhmts start -->
-Last modified: Wed Nov 20 18:08:07 CET 2013
+Last modified: Mon Jan 12 17:14:10 EST 2015
 <!-- hhmts end -->
   </body>
 </html>

@@ -34,6 +34,7 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*voronoi[^ \t]* //' ../Makefile.package
+    sed -i -e 's/[^ \t]*voro++[^ \t]* //' ../Makefile.package
     sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/voronoi/includelink |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/voronoi/liblink |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lvoro++ |' ../Makefile.package

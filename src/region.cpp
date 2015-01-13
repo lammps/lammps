@@ -260,13 +260,13 @@ void Region::rotate(double &x, double &y, double &z, double angle)
 
   double sine = sin(angle);
   double cosine = cos(angle);
-  double x0dotr = x*runit[0] + y*runit[1] + z*runit[2];
-  c[0] = x0dotr * runit[0];
-  c[1] = x0dotr * runit[1];
-  c[2] = x0dotr * runit[2];
   d[0] = x - point[0];
   d[1] = y - point[1];
   d[2] = z - point[2];
+  double x0dotr = d[0]*runit[0] + d[1]*runit[1] + d[2]*runit[2];
+  c[0] = x0dotr * runit[0];
+  c[1] = x0dotr * runit[1];
+  c[2] = x0dotr * runit[2];
   a[0] = d[0] - c[0];
   a[1] = d[1] - c[1];
   a[2] = d[2] - c[2];

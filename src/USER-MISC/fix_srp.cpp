@@ -162,8 +162,8 @@ void FixSRP::setup_pre_force(int zz)
     xold[i][2] = x[i][2];
   }
 
-  int *tag = atom->tag;
-  int tagold[nall];
+  tagint *tag = atom->tag;
+  tagint tagold[nall];
 
   for(int i = 0; i < nall; i++){
     tagold[i]=tag[i];

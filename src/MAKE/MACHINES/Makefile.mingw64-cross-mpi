@@ -15,7 +15,7 @@ DEPFLAGS =	-M
 
 LINK =		x86_64-w64-mingw32-g++ -static
 LINKFLAGS =	-O2 -march=core2 -mtune=core2 -mpc64 -msse2 -fopenmp
-LIB =           -lwsock32 -static-libgcc
+LIB =           -lwsock32 -static-libgcc -lquadmath
 SIZE =		x86_64-w64-mingw32-size
 
 ARCHIVE =	x86_64-w64-mingw32-ar

@@ -100,7 +100,7 @@ simulation with 2 atom types.  Type 1 is Si, type 2 is C.  The
 following commands would model the Si atoms with Tersoff, the C atoms
 with Tersoff, and the cross-interactions with Lennard-Jones:
 
-pair_style hybrid lj/cut tersoff tersoff
+pair_style hybrid lj/cut 2.5 tersoff tersoff
 pair_coeff * * tersoff 1 Si.tersoff Si NULL 
 pair_coeff * * tersoff 2 C.tersoff NULL C
 pair_coeff 1 2 lj/cut 1.0 1.5 :pre

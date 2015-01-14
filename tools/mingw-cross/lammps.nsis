@@ -95,9 +95,6 @@ Section "${LAMMPS}"
   File ${MINGW}/${LIBGCC}
   File ${MINGW}/libgfortran-3.dll
   File ${MINGW}/libgomp-1.dll
-  File ${MINGW}/libjpeg-62.dll
-  File ${MINGW}/libpng15-15.dll
-  File ${MINGW}/zlib1.dll
   File ${MINGW}/libquadmath-0.dll
   File ${MINGW}/libstdc++-6.dll
   File ${MINGW}/pthreadGC2.dll

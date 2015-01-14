@@ -557,24 +557,24 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf)
   int *num_improper = cptr->atom->num_improper;
 
   int **bond_type = cptr->atom->bond_type;
-  int **bond_atom = cptr->atom->bond_atom;
+  tagint **bond_atom = cptr->atom->bond_atom;
 
   int **angle_type = cptr->atom->angle_type;
-  int **angle_atom1 = cptr->atom->angle_atom1;
-  int **angle_atom2 = cptr->atom->angle_atom2;
-  int **angle_atom3 = cptr->atom->angle_atom3;
+  tagint **angle_atom1 = cptr->atom->angle_atom1;
+  tagint **angle_atom2 = cptr->atom->angle_atom2;
+  tagint **angle_atom3 = cptr->atom->angle_atom3;
 
   int **dihedral_type = cptr->atom->dihedral_type;
-  int **dihedral_atom1 = cptr->atom->dihedral_atom1;
-  int **dihedral_atom2 = cptr->atom->dihedral_atom2;
-  int **dihedral_atom3 = cptr->atom->dihedral_atom3;
-  int **dihedral_atom4 = cptr->atom->dihedral_atom4;
+  tagint **dihedral_atom1 = cptr->atom->dihedral_atom1;
+  tagint **dihedral_atom2 = cptr->atom->dihedral_atom2;
+  tagint **dihedral_atom3 = cptr->atom->dihedral_atom3;
+  tagint **dihedral_atom4 = cptr->atom->dihedral_atom4;
 
   int **improper_type = cptr->atom->improper_type;
-  int **improper_atom1 = cptr->atom->improper_atom1;
-  int **improper_atom2 = cptr->atom->improper_atom2;
-  int **improper_atom3 = cptr->atom->improper_atom3;
-  int **improper_atom4 = cptr->atom->improper_atom4;
+  tagint **improper_atom1 = cptr->atom->improper_atom1;
+  tagint **improper_atom2 = cptr->atom->improper_atom2;
+  tagint **improper_atom3 = cptr->atom->improper_atom3;
+  tagint **improper_atom4 = cptr->atom->improper_atom4;
 
   int nlocal = cptr->atom->nlocal;
 

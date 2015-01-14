@@ -72,8 +72,8 @@ energy. Therefore, this compute can apply perturbations to interaction
 parameters that are not directly proportional to the potential energy
 (e.g. &sigma; in Lennard-Jones potentials).
 
-This command can be combined with "fix adapt/fep"_fix_adapt_fep.html
-to perform multistage free-energy perturbation calculations along
+This command can be combined with "fix adapt"_fix_adapt.html to
+perform multistage free-energy perturbation calculations along
 stepwise alchemical transformations during a simulation run:
 
 :c,image(Eqs/compute_fep_fep.jpg)
@@ -86,8 +86,8 @@ perturbation method using a very small &delta;:
 :c,image(Eqs/compute_fep_fdti.jpg)
 
 where {w}<sub>i</sub> are weights of a numerical quadrature. The "fix
-adapt/fep"_fix_adapt_fep.html command can be used to define the stages
-of &lambda; at which the derivative is calculated and averaged.
+adapt"_fix_adapt.html command can be used to define the stages of
+&lambda; at which the derivative is calculated and averaged.
 
 The compute fep calculates the exponential Boltzmann term and also the
 potential energy difference {U}<sub>1</sub>-{U}<sub>0</sub>. By
@@ -136,9 +136,14 @@ the meaning of these parameters:
 "lj/cut"_pair_lj.html: epsilon,sigma: type pairs:
 "lj/cut/coul/cut"_pair_lj.html: epsilon,sigma: type pairs:
 "lj/cut/coul/long"_pair_lj.html: epsilon,sigma: type pairs:
-"lj/soft/coul/soft"_pair_lj_soft_coul_soft.html: epsilon,sigma,lambda: type pairs:
-"lj/soft"_pair_lj_soft_coul_soft.html: epsilon,sigma,lambda: type pairs:
-"coul/soft"_pair_lj_soft_coul_soft.html: lambda: type pairs:
+"lj/cut/soft"_pair_lj_soft.html: epsilon,sigma,lambda: type pairs:
+"coul/cut/soft"_pair_lj_soft.html: lambda: type pairs:
+"coul/long/soft"_pair_lj_soft.html: lambda: type pairs:
+"lj/cut/coul/cut/soft"_pair_lj_soft.html: epsilon,sigma,lambda: type pairs:
+"lj/cut/coul/long/soft"_pair_lj_soft.html: epsilon,sigma,lambda: type pairs:
+"lj/cut/tip4p/long/soft"_pair_lj_soft.html: epsilon,sigma,lambda: type pairs:
+"tip4p/long/soft"_pair_lj_soft.html: lambda: type pairs:
+"lj/charmm/coul/long/soft"_pair_lj_soft.html: epsilon,sigma,lambda: type pairs:
 "born"_pair_born.html: a,b,c: type pairs:
 "buck"_pair_buck.html: a,c : type pairs :tb(c=3,s=:)
 

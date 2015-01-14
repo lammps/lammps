@@ -83,8 +83,8 @@ energy. Therefore, this compute can apply perturbations to interaction
 parameters that are not directly proportional to the potential energy
 (e.g. &sigma; in Lennard-Jones potentials).
 </P>
-<P>This command can be combined with <A HREF = "fix_adapt_fep.html">fix adapt/fep</A>
-to perform multistage free-energy perturbation calculations along
+<P>This command can be combined with <A HREF = "fix_adapt.html">fix adapt</A> to
+perform multistage free-energy perturbation calculations along
 stepwise alchemical transformations during a simulation run:
 </P>
 <CENTER><IMG SRC = "Eqs/compute_fep_fep.jpg">
@@ -96,9 +96,9 @@ perturbation method using a very small &delta;:
 </P>
 <CENTER><IMG SRC = "Eqs/compute_fep_fdti.jpg">
 </CENTER>
-<P>where <I>w</I><sub>i</sub> are weights of a numerical quadrature. The <A HREF = "fix_adapt_fep.html">fix
-adapt/fep</A> command can be used to define the stages
-of &lambda; at which the derivative is calculated and averaged.
+<P>where <I>w</I><sub>i</sub> are weights of a numerical quadrature. The <A HREF = "fix_adapt.html">fix
+adapt</A> command can be used to define the stages of
+&lambda; at which the derivative is calculated and averaged.
 </P>
 <P>The compute fep calculates the exponential Boltzmann term and also the
 potential energy difference <I>U</I><sub>1</sub>-<I>U</I><sub>0</sub>. By
@@ -148,9 +148,14 @@ the meaning of these parameters:
 <TR><TD ><A HREF = "pair_lj.html">lj/cut</A></TD><TD > epsilon,sigma</TD><TD > type pairs</TD></TR>
 <TR><TD ><A HREF = "pair_lj.html">lj/cut/coul/cut</A></TD><TD > epsilon,sigma</TD><TD > type pairs</TD></TR>
 <TR><TD ><A HREF = "pair_lj.html">lj/cut/coul/long</A></TD><TD > epsilon,sigma</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_lj_soft_coul_soft.html">lj/soft/coul/soft</A></TD><TD > epsilon,sigma,lambda</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_lj_soft_coul_soft.html">lj/soft</A></TD><TD > epsilon,sigma,lambda</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_lj_soft_coul_soft.html">coul/soft</A></TD><TD > lambda</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj_soft.html">lj/cut/soft</A></TD><TD > epsilon,sigma,lambda</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj_soft.html">coul/cut/soft</A></TD><TD > lambda</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj_soft.html">coul/long/soft</A></TD><TD > lambda</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj_soft.html">lj/cut/coul/cut/soft</A></TD><TD > epsilon,sigma,lambda</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj_soft.html">lj/cut/coul/long/soft</A></TD><TD > epsilon,sigma,lambda</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj_soft.html">lj/cut/tip4p/long/soft</A></TD><TD > epsilon,sigma,lambda</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj_soft.html">tip4p/long/soft</A></TD><TD > lambda</TD><TD > type pairs</TD></TR>
+<TR><TD ><A HREF = "pair_lj_soft.html">lj/charmm/coul/long/soft</A></TD><TD > epsilon,sigma,lambda</TD><TD > type pairs</TD></TR>
 <TR><TD ><A HREF = "pair_born.html">born</A></TD><TD > a,b,c</TD><TD > type pairs</TD></TR>
 <TR><TD ><A HREF = "pair_buck.html">buck</A></TD><TD > a,c </TD><TD > type pairs 
 </TD></TR></TABLE></DIV>

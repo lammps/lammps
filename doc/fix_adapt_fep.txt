@@ -232,6 +232,12 @@ over the course of a 1000-step simulation:
 variable size equal ramp(1.0,0.1)
 fix 1 center adapt 10 atom diameter * v_size :pre
 
+When the "run style"_run_style.html is {respa}, this fix changes
+parameters only on the outer loop (largest) timesteps, which means
+that the frequency parameter {N} has to be commensurate with the step
+numbers for those outer steps. Otherwise invocation will be less
+frequent than expected.
+
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
@@ -244,7 +250,11 @@ commands"_Section_howto.html#howto_15.  No parameter of this fix can
 be used with the {start/stop} keywords of the "run"_run.html command.
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] none
+[Restrictions:]
+
+When the "run style"_run_style.html is {respa}, this fix is only
+invoked on outer loop time steps that are also commensurate with
+the frequency parameter {N}.
 
 [Related commands:]
 

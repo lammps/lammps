@@ -624,7 +624,8 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf)
       while (m < n) {
         if (hash->find(dihedral_atom1[i][m]) != hash->end() ||
             hash->find(dihedral_atom2[i][m]) != hash->end() ||
-            hash->find(dihedral_atom3[i][m]) != hash->end()) {
+            hash->find(dihedral_atom3[i][m]) != hash->end() ||
+            hash->find(dihedral_atom4[i][m]) != hash->end()) {
           dihedral_type[i][m] = dihedral_type[i][n-1];
           dihedral_atom1[i][m] = dihedral_atom1[i][n-1];
           dihedral_atom2[i][m] = dihedral_atom2[i][n-1];
@@ -642,7 +643,8 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf)
       while (m < n) {
         if (hash->find(improper_atom1[i][m]) != hash->end() ||
             hash->find(improper_atom2[i][m]) != hash->end() ||
-            hash->find(improper_atom3[i][m]) != hash->end()) {
+            hash->find(improper_atom3[i][m]) != hash->end() ||
+            hash->find(improper_atom4[i][m]) != hash->end()) {
           improper_type[i][m] = improper_type[i][n-1];
           improper_atom1[i][m] = improper_atom1[i][n-1];
           improper_atom2[i][m] = improper_atom2[i][n-1];

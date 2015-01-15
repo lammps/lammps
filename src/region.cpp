@@ -241,17 +241,16 @@ void Region::inverse_transform(double &x, double &y, double &z)
    rotate x,y,z by angle via right-hand rule around point and runit normal
    sign of angle determines whether rotating forward/backward in time
    return updated x,y,z
-   P = point = vector = point of rotation
-   R = vector = axis of rotation
-   w = omega of rotation (from period)
-   X0 = x,y,z = initial coord of atom
+   R = vector axis of rotation
+   P = point = point to rotate around
    R0 = runit = unit vector for R
-   C = (X0 dot R0) R0 = projection of atom coord onto R
+   X0 = x,y,z = initial coord of atom
    D = X0 - P = vector from P to X0
-   A = D - C = vector from R line to X0
-   B = R0 cross A = vector perp to A in plane of rotation
+   C = (D dot R0) R0 = projection of D onto R, i.e. Dparallel
+   A = D - C = vector from R line to X0, i.e. Dperp
+   B = R0 cross A = vector perp to A in plane of rotation, same len as A
    A,B define plane of circular rotation around R line
-   x,y,z = P + C + A cos(w*dt) + B sin(w*dt)
+   new x,y,z = P + C + A cos(angle) + B sin(angle)
 ------------------------------------------------------------------------- */
 
 void Region::rotate(double &x, double &y, double &z, double angle)

@@ -81,34 +81,34 @@ TOOLDIR=lammps-current/tools
 MINGW32FLAGS="-DLAMMPS_SMALLSMALL -O2 -march=i686  -mtune=generic -mfpmath=387 -mpc64 "
 MINGW64FLAGS="-DLAMMPS_SMALLBIG   -O2 -march=core2 -mtune=core2   -mpc64 -msse2"
 
-i686-w64-mingw32-g++   ${MINGW32FLAGS} -o mingw32/restart2data.exe ${TOOLDIR}/restart2data.cpp
-x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -o mingw64/restart2data.exe ${TOOLDIR}/restart2data.cpp
+i686-w64-mingw32-g++   ${MINGW32FLAGS} -static -o mingw32/restart2data.exe ${TOOLDIR}/restart2data.cpp
+x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -static -o mingw64/restart2data.exe ${TOOLDIR}/restart2data.cpp
 
-i686-w64-mingw32-g++   ${MINGW32FLAGS} -o mingw32/binary2txt.exe ${TOOLDIR}/binary2txt.cpp
-x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -o mingw64/binary2txt.exe ${TOOLDIR}/binary2txt.cpp
+i686-w64-mingw32-g++   ${MINGW32FLAGS} -static -o mingw32/binary2txt.exe ${TOOLDIR}/binary2txt.cpp
+x86_64-w64-mingw32-g++ ${MINGW64FLAGS} -static -o mingw64/binary2txt.exe ${TOOLDIR}/binary2txt.cpp
 
-i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -o mingw32/chain.exe ${TOOLDIR}/chain.f
-x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -o mingw64/chain.exe ${TOOLDIR}/chain.f
+i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -static -o mingw32/chain.exe ${TOOLDIR}/chain.f -lquadmath
+x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -static -o mingw64/chain.exe ${TOOLDIR}/chain.f -lquadmath
 
-i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -o mingw32/createatoms.exe \
-	${TOOLDIR}/createatoms/createAtoms.f
-x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -o mingw64/createatoms.exe \
-	${TOOLDIR}/createatoms/createAtoms.f
+i686-w64-mingw32-gfortran   ${MINGW32FLAGS} -static -o mingw32/createatoms.exe \
+	${TOOLDIR}/createatoms/createAtoms.f -lquadmath
+x86_64-w64-mingw32-gfortran ${MINGW64FLAGS} -static -o mingw64/createatoms.exe \
+	${TOOLDIR}/createatoms/createAtoms.f -lquadmath
 
 make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/mingw32/msi2lmp.exe \
 	CC=i686-w64-mingw32-gcc CFLAGS="${MINGW32FLAGS}" clean
 make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/mingw32/msi2lmp.exe \
-	CC=i686-w64-mingw32-gcc CFLAGS="${MINGW32FLAGS}"
+	CC=i686-w64-mingw32-gcc CFLAGS="${MINGW32FLAGS}" LDFLAGS=-static
 make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/mingw64/msi2lmp.exe \
 	CC=x86_64-w64-mingw32-gcc CFLAGS="${MINGW64FLAGS}" clean
 make -C ${TOOLDIR}/msi2lmp/src TARGET=${PWD}/mingw64/msi2lmp.exe \
-	CC=x86_64-w64-mingw32-gcc CFLAGS="${MINGW64FLAGS}"
+	CC=x86_64-w64-mingw32-gcc CFLAGS="${MINGW64FLAGS}" LDFLAGS=-static
 
 make -C ${TOOLDIR}/colvars EXT=.exe clean
-make -C ${TOOLDIR}/colvars EXT=.exe CXX=i686-w64-mingw32-g++ CXXFLAGS="${MINGW32FLAGS}"
+make -C ${TOOLDIR}/colvars EXT=.exe CXX=i686-w64-mingw32-g++ CXXFLAGS="${MINGW32FLAGS}" LDFLAGS=-static
 cp ${TOOLDIR}/colvars/*.exe ${PWD}/mingw32/
 make -C ${TOOLDIR}/colvars EXT=.exe clean
-make -C ${TOOLDIR}/colvars EXT=.exe CXX=x86_64-w64-mingw32-g++ CXXFLAGS="${MINGW64FLAGS}"
+make -C ${TOOLDIR}/colvars EXT=.exe CXX=x86_64-w64-mingw32-g++ CXXFLAGS="${MINGW64FLAGS}" LDFLAGS=-static
 cp ${TOOLDIR}/colvars/*.exe ${PWD}/mingw64/
 
 # assemble and customize installer scripts 

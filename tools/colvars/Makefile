@@ -3,6 +3,7 @@ SHELL=/bin/sh
 # adjust as needed
 CXX=g++
 CXXFLAGS=-Wall -O2
+LDFLAGS=
 # set to .exe for windows
 EXT=
 #########################
@@ -13,7 +14,7 @@ clean:
 	-rm *~ *.o abf_integrate$(EXT) *.exe
 
 abf_integrate$(EXT): abf_integrate.o abf_data.o
-	$(CXX) -o $@ $(CXXFLAGS) $^
+	$(CXX) $(LDFLAGS) -o $@ $(CXXFLAGS) $^
 
 %.o: %.cpp
 	$(CXX) -o $@ -c $(CXXFLAGS) $<

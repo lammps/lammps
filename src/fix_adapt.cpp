@@ -26,6 +26,7 @@
 #include "fix_store.h"
 #include "input.h"
 #include "variable.h"
+#include "respa.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -368,6 +369,9 @@ void FixAdapt::init()
     if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
     fix_chg = (FixStore *) modify->fix[ifix];
   }
+
+  if (strstr(update->integrate_style,"respa"))
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -379,11 +383,27 @@ void FixAdapt::setup_pre_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixAdapt::setup_pre_force_respa(int vflag, int ilevel)
+{
+  if (ilevel < nlevels_respa-1) return;
+  setup_pre_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixAdapt::pre_force(int vflag)
 {
   if (nevery == 0) return;
   if (update->ntimestep % nevery) return;
   change_settings();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAdapt::pre_force_respa(int vflag, int ilevel)
+{
+  if (ilevel < nlevels_respa-1) return;
+  setup_pre_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

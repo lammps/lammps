@@ -211,6 +211,7 @@ int FixAdaptFEP::setmask()
   int mask = 0;
   mask |= PRE_FORCE;
   mask |= POST_RUN;
+  mask |= PRE_FORCE_RESPA;
   return mask;
 }
 
@@ -424,10 +425,10 @@ void FixAdaptFEP::pre_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixAdaptFEP::pre_force_respa(int vflag, int ilevel)
+void FixAdaptFEP::pre_force_respa(int vflag, int ilevel, int)
 {
   if (ilevel < nlevels_respa-1) return;
-  setup_pre_force(vflag);
+  pre_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -50,6 +50,11 @@ slowly drains all kinetic energy from the system.  The <A HREF = "pair_soft.html
 soft</A> potential can be used to un-overlap atoms while
 running dynamics.
 </P>
+<P>Note that you can minimize some atoms in the system while holding the
+coordiates of other atoms fixed by applying <A HREF = "fix_setforce.html">fix
+setforce</A> to the other atoms.  See a fuller
+discussion of using fixes while minimizing below.
+</P>
 <P>The <A HREF = "min_style.html">minimization styles</A> <I>cg</I>, <I>sd</I>, and <I>hftn</I>
 involves an outer iteration loop which sets the search direction along
 which atom coordinates are changed.  An inner iteration is then
@@ -211,8 +216,23 @@ during the minimization.
 </P>
 <P>Only a few other fixes (typically those that apply force constraints)
 are invoked during minimization.  See the doc pages for individual
-<A HREF = "fix.html">fix</A> commands to see which ones are relevant.
+<A HREF = "fix.html">fix</A> commands to see which ones are relevant.  Current
+examples of fixes that can be used include:
 </P>
+<UL><LI><A HREF = "fix_addforce.html">fix addforce</A>
+<LI><A HREF = "fix_addtorque.html">fix addtorque</A>
+<LI><A HREF = "fix_efield.html">fix efield</A>
+<LI><A HREF = "fix_enforce2d.html">fix enforce2d</A>
+<LI><A HREF = "fix_indent.html">fix indent</A>
+<LI><A HREF = "fix_lineforce.html">fix lineforce</A>
+<LI><A HREF = "fix_planeforce.html">fix planeforce</A>
+<LI><A HREF = "fix_setforce.html">fix setforce</A>
+<LI><A HREF = "fix_spring.html">fix spring</A>
+<LI><A HREF = "fix_spring_self.html">fix spring/self</A>
+<LI><A HREF = "fix_viscous.html">fix viscous</A>
+<LI><A HREF = "fix_wall.html">fix wall</A>
+<LI><A HREF = "fix_wall_region.html">fix wall/region</A> 
+</UL>
 <P>IMPORTANT NOTE: Some fixes which are invoked during minimization have
 an associated potential energy.  For that energy to be included in the
 total potential energy of the system (the quantity being minimized),

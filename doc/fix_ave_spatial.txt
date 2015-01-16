@@ -78,8 +78,8 @@ commands"_Section_howto.html#howto_15 such as "thermo_style
 custom"_thermo_style.html, and can also be written to a file.
 
 The group specified with the command means only atoms within the group
-contribute to bin averages.  If the {region} keyword is used, the
-atom must be in both the group and the specified geometric
+contribute to bin averages.  If the {region} keyword is used, the atom
+must be in both the specified group and the specified geometric
 "region"_region.html in order to contribute to bin averages.
 
 Each listed value can be an atom attribute (position, velocity, force

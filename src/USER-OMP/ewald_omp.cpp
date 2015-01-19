@@ -90,7 +90,7 @@ void EwaldOMP::compute(int eflag, int vflag)
   // (n.b. needs to be done outside of the multi-threaded region)
 
   if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
-    qsum_qsq(0);
+    qsum_qsq();
     natoms_original = atom->natoms;
   }
 

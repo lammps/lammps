@@ -420,7 +420,7 @@ void PairTIP4PCut::init_style()
   if (force->angle == NULL)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
   
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   // set alpha parameter
 

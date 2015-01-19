@@ -359,7 +359,7 @@ void PairReaxC::init_style( )
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->newton = 2;
   neighbor->requests[irequest]->ghost = 1;
 

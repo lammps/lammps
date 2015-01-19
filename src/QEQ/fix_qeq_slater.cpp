@@ -68,7 +68,7 @@ void FixQEqSlater::init()
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/slater group has no atoms");
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix  = 1;
   neighbor->requests[irequest]->half = 0;

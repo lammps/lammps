@@ -144,7 +144,7 @@ void ComputeSNAVAtom::init()
 
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->half = 0;

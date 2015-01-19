@@ -215,7 +215,7 @@ void PairCoulCutSoft::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/cut/soft requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

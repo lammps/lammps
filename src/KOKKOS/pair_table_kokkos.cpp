@@ -1249,7 +1249,7 @@ void *PairTableKokkos<DeviceType>::extract(const char *str, int &dim)
 template<class DeviceType>
 void PairTableKokkos<DeviceType>::init_style()
 {
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
   neighflag = lmp->kokkos->neighflag;
   int irequest = neighbor->nrequest - 1;
 

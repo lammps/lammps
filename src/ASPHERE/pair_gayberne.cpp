@@ -350,7 +350,7 @@ void PairGayBerne::init_style()
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   if (!avec) error->all(FLERR,"Pair gayberne requires atom style ellipsoid");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   // per-type shape precalculations
   // require that atom shapes are identical within each type

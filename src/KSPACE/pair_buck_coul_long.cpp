@@ -357,7 +357,7 @@ void PairBuckCoulLong::init_style()
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
   
   // setup force tables
 

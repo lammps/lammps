@@ -543,7 +543,7 @@ void PairLubricate::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair lubricate requires ghost atoms store velocity");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   // require that atom radii are identical within each type
   // require monodisperse system with same radii for all types

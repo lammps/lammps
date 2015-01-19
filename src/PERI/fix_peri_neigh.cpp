@@ -119,7 +119,7 @@ void FixPeriNeigh::init()
 
   // need a full neighbor list once
 
-  int irequest = neighbor->request((void *) this);
+  int irequest = neighbor->request(this);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix  = 1;
   neighbor->requests[irequest]->half = 0;

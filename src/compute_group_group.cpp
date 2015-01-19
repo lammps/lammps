@@ -150,7 +150,7 @@ void ComputeGroupGroup::init()
   // need an occasional half neighbor list
 
   if (pairflag) {
-    int irequest = neighbor->request((void *) this);
+    int irequest = neighbor->request(this);
     neighbor->requests[irequest]->pair = 0;
     neighbor->requests[irequest]->compute = 1;
     neighbor->requests[irequest]->occasional = 1;

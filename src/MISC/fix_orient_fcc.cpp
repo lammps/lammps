@@ -212,7 +212,7 @@ void FixOrientFCC::init()
 
   // need a full neighbor list, built whenever re-neighboring occurs
 
-  int irequest = neighbor->request((void *) this);
+  int irequest = neighbor->request(this);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix = 1;
   neighbor->requests[irequest]->half = 0;

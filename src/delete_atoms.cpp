@@ -254,7 +254,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   // request a full neighbor list for use by this command
 
-  int irequest = neighbor->request((void *) this);
+  int irequest = neighbor->request(this);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->command = 1;
   neighbor->requests[irequest]->half = 0;

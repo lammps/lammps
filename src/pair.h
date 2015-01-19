@@ -30,6 +30,8 @@ class Pair : protected Pointers {
   friend class ThrOMP;
 
  public:
+  static int instance_total;     // # of Pair classes ever instantiated
+
   double eng_vdwl,eng_coul;      // accumulated energies
   double virial[6];              // accumulated virial
   double *eatom,**vatom;         // accumulated per-atom energy/virial
@@ -182,6 +184,8 @@ class Pair : protected Pointers {
   virtual unsigned int data_mask_ext() {return datamask_ext;}
 
  protected:
+  int instance_me;        // which Pair class instantiation I am
+
   enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
 
   int special_lj[4];           // copied from force->special_lj for Kokkos

@@ -71,7 +71,7 @@ class Neighbor : protected Pointers {
   Neighbor(class LAMMPS *);
   virtual ~Neighbor();
   virtual void init();
-  int request(void *);              // another class requests a neighbor list
+  int request(void *, int instance=0);  // another class requests a neigh list
   void print_lists_of_lists();      // debug print out
   int decide();                     // decide whether to build or not
   virtual int check_distance();     // check max distance moved since last build

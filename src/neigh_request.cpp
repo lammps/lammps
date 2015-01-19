@@ -90,7 +90,7 @@ void NeighRequest::archive()
 
 /* ----------------------------------------------------------------------
    compare this request to other request
-   identical means all params set by requester are the same
+   identical means all params set by requestor are the same
    compare to original values in other if Neighbor may have changed them
    return 1 if identical, 0 if not
 ------------------------------------------------------------------------- */
@@ -100,10 +100,15 @@ int NeighRequest::identical(NeighRequest *other)
   int same = 1;
 
   // set same = 0 if old list was never processed
-
+  // use of requestor_instance and instance counter
+  //   prevents an old fix from being unfix/refix in same memory location
+  //   and appearing to be old, when it is really new
+  //   only needed for classes with persistent neigh lists: Fix, Compute, Pair
+  
   if (other->unprocessed) same = 0;
 
   if (requestor != other->requestor) same = 0;
+  if (requestor_instance != other->requestor_instance) same = 0;
   if (id != other->id) same = 0;
 
   if (pair != other->pair) same = 0;

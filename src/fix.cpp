@@ -23,10 +23,16 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+// allocate space for static class instance variable and initialize it
+
+int Fix::instance_total = 0;
+
 /* ---------------------------------------------------------------------- */
 
 Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
+  instance_me = instance_total++;
+
   // fix ID, group, and style
   // ID must be all alphanumeric chars or underscores
 

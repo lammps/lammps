@@ -224,6 +224,8 @@ void NeighList::print_attributes()
   NeighRequest *rq = neighbor->requests[index];
 
   printf("Neighbor list/request %d:\n",index);
+  printf("  %p = requestor ptr (instance %d id %d)\n",
+         rq->requestor,rq->requestor_instance,rq->id);
   printf("  %d = build flag\n",buildflag);
   printf("  %d = grow flag\n",growflag);
   printf("  %d = stencil flag\n",stencilflag);

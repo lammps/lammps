@@ -118,6 +118,7 @@ void FixAtomSwap::options(int narg, char **arg)
   if (narg < 0) error->all(FLERR,"Illegal fix atom/swap command");
 
   regionflag = 0; 
+  conserve_ke_flag = 1;
   iregion = -1; 
   
   int iarg = 0;
@@ -131,6 +132,12 @@ void FixAtomSwap::options(int narg, char **arg)
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
       regionflag = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"ke") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix atom/swap command");
+      if (strcmp(arg[iarg+1],"no") == 0) conserve_ke_flag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) conserve_ke_flag = 1;
+      else error->all(FLERR,"Illegal fix atom/swap command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix atom/swap command");
   }
@@ -184,6 +191,9 @@ void FixAtomSwap::init()
       }
     }
   }
+  
+  sqrt_mass_ratio_ij = sqrt(atom->mass[atom_swap_itype]/atom->mass[atom_swap_jtype]);
+  sqrt_mass_ratio_ji = sqrt(atom->mass[atom_swap_jtype]/atom->mass[atom_swap_itype]);
   
   // check to see if itype and jtype cutoffs are the same
   // if not, reneighboring will be needed between swaps
@@ -282,6 +292,18 @@ int FixAtomSwap::attempt_swap()
       exp(beta*(energy_before - energy_after))) {
     update_swap_atoms_list();
     energy_stored = energy_after;
+    if (conserve_ke_flag) {
+      if (i >= 0) {
+        atom->v[i][0] *= sqrt_mass_ratio_ij;
+        atom->v[i][1] *= sqrt_mass_ratio_ij;
+        atom->v[i][2] *= sqrt_mass_ratio_ij;
+      }
+      if (j >= 0) {
+        atom->v[j][0] *= sqrt_mass_ratio_ji;
+        atom->v[j][1] *= sqrt_mass_ratio_ji;
+        atom->v[j][2] *= sqrt_mass_ratio_ji;
+      }
+    }
     return 1;
   } else {
     if (i >= 0) {

@@ -166,7 +166,7 @@ void FixBondSwap::init()
 
   // need a half neighbor list, built every Nevery steps
 
-  int irequest = neighbor->request((void *) this);
+  int irequest = neighbor->request(this);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix = 1;
   neighbor->requests[irequest]->occasional = 1;

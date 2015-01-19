@@ -234,12 +234,6 @@ over the course of a 1000-step simulation:
 <PRE>variable size equal ramp(1.0,0.1)
 fix 1 center adapt 10 atom diameter v_size 
 </PRE>
-<P>When the <A HREF = "run_style.html">run style</A> is <I>respa</I>, this fix changes
-parameters only on the outer loop (largest) timesteps, which means
-that the frequency parameter <I>N</I> has to be commensurate with the step
-numbers for those outer steps. Otherwise invocation will be less
-frequent than expected.
-</P>
 <HR>
 
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
@@ -252,11 +246,10 @@ commands</A>.  No parameter of this fix can
 be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
 This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
-<P><B>Restrictions:</B>
+<P>For <A HREF = "run_style.html">rRESPA time integration</A>, this fix changes
+parameters on the outermost rRESPA level.
 </P>
-<P>When the <A HREF = "run_style.html">run style</A> is <I>respa</I>, this fix is only
-invoked on outer loop time steps that are also commensurate with
-the frequency parameter <I>N</I>.
+<P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>

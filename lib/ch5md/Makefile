@@ -7,7 +7,7 @@ AR=ar
 ARFLAGS=rc
 LIB=libch5md.a
 
-all: lib
+all: lib Makefile.lammps
 
 build:
 	mkdir -p build

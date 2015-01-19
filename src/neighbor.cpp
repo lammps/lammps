@@ -908,7 +908,7 @@ void Neighbor::init()
 
 /* ---------------------------------------------------------------------- */
 
-int Neighbor::request(void *requestor)
+int Neighbor::request(void *requestor, int instance)
 {
   if (nrequest == maxrequest) {
     maxrequest += RQDELTA;
@@ -919,6 +919,7 @@ int Neighbor::request(void *requestor)
 
   requests[nrequest] = new NeighRequest(lmp);
   requests[nrequest]->requestor = requestor;
+  requests[nrequest]->requestor_instance = instance;
   nrequest++;
   return nrequest-1;
 }

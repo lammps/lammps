@@ -20,6 +20,8 @@ namespace LAMMPS_NS {
 
 class Compute : protected Pointers {
  public:
+  static int instance_total;     // # of Compute classes ever instantiated
+
   char *id,*style;
   int igroup,groupbit;
 
@@ -122,6 +124,8 @@ class Compute : protected Pointers {
   virtual int unsigned data_mask_ext() {return datamask_ext;}
 
  protected:
+  int instance_me;             // which Compute class instantiation I am
+
   int extra_dof;               // extra DOF for temperature computes
   int fix_dof;                 // DOF due to fixes
   int dynamic;                 // recount atoms for temperature computes

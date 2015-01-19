@@ -44,10 +44,16 @@ using namespace LAMMPS_NS;
 
 enum{NONE,RLINEAR,RSQ,BMP};
 
+// allocate space for static class instance variable and initialize it
+
+int Pair::instance_total = 0;
+
 /* ---------------------------------------------------------------------- */
 
 Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 {
+  instance_me = instance_total++;
+
   THIRD = 1.0/3.0;
 
   eng_vdwl = eng_coul = 0.0;
@@ -70,7 +76,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
   reinitflag = 1;
 
-  // pair_modify settings
+  // pair_modify settingsx
 
   compute_flag = 1;
   manybody_flag = 0;
@@ -246,7 +252,6 @@ void Pair::reinit()
   if (!reinitflag)
     error->all(FLERR,"Fix adapt interface to this pair style not supported");
 
-
   etail = ptail = 0.0;
 
   for (int i = 1; i <= atom->ntypes; i++)
@@ -273,7 +278,7 @@ void Pair::reinit()
 
 void Pair::init_style()
 {
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

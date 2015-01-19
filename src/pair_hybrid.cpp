@@ -431,7 +431,7 @@ void PairHybrid::init_style()
   for (i = 0; i < neighbor->nrequest; i++) {
     if (!neighbor->requests[i]->pair) continue;
 
-    // istyle = associated sub-style
+    // istyle = associated sub-style for that request
 
     for (istyle = 0; istyle < nstyles; istyle++)
       if (styles[istyle] == neighbor->requests[i]->requestor) break;
@@ -582,7 +582,7 @@ void PairHybrid::modify_requests()
 
     if (j < neighbor->nrequest) irq->otherlist = j;
     else {
-      int newrequest = neighbor->request(this);
+      int newrequest = neighbor->request(this,instance_me);
       neighbor->requests[newrequest]->copy_request(irq);
       irq->otherlist = newrequest;
     }
@@ -725,7 +725,7 @@ void PairHybrid::modify_params(int narg, char **arg)
         if (strcmp(arg[1],keywords[m]) == 0 && multiflag == multiple[m]) break;
       if (m == nstyles) 
         error->all(FLERR,"Unknown pair_modify hybrid sub-style");
-      Pair::modify_params(narg-2,&arg[3]);
+      Pair::modify_params(narg-3,&arg[3]);
       styles[m]->modify_params(narg-3,&arg[3]);
     }
     

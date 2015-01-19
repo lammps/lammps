@@ -290,13 +290,11 @@ void PPPMGPU::compute(int eflag, int vflag)
 
   if (evflag_atom) fieldforce_peratom();
 
-  // update qsum and qsqsum, if needed
+  // update qsum and qsqsum, if atom count has changed and energy needed
 
-  if (eflag_global || eflag_atom) {
-    if (qsum_update_flag || (atom->natoms != natoms_original)) {
-      qsum_qsq(0);
-      natoms_original = atom->natoms;
-    }
+  if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
+    qsum_qsq(0);
+    natoms_original = atom->natoms;
   }
 
   // sum energy across procs and add in volume-dependent term

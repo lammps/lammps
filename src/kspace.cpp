@@ -68,8 +68,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   suffix_flag = Suffix::NONE;
   adjust_cutoff_flag = 1;
   scalar_pressure_flag = 0;
-  qsum_update_flag = 0;
-  warn_neutral = 1;
+  warn_nonneutral = 1;
 
   accuracy_absolute = -1.0;
   accuracy_real_6 = -1.0;
@@ -259,10 +258,10 @@ void KSpace::ev_setup(int eflag, int vflag)
 
 /* ----------------------------------------------------------------------
    compute qsum,qsqsum,q2 and give error/warning if not charge neutral
-   only called initially or when particle count changes
+   called initially, when particle count changes, when charges are changed
 ------------------------------------------------------------------------- */
 
-void KSpace::qsum_qsq(int flag)
+void KSpace::qsum_qsq()
 {
   const double * const q = atom->q;
   const int nlocal = atom->nlocal;
@@ -285,15 +284,14 @@ void KSpace::qsum_qsq(int flag)
   q2 = qsqsum * force->qqrd2e;
 
   // not yet sure of the correction needed for non-neutral systems
+  // so issue warning or error
 
   if (fabs(qsum) > SMALL) {
     char str[128];
     sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    if (warn_neutral && (comm->me == 0)) {
-      if (flag) error->all(FLERR,str);
-      else error->warning(FLERR,str);
-    }
-    warn_neutral = 0;
+    if (!warn_nonneutral) error->all(FLERR,str);
+    if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,str);
+    warn_nonneutral = 2;
   }
 }
 

@@ -64,7 +64,8 @@ FixQEqDynamic::FixQEqDynamic(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqDynamic::init()
 {
-  if (!atom->q_flag) error->all(FLERR,"Fix qeq/dynamic requires atom attribute q");
+  if (!atom->q_flag)
+    error->all(FLERR,"Fix qeq/dynamic requires atom attribute q");
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/dynamic group has no atoms");
@@ -168,8 +169,7 @@ void FixQEqDynamic::pre_force(int vflag)
     }
   }
 
-  if (force->kspace) force->kspace->setup();
-
+  if (force->kspace) force->kspace->qsum_qsq();
 }
 
 /* ---------------------------------------------------------------------- */

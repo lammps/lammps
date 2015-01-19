@@ -45,7 +45,8 @@ FixQEqShielded::FixQEqShielded(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqShielded::init()
 {
-  if (!atom->q_flag) error->all(FLERR,"Fix qeq/shielded requires atom attribute q");
+  if (!atom->q_flag) 
+    error->all(FLERR,"Fix qeq/shielded requires atom attribute q");
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/shielded group has no atoms");
@@ -63,7 +64,8 @@ void FixQEqShielded::init()
 
   int i;
   for (i = 1; i <= ntypes; i++) {
-    if (gamma[i] == 0.0) error->all(FLERR,"Invalid param file for fix qeq/shielded");
+    if (gamma[i] == 0.0) 
+      error->all(FLERR,"Invalid param file for fix qeq/shielded");
   }
 
   if (strstr(update->integrate_style,"respa"))
@@ -126,8 +128,7 @@ void FixQEqShielded::pre_force(int vflag)
   matvecs += CG(b_t, t); 	// CG on t - parallel
   calculate_Q();
 
-  if (force->kspace) force->kspace->setup();
-
+  if (force->kspace) force->kspace->qsum_qsq();
 }
 
 /* ---------------------------------------------------------------------- */

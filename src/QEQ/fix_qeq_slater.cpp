@@ -62,7 +62,8 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqSlater::init()
 {
-  if (!atom->q_flag) error->all(FLERR,"Fix qeq/slater requires atom attribute q");
+  if (!atom->q_flag) 
+    error->all(FLERR,"Fix qeq/slater requires atom attribute q");
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/slater group has no atoms");
@@ -75,7 +76,8 @@ void FixQEqSlater::init()
 
   int ntypes = atom->ntypes;
   for (int i = 1; i <= ntypes; i++) {
-    if (zeta[i] == 0.0) error->all(FLERR,"Invalid param file for fix qeq/slater");
+    if (zeta[i] == 0.0) 
+      error->all(FLERR,"Invalid param file for fix qeq/slater");
   }
 
   if (strstr(update->integrate_style,"respa"))
@@ -101,8 +103,7 @@ void FixQEqSlater::pre_force(int vflag)
   matvecs += CG(b_t, t); 	// CG on t - parallel
   calculate_Q();
 
-  if (force->kspace) force->kspace->setup();
-
+  if (force->kspace) force->kspace->qsum_qsq();
 }
 
 /* ---------------------------------------------------------------------- */

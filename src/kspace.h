@@ -51,8 +51,11 @@ class KSpace : protected Pointers {
                                  // for LJ coefficients
   int slabflag;
   int scalar_pressure_flag;      // 1 if using MSM fast scalar pressure
-  int qsum_update_flag;          // 1 if setup() needs to call qsum_qsq()
   double slab_volfactor;
+
+  int warn_nonneutral;           // 0 = error if non-neutral system
+                                 // 1 = warn once if non-neutral system
+                                 // 2 = warn, but already warned
 
   int order,order_6,order_allocated;
   double accuracy;                  // accuracy of KSpace solver (force units)
@@ -100,6 +103,10 @@ class KSpace : protected Pointers {
   void lamda2xT(double *, double *);
   void lamda2xvector(double *, double *);
   void kspacebbox(double, double *);
+
+  // public so can be called by commands that change charge
+
+  void qsum_qsq();
 
   // general child-class methods
 
@@ -168,7 +175,6 @@ class KSpace : protected Pointers {
   int minorder,overlap_allowed;
   int adjust_cutoff_flag;
   int suffix_flag;                  // suffix compatibility flag
-  int warn_neutral;                 // warn about non-neutral system if 1
   bigint natoms_original;
   double scale,qqrd2e;
   double qsum,qsqsum,q2;
@@ -182,7 +188,6 @@ class KSpace : protected Pointers {
   int kewaldflag;                   // 1 if kspace range set for Ewald sum
   int kx_ewald,ky_ewald,kz_ewald;   // kspace settings for Ewald sum
 
-  void qsum_qsq(int);
   void pair_check();
   void ev_setup(int, int);
   double estimate_table_accuracy(double, double);

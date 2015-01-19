@@ -45,7 +45,8 @@ FixQEqPoint::FixQEqPoint(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqPoint::init()
 {
-  if (!atom->q_flag) error->all(FLERR,"Fix qeq/point requires atom attribute q");
+  if (!atom->q_flag) 
+    error->all(FLERR,"Fix qeq/point requires atom attribute q");
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/point group has no atoms");
@@ -83,8 +84,7 @@ void FixQEqPoint::pre_force(int vflag)
   matvecs += CG(b_t, t); 	// CG on t - parallel
   calculate_Q();
 
-  if (force->kspace) force->kspace->setup();
-
+  if (force->kspace) force->kspace->qsum_qsq();
 }
 
 /* ---------------------------------------------------------------------- */

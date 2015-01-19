@@ -136,7 +136,7 @@ void PairBuckCoulLongCuda::init_style()
 
   if (strstr(update->integrate_style,"respa")) error->all(FLERR,"Integrate Style Respa is not supported by pair style buck/coul/long/cuda");
 
-          irequest = neighbor->request(this);
+  irequest = neighbor->request(this,instance_me);
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->cudable = 1;

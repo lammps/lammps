@@ -274,7 +274,7 @@ void PairLJGromacsCoulGromacs::init_style()
     error->all(FLERR,
                "Pair style lj/gromacs/coul/gromacs requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_lj_innersq = cut_lj_inner * cut_lj_inner;
   cut_ljsq = cut_lj * cut_lj;

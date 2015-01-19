@@ -77,7 +77,7 @@ void FixQEQCombOMP::init()
      if (fix->get_neighbor()) use_omp = 1;
   }
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->omp = use_omp;
 }
 

@@ -401,7 +401,7 @@ void PairEAM::init_style()
   file2array();
   array2spline();
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

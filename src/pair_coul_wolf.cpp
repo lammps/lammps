@@ -210,7 +210,7 @@ void PairCoulWolf::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair coul/wolf requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul*cut_coul;
 }

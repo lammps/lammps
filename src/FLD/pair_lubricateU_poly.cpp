@@ -1228,7 +1228,7 @@ void PairLubricateUPoly::init_style()
     RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
   }
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 }

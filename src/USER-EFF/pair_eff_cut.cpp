@@ -878,7 +878,7 @@ void PairEffCut::init_style()
 
   // need a half neigh list and optionally a granular history neigh list
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

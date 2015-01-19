@@ -151,7 +151,7 @@ void PairGranHookeCuda::init_style()
   }
   else
   {
-          irequest = neighbor->request(this);
+    irequest = neighbor->request(this,instance_me);
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->gran = 1;

@@ -562,7 +562,7 @@ void PairREAX::init_style()
   if (strcmp(update->unit_style,"real") != 0 && comm->me == 0)
     error->warning(FLERR,"Not using real units with pair reax");
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->newton = 2;
 
   FORTRAN(readc, READC)();

@@ -46,6 +46,7 @@ class FixAtomSwap : public Fix {
 
  private:
   int atom_swap_itype,atom_swap_jtype,nevery,seed;
+  int conserve_ke_flag;                   // yes = conserve ke, no = do not conserve ke
   int ncycles;
   int niswap,njswap;                      // # of swap atoms on all procs
   int niswap_local,njswap_local;          // # of swap atoms on this proc
@@ -63,6 +64,7 @@ class FixAtomSwap : public Fix {
   double beta;
   double qitype,qjtype;
   double energy_stored;
+  double sqrt_mass_ratio_ij,sqrt_mass_ratio_ji;
   int *local_swap_iatom_list;
   int *local_swap_jatom_list;
 

@@ -277,7 +277,7 @@ void PPPMCuda::init()
 
   scale = 1.0;
   qqrd2e = force->qqrd2e;
-  qsum_qsq(0);
+  qsum_qsq();
   natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
@@ -788,7 +788,7 @@ void PPPMCuda::compute(int eflag, int vflag)
     energy = energy_all;
 
     if (atom->natoms != natoms_original) {
-      qsum_qsq(0);
+      qsum_qsq();
       natoms_original = atom->natoms;
     }
 

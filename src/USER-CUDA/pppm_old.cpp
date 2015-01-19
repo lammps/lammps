@@ -197,7 +197,7 @@ void PPPMOld::init()
 
   scale = 1.0;
   qqrd2e = force->qqrd2e;
-  qsum_qsq(0);
+  qsum_qsq();
   natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
@@ -725,7 +725,7 @@ void PPPMOld::compute(int eflag, int vflag)
   // update qsum and qsqsum, if atom count has changed and energy needed
 
   if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
-    qsum_qsq(0);
+    qsum_qsq();
     natoms_original = atom->natoms;
   }
 

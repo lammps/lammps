@@ -21,14 +21,17 @@ type_2 = second atom type to swap :l
 seed = random # seed (positive integer) :l
 T = scaling temperature of the MC swaps (temperature units) :l
 zero or more keyword/value pairs may be appended to args :l
-keyword = {region} :l
+keyword = {ke} or {region} :l
+  {ke} value = {no} or {yes}
+    {no} = no conservation of kinetic energy after atom swaps
+    {yes} = kinetic energy is conserved after atom swaps
   {region} value = region-ID
     region-ID = ID of region to use as a swap volume :pre
 :ule
 
 [Examples:]
 
-fix 2 all atom/swap 1 1 1 2 29494 300.0 
+fix 2 all atom/swap 1 1 1 2 29494 300.0 ke no
 fix atom_swap_fix all atom/swap 100 1 5 6 12345 298.0 region my_swap_region :pre
 
 [Description:]
@@ -51,6 +54,13 @@ e.g. "fix_nvt"_fix_nvt.html, which will result in a hybrid MC+MD
 simulation.  If a swap produces a poorly equilibrated system, a
 smaller-than-usual timestep size may be needed when running such a
 simulation.
+
+The {ke} keyword can be set to {no} to turn off kinetic energy 
+conservation for swaps. The default is {yes}, which means that swapped
+atoms have their velocities scaled by the ratio of the masses of the 
+swapped atom types. This ensures that the kinetic energy of each atom 
+is the same after the swap as it was before the swap, even though the 
+atom masses have changed.
 
 If the {region} keyword is not used, all atoms of {type_1} and
 {type_2} which are in the specified group are candidates for swapping.
@@ -158,4 +168,6 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 "fix_evaporate"_fix_evaporate.html, "delete_atoms"_delete_atoms.html,
 "fix_gcmc"_fix_gcmc.html
 
-[Default:] none
+[Default:]
+
+The option defaults are ke = yes.

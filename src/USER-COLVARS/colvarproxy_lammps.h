@@ -15,7 +15,7 @@
 #include <iostream>
 
 #ifndef COLVARPROXY_VERSION
-#define COLVARPROXY_VERSION "2014-11-26"
+#define COLVARPROXY_VERSION "2015-01-19"
 #endif
 
 /* struct for packed data communication of coordinates and forces. */

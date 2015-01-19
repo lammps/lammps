@@ -815,8 +815,6 @@ class colvar::h_bond
   : public colvar::cvc
 {
 protected:
-  /// Atoms involved in the component
-  cvm::atom     acceptor, donor;
   /// \brief "Cutoff" distance between acceptor and donor
   cvm::real     r0;
   /// Integer exponent of the function numerator

@@ -328,7 +328,7 @@ int cvm::atom_group::parse(std::string const &conf,
     if (get_keyval(group_conf, "enableForces", enable_forces, true, mode)) {
       noforce = !enable_forces;
     } else {
-      get_keyval(group_conf, "disableForces", noforce, false, mode);
+      get_keyval(group_conf, "disableForces", noforce, false, colvarparse::parse_silent);
     }
   }
 

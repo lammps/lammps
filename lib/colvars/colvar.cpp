@@ -989,7 +989,7 @@ void colvar::calc()
 
   if (tasks[task_system_force]) {
 
-    if (tasks[task_scripted]) {
+    if (tasks[task_scripted] && !tasks[task_extended_lagrangian]) {
       // TODO see if this could reasonably be done in a generic way
       // from generic inverse gradients
       cvm::error("System force is not implemented for "

@@ -134,8 +134,10 @@ int colvarmodule::config(std::string &conf)
   cvm::log("Collective variables module (re)initialized.\n");
   cvm::log(cvm::line_marker);
 
-  // configuration might have changed, better redo the labels
-  write_traj_label(cv_traj_os);
+  if (cv_traj_os.is_open()) {
+    // configuration might have changed, better redo the labels
+    write_traj_label(cv_traj_os);
+  }
 
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }

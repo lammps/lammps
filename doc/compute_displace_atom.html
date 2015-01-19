@@ -56,9 +56,9 @@ containing coordinates of the atoms in the bodies.
 <P>IMPORTANT NOTE: If you want the quantities calculated by this compute
 to be continuous when running from a <A HREF = "read_restart.html">restart file</A>,
 then you should use the same ID for this compute, as in the original
-run.  This is so that the created fix will also have the same ID, and
-thus be initialized correctly with atom coordinates from the restart
-file.
+run.  This is so that the fix this compute creates to store per-atom
+quantities will also have the same ID, and thus be initialized
+correctly with time=0 atom coordinates from the restart file.
 </P>
 <P><B>Output info:</B>
 </P>

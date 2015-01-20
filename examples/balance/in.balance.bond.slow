@@ -5,17 +5,20 @@ variable        b index 0
 variable	x index 50
 variable	y index 20
 variable	d index 20
-variable	v index 5
-variable	w index 2
+
+# careful not to slam into wall too hard
+
+variable	v index 0.3
+variable	w index 0.08
                 
 units		lj
 dimension       2
-atom_style	atomic
+atom_style	bond
 boundary        f f p
 
 lattice		hex 0.85
 region		box block 0 $x 0 $y -0.5 0.5
-create_box	1 box
+create_box	1 box bond/types 1 extra/bond/per/atom 6
 region		circle sphere $(v_d/2+1) $(v_d/2/sqrt(3.0)+1) 0.0 $(v_d/2)
 create_atoms	1 region circle
 mass		1 1.0
@@ -25,6 +28,11 @@ velocity        all set $v $w 0 sum yes
 
 pair_style	lj/cut 2.5
 pair_coeff	1 1 10.0 1.0 2.5
+
+bond_style      harmonic
+bond_coeff      1 10.0 1.2
+
+create_bonds    all all 1 1.0 1.5
 
 neighbor	0.3 bin
 neigh_modify	delay 0 every 1 check yes
@@ -38,10 +46,10 @@ comm_style      tiled
 fix             10 all balance 50 0.9 rcb
 
 #compute         1 all property/atom proc
-#variable        p atom c_1%10
+#variable        p atom (c_1%10)+1
 #dump            2 all custom 50 tmp.dump id v_p x y z
 
-#dump            3 all image 50 image.*.jpg v_p type &
+#dump            3 all image 200 image.*.jpg v_p type bond atom 0.25 &
 #                adiam 1.0 view 0 0 zoom 1.8 subbox yes 0.02
 #variable        colors string &
 #                "red green blue yellow white &
@@ -51,4 +59,4 @@ fix             10 all balance 50 0.9 rcb
 thermo_style    custom step temp epair press f_10[3] f_10
 thermo          100                
 
-run		10000
+run		40000

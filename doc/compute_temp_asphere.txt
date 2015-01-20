@@ -16,7 +16,7 @@ ID, group-ID are documented in "compute"_compute.html command :ulb,l
 temp/asphere = style name of this compute command :l
 zero or more keyword/value pairs may be appended :l
 keyword = {bias} or {dof} :l
-  {bias} value = bias-ID{uniform} or {gaussian}
+  {bias} value = bias-ID
     bias-ID = ID of a temperature compute that removes a velocity bias
   {dof} value = {all} or {rotate}
     all = compute temperature of translational and rotational degrees of freedom
@@ -105,10 +105,10 @@ For the {bias} keyword, {bias-ID} refers to the ID of a temperature
 compute that removes a "bias" velocity from each atom.  This allows
 compute temp/sphere to compute its thermal temperature after the
 translational kinetic energy components have been altered in a
-prescribed way, e.g. to remove a velocity profile.  Thermostats that
-use this compute will work with this bias term.  See the doc pages for
-individual computes that calculate a temperature and the doc pages for
-fixes that perform thermostatting for more details.
+prescribed way, e.g. to remove a flow velocity profile.  Thermostats
+that use this compute will work with this bias term.  See the doc
+pages for individual computes that calculate a temperature and the doc
+pages for fixes that perform thermostatting for more details.
 
 For the {dof} keyword, a setting of {all} calculates a temperature
 that includes both translational and rotational degrees of freedom.  A

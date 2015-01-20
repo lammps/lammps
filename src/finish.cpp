@@ -216,17 +216,17 @@ void Finish::end(int flag)
                            atom->natoms,cpu_loop,nprocs);
 #endif
 
-      // Gromacs/NAMD-like performance metric for MD with suitable units
+      // Gromacs/NAMD-like performance metric for MD with suitable unit settings
 
       if ( timeflag && !minflag && !prdflag && !tadflag &&
            (update->nsteps > 0) && (update->dt != 0.0) &&
            ((strcmp(update->unit_style,"metal") == 0) ||
+            (strcmp(update->unit_style,"micro") == 0) ||
+            (strcmp(update->unit_style,"nano") == 0) ||
+            (strcmp(update->unit_style,"electron") == 0) ||
             (strcmp(update->unit_style,"real") == 0)) ) {
-        double t_step, ns_day, hrs_ns, tps, one_fs = 1.0;
+        double t_step, ns_day, hrs_ns, tps, one_fs = force->femtosecond;
 
-        // conversion factor to femtoseconds for suitable units
-
-        if (strcmp(update->unit_style,"metal") == 0) one_fs = 0.001;
         t_step = ((double)time_loop) / ((double) update->nsteps);
         tps = 1.0/t_step;
         hrs_ns = t_step / update->dt * 1000000.0 * one_fs / 60.0 / 60.0;

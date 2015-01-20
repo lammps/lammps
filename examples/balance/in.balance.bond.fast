@@ -43,14 +43,14 @@ fix             2 all wall/lj93 xlo 0.0 1 1 2.5 xhi $x 1 1 2.5
 fix             3 all wall/lj93 ylo 0.0 1 1 2.5 yhi $y 1 1 2.5
 
 comm_style      tiled
-comm_modify     cutoff 5.0
+comm_modify     cutoff 7.5
 fix             10 all balance 50 0.9 rcb
 
 #compute         1 all property/atom proc
 #variable        p atom (c_1%10)+1
 #dump            2 all custom 50 tmp.dump id v_p x y z
 
-#dump            3 all image 200 image.*.jpg v_p type bond atom 0.25 &
+#dump            3 all image 50 image.*.jpg v_p type bond atom 0.25 &
 #                adiam 1.0 view 0 0 zoom 1.8 subbox yes 0.02
 #variable        colors string &
 #                "red green blue yellow white &

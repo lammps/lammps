@@ -1,0 +1,110 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+create_bonds command :h3
+
+[Syntax:]
+
+create_bonds group-ID group2-ID btype rmin rmax :pre
+
+group-ID = ID of first group
+group2-ID = ID of second group, bonds will be between atoms in the 2 groups
+btype = bond type of created bonds
+rmin = minimum distance between pair of atoms to bond together
+rmax = minimum distance between pair of atoms to bond together :ul
+
+[Examples:]
+
+create_bonds all all 1 1.0 1.2
+create_bonds surf solvent 3 2.0 2.4 :pre
+
+[Description:]
+
+Create bonds between pairs of atoms that meet specified distance
+criteria.  The bond interactions can then be computed during a
+simulation by the bond potential defined by the
+"bond_style"_bond_style.html and "bond_coeff"_bond_coeff.html
+commands.  This command is useful for adding bonds to a system,
+e.g. between nearest neighbors in a lattice of atoms, without having
+to enumerate all the bonds in the data file read by the
+"read_data"_read_data.html command.
+
+Note that the flexibility of this command is limited.  It can be used
+several times to create different types of bond at different
+distances.  But it cannot typically create all the bonds that would
+normally be defined in a complex system of molecules.  Also note that
+this command does not add any 3-body or 4-body interactions which,
+depending on your model, may be induced by added bonds,
+e.g. "angle"_angle_style.html, "dihedral"_dihedral_style.html, or
+"improper"_improper_style.html interactions.
+
+All created bonds will be between pairs of atoms I,J where I is in one
+of the two specified groups, and J is in the other.  The two groups
+can be the same, e.g. group "all".  The created bonds will be of bond
+type {btype}, where {btype} must be a value between 1 and the number
+of bond types defined.  This maximum value is set by the "bond types"
+field in the header of the data file read by the
+"read_data"_read_data.html command, or via the optional "bond/types"
+argument of the "create_box"_create_box.html command.
+
+For a bond to be created, an I,J pair of atoms must be a distance D
+apart such that {rmin} <= D <= {rmax}.
+
+The following settings must have been made in an input
+script before this command is used:
+
+special_bonds weight for 1-2 interactions must be 0.0
+a "pair_style"_pair_style.html must be defined
+no "kspace_style"_kspace_style.html defined
+minimum "pair_style"_pair_style.html cutoff + "neighbor"_neighbor.html skin >= {rmax} :ul
+
+These settings are required so that a neighbor list can be created to
+search for nearby atoms.  Pairs of atoms that are already bonded
+cannot appear in the neighbor list, to avoid creation of duplicate
+bonds.  The neighbor list for all atom type pairs must also extend to
+a distance that encompasses the {rmax} for new bonds to create.
+
+An additional requirement is that a simulation be "ready to run", as
+if a "run"_run.html command were about to be issued.  This means, for
+example, that all "pair_style"_pair_style.html coefficients be set via
+the "pair_coeff"_pair_coeff.html command.  A
+"bond_style"_bond_style.html command and all bond coefficients must
+also be set, even if no bonds exist before this command is invoked.
+This is because the building of neighbor list requires initialization
+and setup of a simulation, similar to what a "run"_run.html command
+would require.
+
+Note that you can change any of these settings after this command
+executes, e.g. if you wish to use long-range Coulombic interactions
+via the "kspace_style"_kspace_style.html command for your subsequent
+simulation.
+
+IMPORTANT NOTE: If the system has no bonds to begin with, or if more
+bonds per atom are being added than currently exist, then you must
+insure that the number of bond types and the maximum number of bonds
+per atom are set to large enough values.  Otherwise an error may occur
+when too many bonds are added to an atom.  If the
+"read_data"_read_data.html command is used to define the system, these
+2 parameters can be set via the "bond types" and "extra bond per atom"
+fields in the header section of the data file.  If the
+"create_box"_create_box.html command is used to define the system,
+these 2 parameters can be set via its optional "bond/types" and
+"extra/bond/per/atom" arguments.  See the doc pages for the 2 commands
+for details.
+
+[Restrictions:]
+
+This command cannot be used with molecular systems defined using
+molecule template files via the "molecule"_molecule.html and
+"atom_style template"_atom_style.html commands.
+
+[Related commands:]
+
+"create_atoms"_create_atoms.html, "delete_bonds"_delete_bonds.html
+
+[Default:] none

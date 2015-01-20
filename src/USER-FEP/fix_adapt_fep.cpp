@@ -581,5 +581,5 @@ void FixAdaptFEP::restore_settings()
   }
 
   if (anypair) force->pair->reinit();
-  if (chgflag && force->kspace) force->kspace->setup();
+  if (chgflag && force->kspace) force->kspace->qsum_qsq();
 }

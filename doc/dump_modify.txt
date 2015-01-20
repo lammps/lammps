@@ -354,10 +354,10 @@ nanometer accuracy, e.g. for N = 1000, the coordinates are written to
 
 The {sfactor} and {tfactor} keywords only apply to the dump {xtc} style.
 They allow customizing the unit conversion factors when writing to xtc
-iles. By default those are initialized to write out coordinates in
+files. By default those are initialized to write out coordinates in
 nanometers and time in picoseconds according to the selected
-"units"_units.html (e.g. for {real} {sfactor} is set to 0.1 and
-{tfactor} to 0.001). The compression algorithm
+"units"_units.html (e.g. for {real} units {sfactor} would be set to 0.1
+and {tfactor} to 0.001). The compression algorithm
 used in XTC files is most effective when the typical magnitude of
 position data is between 10.0 and 0.1.
 

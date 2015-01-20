@@ -58,7 +58,7 @@ int ReaderXYZ::read_time(bigint &ntimestep)
 
   // first line has to have the number of atoms
 
-  natoms = ATOBIGINT(line);
+  natoms = force->bnumeric(FLERR,line);
   if (natoms < 1)
     error->one(FLERR,"Dump file is incorrectly formatted");
 

@@ -73,7 +73,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   nfreq  = force->inumeric(FLERR, arg[4]);   // frequency to output result
   if (nfreq < 1) error->all(FLERR,"Illegal fix phonon command");
 
-  waitsteps = ATOBIGINT(arg[5]); // Wait this many timesteps before actually measuring
+  waitsteps = force->bnumeric(FLERR,arg[5]); // Wait this many timesteps before actually measuring
   if (waitsteps < 0) error->all(FLERR,"Illegal fix phonon command: waitsteps < 0 !");
 
   int n = strlen(arg[6]) + 1; // map file

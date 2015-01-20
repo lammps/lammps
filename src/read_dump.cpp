@@ -99,9 +99,7 @@ void ReadDump::command(int narg, char **arg)
   if (narg < 2) error->all(FLERR,"Illegal read_dump command");
 
   store_files(1,&arg[0]);
-  // the call to Force::inumeric() is to check for invalid integers
-  bigint nstep = force->inumeric(FLERR,arg[1]);
-  nstep = ATOBIGINT(arg[1]);
+  bigint nstep = force->bnumeric(FLERR,arg[1]);
 
   int nremain = narg - 2;
   if (nremain) nremain = fields_and_keywords(nremain,&arg[narg-nremain]);

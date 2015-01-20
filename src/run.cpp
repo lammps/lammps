@@ -42,9 +42,7 @@ void Run::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Run command before simulation box is defined");
 
-  // the call to Force::inumeric() is to check for invalid integers.
-  bigint nsteps_input = force->inumeric(FLERR,arg[0]);
-  nsteps_input = ATOBIGINT(arg[0]);
+  bigint nsteps_input = force->bnumeric(FLERR,arg[0]);
 
   // parse optional args
 
@@ -67,14 +65,12 @@ void Run::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
       startflag = 1;
-      start = force->inumeric(FLERR,arg[iarg+1]);
-      start = ATOBIGINT(arg[iarg+1]);
+      start = force->bnumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"stop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run command");
       stopflag = 1;
-      stop = force->inumeric(FLERR,arg[iarg+1]);
-      stop = ATOBIGINT(arg[iarg+1]);
+      stop = force->bnumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"pre") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal run command");

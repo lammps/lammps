@@ -175,7 +175,7 @@ void Special::build()
   memory->destroy(count);
 
   // -----------------------------------------------------
-  // done if special_bonds for 1-3, 1-4 are set to 1.0
+  // done if special_bond weights for 1-3, 1-4 are set to 1.0
   // -----------------------------------------------------
 
   if (force->special_lj[2] == 1.0 && force->special_coul[2] == 1.0 &&
@@ -292,7 +292,7 @@ void Special::build()
 
   memory->destroy(buf);
 
-  // done if special_bonds for 1-4 are set to 1.0
+  // done if special_bond weights for 1-4 are set to 1.0
 
   if (force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
     dedup();

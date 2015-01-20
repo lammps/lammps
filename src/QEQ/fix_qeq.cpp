@@ -107,7 +107,6 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
       s_hist[i][j] = t_hist[i][j] = 0;
 
   read_file(arg[7]);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -262,7 +261,6 @@ void FixQEq::reallocate_matrix()
 void FixQEq::init_list(int id, NeighList *ptr)
 {
   list = ptr;
-  if (force->kspace) force->kspace->qsum_update_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

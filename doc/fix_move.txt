@@ -180,9 +180,6 @@ been previously used to define the lattice spacing.  Each of these 3
 quantities may be dependent on the x,y,z dimension, since the lattice
 spacings can be different in x,y,z.
 
-For "rRESPA time integration"_run_style.html, this fix adjusts the
-position and velocity of atoms on the outermost rRESPA level.
-
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
@@ -211,6 +208,9 @@ timestep.
 No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
+
+For "rRESPA time integration"_run_style.html, this fix adjusts the
+position and velocity of atoms on the outermost rRESPA level.
 
 [Restrictions:] none
 

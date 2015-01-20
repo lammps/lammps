@@ -293,7 +293,7 @@ void PPPMDisp::init()
   qqrd2e = force->qqrd2e;
   natoms_original = atom->natoms;
  
-  if (function[0]) qsum_qsq(0);
+  if (function[0]) qsum_qsq();
 
   // if kspace is TIP4P, extract TIP4P params from pair style
   // bond/angle are not yet init(), so insure equilibrium request is valid
@@ -1114,19 +1114,17 @@ void PPPMDisp::compute(int eflag, int vflag)
 
       fieldforce_none_ik();
 
-
-      if (evflag_atom) cg_peratom_6->forward_comm(this, FORWARD_IK_PERATOM_NONE);
+      if (evflag_atom) 
+        cg_peratom_6->forward_comm(this, FORWARD_IK_PERATOM_NONE);
     }
     if (evflag_atom) fieldforce_none_peratom();
   }
 
-  // update qsum and qsqsum, if needed
+  // update qsum and qsqsum, if atom count has changed and energy needed
 
-  if (eflag_global || eflag_atom) {
-    if (qsum_update_flag || (atom->natoms != natoms_original)) {
-      qsum_qsq(0);
-      natoms_original = atom->natoms;
-    }
+  if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
+    qsum_qsq();
+    natoms_original = atom->natoms;
   }
 
   // sum energy across procs and add in volume-dependent term

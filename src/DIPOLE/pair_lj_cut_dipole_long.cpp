@@ -456,7 +456,7 @@ void PairLJCutDipoleLong::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

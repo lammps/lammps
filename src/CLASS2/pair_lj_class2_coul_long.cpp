@@ -287,7 +287,7 @@ void PairLJClass2CoulLong::init_style()
     error->all(FLERR,
                "Pair style lj/class2/coul/long requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
 

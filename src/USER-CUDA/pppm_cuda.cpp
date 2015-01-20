@@ -277,7 +277,7 @@ void PPPMCuda::init()
 
   scale = 1.0;
   qqrd2e = force->qqrd2e;
-  qsum_qsq(0);
+  qsum_qsq();
   natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
@@ -691,7 +691,7 @@ void PPPMCuda::compute(int eflag, int vflag)
   // extend size of per-atom arrays if necessary
   // and force update of device data, if charges can change
 
-  if ((cu_atom->update_nmax)||(old_nmax==0)||qsum_update_flag) {
+  if ((cu_atom->update_nmax)||(old_nmax==0)||qdynamic) {
     memory->destroy(part2grid);
     nmax = atom->nmax;
     memory->create(part2grid,nmax,3,"pppm:part2grid");
@@ -788,7 +788,7 @@ void PPPMCuda::compute(int eflag, int vflag)
     energy = energy_all;
 
     if (atom->natoms != natoms_original) {
-      qsum_qsq(0);
+      qsum_qsq();
       natoms_original = atom->natoms;
     }
 

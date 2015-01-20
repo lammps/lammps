@@ -457,7 +457,7 @@ void PairSRP::init_style()
   if (me == 0) 
     error->message(FLERR,"Thermo normalization turned off by pair srp");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

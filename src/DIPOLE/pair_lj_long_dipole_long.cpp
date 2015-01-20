@@ -240,7 +240,7 @@ void PairLJLongDipoleLong::init_style()
   if (!atom->torque && (ewald_order&(1<<3)))
     error->all(FLERR,"Pair lj/long/dipole/long requires atom attributes mu, torque");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
 

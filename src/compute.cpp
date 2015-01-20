@@ -32,10 +32,16 @@ using namespace LAMMPS_NS;
 #define DELTA 4
 #define BIG MAXTAGINT
 
+// allocate space for static class instance variable and initialize it
+
+int Compute::instance_total = 0;
+
 /* ---------------------------------------------------------------------- */
 
 Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
+  instance_me = instance_total++;
+
   if (narg < 3) error->all(FLERR,"Illegal compute command");
 
   // compute ID, group, and style

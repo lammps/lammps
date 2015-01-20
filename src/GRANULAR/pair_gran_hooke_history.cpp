@@ -408,11 +408,11 @@ void PairGranHookeHistory::init_style()
 
   // need a granular neigh list and optionally a granular history neigh list
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->gran = 1;
   if (history) {
-    irequest = neighbor->request(this);
+    irequest = neighbor->request(this,instance_me);
     neighbor->requests[irequest]->id = 1;
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->granhistory = 1;

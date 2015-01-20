@@ -345,7 +345,7 @@ void PairBrownianPoly::init_style()
     if (radius[i] == 0.0)
       error->one(FLERR,"Pair brownian/poly requires extended particles");
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 

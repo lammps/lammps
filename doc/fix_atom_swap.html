@@ -33,16 +33,19 @@
 
 <LI>zero or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>region</I> 
+<LI>keyword = <I>ke</I> or <I>region</I> 
 
-<PRE>  <I>region</I> value = region-ID
+<PRE>  <I>ke</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = no conservation of kinetic energy after atom swaps
+    <I>yes</I> = kinetic energy is conserved after atom swaps
+  <I>region</I> value = region-ID
     region-ID = ID of region to use as a swap volume 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 2 all atom/swap 1 1 1 2 29494 300.0 
+<PRE>fix 2 all atom/swap 1 1 1 2 29494 300.0 ke no
 fix atom_swap_fix all atom/swap 100 1 5 6 12345 298.0 region my_swap_region 
 </PRE>
 <P><B>Description:</B>
@@ -65,6 +68,13 @@ e.g. <A HREF = "fix_nvt.html">fix_nvt</A>, which will result in a hybrid MC+MD
 simulation.  If a swap produces a poorly equilibrated system, a
 smaller-than-usual timestep size may be needed when running such a
 simulation.
+</P>
+<P>The <I>ke</I> keyword can be set to <I>no</I> to turn off kinetic energy 
+conservation for swaps. The default is <I>yes</I>, which means that swapped
+atoms have their velocities scaled by the ratio of the masses of the 
+swapped atom types. This ensures that the kinetic energy of each atom 
+is the same after the swap as it was before the swap, even though the 
+atom masses have changed.
 </P>
 <P>If the <I>region</I> keyword is not used, all atoms of <I>type_1</I> and
 <I>type_2</I> which are in the specified group are candidates for swapping.
@@ -172,6 +182,8 @@ LAMMPS</A> section for more info.
 <A HREF = "fix_evaporate.html">fix_evaporate</A>, <A HREF = "delete_atoms.html">delete_atoms</A>,
 <A HREF = "fix_gcmc.html">fix_gcmc</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option defaults are ke = yes.
 </P>
 </HTML>

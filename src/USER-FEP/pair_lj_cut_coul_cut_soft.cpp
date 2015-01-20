@@ -267,7 +267,7 @@ void PairLJCutCoulCutSoft::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/cut/soft requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

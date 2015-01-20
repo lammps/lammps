@@ -423,7 +423,7 @@ void PairBody::init_style()
     error->all(FLERR,"Pair body requires body style nparticle");
   bptr = (BodyNparticle *) avec->bptr;
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

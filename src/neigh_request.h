@@ -20,11 +20,12 @@ namespace LAMMPS_NS {
 
 class NeighRequest : protected Pointers {
  public:
-  void *requestor;       // class that made request
-  int id;                // ID of request
-                         // used to track multiple requests from one class
-  int unprocessed;       // 1 when first requested
-                         // 0 after processed by Neighbor class
+  void *requestor;          // class that made request
+  int requestor_instance;   // instance of that class (only Fix, Compute, Pair)
+  int id;                   // ID of request as stored by requestor
+                            // used to track multiple requests from one class
+  int unprocessed;          // 1 when first requested
+                            // 0 after processed by Neighbor class
 
   // which class is requesting the list, one flag is 1, others are 0
 
@@ -100,7 +101,7 @@ class NeighRequest : protected Pointers {
 
   int otherlist;         // index of other list to copy or skip from
 
-  // original params by requester
+  // original params by requestor
   // stored to compare against in identical() in case Neighbor changes them
 
   int half_original;

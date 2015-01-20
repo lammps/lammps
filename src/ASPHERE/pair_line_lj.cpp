@@ -390,7 +390,7 @@ void PairLineLJ::init_style()
   avec = (AtomVecLine *) atom->style_match("line");
   if (!avec) error->all(FLERR,"Pair line/lj requires atom style line");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

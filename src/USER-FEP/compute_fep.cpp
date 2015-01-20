@@ -412,15 +412,9 @@ void ComputeFEP::perturb_params()
 
   if (pairflag) force->pair->reinit();
 
-  // when perturbing charge and using kspace, 
-  // need to recompute additional params in kspace->setup()
-  // first backup the state of kspace->qsum_update_flag
+  // reset KSpace charges if charges have changed
 
-  if (chgflag && force->kspace) {
-    sys_qsum_update_flag = force->kspace->qsum_update_flag;
-    force->kspace->qsum_update_flag = 1;
-    force->kspace->setup();
-  }
+  if (chgflag && force->kspace) force->kspace->qsum_qsq();
 }
 
 
@@ -461,11 +455,10 @@ void ComputeFEP::restore_params()
   }
 
   if (pairflag) force->pair->reinit();
-  if (chgflag && force->kspace) {
-    force->kspace->setup();
-    // restore kspace->qsum_update_flag to original state
-    force->kspace->qsum_update_flag = sys_qsum_update_flag; 
-  }
+
+  // reset KSpace charges if charges have changed
+
+  if (chgflag && force->kspace) force->kspace->qsum_qsq();
 }
 
 

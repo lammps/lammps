@@ -185,7 +185,11 @@ include ..\/..\/lib\/cuda\/Makefile.lammps
   fi
 
 elif (test $1 = 0) then
-
+  # need to delete a bunch of depenency files because they indirectly depend on user_cuda.h
+  for f in input.d output.d pair.d fix_omp.d
+  do \
+    rm -f ../Obj_*/$f
+  done
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*cuda[^ \t]* //g' ../Makefile.package
     sed -i -e 's/[^ \t]*CUDA[^ \t]* //g' ../Makefile.package

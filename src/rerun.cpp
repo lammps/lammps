@@ -70,12 +70,12 @@ void Rerun::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      first = ATOBIGINT(arg[iarg+1]);
+      first = force->bnumeric(FLERR,arg[iarg+1]);
       if (first < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"last") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      last = ATOBIGINT(arg[iarg+1]);
+      last = force->bnumeric(FLERR,arg[iarg+1]);
       if (last < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
@@ -91,13 +91,13 @@ void Rerun::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
       startflag = 1;
-      start = ATOBIGINT(arg[iarg+1]);
+      start = force->bnumeric(FLERR,arg[iarg+1]);
       if (start < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"stop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
       stopflag = 1;
-      stop = ATOBIGINT(arg[iarg+1]);
+      stop = force->bnumeric(FLERR,arg[iarg+1]);
       if (stop < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dump") == 0) {

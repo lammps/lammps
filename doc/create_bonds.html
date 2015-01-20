@@ -72,15 +72,14 @@ cannot appear in the neighbor list, to avoid creation of duplicate
 bonds.  The neighbor list for all atom type pairs must also extend to
 a distance that encompasses the <I>rmax</I> for new bonds to create.
 </P>
-<P>An additional requirement is that a simulation be "ready to run", as
-if a <A HREF = "run.html">run</A> command were about to be issued.  This means, for
-example, that all <A HREF = "pair_style.html">pair_style</A> coefficients be set via
-the <A HREF = "pair_coeff.html">pair_coeff</A> command.  A
-<A HREF = "bond_style.html">bond_style</A> command and all bond coefficients must
-also be set, even if no bonds exist before this command is invoked.
-This is because the building of neighbor list requires initialization
-and setup of a simulation, similar to what a <A HREF = "run.html">run</A> command
-would require.
+<P>An additional requirement is that your system must be ready to perform
+a simulation.  This means, for example, that all
+<A HREF = "pair_style.html">pair_style</A> coefficients be set via the
+<A HREF = "pair_coeff.html">pair_coeff</A> command.  A <A HREF = "bond_style.html">bond_style</A>
+command and all bond coefficients must also be set, even if no bonds
+exist before this command is invoked.  This is because the building of
+neighbor list requires initialization and setup of a simulation,
+similar to what a <A HREF = "run.html">run</A> command would require.
 </P>
 <P>Note that you can change any of these settings after this command
 executes, e.g. if you wish to use long-range Coulombic interactions

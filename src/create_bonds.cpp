@@ -101,7 +101,7 @@ void CreateBonds::command(int narg, char **arg)
   if (force->special_lj[1] != 0.0 || force->special_coul[1] != 0.0)
     error->all(FLERR,"Create_bonds command requires "
                "special_bonds 1-2 weights be 0.0");
-  if (force->kspace_style)
+  if (force->kspace)
     error->all(FLERR,"Create_bonds command requires "
                "no kspace_style be defined");
 

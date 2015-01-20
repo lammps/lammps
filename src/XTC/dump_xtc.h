@@ -42,7 +42,7 @@ class DumpXTC : public Dump {
   int unwrap_flag;            // 1 if atom coords are unwrapped, 0 if no
   float precision;            // user-adjustable precision setting
   float *coords;
-  double sfactor;
+  double sfactor,tfactor;     // scaling factors for positions and time unit 
   XDR xd;
 
   void init_style();

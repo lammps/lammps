@@ -301,7 +301,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   // double loop over owned atoms and their full neighbor list
   // at end of loop, there are no more overlaps
-  // only ever delete owned atom I, never J even if owned
+  // only ever delete owned atom I in I loop iteration, never J even if owned
 
   tagint *tag = atom->tag;
   int *mask = atom->mask;
@@ -340,10 +340,18 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
       if (factor_lj == 0.0 && factor_coul == 0.0) continue;
 
       // only consider deletion if I,J distance < cutoff
+      // compute rsq identically on both I,J loop iterations
+      // ignoring possibility that I,J tags are equal
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
+      if (tag[i] < tag[j]) {
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+      } else {
+        delx = x[j][0] - xtmp;
+        dely = x[j][1] - ytmp;
+        delz = x[j][2] - ztmp;
+      }
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq >= cutsq) continue;
 

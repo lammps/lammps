@@ -304,15 +304,24 @@ if your platform does have its own XDR files available.  See the
 Restrictions section of the <A HREF = "dump.html">dump</A> command for details.
 </P>
 <P>Use at most one of the -DLAMMPS_SMALLBIG, -DLAMMPS_BIGBIG, -D-
-DLAMMPS_SMALLSMALL settings. The default is -DLAMMPS_SMALLBIG. These
+DLAMMPS_SMALLSMALL settings.  The default is -DLAMMPS_SMALLBIG. These
 settings refer to use of 4-byte (small) vs 8-byte (big) integers
 within LAMMPS, as specified in src/lmptype.h.  The only reason to use
 the BIGBIG setting is to enable simulation of huge molecular systems
 (which store bond topology info) with more than 2 billion atoms, or to
 track the image flags of moving atoms that wrap around a periodic box
-more than 512 times. The only reason to use the SMALLSMALL setting is
-if your machine does not support 64-bit integers.  See the <A HREF = "#start_2_4">Additional
-build tips</A> section below for more details.
+more than 512 times.  Normally, the only reason to use SMALLSMALL is
+if your machine does not support 64-bit integers, though you can use
+SMALLSMALL setting if you are running in serial or on a desktop
+machine or small cluster where you will never run large systems or for
+long time (more than 2 billion atoms, more than 2 billion timesteps).
+See the <A HREF = "#start_2_4">Additional build tips</A> section below for more
+details on these settings.
+</P>
+<P>Note that two packages, USER-ATC and USER-CUDA are not currently
+compatible with -DLAMMPS_BIGBIG.  Also the GPU package requires the
+lib/gpu library to be compiled with the same setting, or the link will
+fail.
 </P>
 <P>The -DLAMMPS_LONGLONG_TO_LONG setting may be needed if your system or
 MPI version does not recognize "long long" data types.  In this case a

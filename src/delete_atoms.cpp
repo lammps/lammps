@@ -271,8 +271,8 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   if (force->pair == NULL)
     error->all(FLERR,"Delete_atoms requires a pair style be defined");
-  if (cut > neighbor->cutneighmax)
-    error->all(FLERR,"Delete_atoms cutoff > neighbor cutoff");
+  if (cut > neighbor->cutneighmin)
+    error->all(FLERR,"Delete_atoms cutoff > minimum neighbor cutoff");
 
   // setup domain, communication and neighboring
   // acquire ghosts and build standard neighbor lists

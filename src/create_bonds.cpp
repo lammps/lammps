@@ -87,8 +87,10 @@ void CreateBonds::command(int narg, char **arg)
 
   if (force->pair == NULL)
     error->all(FLERR,"Create_bonds requires a pair style be defined");
-  if (rmax > neighbor->cutneighmin)
-    error->all(FLERR,"Create_bonds max distance > minimum neighbor cutoff");
+  if (rmax > neighbor->cutneighmax)
+    error->all(FLERR,"Create_bonds max distance > neighbor cutoff");
+  if (rmax > neighbor->cutneighmin && comm->me == 0)
+    error->warning(FLERR,"Create_bonds max distance > minimum neighbor cutoff");
 
   // require special_bonds 1-2 weights = 0.0 and KSpace = NULL
   // so that already bonded atom pairs do not appear in neighbor list

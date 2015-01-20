@@ -69,15 +69,14 @@ cannot appear in the neighbor list, to avoid creation of duplicate
 bonds.  The neighbor list for all atom type pairs must also extend to
 a distance that encompasses the {rmax} for new bonds to create.
 
-An additional requirement is that a simulation be "ready to run", as
-if a "run"_run.html command were about to be issued.  This means, for
-example, that all "pair_style"_pair_style.html coefficients be set via
-the "pair_coeff"_pair_coeff.html command.  A
-"bond_style"_bond_style.html command and all bond coefficients must
-also be set, even if no bonds exist before this command is invoked.
-This is because the building of neighbor list requires initialization
-and setup of a simulation, similar to what a "run"_run.html command
-would require.
+An additional requirement is that your system must be ready to perform
+a simulation.  This means, for example, that all
+"pair_style"_pair_style.html coefficients be set via the
+"pair_coeff"_pair_coeff.html command.  A "bond_style"_bond_style.html
+command and all bond coefficients must also be set, even if no bonds
+exist before this command is invoked.  This is because the building of
+neighbor list requires initialization and setup of a simulation,
+similar to what a "run"_run.html command would require.
 
 Note that you can change any of these settings after this command
 executes, e.g. if you wish to use long-range Coulombic interactions

@@ -72,7 +72,6 @@ using namespace MathConst;
 #define LARGE 10000.0
 #define EPS_HOC 1.0e-7
 
-
 void printArray(double* data,int nx, int ny, int nz)
 {
   for(int i=0;i<nz;i++)
@@ -685,9 +684,9 @@ void PPPMCuda::compute(int eflag, int vflag)
     domain->x2lamda(atom->nlocal);
   }
 
-  // extend size of per-atom arrays if necessary
-  // force update of device data, if arrays resized or charges changed
-  // NOTE: also need to test for q changed ??
+  // extend size of PPPM per-atom arrays if necessary
+  // force update of device data, if arrays resized
+
 
   if (cu_atom->update_nmax || old_nmax == 0) {
     memory->destroy(part2grid);

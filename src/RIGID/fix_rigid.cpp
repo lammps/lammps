@@ -2161,7 +2161,7 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
     // id = rigid body ID
     // use ID as-is for SINGLE, as mol-ID for MOLECULE, as-is for GROUP
     // for which = 0, store mass/com in vec/array
-    // for which = 1, store interia tensor array, invert 3,4,5 values to Voigt
+    // for which = 1, store inertia tensor array, invert 3,4,5 values to Voigt
 
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');

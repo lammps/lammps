@@ -4392,7 +4392,7 @@ int VarReader::read_peratom()
   if (n == 0) return 1;
 
   MPI_Bcast(str,n,MPI_CHAR,0,world);
-  bigint nlines = ATOBIGINT(str);
+  bigint nlines = force->bnumeric(FLERR,str);
   tagint map_tag_max = atom->map_tag_max;
 
   bigint nread = 0;

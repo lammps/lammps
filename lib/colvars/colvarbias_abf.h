@@ -1,3 +1,4 @@
+// -*- c++ -*-
 /************************************************************************
  * Headers for the ABF and histogram biases                             *
  ************************************************************************/
@@ -109,7 +110,7 @@ private:
 
   int		  output_freq;
   void		  write_grid();
-  std::ofstream	  grid_os;  /// Stream for writing grid to disk
+  cvm::ofstream	  grid_os;  /// Stream for writing grid to disk
 
   std::istream& read_restart(std::istream&);
   std::ostream& write_restart(std::ostream&);

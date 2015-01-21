@@ -61,9 +61,9 @@ cvm::real colvar::coordnum::switching_function(cvm::rvector const &r0_vec,
 
   if (calculate_gradients) {
     cvm::real const dFdl2 = (1.0/(1.0-xd))*(en2*(xn/l2) - func*ed2*(xd/l2))*(-1.0);
-    cvm::rvector const dl2dx = ((2.0/(r0_vec.x*r0_vec.x))*diff.x,
-                                (2.0/(r0_vec.y*r0_vec.y))*diff.y,
-                                (2.0/(r0_vec.z*r0_vec.z))*diff.z);
+    cvm::rvector const dl2dx((2.0/(r0_vec.x*r0_vec.x))*diff.x,
+                             (2.0/(r0_vec.y*r0_vec.y))*diff.y,
+                             (2.0/(r0_vec.z*r0_vec.z))*diff.z);
     A1.grad += (-1.0)*dFdl2*dl2dx;
     A2.grad +=        dFdl2*dl2dx;
   }

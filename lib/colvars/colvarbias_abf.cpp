@@ -76,6 +76,8 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
 
       if (!colvars[i]->tasks[colvar::task_extended_lagrangian]) {
         // request computation of Jacobian force
+        // ultimately, will be done regardless of extended Lagrangian
+        // and colvar should then just report zero Jacobian force
         colvars[i]->enable(colvar::task_Jacobian_force);
 
         // request Jacobian force as part as system force
@@ -363,30 +365,51 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
 {
   std::string  samples_out_name = prefix + ".count";
   std::string  gradients_out_name = prefix + ".grad";
+#ifdef NAMD_VERSION
+  if (append)
+    cvm::fatal_error("Error: starting from version 2.10 NAMD does not support any longer appending to output files.\n");
+#else
   std::ios::openmode mode = (append ? std::ios::app : std::ios::out);
+#endif
 
-  std::ofstream samples_os;
-  std::ofstream gradients_os;
+  cvm::ofstream samples_os;
+  cvm::ofstream gradients_os;
 
   if (!append) cvm::backup_file(samples_out_name.c_str());
+#ifdef NAMD_VERSION
+  samples_os.open(samples_out_name.c_str());
+#else
   samples_os.open(samples_out_name.c_str(), mode);
-  if (!samples_os.good()) cvm::error("Error opening ABF samples file " + samples_out_name + " for writing");
+#endif
+  if (!samples_os.is_open()) {
+    cvm::error("Error opening ABF samples file " + samples_out_name + " for writing");
+  }
   samples->write_multicol(samples_os);
   samples_os.close();
 
   if (!append) cvm::backup_file(gradients_out_name.c_str());
+#ifdef NAMD_VERSION
+  gradients_os.open(gradients_out_name.c_str());
+#else
   gradients_os.open(gradients_out_name.c_str(), mode);
-  if (!gradients_os.good())	cvm::error("Error opening ABF gradient file " + gradients_out_name + " for writing");
+#endif
+  if (!gradients_os.is_open()) {
+    cvm::error("Error opening ABF gradient file " + gradients_out_name + " for writing");
+  }
   gradients->write_multicol(gradients_os);
   gradients_os.close();
 
   if (colvars.size() == 1) {
     std::string  pmf_out_name = prefix + ".pmf";
     if (!append) cvm::backup_file(pmf_out_name.c_str());
-    std::ofstream pmf_os;
+    cvm::ofstream pmf_os;
     // Do numerical integration and output a PMF
+#ifdef NAMD_VERSION
+    pmf_os.open(pmf_out_name.c_str());
+#else
     pmf_os.open(pmf_out_name.c_str(), mode);
-    if (!pmf_os.good())	cvm::error("Error opening pmf file " + pmf_out_name + " for writing");
+#endif
+    if (!pmf_os.is_open())	cvm::error("Error opening pmf file " + pmf_out_name + " for writing");
     gradients->write_1D_integral(pmf_os);
     pmf_os << std::endl;
     pmf_os.close();
@@ -428,13 +451,13 @@ void colvarbias_abf::read_gradients_samples()
 
     cvm::log("Reading sample count from " + samples_in_name + " and gradients from " + gradients_in_name);
     is.open(samples_in_name.c_str());
-    if (!is.good()) cvm::error("Error opening ABF samples file " + samples_in_name + " for reading");
+    if (!is.is_open()) cvm::error("Error opening ABF samples file " + samples_in_name + " for reading");
     samples->read_multicol(is, true);
     is.close();
     is.clear();
 
     is.open(gradients_in_name.c_str());
-    if (!is.good())	cvm::error("Error opening ABF gradient file " + gradients_in_name + " for reading");
+    if (!is.is_open())	cvm::error("Error opening ABF gradient file " + gradients_in_name + " for reading");
     gradients->read_multicol(is, true);
     is.close();
   }
@@ -565,7 +588,7 @@ colvarbias_histogram::colvarbias_histogram(std::string const &conf, char const *
 /// Destructor
 colvarbias_histogram::~colvarbias_histogram()
 {
-  if (grid_os.good())	grid_os.close();
+  if (grid_os.is_open())	grid_os.close();
 
   if (grid) {
     delete grid;
@@ -601,7 +624,7 @@ cvm::real colvarbias_histogram::update()
     if (cvm::debug()) cvm::log("Histogram bias trying to write grid to disk");
 
     grid_os.open(out_name.c_str());
-    if (!grid_os.good()) cvm::error("Error opening histogram file " + out_name + " for writing");
+    if (!grid_os.is_open()) cvm::error("Error opening histogram file " + out_name + " for writing");
     grid->write_multicol(grid_os);
     grid_os.close();
   }

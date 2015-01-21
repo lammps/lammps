@@ -60,7 +60,7 @@ int colvarmodule::config_file(char const  *config_filename)
 
   // open the configfile
   config_s.open(config_filename);
-  if (!config_s) {
+  if (!config_s.is_open()) {
     cvm::error("Error: in opening configuration file \""+
                std::string(config_filename)+"\".\n",
                FILE_ERROR);
@@ -569,7 +569,7 @@ int colvarmodule::calc() {
                restart_out_name+"\".\n");
       proxy->backup_file(restart_out_name.c_str());
       restart_out_os.open(restart_out_name.c_str());
-      if (!write_restart(restart_out_os))
+      if (!restart_out_os.is_open() || !write_restart(restart_out_os))
         cvm::error("Error: in writing restart file.\n");
       restart_out_os.close();
     }
@@ -931,12 +931,16 @@ int colvarmodule::open_traj_file(std::string const &file_name)
   if (cv_traj_append) {
     cvm::log("Appending to colvar trajectory file \""+file_name+
              "\".\n");
+#ifdef NAMD_VERSION
+    cvm::fatal_error("Error: starting from version 2.10 NAMD does not support any longer appending to output files.\n");
+#else
     cv_traj_os.open(file_name.c_str(), std::ios::app);
+#endif
   } else {
     cvm::log("Writing to colvar trajectory file \""+file_name+
              "\".\n");
     proxy->backup_file(file_name.c_str());
-    cv_traj_os.open(file_name.c_str(), std::ios::out);
+    cv_traj_os.open(file_name.c_str());
   }
 
   if (!cv_traj_os.is_open()) {

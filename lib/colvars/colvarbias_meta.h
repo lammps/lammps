@@ -61,7 +61,7 @@ protected:
   /// Write the hill logfile
   bool           b_hills_traj;
   /// Logfile of hill management (creation and deletion)
-  std::ofstream  hills_traj_os;
+  cvm::ofstream  hills_traj_os;
 
   /// \brief List of hills used on this bias (total); if a grid is
   /// employed, these don't need to be updated at every time step
@@ -223,7 +223,7 @@ protected:
   std::string            replica_hills_file;
 
   /// \brief Output stream corresponding to replica_hills_file
-  std::ofstream          replica_hills_os;
+  cvm::ofstream          replica_hills_os;
 
   /// Position within replica_hills_file (when reading it)
   int                    replica_hills_file_pos;

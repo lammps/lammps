@@ -1582,7 +1582,7 @@ void colvarbias_meta::write_pmf()
                                         "."+cvm::to_str(cvm::step_absolute()) : "") +
                                        ".pmf");
       cvm::backup_file(fes_file_name.c_str());
-      std::ofstream fes_os(fes_file_name.c_str());
+      cvm::ofstream fes_os(fes_file_name.c_str());
       pmf->write_multicol(fes_os);
       fes_os.close();
     }
@@ -1606,7 +1606,7 @@ void colvarbias_meta::write_pmf()
                                       "."+cvm::to_str(cvm::step_absolute()) : "") +
                                      ".pmf");
     cvm::backup_file(fes_file_name.c_str());
-    std::ofstream fes_os(fes_file_name.c_str());
+    cvm::ofstream fes_os(fes_file_name.c_str());
     pmf->write_multicol(fes_os);
     fes_os.close();
   }
@@ -1621,7 +1621,7 @@ void colvarbias_meta::write_replica_state_file()
   // write down also the restart for the other replicas: TODO: this
   // is duplicated code, that could be cleaned up later
   cvm::backup_file(replica_state_file.c_str());
-  std::ofstream rep_state_os(replica_state_file.c_str());
+  cvm::ofstream rep_state_os(replica_state_file.c_str());
   if (!rep_state_os.good())
     cvm::fatal_error("Error: in opening file \""+
                       replica_state_file+"\" for writing.\n");

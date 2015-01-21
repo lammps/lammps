@@ -210,8 +210,8 @@ public:
 
 protected:
 
-  /// \brief Open output files: by default, these are regular ofstream objects.
-  /// Allows redefinition to implement different behavior (in NAMD, these are ofstream_namd objects)
+  /// \brief Open output files: by default, these are ofstream objects.
+  /// Allows redefinition to implement different output mechanisms
   std::list<std::ostream *> output_files;
   /// \brief Identifiers for output_stream objects: by default, these are the names of the files
   std::list<std::string>    output_stream_names;

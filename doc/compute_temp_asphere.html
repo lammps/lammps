@@ -23,7 +23,7 @@
 
 <LI>keyword = <I>bias</I> or <I>dof</I> 
 
-<PRE>  <I>bias</I> value = bias-ID<I>uniform</I> or <I>gaussian</I>
+<PRE>  <I>bias</I> value = bias-ID
     bias-ID = ID of a temperature compute that removes a velocity bias
   <I>dof</I> value = <I>all</I> or <I>rotate</I>
     all = compute temperature of translational and rotational degrees of freedom
@@ -113,10 +113,10 @@ thermostatting.
 compute that removes a "bias" velocity from each atom.  This allows
 compute temp/sphere to compute its thermal temperature after the
 translational kinetic energy components have been altered in a
-prescribed way, e.g. to remove a velocity profile.  Thermostats that
-use this compute will work with this bias term.  See the doc pages for
-individual computes that calculate a temperature and the doc pages for
-fixes that perform thermostatting for more details.
+prescribed way, e.g. to remove a flow velocity profile.  Thermostats
+that use this compute will work with this bias term.  See the doc
+pages for individual computes that calculate a temperature and the doc
+pages for fixes that perform thermostatting for more details.
 </P>
 <P>For the <I>dof</I> keyword, a setting of <I>all</I> calculates a temperature
 that includes both translational and rotational degrees of freedom.  A

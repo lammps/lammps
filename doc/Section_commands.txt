@@ -372,6 +372,7 @@ in the command's documentation.
 "compute"_compute.html,
 "compute_modify"_compute_modify.html,
 "create_atoms"_create_atoms.html,
+"create_bonds"_create_bonds.html,
 "create_box"_create_box.html,
 "delete_atoms"_delete_atoms.html,
 "delete_bonds"_delete_bonds.html,

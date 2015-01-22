@@ -482,16 +482,6 @@ bool colvarparse::key_lookup(std::string const &conf,
     }
   }
 
-  // check it is not between quotes
-  //   if ( (conf.find_last_of  ("\"",
-  //                             conf.find_last_of  (white_space, pos)) !=
-  //         std::string::npos) &&
-  //        (conf.find_first_of ("\"",
-  //                             conf.find_first_of (white_space, pos)) !=
-  //         std::string::npos) )
-  //     return false;
-
-
   // save the pointer for a future call (when iterating over multiple
   // valid instances of the same keyword)
   save_pos = pos + key.size();
@@ -499,7 +489,7 @@ bool colvarparse::key_lookup(std::string const &conf,
   // get the remainder of the line
   size_t pl = conf.rfind("\n", pos);
   size_t line_begin = (pl == std::string::npos) ? 0 : pos;
-  size_t nl = conf.find  ("\n", pos);
+  size_t nl = conf.find("\n", pos);
   size_t line_end = (nl == std::string::npos) ? conf.size() : nl;
   std::string line(conf, line_begin, (line_end-line_begin));
 
@@ -569,7 +559,7 @@ bool colvarparse::key_lookup(std::string const &conf,
 
     if (data.size() && save_delimiters) {
       data_begin_pos.push_back(conf.find(data, pos+key.size()));
-      data_end_pos.push_back   (data_begin_pos.back()+data.size());
+      data_end_pos.push_back(data_begin_pos.back()+data.size());
       //       std::cerr << "key = " << key << ", data = \""
       //                 << data << "\", data_begin, data_end = "
       //                 << data_begin_pos.back() << ", " << data_end_pos.back()

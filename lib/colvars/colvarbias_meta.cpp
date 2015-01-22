@@ -86,7 +86,7 @@ colvarbias_meta::colvarbias_meta(std::string const &conf, char const *key)
       colvars[i]->enable(colvar::task_grid);
     }
 
-    hills_energy           = new colvar_grid_scalar   (colvars);
+    hills_energy           = new colvar_grid_scalar(colvars);
     hills_energy_gradients = new colvar_grid_gradient(colvars);
   } else {
     rebin_grids = false;
@@ -959,7 +959,7 @@ void colvarbias_meta::update_replicas_registry()
         (replicas.back())->comm = multiple_replicas;
 
         if (use_grids) {
-          (replicas.back())->hills_energy           = new colvar_grid_scalar   (colvars);
+          (replicas.back())->hills_energy           = new colvar_grid_scalar(colvars);
           (replicas.back())->hills_energy_gradients = new colvar_grid_gradient(colvars);
         }
       }

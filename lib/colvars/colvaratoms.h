@@ -139,6 +139,9 @@ public:
   /// Allocates and populates the sorted list of atom ids
   int create_sorted_ids(void);
 
+  /// List of user-defined weights to be used by certain CVCs
+  std::vector<cvm::real> weights;
+
 
   /// \brief When updating atomic coordinates, translate them to align with the
   /// center of mass of the reference coordinates

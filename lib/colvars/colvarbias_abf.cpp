@@ -118,7 +118,7 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
   force = new cvm::real [colvars.size()];
 
   // Construct empty grids based on the colvars
-  samples   = new colvar_grid_count    (colvars);
+  samples   = new colvar_grid_count(colvars);
   gradients = new colvar_grid_gradient(colvars);
   gradients->samples = samples;
   samples->has_parent_data = true;
@@ -126,7 +126,7 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
   // For shared ABF, we store a second set of grids.
   // This used to be only if "shared" was defined,
   // but now we allow calling share externally (e.g. from Tcl).
-  last_samples   = new colvar_grid_count    (colvars);
+  last_samples   = new colvar_grid_count(colvars);
   last_gradients = new colvar_grid_gradient(colvars);
   last_gradients->samples = last_samples;
   last_samples->has_parent_data = true;
@@ -579,7 +579,7 @@ colvarbias_histogram::colvarbias_histogram(std::string const &conf, char const *
     cvm::error("User required histogram with zero output frequency");
   }
 
-  grid   = new colvar_grid_count    (colvars);
+  grid = new colvar_grid_count(colvars);
   bin.assign(colvars.size(), 0);
 
   cvm::log("Finished histogram setup.\n");
@@ -588,7 +588,8 @@ colvarbias_histogram::colvarbias_histogram(std::string const &conf, char const *
 /// Destructor
 colvarbias_histogram::~colvarbias_histogram()
 {
-  if (grid_os.is_open())	grid_os.close();
+  if (grid_os.is_open())
+    grid_os.close();
 
   if (grid) {
     delete grid;

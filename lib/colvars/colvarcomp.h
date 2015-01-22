@@ -1139,6 +1139,8 @@ class colvar::cartesian
 protected:
   /// Atom group
   cvm::atom_group atoms;
+  /// Which Cartesian coordinates to include
+  std::vector<size_t> axes;
 public:
   cartesian(std::string const &conf);
   cartesian();

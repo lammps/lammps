@@ -1478,7 +1478,7 @@ void FixAveSpatial::atom2bin3d()
 
 /* ----------------------------------------------------------------------
    return I,J array value
-   if I exceeds current bins, return 0.0 instead of generating an error
+   if I exceeds current nbins, return 0.0 instead of generating an error
    column 1,2,3 = bin coords, next column = count, remaining columns = Nvalues
 ------------------------------------------------------------------------- */
 

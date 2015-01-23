@@ -33,11 +33,14 @@
 
 <LI>zero or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>ke</I> or <I>region</I> 
+<LI>keyword = <I>ke</I> or <I>semi-grand</I> or <I>region</I> 
 
 <PRE>  <I>ke</I> value = <I>no</I> or <I>yes</I>
     <I>no</I> = no conservation of kinetic energy after atom swaps
     <I>yes</I> = kinetic energy is conserved after atom swaps
+  <I>semi-grand</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = particle type counts and fractions conserved
+    <I>yes</I> = semi-grand canonical ensemble, particle fractions not conserved
   <I>region</I> value = region-ID
     region-ID = ID of region to use as a swap volume 
 </PRE>
@@ -75,6 +78,16 @@ atoms have their velocities scaled by the ratio of the masses of the
 swapped atom types. This ensures that the kinetic energy of each atom 
 is the same after the swap as it was before the swap, even though the 
 atom masses have changed.
+</P>
+<P>The <I>semi-grand</I> keyword can be set to <I>yes</I> to switch to the semi-grand 
+canonical ensemble, meaning that the total number of each particle type
+does not need to be conserved. The default is <I>no</I>, which means that the 
+only kind of swap allowed exchanges an atom of type_1 with an atom of type_2.
+In other words, the relative mole fractions of the swapped atoms remains
+constant. Whereas in the semi-grand canonical ensemble, the composition of 
+the system can change. Particles of type_1 can independently be converted
+to type_2, and particles of type_2 can independently be converted to type_1.
+Swaps in each direction are attempted half of the time.
 </P>
 <P>If the <I>region</I> keyword is not used, all atoms of <I>type_1</I> and
 <I>type_2</I> which are in the specified group are candidates for swapping.

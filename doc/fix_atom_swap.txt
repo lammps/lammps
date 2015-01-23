@@ -183,4 +183,4 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Default:]
 
-The option defaults are ke = yes.
+The option defaults are ke = yes, semi-grand = no.

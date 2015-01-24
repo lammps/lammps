@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -40,10 +40,17 @@ class FixGCMC : public Fix {
   void attempt_molecule_deletion();
   void attempt_molecule_insertion();
   double energy(int, int, tagint, double *);
+  void attempt_atomic_translation_full();
+  void attempt_atomic_deletion_full();
+  void attempt_atomic_insertion_full();
+  void attempt_molecule_translation_full();
+  void attempt_molecule_rotation_full();
+  void attempt_molecule_deletion_full();
+  void attempt_molecule_insertion_full();
+  double energy_full();
   int pick_random_gas_atom();
   tagint pick_random_gas_molecule();
   double molecule_energy(tagint);
-  void get_rotation_matrix(double, double *);
   void update_gas_atoms_list();
   double compute_vector(int);
   double memory_usage();
@@ -51,8 +58,10 @@ class FixGCMC : public Fix {
   void restart(char *);
 
  private:
-  int rotation_group,rotation_groupbit;
-  int rotation_inversegroupbit;
+  int molecule_group,molecule_group_bit;
+  int molecule_group_inversebit;
+  int exclusion_group,exclusion_group_bit;
+  int exclusion_group_inversebit;
   int ngcmc_type,nevery,seed;
   int ncycles,nexchanges,nmcmoves;
   int ngas;                 // # of gas atoms on all procs
@@ -63,7 +72,8 @@ class FixGCMC : public Fix {
   int iregion;              // GCMC region
   char *idregion;           // GCMC region id
   bool pressure_flag;       // true if user specified reservoir pressure
-                            // else false
+  bool charge_flag;         // true if user specified atomic charge
+  bool full_flag;           // true if doing full system energy calculations
 
   int natoms_per_molecule;  // number of atoms in each gas molecule
 
@@ -84,10 +94,11 @@ class FixGCMC : public Fix {
   double displace;
   double max_rotation_angle;
   double beta,zz,sigma,volume;
-  double pressure,fugacity_coeff;
+  double pressure,fugacity_coeff,charge;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double region_xlo,region_xhi,region_ylo,region_yhi,region_zlo,region_zhi;
   double region_volume;
+  double energy_stored;
   double *sublo,*subhi;
   int *local_gas_list;
   double **cutsq;
@@ -108,6 +119,8 @@ class FixGCMC : public Fix {
   class Fix *fixshake;
   int shakeflag;
   char *idshake;
+  
+  class Compute *c_pe;
 
   void options(int, char **);
 };
@@ -169,20 +182,10 @@ Should not choose the GCMC molecule feature if no molecules are being
 simulated. The general molecule flag is off, but GCMC's molecule flag
 is on.
 
-E: Fix gcmc incompatible with given pair_style
-
-Some pair_styles do not provide single-atom energies, which are needed
-by fix gcmc.
-
 E: Cannot use fix gcmc in a 2d simulation
 
 Fix gcmc is set up to run in 3d only. No 2d simulations with fix gcmc
 are allowed.
-
-E: Cannot use fix gcmc with a triclinic box
-
-Fix gcmc is set up to run with othogonal boxes only. Simulations with
-triclinic boxes and fix gcmc are not allowed.
 
 E: Could not find fix gcmc rotation group ID
 

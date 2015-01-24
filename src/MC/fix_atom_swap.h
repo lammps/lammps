@@ -47,6 +47,7 @@ class FixAtomSwap : public Fix {
  private:
   int atom_swap_itype,atom_swap_jtype,nevery,seed;
   int conserve_ke_flag;                   // yes = conserve ke, no = do not conserve ke
+  int semi_grand_flag;                    // yes = semi-grand canonical, no = constant composition
   int ncycles;
   int niswap,njswap;                      // # of swap atoms on all procs
   int niswap_local,njswap_local;          // # of swap atoms on this proc

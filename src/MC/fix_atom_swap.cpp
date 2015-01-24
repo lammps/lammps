@@ -119,6 +119,7 @@ void FixAtomSwap::options(int narg, char **arg)
 
   regionflag = 0; 
   conserve_ke_flag = 1;
+  semi_grand_flag = 0;
   iregion = -1; 
   
   int iarg = 0;
@@ -137,6 +138,12 @@ void FixAtomSwap::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix atom/swap command");
       if (strcmp(arg[iarg+1],"no") == 0) conserve_ke_flag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) conserve_ke_flag = 1;
+      else error->all(FLERR,"Illegal fix atom/swap command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"semi-grand") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix atom/swap command");
+      if (strcmp(arg[iarg+1],"no") == 0) semi_grand_flag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) semi_grand_flag = 1;
       else error->all(FLERR,"Illegal fix atom/swap command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix atom/swap command");
@@ -244,8 +251,6 @@ void FixAtomSwap::pre_exchange()
   energy_stored = energy_full();
   update_swap_atoms_list();
 
-  if ((niswap == 0) || (njswap == 0)) return;
-  
   int nsuccess = 0;
   for (int i = 0; i < ncycles; i++) nsuccess += attempt_swap();
   
@@ -262,16 +267,42 @@ int FixAtomSwap::attempt_swap()
 {
   double energy_before = energy_stored;
   
-  int i = pick_i_swap_atom();
-  int j = pick_j_swap_atom();
-
-  if (i >= 0) {
-    atom->type[i] = atom_swap_jtype;
-    if (atom->q_flag) atom->q[i] = qjtype;
-  }
-  if (j >= 0) {
-    atom->type[j] = atom_swap_itype;
-    if (atom->q_flag) atom->q[j] = qitype;
+  int i = -1;
+  int j = -1;
+  
+  if (semi_grand_flag) {
+  
+    if (random_equal->uniform() < 0.5) {
+      if (niswap == 0) return 0;
+      i = pick_i_swap_atom();
+      if (i >= 0) {
+        atom->type[i] = atom_swap_jtype;
+        if (atom->q_flag) atom->q[i] = qjtype;
+      }
+    } else {
+      if (njswap == 0) return 0;
+      j = pick_j_swap_atom();
+      if (j >= 0) {
+        atom->type[j] = atom_swap_itype;
+        if (atom->q_flag) atom->q[j] = qitype;
+      }
+    }
+    
+  } else {
+  
+    if ((niswap == 0) || (njswap == 0)) return 0;
+    i = pick_i_swap_atom();
+    j = pick_j_swap_atom();
+    
+    if (i >= 0) {
+      atom->type[i] = atom_swap_jtype;
+      if (atom->q_flag) atom->q[i] = qjtype;
+    }
+    if (j >= 0) {
+      atom->type[j] = atom_swap_itype;
+      if (atom->q_flag) atom->q[j] = qitype;
+    }
+    
   }
   
   if (unequal_cutoffs) {

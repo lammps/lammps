@@ -42,6 +42,7 @@ class FixStore : public Fix {
   void unpack_restart(int, int);
   int size_restart(int);
   int maxsize_restart();
+  void set_arrays(int);
 
  private:
   int nvalues;                  // total # of values per atom

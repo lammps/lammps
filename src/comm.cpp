@@ -629,7 +629,7 @@ int Comm::binary(double value, int n, double *vec)
    if self=1 (default), then callback() is invoked on final iteration
      using original inbuf, which may have been updated
    for non-NULL outbuf, final updated inbuf is copied to it
-     outbuf = inbuf is OK
+     ok to specify outbuf = inbuf
 ------------------------------------------------------------------------- */
 
 void Comm::ring(int n, int nper, void *inbuf, int messtag,

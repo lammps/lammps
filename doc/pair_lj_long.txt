@@ -100,22 +100,22 @@ neighbor list.  This leads to slightly larger cost for the long-range
 calculation, so you can test the trade-off for your model.
 
 If {flag_lj} is set to {long}, no cutoff is used on the LJ 1/r^6
-dispersion term.  The long-range portion is calculated by using the
-"kspace_style ewald/n"_kspace_style.html command.  The specified LJ
-cutoff then determines which portion of the LJ interactions are
-computed directly by the pair potential versus which part is computed
-in reciprocal space via the Kspace style.  If {flag_lj} is set to
-{cut}, the LJ interactions are simply cutoff, as with "pair_style
-lj/cut"_pair_lj.html.  If {flag_lj} is set to
-{off}, LJ interactions are not computed at all.
+dispersion term.  The long-range portion can be calculated by using
+the "kspace_style ewald/disp or pppm/disp"_kspace_style.html commands.
+The specified LJ cutoff then determines which portion of the LJ
+interactions are computed directly by the pair potential versus which
+part is computed in reciprocal space via the Kspace style.  If
+{flag_lj} is set to {cut}, the LJ interactions are simply cutoff, as
+with "pair_style lj/cut"_pair_lj.html.
 
 If {flag_coul} is set to {long}, no cutoff is used on the Coulombic
-interactions.  The long-range portion is calculated by using any
-style, including {ewald/n} of the "kspace_style"_kspace_style.html
-command.  Note that if {flag_lj} is also set to long, then only the
-{ewald/n} KSpace style can perform the long-range calculations for
-both the LJ and Coulombic interactions.  If {flag_coul} is set to
-{off}, Coulombic interactions are not computed at all.
+interactions.  The long-range portion can calculated by using any of
+several "kspace_style"_kspace_style.html command options such as
+{pppm} or {ewald}.  Note that if {flag_lj} is also set to long, then
+the {ewald/disp} or {pppm/disp} Kspace style needs to be used to
+perform the long-range calculations for both the LJ and Coulombic
+interactions.  If {flag_coul} is set to {off}, Coulombic interactions
+are not computed.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples

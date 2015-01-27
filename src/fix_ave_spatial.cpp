@@ -455,7 +455,6 @@ FixAveSpatial::~FixAveSpatial()
   memory->destroy(values_total);
   memory->destroy(values_list);
 }
-
 /* ---------------------------------------------------------------------- */
 
 int FixAveSpatial::setmask()

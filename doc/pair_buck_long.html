@@ -61,21 +61,23 @@ appropriate to include long-range 1/r^6 interactions, using this
 potential.
 </P>
 <P>If <I>flag_buck</I> is set to <I>long</I>, no cutoff is used on the Buckingham
-1/r^6 dispersion term.  The long-range portion is calculated by using
-the <A HREF = "kspace_style.html">kspace_style ewald/n</A> command.  The specified
-Buckingham cutoff then determines which portion of the Buckingham
-interactions are computed directly by the pair potential versus which
-part is computed in reciprocal space via the Kspace style.  If
-<I>flag_buck</I> is set to <I>cut</I>, the Buckingham interactions are simply
-cutoff, as with <A HREF = "pair_buck.html">pair_style buck</A>.
+1/r^6 dispersion term.  The long-range portion can be calculated by
+using the <A HREF = "kspace_style.html">kspace_style ewald/disp or pppm/disp</A>
+commands.  The specified Buckingham cutoff then determines which
+portion of the Buckingham interactions are computed directly by the
+pair potential versus which part is computed in reciprocal space via
+the Kspace style.  If <I>flag_buck</I> is set to <I>cut</I>, the Buckingham
+interactions are simply cutoff, as with <A HREF = "pair_buck.html">pair_style
+buck</A>.
 </P>
 <P>If <I>flag_coul</I> is set to <I>long</I>, no cutoff is used on the Coulombic
-interactions.  The long-range portion is calculated by using any
-style, including <I>ewald/n</I> of the <A HREF = "kspace_style.html">kspace_style</A>
-command.  Note that if <I>flag_buck</I> is also set to long, then only the
-<I>ewald/n</I> Kspace style can perform the long-range calculations for
-both the Buckingham and Coulombic interactions.  If <I>flag_coul</I> is set
-to <I>off</I>, Coulombic interactions are not computed.
+interactions.  The long-range portion can calculated by using any of
+several <A HREF = "kspace_style.html">kspace_style</A> command options such as
+<I>pppm</I> or <I>ewald</I>.  Note that if <I>flag_buck</I> is also set to long, then
+the <I>ewald/disp</I> or <I>pppm/disp</I> Kspace style needs to be used to
+perform the long-range calculations for both the Buckingham and
+Coulombic interactions.  If <I>flag_coul</I> is set to <I>off</I>, Coulombic
+interactions are not computed.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples

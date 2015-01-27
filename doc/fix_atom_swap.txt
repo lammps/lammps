@@ -6,22 +6,22 @@
 
 :line
 
-fix atom/swap command :h3
+fix atom_swap command :h3
 
 [Syntax:]
 
-fix ID group-ID atom/swap N X type_1 type_2 seed T keyword values ... :pre
+fix ID group-ID atom_swap N X seed T keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-atom/swap = style name of this fix command :l
+atom_swap = style name of this fix command :l
 N = invoke this fix every N steps :l
 X = number of swaps to attempt every N steps :l
-type_1 = first atom type to swap :l
-type_2 = second atom type to swap :l
 seed = random # seed (positive integer) :l
 T = scaling temperature of the MC swaps (temperature units) :l
-zero or more keyword/value pairs may be appended to args :l
-keyword = {ke} or {semi-grand} or {region} :l
+one or more keyword/value pairs may be appended to args :l
+keyword = {types} or {delta_mu} or {ke} or {semi-grand} or {region} :l
+  {types} values = two or more atom types
+  {delta_mu} values = number_of_types-1 relative chemical potentials
   {ke} value = {no} or {yes}
     {no} = no conservation of kinetic energy after atom swaps
     {yes} = kinetic energy is conserved after atom swaps
@@ -29,119 +29,105 @@ keyword = {ke} or {semi-grand} or {region} :l
     {no} = particle type counts and fractions conserved
     {yes} = semi-grand canonical ensemble, particle fractions not conserved
   {region} value = region-ID
-    region-ID = ID of region to use as a swap volume :pre
+    region-ID = ID of region to use as an exchange/move volume :pre
 :ule
 
 [Examples:]
 
-fix 2 all atom/swap 1 1 1 2 29494 300.0 ke no
-fix atom_swap_fix all atom/swap 100 1 5 6 12345 298.0 region my_swap_region :pre
+fix 2 all atom/swap 1 1 29494 300.0 ke no types 1 2
+fix atom_swap_fix all atom/swap 100 1 12345 298.0 region my_swap_region types 5 6 
+fix SGMC all atom/swap 1 100 345 1.0 semi-grand yes types 1 2 3 delta_mu 4.3 -5.0 :pre
 
 [Description:]
 
-This fix performs Monte Carlo swaps of atoms of one type with atoms of
-a second type.  The specified temperature {T} is used to scale the
-energy in the criterion for accepting or rejecting each swap.  The fix
-is invoked once every {N} steps.  Each time the fix is invoked {X}
-swap attempts are made, one after the other, bewteen pairs of randomly
-selected atoms.  Two attributes of the atoms in the pair are swapped:
-the atom type and the atom charge (if defined).  Each attempted swap
-is accepted or rejected based on the Metropolis criterion using the
-Boltzmann factor exp(-Edelta / kT), where Edelta is the change in the
-system potential energy due to the swap, k is the Boltzmann constant,
-and {T} is the specified temperature.
+This fix performs Monte Carlo swaps of atoms of one given atom type with atoms
+of the other given atom types. The specified T is used in the Metropolis criterion
+dictating swap probabilities. 
 
-In addition to the MC swaps, atoms in the simulation domain will move
-via normal dynamic timestepping if a time integration fix is defined,
-e.g. "fix_nvt"_fix_nvt.html, which will result in a hybrid MC+MD
-simulation.  If a swap produces a poorly equilibrated system, a
-smaller-than-usual timestep size may be needed when running such a
-simulation.
+Perform X swaps of atoms of one type with atoms of another type according to a
+Monte Carlo probability. Swap candidates must be in the fix group, must be in
+the region (if specified), and must be of one of the listed types. Swaps are
+attempted between candidates that are chosen randomly with equal probability 
+among the candidate atoms. Swaps are not attempted between atoms of the same 
+type since nothing would happen.
 
-The {ke} keyword can be set to {no} to turn off kinetic energy 
-conservation for swaps. The default is {yes}, which means that swapped
-atoms have their velocities scaled by the ratio of the masses of the 
-swapped atom types. This ensures that the kinetic energy of each atom 
-is the same after the swap as it was before the swap, even though the 
-atom masses have changed.
+All atoms in the simulation domain can be moved using regular time 
+integration displacements, e.g. via "fix_nvt"_fix_nvt.html, resulting
+in a hybrid MC+MD simulation. A smaller-than-usual timestep size 
+may be needed when running such a hybrid simulation, especially if 
+the swapped atoms are not well equilibrated.
+
+The {types} keyword is required. At least two atom types must be specified.
+
+The {ke} keyword can be set to {no} to turn off kinetic energy conservation 
+for swaps. The default is {yes}, which means that swapped atoms have their 
+velocities scaled by the ratio of the masses of the swapped atom types. This
+ensures that the kinetic energy of each atom is the same after the swap as it 
+was before the swap, even though the atom masses have changed.
 
 The {semi-grand} keyword can be set to {yes} to switch to the semi-grand 
 canonical ensemble, meaning that the total number of each particle type
 does not need to be conserved. The default is {no}, which means that the 
-only kind of swap allowed exchanges an atom of type_1 with an atom of type_2.
-In other words, the relative mole fractions of the swapped atoms remains
-constant. Whereas in the semi-grand canonical ensemble, the composition of 
-the system can change. Particles of type_1 can independently be converted
-to type_2, and particles of type_2 can independently be converted to type_1.
-Swaps in each direction are attempted half of the time.
+only kind of swap allowed exchanges an atom of one type with an atom of a 
+different given type. In other words, the relative mole fractions of the 
+swapped atoms remains constant. Whereas in the semi-grand canonical ensemble,
+the composition of the system can change. Note that when using {semi-grand},
+all atoms in the fix group are eligible for attempted conversion to one of
+the given types, even if its current type is not one of the given types. 
+An attempt is made to switch the selected atom to one of the listed 
+{types} with equal probability. Acceptance of each attempt depends upon the
+Metropolis criterion.
 
-If the {region} keyword is not used, all atoms of {type_1} and
-{type_2} which are in the specified group are candidates for swapping.
-If the {region} keyword is used, swappable atoms must also be in the
-specified region.  Each time a swap is performed one random atom is
-chosen from the list of candidate {type_1} atoms, and one random atom
-from the list of candidate {type_2} atoms.  A pair of swapped atoms
-can thus be far apart geometrically.  If multiple swaps are attempted
-in the same timestep, an individual atom may be swapped multiple
-times.
+The {delta_mu} keyword allows users to specify non-zero chemical potentials
+for each of the atom types. All chemical potentials are relative to the first
+atom type, so no value is given for the first atom type. These parameters are
+useful for semi-grand canonical ensemble simulations where it may be 
+desirable to actively control the composition of the system. When given,
+there must be ntypes-1 values given, where ntypes is the number of atom
+types in the simulated system. Note that a value for delta_mu is required for
+all atom types when using {semi-grand}, even for atom types not listed 
+following the {types} keyword. This is because when using {semi-grand}, it is
+possible that any of the atom types in the system could be part of the fix
+group and therefore are eligible for swapping to one of the listed atom types.
 
-An additional requirement for charged systems is that all swappable
-atoms of {type_1} must have the same charge, and likewise for {type_2}.
-Atoms of {type_1} need not have the same charge as atoms of {type_2}.
+This command may optionally use the {region} keyword to define
+swap volume.  The specified region must have been 
+previously defined with a "region"_region.html command.  It must be 
+defined with side = {in}.  Swap attempts occur only between atoms that
+are both within the specified region. Swaps are not otherwise attempted.
 
-Note that this fix computes total potential energies before and after
-attempted swaps, so even systems with complicated potential energy
-calculations can be used, including the following:
+You should ensure you do not swap atoms belonging to a molecule, or
+LAMMPS will soon generate an error when it tries to find those atoms.
+LAMMPS will warn you if any of the atoms eligible for swapping have a
+non-zero molecule ID, but does not check for this at the time of
+swapping.
 
-long-range electrostatics (KSpace)
-many-body pair styles
-hybrid pair styles
-EAM pair styles
-triclinic systems :ul
+This fix checks to ensure all atoms of the given types have the same
+atomic charge. LAMMPS doesn't enforce this in general, but it is 
+needed for this fix to simplify the swapping procedure. Successful swaps
+will swap the atom type and charge of the swapped atoms.
 
-Some fixes have an associated potential energy.  Currently, the
-potential energy contribution due to these fixes is not included in
-the Metropolis criterion dictating atom swap probabilities. Examples
-of such fixes include: "efield"_fix_efield.html,
-"gravity"_fix_gravity.html, "addforce"_fix_addforce.html,
-"restrain"_fix_restrain.html, and "wall fixes"_fix_wall.html.
+Since this fix computes total potential energies before and after
+proposed swaps, so even complicated potential energy calculations are 
+OK, including the following:
 
-IMPORTANT NOTE: During the swaps performed within a single timestep,
-this fix performs minimal communication to update the state of the
-system.  If the cutoff distance for all type pairs, as defined by the
-"pair_style"_pair_style.html is the same, the neighbor list does not
-need to be rebuilt when a swap takes place.  The CPU cost per swap
-will then be equivalent to roughly a single MD timestep.  If the
-cutoff distances are not the same for all type pairs, then the
-neighbor list will be rebuilt, and the CPU cost per swap will be
-higher.
+  long-range electrostatics (kspace)
+  many body pair styles
+  hybrid pair styles
+  eam pair styles
+  triclinic systems 
+  need to include potential energy contributions from other fixes :ul
 
-:line
-
-IMPORTANT NOTE: If you only wish to use this fix to relax a system
-without dynamics, e.g. to model surface segregation in an alloy, then
-you do not need to define a time integration fix.  In this scenario an
-MC-only simulation can be run in a single timestep or multiple
-timesteps as follows:
-
-fix mc all atom/swap 1 100000 ... 
-run 1 :pre
-
-or 
-
-fix mc all atom/swap 1 1000 ... 
-run 100 :pre
-
-In the first case, 100000 swaps are attempted in the first (only)
-timestep.  A neighbor list will only be built once, which is
-sufficient since atoms are not moving.
-
-In the second case, the same 100000 swaps are spread across 100
-timesteps.  This will require 100 neighbor list builds (once each time
-the fix is invoked, which should still be relatively cheap), but also
-allows you to monitor or analyze various quantities such as the
-evolution of the system energy as a function of timestep, as if the
-system were evolving over time.
+Some fixes have an associated potential energy. Examples of such fixes
+include: "efield"_fix_efield.html, "gravity"_fix_gravity.html, 
+"addforce"_fix_addforce.html, "langevin"_fix_langevin.html, 
+"restrain"_fix_restrain.html, "temp/berendsen"_fix_temp_berendsen.html, 
+"temp/rescale"_fix_temp_rescale.html, and "wall fixes"_fix_wall.html. 
+For that energy to be included in the total potential energy of the 
+system (the quantity used when performing GCMC moves),
+you MUST enable the "fix_modify"_fix_modify.html {energy} option for
+that fix.  The doc pages for individual "fix"_fix.html commands
+specify if this should be done.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -176,11 +162,13 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"fix bond/swap"_fix_bond_swap.html, "fix_nvt"_fix_nvt.html,
-"neighbor"_neighbor.html, "fix_deposit"_fix_deposit.html,
-"fix_evaporate"_fix_evaporate.html, "delete_atoms"_delete_atoms.html,
-"fix_gcmc"_fix_gcmc.html
+"fix_nvt"_fix_nvt.html, "neighbor"_neighbor.html, 
+"fix_deposit"_fix_deposit.html, "fix_evaporate"_fix_evaporate.html,
+"delete_atoms"_delete_atoms.html, "fix_gcmc"_fix_gcmc.html
 
 [Default:]
 
-The option defaults are ke = yes, semi-grand = no.
+The option defaults are ke = yes, semi-grand = no, delta_mu = 0.0 for 
+all atom types.
+
+:line

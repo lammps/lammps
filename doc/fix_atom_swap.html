@@ -9,153 +9,137 @@
 
 <HR>
 
-<H3>fix atom/swap command 
+<H3>fix atom_swap command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID atom/swap N X type_1 type_2 seed T keyword values ... 
+<PRE>fix ID group-ID atom_swap N X seed T keyword values ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
-<LI>atom/swap = style name of this fix command 
+<LI>atom_swap = style name of this fix command 
 
 <LI>N = invoke this fix every N steps 
 
 <LI>X = number of swaps to attempt every N steps 
 
-<LI>type_1 = first atom type to swap 
-
-<LI>type_2 = second atom type to swap 
-
 <LI>seed = random # seed (positive integer) 
 
 <LI>T = scaling temperature of the MC swaps (temperature units) 
 
-<LI>zero or more keyword/value pairs may be appended to args 
+<LI>one or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>ke</I> or <I>semi-grand</I> or <I>region</I> 
+<LI>keyword = <I>types</I> or <I>delta_mu</I> or <I>ke</I> or <I>semi-grand</I> or <I>region</I> 
 
-<PRE>  <I>ke</I> value = <I>no</I> or <I>yes</I>
+<PRE>  <I>types</I> values = two or more atom types
+  <I>delta_mu</I> values = number_of_types-1 relative chemical potentials
+  <I>ke</I> value = <I>no</I> or <I>yes</I>
     <I>no</I> = no conservation of kinetic energy after atom swaps
     <I>yes</I> = kinetic energy is conserved after atom swaps
   <I>semi-grand</I> value = <I>no</I> or <I>yes</I>
     <I>no</I> = particle type counts and fractions conserved
     <I>yes</I> = semi-grand canonical ensemble, particle fractions not conserved
   <I>region</I> value = region-ID
-    region-ID = ID of region to use as a swap volume 
+    region-ID = ID of region to use as an exchange/move volume 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
-<PRE>fix 2 all atom/swap 1 1 1 2 29494 300.0 ke no
-fix atom_swap_fix all atom/swap 100 1 5 6 12345 298.0 region my_swap_region 
+<PRE>fix 2 all atom/swap 1 1 29494 300.0 ke no types 1 2
+fix atom_swap_fix all atom/swap 100 1 12345 298.0 region my_swap_region types 5 6 
+fix SGMC all atom/swap 1 100 345 1.0 semi-grand yes types 1 2 3 delta_mu 4.3 -5.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This fix performs Monte Carlo swaps of atoms of one type with atoms of
-a second type.  The specified temperature <I>T</I> is used to scale the
-energy in the criterion for accepting or rejecting each swap.  The fix
-is invoked once every <I>N</I> steps.  Each time the fix is invoked <I>X</I>
-swap attempts are made, one after the other, bewteen pairs of randomly
-selected atoms.  Two attributes of the atoms in the pair are swapped:
-the atom type and the atom charge (if defined).  Each attempted swap
-is accepted or rejected based on the Metropolis criterion using the
-Boltzmann factor exp(-Edelta / kT), where Edelta is the change in the
-system potential energy due to the swap, k is the Boltzmann constant,
-and <I>T</I> is the specified temperature.
+<P>This fix performs Monte Carlo swaps of atoms of one given atom type with atoms
+of the other given atom types. The specified T is used in the Metropolis criterion
+dictating swap probabilities. 
 </P>
-<P>In addition to the MC swaps, atoms in the simulation domain will move
-via normal dynamic timestepping if a time integration fix is defined,
-e.g. <A HREF = "fix_nvt.html">fix_nvt</A>, which will result in a hybrid MC+MD
-simulation.  If a swap produces a poorly equilibrated system, a
-smaller-than-usual timestep size may be needed when running such a
-simulation.
+<P>Perform X swaps of atoms of one type with atoms of another type according to a
+Monte Carlo probability. Swap candidates must be in the fix group, must be in
+the region (if specified), and must be of one of the listed types. Swaps are
+attempted between candidates that are chosen randomly with equal probability 
+among the candidate atoms. Swaps are not attempted between atoms of the same 
+type since nothing would happen.
 </P>
-<P>The <I>ke</I> keyword can be set to <I>no</I> to turn off kinetic energy 
-conservation for swaps. The default is <I>yes</I>, which means that swapped
-atoms have their velocities scaled by the ratio of the masses of the 
-swapped atom types. This ensures that the kinetic energy of each atom 
-is the same after the swap as it was before the swap, even though the 
-atom masses have changed.
+<P>All atoms in the simulation domain can be moved using regular time 
+integration displacements, e.g. via <A HREF = "fix_nvt.html">fix_nvt</A>, resulting
+in a hybrid MC+MD simulation. A smaller-than-usual timestep size 
+may be needed when running such a hybrid simulation, especially if 
+the swapped atoms are not well equilibrated.
+</P>
+<P>The <I>types</I> keyword is required. At least two atom types must be specified.
+</P>
+<P>The <I>ke</I> keyword can be set to <I>no</I> to turn off kinetic energy conservation 
+for swaps. The default is <I>yes</I>, which means that swapped atoms have their 
+velocities scaled by the ratio of the masses of the swapped atom types. This
+ensures that the kinetic energy of each atom is the same after the swap as it 
+was before the swap, even though the atom masses have changed.
 </P>
 <P>The <I>semi-grand</I> keyword can be set to <I>yes</I> to switch to the semi-grand 
 canonical ensemble, meaning that the total number of each particle type
 does not need to be conserved. The default is <I>no</I>, which means that the 
-only kind of swap allowed exchanges an atom of type_1 with an atom of type_2.
-In other words, the relative mole fractions of the swapped atoms remains
-constant. Whereas in the semi-grand canonical ensemble, the composition of 
-the system can change. Particles of type_1 can independently be converted
-to type_2, and particles of type_2 can independently be converted to type_1.
-Swaps in each direction are attempted half of the time.
+only kind of swap allowed exchanges an atom of one type with an atom of a 
+different given type. In other words, the relative mole fractions of the 
+swapped atoms remains constant. Whereas in the semi-grand canonical ensemble,
+the composition of the system can change. Note that when using <I>semi-grand</I>,
+all atoms in the fix group are eligible for attempted conversion to one of
+the given types, even if its current type is not one of the given types. 
+An attempt is made to switch the selected atom to one of the listed 
+<I>types</I> with equal probability. Acceptance of each attempt depends upon the
+Metropolis criterion.
 </P>
-<P>If the <I>region</I> keyword is not used, all atoms of <I>type_1</I> and
-<I>type_2</I> which are in the specified group are candidates for swapping.
-If the <I>region</I> keyword is used, swappable atoms must also be in the
-specified region.  Each time a swap is performed one random atom is
-chosen from the list of candidate <I>type_1</I> atoms, and one random atom
-from the list of candidate <I>type_2</I> atoms.  A pair of swapped atoms
-can thus be far apart geometrically.  If multiple swaps are attempted
-in the same timestep, an individual atom may be swapped multiple
-times.
+<P>The <I>delta_mu</I> keyword allows users to specify non-zero chemical potentials
+for each of the atom types. All chemical potentials are relative to the first
+atom type, so no value is given for the first atom type. These parameters are
+useful for semi-grand canonical ensemble simulations where it may be 
+desirable to actively control the composition of the system. When given,
+there must be ntypes-1 values given, where ntypes is the number of atom
+types in the simulated system. Note that a value for delta_mu is required for
+all atom types when using <I>semi-grand</I>, even for atom types not listed 
+following the <I>types</I> keyword. This is because when using <I>semi-grand</I>, it is
+possible that any of the atom types in the system could be part of the fix
+group and therefore are eligible for swapping to one of the listed atom types.
 </P>
-<P>An additional requirement for charged systems is that all swappable
-atoms of <I>type_1</I> must have the same charge, and likewise for <I>type_2</I>.
-Atoms of <I>type_1</I> need not have the same charge as atoms of <I>type_2</I>.
+<P>This command may optionally use the <I>region</I> keyword to define
+swap volume.  The specified region must have been 
+previously defined with a <A HREF = "region.html">region</A> command.  It must be 
+defined with side = <I>in</I>.  Swap attempts occur only between atoms that
+are both within the specified region. Swaps are not otherwise attempted.
 </P>
-<P>Note that this fix computes total potential energies before and after
-attempted swaps, so even systems with complicated potential energy
-calculations can be used, including the following:
+<P>You should ensure you do not swap atoms belonging to a molecule, or
+LAMMPS will soon generate an error when it tries to find those atoms.
+LAMMPS will warn you if any of the atoms eligible for swapping have a
+non-zero molecule ID, but does not check for this at the time of
+swapping.
 </P>
-<UL><LI>long-range electrostatics (KSpace)
-<LI>many-body pair styles
-<LI>hybrid pair styles
-<LI>EAM pair styles
-<LI>triclinic systems 
+<P>This fix checks to ensure all atoms of the given types have the same
+atomic charge. LAMMPS doesn't enforce this in general, but it is 
+needed for this fix to simplify the swapping procedure. Successful swaps
+will swap the atom type and charge of the swapped atoms.
+</P>
+<P>Since this fix computes total potential energies before and after
+proposed swaps, so even complicated potential energy calculations are 
+OK, including the following:
+</P>
+<UL><LI>  long-range electrostatics (kspace)
+<LI>  many body pair styles
+<LI>  hybrid pair styles
+<LI>  eam pair styles
+<LI>  triclinic systems 
+<LI>  need to include potential energy contributions from other fixes 
 </UL>
-<P>Some fixes have an associated potential energy.  Currently, the
-potential energy contribution due to these fixes is not included in
-the Metropolis criterion dictating atom swap probabilities. Examples
-of such fixes include: <A HREF = "fix_efield.html">efield</A>,
-<A HREF = "fix_gravity.html">gravity</A>, <A HREF = "fix_addforce.html">addforce</A>,
-<A HREF = "fix_restrain.html">restrain</A>, and <A HREF = "fix_wall.html">wall fixes</A>.
-</P>
-<P>IMPORTANT NOTE: During the swaps performed within a single timestep,
-this fix performs minimal communication to update the state of the
-system.  If the cutoff distance for all type pairs, as defined by the
-<A HREF = "pair_style.html">pair_style</A> is the same, the neighbor list does not
-need to be rebuilt when a swap takes place.  The CPU cost per swap
-will then be equivalent to roughly a single MD timestep.  If the
-cutoff distances are not the same for all type pairs, then the
-neighbor list will be rebuilt, and the CPU cost per swap will be
-higher.
-</P>
-<HR>
-
-<P>IMPORTANT NOTE: If you only wish to use this fix to relax a system
-without dynamics, e.g. to model surface segregation in an alloy, then
-you do not need to define a time integration fix.  In this scenario an
-MC-only simulation can be run in a single timestep or multiple
-timesteps as follows:
-</P>
-<PRE>fix mc all atom/swap 1 100000 ... 
-run 1 
-</PRE>
-<P>or 
-</P>
-<PRE>fix mc all atom/swap 1 1000 ... 
-run 100 
-</PRE>
-<P>In the first case, 100000 swaps are attempted in the first (only)
-timestep.  A neighbor list will only be built once, which is
-sufficient since atoms are not moving.
-</P>
-<P>In the second case, the same 100000 swaps are spread across 100
-timesteps.  This will require 100 neighbor list builds (once each time
-the fix is invoked, which should still be relatively cheap), but also
-allows you to monitor or analyze various quantities such as the
-evolution of the system energy as a function of timestep, as if the
-system were evolving over time.
+<P>Some fixes have an associated potential energy. Examples of such fixes
+include: <A HREF = "fix_efield.html">efield</A>, <A HREF = "fix_gravity.html">gravity</A>, 
+<A HREF = "fix_addforce.html">addforce</A>, <A HREF = "fix_langevin.html">langevin</A>, 
+<A HREF = "fix_restrain.html">restrain</A>, <A HREF = "fix_temp_berendsen.html">temp/berendsen</A>, 
+<A HREF = "fix_temp_rescale.html">temp/rescale</A>, and <A HREF = "fix_wall.html">wall fixes</A>. 
+For that energy to be included in the total potential energy of the 
+system (the quantity used when performing GCMC moves),
+you MUST enable the <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for
+that fix.  The doc pages for individual <A HREF = "fix.html">fix</A> commands
+specify if this should be done.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
@@ -190,13 +174,15 @@ LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_bond_swap.html">fix bond/swap</A>, <A HREF = "fix_nvt.html">fix_nvt</A>,
-<A HREF = "neighbor.html">neighbor</A>, <A HREF = "fix_deposit.html">fix_deposit</A>,
-<A HREF = "fix_evaporate.html">fix_evaporate</A>, <A HREF = "delete_atoms.html">delete_atoms</A>,
-<A HREF = "fix_gcmc.html">fix_gcmc</A>
+<P><A HREF = "fix_nvt.html">fix_nvt</A>, <A HREF = "neighbor.html">neighbor</A>, 
+<A HREF = "fix_deposit.html">fix_deposit</A>, <A HREF = "fix_evaporate.html">fix_evaporate</A>,
+<A HREF = "delete_atoms.html">delete_atoms</A>, <A HREF = "fix_gcmc.html">fix_gcmc</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are ke = yes, semi-grand = no.
+<P>The option defaults are ke = yes, semi-grand = no, delta_mu = 0.0 for 
+all atom types.
 </P>
+<HR>
+
 </HTML>

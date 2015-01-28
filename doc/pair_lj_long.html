@@ -107,22 +107,22 @@ neighbor list.  This leads to slightly larger cost for the long-range
 calculation, so you can test the trade-off for your model.
 </P>
 <P>If <I>flag_lj</I> is set to <I>long</I>, no cutoff is used on the LJ 1/r^6
-dispersion term.  The long-range portion is calculated by using the
-<A HREF = "kspace_style.html">kspace_style ewald/n</A> command.  The specified LJ
-cutoff then determines which portion of the LJ interactions are
-computed directly by the pair potential versus which part is computed
-in reciprocal space via the Kspace style.  If <I>flag_lj</I> is set to
-<I>cut</I>, the LJ interactions are simply cutoff, as with <A HREF = "pair_lj.html">pair_style
-lj/cut</A>.  If <I>flag_lj</I> is set to
-<I>off</I>, LJ interactions are not computed at all.
+dispersion term.  The long-range portion can be calculated by using
+the <A HREF = "kspace_style.html">kspace_style ewald/disp or pppm/disp</A> commands.
+The specified LJ cutoff then determines which portion of the LJ
+interactions are computed directly by the pair potential versus which
+part is computed in reciprocal space via the Kspace style.  If
+<I>flag_lj</I> is set to <I>cut</I>, the LJ interactions are simply cutoff, as
+with <A HREF = "pair_lj.html">pair_style lj/cut</A>.
 </P>
 <P>If <I>flag_coul</I> is set to <I>long</I>, no cutoff is used on the Coulombic
-interactions.  The long-range portion is calculated by using any
-style, including <I>ewald/n</I> of the <A HREF = "kspace_style.html">kspace_style</A>
-command.  Note that if <I>flag_lj</I> is also set to long, then only the
-<I>ewald/n</I> KSpace style can perform the long-range calculations for
-both the LJ and Coulombic interactions.  If <I>flag_coul</I> is set to
-<I>off</I>, Coulombic interactions are not computed at all.
+interactions.  The long-range portion can calculated by using any of
+several <A HREF = "kspace_style.html">kspace_style</A> command options such as
+<I>pppm</I> or <I>ewald</I>.  Note that if <I>flag_lj</I> is also set to long, then
+the <I>ewald/disp</I> or <I>pppm/disp</I> Kspace style needs to be used to
+perform the long-range calculations for both the LJ and Coulombic
+interactions.  If <I>flag_coul</I> is set to <I>off</I>, Coulombic interactions
+are not computed.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples

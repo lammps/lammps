@@ -52,21 +52,23 @@ appropriate to include long-range 1/r^6 interactions, using this
 potential.
 
 If {flag_buck} is set to {long}, no cutoff is used on the Buckingham
-1/r^6 dispersion term.  The long-range portion is calculated by using
-the "kspace_style ewald/n"_kspace_style.html command.  The specified
-Buckingham cutoff then determines which portion of the Buckingham
-interactions are computed directly by the pair potential versus which
-part is computed in reciprocal space via the Kspace style.  If
-{flag_buck} is set to {cut}, the Buckingham interactions are simply
-cutoff, as with "pair_style buck"_pair_buck.html.
+1/r^6 dispersion term.  The long-range portion can be calculated by
+using the "kspace_style ewald/disp or pppm/disp"_kspace_style.html
+commands.  The specified Buckingham cutoff then determines which
+portion of the Buckingham interactions are computed directly by the
+pair potential versus which part is computed in reciprocal space via
+the Kspace style.  If {flag_buck} is set to {cut}, the Buckingham
+interactions are simply cutoff, as with "pair_style
+buck"_pair_buck.html.
 
 If {flag_coul} is set to {long}, no cutoff is used on the Coulombic
-interactions.  The long-range portion is calculated by using any
-style, including {ewald/n} of the "kspace_style"_kspace_style.html
-command.  Note that if {flag_buck} is also set to long, then only the
-{ewald/n} Kspace style can perform the long-range calculations for
-both the Buckingham and Coulombic interactions.  If {flag_coul} is set
-to {off}, Coulombic interactions are not computed.
+interactions.  The long-range portion can calculated by using any of
+several "kspace_style"_kspace_style.html command options such as
+{pppm} or {ewald}.  Note that if {flag_buck} is also set to long, then
+the {ewald/disp} or {pppm/disp} Kspace style needs to be used to
+perform the long-range calculations for both the Buckingham and
+Coulombic interactions.  If {flag_coul} is set to {off}, Coulombic
+interactions are not computed.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples

@@ -2413,7 +2413,6 @@ void FixShake::copy_arrays(int i, int j, int delflag)
   }
 }
 
-
 /* ----------------------------------------------------------------------
    initialize one atom's array values, called when atom is created
 ------------------------------------------------------------------------- */

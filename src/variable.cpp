@@ -696,7 +696,7 @@ void Variable::compute_atom(int ivar, int igroup,
   if (style[ivar] == ATOM) {
     evaluate(data[ivar][0],&tree);
     collapse_tree(tree);
-  } else vstore = reader[ivar]->fix->vstore;
+  } else vstore = reader[ivar]->fixstore->vstore;
 
   int groupbit = group->bitmask[igroup];
   int *mask = atom->mask;
@@ -752,6 +752,15 @@ int Variable::find(char *name)
   for (int i = 0; i < nvar; i++)
     if (strcmp(name,names[i]) == 0) return i;
   return -1;
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's storage values in all VarReaders via fix STORE
+   called when atom is created
+------------------------------------------------------------------------- */
+
+void Variable::set_arrays(int i)
+{
 }
 
 /* ----------------------------------------------------------------------
@@ -1471,7 +1480,7 @@ double Variable::evaluate(char *str, Tree **tree)
                        "equal-style variable formula");
           Tree *newtree = new Tree();
           newtree->type = ATOMARRAY;
-          newtree->array = reader[ivar]->fix->vstore;
+          newtree->array = reader[ivar]->fixstore->vstore;
           newtree->nstride = 1;
           newtree->selfalloc = 0;
           newtree->first = newtree->second = NULL;
@@ -1495,7 +1504,7 @@ double Variable::evaluate(char *str, Tree **tree)
 
         } else if (nbracket && style[ivar] == ATOMFILE) {
 
-          peratom2global(1,NULL,reader[ivar]->fix->vstore,1,index,
+          peratom2global(1,NULL,reader[ivar]->fixstore->vstore,1,index,
                          tree,treestack,ntreestack,argstack,nargstack);
 
         } else error->all(FLERR,"Mismatched variable in variable formula");
@@ -3641,7 +3650,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
       double *result;
       memory->create(result,atom->nlocal,"variable:result");
-      memcpy(result,reader[ivar]->fix->vstore,atom->nlocal*sizeof(double));
+      memcpy(result,reader[ivar]->fixstore->vstore,atom->nlocal*sizeof(double));
 
       int done = reader[ivar]->read_peratom();
       if (done) remove(ivar);
@@ -4275,7 +4284,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
   // allocate a new fix STORE, so they persist
   // id = variable-ID + VARIABLE_STORE, fix group = all
 
-  fix = NULL;
+  fixstore = NULL;
   id_fix = NULL;
   buffer = NULL;
 
@@ -4296,7 +4305,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
     newarg[3] = (char *) "0";
     newarg[4] = (char *) "1";
     modify->add_fix(5,newarg);
-    fix = (FixStore *) modify->fix[modify->nfix-1];
+    fixstore = (FixStore *) modify->fix[modify->nfix-1];
     delete [] newarg;
 
     buffer = new char[CHUNK*MAXLINE];
@@ -4311,7 +4320,7 @@ VarReader::~VarReader()
 
   // check modify in case all fixes have already been deleted
 
-  if (fix) {
+  if (fixstore) {
     if (modify) modify->delete_fix(id_fix);
     delete [] id_fix;
     delete [] buffer;
@@ -4367,7 +4376,7 @@ int VarReader::read_peratom()
   // set all per-atom values to 0.0
   // values that appear in file will overwrite this
 
-  double *vstore = fix->vstore;
+  double *vstore = fixstore->vstore;
 
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) vstore[i] = 0.0;

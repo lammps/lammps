@@ -33,6 +33,7 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 4;
   extvector = 0;
+  create_attribute = 1;
 
   // optional args
 
@@ -205,4 +206,17 @@ void ComputeMSD::compute_vector()
     vector[2] /= nmsd;
     vector[3] /= nmsd;
   }
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's storage values, called when atom is created
+------------------------------------------------------------------------- */
+
+void ComputeMSD::set_arrays(int i)
+{
+  double **xoriginal = fix->astore;
+  double **x = atom->x;
+  xoriginal[i][0] = x[i][0];
+  xoriginal[i][1] = x[i][1];
+  xoriginal[i][2] = x[i][2];
 }

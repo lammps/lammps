@@ -30,6 +30,7 @@ class ComputeMSD : public Compute {
   virtual ~ComputeMSD();
   void init();
   virtual void compute_vector();
+  void set_arrays(int);
 
  protected:
   int comflag;

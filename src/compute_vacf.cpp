@@ -32,6 +32,7 @@ ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 4;
   extvector = 0;
+  create_attribute = 1;
 
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
@@ -137,3 +138,17 @@ void ComputeVACF::compute_vector()
     vector[3] /= nvacf;
   }
 }
+
+/* ----------------------------------------------------------------------
+   initialize one atom's storage values, called when atom is created
+------------------------------------------------------------------------- */
+
+void ComputeVACF::set_arrays(int i)
+{
+  double **voriginal = fix->astore;
+  double **v = atom->v;
+  voriginal[i][0] = v[i][0];
+  voriginal[i][1] = v[i][1];
+  voriginal[i][2] = v[i][2];
+}
+

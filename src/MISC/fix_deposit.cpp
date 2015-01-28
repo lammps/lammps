@@ -287,8 +287,6 @@ void FixDeposit::pre_exchange()
   // attempt an insertion until successful
 
   int dimension = domain->dimension;
-  int nfix = modify->nfix;
-  Fix **fix = modify->fix;
 
   int success = 0;
   int attempt = 0;
@@ -492,8 +490,7 @@ void FixDeposit::pre_exchange()
         atom->v[n][2] = vnew[2];
         if (mode == MOLECULE) 
           atom->add_molecule_atom(onemols[imol],m,n,maxtag_all);
-        for (j = 0; j < nfix; j++)
-          if (fix[j]->create_attribute) fix[j]->set_arrays(n);
+        modify->create_attribute(n);
       }
     }
 

@@ -463,9 +463,6 @@ void FixPour::pre_exchange()
   double radtmp,delx,dely,delz,rsq,radsum,rn,h;
   double coord[3];
 
-  int nfix = modify->nfix;
-  Fix **fix = modify->fix;
-
   double denstmp;
   double *sublo = domain->sublo;
   double *subhi = domain->subhi;
@@ -642,8 +639,7 @@ void FixPour::pre_exchange()
           atom->radius[n] = radtmp;
           atom->rmass[n] = 4.0*MY_PI/3.0 * radtmp*radtmp*radtmp * denstmp;
         } else atom->add_molecule_atom(onemols[imol],m,n,maxtag_all);
-        for (j = 0; j < nfix; j++)
-          if (fix[j]->create_attribute) fix[j]->set_arrays(n);
+        modify->create_attribute(n);
       }
     }
 

@@ -755,11 +755,7 @@ void FixGCMC::attempt_atomic_insertion()
       atom->v[m][0] = random_unequal->gaussian()*sigma;
       atom->v[m][1] = random_unequal->gaussian()*sigma;
       atom->v[m][2] = random_unequal->gaussian()*sigma;
-
-      int nfix = modify->nfix;
-      Fix **fix = modify->fix;
-      for (int j = 0; j < nfix; j++)
-        if (fix[j]->create_attribute) fix[j]->set_arrays(m);
+      modify->create_attribute(m);
 
       success = 1;
     }
@@ -1105,9 +1101,7 @@ void FixGCMC::attempt_molecule_insertion()
         atom->v[m][2] = vnew[2];
         
         atom->add_molecule_atom(onemols[imol],i,m,maxtag_all);
-        for (int j = 0; j < nfix; j++)
-          if (fix[j]->create_attribute) fix[j]->set_arrays(m);
-
+        modify->create_attribute(m);
       }
     }
 
@@ -1341,11 +1335,7 @@ void FixGCMC::attempt_atomic_insertion_full()
     atom->v[m][1] = random_unequal->gaussian()*sigma;
     atom->v[m][2] = random_unequal->gaussian()*sigma;
     if (charge_flag) atom->q[m] = charge;
-    
-    int nfix = modify->nfix;
-    Fix **fix = modify->fix;
-    for (int j = 0; j < nfix; j++)
-      if (fix[j]->create_attribute) fix[j]->set_arrays(m);
+    modify->create_attribute(m);
   }
 
   atom->natoms++;
@@ -1698,9 +1688,7 @@ void FixGCMC::attempt_molecule_insertion_full()
       atom->v[m][2] = vnew[2];
 
       atom->add_molecule_atom(onemols[imol],i,m,maxtag_all);
-
-      for (int j = 0; j < nfix; j++)
-        if (fix[j]->create_attribute) fix[j]->set_arrays(m);
+      modify->create_attribute(m);
     }
   }
 

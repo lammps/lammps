@@ -47,6 +47,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (nevery < 0) error->all(FLERR,"Illegal fix adapt command");
 
   dynamic_group_allow = 1;
+  create_attribute = 1;
 
   // count # of adaptations
 
@@ -553,4 +554,14 @@ void FixAdapt::restore_settings()
 
   if (anypair) force->pair->reinit();
   if (chgflag && force->kspace) force->kspace->qsum_qsq();
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's storage values, called when atom is created
+------------------------------------------------------------------------- */
+
+void FixAdapt::set_arrays(int i)
+{
+  if (fix_diam) fix_diam->vstore[i] = atom->radius[i];
+  if (fix_chg) fix_chg->vstore[i] = atom->q[i];
 }

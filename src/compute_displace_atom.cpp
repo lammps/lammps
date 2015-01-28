@@ -35,6 +35,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
 
   peratom_flag = 1;
   size_peratom_cols = 4;
+  create_attribute = 1;
 
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
@@ -166,6 +167,19 @@ void ComputeDisplaceAtom::compute_peratom()
       } else displace[i][0] = displace[i][1] =
                displace[i][2] = displace[i][3] = 0.0;
   }
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's storage values, called when atom is created
+------------------------------------------------------------------------- */
+
+void ComputeDisplaceAtom::set_arrays(int i)
+{
+  double **xoriginal = fix->astore;
+  double **x = atom->x;
+  xoriginal[i][0] = x[i][0];
+  xoriginal[i][1] = x[i][1];
+  xoriginal[i][2] = x[i][2];
 }
 
 /* ----------------------------------------------------------------------

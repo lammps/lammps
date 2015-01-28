@@ -30,6 +30,7 @@ class ComputeDisplaceAtom : public Compute {
   ~ComputeDisplaceAtom();
   void init();
   void compute_peratom();
+  void set_arrays(int);
   double memory_usage();
 
  private:

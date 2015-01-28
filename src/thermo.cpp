@@ -893,8 +893,11 @@ void Thermo::parse_fields(char *str)
         if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
           if (modify->fix[n]->array_flag == 0)
             error->all(FLERR,"Thermo fix does not compute array");
-          if (argindex1[nfield] > modify->fix[n]->size_array_rows ||
-              argindex2[nfield] > modify->fix[n]->size_array_cols)
+          if (argindex1[nfield] > modify->fix[n]->size_array_rows) {
+            if (modify->fix[n]->size_array_rows_variable == 0)
+              error->all(FLERR,"Thermo fix array is accessed out-of-range");
+          }
+          if (argindex2[nfield] > modify->fix[n]->size_array_cols)
             error->all(FLERR,"Thermo fix array is accessed out-of-range");
         }
 

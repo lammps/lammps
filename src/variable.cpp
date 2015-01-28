@@ -761,6 +761,9 @@ int Variable::find(char *name)
 
 void Variable::set_arrays(int i)
 {
+  for (int i = 0; i < nvar; i++)
+    if (reader[i] && style[i] == ATOMFILE)
+      reader[i]->fixstore->vstore[i] = 0.0;
 }
 
 /* ----------------------------------------------------------------------

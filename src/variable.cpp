@@ -1315,9 +1315,11 @@ double Variable::evaluate(char *str, Tree **tree)
 
         } else if (nbracket == 2 && fix->array_flag) {
 
-          if (index1 > fix->size_array_rows)
-            error->all(FLERR,
-                       "Variable formula fix array is accessed out-of-range");
+          if (index1 > fix->size_array_rows) {
+            if (fix->size_array_rows_variable == 0)
+              error->all(FLERR,
+                         "Variable formula fix array is accessed out-of-range");
+          }
           if (index2 > fix->size_array_cols)
             error->all(FLERR,
                        "Variable formula fix array is accessed out-of-range");

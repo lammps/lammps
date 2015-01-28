@@ -101,7 +101,7 @@ public:
 
   cvm::real update();
 
-private:
+protected:
 
   /// n-dim histogram
   colvar_grid_count    *grid;
@@ -109,6 +109,10 @@ private:
   std::string	  out_name;
 
   int		  output_freq;
+
+  /// If one or more of the variables are \link type_vector \endlink, treat them as arrays of this length
+  size_t colvar_array_size;
+
   void		  write_grid();
   cvm::ofstream	  grid_os;  /// Stream for writing grid to disk
 

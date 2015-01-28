@@ -118,6 +118,10 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
   force = new cvm::real [colvars.size()];
 
   // Construct empty grids based on the colvars
+  if (cvm::debug()) {
+    cvm::log("Allocating count and free energy gradient grids.\n");
+  }
+
   samples   = new colvar_grid_count(colvars);
   gradients = new colvar_grid_gradient(colvars);
   gradients->samples = samples;
@@ -573,13 +577,41 @@ colvarbias_histogram::colvarbias_histogram(std::string const &conf, char const *
   : colvarbias(conf, key),
     grid(NULL), out_name("")
 {
-  get_keyval(conf, "outputfreq", output_freq, cvm::restart_out_freq);
+  get_keyval(conf, "outputFreq", output_freq, cvm::restart_out_freq);
+  /// with VMD, this may not be an error
+  // if ( output_freq == 0 ) {
+  //   cvm::error("User required histogram with zero output frequency");
+  // }
 
-  if ( output_freq == 0 ) {
-    cvm::error("User required histogram with zero output frequency");
+  {
+    colvar_array_size = 1;
+    bool colvar_array = false;
+    if (get_keyval(conf, "sumVectorColvars", colvar_array, colvar_array)) {
+      size_t i;
+      for (i = 0; i < colvars.size(); i++) {
+        if (colvars[i]->value().type() == colvarvalue::type_vector) {
+          if (colvar_array_size == 1) {
+            colvar_array_size = colvars[i]->value().size();
+          } else {
+            if (colvar_array_size != colvars[i]->value().size()) {
+              cvm::error("Error: trying to combine vector colvars of different lengths.\n", INPUT_ERROR);
+            }
+          }
+        }
+      }
+    }
   }
 
-  grid = new colvar_grid_count(colvars);
+  grid = new colvar_grid_count();
+  {
+    std::string grid_conf;
+    if (key_lookup(conf, "grid", grid_conf)) {
+      grid->parse_params(grid_conf);
+    } else {
+      grid->init_from_colvars(colvars);
+    }
+  }
+
   bin.assign(colvars.size(), 0);
 
   cvm::log("Finished histogram setup.\n");
@@ -603,7 +635,10 @@ colvarbias_histogram::~colvarbias_histogram()
 /// Update the grid
 cvm::real colvarbias_histogram::update()
 {
-  if (cvm::debug()) cvm::log("Updating Grid bias " + this->name);
+
+  if (cvm::debug()) {
+    cvm::log("Updating histogram bias " + this->name);
+  }
 
   // At the first timestep, we need to assign out_name since
   // output_prefix is unset during the constructor
@@ -613,12 +648,38 @@ cvm::real colvarbias_histogram::update()
     cvm::log("Histogram " + this->name + " will be written to file \"" + out_name + "\"");
   }
 
-  for (size_t i=0; i<colvars.size(); i++) {
-    bin[i] = grid->current_bin_scalar(i);
+
+  bin.assign(colvars.size(), 0);
+
+  {
+    // update indices for all scalar values
+    size_t i;
+    for (i = 0; i < colvars.size(); i++) {
+      if (colvars[i]->value().type() == colvarvalue::type_scalar) {
+        bin[i] = grid->value_to_bin_scalar(colvars[i]->value(), i);
+      }
+    }
   }
 
-  if ( grid->index_ok(bin) ) {	  // Only within bounds of the grid...
-    grid->incr_count(bin);
+  if (colvar_array_size > 1) {
+    // update indices for all vector/array values
+    size_t iv, i;
+    for (iv = 0; iv < colvar_array_size; iv++) {
+      for (i = 0; i < colvars.size(); i++) {
+        if (colvars[i]->value().type() == colvarvalue::type_vector) {
+          bin[i] = grid->value_to_bin_scalar(colvars[i]->value().vector1d_value[iv], i);
+        }
+      }
+      if (grid->index_ok(bin)) {
+        // Only within bounds of the grid...
+        grid->incr_count(bin);
+      }
+    }
+  } else {
+    if (grid->index_ok(bin)) {
+      // Only within bounds of the grid...
+      grid->incr_count(bin);
+    }
   }
 
   if (output_freq && (cvm::step_absolute() % output_freq) == 0) {
@@ -629,6 +690,7 @@ cvm::real colvarbias_histogram::update()
     grid->write_multicol(grid_os);
     grid_os.close();
   }
+
   return 0.0; // no bias energy for histogram
 }
 

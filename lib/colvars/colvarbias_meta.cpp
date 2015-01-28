@@ -430,11 +430,11 @@ cvm::real colvarbias_meta::update()
 
         new_hills_energy->lower_boundaries = new_lower_boundaries;
         new_hills_energy->upper_boundaries = new_upper_boundaries;
-        new_hills_energy->create(new_sizes, 0.0, 1);
+        new_hills_energy->setup(new_sizes, 0.0, 1);
 
         new_hills_energy_gradients->lower_boundaries = new_lower_boundaries;
         new_hills_energy_gradients->upper_boundaries = new_upper_boundaries;
-        new_hills_energy_gradients->create(new_sizes, 0.0, colvars.size());
+        new_hills_energy_gradients->setup(new_sizes, 0.0, colvars.size());
 
         new_hills_energy->map_grid(*hills_energy);
         new_hills_energy_gradients->map_grid(*hills_energy_gradients);
@@ -746,6 +746,8 @@ void colvarbias_meta::calc_hills_force(size_t const &i,
     break;
 
   case colvarvalue::type_notset:
+  case colvarvalue::type_all:
+  default:
     break;
   }
 }
@@ -1552,7 +1554,7 @@ void colvarbias_meta::write_pmf()
 {
   // allocate a new grid to store the pmf
   colvar_grid_scalar *pmf = new colvar_grid_scalar(*hills_energy);
-  pmf->create();
+  pmf->setup();
 
   std::string fes_file_name_prefix(cvm::output_prefix);
 

@@ -1352,14 +1352,14 @@ void colvar::cartesian::apply_force(colvarvalue const &force)
     if (atoms.weights.size()) {
       for (ia = 0; ia < atoms.size(); ia++) {
         for (j = 0; j < dim; j++) {
-          f[axes[j]] = force.vector1d_value[dim*ia + j];
+          f[axes[j]] = force.vector1d_value[dim*ia + j] / atoms.weights[ia];
         }
         atoms[ia].apply_force(f);
       }
     } else {
       for (ia = 0; ia < atoms.size(); ia++) {
         for (j = 0; j < dim; j++) {
-          f[axes[j]] = force.vector1d_value[dim*ia + j] / atoms.weights[ia];
+          f[axes[j]] = force.vector1d_value[dim*ia + j];
         }
         atoms[ia].apply_force(f);
       }

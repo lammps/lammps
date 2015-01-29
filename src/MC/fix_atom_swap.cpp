@@ -300,7 +300,8 @@ void FixAtomSwap::pre_exchange()
   
   nswap_attempts += ncycles;
   nswap_successes += nsuccess;
-  
+
+  energy_full();
   next_reneighbor = update->ntimestep + nevery;
 }
 
@@ -365,7 +366,6 @@ int FixAtomSwap::attempt_semi_grand()
       if (atom->q_flag) atom->q[i] = qtmp;
     }
     energy_stored = energy_before;
-    update->eflag_global = -1;
   } 
   return 0;
 }
@@ -435,7 +435,6 @@ int FixAtomSwap::attempt_swap()
       if (atom->q_flag) atom->q[j] = qtype[1];
     }
     energy_stored = energy_before;
-    update->eflag_global = -1;
   }
   return 0;
 }
@@ -538,10 +537,8 @@ void FixAtomSwap::update_semi_grand_atoms_list()
     for (int i = 0; i < nlocal; i++) {
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]) == 1) {
         if (atom->mask[i] & groupbit) {
-          if (type[i] == type_list[0]) {
-            local_swap_atom_list[nswap_local] = i;
-            nswap_local++;
-          }
+          local_swap_atom_list[nswap_local] = i;
+          nswap_local++;
         }
       }
     }
@@ -549,10 +546,8 @@ void FixAtomSwap::update_semi_grand_atoms_list()
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (atom->mask[i] & groupbit) {
-        if (type[i] == type_list[0]) {
-          local_swap_atom_list[nswap_local] = i;
-          nswap_local++;
-        }
+        local_swap_atom_list[nswap_local] = i;
+        nswap_local++;
       }
     }
   }

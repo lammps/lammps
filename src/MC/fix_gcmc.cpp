@@ -1253,6 +1253,7 @@ void FixGCMC::attempt_atomic_translation_full()
       }
     }
     energy_stored = energy_before;
+    update->eflag_global = -1;
   } 
   update_gas_atoms_list();
 }
@@ -1297,6 +1298,7 @@ void FixGCMC::attempt_atomic_deletion_full()
       if (atom->q_flag) atom->q[i] = q_tmp;
     }
     energy_stored = energy_before;
+    update->eflag_global = -1;
   }
   update_gas_atoms_list();
 }
@@ -1363,6 +1365,7 @@ void FixGCMC::attempt_atomic_insertion_full()
     atom->natoms--;
     if (proc_flag) atom->nlocal--;
     energy_stored = energy_before;
+    update->eflag_global = -1;
   }
   update_gas_atoms_list();
 }
@@ -1443,6 +1446,7 @@ void FixGCMC::attempt_molecule_translation_full()
     energy_stored = energy_after;
   } else {
     energy_stored = energy_before;
+    update->eflag_global = -1;
     for (int i = 0; i < nlocal; i++) {
       if (atom->molecule[i] == translation_molecule) {
         x[i][0] -= com_displace[0];
@@ -1525,6 +1529,7 @@ void FixGCMC::attempt_molecule_rotation_full()
     energy_stored = energy_after;    
   } else {
     energy_stored = energy_before;
+    update->eflag_global = -1;
     int n = 0;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & molecule_group_bit) {
@@ -1584,6 +1589,7 @@ void FixGCMC::attempt_molecule_deletion_full()
     energy_stored = energy_after;
   } else {
     energy_stored = energy_before;
+    update->eflag_global = -1;
     int m = 0;
     for (int i = 0; i < atom->nlocal; i++) {
       if (atom->molecule[i] == deletion_molecule) {
@@ -1728,6 +1734,7 @@ void FixGCMC::attempt_molecule_insertion_full()
     atom->natoms -= natoms_per_molecule;
   
     energy_stored = energy_before;
+    update->eflag_global = -1;
     int i = 0;
     while (i < atom->nlocal) {
       if (atom->molecule[i] == insertion_molecule) {

@@ -1773,8 +1773,7 @@ double FixGCMC::energy_full()
  
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();
-  if (output->thermo->normflag) total_energy *= atom->natoms;
-
+  
   return total_energy;
 }
 

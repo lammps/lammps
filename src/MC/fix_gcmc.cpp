@@ -1075,9 +1075,6 @@ void FixGCMC::attempt_molecule_insertion()
     tagint maxtag_all;
     MPI_Allreduce(&maxtag,&maxtag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
     
-    int nfix = modify->nfix;
-    Fix **fix = modify->fix;
-
     int nlocalprev = atom->nlocal;
     
     double vnew[3];
@@ -1614,9 +1611,6 @@ void FixGCMC::attempt_molecule_insertion_full()
   for (int i = 0; i < atom->nlocal; i++) maxtag = MAX(maxtag,atom->tag[i]);
   tagint maxtag_all;
   MPI_Allreduce(&maxtag,&maxtag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
-
-  int nfix = modify->nfix;
-  Fix **fix = modify->fix;
 
   int nlocalprev = atom->nlocal;
   

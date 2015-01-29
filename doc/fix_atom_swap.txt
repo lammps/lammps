@@ -21,7 +21,7 @@ T = scaling temperature of the MC swaps (temperature units) :l
 one or more keyword/value pairs may be appended to args :l
 keyword = {types} or {delta_mu} or {ke} or {semi-grand} or {region} :l
   {types} values = two or more atom types
-  {delta_mu} values = number_of_types-1 relative chemical potentials
+  {delta_mu} values = number_of_types-1 relative chemical potentials (energy units)
   {ke} value = {no} or {yes}
     {no} = no conservation of kinetic energy after atom swaps
     {yes} = kinetic energy is conserved after atom swaps
@@ -66,17 +66,17 @@ ensures that the kinetic energy of each atom is the same after the swap as it
 was before the swap, even though the atom masses have changed.
 
 The {semi-grand} keyword can be set to {yes} to switch to the semi-grand 
-canonical ensemble, meaning that the total number of each particle type
-does not need to be conserved. The default is {no}, which means that the 
-only kind of swap allowed exchanges an atom of one type with an atom of a 
-different given type. In other words, the relative mole fractions of the 
-swapped atoms remains constant. Whereas in the semi-grand canonical ensemble,
-the composition of the system can change. Note that when using {semi-grand},
-all atoms in the fix group are eligible for attempted conversion to one of
-the given types, even if its current type is not one of the given types. 
-An attempt is made to switch the selected atom to one of the listed 
-{types} with equal probability. Acceptance of each attempt depends upon the
-Metropolis criterion.
+canonical ensemble as discussed in "(Sadigh)"_#Sadigh. This means that the
+total number of each particle type does not need to be conserved. The default
+is {no}, which means that the only kind of swap allowed exchanges an atom of 
+one type with an atom of a different given type. In other words, the relative
+mole fractions of the swapped atoms remains constant. Whereas in the 
+semi-grand canonical ensemble, the composition of the system can change. Note
+that when using {semi-grand}, all atoms in the fix group are eligible for 
+attempted conversion to one of the given types, even if its current type is 
+not one of the given types. An attempt is made to switch the selected atom to
+one of the listed {types} with equal probability. Acceptance of each attempt 
+depends upon the Metropolis criterion.
 
 The {delta_mu} keyword allows users to specify non-zero chemical potentials
 for each of the atom types. All chemical potentials are relative to the first
@@ -172,3 +172,8 @@ The option defaults are ke = yes, semi-grand = no, delta_mu = 0.0 for
 all atom types.
 
 :line
+
+:link(Sadigh)
+[(Sadigh)] B Sadigh, P Erhart, A Stukowski, A Caro, E Martinez, and 
+L Zepeda-Ruiz, Phys. Rev. B, 85, 184203 (2012).
+

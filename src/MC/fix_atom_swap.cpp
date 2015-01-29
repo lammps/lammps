@@ -365,6 +365,7 @@ int FixAtomSwap::attempt_semi_grand()
       if (atom->q_flag) atom->q[i] = qtmp;
     }
     energy_stored = energy_before;
+    update->eflag_global = -1;
   } 
   return 0;
 }
@@ -434,6 +435,7 @@ int FixAtomSwap::attempt_swap()
       if (atom->q_flag) atom->q[j] = qtype[1];
     }
     energy_stored = energy_before;
+    update->eflag_global = -1;
   }
   return 0;
 }

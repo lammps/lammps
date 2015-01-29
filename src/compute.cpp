@@ -71,6 +71,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   tempflag = pressflag = peflag = 0;
   pressatomflag = peatomflag = 0;
+  create_attribute = 0;
   tempbias = 0;
 
   timeflag = 0;

@@ -27,6 +27,7 @@ class Variable : protected Pointers {
   void set(char *, int, char **);
   int next(int, char **);
   int find(char *);
+  void set_arrays(int);
   int equalstyle(int);
   int atomstyle(int);
   char *retrieve(char *);
@@ -103,7 +104,7 @@ class Variable : protected Pointers {
 
 class VarReader : protected Pointers {
  public:
-  class FixStore *fix;
+  class FixStore *fixstore;
   char *id_fix;
 
   VarReader(class LAMMPS *, char *, char *, int);

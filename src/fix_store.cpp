@@ -28,8 +28,6 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   if (narg != 5) error->all(FLERR,"Illegal fix store command");
 
-  create_attribute = 1;
-
   // syntax: id group style 0/1 nvalue
   // 0/1 flag = not-store or store values in restart file
 
@@ -190,18 +188,4 @@ int FixStore::maxsize_restart()
 int FixStore::size_restart(int nlocal)
 {
   return nvalues+1;
-}
-
-/* ----------------------------------------------------------------------
-   initialize one atom's vector/array values, called when atom is created
-   value of 0.0 may not be desired value, but will be unitialized otherwise
-     e.g. by compute msd on group all
-------------------------------------------------------------------------- */
-
-void FixStore::set_arrays(int i)
-{
-  if (vecflag) 
-    vstore[i] = 0.0;
-  else
-    for (int m = 0; m < nvalues; m++) astore[i][m] = 0.0;
 }

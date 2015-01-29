@@ -59,6 +59,8 @@ class Compute : protected Pointers {
   int pressatomflag;  // 1 if Compute calculates per-atom virial
   int peflag;         // 1 if Compute calculates PE (uses Force energies)
   int peatomflag;     // 1 if Compute calculates per-atom PE
+  int create_attribute;    // 1 if compute stores attributes that need
+                           // setting when a new atom is created
 
   int tempbias;       // 0/1 if Compute temp includes self/extra bias
 
@@ -99,6 +101,7 @@ class Compute : protected Pointers {
   virtual void compute_array() {}
   virtual void compute_peratom() {}
   virtual void compute_local() {}
+  virtual void set_arrays(int) {}
 
   virtual int pack_forward_comm(int, int *, double *, int, int *) {return 0;}
   virtual void unpack_forward_comm(int, int, double *) {}

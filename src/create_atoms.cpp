@@ -24,6 +24,7 @@
 #include "force.h"
 #include "special.h"
 #include "fix.h"
+#include "compute.h"
 #include "domain.h"
 #include "lattice.h"
 #include "region.h"
@@ -355,7 +356,10 @@ void CreateAtoms::command(int narg, char **arg)
   else if (style == RANDOM) add_random();
   else add_lattice();
 
-  // invoke set_arrays() for fixes that need initialization of new atoms
+  // invoke set_arrays() for fixes/computes/variables
+  //   that need initialization of attributes of new atoms
+  // don't use modify->create_attributes() since would be inefficient
+  //   for large number of atoms
 
   int nlocal = atom->nlocal;
   for (int m = 0; m < modify->nfix; m++) {
@@ -364,6 +368,14 @@ void CreateAtoms::command(int narg, char **arg)
       for (int i = nlocal_previous; i < nlocal; i++)
         fix->set_arrays(i);
   }
+  for (int m = 0; m < modify->ncompute; m++) {
+    Compute *compute = modify->compute[m];
+    if (compute->create_attribute)
+      for (int i = nlocal_previous; i < nlocal; i++)
+        compute->set_arrays(i);
+  }
+  for (int i = nlocal_previous; i < nlocal; i++)
+    input->variable->set_arrays(i);
 
   // restore each equal variable string previously saved
 

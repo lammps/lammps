@@ -39,6 +39,8 @@ class Compute : protected Pointers {
   int size_vector;          // length of global vector
   int size_array_rows;      // rows in global array
   int size_array_cols;      // columns in global array
+  int size_vector_variable;      // 1 if vec length is unknown in advance
+  int size_array_rows_variable;  // 1 if array rows is unknown in advance
 
   int peratom_flag;         // 0/1 if compute_peratom() function exists
   int size_peratom_cols;    // 0 = vector, N = columns in peratom array

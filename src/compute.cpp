@@ -68,6 +68,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   scalar_flag = vector_flag = array_flag = 0;
   peratom_flag = local_flag = 0;
+  size_vector_variable = size_array_rows_variable = 0;
 
   tempflag = pressflag = peflag = 0;
   pressatomflag = peatomflag = 0;

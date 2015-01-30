@@ -1081,7 +1081,8 @@ double Variable::evaluate(char *str, Tree **tree)
 
         } else if (nbracket == 1 && compute->vector_flag) {
 
-          if (index1 > compute->size_vector)
+          if (index1 > compute->size_vector &&
+              compute->size_vector_variable == 0)
             error->all(FLERR,"Variable formula compute vector "
                        "is accessed out-of-range");
           if (update->whichflag == 0) {
@@ -1093,7 +1094,9 @@ double Variable::evaluate(char *str, Tree **tree)
             compute->invoked_flag |= INVOKED_VECTOR;
           }
 
-          value1 = compute->vector[index1-1];
+          if (compute->size_vector_variable && 
+              index1 > compute->size_vector) value1 = 0.0;
+          else value1 = compute->vector[index1-1];
           if (tree) {
             Tree *newtree = new Tree();
             newtree->type = VALUE;
@@ -1107,7 +1110,8 @@ double Variable::evaluate(char *str, Tree **tree)
 
         } else if (nbracket == 2 && compute->array_flag) {
 
-          if (index1 > compute->size_array_rows)
+          if (index1 > compute->size_array_rows &&
+              compute->size_array_rows_variable == 0)
             error->all(FLERR,"Variable formula compute array "
                        "is accessed out-of-range");
           if (index2 > compute->size_array_cols)
@@ -1122,7 +1126,9 @@ double Variable::evaluate(char *str, Tree **tree)
             compute->invoked_flag |= INVOKED_ARRAY;
           }
 
-          value1 = compute->array[index1-1][index2-1];
+          if (compute->size_array_rows_variable && 
+              index1 > compute->size_array_rows) value1 = 0.0;
+          else value1 = compute->array[index1-1][index2-1];
           if (tree) {
             Tree *newtree = new Tree();
             newtree->type = VALUE;
@@ -1295,12 +1301,13 @@ double Variable::evaluate(char *str, Tree **tree)
 
         } else if (nbracket == 1 && fix->vector_flag) {
 
-          if (index1 > fix->size_vector)
-            error->all(FLERR,
-                       "Variable formula fix vector is accessed out-of-range");
+          if (index1 > fix->size_vector &&
+              fix->size_vector_variable == 0)
+            error->all(FLERR,"Variable formula fix vector is "
+                       "accessed out-of-range");
           if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
             error->all(FLERR,"Fix in variable not computed at compatible time");
-
+          
           value1 = fix->compute_vector(index1-1);
           if (tree) {
             Tree *newtree = new Tree();
@@ -1315,11 +1322,10 @@ double Variable::evaluate(char *str, Tree **tree)
 
         } else if (nbracket == 2 && fix->array_flag) {
 
-          if (index1 > fix->size_array_rows) {
-            if (fix->size_array_rows_variable == 0)
-              error->all(FLERR,
-                         "Variable formula fix array is accessed out-of-range");
-          }
+          if (index1 > fix->size_array_rows &&
+              fix->size_array_rows_variable == 0)
+            error->all(FLERR,
+                       "Variable formula fix array is accessed out-of-range");
           if (index2 > fix->size_array_cols)
             error->all(FLERR,
                        "Variable formula fix array is accessed out-of-range");

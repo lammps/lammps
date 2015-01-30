@@ -583,7 +583,7 @@ double PairLJCutSoft::init_one(int i, int j)
   lj3[i][j] = alphalj * (1.0 - lambda[i][j])*(1.0 - lambda[i][j]);
 
   if (offset_flag) {
-    double denlj = lj3[i][j] + pow(sigma[i][j] / cut[i][j], 6.0);
+    double denlj = lj3[i][j] + pow(cut[i][j] / sigma[i][j], 6.0);
     offset[i][j] = lj1[i][j] * 4.0 * epsilon[i][j] * (1.0/(denlj*denlj) - 1.0/denlj);
   } else offset[i][j] = 0.0;
 

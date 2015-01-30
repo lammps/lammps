@@ -570,43 +570,6 @@ not do this automatically.
 <P>The rigid body contribution to the pressure of the system (virial) is
 also accounted for by this fix.
 </P>
-<P>IMPORTANT NOTE: The periodic image flags of atoms in rigid bodies are
-altered so that the rigid body can be reconstructed correctly when it
-straddles periodic boundaries.  The atom image flags are not
-incremented/decremented as they would be for non-rigid atoms as the
-rigid body crosses periodic boundaries.  Specifically, they are set so
-that the center-of-mass (COM) of the rigid body always remains inside
-the simulation box.
-</P>
-<P>This means that if you output per-atom image flags you cannot
-interpret them as you normally would.  I.e. the image flag values
-written to a <A HREF = "dump.html">dump file</A> will be different than they would
-be if the atoms were not in a rigid body.  Likewise the <A HREF = "compute_msd.html">compute
-msd</A> will not compute the expected mean-squared
-displacement for such atoms if the body moves across periodic
-boundaries.  It also means that if you have bonds between a pair of
-rigid bodies and the bond straddles a periodic boundary, you cannot
-use the <A HREF = "replicate.html">replicate</A> command to increase the system
-size.
-</P>
-<P>Here are details on how, you can post-process a dump file to calculate
-a diffusion coefficient for rigid bodies, using the altered per-atom
-image flags written to a dump file.  The image flags for atoms in the
-same rigid body can be used to unwrap the body and calculate its
-center-of-mass (COM).  As mentioned above, this COM will always be
-inside the simulation box.  Thus it will "jump" from one side of the
-box to the other when the COM crosses a periodic boundary.  If you
-keep track of the jumps, you can effectively "unwrap" the COM and use
-that value to track the displacement of each rigid body, and thus the
-mean-squared displacement (MSD) of an ensemble of bodies, and thus a
-diffusion coefficient.
-</P>
-<P>Note that fix rigid does define image flags for each rigid body, which
-are incremented when the center-of-mass of the rigid body crosses a
-periodic boundary in the usual way.  These image flags have the same
-meaning as atom images (see the "dump" command) and can be accessed
-and output as described below.
-</P>
 <HR>
 
 <P>If your simlulation is a hybrid model with a mixture of rigid bodies
@@ -737,12 +700,19 @@ array is equal to the number of rigid bodies.  The number of columns
 is 15.  Thus for each rigid body, 15 values are stored: the xyz coords
 of the center of mass (COM), the xyz components of the COM velocity,
 the xyz components of the force acting on the COM, the xyz components
-of the torque acting on the COM, and the xyz image flags of the COM,
-which have the same meaning as image flags for atom positions (see the
-"dump" command).  The force and torque values in the array are not
-affected by the <I>force</I> and <I>torque</I> keywords in the fix rigid
-command; they reflect values before any changes are made by those
-keywords.
+of the torque acting on the COM, and the xyz image flags of the COM.
+</P>
+<P>The center of mass (COM) for each body is similar to unwrapped
+coordinates written to a dump file.  It will always be inside (or
+slightly outside) the simulation box.  The image flags have the same
+meaning as image flags for atom positions (see the "dump" command).
+This means you can calculate the unwrapped COM by applying the image
+flags to the COM, the same as when unwrapped coordinates are written
+to a dump file.
+</P>
+<P>The force and torque values in the array are not affected by the
+<I>force</I> and <I>torque</I> keywords in the fix rigid command; they reflect
+values before any changes are made by those keywords.
 </P>
 <P>The ordering of the rigid bodies (by row in the array) is as follows.
 For the <I>single</I> keyword there is just one rigid body.  For the

@@ -33,7 +33,6 @@ class FixQEqSlater : public FixQEq {
 
  private:
   void init_matvec();
-  int CG(double*,double*);
   void sparse_matvec(sparse_matrix*,double*,double*);
   void compute_H();
   double calculate_H(double, double, double, double, double &);

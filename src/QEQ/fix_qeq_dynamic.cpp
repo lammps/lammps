@@ -103,9 +103,6 @@ void FixQEqDynamic::pre_force(int vflag)
 
   if (update->ntimestep % nevery) return;
 
-  n = atom->nlocal;
-  N = atom->nlocal + atom->nghost;
-
   if( atom->nmax > nmax ) reallocate_storage();
 
   inum = list->inum;
@@ -231,6 +228,7 @@ double FixQEqDynamic::compute_eneg()
     }
   }
 
+  pack_flag = 2;
   comm->reverse_comm_fix(this);
 
   // sum charge force on each node and return it
@@ -258,7 +256,7 @@ int FixQEqDynamic::pack_forward_comm(int n, int *list, double *buf,
   else if( pack_flag == 2 )
     for(m = 0; m < n; m++) buf[m] = qf[list[m]];
 
-  return n;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -279,7 +277,7 @@ int FixQEqDynamic::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, m;
   for(m = 0, i = first; m < n; m++, i++) buf[m] = qf[i];
-  return n;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

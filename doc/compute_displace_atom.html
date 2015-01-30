@@ -45,14 +45,6 @@ discussion of image flags and how they are set for each atom.  You can
 reset the image flags (e.g. to 0) before invoking this compute by
 using the <A HREF = "set.html">set image</A> command.
 </P>
-<P>IMPORTANT NOTE: If an atom is part of a rigid body (see the <A HREF = "fix_rigid.html">fix
-rigid</A> command), it's periodic image flags are altered,
-and the computed displacement may not reflect its true displacement.
-See the <A HREF = "fix_rigid.html">fix rigid</A> command for details.  Thus, to
-compute the displacement of rigid bodies as they cross periodic
-boundaries, you will need to post-process a <A HREF = "dump.html">dump file</A>
-containing coordinates of the atoms in the bodies.
-</P>
 <P>IMPORTANT NOTE: If you want the quantities calculated by this compute
 to be continuous when running from a <A HREF = "read_restart.html">restart file</A>,
 then you should use the same ID for this compute, as in the original

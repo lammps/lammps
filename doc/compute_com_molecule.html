@@ -50,14 +50,6 @@ image flags and how they are set for each atom.  You can reset the
 image flags (e.g. to 0) before invoking this compute by using the <A HREF = "set.html">set
 image</A> command.
 </P>
-<P>IMPORTANT NOTE: If an atom is part of a rigid body (see the <A HREF = "fix_rigid.html">fix
-rigid</A> command), it's periodic image flags are altered,
-and its contribution to the center-of-mass may not reflect its true
-contribution.  See the <A HREF = "fix_rigid.html">fix rigid</A> command for details.
-Thus, to compute the center-of-mass of rigid bodies as they cross
-periodic boundaries, you will need to post-process a <A HREF = "dump.html">dump
-file</A> containing coordinates of the atoms in the bodies.
-</P>
 <P><B>Output info:</B>
 </P>
 <P>This compute calculates a global array where the number of rows =

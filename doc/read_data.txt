@@ -135,29 +135,40 @@ and are called "tilt factors" because they are the amount of
 displacement applied to faces of an originally orthogonal box to
 transform it into the parallelepiped.
 
-The tilt factors (xy,xz,yz) can not skew the box more than half the
-distance of the corresponding parallel box length.  For example, if
-xlo = 2 and xhi = 12, then the x box length is 10 and the xy tilt
-factor must be between -5 and 5.  Similarly, both xz and yz must be
-between -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not a
-limitation, since if the maximum tilt factor is 5 (as in this
+By default, the tilt factors (xy,xz,yz) can not skew the box more than
+half the distance of the corresponding parallel box length.  For
+example, if xlo = 2 and xhi = 12, then the x box length is 10 and the
+xy tilt factor must be between -5 and 5.  Similarly, both xz and yz
+must be between -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not
+a limitation, since if the maximum tilt factor is 5 (as in this
 example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
-... are all geometrically equivalent.
+... are all geometrically equivalent.  If you wish to define a box
+with tilt factors that exceed these limits, you can use the "box
+tilt"_box.html command, with a setting of {large}; a setting of
+{small} is the default.
 
 See "Section_howto 12"_Section_howto.html#howto_12 of the doc pages
 for a geometric description of triclinic boxes, as defined by LAMMPS,
 and how to transform these parameters to and from other commonly used
 triclinic representations.
 
-When a triclinic system is used, the simulation domain must be
-periodic in any dimensions with a non-zero tilt factor, as defined by
-the "boundary"_boundary.html command.  I.e. if the xy tilt factor is
-non-zero, then both the x and y dimensions must be periodic.
-Similarly, x and z must be periodic if xz is non-zero and y and z must
-be periodic if yz is non-zero.  Also note that if your simulation will
-tilt the box, e.g. via the "fix deform"_fix_deform.html command, the
-simulation box must be defined as triclinic, even if the tilt factors
-are initially 0.0.
+When a triclinic system is used, the simulation domain should normally
+be periodic in the dimension that the tilt is applied to, which is
+given by the second dimension of the tilt factor (e.g. y for xy tilt).
+This is so that pairs of atoms interacting across that boundary will
+have one of them shifted by the tilt factor.  Periodicity is set by
+the "boundary"_boundary.html command.  For example, if the xy tilt
+factor is non-zero, then the y dimension should be periodic.
+Similarly, the z dimension should be periodic if xz or yz is non-zero.
+LAMMPS does not require this periodicity, but you may lose atoms if
+this is not the case.
+
+Also note that if your simulation will tilt the box, e.g. via the "fix
+deform"_fix_deform.html command, the simulation box must be setup to
+be triclinic, even if the tilt factors are initially 0.0.  You can
+also change an orthogonal box to a triclinic box or vice versa by
+using the "change box"_change_box.html command with its {ortho} and
+{triclinic} options.
 
 For 2d simulations, the {zlo zhi} values should be set to bound the z
 coords for atoms that appear in the file; the default of -0.5 0.5 is

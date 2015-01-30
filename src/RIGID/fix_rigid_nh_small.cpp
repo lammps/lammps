@@ -60,32 +60,42 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix rigid/small npt/nph period must be > 0.0");
   
   if (domain->dimension == 2 && p_flag[2])
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command for a 2d simulation");
+    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
+               "for a 2d simulation");
   if (domain->dimension == 2 && (pcouple == YZ || pcouple == XZ))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command for a 2d simulation");
+    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
+               "for a 2d simulation");
 
   if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
+               "pressure settings");
   if (pcouple == XYZ && domain->dimension == 3 && p_flag[2] == 0)
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
+               "pressure settings");
   if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
+               "pressure settings");
   if (pcouple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
+               "pressure settings");
   if (pcouple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
+               "pressure settings");
 
   // require periodicity in tensile dimension
 
   if (p_flag[0] && domain->xperiodic == 0)
     error->all(FLERR,
-               "Cannot use fix rigid/small npt/nph on a non-periodic dimension");
+               "Cannot use fix rigid/small npt/nph on a "
+               "non-periodic dimension");
   if (p_flag[1] && domain->yperiodic == 0)
     error->all(FLERR,
-               "Cannot use fix rigid/small npt/nph on a non-periodic dimension");
+               "Cannot use fix rigid/small npt/nph on a "
+               "non-periodic dimension");
   if (p_flag[2] && domain->zperiodic == 0)
     error->all(FLERR,
-               "Cannot use fix rigid/small npt/nph on a non-periodic dimension");
+               "Cannot use fix rigid/small npt/nph on a "
+               "non-periodic dimension");
   
   if (pcouple == XYZ && domain->dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
@@ -113,7 +123,8 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
       (p_flag[0] && p_period[0] <= 0.0) ||
       (p_flag[1] && p_period[1] <= 0.0) ||
       (p_flag[2] && p_period[2] <= 0.0))
-    error->all(FLERR,"Fix rigid/small nvt/npt/nph damping parameters must be > 0.0");
+    error->all(FLERR,"Fix rigid/small nvt/npt/nph damping parameters "
+               "must be > 0.0");
 
   // memory allocation and initialization
   
@@ -653,7 +664,6 @@ void FixRigidNHSmall::final_integrate()
   
   // sum over atoms to get force and torque on rigid body
   
-  imageint *image = atom->image;
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -678,7 +688,7 @@ void FixRigidNHSmall::final_integrate()
     fcm[1] += f[i][1];
     fcm[2] += f[i][2];
 
-    domain->unmap(x[i],image[i],unwrap);
+    domain->unmap(x[i],xcmimage[i],unwrap);
     xcm = b->xcm;
     dx = unwrap[0] - xcm[0];
     dy = unwrap[1] - xcm[1];

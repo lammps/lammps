@@ -47,6 +47,7 @@ class FixRigid : public Fix {
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
 
+  void setup_pre_neighbor();
   void pre_neighbor();
   int dof(int);
   void deform(int);
@@ -102,6 +103,8 @@ class FixRigid : public Fix {
   int orientflag;           // 1 if particles store spatial orientation
   int dorientflag;          // 1 if particles store dipole orientation
 
+  imageint *xcmimage;       // internal image flags for atoms in rigid bodies
+                            // set relative to in-box xcm of each body
   int *eflags;              // flags for extended particles
   double **orient;          // orientation vector of particle wrt rigid body
   double **dorient;         // orientation of dipole mu wrt rigid body
@@ -133,6 +136,7 @@ class FixRigid : public Fix {
   int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;
 
+  void image_shift();
   void set_xv();
   void set_v();
   void setup_bodies_static();

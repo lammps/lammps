@@ -615,7 +615,6 @@ void FixRigidNH::final_integrate()
   
   // sum over atoms to get force and torque on rigid body
   
-  imageint *image = atom->image;
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -642,9 +641,9 @@ void FixRigidNH::final_integrate()
     sum[ibody][1] += f[i][1];
     sum[ibody][2] += f[i][2];
       
-    xbox = (image[i] & IMGMASK) - IMGMAX;
-    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    zbox = (image[i] >> IMG2BITS) - IMGMAX;
+    xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
+    ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
 
     if (triclinic == 0) {
       xunwrap = x[i][0] + xbox*xprd;

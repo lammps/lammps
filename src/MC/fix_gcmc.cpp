@@ -1194,6 +1194,8 @@ void FixGCMC::attempt_atomic_translation_full()
 
   double **x = atom->x;
   double xtmp[3];
+  
+  tagint tmptag = -1;
     
   if (i >= 0) {
   
@@ -1229,6 +1231,8 @@ void FixGCMC::attempt_atomic_translation_full()
     x[i][0] = coord[0];
     x[i][1] = coord[1];
     x[i][2] = coord[2];
+    
+    tmptag = atom->tag[i];
   }
   
   double energy_after = energy_full();
@@ -1238,10 +1242,12 @@ void FixGCMC::attempt_atomic_translation_full()
     energy_stored = energy_after;
     ntranslation_successes += 1.0;
   } else {
-    if (i >= 0) {
-      x[i][0] = xtmp[0];
-      x[i][1] = xtmp[1];
-      x[i][2] = xtmp[2];
+    for (int i = 0; i < atom->nlocal; i++) {
+      if (tmptag == atom->tag[i]) { 
+        x[i][0] = xtmp[0];
+        x[i][1] = xtmp[1];
+        x[i][2] = xtmp[2];
+      }
     }
     energy_stored = energy_before;
   } 
@@ -1761,8 +1767,7 @@ double FixGCMC::energy_full()
  
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();
-  if (output->thermo->normflag) total_energy *= atom->natoms;
-
+  
   return total_energy;
 }
 

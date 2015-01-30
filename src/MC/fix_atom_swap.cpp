@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Paul Crozier (SNL)
+   Contributing authors: Paul Crozier (SNL)
+                         Alexander Stukowski
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -299,7 +300,8 @@ void FixAtomSwap::pre_exchange()
   
   nswap_attempts += ncycles;
   nswap_successes += nsuccess;
-  
+
+  energy_full();
   next_reneighbor = update->ntimestep + nevery;
 }
 
@@ -364,6 +366,18 @@ int FixAtomSwap::attempt_semi_grand()
       if (atom->q_flag) atom->q[i] = qtmp;
     }
     energy_stored = energy_before;
+    
+    if (unequal_cutoffs) {
+      if (domain->triclinic) domain->x2lamda(atom->nlocal);
+      domain->pbc();
+      comm->exchange();
+      comm->borders();
+      if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+      if (modify->n_pre_neighbor) modify->pre_neighbor();
+      neighbor->build();
+    } else {
+      comm->forward_comm_fix(this);
+    }
   } 
   return 0;
 }
@@ -433,6 +447,18 @@ int FixAtomSwap::attempt_swap()
       if (atom->q_flag) atom->q[j] = qtype[1];
     }
     energy_stored = energy_before;
+    
+    if (unequal_cutoffs) {
+      if (domain->triclinic) domain->x2lamda(atom->nlocal);
+      domain->pbc();
+      comm->exchange();
+      comm->borders();
+      if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+      if (modify->n_pre_neighbor) modify->pre_neighbor();
+      neighbor->build();
+    } else {
+      comm->forward_comm_fix(this);
+    }
   }
   return 0;
 }
@@ -459,7 +485,6 @@ double FixAtomSwap::energy_full()
  
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();
-  if (output->thermo->normflag) total_energy *= atom->natoms;
 
   return total_energy;
 }
@@ -536,10 +561,8 @@ void FixAtomSwap::update_semi_grand_atoms_list()
     for (int i = 0; i < nlocal; i++) {
       if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]) == 1) {
         if (atom->mask[i] & groupbit) {
-          if (type[i] == type_list[0]) {
-            local_swap_atom_list[nswap_local] = i;
-            nswap_local++;
-          }
+          local_swap_atom_list[nswap_local] = i;
+          nswap_local++;
         }
       }
     }
@@ -547,10 +570,8 @@ void FixAtomSwap::update_semi_grand_atoms_list()
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (atom->mask[i] & groupbit) {
-        if (type[i] == type_list[0]) {
-          local_swap_atom_list[nswap_local] = i;
-          nswap_local++;
-        }
+        local_swap_atom_list[nswap_local] = i;
+        nswap_local++;
       }
     }
   }

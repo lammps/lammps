@@ -366,6 +366,18 @@ int FixAtomSwap::attempt_semi_grand()
       if (atom->q_flag) atom->q[i] = qtmp;
     }
     energy_stored = energy_before;
+    
+    if (unequal_cutoffs) {
+      if (domain->triclinic) domain->x2lamda(atom->nlocal);
+      domain->pbc();
+      comm->exchange();
+      comm->borders();
+      if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+      if (modify->n_pre_neighbor) modify->pre_neighbor();
+      neighbor->build();
+    } else {
+      comm->forward_comm_fix(this);
+    }
   } 
   return 0;
 }
@@ -435,6 +447,18 @@ int FixAtomSwap::attempt_swap()
       if (atom->q_flag) atom->q[j] = qtype[1];
     }
     energy_stored = energy_before;
+    
+    if (unequal_cutoffs) {
+      if (domain->triclinic) domain->x2lamda(atom->nlocal);
+      domain->pbc();
+      comm->exchange();
+      comm->borders();
+      if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+      if (modify->n_pre_neighbor) modify->pre_neighbor();
+      neighbor->build();
+    } else {
+      comm->forward_comm_fix(this);
+    }
   }
   return 0;
 }

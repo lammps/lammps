@@ -559,6 +559,11 @@ int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
   double *prd = domain->prd;
   double *boxlo = domain->boxlo;
 
+  // initialize triclinic b/c coord2proc can be called before Comm::init()
+  // via Irregular::migrate_atoms()
+
+  triclinic = domain->triclinic;
+
   if (layout == LAYOUT_UNIFORM) {
     if (triclinic == 0) {
       igx = static_cast<int> (procgrid[0] * (x[0]-boxlo[0]) / prd[0]);

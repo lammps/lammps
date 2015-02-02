@@ -266,9 +266,9 @@ cvm::real colvarbias_abf::update()
   }
   if (b_history_files && (cvm::step_absolute() % history_freq) == 0) {
     cvm::log("ABFHISTORYFILE "+cvm::to_str(cvm::step_absolute()));
-    // append to existing file only if cvm::step_absolute() > 0
+    // file already exists iff cvm::step_relative() > 0
     // otherwise, backup and replace
-    write_gradients_samples(output_prefix + ".hist", (cvm::step_absolute() > 0));
+    write_gradients_samples(output_prefix + ".hist", (cvm::step_relative() > 0));
   }
 
   if (shared_on && shared_last_step >= 0 && cvm::step_absolute() % shared_freq == 0) {
@@ -369,22 +369,13 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
 {
   std::string  samples_out_name = prefix + ".count";
   std::string  gradients_out_name = prefix + ".grad";
-#ifdef NAMD_VERSION
-  if (append)
-    cvm::fatal_error("Error: starting from version 2.10 NAMD does not support any longer appending to output files.\n");
-#else
   std::ios::openmode mode = (append ? std::ios::app : std::ios::out);
-#endif
 
   cvm::ofstream samples_os;
   cvm::ofstream gradients_os;
 
   if (!append) cvm::backup_file(samples_out_name.c_str());
-#ifdef NAMD_VERSION
-  samples_os.open(samples_out_name.c_str());
-#else
   samples_os.open(samples_out_name.c_str(), mode);
-#endif
   if (!samples_os.is_open()) {
     cvm::error("Error opening ABF samples file " + samples_out_name + " for writing");
   }
@@ -392,11 +383,7 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
   samples_os.close();
 
   if (!append) cvm::backup_file(gradients_out_name.c_str());
-#ifdef NAMD_VERSION
-  gradients_os.open(gradients_out_name.c_str());
-#else
   gradients_os.open(gradients_out_name.c_str(), mode);
-#endif
   if (!gradients_os.is_open()) {
     cvm::error("Error opening ABF gradient file " + gradients_out_name + " for writing");
   }
@@ -408,11 +395,7 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
     if (!append) cvm::backup_file(pmf_out_name.c_str());
     cvm::ofstream pmf_os;
     // Do numerical integration and output a PMF
-#ifdef NAMD_VERSION
-    pmf_os.open(pmf_out_name.c_str());
-#else
     pmf_os.open(pmf_out_name.c_str(), mode);
-#endif
     if (!pmf_os.is_open())	cvm::error("Error opening pmf file " + pmf_out_name + " for writing");
     gradients->write_1D_integral(pmf_os);
     pmf_os << std::endl;

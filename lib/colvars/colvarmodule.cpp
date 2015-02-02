@@ -931,11 +931,7 @@ int colvarmodule::open_traj_file(std::string const &file_name)
   if (cv_traj_append) {
     cvm::log("Appending to colvar trajectory file \""+file_name+
              "\".\n");
-#ifdef NAMD_VERSION
-    cvm::fatal_error("Error: starting from version 2.10 NAMD does not support any longer appending to output files.\n");
-#else
     cv_traj_os.open(file_name.c_str(), std::ios::app);
-#endif
   } else {
     cvm::log("Writing to colvar trajectory file \""+file_name+
              "\".\n");

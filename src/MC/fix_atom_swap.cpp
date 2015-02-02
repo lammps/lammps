@@ -102,6 +102,8 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
 
   atom_swap_nmax = 0;
   local_swap_atom_list = NULL;
+  local_swap_iatom_list = NULL;
+  local_swap_jatom_list = NULL;
 
   // set comm size needed by this Fix
 
@@ -122,6 +124,7 @@ void FixAtomSwap::options(int narg, char **arg)
   conserve_ke_flag = 1;
   semi_grand_flag = 0;
   iregion = -1; 
+  ndeltamutypes = 0;
   
   int iarg = 0;
   while (iarg < narg) {

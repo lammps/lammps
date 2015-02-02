@@ -102,6 +102,8 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
 
   atom_swap_nmax = 0;
   local_swap_atom_list = NULL;
+  local_swap_iatom_list = NULL;
+  local_swap_jatom_list = NULL;
 
   // set comm size needed by this Fix
 
@@ -121,6 +123,7 @@ void FixAtomSwap::options(int narg, char **arg)
   regionflag = 0; 
   conserve_ke_flag = 1;
   semi_grand_flag = 0;
+  ndeltamutypes = 0;
   iregion = -1; 
   
   int iarg = 0;
@@ -160,7 +163,6 @@ void FixAtomSwap::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"delta_mu") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix atom/swap command");
       iarg++;
-      ndeltamutypes = 0;
       while (iarg < narg) {
         if (isalpha(arg[iarg][0])) break;
         delta_mu[ndeltamutypes+2] = force->numeric(FLERR,arg[iarg]);

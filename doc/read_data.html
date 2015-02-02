@@ -200,8 +200,9 @@ specified box size to layout the 3d grid of processors.  A huge
 "fixed" boundary conditions (see the <A HREF = "boundary.html">boundary</A>
 command).  When using "shrink-wrap" boundary conditions (see the
 <A HREF = "boundary.html">boundary</A> command), a huge (mostly empty) box may cause
-a parallel simulation to lose atoms the first time that LAMMPS
-shrink-wraps the box around the atoms.
+a parallel simulation to lose atoms when LAMMPS shrink-wraps the box
+around the atoms.  The read_data command will generate an error
+in this case.
 </P>
 <P>The "extra bond per atom" setting (angle, dihedral, improper) is only
 needed if new bonds (angles, dihedrals, impropers) will be added to

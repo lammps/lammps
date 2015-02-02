@@ -117,7 +117,6 @@ void FixRigidSmallOMP::final_integrate()
   double * const * _noalias const x = atom->x;
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const double * const * const torque_one = atom->torque;
-  const imageint * _noalias const image = atom->image;
   const int nlocal = atom->nlocal;
   const int nthreads=comm->nthreads;
   int i, ibody;
@@ -154,7 +153,7 @@ void FixRigidSmallOMP::final_integrate()
       Body &b = body[ibody];
 
       double unwrap[3];
-      domain->unmap(x[i],image[i],unwrap);
+      domain->unmap(x[i],xcmimage[i],unwrap);
 
       double * _noalias const fcm = b.fcm;
       double * _noalias const xcm = b.xcm;
@@ -263,7 +262,6 @@ void FixRigidSmallOMP::set_xv_thr()
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;
-  const imageint * _noalias const image = atom->image;
 
   double v0=0.0,v1=0.0,v2=0.0,v3=0.0,v4=0.0,v5=0.0;
 
@@ -288,9 +286,9 @@ void FixRigidSmallOMP::set_xv_thr()
 
     Body &b = body[ibody];
 
-    const int xbox = (image[i] & IMGMASK) - IMGMAX;
-    const int ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    const int zbox = (image[i] >> IMG2BITS) - IMGMAX;
+    const int xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
+    const int ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    const int zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
     const double deltax = xbox*xprd + (TRICLINIC ? ybox*xy + zbox*xz : 0.0);
     const double deltay = ybox*yprd + (TRICLINIC ? zbox*yz : 0.0);
     const double deltaz = zbox*zprd;
@@ -460,7 +458,6 @@ void FixRigidSmallOMP::set_v_thr()
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;
-  const imageint * _noalias const image = atom->image;
 
   const double xprd = domain->xprd;
   const double yprd = domain->yprd;
@@ -511,9 +508,9 @@ void FixRigidSmallOMP::set_v_thr()
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
 
-      const int xbox = (image[i] & IMGMASK) - IMGMAX;
-      const int ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      const int zbox = (image[i] >> IMG2BITS) - IMGMAX;
+      const int xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
+      const int ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      const int zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
       const double deltax = xbox*xprd + (TRICLINIC ? ybox*xy + zbox*xz : 0.0);
       const double deltay = ybox*yprd + (TRICLINIC ? zbox*yz : 0.0);
       const double deltaz = zbox*zprd;

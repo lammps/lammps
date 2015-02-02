@@ -71,12 +71,11 @@ void FixQEqPoint::pre_force(int vflag)
 {
   if (update->ntimestep % nevery) return;
 
-  n = atom->nlocal;
-  N = atom->nlocal + atom->nghost;
+  nlocal = atom->nlocal;
 
   if( atom->nmax > nmax ) reallocate_storage();
 
-  if( n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
+  if( nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
     reallocate_matrix();
 
   init_matvec();
@@ -93,13 +92,13 @@ void FixQEqPoint::init_matvec()
 {
   compute_H();
 
-  int nn, ii, i;
+  int inum, ii, i;
   int *ilist;
 
-  nn = list->inum;
+  inum = list->inum;
   ilist = list->ilist;
 
-  for( ii = 0; ii < nn; ++ii ) {
+  for( ii = 0; ii < inum; ++ii ) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -121,11 +120,10 @@ void FixQEqPoint::init_matvec()
 void FixQEqPoint::compute_H()
 {
   int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
-  int i, j, ii, jj, flag;
-  double **x, SMALL = 0.0001;
+  int i, j, ii, jj;
+  double **x;
   double dx, dy, dz, r_sqr, r;
 
-  tagint *tag = atom->tag;
   x = atom->x;
   int *mask = atom->mask;
 
@@ -136,7 +134,6 @@ void FixQEqPoint::compute_H()
 
   // fill in the H matrix
   m_fill = 0;
-  r_sqr = 0;
   for( ii = 0; ii < inum; ii++ ) {
     i = ilist[ii];
     if (mask[i] & groupbit) {
@@ -153,24 +150,10 @@ void FixQEqPoint::compute_H()
         dz = x[j][2] - x[i][2];
         r_sqr = dx*dx + dy*dy + dz*dz;
 
-        flag = 0;
-        if (r_sqr <= cutoff_sq) {
-          if (j < n) flag = 1;
-          else if (tag[i] < tag[j]) flag = 1;
-          else if (tag[i] == tag[j]) {
-            if (dz > SMALL) flag = 1;
-            else if (fabs(dz) < SMALL) {
-              if (dy > SMALL) flag = 1;
-              else if (fabs(dy) < SMALL && dx > SMALL)
-                flag = 1;
-	    }
-	  }
-	}
-
-        if( flag ) {
+	if (r_sqr <= cutoff_sq) {
           H.jlist[m_fill] = j;
 	  r = sqrt(r_sqr);
-          H.val[m_fill] = 1.0/r;
+          H.val[m_fill] = 0.5/r;
           m_fill++;
         }
       }

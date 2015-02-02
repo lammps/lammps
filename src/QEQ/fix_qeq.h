@@ -53,7 +53,7 @@ class FixQEq : public Fix {
 
  protected:
   int nevery;
-  int n, N, m_fill;
+  int nlocal, nall, m_fill;
   int n_cap, nmax, m_cap;
   int pack_flag;
   int nlevels_respa;
@@ -91,7 +91,6 @@ class FixQEq : public Fix {
   sparse_matrix H;
   double *Hdia_inv;
   double *b_s, *b_t;
-  double *b_prc, *b_prm;
   double *p, *q, *r, *d;
 
   // streitz-mintmire

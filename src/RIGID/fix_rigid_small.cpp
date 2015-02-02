@@ -89,6 +89,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   bodyown = NULL;
   bodytag = NULL;
   atom2body = NULL;
+  xcmimage = NULL;
   displace = NULL;
   eflags = NULL;
   orient = NULL;
@@ -439,6 +440,7 @@ FixRigidSmall::~FixRigidSmall()
   memory->destroy(bodyown);
   memory->destroy(bodytag);
   memory->destroy(atom2body);
+  memory->destroy(xcmimage);
   memory->destroy(displace);
   memory->destroy(eflags);
   memory->destroy(orient);
@@ -507,11 +509,15 @@ void FixRigidSmall::init()
    allows resetting of atom properties like mass between runs
    only do static initialization once if using an infile
    cannot do this until now, b/c requires comm->setup() to have setup stencil
+   invoke pre_neighbor() to insure body xcmimage flags are reset
+     needed if Verlet::setup::pbc() has remapped/migrated atoms for 2nd run
+     setup_bodies_static() invokes pre_neighbor itself
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::setup_pre_neighbor()
 {
   if (!staticflag || !infile) setup_bodies_static();
+  else pre_neighbor();
   setup_bodies_dynamic();
 }
 
@@ -532,7 +538,6 @@ void FixRigidSmall::setup(int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double *xcm,*fcm,*tcm;
@@ -555,7 +560,7 @@ void FixRigidSmall::setup(int vflag)
     fcm[1] += f[i][1];
     fcm[2] += f[i][2];
 
-    domain->unmap(x[i],image[i],unwrap);
+    domain->unmap(x[i],xcmimage[i],unwrap);
     xcm = b->xcm;
     dx = unwrap[0] - xcm[0];
     dy = unwrap[1] - xcm[1];
@@ -740,7 +745,6 @@ void FixRigidSmall::final_integrate()
 
   // sum over atoms to get force and torque on rigid body
 
-  imageint *image = atom->image;
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -765,7 +769,7 @@ void FixRigidSmall::final_integrate()
     fcm[1] += f[i][1];
     fcm[2] += f[i][2];
 
-    domain->unmap(x[i],image[i],unwrap);
+    domain->unmap(x[i],xcmimage[i],unwrap);
     xcm = b->xcm;
     dx = unwrap[0] - xcm[0];
     dy = unwrap[1] - xcm[1];
@@ -868,6 +872,26 @@ void FixRigidSmall::final_integrate_respa(int ilevel, int iloop)
 }
 
 /* ----------------------------------------------------------------------
+   remap xcm of each rigid body back into periodic simulation box
+   done during pre_neighbor so will be after call to pbc()
+     and after fix_deform::pre_exchange() may have flipped box
+   use domain->remap() in case xcm is far away from box
+     due to first-time definition of rigid body in setup_bodies_static()
+     or due to box flip
+   also adjust imagebody = rigid body image flags, due to xcm remap
+   also adjust rgdimage flags of all atoms in bodies for two effects
+     (1) change in true image flags due to pbc() call during exchange
+     (2) change in imagebody due to xcm remap
+   rgdimage flags are always -1,0,-1 so that body can be unwrapped
+     around in-box xcm and stay close to simulation box
+   if don't do this, then a body could end up very far away
+     when unwrapped by true image flags, and set_xv() will
+     compute huge displacements every step to reset coords of 
+     all the body atoms to be back inside the box, ditto for triclinic box flip
+     note: so just want to avoid that numeric probem?
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
    atom to processor assignments have changed,
      so acquire ghost bodies and setup atom2body
    remap xcm of each rigid body back into periodic simulation box
@@ -883,31 +907,6 @@ void FixRigidSmall::final_integrate_respa(int ilevel, int iloop)
 
 void FixRigidSmall::pre_neighbor()
 {
-  // remap xcm and image flags of each body as needed
-
-  imageint original,oldimage,newimage;
-
-  for (int ibody = 0; ibody < nlocal_body; ibody++) {
-    Body *b = &body[ibody];
-
-    original = b->image;
-    domain->remap(b->xcm,b->image);
-
-    if (original == b->image) b->remapflag[3] = 0;
-    else {
-      oldimage = original & IMGMASK;
-      newimage = b->image & IMGMASK;
-      b->remapflag[0] = newimage - oldimage;
-      oldimage = (original >> IMGBITS) & IMGMASK;
-      newimage = (b->image >> IMGBITS) & IMGMASK;
-      b->remapflag[1] = newimage - oldimage;
-      oldimage = original >> IMG2BITS;
-      newimage = b->image >> IMG2BITS;
-      b->remapflag[2] = newimage - oldimage;
-      b->remapflag[3] = 1;
-    }
-  }
-
   // acquire ghost bodies via forward comm
   // also gets new remapflags needed for adjusting atom image flags
   // reset atom2body for owned atoms
@@ -919,40 +918,42 @@ void FixRigidSmall::pre_neighbor()
   reset_atom2body();
   //check(4);
 
-  // adjust image flags of any atom in a rigid body whose xcm was remapped
+  for (int ibody = 0; ibody < nlocal_body; ibody++) {
+    Body *b = &body[ibody];
+    domain->remap(b->xcm,b->image);
+  }  
+  image_shift();
+}
+
+/* ----------------------------------------------------------------------
+   reset body xcmimage flags of atoms in bodies
+   xcmimage flags are relative to xcm so that body can be unwrapped
+   xcmimage = true image flag - imagebody flag
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::image_shift()
+{
+  int ibody;
+  imageint tdim,bdim,xdim[3];
 
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
-
-  imageint idim,otherdims;
 
   for (int i = 0; i < nlocal; i++) {
     if (atom2body[i] < 0) continue;
     Body *b = &body[atom2body[i]];
 
-    if (b->remapflag[3] == 0) continue;
+    tdim = image[i] & IMGMASK;
+    bdim = b->image & IMGMASK;
+    xdim[0] = IMGMAX + tdim - bdim;
+    tdim = (image[i] >> IMGBITS) & IMGMASK;
+    bdim = (b->image >> IMGBITS) & IMGMASK;
+    xdim[1] = IMGMAX + tdim - bdim;
+    tdim = image[i] >> IMG2BITS;
+    bdim = b->image >> IMG2BITS;
+    xdim[2] = IMGMAX + tdim - bdim;
 
-    if (b->remapflag[0]) {
-      idim = image[i] & IMGMASK;
-      otherdims = image[i] ^ idim;
-      idim -= b->remapflag[0];
-      idim &= IMGMASK;
-      image[i] = otherdims | idim;
-    }
-    if (b->remapflag[1]) {
-      idim = (image[i] >> IMGBITS) & IMGMASK;
-      otherdims = image[i] ^ (idim << IMGBITS);
-      idim -= b->remapflag[1];
-      idim &= IMGMASK;
-      image[i] = otherdims | (idim << IMGBITS);
-    }
-    if (b->remapflag[2]) {
-      idim = image[i] >> IMG2BITS;
-      otherdims = image[i] ^ (idim << IMG2BITS);
-      idim -= b->remapflag[2];
-      idim &= IMGMASK;
-      image[i] = otherdims | (idim << IMG2BITS);
-    }
+    xcmimage[i] = (xdim[2] << IMG2BITS) | (xdim[1] << IMGBITS) | xdim[0];
   }
 }
 
@@ -1091,7 +1092,6 @@ void FixRigidSmall::set_xv()
   double xz = domain->xz;
   double yz = domain->yz;
 
-  imageint *image = atom->image;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -1106,9 +1106,9 @@ void FixRigidSmall::set_xv()
     if (atom2body[i] < 0) continue;
     Body *b = &body[atom2body[i]];
 
-    xbox = (image[i] & IMGMASK) - IMGMAX;
-    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    zbox = (image[i] >> IMG2BITS) - IMGMAX;
+    xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
+    ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
 
     // save old positions and velocities for virial
 
@@ -1264,7 +1264,6 @@ void FixRigidSmall::set_v()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   // set v of each atom
@@ -1300,9 +1299,9 @@ void FixRigidSmall::set_v()
       fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
       fc2 = massone*(v[i][2] - v2)/dtf - f[i][2];
 
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
+      xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
+      ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
 
       if (triclinic == 0) {
         x0 = x[i][0] + xbox*xprd;
@@ -1771,6 +1770,15 @@ void FixRigidSmall::setup_bodies_static()
     }
   }
 
+  // first-time setting of body xcmimage flags = true image flags
+
+  if (!staticflag) {
+    imageint *image = atom->image;
+    for (i = 0; i < nlocal; i++)
+      if (bodytag[i] >= 0) xcmimage[i] = image[i];
+      else xcmimage[i] = 0;
+  }
+
   // acquire ghost bodies via forward comm
   // set atom2body for ghost atoms via forward comm
   // set atom2body for other owned atoms via reset_atom2body()
@@ -1783,7 +1791,6 @@ void FixRigidSmall::setup_bodies_static()
   // compute mass & center-of-mass of each rigid body
 
   double **x = atom->x;
-  imageint *image = atom->image;
 
   double *xcm;
 
@@ -1803,7 +1810,7 @@ void FixRigidSmall::setup_bodies_static()
     if (rmass) massone = rmass[i];
     else massone = mass[type[i]];
 
-    domain->unmap(x[i],image[i],unwrap);
+    domain->unmap(x[i],xcmimage[i],unwrap);
     xcm = b->xcm;
     xcm[0] += unwrap[0] * massone;
     xcm[1] += unwrap[1] * massone;
@@ -1833,14 +1840,16 @@ void FixRigidSmall::setup_bodies_static()
     readfile(0,NULL,inbody);
   }
 
-  // set image flags for each rigid body to default values
-  // then remap the xcm of each body back into simulation box if needed
-  // staticflag check insures this in only done once, not on successive runs
+  // one-time set of rigid body image flags to default values
+  //   staticflag insures this is only done once, not on successive runs
+  // then remap the xcm of each body back into simulation box
+  //   and reset body xcmimage flags via pre_neighbor()
 
-  if (!staticflag)
+  if (!staticflag) {
     for (ibody = 0; ibody < nlocal_body; ibody++)
       body[ibody].image = ((imageint) IMGMAX << IMG2BITS) | 
         ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+  }
 
   pre_neighbor();
 
@@ -1859,7 +1868,7 @@ void FixRigidSmall::setup_bodies_static()
     if (atom2body[i] < 0) continue;
     Body *b = &body[atom2body[i]];
 
-    domain->unmap(x[i],image[i],unwrap);
+    domain->unmap(x[i],xcmimage[i],unwrap);
     xcm = b->xcm;
     dx = unwrap[0] - xcm[0];
     dy = unwrap[1] - xcm[1];
@@ -2015,7 +2024,7 @@ void FixRigidSmall::setup_bodies_static()
 
     Body *b = &body[atom2body[i]];
 
-    domain->unmap(x[i],image[i],unwrap);
+    domain->unmap(x[i],xcmimage[i],unwrap);
     xcm = b->xcm;
     delta[0] = unwrap[0] - xcm[0];
     delta[1] = unwrap[1] - xcm[1];
@@ -2203,7 +2212,6 @@ void FixRigidSmall::setup_bodies_dynamic()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double *xcm,*vcm,*acm;
@@ -2229,7 +2237,7 @@ void FixRigidSmall::setup_bodies_dynamic()
     vcm[1] += v[i][1] * massone;
     vcm[2] += v[i][2] * massone;
 
-    domain->unmap(x[i],image[i],unwrap);
+    domain->unmap(x[i],xcmimage[i],unwrap);
     xcm = b->xcm;
     dx = unwrap[0] - xcm[0];
     dy = unwrap[1] - xcm[1];
@@ -2525,6 +2533,7 @@ void FixRigidSmall::grow_arrays(int nmax)
   memory->grow(bodyown,nmax,"rigid/small:bodyown");
   memory->grow(bodytag,nmax,"rigid/small:bodytag");
   memory->grow(atom2body,nmax,"rigid/small:atom2body");
+  memory->grow(xcmimage,nmax,"rigid/small:xcmimage");
   memory->grow(displace,nmax,3,"rigid/small:displace");
   if (extended) {
     memory->grow(eflags,nmax,"rigid/small:eflags");
@@ -2540,6 +2549,7 @@ void FixRigidSmall::grow_arrays(int nmax)
 void FixRigidSmall::copy_arrays(int i, int j, int delflag)
 {
   bodytag[j] = bodytag[i];
+  xcmimage[j] = xcmimage[i];
   displace[j][0] = displace[i][0];
   displace[j][1] = displace[i][1];
   displace[j][2] = displace[i][2];
@@ -2579,6 +2589,7 @@ void FixRigidSmall::set_arrays(int i)
   bodyown[i] = -1;
   bodytag[i] = 0;
   atom2body[i] = -1;
+  xcmimage[i] = 0;
   displace[i][0] = 0.0;
   displace[i][1] = 0.0;
   displace[i][2] = 0.0;
@@ -2670,13 +2681,14 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, int imol,
 int FixRigidSmall::pack_exchange(int i, double *buf)
 {
   buf[0] = ubuf(bodytag[i]).d;
-  buf[1] = displace[i][0];
-  buf[2] = displace[i][1];
-  buf[3] = displace[i][2];
+  buf[1] = ubuf(xcmimage[i]).d;
+  buf[2] = displace[i][0];
+  buf[3] = displace[i][1];
+  buf[4] = displace[i][2];
 
   // extended attribute info
 
-  int m = 4;
+  int m = 5;
   if (extended) {
     buf[m++] = eflags[i];
     for (int j = 0; j < orientflag; j++)
@@ -2714,13 +2726,14 @@ int FixRigidSmall::pack_exchange(int i, double *buf)
 int FixRigidSmall::unpack_exchange(int nlocal, double *buf)
 {
   bodytag[nlocal] = (tagint) ubuf(buf[0]).i;
-  displace[nlocal][0] = buf[1];
-  displace[nlocal][1] = buf[2];
-  displace[nlocal][2] = buf[3];
+  xcmimage[nlocal] = (imageint) ubuf(buf[1]).i;
+  displace[nlocal][0] = buf[2];
+  displace[nlocal][1] = buf[3];
+  displace[nlocal][2] = buf[4];
 
   // extended attribute info
 
-  int m = 4;
+  int m = 5;
   if (extended) {
     eflags[nlocal] = static_cast<int> (buf[m++]);
     for (int j = 0; j < orientflag; j++)
@@ -3327,7 +3340,8 @@ double FixRigidSmall::compute_scalar()
 double FixRigidSmall::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = 2 * nmax * sizeof(int);
+  double bytes = nmax*2 * sizeof(int);
+  bytes += nmax * sizeof(imageint);
   bytes += nmax*3 * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);     // vatom
   if (extended) {

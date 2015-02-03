@@ -125,7 +125,6 @@ void FixAtomSwap::options(int narg, char **arg)
   semi_grand_flag = 0;
   ndeltamutypes = 0;
   iregion = -1; 
-  ndeltamutypes = 0;
   
   int iarg = 0;
   while (iarg < narg) {

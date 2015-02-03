@@ -89,6 +89,10 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   // random number generator, same for all procs
 
   random_equal = new RanPark(lmp,seed);
+
+  // random number generator, not the same for all procs
+
+  random_unequal = new RanPark(lmp,seed);
   
   // set up reneighboring
 
@@ -124,6 +128,7 @@ void FixAtomSwap::options(int narg, char **arg)
   conserve_ke_flag = 1;
   semi_grand_flag = 0;
   ndeltamutypes = 0;
+  nswaptypes = 0;
   iregion = -1; 
   
   int iarg = 0;
@@ -154,7 +159,6 @@ void FixAtomSwap::options(int narg, char **arg)
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix atom/swap command");
       iarg++;
       memory->create(type_list,atom->ntypes,"atom/swap:type_list");
-      nswaptypes = 0;
       while (iarg < narg) {
         if (isalpha(arg[iarg][0])) break;
         type_list[nswaptypes++] = force->numeric(FLERR,arg[iarg]);
@@ -183,6 +187,7 @@ FixAtomSwap::~FixAtomSwap()
   memory->destroy(sqrt_mass_ratio);
   if (regionflag) delete [] idregion;
   delete random_equal;
+  delete random_unequal;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -321,11 +326,11 @@ int FixAtomSwap::attempt_semi_grand()
 
   int i = pick_semi_grand_atom();
   if (i >= 0) {
-    jswaptype = static_cast<int> (nswaptypes*random_equal->uniform());
+    jswaptype = static_cast<int> (nswaptypes*random_unequal->uniform());
     jtype = type_list[jswaptype];
     itype = atom->type[i];
     while (itype == jtype) {
-      jswaptype = static_cast<int> (nswaptypes*random_equal->uniform());
+      jswaptype = static_cast<int> (nswaptypes*random_unequal->uniform());
       jtype = type_list[jswaptype];
     }
     atom->type[i] = jtype;
@@ -746,6 +751,9 @@ void FixAtomSwap::restart(char *buf)
 
   seed = static_cast<int> (list[n++]);
   random_equal->reset(seed);
+ 
+  seed = static_cast<int> (list[n++]);
+  random_unequal->reset(seed);
 
   next_reneighbor = static_cast<int> (list[n++]);
 }

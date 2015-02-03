@@ -81,6 +81,7 @@ class FixAtomSwap : public Fix {
   int *local_swap_atom_list;
 
   class RanPark *random_equal;
+  class RanPark *random_unequal;
   
   class Compute *c_pe;
 

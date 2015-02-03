@@ -1198,6 +1198,8 @@ void FixGCMC::attempt_atomic_translation_full()
   double **x = atom->x;
   double xtmp[3];
   
+  xtmp[0] = xtmp[1] = xtmp[2] = 0.0;
+  
   tagint tmptag = -1;
     
   if (i >= 0) {
@@ -1245,11 +1247,18 @@ void FixGCMC::attempt_atomic_translation_full()
     energy_stored = energy_after;
     ntranslation_successes += 1.0;
   } else {
+  
+    tagint tmptag_all;
+    MPI_Allreduce(&tmptag,&tmptag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
+    
+    double xtmp_all[3];
+    MPI_Allreduce(&xtmp,&xtmp_all,3,MPI_DOUBLE,MPI_SUM,world);
+  
     for (int i = 0; i < atom->nlocal; i++) {
-      if (tmptag == atom->tag[i]) { 
-        x[i][0] = xtmp[0];
-        x[i][1] = xtmp[1];
-        x[i][2] = xtmp[2];
+      if (tmptag_all == atom->tag[i]) { 
+        x[i][0] = xtmp_all[0];
+        x[i][1] = xtmp_all[1];
+        x[i][2] = xtmp_all[2];
       }
     }
     energy_stored = energy_before;

@@ -354,9 +354,15 @@ int FixAtomSwap::attempt_semi_grand()
   
   double energy_after = energy_full();
 
-  if (random_equal->uniform() < 
-      exp(-beta*(energy_after - energy_before + 
-              delta_mu[jtype] - delta_mu[itype]))) {
+  int success = 0;
+  if ((i >= 0) and (random_equal->uniform() < 
+      exp(-beta*(energy_after - energy_before) +
+              delta_mu[jtype] - delta_mu[itype]))) success = 1;
+  
+  int success_all = 0;
+  MPI_Allreduce(&success,&success_all,1,MPI_INT,MPI_MAX,world);
+  
+  if (success_all) {
     update_semi_grand_atoms_list();
     energy_stored = energy_after;
     if (conserve_ke_flag) {

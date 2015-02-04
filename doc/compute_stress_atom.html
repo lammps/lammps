@@ -75,6 +75,18 @@ listed, only those terms are summed to compute the tensor.  The
 <P>Note that the stress for each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.
 </P>
+<P>Details of how LAMMPS computes the virial for individual atoms for
+either pairwise or manybody potentials, and including the effects of
+periodic boundary conditions is discussed in <A HREF = "#Thompson">(Thompson)</A>.
+The basic idea for manybody potentials is to treat each component of
+the force computation between a small cluster of atoms in the same
+manner as in the formula above for bond, angle, dihedral, etc
+interactions.  Namely the quantity R dot F is summed over the atoms in
+the interaction, with the R vectors unwrapped by periodic boundaries
+so that the cluster of atoms is close together.  The total
+contribution for the cluster interaction is divided evenly among those
+atoms.
+</P>
 <P>The <A HREF = "dihedral_charmm.html">dihedral_style charmm</A> style calculates
 pairwise interactions between 1-4 atoms.  The virial contribution of
 these terms is included in the pair virial, not the dihedral virial.
@@ -152,5 +164,9 @@ options.
 <A NAME = "Sirk"></A>
 
 <P><B>(Sirk)</B> Sirk, Moore, Brown, J Chem Phys, 138, 064505 (2013).
+</P>
+<A NAME = "Thompson"></A>
+
+<P><B>(Thompson)</B> Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).
 </P>
 </HTML>

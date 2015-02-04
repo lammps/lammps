@@ -59,12 +59,16 @@ second term uses components of the virial tensor:
 <CENTER><IMG SRC = "Eqs/pressure_tensor.jpg">
 </CENTER>
 <P>If no extra keywords are listed, the entire equations above are
-calculated which include a kinetic energy (temperature) term and the
+calculated.  This includes a kinetic energy (temperature) term and the
 virial as the sum of pair, bond, angle, dihedral, improper, kspace
 (long-range), and fix contributions to the force on each atom.  If any
 extra keywords are listed, then only those components are summed to
 compute temperature or ke and/or the virial.  The <I>virial</I> keyword
 means include all terms except the kinetic energy <I>ke</I>.
+</P>
+<P>Details of how LAMMPS computes the virial efficiently for the entire
+system, including the effects of periodic boundary conditions is
+discussed in <A HREF = "#Thompson">(Thompson)</A>.
 </P>
 <P>The temperature and kinetic energy tensor is not calculated by this
 compute, but rather by the temperature compute specified with the
@@ -139,5 +143,11 @@ stress/atom</A>,
 <A HREF = "thermo_style.html">thermo_style</A>,
 </P>
 <P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Thompson"></A>
+
+<P><B>(Thompson)</B> Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).
 </P>
 </HTML>

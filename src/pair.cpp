@@ -104,14 +104,18 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
+
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Pair::~Pair()
 {
-  memory->destroy(eatom);
-  memory->destroy(vatom);
+  if (!copymode) {
+    memory->destroy(eatom);
+    memory->destroy(vatom);
+  }
 }
 
 /* ----------------------------------------------------------------------

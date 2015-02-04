@@ -82,6 +82,12 @@ class ModifyKokkos : public Modify {
   ~ModifyKokkos() {}
 };
 
+class DAT {
+ public:
+  typedef double tdual_xfloat_1d;
+  typedef int tdual_int_2d;
+};
+
 }
 
 #endif

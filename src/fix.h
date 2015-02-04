@@ -209,6 +209,9 @@ class Fix : protected Pointers {
   int vflag_global,vflag_atom;
   int maxvatom;
 
+  int copymode;   // if set, do not deallocate during destruction
+                  // required when classes are used as functors by Kokkos
+
   void v_setup(int);
   void v_tally(int, int *, double, double *);
 

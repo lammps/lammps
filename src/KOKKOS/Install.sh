@@ -64,8 +64,16 @@ action neigh_list_kokkos.cpp
 action neigh_list_kokkos.h
 action neighbor_kokkos.cpp
 action neighbor_kokkos.h
+action pair_buck_kokkos.cpp
+action pair_buck_kokkos.h
 action pair_coul_cut_kokkos.cpp
 action pair_coul_cut_kokkos.h
+action pair_coul_dsf_kokkos.cpp
+action pair_coul_dsf_kokkos.h
+action pair_coul_wolf_kokkos.cpp
+action pair_coul_wolf_kokkos.h
+action pair_eam_kokkos.cpp pair_eam.cpp
+action pair_eam_kokkos.h pair_eam.h
 action pair_kokkos.h
 action pair_lj_cut_coul_cut_kokkos.cpp
 action pair_lj_cut_coul_cut_kokkos.h

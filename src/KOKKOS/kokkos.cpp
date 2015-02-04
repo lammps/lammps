@@ -89,7 +89,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // initialize Kokkos
 
 #ifdef KOKKOS_HAVE_CUDA
-  Kokkos::Cuda::host_mirror_device_type::initialize(num_threads,numa);
+  Kokkos::HostSpace::execution_space::initialize(num_threads,numa);
   Kokkos::Cuda::SelectDevice select_device(device);
   Kokkos::Cuda::initialize(select_device);
 #else
@@ -113,7 +113,7 @@ KokkosLMP::~KokkosLMP()
 
 #ifdef KOKKOS_HAVE_CUDA
   Kokkos::Cuda::finalize();
-  Kokkos::Cuda::host_mirror_device_type::finalize();
+  Kokkos::HostSpace::execution_space::finalize();
 #else
   LMPHostType::finalize();
 #endif
@@ -230,7 +230,7 @@ int KokkosLMP::neigh_count(int m)
   NeighborKokkos *nk = (NeighborKokkos *) neighbor;
   if (nk->lists_host[m]) {
     inum = nk->lists_host[m]->inum;
-#ifndef KOKKOS_USE_UVM
+#ifndef KOKKOS_USE_CUDA_UVM
     h_ilist = Kokkos::create_mirror_view(nk->lists_host[m]->d_ilist);
     h_numneigh = Kokkos::create_mirror_view(nk->lists_host[m]->d_numneigh);
 #else
@@ -241,7 +241,7 @@ int KokkosLMP::neigh_count(int m)
     Kokkos::deep_copy(h_numneigh,nk->lists_host[m]->d_numneigh);
   } else if (nk->lists_device[m]) {
     inum = nk->lists_device[m]->inum;
-#ifndef KOKKOS_USE_UVM
+#ifndef KOKKOS_USE_CUDA_UVM
     h_ilist = Kokkos::create_mirror_view(nk->lists_device[m]->d_ilist);
     h_numneigh = Kokkos::create_mirror_view(nk->lists_device[m]->d_numneigh);
 #else

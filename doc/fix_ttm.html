@@ -11,30 +11,51 @@
 
 <H3>fix ttm command 
 </H3>
+<H3>fix ttm/mod command 
+</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz T_infile N T_outfile 
+<PRE>fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz T_infile N T_outfile
+fix ID group-ID ttm/mod seed init_file Nx Ny Nz T_infile N T_outfile 
 </PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>ttm = style name of this fix command
-<LI>seed = random number seed to use for white noise (positive integer)
-<LI>C_e  = electronic specific heat (energy/(electron*temperature) units)
-<LI>rho_e = electronic density (electrons/volume units)
-<LI>kappa_e = electronic thermal conductivity (energy/(time*distance*temperature) units)
-<LI>gamma_p = friction coefficient due to electron-ion interactions (mass/time units)
-<LI>gamma_s = friction coefficient due to electronic stopping (mass/time units)
-<LI>v_0 = electronic stopping critical velocity (velocity units)
-<LI>Nx = number of thermal solve grid points in the x-direction (positive integer)
-<LI>Ny = number of thermal solve grid points in the y-direction (positive integer)
-<LI>Nz = number of thermal solve grid points in the z-direction (positive integer)
-<LI>T_infile = filename to read initial electronic temperature from
-<LI>N = dump TTM temperatures every this many timesteps, 0 = no dump
-<LI>T_outfile = filename to write TTM temperatures to (only needed if N > 0) 
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>style = <I>ttm</I> or <I>ttm_mod</I> 
+
+<LI>seed = random number seed to use for white noise (positive integer) 
+
+<LI>remaining arguments for fix ttm: 
+
+<PRE>  C_e  = electronic specific heat (energy/(electron*temperature) units)
+  rho_e = electronic density (electrons/volume units)
+  kappa_e = electronic thermal conductivity (energy/(time*distance*temperature) units)
+  gamma_p = friction coefficient due to electron-ion interactions (mass/time units)
+  gamma_s = friction coefficient due to electronic stopping (mass/time units)
+  v_0 = electronic stopping critical velocity (velocity units)
+  Nx = number of thermal solve grid points in the x-direction (positive integer)
+  Ny = number of thermal solve grid points in the y-direction (positive integer)
+  Nz = number of thermal solve grid points in the z-direction (positive integer)
+  T_infile = filename to read initial electronic temperature from
+  N = dump TTM temperatures every this many timesteps, 0 = no dump
+  T_outfile = filename to write TTM temperatures to (only needed if N > 0) 
+</PRE>
+<LI>remaining arguments for fix ttm/mod: 
+
+<PRE>  init_file = file with the parameters to TTM
+  Nx = number of thermal solve grid points in the x-direction (positive integer)
+  Ny = number of thermal solve grid points in the y-direction (positive integer)
+  Nz = number of thermal solve grid points in the z-direction (positive integer)
+  T_infile = filename to read initial electronic temperature from
+  N = dump TTM temperatures every this many timesteps, 0 = no dump
+  T_outfile = filename to write TTM temperatures to (only needed if N > 0) 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix 2 all ttm 699489 1.0 1.0 10 0.1 0.0 2.0 1 12 1 initialTs 1000 T.out
-fix 2 all ttm 123456 1.0 1.0 1.0 1.0 1.0 5.0 5 5 5 Te.in 1 Te.out 
+fix 2 all ttm 123456 1.0 1.0 1.0 1.0 1.0 5.0 5 5 5 Te.in 1 Te.out
+fix 2 all ttm/mod 34277 parameters.txt 5 5 5 T_init 10 T_out 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -51,6 +72,14 @@ discussed in two J Physics: Condensed Matter papers: <A HREF = "#Duffy">(Duffy)<
 and <A HREF = "#Rutherford">(Rutherford)</A>.  They used this algorithm in cascade
 simulations where a primary knock-on atom (PKA) was initialized with a
 high velocity to simulate a radiation event.
+</P>
+<P>The description in this sub-section applies to both fix ttm and fix
+ttm/mod.  Fix ttm/mod adds options to account for external heat
+sources (e.g. at a surface) and for specifying parameters that allow
+the electronic heat capacity to depend strongly on electronic
+termpature.  It is more expensive computationally than fix ttm because
+it treats the thermal diffusion equation as non-linear.  More details
+on fix ttm/mod are given below.
 </P>
 <P>Heat transfer between the electronic and atomic subsystems is carried
 out via an inhomogeneous Langevin thermostat.  This thermostat differs
@@ -91,15 +120,13 @@ as that in equation 6 of <A HREF = "#Duffy">(Duffy)</A>, with the exception that
 electronic density is explicitly reprensented, rather than being part
 of the the specific heat parameter.
 </P>
-<P>Currently, this fix assumes that none of the user-supplied parameters
-will vary with temperature.  This assumption can be relaxed by
-modifying the source code to include the desired temperature
-dependency and functional form for any of the parameters.  Note that
-<A HREF = "#Duffy">(Duffy)</A> used a tanh() functional form for the temperature
-dependence of the electronic specific heat, but ignored temperature
-dependencies of any of the other parameters.
+<P>Currently, fix ttm assumes that none of the user-supplied parameters
+will vary with temperature. Note that <A HREF = "#Duffy">(Duffy)</A> used a tanh()
+functional form for the temperature dependence of the electronic
+specific heat, but ignored temperature dependencies of any of the
+other parameters.  See more discussion below for fix ttm/mod.
 </P>
-<P>This fix requires use of periodic boundary conditions and a 3D
+<P>These fixes requires use of periodic boundary conditions and a 3D
 simulation.  Periodic boundary conditions are also used in the heat
 equation solve for the electronic subsystem.  This varies from the
 approach of <A HREF = "#Rutherford">(Rutherford)</A> where the atomic subsystem was
@@ -138,14 +165,122 @@ the electronic subsystem.  The ordering of the Nx*Ny*Nz columns is
 with the z index varing fastest, y the next fastest, and x the
 slowest.
 </P>
-<P>This fix does not change the coordinates of its atoms; it only scales
-their velocities.  Thus a time integration fix (e.g. <A HREF = "fix_nve.html">fix
+<P>These fixes do not change the coordinates of its atoms; they only
+scales their velocities.  Thus a time integration fix (e.g. <A HREF = "fix_nve.html">fix
 nve</A>) should still be used to time integrate the affected
-atoms.  This fix should not normally be used on atoms that have their
+atoms.  Th fixes should not normally be used on atoms that have their
 temperature controlled by another fix - e.g. <A HREF = "fix_nh.html">fix nvt</A> or
 <A HREF = "fix_langevin.html">fix langevin</A>.
 </P>
-<P>This fix computes 2 output quantities stored in a vector of length 2,
+<P>IMPORTANT NOTE: The current implementation of these fixes creates a
+copy of the electron grid that overlays the entire simulation domain,
+for each processor.  Values on the grid are summed across all
+processors.  Thus you should insure that this grid is not too large,
+else your simulation could incur high memory and communication costs.
+</P>
+<HR>
+
+<P><B>Additional details for fix ttm/mod</B>
+</P>
+<P>Fix ttm/mod uses the heat diffusion equation with possible external
+heat sources (e.g. laser heating in ablation simulations):
+</P>
+<CENTER><IMG SRC = "Eqs/fix_ttm_mod.jpg">
+</CENTER>
+<P>where I_0 is the (absorbed) laser pulse intensity for ablation
+simulations, l_skin is the depth of skin-layer, and all other
+designations have the same meaning as in the former equation.
+</P>
+<P>Fix ttm/mod also allows users to specify the dependencies of C_e and
+kappa_e on the electronic temperature. The specific heat is expressed
+as
+</P>
+<CENTER><IMG SRC = "Eqs/fix_ttm_ce.jpg">
+</CENTER>
+<P>where <I>X</I> = T_e/1000, and the thermal conductivity is defined as
+kappa_e = D_e*rho_e*C_e, where D_e is the thermal diffusion
+coefficient.
+</P>
+<P>Electronic pressure effects are included in the TTM model to account
+for the blast force acting on ions because of electronic pressure
+gradient (see <A HREF = "Chen">(Chen)</A>, <A HREF = "#Norman">(Norman)</A>).  The total force
+acting on an ion is:
+</P>
+<CENTER><IMG SRC = "Eqs/fix_ttm_blast.jpg">
+</CENTER>
+<P>where F_langevin is a force from Langevin thermostat simulating
+electron-phonon coupling, and nabla P_e/n_ion is the electron blast
+force.
+</P>
+<P>The electronic pressure is taken to be P_e = B*rho_e*C_e*T_e
+</P>
+<P>The current fix ttm/mod implementation allows TTM simulations with a
+vacuum. The vacuum region is defined as the grid cells with zero
+electronic temperature. The numerical scheme does not allow energy
+exchange with such cells. Since the material can expand to previously
+unoccupied region in some simulations, the vacuum border can be
+allowed to move. It is controlled by the <I>surface_movement</I> parameter
+in the <I>init_file</I>. If it is set to 1, then "vacuum" cells can be
+changed to "electron-filled" cells with the temperature <I>T_e_min</I> if
+atoms move into them (currently only implemented for the case of
+1-dimensional motion of flat surface normal to the X axis). The
+initial borders of vacuum can be set in the <I>init_file</I> via <I>lsurface</I>
+and <I>rsurface</I> parameters. In this case, electronic pressure gradient
+is calculated as
+</P>
+<CENTER><IMG SRC = "Eqs/fix_ttm_blast1.jpg">
+</CENTER>
+<P>where lambda is the electron mean free path (see <A HREF = "#Norman">(Norman)</A>,
+<A HREF = "#Pisarev">(Pisarev)</A>)
+</P>
+<P>The fix ttm/mod parameter file <I>init_file</I> has the following syntax/
+Every line with the odd number is considered as a comment and
+ignored. The lines with the even numbers are treated as follows:
+</P>
+<PRE>a_0, energy/(temperature*electron) units
+a_1, energy/(temperature^2*electron) units
+a_2, energy/(temperature^3*electron) units
+a_3, energy/(temperature^4*electron) units
+a_4, energy/(temperature^5*electron) units
+C_0, energy/(temperature*electron) units
+A, 1/temperature units
+rho_e, electrons/volume units
+D_e, length^2/time units
+gamma_p, mass/time units
+gamma_s, mass/time units
+v_0, length/time units
+I_0, energy/(time*length^2) units
+lsurface, electron grid units (positive integer)
+rsurface, electron grid units (positive integer)
+l_skin, length units
+tau, time units
+B, dimensionless
+lambda, length units
+n_ion, ions/volume units
+surface_movement: 0 to disable tracking of surface motion, 1 to enable
+T_e_min, temperature units 
+</PRE>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>These fixes writes the state of the electronic subsystem and the
+energy exchange between the subsystems to <A HREF = "restart.html">binary restart
+files</A>.  See the <A HREF = "read_restart.html">read_restart</A> command
+for info on how to re-specify a fix in an input script that reads a
+restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
+</P>
+<P>Because the state of the random number generator is not saved in the
+restart files, this means you cannot do "exact" restarts with this
+fix, where the simulation continues on the same as if no restart had
+taken place.  However, in a statistical sense, a restarted simulation
+should produce the same behavior.
+</P>
+<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to these
+fixes.  
+</P>
+<P>Both fixes compute 2 output quantities stored in a vector of length 2,
 which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
 commands</A>.  The first quantity is the
 total energy of the electronic subsystem. The second quantity is the
@@ -159,45 +294,23 @@ energy. As a result of this, users may notice slight fluctuations in
 the sum of the atomic and electronic subsystem energies reported at
 the end of the timestep.
 </P>
-<P>The vector values calculated by this fix are "extensive".
+<P>The vector values calculated are "extensive".
 </P>
-<P>IMPORTANT NOTE: The current implementation creates a copy of the
-electron grid that overlays the entire simulation domain, for each
-processor.  Values on the grid are summed across all processors.  Thus
-you should insure that this grid is not too large, else your
-simulation could incur high memory and communication costs.
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>This fix writes the state of the electronic subsystem and the energy
-exchange between the subsystems to <A HREF = "restart.html">binary restart
-files</A>.  See the <A HREF = "read_restart.html">read_restart</A> command
-for info on how to re-specify a fix in an input script that reads a
-restart file, so that the operation of the fix continues in an
-uninterrupted fashion.
-</P>
-<P>Because the state of the random number generator is not saved in the
-restart files, this means you cannot do "exact" restarts with this
-fix, where the simulation continues on the same as if no restart had
-taken place.  However, in a statistical sense, a restarted simulation
-should produce the same behavior.
-</P>
-<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
-fix.  No global or per-atom quantities are stored by this fix for
-access by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  No
-parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
-minimization</A>.
+<P>No parameter of the fixes can be used with the <I>start/stop</I> keywords
+of the <A HREF = "run.html">run</A> command.  The fixes are not invoked during
+<A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
+<P>Fix <I>ttm</I> is part of the MISC package. It is only enabled if LAMMPS
+was built with that package.  Fix <I>ttm/mod</I> is part of the USER-MISC
+package. It is only enabled if LAMMPS was built with that package.
+See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more
+info.
 </P>
-<P>This fix can only be used for 3d simulations and orthogonal
-simlulation boxes.  You must use periodic <A HREF = "boundary.html">boundary</A>
-conditions with this fix.
+<P>These fixes can only be used for 3d simulations and orthogonal
+simlulation boxes.  You must also use periodic
+<A HREF = "boundary.html">boundary</A> conditions.
 </P>
 <P><B>Related commands:</B>
 </P>
@@ -216,5 +329,20 @@ conditions with this fix.
 
 <P><B>(Rutherford)</B> A M Rutherford and D M Duffy, J. Phys.:
 Condens. Matter, 19, 496201-496210 (2007).
+</P>
+<A NAME = "Chen"></A>
+
+<P><B>(Chen)</B> J Chen, D Tzou and J Beraun, Int. J. Heat 
+Mass Transfer, 49, 307-316 (2006).
+</P>
+<A NAME = "Norman"></A>
+
+<P><B>(Norman)</B> G E Norman, S V Starikov, V V Stegailov et al., Contrib. 
+Plasma Phys., 53, 129-139 (2013).
+</P>
+<A NAME = "Pisarev"></A>
+
+<P><B>(Pisarev)</B> V V Pisarev and S V Starikov, J. Phys.: Condens. Matter, 26,
+475401 (2014).
 </P>
 </HTML>

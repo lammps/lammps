@@ -52,7 +52,7 @@ PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp)
 
 PairCoulDSF::~PairCoulDSF()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
   }

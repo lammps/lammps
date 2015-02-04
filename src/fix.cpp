@@ -91,15 +91,19 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
+
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Fix::~Fix()
 {
-  delete [] id;
-  delete [] style;
-  memory->destroy(vatom);
+  if (!copymode) {
+    delete [] id;
+    delete [] style;
+    memory->destroy(vatom);
+  }
 }
 
 /* ----------------------------------------------------------------------

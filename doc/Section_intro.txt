@@ -256,7 +256,7 @@ molecular dynamics options:
 "atom-to-continuum coupling"_fix_atc.html with finite elements
 coupled rigid body integration via the "POEMS"_fix_poems.html library
 "QM/MM coupling"_fix_qmmm.html
-"path-integral molecular dynamics (PIMD)"_fix_ipi.html
+"path-integral molecular dynamics (PIMD)"_fix_ipi.html and "this as well"_fix_pimd.html
 "grand canonical Monte Carlo"_fix_gcmc.html insertions/deletions
 "Direct Simulation Monte Carlo"_pair_dsmc.html for low-density fluids
 "Peridynamics mesoscale modeling"_pair_peri.html

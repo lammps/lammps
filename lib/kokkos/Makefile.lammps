@@ -1,0 +1,170 @@
+# This Makefile is intended to be include in an application Makefile.
+# It will append the OBJ variable with objects which need to be build for Kokkos. 
+# It also will produce a KOKKOS_INC and a KOKKOS_LINK variable which must be 
+# appended to the compile and link flags of the application Makefile.
+# Note that you cannot compile and link at the same time!
+# If you want to include dependencies (i.e. trigger a rebuild of the application
+# object files when Kokkos files change, you can include KOKKOS_HEADERS in your
+# dependency list.
+# The Makefile uses a number of variables which can be set on the commandline, or
+# in the application Makefile prior to including this Makefile. These options set
+# certain build options and are explained in the following.
+
+# Directory path to the Kokkos source directory (this could be the kokkos directory
+# in the Trilinos git repository
+KOKKOS_PATH ?= ../../lib/kokkos
+# Directory paths to libraries potentially used by Kokkos (if the respective options
+# are chosen)
+CUDA_PATH ?= /usr/local/cuda
+HWLOC_PATH ?= /usr/local/hwloc/default
+
+# Device options: enable Pthreads, OpenMP and/or CUDA device (if none is enabled 
+# the Serial device will be used)
+PTHREADS ?= yes
+OMP ?= yes
+CUDA ?= no
+
+# Build for Debug mode: add debug flags and enable boundschecks within Kokkos
+DEBUG ?= no
+
+# Code generation options: use AVX instruction set; build for Xeon Phi (MIC); use
+# reduced precision math (sets compiler flags such --fast_math) 
+AVX ?= no
+MIC ?= no
+RED_PREC ?=no
+
+# Optional Libraries: use hwloc for thread affinity; use librt for timers 
+HWLOC ?= no
+LIBRT ?= no
+
+# CUDA specific options: use UVM (requires CUDA 6+); use LDG loads instead of 
+# texture fetches; compile for relocatable device code (function pointers) 
+CUDA_UVM ?= no
+CUDA_LDG ?= no
+CUDA_RELOC ?= no 
+
+# Settings for replacing generic linear algebra kernels of Kokkos with vendor
+# libraries.
+CUSPARSE ?= no
+CUBLAS ?= no
+
+#Typically nothing should be changed after this point
+
+KOKKOS_INC = -I$(KOKKOS_PATH)/core/src -I$(KOKKOS_PATH)/containers/src -I$(KOKKOS_PATH)/algorithms/src -I$(KOKKOS_PATH)/linalg/src -I../ -DKOKKOS_DONT_INCLUDE_CORE_CONFIG_H 
+
+KOKKOS_HEADERS = $(wildcard $(KOKKOS_PATH)/core/src/*.hpp)
+KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/impl/*.hpp)
+KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/containers/src/*.hpp)
+KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/containers/src/impl/*.hpp)
+KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/linalg/src/*.hpp)
+
+SRC_KOKKOS = $(wildcard $(KOKKOS_PATH)/core/src/impl/*.cpp)
+SRC_KOKKOS += $(wildcard $(KOKKOS_PATH)/containers/src/impl/*.cpp)
+KOKKOS_LIB = libkokkoscore.a
+
+ifeq ($(CUDA), yes)
+KOKKOS_INC += -x cu -DKOKKOS_HAVE_CUDA  
+SRC_KOKKOS += $(wildcard $(KOKKOS_PATH)/core/src/Cuda/*.cpp)
+SRC_KOKKOS += $(wildcard $(KOKKOS_PATH)/core/src/Cuda/*.cu)
+KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/Cuda/*.hpp)
+KOKKOS_LINK += -L$(CUDA_PATH)/lib64 -lcudart -lcuda 
+ifeq ($(CUDA_UVM), yes)
+KOKKOS_INC += -DKOKKOS_USE_CUDA_UVM
+endif
+endif
+
+ifeq ($(CUSPARSE), yes)
+KOKKOS_INC += -DKOKKOS_USE_CUSPARSE
+KOKKOS_LIB += -lcusparse
+endif
+
+ifeq ($(CUBLAS), yes)
+KOKKOS_INC += -DKOKKOS_USE_CUBLAS
+KOKKOS_LIB += -lcublas
+endif
+
+ifeq ($(MIC), yes)
+KOKKOS_INC += -mmic
+KOKKOS_LINK += -mmic
+AVX = no
+endif
+
+ifeq ($(AVX), yes)
+ifeq ($(CUDA), yes) 
+KOKKOS_INC += -Xcompiler -mavx
+else
+KOKKOS_INC += -mavx
+endif
+KOKKOS_LINK += -mavx
+endif
+
+ifeq ($(PTHREADS),yes)
+KOKKOS_INC += -DKOKKOS_HAVE_PTHREAD
+KOKKOS_LIB += -lpthread
+SRC_KOKKOS += $(wildcard $(KOKKOS_PATH)/core/src/Threads/*.cpp)
+KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/Threads/*.hpp)
+endif
+
+ifeq ($(OMP),yes)
+KOKKOS_INC += -DKOKKOS_HAVE_OPENMP 
+SRC_KOKKOS += $(wildcard $(KOKKOS_PATH)/core/src/OpenMP/*.cpp)
+KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/OpenMP/*.hpp)
+ifeq ($(CUDA), yes) 
+KOKKOS_INC += -Xcompiler -fopenmp
+else
+KOKKOS_INC += -fopenmp
+endif
+KOKKOS_LINK += -fopenmp
+endif
+
+ifeq ($(HWLOC),yes)
+KOKKOS_INC += -DKOKKOS_HAVE_HWLOC -I$(HWLOC_PATH)/include
+KOKKOS_LINK += -L$(HWLOC_PATH)/lib -lhwloc
+endif
+
+ifeq ($(RED_PREC), yes)
+KOKKOS_INC += --use_fast_math
+endif
+
+ifeq ($(DEBUG), yes)
+ifeq ($(CUDA), yes)
+KOKKOS_INC += -G
+endif
+KOKKOS_INC += -g -DKOKKOS_EXPRESSION_CHECK -DENABLE_TRACEBACK
+KOKKOS_LINK += -g -ldl
+endif
+
+ifeq ($(LIBRT),yes)
+KOKKOS_INC += -DKOKKOS_USE_LIBRT -DPREC_TIMER
+KOKKOS_LIB += -lrt
+endif
+
+ifeq ($(CUDA_LDG), yes)
+KOKKOS_INC += -DKOKKOS_USE_LDG_INTRINSIC
+endif
+
+ifeq ($(CUDA), yes)
+ifeq ($(CUDA_RELOC), yes)
+KOKKOS_INC += -DKOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE --relocatable-device-code=true
+KOKKOS_LINK += --relocatable-device-code=true
+endif
+endif
+
+# Must build with C++11
+KOKKOS_INC += --std=c++11 -DKOKKOS_HAVE_CXX11
+
+OBJ_KOKKOS_TMP = $(SRC_KOKKOS:.cpp=.o)
+OBJ_KOKKOS = $(OBJ_KOKKOS_TMP:.cu=.o)
+OBJ_KOKKOS_LINK = $(notdir $(OBJ_KOKKOS))
+
+override OBJ += kokkos_depend.o
+
+libkokkoscore.a: $(OBJ_KOKKOS)
+	ar cr libkokkoscore.a $(OBJ_KOKKOS_LINK)	
+
+kokkos_depend.o: libkokkoscore.a
+	touch kokkos_depend.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c kokkos_depend.cpp
+ 	
+
+KOKKOS_LINK += -L./ $(KOKKOS_LIB)

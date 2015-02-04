@@ -1,0 +1,168 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix tfmc command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID tfmc Delta Temp seed keyword value 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>tfmc = style name of this fix command 
+
+<LI>Delta = maximal displacement length (distance units) 
+
+<LI>Temp = imposed temperature of the system 
+
+<LI>seed = random number seed (positive integer) 
+
+<LI>zero or more keyword/arg pairs may be appended 
+
+<LI>keyword = <I>com</I> or <I>rot</I> 
+
+<PRE>  <I>com</I> args = xflag yflag zflag
+    xflag,yflag,zflag = 0/1 to exclude/include each dimension
+  <I>rot</I> args = none 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all tfmc 0.1 1000.0 159345
+fix 1 all tfmc 0.05 600.0 658943 com 1 1 0 
+fix 1 all tfmc 0.1 750.0 387068 com 1 1 1 rot 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Perform uniform-acceptance force-bias Monte Carlo (fbMC) simulations,
+using the time-stamped force-bias Monte Carlo (tfMC) algorithm
+described in <A HREF = "#Mees">(Mees)</A> and <A HREF = "#Bal">(Bal)</A>.
+</P>
+<P>One successful use case of force-bias Monte Carlo methods is that they
+can be used to extend the time scale of atomistic simulations, in
+particular when long time scale relaxation effects must be considered;
+some interesting examples are given in the review by <A HREF = "#Neyts">(Neyts)</A>.
+An example of a typical use case would be the modelling of chemical
+vapour deposition (CVD) processes on a surface, in which impacts by
+gas-phase species can be performed using MD, but subsequent relaxation
+of the surface is too slow to be done using MD only. Using tfMC can
+allow for a much faster relaxation of the surface, so that higher
+fluxes can be used, effectively extending the time scale of the
+simulation. (Such an alternating simulation approach could be set up
+using a <A HREF = "jump.html">loop</A>.)
+</P>
+<P>The initial version of tfMC algorithm in <A HREF = "#Mees">(Mees)</A> contained an
+estimation of the effective time scale of such a simulation, but it
+was later shown that the speed-up one can gain from a tfMC simulation
+is system- and process-dependent, ranging from none to several orders
+of magnitude. In general, solid-state processes such as
+(re)crystallisation or growth can be accelerated by up to two or three
+orders of magnitude, whereas diffusion in the liquid phase is not
+accelerated at all. The observed pseudodynamics when using the tfMC
+method is not the actual dynamics one would obtain using MD, but the
+relative importance of processes can match the actual relative
+dynamics of the system quite well, provided <I>Delta</I> is chosen with
+care. Thus, the system's equilibrium is reached faster than in MD,
+along a path that is generally roughly similar to a typical MD
+simulation (but not necessarily so). See <A HREF = "#Bal">(Bal)</A> for details.
+</P>
+<P>Each step, all atoms in the selected group are displaced using the
+stochastic tfMC algorithm, which is designed to sample the canonical
+(NVT) ensemble at the temperature <I>Temp</I>. Although tfMC is a Monte
+Carlo algorithm and thus strictly speaking does not perform time
+integration, it is similar in the sense that it uses the forces on all
+atoms in order to update their positions. Therefore, it is implemented
+as a time integration fix, and no other fixes of this type (such as
+<A HREF = "fix_nve.html">fix nve</A>) should be used at the same time. Because
+velocities do not play a role in this kind of Monte Carlo simulations,
+instantaneous temperatures as calculated by <A HREF = "compute_temp.html">temperature
+computes</A> or <A HREF = "thermo_style.html">thermodynamic
+output</A> have no meaning: the only relevant
+temperature is the sampling temperature <I>Temp</I>.  Similarly, performing
+tfMC simulations does not require setting a <A HREF = "timestep.html">timestep</A>
+and the <A HREF = "thermo_style.html">simulated time</A> as calculated by LAMMPS is
+meaningless.
+</P>
+<P>The critical parameter determining the success of a tfMC simulation is
+<I>Delta</I>, the maximal displacement length of the lightest element in
+the system: the larger it is, the longer the effective time scale of
+the simulation will be (there is an approximately quadratic
+dependence). However, <I>Delta</I> must also be chosen sufficiently small
+in order to comply with detailed balance; in general values between 5
+and 10 % of the nearest neighbor distance are found to be a good
+choice. For a more extensive discussion with specific examples, please
+refer to <A HREF = "#Bal">(Bal)</A>, which also describes how the code calculates
+element-specific maximal displacements from <I>Delta</I>, based on the
+fourth root of their mass.
+</P>
+<P>Because of the uncorrelated movements of the atoms, the center-of-mass
+of the fix group will not necessarily be stationary, just like its
+orientation. When the <I>com</I> keyword is used, all atom positions will
+be shifted (after every tfMC iteration) in order to fix the position
+of the center-of-mass along the included directions, by setting the
+corresponding flag to 1. The <I>rot</I> keyword does the same for the
+rotational component of the tfMC displacements after every iteration.
+</P>
+<P>IMPORTANT NOTE: the <I>com</I> and <I>rot</I> keywords should not be used if an
+external force is acting on the specified fix group, along the
+included directions. This can be either a true external force (e.g.
+through <A HREF = "fix_wall.html">fix wall</A>) or forces due to the interaction
+with atoms not included in the fix group. This is because in such
+cases, translations or rotations of the fix group could be induced by
+these external forces, and removing them will lead to a violation of
+detailed balance.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
+fix.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the MC package.  It is only enabled if LAMMPS was
+built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>This fix is not compatible with <A HREF = "fix_shake.html">fix shake</A>. 
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_gcmc.html">fix gcmc</A>, <A HREF = "fix_nh.html">fix nvt</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option default is com = 0 0 0
+</P>
+<HR>
+
+<A NAME = "Bal"></A>
+
+<P><B>(Bal)</B> K. M Bal and E. C. Neyts, J. Chem. Phys. 141, 204104 (2014).
+</P>
+<A NAME = "Mees"></A>
+
+<P><B>(Mees)</B> M. J. Mees, G. Pourtois, E. C. Neyts, B. J. Thijsse, and
+A. Stesmans, Phys. Rev. B 85, 134301 (2012).
+</P>
+<A NAME = "Neyts"></A>
+
+<P><B>(Neyts)</B> E. C. Neyts and A. Bogaerts, Theor. Chem. Acc. 132, 1320
+(2013).
+</P>
+</HTML>

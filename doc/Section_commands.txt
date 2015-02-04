@@ -558,6 +558,7 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "temp/berendsen (c)"_fix_temp_berendsen.html,
 "temp/csvr"_fix_temp_csvr.html,
 "temp/rescale (c)"_fix_temp_rescale.html,
+"tfmc"_fix_tfmc.html,
 "thermal/conductivity"_fix_thermal_conductivity.html,
 "tmd"_fix_tmd.html,
 "ttm"_fix_ttm.html,

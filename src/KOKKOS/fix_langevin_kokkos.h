@@ -42,6 +42,14 @@ namespace LAMMPS_NS {
       fz += rhs.fz;
       return *this;
     }
+    
+    KOKKOS_INLINE_FUNCTION
+    volatile s_FSUM& operator+=(const volatile s_FSUM &rhs) volatile {
+      fx += rhs.fx;
+      fy += rhs.fy;
+      fz += rhs.fz;
+      return *this;
+    }
   };
   typedef s_FSUM FSUM;
 

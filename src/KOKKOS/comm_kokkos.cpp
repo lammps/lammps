@@ -103,9 +103,9 @@ void CommKokkos::init()
 
   int check_forward = 0;
   int check_reverse = 0;
-  if (force->pair)
+  if (force->pair && !force->pair->execution_space == Device)
     check_forward += force->pair->comm_forward;
-  if (force->pair)
+  if (force->pair && !force->pair->execution_space == Device)
     check_reverse += force->pair->comm_reverse;
 
   for (int i = 0; i < modify->nfix; i++) {
@@ -283,8 +283,49 @@ void CommKokkos::reverse_comm_compute(Compute *compute)
 
 void CommKokkos::forward_comm_pair(Pair *pair)
 {
-  k_sendlist.sync<LMPHostType>();
-  CommBrick::forward_comm_pair(pair);
+  if (pair->execution_space == Host) {
+    k_sendlist.sync<LMPHostType>();
+    CommBrick::forward_comm_pair(pair);
+  } else if (pair->execution_space == Device) {
+    k_sendlist.sync<LMPDeviceType>();
+    forward_comm_pair_device<LMPDeviceType>(pair);
+  }
+}
+
+template<class DeviceType>
+void CommKokkos::forward_comm_pair_device(Pair *pair)
+{
+  int iswap,n;
+  MPI_Request request;
+
+  int nsize = pair->comm_forward;
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+
+    DAT::tdual_xfloat_1d k_buf_send_pair = DAT::tdual_xfloat_1d("comm:k_buf_send_pair",nsize*sendnum[iswap]);
+    DAT::tdual_xfloat_1d k_buf_recv_pair = DAT::tdual_xfloat_1d("comm:k_recv_send_pair",nsize*recvnum[iswap]);
+
+    // pack buffer
+
+    n = pair->pack_forward_comm_kokkos(sendnum[iswap],k_sendlist,
+                                       iswap,k_buf_send_pair,pbc_flag[iswap],pbc[iswap]);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      if (recvnum[iswap])
+        MPI_Irecv(k_buf_recv_pair.view<DeviceType>().ptr_on_device(),nsize*recvnum[iswap],MPI_DOUBLE,
+                  recvproc[iswap],0,world,&request);
+      if (sendnum[iswap])
+        MPI_Send(k_buf_send_pair.view<DeviceType>().ptr_on_device(),n,MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
+    } else k_buf_recv_pair = k_buf_send_pair;
+
+    // unpack buffer
+
+    pair->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv_pair);
+  }
 }
 
 void CommKokkos::reverse_comm_pair(Pair *pair)

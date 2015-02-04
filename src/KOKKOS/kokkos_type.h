@@ -39,7 +39,7 @@
 
 // set LMPHostype and LMPDeviceType from Kokkos Default Types
 typedef Kokkos::DefaultExecutionSpace LMPDeviceType;
-typedef Kokkos::DefaultExecutionSpace::host_mirror_device_type LMPHostType;
+typedef Kokkos::HostSpace::execution_space LMPHostType;
 
 // set ExecutionSpace stuct with variable "space"
 

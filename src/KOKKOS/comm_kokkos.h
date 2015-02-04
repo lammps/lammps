@@ -47,6 +47,7 @@ class CommKokkos : public CommBrick {
   void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
 
   template<class DeviceType> void forward_comm_device(int dummy);
+  template<class DeviceType> void forward_comm_pair_device(Pair *pair);
   template<class DeviceType> void exchange_device();
   template<class DeviceType> void borders_device();
 

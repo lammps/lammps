@@ -9,6 +9,7 @@
 pair_style eam command :h3
 pair_style eam/cuda command :h3
 pair_style eam/gpu command :h3
+pair_style eam/kk command :h3
 pair_style eam/omp command :h3
 pair_style eam/opt command :h3
 pair_style eam/alloy command :h3

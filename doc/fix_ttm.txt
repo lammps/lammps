@@ -66,9 +66,9 @@ The description in this sub-section applies to both fix ttm and fix
 ttm/mod.  Fix ttm/mod adds options to account for external heat
 sources (e.g. at a surface) and for specifying parameters that allow
 the electronic heat capacity to depend strongly on electronic
-termpature.  It is more expensive computationally than fix ttm because
-it treats the thermal diffusion equation as non-linear.  More details
-on fix ttm/mod are given below.
+temperature.  It is more expensive computationally than fix ttm
+because it treats the thermal diffusion equation as non-linear.  More
+details on fix ttm/mod are given below.
 
 Heat transfer between the electronic and atomic subsystems is carried
 out via an inhomogeneous Langevin thermostat.  This thermostat differs

@@ -594,12 +594,12 @@ void ReadData::command(int narg, char **arg)
   // if atoms are lost is b/c data file box was far from shrink-wrapped
   // do not use irregular() comm, which would not lose atoms,
   //   b/c then user could specify data file box as far too big and empty
+  // do comm->init() but not comm->setup() b/c pair/neigh cutoffs not yet set
 
   if (domain->nonperiodic == 2) {
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->reset_box();
     comm->init();
-    comm->setup();
     comm->exchange();
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
 

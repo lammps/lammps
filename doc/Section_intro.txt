@@ -190,7 +190,6 @@ Ensembles, constraints, and boundary conditions :h4
   rigid body constraints
   SHAKE bond and angle constraints
   Monte Carlo bond breaking, formation, swapping
-  Monte Carlo atom swapping
   atom/molecule insertion and deletion
   walls of various kinds
   non-equilibrium molecular dynamics (NEMD)
@@ -257,7 +256,7 @@ molecular dynamics options:
 coupled rigid body integration via the "POEMS"_fix_poems.html library
 "QM/MM coupling"_fix_qmmm.html
 "path-integral molecular dynamics (PIMD)"_fix_ipi.html and "this as well"_fix_pimd.html
-"grand canonical Monte Carlo"_fix_gcmc.html insertions/deletions
+Monte Carlo via "GCMC"_fix_gcmc.html and "tfMC"_fix_tfmc.html and "atom swapping"_fix_swap.html
 "Direct Simulation Monte Carlo"_pair_dsmc.html for low-density fluids
 "Peridynamics mesoscale modeling"_pair_peri.html
 "Lattice Boltzmann fluid"_fix_lb_fluid.html

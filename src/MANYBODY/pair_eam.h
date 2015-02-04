@@ -25,6 +25,7 @@ PairStyle(eam,PairEAM)
 
 namespace LAMMPS_NS {
 
+
 class PairEAM : public Pair {
  public:
   friend class FixSemiGrandCanonicalMC;   // Alex Stukowski option
@@ -100,8 +101,8 @@ class PairEAM : public Pair {
   };
   Fs *fs;
 
-  void allocate();
-  void array2spline();
+  virtual void allocate();
+  virtual void array2spline();
   void interpolate(int, double, double *, double **);
   void grab(FILE *, int, double *);
 

@@ -9,6 +9,7 @@
 pair_style buck command :h3
 pair_style buck/cuda command :h3
 pair_style buck/gpu command :h3
+pair_style buck/kk command :h3
 pair_style buck/omp command :h3
 pair_style buck/coul/cut command :h3
 pair_style buck/coul/cut/cuda command :h3

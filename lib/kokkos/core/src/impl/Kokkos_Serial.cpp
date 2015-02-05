@@ -47,30 +47,23 @@
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_Error.hpp>
 
+#if defined( KOKKOS_HAVE_SERIAL )
+
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
 namespace Impl {
-namespace {
+namespace SerialImpl {
 
-struct Sentinel {
+Sentinel::Sentinel() : m_scratch(0), m_reduce_end(0), m_shared_end(0) {}
 
-  void *   m_scratch ;
-  unsigned m_reduce_end ;
-  unsigned m_shared_end ;
-
-  Sentinel() : m_scratch(0), m_reduce_end(0), m_shared_end(0) {}
-
-  ~Sentinel()
-    {
-      if ( m_scratch ) { free( m_scratch ); }
-      m_scratch = 0 ;
-      m_reduce_end = 0 ;
-      m_shared_end = 0 ;
-    }
-
-  static Sentinel & singleton();
-};
+Sentinel::~Sentinel()
+{
+  if ( m_scratch ) { free( m_scratch ); }
+  m_scratch = 0 ;
+  m_reduce_end = 0 ;
+  m_shared_end = 0 ;
+}
 
 Sentinel & Sentinel::singleton()
 {
@@ -90,7 +83,7 @@ SerialTeamMember::SerialTeamMember( int arg_league_rank
                                   , int arg_league_size
                                   , int arg_shared_size
                                   )
-  : m_space( ((char *) Sentinel::singleton().m_scratch) + Sentinel::singleton().m_reduce_end
+  : m_space( ((char *) SerialImpl::Sentinel::singleton().m_scratch) + SerialImpl::Sentinel::singleton().m_reduce_end
            , arg_shared_size )
   , m_league_rank( arg_league_rank )
   , m_league_size( arg_league_size )
@@ -100,16 +93,16 @@ SerialTeamMember::SerialTeamMember( int arg_league_rank
 
 void * Serial::scratch_memory_resize( unsigned reduce_size , unsigned shared_size )
 {
-  static Impl::Sentinel & s = Impl::Sentinel::singleton();
+  static Impl::SerialImpl::Sentinel & s = Impl::SerialImpl::Sentinel::singleton();
 
-  reduce_size = Impl::align( reduce_size );
-  shared_size = Impl::align( shared_size );
+  reduce_size = Impl::SerialImpl::align( reduce_size );
+  shared_size = Impl::SerialImpl::align( shared_size );
 
   if ( ( s.m_reduce_end < reduce_size ) ||
        ( s.m_shared_end < s.m_reduce_end + shared_size ) ) {
 
     if ( s.m_scratch ) { free( s.m_scratch ); }
-  
+
     if ( s.m_reduce_end < reduce_size ) s.m_reduce_end = reduce_size ;
     if ( s.m_shared_end < s.m_reduce_end + shared_size ) s.m_shared_end = s.m_reduce_end + shared_size ;
 
@@ -120,4 +113,7 @@ void * Serial::scratch_memory_resize( unsigned reduce_size , unsigned shared_siz
 }
 
 } // namespace Kokkos
+
+#endif // defined( KOKKOS_HAVE_SERIAL )
+
 

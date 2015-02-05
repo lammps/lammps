@@ -72,11 +72,19 @@ struct PairComputeFunctor  {
   // The force array is atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,
                device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > f;
+
+  // The eatom and vatom arrays are atomic for Half/Thread neighbor style
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,
+               device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > eatom;
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,
+               device_type,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > vatom;
+
   NeighListKokkos<device_type> list;
 
   PairComputeFunctor(PairStyle* c_ptr,
                           NeighListKokkos<device_type>* list_ptr):
-  c(*c_ptr),f(c.f),list(*list_ptr) {};
+  c(*c_ptr),f(c.f),eatom(c.d_eatom),
+  vatom(c.d_vatom),list(*list_ptr) {};
 
   // Call cleanup_copy which sets allocations NULL which are destructed by the PairStyle
   ~PairComputeFunctor() {c.cleanup_copy();list.clean_copy();};
@@ -130,12 +138,13 @@ struct PairComputeFunctor  {
         }
 
         if (EVFLAG) {
+          F_FLOAT evdwl = 0.0;
           if (c.eflag) {
-            ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?1.0:0.5)*
-              factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+            evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+            ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?1.0:0.5)*evdwl;
           }
 
-          if (c.vflag_either) ev_tally(ev,i,j,fpair,delx,dely,delz);
+          if (c.vflag_either || c.eflag_atom) ev_tally(ev,i,j,evdwl,fpair,delx,dely,delz);
         }
       }
 
@@ -200,16 +209,20 @@ struct PairComputeFunctor  {
         }
 
         if (EVFLAG) {
+          F_FLOAT evdwl = 0.0;
+          F_FLOAT ecoul = 0.0;
           if (c.eflag) {
-            if(rsq < (STACKPARAMS?c.m_cut_ljsq[itype][jtype]:c.d_cut_ljsq(itype,jtype)))
-            ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?1.0:0.5)*
-              factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-            if(rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype)))
-            ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?1.0:0.5)*
-              c.template compute_ecoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
+            if(rsq < (STACKPARAMS?c.m_cut_ljsq[itype][jtype]:c.d_cut_ljsq(itype,jtype))) {
+              evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+              ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?1.0:0.5)*evdwl;
+            }
+            if(rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype))) {
+              ecoul = c.template compute_ecoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
+              ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?1.0:0.5)*ecoul;
+            }
           }
 
-          if (c.vflag_either) ev_tally(ev,i,j,fpair,delx,dely,delz);
+          if (c.vflag_either || c.eflag_atom) ev_tally(ev,i,j,evdwl+ecoul,fpair,delx,dely,delz);
         }
       }
     }
@@ -223,7 +236,7 @@ struct PairComputeFunctor  {
 
   KOKKOS_INLINE_FUNCTION
     void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &fpair, const F_FLOAT &delx,
+      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const
   {
     const int EFLAG = c.eflag;
@@ -232,9 +245,9 @@ struct PairComputeFunctor  {
 
     if (EFLAG) {
       if (c.eflag_atom) {
-        const E_FLOAT epairhalf = 0.5 * (ev.evdwl + ev.ecoul);
-        if (NEWTON_PAIR || i < c.nlocal) c.eatom[i] += epairhalf;
-        if (NEWTON_PAIR || j < c.nlocal) c.eatom[j] += epairhalf;
+        const E_FLOAT epairhalf = 0.5 * epair;
+        if (NEWTON_PAIR || i < c.nlocal) eatom[i] += epairhalf;
+        if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) eatom[j] += epairhalf;
       }
     }
 
@@ -285,20 +298,20 @@ struct PairComputeFunctor  {
 
       if (c.vflag_atom) {
         if (NEWTON_PAIR || i < c.nlocal) {
-          c.d_vatom(i,0) += 0.5*v0;
-          c.d_vatom(i,1) += 0.5*v1;
-          c.d_vatom(i,2) += 0.5*v2;
-          c.d_vatom(i,3) += 0.5*v3;
-          c.d_vatom(i,4) += 0.5*v4;
-          c.d_vatom(i,5) += 0.5*v5;
+          vatom(i,0) += 0.5*v0;
+          vatom(i,1) += 0.5*v1;
+          vatom(i,2) += 0.5*v2;
+          vatom(i,3) += 0.5*v3;
+          vatom(i,4) += 0.5*v4;
+          vatom(i,5) += 0.5*v5;
         }
-        if (NEWTON_PAIR || (NEIGHFLAG && j < c.nlocal)) {
-        c.d_vatom(j,0) += 0.5*v0;
-        c.d_vatom(j,1) += 0.5*v1;
-        c.d_vatom(j,2) += 0.5*v2;
-        c.d_vatom(j,3) += 0.5*v3;
-        c.d_vatom(j,4) += 0.5*v4;
-        c.d_vatom(j,5) += 0.5*v5;
+        if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) {
+          vatom(j,0) += 0.5*v0;
+          vatom(j,1) += 0.5*v1;
+          vatom(j,2) += 0.5*v2;
+          vatom(j,3) += 0.5*v3;
+          vatom(j,4) += 0.5*v4;
+          vatom(j,5) += 0.5*v5;
         }
       }
     }
@@ -378,12 +391,14 @@ struct PairComputeFunctor<PairStyle,FULLCLUSTER,STACKPARAMS,Specialisation>  {
           fztmp += delz*fpair;
 
           if (EVFLAG) {
+            F_FLOAT evdwl = 0.0;
             if (c.eflag) {
-              ev.evdwl += 0.5*
+              evdwl = 0.5*
                 factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+              ev.evdwl += evdwl;
             }
 
-            if (c.vflag_either) ev_tally(ev,i,j,fpair,delx,dely,delz);
+            if (c.vflag_either || c.eflag_atom) ev_tally(ev,i,j,evdwl,fpair,delx,dely,delz);
           }
         }
       }
@@ -403,7 +418,7 @@ struct PairComputeFunctor<PairStyle,FULLCLUSTER,STACKPARAMS,Specialisation>  {
 
   KOKKOS_INLINE_FUNCTION
     void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &fpair, const F_FLOAT &delx,
+      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const
   {
     const int EFLAG = c.eflag;
@@ -412,9 +427,9 @@ struct PairComputeFunctor<PairStyle,FULLCLUSTER,STACKPARAMS,Specialisation>  {
 
     if (EFLAG) {
       if (c.eflag_atom) {
-        const E_FLOAT epairhalf = 0.5 * (ev.evdwl + ev.ecoul);
-        if (NEWTON_PAIR || i < c.nlocal) c.eatom[i] += epairhalf;
-        if (NEWTON_PAIR || j < c.nlocal) c.eatom[j] += epairhalf;
+        const E_FLOAT epairhalf = 0.5 * epair;
+        if (NEWTON_PAIR || i < c.nlocal) c.d_eatom[i] += epairhalf;
+        if (NEWTON_PAIR || j < c.nlocal) c.d_eatom[j] += epairhalf;
       }
     }
 
@@ -518,12 +533,14 @@ struct PairComputeFunctor<PairStyle,N2,STACKPARAMS,Specialisation>  {
         fztmp += delz*fpair;
 
         if (EVFLAG) {
+          F_FLOAT evdwl = 0.0;
           if (c.eflag) {
-            ev.evdwl += 0.5*
+            evdwl = 0.5*
               factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+            ev.evdwl += evdwl;
           }
 
-          if (c.vflag_either) ev_tally(ev,i,j,fpair,delx,dely,delz);
+          if (c.vflag_either || c.eflag_atom) ev_tally(ev,i,j,evdwl,fpair,delx,dely,delz);
         }
       }
     }
@@ -537,7 +554,7 @@ struct PairComputeFunctor<PairStyle,N2,STACKPARAMS,Specialisation>  {
 
   KOKKOS_INLINE_FUNCTION
     void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &fpair, const F_FLOAT &delx,
+      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const
   {
     const int EFLAG = c.eflag;
@@ -545,9 +562,9 @@ struct PairComputeFunctor<PairStyle,N2,STACKPARAMS,Specialisation>  {
 
     if (EFLAG) {
       if (c.eflag_atom) {
-        const E_FLOAT epairhalf = 0.5 * (ev.evdwl + ev.ecoul);
-        if (i < c.nlocal) c.eatom[i] += epairhalf;
-        if (j < c.nlocal) c.eatom[j] += epairhalf;
+        const E_FLOAT epairhalf = 0.5 * epair;
+        if (i < c.nlocal) c.d_eatom[i] += epairhalf;
+        if (j < c.nlocal) c.d_eatom[j] += epairhalf;
       }
     }
 

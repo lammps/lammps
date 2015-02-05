@@ -44,12 +44,8 @@
 #ifndef KOKKOS_BITSET_HPP
 #define KOKKOS_BITSET_HPP
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Functional.hpp>
-#include <Kokkos_View.hpp>
-#include <Kokkos_Atomic.hpp>
-#include <Kokkos_HostSpace.hpp>
-#include <Kokkos_Pair.hpp>
 
 #include <impl/Kokkos_Bitset_impl.hpp>
 

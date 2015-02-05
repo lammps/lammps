@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //   Kokkos: Manycore Performance-Portable Multidimensional Arrays
 //              Copyright (2012) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov) 
-// 
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
@@ -49,62 +49,23 @@
 #include <cstring>
 
 #include <Kokkos_HostSpace.hpp>
+#include <impl/Kokkos_MemoryTracking.hpp>
 #include <impl/Kokkos_Error.hpp>
 
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
+namespace Impl {
 namespace {
 
-class HostMemoryTrackingEntry : public Impl::MemoryTrackingEntry
+Impl::MemoryTracking<> & host_space_singleton()
 {
-public:
-
-  void * const ptr_alloc ;
-
-  HostMemoryTrackingEntry( const std::string & arg_label ,
-                           const std::type_info & arg_info ,
-                           void * const           arg_ptr ,
-                           const size_t           arg_size )
-    : Impl::MemoryTrackingEntry( arg_label , arg_info , arg_ptr , arg_size )
-    , ptr_alloc( arg_ptr )
-    {}
-
-  ~HostMemoryTrackingEntry();
-};
-
-HostMemoryTrackingEntry::~HostMemoryTrackingEntry()
-{
-#if defined( __INTEL_COMPILER ) && !defined ( KOKKOS_HAVE_CUDA )
-   _mm_free( ptr_alloc );
-#else
-   free( ptr_alloc );
-#endif
-}
-
-Impl::MemoryTracking & host_space_singleton()
-{
-  static Impl::MemoryTracking self("Kokkos::HostSpace");
+  static Impl::MemoryTracking<> self("Kokkos::HostSpace");
   return self ;
 }
 
-bool host_space_verify_modifiable( const char * const label )
-{
-  static const char error_in_parallel[] = "Called with HostSpace::in_parallel()" ;
-  static const char error_not_exists[]  = "Called after return from main()" ;
-
-  const char * const error_msg =
-    HostSpace::in_parallel() ? error_in_parallel : (
-    ! host_space_singleton().exists() ? error_not_exists : (const char *) 0 );
-
-  if ( error_msg ) {
-    std::cerr << "Kokkos::HostSpace::" << label << " ERROR : " << error_msg << std::endl ;
-  }
-
-  return error_msg == 0  ;
-}
-
 } // namespace <blank>
+} // namespace Impl
 } // namespade Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -112,53 +73,50 @@ bool host_space_verify_modifiable( const char * const label )
 namespace Kokkos {
 namespace Impl {
 
-void * host_allocate_not_thread_safe(
-  const std::string    & label ,
-  const std::type_info & scalar_type ,
-  const size_t           scalar_size ,
-  const size_t           scalar_count )
+void * host_allocate_not_thread_safe( const std::string & label , const size_t size )
 {
   void * ptr = 0 ;
 
-  if ( 0 < scalar_size && 0 < scalar_count ) {
+  if ( size ) {
+    size_t size_padded = size ;
     void * ptr_alloc = 0 ;
-    size_t count_alloc = scalar_count ;
 
 #if defined( __INTEL_COMPILER ) && !defined ( KOKKOS_HAVE_CUDA )
 
-    ptr = ptr_alloc = _mm_malloc( scalar_size * count_alloc , MEMORY_ALIGNMENT );
-   
+    ptr = ptr_alloc = _mm_malloc( size , MEMORY_ALIGNMENT );
+
 #elif ( defined( _POSIX_C_SOURCE ) && _POSIX_C_SOURCE >= 200112L ) || \
       ( defined( _XOPEN_SOURCE )   && _XOPEN_SOURCE   >= 600 )
 
-    posix_memalign( & ptr_alloc , MEMORY_ALIGNMENT , scalar_size * count_alloc );
+    posix_memalign( & ptr_alloc , MEMORY_ALIGNMENT , size );
     ptr = ptr_alloc ;
 
 #else
 
-    // Over-allocate to guarantee enough aligned space.
+    {
+      // Over-allocate to and round up to guarantee proper alignment.
 
-    count_alloc += ( MEMORY_ALIGNMENT + scalar_size - 1 ) / scalar_size ;
+      size_padded = ( size + MEMORY_ALIGNMENT - 1 );
 
-    ptr_alloc = malloc( scalar_size * count_alloc );
+      ptr_alloc = malloc( size_padded );
 
-    ptr = static_cast<unsigned char *>(ptr_alloc) + 
-          ( MEMORY_ALIGNMENT - reinterpret_cast<ptrdiff_t>(ptr_alloc) % MEMORY_ALIGNMENT );
+      const size_t rem = reinterpret_cast<ptrdiff_t>(ptr_alloc) % MEMORY_ALIGNMENT ;
+
+      ptr = static_cast<unsigned char *>(ptr_alloc) + ( rem ? MEMORY_ALIGNMENT - rem : 0 );
+    }
 
 #endif
 
     if ( ptr_alloc && ptr_alloc <= ptr &&
          0 == ( reinterpret_cast<ptrdiff_t>(ptr) % MEMORY_ALIGNMENT ) ) {
-      host_space_singleton().insert(
-        new HostMemoryTrackingEntry( label , scalar_type , ptr_alloc , scalar_size * count_alloc ) );
+      // Insert allocated pointer and allocation count
+      Impl::host_space_singleton().insert( label , ptr_alloc , size_padded );
     }
     else {
       std::ostringstream msg ;
       msg << "Kokkos::Impl::host_allocate_not_thread_safe( "
           << label
-          << " , " << scalar_type.name()
-          << " , " << scalar_size
-          << " , " << scalar_count
+          << " , " << size
           << " ) FAILED aligned memory allocation" ;
       Kokkos::Impl::throw_runtime_exception( msg.str() );
     }
@@ -169,7 +127,15 @@ void * host_allocate_not_thread_safe(
 
 void host_decrement_not_thread_safe( const void * ptr )
 {
-  host_space_singleton().decrement( ptr );
+  void * ptr_alloc = Impl::host_space_singleton().decrement( ptr );
+
+  if ( ptr_alloc ) {
+#if defined( __INTEL_COMPILER ) && !defined ( KOKKOS_HAVE_CUDA )
+     _mm_free( ptr_alloc );
+#else
+     free( ptr_alloc );
+#endif
+  }
 }
 
 DeepCopy<HostSpace,HostSpace>::DeepCopy( void * dst , const void * src , size_t n )
@@ -186,11 +152,11 @@ DeepCopy<HostSpace,HostSpace>::DeepCopy( void * dst , const void * src , size_t 
 namespace Kokkos {
 namespace {
 
-static const int QUERY_DEVICE_IN_PARALLEL_MAX = 16 ;
+static const int QUERY_SPACE_IN_PARALLEL_MAX = 16 ;
 
-typedef int (* QueryDeviceInParallelPtr )();
+typedef int (* QuerySpaceInParallelPtr )();
 
-QueryDeviceInParallelPtr s_in_parallel_query[ QUERY_DEVICE_IN_PARALLEL_MAX ] ;
+QuerySpaceInParallelPtr s_in_parallel_query[ QUERY_SPACE_IN_PARALLEL_MAX ] ;
 int s_in_parallel_query_count = 0 ;
 
 } // namespace <empty>
@@ -212,7 +178,7 @@ void HostSpace::register_in_parallel( int (*device_in_parallel)() )
 
   }
 
-  if ( QUERY_DEVICE_IN_PARALLEL_MAX <= i ) {
+  if ( QUERY_SPACE_IN_PARALLEL_MAX <= i ) {
     Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::HostSpace::register_in_parallel_query ERROR : exceeded maximum" ) );
 
   }
@@ -241,16 +207,15 @@ int HostSpace::in_parallel()
 
 namespace Kokkos {
 
-void * HostSpace::allocate(
-  const std::string    & label ,
-  const std::type_info & scalar_type ,
-  const size_t           scalar_size ,
-  const size_t           scalar_count )
+void * HostSpace::allocate( const std::string & label , const size_t size )
 {
   void * ptr = 0 ;
 
-  if ( host_space_verify_modifiable("allocate") ) {
-    ptr = Impl::host_allocate_not_thread_safe( label , scalar_type , scalar_size , scalar_count );
+  if ( ! HostSpace::in_parallel() ) {
+    ptr = Impl::host_allocate_not_thread_safe( label , size );
+  }
+  else {
+    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::HostSpace::allocate called within a parallel functor") );
   }
 
   return ptr ;
@@ -258,29 +223,45 @@ void * HostSpace::allocate(
 
 void HostSpace::increment( const void * ptr )
 {
-  if ( host_space_verify_modifiable("increment") ) {
-    host_space_singleton().increment( ptr );
+  if ( ! HostSpace::in_parallel() ) {
+    Impl::host_space_singleton().increment( ptr );
+  }
+  else {
+    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::HostSpace::increment called within a parallel functor") );
   }
 }
 
 void HostSpace::decrement( const void * ptr )
 {
-  if ( host_space_verify_modifiable("decrement") ) {
+  if ( ! HostSpace::in_parallel() ) {
     Impl::host_decrement_not_thread_safe( ptr );
+  }
+  else {
+    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::HostSpace::decrement called within a parallel functor") );
+  }
+}
+
+int HostSpace::count( const void * ptr ) {
+  if ( ! HostSpace::in_parallel() ) {
+    Impl::MemoryTracking<>::Entry * const entry =
+        Impl::host_space_singleton().query(ptr);
+    return entry != NULL?entry->count():0;
+  }
+  else {
+    Kokkos::Impl::throw_runtime_exception( std::string("Kokkos::HostSpace::count called within a parallel functor") );
+    return -1;
   }
 }
 
 void HostSpace::print_memory_view( std::ostream & o )
 {
-  host_space_singleton().print( o , std::string("  ") );
+  Impl::host_space_singleton().print( o , std::string("  ") );
 }
 
 std::string HostSpace::query_label( const void * p )
 {
-  const Impl::MemoryTrackingEntry * const info = 
-    host_space_singleton().query( p );
-
-  return 0 != info ? info->label : std::string("ERROR NOT DEFINED");
+  Impl::MemoryTracking<>::Entry * const entry = Impl::host_space_singleton().query(p);
+  return std::string( entry ? entry->label() : "<NOT ALLOCATED>" );
 }
 
 } // namespace Kokkos

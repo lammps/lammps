@@ -52,7 +52,7 @@
 #ifndef KOKKOS_DUALVIEW_HPP
 #define KOKKOS_DUALVIEW_HPP
 
-#include <Kokkos_View.hpp>
+#include <Kokkos_Core.hpp>
 #include <impl/Kokkos_Error.hpp>
 
 namespace Kokkos {
@@ -104,7 +104,7 @@ public:
   typedef ViewTraits< DataType , Arg1Type , Arg2Type, Arg3Type > traits ;
 
   //! The Kokkos Host Device type;
-  typedef typename traits::device_type::host_mirror_device_type host_mirror_device_type;
+  typedef typename traits::host_mirror_space host_mirror_space ;
 
   //! The type of a Kokkos::View on the device.
   typedef View< typename traits::data_type ,
@@ -185,8 +185,8 @@ public:
   //! \name Counters to keep track of changes ("modified" flags)
   //@{
 
-  View<unsigned int,LayoutLeft,host_mirror_device_type> modified_device;
-  View<unsigned int,LayoutLeft,host_mirror_device_type> modified_host;
+  View<unsigned int,LayoutLeft,host_mirror_space> modified_device;
+  View<unsigned int,LayoutLeft,host_mirror_space> modified_host;
 
   //@}
   //! \name Constructors
@@ -198,8 +198,8 @@ public:
   /// default constructors.  The "modified" flags are both initialized
   /// to "unmodified."
   DualView () :
-    modified_device (View<unsigned int,LayoutLeft,host_mirror_device_type> ("DualView::modified_device")),
-    modified_host (View<unsigned int,LayoutLeft,host_mirror_device_type> ("DualView::modified_host"))
+    modified_device (View<unsigned int,LayoutLeft,host_mirror_space> ("DualView::modified_device")),
+    modified_host (View<unsigned int,LayoutLeft,host_mirror_space> ("DualView::modified_host"))
   {}
 
   /// \brief Constructor that allocates View objects on both host and device.
@@ -226,8 +226,8 @@ public:
 #else
     , h_view (create_mirror_view (d_view)) // without UVM, host View mirrors
 #endif
-    , modified_device (View<unsigned int,LayoutLeft,host_mirror_device_type> ("DualView::modified_device"))
-    , modified_host (View<unsigned int,LayoutLeft,host_mirror_device_type> ("DualView::modified_host"))
+    , modified_device (View<unsigned int,LayoutLeft,host_mirror_space> ("DualView::modified_device"))
+    , modified_host (View<unsigned int,LayoutLeft,host_mirror_space> ("DualView::modified_host"))
   {}
 
   //! Copy constructor (shallow copy)
@@ -252,8 +252,8 @@ public:
   DualView (const t_dev& d_view_, const t_host& h_view_) :
     d_view (d_view_),
     h_view (h_view_),
-    modified_device (View<unsigned int,LayoutLeft,host_mirror_device_type> ("DualView::modified_device")),
-    modified_host (View<unsigned int,LayoutLeft,host_mirror_device_type> ("DualView::modified_host"))
+    modified_device (View<unsigned int,LayoutLeft,host_mirror_space> ("DualView::modified_device")),
+    modified_host (View<unsigned int,LayoutLeft,host_mirror_space> ("DualView::modified_host"))
   {
     Impl::assert_shapes_are_equal (d_view.shape (), h_view.shape ());
   }
@@ -280,15 +280,16 @@ public:
   /// \endcode
   /// and if you want to get the host mirror of that View, do this:
   /// \code
-  /// typedef typename Kokkos::Cuda::host_mirror_device_type host_device_type;
+  /// typedef typename Kokkos::HostSpace::execution_space host_device_type;
   /// typename dual_view_type::t_host hostView = DV.view<host_device_type> ();
   /// \endcode
   template< class Device >
+  KOKKOS_INLINE_FUNCTION
   const typename Impl::if_c<
     Impl::is_same<typename t_dev::memory_space,
                           typename Device::memory_space>::value,
     t_dev,
-    t_host>::type view () const
+    t_host>::type& view () const
   {
     return Impl::if_c<
       Impl::is_same<
@@ -668,7 +669,7 @@ deep_copy (DualView<DT,DL,DD,DM> dst, // trust me, this must not be a reference
     dst.template modify<typename DualView<DT,DL,DD,DM>::device_type> ();
   } else {
     deep_copy (dst.h_view, src.h_view);
-    dst.template modify<typename DualView<DT,DL,DD,DM>::host_mirror_device_type> ();
+    dst.template modify<typename DualView<DT,DL,DD,DM>::host_mirror_space> ();
   }
 }
 

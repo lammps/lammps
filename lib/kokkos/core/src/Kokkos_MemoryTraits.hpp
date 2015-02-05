@@ -69,14 +69,13 @@ enum MemoryTraitsFlags
 
 template < unsigned T >
 struct MemoryTraits {
-  //! The tag (what type of kokkos_object is this).
-  typedef Impl::MemoryTraitsTag       kokkos_tag ;
-
-  enum { Unmanaged  = T & unsigned(Kokkos::Unmanaged) };
-  enum { RandomAccess = T & unsigned(Kokkos::RandomAccess) };
-  enum { Atomic = T & unsigned(Kokkos::Atomic) };
-
+  //! Tag this class as a kokkos memory traits:
   typedef MemoryTraits memory_traits ;
+
+  enum { Unmanaged    = T & unsigned(Kokkos::Unmanaged) };
+  enum { RandomAccess = T & unsigned(Kokkos::RandomAccess) };
+  enum { Atomic       = T & unsigned(Kokkos::Atomic) };
+
 };
 
 } // namespace Kokkos

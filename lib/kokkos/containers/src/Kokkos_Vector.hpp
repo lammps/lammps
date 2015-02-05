@@ -46,7 +46,7 @@
 #ifndef KOKKOS_VECTOR_HPP
 #define KOKKOS_VECTOR_HPP
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_DualView.hpp>
 
 /* Drop in replacement for std::vector based on Kokkos::DualView

@@ -49,8 +49,7 @@
 #include <string>
 #include <vector>
 
-#include <Kokkos_View.hpp>
-#include <Kokkos_Parallel.hpp> // for parallel_reduce
+#include <Kokkos_Core.hpp>
 
 namespace Kokkos {
 
@@ -99,8 +98,7 @@ public:
   typedef SizeType                                            size_type;
 
   typedef StaticCrsGraph< DataType , Arg1Type , Arg2Type , SizeType > staticcrsgraph_type;
-  typedef StaticCrsGraph< DataType , array_layout , typename device_type::host_mirror_device_type , SizeType > HostMirror;
-  //typedef StaticCrsGraph< DataType , array_layout , Kokkos::Threads , SizeType > HostMirror;
+  typedef StaticCrsGraph< DataType , array_layout , typename traits::host_mirror_space , SizeType > HostMirror;
   typedef View< const size_type* , array_layout, device_type >  row_map_type;
   typedef View<       DataType*  , array_layout, device_type >  entries_type;
 

@@ -111,6 +111,24 @@
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+template <typename T>
+KOKKOS_INLINE_FUNCTION
+void atomic_add(volatile T * const dest, const T src);
+
+// Atomic increment
+template<typename T>
+KOKKOS_INLINE_FUNCTION
+void atomic_increment(volatile T* a);
+
+template<typename T>
+KOKKOS_INLINE_FUNCTION
+void atomic_decrement(volatile T* a);
+}
+
+
+#include<impl/Kokkos_Atomic_Assembly_X86.hpp>
+
+namespace Kokkos {
 
 
 inline
@@ -128,6 +146,8 @@ const char * atomic_query_version()
 }
 
 } // namespace Kokkos
+
+//#include "impl/Kokkos_Atomic_Assembly_X86.hpp"
 
 //----------------------------------------------------------------------------
 // Atomic exchange
@@ -194,6 +214,23 @@ const char * atomic_query_version()
 #include "impl/Kokkos_Volatile_Load.hpp"
 
 #include "impl/Kokkos_Atomic_Generic.hpp"
+
+//----------------------------------------------------------------------------
+// This atomic-style macro should be an inlined function, not a macro
+
+#if defined( KOKKOS_COMPILER_GNU )
+
+  #define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) __builtin_prefetch(addr,0,0)
+  #define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) __builtin_prefetch(addr,1,0)
+
+#else
+
+  #define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) ((void)0)
+  #define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) ((void)0)
+
+#endif
+
+//----------------------------------------------------------------------------
 
 #endif /* KOKKOS_ATOMIC_HPP */
 

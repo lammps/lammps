@@ -62,12 +62,12 @@ namespace Kokkos {
 ///   matrix.
 ///
 /// \tparam Arg1Type The second template parameter, corresponding
-///   either to the Device type (if there are no more template
+///   either to the Space type (if there are no more template
 ///   parameters) or to the Layout type (if there is at least one more
 ///   template parameter).
 ///
 /// \tparam Arg2Type The third template parameter, which if provided
-///   corresponds to the Device type.
+///   corresponds to the Space type.
 ///
 /// \tparam SizeType The type of row offsets.  Usually the default
 ///   parameter suffices.  However, setting a nondefault value is
@@ -89,18 +89,19 @@ template< class DataType,
           typename SizeType = typename ViewTraits<DataType*, Arg1Type, Arg2Type, void >::size_type>
 class CrsArray {
 private:
-  typedef ViewTraits<DataType*, Arg1Type, Arg2Type, void> traits;
+  typedef ViewTraits<DataType*, Arg1Type, Arg2Type, void> traits ;
 
 public:
   typedef DataType                                            data_type;
   typedef typename traits::array_layout                       array_layout;
-  typedef typename traits::device_type                        device_type;
+  typedef typename traits::execution_space                    execution_space ;
+  typedef typename traits::memory_space                       memory_space ;
   typedef SizeType                                            size_type;
 
   typedef CrsArray< DataType , Arg1Type , Arg2Type , SizeType > crsarray_type;
-  typedef CrsArray< DataType , array_layout , typename device_type::host_mirror_device_type , SizeType > HostMirror;
-  typedef View< const size_type* , array_layout, device_type >  row_map_type;
-  typedef View<       DataType*  , array_layout, device_type >  entries_type;
+  typedef CrsArray< DataType , array_layout , typename traits::host_mirror_space , SizeType > HostMirror;
+  typedef View< const size_type* , array_layout, execution_space >  row_map_type;
+  typedef View<       DataType*  , array_layout, execution_space >  entries_type;
 
   entries_type entries;
   row_map_type row_map;

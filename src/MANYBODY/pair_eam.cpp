@@ -69,55 +69,57 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 
 PairEAM::~PairEAM()
 {
-  memory->destroy(rho);
-  memory->destroy(fp);
+  if (!copymode) {
+    memory->destroy(rho);
+    memory->destroy(fp);
 
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
-    delete [] map;
-    delete [] type2frho;
-    memory->destroy(type2rhor);
-    memory->destroy(type2z2r);
-  }
-
-  if (funcfl) {
-    for (int i = 0; i < nfuncfl; i++) {
-      delete [] funcfl[i].file;
-      memory->destroy(funcfl[i].frho);
-      memory->destroy(funcfl[i].rhor);
-      memory->destroy(funcfl[i].zr);
+    if (allocated) {
+      memory->destroy(setflag);
+      memory->destroy(cutsq);
+      delete [] map;
+      delete [] type2frho;
+      memory->destroy(type2rhor);
+      memory->destroy(type2z2r);
     }
-    memory->sfree(funcfl);
+
+    if (funcfl) {
+      for (int i = 0; i < nfuncfl; i++) {
+        delete [] funcfl[i].file;
+        memory->destroy(funcfl[i].frho);
+        memory->destroy(funcfl[i].rhor);
+        memory->destroy(funcfl[i].zr);
+      }
+      memory->sfree(funcfl);
+    }
+
+    if (setfl) {
+      for (int i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
+      delete [] setfl->elements;
+      delete [] setfl->mass;
+      memory->destroy(setfl->frho);
+      memory->destroy(setfl->rhor);
+      memory->destroy(setfl->z2r);
+      delete setfl;
+    }
+
+    if (fs) {
+      for (int i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
+      delete [] fs->elements;
+      delete [] fs->mass;
+      memory->destroy(fs->frho);
+      memory->destroy(fs->rhor);
+      memory->destroy(fs->z2r);
+      delete fs;
+    }
+
+    memory->destroy(frho);
+    memory->destroy(rhor);
+    memory->destroy(z2r);
+
+    memory->destroy(frho_spline);
+    memory->destroy(rhor_spline);
+    memory->destroy(z2r_spline);
   }
-
-  if (setfl) {
-    for (int i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
-    delete [] setfl->elements;
-    delete [] setfl->mass;
-    memory->destroy(setfl->frho);
-    memory->destroy(setfl->rhor);
-    memory->destroy(setfl->z2r);
-    delete setfl;
-  }
-
-  if (fs) {
-    for (int i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
-    delete [] fs->elements;
-    delete [] fs->mass;
-    memory->destroy(fs->frho);
-    memory->destroy(fs->rhor);
-    memory->destroy(fs->z2r);
-    delete fs;
-  }
-
-  memory->destroy(frho);
-  memory->destroy(rhor);
-  memory->destroy(z2r);
-
-  memory->destroy(frho_spline);
-  memory->destroy(rhor_spline);
-  memory->destroy(z2r_spline);
 }
 
 /* ---------------------------------------------------------------------- */

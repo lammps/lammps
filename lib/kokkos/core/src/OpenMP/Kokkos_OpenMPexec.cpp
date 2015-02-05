@@ -44,8 +44,8 @@
 #include <stdio.h>
 #include <limits>
 #include <iostream>
-#include <Kokkos_OpenMP.hpp>
-#include <Kokkos_hwloc.hpp>
+#include <vector>
+#include <Kokkos_Core.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <iostream>
 
@@ -163,7 +163,7 @@ void OpenMPexec::resize_scratch( size_t reduce_size , size_t thread_size )
         kokkos_omp_in_critical_region = 1 ;
 
         m_pool[ rank_rev ] =
-          (OpenMPexec *) HostSpace::allocate( "openmp_scratch" , typeid(unsigned char) , 1 , alloc_size );
+          (OpenMPexec *) HostSpace::allocate( "openmp_scratch" , alloc_size );
         new( m_pool[ rank_rev ] ) OpenMPexec( rank , ALLOC_EXEC , reduce_size , thread_size );
 
         kokkos_omp_in_critical_region = 0 ;
@@ -191,7 +191,10 @@ void OpenMP::initialize( unsigned thread_count ,
                          unsigned use_numa_count ,
                          unsigned use_cores_per_numa )
 {
-  if(thread_count==0) thread_count = omp_get_max_threads();
+  // Before any other call to OMP query the maximum number of threads
+  // and save the value for re-initialization unit testing.
+  static int omp_max_threads = omp_get_max_threads();
+
   const bool is_initialized = 0 != Impl::OpenMPexec::m_pool[0] ;
 
   bool thread_spawn_failed = false ;
@@ -206,6 +209,16 @@ void OpenMP::initialize( unsigned thread_count ,
                             ( 1 < Kokkos::hwloc::get_available_threads_per_core() ) );
 
     std::pair<unsigned,unsigned> threads_coord[ Impl::OpenMPexec::MAX_THREAD_COUNT ];
+
+    // If hwloc available then use it's maximum value.
+
+    if ( thread_count == 0 ) {
+      thread_count = Impl::s_using_hwloc
+      ? Kokkos::hwloc::get_available_numa_count() *
+        Kokkos::hwloc::get_available_cores_per_numa() *
+        Kokkos::hwloc::get_available_threads_per_core()
+      : omp_max_threads ;
+    }
 
     if(Impl::s_using_hwloc)
       hwloc::thread_mapping( "Kokkos::OpenMP::initialize" ,

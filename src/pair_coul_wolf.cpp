@@ -43,7 +43,7 @@ PairCoulWolf::PairCoulWolf(LAMMPS *lmp) : Pair(lmp)
 
 PairCoulWolf::~PairCoulWolf()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
   }

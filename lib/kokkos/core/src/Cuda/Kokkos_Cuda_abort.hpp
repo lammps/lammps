@@ -72,6 +72,7 @@ extern __device__ void __assertfail(
 }
 
 namespace Kokkos {
+namespace Impl {
 
 __device__ inline
 void cuda_abort( const char * const message )
@@ -85,16 +86,29 @@ void cuda_abort( const char * const message )
                 sizeof(char) );
 }
 
+} // namespace Impl
 } // namespace Kokkos
 
 #else
 
 namespace Kokkos {
+namespace Impl {
 KOKKOS_INLINE_FUNCTION
 void cuda_abort( const char * const ) {}
 }
+}
 
 #endif /* #if defined( __CUDACC__ ) && defined( __CUDA_ARCH__ ) */
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA )
+namespace Kokkos {
+__device__ inline
+void abort( const char * const message ) { Kokkos::Impl::cuda_abort(message); }
+}
+#endif /* defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA ) */
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

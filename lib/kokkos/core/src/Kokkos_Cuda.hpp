@@ -46,57 +46,19 @@
 #ifndef KOKKOS_CUDA_HPP
 #define KOKKOS_CUDA_HPP
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core_fwd.hpp>
 
-//----------------------------------------------------------------------------
 // If CUDA execution space is enabled then use this header file.
 
 #if defined( KOKKOS_HAVE_CUDA )
 
-#if defined( __CUDACC__ )
-
-#include <cuda.h>
-
-/*  Compiling with a CUDA compiler.
- *
- *  Include <cuda.h> to pick up the CUDA_VERSION macro defined as:
- *    CUDA_VERSION = ( MAJOR_VERSION * 1000 ) + ( MINOR_VERSION * 10 )
- *
- *  When generating device code the __CUDA_ARCH__ macro is defined as:
- *    __CUDA_ARCH__ = ( MAJOR_CAPABILITY * 100 ) + ( MINOR_CAPABILITY * 10 )
- */
-#if ! defined( CUDA_VERSION )
-#error "#include <cuda.h> did not define CUDA_VERSION"
-#endif
-
-#if ( CUDA_VERSION < 4010 )
-#error "Cuda version 4.1 or greater required"
-#endif
-
-#if defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ < 200 )
-/*  Compiling with CUDA compiler for device code. */
-#error "Cuda device capability >= 2.0 is required"
-#endif
-
-#endif /* #if defined( __CUDACC__ ) */
-
-//----------------------------------------------------------------------------
-
 #include <iosfwd>
 #include <vector>
 
-#if defined( KOKKOS_HAVE_OPENMP )
-#include <Kokkos_OpenMP.hpp>
-#elif defined( KOKKOS_HAVE_PTHREAD )
-#include <Kokkos_Threads.hpp>
-#else
-#endif
-
-#include <Kokkos_Serial.hpp>
+#include <Kokkos_CudaSpace.hpp>
 
 #include <Kokkos_Parallel.hpp>
 #include <Kokkos_Layout.hpp>
-#include <Kokkos_CudaSpace.hpp>
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_MemoryTraits.hpp>
 #include <impl/Kokkos_Tags.hpp>
@@ -114,45 +76,44 @@ class CudaExec ;
 namespace Kokkos {
 
 /// \class Cuda
-/// \brief Kokkos device that uses CUDA to run on GPUs.
+/// \brief Kokkos Execution Space that uses CUDA to run on GPUs.
 ///
-/// A "device" represents a parallel execution model.  It tells Kokkos
+/// An "execution space" represents a parallel execution model.  It tells Kokkos
 /// how to parallelize the execution of kernels in a parallel_for or
-/// parallel_reduce.  For example, the Threads device uses Pthreads or
-/// C++11 threads on a CPU, the OpenMP device uses the OpenMP language
-/// extensions, and the Serial device executes "parallel" kernels
-/// sequentially.  The Cuda device uses NVIDIA's CUDA programming
+/// parallel_reduce.  For example, the Threads execution space uses Pthreads or
+/// C++11 threads on a CPU, the OpenMP execution space uses the OpenMP language
+/// extensions, and the Serial execution space executes "parallel" kernels
+/// sequentially.  The Cuda execution space uses NVIDIA's CUDA programming
 /// model to execute kernels in parallel on GPUs.
 class Cuda {
 public:
-  //! \name Type declarations that all Kokkos devices must provide.
+  //! \name Type declarations that all Kokkos execution spaces must provide.
   //@{
 
-  //! The tag (what type of kokkos_object is this).
-  typedef Impl::ExecutionSpaceTag  kokkos_tag ;
-  //! The device type (same as this class).
-  typedef Cuda                  device_type ;
-  //! This device's execution space.
+  //! Tag this class as a kokkos execution space
   typedef Cuda                  execution_space ;
-  //! This device's preferred memory space.
-  typedef CudaSpace             memory_space ;
-  //! The size_type typedef best suited for this device.
-  typedef CudaSpace::size_type  size_type ;
-  //! This device's preferred array layout.
-  typedef LayoutLeft            array_layout ;
 
-  typedef ScratchMemorySpace< Cuda >  scratch_memory_space ;
-
-  //! This device's host mirror type.
-#if defined( KOKKOS_HAVE_OPENMP )
-  typedef Kokkos::OpenMP       host_mirror_device_type ;
-#elif defined( KOKKOS_HAVE_PTHREAD )
-  typedef Kokkos::Threads      host_mirror_device_type ;
+#if defined( KOKKOS_USE_CUDA_UVM )
+  //! This execution space's preferred memory space.
+  typedef CudaUVMSpace          memory_space ;
 #else
-  typedef Kokkos::Serial       host_mirror_device_type ;
+  //! This execution space's preferred memory space.
+  typedef CudaSpace             memory_space ;
 #endif
 
+  //! The size_type best suited for this execution space.
+  typedef memory_space::size_type  size_type ;
+
+  //! This execution space's preferred array layout.
+  typedef LayoutLeft            array_layout ;
+
+  //! For backward compatibility
+  typedef Cuda                  device_type ;
+  //! 
+  typedef ScratchMemorySpace< Cuda >  scratch_memory_space ;
+
   //@}
+  //--------------------------------------------------
   //! \name Functions that all Kokkos devices must implement.
   //@{
 
@@ -197,10 +158,28 @@ public:
   //! Free any resources being consumed by the device.
   static void finalize();
 
+  //! Has been initialized
+  static int is_initialized();
+
   //! Print configuration information to the given output stream.
   static void print_configuration( std::ostream & , const bool detail = false );
 
   //@}
+  //--------------------------------------------------
+  //! \name  Cuda space instances
+
+  ~Cuda() {}
+  Cuda();
+  explicit Cuda( const int instance_id );
+
+#if defined( KOKKOS_HAVE_CXX11 )
+  Cuda & operator = ( const Cuda & ) = delete ;
+#else
+private:
+  Cuda & operator = ( const Cuda & );
+public:
+#endif
+
   //--------------------------------------------------------------------------
   //! \name Device-specific functions
   //@{
@@ -212,11 +191,8 @@ public:
   };
 
   //! Initialize, telling the CUDA run-time library which device to use.
-  static void initialize( const SelectDevice = SelectDevice() );
-  static void initialize( int device );
-  static void initialize( int device , int );
-
-  static int is_initialized();
+  static void initialize( const SelectDevice = SelectDevice()
+                        , const size_t num_instances = 1 );
 
   /// \brief Cuda device architecture of the selected device.
   ///
@@ -231,11 +207,11 @@ public:
    */
   static std::vector<unsigned> detect_device_arch();
 
-  static unsigned team_max();
-  static unsigned team_recommended();
-
   //@}
   //--------------------------------------------------------------------------
+
+  const cudaStream_t m_stream ;
+  const int          m_device ;
 };
 
 } // namespace Kokkos
@@ -248,10 +224,11 @@ namespace Impl {
 
 template<>
 struct VerifyExecutionCanAccessMemorySpace
-  < Kokkos::Cuda::memory_space
+  < Kokkos::CudaSpace
   , Kokkos::Cuda::scratch_memory_space
   >
 {
+  enum { value = true };
   KOKKOS_INLINE_FUNCTION static void verify( void ) { }
   KOKKOS_INLINE_FUNCTION static void verify( const void * ) { }
 };
@@ -262,6 +239,7 @@ struct VerifyExecutionCanAccessMemorySpace
   , Kokkos::Cuda::scratch_memory_space
   >
 {
+  enum { value = false };
   inline static void verify( void ) { CudaSpace::access_error(); }
   inline static void verify( const void * p ) { CudaSpace::access_error(p); }
 };

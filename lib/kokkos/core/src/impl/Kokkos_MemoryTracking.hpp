@@ -45,79 +45,273 @@
 #define KOKKOS_MEMORY_TRACKING_HPP
 
 #include <cstddef>
+#include <cstring>
+#include <limits>
 #include <utility>
 #include <vector>
 #include <string>
-#include <typeinfo>
-#include <iosfwd>
+#include <sstream>
+#include <iostream>
+
+#include <impl/Kokkos_Error.hpp>
 
 namespace Kokkos {
 namespace Impl {
+namespace {
 
-class MemoryTracking ;
+// Fast search for result[-1] <= val < result[0].
+// Requires result[max] == upper_bound.
+// Start with a binary search until the search range is
+// less than LINEAR_LIMIT, then switch to linear search.
 
-class MemoryTrackingEntry {
-public:
-  const std::string      label ;
-  const std::type_info & type ;
-  const ptrdiff_t        begin ;
-  const ptrdiff_t        end ;
-private:
-  unsigned m_count ;
-protected:
+int memory_tracking_upper_bound( const ptrdiff_t * const begin
+                               , unsigned length
+                               , const ptrdiff_t value )
+{
+  enum { LINEAR_LIMIT = 32 };
 
-  MemoryTrackingEntry( const std::string    & arg_label ,
-                       const std::type_info & arg_type ,
-                       const void * const     arg_begin ,
-                       const ptrdiff_t        arg_bytes )
-    : label( arg_label )
-    , type(  arg_type )
-    , begin( reinterpret_cast<ptrdiff_t>( arg_begin ) )
-    , end(   reinterpret_cast<ptrdiff_t>(
-               reinterpret_cast<const unsigned char *>( arg_begin ) + arg_bytes ) )
-    , m_count( 0 )
-    {}
+  // precondition: begin[length-1] == std::numeric_limits<ptrdiff_t>::max()
 
-public:
+  const ptrdiff_t * first = begin ;
 
-  unsigned count() const { return m_count ; }
+  while ( LINEAR_LIMIT < length ) {
+    unsigned          half   = length >> 1 ;
+    const ptrdiff_t * middle = first + half ;
 
-  virtual void print( std::ostream & ) const ;
+    if ( value < *middle ) {
+      length = half ;
+    }
+    else {
+      first   = ++middle ;
+      length -= ++half ;
+    }
+  }
 
-  virtual ~MemoryTrackingEntry();
+  for ( ; ! ( value < *first ) ; ++first ) {}
 
-private:
+  return first - begin ;
+}
 
-  MemoryTrackingEntry();
-  MemoryTrackingEntry( const MemoryTrackingEntry & rhs );
-  MemoryTrackingEntry & operator = ( const MemoryTrackingEntry & rhs );
-
-  friend class MemoryTracking ;
-};
-
-
+template< class AttributeType = size_t >
 class MemoryTracking {
 public:
 
+  class Entry {
+  private:
+
+    friend class MemoryTracking ;
+
+    enum { LABEL_LENGTH = 128 };
+
+    Entry( const Entry & );
+    Entry & operator = ( const Entry & );
+
+    ~Entry() {}
+
+    Entry()
+     : m_count(0)
+     , m_alloc_ptr( reinterpret_cast<void*>( std::numeric_limits<ptrdiff_t>::max() ) )
+     , m_alloc_size(0)
+     , m_attribute()
+     { strcpy( m_label , "sentinel" ); }
+
+    Entry( const std::string & arg_label 
+         , void * const        arg_alloc_ptr 
+         , size_t const        arg_alloc_size )
+      : m_count( 0 )
+      , m_alloc_ptr( arg_alloc_ptr )
+      , m_alloc_size( arg_alloc_size )
+      , m_attribute()
+      {
+        strncpy( m_label , arg_label.c_str() , LABEL_LENGTH );
+        m_label[ LABEL_LENGTH - 1 ] = 0 ;
+      }
+
+    char    m_label[ LABEL_LENGTH ] ;
+    size_t  m_count ;
+
+  public:
+
+    void * const   m_alloc_ptr ;
+    size_t const   m_alloc_size ;
+    AttributeType  m_attribute ;
+
+    size_t       count() const { return m_count ; }
+    const char * label() const { return m_label ; }
+
+    void print( std::ostream & oss ) const
+      {
+        oss << "{ \"" << m_label
+            << "\" count(" << m_count
+            << ") memory[ " << m_alloc_ptr
+            << " + " << m_alloc_size
+            << " ]" ;
+      }
+  };
+
+  //------------------------------------------------------------
   /** \brief  Track a memory range defined by the entry.
-   *          This entry must be allocated via 'new'.
+   *          Return the input entry pointer for success.
+   *          Throw exception for failure.
    */
-  void insert( MemoryTrackingEntry * entry );
+  Entry * insert( const std::string & arg_label
+                , void * const  arg_alloc_ptr
+                , size_t const  arg_alloc_size
+                )
+    {
+      Entry * result = 0 ;
+
+      const ptrdiff_t alloc_begin = reinterpret_cast<ptrdiff_t>(arg_alloc_ptr);
+      const ptrdiff_t alloc_end   = alloc_begin + arg_alloc_size ;
+
+      const bool ok_exist = ! m_tracking_end.empty(); 
+
+      const bool ok_input =
+        ok_exist &&
+        ( 0 < alloc_begin ) &&
+            ( alloc_begin < alloc_end ) &&
+                          ( alloc_end < std::numeric_limits<ptrdiff_t>::max() ); 
+
+      const int i = ok_input
+                  ? memory_tracking_upper_bound( & m_tracking_end[0] , m_tracking_end.size() , alloc_end )
+                  : -1 ;
+
+      const bool ok_range = ( 0 <= i ) && ( alloc_end <= reinterpret_cast<ptrdiff_t>( m_tracking[i]->m_alloc_ptr ) );
+
+      // allocate the new entry only if the vector inserts succeed.
+      const bool ok_insert =
+        ok_range &&
+        ( alloc_end == *m_tracking_end.insert(m_tracking_end.begin()+i,alloc_end) ) &&
+        ( 0 == *m_tracking.insert(m_tracking.begin()+i,0) ) &&
+        ( 0 != ( result = new Entry(arg_label,arg_alloc_ptr,arg_alloc_size) ) );
+
+      if ( ok_insert ) {
+        result->m_count = 1 ;
+        m_tracking[i] = result ;
+      }
+      else {
+        std::ostringstream msg ;
+        msg << m_space
+            << "::insert( " << arg_label
+            << " , " << arg_alloc_ptr
+            << " , " << arg_alloc_size
+            << " ) ERROR : " ;
+        if ( ! ok_exist ) {
+          msg << " called after return from main()" ;
+        }
+        else if ( ! ok_input ) {
+          msg << " bad allocation range" ;
+        }
+        else if ( ! ok_range ) {
+          msg << " overlapping memory range with"
+              << " { " << m_tracking[i]->m_label
+              << " , " << m_tracking[i]->m_alloc_ptr
+              << " , " << m_tracking[i]->m_alloc_size
+              << " }" ;
+        }
+        else {
+          msg << " internal allocation error" ;
+        }
+        Kokkos::Impl::throw_runtime_exception( msg.str() );
+      }
+
+      return result ;
+    }
 
   /** \brief  Decrement the tracked memory range.
-   *          If the count is zero then the entry is deleted
-   *          via the 'delete' operator.
+   *          If the count is zero then return the originally inserted pointer.
+   *          If the count is non zero then return zero.
    */
-  void decrement( const void * ptr );
+  void * decrement( void const * const ptr )
+    {
+      void * result = 0 ;
+
+      if ( ptr ) {
+        const bool ok_exist = ! m_tracking_end.empty();
+
+        const int i = ok_exist
+                    ? memory_tracking_upper_bound( & m_tracking_end[0] , m_tracking_end.size() , reinterpret_cast<ptrdiff_t>(ptr) )
+                    : -1 ;
+
+        const bool ok_found = ( 0 <= i ) && ( reinterpret_cast<ptrdiff_t>( m_tracking[i]->m_alloc_ptr ) <=
+                                              reinterpret_cast<ptrdiff_t>(ptr) );
+
+        if ( ok_found ) {
+          if ( 0 == --( m_tracking[i]->m_count ) ) {
+            result = m_tracking[i]->m_alloc_ptr ;          
+            delete m_tracking[i] ;
+            m_tracking.erase(     m_tracking.begin() + i );
+            m_tracking_end.erase( m_tracking_end.begin() + i );
+          }
+        }
+        else {
+          // Don't throw as this is likely called from within a destructor.
+          std::cerr << m_space
+                    << "::decrement( " << ptr << " ) ERROR : " 
+                    << ( ! ok_exist ? " called after return from main()" 
+                                    : " memory not being tracked" )
+                    << std::endl ;
+          std::cerr.flush();
+        }
+      }
+      return result ;
+    }
 
   /** \brief  Increment the tracking count.  */
-  void increment( const void * ptr );
+  void increment( void const * const ptr )
+    {
+      if ( ptr ) {
+        const bool ok_exist = ! m_tracking_end.empty();
 
-  /** \brief  Query a tracked memory range. */
-  MemoryTrackingEntry * query( const void * ptr ) const ;
+        const int i = ok_exist
+                    ? memory_tracking_upper_bound( & m_tracking_end[0] , m_tracking_end.size() , reinterpret_cast<ptrdiff_t>(ptr) )
+                    : -1 ;
+
+        const bool ok_found = ( 0 <= i ) && ( reinterpret_cast<ptrdiff_t>( m_tracking[i]->m_alloc_ptr ) <=
+                                              reinterpret_cast<ptrdiff_t>(ptr) );
+
+        if ( ok_found ) {
+          ++( m_tracking[i]->m_count );
+        }
+        else {
+          std::ostringstream msg ;
+          msg << m_space
+              << "::increment( " << ptr << " ) ERROR : "
+              << ( ! ok_exist ? " called after return from main()" 
+                              : " memory not being tracked" )
+              << std::endl ;
+          Kokkos::Impl::throw_runtime_exception( msg.str() );
+        }
+      }
+    }
+
+  /** \brief  Query a tracked memory range.
+   *          Return zero for not found.
+   */
+  Entry * query( void const * const ptr ) const
+    {
+      const bool ok_exist = ! m_tracking_end.empty();
+
+      const int i = ( ok_exist && ptr )
+                  ? memory_tracking_upper_bound( & m_tracking_end[0] , m_tracking_end.size() , reinterpret_cast<ptrdiff_t>(ptr) )
+                  : -1 ;
+
+      const bool ok_found = ( 0 <= i ) && ( reinterpret_cast<ptrdiff_t>( m_tracking[i]->m_alloc_ptr ) <=
+                                            reinterpret_cast<ptrdiff_t>(ptr) );
+
+      return ok_found ? m_tracking[i] : (Entry *) 0 ;
+    }
 
   /** \brief  Call the 'print' method on all entries. */
-  void print( std::ostream & , const std::string & lead ) const ;
+  void print( std::ostream & oss , const std::string & lead ) const
+    {
+      const size_t n = m_tracking.empty() ? 0 : m_tracking.size() - 1 ;
+      for ( size_t i = 0 ; i < n ; ++i ) {
+        oss << lead ;
+        m_tracking[i]->print( oss );
+        oss << std::endl ;
+      }
+    }
 
   size_t size() const { return m_tracking.size(); }
 
@@ -126,24 +320,53 @@ public:
     { return *m_tracking[i]; }
 
   /** \brief Construct with a name for error messages */
-  explicit MemoryTracking( const std::string & space );
+  explicit MemoryTracking( const std::string & space_name )
+    : m_space( space_name )
+    , m_tracking()
+    , m_tracking_end()
+    , m_sentinel()
+    {
+      m_tracking.reserve( 512 );
+      m_tracking_end.reserve( 512 );
+      m_tracking.push_back( & m_sentinel );
+      m_tracking_end.push_back( reinterpret_cast<ptrdiff_t>( m_sentinel.m_alloc_ptr ) );
+    }
 
   /** \brief  Print memory leak warning for all entries. */
-  ~MemoryTracking();
+  ~MemoryTracking()
+    {
+      try {
+        const ptrdiff_t max = std::numeric_limits<ptrdiff_t>::max();
 
-  /** \brief Query if constructed */
-  bool exists() const { return ! m_tracking_end.empty(); }
+        if ( 1 < m_tracking.size() ) {
+          std::cerr << m_space << " destroyed with memory leaks:" ;
+          print( std::cerr , std::string("  ") );
+        }
+        else if ( m_tracking.empty() || max != m_tracking_end.back() ) {
+          std::cerr << m_space << " corrupted data structure" << std::endl ;
+        }
+
+        m_space = std::string();
+        m_tracking = std::vector<Entry*>();
+        m_tracking_end = std::vector<ptrdiff_t>();
+      }
+      catch( ... ) {}
+    }
+
+  const std::string & label() const { return m_space ; }
 
 private:
   MemoryTracking();
   MemoryTracking( const MemoryTracking & );
   MemoryTracking & operator = ( const MemoryTracking & );
 
-  std::string                        m_space ;
-  std::vector<MemoryTrackingEntry*>  m_tracking ;
-  std::vector<ptrdiff_t>             m_tracking_end ;
+  std::string             m_space ;
+  std::vector<Entry*>     m_tracking ;
+  std::vector<ptrdiff_t>  m_tracking_end ;
+  Entry                   m_sentinel ;
 };
 
+} /* namespace */
 } /* namespace Impl */
 } /* namespace Kokkos */
 

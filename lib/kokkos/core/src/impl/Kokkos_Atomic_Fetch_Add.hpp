@@ -74,7 +74,18 @@ __inline__ __device__
 T atomic_fetch_add( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) , const T >::type val )
 {
-  union { int i ; T t ; } oldval , assume , newval ;
+#ifdef KOKKOS_HAVE_CXX11
+  union U {
+    int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } assume , oldval , newval ;
+#else
+  union U {
+    int i ;
+    T t ;
+  } assume , oldval , newval ;
+#endif
 
   oldval.t = *dest ;
 
@@ -93,7 +104,18 @@ T atomic_fetch_add( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
                                     sizeof(T) == sizeof(unsigned long long int) , const T >::type val )
 {
-  union { unsigned long long int i ; T t ; } oldval , assume , newval ;
+#ifdef KOKKOS_HAVE_CXX11
+  union U {
+    unsigned long long int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } assume , oldval , newval ;
+#else
+  union U {
+    unsigned long long int i ;
+    T t ;
+  } assume , oldval , newval ;
+#endif
 
   oldval.t = *dest ;
 
@@ -104,6 +126,17 @@ T atomic_fetch_add( volatile T * const dest ,
   } while ( assume.i != oldval.i );
 
   return oldval.t ;
+}
+
+template < typename T >
+__inline__ __device__
+T atomic_fetch_add( volatile T * const dest ,
+  typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
+                                    sizeof(T) != sizeof(unsigned long long int) &&
+                                    sizeof(T) == sizeof(Impl::cas128_t), const T >::type val )
+{
+  Kokkos::abort("Error: calling atomic_fetch_add with 128bit type is not supported on CUDA execution space.");
+  return T();
 }
 
 //----------------------------------------------------------------------------
@@ -135,7 +168,18 @@ KOKKOS_INLINE_FUNCTION
 T atomic_fetch_add( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(int) , const T >::type val )
 {
-  union { int i ; T t ; } assume , oldval , newval ;
+#ifdef KOKKOS_HAVE_CXX11
+  union U {
+    int i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } assume , oldval , newval ;
+#else
+  union U {
+    int i ;
+    T t ;
+  } assume , oldval , newval ;
+#endif
 
   oldval.t = *dest ;
 
@@ -154,7 +198,18 @@ T atomic_fetch_add( volatile T * const dest ,
   typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
                                     sizeof(T) == sizeof(long) , const T >::type val )
 {
-  union { long i ; T t ; } assume , oldval , newval ;
+#ifdef KOKKOS_HAVE_CXX11
+  union U {
+    long i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } assume , oldval , newval ;
+#else
+  union U {
+    long i ;
+    T t ;
+  } assume , oldval , newval ;
+#endif
 
   oldval.t = *dest ;
 
@@ -167,6 +222,36 @@ T atomic_fetch_add( volatile T * const dest ,
   return oldval.t ;
 }
 
+template < typename T >
+KOKKOS_INLINE_FUNCTION
+T atomic_fetch_add( volatile T * const dest ,
+  typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
+                                    sizeof(T) != sizeof(long) &&
+                                    sizeof(T) == sizeof(Impl::cas128_t) , const T >::type val )
+{
+#ifdef KOKKOS_HAVE_CXX11
+  union U {
+    Impl::cas128_t i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } assume , oldval , newval ;
+#else
+  union U {
+    Impl::cas128_t i ;
+    T t ;
+  } assume , oldval , newval ;
+#endif
+
+  oldval.t = *dest ;
+
+  do {
+    assume.i = oldval.i ;
+    newval.t = assume.t + val ;
+    oldval.i = Impl::cas128( (volatile Impl::cas128_t*) dest , assume.i , newval.i );
+  } while ( assume.i != oldval.i );
+
+  return oldval.t ;
+}
 //----------------------------------------------------------------------------
 
 #elif defined( KOKKOS_ATOMICS_USE_OMP31 )
@@ -208,7 +293,5 @@ void atomic_decrement(volatile T* a) {
 }
 
 }
-
-#include<impl/Kokkos_Atomic_Assembly_X86.hpp>
 #endif
 

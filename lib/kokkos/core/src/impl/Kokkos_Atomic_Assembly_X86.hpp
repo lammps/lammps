@@ -135,6 +135,42 @@ void atomic_decrement<long long int>(volatile long long int* a) {
   );
 }
 #endif
+
+namespace Impl {
+  struct cas128_t
+  {
+    uint64_t lower;
+    uint64_t upper;
+    KOKKOS_INLINE_FUNCTION
+    bool operator != (const cas128_t& a) const {
+      return (lower != a.lower) || upper!=a.upper;
+    }
+  }
+  __attribute__ (( __aligned__( 16 ) ));
+
+
+
+
+  inline cas128_t cas128( volatile cas128_t * ptr, cas128_t cmp,  cas128_t swap )
+  {
+    bool swapped;
+    __asm__ __volatile__
+    (
+     "lock cmpxchg16b %1\n\t"
+     "setz %0"
+     : "=q" ( swapped )
+     , "+m" ( *ptr )
+     , "+d" ( cmp.upper )
+     , "+a" ( cmp.lower )
+     : "c" ( swap.upper )
+     , "b" ( swap.lower )
+     : "cc"
+    );
+    (void) swapped;
+    return cmp;
+  }
+
+}
 }
 
 #endif

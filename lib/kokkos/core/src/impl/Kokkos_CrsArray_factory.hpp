@@ -110,7 +110,7 @@ create_crsarray( const std::string & label ,
 
   typedef View< typename output_type::size_type [] ,
                 typename output_type::array_layout ,
-                typename output_type::device_type > work_type ;
+                typename output_type::execution_space > work_type ;
 
   output_type output ;
 
@@ -170,7 +170,7 @@ create_crsarray( const std::string & label ,
 
   typedef View< typename output_type::size_type [] ,
                 typename output_type::array_layout ,
-                typename output_type::device_type > work_type ;
+                typename output_type::execution_space > work_type ;
 
   output_type output ;
 

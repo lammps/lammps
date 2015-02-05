@@ -96,6 +96,18 @@ T atomic_exchange(
   return *((T*)&tmp);
 }
 
+template< typename T >
+__inline__ __device__
+T atomic_exchange(
+  volatile T * const dest ,
+  typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
+                                    sizeof(T) != sizeof(unsigned long long int) &&
+                                    sizeof(T) == sizeof(Impl::cas128_t) , const T & >::type val )
+{
+  Kokkos::abort("Error: calling atomic_exchange with 128bit type is not supported on CUDA execution space.");
+  return T();
+}
+
 /** \brief  Atomic exchange for any type with compatible size */
 template< typename T >
 __inline__ __device__
@@ -119,6 +131,17 @@ void atomic_assign(
   (void) atomicExch( ((type*)dest) , *((type*)&val) );
 }
 
+template< typename T >
+__inline__ __device__
+void atomic_assign(
+  volatile T * const dest ,
+  typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
+                                    sizeof(T) != sizeof(unsigned long long int) &&
+                                    sizeof(T) == sizeof(Impl::cas128_t) , const T & >::type val )
+{
+  Kokkos::abort("Error: calling atomic_assign with 128bit type is not supported on CUDA execution space.");
+}
+
 //----------------------------------------------------------------------------
 
 #elif defined(KOKKOS_ATOMICS_USE_GCC) || defined(KOKKOS_ATOMICS_USE_INTEL)
@@ -135,7 +158,15 @@ T atomic_exchange( volatile T * const dest ,
 
   type assumed ;
 
+#ifdef KOKKOS_HAVE_CXX11
+  union U {
+    T val_T ;
+    type val_type ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } old ;
+#else
   union { T val_T ; type val_type ; } old ;
+#endif
 
   old.val_T = *dest ;
 
@@ -145,6 +176,36 @@ T atomic_exchange( volatile T * const dest ,
   } while ( assumed != old.val_type );
 
   return old.val_T ;
+}
+
+template< typename T >
+KOKKOS_INLINE_FUNCTION
+T atomic_exchange( volatile T * const dest ,
+  typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(Impl::cas128_t)
+                                  , const T & >::type val )
+{
+#ifdef KOKKOS_HAVE_CXX11
+  union U {
+    Impl::cas128_t i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } assume , oldval , newval ;
+#else
+  union U {
+    Impl::cas128_t i ;
+    T t ;
+  } assume , oldval , newval ;
+#endif
+
+  oldval.t = *dest ;
+  newval.t = val;
+
+  do {
+    assume.i = oldval.i ;
+    oldval.i = Impl::cas128( (volatile Impl::cas128_t*) dest , assume.i , newval.i );
+  } while ( assume.i != oldval.i );
+
+  return oldval.t ;
 }
 
 template< typename T >
@@ -159,7 +220,15 @@ void atomic_assign( volatile T * const dest ,
 
   type assumed ;
 
+#ifdef KOKKOS_HAVE_CXX11
+  union U {
+    T val_T ;
+    type val_type ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } old ;
+#else
   union { T val_T ; type val_type ; } old ;
+#endif
 
   old.val_T = *dest ;
 
@@ -169,6 +238,32 @@ void atomic_assign( volatile T * const dest ,
   } while ( assumed != old.val_type );
 }
 
+template< typename T >
+KOKKOS_INLINE_FUNCTION
+void atomic_assign( volatile T * const dest ,
+  typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(Impl::cas128_t)
+                                  , const T & >::type val )
+{
+#ifdef KOKKOS_HAVE_CXX11
+  union U {
+    Impl::cas128_t i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } assume , oldval , newval ;
+#else
+  union U {
+    Impl::cas128_t i ;
+    T t ;
+  } assume , oldval , newval ;
+#endif
+
+  oldval.t = *dest ;
+  newval.t = val;
+  do {
+    assume.i = oldval.i ;
+    oldval.i = Impl::cas128( (volatile Impl::cas128_t*) dest , assume.i , newval.i);
+  } while ( assume.i != oldval.i );
+}
 //----------------------------------------------------------------------------
 
 #elif defined( KOKKOS_ATOMICS_USE_OMP31 )

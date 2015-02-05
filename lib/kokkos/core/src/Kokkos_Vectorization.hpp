@@ -46,13 +46,13 @@
 #ifndef KOKKOS_VECTORIZATION_HPP
 #define KOKKOS_VECTORIZATION_HPP
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_ExecPolicy.hpp>
 
 namespace Kokkos {
-template<class Device, int N>
+template<class Space, int N>
 struct Vectorization {
-  typedef Kokkos::TeamPolicy< Device >       team_policy ;
+  typedef Kokkos::TeamPolicy< Space >        team_policy ;
   typedef typename team_policy::member_type  team_member ;
 
   enum {increment = 1};

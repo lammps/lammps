@@ -134,7 +134,7 @@ void FixShearHistory::allocate_pages()
    only invoke pre_exchange() if neigh list stores more current history info
      than npartner/partner arrays in this fix
    that will only be case if pair->compute() has been invoked since
-     update of npartner/npartner
+     update of npartner/partner
    this logic avoids 2 problems:
      run 100; write_restart; run 100
        setup_pre_exchange is called twice (by write_restart and 2nd run setup)

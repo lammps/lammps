@@ -50,11 +50,8 @@
 #ifndef KOKKOS_UNORDERED_MAP_HPP
 #define KOKKOS_UNORDERED_MAP_HPP
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Functional.hpp>
-#include <Kokkos_View.hpp>
-#include <Kokkos_Atomic.hpp>
-#include <Kokkos_HostSpace.hpp>
 
 #include <Kokkos_Bitset.hpp>
 
@@ -217,6 +214,8 @@ template <   typename Key
         >
 class UnorderedMap
 {
+private:
+  typedef typename ViewTraits<Key,Device,void,void>::host_mirror_space host_mirror_space ;
 public:
   //! \name Public types and constants
   //@{
@@ -253,9 +252,7 @@ public:
 
   typedef UnorderedMapInsertResult insert_result;
 
-  typedef typename Device::host_mirror_device_type host_mirror_device_type;
-
-  typedef UnorderedMap<Key,Value,host_mirror_device_type,Hasher,EqualTo> HostMirror;
+  typedef UnorderedMap<Key,Value,host_mirror_space,Hasher,EqualTo> HostMirror;
 
   typedef Impl::UnorderedMapHistogram<const_map_type> histogram_type;
 
@@ -318,8 +315,8 @@ public:
     , m_equal_to(equal_to)
     , m_size()
     , m_available_indexes(calculate_capacity(capacity_hint))
-    , m_hash_lists(AllocateWithoutInitializing(), "UnorderedMap hash list", Impl::find_hash_size(capacity()))
-    , m_next_index(AllocateWithoutInitializing(), "UnorderedMap next index", capacity()+1) // +1 so that the *_at functions can always return a valid reference
+    , m_hash_lists(ViewAllocateWithoutInitializing("UnorderedMap hash list"), Impl::find_hash_size(capacity()))
+    , m_next_index(ViewAllocateWithoutInitializing("UnorderedMap next index"), capacity()+1) // +1 so that the *_at functions can always return a valid reference
     , m_keys("UnorderedMap keys",capacity()+1)
     , m_values("UnorderedMap values",(is_set? 1 : capacity()+1))
     , m_scalars("UnorderedMap scalars")
@@ -752,10 +749,10 @@ public:
       tmp.m_equal_to = src.m_equal_to;
       tmp.m_size = src.size();
       tmp.m_available_indexes = bitset_type( src.capacity() );
-      tmp.m_hash_lists        = size_type_view( AllocateWithoutInitializing(), "UnorderedMap hash list", src.m_hash_lists.size() );
-      tmp.m_next_index        = size_type_view( AllocateWithoutInitializing(), "UnorderedMap next index", src.m_next_index.size() );
-      tmp.m_keys              = key_type_view( AllocateWithoutInitializing(), "UnorderedMap keys", src.m_keys.size() );
-      tmp.m_values            = value_type_view( AllocateWithoutInitializing(), "UnorderedMap values", src.m_values.size() );
+      tmp.m_hash_lists        = size_type_view( ViewAllocateWithoutInitializing("UnorderedMap hash list"), src.m_hash_lists.size() );
+      tmp.m_next_index        = size_type_view( ViewAllocateWithoutInitializing("UnorderedMap next index"), src.m_next_index.size() );
+      tmp.m_keys              = key_type_view( ViewAllocateWithoutInitializing("UnorderedMap keys"), src.m_keys.size() );
+      tmp.m_values            = value_type_view( ViewAllocateWithoutInitializing("UnorderedMap values"), src.m_values.size() );
       tmp.m_scalars           = scalars_view("UnorderedMap scalars");
 
       Kokkos::deep_copy(tmp.m_available_indexes, src.m_available_indexes);

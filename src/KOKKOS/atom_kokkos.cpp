@@ -50,6 +50,11 @@ AtomKokkos::~AtomKokkos()
   memory->destroy_kokkos(k_mass, mass);
   memory->destroy_kokkos(k_q, q);
 
+  memory->destroy_kokkos(k_radius, radius);
+  memory->destroy_kokkos(k_rmass, rmass);
+  memory->destroy_kokkos(k_omega, omega);
+  memory->destroy_kokkos(k_torque, torque);
+
   memory->destroy_kokkos(k_nspecial, nspecial);
   memory->destroy_kokkos(k_special, special);
   memory->destroy_kokkos(k_num_bond, num_bond);

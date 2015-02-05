@@ -629,6 +629,25 @@ void Neighbor::init()
           }
         }
       }
+
+      // output neighbor list info, only first time or when changed
+
+      if (me == 0) {
+        if (logfile) {
+          fprintf(logfile,"Neighbor list info ...\n");
+          fprintf(logfile,"  %d neighbor list requests\n", old_nrequest);
+          fprintf(logfile,"  update every %d steps, delay %d steps, check %s\n",
+                  every, delay, dist_check ? "yes" : "no");
+          fprintf(logfile,"  master list distance cutoff = %g\n",cutneighmax);
+        }
+        if (screen) {
+          fprintf(screen,"Neighbor list info ...\n");
+          fprintf(screen,"  %d neighbor list requests\n", old_nrequest);
+          fprintf(screen,"  update every %d steps, delay %d steps, check %s\n",
+                  every, delay, dist_check ? "yes" : "no");
+          fprintf(screen,"  master list distance cutoff = %g\n",cutneighmax);
+        }
+      }
     }
 
     // allocate initial pages for each list, except if listcopy set

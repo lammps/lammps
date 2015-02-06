@@ -132,12 +132,17 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   nrequest = maxrequest = 0;
   requests = NULL;
 
-  old_style = BIN;
+  old_nrequest = 0;
+  old_requests = NULL;
+
+  old_style = style;
   old_triclinic = 0;
   old_pgsize = pgsize;
   old_oneatom = oneatom;
-  old_nrequest = 0;
-  old_requests = NULL;
+  old_every = every;
+  old_delay = delay;
+  old_check = dist_check;
+  old_cutoff = cutneighmax;
 
   // bond lists
 
@@ -629,25 +634,6 @@ void Neighbor::init()
           }
         }
       }
-
-      // output neighbor list info, only first time or when changed
-
-      if (me == 0) {
-        if (logfile) {
-          fprintf(logfile,"Neighbor list info ...\n");
-          fprintf(logfile,"  %d neighbor list requests\n", old_nrequest);
-          fprintf(logfile,"  update every %d steps, delay %d steps, check %s\n",
-                  every, delay, dist_check ? "yes" : "no");
-          fprintf(logfile,"  master list distance cutoff = %g\n",cutneighmax);
-        }
-        if (screen) {
-          fprintf(screen,"Neighbor list info ...\n");
-          fprintf(screen,"  %d neighbor list requests\n", old_nrequest);
-          fprintf(screen,"  update every %d steps, delay %d steps, check %s\n",
-                  every, delay, dist_check ? "yes" : "no");
-          fprintf(screen,"  master list distance cutoff = %g\n",cutneighmax);
-        }
-      }
     }
 
     // allocate initial pages for each list, except if listcopy set
@@ -798,6 +784,28 @@ void Neighbor::init()
 #endif
   }
 
+  // output neighbor list info, only first time or when info changes
+
+  if (!same || every != old_every || delay != old_delay || 
+      old_check != dist_check || old_cutoff != cutneighmax) {
+    if (me == 0) {
+      if (logfile) {
+        fprintf(logfile,"Neighbor list info ...\n");
+        fprintf(logfile,"  %d neighbor list requests\n",nrequest);
+        fprintf(logfile,"  update every %d steps, delay %d steps, check %s\n",
+                every,delay,dist_check ? "yes" : "no");
+        fprintf(logfile,"  master list distance cutoff = %g\n",cutneighmax);
+      }
+      if (screen) {
+        fprintf(screen,"Neighbor list info ...\n");
+        fprintf(screen,"  %d neighbor list requests\n",nrequest);
+        fprintf(screen,"  update every %d steps, delay %d steps, check %s\n",
+                every,delay,dist_check ? "yes" : "no");
+        fprintf(screen,"  master list distance cutoff = %g\n",cutneighmax);
+      }
+    }
+  }
+
   // mark all current requests as processed
   // delete old requests
   // copy current requests and style to old for next run
@@ -805,12 +813,19 @@ void Neighbor::init()
   for (i = 0; i < nrequest; i++) requests[i]->unprocessed = 0;
   for (i = 0; i < old_nrequest; i++) delete old_requests[i];
   memory->sfree(old_requests);
+
   old_nrequest = nrequest;
   old_requests = requests;
   nrequest = maxrequest = 0;
   requests = NULL;
   old_style = style;
   old_triclinic = triclinic;
+  old_pgsize = pgsize;
+  old_oneatom = oneatom;
+  old_every = every;
+  old_delay = delay;
+  old_check = dist_check;
+  old_cutoff = cutneighmax;
 
   // ------------------------------------------------------------------
   // topology lists

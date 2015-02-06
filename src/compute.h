@@ -114,6 +114,7 @@ class Compute : protected Pointers {
   virtual int dof_remove(int) {return 0;}
   virtual void remove_bias(int, double *) {}
   virtual void remove_bias_all() {}
+  virtual void reapply_bias_all() {}
   virtual void restore_bias(int, double *) {}
   virtual void restore_bias_all() {}
 

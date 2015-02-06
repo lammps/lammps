@@ -641,6 +641,7 @@ void FixGCMC::attempt_atomic_translation()
     coord[2] = x[i][2] + displace*rz;
     if (regionflag) {
       while (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) == 0) {
+        rsq = 1.1;
         while (rsq > 1.0) {
           rx = 2*random_unequal->uniform() - 1.0;
           ry = 2*random_unequal->uniform() - 1.0;
@@ -822,6 +823,7 @@ void FixGCMC::attempt_molecule_translation()
     coord[1] = com[1] + displace*ry;
     coord[2] = com[2] + displace*rz;
     while (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) == 0) {
+      rsq = 1.1;
       while (rsq > 1.0) {
         rx = 2*random_equal->uniform() - 1.0;
         ry = 2*random_equal->uniform() - 1.0;
@@ -1219,6 +1221,7 @@ void FixGCMC::attempt_atomic_translation_full()
     coord[2] = x[i][2] + displace*rz;
     if (regionflag) {
       while (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) == 0) {
+        rsq = 1.1;
         while (rsq > 1.0) {
           rx = 2*random_unequal->uniform() - 1.0;
           ry = 2*random_unequal->uniform() - 1.0;
@@ -1421,6 +1424,7 @@ void FixGCMC::attempt_molecule_translation_full()
     coord[1] = com[1] + displace*ry;
     coord[2] = com[2] + displace*rz;
     while (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) == 0) {
+      rsq = 1.1;
       while (rsq > 1.0) {
         rx = 2*random_equal->uniform() - 1.0;
         ry = 2*random_equal->uniform() - 1.0;

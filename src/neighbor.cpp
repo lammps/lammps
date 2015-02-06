@@ -904,23 +904,6 @@ void Neighbor::init()
   // in case all are turned off but potential is still defined
 
   nbondlist = nanglelist = ndihedrallist = nimproperlist = 0;
-
-  if (me == 0) {
-    if (logfile) {
-      fprintf(logfile,"Neighborlist initialization ...\n");
-      fprintf(logfile,"  %d neighbor list requests\n", old_nrequest);
-      fprintf(logfile,"  update every %d steps, delay %d steps, check %s\n",
-              every, delay, dist_check ? "yes" : "no");
-      fprintf(logfile,"  list generation distance cutoff: %g\n",cutneighmax);
-    }
-    if (screen) {
-      fprintf(screen,"Neighborlist initialization ...\n");
-      fprintf(screen,"  %d neighbor list requests\n", old_nrequest);
-      fprintf(screen,"  update every %d steps, delay %d steps, check %s\n",
-              every, delay, dist_check ? "yes" : "no");
-      fprintf(screen,"  list generation distance cutoff: %g\n",cutneighmax);
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1757,7 +1740,6 @@ void Neighbor::setup_bins()
       (this->*stencil_create[slist[i]])(lists[slist[i]],sx,sy,sz);
     } else setup_bins_kokkos(i);
   }
-
 }
 
 /* ----------------------------------------------------------------------

@@ -129,29 +129,18 @@ void FixShearHistory::allocate_pages()
 }
 
 /* ----------------------------------------------------------------------
-   called by setup of run or minimize
-   called by write_restart as input script command
-   only invoke pre_exchange() if neigh list stores more current history info
-     than npartner/partner arrays in this fix
-   that will only be case if pair->compute() has been invoked since
-     update of npartner/partner
-   this logic avoids 2 problems:
-     run 100; write_restart; run 100
-       setup_pre_exchange is called twice (by write_restart and 2nd run setup)
-       w/out a neighbor list being created in between
-     read_restart; run 100
-       setup_pre_exchange called by run setup whacks restart shear history info
-------------------------------------------------------------------------- */
-
-void FixShearHistory::setup_pre_exchange()
-{
-  if (*computeflag) pre_exchange();
-  *computeflag = 0;
-}
-
-/* ----------------------------------------------------------------------
    copy shear partner info from neighbor lists to atom arrays
-   so can be migrated or stored with atoms
+   should be called whenever neighbor list stores current history info
+     and need to have atoms store the info
+   e.g. so atoms can migrate to new procs or between runs
+     when atoms may be added or deleted (neighbor list becomes out-of-date)
+   the next granular neigh list build will put this info back into neigh list
+   called during run before atom exchanges
+   called at end of run via post_run()
+   do not call during setup of run (setup_pre_exchange)
+     b/c there is no guarantee of a current neigh list (even on continued run)
+   if run command does a 2nd run with pre = no, then no neigh list
+     will be built, but old neigh list will still have the info
 ------------------------------------------------------------------------- */
 
 void FixShearHistory::pre_exchange()
@@ -262,15 +251,14 @@ void FixShearHistory::pre_exchange()
 
 /* ---------------------------------------------------------------------- */
 
-void FixShearHistory::min_setup_pre_exchange()
+void FixShearHistory::min_pre_exchange()
 {
-  if (*computeflag) pre_exchange();
-  *computeflag = 0;
+  pre_exchange();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixShearHistory::min_pre_exchange()
+void FixShearHistory::post_run()
 {
   pre_exchange();
 }

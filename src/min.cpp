@@ -418,6 +418,8 @@ void Min::run(int n)
 
 void Min::cleanup()
 {
+  modify->post_run();
+
   // stats for Finish to print
 
   efinal = ecurrent;

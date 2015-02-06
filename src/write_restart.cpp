@@ -113,11 +113,16 @@ void WriteRestart::command(int narg, char **arg)
   lmp->init();
 
   // move atoms to new processors before writing file
-  // do setup_pre_exchange to force update of per-atom info if needed
   // enforce PBC in case atoms are outside box
   // call borders() to rebuild atom map since exchange() destroys map
+  // NOTE: removed call to setup_pre_exchange
+  //   used to be needed by fixShearHistory for granular
+  //   to move history info from neigh list to atoms between runs
+  //   but now that is done via FIx::post_run()
+  //   don't think any other fix needs this or should do it
+  //   e.g. fix evaporate should not delete more atoms
 
-  modify->setup_pre_exchange();
+  // modify->setup_pre_exchange();
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();

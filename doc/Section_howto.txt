@@ -1604,15 +1604,15 @@ pressure"_compute_pressure.html command calculates pressure.
 "compute temp/ramp"_compute_temp_ramp.html
 "compute temp/region"_compute_temp_region.html :ul
 
-All but the first 3 calculate velocity biases (i.e. advection
+All but the first 3 calculate velocity biases directly (e.g. advection
 velocities) that are removed when computing the thermal temperature.
 "Compute temp/sphere"_compute_temp_sphere.html and "compute
 temp/asphere"_compute_temp_asphere.html compute kinetic energy for
 finite-size particles that includes rotational degrees of freedom.
-They both allow, as an extra argument, which is another temperature
-compute that subtracts a velocity bias.  This allows the translational
-velocity of spherical or aspherical particles to be adjusted in
-prescribed ways.
+They both allow for velocity biases indirectly, via an optional extra
+argument, another temperature compute that subtracts a velocity bias.
+This allows the translational velocity of spherical or aspherical
+particles to be adjusted in prescribed ways.
 
 Thermostatting in LAMMPS is performed by "fixes"_fix.html, or in one
 case by a pair style.  Several thermostatting fixes are available:
@@ -1645,15 +1645,21 @@ to the per-particle thermostatting of "fix
 langevin"_fix_langevin.html.
 
 Any of the thermostatting fixes can use temperature computes that
-remove bias for two purposes: (a) computing the current temperature to
-compare to the requested target temperature, and (b) adjusting only
-the thermal temperature component of the particle's velocities.  See
-the doc pages for the individual fixes and for the
+remove bias which has two effects.  First, the current calculated
+temperature, which is compared to the requested target temperature, is
+caluclated with the velocity bias removed.  Second, the thermostat
+adjusts only the thermal temperature component of the particle's
+velocities, which are the velocities with the bias removed.  The
+removed bias is then added back to the adjusted velocities.  See the
+doc pages for the individual fixes and for the
 "fix_modify"_fix_modify.html command for instructions on how to assign
 a temperature compute to a thermostatting fix.  For example, you can
 apply a thermostat to only the x and z components of velocity by using
 it in conjunction with "compute
-temp/partial"_compute_temp_partial.html.
+temp/partial"_compute_temp_partial.html.  Of you could thermostat only
+the thermal temperature of a streaming flow of particles without
+affecting the streaming velocity, by using "compute
+temp/profile"_compute_temp_profile.html.
 
 IMPORTANT NOTE: Only the nvt fixes perform time integration, meaning
 they update the velocities and positions of particles due to forces

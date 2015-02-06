@@ -38,13 +38,14 @@
 </PRE>
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>dist</I> or <I>sum</I> or <I>mom</I> or <I>rot</I> or <I>temp</I> or <I>loop</I> or <I>units</I> 
+<LI>keyword = <I>dist</I> or <I>sum</I> or <I>mom</I> or <I>rot</I> or <I>temp</I> or <I>bias</I> or <I>loop</I> or <I>units</I> 
 
 <PRE>  <I>dist</I> value = <I>uniform</I> or <I>gaussian</I>
   <I>sum</I> value = <I>no</I> or <I>yes</I>
   <I>mom</I> value = <I>no</I> or <I>yes</I> 
   <I>rot</I> value = <I>no</I> or <I>yes</I> 
-  <I>temp</I> value = temperature ID
+  <I>temp</I> value = temperature compute ID
+  <I>bias</I> value = <I>no</I> or <I>yes</I> 
   <I>loop</I> value = <I>all</I> or <I>local</I> or <I>geom</I>
   <I>rigid</I> value = fix-ID
     fix-ID = ID of rigid body fix
@@ -124,42 +125,69 @@ simulation is 2d; see the <A HREF = "dimension.html">dimension</A> command.
 </P>
 <HR>
 
-<P>The keyword/value option pairs are used in the following ways by the
+<P>The keyword/value options are used in the following ways by the
 various styles.
 </P>
-<P>The <I>dist</I> option is used by <I>create</I>.  The ensemble of generated
+<P>The <I>dist</I> keyword is used by <I>create</I>.  The ensemble of generated
 velocities can be a <I>uniform</I> distribution from some minimum to
 maximum value, scaled to produce the requested temperature.  Or it can
 be a <I>gaussian</I> distribution with a mean of 0.0 and a sigma scaled to
 produce the requested temperature.
 </P>
-<P>The <I>sum</I> option is used by all styles, except <I>zero</I>.  The new
+<P>The <I>sum</I> keyword is used by all styles, except <I>zero</I>.  The new
 velocities will be added to the existing ones if sum = yes, or will
 replace them if sum = no.
 </P>
-<P>The <I>mom</I> and <I>rot</I> options are used by <I>create</I>.  If mom = yes, the
+<P>The <I>mom</I> and <I>rot</I> keywords are used by <I>create</I>.  If mom = yes, the
 linear momentum of the newly created ensemble of velocities is zeroed;
 if rot = yes, the angular momentum is zeroed.
 </P>
-<P>The <I>temp</I> option is used by <I>create</I> and <I>scale</I> to specify a
-<A HREF = "compute.html">compute</A> that calculates temperature in a desired way.
-If this option is not specified, <I>create</I> and <I>scale</I> calculate
-temperature using a compute that is defined as follows:
+<P>*line
+</P>
+<P>If specified, the <I>temp</I> keyword is used by <I>create</I> and <I>scale</I> to
+specify a <A HREF = "compute.html">compute</A> that calculates temperature in a
+desired way, e.g. by first subtracting out a velocity bias, as
+discussed in <A HREF = "Section_howto.html#howto_15">Section howto 16</A> of the doc
+pages.  If this keyword is not specified, <I>create</I> and <I>scale</I>
+calculate temperature using a compute that is defined internally as
+follows:
 </P>
 <PRE>compute velocity_temp group-ID temp 
 </PRE>
 <P>where group-ID is the same ID used in the velocity command. i.e. the
 group of atoms whose velocity is being altered.  This compute is
 deleted when the velocity command is finished.  See the <A HREF = "compute_temp.html">compute
-temp</A> command for details.  If the computed
+temp</A> command for details.  If the calculated
 temperature should have degrees-of-freedom removed due to fix
 constraints (e.g. SHAKE or rigid-body constraints), then the
 appropriate fix command must be specified before the velocity command
 is issued.
 </P>
+<P>The <I>bias</I> keyword with a <I>yes</I> setting is used by <I>create</I> and
+<I>scale</I>, but only if the <I>temp</I> keyword is also used to specify a
+<A HREF = "compute.html">compute</A> that calculates temperature in a desired way.
+If the temperature compute also calculates a velocity bias, the the
+bias is subtracted from atom velocities before the <I>create</I> and
+<I>scale</I> operations are performed.  After the operations, the bias is
+added back to the atom velocities.  See <A HREF = "Section_howto.html#howto_15">Section howto
+16</A> of the doc pages for more discussion
+of temperature computes with biases.  Note that the velocity bias is
+only applied to atoms in the temperature compute specified with the
+<I>temp</I> keyword.
+</P>
+<P>As an example, assume atoms are currently streaming in a flow
+direction (which could be separately initialized with the <I>ramp</I>
+style), and you wish to initialize their thermal velocity to a desired
+temperature.  In this context thermal velocity means the per-particle
+velocity that remains when the streaming velocity is subtracted.  This
+can be done using the <I>create</I> style with the <I>temp</I> keyword
+specifying the ID of a <A HREF = "compute_temp_ramp.html">compute temp/ramp</A> or
+<A HREF = "compute_temp_profile.html">compute temp/profile</A> command, and the
+<I>bias</I> keyword set to a <I>yes</I> value.
+</P>
 <HR>
 
-<P>The <I>loop</I> option is used by <I>create</I> in the following ways.
+<P>The <I>loop</I> keyword is used by <I>create</I> in the following ways.
 </P>
 <P>If loop = all, then each processor loops over all atoms in the
 simulation to create velocities, but only stores velocities for atoms
@@ -183,23 +211,23 @@ xyz coordinates.  A velocity is generated using that seed.  This is a
 fast loop and the velocity assigned to a particular atom will be the
 same, independent of how many processors are used.  However, the set
 of generated velocities may be more correlated than if the <I>all</I> or
-<I>local</I> options are used.
+<I>local</I> keywords are used.
 </P>
-<P>Note that the <I>loop geom</I> option will not necessarily assign identical
-velocities for two simulations run on different machines.  This is
-because the computations based on xyz coordinates are sensitive to
-tiny differences in the double-precision value for a coordinate as
-stored on a particular machine.
+<P>Note that the <I>loop geom</I> keyword will not necessarily assign
+identical velocities for two simulations run on different machines.
+This is because the computations based on xyz coordinates are
+sensitive to tiny differences in the double-precision value for a
+coordinate as stored on a particular machine.
 </P>
 <HR>
 
-<P>The <I>rigid</I> option only has meaning when used with the <I>zero</I> style.
+<P>The <I>rigid</I> keyword only has meaning when used with the <I>zero</I> style.
 It allows specification of a fix-ID for one of the <A HREF = "fix_rigid.html">rigid-body
 fix</A> variants which defines a set of rigid bodies.  The
 zeroing of linear or angular momentum is then performed for each rigid
 body defined by the fix, as described above.
 </P>
-<P>The <I>units</I> option is used by <I>set</I> and <I>ramp</I>.  If units = box, 
+<P>The <I>units</I> keyword is used by <I>set</I> and <I>ramp</I>.  If units = box, 
 the velocities and coordinates specified in the velocity command are
 in the standard units described by the <A HREF = "units.html">units</A> command
 (e.g. Angstroms/fmsec for real units).  If units = lattice, velocities
@@ -207,14 +235,16 @@ are in units of lattice spacings per time (e.g. spacings/fmsec) and
 coordinates are in lattice spacings.  The <A HREF = "lattice.html">lattice</A>
 command must have been previously used to define the lattice spacing.
 </P>
+<HR>
+
 <P><B>Restrictions:</B>
 </P>
-<P>Assigning a temperature via the <I>create</I> option to a system with
-<A HREF = "fix_rigid.html">rigid bodies</A> or <A HREF = "fix_shake.html">SHAKE constraints</A>
-may not have the desired outcome for two reasons.  First, the velocity
-command can be invoked before all of the relevant fixes are created
-and initialized and the number of adjusted degrees of freedom (DOFs)
-is known.  Thus it is not possible to compute the target temperature
+<P>Assigning a temperature via the <I>create</I> style to a system with <A HREF = "fix_rigid.html">rigid
+bodies</A> or <A HREF = "fix_shake.html">SHAKE constraints</A> may not
+have the desired outcome for two reasons.  First, the velocity command
+can be invoked before all of the relevant fixes are created and
+initialized and the number of adjusted degrees of freedom (DOFs) is
+known.  Thus it is not possible to compute the target temperature
 correctly.  Second, the assigned velocities may be partially canceled
 when constraints are first enforced, leading to a different
 temperature than desired.  A workaround for this is to perform a <A HREF = "run.html">run
@@ -228,12 +258,13 @@ velocity all scale 300.0          # now it should be
 </PRE>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_rigid.html">fix rigid</A>, <A HREF = "fix_shake.html">fix shake</A>, <A HREF = "lattice.html">lattice</A>
+<P><A HREF = "fix_rigid.html">fix rigid</A>, <A HREF = "fix_shake.html">fix shake</A>,
+<A HREF = "lattice.html">lattice</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are dist = uniform, sum = no, mom = yes, rot = no,
-temp = full style on group-ID, loop = all, and units = lattice.  The
-rigid option is not defined by default.
+<P>The keyword defaults are dist = uniform, sum = no, mom = yes, rot =
+no, bias = no, loop = all, and units = lattice.  The temp and rigid
+keywords are not defined by default.
 </P>
 </HTML>

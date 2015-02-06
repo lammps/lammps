@@ -218,6 +218,38 @@ void ComputeTempPartial::remove_bias_all()
 }
 
 /* ----------------------------------------------------------------------
+   reset thermal velocity of atoms to be consistent with bias
+   called from velocity command after creating thermal velocities
+   needed to re-zero components that should stay zero
+------------------------------------------------------------------------- */
+
+void ComputeTempPartial::reapply_bias_all()
+{
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  if (nlocal > maxbias) {
+    memory->destroy(vbiasall);
+    maxbias = atom->nmax;
+    memory->create(vbiasall,maxbias,3,"temp/partial:vbiasall");
+  }
+
+  if (!xflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) v[i][0] = 0.0;
+  }
+  if (!yflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) v[i][1] = 0.0;
+  }
+  if (!zflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) v[i][2] = 0.0;
+  }
+}
+
+/* ----------------------------------------------------------------------
    add back in velocity bias to atom I removed by remove_bias()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */

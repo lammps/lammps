@@ -32,12 +32,13 @@ style = {create} or {set} or {scale} or {ramp} or {zero} :l
     {angular} = zero the angular momentum :pre
 
 zero or more keyword/value pairs may be appended :l
-keyword = {dist} or {sum} or {mom} or {rot} or {temp} or {loop} or {units} :l
+keyword = {dist} or {sum} or {mom} or {rot} or {temp} or {bias} or {loop} or {units} :l
   {dist} value = {uniform} or {gaussian}
   {sum} value = {no} or {yes}
   {mom} value = {no} or {yes} 
   {rot} value = {no} or {yes} 
-  {temp} value = temperature ID
+  {temp} value = temperature compute ID
+  {bias} value = {no} or {yes} 
   {loop} value = {all} or {local} or {geom}
   {rigid} value = fix-ID
     fix-ID = ID of rigid body fix
@@ -116,42 +117,69 @@ simulation is 2d; see the "dimension"_dimension.html command.
 
 :line
 
-The keyword/value option pairs are used in the following ways by the
+The keyword/value options are used in the following ways by the
 various styles.
 
-The {dist} option is used by {create}.  The ensemble of generated
+The {dist} keyword is used by {create}.  The ensemble of generated
 velocities can be a {uniform} distribution from some minimum to
 maximum value, scaled to produce the requested temperature.  Or it can
 be a {gaussian} distribution with a mean of 0.0 and a sigma scaled to
 produce the requested temperature.
 
-The {sum} option is used by all styles, except {zero}.  The new
+The {sum} keyword is used by all styles, except {zero}.  The new
 velocities will be added to the existing ones if sum = yes, or will
 replace them if sum = no.
 
-The {mom} and {rot} options are used by {create}.  If mom = yes, the
+The {mom} and {rot} keywords are used by {create}.  If mom = yes, the
 linear momentum of the newly created ensemble of velocities is zeroed;
 if rot = yes, the angular momentum is zeroed.
 
-The {temp} option is used by {create} and {scale} to specify a
-"compute"_compute.html that calculates temperature in a desired way.
-If this option is not specified, {create} and {scale} calculate
-temperature using a compute that is defined as follows:
+*line
+
+If specified, the {temp} keyword is used by {create} and {scale} to
+specify a "compute"_compute.html that calculates temperature in a
+desired way, e.g. by first subtracting out a velocity bias, as
+discussed in "Section howto 16"_Section_howto.html#howto_15 of the doc
+pages.  If this keyword is not specified, {create} and {scale}
+calculate temperature using a compute that is defined internally as
+follows:
 
 compute velocity_temp group-ID temp :pre
 
 where group-ID is the same ID used in the velocity command. i.e. the
 group of atoms whose velocity is being altered.  This compute is
 deleted when the velocity command is finished.  See the "compute
-temp"_compute_temp.html command for details.  If the computed
+temp"_compute_temp.html command for details.  If the calculated
 temperature should have degrees-of-freedom removed due to fix
 constraints (e.g. SHAKE or rigid-body constraints), then the
 appropriate fix command must be specified before the velocity command
 is issued.
 
+The {bias} keyword with a {yes} setting is used by {create} and
+{scale}, but only if the {temp} keyword is also used to specify a
+"compute"_compute.html that calculates temperature in a desired way.
+If the temperature compute also calculates a velocity bias, the the
+bias is subtracted from atom velocities before the {create} and
+{scale} operations are performed.  After the operations, the bias is
+added back to the atom velocities.  See "Section howto
+16"_Section_howto.html#howto_15 of the doc pages for more discussion
+of temperature computes with biases.  Note that the velocity bias is
+only applied to atoms in the temperature compute specified with the
+{temp} keyword.
+
+As an example, assume atoms are currently streaming in a flow
+direction (which could be separately initialized with the {ramp}
+style), and you wish to initialize their thermal velocity to a desired
+temperature.  In this context thermal velocity means the per-particle
+velocity that remains when the streaming velocity is subtracted.  This
+can be done using the {create} style with the {temp} keyword
+specifying the ID of a "compute temp/ramp"_compute_temp_ramp.html or
+"compute temp/profile"_compute_temp_profile.html command, and the
+{bias} keyword set to a {yes} value.
+
 :line
 
-The {loop} option is used by {create} in the following ways.
+The {loop} keyword is used by {create} in the following ways.
 
 If loop = all, then each processor loops over all atoms in the
 simulation to create velocities, but only stores velocities for atoms
@@ -175,23 +203,23 @@ xyz coordinates.  A velocity is generated using that seed.  This is a
 fast loop and the velocity assigned to a particular atom will be the
 same, independent of how many processors are used.  However, the set
 of generated velocities may be more correlated than if the {all} or
-{local} options are used.
+{local} keywords are used.
 
-Note that the {loop geom} option will not necessarily assign identical
-velocities for two simulations run on different machines.  This is
-because the computations based on xyz coordinates are sensitive to
-tiny differences in the double-precision value for a coordinate as
-stored on a particular machine.
+Note that the {loop geom} keyword will not necessarily assign
+identical velocities for two simulations run on different machines.
+This is because the computations based on xyz coordinates are
+sensitive to tiny differences in the double-precision value for a
+coordinate as stored on a particular machine.
 
 :line
 
-The {rigid} option only has meaning when used with the {zero} style.
+The {rigid} keyword only has meaning when used with the {zero} style.
 It allows specification of a fix-ID for one of the "rigid-body
 fix"_fix_rigid.html variants which defines a set of rigid bodies.  The
 zeroing of linear or angular momentum is then performed for each rigid
 body defined by the fix, as described above.
 
-The {units} option is used by {set} and {ramp}.  If units = box, 
+The {units} keyword is used by {set} and {ramp}.  If units = box, 
 the velocities and coordinates specified in the velocity command are
 in the standard units described by the "units"_units.html command
 (e.g. Angstroms/fmsec for real units).  If units = lattice, velocities
@@ -199,14 +227,16 @@ are in units of lattice spacings per time (e.g. spacings/fmsec) and
 coordinates are in lattice spacings.  The "lattice"_lattice.html
 command must have been previously used to define the lattice spacing.
 
+:line
+
 [Restrictions:]
 
-Assigning a temperature via the {create} option to a system with
-"rigid bodies"_fix_rigid.html or "SHAKE constraints"_fix_shake.html
-may not have the desired outcome for two reasons.  First, the velocity
-command can be invoked before all of the relevant fixes are created
-and initialized and the number of adjusted degrees of freedom (DOFs)
-is known.  Thus it is not possible to compute the target temperature
+Assigning a temperature via the {create} style to a system with "rigid
+bodies"_fix_rigid.html or "SHAKE constraints"_fix_shake.html may not
+have the desired outcome for two reasons.  First, the velocity command
+can be invoked before all of the relevant fixes are created and
+initialized and the number of adjusted degrees of freedom (DOFs) is
+known.  Thus it is not possible to compute the target temperature
 correctly.  Second, the assigned velocities may be partially canceled
 when constraints are first enforced, leading to a different
 temperature than desired.  A workaround for this is to perform a "run
@@ -220,10 +250,11 @@ velocity all scale 300.0          # now it should be :pre
 
 [Related commands:]
 
-"fix rigid"_fix_rigid.html, "fix shake"_fix_shake.html, "lattice"_lattice.html
+"fix rigid"_fix_rigid.html, "fix shake"_fix_shake.html,
+"lattice"_lattice.html
 
 [Default:]
 
-The option defaults are dist = uniform, sum = no, mom = yes, rot = no,
-temp = full style on group-ID, loop = all, and units = lattice.  The
-rigid option is not defined by default.
+The keyword defaults are dist = uniform, sum = no, mom = yes, rot =
+no, bias = no, loop = all, and units = lattice.  The temp and rigid
+keywords are not defined by default.

@@ -268,7 +268,7 @@ void Velocity::create(double t_desired, int seed)
           else factor = 1.0/sqrt(mass[type[m]]);
           v[m][0] = vx * factor;
           v[m][1] = vy * factor;
-          if (dim == 3) v[m][2] = vy * factor;
+          if (dim == 3) v[m][2] = vz * factor;
           else v[m][2] = 0.0;
         }
       }

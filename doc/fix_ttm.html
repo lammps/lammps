@@ -126,7 +126,7 @@ functional form for the temperature dependence of the electronic
 specific heat, but ignored temperature dependencies of any of the
 other parameters.  See more discussion below for fix ttm/mod.
 </P>
-<P>These fixes requires use of periodic boundary conditions and a 3D
+<P>These fixes require use of periodic boundary conditions and a 3D
 simulation.  Periodic boundary conditions are also used in the heat
 equation solve for the electronic subsystem.  This varies from the
 approach of <A HREF = "#Rutherford">(Rutherford)</A> where the atomic subsystem was
@@ -165,14 +165,14 @@ the electronic subsystem.  The ordering of the Nx*Ny*Nz columns is
 with the z index varing fastest, y the next fastest, and x the
 slowest.
 </P>
-<P>These fixes do not change the coordinates of its atoms; they only
+<P>These fixes do not change the coordinates of their atoms; they only
 scales their velocities.  Thus a time integration fix (e.g. <A HREF = "fix_nve.html">fix
 nve</A>) should still be used to time integrate the affected
-atoms.  Th fixes should not normally be used on atoms that have their
+atoms.  The fixes should not normally be used on atoms that have their
 temperature controlled by another fix - e.g. <A HREF = "fix_nh.html">fix nvt</A> or
 <A HREF = "fix_langevin.html">fix langevin</A>.
 </P>
-<P>IMPORTANT NOTE: The current implementation of these fixes creates a
+<P>IMPORTANT NOTE: The current implementations of these fixes create a
 copy of the electron grid that overlays the entire simulation domain,
 for each processor.  Values on the grid are summed across all
 processors.  Thus you should insure that this grid is not too large,
@@ -264,8 +264,8 @@ T_e_min, temperature units
 
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
-<P>These fixes writes the state of the electronic subsystem and the
-energy exchange between the subsystems to <A HREF = "restart.html">binary restart
+<P>These fixes write the state of the electronic subsystem and the energy
+exchange between the subsystems to <A HREF = "restart.html">binary restart
 files</A>.  See the <A HREF = "read_restart.html">read_restart</A> command
 for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an

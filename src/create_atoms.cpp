@@ -360,6 +360,8 @@ void CreateAtoms::command(int narg, char **arg)
   //   that need initialization of attributes of new atoms
   // don't use modify->create_attributes() since would be inefficient
   //   for large number of atoms
+  // note that for typical early use of create_atoms,
+  //   no fixes/computes/variables exist yet
 
   int nlocal = atom->nlocal;
   for (int m = 0; m < modify->nfix; m++) {

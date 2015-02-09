@@ -47,7 +47,6 @@ void PairGranHertzHistoryOMP::compute(int eflag, int vflag)
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
-  computeflag = 1;
   const int shearupdate = (update->setupflag) ? 0 : 1;
 
   // update rigid body info for owned & ghost atoms if using FixRigid masses

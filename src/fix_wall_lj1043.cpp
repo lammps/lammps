@@ -18,8 +18,10 @@
 #include "math.h"
 #include "fix_wall_lj1043.h"
 #include "atom.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -30,9 +32,9 @@ FixWallLJ1043::FixWallLJ1043(LAMMPS *lmp, int narg, char **arg) :
 
 void FixWallLJ1043::precompute(int m)
 {
-  coeff1[m] = 2.0/5.0 * epsilon[m] * pow(sigma[m],10.0);
-  coeff2[m] = epsilon[m] * pow(sigma[m],4.0);
-  coeff3[m] = pow(2.0,1/2.0) / 3 * epsilon[m] * pow(sigma[m],3.0);
+  coeff1[m] = MY_2PI * 2.0/5.0 * epsilon[m] * pow(sigma[m],10.0);
+  coeff2[m] = MY_2PI * epsilon[m] * pow(sigma[m],4.0);
+  coeff3[m] = MY_2PI * pow(2.0,1/2.0) / 3 * epsilon[m] * pow(sigma[m],3.0);
   coeff4[m] = 0.61 / pow(2.0,1/2.0) * sigma[m];
   coeff5[m] = coeff1[m] * 10.0;
   coeff6[m] = coeff2[m] * 4.0;

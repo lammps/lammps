@@ -356,8 +356,8 @@ int FixAtomSwap::attempt_semi_grand()
 
   int success = 0;
   if ((i >= 0) and (random_equal->uniform() < 
-      exp(-beta*(energy_after - energy_before) +
-              delta_mu[jtype] - delta_mu[itype]))) success = 1;
+      exp(-beta*(energy_after - energy_before
+            + delta_mu[jtype] - delta_mu[itype])))) success = 1;
   
   int success_all = 0;
   MPI_Allreduce(&success,&success_all,1,MPI_INT,MPI_MAX,world);

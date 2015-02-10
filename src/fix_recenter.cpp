@@ -129,7 +129,8 @@ void FixRecenter::init()
     else if ((modify->fmask[i] & INITIAL_INTEGRATE) && after) flag = 1;
   }
   if (flag && comm->me == 0)
-    error->warning(FLERR,"Fix recenter should come after all other integration fixes");
+    error->warning(FLERR,"Fix recenter should come after all other "
+                   "integration fixes");
 
   masstotal = group->mass(igroup);
 

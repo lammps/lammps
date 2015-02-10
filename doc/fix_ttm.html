@@ -187,9 +187,11 @@ heat sources (e.g. laser heating in ablation simulations):
 </P>
 <CENTER><IMG SRC = "Eqs/fix_ttm_mod.jpg">
 </CENTER>
-<P>where I_0 is the (absorbed) laser pulse intensity for ablation
-simulations, l_skin is the depth of skin-layer, and all other
-designations have the same meaning as in the former equation.
+<P>where theta is the Heaviside step function, I_0 is the (absorbed) 
+laser pulse intensity for ablation simulations, l_skin is the depth 
+of skin-layer, and all other designations have the same meaning as in 
+the former equation. The duration of the pulse is set by the parameter
+<I>tau</I> in the <I>init_file</I>.
 </P>
 <P>Fix ttm/mod also allows users to specify the dependencies of C_e and
 kappa_e on the electronic temperature. The specific heat is expressed

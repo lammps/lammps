@@ -49,7 +49,6 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   single_extra = 4;
   svector = new double[4];
 
-  computeflag = 0;
   neighprev = 0;
 
   nmax = 0;
@@ -100,7 +99,6 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-  computeflag = 1;
   int shearupdate = 1;
   if (update->setupflag) shearupdate = 0;
 
@@ -784,15 +782,6 @@ void PairGranHookeHistory::unpack_forward_comm(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++)
     mass_rigid[i] = buf[m++];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void *PairGranHookeHistory::extract(const char *str, int &dim)
-{
-  dim = 0;
-  if (strcmp(str,"computeflag") == 0) return (void *) &computeflag;
-  return NULL;
 }
 
 /* ----------------------------------------------------------------------

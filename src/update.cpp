@@ -429,7 +429,7 @@ void Update::reset_timestep(bigint newstep)
   atimestep = ntimestep;
 
   // trigger reset of timestep for output and for fixes that require it
-  // do not allow any timestep-dependent fixes to be defined
+  // do not allow any timestep-dependent fixes to be already defined
 
   output->reset_timestep(ntimestep);
 

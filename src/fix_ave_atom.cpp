@@ -43,6 +43,8 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   nrepeat = force->inumeric(FLERR,arg[4]);
   peratom_freq = force->inumeric(FLERR,arg[5]);
 
+  time_depend = 1;
+
   // parse remaining values
 
   which = new int[narg-6];

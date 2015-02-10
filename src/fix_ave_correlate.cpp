@@ -55,6 +55,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   nfreq = force->inumeric(FLERR,arg[5]);
 
   global_freq = nfreq;
+  time_depend = 1;
 
   // parse values until one isn't recognized
 

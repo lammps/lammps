@@ -6755,6 +6755,10 @@ requested accuracy. :dd
 
 This is a limitation of the PPPM implementation in LAMMPS. :dd
 
+{PPPMDisp used but no parameters set, for further information please see the pppm/disp documentation} :dt
+
+An efficient and accurate usage of the pppm/disp requires settings via the kspace_modify command. Please see the pppm/disp documentation for further instructions. :dd
+
 {PRD command before simulation box is defined} :dt
 
 The prd command cannot be used before a read_data,

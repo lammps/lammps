@@ -120,6 +120,12 @@ class Compute : protected Pointers {
 
   virtual void reset_extra_compute_fix(const char *);
 
+  virtual void lock_enable() {}
+  virtual void lock_disable() {}
+  virtual int lock_length() {return 0;}
+  virtual void lock(class Fix *, bigint, bigint) {}
+  virtual void unlock(class Fix *) {}
+
   void addstep(bigint);
   int matchstep(bigint);
   void clearstep();

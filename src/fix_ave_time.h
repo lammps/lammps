@@ -43,9 +43,12 @@ class FixAveTime : public Fix {
   int nrepeat,nfreq,irepeat;
   bigint nvalid;
   int *which,*argindex,*value2index,*offcol;
+  int *varlen;               // 1 if value is from variable-length compute
   char **ids;
   FILE *fp;
   int nrows;
+  int any_variable_length;
+  int all_variable_length;
 
   int ave,nwindow,startstep,mode;
   int noff,overwrite;
@@ -62,10 +65,12 @@ class FixAveTime : public Fix {
   double **array_total;
   double ***array_list;
 
+  int column_length(int);
   void invoke_scalar(bigint);
   void invoke_vector(bigint);
   void options(int, char **);
   void allocate_values(int);
+  void allocate_arrays();
   bigint nextvalid();
 };
 

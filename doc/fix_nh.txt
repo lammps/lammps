@@ -361,11 +361,10 @@ temp/berendsen"_fix_temp_berendsen.html command which performs
 thermostatting but NO time integration, these fixes perform
 thermostatting/barostatting AND time integration.  Thus you should not
 use any other time integration fix, such as "fix nve"_fix_nve.html on
-atoms to which this fix is applied.  Likewise, the {temp} options for
-fix nvt and fix npt should not normally be used on atoms that also
-have their temperature controlled by another fix - e.g. by "fix
-langevin"_fix_nh.html or "fix temp/rescale"_fix_temp_rescale.html
-commands.
+atoms to which this fix is applied.  Likewise, fix nvt and fix npt
+should not normally be used on atoms that also have their temperature
+controlled by another fix - e.g. by "fix langevin"_fix_nh.html or "fix
+temp/rescale"_fix_temp_rescale.html commands.
 
 See "this howto section"_Section_howto.html#howto_16 of the manual for
 a discussion of different ways to compute temperature and perform

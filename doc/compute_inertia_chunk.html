@@ -64,7 +64,7 @@ image</A> command.
 calculation to a file is to use the <A HREF = "fix_ave_time.html">fix ave/time</A>
 command, for example:
 </P>
-<PRE>compute cc1 chunk/atom molecule
+<PRE>compute cc1 all chunk/atom molecule
 compute myChunk all inertia/chunk cc1
 fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector 
 </PRE>

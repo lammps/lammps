@@ -2159,7 +2159,7 @@ Here, each of the 3 kinds of chunk-related commands is briefly
 overviewed.  Then some examples are given of how to compute different
 properties with chunk commands.
 
-"Compute chunk/atom"_compute_chunk_atom.html command :h5
+"Compute chunk/atom"_compute_chunk_atom.html command: :h5
 
 This compute can assign atoms to chunks of various styles.  Only atoms
 in the specified group and optional specified region are assigned to a
@@ -2198,7 +2198,7 @@ do this.  You can also define a "per-atom variable"_variable.html in
 the input script that uses a formula to generate a chunk ID for each
 atom.
 
-"Fix ave/chunk"_fix_ave_chunk_atom.html command :h5
+"Fix ave/chunk"_fix_ave_chunk_atom.html command: :h5
 
 This fix takes the ID of a "compute
 chunk/atom"_compute_chunk_atom.html command as input.  For each chunk,
@@ -2215,7 +2215,7 @@ values to be time-averaged in various ways, and output to a file.  The
 fix produces a global array as output with one row of values per
 chunk.
 
-Compute */chunk commands :h5
+Compute */chunk commands: :h5
 
 Currently the following computes operate on chunks of atoms to produce
 per-chunk values.
@@ -2264,41 +2264,39 @@ Example calculations with chunks :h5
 Here are eaxmples using chunk commands to calculate various
 properties:
 
-(1) Mimic the deprecated fix ave/spatial command, to average atom
-velocity in each spatial bin:
+(1) Average velocity in each of 1000 2d spatial bins:
 
-Old command:
+compute cc1 all chunk/atom bin/2d x 0.0 0.1 y lower 0.01 units reduced
+fix 1 all ave/chunk 100 10 1000 cc1 vx vy file tmp.out :pre
 
-fix ave/spatial
+(2) Temperature in each spatial bin, after subtracting a flow
+velocity:
 
-New commands:
+compute cc1 all chunk/atom bin/2d x 0.0 0.1 y lower 0.1 units reduced
+compute vbias all temp/profile 1 0 0 y 10
+fix 1 all ave/chunk 100 10 1000 cc1 temp bias vbias file tmp.out :pre
 
-compute chunk/atom
-fix ave/chunk
+(3) Center of mass of each molecule:
 
-(2) Mimincing the deprecated compute msd/molecule command
-to compute the mean-squared displacement of each molecule:
+compute cc1 all chunk/atom molecule
+compute myChunk all com/chunk cc1
+fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector :pre
 
-Old commands:
+(4) Total force on each molecule and ave/max across all molecules:
 
-compute molecule/msd
-fix ave/time file msd.molecule
+compute cc1 all chunk/atom molecule
+fix 1 all ave/chunk 1000 1 1000 cc1 fx fy fz file tmp.out
+variable xave equal ave(f_1[2])
+variable xmax equal max(f_1[2])
+thermo 1000
+thermo_style custom step temp v_xave v_xmax :pre
 
-New commands:
+(5) Histogram of cluster sizes:
 
-compute chunk/atom style
-compute molecule/chunk
-fix ave/time file msd.molecule
-
-(3) print or time ave total force per molecule
-   average across molecules (variable special functions)
-
-(4) histogram of cluster sizes (use fix ave/histo)
-
-(5) count of # of atoms with each coord #
-  don't need chunking, just fix ave/histo on coord/atom
-
-(6) ave temperature per bin
+compute cluster all cluster/atom 1.0
+compute cc1 all chunk/atom c_cluster compress yes
+compute size all property/chunk cc1 count
+fix 1 all ave/histo 100 1 100 0 20 20 c_size mode vector ave running beyond ignore file tmp.histo :pre
 
 :line
 :line

@@ -58,7 +58,7 @@ keyword = {norm} or {ave} or {bias} or {adof} or {cdof} or {file} or {overwrite}
 
 [Examples:]
 
-fix 1 all ave/chunk 10000 1 10000 binchunk c_myCentro ttle1 "My output values"
+fix 1 all ave/chunk 10000 1 10000 binchunk c_myCentro title1 "My output values"
 fix 1 flow ave/chunk 100 10 1000 molchunk vx vz norm sample file vel.profile
 fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running
 fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running :pre
@@ -81,11 +81,11 @@ fix 1 flow ave/chunk 100 10 1000 cc1 vx vz norm sample file vel.profile :pre
 [Description:]
 
 Use one or more per-atom vectors as inputs every few timesteps, sum
-their values for multiple chunks of atoms, and average the values for
-each chunk over longer timescales.  The resulting chunk averages can
-be used by other "output commands"_Section_howto.html#howto_15 such as
-"thermo_style custom"_thermo_style.html, and can also be written to a
-file.
+the values over the atoms in each chunk at each timestep, then average
+the per-chunk values over longer timescales.  The resulting chunk
+averages can be used by other "output
+commands"_Section_howto.html#howto_15 such as "thermo_style
+custom"_thermo_style.html, and can also be written to a file.
 
 In LAMMPS, chunks are collections of atoms defined by a "compute
 chunk/atom"_compute_chunk_atom.html command, which assigns each atom
@@ -181,15 +181,14 @@ property/atom"_compute_property_atom.html command and then specifying
 an input value from that compute.
 
 The {density/number} value means the number density is computed for
-each chunk, i.e. a weighting of 1 for each atom.  The {density/mass}
-value means the mass density is computed for each , i.e. each atom is
-weighted by its mass.  The resulting density is normalized by the
-volume of the chunk so that units of number/volume or density are
-output.  See the "units"_units.html command doc page for the
-definition of density for each choice of units, e.g. gram/cm^3.  If
-the chunks defined by the "compute chunk/atom"_compute_chunk_atom.html
-command are spatial bins, the volume is the bin volume.  Otherwise it
-is the volume of the entire simulation box.
+each chunk, i.e. number/volume.  The {density/mass} value means the
+mass density is computed for each chunk, i.e. total-mass/volume.  The
+output values are in units of 1/volume or density (mass/volume).  See
+the "units"_units.html command doc page for the definition of density
+for each choice of units, e.g. gram/cm^3.  If the chunks defined by
+the "compute chunk/atom"_compute_chunk_atom.html command are spatial
+bins, the volume is the bin volume.  Otherwise it is the volume of the
+entire simulation box.
 
 The {temp} value means the temperature is computed for each chunk, by
 the formula KE = DOF/2 k T, where KE = total kinetic energy of the

@@ -1,0 +1,92 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute com/chunk command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID com/chunk chunkID 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>com/chunk = style name of this compute command
+<LI>chunkID = ID of <A HREF = "compute_chunk_atom.html">compute chunk/atom</A> command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 fluid com/chunk molchunk 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the center-of-mass for multiple
+chunks of atoms.
+</P>
+<P>In LAMMPS, chunks are collections of atoms defined by a <A HREF = "compute_chunk_atom.html">compute
+chunk/atom</A> command, which assigns each atom
+to a single chunk (or no chunk).  The ID for this command is specified
+as chunkID.  For example, a single chunk could be the atoms in a
+molecule or atoms in a spatial bin.  See the <A HREF = "compute_chunk_atom.html">compute
+chunk/atom</A> doc page and "<A HREF = "Section_howto.html#howto_23">Section_howto
+23</A> for details of how chunks can be
+defined and examples of how they can be used to measure properties of
+a system.
+</P>
+<P>This compute calculates the x,y,z coordinates of the center-of-mass
+for each chunk, which includes all effects due to atoms passing thru
+periodic boundaries.
+</P>
+<P>Note that only atoms in the specified group contribute to the
+calculation.  The <A HREF = "compute_chunk_atom.html">compute chunk/atom</A> command
+defines its own group; atoms will have a chunk ID = 0 if they are not
+in that group, signifying they are not assigned to a chunk, and will
+thus also not contribute to this calculation.  You can specify the
+"all" group for this command if you simply want to include atoms with
+non-zero chunk IDs.
+</P>
+<P>IMPORTANT NOTE: The coordinates of an atom contribute to the chunk's
+center-of-mass in "unwrapped" form, by using the image flags
+associated with each atom.  See the <A HREF = "dump.html">dump custom</A> command
+for a discussion of "unwrapped" coordinates.  See the Atoms section of
+the <A HREF = "read_data.html">read_data</A> command for a discussion of image flags
+and how they are set for each atom.  You can reset the image flags
+(e.g. to 0) before invoking this compute by using the <A HREF = "set.html">set
+image</A> command.
+</P>
+<P>The simplest way to output the results of the compute com/chunk
+calculation to a file is to use the <A HREF = "fix_ave_time.html">fix ave/time</A>
+command, for example:
+</P>
+<PRE>compute cc1 chunk/atom molecule
+compute myChunk all com/chunk cc1
+fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector 
+</PRE>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global array where the number of rows = the
+number of chunks <I>Nchunk</I> as calculated by the specified <A HREF = "compute_chunk_atom.html">compute
+chunk/atom</A> command.  The number of columns =
+3 for the x,y,z center-of-mass coordinates of each chunk.  These
+values can be accessed by any command that uses global array values
+from a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
+15</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The array values are "intensive".  The array values will be in
+distance <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_com.html">compute com</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -180,14 +180,13 @@ are given in the compute section of <A HREF = "Section_commands.html#cmd_5">this
 page</A>.
 </P>
 <UL><LI><A HREF = "compute_bond_local.html">angle/local</A> - theta and energy of each angle
-<LI><A HREF = "compute_atom_molecule.html">atom/molecule</A> - sum per-atom properties for each molecule
 <LI><A HREF = "compute_body_local.html">body/local</A> - attributes of body sub-particles
 <LI><A HREF = "compute_bond_local.html">bond/local</A> - distance and energy of each bond
 <LI><A HREF = "compute_centro_atom.html">centro/atom</A> - centro-symmetry parameter for each atom
 <LI><A HREF = "compute_cluster_atom.html">cluster/atom</A> - cluster ID for each atom
 <LI><A HREF = "compute_cna_atom.html">cna/atom</A> - common neighbor analysis (CNA) for each atom
 <LI><A HREF = "compute_com.html">com</A> - center-of-mass of group of atoms
-<LI><A HREF = "compute_com_molecule.html">com/molecule</A> - center-of-mass for each molecule
+<LI><A HREF = "compute_com_chunk.html">com/chunk</A> - center-of-mass for each chunk
 <LI><A HREF = "compute_contact_atom.html">contact/atom</A> - contact count for each spherical particle
 <LI><A HREF = "compute_coord_atom.html">coord/atom</A> - coordination number for each atom
 <LI><A HREF = "compute_damage_atom.html">damage/atom</A> - Peridynamic damage for each atom
@@ -201,15 +200,15 @@ page</A>.
 <LI><A HREF = "compute_event_displace.html">event/displace</A> - detect event on atom displacement
 <LI><A HREF = "compute_group_group.html">group/group</A> - energy/force between two groups of atoms
 <LI><A HREF = "compute_gyration.html">gyration</A> - radius of gyration of group of atoms
-<LI><A HREF = "compute_gyration_molecule.html">gyration/molecule</A> - radius of gyration for each molecule
+<LI><A HREF = "compute_gyration_chunk.html">gyration/chunk</A> - radius of gyration for each chunk
 <LI><A HREF = "compute_heat_flux.html">heat/flux</A> - heat flux through a group of atoms
 <LI><A HREF = "compute_improper_local.html">improper/local</A> - angle of each improper
-<LI><A HREF = "compute_inertia_molecule.html">inertia/molecule</A> - inertia tensor for each molecule
+<LI><A HREF = "compute_inertia_chunk.html">inertia/chunk</A> - inertia tensor for each chunk
 <LI><A HREF = "compute_ke.html">ke</A> - translational kinetic energy
 <LI><A HREF = "compute_ke_atom.html">ke/atom</A> - kinetic energy for each atom
 <LI><A HREF = "compute_ke_rigid.html">ke/rigid</A> - translational kinetic energy of rigid bodies
 <LI><A HREF = "compute_msd.html">msd</A> - mean-squared displacement of group of atoms
-<LI><A HREF = "compute_msd_molecule.html">msd/molecule</A> - mean-squared displacement for each molecule
+<LI><A HREF = "compute_msd_chunk.html">msd/chunk</A> - mean-squared displacement for each chunk
 <LI><A HREF = "compute_msd_nongauss.html">msd/nongauss</A> - MSD and non-Gaussian parameter of group of atoms
 <LI><A HREF = "compute_pair.html">pair</A> - values computed by a pair style
 <LI><A HREF = "compute_pair_local.html">pair/local</A> - distance/energy/force of each pairwise interaction
@@ -219,7 +218,7 @@ page</A>.
 <LI><A HREF = "compute_pressure.html">pressure</A> - total pressure and pressure tensor
 <LI><A HREF = "compute_property_atom.html">property/atom</A> - convert atom attributes to per-atom vectors/arrays
 <LI><A HREF = "compute_property_local.html">property/local</A> - convert local attributes to localvectors/arrays
-<LI><A HREF = "compute_property_molecule.html">property/molecule</A> - convert molecule attributes to localvectors/arrays
+<LI><A HREF = "compute_property_chunk.html">property/chunk</A> - extract various per-chunk attributes
 <LI><A HREF = "compute_rdf.html">rdf</A> - radial distribution function g(r) histogram of group of atoms
 <LI><A HREF = "compute_reduce.html">reduce</A> - combine per-atom quantities into a single global value
 <LI><A HREF = "compute_reduce.html">reduce/region</A> - same as compute reduce, within a region
@@ -230,6 +229,7 @@ page</A>.
 <LI><A HREF = "compute_stress_atom.html">stress/atom</A> - stress tensor for each atom
 <LI><A HREF = "compute_temp.html">temp</A> - temperature of group of atoms
 <LI><A HREF = "compute_temp_asphere.html">temp/asphere</A> - temperature of aspherical particles
+<LI><A HREF = "compute_temp_chunk.html">temp/chunk</A> - temperature of each chunk
 <LI><A HREF = "compute_temp_com.html">temp/com</A> - temperature after subtracting center-of-mass velocity
 <LI><A HREF = "compute_temp_deform.html">temp/deform</A> - temperature excluding box deformation velocity
 <LI><A HREF = "compute_temp_partial.html">temp/partial</A> - temperature excluding one or more dimensions of velocity
@@ -238,7 +238,9 @@ page</A>.
 <LI><A HREF = "compute_temp_region.html">temp/region</A> - temperature of a region of atoms
 <LI><A HREF = "compute_temp_sphere.html">temp/sphere</A> - temperature of spherical particles
 <LI><A HREF = "compute_ti.html">ti</A> - thermodyanmic integration free energy values
+<LI><A HREF = "compute_torque_chunk.html">torque/chunk</A> - torque applied on each chunk
 <LI><A HREF = "compute_vacf.html">vacf</A> - velocity-autocorrelation function of group of atoms
+<LI><A HREF = "compute_vcm_chunk.html">vcm/chunk</A> - velocity of center-of-mass for each chunk
 <LI><A HREF = "compute_voronoi_atom.html">voronoi/atom</A> - Voronoi volume and neighbors for each atom 
 </UL>
 <P>There are also additional compute styles submitted by users which are

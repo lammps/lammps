@@ -1,0 +1,173 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute temp/chunk command :h3
+
+[Syntax:]
+
+compute ID group-ID temp/chunk chunkID keyword value ... :pre
+
+ID, group-ID are documented in "compute"_compute.html command :ulb,l
+temp/chunk = style name of this compute command :l
+chunkID = ID of "compute chunk/atom"_compute_chunk_atom.html command :l
+zero or more keyword/value pairs may be appended :l
+keyword = {com} or {bias}or {adof} or {cdof} :l
+  {com} value = {yes} or {no}
+    yes = subtract center-of-mass velocity from each chunk before calculating temperature
+    no = do not subtract center-of-mass velocity
+  {bias} value = bias-ID
+    bias-ID = ID of a temperature compute that removes a velocity bias
+  {adof} value = dof_per_atom
+    dof_per_atom = define this many degrees-of-freedom per atom
+  {cdof} value = dof_per_chunk
+    dof_per_chunk = define this many degrees-of-freedom per chunk :pre
+:ule
+
+[Examples:]
+
+compute 1 fluid temp/chunk molchunk :pre
+compute 1 fluid temp/chunk molchunk bias tpartial adof 2.0 :pre
+
+[Description:]
+
+Define a computation that calculates the temperature of multiple
+chunks of atoms.  Note that unlike other computes with style names
+temp/* which calculate the temperature of an entire group of atoms,
+this compute cannot be used by any command that uses such a
+temperature compute, e.g. "thermo_modify"_thermo_modify.html, "fix
+temp/rescale"_fix_temp_rescale.html, "fix npt"_fix_nh.html, etc.  That
+is because this compute calculates multiple temperatures, one per
+chunk.
+
+In LAMMPS, chunks are collections of atoms defined by a "compute
+chunk/atom"_compute_chunk_atom.html command, which assigns each atom
+to a single chunk (or no chunk).  The ID for this command is specified
+as chunkID.  For example, a single chunk could be the atoms in a
+molecule or atoms in a spatial bin.  See the "compute
+chunk/atom"_compute_chunk_atom.html doc page and ""Section_howto
+23"_Section_howto.html#howto_23 for details of how chunks can be
+defined and examples of how they can be used to measure properties of
+a system.
+
+This compute calculates the temperature for each chunk by the formula
+KE = DOF/2 k T, where KE = total kinetic energy of the chunk of atoms
+(sum of 1/2 m v^2), DOF = the total number of degrees of freedom for
+all atoms in the chunk, k = Boltzmann constant, and T = temperature.
+
+The DOF is calculated as N*adof + cdof, where N = number of atoms in
+the chunk, adof = degrees of freedom per atom, and cdof = degrees of
+freedom per chunk.  By default adof = 2 or 3 = dimensionality of
+system, as set via the "dimension"_dimension.html command, and cdof =
+0.0.  This gives the usual formula for temperature.
+
+Note that currently this temperature only includes translational
+degrees of freedom for each atom.  No rotational degrees of freedom
+are included for finite-size particles.  Also no degrees of freedom
+are subtracted for any velocity bias or constraints that are applied,
+such as "compute temp/partial"_compute_temp_partial.html, or "fix
+shake"_fix_shake.html or "fix rigid"_fix_rigid.html.  This is because
+those degrees of freedom (e.g. a constrained bond) could apply to sets
+of atoms that are both included and excluded from a specific chunk,
+and hence the concept is somewhat ill-defined.  In some cases, you can
+use the {adof} and {cdof} keywords to adjust the calculated degress of
+freedom appropriately, as explained below.
+
+Also note that a bias can be subtracted from atom velocities before
+they are used in the above formula for KE, by using the {bias}
+keyword.  This allows, for example, a thermal temperature to be
+computed after removal of a flow velocity profile.
+
+Note that this compute and the "fix ave/chunk temp"_fix_ave_chunk.html
+command can calculate different things.  This compute calculates the
+temperature for each chunk for a single snapshot.  Fix ave/chunk can
+do that but can time average those values over many snapshots, or it
+can compute a temperature as if the atoms in the chunk on different
+timesteps were collected together as one set of atoms to calculate
+their temperature.  This compute allows the center-of-mass velocity of
+each chunk to be subtracted before calculating the temperature; fix
+ave/chunk does not.
+
+Note that only atoms in the specified group contribute to the
+calculation.  The "compute chunk/atom"_compute_chunk_atom.html command
+defines its own group; atoms will have a chunk ID = 0 if they are not
+in that group, signifying they are not assigned to a chunk, and will
+thus also not contribute to this calculation.  You can specify the
+"all" group for this command if you simply want to include atoms with
+non-zero chunk IDs.
+
+The simplest way to output the results of the compute temp/chunk
+calculation to a file is to use the "fix ave/time"_fix_ave_time.html
+command, for example:
+
+compute cc1 chunk/atom molecule
+compute myChunk all temp/chunk cc1
+fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector :pre
+
+:line
+
+The keyword/value option pairs are used in the following ways.
+
+The {com} keyword can be used with a value of {yes} to subtract the
+velocity of the center-of-mass for each chunk from the velocity of the
+atoms in that chunk, before calculating the temperature.  This can be
+useful if the atoms are streaming or otherwise moving collectively,
+and you wish to calculate only the thermal temperature.
+
+For the {bias} keyword, {bias-ID} refers to the ID of a temperature
+compute that removes a "bias" velocity from each atom.  This also
+allows compute temp/chunk to compute the thermal temperature of each
+chunk after the translational kinetic energy components have been
+altered in a prescribed way, e.g. to remove a velocity profile.  Note
+that the temperature compute will apply its bias globally to the
+entire system, not on a per-chunk basis.
+
+The {adof} and {cdof} keywords define the values used in the degree of
+freedom (DOF) formula used for each chunk, as described above.  They
+can be used to calculate a more appropriate temperature for some kinds
+of chunks.  Here are 3 examples.
+
+If spatially binned chunks contain some number of water molecules and
+"fix shake"_fix_shake.html is used to make each molecule rigid, then
+you could calculate a temperature with 6 degrees of freedom (DOF) (3
+translational, 3 rotational) per molecule by setting {adof} to 2.0.
+If "compute temp/partial"_compute_temp_partial.html is used with the
+{bias} keyword to only allow the x component of velocity to contribute
+to the temperature, then {adof} = 1.0 would be appropriate.  If each
+chunk consists of a large molecule, with some number of its bonds
+constrained by "fix shake"_fix_shake.html or the entire molecule by
+"fix rigid/small"_fix_rigid.html, then {cdof} could be set to the
+remaining degrees of freedom for the entire molecule (entire chunk in
+this case).
+
+:line
+
+[Output info:]
+
+This compute calculates a global vector where the number of rows = the
+number of chunks {Nchunk} as calculated by the specified "compute
+chunk/atom"_compute_chunk_atom.html command.  These values can be
+accessed by any command that uses global vector values from a compute
+as input.  See "Section_howto 15"_Section_howto.html#howto_15 for an
+overview of LAMMPS output options.
+
+The vector values are "intensive".  The vector values will be in
+temperature "units"_units.html.
+
+[Restrictions:]
+
+The {com} and {bias} keywords cannot be used together.
+
+[Related commands:]
+
+"compute temp"_compute_temp.html, "fix ave/chunk
+temp"_fix_ave_chunk.html
+
+[Default:]
+
+The option defaults are com no, no bias, adof = dimensionality of the
+system (2 or 3), and cdof = 0.0.

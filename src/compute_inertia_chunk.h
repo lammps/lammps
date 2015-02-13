@@ -13,37 +13,42 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(property/molecule,ComputePropertyMolecule)
+ComputeStyle(inertia/chunk,ComputeInertiaChunk)
 
 #else
 
-#ifndef LMP_COMPUTE_PROPERTY_MOLECULE_H
-#define LMP_COMPUTE_PROPERTY_MOLECULE_H
+#ifndef LMP_COMPUTE_INERTIA_CHUNK_H
+#define LMP_COMPUTE_INERTIA_CHUNK_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputePropertyMolecule : public Compute {
+class ComputeInertiaChunk : public Compute {
  public:
-  ComputePropertyMolecule(class LAMMPS *, int, char **);
-  ~ComputePropertyMolecule();
+  ComputeInertiaChunk(class LAMMPS *, int, char **);
+  ~ComputeInertiaChunk();
   void init();
-  void compute_vector();
   void compute_array();
+
+  void lock_enable();
+  void lock_disable();
+  int lock_length();
+  void lock(class Fix *, bigint, bigint);
+  void unlock(class Fix *);
+
   double memory_usage();
 
  private:
-  int nvalues,nmolecules;
-  tagint idlo,idhi;
+  int nchunk,maxchunk;
+  char *idchunk;
+  class ComputeChunkAtom *cchunk;
 
-  double *buf;
+  double *massproc,*masstotal;
+  double **com,**comall;
+  double **inertia,**inertiaall;
 
-  typedef void (ComputePropertyMolecule::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;              // ptrs to pack functions
-
-  void pack_mol(int);
-  void pack_count(int);
+  void allocate();
 };
 
 }
@@ -59,15 +64,11 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Compute property/molecule requires molecular atom style
+E: Compute inertia/molecule requires molecular atom style
 
 Self-explanatory.
 
-E: Invalid keyword in compute property/molecule command
-
-Self-explanatory.
-
-E: Molecule count changed in compute property/molecule
+E: Molecule count changed in compute inertia/molecule
 
 Number of molecules must remain constant over time.
 

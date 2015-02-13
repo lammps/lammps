@@ -13,31 +13,53 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(com/molecule,ComputeCOMMolecule)
+ComputeStyle(property/chunk,ComputePropertyChunk)
 
 #else
 
-#ifndef LMP_COMPUTE_COM_MOLECULE_H
-#define LMP_COMPUTE_COM_MOLECULE_H
+#ifndef LMP_COMPUTE_CHUNK_MOLECULE_H
+#define LMP_COMPUTE_CHUNK_MOLECULE_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeCOMMolecule : public Compute {
+class ComputePropertyChunk : public Compute {
  public:
-  ComputeCOMMolecule(class LAMMPS *, int, char **);
-  ~ComputeCOMMolecule();
+  ComputePropertyChunk(class LAMMPS *, int, char **);
+  ~ComputePropertyChunk();
   void init();
+  void compute_vector();
   void compute_array();
+
+  void lock_enable();
+  void lock_disable();
+  int lock_length();
+  void lock(class Fix *, bigint, bigint);
+  void unlock(class Fix *);
+
   double memory_usage();
 
  private:
-  int nmolecules;
-  tagint idlo,idhi;
+  int nchunk,maxchunk;
+  char *idchunk;
+  class ComputeChunkAtom *cchunk;
+  int *ichunk;
 
-  double *massproc,*masstotal;
-  double **com,**comall;
+  int nvalues,countflag;
+  double *buf;
+  int *count_one,*count_all;
+
+  void allocate();
+
+  typedef void (ComputePropertyChunk::*FnPtrPack)(int);
+  FnPtrPack *pack_choice;              // ptrs to pack functions
+
+  void pack_count(int);
+  void pack_id(int);
+  void pack_coord1(int);
+  void pack_coord2(int);
+  void pack_coord3(int);
 };
 
 }
@@ -53,11 +75,15 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Compute com/molecule requires molecular atom style
+E: Compute property/molecule requires molecular atom style
 
 Self-explanatory.
 
-E: Molecule count changed in compute com/molecule
+E: Invalid keyword in compute property/molecule command
+
+Self-explanatory.
+
+E: Molecule count changed in compute property/molecule
 
 Number of molecules must remain constant over time.
 

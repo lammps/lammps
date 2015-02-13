@@ -13,31 +13,47 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(vcm/molecule,ComputeVCMMolecule)
+ComputeStyle(gyration/chunk,ComputeGyrationChunk)
 
 #else
 
-#ifndef LMP_COMPUTE_VCM_MOLECULE_H
-#define LMP_COMPUTE_VCM_MOLECULE_H
+#ifndef LMP_COMPUTE_GYRATION_CHUNK_H
+#define LMP_COMPUTE_GYRATION_CHUNK_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeVCMMolecule : public Compute {
+class ComputeGyrationChunk : public Compute {
  public:
-  ComputeVCMMolecule(class LAMMPS *, int, char **);
-  ~ComputeVCMMolecule();
+  ComputeGyrationChunk(class LAMMPS *, int, char **);
+  ~ComputeGyrationChunk();
   void init();
+  void compute_vector();
   void compute_array();
+
+  void lock_enable();
+  void lock_disable();
+  int lock_length();
+  void lock(class Fix *, bigint, bigint);
+  void unlock(class Fix *);
+
   double memory_usage();
 
  private:
-  int nmolecules;
-  tagint idlo,idhi;
+  int nchunk,maxchunk;
+  char *idchunk;
+  class ComputeChunkAtom *cchunk;
+
+  int tensor;
 
   double *massproc,*masstotal;
-  double **vcm,**vcmall;
+  double **com,**comall;
+  double *rg,*rgall;
+  double **rgt,**rgtall;
+
+  void com_chunk();
+  void allocate();
 };
 
 }
@@ -53,11 +69,11 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Compute vcm/molecule requires molecular atom style
+E: Compute gyration/molecule requires molecular atom style
 
 Self-explanatory.
 
-E: Molecule count changed in compute vcm/molecule
+E: Molecule count changed in compute gyration/molecule
 
 Number of molecules must remain constant over time.
 

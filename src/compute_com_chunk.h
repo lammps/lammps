@@ -13,33 +13,43 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(msd/molecule,ComputeMSDMolecule)
+ComputeStyle(com/chunk,ComputeCOMChunk)
 
 #else
 
-#ifndef LMP_COMPUTE_MSD_MOLECULE_H
-#define LMP_COMPUTE_MSD_MOLECULE_H
+#ifndef LMP_COMPUTE_COM_CHUNK_H
+#define LMP_COMPUTE_COM_CHUNK_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeMSDMolecule : public Compute {
+class ComputeCOMChunk : public Compute {
  public:
-  ComputeMSDMolecule(class LAMMPS *, int, char **);
-  ~ComputeMSDMolecule();
+  ComputeCOMChunk(class LAMMPS *, int, char **);
+  ~ComputeCOMChunk();
   void init();
+  void setup();
   void compute_array();
+
+  void lock_enable();
+  void lock_disable();
+  int lock_length();
+  void lock(class Fix *, bigint, bigint);
+  void unlock(class Fix *);
+
   double memory_usage();
 
  private:
-  int nmolecules;
-  tagint idlo,idhi;
-  int firstflag;
+  int nchunk,maxchunk;
+  int firstflag,massneed;
+  char *idchunk;
+  class ComputeChunkAtom *cchunk;
 
   double *massproc,*masstotal;
-  double **com,**comall,**cominit;
-  double **msd;
+  double **com,**comall;
+
+  void allocate();
 };
 
 }
@@ -55,11 +65,11 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Compute msd/molecule requires molecular atom style
+E: Compute com/molecule requires molecular atom style
 
 Self-explanatory.
 
-E: Molecule count changed in compute msd/molecule
+E: Molecule count changed in compute com/molecule
 
 Number of molecules must remain constant over time.
 

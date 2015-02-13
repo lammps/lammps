@@ -13,32 +13,42 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(inertia/molecule,ComputeInertiaMolecule)
+ComputeStyle(torque/chunk,ComputeTorqueChunk)
 
 #else
 
-#ifndef LMP_COMPUTE_INERTIA_MOLECULE_H
-#define LMP_COMPUTE_INERTIA_MOLECULE_H
+#ifndef LMP_COMPUTE_TORQUE_CHUNK_H
+#define LMP_COMPUTE_TORQUE_CHUNK_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeInertiaMolecule : public Compute {
+class ComputeTorqueChunk : public Compute {
  public:
-  ComputeInertiaMolecule(class LAMMPS *, int, char **);
-  ~ComputeInertiaMolecule();
+  ComputeTorqueChunk(class LAMMPS *, int, char **);
+  ~ComputeTorqueChunk();
   void init();
   void compute_array();
+
+  void lock_enable();
+  void lock_disable();
+  int lock_length();
+  void lock(class Fix *, bigint, bigint);
+  void unlock(class Fix *);
+
   double memory_usage();
 
  private:
-  int nmolecules;
-  tagint idlo,idhi;
+  int nchunk,maxchunk;
+  char *idchunk;
+  class ComputeChunkAtom *cchunk;
 
   double *massproc,*masstotal;
   double **com,**comall;
-  double **inertia,**inertiaall;
+  double **torque,**torqueall;
+
+  void allocate();
 };
 
 }

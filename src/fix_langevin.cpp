@@ -681,7 +681,7 @@ void FixLangevin::omega_thermostat()
   double inertiaone;
   
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if ((mask[i] & groupbit) && (radius[i] > 0.0)) {
       inertiaone = SINERTIA*radius[i]*radius[i]*rmass[i];
       if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
       gamma1 = -tendivthree*inertiaone / t_period / ftm2v;

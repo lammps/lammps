@@ -17,9 +17,8 @@
 </PRE>
 <UL><LI>one or more keyword/value pairs may be listed 
 
-<LI>keyword = <I>mesh</I> or <I>order</I> or <I>order/disp</I> or <I>mix/disp</I> or <I>overlap</I> or <I>minorder</I> or <I>force</I> or <I>gewald</I> or <I>gewald/disp</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>cutoff/adjust</I> or <I>fftbench</I> or <I>collective</I> or <I>diff</I> or <I>kmax/ewald</I> or <I>force/disp/real</I> or <I>force/disp/kspace</I> or <I>splittol</I> 
-
-<PRE>  <I>mesh</I> value = x y z
+<PRE>keyword = <I>mesh</I> or <I>order</I> or <I>order/disp</I> or <I>mix/disp</I> or <I>overlap</I> or <I>minorder</I> or <I>force</I> or <I>gewald</I> or <I>gewald/disp</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>cutoff/adjust</I> or <I>fftbench</I> or <I>collective</I> or <I>diff</I> or <I>kmax/ewald</I> or <I>force/disp/real</I> or <I>force/disp/kspace</I> or <I>splittol</I> or <I>disp/auto</I>:l
+  <I>mesh</I> value = x y z
     x,y,z = grid size in each dimension for long-range Coulombics
   <I>mesh/disp</I> value = x y z
     x,y,z = grid size in each dimension for 1/r^6 dispersion
@@ -51,7 +50,8 @@
   <I>force/disp/real</I> value = accuracy (force units)
   <I>force/disp/kspace</I> value = accuracy (force units)
   <I>splittol</I> value = tol
-    tol = relative size of two eigenvalues (see discussion below) 
+    tol = relative size of two eigenvalues (see discussion below)
+  <I>disp/auto</I> value = yes or no 
 </PRE>
 
 </UL>
@@ -278,9 +278,19 @@ computations of the dispersion part is decreased.
 </P>
 <P>The <I>force/disp/real</I> and <I>force/disp/kspace</I> keywords set the force
 accuracy for the real and space computations for the dispersion part
-of pppm/disp.  as shown in <A HREF = "#Isele-Holder">(Isele-Holder)</A>, optimal
+of pppm/disp. As shown in <A HREF = "#Isele-Holder">(Isele-Holder)</A>, optimal
 performance and accuracy in the results is obtained when these values
 are different.
+</P>
+<P>The <I>disp/auto</I> option controlls whether the pppm/disp is allowed to
+generate PPPM parameters automatically. If set to <I>no</I>, parameters have
+to be specified using the <I>gewald/disp</I>, <I>mesh/disp</I>,
+<I>force/disp/real</I> or <I>force/disp/kspace</I> keywords, or
+the code will stop with an error message. When this option is set to
+<I>yes</I>, the error message will not appear and the simulation will start.
+For a typical application, using the automatic parameter generation will provide
+simulations that are either inaccurate or slow. Using this option is thus not
+recommended. For guidelines on how to obtain good parameters, see the <A HREF = "Section_howto.html#howto_23">How-To</A> discussion.
 </P>
 <P><B>Restrictions:</B> none
 </P>
@@ -295,7 +305,7 @@ are different.
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
 yes (MSM), pressure/scalar = yes (MSM), fftbench = yes (PPPM), diff = ik
 (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace = -1.0,
-split = 0, and tol = 1.0e-6.
+split = 0, tol = 1.0e-6, and disp/auto = no.
 </P>
 <HR>
 

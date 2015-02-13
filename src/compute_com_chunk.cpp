@@ -112,6 +112,7 @@ void ComputeCOMChunk::compute_array()
   int *ichunk = cchunk->ichunk;
 
   if (nchunk > maxchunk) allocate();
+  size_array_rows = nchunk;
 
   // zero local per-chunk values
 
@@ -222,7 +223,7 @@ void ComputeCOMChunk::allocate()
   memory->destroy(masstotal);
   memory->destroy(com);
   memory->destroy(comall);
-  size_array_rows = maxchunk = nchunk;
+  maxchunk = nchunk;
   memory->create(massproc,maxchunk,"com/chunk:massproc");
   memory->create(masstotal,maxchunk,"com/chunk:masstotal");
   memory->create(com,maxchunk,3,"com/chunk:com");

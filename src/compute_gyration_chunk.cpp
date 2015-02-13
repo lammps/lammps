@@ -216,6 +216,8 @@ void ComputeGyrationChunk::com_chunk()
   int *ichunk = cchunk->ichunk;
 
   if (nchunk > maxchunk) allocate();
+  if (tensor) size_array_rows = nchunk;
+  else size_vector = nchunk;
 
   // zero local per-chunk values
 
@@ -327,7 +329,7 @@ void ComputeGyrationChunk::allocate()
   memory->destroy(rgall);
   memory->destroy(rgt);
   memory->destroy(rgtall);
-  size_array_rows = maxchunk = nchunk;
+  maxchunk = nchunk;
   memory->create(massproc,maxchunk,"gyration/chunk:massproc");
   memory->create(masstotal,maxchunk,"gyration/chunk:masstotal");
   memory->create(com,maxchunk,3,"gyration/chunk:com");

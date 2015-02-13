@@ -99,6 +99,7 @@ void ComputeInertiaChunk::compute_array()
   int *ichunk = cchunk->ichunk;
 
   if (nchunk > maxchunk) allocate();
+  size_array_rows = nchunk;
 
   // zero local per-chunk values
 
@@ -233,7 +234,7 @@ void ComputeInertiaChunk::allocate()
   memory->destroy(comall);
   memory->destroy(inertia);
   memory->destroy(inertiaall);
-  size_array_rows = maxchunk = nchunk;
+  maxchunk = nchunk;
   memory->create(massproc,maxchunk,"inertia/chunk:massproc");
   memory->create(masstotal,maxchunk,"inertia/chunk:masstotal");
   memory->create(com,maxchunk,3,"inertia/chunk:com");

@@ -115,8 +115,10 @@ void ComputeMSDChunk::compute_array()
   // first time call, allocate per-chunk arrays
   // thereafter, require nchunk remain the same
 
-  if (firstflag) allocate(n);
-  else if (n != nchunk) 
+  if (firstflag) {
+    nchunk = n;
+    allocate();
+  } else if (n != nchunk) 
     error->all(FLERR,"Compute msd/chunk nchunk is not static");
 
   // zero local per-chunk values
@@ -236,9 +238,8 @@ void ComputeMSDChunk::unlock(Fix *fixptr)
    one-time allocate of per-chunk arrays
 ------------------------------------------------------------------------- */
 
-void ComputeMSDChunk::allocate(int n)
+void ComputeMSDChunk::allocate()
 {
-  size_array_rows = nchunk = n;
   memory->create(massproc,nchunk,"msd/chunk:massproc");
   memory->create(masstotal,nchunk,"msd/chunk:masstotal");
   memory->create(com,nchunk,3,"msd/chunk:com");

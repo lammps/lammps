@@ -287,6 +287,17 @@ void PPPMDisp::init()
     error->warning(FLERR, str);
   }
 
+  // show error message if pppm/disp is not used correctly
+
+  if (function[1] || function[2] || function[3]) {
+    if (!gridflag_6 && !gewaldflag_6 && accuracy_real_6 < 0
+        && accuracy_kspace_6 < 0 && !auto_disp_flag) {
+      error->all(FLERR, "PPPMDisp used but no parameters set, "
+              "for further information please see the pppm/disp "
+              "documentation");
+    }
+  }
+
   // compute qsum & qsqsum, if function[0] is set, warn if not charge-neutral
 
   scale = 1.0;

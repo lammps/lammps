@@ -493,6 +493,10 @@ E: Epsilon or sigma reference not set by pair style in PPPMDisp
 
 Self-explanatory.
 
+E: PPPMDisp used but no parameters set, for further information please see the pppm/disp documentation
+
+An efficient and accurate usage of the pppm/disp requires settings via the kspace_modify command. Please see the pppm/disp documentation for further instructions.
+
 E: KSpace accuracy too large to estimate G vector
 
 Reduce the accuracy request or specify gwald explicitly

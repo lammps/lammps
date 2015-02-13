@@ -1727,7 +1727,7 @@ void FixGCMC::attempt_molecule_insertion_full()
   double energy_after = energy_full();
 
   if (random_equal->uniform() < zz*volume*natoms_per_molecule*
-      exp(beta*(energy_before - energy_after)/(ngas + natoms_per_molecule))) {  
+      exp(beta*(energy_before - energy_after))/(ngas + natoms_per_molecule)) {  
    
     ninsertion_successes += 1.0;
     energy_stored = energy_after;

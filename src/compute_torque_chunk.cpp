@@ -99,6 +99,7 @@ void ComputeTorqueChunk::compute_array()
   int *ichunk = cchunk->ichunk;
 
   if (nchunk > maxchunk) allocate();
+  size_array_rows = nchunk;
 
   // zero local per-chunk values
 
@@ -229,7 +230,7 @@ void ComputeTorqueChunk::allocate()
   memory->destroy(comall);
   memory->destroy(torque);
   memory->destroy(torqueall);
-  size_array_rows = maxchunk = nchunk;
+  maxchunk = nchunk;
   memory->create(massproc,maxchunk,"torque/chunk:massproc");
   memory->create(masstotal,maxchunk,"torque/chunk:masstotal");
   memory->create(com,maxchunk,3,"torque/chunk:com");

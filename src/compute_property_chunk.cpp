@@ -134,6 +134,8 @@ void ComputePropertyChunk::compute_vector()
 
   nchunk = cchunk->setup_chunks();
   if (nchunk > maxchunk) allocate();
+  if (nvalues == 1) size_vector = nchunk;
+  else size_array_rows = nchunk;
 
   if (countflag) {
     cchunk->compute_ichunk();
@@ -158,6 +160,8 @@ void ComputePropertyChunk::compute_array()
 
   nchunk = cchunk->setup_chunks();
   if (nchunk > maxchunk) allocate();
+  if (nvalues == 1) size_vector = nchunk;
+  else size_array_rows = nchunk;
 
   if (countflag) {
     cchunk->compute_ichunk();
@@ -237,12 +241,9 @@ void ComputePropertyChunk::allocate()
   memory->destroy(array);
   memory->destroy(count_one);
   memory->destroy(count_all);
-
-  if (nvalues == 1) size_vector = maxchunk = nchunk;
-  else size_array_rows = maxchunk = nchunk;
+  maxchunk = nchunk;
   if (nvalues == 1) memory->create(vector,maxchunk,"property/chunk:vector");
   else memory->create(array,maxchunk,nvalues,"property/chunk:array");
-
   if (countflag) {
     memory->create(count_one,maxchunk,"property/chunk:count_one");
     memory->create(count_all,maxchunk,"property/chunk:count_all");

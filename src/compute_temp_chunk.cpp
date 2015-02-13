@@ -32,7 +32,7 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal compute temp/chunk command");
 
   vector_flag = 1;
-  size_vector = 1;
+  size_vector = 0;
   size_vector_variable = 1;
   extvector = 0;
 
@@ -163,6 +163,7 @@ void ComputeTempChunk::compute_vector()
   int *ichunk = cchunk->ichunk;
 
   if (nchunk > maxchunk) allocate();
+  size_vector = nchunk;
 
   // calculate COM velocity for each chunk
 
@@ -372,7 +373,7 @@ void ComputeTempChunk::allocate()
   memory->destroy(keall);
   memory->destroy(count);
   memory->destroy(countall);
-  size_vector = maxchunk = nchunk;
+  maxchunk = nchunk;
   memory->create(ke,maxchunk,"temp/chunk:ke");
   memory->create(keall,maxchunk,"temp/chunk:keall");
   memory->create(count,maxchunk,"temp/chunk:count");

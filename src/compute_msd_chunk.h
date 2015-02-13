@@ -51,7 +51,7 @@ class ComputeMSDChunk : public Compute {
 
   int firstflag;
 
-  void allocate(int);
+  void allocate();
 };
 
 }

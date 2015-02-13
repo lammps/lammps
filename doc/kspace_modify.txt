@@ -13,7 +13,7 @@ kspace_modify command :h3
 kspace_modify keyword value ... :pre
 
 one or more keyword/value pairs may be listed :ulb,l
-keyword = {mesh} or {order} or {order/disp} or {mix/disp} or {overlap} or {minorder} or {force} or {gewald} or {gewald/disp} or {slab} or (nozforce} or {compute} or {cutoff/adjust} or {fftbench} or {collective} or {diff} or {kmax/ewald} or {force/disp/real} or {force/disp/kspace} or {splittol} :l
+keyword = {mesh} or {order} or {order/disp} or {mix/disp} or {overlap} or {minorder} or {force} or {gewald} or {gewald/disp} or {slab} or (nozforce} or {compute} or {cutoff/adjust} or {fftbench} or {collective} or {diff} or {kmax/ewald} or {force/disp/real} or {force/disp/kspace} or {splittol} or {disp/auto}:l
   {mesh} value = x y z
     x,y,z = grid size in each dimension for long-range Coulombics
   {mesh/disp} value = x y z
@@ -46,7 +46,8 @@ keyword = {mesh} or {order} or {order/disp} or {mix/disp} or {overlap} or {minor
   {force/disp/real} value = accuracy (force units)
   {force/disp/kspace} value = accuracy (force units)
   {splittol} value = tol
-    tol = relative size of two eigenvalues (see discussion below) :pre
+    tol = relative size of two eigenvalues (see discussion below)
+  {disp/auto} value = yes or no :pre
 :ule
 
 [Examples:]
@@ -272,9 +273,19 @@ computations of the dispersion part is decreased.
 
 The {force/disp/real} and {force/disp/kspace} keywords set the force
 accuracy for the real and space computations for the dispersion part
-of pppm/disp.  as shown in "(Isele-Holder)"_#Isele-Holder, optimal
+of pppm/disp. As shown in "(Isele-Holder)"_#Isele-Holder, optimal
 performance and accuracy in the results is obtained when these values
 are different.
+
+The {disp/auto} option controlls whether the pppm/disp is allowed to
+generate PPPM parameters automatically. If set to {no}, parameters have
+to be specified using the {gewald/disp}, {mesh/disp},
+{force/disp/real} or {force/disp/kspace} keywords, or
+the code will stop with an error message. When this option is set to
+{yes}, the error message will not appear and the simulation will start.
+For a typical application, using the automatic parameter generation will provide
+simulations that are either inaccurate or slow. Using this option is thus not
+recommended. For guidelines on how to obtain good parameters, see the "How-To"_Section_howto.html#howto_23 discussion.
 
 [Restrictions:] none
 
@@ -289,7 +300,7 @@ The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
 yes (MSM), pressure/scalar = yes (MSM), fftbench = yes (PPPM), diff = ik
 (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace = -1.0,
-split = 0, and tol = 1.0e-6.
+split = 0, tol = 1.0e-6, and disp/auto = no.
 
 :line
 

@@ -237,12 +237,15 @@ void ComputePropertyChunk::allocate()
   memory->destroy(array);
   memory->destroy(count_one);
   memory->destroy(count_all);
-  size_array_rows = maxchunk = nchunk;
+
+  if (nvalues == 1) size_vector = maxchunk = nchunk;
+  else size_array_rows = maxchunk = nchunk;
   if (nvalues == 1) memory->create(vector,maxchunk,"property/chunk:vector");
   else memory->create(array,maxchunk,nvalues,"property/chunk:array");
+
   if (countflag) {
     memory->create(count_one,maxchunk,"property/chunk:count_one");
-    memory->create(count_one,maxchunk,"property/chunk:count_all");
+    memory->create(count_all,maxchunk,"property/chunk:count_all");
   }
 }
 
@@ -256,7 +259,6 @@ double ComputePropertyChunk::memory_usage()
   if (countflag) bytes += (bigint) nchunk * 2 * sizeof(int);
   return bytes;
 }
-
 
 /* ----------------------------------------------------------------------
    one method for every keyword compute property/chunk can output

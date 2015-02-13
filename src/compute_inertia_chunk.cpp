@@ -38,9 +38,9 @@ ComputeInertiaChunk::ComputeInertiaChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[6]) + 1;
+  int n = strlen(arg[3]) + 1;
   idchunk = new char[n];
-  strcpy(idchunk,arg[6]);
+  strcpy(idchunk,arg[3]);
 
   init();
 

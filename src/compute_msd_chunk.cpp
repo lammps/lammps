@@ -38,9 +38,9 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[6]) + 1;
+  int n = strlen(arg[3]) + 1;
   idchunk = new char[n];
-  strcpy(idchunk,arg[6]);
+  strcpy(idchunk,arg[3]);
 
   init();
 
@@ -84,13 +84,14 @@ void ComputeMSDChunk::init()
 void ComputeMSDChunk::setup()
 {
   if (!firstflag) return;
+  compute_array();
   firstflag = 0;
 
-  compute_array();
   for (int i = 0; i < nchunk; i++) {
     cominit[i][0] = comall[i][0];
     cominit[i][1] = comall[i][1];
     cominit[i][2] = comall[i][2];
+    msd[i][0] = msd[i][1] = msd[i][2] = msd[i][3] = 0.0;
   }
 }
 
@@ -161,7 +162,7 @@ void ComputeMSDChunk::compute_array()
   }
 
   // MSD is difference between current and initial COM
-  // cominit does not yet exist when called from constructor
+  // cominit does not yet exist when called first time from setup()
 
   if (firstflag) return;
 

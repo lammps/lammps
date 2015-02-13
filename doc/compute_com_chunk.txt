@@ -60,7 +60,7 @@ The simplest way to output the results of the compute com/chunk
 calculation to a file is to use the "fix ave/time"_fix_ave_time.html
 command, for example:
 
-compute cc1 chunk/atom molecule
+compute cc1 all chunk/atom molecule
 compute myChunk all com/chunk cc1
 fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector :pre
 

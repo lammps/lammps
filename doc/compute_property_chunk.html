@@ -92,7 +92,7 @@ will be in unitless reduced units (0-1).
 calculation to a file is to use the <A HREF = "fix_ave_time.html">fix ave/time</A>
 command, for example:
 </P>
-<PRE>compute cc1 chunk/atom molecule
+<PRE>compute cc1 all chunk/atom molecule
 compute myChunk1 all property/chunk cc1
 compute myChunk2 all com/chunk cc1
 fix 1 all ave/time 100 1 100 c_myChunk1 c_myChunk2 file tmp.out mode vector 

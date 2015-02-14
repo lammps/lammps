@@ -29,6 +29,7 @@
 #include "compute.h"
 #include "input.h"
 #include "variable.h"
+#include "comm.h"
 #include "memory.h"
 #include "error.h"
 
@@ -49,6 +50,12 @@ enum{NODISCARD,MIXED,YESDISCARD};
 FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  if (comm->me == 0)
+    error->warning(FLERR,"The fix ave/spatial command has been replaced "
+                   "by the more flexible fix ave/chunk and compute chunk/atom "
+                   "commands -- fix ave/spatial will be removed in "
+                   "the summer of 2015");
+
   if (narg < 6) error->all(FLERR,"Illegal fix ave/spatial command");
 
   MPI_Comm_rank(world,&me);

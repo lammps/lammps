@@ -35,7 +35,8 @@
 6.20 <A HREF = "#howto_20">Calculating thermal conductivity</A><BR>
 6.21 <A HREF = "#howto_21">Calculating viscosity</A><BR>
 6.22 <A HREF = "#howto_22">Calculating a diffusion coefficient</A><BR>
-6.23 <A HREF = "#howto_23">Using chunks to calculate system properties</A> <BR>
+6.23 <A HREF = "#howto_23">Using chunks to calculate system properties</A><BR>
+6.24 <A HREF = "#howto_24">Setting parameters for the kspace_style pppm/disp command</A> <BR>
 
 <P>The example input scripts included in the LAMMPS distribution and
 highlighted in <A HREF = "Section_example.html">Section_example</A> also show how to
@@ -2155,39 +2156,49 @@ and thus extract D.
 
 <A NAME = "howto_23"></A><H4>6.23 Using chunks to calculate system properties 
 </H4>
-<P>In LAMMPS, chunks are collections of atoms defined by a <A HREF = "compute_chunk_atom.html">compute
-chunk/atom</A> command, which assigns each atom
-to a chunk (or to no chunk at all).  The per-atom chunk assignments
-can be used as input to two other kinds of commands, to calculate
-various properties of a system:
+<P>In LAMMS, "chunks" are collections of atoms, as defined by the
+<A HREF = "compute_chunk_atom.html">compute chunk/atom</A> command, which assigns
+each atom to a chunk ID (or to no chunk at all).  The number of chunks
+and the assignment of chunk IDs to atoms can be static or change over
+time.  Examples of "chunks" are molecules or spatial bins or atoms
+with similar values (e.g. coordination number or potential energy).
+</P>
+<P>The per-atom chunk IDs can be used as input to two other kinds of
+commands, to calculate various properties of a system:
 </P>
 <UL><LI><A HREF = "fix_ave_chunk.html">fix ave/chunk</A>
-<LI>a variety of <A HREF = "compute.html">compute */chunk</A> commands 
+<LI>any of the <A HREF = "compute.html">compute */chunk</A> commands 
 </UL>
 <P>Here, each of the 3 kinds of chunk-related commands is briefly
-overviewed, and some examples given of how to compute 
-different properties with chunk commands.
+overviewed.  Then some examples are given of how to compute different
+properties with chunk commands.
 </P>
-<H5><A HREF = "compute_chunk_atom.html">Compute chunk/atom</A> command 
+<H5>Compute chunk/atom command: 
 </H5>
-<P>This compute assigns atoms to chunks of various styles.  Only atoms in
-the specified group and optional specified region are assigned to a
-chunk.  Here is a list of possible chunk definitions:
+<P>This compute can assign atoms to chunks of various styles.  Only atoms
+in the specified group and optional specified region are assigned to a
+chunk.  Here are some possible chunk definitions:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >atoms in same molecule </TD><TD > chunk ID = molecule ID </TD></TR>
-<TR><TD >atoms with same atom type -</TD><TD > chunk ID = atom type </TD></TR>
+<TR><TD >atoms of same atom type </TD><TD > chunk ID = atom type </TD></TR>
 <TR><TD >all atoms with same atom property (charge, radius, etc) </TD><TD > chunk ID = output of compute property/atom </TD></TR>
-<TR><TD >atoms in same cluster </TD><TD > chunk ID = output of compute cluster/atom command </TD></TR>
+<TR><TD >atoms in same cluster </TD><TD > chunk ID = output of <A HREF = "compute_cluster_atom.html">compute cluster/atom</A> command </TD></TR>
 <TR><TD >atoms in same spatial bin </TD><TD > chunk ID = bin ID </TD></TR>
-<TR><TD >atoms in same rigid body </TD><TD > chunk ID = ID of an atom in the body </TD></TR>
-<TR><TD >all atoms with same local defect structure </TD><TD > chunk ID = output of compute centro/atom or coord/atom command 
+<TR><TD >atoms in same rigid body </TD><TD > chunk ID = molecule ID used to define rigid bodies </TD></TR>
+<TR><TD >atoms with similar potential energy </TD><TD > chunk ID = output of <A HREF = "compute_pe_atom.html">compute pe/atom</A> </TD></TR>
+<TR><TD >atoms with same local defect structure </TD><TD > chunk ID = output of <A HREF = "compute_centro_atom.html">compute centro/atom</A> or <A HREF = "compute_coord_atom.html">compute coord/atom</A> command 
 </TD></TR></TABLE></DIV>
 
+<P>Note that chunk IDs are integer values, so for atom properties or
+computes that produce a floating point value, they will be truncated
+to an integer.  You could also use the compute in a variable that
+scales the floating point value to spread it across multiple intergers.
+</P>
 <P>Spatial bins can be of various kinds, e.g. 1d bins = slabs, 2d bins =
 pencils, 3d bins = boxes, spherical bins, cylindrical bins.
 </P>
-<P>This compute also calculates the number of chunks <I>Nchunk</I> which is
+<P>This compute also calculates the number of chunks <I>Nchunk</I>, which is
 used by other commands to tally per-chunk data.  <I>Nchunk</I> can be a
 static value or change over time (e.g. the number of clusters).  The
 chunk ID for an individual atom can also be static (e.g. a molecule
@@ -2197,64 +2208,64 @@ ID), or dynamic (e.g. what spatial bin an atom is in as it moves).
 <A HREF = "compute.html">computes</A>, <A HREF = "fix.html">fixes</A>, and
 <A HREF = "variable.html">variables</A> to be used to define chunk IDs for each
 atom.  This means you can write your own compute or fix to output a
-per-atom quantity to use as chunk ID; See
+per-atom quantity to use as chunk ID.  See
 <A HREF = "Section_modify.html">Section_modify</A> of the documentation for how to
 do this.  You can also define a <A HREF = "variable.html">per-atom variable</A> in
 the input script that uses a formula to generate a chunk ID for each
 atom.
 </P>
-<H5><A HREF = "fix_ave_chunk_atom.html">Fix ave/chunk</A> command 
+<H5>Fix ave/chunk command: 
 </H5>
 <P>This fix takes the ID of a <A HREF = "compute_chunk_atom.html">compute
-chunk/atom</A> command as input.  For each chunk
+chunk/atom</A> command as input.  For each chunk,
 it then sums one or more specified per-atom values over the atoms in
 each chunk.  The per-atom values can be any atom property, such as
-force, charge, potential energy, kinetic energy, stress.  Additional
-keywords are allowed for per-chunk properties like density and
-temperature.  More generally any per-atom value generated by other
-<A HREF = "compute.html">computes</A>, <A HREF = "fix.html">fixes</A>, and <A HREF = "variable.html">per-atom
+velocity, force, charge, potential energy, kinetic energy, stress,
+etc.  Additional keywords are defined for per-chunk properties like
+density and temperature.  More generally any per-atom value generated
+by other <A HREF = "compute.html">computes</A>, <A HREF = "fix.html">fixes</A>, and <A HREF = "variable.html">per-atom
 variables</A>, can be summed over atoms in each chunk.
 </P>
 <P>Similar to other averaging fixes, this fix allows the summed per-chunk
 values to be time-averaged in various ways, and output to a file.  The
 fix produces a global array as output with one row of values per
-chunk.  Global arrays or columns thereof can be used as input for
-other commands, as described in the following section.
+chunk.
 </P>
-<H5>Compute */chunk commands 
+<H5>Compute */chunk commands: 
 </H5>
-<P>Currently the following computes operate on chunks:
+<P>Currently the following computes operate on chunks of atoms to produce
+per-chunk values.
 </P>
 <UL><LI><A HREF = "compute_com_chunk.html">compute com/chunk</A>
 <LI><A HREF = "compute_gyration_chunk.html">compute gyration/chunk</A>
 <LI><A HREF = "compute_inertia_chunk.html">compute inertia/chunk</A>
 <LI><A HREF = "compute_msd_chunk.html">compute msd/chunk</A>
 <LI><A HREF = "compute_property_chunk.html">compute property/chunk</A>
+<LI><A HREF = "compute_temp_chunk.html">compute temp/chunk</A>
+<LI><A HREF = "compute_vcm_chunk.html">compute torque/chunk</A>
 <LI><A HREF = "compute_vcm_chunk.html">compute vcm/chunk</A> 
 </UL>
 <P>They each take the ID of a <A HREF = "compute_chunk_atom.html">compute
 chunk/atom</A> command as input.  As their names
 indicate, they calculate the center-of-mass, radius of gyration,
-moments of inertia, mean-squared displacement, and velocity of
-center-of-mass for each chunk of atoms.  The <A HREF = "compute_property_chunk.html">compute
-property/chunk</A> command can be tally the
+moments of inertia, mean-squared displacement, temperature, torque,
+and velocity of center-of-mass for each chunk of atoms.  The <A HREF = "compute_property_chunk.html">compute
+property/chunk</A> command can tally the
 count of atoms in each chunk and extract other per-chunk properties.
 </P>
 <P>The reason these various calculations are not part of the <A HREF = "fix_ave_chunk.html">fix
 ave/chunk command</A>, is that each requires a more
 complicated operation than simply summing and averaging over per-atom
-values in each chunk.  Most of them require calculation of a center of
-mass, which requires summing mass*position over the atoms and dividing
-by summed mass.
+values in each chunk.  For example, many of them require calculation
+of a center of mass, which requires summing mass*position over the
+atoms and then dividing by summed mass.
 </P>
 <P>All of these computes produce a global vector or global array as
-output, wih one or more values per chunk.  Global vectors or arrays
-can be used as input for other commands, e.g. 
+output, wih one or more values per chunk.  They can be used
+in various ways:
 </P>
-<UL><LI>As input to the <A HREF = "fix_ave_time.html">fix ave/time</A> command, so the
-per-chunk values output to a file it creates.  The <A HREF = "fix_ave_time.html">fix
-ave/time</A> command can also average the values for
-each chunk over time if desired. 
+<UL><LI>As input to the <A HREF = "fix_ave_time.html">fix ave/time</A> command, which can
+write the values to a file and optionally time average them. 
 
 <LI>As input to the <A HREF = "fix_ave_histo.html">fix ave/histo</A> command to
 histogram values across chunks.  E.g. a histogram of cluster sizes or
@@ -2266,44 +2277,144 @@ largest cluster or fastest diffusing molecule.
 </UL>
 <H5>Example calculations with chunks 
 </H5>
-<P>Here are chunk commands that can be used to calculate various
+<P>Here are eaxmples using chunk commands to calculate various
 properties:
 </P>
-<P>(1) Mimic the deprecated fix ave/spatial command, to average atom
-velocity in each spatial bin:
+<P>(1) Average velocity in each of 1000 2d spatial bins:
 </P>
-<P>Old command:
+<PRE>compute cc1 all chunk/atom bin/2d x 0.0 0.1 y lower 0.01 units reduced
+fix 1 all ave/chunk 100 10 1000 cc1 vx vy file tmp.out 
+</PRE>
+<P>(2) Temperature in each spatial bin, after subtracting a flow
+velocity:
 </P>
-<P>fix ave/spatial
+<PRE>compute cc1 all chunk/atom bin/2d x 0.0 0.1 y lower 0.1 units reduced
+compute vbias all temp/profile 1 0 0 y 10
+fix 1 all ave/chunk 100 10 1000 cc1 temp bias vbias file tmp.out 
+</PRE>
+<P>(3) Center of mass of each molecule:
 </P>
-<P>New commands:
+<PRE>compute cc1 all chunk/atom molecule
+compute myChunk all com/chunk cc1
+fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector 
+</PRE>
+<P>(4) Total force on each molecule and ave/max across all molecules:
 </P>
-<P>compute chunk/atom
-fix ave/chunk
+<PRE>compute cc1 all chunk/atom molecule
+fix 1 all ave/chunk 1000 1 1000 cc1 fx fy fz file tmp.out
+variable xave equal ave(f_1<B>2</B>)
+variable xmax equal max(f_1<B>2</B>)
+thermo 1000
+thermo_style custom step temp v_xave v_xmax 
+</PRE>
+<P>(5) Histogram of cluster sizes:
 </P>
-<P>(2) Mimincing the deprecated compute msd/molecule command
-to compute the mean-squared displacement of each molecule:
+<PRE>compute cluster all cluster/atom 1.0
+compute cc1 all chunk/atom c_cluster compress yes
+compute size all property/chunk cc1 count
+fix 1 all ave/histo 100 1 100 0 20 20 c_size mode vector ave running beyond ignore file tmp.histo 
+</PRE>
+<HR>
+
+<A NAME = "howto_24"></A><H4>6.24 Setting parameters for the <A HREF = "kspace_style.html">kspace_style pppm/disp</A> command 
+</H4>
+<P>The PPPM method computes interactions by splitting the pair potential
+into two parts, one of which is computed in a normal pairwise fashion,
+the so-called real-space part, and one of which is computed using the
+Fourier transform, the so called reciprocal-space or kspace part.  For
+both parts, the potential is not computed exactly but is approximated.
+Thus, there is an error in both parts of the computation, the
+real-space and the kspace error. The just mentioned facts are true
+both for the PPPM for Coulomb as well as dispersion interactions. The
+deciding difference - and also the reason why the parameters for
+pppm/disp have to be selected with more care - is the impact of the
+errors on the results: The kspace error of the PPPM for Coulomb and
+dispersion interaction and the real-space error of the PPPM for
+Coulomb interaction have the character of noise. In contrast, the
+real-space error of the PPPM for dispersion has a clear physical
+interpretation: the underprediction of cohesion. As a consequence, the
+real-space error has a much stronger effect than the kspace error on
+simulation results for pppm/disp.  Parameters must thus be chosen in a
+way that this error is much smaller than the kspace error.
 </P>
-<P>Old commands:
+<P>When using pppm/disp and not making any specifications on the PPPM
+parameters via the kspace modify command, parameters will be tuned
+such that the real-space error and the kspace error are equal.  This
+will result in simulations that are either inaccurate or slow, both of
+which is not desirable. For selecting parameters for the pppm/disp
+that provide fast and accurate simulations, there are two approaches,
+which both have their up- and downsides.
 </P>
-<P>compute molecule/msd
-fix ave/time file msd.molecule
+<P>The first approach is to set desired real-space an kspace accuracies
+via the <I>kspace_modify force/disp/real</I> and <I>kspace_modify
+force/disp/kspace</I> commands. Note that the accuracies have to be
+specified in force units and are thus dependend on the chosen unit
+settings. For real units, 0.0001 and 0.002 seem to provide reasonable
+accurate and efficient computations for the real-space and kspace
+accuracies.  0.002 and 0.05 work well for most systems using lj
+units. PPPM parameters will be generated based on the desired
+accuracies. The upside of this approach is that it usually provides a
+good set of parameters and will work for both the <I>kspace_modify diff
+ad</I> and <I>kspace_modify diff ik</I> options.  The downside of the method
+is that setting the PPPM parameters will take some time during the
+initialization of the simulation.
 </P>
-<P>New commands:
+<P>The second approach is to set the parameters for the pppm/disp
+explicitly using the <I>kspace_modify mesh/disp</I>, <I>kspace_modify
+order/disp</I>, and <I>kspace_modify gewald/disp</I> commands. This approach
+requires a more experienced user who understands well the impact of
+the choice of parameters on the simulation accuracy and
+performance. This approach provides a fast initialization of the
+simulation. However, it is sensitive to errors: A combination of
+parameters that will perform well for one system might result in
+far-from-optimal conditions for other simulations. For example,
+parametes that provide accurate and fast computations for
+all-atomistic force fields can provide insufficient accuracy or
+united-atomistic force fields (which is related to that the latter
+typically have larger dispersion coefficients).
 </P>
-<P>compute chunk/atom style
-compute molecule/chunk
-fix ave/time file msd.molecule
+<P>To avoid inaccurate or inefficient simulations, the pppm/disp stops
+simulations with an error message if no action is taken to control the
+PPPM parameters. If the automatic parameter generation is desired and
+real-space and kspace accuracies are desired to be equal, this error
+message can be suppressed using the <I>kspace_modify disp/auto yes</I>
+command.
 </P>
-<P>(3) print or time ave total force per molecule
-   average across molecules (variable special functions)
+<P>A reasonable approach that combines the upsides of both methods is to
+make the first run using the <I>kspace_modify force/disp/real</I> and
+<I>kspace_modify force/disp/kspace</I> commands, write down the PPPM
+parameters from the outut, and specify these parameters using the
+second approach in subsequent runs (which have the same composition,
+force field, and approximately the same volume).
 </P>
-<P>(4) histogram of cluster sizes (use fix ave/histo)
+<P>Concerning the performance of the pppm/disp there are two more things
+to consider. The first is that when using the pppm/disp, the cutoff
+parameter does no longer affect the accuracy of the simulation
+(subject to that gewald/disp is adjusted when changing the cutoff).
+The performance can thus be increased by examining different values
+for the cutoff parameter. A lower bound for the cutoff is only set by
+the truncation error of the repulsive term of pair potentials.
 </P>
-<P>(5) count of # of atoms with each coord #
-  don't need chunking, just fix ave/histo on coord/atom
+<P>The second is that the mixing rule of the pair style has an impact on
+the computation time when using the pppm/disp. Fastest computations
+are achieved when using the geometric mixing rule. Using the
+arithmetic mixing rule substantially increases the computational cost.
+The computational overhead can be reduced using the <I>kspace_modify
+mix/disp geom</I> and <I>kspace_modify splittol</I> commands. The first
+command simply enforces geometric mixing of the dispersion
+coeffiecients in kspace computations.  This introduces some error in
+the computations but will also significantly speed-up the
+simulations. The second keyword sets the accuracy with which the
+dispersion coefficients are approximated using a matrix factorization
+approach.  This may result in better accuracy then using the first
+command, but will usually also not provide an equally good increase of
+efficiency.
 </P>
-<P>(6) ave temperature per bin
+<P>Finally, pppm/disp can also be used when no mixing rules apply.
+This can be achieved using the <I>kspace_modify mix/disp none</I> command.
+Note that the code does not check automatically whether any mixing
+rule is fulfilled. If mixing rules do not apply, the user will have
+to specify this command explicitly.
 </P>
 <HR>
 

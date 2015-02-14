@@ -162,13 +162,15 @@ similar to the <I>ewald/disp</I> style. The 1/r^6 capability means
 that Lennard-Jones or Buckingham potentials can be used without a cutoff,
 i.e. they become full long-range potentials.
 </P>
-<P>For these styles, you may want to adjust the default choice of
+<P>For these styles, you will possibly want to adjust the default choice of
 parameters by using the <A HREF = "kspace_modify.html">kspace_modify</A> command.
 This can be done by either choosing the Ewald and grid parameters, or
 by specifying separate accuracies for the real and kspace
-calculations.  Further information on the influence of the parameters
-and how to choose them is described in <A HREF = "#Isele-Holder">(Isele-Holder)</A>
-and <A HREF = "#Isele-Holder2">(Isele-Holder2)</A>.
+calculations. When not making any settings, the simulation will stop with
+an error message. Further information on the influence of the parameters
+and how to choose them is described in <A HREF = "#Isele-Holder">(Isele-Holder)</A>,
+<A HREF = "#Isele-Holder2">(Isele-Holder2)</A> and the
+<A HREF = "Section_howto.html#howto_24">How-To</A> discussion.
 </P>
 <HR>
 

@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "string.h"
+#include "unistd.h"
 #include "fix_ave_chunk.h"
 #include "atom.h"
 #include "update.h"
@@ -557,7 +558,6 @@ void FixAveChunk::end_of_step()
   // sum within each chunk, only include atoms in fix group
   // compute/fix/variable may invoke computes so wrap with clear/add
 
-  double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

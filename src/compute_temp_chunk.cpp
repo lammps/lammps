@@ -204,16 +204,17 @@ double ComputeTempChunk::compute_scalar()
   cchunk->compute_ichunk();
   int *ichunk = cchunk->ichunk;
 
-  // calculate COM velocity for each chunk
-
-  if (comflag && comstep != update->ntimestep) vcm_compute();
-
   // remove velocity bias
 
   if (biasflag) {
     if (tbias->invoked_scalar != update->ntimestep) tbias->compute_scalar();
     tbias->remove_bias_all();
   }
+
+  // calculate COM velocity for each chunk
+  // won't be invoked with bias also removed = 2 biases
+
+  if (comflag && comstep != update->ntimestep) vcm_compute();
 
   // calculate global temperature, optionally removing COM velocity
 
@@ -311,16 +312,17 @@ void ComputeTempChunk::compute_vector()
   cchunk->compute_ichunk();
   int *ichunk = cchunk->ichunk;
 
-  // calculate COM velocity for each chunk
-
-  if (comflag && comstep != update->ntimestep) vcm_compute();
-
   // remove velocity bias
 
   if (biasflag) {
     if (tbias->invoked_scalar != update->ntimestep) tbias->compute_scalar();
     tbias->remove_bias_all();
   }
+
+  // calculate COM velocity for each chunk
+  // won't be invoked with bias also removed = 2 biases
+
+  if (comflag && comstep != update->ntimestep) vcm_compute();
 
   // calculate KE tensor, optionally removing COM velocity
 
@@ -397,17 +399,19 @@ void ComputeTempChunk::compute_array()
   if (nchunk > maxchunk) allocate();
   size_array_rows = nchunk;
 
-  // calculate COM velocity for each chunk whether comflag set or not
-  // needed by some values even if comflag not set
-
-  if (comstep != update->ntimestep) vcm_compute();
-
   // remove velocity bias
 
   if (biasflag) {
     if (tbias->invoked_scalar != update->ntimestep) tbias->compute_scalar();
     tbias->remove_bias_all();
   }
+
+  // calculate COM velocity for each chunk whether comflag set or not
+  //   needed by some values even if comflag not set
+  // important to do this after velocity bias is removed
+  //   otherwise per-chunk values that use both v and vcm will be inconsistent
+
+  if (comstep != update->ntimestep) vcm_compute();
 
   // compute each value
 

@@ -15,11 +15,11 @@ compute ID group-ID temp/chunk chunkID value1 value2 ... keyword value ... :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 temp/chunk = style name of this compute command :l
 chunkID = ID of "compute chunk/atom"_compute_chunk_atom.html command :l
-zero or more values can be listed :l
+zero or more values can be listed as value1,value2,etc :l
 value = {temp} or {kecom} or {internal} :l
   temp = temperature of each chunk
   kecom = kinetic energy of each chunk based on velocity of center of mass
-  internal = internal kinetic energy of each chunk
+  internal = internal kinetic energy of each chunk :pre
 zero or more keyword/value pairs may be appended :l
 keyword = {com} or {bias} or {adof} or {cdof} :l
   {com} value = {yes} or {no}
@@ -58,9 +58,9 @@ defined and examples of how they can be used to measure properties of
 a system.
 
 The temperature is calculated by the formula KE = DOF k T, where KE =
-total kinetic energy of all atoms both in the group and assigned to
-chunks (sum of 1/2 m v^2), DOF = the total number of degrees of
-freedom for those atoms, k = Boltzmann constant, and T = temperature.
+total kinetic energy of all atoms assigned to chunks (sum of 1/2 m
+v^2), DOF = the total number of degrees of freedom for those atoms, k
+= Boltzmann constant, and T = temperature.
 
 The DOF is calculated as N*adof + Nchunk*cdof, where N = number of
 atoms contributing to the KE, adof = degrees of freedom per atom, and
@@ -122,25 +122,26 @@ concept is somewhat ill-defined.  In some cases, you can use the
 {adof} and {cdof} keywords to adjust the calculated degress of freedom
 appropriately, as explained below.
 
-Note that this compute and the "fix ave/chunk temp"_fix_ave_chunk.html
-command can calculate different things.  This compute calculates the
-temperature for each chunk for a single snapshot.  Fix ave/chunk can
-do that but can time average those values over many snapshots, or it
-can compute a temperature as if the atoms in the chunk on different
-timesteps were collected together as one set of atoms to calculate
-their temperature.  This compute allows the center-of-mass velocity of
-each chunk to be subtracted before calculating the temperature; fix
-ave/chunk does not.
+Note that the per-chunk temperature calulated by this compute and the
+"fix ave/chunk temp"_fix_ave_chunk.html command can be different.
+This compute calculates the temperature for each chunk for a single
+snapshot.  Fix ave/chunk can do that but can also time average those
+values over many snapshots, or it can compute a temperature as if the
+atoms in the chunk on different timesteps were collected together as
+one set of atoms to calculate their temperature.  This compute allows
+the center-of-mass velocity of each chunk to be subtracted before
+calculating the temperature; fix ave/chunk does not.
 
-Note that only atoms in the specified group contribute to the
-calculation.  The "compute chunk/atom"_compute_chunk_atom.html command
-defines its own group; atoms will have a chunk ID = 0 if they are not
-in that group, signifying they are not assigned to a chunk, and will
-thus also not contribute to this calculation.  You can specify the
-"all" group for this command if you simply want to include atoms with
-non-zero chunk IDs.
+IMPORTANT NOTE: Only atoms in the specified group contribute to the
+calculations performed by this compute.  The "compute
+chunk/atom"_compute_chunk_atom.html command defines its own group;
+atoms will have a chunk ID = 0 if they are not in that group,
+signifying they are not assigned to a chunk, and will thus also not
+contribute to this calculation.  You can specify the "all" group for
+this command if you simply want to include atoms with non-zero chunk
+IDs.
 
-The simplest way to output the pre-chunk results of the compute
+The simplest way to output the per-chunk results of the compute
 temp/chunk calculation to a file is to use the "fix
 ave/time"_fix_ave_time.html command, for example:
 

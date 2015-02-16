@@ -50,7 +50,7 @@ the above formula, except that v^2 is replaced by vx*vy for the xy
 component, etc.  The 6 components of the vector are ordered xx, yy,
 zz, xy, xz, yz.
 
-The number of atoms contributing to the temperature is compute each
+The number of atoms contributing to the temperature is calculated each
 time the temperature is evaluated since it is assumed atoms can
 enter/leave the region.  Thus there is no need to use the {dynamic}
 option of the "compute_modify"_compute_modify.html command for this

@@ -347,7 +347,7 @@ void Velocity::create(double t_desired, int seed)
   rescale(t,t_desired);
 
   // if bias_flag set, restore bias velocity to all atoms
-  // reapply for bias = compute temp/partial to reset v dims to 0.0
+  // needed for bias = compute temp/partial to reset v dims to 0.0
 
   if (bias_flag) {
     temperature->reapply_bias_all();

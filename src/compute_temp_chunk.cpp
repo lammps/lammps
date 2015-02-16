@@ -133,9 +133,9 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
   count = countall = NULL;
   massproc = masstotal = NULL;
   vcm = vcmall = NULL;
+  array = NULL;
 
   if (nvalues)  {
-    array = NULL;
     array_flag = 1;
     size_array_cols = nvalues;
     size_array_rows = 0;
@@ -151,19 +151,19 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempChunk::~ComputeTempChunk()
 {
-  delete [] which;
-  delete [] vector;
   delete [] idchunk;
+  delete [] which;
   delete [] id_bias;
+  delete [] vector;
   memory->destroy(sum);
   memory->destroy(sumall);
   memory->destroy(count);
   memory->destroy(countall);
+  memory->destroy(array);
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(vcm);
   memory->destroy(vcmall);
-  memory->destroy(array);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -817,6 +817,7 @@ void ComputeTempChunk::allocate()
   memory->destroy(sumall);
   memory->destroy(count);
   memory->destroy(countall);
+  memory->destroy(array);
   maxchunk = nchunk;
   memory->create(sum,maxchunk,"temp/chunk:sum");
   memory->create(sumall,maxchunk,"temp/chunk:sumall");
@@ -824,7 +825,7 @@ void ComputeTempChunk::allocate()
   memory->create(countall,maxchunk,"temp/chunk:countall");
   memory->create(array,maxchunk,nvalues,"temp/chunk:array");
 
-  if (comflag) {
+  if (comflag || nvalues) {
     memory->destroy(massproc);
     memory->destroy(masstotal);
     memory->destroy(vcm);
@@ -845,7 +846,7 @@ double ComputeTempChunk::memory_usage()
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
   bytes = (bigint) maxchunk * 2 * sizeof(int);
   bytes = (bigint) maxchunk * nvalues * sizeof(double);
-  if (comflag) {
+  if (comflag || nvalues) {
     bytes += (bigint) maxchunk * 2 * sizeof(double);
     bytes += (bigint) maxchunk * 2*3 * sizeof(double);
   }

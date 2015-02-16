@@ -699,9 +699,10 @@ void ComputeChunkAtom::compute_ichunk()
 
 int ComputeChunkAtom::setup_chunks()
 {
+  if (invoked_setup == update->ntimestep) return nchunk;
+
   // check if setup needs to be done
   // no if lock is in place
-  // no if already done on this timestep
   // no if nchunkflag = ONCE, and already done once
   // otherwise yes
   // even if no, check if need to re-compute bin volumes
@@ -709,7 +710,6 @@ int ComputeChunkAtom::setup_chunks()
 
   int flag = 0;
   if (lockfix) flag = 1;
-  if (invoked_setup == update->ntimestep) flag = 1;
   if (nchunkflag == ONCE && invoked_setup >= 0) flag = 1;
 
   if (flag) {

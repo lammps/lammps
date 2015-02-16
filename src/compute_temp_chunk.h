@@ -29,7 +29,14 @@ class ComputeTempChunk : public Compute {
   ComputeTempChunk(class LAMMPS *, int, char **);
   ~ComputeTempChunk();
   void init();
+  double compute_scalar();
   void compute_vector();
+  void compute_array();
+
+  void remove_bias(int, double *);
+  void remove_bias_all();
+  void restore_bias(int, double *);
+  void restore_bias_all();
 
   void lock_enable();
   void lock_disable();
@@ -41,18 +48,24 @@ class ComputeTempChunk : public Compute {
 
  private:
   int nchunk,maxchunk,comflag,biasflag;
+  int nvalues;
+  int *which;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
   double adof,cdof;
   char *id_bias;
   class Compute *tbias;     // ptr to additional bias compute
+  bigint comstep;
 
-  double *ke,*keall;
+  double *sum,*sumall;
   int *count,*countall;
   double *massproc,*masstotal;
   double **vcm,**vcmall;
 
   void vcm_compute();
+  void temperature(int);
+  void kecom(int);
+  void internal(int);
   void allocate();
 };
 

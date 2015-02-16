@@ -24,6 +24,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{TEMP,KECOM,INTERNAL};
+
 /* ---------------------------------------------------------------------- */
 
 ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
@@ -31,10 +33,11 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 4) error->all(FLERR,"Illegal compute temp/chunk command");
 
-  vector_flag = 1;
-  size_vector = 0;
-  size_vector_variable = 1;
-  extvector = 0;
+  scalar_flag = vector_flag = 1;
+  size_vector = 6;
+  extscalar = 0;
+  extvector = 1;
+  tempflag = 1;
 
   // ID of compute chunk/atom
 
@@ -45,6 +48,22 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
   biasflag = 0;
   init();
 
+  // optional per-chunk values
+
+  nvalues = narg-4;
+  which = new int[nvalues];
+  nvalues = 0;
+
+  int iarg = 4;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"temp") == 0) which[nvalues] = TEMP;
+    else if (strcmp(arg[iarg],"kecom") == 0) which[nvalues] = KECOM;
+    else if (strcmp(arg[iarg],"internal") == 0) which[nvalues] = INTERNAL;
+    else break;
+    iarg++;
+    nvalues++;
+  }
+
   // optional args
 
   comflag = 0;
@@ -53,7 +72,6 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
   adof = domain->dimension;
   cdof = 0.0;
 
-  int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {
       if (iarg+2 > narg)
@@ -83,9 +101,6 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal compute temp/chunk command");
   }
 
-  if (comflag && biasflag)
-    error->all(FLERR,"Cannot use both com and bias with compute temp/chunk");
-
   // error check on bias compute
 
   if (biasflag) {
@@ -99,31 +114,56 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Bias compute does not calculate a velocity bias");
   }
 
+  // this compute only calculates a bias, if comflag is set
+  // won't be two biases since comflag and biasflag cannot both be set
+
+  if (comflag && biasflag)
+    error->all(FLERR,"Cannot use both com and bias with compute temp/chunk");
+  if (comflag) tempbias = 1;
+
+  // vector data
+
+  vector = new double[6];
+
   // chunk-based data
 
   nchunk = 1;
   maxchunk = 0;
-  ke = keall = NULL;
+  sum = sumall = NULL;
   count = countall = NULL;
   massproc = masstotal = NULL;
   vcm = vcmall = NULL;
+
+  if (nvalues)  {
+    array = NULL;
+    array_flag = 1;
+    size_array_cols = nvalues;
+    size_array_rows = 0;
+    size_array_rows_variable = 1;
+    extarray = 0;
+  }
+
   allocate();
+  comstep = -1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeTempChunk::~ComputeTempChunk()
 {
+  delete [] which;
+  delete [] vector;
   delete [] idchunk;
   delete [] id_bias;
-  memory->destroy(ke);
-  memory->destroy(keall);
+  memory->destroy(sum);
+  memory->destroy(sumall);
   memory->destroy(count);
   memory->destroy(countall);
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(vcm);
   memory->destroy(vcmall);
+  memory->destroy(array);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,11 +188,203 @@ void ComputeTempChunk::init()
 
 /* ---------------------------------------------------------------------- */
 
+double ComputeTempChunk::compute_scalar()
+{
+  int i,index;
+
+  invoked_scalar = update->ntimestep;
+
+  // calculate chunk assignments,
+  //   since only atoms in chunks contribute to global temperature
+  // compute chunk/atom assigns atoms to chunk IDs
+  // extract ichunk index vector from compute
+  // ichunk = 1 to Nchunk for included atoms, 0 for excluded atoms
+
+  nchunk = cchunk->setup_chunks();
+  cchunk->compute_ichunk();
+  int *ichunk = cchunk->ichunk;
+
+  // calculate COM velocity for each chunk
+
+  if (comflag && comstep != update->ntimestep) vcm_compute();
+
+  // remove velocity bias
+
+  if (biasflag) {
+    if (tbias->invoked_scalar != update->ntimestep) tbias->compute_scalar();
+    tbias->remove_bias_all();
+  }
+
+  // calculate global temperature, optionally removing COM velocity
+
+  double **v = atom->v;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double t = 0.0;
+  int mycount = 0;
+
+  if (!comflag) {
+    if (rmass) {
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          index = ichunk[i]-1;
+          if (index < 0) continue;
+          t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
+            rmass[i];
+          mycount++;
+        }
+    } else {
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          index = ichunk[i]-1;
+          if (index < 0) continue;
+          t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
+            mass[type[i]];
+          mycount++;
+      }
+    }
+
+  } else {
+    double vx,vy,vz;
+    if (rmass) {
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          index = ichunk[i]-1;
+          if (index < 0) continue;
+          vx = v[i][0] - vcmall[index][0];
+          vy = v[i][1] - vcmall[index][1];
+          vz = v[i][2] - vcmall[index][2];
+          t += (vx*vx + vy*vy + vz*vz) * rmass[i];
+          mycount++;
+        }
+    } else {
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          index = ichunk[i]-1;
+          if (index < 0) continue;
+          vx = v[i][0] - vcmall[index][0];
+          vy = v[i][1] - vcmall[index][1];
+          vz = v[i][2] - vcmall[index][2];
+          t += (vx*vx + vy*vy + vz*vz) * mass[type[i]];
+          mycount++;
+      }
+    }
+  }
+
+  // restore velocity bias
+
+  if (biasflag) tbias->restore_bias_all();
+
+  // final temperature
+
+  MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+  double rcount = mycount;
+  double allcount;
+  MPI_Allreduce(&rcount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
+
+  double dof = nchunk*cdof + adof*allcount;
+  double tfactor = 0.0;
+  if (dof > 0.0) tfactor = force->mvv2e / (dof * force->boltz);
+  scalar *= tfactor;
+  return scalar;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputeTempChunk::compute_vector()
+{
+  int i,index;
+
+  invoked_vector = update->ntimestep;
+
+  // calculate chunk assignments,
+  //   since only atoms in chunks contribute to global temperature
+  // compute chunk/atom assigns atoms to chunk IDs
+  // extract ichunk index vector from compute
+  // ichunk = 1 to Nchunk for included atoms, 0 for excluded atoms
+
+  nchunk = cchunk->setup_chunks();
+  cchunk->compute_ichunk();
+  int *ichunk = cchunk->ichunk;
+
+  // calculate COM velocity for each chunk
+
+  if (comflag && comstep != update->ntimestep) vcm_compute();
+
+  // remove velocity bias
+
+  if (biasflag) {
+    if (tbias->invoked_scalar != update->ntimestep) tbias->compute_scalar();
+    tbias->remove_bias_all();
+  }
+
+  // calculate KE tensor, optionally removing COM velocity
+
+  double **v = atom->v;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double massone,t[6];
+  for (i = 0; i < 6; i++) t[i] = 0.0;
+
+  if (!comflag) {
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	index = ichunk[i]-1;
+	if (index < 0) continue;
+	if (rmass) massone = rmass[i];
+	else massone = mass[type[i]];
+	t[0] += massone * v[i][0]*v[i][0];
+	t[1] += massone * v[i][1]*v[i][1];
+	t[2] += massone * v[i][2]*v[i][2];
+	t[3] += massone * v[i][0]*v[i][1];
+	t[4] += massone * v[i][0]*v[i][2];
+	t[5] += massone * v[i][1]*v[i][2];
+      }
+  } else {
+    double vx,vy,vz;
+    for (i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+	index = ichunk[i]-1;
+	if (index < 0) continue;
+	if (rmass) massone = rmass[i];
+	else massone = mass[type[i]];
+	vx = v[i][0] - vcmall[index][0];
+	vy = v[i][1] - vcmall[index][1];
+	vz = v[i][2] - vcmall[index][2];
+	t[0] += massone * vx*vx;
+	t[1] += massone * vy*vy;
+	t[2] += massone * vz*vz;
+	t[3] += massone * vx*vy;
+	t[4] += massone * vx*vz;
+	t[5] += massone * vy*vz;
+      }
+  }
+
+  // restore velocity bias
+
+  if (biasflag) tbias->restore_bias_all();
+
+  // final KE
+
+  MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
+  for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempChunk::compute_array()
 {
   int index;
 
-  invoked_vector = update->ntimestep;
+  invoked_array = update->ntimestep;
 
   // compute chunk/atom assigns atoms to chunk IDs
   // extract ichunk index vector from compute
@@ -163,11 +395,12 @@ void ComputeTempChunk::compute_vector()
   int *ichunk = cchunk->ichunk;
 
   if (nchunk > maxchunk) allocate();
-  size_vector = nchunk;
+  size_array_rows = nchunk;
 
-  // calculate COM velocity for each chunk
+  // calculate COM velocity for each chunk whether comflag set or not
+  // needed by some values even if comflag not set
 
-  if (comflag) vcm_compute();
+  if (comstep != update->ntimestep) vcm_compute();
 
   // remove velocity bias
 
@@ -176,90 +409,17 @@ void ComputeTempChunk::compute_vector()
     tbias->remove_bias_all();
   }
 
-  // zero local per-chunk values
+  // compute each value
 
-  for (int i = 0; i < nchunk; i++) {
-    count[i] = 0;
-    ke[i] = 0.0;
+  for (int i = 0; i < nvalues; i++) {
+    if (which[i] == TEMP) temperature(i);
+    else if (which[i] == KECOM) kecom(i);
+    else if (which[i] == INTERNAL) internal(i);
   }
-
-  // compute temperature for each chunk
-  // option for removing COM velocity
-
-  double **v = atom->v;
-  double *mass = atom->mass;
-  double *rmass = atom->rmass;
-  int *mask = atom->mask;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-
-  if (!comflag) {
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          index = ichunk[i]-1;
-          if (index < 0) continue;
-          ke[index] += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
-            rmass[i];
-          count[index]++;
-        }
-    } else {
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          index = ichunk[i]-1;
-          if (index < 0) continue;
-          ke[index] += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
-            mass[type[i]];
-          count[index]++;
-      }
-    }
-
-  } else {
-    double vx,vy,vz;
-    if (rmass) {
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          index = ichunk[i]-1;
-          if (index < 0) continue;
-          vx = v[i][0] - vcmall[index][0];
-          vy = v[i][1] - vcmall[index][1];
-          vz = v[i][2] - vcmall[index][2];
-          ke[index] += (vx*vx + vy*vy + vz*vz) * rmass[i];
-          count[index]++;
-        }
-    } else {
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          index = ichunk[i]-1;
-          if (index < 0) continue;
-          vx = v[i][0] - vcmall[index][0];
-          vy = v[i][1] - vcmall[index][1];
-          vz = v[i][2] - vcmall[index][2];
-          ke[index] += (vx*vx + vy*vy + vz*vz) * mass[type[i]];
-          count[index]++;
-      }
-    }
-  }
-
-  MPI_Allreduce(ke,keall,nchunk,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(count,countall,nchunk,MPI_INT,MPI_SUM,world);
 
   // restore velocity bias
 
   if (biasflag) tbias->restore_bias_all();
-
-  // normalize temperatures by per-chunk DOF
-
-  double dof,tfactor;
-  double mvv2e = force->mvv2e;
-  double boltz = force->boltz;
-
-  for (int i = 0; i < nchunk; i++) {
-    dof = cdof + adof*countall[i];
-    if (dof > 0.0) tfactor = mvv2e / (dof * boltz);
-    else tfactor = 0.0;
-    keall[i] *= tfactor;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -268,8 +428,12 @@ void ComputeTempChunk::compute_vector()
 
 void ComputeTempChunk::vcm_compute()
 {
-  int index;
+  int i,index;
   double massone;
+
+  // avoid re-computing VCM more than once per step
+
+  comstep = update->ntimestep;
 
   int *ichunk = cchunk->ichunk;
 
@@ -285,7 +449,7 @@ void ComputeTempChunk::vcm_compute()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       index = ichunk[i]-1;
       if (index < 0) continue;
@@ -300,11 +464,291 @@ void ComputeTempChunk::vcm_compute()
   MPI_Allreduce(&vcm[0][0],&vcmall[0][0],3*nchunk,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(massproc,masstotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
 
-  for (int i = 0; i < nchunk; i++) {
+  for (i = 0; i < nchunk; i++) {
     vcmall[i][0] /= masstotal[i];
     vcmall[i][1] /= masstotal[i];
     vcmall[i][2] /= masstotal[i];
   }
+}
+
+/* ----------------------------------------------------------------------
+   temperature of each chunk
+------------------------------------------------------------------------- */
+
+void ComputeTempChunk::temperature(int icol)
+{
+  int i,index;
+  int *ichunk = cchunk->ichunk;
+
+  // zero local per-chunk values
+
+  for (int i = 0; i < nchunk; i++) {
+    count[i] = 0;
+    sum[i] = 0.0;
+  }
+
+  // per-chunk temperature, option for removing COM velocity
+
+  double **v = atom->v;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  if (!comflag) {
+    if (rmass) {
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          index = ichunk[i]-1;
+          if (index < 0) continue;
+          sum[index] += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
+            rmass[i];
+          count[index]++;
+        }
+    } else {
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          index = ichunk[i]-1;
+          if (index < 0) continue;
+          sum[index] += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
+            mass[type[i]];
+          count[index]++;
+      }
+    }
+
+  } else {
+    double vx,vy,vz;
+    if (rmass) {
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          index = ichunk[i]-1;
+          if (index < 0) continue;
+          vx = v[i][0] - vcmall[index][0];
+          vy = v[i][1] - vcmall[index][1];
+          vz = v[i][2] - vcmall[index][2];
+          sum[index] += (vx*vx + vy*vy + vz*vz) * rmass[i];
+          count[index]++;
+        }
+    } else {
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) {
+          index = ichunk[i]-1;
+          if (index < 0) continue;
+          vx = v[i][0] - vcmall[index][0];
+          vy = v[i][1] - vcmall[index][1];
+          vz = v[i][2] - vcmall[index][2];
+          sum[index] += (vx*vx + vy*vy + vz*vz) * mass[type[i]];
+          count[index]++;
+      }
+    }
+  }
+
+  // sum across procs
+
+  MPI_Allreduce(sum,sumall,nchunk,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(count,countall,nchunk,MPI_INT,MPI_SUM,world);
+
+  // normalize temperatures by per-chunk DOF
+
+  double dof,tfactor;
+  double mvv2e = force->mvv2e;
+  double boltz = force->boltz;
+
+  for (int i = 0; i < nchunk; i++) {
+    dof = cdof + adof*countall[i];
+    if (dof > 0.0) tfactor = mvv2e / (dof * boltz);
+    else tfactor = 0.0;
+    array[i][icol] = tfactor * sumall[i];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   KE of entire chunk moving at VCM
+------------------------------------------------------------------------- */
+
+void ComputeTempChunk::kecom(int icol)
+{
+  int i,index;
+  int *ichunk = cchunk->ichunk;
+
+  // zero local per-chunk values
+
+  for (int i = 0; i < nchunk; i++) sum[i] = 0.0;
+
+  // per-chunk COM KE
+
+  double **v = atom->v;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  double vx,vy,vz;
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        vx = vcmall[index][0];
+        vy = vcmall[index][1];
+        vz = vcmall[index][2];
+        sum[index] += (vx*vx + vy*vy + vz*vz) * rmass[i];
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        vx = vcmall[index][0];
+        vy = vcmall[index][1];
+        vz = vcmall[index][2];
+        sum[index] += (vx*vx + vy*vy + vz*vz) * mass[type[i]];
+      }
+  }
+
+  // sum across procs
+
+  MPI_Allreduce(sum,sumall,nchunk,MPI_DOUBLE,MPI_SUM,world);
+
+  double mvv2e = force->mvv2e;
+  for (int i = 0; i < nchunk; i++)
+    array[i][icol] = 0.5 * mvv2e * sumall[i];
+
+}
+
+/* ----------------------------------------------------------------------
+   internal KE of each chunk around its VCM
+   computed using per-atom velocities with chunk VCM subtracted off
+------------------------------------------------------------------------- */
+
+void ComputeTempChunk::internal(int icol)
+{
+  int i,index;
+  int *ichunk = cchunk->ichunk;
+
+  // zero local per-chunk values
+
+  for (int i = 0; i < nchunk; i++) sum[i] = 0.0;
+
+  // per-chunk internal KE
+
+  double **v = atom->v;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  double vx,vy,vz;
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        vx = v[i][0] - vcmall[index][0];
+        vy = v[i][1] - vcmall[index][1];
+        vz = v[i][2] - vcmall[index][2];
+        sum[index] += (vx*vx + vy*vy + vz*vz) * rmass[i];
+      }
+  } else {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) {
+        index = ichunk[i]-1;
+        if (index < 0) continue;
+        vx = v[i][0] - vcmall[index][0];
+        vy = v[i][1] - vcmall[index][1];
+        vz = v[i][2] - vcmall[index][2];
+        sum[index] += (vx*vx + vy*vy + vz*vz) * mass[type[i]];
+      }
+  }
+
+  // sum across procs
+
+  MPI_Allreduce(sum,sumall,nchunk,MPI_DOUBLE,MPI_SUM,world);
+
+  double mvv2e = force->mvv2e;
+  for (int i = 0; i < nchunk; i++)
+    array[i][icol] = 0.5 * mvv2e * sumall[i];
+}
+
+/* ----------------------------------------------------------------------
+   bias methods: called by thermostats
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   remove velocity bias from atom I to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempChunk::remove_bias(int i, double *v)
+{
+  int index = cchunk->ichunk[i];
+  if (index < 0) return;
+  v[0] -= vcmall[index][0];
+  v[1] -= vcmall[index][1];
+  v[2] -= vcmall[index][2];
+}
+
+/* ----------------------------------------------------------------------
+   remove velocity bias from all atoms to leave thermal velocity
+------------------------------------------------------------------------- */
+
+void ComputeTempChunk::remove_bias_all()
+{
+  int index;
+  int *ichunk = cchunk->ichunk;
+
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      index = ichunk[i];
+      if (index < 0) continue;
+      v[i][0] -= vbias[0];
+      v[i][1] -= vbias[1];
+      v[i][2] -= vbias[2];
+    }
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to atom I removed by remove_bias()
+   assume remove_bias() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempChunk::restore_bias(int i, double *v)
+{
+  int index = cchunk->ichunk[i];
+  if (index < 0) return;
+  v[0] += vcmall[index][0];
+  v[1] += vcmall[index][1];
+  v[2] += vcmall[index][2];
+}
+
+/* ----------------------------------------------------------------------
+   add back in velocity bias to all atoms removed by remove_bias_all()
+   assume remove_bias_all() was previously called
+------------------------------------------------------------------------- */
+
+void ComputeTempChunk::restore_bias_all()
+{
+  int index;
+  int *ichunk = cchunk->ichunk;
+
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      index = ichunk[i];
+      if (index < 0) continue;
+      v[i][0] += vbias[0];
+      v[i][1] += vbias[1];
+      v[i][2] += vbias[2];
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -369,16 +813,16 @@ void ComputeTempChunk::unlock(Fix *fixptr)
 
 void ComputeTempChunk::allocate()
 {
-  memory->destroy(ke);
-  memory->destroy(keall);
+  memory->destroy(sum);
+  memory->destroy(sumall);
   memory->destroy(count);
   memory->destroy(countall);
   maxchunk = nchunk;
-  memory->create(ke,maxchunk,"temp/chunk:ke");
-  memory->create(keall,maxchunk,"temp/chunk:keall");
+  memory->create(sum,maxchunk,"temp/chunk:sum");
+  memory->create(sumall,maxchunk,"temp/chunk:sumall");
   memory->create(count,maxchunk,"temp/chunk:count");
   memory->create(countall,maxchunk,"temp/chunk:countall");
-  vector = keall;
+  memory->create(array,maxchunk,nvalues,"temp/chunk:array");
 
   if (comflag) {
     memory->destroy(massproc);
@@ -400,6 +844,7 @@ double ComputeTempChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
   bytes = (bigint) maxchunk * 2 * sizeof(int);
+  bytes = (bigint) maxchunk * nvalues * sizeof(double);
   if (comflag) {
     bytes += (bigint) maxchunk * 2 * sizeof(double);
     bytes += (bigint) maxchunk * 2*3 * sizeof(double);

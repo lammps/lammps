@@ -579,7 +579,7 @@ double FixQEq::parallel_norm( double *v, int n )
   int *ilist;
 
   ilist = list->ilist;
-
+  my_sum = 0.0;
   for( ii = 0; ii < n; ++ii ) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)

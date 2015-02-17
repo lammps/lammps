@@ -18,6 +18,7 @@
 #include "mpi.h"
 #include "math.h"
 #include "string.h"
+#include "stdlib.h"
 #include "compute_temp_deform_eff.h"
 #include "domain.h"
 #include "atom.h"
@@ -113,7 +114,7 @@ void ComputeTempDeformEff::dof_compute()
   int one = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (fabs(spin[i]) == 1) one++;
+      if (abs(spin[i]) == 1) one++;
     }
   int nelectrons;
   MPI_Allreduce(&one,&nelectrons,1,MPI_INT,MPI_SUM,world);
@@ -166,7 +167,7 @@ double ComputeTempDeformEff::compute_scalar()
       if (mass) {
         t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
               vthermal[2]*vthermal[2])* mass[type[i]];
-        if (fabs(spin[i])==1) t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
+        if (abs(spin[i])==1) t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
       }
     }
 
@@ -218,7 +219,7 @@ void ComputeTempDeformEff::compute_vector()
       t[3] += massone * vthermal[0]*vthermal[1];
       t[4] += massone * vthermal[0]*vthermal[2];
       t[5] += massone * vthermal[1]*vthermal[2];
-      if (fabs(spin[i])==1) {
+      if (abs(spin[i])==1) {
         t[0] += mefactor * massone * ervel[i]*ervel[i];
         t[1] += mefactor * massone * ervel[i]*ervel[i];
         t[2] += mefactor * massone * ervel[i]*ervel[i];

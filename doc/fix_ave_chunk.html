@@ -233,14 +233,14 @@ they are used in the above formula for KE, by using the <I>bias</I>
 keyword.  This allows, for example, a thermal temperature to be
 computed after removal of a flow velocity profile.
 </P>
-<P>Note that this fix and the <A HREF = "compute_temp_chunk.html">compute
-temp/chunk</A> command can calculate different
-things.  The compute calculates the temperature for each chunk for a
-single snapshot.  This fix can do that but can time average those
-values over many snapshots, or it can compute a temperature as if the
-atoms in the chunk on different timesteps were collected together as
-one set of atoms to calculate their temperature.  The compute allows
-the center-of-mass velocity of each chunk to be subtracted before
+<P>Note that the per-chunk temperature calculated by this fix and the
+<A HREF = "compute_temp_chunk.html">compute temp/chunk</A> command can be different.
+The compute calculates the temperature for each chunk for a single
+snapshot.  This fix can do that but can also time average those values
+over many snapshots, or it can compute a temperature as if the atoms
+in the chunk on different timesteps were collected together as one set
+of atoms to calculate their temperature.  The compute allows the
+center-of-mass velocity of each chunk to be subtracted before
 calculating the temperature; this fix does not.
 </P>
 <P>If a value begins with "c_", a compute ID must follow which has been

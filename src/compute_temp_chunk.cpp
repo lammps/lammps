@@ -384,8 +384,6 @@ void ComputeTempChunk::compute_vector()
 
 void ComputeTempChunk::compute_array()
 {
-  int index;
-
   invoked_array = update->ntimestep;
 
   // compute chunk/atom assigns atoms to chunk IDs
@@ -394,7 +392,6 @@ void ComputeTempChunk::compute_array()
 
   nchunk = cchunk->setup_chunks();
   cchunk->compute_ichunk();
-  int *ichunk = cchunk->ichunk;
 
   if (nchunk > maxchunk) allocate();
   size_array_rows = nchunk;
@@ -573,7 +570,7 @@ void ComputeTempChunk::temperature(int icol)
 
 void ComputeTempChunk::kecom(int icol)
 {
-  int i,index;
+  int index;
   int *ichunk = cchunk->ichunk;
 
   // zero local per-chunk values
@@ -582,7 +579,6 @@ void ComputeTempChunk::kecom(int icol)
 
   // per-chunk COM KE
 
-  double **v = atom->v;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
@@ -629,7 +625,7 @@ void ComputeTempChunk::kecom(int icol)
 
 void ComputeTempChunk::internal(int icol)
 {
-  int i,index;
+  int index;
   int *ichunk = cchunk->ichunk;
 
   // zero local per-chunk values

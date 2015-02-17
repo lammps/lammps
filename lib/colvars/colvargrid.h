@@ -249,7 +249,9 @@ public:
     nd = colvars.size();
     mult = mult_i;
 
-    for (size_t i = 0; i < cv.size(); i++) {
+    size_t i;
+
+    for (i = 0; i < cv.size(); i++) {
       if (!cv[i]->tasks[colvar::task_lower_boundary] ||
           !cv[i]->tasks[colvar::task_upper_boundary]) {
         cvm::error("Tried to initialize a grid on a "
@@ -263,7 +265,7 @@ public:
                " collective variables, multiplicity = "+cvm::to_str(mult_i)+".\n");
     }
 
-    for (size_t i =  0; i < cv.size(); i++) {
+    for (i =  0; i < cv.size(); i++) {
 
       if (cv[i]->value().type() != colvarvalue::type_scalar) {
         cvm::error("Colvar grids can only be automatically "

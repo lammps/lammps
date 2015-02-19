@@ -56,6 +56,8 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/slater command");
   }
+
+  if (streitz_flag) extract();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,6 +84,33 @@ void FixQEqSlater::init()
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixQEqSlater::extract()
+{
+  int ntypes = atom->ntypes;
+
+  memory->create(chi,ntypes+1,"qeq:chi");
+  memory->create(eta,ntypes+1,"qeq:eta");
+  memory->create(gamma,ntypes+1,"qeq:gamma");
+  memory->create(zeta,ntypes+1,"qeq:zeta");
+  memory->create(zcore,ntypes+1,"qeq:zcore");
+
+  Pair *pair = force->pair_match("coul/streitz",1);
+  if (pair == NULL) error->all(FLERR,"No pair coul/streitz for fix qeq/slater");
+  int tmp;
+  chi = (double *) pair->extract("chi",tmp);
+  eta = (double *) pair->extract("eta",tmp);
+  gamma = (double *) pair->extract("gamma",tmp);
+  zeta = (double *) pair->extract("zeta",tmp);
+  zcore = (double *) pair->extract("zcore",tmp);
+  if (chi == NULL || eta == NULL || gamma == NULL 
+                  || zeta == NULL || zcore == NULL)
+    error->all(FLERR,
+	"Fix qeq/slater could not extract params from pair coul/streitz");
+
 }
 
 /* ---------------------------------------------------------------------- */

@@ -37,6 +37,9 @@ class FixQEqSlater : public FixQEq {
   void compute_H();
   double calculate_H(double, double, double, double, double &);
   double calculate_H_wolf(double, double, double, double, double &);
+  void extract();
+
+  class PairCoulStreitz *streitz;
 };
 }
 #endif

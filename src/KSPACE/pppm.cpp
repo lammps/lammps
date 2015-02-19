@@ -607,6 +607,17 @@ void PPPM::compute(int eflag, int vflag)
     cg_peratom->setup();
   }
 
+  // if atom count has changed, update qsum and qsqsum
+
+  if (atom->natoms != natoms_original) {
+    qsum_qsq();
+    natoms_original = atom->natoms;
+  }
+  
+  // return if there are no charges
+  
+  if (qsqsum == 0.0) return;
+  
   // convert atoms from box to lamda coords
 
   if (triclinic == 0) boxlo = domain->boxlo;
@@ -665,13 +676,6 @@ void PPPM::compute(int eflag, int vflag)
   // extra per-atom energy/virial communication
 
   if (evflag_atom) fieldforce_peratom();
-
-  // update qsum and qsqsum, if atom count has changed and energy needed
-
-  if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
-    qsum_qsq();
-    natoms_original = atom->natoms;
-  }
 
   // sum global energy across procs and add in volume-dependent term
 

@@ -22,6 +22,7 @@ pair_style coul/long/omp command :h3
 pair_style coul/long/gpu command :h3
 pair_style coul/msm command :h3
 pair_style coul/msm/omp command :h3
+pair_style coul/streitz command :h3
 pair_style coul/wolf command :h3
 pair_style coul/wolf/kk command :h3
 pair_style coul/wolf/omp command :h3
@@ -38,6 +39,7 @@ pair_style coul/dsf alpha cutoff
 pair_style coul/long cutoff
 pair_style coul/long/gpu cutoff 
 pair_style coul/wolf alpha cutoff
+pair_style coul/streitz cutoff keyword alpha
 pair_style tip4p/cut otype htype btype atype qdist cutoff
 pair_style tip4p/long otype htype btype atype qdist cutoff :pre
 
@@ -67,6 +69,10 @@ pair_coeff * * :pre
 pair_style coul/wolf 0.2 9.0
 pair_coeff * * :pre
 
+pair_style coul/streitz 12.0 ewald
+pair_style coul/streitz 12.0 wolf 0.30
+pair_coeff * * AlO.streitz Al O :pre
+
 pair_style tip4p/cut 1 2 7 8 0.15 12.0
 pair_coeff * * :pre
 
@@ -85,6 +91,8 @@ the 2 atoms, and epsilon is the dielectric constant which can be set
 by the "dielectric"_dielectric.html command.  The cutoff Rc truncates
 the interaction distance.
 
+:line
+
 Style {coul/debye} adds an additional exp() damping factor to the
 Coulombic term, given by
 
@@ -92,6 +100,8 @@ Coulombic term, given by
 
 where kappa is the Debye length.  This potential is another way to
 mimic the screening effect of a polar solvent.
+
+:line
 
 Style {coul/dsf} computes Coulombic interactions via the damped 
 shifted force model described in "Fennell"_#Fennell, given by:
@@ -103,6 +113,8 @@ complementary error-function. The potential corrects issues in the
 Wolf model (described below) to provide consistent forces and energies
 (the Wolf potential is not differentiable at the cutoff) and smooth
 decay to zero.
+
+:line
 
 Style {coul/wolf} computes Coulombic interactions via the Wolf
 summation method, described in "Wolf"_#Wolf, given by:
@@ -121,6 +133,46 @@ a long enough cutoff and small enough alpha parameter, the energy and
 forces calcluated by the Wolf summation method approach those of the
 Ewald sum.  So it is a means of getting effective long-range
 interactions with a short-range potential.
+
+:line
+
+Style {coul/streitz} is the Coulomb pair interaction defined as part
+of the Streitz-Mintmire potential, as described in "this
+paper"_#Streitz, in which charge distribution about an atom is modeled
+as a Slater 1{s} orbital.  More details can be found in the referenced
+paper.  To fully reproduce the published Streitz-Mintmire potential,
+which is a variable charge potential, style {coul/streitz} must be
+used with "pair_style eam/alloy"_pair_eam.html via the "pair_style
+hybrid/overlay"_pair_hybrid.html command and charge equilibration must
+be performed via the "fix qeq/slater"_fix_qeq.html command. For
+example:
+
+pair_style hybrid/overlay coul/streitz 12.0 wolf 0.31 eam/alloy
+pair_coeff * * coul/streitz AlO.streitz Al O
+pair_coeff * * eam/alloy AlO.eam.alloy Al O
+fix 1 all qeq/slater 1 12.0 1.0e-6 100 coul/streitz :pre
+
+The keyword {wolf} after the 12.0 {cutoff} denotes computing Coulombic
+interactions via Wolf summation.  An additional damping parameter is
+required for the Wolf summation, as described for the coul/wolf
+potential above.  Alternatively, Coulombic interactions can be
+computed via an Ewald summation.  For example:
+
+pair_style hybrid/overlay coul/streitz 12.0 ewald eam/alloy
+kspace_style ewald 1e-6 :pre
+
+Keyword {ewald} does not need a damping parameter, but a
+"kspace_style"_kspace_style.html must be defined.  The Ewald summation
+option was the method used in Streitz and Mintmire's original paper,
+but a Wolf summation offers a speed-up in some cases.
+
+For the fix qeq/slater command, the {qfile} can be a filename that
+contains QEq parameters as discussed on the "fix qeq"_fix_qeq.html
+command doc page.  Alternatively {qfile} can be replaced by
+"coul/streitz", in which case the fix will extract QEq parameters from
+the coul/streitz pair style itself.
+
+:line
 
 Styles {coul/long} and {coul/msm} compute the same Coulombic
 interactions as style {coul/cut} except that an additional damping
@@ -257,3 +309,7 @@ Phys, 110, 8254 (1999).
 :link(Fennell)
 [(Fennell)] C. J. Fennell, J. D. Gezelter, J Chem Phys, 124, 
 234104 (2006).
+
+:link(Streitz)
+[(Streitz)] F. H. Streitz, J. W. Minimire, Phys Rev B 50, 
+11996-12003 (1994).

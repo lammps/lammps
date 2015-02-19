@@ -96,9 +96,7 @@ class FixShakeCuda : public Fix {
   cCudaData<double           , X_CFLOAT , xy >* cu_xshake;
   cCudaData<int           , int            , xx >* cu_list;
   cCudaData<double           , ENERGY_CFLOAT , xx >* cu_virial;
-  int* countoccur;
 
-  int vflag;                            // virial flag
   double dtv,dtfsq;                     // timesteps for trial move
   double dtf_inner,dtf_innerhalf;       // timesteps for rRESPA trial move
 

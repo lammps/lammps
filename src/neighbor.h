@@ -382,12 +382,6 @@ The number of nlocal + nghost atoms on a processor
 is limited by the size of a 32-bit integer with 2 bits
 removed for masking 1-2, 1-3, 1-4 neighbors.
 
-W: Building an occasional neighobr list when atoms may have moved too far
-
-This can cause LAMMPS to crash when the neighbor list is built.
-The solution is to check for building the regular neighbor lists
-more frequently.
-
 E: Domain too large for neighbor bins
 
 The domain has become extremely large so that neighbor bins cannot be

@@ -933,7 +933,6 @@ void FixRigidSmall::pre_neighbor()
 
 void FixRigidSmall::image_shift()
 {
-  int ibody;
   imageint tdim,bdim,xdim[3];
 
   imageint *image = atom->image;

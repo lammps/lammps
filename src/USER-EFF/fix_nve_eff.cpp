@@ -18,6 +18,7 @@
 #include "math.h"
 #include "stdio.h"
 #include "string.h"
+#include "stdlib.h"
 #include "fix_nve_eff.h"
 #include "atom.h"
 #include "force.h"
@@ -100,7 +101,7 @@ void FixNVEEff::initial_integrate(int vflag)
         x[i][0] += dtv * v[i][0];
         x[i][1] += dtv * v[i][1];
         x[i][2] += dtv * v[i][2];
-        if (fabs(spin[i])==1) {
+        if (abs(spin[i])==1) {
           ervel[i] += dtfm * erforce[i] / mefactor;
           eradius[i] += dtv * ervel[i];
         }
@@ -136,7 +137,7 @@ void FixNVEEff::final_integrate()
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
         v[i][2] += dtfm * f[i][2];
-        if (fabs(spin[i])==1)
+        if (abs(spin[i])==1)
           ervel[i] += dtfm * erforce[i] / mefactor;
       }
     }

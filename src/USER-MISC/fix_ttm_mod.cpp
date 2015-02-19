@@ -380,12 +380,10 @@ void FixTTMMod::post_force(int vflag)
           if (left_ynode == -1) left_ynode = nynodes - 1;
           if (left_znode == -1) left_znode = nznodes - 1;
           double T_i = T_electron[ixnode][iynode][iznode];
-          double T_il = T_electron[left_xnode][iynode][iznode];
           double T_ir = T_electron[right_xnode][iynode][iznode];
           double T_iu = T_electron[ixnode][right_ynode][iznode];
           double T_if = T_electron[ixnode][iynode][right_znode];
           double C_i = el_properties(T_electron[ixnode][iynode][iznode]).el_heat_capacity;
-          double C_il = el_properties(T_electron[left_xnode][iynode][iznode]).el_heat_capacity;
           double C_ir = el_properties(T_electron[right_xnode][iynode][iznode]).el_heat_capacity;
           double C_iu = el_properties(T_electron[ixnode][right_ynode][iznode]).el_heat_capacity;
           double C_if = el_properties(T_electron[ixnode][iynode][right_znode]).el_heat_capacity;

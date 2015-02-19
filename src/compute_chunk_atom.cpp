@@ -629,7 +629,6 @@ void ComputeChunkAtom::compute_ichunk()
     if (binflag) {
       for (i = 0; i < nlocal; i++) {
         if (exclude[i]) continue;
-        int old = ichunk[i];
         if (hash->find(ichunk[i]) == hash->end()) exclude[i] = 1;
         else ichunk[i] = hash->find(ichunk[i])->second;
       }
@@ -672,7 +671,6 @@ void ComputeChunkAtom::compute_ichunk()
   // if newly calculated IDs need to persist, store them in fixstore
   // yes if idsflag = ONCE or idsflag = NFREQ and lock is in place
 
-  int save = 0;
   if (idsflag == ONCE || (idsflag == NFREQ && lockfix)) { 
     double *vstore = fixstore->vstore;
     int nlocal = atom->nlocal;
@@ -867,7 +865,6 @@ void ComputeChunkAtom::assign_chunk_ids()
 
     if (argindex == 0) {
       double *vec = fchunk->vector_atom;
-      int n = nlocal;
       for (i = 0; i < nlocal; i++) {
         if (exclude[i]) continue;
         ichunk[i] = static_cast<int> (vec[i]);
@@ -1201,10 +1198,8 @@ void ComputeChunkAtom::atom2bin1d()
   int i,ibin;
   double *boxlo,*boxhi,*prd;
   double xremap;
-  double lamda[3];
 
   double **x = atom->x;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int idim = dim[0];
@@ -1275,10 +1270,8 @@ void ComputeChunkAtom::atom2bin2d()
   int i,ibin,i1bin,i2bin;
   double *boxlo,*boxhi,*prd;
   double xremap,yremap;
-  double lamda[3];
 
   double **x = atom->x;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int idim = dim[0];
@@ -1380,10 +1373,8 @@ void ComputeChunkAtom::atom2bin3d()
   int i,ibin,i1bin,i2bin,i3bin;
   double *boxlo,*boxhi,*prd;
   double xremap,yremap,zremap;
-  double lamda[3];
 
   double **x = atom->x;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   int idim = dim[0];

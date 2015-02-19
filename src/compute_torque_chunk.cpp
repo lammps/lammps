@@ -84,7 +84,7 @@ void ComputeTorqueChunk::init()
 
 void ComputeTorqueChunk::compute_array()
 {
-  int i,j,index;
+  int i,index;
   double dx,dy,dz,massone;
   double unwrap[3];
 

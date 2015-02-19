@@ -558,7 +558,6 @@ int FixAtomSwap::pick_j_swap_atom()
 void FixAtomSwap::update_semi_grand_atoms_list()
 {
   int nlocal = atom->nlocal;
-  int *type = atom->type;
   double **x = atom->x;
       
   if (nlocal > atom_swap_nmax) {

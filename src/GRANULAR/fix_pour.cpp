@@ -370,7 +370,7 @@ void FixPour::init()
 
 void FixPour::pre_exchange()
 {
-  int i,j,m,flag,nlocalprev,imol,natom;
+  int i,m,flag,nlocalprev,imol,natom;
   double r[3],rotmat[3][3],quat[4],vnew[3];
   double *newcoord;
 

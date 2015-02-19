@@ -25,6 +25,8 @@
 #include "special.h"
 #include "error.h"
 
+#include <stdlib.h>
+
 using namespace LAMMPS_NS;
 
 enum{MULTI,ATOM,BOND,ANGLE,DIHEDRAL,IMPROPER,STATS};

@@ -91,6 +91,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   qf = NULL;
   q1 = NULL;
   q2 = NULL;
+  streitz_flag = 0;
 
   comm_forward = comm_reverse = 1;
 
@@ -105,7 +106,11 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
     for (int j = 0; j < nprev; ++j )
       s_hist[i][j] = t_hist[i][j] = atom->q[i];
 
-  read_file(arg[7]);
+  if (strcmp(arg[7],"coul/streitz") == 0) {
+    streitz_flag = 1;
+  } else {
+    read_file(arg[7]);
+  }
 
 }
 
@@ -124,11 +129,13 @@ FixQEq::~FixQEq()
 
   memory->destroy(shld);
 
-  memory->destroy(chi);
-  memory->destroy(eta);
-  memory->destroy(gamma);
-  memory->destroy(zeta);
-  memory->destroy(zcore);
+  if (!streitz_flag) {
+    memory->destroy(chi);
+    memory->destroy(eta);
+    memory->destroy(gamma);
+    memory->destroy(zeta);
+    memory->destroy(zcore);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -587,7 +594,7 @@ double FixQEq::parallel_norm( double *v, int n )
       my_sum += v[i]*v[i];
   }
 
-  MPI_Allreduce(&my_sum, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce( &my_sum, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
 
   return sqrt( norm_sqr );
 }

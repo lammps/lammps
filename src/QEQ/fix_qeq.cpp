@@ -580,13 +580,14 @@ double FixQEq::parallel_norm( double *v, int n )
 
   ilist = list->ilist;
 
+  my_sum = 0.0;
   for( ii = 0; ii < n; ++ii ) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
       my_sum += v[i]*v[i];
   }
 
-  MPI_Allreduce( &my_sum, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
+  MPI_Allreduce(&my_sum, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
 
   return sqrt( norm_sqr );
 }

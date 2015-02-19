@@ -17,6 +17,7 @@
 
 #include "math.h"
 #include "string.h"
+#include "stdlib.h"
 #include "compute_ke_atom_eff.h"
 #include "atom.h"
 #include "update.h"
@@ -98,7 +99,7 @@ void ComputeKEAtomEff::compute_peratom()
       if (mask[i] & groupbit) {
         ke[i] = 0.5 * mvv2e * mass[type[i]] *
           (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-        if (fabs(spin[i])==1)
+        if (abs(spin[i])==1)
           ke[i] += 0.5 * mvv2e * mefactor * mass[type[i]] * ervel[i]*ervel[i];
       } else ke[i] = 0.0;
     }

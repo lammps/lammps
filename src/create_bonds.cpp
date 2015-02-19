@@ -140,7 +140,6 @@ void CreateBonds::command(int narg, char **arg)
   int i,j,ii,jj,inum,jnum,flag;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double factor_lj,factor_coul;
 
   inum = list->inum;
   ilist = list->ilist;

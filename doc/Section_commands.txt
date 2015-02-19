@@ -748,6 +748,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "coul/dsf (gko)"_pair_coul.html,
 "coul/long (go)"_pair_coul.html,
 "coul/msm"_pair_coul.html,
+"coul/streitz"_pair_coul.html,
 "coul/wolf (ko)"_pair_coul.html,
 "dpd (o)"_pair_dpd.html,
 "dpd/tstat (o)"_pair_dpd.html,

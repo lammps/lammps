@@ -168,35 +168,41 @@ paper</A>, in which charge distribution about an atom is modeled
 as a Slater 1<I>s</I> orbital.  More details can be found in the referenced
 paper.  To fully reproduce the published Streitz-Mintmire potential,
 which is a variable charge potential, style <I>coul/streitz</I> must be
-used with <A HREF = "pair_eam.html">pair_style eam/alloy</A> via the <A HREF = "pair_hybrid.html">pair_style
-hybrid/overlay</A> command and charge equilibration must
-be performed via the <A HREF = "fix_qeq.html">fix qeq/slater</A> command. For
-example:
+used with <A HREF = "pair_eam.html">pair_style eam/alloy</A> (or some other
+short-range potential that has been parameterized appropriately) via
+the <A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A> command.  Likewise,
+charge equilibration must be performed via the <A HREF = "fix_qeq.html">fix
+qeq/slater</A> command. For example:
 </P>
 <PRE>pair_style hybrid/overlay coul/streitz 12.0 wolf 0.31 eam/alloy
 pair_coeff * * coul/streitz AlO.streitz Al O
 pair_coeff * * eam/alloy AlO.eam.alloy Al O
 fix 1 all qeq/slater 1 12.0 1.0e-6 100 coul/streitz 
 </PRE>
-<P>The keyword <I>wolf</I> after the 12.0 <I>cutoff</I> denotes computing Coulombic
-interactions via Wolf summation.  An additional damping parameter is
-required for the Wolf summation, as described for the coul/wolf
-potential above.  Alternatively, Coulombic interactions can be
-computed via an Ewald summation.  For example:
+<P>The keyword <I>wolf</I> in the coul/streitz command denotes computing
+Coulombic interactions via Wolf summation.  An additional damping
+parameter is required for the Wolf summation, as described for the
+coul/wolf potential above.  Alternatively, Coulombic interactions can
+be computed via an Ewald summation.  For example:
 </P>
 <PRE>pair_style hybrid/overlay coul/streitz 12.0 ewald eam/alloy
 kspace_style ewald 1e-6 
 </PRE>
 <P>Keyword <I>ewald</I> does not need a damping parameter, but a
-<A HREF = "kspace_style.html">kspace_style</A> must be defined.  The Ewald summation
-option was the method used in Streitz and Mintmire's original paper,
-but a Wolf summation offers a speed-up in some cases.
+<A HREF = "kspace_style.html">kspace_style</A> must be defined, which can be style
+<I>ewald</I> or <I>pppm</I>.  The Ewald method was used in Streitz and
+Mintmire's original paper, but a Wolf summation offers a speed-up in
+some cases.
 </P>
 <P>For the fix qeq/slater command, the <I>qfile</I> can be a filename that
 contains QEq parameters as discussed on the <A HREF = "fix_qeq.html">fix qeq</A>
 command doc page.  Alternatively <I>qfile</I> can be replaced by
 "coul/streitz", in which case the fix will extract QEq parameters from
 the coul/streitz pair style itself.
+</P>
+<P>See the examples/strietz directory for an example input script that
+uses the Streitz-Mintmire potential.  The potentials directory has the
+AlO.eam.alloy and AlO.streitz potential files used by the example.
 </P>
 <HR>
 

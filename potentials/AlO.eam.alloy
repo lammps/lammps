@@ -1,5 +1,5 @@
 DATE: 2015-02-19 CONTRIBUTOR: Ray Shan, tnshan@sandia.gov CITATION: Streitz and Mintmire, Phys Rev B, 50, 11996-12003 (1994)
-Streitz and Mintmire FS EAM potential for Al-O 
+Streitz and Mintmire FS EAM potential for Al-O, with additions by Zhou (2004)
 Formatted for LAMMPS 
 2 Al O  
  1000 2.6303460068654511E-01 1000 8.4231106106106100E-03 8.4146874999999994E+00 

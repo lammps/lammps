@@ -441,6 +441,28 @@ void PairHybrid::init_style()
     if (used == 0) error->all(FLERR,"Pair hybrid sub-style is not used");
   }
 
+  // check if special_lj/special_coul overrides are compatible
+  for (istyle = 0; istyle < nstyles; istyle++) {
+    if (special_lj[istyle]) {
+      for (i = 1; i < 4; ++i) {
+        if (((force->special_lj[i] == 0.0) || (force->special_lj[i] == 1.0))
+            && (force->special_lj[i] != special_lj[istyle][i]))
+          error->all(FLERR,"Pair_modify special setting incompatible with"
+                     " global special_bonds setting");
+      }
+    }
+
+    if (special_coul[istyle]) {
+      for (i = 1; i < 4; ++i) {
+        if (((force->special_coul[i] == 0.0)
+             || (force->special_coul[i] == 1.0))
+            && (force->special_coul[i] != special_coul[istyle][i]))
+          error->all(FLERR,"Pair_modify special setting incompatible with"
+                     "global special_bonds setting");
+      }
+    }
+  }
+
   // each sub-style makes its neighbor list request(s)
 
   for (istyle = 0; istyle < nstyles; istyle++) styles[istyle]->init_style();
@@ -835,24 +857,6 @@ void PairHybrid::modify_special(int m, int narg, char **arg)
       special_coul[m][i] = special[i];
 
   } else error->all(FLERR,"Illegal pair_modify special command");
-
-  if (special_lj[m]) {
-    for (i = 1; i < 4; ++i) {
-      if (((force->special_lj[i] == 0.0) || (force->special_lj[i] == 1.0))
-          && (force->special_lj[i] != special_lj[m][i]))
-        error->all(FLERR,"Pair_modify special setting incompatible with"
-                   "global special_bonds setting");
-    }
-  }
-
-  if (special_coul[m]) {
-    for (i = 1; i < 4; ++i) {
-      if (((force->special_coul[i] == 0.0) || (force->special_coul[i] == 1.0))
-          && (force->special_coul[i] != special_coul[m][i]))
-        error->all(FLERR,"Pair_modify special setting incompatible with"
-                   "global special_bonds setting");
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------

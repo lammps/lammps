@@ -3,6 +3,8 @@
 #ifndef COLVARPROXY_H
 #define COLVARPROXY_H
 
+#include <fstream>
+#include <list>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
@@ -128,25 +130,25 @@ public:
 
   /// \brief Get the PBC-aware distance vector between two positions
   virtual cvm::rvector position_distance(cvm::atom_pos const &pos1,
-                                          cvm::atom_pos const &pos2) = 0;
+                                         cvm::atom_pos const &pos2) = 0;
 
   /// \brief Get the PBC-aware square distance between two positions;
   /// may be implemented independently from position_distance() for optimization purposes
   virtual cvm::real position_dist2(cvm::atom_pos const &pos1,
-                                    cvm::atom_pos const &pos2);
+                                   cvm::atom_pos const &pos2);
 
   /// \brief Get the closest periodic image to a reference position
   /// \param pos The position to look for the closest periodic image
   /// \param ref_pos The reference position
   virtual void select_closest_image(cvm::atom_pos &pos,
-                                     cvm::atom_pos const &ref_pos) = 0;
+                                    cvm::atom_pos const &ref_pos) = 0;
 
   /// \brief Perform select_closest_image() on a set of atomic positions
   ///
   /// After that, distance vectors can then be calculated directly,
   /// without using position_distance()
   void select_closest_images(std::vector<cvm::atom_pos> &pos,
-                              cvm::atom_pos const &ref_pos);
+                             cvm::atom_pos const &ref_pos);
 
   // **************** SCRIPTING INTERFACE ****************
 
@@ -164,13 +166,13 @@ public:
   virtual int run_force_callback() { return COLVARS_NOT_IMPLEMENTED; }
 
   virtual int run_colvar_callback(std::string const &name,
-                                std::vector<const colvarvalue *> const &cvcs,
-                                colvarvalue &value)
+                                  std::vector<const colvarvalue *> const &cvcs,
+                                  colvarvalue &value)
   { return COLVARS_NOT_IMPLEMENTED; }
 
   virtual int run_colvar_gradient_callback(std::string const &name,
-                                         std::vector<const colvarvalue *> const &cvcs,
-                                         std::vector<cvm::matrix2d<cvm::real> > &gradient)
+                                           std::vector<const colvarvalue *> const &cvcs,
+                                           std::vector<cvm::matrix2d<cvm::real> > &gradient)
   { return COLVARS_NOT_IMPLEMENTED; }
 
   // **************** INPUT/OUTPUT ****************
@@ -193,27 +195,78 @@ public:
   /// "filename" is a PDB file, use this field to determine which are
   /// the atoms to be set
   virtual int load_atoms(char const *filename,
-                           std::vector<cvm::atom> &atoms,
-                           std::string const &pdb_field,
-                           double const pdb_field_value = 0.0) = 0;
+                         std::vector<cvm::atom> &atoms,
+                         std::string const &pdb_field,
+                         double const pdb_field_value = 0.0) = 0;
 
   /// \brief Load the coordinates for a group of atoms from a file
   /// (usually a PDB); if "pos" is already allocated, the number of its
   /// elements must match the number of atoms in "filename"
   virtual int load_coords(char const *filename,
-                            std::vector<cvm::atom_pos> &pos,
-                            const std::vector<int> &indices,
-                            std::string const &pdb_field,
-                            double const pdb_field_value = 0.0) = 0;
+                          std::vector<cvm::atom_pos> &pos,
+                          const std::vector<int> &indices,
+                          std::string const &pdb_field,
+                          double const pdb_field_value = 0.0) = 0;
+
+protected:
+
+  /// \brief Open output files: by default, these are ofstream objects.
+  /// Allows redefinition to implement different output mechanisms
+  std::list<std::ostream *> output_files;
+  /// \brief Identifiers for output_stream objects: by default, these are the names of the files
+  std::list<std::string>    output_stream_names;
+
+public:
+
+  // TODO the following definitions may be moved to a .cpp file
+
+  /// \brief Returns a reference to the given output channel;
+  /// if this is not open already, then open it
+  virtual std::ostream * output_stream(std::string const &output_name)
+  {
+    std::list<std::ostream *>::iterator osi  = output_files.begin();
+    std::list<std::string>::iterator    osni = output_stream_names.begin();
+    for ( ; osi != output_files.end(); osi++, osni++) {
+      if (*osni == output_name) {
+        return *osi;
+      }
+    }
+    output_stream_names.push_back(output_name);
+    std::ofstream * os = new std::ofstream(output_name.c_str());
+    if (!os->is_open()) {
+      cvm::error("Error: cannot write to file \""+output_name+"\".\n",
+                 FILE_ERROR);
+    }
+    output_files.push_back(os);
+    return os;
+  }
+
+  /// \brief Closes the given output channel
+  virtual int close_output_stream(std::string const &output_name)
+  {
+    std::list<std::ostream *>::iterator osi  = output_files.begin();
+    std::list<std::string>::iterator    osni = output_stream_names.begin();
+    for ( ; osi != output_files.end(); osi++, osni++) {
+      if (*osni == output_name) {
+        ((std::ofstream *) (*osi))->close();
+        output_files.erase(osi);
+        output_stream_names.erase(osni);
+        return COLVARS_OK;
+      }
+    }
+    return COLVARS_ERROR;
+  }
 
   /// \brief Rename the given file, before overwriting it
   virtual int backup_file(char const *filename)
-  { return COLVARS_NOT_IMPLEMENTED; }
+  {
+    return COLVARS_NOT_IMPLEMENTED;
+  }
 };
 
 
 inline void colvarproxy::select_closest_images(std::vector<cvm::atom_pos> &pos,
-                                                cvm::atom_pos const &ref_pos)
+                                               cvm::atom_pos const &ref_pos)
 {
   for (std::vector<cvm::atom_pos>::iterator pi = pos.begin();
        pi != pos.end(); ++pi) {
@@ -222,7 +275,7 @@ inline void colvarproxy::select_closest_images(std::vector<cvm::atom_pos> &pos,
 }
 
 inline cvm::real colvarproxy::position_dist2(cvm::atom_pos const &pos1,
-                                              cvm::atom_pos const &pos2)
+                                             cvm::atom_pos const &pos2)
 {
   return (position_distance(pos1, pos2)).norm2();
 }

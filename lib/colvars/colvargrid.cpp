@@ -10,16 +10,18 @@
 
 colvar_grid_count::colvar_grid_count()
   : colvar_grid<size_t>()
-{}
+{
+  mult = 1;
+}
 
 colvar_grid_count::colvar_grid_count(std::vector<int> const &nx_i,
                                      size_t const           &def_count)
-  : colvar_grid<size_t>(nx_i, def_count)
+  : colvar_grid<size_t>(nx_i, def_count, 1)
 {}
 
 colvar_grid_count::colvar_grid_count(std::vector<colvar *>  &colvars,
                                      size_t const           &def_count)
-  : colvar_grid<size_t>(colvars, def_count)
+  : colvar_grid<size_t>(colvars, def_count, 1)
 {}
 
 std::istream & colvar_grid_count::read_restart(std::istream &is)

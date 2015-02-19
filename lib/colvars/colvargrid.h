@@ -15,7 +15,7 @@
 /// \brief Grid of values of a function of several collective
 /// variables \param T The data type
 ///
-/// Only scalar colvars supported so far
+/// Only scalar colvars supported so far: vector colvars are treated as arrays
 template <class T> class colvar_grid : public colvarparse {
 
 protected:
@@ -56,7 +56,7 @@ protected:
       addr += ix[i]*nxc[i];
       if (cvm::debug()) {
         if (ix[i] >= nx[i]) {
-          cvm::error("Error: exceeding bounds in colvar_grid.\n");
+          cvm::error("Error: exceeding bounds in colvar_grid.\n", BUG_ERROR);
           return 0;
         }
       }
@@ -125,35 +125,51 @@ public:
     return mult;
   }
 
-  /// \brief Allocate data (allow initialization also after construction)
-  void create(std::vector<int> const &nx_i,
-               T const &t = T(),
-               size_t const &mult_i = 1)
+  /// \brief Allocate data
+  int setup(std::vector<int> const &nx_i,
+            T const &t = T(),
+            size_t const &mult_i = 1)
   {
-    mult = mult_i;
-    nd = nx_i.size();
-    nxc.resize(nd);
-    nx = nx_i;
+    if (cvm::debug()) {
+      cvm::log("Allocating grid: multiplicity = "+cvm::to_str(mult_i)+
+               ", dimensions = "+cvm::to_str(nx_i)+".\n");
+    }
 
+    mult = mult_i;
+
+    data.clear();
+
+    nx = nx_i;
+    nd = nx.size();
+
+    nxc.resize(nd);
+
+    // setup dimensions
     nt = mult;
     for (int i = nd-1; i >= 0; i--) {
-      if (nx_i[i] <= 0) {
-        cvm::error("Error: providing an invalid number of points, "+
-                          cvm::to_str(nx_i[i])+".\n");
-        return;
+      if (nx[i] <= 0) {
+        cvm::error("Error: providing an invalid number of grid points, "+
+                   cvm::to_str(nx[i])+".\n", BUG_ERROR);
+        return COLVARS_ERROR;
       }
       nxc[i] = nt;
       nt *= nx[i];
     }
 
+    if (cvm::debug()) {
+      cvm::log("Total number of grid elements = "+cvm::to_str(nt)+".\n");
+    }
+
     data.reserve(nt);
     data.assign(nt, t);
+
+    return COLVARS_OK;
   }
 
   /// \brief Allocate data (allow initialization also after construction)
-  void create()
+  int setup()
   {
-    create(this->nx, T(), this->mult);
+    return setup(this->nx, T(), this->mult);
   }
 
   /// \brief Reset data (in case the grid is being reused)
@@ -168,6 +184,8 @@ public:
   {
     save_delimiters = false;
     nd = nt = 0;
+    mult = 1;
+    this->setup();
   }
 
   /// Destructor
@@ -176,20 +194,20 @@ public:
 
   /// \brief "Almost copy-constructor": only copies configuration
   /// parameters from another grid, but doesn't reallocate stuff;
-  /// create() must be called after that;
+  /// setup() must be called after that;
   colvar_grid(colvar_grid<T> const &g) : nd(g.nd),
-                                          nx(g.nx),
-                                          mult(g.mult),
-                                          data(),
-                                          cv(g.cv),
-                                          actual_value(g.actual_value),
-                                          lower_boundaries(g.lower_boundaries),
-                                          upper_boundaries(g.upper_boundaries),
-                                          periodic(g.periodic),
-                                          hard_lower_boundaries(g.hard_lower_boundaries),
-                                          hard_upper_boundaries(g.hard_upper_boundaries),
-                                          widths(g.widths),
-                                          has_data(false)
+                                         nx(g.nx),
+                                         mult(g.mult),
+                                         data(),
+                                         cv(g.cv),
+                                         actual_value(g.actual_value),
+                                         lower_boundaries(g.lower_boundaries),
+                                         upper_boundaries(g.upper_boundaries),
+                                         periodic(g.periodic),
+                                         hard_lower_boundaries(g.hard_lower_boundaries),
+                                         hard_upper_boundaries(g.hard_upper_boundaries),
+                                         widths(g.widths),
+                                         has_data(false)
   {
     save_delimiters = false;
   }
@@ -199,48 +217,68 @@ public:
   /// the function at each point (optional) \param mult_i Multiplicity
   /// of each value
   colvar_grid(std::vector<int> const &nx_i,
-               T const &t = T(),
-               size_t const &mult_i = 1) : has_data(false)
+              T const &t = T(),
+              size_t mult_i = 1)
+    : has_data(false)
   {
     save_delimiters = false;
-    this->create(nx_i, t, mult_i);
+    this->setup(nx_i, t, mult_i);
   }
 
   /// \brief Constructor from a vector of colvars
   colvar_grid(std::vector<colvar *> const &colvars,
-               T const &t = T(),
-               size_t const &mult_i = 1,
-               bool margin = false)
-    : cv(colvars), has_data(false)
+              T const &t = T(),
+              size_t mult_i = 1,
+              bool margin = false)
+    : has_data(false)
   {
     save_delimiters = false;
+    this->init_from_colvars(colvars, t, mult_i, margin);
+  }
 
-    std::vector<int> nx_i;
+  int init_from_colvars(std::vector<colvar *> const &colvars,
+                        T const &t = T(),
+                        size_t mult_i = 1,
+                        bool margin = false)
+  {
+    if (cvm::debug()) {
+      cvm::log("Reading grid configuration from collective variables.\n");
+    }
 
-    if (cvm::debug())
+    cv = colvars;
+    nd = colvars.size();
+    mult = mult_i;
+
+    size_t i;
+
+    for (i = 0; i < cv.size(); i++) {
+      if (!cv[i]->tasks[colvar::task_lower_boundary] ||
+          !cv[i]->tasks[colvar::task_upper_boundary]) {
+        cvm::error("Tried to initialize a grid on a "
+                   "variable with undefined boundaries.\n", INPUT_ERROR);
+        return COLVARS_ERROR;
+      }
+    }
+
+    if (cvm::debug()) {
       cvm::log("Allocating a grid for "+cvm::to_str(colvars.size())+
-                " collective variables.\n");
+               " collective variables, multiplicity = "+cvm::to_str(mult_i)+".\n");
+    }
 
-    for (size_t i =  0; i < cv.size(); i++) {
+    for (i =  0; i < cv.size(); i++) {
 
       if (cv[i]->value().type() != colvarvalue::type_scalar) {
         cvm::error("Colvar grids can only be automatically "
-                    "constructed for scalar variables.  "
-                    "ABF and histogram can not be used; metadynamics "
-                    "can be used with useGrids disabled.\n");
-        return;
+                   "constructed for scalar variables.  "
+                   "ABF and histogram can not be used; metadynamics "
+                   "can be used with useGrids disabled.\n", INPUT_ERROR);
+        return COLVARS_ERROR;
       }
 
       if (cv[i]->width <= 0.0) {
         cvm::error("Tried to initialize a grid on a "
-                          "variable with negative or zero width.\n");
-        return;
-      }
-
-      if (!cv[i]->tasks[colvar::task_lower_boundary] || !cv[i]->tasks[colvar::task_upper_boundary]) {
-        cvm::error("Tried to initialize a grid on a "
-                    "variable with undefined boundaries.\n");
-        return;
+                   "variable with negative or zero width.\n", INPUT_ERROR);
+        return COLVARS_ERROR;
       }
 
       widths.push_back(cv[i]->width);
@@ -271,35 +309,49 @@ public:
         lower_boundaries.push_back(cv[i]->lower_boundary);
         upper_boundaries.push_back(cv[i]->upper_boundary);
       }
-
-
-      {
-        cvm::real nbins = ( upper_boundaries[i].real_value -
-                            lower_boundaries[i].real_value ) / widths[i];
-        int nbins_round = (int)(nbins+0.5);
-
-        if (std::fabs(nbins - cvm::real(nbins_round)) > 1.0E-10) {
-          cvm::log("Warning: grid interval("+
-                    cvm::to_str(lower_boundaries[i], cvm::cv_width, cvm::cv_prec)+" - "+
-                    cvm::to_str(upper_boundaries[i], cvm::cv_width, cvm::cv_prec)+
-                    ") is not commensurate to its bin width("+
-                    cvm::to_str(widths[i], cvm::cv_width, cvm::cv_prec)+").\n");
-          upper_boundaries[i].real_value = lower_boundaries[i].real_value +
-            (nbins_round * widths[i]);
-        }
-
-        if (cvm::debug())
-          cvm::log("Number of points is "+cvm::to_str((int) nbins_round)+
-                    " for the colvar no. "+cvm::to_str(i+1)+".\n");
-
-        nx_i.push_back(nbins_round);
-      }
-
     }
 
-    create(nx_i, t, mult_i);
+    this->init_from_boundaries();
+    return this->setup();
   }
 
+  int init_from_boundaries(T const &t = T(),
+                           size_t const &mult_i = 1)
+  {
+    if (cvm::debug()) {
+      cvm::log("Configuring grid dimensions from colvars boundaries.\n");
+    }
+
+    // these will have to be updated
+    nx.clear();
+    nxc.clear();
+    nt = 0;
+
+    for (size_t i =  0; i < lower_boundaries.size(); i++) {
+
+      cvm::real nbins = ( upper_boundaries[i].real_value -
+                          lower_boundaries[i].real_value ) / widths[i];
+      int nbins_round = (int)(nbins+0.5);
+
+      if (std::fabs(nbins - cvm::real(nbins_round)) > 1.0E-10) {
+        cvm::log("Warning: grid interval("+
+                 cvm::to_str(lower_boundaries[i], cvm::cv_width, cvm::cv_prec)+" - "+
+                 cvm::to_str(upper_boundaries[i], cvm::cv_width, cvm::cv_prec)+
+                 ") is not commensurate to its bin width("+
+                 cvm::to_str(widths[i], cvm::cv_width, cvm::cv_prec)+").\n");
+        upper_boundaries[i].real_value = lower_boundaries[i].real_value +
+          (nbins_round * widths[i]);
+      }
+
+      if (cvm::debug())
+        cvm::log("Number of points is "+cvm::to_str((int) nbins_round)+
+                 " for the colvar no. "+cvm::to_str(i+1)+".\n");
+
+      nx.push_back(nbins_round);
+    }
+
+    return COLVARS_OK;
+  }
 
   /// Wrap an index vector around periodic boundary conditions
   /// also checks validity of non-periodic indices
@@ -309,13 +361,15 @@ public:
       if (periodic[i]) {
         ix[i] = (ix[i] + nx[i]) % nx[i]; //to ensure non-negative result
       } else {
-        if (ix[i] < 0 || ix[i] >= nx[i])
-          cvm::error("Trying to wrap illegal index vector(non-PBC): "
-                     + cvm::to_str(ix));
+        if (ix[i] < 0 || ix[i] >= nx[i]) {
+          cvm::error("Trying to wrap illegal index vector (non-PBC) for a grid point: "
+                     + cvm::to_str(ix), BUG_ERROR);
           return;
+        }
       }
     }
   }
+
 
   /// \brief Report the bin corresponding to the current value of variable i
   inline int current_bin_scalar(int const i) const
@@ -373,7 +427,7 @@ public:
       cvm::error("Error: trying to subtract two grids with "
                         "different multiplicity.\n");
       return;
-	}
+    }
 
     if (other_grid.data.size() != this->data.size()) {
       cvm::error("Error: trying to subtract two grids with "
@@ -395,8 +449,8 @@ public:
     if (other_grid.multiplicity() != this->multiplicity()) {
       cvm::error("Error: trying to copy two grids with "
                         "different multiplicity.\n");
-	  return;
-	}
+      return;
+    }
 
     if (other_grid.data.size() != this->data.size()) {
       cvm::error("Error: trying to copy two grids with "
@@ -673,9 +727,11 @@ public:
     return os;
   }
 
-
-  bool parse_params(std::string const &conf)
+  /// Read a grid definition from a config string
+  int parse_params(std::string const &conf)
   {
+    if (cvm::debug()) cvm::log("Reading grid configuration from string.\n");
+
     std::vector<int> old_nx = nx;
     std::vector<colvarvalue> old_lb = lower_boundaries;
 
@@ -688,36 +744,52 @@ public:
                     cvm::to_str(nd_in)+") than the grid defined "
                     "in the configuration file("+cvm::to_str(nd)+
                     ").\n");
-        return false;
+        return COLVARS_ERROR;
       }
     }
 
     colvarparse::get_keyval(conf, "lower_boundaries",
                              lower_boundaries, lower_boundaries, colvarparse::parse_silent);
-
     colvarparse::get_keyval(conf, "upper_boundaries",
+                             upper_boundaries, upper_boundaries, colvarparse::parse_silent);
+
+    // support also camel case
+    colvarparse::get_keyval(conf, "lowerBoundaries",
+                             lower_boundaries, lower_boundaries, colvarparse::parse_silent);
+    colvarparse::get_keyval(conf, "upperBoundaries",
                              upper_boundaries, upper_boundaries, colvarparse::parse_silent);
 
     colvarparse::get_keyval(conf, "widths", widths, widths, colvarparse::parse_silent);
 
     colvarparse::get_keyval(conf, "sizes", nx, nx, colvarparse::parse_silent);
 
+    if (nd < lower_boundaries.size()) nd = lower_boundaries.size();
+
+    if (! actual_value.size()) actual_value.assign(nd, false);
+    if (! periodic.size()) periodic.assign(nd, false);
+    if (! widths.size()) widths.assign(nd, 1.0);
+
     bool new_params = false;
-    for (size_t i = 0; i < nd; i++) {
-      if ( (old_nx[i] != nx[i]) ||
-           (std::sqrt(cv[i]->dist2(old_lb[i],
+    if (old_nx.size()) {
+      for (size_t i = 0; i < nd; i++) {
+        if ( (old_nx[i] != nx[i]) ||
+             (std::sqrt(cv[i]->dist2(old_lb[i],
                                      lower_boundaries[i])) > 1.0E-10) ) {
-        new_params = true;
+          new_params = true;
+        }
       }
+    } else {
+      new_params = true;
     }
 
     // reallocate the array in case the grid params have just changed
     if (new_params) {
-      data.resize(0);
-      this->create(nx, T(), mult);
+      init_from_boundaries();
+      // data.resize(0); // no longer needed: setup calls clear()
+      return this->setup(nx, T(), mult);
     }
 
-    return true;
+    return COLVARS_OK;
   }
 
   /// \brief Check that the grid information inside (boundaries,
@@ -833,6 +905,7 @@ public:
         << std::setw(10) << nx[i] << "  "
         << periodic[i] << "\n";
     }
+
 
     for (std::vector<int> ix = new_index(); index_ok(ix); incr(ix) ) {
 

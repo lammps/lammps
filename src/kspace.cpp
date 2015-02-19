@@ -70,6 +70,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   adjust_cutoff_flag = 1;
   scalar_pressure_flag = 0;
   warn_nonneutral = 1;
+  warn_nocharge = 1;
 
   accuracy_absolute = -1.0;
   accuracy_real_6 = -1.0;
@@ -279,8 +280,10 @@ void KSpace::qsum_qsq()
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (qsqsum == 0.0)
-    error->all(FLERR,"Cannot use kspace solver on system with no charge");
+  if ((qsqsum == 0.0) && (comm->me == 0) && warn_nocharge) {
+    error->warning(FLERR,"Using kspace solver on system with no charge");
+    warn_nocharge = 0;
+  }
 
   q2 = qsqsum * force->qqrd2e;
 

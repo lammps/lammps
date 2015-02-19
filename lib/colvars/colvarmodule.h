@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2014-11-21"
+#define COLVARS_VERSION "2015-02-04"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -45,6 +45,10 @@
 #include <vector>
 #include <list>
 
+#ifdef NAMD_VERSION
+// use Lustre-friendly wrapper to POSIX write()
+#include "fstream_namd.h"
+#endif
 
 class colvarparse;
 class colvar;
@@ -238,6 +242,12 @@ public:
 
   /// (Re)initialize the output trajectory and state file (does not write it yet)
   int setup_output();
+
+#ifdef NAMD_VERSION
+  typedef ofstream_namd ofstream;
+#else
+  typedef std::ofstream ofstream;
+#endif
 
   /// Read the input restart file
   std::istream & read_restart(std::istream &is);
@@ -443,6 +453,7 @@ public:
 
   /// Pseudo-random number with Gaussian distribution
   static real rand_gaussian(void);
+
 protected:
 
   /// Configuration file
@@ -452,16 +463,16 @@ protected:
   colvarparse *parse;
 
   /// Name of the trajectory file
-  std::string   cv_traj_name;
+  std::string cv_traj_name;
 
   /// Collective variables output trajectory file
-  std::ofstream cv_traj_os;
+  colvarmodule::ofstream cv_traj_os;
 
   /// Appending to the existing trajectory file?
-  bool          cv_traj_append;
+  bool cv_traj_append;
 
   /// Output restart file
-  std::ofstream restart_out_os;
+  colvarmodule::ofstream restart_out_os;
 
   /// \brief Counter for the current depth in the object hierarchy (useg e.g. in output
   static size_t depth;
@@ -470,11 +481,11 @@ protected:
   static bool use_scripted_forces;
 
 public:
+
   /// \brief Pointer to the proxy object, used to retrieve atomic data
   /// from the hosting program; it is static in order to be accessible
   /// from static functions in the colvarmodule class
   static colvarproxy *proxy;
-
 
   /// Increase the depth (number of indentations in the output)
   static void increase_depth();

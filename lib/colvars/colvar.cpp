@@ -177,7 +177,7 @@ colvar::colvar(std::string const &conf)
       cvm::error("Could not parse scripted colvar type.");
       return;
     }
-    x_reported.type (x.type());
+    x_reported.type(x.type());
     cvm::log(std::string("Expecting colvar value of type ")
       + colvarvalue::type_desc(x.type()));
 
@@ -987,7 +987,9 @@ void colvar::calc()
     }
   }
 
-  if (tasks[task_system_force]) {
+  if (tasks[task_system_force] && !tasks[task_extended_lagrangian]) {
+    // If extended Lagrangian is enabled, system force calculation is trivial
+    // and done together with integration of the extended coordinate.
 
     if (tasks[task_scripted]) {
       // TODO see if this could reasonably be done in a generic way
@@ -1594,7 +1596,7 @@ int colvar::write_output_files()
     if (acf.size()) {
       cvm::log("Writing acf to file \""+acf_outfile+"\".\n");
 
-      std::ofstream acf_os(acf_outfile.c_str());
+      cvm::ofstream acf_os(acf_outfile.c_str());
       if (! acf_os.good()) {
         cvm::error("Cannot open file \""+acf_outfile+"\".\n", FILE_ERROR);
       }

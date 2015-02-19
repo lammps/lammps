@@ -24,12 +24,12 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
     // TODO relax this error to handle multiple molecules in VMD
     // once the module is not static anymore
     cvm::error("Error: trying to allocate the collective "
-                      "variable module twice.\n");
+               "variable module twice.\n");
     return;
   }
   cvm::log(cvm::line_marker);
   cvm::log("Initializing the collective variables module, version "+
-            cvm::to_str(COLVARS_VERSION)+".\n");
+           cvm::to_str(COLVARS_VERSION)+".\n");
 
   // set initial default values
 
@@ -56,14 +56,14 @@ int colvarmodule::config_file(char const  *config_filename)
 {
   cvm::log(cvm::line_marker);
   cvm::log("Reading new configuration from file \""+
-            std::string(config_filename)+"\":\n");
+           std::string(config_filename)+"\":\n");
 
   // open the configfile
   config_s.open(config_filename);
-  if (!config_s) {
+  if (!config_s.is_open()) {
     cvm::error("Error: in opening configuration file \""+
-                      std::string(config_filename)+"\".\n",
-                FILE_ERROR);
+               std::string(config_filename)+"\".\n",
+               FILE_ERROR);
     return COLVARS_ERROR;
   }
 
@@ -134,8 +134,10 @@ int colvarmodule::config(std::string &conf)
   cvm::log("Collective variables module (re)initialized.\n");
   cvm::log(cvm::line_marker);
 
-  // configuration might have changed, better redo the labels
-  write_traj_label(cv_traj_os);
+  if (cv_traj_os.is_open()) {
+    // configuration might have changed, better redo the labels
+    write_traj_label(cv_traj_os);
+  }
 
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }
@@ -151,24 +153,24 @@ int colvarmodule::parse_global_params(std::string const &conf)
   parse->get_keyval(conf, "analysis", b_analysis, b_analysis);
 
   parse->get_keyval(conf, "debugGradientsStepSize", debug_gradients_step_size,
-                     debug_gradients_step_size,
-                     colvarparse::parse_silent);
+                    debug_gradients_step_size,
+                    colvarparse::parse_silent);
 
   parse->get_keyval(conf, "eigenvalueCrossingThreshold",
-                     colvarmodule::rotation::crossing_threshold,
-                     colvarmodule::rotation::crossing_threshold,
-                     colvarparse::parse_silent);
+                    colvarmodule::rotation::crossing_threshold,
+                    colvarmodule::rotation::crossing_threshold,
+                    colvarparse::parse_silent);
 
   parse->get_keyval(conf, "colvarsTrajFrequency", cv_traj_freq, cv_traj_freq);
   parse->get_keyval(conf, "colvarsRestartFrequency",
-                     restart_out_freq, restart_out_freq);
+                    restart_out_freq, restart_out_freq);
 
   // if this is true when initializing, it means
   // we are continuing after a reset(): default to true
   parse->get_keyval(conf, "colvarsTrajAppend", cv_traj_append, cv_traj_append);
 
   parse->get_keyval(conf, "scriptedColvarForces", use_scripted_forces, false,
-                     colvarparse::parse_silent);
+                    colvarparse::parse_silent);
 
   if (use_scripted_forces && !proxy->force_script_defined) {
     cvm::fatal_error("User script for scripted colvar forces not found.");
@@ -193,8 +195,8 @@ int colvarmodule::parse_colvars(std::string const &conf)
       colvars.push_back(new colvar(colvar_conf));
       if (cvm::get_error() ||
           ((colvars.back())->check_keywords(colvar_conf, "colvar") != COLVARS_OK)) {
-            cvm::log("Error while constructing colvar number " +
-        cvm::to_str(colvars.size()) + " : deleting.");
+        cvm::log("Error while constructing colvar number " +
+                 cvm::to_str(colvars.size()) + " : deleting.");
         delete colvars.back();  // the colvar destructor updates the colvars array
         return COLVARS_ERROR;
       }
@@ -214,8 +216,8 @@ int colvarmodule::parse_colvars(std::string const &conf)
   if (colvars.size())
     cvm::log(cvm::line_marker);
   cvm::log("Collective variables initialized, "+
-            cvm::to_str(colvars.size())+
-            " in total.\n");
+           cvm::to_str(colvars.size())+
+           " in total.\n");
 
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }
@@ -223,9 +225,9 @@ int colvarmodule::parse_colvars(std::string const &conf)
 bool colvarmodule::check_new_bias(std::string &conf, char const *key)
 {
   if (cvm::get_error() ||
-     (biases.back()->check_keywords(conf, key) != COLVARS_OK)) {
+      (biases.back()->check_keywords(conf, key) != COLVARS_OK)) {
     cvm::log("Error while constructing bias number " +
-        cvm::to_str(biases.size()) + " : deleting.\n");
+             cvm::to_str(biases.size()) + " : deleting.\n");
     delete biases.back(); // the bias destructor updates the biases array
     return true;
   }
@@ -330,7 +332,7 @@ colvar *colvarmodule::colvar_by_name(std::string const &name) {
 
 
 int colvarmodule::change_configuration(std::string const &bias_name,
-                                         std::string const &conf)
+                                       std::string const &conf)
 {
   // This is deprecated; supported strategy is to delete the bias
   // and parse the new config
@@ -357,7 +359,7 @@ std::string colvarmodule::read_colvar(std::string const &name)
 }
 
 cvm::real colvarmodule::energy_difference(std::string const &bias_name,
-                                           std::string const &conf)
+                                          std::string const &conf)
 {
   cvm::increase_depth();
   colvarbias *b;
@@ -449,7 +451,7 @@ int colvarmodule::calc() {
   if (cvm::debug()) {
     cvm::log(cvm::line_marker);
     cvm::log("Collective variables module, step no. "+
-              cvm::to_str(cvm::step_absolute())+"\n");
+             cvm::to_str(cvm::step_absolute())+"\n");
   }
 
   // calculate collective variables and their gradients
@@ -533,7 +535,7 @@ int colvarmodule::calc() {
   // equation of motion (extended system)
   if (cvm::debug())
     cvm::log("Updating the internal degrees of freedom "
-              "of colvars (if they have any).\n");
+             "of colvars (if they have any).\n");
   cvm::increase_depth();
   for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
     total_colvar_energy += (*cvi)->update();
@@ -564,10 +566,10 @@ int colvarmodule::calc() {
     if ( (cvm::step_relative() > 0) &&
          ((cvm::step_absolute() % restart_out_freq) == 0) ) {
       cvm::log("Writing the state file \""+
-                restart_out_name+"\".\n");
+               restart_out_name+"\".\n");
       proxy->backup_file(restart_out_name.c_str());
       restart_out_os.open(restart_out_name.c_str());
-      if (!write_restart(restart_out_os))
+      if (!restart_out_os.is_open() || !write_restart(restart_out_os))
         cvm::error("Error: in writing restart file.\n");
       restart_out_os.close();
     }
@@ -594,7 +596,7 @@ int colvarmodule::calc() {
       if ( (cvm::step_relative() > 0) &&
            ((cvm::step_absolute() % restart_out_freq) == 0) ) {
         cvm::log("Synchronizing (emptying the buffer of) trajectory file \""+
-                  cv_traj_name+"\".\n");
+                 cv_traj_name+"\".\n");
         cv_traj_os.flush();
       }
     }
@@ -694,8 +696,8 @@ int colvarmodule::setup_input()
     std::ifstream input_is(restart_in_name.c_str());
     if (!input_is.good()) {
       cvm::error("Error: in opening restart file \""+
-                        std::string(restart_in_name)+"\".\n",
-                FILE_ERROR);
+                 std::string(restart_in_name)+"\".\n",
+                 FILE_ERROR);
       return COLVARS_ERROR;
     } else {
       cvm::log("Restarting from file \""+restart_in_name+"\".\n");
@@ -725,9 +727,9 @@ int colvarmodule::setup_output()
   output_prefix = proxy->output_prefix();
   if (output_prefix.size()) {
     cvm::log("The final output state file will be \""+
-              (output_prefix.size() ?
-               std::string(output_prefix+".colvars.state") :
-               std::string("colvars.state"))+"\".\n");
+             (output_prefix.size() ?
+              std::string(output_prefix+".colvars.state") :
+              std::string("colvars.state"))+"\".\n");
     // cvm::log (cvm::line_marker);
   }
 
@@ -752,8 +754,8 @@ std::istream & colvarmodule::read_restart(std::istream &is)
     if (is >> colvarparse::read_block("configuration", restart_conf)) {
       if (it_restart_from_state_file) {
         parse->get_keyval(restart_conf, "step",
-                           it_restart, (size_t) 0,
-                           colvarparse::parse_silent);
+                          it_restart, (size_t) 0,
+                          colvarparse::parse_silent);
         it = it_restart;
       }
     }
@@ -767,8 +769,8 @@ std::istream & colvarmodule::read_restart(std::istream &is)
        cvi++) {
     if ( !((*cvi)->read_restart(is)) ) {
       cvm::error("Error: in reading restart configuration for collective variable \""+
-                        (*cvi)->name+"\".\n",
-                INPUT_ERROR);
+                 (*cvi)->name+"\".\n",
+                 INPUT_ERROR);
     }
   }
 
@@ -776,10 +778,11 @@ std::istream & colvarmodule::read_restart(std::istream &is)
   for (std::vector<colvarbias *>::iterator bi = biases.begin();
        bi != biases.end();
        bi++) {
-    if (!((*bi)->read_restart(is)))
+    if (!((*bi)->read_restart(is))) {
       cvm::error("Error: in reading restart configuration for bias \""+
-                   (*bi)->name+"\".\n",
-                INPUT_ERROR);
+                 (*bi)->name+"\".\n",
+                 INPUT_ERROR);
+    }
   }
   cvm::decrease_depth();
 
@@ -802,11 +805,11 @@ int colvarmodule::write_output_files()
      std::string(output_prefix+".colvars.state") :
      std::string("colvars.state"));
   cvm::log("Saving collective variables state to \""+out_name+"\".\n");
-  proxy->backup_file(out_name.c_str());
-  std::ofstream out(out_name.c_str());
-  out.setf(std::ios::scientific, std::ios::floatfield);
-  this->write_restart(out);
-  out.close();
+
+  std::ostream * os = proxy->output_stream(out_name);
+  os->setf(std::ios::scientific, std::ios::floatfield);
+  this->write_restart(*os);
+  proxy->close_output_stream(out_name);
 
   cvm::increase_depth();
   for (std::vector<colvar *>::iterator cvi = colvars.begin();
@@ -824,11 +827,11 @@ int colvarmodule::write_output_files()
 
 
 int colvarmodule::read_traj(char const *traj_filename,
-                              size_t      traj_read_begin,
-                              size_t      traj_read_end)
+                            size_t      traj_read_begin,
+                            size_t      traj_read_end)
 {
   cvm::log("Opening trajectory file \""+
-            std::string(traj_filename)+"\".\n");
+           std::string(traj_filename)+"\".\n");
   std::ifstream traj_is(traj_filename);
 
   while (true) {
@@ -839,7 +842,7 @@ int colvarmodule::read_traj(char const *traj_filename,
       do {
         if (!colvarparse::getline_nocomments(traj_is, line)) {
           cvm::log("End of file \""+std::string(traj_filename)+
-                    "\" reached, or corrupted file.\n");
+                   "\" reached, or corrupted file.\n");
           traj_is.close();
           return false;
         }
@@ -867,8 +870,8 @@ int colvarmodule::read_traj(char const *traj_filename,
              (it > traj_read_end) ) {
           std::cerr << "\n";
           cvm::error("Reached the end of the trajectory, "
-                    "read_end = "+cvm::to_str(traj_read_end)+"\n",
-                    FILE_ERROR);
+                     "read_end = "+cvm::to_str(traj_read_end)+"\n",
+                     FILE_ERROR);
           return COLVARS_ERROR;
         }
 
@@ -877,9 +880,9 @@ int colvarmodule::read_traj(char const *traj_filename,
              cvi++) {
           if (!(*cvi)->read_traj(is)) {
             cvm::error("Error: in reading colvar \""+(*cvi)->name+
-                      "\" from trajectory file \""+
-                      std::string(traj_filename)+"\".\n",
-                      FILE_ERROR);
+                       "\" from trajectory file \""+
+                       std::string(traj_filename)+"\".\n",
+                       FILE_ERROR);
             return COLVARS_ERROR;
           }
         }
@@ -927,18 +930,18 @@ int colvarmodule::open_traj_file(std::string const &file_name)
   // (re)open trajectory file
   if (cv_traj_append) {
     cvm::log("Appending to colvar trajectory file \""+file_name+
-              "\".\n");
+             "\".\n");
     cv_traj_os.open(file_name.c_str(), std::ios::app);
   } else {
     cvm::log("Writing to colvar trajectory file \""+file_name+
-              "\".\n");
+             "\".\n");
     proxy->backup_file(file_name.c_str());
-    cv_traj_os.open(file_name.c_str(), std::ios::out);
+    cv_traj_os.open(file_name.c_str());
   }
 
   if (!cv_traj_os.is_open()) {
     cvm::error("Error: cannot write to file \""+file_name+"\".\n",
-                FILE_ERROR);
+               FILE_ERROR);
   }
 
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
@@ -1046,10 +1049,11 @@ void cvm::exit(std::string const &message)
 int cvm::read_index_file(char const *filename)
 {
   std::ifstream is(filename, std::ios::binary);
-  if (!is.good())
+  if (!is.good()) {
     cvm::error("Error: in opening index file \""+
-                      std::string(filename)+"\".\n",
-                      FILE_ERROR);
+               std::string(filename)+"\".\n",
+               FILE_ERROR);
+  }
 
   while (is.good()) {
     char open, close;
@@ -1062,8 +1066,8 @@ int cvm::read_index_file(char const *filename)
            names_i++) {
         if (*names_i == group_name) {
           cvm::error("Error: the group name \""+group_name+
-                      "\" appears in multiple index files.\n",
-                      FILE_ERROR);
+                     "\" appears in multiple index files.\n",
+                     FILE_ERROR);
         }
       }
       cvm::index_group_names.push_back(group_name);
@@ -1093,7 +1097,7 @@ int cvm::read_index_file(char const *filename)
   }
 
   cvm::log("The following index groups were read from the index file \""+
-            std::string(filename)+"\":\n");
+           std::string(filename)+"\":\n");
   std::list<std::string>::iterator names_i = index_group_names.begin();
   std::list<std::vector<int> >::iterator lists_i = index_groups.begin();
   for ( ; names_i != index_group_names.end() ; names_i++, lists_i++) {
@@ -1103,18 +1107,18 @@ int cvm::read_index_file(char const *filename)
 }
 
 int cvm::load_atoms(char const *file_name,
-                             std::vector<cvm::atom> &atoms,
-                             std::string const &pdb_field,
-                             double const pdb_field_value)
+                    std::vector<cvm::atom> &atoms,
+                    std::string const &pdb_field,
+                    double const pdb_field_value)
 {
   return proxy->load_atoms(file_name, atoms, pdb_field, pdb_field_value);
 }
 
 int cvm::load_coords(char const *file_name,
-                              std::vector<cvm::atom_pos> &pos,
-                              const std::vector<int> &indices,
-                              std::string const &pdb_field,
-                              double const pdb_field_value)
+                     std::vector<cvm::atom_pos> &pos,
+                     const std::vector<int> &indices,
+                     std::string const &pdb_field,
+                     double const pdb_field_value)
 {
   // Differentiate between PDB and XYZ files
   // for XYZ files, use CVM internal parser
@@ -1134,8 +1138,8 @@ int cvm::load_coords(char const *file_name,
 
 
 int cvm::load_coords_xyz(char const *filename,
-                           std::vector<atom_pos> &pos,
-                           const std::vector<int> &indices)
+                         std::vector<atom_pos> &pos,
+                         const std::vector<int> &indices)
 {
   std::ifstream xyz_is(filename);
   unsigned int natoms;
@@ -1144,7 +1148,7 @@ int cvm::load_coords_xyz(char const *filename,
 
   if ( ! (xyz_is >> natoms) ) {
     cvm::error("Error: cannot parse XYZ file "
-                 + std::string(filename) + ".\n", INPUT_ERROR);
+               + std::string(filename) + ".\n", INPUT_ERROR);
   }
   // skip comment line
   std::getline(xyz_is, line);

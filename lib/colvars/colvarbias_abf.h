@@ -1,3 +1,4 @@
+// -*- c++ -*-
 /************************************************************************
  * Headers for the ABF and histogram biases                             *
  ************************************************************************/
@@ -100,7 +101,7 @@ public:
 
   cvm::real update();
 
-private:
+protected:
 
   /// n-dim histogram
   colvar_grid_count    *grid;
@@ -108,8 +109,12 @@ private:
   std::string	  out_name;
 
   int		  output_freq;
+
+  /// If one or more of the variables are \link type_vector \endlink, treat them as arrays of this length
+  size_t colvar_array_size;
+
   void		  write_grid();
-  std::ofstream	  grid_os;  /// Stream for writing grid to disk
+  cvm::ofstream	  grid_os;  /// Stream for writing grid to disk
 
   std::istream& read_restart(std::istream&);
   std::ostream& write_restart(std::ostream&);

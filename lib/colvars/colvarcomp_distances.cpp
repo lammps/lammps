@@ -447,9 +447,10 @@ colvar::distance_inv::distance_inv(std::string const &conf)
 
   for (cvm::atom_iter ai1 = group1.begin(); ai1 != group1.end(); ai1++) {
     for (cvm::atom_iter ai2 = group2.begin(); ai2 != group2.end(); ai2++) {
-      if (ai1->id == ai2->id)
-        cvm::error("Error: group1 and group1 have some atoms in common: this is not allowed for distanceInv.\n");
-      return;
+      if (ai1->id == ai2->id) {
+        cvm::error("Error: group1 and group2 have some atoms in common: this is not allowed for distanceInv.\n");
+        return;
+      }
     }
   }
 
@@ -853,10 +854,11 @@ colvar::rmsd::rmsd(std::string const &conf)
       if (get_keyval(conf, "refPositionsCol", ref_pos_col, std::string(""))) {
         // if provided, use PDB column to select coordinates
         bool found = get_keyval(conf, "refPositionsColValue", ref_pos_col_value, 0.0);
-        if (found && !ref_pos_col_value)
+        if (found && !ref_pos_col_value) {
           cvm::error("Error: refPositionsColValue, "
-                            "if provided, must be non-zero.\n");
+                     "if provided, must be non-zero.\n");
           return;
+        }
       } else {
         // if not, rely on existing atom indices for the group
         atoms.create_sorted_ids();
@@ -1294,17 +1296,40 @@ colvar::cartesian::cartesian(std::string const &conf)
   parse_group(conf, "atoms", atoms);
   atom_groups.push_back(&atoms);
 
+  bool use_x, use_y, use_z;
+  get_keyval(conf, "useX", use_x, true);
+  get_keyval(conf, "useY", use_y, true);
+  get_keyval(conf, "useZ", use_z, true);
+
+  axes.clear();
+  if (use_x) axes.push_back(0);
+  if (use_y) axes.push_back(1);
+  if (use_z) axes.push_back(2);
+
+  if (axes.size() == 0) {
+    cvm::error("Error: a \"cartesian\" component was defined with all three axes disabled.\n");
+  }
+
   x.type(colvarvalue::type_vector);
-  x.vector1d_value.resize(atoms.size() * 3);
+  x.vector1d_value.resize(atoms.size() * axes.size());
 }
 
 
 void colvar::cartesian::calc_value()
 {
-  int ia, j;
+  size_t const dim = axes.size();
+  size_t ia, j;
   for (ia = 0; ia < atoms.size(); ia++) {
-    for (j = 0; j < 3; j++) {
-      x.vector1d_value[3*ia + j] = atoms[ia].pos[j];
+    for (j = 0; j < dim; j++) {
+      x.vector1d_value[dim*ia + j] = atoms[ia].pos[axes[j]];
+    }
+  }
+
+  if (atoms.weights.size()) {
+    for (ia = 0; ia < atoms.size(); ia++) {
+      for (j = 0; j < dim; j++) {
+        x.vector1d_value[dim*ia + j] *= atoms.weights[ia];
+      }
     }
   }
 }
@@ -1320,14 +1345,24 @@ void colvar::cartesian::calc_gradients()
 
 void colvar::cartesian::apply_force(colvarvalue const &force)
 {
-  int ia, j;
+  size_t const dim = axes.size();
+  size_t ia, j;
   if (!atoms.noforce) {
     cvm::rvector f;
-    for (ia = 0; ia < atoms.size(); ia++) {
-      for (j = 0; j < 3; j++) {
-        f[j] = force.vector1d_value[3*ia + j];
+    if (atoms.weights.size()) {
+      for (ia = 0; ia < atoms.size(); ia++) {
+        for (j = 0; j < dim; j++) {
+          f[axes[j]] = force.vector1d_value[dim*ia + j] / atoms.weights[ia];
+        }
+        atoms[ia].apply_force(f);
       }
-      atoms[ia].apply_force(f);
+    } else {
+      for (ia = 0; ia < atoms.size(); ia++) {
+        for (j = 0; j < dim; j++) {
+          f[axes[j]] = force.vector1d_value[dim*ia + j];
+        }
+        atoms[ia].apply_force(f);
+      }
     }
   }
 }

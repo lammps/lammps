@@ -57,7 +57,7 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix qeq/slater command");
   }
 
-  if (streitz_flag) extract();
+  if (streitz_flag) extract_streitz();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,7 +88,7 @@ void FixQEqSlater::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqSlater::extract()
+void FixQEqSlater::extract_streitz()
 {
   int ntypes = atom->ntypes;
 

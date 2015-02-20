@@ -204,6 +204,13 @@ the coul/streitz pair style itself.
 uses the Streitz-Mintmire potential.  The potentials directory has the
 AlO.eam.alloy and AlO.streitz potential files used by the example.
 </P>
+<P>Note that the Streiz-Mintmire potential is generally used for oxides,
+but there is no conceptual problem with extending it to nitrides and
+carbides (such as SiC, TiN).  Pair coul/strietz used by itself or with
+any other pair style such as EAM, MEAM, Tersoff, or LJ in
+hybrid/overlay mode.  To do this, you would need to provide a
+Streitz-Mintmire parameterizaion for the material being modeled.
+</P>
 <HR>
 
 <P>Styles <I>coul/long</I> and <I>coul/msm</I> compute the same Coulombic

@@ -346,6 +346,7 @@ void FixPeriNeigh::setup(int vflag)
       else vfrac_scale = 1.0;
 
       // for PMB, influence = 1.0, otherwise invoke influence function
+
       if (isPMB) 
         wvolume[i] += 1.0 * rsq0 * vfrac[j] * vfrac_scale; 
       else if (isLPS)

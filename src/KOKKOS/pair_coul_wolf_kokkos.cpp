@@ -256,8 +256,10 @@ void PairCoulWolfKokkos<DeviceType>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG
   if (eflag) {
     const F_FLOAT qisq = qtmp*qtmp;
     const F_FLOAT e_self = -(e_shift/2.0 + alf/MY_PIS) * qisq*qqrd2e;
-    ev.ecoul += e_self;
-    v_eatom[i] += e_self;
+    if (eflag_global)
+      ev.ecoul += e_self;
+    if (eflag_atom)
+      v_eatom[i] += e_self;
   }
 
   //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);

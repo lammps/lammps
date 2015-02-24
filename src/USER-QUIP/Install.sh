@@ -34,7 +34,7 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*quip[^ \t]* //' ../Makefile.package
-    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(kim_SYSINC) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(quip_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(quip_SYSLIB) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(quip_SYSPATH) |' ../Makefile.package
   fi

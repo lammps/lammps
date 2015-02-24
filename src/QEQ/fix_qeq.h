@@ -71,6 +71,7 @@ class FixQEq : public Fix {
   double *chi,*eta,*gamma,*zeta,*zcore;  // qeq parameters
   double *chizj;
   double **shld;
+  int streitz_flag;
 
   bigint ngroup;
 

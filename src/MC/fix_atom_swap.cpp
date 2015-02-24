@@ -352,6 +352,7 @@ int FixAtomSwap::attempt_semi_grand()
     comm->forward_comm_fix(this);
   }
   
+  if (force->kspace) force->kspace->qsum_qsq();
   double energy_after = energy_full();
 
   int success = 0;
@@ -379,6 +380,7 @@ int FixAtomSwap::attempt_semi_grand()
       atom->type[i] = itype;
       if (atom->q_flag) atom->q[i] = qtmp;
     }
+    if (force->kspace) force->kspace->qsum_qsq();
     energy_stored = energy_before;
     
     if (unequal_cutoffs) {

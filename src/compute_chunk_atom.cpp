@@ -373,7 +373,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   id_fix = NULL;
   fixstore = NULL;
 
-  if (compress) hash = new std::map<int,int>();
+  if (compress) hash = new std::map<tagint,int>();
   else hash = NULL;
 
   maxvar = 0;
@@ -1010,7 +1010,7 @@ void ComputeChunkAtom::compress_chunk_ids()
 void ComputeChunkAtom::idring(int n, char *cbuf)
 {
   tagint *list = (tagint *) cbuf;
-  std::map<int,int> *hash = cptr->hash;
+  std::map<tagint,int> *hash = cptr->hash;
   for (int i = 0; i < n; i++) (*hash)[list[i]] = 0;
 }
 
@@ -1026,7 +1026,7 @@ void ComputeChunkAtom::idring(int n, char *cbuf)
 
 void ComputeChunkAtom::check_molecules()
 {
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
   int flag = 0;

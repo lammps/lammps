@@ -1,0 +1,98 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style quip command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style quip 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style      quip
+pair_coeff      * * gap_example.xml "Potential xml_label=GAP_2014_5_8_60_17_10_38_466" 14
+pair_coeff      * * sw_example.xml "IP SW" 14 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>quip</I> provides an interface for calling potential routines from
+the QUIP package. QUIP is built separately, and then linked to
+LAMMPS. The most recent version of the QUIP package can be downloaded
+from GitHub:
+<A HREF = "https://github.com/libAtoms/QUIP">https://github.com/libAtoms/QUIP</A>. The
+interface is chiefly intended to be used to run Gaussian Approximation
+Potentials (GAP), which are described in the following publications:
+<A HREF = "#Bartok_2010">(Bartok et al)</A> and <A HREF = "#Bartok_PhD">(PhD thesis of
+Bartok)</A>.
+</P>
+<P>Only a single pair_coeff command is used with the <I>quip</I> style that
+specifies a QUIP potential file containing the parameters of the
+potential for all needed elements in XML format. This is followed by a
+QUIP initialization string. Finally, the QUIP elements are mapped to
+LAMMPS atom types by specifying N atomic numbers, where N is the
+number of LAMMPS atom types:
+</P>
+<UL><LI>QUIP filename
+<LI>QUIP initialization string
+<LI>N atomic numbers = mapping of QUIP elements to atom types 
+</UL>
+<P>See the <A HREF = "pair_coeff.html">pair_coeff</A> doc page for alternate ways
+to specify the path for the potential file.
+</P>
+<P>A QUIP potential is fully specified by the filename which contains the
+parameters of the potential in XML format, the initialisation string,
+and the map of atomic numbers.
+</P>
+<P>GAP potentials can be obtained from the Data repository section of
+<A HREF = "http://www.libatoms.org">http://www.libatoms.org</A>, where the
+appropriate initialisation strings are also advised. The list of
+atomic numbers must be matched to the LAMMPS atom types specified in
+the LAMMPS data file or elsewhere.
+</P>
+<P>Two examples input scripts are provided in the examples/USER/quip
+directory.
+</P>
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+mix, shift, table, and tail options.
+</P>
+<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
+files</A>, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>QUIP potentials are parametrised in electron-volts and angstroms and
+therefore should be used with LAMMPS metal <A HREF = "units.html">units</A>.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<HR>
+
+<A NAME = "Bartok_2010"></A>
+
+<P><B>(Bartok_2010)</B> AP Bartok, MC Payne, R Kondor, and G Csanyi, Physical
+Review Letters 104, 136403 (2010).
+</P>
+<A NAME = "Bartok_PhD"></A>
+
+<P><B>(Bartok_PhD)</B> A Bartok-Partay, PhD Thesis, University of Cambridge,
+(2010).
+</P>
+</HTML>

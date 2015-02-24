@@ -4,3 +4,6 @@ variety of interatomic potentials, including the GAP potential.
 
 See lib/quip/README for more information on how to build LAMMPS
 with this package.
+
+See examples/USER/quip for several test examples that run QUIP
+potentials.

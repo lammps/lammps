@@ -1,0 +1,6 @@
+This package provides enables the pair_style quip command. This pair style 
+provides an interface to the QUIP/libAtoms MD framework, which includes a 
+variety of interatomic potentials, including the GAP potential.
+
+See lib/quip/README for more information on how to build LAMMPS
+with this package.

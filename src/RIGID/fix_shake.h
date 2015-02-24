@@ -27,32 +27,33 @@ namespace LAMMPS_NS {
 class FixShake : public Fix {
  public:
   FixShake(class LAMMPS *, int, char **);
-  ~FixShake();
-  int setmask();
-  void init();
+  virtual ~FixShake();
+  virtual int setmask();
+  virtual void init();
   void setup(int);
   void pre_neighbor();
-  void post_force(int);
-  void post_force_respa(int, int, int);
+  virtual void post_force(int);
+  virtual void post_force_respa(int, int, int);
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
+  virtual double memory_usage();
+  virtual void grow_arrays(int);
+  virtual void copy_arrays(int, int, int);
   void set_arrays(int);
-  void update_arrays(int, int);
+  virtual void update_arrays(int, int);
   void set_molecule(int, tagint, int, double *, double *, double *);
 
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  virtual int pack_exchange(int, double *);
+  virtual int unpack_exchange(int, double *);
+  virtual int pack_forward_comm(int, int *, double *, int, int *);
+  virtual void unpack_forward_comm(int, int, double *);
 
   int dof(int);
-  void reset_dt();
+  virtual void reset_dt();
   void *extract(const char *, int &);
 
- private:
+ protected:
   int me,nprocs;
+  int rattle;                            // 0 = SHAKE, 1 = RATTLE
   double tolerance;                      // SHAKE tolerance
   int max_iter;                          // max # of SHAKE iterations
   int output_every;                      // SHAKE stat output every so often

@@ -73,7 +73,11 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-QUIP potentials are parametrised in electron-volts and angstroms and
+This pair style is part of the USER-QUIP package.  It is only enabled
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+QUIP potentials are parametrized in electron-volts and Angstroms and
 therefore should be used with LAMMPS metal "units"_units.html.
 
 [Related commands:]

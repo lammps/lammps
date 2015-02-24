@@ -254,8 +254,10 @@ void PairCoulDSFKokkos<DeviceType>::operator()(TagPairCoulDSFKernelA<NEIGHFLAG,N
 
   if (eflag) {
     const F_FLOAT e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
-    ev.ecoul += e_self;
-    v_eatom[i] += e_self;
+    if (eflag_global)
+      ev.ecoul += e_self;
+    if (eflag_atom)
+      v_eatom[i] += e_self;
   }
 
   //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);

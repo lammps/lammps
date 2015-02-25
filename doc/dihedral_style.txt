@@ -102,7 +102,7 @@ links to the individual styles are given in the dihedral section of
 Dihedral styles can only be set for atom styles that allow dihedrals
 to be defined.
 
-Most dihedral styles are part of the MOLECULAR package.  They are only
+Most dihedral styles are part of the MOLECULE package.  They are only
 enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info on packages.
 The doc pages for individual dihedral potentials tell if it is part of

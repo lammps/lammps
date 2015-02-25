@@ -79,7 +79,7 @@ more instructions on how to use the accelerated styles effectively.
 [Restrictions:]
 
 This improper style can only be used if LAMMPS was built with the
-MOLECULAR package (which it is by default).  See the "Making
+MOLECULE package (which it is by default).  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 [Related commands:]

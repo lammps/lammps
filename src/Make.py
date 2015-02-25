@@ -590,7 +590,7 @@ Syntax: Make.py switch args ...
   switch for actions:
     -a lib-all, lib-dir, clean, file, exe or machine
     list one or more actions, in any order
-    machine is a Makefile.machine suffix, must be last if used
+    machine is a Makefile.machine suffix
   one-letter switches:
     -d (dir), -j (jmake), -m (makefile), -o (output),
     -p (packages), -r (redo), -s (settings), -v (verbose)

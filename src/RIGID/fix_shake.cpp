@@ -202,6 +202,10 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     a_min_all = new double[na];
   }
 
+  // SHAKE vs RATTLE
+
+  rattle = 0;
+
   // identify all SHAKE clusters
 
   find_clusters();
@@ -428,12 +432,13 @@ void FixShake::setup(int vflag)
   // half timestep constraint on pre-step, full timestep thereafter
 
   if (strstr(update->integrate_style,"verlet")) {
-    dtv = update->dt;
-    dtfsq = 0.5 * update->dt * update->dt * force->ftm2v;
-    post_force(vflag);
-    dtfsq = update->dt * update->dt * force->ftm2v;
+    dtv     = update->dt;
+    dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
+    FixShake::post_force(vflag);
+    if (!rattle) dtfsq = update->dt * update->dt * force->ftm2v;
+
   } else {
-    dtv = step_respa[0];
+    dtv = step_respa[0]; 
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
     dtf_inner = dtf_innerhalf;
 
@@ -441,11 +446,10 @@ void FixShake::setup(int vflag)
 
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
       ((Respa *) update->integrate)->copy_flevel_f(ilevel);
-      post_force_respa(vflag,ilevel,loop_respa[ilevel]-1);
+      FixShake::post_force_respa(vflag,ilevel,loop_respa[ilevel]-1);
       ((Respa *) update->integrate)->copy_f_flevel(ilevel);
     }
-
-    dtf_inner = step_respa[0] * force->ftm2v;
+    if (!rattle) dtf_inner = step_respa[0] * force->ftm2v;
   }
 }
 
@@ -652,8 +656,11 @@ void FixShake::find_clusters()
   tagint tagprev;
   double massone;
   tagint *buf;
-
-  if (me == 0 && screen) fprintf(screen,"Finding SHAKE clusters ...\n");
+  
+  if (me == 0 && screen) {
+    if (!rattle) fprintf(screen,"Finding SHAKE clusters ...\n");
+    else fprintf(screen,"Finding RATTLE clusters ...\n");
+  }
 
   atommols = atom->avec->onemols;
 
@@ -1625,7 +1632,7 @@ void FixShake::shake3(int m)
 
 void FixShake::shake4(int m)
 {
-  int nlist,list[4];
+ int nlist,list[4];
   double v[6];
   double invmass0,invmass1,invmass2,invmass3;
 
@@ -2636,11 +2643,13 @@ void FixShake::reset_dt()
 {
   if (strstr(update->integrate_style,"verlet")) {
     dtv = update->dt;
-    dtfsq = update->dt * update->dt * force->ftm2v;
+    if (rattle) dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
+    else dtfsq = update->dt * update->dt * force->ftm2v;
   } else {
     dtv = step_respa[0];
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
-    dtf_inner = step_respa[0] * force->ftm2v;
+    if (rattle) dtf_inner = dtf_innerhalf;
+    else dtf_inner = step_respa[0] * force->ftm2v;
   }
 }
 

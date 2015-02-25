@@ -1,13 +1,19 @@
-This directory contains libraries that can be linked with when
-building LAMMPS, if particular packages are included in a LAMMPS
-build.  The library itself must be built first, so that a library file
-exists for LAMMPS to link against.
+This directory contains libraries that can be linked to when building
+LAMMPS, if particular packages are included in the LAMMPS build.
+
+Most of these directories contain code for the library; some contain
+a Makefile.lammps file that points to where the library is installed
+elsewhere on your system.  
+
+In either case, the library itself must be installed and/or built
+first, so that the appropriate library files exist for LAMMPS to link
+against.
 
 Each library directory contains a README with additional info about
 how to acquire and/or build the library.  This may require you to edit
 one of the provided Makefiles to make it suitable for your machine.
 
-The libraries included in the LAMMPS distribution are the following:
+The libraries in this directory are the following:
 
 atc           atomistic-to-continuum methods, USER-ATC package
                 from Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia)
@@ -33,6 +39,8 @@ molfile       hooks to VMD molfile plugins, used by the USER-MOLFILE package
                 from Axel Kohlmeyer (Temple U) and the VMD development team
 qmmm	      quantum mechanics/molecular mechanics coupling interface
                 from Axel Kohlmeyer (Temple U)
+quip          interface to QUIP/libAtoms framework, USER-QUIP package
+                from Albert Bartok-Partay and Gabor Csanyi (U Cambridge)
 reax          ReaxFF potential, REAX package
 	        from Adri van Duin (Penn State) and Aidan Thompson (Sandia)
 voronoi       hooks to the Voro++ library, used by compute voronoi/atom command

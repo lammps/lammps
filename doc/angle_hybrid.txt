@@ -76,7 +76,7 @@ for specific angle types.
 [Restrictions:]
 
 This angle style can only be used if LAMMPS was built with the
-MOLECULAR package (which it is by default).  See the "Making
+MOLECULE package (which it is by default).  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 Unlike other angle styles, the hybrid angle style does not store angle

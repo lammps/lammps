@@ -232,7 +232,7 @@ This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
 The {angle}, {bond}, {full}, {molecular}, and {template} styles are
-part of the MOLECULAR package.  The {line} and {tri} styles are part
+part of the MOLECULE package.  The {line} and {tri} styles are part
 of the ASPHERE pacakge.  The {body} style is part of the BODY package.
 The {dipole} style is part of the DIPOLE package.  The {peri} style is
 part of the PERI package for Peridynamics.  The {electron} style is

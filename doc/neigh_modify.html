@@ -62,16 +62,19 @@ neigh_modify exclude molecule rigid
 <P><B>Description:</B>
 </P>
 <P>This command sets parameters that affect the building and use of
-pairwise neighbor lists.
+pairwise neighbor lists.  Depending on what pair interactions and
+other commands are defined, a simulation may require one or more
+neighbor lists.
 </P>
 <P>The <I>every</I>, <I>delay</I>, <I>check</I>, and <I>once</I> options affect how often
 lists are built as a simulation runs.  The <I>delay</I> setting means never
-build a new list until at least N steps after the previous build.  The
-<I>every</I> setting means build the list every M steps (after the delay
-has passed).  If the <I>check</I> setting is <I>no</I>, the list is built on the
-1st step that satisfies the <I>delay</I> and <I>every</I> settings.  If the
-<I>check</I> setting is <I>yes</I>, then the list is only built on a particular
-step if some atom has moved more than half the skin distance
+build new lists until at least N steps after the previous build.  The
+<I>every</I> setting means build lists every M steps (after the delay has
+passed).  If the <I>check</I> setting is <I>no</I>, the lists are built on the
+first step that satisfies the <I>delay</I> and <I>every</I> settings.  If the
+<I>check</I> setting is <I>yes</I>, then the <I>every</I> and <I>delay</I> settings
+determine when a build may possibly be performed, but an actual build
+only occurs if some atom has moved more than half the skin distance
 (specified in the <A HREF = "neighbor.html">neighbor</A> command) since the last
 build.
 </P>

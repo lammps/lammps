@@ -61,7 +61,7 @@ popd
 pushd src
 
 # configure installed packages
-make yes-all no-kim no-kokkos no-user-cuda no-reax no-user-qmmm no-user-lb no-mpiio no-user-intel
+make yes-all no-kim no-kokkos no-user-cuda no-reax no-user-qmmm no-user-lb no-mpiio no-user-intel no-user-quip
 make -j${NUMCPU} mingw32-cross || exit 4
 make -j${NUMCPU} mingw64-cross || exit 4
 make yes-user-lb yes-mpiio

@@ -1,19 +1,19 @@
-# verified on Fedora 17     / x86_64 / 2015-01-12
-# verified on Fedora 17     / i386   / 2015-01-12
-# verified on Fedora 18     / x86_64 / 2015-01-12
-# verified on Fedora 18     / i386   / 2015-01-12
-# verified on Fedora 19     / x86_64 / 2015-01-12
-# verified on Fedora 19     / i386   / 2015-01-12
-# verified on Fedora 20     / x86_64 / 2015-01-12
-# verified on Fedora 20     / i386   / 2015-01-12
-# verified on Fedora 21     / x86_64 / 2015-01-12
-# verified on CentOS 6.6    / x86_64 / 2015-01-12
-# verified on CentOS 6.6    / i386   / 2015-01-12
-# verified on CentOS 7.0    / x86_64 / 2015-01-12
-# verified on OpenSuSE 12.3 / x86_64 / 2015-01-12
-# verified on OpenSuSE 12.3 / i586   / 2015-01-12
-# verified on OpenSuSE 13.1 / x86_64 / 2015-01-12
-# verified on OpenSuSE 13.1 / i586   / 2015-01-12
+# verified on Fedora 17     / x86_64 / 2015-02-26
+# verified on Fedora 17     / i386   / 2015-02-26
+# verified on Fedora 18     / x86_64 / 2015-02-26
+# verified on Fedora 18     / i386   / 2015-02-26
+# verified on Fedora 19     / x86_64 / 2015-02-26
+# verified on Fedora 19     / i386   / 2015-02-26
+# verified on Fedora 20     / x86_64 / 2015-02-26
+# verified on Fedora 20     / i386   / 2015-02-26
+# verified on Fedora 21     / x86_64 / 2015-02-26
+# verified on CentOS 6.6    / x86_64 / 2015-02-26
+# verified on CentOS 6.6    / i386   / 2015-02-26
+# verified on CentOS 7.0    / x86_64 / 2015-02-26
+# verified on OpenSuSE 12.3 / x86_64 / 2015-02-26
+# verified on OpenSuSE 12.3 / i586   / 2015-02-26
+# verified on OpenSuSE 13.1 / x86_64 / 2015-02-26
+# verified on OpenSuSE 13.1 / i586   / 2015-02-26
 
 %ifnarch s390 s390x
 %global with_openmpi 1
@@ -45,8 +45,8 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20140926
-Release:        9%{?dist}
+Version:        20150226
+Release:        10%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
 
@@ -184,7 +184,7 @@ cd ../../src
 
 # install packages
 # fortran reax is obsolete, no GPU support, QM/MM requires a Q-E library, USER-INTEL requires Intel Compiler, USER-LB and MPIIO require MPI-IO.
-make yes-all no-kim no-kokkos no-gpu no-user-cuda no-reax no-user-qmmm no-user-intel no-user-lb no-mpiio
+make yes-all no-kim no-kokkos no-gpu no-user-cuda no-reax no-user-qmmm no-user-intel no-user-quip no-user-lb no-mpiio
 
 make -C STUBS
 

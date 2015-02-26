@@ -349,7 +349,7 @@ void AtomVec::pack_improper(tagint **buf)
   if (newton_bond) {
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_improper[i]; j++) {
-        buf[m][0] = improper_type[i][j];
+        buf[m][0] = MAX(improper_type[i][j],-improper_type[i][j]);
         buf[m][1] = improper_atom1[i][j];
         buf[m][2] = improper_atom2[i][j];
         buf[m][3] = improper_atom3[i][j];
@@ -360,7 +360,7 @@ void AtomVec::pack_improper(tagint **buf)
     for (i = 0; i < nlocal; i++)
       for (j = 0; j < num_improper[i]; j++)
         if (tag[i] == improper_atom2[i][j]) {
-          buf[m][0] = improper_type[i][j];
+          buf[m][0] = MAX(improper_type[i][j],-improper_type[i][j]);
           buf[m][1] = improper_atom1[i][j];
           buf[m][2] = improper_atom2[i][j];
           buf[m][3] = improper_atom3[i][j];

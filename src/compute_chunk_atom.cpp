@@ -1026,7 +1026,7 @@ void ComputeChunkAtom::idring(int n, char *cbuf)
 
 void ComputeChunkAtom::check_molecules()
 {
-  int *molecule = atom->molecule;
+  tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
   int flag = 0;

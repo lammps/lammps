@@ -86,7 +86,7 @@ class ComputeChunkAtom : public Compute {
 
   int molcheck;              // one-time check if all molecule atoms in chunk
   int *exclude;              // 1 if atom is not assigned to any chunk
-  std::map<int,int> *hash;   // store original chunks IDs before compression
+  std::map<tagint,int> *hash;   // store original chunks IDs before compression
 
   // static variable for ring communication callback to access class data
   // callback functions for ring communication

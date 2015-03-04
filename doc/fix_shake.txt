@@ -73,8 +73,9 @@ time {n+1} will have the desired separations Dij immediately after the
 coordinates are integrated.  If we also enforce the second condition,
 the velocity components along the bonds will vanish.  RATTLE satisfies
 both conditions.  As implemented in LAMMPS, fix rattle uses fix shake
-for satisfying the coordinate constraints. Therefore all the
-information below about SHAKE is also relevant for RATTLE.
+for satisfying the coordinate constraints. Therefore the settings and
+optional keywords are the same for both fixes, and all the information
+below about SHAKE is also relevant for RATTLE.
 
 [SHAKE:]
 

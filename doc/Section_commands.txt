@@ -535,6 +535,7 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "qeq/point"_fix_qeq.html,
 "qeq/shielded"_fix_qeq.html,
 "qeq/slater"_fix_qeq.html,
+"rattle"_fix_shake.html,
 "reax/bonds"_fix_reax_bonds.html,
 "recenter"_fix_recenter.html,
 "restrain"_fix_restrain.html,

@@ -205,6 +205,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // SHAKE vs RATTLE
 
   rattle = 0;
+  vflag_post_force = 0;
 
   // identify all SHAKE clusters
 
@@ -432,12 +433,14 @@ void FixShake::setup(int vflag)
   // half timestep constraint on pre-step, full timestep thereafter
 
   if (strstr(update->integrate_style,"verlet")) {
+    respa   = 0;   
     dtv     = update->dt;
     dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
     FixShake::post_force(vflag);
     if (!rattle) dtfsq = update->dt * update->dt * force->ftm2v;
 
   } else {
+    respa  = 1;
     dtv = step_respa[0]; 
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
     dtf_inner = dtf_innerhalf;
@@ -564,6 +567,10 @@ void FixShake::post_force(int vflag)
     else if (shake_flag[m] == 4) shake4(m);
     else shake3angle(m);
   }
+  
+  // store vflag for coordinate_constraints_end_of_step()
+
+  vflag_post_force = vflag;
 }
 
 /* ----------------------------------------------------------------------
@@ -608,6 +615,10 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
     else if (shake_flag[m] == 4) shake4(m);
     else shake3angle(m);
   }
+
+  // store vflag for coordinate_constraints_end_of_step()
+
+  vflag_post_force = vflag;
 }
 
 /* ----------------------------------------------------------------------
@@ -2665,3 +2676,29 @@ void *FixShake::extract(const char *str, int &dim)
   }
   return NULL;
 }
+
+
+
+/* ----------------------------------------------------------------------
+   wrapper method for end_of_step fixes which modify the coordinates
+------------------------------------------------------------------------- */
+
+void FixShake::coordinate_constraints_end_of_step() {
+  if (!respa) {
+    dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
+    FixShake::post_force(vflag_post_force);
+    if (!rattle) dtfsq = update->dt * update->dt * force->ftm2v;
+  } 
+  else {
+    dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
+    dtf_inner = dtf_innerhalf;
+    // apply correction to all rRESPA levels
+    for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
+      ((Respa *) update->integrate)->copy_flevel_f(ilevel);
+      FixShake::post_force_respa(vflag_post_force,ilevel,loop_respa[ilevel]-1);
+      ((Respa *) update->integrate)->copy_f_flevel(ilevel);
+    }
+    if (!rattle) dtf_inner = step_respa[0] * force->ftm2v;
+  }
+}
+

@@ -813,7 +813,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "resquared (go)"_pair_resquared.html,
 "snap"_pair_snap.html,
 "soft (go)"_pair_soft.html,
-"sw (cgo)"_pair_sw.html,
+"sw (cgio)"_pair_sw.html,
 "table (gko)"_pair_table.html,
 "tersoff (co)"_pair_tersoff.html,
 "tersoff/mod (o)"_pair_tersoff_mod.html,

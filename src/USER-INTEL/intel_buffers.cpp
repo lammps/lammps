@@ -27,6 +27,7 @@ IntelBuffers<flt_t, acc_t>::IntelBuffers(class LAMMPS *lmp_in) :
   _list_alloc_atoms = 0;
   _ntypes = 0;
   _off_map_maxlocal = 0;
+  _ccachex = 0;
   #ifdef _LMP_INTEL_OFFLOAD
   _separate_buffers = 0;
   _off_f = 0;
@@ -35,6 +36,7 @@ IntelBuffers<flt_t, acc_t>::IntelBuffers(class LAMMPS *lmp_in) :
   _off_map_maxhead = 0;
   _off_list_alloc = false;
   _off_threads = 0;
+  _off_ccache = 0;
   #endif
 }
 
@@ -45,6 +47,7 @@ IntelBuffers<flt_t, acc_t>::~IntelBuffers()
 {
   free_buffers();
   free_all_nbor_buffers();
+  free_ccache();
   set_ntypes(0);
 }
 
@@ -196,14 +199,16 @@ void IntelBuffers<flt_t, acc_t>::_grow_nmax()
     nspecial = lmp->atom->nspecial[0];
     special_length = size * lmp->atom->maxspecial;
     nspecial_length = size * 3;
-    tag_length = size;
   } else {
     special = &_special_holder;
     nspecial = &_nspecial_holder;
     special_length = 1;
     nspecial_length = 1;
-    tag_length = 1;
   }
+  if (_need_tag)
+    tag_length = size;
+  else
+    tag_length = 1;
   int *tag = lmp->atom->tag;
   int *bins = lmp->neighbor->bins;
   #pragma offload_transfer target(mic:_cop) \
@@ -337,8 +342,8 @@ void IntelBuffers<flt_t, acc_t>::free_nbor_list()
 
 template <class flt_t, class acc_t>
 void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList *list, 
-						 const int nlocal,
-						 const int offload_end)
+                                                 const int nlocal,
+                                                 const int offload_end)
 {
   free_nbor_list();
   _list_alloc_atoms = 1.10 * nlocal;
@@ -353,8 +358,8 @@ void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList *list,
     if (special_flag != NULL && list_alloc != NULL) {
       #pragma offload_transfer target(mic:_cop) \
         in(special_flag:length(4) alloc_if(1) free_if(0)) \
-	in(stencil:length(list->maxstencil) alloc_if(1) free_if(0)) \
-	nocopy(list_alloc:length(list_alloc_size) alloc_if(1) free_if(0))
+        in(stencil:length(list->maxstencil) alloc_if(1) free_if(0)) \
+        nocopy(list_alloc:length(list_alloc_size) alloc_if(1) free_if(0))
       _off_map_stencil = stencil;
       _off_list_alloc = true;
     }
@@ -373,6 +378,86 @@ void IntelBuffers<flt_t, acc_t>::_grow_stencil(NeighList *list)
   #pragma offload_transfer target(mic:_cop) \
     in(stencil:length(list->maxstencil) alloc_if(1) free_if(0))
   _off_map_stencil = stencil;
+  #endif
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class flt_t, class acc_t>
+void IntelBuffers<flt_t, acc_t>::free_ccache()
+{
+  if (_ccachex) {
+    flt_t *ccachex = _ccachex;
+    flt_t *ccachey = _ccachey;
+    flt_t *ccachez = _ccachez;
+    flt_t *ccachew = _ccachew;
+    int *ccachei = _ccachei;
+    int *ccachej = _ccachej;
+
+    #ifdef _LMP_INTEL_OFFLOAD
+    if (_off_ccache) {
+      #pragma offload_transfer target(mic:_cop) \
+        nocopy(ccachex,ccachey,ccachez,ccachew:alloc_if(0) free_if(1)) \
+        nocopy(ccachei,ccachej:alloc_if(0) free_if(1))
+    }
+    _off_ccache = 0;
+    #endif
+
+    lmp->memory->destroy(ccachex);
+    lmp->memory->destroy(ccachey);
+    lmp->memory->destroy(ccachez);
+    lmp->memory->destroy(ccachew);
+    lmp->memory->destroy(ccachei);
+    lmp->memory->destroy(ccachej);
+
+    _ccachex = 0;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class flt_t, class acc_t>
+void IntelBuffers<flt_t, acc_t>::grow_ccache(const int off_flag,
+                                           const int nthreads)
+{
+  #ifdef _LMP_INTEL_OFFLOAD
+  if (_ccachex && off_flag && _off_ccache == 0)
+    free_ccache();
+  #endif
+  if (_ccachex)
+    return;
+
+  const int nsize = get_max_nbors();
+  int esize = MIN(sizeof(int), sizeof(flt_t));
+  IP_PRE_get_stride(_ccache_stride, nsize, esize, 0);
+  int nt = MAX(nthreads, _off_threads);
+  const int vsize = _ccache_stride * nt;
+
+  lmp->memory->create(_ccachex, vsize , "_ccachex");
+  lmp->memory->create(_ccachey, vsize, "_ccachey");
+  lmp->memory->create(_ccachez, vsize, "_ccachez");
+  lmp->memory->create(_ccachew, vsize, "_ccachew");
+  lmp->memory->create(_ccachei, vsize, "_ccachei");
+  lmp->memory->create(_ccachej, vsize, "_ccachej");
+
+  #ifdef _LMP_INTEL_OFFLOAD
+  if (off_flag) {
+    flt_t *ccachex = _ccachex;
+    flt_t *ccachey = _ccachey;
+    flt_t *ccachez = _ccachez;
+    flt_t *ccachew = _ccachew;
+    int *ccachei = _ccachei;
+    int *ccachej = _ccachej;
+
+    if (ccachex != NULL && ccachey !=NULL && ccachez != NULL && 
+	ccachew != NULL && ccachei != NULL && ccachej !=NULL) {
+      #pragma offload_transfer target(mic:_cop) \
+        nocopy(ccachex,ccachey:length(vsize) alloc_if(1) free_if(0)) \
+        nocopy(ccachez,ccachew:length(vsize) alloc_if(1) free_if(0)) \
+        nocopy(ccachei,ccachej:length(vsize) alloc_if(1) free_if(0))
+    }
+    _off_ccache = 1;
+  }
   #endif
 }
 

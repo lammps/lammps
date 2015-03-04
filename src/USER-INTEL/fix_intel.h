@@ -366,11 +366,12 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
       lmp_ft * _noalias const tor = (lmp_ft *) lmp->atom->torque[0] +
 	out_offset;
       if (eatom) {
+	double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[ii].x;
           f[i].y += f_in[ii].y;
           f[i].z += f_in[ii].z;
-          force->pair->eatom[i] += f_in[ii].w;
+          lmp_eatom[i] += f_in[ii].w;
           tor[i].x += f_in[ii+1].x;
           tor[i].y += f_in[ii+1].y;
           tor[i].z += f_in[ii+1].z;
@@ -389,11 +390,12 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
       }
     } else {
       if (eatom) {
+	double * _noalias const lmp_eatom = force->pair->eatom + out_offset;
         for (int i = ifrom; i < ito; i++) {
           f[i].x += f_in[i].x;
           f[i].y += f_in[i].y;
           f[i].z += f_in[i].z;
-          force->pair->eatom[i] += f_in[i].w;
+          lmp_eatom[i] += f_in[i].w;
         }
       } else {
         for (int i = ifrom; i < ito; i++) {
@@ -478,7 +480,11 @@ void FixIntel::add_off_results(const ft * _noalias const f_in,
 
   start_watch(TIME_OFFLOAD_WAIT);
   #ifdef _LMP_INTEL_OFFLOAD
-  #pragma offload_wait target(mic:_cop) wait(f_in)
+  if (neighbor->ago == 0) {
+    #pragma offload_wait target(mic:_cop) wait(atom->tag, f_in)
+  } else {
+    #pragma offload_wait target(mic:_cop) wait(f_in)
+  }
   #endif
   double wait_time = stop_watch(TIME_OFFLOAD_WAIT);
 

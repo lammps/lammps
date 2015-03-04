@@ -739,6 +739,7 @@ void FixAtomSwap::write_restart(FILE *fp)
   int n = 0;
   double list[4];
   list[n++] = random_equal->state();
+  list[n++] = random_unequal->state();
   list[n++] = next_reneighbor;
 
   if (comm->me == 0) {

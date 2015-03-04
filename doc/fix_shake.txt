@@ -11,10 +11,10 @@ fix shake/cuda command :h3
 
 [Syntax:]
 
-fix ID group-ID shake tol iter N constraint values ... keyword value ... :pre
+fix ID group-ID {shake/rattle} tol iter N constraint values ... keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-shake = style name of this fix command :l
+shake or rattle = style name of this fix command :l
 tol = accuracy tolerance of SHAKE solution :l
 iter = max # of iterations in each SHAKE solution :l
 N = print SHAKE statistics every this many timesteps (0 = never) :l
@@ -35,11 +35,33 @@ keyword = {mol} :l
 fix 1 sub shake 0.0001 20 10 b 4 19 a 3 5 2
 fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31
 fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31 mol myMol :pre
+fix 1 sub rattle 0.0001 20 10 t 5 6 m 1.0 a 31
+fix 1 sub rattle 0.0001 20 10 t 5 6 m 1.0 a 31 mol myMol :pre
 
 [Description:]
 
 Apply bond and angle constraints to specified bonds and angles in the
 simulation.  This typically enables a longer timestep.
+
+
+[SHAKE vs. RATTLE:]
+
+The SHAKE algorithm was invented for schemes such as Verlet, where only the coordinates 
+are integrated and the velocities are approximated as finite differences to the trajectories ("Ryckaert et al. (1977)"_#Ryckaert). 
+If the velocities are integrated explicitly, for example with velocity Verlet, 
+a second set of constraining forces is required in order to eliminate velocity components along the bonds ("Andersen (1983)"_#Andersen). 
+
+In order to formulate the individual constraints for SHAKE and RATTLE, let us focus on a single molecule whose 
+bonds are to be constrained. Let image(Eqs/fix_rattle_ri.jpg) and image(Eqs/fix_rattle_vi.jpg) be the position and velocity of atom {i} at time {n}, for {i}=1,...,{N}, where {N} is the number of sites of our reference molecule. The distance vector between sites {i} and {j} is given by image(Eqs/fix_rattle_rij.jpg). The constraints can then be formulated as
+
+:c,image(Eqs/fix_rattle_constraints.jpg)
+
+The SHAKE algorithm satisfies the first condition, i.e. the sites at time {n+1} will have the desired separations image(Eqs/fix_rattle_dij.jpg) immediately after the coordinates are integrated. 
+If we also enforce the second condition, the velocity components along the bonds will vanish. 
+RATTLE satisfies both conditions and fix rattle is implemented in a way that it uses fix shake for dealing with the coordinate constraints. Therefore all the information about SHAKE below is also relevant for RATTLE.
+
+[SHAKE:]
+
 
 Each timestep the specified bonds and angles are reset to their
 equilibrium lengths and angular values via the well-known SHAKE
@@ -92,6 +114,7 @@ satisfy the SHAKE constraints.  The solution for this is to make sure
 that fix shake is defined in your input script after any other fixes
 which add or change forces (to atoms that fix shake operates on).
 
+
 :line
 
 The {mol} keyword should be used when other commands, such as "fix
@@ -129,6 +152,27 @@ more instructions on how to use the accelerated styles effectively.
 
 :line
 
+
+[RATTLE:]
+
+
+The velocity constraints lead to a linear system of equations which
+can be solved analytically. The implementation of the algorithm in LAMMPS
+closely follows "Andersen (1983)"_#Andersen. 
+	
+IMPORTANT NOTE: This command modifies forces and velocities and 
+it has to come after all other integration fixes. If you define other
+fixes that modify velocities or forces after fix rattle operates, 
+then this fix will not take them into account and the time integration
+will typically not satisfy the RATTLE constraints. You can check whether
+the constraints work correctly by setting the value of RATTLE_DEBUG in fix_rattle.cpp
+to 1 and recompiling LAMMPS.
+
+IMPORTANT NOTE: RATTLE does not support cuda at the moment.
+
+
+:line
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
@@ -157,3 +201,15 @@ of SHAKE parameters and monitoring the energy versus time.
 [Related commands:] none
 
 [Default:] none
+
+:line 
+ 
+:link(Ryckaert)
+[(Ryckaert)] J.-P. Ryckaert, G. Ciccotti and H. J. C. Berendsen, 
+Journal of Computational Physics, 23, 327–341 (1977).
+ 
+:link(Andersen)
+[(Andersen)] H. Andersen,
+Journal of Computational Physics, 52, 24-34 (1983).
+
+

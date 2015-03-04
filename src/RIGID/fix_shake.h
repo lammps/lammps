@@ -46,19 +46,22 @@ class FixShake : public Fix {
   virtual int unpack_exchange(int, double *);
   virtual int pack_forward_comm(int, int *, double *, int, int *);
   virtual void unpack_forward_comm(int, int, double *);
+  virtual void coordinate_constraints_end_of_step();
 
   int dof(int);
   virtual void reset_dt();
   void *extract(const char *, int &);
 
  protected:
+  int vflag_post_force;                  // store the vflag of last post_force call
+  int respa;                             // 0 = vel. Verlet, 1 = respa
   int me,nprocs;
   int rattle;                            // 0 = SHAKE, 1 = RATTLE
   double tolerance;                      // SHAKE tolerance
   int max_iter;                          // max # of SHAKE iterations
   int output_every;                      // SHAKE stat output every so often
   bigint next_output;                    // timestep for next output
-
+  
                                          // settings from input command
   int *bond_flag,*angle_flag;            // bond/angle types to constrain
   int *type_flag;                        // constrain bonds to these types

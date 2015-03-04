@@ -49,7 +49,14 @@ class IntelBuffers {
   inline int get_stride(int nall) {
     int stride;
     IP_PRE_get_stride(stride, nall, sizeof(vec3_acc_t), 
-			 lmp->atom->torque);
+                         lmp->atom->torque);
+    return stride;
+  }
+
+  template <class stype>
+  inline int get_scalar_stride(const int n) {
+    int stride;
+    IP_PRE_get_stride(stride, n, sizeof(stype), 0);
     return stride;
   }
 
@@ -102,6 +109,16 @@ class IntelBuffers {
       _grow_binhead();
     #endif
   }
+
+  void free_ccache();
+  void grow_ccache(const int off_flag, const int nthreads);
+  inline int ccache_stride() { return _ccache_stride; }
+  inline flt_t * get_ccachex() { return _ccachex; }
+  inline flt_t * get_ccachey() { return _ccachey; }
+  inline flt_t * get_ccachez() { return _ccachez; }
+  inline flt_t * get_ccachew() { return _ccachew; }
+  inline int * get_ccachei() { return _ccachei; }
+  inline int * get_ccachej() { return _ccachej; }
 
   inline int get_max_nbors() {
     int mn = lmp->neighbor->oneatom * sizeof(int) /
@@ -232,6 +249,12 @@ class IntelBuffers {
 	     used_ghost * sizeof(flt_t));
     }
   }
+
+  inline int need_tag() { return _need_tag; }
+  inline void need_tag(const int nt) { _need_tag = nt; }
+  #else
+  inline int need_tag() { return 0; }
+  inline void need_tag(const int nt) { }
   #endif
 
   double memory_usage(const int nthreads);
@@ -255,17 +278,22 @@ class IntelBuffers {
   flt_t **_cutneighsq;
   int _ntypes;
 
+  int _ccache_stride;
+  flt_t *_ccachex, *_ccachey, *_ccachez, *_ccachew;
+  int *_ccachei, *_ccachej;
+
   #ifdef _LMP_INTEL_OFFLOAD
   int _separate_buffers;
   atom_t *_host_x;
   flt_t *_host_q;
   quat_t *_host_quat;
   vec3_acc_t *_off_f;
-  int _off_map_nmax, _off_map_maxhead, _cop;
+  int _off_map_nmax, _off_map_maxhead, _cop, _off_ccache;
   int *_off_map_ilist;
   int *_off_map_stencil, *_off_map_special, *_off_map_nspecial, *_off_map_tag;
   int *_off_map_binhead, *_off_map_bins, *_off_map_numneigh;
   bool _off_list_alloc;
+  int _need_tag;
   #endif
   
   int _buf_size, _buf_local_size;

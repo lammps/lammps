@@ -247,7 +247,7 @@ inline double MIC_Wtime() {
       nall = nlocal + nghost;						\
       separate_flag--;							\
       int flength;							\
-      if (NEWTON_PAIR) flength = nall;					\
+      if (newton) flength = nall;					\
       else flength = nlocal;						\
       IP_PRE_get_stride(f_stride, flength, sizeof(FORCE_T),		\
 			   separate_flag);				\
@@ -302,16 +302,40 @@ inline double MIC_Wtime() {
 
 #endif
 
-#define IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair, delx, dely, delz)	\
-{									\
-  if (vflag == 1) {							\
-    sv0 += ev_pre * delx * delx * fpair;				\
-    sv1 += ev_pre * dely * dely * fpair;				\
-    sv2 += ev_pre * delz * delz * fpair;				\
-    sv3 += ev_pre * delx * dely * fpair;				\
-    sv4 += ev_pre * delx * delz * fpair;				\
-    sv5 += ev_pre * dely * delz * fpair;				\
-  }									\
+#define IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair, delx, dely, delz)    \
+{                                                                       \
+  if (vflag == 1) {                                                     \
+    sv0 += ev_pre * delx * delx * fpair;                                \
+    sv1 += ev_pre * dely * dely * fpair;                                \
+    sv2 += ev_pre * delz * delz * fpair;                                \
+    sv3 += ev_pre * delx * dely * fpair;                                \
+    sv4 += ev_pre * delx * delz * fpair;                                \
+    sv5 += ev_pre * dely * delz * fpair;                                \
+  }                                                                     \
+}
+
+#define IP_PRE_ev_tally_nbor3(vflag, fj, fk, delx, dely, delz, delr2)	\
+{                                                                       \
+  if (vflag == 1) {                                                     \
+    sv0 += delx * fj[0] + delr2[0] * fk[0];                             \
+    sv1 += dely * fj[1] + delr2[1] * fk[1];				\
+    sv2 += delz * fj[2] + delr2[2] * fk[2];				\
+    sv3 += delx * fj[1] + delr2[0] * fk[1];				\
+    sv4 += delx * fj[2] + delr2[0] * fk[2];				\
+    sv5 += dely * fj[2] + delr2[1] * fk[2];				\
+  }                                                                     \
+}
+
+#define IP_PRE_ev_tally_nbor3v(vflag, fj0, fj1, fj2, delx, dely, delz)  \
+{                                                                       \
+  if (vflag == 1) {                                                     \
+    sv0 += delx * fj0;							\
+    sv1 += dely * fj1;							\
+    sv2 += delz * fj2;							\
+    sv3 += delx * fj1;							\
+    sv4 += delx * fj2;							\
+    sv5 += dely * fj2;							\
+  }                                                                     \
 }
 
 #define IP_PRE_ev_tally_atom(evflag, eflag, vflag, f, fwtmp)    	\

@@ -377,10 +377,11 @@ need to build the STUBS library for your platform before making LAMMPS
 itself.  Note that if you are building with src/MAKE/Makefile.serial,
 e.g. by typing "make serial", then the STUBS library is built for you.
 </P>
-<P>To build the STUBS library from the src directory, type "make stubs",
-or from the src/STUBS dir, type "make".  This should create a
-libmpi_stubs.a file suitable for linking to LAMMPS.  If the build
-fails, you will need to edit the STUBS/Makefile for your platform.
+<P>To build the STUBS library from the src directory, type "make
+mpi-stubs", or from the src/STUBS dir, type "make".  This should
+create a libmpi_stubs.a file suitable for linking to LAMMPS.  If the
+build fails, you will need to edit the STUBS/Makefile for your
+platform.
 </P>
 <P>The file STUBS/mpi.c provides a CPU timer function called MPI_Wtime()
 that calls gettimeofday() .  If your system doesn't support

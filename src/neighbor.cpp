@@ -1187,8 +1187,10 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
                      "Neighbor include group not allowed with ghost neighbors");
         else pb = &Neighbor::full_nsq_ghost_omp;
       } else if (style == BIN) {
-        if (rq->ghost == 0) pb = &Neighbor::full_bin_omp;
-        else if (includegroup)
+        if (rq->ghost == 0) {
+	  if (rq->intel) pb = &Neighbor::full_bin_intel;
+	  else pb = &Neighbor::full_bin_omp;
+        } else if (includegroup)
           error->all(FLERR,
                      "Neighbor include group not allowed with ghost neighbors");
         else pb = &Neighbor::full_bin_ghost_omp;

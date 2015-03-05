@@ -34,7 +34,7 @@
   template <class flt_t, class acc_t>
   void bin_atoms(void *, int *);
 
-template <class flt_t, class acc_t, int>
+  template <class flt_t, class acc_t, int>
   void hbni(const int, NeighList *, void *, const int, const int, void *,
 	    const int offload_end = 0);
   template <class flt_t, class acc_t>
@@ -42,10 +42,14 @@ template <class flt_t, class acc_t, int>
   template <class flt_t, class acc_t, int>
   void hbnti(const int, NeighList *, void *, const int, const int, void *,
 	     const int offload_end = 0);
+  template <class flt_t, class acc_t, int>
+  void fbi(const int, NeighList *, void *, const int, const int, void *,
+	   const int offload_end = 0);
 
   void half_bin_no_newton_intel(class NeighList *);
   void half_bin_newton_intel(class NeighList *);
   void half_bin_newton_tri_intel(class NeighList *);
+  void full_bin_intel(class NeighList *);
 
 #endif /* !LMP_INSIDE_NEIGHBOR_H */
 
@@ -58,6 +62,7 @@ template <class flt_t, class acc_t, int>
   void half_bin_no_newton_intel(class NeighList *) {}
   void half_bin_newton_intel(class NeighList *) {}
   void half_bin_newton_tri_intel(class NeighList *) {}
+  void full_bin_intel(class NeighList *) {}
 
 #endif
 

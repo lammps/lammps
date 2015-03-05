@@ -46,7 +46,7 @@ help:
 	@echo 'make -f Makefile.lib machine      build LAMMPS as static library for machine'
 	@echo 'make -f Makefile.shlib machine    build LAMMPS as shared library for machine'
 	@echo 'make -f Makefile.list machine     build LAMMPS from explicit list of files'
-	@echo 'make stubs               build dummy MPI library in STUBS'
+	@echo 'make mpi-stubs           build dummy MPI library in STUBS'
 	@echo 'make install-python      install LAMMPS wrapper in Python'
 	@echo 'make tar                 create lmp_src.tar.gz of src dir and packages'
 	@echo ''
@@ -94,7 +94,7 @@ help:
 
 .DEFAULT:
 	@if [ $@ = "serial" -a ! -f STUBS/libmpi_stubs.a ]; \
-	  then $(MAKE) stubs; fi
+	  then $(MAKE) mpi-stubs; fi
 	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
@@ -144,7 +144,7 @@ makelist:
 
 # Make MPI STUBS library
 
-stubs:
+mpi-stubs:
 	@cd STUBS; $(MAKE) clean; $(MAKE)
 
 # install LAMMPS shared lib and Python wrapper for Python usage

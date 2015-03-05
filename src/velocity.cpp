@@ -98,6 +98,28 @@ void Velocity::command(int narg, char **arg)
   else if (style == RAMP) options(narg-8,&arg[8]);
   else if (style == ZERO) options(narg-3,&arg[3]);
 
+  // special cases where full init and border communication must be done first
+  // for CREATE/SET if compute temp/cs is used
+  // for ZERO if fix rigid/small is used
+  // b/c methods invoked in the compute/fix perform forward/reverse comm
+
+  int initcomm = 0;
+  if (style == ZERO && rfix >= 0 && 
+      strcmp(modify->fix[rfix]->style,"rigid/small") == 0) initcomm = 1;
+  if ((style == CREATE || style == SET) && temperature &&
+      strcmp(temperature->style,"temp/cs2") == 0) initcomm = 1;
+
+  if (initcomm) {
+    lmp->init();
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    comm->setup();
+    comm->exchange();
+    comm->borders();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  }
+
   // initialize velocities based on style
   // create() invoked differently, so can be called externally
 
@@ -670,37 +692,27 @@ void Velocity::ramp(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    zero linear or angular momentum of a group
-   if using rigid/small requires init of entire system since
-      its methods perform forward/reverse comm,
-      comm::init needs neighbor::init needs pair::init needs kspace::init, etc
-      also requires setup_pre_neighbor call to setup bodies
 ------------------------------------------------------------------------- */
 
 void Velocity::zero(int narg, char **arg)
 {
   if (strcmp(arg[0],"linear") == 0) {
     if (rfix < 0) zero_momentum();
-    else {
-      if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
-        lmp->init();
-        modify->fix[rfix]->setup_pre_neighbor();
-        modify->fix[rfix]->zero_momentum();
-      } else if (strstr(modify->fix[rfix]->style,"rigid")) {
-        modify->fix[rfix]->zero_momentum();
-      } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
-    }
+    else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+      modify->fix[rfix]->setup_pre_neighbor();
+      modify->fix[rfix]->zero_momentum();
+    } else if (strstr(modify->fix[rfix]->style,"rigid")) {
+      modify->fix[rfix]->zero_momentum();
+    } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
 
   } else if (strcmp(arg[0],"angular") == 0) {
     if (rfix < 0) zero_rotation();
-    else {
-      if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
-        lmp->init();
-        modify->fix[rfix]->setup_pre_neighbor();
-        modify->fix[rfix]->zero_rotation();
-      } else if (strstr(modify->fix[rfix]->style,"rigid")) {
-        modify->fix[rfix]->zero_rotation();
-      } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
-    }
+    else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+      modify->fix[rfix]->setup_pre_neighbor();
+      modify->fix[rfix]->zero_rotation();
+    } else if (strstr(modify->fix[rfix]->style,"rigid")) {
+      modify->fix[rfix]->zero_rotation();
+    } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
 
   } else error->all(FLERR,"Illegal velocity command");
 }

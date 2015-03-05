@@ -177,7 +177,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   // set OpenMP threads
   // nomp is user setting, default = 0
   
-#if defined(_OPENMP)
+  #if defined(_OPENMP)
   if (nomp != 0) {
     omp_set_num_threads(nomp);
     comm->nthreads = nomp;
@@ -187,7 +187,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
     nthreads = omp_get_num_threads();
     comm->nthreads = nthreads;
   }
-#endif
+  #endif
 
   // set offload params
 
@@ -357,17 +357,23 @@ void FixIntel::pair_init_check()
     #endif
   }
 
+  int need_tag = 0;
+  if (atom->molecular) need_tag = 1;
+
   // Clear buffers used for pair style
   char kmode[80];
   if (_precision_mode == PREC_MODE_SINGLE) {
     strcpy(kmode, "single");
     get_single_buffers()->free_all_nbor_buffers();
+    get_single_buffers()->need_tag(need_tag);
   } else if (_precision_mode == PREC_MODE_MIXED) {
     strcpy(kmode, "mixed");
     get_mixed_buffers()->free_all_nbor_buffers();
+    get_mixed_buffers()->need_tag(need_tag);
   } else {
     strcpy(kmode, "double");
     get_double_buffers()->free_all_nbor_buffers();
+    get_double_buffers()->need_tag(need_tag);
   }
 
   #ifdef _LMP_INTEL_OFFLOAD
@@ -730,16 +736,16 @@ int FixIntel::set_host_affinity(const int nomp)
     int pragma_size = 1024;
     buf1 = (float*) malloc(sizeof(float)*pragma_size);
 
-    #pragma offload target (mic:0) \
+    #pragma offload target (mic:0) mandatory \
       in(buf1:length(pragma_size) alloc_if(1) free_if(0))	\
       signal(&sig1)
-    {}
+    { buf1[0] = 0.0; }
     #pragma offload_wait target(mic:0) wait(&sig1)
 
-    #pragma offload target (mic:0) \
+    #pragma offload target (mic:0) mandatory \
       out(buf1:length(pragma_size) alloc_if(0) free_if(1))	\
       signal(&sig2)
-    {}
+    { buf1[0] = 1.0; }
     #pragma offload_wait target(mic:0) wait(&sig2)
     free(buf1);
 

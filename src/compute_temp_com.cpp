@@ -163,7 +163,7 @@ void ComputeTempCOM::compute_vector()
    remove velocity bias from atom I to leave thermal velocity
 ------------------------------------------------------------------------- */
 
-void ComputeTempCOM::remove_bias(int, double *v)
+void ComputeTempCOM::remove_bias(int i, double *v)
 {
   v[0] -= vbias[0];
   v[1] -= vbias[1];
@@ -193,7 +193,7 @@ void ComputeTempCOM::remove_bias_all()
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void ComputeTempCOM::restore_bias(int, double *v)
+void ComputeTempCOM::restore_bias(int i, double *v)
 {
   v[0] += vbias[0];
   v[1] += vbias[1];

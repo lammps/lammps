@@ -2626,11 +2626,13 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, int imol,
     displace[i][1] = onemols[imol]->dxbody[m][1];
     displace[i][2] = onemols[imol]->dxbody[m][2];
 
-    eflags[i] = 0;
-    if (onemols[imol]->radiusflag) {
-      eflags[i] |= SPHERE;
-      eflags[i] |= OMEGA;
-      eflags[i] |= TORQUE;
+    if (extended) {
+      eflags[i] = 0;
+      if (onemols[imol]->radiusflag) {
+        eflags[i] |= SPHERE;
+        eflags[i] |= OMEGA;
+        eflags[i] |= TORQUE;
+      }
     }
 
     if (bodyown[i] >= 0) {

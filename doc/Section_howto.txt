@@ -33,7 +33,8 @@ This section describes how to perform common tasks using LAMMPS.
 6.21 "Calculating viscosity"_#howto_21
 6.22 "Calculating a diffusion coefficient"_#howto_22
 6.23 "Using chunks to calculate system properties"_#howto_23
-6.24 "Setting parameters for the kspace_style pppm/disp command"_#howto_24 :all(b)
+6.24 "Setting parameters for the kspace_style pppm/disp command"_#howto_24
+6.25 "Adiabatic core/shell model"_#howto_25 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
 highlighted in "Section_example"_Section_example.html also show how to
@@ -2402,6 +2403,191 @@ rule is fulfilled. If mixing rules do not apply, the user will have
 to specify this command explicitly.
 
 :line
+
+6.25 Adiabatic core/shell model :link(howto_25),h4
+
+The adiabatic core-shell model by "Mitchell and
+Finchham"_#MitchellFinchham is a simple method for adding
+polarizability to a system.  In order to mimic the electron shell of
+an ion, a ghost atom is attached to it. This way the ions are split
+into a core and a shell where the latter is meant to react to the
+electrostatic environment inducing polarizability.
+
+Technically, shells are attached to the cores by a spring force f =
+k*r where k is a parametrized spring constant and r is the distance
+between the core and the shell. The charges of the core and the shell
+add up to the ion charge, thus q(ion) = q(core) + q(shell). In a
+similar fashion the mass of the ion is distributed on the core and the
+shell with the core having the larger mass.
+
+To run this model in LAMMPS, "atom_style"_atom_style.html {full} can
+be used since atom charge and bonds are needed.  Each kind of
+core/shell pair requires two atom types and a bond type.  The core and
+shell of a core/shell pair should be bonded to each other with a
+harmonic bond that provides the spring force. For example, a data file
+for NaCl, as found in examples/coreshell, has this format:
+
+432   atoms  # core and shell atoms
+216   bonds  # number of core/shell springs :pre
+
+4     atom types  # 2 cores and 2 shells for Na and Cl 
+2     bond types :pre
+
+0.0 24.09597 xlo xhi
+0.0 24.09597 ylo yhi
+0.0 24.09597 zlo zhi :pre
+
+Masses       # core/shell mass ratio = 0.1 :pre
+
+1 20.690784  # Na core
+2 31.90500   # Cl core
+3 2.298976   # Na shell
+4 3.54500    # Cl shell :pre
+
+Atoms :pre
+
+1    1    2   1.5005    0.00000000   0.00000000   0.00000000 # core of core/shell pair 1
+2    1    4  -2.5005    0.00000000   0.00000000   0.00000000 # shell of core/shell pair 1
+3    2    1   1.5056    4.01599500   4.01599500   4.01599500 # core of core/shell pair 2
+4    2    3  -0.5056    4.01599500   4.01599500   4.01599500 # shell of core/shell pair 2 
+(...) :pre
+
+Bonds   # Bond topology for spring forces :pre
+
+1     2     1     2   # spring for core/shell pair 1
+2     2     3     4   # spring for core/shell pair 2 
+(...) :pre
+
+Non-Coulombic (e.g. Lennard-Jones) pairwise interactions are only
+defined between the shells.  Coulombic interactions are defined
+between all cores and shells.  If desired, additional bonds can be
+specified between cores.
+
+The "special_bonds"_special_bonds.html command should be used to
+turn-off the Coulombic interaction within core/shell pairs, since that
+interaction is set by the bond spring.  This is done using the
+"special_bonds"_special_bonds.html command with a 1-2 weight = 0.0,
+which is the default value.
+
+Since the core/shell model permits distances of r = 0.0 between the
+core and shell, a pair style with a "cs" suffix needs to be used to
+implement a valid long-range Coulombic correction.  Several such pair
+styles are provided in the CORESHELL package.  See "this doc
+page"_pair_cs.html for details.  All of the core/shell enabled pair
+styles require the use of a long-range Coulombic solver, as specified
+by the "kspace_style"_kspace_style.html command.  Either the PPPM or
+Ewald solvers can be used.
+
+For the NaCL example problem, these pair style and bond style settings
+are used:
+
+pair_style      born/coul/long/cs 20.0 20.0
+pair_coeff      * *      0.0 1.000   0.00  0.00   0.00
+pair_coeff      3 3    487.0 0.23768 0.00  1.05   0.50 #Na-Na
+pair_coeff      3 4 145134.0 0.23768 0.00  6.99   8.70 #Na-Cl
+pair_coeff      4 4 405774.0 0.23768 0.00 72.40 145.40 #Cl-Cl :pre
+
+bond_style      harmonic
+bond_coeff      1 63.014 0.0
+bond_coeff      2 25.724 0.0 :pre
+
+When running dynamics with the adiabatic core/shell model, the
+following issues should be considered.  Since the relative motion of
+the core and shell particles corresponds to the polarization, typical
+thermostats can alter the polarization behaviour, meaining the shell
+will not react freely to its electrostatic environment.  Therefore
+it's typically desirable to decouple the relative motion of the
+core/shell pair, which is an imaginary degree of freedom, from the
+real physical system.  To do that, the "compute
+temp/cs"_compute_temp_cs.html command can be used, in conjunction with
+any of the thermostat fixes, such as "fix nvt"_fix_nh.html or "fix
+langevin"_fix_langevin.  This compute uses the center-of-mass velocity
+of the core/shell pairs to calculate a temperature, and insures that
+velocity is what is rescaled for thermostatting purposes.  The
+"compute temp/cs"_compute_temp_cs.html command requires input of two
+groups, one for the core atoms, another for the shell atoms.  These
+can be defined using the "group {type}"_group.html command.  Note that
+to perform thermostatting using this definition of temperature, the
+"fix modify temp"_fix_modify.html command should be used to assign the
+comptue to the thermostat fix.  Likewise the "thermo_modify
+temp"_thermo_modify.html command can be used to make this temperature
+be output for the overall system.
+
+For the NaCl example, this can be done as follows:
+
+group cores type 1 2
+group shells type 3 4
+compute CSequ all temp/cs cores shells
+fix thermoberendsen all temp/berendsen 1427 1427 0.4    # thermostat for the true physical system
+fix thermostatequ all nve                               # integrator as needed for the berendsen thermostat
+fix_modify thermoberendsen temp CSequ
+thermo_modify temp CSequ                                # output of center-of-mass derived temperature :pre
+
+When intializing the velocities of a system with core/shell pairs, it
+is also desirable to not introduce energy into the relative motion of
+the core/shell particles, but only assign a center-of-mass velocity to
+the pairs.  This can be done by using the {bias} keyword of the
+"velocity create"_velocity.html command and assigning the "compute
+temp/cs"_compute_temp_cs.html command to the {temp} keyword of the
+"velocity"_velocity.html commmand, e.g.
+
+velocity all create 1427 134 bias yes temp CSequ
+velocity all scale 1427 temp CSequ :pre
+
+It is important to note that the polarizability of the core/shell
+pairs is based on their relative motion. Therefore the choice of
+spring force and mass ratio need to ensure much faster relative motion
+of the 2 atoms within the core/shell pair than their center-of-mass
+velocity. This allow the shells to effectively react instantaneously
+to the electrostatic environment.  This fast movement also limits the
+timestep size that can be used.
+
+Additionally, the mass mismatch of the core and shell particles means
+that only a small amount of energy is transfered to the decoupled
+imaginary degrees of freedom.  However, this transfer will typically
+lead to a a small drift in total energy over time.  This internal
+energy can be monitored using the "compute
+chunk/atom"_compute_chunk_atom.html and "compute
+temp/chunk"_compute_temp_chunk.html commands.  The internal kinetic
+energies of each core/shell pair can then be summed using the sum()
+special functino of the "variable"_variable.html command.  Or they can
+be time/averaged and output using the "fix ave/time"_fix_ave_time.html
+command.  To use these commands, each core/shell pair must be defined
+as a "chunk".  If each core/shell pair is defined as its own molecule,
+the molecule ID can be used to define the chunks.  If cores are bonded
+to each other to form larger molecules, then another way to define the
+chunks is to use the "fix property/atom"_fix_property_atom.html to
+assign a core/shell ID to each atom via a special field in the data
+file read by the "read_data"_read_data.html command.  This field can
+then be accessed by the "compute
+property/atom"_compute_property_atom.html command, to use as input to
+the "compute chunk/atom"_compute_chunk_atom.html command to define the
+core/shell pairs as chunks.
+
+For example,
+
+fix csinfo all property/atom i_CSID                       # property/atom command
+read_data NaCl_CS_x0.1_prop.data fix csinfo NULL CS-Info  # atom property added in the data-file
+compute prop all property/atom i_CSID
+compute cs_chunk all chunk/atom c_prop
+compute cstherm all temp/chunk cs_chunk temp internal com yes cdof 3.0     # note the chosen degrees of freedom for the core/shell pairs
+fix ave_chunk all ave/time 10 1 10 c_cstherm file chunk.dump mode vector :pre
+
+The additional section in the date file would be formatted like this:
+
+CS-Info         # header of additional section :pre
+
+1   1           # column 1 = atom ID, column 2 = core/shell ID 
+2   1   
+3   2   
+4   2   
+5   3   
+6   3   
+7   4   
+8   4   
+(...) :pre
+
+:line
 :line
 
 :link(Berendsen)
@@ -2437,3 +2623,7 @@ Phys, 79, 926 (1983).
 
 :link(Shinoda)
 [(Shinoda)] Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
+
+:link(MitchellFinchham)
+[(Mitchell and Finchham)] Mitchell, Finchham, J Phys Condensed Matter,
+5, 1031-1038 (1993).

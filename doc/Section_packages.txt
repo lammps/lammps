@@ -43,7 +43,7 @@ ASPHERE, aspherical particles, -, "Section_howto 6.14"_Section_howto.html#howto_
 BODY, body-style particles, -, "body"_body.html, body, -
 CLASS2, class 2 force fields, -, "pair_style lj/class2"_pair_class2.html, -, -
 COLLOID, colloidal particles, -, "atom_style colloid"_atom_style.html, colloid, -
-CORESHELL, adiabatic core/shell model, Hendrik Heenen, "Section_howto 6.25"_Section_howto.html#howto_25, coreshell, -
+CORESHELL, adiabatic core/shell model, Hendrik Heenen (Technical U of Munich), "Section_howto 6.25"_Section_howto.html#howto_25, coreshell, -
 DIPOLE, point dipole particles, -, "pair_style dipole/cut"_pair_dipole.html, dipole, -
 FLD, Fast Lubrication Dynamics, Kumar & Bybee & Higdon (1), "pair_style lubricateU"_pair_lubricateU.html, -, -
 GPU, GPU-enabled styles, Mike Brown (ORNL), "Section accelerate"_accelerate_gpu.html, gpu, lib/gpu

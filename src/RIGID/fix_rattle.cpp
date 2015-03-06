@@ -213,7 +213,6 @@ void FixRattle::final_integrate_respa(int ilevel, int iloop)
 void FixRattle::vrattle3angle(int m)
 {
   tagint i0,i1,i2;
-  int nlist,list[3];
   double c[3], l[3], a[3][3], r01[3], imass[3],
          r02[3], r12[3], vp01[3], vp02[3], vp12[3];
 
@@ -287,7 +286,6 @@ void FixRattle::vrattle3angle(int m)
 void FixRattle::vrattle2(int m)
 {
   tagint    i0, i1;
-  int       nlist,list[2];
   double    imass[2], r01[3], vp01[3];
 
   // local atom IDs and constraint distances
@@ -330,7 +328,6 @@ void FixRattle::vrattle2(int m)
 void FixRattle::vrattle3(int m)
 {
   tagint    i0,i1,i2;
-  int       nlist,list[3];
   double    imass[3], r01[3], r02[3], vp01[3], vp02[3],
             a[2][2],c[2],l[2];
 
@@ -393,7 +390,6 @@ void FixRattle::vrattle3(int m)
 void FixRattle::vrattle4(int m)
 {
   tagint    i0,i1,i2,i3;
-  int       nlist,list[4];
   double    imass[4], c[3], l[3], a[3][3],
             r01[3], r02[3], r03[3], vp01[3], vp02[3], vp03[3];
 

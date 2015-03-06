@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2015-02-04"
+#define COLVARS_VERSION "2015-02-27"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -200,14 +200,14 @@ public:
   int reset();
 
   /// Open a config file, load its contents, and pass it to config_string()
-  int config_file(char const *config_file_name);
+  int read_config_file(char const *config_file_name);
 
   /// \brief Parse a config string assuming it is a complete configuration
   /// (i.e. calling all parse functions)
-  int config_string(std::string const &conf);
+  int read_config_string(std::string const &conf);
 
   /// \brief Parse a "clean" config string (no comments)
-  int config(std::string &conf);
+  int parse_config(std::string &conf);
 
 
   // Parse functions (setup internal data based on a string)

@@ -153,8 +153,7 @@ cvm::real colvarbias_restraint::energy_difference(std::string const &conf)
   }
   if (get_keyval(conf, "centers", alt_colvar_centers, colvar_centers)) {
     for (i = 0; i < colvars.size(); i++) {
-      colvar_centers[i].type(colvars[i]->value());
-      colvar_centers[i].apply_constraints();
+      alt_colvar_centers[i].apply_constraints();
     }
   }
 

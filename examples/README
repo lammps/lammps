@@ -58,10 +58,11 @@ section of the LAMMPS WWW Site.
 These are the sample problems and their output in the various
 sub-directories:
 
-accelerate:  use of all the various accelerator packages
+accelerate: use of all the various accelerator packages
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 colloid:  big colloid particles in a small particle solvent, 2d system
+coreshell: adiabatic core/shell model
 comb:	  models using the COMB potential
 crack:	  crack propagation in a 2d solid
 deposit:  deposition of atoms and molecules onto a 3d substrate

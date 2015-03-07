@@ -99,15 +99,15 @@ void Velocity::command(int narg, char **arg)
   else if (style == ZERO) options(narg-3,&arg[3]);
 
   // special cases where full init and border communication must be done first
-  // for CREATE/SET if compute temp/cs is used
   // for ZERO if fix rigid/small is used
+  // for CREATE/SET if compute temp/cs is used
   // b/c methods invoked in the compute/fix perform forward/reverse comm
 
   int initcomm = 0;
   if (style == ZERO && rfix >= 0 && 
       strcmp(modify->fix[rfix]->style,"rigid/small") == 0) initcomm = 1;
   if ((style == CREATE || style == SET) && temperature &&
-      strcmp(temperature->style,"temp/cs2") == 0) initcomm = 1;
+      strcmp(temperature->style,"temp/cs") == 0) initcomm = 1;
 
   if (initcomm) {
     lmp->init();

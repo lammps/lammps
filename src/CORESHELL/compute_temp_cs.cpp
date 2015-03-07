@@ -54,9 +54,6 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
   tempbias = 1;
   extarray = 0;
 
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
   // find and define groupbits for core and shell groups
 
   cgroup = group->find(arg[3]);
@@ -226,7 +223,6 @@ void ComputeTempCS::dof_compute()
 
 double ComputeTempCS::compute_scalar()
 {
-  int i;
   double vthermal[3];
 
   invoked_scalar = update->ntimestep;
@@ -280,7 +276,6 @@ void ComputeTempCS::compute_vector()
 
   double **v = atom->v;
   int *mask = atom->mask;
-  tagint *molecule = atom->molecule;
   int *type = atom->type;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
@@ -340,7 +335,7 @@ void ComputeTempCS::vcm_pairs()
   double *partner = fix->vstore;
   tagint partnerID;
 
-  for (int i = 0; i < nlocal; i++) {
+  for (i = 0; i < nlocal; i++) {
     if ((mask[i] & groupbit) && 
         (mask[i] & groupbit_c || mask[i] & groupbit_s)) {
       if (rmass) massone = rmass[i];

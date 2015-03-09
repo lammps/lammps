@@ -625,7 +625,9 @@ char *Variable::retrieve(char *name)
     strcpy(data[ivar][0],result);
     str = data[ivar][0];
   } else if (style[ivar] == EQUAL) {
+    eval_in_progress[ivar] = 1;
     double answer = evaluate(data[ivar][0],NULL);
+    eval_in_progress[ivar] = 0;
     sprintf(data[ivar][1],"%.15g",answer);
     str = data[ivar][1];
   } else if (style[ivar] == FORMAT) {

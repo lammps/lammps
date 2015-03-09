@@ -69,6 +69,7 @@ if (test $1 = "GRANULAR") then
 fi
 
 if (test $1 = "KSPACE") then
+  depend CORESHELL
   depend GPU
   depend OPT
   depend USER-CUDA

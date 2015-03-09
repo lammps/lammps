@@ -286,7 +286,7 @@ more instructions on how to use the accelerated styles effectively.
 
 :line
 
-[Mixing, shift, table, tail correction, restart, rRESPA info]:
+[Mixing, shift, table, tail correction, exclusions, restart, rRESPA info]:
 
 Any pair potential settings made via the
 "pair_modify"_pair_modify.html command are passed along to all
@@ -307,6 +307,33 @@ mixing.
 The hybrid pair styles supports the "pair_modify"_pair_modify.html
 shift, table, and tail options for an I,J pair interaction, if the
 associated sub-style supports it.
+
+The hybrid pair styles include mechanism to assign different
+"special_bonds"_special_bonds.html settings to different sub-styles
+via the "pair_modify"_pair_modify.html special command. This is
+implemented by temporarily overwriting the global factors for each
+sub-style and then restoring the original values. The syntax
+is similar to the special_bonds command. For example:
+
+special_bonds lj/coul 0.0 0.0 1.0e-100
+pair_modify special lj/coul 0.0 0.0 0.5 :pre
+
+or:
+
+special_bonds lj/coul 0.0 0.0 1.0e-100
+pair_modify pair lj/cut special lj 0.0 0.0 0.5 :pre
+
+In the first example the special_bond setting is changed for all
+sub-styles and for non-bonded and coulomb, while in the second only
+the non-bonded factors are overridden and only for the {lj/cut}
+sub-style.
+
+NOTE: since the global {special_bonds} settings influences the
+construction of neighbor lists, a sub-style override is only accepted,
+if the override is compatible with the global setting, i.e. the local
+factor [must] be the same, if the global factor is either 0.0 or 1.0;
+a global factor of 1.0e-100 can be overridden, though, and will be
+in practice indistinguishable from 0.0.
 
 For the hybrid pair styles, the list of sub-styles and their
 respective settings are written to "binary restart

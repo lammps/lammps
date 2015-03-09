@@ -126,7 +126,7 @@ void colvarproxy_lammps::init(const char *conf_file)
             cvm::to_str(COLVARPROXY_VERSION)+".\n");
 
   // TODO move one or more of these to setup() if needed
-  colvars->config_file(conf_file);
+  colvars->read_config_file(conf_file);
   colvars->setup_input();
   colvars->setup_output();
 

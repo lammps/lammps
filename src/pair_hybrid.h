@@ -61,11 +61,17 @@ class PairHybrid : public Pair {
 
   int **nmap;                   // # of sub-styles itype,jtype points to
   int ***map;                   // list of sub-styles itype,jtype points to
-  double **local_special_lj;
-  double **local_special_coul;
+  double **special_lj;          // list of per style LJ exclusion factors
+  double **special_coul;        // list of per style Coulomb exclusion factors
 
   void allocate();
   void flags();
+
+  void modify_special(int, int, char**);
+  double *save_special();
+  void set_special(int);
+  void restore_special(double *);
+
   virtual void modify_requests();
 };
 

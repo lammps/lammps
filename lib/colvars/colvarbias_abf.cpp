@@ -190,13 +190,6 @@ cvm::real colvarbias_abf::update()
     // initialization stuff (file operations relying on n_abf_biases
     // compute current value of colvars
 
-    if ( cvm::n_abf_biases == 1 && cvm::n_meta_biases == 0 ) {
-      // This is the only ABF bias
-      output_prefix = cvm::output_prefix;
-    } else {
-      output_prefix = cvm::output_prefix + "." + this->name;
-    }
-
     for (size_t i=0; i<colvars.size(); i++) {
       bin[i] = samples->current_bin_scalar(i);
     }
@@ -260,10 +253,19 @@ cvm::real colvarbias_abf::update()
     }
   }
 
+  // update the output prefix; TODO: move later to setup_output() function
+  if ( cvm::n_abf_biases == 1 && cvm::n_meta_biases == 0 ) {
+    // This is the only ABF bias
+    output_prefix = cvm::output_prefix;
+  } else {
+    output_prefix = cvm::output_prefix + "." + this->name;
+  }
+
   if (output_freq && (cvm::step_absolute() % output_freq) == 0) {
     if (cvm::debug()) cvm::log("ABF bias trying to write gradients and samples to disk");
     write_gradients_samples(output_prefix);
   }
+
   if (b_history_files && (cvm::step_absolute() % history_freq) == 0) {
     cvm::log("ABFHISTORYFILE "+cvm::to_str(cvm::step_absolute()));
     // file already exists iff cvm::step_relative() > 0

@@ -171,27 +171,31 @@ public:
   /// Set the type explicitly
   inline void type(Type const &vti)
   {
-    // reset the value based on the previous type
-    reset();
-    if ((value_type == type_vector) && (vti != type_vector)) {
-      vector1d_value.resize(0);
+    if (vti != value_type) {
+      // reset the value based on the previous type
+      reset();
+      if ((value_type == type_vector) && (vti != type_vector)) {
+        vector1d_value.resize(0);
+      }
+      value_type = vti;
     }
-    value_type = vti;
   }
 
   /// Set the type after another \link colvarvalue \endlink
   inline void type(colvarvalue const &x)
   {
-    // reset the value held from based on the previous type
-    reset();
-    if (x.type() == type_vector) {
-      vector1d_value.resize(x.vector1d_value.size());
-    } else {
+    if (x.type() != value_type) {
+      // reset the value based on the previous type
+      reset();
       if (value_type == type_vector) {
         vector1d_value.resize(0);
       }
+      value_type = x.type();
     }
-    value_type = x.type();
+
+    if (x.type() == type_vector) {
+      vector1d_value.resize(x.vector1d_value.size());
+    }
   }
 
   /// Make the type a derivative of the original type

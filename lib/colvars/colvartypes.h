@@ -1531,6 +1531,8 @@ public:
     }
   }
 
+  /// \brief Whether to test for eigenvalue crossing
+  static bool monitor_crossings;
   /// \brief Threshold for the eigenvalue crossing test
   static cvm::real crossing_threshold;
 

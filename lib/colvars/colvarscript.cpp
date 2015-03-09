@@ -32,6 +32,7 @@ Managing the colvars module:\n\
   config <string>             -- read configuration from the given string\n\
   reset                       -- delete all internal configuration\n\
   delete                      -- delete this colvars module instance\n\
+  version                     -- return version of colvars code\n\
   \n\
 Input and output:\n\
   list                        -- return a list of all variables\n\
@@ -49,15 +50,18 @@ Input and output:\n\
 
   result += "\n\
 Accessing collective variables:\n\
-  colvar <name> value         -- return the current value of the colvar <name>\n\
-  colvar <name> update        -- recalculate the colvar <name>\n\
-  colvar <name> delete        -- delete the colvar <name>\n\
-  colvar <name> addforce <F>  -- apply given force on <name>\n\
+  colvar <name> value         -- return the current value of colvar <name>\n\
+  colvar <name> update        -- recalculate colvar <name>\n\
+  colvar <name> type          -- return the type of colvar <name>\n\
+  colvar <name> delete        -- delete colvar <name>\n\
+  colvar <name> addforce <F>  -- apply given force on colvar <name>\n\
+  colvar <name> getconfig     -- return config string of colvar <name>\n\
 \n\
 Accessing biases:\n\
-  bias <name> energy          -- return the current energy of the bias <name>\n\
-  bias <name> update          -- recalculate the bias <name>\n\
-  bias <name> delete          -- delete the bias <name>\n\
+  bias <name> energy          -- return the current energy of bias <name>\n\
+  bias <name> update          -- recalculate bias <name>\n\
+  bias <name> delete          -- delete bias <name>\n\
+  bias <name> getconfig       -- return config string of bias <name>\n\
 \n\
 ";
     return COLVARSCRIPT_OK;
@@ -71,6 +75,11 @@ Accessing biases:\n\
 
   if (cmd == "bias") {
     return proc_bias(argc-1, &(argv[1]));
+  }
+
+  if (cmd == "version") {
+    result = COLVARS_VERSION;
+    return COLVARSCRIPT_OK;
   }
 
   if (cmd == "reset") {
@@ -119,7 +128,7 @@ Accessing biases:\n\
       result = "Missing arguments";
       return COLVARSCRIPT_ERROR;
     }
-    if (colvars->config_file(argv[2]) == COLVARS_OK) {
+    if (colvars->read_config_file(argv[2]) == COLVARS_OK) {
       return COLVARSCRIPT_OK;
     } else {
       return COLVARSCRIPT_ERROR;
@@ -133,7 +142,7 @@ Accessing biases:\n\
       return COLVARSCRIPT_ERROR;
     }
     std::string conf = argv[2];
-    if (colvars->config_string(conf) == COLVARS_OK) {
+    if (colvars->read_config_string(conf) == COLVARS_OK) {
       return COLVARSCRIPT_OK;
     } else {
       return COLVARSCRIPT_ERROR;
@@ -221,6 +230,11 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
     return COLVARSCRIPT_OK;
   }
 
+  if (subcmd == "type") {
+    result = cv->value().type_desc(cv->value().value_type);
+    return COLVARSCRIPT_OK;
+  }
+
   if (subcmd == "update") {
     cv->calc();
     cv->update();
@@ -237,6 +251,11 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
     delete cv;
     // TODO this could be done by the destructors
     colvars->write_traj_label(colvars->cv_traj_os);
+    return COLVARSCRIPT_OK;
+  }
+
+  if (subcmd == "getconfig") {
+    result = cv->get_config();
     return COLVARSCRIPT_OK;
   }
 
@@ -287,6 +306,11 @@ int colvarscript::proc_bias(int argc, char const *argv[]) {
   if (subcmd == "update") {
     b->update();
     result = cvm::to_str(b->get_energy());
+    return COLVARSCRIPT_OK;
+  }
+
+  if (subcmd == "getconfig") {
+    result = b->get_config();
     return COLVARSCRIPT_OK;
   }
 

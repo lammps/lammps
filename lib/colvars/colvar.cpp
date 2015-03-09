@@ -11,6 +11,7 @@
 
 
 colvar::colvar(std::string const &conf)
+  : colvarparse(conf)
 {
   size_t i, j;
   cvm::log("Initializing a new collective variable.\n");
@@ -151,6 +152,7 @@ colvar::colvar(std::string const &conf)
     cvm::error("Error: no valid components were provided "
                       "for this collective variable.\n",
               INPUT_ERROR);
+    return;
   }
 
   cvm::log("All components initialized.\n");
@@ -232,7 +234,6 @@ colvar::colvar(std::string const &conf)
     x.type(cvc_value);
     x_reported.type(cvc_value);
   }
-
   // If using scripted biases, any colvar may receive bias forces
   // and will need its gradient
   if (cvm::scripted_forces()) {
@@ -319,6 +320,10 @@ colvar::colvar(std::string const &conf)
     }
   }
 
+  // at this point, the colvar's type is defined
+  f.type(value());
+  fb.type(value());
+
   get_keyval(conf, "width", width, 1.0);
   if (width <= 0.0) {
     cvm::error("Error: \"width\" must be positive.\n", INPUT_ERROR);
@@ -374,10 +379,10 @@ colvar::colvar(std::string const &conf)
   if (tasks[task_lower_wall] && tasks[task_upper_wall]) {
     if (lower_wall >= upper_wall) {
       cvm::error("Error: the upper wall, "+
-                        cvm::to_str(upper_wall)+
-                        ", is not higher than the lower wall, "+
-                        cvm::to_str(lower_wall)+".\n",
-                INPUT_ERROR);
+                 cvm::to_str(upper_wall)+
+                 ", is not higher than the lower wall, "+
+                 cvm::to_str(lower_wall)+".\n",
+                 INPUT_ERROR);
     }
 
     if (dist2(lower_wall, upper_wall) < 1.0E-12) {
@@ -391,15 +396,15 @@ colvar::colvar(std::string const &conf)
   get_keyval(conf, "expandBoundaries", expand_boundaries, false);
   if (expand_boundaries && periodic_boundaries()) {
     cvm::error("Error: trying to expand boundaries that already "
-                      "cover a whole period of a periodic colvar.\n",
-              INPUT_ERROR);
+               "cover a whole period of a periodic colvar.\n",
+               INPUT_ERROR);
   }
   if (expand_boundaries && hard_lower_boundary && hard_upper_boundary) {
     cvm::error("Error: inconsistent configuration "
-                      "(trying to expand boundaries with both "
-                      "hardLowerBoundary and hardUpperBoundary enabled).\n",
-              INPUT_ERROR);
-}
+               "(trying to expand boundaries with both "
+               "hardLowerBoundary and hardUpperBoundary enabled).\n",
+               INPUT_ERROR);
+  }
 
   {
     bool b_extended_lagrangian;
@@ -722,11 +727,7 @@ int colvar::enable(colvar::task const &t)
   case task_langevin:
   case task_output_energy:
   case task_scripted:
-    break;
-
   case task_gradients:
-    f.type(value());
-    fb.type(value());
     break;
 
   case task_collect_gradients:

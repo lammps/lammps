@@ -13,6 +13,7 @@ CCFLAGS =	-O3 -fomit-frame-pointer \
 			-march=native -ffast-math -mpc64 -g -fstrict-aliasing \
 			-Wall -Wextra -W -Wno-unused-parameter -Wno-maybe-uninitialized \
 			-Wno-sign-compare
+SHFLAGS =	-fPIC
 DEPFLAGS =	-MM
 LINK =		mpic++ $(OPENMP)
 LINKFLAGS =	-O -g -mpc64
@@ -37,6 +38,7 @@ LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64 \
 # MPI library, REQUIRED
 # see discussion in doc/Section_start.html#2_2 (step 5)
 # can point to dummy MPI library in src/STUBS as in Makefile.serial
+# use -D MPICH and OMPI settings in INC to avoid C++ lib conflicts
 # INC = path for mpi.h, MPI compiler settings
 # PATH = path for MPI library
 # LIB = name of MPI library
@@ -101,7 +103,7 @@ shlib:	$(OBJ)
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@

@@ -13,6 +13,7 @@ CCFLAGS =	-O3 -fomit-frame-pointer \
 			-march=native -ffast-math -g -fstrict-aliasing \
 			-Wall -W -Wextra \
 		-Wno-unused-parameter -Wno-sometimes-uninitialized -Wno-sign-compare
+SHFLAGS =	-fPIC
 DEPFLAGS =	-MM
 LINK =		env OMPI_CC=clang OMPI_CXX=clang++ mpic++
 LINKFLAGS =	-O -g 
@@ -95,7 +96,7 @@ lib:	$(OBJ)
 # Compilation rules
 
 %.o:%.cpp
-	$(CC) $(CCFLAGS) $(EXTRA_INC) -c $<
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 %.d:%.cpp
 	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@

@@ -23,7 +23,7 @@ action () {
 }
 
 # force rebuild of files with LMP_MPIIO switch
-# also read/write restart since aren't triggered by mpiio.h
+# also read/write restart so their *.d dependence on changed mpiio.h is rebuilt
 
 touch ../mpiio.h
 touch ../read_restart.cpp

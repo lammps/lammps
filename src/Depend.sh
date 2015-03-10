@@ -70,6 +70,7 @@ fi
 
 if (test $1 = "KSPACE") then
   depend DIPOLE
+  depend CORESHELL
   depend GPU
   depend OPT
   depend USER-CUDA

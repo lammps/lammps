@@ -23,8 +23,11 @@ action () {
 }
 
 # force rebuild of files with LMP_MPIIO switch
+# also read/write restart since aren't triggered by mpiio.h
 
 touch ../mpiio.h
+touch ../read_restart.cpp
+touch ../write_restart.cpp
 
 # all package files with no dependencies
 

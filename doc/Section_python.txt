@@ -424,6 +424,7 @@ var = lmp.extract_variable(name,group,flag)  # extract value(s) from a variable
 					     # flag = 0 = equal-style variable
 					     #        1 = atom-style variable :pre
 
+flag = lmp.set_variable(name,value)       # set existing named string-style variable to value, flag = 0 if successful
 natoms = lmp.get_natoms()                 # total # of atoms as int
 data = lmp.gather_atoms(name,type,count)  # return atom attribute of all atoms gathered into data, ordered by atom ID
                                           # name = "x", "charge", "type", etc

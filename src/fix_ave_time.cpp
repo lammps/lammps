@@ -355,7 +355,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
     } else {
       vector_flag = 1;
-      size_vector = nvalues;
+      size_vector = nrows = nvalues;
       extvector = -1;
       extlist = new int[nvalues];
       for (int i = 0; i < nvalues; i++) {

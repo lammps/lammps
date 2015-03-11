@@ -141,7 +141,7 @@ since it evaluates another variable when it is invoked.
 IMPORTANT NOTE: When a variable command is encountered in the input
 script and the variable name has already been specified, the command
 is ignored.  This means variables can NOT be re-defined in an input
-script (with 2 exceptions, read further).  This is to allow an input
+script (with two exceptions, read further).  This is to allow an input
 script to be processed multiple times without resetting the variables;
 see the "jump"_jump.html or "include"_include.html commands.  It also
 means that using the "command-line switch"_Section_start.html#start_7

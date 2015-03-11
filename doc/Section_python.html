@@ -429,7 +429,8 @@ v3 = lmp.extract_fix(id,style,type,i,j)   # extract value(s) from a fix
 					     # flag = 0 = equal-style variable
 					     #        1 = atom-style variable 
 </PRE>
-<PRE>natoms = lmp.get_natoms()                 # total # of atoms as int
+<PRE>flag = lmp.set_variable(name,value)       # set existing named string-style variable to value, flag = 0 if successful
+natoms = lmp.get_natoms()                 # total # of atoms as int
 data = lmp.gather_atoms(name,type,count)  # return atom attribute of all atoms gathered into data, ordered by atom ID
                                           # name = "x", "charge", "type", etc
                                           # count = # of per-atom values, 1 or 3, etc

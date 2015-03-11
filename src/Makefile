@@ -5,17 +5,45 @@ SHELL = /bin/bash
 
 # Definitions
 
-ROOT =	lmp
-EXE =	$(ROOT)_$@
+ROOT =	 lmp
+EXE =	 lmp_$@
+ARLIB =  liblammps_$@.a
+SHLIB =	 liblammps_$@.so
+ARLINK = liblammps.a
+SHLINK = liblammps.so
+
+OBJDIR =   Obj_$@
+OBJSHDIR = Obj_shared_$@
+
 SRC =	$(wildcard *.cpp)
 INC =	$(wildcard *.h)
 OBJ = 	$(SRC:.cpp=.o)
+
+SRCLIB = $(filter-out main.cpp,$(SRC))
+OBJLIB = $(filter-out main.o,$(OBJ))
+
+# Command-line options for mode: exe (default), shexe, lib, shlib
+
+mode = exe
+objdir = $(OBJDIR)
+
+ifeq ($(mode),shexe)
+objdir = $(OBJSHDIR)
+endif
+
+ifeq ($(mode),lib)
+objdir = $(OBJDIR)
+endif
+
+ifeq ($(mode),shlib)
+objdir = $(OBJSHDIR)
+endif
 
 # Package variables
 
 PACKAGE = asphere body class2 colloid coreshell dipole fld gpu granular kim \
 	  kokkos kspace manybody mc meam misc molecule mpiio opt peri poems \
-	  qeq reax replica rigid shock snap srd voronoi xtc
+	  python qeq reax replica rigid shock snap srd voronoi xtc
 
 PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars \
 	   user-cuda user-eff user-fep user-intel user-lb user-misc \
@@ -40,12 +68,6 @@ help:
 	@echo ''
 	@echo 'make clean-all           delete all object files'
 	@echo 'make clean-machine       delete object files for one machine'
-	@echo 'make makelib             create Makefile.lib for static library build'
-	@echo 'make makeshlib           create Makefile.shlib for shared library build'
-	@echo 'make makelist            create Makefile.list used by old makes'
-	@echo 'make -f Makefile.lib machine      build LAMMPS as static library for machine'
-	@echo 'make -f Makefile.shlib machine    build LAMMPS as shared library for machine'
-	@echo 'make -f Makefile.list machine     build LAMMPS from explicit list of files'
 	@echo 'make mpi-stubs           build dummy MPI library in STUBS'
 	@echo 'make install-python      install LAMMPS wrapper in Python'
 	@echo 'make tar                 create lmp_src.tar.gz of src dir and packages'
@@ -67,54 +89,84 @@ help:
 	@echo 'make package-diff (pd)   diff src files against package files'
 	@echo 'make package-purge       purge obsolete copies of package sources'
 	@echo ''
-	@echo 'make machine             build LAMMPS where machine is ...'
+	@echo 'make machine             build LAMMPS for machine'
+	@echo 'make mode=lib machine    build LAMMPS as static lib for machine'
+	@echo 'make mode=shlib machine  build LAMMPS as shared lib for machine'
+	@echo 'make mode=shexe machine  build LAMMPS as shared exe for machine'
+	@echo 'make makelist            create Makefile.list used by old makes'
+	@echo 'make -f Makefile.list machine     build LAMMPS for machine (old)'
 	@echo ''
-	@echo 'one of these from src/MAKE:'
+	@echo 'machine is one of these from src/MAKE:'
 	@echo ''
 	@files="`ls MAKE/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
-	@echo 'or one of these from src/MAKE/OPTIONS:'
+	@echo '... or one of these from src/MAKE/OPTIONS:'
 	@echo ''
 	@files="`ls MAKE/OPTIONS/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
-	@echo 'or one of these from src/MAKE/MACHINES:'
+	@echo '... or one of these from src/MAKE/MACHINES:'
 	@echo ''
 	@files="`ls MAKE/MACHINES/Makefile.*`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
-	@echo 'or one of these from src/MAKE/MINE:'
+	@echo '... or one of these from src/MAKE/MINE:'
 	@echo ''
 	@files="`ls MAKE/MINE/Makefile.* 2>/dev/null`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
 
-# Build LAMMPS
+# Build LAMMPS in one of 4 modes
+# exe =   exe with static compile in Obj_machine (default)
+# shexe = exe with shared compile in Obj_shared_machine
+# lib =   static lib in Obj_machine
+# shlib = shared lib in Obj_shared_machine
 
 .DEFAULT:
 	@if [ $@ = "serial" -a ! -f STUBS/libmpi_stubs.a ]; \
 	  then $(MAKE) mpi-stubs; fi
 	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
-	@if [ ! -d Obj_$@ ]; then mkdir Obj_$@; fi
+	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
 	@$(SHELL) Make.sh style
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
-	  then cp MAKE/MACHINES/Makefile.$@ Obj_$@/Makefile; fi
+	  then cp MAKE/MACHINES/Makefile.$@ $(objdir)/Makefile; fi
 	@if [ -f MAKE/OPTIONS/Makefile.$@ ]; \
-	  then cp MAKE/OPTIONS/Makefile.$@ Obj_$@/Makefile; fi
+	  then cp MAKE/OPTIONS/Makefile.$@ $(objdir)/Makefile; fi
 	@if [ -f MAKE/Makefile.$@ ]; \
-	  then cp MAKE/Makefile.$@ Obj_$@/Makefile; fi
+	  then cp MAKE/Makefile.$@ $(objdir)/Makefile; fi
 	@if [ -f MAKE/MINE/Makefile.$@ ]; \
-	  then cp MAKE/MINE/Makefile.$@ Obj_$@/Makefile; fi
+	  then cp MAKE/MINE/Makefile.$@ $(objdir)/Makefile; fi
 	@if [ ! -e Makefile.package ]; \
 	  then cp Makefile.package.empty Makefile.package; fi
 	@if [ ! -e Makefile.package.settings ]; \
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
-	@cp Makefile.package Makefile.package.settings Obj_$@
-	@cd Obj_$@; \
+	@cp Makefile.package Makefile.package.settings $(objdir)
+ifeq ($(mode),exe)
+	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
 	  "EXE = ../$(EXE)" ../$(EXE)
+endif
+ifeq ($(mode),shexe)
+	@cd $(objdir); \
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" \
+	  "EXE = ../$(EXE)" ../$(EXE)
+endif
+ifeq ($(mode),lib)
+	@cd $(objdir); \
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" "SHFLAGS =" \
+	  "EXE = ../$(ARLIB)" lib
+	@rm -f $(ARLINK)
+	@ln -s $(ARLIB) $(ARLINK)
+endif
+ifeq ($(mode),shlib)
+	@cd $(objdir); \
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
+	  "EXE = ../$(SHLIB)" shlib
+	@rm -f $(SHLINK)
+	@ln -s $(SHLIB) $(SHLINK)
+endif
 
 # Remove machine-specific object files
 
@@ -124,19 +176,10 @@ clean:
 
 clean-all:
 	rm -rf Obj_*
-
 clean-%:
-	rm -rf Obj_$(@:clean-%=%)
+	rm -rf Obj_$(@:clean-%=%) Obj_shared_$(@:clean-%=%)
 
-# Create Makefile.lib, Makefile.shlib, and Makefile.list
-
-makelib:
-	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh Makefile.lib
-
-makeshlib:
-	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh Makefile.shlib
+# Create Makefile.list
 
 makelist:
 	@$(SHELL) Make.sh style

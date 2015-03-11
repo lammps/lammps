@@ -82,8 +82,7 @@ this is a library file that ends in ".so", not ".a".
 
 From the src directory, type
 
-make makeshlib
-make -f Makefile.shlib foo :pre
+make foo mode=shlib :pre
 
 where foo is the machine target name, such as linux or g++ or serial.
 This should create the file liblammps_foo.so in the src directory, as

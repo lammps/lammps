@@ -1914,15 +1914,18 @@ void *lammps_extract_atom(void *, char *)
 void *lammps_extract_compute(void *, char *, int, int)
 void *lammps_extract_fix(void *, char *, int, int, int, int)
 void *lammps_extract_variable(void *, char *, char *)
+int lammps_set_variable(void *, char *, char *)
 int lammps_get_natoms(void *)
 void lammps_get_coords(void *, double *)
 void lammps_put_coords(void *, double *) 
 </PRE>
 <P>These can extract various global or per-atom quantities from LAMMPS as
-well as values calculated by a compute, fix, or variable.  The "get"
-and "put" operations can retrieve and reset atom coordinates.
-See the library.cpp file and its associated header file library.h for
-details.
+well as values calculated by a compute, fix, or variable.  The
+"set_variable" function can set an existing string-style variable to a
+new value, so that subsequent LAMMPS commands can access the variable.
+The "get" and "put" operations can retrieve and reset atom
+coordinates.  See the library.cpp file and its associated header file
+library.h for details.
 </P>
 <P>The key idea of the library interface is that you can write any
 functions you wish to define how your code talks to LAMMPS and add

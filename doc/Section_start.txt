@@ -1040,50 +1040,44 @@ more info on wrapping and running LAMMPS from Python.
 
 To build LAMMPS as a static library (*.a file on Linux), type
 
-make makelib
-make -f Makefile.lib foo :pre
+make foo mode=lib :pre
 
 where foo is the machine name.  This kind of library is typically used
 to statically link a driver application to LAMMPS, so that you can
-insure all dependencies are satisfied at compile time.  Note that
-inclusion or exclusion of any desired optional packages should be done
-before typing "make makelib".  The first "make" command will create a
-current Makefile.lib with all the file names in your src dir.  The
-second "make" command will use it to build LAMMPS as a static library,
-using the ARCHIVE and ARFLAGS settings in src/MAKE/Makefile.foo.  The
-build will create the file liblammps_foo.a which another application can
-link to.
+insure all dependencies are satisfied at compile time.  This will use
+the ARCHIVE and ARFLAGS settings in src/MAKE/Makefile.foo.  The build
+will create the file liblammps_foo.a which another application can
+link to.  It will also create a soft link liblammps.a, which will
+point to the most recently built static library.
 
 [Shared library:] :h5
 
 To build LAMMPS as a shared library (*.so file on Linux), which can be
 dynamically loaded, e.g. from Python, type
 
-make makeshlib
-make -f Makefile.shlib foo :pre
+make foo mode=shlib :pre
 
 where foo is the machine name.  This kind of library is required when
 wrapping LAMMPS with Python; see "Section_python"_Section_python.html
-for details.  Again, note that inclusion or exclusion of any desired
-optional packages should be done before typing "make makelib".  The
-first "make" command will create a current Makefile.shlib with all the
-file names in your src dir.  The second "make" command will use it to
-build LAMMPS as a shared library, using the SHFLAGS and SHLIBFLAGS
-settings in src/MAKE/Makefile.foo.  The build will create the file
-liblammps_foo.so which another application can link to dyamically.  It
-will also create a soft link liblammps.so, which the Python wrapper uses
-by default.
+for details.  This will use the SHFLAGS and SHLIBFLAGS settings in
+src/MAKE/Makefile.foo and perform the build in the directory
+Obj_shared_foo.  This is so that each file can be compiled with the
+-fPIC flag which is required for inclusion in a shared library.  The
+build will create the file liblammps_foo.so which another application
+can link to dyamically.  It will also create a soft link liblammps.so,
+which will point to the most recently built shared library.  This is
+the file the Python wrapper loads by default.
 
 Note that for a shared library to be usable by a calling program, all
 the auxiliary libraries it depends on must also exist as shared
 libraries.  This will be the case for libraries included with LAMMPS,
 such as the dummy MPI library in src/STUBS or any package libraries in
-lib/packges, since they are always built as shared libraries with the
--fPIC switch.  However, if a library like MPI or FFTW does not exist
-as a shared library, the second make command will generate an error.
-This means you will need to install a shared library version of the
-package.  The build instructions for the library should tell you how
-to do this.
+lib/packages, since they are always built as shared libraries using
+the -fPIC switch.  However, if a library like MPI or FFTW does not
+exist as a shared library, the shared library build will generate an
+error.  This means you will need to install a shared library version
+of the auxiliary library.  The build instructions for the library
+should tell you how to do this.
 
 As an example, here is how to build and install the "MPICH
 library"_mpich, a popular open-source version of MPI, distributed by

@@ -68,12 +68,6 @@ help:
 	@echo ''
 	@echo 'make clean-all           delete all object files'
 	@echo 'make clean-machine       delete object files for one machine'
-#	@echo 'make makelib             create Makefile.lib for static library build'
-#	@echo 'make makeshlib           create Makefile.shlib for shared library build'
-	@echo 'make makelist            create Makefile.list used by old makes'
-#	@echo 'make -f Makefile.lib machine      build LAMMPS as static library for machine'
-#	@echo 'make -f Makefile.shlib machine    build LAMMPS as shared library for machine'
-	@echo 'make -f Makefile.list machine     build LAMMPS from explicit list of files'
 	@echo 'make mpi-stubs           build dummy MPI library in STUBS'
 	@echo 'make install-python      install LAMMPS wrapper in Python'
 	@echo 'make tar                 create lmp_src.tar.gz of src dir and packages'
@@ -99,6 +93,8 @@ help:
 	@echo 'make mode=lib machine    build LAMMPS as static lib for machine'
 	@echo 'make mode=shlib machine  build LAMMPS as shared lib for machine'
 	@echo 'make mode=shexe machine  build LAMMPS as shared exe for machine'
+	@echo 'make makelist            create Makefile.list used by old makes'
+	@echo 'make -f Makefile.list machine     build LAMMPS for machine (old)'
 	@echo ''
 	@echo 'machine is one of these from src/MAKE:'
 	@echo ''
@@ -184,15 +180,7 @@ clean-all:
 clean-%:
 	rm -rf Obj_$(@:clean-%=%) Obj_shared_$(@:clean-%=%)
 
-# Create Makefile.lib, Makefile.shlib, and Makefile.list
-
-makelib:
-	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh Makefile.lib
-
-makeshlib:
-	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh Makefile.shlib
+# Create Makefile.list
 
 makelist:
 	@$(SHELL) Make.sh style

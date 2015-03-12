@@ -222,11 +222,14 @@ cutoff + 2*qdist, to shrink the size of the neighbor list.  This leads
 to slightly larger cost for the long-range calculation, so you can
 test the trade-off for your model.
 
-These potentials are designed to be combined with other pair
+:line
+
+Note that these potentials are designed to be combined with other pair
 potentials via the "pair_style hybrid/overlay"_pair_hybrid.html
 command.  This is because they have no repulsive core.  Hence if they
 are used by themselves, there will be no repulsion to keep two
-oppositely charged particles from overlapping each other.
+oppositely charged particles from moving arbitrarily close to each
+other.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples

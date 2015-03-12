@@ -1087,6 +1087,19 @@ error.  This means you will need to install a shared library version
 of the auxiliary library.  The build instructions for the library
 should tell you how to do this.
 </P>
+<P>Here is an example of such errors when the system FFTW or provided
+lib/colvars library have not been built as shared libraries:
+</P>
+<PRE>/usr/bin/ld: /usr/local/lib/libfftw3.a(mapflags.o): relocation
+R_X86_64_32 against `.rodata' can not be used when making a shared
+object; recompile with -fPIC
+/usr/local/lib/libfftw3.a: could not read symbols: Bad value 
+</PRE>
+<PRE>/usr/bin/ld: ../../lib/colvars/libcolvars.a(colvarmodule.o):
+relocation R_X86_64_32 against `__pthread_key_create' can not be used
+when making a shared object; recompile with -fPIC
+../../lib/colvars/libcolvars.a: error adding symbols: Bad value 
+</PRE>
 <P>As an example, here is how to build and install the <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH
 library</A>, a popular open-source version of MPI, distributed by
 Argonne National Labs, as a shared library in the default

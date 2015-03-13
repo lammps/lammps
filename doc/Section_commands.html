@@ -136,9 +136,9 @@ variable X delete
 contain nested $ characters for other variables to substitute for.
 Thus you cannot do this:
 </P>
-<PRE>variable        a equal 2
-variable        b2 equal 4
-print           "B2 = ${b$a}" 
+<PRE>variable   a equal 2
+variable   b2 equal 4
+region     1 block ${b$a} 2 INF INF EDGE EDGE 
 </PRE>
 <P>Nor can you specify this $($x-1.0) for an immediate variable, but
 you could use $(v_x-1.0), since the latter is valid syntax for an

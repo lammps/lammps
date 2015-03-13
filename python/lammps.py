@@ -17,11 +17,11 @@ import sys,traceback,types
 from ctypes import *
 
 class lammps:
-  def __init__(self,name="",cmdargs=None):
+  def __init__(self,name="",cmdargs=None,ptr=None):
 
     # load liblammps.so by default
     # if name = "g++", load liblammps_g++.so
-    
+
     try:
       if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
       else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
@@ -30,28 +30,39 @@ class lammps:
       traceback.print_exception(type,value,tb)
       raise OSError,"Could not load LAMMPS dynamic library"
 
-    # create an instance of LAMMPS
-    # don't know how to pass an MPI communicator from PyPar
-    # no_mpi call lets LAMMPS use MPI_COMM_WORLD
-    # cargs = array of C strings from args
+    # if no ptr provided, create an instance of LAMMPS
+    #   don't know how to pass an MPI communicator from PyPar
+    #   no_mpi call lets LAMMPS use MPI_COMM_WORLD
+    #   cargs = array of C strings from args
+    # if ptr, then are embedding Python in LAMMPS input script
+    #   ptr is the desired instance of LAMMPS
+    #   just convert it to ctypes ptr and store in self.lmp
     
-    if cmdargs:
-      cmdargs.insert(0,"lammps.py")
-      narg = len(cmdargs)
-      cargs = (c_char_p*narg)(*cmdargs)
-      self.lmp = c_void_p()
-      self.lib.lammps_open_no_mpi(narg,cargs,byref(self.lmp))
+    if not ptr:
+      self.opened = 1
+      if cmdargs:
+        cmdargs.insert(0,"lammps.py")
+        narg = len(cmdargs)
+        cargs = (c_char_p*narg)(*cmdargs)
+        self.lmp = c_void_p()
+        self.lib.lammps_open_no_mpi(narg,cargs,byref(self.lmp))
+      else:
+        self.lmp = c_void_p()
+        self.lib.lammps_open_no_mpi(0,None,byref(self.lmp))
+        # could use just this if LAMMPS lib interface supported it
+        # self.lmp = self.lib.lammps_open_no_mpi(0,None)
     else:
-      self.lmp = c_void_p()
-      self.lib.lammps_open_no_mpi(0,None,byref(self.lmp))
-      # could use just this if LAMMPS lib interface supported it
-      # self.lmp = self.lib.lammps_open_no_mpi(0,None)
+      self.opened = 0
+      # magic to convert ptr to ctypes ptr
+      pythonapi.PyCObject_AsVoidPtr.restype = c_void_p
+      pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
+      self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
 
   def __del__(self):
-    if self.lmp: self.lib.lammps_close(self.lmp)
+    if self.lmp and self.opened: self.lib.lammps_close(self.lmp)
 
   def close(self):
-    self.lib.lammps_close(self.lmp)
+    if self.opened: self.lib.lammps_close(self.lmp)
     self.lmp = None
 
   def file(self,file):
@@ -141,6 +152,13 @@ class lammps:
       self.lib.lammps_free(ptr)
       return result
     return None
+
+  # set variable value
+  # value is converted to string
+  # returns 0 for success, -1 if failed
+  
+  def set_variable(self,name,value):
+    return self.lib.lammps_set_variable(self.lmp,name,str(value))
 
   # return total number of atoms in system
   

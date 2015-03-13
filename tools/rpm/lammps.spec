@@ -45,8 +45,8 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20150226
-Release:        10%{?dist}
+Version:        20150313
+Release:        11%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
 
@@ -188,13 +188,10 @@ make yes-all no-kim no-kokkos no-gpu no-user-cuda no-reax no-user-qmmm no-user-i
 
 make -C STUBS
 
-make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng"
+make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" mode=shexe
 
 # build shared library for python bindings
-mv Obj_g++ Obj_shlib_g++
-make makeshlib
-make -f Makefile.shlib g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp " LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB=" -ljpeg -lpng"
-mv Obj_shlib_g++ Obj_g++
+make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" mode=shlib
 
 # stash executable and shared lib away
 cd ../

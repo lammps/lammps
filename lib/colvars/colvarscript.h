@@ -36,11 +36,15 @@ public:
   /// Run script command with given positional arguments
   int run(int argc, char const *argv[]);
 
+private:
   /// Run subcommands on colvar
   int proc_colvar(int argc, char const *argv[]);
 
   /// Run subcommands on bias
   int proc_bias(int argc, char const *argv[]);
+
+  /// Builds and return a short help
+  std::string help_string(void);
 };
 
 

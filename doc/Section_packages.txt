@@ -58,6 +58,7 @@ MOLECULE, molecular system force fields, -, "Section_howto 6.3"_Section_howto.ht
 OPT, optimized pair styles, Fischer & Richie & Natoli (2), "Section accelerate"_accelerate_opt.html, -, -
 PERI, Peridynamics models, Mike Parks (Sandia), "pair_style peri"_pair_peri.html, peri, -
 POEMS, coupled rigid body motion, Rudra Mukherjee (JPL), "fix poems"_fix_poems.html, rigid, lib/poems
+PYTHON, embed Python code in an input script, -, "python"_python.html, python, lib/python
 REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax,  lib/reax
 REPLICA, multi-replica methods, -, "Section_howto 6.5"_Section_howto.html#howto_5, tad, -
 RIGID, rigid bodies, -, "fix rigid"_fix_rigid.html, rigid, -

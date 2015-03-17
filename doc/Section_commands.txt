@@ -82,11 +82,12 @@ file names or user-chosen ID strings.
 
 Here is how each line in the input script is parsed by LAMMPS:
 
-(1) If the last printable character on the line is a "&" character
-(with no surrounding quotes), the command is assumed to continue on
-the next line.  The next line is concatenated to the previous line by
-removing the "&" character and newline.  This allows long commands to
-be continued across two or more lines.
+(1) If the last printable character on the line is a "&" character,
+the command is assumed to continue on the next line.  The next line is
+concatenated to the previous line by removing the "&" character and
+line break.  This allows long commands to be continued across two or
+more lines.  See the discussion of triple quotes in (6) for how to
+continue a command across multiple line without using "&" characters.
 
 (2) All characters from the first "#" character onward are treated as
 comment and discarded.  See an exception in (6).  Note that a
@@ -132,9 +133,9 @@ Note that neither the curly-bracket or immediate form of variables can
 contain nested $ characters for other variables to substitute for.
 Thus you cannot do this:
 
-variable   a equal 2
-variable   b2 equal 4
-region     1 block $\{b$a\} 2 INF INF EDGE EDGE :pre
+variable        a equal 2
+variable        b2 equal 4
+print           "B2 = $\{b$a\}" :pre
 
 Nor can you specify this $($x-1.0) for an immediate variable, but
 you could use $(v_x-1.0), since the latter is valid syntax for an
@@ -152,27 +153,38 @@ underscores, or punctuation characters.
 line are arguments.
 
 (6) If you want text with spaces to be treated as a single argument,
-it can be enclosed in either double or single quotes.  A long single
-argument enclosed in quotes can even span multiple lines if the "&"
-character is used, as described above.  E.g.
+it can be enclosed in either single or double or triple quotes.  A
+long single argument enclosed in single or double quotes can span
+multiple lines if the "&" character is used, as described above.  When
+the lines are concatenated together (and the "&" characters and line
+breaks removed), the text will become a single line.  If you want
+multiple lines of an argument to retain their line breaks, the text
+can be enclosed in triple quotes, in which case "&" characters are not
+needed.  For example:
 
 print "Volume = $v"
 print 'Volume = $v'
+if "${steps} > 1000" then quit
 variable a string "red green blue &
                    purple orange cyan"
-if "${steps} > 1000" then quit :pre
+print """
+System volume = $v
+System temperature = $t
+""" :pre
 
-The quotes are removed when the single argument is stored internally.
+In each case, the single, double, or triple quotes are removed when
+the single argument they enclose is stored internally.
 
-See the "dump modify format"_dump_modify.html or "print"_print.html or
-"if"_if.html commands for examples.  A "#" or "$" character that is
-between quotes will not be treated as a comment indicator in (2) or
-substituted for as a variable in (3). 
+See the "dump modify format"_dump_modify.html, "print"_print.html,
+"if"_if.html, and "python"_python.html commands for examples.
+
+A "#" or "$" character that is between quotes will not be treated as a
+comment indicator in (2) or substituted for as a variable in (3).
 
 IMPORTANT NOTE: If the argument is itself a command that requires a
 quoted argument (e.g. using a "print"_print.html command as part of an
-"if"_if.html or "run every"_run.html command), then the double and
-single quotes can be nested in the usual manner.  See the doc pages
+"if"_if.html or "run every"_run.html command), then single, double, or
+triple quotes can be nested in the usual manner.  See the doc pages
 for those commands for examples.  Only one of level of nesting is
 allowed, but that should be sufficient for most use cases.
 
@@ -535,7 +547,6 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "qeq/point"_fix_qeq.html,
 "qeq/shielded"_fix_qeq.html,
 "qeq/slater"_fix_qeq.html,
-"rattle"_fix_shake.html,
 "reax/bonds"_fix_reax_bonds.html,
 "recenter"_fix_recenter.html,
 "restrain"_fix_restrain.html,
@@ -681,7 +692,6 @@ KOKKOS, o = USER-OMP, t = OPT.
 "temp/asphere"_compute_temp_asphere.html,
 "temp/com"_compute_temp_com.html,
 "temp/chunk"_compute_temp_chunk.html,
-"temp/cs"_compute_temp_cs.html,
 "temp/deform"_compute_temp_deform.html,
 "temp/partial (c)"_compute_temp_partial.html,
 "temp/profile"_compute_temp_profile.html,
@@ -733,7 +743,6 @@ KOKKOS, o = USER-OMP, t = OPT.
 "bop"_pair_bop.html,
 "born (go)"_pair_born.html,
 "born/coul/long (cgo)"_pair_born.html,
-"born/coul/long/cs"_pair_cs.html,
 "born/coul/msm (o)"_pair_born.html,
 "born/coul/wolf (go)"_pair_born.html,
 "brownian (o)"_pair_brownian.html,
@@ -741,7 +750,6 @@ KOKKOS, o = USER-OMP, t = OPT.
 "buck (cgko)"_pair_buck.html,
 "buck/coul/cut (cgo)"_pair_buck.html,
 "buck/coul/long (cgo)"_pair_buck.html,
-"buck/coul/long/cs"_pair_cs.html,
 "buck/coul/msm (o)"_pair_buck.html,
 "buck/long/coul/long (o)"_pair_buck_long.html,
 "colloid (go)"_pair_colloid.html,
@@ -817,7 +825,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "resquared (go)"_pair_resquared.html,
 "snap"_pair_snap.html,
 "soft (go)"_pair_soft.html,
-"sw (cgio)"_pair_sw.html,
+"sw (cgo)"_pair_sw.html,
 "table (gko)"_pair_table.html,
 "tersoff (co)"_pair_tersoff.html,
 "tersoff/mod (o)"_pair_tersoff_mod.html,

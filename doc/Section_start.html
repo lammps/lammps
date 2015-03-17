@@ -171,7 +171,7 @@ all good starting points if you find you need to change them for your
 machine.  Put any file you edit into the src/MAKE/MINE directory and
 it will be never be touched by any LAMMPS updates.
 </P>
-<P>From within the src directory, type "make" or "gmake".  You should see
+<P>>From within the src directory, type "make" or "gmake".  You should see
 a list of available choices from src/MAKE and all of its
 sub-directories.  If one of those has the options you want or is the
 machine you want, you can type a command like:
@@ -772,20 +772,30 @@ options.
 <A NAME = "start_3_3"></A><B><I>Packages that require extra libraries:</I></B> 
 
 <P>A few of the standard and user packages require additional auxiliary
-libraries.  They must be compiled first, before LAMMPS is built.  If
-you get a LAMMPS build error about a missing library, this is likely
-the reason.  See the <A HREF = "Section_packages.html">Section_packages</A> doc page
-for a list of packages that have auxiliary libraries.
+libraries.  Most of them are provided with LAMMPS, in which case they
+must be compiled first, before LAMMPS is built if you wish to include
+that package.  If you get a LAMMPS build error about a missing
+library, this is likely the reason.  See the
+<A HREF = "Section_packages.html">Section_packages</A> doc page for a list of
+packages that have these kinds of auxiliary libraries.
 </P>
 <P>The lib directory in the distribution has sub-directories with package
-names that correspond to the needed auxiliary libs, e.g.  lib/reax.
+names that correspond to the needed auxiliary libs, e.g. lib/reax.
 Each sub-directory has a README file that gives more details.  Code
 for most of the auxiliary libraries is included in that directory.
-Examples are the USER-ATC and MEAM packages.  A few of the
-sub-directories do not include code, but do include instructions and
-sometimes scripts that automate the process of downloading the
-auxiliary library and installing it so LAMMPS can link to it.
-Examples are the KIM and VORONOI and USER-MOLFILE packages.
+Examples are the USER-ATC and MEAM packages.
+</P>
+<P>A few of the lib sub-directories do not include code, but do include
+instructions and sometimes scripts that automate the process of
+downloading the auxiliary library and installing it so LAMMPS can link
+to it.  Examples are the KIM and VORONOI and USER-MOLFILE packages.
+</P>
+<P>The lib/python directory (for the PYTHON package) contains only a
+choice of Makefile.lammps.* files.  This is because no auxiliary code
+or libraries are needed, only the Python library and other system libs
+that already available on your system.  However, the Makefile.lammps
+file is needed to tell the LAMMPS build which libs to use and where to
+find them.
 </P>
 <P>For libraries with provided code, the sub-directory README file
 (e.g. lib/reax/README) has instructions on how to build that library.

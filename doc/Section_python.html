@@ -11,60 +11,97 @@
 
 <H3>11. Python interface to LAMMPS 
 </H3>
-<P>This section describes how to build and use LAMMPS via a Python
-interface.
+<P>LAMMPS can work together with Python in two ways.  First, Python can
+wrap LAMMPS through the <A HREF = "Section_howto.html#howto_19">LAMMPS library
+interface</A>, so that a Python script can
+create one or more instances of LAMMPS and launch one or more
+simulations.  In Python lingo, this is "extending" Python with LAMMPS.
 </P>
-<UL><LI>11.1 <A HREF = "#py_1">Building LAMMPS as a shared library</A>
-<LI>11.2 <A HREF = "#py_2">Installing the Python wrapper into Python</A>
-<LI>11.3 <A HREF = "#py_3">Extending Python with MPI to run in parallel</A>
-<LI>11.4 <A HREF = "#py_4">Testing the Python-LAMMPS interface</A>
-<LI>11.5 <A HREF = "#py_5">Using LAMMPS from Python</A>
-<LI>11.6 <A HREF = "#py_6">Example Python scripts that use LAMMPS</A> 
+<P>Second, LAMMPS can use the Python interpreter, so that a LAMMPS input
+script can invoke Python code, and pass information back-and-forth
+between the input script and Python functions you write.  The Python
+code can also callback to LAMMPS to query or change its attributes.
+In Python lingo, this is "embedding" Python in LAMMPS.
+</P>
+<P>This section describes how to do both.
+</P>
+<UL><LI>11.1 <A HREF = "#py_1">Overview of running LAMMPS from Python</A>
+<LI>11.2 <A HREF = "#py_2">Overview of using Python from a LAMMPS script</A> 
+<LI>11.3 <A HREF = "#py_3">Building LAMMPS as a shared library</A>
+<LI>11.4 <A HREF = "#py_4">Installing the Python wrapper into Python</A>
+<LI>11.5 <A HREF = "#py_5">Extending Python with MPI to run in parallel</A>
+<LI>11.6 <A HREF = "#py_6">Testing the Python-LAMMPS interface</A>
+<LI>11.7 <A HREF = "#py_7">Using LAMMPS from Python</A>
+<LI>11.8 <A HREF = "#py_8">Example Python scripts that use LAMMPS</A> 
 </UL>
-<P>The LAMMPS distribution includes the file python/lammps.py which wraps
-the library interface to LAMMPS.  This file makes it is possible to
-run LAMMPS, invoke LAMMPS commands or give it an input script, extract
-LAMMPS results, an modify internal LAMMPS variables, either from a
-Python script or interactively from a Python prompt.  You can do the
-former in serial or parallel.  Running Python interactively in
-parallel does not generally work, unless you have a package installed
-that extends your Python to enable multiple instances of Python to
-read what you type.
+<P>If you are not familiar with it, <A HREF = "http://www.python.org">Python</A> is a
+powerful scripting and programming language which can essentially do
+anything that faster, lower-level languages like C or C++ can do, but
+typically with much fewer lines of code.  When used in embedded mode,
+Python can perform operations that the simplistic LAMMPS input script
+syntax cannot.  Python can be also be used as a "glue" language to
+drive a program through its library interface, or to hook multiple
+pieces of software together, such as a simulation package plus a
+visualization package, or to run a coupled multiscale or multiphysics
+model.
 </P>
-<P><A HREF = "http://www.python.org">Python</A> is a powerful scripting and programming
-language which can be used to wrap software like LAMMPS and other
-packages.  It can be used to glue multiple pieces of software
-together, e.g. to run a coupled or multiscale model.  See <A HREF = "Section_howto.html#howto_10">Section
-section</A> of the manual and the couple
-directory of the distribution for more ideas about coupling LAMMPS to
-other codes.  See <A HREF = "Section_start.html#start_5">Section_start 4</A> about
-how to build LAMMPS as a library, and <A HREF = "Section_howto.html#howto_19">Section_howto
-19</A> for a description of the library
-interface provided in src/library.cpp and src/library.h and how to
-extend it for your needs.  As described below, that interface is what
-is exposed to Python.  It is designed to be easy to add functions to.
-This can easily extend the Python inteface as well.  See details
-below.
+<P>See <A HREF = "Section_howto.html#howto_10">Section_howto 10</A> of the manual and
+the couple directory of the distribution for more ideas about coupling
+LAMMPS to other codes.  See <A HREF = "Section_howto.html#howto_19">Section_howto
+19</A> for a description of the LAMMPS
+library interface provided in src/library.cpp and src/library.h, and
+how to extend it for your needs.  As described below, that interface
+is what is exposed to Python either when calling LAMMPS from Python or
+when calling Python from a LAMMPS input script and then calling back
+to LAMMPS from Python code.  The library interface is designed to be
+easy to add functions to.  Thus the Python interface to LAMMPS is also
+easy to extend as well.
 </P>
-<P>By using the Python interface, LAMMPS can also be coupled with a GUI
-or other visualization tools that display graphs or animations in real
-time as LAMMPS runs.  Examples of such scripts are inlcluded in the
-python directory.
+<P>If you create interesting Python scripts that run LAMMPS or
+interesting Python functions that can be called from a LAMMPS input
+script, that you think would be useful to other users, please <A HREF = "http://lammps.sandia.gov/authors.html">email
+them to the developers</A>.  We can
+include them in the LAMMPS distribution.
 </P>
-<P>Two advantages of using Python are how concise the language is, and
-that it can be run interactively, enabling rapid development and
-debugging of programs.  If you use it to mostly invoke costly
-operations within LAMMPS, such as running a simulation for a
+<HR>
+
+<HR>
+
+<A NAME = "py_1"></A><H4>11.1 Overview of running LAMMPS from Python 
+</H4>
+<P>The LAMMPS distribution includes a python directory with all you need
+to run LAMMPS from Python.  The python/lammps.py file wraps the LAMMPS
+library interface, with one wrapper function per LAMMPS library
+function.  This file makes it is possible to do the following either
+from a Python script, or interactively from a Python prompt: create
+one or more instances of LAMMPS, invoke LAMMPS commands or give it an
+input script, run LAMMPS incrementally, extract LAMMPS results, an
+modify internal LAMMPS variables.  From a Python script you can do
+this in serial or parallel.  Running Python interactively in parallel
+does not generally work, unless you have a version of Python that
+extends standard Python to enable multiple instances of Python to read
+what you type.
+</P>
+<P>To do all of this, you must first build LAMMPS as a shared library,
+then insure that your Python can find the python/lammps.py file and
+the shared library.  These steps are explained in subsequent sections
+11.3 and 11.4.  Sections 11.5 and 11.6 discuss using MPI from a
+parallel Python program and how to test that you are ready to use
+LAMMPS from Python.  Section 11.7 lists all the functions in the
+current LAMMPS library interface and how to call them from Python.
+</P>
+<P>Section 11.8 gives some examples of coupling LAMMPS to other tools via
+Python.  For example, LAMMPS can easily be coupled to a GUI or other
+visualization tools that display graphs or animations in real time as
+LAMMPS runs.  Examples of such scripts are inlcluded in the python
+directory.
+</P>
+<P>Two advantages of using Python to run LAMMPS are how concise the
+language is, and that it can be run interactively, enabling rapid
+development and debugging of programs.  If you use it to mostly invoke
+costly operations within LAMMPS, such as running a simulation for a
 reasonable number of timesteps, then the overhead cost of invoking
 LAMMPS thru Python will be negligible.
-</P>
-<P>Before using LAMMPS from a Python script, you need to do two things.
-You need to build LAMMPS as a dynamic shared library, so it can be
-loaded by Python.  And you need to tell Python how to find the library
-and the Python wrapper file python/lammps.py.  Both these steps are
-discussed below.  If you wish to run LAMMPS in parallel from Python,
-you also need to extend your Python with MPI.  This is also discussed
-below.
 </P>
 <P>The Python wrapper for LAMMPS uses the amazing and magical (to me)
 "ctypes" package in Python, which auto-generates the interface code
@@ -75,16 +112,77 @@ check which version of Python you have installed, by simply typing
 </P>
 <HR>
 
+<A NAME = "py_2"></A><H4>11.2 Overview of using Python from a LAMMPS script 
+</H4>
+<P>LAMMPS has a <A HREF = "python.html">python</A> command which can be used in an
+input script to define and execute a Python function that you write
+the code for.  The Python function can also be assigned to a LAMMPS
+python-style variable via the <A HREF = "variable.html">variable</A> command.  Each
+time the variable is evaluated, either in the LAMMPS input script
+itself, or by another LAMMPS command that uses the variable, this will
+trigger the Python function to be invoked.
+</P>
+<P>The Python code for the function can be included directly in the input
+script or in an auxiliary file.  The function can have arguments which
+are mapped to LAMMPS variables (also defined in the input script) and
+it can return a value to a LAMMPS variable.  This is thus a mechanism
+for your input script to pass information to a piece of Python code,
+ask Python to execute the code, and return information to your input
+script.
+</P>
+<P>Note that a Python function can be arbitrarily complex.  It can import
+other Python modules, instantiate Python classes, call other Python
+functions, etc.  The Python code that you provide can contain more
+code than the single function.  It can contain other functions or
+Python classes, as well as global variables or other mechanisms for
+storing state between calls from LAMMPS to the function.
+</P>
+<P>The Python function you provide can consist of "pure" Python code that
+only performs operations provided by standard Python.  However, the
+Python function can also "call back" to LAMMPS through its
+Python-wrapped library interface, in the manner described in the
+previous section 11.1.  This means it can issue LAMMPS input script
+commands or query and set internal LAMMPS state.  As an example, this
+can be useful in an input script to create a more complex loop with
+branching logic, than can be created using the simple looping and
+brancing logic enabled by the <A HREF = "next_html">next</A> and <A HREF = "if.html">if</A>
+commands.
+</P>
+<P>See the <A HREF = "python.html">python</A> doc page and the <A HREF = "variable.html">variable</A>
+doc page for its python-style variables for more info, including
+examples of Python code you can write for both pure Python operations
+and callbacks to LAMMPS.
+</P>
+<P>To run pure Python code from LAMMPS, you only need to build LAMMPS
+with the PYTHON package installed:
+</P>
+<P>make yes-python
+make machine
+</P>
+<P>Note that this will link LAMMPS with the Python library on your
+system, which typically requires several auxiliary system libraries to
+also be linked.  The list of these libraries and the paths to find
+them are specified in the lib/python/Makefile.lammps file.  You need
+to insure that file contains the correct information for your version
+of Python and your machine to successfully build LAMMPS.  See the
+lib/python/README file for more info.
+</P>
+<P>If you want to write Python code with callbacks to LAMMPS, then you
+must also follow the steps overviewed in the preceeding section (11.1)
+for running LAMMPS from Python.  I.e. you must build LAMMPS as a
+shared library and insure that Python can find the python/lammps.py
+file and the shared library.
+</P>
 <HR>
 
-<A NAME = "py_1"></A><H4>11.1 Building LAMMPS as a shared library 
+<A NAME = "py_3"></A><H4>11.3 Building LAMMPS as a shared library 
 </H4>
 <P>Instructions on how to build LAMMPS as a shared library are given in
 <A HREF = "Section_start.html#start_5">Section_start 5</A>.  A shared library is one
-that is dynamically loadable, which is what Python requires.  On Linux
-this is a library file that ends in ".so", not ".a".
+that is dynamically loadable, which is what Python requires to wrap
+LAMMPS.  On Linux this is a library file that ends in ".so", not ".a".
 </P>
-<P>From the src directory, type
+<P>>From the src directory, type
 </P>
 <PRE>make foo mode=shlib 
 </PRE>
@@ -102,7 +200,7 @@ system.
 </P>
 <HR>
 
-<A NAME = "py_2"></A><H4>11.2 Installing the Python wrapper into Python 
+<A NAME = "py_4"></A><H4>11.4 Installing the Python wrapper into Python 
 </H4>
 <P>For Python to invoke LAMMPS, there are 2 files it needs to know about:
 </P>
@@ -170,7 +268,7 @@ environment variable as described above.
 </P>
 <HR>
 
-<A NAME = "py_3"></A><H4>11.3 Extending Python with MPI to run in parallel 
+<A NAME = "py_5"></A><H4>11.5 Extending Python with MPI to run in parallel 
 </H4>
 <P>If you wish to run LAMMPS in parallel from Python, you need to extend
 your Python with an interface to MPI.  This also allows you to
@@ -197,11 +295,12 @@ believe) creates a new alternate executable (in place of "python"
 itself) as a result.
 </P>
 <P>In principle any of these Python/MPI packages should work to invoke
-LAMMPS in parallel and MPI calls themselves from a Python script which
-is itself running in parallel.  However, when I downloaded and looked
-at a few of them, their documentation was incomplete and I had trouble
-with their installation.  It's not clear if some of the packages are
-still being actively developed and supported.
+LAMMPS in parallel and to make MPI calls themselves from a Python
+script which is itself running in parallel.  However, when I
+downloaded and looked at a few of them, their documentation was
+incomplete and I had trouble with their installation.  It's not clear
+if some of the packages are still being actively developed and
+supported.
 </P>
 <P>The one I recommend, since I have successfully used it with LAMMPS, is
 Pypar.  Pypar requires the ubiquitous <A HREF = "http://numpy.scipy.org">Numpy
@@ -261,7 +360,7 @@ the right one.
 </P>
 <HR>
 
-<A NAME = "py_4"></A><H4>11.4 Testing the Python-LAMMPS interface 
+<A NAME = "py_6"></A><H4>11.6 Testing the Python-LAMMPS interface 
 </H4>
 <P>To test if LAMMPS is callable from Python, launch Python interactively
 and type:
@@ -375,22 +474,24 @@ Python on a single processor, not in parallel.
 
 <HR>
 
-<A NAME = "py_5"></A><H4>11.5 Using LAMMPS from Python 
+<A NAME = "py_7"></A><H4>11.7 Using LAMMPS from Python 
 </H4>
-<P>The Python interface to LAMMPS consists of a Python "lammps" module,
-the source code for which is in python/lammps.py, which creates a
-"lammps" object, with a set of methods that can be invoked on that
-object.  The sample Python code below assumes you have first imported
-the "lammps" module in your Python script, as follows:
+<P>As described above, the Python interface to LAMMPS consists of a
+Python "lammps" module, the source code for which is in
+python/lammps.py, which creates a "lammps" object, with a set of
+methods that can be invoked on that object.  The sample Python code
+below assumes you have first imported the "lammps" module in your
+Python script, as follows:
 </P>
 <PRE>from lammps import lammps 
 </PRE>
-<P>These are the methods defined by the lammps module.  If you look
-at the file src/library.cpp you will see that they correspond
-one-to-one with calls you can make to the LAMMPS library from a C++ or
-C or Fortran program.
+<P>These are the methods defined by the lammps module.  If you look at
+the files src/library.cpp and src/library.h you will see that they
+correspond one-to-one with calls you can make to the LAMMPS library
+from a C++ or C or Fortran program.
 </P>
 <PRE>lmp = lammps()           # create a LAMMPS object using the default liblammps.so library
+lmp = lammps(ptr=lmpptr) # ditto, but use lmpptr as previously created LAMMPS object
 lmp = lammps("g++")      # create a LAMMPS object using the liblammps_g++.so library
 lmp = lammps("",list)    # ditto, with command-line args, e.g. list = ["-echo","screen"]
 lmp = lammps("g++",list) 
@@ -448,6 +549,33 @@ Pypar.  So for now, it runs with MPI_COMM_WORLD, which is all the
 processors.  If someone figures out how to do this with one or more of
 the Python wrappers for MPI, like Pypar, please let us know and we
 will amend these doc pages.
+</P>
+<P>The lines
+</P>
+<PRE>from lammps import lammps
+lmp = lammps() 
+</PRE>
+<P>create an instance of LAMMPS, wrapped in a Python class by the lammps
+Python module, and return an instance of the Python class as lmp.  It
+is used to make all subequent calls to the LAMMPS library.
+</P>
+<P>Additional arguments can be used to tell Python the name of the shared
+library to load or to pass arguments to the LAMMPS instance, the same
+as if LAMMPS were launched from a command-line prompt.
+</P>
+<P>If the ptr argument is set like this:
+</P>
+<PRE>lmp = lammps(ptr=lmpptr) 
+</PRE>
+<P>then lmpptr must be an argument passed to Python via the LAMMPS
+<A HREF = "python.html">python</A> command, when it is used to define a Python
+function that is invoked by the LAMMPS input script.  This mode of
+using Python with LAMMPS is described above in 11.2.  The variable
+lmpptr refers to the instance of LAMMPS that called the embedded
+Python interpreter.  Using it as an argument to lammps() allows the
+returned Python class instance "lmp" to make calls to that instance of
+LAMMPS.  See the <A HREF = "python.html">python</A> command doc page for examples
+using this syntax.
 </P>
 <P>Note that you can create multiple LAMMPS objects in your Python
 script, and coordinate and run multiple simulations, e.g.
@@ -578,7 +706,7 @@ Python script.  Isn't ctypes amazing?
 
 <HR>
 
-<A NAME = "py_6"></A><H4>11.6 Example Python scripts that use LAMMPS 
+<A NAME = "py_8"></A><H4>11.8 Example Python scripts that use LAMMPS 
 </H4>
 <P>These are the Python scripts included as demos in the python/examples
 directory of the LAMMPS distribution, to illustrate the kinds of

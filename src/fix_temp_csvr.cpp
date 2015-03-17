@@ -48,8 +48,10 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   // CSVR thermostat should be applied every step
 
   nevery = 1;
+  scalar_flag = 1;
   global_freq = nevery;
   dynamic_group_allow = 1;
+  extscalar = 1;
 
   tstr = NULL;
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -72,6 +74,10 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   if (t_period <= 0.0) error->all(FLERR,"Fix temp/csvr period must be > 0.0");
   if (seed <= 0) error->all(FLERR,"Illegal fix temp/csvr random seed");
 
+  // initialize Marsaglia RNG with processor-unique seed
+
+  random = new RanMars(lmp,seed + comm->me);
+
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
 
@@ -87,8 +93,6 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(3,newarg);
   delete [] newarg;
   tflag = 1;
-
-  random = new RanMars(lmp,seed + comm->me);
 
   vhold = NULL;
   nmax = -1;
@@ -118,6 +122,7 @@ int FixTempCSVR::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
+  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -175,6 +180,9 @@ void FixTempCSVR::end_of_step()
                  "Fix temp/csvr variable returned negative temperature");
     modify->addstep_compute(update->ntimestep + nevery);
   }
+
+  double t_current = temperature->compute_scalar();
+  double ekin_old = t_current * 0.5 * temperature->dof * force->boltz;
 
   double * const * const v = atom->v;
   const int * const mask = atom->mask;
@@ -235,6 +243,11 @@ void FixTempCSVR::end_of_step()
       }
     }
   }
+
+  // tally the kinetic energy transferred between heat bath and system
+
+  t_current = temperature->compute_scalar();
+  energy +=  ekin_old - t_current * 0.5 * temperature->dof * force->boltz;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -272,6 +285,13 @@ int FixTempCSVR::modify_param(int narg, char **arg)
 void FixTempCSVR::reset_target(double t_new)
 {
   t_target = t_start = t_stop = t_new;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixTempCSVR::compute_scalar()
+{
+  return energy;
 }
 
 /* ----------------------------------------------------------------------

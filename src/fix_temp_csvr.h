@@ -33,6 +33,7 @@ class FixTempCSVR : public Fix {
   void end_of_step();
   int modify_param(int, char **);
   void reset_target(double);
+  virtual double compute_scalar();
   virtual void *extract(const char *, int &);
 
  private:

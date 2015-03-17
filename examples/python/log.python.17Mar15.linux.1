@@ -1,0 +1,315 @@
+LAMMPS (12 Mar 2015)
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 10 0 10 0 10
+create_box	1 box
+Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  1 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 4000 atoms
+mass		1 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nve
+
+run		10
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  master list distance cutoff = 2.8
+Memory usage per processor = 2.69271 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1.44   -6.7733681            0   -4.6139081   -5.0199732 
+      10    1.1259767   -6.3010653            0   -4.6125225   -2.5704638 
+Loop time of 0.03213 on 1 procs for 10 steps with 4000 atoms
+
+Pair  time (%) = 0.0242701 (75.5371)
+Neigh time (%) = 0.006531 (20.3268)
+Comm  time (%) = 0.000502825 (1.56497)
+Outpt time (%) = 2.09808e-05 (0.0652998)
+Other time (%) = 0.00080514 (2.50588)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    5841 ave 5841 max 5841 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    155984 ave 155984 max 155984 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 155984
+Ave neighs/atom = 38.996
+Neighbor list builds = 1
+Dangerous builds = 0
+
+# 1st Python function
+# example of catching a syntax error
+
+python          simple here """
+def simple():
+  import exceptions
+  print "Inside simple function"
+  try:
+    foo += 1
+  except Exception, e:
+    print "FOO error:",e
+"""
+
+python          simple invoke
+
+# 2nd Python function
+# example of returning the function value to a python-style variable
+# invoke it twice
+
+variable        fact python factorial
+python          factorial input 1 v_n return v_fact format ii here """
+def factorial(n):
+  if n == 1: return 1
+  return n*factorial(n-1)
+"""
+
+variable        n string 10
+python          factorial invoke
+print           "Factorial of $n = ${fact}"
+Factorial of 10 = 3628800
+
+variable        n string 20
+python          factorial invoke
+print           "Factorial of $n = ${fact}"
+Factorial of 20 = 2432902008176640000
+
+# 3rd Python function
+# example of calling back to LAMMPS and writing a run loop in Python
+
+variable        cut string 0.0
+
+python          loop input 4 10 1.0 -4.0 SELF format iffp file funcs.py
+python          loop invoke
+pair_style lj/cut ${cut}
+pair_style lj/cut 1.0
+pair_coeff * * 1.0 1.0
+run 10
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  master list distance cutoff = 1.3
+Memory usage per processor = 2.78761 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+      10    1.1259767  0.016557378            0    1.7051002    1.2784679 
+      20   0.87608998   0.39300382            0    1.7068103    6.0488236 
+Loop time of 0.00451207 on 1 procs for 10 steps with 4000 atoms
+
+Pair  time (%) = 0.00158691 (35.1704)
+Neigh time (%) = 0.00194287 (43.0594)
+Comm  time (%) = 0.000257015 (5.69617)
+Outpt time (%) = 2.09808e-05 (0.464993)
+Other time (%) = 0.000704288 (15.609)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2083 ave 2083 max 2083 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    17727 ave 17727 max 17727 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 17727
+Ave neighs/atom = 4.43175
+Neighbor list builds = 1
+Dangerous builds = 0
+pair_style lj/cut ${cut}
+pair_style lj/cut 1.1
+pair_coeff * * 1.0 1.0
+run 10
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  master list distance cutoff = 1.4
+Memory usage per processor = 2.78761 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+      20   0.87608998  -0.33042884            0    0.9833776    8.5817494 
+      30    1.0155079  -0.83166219            0   0.69121891    7.9905553 
+Loop time of 0.00607896 on 1 procs for 10 steps with 4000 atoms
+
+Pair  time (%) = 0.00298262 (49.0646)
+Neigh time (%) = 0.00210714 (34.6629)
+Comm  time (%) = 0.000262499 (4.31816)
+Outpt time (%) = 2.00272e-05 (0.329451)
+Other time (%) = 0.000706673 (11.6249)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2087 ave 2087 max 2087 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    21036 ave 21036 max 21036 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 21036
+Ave neighs/atom = 5.259
+Neighbor list builds = 1
+Dangerous builds = 0
+pair_style lj/cut ${cut}
+pair_style lj/cut 1.2
+pair_coeff * * 1.0 1.0
+run 10
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  master list distance cutoff = 1.5
+Memory usage per processor = 2.78761 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+      30    1.0155079   -2.0616558            0  -0.53877467    7.6238572 
+      40    1.0490928   -2.1868324            0  -0.61358669    7.2084131 
+Loop time of 0.00735807 on 1 procs for 10 steps with 4000 atoms
+
+Pair  time (%) = 0.00416398 (56.5906)
+Neigh time (%) = 0.00219989 (29.8976)
+Comm  time (%) = 0.000262022 (3.56101)
+Outpt time (%) = 1.90735e-05 (0.259218)
+Other time (%) = 0.00071311 (9.69153)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2250 ave 2250 max 2250 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    24095 ave 24095 max 24095 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 24095
+Ave neighs/atom = 6.02375
+Neighbor list builds = 1
+Dangerous builds = 0
+pair_style lj/cut ${cut}
+pair_style lj/cut 1.3
+pair_coeff * * 1.0 1.0
+run 10
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  master list distance cutoff = 1.6
+Memory usage per processor = 2.78761 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+      40    1.0490928   -3.0667608            0    -1.493515    6.2796311 
+      50    1.0764484   -3.1173704            0   -1.5031014    6.0850409 
+Loop time of 0.0085659 on 1 procs for 10 steps with 4000 atoms
+
+Pair  time (%) = 0.00486517 (56.7969)
+Neigh time (%) = 0.00266886 (31.1568)
+Comm  time (%) = 0.000301838 (3.52371)
+Outpt time (%) = 2.00272e-05 (0.233801)
+Other time (%) = 0.000710011 (8.2888)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2572 ave 2572 max 2572 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    27137 ave 27137 max 27137 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 27137
+Ave neighs/atom = 6.78425
+Neighbor list builds = 1
+Dangerous builds = 0
+pair_style lj/cut ${cut}
+pair_style lj/cut 1.4
+pair_coeff * * 1.0 1.0
+run 10
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  master list distance cutoff = 1.7
+Memory usage per processor = 2.78761 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+      50    1.0764484   -3.6112241            0   -1.9969552    5.4223348 
+      60    1.1101013   -3.6616014            0   -1.9968657    5.2348251 
+Loop time of 0.0091939 on 1 procs for 10 steps with 4000 atoms
+
+Pair  time (%) = 0.00552583 (60.1032)
+Neigh time (%) = 0.00259781 (28.2558)
+Comm  time (%) = 0.000323296 (3.51642)
+Outpt time (%) = 2.00272e-05 (0.217831)
+Other time (%) = 0.000726938 (7.90675)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    3013 ave 3013 max 3013 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    30887 ave 30887 max 30887 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 30887
+Ave neighs/atom = 7.72175
+Neighbor list builds = 1
+Dangerous builds = 0
+pair_style lj/cut ${cut}
+pair_style lj/cut 1.5
+pair_coeff * * 1.0 1.0
+run 10
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  master list distance cutoff = 1.8
+Memory usage per processor = 2.78761 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+      60    1.1101013   -3.9655053            0   -2.3007696    4.7849008 
+      70    1.1122144   -3.9657095            0    -2.297805    4.8014106 
+Loop time of 0.0102301 on 1 procs for 10 steps with 4000 atoms
+
+Pair  time (%) = 0.00630403 (61.6225)
+Neigh time (%) = 0.00282717 (27.6359)
+Comm  time (%) = 0.000349283 (3.41428)
+Outpt time (%) = 2.00272e-05 (0.195768)
+Other time (%) = 0.000729561 (7.13154)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    3388 ave 3388 max 3388 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    35959 ave 35959 max 35959 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 35959
+Ave neighs/atom = 8.98975
+Neighbor list builds = 1
+Dangerous builds = 0
+pair_style lj/cut ${cut}
+pair_style lj/cut 1.6
+pair_coeff * * 1.0 1.0
+run 10
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  master list distance cutoff = 1.9
+Memory usage per processor = 2.78761 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+      70    1.1122144   -4.1752688            0   -2.5073643    4.4755409 
+      80     1.117224   -4.1831357            0   -2.5077187     4.446079 
+Loop time of 0.011508 on 1 procs for 10 steps with 4000 atoms
+
+Pair  time (%) = 0.00736189 (63.972)
+Neigh time (%) = 0.00303006 (26.3301)
+Comm  time (%) = 0.000365019 (3.17187)
+Outpt time (%) = 2.00272e-05 (0.174028)
+Other time (%) = 0.000730991 (6.35203)
+
+Nlocal:    4000 ave 4000 max 4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    3612 ave 3612 max 3612 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    43239 ave 43239 max 43239 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 43239
+Ave neighs/atom = 10.8097
+Neighbor list builds = 1
+Dangerous builds = 0

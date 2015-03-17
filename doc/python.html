@@ -71,6 +71,11 @@ def loop(lmpptr,N,cut0):
 </PRE>
 <P><B>Description:</B>
 </P>
+<P>IMPORTANT NOTE: It is not currently possible to use the
+<A HREF = "python.html">python</A> command described in this section with Python 3,
+only with Python 2.  The C API changed from Python 2 to 3 and the
+LAMMPS code is not compatible with both.
+</P>
 <P>Define a Python function or execute a previously defined function.
 Arguments, including LAMMPS variables, can be passed to the function
 from the LAMMPS input script and a value returned by the Python

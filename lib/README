@@ -37,6 +37,8 @@ meam	      modified embedded atom method (MEAM) potential, MEAM package
                 from Greg Wagner (Sandia)
 molfile       hooks to VMD molfile plugins, used by the USER-MOLFILE package
                 from Axel Kohlmeyer (Temple U) and the VMD development team
+python        hooks to the system Python library, used by the PYTHON package
+                from the LAMMPS development team
 qmmm	      quantum mechanics/molecular mechanics coupling interface
                 from Axel Kohlmeyer (Temple U)
 quip          interface to QUIP/libAtoms framework, USER-QUIP package

@@ -58,6 +58,7 @@ class Input : protected Pointers {
 
   void parse();                          // parse an input text line
   char *nextword(char *, char **);       // find next word in string with quotes
+  int numtriple(char *);                 // count number of triple quotes
   void reallocate(char *&, int &, int);  // reallocate a char string
   int execute_command();                 // execute a single command
 
@@ -71,6 +72,7 @@ class Input : protected Pointers {
   void next_command();
   void partition();
   void print();
+  void python();
   void quit();
   void shell();
   void variable_command();

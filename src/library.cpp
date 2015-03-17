@@ -358,6 +358,19 @@ void *lammps_extract_variable(void *ptr, char *name, char *group)
 }
 
 /* ----------------------------------------------------------------------
+   set the value of a STRING variable to str
+   return -1 if variable doesn't exist or not a STRING variable
+   return 0 for success
+------------------------------------------------------------------------- */
+
+int lammps_set_variable(void *ptr, char *name, char *str)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  int err = lmp->input->variable->set_string(name,str);
+  return err;
+}
+
+/* ----------------------------------------------------------------------
    return the total number of atoms in the system
    useful before call to lammps_get_atoms() so can pre-allocate vector
 ------------------------------------------------------------------------- */
@@ -365,6 +378,7 @@ void *lammps_extract_variable(void *ptr, char *name, char *group)
 int lammps_get_natoms(void *ptr)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
+
   if (lmp->atom->natoms > MAXSMALLINT) return 0;
   int natoms = static_cast<int> (lmp->atom->natoms);
   return natoms;

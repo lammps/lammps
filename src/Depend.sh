@@ -71,6 +71,7 @@ fi
 if (test $1 = "KSPACE") then
   depend CORESHELL
   depend GPU
+  depend KOKKOS
   depend OPT
   depend USER-CUDA
   depend USER-OMP
@@ -80,6 +81,7 @@ fi
 
 if (test $1 = "MANYBODY") then
   depend GPU
+  depend KOKKOS
   depend OPT
   depend USER-CUDA
   depend USER-MISC
@@ -88,6 +90,7 @@ fi
 
 if (test $1 = "MOLECULE") then
   depend GPU
+  depend KOKKOS
   depend USER-CUDA
   depend USER-MISC
   depend USER-OMP

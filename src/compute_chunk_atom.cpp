@@ -548,7 +548,7 @@ void ComputeChunkAtom::compute_peratom()
    set lock, so that nchunk will not change from startstep to stopstep
    called by fix ave/chunk for duration of its Nfreq epoch
    OK if called by multiple fix ave/chunk commands
-     error if all callers do not have same duration
+     but error if all callers do not have same duration
      last caller holds the lock, so it can also unlock
    lockstop can be positive for final step of finite-size time window
    or can be -1 for infinite-size time window

@@ -297,7 +297,8 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // increment lock counter in compute chunk/atom
-  // only if nrepeat > 1, so that locking spans multiple timesteps 
+  // only if nrepeat > 1 or ave = RUNNING/WINDOW,
+  //  so that locking spans multiple timesteps 
 
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
@@ -305,7 +306,9 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   cchunk = (ComputeChunkAtom *) modify->compute[icompute];
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Fix ave/chunk does not use chunk/atom compute");
-  if (nrepeat > 1) cchunk->lockcount++;
+
+  if (nrepeat > 1 || ave == RUNNING || ave == WINDOW) cchunk->lockcount++;
+  if (ave == RUNNING || ave == WINDOW) cchunk->lock(this,update->ntimestep,-1);
 
   // print file comment lines
 
@@ -409,10 +412,11 @@ FixAveChunk::~FixAveChunk()
 
   // decrement lock counter in compute chunk/atom, it if still exists
 
-  if (nrepeat > 1) {
+  if (nrepeat > 1 || ave == RUNNING || ave == WINDOW) {
     int icompute = modify->find_compute(idchunk);
     if (icompute >= 0) {
       cchunk = (ComputeChunkAtom *) modify->compute[icompute];
+      if (ave == RUNNING || ave == WINDOW) cchunk->unlock(this);
       cchunk->lockcount--;
     }
   }
@@ -515,8 +519,7 @@ void FixAveChunk::end_of_step()
   // zero out arrays that accumulate over many samples, but not across epochs
   // invoke setup_chunks() to determine current nchunk
   //   re-allocate per-chunk arrays if needed
-  // then invoke lock() so nchunk cannot change until Nfreq epoch is over
-  //   use final arg = -1 for infinite-time window
+  // invoke lock() so nchunk cannot change until Nfreq epoch is over
   // wrap setup_chunks in clearstep/addstep b/c it may invoke computes
   //   both nevery and nfreq are future steps, 
   //   since call below to cchunk->ichunk() 
@@ -530,8 +533,8 @@ void FixAveChunk::end_of_step()
       modify->addstep_compute(ntimestep+nfreq);
     }
     allocate();
-    if (ave == RUNNING || ave == WINDOW) cchunk->lock(this,ntimestep,-1);
-    else cchunk->lock(this,ntimestep,ntimestep+(nrepeat-1)*nevery);
+    if (nrepeat > 1 && ave == ONE) 
+      cchunk->lock(this,ntimestep,ntimestep+(nrepeat-1)*nevery);
     for (m = 0; m < nchunk; m++) {
       count_many[m] = count_sum[m] = 0.0;
       for (i = 0; i < nvalues; i++) values_many[m][i] = 0.0;
@@ -762,7 +765,7 @@ void FixAveChunk::end_of_step()
   // unlock compute chunk/atom at end of Nfreq epoch
   // do not unlock if ave = RUNNING or WINDOW
 
-  if (ave == ONE) cchunk->unlock(this);
+  if (nrepeat > 1 && ave == ONE) cchunk->unlock(this);
 
   // time average across samples
   // if normflag = ALL, final is total value / total count

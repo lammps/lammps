@@ -26,6 +26,7 @@ action () {
 
 touch ../accelerator_kokkos.h
 touch ../memory.h
+touch ../special.cpp
 
 # list of files with optional dependcies
 

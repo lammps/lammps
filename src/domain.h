@@ -230,6 +230,10 @@ bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
 length, multiplying by the number of bonds in the interaction (e.g. 3
 for a dihedral) and adding a small amount of stretch.
 
+W: Proc sub-domain size < neighbor skin, could lead to lost atoms
+
+UNDOCUMENTED
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -240,9 +244,9 @@ E: Reuse of region ID
 
 A region ID cannot be used twice.
 
-E: Invalid region style
+E: Unknown region style
 
-The choice of region style is unknown.
+UNDOCUMENTED
 
 E: Delete region ID does not exist
 
@@ -252,5 +256,9 @@ E: Both sides of boundary must be periodic
 
 Cannot specify a boundary as periodic only on the lo or hi side.  Must
 be periodic on both sides.
+
+U: Invalid region style
+
+The choice of region style is unknown.
 
 */

@@ -312,10 +312,25 @@ E: Package command after simulation box is defined
 The package command cannot be used afer a read_data, read_restart, or
 create_box command.
 
-E: Package cuda command without USER-CUDA installed
+E: Package cuda command without USER-CUDA package enabled
 
-The USER-CUDA package must be installed via "make yes-user-cuda"
-before LAMMPS is built.
+UNDOCUMENTED
+
+E: Package gpu command without GPU package installed
+
+UNDOCUMENTED
+
+E: Package kokkos command without KOKKOS package enabled
+
+UNDOCUMENTED
+
+E: Package omp command without USER-OMP package installed
+
+UNDOCUMENTED
+
+E: Package intel command without USER-INTEL package installed
+
+UNDOCUMENTED
 
 E: Pair_coeff command before simulation box is defined
 
@@ -348,5 +363,10 @@ E: Units command after simulation box is defined
 
 The units command cannot be used after a read_data, read_restart, or
 create_box command.
+
+U: Package cuda command without USER-CUDA installed
+
+The USER-CUDA package must be installed via "make yes-user-cuda"
+before LAMMPS is built.
 
 */

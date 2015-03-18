@@ -204,6 +204,10 @@ E: Molecule file has special flags but no bonds
 
 Self-explanatory.
 
+E: Molecule file has bonds but no special flags
+
+UNDOCUMENTED
+
 E: Molecule file shake info is incomplete
 
 All 3 SHAKE sections are needed.

@@ -152,4 +152,32 @@ class CommTiled : public Comm {
 
 /* ERROR/WARNING messages:
 
+E: USER-CUDA package does not yet support comm_style tiled
+
+UNDOCUMENTED
+
+E: KOKKOS package does not yet support comm_style tiled
+
+UNDOCUMENTED
+
+E: Cannot yet use comm_style tiled with triclinic box
+
+UNDOCUMENTED
+
+E: Cannot yet use comm_style tiled with multi-mode comm
+
+UNDOCUMENTED
+
+E: Communication cutoff for comm_style tiled cannot exceed periodic box length
+
+UNDOCUMENTED
+
+E: Comm tiled mis-match in box drop brick
+
+UNDOCUMENTED
+
+E: Comm tiled invalid index in box drop brick
+
+UNDOCUMENTED
+
 */

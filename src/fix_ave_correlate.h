@@ -39,7 +39,7 @@ class FixAveCorrelate : public Fix {
  private:
   int me,nvalues;
   int nrepeat,nfreq;
-  bigint nvalid;
+  bigint nvalid,nvalid_last;
   int *which,*argindex,*value2index;
   char **ids;
   FILE *fp;

@@ -74,15 +74,23 @@ E: Compute pressure temperature ID does not compute temperature
 The compute ID assigned to a pressure computation must compute
 temperature.
 
-E: Must use 'kspace_modify pressure/scalar no' to get individual
-components of pressure tensor with kspace_style MSM
+E: Compute pressure requires temperature ID to include kinetic energy
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: Virial was not tallied on needed timestep
 
 You are using a thermo keyword that requires potentials to
 have tallied the virial, but they didn't on this timestep.  See the
 variable doc page for ideas on how to make this work.
+
+E: Kspace_modify pressure/scalar no required for components of pressure tensor with kspace_style msm
+
+UNDOCUMENTED
+
+U: Must use 'kspace_modify pressure/scalar no' to get individual
+components of pressure tensor with kspace_style MSM
+
+Self-explanatory.
 
 */

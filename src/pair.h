@@ -273,6 +273,10 @@ E: All pair coeffs are not set
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
+E: Fix adapt interface to this pair style not supported
+
+UNDOCUMENTED
+
 E: Pair style requres a KSpace style
 
 Self-explanatory.

@@ -166,6 +166,10 @@ E: Atomfile variable could not read values
 
 Check the file assigned to the variable.
 
+E: LAMMPS is not built with Python embedded
+
+UNDOCUMENTED
+
 E: Variable name must be alphanumeric or underscore characters
 
 Self-explanatory.
@@ -186,6 +190,20 @@ command.
 E: Next command must list all universe and uloop variables
 
 This is to insure they stay in sync.
+
+E: Variable has circular dependency
+
+A circular dependency is when variable "a" in used by variable "b" and
+variable "b" is also used by varaible "a".  Circular dependencies with
+longer chains of dependence are also not allowed.
+
+E: Python variable does not match Python function
+
+UNDOCUMENTED
+
+E: Python variable has no function
+
+UNDOCUMENTED
 
 E: Invalid syntax in variable formula
 
@@ -254,12 +272,6 @@ E: Invalid variable name in variable formula
 
 Variable name is not recognized.
 
-E: Variable has circular dependency
-
-A circular dependency is when variable "a" in used by variable "b" and
-variable "b" is also used by varaible "a".  Circular dependencies with
-longer chains of dependence are also not allowed.
-
 E: Invalid variable evaluation in variable formula
 
 A variable used in a formula could not be evaluated.
@@ -318,6 +330,10 @@ Argument of arccos() must be between -1 and 1.
 E: Invalid math function in variable formula
 
 Self-explanatory.
+
+E: Variable name between brackets must be alphanumeric or underscore characters
+
+UNDOCUMENTED
 
 E: Non digit character between brackets in variable
 
@@ -399,6 +415,10 @@ an atom index, which is provided by an atom map.  An atom map does not
 exist (by default) for non-molecular problems.  Using the atom_modify
 map command will force an atom map to be created.
 
+E: Variable atom ID is too large
+
+UNDOCUMENTED
+
 E: Variable uses atom property that isn't allocated
 
 Self-explanatory.
@@ -412,13 +432,9 @@ E: Atom vector in equal-style variable formula
 Atom vectors generate one value per atom which is not allowed
 in an equal-style variable.
 
-E: Expected floating point parameter in variable definition
+E: Too many args in variable function
 
-The quantity being read is a non-numeric value.
-
-E: Expected integer parameter in variable definition
-
-The quantity being read is a floating point or non-numeric value.
+UNDOCUMENTED
 
 E: Invalid Boolean syntax in if command
 
@@ -436,5 +452,13 @@ Self-explanatory.  See the atom_modify command to create a map.
 E: Invalid atom ID in variable file
 
 Self-explanatory.
+
+U: Expected floating point parameter in variable definition
+
+The quantity being read is a non-numeric value.
+
+U: Expected integer parameter in variable definition
+
+The quantity being read is a floating point or non-numeric value.
 
 */

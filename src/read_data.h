@@ -100,19 +100,31 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Fix ID for read_data does not exist
+
+Self-explanatory.
+
 E: Cannot read_data after simulation box is defined
 
 The read_data command cannot be used after a read_data,
 read_restart, or create_box command.
+
+E: Cannot read_data add and merge
+
+UNDOCUMENTED
+
+E: Cannot use non-zero z offset in read_data for 2d simulation
+
+UNDOCUMENTED
 
 E: Cannot run 2d simulation with nonperiodic Z dimension
 
 Use the boundary command to make the z dimension periodic in order to
 run a 2d simulation.
 
-E: Fix ID for read_data does not exist
+W: Atom style in data file differs from currently defined atom style
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: Must read Atoms before Velocities
 
@@ -190,6 +202,10 @@ E: Must define pair_style before Pair Coeffs
 Must use a pair_style command before reading a data file that defines
 Pair Coeffs.
 
+W: Pair style in data file differs from currently defined pair style
+
+UNDOCUMENTED
+
 E: Must define pair_style before PairIJ Coeffs
 
 Must use a pair_style command before reading a data file that defines
@@ -204,6 +220,10 @@ E: Must define bond_style before Bond Coeffs
 Must use a bond_style command before reading a data file that
 defines Bond Coeffs.
 
+W: Bond style in data file differs from currently defined bond style
+
+UNDOCUMENTED
+
 E: Invalid data file section: Angle Coeffs
 
 Atom style does not allow angles.
@@ -212,6 +232,10 @@ E: Must define angle_style before Angle Coeffs
 
 Must use an angle_style command before reading a data file that
 defines Angle Coeffs.
+
+W: Angle style in data file differs from currently defined angle style
+
+UNDOCUMENTED
 
 E: Invalid data file section: Dihedral Coeffs
 
@@ -222,6 +246,10 @@ E: Must define dihedral_style before Dihedral Coeffs
 Must use a dihedral_style command before reading a data file that
 defines Dihedral Coeffs.
 
+W: Dihedral style in data file differs from currently defined dihedral style
+
+UNDOCUMENTED
+
 E: Invalid data file section: Improper Coeffs
 
 Atom style does not allow impropers.
@@ -230,6 +258,10 @@ E: Must define improper_style before Improper Coeffs
 
 Must use an improper_style command before reading a data file that
 defines Improper Coeffs.
+
+W: Improper style in data file differs from currently defined improper style
+
+UNDOCUMENTED
 
 E: Invalid data file section: BondBond Coeffs
 
@@ -321,6 +353,10 @@ E: Needed bonus data not in data file
 
 Some atom styles require bonus data.  See the read_data doc page for
 details.
+
+E: Read_data shrink wrap did not assign all atoms correctly
+
+UNDOCUMENTED
 
 E: Unexpected end of data file
 
@@ -417,6 +453,26 @@ E: Too many lines in one body in data file - boost MAXBODY
 
 MAXBODY is a setting at the top of the src/read_data.cpp file.
 Set it larger and re-compile the code.
+
+E: Unexpected end of PairCoeffs section
+
+UNDOCUMENTED
+
+E: Unexpected end of BondCoeffs section
+
+UNDOCUMENTED
+
+E: Unexpected end of AngleCoeffs section
+
+UNDOCUMENTED
+
+E: Unexpected end of DihedralCoeffs section
+
+UNDOCUMENTED
+
+E: Unexpected end of ImproperCoeffs section
+
+UNDOCUMENTED
 
 E: Cannot open gzipped file
 

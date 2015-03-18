@@ -67,6 +67,14 @@ E: Fix temp/csvr period must be > 0.0
 
 Self-explanatory.
 
+E: Illegal fix temp/csvr random seed
+
+UNDOCUMENTED
+
+E: Fix temp/csvr is not compatible with fix shake
+
+UNDOCUMENTED
+
 E: Variable name for fix temp/csvr does not exist
 
 Self-explanatory.
@@ -76,10 +84,6 @@ E: Variable for fix temp/csvr is invalid style
 Only equal-style variables can be used.
 
 E: Temperature ID for fix temp/csvr does not exist
-
-Self-explanatory.
-
-E: Computed temperature for fix temp/csvr cannot be 0.0
 
 Self-explanatory.
 
@@ -100,5 +104,9 @@ W: Group for fix_modify temp != fix group
 The fix_modify command is specifying a temperature computation that
 computes a temperature on a different group of atoms than the fix
 itself operates on.  This is probably not what you want to do.
+
+U: Computed temperature for fix temp/csvr cannot be 0.0
+
+Self-explanatory.
 
 */

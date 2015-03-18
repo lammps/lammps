@@ -95,6 +95,14 @@ W: Molecule template for create_atoms has multiple molecules
 The create_atoms command will only create molecules of a single type,
 i.e. the first molecule in the template.
 
+E: Cannot use create_atoms rotate unless single style
+
+UNDOCUMENTED
+
+E: Invalid create_atoms rotation vector for 2d model
+
+UNDOCUMENTED
+
 E: Invalid atom type in create_atoms command
 
 The create_box command specified the range of valid atom types.
@@ -118,6 +126,18 @@ types.
 E: Create_atoms molecule has atom IDs, but system does not
 
 The atom_style id command can be used to force atom IDs to be stored.
+
+E: Incomplete use of variables in create_atoms command
+
+UNDOCUMENTED
+
+E: Variable name for create_atoms does not exist
+
+UNDOCUMENTED
+
+E: Variable for create_atoms is invalid style
+
+UNDOCUMENTED
 
 E: Cannot create atoms with undefined lattice
 

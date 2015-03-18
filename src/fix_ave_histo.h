@@ -40,7 +40,7 @@ class FixAveHisto : public Fix {
  private:
   int me,nvalues;
   int nrepeat,nfreq,irepeat;
-  bigint nvalid;
+  bigint nvalid,nvalid_last;
   int *which,*argindex,*value2index;
   char **ids;
   FILE *fp;

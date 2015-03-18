@@ -54,7 +54,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   nfreq = force->inumeric(FLERR,arg[5]);
 
   global_freq = nfreq;
-  time_depend = 1;
 
   // scan values to count them
   // then read options so know mode = SCALAR/VECTOR before re-reading values
@@ -444,6 +443,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // since don't know a priori which are invoked by this fix
   // once in end_of_step() can set timestep for ones actually invoked
 
+  nvalid_last = -1;
   nvalid = nextvalid();
   modify->addstep_compute_all(nvalid);
 }
@@ -543,9 +543,13 @@ void FixAveTime::setup(int vflag)
 void FixAveTime::end_of_step()
 {
   // skip if not step which requires doing something
+  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
+  if (ntimestep < nvalid_last || ntimestep > nvalid) 
+    error->all(FLERR,"Invalid timestep resets for fix ave/time");
   if (ntimestep != nvalid) return;
+  nvalid_last = nvalid;
 
   if (mode == SCALAR) invoke_scalar(ntimestep);
   else invoke_vector(ntimestep);

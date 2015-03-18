@@ -55,4 +55,60 @@ class FixVector : public Fix {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Compute ID for fix vector does not exist
+
+UNDOCUMENTED
+
+E: Fix vector compute does not calculate a scalar
+
+UNDOCUMENTED
+
+E: Fix vector compute does not calculate a vector
+
+UNDOCUMENTED
+
+E: Fix vector compute vector is accessed out-of-range
+
+UNDOCUMENTED
+
+E: Fix ID for fix vector does not exist
+
+UNDOCUMENTED
+
+E: Fix vector fix does not calculate a scalar
+
+UNDOCUMENTED
+
+E: Fix vector fix does not calculate a vector
+
+UNDOCUMENTED
+
+E: Fix vector fix vector is accessed out-of-range
+
+UNDOCUMENTED
+
+E: Fix for fix vector not computed at compatible time
+
+UNDOCUMENTED
+
+E: Variable name for fix vector does not exist
+
+UNDOCUMENTED
+
+E: Fix vector variable is not equal-style variable
+
+UNDOCUMENTED
+
+E: Fix vector cannot set output array intensive/extensive from these inputs
+
+UNDOCUMENTED
+
+E: Overflow of allocated fix vector storage
+
+UNDOCUMENTED
+
 */

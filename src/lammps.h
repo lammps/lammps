@@ -80,10 +80,9 @@ E: Cannot use -reorder after -partition
 
 Self-explanatory.  See doc page discussion of command-line switches.
 
-E: Processor partitions are inconsistent
+E: Processor partitions do not match number of allocated processors
 
-The total number of processors in all partitions must match the number
-of processors LAMMPS is running on.
+UNDOCUMENTED
 
 E: Must use -in switch with multiple partitions
 
@@ -160,9 +159,46 @@ This error occurs whenthe sizes of smallint, imageint, tagint, bigint,
 as defined in src/lmptype.h are not what is expected.  Contact
 the developers if this occurs.
 
+E: Cannot use -cuda on and -kokkos on together
+
+UNDOCUMENTED
+
 E: Cannot use -cuda on without USER-CUDA installed
 
 The USER-CUDA package must be installed via "make yes-user-cuda"
 before LAMMPS is built.
+
+E: Cannot use -kokkos on without KOKKOS installed
+
+UNDOCUMENTED
+
+E: Using suffix cuda without USER-CUDA package enabled
+
+UNDOCUMENTED
+
+E: Using suffix gpu without GPU package installed
+
+UNDOCUMENTED
+
+E: Using suffix intel without USER-INTEL package installed
+
+UNDOCUMENTED
+
+E: Using suffix kk without KOKKOS package enabled
+
+UNDOCUMENTED
+
+E: Using suffix omp without USER-OMP package installed
+
+UNDOCUMENTED
+
+E: Too many -pk arguments in command line
+
+UNDOCUMENTED
+
+U: Processor partitions are inconsistent
+
+The total number of processors in all partitions must match the number
+of processors LAMMPS is running on.
 
 */

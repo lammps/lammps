@@ -119,6 +119,10 @@ E: Thermo every variable returned a bad timestep
 
 The variable must return a timestep greater than the current timestep.
 
+E: Thermo_modify every variable returned a bad timestep
+
+UNDOCUMENTED
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -137,9 +141,9 @@ E: Invalid dump frequency
 
 Dump frequency must be 1 or greater.
 
-E: Invalid dump style
+E: Unknown dump style
 
-The choice of dump style is unknown.
+UNDOCUMENTED
 
 E: Cound not find dump_modify ID
 
@@ -169,5 +173,9 @@ Self-explanatory.
 E: Both restart files must use MPI-IO or neither
 
 Self-explanatory.
+
+U: Invalid dump style
+
+The choice of dump style is unknown.
 
 */

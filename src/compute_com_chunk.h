@@ -65,11 +65,19 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Compute com/molecule requires molecular atom style
+E: Chunk/atom compute does not exist for compute com/chunk
+
+UNDOCUMENTED
+
+E: Compute com/chunk does not use chunk/atom compute
+
+UNDOCUMENTED
+
+U: Compute com/molecule requires molecular atom style
 
 Self-explanatory.
 
-E: Molecule count changed in compute com/molecule
+U: Molecule count changed in compute com/molecule
 
 Number of molecules must remain constant over time.
 

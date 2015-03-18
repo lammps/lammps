@@ -93,7 +93,27 @@ E: Delete_atoms requires a pair style be defined
 This is because atom deletion within a cutoff uses a pairwise
 neighbor list.
 
-E: Delete_atoms cutoff > neighbor cutoff
+E: Delete_atoms cutoff > max neighbor cutoff
+
+UNDOCUMENTED
+
+W: Delete_atoms cutoff > minimum neighbor cutoff
+
+UNDOCUMENTED
+
+E: Cannot delete_atoms bond yes for non-molecular systems
+
+UNDOCUMENTED
+
+E: Cannot use delete_atoms bond yes with atom_style template
+
+UNDOCUMENTED
+
+E: Cannot delete_atoms mol yes for non-molecular systems
+
+UNDOCUMENTED
+
+U: Delete_atoms cutoff > neighbor cutoff
 
 Cannot delete atoms further away than a processor knows about.
 

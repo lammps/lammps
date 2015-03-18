@@ -41,7 +41,7 @@ class FixAveTime : public Fix {
  private:
   int me,nvalues;
   int nrepeat,nfreq,irepeat;
-  bigint nvalid;
+  bigint nvalid,nvalid_last;
   int *which,*argindex,*value2index,*offcol;
   int *varlen;               // 1 if value is from variable-length compute
   char **ids;
@@ -127,6 +127,10 @@ E: Fix ave/time fix does not calculate a vector
 
 Self-explanatory.
 
+E: Fix ave/time fix vector cannot be variable length
+
+UNDOCUMENTED
+
 E: Fix ave/time fix vector is accessed out-of-range
 
 The index for the vector is out of bounds.
@@ -139,6 +143,10 @@ is requesting a value on a non-allowed timestep.
 E: Fix ave/time fix does not calculate an array
 
 Self-explanatory.
+
+E: Fix ave/time fix array cannot be variable length
+
+UNDOCUMENTED
 
 E: Fix ave/time fix array is accessed out-of-range
 
@@ -156,15 +164,15 @@ E: Fix ave/time cannot use variable with vector mode
 
 Variables produce scalar values.
 
-E: Fix ave/time columns are inconsistent lengths
-
-Self-explanatory.
-
 E: Fix ave/time cannot set output array intensive/extensive from these inputs
 
 One of more of the vector inputs has individual elements which are
 flagged as intensive or extensive.  Such an input cannot be flagged as
 all intensive/extensive when turned into an array by fix ave/time.
+
+E: Fix ave/time columns are inconsistent lengths
+
+Self-explanatory.
 
 E: Cannot open fix ave/time file %s
 

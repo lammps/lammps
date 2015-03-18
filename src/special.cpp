@@ -18,6 +18,7 @@
 #include "atom_vec.h"
 #include "force.h"
 #include "comm.h"
+#include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
 
@@ -572,9 +573,17 @@ void Special::combine()
       fprintf(logfile,"  %d = max # of special neighbors\n",atom->maxspecial);
   }
 
-  memory->destroy(atom->special);
+  if (lmp->kokkos) {
+    AtomKokkos* atomKK = (AtomKokkos*) atom;
+#ifdef LMP_KOKKOS
+    memory->grow_kokkos(atomKK->k_special,atom->special,
+                        atom->nmax,atom->maxspecial,"atom:special");
+#endif
+  } else {
+    memory->destroy(atom->special);
+    memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");
+  }
 
-  memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");
   atom->avec->grow_reset();
   tagint **special = atom->special;
 

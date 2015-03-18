@@ -154,35 +154,39 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   dihedrallist = NULL;
   maximproper = 0;
   improperlist = NULL;
+
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Neighbor::~Neighbor()
 {
+  if (copymode) return;
+
   memory->destroy(cutneighsq);
   memory->destroy(cutneighghostsq);
   delete [] cuttype;
   delete [] cuttypesq;
   delete [] fixchecklist;
-
+  
   memory->destroy(xhold);
-
+  
   memory->destroy(binhead);
   memory->destroy(bins);
-
+  
   memory->destroy(ex1_type);
   memory->destroy(ex2_type);
   memory->destroy(ex_type);
-
+  
   memory->destroy(ex1_group);
   memory->destroy(ex2_group);
   delete [] ex1_bit;
   delete [] ex2_bit;
-
+  
   memory->destroy(ex_mol_group);
   delete [] ex_mol_bit;
-
+  
   for (int i = 0; i < nlist; i++) delete lists[i];
   delete [] lists;
   delete [] pair_build;
@@ -190,12 +194,12 @@ Neighbor::~Neighbor()
   delete [] blist;
   delete [] glist;
   delete [] slist;
-
+  
   for (int i = 0; i < nrequest; i++) delete requests[i];
   memory->sfree(requests);
   for (int i = 0; i < old_nrequest; i++) delete old_requests[i];
   memory->sfree(old_requests);
-
+  
   memory->destroy(bondlist);
   memory->destroy(anglelist);
   memory->destroy(dihedrallist);
@@ -831,6 +835,11 @@ void Neighbor::init()
   // topology lists
 
   // 1st time allocation of topology lists
+
+  if (lmp->kokkos) {
+    init_topology_kokkos();
+    return;
+  }
 
   if (atom->molecular && atom->nbonds && maxbond == 0) {
     if (nprocs == 1) maxbond = atom->nbonds;
@@ -1523,11 +1532,8 @@ void Neighbor::build(int topoflag)
   // only for pairwise lists with buildflag set
   // blist is for standard neigh lists, otherwise is a Kokkos list
 
-  for (i = 0; i < nblist; i++) {
-    if (lists[blist[i]])
-      (this->*pair_build[blist[i]])(lists[blist[i]]);
-    else build_kokkos(i);
-  }
+  for (i = 0; i < nblist; i++)
+    (this->*pair_build[blist[i]])(lists[blist[i]]);
 
   if (atom->molecular && topoflag) build_topology();
 }

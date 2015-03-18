@@ -430,6 +430,7 @@ in the command's documentation.
 "prd"_prd.html,
 "print"_print.html,
 "processors"_processors.html,
+"python"_python.html,
 "quit"_quit.html,
 "read_data"_read_data.html,
 "read_dump"_read_dump.html,

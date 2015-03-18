@@ -7,6 +7,7 @@
 :line
 
 improper_style harmonic command :h3
+improper_style harmonic/kk command :h3
 improper_style harmonic/omp command :h3
 
 [Syntax:]

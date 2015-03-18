@@ -890,9 +890,9 @@ KOKKOS, o = USER-OMP, t = OPT.
 "none"_bond_none.html,
 "hybrid"_bond_hybrid.html,
 "class2 (o)"_bond_class2.html,
-"fene (o)"_bond_fene.html,
+"fene (ko)"_bond_fene.html,
 "fene/expand (o)"_bond_fene_expand.html,
-"harmonic (o)"_bond_harmonic.html,
+"harmonic (ko)"_bond_harmonic.html,
 "morse (o)"_bond_morse.html,
 "nonlinear (o)"_bond_nonlinear.html,
 "quartic (o)"_bond_quartic.html,
@@ -919,13 +919,13 @@ KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_angle_none.html,
 "hybrid"_angle_hybrid.html,
-"charmm (o)"_angle_charmm.html,
+"charmm (ko)"_angle_charmm.html,
 "class2 (o)"_angle_class2.html,
 "cosine (o)"_angle_cosine.html,
 "cosine/delta (o)"_angle_cosine_delta.html,
 "cosine/periodic (o)"_angle_cosine_periodic.html,
 "cosine/squared (o)"_angle_cosine_squared.html,
-"harmonic (o)"_angle_harmonic.html,
+"harmonic (ko)"_angle_harmonic.html,
 "table (o)"_angle_table.html :tb(c=4,ea=c)
 
 These are additional angle styles in USER packages, which can be used
@@ -954,12 +954,12 @@ KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_dihedral_none.html,
 "hybrid"_dihedral_hybrid.html,
-"charmm (o)"_dihedral_charmm.html,
+"charmm (ko)"_dihedral_charmm.html,
 "class2 (o)"_dihedral_class2.html,
 "harmonic (o)"_dihedral_harmonic.html,
 "helix (o)"_dihedral_helix.html,
 "multi/harmonic (o)"_dihedral_multi_harmonic.html,
-"opls (o)"_dihedral_opls.html :tb(c=4,ea=c)
+"opls (ko)"_dihedral_opls.html :tb(c=4,ea=c)
 
 These are additional dihedral styles in USER packages, which can be
 used if "LAMMPS is built with the appropriate
@@ -987,7 +987,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "hybrid"_improper_hybrid.html,
 "class2 (o)"_improper_class2.html,
 "cvff (o)"_improper_cvff.html,
-"harmonic (o)"_improper_harmonic.html,
+"harmonic (ko)"_improper_harmonic.html,
 "umbrella (o)"_improper_umbrella.html :tb(c=4,ea=c)
 
 These are additional improper styles in USER packages, which can be

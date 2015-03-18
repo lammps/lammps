@@ -30,7 +30,7 @@ class ImproperHarmonic : public Improper {
   ImproperHarmonic(class LAMMPS *);
   virtual ~ImproperHarmonic();
   virtual void compute(int, int);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_data(FILE *);
@@ -38,7 +38,7 @@ class ImproperHarmonic : public Improper {
  protected:
   double *k,*chi;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

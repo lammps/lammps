@@ -40,7 +40,7 @@ class BondHarmonic : public Bond {
  protected:
   double *k,*r0;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

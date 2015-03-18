@@ -30,7 +30,7 @@ class AngleHarmonic : public Angle {
   AngleHarmonic(class LAMMPS *);
   virtual ~AngleHarmonic();
   virtual void compute(int, int);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -40,7 +40,7 @@ class AngleHarmonic : public Angle {
  protected:
   double *k,*theta0;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

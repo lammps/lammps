@@ -30,8 +30,8 @@ class DihedralCharmm : public Dihedral {
   DihedralCharmm(class LAMMPS *);
   virtual ~DihedralCharmm();
   virtual void compute(int, int);
-  void coeff(int, char **);
-  void init_style();
+  virtual void coeff(int, char **);
+  virtual void init_style();
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_data(FILE *);
@@ -42,7 +42,7 @@ class DihedralCharmm : public Dihedral {
   double **lj14_1,**lj14_2,**lj14_3,**lj14_4;
   int implicit,weightflag;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

@@ -42,7 +42,7 @@ ImproperHarmonic::ImproperHarmonic(LAMMPS *lmp) : Improper(lmp)
 
 ImproperHarmonic::~ImproperHarmonic()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(chi);

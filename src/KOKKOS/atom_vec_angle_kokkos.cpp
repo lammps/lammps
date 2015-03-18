@@ -1636,6 +1636,7 @@ void AtomVecAngleKokkos::data_atom(double *coord, imageint imagetmp,
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
+  atomKK->modified(Host,ALL_MASK);
 
   h_tag(nlocal) = atoi(values[0]);
   h_molecule(nlocal) = atoi(values[1]);

@@ -1895,6 +1895,7 @@ void AtomVecMolecularKokkos::data_atom(double *coord, imageint imagetmp,
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
+  atomKK->modified(Host,ALL_MASK);
 
   h_tag(nlocal) = atoi(values[0]);
   h_molecule(nlocal) = atoi(values[1]);
@@ -2094,7 +2095,7 @@ void AtomVecMolecularKokkos::sync(ExecutionSpace space, unsigned int mask)
       atomKK->k_improper_atom1.sync<LMPDeviceType>();
       atomKK->k_improper_atom2.sync<LMPDeviceType>();
       atomKK->k_improper_atom3.sync<LMPDeviceType>();
-      atomKK->k_improper_atom3.sync<LMPDeviceType>();
+      atomKK->k_improper_atom4.sync<LMPDeviceType>();
     }
   } else {
     if (mask & X_MASK) atomKK->k_x.sync<LMPHostType>();
@@ -2135,7 +2136,7 @@ void AtomVecMolecularKokkos::sync(ExecutionSpace space, unsigned int mask)
       atomKK->k_improper_atom1.sync<LMPHostType>();
       atomKK->k_improper_atom2.sync<LMPHostType>();
       atomKK->k_improper_atom3.sync<LMPHostType>();
-      atomKK->k_improper_atom3.sync<LMPHostType>();
+      atomKK->k_improper_atom4.sync<LMPHostType>();
     }
   }
 }
@@ -2183,7 +2184,7 @@ void AtomVecMolecularKokkos::modified(ExecutionSpace space, unsigned int mask)
       atomKK->k_improper_atom1.modify<LMPDeviceType>();
       atomKK->k_improper_atom2.modify<LMPDeviceType>();
       atomKK->k_improper_atom3.modify<LMPDeviceType>();
-      atomKK->k_improper_atom3.modify<LMPDeviceType>();
+      atomKK->k_improper_atom4.modify<LMPDeviceType>();
     }
   } else {
     if (mask & X_MASK) atomKK->k_x.modify<LMPHostType>();
@@ -2224,7 +2225,7 @@ void AtomVecMolecularKokkos::modified(ExecutionSpace space, unsigned int mask)
       atomKK->k_improper_atom1.modify<LMPHostType>();
       atomKK->k_improper_atom2.modify<LMPHostType>();
       atomKK->k_improper_atom3.modify<LMPHostType>();
-      atomKK->k_improper_atom3.modify<LMPHostType>();
+      atomKK->k_improper_atom4.modify<LMPHostType>();
     }
   }
 }

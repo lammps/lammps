@@ -7,6 +7,7 @@
 :line
 
 dihedral_style opls command :h3
+dihedral_style opls/kk command :h3
 dihedral_style opls/omp command :h3
 
 [Syntax:]

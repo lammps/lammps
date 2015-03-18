@@ -7,6 +7,7 @@
 :line
 
 bond_style fene command :h3
+bond_style fene/kk command :h3
 bond_style fene/omp command :h3
 
 [Syntax:]

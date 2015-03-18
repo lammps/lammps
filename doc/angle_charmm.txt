@@ -7,6 +7,7 @@
 :line
 
 angle_style charmm command :h3
+angle_style charmm/kk command :h3
 angle_style charmm/omp command :h3
 
 [Syntax:]

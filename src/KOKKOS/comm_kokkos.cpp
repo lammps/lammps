@@ -888,10 +888,11 @@ void CommKokkos::borders_device() {
 
   // reset global->local map
 
-  if (map_style) atom->map_set();
   if (exec_space == Host) k_sendlist.sync<LMPDeviceType>();
   atomKK->modified(exec_space,ALL_MASK);
   DeviceType::fence();
+  atomKK->sync(Host,TAG_MASK);
+  if (map_style) atom->map_set();
 }
 /* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR and bufextra

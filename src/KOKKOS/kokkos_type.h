@@ -232,7 +232,7 @@ typedef tdual_tagint_1d::t_dev_const_um t_tagint_1d_const_um;
 typedef tdual_tagint_1d::t_dev_const_randomread t_tagint_1d_randomread;
 
 typedef Kokkos::
-  DualView<LAMMPS_NS::tagint**, LMPDeviceType::array_layout, LMPDeviceType>
+  DualView<LAMMPS_NS::tagint**, Kokkos::LayoutRight, LMPDeviceType>
   tdual_tagint_2d;
 typedef tdual_tagint_2d::t_dev t_tagint_2d;
 typedef tdual_tagint_2d::t_dev_const t_tagint_2d_const;
@@ -455,7 +455,7 @@ typedef tdual_tagint_1d::t_host_const_um t_tagint_1d_const_um;
 typedef tdual_tagint_1d::t_host_const_randomread t_tagint_1d_randomread;
 
 typedef Kokkos::
-  DualView<LAMMPS_NS::tagint**, LMPDeviceType::array_layout, LMPDeviceType>
+  DualView<LAMMPS_NS::tagint**, Kokkos::LayoutRight, LMPDeviceType>
   tdual_tagint_2d;
 typedef tdual_tagint_2d::t_host t_tagint_2d;
 typedef tdual_tagint_2d::t_host_const t_tagint_2d_const;

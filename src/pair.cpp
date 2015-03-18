@@ -112,10 +112,10 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
 Pair::~Pair()
 {
-  if (!copymode) {
-    memory->destroy(eatom);
-    memory->destroy(vatom);
-  }
+  if (copymode) return;
+
+  memory->destroy(eatom);
+  memory->destroy(vatom);
 }
 
 /* ----------------------------------------------------------------------

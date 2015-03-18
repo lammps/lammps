@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+</* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -99,11 +99,11 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 Fix::~Fix()
 {
-  if (!copymode) {
-    delete [] id;
-    delete [] style;
-    memory->destroy(vatom);
-  }
+  if (copymode) return;
+
+  delete [] id;
+  delete [] style;
+  memory->destroy(vatom);
 }
 
 /* ----------------------------------------------------------------------

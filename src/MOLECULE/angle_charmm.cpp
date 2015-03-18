@@ -40,7 +40,7 @@ AngleCharmm::AngleCharmm(LAMMPS *lmp) : Angle(lmp) {}
 
 AngleCharmm::~AngleCharmm()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(theta0);

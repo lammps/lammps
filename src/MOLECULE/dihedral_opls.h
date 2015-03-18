@@ -38,7 +38,7 @@ class DihedralOPLS : public Dihedral {
  protected:
   double *k1,*k2,*k3,*k4;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

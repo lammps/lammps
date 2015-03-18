@@ -44,7 +44,7 @@ DihedralOPLS::DihedralOPLS(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralOPLS::~DihedralOPLS()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k1);
     memory->destroy(k2);

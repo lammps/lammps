@@ -32,7 +32,7 @@ BondHarmonic::BondHarmonic(LAMMPS *lmp) : Bond(lmp) {}
 
 BondHarmonic::~BondHarmonic()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(r0);

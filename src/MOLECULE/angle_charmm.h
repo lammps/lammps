@@ -30,7 +30,7 @@ class AngleCharmm : public Angle {
   AngleCharmm(class LAMMPS *);
   virtual ~AngleCharmm();
   virtual void compute(int, int);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -40,7 +40,7 @@ class AngleCharmm : public Angle {
  protected:
   double *k,*theta0,*k_ub,*r_ub;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

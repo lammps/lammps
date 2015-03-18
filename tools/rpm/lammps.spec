@@ -1,19 +1,19 @@
-# verified on Fedora 17     / x86_64 / 2015-02-26
-# verified on Fedora 17     / i386   / 2015-02-26
-# verified on Fedora 18     / x86_64 / 2015-02-26
-# verified on Fedora 18     / i386   / 2015-02-26
-# verified on Fedora 19     / x86_64 / 2015-02-26
-# verified on Fedora 19     / i386   / 2015-02-26
-# verified on Fedora 20     / x86_64 / 2015-02-26
-# verified on Fedora 20     / i386   / 2015-02-26
-# verified on Fedora 21     / x86_64 / 2015-02-26
-# verified on CentOS 6.6    / x86_64 / 2015-02-26
-# verified on CentOS 6.6    / i386   / 2015-02-26
-# verified on CentOS 7.0    / x86_64 / 2015-02-26
-# verified on OpenSuSE 12.3 / x86_64 / 2015-02-26
-# verified on OpenSuSE 12.3 / i586   / 2015-02-26
-# verified on OpenSuSE 13.1 / x86_64 / 2015-02-26
-# verified on OpenSuSE 13.1 / i586   / 2015-02-26
+# verified on Fedora 17     / x86_64 / 2015-03-18
+# verified on Fedora 17     / i386   / 2015-03-18
+# verified on Fedora 18     / x86_64 / 2015-03-18
+# verified on Fedora 18     / i386   / 2015-03-18
+# verified on Fedora 19     / x86_64 / 2015-03-18
+# verified on Fedora 19     / i386   / 2015-03-18
+# verified on Fedora 20     / x86_64 / 2015-03-18
+# verified on Fedora 20     / i386   / 2015-03-18
+# verified on Fedora 21     / x86_64 / 2015-03-18
+# verified on CentOS 6.6    / x86_64 / 2015-03-18
+# verified on CentOS 6.6    / i386   / 2015-03-18
+# verified on CentOS 7.0    / x86_64 / 2015-03-18
+# verified on OpenSuSE 12.3 / x86_64 / 2015-03-18
+# verified on OpenSuSE 12.3 / i586   / 2015-03-18
+# verified on OpenSuSE 13.1 / x86_64 / 2015-03-18
+# verified on OpenSuSE 13.1 / i586   / 2015-03-18
 
 %ifnarch s390 s390x
 %global with_openmpi 1
@@ -59,6 +59,7 @@ Source2:        lammps.csh
 BuildRequires:  gcc-c++
 BuildRequires:  fftw-devel
 BuildRequires:  libpng-devel
+BuildRequires:  python-devel
 %if %{with_suse}
 BuildRequires:  gcc-fortran
 BuildRequires:  libjpeg8-devel
@@ -86,6 +87,7 @@ This package contains a LAMMPS executable compiled without MPI support.
 %package common
 Summary:        LAMMPS utilities and potentials
 Group:          Applications/Engineering
+Requires:       python
 
 %description common
 %{lammps_desc}

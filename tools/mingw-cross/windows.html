@@ -37,9 +37,11 @@
       The LAMMPS binaries contain <b>all</b> optional packages included in
       the source distribution <b>except</b>: <u>KIM</u> (license is not GPL compatible),
       <u>USER-CUDA</u> (CUDA does not support cross compilation),
-      <u>USER-QMMM</u> (only useful when linking to a QM software),
       <u>KOKKOS</u> and <u>USER-INTEL</u> 
-      (do not support cross-compilation with GCC), and 
+      (do not support cross-compilation with GCC),
+      <u>PYTHON</u> (requires to bundle a full Python runtime),
+      <u>USER-QMMM</u> (only useful when linking to a QM software),
+      <u>USER-QUIP</u> (requires external library),
       <u>REAX</u> (superseded by the <u>USER-REAXC</u> package which <b>is</b> included).
       The <b>serial</b> executable additionally does not contain the
       <u>MPIIO</u> and <u>USER-LB</u> packages, since those require

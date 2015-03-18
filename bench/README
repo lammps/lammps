@@ -82,7 +82,7 @@ also leave off the "-fft fftw3" switch if you do not have the FFTW
 library will be used.
 
 cd src
-Make.py -j 16 -p none molecule manybody kspace granular orig \
+Make.py -j 16 -p none molecule manybody kspace granular rigid orig \
   -cc mpi wrap=icc -fft fftw3 -a file mpi
 
 ----------------------------------------------------------------------

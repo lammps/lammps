@@ -28,14 +28,15 @@
 #include "compute.h"
 #include "fix.h"
 #include "fix_store.h"
+#include "force.h"
 #include "output.h"
 #include "thermo.h"
 #include "random_mars.h"
 #include "math_const.h"
 #include "atom_masks.h"
+#include "python_wrapper.h"
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,13 +45,13 @@ using namespace MathConst;
 #define MAXLEVEL 4
 #define MAXLINE 256
 #define CHUNK 1024
-#define VALUELENGTH 64
+#define VALUELENGTH 64               // also in python.cpp
 #define MAXFUNCARG 6
 
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
 enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
-     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM};
+     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,PYTHON};
 enum{ARG,OP};
 
 // customize by adding a function
@@ -106,6 +107,10 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   precedence[MULTIPLY] = precedence[DIVIDE] = precedence[MODULO] = 6;
   precedence[CARAT] = 7;
   precedence[UNARY] = precedence[NOT] = 8;
+
+  // Python wrapper, real or dummy
+
+  python = new Python(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -131,6 +136,8 @@ Variable::~Variable()
 
   delete randomequal;
   delete randomatom;
+
+  delete python;
 }
 
 /* ----------------------------------------------------------------------
@@ -413,9 +420,36 @@ void Variable::set(int narg, char **arg)
       copy(1,&arg[2],data[nvar]);
     }
 
+  // PYTHON
+  // replace pre-existing var if also style PYTHON (allows it to be reset)
+  // num = 2, which = 1st value
+  // data = 2 values, 1st is Python func to invoke, 2nd is filled by invoke
+
+  } else if (strcmp(arg[1],"python") == 0) {
+    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (!python->python_exists)
+      error->all(FLERR,"LAMMPS is not built with Python embedded");
+    int ivar = find(arg[0]);
+    if (ivar >= 0) {
+      if (style[ivar] != PYTHON)
+        error->all(FLERR,"Cannot redefine variable as a different style");
+      delete [] data[ivar][0];
+      copy(1,&arg[2],data[ivar]);
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = PYTHON;
+      num[nvar] = 2;
+      which[nvar] = 1;
+      pad[nvar] = 0;
+      data[nvar] = new char*[num[nvar]];
+      copy(1,&arg[2],data[nvar]);
+      data[nvar][1] = new char[VALUELENGTH];
+    }
+
   } else error->all(FLERR,"Illegal variable command");
 
-  // set name of variable, if not replacing (STRING/EQUAL/ATOM)
+  // set name of variable, if not replacing (EQUAL/ATOM/STRING/PYTHON)
   // name must be all alphanumeric chars or underscores
 
   if (replaceflag) return;
@@ -447,6 +481,23 @@ void Variable::set(char *name, int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   set existing STRING variable to str
+   return 0 if successful
+   return -1 if variable doesn't exist or isn't a STRING variable
+   called via library interface, so external programs can set variables
+------------------------------------------------------------------------- */
+
+int Variable::set_string(char *name, char *str)
+{
+  int ivar = find(name);
+  if (ivar < 0) return -1;
+  if (style[ivar] != STRING) return -1;
+  delete [] data[ivar][0];
+  copy(1,&str,data[ivar]);
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    increment variable(s)
    return 0 if OK if successfully incremented
    return 1 if any variable is exhausted, free the variable to allow re-use
@@ -470,11 +521,12 @@ int Variable::next(int narg, char **arg)
       error->all(FLERR,"All variables in next command must be same style");
   }
 
-  // invalid styles STRING or EQUAL or WORLD or ATOM or GETENV or FORMAT
+  // invalid styles: STRING, EQUAL, WORLD, ATOM, GETENV, FORMAT, PYTHON
 
   int istyle = style[find(arg[0])];
-  if (istyle == STRING || istyle == EQUAL || istyle == WORLD
-      || istyle == GETENV || istyle == ATOM || istyle == FORMAT)
+  if (istyle == STRING || istyle == EQUAL || istyle == WORLD || 
+      istyle == GETENV || istyle == ATOM || istyle == FORMAT || 
+      istyle == PYTHON)
     error->all(FLERR,"Invalid variable style with next command");
 
   // if istyle = UNIVERSE or ULOOP, insure all such variables are incremented
@@ -588,15 +640,95 @@ int Variable::next(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   search for name in list of variables names
+   return index or -1 if not found
+------------------------------------------------------------------------- */
+
+int Variable::find(char *name)
+{
+  for (int i = 0; i < nvar; i++)
+    if (strcmp(name,names[i]) == 0) return i;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's storage values in all VarReaders via fix STORE
+   called when atom is created
+------------------------------------------------------------------------- */
+
+void Variable::set_arrays(int i)
+{
+  for (int i = 0; i < nvar; i++)
+    if (reader[i] && style[i] == ATOMFILE)
+      reader[i]->fixstore->vstore[i] = 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   called by python command in input script
+   simply pass input script line args to Python class
+------------------------------------------------------------------------- */
+
+void Variable::python_command(int narg, char **arg)
+{
+  if (!python->python_exists)
+    error->all(FLERR,"LAMMPS is not built with Python embedded");
+  python->command(narg,arg);
+}
+
+/* ----------------------------------------------------------------------
+   return 1 if variable is EQUAL or PYTHON numeric style, 0 if not
+   this is checked before call to compute_equal() to return a double
+------------------------------------------------------------------------- */
+
+int Variable::equalstyle(int ivar)
+{
+  if (style[ivar] == EQUAL) return 1;
+  if (style[ivar] == PYTHON) {
+    int ifunc = python->variable_match(data[ivar][0],names[ivar],1);
+    if (ifunc < 0) return 0;
+    else return 1;
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   return 1 if variable is ATOM or ATOMFILE style, 0 if not
+   this is checked before call to compute_atom() to return a vector of doubles
+------------------------------------------------------------------------- */
+
+int Variable::atomstyle(int ivar)
+{
+  if (style[ivar] == ATOM || style[ivar] == ATOMFILE) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   check if variable with name is PYTHON and matches funcname
+   called by Python class before it invokes a Python function
+   return data storage so Python function can return a value for this variable
+   return NULL if not a match
+------------------------------------------------------------------------- */
+
+char *Variable::pythonstyle(char *name, char *funcname)
+{
+  int ivar = find(name);
+  if (ivar == -1) return NULL;
+  if (style[ivar] != PYTHON) return NULL;
+  if (strcmp(data[ivar][0],funcname) != 0) return NULL;
+  return data[ivar][1];
+}
+
+/* ----------------------------------------------------------------------
    return ptr to the data text associated with a variable
-   if INDEX or WORLD or UNIVERSE or STRING or SCALARFILE var, 
+   if INDEX or WORLD or UNIVERSE or STRING or SCALARFILE, 
      return ptr to stored string
-   if LOOP or ULOOP var, write int to data[0] and return ptr to string
-   if EQUAL var, evaluate variable and put result in str
-   if FORMAT var, evaluate its variable and put formatted result in str
-   if GETENV var, query environment and put result in str
-   if ATOM or ATOMFILE var, return NULL
-   return NULL if no variable with name or which value is bad,
+   if LOOP or ULOOP, write int to data[0] and return ptr to string
+   if EQUAL, evaluate variable and put result in str
+   if FORMAT, evaluate its variable and put formatted result in str
+   if GETENV, query environment and put result in str
+   if PYTHON, evaluate Python function, it will put result in str
+   if ATOM or ATOMFILE, return NULL
+   return NULL if no variable with name, or which value is bad,
      caller must respond
 ------------------------------------------------------------------------- */
 
@@ -605,6 +737,10 @@ char *Variable::retrieve(char *name)
   int ivar = find(name);
   if (ivar == -1) return NULL;
   if (which[ivar] >= num[ivar]) return NULL;
+
+  if (eval_in_progress[ivar]) 
+    error->all(FLERR,"Variable has circular dependency");
+  eval_in_progress[ivar] = 1;
 
   char *str;
   if (style[ivar] == INDEX || style[ivar] == WORLD ||
@@ -625,16 +761,14 @@ char *Variable::retrieve(char *name)
     strcpy(data[ivar][0],result);
     str = data[ivar][0];
   } else if (style[ivar] == EQUAL) {
-    eval_in_progress[ivar] = 1;
     double answer = evaluate(data[ivar][0],NULL);
-    eval_in_progress[ivar] = 0;
     sprintf(data[ivar][1],"%.15g",answer);
     str = data[ivar][1];
   } else if (style[ivar] == FORMAT) {
     int jvar = find(data[ivar][0]);
     if (jvar == -1) return NULL;
     if (!equalstyle(jvar)) return NULL;
-    double answer = evaluate(data[jvar][0],NULL);
+    double answer = compute_equal(jvar);
     sprintf(data[ivar][2],data[ivar][1],answer);
     str = data[ivar][2];
   } else if (style[ivar] == GETENV) {
@@ -647,13 +781,24 @@ char *Variable::retrieve(char *name)
     }
     strcpy(data[ivar][1],result);
     str = data[ivar][1];
+  } else if (style[ivar] == PYTHON) {
+    int ifunc = python->variable_match(data[ivar][0],names[ivar],0);
+    if (ifunc < 0) 
+      error->all(FLERR,"Python variable does not match Python function");
+    python->invoke_function(ifunc,data[ivar][1]);
+    str = data[ivar][1];
   } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE) return NULL;
+
+  eval_in_progress[ivar] = 0;
 
   return str;
 }
 
 /* ----------------------------------------------------------------------
    return result of equal-style variable evaluation
+   can be EQUAL style or PYTHON numeric style
+   for PYTHON, don't need to check python->variable_match() error return,
+     since caller will have already checked via equalstyle()
 ------------------------------------------------------------------------- */
 
 double Variable::compute_equal(int ivar)
@@ -662,7 +807,14 @@ double Variable::compute_equal(int ivar)
     error->all(FLERR,"Variable has circular dependency");
   eval_in_progress[ivar] = 1;
 
-  double value = evaluate(data[ivar][0],NULL);
+  double value;
+  if (style[ivar] == EQUAL) value = evaluate(data[ivar][0],NULL);
+  else if (style[ivar] == PYTHON) {
+    int ifunc = python->find(data[ivar][0]);
+    if (ifunc < 0) error->all(FLERR,"Python variable has no function");
+    python->invoke_function(ifunc,data[ivar][1]);
+    value = atof(data[ivar][1]);
+  }
 
   eval_in_progress[ivar] = 0;
   return value;
@@ -671,6 +823,7 @@ double Variable::compute_equal(int ivar)
 /* ----------------------------------------------------------------------
    return result of immediate equal-style variable evaluation
    called from Input::substitute()
+   don't need to flag eval_in_progress since is an immediate variable
 ------------------------------------------------------------------------- */
 
 double Variable::compute_equal(char *str)
@@ -745,53 +898,10 @@ void Variable::compute_atom(int ivar, int igroup,
 }
 
 /* ----------------------------------------------------------------------
-   search for name in list of variables names
-   return index or -1 if not found
-------------------------------------------------------------------------- */
-
-int Variable::find(char *name)
-{
-  for (int i = 0; i < nvar; i++)
-    if (strcmp(name,names[i]) == 0) return i;
-  return -1;
-}
-
-/* ----------------------------------------------------------------------
-   initialize one atom's storage values in all VarReaders via fix STORE
-   called when atom is created
-------------------------------------------------------------------------- */
-
-void Variable::set_arrays(int i)
-{
-  for (int i = 0; i < nvar; i++)
-    if (reader[i] && style[i] == ATOMFILE)
-      reader[i]->fixstore->vstore[i] = 0.0;
-}
-
-/* ----------------------------------------------------------------------
-   return 1 if variable is EQUAL style, 0 if not
-------------------------------------------------------------------------- */
-
-int Variable::equalstyle(int ivar)
-{
-  if (style[ivar] == EQUAL) return 1;
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
-   return 1 if variable is ATOM or ATOMFILE style, 0 if not
-------------------------------------------------------------------------- */
-
-int Variable::atomstyle(int ivar)
-{
-  if (style[ivar] == ATOM || style[ivar] == ATOMFILE) return 1;
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
    save copy of EQUAL style ivar formula in copy
    allocate copy here, later equal_restore() call will free it
    insure data[ivar][0] is of VALUELENGTH since will be overridden
+   next 3 functions are used by create_atoms to temporarily override variables
 ------------------------------------------------------------------------- */
 
 void Variable::equal_save(int ivar, char *&copy)
@@ -2712,8 +2822,6 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
     int ivar = find(id);
     if (ivar < 0)
       error->all(FLERR,"Invalid variable name in variable formula");
-    if (eval_in_progress[ivar])
-      error->all(FLERR,"Variable has circular dependency");
 
     char *var = retrieve(id);
     if (var == NULL)

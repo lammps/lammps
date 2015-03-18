@@ -25,11 +25,17 @@ class Variable : protected Pointers {
   ~Variable();
   void set(int, char **);
   void set(char *, int, char **);
+  int set_string(char *, char *);
   int next(int, char **);
+
   int find(char *);
   void set_arrays(int);
+  void python_command(int, char **);
+
   int equalstyle(int);
   int atomstyle(int);
+  char *pythonstyle(char *, char *);
+
   char *retrieve(char *);
   double compute_equal(int);
   double compute_equal(char *);
@@ -64,6 +70,8 @@ class Variable : protected Pointers {
   int precedence[17];      // precedence level of math operators
                            // set length to include up to OR in enum
 
+  class Python *python;    // ptr to embedded Python interpreter
+
   struct Tree {            // parse tree for atom-style variables
     double value;          // single scalar  
     double *array;         // per-atom or per-type list of doubles
@@ -78,6 +86,7 @@ class Variable : protected Pointers {
     Tree **extra;          // ptrs further down tree for nextra args
   };
 
+  int compute_python(int);
   void remove(int);
   void grow();
   void copy(int, char **, char **);

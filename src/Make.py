@@ -1752,12 +1752,20 @@ class MakeReader:
     newlines = []
     pattern = "(\S+\s+=\s+)(.*)"
     multiline = 0
+    conditional = 0
     self.ccindex = self.lmpindex = 0
     
     for line in lines:
       line = line[:-1]
       if "CC =" in line: self.ccindex = len(newlines)
       if "LAMMPS-specific settings" in line: self.lmpindex = len(newlines)
+      if "ifeq" in line:
+        conditional = 1
+        continue
+      if conditional:
+        if "endif" in line:
+          conditional = 0
+        continue
       if multiline:
         if '#' in line: line = line[:line.find('#')]
         morevalues = line.split()

@@ -719,6 +719,8 @@ void FixAveChunk::end_of_step()
   //   exception is scaleflag = NOSCALE : no normalize by atom count
   //     check last so other options can take precedence
 
+  double mvv2e = force->mvv2e;
+
   if (normflag == ALL) {
     for (m = 0; m < nchunk; m++) {
       count_many[m] += count_one[m];
@@ -731,7 +733,8 @@ void FixAveChunk::end_of_step()
       if (count_many[m] > 0.0)
         for (j = 0; j < nvalues; j++) {
           if (which[j] == TEMPERATURE)
-            values_many[m][j] += values_one[m][j] / (cdof + adof*count_many[m]);
+            values_many[m][j] += mvv2e*values_one[m][j] / 
+              (cdof + adof*count_many[m]);
           else if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS ||
                    scaleflag == NOSCALE)
             values_many[m][j] += values_one[m][j];
@@ -780,7 +783,7 @@ void FixAveChunk::end_of_step()
       if (count_sum[m] > 0.0)
         for (j = 0; j < nvalues; j++) {
           if (which[j] == TEMPERATURE)
-            values_sum[m][j] /= (cdof + adof*count_sum[m]);
+            values_sum[m][j] *= mvv2e / (cdof + adof*count_sum[m]);
           else if (which[j] == DENSITY_MASS)
             values_sum[m][j] *= mv2d/repeat;
           else if (which[j] == DENSITY_NUMBER || scaleflag == NOSCALE)

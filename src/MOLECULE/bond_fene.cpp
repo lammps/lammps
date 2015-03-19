@@ -36,7 +36,7 @@ BondFENE::BondFENE(LAMMPS *lmp) : Bond(lmp)
 
 BondFENE::~BondFENE()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(r0);

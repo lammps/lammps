@@ -105,9 +105,13 @@ E: Cannot balance in z dimension for 2d simulation
 
 Self-explanatory.
 
-E: Balance dynamic string is invalid
+E: Balance shift string is invalid
 
-The string can only contain the characters "x", "y", or "z".
+UNDOCUMENTED
+
+E: Balance rcb cannot be used with comm_style brick
+
+UNDOCUMENTED
 
 E: Lost atoms via balance: original %ld current %ld
 
@@ -118,5 +122,9 @@ E: Balance produced bad splits
 This should not occur.  It means two or more cutting plane locations
 are on top of each other or out of order.  Report the problem to the
 developers.
+
+U: Balance dynamic string is invalid
+
+The string can only contain the characters "x", "y", or "z".
 
 */

@@ -89,4 +89,44 @@ class PairCoulStreitz : public Pair {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Incorrect args for pair coefficients
+
+UNDOCUMENTED
+
+E: Pair style coul/sm requires atom attribute q
+
+UNDOCUMENTED
+
+E: Pair style requires KSpace style ewald
+
+UNDOCUMENTED
+
+E: All pair coeffs are not set
+
+UNDOCUMENTED
+
+E: Cannot open coul/Streitz potential file %s
+
+UNDOCUMENTED
+
+E: Incorrect format in coul/Streitz potential file
+
+UNDOCUMENTED
+
+E: Illegal coul/Streitz parameter
+
+UNDOCUMENTED
+
+E: Potential file has duplicate entry
+
+UNDOCUMENTED
+
+E: Potential file is missing an entry
+
+UNDOCUMENTED
+
 */

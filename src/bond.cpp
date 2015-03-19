@@ -47,12 +47,16 @@ Bond::Bond(LAMMPS *lmp) : Pointers(lmp)
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
+
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Bond::~Bond()
 {
+  if (copymode) return;
+
   memory->destroy(eatom);
   memory->destroy(vatom);
 }

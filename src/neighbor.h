@@ -85,6 +85,8 @@ class Neighbor : protected Pointers {
   bigint memory_usage();
   int exclude_setting();
 
+  int cluster_check;               // 1 if check bond/angle/etc satisfies minimg
+
  protected:
   int me,nprocs;
 
@@ -103,7 +105,6 @@ class Neighbor : protected Pointers {
   double *cuttypesq;               // cuttype squared
 
   double triggersq;                // trigger = build when atom moves this dist
-  int cluster_check;               // 1 if check bond/angle/etc satisfies minimg
 
   double **xhold;                      // atom coords at last neighbor build
   int maxhold;                         // size of xhold array
@@ -189,6 +190,10 @@ class Neighbor : protected Pointers {
   virtual void init_list_grow_kokkos(int) {}
   virtual void build_kokkos(int) {}
   virtual void setup_bins_kokkos(int) {}
+  virtual void init_topology_kokkos() {}
+  virtual void build_topology_kokkos() {}
+
+  int copymode;
 
   // pairwise build functions
 

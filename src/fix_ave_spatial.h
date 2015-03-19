@@ -40,7 +40,7 @@ class FixAveSpatial : public Fix {
  private:
   int me,nvalues;
   int nrepeat,nfreq,irepeat;
-  bigint nvalid;
+  bigint nvalid,nvalid_last;
   int ndim,normflag,regionflag,overwrite,discard;
   char *tstring,*sstring,*idregion;
   int *which,*argindex,*value2index;
@@ -88,6 +88,10 @@ class FixAveSpatial : public Fix {
 
 /* ERROR/WARNING messages:
 
+W: The fix ave/spatial command has been replaced by the more flexible fix ave/chunk and compute chunk/atom commands -- fix ave/spatial will be removed in the summer of 2015
+
+UNDOCUMENTED
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -101,6 +105,10 @@ Self-explanatory.
 E: Same dimension twice in fix ave/spatial
 
 Self-explanatory.
+
+E: No input values for fix ave/spatial
+
+UNDOCUMENTED
 
 E: Region ID for fix ave/spatial does not exist
 
@@ -172,6 +180,10 @@ E: Fix for fix ave/spatial not computed at compatible time
 
 Fixes generate their values on specific timesteps.  Fix ave/spatial is
 requesting a value on a non-allowed timestep.
+
+E: Invalid bin bounds in fix ave/spatial
+
+UNDOCUMENTED
 
 E: Fix ave/spatial missed timestep
 

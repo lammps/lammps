@@ -140,4 +140,12 @@ E: Fix ID for velocity does not exist
 
 Self-explanatory.
 
+E: Cannot use velocity bias command without temp keyword
+
+UNDOCUMENTED
+
+E: Velocity temperature ID does calculate a velocity bias
+
+UNDOCUMENTED
+
 */

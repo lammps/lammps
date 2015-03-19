@@ -78,6 +78,14 @@ E: Angle style hybrid cannot have none as an argument
 
 Self-explanatory.
 
+E: BondAngle coeff for hybrid angle has invalid format
+
+UNDOCUMENTED
+
+E: BondBond coeff for hybrid angle has invalid format
+
+UNDOCUMENTED
+
 E: Angle coeff for hybrid has invalid style
 
 Angle style hybrid uses another angle style as one of its

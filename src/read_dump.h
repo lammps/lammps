@@ -113,9 +113,9 @@ E: Dump file does not contain requested snapshot
 
 Self-explanatory.
 
-E: Invalid dump reader style
+E: Unknown dump reader style
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: No box information in dump. You have to use 'box no'
 
@@ -156,5 +156,9 @@ E: If read_dump purges it cannot replace or trim
 
 These operations are not compatible.  See the read_dump doc
 page for details.
+
+U: Invalid dump reader style
+
+Self-explanatory.
 
 */

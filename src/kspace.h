@@ -216,6 +216,18 @@ E: KSpace style is incompatible with Pair style
 Setting a kspace style requires that a pair style with a long-range
 Coulombic or dispersion component be used.
 
+W: Using kspace solver on system with no charge
+
+UNDOCUMENTED
+
+E: System is not charge neutral, net charge = %g
+
+UNDOCUMENTED
+
+W: System is not charge neutral, net charge = %g
+
+UNDOCUMENTED
+
 W: For better accuracy use 'pair_modify table 0'
 
 The user-specified force accuracy cannot be achieved unless the table

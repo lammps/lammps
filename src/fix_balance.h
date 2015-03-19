@@ -72,16 +72,24 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix balance string is invalid
+E: Fix balance shift string is invalid
 
-The string can only contain the characters "x", "y", or "z".
+UNDOCUMENTED
 
-E: Fix balance string is invalid for 2d simulation
+E: Fix balance rcb cannot be used with comm_style brick
 
-The string cannot contain the letter "z".
+UNDOCUMENTED
 
 E: Cannot open fix balance output file
 
 Self-explanatory.
+
+U: Fix balance string is invalid
+
+The string can only contain the characters "x", "y", or "z".
+
+U: Fix balance string is invalid for 2d simulation
+
+The string cannot contain the letter "z".
 
 */

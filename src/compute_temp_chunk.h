@@ -82,11 +82,35 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Compute com/molecule requires molecular atom style
+E: Could not find compute ID for temperature bias
+
+UNDOCUMENTED
+
+E: Bias compute does not calculate temperature
+
+UNDOCUMENTED
+
+E: Bias compute does not calculate a velocity bias
+
+UNDOCUMENTED
+
+E: Cannot use both com and bias with compute temp/chunk
+
+UNDOCUMENTED
+
+E: Chunk/atom compute does not exist for compute temp/chunk
+
+UNDOCUMENTED
+
+E: Compute temp/chunk does not use chunk/atom compute
+
+UNDOCUMENTED
+
+U: Compute com/molecule requires molecular atom style
 
 Self-explanatory.
 
-E: Molecule count changed in compute com/molecule
+U: Molecule count changed in compute com/molecule
 
 Number of molecules must remain constant over time.
 

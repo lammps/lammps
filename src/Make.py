@@ -1751,8 +1751,8 @@ class MakeReader:
     varinfo = []
     newlines = []
     pattern = "(\S+\s+=\s+)(.*)"
-    multiline = 0
     conditional = 0
+    multiline = 0
     self.ccindex = self.lmpindex = 0
     
     for line in lines:

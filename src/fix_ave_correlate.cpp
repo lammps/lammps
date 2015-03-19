@@ -55,7 +55,6 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   nfreq = force->inumeric(FLERR,arg[5]);
 
   global_freq = nfreq;
-  time_depend = 1;
 
   // parse values until one isn't recognized
 
@@ -304,6 +303,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   lastindex = -1;
   firstindex = 0;
   nsample = 0;
+  nvalid_last = -1;
   nvalid = nextvalid();
   modify->addstep_compute_all(nvalid);
 }
@@ -391,9 +391,13 @@ void FixAveCorrelate::end_of_step()
   double scalar;
 
   // skip if not step which requires doing something
+  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
+  if (ntimestep < nvalid_last || ntimestep > nvalid) 
+    error->all(FLERR,"Invalid timestep resets for fix ave/time");
   if (ntimestep != nvalid) return;
+  nvalid_last = nvalid;
 
   // accumulate results of computes,fixes,variables to origin
   // compute/fix/variable may invoke computes so wrap with clear/add

@@ -50,4 +50,28 @@ class FixGroup : public Fix {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Region ID for group dynamic does not exist
+
+UNDOCUMENTED
+
+E: Variable name for group dynamic does not exist
+
+UNDOCUMENTED
+
+E: Group dynamic parent group cannot be dynamic
+
+UNDOCUMENTED
+
+E: Variable for group dynamic is invalid style
+
+UNDOCUMENTED
+
+W: One or more dynamic groups may not be updated at correct point in timestep
+
+UNDOCUMENTED
+
 */

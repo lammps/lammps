@@ -142,4 +142,60 @@ class Comm : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+W: OMP_NUM_THREADS environment is not set.
+
+UNDOCUMENTED
+
+E: Illegal ... command
+
+UNDOCUMENTED
+
+E: Invalid group in comm_modify command
+
+UNDOCUMENTED
+
+E: Comm_modify group != atom_modify first group
+
+UNDOCUMENTED
+
+E: Invalid cutoff in comm_modify command
+
+UNDOCUMENTED
+
+E: Specified processors != physical processors
+
+UNDOCUMENTED
+
+E: Cannot use processors part command without using partitions
+
+UNDOCUMENTED
+
+E: Invalid partitions in processors part command
+
+UNDOCUMENTED
+
+E: Sending partition in processors part command is already a sender
+
+UNDOCUMENTED
+
+E: Receiving partition in processors part command is already a receiver
+
+UNDOCUMENTED
+
+E: Processors grid numa and map style are incompatible
+
+UNDOCUMENTED
+
+E: Processors part option and grid style are incompatible
+
+UNDOCUMENTED
+
+E: Bad grid of processors
+
+UNDOCUMENTED
+
+E: Processor count in z must be 1 for 2d simulation
+
+UNDOCUMENTED
+
 */

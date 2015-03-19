@@ -156,6 +156,14 @@ class Modify : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Fix %s does not allow use of dynamic group
+
+UNDOCUMENTED
+
+E: Compute %s does not allow use of dynamic group
+
+UNDOCUMENTED
+
 W: One or more atoms are time integrated more than once
 
 This is probably an error since you typically do not want to
@@ -190,9 +198,9 @@ The ID and style of a fix match for a fix you are changing with a fix
 command, but the new group you are specifying does not match the old
 group.
 
-E: Invalid fix style
+E: Unknown fix style
 
-The choice of fix style is unknown.
+UNDOCUMENTED
 
 E: Could not find fix_modify ID
 
@@ -206,15 +214,23 @@ E: Reuse of compute ID
 
 A compute ID cannot be used twice.
 
-E: Invalid compute style
+E: Unknown compute style
 
-Self-explanatory.
+UNDOCUMENTED
 
 E: Could not find compute_modify ID
 
 Self-explanatory.
 
 E: Could not find compute ID to delete
+
+Self-explanatory.
+
+U: Invalid fix style
+
+The choice of fix style is unknown.
+
+U: Invalid compute style
 
 Self-explanatory.
 

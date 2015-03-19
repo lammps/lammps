@@ -118,7 +118,99 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-W: More than one compute ke/atom
+E: Region ID for compute chunk/atom does not exist
+
+UNDOCUMENTED
+
+E: Compute chunk/atom molecule for non-molecular system
+
+UNDOCUMENTED
+
+E: Compute chunk/atom without bins cannot use discard mixed
+
+UNDOCUMENTED
+
+E: Compute ID for compute chunk/atom does not exist
+
+UNDOCUMENTED
+
+E: Compute chunk/atom compute does not calculate per-atom values
+
+UNDOCUMENTED
+
+E: Compute chunk/atom compute does not calculate a per-atom vector
+
+UNDOCUMENTED
+
+E: Compute chunk/atom compute does not calculate a per-atom array
+
+UNDOCUMENTED
+
+E: Compute chunk/atom compute array is accessed out-of-range
+
+UNDOCUMENTED
+
+E: Fix ID for compute chunk/atom does not exist
+
+UNDOCUMENTED
+
+E: Compute chunk/atom fix does not calculate per-atom values
+
+UNDOCUMENTED
+
+E: Compute chunk/atom fix does not calculate a per-atom vector
+
+UNDOCUMENTED
+
+E: Compute chunk/atom fix does not calculate a per-atom array
+
+UNDOCUMENTED
+
+E: Compute chunk/atom fix array is accessed out-of-range
+
+UNDOCUMENTED
+
+E: Variable name for compute chunk/atom does not exist
+
+UNDOCUMENTED
+
+E: Compute chunk/atom variable is not atom-style variable
+
+UNDOCUMENTED
+
+E: Compute chunk/atom for triclinic boxes requires units reduced
+
+UNDOCUMENTED
+
+E: Molecule IDs too large for compute chunk/atom
+
+UNDOCUMENTED
+
+E: Compute chunk/atom ids once but nchunk is not once
+
+UNDOCUMENTED
+
+E: Two fix ave/chunk commands using same compute chunk/atom command in incompatible ways
+
+UNDOCUMENTED
+
+E: Fix used in compute chunk/atom not computed at compatible time
+
+UNDOCUMENTED
+
+W: One or more chunks do not contain all atoms in molecule
+
+UNDOCUMENTED
+
+E: Invalid bin bounds in fix ave/spatial
+
+UNDOCUMENTED
+
+E: Cannot use compute chunk/atom bin z for 2d model
+
+UNDOCUMENTED
+
+U: More than one compute ke/atom
 
 It is not efficient to use compute ke/atom more than once.
 

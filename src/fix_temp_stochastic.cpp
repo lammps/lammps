@@ -5,10 +5,14 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing authors: Paolo Raiteri (Curtin U) & Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "string.h"
@@ -18,21 +22,20 @@
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
+#include "input.h"
+#include "variable.h"
 #include "group.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
-#include "error.h"
 #include "random_mars.h"
-#include "velocity.h"
-#include "input.h"
-#include "variable.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum{NOBIAS,BIAS};
-enum{CONSTANT,EQUAL,ATOM};
+enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
@@ -46,6 +49,7 @@ FixTempStochastic::FixTempStochastic(LAMMPS *lmp, int narg, char **arg) :
   nevery = 1;
   scalar_flag = 1;
   global_freq = nevery;
+  dynamic_group_allow = 1;
   extscalar = 1;
 
   tstr = NULL;
@@ -53,6 +57,7 @@ FixTempStochastic::FixTempStochastic(LAMMPS *lmp, int narg, char **arg) :
     int n = strlen(&arg[3][2]) + 1;
     tstr = new char[n];
     strcpy(tstr,&arg[3][2]);
+    tstyle = EQUAL;
   } else {
     t_start = force->numeric(FLERR,arg[3]);
     t_target = t_start;
@@ -66,7 +71,7 @@ FixTempStochastic::FixTempStochastic(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (t_period <= 0.0) error->all(FLERR,"Fix temp/stochastic period must be > 0.0");
-  if (seed <= 0) error->all(FLERR,"Illegal fix temp/stochastic command");
+  if (seed <= 0) error->all(FLERR,"Illegal fix temp/stochastic random seed");
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -88,19 +93,21 @@ FixTempStochastic::FixTempStochastic(LAMMPS *lmp, int narg, char **arg) :
   delete [] newarg;
   tflag = 1;
 
-  energy = 0;
+  energy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixTempStochastic::~FixTempStochastic()
 {
+  delete [] tstr;
+
   // delete temperature if fix created it
 
   if (tflag) modify->delete_compute(id_temp);
-  delete random;
-  delete [] tstr;
   delete [] id_temp;
+
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -117,6 +124,17 @@ int FixTempStochastic::setmask()
 
 void FixTempStochastic::init()
 {
+
+  // check variable
+
+  if (tstr) {
+    tvar = input->variable->find(tstr);
+    if (tvar < 0)
+      error->all(FLERR,"Variable name for fix temp/stochastic does not exist");
+    if (input->variable->equalstyle(tvar)) tstyle = EQUAL;
+    else error->all(FLERR,"Variable for fix temp/stochastic is invalid style");
+  }
+
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0)
     error->all(FLERR,"Temperature ID for fix temp/stochastic does not exist");
@@ -124,24 +142,32 @@ void FixTempStochastic::init()
 
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;
-
-  if (tstr) {
-    tvar = input->variable->find(tstr);
-    if (tvar < 0)
-      error->all(FLERR,"Variable name for fix temp/stochastic does not exist");
-    if (input->variable->equalstyle(tvar)) tstyle = EQUAL;
-    else if (input->variable->atomstyle(tvar)) tstyle = ATOM;
-    else error->all(FLERR,"Variable for fix temp/stochastic is invalid style");
-  }
-
-
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixTempStochastic::end_of_step()
 {
+
+  // set current t_target
+  // if variable temp, evaluate variable, wrap with clear/add
+
+  double delta = update->ntimestep - update->beginstep;
+
+  if (delta != 0.0) delta /= update->endstep - update->beginstep;
+  if (tstyle == CONSTANT)
+    t_target = t_start + delta * (t_stop-t_start);
+  else {
+    modify->clearstep_compute();
+    t_target = input->variable->compute_equal(tvar);
+    if (t_target < 0.0)
+      error->one(FLERR,
+                 "Fix temp/stochastic variable returned negative temperature");
+    modify->addstep_compute(update->ntimestep + nevery);
+  }
+
   t_current = temperature->compute_scalar();
+
   if (t_current == 0.0)
     error->all(FLERR,"Computed temperature for fix temp/stochastic cannot be 0.0");
 
@@ -173,7 +199,7 @@ void FixTempStochastic::end_of_step()
   if (t == 0.0)
     error->all(FLERR,"Computed temperature for fix temp/stochastic cannot be 0.0");
 
-  double delta = update->ntimestep - update->beginstep;
+  //  double delta = update->ntimestep - update->beginstep;
   delta /= update->endstep - update->beginstep;
   t_target = t_start + delta * (t_stop-t_start);
 
@@ -313,7 +339,6 @@ double FixTempStochastic::gamdev(const int ia)
 {
   int j;
   double am,e,s,v1,v2,x,y;
-  int iff;
   
   if (ia < 1) {}; // FATAL ERROR
   if (ia < 6) {

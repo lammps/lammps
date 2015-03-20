@@ -255,7 +255,13 @@ void FixTempCSVR::end_of_step()
   const double efactor = 0.5 * temperature->dof * force->boltz;
   const double ekin_old = t_current * efactor;
   const double ekin_new = t_target * efactor;
-  const double lamda = resamplekin(ekin_old, ekin_new);
+
+  // compute velocity scaling factor on root node and broadcast
+  double lamda;
+  if (comm->me == 0) {
+    lamda = resamplekin(ekin_old, ekin_new);
+  }
+  MPI_Bcast(&lamda,1,MPI_DOUBLE,0,world);
 
   double * const * const v = atom->v;
   const int * const mask = atom->mask;

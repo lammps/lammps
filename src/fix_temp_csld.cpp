@@ -139,8 +139,7 @@ void FixTempCSLD::init()
         || (strcmp(modify->fix[i]->style,"rattle") == 0)) ++has_shake;
 
   if (has_shake > 0)
-    error->error(FLERR,"Fix temp/csld is not compatible with "
-                       "fix rattle or fix shake");
+    error->all(FLERR,"Fix temp/csld is not compatible with fix rattle or fix shake");
   
   // check variable
 

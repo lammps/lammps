@@ -201,15 +201,6 @@ int FixTempCSVR::setmask()
 void FixTempCSVR::init()
 {
 
-  // we cannot handle shake correctly at the moment.
-
-  int has_shake = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"shake") == 0) ++has_shake;
-
-  if (has_shake > 0)
-    error->all(FLERR,"Fix temp/csvr is not compatible with fix shake");
-  
   // check variable
 
   if (tstr) {

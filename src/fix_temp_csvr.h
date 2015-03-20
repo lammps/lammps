@@ -38,7 +38,6 @@ class FixTempCSVR : public Fix {
 
  private:
   double t_start,t_stop,t_period,t_target;
-  double **vhold;
   double energy;
   int nmax,which;
   int tstyle,tvar;
@@ -49,6 +48,11 @@ class FixTempCSVR : public Fix {
   int tflag;
 
   class RanMars *random;
+
+ private:
+  double resamplekin(double, double);
+  double sumnoises(int);
+  double gamdev(int);
 };
 
 }
@@ -70,11 +74,12 @@ Self-explanatory.
 
 E: Illegal fix temp/csvr random seed
 
-UNDOCUMENTED
+The random seed must be a positive integer
 
 E: Fix temp/csvr is not compatible with fix shake
 
-UNDOCUMENTED
+Fix temp/csvr currently cannot correctly account for missing
+degrees of freedom from constraints like fix shake or fix rattle.
 
 E: Variable name for fix temp/csvr does not exist
 

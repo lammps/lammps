@@ -1765,7 +1765,7 @@ class MakeReader:
       if conditional:
         if "endif" in line:
           conditional = 0
-          continue
+        continue
       if multiline:
         if '#' in line: line = line[:line.find('#')]
         morevalues = line.split()

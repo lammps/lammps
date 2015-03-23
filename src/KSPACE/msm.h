@@ -156,6 +156,10 @@ E: Cannot (yet) use MSM with 2d simulation
 
 This feature is not yet supported.
 
+E: MSM can only currently be used with comm_style brick
+
+This is a current restriction in LAMMPS.
+
 E: Kspace style requires atom attribute q
 
 The atom style defined does not have these attributes.
@@ -175,17 +179,12 @@ Single precision cannot be used with MSM.
 
 E: KSpace style is incompatible with Pair style
 
-Setting a kspace style requires that a pair style with a long-range
-Coulombic or dispersion component be used.
+Setting a kspace style requires that a pair style with matching
+long-range Coulombic or dispersion components be used.
 
-E: Cannot use kspace solver on system with no charge
+E: Must use 'kspace_modify pressure/scalar no' to obtain per-atom virial with kspace_style MSM
 
-No atoms in system have a non-zero charge.
-
-E: System is not charge neutral, net charge = %g
-
-The total charge on all atoms on the system is not 0.0, which
-is not valid for the long-range Coulombic solvers.
+Self-explanatory.
 
 E: KSpace accuracy must be > 0
 
@@ -216,10 +215,9 @@ The global MSM grid is larger than OFFSET in one or more dimensions.
 OFFSET is currently set to 16384.  You likely need to decrease the
 requested accuracy.
 
-E: Must use 'kspace_modify pressure/scalar no' to obtain per-atom virial
-with kspace_style MSM
+E: Non-numeric box dimensions - simulation unstable
 
-The kspace scalar pressure option cannot be used to obtain per-atom virial.
+The box size has apparently blown up.
 
 E: Out of range atoms - cannot compute MSM
 

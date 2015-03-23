@@ -164,6 +164,6 @@ Self-explanatory.
 
 E: KOKKOS package requires a kokkos enabled atom_style
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

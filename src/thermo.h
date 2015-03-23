@@ -354,7 +354,7 @@ Self-explanatory.
 
 E: Unknown keyword in thermo_style custom command
 
-UNDOCUMENTED
+One or more specified keywords are not recognized.
 
 E: This variable thermo keyword cannot be used between runs
 
@@ -392,9 +392,5 @@ E: Energy was not tallied on needed timestep
 You are using a thermo keyword that requires potentials to
 have tallied energy, but they didn't on this timestep.  See the
 variable doc page for ideas on how to make this work.
-
-U: Invalid keyword in thermo_style custom command
-
-One or more specified keywords are not recognized.
 
 */

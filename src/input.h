@@ -314,23 +314,29 @@ create_box command.
 
 E: Package cuda command without USER-CUDA package enabled
 
-UNDOCUMENTED
+The USER-CUDA package must be installed via "make yes-user-cuda"
+before LAMMPS is built, and the "-c on" must be used to enable the
+package.
 
 E: Package gpu command without GPU package installed
 
-UNDOCUMENTED
+The GPU package must be installed via "make yes-gpu" before LAMMPS is
+built.
 
 E: Package kokkos command without KOKKOS package enabled
 
-UNDOCUMENTED
+The KOKKOS package must be installed via "make yes-kokkos" before
+LAMMPS is built, and the "-k on" must be used to enable the package.
 
 E: Package omp command without USER-OMP package installed
 
-UNDOCUMENTED
+The USER-OMP package must be installed via "make yes-user-omp" before
+LAMMPS is built.
 
 E: Package intel command without USER-INTEL package installed
 
-UNDOCUMENTED
+The USER-INTEL package must be installed via "make yes-user-intel"
+before LAMMPS is built.
 
 E: Pair_coeff command before simulation box is defined
 
@@ -363,10 +369,5 @@ E: Units command after simulation box is defined
 
 The units command cannot be used after a read_data, read_restart, or
 create_box command.
-
-U: Package cuda command without USER-CUDA installed
-
-The USER-CUDA package must be installed via "make yes-user-cuda"
-before LAMMPS is built.
 
 */

@@ -703,7 +703,7 @@ void FixRattle::end_of_step()
     comm->forward_comm_fix(this);
   }
   if (!check_constraints(v, RATTLE_TEST_POS, RATTLE_TEST_VEL)) {
-    error->one(FLERR, "RATTLE failed!");
+    error->one(FLERR, "RATTLE failed");
   }
 }
 
@@ -743,12 +743,12 @@ bool FixRattle::check2(double **v, int m, bool checkr, bool checkv)
 
   stat = !(checkr && (fabs(sqrt(MathExtra::dot3(r01,r01)) - bond1) > tol));
   if (!stat)   
-     error->one(FLERR,"Coordinate constraints are not satisfied "
+     error->one(FLERR,"RATTLE coordinate constraints are not satisfied "
                 "up to desired tolerance");
 
   stat = !(checkv && (fabs(MathExtra::dot3(r01,v01)) > tol));
   if (!stat)   
-     error->one(FLERR,"Velocity constraints are not satisfied "
+     error->one(FLERR,"RATTLE velocity constraints are not satisfied "
                 "up to desired tolerance");
   return stat;
 }
@@ -780,13 +780,13 @@ bool FixRattle::check3(double **v, int m, bool checkr, bool checkv)
   stat = !(checkr && (fabs(sqrt(MathExtra::dot3(r01,r01)) - bond1) > tol ||
                       fabs(sqrt(MathExtra::dot3(r02,r02))-bond2) > tol));
   if (!stat)   
-     error->one(FLERR,"Coordinate constraints are not satisfied "
+     error->one(FLERR,"RATTLE coordinate constraints are not satisfied "
                 "up to desired tolerance");
 
   stat = !(checkv && (fabs(MathExtra::dot3(r01,v01)) > tol || 
                       fabs(MathExtra::dot3(r02,v02)) > tol));
   if (!stat)   
-     error->one(FLERR,"Velocity constraints are not satisfied "
+     error->one(FLERR,"RATTLE velocity constraints are not satisfied "
                 "up to desired tolerance!");
   return stat;
 }
@@ -823,14 +823,14 @@ bool FixRattle::check4(double **v, int m, bool checkr, bool checkv)
                       fabs(sqrt(MathExtra::dot3(r02,r02))-bond2) > tol || 
                       fabs(sqrt(MathExtra::dot3(r03,r03))-bond3) > tol));
   if (!stat)   
-     error->one(FLERR,"Coordinate constraints are not satisfied "
-                "up to desired tolerance!");
+     error->one(FLERR,"RATTLE coordinate constraints are not satisfied "
+                "up to desired tolerance");
 
   stat = !(checkv && (fabs(MathExtra::dot3(r01,v01)) > tol || 
                       fabs(MathExtra::dot3(r02,v02)) > tol || 
                       fabs(MathExtra::dot3(r03,v03)) > tol));
   if (!stat)   
-     error->one(FLERR,"Velocity constraints are not satisfied "
+     error->one(FLERR,"RATTLE velocity constraints are not satisfied "
                 "up to desired tolerance!");
   return stat;
 }
@@ -866,14 +866,14 @@ bool FixRattle::check3angle(double **v, int m, bool checkr, bool checkv)
                       fabs(sqrt(MathExtra::dot3(r02,r02))-bond2) > tol || 
                       fabs(sqrt(MathExtra::dot3(r12,r12))-bond12) > tol));
   if (!stat)   
-     error->one(FLERR,"Coordinate constraints are not satisfied "
-                "up to desired tolerance!");
+     error->one(FLERR,"RATTLE coordinate constraints are not satisfied "
+                "up to desired tolerance");
 
   stat = !(checkv && (fabs(MathExtra::dot3(r01,v01)) > tol || 
                       fabs(MathExtra::dot3(r02,v02)) > tol || 
                       fabs(MathExtra::dot3(r12,v12)) > tol));
   if (!stat)   
-     error->one(FLERR,"Velocity constraints are not satisfied "
-                "up to desired tolerance!");
+     error->one(FLERR,"RATTLE velocity constraints are not satisfied "
+                "up to desired tolerance");
   return stat;
 }

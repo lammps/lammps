@@ -91,42 +91,47 @@ class PairCoulStreitz : public Pair {
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 E: Incorrect args for pair coefficients
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script or data file.
 
-E: Pair style coul/sm requires atom attribute q
+E: Pair style coul/streitz requires atom attribute q
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Pair style requires KSpace style ewald
+E: Pair style requires a KSpace style
 
-UNDOCUMENTED
+No kspace style is defined.
 
 E: All pair coeffs are not set
 
-UNDOCUMENTED
+All pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation.
 
-E: Cannot open coul/Streitz potential file %s
+E: Cannot open coul/streitz potential file %s
 
-UNDOCUMENTED
+The specified coul/streitz potential file cannot be opened.  Check
+that the path and name are correct.
 
-E: Incorrect format in coul/Streitz potential file
+E: Incorrect format in coul/streitz potential file
 
-UNDOCUMENTED
+Incorrect number of words per line in the potential file.
 
-E: Illegal coul/Streitz parameter
+E: Illegal coul/streitz parameter
 
-UNDOCUMENTED
+One or more of the coefficients defined in the potential file is
+invalid.
 
 E: Potential file has duplicate entry
 
-UNDOCUMENTED
+The potential file has more than one entry for the same element.
 
 E: Potential file is missing an entry
 
-UNDOCUMENTED
+The potential file does not have a needed entry.
 
 */

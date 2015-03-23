@@ -171,9 +171,4 @@ E: Molecule template ID for fix deposit does not exist
 
 Self-explanatory.
 
-W: Molecule template for fix deposit has multiple molecules
-
-The fix deposit command will only create molecules of a single type,
-i.e. the first molecule in the template.
-
 */

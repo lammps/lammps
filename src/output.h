@@ -121,7 +121,7 @@ The variable must return a timestep greater than the current timestep.
 
 E: Thermo_modify every variable returned a bad timestep
 
-UNDOCUMENTED
+The returned timestep is less than or equal to the current timestep.
 
 E: Illegal ... command
 
@@ -143,7 +143,7 @@ Dump frequency must be 1 or greater.
 
 E: Unknown dump style
 
-UNDOCUMENTED
+The choice of dump style is unknown.
 
 E: Cound not find dump_modify ID
 
@@ -173,9 +173,5 @@ Self-explanatory.
 E: Both restart files must use MPI-IO or neither
 
 Self-explanatory.
-
-U: Invalid dump style
-
-The choice of dump style is unknown.
 
 */

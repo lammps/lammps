@@ -60,6 +60,10 @@ E: Must use 'kspace_modify pressure/scalar no' with kspace_style msm/cg
 
 The kspace scalar pressure option is not compatible with kspace_style msm/cg.
 
+E: Non-numeric box dimensions - simulation unstable
+
+The box size has apparently blown up.
+
 E: Out of range atoms - cannot compute MSM
 
 One or more atoms are attempting to map their charge to a MSM grid point 

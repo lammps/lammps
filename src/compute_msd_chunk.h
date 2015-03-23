@@ -69,22 +69,16 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Chunk/atom compute does not exist for compute msd/chunk
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute msd/chunk does not use chunk/atom compute
 
-UNDOCUMENTED
+The style of the specified compute is not chunk/atom.
 
 E: Compute msd/chunk nchunk is not static
 
-UNDOCUMENTED
-
-U: Compute com/molecule requires molecular atom style
-
-Self-explanatory.
-
-U: Molecule count changed in compute com/molecule
-
-Number of molecules must remain constant over time.
+This is required because the MSD cannot be computed consistently if
+the number of chunks is changing.  Compute chunk/atom allows setting
+nchunk to be static.
 
 */

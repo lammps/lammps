@@ -168,7 +168,8 @@ Check the file assigned to the variable.
 
 E: LAMMPS is not built with Python embedded
 
-UNDOCUMENTED
+This is done by including the PYTHON package before LAMMPS is built.
+This is required to use python-style variables.
 
 E: Variable name must be alphanumeric or underscore characters
 
@@ -199,11 +200,13 @@ longer chains of dependence are also not allowed.
 
 E: Python variable does not match Python function
 
-UNDOCUMENTED
+This matching is defined by the python-style variable and the python
+command.
 
 E: Python variable has no function
 
-UNDOCUMENTED
+No python command was used to define the function associated with the
+python-style variable.
 
 E: Invalid syntax in variable formula
 
@@ -333,7 +336,7 @@ Self-explanatory.
 
 E: Variable name between brackets must be alphanumeric or underscore characters
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Non digit character between brackets in variable
 
@@ -417,7 +420,7 @@ map command will force an atom map to be created.
 
 E: Variable atom ID is too large
 
-UNDOCUMENTED
+Specified ID is larger than the maximum allowed atom ID.
 
 E: Variable uses atom property that isn't allocated
 
@@ -434,7 +437,7 @@ in an equal-style variable.
 
 E: Too many args in variable function
 
-UNDOCUMENTED
+More args are used than any variable function allows.
 
 E: Invalid Boolean syntax in if command
 
@@ -452,13 +455,5 @@ Self-explanatory.  See the atom_modify command to create a map.
 E: Invalid atom ID in variable file
 
 Self-explanatory.
-
-U: Expected floating point parameter in variable definition
-
-The quantity being read is a non-numeric value.
-
-U: Expected integer parameter in variable definition
-
-The quantity being read is a floating point or non-numeric value.
 
 */

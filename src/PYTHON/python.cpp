@@ -154,13 +154,12 @@ void Python::command(int narg, char **arg)
     //PySys_SetArgv(1,&arg);
 
     //PyObject *pName = PyString_FromString("__main__");
-    //if (!pName) error->all(FLERR,"Bad pName");
+    //if (!pName) error->Xall(FLERR,"Bad pName");
     //PyObject *pModule = PyImport_Import(pName);
     //Py_DECREF(pName);
 
     PyObject *pModule = PyImport_AddModule("__main__");
     if (!pModule) error->all(FLERR,"Could not initialize embedded Python");
-    //if (!pModule) error->one(FLERR,"Could not initialize embedded Python");
     pyMain = (void *) pModule;
   }
 

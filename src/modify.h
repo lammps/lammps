@@ -158,11 +158,11 @@ class Modify : protected Pointers {
 
 E: Fix %s does not allow use of dynamic group
 
-UNDOCUMENTED
+Dynamic groups have not yet been enabled for this fix.
 
 E: Compute %s does not allow use of dynamic group
 
-UNDOCUMENTED
+Dynamic groups have not yet been enabled for this compute.
 
 W: One or more atoms are time integrated more than once
 
@@ -200,7 +200,7 @@ group.
 
 E: Unknown fix style
 
-UNDOCUMENTED
+The choice of fix style is unknown.
 
 E: Could not find fix_modify ID
 
@@ -216,21 +216,13 @@ A compute ID cannot be used twice.
 
 E: Unknown compute style
 
-UNDOCUMENTED
+The choice of compute style is unknown.
 
 E: Could not find compute_modify ID
 
 Self-explanatory.
 
 E: Could not find compute ID to delete
-
-Self-explanatory.
-
-U: Invalid fix style
-
-The choice of fix style is unknown.
-
-U: Invalid compute style
 
 Self-explanatory.
 

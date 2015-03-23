@@ -120,8 +120,8 @@ Must have periodic x,y dimensions and non-periodic z dimension to use
 
 E: KSpace style is incompatible with Pair style
 
-Setting a kspace style requires that a pair style with a long-range
-Coulombic or dispersion component be used.
+Setting a kspace style requires that a pair style with matching
+long-range Coulombic or dispersion components be used.
 
 E: Unsupported mixing rule in kspace_style ewald/disp
 

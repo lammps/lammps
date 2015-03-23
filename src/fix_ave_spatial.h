@@ -90,7 +90,7 @@ class FixAveSpatial : public Fix {
 
 W: The fix ave/spatial command has been replaced by the more flexible fix ave/chunk and compute chunk/atom commands -- fix ave/spatial will be removed in the summer of 2015
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Illegal ... command
 
@@ -108,7 +108,7 @@ Self-explanatory.
 
 E: No input values for fix ave/spatial
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Region ID for fix ave/spatial does not exist
 
@@ -183,7 +183,7 @@ requesting a value on a non-allowed timestep.
 
 E: Invalid bin bounds in fix ave/spatial
 
-UNDOCUMENTED
+The lo/hi values are inconsistent.
 
 E: Fix ave/spatial missed timestep
 

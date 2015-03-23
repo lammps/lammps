@@ -74,22 +74,14 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Fix balance shift string is invalid
 
-UNDOCUMENTED
+The string can only contain the characters "x", "y", or "z".
 
 E: Fix balance rcb cannot be used with comm_style brick
 
-UNDOCUMENTED
+Comm_style tiled must be used instead.
 
 E: Cannot open fix balance output file
 
 Self-explanatory.
-
-U: Fix balance string is invalid
-
-The string can only contain the characters "x", "y", or "z".
-
-U: Fix balance string is invalid for 2d simulation
-
-The string cannot contain the letter "z".
 
 */

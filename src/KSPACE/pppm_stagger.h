@@ -92,6 +92,10 @@ E: Cannot (yet) use kspace_style pppm/stagger with triclinic systems
 
 This feature is not yet supported.
 
+E: Non-numeric box dimensions - simulation unstable
+
+The box size has apparently blown up.
+
 E: Out of range atoms - cannot compute PPPM
 
 One or more atoms are attempting to map their charge to a PPPM grid

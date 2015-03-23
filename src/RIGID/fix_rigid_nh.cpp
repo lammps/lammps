@@ -88,23 +88,23 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
        p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[1] || p_period[0] != p_period[2]))
-    error->all(FLERR,"Invalid fix rigid npt/nph pressure settings");
+    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
   if (pcouple == XYZ && dimension == 2 &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
-    error->all(FLERR,"Invalid fix rigid npt/nph pressure settings");
+    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
   if (pcouple == XY &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
-    error->all(FLERR,"Invalid fix rigid npt/nph pressure settings");
+    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
   if (pcouple == YZ &&
       (p_start[1] != p_start[2] || p_stop[1] != p_stop[2] ||
        p_period[1] != p_period[2]))
-    error->all(FLERR,"Invalid fix rigid npt/nph pressure settings");
+    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
   if (pcouple == XZ &&
       (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[2]))
-    error->all(FLERR,"Invalid fix rigid npt/nph pressure settings");
+    error->all(FLERR,"Invalid fix rigid npt/nph command pressure settings");
 
   if ((tstat_flag && t_period <= 0.0) ||
       (p_flag[0] && p_period[0] <= 0.0) ||

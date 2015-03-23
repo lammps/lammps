@@ -54,6 +54,7 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   // k_buf_send = ArrayTypes<LMPDeviceType>::
   //   tdual_xfloat_2d("comm:k_buf_send",(maxsend+BUFEXTRA+5)/6,6);
   // buf_send = k_buf_send.view<LMPHostType>().ptr_on_device();
+
   maxsend = 0;
   buf_send = NULL;
 
@@ -61,6 +62,7 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   // k_buf_recv = ArrayTypes<LMPDeviceType>::
   //   tdual_xfloat_2d("comm:k_buf_recv",(maxrecv+5)/6,6);
   // buf_recv = k_buf_recv.view<LMPHostType>().ptr_on_device();
+
   maxrecv = 0;
   buf_recv = NULL;
 
@@ -363,7 +365,8 @@ void CommKokkos::exchange()
     if(!exchange_comm_classic) {
       static int print = 1;
       if(print) {
-        error->warning(FLERR,"Kokkos communication does not currently support fixes sending data. Switching to classic communication.");
+        error->warning(FLERR,"Fixes cannot send data in Kokkos communication, "
+		       "switching to classic communication");
         print = 0;
       }
       exchange_comm_classic = true;
@@ -768,7 +771,7 @@ void CommKokkos::borders_device() {
             nsend = total_send.h_view(0);
           } else {
             error->all(FLERR,"Required border comm not yet "
-                       "implemented with Kokkos\n");
+                       "implemented with Kokkos");
             for (i = nfirst; i < nlast; i++) {
               itype = type[i];
               if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
@@ -780,7 +783,7 @@ void CommKokkos::borders_device() {
 
         } else {
           error->all(FLERR,"Required border comm not yet "
-                     "implemented with Kokkos\n");
+                     "implemented with Kokkos");
           if (style == SINGLE) {
             ngroup = atom->nfirst;
             for (i = 0; i < ngroup; i++)
@@ -819,7 +822,7 @@ void CommKokkos::borders_device() {
         grow_send_kokkos(nsend*size_border,0);
       if (ghost_velocity) {
         error->all(FLERR,"Required border comm not yet "
-                   "implemented with Kokkos\n");
+                   "implemented with Kokkos");
         n = avec->pack_border_vel(nsend,sendlist[iswap],buf_send,
                                   pbc_flag[iswap],pbc[iswap]);
       }
@@ -853,7 +856,7 @@ void CommKokkos::borders_device() {
 
       if (ghost_velocity) {
         error->all(FLERR,"Required border comm not yet "
-                   "implemented with Kokkos\n");
+                   "implemented with Kokkos");
         avec->unpack_border_vel(nrecv,atom->nlocal+atom->nghost,buf);
       }
       else

@@ -201,7 +201,7 @@ void AtomKokkos::sort()
   //  if (current[i] != permute[i]) flag = 1;
   //int flagall;
   //MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  //if (flagall) error->all(FLERR,"Atom sort did not operate correctly");
+  //if (flagall) error->Xall(FLERR,"Atom sort did not operate correctly");
 }
 
 /* ----------------------------------------------------------------------

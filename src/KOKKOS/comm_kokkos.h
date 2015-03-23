@@ -73,4 +73,17 @@ class CommKokkos : public CommBrick {
 
 /* ERROR/WARNING messages:
 
+E: Ghost velocity forward comm not yet implemented with Kokkos
+
+This is a current restriction.
+
+W: Fixes cannot send data in Kokkos communication, switching to classic communication
+
+This is current restriction with Kokkos.
+
+E: Required border comm not yet implemented with Kokkos
+
+There are various limitations in the communication options supported
+by Kokkos.
+
 */

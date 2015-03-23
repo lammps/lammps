@@ -101,7 +101,11 @@ The format of this section of the file is not correct.
 
 E: Did not assign all restart atoms correctly
 
-UNDOCUMENTED
+Atoms read in from the restart file were not assigned correctly to
+processors.  This is likely due to some atom coordinates being outside
+a non-periodic simulation box.  Normally this should not happen.  You
+may wish to use the "remap" option on the read_restart command to see
+if this helps.
 
 E: Cannot open dir to search for restart file
 
@@ -213,11 +217,5 @@ E: Restart file byte ordering is not recognized
 
 The file does not appear to be a LAMMPS restart file since it doesn't
 contain a recognized byte-orderomg flag at the beginning.
-
-U: Did not assign all atoms correctly
-
-Atoms read in from a data file were not assigned correctly to
-processors.  This is likely due to some atom coordinates being
-outside a non-periodic simulation box.
 
 */

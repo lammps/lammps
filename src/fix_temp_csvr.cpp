@@ -69,8 +69,8 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (t_period <= 0.0) error->all(FLERR,"Fix temp/csvr period must be > 0.0");
-  if (seed <= 0) error->all(FLERR,"Illegal fix temp/csvr random seed");
+  if (t_period <= 0.0) error->all(FLERR,"Illegal fix temp/csvr command");
+  if (seed <= 0) error->all(FLERR,"Illegal fix temp/csvr command");
 
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
@@ -125,8 +125,7 @@ int FixTempCSVR::setmask()
 
 void FixTempCSVR::init()
 {
-
-  // we cannot handle shake correctly at the moment.
+  // we cannot handle shake correctly at the moment
 
   int has_shake = 0;
   for (int i = 0; i < modify->nfix; i++)

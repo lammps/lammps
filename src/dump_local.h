@@ -116,7 +116,8 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute used in dump between runs is not current
 
-UNDOCUMENTED
+The compute was not invoked on the current timestep, therefore it
+cannot be used in a dump between runs.
 
 E: Dump local count is not consistent across input fields
 

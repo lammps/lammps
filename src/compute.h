@@ -189,20 +189,4 @@ E: Compute does not allow an extra compute or fix to be reset
 This is an internal LAMMPS error.  Please report it to the
 developers.
 
-U: Atom with molecule ID = 0 included in compute molecule group
-
-The group used in a compute command that operates on moleclues
-includes atoms with no molecule ID.  This is probably not what you
-want.
-
-U: Too many molecules for compute
-
-The limit is 2^31 = ~2 billion molecules.
-
-U: One or more compute molecules has atoms not in group
-
-The group used in a compute command that operates on moleclues does
-not include all the atoms in some molecules.  This is probably not
-what you want.
-
 */

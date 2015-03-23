@@ -274,14 +274,14 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       icustom = atom->find_custom(ids[i],iflag);
       if ((icustom < 0) || (iflag != 0))
         error->all(FLERR,
-                   "Custom integer vector does not exist");
+                   "Custom integer vector for fix store/state does not exist");
 
     } else if (which[i] == DNAME) {
       int icustom,iflag;
       icustom = atom->find_custom(ids[i],iflag);
       if ((icustom < 0) || (iflag != 1))
         error->all(FLERR,
-                   "Custom floating point vector does not exist");
+                   "Custom floating point vector for fix store/state does not exist");
 
     } else if (which[i] == FIX) {
       int ifix = modify->find_fix(ids[i]);
@@ -392,7 +392,7 @@ void FixStoreState::init()
       icustom = atom->find_custom(ids[m],iflag);
       if ((icustom < 0) || (iflag != 0))
         error->all(FLERR,
-                   "Custom integer vector for fix store/state does not exist");
+		   "Custom integer vector for fix store/state does not exist");
       value2index[m] = icustom;
 
     } else if (which[m] == DNAME) {
@@ -400,8 +400,7 @@ void FixStoreState::init()
       icustom = atom->find_custom(ids[m],iflag);
       if ((icustom < 0) || (iflag != 1))
         error->all(FLERR,
-                   "Custom floating point vector for fix"
-                   " store/state does not exist");
+		   "Custom floating point vector for fix store/state does not exist");
       value2index[m] = icustom;
 
     } else if (which[m] == FIX) {

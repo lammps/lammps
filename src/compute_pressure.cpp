@@ -222,8 +222,8 @@ void ComputePressure::compute_vector()
     error->all(FLERR,"Virial was not tallied on needed timestep");
 
   if (force->kspace && kspace_virial && force->kspace->scalar_pressure_flag)
-    error->all(FLERR,"Kspace_modify pressure/scalar no required "
-               "for components of pressure tensor with kspace_style msm");
+    error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' for "
+	       "tensor components with kspace_style msm");
 
   // invoke temperature if it hasn't been already
 

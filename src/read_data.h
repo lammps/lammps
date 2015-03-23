@@ -111,11 +111,11 @@ read_restart, or create_box command.
 
 E: Cannot read_data add and merge
 
-UNDOCUMENTED
+These options are not yet supported.
 
 E: Cannot use non-zero z offset in read_data for 2d simulation
 
-UNDOCUMENTED
+The offset option is not yet supported.
 
 E: Cannot run 2d simulation with nonperiodic Z dimension
 
@@ -124,7 +124,7 @@ run a 2d simulation.
 
 W: Atom style in data file differs from currently defined atom style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Must read Atoms before Velocities
 
@@ -204,7 +204,7 @@ Pair Coeffs.
 
 W: Pair style in data file differs from currently defined pair style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Must define pair_style before PairIJ Coeffs
 
@@ -222,7 +222,7 @@ defines Bond Coeffs.
 
 W: Bond style in data file differs from currently defined bond style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid data file section: Angle Coeffs
 
@@ -235,7 +235,7 @@ defines Angle Coeffs.
 
 W: Angle style in data file differs from currently defined angle style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid data file section: Dihedral Coeffs
 
@@ -248,7 +248,7 @@ defines Dihedral Coeffs.
 
 W: Dihedral style in data file differs from currently defined dihedral style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid data file section: Improper Coeffs
 
@@ -261,7 +261,7 @@ defines Improper Coeffs.
 
 W: Improper style in data file differs from currently defined improper style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid data file section: BondBond Coeffs
 
@@ -356,7 +356,11 @@ details.
 
 E: Read_data shrink wrap did not assign all atoms correctly
 
-UNDOCUMENTED
+This is typically because the box-size specified in the data file is
+large compared to the actual extent of atoms in a shrink-wrapped
+dimension.  When LAMMPS shrink-wraps the box atoms will be lost if the
+processor they are re-assigned to is too far away.  Choose a box
+size closer to the actual extent of the atoms.
 
 E: Unexpected end of data file
 
@@ -456,23 +460,23 @@ Set it larger and re-compile the code.
 
 E: Unexpected end of PairCoeffs section
 
-UNDOCUMENTED
+Read a blank line.
 
 E: Unexpected end of BondCoeffs section
 
-UNDOCUMENTED
+Read a blank line.
 
 E: Unexpected end of AngleCoeffs section
 
-UNDOCUMENTED
+Read a blank line.
 
 E: Unexpected end of DihedralCoeffs section
 
-UNDOCUMENTED
+Read a blank line.
 
 E: Unexpected end of ImproperCoeffs section
 
-UNDOCUMENTED
+Read a blank line.
 
 E: Cannot open gzipped file
 

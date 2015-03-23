@@ -54,6 +54,6 @@ Self-explanatory.
 
 E: Read rerun dump file timestep > specified stop
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

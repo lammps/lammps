@@ -58,7 +58,7 @@ void FixQEqShielded::init()
   neighbor->requests[irequest]->full = 1;
 
   int ntypes = atom->ntypes;
-  memory->create(shld,ntypes+1,ntypes+1,"qeq:shileding");
+  memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
 
   init_shielding();
 
@@ -234,5 +234,4 @@ double FixQEqShielded::calculate_H( double r, double gamma )
   denom = pow(denom,0.3333333333333);
 
   return Taper * EV_TO_KCAL_PER_MOL / denom;
-
 }

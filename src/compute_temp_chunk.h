@@ -84,34 +84,26 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Could not find compute ID for temperature bias
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Bias compute does not calculate temperature
 
-UNDOCUMENTED
+The specified compute must compute temperature.
 
 E: Bias compute does not calculate a velocity bias
 
-UNDOCUMENTED
+The specified compute must compute a bias for temperature.
 
 E: Cannot use both com and bias with compute temp/chunk
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Chunk/atom compute does not exist for compute temp/chunk
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute temp/chunk does not use chunk/atom compute
 
-UNDOCUMENTED
-
-U: Compute com/molecule requires molecular atom style
-
-Self-explanatory.
-
-U: Molecule count changed in compute com/molecule
-
-Number of molecules must remain constant over time.
+The style of the specified compute is not chunk/atom.
 
 */

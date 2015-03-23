@@ -81,7 +81,7 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Cannot use dynamic group with fix adapt atom
 
-UNDOCUMENTED
+This is not yet supported.
 
 E: Variable name for fix adapt does not exist
 
@@ -117,6 +117,7 @@ The atom style being used does not specify an atom charge.
 
 E: Could not find fix adapt storage fix ID
 
-UNDOCUMENTED
+This should not happen unless you explicitly deleted
+a secondary fix that fix adapt created internally.
 
 */

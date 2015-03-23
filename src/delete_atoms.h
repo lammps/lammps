@@ -95,26 +95,24 @@ neighbor list.
 
 E: Delete_atoms cutoff > max neighbor cutoff
 
-UNDOCUMENTED
+Can only delete atoms in atom pairs that will be in neighbor list.
 
 W: Delete_atoms cutoff > minimum neighbor cutoff
 
-UNDOCUMENTED
+This means atom pairs for some atom types may not be in the neighbor
+list and thus an atom in that pair cannot be deleted.
 
 E: Cannot delete_atoms bond yes for non-molecular systems
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use delete_atoms bond yes with atom_style template
 
-UNDOCUMENTED
+This is because the bonds for that atom style are hardwired in the
+molecule template.
 
 E: Cannot delete_atoms mol yes for non-molecular systems
 
-UNDOCUMENTED
-
-U: Delete_atoms cutoff > neighbor cutoff
-
-Cannot delete atoms further away than a processor knows about.
+Self-explanatory.
 
 */

@@ -107,11 +107,11 @@ Self-explanatory.
 
 E: Balance shift string is invalid
 
-UNDOCUMENTED
+The string can only contain the characters "x", "y", or "z".
 
 E: Balance rcb cannot be used with comm_style brick
 
-UNDOCUMENTED
+Comm_style tiled must be used instead.
 
 E: Lost atoms via balance: original %ld current %ld
 
@@ -122,9 +122,5 @@ E: Balance produced bad splits
 This should not occur.  It means two or more cutting plane locations
 are on top of each other or out of order.  Report the problem to the
 developers.
-
-U: Balance dynamic string is invalid
-
-The string can only contain the characters "x", "y", or "z".
 
 */

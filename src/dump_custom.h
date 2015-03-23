@@ -218,7 +218,7 @@ Self-explanatory.
 
 E: Could not find custom per-atom property ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Region ID for dump custom does not exist
 
@@ -226,7 +226,8 @@ Self-explanatory.
 
 E: Compute used in dump between runs is not current
 
-UNDOCUMENTED
+The compute was not invoked on the current timestep, therefore it
+cannot be used in a dump between runs.
 
 E: Threshhold for an atom property that isn't allocated
 
@@ -277,11 +278,11 @@ dump output.
 
 E: Custom per-atom property ID is not floating point
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Custom per-atom property ID is not integer
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Illegal ... command
 
@@ -351,19 +352,14 @@ Self-explanatory.
 
 E: Could not find dump modify custom atom floating point property ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Could not find dump modify custom atom integer property ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid dump_modify threshhold operator
 
 Operator keyword used for threshold specification in not recognized.
-
-U: Dumping an atom quantity that isn't allocated
-
-Only per-atom quantities that are defined for the atom style being
-used are allowed.
 
 */

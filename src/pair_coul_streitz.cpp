@@ -204,7 +204,7 @@ void PairCoulStreitz::coeff(int narg, char **arg)
 void PairCoulStreitz::init_style()
 {
   if (!atom->q_flag)
-    error->all(FLERR,"Pair style coul/sm requires atom attribute q");
+    error->all(FLERR,"Pair style coul/streitz requires atom attribute q");
 
   //neighbor->request(this);
   int irequest = neighbor->request(this,instance_me);
@@ -217,7 +217,7 @@ void PairCoulStreitz::init_style()
 
   if (ewaldflag) {
     if (force->kspace == NULL)
-      error->all(FLERR,"Pair style requires KSpace style ewald");
+      error->all(FLERR,"Pair style requires a KSpace style");
     g_ewald = force->kspace->g_ewald;
   }
 
@@ -259,7 +259,7 @@ void PairCoulStreitz::read_file(char *file)
     fp = fopen(file,"r");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open coul/Streitz potential file %s",file);
+      sprintf(str,"Cannot open coul/streitz potential file %s",file);
       error->one(FLERR,str);
     }
   }
@@ -310,7 +310,7 @@ void PairCoulStreitz::read_file(char *file)
     }
 
     if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in coul/Streitz potential file");
+      error->all(FLERR,"Incorrect format in coul/streitz potential file");
 
     // words = ptrs to all words in line
 
@@ -343,7 +343,7 @@ void PairCoulStreitz::read_file(char *file)
     
     if (params[nparams].eta < 0.0 || params[nparams].zeta < 0.0 || 
         params[nparams].zcore < 0.0 || params[nparams].gamma != 0.0 )
-      error->all(FLERR,"Illegal coul/Streitz parameter");
+      error->all(FLERR,"Illegal coul/streitz parameter");
 
     nparams++;
   }

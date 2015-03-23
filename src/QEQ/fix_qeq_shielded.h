@@ -41,3 +41,39 @@ class FixQEqShielded : public FixQEq {
 }
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Fix qeq/shielded requires atom attribute q
+
+Self-explanatory.
+
+E: Fix qeq/shielded group has no atoms
+
+Self-explanatory.
+
+E: Invalid param file for fix qeq/shielded
+
+Invalid value of gamma.
+
+W: Fix qeq has non-zero lower Taper radius cutoff
+
+Absolute value must be <= 0.01.
+
+E: Fix qeq has negative upper Taper radius cutoff
+
+Self-explanatory.
+
+W: Fix qeq has very low Taper radius cutoff
+
+Value should typically be >= 5.0.
+
+W: H matrix size has been exceeded: m_fill=%d H.m=%d\n
+
+This is the size of the matrix.
+
+E: Fix qeq/shielded has insufficient QEq matrix size
+
+UNDOCUMENTED
+
+*/

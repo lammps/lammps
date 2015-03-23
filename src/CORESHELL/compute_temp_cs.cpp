@@ -61,12 +61,12 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
 
   cgroup = group->find(arg[3]);
   if (cgroup == -1) 
-    error->all(FLERR,"Could not find specified group ID for core particles");
+    error->all(FLERR,"Cannot find specified group ID for core particles");
   groupbit_c = group->bitmask[cgroup];
 
   sgroup = group->find(arg[4]);
   if (sgroup == -1) 
-    error->all(FLERR,"Could not find specified group ID for shell particles");
+    error->all(FLERR,"Cannot find specified group ID for shell particles");
   groupbit_s = group->bitmask[sgroup];
 
   // create a new fix STORE style

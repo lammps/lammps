@@ -97,11 +97,11 @@ i.e. the first molecule in the template.
 
 E: Cannot use create_atoms rotate unless single style
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid create_atoms rotation vector for 2d model
 
-UNDOCUMENTED
+The rotation vector can only have a z component.
 
 E: Invalid atom type in create_atoms command
 
@@ -129,15 +129,15 @@ The atom_style id command can be used to force atom IDs to be stored.
 
 E: Incomplete use of variables in create_atoms command
 
-UNDOCUMENTED
+The var and set options must be used together.
 
 E: Variable name for create_atoms does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for create_atoms is invalid style
 
-UNDOCUMENTED
+The variables must be equal-style variables.
 
 E: Cannot create atoms with undefined lattice
 

@@ -120,11 +120,11 @@ Self-explanatory.
 
 E: Could not find group clear group ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot clear group all
 
-UNDOCUMENTED
+This operation is not allowed.
 
 E: Too many groups
 
@@ -149,26 +149,26 @@ A group ID used in the group command does not exist.
 
 E: Cannot subtract groups using a dynamic group
 
-UNDOCUMENTED
+This operation is not allowed.
 
 E: Cannot union groups using a dynamic group
 
-UNDOCUMENTED
+This operation is not allowed.
 
 E: Cannot intersect groups using a dynamic group
 
-UNDOCUMENTED
+This operation is not allowed.
 
 E: Group dynamic cannot reference itself
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Group dynamic parent group does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Group all cannot be made dynamic
 
-UNDOCUMENTED
+This operation is not allowed.
 
 */

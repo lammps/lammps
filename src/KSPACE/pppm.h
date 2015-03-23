@@ -222,6 +222,10 @@ E: Cannot use PPPM with 2d simulation
 The kspace style pppm cannot be used in 2d simulations.  You can use
 2d PPPM in a 3d simulation; see the kspace_modify command.
 
+E: PPPM can only currently be used with comm_style brick
+
+This is a current restriction in LAMMPS.
+
 E: Kspace style requires atom attribute q
 
 The atom style defined does not have these attributes.
@@ -243,8 +247,12 @@ This is a limitation of the PPPM implementation in LAMMPS.
 
 E: KSpace style is incompatible with Pair style
 
-Setting a kspace style requires that a pair style with a long-range
-Coulombic or dispersion component be used.
+Setting a kspace style requires that a pair style with matching
+long-range Coulombic or dispersion components be used.
+
+E: Pair style is incompatible with TIP4P KSpace style
+
+The pair style does not have the requires TIP4P settings.
 
 E: Bond and angle potentials must be defined for TIP4P
 
@@ -262,15 +270,6 @@ Specified bond type is not valid.
 E: Cannot (yet) use PPPM with triclinic box and TIP4P
 
 This feature is not yet supported.
-
-E: Cannot use kspace solver on system with no charge
-
-No atoms in system have a non-zero charge.
-
-W: System is not charge neutral, net charge = %g
-
-The total charge on all atoms on the system is not 0.0, which
-is not valid for the long-range Coulombic solvers.
 
 W: Reducing PPPM order b/c stencil extends beyond nearest neighbor processor
 
@@ -307,6 +306,10 @@ E: Could not compute g_ewald
 The Newton-Raphson solver failed to converge to a good value for
 g_ewald.  This error should not occur for typical problems.  Please
 send an email to the developers.
+
+E: Non-numeric box dimensions - simulation unstable
+
+The box size has apparently blown up.
 
 E: Out of range atoms - cannot compute PPPM
 

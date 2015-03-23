@@ -74,10 +74,6 @@ E: Region ID for compute reduce/region does not exist
 
 Self-explanatory.
 
-E: Unkown derived compute reduce style
-
-UNDOCUMENTED
-
 E: Compute reduce replace requires min or max mode
 
 Self-explanatory.

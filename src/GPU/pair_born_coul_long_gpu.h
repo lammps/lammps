@@ -59,9 +59,8 @@ E: Cannot use newton pair with born/coul/long/gpu pair style
 
 Self-explanatory.
 
-E: Pair style is incompatible with KSpace style
+E: Pair style requires a KSpace style
 
-If a pair style with a long-range Coulombic component is selected,
-then a kspace style must also be used.
+No kspace style is defined.
 
 */

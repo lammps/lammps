@@ -548,7 +548,7 @@ void ComputeChunkAtom::compute_peratom()
    set lock, so that nchunk will not change from startstep to stopstep
    called by fix ave/chunk for duration of its Nfreq epoch
    OK if called by multiple fix ave/chunk commands
-     but error if all callers do not have same duration
+     error if all callers do not have same duration
      last caller holds the lock, so it can also unlock
    lockstop can be positive for final step of finite-size time window
    or can be -1 for infinite-size time window
@@ -564,7 +564,7 @@ void ComputeChunkAtom::lock(Fix *fixptr, bigint startstep, bigint stopstep)
   }
 
   if (startstep != lockstart || stopstep != lockstop)
-    error->all(FLERR,"Two fix ave/chunk commands using "
+    error->all(FLERR,"Two fix ave commands using "
                "same compute chunk/atom command in incompatible ways");
 
   // set lock to last calling Fix, since it will be last to unlock()
@@ -1119,7 +1119,7 @@ int ComputeChunkAtom::setup_bins()
       hi = origin[m] - n*delta[m];
     }
 
-    if (lo > hi) error->all(FLERR,"Invalid bin bounds in fix ave/spatial");
+    if (lo > hi) error->all(FLERR,"Invalid bin bounds in compute chunk/atom");
 
     offset[m] = lo;
     nlayers[m] = static_cast<int> ((hi-lo) * invdelta[m] + 0.5);

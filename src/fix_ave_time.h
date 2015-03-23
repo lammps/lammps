@@ -129,7 +129,7 @@ Self-explanatory.
 
 E: Fix ave/time fix vector cannot be variable length
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/time fix vector is accessed out-of-range
 
@@ -146,7 +146,7 @@ Self-explanatory.
 
 E: Fix ave/time fix array cannot be variable length
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/time fix array is accessed out-of-range
 

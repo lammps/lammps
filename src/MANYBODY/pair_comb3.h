@@ -280,16 +280,16 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair style COMB requires atom IDs
+E: Pair style COMB3 requires atom IDs
 
-This is a requirement to use the AIREBO potential.
+This is a requirement to use the COMB3 potential.
 
-E: Pair style COMB requires newton pair on
+E: Pair style COMB3 requires newton pair on
 
-See the newton command.  This is a restriction to use the COMB
+See the newton command.  This is a restriction to use the COMB3
 potential.
 
-E: Pair style COMB requires atom attribute q
+E: Pair style COMB3 requires atom attribute q
 
 Self-explanatory.
 
@@ -298,36 +298,42 @@ E: All pair coeffs are not set
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
-E: Cannot open COMB potential file %s
+E: Cannot open COMB3 lib.comb3 file
 
-The specified COMB potential file cannot be opened.  Check that the
+The COMB3 library file cannot be opened.  Check that the path and name
+are correct.
+
+E: Cannot open COMB3 potential file %s
+
+The specified COMB3 potential file cannot be opened.  Check that the
 path and name are correct.
 
-E: Incorrect format in COMB potential file
+E: Incorrect format in COMB3 potential file
 
 Incorrect number of words per line in the potential file.
 
-E: Illegal COMB parameter
+E: Illegal COMB3 parameter
 
 One or more of the coefficients defined in the potential file is
 invalid.
 
 E: Potential file has duplicate entry
 
-The potential file for a SW or Tersoff potential has more than
-one entry for the same 3 ordered elements.
+The potential file has more than one entry for the same element.
 
 E: Potential file is missing an entry
 
-The potential file for a SW or Tersoff potential does not have a
-needed entry.
+The potential file does not have a needed entry.
 
-W: Pair COMB charge %.10f with force %.10f hit min barrier
+E: Neighbor list overflow, boost neigh_modify one
 
-Something is possibly wrong with your model.
+There are too many neighbors of a single atom.  Use the neigh_modify
+command to increase the max number of neighbors allowed for one atom.
+You may also want to boost the page size.
 
-W: Pair COMB charge %.10f with force %.10f hit max barrier
+E: Error in vdw spline: inner radius > outer radius
 
-Something is possibly wrong with your model.
+A pre-tabulated spline is invalid.  Likely a problem with the
+potential parameters.
 
 */

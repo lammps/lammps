@@ -230,7 +230,7 @@ void PPPM::init()
     int *p_typeA = (int *) force->pair->extract("typeA",itmp);
     int *p_typeB = (int *) force->pair->extract("typeB",itmp);
     if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
-      error->all(FLERR,"Pair style is incompatible with KSpace style");
+      error->all(FLERR,"Pair style is incompatible with TIP4P KSpace style");
     qdist = *p_qdist;
     typeO = *p_typeO;
     typeH = *p_typeH;

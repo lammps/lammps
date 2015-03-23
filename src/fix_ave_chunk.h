@@ -88,166 +88,84 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Cannot open fix ave/chunk file %s
 
-UNDOCUMENTED
+The specified file cannot be opened.  Check that the path and name are
+correct.
 
 E: Could not find compute ID for temperature bias
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Bias compute does not calculate temperature
 
-UNDOCUMENTED
+The specified compute must compute temperature.
 
 E: Bias compute does not calculate a velocity bias
 
-UNDOCUMENTED
+The specified compute must compute a bias for temperature.
 
 E: Compute ID for fix ave/chunk does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/chunk compute does not calculate per-atom values
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/chunk compute does not calculate a per-atom vector
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/chunk compute does not calculate a per-atom array
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/chunk compute vector is accessed out-of-range
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ID for fix ave/chunk does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/chunk fix does not calculate per-atom values
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/chunk fix does not calculate a per-atom vector
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/chunk fix does not calculate a per-atom array
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/chunk fix vector is accessed out-of-range
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable name for fix ave/chunk does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/chunk variable is not atom-style variable
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Chunk/atom compute does not exist for fix ave/chunk
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/chunk does not use chunk/atom compute
 
-UNDOCUMENTED
+The specified conpute is not for a compute chunk/atom command.
 
 E: Fix for fix ave/chunk not computed at compatible time
 
-UNDOCUMENTED
+Fixes generate their values on specific timesteps.  Fix ave/chunk is
+requesting a value on a non-allowed timestep.
 
 E: Fix ave/chunk missed timestep
 
 UNDOCUMENTED
-
-U: Cannot use fix ave/spatial z for 2 dimensional model
-
-Self-explanatory.
-
-U: Same dimension twice in fix ave/spatial
-
-Self-explanatory.
-
-U: Region ID for fix ave/spatial does not exist
-
-Self-explanatory.
-
-U: Cannot open fix ave/spatial file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct.
-
-U: Compute ID for fix ave/spatial does not exist
-
-Self-explanatory.
-
-U: Fix ave/spatial compute does not calculate per-atom values
-
-A compute used by fix ave/spatial must generate per-atom values.
-
-U: Fix ave/spatial compute does not calculate a per-atom vector
-
-A compute used by fix ave/spatial must generate per-atom values.
-
-U: Fix ave/spatial compute does not calculate a per-atom array
-
-Self-explanatory.
-
-U: Fix ave/spatial compute vector is accessed out-of-range
-
-The index for the vector is out of bounds.
-
-U: Fix ID for fix ave/spatial does not exist
-
-Self-explanatory.
-
-U: Fix ave/spatial fix does not calculate per-atom values
-
-A fix used by fix ave/spatial must generate per-atom values.
-
-U: Fix ave/spatial fix does not calculate a per-atom vector
-
-A fix used by fix ave/spatial must generate per-atom values.
-
-U: Fix ave/spatial fix does not calculate a per-atom array
-
-Self-explanatory.
-
-U: Fix ave/spatial fix vector is accessed out-of-range
-
-The index for the vector is out of bounds.
-
-U: Variable name for fix ave/spatial does not exist
-
-Self-explanatory.
-
-U: Fix ave/spatial variable is not atom-style variable
-
-A variable used by fix ave/spatial must generate per-atom values.
-
-U: Fix ave/spatial for triclinic boxes requires units reduced
-
-Self-explanatory.
-
-U: Fix ave/spatial settings invalid with changing box size
-
-If the box size changes, only the units reduced option can be
-used.
-
-U: Fix for fix ave/spatial not computed at compatible time
-
-Fixes generate their values on specific timesteps.  Fix ave/spatial is
-requesting a value on a non-allowed timestep.
-
-U: Fix ave/spatial missed timestep
-
-You cannot reset the timestep to a value beyond where the fix
-expects to next perform averaging.
 
 */

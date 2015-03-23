@@ -74,47 +74,32 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Option mol of compute temp/vcm requires molecular atom style
+E: Compute temp/cs used when bonds are not allowed
+
+This compute only works on pairs of bonded particles.
+
+E: Cannot find specified group ID for core particles
 
 Self-explanatory.
 
-E: Option prop of compute temp/vcm requires one set of parameters 
-added by the property/atom fix
+E: Cannot find specified group ID for shell particles
 
 Self-explanatory.
 
-E: Fix property/atom vector must contain only intergers to assign 
-sub-ID property
+E: Compute temp/cs requires ghost atoms store velocity
 
-Self-explanatory.
+Use the comm_modify vel yes command to enable this.
 
-E: Specified sub-ID property does not exist or has not been created 
-by the property/atom fix
+E: Number of core atoms != number of shell atoms
 
-Self-explanatory. Usually this means that the specified fix 
-property/atom ID does not match the ID stated in the compute temp/vcm.
+There must be a one-to-one pairing of core and shell atoms.
 
-E: Molecule count changed in compute com/temp/molecule
+E: Core/shell partner atom not found
 
-Number of molecules must remain constant over time.
+Could not find one of the atoms in the bond pair.
 
-E: Sub-ID count changed in compute vcm/temp
+E: Core/shell partners were not all found
 
-Number of Sub-ID groups must remain constant over time.
-
-W: Atom with sub-ID = 0 included in compute group
-
-Self-explanatory. A sub-ID with value 0 will be counted as a normal sub-ID 
-and not left out of by the compute treatment. Therefore a sub-ID of 0 is to 
-be avoided.
-
-E: Too many sub-ID groups for compute
-
-Self-explanatory.
-
-W: More than 2 atoms specified with the same sub-ID, in the case 
-of a core-shell model simulation only core and shell should share the same ID
-
-Self-explanatory.
+Could not find or more atoms in the bond pairs.
 
 */

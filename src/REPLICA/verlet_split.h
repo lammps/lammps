@@ -66,6 +66,10 @@ E: Verlet/split requires Rspace partition size be multiple of Kspace partition s
 This is so there is an equal number of Rspace processors for every
 Kspace processor.
 
+E: Verlet/split can only currently be used with comm_style brick
+
+This is a current restriction in LAMMPS.
+
 E: Verlet/split requires Rspace partition layout be multiple of Kspace partition layout in each dim
 
 This is controlled by the processors command.

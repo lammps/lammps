@@ -233,10 +233,9 @@ E: Molecule template ID for fix rigid/small does not exist
 
 Self-explanatory.
 
-W: Molecule template for fix rigid/small has multiple molecules
+E: Fix rigid/small nvt/npt/nph dilate group ID does not exist
 
-The fix rigid/small command will only recoginze molecules of a single
-type, i.e. the first molecule in the template.
+Self-explanatory.
 
 E: Fix rigid/small molecule must have coordinates
 
@@ -272,6 +271,11 @@ E: Fix rigid/small atom has non-zero image flag in a non-periodic dimension
 
 Image flags for non-periodic dimensions should not be set.
 
+E: Inconsistent use of finite-size particles by molecule template molecules
+
+Not all of the molecules define a radius for their constituent
+particles.
+
 E: Insufficient Jacobi rotations for rigid body
 
 Eigensolve for rigid body was not sufficiently accurate.
@@ -289,10 +293,6 @@ correct.
 E: Unexpected end of fix rigid/small file
 
 A read operation from the file failed.
-
-E: Fix rigid file has no lines
-
-Self-explanatory.
 
 E: Incorrect rigid body format in fix rigid/small file
 

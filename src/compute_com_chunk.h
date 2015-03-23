@@ -67,18 +67,10 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Chunk/atom compute does not exist for compute com/chunk
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute com/chunk does not use chunk/atom compute
 
-UNDOCUMENTED
-
-U: Compute com/molecule requires molecular atom style
-
-Self-explanatory.
-
-U: Molecule count changed in compute com/molecule
-
-Number of molecules must remain constant over time.
+The style of the specified compute is not chunk/atom.
 
 */

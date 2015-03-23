@@ -72,3 +72,31 @@ class FixRattle : public FixShake {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+W: Fix rattle should come after all other integration fixes
+
+This fix is designed to work after all other integration fixes change
+atom positions.  Thus it should be the last integration fix specified.
+If not, it will not satisfy the desired constraints as well as it
+otherwise would.
+
+E: RATTLE determinant = 0.0
+
+The determinant of the matrix being solved for a single cluster
+specified by the fix rattle command is numerically invalid.
+
+E: RATTLE failed
+
+Certain constraints were not satisfied.
+
+E: RATTLE coordinate constraints are not satisfied up to desired tolerance
+
+Self-explanatory.
+
+E: RATTLE velocity constraints are not satisfied up to desired tolerance
+
+Self-explanatory.
+
+*/

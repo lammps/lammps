@@ -121,10 +121,6 @@ E: Cannot use fix rigid npt/nph on a non-periodic dimension
 When specifying a diagonal pressure component, the dimension must be
 periodic.
 
-E: Invalid fix rigid npt/nph pressure settings
-
-Settings for coupled dimensions must be the same.
-
 E: Fix rigid nvt/npt/nph damping parameters must be > 0.0
 
 Self-explanatory.

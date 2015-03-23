@@ -40,14 +40,15 @@ FixRigidNPHSmall::FixRigidNPHSmall(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (pstat_flag == 0)
-    error->all(FLERR,"Pressure control must be used with fix nph");
+    error->all(FLERR,"Pressure control must be used with fix nph/small");
   if (tstat_flag == 1)
-    error->all(FLERR,"Temperature control must not be used with fix nph");
+    error->all(FLERR,"Temperature control must not be used with fix nph/small");
   if (p_start[0] < 0.0 || p_start[1] < 0.0 || p_start[2] < 0.0 || 
       p_stop[0] < 0.0 || p_stop[1] < 0.0 || p_stop[2] < 0.0)
-    error->all(FLERR,"Target pressure for fix rigid/nph cannot be 0.0");
+    error->all(FLERR,"Target pressure for fix rigid/nph cannot be < 0.0");
   
   // convert input periods to frequency
+
   p_freq[0] = p_freq[1] = p_freq[2] = 0.0;
 
   if (p_flag[0]) p_freq[0] = 1.0 / p_period[0];

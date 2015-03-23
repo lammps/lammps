@@ -275,7 +275,7 @@ pair_coeff command before running a simulation.
 
 E: Fix adapt interface to this pair style not supported
 
-UNDOCUMENTED
+New coding for the pair style would need to be done.
 
 E: Pair style requres a KSpace style
 

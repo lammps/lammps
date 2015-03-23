@@ -80,11 +80,11 @@ Self-explanatory.
 
 E: BondAngle coeff for hybrid angle has invalid format
 
-UNDOCUMENTED
+No "ba" field should appear in data file entry.
 
 E: BondBond coeff for hybrid angle has invalid format
 
-UNDOCUMENTED
+No "bb" field should appear in data file entry.
 
 E: Angle coeff for hybrid has invalid style
 

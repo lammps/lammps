@@ -293,4 +293,8 @@ When using pair style table with a long-range KSpace solver, the
 cutoffs for all atom type pairs must all be the same, since the
 long-range solver starts at that cutoff.
 
+E: Cannot use chosen neighbor list style with lj/cut/kk
+
+That style is not supported by Kokkos.
+
 */

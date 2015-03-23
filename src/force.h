@@ -127,31 +127,31 @@ class Force : protected Pointers {
 
 E: Unknown pair style
 
-UNDOCUMENTED
+The choice of pair style is unknown.
 
 E: Unknown bond style
 
-UNDOCUMENTED
+The choice of bond style is unknown.
 
 E: Unknown angle style
 
-UNDOCUMENTED
+The choice of angle style is unknown.
 
 E: Unknown dihedral style
 
-UNDOCUMENTED
+The choice of dihedral style is unknown.
 
 E: Unknown improper style
 
-UNDOCUMENTED
+The choice of improper style is unknown.
 
 E: Cannot yet use KSpace solver with grid with comm style tiled
 
-UNDOCUMENTED
+This is current restriction in LAMMPS.
 
 E: Unknown kspace style
 
-UNDOCUMENTED
+The choice of kspace style is unknown.
 
 E: Illegal ... command
 
@@ -164,29 +164,5 @@ E: Numeric index is out of bounds
 A command with an argument that specifies an integer or range of
 integers is using a value that is less than 1 or greater than the
 maximum allowed limit.
-
-U: Invalid pair style
-
-The choice of pair style is unknown.
-
-U: Invalid bond style
-
-The choice of bond style is unknown.
-
-U: Invalid angle style
-
-The choice of angle style is unknown.
-
-U: Invalid dihedral style
-
-The choice of dihedral style is unknown.
-
-U: Invalid improper style
-
-The choice of improper style is unknown.
-
-U: Invalid kspace style
-
-The choice of kspace style is unknown.
 
 */

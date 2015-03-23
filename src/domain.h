@@ -232,7 +232,12 @@ for a dihedral) and adding a small amount of stretch.
 
 W: Proc sub-domain size < neighbor skin, could lead to lost atoms
 
-UNDOCUMENTED
+The decomposition of the physical domain (likely due to load
+balancing) has led to a processor's sub-domain being smaller than the
+neighbor skin in one or more dimensions.  Since reneighboring is
+triggered by atoms moving the skin distance, this may lead to lost
+atoms, if an atom moves all the way across a neighboring processor's
+sub-domain before reneighboring is triggered.
 
 E: Illegal ... command
 
@@ -246,7 +251,7 @@ A region ID cannot be used twice.
 
 E: Unknown region style
 
-UNDOCUMENTED
+The choice of region style is unknown.
 
 E: Delete region ID does not exist
 
@@ -256,9 +261,5 @@ E: Both sides of boundary must be periodic
 
 Cannot specify a boundary as periodic only on the lo or hi side.  Must
 be periodic on both sides.
-
-U: Invalid region style
-
-The choice of region style is unknown.
 
 */

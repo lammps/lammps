@@ -44,15 +44,16 @@ class CreateBonds : protected Pointers {
 
 E: Create_bonds command before simulation box is defined
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot use create_bonds unless atoms have IDs
 
-UNDOCUMENTED
+This command requires a mapping from global atom IDs to local atoms,
+but the atoms that have been defined have no IDs.
 
 E: Cannot use create_bonds with non-molecular system
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Illegal ... command
 
@@ -62,61 +63,38 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Cannot find create_bonds group ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Invalid bond type in create_bonds command
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Create_bonds requires a pair style be defined
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Create_bonds max distance > neighbor cutoff
 
-UNDOCUMENTED
+Can only create bonds for atom pairs that will be in neighbor list.
 
 W: Create_bonds max distance > minimum neighbor cutoff
 
-UNDOCUMENTED
+This means atom pairs for some atom types may not be in the neighbor
+list and thus no bond can be created between them.
 
 E: Create_bonds command requires special_bonds 1-2 weights be 0.0
 
-UNDOCUMENTED
+This is so that atom pairs that are already bonded to not appear in
+the neighbor list.
 
 E: Create_bonds command requires no kspace_style be defined
 
-UNDOCUMENTED
+This is so that atom pairs that are already bonded to not appear
+in the neighbor list.
 
 E: New bond exceeded bonds per atom in create_bonds
 
-UNDOCUMENTED
-
-U: Delete_atoms command before simulation box is defined
-
-The delete_atoms command cannot be used before a read_data,
-read_restart, or create_box command.
-
-U: Cannot use delete_atoms unless atoms have IDs
-
-Your atoms do not have IDs, so the delete_atoms command cannot be
-used.
-
-U: Could not find delete_atoms group ID
-
-Group ID used in the delete_atoms command does not exist.
-
-U: Could not find delete_atoms region ID
-
-Region ID used in the delete_atoms command does not exist.
-
-U: Delete_atoms requires a pair style be defined
-
-This is because atom deletion within a cutoff uses a pairwise
-neighbor list.
-
-U: Delete_atoms cutoff > neighbor cutoff
-
-Cannot delete atoms further away than a processor knows about.
+See the read_data command for info on setting the "extra bond per
+atom" header value to allow for additional bonds to be formed.
 
 */

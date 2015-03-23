@@ -1561,7 +1561,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
   // check if list structure is initialized
   if (mylist == NULL)
     error->all(FLERR,"Trying to build an occasional neighbor list "
-               "before initialization is completed.");
+               "before initialization completed");
 
   // no need to build if already built since last re-neighbor
   // preflag is set by fix bond/create and fix bond/swap

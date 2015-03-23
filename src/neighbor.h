@@ -387,7 +387,7 @@ The number of nlocal + nghost atoms on a processor
 is limited by the size of a 32-bit integer with 2 bits
 removed for masking 1-2, 1-3, 1-4 neighbors.
 
-E: Trying to build an occasional neighbor list before initialization is completed
+E: Trying to build an occasional neighbor list before initialization completed
 
 This is not allowed.  Source code caller needs to be modified.
 

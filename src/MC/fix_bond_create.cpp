@@ -606,7 +606,7 @@ void FixBondCreate::check_ghosts()
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall) 
-    error->all(FLERR,"Fix3 bond/create needs ghost atoms from further away");
+    error->all(FLERR,"Fix bond/create needs ghost atoms from further away");
   lastcheck = update->ntimestep;
 }
 

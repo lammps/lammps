@@ -154,9 +154,41 @@ E: Fix gcmc region extends outside simulation box
 
 Self-explanatory.
 
+E: Fix gcmc molecule must have coordinates
+
+UNDOCUMENTED
+
+E: Fix gcmc molecule must have atom types
+
+UNDOCUMENTED
+
+E: Invalid atom type in fix gcmc mol command
+
+Self-explanatory.
+
+E: Fix gcmc molecule template ID must be same as atom_style template ID
+
+UNDOCUMENTED
+
+E: Cannot use fix gcmc shake and not molecule
+
+UNDOCUMENTED
+
+E: Molecule template ID for fix gcmc does not exist
+
+UNDOCUMENTED
+
+W: Molecule template for fix gcmc has multiple molecules
+
+UNDOCUMENTED
+
 E: Region ID for fix gcmc does not exist
 
 Self-explanatory.
+
+W: fix gcmc using full_energy option
+
+UNDOCUMENTED
 
 E: Invalid atom type in fix gcmc command
 
@@ -181,10 +213,22 @@ Should not choose the GCMC molecule feature if no molecules are being
 simulated. The general molecule flag is off, but GCMC's molecule flag
 is on.
 
+E: Fix gcmc shake fix does not exist
+
+Self-explanatory.
+
+E: Fix gcmc and fix shake not using same molecule template ID
+
+Self-explanatory.
+
 E: Cannot use fix gcmc in a 2d simulation
 
 Fix gcmc is set up to run in 3d only. No 2d simulations with fix gcmc
 are allowed.
+
+E: Could not find fix gcmc exclusion group ID
+
+Self-explanatory.
 
 E: Could not find fix gcmc rotation group ID
 
@@ -204,14 +248,12 @@ E: Fix gcmc ran out of available molecule IDs
 
 See the setting for tagint in the src/lmptype.h file.
 
-E: Fix gcmc could not find any atoms in the user-supplied template molecule
+E: Fix gcmc ran out of available atom IDs
 
-When using the molecule option with fix gcmc, the user must supply a 
-template molecule in the usual LAMMPS data file with its molecule id
-specified in the fix gcmc command as the "type" of the exchanged gas.
+UNDOCUMENTED
 
-E: Fix gcmc incorrect number of atoms per molecule
+E: Too many total atoms
 
-The number of atoms in each gas molecule was not computed correctly.
+UNDOCUMENTED
 
 */

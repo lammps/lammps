@@ -126,22 +126,27 @@ E: Fix bond/create cutoff is longer than pairwise cutoff
 This is not allowed because bond creation is done using the
 pairwise neighbor list.
 
-E: Fix bond/create requires special_bonds lj = 0,1,1
+E: Fix bond/create angle type is invalid
 
 Self-explanatory.
 
-E: Fix bond/create requires special_bonds coul = 0,1,1
+E: Fix bond/create dihedral type is invalid
 
 Self-explanatory.
 
-W: Created bonds will not create angles, dihedrals, or impropers
+E: Fix bond/create improper type is invalid
 
-See the doc page for fix bond/create for more info on this
-restriction.
+Self-explanatory.
 
-E: Could not count initial bonds in fix bond/create
+E: Cannot yet use fix bond/create with this improper style
 
-Could not find one of the atoms in a bond on this processor.
+This is a current restriction in LAMMPS.
+
+E: Fix bond/create needs ghost atoms from further away
+
+This is because the fix needs to walk bonds to a certain distance to
+acquire needed info, The comm_modify cutoff command can be used to
+extend the communication range.
 
 E: New bond exceeded bonds per atom in fix bond/create
 
@@ -152,5 +157,17 @@ E: New bond exceeded special list size in fix bond/create
 
 See the special_bonds extra command for info on how to leave space in
 the special bonds list to allow for additional bonds to be formed.
+
+E: Fix bond/create induced too many angles/dihedrals/impropers per atom
+
+See the read_data command for info on setting the "extra angle per
+atom", etc header values to allow for additional angles, etc to be
+formed.
+
+E: Special list size exceeded in fix bond/create
+
+See the read_data command for info on setting the "extra special per
+atom" header value to allow for additional special values to be
+stored.
 
 */

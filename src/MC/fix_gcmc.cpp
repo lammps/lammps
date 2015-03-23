@@ -218,7 +218,6 @@ void FixGCMC::options(int narg, char **arg)
   molecule_group_inversebit = 0;
   exclusion_group = 0;
   exclusion_group_bit = 0;
-  exclusion_group_inversebit = 0;
   pressure_flag = false;
   pressure = 0.0;
   fugacity_coeff = 1.0;
@@ -432,7 +431,6 @@ void FixGCMC::init()
     if (exclusion_group == -1) 
       error->all(FLERR,"Could not find fix gcmc exclusion group ID");
     exclusion_group_bit = group->bitmask[exclusion_group];
-    exclusion_group_inversebit = exclusion_group_bit ^ ~0;
     
     // neighbor list exclusion setup
     // turn off interactions between group all and the exclusion group
@@ -1281,8 +1279,10 @@ void FixGCMC::attempt_atomic_deletion_full()
 
   int i = pick_random_gas_atom();
 
+  int tmpmask;
   if (i >= 0) {
-    atom->mask[i] |= exclusion_group_bit;
+    tmpmask = atom->mask[i];
+    atom->mask[i] = exclusion_group_bit;
     if (atom->q_flag) {
       q_tmp = atom->q[i];
       atom->q[i] = 0.0;
@@ -1302,7 +1302,7 @@ void FixGCMC::attempt_atomic_deletion_full()
     energy_stored = energy_after;    
   } else {
     if (i >= 0) {
-      atom->mask[i] &= exclusion_group_inversebit;
+      atom->mask[i] = tmpmask;
       if (atom->q_flag) atom->q[i] = q_tmp;
     }
     energy_stored = energy_before;
@@ -1565,9 +1565,11 @@ void FixGCMC::attempt_molecule_deletion_full()
   
   int m = 0;
   double q_tmp[natoms_per_molecule];
+  int tmpmask[atom->nlocal];
   for (int i = 0; i < atom->nlocal; i++) {
     if (atom->molecule[i] == deletion_molecule) {
-      atom->mask[i] |= exclusion_group_bit;
+      tmpmask[i] = atom->mask[i];
+      atom->mask[i] = exclusion_group_bit;
       if (atom->q_flag) {
         q_tmp[m] = atom->q[i];
         m++;
@@ -1597,7 +1599,7 @@ void FixGCMC::attempt_molecule_deletion_full()
     int m = 0;
     for (int i = 0; i < atom->nlocal; i++) {
       if (atom->molecule[i] == deletion_molecule) {
-        atom->mask[i] &= exclusion_group_inversebit;
+        atom->mask[i] = tmpmask[i];
         if (atom->q_flag) {
           atom->q[i] = q_tmp[m];
           m++;

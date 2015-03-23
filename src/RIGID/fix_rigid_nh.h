@@ -135,7 +135,7 @@ Self-explanatory.
 
 E: Fix rigid npt/nph does not yet allow triclinic box
 
-Self-explanatory.
+This is a current restriction in LAMMPS.
 
 E: Cannot use fix rigid npt/nph and fix deform on same component of stress tensor
 

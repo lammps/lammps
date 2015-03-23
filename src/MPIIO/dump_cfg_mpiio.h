@@ -67,8 +67,8 @@ path and name are correct.
 
 E: Too much per-proc info for dump
 
-The size of the buffered string must fit in a 32-bit integer for a
-dump.
+Number of local atoms times number of columns must fit in a 32-bit
+integer for dump.
 
 E: Dump cfg requires one snapshot per file
 

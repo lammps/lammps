@@ -254,6 +254,6 @@ UNDOCUMENTED
 
 E: Too many total atoms
 
-UNDOCUMENTED
+See the setting for bigint in the src/lmptype.h file.
 
 */

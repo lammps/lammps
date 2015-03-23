@@ -72,8 +72,8 @@ Cannot invoke a function that has not been previously defined.
 
 E: Python variable does not match Python function
 
-Trying to invoke a function that returns a value, but no
-matching python-style variable has been specified.
+This matching is defined by the python-style variable and the python
+command.
 
 E: Cannot embed Python when also extending Python with LAMMPS
 

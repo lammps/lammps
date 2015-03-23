@@ -184,7 +184,7 @@ long-range Coulombic or dispersion components be used.
 
 E: Must use 'kspace_modify pressure/scalar no' to obtain per-atom virial with kspace_style MSM
 
-Self-explanatory.
+The kspace scalar pressure option cannot be used to obtain per-atom virial.
 
 E: KSpace accuracy must be > 0
 

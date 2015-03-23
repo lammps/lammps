@@ -61,7 +61,6 @@ class FixGCMC : public Fix {
   int molecule_group,molecule_group_bit;
   int molecule_group_inversebit;
   int exclusion_group,exclusion_group_bit;
-  int exclusion_group_inversebit;
   int ngcmc_type,nevery,seed;
   int ncycles,nexchanges,nmcmoves;
   int ngas;                 // # of gas atoms on all procs

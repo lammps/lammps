@@ -54,6 +54,7 @@ class KokkosLMP {
 
 class AtomKokkos : public Atom {
  public:
+  tagint **k_special;
   AtomKokkos(class LAMMPS *lmp) : Atom(lmp) {}
   ~AtomKokkos() {}
 };

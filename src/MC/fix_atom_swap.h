@@ -105,19 +105,33 @@ E: Region ID for fix atom/swap does not exist
 
 Self-explanatory.
 
+E: Must specify at least 2 types in fix atom/swap command
+
+Self-explanatory.
+
+E: Need ntypes-1 delta_mu values in fix atom/swap command
+
+Self-explanatory.
+
+E: Only 2 types allowed when not using semi-grand in fix atom/swap command
+
+Self-explanatory.
+
+E: Delta_mu not allowed when not using semi-grand in fix atom/swap command
+
+Self-explanatory.
+
 E: Invalid atom type in fix atom/swap command
 
 The atom type specified in the atom/swap command does not exist.
 
-E: Illegal fix atom/swap gas mass <= 0
+E: All atoms of a swapped type must have the same charge.
 
-The computed mass of the designated atom type was less 
-than or equal to zero.
+Self-explanatory.
 
 E: Cannot do atom/swap on atoms in atom_modify first group
 
 This is a restriction due to the way atoms are organized in a list to
 enable the atom_modify first command.
-
 
 */

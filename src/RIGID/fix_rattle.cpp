@@ -497,7 +497,7 @@ void FixRattle::solve3x3exactly(const double a[][3],
     a[0][1]*a[1][0]*a[2][2] - a[0][2]*a[1][1]*a[2][0];
   
   // check if matrix is actually invertible
-  if (determ == 0.0) error->one(FLERR,"Rattle determinant = 0.0");
+  if (determ == 0.0) error->one(FLERR,"RATTLE determinant = 0.0");
 
   // calculate the inverse 3x3 matrix: A^(-1) = (ai_jk)
   determinv = 1.0/determ;
@@ -787,7 +787,7 @@ bool FixRattle::check3(double **v, int m, bool checkr, bool checkv)
                       fabs(MathExtra::dot3(r02,v02)) > tol));
   if (!stat)   
      error->one(FLERR,"RATTLE velocity constraints are not satisfied "
-                "up to desired tolerance!");
+                "up to desired tolerance");
   return stat;
 }
 

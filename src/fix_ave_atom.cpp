@@ -284,7 +284,7 @@ void FixAveAtom::end_of_step()
 
   bigint ntimestep = update->ntimestep;
   if (ntimestep < nvalid_last || ntimestep > nvalid) 
-    error->all(FLERR,"Invalid timestep resets for fix ave/time");
+    error->all(FLERR,"Invalid timestep reset for fix ave/atom");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -456,11 +456,4 @@ bigint FixAveAtom::nextvalid()
     nvalid -= (nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += peratom_freq;
   return nvalid;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixAveAtom::reset_timestep(bigint ntimestep)
-{
-  if (ntimestep > nvalid) error->all(FLERR,"Fix ave/atom missed timestep");
 }

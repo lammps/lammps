@@ -108,11 +108,11 @@ E: Too big a timestep for dump xtc
 
 The timestep must fit in a 32-bit integer to use this dump style.
 
-E: Illegal dump_modify sfactor value (must be >0.0)
+E: Illegal dump_modify sfactor value (must be > 0.0)
 
 Self-explanatory.
 
-E: Illegal dump_modify tfactor value (must be >0.0)
+E: Illegal dump_modify tfactor value (must be > 0.0)
 
 Self-explanatory.
 

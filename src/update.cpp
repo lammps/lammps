@@ -428,7 +428,7 @@ void Update::reset_timestep(bigint newstep)
 
   atimestep = ntimestep;
 
-  // trigger reset of timestep for output and for fixes that require it
+  // trigger reset of timestep for output
   // do not allow any timestep-dependent fixes to be already defined
 
   output->reset_timestep(ntimestep);
@@ -437,7 +437,6 @@ void Update::reset_timestep(bigint newstep)
     if (modify->fix[i]->time_depend)
       error->all(FLERR,
                  "Cannot reset timestep with a time-dependent fix defined");
-    modify->fix[i]->reset_timestep(ntimestep);
   }
 
   // reset eflag/vflag global so no commands will think eng/virial are current

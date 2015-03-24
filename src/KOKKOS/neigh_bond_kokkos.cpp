@@ -199,7 +199,7 @@ void NeighBondKokkos<DeviceType>::build_topology_kk()
   // don't yet have atom_map_kokkos routines, so move data from host to device
 
   if (atom->map_style != 1)
-    error->all(FLERR,"Must use map style array with Kokkos for topology");
+    error->all(FLERR,"Must use atom map style array with Kokkos");
 
   int* map_array_host = atom->get_map_array();
   int map_size = atom->get_map_size();

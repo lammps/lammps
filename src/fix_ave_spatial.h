@@ -35,7 +35,6 @@ class FixAveSpatial : public Fix {
   void end_of_step();
   double compute_array(int,int);
   double memory_usage();
-  void reset_timestep(bigint);
 
  private:
   int me,nvalues;
@@ -181,17 +180,13 @@ E: Fix for fix ave/spatial not computed at compatible time
 Fixes generate their values on specific timesteps.  Fix ave/spatial is
 requesting a value on a non-allowed timestep.
 
-E: Invalid timestep resets for fix ave/time
+E: Invalid timestep reset for fix ave/spatial
 
-UNDOCUMENTED
+Resetting the timestep has invalidated the sequence of timesteps this
+fix needs to process.
 
 E: Invalid bin bounds in fix ave/spatial
 
 The lo/hi values are inconsistent.
-
-E: Fix ave/spatial missed timestep
-
-You cannot reset the timestep to a value beyond where the fix
-expects to next perform averaging.
 
 */

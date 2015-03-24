@@ -511,7 +511,7 @@ void FixAveChunk::end_of_step()
 
   bigint ntimestep = update->ntimestep;
   if (ntimestep < nvalid_last || ntimestep > nvalid) 
-    error->all(FLERR,"Invalid timestep resets for fix ave/time");
+    error->all(FLERR,"Invalid timestep reset for fix ave/chunk");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -1040,11 +1040,4 @@ double FixAveChunk::memory_usage()
   bytes += nwindow*maxchunk * sizeof(double);          // count_list
   bytes += nwindow*maxchunk*nvalues * sizeof(double);  // values_list
   return bytes;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixAveChunk::reset_timestep(bigint ntimestep)
-{
-  if (ntimestep > nvalid) error->all(FLERR,"Fix ave/chunk missed timestep");
 }

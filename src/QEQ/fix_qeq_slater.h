@@ -79,6 +79,8 @@ This is the size of the matrix.
 
 E: Fix qeq/slater has insufficient QEq matrix size
 
-UNDOCUMENTED
+Occurs when number of neighbor atoms for an atom increased too much
+during a run.  Increase SAFE_ZONE and MIN_CAP in fix_qeq.h and
+recompile.
 
 */

@@ -170,6 +170,10 @@ One of more of the vector inputs has individual elements which are
 flagged as intensive or extensive.  Such an input cannot be flagged as
 all intensive/extensive when turned into an array by fix ave/time.
 
+E: Invalid timestep resets for fix ave/time
+
+UNDOCUMENTED
+
 E: Fix ave/time columns are inconsistent lengths
 
 Self-explanatory.

@@ -214,6 +214,10 @@ E: Variable name for fix ave/histo does not exist
 
 Self-explanatory.
 
+E: Invalid timestep resets for fix ave/time
+
+UNDOCUMENTED
+
 E: Cannot open fix ave/histo file %s
 
 The specified file cannot be opened.  Check that the path and name are

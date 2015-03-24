@@ -181,6 +181,10 @@ E: Fix for fix ave/spatial not computed at compatible time
 Fixes generate their values on specific timesteps.  Fix ave/spatial is
 requesting a value on a non-allowed timestep.
 
+E: Invalid timestep resets for fix ave/time
+
+UNDOCUMENTED
+
 E: Invalid bin bounds in fix ave/spatial
 
 The lo/hi values are inconsistent.

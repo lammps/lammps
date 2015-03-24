@@ -118,6 +118,10 @@ E: Fix ave/atom variable is not atom-style variable
 
 A variable used by fix ave/atom must generate per-atom values.
 
+E: Invalid timestep resets for fix ave/time
+
+UNDOCUMENTED
+
 E: Fix ave/atom missed timestep
 
 You cannot reset the timestep to a value beyond where the fix

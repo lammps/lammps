@@ -45,10 +45,6 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Unknown dump style
 
-UNDOCUMENTED
-
-U: Invalid dump style
-
 The choice of dump style is unknown.
 
 */

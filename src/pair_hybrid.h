@@ -127,7 +127,7 @@ that doesn't support it.
 
 E: Unknown pair_modify hybrid sub-style
 
-UNDOCUMENTED
+The choice of sub-style is unknown.
 
 E: Coulomb cutoffs of pair hybrid sub-styles do not match
 

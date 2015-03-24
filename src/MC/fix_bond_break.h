@@ -100,13 +100,14 @@ E: Cannot use fix bond/break with non-molecular systems
 Only systems with bonds that can be changed can be used.  Atom_style
 template does not qualify.
 
-E: Fix bond/break requires special_bonds = 0,1,1
+E: Cannot yet use fix bond/break with this improper style
 
-This is a restriction of the current fix bond/break implementation.
+This is a current restriction in LAMMPS.
 
-W: Broken bonds will not alter angles, dihedrals, or impropers
+E: Fix bond/break needs ghost atoms from further away
 
-See the doc page for fix bond/break for more info on this
-restriction.
+This is because the fix needs to walk bonds to a certain distance to
+acquire needed info, The comm_modify cutoff command can be used to
+extend the communication range.
 
 */

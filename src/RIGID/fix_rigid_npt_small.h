@@ -40,26 +40,30 @@ class FixRigidNPTSmall : public FixRigidNHSmall {
 
 E: Did not set temp or press for fix rigid/npt/small
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Target temperature for fix rigid/npt/small cannot be 0.0
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Target pressure for fix rigid/npt/small cannot be 0.0
+E: Target pressure for fix rigid/npt/small cannot be < 0.0
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix rigid/npt/small period must be > 0.0
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Illegal ... command
+E: Fix rigid npt/small t_chain should not be less than 1
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Fix_modify order must be 3 or 5
+E: Fix rigid npt/small t_iter should not be less than 1
 
-UNDOCUMENTED
+Self-explanatory.
+
+E: Fix rigid npt/small t_order must be 3 or 5
+
+Self-explanatory.
 
 */

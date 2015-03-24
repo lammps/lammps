@@ -134,4 +134,14 @@ class PairCoulCutKokkos : public PairCoulCut {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use chosen neighbor list style with coul/cut/kk
+
+That style is not supported by Kokkos.
+
 */

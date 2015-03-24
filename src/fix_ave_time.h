@@ -129,7 +129,7 @@ Self-explanatory.
 
 E: Fix ave/time fix vector cannot be variable length
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/time fix vector is accessed out-of-range
 
@@ -146,7 +146,7 @@ Self-explanatory.
 
 E: Fix ave/time fix array cannot be variable length
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ave/time fix array is accessed out-of-range
 
@@ -169,6 +169,10 @@ E: Fix ave/time cannot set output array intensive/extensive from these inputs
 One of more of the vector inputs has individual elements which are
 flagged as intensive or extensive.  Such an input cannot be flagged as
 all intensive/extensive when turned into an array by fix ave/time.
+
+E: Invalid timestep resets for fix ave/time
+
+UNDOCUMENTED
 
 E: Fix ave/time columns are inconsistent lengths
 

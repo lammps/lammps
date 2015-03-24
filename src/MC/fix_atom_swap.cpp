@@ -488,6 +488,9 @@ double FixAtomSwap::energy_full()
   int eflag = 1;
   int vflag = 0;
 
+  if (modify->n_pre_neighbor) modify->pre_neighbor();
+  if (modify->n_pre_force) modify->pre_force(vflag);
+  
   if (force->pair) force->pair->compute(eflag,vflag);
 
   if (atom->molecular) {
@@ -498,7 +501,10 @@ double FixAtomSwap::energy_full()
   }
 
   if (force->kspace) force->kspace->compute(eflag,vflag);
- 
+  
+  if (modify->n_post_force) modify->post_force(vflag);
+  if (modify->n_end_of_step) modify->end_of_step();
+  
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();
 

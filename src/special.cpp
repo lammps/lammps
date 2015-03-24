@@ -575,10 +575,8 @@ void Special::combine()
 
   if (lmp->kokkos) {
     AtomKokkos* atomKK = (AtomKokkos*) atom;
-#ifdef LMP_KOKKOS
     memory->grow_kokkos(atomKK->k_special,atom->special,
                         atom->nmax,atom->maxspecial,"atom:special");
-#endif
   } else {
     memory->destroy(atom->special);
     memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");

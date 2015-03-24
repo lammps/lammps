@@ -165,6 +165,10 @@ E: No fix gravity defined for fix pour
 
 Gravity is required to use fix pour.
 
+E: Fix pour insertion count per timestep is 0
+
+Self-explanatory.
+
 E: Cannot use fix pour with triclinic box
 
 This option is not yet supported.
@@ -217,11 +221,6 @@ Self-explanatory.
 E: Molecule template ID for fix pour does not exist
 
 Self-explanatory.
-
-W: Molecule template for fix pour has multiple molecules
-
-The fix pour command will only create molecules of a single type,
-i.e. the first molecule in the template.
 
 E: Fix pour polydisperse fractions do not sum to 1.0
 

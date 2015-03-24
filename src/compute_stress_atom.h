@@ -59,11 +59,11 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Could not find compute stress/atom temperature ID
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute stress/atom temperature ID does not compute temperature
 
-UNDOCUMENTED
+The specified compute must compute temperature.
 
 E: Per-atom virial was not tallied on needed timestep
 

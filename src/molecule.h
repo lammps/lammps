@@ -206,7 +206,7 @@ Self-explanatory.
 
 E: Molecule file has bonds but no special flags
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule file shake info is incomplete
 

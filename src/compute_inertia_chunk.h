@@ -66,18 +66,10 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Chunk/atom compute does not exist for compute inertia/chunk
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute inertia/chunk does not use chunk/atom compute
 
-UNDOCUMENTED
-
-U: Compute inertia/molecule requires molecular atom style
-
-Self-explanatory.
-
-U: Molecule count changed in compute inertia/molecule
-
-Number of molecules must remain constant over time.
+The style of the specified compute is not chunk/atom.
 
 */

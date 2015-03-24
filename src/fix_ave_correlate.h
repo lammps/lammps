@@ -126,6 +126,10 @@ E: Fix ave/correlate variable is not equal-style variable
 
 Self-explanatory.
 
+E: Invalid timestep resets for fix ave/time
+
+UNDOCUMENTED
+
 E: Fix ave/correlate missed timestep
 
 You cannot reset the timestep to a value beyond where the fix

@@ -80,7 +80,8 @@ Self-explanatory.  See doc page discussion of command-line switches.
 
 E: Processor partitions do not match number of allocated processors
 
-UNDOCUMENTED
+The total number of processors in all partitions must match the number
+of processors LAMMPS is running on.
 
 E: Must use -in switch with multiple partitions
 
@@ -159,7 +160,7 @@ the developers if this occurs.
 
 E: Cannot use -cuda on and -kokkos on together
 
-UNDOCUMENTED
+This is not allowed since both packages can use GPUs.
 
 E: Cannot use -cuda on without USER-CUDA installed
 
@@ -168,35 +169,31 @@ before LAMMPS is built.
 
 E: Cannot use -kokkos on without KOKKOS installed
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Using suffix cuda without USER-CUDA package enabled
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Using suffix gpu without GPU package installed
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Using suffix intel without USER-INTEL package installed
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Using suffix kk without KOKKOS package enabled
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Using suffix omp without USER-OMP package installed
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Too many -pk arguments in command line
 
-UNDOCUMENTED
-
-U: Processor partitions are inconsistent
-
-The total number of processors in all partitions must match the number
-of processors LAMMPS is running on.
+The string formed by concatenating the arguments is too long.  Use a
+package command in the input script instead.
 
 */

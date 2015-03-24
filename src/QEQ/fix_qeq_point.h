@@ -39,3 +39,23 @@ class FixQEqPoint : public FixQEq {
 }
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Fix qeq/point requires atom attribute q
+
+Self-explanatory.
+
+E: Fix qeq/point group has no atoms
+
+Self-explanatory.
+
+W: H matrix size has been exceeded: m_fill=%d H.m=%d\n
+
+This is the size of the matrix.
+
+E: Fix qeq/point has insufficient QEq matrix size
+
+UNDOCUMENTED
+
+*/

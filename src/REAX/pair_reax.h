@@ -129,6 +129,10 @@ E: Pair style reax requires newton pair on
 
 This is a requirement to use the ReaxFF potential.
 
+E: Pair style reax requires atom attribute q
+
+The atom style defined does not have this attribute.
+
 W: Not using real units with pair reax
 
 This is most likely an error, unless you have created your own ReaxFF

@@ -79,6 +79,10 @@ E: Too many atoms for dump xtc
 The system size must fit in a 32-bit integer to use this dump
 style.
 
+W: No automatic unit conversion to XTC file format conventions possible for units lj
+
+This means no scaling will be performed.
+
 E: Dump xtc requires sorting by atom ID
 
 Use the dump_modify sort command to enable this.
@@ -103,5 +107,13 @@ path and name are correct.
 E: Too big a timestep for dump xtc
 
 The timestep must fit in a 32-bit integer to use this dump style.
+
+E: Illegal dump_modify sfactor value (must be >0.0)
+
+Self-explanatory.
+
+E: Illegal dump_modify tfactor value (must be >0.0)
+
+Self-explanatory.
 
 */

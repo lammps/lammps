@@ -77,42 +77,30 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Compute chunk/atom stores no IDs for compute property/chunk
 
-UNDOCUMENTED
+It will only store IDs if its compress option is enabled.
 
 E: Compute chunk/atom stores no coord1 for compute property/chunk
 
-UNDOCUMENTED
+Only certain binning options for comptue chunk/atom store coordinates.
 
 E: Compute chunk/atom stores no coord2 for compute property/chunk
 
-UNDOCUMENTED
+Only certain binning options for comptue chunk/atom store coordinates.
 
 E: Compute chunk/atom stores no coord3 for compute property/chunk
 
-UNDOCUMENTED
+Only certain binning options for comptue chunk/atom store coordinates.
 
 E: Invalid keyword in compute property/chunk command
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Chunk/atom compute does not exist for compute property/chunk
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute property/chunk does not use chunk/atom compute
 
-UNDOCUMENTED
-
-U: Compute property/molecule requires molecular atom style
-
-Self-explanatory.
-
-U: Invalid keyword in compute property/molecule command
-
-Self-explanatory.
-
-U: Molecule count changed in compute property/molecule
-
-Number of molecules must remain constant over time.
+The style of the specified compute is not chunk/atom.
 
 */

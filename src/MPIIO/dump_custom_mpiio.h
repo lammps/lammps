@@ -69,7 +69,7 @@ class DumpCustomMPIIO : public DumpCustom {
 
 /* ERROR/WARNING messages:
 
-E: Cannot open dump file
+E: Cannot open dump file %s
 
 The output file for the dump command cannot be opened.  Check that the
 path and name are correct.

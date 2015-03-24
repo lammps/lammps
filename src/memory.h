@@ -32,11 +32,13 @@ class Memory : protected Pointers {
   void fail(const char *);
 
   // Kokkos memory allocation functions
-  // could provide a dummy any Kokkos memory function
+  // provide a dummy prototpye for any Kokkos memory function
   //   called in main LAMMPS even when not built with KOKKOS package
 
 #ifdef LMP_KOKKOS
 #include "memory_kokkos.h"
+#else
+  void grow_kokkos(tagint **, tagint **, int, int, const char*) {}
 #endif
 
 /* ----------------------------------------------------------------------

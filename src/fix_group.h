@@ -52,26 +52,32 @@ class FixGroup : public Fix {
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 E: Region ID for group dynamic does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable name for group dynamic does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Group dynamic parent group cannot be dynamic
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Variable for group dynamic is invalid style
 
-UNDOCUMENTED
+The variable must be an atom-style variable.
 
 W: One or more dynamic groups may not be updated at correct point in timestep
 
-UNDOCUMENTED
+If there are other fixes that act immediately after the intitial stage
+of time integration within a timestep (i.e. after atoms move), then
+the command that sets up the dynamic group should appear after those
+fixes.  This will insure that dynamic group assignements are made
+after all atoms have moved.
 
 */

@@ -120,98 +120,99 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Region ID for compute chunk/atom does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom molecule for non-molecular system
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom without bins cannot use discard mixed
 
-UNDOCUMENTED
+That discard option only applies to the binning styles.
 
 E: Compute ID for compute chunk/atom does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom compute does not calculate per-atom values
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom compute does not calculate a per-atom vector
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom compute does not calculate a per-atom array
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom compute array is accessed out-of-range
 
-UNDOCUMENTED
+The index for the array is out of bounds.
 
 E: Fix ID for compute chunk/atom does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom fix does not calculate per-atom values
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom fix does not calculate a per-atom vector
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom fix does not calculate a per-atom array
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom fix array is accessed out-of-range
 
-UNDOCUMENTED
+the index for the array is out of bounds.
 
 E: Variable name for compute chunk/atom does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom variable is not atom-style variable
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Compute chunk/atom for triclinic boxes requires units reduced
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule IDs too large for compute chunk/atom
 
-UNDOCUMENTED
+The IDs must not be larger than can be stored in a 32-bit integer
+since chunk IDs are 32-bit integers.
 
 E: Compute chunk/atom ids once but nchunk is not once
 
-UNDOCUMENTED
+You cannot assign chunks IDs to atom permanently if the number of
+chunks may change.
 
-E: Two fix ave/chunk commands using same compute chunk/atom command in incompatible ways
+E: Two fix ave commands using same compute chunk/atom command in incompatible ways
 
-UNDOCUMENTED
+They are both attempting to "lock" the chunk/atom command so that the
+chunk assignments persist for some number of timesteps, but are doing
+it in different ways.
 
 E: Fix used in compute chunk/atom not computed at compatible time
 
-UNDOCUMENTED
+The chunk/atom compute cannot query the output of the fix on a timestep
+it is needed.
 
 W: One or more chunks do not contain all atoms in molecule
 
-UNDOCUMENTED
+This may not be what you intended.
 
-E: Invalid bin bounds in fix ave/spatial
+E: Invalid bin bounds in compute chunk/atom
 
-UNDOCUMENTED
+The lo/hi values are inconsistent.
 
 E: Cannot use compute chunk/atom bin z for 2d model
 
-UNDOCUMENTED
-
-U: More than one compute ke/atom
-
-It is not efficient to use compute ke/atom more than once.
+Self-explanatory.
 
 */

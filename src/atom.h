@@ -304,7 +304,7 @@ Atom IDs are used to identify and find partner atoms in bonds.
 
 E: Unknown atom style
 
-UNDOCUMENTED
+The choice of atom style is unknown.
 
 E: Could not find atom_modify first group ID
 
@@ -466,9 +466,5 @@ E: Too many atom sorting bins
 
 This is likely due to an immense simulation box that has blown up
 to a large size.
-
-U: Invalid atom style
-
-The choice of atom style is unknown.
 
 */

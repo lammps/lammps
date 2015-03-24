@@ -248,7 +248,7 @@ void PairLJLongDipoleLong::init_style()
 
   if (ewald_order&(1<<3)) {				// r^-1 kspace
     if (force->kspace == NULL) 
-      error->all(FLERR,"Pair style is incompatible with KSpace style");
+      error->all(FLERR,"Pair style requires a KSpace style");
     for (i=0; style3[i]&&strcmp(force->kspace_style, style3[i]); ++i);
     if (!style3[i])
       error->all(FLERR,"Pair style is incompatible with KSpace style");

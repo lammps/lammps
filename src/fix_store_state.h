@@ -143,13 +143,15 @@ E: Fix store/state compute array is accessed out-of-range
 
 Self-explanatory.
 
-E: Custom integer vector does not exist
+E: Custom integer vector for fix store/state does not exist
 
-UNDOCUMENTED
+The command is accessing a vector added by the fix property/atom
+command, that does not exist.
 
-E: Custom floating point vector does not exist
+E: Custom floating point vector for fix store/state does not exist
 
-UNDOCUMENTED
+The command is accessing a vector added by the fix property/atom
+command, that does not exist.
 
 E: Fix ID for fix store/state does not exist
 
@@ -184,13 +186,5 @@ Self-explanatory.
 E: Fix store/state variable is not atom-style variable
 
 Only atom-style variables calculate per-atom quantities.
-
-E: Custom integer vector for fix store/state does not exist
-
-UNDOCUMENTED
-
-E: Custom floating point vector for fix store/state does not exist
-
-UNDOCUMENTED
 
 */

@@ -104,7 +104,7 @@ E: Fix peri neigh does not exist
 
 Somehow a fix that the pair style defines has been deleted.
 
-E: Divide by 0 in influence function of pair peri/lps
+E: Divide by 0 in influence function
 
 This should not normally occur.  It is likely a problem with your
 model.

@@ -1336,20 +1336,22 @@ void FixSRD::collisions_single()
             ninside++;
             if (insideflag == INSIDE_ERROR || insideflag == INSIDE_WARN) {
               char str[128];
-              if (type != WALL)
+              if (type != WALL) {
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
                         "inside big particle " TAGINT_FORMAT 
                         " on step " BIGINT_FORMAT " bounce %d",
                         atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-              else
+		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+		error->warning(FLERR,str);
+	      } else{
                 sprintf(str,
                         "SRD particle " TAGINT_FORMAT " started "
-                        "inside big particle " TAGINT_FORMAT 
-                        " on step " BIGINT_FORMAT " bounce %d",
-                        atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-              if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
-              error->warning(FLERR,str);
+                        "inside wall %d  on step " BIGINT_FORMAT " bounce %d",
+                        atom->tag[i],j,update->ntimestep,ibounce+1);
+		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+		error->warning(FLERR,str);
+	      }
             }
             break;
           }
@@ -1493,13 +1495,22 @@ void FixSRD::collisions_multi()
             ninside++;
             if (insideflag == INSIDE_ERROR || insideflag == INSIDE_WARN) {
               char str[128];
-              sprintf(str,
-                      "SRD particle " TAGINT_FORMAT " started "
-                      "inside big particle " TAGINT_FORMAT 
-                      " on step " BIGINT_FORMAT " bounce %d",
-                      atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
-              if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
-              error->warning(FLERR,str);
+              if (type != WALL) {
+                sprintf(str,
+                        "SRD particle " TAGINT_FORMAT " started "
+                        "inside big particle " TAGINT_FORMAT 
+                        " on step " BIGINT_FORMAT " bounce %d",
+                        atom->tag[i],atom->tag[j],update->ntimestep,ibounce+1);
+		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+		error->warning(FLERR,str);
+	      } else{
+                sprintf(str,
+                        "SRD particle " TAGINT_FORMAT " started "
+                        "inside wall %d  on step " BIGINT_FORMAT " bounce %d",
+                        atom->tag[i],j,update->ntimestep,ibounce+1);
+		if (insideflag == INSIDE_ERROR) error->one(FLERR,str);
+		error->warning(FLERR,str);
+	      }
             }
             t_first = 0.0;
             break;

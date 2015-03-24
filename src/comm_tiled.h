@@ -154,30 +154,32 @@ class CommTiled : public Comm {
 
 E: USER-CUDA package does not yet support comm_style tiled
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: KOKKOS package does not yet support comm_style tiled
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot yet use comm_style tiled with triclinic box
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Cannot yet use comm_style tiled with multi-mode comm
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Communication cutoff for comm_style tiled cannot exceed periodic box length
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Comm tiled mis-match in box drop brick
 
-UNDOCUMENTED
+Internal error check in comm_style tiled which should not occur.
+Contact the developers.
 
 E: Comm tiled invalid index in box drop brick
 
-UNDOCUMENTED
+Internal error check in comm_style tiled which should not occur.
+Contact the developers.
 
 */

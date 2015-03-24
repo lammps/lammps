@@ -124,7 +124,7 @@ No body style argument was provided.
 
 E: Unknown body style
 
-UNDOCUMENTED
+The choice of body style is unknown.
 
 E: Per-processor system is too big
 
@@ -142,9 +142,5 @@ Density value cannot be <= 0.0.
 E: Assigning body parameters to non-body atom
 
 Self-explanatory.
-
-U: Invalid body style
-
-The choice of body style is unknown.
 
 */

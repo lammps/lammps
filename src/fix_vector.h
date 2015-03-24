@@ -57,58 +57,63 @@ class FixVector : public Fix {
 
 E: Illegal ... command
 
-UNDOCUMENTED
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
 
 E: Compute ID for fix vector does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix vector compute does not calculate a scalar
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix vector compute does not calculate a vector
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix vector compute vector is accessed out-of-range
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix ID for fix vector does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix vector fix does not calculate a scalar
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix vector fix does not calculate a vector
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix vector fix vector is accessed out-of-range
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix for fix vector not computed at compatible time
 
-UNDOCUMENTED
+Fixes generate their values on specific timesteps.  Fix vector is
+requesting a value on a non-allowed timestep.
 
 E: Variable name for fix vector does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix vector variable is not equal-style variable
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix vector cannot set output array intensive/extensive from these inputs
 
-UNDOCUMENTED
+The inputs to the command have conflicting intensive/extensive attributes.
+You need to use more than one fix vector command.
 
 E: Overflow of allocated fix vector storage
 
-UNDOCUMENTED
+This should not normally happen if the fix correctly calculated
+how long the vector will grow to.  Contact the developers.
 
 */

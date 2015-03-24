@@ -40,3 +40,17 @@ class KokkosLMP : protected Pointers {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Invalid Kokkos command-line args
+
+Self-explanatory.  See Section 2.7 of the manual for details.
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+*/

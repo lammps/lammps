@@ -213,12 +213,12 @@ No pair style is defined.
 
 E: KSpace style is incompatible with Pair style
 
-Setting a kspace style requires that a pair style with a long-range
-Coulombic or dispersion component be used.
+Setting a kspace style requires that a pair style with matching
+long-range Coulombic or dispersion components be used.
 
 W: Using kspace solver on system with no charge
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: System is not charge neutral, net charge = %g
 

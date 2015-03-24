@@ -60,18 +60,15 @@ class DumpCFGMPIIO : public DumpCFG {
 
 /* ERROR/WARNING messages:
 
-E: Dump cfg arguments must start with 'mass type xs ys zs' or 'mass type xsu ysu zsu'
+E: Cannot open dump file %s
 
-This is a requirement of the CFG output format.  See the dump cfg doc
-page for more details.
+The output file for the dump command cannot be opened.  Check that the
+path and name are correct.
 
-E: Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu
+E: Too much per-proc info for dump
 
-Self-explanatory.
-
-E: Invalid keyword in dump cfg command
-
-Self-explanatory.
+Number of local atoms times number of columns must fit in a 32-bit
+integer for dump.
 
 E: Dump cfg requires one snapshot per file
 

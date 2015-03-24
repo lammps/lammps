@@ -68,8 +68,8 @@ class FixGCMC : public Fix {
   int ngas_before;          // # of gas atoms on procs < this proc
   int mode;                 // ATOM or MOLECULE
   int regionflag;           // 0 = anywhere in box, 1 = specific region
-  int iregion;              // GCMC region
-  char *idregion;           // GCMC region id
+  int iregion;              // gcmc region
+  char *idregion;           // gcmc region id
   bool pressure_flag;       // true if user specified reservoir pressure
   bool charge_flag;         // true if user specified atomic charge
   bool full_flag;           // true if doing full system energy calculations
@@ -156,11 +156,11 @@ Self-explanatory.
 
 E: Fix gcmc molecule must have coordinates
 
-UNDOCUMENTED
+The defined molecule does not specify coordinates.
 
 E: Fix gcmc molecule must have atom types
 
-UNDOCUMENTED
+The defined molecule does not specify atom types.
 
 E: Invalid atom type in fix gcmc mol command
 
@@ -168,19 +168,21 @@ Self-explanatory.
 
 E: Fix gcmc molecule template ID must be same as atom_style template ID
 
-UNDOCUMENTED
+When using atom_style template, you cannot insert molecules that are
+not in that template.
 
 E: Cannot use fix gcmc shake and not molecule
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Molecule template ID for fix gcmc does not exist
 
-UNDOCUMENTED
+Self-explanatory.
 
 W: Molecule template for fix gcmc has multiple molecules
 
-UNDOCUMENTED
+The fix gcmc command will only create molecules of a single type,
+i.e. the first molecule in the template.
 
 E: Region ID for fix gcmc does not exist
 
@@ -188,29 +190,33 @@ Self-explanatory.
 
 W: fix gcmc using full_energy option
 
-UNDOCUMENTED
+Fix gcmc has automatically turned on the full_energy option since it
+is required for systems like the one specified by the user. User input
+included one or more of the following: kspace, triclinic, a hybrid
+pair style, an eam pair style, or no "single" function for the pair
+style.
 
 E: Invalid atom type in fix gcmc command
 
-The atom type specified in the GCMC command does not exist.
+The atom type specified in the gcmc command does not exist.
 
 E: Fix gcmc cannot exchange individual atoms belonging to a molecule
 
-This is an error since you should not delete only one atom of a molecule.
-The user has specified atomic (non-molecular) gas exchanges, but an atom
-belonging to a molecule could be deleted.
+This is an error since you should not delete only one atom of a
+molecule.  The user has specified atomic (non-molecular) gas
+exchanges, but an atom belonging to a molecule could be deleted.
 
 E: All mol IDs should be set for fix gcmc group atoms
 
-The molecule flag is on, yet not all molecule ids in the fix group have
-been set to non-zero positive values by the user. This is an error since
-all atoms in the fix gcmc group are eligible for deletion, rotation, and
-translation and therefore must have valid molecule ids.
+The molecule flag is on, yet not all molecule ids in the fix group
+have been set to non-zero positive values by the user. This is an
+error since all atoms in the fix gcmc group are eligible for deletion,
+rotation, and translation and therefore must have valid molecule ids.
 
 E: Fix gcmc molecule command requires that atoms have molecule attributes
 
-Should not choose the GCMC molecule feature if no molecules are being
-simulated. The general molecule flag is off, but GCMC's molecule flag
+Should not choose the gcmc molecule feature if no molecules are being
+simulated. The general molecule flag is off, but gcmc's molecule flag
 is on.
 
 E: Fix gcmc shake fix does not exist
@@ -239,7 +245,7 @@ E: Illegal fix gcmc gas mass <= 0
 The computed mass of the designated gas molecule or atom type was less 
 than or equal to zero.
 
-E: Cannot do GCMC on atoms in atom_modify first group
+E: Cannot do gcmc on atoms in atom_modify first group
 
 This is a restriction due to the way atoms are organized in a list to
 enable the atom_modify first command.
@@ -250,7 +256,7 @@ See the setting for tagint in the src/lmptype.h file.
 
 E: Fix gcmc ran out of available atom IDs
 
-UNDOCUMENTED
+See the setting for tagint in the src/lmptype.h file.
 
 E: Too many total atoms
 

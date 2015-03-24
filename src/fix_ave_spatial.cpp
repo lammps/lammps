@@ -553,7 +553,7 @@ void FixAveSpatial::end_of_step()
 
   bigint ntimestep = update->ntimestep;
   if (ntimestep < nvalid_last || ntimestep > nvalid) 
-    error->all(FLERR,"Invalid timestep resets for fix ave/time");
+    error->all(FLERR,"Invalid timestep reset for fix ave/spatial");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -1535,11 +1535,4 @@ double FixAveSpatial::memory_usage()
   bytes += nwindow*nbins * sizeof(double);          // count_list
   bytes += nwindow*nbins*nvalues * sizeof(double);  // values_list
   return bytes;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixAveSpatial::reset_timestep(bigint ntimestep)
-{
-  if (ntimestep > nvalid) error->all(FLERR,"Fix ave/spatial missed timestep");
 }

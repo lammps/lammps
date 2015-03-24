@@ -154,7 +154,7 @@ void Python::command(int narg, char **arg)
     //PySys_SetArgv(1,&arg);
 
     //PyObject *pName = PyString_FromString("__main__");
-    //if (!pName) error->Xall(FLERR,"Bad pName");
+    //if (!pName) errorX->all(FLERR,"Bad pName");
     //PyObject *pModule = PyImport_Import(pName);
     //Py_DECREF(pName);
 

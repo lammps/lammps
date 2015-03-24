@@ -51,11 +51,11 @@ E: Insufficient memory on accelerator
 There is insufficient memory on one of the devices specified for the gpu
 package
 
-E: Pair style dipole/cut/gpu requires atom attribute q
+E: Pair dipole/sf/gpu requires atom attributes q, mu, torque
 
-The atom style defined does not have this attribute.
+The atom style defined does not one or more of these attributes.
 
-E: Cannot use newton pair with dipole/cut/gpu pair style
+E: Cannot use newton pair with dipole/sf/gpu pair style
 
 Self-explanatory.
 

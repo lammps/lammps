@@ -99,4 +99,8 @@ E: RATTLE velocity constraints are not satisfied up to desired tolerance
 
 Self-explanatory.
 
+E: RATTLE velocity constraints are not satisfied up to desired tolerance!
+
+UNDOCUMENTED
+
 */

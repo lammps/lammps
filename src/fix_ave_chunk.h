@@ -164,6 +164,10 @@ E: Fix for fix ave/chunk not computed at compatible time
 Fixes generate their values on specific timesteps.  Fix ave/chunk is
 requesting a value on a non-allowed timestep.
 
+E: Invalid timestep resets for fix ave/time
+
+UNDOCUMENTED
+
 E: Fix ave/chunk missed timestep
 
 UNDOCUMENTED

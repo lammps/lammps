@@ -274,7 +274,11 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   }
   
   // enable locking of row count by this fix for computes of variable length
-  // only if nrepeat > 1, so that locking spans multiple timesteps 
+  // only if nrepeat > 1 or ave = RUNNING/WINDOW,
+  //   so that locking spans multiple timesteps 
+  // trigger lock_length here for ave = RUN/WINDOW
+  //   or in end_of_step() for nrepeat > 1,
+  //   so that row count = number of chunks is set
 
   if (any_variable_length && 
       (nrepeat > 1 || ave == RUNNING || ave == WINDOW)) {
@@ -282,8 +286,10 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       if (varlen[i]) {
         int icompute = modify->find_compute(ids[i]);
         modify->compute[icompute]->lock_enable();
-        if (ave == RUNNING || ave == WINDOW) 
+        if (ave == RUNNING || ave == WINDOW) {
+          modify->compute[icompute]->lock_length();
           modify->compute[icompute]->lock(this,update->ntimestep,-1);
+        }
       }
   }
     

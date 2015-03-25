@@ -68,18 +68,6 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix temp/csvr period must be > 0.0
-
-Self-explanatory.
-
-E: Illegal fix temp/csvr random seed
-
-The random seed must be a positive integer
-
-E: Fix temp/csvr is not compatible with fix shake
-
-Fix temp/csvr currently cannot correctly account for missing
-degrees of freedom from constraints like fix shake or fix rattle.
 
 E: Variable name for fix temp/csvr does not exist
 
@@ -110,9 +98,5 @@ W: Group for fix_modify temp != fix group
 The fix_modify command is specifying a temperature computation that
 computes a temperature on a different group of atoms than the fix
 itself operates on.  This is probably not what you want to do.
-
-U: Computed temperature for fix temp/csvr cannot be 0.0
-
-Self-explanatory.
 
 */

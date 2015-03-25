@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (ICTP, Italy)
+   Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "string.h"
@@ -71,10 +71,8 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (t_period <= 0.0) error->all(FLERR,"Fix temp/csld period must be > 0.0");
-  if (seed <= 0) error->all(FLERR,"Illegal fix temp/csld random seed");
-
-  // initialize Marsaglia RNG with processor-unique seed
+  if (t_period <= 0.0) error->all(FLERR,"Illegal fix temp/csld command");
+  if (seed <= 0) error->all(FLERR,"Illegal fix temp/csld  command");
 
   random = new RanMars(lmp,seed + comm->me);
 

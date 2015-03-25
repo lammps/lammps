@@ -64,17 +64,9 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix temp/csld period must be > 0.0
+E: Fix temp/csld is not compatible with fix rattle or fix shake
 
-Self-explanatory.
-
-E: Illegal fix temp/csld random seed
-
-UNDOCUMENTED
-
-E: Fix temp/csld is not compatible with fix shake
-
-UNDOCUMENTED
+These two commands cannot currently be used together with fix temp/csld.
 
 E: Variable name for fix temp/csld does not exist
 
@@ -105,9 +97,5 @@ W: Group for fix_modify temp != fix group
 The fix_modify command is specifying a temperature computation that
 computes a temperature on a different group of atoms than the fix
 itself operates on.  This is probably not what you want to do.
-
-U: Computed temperature for fix temp/csld cannot be 0.0
-
-Self-explanatory.
 
 */

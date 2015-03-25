@@ -188,7 +188,7 @@ E: Region ID for fix gcmc does not exist
 
 Self-explanatory.
 
-W: fix gcmc using full_energy option
+W: Fix gcmc using full_energy option
 
 Fix gcmc has automatically turned on the full_energy option since it
 is required for systems like the one specified by the user. User input
@@ -245,7 +245,7 @@ E: Illegal fix gcmc gas mass <= 0
 The computed mass of the designated gas molecule or atom type was less 
 than or equal to zero.
 
-E: Cannot do gcmc on atoms in atom_modify first group
+E: Cannot do GCMC on atoms in atom_modify first group
 
 This is a restriction due to the way atoms are organized in a list to
 enable the atom_modify first command.

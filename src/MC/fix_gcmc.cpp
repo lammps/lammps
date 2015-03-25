@@ -344,7 +344,7 @@ void FixGCMC::init()
         (domain->triclinic == 1)) {
       full_flag = true;
       if (comm->me == 0) 
-        error->warning(FLERR,"fix gcmc using full_energy option");
+        error->warning(FLERR,"Fix gcmc using full_energy option");
     }
   }
   

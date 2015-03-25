@@ -831,7 +831,7 @@ bool FixRattle::check4(double **v, int m, bool checkr, bool checkv)
                       fabs(MathExtra::dot3(r03,v03)) > tol));
   if (!stat)   
      error->one(FLERR,"RATTLE velocity constraints are not satisfied "
-                "up to desired tolerance!");
+                "up to desired tolerance");
   return stat;
 }
 

@@ -50,6 +50,7 @@ class FixGCMC : public Fix {
   double energy_full();
   int pick_random_gas_atom();
   tagint pick_random_gas_molecule();
+  void toggle_intramolecular(int);
   double molecule_energy(tagint);
   void update_gas_atoms_list();
   double compute_vector(int);
@@ -245,7 +246,7 @@ E: Illegal fix gcmc gas mass <= 0
 The computed mass of the designated gas molecule or atom type was less 
 than or equal to zero.
 
-E: Cannot do GCMC on atoms in atom_modify first group
+E: Cannot do gcmc on atoms in atom_modify first group
 
 This is a restriction due to the way atoms are organized in a list to
 enable the atom_modify first command.

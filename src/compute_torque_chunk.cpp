@@ -153,9 +153,9 @@ void ComputeTorqueChunk::compute_array()
       dx = unwrap[0] - comall[index][0];
       dy = unwrap[1] - comall[index][1];
       dz = unwrap[2] - comall[index][2];
-      torque[i][0] += dy*f[i][2] - dz*f[i][1];
-      torque[i][1] += dz*f[i][0] - dx*f[i][2];
-      torque[i][2] += dx*f[i][1] - dy*f[i][0];
+      torque[index][0] += dy*f[i][2] - dz*f[i][1];
+      torque[index][1] += dz*f[i][0] - dx*f[i][2];
+      torque[index][2] += dx*f[i][1] - dy*f[i][0];
     }
 
   MPI_Allreduce(&torque[0][0],&torqueall[0][0],3*nchunk,

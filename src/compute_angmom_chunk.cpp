@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "string.h"
-#include "compute_torque_chunk.h"
+#include "compute_angmom_chunk.h"
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -25,10 +25,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTorqueChunk::ComputeTorqueChunk(LAMMPS *lmp, int narg, char **arg) : 
+ComputeAngmomChunk::ComputeAngmomChunk(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute torque/chunk command");
+  if (narg != 4) error->all(FLERR,"Illegal compute angmom/chunk command");
 
   array_flag = 1;
   size_array_cols = 3;
@@ -50,39 +50,39 @@ ComputeTorqueChunk::ComputeTorqueChunk(LAMMPS *lmp, int narg, char **arg) :
   maxchunk = 0;
   massproc = masstotal = NULL;
   com = comall = NULL;
-  torque = torqueall = NULL;
+  angmom = angmomall = NULL;
   allocate();
 }
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTorqueChunk::~ComputeTorqueChunk()
+ComputeAngmomChunk::~ComputeAngmomChunk()
 {
   delete [] idchunk;
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(com);
   memory->destroy(comall);
-  memory->destroy(torque);
-  memory->destroy(torqueall);
+  memory->destroy(angmom);
+  memory->destroy(angmomall);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTorqueChunk::init()
+void ComputeAngmomChunk::init()
 {
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for "
-               "compute torque/chunk");
+               "compute angmom/chunk");
   cchunk = (ComputeChunkAtom *) modify->compute[icompute];
   if (strcmp(cchunk->style,"chunk/atom") != 0)
-    error->all(FLERR,"Compute torque/chunk does not use chunk/atom compute");
+    error->all(FLERR,"Compute angmom/chunk does not use chunk/atom compute");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTorqueChunk::compute_array()
+void ComputeAngmomChunk::compute_array()
 {
   int i,index;
   double dx,dy,dz,massone;
@@ -106,7 +106,7 @@ void ComputeTorqueChunk::compute_array()
   for (int i = 0; i < nchunk; i++) {
     massproc[i] = 0.0;
     com[i][0] = com[i][1] = com[i][2] = 0.0;
-    torque[i][0] = torque[i][1] = torque[i][2] = 0.0;
+    angmom[i][0] = angmom[i][1] = angmom[i][2] = 0.0;
   }
 
   // compute COM for each chunk
@@ -141,9 +141,9 @@ void ComputeTorqueChunk::compute_array()
     comall[i][2] /= masstotal[i];
   }
 
-  // compute torque on each chunk
+  // compute angmom for each chunk
 
-  double **f = atom->f;
+  double **v = atom->v;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -153,12 +153,14 @@ void ComputeTorqueChunk::compute_array()
       dx = unwrap[0] - comall[index][0];
       dy = unwrap[1] - comall[index][1];
       dz = unwrap[2] - comall[index][2];
-      torque[i][0] += dy*f[i][2] - dz*f[i][1];
-      torque[i][1] += dz*f[i][0] - dx*f[i][2];
-      torque[i][2] += dx*f[i][1] - dy*f[i][0];
+      if (rmass) massone = rmass[i];
+      else massone = mass[type[i]];
+      angmom[i][0] += massone * (dy*v[i][2] - dz*v[i][1]);
+      angmom[i][1] += massone * (dz*v[i][0] - dx*v[i][2]);
+      angmom[i][2] += massone * (dx*v[i][1] - dy*v[i][0]);
     }
 
-  MPI_Allreduce(&torque[0][0],&torqueall[0][0],3*nchunk,
+  MPI_Allreduce(&angmom[0][0],&angmomall[0][0],3*nchunk,
                 MPI_DOUBLE,MPI_SUM,world);
 }
 
@@ -172,7 +174,7 @@ void ComputeTorqueChunk::compute_array()
    increment lock counter
 ------------------------------------------------------------------------- */
 
-void ComputeTorqueChunk::lock_enable()
+void ComputeAngmomChunk::lock_enable()
 {
   cchunk->lockcount++;
 }
@@ -181,7 +183,7 @@ void ComputeTorqueChunk::lock_enable()
    decrement lock counter in compute chunk/atom, it if still exists
 ------------------------------------------------------------------------- */
 
-void ComputeTorqueChunk::lock_disable()
+void ComputeAngmomChunk::lock_disable()
 {
   int icompute = modify->find_compute(idchunk);
   if (icompute >= 0) {
@@ -194,7 +196,7 @@ void ComputeTorqueChunk::lock_disable()
    calculate and return # of chunks = length of vector/array
 ------------------------------------------------------------------------- */
 
-int ComputeTorqueChunk::lock_length()
+int ComputeAngmomChunk::lock_length()
 {
   nchunk = cchunk->setup_chunks();
   return nchunk;
@@ -204,7 +206,7 @@ int ComputeTorqueChunk::lock_length()
    set the lock from startstep to stopstep
 ------------------------------------------------------------------------- */
 
-void ComputeTorqueChunk::lock(Fix *fixptr, bigint startstep, bigint stopstep)
+void ComputeAngmomChunk::lock(Fix *fixptr, bigint startstep, bigint stopstep)
 {
   cchunk->lock(fixptr,startstep,stopstep);
 }
@@ -213,7 +215,7 @@ void ComputeTorqueChunk::lock(Fix *fixptr, bigint startstep, bigint stopstep)
    unset the lock
 ------------------------------------------------------------------------- */
 
-void ComputeTorqueChunk::unlock(Fix *fixptr)
+void ComputeAngmomChunk::unlock(Fix *fixptr)
 {
   cchunk->unlock(fixptr);
 }
@@ -222,29 +224,29 @@ void ComputeTorqueChunk::unlock(Fix *fixptr)
    free and reallocate per-chunk arrays
 ------------------------------------------------------------------------- */
 
-void ComputeTorqueChunk::allocate()
+void ComputeAngmomChunk::allocate()
 {
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(com);
   memory->destroy(comall);
-  memory->destroy(torque);
-  memory->destroy(torqueall);
+  memory->destroy(angmom);
+  memory->destroy(angmomall);
   maxchunk = nchunk;
-  memory->create(massproc,maxchunk,"torque/chunk:massproc");
-  memory->create(masstotal,maxchunk,"torque/chunk:masstotal");
-  memory->create(com,maxchunk,3,"torque/chunk:com");
-  memory->create(comall,maxchunk,3,"torque/chunk:comall");
-  memory->create(torque,maxchunk,3,"torque/chunk:torque");
-  memory->create(torqueall,maxchunk,3,"torque/chunk:torqueall");
-  array = torqueall;
+  memory->create(massproc,maxchunk,"angmom/chunk:massproc");
+  memory->create(masstotal,maxchunk,"angmom/chunk:masstotal");
+  memory->create(com,maxchunk,3,"angmom/chunk:com");
+  memory->create(comall,maxchunk,3,"angmom/chunk:comall");
+  memory->create(angmom,maxchunk,3,"angmom/chunk:angmom");
+  memory->create(angmomall,maxchunk,3,"angmom/chunk:angmomall");
+  array = angmomall;
 }
 
 /* ----------------------------------------------------------------------
    memory usage of local data
 ------------------------------------------------------------------------- */
 
-double ComputeTorqueChunk::memory_usage()
+double ComputeAngmomChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
   bytes += (bigint) maxchunk * 2*3 * sizeof(double);

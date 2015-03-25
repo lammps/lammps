@@ -641,6 +641,7 @@ letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
 "angle/local"_compute_angle_local.html,
+"angmom/chunk"_compute_angmom_chunk.html,
 "body/local"_compute_body_local.html,
 "bond/local"_compute_bond_local.html,
 "centro/atom"_compute_centro_atom.html,
@@ -672,6 +673,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "msd"_compute_msd.html,
 "msd/chunk"_compute_msd_chunk.html,
 "msd/nongauss"_compute_msd_nongauss.html,
+"omega/chunk"_compute_omega_chunk.html,
 "pair"_compute_pair.html,
 "pair/local"_compute_pair_local.html,
 "pe (c)"_compute_pe.html,

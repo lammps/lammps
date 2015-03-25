@@ -15,10 +15,9 @@
 </P>
 <PRE>read_restart file flag 
 </PRE>
-<UL><LI>file = name of binary restart file to read in 
+<UL><LI>file = name of binary restart file to read in
+<LI>flag = remap (optional) 
 </UL>
-<P>flag = remap (optional)
-</P>
 <P><B>Examples:</B>
 </P>
 <PRE>read_restart save.10000
@@ -51,7 +50,7 @@ that atoms were "lost" when the file is read.  This error should be
 reported to the LAMMPS developers so the invalid writing of the
 restart file can be fixed.  If you still wish to use the restart file,
 the optional <I>remap</I> flag can be appended to the read_restart command.
-This will avoid the error, by explicitly remapping each atom back into
+This should avoid the error, by explicitly remapping each atom back into
 the simulation box, updating image flags for the atom appropriately.
 </P>
 <P>Restart files are saved in binary format to enable exact restarts,

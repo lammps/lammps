@@ -222,13 +222,13 @@ Self-explanatory.
 
 E: System is not charge neutral, net charge = %g
 
-The total charge on all atoms on the system is not 0.0, which
-is not valid for the long-range Coulombic solvers.
+The total charge on all atoms on the system is not 0.0.
+For some KSpace solvers this is an error.
 
 W: System is not charge neutral, net charge = %g
 
-The total charge on all atoms on the system is not 0.0, which
-is not valid for the long-range Coulombic solvers.
+The total charge on all atoms on the system is not 0.0.
+For some KSpace solvers this is only a warning.
 
 W: For better accuracy use 'pair_modify table 0'
 

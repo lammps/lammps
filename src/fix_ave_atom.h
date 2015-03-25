@@ -39,7 +39,6 @@ class FixAveAtom : public Fix {
   void copy_arrays(int, int, int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
-  void reset_timestep(bigint);
 
  private:
   int nvalues;
@@ -118,13 +117,9 @@ E: Fix ave/atom variable is not atom-style variable
 
 A variable used by fix ave/atom must generate per-atom values.
 
-E: Invalid timestep resets for fix ave/time
+E: Invalid timestep reset for fix ave/atom
 
-UNDOCUMENTED
-
-E: Fix ave/atom missed timestep
-
-You cannot reset the timestep to a value beyond where the fix
-expects to next perform averaging.
+Resetting the timestep has invalidated the sequence of timesteps this
+fix needs to process.
 
 */

@@ -58,10 +58,6 @@ E: Fix rigid npt/small t_chain should not be less than 1
 
 Self-explanatory.
 
-E: Fix rigid npt/small t_iter should not be less than 1
-
-Self-explanatory.
-
 E: Fix rigid npt/small t_order must be 3 or 5
 
 Self-explanatory.

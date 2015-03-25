@@ -36,7 +36,6 @@ class FixAveTime : public Fix {
   double compute_scalar();
   double compute_vector(int);
   double compute_array(int,int);
-  void reset_timestep(bigint);
 
  private:
   int me,nvalues;
@@ -170,9 +169,10 @@ One of more of the vector inputs has individual elements which are
 flagged as intensive or extensive.  Such an input cannot be flagged as
 all intensive/extensive when turned into an array by fix ave/time.
 
-E: Invalid timestep resets for fix ave/time
+E: Invalid timestep reset for fix ave/time
 
-UNDOCUMENTED
+Resetting the timestep has invalidated the sequence of timesteps this
+fix needs to process.
 
 E: Fix ave/time columns are inconsistent lengths
 
@@ -182,10 +182,5 @@ E: Cannot open fix ave/time file %s
 
 The specified file cannot be opened.  Check that the path and name are
 correct.
-
-E: Fix ave/time missed timestep
-
-You cannot reset the timestep to a value beyond where the fix
-expects to next perform averaging.
 
 */

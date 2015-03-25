@@ -180,9 +180,9 @@ void ComputeOmegaChunk::compute_array()
       dz = unwrap[2] - comall[index][2];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
-      angmom[i][0] += massone * (dy*v[i][2] - dz*v[i][1]);
-      angmom[i][1] += massone * (dz*v[i][0] - dx*v[i][2]);
-      angmom[i][2] += massone * (dx*v[i][1] - dy*v[i][0]);
+      angmom[index][0] += massone * (dy*v[i][2] - dz*v[i][1]);
+      angmom[index][1] += massone * (dz*v[i][0] - dx*v[i][2]);
+      angmom[index][2] += massone * (dx*v[i][1] - dy*v[i][0]);
     }
 
   MPI_Allreduce(&angmom[0][0],&angmomall[0][0],3*nchunk,

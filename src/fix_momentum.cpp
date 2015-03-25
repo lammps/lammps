@@ -170,7 +170,7 @@ void FixMomentum::end_of_step()
 
   if (rescale) {
 
-    double ke=0.0;
+    double ke=0.0, factor=1.0;
     double *rmass = atom->rmass;
     double *mass = atom->mass;
     int *type = atom->type;
@@ -188,7 +188,7 @@ void FixMomentum::end_of_step()
     }
     MPI_Allreduce(&ke,&ekin_new,1,MPI_DOUBLE,MPI_SUM,world);
 
-    const double factor = sqrt(ekin_old/ekin_new);
+    if (ekin_new != 0.0) factor = sqrt(ekin_old/ekin_new);
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         v[i][0] *= factor;

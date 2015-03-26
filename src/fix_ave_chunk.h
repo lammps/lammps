@@ -54,6 +54,7 @@ class FixAveChunk : public Fix {
   int nchunk,maxchunk;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
+  int lockforever;
 
   long filepos;
 

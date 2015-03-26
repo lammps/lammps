@@ -276,9 +276,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // enable locking of row count by this fix for computes of variable length
   // only if nrepeat > 1 or ave = RUNNING/WINDOW,
   //   so that locking spans multiple timesteps 
-  // trigger lock_length here for ave = RUN/WINDOW
-  //   or in end_of_step() for nrepeat > 1,
-  //   so that row count = number of chunks is set
 
   if (any_variable_length && 
       (nrepeat > 1 || ave == RUNNING || ave == WINDOW)) {
@@ -286,11 +283,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       if (varlen[i]) {
         int icompute = modify->find_compute(ids[i]);
         modify->compute[icompute]->lock_enable();
-        if (ave == RUNNING || ave == WINDOW) {
-          modify->compute[icompute]->lock_length();
-          modify->compute[icompute]->lock(this,update->ntimestep,-1);
-        }
       }
+    lockforever = 0;
   }
     
   // print file comment lines
@@ -435,7 +429,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // initializations
-  // set vector_total/array_total to zero since it accumulates
+  // set vector_total to zero since it accumulates
+  // array_total already zeroed in allocate_arrays
 
   irepeat = 0;
   iwindow = window_limit = 0;
@@ -443,9 +438,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   if (mode == SCALAR)
     for (int i = 0; i < nvalues; i++) vector_total[i] = 0.0;
-  else
-    for (int i = 0; i < nrows; i++)
-      for (int j = 0; j < nvalues; j++) array_total[i][j] = 0.0;
 
   // nvalid = next step on which end_of_step does something
   // add nvalid to all computes that store invocation times
@@ -718,15 +710,15 @@ void FixAveTime::invoke_vector(bigint ntimestep)
   // zero out arrays that accumulate over many samples, but not across epochs
   // invoke setup_chunks() to determine current nchunk
   //   re-allocate per-chunk arrays if needed
-  // then invoke lock() so nchunk cannot change until Nfreq epoch is over
-  //   use final arg = -1 for infinite-time window
+  // invoke lock() in two cases:
+  //   if nrepeat > 1: so nchunk cannot change until Nfreq epoch is over,
+  //     will be unlocked on last repeat of this Nfreq
+  //   if ave = RUNNING/WINDOW and not yet locked:
+  //     set forever, will be unlocked in fix destructor
   // wrap setup_chunks in clearstep/addstep b/c it may invoke computes
   //   both nevery and nfreq are future steps, 
   //   since call below to cchunk->ichunk() 
   //     does not re-invoke internal cchunk compute on this same step
-
-  // first sample within single Nfreq epoch
-  // zero if first step
 
   if (irepeat == 0) {
     if (any_variable_length) {
@@ -743,13 +735,19 @@ void FixAveTime::invoke_vector(bigint ntimestep)
       }
 
       bigint ntimestep = update->ntimestep;
+      int lockforever_flag = 0;
       for (i = 0; i < nvalues; i++) {
         if (!varlen[i]) continue;
         if (nrepeat > 1 && ave == ONE) {
           Compute *compute = modify->compute[value2index[i]];
           compute->lock(this,ntimestep,ntimestep+(nrepeat-1)*nevery);
+        } else if ((ave == RUNNING || ave == WINDOW) && !lockforever) {
+          Compute *compute = modify->compute[value2index[i]];
+          compute->lock(this,update->ntimestep,-1);
+          lockforever_flag = 1;
         }
       }
+      if (lockforever_flag) lockforever = 1;
     }
 
     for (i = 0; i < nrows; i++)
@@ -894,6 +892,10 @@ void FixAveTime::invoke_vector(bigint ntimestep)
       fprintf(fp,"\n");
     }
     fflush(fp);
+    if (overwrite) {
+      long fileend = ftell(fp);
+      ftruncate(fileno(fp),fileend);
+    }
   }
 }
 
@@ -1107,6 +1109,11 @@ void FixAveTime::allocate_arrays()
     memory->destroy(array_list);
     memory->create(array_list,nwindow,nrows,nvalues,"ave/time:array_list");
   }
+
+  // reinitialize regrown array_total since it accumulates
+
+  for (int i = 0; i < nrows; i++)
+    for (int j = 0; j < nvalues; j++) array_total[i][j] = 0.0;
 }
 
 /* ----------------------------------------------------------------------

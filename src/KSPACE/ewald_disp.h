@@ -137,8 +137,9 @@ This feature is not yet supported.
 
 E: Cannot use Ewald/disp solver on system with no charge, dipole, or LJ particles
 
-No atoms in system have a non-zero charge or dipole, or are LJ particles.  Change
-charges/dipoles or change options of the kspace solver/pair style.
+No atoms in system have a non-zero charge or dipole, or are LJ
+particles.  Change charges/dipoles or change options of the kspace
+solver/pair style.
 
 W: System is not charge neutral, net charge = %g
 

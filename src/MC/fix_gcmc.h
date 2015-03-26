@@ -50,6 +50,7 @@ class FixGCMC : public Fix {
   double energy_full();
   int pick_random_gas_atom();
   tagint pick_random_gas_molecule();
+  void toggle_intramolecular(int);
   double molecule_energy(tagint);
   void update_gas_atoms_list();
   double compute_vector(int);
@@ -188,7 +189,7 @@ E: Region ID for fix gcmc does not exist
 
 Self-explanatory.
 
-W: fix gcmc using full_energy option
+W: Fix gcmc using full_energy option
 
 Fix gcmc has automatically turned on the full_energy option since it
 is required for systems like the one specified by the user. User input

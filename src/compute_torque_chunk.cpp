@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 ComputeTorqueChunk::ComputeTorqueChunk(LAMMPS *lmp, int narg, char **arg) : 
   Compute(lmp, narg, arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute inertia/chunk command");
+  if (narg != 4) error->all(FLERR,"Illegal compute torque/chunk command");
 
   array_flag = 1;
   size_array_cols = 3;
@@ -153,9 +153,9 @@ void ComputeTorqueChunk::compute_array()
       dx = unwrap[0] - comall[index][0];
       dy = unwrap[1] - comall[index][1];
       dz = unwrap[2] - comall[index][2];
-      torque[i][0] += dy*f[i][2] - dz*f[i][1];
-      torque[i][1] += dz*f[i][0] - dx*f[i][2];
-      torque[i][2] += dx*f[i][1] - dy*f[i][0];
+      torque[index][0] += dy*f[i][2] - dz*f[i][1];
+      torque[index][1] += dz*f[i][0] - dx*f[i][2];
+      torque[index][2] += dx*f[i][1] - dy*f[i][0];
     }
 
   MPI_Allreduce(&torque[0][0],&torqueall[0][0],3*nchunk,
@@ -235,8 +235,8 @@ void ComputeTorqueChunk::allocate()
   memory->create(masstotal,maxchunk,"torque/chunk:masstotal");
   memory->create(com,maxchunk,3,"torque/chunk:com");
   memory->create(comall,maxchunk,3,"torque/chunk:comall");
-  memory->create(torque,maxchunk,6,"torque/chunk:torque");
-  memory->create(torqueall,maxchunk,6,"torque/chunk:torqueall");
+  memory->create(torque,maxchunk,3,"torque/chunk:torque");
+  memory->create(torqueall,maxchunk,3,"torque/chunk:torqueall");
   array = torqueall;
 }
 

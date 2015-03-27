@@ -570,6 +570,7 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "store/force"_fix_store_force.html,
 "store/state"_fix_store_state.html,
 "temp/berendsen (c)"_fix_temp_berendsen.html,
+"temp/csld"_fix_temp_csvr.html,
 "temp/csvr"_fix_temp_csvr.html,
 "temp/rescale (c)"_fix_temp_rescale.html,
 "tfmc"_fix_tfmc.html,

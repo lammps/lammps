@@ -82,8 +82,8 @@ action neighbor_kokkos.cpp
 action neighbor_kokkos.h
 action pair_buck_coul_cut_kokkos.cpp
 action pair_buck_coul_cut_kokkos.h
-action pair_buck_coul_long_kokkos.cpp
-action pair_buck_coul_long_kokkos.h
+action pair_buck_coul_long_kokkos.cpp pair_buck_coul_long.cpp
+action pair_buck_coul_long_kokkos.h pair_buck_coul_long.h
 action pair_buck_kokkos.cpp
 action pair_buck_kokkos.h
 action pair_coul_cut_kokkos.cpp
@@ -92,8 +92,8 @@ action pair_coul_debye_kokkos.cpp
 action pair_coul_debye_kokkos.h
 action pair_coul_dsf_kokkos.cpp
 action pair_coul_dsf_kokkos.h
-action pair_coul_long_kokkos.cpp
-action pair_coul_long_kokkos.h
+action pair_coul_long_kokkos.cpp pair_coul_long.cpp
+action pair_coul_long_kokkos.h pair_coul_long.h
 action pair_coul_wolf_kokkos.cpp
 action pair_coul_wolf_kokkos.h
 action pair_eam_kokkos.cpp pair_eam.cpp

@@ -876,7 +876,8 @@ void Neighbor::init()
   int bond_off = 0;
   int angle_off = 0;
   for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"shake") == 0)
+    if ((strcmp(modify->fix[i]->style,"shake") == 0)
+        || (strcmp(modify->fix[i]->style,"rattle") == 0))
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 

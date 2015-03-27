@@ -118,13 +118,13 @@ action pair_lj_cut_coul_debye_kokkos.cpp
 action pair_lj_cut_coul_debye_kokkos.h
 action pair_lj_cut_coul_dsf_kokkos.cpp
 action pair_lj_cut_coul_dsf_kokkos.h
-action pair_lj_cut_coul_long_kokkos.cpp pair_lj_cut_coul_long.cpp pair_lj_cut_coul_long_kokkos.cpp pair_lj_cut_co.cpp
-action pair_lj_cut_coul_long_kokkos.h pair_lj_cut_coul_long.h pair_lj_cut_coul_long_kokkos.h pair_lj_cut_co.h
+action pair_lj_cut_coul_long_kokkos.cpp pair_lj_cut_coul_long.cpp
+action pair_lj_cut_coul_long_kokkos.h pair_lj_cut_coul_long.h
 action pair_lj_cut_kokkos.cpp
 action pair_lj_cut_kokkos.h
 action pair_lj_expand_kokkos.cpp
 action pair_lj_expand_kokkos.h
-action pair_lj_gromacs_coul_gromacs_kokkos.cp
+action pair_lj_gromacs_coul_gromacs_kokkos.cpp
 action pair_lj_gromacs_coul_gromacs_kokkos.h
 action pair_lj_gromacs_kokkos.cpp
 action pair_lj_gromacs_kokkos.h

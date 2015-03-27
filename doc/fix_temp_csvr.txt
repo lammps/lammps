@@ -35,10 +35,10 @@ global velocity rescaling with Hamiltonian dynamics ({temp/csvr})
 similar to the empirical Berendsen thermostat in
 "temp/berendsen"_fix_temp_berendsen.html, but chooses the actual
 scaling factor from a suitably chosen (gaussian) distribution rather
-than having it determined from the time constant directly. In the
-second case the velocities are updated to a linear combination of the
-current velocities with a gaussian distribution of velocities at the
-desired temperature. Both termostats are applied in every timestep.
+than having it determined from the time constant directly. In the case
+of {temp/csld} the velocities are updated to a linear combination of
+the current velocities with a gaussian distribution of velocities at
+the desired temperature.  Both termostats are applied every timestep.
 
 The thermostat is applied to only the translational degrees of freedom
 for the particles, which is an important consideration for finite-size

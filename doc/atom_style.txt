@@ -24,7 +24,7 @@ style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
   {hybrid} args = list of one or more sub-styles, each with their args :pre
 
-accelerated styles (with same args) = {angle/cuda} or {angle/kokkos} or {atomic/cuda} or {atomic/kokkos} or {bond/kokkos} or {charge/cuda} or {charge/kokkos} or {full/cuda} or {full/kokkos} or {molecular/kokkos} :l
+accelerated styles (with same args) = {angle/cuda} or {angle/kk} or {atomic/cuda} or {atomic/kk} or {bond/kk} or {charge/cuda} or {charge/kk} or {full/cuda} or {full/kk} or {molecular/kk} :l
 :ule
 
 [Examples:]

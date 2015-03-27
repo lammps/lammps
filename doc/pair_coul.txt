@@ -12,6 +12,7 @@ pair_style coul/cut/kk command :h3
 pair_style coul/cut/omp command :h3
 pair_style coul/debye command :h3
 pair_style coul/debye/gpu command :h3
+pair_style coul/debye/kk command :h3
 pair_style coul/debye/omp command :h3
 pair_style coul/dsf command :h3
 pair_style coul/dsf/gpu command :h3
@@ -20,6 +21,7 @@ pair_style coul/dsf/omp command :h3
 pair_style coul/long command :h3
 pair_style coul/long/omp command :h3
 pair_style coul/long/gpu command :h3
+pair_style coul/long/kk command :h3
 pair_style coul/msm command :h3
 pair_style coul/msm/omp command :h3
 pair_style coul/streitz command :h3

@@ -14,10 +14,12 @@ pair_style buck/omp command :h3
 pair_style buck/coul/cut command :h3
 pair_style buck/coul/cut/cuda command :h3
 pair_style buck/coul/cut/gpu command :h3
+pair_style buck/coul/cut/kk command :h3
 pair_style buck/coul/cut/omp command :h3
 pair_style buck/coul/long command :h3
 pair_style buck/coul/long/cuda command :h3
 pair_style buck/coul/long/gpu command :h3
+pair_style buck/coul/long/kk command :h3
 pair_style buck/coul/long/omp command :h3
 pair_style buck/coul/msm command :h3
 pair_style buck/coul/msm/omp command :h3

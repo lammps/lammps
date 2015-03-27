@@ -220,7 +220,7 @@ void Special::build()
   // extract count from buffer that has cycled back to me
   // nspecial[i][1] = # of 1-3 neighbors of atom i
 
-  j = 0;
+<  j = 0;
   for (i = 0; i < nlocal; i++) {
     nspecial[i][1] = buf[j];
     j += 2 + nspecial[i][0];

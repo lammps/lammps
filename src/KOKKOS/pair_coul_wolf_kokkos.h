@@ -34,7 +34,7 @@ struct TagPairCoulWolfKernelA{};
 template<class DeviceType>
 class PairCoulWolfKokkos : public PairCoulWolf {
  public:
-  enum {EnabledNeighFlags=FULL&HALFTHREAD&HALF};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=1};
   typedef DeviceType device_type;
   typedef EV_FLOAT value_type;

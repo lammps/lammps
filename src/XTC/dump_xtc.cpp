@@ -70,7 +70,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   // allocate global array for atom coords
 
   bigint n = group->count(igroup);
-  if (n > MAXSMALLINT/3/sizeof(float))
+  if (n > static_cast<bigint>(MAXSMALLINT/3/sizeof(float)))
     error->all(FLERR,"Too many atoms for dump xtc");
   natoms = static_cast<int> (n);
 

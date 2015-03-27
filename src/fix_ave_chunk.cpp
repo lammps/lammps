@@ -574,7 +574,6 @@ void FixAveChunk::end_of_step()
   // sum within each chunk, only include atoms in fix group
   // compute/fix/variable may invoke computes so wrap with clear/add
 
-  double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 

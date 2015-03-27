@@ -677,21 +677,21 @@ void Force::set_special(int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"lj/coul") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_lj[1] = special_coul[1] = atof(arg[iarg+1]);
-      special_lj[2] = special_coul[2] = atof(arg[iarg+2]);
-      special_lj[3] = special_coul[3] = atof(arg[iarg+3]);
+      special_lj[1] = special_coul[1] = numeric(FLERR,arg[iarg+1]);
+      special_lj[2] = special_coul[2] = numeric(FLERR,arg[iarg+2]);
+      special_lj[3] = special_coul[3] = numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"lj") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_lj[1] = atof(arg[iarg+1]);
-      special_lj[2] = atof(arg[iarg+2]);
-      special_lj[3] = atof(arg[iarg+3]);
+      special_lj[1] = numeric(FLERR,arg[iarg+1]);
+      special_lj[2] = numeric(FLERR,arg[iarg+2]);
+      special_lj[3] = numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"coul") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_coul[1] = atof(arg[iarg+1]);
-      special_coul[2] = atof(arg[iarg+2]);
-      special_coul[3] = atof(arg[iarg+3]);
+      special_coul[1] = numeric(FLERR,arg[iarg+1]);
+      special_coul[2] = numeric(FLERR,arg[iarg+2]);
+      special_coul[3] = numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");

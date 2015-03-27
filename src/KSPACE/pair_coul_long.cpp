@@ -55,13 +55,15 @@ PairCoulLong::PairCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairCoulLong::~PairCoulLong()
 {
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
+  if (!copymode) {
+    if (allocated) {
+      memory->destroy(setflag);
+      memory->destroy(cutsq);
 
-    memory->destroy(scale);
+      memory->destroy(scale);
+    }
+    if (ftable) free_tables();
   }
-  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */

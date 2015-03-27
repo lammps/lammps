@@ -31,8 +31,8 @@ class PairLJCutCoulDSF : public Pair {
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  virtual void init_style();
+  virtual double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
@@ -50,7 +50,7 @@ class PairLJCutCoulDSF : public Pair {
   double alpha;
   double f_shift,e_shift;
   
-  void allocate();
+  virtual void allocate();
 };
 
 }

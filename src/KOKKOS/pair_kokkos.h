@@ -621,7 +621,7 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable
   EV_FLOAT ev;
   (void) fpair;
   (void) list;
-  printf("ERROR: calling pair_compute with invalid neighbor list style: requested %i  available %i",NEIGHFLAG,PairStyle::EnabledNeighFlags);
+  printf("ERROR: calling pair_compute with invalid neighbor list style: requested %i  available %i \n",NEIGHFLAG,PairStyle::EnabledNeighFlags);
   return ev;
 }
 
@@ -630,7 +630,7 @@ EV_FLOAT pair_compute_fullcluster (PairStyle* fpair, typename Kokkos::Impl::enab
   EV_FLOAT ev;
   (void) fpair;
   (void) list;
-  printf("ERROR: calling pair_compute with invalid neighbor list style: requested %i  available %i",FULLCLUSTER,PairStyle::EnabledNeighFlags);
+  printf("ERROR: calling pair_compute with invalid neighbor list style: requested %i  available %i \n",FULLCLUSTER,PairStyle::EnabledNeighFlags);
   return ev;
 }
 

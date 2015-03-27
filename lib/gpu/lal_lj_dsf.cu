@@ -89,7 +89,7 @@ __kernel void k_lj_dsf(const __global numtyp4 *restrict x_,
 
       numtyp factor_lj, factor_coul, r, prefactor, erfcc;
       factor_lj = sp_lj[sbmask(j)];
-      factor_coul = sp_lj[sbmask(j)+4];
+      factor_coul = (numtyp)1.0-sp_lj[sbmask(j)+4];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -120,7 +120,7 @@ __kernel void k_lj_dsf(const __global numtyp4 *restrict x_,
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*alpha*r);
           erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
           forcecoul = prefactor * (erfcc + (numtyp)2.0*alpha/MY_PIS*r*erfcd + 
-            rsq*f_shift);
+            rsq*f_shift-factor_coul);
         } else
           forcecoul = (numtyp)0.0;
 
@@ -132,7 +132,7 @@ __kernel void k_lj_dsf(const __global numtyp4 *restrict x_,
 
         if (eflag>0) {
           if (rsq < cut_coulsq) {
-            numtyp e=prefactor*(erfcc-r*e_shift-rsq*f_shift);
+            numtyp e=prefactor*(erfcc-r*e_shift-rsq*f_shift-factor_coul);
             e_coul += e;
           }
           if (rsq < lj1[mtype].z) {
@@ -217,7 +217,7 @@ __kernel void k_lj_dsf_fast(const __global numtyp4 *restrict x_,
 
       numtyp factor_lj, factor_coul, r, prefactor, erfcc;
       factor_lj = sp_lj[sbmask(j)];
-      factor_coul = sp_lj[sbmask(j)+4];
+      factor_coul = (numtyp)1.0-sp_lj[sbmask(j)+4];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -247,7 +247,7 @@ __kernel void k_lj_dsf_fast(const __global numtyp4 *restrict x_,
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*alpha*r);
           erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
           forcecoul = prefactor * (erfcc + (numtyp)2.0*alpha/MY_PIS*r*erfcd + 
-            rsq*f_shift);
+            rsq*f_shift-factor_coul);
         } else
           forcecoul = (numtyp)0.0;
 
@@ -259,7 +259,7 @@ __kernel void k_lj_dsf_fast(const __global numtyp4 *restrict x_,
 
         if (eflag>0) {
           if (rsq < cut_coulsq) {
-            numtyp e=prefactor*(erfcc-r*e_shift-rsq*f_shift);
+            numtyp e=prefactor*(erfcc-r*e_shift-rsq*f_shift-factor_coul);
             e_coul += e;
           }
           if (rsq < lj1[mtype].z) {

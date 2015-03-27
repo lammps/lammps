@@ -299,7 +299,6 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   // increment lock counter in compute chunk/atom
   // only if nrepeat > 1 or ave = RUNNING/WINDOW,
   //   so that locking spans multiple timesteps 
-  // set lock here for ave = RUN/WINDOW or in end_of_step() for nrepeat > 1
 
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
@@ -309,10 +308,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix ave/chunk does not use chunk/atom compute");
 
   if (nrepeat > 1 || ave == RUNNING || ave == WINDOW) cchunk->lockcount++;
-  if (ave == RUNNING || ave == WINDOW) {
-    nchunk = cchunk->setup_chunks();
-    cchunk->lock(this,update->ntimestep,-1);
-  }
+  lockforever = 0;
 
   // print file comment lines
 
@@ -523,7 +519,11 @@ void FixAveChunk::end_of_step()
   // zero out arrays that accumulate over many samples, but not across epochs
   // invoke setup_chunks() to determine current nchunk
   //   re-allocate per-chunk arrays if needed
-  // invoke lock() so nchunk cannot change until Nfreq epoch is over
+  // invoke lock() in two cases:
+  //   if nrepeat > 1: so nchunk cannot change until Nfreq epoch is over,
+  //     will be unlocked on last repeat of this Nfreq
+  //   if ave = RUNNING/WINDOW and not yet locked:
+  //     set forever, will be unlocked in fix destructor
   // wrap setup_chunks in clearstep/addstep b/c it may invoke computes
   //   both nevery and nfreq are future steps, 
   //   since call below to cchunk->ichunk() 
@@ -539,6 +539,10 @@ void FixAveChunk::end_of_step()
     allocate();
     if (nrepeat > 1 && ave == ONE)
       cchunk->lock(this,ntimestep,ntimestep+(nrepeat-1)*nevery);
+    else if ((ave == RUNNING || ave == WINDOW) && !lockforever) {
+      cchunk->lock(this,update->ntimestep,-1);
+      lockforever = 1;
+    }
     for (m = 0; m < nchunk; m++) {
       count_many[m] = count_sum[m] = 0.0;
       for (i = 0; i < nvalues; i++) values_many[m][i] = 0.0;

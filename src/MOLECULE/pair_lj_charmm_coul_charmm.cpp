@@ -43,7 +43,8 @@ PairLJCharmmCoulCharmm::PairLJCharmmCoulCharmm(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCharmmCoulCharmm::~PairLJCharmmCoulCharmm()
 {
-  if (allocated) {
+  if (!copymode) {
+   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
@@ -59,6 +60,7 @@ PairLJCharmmCoulCharmm::~PairLJCharmmCoulCharmm()
     memory->destroy(lj14_2);
     memory->destroy(lj14_3);
     memory->destroy(lj14_4);
+   }
   }
 }
 

@@ -41,7 +41,8 @@ PairLJGromacsCoulGromacs::PairLJGromacsCoulGromacs(LAMMPS *lmp) : Pair(lmp)
 
 PairLJGromacsCoulGromacs::~PairLJGromacsCoulGromacs()
 {
-  if (allocated) {
+  if (!copymode) {
+   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
@@ -56,6 +57,7 @@ PairLJGromacsCoulGromacs::~PairLJGromacsCoulGromacs()
     memory->destroy(ljsw3);
     memory->destroy(ljsw4);
     memory->destroy(ljsw5);
+   }
   }
 }
 

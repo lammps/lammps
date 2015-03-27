@@ -38,21 +38,23 @@ PairLJClass2CoulCut::PairLJClass2CoulCut(LAMMPS *lmp) : Pair(lmp)
 
 PairLJClass2CoulCut::~PairLJClass2CoulCut()
 {
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
+  if (!copymode) {
+    if (allocated) {
+      memory->destroy(setflag);
+      memory->destroy(cutsq);
 
-    memory->destroy(cut_lj);
-    memory->destroy(cut_ljsq);
-    memory->destroy(cut_coul);
-    memory->destroy(cut_coulsq);
-    memory->destroy(epsilon);
-    memory->destroy(sigma);
-    memory->destroy(lj1);
-    memory->destroy(lj2);
-    memory->destroy(lj3);
-    memory->destroy(lj4);
-    memory->destroy(offset);
+      memory->destroy(cut_lj);
+      memory->destroy(cut_ljsq);
+      memory->destroy(cut_coul);
+      memory->destroy(cut_coulsq);
+      memory->destroy(epsilon);
+      memory->destroy(sigma);
+      memory->destroy(lj1);
+      memory->destroy(lj2);
+      memory->destroy(lj3);
+      memory->destroy(lj4);
+      memory->destroy(offset);
+    }
   }
 }
 

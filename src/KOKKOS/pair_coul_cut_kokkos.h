@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairCoulCutKokkos : public PairCoulCut {
  public:
-  enum {EnabledNeighFlags=FULL&HALFTHREAD&HALF};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=1};
   typedef DeviceType device_type;
   PairCoulCutKokkos(class LAMMPS *);
@@ -114,13 +114,12 @@ class PairCoulCutKokkos : public PairCoulCut {
   friend class PairComputeFunctor<PairCoulCutKokkos,FULL,true>;
   friend class PairComputeFunctor<PairCoulCutKokkos,HALF,true>;
   friend class PairComputeFunctor<PairCoulCutKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,N2,true>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,FULLCLUSTER,true >;
   friend class PairComputeFunctor<PairCoulCutKokkos,FULL,false>;
   friend class PairComputeFunctor<PairCoulCutKokkos,HALF,false>;
   friend class PairComputeFunctor<PairCoulCutKokkos,HALFTHREAD,false>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,N2,false>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,FULLCLUSTER,false >;
+  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,FULL,void>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,HALF,void>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,HALFTHREAD,void>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairCoulCutKokkos,void>(PairCoulCutKokkos*,
                                                        NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairCoulCutKokkos>(PairCoulCutKokkos*);

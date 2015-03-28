@@ -26,7 +26,6 @@ action () {
 
 touch ../accelerator_kokkos.h
 touch ../memory.h
-touch ../special.cpp
 
 # list of files with optional dependcies
 
@@ -81,23 +80,53 @@ action neigh_list_kokkos.cpp
 action neigh_list_kokkos.h
 action neighbor_kokkos.cpp
 action neighbor_kokkos.h
+action pair_buck_coul_cut_kokkos.cpp
+action pair_buck_coul_cut_kokkos.h
+action pair_buck_coul_long_kokkos.cpp pair_buck_coul_long.cpp
+action pair_buck_coul_long_kokkos.h pair_buck_coul_long.h
 action pair_buck_kokkos.cpp
 action pair_buck_kokkos.h
 action pair_coul_cut_kokkos.cpp
 action pair_coul_cut_kokkos.h
+action pair_coul_debye_kokkos.cpp
+action pair_coul_debye_kokkos.h
 action pair_coul_dsf_kokkos.cpp
 action pair_coul_dsf_kokkos.h
+action pair_coul_long_kokkos.cpp pair_coul_long.cpp
+action pair_coul_long_kokkos.h pair_coul_long.h
 action pair_coul_wolf_kokkos.cpp
 action pair_coul_wolf_kokkos.h
 action pair_eam_kokkos.cpp pair_eam.cpp
 action pair_eam_kokkos.h pair_eam.h
 action pair_kokkos.h
+action pair_lj_charmm_coul_charmm_implicit_kokkos.cpp pair_lj_charmm_coul_charmm_implicit.cpp
+action pair_lj_charmm_coul_charmm_implicit_kokkos.h pair_lj_charmm_coul_charmm_implicit.h
+action pair_lj_charmm_coul_charmm_kokkos.cpp pair_lj_charmm_coul_charmm.cpp
+action pair_lj_charmm_coul_charmm_kokkos.h pair_lj_charmm_coul_charmm.h
+action pair_lj_charmm_coul_long_kokkos.cpp pair_lj_charmm_coul_long.cpp
+action pair_lj_charmm_coul_long_kokkos.h pair_lj_charmm_coul_long.h
+action pair_lj_class2_coul_cut_kokkos.cpp pair_lj_class2_coul_cut.cpp
+action pair_lj_class2_coul_cut_kokkos.h pair_lj_class2_coul_cut.h
+action pair_lj_class2_coul_long_kokkos.cpp pair_lj_class2_coul_long.cpp
+action pair_lj_class2_coul_long_kokkos.h pair_lj_class2_coul_long.h
+action pair_lj_class2_kokkos.cpp pair_lj_class2.cpp
+action pair_lj_class2_kokkos.h pair_lj_class2.h
 action pair_lj_cut_coul_cut_kokkos.cpp
 action pair_lj_cut_coul_cut_kokkos.h
+action pair_lj_cut_coul_debye_kokkos.cpp
+action pair_lj_cut_coul_debye_kokkos.h
+action pair_lj_cut_coul_dsf_kokkos.cpp
+action pair_lj_cut_coul_dsf_kokkos.h
 action pair_lj_cut_coul_long_kokkos.cpp pair_lj_cut_coul_long.cpp
 action pair_lj_cut_coul_long_kokkos.h pair_lj_cut_coul_long.h
 action pair_lj_cut_kokkos.cpp
 action pair_lj_cut_kokkos.h
+action pair_lj_expand_kokkos.cpp
+action pair_lj_expand_kokkos.h
+action pair_lj_gromacs_coul_gromacs_kokkos.cpp
+action pair_lj_gromacs_coul_gromacs_kokkos.h
+action pair_lj_gromacs_kokkos.cpp
+action pair_lj_gromacs_kokkos.h
 action pair_table_kokkos.cpp
 action pair_table_kokkos.h
 action verlet_kokkos.cpp

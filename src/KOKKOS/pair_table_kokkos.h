@@ -41,7 +41,7 @@ template<class DeviceType>
 class PairTableKokkos : public Pair {
  public:
 
-  enum {EnabledNeighFlags=FULL&HALFTHREAD&HALF&N2&FULLCLUSTER};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2|FULLCLUSTER};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
 

@@ -451,9 +451,13 @@ void Domain::reset_box()
   set_global_box();
   set_local_box();
 
-  // if shrink-wrapped & kspace is defined (i.e. using MSM) call setup()
+  // if shrink-wrapped & kspace is defined (i.e. using MSM), call setup()
+  // also call init() (to test for compatibility) ?
   
-  if (nonperiodic == 2 && force->kspace) force->kspace->setup();
+  if (nonperiodic == 2 && force->kspace) {
+    //force->kspace->init();
+    force->kspace->setup();
+  }
 
   // if shrink-wrapped & triclinic, re-convert to lamda coords for new box
   // re-invoke pbc() b/c x2lamda result can be outside [0,1] due to roundoff

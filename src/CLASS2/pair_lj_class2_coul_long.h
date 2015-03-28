@@ -29,10 +29,10 @@ class PairLJClass2CoulLong : public Pair {
   PairLJClass2CoulLong(class LAMMPS *);
   virtual ~PairLJClass2CoulLong();
   virtual void compute(int, int);
-  void settings(int, char **);
+  virtual void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  virtual void init_style();
+  virtual double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
@@ -50,7 +50,7 @@ class PairLJClass2CoulLong : public Pair {
   double **lj1,**lj2,**lj3,**lj4,**offset;
   double g_ewald;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

@@ -265,7 +265,7 @@ void FixPropertyAtom::write_data_section_size(int mth, int &nx, int &ny)
 }
 
 /* ----------------------------------------------------------------------
-   pack values for Mth data section into buf
+   pack values for Mth data section into 2d buf
    buf allocated by caller as Nlocal by Nvalues+1
 ------------------------------------------------------------------------- */
 

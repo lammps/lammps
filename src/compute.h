@@ -92,7 +92,6 @@ class Compute : protected Pointers {
   Compute(class LAMMPS *, int, char **);
   virtual ~Compute();
   void modify_params(int, char **);
-  void adjust_dof_fix();
   void reset_extra_dof();
 
   virtual void init() = 0;

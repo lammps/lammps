@@ -536,10 +536,12 @@ void Molecule::charges(char *line)
 void Molecule::diameters(char *line)
 {
   int tmp;
+  maxradius = 0.0;
   for (int i = 0; i < natoms; i++) {
     readline(line);
     sscanf(line,"%d %lg",&tmp,&radius[i]);
     radius[i] *= 0.5;
+    maxradius = MAX(maxradius,radius[i]);
   }
 
   for (int i = 0; i < natoms; i++)

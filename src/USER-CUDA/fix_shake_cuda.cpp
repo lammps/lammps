@@ -63,6 +63,7 @@ FixShakeCuda::FixShakeCuda(LAMMPS* lmp, int narg, char** arg) :
 
   virial_flag = 1;
   create_attribute = 1;
+  dof_flag = 1;
 
   // error check
 

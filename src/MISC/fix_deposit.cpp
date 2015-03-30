@@ -249,6 +249,41 @@ void FixDeposit::init()
       error->all(FLERR,"Fix deposit and fix shake not using "
                  "same molecule template ID");
   }
+
+  // for finite size spherical particles:
+  // warn if near < 2 * maxrad of existing and inserted particles
+  //   since may lead to overlaps
+  // if inserted molecule does not define diameters, 
+  //   use AtomVecSphere::create_atom() default radius = 0.5
+
+  if (atom->radius_flag) {
+    double *radius = atom->radius;
+    int nlocal = atom->nlocal;
+
+    double maxrad = 0.0;
+    for (int i = 0; i < nlocal; i++)
+      maxrad = MAX(maxrad,radius[i]);
+
+    double maxradall;
+    MPI_Allreduce(&maxrad,&maxradall,1,MPI_DOUBLE,MPI_MAX,world);
+
+    double maxradinsert = 0.0;
+    if (mode == MOLECULE) {
+      for (int i = 0; i < nmol; i++) {
+        if (onemols[i]->radiusflag)
+          maxradinsert = MAX(maxradinsert,onemols[i]->maxradius);
+        else maxradinsert = MAX(maxradinsert,0.5);
+      }
+    } else maxradinsert = 0.5;
+
+    double separation = MAX(2.0*maxradinsert,maxradall+maxradinsert);
+    if (sqrt(nearsq) < separation && comm->me == 0) {
+      char str[128];
+      sprintf(str,"Fix deposit near setting < possible overlap separation %g",
+              separation);
+      error->warning(FLERR,str);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -389,7 +424,8 @@ void FixDeposit::pre_exchange()
       }
     }
 
-    // if distance to any inserted atom is less than near, try again
+    // check distance between any existing atom and any inserted atom
+    // if less than near, try again
     // use minimum_image() to account for PBC
 
     double **x = atom->x;

@@ -64,8 +64,8 @@ void ComputeTemp::dof_compute()
   double natoms = group->count(igroup);
   dof = domain->dimension * natoms;
   dof -= extra_dof + fix_dof;
-  if (dof < 0.0 && natoms > 0.0) 
-    error->all(FLERR,"Temperature compute degrees of freedom < 0");
+  //if (dof < 0.0 && natoms > 0.0) 
+  //  error->all(FLERR,"Temperature compute degrees of freedom < 0");
   if (dof > 0.0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }

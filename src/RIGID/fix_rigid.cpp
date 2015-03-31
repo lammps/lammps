@@ -548,12 +548,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   MINUSPI = -MY_PI;
   TWOPI = 2.0*MY_PI;
 
-  // if infile set, only setup rigid bodies once, using info from file
-  // this means users cannot change atom properties like mass between runs
-  // if they do, bodies will not reflect the changes
+  // wait to setup bodies until first init() using current atom properties
 
-  staticflag = 0;
-  if (infile) setup_bodies_static();
+  setupflag = 0;
 
   // print statistics
 
@@ -670,10 +667,17 @@ void FixRigid::init()
     step_respa = ((Respa *) update->integrate)->step;
 
   // setup rigid bodies, using current atom info
-  // allows resetting of atom properties like mass between runs
-  // only do this if not using an infile, else was called in constructor
+  // only do initialization once, b/c properties may not be re-computable
+  //   especially if overlapping particles
+  // do not do dynamic init if read body properties from infile
+  //   this is b/c the infile defines the static and dynamic properties
+  //   and may not be computable if contain overlapping particles
+  //   setup_bodies_static() reads infile itself
 
-  if (!infile) setup_bodies_static();
+  if (!setupflag) {
+    setup_bodies_static();
+    if (!infile) setup_bodies_dynamic();
+  }
 
   // temperature scale factor
 
@@ -709,7 +713,6 @@ void FixRigid::setup(int vflag)
   // so angmom_to_omega() and set_v() below will set per-atom vels correctly
   // re-calling it every run allows reset of body/atom velocities between runs
 
-  setup_bodies_dynamic();
 
   // fcm = force on center-of-mass of each rigid body
 
@@ -1085,7 +1088,7 @@ int FixRigid::dof(int tgroup)
 {
   // cannot count DOF correctly unless setup_bodies_static() has been called
 
-  if (!staticflag) {
+  if (!setupflag) {
     if (comm->me == 0) 
       error->warning(FLERR,"Cannot count rigid body degrees-of-freedom "
                      "before bodies are initialized");
@@ -1494,12 +1497,11 @@ void FixRigid::set_v()
 }
 
 /* ----------------------------------------------------------------------
-   initialization of static rigid body attributes
-   called from init() so body/atom properties can be changed between runs
-   unless reading from infile, in which case called once from constructor
+   one-time initialization of static rigid body attributes
    sets extended flags, masstotal, center-of-mass
    sets Cartesian and diagonalized inertia tensor
-   sets body image flags, but only on first call
+   sets body image flags
+   may read some properties from infile
 ------------------------------------------------------------------------- */
 
 void FixRigid::setup_bodies_static()
@@ -1585,14 +1587,12 @@ void FixRigid::setup_bodies_static()
     }
   }
 
-  // first-time setting of body xcmimage flags = true image flags
+  // set body xcmimage flags = true image flags
 
-  if (!staticflag) {
-    imageint *image = atom->image;
-    for (i = 0; i < nlocal; i++)
-      if (body[i] >= 0) xcmimage[i] = image[i];
-      else xcmimage[i] = 0;
-  }
+  imageint *image = atom->image;
+  for (i = 0; i < nlocal; i++)
+    if (body[i] >= 0) xcmimage[i] = image[i];
+    else xcmimage[i] = 0;
 
   // compute masstotal & center-of-mass of each rigid body
   // error if image flag is not 0 in a non-periodic dim
@@ -1662,16 +1662,13 @@ void FixRigid::setup_bodies_static()
     readfile(0,masstotal,xcm,inbody);
   }
 
-  // one-time set of rigid body image flags to default values
-  //   staticflag insures this is only done once, not on successive runs
+  // set rigid body image flags to default values
   // then remap the xcm of each body back into simulation box
-  //   and reset body xcmimage flags via pre_neighbor()
+  //   and reset body and atom xcmimage flags via pre_neighbor()
 
-  if (!staticflag) {
-    for (ibody = 0; ibody < nbody; ibody++)
-      imagebody[ibody] = ((imageint) IMGMAX << IMG2BITS) | 
-        ((imageint) IMGMAX << IMGBITS) | IMGMAX;
-  }
+  for (ibody = 0; ibody < nbody; ibody++)
+    imagebody[ibody] = ((imageint) IMGMAX << IMG2BITS) | 
+      ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
   pre_neighbor();
 
@@ -2004,19 +2001,12 @@ void FixRigid::setup_bodies_static()
   }
 
   if (infile) memory->destroy(inbody);
-
-  // static properties have now been initialized once
-  // used to prevent re-initialization which would re-read infile
-
-  staticflag = 1;
 }
 
 /* ----------------------------------------------------------------------
-   initialization of dynamic rigid body attributes
+   one-time initialization of dynamic rigid body attributes
    set vcm and angmom, computed explicitly from constituent particles
-   OK if wrong for overlapping particles,
-     since is just setting vcm/angmom at start of run,
-     which can be estimated value
+   not done if body properites read from file, e.g. for overlapping particles
 ------------------------------------------------------------------------- */
 
 void FixRigid::setup_bodies_dynamic()

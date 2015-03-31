@@ -913,6 +913,7 @@ int Modify::adjust_dof_fix(int igroup)
   int n = 0;
   for (int ifix = 0; ifix < n_dofflag; ifix++)
     n += fix[list_dofflag[ifix]]->dof(igroup);
+  return n;
 }
 
 /* ----------------------------------------------------------------------

@@ -67,7 +67,7 @@ void ComputeTempEff::setup()
 
 void ComputeTempEff::dof_compute()
 {
-  fix_dof = adjust_dof_fix(igroup);
+  fix_dof = modify->adjust_dof_fix(igroup);
   double natoms = group->count(igroup);
   dof = domain->dimension * natoms;
   dof -= extra_dof + fix_dof;

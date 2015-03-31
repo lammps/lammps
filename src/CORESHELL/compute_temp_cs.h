@@ -50,7 +50,6 @@ class ComputeTempCS : public Compute {
   int maxatom;
   int cgroup,sgroup;
 
-  int fix_dof;
   double tfactor;
   double **vint;
 

@@ -161,6 +161,10 @@ class Compute : protected Pointers {
     ubuf(int64_t arg) : i(arg) {}
     ubuf(int arg) : i(arg) {}
   };
+
+  // private methods
+
+  void adjust_dof_fix();
 };
 
 }

@@ -64,7 +64,6 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 
   end_of_step_every = NULL;
 
-  list_dofflag = NULL;
   list_timeflag = NULL;
 
   nfix_restart_global = 0;
@@ -136,7 +135,6 @@ Modify::~Modify()
   delete [] list_min_energy;
 
   delete [] end_of_step_every;
-  delete [] list_dofflag;
   delete [] list_timeflag;
 
   restart_deallocate();
@@ -185,8 +183,6 @@ void Modify::init()
   list_init(MIN_PRE_FORCE,n_min_pre_force,list_min_pre_force);
   list_init(MIN_POST_FORCE,n_min_post_force,list_min_post_force);
   list_init(MIN_ENERGY,n_min_energy,list_min_energy);
-
-  list_init_dofflag(n_dofflag,list_dofflag);
 
   // init each fix
   // not sure if now needs to come before compute init
@@ -903,20 +899,6 @@ int Modify::check_package(const char *package_fix_name)
 }
 
 /* ----------------------------------------------------------------------
-   loop over fixes with dof() method
-   accumulate # of DOFs removed by fixes and return it
-   called by temperature computes
-------------------------------------------------------------------------- */
-
-int Modify::adjust_dof_fix(int igroup)
-{
-  int n = 0;
-  for (int ifix = 0; ifix < n_dofflag; ifix++)
-    n += fix[list_dofflag[ifix]]->dof(igroup);
-  return n;
-}
-
-/* ----------------------------------------------------------------------
    add a new compute
 ------------------------------------------------------------------------- */
 
@@ -1298,27 +1280,6 @@ void Modify::list_init_thermo_energy(int mask, int &n, int *&list)
   n = 0;
   for (int i = 0; i < nfix; i++)
     if (fmask[i] & mask && fix[i]->thermo_energy) list[n++] = i;
-}
-
-
-/* ----------------------------------------------------------------------
-   create list of fix indices for thermo energy fixes
-   only added to list if fix has THERMO_ENERGY mask
-   and its thermo_energy flag was set via fix_modify
-------------------------------------------------------------------------- */
-
-void Modify::list_init_dofflag(int &n, int *&list)
-{
-  delete [] list;
-
-  n = 0;
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->dof_flag) n++;
-  list = new int[n];
-
-  n = 0;
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->dof_flag) list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------

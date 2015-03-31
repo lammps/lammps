@@ -40,7 +40,6 @@ class ComputeTempDeformEff : public Compute {
   double memory_usage();
 
  protected:
-  int fix_dof;
   double tfactor;
   double vbias[3];    // stored velocity bias for one atom
   double **vbiasall;  // stored velocity bias for all atoms

@@ -144,6 +144,21 @@ void Compute::modify_params(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   calculate adjustment in DOF due to fixes
+------------------------------------------------------------------------- */
+
+void Compute::adjust_dof_fix()
+{
+  Fix **fix = modify->fix;
+  int nfix = modify->nfix;
+
+  fix_dof = 0;
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->dof_flag) 
+      fix_dof += fix[i]->dof(igroup);
+}
+
+/* ----------------------------------------------------------------------
    reset extra_dof to its default value
 ------------------------------------------------------------------------- */
 

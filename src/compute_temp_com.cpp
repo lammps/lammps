@@ -20,7 +20,6 @@
 #include "force.h"
 #include "group.h"
 #include "domain.h"
-#include "modify.h"
 #include "lattice.h"
 #include "error.h"
 
@@ -70,7 +69,7 @@ void ComputeTempCOM::setup()
 
 void ComputeTempCOM::dof_compute()
 {
-  fix_dof = modify->adjust_dof_fix(igroup);
+  adjust_dof_fix();
   double natoms = group->count(igroup);
   int nper = domain->dimension;
   dof = nper * natoms;
@@ -113,7 +112,7 @@ double ComputeTempCOM::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
-  if (tfactor == 0.0 && scalar != 0.0) 
+  if (tfactor == 0.0 && atom->natoms != 0) 
     error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;

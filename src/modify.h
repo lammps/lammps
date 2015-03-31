@@ -88,7 +88,6 @@ class Modify : protected Pointers {
   void delete_fix(const char *);
   int find_fix(const char *);
   int check_package(const char *);
-  int adjust_dof_fix(int);
 
   void add_compute(int, char **, int trysuffix=0);
   void modify_compute(int, char **);
@@ -121,9 +120,6 @@ class Modify : protected Pointers {
   int *list_min_energy;
 
   int *end_of_step_every;
-
-  int n_dofflag;             // list of fixes with dof() method
-  int *list_dofflag;
 
   int n_timeflag;            // list of computes that store time invocation
   int *list_timeflag;

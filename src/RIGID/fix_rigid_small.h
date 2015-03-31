@@ -255,7 +255,7 @@ NPT/NPH fix must be defined in input script after all rigid fixes,
 else the rigid fix contribution to the pressure virial is
 incorrect.
 
-W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized
+W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized h
 
 This means the temperature associated with the rigid bodies may be
 incorrect on this timestep.

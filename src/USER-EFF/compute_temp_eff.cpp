@@ -24,6 +24,7 @@
 #include "update.h"
 #include "force.h"
 #include "domain.h"
+#include "modify.h"
 #include "group.h"
 #include "error.h"
 

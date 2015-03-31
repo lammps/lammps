@@ -508,7 +508,10 @@ void FixRigidSmall::init()
 /* ----------------------------------------------------------------------
    setup static/dynamic properties of rigid bodies, using current atom info
    allows resetting of atom properties like mass between runs
-   only do static initialization once if using an infile
+   only do static initialization must be done once
+     do not do again if using an infile or mol keyword
+     this is b/c the infile and Molecule class define the COM, etc
+       so should not reset those values
    cannot do this until now, b/c requires comm->setup() to have setup stencil
    invoke pre_neighbor() to insure body xcmimage flags are reset
      needed if Verlet::setup::pbc() has remapped/migrated atoms for 2nd run
@@ -517,9 +520,14 @@ void FixRigidSmall::init()
 
 void FixRigidSmall::setup_pre_neighbor()
 {
-  if (!staticflag || !infile) setup_bodies_static();
+  if (!staticflag || (!infile && !onemols)) setup_bodies_static();
   else pre_neighbor();
-  setup_bodies_dynamic();
+
+  //if (!staticflag || (!infile)) setup_bodies_static();
+  //else pre_neighbor();
+
+  //setup_bodies_dynamic();
+  if (!onemols) setup_bodies_dynamic();
 }
 
 /* ----------------------------------------------------------------------
@@ -880,24 +888,27 @@ void FixRigidSmall::final_integrate_respa(int ilevel, int iloop)
      due to first-time definition of rigid body in setup_bodies_static()
      or due to box flip
    also adjust imagebody = rigid body image flags, due to xcm remap
-   also adjust rgdimage flags of all atoms in bodies for two effects
+   then communicate bodies so other procs will know of changes to body xcm
+   then adjust xcmimage flags of all atoms in bodies via image_shift()
+     for two effects
      (1) change in true image flags due to pbc() call during exchange
      (2) change in imagebody due to xcm remap
-   rgdimage flags are always -1,0,-1 so that body can be unwrapped
+   xcmimage flags are always -1,0,-1 so that body can be unwrapped
      around in-box xcm and stay close to simulation box
-   if don't do this, then a body could end up very far away
-     when unwrapped by true image flags, and set_xv() will
-     compute huge displacements every step to reset coords of 
+   if just inferred unwrapped from atom image flags, 
+     then a body could end up very far away
+     when unwrapped by true image flags
+   then set_xv() will compute huge displacements every step to reset coords of 
      all the body atoms to be back inside the box, ditto for triclinic box flip
      note: so just want to avoid that numeric probem?
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::pre_neighbor()
 {
-  // acquire ghost bodies via forward comm
-  // also gets new remapflags needed for adjusting atom image flags
-  // reset atom2body for owned atoms
-  // forward comm sets atom2body for ghost atoms
+  for (int ibody = 0; ibody < nlocal_body; ibody++) {
+    Body *b = &body[ibody];
+    domain->remap(b->xcm,b->image);
+  }  
 
   nghost_body = 0;
   commflag = FULL_BODY;
@@ -905,10 +916,6 @@ void FixRigidSmall::pre_neighbor()
   reset_atom2body();
   //check(4);
 
-  for (int ibody = 0; ibody < nlocal_body; ibody++) {
-    Body *b = &body[ibody];
-    domain->remap(b->xcm,b->image);
-  }  
   image_shift();
 }
 
@@ -1654,7 +1661,8 @@ void FixRigidSmall::ring_farthest(int n, char *cbuf)
 /* ----------------------------------------------------------------------
    initialization of rigid body attributes
    called at setup, so body/atom properties can be changed between runs
-   unless reading from infile, in which case only called once
+   unless reading from infile or defined by Molecule class,
+     in which case only called once
    sets extended flags, masstotal, center-of-mass
    sets Cartesian and diagonalized inertia tensor
    sets body image flags, but only on first call
@@ -2180,7 +2188,7 @@ void FixRigidSmall::setup_bodies_static()
    one-time initialization of dynamic rigid body attributes
    vcm and angmom, computed explicitly from constituent particles
    even if wrong for overlapping particles, is OK,
-     since is just setting initial time=0 Vcm and angmom of the body
+     since is just setting initial time=0 vcm and angmom of the body
      which can be estimated value
 ------------------------------------------------------------------------- */
 

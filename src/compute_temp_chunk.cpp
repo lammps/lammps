@@ -288,6 +288,8 @@ double ComputeTempChunk::compute_scalar()
   MPI_Allreduce(&rcount,&allcount,1,MPI_DOUBLE,MPI_SUM,world);
 
   double dof = nchunk*cdof + adof*allcount;
+  if (dof < 0.0 && allcount > 0.0)
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   double tfactor = 0.0;
   if (dof > 0.0) tfactor = force->mvv2e / (dof * force->boltz);
   scalar *= tfactor;

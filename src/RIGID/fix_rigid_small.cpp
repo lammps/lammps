@@ -892,20 +892,6 @@ void FixRigidSmall::final_integrate_respa(int ilevel, int iloop)
      note: so just want to avoid that numeric probem?
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   atom to processor assignments have changed,
-     so acquire ghost bodies and setup atom2body
-   remap xcm of each rigid body back into periodic simulation box
-   done during pre_neighbor so will be after call to pbc()
-     and after fix_deform::pre_exchange() may have flipped box
-   use domain->remap() in case xcm is far away from box
-     due to 1st definition of rigid body or due to box flip
-   if don't do this, then atoms of a body which drifts far away
-     from a triclinic box will be remapped back into box
-     with huge displacements when the box tilt changes via set_x()
-   adjust image flag of body and image flags of all atoms in body
-------------------------------------------------------------------------- */
-
 void FixRigidSmall::pre_neighbor()
 {
   // acquire ghost bodies via forward comm
@@ -2544,7 +2530,7 @@ void FixRigidSmall::grow_arrays(int nmax)
   // check for regrow of vatom
   // must be done whether per-atom virial is accumulated on this step or not
   //   b/c this is only time grow_array() may be called
-  // since vatom is calculated before and after atom migration
+  // need to regrow b/c vatom is calculated before and after atom migration
 
   if (nmax > maxvatom) {
     maxvatom = atom->nmax;

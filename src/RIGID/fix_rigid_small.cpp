@@ -2540,6 +2540,16 @@ void FixRigidSmall::grow_arrays(int nmax)
     if (orientflag) memory->grow(orient,nmax,orientflag,"rigid/small:orient");
     if (dorientflag) memory->grow(dorient,nmax,3,"rigid/small:dorient");
   }
+
+  // check for regrow of vatom
+  // must be done whether per-atom virial is accumulated on this step or not
+  //   b/c this is only time grow_array() may be called
+  // since vatom is calculated before and after atom migration
+
+  if (nmax > maxvatom) {
+    maxvatom = atom->nmax;
+    memory->grow(vatom,maxvatom,6,"fix:vatom");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -2564,6 +2574,13 @@ void FixRigidSmall::copy_arrays(int i, int j, int delflag)
       dorient[j][2] = dorient[i][2];
     }
   }
+
+  // must also copy vatom if per-atom virial calculated on this timestep
+  // since vatom is calculated before and after atom migration
+
+  if (vflag_atom)
+    for (int k = 0; k < 6; k++)
+      vatom[j][k] = vatom[i][k];
 
   // if deleting atom J via delflag and J owns a body, then delete it
 
@@ -2593,6 +2610,13 @@ void FixRigidSmall::set_arrays(int i)
   displace[i][0] = 0.0;
   displace[i][1] = 0.0;
   displace[i][2] = 0.0;
+
+  // must also zero vatom if per-atom virial calculated on this timestep
+  // since vatom is calculated before and after atom migration
+
+  if (vflag_atom)
+    for (int k = 0; k < 6; k++)
+      vatom[i][k] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -2706,6 +2730,13 @@ int FixRigidSmall::pack_exchange(int i, double *buf)
 
   if (!bodytag[i]) return m;
 
+  // must also pack vatom if per-atom virial calculated on this timestep
+  // since vatom is calculated before and after atom migration
+
+  if (vflag_atom)
+    for (int k = 0; k < 6; k++)
+      buf[m++] = vatom[i][k];
+
   // atom does not own its rigid body
 
   if (bodyown[i] < 0) {
@@ -2753,6 +2784,13 @@ int FixRigidSmall::unpack_exchange(int nlocal, double *buf)
     bodyown[nlocal] = -1;
     return m;
   }
+
+  // must also unpack vatom if per-atom virial calculated on this timestep
+  // since vatom is calculated before and after atom migration
+
+  if (vflag_atom)
+    for (int k = 0; k < 6; k++)
+      vatom[nlocal][k] = buf[m++];
 
   // atom does not own its rigid body
 

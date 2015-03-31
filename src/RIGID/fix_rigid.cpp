@@ -66,6 +66,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   rigid_flag = 1;
   virial_flag = 1;
   create_attribute = 1;
+  dof_flag = 1;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

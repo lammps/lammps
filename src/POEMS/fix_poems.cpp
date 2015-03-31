@@ -71,6 +71,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;
+  dof_flag = 1;
 
   MPI_Comm_rank(world,&me);
 

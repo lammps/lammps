@@ -25,6 +25,7 @@
 #include "group.h"
 #include "domain.h"
 #include "lattice.h"
+#include "modify.h"
 #include "error.h"
 #include "memory.h"
 

@@ -81,8 +81,13 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   nevery = 1;
   global_freq = 1;
 
+  // per-atom virial
+  // set vflag_atom = 0 b/c some fixes grow vatom in grow_arrays()
+  //   which may occur outside of timestepping
+
   maxvatom = 0;
   vatom = NULL;
+  vflag_atom = 0;
 
   // CUDA and KOKKOS per-fix data masks
 

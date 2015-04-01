@@ -1820,6 +1820,19 @@ void FixRigidSmall::setup_bodies_static()
     xcm[2] /= body[ibody].mass;
   }
 
+  // set vcm, angmom = 0.0 in case infile is used
+  // and doesn't overwrite all body's values
+  // since setup_bodies_dynamic() will not be called
+
+  double *vcm,*angmom;
+
+  for (ibody = 0; ibody < nlocal_body; ibody++) {
+    vcm = body[ibody].vcm;
+    vcm[0] = vcm[1] = vcm[2] = 0.0;
+    angmom = body[ibody].angmom;
+    angmom[0] = angmom[1] = angmom[2] = 0.0;
+  }
+
   // overwrite masstotal and center-of-mass with file values
   // inbody[i] = 0/1 if Ith rigid body is initialized by file
 
@@ -2282,11 +2295,11 @@ void FixRigidSmall::setup_bodies_dynamic()
 /* ----------------------------------------------------------------------
    read per rigid body info from user-provided file
    which = 0 to read everthing except 6 moments of inertia
-   which = 1 to read just 6 moments of inertia, store in array
+   which = 1 to read just 6 moments of inertia
    flag inbody = 0 for local bodies this proc initializes from file
    nlines = # of lines of rigid body info, 0 is OK
    one line = rigid-ID mass xcm ycm zcm ixx iyy izz ixy ixz iyz
-   and rigid-ID = mol-ID for fix rigid/small
+   where rigid-ID = mol-ID for fix rigid/small
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::readfile(int which, double **array, int *inbody)

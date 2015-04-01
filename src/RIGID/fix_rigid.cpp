@@ -1652,6 +1652,15 @@ void FixRigid::setup_bodies_static()
     xcm[ibody][2] = all[ibody][2]/masstotal[ibody];
   }
 
+  // set vcm, angmom = 0.0 in case infile is used
+  // and doesn't overwrite all body's values
+  // since setup_bodies_dynamic() will not be called
+
+  for (ibody = 0; ibody < nbody; ibody++) {
+    vcm[ibody][0] = vcm[ibody][1] = vcm[ibody][2] = 0.0;
+    angmom[ibody][0] = angmom[ibody][1] = angmom[ibody][2] = 0.0;
+  }
+
   // overwrite masstotal and center-of-mass with file values
   // inbody[i] = 0/1 if Ith rigid body is initialized by file
 
@@ -1659,7 +1668,7 @@ void FixRigid::setup_bodies_static()
   if (infile) {
     memory->create(inbody,nbody,"rigid:inbody");
     for (ibody = 0; ibody < nbody; ibody++) inbody[ibody] = 0;
-    readfile(0,masstotal,xcm,inbody);
+    readfile(0,masstotal,xcm,vcm,angmom,inbody);
   }
 
   // set rigid body image flags to default values
@@ -1769,7 +1778,7 @@ void FixRigid::setup_bodies_static()
 
   // overwrite Cartesian inertia tensor with file values
 
-  if (infile) readfile(1,NULL,all,inbody);
+  if (infile) readfile(1,NULL,all,NULL,NULL,inbody);
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
@@ -2100,14 +2109,17 @@ void FixRigid::setup_bodies_dynamic()
 
 /* ----------------------------------------------------------------------
    read per rigid body info from user-provided file
-   which = 0 to read total mass and center-of-mass, store in vec and array
-   which = 1 to read 6 moments of inertia, store in array
+   which = 0 to read everthing except 6 moments of inertia
+   which = 1 to read 6 moments of inertia
    flag inbody = 0 for bodies whose info is read from file
    nlines = # of lines of rigid body info
    one line = rigid-ID mass xcm ycm zcm ixx iyy izz ixy ixz iyz
+              vxcm vycm vzcm lx ly lz
 ------------------------------------------------------------------------- */
 
-void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
+void FixRigid::readfile(int which, double *vec, 
+                        double **array1, double **array2, double **array3,
+                        int *inbody)
 {
   int j,nchunk,id,eofflag;
   int nlines;
@@ -2158,7 +2170,7 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
     // tokenize the line into values
     // id = rigid body ID
     // use ID as-is for SINGLE, as mol-ID for MOLECULE, as-is for GROUP
-    // for which = 0, store mass/com in vec/array
+    // for which = 0, store all but inertia in vec and arrays
     // for which = 1, store inertia tensor array, invert 3,4,5 values to Voigt
 
     for (int i = 0; i < nchunk; i++) {
@@ -2181,16 +2193,22 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
 
       if (which == 0) {
         vec[id] = atof(values[1]);
-        array[id][0] = atof(values[2]);
-        array[id][1] = atof(values[3]);
-        array[id][2] = atof(values[4]);
+        array1[id][0] = atof(values[2]);
+        array1[id][1] = atof(values[3]);
+        array1[id][2] = atof(values[4]);
+        array2[id][0] = atof(values[11]);
+        array2[id][1] = atof(values[12]);
+        array2[id][2] = atof(values[13]);
+        array3[id][0] = atof(values[14]);
+        array3[id][1] = atof(values[15]);
+        array3[id][2] = atof(values[16]);
       } else {
-        array[id][0] = atof(values[5]);
-        array[id][1] = atof(values[6]);
-        array[id][2] = atof(values[7]);
-        array[id][3] = atof(values[10]);
-        array[id][4] = atof(values[9]);
-        array[id][5] = atof(values[8]);
+        array1[id][0] = atof(values[5]);
+        array1[id][1] = atof(values[6]);
+        array1[id][2] = atof(values[7]);
+        array1[id][3] = atof(values[10]);
+        array1[id][4] = atof(values[9]);
+        array1[id][5] = atof(values[8]);
       }
 
       buf = next + 1;

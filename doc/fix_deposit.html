@@ -162,8 +162,8 @@ shake</A> command which also appears in your input script.
 <P>Each timestep a particle is inserted, the coordinates for its atoms
 are chosen as follows.  For insertion of individual atoms, the
 "position" referred to in the following description is the coordinate
-of the atom.  For insertion of molecule, the "position<A HREF = "molecule.html"> is the
-geometric center of the molecule; see the (molecule</A> doc
+of the atom.  For insertion of molecule, the "position" is the
+geometric center of the molecule; see the <A HREF = "molecule.html">molecule</A> doc
 page for details.  A random rotation of the molecule around its center
 point is performed, which determines the coordinates all the
 individual atoms.
@@ -183,14 +183,22 @@ particles is less than the <I>delta</I> setting.
 <P>Once a trial x,y,z position has been selected, the insertion is only
 performed if no current atom in the simulation is within a distance R
 of any atom in the new particle, including the effect of periodic
-boundary conditions if applicable.  Note that the default value for R
-is 0.0, which will allow atoms to strongly overlap if you are
-inserting where other atoms are present.  This distance test is
-performed independently for each atom in an inserted molecule, based
-on the randomly rotated configuration of the molecule.  If this test
-fails, a new random position within the insertion volume is chosen and
-another trial is made.  Up to Q attempts are made.  If the particle is
-not successfully inserted, LAMMPS prints a warning message.
+boundary conditions if applicable.  R is defined by the <I>near</I>
+keyword.  Note that the default value for R is 0.0, which will allow
+atoms to strongly overlap if you are inserting where other atoms are
+present.  This distance test is performed independently for each atom
+in an inserted molecule, based on the randomly rotated configuration
+of the molecule.  If this test fails, a new random position within the
+insertion volume is chosen and another trial is made.  Up to Q
+attempts are made.  If the particle is not successfully inserted,
+LAMMPS prints a warning message.
+</P>
+<P>IMPORTANT NOTE: If you are inserting finite size particles or a
+molecule or rigid body consisting of finite-size particles, then you
+should typically set R larger than the distance at which any inserted
+particle may overlap with either a previouly inserted particle or an
+existing particle.  LAMMPS will issue a warning if R is smaller than
+this value, based on the radii of existing and inserted particles.
 </P>
 <P>The <I>rate</I> option moves the insertion volume in the z direction (3d)
 or y direction (2d).  This enables particles to be inserted from a

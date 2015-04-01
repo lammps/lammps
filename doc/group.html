@@ -254,9 +254,9 @@ variable        rad equal 18-(step/v_nsteps)*(18-5)
 region          ss sphere 20 20 0 v_rad
 group           mobile dynamic all region ss
 fix             1 mobile nve
-run             $<I>nsteps</I>
+run             ${nsteps}
 group           mobile static
-run	        $<I>nsteps</I> 
+run	        ${nsteps} 
 </PRE>
 <P>IMPORTANT NOTE: All fixes and computes take a group ID as an argument,
 but they do not all allow for use of a dynamic group.  If you get an

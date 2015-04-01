@@ -111,7 +111,7 @@ There are two main variants of this fix, fix rigid and fix
 rigid/small.  The NVE/NVT/NPT/NHT versions belong to one of the two
 variants, as their style names indicate.  
 
-IMPORTANT NOTE: Not all of the bodystyle options and keyword/value
+IMPORTANT NOTE: Not all of the {bodystyle} options and keyword/value
 options are available for both the {rigid} and {rigid/small} variants.
 See details below.
 
@@ -165,6 +165,10 @@ command), setting the force on them to 0.0 (via the "fix
 setforce"_fix_setforce.html command), and integrating them as usual
 (e.g. via the "fix nve"_fix_nve.html command).
 
+
+NOTE: edit this
+
+
 IMPORTANT NOTE: The aggregate properties of each rigid body are
 calculated at the start of each simulation run.  These include its
 center of mass, moments of inertia, and net velocity and angular
@@ -183,9 +187,9 @@ via several options.
 
 IMPORTANT NOTE: With fix rigid/small, which requires bodystyle
 {molecule}, you can define a system that has no rigid bodies
-initially.  This is useful when you are adding rigid bodies on-the-fly
-via commands such as "fix deposit"_fix_deposit.html or "fix
-pour"_fix_pour.html.
+initially.  This is useful when you are using the {mol} keyword in
+conjunction with another fix that is adding rigid bodies on-the-fly,
+such as "fix deposit"_fix_deposit.html or "fix pour"_fix_pour.html.
 
 For bodystyle {single} the entire fix group of atoms is treated as one
 rigid body.  This option is only allowed for fix rigid and its
@@ -453,17 +457,25 @@ associated with the fix rigid commands.
 
 :line
 
-The {mol} keyword can only be used with fix rigid/small.  It should be
+The {mol} keyword can only be used with fix rigid/small.  It must be
 used when other commands, such as "fix deposit"_fix_deposit.html or
 "fix pour"_fix_pour.html, add rigid bodies on-the-fly during a
 simulation.  You specify a {template-ID} previously defined using the
 "molecule"_molecule.html command, which reads a file that defines the
-molecule.  You must use the same {template-ID} that the command adding
-rigid bodies uses.  The coordinates, atom types, atom diameters,
-center-of-mass, and moments of inertia can be specified in the
-molecule file.  See the "molecule"_molecule.html command for details.
-The only settings required to be in this file are the coordinates and
-types of atoms in the molecule.
+molecule.  You must use the same {template-ID} that the other fix
+which is adding rigid bodies uses.  The coordinates, atom types, atom
+diameters, center-of-mass, and moments of inertia can be specified in
+the molecule file.  See the "molecule"_molecule.html command for
+details.  The only settings required to be in this file are the
+coordinates and types of atoms in the molecule, in which case the
+molecule command calculates the other quantities itself.
+
+Note that these other fixes create new rigid bodies, in addition to
+those defined initially by this fix via the {bodystyle} setting.
+
+Also note that when using the {mol} keyword, extra restart information
+about all rigid bodies is written out whenever a restart file is
+written out.  See the IMPORTANT NOTE in the next section for details.
 
 :line
 
@@ -486,6 +498,8 @@ attributes overridden.  The file can contain initial blank lines or
 comment lines starting with "#" which are ignored.  The first
 non-blank, non-comment line should list N = the number of lines to
 follow.  The N successive lines contain the following information:
+
+NOTE: edit this
 
 ID1 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz
 ID2 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz
@@ -510,26 +524,16 @@ the simulation box XYZ axes, not with respect to the prinicpal axes of
 the rigid body itself.  LAMMPS performs the latter calculation
 internally.
 
-IMPORTANT NOTE: If you use the {infile} keyword and write restart
-files during a simulation, then each time a restart file is written,
-the fix also write an auxiliary restart file with the name
+IMPORTANT NOTE: If you use the {infile} or {mol} keywords and write
+restart files during a simulation, then each time a restart file is
+written, the fix also write an auxiliary restart file with the name
 rfile.rigid, where "rfile" is the name of the restart file,
 e.g. tmp.restart.10000 and tmp.restart.10000.rigid.  This auxiliary
-file is in the same format described above and contains info on the
-current center-of-mass and 6 moments of inertia.  Thus it can be used
-in a new input script that restarts the run and re-specifies a rigid
-fix using an {infile} keyword and the appropriate filename.  Note that
-the auxiliary file will contain one line for every rigid body, even if
-the original file only listed a subset of the rigid bodies.
-
-IMPORTANT NOTE: If you are using fix rigid/small and defining a system
-that has no rigid bodies initially, because they will be added
-on-the-fly by commands such as "fix deposit"_fix_deposit.html or "fix
-pour"_fix_pour.html, you may still wish to use the {infile} keyword.
-This is so that restart files written during the simulation will
-output an auxiliary restart file as described above with information
-on the new rigid bodies.  In this case the initial {infile} file
-should use N = 0.
+file is in the same format described above.  Thus it can be used in a
+new input script that restarts the run and re-specifies a rigid fix
+using an {infile} keyword and the appropriate filename.  Note that the
+auxiliary file will contain one line for every rigid body, even if the
+original file only listed a subset of the rigid bodies.
 
 :line
 
@@ -638,9 +642,12 @@ more instructions on how to use the accelerated styles effectively.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about the {rigid} and {rigid/small} and {rigid/nve}
-fixes are written to "binary restart files"_restart.html.  For style
-{rigid/nvt} the state of the Nose/Hoover thermostat is written to
-"binary restart files"_restart.html.  See the
+fixes are written to "binary restart files"_restart.html.  The
+exception is if the {infile} or {mol} keyword is used, in which case
+an auxiliary file is written out with rigid body information each time
+a restart file is written, as explained above for the {infile}
+keyword.  For style {rigid/nvt} the state of the Nose/Hoover
+thermostat is written to "binary restart files"_restart.html.  See the
 "read_restart"_read_restart.html command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.

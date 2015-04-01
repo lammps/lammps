@@ -185,6 +185,10 @@ void FixGroup::set_group()
     modify->addstep_compute(update->ntimestep + nevery);
   }
   
+  // update region in case it has a variable dependence or is dynamic
+
+  if (regionflag) region->prematch();
+
   // set mask for each atom
   // only in group if in parent group, in region, variable is non-zero
   // if compute, fix, etc needs updated masks of ghost atoms,

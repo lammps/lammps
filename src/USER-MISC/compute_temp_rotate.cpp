@@ -20,7 +20,6 @@
 #include "string.h"
 #include "compute_temp_rotate.h"
 #include "atom.h"
-#include "modify.h"
 #include "update.h"
 #include "force.h"
 #include "group.h"
@@ -78,11 +77,12 @@ void ComputeTempRotate::setup()
 
 void ComputeTempRotate::dof_compute()
 {
-  fix_dof = modify->adjust_dof_fix(igroup);
+  adjust_dof_fix();
   double natoms = group->count(igroup);
-  int nper = domain->dimension;
-  dof = nper * natoms;
+  dof = domain->dimension * natoms;
   dof -= extra_dof + fix_dof;
+  if (dof < 0.0 && natoms > 0.0) 
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }
@@ -144,8 +144,6 @@ double ComputeTempRotate::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
-  if (tfactor == 0.0 && scalar != 0.0) 
-    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }

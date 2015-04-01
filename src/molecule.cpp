@@ -154,7 +154,8 @@ void Molecule::compute_mass()
 /* ----------------------------------------------------------------------
    compute com = center of mass of molecule
    could have been set by user, otherwise calculate it
-   NOTE: account for finite size particles?
+   NOTE: does not account for finite size particles
+         user should specify COM if wants that effect
    also compute:
      dxcom = displacement of each atom from COM
      comatom = which atom (1-Natom) is nearest the COM

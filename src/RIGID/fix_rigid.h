@@ -68,7 +68,7 @@ class FixRigid : public Fix {
 
   char *infile;             // file to read rigid body attributes from
   int rstyle;               // SINGLE,MOLECULE,GROUP
-  int staticflag;           // 1 if static body properties are setup, else 0
+  int setupflag;            // 1 if body properties are setup, else 0
 
   int dimension;            // # of dimensions
   int nbody;                // # of rigid bodies

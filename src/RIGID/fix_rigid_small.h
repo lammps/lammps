@@ -78,7 +78,7 @@ class FixRigidSmall : public Fix {
   double MINUSPI,TWOPI;
 
   char *infile;             // file to read rigid body attributes from
-  int staticflag;           // 1 if static body properties are setup, else 0
+  int setupflag;            // 1 if body properties are setup, else 0
   int commflag;             // various modes of forward/reverse comm
   int nbody;                // total # of rigid bodies
   tagint maxmol;            // max mol-ID
@@ -255,7 +255,7 @@ NPT/NPH fix must be defined in input script after all rigid fixes,
 else the rigid fix contribution to the pressure virial is
 incorrect.
 
-W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized
+W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized h
 
 This means the temperature associated with the rigid bodies may be
 incorrect on this timestep.

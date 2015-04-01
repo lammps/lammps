@@ -20,6 +20,7 @@
 #include "string.h"
 #include "compute_temp_rotate.h"
 #include "atom.h"
+#include "modify.h"
 #include "update.h"
 #include "force.h"
 #include "group.h"
@@ -77,7 +78,7 @@ void ComputeTempRotate::setup()
 
 void ComputeTempRotate::dof_compute()
 {
-  fix_dof = adjust_dof_fix(igroup);
+  fix_dof = modify->adjust_dof_fix(igroup);
   double natoms = group->count(igroup);
   int nper = domain->dimension;
   dof = nper * natoms;

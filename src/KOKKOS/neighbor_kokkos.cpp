@@ -28,7 +28,7 @@ enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
 /* ---------------------------------------------------------------------- */
 
 NeighborKokkos::NeighborKokkos(LAMMPS *lmp) : Neighbor(lmp), 
-  neighbond_device(lmp),neighbond_host(lmp)
+  neighbond_host(lmp),neighbond_device(lmp)
 {
   atoms_per_bin = 16;
 

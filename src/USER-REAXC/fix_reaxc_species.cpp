@@ -806,7 +806,7 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
     halfbox[j] = box[j] / 2;
 
   if (me == 0) {
-    fprintf(pos,"Timestep "BIGINT_FORMAT " NMole %d  NSpec %d  xlo %f  "
+    fprintf(pos,"Timestep " BIGINT_FORMAT " NMole %d  NSpec %d  xlo %f  "
 		"xhi %f  ylo %f  yhi %f  zlo %f  zhi %f\n",
 	        update->ntimestep,Nmole, Nspec,
 		domain->boxlo[0],domain->boxhi[0],

@@ -15,6 +15,7 @@
 #include "string.h"
 #include "fix_property_atom.h"
 #include "atom.h"
+#include "comm.h"
 #include "memory.h"
 #include "error.h"
 
@@ -98,6 +99,17 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (border) comm_border = nvalue;
+
+  // warn if mol or charge keyword used without ghost yes
+
+  if (border == 0) {
+    int flag = 0;
+    for (int i = 0; i < nvalue; i++)
+      if (style[i] == MOLECULE || style[i] == CHARGE) flag = 1;
+    if (flag && comm->me == 0) 
+      error->warning(FLERR,"Fix property/atom mol or charge w/out "
+                     "ghost communication");
+  }
 
   // store current atom style
 

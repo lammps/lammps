@@ -1047,8 +1047,11 @@ int DumpImage::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"amap") == 0) {
     if (narg < 6) error->all(FLERR,"Illegal dump_modify command");
     if (strlen(arg[3]) != 2) error->all(FLERR,"Illegal dump_modify command");
-    int factor = 2;
+    int factor;
     if (arg[3][0] == 's') factor = 1;
+    else if (arg[3][0] == 'c') factor = 2;
+    else if (arg[3][0] == 'd') factor = 3;
+    else error->all(FLERR,"Illegal dump_modify command");
     int nentry = force->inumeric(FLERR,arg[5]);
     if (nentry < 1) error->all(FLERR,"Illegal dump_modify command");
     int n = 6 + factor*nentry;

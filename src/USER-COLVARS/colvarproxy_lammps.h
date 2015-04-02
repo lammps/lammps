@@ -15,7 +15,7 @@
 #include <iostream>
 
 #ifndef COLVARPROXY_VERSION
-#define COLVARPROXY_VERSION "2015-02-25"
+#define COLVARPROXY_VERSION "2015-04-01"
 #endif
 
 /* struct for packed data communication of coordinates and forces. */
@@ -43,7 +43,7 @@ class colvarproxy_lammps : public colvarproxy {
   class LAMMPS_NS::RanPark *_random;
 
   // state of LAMMPS properties
-  double t_target;
+  double t_target, my_timestep, my_boltzmann, my_angstrom;
   double bias_energy;
   int  restart_every;
   int  previous_step;
@@ -100,10 +100,10 @@ class colvarproxy_lammps : public colvarproxy {
   // implementation of pure methods from base class
  public:
 
-  inline cvm::real unit_angstrom() { return _lmp->force->angstrom; };
-  cvm::real boltzmann() { return _lmp->force->boltz; };
-  cvm::real temperature() { return t_target; };
-  cvm::real dt() { return _lmp->update->dt * _lmp->force->femtosecond; };
+  inline cvm::real unit_angstrom() { return my_angstrom; };
+  inline cvm::real boltzmann() { return my_boltzmann; };
+  inline cvm::real temperature() { return t_target; };
+  inline cvm::real dt() { return my_timestep; }; // return _lmp->update->dt * _lmp->force->femtosecond; };
 
   inline size_t restart_frequency() { return restart_every; };
 

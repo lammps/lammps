@@ -125,7 +125,7 @@ void ComputeTempSphere::dof_compute()
   int count,count_all;
 
   adjust_dof_fix();
-  double natoms = group->count(igroup);
+  natoms_temp = group->count(igroup);
 
   // 6 or 3 dof for extended/point particles for 3d
   // 3 or 2 dof for extended/point particles for 2d
@@ -166,7 +166,7 @@ void ComputeTempSphere::dof_compute()
   // additional adjustments to dof
 
   if (tempbias == 1) {
-    if (mode == ALL) dof -= tbias->dof_remove(-1) * natoms;
+    if (mode == ALL) dof -= tbias->dof_remove(-1) * natoms_temp;
 
   } else if (tempbias == 2) {
     int *mask = atom->mask;
@@ -206,8 +206,6 @@ void ComputeTempSphere::dof_compute()
   }
 
   dof -= extra_dof + fix_dof;
-  if (dof < 0.0 && natoms > 0.0) 
-    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }
@@ -252,6 +250,8 @@ double ComputeTempSphere::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic || tempbias == 2) dof_compute();
+  if (dof < 0.0 && natoms_temp > 0.0) 
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }

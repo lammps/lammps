@@ -1706,6 +1706,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   if (gamma == 1.0) gammaoneflag = 1;
   else gammaoneflag = 0;
+
+  delete[] found;
 }
 
 /* ----------------------------------------------------------------------

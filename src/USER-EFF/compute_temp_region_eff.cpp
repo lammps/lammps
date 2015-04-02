@@ -148,6 +148,8 @@ double ComputeTempRegionEff::compute_scalar()
   tarray[1] = t;
   MPI_Allreduce(tarray,tarray_all,2,MPI_DOUBLE,MPI_SUM,world);
   dof = domain->dimension * tarray_all[0] - extra_dof;
+  if (dof < 0.0 && tarray_all[0] > 0.0) 
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
 
   int one = 0;
   for (int i = 0; i < nlocal; i++)
@@ -155,7 +157,7 @@ double ComputeTempRegionEff::compute_scalar()
       if (abs(spin[i])==1) one++;
     }
 
-  if (dof > 0) scalar = force->mvv2e * tarray_all[1] / (dof * force->boltz);
+  if (dof > 0.0) scalar = force->mvv2e * tarray_all[1] / (dof * force->boltz);
   else scalar = 0.0;
   return scalar;
 }

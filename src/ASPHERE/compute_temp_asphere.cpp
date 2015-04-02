@@ -147,7 +147,7 @@ void ComputeTempAsphere::dof_compute()
   // assume full rotation of extended particles
   // user should correct this via compute_modify if needed
 
-  double natoms = group->count(igroup);
+  natoms_temp = group->count(igroup);
   int nper;
   if (domain->dimension == 3) {
     if (mode == ALL) nper = 6;
@@ -156,12 +156,12 @@ void ComputeTempAsphere::dof_compute()
     if (mode == ALL) nper = 3;
     else nper = 1;
   }
-  dof = nper*natoms;
+  dof = nper*natoms_temp;
 
   // additional adjustments to dof
 
   if (tempbias == 1) {
-    if (mode == ALL) dof -= tbias->dof_remove(-1) * natoms;
+    if (mode == ALL) dof -= tbias->dof_remove(-1) * natoms_temp;
 
   } else if (tempbias == 2) {
     int *mask = atom->mask;
@@ -179,8 +179,6 @@ void ComputeTempAsphere::dof_compute()
   }
 
   dof -= extra_dof + fix_dof;
-  if (dof < 0.0 && natoms > 0.0) 
-    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }
@@ -269,6 +267,8 @@ double ComputeTempAsphere::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic || tempbias == 2) dof_compute();
+  if (dof < 0.0 && natoms_temp > 0.0) 
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }

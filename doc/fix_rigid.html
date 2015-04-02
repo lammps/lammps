@@ -183,17 +183,23 @@ command), setting the force on them to 0.0 (via the <A HREF = "fix_setforce.html
 setforce</A> command), and integrating them as usual
 (e.g. via the <A HREF = "fix_nve.html">fix nve</A> command).
 </P>
-<P>NOTE: edit this
-</P>
 <P>IMPORTANT NOTE: The aggregate properties of each rigid body are
-calculated at the start of each simulation run.  These include its
-center of mass, moments of inertia, and net velocity and angular
-momentum.  This means that before or between runs, per-atom properties
-can be changed, e.g. via the <A HREF = "set.html">set</A> or
-<A HREF = "velocity.html">velocity</A> command, which will affect the bodies.  An
-exception is if the <I>infile</I> keyword is used, then all the body
-properties (except net velocity and angular momentum) are only
-calculated once so that values from the file are valid.
+calculated one time at the start of the first simulation run after
+this fix is specified.  The properties include the position and
+velocity of the center-of-mass of the body, its moments of inertia,
+and its angular momentum.  This is done using the properties of the
+constituent atoms of the body at that point in time (or see the
+<I>infile</I> keyword option).  Thereafter, changing properties of
+individual atoms in the body will have no effect on a rigid body's
+dynamics, unless they effect the <A HREF = "pair_style.html">pair_style</A>
+interactions that individual particles are part of.  For example, you
+might think you could displace the atoms in a body or add a large
+velocity to each atom in a body to make it move in a desired direction
+before a 2nd run is performed, using the <A HREF = "set.html">set</A> or
+<A HREF = "displace_atoms.html">displace_atoms</A> or <A HREF = "velocity.html">velocity</A>
+command.  But these commands will not affect the internal attributes
+of the body, and the position and velocity or individual atoms in the
+body will be reset when time integration starts.
 </P>
 <HR>
 
@@ -515,12 +521,10 @@ comment lines starting with "#" which are ignored.  The first
 non-blank, non-comment line should list N = the number of lines to
 follow.  The N successive lines contain the following information:
 </P>
-<P>NOTE: edit this
-</P>
-<PRE>ID1 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz
-ID2 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz
+<PRE>ID1 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz
+ID2 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz
 ...
-IDN masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz 
+IDN masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz 
 </PRE>
 <P>The rigid body IDs are all positive integers.  For the <I>single</I>
 bodystyle, only an ID of 1 can be used.  For the <I>group</I> bodystyle,
@@ -538,7 +542,10 @@ should be the values consistent with the current orientation of the
 rigid body around its center of mass.  The values are with respect to
 the simulation box XYZ axes, not with respect to the prinicpal axes of
 the rigid body itself.  LAMMPS performs the latter calculation
-internally.
+internally.  The (vxcm,vycm,vzcm) values are the velocity of the
+center of mass.  The (lx,ly,lz) values are the angular momentum of the
+body.  These last 6 values can simply be set to 0 if you wish the
+body to have no initial motion.
 </P>
 <P>IMPORTANT NOTE: If you use the <I>infile</I> or <I>mol</I> keywords and write
 restart files during a simulation, then each time a restart file is

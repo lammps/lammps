@@ -42,9 +42,9 @@ enum{SINGLE,MOLECULE,GROUP};
 enum{NONE,XYZ,XY,YZ,XZ};
 enum{ISO,ANISO,TRICLINIC};
 
-#define MAXLINE 256
+#define MAXLINE 1024
 #define CHUNK 1024
-#define ATTRIBUTE_PERBODY 11
+#define ATTRIBUTE_PERBODY 17
 
 #define TOLERANCE 1.0e-6
 #define EPSILON 1.0e-7
@@ -677,6 +677,7 @@ void FixRigid::init()
   if (!setupflag) {
     setup_bodies_static();
     if (!infile) setup_bodies_dynamic();
+    setupflag = 1;
   }
 
   // temperature scale factor
@@ -708,11 +709,6 @@ void FixRigid::setup_pre_neighbor()
 void FixRigid::setup(int vflag)
 {
   int i,n,ibody;
-
-  // setup_bodies_dynamic sets vcm and angmom
-  // so angmom_to_omega() and set_v() below will set per-atom vels correctly
-  // re-calling it every run allows reset of body/atom velocities between runs
-
 
   // fcm = force on center-of-mass of each rigid body
 

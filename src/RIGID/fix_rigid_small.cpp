@@ -2299,6 +2299,7 @@ void FixRigidSmall::setup_bodies_dynamic()
    flag inbody = 0 for local bodies this proc initializes from file
    nlines = # of lines of rigid body info, 0 is OK
    one line = rigid-ID mass xcm ycm zcm ixx iyy izz ixy ixz iyz
+              vxcm vycm vzcm lx ly lz
    where rigid-ID = mol-ID for fix rigid/small
 ------------------------------------------------------------------------- */
 
@@ -2364,7 +2365,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     // loop over lines of rigid body attributes
     // tokenize the line into values
     // id = rigid body ID = mol-ID
-    // for which = 0, store mass/com in vec/array
+    // for which = 0, store all but inertia directly in body struct
     // for which = 1, store inertia tensor array, invert 3,4,5 values to Voigt
 
     for (int i = 0; i < nchunk; i++) {

@@ -101,7 +101,7 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
   typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cut_coulsq;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cut_coulsq;
 
-  class AtomKokkos *atomKK;
+  
   int neighflag;
   int nlocal,nall,eflag,vflag;
 

@@ -73,7 +73,7 @@ class PairCoulWolfKokkos : public PairCoulWolf {
   DAT::t_efloat_1d d_eatom;
   DAT::t_virial_array d_vatom;
 
-  class AtomKokkos *atomKK;
+  
   int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
 

@@ -122,7 +122,7 @@ class DihedralCharmmKokkos : public DihedralCharmm {
                 const F_FLOAT &dely, const F_FLOAT &delz) const;
 
  protected:
-  class AtomKokkos *atomKK;
+  
   class NeighborKokkos *neighborKK;
  
   typename AT::t_x_array_randomread x;

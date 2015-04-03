@@ -44,7 +44,9 @@ class PairCoulCutKokkos : public PairCoulCut {
   double init_one(int, int);
 
   struct params_coul{
+    KOKKOS_INLINE_FUNCTION
     params_coul(){cutsq=0,scale=0;};
+    KOKKOS_INLINE_FUNCTION
     params_coul(int i){cutsq=0,scale=0;};
     F_FLOAT cutsq, scale;
   };
@@ -102,7 +104,7 @@ class PairCoulCutKokkos : public PairCoulCut {
   typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cut_coulsq;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cut_coulsq;
 
-  class AtomKokkos *atomKK;
+  
   int neighflag;
   int nlocal,nall,eflag,vflag;
 

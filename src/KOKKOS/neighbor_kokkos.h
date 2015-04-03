@@ -285,7 +285,7 @@ class NeighborKokkos : public Neighbor {
  public:
   typedef int value_type;
 
-  class AtomKokkos *atomKK;
+  
 
   int nlist_host;                       // pairwise neighbor lists on Host
   NeighListKokkos<LMPHostType> **lists_host;

@@ -48,11 +48,11 @@
 #include "comm.h"
 #include "neighbor.h"
 #include "force.h"
+#include "fft3d_wrap_cuda.h" // has to come before pair.h to avoid clash with kokkos
 #include "pair.h"
 #include "bond.h"
 #include "angle.h"
 #include "domain.h"
-#include "fft3d_wrap_cuda.h"
 #include "remap_wrap.h"
 #include "memory.h"
 #include "error.h"

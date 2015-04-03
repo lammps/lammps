@@ -34,6 +34,8 @@ namespace LAMMPS_NS {
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 
+  //class AtomKokkos;
+
 class Pointers {
  public:
   Pointers(LAMMPS *ptr) :
@@ -55,7 +57,8 @@ class Pointers {
     world(ptr->world),
     infile(ptr->infile),
     screen(ptr->screen),
-    logfile(ptr->logfile) {}
+    logfile(ptr->logfile),
+    atomKK(ptr->atomKK) {}
   virtual ~Pointers() {}
 
  protected:
@@ -80,6 +83,8 @@ class Pointers {
   FILE *&infile;
   FILE *&screen;
   FILE *&logfile;
+
+  class AtomKokkos *&atomKK;
 };
 
 }

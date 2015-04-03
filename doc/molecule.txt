@@ -94,9 +94,11 @@ Ixx Iyy Izz Ixy Ixz Iyz {inertia} = 6 components of inertia tensor of molecule :
 
 For {mass}, {com}, and {inertia}, the default is for LAMMPS to
 calculate this quantity itself if needed, assuming the molecules
-consists of a set of point particles.  You only need to specify these
-values for a rigid body consisting of finite-size particles,
-especially if they are overlapping.
+consists of a set of point particles or finite-size particles (with a
+non-zero diameter) that do not overlap.  If finite-size particles in
+the molecule do overlap, LAMMPS will not account for the overlap
+effects when calculating any of these 3 quantities, so you should
+pre-compute them yourself and list the values in the file.
 
 The mass and center-of-mass coordinates (Xc,Yc,Zc) are
 self-explanatory.  The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz)

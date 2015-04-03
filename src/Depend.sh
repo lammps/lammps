@@ -107,6 +107,7 @@ fi
 
 if (test $1 = "USER-CG-CMM") then
   depend GPU
+  depend KOKKOS
   depend USER-CUDA
   depend USER-OMP
 fi

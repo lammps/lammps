@@ -127,6 +127,8 @@ action pair_lj_gromacs_coul_gromacs_kokkos.cpp
 action pair_lj_gromacs_coul_gromacs_kokkos.h
 action pair_lj_gromacs_kokkos.cpp
 action pair_lj_gromacs_kokkos.h
+action pair_lj_sdk_kokkos.cpp pair_lj_sdk.cpp
+action pair_lj_sdk_kokkos.h pair_lj_sdk.h
 action pair_table_kokkos.cpp
 action pair_table_kokkos.h
 action verlet_kokkos.cpp

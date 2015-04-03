@@ -61,7 +61,7 @@ class ModifyKokkos : public Modify {
   int min_reset_ref();
 
  protected:
-  class AtomKokkos *atomKK;
+  
 };
 
 }

@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 
 class DomainKokkos : public Domain {
  public:
-  class AtomKokkos *atomKK;
+  
 
   DomainKokkos(class LAMMPS *);
   ~DomainKokkos() {}

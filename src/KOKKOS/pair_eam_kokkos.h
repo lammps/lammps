@@ -158,7 +158,7 @@ class PairEAMKokkos : public PairEAM {
   typename AT::t_int_2d d_sendlist;
   typename AT::t_xfloat_1d_um v_buf;
 
-  class AtomKokkos *atomKK;
+  
   int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
 

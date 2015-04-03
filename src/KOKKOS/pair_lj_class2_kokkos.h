@@ -91,7 +91,6 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
 
-  class AtomKokkos *atomKK;
   int neighflag;
   int nlocal,nall,eflag,vflag;
 

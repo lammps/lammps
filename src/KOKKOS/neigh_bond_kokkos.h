@@ -80,7 +80,7 @@ class NeighBondKokkos : protected Pointers  {
   int me;
 
  private:
-  class AtomKokkos *atomKK;
+  
 
   DAT::tdual_int_1d k_map_array;
   typename AT::t_int_1d_randomread map_array;

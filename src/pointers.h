@@ -34,8 +34,6 @@ namespace LAMMPS_NS {
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
 
-  //class AtomKokkos;
-
 class Pointers {
  public:
   Pointers(LAMMPS *ptr) :

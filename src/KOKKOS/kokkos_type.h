@@ -22,7 +22,7 @@
 #define MAX_TYPES_STACKPARAMS 12
 #define NeighClusterSize 8
 
-#ifndef __CUDACC__
+#if !defined(__CUDACC__) && !defined(__VECTOR_TYPES_H__)
   struct double2 {
     double x, y;
   };

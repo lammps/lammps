@@ -13,29 +13,29 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(lj/cut/kk,PairLJCutKokkos<LMPDeviceType>)
-PairStyle(lj/cut/kk/device,PairLJCutKokkos<LMPDeviceType>)
-PairStyle(lj/cut/kk/host,PairLJCutKokkos<LMPHostType>)
+PairStyle(lj/sdk/kk,PairLJSDKKokkos<LMPDeviceType>)
+PairStyle(lj/sdk/kk/device,PairLJSDKKokkos<LMPDeviceType>)
+PairStyle(lj/sdk/kk/host,PairLJSDKKokkos<LMPHostType>)
 
 #else
 
-#ifndef LMP_PAIR_LJ_CUT_KOKKOS_H
-#define LMP_PAIR_LJ_CUT_KOKKOS_H
+#ifndef LMP_PAIR_LJ_SDK_KOKKOS_H
+#define LMP_PAIR_LJ_SDK_KOKKOS_H
 
 #include "pair_kokkos.h"
-#include "pair_lj_cut.h"
+#include "pair_lj_sdk.h"
 #include "neigh_list_kokkos.h"
 
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class PairLJCutKokkos : public PairLJCut {
+class PairLJSDKKokkos : public PairLJSDK {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2|FULLCLUSTER};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
-  PairLJCutKokkos(class LAMMPS *);
-  ~PairLJCutKokkos();
+  PairLJSDKKokkos(class LAMMPS *);
+  ~PairLJSDKKokkos();
 
   void compute(int, int);
 
@@ -45,10 +45,11 @@ class PairLJCutKokkos : public PairLJCut {
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
-    params_lj(){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+    params_lj(){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj(int i){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+    params_lj(int i){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
     F_FLOAT cutsq,lj1,lj2,lj3,lj4,offset;
+    int lj_type;
   };
 
  protected:
@@ -92,23 +93,23 @@ class PairLJCutKokkos : public PairLJCut {
   int nlocal,nall,eflag,vflag;
 
   void allocate();
-  friend class PairComputeFunctor<PairLJCutKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairLJCutKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairLJCutKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairLJCutKokkos,N2,true>;
-  friend class PairComputeFunctor<PairLJCutKokkos,FULLCLUSTER,true >;
-  friend class PairComputeFunctor<PairLJCutKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairLJCutKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairLJCutKokkos,HALFTHREAD,false>;
-  friend class PairComputeFunctor<PairLJCutKokkos,N2,false>;
-  friend class PairComputeFunctor<PairLJCutKokkos,FULLCLUSTER,false >;
-  friend EV_FLOAT pair_compute_neighlist<PairLJCutKokkos,FULL,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJCutKokkos,HALF,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJCutKokkos,HALFTHREAD,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJCutKokkos,N2,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_fullcluster<PairLJCutKokkos,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairLJCutKokkos,void>(PairLJCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend void pair_virial_fdotr_compute<PairLJCutKokkos>(PairLJCutKokkos*);
+  friend class PairComputeFunctor<PairLJSDKKokkos,FULL,true>;
+  friend class PairComputeFunctor<PairLJSDKKokkos,HALF,true>;
+  friend class PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,true>;
+  friend class PairComputeFunctor<PairLJSDKKokkos,N2,true>;
+  friend class PairComputeFunctor<PairLJSDKKokkos,FULLCLUSTER,true >;
+  friend class PairComputeFunctor<PairLJSDKKokkos,FULL,false>;
+  friend class PairComputeFunctor<PairLJSDKKokkos,HALF,false>;
+  friend class PairComputeFunctor<PairLJSDKKokkos,HALFTHREAD,false>;
+  friend class PairComputeFunctor<PairLJSDKKokkos,N2,false>;
+  friend class PairComputeFunctor<PairLJSDKKokkos,FULLCLUSTER,false >;
+  friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,FULL,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,HALF,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,HALFTHREAD,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSDKKokkos,N2,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_fullcluster<PairLJSDKKokkos,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairLJSDKKokkos,void>(PairLJSDKKokkos*,NeighListKokkos<DeviceType>*);
+  friend void pair_virial_fdotr_compute<PairLJSDKKokkos>(PairLJSDKKokkos*);
 };
 
 }
@@ -128,7 +129,7 @@ E: Cannot use Kokkos pair style with rRESPA inner/middle
 
 rRESPA inner/middle options are not yet supported by Kokkos.
 
-E: Cannot use chosen neighbor list style with lj/cut/kk
+E: Cannot use chosen neighbor list style with lj/sdk/kk
 
 That style is not supported by Kokkos.
 

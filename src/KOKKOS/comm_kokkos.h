@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 
 class CommKokkos : public CommBrick {
  public:
-  class AtomKokkos *atomKK;
+  
 
   bool exchange_comm_classic;
   bool forward_comm_classic;

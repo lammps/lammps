@@ -55,7 +55,8 @@ class Pointers {
     world(ptr->world),
     infile(ptr->infile),
     screen(ptr->screen),
-    logfile(ptr->logfile) {}
+    logfile(ptr->logfile),
+    atomKK(ptr->atomKK) {}
   virtual ~Pointers() {}
 
  protected:
@@ -80,6 +81,8 @@ class Pointers {
   FILE *&infile;
   FILE *&screen;
   FILE *&logfile;
+
+  class AtomKokkos *&atomKK;
 };
 
 }

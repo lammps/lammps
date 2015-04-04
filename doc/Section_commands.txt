@@ -860,7 +860,7 @@ package"_Section_start.html#start_3.
 "lj/cut/dipole/sf (go)"_pair_dipole.html,
 "lj/cut/soft (o)"_pair_lj_soft.html,
 "lj/cut/tip4p/long/soft (o)"_pair_lj_soft.html,
-"lj/sdk (go)"_pair_sdk.html,
+"lj/sdk (gko)"_pair_sdk.html,
 "lj/sdk/coul/long (go)"_pair_sdk.html,
 "lj/sdk/coul/msm (o)"_pair_sdk.html,
 "lj/sf (o)"_pair_lj_sf.html,

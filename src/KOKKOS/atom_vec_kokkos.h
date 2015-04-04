@@ -63,7 +63,7 @@ class AtomVecKokkos : public AtomVec {
   //{return 0;};
 
  protected:
-  class AtomKokkos *atomKK;
+  
   class CommKokkos *commKK;
 };
 

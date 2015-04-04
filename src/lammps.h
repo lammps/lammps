@@ -48,6 +48,7 @@ class LAMMPS {
 
   class Cuda *cuda;              // CUDA accelerator class
   class KokkosLMP *kokkos;       // KOKKOS accelerator class
+  class AtomKokkos *atomKK;      // KOKKOS version of Atom class
 
   class CiteMe *citeme;          // citation info
 

@@ -147,7 +147,7 @@ class PairTableKokkos : public Pair {
 
  protected:
   int nlocal,nall,eflag,vflag,neighflag,newton_pair;
-  class AtomKokkos *atomKK;
+  
   int update_table;
   void create_kokkos_tables();
   void cleanup_copy();

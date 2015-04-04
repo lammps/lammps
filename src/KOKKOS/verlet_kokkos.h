@@ -33,7 +33,7 @@ class VerletKokkos : public Verlet {
   void run(int);
 
  protected:
-  class AtomKokkos *atomKK;
+  
 
   void force_clear();
 };

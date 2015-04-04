@@ -57,7 +57,7 @@ class AngleCharmmKokkos : public AngleCharmm {
                      const F_FLOAT &delx2, const F_FLOAT &dely2, const F_FLOAT &delz2) const;
 
  protected:
-  class AtomKokkos *atomKK;
+  
   class NeighborKokkos *neighborKK;
  
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;

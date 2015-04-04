@@ -26,12 +26,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
-{
-  // set CommKokkos pointer to Atom class, since CommKokkos allocated first
-
-  ((CommKokkos *) comm)->atomKK = this;
-}
+AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

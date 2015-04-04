@@ -55,7 +55,7 @@ class FixNVEKokkos : public FixNVE {
   void final_integrate_rmass_item(int) const;
 
  private:
-  class AtomKokkos *atomKK;
+  
 
   typename ArrayTypes<DeviceType>::t_x_array x;
   typename ArrayTypes<DeviceType>::t_v_array v;

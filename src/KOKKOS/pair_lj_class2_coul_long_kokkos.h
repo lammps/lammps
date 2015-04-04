@@ -102,7 +102,7 @@ class PairLJClass2CoulLongKokkos : public PairLJClass2CoulLong {
   typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread
     d_rtable, d_drtable, d_ftable, d_dftable,
     d_ctable, d_dctable, d_etable, d_detable;
-  class AtomKokkos *atomKK;
+  
   int neighflag;
   int nlocal,nall,eflag,vflag;
 

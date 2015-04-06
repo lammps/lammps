@@ -91,8 +91,8 @@ files via the "%" option in the dump file name.  See the
 The format of the dump file is selected through the {format} keyword.
 If specified, it must be the last keyword used, since all remaining
 arguments are passed on to the dump reader.  The {native} format is
-for native LAMMPS dump files, written with a "dump atom".html or "dump
-custom"_dump.html command.  The {xyz} format is for generic XYZ
+for native LAMMPS dump files, written with a "dump atom"_dump.html or
+"dump custom"_dump.html command.  The {xyz} format is for generic XYZ
 formatted dump files.  These formats take no additional values.
 
 The {molfile} format supports reading data through using the "VMD"_vmd

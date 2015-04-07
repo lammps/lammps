@@ -84,32 +84,29 @@ void ThrData::init_force(int nall, double **f, double **torque,
   eatom_pair=eatom_bond=eatom_angle=eatom_dihed=eatom_imprp=eatom_kspce=NULL;
   vatom_pair=vatom_bond=vatom_angle=vatom_dihed=vatom_imprp=vatom_kspce=NULL;
 
-  _f = f + _tid*nall;
-  if (nall > 0)
+  if (nall > 0 && f)
+    _f = f + _tid*nall;
     memset(&(_f[0][0]),0,nall*3*sizeof(double));
+  } else _f = NULL;
 
-  if (torque) {
+  if (nall > 0 && torque) {
     _torque = torque + _tid*nall;
-    if (nall > 0)
-      memset(&(_torque[0][0]),0,nall*3*sizeof(double));
+    memset(&(_torque[0][0]),0,nall*3*sizeof(double));
   } else _torque = NULL;
 
-  if (erforce) {
+  if (nall > 0 && erforce) {
     _erforce = erforce + _tid*nall;
-    if (nall > 0)
-      memset(&(_erforce[0]),0,nall*sizeof(double));
+    memset(&(_erforce[0]),0,nall*sizeof(double));
   } else _erforce = NULL;
 
-  if (de) {
+  if (nall > 0 && de) {
     _de = de + _tid*nall;
-    if (nall > 0)
-      memset(&(_de[0]),0,nall*sizeof(double));
+    memset(&(_de[0]),0,nall*sizeof(double));
   } else _de = NULL;
 
-  if (drho) {
+  if (nall > 0 && drho) {
     _drho = drho + _tid*nall;
-    if (nall > 0)
-      memset(&(_drho[0]),0,nall*sizeof(double));
+    memset(&(_drho[0]),0,nall*sizeof(double));
   } else _drho = NULL;
 }
 

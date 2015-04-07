@@ -287,7 +287,7 @@ void ComputePressure::virial_compute(int n, int ndiag)
 
   // LJ long-range tail correction
 
-  if (force->pair && force->pair->tail_flag)
+  if (force->pair && pairflag && force->pair->tail_flag)
     for (i = 0; i < ndiag; i++) virial[i] += force->pair->ptail * inv_volume;
 }
 

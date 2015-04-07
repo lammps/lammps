@@ -45,8 +45,8 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20150313
-Release:        11%{?dist}
+Version:        20150406
+Release:        12%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
 
@@ -186,14 +186,14 @@ cd ../../src
 
 # install packages
 # fortran reax is obsolete, no GPU support, QM/MM requires a Q-E library, USER-INTEL requires Intel Compiler, USER-LB and MPIIO require MPI-IO.
-make yes-all no-kim no-kokkos no-gpu no-user-cuda no-reax no-user-qmmm no-user-intel no-user-quip no-user-lb no-mpiio
+make yes-all no-kim no-gpu no-user-cuda no-reax no-user-qmmm no-user-intel no-user-quip no-user-lb no-mpiio
 
 make -C STUBS
 
-make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" mode=shexe
+make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" mode=shexe OMP=yes
 
 # build shared library for python bindings
-make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" mode=shlib
+make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" mode=shlib OMP=yes
 
 # stash executable and shared lib away
 cd ../
@@ -238,7 +238,7 @@ make clean-g++
 
 # enable USER-LB and MPIIO since we have a full MPI library now
 make yes-user-lb yes-mpiio
-make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="" MPI_PATH="" MPI_LIB=-lrt FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng"
+make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="" MPI_PATH="" MPI_LIB=-lrt FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" OMP=yes
 
 # and save the executable
 cd ../
@@ -267,7 +267,7 @@ make clean-g++
 # enable USER-LB since we have a full MPI library now
 make yes-user-lb yes-mpiio
 
-make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="" MPI_PATH="" MPI_LIB="-lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng"
+make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="" MPI_PATH="" MPI_LIB="-lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" OMP=yes
 
 # and save the executable
 cd ../
@@ -404,6 +404,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Apr 06 2015 Axel Kohlmeyer <akohlmey@gmail.com> - 20140123-12
+- add support for including the KOKKOS package in OpenMP mode
+
 * Thu Jan 23 2014 Axel Kohlmeyer <akohlmey@gmail.com> - 20140123-7
 - Handle dependencies on MPI-IO for USER-LB and MPIIO. 
 

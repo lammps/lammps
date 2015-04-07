@@ -60,6 +60,7 @@ BuildRequires:  gcc-c++
 BuildRequires:  fftw-devel
 BuildRequires:  libpng-devel
 BuildRequires:  python-devel
+BuildRequires:  hwloc-devel
 %if %{with_suse}
 BuildRequires:  gcc-fortran
 BuildRequires:  libjpeg8-devel
@@ -190,10 +191,10 @@ make yes-all no-kim no-gpu no-user-cuda no-reax no-user-qmmm no-user-intel no-us
 
 make -C STUBS
 
-make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" mode=shexe OMP=yes
+make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" mode=shexe OMP=yes LIBRT=yes
 
 # build shared library for python bindings
-make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" mode=shlib OMP=yes
+make g++ CC=g++ CCFLAGS="${RPM_OPT_FLAGS} -fopenmp -fPIC" LINK=g++ LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="-I../STUBS" MPI_PATH="-L../STUBS" MPI_LIB="-lmpi_stubs -lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" mode=shlib OMP=yes LIBRT=yes
 
 # stash executable and shared lib away
 cd ../
@@ -238,7 +239,7 @@ make clean-g++
 
 # enable USER-LB and MPIIO since we have a full MPI library now
 make yes-user-lb yes-mpiio
-make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="" MPI_PATH="" MPI_LIB=-lrt FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" OMP=yes
+make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="" MPI_PATH="" MPI_LIB=-lrt FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" OMP=yes LIBRT=yes
 
 # and save the executable
 cd ../
@@ -267,7 +268,7 @@ make clean-g++
 # enable USER-LB since we have a full MPI library now
 make yes-user-lb yes-mpiio
 
-make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="" MPI_PATH="" MPI_LIB="-lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" OMP=yes
+make g++ CC=mpicxx CCFLAGS="${RPM_OPT_FLAGS} -fopenmp" LINK=mpicxx LINKFLAGS="${RPM_LD_FLAGS} -fopenmp" LMP_INC="-DLAMMPS_GZIP -DLAMMPS_FFMPEG -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_MEMALIGN=64 %{bigintsize} " MPI_INC="" MPI_PATH="" MPI_LIB="-lrt" FFT_INC=-DFFT_FFTW3 FFT_LIB=-lfftw3 JPG_LIB="-ljpeg -lpng" OMP=yes LIBRT=yes
 
 # and save the executable
 cd ../

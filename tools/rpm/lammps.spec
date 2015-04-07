@@ -27,6 +27,28 @@
 %global bigintsize -DLAMMPS_SMALLSMALL
 %endif
 
+# using the KOKKOS package requires a C++11 compatible compiler
+# some older distributions do not provide it, so we cannot
+# include the KOKKOS package for those. SuSE is yet untested.
+%global without_kokkos 1
+%if %{defined fedora}
+%global without_kokkos 0
+%if 0%{?fedora} == 17
+%global without_kokkos 1
+%endif
+%if 0%{?fedora} == 18
+%global without_kokkos 1
+%endif
+%endif
+
+%if %{defined rhel}
+%if 0%{?rhel} == 6
+%global without_kokkos 1
+%else
+%global without_kokkos 0
+%endif
+%endif
+
 %if %{defined suse_version}
 %global with_suse 1
 %global with_mpich2 0
@@ -188,6 +210,9 @@ cd ../../src
 # install packages
 # fortran reax is obsolete, no GPU support, QM/MM requires a Q-E library, USER-INTEL requires Intel Compiler, USER-LB and MPIIO require MPI-IO.
 make yes-all no-kim no-gpu no-user-cuda no-reax no-user-qmmm no-user-intel no-user-quip no-user-lb no-mpiio
+%if %{without_kokkos}
+make no-kokkos
+%endif
 
 make -C STUBS
 

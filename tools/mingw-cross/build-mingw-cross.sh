@@ -61,12 +61,12 @@ popd
 pushd src
 
 # configure installed packages
-make yes-all no-kim no-kokkos no-user-cuda no-reax no-user-qmmm no-user-lb no-mpiio no-user-intel no-user-quip no-python
-make -j${NUMCPU} mingw32-cross || exit 4
-make -j${NUMCPU} mingw64-cross || exit 4
+make yes-all no-kim no-user-cuda no-reax no-user-qmmm no-user-lb no-mpiio no-user-intel no-user-quip no-python
+make -j${NUMCPU} mingw32-cross OMP=yes || exit 4
+make -j${NUMCPU} mingw64-cross OMP=yes || exit 4
 make yes-user-lb yes-mpiio
-make -j${NUMCPU} mingw32-cross-mpi || exit 4
-make -j${NUMCPU} mingw64-cross-mpi || exit 4
+make -j${NUMCPU} mingw32-cross-mpi OMP=yes || exit 4
+make -j${NUMCPU} mingw64-cross-mpi OMP=yes || exit 4
 cp lmp_mingw32-cross ${MINGW_BUILD_DIR}/mingw32/lmp_serial.exe
 cp lmp_mingw32-cross-mpi ${MINGW_BUILD_DIR}/mingw32/lmp_mpi.exe
 cp lmp_mingw64-cross ${MINGW_BUILD_DIR}/mingw64/lmp_serial.exe

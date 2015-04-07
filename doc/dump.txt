@@ -44,7 +44,7 @@ args = list of arguments for a particular style :l
       f_ID = local vector calculated by a fix with ID
       f_ID\[N\] = Nth column of local array calculated by a fix with ID :pre
 
-  {custom} of {custom/mpiio} args = list of atom attributes
+  {custom} or {custom/mpiio} args = list of atom attributes
     possible attributes = id, mol, proc, procp1, type, element, mass,
 			  x, y, z, xs, ys, zs, xu, yu, zu, 
 			  xsu, ysu, zsu, ix, iy, iz,

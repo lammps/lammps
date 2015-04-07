@@ -84,7 +84,7 @@ void ThrData::init_force(int nall, double **f, double **torque,
   eatom_pair=eatom_bond=eatom_angle=eatom_dihed=eatom_imprp=eatom_kspce=NULL;
   vatom_pair=vatom_bond=vatom_angle=vatom_dihed=vatom_imprp=vatom_kspce=NULL;
 
-  if (nall > 0 && f)
+  if (nall > 0 && f) {
     _f = f + _tid*nall;
     memset(&(_f[0][0]),0,nall*3*sizeof(double));
   } else _f = NULL;

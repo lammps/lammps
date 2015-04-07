@@ -30,9 +30,10 @@
 # using the KOKKOS package requires a C++11 compatible compiler
 # some older distributions do not provide it, so we cannot
 # include the KOKKOS package for those. SuSE is yet untested.
+# for now this remains completely disabled.
 %global without_kokkos 1
 %if %{defined fedora}
-%global without_kokkos 0
+#%global without_kokkos 0
 %if 0%{?fedora} == 17
 %global without_kokkos 1
 %endif
@@ -45,7 +46,7 @@
 %if 0%{?rhel} == 6
 %global without_kokkos 1
 %else
-%global without_kokkos 0
+#%global without_kokkos 0
 %endif
 %endif
 

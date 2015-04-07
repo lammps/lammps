@@ -14,7 +14,7 @@
 #include "mpi.h"
 #include "lammps.h"
 #include "input.h"
-#include "string.h"
+#include "stdio.h"
 
 using namespace LAMMPS_NS;
 
@@ -26,10 +26,18 @@ int main(int argc, char **argv)
 {
   MPI_Init(&argc,&argv);
 
-  LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
+  try {
+    LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
 
-  lammps->input->file();
-  delete lammps;
+    lammps->input->file();
+    delete lammps;
+  }
+
+  catch(...) {
+    int me;
+    MPI_Comm_rank(MPI_COMM_WORLD,&me);
+    fprintf(stderr,"Unknown exception caught on rank %d\n",me);
+  }
 
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();

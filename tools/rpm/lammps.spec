@@ -60,7 +60,6 @@ BuildRequires:  gcc-c++
 BuildRequires:  fftw-devel
 BuildRequires:  libpng-devel
 BuildRequires:  python-devel
-BuildRequires:  hwloc-devel
 %if %{with_suse}
 BuildRequires:  gcc-fortran
 BuildRequires:  libjpeg8-devel

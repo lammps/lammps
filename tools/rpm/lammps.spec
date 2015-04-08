@@ -32,23 +32,24 @@
 # include the KOKKOS package for those. SuSE is yet untested.
 # for now this remains completely disabled.
 %global without_kokkos 1
-%if %{defined fedora}
-#%global without_kokkos 0
-%if 0%{?fedora} == 17
-%global without_kokkos 1
-%endif
-%if 0%{?fedora} == 18
-%global without_kokkos 1
-%endif
-%endif
 
-%if %{defined rhel}
-%if 0%{?rhel} == 6
-%global without_kokkos 1
-%else
+#%if %{defined fedora}
 #%global without_kokkos 0
-%endif
-%endif
+#%if 0%{?fedora} == 17
+#%global without_kokkos 1
+#%endif
+#%if 0%{?fedora} == 18
+#%global without_kokkos 1
+#%endif
+#%endif
+
+#%if %{defined rhel}
+#%if 0%{?rhel} == 6
+#%global without_kokkos 1
+#%else
+#%global without_kokkos 0
+#%endif
+#%endif
 
 %if %{defined suse_version}
 %global with_suse 1

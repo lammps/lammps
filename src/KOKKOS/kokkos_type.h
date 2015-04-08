@@ -22,7 +22,7 @@
 #define MAX_TYPES_STACKPARAMS 12
 #define NeighClusterSize 8
 
-#ifndef __CUDACC__
+#if !defined(__CUDACC__) && !defined(__VECTOR_TYPES_H__)
   struct double2 {
     double x, y;
   };
@@ -39,7 +39,7 @@
 
 // set LMPHostype and LMPDeviceType from Kokkos Default Types
 typedef Kokkos::DefaultExecutionSpace LMPDeviceType;
-typedef Kokkos::DefaultExecutionSpace::host_mirror_device_type LMPHostType;
+typedef Kokkos::HostSpace::execution_space LMPHostType;
 
 // set ExecutionSpace stuct with variable "space"
 
@@ -232,7 +232,7 @@ typedef tdual_tagint_1d::t_dev_const_um t_tagint_1d_const_um;
 typedef tdual_tagint_1d::t_dev_const_randomread t_tagint_1d_randomread;
 
 typedef Kokkos::
-  DualView<LAMMPS_NS::tagint**, LMPDeviceType::array_layout, LMPDeviceType>
+  DualView<LAMMPS_NS::tagint**, Kokkos::LayoutRight, LMPDeviceType>
   tdual_tagint_2d;
 typedef tdual_tagint_2d::t_dev t_tagint_2d;
 typedef tdual_tagint_2d::t_dev_const t_tagint_2d_const;
@@ -455,7 +455,7 @@ typedef tdual_tagint_1d::t_host_const_um t_tagint_1d_const_um;
 typedef tdual_tagint_1d::t_host_const_randomread t_tagint_1d_randomread;
 
 typedef Kokkos::
-  DualView<LAMMPS_NS::tagint**, LMPDeviceType::array_layout, LMPDeviceType>
+  DualView<LAMMPS_NS::tagint**, Kokkos::LayoutRight, LMPDeviceType>
   tdual_tagint_2d;
 typedef tdual_tagint_2d::t_host t_tagint_2d;
 typedef tdual_tagint_2d::t_host_const t_tagint_2d_const;

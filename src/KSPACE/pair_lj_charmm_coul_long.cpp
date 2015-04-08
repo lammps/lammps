@@ -59,24 +59,27 @@ PairLJCharmmCoulLong::PairLJCharmmCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCharmmCoulLong::~PairLJCharmmCoulLong()
 {
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
+  if (!copymode) {
+    if (allocated) {
+      memory->destroy(setflag);
+      memory->destroy(cutsq);
 
-    memory->destroy(epsilon);
-    memory->destroy(sigma);
-    memory->destroy(eps14);
-    memory->destroy(sigma14);
-    memory->destroy(lj1);
-    memory->destroy(lj2);
-    memory->destroy(lj3);
-    memory->destroy(lj4);
-    memory->destroy(lj14_1);
-    memory->destroy(lj14_2);
-    memory->destroy(lj14_3);
-    memory->destroy(lj14_4);
+      memory->destroy(epsilon);
+      memory->destroy(sigma);
+      memory->destroy(eps14);
+      memory->destroy(sigma14);
+      memory->destroy(lj1);
+      memory->destroy(lj2);
+      memory->destroy(lj3);
+      memory->destroy(lj4);
+      memory->destroy(lj14_1);
+      memory->destroy(lj14_2);
+      memory->destroy(lj14_3);
+      memory->destroy(lj14_4);
+      memory->destroy(offset);
+    }
+    if (ftable) free_tables();
   }
-  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -643,6 +646,7 @@ void PairLJCharmmCoulLong::allocate()
   memory->create(lj14_2,n+1,n+1,"pair:lj14_2");
   memory->create(lj14_3,n+1,n+1,"pair:lj14_3");
   memory->create(lj14_4,n+1,n+1,"pair:lj14_4");
+  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -717,32 +721,32 @@ void PairLJCharmmCoulLong::init_style()
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
 
-    if (respa == 0) irequest = neighbor->request(this);
+    if (respa == 0) irequest = neighbor->request(this,instance_me);
     else if (respa == 1) {
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 1;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 3;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respaouter = 1;
     } else {
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 1;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 2;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respamiddle = 1;
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 3;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respaouter = 1;
     }
 
-  } else irequest = neighbor->request(this);
+  } else irequest = neighbor->request(this,instance_me);
 
   // require cut_lj_inner < cut_lj
 

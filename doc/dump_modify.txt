@@ -37,6 +37,8 @@ keyword = {append} or {buffer} or {element} or {every} or {fileper} or {first} o
   {precision} arg = power-of-10 value from 10 to 1000000
   {region} arg = region-ID or "none"
   {scale} arg = {yes} or {no}
+  {sfactor} arg = coordinate scaling factor (> 0.0)
+  {tfactor} arg = time scaling factor (> 0.0)
   {sort} arg = {off} or {id} or N or -N
      off = no sorting of per-atom lines within a snapshot
      id = sort per-atom lines by atom ID
@@ -100,7 +102,7 @@ keyword = {acolor} or {adiam} or {amap} or {backcolor} or {bcolor} or {bdiam} or
 dump_modify 1 format "%d %d %20.15g %g %g" scale yes
 dump_modify myDump image yes scale no flush yes
 dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2
-dump_modify xtcdump precision 10000
+dump_modify xtcdump precision 10000 sfactor 0.1
 dump_modify 1 every 1000 nfile 20
 dump_modify 1 every v_myVar
 dump_modify 1 amap min max cf 0.0 3 min green 0.5 yellow max blue boxcolor red :pre
@@ -349,6 +351,21 @@ The {precision} keyword only applies to the dump {xtc} style.  A
 specified value of N means that coordinates are stored to 1/N
 nanometer accuracy, e.g. for N = 1000, the coordinates are written to
 1/1000 nanometer accuracy.
+
+:line
+
+The {sfactor} and {tfactor} keywords only apply to the dump {xtc}
+style.  They allow customization of the unit conversion factors used
+when writing to XTC files.  By default they are initialized for
+whatever "units"_units.html style is being used, to write out
+coordinates in nanometers and time in picoseconds.  I.e. for {real}
+units, LAMMPS defines {sfactor} = 0.1 and {tfactor} = 0.001, since the
+Angstroms and fmsec used by {real} units are 0.1 nm and 0.001 psec
+respectively.  If you are using a units system with distance and time
+units far from nm and psec, you may wish to write XTC files with
+different units, since the compression algorithm used in XTC files is
+most effective when the typical magnitude of position data is between
+10.0 and 0.1.
 
 :line
 

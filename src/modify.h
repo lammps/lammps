@@ -59,6 +59,7 @@ class Modify : protected Pointers {
   virtual void end_of_step();
   virtual double thermo_energy();
   virtual void post_run();
+  virtual void create_attribute(int);
 
   virtual void setup_pre_force_respa(int, int);
   virtual void initial_integrate_respa(int, int, int);
@@ -136,6 +137,7 @@ class Modify : protected Pointers {
   void list_init(int, int &, int *&);
   void list_init_end_of_step(int, int &, int *&);
   void list_init_thermo_energy(int, int &, int *&);
+  void list_init_dofflag(int &, int *&);
   void list_init_compute();
 
  private:
@@ -154,6 +156,14 @@ class Modify : protected Pointers {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Fix %s does not allow use of dynamic group
+
+Dynamic groups have not yet been enabled for this fix.
+
+E: Compute %s does not allow use of dynamic group
+
+Dynamic groups have not yet been enabled for this compute.
 
 W: One or more atoms are time integrated more than once
 
@@ -189,7 +199,7 @@ The ID and style of a fix match for a fix you are changing with a fix
 command, but the new group you are specifying does not match the old
 group.
 
-E: Invalid fix style
+E: Unknown fix style
 
 The choice of fix style is unknown.
 
@@ -205,9 +215,9 @@ E: Reuse of compute ID
 
 A compute ID cannot be used twice.
 
-E: Invalid compute style
+E: Unknown compute style
 
-Self-explanatory.
+The choice of compute style is unknown.
 
 E: Could not find compute_modify ID
 

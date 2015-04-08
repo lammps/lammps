@@ -815,8 +815,6 @@ class colvar::h_bond
   : public colvar::cvc
 {
 protected:
-  /// Atoms involved in the component
-  cvm::atom     acceptor, donor;
   /// \brief "Cutoff" distance between acceptor and donor
   cvm::real     r0;
   /// Integer exponent of the function numerator
@@ -1141,6 +1139,8 @@ class colvar::cartesian
 protected:
   /// Atom group
   cvm::atom_group atoms;
+  /// Which Cartesian coordinates to include
+  std::vector<size_t> axes;
 public:
   cartesian(std::string const &conf);
   cartesian();

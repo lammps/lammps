@@ -23,6 +23,8 @@
 #include "group.h"
 #include "update.h"
 #include "domain.h"
+#include "input.h"
+#include "variable.h"
 #include "memory.h"
 #include "error.h"
 
@@ -437,6 +439,24 @@ void Modify::post_run()
 }
 
 /* ----------------------------------------------------------------------
+   create_attribute call
+   invoked when an atom is added to system during a run
+   necessary so that fixes and computes that store per-atom
+     state can initialize that state for the new atom N
+   computes can store per-atom state via a fix like fix STORE
+     compute has the create_attribute flag, not fix STORE
+------------------------------------------------------------------------- */
+
+void Modify::create_attribute(int n)
+{
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->create_attribute) fix[i]->set_arrays(n);
+  for (int i = 0; i < ncompute; i++)
+    if (compute[i]->create_attribute) compute[i]->set_arrays(n);
+  input->variable->set_arrays(n);
+}
+
+/* ----------------------------------------------------------------------
    setup rRESPA pre_force call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
@@ -759,7 +779,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     fix[ifix] = fix_creator(lmp,narg,arg);
   }
 
-  if (fix[ifix] == NULL) error->all(FLERR,"Invalid fix style");
+  if (fix[ifix] == NULL) error->all(FLERR,"Unknown fix style");
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -930,7 +950,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     compute[ncompute] = compute_creator(lmp,narg,arg);
   }
 
-  if (compute[ncompute] == NULL) error->all(FLERR,"Invalid compute style");
+  if (compute[ncompute] == NULL) error->all(FLERR,"Unknown compute style");
 
   ncompute++;
 }

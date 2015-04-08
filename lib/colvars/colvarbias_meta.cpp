@@ -86,7 +86,7 @@ colvarbias_meta::colvarbias_meta(std::string const &conf, char const *key)
       colvars[i]->enable(colvar::task_grid);
     }
 
-    hills_energy           = new colvar_grid_scalar   (colvars);
+    hills_energy           = new colvar_grid_scalar(colvars);
     hills_energy_gradients = new colvar_grid_gradient(colvars);
   } else {
     rebin_grids = false;
@@ -430,11 +430,11 @@ cvm::real colvarbias_meta::update()
 
         new_hills_energy->lower_boundaries = new_lower_boundaries;
         new_hills_energy->upper_boundaries = new_upper_boundaries;
-        new_hills_energy->create(new_sizes, 0.0, 1);
+        new_hills_energy->setup(new_sizes, 0.0, 1);
 
         new_hills_energy_gradients->lower_boundaries = new_lower_boundaries;
         new_hills_energy_gradients->upper_boundaries = new_upper_boundaries;
-        new_hills_energy_gradients->create(new_sizes, 0.0, colvars.size());
+        new_hills_energy_gradients->setup(new_sizes, 0.0, colvars.size());
 
         new_hills_energy->map_grid(*hills_energy);
         new_hills_energy_gradients->map_grid(*hills_energy_gradients);
@@ -746,6 +746,8 @@ void colvarbias_meta::calc_hills_force(size_t const &i,
     break;
 
   case colvarvalue::type_notset:
+  case colvarvalue::type_all:
+  default:
     break;
   }
 }
@@ -959,7 +961,7 @@ void colvarbias_meta::update_replicas_registry()
         (replicas.back())->comm = multiple_replicas;
 
         if (use_grids) {
-          (replicas.back())->hills_energy           = new colvar_grid_scalar   (colvars);
+          (replicas.back())->hills_energy           = new colvar_grid_scalar(colvars);
           (replicas.back())->hills_energy_gradients = new colvar_grid_gradient(colvars);
         }
       }
@@ -1552,7 +1554,7 @@ void colvarbias_meta::write_pmf()
 {
   // allocate a new grid to store the pmf
   colvar_grid_scalar *pmf = new colvar_grid_scalar(*hills_energy);
-  pmf->create();
+  pmf->setup();
 
   std::string fes_file_name_prefix(cvm::output_prefix);
 
@@ -1582,7 +1584,7 @@ void colvarbias_meta::write_pmf()
                                         "."+cvm::to_str(cvm::step_absolute()) : "") +
                                        ".pmf");
       cvm::backup_file(fes_file_name.c_str());
-      std::ofstream fes_os(fes_file_name.c_str());
+      cvm::ofstream fes_os(fes_file_name.c_str());
       pmf->write_multicol(fes_os);
       fes_os.close();
     }
@@ -1606,7 +1608,7 @@ void colvarbias_meta::write_pmf()
                                       "."+cvm::to_str(cvm::step_absolute()) : "") +
                                      ".pmf");
     cvm::backup_file(fes_file_name.c_str());
-    std::ofstream fes_os(fes_file_name.c_str());
+    cvm::ofstream fes_os(fes_file_name.c_str());
     pmf->write_multicol(fes_os);
     fes_os.close();
   }
@@ -1621,7 +1623,7 @@ void colvarbias_meta::write_replica_state_file()
   // write down also the restart for the other replicas: TODO: this
   // is duplicated code, that could be cleaned up later
   cvm::backup_file(replica_state_file.c_str());
-  std::ofstream rep_state_os(replica_state_file.c_str());
+  cvm::ofstream rep_state_os(replica_state_file.c_str());
   if (!rep_state_os.good())
     cvm::fatal_error("Error: in opening file \""+
                       replica_state_file+"\" for writing.\n");

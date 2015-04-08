@@ -118,6 +118,14 @@ E: Cannot delete group currently used by atom_modify first
 
 Self-explanatory.
 
+E: Could not find group clear group ID
+
+Self-explanatory.
+
+E: Cannot clear group all
+
+This operation is not allowed.
+
 E: Too many groups
 
 The maximum number of atom groups (including the "all" group) is
@@ -138,5 +146,29 @@ Only atom-style variables can be used.
 E: Group ID does not exist
 
 A group ID used in the group command does not exist.
+
+E: Cannot subtract groups using a dynamic group
+
+This operation is not allowed.
+
+E: Cannot union groups using a dynamic group
+
+This operation is not allowed.
+
+E: Cannot intersect groups using a dynamic group
+
+This operation is not allowed.
+
+E: Group dynamic cannot reference itself
+
+Self-explanatory.
+
+E: Group dynamic parent group does not exist
+
+Self-explanatory.
+
+E: Group all cannot be made dynamic
+
+This operation is not allowed.
 
 */

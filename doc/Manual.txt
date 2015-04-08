@@ -1,6 +1,6 @@
 <HEAD>
 <TITLE>LAMMPS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="26 Nov 2014 version">
+<META NAME="docnumber" CONTENT="6 Apr 2015 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -18,7 +18,7 @@
 <H1></H1>
 
 LAMMPS Documentation :c,h3
-26 Nov 2014 version :c,h4
+6 Apr 2015 version :c,h4
 
 Version info: :h4
 
@@ -136,7 +136,9 @@ it gives quick access to documentation for all LAMMPS commands.
   6.19 "Library interface to LAMMPS"_howto_19 :b
   6.20 "Calculating thermal conductivity"_howto_20 :b
   6.21 "Calculating viscosity"_howto_21 :b
-  6.22 "Calculating a diffusion coefficient"_howto_22 :ule,b
+  6.22 "Calculating a diffusion coefficient"_howto_22 :b
+  6.23 "Using chunks to calculate system properties"_howto_23 :b
+  6.24 "Setting parameters for pppm/disp"_howto_24 :ule,b
 "Example problems"_Section_example.html :l
 "Performance & scalability"_Section_perf.html :l
 "Additional tools"_Section_tools.html :l
@@ -157,12 +159,14 @@ it gives quick access to documentation for all LAMMPS commands.
   10.14 "Variable options"_mod_14 :b
   10.15 "Submitting new features for inclusion in LAMMPS"_mod_15 :ule,b
 "Python interface"_Section_python.html :l
-  11.1 "Building LAMMPS as a shared library"_py_1 :ulb,b
-  11.2 "Installing the Python wrapper into Python"_py_2 :b
-  11.3 "Extending Python with MPI to run in parallel"_py_3 :b
-  11.4 "Testing the Python-LAMMPS interface"_py_4 :b
-  11.5 "Using LAMMPS from Python"_py_5 :b
-  11.6 "Example Python scripts that use LAMMPS"_py_6 :ule,b
+  11.1 "Overview of running LAMMPS from Python"_py_1 :ulb,b
+  11.2 "Overview of using Python from a LAMMPS script"_py_2 :b
+  11.3 "Building LAMMPS as a shared library"_py_3 :b
+  11.4 "Installing the Python wrapper into Python"_py_4 :b
+  11.5 "Extending Python with MPI to run in parallel"_py_5 :b
+  11.6 "Testing the Python-LAMMPS interface"_py_6 :b
+  11.7 "Using LAMMPS from Python"_py_7 :b
+  11.8 "Example Python scripts that use LAMMPS"_py_8 :ule,b
 "Errors"_Section_errors.html :l
   12.1 "Common problems"_err_1 :ulb,b
   12.2 "Reporting bugs"_err_2 :b

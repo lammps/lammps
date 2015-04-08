@@ -474,7 +474,7 @@ void PairTriLJ::init_style()
   avec = (AtomVecTri *) atom->style_match("tri");
   if (!avec) error->all(FLERR,"Pair tri/lj requires atom style tri");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
  
 /* ----------------------------------------------------------------------

@@ -42,7 +42,6 @@ class ComputeFEP : public Compute {
   int tailflag, volumeflag;
   int fepinitflag;
   int eflag, vflag;
-  int sys_qsum_update_flag;
   double temp_fep;
 
   int nmax;

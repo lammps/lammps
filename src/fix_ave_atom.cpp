@@ -196,6 +196,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   // once in end_of_step() can set timestep for ones actually invoked
 
   irepeat = 0;
+  nvalid_last = -1;
   nvalid = nextvalid();
   modify->addstep_compute_all(nvalid);
 }
@@ -279,9 +280,13 @@ void FixAveAtom::end_of_step()
   int i,j,m,n;
 
   // skip if not step which requires doing something
+  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
+  if (ntimestep < nvalid_last || ntimestep > nvalid) 
+    error->all(FLERR,"Invalid timestep reset for fix ave/atom");
   if (ntimestep != nvalid) return;
+  nvalid_last = nvalid;
 
   // zero if first step
 
@@ -451,11 +456,4 @@ bigint FixAveAtom::nextvalid()
     nvalid -= (nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += peratom_freq;
   return nvalid;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixAveAtom::reset_timestep(bigint ntimestep)
-{
-  if (ntimestep > nvalid) error->all(FLERR,"Fix ave/atom missed timestep");
 }

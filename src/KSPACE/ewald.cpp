@@ -119,7 +119,7 @@ void Ewald::init()
 
   scale = 1.0;
   qqrd2e = force->qqrd2e;
-  qsum_qsq(0);
+  qsum_qsq();
   natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
@@ -354,7 +354,18 @@ void Ewald::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = evflag_atom = eflag_global = vflag_global =
          eflag_atom = vflag_atom = 0;
+   
+  // if atom count has changed, update qsum and qsqsum 
 
+  if (atom->natoms != natoms_original) {
+    qsum_qsq();
+    natoms_original = atom->natoms;
+  }
+  
+  // return if there are no charges
+  
+  if (qsqsum == 0.0) return;
+  
   // extend size of per-atom arrays if necessary
 
   if (atom->nlocal > nmax) {
@@ -429,15 +440,6 @@ void Ewald::compute(int eflag, int vflag)
     f[i][0] += qscale * q[i]*ek[i][0];
     f[i][1] += qscale * q[i]*ek[i][1];
     if (slabflag != 2) f[i][2] += qscale * q[i]*ek[i][2];
-  }
-
-  // update qsum and qsqsum, if needed
-
-  if (eflag_global || eflag_atom) {
-    if (qsum_update_flag || (atom->natoms != natoms_original)) {
-      qsum_qsq(0);
-      natoms_original = atom->natoms;
-    }
   }
 
   // sum global energy across Kspace vevs and add in volume-dependent term

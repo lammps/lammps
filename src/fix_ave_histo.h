@@ -35,12 +35,11 @@ class FixAveHisto : public Fix {
   void end_of_step();
   double compute_vector(int);
   double compute_array(int,int);
-  void reset_timestep(bigint);
 
  private:
   int me,nvalues;
   int nrepeat,nfreq,irepeat;
-  bigint nvalid;
+  bigint nvalid,nvalid_last;
   int *which,*argindex,*value2index;
   char **ids;
   FILE *fp;
@@ -214,14 +213,14 @@ E: Variable name for fix ave/histo does not exist
 
 Self-explanatory.
 
+E: Invalid timestep reset for fix ave/histo
+
+Resetting the timestep has invalidated the sequence of timesteps this
+fix needs to process.
+
 E: Cannot open fix ave/histo file %s
 
 The specified file cannot be opened.  Check that the path and name are
 correct.
-
-E: Fix ave/histo missed timestep
-
-You cannot reset the timestep to a value beyond where the fix
-expects to next perform averaging.
 
 */

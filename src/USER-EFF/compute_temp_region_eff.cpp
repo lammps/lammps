@@ -18,6 +18,7 @@
 #include "mpi.h"
 #include "math.h"
 #include "string.h"
+#include "stdlib.h"
 #include "compute_temp_region_eff.h"
 #include "atom.h"
 #include "update.h"
@@ -134,7 +135,7 @@ double ComputeTempRegionEff::compute_scalar()
         count++;
         t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
           mass[type[i]];
-        if (fabs(spin[i])==1) {
+        if (abs(spin[i])==1) {
           t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
           ecount++;
         }
@@ -147,14 +148,16 @@ double ComputeTempRegionEff::compute_scalar()
   tarray[1] = t;
   MPI_Allreduce(tarray,tarray_all,2,MPI_DOUBLE,MPI_SUM,world);
   dof = domain->dimension * tarray_all[0] - extra_dof;
+  if (dof < 0.0 && tarray_all[0] > 0.0) 
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
 
   int one = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
-      if (fabs(spin[i])==1) one++;
+      if (abs(spin[i])==1) one++;
     }
 
-  if (dof > 0) scalar = force->mvv2e * tarray_all[1] / (dof * force->boltz);
+  if (dof > 0.0) scalar = force->mvv2e * tarray_all[1] / (dof * force->boltz);
   else scalar = 0.0;
   return scalar;
 }
@@ -194,7 +197,7 @@ void ComputeTempRegionEff::compute_vector()
       t[4] += massone * v[i][0]*v[i][2];
       t[5] += massone * v[i][1]*v[i][2];
 
-      if (fabs(spin[i])==1) {
+      if (abs(spin[i])==1) {
         t[0] += mefactor * massone * ervel[i]*ervel[i];
         t[1] += mefactor * massone * ervel[i]*ervel[i];
         t[2] += mefactor * massone * ervel[i]*ervel[i];

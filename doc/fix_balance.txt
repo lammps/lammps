@@ -191,7 +191,7 @@ tallied.  If the counts do not match the target value for the plane,
 the position of the cut is adjusted based on the local density.  The
 low and high bounds are adjusted on each iteration, using new count
 information, so that they become closer together over time.  Thus as
-the recustion progresses, the count of particles on either side of the
+the recursion progresses, the count of particles on either side of the
 plane gets closer to the target value.
 
 The density-dependent part of this algorithm is often an advantage

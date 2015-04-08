@@ -62,8 +62,7 @@ Xeon Phi(TM) coprocessor is the same except for these additional
 steps:
 </P>
 <UL><LI>add the flag -DLMP_INTEL_OFFLOAD to CCFLAGS in your Makefile.machine
-<LI>add the flag -offload to LINKFLAGS in your Makefile.machine
-<LI>specify how many coprocessor threads per MPI task to use 
+<LI>add the flag -offload to LINKFLAGS in your Makefile.machine 
 </UL>
 <P>The latter two steps in the first case and the last step in the
 coprocessor case can be done using the "-pk intel" and "-sf intel"
@@ -75,7 +74,7 @@ commands respectively to your input script.
 <P><B>Required hardware/software:</B>
 </P>
 <P>To use the offload option, you must have one or more Intel(R) Xeon
-Phi(TM) coprocessors.
+Phi(TM) coprocessors and use an Intel(R) C++ compiler.
 </P>
 <P>Optimizations for vectorization have only been tested with the
 Intel(R) compiler.  Use of other compilers may not result in
@@ -85,10 +84,18 @@ vectorization or give poor performance.
 g++ will not recognize some of the settings, so they cannot be used).
 The compiler must support the OpenMP interface.
 </P>
+<P>The recommended version of the Intel(R) compiler is 14.0.1.106. 
+Versions 15.0.1.133 and later are also supported. If using Intel(R) 
+MPI, versions 15.0.2.044 and later are recommended.
+</P>
 <P><B>Building LAMMPS with the USER-INTEL package:</B>
 </P>
-<P>You must choose at build time whether to build for CPU acceleration or
-to use the Xeon Phi in offload mode.
+<P>You can choose to build with or without support for offload to a
+Intel(R) Xeon Phi(TM) coprocessor. If you build with support for a
+coprocessor, the same binary can be used on nodes with and without
+coprocessors installed. However, if you do not have coprocessors
+on your system, building without offload support will produce a
+smaller binary.
 </P>
 <P>You can do either in one line, using the src/Make.py script, described
 in <A HREF = "Section_start.html#start_4">Section 2.4</A> of the manual.  Type
@@ -119,7 +126,9 @@ both the CCFLAGS and LINKFLAGS variables.  You also need to add
 </P>
 <P>If you are compiling on the same architecture that will be used for
 the runs, adding the flag <I>-xHost</I> to CCFLAGS will enable
-vectorization with the Intel(R) compiler.
+vectorization with the Intel(R) compiler. Otherwise, you must
+provide the correct compute node architecture to the -x option
+(e.g. -xAVX).
 </P>
 <P>In order to build with support for an Intel(R) Xeon Phi(TM)
 coprocessor, the flag <I>-offload</I> should be added to the LINKFLAGS line
@@ -130,10 +139,20 @@ included in the src/MAKE/OPTIONS directory with settings that perform
 well with the Intel(R) compiler. The latter file has support for
 offload to coprocessors; the former does not.
 </P>
-<P>If using an Intel compiler, it is recommended that Intel(R) Compiler
-2013 SP1 update 1 be used.  Newer versions have some performance
-issues that are being addressed. If using Intel(R) MPI, version 5 or
-higher is recommended.
+<P><B>Notes on CPU and core affinity:</B>
+</P>
+<P>Setting core affinity is often used to pin MPI tasks and OpenMP
+threads to a core or group of cores so that memory access can be
+uniform. Unless disabled at build time, affinity for MPI tasks and 
+OpenMP threads on the host will be set by default on the host 
+when using offload to a coprocessor. In this case, it is unnecessary 
+to use other methods to control affinity (e.g. taskset, numactl,
+I_MPI_PIN_DOMAIN, etc.). This can be disabled in an input script
+with the <I>no_affinity</I> option to the <A HREF = "package.html">package intel</A> 
+command or by disabling the option at build time (by adding
+-DINTEL_OFFLOAD_NOAFFINITY to the CCFLAGS line of your Makefile).
+Disabling this option is not recommended, especially when running
+on a machine with hyperthreading disabled.
 </P>
 <P><B>Running with the USER-INTEL package from the command line:</B>
 </P>

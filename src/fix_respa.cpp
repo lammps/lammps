@@ -14,9 +14,8 @@
 #include "stdlib.h"
 #include "fix_respa.h"
 #include "atom.h"
-#include "memory.h"
-#include "error.h"
 #include "force.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

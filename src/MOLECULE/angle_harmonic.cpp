@@ -36,7 +36,7 @@ AngleHarmonic::AngleHarmonic(LAMMPS *lmp) : Angle(lmp) {}
 
 AngleHarmonic::~AngleHarmonic()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(theta0);

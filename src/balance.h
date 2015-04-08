@@ -105,9 +105,13 @@ E: Cannot balance in z dimension for 2d simulation
 
 Self-explanatory.
 
-E: Balance dynamic string is invalid
+E: Balance shift string is invalid
 
 The string can only contain the characters "x", "y", or "z".
+
+E: Balance rcb cannot be used with comm_style brick
+
+Comm_style tiled must be used instead.
 
 E: Lost atoms via balance: original %ld current %ld
 

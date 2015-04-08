@@ -82,11 +82,12 @@ file names or user-chosen ID strings.
 
 Here is how each line in the input script is parsed by LAMMPS:
 
-(1) If the last printable character on the line is a "&" character
-(with no surrounding quotes), the command is assumed to continue on
-the next line.  The next line is concatenated to the previous line by
-removing the "&" character and newline.  This allows long commands to
-be continued across two or more lines.
+(1) If the last printable character on the line is a "&" character,
+the command is assumed to continue on the next line.  The next line is
+concatenated to the previous line by removing the "&" character and
+line break.  This allows long commands to be continued across two or
+more lines.  See the discussion of triple quotes in (6) for how to
+continue a command across multiple line without using "&" characters.
 
 (2) All characters from the first "#" character onward are treated as
 comment and discarded.  See an exception in (6).  Note that a
@@ -152,27 +153,38 @@ underscores, or punctuation characters.
 line are arguments.
 
 (6) If you want text with spaces to be treated as a single argument,
-it can be enclosed in either double or single quotes.  A long single
-argument enclosed in quotes can even span multiple lines if the "&"
-character is used, as described above.  E.g.
+it can be enclosed in either single or double or triple quotes.  A
+long single argument enclosed in single or double quotes can span
+multiple lines if the "&" character is used, as described above.  When
+the lines are concatenated together (and the "&" characters and line
+breaks removed), the text will become a single line.  If you want
+multiple lines of an argument to retain their line breaks, the text
+can be enclosed in triple quotes, in which case "&" characters are not
+needed.  For example:
 
 print "Volume = $v"
 print 'Volume = $v'
+if "${steps} > 1000" then quit
 variable a string "red green blue &
                    purple orange cyan"
-if "${steps} > 1000" then quit :pre
+print """
+System volume = $v
+System temperature = $t
+""" :pre
 
-The quotes are removed when the single argument is stored internally.
+In each case, the single, double, or triple quotes are removed when
+the single argument they enclose is stored internally.
 
-See the "dump modify format"_dump_modify.html or "print"_print.html or
-"if"_if.html commands for examples.  A "#" or "$" character that is
-between quotes will not be treated as a comment indicator in (2) or
-substituted for as a variable in (3). 
+See the "dump modify format"_dump_modify.html, "print"_print.html,
+"if"_if.html, and "python"_python.html commands for examples.
+
+A "#" or "$" character that is between quotes will not be treated as a
+comment indicator in (2) or substituted for as a variable in (3).
 
 IMPORTANT NOTE: If the argument is itself a command that requires a
 quoted argument (e.g. using a "print"_print.html command as part of an
-"if"_if.html or "run every"_run.html command), then the double and
-single quotes can be nested in the usual manner.  See the doc pages
+"if"_if.html or "run every"_run.html command), then single, double, or
+triple quotes can be nested in the usual manner.  See the doc pages
 for those commands for examples.  Only one of level of nesting is
 allowed, but that should be sufficient for most use cases.
 
@@ -372,6 +384,7 @@ in the command's documentation.
 "compute"_compute.html,
 "compute_modify"_compute_modify.html,
 "create_atoms"_create_atoms.html,
+"create_bonds"_create_bonds.html,
 "create_box"_create_box.html,
 "delete_atoms"_delete_atoms.html,
 "delete_bonds"_delete_bonds.html,
@@ -417,6 +430,7 @@ in the command's documentation.
 "prd"_prd.html,
 "print"_print.html,
 "processors"_processors.html,
+"python"_python.html,
 "quit"_quit.html,
 "read_data"_read_data.html,
 "read_dump"_read_dump.html,
@@ -468,8 +482,10 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "adapt"_fix_adapt.html,
 "addforce (c)"_fix_addforce.html,
 "append/atoms"_fix_append_atoms.html,
+"atom/swap"_fix_atom_swap.html,
 "aveforce (c)"_fix_aveforce.html,
 "ave/atom"_fix_ave_atom.html,
+"ave/chunk"_fix_ave_chunk.html,
 "ave/correlate"_fix_ave_correlate.html,
 "ave/histo"_fix_ave_histo.html,
 "ave/spatial"_fix_ave_spatial.html,
@@ -554,8 +570,10 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "store/force"_fix_store_force.html,
 "store/state"_fix_store_state.html,
 "temp/berendsen (c)"_fix_temp_berendsen.html,
+"temp/csld"_fix_temp_csvr.html,
 "temp/csvr"_fix_temp_csvr.html,
 "temp/rescale (c)"_fix_temp_rescale.html,
+"tfmc"_fix_tfmc.html,
 "thermal/conductivity"_fix_thermal_conductivity.html,
 "tmd"_fix_tmd.html,
 "ttm"_fix_ttm.html,
@@ -608,7 +626,8 @@ package"_Section_start.html#start_3.
 "smd"_fix_smd.html,
 "temp/rescale/eff"_fix_temp_rescale_eff.html,
 "ti/rs"_fix_ti_rs.html,
-"ti/spring"_fix_ti_spring.html :tb(c=6,ea=c)
+"ti/spring"_fix_ti_spring.html,
+"ttm/mod"_fix_ttm.html :tb(c=6,ea=c)
 
 :line
 
@@ -623,14 +642,15 @@ letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
 KOKKOS, o = USER-OMP, t = OPT.
 
 "angle/local"_compute_angle_local.html,
-"atom/molecule"_compute_atom_molecule.html,
+"angmom/chunk"_compute_angmom_chunk.html,
 "body/local"_compute_body_local.html,
 "bond/local"_compute_bond_local.html,
 "centro/atom"_compute_centro_atom.html,
+"chunk/atom"_compute_chunk_atom.html,
 "cluster/atom"_compute_cluster_atom.html,
 "cna/atom"_compute_cna_atom.html,
 "com"_compute_com.html,
-"com/molecule"_compute_com_molecule.html,
+"com/chunk"_compute_com_chunk.html,
 "contact/atom"_compute_contact_atom.html,
 "coord/atom"_compute_coord_atom.html,
 "damage/atom"_compute_damage_atom.html,
@@ -644,16 +664,17 @@ KOKKOS, o = USER-OMP, t = OPT.
 "event/displace"_compute_event_displace.html,
 "group/group"_compute_group_group.html,
 "gyration"_compute_gyration.html,
-"gyration/molecule"_compute_gyration_molecule.html,
+"gyration/chunk"_compute_gyration_chunk.html,
 "heat/flux"_compute_heat_flux.html,
 "improper/local"_compute_improper_local.html,
-"inertia/molecule"_compute_inertia_molecule.html,
+"inertia/chunk"_compute_inertia_chunk.html,
 "ke"_compute_ke.html,
 "ke/atom"_compute_ke_atom.html,
 "ke/rigid"_compute_ke_rigid.html,
 "msd"_compute_msd.html,
-"msd/molecule"_compute_msd_molecule.html,
+"msd/chunk"_compute_msd_chunk.html,
 "msd/nongauss"_compute_msd_nongauss.html,
+"omega/chunk"_compute_omega_chunk.html,
 "pair"_compute_pair.html,
 "pair/local"_compute_pair_local.html,
 "pe (c)"_compute_pe.html,
@@ -662,7 +683,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "pressure (c)"_compute_pressure.html,
 "property/atom"_compute_property_atom.html,
 "property/local"_compute_property_local.html,
-"property/molecule"_compute_property_molecule.html,
+"property/chunk"_compute_property_chunk.html,
 "rdf"_compute_rdf.html,
 "reduce"_compute_reduce.html,
 "reduce/region"_compute_reduce.html,
@@ -674,6 +695,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "temp (c)"_compute_temp.html,
 "temp/asphere"_compute_temp_asphere.html,
 "temp/com"_compute_temp_com.html,
+"temp/chunk"_compute_temp_chunk.html,
 "temp/deform"_compute_temp_deform.html,
 "temp/partial (c)"_compute_temp_partial.html,
 "temp/profile"_compute_temp_profile.html,
@@ -681,8 +703,9 @@ KOKKOS, o = USER-OMP, t = OPT.
 "temp/region"_compute_temp_region.html,
 "temp/sphere"_compute_temp_sphere.html,
 "ti"_compute_ti.html,
+"torque/chunk"_compute_torque_chunk.html,
 "vacf"_compute_vacf.html,
-"vcm/molecule"_compute_vcm_molecule.html,
+"vcm/chunk"_compute_vcm_chunk.html,
 "voronoi/atom"_compute_voronoi_atom.html :tb(c=6,ea=c)
 
 These are additional compute styles in USER packages, which can be
@@ -728,24 +751,25 @@ KOKKOS, o = USER-OMP, t = OPT.
 "born/coul/wolf (go)"_pair_born.html,
 "brownian (o)"_pair_brownian.html,
 "brownian/poly (o)"_pair_brownian.html,
-"buck (cgo)"_pair_buck.html,
-"buck/coul/cut (cgo)"_pair_buck.html,
-"buck/coul/long (cgo)"_pair_buck.html,
+"buck (cgko)"_pair_buck.html,
+"buck/coul/cut (cgko)"_pair_buck.html,
+"buck/coul/long (cgko)"_pair_buck.html,
 "buck/coul/msm (o)"_pair_buck.html,
 "buck/long/coul/long (o)"_pair_buck_long.html,
 "colloid (go)"_pair_colloid.html,
 "comb (o)"_pair_comb.html,
 "comb3"_pair_comb.html,
 "coul/cut (gko)"_pair_coul.html,
-"coul/debye (go)"_pair_coul.html,
-"coul/dsf (go)"_pair_coul.html,
-"coul/long (go)"_pair_coul.html,
+"coul/debye (gko)"_pair_coul.html,
+"coul/dsf (gko)"_pair_coul.html,
+"coul/long (gko)"_pair_coul.html,
 "coul/msm"_pair_coul.html,
-"coul/wolf (o)"_pair_coul.html,
+"coul/streitz"_pair_coul.html,
+"coul/wolf (ko)"_pair_coul.html,
 "dpd (o)"_pair_dpd.html,
 "dpd/tstat (o)"_pair_dpd.html,
 "dsmc"_pair_dsmc.html,
-"eam (cgot)"_pair_eam.html,
+"eam (cgkot)"_pair_eam.html,
 "eam/alloy (cgot)"_pair_eam.html,
 "eam/fs (cgot)"_pair_eam.html,
 "eim (o)"_pair_eim.html,
@@ -759,26 +783,26 @@ KOKKOS, o = USER-OMP, t = OPT.
 "kim"_pair_kim.html,
 "lcbop"_pair_lcbop.html,
 "line/lj (o)"_pair_line_lj.html,
-"lj/charmm/coul/charmm (co)"_pair_charmm.html,
-"lj/charmm/coul/charmm/implicit (co)"_pair_charmm.html,
-"lj/charmm/coul/long (cgio)"_pair_charmm.html,
+"lj/charmm/coul/charmm (cko)"_pair_charmm.html,
+"lj/charmm/coul/charmm/implicit (cko)"_pair_charmm.html,
+"lj/charmm/coul/long (cgiko)"_pair_charmm.html,
 "lj/charmm/coul/msm"_pair_charmm.html,
-"lj/class2 (cgo)"_pair_class2.html,
-"lj/class2/coul/cut (co)"_pair_class2.html,
-"lj/class2/coul/long (cgo)"_pair_class2.html,
+"lj/class2 (cgko)"_pair_class2.html,
+"lj/class2/coul/cut (cko)"_pair_class2.html,
+"lj/class2/coul/long (cgko)"_pair_class2.html,
 "lj/cut (cgikot)"_pair_lj.html,
 "lj/cut/coul/cut (cgko)"_pair_lj.html,
-"lj/cut/coul/debye (cgo)"_pair_lj.html,
-"lj/cut/coul/dsf (go)"_pair_lj.html,
+"lj/cut/coul/debye (cgko)"_pair_lj.html,
+"lj/cut/coul/dsf (gko)"_pair_lj.html,
 "lj/cut/coul/long (cgikot)"_pair_lj.html,
 "lj/cut/coul/msm (go)"_pair_lj.html,
 "lj/cut/dipole/cut (go)"_pair_dipole.html,
 "lj/cut/dipole/long"_pair_dipole.html,
 "lj/cut/tip4p/cut (o)"_pair_lj.html,
 "lj/cut/tip4p/long (ot)"_pair_lj.html,
-"lj/expand (cgo)"_pair_lj_expand.html,
-"lj/gromacs (cgo)"_pair_gromacs.html,
-"lj/gromacs/coul/gromacs (co)"_pair_gromacs.html,
+"lj/expand (cgko)"_pair_lj_expand.html,
+"lj/gromacs (cgko)"_pair_gromacs.html,
+"lj/gromacs/coul/gromacs (cko)"_pair_gromacs.html,
 "lj/long/coul/long (o)"_pair_lj_long.html,
 "lj/long/dipole/long"_pair_dipole.html,
 "lj/long/tip4p/long"_pair_lj_long.html,
@@ -836,12 +860,13 @@ package"_Section_start.html#start_3.
 "lj/cut/dipole/sf (go)"_pair_dipole.html,
 "lj/cut/soft (o)"_pair_lj_soft.html,
 "lj/cut/tip4p/long/soft (o)"_pair_lj_soft.html,
-"lj/sdk (go)"_pair_sdk.html,
+"lj/sdk (gko)"_pair_sdk.html,
 "lj/sdk/coul/long (go)"_pair_sdk.html,
 "lj/sdk/coul/msm (o)"_pair_sdk.html,
 "lj/sf (o)"_pair_lj_sf.html,
 "meam/spline"_pair_meam_spline.html,
 "meam/sw/spline"_pair_meam_sw_spline.html,
+"quip"_pair_quip.html,
 "reax/c"_pair_reax_c.html,
 "sph/heatconduction"_pair_sph_heatconduction.html,
 "sph/idealgas"_pair_sph_idealgas.html,
@@ -868,9 +893,9 @@ KOKKOS, o = USER-OMP, t = OPT.
 "none"_bond_none.html,
 "hybrid"_bond_hybrid.html,
 "class2 (o)"_bond_class2.html,
-"fene (o)"_bond_fene.html,
+"fene (ko)"_bond_fene.html,
 "fene/expand (o)"_bond_fene_expand.html,
-"harmonic (o)"_bond_harmonic.html,
+"harmonic (ko)"_bond_harmonic.html,
 "morse (o)"_bond_morse.html,
 "nonlinear (o)"_bond_nonlinear.html,
 "quartic (o)"_bond_quartic.html,
@@ -897,13 +922,13 @@ KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_angle_none.html,
 "hybrid"_angle_hybrid.html,
-"charmm (o)"_angle_charmm.html,
+"charmm (ko)"_angle_charmm.html,
 "class2 (o)"_angle_class2.html,
 "cosine (o)"_angle_cosine.html,
 "cosine/delta (o)"_angle_cosine_delta.html,
 "cosine/periodic (o)"_angle_cosine_periodic.html,
 "cosine/squared (o)"_angle_cosine_squared.html,
-"harmonic (o)"_angle_harmonic.html,
+"harmonic (ko)"_angle_harmonic.html,
 "table (o)"_angle_table.html :tb(c=4,ea=c)
 
 These are additional angle styles in USER packages, which can be used
@@ -932,12 +957,12 @@ KOKKOS, o = USER-OMP, t = OPT.
 
 "none"_dihedral_none.html,
 "hybrid"_dihedral_hybrid.html,
-"charmm (o)"_dihedral_charmm.html,
+"charmm (ko)"_dihedral_charmm.html,
 "class2 (o)"_dihedral_class2.html,
 "harmonic (o)"_dihedral_harmonic.html,
 "helix (o)"_dihedral_helix.html,
 "multi/harmonic (o)"_dihedral_multi_harmonic.html,
-"opls (o)"_dihedral_opls.html :tb(c=4,ea=c)
+"opls (ko)"_dihedral_opls.html :tb(c=4,ea=c)
 
 These are additional dihedral styles in USER packages, which can be
 used if "LAMMPS is built with the appropriate
@@ -965,7 +990,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "hybrid"_improper_hybrid.html,
 "class2 (o)"_improper_class2.html,
 "cvff (o)"_improper_cvff.html,
-"harmonic (o)"_improper_harmonic.html,
+"harmonic (ko)"_improper_harmonic.html,
 "umbrella (o)"_improper_umbrella.html :tb(c=4,ea=c)
 
 These are additional improper styles in USER packages, which can be

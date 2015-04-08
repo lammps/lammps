@@ -140,13 +140,7 @@ void EwaldDisp::init()
   pair->init();  // so B is defined
   init_coeffs();
   init_coeff_sums();
-
-  double qsum, qsqsum, bsbsum;
-  qsum = qsqsum = bsbsum = 0.0;
-  if (function[0]) {
-    qsum = sum[0].x;
-    qsqsum = sum[0].x2;
-  }
+  if (function[0]) qsum_qsq();
 
   // turn off coulombic if no charge
 
@@ -156,6 +150,7 @@ void EwaldDisp::init()
     nsums -= 1;
   }
 
+  double bsbsum = 0.0;
   if (function[1]) bsbsum = sum[1].x2;
   if (function[2]) bsbsum = sum[2].x2;
 
@@ -246,9 +241,6 @@ void EwaldDisp::setup()
     error->all(FLERR,"KSpace accuracy too low");
   }
 
-  if (qsum_update_flag)
-    error->all(FLERR,"Kspace style ewald/disp does not support dynamic charges");
-
   bigint natoms = atom->natoms;
   double err;
   int kxmax = 1;
@@ -297,7 +289,8 @@ void EwaldDisp::setup()
    compute RMS accuracy for a dimension
 ------------------------------------------------------------------------- */
 
-double EwaldDisp::rms(int km, double prd, bigint natoms, double q2, double b2, double M2)
+double EwaldDisp::rms(int km, double prd, bigint natoms, 
+                      double q2, double b2, double M2)
 {
   double value = 0.0;
 
@@ -520,11 +513,18 @@ void EwaldDisp::init_coeff_sums()
   Sum sum_local[EWALD_MAX_NSUMS];
 
   memset(sum_local, 0, EWALD_MAX_NSUMS*sizeof(Sum));
-  if (function[0]) {                                        // 1/r
-    double *q = atom->q, *qn = q+atom->nlocal;
-    for (double *i=q; i<qn; ++i) {
-      sum_local[0].x += i[0]; sum_local[0].x2 += i[0]*i[0]; }
-  }
+
+  // now perform qsum and qsq via parent qsum_qsq()
+
+  sum_local[0].x = 0.0;
+  sum_local[0].x2 = 0.0;
+
+  //if (function[0]) {                                        // 1/r
+  //  double *q = atom->q, *qn = q+atom->nlocal;
+  //  for (double *i=q; i<qn; ++i) {
+  //    sum_local[0].x += i[0]; sum_local[0].x2 += i[0]*i[0]; }
+  //}
+
   if (function[1]) {                                        // geometric 1/r^6
     int *type = atom->type, *ntype = type+atom->nlocal;
     for (int *i=type; i<ntype; ++i) {
@@ -557,8 +557,8 @@ void EwaldDisp::init_self()
   memset(virial_self, 0, EWALD_NFUNCS*sizeof(double));
 
   if (function[0]) {                                        // 1/r
-    virial_self[0] = -0.5*MY_PI*qscale/(g2*volume)*sum[0].x*sum[0].x;
-    energy_self[0] = sum[0].x2*qscale*g1/MY_PIS-virial_self[0];
+    virial_self[0] = -0.5*MY_PI*qscale/(g2*volume)*qsum*qsum;
+    energy_self[0] = qsqsum*qscale*g1/MY_PIS-virial_self[0];
   }
   if (function[1]) {                                        // geometric 1/r^6
     virial_self[1] = MY_PI*MY_PIS*g3/(6.0*volume)*sum[1].x*sum[1].x;
@@ -597,7 +597,7 @@ void EwaldDisp::init_self_peratom()
     double *qi = atom->q, *qn = qi + nlocal;
     for (; qi < qn; qi++, vi += EWALD_NFUNCS, ei += EWALD_NFUNCS) {
       double q = *qi;
-      *vi = cv*q*sum[0].x;
+      *vi = cv*q*qsum;
       *ei = ce*q*q-vi[0];
     }
   }
@@ -676,6 +676,14 @@ void EwaldDisp::compute(int eflag, int vflag)
   compute_ek();
   compute_force();
   //compute_surface(); // assume conducting metal (tinfoil) boundary conditions
+
+  // update qsum and qsqsum, if atom count has changed and energy needed
+
+  if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
+    qsum_qsq();
+    natoms_original = atom->natoms;
+  }
+
   compute_energy();
   compute_energy_peratom();
   compute_virial();
@@ -1196,7 +1204,6 @@ void EwaldDisp::compute_virial_dipole()
     for (int n = 0; n < 6; n++)
       virial[n] += sum[n];
   }
-
 }
 
 void EwaldDisp::compute_virial_peratom()
@@ -1325,7 +1332,6 @@ void EwaldDisp::compute_virial_peratom()
   }
 }
 
-
 /* ----------------------------------------------------------------------
    Slab-geometry correction term to dampen inter-slab interactions between
    periodically repeating slabs.  Yields good approximation to 2D Ewald if
@@ -1342,9 +1348,6 @@ void EwaldDisp::compute_slabcorr()
   double **x = atom->x;
   double zprd = domain->zprd;
   int nlocal = atom->nlocal;
-
-  double qsum = 0.0;
-  if (function[0]) qsum = sum[0].x;
 
   double dipole = 0.0;
   for (int i = 0; i < nlocal; i++) dipole += q[i]*x[i][2];
@@ -1401,7 +1404,8 @@ void EwaldDisp::compute_slabcorr()
   double ffact = qscale * (-4.0*MY_PI/volume);
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
+  for (int i = 0; i < nlocal; i++) 
+    f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
 
   // add on torque corrections
 
@@ -1416,8 +1420,8 @@ void EwaldDisp::compute_slabcorr()
 }
 
 /* ----------------------------------------------------------------------
-  Newton solver used to find g_ewald for LJ systems
- ------------------------------------------------------------------------- */
+   Newton solver used to find g_ewald for LJ systems
+------------------------------------------------------------------------- */
 
 double EwaldDisp::NewtonSolve(double x, double Rc, 
                               bigint natoms, double vol, double b2)

@@ -1,10 +1,12 @@
 #    This is the April 2014 version of GAFF (from AmberTools14).
+# NOTE: Corrections were made to the amberparm2lt.sh converter on 2014-5-19, so
+#    this version of gaff.lt differs from earlier versions using the same source
 ####################################################################
 # To use this, LAMMPS currently must be compiled with the USER-MISC package.
 # (Type "make yes-user-misc" into the shell before compiling LAMMPS.)
 ####################################################################
 #    This moltemplate (LT) file was generated automatically using
-# amberparm2lt.sh gaff.dat GAFF
+# amber/amberparm2lt.sh gaff.dat GAFF > gaff.lt
 ####################################################################
 #    Background information and usage explanation:
 # This file contanis a list of atom types and rules for generating bonded
@@ -115,77 +117,77 @@ GAFF {
   } # (end of masses)
 
   write_once("In Settings") {
-    pair_coeff @atom:h1 @atom:h1 lj/charmm/coul/long 0.0157 1.3870   # Veenstra et al JCC,8,(1992),963
-    pair_coeff @atom:h2 @atom:h2 lj/charmm/coul/long 0.0157 1.2870   # Veenstra et al JCC,8,(1992),963
-    pair_coeff @atom:h3 @atom:h3 lj/charmm/coul/long 0.0157 1.1870   # Veenstra et al JCC,8,(1992),963
-    pair_coeff @atom:h4 @atom:h4 lj/charmm/coul/long 0.0150 1.4090   # Spellmeyer, one electrowithdr. neighbor
-    pair_coeff @atom:h5 @atom:h5 lj/charmm/coul/long 0.0150 1.3590   # Spellmeyer, two electrowithdr. neighbor
-    pair_coeff @atom:ha @atom:ha lj/charmm/coul/long 0.0150 1.4590   # Spellmeyer
-    pair_coeff @atom:hc @atom:hc lj/charmm/coul/long 0.0157 1.4870   # OPLS
-    pair_coeff @atom:hn @atom:hn lj/charmm/coul/long 0.0157 0.6000   # !Ferguson base pair geom.
-    pair_coeff @atom:ho @atom:ho lj/charmm/coul/long 0.0000 0.0000   # OPLS Jorgensen, JACS,110,(1988),1657
-    pair_coeff @atom:hp @atom:hp lj/charmm/coul/long 0.0157 0.6000   # same to hs (be careful !)
-    pair_coeff @atom:hs @atom:hs lj/charmm/coul/long 0.0157 0.6000   # W. Cornell CH3SH --> CH3OH FEP
-    pair_coeff @atom:hw @atom:hw lj/charmm/coul/long 0.0000 0.0000   # OPLS Jorgensen, JACS,110,(1988),1657
-    pair_coeff @atom:hx @atom:hx lj/charmm/coul/long 0.0157 1.1000   # Veenstra et al JCC,8,(1992),963
-    pair_coeff @atom:o @atom:o lj/charmm/coul/long 0.2100 1.6612   # OPLS
-    pair_coeff @atom:oh @atom:oh lj/charmm/coul/long 0.2104 1.7210   # OPLS
-    pair_coeff @atom:os @atom:os lj/charmm/coul/long 0.1700 1.6837   # OPLS ether
-    pair_coeff @atom:ow @atom:ow lj/charmm/coul/long 0.1520 1.7683   # TIP3P water model
-    pair_coeff @atom:c @atom:c lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:c1 @atom:c1 lj/charmm/coul/long 0.2100 1.9080   # cp C DLM 11/2007 well depth from OPLS replacing 0.0860
-    pair_coeff @atom:c2 @atom:c2 lj/charmm/coul/long 0.0860 1.9080   # sp2 atom in the middle of C=CD-CD=C
-    pair_coeff @atom:c3 @atom:c3 lj/charmm/coul/long 0.1094 1.9080   # OPLS
-    pair_coeff @atom:ca @atom:ca lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cc @atom:cc lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cd @atom:cd lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:ce @atom:ce lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cf @atom:cf lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cg @atom:cg lj/charmm/coul/long 0.2100 1.9080   # DLM 12/2007 as c1
-    pair_coeff @atom:ch @atom:ch lj/charmm/coul/long 0.2100 1.9080   # DLM 12/2007 as c1
-    pair_coeff @atom:cp @atom:cp lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cq @atom:cq lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cu @atom:cu lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cv @atom:cv lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cx @atom:cx lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cy @atom:cy lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:cz @atom:cz lj/charmm/coul/long 0.0860 1.9080   # OPLS
-    pair_coeff @atom:n @atom:n lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:n1 @atom:n1 lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:n2 @atom:n2 lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:n3 @atom:n3 lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:n4 @atom:n4 lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:na @atom:na lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:nb @atom:nb lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:nc @atom:nc lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:nd @atom:nd lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:ne @atom:ne lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:nf @atom:nf lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:nh @atom:nh lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:no @atom:no lj/charmm/coul/long 0.1700 1.8240   # OPLS
-    pair_coeff @atom:s @atom:s lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:s2 @atom:s2 lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:s4 @atom:s4 lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:s6 @atom:s6 lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:sx @atom:sx lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:sy @atom:sy lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:sh @atom:sh lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:ss @atom:ss lj/charmm/coul/long 0.2500 2.0000   # W. Cornell CH3SH and CH3SCH3 FEP's
-    pair_coeff @atom:p2 @atom:p2 lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:p3 @atom:p3 lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:p4 @atom:p4 lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:p5 @atom:p5 lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:pb @atom:pb lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:pc @atom:pc lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:pd @atom:pd lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:pe @atom:pe lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:pf @atom:pf lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:px @atom:px lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:py @atom:py lj/charmm/coul/long 0.2000 2.1000   # JCC,7,(1986),230;
-    pair_coeff @atom:f @atom:f lj/charmm/coul/long 0.061 1.75   # Gough et al. JCC 13,(1992),963.
-    pair_coeff @atom:cl @atom:cl lj/charmm/coul/long 0.265 1.948   # Fox, JPCB,102,8070,(98),flex.mdl CHCl3
-    pair_coeff @atom:br @atom:br lj/charmm/coul/long 0.420 2.02   # Junmei, 2010
-    pair_coeff @atom:i @atom:i lj/charmm/coul/long 0.50 2.15   # Junmei, 2010
+    pair_coeff @atom:h1 @atom:h1 lj/charmm/coul/long 0.0157 2.47135304412   # Veenstra et al JCC,8,(1992),963
+    pair_coeff @atom:h2 @atom:h2 lj/charmm/coul/long 0.0157 2.29317330049   # Veenstra et al JCC,8,(1992),963
+    pair_coeff @atom:h3 @atom:h3 lj/charmm/coul/long 0.0157 2.11499355687   # Veenstra et al JCC,8,(1992),963
+    pair_coeff @atom:h4 @atom:h4 lj/charmm/coul/long 0.0150 2.51055258772   # Spellmeyer, one electrowithdr. neighbor
+    pair_coeff @atom:h5 @atom:h5 lj/charmm/coul/long 0.0150 2.42146271591   # Spellmeyer, two electrowithdr. neighbor
+    pair_coeff @atom:ha @atom:ha lj/charmm/coul/long 0.0150 2.59964245953   # Spellmeyer
+    pair_coeff @atom:hc @atom:hc lj/charmm/coul/long 0.0157 2.64953278775   # OPLS
+    pair_coeff @atom:hn @atom:hn lj/charmm/coul/long 0.0157 1.06907846177   # !Ferguson base pair geom.
+    pair_coeff @atom:ho @atom:ho lj/charmm/coul/long 0.0000 0.0   # OPLS Jorgensen, JACS,110,(1988),1657
+    pair_coeff @atom:hp @atom:hp lj/charmm/coul/long 0.0157 1.06907846177   # same to hs (be careful !)
+    pair_coeff @atom:hs @atom:hs lj/charmm/coul/long 0.0157 1.06907846177   # W. Cornell CH3SH --> CH3OH FEP
+    pair_coeff @atom:hw @atom:hw lj/charmm/coul/long 0.0000 0.0   # OPLS Jorgensen, JACS,110,(1988),1657
+    pair_coeff @atom:hx @atom:hx lj/charmm/coul/long 0.0157 1.95997717991   # Veenstra et al JCC,8,(1992),963
+    pair_coeff @atom:o @atom:o lj/charmm/coul/long 0.2100 2.95992190115   # OPLS
+    pair_coeff @atom:oh @atom:oh lj/charmm/coul/long 0.2104 3.06647338784   # OPLS
+    pair_coeff @atom:os @atom:os lj/charmm/coul/long 0.1700 3.00001234347   # OPLS ether
+    pair_coeff @atom:ow @atom:ow lj/charmm/coul/long 0.1520 3.15075240658   # TIP3P water model
+    pair_coeff @atom:c @atom:c lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:c1 @atom:c1 lj/charmm/coul/long 0.2100 3.39966950842   # cp C DLM 11/2007 well depth from OPLS replacing 0.0860
+    pair_coeff @atom:c2 @atom:c2 lj/charmm/coul/long 0.0860 3.39966950842   # sp2 atom in the middle of C=CD-CD=C
+    pair_coeff @atom:c3 @atom:c3 lj/charmm/coul/long 0.1094 3.39966950842   # OPLS
+    pair_coeff @atom:ca @atom:ca lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:cc @atom:cc lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:cd @atom:cd lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:ce @atom:ce lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:cf @atom:cf lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:cg @atom:cg lj/charmm/coul/long 0.2100 3.39966950842   # DLM 12/2007 as c1
+    pair_coeff @atom:ch @atom:ch lj/charmm/coul/long 0.2100 3.39966950842   # DLM 12/2007 as c1
+    pair_coeff @atom:cp @atom:cp lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:cq @atom:cq lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:cu @atom:cu lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:cv @atom:cv lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:cx @atom:cx lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:cy @atom:cy lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:cz @atom:cz lj/charmm/coul/long 0.0860 3.39966950842   # OPLS
+    pair_coeff @atom:n @atom:n lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:n1 @atom:n1 lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:n2 @atom:n2 lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:n3 @atom:n3 lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:n4 @atom:n4 lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:na @atom:na lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:nb @atom:nb lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:nc @atom:nc lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:nd @atom:nd lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:ne @atom:ne lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:nf @atom:nf lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:nh @atom:nh lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:no @atom:no lj/charmm/coul/long 0.1700 3.24999852378   # OPLS
+    pair_coeff @atom:s @atom:s lj/charmm/coul/long 0.2500 3.56359487256   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:s2 @atom:s2 lj/charmm/coul/long 0.2500 3.56359487256   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:s4 @atom:s4 lj/charmm/coul/long 0.2500 3.56359487256   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:s6 @atom:s6 lj/charmm/coul/long 0.2500 3.56359487256   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:sx @atom:sx lj/charmm/coul/long 0.2500 3.56359487256   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:sy @atom:sy lj/charmm/coul/long 0.2500 3.56359487256   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:sh @atom:sh lj/charmm/coul/long 0.2500 3.56359487256   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:ss @atom:ss lj/charmm/coul/long 0.2500 3.56359487256   # W. Cornell CH3SH and CH3SCH3 FEP's
+    pair_coeff @atom:p2 @atom:p2 lj/charmm/coul/long 0.2000 3.74177461619   # JCC,7,(1986),230;
+    pair_coeff @atom:p3 @atom:p3 lj/charmm/coul/long 0.2000 3.74177461619   # JCC,7,(1986),230;
+    pair_coeff @atom:p4 @atom:p4 lj/charmm/coul/long 0.2000 3.74177461619   # JCC,7,(1986),230;
+    pair_coeff @atom:p5 @atom:p5 lj/charmm/coul/long 0.2000 3.74177461619   # JCC,7,(1986),230;
+    pair_coeff @atom:pb @atom:pb lj/charmm/coul/long 0.2000 3.74177461619   # JCC,7,(1986),230;
+    pair_coeff @atom:pc @atom:pc lj/charmm/coul/long 0.2000 3.74177461619   # JCC,7,(1986),230;
+    pair_coeff @atom:pd @atom:pd lj/charmm/coul/long 0.2000 3.74177461619   # JCC,7,(1986),230;
+    pair_coeff @atom:pe @atom:pe lj/charmm/coul/long 0.2000 3.74177461619   # JCC,7,(1986),230;
+    pair_coeff @atom:pf @atom:pf lj/charmm/coul/long 0.2000 3.74177461619   # JCC,7,(1986),230;
+    pair_coeff @atom:px @atom:px lj/charmm/coul/long 0.2000 3.74177461619   # JCC,7,(1986),230;
+    pair_coeff @atom:py @atom:py lj/charmm/coul/long 0.2000 3.74177461619   # JCC,7,(1986),230;
+    pair_coeff @atom:f @atom:f lj/charmm/coul/long 0.061 3.11814551349   # Gough et al. JCC 13,(1992),963.
+    pair_coeff @atom:cl @atom:cl lj/charmm/coul/long 0.265 3.47094140587   # Fox, JPCB,102,8070,(98),flex.mdl CHCl3
+    pair_coeff @atom:br @atom:br lj/charmm/coul/long 0.420 3.59923082129   # Junmei, 2010
+    pair_coeff @atom:i @atom:i lj/charmm/coul/long 0.50 3.830864488   # Junmei, 2010
   } # (end of pair_coeffs)
 
   write_once("In Settings") {
@@ -11674,85 +11676,85 @@ GAFF {
   } # (end of Dihedrals By Type)
 
   write_once("In Settings") {
-    improper_coeff @improper:c-X-X-o cvff 10.5 -1 2   # JCC,7,(1986),230
-    improper_coeff @improper:c-X-o-o cvff 1.1 -1 2   # JCC,7,(1986),230
-    improper_coeff @improper:ca-X-X-ha cvff 1.1 -1 2   # bsd.on C6H6 nmodes
-    improper_coeff @improper:n-X-X-hn cvff 1.1 -1 2   # JCC,7,(1986),230
-    improper_coeff @improper:n2-X-X-hn cvff 1.1 -1 2   # JCC,7,(1986),230
-    improper_coeff @improper:na-X-X-hn cvff 1.1 -1 2   # JCC,7,(1986),230
-    improper_coeff @improper:n-X-c3-c3 cvff 1.1 -1 2   # JCC,7,(1986),230
-    improper_coeff @improper:ca-X-n2-n2 cvff 10.5 -1 2   # JCC,7,(1986),230
-    improper_coeff @improper:c2-c-c2-c3 cvff 1.1 -1 2   # dac guess, 9/94
-    improper_coeff @improper:ca-c-ca-c3 cvff 1.1 -1 2   # dac guess, 9/94
-    improper_coeff @improper:n-c-c3-hn cvff 1.1 -1 2   # Junmei et al.1999
-    improper_coeff @improper:n-c-c3-o cvff 1.1 -1 2   # Junmei et al.1999
-    improper_coeff @improper:na-c2-c2-c3 cvff 1.1 -1 2   # 
-    improper_coeff @improper:c2-c2-c-c3 cvff 1.1 -1 2   # 
-    improper_coeff @improper:c2-c2-c3-hc cvff 1.1 -1 2   # Junmei et al.1999
-    improper_coeff @improper:ca-c2-c3-hc cvff 1.1 -1 2   # Junmei et al.1999
-    improper_coeff @improper:c-c2-hc-o cvff 1.1 -1 2   # Junmei et al.1999
-    improper_coeff @improper:c-c3-o-oh cvff 1.1 -1 2   # 
-    improper_coeff @improper:c2-c3-c2-n2 cvff 1.1 -1 2   # 
-    improper_coeff @improper:c2-c3-c2-na cvff 1.1 -1 2   # 
-    improper_coeff @improper:ca-c3-ca-n2 cvff 1.1 -1 2   # 
-    improper_coeff @improper:ca-c3-ca-na cvff 1.1 -1 2   # 
+    improper_coeff @improper:X-o-c-o cvff 1.1 -1 2   # JCC,7,(1986),230
+    improper_coeff @improper:X-X-c-o cvff 10.5 -1 2   # JCC,7,(1986),230
+    improper_coeff @improper:X-X-ca-ha cvff 1.1 -1 2   # bsd.on C6H6 nmodes
+    improper_coeff @improper:X-X-n-hn cvff 1.1 -1 2   # JCC,7,(1986),230
+    improper_coeff @improper:X-X-n2-hn cvff 1.1 -1 2   # JCC,7,(1986),230
+    improper_coeff @improper:X-X-na-hn cvff 1.1 -1 2   # JCC,7,(1986),230
+    improper_coeff @improper:X-c3-n-c3 cvff 1.1 -1 2   # JCC,7,(1986),230
+    improper_coeff @improper:X-n2-ca-n2 cvff 10.5 -1 2   # JCC,7,(1986),230
+    improper_coeff @improper:c-c2-c2-c3 cvff 1.1 -1 2   # dac guess, 9/94
+    improper_coeff @improper:c-ca-ca-c3 cvff 1.1 -1 2   # dac guess, 9/94
+    improper_coeff @improper:c-c3-n-hn cvff 1.1 -1 2   # Junmei et al.1999
+    improper_coeff @improper:c-c3-n-o cvff 1.1 -1 2   # Junmei et al.1999
+    improper_coeff @improper:c2-c2-na-c3 cvff 1.1 -1 2   # 
+    improper_coeff @improper:c2-c-c2-c3 cvff 1.1 -1 2   # 
+    improper_coeff @improper:c2-c3-c2-hc cvff 1.1 -1 2   # Junmei et al.1999
+    improper_coeff @improper:c2-c3-ca-hc cvff 1.1 -1 2   # Junmei et al.1999
+    improper_coeff @improper:c2-hc-c-o cvff 1.1 -1 2   # Junmei et al.1999
+    improper_coeff @improper:c3-o-c-oh cvff 1.1 -1 2   # 
+    improper_coeff @improper:c3-c2-c2-n2 cvff 1.1 -1 2   # 
+    improper_coeff @improper:c3-c2-c2-na cvff 1.1 -1 2   # 
+    improper_coeff @improper:c3-ca-ca-n2 cvff 1.1 -1 2   # 
+    improper_coeff @improper:c3-ca-ca-na cvff 1.1 -1 2   # 
     improper_coeff @improper:ca-ca-ca-c2 cvff 1.1 -1 2   # 
     improper_coeff @improper:ca-ca-ca-c3 cvff 1.1 -1 2   # 
     improper_coeff @improper:ca-ca-ca-f cvff 1.1 -1 2   # Junmei et al.1999
     improper_coeff @improper:ca-ca-ca-cl cvff 1.1 -1 2   # Junmei et al.1999
     improper_coeff @improper:ca-ca-ca-br cvff 1.1 -1 2   # Junmei et al.1999
     improper_coeff @improper:ca-ca-ca-i cvff 1.1 -1 2   # Junmei et al.1999
-    improper_coeff @improper:c-ca-ca-oh cvff 1.1 -1 2   # (not used in tyr!)
-    improper_coeff @improper:na-ca-ca-c3 cvff 1.1 -1 2   # 
-    improper_coeff @improper:ca-ca-c-c3 cvff 1.1 -1 2   # 
-    improper_coeff @improper:c-ca-hc-o cvff 1.1 -1 2   # Junmei et al.1999
-    improper_coeff @improper:ca-ca-n2-n2 cvff 1.1 -1 2   # dac, 10/94
-    improper_coeff @improper:c-hc-o-oh cvff 1.1 -1 2   # Junmei et al.1999
-    improper_coeff @improper:c-hc-o-os cvff 1.1 -1 2   # 
-    improper_coeff @improper:ca-n2-c2-n2 cvff 1.1 -1 2   # dac guess, 9/94
-    improper_coeff @improper:ca-n2-ca-n2 cvff 1.1 -1 2   # dac guess, 9/94
-    improper_coeff @improper:ca-na-n2-n2 cvff 1.1 -1 2   # dac, 10/94
+    improper_coeff @improper:ca-ca-c-oh cvff 1.1 -1 2   # (not used in tyr!)
+    improper_coeff @improper:ca-ca-na-c3 cvff 1.1 -1 2   # 
+    improper_coeff @improper:ca-c-ca-c3 cvff 1.1 -1 2   # 
+    improper_coeff @improper:ca-hc-c-o cvff 1.1 -1 2   # Junmei et al.1999
+    improper_coeff @improper:ca-n2-ca-n2 cvff 1.1 -1 2   # dac, 10/94
+    improper_coeff @improper:hc-o-c-oh cvff 1.1 -1 2   # Junmei et al.1999
+    improper_coeff @improper:hc-o-c-os cvff 1.1 -1 2   # 
+    improper_coeff @improper:n2-c2-ca-n2 cvff 1.1 -1 2   # dac guess, 9/94
+    improper_coeff @improper:n2-ca-ca-n2 cvff 1.1 -1 2   # dac guess, 9/94
+    improper_coeff @improper:na-n2-ca-n2 cvff 1.1 -1 2   # dac, 10/94
   } # (end of improper_coeffs)
 
-  write_once("Data Impropers By Type") {
-    @improper:c-X-X-o @atom:c @atom:* @atom:* @atom:o
-    @improper:c-X-o-o @atom:c @atom:* @atom:o @atom:o
-    @improper:ca-X-X-ha @atom:ca @atom:* @atom:* @atom:ha
-    @improper:n-X-X-hn @atom:n @atom:* @atom:* @atom:hn
-    @improper:n2-X-X-hn @atom:n2 @atom:* @atom:* @atom:hn
-    @improper:na-X-X-hn @atom:na @atom:* @atom:* @atom:hn
-    @improper:n-X-c3-c3 @atom:n @atom:* @atom:c3 @atom:c3
-    @improper:ca-X-n2-n2 @atom:ca @atom:* @atom:n2 @atom:n2
+  write_once("Data Impropers By Type (gaff_imp.py)") {
+    @improper:X-o-c-o @atom:* @atom:o @atom:c @atom:o
+    @improper:X-X-c-o @atom:* @atom:* @atom:c @atom:o
+    @improper:X-X-ca-ha @atom:* @atom:* @atom:ca @atom:ha
+    @improper:X-X-n-hn @atom:* @atom:* @atom:n @atom:hn
+    @improper:X-X-n2-hn @atom:* @atom:* @atom:n2 @atom:hn
+    @improper:X-X-na-hn @atom:* @atom:* @atom:na @atom:hn
+    @improper:X-c3-n-c3 @atom:* @atom:c3 @atom:n @atom:c3
+    @improper:X-n2-ca-n2 @atom:* @atom:n2 @atom:ca @atom:n2
+    @improper:c-c2-c2-c3 @atom:c @atom:c2 @atom:c2 @atom:c3
+    @improper:c-ca-ca-c3 @atom:c @atom:ca @atom:ca @atom:c3
+    @improper:c-c3-n-hn @atom:c @atom:c3 @atom:n @atom:hn
+    @improper:c-c3-n-o @atom:c @atom:c3 @atom:n @atom:o
+    @improper:c2-c2-na-c3 @atom:c2 @atom:c2 @atom:na @atom:c3
     @improper:c2-c-c2-c3 @atom:c2 @atom:c @atom:c2 @atom:c3
-    @improper:ca-c-ca-c3 @atom:ca @atom:c @atom:ca @atom:c3
-    @improper:n-c-c3-hn @atom:n @atom:c @atom:c3 @atom:hn
-    @improper:n-c-c3-o @atom:n @atom:c @atom:c3 @atom:o
-    @improper:na-c2-c2-c3 @atom:na @atom:c2 @atom:c2 @atom:c3
-    @improper:c2-c2-c-c3 @atom:c2 @atom:c2 @atom:c @atom:c3
-    @improper:c2-c2-c3-hc @atom:c2 @atom:c2 @atom:c3 @atom:hc
-    @improper:ca-c2-c3-hc @atom:ca @atom:c2 @atom:c3 @atom:hc
-    @improper:c-c2-hc-o @atom:c @atom:c2 @atom:hc @atom:o
-    @improper:c-c3-o-oh @atom:c @atom:c3 @atom:o @atom:oh
-    @improper:c2-c3-c2-n2 @atom:c2 @atom:c3 @atom:c2 @atom:n2
-    @improper:c2-c3-c2-na @atom:c2 @atom:c3 @atom:c2 @atom:na
-    @improper:ca-c3-ca-n2 @atom:ca @atom:c3 @atom:ca @atom:n2
-    @improper:ca-c3-ca-na @atom:ca @atom:c3 @atom:ca @atom:na
+    @improper:c2-c3-c2-hc @atom:c2 @atom:c3 @atom:c2 @atom:hc
+    @improper:c2-c3-ca-hc @atom:c2 @atom:c3 @atom:ca @atom:hc
+    @improper:c2-hc-c-o @atom:c2 @atom:hc @atom:c @atom:o
+    @improper:c3-o-c-oh @atom:c3 @atom:o @atom:c @atom:oh
+    @improper:c3-c2-c2-n2 @atom:c3 @atom:c2 @atom:c2 @atom:n2
+    @improper:c3-c2-c2-na @atom:c3 @atom:c2 @atom:c2 @atom:na
+    @improper:c3-ca-ca-n2 @atom:c3 @atom:ca @atom:ca @atom:n2
+    @improper:c3-ca-ca-na @atom:c3 @atom:ca @atom:ca @atom:na
     @improper:ca-ca-ca-c2 @atom:ca @atom:ca @atom:ca @atom:c2
     @improper:ca-ca-ca-c3 @atom:ca @atom:ca @atom:ca @atom:c3
     @improper:ca-ca-ca-f @atom:ca @atom:ca @atom:ca @atom:f
     @improper:ca-ca-ca-cl @atom:ca @atom:ca @atom:ca @atom:cl
     @improper:ca-ca-ca-br @atom:ca @atom:ca @atom:ca @atom:br
     @improper:ca-ca-ca-i @atom:ca @atom:ca @atom:ca @atom:i
-    @improper:c-ca-ca-oh @atom:c @atom:ca @atom:ca @atom:oh
-    @improper:na-ca-ca-c3 @atom:na @atom:ca @atom:ca @atom:c3
-    @improper:ca-ca-c-c3 @atom:ca @atom:ca @atom:c @atom:c3
-    @improper:c-ca-hc-o @atom:c @atom:ca @atom:hc @atom:o
-    @improper:ca-ca-n2-n2 @atom:ca @atom:ca @atom:n2 @atom:n2
-    @improper:c-hc-o-oh @atom:c @atom:hc @atom:o @atom:oh
-    @improper:c-hc-o-os @atom:c @atom:hc @atom:o @atom:os
-    @improper:ca-n2-c2-n2 @atom:ca @atom:n2 @atom:c2 @atom:n2
+    @improper:ca-ca-c-oh @atom:ca @atom:ca @atom:c @atom:oh
+    @improper:ca-ca-na-c3 @atom:ca @atom:ca @atom:na @atom:c3
+    @improper:ca-c-ca-c3 @atom:ca @atom:c @atom:ca @atom:c3
+    @improper:ca-hc-c-o @atom:ca @atom:hc @atom:c @atom:o
     @improper:ca-n2-ca-n2 @atom:ca @atom:n2 @atom:ca @atom:n2
-    @improper:ca-na-n2-n2 @atom:ca @atom:na @atom:n2 @atom:n2
+    @improper:hc-o-c-oh @atom:hc @atom:o @atom:c @atom:oh
+    @improper:hc-o-c-os @atom:hc @atom:o @atom:c @atom:os
+    @improper:n2-c2-ca-n2 @atom:n2 @atom:c2 @atom:ca @atom:n2
+    @improper:n2-ca-ca-n2 @atom:n2 @atom:ca @atom:ca @atom:n2
+    @improper:na-n2-ca-n2 @atom:na @atom:n2 @atom:ca @atom:n2
   } # (end of Impropers By Type)
 
 

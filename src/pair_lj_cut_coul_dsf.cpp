@@ -52,19 +52,21 @@ PairLJCutCoulDSF::PairLJCutCoulDSF(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCutCoulDSF::~PairLJCutCoulDSF()
 {
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
+  if (!copymode) {
+    if (allocated) {
+      memory->destroy(setflag);
+      memory->destroy(cutsq);
 
-    memory->destroy(cut_lj);
-    memory->destroy(cut_ljsq);
-    memory->destroy(epsilon);
-    memory->destroy(sigma);
-    memory->destroy(lj1);
-    memory->destroy(lj2);
-    memory->destroy(lj3);
-    memory->destroy(lj4);
-    memory->destroy(offset);
+      memory->destroy(cut_lj);
+      memory->destroy(cut_ljsq);
+      memory->destroy(epsilon);
+      memory->destroy(sigma);
+      memory->destroy(lj1);
+      memory->destroy(lj2);
+      memory->destroy(lj3);
+      memory->destroy(lj4);
+      memory->destroy(offset);
+    }
   }
 }
 
@@ -268,7 +270,7 @@ void PairLJCutCoulDSF::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/dsf requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
   double erfcc = erfc(alpha*cut_coul); 

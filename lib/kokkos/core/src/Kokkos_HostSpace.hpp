@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //   Kokkos: Manycore Performance-Portable Multidimensional Arrays
 //              Copyright (2012) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov) 
-// 
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+//
 // ************************************************************************
 //@HEADER
 */
@@ -48,25 +48,33 @@
 #include <typeinfo>
 #include <string>
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_MemoryTraits.hpp>
 #include <impl/Kokkos_Traits.hpp>
-#include <impl/Kokkos_MemoryTracking.hpp>
+#include <impl/Kokkos_Error.hpp>
 
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
 
-/** \brief  Memory management on the host for devices */
-
+/// \class HostSpace
+/// \brief Memory management for host memory.
+///
+/// HostSpace is a memory space that governs host memory.  "Host"
+/// memory means the usual CPU-accessible memory.
 class HostSpace {
 public:
 
-  typedef Impl::MemorySpaceTag  kokkos_tag ;
-  typedef HostSpace             memory_space ;
-  typedef size_t                size_type ;
+  //! Tag this class as a kokkos memory space
+  typedef HostSpace  memory_space ;
+  typedef size_t     size_type ;
 
-  // Default execution space for this memory space
+  /// \typedef execution_space
+  /// \brief Default execution space for this memory space.
+  ///
+  /// Every memory space has a default execution space.  This is
+  /// useful for things like initializing a View (which happens in
+  /// parallel using the View's default execution space).
 #if defined( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_OPENMP )
   typedef Kokkos::OpenMP   execution_space ;
 #elif defined( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_THREADS )
@@ -75,12 +83,13 @@ public:
   typedef Kokkos::OpenMP   execution_space ;
 #elif defined( KOKKOS_HAVE_PTHREAD )
   typedef Kokkos::Threads  execution_space ;
-#else
+#elif defined( KOKKOS_HAVE_SERIAL )
   typedef Kokkos::Serial   execution_space ;
+#else
+#  error "At least one of the following host execution spaces must be defined: Kokkos::OpenMP, Kokkos::Serial, or Kokkos::Threads.  You might be seeing this message if you disabled the Kokkos::Serial device explicitly using the Kokkos_ENABLE_Serial:BOOL=OFF CMake option, but did not enable any of the other host execution space devices."
 #endif
 
-  /** \brief  Allocate a contiguous block of memory on the Cuda device
-   *          with size = scalar_size * scalar_count.
+  /** \brief  Allocate a contiguous block of memory.
    *
    *  The input label is associated with the block of memory.
    *  The block of memory is tracked via reference counting where
@@ -88,10 +97,7 @@ public:
    *
    *  Allocation may only occur on the master thread of the process.
    */
-  static void * allocate( const std::string    & label ,
-                          const std::type_info & scalar_type ,
-                          const size_t           scalar_size ,
-                          const size_t           scalar_count );
+  static void * allocate( const std::string & label , const size_t size );
 
   /** \brief  Increment the reference count of the block of memory
    *          in which the input pointer resides.
@@ -107,6 +113,14 @@ public:
    *          Reference counting only occurs on the master thread.
    */
   static void decrement( const void * );
+
+  /** \brief  Get the reference count of the block of memory
+   *          in which the input pointer resides.  If the reference
+   *          count is zero the memory region is not tracked.
+   *
+   *          Reference counting only occurs on the master thread.
+   */
+  static int count( const void * );
 
   /*--------------------------------*/
 
@@ -124,17 +138,6 @@ public:
   static void register_in_parallel( int (*)() );
 };
 
-//----------------------------------------------------------------------------
-
-template< class ExecutionSpace , class DataSpace >
-struct VerifyExecutionSpaceCanAccessDataSpace ;
-
-template<>
-struct VerifyExecutionSpaceCanAccessDataSpace< HostSpace , HostSpace >
-{
-  inline static void verify(void) {}
-  inline static void verify(const void *) {}
-};
 
 } // namespace Kokkos
 

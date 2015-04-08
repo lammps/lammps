@@ -141,7 +141,7 @@ commands)
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, \
-    REBO, AIREBO, ReaxFF, COMB, SNAP
+    REBO, AIREBO, ReaxFF, COMB, SNAP, Streitz-Mintmire
   charge equilibration (QEq via dynamic, point, shielded, Slater methods)
   electron force field (eFF, AWPMD)
   coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
@@ -189,7 +189,8 @@ Ensembles, constraints, and boundary conditions :h4
   harmonic (umbrella) constraint forces
   rigid body constraints
   SHAKE bond and angle constraints
-  bond breaking, formation, swapping
+  Monte Carlo bond breaking, formation, swapping
+  atom/molecule insertion and deletion
   walls of various kinds
   non-equilibrium molecular dynamics (NEMD)
   variety of additional boundary conditions and constraints :ul
@@ -254,8 +255,8 @@ molecular dynamics options:
 "atom-to-continuum coupling"_fix_atc.html with finite elements
 coupled rigid body integration via the "POEMS"_fix_poems.html library
 "QM/MM coupling"_fix_qmmm.html
-"path-integral molecular dynamics (PIMD)"_fix_ipi.html
-"grand canonical Monte Carlo"_fix_gcmc.html insertions/deletions
+"path-integral molecular dynamics (PIMD)"_fix_ipi.html and "this as well"_fix_pimd.html
+Monte Carlo via "GCMC"_fix_gcmc.html and "tfMC"_fix_tfmc.html and "atom swapping"_fix_swap.html
 "Direct Simulation Monte Carlo"_pair_dsmc.html for low-density fluids
 "Peridynamics mesoscale modeling"_pair_peri.html
 "Lattice Boltzmann fluid"_fix_lb_fluid.html

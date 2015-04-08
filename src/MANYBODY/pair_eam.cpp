@@ -69,6 +69,8 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 
 PairEAM::~PairEAM()
 {
+  if (copymode) return;
+
   memory->destroy(rho);
   memory->destroy(fp);
 
@@ -401,7 +403,7 @@ void PairEAM::init_style()
   file2array();
   array2spline();
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

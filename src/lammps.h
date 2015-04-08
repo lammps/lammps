@@ -48,6 +48,7 @@ class LAMMPS {
 
   class Cuda *cuda;              // CUDA accelerator class
   class KokkosLMP *kokkos;       // KOKKOS accelerator class
+  class AtomKokkos *atomKK;      // KOKKOS version of Atom class
 
   class CiteMe *citeme;          // citation info
 
@@ -80,7 +81,7 @@ E: Cannot use -reorder after -partition
 
 Self-explanatory.  See doc page discussion of command-line switches.
 
-E: Processor partitions are inconsistent
+E: Processor partitions do not match number of allocated processors
 
 The total number of processors in all partitions must match the number
 of processors LAMMPS is running on.
@@ -160,9 +161,42 @@ This error occurs whenthe sizes of smallint, imageint, tagint, bigint,
 as defined in src/lmptype.h are not what is expected.  Contact
 the developers if this occurs.
 
+E: Cannot use -cuda on and -kokkos on together
+
+This is not allowed since both packages can use GPUs.
+
 E: Cannot use -cuda on without USER-CUDA installed
 
 The USER-CUDA package must be installed via "make yes-user-cuda"
 before LAMMPS is built.
+
+E: Cannot use -kokkos on without KOKKOS installed
+
+Self-explanatory.
+
+E: Using suffix cuda without USER-CUDA package enabled
+
+Self-explanatory.
+
+E: Using suffix gpu without GPU package installed
+
+Self-explanatory.
+
+E: Using suffix intel without USER-INTEL package installed
+
+Self-explanatory.
+
+E: Using suffix kk without KOKKOS package enabled
+
+Self-explanatory.
+
+E: Using suffix omp without USER-OMP package installed
+
+Self-explanatory.
+
+E: Too many -pk arguments in command line
+
+The string formed by concatenating the arguments is too long.  Use a
+package command in the input script instead.
 
 */

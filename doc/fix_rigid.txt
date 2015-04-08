@@ -111,7 +111,7 @@ There are two main variants of this fix, fix rigid and fix
 rigid/small.  The NVE/NVT/NPT/NHT versions belong to one of the two
 variants, as their style names indicate.  
 
-IMPORTANT NOTE: Not all of the bodystyle options and keyword/value
+IMPORTANT NOTE: Not all of the {bodystyle} options and keyword/value
 options are available for both the {rigid} and {rigid/small} variants.
 See details below.
 
@@ -166,14 +166,22 @@ setforce"_fix_setforce.html command), and integrating them as usual
 (e.g. via the "fix nve"_fix_nve.html command).
 
 IMPORTANT NOTE: The aggregate properties of each rigid body are
-calculated at the start of each simulation run.  These include its
-center of mass, moments of inertia, and net velocity and angular
-momentum.  This means that before or between runs, per-atom properties
-can be changed, e.g. via the "set"_set.html or
-"velocity"_velocity.html command, which will affect the bodies.  An
-exception is if the {infile} keyword is used, then all the body
-properties (except net velocity and angular momentum) are only
-calculated once so that values from the file are valid.
+calculated one time at the start of the first simulation run after
+this fix is specified.  The properties include the position and
+velocity of the center-of-mass of the body, its moments of inertia,
+and its angular momentum.  This is done using the properties of the
+constituent atoms of the body at that point in time (or see the
+{infile} keyword option).  Thereafter, changing properties of
+individual atoms in the body will have no effect on a rigid body's
+dynamics, unless they effect the "pair_style"_pair_style.html
+interactions that individual particles are part of.  For example, you
+might think you could displace the atoms in a body or add a large
+velocity to each atom in a body to make it move in a desired direction
+before a 2nd run is performed, using the "set"_set.html or
+"displace_atoms"_displace_atoms.html or "velocity"_velocity.html
+command.  But these commands will not affect the internal attributes
+of the body, and the position and velocity or individual atoms in the
+body will be reset when time integration starts.
 
 :line
 
@@ -183,9 +191,9 @@ via several options.
 
 IMPORTANT NOTE: With fix rigid/small, which requires bodystyle
 {molecule}, you can define a system that has no rigid bodies
-initially.  This is useful when you are adding rigid bodies on-the-fly
-via commands such as "fix deposit"_fix_deposit.html or "fix
-pour"_fix_pour.html.
+initially.  This is useful when you are using the {mol} keyword in
+conjunction with another fix that is adding rigid bodies on-the-fly,
+such as "fix deposit"_fix_deposit.html or "fix pour"_fix_pour.html.
 
 For bodystyle {single} the entire fix group of atoms is treated as one
 rigid body.  This option is only allowed for fix rigid and its
@@ -453,17 +461,25 @@ associated with the fix rigid commands.
 
 :line
 
-The {mol} keyword can only be used with fix rigid/small.  It should be
+The {mol} keyword can only be used with fix rigid/small.  It must be
 used when other commands, such as "fix deposit"_fix_deposit.html or
 "fix pour"_fix_pour.html, add rigid bodies on-the-fly during a
 simulation.  You specify a {template-ID} previously defined using the
 "molecule"_molecule.html command, which reads a file that defines the
-molecule.  You must use the same {template-ID} that the command adding
-rigid bodies uses.  The coordinates, atom types, atom diameters,
-center-of-mass, and moments of inertia can be specified in the
-molecule file.  See the "molecule"_molecule.html command for details.
-The only settings required to be in this file are the coordinates and
-types of atoms in the molecule.
+molecule.  You must use the same {template-ID} that the other fix
+which is adding rigid bodies uses.  The coordinates, atom types, atom
+diameters, center-of-mass, and moments of inertia can be specified in
+the molecule file.  See the "molecule"_molecule.html command for
+details.  The only settings required to be in this file are the
+coordinates and types of atoms in the molecule, in which case the
+molecule command calculates the other quantities itself.
+
+Note that these other fixes create new rigid bodies, in addition to
+those defined initially by this fix via the {bodystyle} setting.
+
+Also note that when using the {mol} keyword, extra restart information
+about all rigid bodies is written out whenever a restart file is
+written out.  See the IMPORTANT NOTE in the next section for details.
 
 :line
 
@@ -487,10 +503,10 @@ comment lines starting with "#" which are ignored.  The first
 non-blank, non-comment line should list N = the number of lines to
 follow.  The N successive lines contain the following information:
 
-ID1 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz
-ID2 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz
+ID1 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz
+ID2 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz
 ...
-IDN masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz :pre
+IDN masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz :pre
 
 The rigid body IDs are all positive integers.  For the {single}
 bodystyle, only an ID of 1 can be used.  For the {group} bodystyle,
@@ -508,28 +524,21 @@ should be the values consistent with the current orientation of the
 rigid body around its center of mass.  The values are with respect to
 the simulation box XYZ axes, not with respect to the prinicpal axes of
 the rigid body itself.  LAMMPS performs the latter calculation
-internally.
+internally.  The (vxcm,vycm,vzcm) values are the velocity of the
+center of mass.  The (lx,ly,lz) values are the angular momentum of the
+body.  These last 6 values can simply be set to 0 if you wish the
+body to have no initial motion.
 
-IMPORTANT NOTE: If you use the {infile} keyword and write restart
-files during a simulation, then each time a restart file is written,
-the fix also write an auxiliary restart file with the name
+IMPORTANT NOTE: If you use the {infile} or {mol} keywords and write
+restart files during a simulation, then each time a restart file is
+written, the fix also write an auxiliary restart file with the name
 rfile.rigid, where "rfile" is the name of the restart file,
 e.g. tmp.restart.10000 and tmp.restart.10000.rigid.  This auxiliary
-file is in the same format described above and contains info on the
-current center-of-mass and 6 moments of inertia.  Thus it can be used
-in a new input script that restarts the run and re-specifies a rigid
-fix using an {infile} keyword and the appropriate filename.  Note that
-the auxiliary file will contain one line for every rigid body, even if
-the original file only listed a subset of the rigid bodies.
-
-IMPORTANT NOTE: If you are using fix rigid/small and defining a system
-that has no rigid bodies initially, because they will be added
-on-the-fly by commands such as "fix deposit"_fix_deposit.html or "fix
-pour"_fix_pour.html, you may still wish to use the {infile} keyword.
-This is so that restart files written during the simulation will
-output an auxiliary restart file as described above with information
-on the new rigid bodies.  In this case the initial {infile} file
-should use N = 0.
+file is in the same format described above.  Thus it can be used in a
+new input script that restarts the run and re-specifies a rigid fix
+using an {infile} keyword and the appropriate filename.  Note that the
+auxiliary file will contain one line for every rigid body, even if the
+original file only listed a subset of the rigid bodies.
 
 :line
 
@@ -551,43 +560,6 @@ not do this automatically.
 
 The rigid body contribution to the pressure of the system (virial) is
 also accounted for by this fix.
-
-IMPORTANT NOTE: The periodic image flags of atoms in rigid bodies are
-altered so that the rigid body can be reconstructed correctly when it
-straddles periodic boundaries.  The atom image flags are not
-incremented/decremented as they would be for non-rigid atoms as the
-rigid body crosses periodic boundaries.  Specifically, they are set so
-that the center-of-mass (COM) of the rigid body always remains inside
-the simulation box.
-
-This means that if you output per-atom image flags you cannot
-interpret them as you normally would.  I.e. the image flag values
-written to a "dump file"_dump.html will be different than they would
-be if the atoms were not in a rigid body.  Likewise the "compute
-msd"_compute_msd.html will not compute the expected mean-squared
-displacement for such atoms if the body moves across periodic
-boundaries.  It also means that if you have bonds between a pair of
-rigid bodies and the bond straddles a periodic boundary, you cannot
-use the "replicate"_replicate.html command to increase the system
-size.
-
-Here are details on how, you can post-process a dump file to calculate
-a diffusion coefficient for rigid bodies, using the altered per-atom
-image flags written to a dump file.  The image flags for atoms in the
-same rigid body can be used to unwrap the body and calculate its
-center-of-mass (COM).  As mentioned above, this COM will always be
-inside the simulation box.  Thus it will "jump" from one side of the
-box to the other when the COM crosses a periodic boundary.  If you
-keep track of the jumps, you can effectively "unwrap" the COM and use
-that value to track the displacement of each rigid body, and thus the
-mean-squared displacement (MSD) of an ensemble of bodies, and thus a
-diffusion coefficient.
-
-Note that fix rigid does define image flags for each rigid body, which
-are incremented when the center-of-mass of the rigid body crosses a
-periodic boundary in the usual way.  These image flags have the same
-meaning as atom images (see the "dump" command) and can be accessed
-and output as described below.
 
 :line
 
@@ -675,9 +647,12 @@ more instructions on how to use the accelerated styles effectively.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about the {rigid} and {rigid/small} and {rigid/nve}
-fixes are written to "binary restart files"_restart.html.  For style
-{rigid/nvt} the state of the Nose/Hoover thermostat is written to
-"binary restart files"_restart.html.  See the
+fixes are written to "binary restart files"_restart.html.  The
+exception is if the {infile} or {mol} keyword is used, in which case
+an auxiliary file is written out with rigid body information each time
+a restart file is written, as explained above for the {infile}
+keyword.  For style {rigid/nvt} the state of the Nose/Hoover
+thermostat is written to "binary restart files"_restart.html.  See the
 "read_restart"_read_restart.html command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
@@ -719,12 +694,19 @@ array is equal to the number of rigid bodies.  The number of columns
 is 15.  Thus for each rigid body, 15 values are stored: the xyz coords
 of the center of mass (COM), the xyz components of the COM velocity,
 the xyz components of the force acting on the COM, the xyz components
-of the torque acting on the COM, and the xyz image flags of the COM,
-which have the same meaning as image flags for atom positions (see the
-"dump" command).  The force and torque values in the array are not
-affected by the {force} and {torque} keywords in the fix rigid
-command; they reflect values before any changes are made by those
-keywords.
+of the torque acting on the COM, and the xyz image flags of the COM.
+
+The center of mass (COM) for each body is similar to unwrapped
+coordinates written to a dump file.  It will always be inside (or
+slightly outside) the simulation box.  The image flags have the same
+meaning as image flags for atom positions (see the "dump" command).
+This means you can calculate the unwrapped COM by applying the image
+flags to the COM, the same as when unwrapped coordinates are written
+to a dump file.
+
+The force and torque values in the array are not affected by the
+{force} and {torque} keywords in the fix rigid command; they reflect
+values before any changes are made by those keywords.
 
 The ordering of the rigid bodies (by row in the array) is as follows.
 For the {single} keyword there is just one rigid body.  For the

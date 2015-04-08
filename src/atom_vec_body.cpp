@@ -92,7 +92,7 @@ void AtomVecBody::process_args(int narg, char **arg)
 #undef BodyStyle
 #undef BODY_CLASS
 
-  else error->all(FLERR,"Invalid body style");
+  else error->all(FLERR,"Unknown body style");
 
   bptr->avec = this;
   icp = bptr->icp;

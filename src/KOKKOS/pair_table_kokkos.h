@@ -41,7 +41,7 @@ template<class DeviceType>
 class PairTableKokkos : public Pair {
  public:
 
-  enum {EnabledNeighFlags=FULL&HALFTHREAD&HALF&N2&FULLCLUSTER};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2|FULLCLUSTER};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
 
@@ -147,7 +147,7 @@ class PairTableKokkos : public Pair {
 
  protected:
   int nlocal,nall,eflag,vflag,neighflag,newton_pair;
-  class AtomKokkos *atomKK;
+  
   int update_table;
   void create_kokkos_tables();
   void cleanup_copy();
@@ -292,5 +292,9 @@ E: Pair table cutoffs must all be equal to use with KSpace
 When using pair style table with a long-range KSpace solver, the
 cutoffs for all atom type pairs must all be the same, since the
 long-range solver starts at that cutoff.
+
+E: Cannot use chosen neighbor list style with lj/cut/kk
+
+That style is not supported by Kokkos.
 
 */

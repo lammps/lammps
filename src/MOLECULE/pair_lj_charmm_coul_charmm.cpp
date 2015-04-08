@@ -43,7 +43,8 @@ PairLJCharmmCoulCharmm::PairLJCharmmCoulCharmm(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCharmmCoulCharmm::~PairLJCharmmCoulCharmm()
 {
-  if (allocated) {
+  if (!copymode) {
+   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
@@ -59,6 +60,7 @@ PairLJCharmmCoulCharmm::~PairLJCharmmCoulCharmm()
     memory->destroy(lj14_2);
     memory->destroy(lj14_3);
     memory->destroy(lj14_4);
+   }
   }
 }
 
@@ -284,7 +286,7 @@ void PairLJCharmmCoulCharmm::init_style()
     error->all(FLERR,
                "Pair style lj/charmm/coul/charmm requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   // require cut_lj_inner < cut_lj, cut_coul_inner < cut_coul
 

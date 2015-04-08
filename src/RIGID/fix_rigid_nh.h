@@ -121,10 +121,6 @@ E: Cannot use fix rigid npt/nph on a non-periodic dimension
 When specifying a diagonal pressure component, the dimension must be
 periodic.
 
-E: Invalid fix rigid npt/nph pressure settings
-
-Settings for coupled dimensions must be the same.
-
 E: Fix rigid nvt/npt/nph damping parameters must be > 0.0
 
 Self-explanatory.
@@ -139,7 +135,7 @@ Self-explanatory.
 
 E: Fix rigid npt/nph does not yet allow triclinic box
 
-Self-explanatory.
+This is a current restriction in LAMMPS.
 
 E: Cannot use fix rigid npt/nph and fix deform on same component of stress tensor
 

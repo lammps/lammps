@@ -16,6 +16,7 @@
 
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"
+#include "neigh_bond_kokkos.h"
 #include "kokkos_type.h"
 #include <math.h>
 
@@ -135,7 +136,7 @@ class NeighborKokkosExecute
     bboxhi[0] = _bboxhi[0]; bboxhi[1] = _bboxhi[1]; bboxhi[2] = _bboxhi[2];
 
     resize = typename AT::t_int_scalar("NeighborKokkosFunctor::resize");
-#ifndef KOKKOS_USE_UVM
+#ifndef KOKKOS_USE_CUDA_UVM
     h_resize = Kokkos::create_mirror_view(resize);
 #else
     h_resize = resize;
@@ -143,7 +144,7 @@ class NeighborKokkosExecute
     h_resize() = 1;
     new_maxneighs = typename AT::
       t_int_scalar("NeighborKokkosFunctor::new_maxneighs");
-#ifndef KOKKOS_USE_UVM
+#ifndef KOKKOS_USE_CUDA_UVM
     h_new_maxneighs = Kokkos::create_mirror_view(new_maxneighs);
 #else
     h_new_maxneighs = new_maxneighs;
@@ -274,18 +275,42 @@ struct NeighborClusterKokkosBuildFunctor {
   }
 };
 
+template<class DeviceType> 
+struct TagNeighborCheckDistance{};
+
+template<class DeviceType> 
+struct TagNeighborXhold{};
+
 class NeighborKokkos : public Neighbor {
  public:
-  class AtomKokkos *atomKK;
+  typedef int value_type;
+
+  
 
   int nlist_host;                       // pairwise neighbor lists on Host
   NeighListKokkos<LMPHostType> **lists_host;
   int nlist_device;                     // pairwise neighbor lists on Device
   NeighListKokkos<LMPDeviceType> **lists_device;
 
+  NeighBondKokkos<LMPHostType> neighbond_host;
+  NeighBondKokkos<LMPDeviceType> neighbond_device;
+
+  DAT::tdual_int_2d k_bondlist;
+  DAT::tdual_int_2d k_anglelist;
+  DAT::tdual_int_2d k_dihedrallist;
+  DAT::tdual_int_2d k_improperlist;
+
   NeighborKokkos(class LAMMPS *);
   ~NeighborKokkos();
   void init();
+
+  template<class DeviceType> 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagNeighborCheckDistance<DeviceType>, const int&, int&) const;
+
+  template<class DeviceType> 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagNeighborXhold<DeviceType>, const int&) const;
 
  private:
   int atoms_per_bin;
@@ -300,6 +325,12 @@ class NeighborKokkos : public Neighbor {
   DAT::tdual_int_1d k_ex_mol_group;
   DAT::tdual_int_1d k_ex_mol_bit;
 
+  DAT::tdual_x_array x;
+  DAT::tdual_x_array xhold;
+
+  X_FLOAT deltasq;
+  int device_flag;
+
   void init_cutneighsq_kokkos(int);
   int init_lists_kokkos();
   void init_list_flags1_kokkos(int);
@@ -309,11 +340,16 @@ class NeighborKokkos : public Neighbor {
   void init_ex_bit_kokkos();
   void init_ex_mol_bit_kokkos();
   void choose_build(int, NeighRequest *);
-  void build_kokkos(int);
+  virtual int check_distance();
+  template<class DeviceType> int check_distance_kokkos();
+  virtual void build(int);
+  template<class DeviceType> void build_kokkos(int);
   void setup_bins_kokkos(int);
   void modify_ex_type_grow_kokkos();
   void modify_ex_group_grow_kokkos();
   void modify_mol_group_grow_kokkos();
+  void init_topology_kokkos();
+  void build_topology_kokkos();
 
   typedef void (NeighborKokkos::*PairPtrHost)
     (class NeighListKokkos<LMPHostType> *);
@@ -340,5 +376,11 @@ class NeighborKokkos : public Neighbor {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Too many local+ghost atoms for neighbor list
+
+The number of nlocal + nghost atoms on a processor
+is limited by the size of a 32-bit integer with 2 bits
+removed for masking 1-2, 1-3, 1-4 neighbors.
 
 */

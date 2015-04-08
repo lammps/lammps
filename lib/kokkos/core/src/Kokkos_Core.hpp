@@ -49,7 +49,7 @@
 //----------------------------------------------------------------------------
 // Include the execution space header files for the enabled execution spaces.
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core_fwd.hpp>
 
 #if defined( KOKKOS_HAVE_CUDA )
 #include <Kokkos_Cuda.hpp>
@@ -59,12 +59,15 @@
 #include <Kokkos_OpenMP.hpp>
 #endif
 
+#if defined( KOKKOS_HAVE_SERIAL )
+#include <Kokkos_Serial.hpp>
+#endif
+
 #if defined( KOKKOS_HAVE_PTHREAD )
 #include <Kokkos_Threads.hpp>
 #endif
 
-#include <Kokkos_Serial.hpp>
-
+#include <Kokkos_Pair.hpp>
 #include <Kokkos_View.hpp>
 #include <Kokkos_Vectorization.hpp>
 #include <Kokkos_Atomic.hpp>
@@ -73,13 +76,31 @@
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-  void initialize();
 
-  void initialize(int narg, char* arg[]);
+struct InitArguments {
+  int num_threads;
+  int num_numa;
+  int device_id;
 
-  void finalize();
-  
-  void fence();
+  InitArguments() {
+    num_threads = -1;
+    num_numa = -1;
+    device_id = -1;
+  }
+};
+
+void initialize(int& narg, char* arg[]);
+
+void initialize(const InitArguments& args = InitArguments());
+
+/** \brief  Finalize the spaces that were initialized via Kokkos::initialize */
+void finalize();
+
+/** \brief  Finalize all known execution spaces */
+void finalize_all();
+
+void fence();
+
 }
 
 #endif

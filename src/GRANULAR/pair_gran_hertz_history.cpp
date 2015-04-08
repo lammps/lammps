@@ -57,7 +57,6 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-  computeflag = 1;
   int shearupdate = 1;
   if (update->setupflag) shearupdate = 0;
 

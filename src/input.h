@@ -58,6 +58,7 @@ class Input : protected Pointers {
 
   void parse();                          // parse an input text line
   char *nextword(char *, char **);       // find next word in string with quotes
+  int numtriple(char *);                 // count number of triple quotes
   void reallocate(char *&, int &, int);  // reallocate a char string
   int execute_command();                 // execute a single command
 
@@ -71,6 +72,7 @@ class Input : protected Pointers {
   void next_command();
   void partition();
   void print();
+  void python();
   void quit();
   void shell();
   void variable_command();
@@ -310,9 +312,30 @@ E: Package command after simulation box is defined
 The package command cannot be used afer a read_data, read_restart, or
 create_box command.
 
-E: Package cuda command without USER-CUDA installed
+E: Package cuda command without USER-CUDA package enabled
 
 The USER-CUDA package must be installed via "make yes-user-cuda"
+before LAMMPS is built, and the "-c on" must be used to enable the
+package.
+
+E: Package gpu command without GPU package installed
+
+The GPU package must be installed via "make yes-gpu" before LAMMPS is
+built.
+
+E: Package kokkos command without KOKKOS package enabled
+
+The KOKKOS package must be installed via "make yes-kokkos" before
+LAMMPS is built, and the "-k on" must be used to enable the package.
+
+E: Package omp command without USER-OMP package installed
+
+The USER-OMP package must be installed via "make yes-user-omp" before
+LAMMPS is built.
+
+E: Package intel command without USER-INTEL package installed
+
+The USER-INTEL package must be installed via "make yes-user-intel"
 before LAMMPS is built.
 
 E: Pair_coeff command before simulation box is defined

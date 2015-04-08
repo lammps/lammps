@@ -35,6 +35,7 @@ class Dihedral : protected Pointers {
   // KOKKOS host/device flag and data masks
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
+  int copymode;
 
   Dihedral(class LAMMPS *);
   virtual ~Dihedral();

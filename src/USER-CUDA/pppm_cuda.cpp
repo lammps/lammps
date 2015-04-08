@@ -48,11 +48,11 @@
 #include "comm.h"
 #include "neighbor.h"
 #include "force.h"
+#include "fft3d_wrap_cuda.h" // has to come before pair.h to avoid clash with kokkos
 #include "pair.h"
 #include "bond.h"
 #include "angle.h"
 #include "domain.h"
-#include "fft3d_wrap_cuda.h"
 #include "remap_wrap.h"
 #include "memory.h"
 #include "error.h"
@@ -71,7 +71,6 @@ using namespace MathConst;
 #define SMALL 0.00001
 #define LARGE 10000.0
 #define EPS_HOC 1.0e-7
-
 
 void printArray(double* data,int nx, int ny, int nz)
 {
@@ -198,7 +197,6 @@ PPPMCuda::~PPPMCuda()
 
 void PPPMCuda::init()
 {
-
   cuda->shared_data.pppm.cudable_force=1;
 
     //if(cuda->finished_run) {PPPM::init(); return;}
@@ -277,7 +275,7 @@ void PPPMCuda::init()
 
   scale = 1.0;
   qqrd2e = force->qqrd2e;
-  qsum_qsq(0);
+  qsum_qsq();
   natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
@@ -472,8 +470,6 @@ void PPPMCuda::init()
   }
 
   if (order == 0) error->all(FLERR,"PPPMCuda order has been reduced to 0");
-
-
 
   // decomposition of FFT mesh
   // global indices range from 0 to N-1
@@ -688,19 +684,22 @@ void PPPMCuda::compute(int eflag, int vflag)
     domain->x2lamda(atom->nlocal);
   }
 
-  // extend size of per-atom arrays if necessary
-  // and force update of device data, if charges can change
+  // extend size of PPPM per-atom arrays if necessary
+  // force update of device data, if arrays resized
 
-  if ((cu_atom->update_nmax)||(old_nmax==0)||qsum_update_flag) {
+
+  if (cu_atom->update_nmax || old_nmax == 0) {
     memory->destroy(part2grid);
     nmax = atom->nmax;
     memory->create(part2grid,nmax,3,"pppm:part2grid");
     delete cu_part2grid;
     delete [] adev_data_array;
     adev_data_array=new dev_array[1];
-    cu_part2grid = new cCudaData<int  , int   , yx > ((int*)part2grid,adev_data_array, nmax,3);
+    cu_part2grid = new cCudaData<int  , int   , yx > 
+      ((int*)part2grid,adev_data_array, nmax,3);
 
-    pppm_device_update(&cuda->shared_data,cu_part2grid->dev_data(),atom->nlocal,atom->nmax);
+    pppm_device_update(&cuda->shared_data,cu_part2grid->dev_data(),
+                       atom->nlocal,atom->nmax);
     old_nmax=nmax;
   }
   if(cu_atom->update_nlocal) {pppm_update_nlocal(cu_atom->nlocal);}
@@ -716,7 +715,6 @@ void PPPMCuda::compute(int eflag, int vflag)
 
   // find grid points for all my particles
   // map my particle charge onto my local 3d density grid
-
 
   my_gettime(CLOCK_REALTIME,&starttime);
 
@@ -770,7 +768,6 @@ void PPPMCuda::compute(int eflag, int vflag)
 
   // calculate the force on my particles
 
-
   my_gettime(CLOCK_REALTIME,&starttime);
   fieldforce();
   my_gettime(CLOCK_REALTIME,&endtime);
@@ -788,7 +785,7 @@ void PPPMCuda::compute(int eflag, int vflag)
     energy = energy_all;
 
     if (atom->natoms != natoms_original) {
-      qsum_qsq(0);
+      qsum_qsq();
       natoms_original = atom->natoms;
     }
 

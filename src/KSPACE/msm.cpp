@@ -100,6 +100,7 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   peratom_allocate_flag = 0;
   scalar_pressure_flag = 1;
+  warn_nonneutral = 0;
 
   order = 10;
 }
@@ -183,7 +184,7 @@ void MSM::init()
 
   scale = 1.0;
   qqrd2e = force->qqrd2e;
-  qsum_qsq(1);
+  qsum_qsq();
   natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
@@ -456,6 +457,17 @@ void MSM::compute(int eflag, int vflag)
     }
   }
 
+  // if atom count has changed, update qsum and qsqsum 
+
+  if (atom->natoms != natoms_original) {
+    qsum_qsq();
+    natoms_original = atom->natoms;
+  }
+  
+  // return if there are no charges
+  
+  if (qsqsum == 0.0) return;
+  
   // invoke allocate_peratom() if needed for first time
 
   if (vflag_atom && !peratom_allocate_flag) {
@@ -506,7 +518,6 @@ void MSM::compute(int eflag, int vflag)
     direct(n);
     restriction(n);
   }
-
 
   // compute direct interation for top grid level for nonperiodic
   //   and for second from top grid level for periodic
@@ -564,15 +575,6 @@ void MSM::compute(int eflag, int vflag)
   // calculate the per-atom energy/virial for my particles
 
   if (evflag_atom) fieldforce_peratom();
-
-  // update qsum and qsqsum, if needed
-
-  if (eflag_global || eflag_atom) {
-    if (qsum_update_flag || (atom->natoms != natoms_original)) {
-      qsum_qsq(0);
-      natoms_original = atom->natoms;
-    }
-  }
 
   // sum global energy across procs and add in self-energy term
 

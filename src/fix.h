@@ -20,6 +20,8 @@ namespace LAMMPS_NS {
 
 class Fix : protected Pointers {
  public:
+  static int instance_total;     // # of Fix classes ever instantiated
+
   char *id,*style;
   int igroup,groupbit;
 
@@ -47,6 +49,7 @@ class Fix : protected Pointers {
   int wd_header;                 // # of header values fix writes to data file
   int wd_section;                // # of sections fix writes to data file
   int dynamic_group_allow;       // 1 if can be used with dynamic group, else 0
+  int dof_flag;                  // 1 if has dof() method (not min_dof())
   int cudable_comm;              // 1 if fix has CUDA-enabled communication
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
@@ -55,6 +58,8 @@ class Fix : protected Pointers {
   int size_vector;               // length of global vector
   int size_array_rows;           // rows in global array
   int size_array_cols;           // columns in global array
+  int size_vector_variable;      // 1 if vec length is unknown in advance
+  int size_array_rows_variable;  // 1 if array rows is unknown in advance
   int global_freq;               // frequency s/v data is available at
 
   int peratom_flag;              // 0/1 if per-atom data is stored
@@ -175,7 +180,6 @@ class Fix : protected Pointers {
   virtual void deform(int) {}
   virtual void reset_target(double) {}
   virtual void reset_dt() {}
-  virtual void reset_timestep(bigint) {}
 
   virtual void read_data_header(char *) {}
   virtual void read_data_section(char *, int, char *) {}
@@ -199,9 +203,14 @@ class Fix : protected Pointers {
   virtual unsigned int data_mask_ext() {return datamask_ext;}
 
  protected:
+  int instance_me;        // which Fix class instantiation I am
+
   int evflag;
   int vflag_global,vflag_atom;
   int maxvatom;
+
+  int copymode;   // if set, do not deallocate during destruction
+                  // required when classes are used as functors by Kokkos
 
   void v_setup(int);
   void v_tally(int, int *, double, double *);

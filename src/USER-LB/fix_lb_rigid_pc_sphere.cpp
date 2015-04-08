@@ -51,6 +51,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
   rigid_flag = 1;
   create_attribute = 1;
   virial_flag = 1;
+  dof_flag = 1;
 
   // perform initial allocation of atom-based arrays
   // register with Atom class

@@ -240,7 +240,7 @@ void PairLJLongDipoleLong::init_style()
   if (!atom->torque && (ewald_order&(1<<3)))
     error->all(FLERR,"Pair lj/long/dipole/long requires atom attributes mu, torque");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
 
@@ -248,17 +248,17 @@ void PairLJLongDipoleLong::init_style()
 
   if (ewald_order&(1<<3)) {				// r^-1 kspace
     if (force->kspace == NULL) 
-      error->all(FLERR,"Pair style is incompatible with KSpace style");
+      error->all(FLERR,"Pair style requires a KSpace style");
     for (i=0; style3[i]&&strcmp(force->kspace_style, style3[i]); ++i);
     if (!style3[i])
-      error->all(FLERR,"Pair style is incompatible with KSpace style");
+      error->all(FLERR,"Pair style requires use of kspace_style ewald/disp");
   }
   if (ewald_order&(1<<6)) {				// r^-6 kspace
     if (force->kspace == NULL) 
-      error->all(FLERR,"Pair style is incompatible with KSpace style");
+      error->all(FLERR,"Pair style requires a KSpace style");
     for (i=0; style6[i]&&strcmp(force->kspace_style, style6[i]); ++i);
     if (!style6[i])
-      error->all(FLERR,"Pair style is incompatible with KSpace style");
+      error->all(FLERR,"Pair style requires use of kspace_style ewald/disp");
   }
   if (force->kspace) g_ewald = force->kspace->g_ewald;
 }

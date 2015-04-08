@@ -18,6 +18,7 @@
 #include "mpi.h"
 #include "math.h"
 #include "string.h"
+#include "stdlib.h"
 #include "compute_temp_deform_eff.h"
 #include "domain.h"
 #include "atom.h"
@@ -92,7 +93,6 @@ void ComputeTempDeformEff::setup()
 {
   dynamic = 0;
   if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
-  fix_dof = -1;
   dof_compute();
 }
 
@@ -100,8 +100,9 @@ void ComputeTempDeformEff::setup()
 
 void ComputeTempDeformEff::dof_compute()
 {
-  double natoms = group->count(igroup);
-  dof = domain->dimension * natoms;
+  adjust_dof_fix();
+  natoms_temp = group->count(igroup);
+  dof = domain->dimension * natoms_temp;
   dof -= extra_dof + fix_dof;
 
   // just include nuclear dof
@@ -113,12 +114,13 @@ void ComputeTempDeformEff::dof_compute()
   int one = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (fabs(spin[i]) == 1) one++;
+      if (abs(spin[i]) == 1) one++;
     }
   int nelectrons;
   MPI_Allreduce(&one,&nelectrons,1,MPI_INT,MPI_SUM,world);
 
   // Assume 3/2 k T per nucleus
+
   dof -= domain->dimension * nelectrons;
 
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
@@ -166,12 +168,14 @@ double ComputeTempDeformEff::compute_scalar()
       if (mass) {
         t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
               vthermal[2]*vthermal[2])* mass[type[i]];
-        if (fabs(spin[i])==1) t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
+        if (abs(spin[i])==1) t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
       }
     }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
+  if (dof < 0.0 && natoms_temp > 0.0) 
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }
@@ -218,7 +222,7 @@ void ComputeTempDeformEff::compute_vector()
       t[3] += massone * vthermal[0]*vthermal[1];
       t[4] += massone * vthermal[0]*vthermal[2];
       t[5] += massone * vthermal[1]*vthermal[2];
-      if (fabs(spin[i])==1) {
+      if (abs(spin[i])==1) {
         t[0] += mefactor * massone * ervel[i]*ervel[i];
         t[1] += mefactor * massone * ervel[i]*ervel[i];
         t[2] += mefactor * massone * ervel[i]*ervel[i];

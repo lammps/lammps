@@ -37,6 +37,7 @@ void *lammps_extract_compute(void *, char *, int, int);
 void *lammps_extract_fix(void *, char *, int, int, int, int);
 void *lammps_extract_variable(void *, char *, char *);
 
+int lammps_set_variable(void *, char *, char *);
 int lammps_get_natoms(void *);
 void lammps_gather_atoms(void *, char *, int, int, void *);
 void lammps_scatter_atoms(void *, char *, int, int, void *);

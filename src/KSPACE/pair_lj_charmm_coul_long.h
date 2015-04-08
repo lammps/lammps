@@ -30,11 +30,11 @@ class PairLJCharmmCoulLong : public Pair {
   virtual ~PairLJCharmmCoulLong();
 
   virtual void compute(int, int);
-  void settings(int, char **);
+  virtual void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
+  virtual void init_style();
   void init_list(int, class NeighList *);
-  double init_one(int, int);
+  virtual double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
@@ -61,7 +61,7 @@ class PairLJCharmmCoulLong : public Pair {
   double *cut_respa;
   double g_ewald;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

@@ -19,7 +19,7 @@
 
 <LI>bond_type = bond type to apply SRP interactions 
 
-<LI>dist = <I>min</I> or <I>mid</I> 
+<LI>distance = <I>min</I> or <I>mid</I> 
 
 <LI>zero or more keyword/value pairs may be appended 
 
@@ -36,7 +36,12 @@ pair_coeff 1 1 dpd 60.0 4.5 1.0
 pair_coeff 1 2 none 
 pair_coeff 2 2 srp 100.0 0.8 
 </PRE>
-<PRE>pair_style hybrid srp 0.8 1 mid exclude yes
+<PRE>pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 1 min exclude yes
+pair_coeff 1 1 dpd 60.0 50 1.0 
+pair_coeff 1 2 none 
+pair_coeff 2 2 srp 40.0 
+</PRE>
+<PRE>pair_style hybrid srp 0.8 2 mid 
 pair_coeff 1 1 none 
 pair_coeff 1 2 none 
 pair_coeff 2 2 srp 100.0 0.8 
@@ -74,7 +79,7 @@ the data file or restart file read by the <A HREF = "read_data.html">read_data</
 or <A HREF = "read_restart.html">read_restart</A> commands:
 </P>
 <UL><LI><I>C</I> (force units)
-<LI><I>Rc</I> (distance units) 
+<LI><I>rc</I> (distance units) 
 </UL>
 <P>The last coefficient is optional. If not specified, the global cutoff
 is used.
@@ -95,15 +100,16 @@ there are no regular atoms of <I>bptype</I>.
 </P>
 <P>The optional <I>exclude</I> keyword determines if forces are computed
 between first neighbor (directly connected) bonds.  For a setting of
-<I>yes</I> they are, for <I>no</I> they are not.
+<I>no</I>, first neighbor forces are computed; for <I>yes</I> they are not computed. A setting of <I>no</I>
+cannot be used with the <I>min</I> option for distance calculation because the the minimum distance between 
+directly connected bonds is zero.
 </P>
 <P>Pair style <I>srp</I> turns off normalization of thermodynamic properties
 by particle number, as if the command <A HREF = "thermo_modify.html">thermo_modify norm
-no</A> had been issued.  A warning will be given if
-this setting is overridden in the input script.
+no</A> had been issued.  
 </P>
 <P>The pairwise energy associated with style <I>srp</I> is shifted to be zero
-at the cutoff distance <I>Rc</I>.
+at the cutoff distance <I>rc</I>.
 </P>
 <HR>
 
@@ -158,7 +164,7 @@ for non-bonded interactions.
 
 <A NAME = "Sirk"></A>
 
-<P><B>(Sirk)</B> Sirk TW, Slizoberg YR, Brennan JK, Lisal M, Andzelm JW, J
+<P><B>(Sirk)</B> Sirk TW, Sliozberg YR, Brennan JK, Lisal M, Andzelm JW, J
 Chem Phys, 136 (13) 134903, 2012.
 </P>
 </HTML>

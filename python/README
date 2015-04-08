@@ -1,6 +1,6 @@
 This directory contains Python code which wraps LAMMPS as a library
 and allows the LAMMPS library interface to be invoked from Python,
-either from a script or interactively.
+either from a Python script or using Python interactively.
 
 Details on the Python interface to LAMMPS and how to build LAMMPS as a
 shared library, for use with Python, are given in
@@ -8,24 +8,29 @@ doc/Section_python.html and in doc/Section_start.html#start_5.
 
 Basically you need to follow these steps in the src directory:
 
-% make makeshlib                # creates Makefile.shlib
-% make -f Makefile.shlib g++    # build for whatever machine target you wish
+% make g++ mode=shlib           # build for whatever machine target you wish
 % make install-python           # may need to do this via sudo
 
-You can replace the last step with running the python/install.py
-script directly to give you more control over where two relevant files
-are installed, or by setting environment variables in your shell
-script.  See doc/Section_python.html for details.
+You can replace the last step by a one-time setting of environment
+variables in your shell script.  Or you can run the python/install.py
+script directly to give you more control over where the two relevant
+files are installed.  See doc/Section_python.html for details.
 
-You can then launch Python and instantiate an instance of LAMMPS:
+You should then be able to launch Python and instantiate an instance
+of LAMMPS:
 
 % python
 >>> from lammps import lammps
 >>> lmp = lammps()
 
 If that gives no errors, you have succesfully wrapped LAMMPS with
-Python.  See doc/Section_python.html#py_5 for tests you can then use
+Python.  See doc/Section_python.html#py_7 for tests you can then use
 to run LAMMPS both in serial or parallel thru Python.
+
+Note that you can also invoke Python code from within a LAMMPS input
+script, using the "python" command.  See the doc/python.html doc page
+for details.  The Python code you invoke can also call back to LAMMPS
+using the same interface described here for wrapping LAMMPS.
 
 -------------------------------------------------------------------
 

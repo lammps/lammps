@@ -175,14 +175,13 @@ are given in the compute section of "this
 page"_Section_commands.html#cmd_5.
 
 "angle/local"_compute_bond_local.html - theta and energy of each angle
-"atom/molecule"_compute_atom_molecule.html - sum per-atom properties for each molecule
 "body/local"_compute_body_local.html - attributes of body sub-particles
 "bond/local"_compute_bond_local.html - distance and energy of each bond
 "centro/atom"_compute_centro_atom.html - centro-symmetry parameter for each atom
 "cluster/atom"_compute_cluster_atom.html - cluster ID for each atom
 "cna/atom"_compute_cna_atom.html - common neighbor analysis (CNA) for each atom
 "com"_compute_com.html - center-of-mass of group of atoms
-"com/molecule"_compute_com_molecule.html - center-of-mass for each molecule
+"com/chunk"_compute_com_chunk.html - center-of-mass for each chunk
 "contact/atom"_compute_contact_atom.html - contact count for each spherical particle
 "coord/atom"_compute_coord_atom.html - coordination number for each atom
 "damage/atom"_compute_damage_atom.html - Peridynamic damage for each atom
@@ -196,15 +195,15 @@ page"_Section_commands.html#cmd_5.
 "event/displace"_compute_event_displace.html - detect event on atom displacement
 "group/group"_compute_group_group.html - energy/force between two groups of atoms
 "gyration"_compute_gyration.html - radius of gyration of group of atoms
-"gyration/molecule"_compute_gyration_molecule.html - radius of gyration for each molecule
+"gyration/chunk"_compute_gyration_chunk.html - radius of gyration for each chunk
 "heat/flux"_compute_heat_flux.html - heat flux through a group of atoms
 "improper/local"_compute_improper_local.html - angle of each improper
-"inertia/molecule"_compute_inertia_molecule.html - inertia tensor for each molecule
+"inertia/chunk"_compute_inertia_chunk.html - inertia tensor for each chunk
 "ke"_compute_ke.html - translational kinetic energy
 "ke/atom"_compute_ke_atom.html - kinetic energy for each atom
 "ke/rigid"_compute_ke_rigid.html - translational kinetic energy of rigid bodies
 "msd"_compute_msd.html - mean-squared displacement of group of atoms
-"msd/molecule"_compute_msd_molecule.html - mean-squared displacement for each molecule
+"msd/chunk"_compute_msd_chunk.html - mean-squared displacement for each chunk
 "msd/nongauss"_compute_msd_nongauss.html - MSD and non-Gaussian parameter of group of atoms
 "pair"_compute_pair.html - values computed by a pair style
 "pair/local"_compute_pair_local.html - distance/energy/force of each pairwise interaction
@@ -214,7 +213,7 @@ page"_Section_commands.html#cmd_5.
 "pressure"_compute_pressure.html - total pressure and pressure tensor
 "property/atom"_compute_property_atom.html - convert atom attributes to per-atom vectors/arrays
 "property/local"_compute_property_local.html - convert local attributes to localvectors/arrays
-"property/molecule"_compute_property_molecule.html - convert molecule attributes to localvectors/arrays
+"property/chunk"_compute_property_chunk.html - extract various per-chunk attributes
 "rdf"_compute_rdf.html - radial distribution function g(r) histogram of group of atoms
 "reduce"_compute_reduce.html - combine per-atom quantities into a single global value
 "reduce/region"_compute_reduce.html - same as compute reduce, within a region
@@ -225,6 +224,7 @@ page"_Section_commands.html#cmd_5.
 "stress/atom"_compute_stress_atom.html - stress tensor for each atom
 "temp"_compute_temp.html - temperature of group of atoms
 "temp/asphere"_compute_temp_asphere.html - temperature of aspherical particles
+"temp/chunk"_compute_temp_chunk.html - temperature of each chunk
 "temp/com"_compute_temp_com.html - temperature after subtracting center-of-mass velocity
 "temp/deform"_compute_temp_deform.html - temperature excluding box deformation velocity
 "temp/partial"_compute_temp_partial.html - temperature excluding one or more dimensions of velocity
@@ -233,7 +233,9 @@ page"_Section_commands.html#cmd_5.
 "temp/region"_compute_temp_region.html - temperature of a region of atoms
 "temp/sphere"_compute_temp_sphere.html - temperature of spherical particles
 "ti"_compute_ti.html - thermodyanmic integration free energy values
+"torque/chunk"_compute_torque_chunk.html - torque applied on each chunk
 "vacf"_compute_vacf.html - velocity-autocorrelation function of group of atoms
+"vcm/chunk"_compute_vcm_chunk.html - velocity of center-of-mass for each chunk
 "voronoi/atom"_compute_voronoi_atom.html - Voronoi volume and neighbors for each atom :ul
 
 There are also additional compute styles submitted by users which are

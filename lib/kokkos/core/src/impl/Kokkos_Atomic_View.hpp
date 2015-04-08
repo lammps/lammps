@@ -48,6 +48,10 @@
 namespace Kokkos {
 namespace Impl {
 
+//The following tag is used to prevent an implicit call of the constructor when trying
+//to assign a literal 0 int ( = 0 );
+struct AtomicViewConstTag {};
+
 template<class ViewTraits>
 class AtomicDataElement {
 public:
@@ -57,7 +61,7 @@ public:
   volatile value_type* const ptr;
 
   KOKKOS_INLINE_FUNCTION
-  AtomicDataElement(value_type* ptr_):ptr(ptr_){}
+  AtomicDataElement(value_type* ptr_, AtomicViewConstTag ):ptr(ptr_){}
 
   KOKKOS_INLINE_FUNCTION
   const_value_type operator = (const_value_type& val) const {
@@ -385,14 +389,20 @@ template<class ViewTraits>
 class AtomicViewDataHandle {
 public:
   typename ViewTraits::value_type* ptr;
+
   KOKKOS_INLINE_FUNCTION
   AtomicViewDataHandle(typename ViewTraits::value_type* ptr_):ptr(ptr_){}
 
   template<class iType>
   KOKKOS_INLINE_FUNCTION
   AtomicDataElement<ViewTraits> operator[] (const iType& i) const {
-    return AtomicDataElement<ViewTraits>(ptr+i);
+    return AtomicDataElement<ViewTraits>(ptr+i,AtomicViewConstTag());
   }
+
+
+  KOKKOS_INLINE_FUNCTION
+  operator typename ViewTraits::value_type * () const { return ptr ; }
+
 };
 
 template<unsigned Size>
@@ -408,10 +418,16 @@ struct Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars<8> {
   typedef int64_t type;
 };
 
+// Must be non-const, atomic access trait, and 32 or 64 bit type for true atomics.
 template<class ViewTraits>
-class ViewDataHandle<ViewTraits,
-typename enable_if<(!is_same<typename ViewTraits::const_value_type,typename ViewTraits::value_type>::value) &&
-                   (ViewTraits::memory_traits::Atomic) >::type> {
+class ViewDataHandle<
+  ViewTraits ,
+  typename enable_if<
+    ( ! is_same<typename ViewTraits::const_value_type,typename ViewTraits::value_type>::value) &&
+    ( ViewTraits::memory_traits::Atomic )
+  >::type >
+{
+private:
 //  typedef typename if_c<(sizeof(typename ViewTraits::const_value_type)==4) || 
 //                        (sizeof(typename ViewTraits::const_value_type)==8), 
 //                         int, Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars >::type 
@@ -420,23 +436,13 @@ typename enable_if<(!is_same<typename ViewTraits::const_value_type,typename View
   typedef ViewDataHandle self_type;
 
 public:
-  enum {ReferenceAble = 0};
-  typedef Impl::AtomicViewDataHandle<ViewTraits> type;
-  typedef Impl::AtomicDataElement<ViewTraits> return_type;
+  enum {  ReturnTypeIsReference = false };
 
-  static type allocate(std::string label, size_t count) {
-    return type((typename ViewTraits::value_type*)
-                ViewTraits::memory_space::allocate( label ,
-                typeid(typename ViewTraits::value_type) ,
-                sizeof(typename ViewTraits::value_type) ,
-                count ));
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  static typename ViewTraits::value_type* get_raw_ptr(type handle) {
-    return handle.ptr;
-  }
+  typedef Impl::AtomicViewDataHandle<ViewTraits> handle_type;
+  typedef Impl::AtomicDataElement<ViewTraits>    return_type;
 };
+
 }
 }
+
 #endif

@@ -39,26 +39,28 @@ packages, more details are provided.
 The current list of standard packages is as follows:
 
 Package, Description, Author(s), Doc page, Example, Library
-ASPHERE, aspherical particles, -, "Section_howto"_Section_howto.html#howto_14, ellipse, -
+ASPHERE, aspherical particles, -, "Section_howto 6.14"_Section_howto.html#howto_14, ellipse, -
 BODY, body-style particles, -, "body"_body.html, body, -
 CLASS2, class 2 force fields, -, "pair_style lj/class2"_pair_class2.html, -, -
 COLLOID, colloidal particles, -, "atom_style colloid"_atom_style.html, colloid, -
+CORESHELL, adiabatic core/shell model, Hendrik Heenen (Technical U of Munich), "Section_howto 6.25"_Section_howto.html#howto_25, coreshell, -
 DIPOLE, point dipole particles, -, "pair_style dipole/cut"_pair_dipole.html, dipole, -
 FLD, Fast Lubrication Dynamics, Kumar & Bybee & Higdon (1), "pair_style lubricateU"_pair_lubricateU.html, -, -
-GPU, GPU-enabled styles, Mike Brown (ORNL), "Section accelerate"_Section_accelerate.html#acc_6, gpu, lib/gpu
-GRANULAR, granular systems, -, "Section_howto"_Section_howto.html#howto_6, pour, -
+GPU, GPU-enabled styles, Mike Brown (ORNL), "Section accelerate"_accelerate_gpu.html, gpu, lib/gpu
+GRANULAR, granular systems, -, "Section_howto 6.6"_Section_howto.html#howto_6, pour, -
 KIM, openKIM potentials, Smirichinski & Elliot & Tadmor (3), "pair_style kim"_pair_kim.html, kim, KIM
-KOKKOS, Kokkos-enabled styles, Trott & Edwards (4), "Section_accelerate"_Section_accelerate.html#acc_8, kokkos, lib/kokkos
+KOKKOS, Kokkos-enabled styles, Trott & Edwards (4), "Section_accelerate"_accelerate_kokkos.html, kokkos, lib/kokkos
 KSPACE, long-range Coulombic solvers, -, "kspace_style"_kspace_style.html, peptide, -
 MANYBODY, many-body potentials, -, "pair_style tersoff"_pair_tersoff.html, shear, -
 MEAM, modified EAM potential, Greg Wagner (Sandia), "pair_style meam"_pair_meam.html, meam, lib/meam
 MC, Monte Carlo options, -, "fix gcmc"_fix_gcmc.html, -, -
-MOLECULE, molecular system force fields, -, "Section_howto"_Section_howto.html#howto_3, peptide, -
-OPT, optimized pair styles, Fischer & Richie & Natoli (2), "Section accelerate"_Section_accelerate.html#acc_4, -, -
+MOLECULE, molecular system force fields, -, "Section_howto 6.3"_Section_howto.html#howto_3, peptide, -
+OPT, optimized pair styles, Fischer & Richie & Natoli (2), "Section accelerate"_accelerate_opt.html, -, -
 PERI, Peridynamics models, Mike Parks (Sandia), "pair_style peri"_pair_peri.html, peri, -
 POEMS, coupled rigid body motion, Rudra Mukherjee (JPL), "fix poems"_fix_poems.html, rigid, lib/poems
+PYTHON, embed Python code in an input script, -, "python"_python.html, python, lib/python
 REAX, ReaxFF potential, Aidan Thompson (Sandia), "pair_style reax"_pair_reax.html, reax,  lib/reax
-REPLICA, multi-replica methods, -, "Section_howto"_Section_howto.html#howto_5, tad, -
+REPLICA, multi-replica methods, -, "Section_howto 6.5"_Section_howto.html#howto_5, tad, -
 RIGID, rigid bodies, -, "fix rigid"_fix_rigid.html, rigid, -
 SHOCK, shock loading methods, -, "fix msst"_fix_msst.html, -, -
 SNAP, quantum-fit potential, Aidan Thompson (Sandia), "pair snap"_pair_snap.html, snap, -
@@ -115,16 +117,17 @@ USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (2), "fix at
 USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
 USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
 USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
-USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_Section_accelerate.html#acc_7, USER/cuda, -, lib/cuda
+USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_accelerate_cuda.html, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferrand), "fix adapt/fep"_fix_adapt.html, USER/fep, -, -
-USER-INTEL, Vectorized CPU and Intel(R) coprocessor styles, W. Michael Brown (Intel), "Section accelerate"_Section_accelerate.html#acc_9, examples/intel, -, -
+USER-INTEL, Vectorized CPU and Intel(R) coprocessor styles, W. Michael Brown (Intel), "Section accelerate"_accelerate_intel.html, examples/intel, -, -
 USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
 USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
 USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
-USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_Section_accelerate.html#acc_5, -, -, -
+USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_accelerate_omp.html, -, -, -
 USER-PHONON, phonon dynamical matrix, Ling-Ti Kong (Shanghai Jiao Tong U), "fix phonon"_fix_phonon.html, USER/phonon, -, -
-USER-QMMM, QM/MM coupling, Axel Kohlmeyer (Temple U), "fix qmmm"_fix_qmmm.html, lib/qmmm/example1, -, lib/qmmm
+USER-QMMM, QM/MM coupling, Axel Kohlmeyer (Temple U), "fix qmmm"_fix_qmmm.html, USER/qmmm, -, lib/qmmm
+USER-QUIP, QM/MM coupling, Albert Bartok-Partay (U Cambridge), "fix quip"_fix_quip.html, USER/quip, -, lib/quip
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
 USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_USER/sph/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
 :tb(ea=c)

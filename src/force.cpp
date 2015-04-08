@@ -173,7 +173,7 @@ Pair *Force::new_pair(const char *style, int trysuffix, int &sflag)
     return pair_creator(lmp);
   }
 
-  error->all(FLERR,"Invalid pair style");
+  error->all(FLERR,"Unknown pair style");
   return NULL;
 }
 
@@ -288,7 +288,7 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
 #include "style_bond.h"
 #undef BOND_CLASS
 
-  else error->all(FLERR,"Invalid bond style");
+  else error->all(FLERR,"Unknown bond style");
   return NULL;
 }
 
@@ -368,7 +368,7 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
 #include "style_angle.h"
 #undef ANGLE_CLASS
 
-  else error->all(FLERR,"Invalid angle style");
+  else error->all(FLERR,"Unknown angle style");
   return NULL;
 }
 
@@ -434,7 +434,7 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
 #undef DihedralStyle
 #undef DIHEDRAL_CLASS
 
-  else error->all(FLERR,"Invalid dihedral style");
+  else error->all(FLERR,"Unknown dihedral style");
   return NULL;
 }
 
@@ -499,7 +499,7 @@ Improper *Force::new_improper(const char *style, int trysuffix, int &sflag)
 #include "style_improper.h"
 #undef IMPROPER_CLASS
 
-  else error->all(FLERR,"Invalid improper style");
+  else error->all(FLERR,"Unknown improper style");
   return NULL;
 }
 
@@ -583,7 +583,7 @@ KSpace *Force::new_kspace(int narg, char **arg, int trysuffix, int &sflag)
 #include "style_kspace.h"
 #undef KSPACE_CLASS
 
-  else error->all(FLERR,"Invalid kspace style");
+  else error->all(FLERR,"Unknown kspace style");
   return NULL;
 }
 
@@ -677,21 +677,21 @@ void Force::set_special(int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"lj/coul") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_lj[1] = special_coul[1] = atof(arg[iarg+1]);
-      special_lj[2] = special_coul[2] = atof(arg[iarg+2]);
-      special_lj[3] = special_coul[3] = atof(arg[iarg+3]);
+      special_lj[1] = special_coul[1] = numeric(FLERR,arg[iarg+1]);
+      special_lj[2] = special_coul[2] = numeric(FLERR,arg[iarg+2]);
+      special_lj[3] = special_coul[3] = numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"lj") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_lj[1] = atof(arg[iarg+1]);
-      special_lj[2] = atof(arg[iarg+2]);
-      special_lj[3] = atof(arg[iarg+3]);
+      special_lj[1] = numeric(FLERR,arg[iarg+1]);
+      special_lj[2] = numeric(FLERR,arg[iarg+2]);
+      special_lj[3] = numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"coul") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_coul[1] = atof(arg[iarg+1]);
-      special_coul[2] = atof(arg[iarg+2]);
-      special_coul[3] = atof(arg[iarg+3]);
+      special_coul[1] = numeric(FLERR,arg[iarg+1]);
+      special_coul[2] = numeric(FLERR,arg[iarg+2]);
+      special_coul[3] = numeric(FLERR,arg[iarg+3]);
       iarg += 4;
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");

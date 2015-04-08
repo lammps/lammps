@@ -18,6 +18,7 @@
 #include "mpi.h"
 #include "math.h"
 #include "string.h"
+#include "stdlib.h"
 #include "compute_temp_eff.h"
 #include "atom.h"
 #include "update.h"
@@ -58,7 +59,6 @@ void ComputeTempEff::setup()
 {
   dynamic = 0;
   if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
-  fix_dof = -1;
   dof_compute();
 }
 
@@ -66,9 +66,9 @@ void ComputeTempEff::setup()
 
 void ComputeTempEff::dof_compute()
 {
-  if (fix_dof) adjust_dof_fix();
-  double natoms = group->count(igroup);
-  dof = domain->dimension * natoms;
+  adjust_dof_fix();
+  natoms_temp = group->count(igroup);
+  dof = domain->dimension * natoms_temp;
   dof -= extra_dof + fix_dof;
 
   int *spin = atom->spin;
@@ -78,7 +78,7 @@ void ComputeTempEff::dof_compute()
   int one = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (fabs(spin[i])==1) one++;
+      if (abs(spin[i])==1) one++;
     }
   int nelectrons;
   MPI_Allreduce(&one,&nelectrons,1,MPI_INT,MPI_SUM,world);
@@ -113,13 +113,15 @@ double ComputeTempEff::compute_scalar()
       if (mask[i] & groupbit) {
         t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
           mass[type[i]];
-        if (fabs(spin[i])==1) t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
+        if (abs(spin[i])==1) t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
       }
     }
   }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
+  if (dof < 0.0 && natoms_temp > 0.0) 
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }
@@ -153,7 +155,7 @@ void ComputeTempEff::compute_vector()
       t[3] += massone * v[i][0]*v[i][1];
       t[4] += massone * v[i][0]*v[i][2];
       t[5] += massone * v[i][1]*v[i][2];
-      if (fabs(spin[i])==1) {
+      if (abs(spin[i])==1) {
         t[0] += mefactor*massone*ervel[i]*ervel[i];
         t[1] += mefactor*massone*ervel[i]*ervel[i];
         t[2] += mefactor*massone*ervel[i]*ervel[i];

@@ -90,7 +90,8 @@ class Molecule : protected Pointers {
   double ex[3],ey[3],ez[3]; // principal axes of molecule in space coords
   double quat[4];           // quaternion for orientation of molecule
 
-  double molradius;    // radius of molecule from COM,
+  double maxradius;    // max radius of any atom in molecule
+  double molradius;    // radius of molecule from geometric center
                        // including finite-size particle radii 
   int comatom;         // index (1-Natom) of atom closest to COM
   double maxextent;    // furthest any atom in molecule is from comatom
@@ -201,6 +202,10 @@ E: Molecule file needs both Special Bond sections
 Self-explanatory.
 
 E: Molecule file has special flags but no bonds
+
+Self-explanatory.
+
+E: Molecule file has bonds but no special flags
 
 Self-explanatory.
 

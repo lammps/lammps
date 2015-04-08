@@ -67,7 +67,6 @@ private:
 
   void  * m_scratch_alloc ;  ///< Scratch memory [ reduce , team , shared ]
   int     m_reduce_end ;     ///< End of scratch reduction memory
-  int     m_shared_iter ;    ///< Iterator through scratch memory.
 
   int     m_shepherd_rank ;
   int     m_shepherd_size ;
@@ -146,11 +145,12 @@ public:
 
   //----------------------------------------
   /** Reduce across all workers participating in the 'exec_all' */
-  template< class FunctorType >
+  template< class FunctorType , class ArgTag >
   inline
   void exec_all_reduce( const FunctorType & func ) const
     {
-      typedef ReduceAdapter< FunctorType >  Reduce ;
+      typedef Kokkos::Impl::FunctorValueJoin< FunctorType , ArgTag > ValueJoin ;
+      typedef Kokkos::Impl::FunctorValueOps<  FunctorType , ArgTag > ValueOps ;
 
       const int rev_rank = m_worker_size - ( m_worker_rank + 1 );
 
@@ -161,7 +161,7 @@ public:
 
         Impl::spinwait( fan.m_worker_state , QthreadExec::Active );
 
-        Reduce::join( func , m_scratch_alloc , fan.m_scratch_alloc );
+        ValueJoin::join( func , m_scratch_alloc , fan.m_scratch_alloc );
       }
 
       if ( rev_rank ) {
@@ -176,11 +176,13 @@ public:
 
   //----------------------------------------
   /** Scall across all workers participating in the 'exec_all' */
-  template< class FunctorType >
+  template< class FunctorType , class ArgTag >
   inline
   void exec_all_scan( const FunctorType & func ) const
     {
-      typedef ReduceAdapter< FunctorType >  Reduce ;
+      typedef Kokkos::Impl::FunctorValueInit<   FunctorType , ArgTag > ValueInit ;
+      typedef Kokkos::Impl::FunctorValueJoin<   FunctorType , ArgTag > ValueJoin ;
+      typedef Kokkos::Impl::FunctorValueOps<    FunctorType , ArgTag > ValueOps ;
 
       const int rev_rank = m_worker_size - ( m_worker_rank + 1 );
 
@@ -201,17 +203,16 @@ public:
 
         // Copy from lower ranking to higher ranking worker.
         for ( int i = 1 ; i < n ; ++i ) {
-          Reduce::copy( func , m_worker_base[i-1]->m_scratch_alloc
-                             , m_worker_base[i]->m_scratch_alloc );
+          ValueOps::copy( func , m_worker_base[i-1]->m_scratch_alloc
+                           , m_worker_base[i]->m_scratch_alloc );
         }
 
-        Reduce::init( func , m_worker_base[n-1]->m_scratch_alloc );
+        ValueInit::init( func , m_worker_base[n-1]->m_scratch_alloc );
 
         // Join from lower ranking to higher ranking worker.
         // Value at m_worker_base[n-1] is zero so skip adding it to m_worker_base[n-2].
         for ( int i = n - 1 ; --i ; ) {
-          Reduce::join( func , m_worker_base[i-1]->m_scratch_alloc
-                             , m_worker_base[i]->m_scratch_alloc );
+          ValueJoin::join( func , m_worker_base[i-1]->m_scratch_alloc , m_worker_base[i]->m_scratch_alloc );
         }
       }
     
@@ -224,8 +225,91 @@ public:
 
   template< class Type>
   inline
-  volatile Type * shepherd_scan_value() const
+  volatile Type * shepherd_team_scratch_value() const
     { return (volatile Type*)(((unsigned char *) m_scratch_alloc) + m_reduce_end); }
+
+  template< class Type >
+  inline
+  Type shepherd_reduce( const int team_size , const Type & value ) const
+    {
+      *shepherd_team_scratch_value<Type>() = value ;
+
+      memory_fence();
+
+      const int rev_rank = team_size - ( m_shepherd_worker_rank + 1 );
+
+      int n , j ;
+
+      for ( n = 1 ; ( ! ( rev_rank & n ) ) && ( ( j = rev_rank + n ) < team_size ) ; n <<= 1 ) {
+        Impl::spinwait( m_shepherd_base[j]->m_worker_state , QthreadExec::Active );
+      }
+
+      if ( rev_rank ) {
+        m_worker_state = QthreadExec::Inactive ;
+        Impl::spinwait( m_worker_state , QthreadExec::Inactive );
+      }
+      else {
+        Type & accum = * m_shepherd_base[0]->shepherd_team_scratch_value<Type>();
+        for ( int i = 1 ; i < n ; ++i ) {
+          accum += * m_shepherd_base[i]->shepherd_team_scratch_value<Type>();
+        }
+        for ( int i = 1 ; i < n ; ++i ) {
+          * m_shepherd_base[i]->shepherd_team_scratch_value<Type>() = accum ;
+        }
+
+        memory_fence();
+      }
+
+      for ( n = 1 ; ( ! ( rev_rank & n ) ) && ( ( j = rev_rank + n ) < team_size ) ; n <<= 1 ) {
+        m_shepherd_base[j]->m_worker_state = QthreadExec::Active ;
+      }
+
+      return *shepherd_team_scratch_value<Type>();
+    }
+
+  template< class JoinOp >
+  inline
+  typename JoinOp::value_type
+    shepherd_reduce( const int team_size
+                   , const typename JoinOp::value_type & value
+                   , const JoinOp & op ) const
+    {
+      typedef typename JoinOp::value_type Type ;
+
+      *shepherd_team_scratch_value<Type>() = value ;
+
+      memory_fence();
+
+      const int rev_rank = team_size - ( m_shepherd_worker_rank + 1 );
+
+      int n , j ;
+
+      for ( n = 1 ; ( ! ( rev_rank & n ) ) && ( ( j = rev_rank + n ) < team_size ) ; n <<= 1 ) {
+        Impl::spinwait( m_shepherd_base[j]->m_worker_state , QthreadExec::Active );
+      }
+
+      if ( rev_rank ) {
+        m_worker_state = QthreadExec::Inactive ;
+        Impl::spinwait( m_worker_state , QthreadExec::Inactive );
+      }
+      else {
+        volatile Type & accum = * m_shepherd_base[0]->shepherd_team_scratch_value<Type>();
+        for ( int i = 1 ; i < n ; ++i ) {
+          op.join( accum , * m_shepherd_base[i]->shepherd_team_scratch_value<Type>() );
+        }
+        for ( int i = 1 ; i < n ; ++i ) {
+          * m_shepherd_base[i]->shepherd_team_scratch_value<Type>() = accum ;
+        }
+
+        memory_fence();
+      }
+
+      for ( n = 1 ; ( ! ( rev_rank & n ) ) && ( ( j = rev_rank + n ) < team_size ) ; n <<= 1 ) {
+        m_shepherd_base[j]->m_worker_state = QthreadExec::Active ;
+      }
+
+      return *shepherd_team_scratch_value<Type>();
+    }
 
   template< class Type >
   inline
@@ -233,9 +317,9 @@ public:
                     , const Type & value
                     ,       Type * const global_value = 0 ) const
     {
-      typedef volatile Type * pointer ;
+      *shepherd_team_scratch_value<Type>() = value ;
 
-      *shepherd_scan_value<Type>() = value ;
+      memory_fence();
 
       const int rev_rank = team_size - ( m_shepherd_worker_rank + 1 );
 
@@ -256,27 +340,29 @@ public:
 
         // Copy from lower ranking to higher ranking worker.
 
-        Type accum = * m_shepherd_base[0]->shepherd_scan_value<Type>();
+        Type accum = * m_shepherd_base[0]->shepherd_team_scratch_value<Type>();
         for ( int i = 1 ; i < n ; ++i ) {
-          const Type tmp = * m_shepherd_base[i]->shepherd_scan_value<Type>();
+          const Type tmp = * m_shepherd_base[i]->shepherd_team_scratch_value<Type>();
           accum += tmp ;
-          * m_shepherd_base[i-1]->shepherd_scan_value<Type>() = tmp ;
+          * m_shepherd_base[i-1]->shepherd_team_scratch_value<Type>() = tmp ;
         }
 
-        * m_shepherd_base[n-1]->shepherd_scan_value<Type>() =
+        * m_shepherd_base[n-1]->shepherd_team_scratch_value<Type>() =
           global_value ? atomic_fetch_add( global_value , accum ) : 0 ;
 
         // Join from lower ranking to higher ranking worker.
         for ( int i = n ; --i ; ) {
-          * m_shepherd_base[i-1]->shepherd_scan_value<Type>() += * m_shepherd_base[i]->shepherd_scan_value<Type>();
+          * m_shepherd_base[i-1]->shepherd_team_scratch_value<Type>() += * m_shepherd_base[i]->shepherd_team_scratch_value<Type>();
         }
+
+        memory_fence();
       }
     
       for ( n = 1 ; ( ! ( rev_rank & n ) ) && ( ( j = rev_rank + n ) < team_size ) ; n <<= 1 ) {
         m_shepherd_base[j]->m_worker_state = QthreadExec::Active ;
       }
 
-      return *shepherd_scan_value<Type>();
+      return *shepherd_team_scratch_value<Type>();
     }
 
   //----------------------------------------
@@ -289,7 +375,7 @@ public:
       return ( size + ALLOC_GRAIN_MASK ) & ~ALLOC_GRAIN_MASK ;
     }
 
-  void shared_reset();
+  void shared_reset( Qthread::scratch_memory_space & );
 
   void * exec_all_reduce_value() const { return m_scratch_alloc ; }
 
@@ -314,19 +400,148 @@ public:
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+namespace Impl {
 
-template< class WorkArgTag >
-class TeamPolicy< Kokkos::Qthread , WorkArgTag > {
+class QthreadTeamPolicyMember {
 private:
+
+  typedef Kokkos::Qthread                        execution_space ;
+  typedef execution_space::scratch_memory_space  scratch_memory_space ;
+
+
+        Impl::QthreadExec   & m_exec ;
+  scratch_memory_space        m_team_shared ;
+  const int                   m_team_size ;
+  const int                   m_team_rank ;
+  const int                   m_league_size ;
+  const int                   m_league_end ;
+        int                   m_league_rank ;
+
+public:
+
+  KOKKOS_INLINE_FUNCTION
+  const scratch_memory_space & team_shmem() const { return m_team_shared ; }
+
+  KOKKOS_INLINE_FUNCTION int league_rank() const { return m_league_rank ; }
+  KOKKOS_INLINE_FUNCTION int league_size() const { return m_league_size ; }
+  KOKKOS_INLINE_FUNCTION int team_rank() const { return m_team_rank ; }
+  KOKKOS_INLINE_FUNCTION int team_size() const { return m_team_size ; }
+
+  KOKKOS_INLINE_FUNCTION void team_barrier() const
+#if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+    {}
+#else
+    { m_exec.shepherd_barrier( m_team_size ); }
+#endif
+
+  template< typename Type >
+  KOKKOS_INLINE_FUNCTION Type team_reduce( const Type & value ) const
+#if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+    { return Type(); }
+#else
+    { return m_exec.template shepherd_reduce<Type>( m_team_size , value ); }
+#endif
+
+  template< typename JoinOp >
+  KOKKOS_INLINE_FUNCTION typename JoinOp::value_type
+    team_reduce( const typename JoinOp::value_type & value
+               , const JoinOp & op ) const
+#if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+    { return typename JoinOp::value_type(); }
+#else
+    { return m_exec.template shepherd_reduce<JoinOp>( m_team_size , value , op ); }
+#endif
+
+  /** \brief  Intra-team exclusive prefix sum with team_rank() ordering.
+   *
+   *  The highest rank thread can compute the reduction total as
+   *    reduction_total = dev.team_scan( value ) + value ;
+   */
+  template< typename Type >
+  KOKKOS_INLINE_FUNCTION Type team_scan( const Type & value ) const
+#if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+    { return Type(); }
+#else
+    { return m_exec.template shepherd_scan<Type>( m_team_size , value ); }
+#endif
+
+  /** \brief  Intra-team exclusive prefix sum with team_rank() ordering
+   *          with intra-team non-deterministic ordering accumulation.
+   *
+   *  The global inter-team accumulation value will, at the end of the
+   *  league's parallel execution, be the scan's total.
+   *  Parallel execution ordering of the league's teams is non-deterministic.
+   *  As such the base value for each team's scan operation is similarly
+   *  non-deterministic.
+   */
+  template< typename Type >
+  KOKKOS_INLINE_FUNCTION Type team_scan( const Type & value , Type * const global_accum ) const
+#if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+    { return Type(); }
+#else
+    { return m_exec.template shepherd_scan<Type>( m_team_size , value , global_accum ); }
+#endif
+
+  //----------------------------------------
+  // Private for the driver ( for ( member_type i(exec,team); i ; i.next_team() ) { ... }
+
+  // Initialize
+  template< class Arg0 , class Arg1 >
+  QthreadTeamPolicyMember( Impl::QthreadExec & exec , const TeamPolicy<Arg0,Arg1,Qthread> & team )
+    : m_exec( exec )
+    , m_team_shared(0,0)
+    , m_team_size(   team.m_team_size )
+    , m_team_rank(   exec.shepherd_worker_rank() )
+    , m_league_size( team.m_league_size )
+    , m_league_end(  team.m_league_size - team.m_shepherd_iter * ( exec.shepherd_size() - ( exec.shepherd_rank() + 1 ) ) )
+    , m_league_rank( m_league_end > team.m_shepherd_iter ? m_league_end - team.m_shepherd_iter : 0 )
+  {
+    m_exec.shared_reset( m_team_shared );
+  }
+
+  // Continue
+  operator bool () const { return m_league_rank < m_league_end ; }
+
+  // iterate
+  void next_team() { ++m_league_rank ; m_exec.shared_reset( m_team_shared ); }
+};
+
+} // namespace Impl
+
+template< class Arg0 , class Arg1 >
+class TeamPolicy< Arg0 , Arg1 , Kokkos::Qthread >
+{
+private:
+
   const int m_league_size ;
   const int m_team_size ;
   const int m_shepherd_iter ;
 
 public:
 
-  typedef Impl::ExecutionPolicyTag  kokkos_tag ;
-  typedef Qthread                   execution_space ;
+  //! Tag this class as a kokkos execution policy
+  typedef TeamPolicy  execution_policy ;
+  typedef Qthread     execution_space ;
 
+  typedef typename
+    Impl::if_c< ! Impl::is_same< Kokkos::Qthread , Arg0 >::value , Arg0 , Arg1 >::type
+      work_tag ;
+
+  //----------------------------------------
+
+  template< class FunctorType >
+  inline static
+  int team_size_max( const FunctorType & )
+    { return Qthread::instance().shepherd_worker_size(); }
+
+  template< class FunctorType >
+  static int team_size_recommended( const FunctorType & f )
+    { return team_size_max( f ); }
+
+  //----------------------------------------
+
+  inline int team_size()   const { return m_team_size ; }
+  inline int league_size() const { return m_league_size ; }
 
   // One active team per shepherd
   TeamPolicy( Kokkos::Qthread & q
@@ -351,77 +566,10 @@ public:
     {
     }
 
-  template< class FunctorType >
-  inline static
-  int team_size_max( const FunctorType & )
-    { return q.shepherd_worker_size(); }
+  typedef Impl::QthreadTeamPolicyMember member_type ;
 
-  class member_type {
-  private:
-          Impl::QthreadExec   & m_exec ;
-    const int                   m_team_size ;
-    const int                   m_team_rank ;
-    const int                   m_league_size ;
-    const int                   m_league_end ;
-          int                   m_league_rank ;
-
-  public:
-
-    KOKKOS_INLINE_FUNCTION
-    Kokkos::Qthread::scratch_memory_space team_shmem() const
-      { return Kokkos::Qthread::scratch_memory_space( m_exec ); }
-
-    KOKKOS_INLINE_FUNCTION int league_rank() const { return m_league_rank ; }
-    KOKKOS_INLINE_FUNCTION int league_size() const { return m_league_size ; }
-    KOKKOS_INLINE_FUNCTION int team_rank() const { return m_team_rank ; }
-    KOKKOS_INLINE_FUNCTION int team_size() const { return m_team_size ; }
-
-    KOKKOS_INLINE_FUNCTION void team_barrier() const
-      { m_exec.shepherd_barrier( m_team_size ); }
-
-    /** \brief  Intra-team exclusive prefix sum with team_rank() ordering.
-     *
-     *  The highest rank thread can compute the reduction total as
-     *    reduction_total = dev.team_scan( value ) + value ;
-     */
-    template< typename Type >
-    KOKKOS_INLINE_FUNCTION Type team_scan( const Type & value ) const
-      { return m_exec.template shepherd_scan<Type>( m_team_size , value ); }
-
-    /** \brief  Intra-team exclusive prefix sum with team_rank() ordering
-     *          with intra-team non-deterministic ordering accumulation.
-     *
-     *  The global inter-team accumulation value will, at the end of the
-     *  league's parallel execution, be the scan's total.
-     *  Parallel execution ordering of the league's teams is non-deterministic.
-     *  As such the base value for each team's scan operation is similarly
-     *  non-deterministic.
-     */
-    template< typename Type >
-    KOKKOS_INLINE_FUNCTION Type team_scan( const Type & value , Type * const global_accum ) const
-      { return m_exec.template shepherd_scan<Type>( m_team_size , value , global_accum ); }
-
-    //----------------------------------------
-    // Private for the driver ( for ( member_type i(exec,team); i ; i.next_team() ) { ... }
-
-    // Initialize
-    member_type( Impl::QthreadExec & exec , const TeamPolicy & team )
-      : m_exec( exec )
-      , m_team_size(   team.m_team_size )
-      , m_team_rank(   exec.shepherd_worker_rank() )
-      , m_league_size( team.m_league_size )
-      , m_league_end(  team.m_league_size - team.m_shepherd_iter * ( exec.shepherd_size() - ( exec.shepherd_rank() + 1 ) ) )
-      , m_league_rank( m_league_end > team.m_shepherd_iter ? m_league_end - team.m_shepherd_iter : 0 )
-    {}
-
-    // Continue
-    operator bool () const { return m_league_rank < m_league_end ; }
-
-    // iterate
-    void next_team() { ++m_league_rank ; }
-  };
+  friend class Impl::QthreadTeamPolicyMember ;
 };
-
 
 } /* namespace Kokkos */
 

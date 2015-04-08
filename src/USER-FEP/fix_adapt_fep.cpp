@@ -30,6 +30,7 @@
 #include "fix_store.h"
 #include "input.h"
 #include "variable.h"
+#include "respa.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -51,6 +52,7 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
   if (nevery < 0) error->all(FLERR,"Illegal fix adapt/fep command");
 
   dynamic_group_allow = 1;
+  create_attribute = 1;
 
   // count # of adaptations
 
@@ -171,11 +173,6 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
     if (adapt[m].which == PAIR)
       memory->create(adapt[m].array_orig,n+1,n+1,"adapt:array_orig");
 
-  // when adapting charge and using kspace, 
-  // need to recompute additional params in kspace->setup()
-
-  if (chgflag && force->kspace) force->kspace->qsum_update_flag = 1;
-
   id_fix_diam = id_fix_chg = NULL;
 }
 
@@ -193,8 +190,6 @@ FixAdaptFEP::~FixAdaptFEP()
   }
   delete [] adapt;
 
-  if (chgflag && force->kspace) force->kspace->qsum_update_flag = 0;
-
   // check nfix in case all fixes have already been deleted
 
   if (id_fix_diam && modify->nfix) modify->delete_fix(id_fix_diam);
@@ -210,6 +205,7 @@ int FixAdaptFEP::setmask()
   int mask = 0;
   mask |= PRE_FORCE;
   mask |= POST_RUN;
+  mask |= PRE_FORCE_RESPA;
   return mask;
 }
 
@@ -383,6 +379,9 @@ void FixAdaptFEP::init()
     if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
     fix_chg = (FixStore *) modify->fix[ifix];
   }
+
+  if (strstr(update->integrate_style,"respa"))
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -390,6 +389,14 @@ void FixAdaptFEP::init()
 void FixAdaptFEP::setup_pre_force(int vflag)
 {
   change_settings();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAdaptFEP::setup_pre_force_respa(int vflag, int ilevel)
+{
+  if (ilevel < nlevels_respa-1) return;
+  setup_pre_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -408,6 +415,14 @@ void FixAdaptFEP::pre_force(int vflag)
       return;
     change_settings();
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAdaptFEP::pre_force_respa(int vflag, int ilevel, int)
+{
+  if (ilevel < nlevels_respa-1) return;
+  pre_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -512,10 +527,9 @@ void FixAdaptFEP::change_settings()
 
   if (anypair) force->pair->reinit();
 
-  // re-setup KSpace if it exists and adapting charges
-  // since charges have changed
+  // reset KSpace charges if charges have changed
 
-  if (chgflag && force->kspace) force->kspace->setup();
+  if (chgflag && force->kspace) force->kspace->qsum_qsq();
 }
 
 /* ----------------------------------------------------------------------
@@ -568,5 +582,15 @@ void FixAdaptFEP::restore_settings()
   }
 
   if (anypair) force->pair->reinit();
-  if (chgflag && force->kspace) force->kspace->setup();
+  if (chgflag && force->kspace) force->kspace->qsum_qsq();
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's storage values, called when atom is created
+------------------------------------------------------------------------- */
+
+void FixAdaptFEP::set_arrays(int i)
+{
+  if (fix_diam) fix_diam->vstore[i] = atom->radius[i];
+  if (fix_chg) fix_chg->vstore[i] = atom->q[i];
 }

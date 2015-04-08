@@ -55,13 +55,15 @@ PairCoulLong::PairCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairCoulLong::~PairCoulLong()
 {
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
+  if (!copymode) {
+    if (allocated) {
+      memory->destroy(setflag);
+      memory->destroy(cutsq);
 
-    memory->destroy(scale);
+      memory->destroy(scale);
+    }
+    if (ftable) free_tables();
   }
-  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -237,7 +239,7 @@ void PairCoulLong::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/long requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
 

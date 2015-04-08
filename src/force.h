@@ -125,27 +125,31 @@ class Force : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-E: Invalid pair style
+E: Unknown pair style
 
 The choice of pair style is unknown.
 
-E: Invalid bond style
+E: Unknown bond style
 
 The choice of bond style is unknown.
 
-E: Invalid angle style
+E: Unknown angle style
 
 The choice of angle style is unknown.
 
-E: Invalid dihedral style
+E: Unknown dihedral style
 
 The choice of dihedral style is unknown.
 
-E: Invalid improper style
+E: Unknown improper style
 
 The choice of improper style is unknown.
 
-E: Invalid kspace style
+E: Cannot yet use KSpace solver with grid with comm style tiled
+
+This is current restriction in LAMMPS.
+
+E: Unknown kspace style
 
 The choice of kspace style is unknown.
 

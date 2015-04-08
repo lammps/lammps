@@ -51,6 +51,14 @@ if (test $mode = 1) then
     sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_USER_OMP |' ../Makefile.package
   fi
 
+  # need to delete a bunch of dependency files because they
+  # indirectly depend on user_cuda.h
+
+  for f in finish.d modify_cuda.d
+  do \
+    rm -f ../Obj_*/$f
+  done
+
   # force rebuild of files with LMP_USER_OMP switch
 
   touch ../accelerator_omp.h
@@ -60,6 +68,14 @@ elif (test $mode = 0) then
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*OMP[^ \t]* //' ../Makefile.package
   fi
+
+  # need to delete a bunch of dependency files because they
+  # indirectly depend on user_cuda.h
+
+  for f in finish.d modify_cuda.d
+  do \
+    rm -f ../Obj_*/$f
+  done
 
   # force rebuild of files with LMP_USER_OMP switch
 

@@ -34,7 +34,7 @@ template <typename TYPE, typename HTYPE>
                      const char *name)
 {
   data = TYPE(std::string(name),n1);
-#ifndef KOKKOS_USE_UVM
+#ifndef KOKKOS_USE_CUDA_UVM
   h_data = Kokkos::create_mirror_view(data);
 #else
   h_data = data;
@@ -49,7 +49,7 @@ template <typename TYPE, typename HTYPE>
                      int n1, const char *name)
 {
   data = TYPE(std::string(name),n1);
-#ifndef KOKKOS_USE_UVM
+#ifndef KOKKOS_USE_CUDA_UVM
   h_data = Kokkos::create_mirror_view(data);
 #else
   h_data = data;
@@ -86,18 +86,76 @@ void destroy_kokkos(TYPE data, typename TYPE::value_type* &array)
 ------------------------------------------------------------------------- */
 
 template <typename TYPE>
-TYPE create_kokkos(TYPE &data, int n1, int n2, const char *name)
+TYPE destroy_kokkos(TYPE &data)
 {
-  data = TYPE(name,n1,n2);
+  /*if(data.ptr_on_device()!=NULL)
+    free(data.ptr_on_device());*/
+  data = TYPE();
   return data;
 }
+
+template <typename TYPE>
+TYPE create_kokkos(TYPE &data, int n1, const char *name)
+{
+  /*typename TYPE::non_const_value_type* ptr = (typename TYPE::non_const_value_type*)
+    malloc(n1*sizeof(typename TYPE::non_const_value_type)*4);*/
+  data = TYPE(std::string(name),n1);
+  return data;
+}
+
+template <typename TYPE>
+TYPE create_kokkos(TYPE &data, int n1, int n2, const char *name)
+{
+  /*typename TYPE::non_const_value_type* ptr = (typename TYPE::non_const_value_type*)
+    malloc(n1*n2*sizeof(typename TYPE::non_const_value_type)*4);*/
+  data = TYPE(std::string(name),n1,n2);
+  return data;
+}
+
+template <typename TYPE>
+TYPE create_kokkos(TYPE &data, int n1, int n2, int n3 ,const char *name)
+{
+  /*typename TYPE::non_const_value_type* ptr = (typename TYPE::non_const_value_type*)
+    malloc(n1*n2*n3*sizeof(typename TYPE::non_const_value_type)*4);*/
+  data = TYPE(std::string(name),n1,n2,n3);
+  return data;
+}
+
+template <typename TYPE>
+TYPE create_kokkos(TYPE &data, int n1, int n2, int n3, int n4 ,const char *name)
+{
+  /*typename TYPE::non_const_value_type* ptr = (typename TYPE::non_const_value_type*)
+    malloc(n1*n2*n3*n4*sizeof(typename TYPE::non_const_value_type)*4);*/
+  data = TYPE(std::string(name),n1,n2,n3,n4);
+  return data;
+}
+
+template <typename TYPE>
+TYPE create_kokkos(TYPE &data, int n1, int n2, int n3, int n4, int n5 ,const char *name)
+{
+  /*typename TYPE::non_const_value_type* ptr = (typename TYPE::non_const_value_type*)
+    malloc(n1*n2*n3*n4*n5*sizeof(typename TYPE::non_const_value_type)*4);*/
+  data = TYPE(std::string(name),n1,n2,n3,n4,n5);
+  return data;
+}
+
+template <typename TYPE>
+TYPE create_kokkos(TYPE &data, int n1, int n2, int n3, int n4, int n5 , int n6 ,const char *name)
+{
+  /*typename TYPE::non_const_value_type* ptr = (typename TYPE::non_const_value_type*)
+    malloc(n1*n2*n3*n4*n5*n6*sizeof(typename TYPE::non_const_value_type)*4);*/
+  data = TYPE(std::string(name) ,n1,n2,n3,n4,n5,n6);
+  return data;
+}
+
+
 
 template <typename TYPE, typename HTYPE>
   TYPE create_kokkos(TYPE &data, HTYPE &h_data, int n1, int n2, 
                      const char *name)
 {
   data = TYPE(std::string(name),n1,n2);
-#ifndef KOKKOS_USE_UVM
+#ifndef KOKKOS_USE_CUDA_UVM
   h_data = Kokkos::create_mirror_view(data);
 #else
   h_data = data;
@@ -127,7 +185,7 @@ template <typename TYPE, typename HTYPE>
                      const char *name)
 {
   data = TYPE(std::string(name),n1,n2);
-#ifndef KOKKOS_USE_UVM
+#ifndef KOKKOS_USE_CUDA_UVM
   h_data = Kokkos::create_mirror_view(data);
 #else
   h_data = data;

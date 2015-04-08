@@ -269,7 +269,7 @@ in the fix section of "this page"_Section_commands.html#cmd_5.
 "tmd"_fix_tmd.html - guide a group of atoms to a new configuration
 "ttm"_fix_ttm.html - two-temperature model for electronic/atomic coupling
 "tune/kspace"_fix_tune_kspace.html - auto-tune KSpace parameters
-"vector"_vector.html - accumulate a global vector every N timesteps
+"vector"_fix_vector.html - accumulate a global vector every N timesteps
 "viscosity"_fix_viscosity.html - Muller-Plathe momentum exchange for \
      viscosity calculation
 "viscous"_fix_viscous.html - viscous damping for granular simulations

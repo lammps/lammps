@@ -37,7 +37,7 @@
 
 <LI>zero or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>mol</I>, <I>region</I>, <I>maxangle</I>, <I>pressure</I>, or <I>fugacity_coeff</I> 
+<LI>keyword = <I>mol</I>, <I>region</I>, <I>maxangle</I>, <I>pressure</I>, <I>fugacity_coeff</I>, <I>full_energy</I>, or <I>charge</I> 
 
 <PRE>  <I>mol</I> value = template-ID
     template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
@@ -48,13 +48,15 @@
   <I>maxangle</I> value = maximum molecular rotation angle (degrees) 
   <I>pressure</I> value = pressue of the gas reservoir (pressure units)
   <I>fugacity_coeff</I> value = fugacity coefficient of the gas reservoir (unitless) 
+  <I>full_energy</I> = compute the entire system energy when performing MC moves
+  <I>charge</I> value = charge of inserted atoms (charge units) 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix 2 gas gcmc 10 1000 1000 2 29494 298.0 -0.5 0.01
-fix 3 water gcmc 10 100 100 0 3456543 3.0 -2.5 0.1 mol my_one_water maxangle 180
+fix 3 water gcmc 10 100 100 0 3456543 3.0 -2.5 0.1 mol my_one_water maxangle 180 full_energy
 fix 4 my_gas gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk 
 </PRE>
 <P><B>Description:</B>
@@ -63,41 +65,45 @@ fix 4 my_gas gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk
 atoms or molecules of the given type with an imaginary ideal gas reservoir at
 the specified T and chemical potential (mu) as discussed in
 <A HREF = "#Frenkel">(Frenkel)</A>. If used with the <A HREF = "fix_nh.html">fix nvt</A> command,
-simulations in the grand canonical enemble (muVT, constant chemical
+simulations in the grand canonical ensemble (muVT, constant chemical
 potential, constant volume, and constant temperature) can be
 performed.  Specific uses include computing isotherms in microporous
 materials, or computing vapor-liquid coexistence curves.
 </P>
-<P>Perform up to X exchanges (on average) of gas atoms or molecules of the 
-given type between the simulation domain and the imaginary reservoir every N 
-timesteps. Also perform M (on average) Monte Carlo displacements or rotations 
-(for molecules) of gas of the given type within the simulation domain.
-M should typically be chosen to be approximately equal to the expected
-number of gas atoms or molecules of the given type within the domain, 
-which will result in roughly one MC translation per atom or molecule 
-per MC cycle.
+<P>Perform up to X exchanges (on average) of gas atoms or molecules of
+the given type between the simulation domain and the imaginary
+reservoir every N timesteps. Also perform M (on average) Monte Carlo
+displacements or rotations (for molecules) of gas of the given type
+within the simulation domain.  M should typically be chosen to be
+approximately equal to the expected number of gas atoms or molecules
+of the given type within the domain, which will result in roughly one
+MC translation per atom or molecule per MC cycle.
 </P>
-<P>For MC moves of molecular gasses, rotations and translations are each 
-attempted with 50% probability. For MC moves of atomic gasses, 
-translations are attempted 100% of the time. For MC exchanges of either
-molecular or atomic gasses, deletions and insertions are each attempted
-with 50% probability.
+<P>For MC moves of molecular gasses, rotations and translations are each
+attempted with 50% probability. For MC moves of atomic gasses,
+translations are attempted 100% of the time. For MC exchanges of
+either molecular or atomic gasses, deletions and insertions are each
+attempted with 50% probability.
 </P>
-<P>If inserted particles are individual atoms, they are assigned the
-specified atom type.  If they are molecules, the type of each atom in
-the inserted molecule is specified in the file read by the
-<A HREF = "molecule.html">molecule</A> command, and those values are added to the
-specified atom type.  E.g. if <I>type</I> = 2, and the file specifies atom
-types 1,2,3, then the inserted molecule will have atom types 3,4,5.
+<P>All inserted particles are assigned to two groups: the default group
+"all" and the group specified in the fix gcmc command (which can also
+be "all").  If inserted particles are individual atoms, they are
+assigned the specified atom type.  If they are molecules, the type of
+each atom in the inserted molecule is specified in the file read by
+the <A HREF = "molecule.html">molecule</A> command, and those values are added to
+the specified atom type.  E.g. if <I>type</I> = 2, and the file specifies
+atom types 1,2,3, then the inserted molecule will have atom types
+3,4,5.
 </P>
 <P>This fix cannot be used to perform MC insertions of gas atoms or
-molecules other than the exchanged type, but MC deletions, translations,
-and rotations can be performed on any atom/molecule in the fix group. 
-All atoms in the simulation domain can be moved using regular time 
-integration displacements, e.g. via <A HREF = "fix_nvt.html">fix_nvt</A>, resulting
-in a hybrid GCMC+MD simulation. A smaller-than-usual timestep size 
-may be needed when running such a hybrid simulation, especially if 
-the inserted molecules are not well equilibrated.
+molecules other than the exchanged type, but MC deletions,
+translations, and rotations can be performed on any atom/molecule in
+the fix group.  All atoms in the simulation domain can be moved using
+regular time integration displacements, e.g. via
+<A HREF = "fix_nvt.html">fix_nvt</A>, resulting in a hybrid GCMC+MD simulation. A
+smaller-than-usual timestep size may be needed when running such a
+hybrid simulation, especially if the inserted molecules are not well
+equilibrated.
 </P>
 <P>This command may optionally use the <I>region</I> keyword to define an 
 exchange and move volume.  The specified region must have been 
@@ -107,8 +113,8 @@ specified region. Move and deletion attempt candidates are selected
 from gas atoms or molecules within the region. If no candidate can be 
 found within the specified region after randomly selecting candidates 
 1000 times, the move or deletion attempt is considered a failure. Moves 
-must start within the specified region, but may move the atom or molecule
-slightly outside of the region.
+must start and end with the atom or molecule center-of-mass within the
+specified region. Moves are not otherwise attempted.
 </P>
 <P>If used with <A HREF = "fix_nvt.html">fix_nvt</A>, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature
@@ -122,13 +128,13 @@ interactions. Specifically, avoid performing so many MC displacements
 per timestep that atoms can move beyond the neighbor list skin
 distance. See the <A HREF = "neighbor.html">neighbor</A> command for details.
 </P>
-<P>When an atom or molecule is to be inserted, its center-of-mass 
-coordinates are chosen as a random position within the current 
-simulation domain, and new atom velocities are randomly chosen 
-from the specified temperature distribution given by T.  Relative 
+<P>When an atom or molecule is to be inserted, its center-of-mass
+coordinates are chosen as a random position within the current
+simulation domain, and new atom velocities are randomly chosen from
+the specified temperature distribution given by T.  Relative
 coordinates for atoms in a molecule are taken from the template
-molecule provided by the user. A random initial rotation is used in the
-case of molecule insertions.
+molecule provided by the user. A random initial rotation is used in
+the case of molecule insertions.
 </P>
 <P>Individual atoms are inserted, unless the <I>mol</I> keyword is used.  It
 specifies a <I>template-ID</I> previously defined using the
@@ -139,12 +145,11 @@ be specified in the molecule file.  See the <A HREF = "molecule.html">molecule</
 command for details.  The only settings required to be in this file
 are the coordinates and types of atoms in the molecule.
 </P>
-<P>When not using the <I>mol</I> keyword, you should ensure you do not
-delete only a portion of a molecule (only some of its atoms), or
-LAMMPS will soon generate an error when it tries to find those atoms.
-LAMMPS will warn you if any of the atoms eligible for deletion have a
-non-zero molecule ID, but does not check for this at the time of
-deletion.
+<P>When not using the <I>mol</I> keyword, you should ensure you do not delete
+only a portion of a molecule (only some of its atoms), or LAMMPS will
+soon generate an error when it tries to find those atoms.  LAMMPS will
+warn you if any of the atoms eligible for deletion have a non-zero
+molecule ID, but does not check for this at the time of deletion.
 </P>
 <P>If you wish to insert molecules via the <I>mol</I> keyword, that will have
 their bonds or angles constrained via SHAKE, use the <I>shake</I> keyword,
@@ -157,7 +162,10 @@ the angle in degrees. The specified angle will apply to all three
 Euler angles used internally to define the rotation matrix for
 molecular rotations. The max angle can be set to zero, but rotations
 will be pointless. Note that the default is ten degrees for each 
-Euler angle.
+Euler angle. Also note that fix GCMC does not do configurational bias 
+MC. In other words, while inserted molecules have different rotations, 
+they all have the same molecular configuration, which was specified 
+in the molecule command input.
 </P>
 <P>For atomic gasses, inserted atoms have the specified atom type, but
 deleted atoms are any atoms that have been inserted or that belong 
@@ -172,6 +180,42 @@ and the group specified in the fix gcmc command (which can also be
 keyword, in which case the user-specified chemical potential is 
 ignored. For non-ideal gas reservoirs, the user may also specify the 
 fugacity coefficient using the <I>fugacity_coeff</I> keyword.
+</P>
+<P>The <I>full_energy</I> option means that fix GCMC will compute the total
+potential energy of the entire simulated system. The total system
+energy before and after the proposed GCMC move is then used in the
+Metropolis criterion to determine whether or not to accept the 
+proposed GCMC move. By default, this option is off, in which case
+only partial energies are computed to determine the difference in
+energy that would be caused by the proposed GCMC move.
+</P>
+<P>The <I>full_energy</I> option is needed for systems with complicated
+potential energy calculations, including the following:
+</P>
+<UL><LI>  long-range electrostatics (kspace)
+<LI>  many body pair styles
+<LI>  hybrid pair styles
+<LI>  eam pair styles
+<LI>  triclinic systems 
+<LI>  need to include potential energy contributions from other fixes 
+</UL>
+<P>Some fixes have an associated potential energy. Examples of such fixes
+include: <A HREF = "fix_efield.html">efield</A>, <A HREF = "fix_gravity.html">gravity</A>, 
+<A HREF = "fix_addforce.html">addforce</A>, <A HREF = "fix_langevin.html">langevin</A>, 
+<A HREF = "fix_restrain.html">restrain</A>, <A HREF = "fix_temp_berendsen.html">temp/berendsen</A>, 
+<A HREF = "fix_temp_rescale.html">temp/rescale</A>, and <A HREF = "fix_wall.html">wall fixes</A>. 
+For that energy to be included in the total potential energy of the 
+system (the quantity used when performing GCMC moves),
+you MUST enable the <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for
+that fix.  The doc pages for individual <A HREF = "fix.html">fix</A> commands
+specify if this should be done.
+</P>
+<P>Use the <I>charge</I> option to insert atoms with a user-specified point 
+charge. Note that doing so will cause the system to become non-neutral. 
+LAMMPS issues a warning when using long-range electrostatics (kspace) 
+with non-neutral systems. See the 
+<A HREF = "compute_group_group.html">compute_group_group</A> documentation for more 
+details about simulating non-neutral systems with kspace on.
 </P>
 <P>Use of this fix typically will cause the number of atoms to fluctuate,
 therefore, you will want to use the
@@ -189,7 +233,7 @@ mass = 39.948 amu.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
-<P>This fix writes the state of the deposition to <A HREF = "restart.html">binary restart
+<P>This fix writes the state of the fix to <A HREF = "restart.html">binary restart
 files</A>.  This includes information about the random
 number generator seed, the next timestep for MC exchanges, etc.  See
 the <A HREF = "read_restart.html">read_restart</A> command for info on how to
@@ -199,9 +243,9 @@ the operation of the fix continues in an uninterrupted fashion.
 <P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
 fix.
 </P>
-<P>This fix computes a global vector of length 6, which can be accessed
+<P>This fix computes a global vector of length 8, which can be accessed
 by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The vector
-values are the following global cummulative quantities:
+values are the following global cumulative quantities:
 </P>
 <UL><LI>1 = displacement attempts
 <LI>2 = displacement successes
@@ -227,19 +271,8 @@ LAMMPS</A> section for more info.
 <P>Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is required.
 </P>
-<P>Only pairwise interactions, as defined by the
-<A HREF = "pair_style.html">pair_style</A> command, are included in this
-calculation.  Long-range interactions due to a
-<A HREF = "kspace_style.html">kspace_style</A> command are not included.  Not all
-pair potentials can be evaluated in a pairwise mode as required by
-this fix.  For example, 3-body potentials, such as
-<A HREF = "pair_tersoff.html">Tersoff</A> and <A HREF = "pair_sw.html">Stillinger-Weber</A> cannot
-be used.  <A HREF = "pair_eam.html">EAM</A> potentials for metals only include the
-pair potential portion of the EAM interaction, not the embedding term.
-</P>
 <P>Can be run in parallel, but aspects of the GCMC part will not scale 
-well in parallel. Only usable for 3D simulations with orthogonal 
-simulation cells.
+well in parallel. Only usable for 3D simulations.
 </P>
 <P>Note that very lengthy simulations involving insertions/deletions of
 billions of gas molecules may run out of atom or molecule IDs and
@@ -256,13 +289,14 @@ referenced by the user for each subsequent fix gcmc command.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_nvt.html">fix_nvt</A>, <A HREF = "neighbor.html">neighbor</A>, 
+<P><A HREF = "fix_atom_swap.html">fix_atom_swap</A>,
+<A HREF = "fix_nvt.html">fix_nvt</A>, <A HREF = "neighbor.html">neighbor</A>, 
 <A HREF = "fix_deposit.html">fix_deposit</A>, <A HREF = "fix_evaporate.html">fix_evaporate</A>,
 <A HREF = "delete_atoms.html">delete_atoms</A>
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are mol = no, maxangle = 10.
+<P>The option defaults are mol = no, maxangle = 10, full_energy = no.
 </P>
 <HR>
 

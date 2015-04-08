@@ -34,7 +34,10 @@
 6.19 <A HREF = "#howto_19">Library interface to LAMMPS</A><BR>
 6.20 <A HREF = "#howto_20">Calculating thermal conductivity</A><BR>
 6.21 <A HREF = "#howto_21">Calculating viscosity</A><BR>
-6.22 <A HREF = "#howto_22">Calculating a diffusion coefficient</A> <BR>
+6.22 <A HREF = "#howto_22">Calculating a diffusion coefficient</A><BR>
+6.23 <A HREF = "#howto_23">Using chunks to calculate system properties</A><BR>
+6.24 <A HREF = "#howto_24">Setting parameters for the kspace_style pppm/disp command</A><BR>
+6.25 <A HREF = "#howto_25">Adiabatic core/shell model</A> <BR>
 
 <P>The example input scripts included in the LAMMPS distribution and
 highlighted in <A HREF = "Section_example.html">Section_example</A> also show how to
@@ -1616,15 +1619,15 @@ pressure</A> command calculates pressure.
 <LI><A HREF = "compute_temp_ramp.html">compute temp/ramp</A>
 <LI><A HREF = "compute_temp_region.html">compute temp/region</A> 
 </UL>
-<P>All but the first 3 calculate velocity biases (i.e. advection
+<P>All but the first 3 calculate velocity biases directly (e.g. advection
 velocities) that are removed when computing the thermal temperature.
 <A HREF = "compute_temp_sphere.html">Compute temp/sphere</A> and <A HREF = "compute_temp_asphere.html">compute
 temp/asphere</A> compute kinetic energy for
 finite-size particles that includes rotational degrees of freedom.
-They both allow, as an extra argument, which is another temperature
-compute that subtracts a velocity bias.  This allows the translational
-velocity of spherical or aspherical particles to be adjusted in
-prescribed ways.
+They both allow for velocity biases indirectly, via an optional extra
+argument, another temperature compute that subtracts a velocity bias.
+This allows the translational velocity of spherical or aspherical
+particles to be adjusted in prescribed ways.
 </P>
 <P>Thermostatting in LAMMPS is performed by <A HREF = "fix.html">fixes</A>, or in one
 case by a pair style.  Several thermostatting fixes are available:
@@ -1657,15 +1660,21 @@ to the per-particle thermostatting of <A HREF = "fix_langevin.html">fix
 langevin</A>.
 </P>
 <P>Any of the thermostatting fixes can use temperature computes that
-remove bias for two purposes: (a) computing the current temperature to
-compare to the requested target temperature, and (b) adjusting only
-the thermal temperature component of the particle's velocities.  See
-the doc pages for the individual fixes and for the
+remove bias which has two effects.  First, the current calculated
+temperature, which is compared to the requested target temperature, is
+caluclated with the velocity bias removed.  Second, the thermostat
+adjusts only the thermal temperature component of the particle's
+velocities, which are the velocities with the bias removed.  The
+removed bias is then added back to the adjusted velocities.  See the
+doc pages for the individual fixes and for the
 <A HREF = "fix_modify.html">fix_modify</A> command for instructions on how to assign
 a temperature compute to a thermostatting fix.  For example, you can
 apply a thermostat to only the x and z components of velocity by using
 it in conjunction with <A HREF = "compute_temp_partial.html">compute
-temp/partial</A>.
+temp/partial</A>.  Of you could thermostat only
+the thermal temperature of a streaming flow of particles without
+affecting the streaming velocity, by using <A HREF = "compute_temp_profile.html">compute
+temp/profile</A>.
 </P>
 <P>IMPORTANT NOTE: Only the nvt fixes perform time integration, meaning
 they update the velocities and positions of particles due to forces
@@ -1905,15 +1914,18 @@ void *lammps_extract_atom(void *, char *)
 void *lammps_extract_compute(void *, char *, int, int)
 void *lammps_extract_fix(void *, char *, int, int, int, int)
 void *lammps_extract_variable(void *, char *, char *)
+int lammps_set_variable(void *, char *, char *)
 int lammps_get_natoms(void *)
 void lammps_get_coords(void *, double *)
 void lammps_put_coords(void *, double *) 
 </PRE>
 <P>These can extract various global or per-atom quantities from LAMMPS as
-well as values calculated by a compute, fix, or variable.  The "get"
-and "put" operations can retrieve and reset atom coordinates.
-See the library.cpp file and its associated header file library.h for
-details.
+well as values calculated by a compute, fix, or variable.  The
+"set_variable" function can set an existing string-style variable to a
+new value, so that subsequent LAMMPS commands can access the variable.
+The "get" and "put" operations can retrieve and reset atom
+coordinates.  See the library.cpp file and its associated header file
+library.h for details.
 </P>
 <P>The key idea of the library interface is that you can write any
 functions you wish to define how your code talks to LAMMPS and add
@@ -2146,6 +2158,455 @@ and thus extract D.
 </P>
 <HR>
 
+<A NAME = "howto_23"></A><H4>6.23 Using chunks to calculate system properties 
+</H4>
+<P>In LAMMS, "chunks" are collections of atoms, as defined by the
+<A HREF = "compute_chunk_atom.html">compute chunk/atom</A> command, which assigns
+each atom to a chunk ID (or to no chunk at all).  The number of chunks
+and the assignment of chunk IDs to atoms can be static or change over
+time.  Examples of "chunks" are molecules or spatial bins or atoms
+with similar values (e.g. coordination number or potential energy).
+</P>
+<P>The per-atom chunk IDs can be used as input to two other kinds of
+commands, to calculate various properties of a system:
+</P>
+<UL><LI><A HREF = "fix_ave_chunk.html">fix ave/chunk</A>
+<LI>any of the <A HREF = "compute.html">compute */chunk</A> commands 
+</UL>
+<P>Here, each of the 3 kinds of chunk-related commands is briefly
+overviewed.  Then some examples are given of how to compute different
+properties with chunk commands.
+</P>
+<H5>Compute chunk/atom command: 
+</H5>
+<P>This compute can assign atoms to chunks of various styles.  Only atoms
+in the specified group and optional specified region are assigned to a
+chunk.  Here are some possible chunk definitions:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD >atoms in same molecule </TD><TD > chunk ID = molecule ID </TD></TR>
+<TR><TD >atoms of same atom type </TD><TD > chunk ID = atom type </TD></TR>
+<TR><TD >all atoms with same atom property (charge, radius, etc) </TD><TD > chunk ID = output of compute property/atom </TD></TR>
+<TR><TD >atoms in same cluster </TD><TD > chunk ID = output of <A HREF = "compute_cluster_atom.html">compute cluster/atom</A> command </TD></TR>
+<TR><TD >atoms in same spatial bin </TD><TD > chunk ID = bin ID </TD></TR>
+<TR><TD >atoms in same rigid body </TD><TD > chunk ID = molecule ID used to define rigid bodies </TD></TR>
+<TR><TD >atoms with similar potential energy </TD><TD > chunk ID = output of <A HREF = "compute_pe_atom.html">compute pe/atom</A> </TD></TR>
+<TR><TD >atoms with same local defect structure </TD><TD > chunk ID = output of <A HREF = "compute_centro_atom.html">compute centro/atom</A> or <A HREF = "compute_coord_atom.html">compute coord/atom</A> command 
+</TD></TR></TABLE></DIV>
+
+<P>Note that chunk IDs are integer values, so for atom properties or
+computes that produce a floating point value, they will be truncated
+to an integer.  You could also use the compute in a variable that
+scales the floating point value to spread it across multiple intergers.
+</P>
+<P>Spatial bins can be of various kinds, e.g. 1d bins = slabs, 2d bins =
+pencils, 3d bins = boxes, spherical bins, cylindrical bins.
+</P>
+<P>This compute also calculates the number of chunks <I>Nchunk</I>, which is
+used by other commands to tally per-chunk data.  <I>Nchunk</I> can be a
+static value or change over time (e.g. the number of clusters).  The
+chunk ID for an individual atom can also be static (e.g. a molecule
+ID), or dynamic (e.g. what spatial bin an atom is in as it moves).
+</P>
+<P>Note that this compute allows the per-atom output of other
+<A HREF = "compute.html">computes</A>, <A HREF = "fix.html">fixes</A>, and
+<A HREF = "variable.html">variables</A> to be used to define chunk IDs for each
+atom.  This means you can write your own compute or fix to output a
+per-atom quantity to use as chunk ID.  See
+<A HREF = "Section_modify.html">Section_modify</A> of the documentation for how to
+do this.  You can also define a <A HREF = "variable.html">per-atom variable</A> in
+the input script that uses a formula to generate a chunk ID for each
+atom.
+</P>
+<H5>Fix ave/chunk command: 
+</H5>
+<P>This fix takes the ID of a <A HREF = "compute_chunk_atom.html">compute
+chunk/atom</A> command as input.  For each chunk,
+it then sums one or more specified per-atom values over the atoms in
+each chunk.  The per-atom values can be any atom property, such as
+velocity, force, charge, potential energy, kinetic energy, stress,
+etc.  Additional keywords are defined for per-chunk properties like
+density and temperature.  More generally any per-atom value generated
+by other <A HREF = "compute.html">computes</A>, <A HREF = "fix.html">fixes</A>, and <A HREF = "variable.html">per-atom
+variables</A>, can be summed over atoms in each chunk.
+</P>
+<P>Similar to other averaging fixes, this fix allows the summed per-chunk
+values to be time-averaged in various ways, and output to a file.  The
+fix produces a global array as output with one row of values per
+chunk.
+</P>
+<H5>Compute */chunk commands: 
+</H5>
+<P>Currently the following computes operate on chunks of atoms to produce
+per-chunk values.
+</P>
+<UL><LI><A HREF = "compute_com_chunk.html">compute com/chunk</A>
+<LI><A HREF = "compute_gyration_chunk.html">compute gyration/chunk</A>
+<LI><A HREF = "compute_inertia_chunk.html">compute inertia/chunk</A>
+<LI><A HREF = "compute_msd_chunk.html">compute msd/chunk</A>
+<LI><A HREF = "compute_property_chunk.html">compute property/chunk</A>
+<LI><A HREF = "compute_temp_chunk.html">compute temp/chunk</A>
+<LI><A HREF = "compute_vcm_chunk.html">compute torque/chunk</A>
+<LI><A HREF = "compute_vcm_chunk.html">compute vcm/chunk</A> 
+</UL>
+<P>They each take the ID of a <A HREF = "compute_chunk_atom.html">compute
+chunk/atom</A> command as input.  As their names
+indicate, they calculate the center-of-mass, radius of gyration,
+moments of inertia, mean-squared displacement, temperature, torque,
+and velocity of center-of-mass for each chunk of atoms.  The <A HREF = "compute_property_chunk.html">compute
+property/chunk</A> command can tally the
+count of atoms in each chunk and extract other per-chunk properties.
+</P>
+<P>The reason these various calculations are not part of the <A HREF = "fix_ave_chunk.html">fix
+ave/chunk command</A>, is that each requires a more
+complicated operation than simply summing and averaging over per-atom
+values in each chunk.  For example, many of them require calculation
+of a center of mass, which requires summing mass*position over the
+atoms and then dividing by summed mass.
+</P>
+<P>All of these computes produce a global vector or global array as
+output, wih one or more values per chunk.  They can be used
+in various ways:
+</P>
+<UL><LI>As input to the <A HREF = "fix_ave_time.html">fix ave/time</A> command, which can
+write the values to a file and optionally time average them. 
+
+<LI>As input to the <A HREF = "fix_ave_histo.html">fix ave/histo</A> command to
+histogram values across chunks.  E.g. a histogram of cluster sizes or
+molecule diffusion rates. 
+
+<LI>As input to special functions of <A HREF = "variable.html">equal-style
+variables</A>, like sum() and max().  E.g. to find the
+largest cluster or fastest diffusing molecule. 
+</UL>
+<H5>Example calculations with chunks 
+</H5>
+<P>Here are eaxmples using chunk commands to calculate various
+properties:
+</P>
+<P>(1) Average velocity in each of 1000 2d spatial bins:
+</P>
+<PRE>compute cc1 all chunk/atom bin/2d x 0.0 0.1 y lower 0.01 units reduced
+fix 1 all ave/chunk 100 10 1000 cc1 vx vy file tmp.out 
+</PRE>
+<P>(2) Temperature in each spatial bin, after subtracting a flow
+velocity:
+</P>
+<PRE>compute cc1 all chunk/atom bin/2d x 0.0 0.1 y lower 0.1 units reduced
+compute vbias all temp/profile 1 0 0 y 10
+fix 1 all ave/chunk 100 10 1000 cc1 temp bias vbias file tmp.out 
+</PRE>
+<P>(3) Center of mass of each molecule:
+</P>
+<PRE>compute cc1 all chunk/atom molecule
+compute myChunk all com/chunk cc1
+fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector 
+</PRE>
+<P>(4) Total force on each molecule and ave/max across all molecules:
+</P>
+<PRE>compute cc1 all chunk/atom molecule
+fix 1 all ave/chunk 1000 1 1000 cc1 fx fy fz file tmp.out
+variable xave equal ave(f_1<B>2</B>)
+variable xmax equal max(f_1<B>2</B>)
+thermo 1000
+thermo_style custom step temp v_xave v_xmax 
+</PRE>
+<P>(5) Histogram of cluster sizes:
+</P>
+<PRE>compute cluster all cluster/atom 1.0
+compute cc1 all chunk/atom c_cluster compress yes
+compute size all property/chunk cc1 count
+fix 1 all ave/histo 100 1 100 0 20 20 c_size mode vector ave running beyond ignore file tmp.histo 
+</PRE>
+<HR>
+
+<A NAME = "howto_24"></A><H4>6.24 Setting parameters for the <A HREF = "kspace_style.html">kspace_style pppm/disp</A> command 
+</H4>
+<P>The PPPM method computes interactions by splitting the pair potential
+into two parts, one of which is computed in a normal pairwise fashion,
+the so-called real-space part, and one of which is computed using the
+Fourier transform, the so called reciprocal-space or kspace part.  For
+both parts, the potential is not computed exactly but is approximated.
+Thus, there is an error in both parts of the computation, the
+real-space and the kspace error. The just mentioned facts are true
+both for the PPPM for Coulomb as well as dispersion interactions. The
+deciding difference - and also the reason why the parameters for
+pppm/disp have to be selected with more care - is the impact of the
+errors on the results: The kspace error of the PPPM for Coulomb and
+dispersion interaction and the real-space error of the PPPM for
+Coulomb interaction have the character of noise. In contrast, the
+real-space error of the PPPM for dispersion has a clear physical
+interpretation: the underprediction of cohesion. As a consequence, the
+real-space error has a much stronger effect than the kspace error on
+simulation results for pppm/disp.  Parameters must thus be chosen in a
+way that this error is much smaller than the kspace error.
+</P>
+<P>When using pppm/disp and not making any specifications on the PPPM
+parameters via the kspace modify command, parameters will be tuned
+such that the real-space error and the kspace error are equal.  This
+will result in simulations that are either inaccurate or slow, both of
+which is not desirable. For selecting parameters for the pppm/disp
+that provide fast and accurate simulations, there are two approaches,
+which both have their up- and downsides.
+</P>
+<P>The first approach is to set desired real-space an kspace accuracies
+via the <I>kspace_modify force/disp/real</I> and <I>kspace_modify
+force/disp/kspace</I> commands. Note that the accuracies have to be
+specified in force units and are thus dependend on the chosen unit
+settings. For real units, 0.0001 and 0.002 seem to provide reasonable
+accurate and efficient computations for the real-space and kspace
+accuracies.  0.002 and 0.05 work well for most systems using lj
+units. PPPM parameters will be generated based on the desired
+accuracies. The upside of this approach is that it usually provides a
+good set of parameters and will work for both the <I>kspace_modify diff
+ad</I> and <I>kspace_modify diff ik</I> options.  The downside of the method
+is that setting the PPPM parameters will take some time during the
+initialization of the simulation.
+</P>
+<P>The second approach is to set the parameters for the pppm/disp
+explicitly using the <I>kspace_modify mesh/disp</I>, <I>kspace_modify
+order/disp</I>, and <I>kspace_modify gewald/disp</I> commands. This approach
+requires a more experienced user who understands well the impact of
+the choice of parameters on the simulation accuracy and
+performance. This approach provides a fast initialization of the
+simulation. However, it is sensitive to errors: A combination of
+parameters that will perform well for one system might result in
+far-from-optimal conditions for other simulations. For example,
+parametes that provide accurate and fast computations for
+all-atomistic force fields can provide insufficient accuracy or
+united-atomistic force fields (which is related to that the latter
+typically have larger dispersion coefficients).
+</P>
+<P>To avoid inaccurate or inefficient simulations, the pppm/disp stops
+simulations with an error message if no action is taken to control the
+PPPM parameters. If the automatic parameter generation is desired and
+real-space and kspace accuracies are desired to be equal, this error
+message can be suppressed using the <I>kspace_modify disp/auto yes</I>
+command.
+</P>
+<P>A reasonable approach that combines the upsides of both methods is to
+make the first run using the <I>kspace_modify force/disp/real</I> and
+<I>kspace_modify force/disp/kspace</I> commands, write down the PPPM
+parameters from the outut, and specify these parameters using the
+second approach in subsequent runs (which have the same composition,
+force field, and approximately the same volume).
+</P>
+<P>Concerning the performance of the pppm/disp there are two more things
+to consider. The first is that when using the pppm/disp, the cutoff
+parameter does no longer affect the accuracy of the simulation
+(subject to that gewald/disp is adjusted when changing the cutoff).
+The performance can thus be increased by examining different values
+for the cutoff parameter. A lower bound for the cutoff is only set by
+the truncation error of the repulsive term of pair potentials.
+</P>
+<P>The second is that the mixing rule of the pair style has an impact on
+the computation time when using the pppm/disp. Fastest computations
+are achieved when using the geometric mixing rule. Using the
+arithmetic mixing rule substantially increases the computational cost.
+The computational overhead can be reduced using the <I>kspace_modify
+mix/disp geom</I> and <I>kspace_modify splittol</I> commands. The first
+command simply enforces geometric mixing of the dispersion
+coeffiecients in kspace computations.  This introduces some error in
+the computations but will also significantly speed-up the
+simulations. The second keyword sets the accuracy with which the
+dispersion coefficients are approximated using a matrix factorization
+approach.  This may result in better accuracy then using the first
+command, but will usually also not provide an equally good increase of
+efficiency.
+</P>
+<P>Finally, pppm/disp can also be used when no mixing rules apply.
+This can be achieved using the <I>kspace_modify mix/disp none</I> command.
+Note that the code does not check automatically whether any mixing
+rule is fulfilled. If mixing rules do not apply, the user will have
+to specify this command explicitly.
+</P>
+<HR>
+
+<A NAME = "howto_25"></A><H4>6.25 Adiabatic core/shell model 
+</H4>
+<P>The adiabatic core-shell model by <A HREF = "#MitchellFinchham">Mitchell and
+Finchham</A> is a simple method for adding
+polarizability to a system.  In order to mimic the electron shell of
+an ion, a ghost atom is attached to it. This way the ions are split
+into a core and a shell where the latter is meant to react to the
+electrostatic environment inducing polarizability.
+</P>
+<P>Technically, shells are attached to the cores by a spring force f =
+k*r where k is a parametrized spring constant and r is the distance
+between the core and the shell. The charges of the core and the shell
+add up to the ion charge, thus q(ion) = q(core) + q(shell). In a
+similar fashion the mass of the ion is distributed on the core and the
+shell with the core having the larger mass.
+</P>
+<P>To run this model in LAMMPS, <A HREF = "atom_style.html">atom_style</A> <I>full</I> can
+be used since atom charge and bonds are needed.  Each kind of
+core/shell pair requires two atom types and a bond type.  The core and
+shell of a core/shell pair should be bonded to each other with a
+harmonic bond that provides the spring force. For example, a data file
+for NaCl, as found in examples/coreshell, has this format:
+</P>
+<PRE>432   atoms  # core and shell atoms
+216   bonds  # number of core/shell springs 
+</PRE>
+<PRE>4     atom types  # 2 cores and 2 shells for Na and Cl 
+2     bond types 
+</PRE>
+<PRE>0.0 24.09597 xlo xhi
+0.0 24.09597 ylo yhi
+0.0 24.09597 zlo zhi 
+</PRE>
+<PRE>Masses       # core/shell mass ratio = 0.1 
+</PRE>
+<PRE>1 20.690784  # Na core
+2 31.90500   # Cl core
+3 2.298976   # Na shell
+4 3.54500    # Cl shell 
+</PRE>
+<PRE>Atoms 
+</PRE>
+<PRE>1    1    2   1.5005    0.00000000   0.00000000   0.00000000 # core of core/shell pair 1
+2    1    4  -2.5005    0.00000000   0.00000000   0.00000000 # shell of core/shell pair 1
+3    2    1   1.5056    4.01599500   4.01599500   4.01599500 # core of core/shell pair 2
+4    2    3  -0.5056    4.01599500   4.01599500   4.01599500 # shell of core/shell pair 2 
+(...) 
+</PRE>
+<PRE>Bonds   # Bond topology for spring forces 
+</PRE>
+<PRE>1     2     1     2   # spring for core/shell pair 1
+2     2     3     4   # spring for core/shell pair 2 
+(...) 
+</PRE>
+<P>Non-Coulombic (e.g. Lennard-Jones) pairwise interactions are only
+defined between the shells.  Coulombic interactions are defined
+between all cores and shells.  If desired, additional bonds can be
+specified between cores.
+</P>
+<P>The <A HREF = "special_bonds.html">special_bonds</A> command should be used to
+turn-off the Coulombic interaction within core/shell pairs, since that
+interaction is set by the bond spring.  This is done using the
+<A HREF = "special_bonds.html">special_bonds</A> command with a 1-2 weight = 0.0,
+which is the default value.
+</P>
+<P>Since the core/shell model permits distances of r = 0.0 between the
+core and shell, a pair style with a "cs" suffix needs to be used to
+implement a valid long-range Coulombic correction.  Several such pair
+styles are provided in the CORESHELL package.  See <A HREF = "pair_cs.html">this doc
+page</A> for details.  All of the core/shell enabled pair
+styles require the use of a long-range Coulombic solver, as specified
+by the <A HREF = "kspace_style.html">kspace_style</A> command.  Either the PPPM or
+Ewald solvers can be used.
+</P>
+<P>For the NaCL example problem, these pair style and bond style settings
+are used:
+</P>
+<PRE>pair_style      born/coul/long/cs 20.0 20.0
+pair_coeff      * *      0.0 1.000   0.00  0.00   0.00
+pair_coeff      3 3    487.0 0.23768 0.00  1.05   0.50 #Na-Na
+pair_coeff      3 4 145134.0 0.23768 0.00  6.99   8.70 #Na-Cl
+pair_coeff      4 4 405774.0 0.23768 0.00 72.40 145.40 #Cl-Cl 
+</PRE>
+<PRE>bond_style      harmonic
+bond_coeff      1 63.014 0.0
+bond_coeff      2 25.724 0.0 
+</PRE>
+<P>When running dynamics with the adiabatic core/shell model, the
+following issues should be considered.  Since the relative motion of
+the core and shell particles corresponds to the polarization, typical
+thermostats can alter the polarization behaviour, meaining the shell
+will not react freely to its electrostatic environment.  Therefore
+it's typically desirable to decouple the relative motion of the
+core/shell pair, which is an imaginary degree of freedom, from the
+real physical system.  To do that, the <A HREF = "compute_temp_cs.html">compute
+temp/cs</A> command can be used, in conjunction with
+any of the thermostat fixes, such as <A HREF = "fix_nh.html">fix nvt</A> or <A HREF = "fix_langevin">fix
+langevin</A>.  This compute uses the center-of-mass velocity
+of the core/shell pairs to calculate a temperature, and insures that
+velocity is what is rescaled for thermostatting purposes.  The
+<A HREF = "compute_temp_cs.html">compute temp/cs</A> command requires input of two
+groups, one for the core atoms, another for the shell atoms.  These
+can be defined using the <A HREF = "group.html">group <I>type</I></A> command.  Note that
+to perform thermostatting using this definition of temperature, the
+<A HREF = "fix_modify.html">fix modify temp</A> command should be used to assign the
+comptue to the thermostat fix.  Likewise the <A HREF = "thermo_modify.html">thermo_modify
+temp</A> command can be used to make this temperature
+be output for the overall system.
+</P>
+<P>For the NaCl example, this can be done as follows:
+</P>
+<PRE>group cores type 1 2
+group shells type 3 4
+compute CSequ all temp/cs cores shells
+fix thermoberendsen all temp/berendsen 1427 1427 0.4    # thermostat for the true physical system
+fix thermostatequ all nve                               # integrator as needed for the berendsen thermostat
+fix_modify thermoberendsen temp CSequ
+thermo_modify temp CSequ                                # output of center-of-mass derived temperature 
+</PRE>
+<P>When intializing the velocities of a system with core/shell pairs, it
+is also desirable to not introduce energy into the relative motion of
+the core/shell particles, but only assign a center-of-mass velocity to
+the pairs.  This can be done by using the <I>bias</I> keyword of the
+<A HREF = "velocity.html">velocity create</A> command and assigning the <A HREF = "compute_temp_cs.html">compute
+temp/cs</A> command to the <I>temp</I> keyword of the
+<A HREF = "velocity.html">velocity</A> commmand, e.g.
+</P>
+<PRE>velocity all create 1427 134 bias yes temp CSequ
+velocity all scale 1427 temp CSequ 
+</PRE>
+<P>It is important to note that the polarizability of the core/shell
+pairs is based on their relative motion. Therefore the choice of
+spring force and mass ratio need to ensure much faster relative motion
+of the 2 atoms within the core/shell pair than their center-of-mass
+velocity. This allow the shells to effectively react instantaneously
+to the electrostatic environment.  This fast movement also limits the
+timestep size that can be used.
+</P>
+<P>Additionally, the mass mismatch of the core and shell particles means
+that only a small amount of energy is transfered to the decoupled
+imaginary degrees of freedom.  However, this transfer will typically
+lead to a a small drift in total energy over time.  This internal
+energy can be monitored using the <A HREF = "compute_chunk_atom.html">compute
+chunk/atom</A> and <A HREF = "compute_temp_chunk.html">compute
+temp/chunk</A> commands.  The internal kinetic
+energies of each core/shell pair can then be summed using the sum()
+special functino of the <A HREF = "variable.html">variable</A> command.  Or they can
+be time/averaged and output using the <A HREF = "fix_ave_time.html">fix ave/time</A>
+command.  To use these commands, each core/shell pair must be defined
+as a "chunk".  If each core/shell pair is defined as its own molecule,
+the molecule ID can be used to define the chunks.  If cores are bonded
+to each other to form larger molecules, then another way to define the
+chunks is to use the <A HREF = "fix_property_atom.html">fix property/atom</A> to
+assign a core/shell ID to each atom via a special field in the data
+file read by the <A HREF = "read_data.html">read_data</A> command.  This field can
+then be accessed by the <A HREF = "compute_property_atom.html">compute
+property/atom</A> command, to use as input to
+the <A HREF = "compute_chunk_atom.html">compute chunk/atom</A> command to define the
+core/shell pairs as chunks.
+</P>
+<P>For example,
+</P>
+<PRE>fix csinfo all property/atom i_CSID                       # property/atom command
+read_data NaCl_CS_x0.1_prop.data fix csinfo NULL CS-Info  # atom property added in the data-file
+compute prop all property/atom i_CSID
+compute cs_chunk all chunk/atom c_prop
+compute cstherm all temp/chunk cs_chunk temp internal com yes cdof 3.0     # note the chosen degrees of freedom for the core/shell pairs
+fix ave_chunk all ave/time 10 1 10 c_cstherm file chunk.dump mode vector 
+</PRE>
+<P>The additional section in the date file would be formatted like this:
+</P>
+<PRE>CS-Info         # header of additional section 
+</PRE>
+<PRE>1   1           # column 1 = atom ID, column 2 = core/shell ID 
+2   1   
+3   2   
+4   2   
+5   3   
+6   3   
+7   4   
+8   4   
+(...) 
+</PRE>
+<HR>
+
 <HR>
 
 <A NAME = "Berendsen"></A>
@@ -2190,5 +2651,10 @@ Phys, 79, 926 (1983).
 <A NAME = "Shinoda"></A>
 
 <P><B>(Shinoda)</B> Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
+</P>
+<A NAME = "MitchellFinchham"></A>
+
+<P><B>(Mitchell and Finchham)</B> Mitchell, Finchham, J Phys Condensed Matter,
+5, 1031-1038 (1993).
 </P>
 </HTML>

@@ -29,6 +29,7 @@
 #include "compute.h"
 #include "input.h"
 #include "variable.h"
+#include "comm.h"
 #include "memory.h"
 #include "error.h"
 
@@ -49,6 +50,12 @@ enum{NODISCARD,MIXED,YESDISCARD};
 FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  if (comm->me == 0)
+    error->warning(FLERR,"The fix ave/spatial command has been replaced "
+                   "by the more flexible fix ave/chunk and compute chunk/atom "
+                   "commands -- fix ave/spatial will be removed in "
+                   "the summer of 2015");
+
   if (narg < 6) error->all(FLERR,"Illegal fix ave/spatial command");
 
   MPI_Comm_rank(world,&me);
@@ -157,6 +164,8 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
 
     iarg++;
   }
+
+  if (nvalues == 0) error->all(FLERR,"No input values for fix ave/spatial");
 
   // optional args
 
@@ -421,6 +430,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
   // since don't know a priori which are invoked by this fix
   // once in end_of_step() can set timestep for ones actually invoked
 
+  nvalid_last = -1;
   nvalid = nextvalid();
   modify->addstep_compute_all(nvalid);
 }
@@ -453,7 +463,6 @@ FixAveSpatial::~FixAveSpatial()
   memory->destroy(values_total);
   memory->destroy(values_list);
 }
-
 /* ---------------------------------------------------------------------- */
 
 int FixAveSpatial::setmask()
@@ -540,9 +549,13 @@ void FixAveSpatial::end_of_step()
   int i,j,m,n;
 
   // skip if not step which requires doing something
+  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
+  if (ntimestep < nvalid_last || ntimestep > nvalid) 
+    error->all(FLERR,"Invalid timestep reset for fix ave/spatial");
   if (ntimestep != nvalid) return;
+  nvalid_last = nvalid;
 
   // update region if necessary
 
@@ -1476,7 +1489,7 @@ void FixAveSpatial::atom2bin3d()
 
 /* ----------------------------------------------------------------------
    return I,J array value
-   if I exceeds current bins, return 0.0 instead of generating an error
+   if I exceeds current nbins, return 0.0 instead of generating an error
    column 1,2,3 = bin coords, next column = count, remaining columns = Nvalues
 ------------------------------------------------------------------------- */
 
@@ -1522,11 +1535,4 @@ double FixAveSpatial::memory_usage()
   bytes += nwindow*nbins * sizeof(double);          // count_list
   bytes += nwindow*nbins*nvalues * sizeof(double);  // values_list
   return bytes;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixAveSpatial::reset_timestep(bigint ntimestep)
-{
-  if (ntimestep > nvalid) error->all(FLERR,"Fix ave/spatial missed timestep");
 }

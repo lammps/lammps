@@ -56,18 +56,21 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/slater command");
   }
+
+  if (streitz_flag) extract_streitz();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEqSlater::init()
 {
-  if (!atom->q_flag) error->all(FLERR,"Fix qeq/slater requires atom attribute q");
+  if (!atom->q_flag) 
+    error->all(FLERR,"Fix qeq/slater requires atom attribute q");
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/slater group has no atoms");
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix  = 1;
   neighbor->requests[irequest]->half = 0;
@@ -75,7 +78,8 @@ void FixQEqSlater::init()
 
   int ntypes = atom->ntypes;
   for (int i = 1; i <= ntypes; i++) {
-    if (zeta[i] == 0.0) error->all(FLERR,"Invalid param file for fix qeq/slater");
+    if (zeta[i] == 0.0) 
+      error->all(FLERR,"Invalid param file for fix qeq/slater");
   }
 
   if (strstr(update->integrate_style,"respa"))
@@ -84,16 +88,43 @@ void FixQEqSlater::init()
 
 /* ---------------------------------------------------------------------- */
 
+void FixQEqSlater::extract_streitz()
+{
+  int ntypes = atom->ntypes;
+
+  memory->create(chi,ntypes+1,"qeq:chi");
+  memory->create(eta,ntypes+1,"qeq:eta");
+  memory->create(gamma,ntypes+1,"qeq:gamma");
+  memory->create(zeta,ntypes+1,"qeq:zeta");
+  memory->create(zcore,ntypes+1,"qeq:zcore");
+
+  Pair *pair = force->pair_match("coul/streitz",1);
+  if (pair == NULL) error->all(FLERR,"No pair coul/streitz for fix qeq/slater");
+  int tmp;
+  chi = (double *) pair->extract("chi",tmp);
+  eta = (double *) pair->extract("eta",tmp);
+  gamma = (double *) pair->extract("gamma",tmp);
+  zeta = (double *) pair->extract("zeta",tmp);
+  zcore = (double *) pair->extract("zcore",tmp);
+  if (chi == NULL || eta == NULL || gamma == NULL 
+                  || zeta == NULL || zcore == NULL)
+    error->all(FLERR,
+	"Fix qeq/slater could not extract params from pair coul/streitz");
+
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixQEqSlater::pre_force(int vflag)
 {
   if (update->ntimestep % nevery) return;
 
-  n = atom->nlocal;
-  N = atom->nlocal + atom->nghost;
+  nlocal = atom->nlocal;
+  nall = atom->nlocal + atom->nghost;
 
   if( atom->nmax > nmax ) reallocate_storage();
 
-  if( n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
+  if( nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
     reallocate_matrix();
 
   init_matvec();
@@ -101,8 +132,7 @@ void FixQEqSlater::pre_force(int vflag)
   matvecs += CG(b_t, t); 	// CG on t - parallel
   calculate_Q();
 
-  if (force->kspace) force->kspace->setup();
-
+  if (force->kspace) force->kspace->qsum_qsq();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -111,13 +141,13 @@ void FixQEqSlater::init_matvec()
 {
   compute_H();
 
-  int nn, ii, i;
+  int inum, ii, i;
   int *ilist;
 
-  nn = list->inum;
+  inum = list->inum;
   ilist = list->ilist;
 
-  for( ii = 0; ii < nn; ++ii ) {
+  for( ii = 0; ii < inum; ++ii ) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -324,94 +354,27 @@ double FixQEqSlater::calculate_H_wolf(double zei, double zej, double zj,
 
 /* ---------------------------------------------------------------------- */
 
-int FixQEqSlater::CG( double *b, double *x )
-{
-  int  i, j;
-  double tmp, alfa, beta, b_norm;
-  double sig_old, sig_new;
-
-  int nn, jj;
-  int *ilist;
-
-  nn = list->inum;
-  ilist = list->ilist;
-
-  pack_flag = 1;
-  sparse_matvec( &H, x, q );
-  comm->reverse_comm_fix( this ); //Coll_Vector( q );
-
-  vector_sum( r , 1.,  b, -1., q, nn );
-
-  for( jj = 0; jj < nn; ++jj ) {
-    j = ilist[jj];
-    if (atom->mask[j] & groupbit)
-      d[j] = r[j] * Hdia_inv[j]; //pre-condition
-  }
-
-  b_norm = parallel_norm( b, nn );
-  sig_new = parallel_dot( r, d, nn);
-
-  for( i = 1; i < maxiter && sqrt(sig_new) / b_norm > tolerance; ++i ) {
-    comm->forward_comm_fix(this); //Dist_vector( d );
-    sparse_matvec( &H, d, q );
-    comm->reverse_comm_fix(this); //Coll_vector( q );
-
-    tmp = parallel_dot( d, q, nn);
-    alfa = sig_new / tmp;
-
-    vector_add( x, alfa, d, nn );
-    vector_add( r, -alfa, q, nn );
-
-    // pre-conditioning
-    for( jj = 0; jj < nn; ++jj ) {
-      j = ilist[jj];
-      if (atom->mask[j] & groupbit)
-        p[j] = r[j] * Hdia_inv[j];
-    }
-
-    sig_old = sig_new;
-    sig_new = parallel_dot( r, p, nn);
-
-    beta = sig_new / sig_old;
-    vector_sum( d, 1., p, beta, d, nn );
-
-  }
-
-  if (i >= maxiter && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Fix qeq/slater CG convergence failed (%g) after %d iterations "
-            "at " BIGINT_FORMAT " step",sqrt(sig_new) / b_norm,i,update->ntimestep);
-    error->warning(FLERR,str);
-  }
-
-  return i;
-}
-
-
-/* ---------------------------------------------------------------------- */
-
 void FixQEqSlater::sparse_matvec( sparse_matrix *A, double *x, double *b )
 {
   int i, j, itr_j;
-  int nn, NN;
 
-  nn = atom->nlocal;
-  NN = atom->nlocal + atom->nghost;
+  nlocal = atom->nlocal;
+  nall = atom->nlocal + atom->nghost;
 
   double r = cutoff;
   double woself = 0.50*erfc(alpha*r)/r + alpha/MY_PIS;
 
-  for( i = 0; i < nn; ++i ) {
+  for( i = 0; i < nlocal; ++i ) {
     if (atom->mask[i] & groupbit)
       b[i] = (eta[atom->type[i]] - 2.0*force->qqr2e*woself) * x[i];
   }
 
-  for( i = nn; i < NN; ++i ) {
+  for( i = nlocal; i < nall; ++i ) {
     if (atom->mask[i] & groupbit)
       b[i] = 0;
   }
 
-  for( i = 0; i < nn; ++i ) {
+  for( i = 0; i < nlocal; ++i ) {
     if (atom->mask[i] & groupbit) {
       for( itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
         j = A->jlist[itr_j];

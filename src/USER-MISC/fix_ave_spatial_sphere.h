@@ -37,7 +37,6 @@ class FixAveSpatialSphere : public Fix {
   void end_of_step();
   double memory_usage();
   double compute_array(int,int);
-  void reset_timestep(bigint);
   
  private:
   int me; //rank of the MPI Process
@@ -179,14 +178,9 @@ E: Fix ave/spatial/spherical requires reduced units if the box changes size.
 If the box size changes, only the units reduced option can be
 used.
 
-E: Fix for fix ave/spatial/spherical not computed at compatible time
+E: Invalid timestep reset for fix ave/spatial/sphere
 
-Fixes generate their values on specific timesteps.  Fix ave/spatial/spherical is
-requesting a value on a non-allowed timestep.
-
-E: Fix ave/spatial/spherical missed timestep
-
-You cannot reset the timestep to a value beyond where the fix
-expects to next perform averaging.
+Resetting the timestep has invalidated the sequence of timesteps this
+fix needs to process.
 
 */

@@ -119,7 +119,7 @@ void FixPeriNeigh::init()
 
   // need a full neighbor list once
 
-  int irequest = neighbor->request((void *) this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix  = 1;
   neighbor->requests[irequest]->half = 0;
@@ -346,6 +346,7 @@ void FixPeriNeigh::setup(int vflag)
       else vfrac_scale = 1.0;
 
       // for PMB, influence = 1.0, otherwise invoke influence function
+
       if (isPMB) 
         wvolume[i] += 1.0 * rsq0 * vfrac[j] * vfrac_scale; 
       else if (isLPS)

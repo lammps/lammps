@@ -114,6 +114,11 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Compute used in dump between runs is not current
+
+The compute was not invoked on the current timestep, therefore it
+cannot be used in a dump between runs.
+
 E: Dump local count is not consistent across input fields
 
 Every column of output must be the same length.

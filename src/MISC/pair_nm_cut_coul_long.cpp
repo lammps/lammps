@@ -307,7 +307,7 @@ void PairNMCutCoulLong::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style nm/cut/coul/long requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
   // insure use of KSpace long-range solver, set g_ewald

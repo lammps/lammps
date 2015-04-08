@@ -38,6 +38,8 @@ PairBuck::PairBuck(LAMMPS *lmp) : Pair(lmp)
 
 PairBuck::~PairBuck()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

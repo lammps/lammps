@@ -171,7 +171,7 @@ all good starting points if you find you need to change them for your
 machine.  Put any file you edit into the src/MAKE/MINE directory and
 it will be never be touched by any LAMMPS updates.
 </P>
-<P>From within the src directory, type "make" or "gmake".  You should see
+<P>>From within the src directory, type "make" or "gmake".  You should see
 a list of available choices from src/MAKE and all of its
 sub-directories.  If one of those has the options you want or is the
 machine you want, you can type a command like:
@@ -304,15 +304,24 @@ if your platform does have its own XDR files available.  See the
 Restrictions section of the <A HREF = "dump.html">dump</A> command for details.
 </P>
 <P>Use at most one of the -DLAMMPS_SMALLBIG, -DLAMMPS_BIGBIG, -D-
-DLAMMPS_SMALLSMALL settings. The default is -DLAMMPS_SMALLBIG. These
+DLAMMPS_SMALLSMALL settings.  The default is -DLAMMPS_SMALLBIG. These
 settings refer to use of 4-byte (small) vs 8-byte (big) integers
 within LAMMPS, as specified in src/lmptype.h.  The only reason to use
 the BIGBIG setting is to enable simulation of huge molecular systems
 (which store bond topology info) with more than 2 billion atoms, or to
 track the image flags of moving atoms that wrap around a periodic box
-more than 512 times. The only reason to use the SMALLSMALL setting is
-if your machine does not support 64-bit integers.  See the <A HREF = "#start_2_4">Additional
-build tips</A> section below for more details.
+more than 512 times.  Normally, the only reason to use SMALLSMALL is
+if your machine does not support 64-bit integers, though you can use
+SMALLSMALL setting if you are running in serial or on a desktop
+machine or small cluster where you will never run large systems or for
+long time (more than 2 billion atoms, more than 2 billion timesteps).
+See the <A HREF = "#start_2_4">Additional build tips</A> section below for more
+details on these settings.
+</P>
+<P>Note that two packages, USER-ATC and USER-CUDA are not currently
+compatible with -DLAMMPS_BIGBIG.  Also the GPU package requires the
+lib/gpu library to be compiled with the same setting, or the link will
+fail.
 </P>
 <P>The -DLAMMPS_LONGLONG_TO_LONG setting may be needed if your system or
 MPI version does not recognize "long long" data types.  In this case a
@@ -368,10 +377,11 @@ need to build the STUBS library for your platform before making LAMMPS
 itself.  Note that if you are building with src/MAKE/Makefile.serial,
 e.g. by typing "make serial", then the STUBS library is built for you.
 </P>
-<P>To build the STUBS library from the src directory, type "make stubs",
-or from the src/STUBS dir, type "make".  This should create a
-libmpi_stubs.a file suitable for linking to LAMMPS.  If the build
-fails, you will need to edit the STUBS/Makefile for your platform.
+<P>To build the STUBS library from the src directory, type "make
+mpi-stubs", or from the src/STUBS dir, type "make".  This should
+create a libmpi_stubs.a file suitable for linking to LAMMPS.  If the
+build fails, you will need to edit the STUBS/Makefile for your
+platform.
 </P>
 <P>The file STUBS/mpi.c provides a CPU timer function called MPI_Wtime()
 that calls gettimeofday() .  If your system doesn't support
@@ -762,20 +772,33 @@ options.
 <A NAME = "start_3_3"></A><B><I>Packages that require extra libraries:</I></B> 
 
 <P>A few of the standard and user packages require additional auxiliary
-libraries.  They must be compiled first, before LAMMPS is built.  If
-you get a LAMMPS build error about a missing library, this is likely
-the reason.  See the <A HREF = "Section_packages.html">Section_packages</A> doc page
-for a list of packages that have auxiliary libraries.
+libraries.  Most of them are provided with LAMMPS, in which case they
+must be compiled first, before LAMMPS is built if you wish to include
+that package.  If you get a LAMMPS build error about a missing
+library, this is likely the reason.  See the
+<A HREF = "Section_packages.html">Section_packages</A> doc page for a list of
+packages that have these kinds of auxiliary libraries.
 </P>
-<P>Code for most of these auxiliary libraries is included in the LAMMPS
-distribution under the lib directory.  Examples are the USER-ATC and
-MEAM packages.  A few auxiliary libraries are NOT included with
-LAMMPS; to use the associated package you must download and install
-the auxiliary library yourself.  Examples are the KIM and VORONOI and
-USER-MOLFILE packages.
+<P>The lib directory in the distribution has sub-directories with package
+names that correspond to the needed auxiliary libs, e.g. lib/reax.
+Each sub-directory has a README file that gives more details.  Code
+for most of the auxiliary libraries is included in that directory.
+Examples are the USER-ATC and MEAM packages.
 </P>
-<P>For provided libraries, each lib directory has a README file
-(e.g. lib/reax/README) with instructions on how to build that library.
+<P>A few of the lib sub-directories do not include code, but do include
+instructions and sometimes scripts that automate the process of
+downloading the auxiliary library and installing it so LAMMPS can link
+to it.  Examples are the KIM and VORONOI and USER-MOLFILE packages.
+</P>
+<P>The lib/python directory (for the PYTHON package) contains only a
+choice of Makefile.lammps.* files.  This is because no auxiliary code
+or libraries are needed, only the Python library and other system libs
+that already available on your system.  However, the Makefile.lammps
+file is needed to tell the LAMMPS build which libs to use and where to
+find them.
+</P>
+<P>For libraries with provided code, the sub-directory README file
+(e.g. lib/reax/README) has instructions on how to build that library.
 Typically this is done by typing something like:
 </P>
 <PRE>make -f Makefile.g++ 
@@ -808,20 +831,22 @@ is built with, typically requires additional Fortran-to-C libraries be
 included in the link.  Another example are the BLAS and LAPACK
 libraries needed to use the USER-ATC or USER-AWPMD packages.
 </P>
-<P>For libraries without provided source code, the file
-src/package/README has information on where to find the library and
-how to build it, e.g. src/VORONOI/README.  There is also a
-Makefile.lammps file in the src/package directory.  E.g. files
-src/KIM/Makefile.lammps or src/VORONOI/Makefile.lammps or
-src/UESR-MOLFILE/Makefile.lammps.  These files serve the same purpose
-as the lib/package/Makefile.lammps files described above.  The files
-have settings needed when LAMMPS is built to link with the
-corresponding auxiliary library.
+<P>For libraries without provided code, the sub-directory README file has
+information on where to download the library and how to build it,
+e.g. lib/voronoi/README.  The README files also describe how you must
+either (a) create soft links, via the "ln" command, in those
+directories to point to where you built or installed the packages,
+or (b) check or edit the Makefile.lammps file in the same directory
+to provide that information.
 </P>
-<P>Again, you must insure that the settings in
-src/package/Makefile.lammps are appropriate for your system and where
-you installed the auxiliary library.  If they are not, the LAMMPS
-build will typically fail.
+<P>Some of the sub-directories, e.g. lib/voronoi, also have an install.py
+script which can be used to automate the process of
+downloading/building/installing the auxiliary library, and setting the
+needed soft links.  Type "python install.py" for further instructions.
+</P>
+<P>As with the sub-directories containing library code, if the soft links
+or settings in the lib/package/Makefile.lammps files are not correct,
+the LAMMPS build will typically fail.
 </P>
 <HR>
 
@@ -912,6 +937,13 @@ can be used to automate various steps of the build process.  It is
 particularly useful for working with the accelerator packages, as well
 as other packages which require auxiliary libraries to be built.
 </P>
+<P>The goal of the Make.py tool is to allow any complex multi-step LAMMPS
+build to be performed as a single Make.py command.  And you can
+archive the commands, so they can be re-invoked later via the -r
+(redo) switch.  If you find some LAMMPS build procedure that can't be
+done in a single Make.py command, let the developers know, and we'll
+see if we can augment the tool.
+</P>
 <P>You can run Make.py from the src directory by typing either:
 </P>
 <PRE>Make.py -h
@@ -927,13 +959,13 @@ Python.  And you may need to insure the script is executable:
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR><TD >Install/uninstall packages</TD><TD > Make.py -p no-lib kokkos omp intel</TD></TR>
-<TR><TD >Build specific auxiliary libs</TD><TD > Make.py lib-atc lib-meam</TD></TR>
-<TR><TD >Build libs for all installed packages</TD><TD > Make.py -p cuda gpu -gpu mode=double arch=31 lib-all</TD></TR>
-<TR><TD >Create a Makefile from scratch with compiler and MPI settings</TD><TD > Make.py -m none -cc g++ -mpi mpich file</TD></TR>
-<TR><TD >Augment Makefile.serial with settings for installed packages</TD><TD > Make.py -p intel -intel cpu -m serial file</TD></TR>
-<TR><TD >Add JPG and FFTW support to Makefile.mpi</TD><TD > Make.py -m mpi -jpg -fft fftw file</TD></TR>
-<TR><TD >Build LAMMPS with a parallel make using Makefile.mpi</TD><TD > Make.py -j 16 -m mpi exe</TD></TR>
-<TR><TD >Build LAMMPS and libs it needs using Makefile.serial with accelerator settings</TD><TD > Make.py -p gpu intel -intel cpu lib-all file serial 
+<TR><TD >Build specific auxiliary libs</TD><TD > Make.py -a lib-atc lib-meam</TD></TR>
+<TR><TD >Build libs for all installed packages</TD><TD > Make.py -p cuda gpu -gpu mode=double arch=31 -a lib-all</TD></TR>
+<TR><TD >Create a Makefile from scratch with compiler and MPI settings</TD><TD > Make.py -m none -cc g++ -mpi mpich -a file</TD></TR>
+<TR><TD >Augment Makefile.serial with settings for installed packages</TD><TD > Make.py -p intel -intel cpu -m serial -a file</TD></TR>
+<TR><TD >Add JPG and FFTW support to Makefile.mpi</TD><TD > Make.py -m mpi -jpg -fft fftw -a file</TD></TR>
+<TR><TD >Build LAMMPS with a parallel make using Makefile.mpi</TD><TD > Make.py -j 16 -m mpi -a exe</TD></TR>
+<TR><TD >Build LAMMPS and libs it needs using Makefile.serial with accelerator settings</TD><TD > Make.py -p gpu intel -intel cpu -a lib-all file serial 
 </TD></TR></TABLE></DIV>
 
 <P>The bench and examples directories give Make.py commands that can be
@@ -954,11 +986,15 @@ the "-h" switch.
 </P>
 <P>E.g. typing "Make.py -h" gives
 </P>
-<PRE>Syntax: Make.py switch args ... <I>action1</I> <I>action2</I> ...
-  actions:
-    lib-all, lib-dir, clean, file, exe or machine
-    zero or more actions, in any order (machine must be last)
-  switches:
+<PRE>Syntax: Make.py switch args ...
+  switches can be listed in any order
+  help switch:
+    -h prints help and syntax for all other specified switches
+  switch for actions:
+    -a lib-all, lib-dir, clean, file, exe or machine
+    list one or more actions, in any order
+    machine is a Makefile.machine suffix, must be last if used
+  one-letter switches:
     -d (dir), -j (jmake), -m (makefile), -o (output),
     -p (packages), -r (redo), -s (settings), -v (verbose)
   switches for libs:
@@ -1022,51 +1058,58 @@ more info on wrapping and running LAMMPS from Python.
 </H5>
 <P>To build LAMMPS as a static library (*.a file on Linux), type
 </P>
-<PRE>make makelib
-make -f Makefile.lib foo 
+<PRE>make foo mode=lib 
 </PRE>
 <P>where foo is the machine name.  This kind of library is typically used
 to statically link a driver application to LAMMPS, so that you can
-insure all dependencies are satisfied at compile time.  Note that
-inclusion or exclusion of any desired optional packages should be done
-before typing "make makelib".  The first "make" command will create a
-current Makefile.lib with all the file names in your src dir.  The
-second "make" command will use it to build LAMMPS as a static library,
-using the ARCHIVE and ARFLAGS settings in src/MAKE/Makefile.foo.  The
-build will create the file liblammps_foo.a which another application can
-link to.
+insure all dependencies are satisfied at compile time.  This will use
+the ARCHIVE and ARFLAGS settings in src/MAKE/Makefile.foo.  The build
+will create the file liblammps_foo.a which another application can
+link to.  It will also create a soft link liblammps.a, which will
+point to the most recently built static library.
 </P>
 <H5><B>Shared library:</B> 
 </H5>
 <P>To build LAMMPS as a shared library (*.so file on Linux), which can be
 dynamically loaded, e.g. from Python, type
 </P>
-<PRE>make makeshlib
-make -f Makefile.shlib foo 
+<PRE>make foo mode=shlib 
 </PRE>
 <P>where foo is the machine name.  This kind of library is required when
 wrapping LAMMPS with Python; see <A HREF = "Section_python.html">Section_python</A>
-for details.  Again, note that inclusion or exclusion of any desired
-optional packages should be done before typing "make makelib".  The
-first "make" command will create a current Makefile.shlib with all the
-file names in your src dir.  The second "make" command will use it to
-build LAMMPS as a shared library, using the SHFLAGS and SHLIBFLAGS
-settings in src/MAKE/Makefile.foo.  The build will create the file
-liblammps_foo.so which another application can link to dyamically.  It
-will also create a soft link liblammps.so, which the Python wrapper uses
-by default.
+for details.  This will use the SHFLAGS and SHLIBFLAGS settings in
+src/MAKE/Makefile.foo and perform the build in the directory
+Obj_shared_foo.  This is so that each file can be compiled with the
+-fPIC flag which is required for inclusion in a shared library.  The
+build will create the file liblammps_foo.so which another application
+can link to dyamically.  It will also create a soft link liblammps.so,
+which will point to the most recently built shared library.  This is
+the file the Python wrapper loads by default.
 </P>
 <P>Note that for a shared library to be usable by a calling program, all
 the auxiliary libraries it depends on must also exist as shared
 libraries.  This will be the case for libraries included with LAMMPS,
 such as the dummy MPI library in src/STUBS or any package libraries in
-lib/packges, since they are always built as shared libraries with the
--fPIC switch.  However, if a library like MPI or FFTW does not exist
-as a shared library, the second make command will generate an error.
-This means you will need to install a shared library version of the
-package.  The build instructions for the library should tell you how
-to do this.
+lib/packages, since they are always built as shared libraries using
+the -fPIC switch.  However, if a library like MPI or FFTW does not
+exist as a shared library, the shared library build will generate an
+error.  This means you will need to install a shared library version
+of the auxiliary library.  The build instructions for the library
+should tell you how to do this.
 </P>
+<P>Here is an example of such errors when the system FFTW or provided
+lib/colvars library have not been built as shared libraries:
+</P>
+<PRE>/usr/bin/ld: /usr/local/lib/libfftw3.a(mapflags.o): relocation
+R_X86_64_32 against `.rodata' can not be used when making a shared
+object; recompile with -fPIC
+/usr/local/lib/libfftw3.a: could not read symbols: Bad value 
+</PRE>
+<PRE>/usr/bin/ld: ../../lib/colvars/libcolvars.a(colvarmodule.o):
+relocation R_X86_64_32 against `__pthread_key_create' can not be used
+when making a shared object; recompile with -fPIC
+../../lib/colvars/libcolvars.a: error adding symbols: Bad value 
+</PRE>
 <P>As an example, here is how to build and install the <A HREF = "http://www-unix.mcs.anl.gov/mpi">MPICH
 library</A>, a popular open-source version of MPI, distributed by
 Argonne National Labs, as a shared library in the default

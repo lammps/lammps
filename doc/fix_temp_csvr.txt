@@ -7,13 +7,15 @@
 :line
 
 fix temp/csvr command :h3
+fix temp/csld command :h3
 
 [Syntax:]
 
 fix ID group-ID temp/csvr Tstart Tstop Tdamp seed :pre
+fix ID group-ID temp/csld Tstart Tstop Tdamp seed :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-temp/csvr = style name of this fix command :l
+temp/csvr or temp/csld = style name of this fix command :l
 Tstart,Tstop = desired temperature at start/end of run :l
   Tstart can be a variable (see below) :pre
 Tdamp = temperature damping parameter (time units) :l
@@ -22,19 +24,27 @@ seed = random number seed to use for white noise (positive integer) :l,ule
 [Examples:]
 
 fix 1 all temp/csvr 300.0 300.0 100.0 54324 :pre
+fix 1 all temp/csld 100.0 300.0 10.0 123321 :pre
 
 [Description:]
 
-Adjust the temperature with a CSVR thermostat "(Bussi)"_#Bussi, which
-updates the velocities to a linear combination of the current
-velocities with a gaussian distribution at the desired temperature in
-every timestep.
+Adjust the temperature with a canonical sampling thermostat that uses
+global velocity rescaling with Hamiltonian dynamics ({temp/csvr})
+"(Bussi1)"_#Bussi1, or Langevin dynamics ({temp/csld})
+"(Bussi2)"_#Bussi2.  In the case of {temp/csvr} the thermostat is
+similar to the empirical Berendsen thermostat in
+"temp/berendsen"_fix_temp_berendsen.html, but chooses the actual
+scaling factor from a suitably chosen (gaussian) distribution rather
+than having it determined from the time constant directly. In the case
+of {temp/csld} the velocities are updated to a linear combination of
+the current velocities with a gaussian distribution of velocities at
+the desired temperature.  Both termostats are applied every timestep.
 
 The thermostat is applied to only the translational degrees of freedom
 for the particles, which is an important consideration for finite-size
 particles which have rotational degrees of freedom are being
-thermostatted with this fix.  The translational degrees of freedom can
-also have a bias velocity removed from them before thermostatting
+thermostatted with these fixes.  The translational degrees of freedom
+can also have a bias velocity removed from them before thermostatting
 takes place; see the description below.
 
 The desired temperature at each timestep is a ramped value during the
@@ -56,11 +66,11 @@ keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent temperature.
 
 IMPORTANT NOTE: Unlike the "fix nvt"_fix_nh.html command which
-performs Nose/Hoover thermostatting AND time integration, this fix
-does NOT perform time integration.  It only modifies velocities to
-effect thermostatting.  Thus you must use a separate time integration
-fix, like "fix nve"_fix_nve.html to actually update the positions of
-atoms using the modified velocities.  Likewise, this fix should not
+performs Nose/Hoover thermostatting AND time integration, these fixes
+do NOT perform time integration. They only modify velocities to effect
+thermostatting.  Thus you must use a separate time integration fix,
+like "fix nve"_fix_nve.html to actually update the positions of atoms
+using the modified velocities.  Likewise, these fixes should not
 normally be used on atoms that also have their temperature controlled
 by another fix - e.g. by "fix nvt"_fix_nh.html or "fix
 langevin"_fix_langevin.html commands.
@@ -69,7 +79,7 @@ See "this howto section"_Section_howto.html#howto_16 of the manual for
 a discussion of different ways to compute temperature and perform
 thermostatting.
 
-This fix computes a temperature each timestep.  To do this, the fix
+These fixes compute a temperature each timestep.  To do this, the fix
 creates its own compute of style "temp", as if this command had been
 issued:
 
@@ -89,7 +99,7 @@ custom"_thermo_style.html command using the appropriate compute-ID.
 It also means that changing attributes of {thermo_temp} will have no
 effect on this fix.
 
-Like other fixes that perform thermostatting, this fix can be used
+Like other fixes that perform thermostatting, these fixes can be used
 with "compute commands"_compute.html that calculate a temperature
 after removing a "bias" from the atom velocities.  E.g. removing the
 center-of-mass velocity from a group of atoms or only calculating
@@ -108,24 +118,37 @@ thermal degrees of freedom, and the bias is added back in.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-No information about this fix is written to "binary restart
+No information about these fixes are written to "binary restart
 files"_restart.html.
 
-The "fix_modify"_fix_modify.html {temp} option is supported by this
-fix.  You can use it to assign a temperature "compute"_compute.html
-you have defined to this fix which will be used in its thermostatting
+The "fix_modify"_fix_modify.html {temp} option is supported by these
+fixes.  You can use it to assign a temperature "compute"_compute.html
+you have defined to these fixes which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
-this fix and by the compute should be the same.
+these fixes and by the compute should be the same.
 
-This fix can ramp its target temperature over multiple runs, using the
-{start} and {stop} keywords of the "run"_run.html command.  See the
+These fixes can ramp its target temperature over multiple runs, using
+the {start} and {stop} keywords of the "run"_run.html command.  See the
 "run"_run.html command for details of how to do this.
 
-This fix is not invoked during "energy minimization"_minimize.html.
+These fixes are not invoked during "energy minimization"_minimize.html.
+
+These fixes compute a global scalar which can be accessed by various
+"output commands"_Section_howto.html#howto_15.  The scalar is the
+cummulative energy change due to the fix.  The scalar value
+calculated by this fix is "extensive".
 
 [Restrictions:]
 
-This fix is not compatible with "fix shake"_fix_shake.html.
+These fixes are not compatible with "fix shake"_fix_shake.html.
+
+The fix can be used with dynamic groups as defined by the
+"group"_group.html command.  Likewise it can be used with groups to
+which atoms are added or deleted over time, e.g. a deposition
+simulation.  However, the conservation properties of the thermostat
+and barostat are defined for systems with a static set of atoms.  You
+may observe odd behavior if the atoms in a group vary dramatically
+over time or the atom count becomes very small.
 
 [Related commands:]
 
@@ -138,6 +161,7 @@ temp/rescale"_fix_temp_rescale.html, "fix langevin"_fix_langevin.html,
 
 :line
 
-:link(Bussi)
-
-[(Bussi)] Bussi and Parrinello, Phys. Rev. E (2007)
+:link(Bussi1)
+[(Bussi1)] Bussi, Donadio and Parrinello, J. Chem. Phys. 126, 014101(2007)
+:link(Bussi2)
+[(Bussi2)] Bussi and Parrinello, Phys. Rev. E 75, 056707 (2007)

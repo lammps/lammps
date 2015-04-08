@@ -60,7 +60,8 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Could not find compute stress/atom temperature ID");
     if (modify->compute[icompute]->tempflag == 0)
       error->all(FLERR,
-		 "Compute stress/atom temperature ID does not compute temperature");
+		 "Compute stress/atom temperature ID does not "
+                 "compute temperature");
   }
 
   // process optional args

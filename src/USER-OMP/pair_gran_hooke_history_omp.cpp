@@ -45,7 +45,6 @@ void PairGranHookeHistoryOMP::compute(int eflag, int vflag)
     ev_setup(eflag,vflag);
   } else evflag = vflag_fdotr = 0;
 
-  computeflag = 1;
   const int shearupdate = (update->setupflag) ? 0 : 1;
 
   // update rigid body info for owned & ghost atoms if using FixRigid masses

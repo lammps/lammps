@@ -230,6 +230,15 @@ bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
 length, multiplying by the number of bonds in the interaction (e.g. 3
 for a dihedral) and adding a small amount of stretch.
 
+W: Proc sub-domain size < neighbor skin, could lead to lost atoms
+
+The decomposition of the physical domain (likely due to load
+balancing) has led to a processor's sub-domain being smaller than the
+neighbor skin in one or more dimensions.  Since reneighboring is
+triggered by atoms moving the skin distance, this may lead to lost
+atoms, if an atom moves all the way across a neighboring processor's
+sub-domain before reneighboring is triggered.
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -240,7 +249,7 @@ E: Reuse of region ID
 
 A region ID cannot be used twice.
 
-E: Invalid region style
+E: Unknown region style
 
 The choice of region style is unknown.
 

@@ -50,21 +50,23 @@ PairBuckCoulLong::PairBuckCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairBuckCoulLong::~PairBuckCoulLong()
 {
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
+  if (!copymode) {
+    if (allocated) {
+      memory->destroy(setflag);
+      memory->destroy(cutsq);
 
-    memory->destroy(cut_lj);
-    memory->destroy(cut_ljsq);
-    memory->destroy(a);
-    memory->destroy(rho);
-    memory->destroy(c);
-    memory->destroy(rhoinv);
-    memory->destroy(buck1);
-    memory->destroy(buck2);
-    memory->destroy(offset);
+      memory->destroy(cut_lj);
+      memory->destroy(cut_ljsq);
+      memory->destroy(a);
+      memory->destroy(rho);
+      memory->destroy(c);
+      memory->destroy(rhoinv);
+      memory->destroy(buck1);
+      memory->destroy(buck2);
+      memory->destroy(offset);
+    }
+    if (ftable) free_tables();
   }
-  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -357,7 +359,7 @@ void PairBuckCoulLong::init_style()
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
   
   // setup force tables
 

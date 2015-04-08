@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (ICTP, Italy)
+   Contributing author: Axel Kohlmeyer (Temple U)
+   Based on code by Paulo Raiteri (Curtin U) and Giovanni Bussi (SISSA)
 ------------------------------------------------------------------------- */
 
 #include "string.h"
@@ -38,6 +39,78 @@ using namespace FixConst;
 enum{NOBIAS,BIAS};
 enum{CONSTANT,EQUAL};
 
+double FixTempCSVR::gamdev(const int ia)
+{
+  int j;
+  double am,e,s,v1,v2,x,y;
+
+  if (ia < 1) return 0.0;
+  if (ia < 6) {
+    x=1.0;
+    for (j=1; j<=ia; j++)
+      x *= random->uniform();
+    x = -log(x);
+  } else {
+  restart:
+    do {
+      do {
+        do {
+          v1 = random->uniform();
+          v2 = 2.0*random->uniform() - 1.0;
+        } while (v1*v1 + v2*v2 > 1.0);
+
+        y=v2/v1;
+        am=ia-1;
+        s=sqrt(2.0*am+1.0);
+        x=s*y+am;
+      } while (x <= 0.0);
+
+      if (am*log(x/am)-s*y < -700 || v1<0.00001) {
+        goto restart;
+      }
+
+      e=(1.0+y*y)*exp(am*log(x/am)-s*y);
+    } while (random->uniform() > e);
+  }
+  return x;
+}
+
+/* -------------------------------------------------------------------
+  returns the sum of n independent gaussian noises squared
+  (i.e. equivalent to summing the square of the return values of nn
+   calls to gasdev)
+---------------------------------------------------------------------- */
+double FixTempCSVR::sumnoises(int nn) {
+  if (nn == 0) {
+    return 0.0;
+  } else if (nn == 1) {
+    const double rr = random->gaussian();
+    return rr*rr;
+  } else if (nn % 2 == 0) {
+    return 2.0 * gamdev(nn / 2);
+  } else {
+    const double rr = random->gaussian();
+    return  2.0 * gamdev((nn-1) / 2) + rr*rr;
+  }
+  return 0.0;
+}
+
+/* -------------------------------------------------------------------
+  returns the scaling factor for velocities to thermalize
+  the system so it samples the canonical ensemble
+---------------------------------------------------------------------- */
+
+double FixTempCSVR::resamplekin(double ekin_old, double ekin_new){
+  const double tdof = temperature->dof;
+  const double c1 = exp(-update->dt/t_period);
+  const double c2 = (1.0-c1)*ekin_new/ekin_old/tdof;
+  const double r1 = random->gaussian();
+  const double r2 = sumnoises(tdof - 1);
+
+  const double scale = c1 + c2*(r1*r1+r2) + 2.0*r1*sqrt(c1*c2);
+  return sqrt(scale);
+}
+
 /* ---------------------------------------------------------------------- */
 
 FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
@@ -48,8 +121,10 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   // CSVR thermostat should be applied every step
 
   nevery = 1;
+  scalar_flag = 1;
   global_freq = nevery;
   dynamic_group_allow = 1;
+  extscalar = 1;
 
   tstr = NULL;
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -69,8 +144,10 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (t_period <= 0.0) error->all(FLERR,"Fix temp/csvr period must be > 0.0");
-  if (seed <= 0) error->all(FLERR,"Illegal fix temp/csvr random seed");
+  if (t_period <= 0.0) error->all(FLERR,"Illegal fix temp/csvr command");
+  if (seed <= 0) error->all(FLERR,"Illegal fix temp/csvr command");
+
+  random = new RanMars(lmp,seed + comm->me);
 
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
@@ -88,9 +165,6 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   delete [] newarg;
   tflag = 1;
 
-  random = new RanMars(lmp,seed + comm->me);
-
-  vhold = NULL;
   nmax = -1;
   energy = 0.0;
 }
@@ -107,8 +181,6 @@ FixTempCSVR::~FixTempCSVR()
   delete [] id_temp;
 
   delete random;
-  memory->destroy(vhold);
-  vhold = NULL;
   nmax = -1;
 }
 
@@ -118,6 +190,7 @@ int FixTempCSVR::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
+  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -126,15 +199,6 @@ int FixTempCSVR::setmask()
 void FixTempCSVR::init()
 {
 
-  // we cannot handle shake correctly at the moment.
-
-  int has_shake = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"shake") == 0) ++has_shake;
-
-  if (has_shake > 0)
-    error->all(FLERR,"Fix temp/csvr is not compatible with fix shake");
-  
   // check variable
 
   if (tstr) {
@@ -176,65 +240,45 @@ void FixTempCSVR::end_of_step()
     modify->addstep_compute(update->ntimestep + nevery);
   }
 
+  const double t_current = temperature->compute_scalar();
+  const double efactor = 0.5 * temperature->dof * force->boltz;
+  const double ekin_old = t_current * efactor;
+  const double ekin_new = t_target * efactor;
+
+  // compute velocity scaling factor on root node and broadcast
+  double lamda;
+  if (comm->me == 0) {
+    lamda = resamplekin(ekin_old, ekin_new);
+  }
+  MPI_Bcast(&lamda,1,MPI_DOUBLE,0,world);
+
   double * const * const v = atom->v;
   const int * const mask = atom->mask;
-  const int * const type = atom->type;
   const int nlocal = atom->nlocal;
-
-  // adjust holding space, if needed and copy existing velocities
-
-  if (nmax < atom->nlocal) {
-    nmax = atom->nlocal + 1;
-    memory->destroy(vhold);
-    memory->create(vhold,nmax,3,"csvr:vhold");
-  }
-
-  // The CSVR thermostat is a linear combination of old and new velocities,
-  // where the new ones are randomly chosen from a gaussian distribution.
-  // see Bussi and Parrinello, Phys. Rev. E (2007).
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      double m;
-      if (atom->rmass_flag) m = atom->rmass[i];
-      else m = atom->mass[type[i]];
-
-      const double factor = 1.0/sqrt(m);
-      const double vx = random->gaussian() * factor;
-      vhold[i][0] = v[i][0];
-      v[i][0] = vx;
-      const double vy = random->gaussian() * factor;
-      vhold[i][1] = v[i][1];
-      v[i][1] = vy;
-      const double vz = random->gaussian() * factor;
-      vhold[i][2] = v[i][2];
-      v[i][2] = vz;
-    }
-  }
-  
-  // mixing factors
-  const double c1 = exp(-update->dt/t_period);
-  const double c2 = sqrt((1.0-c1*c1)*t_target/temperature->compute_scalar());
 
   if (which == NOBIAS) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        v[i][0] = vhold[i][0]*c1 + v[i][0]*c2;
-        v[i][1] = vhold[i][1]*c1 + v[i][1]*c2;
-        v[i][2] = vhold[i][2]*c1 + v[i][2]*c2;
+        v[i][0] *= lamda;
+        v[i][1] *= lamda;
+        v[i][2] *= lamda;
       }
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        temperature->remove_bias(i,vhold[i]);
-        v[i][0] = vhold[i][0]*c1 + v[i][0]*c2;
-        v[i][1] = vhold[i][1]*c1 + v[i][1]*c2;
-        v[i][2] = vhold[i][2]*c1 + v[i][2]*c2;
+        temperature->remove_bias(i,v[i]);
+        v[i][0] *= lamda;
+        v[i][1] *= lamda;
+        v[i][2] *= lamda;
         temperature->restore_bias(i,v[i]);
       }
     }
   }
+
+  // tally the kinetic energy transferred between heat bath and system
+
+  energy += ekin_old * (1.0 - lamda*lamda);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -272,6 +316,13 @@ int FixTempCSVR::modify_param(int narg, char **arg)
 void FixTempCSVR::reset_target(double t_new)
 {
   t_target = t_start = t_stop = t_new;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixTempCSVR::compute_scalar()
+{
+  return energy;
 }
 
 /* ----------------------------------------------------------------------

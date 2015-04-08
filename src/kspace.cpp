@@ -61,15 +61,16 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   order_6 = 5;
   gridflag_6 = 0;
   gewaldflag_6 = 0;
-    
+  auto_disp_flag = 0;
+
   slabflag = 0;
   differentiation_flag = 0;
   slab_volfactor = 1;
   suffix_flag = Suffix::NONE;
   adjust_cutoff_flag = 1;
   scalar_pressure_flag = 0;
-  qsum_update_flag = 0;
-  warn_neutral = 1;
+  warn_nonneutral = 1;
+  warn_nocharge = 1;
 
   accuracy_absolute = -1.0;
   accuracy_real_6 = -1.0;
@@ -259,10 +260,10 @@ void KSpace::ev_setup(int eflag, int vflag)
 
 /* ----------------------------------------------------------------------
    compute qsum,qsqsum,q2 and give error/warning if not charge neutral
-   only called initially or when particle count changes
+   called initially, when particle count changes, when charges are changed
 ------------------------------------------------------------------------- */
 
-void KSpace::qsum_qsq(int flag)
+void KSpace::qsum_qsq()
 {
   const double * const q = atom->q;
   const int nlocal = atom->nlocal;
@@ -279,21 +280,22 @@ void KSpace::qsum_qsq(int flag)
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (qsqsum == 0.0)
-    error->all(FLERR,"Cannot use kspace solver on system with no charge");
+  if ((qsqsum == 0.0) && (comm->me == 0) && warn_nocharge) {
+    error->warning(FLERR,"Using kspace solver on system with no charge");
+    warn_nocharge = 0;
+  }
 
   q2 = qsqsum * force->qqrd2e;
 
   // not yet sure of the correction needed for non-neutral systems
+  // so issue warning or error
 
   if (fabs(qsum) > SMALL) {
     char str[128];
     sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    if (warn_neutral && (comm->me == 0)) {
-      if (flag) error->all(FLERR,str);
-      else error->warning(FLERR,str);
-    }
-    warn_neutral = 0;
+    if (!warn_nonneutral) error->all(FLERR,str);
+    if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,str);
+    warn_nonneutral = 2;
   }
 }
 
@@ -556,6 +558,12 @@ void KSpace::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) scalar_pressure_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) scalar_pressure_flag = 0;
+      else error->all(FLERR,"Illegal kspace_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"disp/auto") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) auto_disp_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) auto_disp_flag = 0;
       else error->all(FLERR,"Illegal kspace_modify command");
       iarg += 2;
     } else error->all(FLERR,"Illegal kspace_modify command");

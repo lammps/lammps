@@ -46,7 +46,7 @@
 #ifndef KOKKOS_OPENMP_HPP
 #define KOKKOS_OPENMP_HPP
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core_fwd.hpp>
 
 #if defined( KOKKOS_HAVE_OPENMP ) && defined( _OPENMP )
 
@@ -72,17 +72,16 @@ public:
   //! \name Type declarations that all Kokkos devices must provide.
   //@{
 
-  //! The tag (what type of kokkos_object is this).
-  typedef Impl::ExecutionSpaceTag  kokkos_tag ;
-  typedef OpenMP                device_type ;
+  //! Tag this class as a kokkos execution space
   typedef OpenMP                execution_space ;
-  typedef HostSpace::size_type  size_type ;
   typedef HostSpace             memory_space ;
   typedef LayoutRight           array_layout ;
-  typedef OpenMP                host_mirror_device_type ;
+  typedef HostSpace::size_type  size_type ;
 
   typedef ScratchMemorySpace< OpenMP > scratch_memory_space ;
 
+  //! For backward compatibility
+  typedef OpenMP                device_type ;
   //@}
   //------------------------------------
   //! \name Functions that all Kokkos devices must implement.
@@ -136,8 +135,6 @@ public:
   //------------------------------------
 
   inline static unsigned max_hardware_threads() { return thread_pool_size(0); }
-  inline static unsigned team_max()             { return thread_pool_size(1); }
-  inline static unsigned team_recommended()     { return thread_pool_size(2); }
 
   KOKKOS_INLINE_FUNCTION static
   unsigned hardware_thread_id() { return thread_pool_rank(); }
@@ -157,6 +154,7 @@ struct VerifyExecutionCanAccessMemorySpace
   , Kokkos::OpenMP::scratch_memory_space
   >
 {
+  enum { value = true };
   inline static void verify( void ) { }
   inline static void verify( const void * ) { }
 };

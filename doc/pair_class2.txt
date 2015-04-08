@@ -9,13 +9,16 @@
 pair_style lj/class2 command :h3
 pair_style lj/class2/cuda command :h3
 pair_style lj/class2/gpu command :h3
+pair_style lj/class2/kk command :h3
 pair_style lj/class2/omp command :h3
 pair_style lj/class2/coul/cut command :h3
 pair_style lj/class2/coul/cut/cuda command :h3
+pair_style lj/class2/coul/cut/kk command :h3
 pair_style lj/class2/coul/cut/omp command :h3
 pair_style lj/class2/coul/long command :h3
 pair_style lj/class2/coul/long/cuda command :h3
 pair_style lj/class2/coul/long/gpu command :h3
+pair_style lj/class2/coul/long/kk command :h3
 pair_style lj/class2/coul/long/omp command :h3
 
 [Syntax:]

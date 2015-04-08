@@ -15,6 +15,8 @@
 </H3>
 <H3>pair_style sw/gpu command 
 </H3>
+<H3>pair_style sw/intel command 
+</H3>
 <H3>pair_style sw/omp command 
 </H3>
 <P><B>Syntax:</B>
@@ -163,6 +165,11 @@ LAMMPS</A> section for more info.
 by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
 switch</A> when you invoke LAMMPS, or you can
 use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>When using the USER-INTEL package with this style, there is an
+additional 5 to 10 percent performance improvement when the
+Stillinger-Weber parameters p and q are set to 4 and 0 respectively.
+These parameters are common for modeling silicon and water.
 </P>
 <P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
 more instructions on how to use the accelerated styles effectively.

@@ -1,0 +1,146 @@
+#   This file is a heavily redacted version of the "oplsaa.prm" file distributed
+# with TINKER (Downloaded April, 2014).  This version only contains information
+# relevant to alkane chains.  The complete version of that file works with most
+# small organic molecules and you can use that file with moltemplate too.
+# Unfortunately, I do not own or have permission to distribute that file.  
+# You can download the latest complete version of that file here:
+#
+# http://dasher.wustl.edu/tinker/distribution/params/oplsaa.prm
+#
+#   When building your own molecules, you should download this file, and delete
+# only the lines from the "atoms" section which you don't need. (But leave the
+# rest of that file alone.)  Rename the resulting file "oplsaa_subset.prm"
+# Then you can create an oplsaa.lt file (which moltemplate.sh needs) this way:
+#   python oplsaa_moltemplate.py oplsaa_subset.prm
+# Then copy the newly created "oplsa.lt" file to the directory where you
+# plan to run moltemplate, and run moltemplate:
+#   moltemplate system.lt
+
+
+      ##############################
+      ##                          ##
+      ##  Force Field Definition  ##
+      ##                          ##
+      ##############################
+
+
+forcefield              OPLS-AA
+
+vdwindex                TYPE
+vdwtype                 LENNARD-JONES
+radiusrule              GEOMETRIC
+radiustype              SIGMA
+radiussize              DIAMETER
+epsilonrule             GEOMETRIC
+torsionunit             0.5
+imptorunit              0.5
+vdw-14-scale            2.0
+chg-14-scale            2.0
+electric                332.06
+dielectric              1.0
+
+
+      #############################
+      ##                         ##
+      ##  Literature References  ##
+      ##                         ##
+      #############################
+
+
+The parameters supplied with TINKER are from "OPLS All-Atom Parameters
+for Organic Molecules, Ions, Peptides & Nucleic Acids, July 2008" as
+provided by W. L. Jorgensen, Yale University during June 2009. These
+parameters are taken from those distributed with BOSS Version 4.8.
+
+Note that "atom type" numbers and not "atom class" numbers are used
+to index van der Waals parameters, see the "vdwindex" keyword above
+
+The atom types with (UA) in the description are "united atom" values,
+ie, OPLS-UA, where any nonpolar hydrogen atoms are combined onto their
+attached atoms. All other parameters are "all-atom", OPLS-AA, including
+explicit hydrogen atoms.
+
+
+      #############################
+      ##                         ##
+      ##  Atom Type Definitions  ##
+      ##                         ##
+      #############################
+
+
+atom         80   13    CT    "Alkane CH3-"                  6    12.011    4
+atom         81   13    CT    "Alkane -CH2-"                 6    12.011    4
+atom         85   46    HC    "Alkane H-C"                   1     1.008    1
+
+
+      ################################
+      ##                            ##
+      ##  Van der Waals Parameters  ##
+      ##                            ##
+      ################################
+
+
+vdw          80               3.5000     0.0660
+vdw          81               3.5000     0.0660
+vdw          85               2.5000     0.0300
+
+
+bond         13   13          268.00     1.5290
+bond         13   46          340.00     1.0900
+
+
+      ################################
+      ##                            ##
+      ##  Angle Bending Parameters  ##
+      ##                            ##
+      ################################
+
+
+angle        13   13   13      58.35     112.70
+angle        46   13   46      33.00     107.80
+angle        13   13   46      37.50     110.70
+
+
+      ############################
+      ##                        ##
+      ##  Torsional Parameters  ##
+      ##                        ##
+      ############################
+
+
+    ###################################################################
+    ##                                                               ##
+    ##  Alternative Torsional Parameter Values for Use with OPLS-AA  ##
+    ##                                                               ##
+    ##  For some torsions, OPLS-AA has multiple possible parameter   ##
+    ##  values; the list below shows functional groups for which     ##
+    ##  these alternate (commented) values should be preferred; the  ##
+    ##  values are in the same order as in the full parameter list   ##
+    ##                                                               ##
+    ##   13   13   13   13      hydrocarbon (default)                ##
+    ##   13   13   13   13      perfluoroalkane                      ##
+    ##                                                               ##
+    ###################################################################
+
+
+torsion       0   13   13   13      1.711 0.0 1  -0.500 180.0 2   0.663 0.0 3
+#torsion      0   13   13   13     -1.336 0.0 1   0.000 180.0 2   0.000 0.0 3
+torsion      13   13   13   13      1.300 0.0 1  -0.050 180.0 2   0.200 0.0 3
+#torsion   13   13   13   13  6.622 0. 1 0.948 180. 2 -1.388 0. 3 -2.118 180. 4
+torsion      13   13   13   46      0.000 0.0 1   0.000 180.0 2   0.300 0.0 3
+torsion      46   13   13   46      0.000 0.0 1   0.000 180.0 2   0.300 0.0 3
+
+
+
+
+      ########################################
+      ##                                    ##
+      ##  Atomic Partial Charge Parameters  ##
+      ##                                    ##
+      ########################################
+
+
+charge       80              -0.1800
+charge       81              -0.1200
+charge       85               0.0600
+

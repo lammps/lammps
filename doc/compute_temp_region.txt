@@ -50,7 +50,7 @@ the above formula, except that v^2 is replaced by vx*vy for the xy
 component, etc.  The 6 components of the vector are ordered xx, yy,
 zz, xy, xz, yz.
 
-The number of atoms contributing to the temperature is compute each
+The number of atoms contributing to the temperature is calculated each
 time the temperature is evaluated since it is assumed atoms can
 enter/leave the region.  Thus there is no need to use the {dynamic}
 option of the "compute_modify"_compute_modify.html command for this
@@ -71,12 +71,13 @@ compute.
 
 Unlike other compute styles that calculate temperature, this compute
 does not subtract out degrees-of-freedom due to fixes that constrain
-molecular motion, such as "fix shake"_fix_shake.html and "fix
+motion, such as "fix shake"_fix_shake.html and "fix
 rigid"_fix_rigid.html.  This is because those degrees of freedom
-(e.g. a constrained bond) can straddle the region boundary, and hence
-the concept is somewhat ill-defined.  If needed the number of
-subtracted degrees-of-freedom can be set explicitly using the {extra}
-option of the "compute_modify"_compute_modify.html command.
+(e.g. a constrained bond) could apply to sets of atoms that straddle
+the region boundary, and hence the concept is somewhat ill-defined.
+If needed the number of subtracted degrees-of-freedom can be set
+explicitly using the {extra} option of the
+"compute_modify"_compute_modify.html command.
 
 See "this howto section"_Section_howto.html#howto_16 of the manual for
 a discussion of different ways to compute temperature and perform

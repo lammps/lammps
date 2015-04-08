@@ -125,8 +125,12 @@ void colvarproxy_lammps::init(const char *conf_file)
   cvm::log("Using LAMMPS interface, version "+
             cvm::to_str(COLVARPROXY_VERSION)+".\n");
 
+  my_angstrom  = _lmp->force->angstrom;
+  my_boltzmann = _lmp->force->boltz;
+  my_timestep  = _lmp->update->dt * _lmp->force->femtosecond;
+
   // TODO move one or more of these to setup() if needed
-  colvars->config_file(conf_file);
+  colvars->read_config_file(conf_file);
   colvars->setup_input();
   colvars->setup_output();
 
@@ -158,6 +162,7 @@ colvarproxy_lammps::~colvarproxy_lammps()
 // re-initialize data where needed
 void colvarproxy_lammps::setup()
 {
+  my_timestep  = _lmp->update->dt * _lmp->force->femtosecond;
   colvars->setup();
 }
 

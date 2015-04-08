@@ -24,7 +24,7 @@ style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
   {hybrid} args = list of one or more sub-styles, each with their args :pre
 
-accelerated styles (with same args) = {angle/cuda} or {angle/kokkos} or {atomic/cuda} or {atomic/kokkos} or {bond/kokkos} or {charge/cuda} or {charge/kokkos} or {full/cuda} or {full/kokkos} or {molecular/kokkos} :l
+accelerated styles (with same args) = {angle/cuda} or {angle/kk} or {atomic/cuda} or {atomic/kk} or {bond/kk} or {charge/cuda} or {charge/kk} or {full/cuda} or {full/kk} or {molecular/kk} :l
 :ule
 
 [Examples:]
@@ -232,7 +232,7 @@ This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
 The {angle}, {bond}, {full}, {molecular}, and {template} styles are
-part of the MOLECULAR package.  The {line} and {tri} styles are part
+part of the MOLECULE package.  The {line} and {tri} styles are part
 of the ASPHERE pacakge.  The {body} style is part of the BODY package.
 The {dipole} style is part of the DIPOLE package.  The {peri} style is
 part of the PERI package for Peridynamics.  The {electron} style is

@@ -8,6 +8,7 @@
 
 pair_style lj/sdk command :h3
 pair_style lj/sdk/gpu command :h3
+pair_style lj/sdk/kk command :h3
 pair_style lj/sdk/omp command :h3
 pair_style lj/sdk/coul/long command :h3
 pair_style lj/sdk/coul/long/gpu command :h3

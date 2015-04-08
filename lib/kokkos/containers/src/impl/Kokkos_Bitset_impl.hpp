@@ -131,7 +131,7 @@ template <typename Bitset>
 struct BitsetCount
 {
   typedef Bitset bitset_type;
-  typedef typename bitset_type::device_type device_type;
+  typedef typename bitset_type::device_type::execution_space device_type;
   typedef typename bitset_type::size_type size_type;
   typedef size_type value_type;
 

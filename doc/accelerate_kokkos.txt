@@ -504,3 +504,6 @@ Currently Kokkos does not support AMD GPUs due to limits in the
 available backend programming models.  Specifically, Kokkos requires
 extensive C++ support from the Kernel language.  This is expected to
 change in the future.
+
+Kokkos must be built with a C++11 compatible compiler.  For example,
+gcc 4.7.2 or later.

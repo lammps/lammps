@@ -52,4 +52,8 @@ E: Rerun dump file does not contain requested snapshot
 
 Self-explanatory.
 
+E: Read rerun dump file timestep > specified stop
+
+Self-explanatory.
+
 */

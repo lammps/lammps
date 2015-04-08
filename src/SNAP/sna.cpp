@@ -1727,7 +1727,7 @@ double SNA::factorial(int n)
     1.503616514865e+300,
   };
 
-  if(n < 0 || n > nmax) {
+  if (n < 0 || n > nmax) {
     char str[128];
     sprintf(str, "Invalid argument to factorial %d", n);
     error->all(FLERR, str);

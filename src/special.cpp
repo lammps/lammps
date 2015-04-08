@@ -18,6 +18,7 @@
 #include "atom_vec.h"
 #include "force.h"
 #include "comm.h"
+#include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
 
@@ -175,7 +176,7 @@ void Special::build()
   memory->destroy(count);
 
   // -----------------------------------------------------
-  // done if special_bonds for 1-3, 1-4 are set to 1.0
+  // done if special_bond weights for 1-3, 1-4 are set to 1.0
   // -----------------------------------------------------
 
   if (force->special_lj[2] == 1.0 && force->special_coul[2] == 1.0 &&
@@ -292,7 +293,7 @@ void Special::build()
 
   memory->destroy(buf);
 
-  // done if special_bonds for 1-4 are set to 1.0
+  // done if special_bond weights for 1-4 are set to 1.0
 
   if (force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
     dedup();
@@ -572,9 +573,15 @@ void Special::combine()
       fprintf(logfile,"  %d = max # of special neighbors\n",atom->maxspecial);
   }
 
-  memory->destroy(atom->special);
+  if (lmp->kokkos) {
+    AtomKokkos* atomKK = (AtomKokkos*) atom;
+    memory->grow_kokkos(atomKK->k_special,atom->special,
+                        atom->nmax,atom->maxspecial,"atom:special");
+  } else {
+    memory->destroy(atom->special);
+    memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");
+  }
 
-  memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");
   atom->avec->grow_reset();
   tagint **special = atom->special;
 

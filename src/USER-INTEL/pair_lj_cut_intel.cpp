@@ -331,21 +331,19 @@ void PairLJCutIntel::init_style()
                "The 'package intel' command is required for /intel styles");
   fix = static_cast<FixIntel *>(modify->fix[ifix]);
 
+  fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
   if (fix->offload_balance() != 0.0)
     error->all(FLERR,
           "Offload for lj/cut/intel is not yet available. Set balance to 0.");
   #endif
-  if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-    fix->get_mixed_buffers()->free_all_nbor_buffers();
+
+  if (fix->precision() == FixIntel::PREC_MODE_MIXED)
     pack_force_const(force_const_single, fix->get_mixed_buffers());
-  } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-    fix->get_double_buffers()->free_all_nbor_buffers();
+  else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
     pack_force_const(force_const_double, fix->get_double_buffers());
-  } else {
-    fix->get_single_buffers()->free_all_nbor_buffers();
+  else
     pack_force_const(force_const_single, fix->get_single_buffers());
-  }
 }
 
 /* ---------------------------------------------------------------------- */

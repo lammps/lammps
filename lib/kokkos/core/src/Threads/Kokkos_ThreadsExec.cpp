@@ -41,7 +41,7 @@
 //@HEADER
 */
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core_fwd.hpp>
 
 #if defined( KOKKOS_HAVE_PTHREAD ) || defined( KOKKOS_HAVE_WINTHREAD )
 
@@ -413,7 +413,7 @@ void ThreadsExec::execute_resize_scratch( ThreadsExec & exec , const void * )
   if ( s_threads_process.m_scratch_thread_end ) {
 
     exec.m_scratch =
-      HostSpace::allocate( "thread_scratch" , typeid(unsigned char) , 1 , s_threads_process.m_scratch_thread_end );
+      HostSpace::allocate( "thread_scratch" , s_threads_process.m_scratch_thread_end );
 
     unsigned * ptr = (unsigned *)( exec.m_scratch );
     unsigned * const end = ptr + s_threads_process.m_scratch_thread_end / sizeof(unsigned);
@@ -624,6 +624,7 @@ void ThreadsExec::initialize( unsigned thread_count ,
         s_threads_process.m_pool_rank     = thread_count - 1 ; // Reversed for scan-compatible reductions
         s_threads_process.m_pool_size     = thread_count ;
         s_threads_process.m_pool_fan_size = fan_size( s_threads_process.m_pool_rank , s_threads_process.m_pool_size );
+        s_threads_pid[ s_threads_process.m_pool_rank ] = pthread_self();
       }
       else {
         s_threads_process.m_pool_base = 0 ;
@@ -716,8 +717,8 @@ namespace Kokkos {
 
 Threads & Threads::instance(int)
 {
-  static Threads * const t = 0 ;
-  return *t ;
+  static Threads t ;
+  return t ;
 }
 
 int Threads::thread_pool_size( int depth )

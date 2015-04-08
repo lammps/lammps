@@ -232,6 +232,9 @@ commands"_Section_howto.html#howto_15.  No parameter of this fix can
 be used with the {start/stop} keywords of the "run"_run.html command.
 This fix is not invoked during "energy minimization"_minimize.html.
 
+For "rRESPA time integration"_run_style.html, this fix changes
+parameters on the outermost rRESPA level.
+
 [Restrictions:] none
 
 [Related commands:]

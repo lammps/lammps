@@ -46,6 +46,7 @@
 
 #include <cstddef>
 #include <iosfwd>
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_MemoryTraits.hpp>
 #include <Kokkos_HostSpace.hpp>
@@ -69,19 +70,21 @@ class Qthread {
 public:
   //! \name Type declarations that all Kokkos devices must provide.
   //@{
-  //! The tag (what type of kokkos_object is this).
-  typedef Impl::ExecutionSpaceTag  kokkos_tag ;
 
-  typedef Qthread                  device_type ;
+  //! Tag this class as an execution space
   typedef Qthread                  execution_space ;
   typedef Kokkos::HostSpace        memory_space ;
-  typedef Qthread                  scratch_memory_space ;
-  typedef memory_space::size_type  size_type ;
   typedef Kokkos::LayoutRight      array_layout ;
-  typedef Kokkos::Qthread          host_mirror_device_type ;
+  typedef memory_space::size_type  size_type ;
+
+  typedef ScratchMemorySpace< Qthread > scratch_memory_space ;
+
+  //! For backward compatibility:
+  typedef Qthread                  device_type ;
 
   //@}
   /*------------------------------------------------------------------------*/
+
   /** \brief  Initialization will construct one or more instances */
   static Qthread & instance( int = 0 );
 
@@ -114,15 +117,6 @@ public:
 
   /*------------------------------------------------------------------------*/
 
-  Qthread( Impl::QthreadExec & e ) : m_exec(e) {}
-
-  void * get_shmem( const int ) const ;
-
-  static int team_recommended();
-  static int team_max();
-
-  /*------------------------------------------------------------------------*/
-
   static void initialize( int thread_count );
   static void finalize();
 
@@ -131,17 +125,30 @@ public:
 
   int shepherd_size() const ;
   int shepherd_worker_size() const ;
-
-private:
-
-  friend class Impl::QthreadExec ;
-
-  Impl::QthreadExec & m_exec ;
-
 };
 
 /*--------------------------------------------------------------------------*/
 
+} // namespace Kokkos
+
+/*--------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------*/
+
+namespace Kokkos {
+namespace Impl {
+
+template<>
+struct VerifyExecutionCanAccessMemorySpace
+  < Kokkos::Qthread::memory_space
+  , Kokkos::Qthread::scratch_memory_space
+  >
+{
+  enum { value = true };
+  inline static void verify( void ) { }
+  inline static void verify( const void * ) { }
+};
+
+} // namespace Impl
 } // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/

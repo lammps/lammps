@@ -637,32 +637,32 @@ void PairLJCutCoulLongSoft::init_style()
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
 
-    if (respa == 0) irequest = neighbor->request(this);
+    if (respa == 0) irequest = neighbor->request(this,instance_me);
     else if (respa == 1) {
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 1;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 3;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respaouter = 1;
     } else {
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 1;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 2;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respamiddle = 1;
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 3;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respaouter = 1;
     }
 
-  } else irequest = neighbor->request(this);
+  } else irequest = neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
 
@@ -720,7 +720,7 @@ double PairLJCutCoulLongSoft::init_one(int i, int j)
   lj4[i][j] = alphac  * (1.0 - lambda[i][j])*(1.0 - lambda[i][j]);
 
   if (offset_flag) {
-    double denlj = lj3[i][j] + pow(sigma[i][j] / cut_lj[i][j], 6.0);
+    double denlj = lj3[i][j] + pow(cut_lj[i][j] / sigma[i][j], 6.0);
     offset[i][j] = lj1[i][j] * 4.0 * epsilon[i][j] * (1.0/(denlj*denlj) - 1.0/denlj);
   } else offset[i][j] = 0.0;
 

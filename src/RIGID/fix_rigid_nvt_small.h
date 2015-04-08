@@ -39,22 +39,26 @@ class FixRigidNVTSmall : public FixRigidNHSmall {
 
 E: Did not set temp for fix rigid/nvt/small
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Target temperature for fix rigid/nvt/small cannot be 0.0
 
-UNDOCUMENTED
+Self-explanatory.
 
 E: Fix rigid/nvt/small period must be > 0.0
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Illegal ... command
+E: Fix rigid nvt/small t_chain should not be less than 1
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Fix_modify order must be 3 or 5
+E: Fix rigid nvt/small t_iter should not be less than 1
 
-UNDOCUMENTED
+Self-explanatory.
+
+E: Fix rigid nvt/small t_order must be 3 or 5
+
+Self-explanatory.
 
 */

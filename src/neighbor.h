@@ -49,11 +49,12 @@ class Neighbor : protected Pointers {
   class NeighRequest **requests;   // from Pair, Fix, Compute, Command classes
   int maxrequest;
 
-  int old_style;                   // previous run info to avoid
-  int old_nrequest;                // re-creation of pairwise neighbor lists
-  int old_triclinic;
-  int old_pgsize;
-  int old_oneatom;
+  int old_style,old_nrequest;      // previous run info to avoid
+  int old_triclinic,old_pgsize;    // re-creation of pairwise neighbor lists
+  int old_oneatom,old_every;
+  int old_delay,old_check;
+  double old_cutoff;
+
   class NeighRequest **old_requests;
 
   int nlist;                       // pairwise neighbor lists
@@ -71,7 +72,7 @@ class Neighbor : protected Pointers {
   Neighbor(class LAMMPS *);
   virtual ~Neighbor();
   virtual void init();
-  int request(void *);              // another class requests a neighbor list
+  int request(void *, int instance=0);  // another class requests a neigh list
   void print_lists_of_lists();      // debug print out
   int decide();                     // decide whether to build or not
   virtual int check_distance();     // check max distance moved since last build
@@ -83,6 +84,8 @@ class Neighbor : protected Pointers {
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
   int exclude_setting();
+
+  int cluster_check;               // 1 if check bond/angle/etc satisfies minimg
 
  protected:
   int me,nprocs;
@@ -102,7 +105,6 @@ class Neighbor : protected Pointers {
   double *cuttypesq;               // cuttype squared
 
   double triggersq;                // trigger = build when atom moves this dist
-  int cluster_check;               // 1 if check bond/angle/etc satisfies minimg
 
   double **xhold;                      // atom coords at last neighbor build
   int maxhold;                         // size of xhold array
@@ -188,6 +190,10 @@ class Neighbor : protected Pointers {
   virtual void init_list_grow_kokkos(int) {}
   virtual void build_kokkos(int) {}
   virtual void setup_bins_kokkos(int) {}
+  virtual void init_topology_kokkos() {}
+  virtual void build_topology_kokkos() {}
+
+  int copymode;
 
   // pairwise build functions
 
@@ -381,11 +387,9 @@ The number of nlocal + nghost atoms on a processor
 is limited by the size of a 32-bit integer with 2 bits
 removed for masking 1-2, 1-3, 1-4 neighbors.
 
-W: Building an occasional neighobr list when atoms may have moved too far
+E: Trying to build an occasional neighbor list before initialization completed
 
-This can cause LAMMPS to crash when the neighbor list is built.
-The solution is to check for building the regular neighbor lists
-more frequently.
+This is not allowed.  Source code caller needs to be modified.
 
 E: Domain too large for neighbor bins
 

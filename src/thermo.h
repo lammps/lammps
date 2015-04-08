@@ -352,7 +352,7 @@ E: Thermo custom variable cannot be indexed
 
 Self-explanatory.
 
-E: Invalid keyword in thermo_style custom command
+E: Unknown keyword in thermo_style custom command
 
 One or more specified keywords are not recognized.
 

@@ -32,10 +32,16 @@ using namespace LAMMPS_NS;
 #define DELTA 4
 #define BIG MAXTAGINT
 
+// allocate space for static class instance variable and initialize it
+
+int Compute::instance_total = 0;
+
 /* ---------------------------------------------------------------------- */
 
 Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
+  instance_me = instance_total++;
+
   if (narg < 3) error->all(FLERR,"Illegal compute command");
 
   // compute ID, group, and style
@@ -62,9 +68,11 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   scalar_flag = vector_flag = array_flag = 0;
   peratom_flag = local_flag = 0;
+  size_vector_variable = size_array_rows_variable = 0;
 
   tempflag = pressflag = peflag = 0;
   pressatomflag = peatomflag = 0;
+  create_attribute = 0;
   tempbias = 0;
 
   timeflag = 0;
@@ -87,12 +95,15 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   ntime = maxtime = 0;
   tlist = NULL;
 
-  // setup map for molecule IDs
-
-  molmap = NULL;
+  // data masks
 
   datamask = ALL_MASK;
   datamask_ext = ALL_MASK;
+
+  // force init to zero in case these are used as logicals
+
+  vector = vector_atom = vector_local = NULL;
+  array = array_atom = array_local = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,9 +112,7 @@ Compute::~Compute()
 {
   delete [] id;
   delete [] style;
-
   memory->destroy(tlist);
-  memory->destroy(molmap);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -140,9 +149,13 @@ void Compute::modify_params(int narg, char **arg)
 
 void Compute::adjust_dof_fix()
 {
+  Fix **fix = modify->fix;
+  int nfix = modify->nfix;
+
   fix_dof = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->dof_flag) 
+      fix_dof += fix[i]->dof(igroup);
 }
 
 /* ----------------------------------------------------------------------
@@ -216,101 +229,4 @@ int Compute::matchstep(bigint ntimestep)
 void Compute::clearstep()
 {
   ntime = 0;
-}
-
-/* ----------------------------------------------------------------------
-   identify molecule IDs with atoms in group
-   warn if any atom in group has molecule ID = 0
-   warn if any molecule has only some atoms in group
-   return Ncount = # of molecules with atoms in group
-   set molmap to NULL if molecule IDs include all in range from 1 to Ncount
-   else: molecule IDs range from idlo to idhi
-         set molmap to vector of length idhi-idlo+1
-         molmap[id-idlo] = index from 0 to Ncount-1
-         return idlo and idhi
-------------------------------------------------------------------------- */
-
-int Compute::molecules_in_group(tagint &idlo, tagint &idhi)
-{
-  int i;
-
-  memory->destroy(molmap);
-  molmap = NULL;
-
-  // find lo/hi molecule ID for any atom in group
-  // warn if atom in group has ID = 0
-
-  tagint *molecule = atom->molecule;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  tagint lo = BIG;
-  tagint hi = -BIG;
-  int flag = 0;
-  for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      if (molecule[i] == 0) flag = 1;
-      lo = MIN(lo,molecule[i]);
-      hi = MAX(hi,molecule[i]);
-    }
-
-  int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall && comm->me == 0)
-    error->warning(FLERR,"Atom with molecule ID = 0 included in "
-                   "compute molecule group");
-
-  MPI_Allreduce(&lo,&idlo,1,MPI_LMP_TAGINT,MPI_MIN,world);
-  MPI_Allreduce(&hi,&idhi,1,MPI_LMP_TAGINT,MPI_MAX,world);
-  if (idlo == BIG) return 0;
-
-  // molmap = vector of length nlen
-  // set to 1 for IDs that appear in group across all procs, else 0
-
-  tagint nlen_tag = idhi-idlo+1;
-  if (nlen_tag > MAXSMALLINT) 
-    error->all(FLERR,"Too many molecules for compute");
-  int nlen = (int) nlen_tag;
-
-  memory->create(molmap,nlen,"compute:molmap");
-  for (i = 0; i < nlen; i++) molmap[i] = 0;
-
-  for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
-      molmap[molecule[i]-idlo] = 1;
-
-  int *molmapall;
-  memory->create(molmapall,nlen,"compute:molmapall");
-  MPI_Allreduce(molmap,molmapall,nlen,MPI_INT,MPI_MAX,world);
-
-  // nmolecules = # of non-zero IDs in molmap
-  // molmap[i] = index of molecule, skipping molecules not in group with -1
-
-  int nmolecules = 0;
-  for (i = 0; i < nlen; i++)
-    if (molmapall[i]) molmap[i] = nmolecules++;
-    else molmap[i] = -1;
-  memory->destroy(molmapall);
-
-  // warn if any molecule has some atoms in group and some not in group
-
-  flag = 0;
-  for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) continue;
-    if (molecule[i] < idlo || molecule[i] > idhi) continue;
-    if (molmap[molecule[i]-idlo] >= 0) flag = 1;
-  }
-
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall && comm->me == 0)
-    error->warning(FLERR,
-                   "One or more compute molecules has atoms not in group");
-
-  // if molmap simply stores 1 to Nmolecules, then free it
-
-  if (idlo == 1 && idhi == nmolecules && nlen == nmolecules) {
-    memory->destroy(molmap);
-    molmap = NULL;
-  }
-  return nmolecules;
 }

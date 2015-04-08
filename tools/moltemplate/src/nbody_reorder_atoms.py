@@ -17,11 +17,12 @@ in_stream = sys.stdin
 
 
 section_name = ''
-if len(sys.argv) == 2:
+if len(sys.argv) == 3:
     section_name = sys.argv[1]
+    module_name = sys.argv[2].rstrip('.py')
 else:
     sys.stderr.write('Usage Example:\n\n'
-                     '      '+g_program_name+' Angles < angles.txt > new_angles.txt\n\n'
+                     '      '+g_program_name+' Angles nbody_angles.py < angles.txt > new_angles.txt\n\n'
                      '      In this example \"angles.txt\" contains only the \"Angles\" section of\n'
                      '      a LAMMPS DATA file.  (Either a text-editor, or the \n'
                      '      \"extract_lammps_data.py\" script can be used to select a section from\n'
@@ -31,10 +32,9 @@ else:
     exit(-1)
 
 # Ordering rules are defined in a seperate module named
-# nbody_Angles.py, nbody_Dihedrals.py, nbody_Impropers.py
+# nbody_angles.py, nbody_dihedrals.py, nbody_impropers.py
 # Load that now.
 
-module_name = 'nbody_'+section_name
 g = __import__(module_name)  #defines g.bond_pattern, g.canonical_order
 
 # This module defines the graph representing the bond pattern for this type

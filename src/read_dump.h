@@ -113,9 +113,9 @@ E: Dump file does not contain requested snapshot
 
 Self-explanatory.
 
-E: Invalid dump reader style
+E: Unknown dump reader style
 
-Self-explanatory.
+The choice of dump reader style via the format keyword is unknown.
 
 E: No box information in dump. You have to use 'box no'
 

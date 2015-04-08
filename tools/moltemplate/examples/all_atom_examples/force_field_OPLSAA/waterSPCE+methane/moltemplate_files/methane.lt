@@ -1,0 +1,32 @@
+import "oplsaa.lt"
+
+# Atom type numbers are from the "oplsaa_subset.prm" 
+# file used to generate "oplsaa.lt".
+
+# atom         83   13    CT    "Methane CH4"
+# atom         85   46    HC    "Alkane H-C"
+
+Methane inherits OPLSAA {
+
+  # atomID   molID  atomTyle  charge     X        Y          Z
+  write('Data Atoms') {
+    $atom:C  $mol:. @atom:83   0.0   0.000000   0.000000   0.000000
+    $atom:H1 $mol:. @atom:85   0.0   0.000000   0.000000   1.089000
+    $atom:H2 $mol:. @atom:85   0.0   1.026719   0.000000  -0.363000
+    $atom:H3 $mol:. @atom:85   0.0  -0.513360  -0.889165  -0.363000
+    $atom:H4 $mol:. @atom:85   0.0  -0.513360   0.889165  -0.363000
+  }
+
+  #  Charges will be assigned by OPLSAA, so we leave them 0.0 here.
+  #
+  #  (The "." in "$mol:." refers to this molecule-object's molecule-ID number.
+  #   The "." simply means this molecule is not a part of a larger molecule.)
+
+  write('Data Bond List') {
+    $bond:CH1 $atom:C $atom:H1
+    $bond:CH2 $atom:C $atom:H2
+    $bond:CH3 $atom:C $atom:H3
+    $bond:CH4 $atom:C $atom:H4
+  }
+
+} # Methane

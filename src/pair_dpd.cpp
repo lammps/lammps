@@ -214,7 +214,8 @@ void PairDPD::settings(int narg, char **arg)
 
 void PairDPD::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -256,7 +257,7 @@ void PairDPD::init_style()
   if (force->newton_pair == 0 && comm->me == 0) error->warning(FLERR,
       "Pair dpd needs newton pair on for momentum conservation");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

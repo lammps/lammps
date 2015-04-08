@@ -57,7 +57,109 @@ void cuda_internal_safe_call( cudaError e , const char * name, const char * file
   if ( cudaSuccess != e ) { cuda_internal_error_throw( e , name, file, line ); }
 }
 
+template<class DriverType>
+int cuda_get_max_block_size(const typename DriverType::functor_type & f) {
+#if ( CUDA_VERSION < 6050 )
+  return 256;
+#else
+  bool Large = ( CudaTraits::ConstantMemoryUseThreshold < sizeof(DriverType) );
 
+  int numBlocks;
+  if(Large) {
+    int blockSize=32;
+    int sharedmem = FunctorTeamShmemSize< typename DriverType::functor_type  >::value( f , blockSize );
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor(
+        &numBlocks,
+        cuda_parallel_launch_constant_memory<DriverType>,
+        blockSize,
+        sharedmem);
+
+    while (blockSize<1024 && numBlocks>0) {
+      blockSize*=2;
+      sharedmem = FunctorTeamShmemSize< typename DriverType::functor_type  >::value( f , blockSize );
+
+      cudaOccupancyMaxActiveBlocksPerMultiprocessor(
+          &numBlocks,
+          cuda_parallel_launch_constant_memory<DriverType>,
+          blockSize,
+          sharedmem);
+    }
+    if(numBlocks>0) return blockSize;
+    else return blockSize/2;
+  } else {
+    int blockSize=32;
+    int sharedmem = FunctorTeamShmemSize< typename DriverType::functor_type  >::value( f , blockSize );
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor(
+        &numBlocks,
+        cuda_parallel_launch_local_memory<DriverType>,
+        blockSize,
+        sharedmem);
+
+    while (blockSize<1024 && numBlocks>0) {
+      blockSize*=2;
+      sharedmem = FunctorTeamShmemSize< typename DriverType::functor_type  >::value( f , blockSize );
+
+      cudaOccupancyMaxActiveBlocksPerMultiprocessor(
+          &numBlocks,
+          cuda_parallel_launch_local_memory<DriverType>,
+          blockSize,
+          sharedmem);
+    }
+    if(numBlocks>0) return blockSize;
+    else return blockSize/2;
+  }
+#endif
+}
+
+template<class DriverType>
+int cuda_get_opt_block_size(const typename DriverType::functor_type & f) {
+#if ( CUDA_VERSION < 6050 )
+  return 256;
+#else
+  bool Large = ( CudaTraits::ConstantMemoryUseThreshold < sizeof(DriverType) );
+
+  int blockSize=16;
+  int numBlocks;
+  int sharedmem;
+  int maxOccupancy=0;
+  int bestBlockSize=0;
+
+  if(Large) {
+    while(blockSize<1024) {
+      blockSize*=2;
+
+      //calculate the occupancy with that optBlockSize and check whether its larger than the largest one found so far
+      sharedmem = FunctorTeamShmemSize< typename DriverType::functor_type  >::value( f , blockSize );
+      cudaOccupancyMaxActiveBlocksPerMultiprocessor(
+              &numBlocks,
+              cuda_parallel_launch_constant_memory<DriverType>,
+              blockSize,
+              sharedmem);
+      if(maxOccupancy < numBlocks*blockSize) {
+        maxOccupancy = numBlocks*blockSize;
+        bestBlockSize = blockSize;
+      }
+    }
+  } else {
+    while(blockSize<1024) {
+      blockSize*=2;
+      sharedmem = FunctorTeamShmemSize< typename DriverType::functor_type  >::value( f , blockSize );
+
+      cudaOccupancyMaxActiveBlocksPerMultiprocessor(
+              &numBlocks,
+              cuda_parallel_launch_local_memory<DriverType>,
+              blockSize,
+              sharedmem);
+
+      if(maxOccupancy < numBlocks*blockSize) {
+        maxOccupancy = numBlocks*blockSize;
+        bestBlockSize = blockSize;
+      }
+    }
+  }
+  return bestBlockSize;
+#endif
+}
 
 }
 }

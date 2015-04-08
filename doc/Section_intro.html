@@ -144,7 +144,7 @@ commands)
 </P>
 <UL><LI>  pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins,     Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
 <LI>  charged pairwise potentials: Coulombic, point-dipole
-<LI>  manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM),     embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff,     REBO, AIREBO, ReaxFF, COMB, SNAP
+<LI>  manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM),     embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff,     REBO, AIREBO, ReaxFF, COMB, SNAP, Streitz-Mintmire
 <LI>  charge equilibration (QEq via dynamic, point, shielded, Slater methods)
 <LI>  electron force field (eFF, AWPMD)
 <LI>  coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
@@ -188,7 +188,8 @@ commands)
 <LI>  harmonic (umbrella) constraint forces
 <LI>  rigid body constraints
 <LI>  SHAKE bond and angle constraints
-<LI>  bond breaking, formation, swapping
+<LI>  Monte Carlo bond breaking, formation, swapping
+<LI>  atom/molecule insertion and deletion
 <LI>  walls of various kinds
 <LI>  non-equilibrium molecular dynamics (NEMD)
 <LI>  variety of additional boundary conditions and constraints 
@@ -256,8 +257,8 @@ molecular dynamics options:
 <LI><A HREF = "fix_atc.html">atom-to-continuum coupling</A> with finite elements
 <LI>coupled rigid body integration via the <A HREF = "fix_poems.html">POEMS</A> library
 <LI><A HREF = "fix_qmmm.html">QM/MM coupling</A>
-<LI><A HREF = "fix_ipi.html">path-integral molecular dynamics (PIMD)</A>
-<LI><A HREF = "fix_gcmc.html">grand canonical Monte Carlo</A> insertions/deletions
+<LI><A HREF = "fix_ipi.html">path-integral molecular dynamics (PIMD)</A> and <A HREF = "fix_pimd.html">this as well</A>
+<LI>Monte Carlo via <A HREF = "fix_gcmc.html">GCMC</A> and <A HREF = "fix_tfmc.html">tfMC</A> and <A HREF = "fix_swap.html">atom swapping</A>
 <LI><A HREF = "pair_dsmc.html">Direct Simulation Monte Carlo</A> for low-density fluids
 <LI><A HREF = "pair_peri.html">Peridynamics mesoscale modeling</A>
 <LI><A HREF = "fix_lb_fluid.html">Lattice Boltzmann fluid</A>

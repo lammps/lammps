@@ -159,12 +159,13 @@ template < class DriverType >
 struct CudaParallelLaunch< DriverType , true > {
 
   inline
-  CudaParallelLaunch( const DriverType & driver ,
-                      const dim3       & grid ,
-                      const dim3       & block ,
-                      const int          shmem )
+  CudaParallelLaunch( const DriverType & driver
+                    , const dim3       & grid
+                    , const dim3       & block
+                    , const int          shmem
+                    , const cudaStream_t stream = 0 )
   {
-    if ( grid.x && block.x ) {
+    if ( grid.x && ( block.x * block.y * block.z ) ) {
 
       if ( sizeof( Kokkos::Impl::CudaTraits::ConstantGlobalBufferType ) <
            sizeof( DriverType ) ) {
@@ -184,7 +185,7 @@ struct CudaParallelLaunch< DriverType , true > {
       cudaMemcpyToSymbol( kokkos_impl_cuda_constant_memory_buffer , & driver , sizeof(DriverType) );
 
       // Invoke the driver function on the device
-      cuda_parallel_launch_constant_memory< DriverType ><<< grid , block , shmem >>>();
+      cuda_parallel_launch_constant_memory< DriverType ><<< grid , block , shmem , stream >>>();
 
 #if defined( KOKKOS_EXPRESSION_CHECK )
       Kokkos::Cuda::fence();
@@ -197,12 +198,13 @@ template < class DriverType >
 struct CudaParallelLaunch< DriverType , false > {
 
   inline
-  CudaParallelLaunch( const DriverType & driver ,
-                      const dim3       & grid ,
-                      const dim3       & block ,
-                      const int          shmem )
+  CudaParallelLaunch( const DriverType & driver
+                    , const dim3       & grid
+                    , const dim3       & block
+                    , const int          shmem
+                    , const cudaStream_t stream = 0 )
   {
-    if ( grid.x && block.x ) {
+    if ( grid.x && ( block.x * block.y * block.z ) ) {
 
       if ( CudaTraits::SharedMemoryCapacity < shmem ) {
         Kokkos::Impl::throw_runtime_exception( std::string("CudaParallelLaunch FAILED: shared memory request is too large") );
@@ -213,7 +215,7 @@ struct CudaParallelLaunch< DriverType , false > {
         cudaFuncSetCacheConfig( cuda_parallel_launch_constant_memory< DriverType > , cudaFuncCachePreferL1 );
       }
 
-      cuda_parallel_launch_local_memory< DriverType ><<< grid , block , shmem >>>( driver );
+      cuda_parallel_launch_local_memory< DriverType ><<< grid , block , shmem , stream >>>( driver );
 
 #if defined( KOKKOS_EXPRESSION_CHECK )
       Kokkos::Cuda::fence();

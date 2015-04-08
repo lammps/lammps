@@ -57,16 +57,12 @@ with spaces and no periods, volume, page[-page], (year)"
 
 COMMENT: This one is optional and is used to hold any other text that can not go elsewhere.
 
-If the first line of the file is always skipped by 
-the file reader,
-then the first line should begin with the DATE keyword. 
-If the file format 
-supports comment lines, then the first line 
-should be a comment line with the metadata
-e.g. "# DATE: 2010-01-01..."
-If the first line of the file is required to 
-begin with data, then the metadata will
-be appended to the first line e.g. "7 DATE: 2010-01-01..."
+If the first line of the file is always skipped by the file reader,
+then the first line should begin with the DATE keyword.  If the file
+format supports comment lines, then the first line should be a comment
+line with the metadata e.g. "# DATE: 2010-01-01..."  If the first line
+of the file is required to begin with data, then the metadata will be
+appended to the first line e.g. "7 DATE: 2010-01-01..."
 
 The prefix of each file indicates the element(s) it is parameterized
 for.  An additional lower-case identification tag may be appended.
@@ -98,6 +94,7 @@ reax	      ReaxFF potential (see README.reax for more info)
 snap          SNAP potential
 snapcoeff     SNAP potential
 snapparam     SNAP potential
+streitz       Coulombic portion of Streitz-Mintmire potential
 sw	      Stillinger-Weber potential
 tersoff	      Tersoff potential
 tersoff.mod   modified Tersoff potential

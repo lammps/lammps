@@ -84,6 +84,7 @@ void Velocity::command(int narg, char **arg)
   sum_flag = 0;
   momentum_flag = 1;
   rotation_flag = 0;
+  bias_flag = 0;
   loop_flag = ALL;
   scale_flag = 1;
   rfix = -1;
@@ -96,6 +97,28 @@ void Velocity::command(int narg, char **arg)
   else if (style == SCALE) options(narg-3,&arg[3]);
   else if (style == RAMP) options(narg-8,&arg[8]);
   else if (style == ZERO) options(narg-3,&arg[3]);
+
+  // special cases where full init and border communication must be done first
+  // for ZERO if fix rigid/small is used
+  // for CREATE/SET if compute temp/cs is used
+  // b/c methods invoked in the compute/fix perform forward/reverse comm
+
+  int initcomm = 0;
+  if (style == ZERO && rfix >= 0 && 
+      strcmp(modify->fix[rfix]->style,"rigid/small") == 0) initcomm = 1;
+  if ((style == CREATE || style == SET) && temperature &&
+      strcmp(temperature->style,"temp/cs") == 0) initcomm = 1;
+
+  if (initcomm) {
+    lmp->init();
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    comm->setup();
+    comm->exchange();
+    comm->borders();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  }
 
   // initialize velocities based on style
   // create() invoked differently, so can be called externally
@@ -135,41 +158,59 @@ void Velocity::init_external(const char *extgroup)
 void Velocity::create(double t_desired, int seed)
 {
   int i;
+  double **vhold;
 
   if (seed <= 0) error->all(FLERR,"Illegal velocity create command");
 
-  // if temperature = NULL, create a new ComputeTemp with the velocity group
+  // if sum_flag set, store a copy of current velocities
 
-  int tflag = 0;
-  if (temperature == NULL) {
+  if (sum_flag) {
+    double **v = atom->v;
+    int nlocal = atom->nlocal;
+    memory->create(vhold,nlocal,3,"velocity:vhold");
+    for (i = 0; i < nlocal; i++) {
+      vhold[i][0] = v[i][0];
+      vhold[i][1] = v[i][1];
+      vhold[i][2] = v[i][2];
+    }
+  }
+
+  // if temperature = NULL or bias_flag set,
+  // create a new ComputeTemp with the velocity group
+
+  int tcreate_flag = 0;
+  Compute *temperature_nobias = NULL;
+
+  if (temperature == NULL || bias_flag) {
     char **arg = new char*[3];
     arg[0] = (char *) "velocity_temp";
     arg[1] = group->names[igroup];
     arg[2] = (char *) "temp";
-    temperature = new ComputeTemp(lmp,3,arg);
-    tflag = 1;
+    if (temperature == NULL) {
+      temperature = new ComputeTemp(lmp,3,arg);
+      tcreate_flag = 1;
+    } else temperature_nobias = new ComputeTemp(lmp,3,arg);
     delete [] arg;
   }
 
-  // initialize temperature computation
+  // initialize temperature computation(s)
   // warn if groups don't match
 
   if (igroup != temperature->igroup && comm->me == 0)
     error->warning(FLERR,"Mismatch between velocity and compute groups");
   temperature->init();
   temperature->setup();
+  if (temperature_nobias) {
+    temperature_nobias->init();
+    temperature_nobias->setup();
+  }
 
-  // store a copy of current velocities
+  // if bias_flag set, remove bias velocity from all atoms
+  // for some temperature computes, must first calculate temp to do that
 
-  double **v = atom->v;
-  int nlocal = atom->nlocal;
-  double **vhold;
-  memory->create(vhold,nlocal,3,"velocity:vnew");
-
-  for (i = 0; i < nlocal; i++) {
-    vhold[i][0] = v[i][0];
-    vhold[i][1] = v[i][1];
-    vhold[i][2] = v[i][2];
+  if (bias_flag) {
+    temperature->compute_scalar();
+    temperature->remove_bias_all();
   }
 
   // create new velocities, in uniform or gaussian distribution
@@ -185,13 +226,18 @@ void Velocity::create(double t_desired, int seed)
   //      via random->reset()
   //    will always produce same V, independent of P
   // adjust by factor for atom mass
-  // for 2d, set Vz to 0.0
+  // set xdim,ydim,zdim = 1/0 for whether to create velocity in those dims
+  //   zdim = 0 for 2d
+  //   any dims can be 0 if bias temperature compute turns them off
+  //     currently only temp/partial does
 
+  double **v = atom->v;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
   int *mask = atom->mask;
-  int dimension = domain->dimension;
+  int nlocal = atom->nlocal;
+  int dim = domain->dimension;
 
   int m;
   double vx,vy,vz,factor;
@@ -244,7 +290,7 @@ void Velocity::create(double t_desired, int seed)
           else factor = 1.0/sqrt(mass[type[m]]);
           v[m][0] = vx * factor;
           v[m][1] = vy * factor;
-          if (dimension == 3) v[m][2] = vz * factor;
+          if (dim == 3) v[m][2] = vz * factor;
           else v[m][2] = 0.0;
         }
       }
@@ -276,7 +322,7 @@ void Velocity::create(double t_desired, int seed)
         else factor = 1.0/sqrt(mass[type[i]]);
         v[i][0] = vx * factor;
         v[i][1] = vy * factor;
-        if (dimension == 3) v[i][2] = vz * factor;
+        if (dim == 3) v[i][2] = vz * factor;
         else v[i][2] = 0.0;
       }
     }
@@ -302,7 +348,7 @@ void Velocity::create(double t_desired, int seed)
         else factor = 1.0/sqrt(mass[type[i]]);
         v[i][0] = vx * factor;
         v[i][1] = vy * factor;
-        if (dimension == 3) v[i][2] = vz * factor;
+        if (dim == 3) v[i][2] = vz * factor;
         else v[i][2] = 0.0;
       }
     }
@@ -314,9 +360,24 @@ void Velocity::create(double t_desired, int seed)
   if (rotation_flag) zero_rotation();
 
   // scale temp to desired value
+  // if bias flag is set, bias velocities have already been removed:
+  //   no-bias compute calculates temp only for new thermal velocities
 
-  double t = temperature->compute_scalar();
+  double t;
+  if (bias_flag == 0) t = temperature->compute_scalar();
+  else t = temperature_nobias->compute_scalar();
   rescale(t,t_desired);
+
+  // if bias_flag set, restore bias velocity to all atoms
+  // reapply needed for temperature computes where velocity
+  //   creation has messed up the bias that was already removed:
+  //   compute temp/partial needs to reset v dims to 0.0
+  //   compute temp/cs needs to reset v to COM velocity of each C/S pair
+
+  if (bias_flag) {
+    temperature->reapply_bias_all();
+    temperature->restore_bias_all();
+  }
 
   // if sum_flag set, add back in previous velocities
 
@@ -328,14 +389,15 @@ void Velocity::create(double t_desired, int seed)
         v[i][2] += vhold[i][2];
       }
     }
+    memory->destroy(vhold);
   }
 
   // free local memory
-  // if temperature was created, delete it
+  // if temperature compute was created, delete it
 
-  memory->destroy(vhold);
   delete random;
-  if (tflag) delete temperature;
+  if (tcreate_flag) delete temperature;
+  if (temperature_nobias) delete temperature_nobias;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -535,9 +597,19 @@ void Velocity::scale(int narg, char **arg)
   temperature->setup();
 
   // scale temp to desired value
+  // if bias flag is set:
+  //   temperature calculation will be done accounting for bias
+  //   remove/restore bias velocities before/after rescale
 
-  double t = temperature->compute_scalar();
-  rescale(t,t_desired);
+  if (bias_flag == 0) {
+    double t = temperature->compute_scalar();
+    rescale(t,t_desired);
+  } else {
+    double t = temperature->compute_scalar();
+    temperature->remove_bias_all();
+    rescale(t,t_desired);
+    temperature->restore_bias_all();
+  }
 
   // if temperature was created, delete it
 
@@ -623,43 +695,34 @@ void Velocity::ramp(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    zero linear or angular momentum of a group
-   if using rigid/small requires init of entire system since
-      its methods perform forward/reverse comm,
-      comm::init needs neighbor::init needs pair::init needs kspace::init, etc
-      also requires setup_pre_neighbor call to setup bodies
 ------------------------------------------------------------------------- */
 
 void Velocity::zero(int narg, char **arg)
 {
   if (strcmp(arg[0],"linear") == 0) {
     if (rfix < 0) zero_momentum();
-    else {
-      if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
-        lmp->init();
-        modify->fix[rfix]->setup_pre_neighbor();
-        modify->fix[rfix]->zero_momentum();
-      } else if (strstr(modify->fix[rfix]->style,"rigid")) {
-        modify->fix[rfix]->zero_momentum();
-      } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
-    }
+    else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+      modify->fix[rfix]->setup_pre_neighbor();
+      modify->fix[rfix]->zero_momentum();
+    } else if (strstr(modify->fix[rfix]->style,"rigid")) {
+      modify->fix[rfix]->zero_momentum();
+    } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
 
   } else if (strcmp(arg[0],"angular") == 0) {
     if (rfix < 0) zero_rotation();
-    else {
-      if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
-        lmp->init();
-        modify->fix[rfix]->setup_pre_neighbor();
-        modify->fix[rfix]->zero_rotation();
-      } else if (strstr(modify->fix[rfix]->style,"rigid")) {
-        modify->fix[rfix]->zero_rotation();
-      } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
-    }
+    else if (strcmp(modify->fix[rfix]->style,"rigid/small") == 0) {
+      modify->fix[rfix]->setup_pre_neighbor();
+      modify->fix[rfix]->zero_rotation();
+    } else if (strstr(modify->fix[rfix]->style,"rigid")) {
+      modify->fix[rfix]->zero_rotation();
+    } else error->all(FLERR,"Velocity rigid used with non-rigid fix-ID");
 
   } else error->all(FLERR,"Illegal velocity command");
 }
 
 /* ----------------------------------------------------------------------
    rescale velocities of group atoms to t_new from t_old
+   no bias applied here, since done in create() and scale()
 ------------------------------------------------------------------------- */
 
 void Velocity::rescale(double t_old, double t_new)
@@ -804,6 +867,12 @@ void Velocity::options(int narg, char **arg)
         error->all(FLERR,
                    "Velocity temperature ID does not compute temperature");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"bias") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
+      if (strcmp(arg[iarg+1],"no") == 0) bias_flag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) bias_flag = 1;
+      else error->all(FLERR,"Illegal velocity command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"loop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
       if (strcmp(arg[iarg+1],"all") == 0) loop_flag = ALL;
@@ -824,4 +893,11 @@ void Velocity::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal velocity command");
   }
+
+  // error check
+
+  if (bias_flag && temperature == NULL)
+    error->all(FLERR,"Cannot use velocity bias command without temp keyword");
+  if (bias_flag && temperature->tempbias == 0)
+    error->all(FLERR,"Velocity temperature ID does calculate a velocity bias");
 }

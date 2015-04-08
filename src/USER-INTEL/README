@@ -6,6 +6,8 @@
                         W. Michael Brown (Intel)
                        michael.w.brown at intel.com
 
+                          Anupama Kurpad (Intel)
+
 -----------------------------------------------------------------------------
 
 This package is based on the USER-OMP package and provides LAMMPS styles that:
@@ -41,3 +43,10 @@ Intel compilers.
 For portability reasons, vectorization directives are currently only enabled 
 for Intel compilers. Using other compilers may result in significantly
 lower performance.
+
+-----------------------------------------------------------------------------
+
+By default, when running with offload to Intel(R) coprocessors, affinity
+for host MPI tasks and OpenMP threads is set automatically within the code.
+This currently requires the use of system calls. To disable at build time,
+compile with -DINTEL_OFFLOAD_NOAFFINITY.

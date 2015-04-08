@@ -63,7 +63,6 @@ void ComputeTempPartial::setup()
 {
   dynamic = 0;
   if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
-  fix_dof = -1;
   dof_compute();
 }
 
@@ -74,10 +73,10 @@ void ComputeTempPartial::setup()
 
 void ComputeTempPartial::dof_compute()
 {
-  if (fix_dof) adjust_dof_fix();
-  double natoms = group->count(igroup);
+  adjust_dof_fix();
+  natoms_temp = group->count(igroup);
   int nper = xflag+yflag+zflag;
-  dof = nper * natoms;
+  dof = nper * natoms_temp;
   dof -= (1.0*nper/domain->dimension)*fix_dof + extra_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
@@ -120,6 +119,8 @@ double ComputeTempPartial::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
+  if (dof < 0.0 && natoms_temp > 0.0) 
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }
@@ -214,6 +215,32 @@ void ComputeTempPartial::remove_bias_all()
         vbiasall[i][2] = v[i][2];
         v[i][2] = 0.0;
       }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   reset thermal velocity of all atoms to be consistent with bias
+   called from velocity command after it creates thermal velocities
+   this re-zero components that should stay zero
+------------------------------------------------------------------------- */
+
+void ComputeTempPartial::reapply_bias_all()
+{
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  if (!xflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) v[i][0] = 0.0;
+  }
+  if (!yflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) v[i][1] = 0.0;
+  }
+  if (!zflag) {
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) v[i][2] = 0.0;
   }
 }
 

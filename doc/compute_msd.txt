@@ -46,7 +46,7 @@ the compute command was issued.  The value of the displacement will be
 0.0 for atoms not in the specified compute group.
 
 If the {com} option is set to {yes} then the effect of any drift in
-the center-of-mass of the group of atoms is subtracted out before the
+the center-of-mass of the group of atoms is subtracted out before xhe
 displacment of each atom is calcluated.
 
 IMPORTANT NOTE: Initial coordinates are stored in "unwrapped" form, by
@@ -57,20 +57,12 @@ discussion of image flags and how they are set for each atom.  You can
 reset the image flags (e.g. to 0) before invoking this compute by
 using the "set image"_set.html command.
 
-IMPORTANT NOTE: If an atom is part of a rigid body (see the "fix
-rigid"_fix_rigid.html command), it's periodic image flags are altered,
-and its contribution to the MSD may not reflect its true contribution.
-See the "fix rigid"_fix_rigid.html command for details.  Thus, to
-compute the MSD of rigid bodies as they cross periodic boundaries, you
-will need to post-process a "dump file"_dump.html containing
-coordinates of the atoms in the bodies.
-
 IMPORTANT NOTE: If you want the quantities calculated by this compute
 to be continuous when running from a "restart file"_read_restart.html,
 then you should use the same ID for this compute, as in the original
-run.  This is so that the created fix will also have the same ID, and
-thus be initialized correctly with atom coordinates from the restart
-file.
+run.  This is so that the fix this compute creates to store per-atom
+quantities will also have the same ID, and thus be initialized
+correctly with time=0 atom coordinates from the restart file.
 
 [Output info:]
 

@@ -42,6 +42,14 @@ namespace LAMMPS_NS {
       fz += rhs.fz;
       return *this;
     }
+    
+    KOKKOS_INLINE_FUNCTION
+    volatile s_FSUM& operator+=(const volatile s_FSUM &rhs) volatile {
+      fx += rhs.fx;
+      fy += rhs.fy;
+      fz += rhs.fz;
+      return *this;
+    }
   };
   typedef s_FSUM FSUM;
 
@@ -84,7 +92,7 @@ namespace LAMMPS_NS {
 
   private:
     class CommKokkos *commKK;
-    class AtomKokkos *atomKK;
+    
     double *rmass;
     typename ArrayTypes<DeviceType>::tdual_double_2d k_franprev;
     typename ArrayTypes<DeviceType>::t_double_2d d_franprev;
@@ -206,61 +214,21 @@ namespace LAMMPS_NS {
 
 /* ERROR/WARNING messages:
 
-   E: Illegal ... command
+E: Fix langevin omega is not yet implemented with kokkos
 
-   Self-explanatory.  Check the input script syntax and compare to the
-   documentation for the command.  You can use -echo screen as a
-   command-line option when running LAMMPS to see the offending line.
+This option is not yet available.
 
-   E: Fix langevin period must be > 0.0
+E: Fix langevin angmom is not yet implemented with kokkos
 
-   The time window for temperature relaxation must be > 0
+This option is not yet available.
 
-   E: Fix langevin omega requires atom style sphere
+E: Cannot zero Langevin force of 0 atoms
 
-   Self-explanatory.
+The group has zero atoms, so you cannot request its force
+be zeroed.
 
-   E: Fix langevin angmom requires atom style ellipsoid
+E: Fix langevin variable returned negative temperature
 
-   Self-explanatory.
-
-   E: Variable name for fix langevin does not exist
-
-   Self-explanatory.
-
-   E: Variable for fix langevin is invalid style
-
-   It must be an equal-style variable.
-
-   E: Fix langevin omega requires extended particles
-
-   One of the particles has radius 0.0.
-
-   E: Fix langevin angmom requires extended particles
-
-   This fix option cannot be used with point paritlces.
-
-   E: Cannot zero Langevin force of 0 atoms
-
-   The group has zero atoms, so you cannot request its force
-   be zeroed.
-
-   E: Fix langevin variable returned negative temperature
-
-   Self-explanatory.
-
-   E: Could not find fix_modify temperature ID
-
-   The compute ID for computing temperature does not exist.
-
-   E: Fix_modify temperature ID does not compute temperature
-
-   The compute ID assigned to the fix must compute temperature.
-
-   W: Group for fix_modify temp != fix group
-
-   The fix_modify command is specifying a temperature computation that
-   computes a temperature on a different group of atoms than the fix
-   itself operates on.  This is probably not what you want to do.
+Self-explanatory.
 
 */

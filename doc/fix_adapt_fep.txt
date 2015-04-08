@@ -232,6 +232,12 @@ over the course of a 1000-step simulation:
 variable size equal ramp(1.0,0.1)
 fix 1 center adapt 10 atom diameter * v_size :pre
 
+When the "run style"_run_style.html is {respa}, this fix changes
+parameters only on the outer loop (largest) timesteps.
+
+For "rRESPA time integration"_run_style.html, this fix changes
+parameters on the outermost rRESPA level.
+
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]

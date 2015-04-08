@@ -81,7 +81,7 @@ page"_Section_commands.html#cmd_5.
 Angle styles can only be set for atom_styles that allow angles to be
 defined.
 
-Most angle styles are part of the MOLECULAR package.  They are only
+Most angle styles are part of the MOLECULE package.  They are only
 enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info on packages.
 The doc pages for individual bond potentials tell if it is part of a

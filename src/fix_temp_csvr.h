@@ -33,11 +33,11 @@ class FixTempCSVR : public Fix {
   void end_of_step();
   int modify_param(int, char **);
   void reset_target(double);
+  virtual double compute_scalar();
   virtual void *extract(const char *, int &);
 
  private:
   double t_start,t_stop,t_period,t_target;
-  double **vhold;
   double energy;
   int nmax,which;
   int tstyle,tvar;
@@ -48,6 +48,11 @@ class FixTempCSVR : public Fix {
   int tflag;
 
   class RanMars *random;
+
+ private:
+  double resamplekin(double, double);
+  double sumnoises(int);
+  double gamdev(int);
 };
 
 }
@@ -63,9 +68,6 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix temp/csvr period must be > 0.0
-
-Self-explanatory.
 
 E: Variable name for fix temp/csvr does not exist
 
@@ -76,10 +78,6 @@ E: Variable for fix temp/csvr is invalid style
 Only equal-style variables can be used.
 
 E: Temperature ID for fix temp/csvr does not exist
-
-Self-explanatory.
-
-E: Computed temperature for fix temp/csvr cannot be 0.0
 
 Self-explanatory.
 

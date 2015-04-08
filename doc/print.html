@@ -13,8 +13,8 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<P>print string keyword value:pre
-</P>
+<PRE>print string keyword value 
+</PRE>
 <UL><LI>string = text string to print, which may contain variables 
 
 <LI>zero or more keyword/value pairs may be appended 
@@ -32,14 +32,20 @@
 <PRE>print "Done with equilibration" file info.dat
 print Vol=$v append info.dat screen no
 print "The system volume is now $v" 
-print 'The system volume is now $v' 
+print 'The system volume is now $v'
+print """
+System volume = $v
+System temperature = $t
+""" 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Print a text string to the screen and logfile.  One line of output is
-generated.  The text string must be a single argument, so it should be
-enclosed in double quotes if it is more than one word.  If it contains
-variables, they will be evaluated and their current values printed.
+<P>Print a text string to the screen and logfile.  The text string must
+be a single argument, so if it is one line but more than one word, it
+should be enclosed in single or double quotes.  To generate multiple
+lines of output, the string can be enclosed in triple quotes, as in
+the last example above.  If the text string contains variables, they
+will be evaluated and their current values printed.
 </P>
 <P>If the <I>file</I> or <I>append</I> keyword is used, a filename is specified to
 which the output will be written.  If <I>file</I> is used, then the

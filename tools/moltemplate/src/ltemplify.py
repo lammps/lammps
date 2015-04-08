@@ -43,36 +43,59 @@ def Intify(s):
     else:
         return s
 
+
 def StringToInterval(sel_str, slice_delim='*'):
+    # Split a string into 1-3 tokens using the slice_delim and convert to int.
+    # What a mess. I should rewrite this function
+
     i_slice = sel_str.find(slice_delim)
 
     if i_slice == -1:
-        if sel_str.isdigit():
-            a = int(sel_str)
-            b = int(sel_str)
-        else:
-            a = sel_str
-            b = sel_str
-        
+        a = sel_str
+        b = sel_str
+        c = ''
     else:
-        a = sel_str[:i_slice]
-        b = sel_str[i_slice+len(slice_delim):]
-
-        if (((len(a)>0) and (not a.isdigit())) or
-            ((len(b)>0) and (not b.isdigit()))):
-            raise InputError('Error: invalid selection string \"'+
-                             sel_str+'\"\n')
-        if (len(a) > 0):
-            a = int(a)
+        a  = sel_str[:i_slice]
+        bc = sel_str[i_slice+len(slice_delim):]
+        b = ''
+        c = ''
+        i_slice = bc.find(slice_delim)
+        if i_slice == -1:
+            b = bc
+            c = ''
         else:
-            a = None
+            b = bc[:i_slice]
+            c = bc[i_slice+len(slice_delim):]
 
-        if (len(b) > 0):
-            b = int(b)
-        else:
-            b = None
+    if a == '':
+        a = None
+    elif a.isdigit():
+        a = int(a)
+    else:
+        raise InputError('Error: invalid selection string \"'+
+                         sel_str+'\"\n')
 
-    return a,b
+    if b == '':
+        b = None
+    elif b.isdigit():
+        b = int(b)
+    else:
+        raise InputError('Error: invalid selection string \"'+
+                         sel_str+'\"\n')
+
+    if c == '':
+        c = None
+    elif c.isdigit():
+        c = int(c)
+    else:
+        raise InputError('Error: invalid selection string \"'+
+                         sel_str+'\"\n')
+
+    if c == None:
+        return (a,b)
+    else:
+        return (a,b,c)
+
 
 
 # Selections are simply lists of 2-tuples (pairs) 
@@ -80,8 +103,8 @@ def StringToInterval(sel_str, slice_delim='*'):
 def LammpsSelectToIntervals(sel_str, slice_delim='*', or_delim=', '):
 
     """
-    This function converts a string such as "1*4 6 9*12" into 
-    a list of tuples, for example: [(1,4), (6,6), (9,12)]
+    This function converts a string such as "1*4 6 9*12 50*70*10" into 
+    a list of tuples, for example: [(1,4), (6,6), (9,12), (50,50), (60,60), (70,70)]
     In general, the of intervals has the form:
        [(a1,b1), (a2,b2), (a3,b3), ... ]
     
@@ -99,8 +122,22 @@ def LammpsSelectToIntervals(sel_str, slice_delim='*', or_delim=', '):
     tokens = LineLex.TextBlock2Lines(sel_str, or_delim, keep_delim=False)
     for token in tokens:
         token = token.strip()
-        (a,b) = StringToInterval(token, slice_delim)
-        selection_list.append((a, b))
+        interval = StringToInterval(token, slice_delim)
+
+        if len(interval)==2:
+            # Normally, "interval" should be a tuple containing 2 entries
+            selection_list.append(interval)
+        else:
+            assert(len(interval)==3)
+            # Handle 1000:2000:10 notation
+            # (corresponding to 1000, 1010, 1020, 1030, ..., 1990, 2000)
+            a=interval[0]
+            b=interval[1]
+            incr=interval[2]
+            i=a
+            while i<=b:
+                selection_list.append((i,i))
+                i += incr
 
     return selection_list
 
@@ -117,6 +154,23 @@ def IntervalListToMinMax(interval_list):
         if (max_b == None) or (b > max_b):
             max_b = b
     return min_a, max_b
+
+
+def MergeIntervals(interval_list):
+    """
+    A crude simple function that merges consecutive intervals in the list
+    whenever they overlap.  (This function does not bother to compare 
+    non-consecutive entries in the interval_list.)
+
+    """
+    i = 1
+    while i < len(interval_list):
+        if ((interval_list[i-1][1] == None) or
+            (interval_list[i-1][1]+1 >= interval_list[i][0])):
+            interval_list[i-1] = (interval_list[i-1][0], interval_list[i][1])
+            del interval_list[i]
+        else:
+            i += 1
 
 
 def BelongsToSel(i, sel):
@@ -156,8 +210,8 @@ def BelongsToSel(i, sel):
 try:
 
     g_program_name = __file__.split('/')[-1]  # = 'ltemplify.py'
-    g_version_str  = '0.36'
-    g_date_str     = '2013-8-22'
+    g_version_str  = '0.45'
+    g_date_str     = '2014-12-17'
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+'\n')
 
     non_empty_output = False
@@ -193,6 +247,7 @@ try:
 
     needed_atomids = set([])
     needed_atomtypes = set([])
+    needed_molids = set([])
     needed_bondids = set([])
     needed_bondtypes = set([])
     needed_angleids = set([])
@@ -213,6 +268,19 @@ try:
     min_needed_impropertype = None
     max_needed_impropertype = None
 
+    min_needed_atomid = None
+    max_needed_atomid = None
+    min_needed_molid = None
+    max_needed_molid = None
+    min_needed_bondid = None
+    max_needed_bondid = None
+    min_needed_angleid = None
+    max_needed_angleid = None
+    min_needed_dihedralid = None
+    max_needed_dihedralid = None
+    min_needed_improperid = None
+    max_needed_improperid = None
+
 
     # To process the selections, we need to know the atom style:
     atom_style_undefined = True
@@ -229,6 +297,12 @@ try:
     l_in_angle_coeffs = []
     l_in_dihedral_coeffs = []
     l_in_improper_coeffs = []
+    l_in_group = []
+    l_in_fix_shake = []
+    l_in_fix_rigid = []
+    l_in_fix_poems = []
+    l_in_fix_qeq = []
+    l_in_fix_qmmm = []
     l_data_masses = []
     l_data_bond_coeffs = []
     l_data_angle_coeffs = []
@@ -294,15 +368,15 @@ try:
                                  '            atom-ID atom-type q polarizability molecule-ID x y z\n'
                                  '    Make sure you enclose the entire list in quotes.\n');
             column_names = argv[i+1].strip('\"\'').strip().split()
-            del(argv[i:i+2])
+            del argv[i:i+2]
 
         elif (argv[i] == '-ignore-comments'):
             infer_types_from_comments = False
-            del(argv[i:i+1])
+            del argv[i:i+1]
 
         elif (argv[i] == '-infer-comments'):
             infer_types_from_comments = True
-            del(argv[i:i+1])
+            del argv[i:i+1]
 
         elif ((argv[i] == '-name') or
               (argv[i] == '-molname') or
@@ -313,7 +387,7 @@ try:
             cindent = 2
             indent += cindent
             mol_name = argv[i+1]
-            del(argv[i:i+2])
+            del argv[i:i+2]
 
         elif ((argv[i].lower() == '-atomstyle') or 
               (argv[i].lower() == '-atom_style') or 
@@ -333,7 +407,7 @@ try:
                 sys.stderr.write('      (i_atomid='+str(i_atomid+1)+', i_atomtype='+str(i_atomtype+1)+', i_molid='+str(i_molid+1)+')\n\n')
             else:
                 sys.stderr.write('      (i_atomid='+str(i_atomid+1)+', i_atomtype='+str(i_atomtype+1)+')\n')
-            del(argv[i:i+2])
+            del argv[i:i+2]
 
         elif ((argv[i].lower() == '-id') or 
               #(argv[i].lower() == '-a') or 
@@ -351,7 +425,7 @@ try:
                                  '       to include in the template you are creating.\n')
             atomid_selection += LammpsSelectToIntervals(argv[i+1])
             min_sel_atomid, max_sel_atomid = IntervalListToMinMax(atomid_selection)
-            del(argv[i:i+2])
+            del argv[i:i+2]
         elif ((argv[i].lower() == '-type') or 
               #(argv[i].lower() == '-t') or 
               (argv[i].lower() == '-atomtype') or 
@@ -369,7 +443,7 @@ try:
                                  '       to include in the template you are creating.\n')
             atomtype_selection += LammpsSelectToIntervals(argv[i+1])
             min_sel_atomtype, max_sel_atomtype = IntervalListToMinMax(atomtype_selection)
-            del(argv[i:i+2])
+            del argv[i:i+2]
         elif ((argv[i].lower() == '-mol') or 
               #(argv[i].lower() == '-m') or 
               (argv[i].lower() == '-molid') or 
@@ -389,7 +463,7 @@ try:
                                  '       (or strings).  These identify the group of molecules you want to\n'
                                  '       include in the template you are creating.\n')
             molid_selection += LammpsSelectToIntervals(argv[i+1])
-            del(argv[i:i+2])
+            del argv[i:i+2]
         else:
             i += 1
 
@@ -504,7 +578,7 @@ try:
                                         'angle_style',
                                         'bond_style',
                                         'dihedral_style',
-                                        'impoper_style',
+                                        'improper_style',
                                         'min_style',
                                         'pair_style',
                                         'pair_modify',
@@ -567,7 +641,6 @@ try:
                                 #tokens[i_atomid] = '$atom:'+atomids_int2name[atomid]
                                 # fill atomtype_int2str[] with a default name (change later):
                                 #tokens[i_atomtype] = '@atom:type'+tokens[i_atomtype]
-                                atomtype = int(tokens[i_atomtype])
                                 atomtype_name = 'type'+tokens[i_atomtype]
                                 atomtypes_int2name[atomtype] = atomtype_name
                                 tokens[i_atomtype] = '@atom:'+atomtype_name
@@ -580,17 +653,35 @@ try:
                                     tokens[i_molid]    = '$mol:id'+tokens[i_molid]
                                 l_data_atoms.append((' '*indent)+(' '.join(tokens)+'\n'))
                                 needed_atomids.add(atomid)
-                                needed_atomtypes.add(int(atomtype))
+                                needed_atomtypes.add(atomtype)
+                                needed_molids.add(molid)
 
                     for atomtype in needed_atomtypes:
-                        if type(atomtype) is int:
-                            if ((min_needed_atomtype == None) or
-                                (min_needed_atomtype > atomtype)):
-                                min_needed_atomtype = atomtype
-                            if ((max_needed_atomtype == None) or
-                                (max_needed_atomtype < atomtype)):
-                                max_needed_atomtype = atomtype
+                        assert(type(atomtype) is int)
+                        if ((min_needed_atomtype == None) or
+                            (min_needed_atomtype > atomtype)):
+                            min_needed_atomtype = atomtype
+                        if ((max_needed_atomtype == None) or
+                            (max_needed_atomtype < atomtype)):
+                            max_needed_atomtype = atomtype
 
+                    for atomid in needed_atomids:
+                        assert(type(atomid) is int)
+                        if ((min_needed_atomid == None) or
+                            (min_needed_atomid > atomid)):
+                            min_needed_atomid = atomid
+                        if ((max_needed_atomid == None) or
+                            (max_needed_atomid < atomid)):
+                            max_needed_atomid = atomid
+
+                    for molid in needed_molids:
+                        assert(type(molid) is int)
+                        if ((min_needed_molid == None) or
+                            (min_needed_molid > molid)):
+                            min_needed_molid = molid
+                        if ((max_needed_molid == None) or
+                            (max_needed_molid < molid)):
+                            max_needed_molid = molid
 
                 elif (line.strip() == 'Masses'):
                     sys.stderr.write('  reading \"'+line.strip()+'\"\n')
@@ -1183,6 +1274,50 @@ try:
                             tokens[0] = '@improper:type'+tokens[0]
                             l_data_impropers_by_type.append((' '*indent)+(' '.join(tokens)+'\n'))
 
+                elif (tokens[0] == 'group'):
+                    if (len(tokens) < 3):
+                        raise InputError('Error: near or before '+ErrorLeader(infile, lineno)+'\n'
+                                         '       Nonsensical group command:\n'
+                                         '       \"'+line.strip()+'\"\n')
+                    l_in_group.append((' '*indent)+(' '.join(tokens)+'\n'))
+                
+                elif ((tokens[0] == 'fix') and (len(tokens) >= 4)):
+                    if (tokens[3].find('rigid') == 0):
+                        if (len(tokens) < 6):
+                            raise InputError('Error: near or before '+ErrorLeader(infile, lineno)+'\n'
+                                             '       Nonsensical '+tokens[0]+' '+tokens[3]+' command:\n'
+                                             '       \"'+line.strip()+'\"\n')
+                        l_in_fix_rigid.append((' '*indent)+(' '.join(tokens)+'\n'))
+                    elif (tokens[3].find('shake') == 0):
+                        if (len(tokens) < 7):
+                            raise InputError('Error: near or before '+ErrorLeader(infile, lineno)+'\n'
+                                             '       Nonsensical '+tokens[0]+' '+tokens[3]+' command:\n'
+                                             '       \"'+line.strip()+'\"\n')
+                        l_in_fix_shake.append((' '*indent)+(' '.join(tokens)+'\n'))
+                    elif (tokens[3].find('poems') == 0):
+                        if (len(tokens) < 4):
+                            raise InputError('Error: near or before '+ErrorLeader(infile, lineno)+'\n'
+                                             '       Nonsensical '+tokens[0]+' '+tokens[3]+' command:\n'
+                                             '       \"'+line.strip()+'\"\n')
+                        l_in_fix_poems.append((' '*indent)+(' '.join(tokens)+'\n'))
+                    elif (tokens[3].find('qeq') == 0):
+                        if (len(tokens) < 8):
+                            raise InputError('Error: near or before '+ErrorLeader(infile, lineno)+'\n'
+                                             '       Nonsensical '+tokens[0]+' '+tokens[3]+' command:\n'
+                                             '       \"'+line.strip()+'\"\n')
+                        l_in_fix_qeq.append((' '*indent)+(' '.join(tokens)+'\n'))
+                    elif (tokens[3].find('qmmm') == 0):
+                        if (len(tokens) < 8):
+                            raise InputError('Error: near or before '+ErrorLeader(infile, lineno)+'\n'
+                                             '       Nonsensical '+tokens[0]+' '+tokens[3]+' command:\n'
+                                             '       \"'+line.strip()+'\"\n')
+                        l_in_fix_qmmm.append((' '*indent)+(' '.join(tokens)+'\n'))
+                    elif (tokens[3].find('restrain') == 0):
+                        sys.stderr('WARNING: fix \"'+tokens[3]+'\" commands are NOT understood by '+g_program_name+'.\n'
+                                   '  If you need restraints, add them to your final .LT file (eg. \"system.lt\"),\n'
+                                   '  (And be sure to use unique (full, long) moltemplate names for each $atom:.)\n'
+                                   '  Ignoring line \"'+line.strip()+'\"\n')
+
                 else:
                     sys.stderr.write('  Ignoring line \"'+line.strip()+'\"\n')
 
@@ -1295,7 +1430,7 @@ try:
         if ((not (atomtype in needed_atomtypes)) and
             (not ((len(atomtype_selection) > 0) and
                   BelongsToSel(atomtype, atomtype_selection)))):
-            del(l_data_masses[i_line])
+            del l_data_masses[i_line]
         else:
             atomtype_name = atomtypes_int2name[atomtype]
             tokens[0] = '@atom:'+atomtype_name
@@ -1318,7 +1453,7 @@ try:
         if ((not (atomtype in needed_atomtypes)) and
             (not ((len(atomtype_selection) > 0) and
                   BelongsToSel(atomtype, atomtype_selection)))):
-            del(l_data_pair_coeffs[i_line])
+            del l_data_pair_coeffs[i_line]
         else:
             i_line += 1
 
@@ -1434,9 +1569,9 @@ try:
 
 
         if not (i_a_final and i_b_final and j_a_final and j_b_final):
-            del(l_in_pair_coeffs[i_line])
+            del l_in_pair_coeffs[i_line]
         elif (('*' in atomtype_i_str) or ('*' in atomtype_j_str)):
-            del(l_in_pair_coeffs[i_line])
+            del l_in_pair_coeffs[i_line]
             for i in range(i_a_final, i_b_final+1):
                 for j in range(j_a_final, j_b_final+1):
                     if j >= i:
@@ -1522,9 +1657,9 @@ try:
         #        i_str = '@{atom:type'+str(i_a_final)+'}*@{atom:type'+str(i_b_final)+'}'
 
         if not (i_a_final and i_b_final and j_a_final and j_b_final):
-            del(l_in_masses[i_line])
+            del l_in_masses[i_line]
         elif ('*' in atomtype_i_str):
-            del(l_in_masses[i_line])
+            del l_in_masses[i_line]
             for i in range(i_a_final, i_b_final+1):
                 #tokens[1] = '@atom:type'+str(i)
                 tokens[1] = '@atom:'+atomtypes_int2name[i]
@@ -1568,7 +1703,7 @@ try:
         l_data_bonds[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
         i_line += 1
         #else:
-        #    del(l_data_bonds[i_line])
+        #    del l_data_bonds[i_line]
 
     # delete data_bond_coeffs for bondtypes we don't care about anymore:
     i_line = 0
@@ -1577,7 +1712,7 @@ try:
         tokens = line.strip().split()
         bondtype = Intify(tokens[0])
         if (not (bondtype in needed_bondtypes)):
-            del(l_data_bond_coeffs[i_line])
+            del l_data_bond_coeffs[i_line]
         else:
             tokens[0] = '@bond:type'+str(bondtype)
             l_data_bond_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
@@ -1585,13 +1720,23 @@ try:
 
     # delete in_bond_coeffs for bondtypes we don't care about anymore:
     for bondtype in needed_bondtypes:
-        if type(bondtype) is int:
-            if ((min_needed_bondtype == None) or
-                (min_needed_bondtype > bondtype)):
-                min_needed_bondtype = bondtype
-            if ((max_needed_bondtype == None) or
-                (max_needed_bondtype < bondtype)):
-                max_needed_bondtype = bondtype
+        assert(type(bondtype) is int)
+        if ((min_needed_bondtype == None) or
+            (min_needed_bondtype > bondtype)):
+            min_needed_bondtype = bondtype
+        if ((max_needed_bondtype == None) or
+            (max_needed_bondtype < bondtype)):
+            max_needed_bondtype = bondtype
+    for bondid in needed_bondids:
+        assert(type(bondid) is int)
+        if ((min_needed_bondid == None) or
+            (min_needed_bondid > bondid)):
+            min_needed_bondid = bondid
+        if ((max_needed_bondid == None) or
+            (max_needed_bondid < bondid)):
+            max_needed_bondid = bondid
+
+
     i_line = 0
     while i_line < len(l_in_bond_coeffs):
         line = l_in_bond_coeffs[i_line]
@@ -1627,7 +1772,7 @@ try:
         #    i_str = '@{bond:type'+str(j_a)+'}*@{bond:type'+str(j_b)+'}'
 
         if ('*' in bondtype_str):
-            del(l_in_bond_coeffs[i_line])
+            del l_in_bond_coeffs[i_line]
             for i in range(i_a, i_b+1):
                 if (i in needed_bondtypes):
                     tokens[1] = '@bond:type'+str(i)
@@ -1643,7 +1788,7 @@ try:
                 l_in_bond_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
                 i_line += 1
             else:
-                del(l_in_bond_coeffs[i_line])
+                del l_in_bond_coeffs[i_line]
 
 
 
@@ -1678,7 +1823,7 @@ try:
         l_data_angles[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
         i_line += 1
         #else:
-        #    del(l_data_angles[i_line])
+        #    del l_data_angles[i_line]
 
     # delete data_angle_coeffs for angletypes we don't care about anymore:
     i_line = 0
@@ -1687,7 +1832,7 @@ try:
         tokens = line.strip().split()
         angletype = Intify(tokens[0])
         if (not (angletype in needed_angletypes)):
-            del(l_data_angle_coeffs[i_line])
+            del l_data_angle_coeffs[i_line]
         else:
             tokens[0] = '@angle:type'+str(angletype)
             l_data_angle_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
@@ -1695,13 +1840,22 @@ try:
 
     # delete in_angle_coeffs for angletypes we don't care about anymore:
     for angletype in needed_angletypes:
-        if type(angletype) is int:
-            if ((min_needed_angletype == None) or
-                (min_needed_angletype > angletype)):
-                min_needed_angletype = angletype
-            if ((max_needed_angletype == None) or
-                (max_needed_angletype < angletype)):
-                max_needed_angletype = angletype
+        assert(type(angletype) is int)
+        if ((min_needed_angletype == None) or
+            (min_needed_angletype > angletype)):
+            min_needed_angletype = angletype
+        if ((max_needed_angletype == None) or
+            (max_needed_angletype < angletype)):
+            max_needed_angletype = angletype
+    for angleid in needed_angleids:
+        assert(type(angleid) is int)
+        if ((min_needed_angleid == None) or
+            (min_needed_angleid > angleid)):
+            min_needed_angleid = angleid
+        if ((max_needed_angleid == None) or
+            (max_needed_angleid < angleid)):
+            max_needed_angleid = angleid
+
     i_line = 0
     while i_line < len(l_in_angle_coeffs):
         line = l_in_angle_coeffs[i_line]
@@ -1736,7 +1890,7 @@ try:
         #    i_str = '@{angle:type'+str(j_a)+'}*@{angle:type'+str(j_b)+'}'
 
         if ('*' in angletype_str):
-            del(l_in_angle_coeffs[i_line])
+            del l_in_angle_coeffs[i_line]
             for i in range(i_a, i_b+1):
                 if (i in needed_angletypes):
                     tokens[1] = '@angle:type'+str(i)
@@ -1752,7 +1906,7 @@ try:
                 l_in_angle_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
                 i_line += 1
             else:
-                del(l_in_angle_coeffs[i_line])
+                del l_in_angle_coeffs[i_line]
 
 
 
@@ -1789,7 +1943,7 @@ try:
         l_data_dihedrals[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
         i_line += 1
         #else:
-        #    del(l_data_dihedrals[i_line])
+        #    del l_data_dihedrals[i_line]
 
     # delete data_dihedral_coeffs for dihedraltypes we don't care about anymore:
     i_line = 0
@@ -1798,7 +1952,7 @@ try:
         tokens = line.strip().split()
         dihedraltype = Intify(tokens[0])
         if (not (dihedraltype in needed_dihedraltypes)):
-            del(l_data_dihedral_coeffs[i_line])
+            del l_data_dihedral_coeffs[i_line]
         else:
             tokens[0] = '@dihedral:type'+str(dihedraltype)
             l_data_dihedral_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
@@ -1806,13 +1960,22 @@ try:
 
     # delete in_dihedral_coeffs for dihedraltypes we don't care about anymore:
     for dihedraltype in needed_dihedraltypes:
-        if type(dihedraltype) is int:
-            if ((min_needed_dihedraltype == None) or
-                (min_needed_dihedraltype > dihedraltype)):
-                min_needed_dihedraltype = dihedraltype
-            if ((max_needed_dihedraltype == None) or
-                (max_needed_dihedraltype < dihedraltype)):
-                max_needed_dihedraltype = dihedraltype
+        assert(type(dihedraltype) is int)
+        if ((min_needed_dihedraltype == None) or
+            (min_needed_dihedraltype > dihedraltype)):
+            min_needed_dihedraltype = dihedraltype
+        if ((max_needed_dihedraltype == None) or
+            (max_needed_dihedraltype < dihedraltype)):
+            max_needed_dihedraltype = dihedraltype
+    for dihedralid in needed_dihedralids:
+        assert(type(dihedralid) is int)
+        if ((min_needed_dihedralid == None) or
+            (min_needed_dihedralid > dihedralid)):
+            min_needed_dihedralid = dihedralid
+        if ((max_needed_dihedralid == None) or
+            (max_needed_dihedralid < dihedralid)):
+            max_needed_dihedralid = dihedralid
+
     i_line = 0
     while i_line < len(l_in_dihedral_coeffs):
         line = l_in_dihedral_coeffs[i_line]
@@ -1847,7 +2010,7 @@ try:
         #    i_str = '@{dihedral:type'+str(j_a)+'}*@{dihedral:type'+str(j_b)+'}'
 
         if ('*' in dihedraltype_str):
-            del(l_in_dihedral_coeffs[i_line])
+            del l_in_dihedral_coeffs[i_line]
             for i in range(i_a, i_b+1):
                 if (i in needed_dihedraltypes):
                     tokens[1] = '@dihedral:type'+str(i)
@@ -1857,13 +2020,13 @@ try:
         else:
             if i_a < i_b:
                 raise InputError('Error: number of dihedral types in data file is not consistent with the\n'
-                                 '       number of dihedral types you have define bond_coeffs for.\n')
+                                 '       number of dihedral types you have define dihedral_coeffs for.\n')
             if (i_a == i_b) and (i_a in needed_dihedraltypes):
                 tokens[1] = '@dihedral:type'+str(i_a)
                 l_in_dihedral_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
                 i_line += 1
             else:
-                del(l_in_dihedral_coeffs[i_line])
+                del l_in_dihedral_coeffs[i_line]
 
 
 
@@ -1900,7 +2063,7 @@ try:
         l_data_impropers[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
         i_line += 1
         #else:
-        #    del(l_data_impropers[i_line])
+        #    del l_data_impropers[i_line]
 
     # delete data_improper_coeffs for impropertypes we don't care about anymore:
     i_line = 0
@@ -1909,7 +2072,7 @@ try:
         tokens = line.strip().split()
         impropertype = Intify(tokens[0])
         if (not (impropertype in needed_impropertypes)):
-            del(l_data_improper_coeffs[i_line])
+            del l_data_improper_coeffs[i_line]
         else:
             tokens[0] = '@improper:type'+str(impropertype)
             l_data_improper_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
@@ -1917,13 +2080,22 @@ try:
 
     # delete in_improper_coeffs for impropertypes we don't care about anymore:
     for impropertype in needed_impropertypes:
-        if type(impropertype) is int:
-            if ((min_needed_impropertype == None) or
-                (min_needed_impropertype > impropertype)):
-                min_needed_impropertype = impropertype
-            if ((max_needed_impropertype == None) or
-                (max_needed_impropertype < impropertype)):
-                max_needed_impropertype = impropertype
+        assert(type(impropertype) is int)
+        if ((min_needed_impropertype == None) or
+            (min_needed_impropertype > impropertype)):
+            min_needed_impropertype = impropertype
+        if ((max_needed_impropertype == None) or
+            (max_needed_impropertype < impropertype)):
+            max_needed_impropertype = impropertype
+    for improperid in needed_improperids:
+        assert(type(improperid) is int)
+        if ((min_needed_improperid == None) or
+            (min_needed_improperid > improperid)):
+            min_needed_improperid = improperid
+        if ((max_needed_improperid == None) or
+            (max_needed_improperid < improperid)):
+            max_needed_improperid = improperid
+
     i_line = 0
     while i_line < len(l_in_improper_coeffs):
         line = l_in_improper_coeffs[i_line]
@@ -1958,7 +2130,7 @@ try:
         #    i_str = '@{improper:type'+str(j_a)+'}*@{improper:type'+str(j_b)+'}'
 
         if ('*' in impropertype_str):
-            del(l_in_improper_coeffs[i_line])
+            del l_in_improper_coeffs[i_line]
             for i in range(i_a, i_b+1):
                 if (i in needed_impropertypes):
                     tokens[1] = '@improper:type'+str(i)
@@ -1968,20 +2140,441 @@ try:
         else:
             if i_a < i_b:
                 raise InputError('Error: number of improper types in data file is not consistent with the\n'
-                                 '       number of improper types you have define bond_coeffs for.\n')
+                                 '       number of improper types you have define improper_coeffs for.\n')
             if (i_a == i_b) and (i_a in needed_impropertypes):
                 tokens[1] = '@improper:type'+str(i_a)
                 l_in_improper_coeffs[i_line] = (' '*indent)+(' '.join(tokens)+'\n')
                 i_line += 1
             else:
-                del(l_in_improper_coeffs[i_line])
+                del l_in_improper_coeffs[i_line]
+
+    # --- GROUPS ---
+
+    # Now parse through all of the "group" commands and try and figure
+    # out if any of these groups contain any of the atoms we are keeping.
+    # If so, then save the group and write it out.
+    # (I hate trying to parse this kind of text.)
+
+    if len(l_in_group) > 0:
+        sys.stderr.write('\n'
+                         ' --groups--  Attempting to parse \"group\" commands.\n'
+                         '         This may cause '+g_program_name+' to crash.\n'
+                         '         If so, comment out all group commands in your input script(s), and\n'
+                         '         try again.  (And please report the error. -Andrew 2014-10-30)\n')
+
+    i_line = 0
+    groups_needed = set(['all'])
+    while i_line < len(l_in_group):
+        line = l_in_group[i_line]
+        tokens = line.strip().split()
+        delete_this_command = False
+        explicit_definition = False
+        if len(tokens) < 3:
+            delete_this_command = True
+        group_name = tokens[1]
+        specifier_style = tokens[2]
+        str_logical = ''
+        str_selection = ''
+        if specifier_style[0:4] == 'type':
+            str_logical+=specifier_style[4:]
+            explicit_definition = True
+            specifier_style = 'type'
+        elif specifier_style == 'id':
+            str_logical+=specifier_style[2:]
+            explicit_definition = True
+            specifier_style = 'id'
+        elif specifier_style == 'molecule':
+            str_logical+=specifier_style[8:]
+            specifier_style = 'molecule'
+            explicit_definition = True
+
+        if explicit_definition:
+            i_token_sel_min = 3
+            if len(tokens) <= i_token_sel_min:
+                sys.stderr.write('WARNING: possible syntax error on this line:\n'
+                                 +'        '+l_in_group[i_line]+'\n')
+                delete_this_command = True
+            if str_logical == '':
+                str_logical = tokens[i_token_sel_min]
+                if not str_logical[0].isdigit():
+                    i_token_sel_min += 1
+                    if len(tokens) <= i_token_sel_min:
+                        tokens.append('')
+            else:
+                tokens.insert(i_token_sel_min, str_logical)
+
+            i_token_sel_max = len(tokens)-1
+
+            for i in range(i_token_sel_min, len(tokens)):
+                if tokens[i].isdigit():
+                    break
+                else:
+                    i_token_sel_max = i
+
+            assert(len(tokens) > i_token_sel_min)
+
+            if str_logical[0:2] in ('<=','>=','==','!=','<>'):
+                tokens[i_token_sel_min] = str_logical[2:] + tokens[i_token_sel_min]
+                str_logical = str_logical[0:2]
+                if str_logical == '<=':
+                    l_group_selection = [ (None,int(tokens[i_token_sel_min])) ]
+                elif str_logical == '>=':
+                    l_group_selection = [ (int(tokens[i_token_sel_min]),None) ]
+                elif str_logical == '==':
+                    l_group_selection = [ (int(tokens[i_token_sel_min]),
+                                           int(tokens[i_token_sel_min])) ]
+                elif str_logical == '!=':
+                    l_group_selection = [ (None,int(tokens[i_token_sel_min])-1),
+                                          (int(tokens[i_token_sel_min])+1,None)]
+                elif str_logical == '<>':
+                    l_group_selection = [ (int(tokens[i_token_sel_min]),
+                                           int(tokens[i_token_sel_max])) ]
+
+            elif str_logical[0:1] in ('<','>'):
+                tokens[i_token_sel_min] = str_logical[1:] + tokens[i_token_sel_min]
+                str_logical = str_logical[0:1]
+                if str_logical == '<':
+                    l_group_selection = [(None,int(tokens[i_token_sel_min])-1)]
+                elif str_logical == '>':
+                    l_group_selection = [(int(tokens[i_token_sel_min])+1,None)]
+            else:
+                str_selection = ' '.join(tokens[i_token_sel_min:i_token_sel_max+1])
+                l_group_selection = LammpsSelectToIntervals(str_selection,
+                                                            slice_delim=':',
+                                                            or_delim=' ')
+
+            mn, mx = IntervalListToMinMax(l_group_selection)
+            if mn == None:
+                mn = 1
+            filtered_selection=[]
+            if specifier_style == 'type':
+                if mx == None:
+                    mx = max_needed_atomtype
+                for i in range(mn, mx+1):
+                    if (BelongsToSel(i, l_group_selection)
+                        and (i in needed_atomtypes)):
+                        filtered_selection.append((i,i))
+            elif specifier_style == 'id':
+                if mx == None:
+                    mx = max_needed_atomid
+                for i in range(mn, mx+1):
+                    if (BelongsToSel(i, l_group_selection)
+                        and (i in needed_atomids)):
+                        filtered_selection.append((i,i))
+            elif specifier_style == 'molecule':
+                if mx == None:
+                    mx = max_needed_molid
+                for i in range(mn, mx+1):
+                    if (BelongsToSel(i, l_group_selection)
+                        and (i in needed_molids)):
+                        filtered_selection.append((i,i))
+
+
+            MergeIntervals(filtered_selection)
+
+
+            if len(filtered_selection) > 0:
+                
+                tokens = ['group', group_name, specifier_style]
+                for interval in filtered_selection:
+                    a = interval[0]
+                    b = interval[1]
+
+                    if specifier_style == 'type':
+                        if a == b:
+                            tokens.append('@atom:type'+str(a))
+                        else:
+                            tokens.append('@{atom:type'+str(a)+
+                                                    '}:@{atom:type'+str(b)+'}')
+
+                    if specifier_style == 'id':
+                        if a == b:
+                            tokens.append('$atom:id'+str(a))
+                        else:
+                            tokens.append('${atom:id'+str(a)
+                                                    +'}:${atom:id'+str(b)+'}')
+
+                    if specifier_style == 'molecule':
+                        if a == b:
+                            tokens.append('$mol:id'+str(a))
+                        else:
+                            tokens.append('${mol:id'+str(a)+
+                                                    '}:${mol:id'+str(b)+'}')
+
+
+                # Commenting out next two lines.  (This is handled later.)
+                #l_in_group[i_line] = ' '.join(tokens)
+                #groups_needed.add(group_name)
+
+            else:
+                delete_this_command = True
+
+
+        else:
+            if len(tokens) > 3:
+                if tokens[2] == 'union':
+                    i_token = 3
+                    while i_token < len(tokens):
+                        if not (tokens[i_token] in groups_needed):
+                            del tokens[i_token]
+                        else:
+                            i_token += 1
+                    # if none of the groups contain atoms we need,
+                    # then delete the entire command
+                    if len(tokens) <= 3:
+                        delete_this_command = True
+                elif tokens[2] == 'intersect':
+                    i_token = 3
+                    while i_token < len(tokens):
+                        if not (tokens[i_token] in groups_needed):
+                            # if any of the groups we need are empty
+                            # then delete the command
+                            delete_this_command = True
+                            break
+                        i_token += 1
+                elif (tokens[2] == 'subtract') and (len(tokens) >= 5):
+                    if not (tokens[3] in groups_needed):
+                        delete_this_command = True
+                    i_token = 4
+                    while i_token < len(tokens):
+                        if not (tokens[i_token] in groups_needed):
+                            del tokens[i_token]
+                        else:
+                            i_token += 1
+                else:
+                    # Otherwise I don't recongize the syntax of this
+                    # group command.  In that case, I just delete it.
+                    delete_this_command = True
+
+            elif tokens[2] == 'clear':
+                pass
+            elif tokens[2] == 'delete':
+                pass
+            else:
+                delete_this_command = True
+        if delete_this_command:
+            sys.stderr.write('WARNING: Ignoring line \n\"'+l_in_group[i_line].rstrip()+'\"\n')
+            del l_in_group[i_line]
+        else:
+            groups_needed.add(group_name)
+            l_in_group[i_line] = (' '*indent) + ' '.join(tokens) + '\n'
+            i_line += 1
+
+
+
+    # --- fix rigid ---
+
+    i_line = 0
+    while i_line < len(l_in_fix_rigid):
+        line = l_in_fix_rigid[i_line]
+        tokens = line.strip().split()
+        if len(tokens) < 4:
+            break
+        fixid = tokens[1]
+        group_name = tokens[2]
+        delete_this_command = True
+        assert(tokens[3].find('rigid') == 0)
+        if group_name in groups_needed:
+            delete_this_command = False
+
+        if delete_this_command:
+            sys.stderr.write('WARNING: Ignoring line \n\"'+l_in_fix_rigid[i_line].rstrip()+'\"\n')
+            del l_in_fix_rigid[i_line]
+        else:
+            l_in_fix_rigid[i_line] = (' '*indent) + ' '.join(tokens) + '\n'
+            i_line += 1
+
+
+
+    # --- fix shake ---
+
+    i_line = 0
+    while i_line < len(l_in_fix_shake):
+        line = l_in_fix_shake[i_line]
+        tokens = line.strip().split()
+        if len(tokens) < 4:
+            break
+        fixid = tokens[1]
+        group_name = tokens[2]
+        delete_this_command = True
+        assert(tokens[3].find('shake') == 0)
+
+        #  parse the list of angle types
+        #i_token = tokens.index('a')
+        for i_token in range(0, len(tokens)):
+            if tokens[i_token] == 'a':
+                break
+        if i_token != len(tokens):
+            i_token += 1
+            while (i_token < len(tokens)) and tokens[i_token].isdigit():
+                # delete angle types from the list which 
+                # do not belong to the selection
+                btype=int(tokens[i_token])
+                if int(tokens[i_token]) in needed_angletypes:
+                    tokens[i_token] = '@angle:type'+tokens[i_token]
+                    i_token += 1
+                    delete_this_command = False
+                else:
+                    del tokens[i_token]
+
+        #  parse the list of bond types
+        #i_token = tokens.index('b')
+        for i_token in range(0, len(tokens)):
+            if tokens[i_token] == 'b':
+                break
+        if i_token != len(tokens):
+            i_token += 1
+            while (i_token < len(tokens)) and tokens[i_token].isdigit():
+                # delete bond types from the list which 
+                # do not belong to the selection
+                btype=int(tokens[i_token])
+                if int(tokens[i_token]) in needed_bondtypes:
+                    tokens[i_token] = '@bond:type'+tokens[i_token]
+                    i_token += 1
+                    delete_this_command = False
+                else:
+                    del tokens[i_token]
+
+        #  parse the list of atom types
+        # i_token = tokens.index('t')
+        for i_token in range(0, len(tokens)):
+            if tokens[i_token] == 't':
+                break
+        if i_token != len(tokens):
+            i_token += 1
+            while (i_token < len(tokens)) and tokens[i_token].isdigit():
+                # delete atom types from the list which 
+                # do not belong to the selection
+                btype=int(tokens[i_token])
+                if int(tokens[i_token]) in needed_atomtypes:
+                    tokens[i_token] = '@atom:type'+tokens[i_token]
+                    i_token += 1
+                    delete_this_command = False
+                else:
+                    del tokens[i_token]
+
+
+        #  Selecting atoms by mass feature should still work, so we 
+        #  don't need to delete or ignore these kinds of commands.
+        #for i_token in range(0, len(tokens)):
+        #    if tokens[i_token] == 'm':
+        #        break
+        #if i_token != len(tokens):
+        #    delete_this_command = True
+
+        if 'mol' in tokens:
+            delete_this_command = True
+
+        if not (group_name in groups_needed):
+            delete_this_command = True
+
+        if delete_this_command:
+            sys.stderr.write('WARNING: Ignoring line \n\"'+l_in_fix_shake[i_line].rstrip()+'\"\n')
+            del l_in_fix_shake[i_line]
+        else:
+            l_in_fix_shake[i_line] = (' '*indent) + ' '.join(tokens) + '\n'
+            i_line += 1
+
+
+    # --- fix poems ---
+
+    i_line = 0
+    while i_line < len(l_in_fix_poems):
+        line = l_in_fix_poems[i_line]
+        tokens = line.strip().split()
+        if len(tokens) < 4:
+            break
+        fixid = tokens[1]
+        group_name = tokens[2]
+        delete_this_command = True
+        assert(tokens[3].find('poems') == 0)
+        if group_name in groups_needed:
+            delete_this_command = False
+        if tokens[4] != 'molecule':
+            delete_this_command = True
+            sys.stderr.write('WARNING: '+g_program_name+' ONLY supports \"fix poems\" commands\n'
+                             '         which use the \"molecule\" keyword.\n')
+        if tokens[4] == 'file':
+            sys.stderr.write('         If you want use external files with fix poems, then you will have to\n'
+                             '         generate the file yourself.  You ask use moltemplate to generate\n'
+                             '         this file for you, by manually adding a section at the end of your\n'
+                             '         final .LT file (eg. \"system.lt\") which resembles the following:\n\n'
+                             'write(\"poems_file.txt\") {\n'
+                             '  1 1 $atom:idname1a $atom:idname2a $atom:idname3a ...\n'
+                             '  2 1 $atom:idname1b $atom:idname2b $atom:idname3b ...\n'
+                             '  3 1 $atom:idname1c $atom:idname2c $atom:idname3c ...\n'
+                             '  : :   etc...\n'
+                             '}\n\n'
+                             '      ...where $atom:idname1a, $atom:idname2a, ... are moltemplate-compatible\n'
+                             '         unique (full,long) id-names for the atoms in each rigid body.\n'
+                             '         This will insure the atom-id numbers in this file are correct.\n'
+
+                             '         See the documentation for fix poems for details.\n')
+                             
+
+        if delete_this_command:
+            sys.stderr.write('WARNING: Ignoring line \n\"'+l_in_fix_poems[i_line].rstrip()+'\"\n')
+            del l_in_fix_poems[i_line]
+        else:
+            l_in_fix_poems[i_line] = (' '*indent) + ' '.join(tokens) + '\n'
+            i_line += 1
+
+
+
+    # --- fix qeq ---
+
+    i_line = 0
+    while i_line < len(l_in_fix_qeq):
+        line = l_in_fix_qeq[i_line]
+        tokens = line.strip().split()
+        if len(tokens) < 4:
+            break
+        fixid = tokens[1]
+        group_name = tokens[2]
+        delete_this_command = True
+        assert(tokens[3].find('qeq') == 0)
+        if group_name in groups_needed:
+            delete_this_command = False
+
+        if delete_this_command:
+            sys.stderr.write('WARNING: Ignoring line \n\"'+l_in_fix_qeq[i_line].rstrip()+'\"\n')
+            del l_in_fix_qeq[i_line]
+        else:
+            l_in_fix_qeq[i_line] = (' '*indent) + ' '.join(tokens) + '\n'
+            i_line += 1
+
+
+
+    # --- fix qmmm ---
+
+    i_line = 0
+    while i_line < len(l_in_fix_qmmm):
+        line = l_in_fix_qmmm[i_line]
+        tokens = line.strip().split()
+        if len(tokens) < 4:
+            break
+        fixid = tokens[1]
+        group_name = tokens[2]
+        delete_this_command = True
+        assert(tokens[3].find('qmmm') == 0)
+        if group_name in groups_needed:
+            delete_this_command = False
+
+        if delete_this_command:
+            sys.stderr.write('WARNING: Ignoring line \n\"'+l_in_fix_qmmm[i_line].rstrip()+'\"\n')
+            del l_in_fix_qmmm[i_line]
+        else:
+            l_in_fix_qmmm[i_line] = (' '*indent) + ' '.join(tokens) + '\n'
+            i_line += 1
 
 
 
 
 
 
-
+    ########################################
+    ###  Now begin writing the template. ###
+    ########################################
 
     if not some_pair_coeffs_read:
         sys.stderr.write('Warning: No \"pair coeffs\" set.\n'
@@ -2049,7 +2642,7 @@ try:
         non_empty_output = True
 
     if non_empty_output:
-        sys.stdout.write('\n### DATA sections\n\n')
+        sys.stdout.write('\n\n### DATA sections\n\n')
 
     if len(l_data_masses) > 0:
         l_data_masses.insert(0, (' '*cindent)+'write_once(\"'+data_masses+'\") {\n')
@@ -2214,22 +2807,97 @@ try:
         l_data_impropers.append((' '*cindent)+'}\n')
         sys.stdout.write('\n')
         sys.stdout.write(''.join(l_data_impropers))
-        non_empty_output = True
+        non_empty_output = True 
+
+    if len(l_in_group) > 0:
+        no_warnings = False
+        l_in_group.insert(0, (' '*cindent)+'write(\"'+in_settings+'\") {\n')
+        l_in_group.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_group))
+        sys.stderr.write('######################################################\n'
+                         'WARNING: One or more \"group\" commands appear to refer to relevant atoms.\n'
+                         '         Please check to make sure that the group(s) generated by\n'
+                         '         '+g_program_name+' contain the correct atoms.  (-Andrew 2014-10-30)\n'
+                         '######################################################\n')
+        assert(non_empty_output)
+
+    if len(l_in_fix_rigid) > 0:
+        no_warnings = False
+        l_in_fix_rigid.insert(0, (' '*cindent)+'write(\"'+in_settings+'\") {\n')
+        l_in_fix_rigid.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_fix_rigid))
+        sys.stderr.write('WARNING: \"fix rigid\" style command(s) applied to selected atoms.\n'
+                         '         Please make sure that the fix group(s) are defined correctly.\n'
+                         '######################################################\n')
+        assert(non_empty_output)
+
+    if len(l_in_fix_shake) > 0:
+        no_warnings = False
+        l_in_fix_shake.insert(0, (' '*cindent)+'write(\"'+in_settings+'\") {\n')
+        l_in_fix_shake.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_fix_shake))
+        sys.stderr.write('WARNING: \"fix shake\" style command(s) applied to selected atoms.\n'
+                         '         Please check to make sure that the fix group(s) are defined correctly,\n'
+
+                         '         and also check that the atom, bond, and angle types are correct.\n'
+                         '######################################################\n')
+        assert(non_empty_output)
+
+    if len(l_in_fix_poems) > 0:
+        no_warnings = False
+        l_in_fix_poems.insert(0, (' '*cindent)+'write(\"'+in_settings+'\") {\n')
+        l_in_fix_poems.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_fix_poems))
+        sys.stderr.write('WARNING: \"fix poems\" style command(s) applied to selected atoms.\n'
+                         '         Please make sure that the fix group(s) are defined correctly.\n'
+                         '######################################################\n')
+        assert(non_empty_output)
+
+    if len(l_in_fix_qeq) > 0:
+        no_warnings = False
+        l_in_fix_qeq.insert(0, (' '*cindent)+'write(\"'+in_settings+'\") {\n')
+        l_in_fix_qeq.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_fix_qeq))
+        sys.stderr.write('WARNING: \"fix qeq\" style command(s) applied to selected atoms.\n'
+                         '         Please make sure that the fix group(s) are defined correctly.\n'
+                         '######################################################\n')
+        assert(non_empty_output)
+
+    if len(l_in_fix_qmmm) > 0:
+        no_warnings = False
+        l_in_fix_qmmm.insert(0, (' '*cindent)+'write(\"'+in_settings+'\") {\n')
+        l_in_fix_qmmm.append((' '*cindent)+'}\n')
+        sys.stdout.write('\n')
+        sys.stdout.write(''.join(l_in_fix_qmmm))
+        sys.stderr.write('WARNING: \"fix qmmm\" style command(s) applied to selected atoms.\n'
+                         '         Please make sure that the fix group(s) are defined correctly.\n'
+                         '######################################################\n')
+        assert(non_empty_output)
+
+
 
     if mol_name != '':
         sys.stdout.write('\n} # end of \"'+mol_name+'\" type definition\n')
 
+
+
     #if non_empty_output and no_warnings:
     if non_empty_output:
-        sys.stderr.write('\nWARNING: The '+g_program_name+' script has not been rigorously tested.\n'
+        sys.stderr.write('WARNING: The '+g_program_name+' script has not been rigorously tested.\n'
                          '         Exotic (many-body) pair-styles and pair-styles with\n'
                          '         unusual syntax (such as hbond/dreiding) are not understood\n'
                          '         by '+g_program_name+' (...although they are supported by moltemplate).\n'
                          '         Please look over the resulting LT file and check for errors.\n'
                          '         Convert any remaining atom, bond, angle, dihedral, or improper id\n'
                          '         or type numbers to the corresponding $ or @-style counter variables.\n'
-                         '         Feel free to report any bugs you find.\n'
-                         '         (-Andrew Jewett 2013-8-14)\n')
+                         '         Feel free to report any bugs you find. (-Andrew Jewett 2014-10-30)\n')
+
+
 
 except (ValueError, InputError) as err:
     sys.stderr.write('\n'+str(err)+'\n')

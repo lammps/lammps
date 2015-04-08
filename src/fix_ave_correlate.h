@@ -34,12 +34,11 @@ class FixAveCorrelate : public Fix {
   void setup(int);
   void end_of_step();
   double compute_array(int,int);
-  void reset_timestep(bigint);
 
  private:
   int me,nvalues;
   int nrepeat,nfreq;
-  bigint nvalid;
+  bigint nvalid,nvalid_last;
   int *which,*argindex,*value2index;
   char **ids;
   FILE *fp;
@@ -126,9 +125,9 @@ E: Fix ave/correlate variable is not equal-style variable
 
 Self-explanatory.
 
-E: Fix ave/correlate missed timestep
+E: Invalid timestep reset for fix ave/correlate
 
-You cannot reset the timestep to a value beyond where the fix
-expects to next perform averaging.
+Resetting the timestep has invalidated the sequence of timesteps this
+fix needs to process.
 
 */

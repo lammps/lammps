@@ -33,9 +33,10 @@
 #include "update.h"
 #include "group.h"
 #include "output.h"
-#include "error.h"
 #include "force.h"
+#include "comm.h"
 #include "memory.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -69,17 +70,26 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   // allocate global array for atom coords
 
   bigint n = group->count(igroup);
-  if (n > MAXSMALLINT/3/sizeof(float))
+  if (n > static_cast<bigint>(MAXSMALLINT/3/sizeof(float)))
     error->all(FLERR,"Too many atoms for dump xtc");
   natoms = static_cast<int> (n);
 
   memory->create(coords,3*natoms,"dump:coords");
 
   // sfactor = conversion of coords to XTC units
-  // GROMACS standard is nanometers, not Angstroms
+  // tfactor = conversion of simulation time to XTC units
+  // GROMACS standard is nanometers and picoseconds
 
-  sfactor = 0.1;
-  if (strcmp(update->unit_style,"lj") == 0) sfactor = 1.0;
+  sfactor = 0.1 / force->angstrom;
+  tfactor = 0.001 / force->femtosecond;
+
+  // in reduced units we do not scale anything
+  if (strcmp(update->unit_style,"lj") == 0) {
+    sfactor = tfactor = 1.0;
+    if (comm->me == 0) 
+      error->warning(FLERR,"No automatic unit conversion to XTC file "
+                     "format conventions possible for units lj");
+  }
 
   openfile();
   nevery_save = 0;
@@ -160,7 +170,7 @@ void DumpXTC::write_header(bigint nbig)
   xdr_int(&xd,&tmp);
   xdr_int(&xd,&n);
   xdr_int(&xd,&ntimestep);
-  float time_value = ntimestep * update->dt;
+  float time_value = ntimestep * tfactor * update->dt;
   xdr_float(&xd,&time_value);
 
   // cell basis vectors
@@ -279,6 +289,18 @@ int DumpXTC::modify_param(int narg, char **arg)
         (fabs(precision-100000.0) > EPS) &&
         (fabs(precision-1000000.0) > EPS))
       error->all(FLERR,"Illegal dump_modify command");
+    return 2;
+  } else if (strcmp(arg[0],"sfactor") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    sfactor = force->numeric(FLERR,arg[1]);
+    if (sfactor <= 0.0)
+      error->all(FLERR,"Illegal dump_modify sfactor value (must be > 0.0)");
+    return 2;
+  } else if (strcmp(arg[0],"tfactor") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    tfactor = force->numeric(FLERR,arg[1]);
+    if (tfactor <= 0.0)
+      error->all(FLERR,"Illegal dump_modify tfactor value (must be > 0.0)");
     return 2;
   }
   return 0;

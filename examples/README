@@ -58,10 +58,11 @@ section of the LAMMPS WWW Site.
 These are the sample problems and their output in the various
 sub-directories:
 
-accelerate:  use of all the various accelerator packages
+accelerate: use of all the various accelerator packages
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
 colloid:  big colloid particles in a small particle solvent, 2d system
+coreshell: adiabatic core/shell model
 comb:	  models using the COMB potential
 crack:	  crack propagation in a 2d solid
 deposit:  deposition of atoms and molecules onto a 3d substrate
@@ -87,13 +88,15 @@ peptide:  dynamics of a small solvated peptide chain (5-mer)
 peri:	  Peridynamic model of cylinder impacted by indenter
 pour:     pouring of granular particles into a 3d box, then chute flow
 prd:      parallel replica dynamics of vacancy diffusion in bulk Si
-qeq:      use of the QEQ pacakge for charge equilibration
+python:   use of PYTHON package to invoke Python code from input script
+qeq:      use of QEQ pacakge for charge equilibration
 reax:     RDX and TATB models using the ReaxFF
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
 snap:     use of SNAP potential for Ta
 srd:      stochastic rotation dynamics (SRD) particles as solvent
 snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
+streitz:  Streitz-Mintmire potential for Al2O3
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 voronoi:  test of Voronoi tesselation in compute voronoi/atom
 
@@ -104,8 +107,7 @@ accelerate/README for Make.py commands suitable for its example
 scripts.
 
 cd src
-Make.py -j 16 -p none std no-lib no-kokkos reax meam poems reaxc orig \
-  lib-all mpi
+Make.py -j 16 -p none std no-lib reax meam poems reaxc orig -a lib-all mpi
 
 Here is how you might run and visualize one of the sample problems:
 

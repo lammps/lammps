@@ -66,8 +66,11 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
 
     for (size_t i = 0; i < residues.size()-2; i++) {
       theta.push_back(new colvar::angle(cvm::atom(r[i  ], "CA", sid),
-                                          cvm::atom(r[i+1], "CA", sid),
-                                          cvm::atom(r[i+2], "CA", sid)));
+                                        cvm::atom(r[i+1], "CA", sid),
+                                        cvm::atom(r[i+2], "CA", sid)));
+      atom_groups.push_back(theta.back()->atom_groups[0]);
+      atom_groups.push_back(theta.back()->atom_groups[1]);
+      atom_groups.push_back(theta.back()->atom_groups[2]);
     }
 
   } else {
@@ -85,8 +88,9 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
 
       for (size_t i = 0; i < residues.size()-4; i++) {
         hb.push_back(new colvar::h_bond(cvm::atom(r[i  ], "O",  sid),
-                                          cvm::atom(r[i+4], "N",  sid),
-                                          r0, en, ed));
+                                        cvm::atom(r[i+4], "N",  sid),
+                                        r0, en, ed));
+        atom_groups.push_back(hb.back()->atom_groups[0]);
       }
 
     } else {

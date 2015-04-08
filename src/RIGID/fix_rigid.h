@@ -47,6 +47,7 @@ class FixRigid : public Fix {
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
 
+  void setup_pre_neighbor();
   void pre_neighbor();
   int dof(int);
   void deform(int);
@@ -67,7 +68,7 @@ class FixRigid : public Fix {
 
   char *infile;             // file to read rigid body attributes from
   int rstyle;               // SINGLE,MOLECULE,GROUP
-  int staticflag;           // 1 if static body properties are setup, else 0
+  int setupflag;            // 1 if body properties are setup, else 0
 
   int dimension;            // # of dimensions
   int nbody;                // # of rigid bodies
@@ -102,6 +103,8 @@ class FixRigid : public Fix {
   int orientflag;           // 1 if particles store spatial orientation
   int dorientflag;          // 1 if particles store dipole orientation
 
+  imageint *xcmimage;       // internal image flags for atoms in rigid bodies
+                            // set relative to in-box xcm of each body
   int *eflags;              // flags for extended particles
   double **orient;          // orientation vector of particle wrt rigid body
   double **dorient;         // orientation of dipole mu wrt rigid body
@@ -133,12 +136,12 @@ class FixRigid : public Fix {
   int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;
 
-  void no_squish_rotate(int, double *, double *, double *, double) const;
+  void image_shift();
   void set_xv();
   void set_v();
   void setup_bodies_static();
   void setup_bodies_dynamic();
-  void readfile(int, double *, double **, int *);
+  void readfile(int, double *, double **, double **, double **, int *);
 };
 
 }
@@ -206,7 +209,7 @@ NPT/NPH fix must be defined in input script after all rigid fixes,
 else the rigid fix contribution to the pressure virial is
 incorrect.
 
-W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized
+W: Cannot count rigid body degrees-of-freedom before bodies are initialized
 
 This means the temperature associated with the rigid bodies may be
 incorrect on this timestep.

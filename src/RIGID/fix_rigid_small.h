@@ -78,7 +78,7 @@ class FixRigidSmall : public Fix {
   double MINUSPI,TWOPI;
 
   char *infile;             // file to read rigid body attributes from
-  int staticflag;           // 1 if static body properties are setup, else 0
+  int setupflag;            // 1 if body properties are setup, else 0
   int commflag;             // various modes of forward/reverse comm
   int nbody;                // total # of rigid bodies
   tagint maxmol;            // max mol-ID
@@ -117,15 +117,16 @@ class FixRigidSmall : public Fix {
                         // ID = tag of atom that owns body
   int *atom2body;       // index of owned/ghost body this atom is in, -1 if not
                         // can point to original or any image of the body
+  imageint *xcmimage;   // internal image flags for atoms in rigid bodies
+                        // set relative to in-box xcm of each body
   double **displace;    // displacement of each atom in body coords
+  int *eflags;          // flags for extended particles
+  double **orient;      // orientation vector of particle wrt rigid body
+  double **dorient;     // orientation of dipole mu wrt rigid body
 
-  int *eflags;              // flags for extended particles
-  double **orient;          // orientation vector of particle wrt rigid body
-  double **dorient;         // orientation of dipole mu wrt rigid body
-
-  int extended;             // 1 if any particles have extended attributes
-  int orientflag;           // 1 if particles store spatial orientation
-  int dorientflag;          // 1 if particles store dipole orientation
+  int extended;         // 1 if any particles have extended attributes
+  int orientflag;       // 1 if particles store spatial orientation
+  int dorientflag;      // 1 if particles store dipole orientation
 
   int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;
@@ -182,6 +183,7 @@ class FixRigidSmall : public Fix {
   double *rsqclose;
   double rsqfar;
 
+  void image_shift();
   void set_xv();
   void set_v();
   void create_bodies();
@@ -231,10 +233,9 @@ E: Molecule template ID for fix rigid/small does not exist
 
 Self-explanatory.
 
-W: Molecule template for fix rigid/small has multiple molecules
+E: Fix rigid/small nvt/npt/nph dilate group ID does not exist
 
-The fix rigid/small command will only recoginze molecules of a single
-type, i.e. the first molecule in the template.
+Self-explanatory.
 
 E: Fix rigid/small molecule must have coordinates
 
@@ -254,7 +255,7 @@ NPT/NPH fix must be defined in input script after all rigid fixes,
 else the rigid fix contribution to the pressure virial is
 incorrect.
 
-W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized
+W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized h
 
 This means the temperature associated with the rigid bodies may be
 incorrect on this timestep.
@@ -269,6 +270,11 @@ not be accounted for.
 E: Fix rigid/small atom has non-zero image flag in a non-periodic dimension
 
 Image flags for non-periodic dimensions should not be set.
+
+E: Inconsistent use of finite-size particles by molecule template molecules
+
+Not all of the molecules define a radius for their constituent
+particles.
 
 E: Insufficient Jacobi rotations for rigid body
 
@@ -287,10 +293,6 @@ correct.
 E: Unexpected end of fix rigid/small file
 
 A read operation from the file failed.
-
-E: Fix rigid file has no lines
-
-Self-explanatory.
 
 E: Incorrect rigid body format in fix rigid/small file
 

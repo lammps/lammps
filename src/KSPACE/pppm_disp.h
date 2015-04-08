@@ -385,6 +385,10 @@ E: Cannot use PPPMDisp with 2d simulation
 The kspace style pppm/disp cannot be used in 2d simulations.  You can
 use 2d pppm/disp in a 3d simulation; see the kspace_modify command.
 
+E: PPPMDisp can only currently be used with comm_style brick
+
+This is a current restriction in LAMMPS.
+
 E: Cannot use nonperiodic boundaries with PPPMDisp
 
 For kspace style pppm/disp, all 3 dimensions must have periodic
@@ -402,8 +406,8 @@ This is a limitation of the PPPM implementation in LAMMPS.
 
 E: KSpace style is incompatible with Pair style
 
-Setting a kspace style requires that a pair style with a long-range
-Coulombic or dispersion component be used.
+Setting a kspace style requires that a pair style with matching
+long-range Coulombic or dispersion components be used.
 
 E: Unsupported order in kspace_style pppm/disp, pair_style %s
 
@@ -413,20 +417,9 @@ W: Charges are set, but coulombic solver is not used
 
 Self-explanatory.
 
-E: Kspace style with selected options requires atom attribute q
+E: PPPMDisp used but no parameters set, for further information please see the pppm/disp documentation
 
-The atom style defined does not have these attributes.
-Change the atom style or switch of the coulomb solver.
-
-E: Cannot use kspace solver with selected options on system with no charge
-
-No atoms in system have a non-zero charge. Change charges or change 
-options of the kspace solver/pair style.
-
-W: System is not charge neutral, net charge = %g
-
-The total charge on all atoms on the system is not 0.0, which
-is not valid for the long-range Coulombic solvers.
+An efficient and accurate usage of the pppm/disp requires settings via the kspace_modify command. Please see the pppm/disp documentation for further instructions.
 
 E: Bond and angle potentials must be defined for TIP4P
 
@@ -481,7 +474,7 @@ E: Matrix factorization to split dispersion coefficients failed
 
 This should not normally happen.  Contact the developers.
 
-W: Error in splitting of dispersion coeffs is estimated %g%
+W: Estimated error in splitting of dispersion coeffs is %g
 
 Error is greater than 0.0001 percent.
 
@@ -527,6 +520,10 @@ E: Could not compute grid size for Dispersion
 The code is unable to compute a grid size consistent with the desired
 accuracy.  This error should not occur for typical problems.  Please
 send an email to the developers.
+
+E: Non-numeric box dimensions - simulation unstable
+
+The box size has apparently blown up.
 
 E: Out of range atoms - cannot compute PPPMDisp
 

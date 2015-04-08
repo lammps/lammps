@@ -1,0 +1,28 @@
+#!/bin/bash
+
+touch KokkosCore_config.h
+
+#flags="-I../ -I./ -I../../../TPL -c -O3 -arch=sm_30 -Xcompiler -fPIC -DKOKKOS_HAVE_CUDA -DKOKKOS_HAVE_PTHREAD --compiler-bindir=/Users/mhoemme/pkg/gcc-4.7.2/bin"
+flags="-I../ -I./ -I../../../TPL -c -O3 -arch=sm_30 -Xcompiler -fPIC -DKOKKOS_HAVE_CUDA -DKOKKOS_HAVE_PTHREAD"
+CC=nvcc
+cd Cuda
+rm *.o
+$CC $flags Kokkos_Cuda_Impl.cu
+$CC $flags Kokkos_CudaSpace.cu
+cd ..
+cd impl
+rm *.o
+$CC $flags Kokkos_hwloc.cpp
+$CC $flags Kokkos_MemoryTracking.cpp
+$CC $flags Kokkos_Shape.cpp
+$CC $flags Kokkos_Error.cpp
+$CC $flags Kokkos_HostSpace.cpp
+$CC $flags Kokkos_Serial.cpp
+cd ..
+cd Threads
+rm *.o
+$CC $flags Kokkos_ThreadsExec.cpp
+$CC $flags Kokkos_ThreadsExec_base.cpp
+cd ..
+$CC -arch=sm_35 -lib -o libkokkoscore-cuda.a Cuda/*.o impl/*.o Threads/*.o
+

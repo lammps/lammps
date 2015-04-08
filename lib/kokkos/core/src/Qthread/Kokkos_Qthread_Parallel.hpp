@@ -49,6 +49,7 @@
 #include <Kokkos_Parallel.hpp>
 
 #include <impl/Kokkos_StaticAssert.hpp>
+#include <impl/Kokkos_FunctorAdapter.hpp>
 
 #include <Qthread/Kokkos_QthreadExec.hpp>
 
@@ -59,33 +60,54 @@ namespace Impl {
 
 //----------------------------------------------------------------------------
 
-template< class FunctorType , typename IntType , unsigned P >
-class ParallelFor< FunctorType
-                 , Kokkos::RangePolicy< Kokkos::Qthread , void , IntType , P >
-                 , Kokkos::Qthread
-                 >
+template< class FunctorType , class Arg0 , class Arg1 , class Arg2 >
+class ParallelFor< FunctorType , Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Qthread > >
 {
-public:
-  typedef Kokkos::RangePolicy< Kokkos::Qthread , void , IntType , P >  Policy ;
+private:
+
+  typedef Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Qthread >  Policy ;
 
   const FunctorType  m_func ;
   const Policy       m_policy ;
 
+  template< class PType >
+  KOKKOS_FORCEINLINE_FUNCTION static
+  void driver( typename Impl::enable_if<
+                 ( Impl::is_same< typename PType::work_tag , void >::value )
+                 , const FunctorType & >::type functor
+             , const PType & range )
+    {
+      const typename PType::member_type e = range.end();
+      for ( typename PType::member_type i = range.begin() ; i < e ; ++i ) {
+        functor( i );
+      }
+    }
+
+  template< class PType >
+  KOKKOS_FORCEINLINE_FUNCTION static
+  void driver( typename Impl::enable_if<
+                 ( ! Impl::is_same< typename PType::work_tag , void >::value )
+                 , const FunctorType & >::type functor
+             , const PType & range )
+    {
+      const typename PType::member_type e = range.end();
+      for ( typename PType::member_type i = range.begin() ; i < e ; ++i ) {
+        functor( typename PType::work_tag() , i );
+      }
+    }
+
   // Function is called once by every concurrent thread.
   static void execute( QthreadExec & exec , const void * arg )
   {
-
     const ParallelFor & self = * ((const ParallelFor *) arg );
-    const Policy range( self.m_policy , exec.worker_rank() , exec.worker_size() );
 
-    const typename Policy::member_type work_end = range.end();
-    for ( typename Policy::member_type iwork = range.begin() ; iwork < work_end ; ++iwork ) {
-      self.m_func( iwork );
-    }
+    driver( self.m_func , typename Policy::WorkRange( self.m_policy , exec.worker_rank() , exec.worker_size() ) );
 
     // All threads wait for completion.
     exec.exec_all_barrier();
   }
+
+public:
 
   ParallelFor( const FunctorType & functor
              , const Policy      & policy
@@ -99,36 +121,62 @@ public:
 
 //----------------------------------------------------------------------------
 
-template< class FunctorType , typename IntType , unsigned P >
-class ParallelReduce< FunctorType
-                    , Kokkos::RangePolicy< Kokkos::Qthread , void , IntType , P >
-                    , Kokkos::Qthread
-                    >
+template< class FunctorType , class Arg0 , class Arg1 , class Arg2 >
+class ParallelReduce< FunctorType , Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Qthread > >
 {
-public:
+private:
 
-  typedef ReduceAdapter< FunctorType >   Reduce ;
-  typedef typename Reduce::pointer_type  pointer_type ;
-  typedef Kokkos::RangePolicy< Kokkos::Qthread , void , IntType , P >  Policy ;
+  typedef Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Qthread >  Policy ;
+  typedef Kokkos::Impl::FunctorValueTraits< FunctorType , typename Policy::work_tag > ValueTraits ;
+  typedef Kokkos::Impl::FunctorValueInit<   FunctorType , typename Policy::work_tag > ValueInit ;
+
+  typedef typename ValueTraits::pointer_type    pointer_type ;
+  typedef typename ValueTraits::reference_type  reference_type ;
 
   const FunctorType  m_func ;
   const Policy       m_policy ;
 
+  template< class PType >
+  KOKKOS_FORCEINLINE_FUNCTION static
+  void driver( typename Impl::enable_if<
+                 ( Impl::is_same< typename PType::work_tag , void >::value )
+                 , const FunctorType & >::type functor
+             , reference_type update
+             , const PType & range )
+    {
+      const typename PType::member_type e = range.end();
+      for ( typename PType::member_type i = range.begin() ; i < e ; ++i ) {
+        functor( i , update );
+      }
+    }
+
+  template< class PType >
+  KOKKOS_FORCEINLINE_FUNCTION static
+  void driver( typename Impl::enable_if<
+                 ( ! Impl::is_same< typename PType::work_tag , void >::value )
+                 , const FunctorType & >::type functor
+             , reference_type update
+             , const PType & range )
+    {
+      const typename PType::member_type e = range.end();
+      for ( typename PType::member_type i = range.begin() ; i < e ; ++i ) {
+        functor( typename PType::work_tag() , i , update );
+      }
+    }
+
   static void execute( QthreadExec & exec , const void * arg )
   {
     const ParallelReduce & self = * ((const ParallelReduce *) arg );
-    const Policy range( self.m_policy , exec.worker_rank() , exec.worker_size() );
 
-    // Initialize thread-local value
-    typename Reduce::reference_type update = Reduce::init( self.m_func , exec.exec_all_reduce_value() );
+    driver( self.m_func
+          , ValueInit::init( self.m_func , exec.exec_all_reduce_value() )
+          , typename Policy::WorkRange( self.m_policy , exec.worker_rank() , exec.worker_size() )
+          );
 
-    const typename Policy::member_type work_end = range.end();
-    for ( typename Policy::member_type iwork = range.begin() ; iwork < work_end ; ++iwork ) {
-      self.m_func( iwork , update );
-    }
-
-    exec.exec_all_reduce( self.m_func );
+    exec.template exec_all_reduce<FunctorType, typename Policy::work_tag >( self.m_func );
   }
+
+public:
 
   template< class HostViewType >
   ParallelReduce( const FunctorType  & functor
@@ -137,16 +185,16 @@ public:
     : m_func( functor )
     , m_policy( policy )
     {
-      QthreadExec::resize_worker_scratch( Reduce::value_size( m_func ) , 0 );
+      QthreadExec::resize_worker_scratch( ValueTraits::value_size( m_func ) , 0 );
 
       Impl::QthreadExec::exec_all( Qthread::instance() , & ParallelReduce::execute , this );
 
       const pointer_type data = (pointer_type) QthreadExec::exec_all_reduce_result();
 
-      Reduce::final( m_func , data );
+      Kokkos::Impl::FunctorFinal< FunctorType , typename Policy::work_tag >::final( m_func , data );
 
       if ( result_view.ptr_on_device() ) {
-        const unsigned n = Reduce::value_count( m_func );
+        const unsigned n = ValueTraits::value_count( m_func );
         for ( unsigned i = 0 ; i < n ; ++i ) { result_view.ptr_on_device()[i] = data[i]; }
       }
     }
@@ -154,103 +202,199 @@ public:
 
 //----------------------------------------------------------------------------
 
-template< class FunctorType >
-class ParallelReduce< FunctorType , TeamPolicy< Kokkos::Qthread > , Kokkos::Qthread >
+template< class FunctorType , class Arg0 , class Arg1 >
+class ParallelFor< FunctorType , TeamPolicy< Arg0 , Arg1 , Kokkos::Qthread > >
 {
-public:
+private:
 
-  typedef ReduceAdapter< FunctorType >   Reduce ;
-  typedef typename Reduce::pointer_type  pointer_type ;
-  typedef TeamPolicy< Kokkos::Qthread >  policy_team ;
+  typedef TeamPolicy< Arg0 , Arg1 , Kokkos::Qthread >  Policy ;
 
   const FunctorType  m_func ;
-  const policy_team  m_team ;
+  const Policy       m_team ;
+
+  template< class TagType >
+  KOKKOS_FORCEINLINE_FUNCTION
+  void driver( typename Impl::enable_if< Impl::is_same< TagType , void >::value ,
+                 const typename Policy::member_type & >::type member ) const
+    { m_func( member ); }
+
+  template< class TagType >
+  KOKKOS_FORCEINLINE_FUNCTION
+  void driver( typename Impl::enable_if< ! Impl::is_same< TagType , void >::value ,
+                 const typename Policy::member_type & >::type member ) const
+    { m_func( TagType() , member ); }
+
+  static void execute( QthreadExec & exec , const void * arg )
+  {
+    const ParallelFor & self = * ((const ParallelFor *) arg );
+
+    typename Policy::member_type member( exec , self.m_team );
+
+    while ( member ) {
+      self.ParallelFor::template driver< typename Policy::work_tag >( member );
+      member.team_barrier();
+      member.next_team();
+    }
+
+    exec.exec_all_barrier();
+  }
+
+public:
+
+  ParallelFor( const FunctorType & functor ,
+               const Policy      & policy )
+    : m_func( functor )
+    , m_team( policy )
+    {
+      QthreadExec::resize_worker_scratch
+        ( /* reduction   memory */ 0
+        , /* team shared memory */ FunctorTeamShmemSize< FunctorType >::value( functor , policy.team_size() ) );
+
+      Impl::QthreadExec::exec_all( Qthread::instance() , & ParallelFor::execute , this );
+    }
+};
+
+//----------------------------------------------------------------------------
+
+template< class FunctorType , class Arg0 , class Arg1 >
+class ParallelReduce< FunctorType , TeamPolicy< Arg0 , Arg1 , Kokkos::Qthread > >
+{
+private:
+
+  typedef TeamPolicy< Arg0 , Arg1 , Kokkos::Qthread >  Policy ;
+
+  typedef Kokkos::Impl::FunctorValueTraits< FunctorType , typename Policy::work_tag > ValueTraits ;
+  typedef Kokkos::Impl::FunctorValueInit<   FunctorType , typename Policy::work_tag > ValueInit ;
+
+  typedef typename ValueTraits::pointer_type    pointer_type ;
+  typedef typename ValueTraits::reference_type  reference_type ;
+
+  const FunctorType  m_func ;
+  const Policy       m_team ;
+
+  template< class TagType >
+  KOKKOS_FORCEINLINE_FUNCTION
+  void driver( typename Impl::enable_if< Impl::is_same< TagType , void >::value ,
+                 const typename Policy::member_type & >::type member
+             , reference_type update ) const
+    { m_func( member , update ); }
+
+  template< class TagType >
+  KOKKOS_FORCEINLINE_FUNCTION
+  void driver( typename Impl::enable_if< ! Impl::is_same< TagType , void >::value ,
+                 const typename Policy::member_type & >::type member
+             , reference_type update ) const
+    { m_func( TagType() , member , update ); }
 
   static void execute( QthreadExec & exec , const void * arg )
   {
     const ParallelReduce & self = * ((const ParallelReduce *) arg );
 
     // Initialize thread-local value
-    typename Reduce::reference_type update = Reduce::init( self.m_func , exec.exec_all_reduce_value() );
+    reference_type update = ValueInit::init( self.m_func , exec.exec_all_reduce_value() );
 
-    typename policy_team::member_type team_index( exec , self.m_team );
+    typename Policy::member_type member( exec , self.m_team );
 
-    while ( team_index ) {
-      // Reset shared memory offset to beginning of reduction range.
-      exec.shared_reset();
-      self.m_func( team_index , update );
-      team_index.team_barrier();
-      team_index.next_team();
+    while ( member ) {
+      self.ParallelReduce::template driver< typename Policy::work_tag >( member , update );
+      member.team_barrier();
+      member.next_team();
     }
 
-    exec.exec_all_reduce( self.m_func );
+    exec.template exec_all_reduce< FunctorType , typename Policy::work_tag >( self.m_func );
   }
+
+public:
 
   template< class ViewType >
   ParallelReduce( const FunctorType & functor ,
-                  const policy_team & policy ,
+                  const Policy      & policy ,
                   const ViewType    & result )
     : m_func( functor )
     , m_team( policy )
     {
       QthreadExec::resize_worker_scratch
-        ( /* reduction   memory */ Reduce::value_size( functor )
-        , /* team shared memory */ FunctorTeamShmemSize< FunctorType >::value( functor ) , policy.team_size() );
+        ( /* reduction   memory */ ValueTraits::value_size( functor )
+        , /* team shared memory */ FunctorTeamShmemSize< FunctorType >::value( functor , policy.team_size() ) );
 
       Impl::QthreadExec::exec_all( Qthread::instance() , & ParallelReduce::execute , this );
 
       const pointer_type data = (pointer_type) QthreadExec::exec_all_reduce_result();
 
-      Reduce::final( m_func , data );
+      Kokkos::Impl::FunctorFinal< FunctorType , typename Policy::work_tag >::final( m_func , data );
 
-      const unsigned n = Reduce::value_count( m_func );
+      const unsigned n = ValueTraits::value_count( m_func );
       for ( unsigned i = 0 ; i < n ; ++i ) { result.ptr_on_device()[i] = data[i]; }
     }
-
-  inline void wait() {}
-
-  inline ~ParallelReduce() { wait(); }
 };
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-template< class FunctorType , typename IntType , unsigned P >
-class ParallelScan< FunctorType
-                  , Kokkos::RangePolicy< Kokkos::Qthread , void , IntType , P >
-                  , Kokkos::Qthread
-                  >
+template< class FunctorType , class Arg0 , class Arg1 , class Arg2 >
+class ParallelScan< FunctorType , Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Qthread > >
 {
-public:
+private:
 
-  typedef ReduceAdapter< FunctorType >   Reduce ;
-  typedef typename Reduce::pointer_type  pointer_type ;
-  typedef Kokkos::RangePolicy< Kokkos::Qthread , void , IntType , P > Policy ;
+  typedef Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Qthread >  Policy ;
+  typedef Kokkos::Impl::FunctorValueTraits< FunctorType , typename Policy::work_tag > ValueTraits ;
+  typedef Kokkos::Impl::FunctorValueInit<   FunctorType , typename Policy::work_tag > ValueInit ;
+
+  typedef typename ValueTraits::pointer_type    pointer_type ;
+  typedef typename ValueTraits::reference_type  reference_type ;
 
   const FunctorType  m_func ;
   const Policy       m_policy ;
 
+  template< class PType >
+  KOKKOS_FORCEINLINE_FUNCTION static
+  void driver( typename Impl::enable_if<
+                 ( Impl::is_same< typename PType::work_tag , void >::value )
+                 , const FunctorType & >::type functor
+             , reference_type update
+             , const bool    final
+             , const PType & range )
+    {
+      const typename PType::member_type e = range.end();
+      for ( typename PType::member_type i = range.begin() ; i < e ; ++i ) {
+        functor( i , update , final );
+      }
+    }
+
+  template< class PType >
+  KOKKOS_FORCEINLINE_FUNCTION static
+  void driver( typename Impl::enable_if<
+                 ( ! Impl::is_same< typename PType::work_tag , void >::value )
+                 , const FunctorType & >::type functor
+             , reference_type update
+             , const bool    final
+             , const PType & range )
+    {
+      const typename PType::member_type e = range.end();
+      for ( typename PType::member_type i = range.begin() ; i < e ; ++i ) {
+        functor( typename PType::work_tag() , i , update , final );
+      }
+    }
+
   static void execute( QthreadExec & exec , const void * arg )
   {
     const ParallelScan & self = * ((const ParallelScan *) arg );
-    const Policy range( self.m_policy , exec.worker_rank() , exec.worker_size() );
+
+    const typename Policy::WorkRange range( self.m_policy , exec.worker_rank() , exec.worker_size() );
 
     // Initialize thread-local value
-    typename Reduce::reference_type update = Reduce::init( self.m_func , exec.exec_all_reduce_value() );
+    reference_type update = ValueInit::init( self.m_func , exec.exec_all_reduce_value() );
 
-    const typename Policy::member_type work_end = range.end();
-    for ( typename Policy::member_type iwork = range.begin() ; iwork < work_end ; ++iwork ) {
-      self.m_func( iwork , update , false );
-    }
+    driver( self.m_func , update , false , range );
 
-    exec.exec_all_scan( self.m_func );
+    exec.template exec_all_scan< FunctorType , typename Policy::work_tag >( self.m_func );
 
-    for ( typename Policy::member_type iwork = range.begin() ; iwork < work_end ; ++iwork ) {
-      self.m_func( iwork , update , true );
-    }
+    driver( self.m_func , update , true , range );
 
     exec.exec_all_barrier();
   }
+
+public:
 
   ParallelScan( const FunctorType & functor
               , const Policy      & policy
@@ -258,7 +402,7 @@ public:
     : m_func( functor )
     , m_policy( policy )
     {
-      QthreadExec::resize_worker_scratch( Reduce::value_size( m_func ) , 0 );
+      QthreadExec::resize_worker_scratch( ValueTraits::value_size( m_func ) , 0 );
 
       Impl::QthreadExec::exec_all( Qthread::instance() , & ParallelScan::execute , this );
     }

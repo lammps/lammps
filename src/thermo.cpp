@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
+// due to OpenMPI bug which sets INT64_MAX via its mpi.h
+//   before lmptype.h can set flags to insure it is done correctly
+
+#include "lmptype.h" 
 #include "mpi.h"
 #include "math.h"
 #include "stdlib.h"
@@ -837,10 +842,12 @@ void Thermo::parse_fields(char *str)
       if (ptr == NULL) argindex1[nfield] = 0;
       else {
         *ptr = '\0';
-        argindex1[nfield] = input->variable->int_between_brackets(ptr,0);
+        argindex1[nfield] = 
+          (int) input->variable->int_between_brackets(ptr,0);
         ptr++;
         if (*ptr == '[') {
-          argindex2[nfield] = input->variable->int_between_brackets(ptr,0);
+          argindex2[nfield] = 
+            (int) input->variable->int_between_brackets(ptr,0);
           ptr++;
         } else argindex2[nfield] = 0;
       }
@@ -853,14 +860,17 @@ void Thermo::parse_fields(char *str)
         if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
           if (modify->compute[n]->vector_flag == 0)
             error->all(FLERR,"Thermo compute does not compute vector");
-          if (argindex1[nfield] > modify->compute[n]->size_vector)
+          if (argindex1[nfield] > modify->compute[n]->size_vector &&
+              modify->compute[n]->size_vector_variable == 0)
             error->all(FLERR,"Thermo compute vector is accessed out-of-range");
         }
         if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
           if (modify->compute[n]->array_flag == 0)
             error->all(FLERR,"Thermo compute does not compute array");
-          if (argindex1[nfield] > modify->compute[n]->size_array_rows ||
-              argindex2[nfield] > modify->compute[n]->size_array_cols)
+          if (argindex1[nfield] > modify->compute[n]->size_array_rows &&
+              modify->compute[n]->size_array_rows_variable == 0)
+            error->all(FLERR,"Thermo compute array is accessed out-of-range");
+          if (argindex2[nfield] > modify->compute[n]->size_array_cols)
             error->all(FLERR,"Thermo compute array is accessed out-of-range");
         }
 
@@ -880,14 +890,17 @@ void Thermo::parse_fields(char *str)
         if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
           if (modify->fix[n]->vector_flag == 0)
             error->all(FLERR,"Thermo fix does not compute vector");
-          if (argindex1[nfield] > modify->fix[n]->size_vector)
+          if (argindex1[nfield] > modify->fix[n]->size_vector && 
+              modify->fix[n]->size_vector_variable == 0)
             error->all(FLERR,"Thermo fix vector is accessed out-of-range");
         }
         if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
           if (modify->fix[n]->array_flag == 0)
             error->all(FLERR,"Thermo fix does not compute array");
-          if (argindex1[nfield] > modify->fix[n]->size_array_rows ||
-              argindex2[nfield] > modify->fix[n]->size_array_cols)
+          if (argindex1[nfield] > modify->fix[n]->size_array_rows &&
+              modify->fix[n]->size_array_rows_variable == 0)
+            error->all(FLERR,"Thermo fix array is accessed out-of-range");
+          if (argindex2[nfield] > modify->fix[n]->size_array_cols)
             error->all(FLERR,"Thermo fix array is accessed out-of-range");
         }
 
@@ -910,7 +923,7 @@ void Thermo::parse_fields(char *str)
 
       delete [] id;
 
-    } else error->all(FLERR,"Invalid keyword in thermo_style custom command");
+    } else error->all(FLERR,"Unknown keyword in thermo_style custom command");
 
     word = strtok(NULL," \0");
   }
@@ -1412,18 +1425,24 @@ void Thermo::compute_compute()
   int m = field2index[ifield];
   Compute *compute = computes[m];
 
+  // check for out-of-range access if vector/array is variable length
+
   if (compute_which[m] == SCALAR) {
     dvalue = compute->scalar;
     if (normflag && compute->extscalar) dvalue /= natoms;
   } else if (compute_which[m] == VECTOR) {
-    dvalue = compute->vector[argindex1[ifield]-1];
+    if (compute->size_vector_variable && argindex1[ifield] > 
+        compute->size_vector) dvalue = 0.0;
+    else dvalue = compute->vector[argindex1[ifield]-1];
     if (normflag) {
       if (compute->extvector == 0) return;
       else if (compute->extvector == 1) dvalue /= natoms;
       else if (compute->extlist[argindex1[ifield]-1]) dvalue /= natoms;
     }
   } else {
-    dvalue = compute->array[argindex1[ifield]-1][argindex2[ifield]-1];
+    if (compute->size_array_rows_variable && argindex1[ifield] > 
+        compute->size_array_rows) dvalue = 0.0;
+    else dvalue = compute->array[argindex1[ifield]-1][argindex2[ifield]-1];
     if (normflag && compute->extarray) dvalue /= natoms;
   }
 }

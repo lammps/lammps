@@ -43,7 +43,7 @@
 
 // Experimental unified task-data parallel manycore LDRD
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core_fwd.hpp>
 
 #if defined( KOKKOS_HAVE_QTHREAD )
 
@@ -62,48 +62,21 @@
 
 namespace Kokkos {
 namespace Impl {
+
+typedef TaskMember< Kokkos::Qthread , void , void > Task ;
+
 namespace {
 
-TaskManager< Kokkos::Qthread > s_task_manager ;
-
-}
-
-typedef TaskMember<  Kokkos::Qthread > Task ;
-typedef TaskManager< Kokkos::Qthread > Mgr ;
-
-Task::TaskMember( const function_type    arg_destroy
-                , const function_type    arg_apply
-                , const std::type_info & arg_type
-                )
-  : m_typeid(  arg_type )
-  , m_destroy( arg_destroy )
-  , m_apply(   arg_apply )
-  , m_state( STATE_CONSTRUCTING )
-  , m_ref_count(0)
-  , m_qfeb(0)
+inline
+unsigned padded_sizeof_derived( unsigned sizeof_derived )
 {
-  qthread_empty( & m_qfeb ); // Set to full when complete
-  for ( int i = 0 ; i < MAX_DEPENDENCE ; ++i ) m_dep[i] = 0 ;
+  return sizeof_derived +
+    ( sizeof_derived % sizeof(Task*) ? sizeof(Task*) - sizeof_derived % sizeof(Task*) : 0 );
 }
 
-Mgr::TaskManager()
-{}
+} // namespace
 
-void * Mgr::memory_allocate( size_t nbytes )
-{
-  // Counting on 'malloc' thread safety so lock/unlock not required.
-  // However, isolate calls here to mitigate future need to introduce lock/unlock.
-
-  // lock
-
-  void * ptr = malloc( nbytes );
-
-  // unlock
-
-  return ptr ;
-}
-
-void Mgr::memory_deallocate( void * ptr )
+void Task::deallocate( void * ptr )
 {
   // Counting on 'free' thread safety so lock/unlock not required.
   // However, isolate calls here to mitigate future need to introduce lock/unlock.
@@ -115,93 +88,169 @@ void Mgr::memory_deallocate( void * ptr )
   // unlock
 }
 
-void Mgr::assign( Task ** const lhs , Task * const rhs )
+void * Task::allocate( const unsigned arg_sizeof_derived
+                     , const unsigned arg_dependence_capacity )
 {
-  if ( *lhs ) {
+  // Counting on 'malloc' thread safety so lock/unlock not required.
+  // However, isolate calls here to mitigate future need to introduce lock/unlock.
 
-    // Must de-assign
+  // lock
 
-    const int count = Kokkos::atomic_fetch_add( & (**lhs).m_ref_count , -1 );
+  void * const ptr = malloc( padded_sizeof_derived( arg_sizeof_derived ) + arg_dependence_capacity * sizeof(Task*) );
 
-    if ( 1 == count ) {
+  // unlock
 
-      // Should only be deallocating a completed task
-      // TODO: Support deletion of canceled tasks.
+  return ptr ;
+}
 
-      if ( (**lhs).m_state != Task::STATE_COMPLETE ) {
-        throw std::runtime_error(
-          std::string("Kokkos::Impl::TaskManager<Kokkos::Qthread>::decrement ERROR: not STATE_COMPLETE") );
+Task::~TaskMember()
+{
+
+}
+
+
+Task::TaskMember( const function_verify_type   arg_verify
+                , const function_dealloc_type  arg_dealloc
+                , const function_apply_type    arg_apply
+                , const unsigned               arg_sizeof_derived
+                , const unsigned               arg_dependence_capacity
+                )
+  : m_dealloc( arg_dealloc )
+  , m_verify(  arg_verify )
+  , m_apply(   arg_apply )
+  , m_dep( (Task **)( ((unsigned char *) this) + padded_sizeof_derived( arg_sizeof_derived ) ) )
+  , m_dep_capacity( arg_dependence_capacity )
+  , m_dep_size( 0 )
+  , m_ref_count( 0 )
+  , m_state( Kokkos::TASK_STATE_CONSTRUCTING )
+  , m_qfeb(0)
+{
+  qthread_empty( & m_qfeb ); // Set to full when complete
+  for ( unsigned i = 0 ; i < arg_dependence_capacity ; ++i ) m_dep[i] = 0 ;
+}
+
+Task::TaskMember( const function_dealloc_type  arg_dealloc
+                , const function_apply_type    arg_apply
+                , const unsigned               arg_sizeof_derived
+                , const unsigned               arg_dependence_capacity
+                )
+  : m_dealloc( arg_dealloc )
+  , m_verify(  & Task::verify_type<void> )
+  , m_apply(   arg_apply )
+  , m_dep( (Task **)( ((unsigned char *) this) + padded_sizeof_derived( arg_sizeof_derived ) ) )
+  , m_dep_capacity( arg_dependence_capacity )
+  , m_dep_size( 0 )
+  , m_ref_count( 0 )
+  , m_state( Kokkos::TASK_STATE_CONSTRUCTING )
+  , m_qfeb(0)
+{
+  qthread_empty( & m_qfeb ); // Set to full when complete
+  for ( unsigned i = 0 ; i < arg_dependence_capacity ; ++i ) m_dep[i] = 0 ;
+}
+
+//----------------------------------------------------------------------------
+
+void Task::throw_error_add_dependence() const
+{
+  std::cerr << "TaskMember< Qthread >::add_dependence ERROR"
+            << " state(" << m_state << ")"
+            << " dep_size(" << m_dep_size << ")"
+            << std::endl ;
+  throw std::runtime_error("TaskMember< Qthread >::add_dependence ERROR");
+}
+
+void Task::throw_error_verify_type()
+{
+  throw std::runtime_error("TaskMember< Qthread >::verify_type ERROR");
+}
+
+//----------------------------------------------------------------------------
+
+#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+void Task::assign( Task ** const lhs , Task * rhs , const bool no_throw )
+{
+  static const char msg_error_header[]      = "Kokkos::Impl::TaskManager<Kokkos::Qthread>::assign ERROR" ;
+  static const char msg_error_count[]       = ": negative reference count" ;
+  static const char msg_error_complete[]    = ": destroy task that is not complete" ;
+  static const char msg_error_dependences[] = ": destroy task that has dependences" ;
+  static const char msg_error_exception[]   = ": caught internal exception" ;
+
+  const char * msg_error = 0 ;
+
+  try {
+
+    if ( *lhs ) {
+
+      const int count = Kokkos::atomic_fetch_add( & (**lhs).m_ref_count , -1 );
+
+      if ( 1 == count ) {
+
+        // Reference count at zero, delete it
+
+        // Should only be deallocating a completed task
+        if ( (**lhs).m_state == Kokkos::TASK_STATE_COMPLETE ) {
+
+          // A completed task should not have dependences...
+          for ( int i = 0 ; i < (**lhs).m_dep_size && 0 == msg_error ; ++i ) {
+            if ( (**lhs).m_dep[i] ) msg_error = msg_error_dependences ;
+          }
+        }
+        else {
+          msg_error = msg_error_complete ;
+        }
+
+        if ( 0 == msg_error ) {
+          // Get deletion function and apply it
+          const Task::function_dealloc_type d = (**lhs).m_dealloc ;
+
+          (*d)( *lhs );
+        }
       }
-
-      // Get destructor function and apply it
-      (**lhs).m_destroy( *lhs );
-
-      memory_deallocate( *lhs );
+      else if ( count <= 0 ) {
+        msg_error = msg_error_count ;
+      }
     }
-    else if ( count <= 0 ) {
-      throw std::runtime_error(std::string("Kokkos::Impl::TaskManager<Kokkos::Qthread>::assign ERROR: reference counting") );
+
+    if ( 0 == msg_error && rhs ) { Kokkos::atomic_fetch_add( & (*rhs).m_ref_count , 1 ); }
+
+    *lhs = rhs ;
+  }
+  catch( ... ) {
+    if ( 0 == msg_error ) msg_error = msg_error_exception ;
+  }
+
+  if ( 0 != msg_error ) {
+    if ( no_throw ) {
+      std::cerr << msg_error_header << msg_error << std::endl ;
+      std::cerr.flush();
+    }
+    else {
+      std::string msg(msg_error_header);
+      msg.append(msg_error);
+      throw std::runtime_error( msg );
     }
   }
-
-  if ( rhs ) {
-    Kokkos::atomic_fetch_add( & (*rhs).m_ref_count , 1 );
-  }
-
-  *lhs = rhs ;
 }
+#endif
 
-void Mgr::verify_set_dependence( Task * t , int n )
-{
-  // Must be either constructing for original spawn or executing for a respawn.
 
-  if ( Task::STATE_CONSTRUCTING != t->m_state &&
-       Task::STATE_EXECUTING    != t->m_state ) {
-    throw std::runtime_error(std::string("Kokkos::Impl::Task spawn or respawn state error"));
-  }
+//----------------------------------------------------------------------------
 
-  if ( MAX_DEPENDENCE <= n ) {
-    throw std::runtime_error(std::string("Kokkos::Impl::Task spawn or respawn dependence count error"));
-  }
-}
-
-void Mgr::schedule( Task * t )
-{
-  // Is waiting for execution
-
-  // spawn in qthread.  must malloc the precondition array and give to qthread.
-  // qthread will eventually free this allocation so memory will not be leaked.
-
-  // concern with thread safety of malloc, does this need to be guarded?
-  aligned_t ** qprecon = (aligned_t **) memory_allocate( ( MAX_DEPENDENCE + 1 ) * sizeof(aligned_t *) );
-
-  uintptr_t npre = 0 ;
-  for ( ; npre < MAX_DEPENDENCE && t->m_dep[npre] ; ++npre ) {
-    qprecon[npre+1] = & t->m_dep[npre]->m_qfeb ; // Qthread precondition flag
-  }
-  qprecon[0] = reinterpret_cast<aligned_t *>( npre );
-
-  t->m_state = Task::STATE_WAITING ;
-
-  qthread_spawn( & Mgr::qthread_func , t , 0 , NULL
-               , npre , qprecon
-               , NO_SHEPHERD , QTHREAD_SPAWN_SIMPLE );
-}
-
-aligned_t Mgr::qthread_func( void * arg )
+aligned_t Task::qthread_func( void * arg )
 {
   Task * const task = reinterpret_cast< Task * >(arg);
 
-  task->m_state = Task::STATE_EXECUTING ;
+  task->m_state = Kokkos::TASK_STATE_EXECUTING ;
 
   (*task->m_apply)( task );
 
-  if ( task->m_state == Task::STATE_EXECUTING ) {
+  if ( task->m_state == Kokkos::TASK_STATE_EXECUTING ) {
     // Task did not respawn, is complete
-    task->m_state = Task::STATE_COMPLETE ;
+    task->m_state = Kokkos::TASK_STATE_COMPLETE ;
 
     // Release dependences before allowing dependent tasks to run.
     // Otherwise their is a thread race condition for removing dependences.
-    for ( int i = 0 ; i < MAX_DEPENDENCE ; ++i ) {
+    for ( int i = 0 ; i < task->m_dep_size ; ++i ) {
       assign( & task->m_dep[i] , 0 );
     }
 
@@ -212,22 +261,38 @@ aligned_t Mgr::qthread_func( void * arg )
   return 0 ;
 }
 
-
-void Mgr::wait( Task * t )
+void Task::schedule()
 {
-  aligned_t tmp ;
-  qthread_readFF( & tmp , & t->m_qfeb );
+  // Is waiting for execution
+
+  // spawn in qthread.  must malloc the precondition array and give to qthread.
+  // qthread will eventually free this allocation so memory will not be leaked.
+
+  // concern with thread safety of malloc, does this need to be guarded?
+  aligned_t ** qprecon = (aligned_t **) malloc( ( m_dep_size + 1 ) * sizeof(aligned_t *) );
+
+  qprecon[0] = reinterpret_cast<aligned_t *>( uintptr_t(m_dep_size) );
+
+  for ( int i = 0 ; i < m_dep_size ; ++i ) {
+    qprecon[i+1] = & m_dep[i]->m_qfeb ; // Qthread precondition flag
+  }
+
+  m_state = Kokkos::TASK_STATE_WAITING ;
+
+  qthread_spawn( & Task::qthread_func , this , 0 , NULL
+               , m_dep_size , qprecon
+               , NO_SHEPHERD , QTHREAD_SPAWN_SIMPLE );
+}
+
+void Task::wait( const Future< void, Kokkos::Qthread> & f )
+{
+  if ( f.m_task ) {
+    aligned_t tmp ;
+    qthread_readFF( & tmp , & f.m_task->m_qfeb );
+  }
 }
 
 } // namespace Impl
-} // namespace Kokkos
-
-namespace Kokkos {
-
-TaskPolicy< Kokkos::Qthread >::TaskPolicy()
-  : m_task_manager( Impl::s_task_manager )
-{}
-
 } // namespace Kokkos
 
 #endif /* #if defined( KOKKOS_HAVE_QTHREAD ) */

@@ -230,6 +230,8 @@ namespace Kokkos {
 namespace hwloc {
 namespace {
 
+#if DEBUG_PRINT
+
 inline
 void print_bitmap( std::ostream & s , const hwloc_const_bitmap_t bitmap )
 {
@@ -240,6 +242,8 @@ void print_bitmap( std::ostream & s , const hwloc_const_bitmap_t bitmap )
   }
   s << " }" ;
 }
+
+#endif
 
 enum { MAX_CORE = 1024 };
 

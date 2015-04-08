@@ -46,8 +46,7 @@
 
 #include <typeinfo>
 #include <utility>
-#include <Kokkos_Macros.hpp>
-#include <Kokkos_Layout.hpp>
+#include <Kokkos_Core_fwd.hpp>
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_StaticAssert.hpp>
 
@@ -75,9 +74,6 @@ template< unsigned ScalarSize ,
           unsigned s6  = 1 ,
           unsigned s7  = 1 >
 struct Shape ;
-
-template< class ShapeType , class Layout >
-struct ShapeMap ;
 
 //----------------------------------------------------------------------------
 /** \brief  Shape equality if the value type, layout, and dimensions
@@ -239,7 +235,7 @@ struct AssertShapeBoundsAbort< Kokkos::HostSpace >
                      const size_t i6 , const size_t i7 );
 };
 
-template< class ExecutionDevice >
+template< class ExecutionSpace >
 struct AssertShapeBoundsAbort
 {
   KOKKOS_INLINE_FUNCTION
@@ -342,6 +338,32 @@ struct Shape< ScalarSize , 0, 1,1,1,1, 1,1,1,1 >
                unsigned = 0 , unsigned = 0 , unsigned = 0 , unsigned = 0 )
   {}
 };
+
+//----------------------------------------------------------------------------
+
+template< unsigned R > struct assign_shape_dimension ;
+
+#define KOKKOS_ASSIGN_SHAPE_DIMENSION( R ) \
+template<> \
+struct assign_shape_dimension< R > \
+{ \
+  template< class ShapeType > \
+  KOKKOS_INLINE_FUNCTION \
+  assign_shape_dimension( ShapeType & shape \
+                        , typename Impl::enable_if<( R < ShapeType::rank_dynamic ), size_t >::type n \
+                        ) { shape.N ## R = n ; } \
+};
+
+KOKKOS_ASSIGN_SHAPE_DIMENSION(0)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(1)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(2)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(3)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(4)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(5)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(6)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(7)
+
+#undef KOKKOS_ASSIGN_SHAPE_DIMENSION
 
 //----------------------------------------------------------------------------
 // All-static dimension array

@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "comm.h"
 #include "special.h"
+#include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
 
@@ -112,9 +113,13 @@ void Replicate::command(int narg, char **arg)
 
   // old = original atom class
   // atom = new replicated atom class
+  // also set atomKK for Kokkos version of Atom class
 
   Atom *old = atom;
-  atom = new Atom(lmp);
+  if (lmp->kokkos) atom = new AtomKokkos(lmp);
+  else atom = new Atom(lmp);
+  atomKK = (AtomKokkos*) atom;
+
   atom->settings(old);
   atom->create_avec(old->atom_style,old->avec->nargcopy,old->avec->argcopy,0);
 

@@ -1,3 +1,9 @@
+NOTE: THE "oplsaa_moltemplate.py" SCRIPT HAS MOVED TO THE "../src/" DIRECTORY.
+      (In the past, it was located in this directory.)
+
+-----------------------------
+Description:
+
 Unfortunately, moltemplate does not come with a file containing OPLSAA 
 paramters which is ready to use.  You must build it yourself.
 This directory has tools and instructions to explain how to do this.
@@ -54,10 +60,11 @@ atom         89   46    HC    "Alkene H-C="                  1     1.008    1
 atom         90   48    CA    "Aromatic C"                   6    12.011    3
 atom         91   49    HA    "Aromatic H-C"                 1     1.008    1
 
+
 Then you are ready to run oplsaa_moltemplate.py on this file.
 
-(You can try to delete more irrelevant information, but be careful.
- It is not necessary, and it is easy to make mistakes.)
+(Note: Atom type numbers, like "88", "89", "47", etc... may vary depending on
+ when you downloaded "oplsaa.prm".)
 
 
 ----- Using the "oplsaa.lt" file -----

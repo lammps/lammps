@@ -32,13 +32,15 @@ class DeleteAtoms : protected Pointers {
 
  private:
   int *dlist;
-  int compress_flag,mol_flag;
+  int compress_flag,bond_flag,mol_flag;
   std::map<tagint,int> *hash;
 
   void delete_group(int, char **);
   void delete_region(int, char **);
   void delete_overlap(int, char **);
   void delete_porosity(int, char **);
+
+  void delete_bond();
   void delete_molecule();
   void recount_topology();
   void options(int, char **);
@@ -51,6 +53,7 @@ class DeleteAtoms : protected Pointers {
   // callback functions for ring communication
 
   static DeleteAtoms *cptr;
+  static void bondring(int, char *);
   static void molring(int, char *);
 };
 
@@ -90,8 +93,26 @@ E: Delete_atoms requires a pair style be defined
 This is because atom deletion within a cutoff uses a pairwise
 neighbor list.
 
-E: Delete_atoms cutoff > neighbor cutoff
+E: Delete_atoms cutoff > max neighbor cutoff
 
-Cannot delete atoms further away than a processor knows about.
+Can only delete atoms in atom pairs that will be in neighbor list.
+
+W: Delete_atoms cutoff > minimum neighbor cutoff
+
+This means atom pairs for some atom types may not be in the neighbor
+list and thus an atom in that pair cannot be deleted.
+
+E: Cannot delete_atoms bond yes for non-molecular systems
+
+Self-explanatory.
+
+E: Cannot use delete_atoms bond yes with atom_style template
+
+This is because the bonds for that atom style are hardwired in the
+molecule template.
+
+E: Cannot delete_atoms mol yes for non-molecular systems
+
+Self-explanatory.
 
 */

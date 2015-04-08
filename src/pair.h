@@ -15,6 +15,7 @@
 #define LMP_PAIR_H
 
 #include "pointers.h"
+#include "accelerator_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -30,6 +31,8 @@ class Pair : protected Pointers {
   friend class ThrOMP;
 
  public:
+  static int instance_total;     // # of Pair classes ever instantiated
+
   double eng_vdwl,eng_coul;      // accumulated energies
   double virial[6];              // accumulated virial
   double *eatom,**vatom;         // accumulated per-atom energy/virial
@@ -165,6 +168,8 @@ class Pair : protected Pointers {
 
   virtual int pack_forward_comm(int, int *, double *, int, int *) {return 0;}
   virtual void unpack_forward_comm(int, int, double *) {}
+  virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&, int, int *) {return 0;};
+  virtual void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) {}
   virtual int pack_reverse_comm(int, int, double *) {return 0;}
   virtual void unpack_reverse_comm(int, int *, double *) {}
   virtual double memory_usage();
@@ -182,6 +187,8 @@ class Pair : protected Pointers {
   virtual unsigned int data_mask_ext() {return datamask_ext;}
 
  protected:
+  int instance_me;        // which Pair class instantiation I am
+
   enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // mixing options
 
   int special_lj[4];           // copied from force->special_lj for Kokkos
@@ -202,6 +209,9 @@ class Pair : protected Pointers {
 
   int vflag_fdotr;
   int maxeatom,maxvatom;
+
+  int copymode;   // if set, do not deallocate during destruction
+                  // required when classes are used as functors by Kokkos
 
   virtual void ev_setup(int, int);
   void ev_unset();
@@ -263,9 +273,13 @@ E: All pair coeffs are not set
 All pair coefficients must be set in the data file or by the
 pair_coeff command before running a simulation.
 
-E: Pair style requres a KSpace style
+E: Fix adapt interface to this pair style not supported
 
-Self-explanatory.
+New coding for the pair style would need to be done.
+
+E: Pair style requires a KSpace style
+
+No kspace style is defined.
 
 E: Pair style does not support pair_write
 

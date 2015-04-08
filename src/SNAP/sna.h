@@ -141,3 +141,12 @@ private:
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Invalid argument to factorial %d
+
+N must be >= 0 and <= 167, otherwise the factorial result is too
+large.
+
+*/

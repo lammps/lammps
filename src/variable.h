@@ -25,15 +25,22 @@ class Variable : protected Pointers {
   ~Variable();
   void set(int, char **);
   void set(char *, int, char **);
+  int set_string(char *, char *);
   int next(int, char **);
+
   int find(char *);
+  void set_arrays(int);
+  void python_command(int, char **);
+
   int equalstyle(int);
   int atomstyle(int);
+  char *pythonstyle(char *, char *);
+
   char *retrieve(char *);
   double compute_equal(int);
   double compute_equal(char *);
   void compute_atom(int, int, double *, int, int);
-  int int_between_brackets(char *&, int);
+  tagint int_between_brackets(char *&, int);
   double evaluate_boolean(char *);
 
   void equal_save(int, char *&);
@@ -63,6 +70,8 @@ class Variable : protected Pointers {
   int precedence[17];      // precedence level of math operators
                            // set length to include up to OR in enum
 
+  class Python *python;    // ptr to embedded Python interpreter
+
   struct Tree {            // parse tree for atom-style variables
     double value;          // single scalar  
     double *array;         // per-atom or per-type list of doubles
@@ -77,6 +86,7 @@ class Variable : protected Pointers {
     Tree **extra;          // ptrs further down tree for nextra args
   };
 
+  int compute_python(int);
   void remove(int);
   void grow();
   void copy(int, char **, char **);
@@ -90,7 +100,7 @@ class Variable : protected Pointers {
   int region_function(char *);
   int special_function(char *, char *, Tree **, Tree **,
                        int &, double *, int &);
-  void peratom2global(int, char *, double *, int, int,
+  void peratom2global(int, char *, double *, int, tagint,
                       Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
   void atom_vector(char *, Tree **, Tree **, int &);
@@ -103,7 +113,7 @@ class Variable : protected Pointers {
 
 class VarReader : protected Pointers {
  public:
-  class FixStore *fix;
+  class FixStore *fixstore;
   char *id_fix;
 
   VarReader(class LAMMPS *, char *, char *, int);
@@ -156,6 +166,11 @@ E: Atomfile variable could not read values
 
 Check the file assigned to the variable.
 
+E: LAMMPS is not built with Python embedded
+
+This is done by including the PYTHON package before LAMMPS is built.
+This is required to use python-style variables.
+
 E: Variable name must be alphanumeric or underscore characters
 
 Self-explanatory.
@@ -176,6 +191,22 @@ command.
 E: Next command must list all universe and uloop variables
 
 This is to insure they stay in sync.
+
+E: Variable has circular dependency
+
+A circular dependency is when variable "a" in used by variable "b" and
+variable "b" is also used by varaible "a".  Circular dependencies with
+longer chains of dependence are also not allowed.
+
+E: Python variable does not match Python function
+
+This matching is defined by the python-style variable and the python
+command.
+
+E: Python variable has no function
+
+No python command was used to define the function associated with the
+python-style variable.
 
 E: Invalid syntax in variable formula
 
@@ -244,12 +275,6 @@ E: Invalid variable name in variable formula
 
 Variable name is not recognized.
 
-E: Variable has circular dependency
-
-A circular dependency is when variable "a" in used by variable "b" and
-variable "b" is also used by varaible "a".  Circular dependencies with
-longer chains of dependence are also not allowed.
-
 E: Invalid variable evaluation in variable formula
 
 A variable used in a formula could not be evaluated.
@@ -306,6 +331,10 @@ E: Arccos of invalid value in variable formula
 Argument of arccos() must be between -1 and 1.
 
 E: Invalid math function in variable formula
+
+Self-explanatory.
+
+E: Variable name between brackets must be alphanumeric or underscore characters
 
 Self-explanatory.
 
@@ -389,6 +418,10 @@ an atom index, which is provided by an atom map.  An atom map does not
 exist (by default) for non-molecular problems.  Using the atom_modify
 map command will force an atom map to be created.
 
+E: Variable atom ID is too large
+
+Specified ID is larger than the maximum allowed atom ID.
+
 E: Variable uses atom property that isn't allocated
 
 Self-explanatory.
@@ -402,13 +435,9 @@ E: Atom vector in equal-style variable formula
 Atom vectors generate one value per atom which is not allowed
 in an equal-style variable.
 
-E: Expected floating point parameter in variable definition
+E: Too many args in variable function
 
-The quantity being read is a non-numeric value.
-
-E: Expected integer parameter in variable definition
-
-The quantity being read is a floating point or non-numeric value.
+More args are used than any variable function allows.
 
 E: Invalid Boolean syntax in if command
 

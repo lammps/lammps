@@ -25,41 +25,7 @@ int colvarscript::run(int argc, char const *argv[]) {
   }
 
   if (argc < 2) {
-    result = "usage: "+std::string(argv[0])+" <subcommand> [args...]\n\
-\n\
-Managing the colvars module:\n\
-  configfile <file name>      -- read configuration from a file\n\
-  config <string>             -- read configuration from the given string\n\
-  reset                       -- delete all internal configuration\n\
-  delete                      -- delete this colvars module instance\n\
-  \n\
-Input and output:\n\
-  list                        -- return a list of all variables\n\
-  list biases                 -- return a list of all biases\n\
-  load <file name>            -- load a state file (requires configuration)\n\
-  update                      -- recalculate colvars and biases based\n\
-  printframe                  -- return a summary of the current frame\n\
-  printframelabels            -- return labels to annotate printframe's output\n";
-
-  if (proxy->frame() != COLVARS_NOT_IMPLEMENTED) {
-      result += "\
-  frame                       -- return current frame number\n\
-  frame <new_frame>           -- set frame number\n";
-  }
-
-  result += "\n\
-Accessing collective variables:\n\
-  colvar <name> value         -- return the current value of the colvar <name>\n\
-  colvar <name> update        -- recalculate the colvar <name>\n\
-  colvar <name> delete        -- delete the colvar <name>\n\
-  colvar <name> addforce <F>  -- apply given force on <name>\n\
-\n\
-Accessing biases:\n\
-  bias <name> energy          -- return the current energy of the bias <name>\n\
-  bias <name> update          -- recalculate the bias <name>\n\
-  bias <name> delete          -- delete the bias <name>\n\
-\n\
-";
+    result = help_string();
     return COLVARSCRIPT_OK;
   }
 
@@ -71,6 +37,11 @@ Accessing biases:\n\
 
   if (cmd == "bias") {
     return proc_bias(argc-1, &(argv[1]));
+  }
+
+  if (cmd == "version") {
+    result = COLVARS_VERSION;
+    return COLVARSCRIPT_OK;
   }
 
   if (cmd == "reset") {
@@ -108,7 +79,7 @@ Accessing biases:\n\
       }
       return COLVARSCRIPT_OK;
     } else {
-      result = "Wrong arguments to command \"list\"";
+      result = "Wrong arguments to command \"list\"\n" + help_string();
       return COLVARSCRIPT_ERROR;
     }
   }
@@ -116,12 +87,13 @@ Accessing biases:\n\
   /// Parse config from file
   if (cmd == "configfile") {
     if (argc < 3) {
-      result = "Missing arguments";
+      result = "Missing arguments\n" + help_string();
       return COLVARSCRIPT_ERROR;
     }
-    if (colvars->config_file(argv[2]) == COLVARS_OK) {
+    if (colvars->read_config_file(argv[2]) == COLVARS_OK) {
       return COLVARSCRIPT_OK;
     } else {
+      result = "Error parsing configuration file";
       return COLVARSCRIPT_ERROR;
     }
   }
@@ -129,13 +101,14 @@ Accessing biases:\n\
   /// Parse config from string
   if (cmd == "config") {
     if (argc < 3) {
-      result = "Missing arguments";
+      result = "Missing arguments\n" + help_string();
       return COLVARSCRIPT_ERROR;
     }
     std::string conf = argv[2];
-    if (colvars->config_string(conf) == COLVARS_OK) {
+    if (colvars->read_config_string(conf) == COLVARS_OK) {
       return COLVARSCRIPT_OK;
     } else {
+      result = "Error parsing configuration string";
       return COLVARSCRIPT_ERROR;
     }
   }
@@ -143,13 +116,14 @@ Accessing biases:\n\
   /// Load an input state file
   if (cmd == "load") {
     if (argc < 3) {
-      result = "Missing arguments";
+      result = "Missing arguments\n" + help_string();
       return COLVARSCRIPT_ERROR;
     }
     proxy->input_prefix_str = argv[2];
     if (colvars->setup_input() == COLVARS_OK) {
       return COLVARSCRIPT_OK;
     } else {
+      result = "Error loading state file";
       return COLVARSCRIPT_ERROR;
     }
   }
@@ -188,25 +162,26 @@ Accessing biases:\n\
       result = cvm::to_str(f);
       return COLVARSCRIPT_OK;
     } else {
-      result = "Wrong arguments to command \"frame\"";
+      result = "Wrong arguments to command \"frame\"\n" + help_string();
       return COLVARSCRIPT_ERROR;
     }
   }
 
-  result = "Syntax error";
+  result = "Syntax error\n" + help_string();
   return COLVARSCRIPT_ERROR;
 }
 
 
 int colvarscript::proc_colvar(int argc, char const *argv[]) {
+  if (argc < 3) {
+    result = "Missing parameters\n" + help_string();
+    return COLVARSCRIPT_ERROR;
+  }
+
   std::string name = argv[1];
   colvar *cv = cvm::colvar_by_name(name);
   if (cv == NULL) {
     result = "Colvar not found: " + name;
-    return COLVARSCRIPT_ERROR;
-  }
-  if (argc < 3) {
-    result = "Missing parameters";
     return COLVARSCRIPT_ERROR;
   }
   std::string subcmd = argv[2];
@@ -218,6 +193,11 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
 
   if (subcmd == "width") {
     result = cvm::to_str(cv->width, 0, cvm::cv_prec);
+    return COLVARSCRIPT_OK;
+  }
+
+  if (subcmd == "type") {
+    result = cv->value().type_desc(cv->value().value_type);
     return COLVARSCRIPT_OK;
   }
 
@@ -240,9 +220,14 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
     return COLVARSCRIPT_OK;
   }
 
+  if (subcmd == "getconfig") {
+    result = cv->get_config();
+    return COLVARSCRIPT_OK;
+  }
+
   if (subcmd == "addforce") {
     if (argc < 4) {
-      result = "addforce: missing parameter: force value";
+      result = "addforce: missing parameter: force value\n" + help_string();
       return COLVARSCRIPT_ERROR;
     }
     std::string f_str = argv[3];
@@ -260,12 +245,17 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
     return COLVARSCRIPT_OK;
   }
 
-  result = "Syntax error";
+  result = "Syntax error\n" + help_string();
   return COLVARSCRIPT_ERROR;
 }
 
 
 int colvarscript::proc_bias(int argc, char const *argv[]) {
+  if (argc < 3) {
+    result = "Missing parameters\n" + help_string();
+    return COLVARSCRIPT_ERROR;
+  }
+
   std::string name = argv[1];
   colvarbias *b = cvm::bias_by_name(name);
   if (b == NULL) {
@@ -273,10 +263,6 @@ int colvarscript::proc_bias(int argc, char const *argv[]) {
     return COLVARSCRIPT_ERROR;
   }
 
-  if (argc < 3) {
-    result = "Missing parameters";
-    return COLVARSCRIPT_ERROR;
-  }
   std::string subcmd = argv[2];
 
   if (subcmd == "energy") {
@@ -287,6 +273,11 @@ int colvarscript::proc_bias(int argc, char const *argv[]) {
   if (subcmd == "update") {
     b->update();
     result = cvm::to_str(b->get_energy());
+    return COLVARSCRIPT_OK;
+  }
+
+  if (subcmd == "getconfig") {
+    result = b->get_config();
     return COLVARSCRIPT_OK;
   }
 
@@ -338,9 +329,55 @@ int colvarscript::proc_bias(int argc, char const *argv[]) {
       return COLVARSCRIPT_OK;
     }
 
-    result = "Syntax error";
+    result = "Syntax error\n" + help_string();
     return COLVARSCRIPT_ERROR;
   }
-  result = "Syntax error";
+
+  result = "Syntax error\n" + help_string();
   return COLVARSCRIPT_ERROR;
+}
+
+
+std::string colvarscript::help_string()
+{
+  std::string buf;
+  buf = "Usage: cv <subcommand> [args...]\n\
+\n\
+Managing the colvars module:\n\
+  configfile <file name>      -- read configuration from a file\n\
+  config <string>             -- read configuration from the given string\n\
+  reset                       -- delete all internal configuration\n\
+  delete                      -- delete this colvars module instance\n\
+  version                     -- return version of colvars code\n\
+  \n\
+Input and output:\n\
+  list                        -- return a list of all variables\n\
+  list biases                 -- return a list of all biases\n\
+  load <file name>            -- load a state file (requires configuration)\n\
+  update                      -- recalculate colvars and biases based\n\
+  printframe                  -- return a summary of the current frame\n\
+  printframelabels            -- return labels to annotate printframe's output\n";
+
+  if (proxy->frame() != COLVARS_NOT_IMPLEMENTED) {
+      buf += "\
+  frame                       -- return current frame number\n\
+  frame <new_frame>           -- set frame number\n";
+  }
+
+  buf += "\n\
+Accessing collective variables:\n\
+  colvar <name> value         -- return the current value of colvar <name>\n\
+  colvar <name> update        -- recalculate colvar <name>\n\
+  colvar <name> type          -- return the type of colvar <name>\n\
+  colvar <name> delete        -- delete colvar <name>\n\
+  colvar <name> addforce <F>  -- apply given force on colvar <name>\n\
+  colvar <name> getconfig     -- return config string of colvar <name>\n\
+\n\
+Accessing biases:\n\
+  bias <name> energy          -- return the current energy of bias <name>\n\
+  bias <name> update          -- recalculate bias <name>\n\
+  bias <name> delete          -- delete bias <name>\n\
+  bias <name> getconfig       -- return config string of bias <name>\n";
+
+  return buf;
 }

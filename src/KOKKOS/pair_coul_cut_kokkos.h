@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairCoulCutKokkos : public PairCoulCut {
  public:
-  enum {EnabledNeighFlags=FULL&HALFTHREAD&HALF};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=1};
   typedef DeviceType device_type;
   PairCoulCutKokkos(class LAMMPS *);
@@ -44,7 +44,9 @@ class PairCoulCutKokkos : public PairCoulCut {
   double init_one(int, int);
 
   struct params_coul{
+    KOKKOS_INLINE_FUNCTION
     params_coul(){cutsq=0,scale=0;};
+    KOKKOS_INLINE_FUNCTION
     params_coul(int i){cutsq=0,scale=0;};
     F_FLOAT cutsq, scale;
   };
@@ -102,7 +104,7 @@ class PairCoulCutKokkos : public PairCoulCut {
   typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cut_coulsq;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cut_coulsq;
 
-  class AtomKokkos *atomKK;
+  
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
@@ -114,13 +116,12 @@ class PairCoulCutKokkos : public PairCoulCut {
   friend class PairComputeFunctor<PairCoulCutKokkos,FULL,true>;
   friend class PairComputeFunctor<PairCoulCutKokkos,HALF,true>;
   friend class PairComputeFunctor<PairCoulCutKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,N2,true>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,FULLCLUSTER,true >;
   friend class PairComputeFunctor<PairCoulCutKokkos,FULL,false>;
   friend class PairComputeFunctor<PairCoulCutKokkos,HALF,false>;
   friend class PairComputeFunctor<PairCoulCutKokkos,HALFTHREAD,false>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,N2,false>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,FULLCLUSTER,false >;
+  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,FULL,void>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,HALF,void>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,HALFTHREAD,void>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairCoulCutKokkos,void>(PairCoulCutKokkos*,
                                                        NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairCoulCutKokkos>(PairCoulCutKokkos*);
@@ -133,5 +134,15 @@ class PairCoulCutKokkos : public PairCoulCut {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use chosen neighbor list style with coul/cut/kk
+
+That style is not supported by Kokkos.
 
 */

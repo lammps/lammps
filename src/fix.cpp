@@ -23,10 +23,16 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+// allocate space for static class instance variable and initialize it
+
+int Fix::instance_total = 0;
+
 /* ---------------------------------------------------------------------- */
 
 Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
+  instance_me = instance_total++;
+
   // fix ID, group, and style
   // ID must be all alphanumeric chars or underscores
 
@@ -59,10 +65,12 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   restart_pbc = 0;
   wd_header = wd_section = 0;
   dynamic_group_allow = 0;
+  dof_flag = 0;
   cudable_comm = 0;
 
   scalar_flag = vector_flag = array_flag = 0;
   peratom_flag = local_flag = 0;
+  size_vector_variable = size_array_rows_variable = 0;
 
   comm_forward = comm_reverse = comm_border = 0;
   restart_reset = 0;
@@ -73,8 +81,13 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   nevery = 1;
   global_freq = 1;
 
+  // per-atom virial
+  // set vflag_atom = 0 b/c some fixes grow vatom in grow_arrays()
+  //   which may occur outside of timestepping
+
   maxvatom = 0;
   vatom = NULL;
+  vflag_atom = 0;
 
   // CUDA and KOKKOS per-fix data masks
 
@@ -84,12 +97,16 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
+
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Fix::~Fix()
 {
+  if (copymode) return;
+
   delete [] id;
   delete [] style;
   memory->destroy(vatom);

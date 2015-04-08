@@ -47,6 +47,11 @@ slowly drains all kinetic energy from the system.  The "pair_style
 soft"_pair_soft.html potential can be used to un-overlap atoms while
 running dynamics.
 
+Note that you can minimize some atoms in the system while holding the
+coordiates of other atoms fixed by applying "fix
+setforce"_fix_setforce.html to the other atoms.  See a fuller
+discussion of using fixes while minimizing below.
+
 The "minimization styles"_min_style.html {cg}, {sd}, and {hftn}
 involves an outer iteration loop which sets the search direction along
 which atom coordinates are changed.  An inner iteration is then
@@ -208,7 +213,22 @@ during the minimization.
 
 Only a few other fixes (typically those that apply force constraints)
 are invoked during minimization.  See the doc pages for individual
-"fix"_fix.html commands to see which ones are relevant.
+"fix"_fix.html commands to see which ones are relevant.  Current
+examples of fixes that can be used include:
+
+"fix addforce"_fix_addforce.html
+"fix addtorque"_fix_addtorque.html
+"fix efield"_fix_efield.html
+"fix enforce2d"_fix_enforce2d.html
+"fix indent"_fix_indent.html
+"fix lineforce"_fix_lineforce.html
+"fix planeforce"_fix_planeforce.html
+"fix setforce"_fix_setforce.html
+"fix spring"_fix_spring.html
+"fix spring/self"_fix_spring_self.html
+"fix viscous"_fix_viscous.html
+"fix wall"_fix_wall.html
+"fix wall/region"_fix_wall_region.html :ul
 
 IMPORTANT NOTE: Some fixes which are invoked during minimization have
 an associated potential energy.  For that energy to be included in the

@@ -8,6 +8,10 @@
 #include "colvarparse.h"
 
 
+bool      colvarmodule::rotation::monitor_crossings = false;
+cvm::real colvarmodule::rotation::crossing_threshold = 1.0E-02;
+
+
 std::string cvm::rvector::to_simple_string() const
 {
   std::ostringstream os;
@@ -329,14 +333,16 @@ void colvarmodule::rotation::calc_optimal_rotation(std::vector<cvm::atom_pos> co
   lambda = L0;
   q = Q0;
 
-  if (q_old.norm2() > 0.0) {
-    q.match(q_old);
-    if (q_old.inner(q) < (1.0 - crossing_threshold)) {
-      cvm::log("Warning: one molecular orientation has changed by more than "+
-               cvm::to_str(crossing_threshold)+": discontinuous rotation ?\n");
+  if (cvm::rotation::monitor_crossings) {
+    if (q_old.norm2() > 0.0) {
+      q.match(q_old);
+      if (q_old.inner(q) < (1.0 - crossing_threshold)) {
+        cvm::log("Warning: one molecular orientation has changed by more than "+
+                 cvm::to_str(crossing_threshold)+": discontinuous rotation ?\n");
+      }
     }
+    q_old = q;
   }
-  q_old = q;
 
   if (cvm::debug()) {
     if (b_debug_gradients) {

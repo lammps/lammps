@@ -1,0 +1,58 @@
+The Makefile.lammps file in this directory is used when building
+LAMMPS with its PYTHON package installed.  The file has several
+settings needed to compile and link LAMMPS with the Python library.
+You should choose a Makefile.lammps.* file compatible with your system
+and your version of Python, and copy it to Makefile.lammps before
+building LAMMPS itself.  You may need to edit one of the provided
+files to match your system.
+
+Note that is not currently possible to use the PYTHON package with
+Python 3, only with Python 2.  The C API changed from Python 2 to 3
+and the LAMMPS code is not compatible with both.
+
+If you create a new Makefile.lammps file suitable for some version of
+Python on some system, that is not a match to one of the provided
+Makefile.lammps.* files, you can send it to the developers, and we can
+include it in the distribution for others to use.
+
+To illustrate, these are example settings from the
+Makefile.lammps.python2.7 file:
+
+python_SYSINC = -I/usr/local/include/python2.7
+python_SYSLIB = -lpython2.7 -lnsl -ldl -lreadline -ltermcap -lpthread -lutil -lm
+python_SYSPATH = 
+
+python_SYSINC refers to the directory where Python's Python.h file is
+found.  LAMMPS includes this file.
+
+python_SYSLIB refers to the libraries needed to link to from an
+application (LAMMPS in this case) to "embed" Python in the
+application.  The Python library itself is listed (-lpython2.7) are
+are several system libraries needed by Python.
+
+python_SYSPATH = refers to the path (e.g. -L/usr/local/lib) where the
+Python library can be found.  You may not need this setting if the
+path is already included in your LD_LIBRARY_PATH environment variable.
+
+-------------------------
+
+Note that the trickiest issue to figure out for inclusion in
+Makefile.lammps is what system libraries are needed by your Python to
+run in embedded mode on your machine.
+
+Here is what this Python doc page says about it:
+
+https://docs.python.org/2/extending/embedding.html#compiling-and-linking-under-unix-like-systems
+
+"It is not necessarily trivial to find the right flags to pass to your
+compiler (and linker) in order to embed the Python interpreter into
+your application, particularly because Python needs to load library
+modules implemented as C dynamic extensions (.so files) linked against
+it.
+
+To find out the required compiler and linker flags, you can execute
+the pythonX.Y-config script which is generated as part of the
+installation process (a python-config script may also be available)."
+
+It then gives examples of how to use the pythonX.Y-config script
+and further instructions for what to do if that doesn't work.

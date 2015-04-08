@@ -26,12 +26,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
-{
-  // set CommKokkos pointer to Atom class, since CommKokkos allocated first
-
-  ((CommKokkos *) comm)->atomKK = this;
-}
+AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -49,6 +44,11 @@ AtomKokkos::~AtomKokkos()
 
   memory->destroy_kokkos(k_mass, mass);
   memory->destroy_kokkos(k_q, q);
+
+  memory->destroy_kokkos(k_radius, radius);
+  memory->destroy_kokkos(k_rmass, rmass);
+  memory->destroy_kokkos(k_omega, omega);
+  memory->destroy_kokkos(k_torque, torque);
 
   memory->destroy_kokkos(k_nspecial, nspecial);
   memory->destroy_kokkos(k_special, special);
@@ -196,7 +196,7 @@ void AtomKokkos::sort()
   //  if (current[i] != permute[i]) flag = 1;
   //int flagall;
   //MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  //if (flagall) error->all(FLERR,"Atom sort did not operate correctly");
+  //if (flagall) errorX->all(FLERR,"Atom sort did not operate correctly");
 }
 
 /* ----------------------------------------------------------------------
@@ -213,7 +213,6 @@ void AtomKokkos::grow(unsigned int mask){
     avec->grow_reset();
     sync(Host, mask);
   }
-
 }
 
 /* ---------------------------------------------------------------------- */

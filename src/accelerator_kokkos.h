@@ -54,6 +54,7 @@ class KokkosLMP {
 
 class AtomKokkos : public Atom {
  public:
+  tagint **k_special;
   AtomKokkos(class LAMMPS *lmp) : Atom(lmp) {}
   ~AtomKokkos() {}
 };
@@ -80,6 +81,12 @@ class ModifyKokkos : public Modify {
  public:
   ModifyKokkos(class LAMMPS *lmp) : Modify(lmp) {}
   ~ModifyKokkos() {}
+};
+
+class DAT {
+ public:
+  typedef double tdual_xfloat_1d;
+  typedef int tdual_int_2d;
 };
 
 }

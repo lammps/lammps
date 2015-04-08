@@ -106,10 +106,13 @@ E: Pair lj/long/dipole/long requires atom attributes mu, torque
 
 The atom style defined does not have these attributes.
 
-E: Pair style is incompatible with KSpace style
+E: Pair style requires a KSpace style
 
-If a pair style with a long-range Coulombic component is selected,
-then a kspace style must also be used.
+No kspace style is defined.
+
+E: Pair style requires use of kspace_style ewald/disp
+
+Self-explanatory.
 
 E: Pair style lj/long/dipole/long does not currently support respa
 

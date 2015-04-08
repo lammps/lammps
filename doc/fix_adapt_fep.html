@@ -246,6 +246,12 @@ over the course of a 1000-step simulation:
 <PRE>variable size equal ramp(1.0,0.1)
 fix 1 center adapt 10 atom diameter * v_size 
 </PRE>
+<P>When the <A HREF = "run_style.html">run style</A> is <I>respa</I>, this fix changes
+parameters only on the outer loop (largest) timesteps.
+</P>
+<P>For <A HREF = "run_style.html">rRESPA time integration</A>, this fix changes
+parameters on the outermost rRESPA level.
+</P>
 <HR>
 
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>

@@ -68,6 +68,24 @@ fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vx vz norm sample file vel.profile
 fix 1 flow ave/spatial 100 5 1000 z lower 1.0 y 0.0 2.5 density/mass ave running
 fix 1 flow ave/spatial 100 5 1000 z lower 1.0 y 0.0 2.5 density/mass bound y 5.0 20.0 discard yes ave running :pre
 
+[IMPORTANT NOTE:]
+
+ The fix ave/spatial command has been replaced by the more flexible
+"fix ave/chunk"_fix_ave_chunk.html and "compute
+chunk/atom"_compute_chunk_atom.html commands.  The fix ave/spatial
+command will be removed from LAMMPS sometime in the summer of 2015.
+
+Any fix ave/spatial command can be replaced by the two new commands.
+You simply need to split the fix ave/spatial arguments across the two
+new commands.  For example, this command:
+
+fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vx vz norm sample file vel.profile :pre
+
+could be replaced by:
+
+compute cc1 flow chunk/atom bin/1d y 0.0 1.0 
+fix 1 flow ave/chunk 100 10 1000 cc1 vx vz norm sample file vel.profile :pre
+
 [Description:]
 
 Use one or more per-atom vectors as inputs every few timesteps, bin
@@ -78,8 +96,8 @@ commands"_Section_howto.html#howto_15 such as "thermo_style
 custom"_thermo_style.html, and can also be written to a file.
 
 The group specified with the command means only atoms within the group
-contribute to bin averages.  If the {region} keyword is used, the
-atom must be in both the group and the specified geometric
+contribute to bin averages.  If the {region} keyword is used, the atom
+must be in both the specified group and the specified geometric
 "region"_region.html in order to contribute to bin averages.
 
 Each listed value can be an atom attribute (position, velocity, force

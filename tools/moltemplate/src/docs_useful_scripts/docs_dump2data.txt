@@ -2,14 +2,17 @@
 
    ---- Description ----
 
-"dump2data.py" was originally designed to convert dump files into LAMMPS DATA format (for restarting a simulation from where it left off).  However it also reads and writes .XYZ and .RAW (simple 3-column text format) files also.  This script duplicates some of the tools in pizza.py, but you don't have to learn python to use it.  If you are willing to learn a little python, pizza.py, can handle more general dump files which might cause dump2data.py to crash (eg "atom_style tri").  Furthermore, unlike "dump2data.py", pizza.py is maintained by the lammps team:
+"dump2data.py" was originally designed to convert dump files into LAMMPS DATA format (for restarting a simulation from where it left off).  However it also reads and writes .XYZ and .RAW (simple 3-column text format) files also.
+
+   Comparison with pizza.py:
+This script duplicates some of the tools in pizza.py, but you don't have to learn python to use it.  If you are willing to learn a little python, pizza.py, can handle more general dump files which might cause dump2data.py to crash (eg "atom_style tri").  Unlike "dump2data.py", pizza.py is maintained by the lammps team:
 http://pizza.sandia.gov/doc/Manual.html
 
    ----- General Usage -----
 
 General usage:
 
-dump2data.py [old_data_file -xyz -raw -last -t time -tstart ta -tstop tb -interval n -center -scale x  -atomstyle style]  < DUMP_FILE > OUTPUT_FILE
+dump2data.py [old_data_file -xyz -raw -last -t time -tstart ta -tstop tb -interval n -multi -center -scale x  -atomstyle style]  < DUMP_FILE > OUTPUT_FILE
 
     ----- examples -----
 
@@ -61,13 +64,17 @@ If your coordinates are stored in a DUMP file (eg "traj.lammpstrj"), you can cre
 
 dump2data.py -t 10000 data_file < traj.lammpstrj > new_file
 
-Again, in this example, "10000" is the timestep for the frame you have selected.  You can use "-last" to select the last frame.  (If you do not specify the frame you want, multiple data files will be created.)
+Again, in this example, "10000" is the timestep for the frame you have selected.  You can use "-last" to select the last frame.  If you do not specify the frame you want, multiple data files may be created...
 
+Creating multiple data files:
+The "-multi" command line argument tells "dump2data.py" to generate a new data file for each frame in the trajectory/dump-file.  Those files will have names ending in ".1", ".2", ".3", ...  (If you use the "-interval" argument, frames in the trajectory whose timestep is not a multiple of the interval will be discarded.)  I can't remember if this behavior is switched on by default.  
+
+Reading simple 3-column coordinate files:
 If you have a file containing only the coordinates of the atoms (in sorted order), you can use "raw2data.py" to create a data file with those atoms coordinates.
 
-raw2data.py data_file < coords.raw  > new_data_file
+raw2data.py -atomstyle ATOMSTYLE data_file < coords.raw  > new_data_file
 
-(Warning: "raw2data.py" is not a stand-alone script.  Make sure raw2data.py is located in the same directory with dump2data.py.)
+(where ATOMSTYLE is a quoted string, such as "full" or "hybrid sphere dipole" discussed earlier.  Warning: "raw2data.py" is not a stand-alone script.  Make sure raw2data.py is located in the same directory with dump2data.py.)
 
 --- scaling and centering coordinates ---
 
@@ -96,8 +103,13 @@ dump2data.py -t 10000 \
   -atomstyle "hybrid bond dipole" \
   old_data_file < traj.lammpstrj > new_data_file
 
-
-I have not tested this, and have no idea what will happen.  (I suspect that the script will not crash, but the dipole orientations will not be updated.)
+In general, the -atomstyle argument can be any of the atom styles listed in the
+table at:
+http://lammps.sandia.gov/doc/atom_style.html
+...such as "angle", "bond", "charge", "full", "molecular", "dipole", "ellipsoid", or any hybrid combination of these styles.  (When using hybrid atom styles, you must enclose the argument in quotes, for example: "hybrid sphere dipole")
+Warning: I have not tested using dump2data.py with exotic (non-point-like) atom
+styles.  (I suspect that the script will not crash, but the dipole orientations
+will not be updated.)
 
 You can also customize the order columns you want to appear in that file using -atomstyle ”molid x y z atomid atomtype mux muy muz”, but again, I don't think the mux, muy, muz information in the new data file will be accurate.
 

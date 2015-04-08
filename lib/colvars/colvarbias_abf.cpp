@@ -76,6 +76,8 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
 
       if (!colvars[i]->tasks[colvar::task_extended_lagrangian]) {
         // request computation of Jacobian force
+        // ultimately, will be done regardless of extended Lagrangian
+        // and colvar should then just report zero Jacobian force
         colvars[i]->enable(colvar::task_Jacobian_force);
 
         // request Jacobian force as part as system force
@@ -116,7 +118,11 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
   force = new cvm::real [colvars.size()];
 
   // Construct empty grids based on the colvars
-  samples   = new colvar_grid_count    (colvars);
+  if (cvm::debug()) {
+    cvm::log("Allocating count and free energy gradient grids.\n");
+  }
+
+  samples   = new colvar_grid_count(colvars);
   gradients = new colvar_grid_gradient(colvars);
   gradients->samples = samples;
   samples->has_parent_data = true;
@@ -124,7 +130,7 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
   // For shared ABF, we store a second set of grids.
   // This used to be only if "shared" was defined,
   // but now we allow calling share externally (e.g. from Tcl).
-  last_samples   = new colvar_grid_count    (colvars);
+  last_samples   = new colvar_grid_count(colvars);
   last_gradients = new colvar_grid_gradient(colvars);
   last_gradients->samples = last_samples;
   last_samples->has_parent_data = true;
@@ -183,13 +189,6 @@ cvm::real colvarbias_abf::update()
     // At first timestep, do only:
     // initialization stuff (file operations relying on n_abf_biases
     // compute current value of colvars
-
-    if ( cvm::n_abf_biases == 1 && cvm::n_meta_biases == 0 ) {
-      // This is the only ABF bias
-      output_prefix = cvm::output_prefix;
-    } else {
-      output_prefix = cvm::output_prefix + "." + this->name;
-    }
 
     for (size_t i=0; i<colvars.size(); i++) {
       bin[i] = samples->current_bin_scalar(i);
@@ -254,15 +253,24 @@ cvm::real colvarbias_abf::update()
     }
   }
 
+  // update the output prefix; TODO: move later to setup_output() function
+  if ( cvm::n_abf_biases == 1 && cvm::n_meta_biases == 0 ) {
+    // This is the only ABF bias
+    output_prefix = cvm::output_prefix;
+  } else {
+    output_prefix = cvm::output_prefix + "." + this->name;
+  }
+
   if (output_freq && (cvm::step_absolute() % output_freq) == 0) {
     if (cvm::debug()) cvm::log("ABF bias trying to write gradients and samples to disk");
     write_gradients_samples(output_prefix);
   }
+
   if (b_history_files && (cvm::step_absolute() % history_freq) == 0) {
     cvm::log("ABFHISTORYFILE "+cvm::to_str(cvm::step_absolute()));
-    // append to existing file only if cvm::step_absolute() > 0
+    // file already exists iff cvm::step_relative() > 0
     // otherwise, backup and replace
-    write_gradients_samples(output_prefix + ".hist", (cvm::step_absolute() > 0));
+    write_gradients_samples(output_prefix + ".hist", (cvm::step_relative() > 0));
   }
 
   if (shared_on && shared_last_step >= 0 && cvm::step_absolute() % shared_freq == 0) {
@@ -365,28 +373,32 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool app
   std::string  gradients_out_name = prefix + ".grad";
   std::ios::openmode mode = (append ? std::ios::app : std::ios::out);
 
-  std::ofstream samples_os;
-  std::ofstream gradients_os;
+  cvm::ofstream samples_os;
+  cvm::ofstream gradients_os;
 
   if (!append) cvm::backup_file(samples_out_name.c_str());
   samples_os.open(samples_out_name.c_str(), mode);
-  if (!samples_os.good()) cvm::error("Error opening ABF samples file " + samples_out_name + " for writing");
+  if (!samples_os.is_open()) {
+    cvm::error("Error opening ABF samples file " + samples_out_name + " for writing");
+  }
   samples->write_multicol(samples_os);
   samples_os.close();
 
   if (!append) cvm::backup_file(gradients_out_name.c_str());
   gradients_os.open(gradients_out_name.c_str(), mode);
-  if (!gradients_os.good())	cvm::error("Error opening ABF gradient file " + gradients_out_name + " for writing");
+  if (!gradients_os.is_open()) {
+    cvm::error("Error opening ABF gradient file " + gradients_out_name + " for writing");
+  }
   gradients->write_multicol(gradients_os);
   gradients_os.close();
 
   if (colvars.size() == 1) {
     std::string  pmf_out_name = prefix + ".pmf";
     if (!append) cvm::backup_file(pmf_out_name.c_str());
-    std::ofstream pmf_os;
+    cvm::ofstream pmf_os;
     // Do numerical integration and output a PMF
     pmf_os.open(pmf_out_name.c_str(), mode);
-    if (!pmf_os.good())	cvm::error("Error opening pmf file " + pmf_out_name + " for writing");
+    if (!pmf_os.is_open())	cvm::error("Error opening pmf file " + pmf_out_name + " for writing");
     gradients->write_1D_integral(pmf_os);
     pmf_os << std::endl;
     pmf_os.close();
@@ -428,13 +440,13 @@ void colvarbias_abf::read_gradients_samples()
 
     cvm::log("Reading sample count from " + samples_in_name + " and gradients from " + gradients_in_name);
     is.open(samples_in_name.c_str());
-    if (!is.good()) cvm::error("Error opening ABF samples file " + samples_in_name + " for reading");
+    if (!is.is_open()) cvm::error("Error opening ABF samples file " + samples_in_name + " for reading");
     samples->read_multicol(is, true);
     is.close();
     is.clear();
 
     is.open(gradients_in_name.c_str());
-    if (!is.good())	cvm::error("Error opening ABF gradient file " + gradients_in_name + " for reading");
+    if (!is.is_open())	cvm::error("Error opening ABF gradient file " + gradients_in_name + " for reading");
     gradients->read_multicol(is, true);
     is.close();
   }
@@ -550,13 +562,41 @@ colvarbias_histogram::colvarbias_histogram(std::string const &conf, char const *
   : colvarbias(conf, key),
     grid(NULL), out_name("")
 {
-  get_keyval(conf, "outputfreq", output_freq, cvm::restart_out_freq);
+  get_keyval(conf, "outputFreq", output_freq, cvm::restart_out_freq);
+  /// with VMD, this may not be an error
+  // if ( output_freq == 0 ) {
+  //   cvm::error("User required histogram with zero output frequency");
+  // }
 
-  if ( output_freq == 0 ) {
-    cvm::error("User required histogram with zero output frequency");
+  {
+    colvar_array_size = 1;
+    bool colvar_array = false;
+    if (get_keyval(conf, "sumVectorColvars", colvar_array, colvar_array)) {
+      size_t i;
+      for (i = 0; i < colvars.size(); i++) {
+        if (colvars[i]->value().type() == colvarvalue::type_vector) {
+          if (colvar_array_size == 1) {
+            colvar_array_size = colvars[i]->value().size();
+          } else {
+            if (colvar_array_size != colvars[i]->value().size()) {
+              cvm::error("Error: trying to combine vector colvars of different lengths.\n", INPUT_ERROR);
+            }
+          }
+        }
+      }
+    }
   }
 
-  grid   = new colvar_grid_count    (colvars);
+  grid = new colvar_grid_count();
+  {
+    std::string grid_conf;
+    if (key_lookup(conf, "grid", grid_conf)) {
+      grid->parse_params(grid_conf);
+    } else {
+      grid->init_from_colvars(colvars);
+    }
+  }
+
   bin.assign(colvars.size(), 0);
 
   cvm::log("Finished histogram setup.\n");
@@ -565,7 +605,8 @@ colvarbias_histogram::colvarbias_histogram(std::string const &conf, char const *
 /// Destructor
 colvarbias_histogram::~colvarbias_histogram()
 {
-  if (grid_os.good())	grid_os.close();
+  if (grid_os.is_open())
+    grid_os.close();
 
   if (grid) {
     delete grid;
@@ -579,7 +620,10 @@ colvarbias_histogram::~colvarbias_histogram()
 /// Update the grid
 cvm::real colvarbias_histogram::update()
 {
-  if (cvm::debug()) cvm::log("Updating Grid bias " + this->name);
+
+  if (cvm::debug()) {
+    cvm::log("Updating histogram bias " + this->name);
+  }
 
   // At the first timestep, we need to assign out_name since
   // output_prefix is unset during the constructor
@@ -589,22 +633,49 @@ cvm::real colvarbias_histogram::update()
     cvm::log("Histogram " + this->name + " will be written to file \"" + out_name + "\"");
   }
 
-  for (size_t i=0; i<colvars.size(); i++) {
-    bin[i] = grid->current_bin_scalar(i);
+
+  bin.assign(colvars.size(), 0);
+
+  {
+    // update indices for all scalar values
+    size_t i;
+    for (i = 0; i < colvars.size(); i++) {
+      if (colvars[i]->value().type() == colvarvalue::type_scalar) {
+        bin[i] = grid->value_to_bin_scalar(colvars[i]->value(), i);
+      }
+    }
   }
 
-  if ( grid->index_ok(bin) ) {	  // Only within bounds of the grid...
-    grid->incr_count(bin);
+  if (colvar_array_size > 1) {
+    // update indices for all vector/array values
+    size_t iv, i;
+    for (iv = 0; iv < colvar_array_size; iv++) {
+      for (i = 0; i < colvars.size(); i++) {
+        if (colvars[i]->value().type() == colvarvalue::type_vector) {
+          bin[i] = grid->value_to_bin_scalar(colvars[i]->value().vector1d_value[iv], i);
+        }
+      }
+      if (grid->index_ok(bin)) {
+        // Only within bounds of the grid...
+        grid->incr_count(bin);
+      }
+    }
+  } else {
+    if (grid->index_ok(bin)) {
+      // Only within bounds of the grid...
+      grid->incr_count(bin);
+    }
   }
 
   if (output_freq && (cvm::step_absolute() % output_freq) == 0) {
     if (cvm::debug()) cvm::log("Histogram bias trying to write grid to disk");
 
     grid_os.open(out_name.c_str());
-    if (!grid_os.good()) cvm::error("Error opening histogram file " + out_name + " for writing");
+    if (!grid_os.is_open()) cvm::error("Error opening histogram file " + out_name + " for writing");
     grid->write_multicol(grid_os);
     grid_os.close();
   }
+
   return 0.0; // no bias energy for histogram
 }
 

@@ -31,6 +31,8 @@ using namespace MathConst;
 #define EPSILON 1.0e-7
 #define BIG 1.0e20
 
+#define SINERTIA 0.4            // moment of inertia prefactor for sphere
+
 /* ---------------------------------------------------------------------- */
 
 Molecule::Molecule(LAMMPS *lmp, char *idarg, char *file) : Pointers(lmp)
@@ -154,7 +156,7 @@ void Molecule::compute_mass()
 /* ----------------------------------------------------------------------
    compute com = center of mass of molecule
    could have been set by user, otherwise calculate it
-   NOTE: account for finite size particles?
+   works for finite size particles assuming no overlap
    also compute:
      dxcom = displacement of each atom from COM
      comatom = which atom (1-Natom) is nearest the COM
@@ -216,7 +218,7 @@ void Molecule::compute_com()
 /* ----------------------------------------------------------------------
    compute itensor = 6 moments of inertia of molecule around xyz axes
    could have been set by user, otherwise calculate it
-   NOTE: account for finite size particles?
+   accounts for finite size spheres, assuming no overlap
    also compute:
      inertia = 3 principal components of inertia
      ex,ey,ez = principal axes in space coords
@@ -245,6 +247,16 @@ void Molecule::compute_inertia()
       itensor[3] -= onemass * dy*dz;
       itensor[4] -= onemass * dx*dz;
       itensor[5] -= onemass * dx*dy;
+    }
+
+    if (radiusflag) {
+      for (int i = 0; i < natoms; i++) {
+        if (rmassflag) onemass = rmass[i];
+        else onemass = atom->type[type[i]];
+        itensor[0] += SINERTIA*onemass * radius[i]*radius[i];
+        itensor[1] += SINERTIA*onemass * radius[i]*radius[i];
+        itensor[2] += SINERTIA*onemass * radius[i]*radius[i];
+      }
     }
   }
 
@@ -536,10 +548,12 @@ void Molecule::charges(char *line)
 void Molecule::diameters(char *line)
 {
   int tmp;
+  maxradius = 0.0;
   for (int i = 0; i < natoms; i++) {
     readline(line);
     sscanf(line,"%d %lg",&tmp,&radius[i]);
     radius[i] *= 0.5;
+    maxradius = MAX(maxradius,radius[i]);
   }
 
   for (int i = 0; i < natoms; i++)

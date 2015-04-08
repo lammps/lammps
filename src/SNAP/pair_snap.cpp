@@ -23,10 +23,11 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "sna.h"
-#include "memory.h"
-#include "error.h"
 #include "openmp_snap.h"
 #include "domain.h"
+#include "memory.h"
+#include "error.h"
+
 #include <cmath>
 
 using namespace LAMMPS_NS;
@@ -749,15 +750,7 @@ void PairSNAP::load_balance()
 
   if (comm->cutghostuser <
       neighbor->cutneighmax+extra_cutoff())
-    error->all(FLERR,"Communication cutoff is too small "
-               "for SNAP micro load balancing.\n"
-               "Typically this can happen, if you change "
-               "the neighbor skin after your pair_style "
-               "command or if your box dimensions grow "
-               "during the run.\n"
-               "You need to set it via "
-               "'communicate single cutoff NUMBER' "
-               "to the needed length.");
+    error->all(FLERR,"Communication cutoff too small for SNAP micro load balancing");
 
   int nrecv = ghostinum;
   int totalsend = 0;
@@ -1239,12 +1232,11 @@ void PairSNAP::settings(int narg, char **arg)
   // optional arguments
 
   for (int i=0; i < narg; i++) {
-    if (i+2>narg) error->all(FLERR,"Illegal pair_style command."
-			     " Too few arguments.");
+    if (i+2>narg) error->all(FLERR,"Illegal pair_style command");
     if (strcmp(arg[i],"nthreads")==0) {
       nthreads=force->inumeric(FLERR,arg[++i]);
 #if defined(LMP_USER_OMP)
-      error->all(FLERR,"Please set number of threads via package omp command");
+      error->all(FLERR,"Must set number of threads via package omp command");
 #else
       omp_set_num_threads(nthreads);
       comm->nthreads=nthreads;
@@ -1271,8 +1263,8 @@ void PairSNAP::settings(int narg, char **arg)
 
 	  double tmp = mincutoff + 0.1;
 	  sprintf(buffer, "Communication cutoff is too small "
-		  "for SNAP micro load balancing. "
-		  "It will be increased to: %lf.",mincutoff+0.1);
+		  "for SNAP micro load balancing, increased to %lf",
+		  mincutoff+0.1);
 	  if (comm->me==0)
 	    error->warning(FLERR,buffer);
 
@@ -1295,14 +1287,10 @@ void PairSNAP::settings(int narg, char **arg)
       if (strcmp(arg[i],"determine")==0)
 	schedule_user = 5;
       if (schedule_user == 0)
-	error->all(FLERR,"Illegal pair_style command."
-		   " Illegal schedule argument.");
+	error->all(FLERR,"Illegal pair_style command");
       continue;
     }
-    char buffer[255];
-    sprintf(buffer, "Illegal pair_style command."
-	    " Unrecognized argument: %s.\n",arg[i]);
-    error->all(FLERR,buffer);
+    error->all(FLERR,"Illegal pair_style command");
   }
 
   if (nthreads < 0)
@@ -1322,8 +1310,7 @@ void PairSNAP::settings(int narg, char **arg)
 	use_shared_arrays || 
 	do_load_balance ||
 	schedule_user)
-      error->all(FLERR,"Illegal pair_style command."
-                 "Advanced options require setting 'optimized 1'.");
+      error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -1453,7 +1440,7 @@ void PairSNAP::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 
@@ -1719,6 +1706,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   if (gamma == 1.0) gammaoneflag = 1;
   else gammaoneflag = 0;
+
+  delete[] found;
 }
 
 /* ----------------------------------------------------------------------

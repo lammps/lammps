@@ -44,7 +44,7 @@
 #ifndef KOKKOS_UNORDERED_MAP_IMPL_HPP
 #define KOKKOS_UNORDERED_MAP_IMPL_HPP
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core_fwd.hpp>
 #include <stdint.h>
 
 #include <cstdio>

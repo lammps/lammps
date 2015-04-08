@@ -219,7 +219,8 @@ def LookupBondTypes(bond_types,
             atomtype1 = atomids2types[atomid1]
             atomtype2 = atomids2types[atomid2]
             raise ttree_lex.InputError('Error: No bond types defined for the bond between\n'
-                             '       atoms '+atomid1+'(type '+atomtype1+') and '+atomid2+'(type '+atomtype2+')\n')
+                              '       atoms '+atomid1+' (type '+atomtype1+')\n'
+                              '         and '+atomid2+' (type '+atomtype2+')\n')
 
 
 

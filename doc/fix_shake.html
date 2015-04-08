@@ -13,13 +13,15 @@
 </H3>
 <H3>fix shake/cuda command 
 </H3>
+<H3>fix rattle command 
+</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID shake tol iter N constraint values ... keyword value ... 
+<PRE>fix ID group-ID style tol iter N constraint values ... keyword value ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
-<LI>shake = style name of this fix command 
+<LI>style = shake or rattle = style name of this fix command 
 
 <LI>tol = accuracy tolerance of SHAKE solution 
 
@@ -49,24 +51,61 @@
 </P>
 <PRE>fix 1 sub shake 0.0001 20 10 b 4 19 a 3 5 2
 fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31
-fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31 mol myMol 
+fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31 mol myMol
+fix 1 sub rattle 0.0001 20 10 t 5 6 m 1.0 a 31
+fix 1 sub rattle 0.0001 20 10 t 5 6 m 1.0 a 31 mol myMol 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Apply bond and angle constraints to specified bonds and angles in the
-simulation.  This typically enables a longer timestep.
+simulation by either the SHAKE or RATTLE algorithms.  This typically
+enables a longer timestep.
+</P>
+<P><B>SHAKE vs RATTLE:</B>
+</P>
+<P>The SHAKE algorithm was invented for schemes such as standard Verlet
+timesteppnig, where only the coordinates are integrated and the
+velocities are approximated as finite differences to the trajectories
+(<A HREF = "#Ryckaert">Ryckaert et al. (1977)</A>).  If the velocities are
+integrated explicitly, as with velocity Verlet which is what LAMMPS
+uses as an integration method, a second set of constraining forces is
+required in order to eliminate velocity components along the bonds
+(<A HREF = "#Andersen">Andersen (1983)</A>).
+</P>
+<P>In order to formulate individual constraints for SHAKE and RATTLE,
+focus on a single molecule whose bonds are constrained.  Let Ri and Vi
+be the position and velocity of atom <I>i</I> at time <I>n</I>, for
+<I>i</I>=1,...,<I>N</I>, where <I>N</I> is the number of sites of our reference
+molecule. The distance vector between sites <I>i</I> and <I>j</I> is given by
+</P>
+<CENTER><IMG SRC = "Eqs/fix_rattle_rij.jpg">
+</CENTER>
+<P>The constraints can then be formulated as
+</P>
+<CENTER><IMG SRC = "Eqs/fix_rattle_constraints.jpg">
+</CENTER>
+<P>The SHAKE algorithm satisfies the first condition, i.e. the sites at
+time <I>n+1</I> will have the desired separations Dij immediately after the
+coordinates are integrated.  If we also enforce the second condition,
+the velocity components along the bonds will vanish.  RATTLE satisfies
+both conditions.  As implemented in LAMMPS, fix rattle uses fix shake
+for satisfying the coordinate constraints. Therefore the settings and
+optional keywords are the same for both fixes, and all the information
+below about SHAKE is also relevant for RATTLE.
+</P>
+<P><B>SHAKE:</B>
 </P>
 <P>Each timestep the specified bonds and angles are reset to their
-equilibrium lengths and angular values via the well-known SHAKE
-algorithm.  This is done by applying an additional constraint force so
-that the new positions preserve the desired atom separations.  The
-equations for the additional force are solved via an iterative method
-that typically converges to an accurate solution in a few iterations.
-The desired tolerance (e.g. 1.0e-4 = 1 part in 10000) and maximum # of
-iterations are specified as arguments.  Setting the N argument will
-print statistics to the screen and log file about regarding the
-lengths of bonds and angles that are being constrained.  Small delta
-values mean SHAKE is doing a good job.
+equilibrium lengths and angular values via the SHAKE algorithm
+(<A HREF = "#Ryckaert">Ryckaert et al. (1977)</A>).  This is done by applying an
+additional constraint force so that the new positions preserve the
+desired atom separations.  The equations for the additional force are
+solved via an iterative method that typically converges to an accurate
+solution in a few iterations.  The desired tolerance (e.g. 1.0e-4 = 1
+part in 10000) and maximum # of iterations are specified as arguments.
+Setting the N argument will print statistics to the screen and log
+file about regarding the lengths of bonds and angles that are being
+constrained.  Small delta values mean SHAKE is doing a good job.
 </P>
 <P>In LAMMPS, only small clusters of atoms can be constrained.  This is
 so the constraint calculation for a cluster can be performed by a
@@ -144,24 +183,42 @@ more instructions on how to use the accelerated styles effectively.
 </P>
 <HR>
 
+<P><B>RATTLE:</B>
+</P>
+<P>The velocity constraints lead to a linear system of equations which
+can be solved analytically.  The implementation of the algorithm in
+LAMMPS closely follows (<A HREF = "#Andersen">Andersen (1983)</A>).
+</P>
+<P>IMPORTANT NOTE: The fix rattle command modifies forces and velocities
+and thus should be defined after all other integration fixes in your
+input script.  If you define other fixes that modify velocities or
+forces after fix rattle operates, then fix rattle will not take them
+into account and the overall time integration will typically not
+satisfy the RATTLE constraints.  You can check whether the constraints
+work correctly by setting the value of RATTLE_DEBUG in
+src/fix_rattle.cpp to 1 and recompiling LAMMPS.
+</P>
+<HR>
+
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+<P>No information about these fixes is written to <A HREF = "restart.html">binary restart
 files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  No parameter of this fix can
-be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+are relevant to these fixes.  No global or per-atom quantities are
+stored by these fixes for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of these fixes
+can be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A>
+command.  These fixes are not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
 </P>
 <P><B>Restrictions:</B>
 </P>
-<P>This fix is part of the RIGID package.  It is only enabled if LAMMPS
-was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+<P>These fixes are part of the RIGID package.  They are only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
 LAMMPS</A> section for more info.
 </P>
-<P>For computational efficiency, there can only be one shake fix defined
-in a simulation.
+<P>For computational efficiency, there can only be one shake or rattle
+fix defined in a simulation.
 </P>
 <P>If you use a tolerance that is too large or a max-iteration count that
 is too small, the constraints will not be enforced very strongly,
@@ -172,5 +229,16 @@ of SHAKE parameters and monitoring the energy versus time.
 <P><B>Related commands:</B> none
 </P>
 <P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Ryckaert"></A>
+
+<P><B>(Ryckaert)</B> J.-P. Ryckaert, G. Ciccotti and H. J. C. Berendsen, 
+J of Comp Phys, 23, 327-341 (1977).
+</P>
+<A NAME = "Andersen"></A>
+
+<P><B>(Andersen)</B> H. Andersen, J of Comp Phys, 52, 24-34 (1983).
 </P>
 </HTML>

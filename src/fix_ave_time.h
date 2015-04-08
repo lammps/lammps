@@ -36,16 +36,19 @@ class FixAveTime : public Fix {
   double compute_scalar();
   double compute_vector(int);
   double compute_array(int,int);
-  void reset_timestep(bigint);
 
  private:
   int me,nvalues;
   int nrepeat,nfreq,irepeat;
-  bigint nvalid;
+  bigint nvalid,nvalid_last;
   int *which,*argindex,*value2index,*offcol;
+  int *varlen;               // 1 if value is from variable-length compute
   char **ids;
   FILE *fp;
   int nrows;
+  int any_variable_length;
+  int all_variable_length;
+  int lockforever;
 
   int ave,nwindow,startstep,mode;
   int noff,overwrite;
@@ -62,10 +65,12 @@ class FixAveTime : public Fix {
   double **array_total;
   double ***array_list;
 
+  int column_length(int);
   void invoke_scalar(bigint);
   void invoke_vector(bigint);
   void options(int, char **);
   void allocate_values(int);
+  void allocate_arrays();
   bigint nextvalid();
 };
 
@@ -122,6 +127,10 @@ E: Fix ave/time fix does not calculate a vector
 
 Self-explanatory.
 
+E: Fix ave/time fix vector cannot be variable length
+
+Self-explanatory.
+
 E: Fix ave/time fix vector is accessed out-of-range
 
 The index for the vector is out of bounds.
@@ -132,6 +141,10 @@ Fixes generate their values on specific timesteps.  Fix ave/time
 is requesting a value on a non-allowed timestep.
 
 E: Fix ave/time fix does not calculate an array
+
+Self-explanatory.
+
+E: Fix ave/time fix array cannot be variable length
 
 Self-explanatory.
 
@@ -151,24 +164,24 @@ E: Fix ave/time cannot use variable with vector mode
 
 Variables produce scalar values.
 
-E: Fix ave/time columns are inconsistent lengths
-
-Self-explanatory.
-
 E: Fix ave/time cannot set output array intensive/extensive from these inputs
 
 One of more of the vector inputs has individual elements which are
 flagged as intensive or extensive.  Such an input cannot be flagged as
 all intensive/extensive when turned into an array by fix ave/time.
 
+E: Invalid timestep reset for fix ave/time
+
+Resetting the timestep has invalidated the sequence of timesteps this
+fix needs to process.
+
+E: Fix ave/time columns are inconsistent lengths
+
+Self-explanatory.
+
 E: Cannot open fix ave/time file %s
 
 The specified file cannot be opened.  Check that the path and name are
 correct.
-
-E: Fix ave/time missed timestep
-
-You cannot reset the timestep to a value beyond where the fix
-expects to next perform averaging.
 
 */

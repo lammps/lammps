@@ -7,7 +7,7 @@ boundary	f fm p
 newton		off
 comm_modify	vel yes cutoff 2.5
 
-fix             prop all property/atom mol
+fix             prop all property/atom mol ghost yes
 
 region		reg block 0 100 0 50 -0.5 0.5 units box
 create_box	1 reg
@@ -43,10 +43,12 @@ fix             ins all pour 500 0 4767548 vol 0.8 10 &
 fix             4 all enforce2d
 
 compute		1 all erotate/sphere
+compute         Tsphere all temp/sphere
 thermo_style	custom step atoms ke c_1 vol
+thermo_modify	lost ignore norm no temp Tsphere
+compute_modify	Tsphere dynamic yes
+
 thermo		1000
-thermo_modify	lost ignore norm no
-compute_modify	thermo_temp dynamic yes
 
 #dump		id all atom 100 tmp.dump
 

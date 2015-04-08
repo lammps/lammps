@@ -47,7 +47,7 @@ DihedralCharmm::DihedralCharmm(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralCharmm::~DihedralCharmm()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(multiplicity);

@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
+// due to OpenMPI bug which sets INT64_MAX via its mpi.h
+//   before lmptype.h can set flags to insure it is done correctly
+
+#include "lmptype.h" 
 #include "mpi.h"
 #include "math.h"
 #include "string.h"
@@ -584,6 +589,27 @@ void ReadData::command(int narg, char **arg)
   //   in case data file re-defined them
 
   if (atom->molecular == 2) atom->avec->onemols[0]->check_attributes(1);
+
+  // shrink-wrap the box if necessary and move atoms to new procs
+  // if atoms are lost is b/c data file box was far from shrink-wrapped
+  // do not use irregular() comm, which would not lose atoms,
+  //   b/c then user could specify data file box as far too big and empty
+  // do comm->init() but not comm->setup() b/c pair/neigh cutoffs not yet set
+
+  if (domain->nonperiodic == 2) {
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    domain->reset_box();
+    comm->init();
+    comm->exchange();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal);
+
+    bigint natoms;
+    bigint nblocal = atom->nlocal;
+    MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
+    if (natoms != atom->natoms)
+      error->all(FLERR,
+                 "Read_data shrink wrap did not assign all atoms correctly");
+  }
 }
 
 /* ----------------------------------------------------------------------

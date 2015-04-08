@@ -216,9 +216,18 @@ E: Could not find dump custom variable name
 
 Self-explanatory.
 
+E: Could not find custom per-atom property ID
+
+Self-explanatory.
+
 E: Region ID for dump custom does not exist
 
 Self-explanatory.
+
+E: Compute used in dump between runs is not current
+
+The compute was not invoked on the current timestep, therefore it
+cannot be used in a dump between runs.
 
 E: Threshhold for an atom property that isn't allocated
 
@@ -229,11 +238,6 @@ E: Dumping an atom property that isn't allocated
 
 The chosen atom style does not define the per-atom quantity being
 dumped.
-
-E: Dumping an atom quantity that isn't allocated
-
-Only per-atom quantities that are defined for the atom style being
-used are allowed.
 
 E: Dump custom compute does not compute per-atom info
 
@@ -271,6 +275,14 @@ E: Dump custom variable is not atom-style variable
 
 Only atom-style variables generate per-atom quantities, needed for
 dump output.
+
+E: Custom per-atom property ID is not floating point
+
+Self-explanatory.
+
+E: Custom per-atom property ID is not integer
+
+Self-explanatory.
 
 E: Illegal ... command
 
@@ -335,6 +347,14 @@ E: Could not find dump modify variable name
 Self-explanatory.
 
 E: Dump modify variable is not atom-style variable
+
+Self-explanatory.
+
+E: Could not find dump modify custom atom floating point property ID
+
+Self-explanatory.
+
+E: Could not find dump modify custom atom integer property ID
 
 Self-explanatory.
 

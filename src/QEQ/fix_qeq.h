@@ -53,7 +53,7 @@ class FixQEq : public Fix {
 
  protected:
   int nevery;
-  int n, N, m_fill;
+  int nlocal, nall, m_fill;
   int n_cap, nmax, m_cap;
   int pack_flag;
   int nlevels_respa;
@@ -71,6 +71,7 @@ class FixQEq : public Fix {
   double *chi,*eta,*gamma,*zeta,*zcore;  // qeq parameters
   double *chizj;
   double **shld;
+  int streitz_flag;
 
   bigint ngroup;
 
@@ -91,7 +92,6 @@ class FixQEq : public Fix {
   sparse_matrix H;
   double *Hdia_inv;
   double *b_s, *b_t;
-  double *b_prc, *b_prm;
   double *p, *q, *r, *d;
 
   // streitz-mintmire
@@ -127,3 +127,30 @@ class FixQEq : public Fix {
 }
 
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: QEQ with 'newton pair off' not supported
+
+See the newton command.  This is a restriction to use the QEQ fixes.
+
+W: Fix qeq CG convergence failed (%g) after %d iterations at %ld step
+
+Self-explanatory.
+
+E: Cannot open fix qeq parameter file %s
+
+The specified file cannot be opened.  Check that the path and name are
+correct.
+
+E: Invalid fix qeq parameter file
+
+Element index > number of atom types.
+
+*/

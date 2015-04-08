@@ -114,6 +114,10 @@ E: Pair hybrid sub-style does not support single call
 You are attempting to invoke a single() call on a pair style
 that doesn't support it.
 
+E: Unknown pair_modify hybrid sub-style
+
+The choice of sub-style is unknown.
+
 E: Coulomb cutoffs of pair hybrid sub-styles do not match
 
 If using a Kspace solver, all Coulomb cutoffs of long pair styles must

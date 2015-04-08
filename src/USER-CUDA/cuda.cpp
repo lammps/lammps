@@ -571,7 +571,7 @@ void Cuda::checkResize()
   cu_atom->mass_host   = atom->mass;
 
   if(atom->map_style == 1) {
-    if((cu_map_array == NULL)) {
+    if(cu_map_array == NULL) {
       cu_map_array   = new cCudaData<int, int, x > (atom->get_map_array()   , & cu_atom->map_array     , atom->get_map_size());
     } else if(cu_map_array->dev_size() / sizeof(int) < atom->get_map_size()) {
       delete cu_map_array;

@@ -45,25 +45,27 @@ FixQEqShielded::FixQEqShielded(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqShielded::init()
 {
-  if (!atom->q_flag) error->all(FLERR,"Fix qeq/shielded requires atom attribute q");
+  if (!atom->q_flag) 
+    error->all(FLERR,"Fix qeq/shielded requires atom attribute q");
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/shielded group has no atoms");
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 1;
-  neighbor->requests[irequest]->full = 0;
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
 
   int ntypes = atom->ntypes;
-  memory->create(shld,ntypes+1,ntypes+1,"qeq:shileding");
+  memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
 
   init_shielding();
 
   int i;
   for (i = 1; i <= ntypes; i++) {
-    if (gamma[i] == 0.0) error->all(FLERR,"Invalid param file for fix qeq/shielded");
+    if (gamma[i] == 0.0) 
+      error->all(FLERR,"Invalid param file for fix qeq/shielded");
   }
 
   if (strstr(update->integrate_style,"respa"))
@@ -113,12 +115,11 @@ void FixQEqShielded::pre_force(int vflag)
 {
   if (update->ntimestep % nevery) return;
 
-  n = atom->nlocal;
-  N = atom->nlocal + atom->nghost;
+  nlocal = atom->nlocal;
 
   if( atom->nmax > nmax ) reallocate_storage();
 
-  if( n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
+  if( nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
     reallocate_matrix();
 
   init_matvec();
@@ -126,8 +127,7 @@ void FixQEqShielded::pre_force(int vflag)
   matvecs += CG(b_t, t); 	// CG on t - parallel
   calculate_Q();
 
-  if (force->kspace) force->kspace->setup();
-
+  if (force->kspace) force->kspace->qsum_qsq();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,13 +136,13 @@ void FixQEqShielded::init_matvec()
 {
   compute_H();
 
-  int nn, ii, i;
+  int inum, ii, i;
   int *ilist;
 
-  nn = list->inum;
+  inum = list->inum;
   ilist = list->ilist;
 
-  for( ii = 0; ii < nn; ++ii ) {
+  for( ii = 0; ii < inum; ++ii ) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -164,12 +164,11 @@ void FixQEqShielded::init_matvec()
 void FixQEqShielded::compute_H()
 {
   int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
-  int i, j, ii, jj, flag;
-  double **x, SMALL = 0.0001;
+  int i, j, ii, jj;
+  double **x;
   double dx, dy, dz, r_sqr, r;
 
   int *type = atom->type;
-  tagint *tag = atom->tag;
   x = atom->x;
   int *mask = atom->mask;
 
@@ -197,24 +196,10 @@ void FixQEqShielded::compute_H()
         dz = x[j][2] - x[i][2];
         r_sqr = dx*dx + dy*dy + dz*dz;
 
-        flag = 0;
-        if (r_sqr <= cutoff_sq) {
-          if (j < n) flag = 1;
-          else if (tag[i] < tag[j]) flag = 1;
-          else if (tag[i] == tag[j]) {
-            if (dz > SMALL) flag = 1;
-            else if (fabs(dz) < SMALL) {
-              if (dy > SMALL) flag = 1;
-              else if (fabs(dy) < SMALL && dx > SMALL)
-                flag = 1;
-	    }
-	  }
-	}
-
-        if( flag ) {
+	if (r_sqr <= cutoff_sq) {
           H.jlist[m_fill] = j;
 	  r = sqrt(r_sqr);
-          H.val[m_fill] = calculate_H( r, shld[type[i]][type[j]] );
+          H.val[m_fill] = 0.5 * calculate_H( r, shld[type[i]][type[j]] );
           m_fill++;
         }
       }
@@ -249,5 +234,4 @@ double FixQEqShielded::calculate_H( double r, double gamma )
   denom = pow(denom,0.3333333333333);
 
   return Taper * EV_TO_KCAL_PER_MOL / denom;
-
 }

@@ -205,7 +205,7 @@ void PairComb3::coeff(int narg, char **arg)
   for (i = 3; i < narg; i++) {
     if ((strcmp(arg[i],"C") == 0) && (cflag == 0)) {
       if( comm->me == 0) fprintf(screen,
-      "	PairComb3: Found C: reading additional library file \n");
+      "	PairComb3: Found C: reading additional library file\n");
     read_lib();
     cflag = 1;
     }
@@ -266,7 +266,7 @@ void PairComb3::init_style()
     error->all(FLERR,"Pair style COMB3 requires atom attribute q");
 
   // need a full neighbor list
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->ghost = 1;
@@ -316,11 +316,11 @@ void PairComb3::read_lib()
 
   // open libraray file on proc 0
 
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     FILE *fp = force->open_potential("lib.comb3");
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open COMB3 C library file \n");
+      sprintf(str,"Cannot open COMB3 lib.comb3 file");
       error->one(FLERR,str);
     }
 
@@ -2572,9 +2572,9 @@ void PairComb3::tables()
                
         rvdw[1][inty] = params[iparam_ij].vsig * 0.950;
 
-        // radius check: outter radius vs. sigma
+        // radius check: outer radius vs. sigma
         if( rvdw[0][inty] > rvdw[1][inty] )
-          error->all(FLERR,"Error in vdw spline: inner radius > outter radius");
+          error->all(FLERR,"Error in vdw spline: inner radius > outer radius");
 
         rrc[0] = rvdw[1][inty];
 

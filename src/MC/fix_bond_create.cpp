@@ -246,7 +246,7 @@ void FixBondCreate::init()
 
   // need a half neighbor list, built every Nevery steps
 
-  int irequest = neighbor->request((void *) this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix = 1;
   neighbor->requests[irequest]->occasional = 1;
@@ -606,7 +606,7 @@ void FixBondCreate::check_ghosts()
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall) 
-    error->all(FLERR,"Fix3 bond/create needs ghost atoms from further away");
+    error->all(FLERR,"Fix bond/create needs ghost atoms from further away");
   lastcheck = update->ntimestep;
 }
 
@@ -1374,7 +1374,7 @@ int FixBondCreate::unpack_exchange(int nlocal, double *buf)
 
 double FixBondCreate::compute_vector(int n)
 {
-  if (n == 1) return (double) createcount;
+  if (n == 0) return (double) createcount;
   return (double) createcounttotal;
 }
 

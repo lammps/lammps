@@ -44,10 +44,16 @@ using namespace LAMMPS_NS;
 
 enum{NONE,RLINEAR,RSQ,BMP};
 
+// allocate space for static class instance variable and initialize it
+
+int Pair::instance_total = 0;
+
 /* ---------------------------------------------------------------------- */
 
 Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 {
+  instance_me = instance_total++;
+
   THIRD = 1.0/3.0;
 
   eng_vdwl = eng_coul = 0.0;
@@ -70,7 +76,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
   reinitflag = 1;
 
-  // pair_modify settings
+  // pair_modify settingsx
 
   compute_flag = 1;
   manybody_flag = 0;
@@ -98,12 +104,16 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
+
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Pair::~Pair()
 {
+  if (copymode) return;
+
   memory->destroy(eatom);
   memory->destroy(vatom);
 }
@@ -246,7 +256,6 @@ void Pair::reinit()
   if (!reinitflag)
     error->all(FLERR,"Fix adapt interface to this pair style not supported");
 
-
   etail = ptail = 0.0;
 
   for (int i = 1; i <= atom->ntypes; i++)
@@ -273,7 +282,7 @@ void Pair::reinit()
 
 void Pair::init_style()
 {
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------
@@ -297,7 +306,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
   double qqrd2e = force->qqrd2e;
 
   if (force->kspace == NULL)
-    error->all(FLERR,"Pair style requres a KSpace style");
+    error->all(FLERR,"Pair style requires a KSpace style");
   double g_ewald = force->kspace->g_ewald;
   
   double cut_coulsq = cut_coul * cut_coul;

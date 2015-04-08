@@ -1061,11 +1061,3 @@ double FixAveSpatialSphere::memory_usage()
   bytes += nwindow*nbins*nvalues * sizeof(double);  // values_list
   return bytes;
 }
-
-/* ---------------------------------------------------------------------- */
-
-void FixAveSpatialSphere::reset_timestep(bigint ntimestep)
-{
-  if (ntimestep > nvalid) 
-    error->all(FLERR,"Fix ave/spatial/sphere missed timestep");
-}

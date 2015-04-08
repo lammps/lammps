@@ -324,7 +324,6 @@ protected:
   public:
     T * data;
     size_t length;
-    friend class matrix2d;
     inline row(T * const row_data, size_t const inner_length)
       : data(row_data), length(inner_length)
     {}
@@ -1532,6 +1531,8 @@ public:
     }
   }
 
+  /// \brief Whether to test for eigenvalue crossing
+  static bool monitor_crossings;
   /// \brief Threshold for the eigenvalue crossing test
   static cvm::real crossing_threshold;
 

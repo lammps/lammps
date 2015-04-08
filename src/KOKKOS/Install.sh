@@ -29,6 +29,10 @@ touch ../memory.h
 
 # list of files with optional dependcies
 
+action angle_charmm_kokkos.cpp angle_charmm.cpp 
+action angle_charmm_kokkos.h angle_charmm.h
+action angle_harmonic_kokkos.cpp angle_harmonic.cpp 
+action angle_harmonic_kokkos.h angle_harmonic.h 
 action atom_kokkos.cpp
 action atom_kokkos.h
 action atom_vec_angle_kokkos.cpp atom_vec_angle.cpp
@@ -45,34 +49,86 @@ action atom_vec_kokkos.cpp
 action atom_vec_kokkos.h
 action atom_vec_molecular_kokkos.cpp atom_vec_molecular.cpp
 action atom_vec_molecular_kokkos.h atom_vec_molecular.h
+action bond_fene_kokkos.cpp bond_fene.cpp
+action bond_fene_kokkos.h bond_fene.h
+action bond_harmonic_kokkos.cpp bond_harmonic.cpp
+action bond_harmonic_kokkos.h bond_harmonic.h
 action comm_kokkos.cpp
 action comm_kokkos.h
+action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp
+action dihedral_charmm_kokkos.h dihedral_charmm.h
+action dihedral_opls_kokkos.cpp dihedral_opls.cpp
+action dihedral_opls_kokkos.h dihedral_opls.h
 action domain_kokkos.cpp
 action domain_kokkos.h
 action fix_langevin_kokkos.cpp
 action fix_langevin_kokkos.h
 action fix_nve_kokkos.cpp
 action fix_nve_kokkos.h
+action improper_harmonic_kokkos.cpp improper_harmonic.cpp
+action improper_harmonic_kokkos.h improper_harmonic.h
 action kokkos.cpp
 action kokkos.h
 action kokkos_type.h
 action memory_kokkos.h
 action modify_kokkos.cpp
 action modify_kokkos.h
+action neigh_bond_kokkos.cpp
+action neigh_bond_kokkos.h
 action neigh_full_kokkos.h
 action neigh_list_kokkos.cpp
 action neigh_list_kokkos.h
 action neighbor_kokkos.cpp
 action neighbor_kokkos.h
+action pair_buck_coul_cut_kokkos.cpp
+action pair_buck_coul_cut_kokkos.h
+action pair_buck_coul_long_kokkos.cpp pair_buck_coul_long.cpp
+action pair_buck_coul_long_kokkos.h pair_buck_coul_long.h
+action pair_buck_kokkos.cpp
+action pair_buck_kokkos.h
 action pair_coul_cut_kokkos.cpp
 action pair_coul_cut_kokkos.h
+action pair_coul_debye_kokkos.cpp
+action pair_coul_debye_kokkos.h
+action pair_coul_dsf_kokkos.cpp
+action pair_coul_dsf_kokkos.h
+action pair_coul_long_kokkos.cpp pair_coul_long.cpp
+action pair_coul_long_kokkos.h pair_coul_long.h
+action pair_coul_wolf_kokkos.cpp
+action pair_coul_wolf_kokkos.h
+action pair_eam_kokkos.cpp pair_eam.cpp
+action pair_eam_kokkos.h pair_eam.h
 action pair_kokkos.h
+action pair_lj_charmm_coul_charmm_implicit_kokkos.cpp pair_lj_charmm_coul_charmm_implicit.cpp
+action pair_lj_charmm_coul_charmm_implicit_kokkos.h pair_lj_charmm_coul_charmm_implicit.h
+action pair_lj_charmm_coul_charmm_kokkos.cpp pair_lj_charmm_coul_charmm.cpp
+action pair_lj_charmm_coul_charmm_kokkos.h pair_lj_charmm_coul_charmm.h
+action pair_lj_charmm_coul_long_kokkos.cpp pair_lj_charmm_coul_long.cpp
+action pair_lj_charmm_coul_long_kokkos.h pair_lj_charmm_coul_long.h
+action pair_lj_class2_coul_cut_kokkos.cpp pair_lj_class2_coul_cut.cpp
+action pair_lj_class2_coul_cut_kokkos.h pair_lj_class2_coul_cut.h
+action pair_lj_class2_coul_long_kokkos.cpp pair_lj_class2_coul_long.cpp
+action pair_lj_class2_coul_long_kokkos.h pair_lj_class2_coul_long.h
+action pair_lj_class2_kokkos.cpp pair_lj_class2.cpp
+action pair_lj_class2_kokkos.h pair_lj_class2.h
 action pair_lj_cut_coul_cut_kokkos.cpp
 action pair_lj_cut_coul_cut_kokkos.h
+action pair_lj_cut_coul_debye_kokkos.cpp
+action pair_lj_cut_coul_debye_kokkos.h
+action pair_lj_cut_coul_dsf_kokkos.cpp
+action pair_lj_cut_coul_dsf_kokkos.h
 action pair_lj_cut_coul_long_kokkos.cpp pair_lj_cut_coul_long.cpp
 action pair_lj_cut_coul_long_kokkos.h pair_lj_cut_coul_long.h
 action pair_lj_cut_kokkos.cpp
 action pair_lj_cut_kokkos.h
+action pair_lj_expand_kokkos.cpp
+action pair_lj_expand_kokkos.h
+action pair_lj_gromacs_coul_gromacs_kokkos.cpp
+action pair_lj_gromacs_coul_gromacs_kokkos.h
+action pair_lj_gromacs_kokkos.cpp
+action pair_lj_gromacs_kokkos.h
+action pair_lj_sdk_kokkos.cpp pair_lj_sdk.cpp
+action pair_lj_sdk_kokkos.h pair_lj_sdk.h
 action pair_table_kokkos.cpp
 action pair_table_kokkos.h
 action verlet_kokkos.cpp

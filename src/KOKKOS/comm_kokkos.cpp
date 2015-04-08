@@ -54,6 +54,7 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   // k_buf_send = ArrayTypes<LMPDeviceType>::
   //   tdual_xfloat_2d("comm:k_buf_send",(maxsend+BUFEXTRA+5)/6,6);
   // buf_send = k_buf_send.view<LMPHostType>().ptr_on_device();
+
   maxsend = 0;
   buf_send = NULL;
 
@@ -61,6 +62,7 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   // k_buf_recv = ArrayTypes<LMPDeviceType>::
   //   tdual_xfloat_2d("comm:k_buf_recv",(maxrecv+5)/6,6);
   // buf_recv = k_buf_recv.view<LMPHostType>().ptr_on_device();
+
   maxrecv = 0;
   buf_recv = NULL;
 
@@ -103,9 +105,9 @@ void CommKokkos::init()
 
   int check_forward = 0;
   int check_reverse = 0;
-  if (force->pair)
+  if (force->pair && !force->pair->execution_space == Device)
     check_forward += force->pair->comm_forward;
-  if (force->pair)
+  if (force->pair && !force->pair->execution_space == Device)
     check_reverse += force->pair->comm_reverse;
 
   for (int i = 0; i < modify->nfix; i++) {
@@ -283,8 +285,49 @@ void CommKokkos::reverse_comm_compute(Compute *compute)
 
 void CommKokkos::forward_comm_pair(Pair *pair)
 {
-  k_sendlist.sync<LMPHostType>();
-  CommBrick::forward_comm_pair(pair);
+  if (pair->execution_space == Host) {
+    k_sendlist.sync<LMPHostType>();
+    CommBrick::forward_comm_pair(pair);
+  } else if (pair->execution_space == Device) {
+    k_sendlist.sync<LMPDeviceType>();
+    forward_comm_pair_device<LMPDeviceType>(pair);
+  }
+}
+
+template<class DeviceType>
+void CommKokkos::forward_comm_pair_device(Pair *pair)
+{
+  int iswap,n;
+  MPI_Request request;
+
+  int nsize = pair->comm_forward;
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+
+    DAT::tdual_xfloat_1d k_buf_send_pair = DAT::tdual_xfloat_1d("comm:k_buf_send_pair",nsize*sendnum[iswap]);
+    DAT::tdual_xfloat_1d k_buf_recv_pair = DAT::tdual_xfloat_1d("comm:k_recv_send_pair",nsize*recvnum[iswap]);
+
+    // pack buffer
+
+    n = pair->pack_forward_comm_kokkos(sendnum[iswap],k_sendlist,
+                                       iswap,k_buf_send_pair,pbc_flag[iswap],pbc[iswap]);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      if (recvnum[iswap])
+        MPI_Irecv(k_buf_recv_pair.view<DeviceType>().ptr_on_device(),nsize*recvnum[iswap],MPI_DOUBLE,
+                  recvproc[iswap],0,world,&request);
+      if (sendnum[iswap])
+        MPI_Send(k_buf_send_pair.view<DeviceType>().ptr_on_device(),n,MPI_DOUBLE,sendproc[iswap],0,world);
+      if (recvnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
+    } else k_buf_recv_pair = k_buf_send_pair;
+
+    // unpack buffer
+
+    pair->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv_pair);
+  }
 }
 
 void CommKokkos::reverse_comm_pair(Pair *pair)
@@ -322,7 +365,8 @@ void CommKokkos::exchange()
     if(!exchange_comm_classic) {
       static int print = 1;
       if(print) {
-        error->warning(FLERR,"Kokkos communication does not currently support fixes sending data. Switching to classic communication.");
+        error->warning(FLERR,"Fixes cannot send data in Kokkos communication, "
+		       "switching to classic communication");
         print = 0;
       }
       exchange_comm_classic = true;
@@ -727,7 +771,7 @@ void CommKokkos::borders_device() {
             nsend = total_send.h_view(0);
           } else {
             error->all(FLERR,"Required border comm not yet "
-                       "implemented with Kokkos\n");
+                       "implemented with Kokkos");
             for (i = nfirst; i < nlast; i++) {
               itype = type[i];
               if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
@@ -739,7 +783,7 @@ void CommKokkos::borders_device() {
 
         } else {
           error->all(FLERR,"Required border comm not yet "
-                     "implemented with Kokkos\n");
+                     "implemented with Kokkos");
           if (style == SINGLE) {
             ngroup = atom->nfirst;
             for (i = 0; i < ngroup; i++)
@@ -778,7 +822,7 @@ void CommKokkos::borders_device() {
         grow_send_kokkos(nsend*size_border,0);
       if (ghost_velocity) {
         error->all(FLERR,"Required border comm not yet "
-                   "implemented with Kokkos\n");
+                   "implemented with Kokkos");
         n = avec->pack_border_vel(nsend,sendlist[iswap],buf_send,
                                   pbc_flag[iswap],pbc[iswap]);
       }
@@ -812,7 +856,7 @@ void CommKokkos::borders_device() {
 
       if (ghost_velocity) {
         error->all(FLERR,"Required border comm not yet "
-                   "implemented with Kokkos\n");
+                   "implemented with Kokkos");
         avec->unpack_border_vel(nrecv,atom->nlocal+atom->nghost,buf);
       }
       else
@@ -847,10 +891,11 @@ void CommKokkos::borders_device() {
 
   // reset global->local map
 
-  if (map_style) atom->map_set();
   if (exec_space == Host) k_sendlist.sync<LMPDeviceType>();
   atomKK->modified(exec_space,ALL_MASK);
   DeviceType::fence();
+  atomKK->sync(Host,TAG_MASK);
+  if (map_style) atom->map_set();
 }
 /* ----------------------------------------------------------------------
    realloc the size of the send buffer as needed with BUFFACTOR and bufextra

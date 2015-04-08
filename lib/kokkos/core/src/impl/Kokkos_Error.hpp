@@ -52,6 +52,8 @@
 namespace Kokkos {
 namespace Impl {
 
+void host_abort( const char * const );
+
 void throw_runtime_exception( const std::string & );
 
 void traceback_callstack( std::ostream & );
@@ -60,6 +62,19 @@ std::string human_memory_size(size_t arg_bytes);
 
 }
 }
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+#if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+namespace Kokkos {
+inline
+void abort( const char * const message ) { Kokkos::Impl::host_abort(message); }
+}
+#endif /* defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA ) */
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 #endif /* #ifndef KOKKOS_IMPL_ERROR_HPP */
 

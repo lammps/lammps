@@ -463,7 +463,7 @@ void PairBrownian::init_style()
                    "Pair brownian needs newton pair on for "
                    "momentum conservation");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   // insure all particles are finite-size
   // for pair hybrid, should limit test to types using the pair style

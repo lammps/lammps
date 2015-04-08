@@ -415,7 +415,7 @@ void PairKIM::init_style()
    // request none, half, or full neighbor list
    // depending on KIM model requirement
 
-   int irequest = neighbor->request(this);
+   int irequest = neighbor->request(this,instance_me);
    if (kim_model_using_cluster)
    {
       neighbor->requests[irequest]->half = 0;

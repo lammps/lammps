@@ -119,6 +119,10 @@ E: Thermo every variable returned a bad timestep
 
 The variable must return a timestep greater than the current timestep.
 
+E: Thermo_modify every variable returned a bad timestep
+
+The returned timestep is less than or equal to the current timestep.
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -137,7 +141,7 @@ E: Invalid dump frequency
 
 Dump frequency must be 1 or greater.
 
-E: Invalid dump style
+E: Unknown dump style
 
 The choice of dump style is unknown.
 

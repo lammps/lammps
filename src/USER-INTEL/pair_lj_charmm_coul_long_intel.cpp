@@ -488,20 +488,17 @@ void PairLJCharmmCoulLongIntel::init_style()
                "The 'package intel' command is required for /intel styles");
   fix = static_cast<FixIntel *>(modify->fix[ifix]);
   
+  fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
-  fix->set_offload_affinity();
   _cop = fix->coprocessor_number();
   #endif
-  if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-    fix->get_mixed_buffers()->free_all_nbor_buffers();
+
+  if (fix->precision() == FixIntel::PREC_MODE_MIXED)
     pack_force_const(force_const_single, fix->get_mixed_buffers());
-  } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-    fix->get_double_buffers()->free_all_nbor_buffers();
+  else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
     pack_force_const(force_const_double, fix->get_double_buffers());
-  } else {
-    fix->get_single_buffers()->free_all_nbor_buffers();
+  else
     pack_force_const(force_const_single, fix->get_single_buffers());
-  }
 }
 
 template <class flt_t, class acc_t>

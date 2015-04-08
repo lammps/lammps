@@ -74,6 +74,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
   every_dump = force->inumeric(FLERR,arg[3]);
   every_position = every_image = -1;
   every_velocity = every_force = every_species = -1;
+  every_charge = -1;
 
   do_box=true;
   create_group=true;
@@ -116,6 +117,15 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
       every_species=default_every;
       iarg+=1;
       n_parsed = element_args(narg-iarg, &arg[iarg], &every_species);
+      if (n_parsed<0) error->all(FLERR, "Illegal dump h5md command");
+      iarg += n_parsed;
+      size_one+=1;
+    } else if (strcmp(arg[iarg], "charge")==0) {
+      if (!atom->q_flag)
+	error->all(FLERR, "Requesting non-allocated quantity q in dump_h5md");
+      every_charge = default_every;
+      iarg+=1;
+      n_parsed = element_args(narg-iarg, &arg[iarg], &every_charge);
       if (n_parsed<0) error->all(FLERR, "Illegal dump h5md command");
       iarg += n_parsed;
       size_one+=1;
@@ -189,6 +199,8 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
     memory->create(dump_force,domain->dimension*natoms,"dump:force");
   if (every_species>=0)
     memory->create(dump_species,natoms,"dump:species");
+  if (every_charge>=0)
+    memory->create(dump_charge,natoms,"dump:species");
 
   openfile();
   ntotal = 0;
@@ -201,26 +213,30 @@ DumpH5MD::~DumpH5MD()
   if (every_position>=0) {
     memory->destroy(dump_position);
     if (me==0) {
-      h5md_close_time_data(particles_data.position);
+      h5md_close_element(particles_data.position);
       if (do_box)
-	h5md_close_time_data(particles_data.box_edges);
+	h5md_close_element(particles_data.box_edges);
     }
   }
   if (every_image>=0) {
     memory->destroy(dump_image);
-    if (me==0) h5md_close_time_data(particles_data.image);
+    if (me==0) h5md_close_element(particles_data.image);
   }
   if (every_velocity>=0) {
     memory->destroy(dump_velocity);
-    if (me==0) h5md_close_time_data(particles_data.velocity);
+    if (me==0) h5md_close_element(particles_data.velocity);
   }
   if (every_force>=0) {
     memory->destroy(dump_force);
-    if (me==0) h5md_close_time_data(particles_data.force);
+    if (me==0) h5md_close_element(particles_data.force);
   }
   if (every_species>=0) {
     memory->destroy(dump_species);
-    if (me==0) h5md_close_time_data(particles_data.species);
+    if (me==0) h5md_close_element(particles_data.species);
+  }
+  if (every_charge>=0) {
+    memory->destroy(dump_charge);
+    if (me==0) h5md_close_element(particles_data.charge);
   }
 
 }
@@ -280,6 +296,10 @@ void DumpH5MD::openfile()
 	particles_data.force = h5md_create_time_data(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, NULL);
       if (every_species>0)
 	particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, NULL);
+      if (every_charge>0) {
+	particles_data.charge = h5md_create_time_data(particles_data.group, "charge", 1, dims, H5T_NATIVE_DOUBLE, NULL);
+	h5md_write_string_attribute(particles_data.group, "charge", "type", "effective");
+      }
     } else {
       DumpH5MD* other_dump;
       other_dump=(DumpH5MD*)output->dump[datafile_from_dump];
@@ -306,6 +326,11 @@ void DumpH5MD::openfile()
 	particles_data.force = h5md_create_time_data(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, NULL);
       if (every_species>0)
 	particles_data.species = h5md_create_time_data(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, NULL);
+      if (every_charge>0) {
+	particles_data.charge = h5md_create_time_data(particles_data.group, "charge", 1, dims, H5T_NATIVE_DOUBLE, NULL);
+	h5md_write_string_attribute(particles_data.group, "charge", "type", "effective");
+      }
+
     }
   }
 
@@ -334,6 +359,7 @@ void DumpH5MD::pack(tagint *ids)
   double **v = atom->v;
   double **f = atom->f;
   int *species = atom->type;
+  double *q = atom->q;
   imageint *image = atom->image;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -377,6 +403,8 @@ void DumpH5MD::pack(tagint *ids)
       }
       if (every_species>=0)
 	buf[m++] = species[i];
+      if (every_charge>=0)
+	buf[m++] = q[i];
       ids[n++] = tag[i];
     }
 }
@@ -394,6 +422,7 @@ void DumpH5MD::write_data(int n, double *mybuf)
   int k_velocity = dim*ntotal;
   int k_force = dim*ntotal;
   int k_species = ntotal;
+  int k_charge = ntotal;
   for (int i = 0; i < n; i++) {
     if (every_position>=0) {
       for (int j=0; j<dim; j++) {
@@ -414,6 +443,8 @@ void DumpH5MD::write_data(int n, double *mybuf)
       }
     if (every_species>=0)
       dump_species[k_species++] = mybuf[m++];
+    if (every_charge>=0)
+      dump_charge[k_charge++] = mybuf[m++];
     ntotal++;
   }
 
@@ -474,6 +505,9 @@ void DumpH5MD::write_frame()
   if (every_species>0 && local_step % (every_species*every_dump) == 0) {
     h5md_append(particles_data.species, dump_species, local_step, local_time);
   }
+  if (every_charge>0 && local_step % (every_charge*every_dump) == 0) {
+    h5md_append(particles_data.charge, dump_charge, local_step, local_time);
+  }
 }
 
 void DumpH5MD::write_fixed_frame()
@@ -481,6 +515,8 @@ void DumpH5MD::write_fixed_frame()
   double edges[3];
   int dims[2];
   char *boundary[3];
+  hid_t a, s, t;
+  herr_t status;
 
   for (int i=0; i<3; i++) {
     boundary[i] = new char[9];
@@ -509,6 +545,10 @@ void DumpH5MD::write_fixed_frame()
     particles_data.force = h5md_create_fixed_data_simple(particles_data.group, "force", 2, dims, H5T_NATIVE_DOUBLE, dump_force);
   if (every_species==0)
     particles_data.species = h5md_create_fixed_data_simple(particles_data.group, "species", 1, dims, H5T_NATIVE_INT, dump_species);
+  if (every_charge==0) {
+    particles_data.charge = h5md_create_fixed_data_simple(particles_data.group, "charge", 1, dims, H5T_NATIVE_INT, dump_charge);
+    h5md_write_string_attribute(particles_data.group, "charge", "type", "effective");
+  }
 
   for (int i=0; i<3; i++) {
     delete [] boundary[i];

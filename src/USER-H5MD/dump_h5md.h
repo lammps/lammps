@@ -55,6 +55,8 @@ class DumpH5MD : public Dump {
   int every_force;
   int *dump_species;
   int every_species;
+  int *dump_charge;
+  int every_charge;
 
   void init_style();
   int modify_param(int, char **);

@@ -1,5 +1,5 @@
 /* This file is part of ch5md
- * Copyright (C) 2013-2014 Pierre de Buyl
+ * Copyright (C) 2013-2015 Pierre de Buyl
  * All rights reserved.
  *
  * This software may be modified and distributed under the terms
@@ -196,7 +196,7 @@ h5md_element h5md_create_time_data(hid_t loc, const char *name, int rank, int in
 
 }
 
-int h5md_close_time_data(h5md_element e)
+int h5md_close_element(h5md_element e)
 {
   herr_t status;
 
@@ -416,6 +416,29 @@ int h5md_create_box(h5md_particles_group *group, int dim, char *boundary[], bool
   }
 
   status = H5Gclose(group->box);
+
+  return 0;
+}
+
+int h5md_write_string_attribute(hid_t loc, const char *obj_name,
+    const char *att_name, const char *value)
+{
+  hid_t obj;
+  hid_t s, t, a;
+  herr_t status;
+
+  obj = H5Oopen(loc, obj_name, H5P_DEFAULT);
+
+  t = H5Tcopy(H5T_C_S1);
+  status = H5Tset_size(t, strlen(value));
+  s = H5Screate(H5S_SCALAR);
+  a = H5Acreate(obj, att_name, t, s, H5P_DEFAULT, H5P_DEFAULT);
+  status = H5Awrite(a, t, value);
+  status = H5Aclose(a);
+  status = H5Sclose(s);
+  status = H5Tclose(t);
+
+  status = H5Oclose(obj);
 
   return 0;
 }

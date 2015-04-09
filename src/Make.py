@@ -698,13 +698,18 @@ class Packages:
   def setup(self):
       
     # extract package lists from src/Makefile
-    # remove kokkos from lib since it doesn't actually have a lib
+    # remove names from lib that there are not Make.py lib-classes for
+    # most don't actually have libs, so nothing to control from Make.py
     
     make = MakeReader("%s/Makefile" % dir.src)
     std = make.getvar("PACKAGE")
     user = make.getvar("PACKUSER")
     lib = make.getvar("PACKLIB")
+    lib.remove("kim")
     lib.remove("kokkos")
+    lib.remove("molfile")
+    lib.remove("python")
+    lib.remove("quip")
     all = std + user
     
     # plist = command line args expanded to yes-package or no-package

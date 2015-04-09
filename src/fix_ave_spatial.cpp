@@ -328,7 +328,7 @@ FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
       if (modify->fix[ifix]->peratom_flag == 0)
         error->all(FLERR,
                    "Fix ave/spatial fix does not calculate per-atom values");
-      if (argindex[i] && modify->fix[ifix]->size_peratom_cols != 0)
+      if (argindex[i] == 0 && modify->fix[ifix]->size_peratom_cols != 0)
         error->all(FLERR,
                    "Fix ave/spatial fix does not calculate a per-atom vector");
       if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)

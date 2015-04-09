@@ -698,11 +698,13 @@ class Packages:
   def setup(self):
       
     # extract package lists from src/Makefile
-
+    # remove kokkos from lib since it doesn't actually have a lib
+    
     make = MakeReader("%s/Makefile" % dir.src)
     std = make.getvar("PACKAGE")
     user = make.getvar("PACKUSER")
     lib = make.getvar("PACKLIB")
+    lib.remove("kokkos")
     all = std + user
     
     # plist = command line args expanded to yes-package or no-package

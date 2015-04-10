@@ -1,0 +1,194 @@
+LAMMPS (6 Apr 2015-ICMS)
+WARNING: OMP_NUM_THREADS environment is not set. (../comm.cpp:89)
+  using 1 OpenMP thread(s) per MPI task
+
+units 		real
+atom_style 	hybrid sphere dipole molecular
+
+# this is equivalent to special_bonds amber,
+# but also compatible with the per-style overrides below.
+special_bonds lj 0.0 1.0e-100 0.5 coul 0.0 1.0e-100 0.8333333333333333
+
+pair_style 	hybrid  lj/sf/dipole/sf 12.0 lj/sf/dipole/sf 12.0 			lj/charmm/coul/long 11.0 12.0
+pair_modify 	mix arithmetic
+pair_modify	pair lj/sf/dipole/sf 1 special lj/coul 0.0 1.0 1.0
+pair_modify	pair lj/sf/dipole/sf 2 special lj/coul 0.0 1.0 1.0
+
+kspace_style 	pppm/cg 1.0e-5
+bond_style 	harmonic
+angle_style 	harmonic
+dihedral_style 	harmonic
+
+read_data data.bnzwbox
+  orthogonal box = (-11.3621 -13.9039 -13.1983) to (18.0429 16.0051 16.7857)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  587 atoms
+  scanning bonds ...
+  3 = max bonds/atom
+  scanning angles ...
+  3 = max angles/atom
+  scanning dihedrals ...
+  9 = max dihedrals/atom
+  reading bonds ...
+  12 bonds
+  reading angles ...
+  18 angles
+  reading dihedrals ...
+  30 dihedrals
+  3 = max # of 1-2 neighbors
+  4 = max # of 1-3 neighbors
+  8 = max # of 1-4 neighbors
+  10 = max # of special neighbors
+
+# pair_coeffs:
+pair_coeff 1 1 lj/charmm/coul/long        0.0860 3.39967 0.0860 3.39967      # AA-AA
+pair_coeff 2 2 lj/charmm/coul/long        0.015000 2.59964 0.015000 2.59964  # AA-AA
+pair_coeff 3 3 lj/sf/dipole/sf       1    0.550000 3.050000                  # CG-CG, this will be propagated with the longer timestep
+pair_coeff 1 2 lj/charmm/coul/long        0.0359 2.9997 0.0359 2.9997        # AA-AA
+pair_coeff 1 3 lj/sf/dipole/sf       2    0.2175 3.2248                      # CG-AA, this will be propagated with the shorter timestep
+pair_coeff 2 3 lj/sf/dipole/sf       2    0.0908 2.8248                      # CG-AA, this will be propagated with the shorter timestep
+
+
+# this will set individual per-atom masses - as required by
+# atom style sphere - to the same value as the per-type masses.
+set type 1 mass 12.011000
+  6 settings made for mass
+set type 2 mass 1.008000
+  6 settings made for mass
+set type 3 mass 40.00
+  575 settings made for mass
+
+group 	solute 	molecule 1
+12 atoms in group solute
+group 	water 	molecule > 1
+575 atoms in group water
+
+set group solute diameter 0.0
+  12 settings made for diameter
+
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+
+#timestep 8
+#run_style respa 2 4 hybrid 2 1 1 kspace 1 improper 2
+
+timestep 2.0
+run_style verlet
+
+fix 	integrateSolute	solute nve
+fix	integrateWater	water nve/sphere update dipole
+
+fix	thermostatWater  water  langevin 298 298 100 9 omega yes zero yes
+fix	thermostatSolute solute langevin 298 298 100 9 zero yes
+
+thermo 100
+
+minimize 1.0E-4 1.0E-6 100 1000
+PPPM initialization ...
+  G vector (1/distance) = 0.107059
+  grid = 3 3 3
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00268661
+  estimated relative force accuracy = 8.09066e-06
+  using double precision FFTs
+  3d grid and FFT values/proc = 512 27
+Neighbor list info ...
+  4 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  master list distance cutoff = 14
+  PPPM/cg optimization cutoff: 1e-05
+  Total charged atoms: 2.0%
+  Min/max charged atoms/proc: 2.0% 2.0%
+Memory usage per processor = 13.1326 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0    1229.2095   0.19819566    1229.4077    33888.578 
+     100            0    -2841.678    2.1349864    -2839.543    1363.0469 
+
+Loop time of 1.24367 on 1 procs for 100 steps with 587 atoms
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+          1229.4076721     -2835.11740182     -2839.54299044
+  Force two-norm initial, final = 1311.12 92.7793
+  Force max component initial, final = 529.28 52.5897
+  Final line search alpha, max atom move = 0.00240725 0.126597
+  Iterations, force evaluations = 100 181
+
+MPI task timings breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.2039     | 1.2039     | 1.2039     |   0.0 | 96.80
+Bond    | 0.0011945  | 0.0011945  | 0.0011945  |   0.0 |  0.10
+Kspace  | 0.0033362  | 0.0033362  | 0.0033362  |   0.0 |  0.27
+Neigh   | 0.015982   | 0.015982   | 0.015982   |   0.0 |  1.29
+Comm    | 0.015237   | 0.015237   | 0.015237   |   0.0 |  1.23
+Output  | 4.5061e-05 | 4.5061e-05 | 4.5061e-05 |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.003967   |            |       |  0.32
+
+Nlocal:    587 ave 587 max 587 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    3599 ave 3599 max 3599 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    75832 ave 75832 max 75832 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 75832
+Ave neighs/atom = 129.186
+Ave special neighs/atom = 0.173765
+Neighbor list builds = 5
+Dangerous builds = 0
+run 1000
+PPPM initialization ...
+  G vector (1/distance) = 0.107059
+  grid = 3 3 3
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00268661
+  estimated relative force accuracy = 8.09066e-06
+  using double precision FFTs
+  3d grid and FFT values/proc = 512 27
+Memory usage per processor = 12.0076 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     100            0    -2841.678    2.1349864    -2839.543    1363.0469 
+     200    285.39211     -2675.81    14.315456   -2162.9845    3732.8229 
+     300    291.58808    -2733.738    13.268339   -2211.1368    3040.2089 
+     400    298.44197   -2860.0383    15.480615   -2323.2528    2646.7134 
+     500    296.79448   -2966.7422    11.311007    -2437.004    1958.8059 
+     600    308.29218   -3120.7411    15.267691   -2566.9626    1558.7607 
+     700    312.67712   -3194.7043    8.7624891   -2639.7716    1212.4966 
+     800    308.86454   -3385.1928    14.905594   -2830.7766    204.85265 
+     900    296.81418   -3545.2909     13.78069   -3013.0487    528.53145 
+    1000    311.33831   -3682.4629    10.590424   -3128.0408    309.35302 
+    1100    296.60224   -3749.0433     14.01717   -3216.9347   -102.75834 
+
+Loop time of 5.87081 on 1 procs for 1000 steps with 587 atoms
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 29.434 ns/day  0.815 hours/ns  170.334 timesteps/s
+
+MPI task timings breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.5785     | 5.5785     | 5.5785     |   0.0 | 95.02
+Bond    | 0.0061142  | 0.0061142  | 0.0061142  |   0.0 |  0.10
+Kspace  | 0.020182   | 0.020182   | 0.020182   |   0.0 |  0.34
+Neigh   | 0.051474   | 0.051474   | 0.051474   |   0.0 |  0.88
+Comm    | 0.088405   | 0.088405   | 0.088405   |   0.0 |  1.51
+Output  | 0.0004251  | 0.0004251  | 0.0004251  |   0.0 |  0.01
+Modify  | 0.11323    | 0.11323    | 0.11323    |   0.0 |  1.93
+Other   |            | 0.01249    |            |       |  0.21
+
+Nlocal:    587 ave 587 max 587 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    3622 ave 3622 max 3622 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    75556 ave 75556 max 75556 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 75556
+Ave neighs/atom = 128.716
+Ave special neighs/atom = 0.173765
+Neighbor list builds = 15
+Dangerous builds = 0

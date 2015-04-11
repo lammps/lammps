@@ -323,20 +323,23 @@ The {adof} and {cdof} keywords define the values used in the degree of
 freedom (DOF) formula described above for for temperature calculation
 for each chunk.  They are only used when the {temp} value is
 calculated.  They can be used to calculate a more appropriate
-temperature for some kinds of chunks.  Here are 3 examples.
+temperature for some kinds of chunks.  Here are 3 examples:
 
 If spatially binned chunks contain some number of water molecules and
 "fix shake"_fix_shake.html is used to make each molecule rigid, then
 you could calculate a temperature with 6 degrees of freedom (DOF) (3
 translational, 3 rotational) per molecule by setting {adof} to 2.0.
+
 If "compute temp/partial"_compute_temp_partial.html is used with the
 {bias} keyword to only allow the x component of velocity to contribute
-to the temperature, then {adof} = 1.0 would be appropriate.  If each
-chunk consists of a large molecule, with some number of its bonds
-constrained by "fix shake"_fix_shake.html or the entire molecule by
-"fix rigid/small"_fix_rigid.html, then {cdof} could be set to the
-remaining degrees of freedom for the entire molecule (entire chunk in
-this case).
+to the temperature, then {adof} = 1.0 would be appropriate.
+
+If each chunk consists of a large molecule, with some number of its
+bonds constrained by "fix shake"_fix_shake.html or the entire molecule
+by "fix rigid/small"_fix_rigid.html, {adof} = 0.0 and {cdof} could be
+set to the remaining degrees of freedom for the entire molecule
+(entire chunk in this case), e.g. 6 for 3d, or 3 for 2d, for a rigid
+molecule.
 
 The {file} keyword allows a filename to be specified.  Every {Nfreq}
 timesteps, a section of chunk info will be written to a text file in

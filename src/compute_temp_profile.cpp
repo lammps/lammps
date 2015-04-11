@@ -197,7 +197,10 @@ void ComputeTempProfile::dof_compute()
   adjust_dof_fix();
   natoms_temp = group->count(igroup);
   dof = domain->dimension * natoms_temp;
-  dof -= extra_dof + fix_dof;
+
+  // subtract additional d*Nbins DOF, as in Evans and Morriss paper
+
+  dof -= extra_dof + fix_dof + domain->dimension*nbins;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }

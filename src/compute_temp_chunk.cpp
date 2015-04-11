@@ -204,6 +204,8 @@ double ComputeTempChunk::compute_scalar()
   cchunk->compute_ichunk();
   int *ichunk = cchunk->ichunk;
 
+  if (nchunk > maxchunk) allocate();
+
   // remove velocity bias
 
   if (biasflag) {
@@ -313,6 +315,8 @@ void ComputeTempChunk::compute_vector()
   nchunk = cchunk->setup_chunks();
   cchunk->compute_ichunk();
   int *ichunk = cchunk->ichunk;
+
+  if (nchunk > maxchunk) allocate();
 
   // remove velocity bias
 

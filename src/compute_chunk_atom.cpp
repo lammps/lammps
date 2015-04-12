@@ -480,7 +480,7 @@ void ComputeChunkAtom::init()
   // fixstore ID = compute-ID + COMPUTE_STORE, fix group = compute group
   // fixstore initializes all values to 0.0
 
-  if (lockcount && !fixstore) {
+  if ((idsflag == ONCE || (idsflag == NFREQ && lockcount)) && !fixstore) {
     int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
     id_fix = new char[n];
     strcpy(id_fix,id);
@@ -497,7 +497,7 @@ void ComputeChunkAtom::init()
     delete [] newarg;
   }
 
-  if (!lockcount && fixstore) {
+  if ((idsflag == NFREQ && !lockcount) && fixstore) {
     delete fixstore;
     fixstore = NULL;
   }

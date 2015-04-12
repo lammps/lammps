@@ -46,6 +46,6 @@ quip          interface to QUIP/libAtoms framework, USER-QUIP package
 reax          ReaxFF potential, REAX package
 	        from Adri van Duin (Penn State) and Aidan Thompson (Sandia)
 quip          interface to QUIP/libAtoms framework, USER-QUIP package
-                from Albert Bartok-Partay and Gabor Csanyi (U. Cambridge)
+                from Albert Bartok-Partay and Gabor Csanyi (U Cambridge)
 voronoi       hooks to the Voro++ library, used by compute voronoi/atom command
 	        from Daniel Schwen (LANL)

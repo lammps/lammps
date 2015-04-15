@@ -730,6 +730,7 @@ void FixAveChunk::end_of_step()
   //     check last so other options can take precedence
 
   double mvv2e = force->mvv2e;
+  double boltz = force->boltz;
 
   if (normflag == ALL) {
     for (m = 0; m < nchunk; m++) {
@@ -744,7 +745,7 @@ void FixAveChunk::end_of_step()
         for (j = 0; j < nvalues; j++) {
           if (which[j] == TEMPERATURE)
             values_many[m][j] += mvv2e*values_one[m][j] / 
-              (cdof + adof*count_many[m]);
+              ((cdof + adof*count_many[m]) * boltz);
           else if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS ||
                    scaleflag == NOSCALE)
             values_many[m][j] += values_one[m][j];
@@ -793,7 +794,7 @@ void FixAveChunk::end_of_step()
       if (count_sum[m] > 0.0)
         for (j = 0; j < nvalues; j++) {
           if (which[j] == TEMPERATURE)
-            values_sum[m][j] *= mvv2e / (cdof + adof*count_sum[m]);
+            values_sum[m][j] *= mvv2e / ((cdof + adof*count_sum[m]) * boltz);
           else if (which[j] == DENSITY_MASS)
             values_sum[m][j] *= mv2d/repeat;
           else if (which[j] == DENSITY_NUMBER || scaleflag == NOSCALE)

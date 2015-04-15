@@ -42,7 +42,7 @@ ComputeGyrationChunk::ComputeGyrationChunk(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   tensor = 0;
-  int iarg = 3;
+  int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"tensor") == 0) {
       tensor = 1;

@@ -595,12 +595,14 @@ void ReadData::command(int narg, char **arg)
   // do not use irregular() comm, which would not lose atoms,
   //   b/c then user could specify data file box as far too big and empty
   // do comm->init() but not comm->setup() b/c pair/neigh cutoffs not yet set
+  // need call to map_set() b/c comm->exchange clears atom map
 
   if (domain->nonperiodic == 2) {
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->reset_box();
     comm->init();
     comm->exchange();
+    if (atom->map_style) atom->map_set();
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
     bigint natoms;

@@ -361,7 +361,7 @@ public:
   /// Read the analysis tasks
   int parse_analysis(std::string const &conf);
   /// Perform analysis tasks
-  void analyse();
+  void analyze();
 
 
   /// Read the value from a collective variable trajectory file

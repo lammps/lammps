@@ -113,6 +113,7 @@ public:
 
   _get_keyval_scalar_proto_(int, (int)0);
   _get_keyval_scalar_proto_(size_t, (size_t)0);
+  _get_keyval_scalar_proto_(long, 0);
   _get_keyval_scalar_proto_(std::string, std::string(""));
   _get_keyval_scalar_proto_(cvm::real, (cvm::real)0.0);
   _get_keyval_scalar_proto_(cvm::rvector, cvm::rvector());
@@ -130,6 +131,7 @@ public:
 
   _get_keyval_vector_proto_(int, 0);
   _get_keyval_vector_proto_(size_t, 0);
+  _get_keyval_vector_proto_(long, 0);
   _get_keyval_vector_proto_(std::string, std::string(""));
   _get_keyval_vector_proto_(cvm::real, 0.0);
   _get_keyval_vector_proto_(cvm::rvector, cvm::rvector());

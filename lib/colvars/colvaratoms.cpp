@@ -331,8 +331,6 @@ int cvm::atom_group::parse(std::string const &conf,
     } else {
       get_keyval(group_conf, "disableForces", noforce, false, colvarparse::parse_silent);
     }
-
-    get_keyval(group_conf, "weights", weights, weights, colvarparse::parse_silent);
   }
 
   // FITTING OPTIONS

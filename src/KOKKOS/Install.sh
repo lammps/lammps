@@ -98,6 +98,10 @@ action pair_coul_wolf_kokkos.cpp
 action pair_coul_wolf_kokkos.h
 action pair_eam_kokkos.cpp pair_eam.cpp
 action pair_eam_kokkos.h pair_eam.h
+action pair_eam_alloy_kokkos.cpp pair_eam_alloy.cpp
+action pair_eam_alloy_kokkos.h pair_eam_alloy.h
+action pair_eam_fs_kokkos.cpp pair_eam_fs.cpp
+action pair_eam_fs_kokkos.h pair_eam_fs.h
 action pair_kokkos.h
 action pair_lj_charmm_coul_charmm_implicit_kokkos.cpp pair_lj_charmm_coul_charmm_implicit.cpp
 action pair_lj_charmm_coul_charmm_implicit_kokkos.h pair_lj_charmm_coul_charmm_implicit.h
@@ -129,8 +133,16 @@ action pair_lj_gromacs_kokkos.cpp
 action pair_lj_gromacs_kokkos.h
 action pair_lj_sdk_kokkos.cpp pair_lj_sdk.cpp
 action pair_lj_sdk_kokkos.h pair_lj_sdk.h
+action pair_sw_kokkos.cpp pair_sw.cpp
+action pair_sw_kokkos.h pair_sw.h
 action pair_table_kokkos.cpp
 action pair_table_kokkos.h
+action pair_tersoff_kokkos.cpp pair_tersoff.cpp
+action pair_tersoff_kokkos.h pair_tersoff.h
+action pair_tersoff_mod_kokkos.cpp pair_tersoff_mod.cpp
+action pair_tersoff_mod_kokkos.h pair_tersoff_mod.h
+action pair_tersoff_zbl_kokkos.cpp pair_tersoff_zbl.cpp
+action pair_tersoff_zbl_kokkos.h pair_tersoff_zbl.h
 action verlet_kokkos.cpp
 action verlet_kokkos.h
 

@@ -42,6 +42,8 @@ public:
 
   virtual std::ostream & write_restart(std::ostream &os);
 
+  virtual int setup_output();
+
   virtual void write_pmf();
 
   class hill;

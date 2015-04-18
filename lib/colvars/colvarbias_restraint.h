@@ -110,7 +110,7 @@ protected:
 
   /// \brief Number of steps required to reach the target force constant
   /// or restraint centers
-  size_t target_nsteps;
+  long target_nsteps;
 };
 
 /// \brief Harmonic bias restraint

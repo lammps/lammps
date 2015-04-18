@@ -20,9 +20,10 @@ colvar::colvar(std::string const &conf)
               (std::string("colvar")+cvm::to_str(cvm::colvars.size()+1)));
 
   if (cvm::colvar_by_name(this->name) != NULL) {
-     cvm::error("Error: this colvar cannot have the same name, \""+this->name+
+    cvm::error("Error: this colvar cannot have the same name, \""+this->name+
                       "\", as another colvar.\n",
                INPUT_ERROR);
+    return;
   }
 
   // all tasks disabled by default
@@ -1616,7 +1617,7 @@ int colvar::write_output_files()
 
 // ******************** ANALYSIS FUNCTIONS ********************
 
-void colvar::analyse()
+void colvar::analyze()
 {
   if (tasks[task_runave]) {
     calc_runave();

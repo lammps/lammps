@@ -128,7 +128,18 @@ int colvarscript::run(int argc, char const *argv[]) {
     }
   }
 
-  /// TODO Write an output state file? (Useful for testing)
+  /// Save to an output state file
+  if (cmd == "save") {
+    if (argc < 3) {
+      result = "Missing arguments";
+      return COLVARSCRIPT_ERROR;
+    }
+    proxy->output_prefix_str = argv[2];
+    int error = 0;
+    error |= colvars->setup_output();
+    error |= colvars->write_output_files();
+    return error ? COLVARSCRIPT_ERROR : COLVARSCRIPT_OK;
+  }
 
   /// Print the values that would go on colvars.traj
   if (cmd == "printframelabels") {

@@ -158,6 +158,9 @@ class NeighborKokkosExecute
   KOKKOS_FUNCTION
   void build_Item(const int &i) const;
 
+  KOKKOS_FUNCTION
+  void build_Item_Full_Ghost(const int &i) const;
+
   template<int ClusterSize>
   KOKKOS_FUNCTION
   void build_cluster_Item(const int &i) const;
@@ -199,6 +202,42 @@ class NeighborKokkosExecute
       iz = MIN(iz,nbinz-1);
     } else
       iz = static_cast<int> ((z-bboxlo[2])*bininvz) - 1;
+
+    return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z, int* i) const
+  {
+    int ix,iy,iz;
+
+    if (x >= bboxhi[0])
+      ix = static_cast<int> ((x-bboxhi[0])*bininvx) + nbinx;
+    else if (x >= bboxlo[0]) {
+      ix = static_cast<int> ((x-bboxlo[0])*bininvx);
+      ix = MIN(ix,nbinx-1);
+    } else
+      ix = static_cast<int> ((x-bboxlo[0])*bininvx) - 1;
+
+    if (y >= bboxhi[1])
+      iy = static_cast<int> ((y-bboxhi[1])*bininvy) + nbiny;
+    else if (y >= bboxlo[1]) {
+      iy = static_cast<int> ((y-bboxlo[1])*bininvy);
+      iy = MIN(iy,nbiny-1);
+    } else
+      iy = static_cast<int> ((y-bboxlo[1])*bininvy) - 1;
+
+    if (z >= bboxhi[2])
+      iz = static_cast<int> ((z-bboxhi[2])*bininvz) + nbinz;
+    else if (z >= bboxlo[2]) {
+      iz = static_cast<int> ((z-bboxlo[2])*bininvz);
+      iz = MIN(iz,nbinz-1);
+    } else
+      iz = static_cast<int> ((z-bboxlo[2])*bininvz) - 1;
+
+    i[0] = ix - mbinxlo;
+    i[1] = iy - mbinylo;
+    i[2] = iz - mbinzlo;
 
     return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
   }
@@ -256,6 +295,23 @@ struct NeighborKokkosBuildFunctor {
   }
   size_t shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
 #endif
+};
+
+template<class Device>
+struct NeighborKokkosBuildFunctorFullGhost {
+  typedef Device device_type;
+
+  const NeighborKokkosExecute<Device> c;
+  const size_t sharedsize;
+
+  NeighborKokkosBuildFunctorFullGhost(const NeighborKokkosExecute<Device> &_c, 
+                             const size_t _sharedsize):c(_c),
+                             sharedsize(_sharedsize) {};
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int & i) const {
+    c.build_Item_Full_Ghost(i);
+  }
 };
 
 template<class Device,int ClusterSize>
@@ -358,7 +414,7 @@ class NeighborKokkos : public Neighbor {
     (class NeighListKokkos<LMPDeviceType> *);
   PairPtrDevice *pair_build_device;
 
-  template<class DeviceType,int HALF_NEIGH>
+  template<class DeviceType,int HALF_NEIGH, int GHOST>
   void full_bin_kokkos(NeighListKokkos<DeviceType> *list);
   template<class DeviceType>
   void full_bin_cluster_kokkos(NeighListKokkos<DeviceType> *list);
@@ -382,5 +438,9 @@ E: Too many local+ghost atoms for neighbor list
 The number of nlocal + nghost atoms on a processor
 is limited by the size of a 32-bit integer with 2 bits
 removed for masking 1-2, 1-3, 1-4 neighbors.
+
+E: Cannot (yet) request ghost atoms with Kokkos half neighbor list
+
+This feature is not yet supported.
 
 */

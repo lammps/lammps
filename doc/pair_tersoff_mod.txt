@@ -7,6 +7,7 @@
 :line
 
 pair_style tersoff/mod command :h3
+pair_style tersoff/mod/kk command :h3
 pair_style tersoff/mod/omp command :h3
 
 [Syntax:]

@@ -10,6 +10,7 @@ pair_style sw command :h3
 pair_style sw/cuda command :h3
 pair_style sw/gpu command :h3
 pair_style sw/intel command :h3
+pair_style sw/kk command :h3
 pair_style sw/omp command :h3
 
 [Syntax:]

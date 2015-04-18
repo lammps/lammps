@@ -58,6 +58,8 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
 
 PairSW::~PairSW()
 {
+  if (copymode) return;
+
   if (elements)
     for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;

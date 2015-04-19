@@ -269,18 +269,32 @@ void NeighborKokkos::choose_build(int index, NeighRequest *rq)
 {
   if (rq->kokkos_host != 0) {
     PairPtrHost pb = NULL;
-    if (rq->full) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0>;
-    else if (rq->half) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,1>;
-    pair_build_host[index] = pb;
+    if (rq->ghost) {
+      if (rq->full) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0,1>;
+      else if (rq->half) error->one(FLERR,"Cannot (yet) request ghost atoms with Kokkos half neighbor list");
+      pair_build_host[index] = pb;
+    } else {
+      if (rq->full) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0,0>;
+      else if (rq->half) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,1,0>;
+      pair_build_host[index] = pb;
+    }
     return;
   }
   if (rq->kokkos_device != 0) {
     PairPtrDevice pb = NULL;
-    if (rq->full) {
-      if (rq->full_cluster) pb = &NeighborKokkos::full_bin_cluster_kokkos<LMPDeviceType>;
-      else pb = &NeighborKokkos::full_bin_kokkos<LMPDeviceType,0>;
+    if (rq->ghost) {
+      if (rq->full) {
+        if (rq->full_cluster) pb = &NeighborKokkos::full_bin_cluster_kokkos<LMPDeviceType>;
+        else pb = &NeighborKokkos::full_bin_kokkos<LMPDeviceType,0,1>;
+      }
+      else if (rq->half) pb = &NeighborKokkos::full_bin_kokkos<LMPDeviceType,1,1>;
+    } else {
+      if (rq->full) {
+        if (rq->full_cluster) pb = &NeighborKokkos::full_bin_cluster_kokkos<LMPDeviceType>;
+        else pb = &NeighborKokkos::full_bin_kokkos<LMPDeviceType,0,0>;
+      }
+      else if (rq->half) pb = &NeighborKokkos::full_bin_kokkos<LMPDeviceType,1,0>;
     }
-    else if (rq->half) pb = &NeighborKokkos::full_bin_kokkos<LMPDeviceType,1>;
     pair_build_device[index] = pb;
     return;
   }
@@ -441,10 +455,14 @@ void NeighborKokkos::build_kokkos(int topoflag)
 
   if (anyghostlist && atom->nlocal+atom->nghost > maxatom) {
     maxatom = atom->nmax;
-    for (i = 0; i < nglist; i++) lists[glist[i]]->grow(maxatom);
+    for (i = 0; i < nglist; i++)
+      if (lists[glist[i]]) lists[glist[i]]->grow(maxatom);
+      else init_list_grow_kokkos(glist[i]);
   } else if (atom->nlocal > maxatom) {
     maxatom = atom->nmax;
-    for (i = 0; i < nglist; i++) lists[glist[i]]->grow(maxatom);
+    for (i = 0; i < nglist; i++)
+      if (lists[glist[i]]) lists[glist[i]]->grow(maxatom);
+      else init_list_grow_kokkos(glist[i]);
   }
 
   // extend atom bin list if necessary

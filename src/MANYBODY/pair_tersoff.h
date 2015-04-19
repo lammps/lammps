@@ -31,7 +31,7 @@ class PairTersoff : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
+  virtual void init_style();
   double init_one(int, int);
 
  protected:
@@ -60,7 +60,7 @@ class PairTersoff : public Pair {
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
 
-  void allocate();
+  virtual void allocate();
   virtual void read_file(char *);
   virtual void setup();
   virtual void repulsive(Param *, double, double &, int, double &);

@@ -48,7 +48,7 @@ class AtomNeighborsConst
   const int num_neighs;
 
   KOKKOS_INLINE_FUNCTION
-  AtomNeighborsConst(int* const & firstneigh, const int & _num_neighs, 
+  AtomNeighborsConst(int* const & firstneigh, const int & _num_neighs,
                      const int & stride):
   _firstneigh(firstneigh), num_neighs(_num_neighs), _stride(stride) {};
   KOKKOS_INLINE_FUNCTION
@@ -75,6 +75,8 @@ public:
   typename ArrayTypes<Device>::t_int_1d d_numneigh; // # of J neighs for each I
   typename ArrayTypes<Device>::t_int_1d d_stencil;  // # of J neighs for each I
   typename ArrayTypes<LMPHostType>::t_int_1d h_stencil; // # of J neighs per I
+  typename ArrayTypes<Device>::t_int_1d_3 d_stencilxyz;
+  typename ArrayTypes<LMPHostType>::t_int_1d_3 h_stencilxyz;
 
   NeighListKokkos(class LAMMPS *lmp):
   NeighList(lmp) {_stride = 1; maxneighs = 16;};

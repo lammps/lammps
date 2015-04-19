@@ -9,6 +9,7 @@
 pair_style tersoff command :h3
 pair_style tersoff/table command :h3
 pair_style tersoff/cuda :h3
+pair_style tersoff/kk :h3
 pair_style tersoff/omp :h3
 pair_style tersoff/table/omp command :h3
 

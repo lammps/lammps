@@ -29,6 +29,7 @@ class PairHybrid : public Pair {
   friend class FixGPU;
   friend class FixOMP;
   friend class Force;
+  friend class Respa;
  public:
   PairHybrid(class LAMMPS *);
   virtual ~PairHybrid();
@@ -58,6 +59,8 @@ class PairHybrid : public Pair {
   int *multiple;                // 0 if style used once, else Mth instance
 
   int outerflag;                // toggle compute() when invoked by outer()
+  int respaflag;                // 1 if different substyles are assigned to
+                                // different r-RESPA levels
 
   int **nmap;                   // # of sub-styles itype,jtype points to
   int ***map;                   // list of sub-styles itype,jtype points to

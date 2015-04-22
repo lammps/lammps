@@ -25,6 +25,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "respa.h"
 
 using namespace LAMMPS_NS;
 
@@ -40,6 +41,7 @@ PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp)
   special_coul = NULL;
 
   outerflag = 0;
+  respaflag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -109,19 +111,34 @@ void PairHybrid::compute(int eflag, int vflag)
 
   double *saved_special = save_special();
 
+  Respa *respa = NULL;
+  // check if we are running with r-RESPA using the hybrid keyword
+  if (strstr(update->integrate_style,"respa")) {
+    respa = (Respa *) update->integrate;
+    if (respa->nhybrid_styles > 0)
+      respaflag = 1;
+  }
+
   for (m = 0; m < nstyles; m++) {
 
     set_special(m);
 
-    // invoke compute() unless compute flag is turned off or
-    // outerflag is set and sub-style has a compute_outer() method
+    if (!respaflag || (respaflag && respa->hybrid_compute[m])) {
 
-    if (styles[m]->compute_flag == 0) continue;
-    if (outerflag && styles[m]->respa_enable) 
-      styles[m]->compute_outer(eflag,vflag_substyle);
-    else styles[m]->compute(eflag,vflag_substyle);
+      // invoke compute() unless compute flag is turned off or
+      // outerflag is set and sub-style has a compute_outer() method
+
+      if (styles[m]->compute_flag == 0) continue;
+      if (outerflag && styles[m]->respa_enable) 
+        styles[m]->compute_outer(eflag,vflag_substyle);
+      else styles[m]->compute(eflag,vflag_substyle);
+    }
 
     restore_special(saved_special);
+
+    // jump to next sub-style if r-RESPA does not want global accumulator data
+    if (respaflag && !respa->tally_global)
+      continue;
 
     if (eflag_global) {
       eng_vdwl += styles[m]->eng_vdwl;

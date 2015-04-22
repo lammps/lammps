@@ -169,7 +169,18 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
     level_pair = nlevels-1;
 
   if (level_kspace == -1 && level_pair >= 0) level_kspace = level_pair;
-  if (level_kspace == -1 && level_pair == -1) level_kspace = level_outer;
+  if (level_kspace == -1 && level_pair == -1) {
+    if (nhybrid_styles < 1) {
+      level_kspace = level_outer;
+    } else {
+      int max_hybrid_level = -1;
+      for (int i=0; i < nhybrid_styles; ++i) {
+        if (max_hybrid_level < hybrid_level[i])
+          max_hybrid_level = hybrid_level[i];
+      }
+      level_kspace = max_hybrid_level;
+    }
+  }
 
   // print respa levels
 

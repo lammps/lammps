@@ -43,7 +43,7 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
   // shared ABF
   get_keyval(conf, "shared", shared_on, false);
   if (shared_on) {
-    if (!cvm::replica_enabled || cvm::replica_num() <= 1)
+    if (!cvm::replica_enabled() || cvm::replica_num() <= 1)
       cvm::error("Error: shared ABF requires more than one replica.");
     else
       cvm::log("shared ABF will be applied among "+ cvm::to_str(cvm::replica_num()) + " replicas.\n");

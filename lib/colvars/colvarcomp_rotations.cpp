@@ -33,11 +33,11 @@ colvar::orientation::orientation(std::string const &conf)
     if (get_keyval(conf, "refPositionsFile", file_name)) {
 
       std::string file_col;
-        double file_col_value;
+      double file_col_value=0.0;
       if (get_keyval(conf, "refPositionsCol", file_col, std::string(""))) {
         // use PDB flags if column is provided
         bool found = get_keyval(conf, "refPositionsColValue", file_col_value, 0.0);
-        if (found && !file_col_value)
+        if (found && file_col_value==0.0)
           cvm::fatal_error("Error: refPositionsColValue, "
                             "if provided, must be non-zero.\n");
       } else {

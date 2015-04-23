@@ -849,12 +849,12 @@ colvar::rmsd::rmsd(std::string const &conf)
       }
 
       std::string ref_pos_col;
-      double ref_pos_col_value;
+      double ref_pos_col_value=0.0;
 
       if (get_keyval(conf, "refPositionsCol", ref_pos_col, std::string(""))) {
         // if provided, use PDB column to select coordinates
         bool found = get_keyval(conf, "refPositionsColValue", ref_pos_col_value, 0.0);
-        if (found && !ref_pos_col_value) {
+        if (found && ref_pos_col_value==0.0) {
           cvm::error("Error: refPositionsColValue, "
                      "if provided, must be non-zero.\n");
           return;
@@ -1043,11 +1043,11 @@ colvar::eigenvector::eigenvector(std::string const &conf)
       }
 
       std::string file_col;
-      double file_col_value;
+      double file_col_value=0.0;
       if (get_keyval(conf, "refPositionsCol", file_col, std::string(""))) {
         // use PDB flags if column is provided
         bool found = get_keyval(conf, "refPositionsColValue", file_col_value, 0.0);
-        if (found && !file_col_value) {
+        if (found && file_col_value==0.0) {
           cvm::error("Error: refPositionsColValue, "
                             "if provided, must be non-zero.\n");
           return;
@@ -1107,11 +1107,11 @@ colvar::eigenvector::eigenvector(std::string const &conf)
       }
 
       std::string file_col;
-      double file_col_value;
+      double file_col_value=0.0;
       if (get_keyval(conf, "vectorCol", file_col, std::string(""))) {
         // use PDB flags if column is provided
         bool found = get_keyval(conf, "vectorColValue", file_col_value, 0.0);
-        if (found && !file_col_value) {
+        if (found && file_col_value==0.0) {
           cvm::error("Error: vectorColValue, if provided, must be non-zero.\n");
           return;
         }

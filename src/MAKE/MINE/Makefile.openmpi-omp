@@ -10,7 +10,7 @@ OPENMP= -fopenmp
 
 CC =		mpic++ $(OPENMP)
 CCFLAGS =	-O3 -fomit-frame-pointer \
-			-march=native -ffast-math -mpc64 -g -fstrict-aliasing \
+			-march=core2 -ffast-math -mpc64 -g -fstrict-aliasing \
 			-Wall -Wextra -W -Wno-unused-parameter -Wno-maybe-uninitialized \
 			-Wno-sign-compare
 SHFLAGS =	-fPIC

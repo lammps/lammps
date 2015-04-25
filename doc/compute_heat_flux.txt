@@ -92,7 +92,7 @@ result should be: average conductivity ~0.29 in W/mK.
 [Output info:]
 
 This compute calculates a global vector of length 6 (total heat flux
-vector, followed by conductive heat flux vector), which can be
+vector, followed by convective heat flux vector), which can be
 accessed by indices 1-6.  These values can be used by any command that
 uses global vector values from a compute as input.  See "this
 section"_Section_howto.html#howto_15 for an overview of LAMMPS output

@@ -14,7 +14,8 @@ group ID style args :pre
 
 ID = user-defined name of the group :ulb,l
 style = {delete} or {region} or {type} or {id} or {molecule} or {variable} or \
-      {subtract} or {union} or {intersect} or {dynamic} or {static} :l
+        {include} or {subtract} or {union} or {intersect} or \
+        {dynamic} or {static} :l
   {delete} = no args
   {clear} = no args
   {region} args = region-ID

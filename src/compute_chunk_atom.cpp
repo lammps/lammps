@@ -499,7 +499,7 @@ void ComputeChunkAtom::init()
   }
 
   if ((idsflag != ONCE && !lockcount) && fixstore) {
-    delete fixstore;
+    modify->delete_fix(id_fix);
     fixstore = NULL;
   }
 }

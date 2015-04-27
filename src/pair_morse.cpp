@@ -353,7 +353,7 @@ double PairMorse::single(int i, int j, int itype, int jtype, double rsq,
 void *PairMorse::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"d") == 0) return (void *) d0;
+  if (strcmp(str,"d0") == 0) return (void *) d0;
   if (strcmp(str,"r0") == 0) return (void *) r0;
   if (strcmp(str,"alpha") == 0) return (void *) alpha;
   return NULL;

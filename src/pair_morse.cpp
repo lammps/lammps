@@ -14,6 +14,7 @@
 #include "math.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "string.h"
 #include "pair_morse.h"
 #include "atom.h"
 #include "comm.h"
@@ -345,4 +346,15 @@ double PairMorse::single(int i, int j, int itype, int jtype, double rsq,
 
   phi = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) - offset[itype][jtype];
   return factor_lj*phi;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairMorse::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"d") == 0) return (void *) d0;
+  if (strcmp(str,"r0") == 0) return (void *) r0;
+  if (strcmp(str,"alpha") == 0) return (void *) alpha;
+  return NULL;
 }

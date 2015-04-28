@@ -281,12 +281,12 @@ double PairLJExpand::init_one(int i, int j)
     double shift2 = shift[i][j]*shift[i][j];
     double shift3 = shift2*shift[i][j];
     etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
-      sig6*(sig6*(1.0/(9.0*rc9) + shift[i][j]/(5.0*rc10) +
+      sig6*(sig6*(1.0/(9.0*rc9) + 2.0*shift[i][j]/(10.0*rc10) +
 		  shift2/(11.0*rc11)) -
-            (1.0/(3.0*rc3) + shift[i][j]/(2.0*rc4) + shift2/(5.0*rc5)));
+            (1.0/(3.0*rc3) + 2.0*shift[i][j]/(4.0*rc4) + shift2/(5.0*rc5)));
     ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
-      sig6*(sig6*(2.0/(9.0*rc9) + 3.0*shift[i][j]/(5.0*rc10) +
-		  6.0*shift2/(11.0*rc11) + shift3/(6.0*rc12)) -
+      sig6*(2.0*sig6*(1.0/(9.0*rc9) + 3.0*shift[i][j]/(10.0*rc10) +
+		  3.0*shift2/(11.0*rc11) + shift3/(12.0*rc12)) -
 	    (1.0/(3.0*rc3) + 3.0*shift[i][j]/(4.0*rc4) +
 	     3.0*shift2/(5.0*rc5) + shift3/(6.0*rc6)));
   }

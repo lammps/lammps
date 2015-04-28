@@ -108,6 +108,7 @@ styles and their energy formulas for the meaning of these parameters:
 "lj/expand"_pair_lj_expand.html: epsilon,sigma,delta: type pairs:
 "lubricate"_pair_lubricate.html: mu: global:
 "gauss"_pair_gauss.html: a: type pairs:
+"morse"_pair_morse.html: d0,r0,alpha: type pairs:
 "soft"_pair_soft.html: a: type pairs :tb(c=3,s=:)
 
 IMPORTANT NOTE: It is easy to add new potentials and their parameters

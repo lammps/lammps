@@ -61,9 +61,9 @@ used to find the appropriate set of coefficients which are used to
 evaluate a cubic polynomial which computes the energy or force.
 </P>
 <P>For the <I>bitmap</I> style, the N means to create interpolation tables
-that are 2^N in length.  <The pair distance is used to index into the
-table via a fast bit-mapping technique <A HREF = "#Wolff">(Wolff)</A> and a linear
-interpolation is performed between adjacent table values.
+that are 2^N in length.  The pair distance is used to index into the
+table via a fast bit-mapping technique due to <A HREF = "#Wolff">(Wolff)</A>, and a
+linear interpolation is performed between adjacent table values.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
 types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples

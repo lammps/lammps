@@ -2658,6 +2658,12 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, int imol,
   double ctr2com[3],ctr2com_rotate[3];
   double rotmat[3][3];
 
+  // increment total # of rigid bodies
+
+  nbody++;
+
+  // loop over atoms I added for the new body
+
   int nlocal = atom->nlocal;
   if (nlocalprev == nlocal) return;
 
@@ -2715,10 +2721,6 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, int imol,
       nlocal_body++;
     }
   }
-
-  // increment total # of rigid bodies
-
-  nbody++;
 }
 
 /* ----------------------------------------------------------------------

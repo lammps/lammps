@@ -8,9 +8,10 @@
 #include "colvarproxy.h"
 #include "colvar.h"
 #include "colvarbias.h"
-#include "colvarbias_alb.h"
-#include "colvarbias_meta.h"
 #include "colvarbias_abf.h"
+#include "colvarbias_alb.h"
+#include "colvarbias_histogram.h"
+#include "colvarbias_meta.h"
 #include "colvarbias_restraint.h"
 #include "colvarscript.h"
 
@@ -523,13 +524,13 @@ int colvarmodule::calc() {
       cvm::log("Perform runtime analyses.\n");
     cvm::increase_depth();
     for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
-      (*cvi)->analyse();
+      (*cvi)->analyze();
       if (cvm::get_error()) {
         return COLVARS_ERROR;
       }
     }
     for (bi = biases.begin(); bi != biases.end(); bi++) {
-      (*bi)->analyse();
+      (*bi)->analyze();
       if (cvm::get_error()) {
         return COLVARS_ERROR;
       }
@@ -627,7 +628,7 @@ int colvarmodule::analyze()
        cvi != colvars.end();
        cvi++) {
     cvm::increase_depth();
-    (*cvi)->analyse();
+    (*cvi)->analyze();
     cvm::decrease_depth();
   }
 
@@ -636,7 +637,7 @@ int colvarmodule::analyze()
        bi != biases.end();
        bi++) {
     cvm::increase_depth();
-    (*bi)->analyse();
+    (*bi)->analyze();
     cvm::decrease_depth();
   }
 
@@ -717,13 +718,15 @@ int colvarmodule::setup_input()
       cvm::log(cvm::line_marker);
     }
   }
-  return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 
+  return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }
 
 
 int colvarmodule::setup_output()
 {
+  int error_code = 0;
+
   // output state file (restart)
   restart_out_name = proxy->restart_output_prefix().size() ?
     std::string(proxy->restart_output_prefix()+".colvars.state") :
@@ -748,7 +751,17 @@ int colvarmodule::setup_output()
      std::string(""));
 
   if (cv_traj_freq && cv_traj_name.size()) {
-    open_traj_file(cv_traj_name);
+    error_code |= open_traj_file(cv_traj_name);
+  }
+
+  for (std::vector<colvarbias *>::iterator bi = biases.begin();
+       bi != biases.end();
+       bi++) {
+    error_code |= (*bi)->setup_output();
+  }
+
+  if (error_code != COLVARS_OK || cvm::get_error()) {
+    set_error_bits(FILE_ERROR);
   }
 
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
@@ -828,6 +841,14 @@ int colvarmodule::write_output_files()
   }
   cvm::decrease_depth();
 
+  cvm::increase_depth();
+  for (std::vector<colvarbias *>::iterator bi = biases.begin();
+       bi != biases.end();
+       bi++) {
+    (*bi)->write_output_files();
+  }
+  cvm::decrease_depth();
+
   if (cv_traj_os.is_open()) {
     // do not close to avoid problems with multiple NAMD runs
     cv_traj_os.flush();
@@ -839,8 +860,8 @@ int colvarmodule::write_output_files()
 
 
 int colvarmodule::read_traj(char const *traj_filename,
-                            size_t      traj_read_begin,
-                            size_t      traj_read_end)
+                            long        traj_read_begin,
+                            long        traj_read_end)
 {
   cvm::log("Opening trajectory file \""+
            std::string(traj_filename)+"\".\n");
@@ -1204,8 +1225,8 @@ colvarproxy              *colvarmodule::proxy = NULL;
 // static runtime data
 cvm::real colvarmodule::debug_gradients_step_size = 1.0e-03;
 int       colvarmodule::errorCode = 0;
-size_t    colvarmodule::it = 0;
-size_t    colvarmodule::it_restart = 0;
+long      colvarmodule::it = 0;
+long      colvarmodule::it_restart = 0;
 size_t    colvarmodule::restart_out_freq = 0;
 size_t    colvarmodule::cv_traj_freq = 0;
 size_t    colvarmodule::depth = 0;

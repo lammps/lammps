@@ -227,6 +227,7 @@ size_t      colvarparse::dummy_pos = 0;
 
 _get_keyval_scalar_(int);
 _get_keyval_scalar_(size_t);
+_get_keyval_scalar_(long);
 _get_keyval_scalar_string_(std::string);
 _get_keyval_scalar_(cvm::real);
 _get_keyval_scalar_(cvm::rvector);
@@ -238,6 +239,7 @@ _get_keyval_scalar_(colvarvalue);
 
 _get_keyval_vector_(int);
 _get_keyval_vector_(size_t);
+_get_keyval_vector_(long);
 _get_keyval_vector_(std::string);
 _get_keyval_vector_(cvm::real);
 _get_keyval_vector_(cvm::rvector);

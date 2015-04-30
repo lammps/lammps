@@ -331,8 +331,6 @@ int cvm::atom_group::parse(std::string const &conf,
     } else {
       get_keyval(group_conf, "disableForces", noforce, false, colvarparse::parse_silent);
     }
-
-    get_keyval(group_conf, "weights", weights, weights, colvarparse::parse_silent);
   }
 
   // FITTING OPTIONS
@@ -380,12 +378,12 @@ int cvm::atom_group::parse(std::string const &conf,
       }
 
       std::string ref_pos_col;
-      double ref_pos_col_value;
+      double ref_pos_col_value=0.0;
 
       if (get_keyval(group_conf, "refPositionsCol", ref_pos_col, std::string(""), mode)) {
         // if provided, use PDB column to select coordinates
         bool found = get_keyval(group_conf, "refPositionsColValue", ref_pos_col_value, 0.0, mode);
-        if (found && !ref_pos_col_value)
+        if (found && ref_pos_col_value == 0.0)
           cvm::error("Error: refPositionsColValue, "
                       "if provided, must be non-zero.\n");
       } else {

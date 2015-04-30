@@ -501,7 +501,6 @@ void colvarmodule::rotation::calc_optimal_rotation(std::vector<cvm::atom_pos> co
           cvm::quaternion const Q0_new(S_new_eigvec[0]);
 
           cvm::real const DL0 = (dl0_2[comp]) * colvarmodule::debug_gradients_step_size;
-          cvm::quaternion const q0(Q0);
           cvm::quaternion const DQ0(dq0_2[0][comp] * colvarmodule::debug_gradients_step_size,
                                     dq0_2[1][comp] * colvarmodule::debug_gradients_step_size,
                                     dq0_2[2][comp] * colvarmodule::debug_gradients_step_size,

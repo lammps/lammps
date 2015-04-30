@@ -285,9 +285,9 @@ void ComputePressure::virial_compute(int n, int ndiag)
   if (kspace_virial)
     for (i = 0; i < n; i++) virial[i] += kspace_virial[i];
 
-  // LJ long-range tail correction
+  // LJ long-range tail correction, only if pair contributions are included
 
-  if (force->pair && force->pair->tail_flag)
+  if (force->pair && pairflag && force->pair->tail_flag)
     for (i = 0; i < ndiag; i++) virial[i] += force->pair->ptail * inv_volume;
 }
 

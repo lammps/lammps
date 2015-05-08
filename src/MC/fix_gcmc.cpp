@@ -226,7 +226,15 @@ void FixGCMC::options(int narg, char **arg)
   charge_flag = false;
   full_flag = false;
   idshake = NULL;
-  
+  ngroups = 0;
+  int ngroupsmax = 0;
+  groupstrings = NULL;
+  ngrouptypes = 0;
+  int ngrouptypesmax = 0;
+  grouptypestrings = NULL;
+  grouptypes = NULL;
+  grouptypebits = NULL;
+
   int iarg = 0;
   while (iarg < narg) {
   if (strcmp(arg[iarg],"mol") == 0) {
@@ -281,6 +289,33 @@ void FixGCMC::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"full_energy") == 0) {
       full_flag = true;
       iarg += 1;
+    } else if (strcmp(arg[iarg],"group") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      if (ngroups >= ngroupsmax) {
+	ngroupsmax = ngroups+1;
+	groupstrings = (char**) memory->srealloc(groupstrings,ngroupsmax*sizeof(char *),
+			 "fix_gcmc:groupstrings");
+      }
+      int n = strlen(arg[iarg+1]) + 1;
+      groupstrings[ngroups] = new char[n];
+      strcpy(groupstrings[ngroups],arg[iarg+1]);
+      ngroups++;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"grouptype") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      if (ngrouptypes >= ngrouptypesmax) {
+	ngrouptypesmax = ngrouptypes+1;
+	grouptypes = (int*) memory->srealloc(grouptypes,ngrouptypesmax*sizeof(int),
+			 "fix_gcmc:grouptypes");
+	grouptypestrings = (char**) memory->srealloc(grouptypestrings,ngrouptypesmax*sizeof(char *),
+			 "fix_gcmc:grouptypestrings");
+      }
+      grouptypes[ngrouptypes] = atoi(arg[iarg+1]);
+      int n = strlen(arg[iarg+2]) + 1;
+      grouptypestrings[ngrouptypes] = new char[n];
+      strcpy(grouptypestrings[ngrouptypes],arg[iarg+2]);
+      ngrouptypes++;
+      iarg += 3;
     } else error->all(FLERR,"Illegal fix gcmc command");
   }
 }
@@ -303,6 +338,8 @@ FixGCMC::~FixGCMC()
     group->assign(2,group_arg);
     delete [] group_arg;
   } 
+
+  // This seems to be causing seg-faults
   
   if (exclusion_group && (strcmp(group->names[0],"all") == 0)) {
     char **group_arg = new char*[2];
@@ -318,6 +355,20 @@ FixGCMC::~FixGCMC()
   memory->destroy(imageflags);
   
   delete [] idshake;
+
+  if (ngroups > 0) {
+    for (int igroup = 0; igroup < ngroups; igroup++)
+      delete [] groupstrings[igroup];
+    memory->destroy(groupstrings);
+  }
+
+  if (ngrouptypes > 0) {
+    for (int igroup = 0; igroup < ngrouptypes; igroup++)
+      delete [] grouptypestrings[igroup];
+    memory->destroy(grouptypestrings);
+    memory->destroy(grouptypes);
+    memory->destroy(grouptypebits);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -515,6 +566,31 @@ void FixGCMC::init()
   
   imagetmp = ((imageint) IMGMAX << IMG2BITS) | 
              ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+
+  // construct group bitmask for all new atoms
+  // aggregated over all group keywords
+ 
+  groupbitall = 1 | groupbit;
+  for (int igroup = 0; igroup < ngroups; igroup++) {
+    int jgroup = group->find(groupstrings[igroup]);
+    if (jgroup == -1) 
+      error->all(FLERR,"Could not find specified fix gcmc group ID");
+    groupbitall |= group->bitmask[jgroup];
+  }
+
+  // construct group type bitmasks
+  // not aggregated over all group keywords
+
+  if (ngrouptypes > 0) {
+    memory->create(grouptypebits,ngrouptypes,"fix_gcmc:grouptypebits");
+    for (int igroup = 0; igroup < ngrouptypes; igroup++) {
+      int jgroup = group->find(grouptypestrings[igroup]);
+      if (jgroup == -1) 
+	error->all(FLERR,"Could not find specified fix gcmc group ID");
+      grouptypebits[igroup] = group->bitmask[jgroup];
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -750,7 +826,16 @@ void FixGCMC::attempt_atomic_insertion()
         zz*volume*exp(-beta*insertion_energy)/(ngas+1)) {
       atom->avec->create_atom(ngcmc_type,coord);
       int m = atom->nlocal - 1;
-      atom->mask[m] = 1 | groupbit;
+
+      // add to groups
+      // optionally add to type-based groups
+
+      atom->mask[m] = groupbitall;
+      for (int igroup = 0; igroup < ngrouptypes; igroup++) {
+	if (ngcmc_type == grouptypes[igroup])
+	  atom->mask[m] |= grouptypebits[igroup];
+      }
+
       atom->v[m][0] = random_unequal->gaussian()*sigma;
       atom->v[m][1] = random_unequal->gaussian()*sigma;
       atom->v[m][2] = random_unequal->gaussian()*sigma;
@@ -1086,7 +1171,16 @@ void FixGCMC::attempt_molecule_insertion()
       if (procflag[i]) {
         atom->avec->create_atom(ngcmc_type+onemols[imol]->type[i],atom_coord[i]);
         int m = atom->nlocal - 1;
-        atom->mask[m] = 1 | groupbit;
+
+	// add to groups
+	// optionally add to type-based groups
+
+	atom->mask[m] = groupbitall;
+	for (int igroup = 0; igroup < ngrouptypes; igroup++) {
+	  if (ngcmc_type == grouptypes[igroup])
+	    atom->mask[m] |= grouptypebits[igroup];
+	}
+
         atom->image[m] = imagetmp;
         domain->remap(atom->x[m],atom->image[m]);
         atom->molecule[m] = maxmol_all;
@@ -1347,7 +1441,16 @@ void FixGCMC::attempt_atomic_insertion_full()
     proc_flag = 1;
     atom->avec->create_atom(ngcmc_type,coord);
     int m = atom->nlocal - 1;
-    atom->mask[m] = 1 | groupbit;
+
+    // add to groups
+    // optionally add to type-based groups
+    
+    atom->mask[m] = groupbitall;
+    for (int igroup = 0; igroup < ngrouptypes; igroup++) {
+      if (ngcmc_type == grouptypes[igroup])
+	atom->mask[m] |= grouptypebits[igroup];
+    }
+
     atom->v[m][0] = random_unequal->gaussian()*sigma;
     atom->v[m][1] = random_unequal->gaussian()*sigma;
     atom->v[m][2] = random_unequal->gaussian()*sigma;
@@ -1696,7 +1799,18 @@ void FixGCMC::attempt_molecule_insertion_full()
 
       atom->avec->create_atom(ngcmc_type+onemols[imol]->type[i],xtmp);
       int m = atom->nlocal - 1;
-      atom->mask[m] = 1 | groupbit;
+
+      // add to groups
+      // optionally add to type-based groups
+
+      atom->mask[m] = groupbitall;
+      printf("ngrouptypes %d\n",ngrouptypes);
+      for (int igroup = 0; igroup < ngrouptypes; igroup++) {
+	printf("check type %d %d\n",ngcmc_type,grouptypes[igroup]);
+	if (ngcmc_type == grouptypes[igroup])
+	  atom->mask[m] |= grouptypebits[igroup];
+      }
+
       atom->image[m] = imagetmp;
       domain->remap(atom->x[m],atom->image[m]);
       atom->molecule[m] = insertion_molecule;

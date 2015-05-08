@@ -74,9 +74,16 @@ class FixGCMC : public Fix {
   bool pressure_flag;       // true if user specified reservoir pressure
   bool charge_flag;         // true if user specified atomic charge
   bool full_flag;           // true if doing full system energy calculations
-
+ 
   int natoms_per_molecule;  // number of atoms in each gas molecule
 
+  int groupbitall;          // group bitmask for inserted atoms
+  int ngroups;              // number of group-ids for inserted atoms
+  char** groupstrings;      // list of group-ids for inserted atoms
+  int ngrouptypes;          // number of type-based group-ids for inserted atoms
+  char** grouptypestrings;  // list of type-based group-ids for inserted atoms
+  int* grouptypebits;       // list of type-based group bitmasks 
+  int* grouptypes;          // list of type-based group types 
   double ntranslation_attempts;
   double ntranslation_successes;
   double nrotation_attempts;

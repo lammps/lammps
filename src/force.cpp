@@ -106,6 +106,13 @@ Force::~Force()
   if (improper) delete improper;
   if (kspace) delete kspace;
 
+  pair = NULL;
+  bond = NULL;
+  angle = NULL;
+  dihedral = NULL;
+  improper = NULL;
+  kspace = NULL;
+
   delete pair_map;
 }
 

@@ -23,7 +23,7 @@ T = temperature of the ideal gas reservoir (temperature units) :l
 mu = chemical potential of the ideal gas reservoir (energy units) :l
 displace = maximum Monte Carlo displacement distance (length units) :l
 zero or more keyword/value pairs may be appended to args :l
-keyword = {mol}, {region}, {maxangle}, {pressure}, {fugacity_coeff}, {full_energy}, or {charge} :l
+keyword = {mol}, {region}, {maxangle}, {pressure}, {fugacity_coeff}, {full_energy}, {charge}, {group} or {grouptype} :l
   {mol} value = template-ID
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
   {shake} value = fix-ID
@@ -31,10 +31,15 @@ keyword = {mol}, {region}, {maxangle}, {pressure}, {fugacity_coeff}, {full_energ
   {region} value = region-ID
     region-ID = ID of region to use as an exchange/move volume 
   {maxangle} value = maximum molecular rotation angle (degrees) 
-  {pressure} value = pressue of the gas reservoir (pressure units)
+  {pressure} value = pressure of the gas reservoir (pressure units)
   {fugacity_coeff} value = fugacity coefficient of the gas reservoir (unitless) 
   {full_energy} = compute the entire system energy when performing MC moves
-  {charge} value = charge of inserted atoms (charge units) :pre
+  {charge} value = charge of inserted atoms (charge units)
+  {group} value = group-ID
+    group-ID = group-ID for inserted atoms (string)
+  {grouptype} values = type group-ID 
+    type = atom type (int)
+    group-ID = group-ID for inserted atoms (string) :pre
 :ule
 
 [Examples:]
@@ -69,9 +74,11 @@ translations are attempted 100% of the time. For MC exchanges of
 either molecular or atomic gasses, deletions and insertions are each
 attempted with 50% probability.
 
-All inserted particles are assigned to two groups: the default group
+All inserted particles are always assigned to two groups: the default group
 "all" and the group specified in the fix gcmc command (which can also
-be "all").  If inserted particles are individual atoms, they are
+be "all"). In addition, particles are also added to any groups specified
+by the {group} and {grouptype} keywords.
+If inserted particles are individual atoms, they are
 assigned the specified atom type.  If they are molecules, the type of
 each atom in the inserted molecule is specified in the file read by
 the "molecule"_molecule.html command, and those values are added to
@@ -214,6 +221,11 @@ fix as the reduced value for Planck's constant.  This value was
 derived from LJ paramters for argon, where h* = h/sqrt(sigma^2 *
 epsilon * mass), sigma = 3.429 angstroms, epsilon/k = 121.85 K, and
 mass = 39.948 amu.
+
+The {group} keyword assigns all inserted atoms to the "group"_group.html 
+the group-ID value. The {grouptype} keyword assigns all 
+inserted atoms of the specified type to the "group"_group.html 
+of the group-ID value.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

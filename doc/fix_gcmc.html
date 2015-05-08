@@ -37,7 +37,7 @@
 
 <LI>zero or more keyword/value pairs may be appended to args 
 
-<LI>keyword = <I>mol</I>, <I>region</I>, <I>maxangle</I>, <I>pressure</I>, <I>fugacity_coeff</I>, <I>full_energy</I>, or <I>charge</I> 
+<LI>keyword = <I>mol</I>, <I>region</I>, <I>maxangle</I>, <I>pressure</I>, <I>fugacity_coeff</I>, <I>full_energy</I>, <I>charge</I>, <I>group</I> or <I>grouptype</I> 
 
 <PRE>  <I>mol</I> value = template-ID
     template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
@@ -46,10 +46,15 @@
   <I>region</I> value = region-ID
     region-ID = ID of region to use as an exchange/move volume 
   <I>maxangle</I> value = maximum molecular rotation angle (degrees) 
-  <I>pressure</I> value = pressue of the gas reservoir (pressure units)
+  <I>pressure</I> value = pressure of the gas reservoir (pressure units)
   <I>fugacity_coeff</I> value = fugacity coefficient of the gas reservoir (unitless) 
   <I>full_energy</I> = compute the entire system energy when performing MC moves
-  <I>charge</I> value = charge of inserted atoms (charge units) 
+  <I>charge</I> value = charge of inserted atoms (charge units)
+  <I>group</I> value = group-ID
+    group-ID = group-ID for inserted atoms (string)
+  <I>grouptype</I> values = type group-ID 
+    type = atom type (int)
+    group-ID = group-ID for inserted atoms (string) 
 </PRE>
 
 </UL>
@@ -85,9 +90,11 @@ translations are attempted 100% of the time. For MC exchanges of
 either molecular or atomic gasses, deletions and insertions are each
 attempted with 50% probability.
 </P>
-<P>All inserted particles are assigned to two groups: the default group
+<P>All inserted particles are always assigned to two groups: the default group
 "all" and the group specified in the fix gcmc command (which can also
-be "all").  If inserted particles are individual atoms, they are
+be "all"). In addition, particles are also added to any groups specified
+by the <I>group</I> and <I>grouptype</I> keywords.
+If inserted particles are individual atoms, they are
 assigned the specified atom type.  If they are molecules, the type of
 each atom in the inserted molecule is specified in the file read by
 the <A HREF = "molecule.html">molecule</A> command, and those values are added to
@@ -230,6 +237,11 @@ fix as the reduced value for Planck's constant.  This value was
 derived from LJ paramters for argon, where h* = h/sqrt(sigma^2 *
 epsilon * mass), sigma = 3.429 angstroms, epsilon/k = 121.85 K, and
 mass = 39.948 amu.
+</P>
+<P>The <I>group</I> keyword assigns all inserted atoms to the <A HREF = "group.html">group</A> 
+the group-ID value. The <I>grouptype</I> keyword assigns all 
+inserted atoms of the specified type to the <A HREF = "group.html">group</A> 
+of the group-ID value.
 </P>
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>

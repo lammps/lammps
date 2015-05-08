@@ -351,15 +351,17 @@ FixGCMC::~FixGCMC()
   delete [] idshake;
 
   if (ngroups > 0) {
-    // calling 2d destructor
-    memory->destroy(groupstrings);
+    for (int igroup = 0; igroup < ngroups; igroup++) 
+      delete [] groupstrings[igroup];
+    memory->sfree(groupstrings);
   }
 
   if (ngrouptypes > 0) {
     memory->destroy(grouptypes);
     memory->destroy(grouptypebits);
-    // calling 2d destructor
-    memory->destroy(grouptypestrings);
+    for (int igroup = 0; igroup < ngrouptypes; igroup++) 
+      delete [] grouptypestrings[igroup];
+    memory->sfree(grouptypestrings);
   }
 }
 

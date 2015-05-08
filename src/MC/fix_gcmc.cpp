@@ -293,8 +293,10 @@ void FixGCMC::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
       if (ngroups >= ngroupsmax) {
 	ngroupsmax = ngroups+1;
-	groupstrings = (char**) memory->srealloc(groupstrings,ngroupsmax*sizeof(char *),
-			 "fix_gcmc:groupstrings");
+	groupstrings = (char **) 
+	  memory->srealloc(groupstrings,
+			   ngroupsmax*sizeof(char *),
+			   "fix_gcmc:groupstrings");
       }
       int n = strlen(arg[iarg+1]) + 1;
       groupstrings[ngroups] = new char[n];
@@ -307,8 +309,10 @@ void FixGCMC::options(int narg, char **arg)
 	ngrouptypesmax = ngrouptypes+1;
 	grouptypes = (int*) memory->srealloc(grouptypes,ngrouptypesmax*sizeof(int),
 			 "fix_gcmc:grouptypes");
-	grouptypestrings = (char**) memory->srealloc(grouptypestrings,ngrouptypesmax*sizeof(char *),
-			 "fix_gcmc:grouptypestrings");
+	grouptypestrings = (char**) 
+	  memory->srealloc(grouptypestrings,
+			   ngrouptypesmax*sizeof(char *),
+			   "fix_gcmc:grouptypestrings");
       }
       grouptypes[ngrouptypes] = atoi(arg[iarg+1]);
       int n = strlen(arg[iarg+2]) + 1;
@@ -339,16 +343,6 @@ FixGCMC::~FixGCMC()
     delete [] group_arg;
   } 
 
-  // This seems to be causing seg-faults
-  
-  if (exclusion_group && (strcmp(group->names[0],"all") == 0)) {
-    char **group_arg = new char*[2];
-    group_arg[0] = group->names[exclusion_group];
-    group_arg[1] = (char *) "delete";
-    group->assign(2,group_arg);
-    delete [] group_arg;
-  } 
-
   memory->destroy(local_gas_list);
   memory->destroy(atom_coord);
   memory->destroy(coords);
@@ -357,17 +351,15 @@ FixGCMC::~FixGCMC()
   delete [] idshake;
 
   if (ngroups > 0) {
-    for (int igroup = 0; igroup < ngroups; igroup++)
-      delete [] groupstrings[igroup];
+    // calling 2d destructor
     memory->destroy(groupstrings);
   }
 
   if (ngrouptypes > 0) {
-    for (int igroup = 0; igroup < ngrouptypes; igroup++)
-      delete [] grouptypestrings[igroup];
-    memory->destroy(grouptypestrings);
     memory->destroy(grouptypes);
     memory->destroy(grouptypebits);
+    // calling 2d destructor
+    memory->destroy(grouptypestrings);
   }
 }
 
@@ -494,6 +486,8 @@ void FixGCMC::init()
     arg[3] = (char *) "all";
     neighbor->modify_params(narg,arg);
     delete [] group_arg[0];
+    delete [] group_arg;
+    delete [] arg;
   }
     
   // create a new group for temporary use with selected molecules
@@ -515,6 +509,7 @@ void FixGCMC::init()
     molecule_group_bit = group->bitmask[molecule_group];
     molecule_group_inversebit = molecule_group_bit ^ ~0;
     delete [] group_arg[0];
+    delete [] group_arg;
   }
     
   // get all of the needed molecule data if mode == MOLECULE, 
@@ -1364,20 +1359,21 @@ void FixGCMC::attempt_atomic_translation_full()
 void FixGCMC::attempt_atomic_deletion_full()
 {
   double q_tmp;
-  
+  const int q_flag = atom->q_flag;
+
   ndeletion_attempts += 1.0;
 
   if (ngas == 0) return;
   
   double energy_before = energy_stored;
 
-  int i = pick_random_gas_atom();
+  const int i = pick_random_gas_atom();
 
   int tmpmask;
   if (i >= 0) {
     tmpmask = atom->mask[i];
     atom->mask[i] = exclusion_group_bit;
-    if (atom->q_flag) {
+    if (q_flag) {
       q_tmp = atom->q[i];
       atom->q[i] = 0.0;
     }
@@ -1398,7 +1394,7 @@ void FixGCMC::attempt_atomic_deletion_full()
   } else {
     if (i >= 0) {
       atom->mask[i] = tmpmask;
-      if (atom->q_flag) atom->q[i] = q_tmp;
+      if (q_flag) atom->q[i] = q_tmp;
     }
     if (force->kspace) force->kspace->qsum_qsq();
     energy_stored = energy_before;

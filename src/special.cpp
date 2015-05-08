@@ -72,8 +72,8 @@ void Special::build()
     const double * const special_lj   = force->special_lj;
     const double * const special_coul = force->special_coul;
     fprintf(screen,"Finding 1-2 1-3 1-4 neighbors ...\n"
-                   " Factors LJ:   %-10g %-10g %-10g\n"
-                   " Factors Coul: %-10g %-10g %-10g\n",
+                   " Special bond factors lj:   %-10g %-10g %-10g\n"
+                   " Special bond factors coul: %-10g %-10g %-10g\n",
                    special_lj[1],special_lj[2],special_lj[3],
                    special_coul[1],special_coul[2],special_coul[3]);
   }

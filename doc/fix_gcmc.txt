@@ -23,7 +23,7 @@ T = temperature of the ideal gas reservoir (temperature units) :l
 mu = chemical potential of the ideal gas reservoir (energy units) :l
 displace = maximum Monte Carlo displacement distance (length units) :l
 zero or more keyword/value pairs may be appended to args :l
-keyword = {mol}, {region}, {maxangle}, {pressure}, {fugacity_coeff}, {full_energy}, {charge}, {group} or {grouptype} :l
+keyword = {mol}, {region}, {maxangle}, {pressure}, {fugacity_coeff}, {full_energy}, {charge}, {group} or {grouptype} {intra_energy}:l
   {mol} value = template-ID
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command
   {shake} value = fix-ID
@@ -39,7 +39,8 @@ keyword = {mol}, {region}, {maxangle}, {pressure}, {fugacity_coeff}, {full_energ
     group-ID = group-ID for inserted atoms (string)
   {grouptype} values = type group-ID 
     type = atom type (int)
-    group-ID = group-ID for inserted atoms (string) :pre
+    group-ID = group-ID for inserted atoms (string)
+  {intra_energy} value = intramolecular energy (energy units)  :pre
 :ule
 
 [Examples:]
@@ -189,6 +190,15 @@ potential energy calculations, including the following:
   eam pair styles
   triclinic systems 
   need to include potential energy contributions from other fixes :ul
+
+When the {mol} keyword is used, the {full_energy} option also includes 
+the intramolecular energy of inserted and deleted molecules. If this 
+is not desired, the {intra_energy} keyword can be used to define an
+amount of energy that is subtracted from the final energy when a molecule
+is inserted, and added to the initial energy when a molecule is
+deleted. For molecules that have a non-zero intramolecular energy, this
+will ensure roughly the same behavior whether or not the {full_energy}
+option is used.
 
 Some fixes have an associated potential energy. Examples of such fixes
 include: "efield"_fix_efield.html, "gravity"_fix_gravity.html, 

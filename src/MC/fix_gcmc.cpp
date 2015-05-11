@@ -332,17 +332,6 @@ FixGCMC::~FixGCMC()
   delete random_equal;
   delete random_unequal;
 
-  // remove groups this fix defined
-  // only do it if the groups exists and group itself exists
-
-  if (molecule_group && (strcmp(group->names[0],"all") == 0)) {
-    char **group_arg = new char*[2];
-    group_arg[0] = group->names[molecule_group];
-    group_arg[1] = (char *) "delete";
-    group->assign(2,group_arg);
-    delete [] group_arg;
-  } 
-
   memory->destroy(local_gas_list);
   memory->destroy(atom_coord);
   memory->destroy(coords);
@@ -1724,7 +1713,7 @@ void FixGCMC::attempt_molecule_insertion_full()
   ninsertion_attempts += 1.0;
   
   double energy_before = energy_stored;
-  
+
   tagint maxmol = 0;
   for (int i = 0; i < atom->nlocal; i++) maxmol = MAX(maxmol,atom->molecule[i]);
   tagint maxmol_all;
@@ -1802,9 +1791,7 @@ void FixGCMC::attempt_molecule_insertion_full()
       // optionally add to type-based groups
 
       atom->mask[m] = groupbitall;
-      printf("ngrouptypes %d\n",ngrouptypes);
       for (int igroup = 0; igroup < ngrouptypes; igroup++) {
-	printf("check type %d %d\n",ngcmc_type,grouptypes[igroup]);
 	if (ngcmc_type == grouptypes[igroup])
 	  atom->mask[m] |= grouptypebits[igroup];
       }

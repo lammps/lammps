@@ -112,6 +112,8 @@ class FixGCMC : public Fix {
   double **atom_coord;
   imageint imagetmp;
 
+  double energy_intra;
+
   class Pair *pair;
 
   class RanPark *random_equal;

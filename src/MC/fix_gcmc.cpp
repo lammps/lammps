@@ -234,6 +234,7 @@ void FixGCMC::options(int narg, char **arg)
   grouptypestrings = NULL;
   grouptypes = NULL;
   grouptypebits = NULL;
+  energy_intra = 0.0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -320,6 +321,10 @@ void FixGCMC::options(int narg, char **arg)
       strcpy(grouptypestrings[ngrouptypes],arg[iarg+2]);
       ngrouptypes++;
       iarg += 3;
+    } else if (strcmp(arg[iarg],"intra_energy") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      energy_intra = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix gcmc command");
   }
 }
@@ -331,17 +336,6 @@ FixGCMC::~FixGCMC()
   if (regionflag) delete [] idregion;
   delete random_equal;
   delete random_unequal;
-
-  // remove groups this fix defined
-  // only do it if the groups exists and group itself exists
-
-  if (molecule_group && (strcmp(group->names[0],"all") == 0)) {
-    char **group_arg = new char*[2];
-    group_arg[0] = group->names[molecule_group];
-    group_arg[1] = (char *) "delete";
-    group->assign(2,group_arg);
-    delete [] group_arg;
-  } 
 
   memory->destroy(local_gas_list);
   memory->destroy(atom_coord);
@@ -1685,8 +1679,11 @@ void FixGCMC::attempt_molecule_deletion_full()
   if (force->kspace) force->kspace->qsum_qsq();
   double energy_after = energy_full();  
 
-  if (random_equal->uniform() < 
-      ngas*exp(beta*(energy_before - energy_after))/(zz*volume*natoms_per_molecule)) {
+  // energy_before corrected by energy_intra
+
+  double deltaphi = ngas*exp(beta*((energy_before - energy_intra) - energy_after))/(zz*volume*natoms_per_molecule);
+
+  if (random_equal->uniform() < deltaphi) {
     int i = 0;
     while (i < atom->nlocal) {
       if (atom->molecule[i] == deletion_molecule) {
@@ -1724,7 +1721,7 @@ void FixGCMC::attempt_molecule_insertion_full()
   ninsertion_attempts += 1.0;
   
   double energy_before = energy_stored;
-  
+
   tagint maxmol = 0;
   for (int i = 0; i < atom->nlocal; i++) maxmol = MAX(maxmol,atom->molecule[i]);
   tagint maxmol_all;
@@ -1802,9 +1799,7 @@ void FixGCMC::attempt_molecule_insertion_full()
       // optionally add to type-based groups
 
       atom->mask[m] = groupbitall;
-      printf("ngrouptypes %d\n",ngrouptypes);
       for (int igroup = 0; igroup < ngrouptypes; igroup++) {
-	printf("check type %d %d\n",ngcmc_type,grouptypes[igroup]);
 	if (ngcmc_type == grouptypes[igroup])
 	  atom->mask[m] |= grouptypebits[igroup];
       }
@@ -1840,8 +1835,12 @@ void FixGCMC::attempt_molecule_insertion_full()
   if (force->kspace) force->kspace->qsum_qsq();
   double energy_after = energy_full();
 
-  if (random_equal->uniform() < zz*volume*natoms_per_molecule*
-      exp(beta*(energy_before - energy_after))/(ngas + natoms_per_molecule)) {  
+  // energy_after corrected by energy_intra
+
+  double deltaphi = zz*volume*natoms_per_molecule*
+    exp(beta*(energy_before - (energy_after - energy_intra)))/(ngas + natoms_per_molecule);
+
+  if (random_equal->uniform() < deltaphi) {  
    
     ninsertion_successes += 1.0;
     energy_stored = energy_after;

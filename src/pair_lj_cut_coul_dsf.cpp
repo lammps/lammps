@@ -164,7 +164,7 @@ void PairLJCutCoulDSF::compute(int eflag, int vflag)
                     offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;
-          
+
           if (rsq < cut_coulsq) {
             ecoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;

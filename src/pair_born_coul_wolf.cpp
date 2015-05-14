@@ -115,7 +115,7 @@ void PairBornCoulWolf::compute(int eflag, int vflag)
 
     qisq = qtmp*qtmp;
     e_self = -(e_shift/2.0 + alf/MY_PIS) * qisq*qqrd2e;
-    if (evflag) ev_tally(i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0);
+    if (eflag) ev_tally(i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0);
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];

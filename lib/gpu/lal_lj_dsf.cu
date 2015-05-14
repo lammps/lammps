@@ -115,7 +115,7 @@ __kernel void k_lj_dsf(const __global numtyp4 *restrict x_,
         if (rsq < cut_coulsq) {
           r = ucl_sqrt(rsq);
           fetch(prefactor,j,q_tex);
-          prefactor *= factor_coul * qqrd2e*qtmp/r;
+          prefactor *= qqrd2e*qtmp/r;
           numtyp erfcd = ucl_exp(-alpha*alpha*rsq);
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*alpha*r);
           erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
@@ -242,7 +242,7 @@ __kernel void k_lj_dsf_fast(const __global numtyp4 *restrict x_,
         if (rsq < cut_coulsq) {
           r = ucl_sqrt(rsq);
           fetch(prefactor,j,q_tex);
-          prefactor *= factor_coul * qqrd2e*qtmp/r;
+          prefactor *= qqrd2e*qtmp/r;
           numtyp erfcd = ucl_exp(-alpha*alpha*rsq);
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*alpha*r);
           erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;

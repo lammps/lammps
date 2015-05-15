@@ -73,6 +73,14 @@ e.g. when using the <A HREF = "pair_hybrid.html">pair_style hybrid</A> command.
 Thus LAMMPS ignores special_bonds settings when manybody potentials
 are calculated.
 </P>
+<P>IMPORTANT NOTE: Unlike some commands in LAMMPS, you cannot use this
+command multiple times in an incremental fashion: e.g. to first set
+the LJ settings and then the Coulombic ones.  Each time you use this
+command it sets all the coefficients to default values and only
+overrides the one you specify, so you should set all the options you
+need each time you use it.  See more details at the bottom of this
+page.
+</P>
 <P>The Coulomb factors are applied to any Coulomb (charge interaction)
 term that the potential calculates.  The LJ factors are applied to the
 remaining terms that the potential calculates, whether they represent
@@ -179,6 +187,8 @@ deposit</A>, or <A HREF = "fix_pour.html">fix pour</A> commands, which
 will have atoms with more special neighbors than any atom in the
 current system has.  
 </P>
+<HR>
+
 <P>IMPORTANT NOTE: LAMMPS stores and maintains a data structure with a
 list of the 1st, 2nd, and 3rd neighbors of each atom (within the bond
 topology of the system).  If new bonds are created (or molecules added
@@ -190,15 +200,34 @@ keyword leaves empty space in the list for this N additional 1st, 2nd,
 or 3rd neighbors to be added.  If you do not do this, you may get an
 error when bonds (or molecules) are added.
 </P>
+<HR>
+
 <P>IMPORTANT NOTE: If you reuse this command in an input script, you
 should set all the options you need each time.  This command cannot be
 used a 2nd time incrementally, e.g. to add some extra storage
 locations via the <I>extra</I> keyword.  E.g. these two commands:
 </P>
+<P>special_bonds lj 0.0 1.0 1.0
+special_bonds coul 0.0 0.0 1.0
+</P>
+<P>are not the same as 
+</P>
+<P>special_bonds lj 0.0 1.0 1.0 coul 0.0 0.0 1.0
+</P>
+<P>In the first case you end up with (after the 2nd command):
+</P>
+<P>LJ: 0.0 0.0 0.0
+Coul: coul 0.0 0.0 1.0
+</P>
+<P>because the LJ settings are reset to their default values
+each time the command is issued.
+</P>
+<P>Likewise
+</P>
 <PRE>special_bonds amber
 special_bonds extra 2 
 </PRE>
-<P>are not the same as this single command:
+<P>is not the same as this single command:
 </P>
 <PRE>special_bonds amber extra 2 
 </PRE>

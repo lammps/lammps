@@ -51,6 +51,9 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   peratom_freq = 1;
   time_integrate = 1;
   create_attribute = 1;
+  displaceflag = 0;
+  velocityflag = 0;
+  maxatom = 0;
 
   // parse args
 

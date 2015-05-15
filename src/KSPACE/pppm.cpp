@@ -385,6 +385,16 @@ void PPPM::setup()
     return;
   }
 
+  // perform some checks to avoid illegal boundaries with read_data
+
+  if (slabflag == 0 && domain->nonperiodic > 0)
+    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
+  if (slabflag) {
+    if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
+        domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
+      error->all(FLERR,"Incorrect boundaries with slab PPPM");
+  }
+
   int i,j,k,n;
   double *prd;
 

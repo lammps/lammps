@@ -74,8 +74,8 @@ protected:
                 }
 
                 /// Initialization of spline function.
-                void init(int _N, double _deriv0, double _derivN) {
-                        N = _N;
+                void init(int _n, double _deriv0, double _derivN) {
+                        N = _n;
                         deriv0 = _deriv0;
                         derivN = _derivN;
                         delete[] X;

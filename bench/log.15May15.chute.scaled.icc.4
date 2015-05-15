@@ -1,4 +1,4 @@
-LAMMPS (1 Feb 2014)
+LAMMPS (30 Apr 2015)
 # LAMMPS benchmark of granular flow
 # chute flow of 32000 atoms with frozen base at 26 degrees
 
@@ -9,7 +9,7 @@ units		lj
 atom_style	sphere
 boundary	p p fs
 newton		off
-communicate	single vel yes
+comm_modify	vel yes
 
 read_data	data.chute
   orthogonal box = (0 0 0) to (40 20 37.2886)
@@ -22,7 +22,7 @@ read_data	data.chute
 replicate	$x $y 1
 replicate	2 $y 1
 replicate	2 2 1
-  orthogonal box = (0 0 0) to (80 40 37.2923)
+  orthogonal box = (0 0 0) to (80 40 37.2922)
   2 by 2 by 1 MPI processor grid
   128000 atoms
 
@@ -50,17 +50,21 @@ thermo_modify	norm no
 thermo		100
 
 run		100
-Memory usage per processor = 22.3334 Mbytes
+Neighbor list info ...
+  2 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  master list distance cutoff = 1.1
+Memory usage per processor = 15.7007 Mbytes
 Step Atoms KinEng 1 Volume 
        0   128000    3136556.5    6404.5051    119335.13 
      100   128000    3137168.3    6284.3873    119338.83 
-Loop time of 0.862817 on 4 procs for 100 steps with 128000 atoms
+Loop time of 0.899154 on 4 procs for 100 steps with 128000 atoms
 
-Pair  time (%) = 0.518524 (60.0966)
-Neigh time (%) = 0.0441293 (5.11455)
-Comm  time (%) = 0.057479 (6.66178)
-Outpt time (%) = 0.000286222 (0.0331729)
-Other time (%) = 0.242399 (28.0939)
+Pair  time (%) = 0.523338 (58.2033)
+Neigh time (%) = 0.0433982 (4.82656)
+Comm  time (%) = 0.0642623 (7.14697)
+Outpt time (%) = 0.000541449 (0.0602175)
+Other time (%) = 0.267615 (29.7629)
 
 Nlocal:    32000 ave 32000 max 32000 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

@@ -1,4 +1,4 @@
-LAMMPS (1 Feb 2014)
+LAMMPS (30 Apr 2015)
 # Rhodopsin model
 
 units           real
@@ -15,7 +15,7 @@ kspace_style    pppm 1e-4
 
 read_data       data.rhodo
   orthogonal box = (-27.5 -38.5 -36.3646) to (27.5 38.5 36.3615)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading atoms ...
   32000 atoms
   reading velocities ...
@@ -62,45 +62,46 @@ PPPM initialization ...
   estimated absolute RMS force accuracy = 0.0355478
   estimated relative force accuracy = 0.000107051
   using double precision FFTs
-  3d grid and FFT values/proc = 41070 25600
-Memory usage per processor = 139.238 Mbytes
+  3d grid and FFT values/proc = 13230 6400
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 5 steps, check yes
+  master list distance cutoff = 12
+Memory usage per processor = 36.629 Mbytes
 ---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
 TotEng   =    -25356.2064 KinEng   =     21444.8313 Temp     =       299.0397 
 PotEng   =    -46801.0377 E_bond   =      2537.9940 E_angle  =     10921.3742 
 E_dihed  =      5211.7865 E_impro  =       213.5116 E_vdwl   =     -2307.8634 
 E_coul   =    207025.8927 E_long   =   -270403.7333 Press    =      -142.6035 
 Volume   =    307995.0335 
----------------- Step       50 ----- CPU =     17.8100 (sec) ----------------
+---------------- Step       50 ----- CPU =      4.6438 (sec) ----------------
 TotEng   =    -25330.0828 KinEng   =     21501.0029 Temp     =       299.8230 
 PotEng   =    -46831.0857 E_bond   =      2471.7004 E_angle  =     10836.4975 
 E_dihed  =      5239.6299 E_impro  =       227.1218 E_vdwl   =     -1993.2754 
 E_coul   =    206797.6331 E_long   =   -270410.3930 Press    =       237.6701 
 Volume   =    308031.5639 
----------------- Step      100 ----- CPU =     36.2348 (sec) ----------------
-TotEng   =    -25290.7592 KinEng   =     21592.0117 Temp     =       301.0920 
-PotEng   =    -46882.7709 E_bond   =      2567.9807 E_angle  =     10781.9408 
+---------------- Step      100 ----- CPU =      9.4301 (sec) ----------------
+TotEng   =    -25290.7591 KinEng   =     21592.0117 Temp     =       301.0920 
+PotEng   =    -46882.7708 E_bond   =      2567.9807 E_angle  =     10781.9408 
 E_dihed  =      5198.7432 E_impro  =       216.7834 E_vdwl   =     -1902.4783 
 E_coul   =    206659.2327 E_long   =   -270404.9733 Press    =         6.9960 
 Volume   =    308133.9888 
-Loop time of 36.2348 on 1 procs for 100 steps with 32000 atoms
+Loop time of 9.43015 on 4 procs for 100 steps with 32000 atoms
 
-Pair  time (%) = 26.0418 (71.8696)
-Bond  time (%) = 1.26644 (3.4951)
-Kspce time (%) = 3.24933 (8.96742)
-Neigh time (%) = 4.47968 (12.3629)
-Comm  time (%) = 0.0700378 (0.193289)
-Outpt time (%) = 0.000230074 (0.000634953)
-Other time (%) = 1.12729 (3.11108)
+Pair  time (%) = 6.53815 (69.3324)
+Bond  time (%) = 0.323679 (3.43239)
+Kspce time (%) = 1.02664 (10.8868)
+Neigh time (%) = 1.11839 (11.8597)
+Comm  time (%) = 0.0812459 (0.861554)
+Outpt time (%) = 0.000150442 (0.00159533)
+Other time (%) = 0.341896 (3.62557)
 
-FFT time (% of Kspce) = 0.276809 (8.51896)
-FFT Gflps 3d (1d only) = 1.87746 3.23903
-
-Nlocal:    32000 ave 32000 max 32000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    47958 ave 47958 max 47958 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    1.20281e+07 ave 1.20281e+07 max 1.20281e+07 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    8000 ave 8143 max 7933 min
+Histogram: 1 2 0 0 0 0 0 0 0 1
+Nghost:    22733.5 ave 22769 max 22693 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:    3.00703e+06 ave 3.0975e+06 max 2.96493e+06 min
+Histogram: 1 2 0 0 0 0 0 0 0 1
 
 Total # of neighbors = 12028107
 Ave neighs/atom = 375.878

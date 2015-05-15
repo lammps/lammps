@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Axel Kohlmeyer (Temple U)
-   Based on code by Paulo Raiteri (Curtin U) and Giovanni Bussi (SISSA)
+   Based on code by Paolo Raiteri (Curtin U) and Giovanni Bussi (SISSA)
 ------------------------------------------------------------------------- */
 
 #include "string.h"

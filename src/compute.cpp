@@ -89,6 +89,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   extra_dof = domain->dimension;
   dynamic_user = 0;
+  fix_dof = 0;
 
   // setup list of timesteps
 

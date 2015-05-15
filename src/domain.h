@@ -126,6 +126,7 @@ class Domain : protected Pointers {
   virtual void x2lamda(int);
   virtual void lamda2x(double *, double *);
   virtual void x2lamda(double *, double *);
+  int inside(double *);
   void x2lamda(double *, double *, double *, double *);
   void bbox(double *, double *, double *, double *);
   void box_corners();

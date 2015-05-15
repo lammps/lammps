@@ -203,7 +203,7 @@ void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
   int i,j,ii,jj,jnum;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double r,rsq,r2inv,forcecoul,factor_coul;
-  double prefactor,erfcc,erfcd,e_self,t;
+  double prefactor,erfcc,erfcd,t;
   int *jlist;
 
   ecoul = 0.0;
@@ -227,7 +227,7 @@ void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
     jnum = numneigh[i];
 
     if (evflag) {
-      e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
+      double e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
       ev_tally(i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0);
     }
 
@@ -244,13 +244,14 @@ void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
       if (rsq < cut_coulsq) {
         r2inv = 1.0/rsq;
         r = sqrt(rsq);
-        prefactor = factor_coul * qqrd2e*qtmp*q[j]/r;
+        prefactor = qqrd2e*qtmp*q[j]/r;
         erfcd = exp(-alpha*alpha*r*r);
         t = 1.0 / (1.0 + EWALD_P*alpha*r);
         erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
         forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
           r*f_shift) * r;
-
+        if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+ 
         fpair = forcecoul * r2inv;
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -259,6 +260,7 @@ void PairCoulDSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
         if (eflag) {
           if (rsq < cut_coulsq) {
             ecoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
+            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
         }
 

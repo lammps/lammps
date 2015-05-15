@@ -81,7 +81,7 @@ __kernel void k_coul_dsf(const __global numtyp4 *restrict x_,
       int j=dev_packed[nbor];
 
       numtyp factor_coul, r, prefactor, erfcc;
-      factor_coul = sp_lj[sbmask(j)];
+      factor_coul = (numtyp)1.0-sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -98,12 +98,12 @@ __kernel void k_coul_dsf(const __global numtyp4 *restrict x_,
 
         r = ucl_sqrt(rsq);
         fetch(prefactor,j,q_tex);
-        prefactor *= factor_coul * qqrd2e*qtmp/r;
+        prefactor *= qqrd2e*qtmp/r;
         numtyp erfcd = ucl_exp(-alpha*alpha*rsq);
         numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*alpha*r);
         erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
         forcecoul = prefactor * (erfcc + (numtyp)2.0*alpha/MY_PIS*r*erfcd + 
-          rsq*f_shift);
+          rsq*f_shift-factor_coul);
         
         force = forcecoul * r2inv;
 
@@ -112,10 +112,8 @@ __kernel void k_coul_dsf(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (eflag>0) {
-          if (rsq < cut_coulsq) {
-            numtyp e=prefactor*(erfcc-r*e_shift-rsq*f_shift);
-            e_coul += e;
-          }
+          numtyp e=prefactor*(erfcc-r*e_shift-rsq*f_shift-factor_coul);
+          e_coul += e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -182,7 +180,7 @@ __kernel void k_coul_dsf_fast(const __global numtyp4 *restrict x_,
       int j=dev_packed[nbor];
 
       numtyp factor_coul, r, prefactor, erfcc;
-      factor_coul = sp_lj[sbmask(j)];
+      factor_coul = (numtyp)1.0-sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -199,12 +197,12 @@ __kernel void k_coul_dsf_fast(const __global numtyp4 *restrict x_,
 
         r = ucl_sqrt(rsq);
         fetch(prefactor,j,q_tex);
-        prefactor *= factor_coul * qqrd2e*qtmp/r;
+        prefactor *= qqrd2e*qtmp/r;
         numtyp erfcd = ucl_exp(-alpha*alpha*rsq);
         numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*alpha*r);
         erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
         forcecoul = prefactor * (erfcc + (numtyp)2.0*alpha/MY_PIS*r*erfcd + 
-          rsq*f_shift);
+          rsq*f_shift-factor_coul);
         
         force = forcecoul * r2inv;
 
@@ -213,10 +211,8 @@ __kernel void k_coul_dsf_fast(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (eflag>0) {
-          if (rsq < cut_coulsq) {
-            numtyp e=prefactor*(erfcc-r*e_shift-rsq*f_shift);
-            e_coul += e;
-          }
+          numtyp e=prefactor*(erfcc-r*e_shift-rsq*f_shift-factor_coul);
+          e_coul += e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

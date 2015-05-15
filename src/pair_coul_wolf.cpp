@@ -133,11 +133,9 @@ void PairCoulWolf::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          if (rsq < cut_coulsq) {
-            ecoul = v_sh;
-            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-          } else ecoul = 0.0;
-        }
+          ecoul = v_sh;
+          if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+        } else ecoul = 0.0;
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              0.0,ecoul,fpair,delx,dely,delz);

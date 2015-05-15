@@ -23,7 +23,7 @@ attribute = {pair} or {atom} :l
     I,J = type pair(s) to set parameter for
     v_delta = variable with perturbation to apply (in the units of the parameter)
   {atom} args = aparam I v_delta
-    aparam = parameter to adapt over time
+    aparam = parameter to perturb
     I = type to set parameter for
     v_delta = variable with perturbation to apply (in the units of the parameter) :pre
 zero or more keyword/value pairs may be appended :l

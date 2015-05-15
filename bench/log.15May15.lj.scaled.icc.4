@@ -1,4 +1,4 @@
-LAMMPS (1 Feb 2014)
+LAMMPS (30 Apr 2015)
 # 3d Lennard-Jones melt
 
 variable	x index 1
@@ -39,17 +39,21 @@ neigh_modify	delay 0 every 20 check no
 fix		1 all nve
 
 run		100
-Memory usage per processor = 13.1495 Mbytes
+Neighbor list info ...
+  1 neighbor list requests
+  update every 20 steps, delay 0 steps, check no
+  master list distance cutoff = 2.8
+Memory usage per processor = 8.13678 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0         1.44   -6.7733681            0   -4.6133849   -5.0196788 
      100   0.75841891    -5.759957            0   -4.6223375   0.20008866 
-Loop time of 2.54147 on 4 procs for 100 steps with 128000 atoms
+Loop time of 2.53011 on 4 procs for 100 steps with 128000 atoms
 
-Pair  time (%) = 2.08305 (81.9623)
-Neigh time (%) = 0.258072 (10.1545)
-Comm  time (%) = 0.116279 (4.57528)
-Outpt time (%) = 0.000139415 (0.00548562)
-Other time (%) = 0.0839326 (3.30252)
+Pair  time (%) = 2.09024 (82.6146)
+Neigh time (%) = 0.24414 (9.64939)
+Comm  time (%) = 0.111739 (4.41638)
+Outpt time (%) = 0.000135601 (0.00535947)
+Other time (%) = 0.0838551 (3.31428)
 
 Nlocal:    32000 ave 32060 max 31939 min
 Histogram: 1 0 1 0 0 0 0 1 0 1

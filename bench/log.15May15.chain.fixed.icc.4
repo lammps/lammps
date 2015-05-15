@@ -1,4 +1,4 @@
-LAMMPS (1 Feb 2014)
+LAMMPS (30 Apr 2015)
 # FENE beadspring benchmark
 
 units		lj
@@ -36,18 +36,22 @@ thermo          100
 timestep	0.012
 
 run		100
-Memory usage per processor = 4.85536 Mbytes
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 1 steps, check yes
+  master list distance cutoff = 1.52
+Memory usage per processor = 3.91518 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0   0.97029772   0.44484087    20.494523    22.394765    4.6721833 
      100   0.97145835   0.43803883    20.502691    22.397872     4.626988 
-Loop time of 0.274804 on 4 procs for 100 steps with 32000 atoms
+Loop time of 0.274371 on 4 procs for 100 steps with 32000 atoms
 
-Pair  time (%) = 0.0507675 (18.4741)
-Bond  time (%) = 0.0225385 (8.20169)
-Neigh time (%) = 0.121537 (44.2269)
-Comm  time (%) = 0.0207262 (7.54219)
-Outpt time (%) = 8.74996e-05 (0.0318408)
-Other time (%) = 0.0591468 (21.5233)
+Pair  time (%) = 0.0504887 (18.4016)
+Bond  time (%) = 0.0229129 (8.35106)
+Neigh time (%) = 0.119957 (43.7206)
+Comm  time (%) = 0.020835 (7.59373)
+Outpt time (%) = 5.74589e-05 (0.0209421)
+Other time (%) = 0.0601202 (21.912)
 
 Nlocal:    8000 ave 8030 max 7974 min
 Histogram: 1 0 0 1 0 1 0 0 0 1

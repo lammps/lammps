@@ -707,9 +707,9 @@ class Packages:
     lib = make.getvar("PACKLIB")
     lib.remove("kim")
     lib.remove("kokkos")
-    lib.remove("molfile")
+    lib.remove("user-molfile")
     lib.remove("python")
-    lib.remove("quip")
+    lib.remove("user-quip")
     all = std + user
     
     # plist = command line args expanded to yes-package or no-package

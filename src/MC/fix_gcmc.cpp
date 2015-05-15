@@ -718,6 +718,8 @@ void FixGCMC::attempt_atomic_translation()
         coord[2] = x[i][2] + displace*rz;
       }
     }
+    if (!domain->inside(coord)) 
+      error->one(FLERR,"Fix gcmc put atom outside box");
 
     double energy_after = energy(i,ngcmc_type,-1,coord);
     if (random_unequal->uniform() < 
@@ -804,6 +806,9 @@ void FixGCMC::attempt_atomic_insertion()
     coord[1] = ylo + random_equal->uniform() * (yhi-ylo);
     coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
   }
+
+  if (!domain->inside(coord)) 
+    error->one(FLERR,"Fix gcmc put atom outside box");
 
   int proc_flag = 0;
   if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
@@ -919,6 +924,8 @@ void FixGCMC::attempt_molecule_translation()
       coord[0] = x[i][0] + com_displace[0];
       coord[1] = x[i][1] + com_displace[1];
       coord[2] = x[i][2] + com_displace[2];
+      if (!domain->inside(coord)) 
+  	error->one(FLERR,"Fix gcmc put atom outside box");
       energy_after += energy(i,atom->type[i],translation_molecule,coord);
     }
   }
@@ -1002,6 +1009,8 @@ void FixGCMC::attempt_molecule_rotation()
       xtmp[1] = atom_coord[n][1];
       xtmp[2] = atom_coord[n][2];
       domain->remap(xtmp);
+      if (!domain->inside(xtmp)) 
+	error->one(FLERR,"Fix gcmc put atom outside box");
       energy_after += energy(i,atom->type[i],rotation_molecule,xtmp);
       n++;
     }
@@ -1121,6 +1130,8 @@ void FixGCMC::attempt_molecule_insertion()
     xtmp[1] = atom_coord[i][1];
     xtmp[2] = atom_coord[i][2];
     domain->remap(xtmp);
+    if (!domain->inside(xtmp)) 
+      error->one(FLERR,"Fix gcmc put atom outside box");
 
     procflag[i] = false;
     if (xtmp[0] >= sublo[0] && xtmp[0] < subhi[0] &&
@@ -1313,6 +1324,8 @@ void FixGCMC::attempt_atomic_translation_full()
         coord[2] = x[i][2] + displace*rz;
       }
     }
+    if (!domain->inside(coord)) 
+      error->one(FLERR,"Fix gcmc put atom outside box");
     xtmp[0] = x[i][0];
     xtmp[1] = x[i][1];
     xtmp[2] = x[i][2];
@@ -1426,6 +1439,9 @@ void FixGCMC::attempt_atomic_insertion_full()
     coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
   }
   
+  if (!domain->inside(coord)) 
+    error->one(FLERR,"Fix gcmc put atom outside box");
+
   int proc_flag = 0;
   if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
       coord[1] >= sublo[1] && coord[1] < subhi[1] &&
@@ -1540,6 +1556,8 @@ void FixGCMC::attempt_molecule_translation_full()
       x[i][0] += com_displace[0];
       x[i][1] += com_displace[1];
       x[i][2] += com_displace[2];
+      if (!domain->inside(x[i])) 
+  	error->one(FLERR,"Fix gcmc put atom outside box");
     }
   }
 
@@ -1621,6 +1639,8 @@ void FixGCMC::attempt_molecule_rotation_full()
       x[i][2] += com[2];
       image[i] = imagetmp;
       domain->remap(x[i],image[i]);
+      if (!domain->inside(x[i])) 
+	error->one(FLERR,"Fix gcmc put atom outside box");
       n++;
     }
   }
@@ -1787,6 +1807,8 @@ void FixGCMC::attempt_molecule_insertion_full()
     xtmp[2] += com_coord[2];
     
     domain->remap(xtmp);
+    if (!domain->inside(xtmp)) 
+      error->one(FLERR,"Fix gcmc put atom outside box");
 
     if (xtmp[0] >= sublo[0] && xtmp[0] < subhi[0] &&
         xtmp[1] >= sublo[1] && xtmp[1] < subhi[1] &&

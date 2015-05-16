@@ -584,6 +584,40 @@ void Domain::pbc()
 }
 
 /* ----------------------------------------------------------------------
+   check that point is inside box boundaries, in [lo,hi) sense
+   return 1 if true, 0 if false
+------------------------------------------------------------------------- */
+
+int Domain::inside(double* x)
+{
+  double *lo,*hi,*period;
+  double delta[3];
+
+  if (triclinic == 0) {
+    lo = boxlo;
+    hi = boxhi;
+    period = prd;
+  } else {
+    lo = boxlo_lamda;
+    hi = boxhi_lamda;
+    period = prd_lamda;
+
+    delta[0] = x[0] - boxlo[0];
+    delta[1] = x[1] - boxlo[1];
+    delta[2] = x[2] - boxlo[2];
+
+    x[0] = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
+    x[1] = h_inv[1]*delta[1] + h_inv[3]*delta[2];
+    x[2] = h_inv[2]*delta[2];
+  }
+
+  if (x[0] < lo[0] || x[0] >= hi[0] ||
+      x[1] < lo[1] || x[1] >= hi[1] ||
+      x[2] < lo[2] || x[2] >= hi[2]) return 0;
+  else return 1;
+}
+
+/* ----------------------------------------------------------------------
    warn if image flags of any bonded atoms are inconsistent
    could be a problem when using replicate or fix rigid
 ------------------------------------------------------------------------- */

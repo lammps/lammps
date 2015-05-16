@@ -186,6 +186,14 @@ class Pair : protected Pointers {
   virtual unsigned int data_mask() {return datamask;}
   virtual unsigned int data_mask_ext() {return datamask_ext;}
 
+  // management of callbacks to be run from ev_tally()
+
+ private:
+   int num_tally_cb, *tally_cb_list;
+ public:
+   void add_tally_callback(const char *);
+   void del_tally_callback(const char *);
+
  protected:
   int instance_me;        // which Pair class instantiation I am
 

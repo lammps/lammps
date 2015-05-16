@@ -32,6 +32,8 @@
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
+#include "modify.h"
+#include "compute.h"
 #include "accelerator_cuda.h"
 #include "suffix.h"
 #include "atom_masks.h"
@@ -96,6 +98,9 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   eatom = NULL;
   vatom = NULL;
 
+  num_tally_cb = 0;
+  tally_cb_list = NULL;
+
   // CUDA and KOKKOS per-fix data masks
 
   datamask = ALL_MASK;
@@ -112,6 +117,9 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
 Pair::~Pair()
 {
+  num_tally_cb = 0;
+  memory->destroy(tally_cb_list);
+
   if (copymode) return;
 
   memory->destroy(eatom);
@@ -685,6 +693,58 @@ void Pair::compute_dummy(int eflag, int vflag)
   else evflag = 0;
 }
 
+/* -------------------------------------------------------------------
+   register a callback to a compute, so it can compute and accumulate
+   additional properties during the pair computation from within
+   Pair::ev_tally().
+---------------------------------------------------------------------- */
+void Pair::add_tally_callback(const char *id)
+{
+  int icompute = modify->find_compute(id);
+  printf("compute callback registered for id %d\n", icompute);
+#if 0
+  // find the fix
+  // if find NULL ptr:
+  //   it's this one, since it is being replaced and has just been deleted
+  //   at this point in re-creation
+  // if don't find NULL ptr:
+  //   i is set to nfix = new one currently being added at end of list
+
+  for (ifix = 0; ifix < modify->nfix; ifix++)
+    if (modify->fix[ifix] == NULL) break;
+
+  ++num_tally_cb;
+  memory->grow(tally_cb_list,num_tally_cb,"pair:tally_cb_list");
+  tally_cb_list[num_tally_cb-1] = ifix;
+#endif
+
+  return;
+}
+
+/* -------------------------------------------------------------------
+   unregister a callback to a fix for additional pairwise tallying
+---------------------------------------------------------------------- */
+void Pair::del_tally_callback(const char *id)
+{
+  int icompute = modify->find_compute(id);
+  printf("compute callback unregistering id %d\n", icompute);
+
+#if 0
+  int i,ifix,match;
+  for (ifix = 0; ifix < modify->nfix; ifix++)
+    if (strcmp(id,modify->fix[ifix]->id) == 0) break;
+
+  // compact the list of callbacks
+
+  for (match = 0; match < num_tally_cb; match++)
+    if (tally_cb_list[match] == ifix) break;
+
+  --num_tally_cb;
+  for (i = match; i < num_tally_cb; i++)
+    tally_cb_list[i] = tally_cb_list[i+1];
+#endif
+}
+
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
    see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
@@ -864,6 +924,14 @@ void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
         vatom[j][4] += 0.5*v[4];
         vatom[j][5] += 0.5*v[5];
       }
+    }
+  }
+  if (num_tally_cb > 0) {
+    for (int k=0; k < num_tally_cb; ++k) {
+      Compute *c = modify->compute[tally_cb_list[k]];
+      if (c != NULL)
+        c->pair_tally_callback(i, j, nlocal, newton_pair,
+                               evdwl, ecoul, fpair, delx, dely, delz);
     }
   }
 }

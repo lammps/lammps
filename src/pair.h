@@ -189,10 +189,11 @@ class Pair : protected Pointers {
   // management of callbacks to be run from ev_tally()
 
  private:
-   int num_tally_cb, *tally_cb_list;
+  int num_tally_compute;
+  class Compute **list_tally_compute;
  public:
-   void add_tally_callback(const char *);
-   void del_tally_callback(const char *);
+  void add_tally_callback(class Compute *);
+  void del_tally_callback(class Compute *);
 
  protected:
   int instance_me;        // which Pair class instantiation I am

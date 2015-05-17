@@ -29,7 +29,7 @@ class ComputeTallyStress : public Compute {
   ComputeTallyStress(class LAMMPS *, int, char **);
   virtual ~ComputeTallyStress();
 
-  void init()  { did_compute = -2;}
+  void init();
   void setup() { did_compute = -1;}
   
   double compute_scalar() { return 0.0; }
@@ -41,7 +41,7 @@ class ComputeTallyStress : public Compute {
                            double, double, double);
 
  private:
-  int did_compute;
+  bigint did_compute;
 };
 
 }

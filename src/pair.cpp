@@ -98,8 +98,8 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   eatom = NULL;
   vatom = NULL;
 
-  num_tally_cb = 0;
-  tally_cb_list = NULL;
+  num_tally_compute = 0;
+  list_tally_compute = NULL;
 
   // CUDA and KOKKOS per-fix data masks
 
@@ -117,8 +117,8 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 
 Pair::~Pair()
 {
-  num_tally_cb = 0;
-  memory->destroy(tally_cb_list);
+  num_tally_compute = 0;
+  memory->sfree((void *)list_tally_compute);
 
   if (copymode) return;
 
@@ -192,7 +192,7 @@ void Pair::modify_params(int narg, char **arg)
 void Pair::init()
 {
   int i,j;
-
+    
   if (offset_flag && tail_flag)
     error->all(FLERR,"Cannot have both pair_modify shift and tail set to yes");
   if (tail_flag && domain->dimension == 2)
@@ -696,53 +696,48 @@ void Pair::compute_dummy(int eflag, int vflag)
 /* -------------------------------------------------------------------
    register a callback to a compute, so it can compute and accumulate
    additional properties during the pair computation from within
-   Pair::ev_tally().
+   Pair::ev_tally(). ensure each compute instance is registered only once
 ---------------------------------------------------------------------- */
-void Pair::add_tally_callback(const char *id)
+void Pair::add_tally_callback(Compute *ptr)
 {
-  int icompute = modify->find_compute(id);
-  printf("compute callback registered for id %d\n", icompute);
-#if 0
-  // find the fix
-  // if find NULL ptr:
-  //   it's this one, since it is being replaced and has just been deleted
-  //   at this point in re-creation
-  // if don't find NULL ptr:
-  //   i is set to nfix = new one currently being added at end of list
+  int i,found=-1;
 
-  for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (modify->fix[ifix] == NULL) break;
+  for (i=0; i < num_tally_compute; ++i) {
+    if (list_tally_compute[i] == ptr)
+      found = i;
+  }
 
-  ++num_tally_cb;
-  memory->grow(tally_cb_list,num_tally_cb,"pair:tally_cb_list");
-  tally_cb_list[num_tally_cb-1] = ifix;
-#endif
-
-  return;
+  if (found < 0) {
+    found = num_tally_compute;
+    ++num_tally_compute;
+    void *p = memory->srealloc((void *)list_tally_compute,
+                               sizeof(Compute **) * num_tally_compute,
+                               "pair:list_tally_compute");
+    list_tally_compute = (Compute **) p;
+    list_tally_compute[num_tally_compute-1] = ptr;
+  }
 }
 
 /* -------------------------------------------------------------------
    unregister a callback to a fix for additional pairwise tallying
 ---------------------------------------------------------------------- */
-void Pair::del_tally_callback(const char *id)
+void Pair::del_tally_callback(Compute *ptr)
 {
-  int icompute = modify->find_compute(id);
-  printf("compute callback unregistering id %d\n", icompute);
+  int i,found=-1;
 
-#if 0
-  int i,ifix,match;
-  for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (strcmp(id,modify->fix[ifix]->id) == 0) break;
+  for (i=0; i < num_tally_compute; ++i) {
+    if (list_tally_compute[i] == ptr)
+      found = i;
+  }
 
-  // compact the list of callbacks
+  if (found < 0)
+    return;
 
-  for (match = 0; match < num_tally_cb; match++)
-    if (tally_cb_list[match] == ifix) break;
-
-  --num_tally_cb;
-  for (i = match; i < num_tally_cb; i++)
-    tally_cb_list[i] = tally_cb_list[i+1];
-#endif
+  // compact the list of active computes
+  --num_tally_compute;
+  for (i=found; i < num_tally_compute; ++i) {
+    list_tally_compute[i] = list_tally_compute[i+1];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -926,12 +921,12 @@ void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
       }
     }
   }
-  if (num_tally_cb > 0) {
-    for (int k=0; k < num_tally_cb; ++k) {
-      Compute *c = modify->compute[tally_cb_list[k]];
-      if (c != NULL)
-        c->pair_tally_callback(i, j, nlocal, newton_pair,
-                               evdwl, ecoul, fpair, delx, dely, delz);
+
+  if (num_tally_compute > 0) {
+    for (int k=0; k < num_tally_compute; ++k) {
+      Compute *c = list_tally_compute[k];
+      c->pair_tally_callback(i, j, nlocal, newton_pair,
+                             evdwl, ecoul, fpair, delx, dely, delz);
     }
   }
 }

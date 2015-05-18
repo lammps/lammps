@@ -206,6 +206,9 @@ potential energy calculations, including the following:
 <LI>  triclinic systems 
 <LI>  need to include potential energy contributions from other fixes 
 </UL>
+<P>In these cases, LAMMPS will automatically apply the <I>full_energy</I>
+keyword and issue a warning message.
+</P>
 <P>When the <I>mol</I> keyword is used, the <I>full_energy</I> option also includes 
 the intramolecular energy of inserted and deleted molecules. If this 
 is not desired, the <I>intra_energy</I> keyword can be used to define an
@@ -317,7 +320,9 @@ referenced by the user for each subsequent fix gcmc command.
 </P>
 <P><B>Default:</B>
 </P>
-<P>The option defaults are mol = no, maxangle = 10, full_energy = no.
+<P>The option defaults are mol = no, maxangle = 10, full_energy = no,
+except for the situations where full_energy is required, as
+listed above.
 </P>
 <HR>
 

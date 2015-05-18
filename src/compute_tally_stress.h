@@ -25,6 +25,7 @@ ComputeStyle(tally/stress,ComputeTallyStress)
 namespace LAMMPS_NS {
 
 class ComputeTallyStress : public Compute {
+  
  public:
   ComputeTallyStress(class LAMMPS *, int, char **);
   virtual ~ComputeTallyStress();
@@ -32,16 +33,23 @@ class ComputeTallyStress : public Compute {
   void init();
   void setup() { did_compute = -1;}
   
-  double compute_scalar() { return 0.0; }
-  void compute_vector() {}
-  void compute_peratom() {}
-  
+  double compute_scalar();
+  void compute_vector();
+  void compute_peratom();
+
+  int pack_reverse_comm(int, int, double *);
+  void unpack_reverse_comm(int, int *, double *);
+  double memory_usage();
+
   void pair_tally_callback(int, int, int, int,
                            double, double, double,
                            double, double, double);
 
  private:
   bigint did_compute;
+  int nmax;
+  double **stress;
+  double virial[6];
 };
 
 }

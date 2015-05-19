@@ -174,7 +174,8 @@ double ComputeTallyStress::compute_scalar()
   if (update->eflag_global != invoked_scalar)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
-  scalar = -force->nktv2p*(virial[0]+virial[1]+virial[2])/3.0;
+  compute_vector();
+  scalar = (vector[0]+vector[1]+vector[2])/3.0;
   return scalar;
 }
 
@@ -186,9 +187,13 @@ void ComputeTallyStress::compute_vector()
   if (update->eflag_global != invoked_vector)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
+  // sum accumulated virial across procs
+
+  MPI_Allreduce(virial,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
+
   const double nktv2p = -force->nktv2p;
   for (int i=0; i < 6; ++i)
-    vector[i] = nktv2p*virial[i];
+    vector[i] *= nktv2p;
 }
 
 /* ---------------------------------------------------------------------- */

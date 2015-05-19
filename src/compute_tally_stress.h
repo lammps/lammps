@@ -47,7 +47,7 @@ class ComputeTallyStress : public Compute {
 
  private:
   bigint did_compute;
-  int nmax;
+  int nmax,igroup2,groupbit2;
   double **stress;
   double virial[6];
 };

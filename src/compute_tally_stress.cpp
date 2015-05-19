@@ -14,6 +14,7 @@
 #include "string.h"
 #include "compute_tally_stress.h"
 #include "atom.h"
+#include "group.h"
 #include "pair.h"
 #include "update.h"
 #include "memory.h"
@@ -27,7 +28,13 @@ using namespace LAMMPS_NS;
 ComputeTallyStress::ComputeTallyStress(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 3) error->all(FLERR,"Illegal compute tally/stress command");
+  if (narg < 4) error->all(FLERR,"Illegal compute tally/stress command");
+
+  igroup2 = group->find(arg[3]);
+  if (igroup2 == -1)
+    error->all(FLERR,"Could not find compute tally/stress second group ID");
+  groupbit2 = group->bitmask[igroup2];
+
   scalar_flag = 1;
   vector_flag = 1;
   peratom_flag = 1;
@@ -38,6 +45,7 @@ ComputeTallyStress::ComputeTallyStress(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   size_vector = 6;
   peflag = 1;                   // we need Pair::ev_tally() to be run
+
   nmax = -1;
   stress = NULL;
   vector = new double[size_vector];
@@ -70,6 +78,7 @@ void ComputeTallyStress::pair_tally_callback(int i, int j, int nlocal, int newto
                                              double dx, double dy, double dz)
 {
   const int ntotal = atom->nlocal + atom->nghost;
+  const int * const mask = atom->mask;
 
   // do setup work that needs to be done only once per timestep
 
@@ -111,7 +120,7 @@ void ComputeTallyStress::pair_tally_callback(int i, int j, int nlocal, int newto
   const double v5 = dy*dz*fpair;
   
 
-  if (newton || i < nlocal) {
+  if ((mask[i] & groupbit) && (newton || i < nlocal)) {
     virial[0] += v0; stress[i][0] += v0;
     virial[1] += v1; stress[i][1] += v1;
     virial[2] += v2; stress[i][2] += v2;
@@ -119,7 +128,7 @@ void ComputeTallyStress::pair_tally_callback(int i, int j, int nlocal, int newto
     virial[4] += v4; stress[i][4] += v4;
     virial[5] += v5; stress[i][5] += v5;
   }
-  if (newton || j < nlocal) {
+  if ((mask[j] & groupbit) && (newton || j < nlocal)) {
     virial[0] += v0; stress[j][0] += v0;
     virial[1] += v1; stress[j][1] += v1;
     virial[2] += v2; stress[j][2] += v2;

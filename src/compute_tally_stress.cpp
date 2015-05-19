@@ -88,12 +88,18 @@ void ComputeTallyStress::pair_tally_callback(int i, int j, int nlocal, int newto
 
     // clear storage as needed
 
-    if (newton)
-      memset(&stress[0][0],sizeof(double)*size_peratom_cols*nmax,0);
-    else
-      memset(&stress[0][0],sizeof(double)*size_peratom_cols*nlocal,0);
+    if (newton) {
+      for (int i=0; i < ntotal; ++i)
+        for (int j=0; j < 6; ++j)
+          stress[i][j] = 0.0;
+    } else {
+      for (int i=0; i < atom->nlocal; ++i)
+        for (int j=0; j < 6; ++j)
+          stress[i][j] = 0.0;
+    }
 
-    memset(virial,sizeof(double)*6,0);
+    for (int i=0; i < 6; ++i)
+      vector[i] = virial[i] = 0.0;
   }
 
   fpair *= 0.5;
@@ -168,7 +174,7 @@ double ComputeTallyStress::compute_scalar()
   if (update->eflag_global != invoked_scalar)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
-  scalar = (virial[0]+virial[1]+virial[2])/3.0;
+  scalar = -force->nktv2p*(virial[0]+virial[1]+virial[2])/3.0;
   return scalar;
 }
 
@@ -180,8 +186,9 @@ void ComputeTallyStress::compute_vector()
   if (update->eflag_global != invoked_vector)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
+  const double nktv2p = -force->nktv2p;
   for (int i=0; i < 6; ++i)
-    vector[i] = virial[i];
+    vector[i] = nktv2p*virial[i];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -194,6 +201,18 @@ void ComputeTallyStress::compute_peratom()
 
   if (force->newton_pair)
     comm->reverse_comm_compute(this);
+
+  // convert to stress*volume units = -pressure*volume
+
+  const double nktv2p = -force->nktv2p;
+  for (int i = 0; i < atom->nlocal; i++) {
+    stress[i][0] *= nktv2p;
+    stress[i][1] *= nktv2p;
+    stress[i][2] *= nktv2p;
+    stress[i][3] *= nktv2p;
+    stress[i][4] *= nktv2p;
+    stress[i][5] *= nktv2p;
+  }
 }
 
 

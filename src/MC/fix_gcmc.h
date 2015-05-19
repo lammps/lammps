@@ -272,8 +272,4 @@ E: Too many total atoms
 
 See the setting for bigint in the src/lmptype.h file.
 
-E: Fix gcmc put atom outside box
-
-An attempt was made to move an atom outside the box boundaries
-
 */

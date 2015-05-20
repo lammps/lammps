@@ -13,26 +13,25 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(tally/stress,ComputeTallyStress)
+ComputeStyle(stress/tally,ComputeStressTally)
 
 #else
 
-#ifndef LMP_COMPUTE_TALLYSTRESS_H
-#define LMP_COMPUTE_TALLYSTRESS_H
+#ifndef LMP_COMPUTE_STRESS_TALLY_H
+#define LMP_COMPUTE_STRESS_TALLY_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputeTallyStress : public Compute {
+class ComputeStressTally : public Compute {
   
  public:
-  ComputeTallyStress(class LAMMPS *, int, char **);
-  virtual ~ComputeTallyStress();
+  ComputeStressTally(class LAMMPS *, int, char **);
+  virtual ~ComputeStressTally();
 
   void init();
-  void setup() { did_compute = -1;}
-  
+
   double compute_scalar();
   void compute_vector();
   void compute_peratom();

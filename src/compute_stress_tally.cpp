@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "string.h"
-#include "compute_tally_stress.h"
+#include "compute_stress_tally.h"
 #include "atom.h"
 #include "group.h"
 #include "pair.h"
@@ -25,14 +25,14 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTallyStress::ComputeTallyStress(LAMMPS *lmp, int narg, char **arg) :
+ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute tally/stress command");
+  if (narg < 4) error->all(FLERR,"Illegal compute stress/tally command");
 
   igroup2 = group->find(arg[3]);
   if (igroup2 == -1)
-    error->all(FLERR,"Could not find compute tally/stress second group ID");
+    error->all(FLERR,"Could not find compute stress/tally second group ID");
   groupbit2 = group->bitmask[igroup2];
 
   scalar_flag = 1;
@@ -53,7 +53,7 @@ ComputeTallyStress::ComputeTallyStress(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-ComputeTallyStress::~ComputeTallyStress()
+ComputeStressTally::~ComputeStressTally()
 {
   if (force->pair) force->pair->del_tally_callback(this);
   delete[] vector;
@@ -61,10 +61,10 @@ ComputeTallyStress::~ComputeTallyStress()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTallyStress::init()
+void ComputeStressTally::init()
 {
   if (force->pair == NULL)
-    error->all(FLERR,"Trying to use compute tally/stress with no pair style");
+    error->all(FLERR,"Trying to use compute stress/tally with no pair style");
   else
     force->pair->add_tally_callback(this);
 
@@ -73,7 +73,7 @@ void ComputeTallyStress::init()
 
 
 /* ---------------------------------------------------------------------- */
-void ComputeTallyStress::pair_tally_callback(int i, int j, int nlocal, int newton,
+void ComputeStressTally::pair_tally_callback(int i, int j, int nlocal, int newton,
                                              double, double, double fpair,
                                              double dx, double dy, double dz)
 {
@@ -91,7 +91,7 @@ void ComputeTallyStress::pair_tally_callback(int i, int j, int nlocal, int newto
     if (atom->nmax > nmax) {
       memory->destroy(stress);
       nmax = atom->nmax;
-      memory->create(stress,nmax,size_peratom_cols,"tally/stress:stress");
+      memory->create(stress,nmax,size_peratom_cols,"stress/tally:stress");
       array_atom = stress;
     }
 
@@ -99,15 +99,15 @@ void ComputeTallyStress::pair_tally_callback(int i, int j, int nlocal, int newto
 
     if (newton) {
       for (int i=0; i < ntotal; ++i)
-        for (int j=0; j < 6; ++j)
+        for (int j=0; j < size_peratom_cols; ++j)
           stress[i][j] = 0.0;
     } else {
       for (int i=0; i < atom->nlocal; ++i)
-        for (int j=0; j < 6; ++j)
+        for (int j=0; j < size_peratom_cols; ++j)
           stress[i][j] = 0.0;
     }
 
-    for (int i=0; i < 6; ++i)
+    for (int i=0; i < size_vector; ++i)
       vector[i] = virial[i] = 0.0;
   }
 
@@ -140,7 +140,7 @@ void ComputeTallyStress::pair_tally_callback(int i, int j, int nlocal, int newto
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeTallyStress::pack_reverse_comm(int n, int first, double *buf)
+int ComputeStressTally::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -159,7 +159,7 @@ int ComputeTallyStress::pack_reverse_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTallyStress::unpack_reverse_comm(int n, int *list, double *buf)
+void ComputeStressTally::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,m;
 
@@ -177,7 +177,7 @@ void ComputeTallyStress::unpack_reverse_comm(int n, int *list, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeTallyStress::compute_scalar()
+double ComputeStressTally::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if (update->eflag_global != invoked_scalar)
@@ -190,7 +190,7 @@ double ComputeTallyStress::compute_scalar()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTallyStress::compute_vector()
+void ComputeStressTally::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->eflag_global != invoked_vector)
@@ -201,13 +201,13 @@ void ComputeTallyStress::compute_vector()
   MPI_Allreduce(virial,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
 
   const double nktv2p = -force->nktv2p;
-  for (int i=0; i < 6; ++i)
+  for (int i=0; i < size_vector; ++i)
     vector[i] *= nktv2p;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeTallyStress::compute_peratom()
+void ComputeStressTally::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
   if (update->eflag_global != invoked_peratom)
@@ -234,9 +234,9 @@ void ComputeTallyStress::compute_peratom()
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-double ComputeTallyStress::memory_usage()
+double ComputeStressTally::memory_usage()
 {
-  double bytes = nmax*6 * sizeof(double);
+  double bytes = nmax*size_peratom_cols * sizeof(double);
   return bytes;
 }
 

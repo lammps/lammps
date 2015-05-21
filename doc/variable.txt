@@ -117,13 +117,13 @@ per-atom values from a file rather than from a formula.  Variables can
 be hooked to Python functions using code you provide, so that the
 variable gets its value from the evaluation of the Python code.
 
-IMPORTANT NOTE: As discussed in "Section
-3.2"_Section_commands.html#cmd_2 of the manual, an input script can
-use "immediate" variables, specified as $(formula) with parenthesis,
-where the formula has the same syntax as equal-style variables
-described on this page.  This is a way to evaluate a formula
-immediately without using the variable command to define a named
-variable.
+IMPORTANT NOTE: As discussed in "Section 3.2"_Section_commands.html#cmd_2
+of the manual, an input script can use "immediate" variables, specified
+as $(formula) with parenthesis, where the formula has the same syntax
+as equal-style variables described on this page.  This is a convenient
+way to evaluate a formula immediately without using the variable command
+to define a named variable and then evaluate that variable. See below
+for a more detailed discussion of this feature.
 
 In the discussion that follows, the "name" of the variable is the
 arbitrary string that is the 1st argument in the variable command.
@@ -138,10 +138,12 @@ simulation.
 
 IMPORTANT NOTE: When the input script line is encountered that defines
 a variable of style {equal} or {atom} or {python} that contains a
-formula or Python code, the formula is NOT immediately evaluated and
-the result stored.  See the discussion below about "Immediate
-Evaluation of Variables" if you want to do this.  This is also true of
-the {format} style variable since it evaluates another variable when
+formula or Python code, the formula is NOT immediately evaluated.
+It will be evaluated every time when the variable is [used] instead.
+If you simply want to evaluate a formula in place you can use as
+so-called. See the section below about "Immediate Evaluation
+of Variables" for more details on the topic.  This is also true of
+a {format} style variable since it evaluates another variable when
 it is invoked.
 
 IMPORTANT NOTE: Variables of style {equal} and {atom} can be used as
@@ -154,14 +156,6 @@ command that states it can use an equal-style variable as an argument,
 can also use such a python-style variable.  This means that when the
 LAMMPS command evaluates the variable, the Python function will be
 executed.
-
-When the input script line is encountered that defines
-a variable of style {equal} or {atom} or {python} that contains a
-formula or Python code, the formula is NOT immediately evaluated and
-the result stored.  See the discussion below about "Immediate
-Evaluation of Variables" if you want to do this.  This is also true of
-the {format} style variable since it evaluates another variable when
-it is invoked.
 
 IMPORTANT NOTE: When a variable command is encountered in the input
 script and the variable name has already been specified, the command

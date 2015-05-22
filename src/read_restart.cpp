@@ -710,10 +710,14 @@ void ReadRestart::header(int incompatible)
       int procgrid[3];
       read_int();
       read_int_vec(3,procgrid);
+      int flag = 0;
       if (comm->user_procgrid[0] != 0 &&
-          (procgrid[0] != comm->user_procgrid[0] || 
-           procgrid[1] != comm->user_procgrid[1] ||
-           procgrid[2] != comm->user_procgrid[2]) && me == 0)
+          procgrid[0] != comm->user_procgrid[0]) flag = 1;
+      if (comm->user_procgrid[1] != 0 &&
+          procgrid[1] != comm->user_procgrid[1]) flag = 1;
+      if (comm->user_procgrid[2] != 0 &&
+          procgrid[2] != comm->user_procgrid[2]) flag = 1;
+      if (flag && me == 0) 
         error->warning(FLERR,"Restart file used different 3d processor grid");
 
     // don't set newton_pair, leave input script value unchanged

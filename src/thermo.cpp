@@ -309,7 +309,7 @@ void Thermo::compute(int flag)
   // check for lost atoms
   // turn off normflag if natoms = 0 to avoid divide by 0
 
-  natoms = lost_check();
+  natoms = atom->natoms = lost_check();
   if (natoms == 0) normflag = 0;
   else normflag = normvalue;
 
@@ -383,11 +383,8 @@ bigint Thermo::lost_check()
   if (ntotal == atom->natoms) return ntotal;
 
   // if not checking or already warned, just return
-  // reset total atom count
-
   if (lostflag == IGNORE) return ntotal;
   if (lostflag == WARN && lostbefore == 1) {
-    atom->natoms = ntotal;
     return ntotal;
   }
 

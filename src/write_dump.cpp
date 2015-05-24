@@ -78,9 +78,7 @@ void WriteDump::command(int narg, char **arg)
     ((DumpCFG *) dump)->multifile_override = 1;
 
   if (update->first_update == 0)
-    input->one("run 0 post no");
-  else
-    lmp->init();
+    error->warning(FLERR,"Calling write_dump before a full system init.");
 
   dump->init();
   dump->write();

@@ -114,8 +114,8 @@ void ComputePETally::pair_tally_callback(int i, int j, int nlocal, int newton,
     etotal[1] += ecoul; eatom[i][1] += ecoul;
   }
   if ((mask[j] & groupbit) && (newton || j < nlocal)) {
-    etotal[0] += evdwl; eatom[i][0] += evdwl;
-    etotal[1] += ecoul; eatom[i][1] += ecoul;
+    etotal[0] += evdwl; eatom[j][0] += evdwl;
+    etotal[1] += ecoul; eatom[j][1] += ecoul;
   }
 }
 

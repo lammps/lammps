@@ -81,7 +81,9 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
   {meso_rho} value = density of SPH particles (need units)
     value can be an atom-style variable (see below)
   {i_name} value = value for custom integer vector with name
-  {d_name} value = value for custom floating-point vector with name :pre
+    value can be an atom-style variable (see below)
+  {d_name} value = value for custom floating-point vector with name
+    value can be an atom-style variable (see below) :pre
 :ule
 
 [Examples:]

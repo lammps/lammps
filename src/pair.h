@@ -277,10 +277,10 @@ This is likely not what you want to do.  The exclusion settings will
 eliminate neighbors in the neighbor list, which the manybody potential
 needs to calculated its terms correctly.
 
-E: All pair coeffs are not set
+E: Not all pair coeffs are set
 
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
+Pair coefficients must be set for all pairs of atom types in either the
+data file or by the pair_coeff command before running a simulation.
 
 E: Fix adapt interface to this pair style not supported
 

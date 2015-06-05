@@ -3,7 +3,7 @@
 # ------ SETTINGS ------
 
 CXX =		g++
-CXXFLAGS =	-O3 -ffast-math -g -fno-rtti -fno-exceptions -fPIC -Isrc
+CXXFLAGS =	-O3 -ffast-math -g -fPIC -Isrc
 ARCHIVE =	ar
 ARCHFLAG =	-rscv
 SHELL =		/bin/sh

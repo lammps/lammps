@@ -58,18 +58,20 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
       (p_flag[1] == 1 && p_period[1] <= 0.0) || 
       (p_flag[2] == 1 && p_period[2] <= 0.0)) 
     error->all(FLERR,"Fix rigid/small npt/nph period must be > 0.0");
+
+  dimension = domain->dimension;
   
-  if (domain->dimension == 2 && p_flag[2])
+  if (dimension == 2 && p_flag[2])
     error->all(FLERR,"Invalid fix rigid/small npt/nph command "
                "for a 2d simulation");
-  if (domain->dimension == 2 && (pcouple == YZ || pcouple == XZ))
+  if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
     error->all(FLERR,"Invalid fix rigid/small npt/nph command "
                "for a 2d simulation");
 
   if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
     error->all(FLERR,"Invalid fix rigid/small npt/nph command "
                "pressure settings");
-  if (pcouple == XYZ && domain->dimension == 3 && p_flag[2] == 0)
+  if (pcouple == XYZ && dimension == 3 && p_flag[2] == 0)
     error->all(FLERR,"Invalid fix rigid/small npt/nph command "
                "pressure settings");
   if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
@@ -97,12 +99,12 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
                "Cannot use fix rigid/small npt/nph on a "
                "non-periodic dimension");
   
-  if (pcouple == XYZ && domain->dimension == 3 &&
+  if (pcouple == XYZ && dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
        p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[1] || p_period[0] != p_period[2]))
     error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
-  if (pcouple == XYZ && domain->dimension == 2 &&
+  if (pcouple == XYZ && dimension == 2 &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
     error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
@@ -224,7 +226,6 @@ void FixRigidNHSmall::init()
   boltz = force->boltz;
   nktv2p = force->nktv2p;
   mvv2e = force->mvv2e;
-  dimension = domain->dimension;
 
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
@@ -322,7 +323,7 @@ void FixRigidNHSmall::setup(int vflag)
     nf_r = dimension * nlocal_body;
     for (int ibody = 0; ibody < nlocal_body; ibody++) {
       Body *b = &body[ibody];
-      for (int k = 0; k < domain->dimension; k++) 
+      for (int k = 0; k < dimension; k++) 
         if (fabs(b->inertia[k]) < EPSILON) nf_r--;
     }
   } else if (dimension == 2) {

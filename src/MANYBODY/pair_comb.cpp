@@ -1419,10 +1419,15 @@ void PairComb::sm_table()
   // direct 1/r energy with Slater 1S orbital overlap
 
   for (i = 0; i < n; i++) {
+    if (map[i+1] < 0) continue;
     r = drin;
-    itype = params[i].ielement;
+    itype = params[map[i+1]].ielement;
     iparam_i = elem2param[itype][itype][itype];
     z = params[iparam_i].esm1;
+
+    if (comm->me == 0 && screen)
+      fprintf(screen,"  element[%d] = %-2s, z = %g\n",i+1,elements[map[i+1]],z);
+
     for (j = 0; j < ncoul; j++) {
       exp2er = exp(-2.0 * z * r);
       phin[j][i] = 1.0 - exp2er * (1.0 + 2.0 * z * r * (1.0 + z * r));
@@ -1432,10 +1437,12 @@ void PairComb::sm_table()
   }
 
   for (i = 0; i < n; i ++) {
+    if (map[i+1] < 0) continue;
     for (j = 0; j < n; j ++) {
+      if (map[j+1] < 0) continue;
       r = drin;
       if (j == i) {
-        itype = params[i].ielement;
+        itype = params[map[i+1]].ielement;
         inty = intype[itype][itype];
         iparam_i = elem2param[itype][itype][itype];
         z = params[iparam_i].esm1;
@@ -1460,8 +1467,8 @@ void PairComb::sm_table()
           r += dra;
         }
       } else if (j != i) {
-        itype = params[i].ielement;
-        jtype = params[j].ielement;
+        itype = params[map[i+1]].ielement;
+        jtype = params[map[j+1]].ielement;
         inty = intype[itype][jtype];
         iparam_ij = elem2param[itype][jtype][jtype];
         ea = params[iparam_ij].esm1;

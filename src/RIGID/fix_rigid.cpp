@@ -250,6 +250,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     if (domain->dimension == 2) fflag[i][2] = tflag[i][0] = tflag[i][1] = 0.0;
   }
 
+  // number of linear rigid bodies is counted later
+  nlinear = 0; 
+
   // parse optional args
 
   int seed;
@@ -687,6 +690,7 @@ void FixRigid::init()
     ndof += fflag[ibody][0] + fflag[ibody][1] + fflag[ibody][2];
     ndof += tflag[ibody][0] + tflag[ibody][1] + tflag[ibody][2];
   }
+  ndof -= nlinear;
   if (ndof > 0.0) tfactor = force->mvv2e / (ndof * force->boltz);
   else tfactor = 0.0;
 }
@@ -1140,12 +1144,16 @@ int FixRigid::dof(int tgroup)
   // 2d body with any finite-size M should have 3 dof, remove (2N+3M) - 3
 
   int n = 0;
+  nlinear = 0;
   if (domain->dimension == 3) {
     for (int ibody = 0; ibody < nbody; ibody++)
       if (nall[ibody]+mall[ibody] == nrigid[ibody]) {
         n += 3*nall[ibody] + 6*mall[ibody] - 6;
         if (inertia[ibody][0] == 0.0 || inertia[ibody][1] == 0.0 ||
-            inertia[ibody][2] == 0.0) n++;
+            inertia[ibody][2] == 0.0) {
+          n++;
+          nlinear++;
+        }
       }
   } else if (domain->dimension == 2) {
     for (int ibody = 0; ibody < nbody; ibody++)

@@ -95,10 +95,10 @@ If {mode} = vector, then the input values may either be vectors or
 arrays.  If a global array is listed, then it is the same as if the
 individual columns of the array had been listed one by one.
 E.g. these 2 fix ave/histo commands are equivalent, since the "compute
-com/molecule"_compute_com_molecule.html command creates a global array
+com/chunk"_compute_com_chunk.html command creates a global array
 with 3 columns:
 
-compute myCOM all com/molecule
+compute myCOM all com/chunk
 fix 1 all ave/histo 100 1 100 c_myCOM file tmp1.com mode vector
 fix 2 all ave/histo 100 1 100 c_myCOM\[1\] c_myCOM\[2\] c_myCOM\[3\] file tmp2.com mode vector :pre
 

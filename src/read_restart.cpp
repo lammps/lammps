@@ -60,7 +60,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      SPECIAL_LJ,SPECIAL_COUL,
      MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT};
+     IMAGEINT,TIMESTEP};
 
 #define LB_FACTOR 1.1
 
@@ -857,6 +857,9 @@ void ReadRestart::header(int incompatible)
     } else if (flag == SPECIAL_COUL) {
       read_int();
       read_double_vec(3,&force->special_coul[1]);
+
+    } else if (flag == TIMESTEP) {
+      update->dt = read_double();
 
     } else error->all(FLERR,"Invalid flag in header section of restart file");
 

@@ -59,7 +59,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      SPECIAL_LJ,SPECIAL_COUL,
      MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT};
+     IMAGEINT,TIMESTEP};
 
 enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
 
@@ -488,6 +488,8 @@ void WriteRestart::header()
 
   write_double_vec(SPECIAL_LJ,3,&force->special_lj[1]);
   write_double_vec(SPECIAL_COUL,3,&force->special_coul[1]);
+
+  write_double(TIMESTEP,update->dt);
 
   // -1 flag signals end of header
 

@@ -52,6 +52,6 @@ distance "units"_units.html.
 
 [Related commands:]
 
-"compute com/molecule"_compute_com_molecule.html
+"compute com/chunk"_compute_com_chunk.html
 
 [Default:] none

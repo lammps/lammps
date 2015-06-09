@@ -82,7 +82,7 @@ distance^2 "units"_units.html.
 "compute msd/nongauss"_compute_msd_nongauss.html, "compute
 displace_atom"_compute_displace_atom.html, "fix
 store/state"_fix_store_state.html, "compute
-msd/molecule"_compute_msd_molecule.html
+msd/chunk"_compute_msd_chunk.html
 
 [Default:]
 

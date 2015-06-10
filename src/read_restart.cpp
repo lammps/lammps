@@ -20,6 +20,8 @@
 #include "atom_vec.h"
 #include "domain.h"
 #include "comm.h"
+#include "comm_brick.h"
+#include "comm_tiled.h"
 #include "irregular.h"
 #include "update.h"
 #include "modify.h"
@@ -60,7 +62,9 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      SPECIAL_LJ,SPECIAL_COUL,
      MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT,TIMESTEP};
+     IMAGEINT,TIMESTEP,
+     ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
+     COMM_STYLE,COMM_MODE,COMM_CUTOFF,COMM_VEL};
 
 #define LB_FACTOR 1.1
 
@@ -860,6 +864,36 @@ void ReadRestart::header(int incompatible)
 
     } else if (flag == TIMESTEP) {
       update->dt = read_double();
+
+    } else if (flag == ATOM_ID) {
+      atom->tag_enable = read_int();
+    } else if (flag == ATOM_MAP_STYLE) {
+      atom->map_style = read_int();
+    } else if (flag == ATOM_MAP_USER) {
+      atom->map_user  = read_int();
+    } else if (flag == ATOM_SORTFREQ) {
+      atom->sortfreq = read_int();
+    } else if (flag == ATOM_SORTBIN) {
+      atom->userbinsize = read_double();
+      
+    } else if (flag == COMM_STYLE) {
+      int newstyle = read_int();
+      if (comm->style != newstyle) {
+        Comm *oldcomm = comm;
+        if (newstyle == 0)
+          comm = new CommBrick(lmp,oldcomm);
+        else if (newstyle == 1)
+          comm = new CommTiled(lmp,oldcomm);
+        else
+          error->all(FLERR,"Unknown comm_style in restart");
+        delete oldcomm;
+      }
+    } else if (flag == COMM_MODE) {
+      comm->mode = read_int();
+    } else if (flag == COMM_CUTOFF) {
+      comm->cutghostuser = read_double();
+    } else if (flag == COMM_VEL) {
+      comm->ghost_velocity = read_int();
 
     } else error->all(FLERR,"Invalid flag in header section of restart file");
 

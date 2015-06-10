@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class Comm : protected Pointers {
  public:
   int style;     // comm pattern: 0 = 6-way stencil, 1 = irregular tiling
+  int mode;      // 0 = single cutoff, 1 = multi-type cutoff
   int layout;    // LAYOUT_UNIFORM = equal-sized bricks
                  // LAYOUT_NONUNIFORM = logical bricks, but diff sizes via LB
                  // LAYOUT_TILED = general tiling, due to RCB LB
@@ -107,7 +108,6 @@ class Comm : protected Pointers {
   int read_lines_from_file_universe(FILE *, int, int, char *);  
 
  protected:
-  int mode;                  // 0 = single cutoff, 1 = multi-type cutoff
   int bordergroup;           // only communicate this group in borders
 
   int triclinic;                    // 0 if domain is orthog, 1 if triclinic

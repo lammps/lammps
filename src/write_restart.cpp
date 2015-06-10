@@ -61,7 +61,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
      IMAGEINT,TIMESTEP,
      ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
-     COMM_STYLE,COMM_MODE,COMM_CUTOFF,COMM_VEL};
+     COMM_MODE,COMM_CUTOFF,COMM_VEL};
 
 enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
 
@@ -499,7 +499,6 @@ void WriteRestart::header()
   write_int(ATOM_SORTFREQ,atom->sortfreq);
   write_double(ATOM_SORTBIN,atom->userbinsize);
 
-  write_int(COMM_STYLE,comm->style);
   write_int(COMM_MODE,comm->mode);  
   write_double(COMM_CUTOFF,comm->cutghostuser);
   write_int(COMM_VEL,comm->ghost_velocity);

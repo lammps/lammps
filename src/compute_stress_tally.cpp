@@ -36,19 +36,17 @@ ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) :
   groupbit2 = group->bitmask[igroup2];
 
   scalar_flag = 1;
-  vector_flag = 1;
+  vector_flag = 0;
   peratom_flag = 1;
   timeflag = 1;
 
   comm_reverse = size_peratom_cols = 6;
   extscalar = 0;
-  extvector = 0;
-  size_vector = 6;
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
   nmax = -1;
   stress = NULL;
-  vector = new double[size_vector];
+  vector = new double[size_peratom_cols];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -107,34 +105,37 @@ void ComputeStressTally::pair_tally_callback(int i, int j, int nlocal, int newto
           stress[i][j] = 0.0;
     }
 
-    for (int i=0; i < size_vector; ++i)
+    for (int i=0; i < size_peratom_cols; ++i)
       vector[i] = virial[i] = 0.0;
   }
 
-  fpair *= 0.5;
-  const double v0 = dx*dx*fpair;
-  const double v1 = dy*dy*fpair;
-  const double v2 = dz*dz*fpair;
-  const double v3 = dx*dy*fpair;
-  const double v4 = dx*dz*fpair;
-  const double v5 = dy*dz*fpair;
-  
+  if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
+       || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
 
-  if ((mask[i] & groupbit) && (newton || i < nlocal)) {
-    virial[0] += v0; stress[i][0] += v0;
-    virial[1] += v1; stress[i][1] += v1;
-    virial[2] += v2; stress[i][2] += v2;
-    virial[3] += v3; stress[i][3] += v3;
-    virial[4] += v4; stress[i][4] += v4;
-    virial[5] += v5; stress[i][5] += v5;
-  }
-  if ((mask[j] & groupbit) && (newton || j < nlocal)) {
-    virial[0] += v0; stress[j][0] += v0;
-    virial[1] += v1; stress[j][1] += v1;
-    virial[2] += v2; stress[j][2] += v2;
-    virial[3] += v3; stress[j][3] += v3;
-    virial[4] += v4; stress[j][4] += v4;
-    virial[5] += v5; stress[j][5] += v5;
+    fpair *= 0.5;
+    const double v0 = dx*dx*fpair;
+    const double v1 = dy*dy*fpair;
+    const double v2 = dz*dz*fpair;
+    const double v3 = dx*dy*fpair;
+    const double v4 = dx*dz*fpair;
+    const double v5 = dy*dz*fpair;
+  
+    if (newton || i < nlocal) {
+      virial[0] += v0; stress[i][0] += v0;
+      virial[1] += v1; stress[i][1] += v1;
+      virial[2] += v2; stress[i][2] += v2;
+      virial[3] += v3; stress[i][3] += v3;
+      virial[4] += v4; stress[i][4] += v4;
+      virial[5] += v5; stress[i][5] += v5;
+    }
+    if (newton || j < nlocal) {
+      virial[0] += v0; stress[j][0] += v0;
+      virial[1] += v1; stress[j][1] += v1;
+      virial[2] += v2; stress[j][2] += v2;
+      virial[3] += v3; stress[j][3] += v3;
+      virial[4] += v4; stress[j][4] += v4;
+      virial[5] += v5; stress[j][5] += v5;
+    }
   }
 }
 
@@ -183,26 +184,16 @@ double ComputeStressTally::compute_scalar()
   if (update->eflag_global != invoked_scalar)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
-  compute_vector();
-  scalar = (vector[0]+vector[1]+vector[2])/3.0;
+  // sum accumulated forces across procs
+
+  MPI_Allreduce(virial,vector,size_peratom_cols,MPI_DOUBLE,MPI_SUM,world);
+
+  if (domain->dimension == 3) 
+    scalar = (vector[0]+vector[1]+vector[2])/3.0;
+  else
+    scalar = (vector[0]+vector[1])/2.0;
+
   return scalar;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeStressTally::compute_vector()
-{
-  invoked_vector = update->ntimestep;
-  if (update->eflag_global != invoked_vector)
-    error->all(FLERR,"Energy was not tallied on needed timestep");
-
-  // sum accumulated virial across procs
-
-  MPI_Allreduce(virial,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
-
-  const double nktv2p = -force->nktv2p;
-  for (int i=0; i < size_vector; ++i)
-    vector[i] *= nktv2p;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -213,8 +204,16 @@ void ComputeStressTally::compute_peratom()
   if (update->eflag_global != invoked_peratom)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
-  if (force->newton_pair)
+  // collect contributions from ghost atoms
+
+  if (force->newton_pair) {
     comm->reverse_comm_compute(this);
+
+    const int nall = atom->nlocal + atom->nghost;
+    for (int i = atom->nlocal; i < nall; ++i)
+      for (int j = 0; j < size_peratom_cols; ++j)
+        stress[i][j] = 0.0;
+  }
 
   // convert to stress*volume units = -pressure*volume
 
@@ -228,7 +227,6 @@ void ComputeStressTally::compute_peratom()
     stress[i][5] *= nktv2p;
   }
 }
-
 
 /* ----------------------------------------------------------------------
    memory usage of local atom-based array

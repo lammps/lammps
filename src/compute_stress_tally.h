@@ -33,7 +33,6 @@ class ComputeStressTally : public Compute {
   void init();
 
   double compute_scalar();
-  void compute_vector();
   void compute_peratom();
 
   int pack_reverse_comm(int, int, double *);

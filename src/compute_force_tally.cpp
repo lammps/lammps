@@ -36,19 +36,17 @@ ComputeForceTally::ComputeForceTally(LAMMPS *lmp, int narg, char **arg) :
   groupbit2 = group->bitmask[igroup2];
 
   scalar_flag = 1;
-  vector_flag = 1;
+  vector_flag = 0;
   peratom_flag = 1;
   timeflag = 1;
 
   comm_reverse = size_peratom_cols = 3;
-  extscalar = 0;
-  extvector = 0;
-  size_vector = 3;
+  extscalar = 1;
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
   nmax = -1;
   fatom = NULL;
-  vector = new double[size_vector];
+  vector = new double[size_peratom_cols];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -107,19 +105,23 @@ void ComputeForceTally::pair_tally_callback(int i, int j, int nlocal, int newton
           fatom[i][j] = 0.0;
     }
 
-    for (int i=0; i < size_vector; ++i)
+    for (int i=0; i < size_peratom_cols; ++i)
       vector[i] = ftotal[i] = 0.0;
   }
 
-  if ((mask[i] & groupbit) && (newton || i < nlocal)) {
-    ftotal[0] += fpair*dx; fatom[i][0] += fpair*dx;
-    ftotal[1] += fpair*dy; fatom[i][1] += fpair*dy;
-    ftotal[2] += fpair*dz; fatom[i][2] += fpair*dz;
-  }
-  if ((mask[j] & groupbit) && (newton || j < nlocal)) {
-    ftotal[0] -= fpair*dx; fatom[i][0] -= fpair*dx;
-    ftotal[1] -= fpair*dy; fatom[i][1] -= fpair*dy;
-    ftotal[2] -= fpair*dz; fatom[i][2] -= fpair*dz;
+  if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
+       || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
+
+    if (newton || i < nlocal) {
+      ftotal[0] += fpair*dx; fatom[i][0] += fpair*dx;
+      ftotal[1] += fpair*dy; fatom[i][1] += fpair*dy;
+      ftotal[2] += fpair*dz; fatom[i][2] += fpair*dz;
+    }
+    if (newton || j < nlocal) {
+      ftotal[0] -= fpair*dx; fatom[i][0] -= fpair*dx;
+      ftotal[1] -= fpair*dy; fatom[i][1] -= fpair*dy;
+      ftotal[2] -= fpair*dz; fatom[i][2] -= fpair*dz;
+    }
   }
 }
 
@@ -162,23 +164,12 @@ double ComputeForceTally::compute_scalar()
   if (update->eflag_global != invoked_scalar)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
-  compute_vector();
+  // sum accumulated forces across procs
+
+  MPI_Allreduce(ftotal,vector,size_peratom_cols,MPI_DOUBLE,MPI_SUM,world);
 
   scalar = sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2]);
   return scalar;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeForceTally::compute_vector()
-{
-  invoked_vector = update->ntimestep;
-  if (update->eflag_global != invoked_vector)
-    error->all(FLERR,"Energy was not tallied on needed timestep");
-
-  // sum accumulated force across procs
-
-  MPI_Allreduce(ftotal,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -189,8 +180,16 @@ void ComputeForceTally::compute_peratom()
   if (update->eflag_global != invoked_peratom)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
-  if (force->newton_pair)
+  // collect contributions from ghost atoms
+
+  if (force->newton_pair) {
     comm->reverse_comm_compute(this);
+
+    const int nall = atom->nlocal + atom->nghost;
+    for (int i = atom->nlocal; i < nall; ++i)
+      for (int j = 0; j < size_peratom_cols; ++j)
+        fatom[i][j] = 0.0;
+  }
 }
 
 /* ----------------------------------------------------------------------

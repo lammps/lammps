@@ -36,19 +36,17 @@ ComputePETally::ComputePETally(LAMMPS *lmp, int narg, char **arg) :
   groupbit2 = group->bitmask[igroup2];
 
   scalar_flag = 1;
-  vector_flag = 1;
+  vector_flag = 0;
   peratom_flag = 1;
   timeflag = 1;
 
   comm_reverse = size_peratom_cols = 2;
-  extscalar = 0;
-  extvector = 0;
-  size_vector = 2;
+  extscalar = 1;
   peflag = 1;                   // we need Pair::ev_tally() to be run
 
   nmax = -1;
   eatom = NULL;
-  vector = new double[size_vector];
+  vector = new double[size_peratom_cols];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,14 +106,18 @@ void ComputePETally::pair_tally_callback(int i, int j, int nlocal, int newton,
     vector[0] = etotal[0] = vector[1] = etotal[1] = 0.0;
   }
 
-  evdwl *= 0.5; ecoul *= 0.5;
-  if ((mask[i] & groupbit) && (newton || i < nlocal)) {
-    etotal[0] += evdwl; eatom[i][0] += evdwl;
-    etotal[1] += ecoul; eatom[i][1] += ecoul;
-  }
-  if ((mask[j] & groupbit) && (newton || j < nlocal)) {
-    etotal[0] += evdwl; eatom[j][0] += evdwl;
-    etotal[1] += ecoul; eatom[j][1] += ecoul;
+  if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
+     || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ){
+
+    evdwl *= 0.5; ecoul *= 0.5;
+    if (newton || i < nlocal) {
+      etotal[0] += evdwl; eatom[i][0] += evdwl;
+      etotal[1] += ecoul; eatom[i][1] += ecoul;
+    }
+    if (newton || j < nlocal) {
+      etotal[0] += evdwl; eatom[j][0] += evdwl;
+      etotal[1] += ecoul; eatom[j][1] += ecoul;
+    }
   }
 }
 
@@ -156,22 +158,12 @@ double ComputePETally::compute_scalar()
   if (update->eflag_global != invoked_scalar)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
-  compute_vector();
-  scalar = vector[0]+vector[1];
-  return scalar;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputePETally::compute_vector()
-{
-  invoked_vector = update->ntimestep;
-  if (update->eflag_global != invoked_vector)
-    error->all(FLERR,"Energy was not tallied on needed timestep");
-
   // sum accumulated energies across procs
 
-  MPI_Allreduce(etotal,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(etotal,vector,size_peratom_cols,MPI_DOUBLE,MPI_SUM,world);
+
+  scalar = vector[0]+vector[1];
+  return scalar;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -182,10 +174,15 @@ void ComputePETally::compute_peratom()
   if (update->eflag_global != invoked_peratom)
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
-  if (force->newton_pair)
-    comm->reverse_comm_compute(this);
-}
+  // collect contributions from ghost atoms
 
+  if (force->newton_pair) {
+    comm->reverse_comm_compute(this);
+    const int nall = atom->nlocal + atom->nghost;
+    for (int i = atom->nlocal; i < nall; ++i)
+      eatom[i][0] = eatom[i][1] = 0.0;
+  } 
+}
 
 /* ----------------------------------------------------------------------
    memory usage of local atom-based array

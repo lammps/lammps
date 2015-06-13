@@ -18,6 +18,7 @@
 #include "string.h"
 #include "info.h"
 #include "atom.h"
+#include "force.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"
@@ -70,14 +71,33 @@ void Info::command(int narg, char **arg)
 
   } else if (strcmp(arg[0],"system") == 0) {
     fprintf(screen,"System information:\n");
-    fprintf(screen,"Units =  %s\n",update->unit_style);
+    fprintf(screen,"Units      = %s\n",update->unit_style);
     fprintf(screen,"Atom style = %s\n", atom->atom_style);
     fprintf(screen,"Atom map   = %s\n", mapstyles[atom->map_style]);
-    fprintf(screen,"Natoms     = " BIGINT_FORMAT "\n", atom->natoms);
-    fprintf(screen,"Nbonds     = " BIGINT_FORMAT "\n", atom->nbonds);
-    fprintf(screen,"Nangles    = " BIGINT_FORMAT "\n", atom->nangles);
-    fprintf(screen,"Ndihedrals = " BIGINT_FORMAT "\n", atom->ndihedrals);
-    fprintf(screen,"Nimpropers = " BIGINT_FORMAT "\n", atom->nimpropers);
+    fprintf(screen,"Atoms     / types = " BIGINT_FORMAT " / %d\n",
+            atom->natoms, atom->ntypes);
+
+    if (atom->molecular > 0) {
+
+      fprintf(screen,"Molecule type = %s\n",
+              (atom->molecular == 2) ? "template" : "standard");
+      fprintf(screen,"Bonds     / types = " BIGINT_FORMAT " / %d\n",
+              atom->nbonds, atom->nbondtypes);
+      fprintf(screen,"Angles    / types = " BIGINT_FORMAT " / %d\n",
+              atom->nangles, atom->nangletypes);
+      fprintf(screen,"Dihedrals / types = " BIGINT_FORMAT " / %d\n",
+              atom->ndihedrals, atom->ndihedraltypes);
+      fprintf(screen,"impropers / types = " BIGINT_FORMAT " / %d\n",
+              atom->nimpropers, atom->nimpropertypes);
+
+      const double * const special_lj   = force->special_lj;
+      const double * const special_coul = force->special_coul;
+
+      fprintf(screen,"Special bond factors lj:   %-10g %-10g %-10g\n"
+                     "Special bond factors coul: %-10g %-10g %-10g\n",
+                     special_lj[1],special_lj[2],special_lj[3],
+                     special_coul[1],special_coul[2],special_coul[3]);
+    }
 
   } else {
     error->all(FLERR,"Unknown info command style");

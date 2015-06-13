@@ -30,6 +30,8 @@ static const char *varstyles[] = {
   "index", "loop", "world", "universe", "uloop", "string", "getenv",
   "file", "atomfile", "format", "equal", "atom", "python", "(unknown)"};
 
+static const char *mapstyles[] = { "none", "array", "hash" };
+
 enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
      SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,PYTHON};
 
@@ -56,15 +58,21 @@ void Info::command(int narg, char **arg)
     char ***data = input->variable->data;
     fprintf(screen,"Variable information:\n");
     for (int i=0; i < nvar; ++i) {
-      fprintf(screen,"Variable[%3d]: %-10s  style = %-10s  def = %s\n",
-             i,names[i],varstyles[style[i]],data[i][0]);
-   
+      int ndata = 1;
+      fprintf(screen,"Variable[%3d]: %-10s  style = %-10s  def =",
+             i,names[i],varstyles[style[i]]);
+      if ((style[i] != LOOP) && (style[i] != ULOOP))
+        ndata = input->variable->num[i];
+      for (int j=0; j < ndata; ++j)
+        fprintf(screen," %s",data[i][j]);
+      fputs("\n",screen);
     }
 
   } else if (strcmp(arg[0],"system") == 0) {
     fprintf(screen,"System information:\n");
     fprintf(screen,"Units =  %s\n",update->unit_style);
     fprintf(screen,"Atom style = %s\n", atom->atom_style);
+    fprintf(screen,"Atom map   = %s\n", mapstyles[atom->map_style]);
     fprintf(screen,"Natoms     = " BIGINT_FORMAT "\n", atom->natoms);
     fprintf(screen,"Nbonds     = " BIGINT_FORMAT "\n", atom->nbonds);
     fprintf(screen,"Nangles    = " BIGINT_FORMAT "\n", atom->nangles);

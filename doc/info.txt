@@ -10,21 +10,22 @@ info command :h3
 
 [Syntax:]
 
-info category :pre
+info args :pre
 
-category = one of the following categories: {system}, {computes}, {fixes}, {groups}, {regions}, or {variables}  :ul
+args = one or more of the following keywords: {system}, {computes},
+       {dumps}, {fixes}, {groups}, {regions}, or {variables}  :ul
 
 [Examples:]
 
 info system
-info variables :pre
+info groups computes variables :pre
 
 [Description:]
 
 Print out information about the current internal state of the running
 LAMMPS process. This can be particularly helpful when debugging or
 validating complex input scripts. Several output categories are available
-and only one category may be used at a time. Output is only sent to
+and one or more output category may be requested. Output is only sent to
 the screen, provided screen output is enabled.
 
 The {system} category prints a general system overview listing - among
@@ -34,6 +35,9 @@ properties, force computing styles and more.
 
 The {computes} category prints a list of all currently defined computes,
 their IDs and styles and groups they operate on.
+
+The {dumps} category prints a list of all currently active dumps, their
+IDs, styles, filenames, groups, and dump frequencies.
 
 The {fixes} category prints a list of all currently defined fixes,
 their IDs and styles and groups they operate on.

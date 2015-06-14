@@ -18,10 +18,14 @@
 #include "string.h"
 #include "info.h"
 #include "atom.h"
+#include "compute.h"
 #include "domain.h"
+#include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
+#include "modify.h"
+#include "region.h"
 #include "variable.h"
 #include "update.h"
 #include "error.h"
@@ -47,12 +51,41 @@ void Info::command(int narg, char **arg)
 
   if (!screen) return;
 
-  if (strcmp(arg[0],"groups") == 0) {
+  if (strcmp(arg[0],"computes") == 0) {
+    int ncompute = modify->ncompute;
+    Compute **compute = modify->compute;
+    char **names = group->names;
+    fprintf(screen,"Compute information:\n");
+    for (int i=0; i < ncompute; ++i) {
+      fprintf(screen,"Compute[%3d]: %s,  style: %s,  group: %s\n",
+              i, compute[i]->id, compute[i]->style, names[compute[i]->igroup]);
+    }
+
+  } else if (strcmp(arg[0],"fixes") == 0) {
+    int nfix = modify->nfix;
+    Fix **fix = modify->fix;
+    char **names = group->names;
+    fprintf(screen,"Fix information:\n");
+    for (int i=0; i < nfix; ++i) {
+      fprintf(screen,"Fix[%3d]: %s,  style: %s,  group: %s\n",
+              i, fix[i]->id, fix[i]->style, names[fix[i]->igroup]);
+    }
+
+  } else if (strcmp(arg[0],"groups") == 0) {
     int ngroup = group->ngroup;
     char **names = group->names;
     fprintf(screen,"Group information:\n");
     for (int i=0; i < ngroup; ++i) {
       fprintf(screen,"Group[%2d]: %s\n",i,names[i]);
+    }
+
+  } else if (strcmp(arg[0],"regions") == 0) {
+    int nreg = domain->nregion;
+    Region **regs = domain->regions;
+    fprintf(screen,"Region information:\n");
+    for (int i=0; i < nreg; ++i) {
+      fprintf(screen,"Region[%3d]: %s,  style: %s,  side: %s\n",
+              i, regs[i]->id, regs[i]->style, regs[i]->interior ? "in" : "out");
     }
 
   } else if (strcmp(arg[0],"variables") == 0) {

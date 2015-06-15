@@ -96,9 +96,11 @@ void Info::command(int narg, char **arg)
     } else if (strcmp(arg[idx],"groups") == 0) {
       int ngroup = group->ngroup;
       char **names = group->names;
+      int *dynamic = group->dynamic;
       fprintf(screen,"Group information:\n");
       for (int i=0; i < ngroup; ++i) {
-        fprintf(screen,"Group[%2d]: %s\n",i,names[i]);
+        fprintf(screen,"Group[%2d]: %s (%s)\n",
+                i, names[i], dynamic[i] ? "dynamic" : "static");
       }
 
     } else if (strcmp(arg[idx],"regions") == 0) {

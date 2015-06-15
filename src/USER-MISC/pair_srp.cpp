@@ -336,8 +336,14 @@ void PairSRP::settings(int narg, char **arg)
         error->all(FLERR,"Illegal pair_style command");
 
     cut_global = force->numeric(FLERR,arg[0]);
-    btype = force->inumeric(FLERR,arg[1]);
-    if (btype > atom->nbondtypes) error->all(FLERR,"Illegal pair_style command");
+    // wildcard
+    if (strcmp(arg[1],"*") == 0) 
+      btype = 0;
+    else {
+      btype = force->inumeric(FLERR,arg[1]);
+      if ((btype > atom->nbondtypes) || (btype <= 0))
+        error->all(FLERR,"Illegal pair_style command");
+    }
 
     // settings
     midpoint = 0;

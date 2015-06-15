@@ -18,6 +18,7 @@
 #include "string.h"
 #include "info.h"
 #include "atom.h"
+#include "comm.h"
 #include "compute.h"
 #include "domain.h"
 #include "dump.h"
@@ -49,7 +50,7 @@ static const char bstyles[] = "pfsm";
 
 void Info::command(int narg, char **arg)
 {
-  if (!screen) return;
+  if (!screen || comm->me) return;
 
   for (int idx = 0; idx < narg; ++idx) {
     fputs("\n",screen);
@@ -136,25 +137,25 @@ void Info::command(int narg, char **arg)
         msg = (atom->molecular == 2) ? "template" : "standard";
         fprintf(screen,"Molecule type = %s\n",msg);
       }
-      fprintf(screen,"Atoms     | types | style: " BIGINT_FORMAT " | %d | %s\n",
+      fprintf(screen,"Atoms: " BIGINT_FORMAT ",  types: %d,  style: %s\n",
               atom->natoms, atom->ntypes, force->pair_style);
 
       if (atom->molecular > 0) {
         const char *msg;
         msg = force->bond_style ? force->bond_style : "none";
-        fprintf(screen,"Bonds     | types | style: " BIGINT_FORMAT " | %d | %s\n",
+        fprintf(screen,"Bonds: " BIGINT_FORMAT ",  types: %d,  style: %s\n",
                 atom->nbonds, atom->nbondtypes, msg);
 
         msg = force->angle_style ? force->angle_style : "none";
-        fprintf(screen,"Angles    | types | style: " BIGINT_FORMAT " | %d | %s\n",
+        fprintf(screen,"Angles: " BIGINT_FORMAT ",  types: %d,  style: %s\n",
                 atom->nangles, atom->nangletypes, msg);
 
         msg = force->dihedral_style ? force->dihedral_style : "none";
-        fprintf(screen,"Dihedrals | types | style: " BIGINT_FORMAT " | %d | %s\n",
+        fprintf(screen,"Dihedrals: " BIGINT_FORMAT ",  types: %d,  style: %s\n",
                 atom->ndihedrals, atom->ndihedraltypes, msg);
 
         msg = force->improper_style ? force->improper_style : "none";
-        fprintf(screen,"Impropers | types | style: " BIGINT_FORMAT " | %d | %s\n",
+        fprintf(screen,"Impropers: " BIGINT_FORMAT ",  types: %d,  style: %s\n",
                 atom->nimpropers, atom->nimpropertypes, msg);
 
         const double * const special_lj   = force->special_lj;

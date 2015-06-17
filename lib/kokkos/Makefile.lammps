@@ -111,10 +111,11 @@ SRC_KOKKOS += $(wildcard $(KOKKOS_PATH)/core/src/OpenMP/*.cpp)
 KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/OpenMP/*.hpp)
 ifeq ($(CUDA), yes) 
 KOKKOS_INC += -Xcompiler -fopenmp
+KOKKOS_LINK += -Xcompiler -fopenmp
 else
 KOKKOS_INC += -fopenmp
-endif
 KOKKOS_LINK += -fopenmp
+endif
 endif
 
 ifeq ($(HWLOC),yes)

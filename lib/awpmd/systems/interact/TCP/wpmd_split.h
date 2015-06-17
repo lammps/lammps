@@ -89,6 +89,7 @@ public:
 
 public:
   AWPMD_split():s_add(0),spl_add(0){}
+  virtual ~AWPMD_split() {};
   
  
   ///\en Prepares to setup a new system of particles using \ref add_ion(),

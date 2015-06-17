@@ -74,8 +74,8 @@ PairAWPMDCut::~PairAWPMDCut()
 
 
 struct cmp_x{
-  double tol;
   double **xx;
+  double tol;
   cmp_x(double **xx_=NULL, double tol_=1e-12):xx(xx_),tol(tol_){}
   bool operator()(const pair<int,int> &left, const pair<int,int> &right) const {
     if(left.first==right.first){
@@ -116,8 +116,6 @@ void PairAWPMDCut::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
-  double *erforce = atom->erforce;
-  double *eradius = atom->eradius;
   int *spin = atom->spin;
   int *type = atom->type;
   int *etag = atom->etag;
@@ -128,7 +126,6 @@ void PairAWPMDCut::compute(int eflag, int vflag)
   int ntot=nlocal+nghost;
 
   int newton_pair = force->newton_pair;
-  double qqrd2e = force->qqrd2e;
 
   int inum = list->inum;
   int *ilist = list->ilist;

@@ -208,7 +208,7 @@ public:
   virtual void log_text(int level, const char *messtype, const char *messtext){
     if(descriptor!="") // descriptor is used as header
       printf("%s:\n",descriptor.c_str());
-    if(messtype!="")
+    if(string(messtype)!=string(""))
       printf("%s: ",messtype);
     printf("%s\n",messtext);
   }

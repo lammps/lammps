@@ -317,5 +317,5 @@ namespace ATC
       SPAR_MAT stiffness_; 
   };
 
-};
+}
 #endif

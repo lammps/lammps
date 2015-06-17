@@ -307,5 +307,5 @@ namespace ATC {
 
   };
 
-};
+}
 #endif

@@ -321,6 +321,6 @@ namespace ATC {
 
   };
 
-};
+}
 
 #endif

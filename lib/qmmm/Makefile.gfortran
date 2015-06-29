@@ -11,7 +11,7 @@ sinclude $(QETOPDIR)/make.sys
 
 # FLAGS for c++ OpenMPI when QE was compiled with GNU Fortran 4.x
 MPICXX=mpicxx
-MPICXXFLAGS=-DOMPI_SKIP_MPICXX=1 -O2 -Wall -g \
+MPICXXFLAGS=-DOMPI_SKIP_MPICXX=1 -O2 -Wall -g -fPIC\
 	-I../../src -I$(QETOPDIR)/COUPLE/include
 MPILIBS=-fopenmp -lgfortran -ldl -ljpeg -lpng -lz -lmpi_f77 -lmpi
 

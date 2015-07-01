@@ -30,20 +30,20 @@ License Agreement. Extract the tarball into the QUIP directory.
 There is a README file in the top-level QUIP directory, but here are
 the main steps.
 
-The Makefiles directory contains a selection of machine- and
+The arch directory contains a selection of machine- and
 compiler-specific makefiles,
 e.g. Makefile.linux_x86_64_gfortran. Decide which one is most
 appropriate for your system, and edit if necessary. The configuring
 step will use the makefile based on the QUIP_ARCH environment
 variable, i.e. Makefile.${QUIP_ARCH}. The script will create a build
-directory, build.${QUIP_ARCH}, and all the building will happen
+directory, build/${QUIP_ARCH}, and all the building will happen
 there. First it will ask you some questions about where you keep
 libraries and other stuff.
 
 If you don't use something it is asking for, just leave it blank. NB
 make sure to answer `y' to `Do you want to compile with GAP prediction
 support ? [y/n]'. The answers will be stored in Makefile.inc in the
-build.${QUIP_ARCH} directory, and you can edit them later (e.g. to
+build/${QUIP_ARCH} directory, and you can edit them later (e.g. to
 change optimisation or debug options). Note that the default state is
 usually with rather heavy debugging on, including bounds checking,
 which makes the code quite slow. The make command has to be executed

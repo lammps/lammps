@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef DIHEDRAL_CLASS
+#ifdef IMPROPER_CLASS
 
 ImproperStyle(harmonic/kk,ImproperHarmonicKokkos<LMPDeviceType>)
 ImproperStyle(harmonic/kk/device,ImproperHarmonicKokkos<LMPDeviceType>)

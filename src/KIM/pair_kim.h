@@ -57,9 +57,12 @@ namespace LAMMPS_NS {
       // (nearly) all bool flags are not initialized in constructor, but set
       // explicitly in the indicated function.  All other data members are
       // initialized in constructor
+      int settings_call_count;
+      int init_style_call_count;
 
       // values set in settings()
       char* kim_modelname;
+      bool print_kim_file;
 
       // values set in coeff()
 

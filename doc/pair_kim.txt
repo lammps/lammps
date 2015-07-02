@@ -10,14 +10,18 @@ pair_style kim command :h3
 
 [Syntax:]
 
-pair_style kim virialmode model :pre
+pair_style kim virialmode model print-flag :pre
 
 virialmode = KIMvirial or LAMMPSvirial
-model = name of KIM model (potential) :ul
+model = name of KIM model (potential)
+print-flag = 0/1 do/do not print kim descriptor file; default: 0 :ul
 
 [Examples:]
 
 pair_style kim KIMvirial model_Ar_P_Morse
+pair_coeff * * Ar Ar :pre
+
+pair_style kim KIMvirial model_Ar_P_Morse 1
 pair_coeff * * Ar Ar :pre
 
 [Description:]

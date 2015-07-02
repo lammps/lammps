@@ -52,6 +52,8 @@
 #include "version.h"
 
 #include <stdlib.h>
+#include <time.h>
+#include <math.h>
 
 using namespace LAMMPS_NS;
 
@@ -77,6 +79,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   screen = NULL;
   logfile = NULL;
   infile = NULL;
+
+  initclock = MPI_Wtime();
 
   // parse input switches
 
@@ -550,6 +554,19 @@ LAMMPS::~LAMMPS()
   destroy();
 
   delete citeme;
+
+  double totalclock = MPI_Wtime() - initclock;
+  if (screen || logfile) {
+    char outtime[128];
+    int seconds = fmod(totalclock,60.0);
+    totalclock  = (totalclock - seconds) / 60.0;
+    int minutes = fmod(totalclock,60.0);
+    int hours = (totalclock - minutes) / 60.0;
+    sprintf(outtime,"Total wall time: "
+            "%d:%02d:%02d\n", hours, minutes, seconds);
+    if (screen)  fputs(outtime,screen);
+    if (logfile) fputs(outtime,logfile);
+  }
 
   if (universe->nworlds == 1) {
     if (screen && screen != stdout) fclose(screen);

@@ -33,6 +33,14 @@
 #include "update.h"
 #include "error.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#include <stdint.h>
+#else
+#include <sys/time.h>
+#include <sys/resource.h>
+#endif
+
 using namespace LAMMPS_NS;
 
 // same as in variable.cpp
@@ -111,6 +119,44 @@ void Info::command(int narg, char **arg)
         fprintf(screen,"Region[%3d]: %s,  style: %s,  side: %s\n",
                 i, regs[i]->id, regs[i]->style, regs[i]->interior ? "in" : "out");
       }
+
+    } else if (strcmp(arg[idx],"time") == 0) {
+
+      double wallclock = MPI_Wtime() - lmp->initclock;
+      double cpuclock = 0.0;
+      
+#ifdef _WIN32
+
+      // from MSD docs.
+      FILETIME ct,et,kt,ut;
+      union { FILETIME ft; uint64_t ui; } cpu;
+      if (GetProcessTimes(GetCurrentProcess(),&ct,&et,&kt,&ut)) {
+        cpu.ft = ut;
+        cpuclock = cpu.ui * 0.0000001;
+      }
+
+#else /* ! _WIN32 */
+
+      struct rusage ru;
+      if (getrusage(RUSAGE_SELF, &ru) == 0) {
+        cpuclock  = (double) ru.ru_utime.tv_sec;
+        cpuclock += (double) ru.ru_utime.tv_usec * 0.000001;
+  }
+
+#endif /* ! _WIN32 */
+      int cpuh,cpum,cpus,wallh,wallm,walls;
+      cpus = fmod(cpuclock,60.0);
+      cpuclock = (cpuclock - cpus) / 60.0;
+      cpum = fmod(cpuclock,60.0);
+      cpuh = (cpuclock - cpum) / 60.0;
+      walls = fmod(wallclock,60.0);
+      wallclock = (wallclock - walls) / 60.0;
+      wallm = fmod(wallclock,60.0);
+      wallh = (wallclock - wallm) / 60.0;
+      fprintf(screen,"Total time information (MPI rank 0):\n"
+              "  CPU time: %4d:%02d:%02d\n"
+              " Wall time: %4d:%02d:%02d\n",
+              cpuh,cpum,cpus,wallh,wallm,walls);
 
     } else if (strcmp(arg[idx],"variables") == 0) {
       int nvar = input->variable->nvar;

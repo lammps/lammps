@@ -13,11 +13,11 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style kim virialmode model print-flag 
+<PRE>pair_style kim virialmode model printflag 
 </PRE>
 <UL><LI>virialmode = KIMvirial or LAMMPSvirial
 <LI>model = name of KIM model (potential)
-<LI>print-flag = 0/1 do/do not print kim descriptor file; default: 0 
+<LI>printflag = 1/0 do or do not print KIM descriptor file, optional 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -47,6 +47,10 @@ specified, LAMMPS computes the global virial using its fdotr mechanism.
 potential as KIM defines it.  In principle, LAMMPS can invoke any KIM
 model.  You should get an error or warning message from either LAMMPS
 or KIM if there is an incompatibility.
+</P>
+<P>The argument <I>printflag</I> is optional.  If it is set to a non-zero
+value then a KIM dsecriptor file is printed when KIM is invoked.  This
+can be useful for debugging.  The default is to not print this file.
 </P>
 <P>Only a single pair_coeff command is used with the <I>kim</I> style which
 specifies the mapping of LAMMPS atom types to KIM elements.  This is

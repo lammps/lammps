@@ -60,7 +60,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      SPECIAL_LJ,SPECIAL_COUL,
      MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT};
+     IMAGEINT,BOUNDMIN};
 
 #define LB_FACTOR 1.1
 
@@ -793,6 +793,14 @@ void ReadRestart::header(int incompatible)
             boundary[2][0] >= 2 || boundary[2][1] >= 2)
           domain->nonperiodic = 2;
       }
+
+    } else if (flag == BOUNDMIN) {
+      double minbound[6];
+      read_int();
+      read_double_vec(6,minbound);
+      domain->minxlo = minbound[0]; domain->minxhi = minbound[1];
+      domain->minylo = minbound[2]; domain->minyhi = minbound[3];
+      domain->minzlo = minbound[4]; domain->minzhi = minbound[5];
 
     // create new AtomVec class using any stored args
 

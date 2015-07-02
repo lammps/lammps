@@ -72,6 +72,10 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boundary[1][0] = boundary[1][1] = 0;
   boundary[2][0] = boundary[2][1] = 0;
 
+  minxlo = minxhi = 0.0;
+  minylo = minyhi = 0.0;
+  minzlo = minzhi = 0.0;
+
   triclinic = 0;
   tiltsmall = 1;
 

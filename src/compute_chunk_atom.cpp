@@ -475,12 +475,13 @@ void ComputeChunkAtom::init()
     error->all(FLERR,"Compute chunk/atom ids once but nchunk is not once");
 
   // create/destroy fix STORE for persistent chunk IDs as needed
+  // need to do this if idsflag = ONCE or locks will be used by other commands
   // need to wait until init() so that fix ave/chunk command(s) are in place
-  // they increment lockcount if they lock this compute
+  //   they increment lockcount if they lock this compute
   // fixstore ID = compute-ID + COMPUTE_STORE, fix group = compute group
   // fixstore initializes all values to 0.0
 
-  if (lockcount && !fixstore) {
+  if ((idsflag == ONCE || lockcount) && !fixstore) {
     int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
     id_fix = new char[n];
     strcpy(id_fix,id);
@@ -497,8 +498,8 @@ void ComputeChunkAtom::init()
     delete [] newarg;
   }
 
-  if (!lockcount && fixstore) {
-    delete fixstore;
+  if ((idsflag != ONCE && !lockcount) && fixstore) {
+    modify->delete_fix(id_fix);
     fixstore = NULL;
   }
 }

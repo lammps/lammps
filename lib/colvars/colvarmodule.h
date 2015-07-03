@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2015-03-15"
+#define COLVARS_VERSION "2015-04-22"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -122,19 +122,19 @@ public:
   }
 
   /// Current step number
-  static size_t it;
+  static long it;
   /// Starting step number for this run
-  static size_t it_restart;
+  static long it_restart;
 
   /// Return the current step number from the beginning of this run
-  static inline size_t step_relative()
+  static inline long step_relative()
   {
     return it - it_restart;
   }
 
   /// Return the current step number from the beginning of the whole
   /// calculation
-  static inline size_t step_absolute()
+  static inline long step_absolute()
   {
     return it;
   }
@@ -302,8 +302,8 @@ public:
   /// \brief Read a collective variable trajectory (post-processing
   /// only, not called at runtime)
   int read_traj(char const *traj_filename,
-                  size_t      traj_read_begin,
-                  size_t      traj_read_end);
+                long        traj_read_begin,
+                long        traj_read_end);
 
   /// Quick conversion of an object to a string
   template<typename T> static std::string to_str(T const &x,

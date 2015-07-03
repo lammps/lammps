@@ -13,7 +13,7 @@ compute msd/chunk command :h3
 compute ID group-ID msd/chunk chunkID :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-msd/molecule = style name of this compute command
+msd/chunk = style name of this compute command
 chunkID = ID of "compute chunk/atom"_compute_chunk_atom.html command :ul
 
 [Examples:]

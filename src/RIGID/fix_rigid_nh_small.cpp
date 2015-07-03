@@ -741,7 +741,7 @@ void FixRigidNHSmall::final_integrate()
   // include Langevin thermostat forces
   // fflag,tflag = 0 for some dimensions in 2d
 
-  for (ibody = 0; ibody < nbody; ibody++) {
+  for (ibody = 0; ibody < nlocal_body; ibody++) {
     Body *b = &body[ibody];
 
     // update vcm by 1/2 step

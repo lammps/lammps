@@ -511,7 +511,7 @@ void VerletSplit::r2k_comm()
     MPI_Send(flags,2,MPI_INT,0,0,block);
   } else if (!master) {
     int flags[2];
-    MPI_Recv(flags,2,MPI_DOUBLE,1,0,block,MPI_STATUS_IGNORE);
+    MPI_Recv(flags,2,MPI_INT,1,0,block,MPI_STATUS_IGNORE);
     eflag = flags[0]; vflag = flags[1];
   }
 

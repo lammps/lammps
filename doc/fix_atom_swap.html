@@ -9,15 +9,15 @@
 
 <HR>
 
-<H3>fix atom_swap command 
+<H3>fix atom/swap command 
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>fix ID group-ID atom_swap N X seed T keyword values ... 
+<PRE>fix ID group-ID atom/swap N X seed T keyword values ... 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
-<LI>atom_swap = style name of this fix command 
+<LI>atom/swap = style name of this fix command 
 
 <LI>N = invoke this fix every N steps 
 
@@ -47,66 +47,72 @@
 <P><B>Examples:</B>
 </P>
 <PRE>fix 2 all atom/swap 1 1 29494 300.0 ke no types 1 2
-fix atom_swap_fix all atom/swap 100 1 12345 298.0 region my_swap_region types 5 6 
+fix myFix all atom/swap 100 1 12345 298.0 region my_swap_region types 5 6 
 fix SGMC all atom/swap 1 100 345 1.0 semi-grand yes types 1 2 3 delta_mu 4.3 -5.0 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>This fix performs Monte Carlo swaps of atoms of one given atom type with atoms
-of the other given atom types. The specified T is used in the Metropolis criterion
-dictating swap probabilities. 
+<P>This fix performs Monte Carlo swaps of atoms of one given atom type
+with atoms of the other given atom types. The specified T is used in
+the Metropolis criterion dictating swap probabilities.
 </P>
-<P>Perform X swaps of atoms of one type with atoms of another type according to a
-Monte Carlo probability. Swap candidates must be in the fix group, must be in
-the region (if specified), and must be of one of the listed types. Swaps are
-attempted between candidates that are chosen randomly with equal probability 
-among the candidate atoms. Swaps are not attempted between atoms of the same 
-type since nothing would happen.
+<P>Perform X swaps of atoms of one type with atoms of another type
+according to a Monte Carlo probability. Swap candidates must be in the
+fix group, must be in the region (if specified), and must be of one of
+the listed types. Swaps are attempted between candidates that are
+chosen randomly with equal probability among the candidate
+atoms. Swaps are not attempted between atoms of the same type since
+nothing would happen.
 </P>
-<P>All atoms in the simulation domain can be moved using regular time 
+<P>All atoms in the simulation domain can be moved using regular time
 integration displacements, e.g. via <A HREF = "fix_nvt.html">fix_nvt</A>, resulting
-in a hybrid MC+MD simulation. A smaller-than-usual timestep size 
-may be needed when running such a hybrid simulation, especially if 
-the swapped atoms are not well equilibrated.
+in a hybrid MC+MD simulation. A smaller-than-usual timestep size may
+be needed when running such a hybrid simulation, especially if the
+swapped atoms are not well equilibrated.
 </P>
-<P>The <I>types</I> keyword is required. At least two atom types must be specified.
+<P>The <I>types</I> keyword is required. At least two atom types must be
+specified.
 </P>
-<P>The <I>ke</I> keyword can be set to <I>no</I> to turn off kinetic energy conservation 
-for swaps. The default is <I>yes</I>, which means that swapped atoms have their 
-velocities scaled by the ratio of the masses of the swapped atom types. This
-ensures that the kinetic energy of each atom is the same after the swap as it 
-was before the swap, even though the atom masses have changed.
+<P>The <I>ke</I> keyword can be set to <I>no</I> to turn off kinetic energy
+conservation for swaps. The default is <I>yes</I>, which means that swapped
+atoms have their velocities scaled by the ratio of the masses of the
+swapped atom types. This ensures that the kinetic energy of each atom
+is the same after the swap as it was before the swap, even though the
+atom masses have changed.
 </P>
-<P>The <I>semi-grand</I> keyword can be set to <I>yes</I> to switch to the semi-grand 
-canonical ensemble as discussed in <A HREF = "#Sadigh">(Sadigh)</A>. This means that the
-total number of each particle type does not need to be conserved. The default
-is <I>no</I>, which means that the only kind of swap allowed exchanges an atom of 
-one type with an atom of a different given type. In other words, the relative
-mole fractions of the swapped atoms remains constant. Whereas in the 
-semi-grand canonical ensemble, the composition of the system can change. Note
-that when using <I>semi-grand</I>, all atoms in the fix group are eligible for 
-attempted conversion to one of the given types, even if its current type is 
-not one of the given types. An attempt is made to switch the selected atom to
-one of the listed <I>types</I> with equal probability. Acceptance of each attempt 
-depends upon the Metropolis criterion.
+<P>The <I>semi-grand</I> keyword can be set to <I>yes</I> to switch to the
+semi-grand canonical ensemble as discussed in <A HREF = "#Sadigh">(Sadigh)</A>. This
+means that the total number of each particle type does not need to be
+conserved. The default is <I>no</I>, which means that the only kind of swap
+allowed exchanges an atom of one type with an atom of a different
+given type. In other words, the relative mole fractions of the swapped
+atoms remains constant. Whereas in the semi-grand canonical ensemble,
+the composition of the system can change. Note that when using
+<I>semi-grand</I>, all atoms in the fix group are eligible for attempted
+conversion to one of the given types, even if its current type is not
+one of the given types. An attempt is made to switch the selected atom
+to one of the listed <I>types</I> with equal probability. Acceptance of
+each attempt depends upon the Metropolis criterion.
 </P>
-<P>The <I>delta_mu</I> keyword allows users to specify non-zero chemical potentials
-for each of the atom types. All chemical potentials are relative to the first
-atom type, so no value is given for the first atom type. These parameters are
-useful for semi-grand canonical ensemble simulations where it may be 
-desirable to actively control the composition of the system. When given,
-there must be ntypes-1 values given, where ntypes is the number of atom
-types in the simulated system. Note that a value for delta_mu is required for
-all atom types when using <I>semi-grand</I>, even for atom types not listed 
-following the <I>types</I> keyword. This is because when using <I>semi-grand</I>, it is
-possible that any of the atom types in the system could be part of the fix
-group and therefore are eligible for swapping to one of the listed atom types.
+<P>The <I>delta_mu</I> keyword allows users to specify non-zero chemical
+potentials for each of the atom types. All chemical potentials are
+relative to the first atom type, so no value is given for the first
+atom type. These parameters are useful for semi-grand canonical
+ensemble simulations where it may be desirable to actively control the
+composition of the system. When given, there must be ntypes-1 values
+given, where ntypes is the number of atom types in the simulated
+system. Note that a value for delta_mu is required for all atom types
+when using <I>semi-grand</I>, even for atom types not listed following the
+<I>types</I> keyword. This is because when using <I>semi-grand</I>, it is
+possible that any of the atom types in the system could be part of the
+fix group and therefore are eligible for swapping to one of the listed
+atom types.
 </P>
-<P>This command may optionally use the <I>region</I> keyword to define
-swap volume.  The specified region must have been 
-previously defined with a <A HREF = "region.html">region</A> command.  It must be 
-defined with side = <I>in</I>.  Swap attempts occur only between atoms that
-are both within the specified region. Swaps are not otherwise attempted.
+<P>This command may optionally use the <I>region</I> keyword to define swap
+volume.  The specified region must have been previously defined with a
+<A HREF = "region.html">region</A> command.  It must be defined with side = <I>in</I>.
+Swap attempts occur only between atoms that are both within the
+specified region. Swaps are not otherwise attempted.
 </P>
 <P>You should ensure you do not swap atoms belonging to a molecule, or
 LAMMPS will soon generate an error when it tries to find those atoms.
@@ -115,12 +121,12 @@ non-zero molecule ID, but does not check for this at the time of
 swapping.
 </P>
 <P>This fix checks to ensure all atoms of the given types have the same
-atomic charge. LAMMPS doesn't enforce this in general, but it is 
-needed for this fix to simplify the swapping procedure. Successful swaps
-will swap the atom type and charge of the swapped atoms.
+atomic charge. LAMMPS doesn't enforce this in general, but it is
+needed for this fix to simplify the swapping procedure. Successful
+swaps will swap the atom type and charge of the swapped atoms.
 </P>
 <P>Since this fix computes total potential energies before and after
-proposed swaps, so even complicated potential energy calculations are 
+proposed swaps, so even complicated potential energy calculations are
 OK, including the following:
 </P>
 <UL><LI>  long-range electrostatics (kspace)

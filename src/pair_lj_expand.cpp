@@ -269,26 +269,22 @@ double PairLJExpand::init_one(int i, int j)
 
     double sig2 = sigma[i][j]*sigma[i][j];
     double sig6 = sig2*sig2*sig2;
-    double shiftcut = shift[i][j] - cut[i][j];
-    double rc3  = shiftcut*shiftcut*shiftcut;
-    double rc4  = rc3*shiftcut;
-    double rc5  = rc4*shiftcut;
-    double rc6  = rc5*shiftcut;
-    double rc9  = rc6*rc3;
-    double rc10 = rc9*shiftcut;
-    double rc11 = rc10*shiftcut;
-    double rc12 = rc11*shiftcut;
-    double shift2 = shift[i][j]*shift[i][j];
-    double shift3 = shift2*shift[i][j];
-    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
-      sig6*((-1.0/(9.0*rc9) + shift[i][j]/(5.0*rc10) -
-             shift2/(11.0*rc11))*sig6 +
-            1.0/(3.0*rc3) - shift[i][j]/(2.0*rc4) + shift2/(5.0*rc5));
-    ptail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
-      sig6* ((-4.0/(3.0*rc9) + 18.0*shift[i][j]/(5.0*rc10) -
-             36.0*shift2/(11.0*rc11) + shift3/rc12)*sig6 +
-             2.0/rc3 - 9.0*shift[i][j]/(2.0*rc4) +
-             18.0*shift2/(5.0*rc5) - shift3/rc6)/3.0;
+    double rc1 = cut[i][j];
+    double rc2  = rc1*rc1;
+    double rc3  = rc2*rc1;
+    double rc9  = rc3*rc3*rc3;
+    double shift1 = shift[i][j];
+    double shift2 = shift1*shift1;
+    double shift3 = shift2*shift1;
+
+    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] * sig6 * 
+      ((1.0/9.0 + 2.0*shift1/(10.0*rc1) + shift2/(11.0*rc2))*sig6/rc9 -
+       (1.0/3.0 + 2.0*shift1/(4.0*rc1) + shift2/(5.0*rc2))/rc3);
+    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] * sig6 * 
+      ((1.0/9.0 + 3.0*shift1/(10.0*rc1) + 
+	3.0*shift2/(11.0*rc2) + shift3/(12.0*rc3))*2.0*sig6/rc9 -
+       (1.0/3.0 + 3.0*shift1/(4.0*rc1) + 
+	3.0*shift2/(5.0*rc2) + shift3/(6.0*rc3))/rc3);
   }
 
   return cut[i][j] + shift[i][j];

@@ -68,6 +68,6 @@ distance^2 "units"_units.html respectively.
 
 [Related commands:]
 
-"compute gyration/molecule"_compute_gyration_molecule.html
+"compute gyration/chunk"_compute_gyration_chunk.html
 
 [Default:] none

@@ -13,7 +13,7 @@ compute torque/chunk command :h3
 compute ID group-ID torque/chunk chunkID :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-torque/molecule = style name of this compute command
+torque/chunk = style name of this compute command
 chunkID = ID of "compute chunk/atom"_compute_chunk_atom.html command :ul
 
 [Examples:]

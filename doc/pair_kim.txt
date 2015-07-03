@@ -10,14 +10,18 @@ pair_style kim command :h3
 
 [Syntax:]
 
-pair_style kim virialmode model :pre
+pair_style kim virialmode model printflag :pre
 
 virialmode = KIMvirial or LAMMPSvirial
-model = name of KIM model (potential) :ul
+model = name of KIM model (potential)
+printflag = 1/0 do or do not print KIM descriptor file, optional :ul
 
 [Examples:]
 
 pair_style kim KIMvirial model_Ar_P_Morse
+pair_coeff * * Ar Ar :pre
+
+pair_style kim KIMvirial model_Ar_P_Morse 1
 pair_coeff * * Ar Ar :pre
 
 [Description:]
@@ -40,6 +44,10 @@ The argument {model} is the name of the KIM model for a specific
 potential as KIM defines it.  In principle, LAMMPS can invoke any KIM
 model.  You should get an error or warning message from either LAMMPS
 or KIM if there is an incompatibility.
+
+The argument {printflag} is optional.  If it is set to a non-zero
+value then a KIM dsecriptor file is printed when KIM is invoked.  This
+can be useful for debugging.  The default is to not print this file.
 
 Only a single pair_coeff command is used with the {kim} style which
 specifies the mapping of LAMMPS atom types to KIM elements.  This is

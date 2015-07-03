@@ -30,11 +30,10 @@ class PairSW : public Pair {
   virtual ~PairSW();
   virtual void compute(int, int);
   void settings(int, char **);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   virtual double init_one(int, int);
   virtual void init_style();
 
- protected:
   struct Param {
     double epsilon,sigma;
     double littlea,lambda,gamma,costheta;
@@ -47,6 +46,7 @@ class PairSW : public Pair {
     int ielement,jelement,kelement;
   };
 
+ protected:
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements
@@ -58,7 +58,7 @@ class PairSW : public Pair {
 
   virtual void allocate();
   void read_file(char *);
-  void setup();
+  virtual void setup();
   void twobody(Param *, double, double &, int, double &);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,
                  double *, double *, int, double &);

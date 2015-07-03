@@ -77,6 +77,7 @@ if (test $1 = "KSPACE") then
   depend USER-OMP
   depend USER-INTEL
   depend USER-PHONON
+  depend USER-FEP
 fi
 
 if (test $1 = "MANYBODY") then
@@ -94,6 +95,7 @@ if (test $1 = "MOLECULE") then
   depend USER-CUDA
   depend USER-MISC
   depend USER-OMP
+  depend USER-FEP
   depend USER-INTEL
 fi
 
@@ -109,6 +111,10 @@ if (test $1 = "USER-CG-CMM") then
   depend GPU
   depend KOKKOS
   depend USER-CUDA
+  depend USER-OMP
+fi
+
+if (test $1 = "USER-FEP") then
   depend USER-OMP
 fi
 

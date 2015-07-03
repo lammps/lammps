@@ -13,7 +13,7 @@ compute omega/chunk command :h3
 compute ID group-ID omega/chunk chunkID :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-omega/molecule = style name of this compute command
+omega/chunk = style name of this compute command
 chunkID = ID of "compute chunk/atom"_compute_chunk_atom.html command :ul
 
 [Examples:]

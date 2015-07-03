@@ -226,7 +226,16 @@ void FixGCMC::options(int narg, char **arg)
   charge_flag = false;
   full_flag = false;
   idshake = NULL;
-  
+  ngroups = 0;
+  int ngroupsmax = 0;
+  groupstrings = NULL;
+  ngrouptypes = 0;
+  int ngrouptypesmax = 0;
+  grouptypestrings = NULL;
+  grouptypes = NULL;
+  grouptypebits = NULL;
+  energy_intra = 0.0;
+
   int iarg = 0;
   while (iarg < narg) {
   if (strcmp(arg[iarg],"mol") == 0) {
@@ -281,6 +290,41 @@ void FixGCMC::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"full_energy") == 0) {
       full_flag = true;
       iarg += 1;
+    } else if (strcmp(arg[iarg],"group") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      if (ngroups >= ngroupsmax) {
+	ngroupsmax = ngroups+1;
+	groupstrings = (char **) 
+	  memory->srealloc(groupstrings,
+			   ngroupsmax*sizeof(char *),
+			   "fix_gcmc:groupstrings");
+      }
+      int n = strlen(arg[iarg+1]) + 1;
+      groupstrings[ngroups] = new char[n];
+      strcpy(groupstrings[ngroups],arg[iarg+1]);
+      ngroups++;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"grouptype") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      if (ngrouptypes >= ngrouptypesmax) {
+	ngrouptypesmax = ngrouptypes+1;
+	grouptypes = (int*) memory->srealloc(grouptypes,ngrouptypesmax*sizeof(int),
+			 "fix_gcmc:grouptypes");
+	grouptypestrings = (char**) 
+	  memory->srealloc(grouptypestrings,
+			   ngrouptypesmax*sizeof(char *),
+			   "fix_gcmc:grouptypestrings");
+      }
+      grouptypes[ngrouptypes] = atoi(arg[iarg+1]);
+      int n = strlen(arg[iarg+2]) + 1;
+      grouptypestrings[ngrouptypes] = new char[n];
+      strcpy(grouptypestrings[ngrouptypes],arg[iarg+2]);
+      ngrouptypes++;
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"intra_energy") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      energy_intra = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix gcmc command");
   }
 }
@@ -293,31 +337,26 @@ FixGCMC::~FixGCMC()
   delete random_equal;
   delete random_unequal;
 
-  // remove groups this fix defined
-  // only do it if the groups exists and group itself exists
-
-  if (molecule_group && (strcmp(group->names[0],"all") == 0)) {
-    char **group_arg = new char*[2];
-    group_arg[0] = group->names[molecule_group];
-    group_arg[1] = (char *) "delete";
-    group->assign(2,group_arg);
-    delete [] group_arg;
-  } 
-  
-  if (exclusion_group && (strcmp(group->names[0],"all") == 0)) {
-    char **group_arg = new char*[2];
-    group_arg[0] = group->names[exclusion_group];
-    group_arg[1] = (char *) "delete";
-    group->assign(2,group_arg);
-    delete [] group_arg;
-  } 
-
   memory->destroy(local_gas_list);
   memory->destroy(atom_coord);
   memory->destroy(coords);
   memory->destroy(imageflags);
   
   delete [] idshake;
+
+  if (ngroups > 0) {
+    for (int igroup = 0; igroup < ngroups; igroup++) 
+      delete [] groupstrings[igroup];
+    memory->sfree(groupstrings);
+  }
+
+  if (ngrouptypes > 0) {
+    memory->destroy(grouptypes);
+    memory->destroy(grouptypebits);
+    for (int igroup = 0; igroup < ngrouptypes; igroup++) 
+      delete [] grouptypestrings[igroup];
+    memory->sfree(grouptypestrings);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -443,6 +482,8 @@ void FixGCMC::init()
     arg[3] = (char *) "all";
     neighbor->modify_params(narg,arg);
     delete [] group_arg[0];
+    delete [] group_arg;
+    delete [] arg;
   }
     
   // create a new group for temporary use with selected molecules
@@ -464,6 +505,7 @@ void FixGCMC::init()
     molecule_group_bit = group->bitmask[molecule_group];
     molecule_group_inversebit = molecule_group_bit ^ ~0;
     delete [] group_arg[0];
+    delete [] group_arg;
   }
     
   // get all of the needed molecule data if mode == MOLECULE, 
@@ -515,6 +557,31 @@ void FixGCMC::init()
   
   imagetmp = ((imageint) IMGMAX << IMG2BITS) | 
              ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+
+  // construct group bitmask for all new atoms
+  // aggregated over all group keywords
+ 
+  groupbitall = 1 | groupbit;
+  for (int igroup = 0; igroup < ngroups; igroup++) {
+    int jgroup = group->find(groupstrings[igroup]);
+    if (jgroup == -1) 
+      error->all(FLERR,"Could not find specified fix gcmc group ID");
+    groupbitall |= group->bitmask[jgroup];
+  }
+
+  // construct group type bitmasks
+  // not aggregated over all group keywords
+
+  if (ngrouptypes > 0) {
+    memory->create(grouptypebits,ngrouptypes,"fix_gcmc:grouptypebits");
+    for (int igroup = 0; igroup < ngrouptypes; igroup++) {
+      int jgroup = group->find(grouptypestrings[igroup]);
+      if (jgroup == -1) 
+	error->all(FLERR,"Could not find specified fix gcmc group ID");
+      grouptypebits[igroup] = group->bitmask[jgroup];
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -651,6 +718,8 @@ void FixGCMC::attempt_atomic_translation()
         coord[2] = x[i][2] + displace*rz;
       }
     }
+    if (!domain->inside_nonperiodic(coord)) 
+      error->one(FLERR,"Fix gcmc put atom outside box");
 
     double energy_after = energy(i,ngcmc_type,-1,coord);
     if (random_unequal->uniform() < 
@@ -738,6 +807,9 @@ void FixGCMC::attempt_atomic_insertion()
     coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
   }
 
+  if (!domain->inside_nonperiodic(coord)) 
+    error->one(FLERR,"Fix gcmc put atom outside box");
+
   int proc_flag = 0;
   if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
       coord[1] >= sublo[1] && coord[1] < subhi[1] &&
@@ -750,7 +822,16 @@ void FixGCMC::attempt_atomic_insertion()
         zz*volume*exp(-beta*insertion_energy)/(ngas+1)) {
       atom->avec->create_atom(ngcmc_type,coord);
       int m = atom->nlocal - 1;
-      atom->mask[m] = 1 | groupbit;
+
+      // add to groups
+      // optionally add to type-based groups
+
+      atom->mask[m] = groupbitall;
+      for (int igroup = 0; igroup < ngrouptypes; igroup++) {
+	if (ngcmc_type == grouptypes[igroup])
+	  atom->mask[m] |= grouptypebits[igroup];
+      }
+
       atom->v[m][0] = random_unequal->gaussian()*sigma;
       atom->v[m][1] = random_unequal->gaussian()*sigma;
       atom->v[m][2] = random_unequal->gaussian()*sigma;
@@ -843,6 +924,8 @@ void FixGCMC::attempt_molecule_translation()
       coord[0] = x[i][0] + com_displace[0];
       coord[1] = x[i][1] + com_displace[1];
       coord[2] = x[i][2] + com_displace[2];
+      if (!domain->inside_nonperiodic(coord)) 
+  	error->one(FLERR,"Fix gcmc put atom outside box");
       energy_after += energy(i,atom->type[i],translation_molecule,coord);
     }
   }
@@ -926,6 +1009,8 @@ void FixGCMC::attempt_molecule_rotation()
       xtmp[1] = atom_coord[n][1];
       xtmp[2] = atom_coord[n][2];
       domain->remap(xtmp);
+      if (!domain->inside_nonperiodic(xtmp)) 
+	error->one(FLERR,"Fix gcmc put atom outside box");
       energy_after += energy(i,atom->type[i],rotation_molecule,xtmp);
       n++;
     }
@@ -1045,6 +1130,8 @@ void FixGCMC::attempt_molecule_insertion()
     xtmp[1] = atom_coord[i][1];
     xtmp[2] = atom_coord[i][2];
     domain->remap(xtmp);
+    if (!domain->inside_nonperiodic(xtmp)) 
+      error->one(FLERR,"Fix gcmc put atom outside box");
 
     procflag[i] = false;
     if (xtmp[0] >= sublo[0] && xtmp[0] < subhi[0] &&
@@ -1086,7 +1173,16 @@ void FixGCMC::attempt_molecule_insertion()
       if (procflag[i]) {
         atom->avec->create_atom(ngcmc_type+onemols[imol]->type[i],atom_coord[i]);
         int m = atom->nlocal - 1;
-        atom->mask[m] = 1 | groupbit;
+
+	// add to groups
+	// optionally add to type-based groups
+
+	atom->mask[m] = groupbitall;
+	for (int igroup = 0; igroup < ngrouptypes; igroup++) {
+	  if (ngcmc_type == grouptypes[igroup])
+	    atom->mask[m] |= grouptypebits[igroup];
+	}
+
         atom->image[m] = imagetmp;
         domain->remap(atom->x[m],atom->image[m]);
         atom->molecule[m] = maxmol_all;
@@ -1228,6 +1324,8 @@ void FixGCMC::attempt_atomic_translation_full()
         coord[2] = x[i][2] + displace*rz;
       }
     }
+    if (!domain->inside(coord)) 
+      error->one(FLERR,"Fix gcmc put atom outside box");
     xtmp[0] = x[i][0];
     xtmp[1] = x[i][1];
     xtmp[2] = x[i][2];
@@ -1270,20 +1368,21 @@ void FixGCMC::attempt_atomic_translation_full()
 void FixGCMC::attempt_atomic_deletion_full()
 {
   double q_tmp;
-  
+  const int q_flag = atom->q_flag;
+
   ndeletion_attempts += 1.0;
 
   if (ngas == 0) return;
   
   double energy_before = energy_stored;
 
-  int i = pick_random_gas_atom();
+  const int i = pick_random_gas_atom();
 
   int tmpmask;
   if (i >= 0) {
     tmpmask = atom->mask[i];
     atom->mask[i] = exclusion_group_bit;
-    if (atom->q_flag) {
+    if (q_flag) {
       q_tmp = atom->q[i];
       atom->q[i] = 0.0;
     }
@@ -1304,7 +1403,7 @@ void FixGCMC::attempt_atomic_deletion_full()
   } else {
     if (i >= 0) {
       atom->mask[i] = tmpmask;
-      if (atom->q_flag) atom->q[i] = q_tmp;
+      if (q_flag) atom->q[i] = q_tmp;
     }
     if (force->kspace) force->kspace->qsum_qsq();
     energy_stored = energy_before;
@@ -1340,6 +1439,9 @@ void FixGCMC::attempt_atomic_insertion_full()
     coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
   }
   
+  if (!domain->inside(coord)) 
+    error->one(FLERR,"Fix gcmc put atom outside box");
+
   int proc_flag = 0;
   if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
       coord[1] >= sublo[1] && coord[1] < subhi[1] &&
@@ -1347,7 +1449,16 @@ void FixGCMC::attempt_atomic_insertion_full()
     proc_flag = 1;
     atom->avec->create_atom(ngcmc_type,coord);
     int m = atom->nlocal - 1;
-    atom->mask[m] = 1 | groupbit;
+
+    // add to groups
+    // optionally add to type-based groups
+    
+    atom->mask[m] = groupbitall;
+    for (int igroup = 0; igroup < ngrouptypes; igroup++) {
+      if (ngcmc_type == grouptypes[igroup])
+	atom->mask[m] |= grouptypebits[igroup];
+    }
+
     atom->v[m][0] = random_unequal->gaussian()*sigma;
     atom->v[m][1] = random_unequal->gaussian()*sigma;
     atom->v[m][2] = random_unequal->gaussian()*sigma;
@@ -1445,6 +1556,8 @@ void FixGCMC::attempt_molecule_translation_full()
       x[i][0] += com_displace[0];
       x[i][1] += com_displace[1];
       x[i][2] += com_displace[2];
+      if (!domain->inside(x[i])) 
+  	error->one(FLERR,"Fix gcmc put atom outside box");
     }
   }
 
@@ -1526,6 +1639,8 @@ void FixGCMC::attempt_molecule_rotation_full()
       x[i][2] += com[2];
       image[i] = imagetmp;
       domain->remap(x[i],image[i]);
+      if (!domain->inside(x[i])) 
+	error->one(FLERR,"Fix gcmc put atom outside box");
       n++;
     }
   }
@@ -1584,8 +1699,11 @@ void FixGCMC::attempt_molecule_deletion_full()
   if (force->kspace) force->kspace->qsum_qsq();
   double energy_after = energy_full();  
 
-  if (random_equal->uniform() < 
-      ngas*exp(beta*(energy_before - energy_after))/(zz*volume*natoms_per_molecule)) {
+  // energy_before corrected by energy_intra
+
+  double deltaphi = ngas*exp(beta*((energy_before - energy_intra) - energy_after))/(zz*volume*natoms_per_molecule);
+
+  if (random_equal->uniform() < deltaphi) {
     int i = 0;
     while (i < atom->nlocal) {
       if (atom->molecule[i] == deletion_molecule) {
@@ -1623,7 +1741,7 @@ void FixGCMC::attempt_molecule_insertion_full()
   ninsertion_attempts += 1.0;
   
   double energy_before = energy_stored;
-  
+
   tagint maxmol = 0;
   for (int i = 0; i < atom->nlocal; i++) maxmol = MAX(maxmol,atom->molecule[i]);
   tagint maxmol_all;
@@ -1689,6 +1807,8 @@ void FixGCMC::attempt_molecule_insertion_full()
     xtmp[2] += com_coord[2];
     
     domain->remap(xtmp);
+    if (!domain->inside(xtmp)) 
+      error->one(FLERR,"Fix gcmc put atom outside box");
 
     if (xtmp[0] >= sublo[0] && xtmp[0] < subhi[0] &&
         xtmp[1] >= sublo[1] && xtmp[1] < subhi[1] &&
@@ -1696,7 +1816,16 @@ void FixGCMC::attempt_molecule_insertion_full()
 
       atom->avec->create_atom(ngcmc_type+onemols[imol]->type[i],xtmp);
       int m = atom->nlocal - 1;
-      atom->mask[m] = 1 | groupbit;
+
+      // add to groups
+      // optionally add to type-based groups
+
+      atom->mask[m] = groupbitall;
+      for (int igroup = 0; igroup < ngrouptypes; igroup++) {
+	if (ngcmc_type == grouptypes[igroup])
+	  atom->mask[m] |= grouptypebits[igroup];
+      }
+
       atom->image[m] = imagetmp;
       domain->remap(atom->x[m],atom->image[m]);
       atom->molecule[m] = insertion_molecule;
@@ -1728,8 +1857,12 @@ void FixGCMC::attempt_molecule_insertion_full()
   if (force->kspace) force->kspace->qsum_qsq();
   double energy_after = energy_full();
 
-  if (random_equal->uniform() < zz*volume*natoms_per_molecule*
-      exp(beta*(energy_before - energy_after))/(ngas + natoms_per_molecule)) {  
+  // energy_after corrected by energy_intra
+
+  double deltaphi = zz*volume*natoms_per_molecule*
+    exp(beta*(energy_before - (energy_after - energy_intra)))/(ngas + natoms_per_molecule);
+
+  if (random_equal->uniform() < deltaphi) {  
    
     ninsertion_successes += 1.0;
     energy_stored = energy_after;

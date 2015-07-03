@@ -81,8 +81,8 @@ void NeighListKokkos<Device>::stencil_allocate(int smax, int style)
         memory->create_kokkos(d_stencil,h_stencil,stencil,maxstencil,
                               "neighlist:stencil");
       if (ghostflag) {
-        memory->destroy(stencilxyz);
-        memory->create(stencilxyz,maxstencil,3,"neighlist:stencilxyz");
+        memory->create_kokkos(d_stencilxyz,h_stencilxyz,stencilxyz,maxstencil,
+                              3,"neighlist:stencilxyz");
       }
     }
 

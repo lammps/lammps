@@ -119,7 +119,7 @@ USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sd
 USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_accelerate_cuda.html, USER/cuda, -, lib/cuda
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
-USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferrand), "fix adapt/fep"_fix_adapt.html, USER/fep, -, -
+USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferrand), "compute fep"_compute_fep.html, USER/fep, -, -
 USER-INTEL, Vectorized CPU and Intel(R) coprocessor styles, W. Michael Brown (Intel), "Section accelerate"_accelerate_intel.html, examples/intel, -, -
 USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
 USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -

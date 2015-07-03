@@ -2,9 +2,9 @@
 
 # include ${QUIP_DIR}/Makefiles/Makefile.${QUIP_ARCH}
 
-F95=$(shell egrep 'F95[ ]*=' ${QUIP_DIR}/Makefiles/Makefile.${QUIP_ARCH} | sed 's/.*F95[ ]*=[ ]*//')
+F95=$(shell egrep 'F95[ ]*=' ${QUIP_DIR}/arch/Makefile.${QUIP_ARCH} | sed 's/.*F95[ ]*=[ ]*//')
 
-include ${QUIP_DIR}/build.${QUIP_ARCH}/Makefile.inc
+include ${QUIP_DIR}/build/${QUIP_ARCH}/Makefile.inc
 
 quip_SYSLIB = -lquip
 quip_SYSLIB += ${MATH_LINKOPTS}
@@ -17,4 +17,4 @@ else
 $(error fortran compiler >>${F95}<< not recognised. Edit lib/quip/Makefile.lammps to specify the fortran library your linker should link to)
 endif
 
-quip_SYSPATH = -L${QUIP_DIR}/build.${QUIP_ARCH} -L${QUIP_DIR}/FoX-4.0.3/objs.${QUIP_ARCH}/lib
+quip_SYSPATH = -L${QUIP_DIR}/build/${QUIP_ARCH} -L${QUIP_DIR}/src/FoX-4.0.3/objs.${QUIP_ARCH}/lib

@@ -1459,6 +1459,16 @@ void FixRigidSmall::create_bodies()
   frsptr = this;
   comm->ring(m,sizeof(double),buf,1,ring_bbox,NULL);
 
+  // check if any bbox is size 0.0, meaning rigid body is a single particle
+
+  flag = 0;
+  for (i = 0; i < n; i++)
+    if (bbox[i][0] == bbox[i][1] && bbox[i][2] == bbox[i][3] && 
+        bbox[i][4] == bbox[i][5]) flag = 1;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) 
+    error->all(FLERR,"One or more rigid bodies are a single particle");
+
   // ctr = center pt of each rigid body my atoms are part of
 
   memory->create(ctr,n,6,"rigid/small:bbox");
@@ -2648,6 +2658,12 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, int imol,
   double ctr2com[3],ctr2com_rotate[3];
   double rotmat[3][3];
 
+  // increment total # of rigid bodies
+
+  nbody++;
+
+  // loop over atoms I added for the new body
+
   int nlocal = atom->nlocal;
   if (nlocalprev == nlocal) return;
 
@@ -2705,10 +2721,6 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, int imol,
       nlocal_body++;
     }
   }
-
-  // increment total # of rigid bodies
-
-  nbody++;
 }
 
 /* ----------------------------------------------------------------------

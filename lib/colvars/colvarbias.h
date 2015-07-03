@@ -39,15 +39,12 @@ public:
   virtual int replica_share();
 
   /// Perform analysis tasks
-  virtual inline void analyse() {}
+  virtual void analyze() {}
 
   /// Send forces to the collective variables
   void communicate_forces();
 
   /// \brief Constructor
-  ///
-  /// The constructor of the colvarbias base class is protected, so
-  /// that it can only be called from inherited classes
   colvarbias(std::string const &conf, char const *key);
 
   /// Default constructor
@@ -65,8 +62,17 @@ public:
   /// Write a label to the trajectory file (comment line)
   virtual std::ostream & write_traj_label(std::ostream &os);
 
+  /// (Re)initialize the output files (does not write them yet)
+  virtual int setup_output() { return COLVARS_OK; }
+
   /// Output quantities such as the bias energy to the trajectory file
   virtual std::ostream & write_traj(std::ostream &os);
+
+  /// Write output files (if defined, e.g. in analysis mode)
+  virtual int write_output_files()
+  {
+    return COLVARS_OK;
+  }
 
   inline cvm::real get_energy() {
     return bias_energy;

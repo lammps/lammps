@@ -59,7 +59,7 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      SPECIAL_LJ,SPECIAL_COUL,
      MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT};
+     IMAGEINT,BOUNDMIN};
 
 enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
 
@@ -453,6 +453,14 @@ void WriteRestart::header()
   write_int(YPERIODIC,domain->yperiodic);
   write_int(ZPERIODIC,domain->zperiodic);
   write_int_vec(BOUNDARY,6,&domain->boundary[0][0]);
+
+  // added field for shrink-wrap boundaries with minimum - 2 Jul 2015
+
+  double minbound[6];
+  minbound[0] = domain->minxlo; minbound[1] = domain->minxhi;
+  minbound[2] = domain->minylo; minbound[3] = domain->minyhi;
+  minbound[4] = domain->minzlo; minbound[5] = domain->minzhi;
+  write_double_vec(BOUNDMIN,6,minbound);
 
   // write atom_style and its args
 

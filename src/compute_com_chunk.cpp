@@ -88,8 +88,8 @@ void ComputeCOMChunk::setup()
   // done in setup, so that ComputeChunkAtom::setup() is already called
 
   if (firstflag && cchunk->idsflag == ONCE) {
-    firstflag = massneed = 0;
     compute_array();
+    firstflag = massneed = 0;
   }
 }
 

@@ -191,6 +191,10 @@ void Pair::init()
     error->all(FLERR,"Cannot use pair tail corrections with 2d simulations");
   if (tail_flag && domain->nonperiodic && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with nonperiodic system");
+  if (!compute_flag && tail_flag)
+    error->warning(FLERR,"Using pair tail corrections with compute set to no");
+  if (!compute_flag && offset_flag)
+    error->warning(FLERR,"Using pair potential shift with compute set to no");
 
   // for manybody potentials
   // check if bonded exclusions could invalidate the neighbor list

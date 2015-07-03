@@ -125,12 +125,12 @@ pair_coeff 1 1 1.0 9.5
 <P>The <I>lj/cut/soft</I> style and substyles compute the 12/6 Lennard-Jones
 and Coulomb potential modified by a soft core, in order to avoid
 singularities during free energy calculations when sites are created
-or anihilated <A HREF = "#Beutler">(Beutler)</A>.
+or anihilated <A HREF = "#Beutler">(Beutler)</A>,
 </P>
 <CENTER><IMG SRC = "Eqs/pair_lj_soft.jpg">
 </CENTER>
 <P>Coulomb interactions are also damped with a soft core at short
-distance as
+distance,
 </P>
 <CENTER><IMG SRC = "Eqs/pair_coul_soft.jpg">
 </CENTER>
@@ -139,11 +139,11 @@ are the charges on the 2 atoms, and epsilon is the dielectric constant
 which can be set by the <A HREF = "dielectric.html">dielectric</A> command.
 </P>
 <P>The coefficient lambda is an activation parameter. When lambda = 1 the
-pair potentiel is identical to a Lennard-Jones term plus a Coulomb
-term. When lambda = 0 the pair interactions are deactivated. The
-transition between these two extrema is smoothed by a repulsive soft
-core in order to avoid singularities in potential energy and forces
-when sites are created or anihilated and can overlap
+pair potentiel is identical to a Lennard-Jones term or a Coulomb term
+or a combination of both. When lambda = 0 the interactions are
+deactivated. The transition between these two extrema is smoothed by a
+soft repulsive core in order to avoid singularities in potential
+energy and forces when sites are created or anihilated and can overlap
 <A HREF = "#Beutler">(Beutler)</A>.
 </P>
 <P>The paratemers n, alpha_LJ and alpha_C are set in the
@@ -151,11 +151,34 @@ when sites are created or anihilated and can overlap
 choices for the exponent are n = 2 or n = 1. For the remaining
 coefficients alpha_LJ = 0.5 and alpha_C = 10 Angstrom^2 are
 appropriate choices. Plots of the LJ and Coulomb terms are shown
-below, for lambda ranging from 1 ro 0 every 0.1.
+below, for lambda ranging from 1 to 0 every 0.1.
 </P>
 <CENTER><IMG SRC = "JPG/lj_soft.jpg"><IMG SRC = "JPG/coul_soft.jpg">
 </CENTER>
-<P>The <I>lj/cut/tip4p/long/soft</I> implements a soft-core version of the
+<P>For the <I>lj/cut/coul/cut/soft</I> or <I>lj/cut/coul/long/soft</I> pair styles,
+the following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>epsilon (energy units)
+<LI>sigma (distance units)
+<LI>lambda (activation parameter between 0 and 1)
+<LI>cutoff1 (distance units)
+<LI>cutoff2 (distance units) 
+</UL>
+<P>The latter two coefficients are optional.  If not specified, the global
+LJ and Coulombic cutoffs specified in the pair_style command are used.
+If only one cutoff is specified, it is used as the cutoff for both LJ
+and Coulombic interactions for this type pair.  If both coefficients
+are specified, they are used as the LJ and Coulombic cutoffs for this
+type pair.  You cannot specify 2 cutoffs for style <I>lj/cut/soft</I>,
+since it has no Coulombic terms. For the <I>coul/cut/soft</I> and
+<I>coul/long/soft</I> only lambda and the optional cutoff2 are to be
+specified.
+</P>
+<P>Style <I>lj/cut/tip4p/long/soft</I> implements a soft-core version of the
 TIP4P water model. The usage of this pair style is documented in the
 <A HREF = "pair_lj.html">pair_lj</A> styles. The soft-core version introduces the
 lambda parameter to the list of arguments, after epsilon and sigma in
@@ -184,28 +207,18 @@ occur.  These substyles are suitable to represent charges embedded in
 the Lennard-Jones radius of another site (for example hydrogen atoms
 in several water models).
 </P>
-<P>For the <I>lj/cut/coul/cut/soft</I> or <I>lj/cut/coul/long/soft</I> pair styles,
-the following coefficients must be defined for each pair of atoms
-types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
-above, or in the data file or restart files read by the
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands, or by mixing as described below:
-</P>
-<UL><LI>epsilon (energy units)
-<LI>sigma (distance units)
-<LI>lambda (activation parameter between 0 and 1)
-<LI>cutoff1 (distance units)
-<LI>cutoff2 (distance units) 
-</UL>
-<P>The latter two coefficients are optional.  If not specified, the global
-LJ and Coulombic cutoffs specified in the pair_style command are used.
-If only one cutoff is specified, it is used as the cutoff for both LJ
-and Coulombic interactions for this type pair.  If both coefficients
-are specified, they are used as the LJ and Coulombic cutoffs for this
-type pair.  You cannot specify 2 cutoffs for style <I>lj/cut/soft</I>,
-since it has no Coulombic terms. For the <I>coul/cut/soft</I> and
-<I>coul/long/soft</I> only lambda and the optional cutoff2 are to be
-specified.
+<P>IMPORTANT NOTES: When using the core-softed Coulomb potentials with
+long-range solvers (<I>coul/long/soft</I>, <I>lj/cut/coul/long/soft</I>, etc.)
+in a free energy calculation in which sites holding electrostatic
+charges are being created or anihilated (using
+<A HREF = "fix_adapt_fep.html">fix_adapt/fep</A> and <A HREF = "compute_fep.html">compute_fep</A>)
+it is important to adapt both the lambda activation parameter (from 0
+to 1, or the reverse) and the value of the charge (from 0 to its final
+value, or the reverse). This ensures that long-range electrostatic
+terms (kspace) are correct. It is not necessary to use core-softed
+Coulomb potentials if the van der Waals site is present during the
+free-energy route, thus avoiding overlap of the charges. Examples are
+provided in the LAMMPS source directory tree, under examples/USER/fep.
 </P>
 <HR>
 
@@ -255,10 +268,15 @@ to be specified in an input script that reads a restart file.
 
 <P><B>Restrictions:</B>
 </P>
-<P>To avoid division by zero do not set sigma = 0. When sites do not
-interact though the Lennard-Jones term use epsilon = 0 and sigma = 1
-for example, or else use the <I>coul/long/soft</I> or similar substyle.
+<P>To avoid division by zero do not set sigma = 0; use the lambda
+parameter instead to activate/deactivate interactions, or use
+epsilon = 0 and sigma = 1. Alternatively, when sites do not
+interact though the Lennard-Jones term the <I>coul/long/soft</I> or
+similar substyle can be used via the
+<A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A> command.
 </P>
+<HR>
+
 <P>All of the plain <I>soft</I> pair styles are part of the USER-FEP package.
 The <I>long</I> styles also requires the KSPACE package to be installed.
 They are only enabled if LAMMPS was built with those packages.  See

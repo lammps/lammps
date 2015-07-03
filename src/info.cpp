@@ -120,6 +120,8 @@ void Info::command(int narg, char **arg)
                 i, regs[i]->id, regs[i]->style, regs[i]->interior ? "in" : "out");
       }
 
+    } else if (strcmp(arg[idx],"memory") == 0) {
+
     } else if (strcmp(arg[idx],"time") == 0) {
 
       double wallclock = MPI_Wtime() - lmp->initclock;

@@ -4,7 +4,8 @@
 
 instructions = """
 Syntax: python install.py [-h] [pydir]
-        pydir = target dir for lammps.py and liblammps.so, default = Python site-packages dir
+        pydir = target dir for lammps.py and liblammps.so
+                default = Python site-packages dir
 """
 
 import sys,os,commands

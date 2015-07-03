@@ -16,12 +16,13 @@
 import sys,traceback,types
 from ctypes import *
 from os.path import dirname,abspath,join
+from inspect import getsourcefile
 
 class lammps:
   def __init__(self,name="",cmdargs=None,ptr=None):
 
     # determine module location
-    modpath = dirname(abspath(__file__))
+    modpath = dirname(abspath(getsourcefile(lambda:0)))
 
     # load liblammps.so by default
     # if name = "g++", load liblammps_g++.so

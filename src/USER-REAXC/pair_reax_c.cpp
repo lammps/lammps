@@ -279,7 +279,16 @@ void PairReaxC::coeff( int nargs, char **args )
 
   // read ffield file
 
-  Read_Force_Field(args[2], &(system->reax_param), control);
+  char *file = args[2];
+  FILE *fp;
+  fp = force->open_potential(file);
+  if (fp != NULL) 
+    Read_Force_Field(fp, &(system->reax_param), control);
+  else if (comm->me == 0) {
+      char str[128];
+      sprintf(str,"Cannot open ReaxFF potential file %s",file);
+      error->one(FLERR,str);
+  }
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL

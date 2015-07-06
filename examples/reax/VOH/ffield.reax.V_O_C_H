@@ -1,4 +1,4 @@
-Reactive MD-force field: V/O/C/H potential: Chenoweth, K.; et al. J. Phys. Chem. C, 2008, 112, 14645-14654. 
+DATE: 2011-02-18 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Chenoweth et al, J Phys Chem C, 112, 14645-14654 (2008) COMMENT Reactive MD-force field: V/O/C/H potential: Chenoweth, K.; et al. J. Phys. Chem. C, 2008, 112, 14645-14654. 
  39       ! Number of general parameters                                        
    50.0000 !Overcoordination parameter                                          
     9.5469 !Overcoordination parameter                                          

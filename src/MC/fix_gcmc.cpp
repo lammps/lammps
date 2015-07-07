@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Paul Crozier (SNL)
+   Contributing author: Paul Crozier, Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
 #include "math.h"
@@ -380,7 +380,8 @@ void FixGCMC::init()
         (force->pair->single_enable == 0) ||
         (force->pair_match("hybrid",0)) ||
         (force->pair_match("eam",0)) ||
-        (domain->triclinic == 1)) {
+        (domain->triclinic == 1) ||
+	(atom->q != NULL)) {
       full_flag = true;
       if (comm->me == 0) 
         error->warning(FLERR,"Fix gcmc using full_energy option");
@@ -608,10 +609,12 @@ void FixGCMC::pre_exchange()
   if (regionflag) volume = region_volume;
   else volume = domain->xprd * domain->yprd * domain->zprd;
 
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   comm->exchange();
   atom->nghost = 0;
   comm->borders();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   update_gas_atoms_list();
 
   if (full_flag) {
@@ -641,10 +644,12 @@ void FixGCMC::pre_exchange()
         }
       }
     }
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     atom->nghost = 0;
     comm->borders();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     
   } else {
     
@@ -735,10 +740,12 @@ void FixGCMC::attempt_atomic_translation()
   MPI_Allreduce(&success,&success_all,1,MPI_INT,MPI_MAX,world);
 
   if (success_all) {
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     atom->nghost = 0;
     comm->borders();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     ntranslation_successes += 1.0;
   }
@@ -945,10 +952,12 @@ void FixGCMC::attempt_molecule_translation()
         x[i][2] += com_displace[2];
       }
     }
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     atom->nghost = 0;
     comm->borders();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     ntranslation_successes += 1.0;
   }
@@ -1041,10 +1050,12 @@ void FixGCMC::attempt_molecule_rotation()
         n++;
       }
     }
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     atom->nghost = 0;
     comm->borders();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     nrotation_successes += 1.0;
   }
@@ -1935,6 +1946,7 @@ double FixGCMC::energy_full()
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   comm->exchange();
+  atom->nghost = 0;
   comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   if (modify->n_pre_neighbor) modify->pre_neighbor();

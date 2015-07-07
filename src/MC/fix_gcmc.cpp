@@ -555,7 +555,7 @@ void FixGCMC::init()
   zz = exp(beta*chemical_potential)/(pow(lambda,3.0));
   if (pressure_flag) zz = pressure*fugacity_coeff*beta/force->nktv2p;
   
-  imagetmp = ((imageint) IMGMAX << IMG2BITS) | 
+  imagezero = ((imageint) IMGMAX << IMG2BITS) | 
              ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
   // construct group bitmask for all new atoms
@@ -622,8 +622,8 @@ void FixGCMC::pre_exchange()
         int random_int_fraction =
           static_cast<int>(random_equal->uniform()*ncycles) + 1;
         if (random_int_fraction <= nmcmoves) {
-          if (random_equal->uniform() < 0.5) attempt_molecule_translation_full();
-          else attempt_molecule_rotation_full();
+	  if (random_equal->uniform() < 0.5) attempt_molecule_translation_full();
+	  else attempt_molecule_rotation_full();
         } else {
           if (random_equal->uniform() < 0.5) attempt_molecule_deletion_full();
           else attempt_molecule_insertion_full();
@@ -807,7 +807,10 @@ void FixGCMC::attempt_atomic_insertion()
     coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
   }
 
-  if (!domain->inside_nonperiodic(coord)) 
+  // apply remap to protect against rounding errors
+
+  domain->remap(coord);
+  if (!domain->inside(coord)) 
     error->one(FLERR,"Fix gcmc put atom outside box");
 
   int proc_flag = 0;
@@ -963,7 +966,6 @@ void FixGCMC::attempt_molecule_rotation()
   tagint rotation_molecule = pick_random_gas_molecule();
   if (rotation_molecule == -1) return;
   
-
   double energy_before_sum = molecule_energy(rotation_molecule);
 
   int nlocal = atom->nlocal;
@@ -1009,7 +1011,7 @@ void FixGCMC::attempt_molecule_rotation()
       xtmp[1] = atom_coord[n][1];
       xtmp[2] = atom_coord[n][2];
       domain->remap(xtmp);
-      if (!domain->inside_nonperiodic(xtmp)) 
+      if (!domain->inside(xtmp)) 
 	error->one(FLERR,"Fix gcmc put atom outside box");
       energy_after += energy(i,atom->type[i],rotation_molecule,xtmp);
       n++;
@@ -1024,7 +1026,7 @@ void FixGCMC::attempt_molecule_rotation()
     int n = 0;
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & molecule_group_bit) {
-        image[i] = imagetmp;
+        image[i] = imagezero;
         x[i][0] = atom_coord[n][0];
         x[i][1] = atom_coord[n][1];
         x[i][2] = atom_coord[n][2];
@@ -1125,12 +1127,15 @@ void FixGCMC::attempt_molecule_insertion()
     atom_coord[i][1] += com_coord[1];
     atom_coord[i][2] += com_coord[2];
 
+    // use temporary variable for remapped position
+    // so unmapped position is preserved in atom_coord
+
     double xtmp[3];
     xtmp[0] = atom_coord[i][0];
     xtmp[1] = atom_coord[i][1];
     xtmp[2] = atom_coord[i][2];
     domain->remap(xtmp);
-    if (!domain->inside_nonperiodic(xtmp)) 
+    if (!domain->inside(xtmp)) 
       error->one(FLERR,"Fix gcmc put atom outside box");
 
     procflag[i] = false;
@@ -1183,7 +1188,7 @@ void FixGCMC::attempt_molecule_insertion()
 	    atom->mask[m] |= grouptypebits[igroup];
 	}
 
-        atom->image[m] = imagetmp;
+        atom->image[m] = imagezero;
         domain->remap(atom->x[m],atom->image[m]);
         atom->molecule[m] = maxmol_all;
         if (maxtag_all+i+1 >= MAXTAGINT)
@@ -1214,65 +1219,6 @@ void FixGCMC::attempt_molecule_insertion()
     update_gas_atoms_list();
     ninsertion_successes += 1.0;
   }
-}
-
-/* ----------------------------------------------------------------------
-   compute particle's interaction energy with the rest of the system
-------------------------------------------------------------------------- */
-
-double FixGCMC::energy(int i, int itype, tagint imolecule, double *coord)
-{
-  double delx,dely,delz,rsq;
-
-  double **x = atom->x;
-  int *type = atom->type;
-  tagint *molecule = atom->molecule;
-  int nall = atom->nlocal + atom->nghost;
-  pair = force->pair;
-  cutsq = force->pair->cutsq;
-
-  double fpair = 0.0;
-  double factor_coul = 1.0;
-  double factor_lj = 1.0;
-
-  double total_energy = 0.0;
-  for (int j = 0; j < nall; j++) {
-
-    if (i == j) continue;
-    if (mode == MOLECULE)
-      if (imolecule == molecule[j]) continue;
-
-    delx = coord[0] - x[j][0];
-    dely = coord[1] - x[j][1];
-    delz = coord[2] - x[j][2];
-    rsq = delx*delx + dely*dely + delz*delz;
-    int jtype = type[j];
-
-    if (rsq < cutsq[itype][jtype])
-      total_energy +=
-        pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
-  }
-
-  return total_energy;
-}
-
-/* ----------------------------------------------------------------------
-   compute the energy of the given gas molecule in its current position 
-   sum across all procs that own atoms of the given molecule
-------------------------------------------------------------------------- */
-
-double FixGCMC::molecule_energy(tagint gas_molecule_id)
-{
-  double mol_energy = 0.0;
-  for (int i = 0; i < atom->nlocal; i++)
-    if (atom->molecule[i] == gas_molecule_id) {
-      mol_energy += energy(i,atom->type[i],gas_molecule_id,atom->x[i]);
-    }
-
-  double mol_energy_sum = 0.0;
-  MPI_Allreduce(&mol_energy,&mol_energy_sum,1,MPI_DOUBLE,MPI_SUM,world);
-  
-  return mol_energy_sum;
 }
 
 /* ----------------------------------------------------------------------
@@ -1324,7 +1270,7 @@ void FixGCMC::attempt_atomic_translation_full()
         coord[2] = x[i][2] + displace*rz;
       }
     }
-    if (!domain->inside(coord)) 
+    if (!domain->inside_nonperiodic(coord)) 
       error->one(FLERR,"Fix gcmc put atom outside box");
     xtmp[0] = x[i][0];
     xtmp[1] = x[i][1];
@@ -1439,6 +1385,9 @@ void FixGCMC::attempt_atomic_insertion_full()
     coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
   }
   
+  // apply remap to protect against rounding errors
+
+  domain->remap(coord);
   if (!domain->inside(coord)) 
     error->one(FLERR,"Fix gcmc put atom outside box");
 
@@ -1556,8 +1505,8 @@ void FixGCMC::attempt_molecule_translation_full()
       x[i][0] += com_displace[0];
       x[i][1] += com_displace[1];
       x[i][2] += com_displace[2];
-      if (!domain->inside(x[i])) 
-  	error->one(FLERR,"Fix gcmc put atom outside box");
+      if (!domain->inside_nonperiodic(x[i]))
+	error->one(FLERR,"Fix gcmc put atom outside box");
     }
   }
 
@@ -1637,9 +1586,9 @@ void FixGCMC::attempt_molecule_rotation_full()
       x[i][0] += com[0];
       x[i][1] += com[1];
       x[i][2] += com[2];
-      image[i] = imagetmp;
+      image[i] = imagezero;
       domain->remap(x[i],image[i]);
-      if (!domain->inside(x[i])) 
+      if (!domain->inside(x[i]))
 	error->one(FLERR,"Fix gcmc put atom outside box");
       n++;
     }
@@ -1805,8 +1754,11 @@ void FixGCMC::attempt_molecule_insertion_full()
     xtmp[0] += com_coord[0];
     xtmp[1] += com_coord[1];
     xtmp[2] += com_coord[2];
-    
-    domain->remap(xtmp);
+
+    // need to adjust image flags in remap()
+
+    imageint imagetmp = imagezero;
+    domain->remap(xtmp,imagetmp);
     if (!domain->inside(xtmp)) 
       error->one(FLERR,"Fix gcmc put atom outside box");
 
@@ -1827,7 +1779,6 @@ void FixGCMC::attempt_molecule_insertion_full()
       }
 
       atom->image[m] = imagetmp;
-      domain->remap(atom->x[m],atom->image[m]);
       atom->molecule[m] = insertion_molecule;
       if (maxtag_all+i+1 >= MAXTAGINT)
         error->all(FLERR,"Fix gcmc ran out of available atom IDs");
@@ -1886,6 +1837,65 @@ void FixGCMC::attempt_molecule_insertion_full()
     if (force->kspace) force->kspace->qsum_qsq();
   }
   update_gas_atoms_list();
+}
+
+/* ----------------------------------------------------------------------
+   compute particle's interaction energy with the rest of the system
+------------------------------------------------------------------------- */
+
+double FixGCMC::energy(int i, int itype, tagint imolecule, double *coord)
+{
+  double delx,dely,delz,rsq;
+
+  double **x = atom->x;
+  int *type = atom->type;
+  tagint *molecule = atom->molecule;
+  int nall = atom->nlocal + atom->nghost;
+  pair = force->pair;
+  cutsq = force->pair->cutsq;
+
+  double fpair = 0.0;
+  double factor_coul = 1.0;
+  double factor_lj = 1.0;
+
+  double total_energy = 0.0;
+  for (int j = 0; j < nall; j++) {
+
+    if (i == j) continue;
+    if (mode == MOLECULE)
+      if (imolecule == molecule[j]) continue;
+
+    delx = coord[0] - x[j][0];
+    dely = coord[1] - x[j][1];
+    delz = coord[2] - x[j][2];
+    rsq = delx*delx + dely*dely + delz*delz;
+    int jtype = type[j];
+
+    if (rsq < cutsq[itype][jtype])
+      total_energy +=
+        pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
+  }
+
+  return total_energy;
+}
+
+/* ----------------------------------------------------------------------
+   compute the energy of the given gas molecule in its current position 
+   sum across all procs that own atoms of the given molecule
+------------------------------------------------------------------------- */
+
+double FixGCMC::molecule_energy(tagint gas_molecule_id)
+{
+  double mol_energy = 0.0;
+  for (int i = 0; i < atom->nlocal; i++)
+    if (atom->molecule[i] == gas_molecule_id) {
+      mol_energy += energy(i,atom->type[i],gas_molecule_id,atom->x[i]);
+    }
+
+  double mol_energy_sum = 0.0;
+  MPI_Allreduce(&mol_energy,&mol_energy_sum,1,MPI_DOUBLE,MPI_SUM,world);
+  
+  return mol_energy_sum;
 }
 
 /* ----------------------------------------------------------------------

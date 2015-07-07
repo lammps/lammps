@@ -551,12 +551,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
 LAMMPS::~LAMMPS()
 {
+  const int me = comm->me;
+
   destroy();
 
   delete citeme;
 
   double totalclock = MPI_Wtime() - initclock;
-  if (screen || logfile) {
+  if ((me == 0) & (screen || logfile)) {
     char outtime[128];
     int seconds = fmod(totalclock,60.0);
     totalclock  = (totalclock - seconds) / 60.0;

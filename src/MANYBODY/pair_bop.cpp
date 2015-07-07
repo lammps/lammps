@@ -5113,6 +5113,7 @@ void PairBOP::read_table(char *filename)
       sprintf(str,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
     }
+    fgets(s,MAXLINE,fp);  // skip first comment line
     for(i=0;i<bop_types+2;i++) {
       fgets(s,MAXLINE,fp);
     }

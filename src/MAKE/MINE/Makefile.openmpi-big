@@ -9,7 +9,7 @@ SHELL = /bin/sh
 OPENMP= -fopenmp
 
 CC =		mpic++ $(OPENMP)
-CCFLAGS =	-O3 -fomit-frame-pointer -fno-exceptions            \
+CCFLAGS =	-O3 -fomit-frame-pointer \
 			-march=native -ffast-math -mpc64 -g -fstrict-aliasing \
 			-Wall -W -Wno-unused-parameter -Wno-maybe-uninitialized
 SHFLAGS =	-fPIC

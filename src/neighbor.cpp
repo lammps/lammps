@@ -793,12 +793,15 @@ void Neighbor::init()
   if (!same || every != old_every || delay != old_delay || 
       old_check != dist_check || old_cutoff != cutneighmax) {
     if (me == 0) {
+      const double cutghost = MAX(cutneighmax,comm->cutghostuser);
+
       if (logfile) {
         fprintf(logfile,"Neighbor list info ...\n");
         fprintf(logfile,"  %d neighbor list requests\n",nrequest);
         fprintf(logfile,"  update every %d steps, delay %d steps, check %s\n",
                 every,delay,dist_check ? "yes" : "no");
         fprintf(logfile,"  master list distance cutoff = %g\n",cutneighmax);
+        fprintf(logfile,"  ghost atom cutoff = %g\n",cutghost);
       }
       if (screen) {
         fprintf(screen,"Neighbor list info ...\n");
@@ -806,6 +809,7 @@ void Neighbor::init()
         fprintf(screen,"  update every %d steps, delay %d steps, check %s\n",
                 every,delay,dist_check ? "yes" : "no");
         fprintf(screen,"  master list distance cutoff = %g\n",cutneighmax);
+        fprintf(screen,"  ghost atom cutoff = %g\n",cutghost);
       }
     }
   }

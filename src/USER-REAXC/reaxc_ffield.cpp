@@ -29,10 +29,9 @@
 #include "reaxc_ffield.h"
 #include "reaxc_tool_box.h"
 
-char Read_Force_Field( char *ffield_file, reax_interaction *reax,
+char Read_Force_Field( FILE *fp, reax_interaction *reax,
                        control_params *control )
 {
-  FILE    *fp;
   char    *s;
   char   **tmp;
   char ****tor_flag;
@@ -44,17 +43,10 @@ char Read_Force_Field( char *ffield_file, reax_interaction *reax,
 
   comm = MPI_COMM_WORLD;
 
-  /* open force field file */
-  if ( (fp = lmp_open_potential( ffield_file ) ) == NULL ) {
-    fprintf( stderr, "error opening the force field file! terminating...\n" );
-    MPI_Abort( comm, FILE_NOT_FOUND );
-  }
-
   s = (char*) malloc(sizeof(char)*MAX_LINE);
   tmp = (char**) malloc(sizeof(char*)*MAX_TOKENS);
   for (i=0; i < MAX_TOKENS; i++)
     tmp[i] = (char*) malloc(sizeof(char)*MAX_TOKEN_LEN);
-
 
   /* reading first header comment */
   fgets( s, MAX_LINE, fp );

@@ -75,7 +75,6 @@ The suffix of each file indicates the pair style it is used with:
 
 adp           ADP angular dependent potential
 airebo	      AI-REBO and REBO potentials
-bop	      BOP potential, analytic form
 bop.table     BOP potential, tabulated form
 cdeam         concentration-dependent EAM
 comb          COMB potential

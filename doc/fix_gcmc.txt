@@ -203,7 +203,8 @@ potential energy calculations, including the following:
   many-body pair styles
   hybrid pair styles
   eam pair styles
-  triclinic systems 
+  triclinic systems
+  charged systems (b/c single() function for Coulombic pair styles requires an atom index to look up charges) 
   need to include potential energy contributions from other fixes :ul
 
 In these cases, LAMMPS will automatically apply the {full_energy}

@@ -982,10 +982,17 @@ void FixGCMC::attempt_molecule_rotation()
   com[0] = com[1] = com[2] = 0.0;
   group->xcm(molecule_group,gas_mass,com);
 
+  // generate point in unit cube
+  // then restrict to unit sphere
+
   double r[3],rotmat[3][3],quat[4];
-  r[0] = random_equal->uniform() - 0.5;
-  r[1] = random_equal->uniform() - 0.5;
-  r[2] = random_equal->uniform() - 0.5;
+  double rsq = 1.1;
+  while (rsq > 1.0) {
+    r[0] = 2.0*random_equal->uniform() - 1.0;
+    r[1] = 2.0*random_equal->uniform() - 1.0;
+    r[2] = 2.0*random_equal->uniform() - 1.0;
+    rsq = MathExtra::dot3(r, r);
+  }
 
   double theta = random_equal->uniform() * max_rotation_angle;
   MathExtra::norm3(r);
@@ -1108,10 +1115,17 @@ void FixGCMC::attempt_molecule_insertion()
     com_coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
   }
 
+  // generate point in unit cube
+  // then restrict to unit sphere
+
   double r[3],rotmat[3][3],quat[4];
-  r[0] = random_equal->uniform() - 0.5;
-  r[1] = random_equal->uniform() - 0.5;
-  r[2] = random_equal->uniform() - 0.5;
+  double rsq = 1.1;
+  while (rsq > 1.0) {
+    r[0] = 2.0*random_equal->uniform() - 1.0;
+    r[1] = 2.0*random_equal->uniform() - 1.0;
+    r[2] = 2.0*random_equal->uniform() - 1.0;
+    rsq = MathExtra::dot3(r, r);
+  }
 
   double theta = random_equal->uniform() * MY_2PI;
   MathExtra::norm3(r);
@@ -1557,10 +1571,17 @@ void FixGCMC::attempt_molecule_rotation_full()
   com[0] = com[1] = com[2] = 0.0;
   group->xcm(molecule_group,gas_mass,com);
 
+  // generate point in unit cube
+  // then restrict to unit sphere
+
   double r[3],rotmat[3][3],quat[4];
-  r[0] = random_equal->uniform() - 0.5;
-  r[1] = random_equal->uniform() - 0.5;
-  r[2] = random_equal->uniform() - 0.5;
+  double rsq = 1.1;
+  while (rsq > 1.0) {
+    r[0] = 2.0*random_equal->uniform() - 1.0;
+    r[1] = 2.0*random_equal->uniform() - 1.0;
+    r[2] = 2.0*random_equal->uniform() - 1.0;
+    rsq = MathExtra::dot3(r, r);
+  }
 
   double theta = random_equal->uniform() * max_rotation_angle;
   MathExtra::norm3(r);
@@ -1733,10 +1754,17 @@ void FixGCMC::attempt_molecule_insertion_full()
     com_coord[2] = zlo + random_equal->uniform() * (zhi-zlo);
   }
   
+  // generate point in unit cube
+  // then restrict to unit sphere
+
   double r[3],rotmat[3][3],quat[4];
-  r[0] = random_equal->uniform() - 0.5;
-  r[1] = random_equal->uniform() - 0.5;
-  r[2] = random_equal->uniform() - 0.5;
+  double rsq = 1.1;
+  while (rsq > 1.0) {
+    r[0] = 2.0*random_equal->uniform() - 1.0;
+    r[1] = 2.0*random_equal->uniform() - 1.0;
+    r[2] = 2.0*random_equal->uniform() - 1.0;
+    rsq = MathExtra::dot3(r, r);
+  }
 
   double theta = random_equal->uniform() * MY_2PI;
   MathExtra::norm3(r);

@@ -128,13 +128,18 @@ interactions. Specifically, avoid performing so many MC translations
 per timestep that atoms can move beyond the neighbor list skin
 distance. See the "neighbor"_neighbor.html command for details.
 
-When an atom or molecule is to be inserted, its center-of-mass
+When an atom or molecule is to be inserted, its 
 coordinates are chosen at a random position within the current
 simulation cell or region, and new atom velocities are randomly chosen from
 the specified temperature distribution given by T.  Relative
 coordinates for atoms in a molecule are taken from the template
-molecule provided by the user. A random initial rotation is used in
-the case of molecule insertions.
+molecule provided by the user, with the origin of the relative 
+coordinates coinciding with the chosen insertion point. This means
+that if the origin of the template molecule coordinate system
+lies far from the center of the template molecule,
+the inserted molecule will lie far from the insertion point. 
+A random initial rotation is used in
+the case of molecule insertions. 
 
 Individual atoms are inserted, unless the {mol} keyword is used.  It
 specifies a {template-ID} previously defined using the

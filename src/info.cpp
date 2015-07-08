@@ -41,11 +41,12 @@
 #include <sys/resource.h>
 #endif
 
-using namespace LAMMPS_NS;
-
+namespace LAMMPS_NS {
 // same as in variable.cpp
 enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
      SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,PYTHON};
+}
+
 static const char *varstyles[] = {
   "index", "loop", "world", "universe", "uloop", "string", "getenv",
   "file", "atomfile", "format", "equal", "atom", "python", "(unknown)"};
@@ -53,6 +54,8 @@ static const char *varstyles[] = {
 static const char *mapstyles[] = { "none", "array", "hash" };
 
 static const char bstyles[] = "pfsm";
+
+using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 

@@ -59,9 +59,10 @@ Per-atom masses are defined in the data file read by the
 set to new values by the <A HREF = "set.html">set mass</A> or <A HREF = "set.html">set density</A>
 commands.
 </P>
-<P>Also note that <A HREF = "pair_eam.html">pair_style eam</A> defines the masses of
-atom types in the EAM potential file, in which case the mass command
-is normally not used.
+<P>Also note that <A HREF = "pair_eam.html">pair_style eam</A> and <A HREF = "pair_bop.html">pair_style
+bop</A> commands define the masses of atom types in their
+respective potential files, in which case the mass command is normally
+not used.
 </P>
 <P>If you define a <A HREF = "atom_style.html">hybrid atom style</A> which includes one
 (or more) sub-styles which require per-type mass and one (or more)

@@ -566,9 +566,6 @@ void Atom::modify_params(int narg, char **arg)
 
 void Atom::tag_check()
 {
-  int nlocal = atom->nlocal;
-  tagint *tag = atom->tag;
-
   tagint min = MAXTAGINT;
   tagint max = 0;
 
@@ -584,6 +581,7 @@ void Atom::tag_check()
   if (minall < 0) error->all(FLERR,"Atom ID is negative");
   if (maxall >= MAXTAGINT) error->all(FLERR,"Atom ID is too big");
   if (maxall > 0 && minall == 0) error->all(FLERR,"Atom ID is zero");
+  // this last message is wrong
   if (maxall == 0 && tag_enable && natoms) 
     error->all(FLERR,"Not all atom IDs are 0");
 }

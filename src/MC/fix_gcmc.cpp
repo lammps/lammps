@@ -155,12 +155,17 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix gcmc molecule must have atom types");
     if (ngcmc_type+onemols[imol]->ntypes <= 0 || ngcmc_type+onemols[imol]->ntypes > atom->ntypes)
       error->all(FLERR,"Invalid atom type in fix gcmc mol command");
+    if (onemols[imol]->qflag == 1 && atom->q == NULL)
+      error->all(FLERR,"Fix gcmc molecule has charges, but atom style does not");
 
     if (atom->molecular == 2 && onemols != atom->avec->onemols)
       error->all(FLERR,"Fix gcmc molecule template ID must be same "
                  "as atom_style template ID");
     onemols[imol]->check_attributes(0);
   }
+
+  if (charge_flag && atom->q == NULL)
+    error->all(FLERR,"Fix gcmc atom has charge, but atom style does not");
 
   if (shakeflag && mode == ATOM)
     error->all(FLERR,"Cannot use fix gcmc shake and not molecule");
@@ -380,11 +385,11 @@ void FixGCMC::init()
         (force->pair->single_enable == 0) ||
         (force->pair_match("hybrid",0)) ||
         (force->pair_match("eam",0)) ||
-        (domain->triclinic == 1) ||
-	(atom->q != NULL)) {
+        (domain->triclinic == 1)
+	) {
       full_flag = true;
       if (comm->me == 0) 
-        error->warning(FLERR,"Fix gcmc using full_energy option");
+	error->warning(FLERR,"Fix gcmc using full_energy option");
     }
   }
   
@@ -827,7 +832,13 @@ void FixGCMC::attempt_atomic_insertion()
 
   int success = 0;
   if (proc_flag) {
-    double insertion_energy = energy(-1,ngcmc_type,-1,coord);
+      int ii = -1;
+     if (charge_flag) {
+      	ii = atom->nlocal + atom->nghost;
+      	if (ii >= atom->nmax) atom->avec->grow(0);
+      	atom->q[ii] = charge;
+      }
+    double insertion_energy = energy(ii,ngcmc_type,-1,coord);
     if (random_unequal->uniform() <
         zz*volume*exp(-beta*insertion_energy)/(ngas+1)) {
       atom->avec->create_atom(ngcmc_type,coord);
@@ -1146,6 +1157,7 @@ void FixGCMC::attempt_molecule_insertion()
   double insertion_energy = 0.0;
   bool procflag[natoms_per_molecule];
 
+
   for (int i = 0; i < natoms_per_molecule; i++) {
     MathExtra::matvec(rotmat,onemols[imol]->x[i],atom_coord[i]);
     atom_coord[i][0] += com_coord[0];
@@ -1168,7 +1180,13 @@ void FixGCMC::attempt_molecule_insertion()
         xtmp[1] >= sublo[1] && xtmp[1] < subhi[1] &&
         xtmp[2] >= sublo[2] && xtmp[2] < subhi[2]) {
       procflag[i] = true;
-      insertion_energy += energy(-1,onemols[imol]->type[i],-1,xtmp);
+      int ii = -1;
+      if (onemols[imol]->qflag == 1) {
+	ii = atom->nlocal + atom->nghost;
+	if (ii >= atom->nmax) atom->avec->grow(0);
+	atom->q[ii] = onemols[imol]->q[i];
+      }
+      insertion_energy += energy(ii,onemols[imol]->type[i],-1,xtmp);
     }
   }
 
@@ -1898,6 +1916,7 @@ double FixGCMC::energy(int i, int itype, tagint imolecule, double *coord)
   double factor_lj = 1.0;
 
   double total_energy = 0.0;
+
   for (int j = 0; j < nall; j++) {
 
     if (i == j) continue;

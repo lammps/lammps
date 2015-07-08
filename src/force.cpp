@@ -905,7 +905,7 @@ FILE *Force::open_potential(const char *name)
 
   fp = fopen(name,"r");
   if (fp) {
-    potential_date(fp,name);
+    if (comm->me == 0) potential_date(fp,name);
     rewind(fp);
     return fp;
   }
@@ -934,7 +934,7 @@ FILE *Force::open_potential(const char *name)
 
   fp = fopen(newpath,"r");
   if (fp) {
-    potential_date(fp,name);
+    if (comm->me == 0) potential_date(fp,name);
     rewind(fp);
   }
 

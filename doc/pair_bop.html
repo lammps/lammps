@@ -27,7 +27,7 @@
 </P>
 <PRE>pair_style bop 
 pair_coeff * * ../potentials/CdTe_bop Cd Te
-pair_style bop 4.90 save
+pair_style bop save
 pair_coeff * * ../potentials/CdTe.bop.table Cd Te Te
 comm_modify cutoff 14.70 
 </PRE>
@@ -85,8 +85,18 @@ to either stabilize or destabilize close-packed structures.  The pi
 bond-order includes hopping paths of length 4.  This enables the
 incorporation of dihedral angles effects.
 </P>
-<P>One option can be specified as a keyword with the
-pair_style command.
+<P>IMPORTANT NOTE: Note that unlike for other potentials, cutoffs for BOP
+potentials are not set in the pair_style or pair_coeff command; they
+are specified in the BOP potential files themselves.  Likewise, the
+BOP potential files list atomic masses; thus you do not need to use
+the <A HREF = "mass.html">mass</A> command to specify them.  Note that for BOP
+potentials with hydrogen, you will likely want to set the mass of H
+atoms to be 10x or 20x larger to avoid having to use a tiny timestep.
+You can do this by using the <A HREF = "mass.html">mass</A> command after using the
+<A HREF = "doc/pair_coeff.html">pair_coeff</A> command to read the BOP potential
+file.
+</P>
+<P>One option can be specified as a keyword with the pair_style command.
 </P>
 <P>The <I>save</I> keyword gives you the option to calculate in advance and
 store a set of distances, angles, and derivatives of angles.  The
@@ -296,11 +306,14 @@ the previous section but is interaction type dependent)
 <P>The next section contains a line for each three body interaction type 
 e_j-e_i-e_k with i=0->N, j=0->N, k=j->N
 </P>
-<LI>Line 1: g0, g1, g2... (These are coefficients for 
-the angular spline of the g_(sigma,jik)(THETA_ijk) for e_1-e_1-e_1 interaction. 
-The function can contain up to 10 term thus 10 constants.  The first line
-can contain up to five constants.  If the spline has more than five terms
-the second g0, g1, g2 (for e_1-e_1-e_2) 
+<LI>Line 1: g0, g1, g2... (These are coefficients for the angular spline
+of the g_(sigma,jik)(THETA_ijk) for e_1-e_1-e_1 interaction.  The
+function can contain up to 10 term thus 10 constants.  The first line
+can contain up to five constants.  If the spline has more than five
+terms the second line will contain the remaining constants The
+following lines will then contain the constants for the remainaing g0,
+g1, g2... (for e_1-e_1-e_2) and the other three body
+interactions 
 </UL>
 <P>The rest of the table has the same structure as the previous section
 (see above).

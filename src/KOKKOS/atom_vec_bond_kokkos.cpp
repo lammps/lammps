@@ -1389,6 +1389,8 @@ int AtomVecBondKokkos::size_restart()
 
 int AtomVecBondKokkos::pack_restart(int i, double *buf)
 {
+  sync(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+            MASK_MASK | IMAGE_MASK | MOLECULE_MASK | BOND_MASK | SPECIAL_MASK);
   int m = 1;
   buf[m++] = h_x(i,0);
   buf[m++] = h_x(i,1);
@@ -1431,7 +1433,8 @@ int AtomVecBondKokkos::unpack_restart(double *buf)
     if (atom->nextra_store)
       memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
   }
-
+  modified(Host,X_MASK | V_MASK | TAG_MASK | TYPE_MASK |
+           MASK_MASK | IMAGE_MASK | MOLECULE_MASK | BOND_MASK | SPECIAL_MASK);
   int m = 1;
   h_x(nlocal,0) = buf[m++];
   h_x(nlocal,1) = buf[m++];

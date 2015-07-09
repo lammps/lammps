@@ -39,6 +39,7 @@
 #else
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <sys/utsname.h>
 #endif
 
 namespace LAMMPS_NS {
@@ -124,13 +125,35 @@ void Info::command(int narg, char **arg)
       }
 
     } else if (strcmp(arg[idx],"memory") == 0) {
+      fprintf(screen,"Memory allocation information (MPI rank 0)\n");
+
+#if defined(_WIN32)
+#elif defined(__linux)
+      struct rusage ru;
+      if (getrusage(RUSAGE_SELF, &ru) == 0) {
+        fprintf(screen,"Maximum resident set size: %g Mbyte\n",ru.ru_maxrss/1024);
+      }
+#else
+      fprintf(screen,"(Not supported for this platform)\n");
+#endif
+
+    } else if (strcmp(arg[idx],"os") == 0) {
+
+#if defined(_WIN32)
+      fprintf(screen,"OS information:\n");
+#else
+      struct utsname ut;
+      uname(&ut);
+      fprintf(screen,"OS information: %s %s on %s\n",
+              ut.sysname, ut.release, ut.machine);
+#endif
 
     } else if (strcmp(arg[idx],"time") == 0) {
 
       double wallclock = MPI_Wtime() - lmp->initclock;
       double cpuclock = 0.0;
       
-#ifdef _WIN32
+#if defined(_WIN32)
 
       // from MSD docs.
       FILETIME ct,et,kt,ut;
@@ -140,7 +163,7 @@ void Info::command(int narg, char **arg)
         cpuclock = cpu.ui * 0.0000001;
       }
 
-#else /* ! _WIN32 */
+#else /* POSIX */
 
       struct rusage ru;
       if (getrusage(RUSAGE_SELF, &ru) == 0) {
@@ -242,7 +265,7 @@ void Info::command(int narg, char **arg)
         fputs("\nBox has not yet been created\n",screen);
       }
     } else {
-      error->all(FLERR,"Unknown info command style");
+      error->one(FLERR,"Unknown info command style");
     }
   }
 }

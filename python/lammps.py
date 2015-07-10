@@ -29,11 +29,11 @@ class lammps:
 
     try:
       if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
-      else: self.lib = CDLL(join(modpath,"/liblammps_%s.so" % name),RTLD_GLOBAL)
+      else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),RTLD_GLOBAL)
     except:
       type,value,tb = sys.exc_info()
       traceback.print_exception(type,value,tb)
-      raise OSError,"Could not load LAMMPS dynamic library"
+      raise OSError,"Could not load LAMMPS dynamic library from %s" % modpath
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar

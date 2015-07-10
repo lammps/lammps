@@ -42,6 +42,10 @@
 #include <sys/utsname.h>
 #endif
 
+#if defined __linux
+#include <malloc.h>
+#endif
+
 namespace LAMMPS_NS {
 // same as in variable.cpp
 enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
@@ -128,13 +132,16 @@ void Info::command(int narg, char **arg)
       fprintf(screen,"Memory allocation information (MPI rank 0)\n");
 
 #if defined(_WIN32)
-#elif defined(__linux)
+#else
+#if defined(__linux)
+      struct mallinfo mi;
+      mi = mallinfo();
+      fprintf(screen,"Total dynamically allocated memory: %g Mbyte\n",(double)mi.uordblks/1048576.0);
+#endif
       struct rusage ru;
       if (getrusage(RUSAGE_SELF, &ru) == 0) {
-        fprintf(screen,"Maximum resident set size: %g Mbyte\n",ru.ru_maxrss/1024);
+        fprintf(screen,"Maximum resident set size: %g Mbyte\n",(double)ru.ru_maxrss/1024);
       }
-#else
-      fprintf(screen,"(Not supported for this platform)\n");
 #endif
 
     } else if (strcmp(arg[idx],"os") == 0) {

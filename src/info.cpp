@@ -136,11 +136,14 @@ void Info::command(int narg, char **arg)
 #if defined(__linux)
       struct mallinfo mi;
       mi = mallinfo();
-      fprintf(screen,"Total dynamically allocated memory: %g Mbyte\n",(double)mi.uordblks/1048576.0);
+      fprintf(screen,"Total dynamically allocated memory: %.3g Mbyte\n",(double)mi.uordblks/1048576.0);
 #endif
       struct rusage ru;
       if (getrusage(RUSAGE_SELF, &ru) == 0) {
-        fprintf(screen,"Maximum resident set size: %g Mbyte\n",(double)ru.ru_maxrss/1024);
+        fprintf(screen,"Maximum resident set size: %.3g Mbyte\n",(double)ru.ru_maxrss/1024.0);
+#if defined(__linux)
+        fprintf(screen,"Total stack size: %.3g Mbyte\n",(double)ru.ru_isrss/1024.0);
+#endif
       }
 #endif
 

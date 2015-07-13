@@ -29,6 +29,7 @@
 #include "modify.h"
 #include "output.h"
 #include "region.h"
+#include "universe.h"
 #include "variable.h"
 #include "update.h"
 #include "error.h"
@@ -71,7 +72,7 @@ void Info::command(int narg, char **arg)
   for (int idx = 0; idx < narg; ++idx) {
     fputs("\n",screen);
 
-    if (strcmp(arg[idx],"computes") == 0) {
+    if (strncmp(arg[idx],"computes",3) == 0) {
       int ncompute = modify->ncompute;
       Compute **compute = modify->compute;
       char **names = group->names;
@@ -81,7 +82,7 @@ void Info::command(int narg, char **arg)
                 i, compute[i]->id, compute[i]->style, names[compute[i]->igroup]);
       }
 
-    } else if (strcmp(arg[idx],"dumps") == 0) {
+    } else if (strncmp(arg[idx],"dumps",3) == 0) {
       int ndump = output->ndump;
       Dump **dump = output->dump;
       int *nevery = output->every_dump;\
@@ -99,7 +100,7 @@ void Info::command(int narg, char **arg)
         }
       }
 
-    } else if (strcmp(arg[idx],"fixes") == 0) {
+    } else if (strncmp(arg[idx],"fixes",3) == 0) {
       int nfix = modify->nfix;
       Fix **fix = modify->fix;
       char **names = group->names;
@@ -109,7 +110,7 @@ void Info::command(int narg, char **arg)
                 i, fix[i]->id, fix[i]->style, names[fix[i]->igroup]);
       }
 
-    } else if (strcmp(arg[idx],"groups") == 0) {
+    } else if (strncmp(arg[idx],"groups",3) == 0) {
       int ngroup = group->ngroup;
       char **names = group->names;
       int *dynamic = group->dynamic;
@@ -119,7 +120,7 @@ void Info::command(int narg, char **arg)
                 i, names[i], dynamic[i] ? "dynamic" : "static");
       }
 
-    } else if (strcmp(arg[idx],"regions") == 0) {
+    } else if (strncmp(arg[idx],"regions",3) == 0) {
       int nreg = domain->nregion;
       Region **regs = domain->regions;
       fprintf(screen,"Region information:\n");
@@ -128,7 +129,17 @@ void Info::command(int narg, char **arg)
                 i, regs[i]->id, regs[i]->style, regs[i]->interior ? "in" : "out");
       }
 
-    } else if (strcmp(arg[idx],"memory") == 0) {
+    } else if (strncmp(arg[idx],"hardware",3) == 0) {
+
+#if defined(_WIN32)
+      fprintf(screen,"OS information:\n");
+#else
+      struct utsname ut;
+      uname(&ut);
+      fprintf(screen,"OS information: %s %s on %s\n",
+              ut.sysname, ut.release, ut.machine);
+#endif
+
       fprintf(screen,"Memory allocation information (MPI rank 0)\n");
 
 #if defined(_WIN32)
@@ -141,24 +152,17 @@ void Info::command(int narg, char **arg)
       struct rusage ru;
       if (getrusage(RUSAGE_SELF, &ru) == 0) {
         fprintf(screen,"Maximum resident set size: %.3g Mbyte\n",(double)ru.ru_maxrss/1024.0);
-#if defined(__linux)
-        fprintf(screen,"Total stack size: %.3g Mbyte\n",(double)ru.ru_isrss/1024.0);
-#endif
       }
 #endif
 
-    } else if (strcmp(arg[idx],"os") == 0) {
+    } else if (strncmp(arg[idx],"version",3) == 0) {
+      fprintf(screen,"LAMMPS version: %s\n", universe->version);
+      fprintf(screen,"sizeof(smallint): %3d-bit\n",(int)sizeof(smallint)*8);
+      fprintf(screen,"sizeof(imageint): %3d-bit\n",(int)sizeof(imageint)*8);
+      fprintf(screen,"sizeof(tagint):   %3d-bit\n",(int)sizeof(tagint)*8);
+      fprintf(screen,"sizeof(bigint):   %3d-bit\n",(int)sizeof(bigint)*8);
 
-#if defined(_WIN32)
-      fprintf(screen,"OS information:\n");
-#else
-      struct utsname ut;
-      uname(&ut);
-      fprintf(screen,"OS information: %s %s on %s\n",
-              ut.sysname, ut.release, ut.machine);
-#endif
-
-    } else if (strcmp(arg[idx],"time") == 0) {
+    } else if (strncmp(arg[idx],"time",3) == 0) {
 
       double wallclock = MPI_Wtime() - lmp->initclock;
       double cpuclock = 0.0;
@@ -196,7 +200,7 @@ void Info::command(int narg, char **arg)
               " Wall time: %4d:%02d:%02d\n",
               cpuh,cpum,cpus,wallh,wallm,walls);
 
-    } else if (strcmp(arg[idx],"variables") == 0) {
+    } else if (strncmp(arg[idx],"variables",3) == 0) {
       int nvar = input->variable->nvar;
       int *style = input->variable->style;
       char **names = input->variable->names;

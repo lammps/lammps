@@ -19,7 +19,7 @@ SIZE =		size
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
-OMP =		yes
+KOKKOS_DEVICES = OpenMP
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL

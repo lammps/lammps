@@ -44,7 +44,7 @@ enum{ISO,ANISO,TRICLINIC};
 
 #define MAXLINE 1024
 #define CHUNK 1024
-#define ATTRIBUTE_PERBODY 17
+#define ATTRIBUTE_PERBODY 20
 
 #define TOLERANCE 1.0e-6
 #define EPSILON 1.0e-7
@@ -1657,23 +1657,24 @@ void FixRigid::setup_bodies_static()
     angmom[ibody][0] = angmom[ibody][1] = angmom[ibody][2] = 0.0;
   }
 
-  // overwrite masstotal and center-of-mass with file values
+  // set rigid body image flags to default values
+
+  for (ibody = 0; ibody < nbody; ibody++)
+    imagebody[ibody] = ((imageint) IMGMAX << IMG2BITS) | 
+      ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+
+  // overwrite masstotal, center-of-mass, image flags with file values
   // inbody[i] = 0/1 if Ith rigid body is initialized by file
 
   int *inbody;
   if (infile) {
     memory->create(inbody,nbody,"rigid:inbody");
     for (ibody = 0; ibody < nbody; ibody++) inbody[ibody] = 0;
-    readfile(0,masstotal,xcm,vcm,angmom,inbody);
+    readfile(0,masstotal,xcm,vcm,angmom,imagebody,inbody);
   }
 
-  // set rigid body image flags to default values
-  // then remap the xcm of each body back into simulation box
+  // remap the xcm of each body back into simulation box
   //   and reset body and atom xcmimage flags via pre_neighbor()
-
-  for (ibody = 0; ibody < nbody; ibody++)
-    imagebody[ibody] = ((imageint) IMGMAX << IMG2BITS) | 
-      ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
   pre_neighbor();
 
@@ -1774,7 +1775,7 @@ void FixRigid::setup_bodies_static()
 
   // overwrite Cartesian inertia tensor with file values
 
-  if (infile) readfile(1,NULL,all,NULL,NULL,inbody);
+  if (infile) readfile(1,NULL,all,NULL,NULL,NULL,inbody);
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
@@ -2110,14 +2111,14 @@ void FixRigid::setup_bodies_dynamic()
    flag inbody = 0 for bodies whose info is read from file
    nlines = # of lines of rigid body info
    one line = rigid-ID mass xcm ycm zcm ixx iyy izz ixy ixz iyz
-              vxcm vycm vzcm lx ly lz
+              vxcm vycm vzcm lx ly lz ix iy iz
 ------------------------------------------------------------------------- */
 
 void FixRigid::readfile(int which, double *vec, 
                         double **array1, double **array2, double **array3,
-                        int *inbody)
+                        imageint *ivec, int *inbody)
 {
-  int j,nchunk,id,eofflag;
+  int j,nchunk,id,eofflag,xbox,ybox,zbox;
   int nlines;
   FILE *fp;
   char *eof,*start,*next,*buf;
@@ -2166,7 +2167,7 @@ void FixRigid::readfile(int which, double *vec,
     // tokenize the line into values
     // id = rigid body ID
     // use ID as-is for SINGLE, as mol-ID for MOLECULE, as-is for GROUP
-    // for which = 0, store all but inertia in vec and arrays
+    // for which = 0, store all but inertia in vecs and arrays
     // for which = 1, store inertia tensor array, invert 3,4,5 values to Voigt
 
     for (int i = 0; i < nchunk; i++) {
@@ -2198,6 +2199,12 @@ void FixRigid::readfile(int which, double *vec,
         array3[id][0] = atof(values[14]);
         array3[id][1] = atof(values[15]);
         array3[id][2] = atof(values[16]);
+        xbox = atoi(values[17]);
+        ybox = atoi(values[18]);
+        zbox = atoi(values[19]);
+        ivec[id] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
+          (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+          (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
       } else {
         array1[id][0] = atof(values[5]);
         array1[id][1] = atof(values[6]);
@@ -2220,7 +2227,7 @@ void FixRigid::readfile(int which, double *vec,
 }
 
 /* ----------------------------------------------------------------------
-   write out restart info for mass, COM, inertia tensor to file
+   write out restart info for mass, COM, inertia tensor, image flags to file
    identical format to infile option, so info can be read in when restarting
    only proc 0 writes list of global bodies to file
 ------------------------------------------------------------------------- */
@@ -2247,6 +2254,7 @@ void FixRigid::write_restart_file(char *file)
   // Ispace = P Idiag P_transpose
   // P is stored column-wise in exyz_space
 
+  int xbox,ybox,zbox;
   double p[3][3],pdiag[3][3],ispace[3][3];
 
   int id;
@@ -2258,11 +2266,15 @@ void FixRigid::write_restart_file(char *file)
     MathExtra::times3_diag(p,inertia[i],pdiag);
     MathExtra::times3_transpose(pdiag,p,ispace);
 
+    xbox = (imagebody[i] & IMGMASK) - IMGMAX;
+    ybox = (imagebody[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (imagebody[i] >> IMG2BITS) - IMGMAX;
+
     fprintf(fp,"%d %-1.16e %-1.16e %-1.16e %-1.16e "
-            "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n",
+            "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
             id,masstotal[i],xcm[i][0],xcm[i][1],xcm[i][2],
             ispace[0][0],ispace[1][1],ispace[2][2],
-            ispace[0][1],ispace[0][2],ispace[1][2]);
+            ispace[0][1],ispace[0][2],ispace[1][2],xbox,ybox,zbox);
   }
 
   fclose(fp);

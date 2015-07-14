@@ -20,7 +20,7 @@ ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
 KOKKOS_DEVICES = OpenMP
-KOKKOS_ARCGH =  KNC
+KOKKOS_ARCH = KNC
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL

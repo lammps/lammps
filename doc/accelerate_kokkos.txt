@@ -13,7 +13,8 @@
 
 The KOKKOS package was developed primaritly by Christian Trott
 (Sandia) with contributions of various styles by others, including
-Sikandar Mashayak (UIUC).  The underlying Kokkos library was written
+Sikandar Mashayak (UIUC), Stan Moore (Sandia), and Ray Shan (Sandia).
+The underlying Kokkos library was written
 primarily by Carter Edwards, Christian Trott, and Dan Sunderland (all
 Sandia).
 
@@ -22,7 +23,8 @@ that use data structures and macros provided by the Kokkos library,
 which is included with LAMMPS in lib/kokkos.
 
 The Kokkos library is part of
-"Trilinos"_http://trilinos.sandia.gov/packages/kokkos and is a
+"Trilinos"_http://trilinos.sandia.gov/packages/kokkos and can also
+be downloaded from "Github"_https://github.com/kokkos/kokkos. Kokkos is a
 templated C++ library that provides two key abstractions for an
 application like LAMMPS.  First, it allows a single implementation of
 an application kernel (e.g. a pair style) to run efficiently on
@@ -68,10 +70,10 @@ mode.
 
 Here is a quick overview of how to use the KOKKOS package:
 
-specify variables and settings in your Makefile.machine that enable OpenMP, GPU, or Phi support
-include the KOKKOS package and build LAMMPS
-enable the KOKKOS package and its hardware options via the "-k on" command-line switch
-use KOKKOS styles in your input script :ul
+specify variables and settings in your Makefile.machine that enable
+OpenMP, GPU, or Phi support include the KOKKOS package and build
+LAMMPS enable the KOKKOS package and its hardware options via the "-k
+on" command-line switch use KOKKOS styles in your input script :ul
 
 The latter two steps can be done using the "-k on", "-pk kokkos" and
 "-sf kk" "command-line switches"_Section_start.html#start_7
@@ -84,10 +86,11 @@ kk"_suffix.html commands respectively to your input script.
 The KOKKOS package can be used to build and run LAMMPS on the
 following kinds of hardware:
 
-CPU-only: one MPI task per CPU core (MPI-only, but using KOKKOS styles)
-CPU-only: one or a few MPI tasks per node with additional threading via OpenMP
-Phi: on one or more Intel Phi coprocessors (per node)
-GPU: on the GPUs of a node with additional OpenMP threading on the CPUs :ul
+CPU-only: one MPI task per CPU core (MPI-only, but using KOKKOS
+styles) CPU-only: one or a few MPI tasks per node with additional
+threading via OpenMP Phi: on one or more Intel Phi coprocessors (per
+node) GPU: on the GPUs of a node with additional OpenMP threading on
+the CPUs :ul
 
 Note that Intel Xeon Phi coprocessors are supported in "native" mode,
 not "offload" mode like the USER-INTEL package supports.
@@ -127,19 +130,19 @@ CPU-only (run all-MPI or with OpenMP threading):
 
 cd lammps/src
 make yes-kokkos
-make g++ OMP=yes :pre
+make g++ KOKKOS_DEVICES=OpenMP :pre
 
 Intel Xeon Phi:
 
 cd lammps/src
 make yes-kokkos
-make g++ OMP=yes MIC=yes :pre
+make g++ KOKKOS_DEVICES=OpenMP KOKKOS_ARCH=KNC :pre
 
 CPUs and GPUs:
 
 cd lammps/src
 make yes-kokkos
-make cuda CUDA=yes :pre
+make cuda KOKKOS_DEVICES=Cuda :pre
 
 These examples set the KOKKOS-specific OMP, MIC, CUDA variables on the
 make command line which requires a GNU-compatible make command.  Try
@@ -156,7 +159,7 @@ You can also hardwire these make variables in the specified machine
 makefile, e.g. src/MAKE/Makefile.g++ in the first two examples above,
 with a line like:
 
-MIC = yes :pre
+KOKKOS_ARCH = KNC :pre
 
 Note that if you build LAMMPS multiple times in this manner, using
 different KOKKOS options (defined in different machine makefiles), you
@@ -167,9 +170,9 @@ IMPORTANT NOTE: The 3rd example above for a GPU, uses a different
 machine makefile, in this case src/MAKE/Makefile.cuda, which is
 included in the LAMMPS distribution.  To build the KOKKOS package for
 a GPU, this makefile must use the NVIDA "nvcc" compiler.  And it must
-have a CCFLAGS -arch setting that is appropriate for your NVIDIA
-hardware and installed software.  Typical values for -arch are given
-in "Section 2.3.4"_Section_start.html#start_3_4 of the manual, as well
+have a KOKKOS_ARCH setting that is appropriate for your NVIDIA
+hardware and installed software.  Typical values for KOKKOS_ARCH are given
+below, as well
 as other settings that must be included in the machine makefile, if
 you create your own.
 
@@ -180,36 +183,32 @@ double precision.
 There are other allowed options when building with the KOKKOS package.
 As above, they can be set either as variables on the make command line
 or in Makefile.machine.  This is the full list of options, including
-those discussed above, Each takes a value of {yes} or {no}.  The
+those discussed above, Each takes a value shown below.  The
 default value is listed, which is set in the
-lib/kokkos/Makefile.lammps file.
+lib/kokkos/Makefile.kokkos file.
 
-OMP, default = {yes}
-CUDA, default = {no}
-HWLOC, default = {no}
-AVX, default = {no}
-MIC, default = {no}
-LIBRT, default = {no}
-DEBUG, default = {no} :ul
+#Default settings specific options
+#Options: force_uvm,use_ldg,rdc
 
-OMP sets the parallelization method used for Kokkos code (within
-LAMMPS) that runs on the host.  OMP=yes means that OpenMP will be
-used.  OMP=no means that pthreads will be used.
+KOKKOS_DEVICES, values = {OpenMP}, {Serial}, {Pthreads}, {Cuda}, default = {OpenMP}
+KOKKOS_ARCH, values = {KNC}, {SNB}, {HSW}, {Kepler}, {Kepler30}, {Kepler32}, {Kepler35}, 
+{Kepler37}, {Maxwell}, {Maxwell50}, {Maxwell52}, {Maxwell53}, {ARMv8}, {BGQ}, {Power7}, {Power8},
+default = {none}
+KOKKOS_DEBUG, values = {yes}, {no}, default = {no}
+KOKKOS_USE_TPLS, values = {hwloc}, {librt}, default = {none}
+KOKKOS_CUDA_OPTIONS, values = {force_uvm}, {use_ldg}, {rdc} :ul
 
-CUDA sets the parallelization method used for Kokkos code (within
-LAMMPS) that runs on the device.  CUDA=yes means an NVIDIA GPU running
-CUDA will be used.  CUDA=no means that the OMP=yes or OMP=no setting
-will be used for the device as well as the host.
+KOKKOS_DEVICE sets the parallelization method used for Kokkos code (within
+LAMMPS).  KOKKOS_DEVICES=OpenMP means that OpenMP will be
+used.  KOKKOS_DEVICES=Pthreads means that pthreads will be used.  
+KOKKOS_DEVICES=Cuda means an NVIDIA GPU running
+CUDA will be used.
 
-If CUDA=yes, then the lo-level Makefile in the src/MAKE directory must
-use "nvcc" as its compiler, via its CC setting.  For best performance
-its CCFLAGS setting should use -O3 and have an -arch setting that
-matches the compute capability of your NVIDIA hardware and software
-installation, e.g. -arch=sm_20.  Generally Fermi Generation GPUs are
-sm_20, while Kepler generation GPUs are sm_30 or sm_35 and Maxwell
-cards are sm_50.  A complete list can be found on
-"wikipedia"_http://en.wikipedia.org/wiki/CUDA#Supported_GPUs. You can
-also use the deviceQuery tool that comes with the CUDA samples.  Note
+If KOKKOS_DEVICES=Cuda, then the lo-level Makefile in the src/MAKE
+directory must use "nvcc" as its compiler, via its CC setting.  For
+best performance its CCFLAGS setting should use -O3 and have a
+KOKKOS_ARCH setting that matches the compute capability of your NVIDIA
+hardware and software installation, e.g. KOKKOS_ARCH=Kepler30.  Note
 the minimal required compute capability is 2.0, but this will give
 signicantly reduced performance compared to Kepler generation GPUs
 with compute capability 3.x.  For the LINK setting, "nvcc" should not
@@ -220,28 +219,30 @@ also have a "Compilation rule" for creating *.o files from *.cu files.
 See src/Makefile.cuda for an example of a lo-level Makefile with all
 of these settings.
 
-HWLOC binds threads to hardware cores, so they do not migrate during a
-simulation.  HWLOC=yes should always be used if running with OMP=no
-for pthreads.  It is not necessary for OMP=yes for OpenMP, because
-OpenMP provides alternative methods via environment variables for
-binding threads to hardware cores.  More info on binding threads to
-cores is given in "this section"_Section_accelerate.html#acc_8.
+KOKKOS_USE_TPLS=hwloc binds threads to hardware cores, so they do not
+migrate during a simulation.  KOKKOS_USE_TPLS=hwloc should always be
+used if running with KOKKOS_DEVICES=Pthreads for pthreads.  It is not
+necessary for KOKKOS_DEVICES=OpenMP for OpenMP, because OpenMP
+provides alternative methods via environment variables for binding
+threads to hardware cores.  More info on binding threads to cores is
+given in "this section"_Section_accelerate.html#acc_8.
 
-AVX enables Intel advanced vector extensions when compiling for an
-Intel-compatible chip.  AVX=yes should only be set if your host
-hardware supports AVX.  If it does not support it, this will cause a
-run-time crash.
+KOKKOS_ARCH=KNC enables compiler switches needed when compling for an
+Intel Phi processor.
 
-MIC enables compiler switches needed when compling for an Intel Phi
-processor.
+KOKKOS_USE_TPLS=librt enables use of a more accurate timer mechanism
+on most Unix platforms.  This library is not available on all
+platforms.
 
-LIBRT enables use of a more accurate timer mechanism on most Unix
-platforms.  This library is not available on all platforms.
+KOKKOS_DEBUG is only useful when developing a Kokkos-enabled style
+within LAMMPS.  KOKKOS_DEBUG=yes enables printing of run-time
+debugging information that can be useful.  It also enables runtime
+bounds checking on Kokkos data structures.
 
-DEBUG is only useful when developing a Kokkos-enabled style within
-LAMMPS.  DEBUG=yes enables printing of run-time debugging information
-that can be useful.  It also enables runtime bounds checking on Kokkos
-data structures.
+KOKKOS_CUDA_OPTIONS are additional options for CUDA.
+
+For more information on Kokkos see the Kokkos programmers' guide here:
+/lib/kokkos/doc/Kokkos_PG.pdf.
 
 [Run with the KOKKOS package from the command line:]
 

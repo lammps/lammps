@@ -141,7 +141,8 @@ class FixRigid : public Fix {
   void set_v();
   void setup_bodies_static();
   void setup_bodies_dynamic();
-  void readfile(int, double *, double **, double **, double **, int *);
+  void readfile(int, double *, double **, double **, double **, 
+                imageint *, int *);
 };
 
 }

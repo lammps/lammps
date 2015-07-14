@@ -47,7 +47,7 @@ FixRigidSmall *FixRigidSmall::frsptr;
 
 #define MAXLINE 1024
 #define CHUNK 1024
-#define ATTRIBUTE_PERBODY 17
+#define ATTRIBUTE_PERBODY 20
 
 #define TOLERANCE 1.0e-6
 #define EPSILON 1.0e-7
@@ -1843,7 +1843,13 @@ void FixRigidSmall::setup_bodies_static()
     angmom[0] = angmom[1] = angmom[2] = 0.0;
   }
 
-  // overwrite masstotal and center-of-mass with file values
+  // set rigid body image flags to default values
+
+  for (ibody = 0; ibody < nlocal_body; ibody++)
+    body[ibody].image = ((imageint) IMGMAX << IMG2BITS) | 
+      ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+
+  // overwrite masstotal, center-of-mass, image flags with file values
   // inbody[i] = 0/1 if Ith rigid body is initialized by file
 
   int *inbody;
@@ -1853,13 +1859,8 @@ void FixRigidSmall::setup_bodies_static()
     readfile(0,NULL,inbody);
   }
 
-  // set rigid body image flags to default values
-  // then remap the xcm of each body back into simulation box
+  // remap the xcm of each body back into simulation box
   //   and reset body and atom xcmimage flags via pre_neighbor()
-
-  for (ibody = 0; ibody < nlocal_body; ibody++)
-    body[ibody].image = ((imageint) IMGMAX << IMG2BITS) | 
-      ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
   pre_neighbor();
 
@@ -2315,7 +2316,7 @@ void FixRigidSmall::setup_bodies_dynamic()
 
 void FixRigidSmall::readfile(int which, double **array, int *inbody)
 {
-  int i,j,m,nchunk,eofflag,nlines;
+  int i,j,m,nchunk,eofflag,nlines,xbox,ybox,zbox;
   tagint id;
   FILE *fp;
   char *eof,*start,*next,*buf;
@@ -2406,6 +2407,12 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
         body[m].angmom[0] = atof(values[14]);
         body[m].angmom[1] = atof(values[15]);
         body[m].angmom[2] = atof(values[16]);
+        xbox = atoi(values[17]);
+        ybox = atoi(values[18]);
+        zbox = atoi(values[19]);
+        body[m].image = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
+          (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+          (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
       } else {
         array[m][0] = atof(values[5]);
         array[m][1] = atof(values[6]);
@@ -2503,6 +2510,9 @@ void FixRigidSmall::write_restart_file(char *file)
     buf[i][14] = body[i].angmom[0];
     buf[i][15] = body[i].angmom[1];
     buf[i][16] = body[i].angmom[2];
+    buf[i][17] = (body[i].image & IMGMASK) - IMGMAX;
+    buf[i][18] = (body[i].image >> IMGBITS & IMGMASK) - IMGMAX;
+    buf[i][19] = (body[i].image >> IMG2BITS) - IMGMAX;
   }
 
   // write one chunk of rigid body info per proc to file
@@ -2526,12 +2536,15 @@ void FixRigidSmall::write_restart_file(char *file)
       for (int i = 0; i < recvrow; i++)
         fprintf(fp,"%d %-1.16e %-1.16e %-1.16e %-1.16e "
                 "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e "
-                "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n",
+                "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
                 static_cast<int> (buf[i][0]),buf[i][1],
                 buf[i][2],buf[i][3],buf[i][4],
                 buf[i][5],buf[i][6],buf[i][7],buf[i][8],buf[i][9],buf[i][10],
                 buf[i][11],buf[i][12],buf[i][13],
-                buf[i][14],buf[i][15],buf[i][16]);
+                buf[i][14],buf[i][15],buf[i][16],
+                static_cast<int> (buf[i][17]),
+                static_cast<int> (buf[i][18]),
+                static_cast<int> (buf[i][19]));
     }
     
   } else {

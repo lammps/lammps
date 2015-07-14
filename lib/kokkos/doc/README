@@ -1,0 +1,32 @@
+Kokkos uses the Doxygen tool for providing three documentation
+sources:
+- man pages
+- Latex User Guide
+- HTML Online User Guide.
+
+Man Pages
+
+Man pages are available for all files and functions in the directory
+TRILINOS_HOME/doc/kokkos/man, where TRILINOS_HOME is the location of your
+copy of Trilinos.  To use these pages with the Unix man utility, add
+the directory to your man path as follows:
+
+setenv MANPATH `echo $MANPATH`:TRILINOS_HOME/doc/kokkos/man
+
+
+LaTeX User Guide
+
+A postscript version of this guide is in
+TRILINOS_HOME/doc/kokkos/latex/user_guide.ps.  The LaTeX source is in the
+directory TRILINOS_HOME/doc/kokkos/latex.
+
+HTML Online User Guide
+
+The online guide is initiated by pointing your browser to
+TRILINOS_HOME/doc/kokkos/html/index.html
+
+Any question, comments or suggestions are welcome.  Please send to
+Mike Heroux at 
+
+320-845-7695
+maherou@sandia.gov

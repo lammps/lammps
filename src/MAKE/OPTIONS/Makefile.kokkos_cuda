@@ -19,8 +19,7 @@ SIZE =		size
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
-CUDA =		yes
-OMP =		yes
+KOKKOS_DEVICES = Cuda
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL

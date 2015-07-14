@@ -19,8 +19,8 @@ SIZE =		size
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
-MIC =		yes
-OMP =		yes
+KOKKOS_DEVICES = OpenMP
+KOKKOS_ARCGH =  KNC
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL

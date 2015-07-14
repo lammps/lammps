@@ -484,16 +484,17 @@ written out.  See the IMPORTANT NOTE in the next section for details.
 :line
 
 The {infile} keyword allows a file of rigid body attributes to be read
-in from a file, rather then having LAMMPS compute them.  There are 3
+in from a file, rather then having LAMMPS compute them.  There are 5
 such attributes: the total mass of the rigid body, its center-of-mass
-position, and its 6 moments of inertia.  For rigid bodies consisting
-of point particles or non-overlapping finite-size particles, LAMMPS
-can compute these values accurately.  However, for rigid bodies
-consisting of finite-size particles which overlap each other, LAMMPS
-will ignore the overlaps when computing these 3 attributes.  The
-amount of error this induces depends on the amount of overlap.  To
-avoid this issue, the values can be pre-computed (e.g. using Monte
-Carlo integration).
+position, its 6 moments of inertia, its center-of-mass velocity, and
+the 3 image flags of the center-of-mass position.  For rigid bodies
+consisting of point particles or non-overlapping finite-size
+particles, LAMMPS can compute these values accurately.  However, for
+rigid bodies consisting of finite-size particles which overlap each
+other, LAMMPS will ignore the overlaps when computing these 4
+attributes.  The amount of error this induces depends on the amount of
+overlap.  To avoid this issue, the values can be pre-computed
+(e.g. using Monte Carlo integration).
 
 The format of the file is as follows.  Note that the file does not
 have to list attributes for every rigid body integrated by fix rigid.
@@ -503,10 +504,10 @@ comment lines starting with "#" which are ignored.  The first
 non-blank, non-comment line should list N = the number of lines to
 follow.  The N successive lines contain the following information:
 
-ID1 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz
-ID2 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz
+ID1 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz ixcm iycm izcm
+ID2 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz ixcm iycm izcm
 ...
-IDN masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz :pre
+IDN masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz ixcm iycm izcm :pre
 
 The rigid body IDs are all positive integers.  For the {single}
 bodystyle, only an ID of 1 can be used.  For the {group} bodystyle,
@@ -519,15 +520,26 @@ self-explanatory.  The center-of-mass should be consistent with what
 is calculated for the position of the rigid body with all its atoms
 unwrapped by their respective image flags.  If this produces a
 center-of-mass that is outside the simulation box, LAMMPS wraps it
-back into the box.  The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz)
-should be the values consistent with the current orientation of the
-rigid body around its center of mass.  The values are with respect to
-the simulation box XYZ axes, not with respect to the prinicpal axes of
-the rigid body itself.  LAMMPS performs the latter calculation
-internally.  The (vxcm,vycm,vzcm) values are the velocity of the
-center of mass.  The (lx,ly,lz) values are the angular momentum of the
-body.  These last 6 values can simply be set to 0 if you wish the
-body to have no initial motion.
+back into the box.
+
+The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
+values consistent with the current orientation of the rigid body
+around its center of mass.  The values are with respect to the
+simulation box XYZ axes, not with respect to the prinicpal axes of the
+rigid body itself.  LAMMPS performs the latter calculation internally.
+
+The (vxcm,vycm,vzcm) values are the velocity of the center of mass.
+The (lx,ly,lz) values are the angular momentum of the body.  The
+(vxcm,vycm,vzcm) and (lx,ly,lz) values can simply be set to 0 if you
+wish the body to have no initial motion.
+
+The (ixcm,iycm,izcm) values are the image flags of the center of mass
+of the body.  For periodic dimensions, they specify which image of the
+simulation box the body is considered to be in.  An image of 0 means
+it is inside the box as defined.  A value of 2 means add 2 box lengths
+to get the true value.  A value of -1 means subtract 1 box length to
+get the true value.  LAMMPS updates these flags as the rigid bodies
+cross periodic boundaries during the simulation.
 
 IMPORTANT NOTE: If you use the {infile} or {mol} keywords and write
 restart files during a simulation, then each time a restart file is

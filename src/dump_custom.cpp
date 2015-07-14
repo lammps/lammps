@@ -125,7 +125,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   vformat = new char*[size_one];
 
-  format_default = new char[3*size_one+1];
+  format_default = new char[4*size_one+1];
   format_default[0] = '\0';
 
   for (int i = 0; i < size_one; i++) {

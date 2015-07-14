@@ -69,6 +69,8 @@ void Info::command(int narg, char **arg)
 {
   if (!screen || comm->me) return;
 
+  fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n",screen);
+
   for (int idx = 0; idx < narg; ++idx) {
     fputs("\n",screen);
 
@@ -282,4 +284,5 @@ void Info::command(int narg, char **arg)
       error->one(FLERR,"Unknown info command style");
     }
   }
+  fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n\n",screen);
 }

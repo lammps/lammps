@@ -1258,26 +1258,8 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
   i_tag=tag[i];
   itype = map[type[i]]+1;
 
+  memset(bt_sg,0,sizeof(struct B_SG)*nb_sg);
   for(m=0;m<nb_sg;m++) {
-    for(pp=0;pp<3;pp++) {
-      bt_sg[m].dAA[pp]=0.0;
-      bt_sg[m].dBB[pp]=0.0;
-      bt_sg[m].dCC[pp]=0.0;
-      bt_sg[m].dDD[pp]=0.0;
-      bt_sg[m].dEE[pp]=0.0;
-      bt_sg[m].dEE1[pp]=0.0;
-      bt_sg[m].dFF[pp]=0.0;
-      bt_sg[m].dAAC[pp]=0.0;
-      bt_sg[m].dBBC[pp]=0.0;
-      bt_sg[m].dCCC[pp]=0.0;
-      bt_sg[m].dDDC[pp]=0.0;
-      bt_sg[m].dEEC[pp]=0.0;
-      bt_sg[m].dFFC[pp]=0.0;
-      bt_sg[m].dGGC[pp]=0.0;
-      bt_sg[m].dUT[pp]=0.0;
-      bt_sg[m].dSigB1[pp]=0.0;
-      bt_sg[m].dSigB[pp]=0.0;
-    }
     bt_sg[m].i=-1;
     bt_sg[m].j=-1;
     bt_sg[m].temp=-1;
@@ -3821,7 +3803,6 @@ double PairBOP::sigmaBo(int itmp, int jtmp)
     }
   }
   return(sigB);
-  destroy_sigma();
 }
 
 /* ---------------------------------------------------------------------- */

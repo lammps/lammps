@@ -160,7 +160,7 @@ void FixQEqDynamic::pre_force(int vflag)
   if (comm->me == 0) {
     if (iloop == maxiter) {
       char str[128];
-      sprintf(str,"Charges did not converge at step "BIGINT_FORMAT
+      sprintf(str,"Charges did not converge at step " BIGINT_FORMAT
 		  ": %lg",update->ntimestep,enegchk);
       error->warning(FLERR,str);
     }

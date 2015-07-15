@@ -72,6 +72,7 @@ class FixRigid : public Fix {
 
   int dimension;            // # of dimensions
   int nbody;                // # of rigid bodies
+  int nlinear;              // # of linear rigid bodies
   int *nrigid;              // # of atoms in each rigid body
   int *mol2body;            // convert mol-ID to rigid body index
   int *body2mol;            // convert rigid body index to mol-ID

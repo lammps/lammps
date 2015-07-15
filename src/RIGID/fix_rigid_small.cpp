@@ -123,6 +123,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   MPI_Allreduce(&maxmol,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
   maxmol = itmp;
 
+  // number of linear molecules is counted later
+  nlinear = 0;
+
   // parse optional args
 
   int seed;
@@ -1028,12 +1031,16 @@ int FixRigidSmall::dof(int tgroup)
   double *inertia;
 
   int n = 0;
+  nlinear = 0;
   if (domain->dimension == 3) {
     for (int ibody = 0; ibody < nlocal_body; ibody++) {
       if (counts[ibody][0]+counts[ibody][1] == counts[ibody][2]) {
         n += 3*counts[ibody][0] + 6*counts[ibody][1] - 6;
         inertia = body[ibody].inertia;
-        if (inertia[0] == 0.0 || inertia[1] == 0.0 || inertia[2] == 0.0) n++;
+        if (inertia[0] == 0.0 || inertia[1] == 0.0 || inertia[2] == 0.0) {
+          n++;
+          nlinear++;
+        }
       }
     }
   } else if (domain->dimension == 2) {
@@ -3404,7 +3411,7 @@ double FixRigidSmall::compute_scalar()
   double tall;
   MPI_Allreduce(&t,&tall,1,MPI_DOUBLE,MPI_SUM,world);
 
-  double tfactor = force->mvv2e / (6.0*nbody * force->boltz);
+  double tfactor = force->mvv2e / ((6.0*nbody - nlinear) * force->boltz);
   tall *= tfactor;
   return tall;
 }

@@ -47,4 +47,12 @@ E: Unknown dump style
 
 The choice of dump style is unknown.
 
+W: Calling write_dump before a full system init.
+
+The write_dump command is used before the system has been fully
+initialized as part of a 'run' or 'minimize' command. Not all dump
+styles and features are fully supported at this point and thus the
+command may fail or produce incomplete or incorrect output. Insert
+a "run 0" command, if a full system init is required.
+
 */

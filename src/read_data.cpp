@@ -1557,6 +1557,7 @@ void ReadData::open(char *file)
 void ReadData::parse_keyword(int first)
 {
   int eof = 0;
+  int done = 0;
 
   // proc 0 reads upto non-blank line plus 1 following line
   // eof is set to 1 if any read hits end-of-file
@@ -1565,8 +1566,11 @@ void ReadData::parse_keyword(int first)
     if (!first) {
       if (fgets(line,MAXLINE,fp) == NULL) eof = 1;
     }
-    while (eof == 0 && strspn(line," \t\n\r") == strlen(line)) {
-      if (fgets(line,MAXLINE,fp) == NULL) eof = 1;
+    while (eof == 0 && done == 0) {
+      int blank = strspn(line," \t\n\r");
+      if ((blank == strlen(line)) || (line[blank] == '#')) {
+        if (fgets(line,MAXLINE,fp) == NULL) eof = 1;
+      } else done = 1;
     }
     if (fgets(buffer,MAXLINE,fp) == NULL) eof = 1;
   }

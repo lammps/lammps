@@ -449,15 +449,6 @@ void PairReaxC::setup( )
 
     ReAllocate( system, control, data, workspace, &lists, mpi_data );
   }
-
-  ngroup = 0;
-  int ngroup_sum = 0;
-  for (int i = 0; i < list->inum; i++) {
-    ngroup ++;
-  }
-  MPI_Allreduce( &ngroup, &ngroup_sum, 1, MPI_INT, MPI_SUM, world );
-  ngroup = ngroup_sum;
-
 }
 
 /* ---------------------------------------------------------------------- */

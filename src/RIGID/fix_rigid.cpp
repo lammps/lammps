@@ -2279,10 +2279,15 @@ void FixRigid::write_restart_file(char *file)
     zbox = (imagebody[i] >> IMG2BITS) - IMGMAX;
 
     fprintf(fp,"%d %-1.16e %-1.16e %-1.16e %-1.16e "
-            "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %d %d %d\n",
+            "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e "
+            "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e "
+            "%d %d %d\n",
             id,masstotal[i],xcm[i][0],xcm[i][1],xcm[i][2],
             ispace[0][0],ispace[1][1],ispace[2][2],
-            ispace[0][1],ispace[0][2],ispace[1][2],xbox,ybox,zbox);
+            ispace[0][1],ispace[0][2],ispace[1][2],
+            vcm[i][0],vcm[i][1],vcm[i][2],
+            angmom[i][0],angmom[i][1],angmom[i][2],
+            xbox,ybox,zbox);
   }
 
   fclose(fp);

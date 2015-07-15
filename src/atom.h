@@ -160,6 +160,7 @@ class Atom : protected Pointers {
 
   int sortfreq;             // sort atoms every this many steps, 0 = off
   bigint nextsort;          // next timestep to sort on
+  double userbinsize;       // requested sort bin size
 
   // indices of atoms with same ID
 
@@ -281,7 +282,6 @@ class Atom : protected Pointers {
   int *binhead;                   // 1st atom in each bin
   int *next;                      // next atom in bin
   int *permute;                   // permutation vector
-  double userbinsize;             // requested sort bin size
   double bininvx,bininvy,bininvz; // inverse actual bin sizes
   double bboxlo[3],bboxhi[3];     // bounding box of my sub-domain
 

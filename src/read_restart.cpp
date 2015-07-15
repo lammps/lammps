@@ -60,7 +60,9 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      SPECIAL_LJ,SPECIAL_COUL,
      MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT,BOUNDMIN};
+     IMAGEINT,BOUNDMIN,TIMESTEP,
+     ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
+     COMM_MODE,COMM_CUTOFF,COMM_VEL};
 
 #define LB_FACTOR 1.1
 
@@ -865,6 +867,27 @@ void ReadRestart::header(int incompatible)
     } else if (flag == SPECIAL_COUL) {
       read_int();
       read_double_vec(3,&force->special_coul[1]);
+
+    } else if (flag == TIMESTEP) {
+      update->dt = read_double();
+
+    } else if (flag == ATOM_ID) {
+      atom->tag_enable = read_int();
+    } else if (flag == ATOM_MAP_STYLE) {
+      atom->map_style = read_int();
+    } else if (flag == ATOM_MAP_USER) {
+      atom->map_user  = read_int();
+    } else if (flag == ATOM_SORTFREQ) {
+      atom->sortfreq = read_int();
+    } else if (flag == ATOM_SORTBIN) {
+      atom->userbinsize = read_double();
+      
+    } else if (flag == COMM_MODE) {
+      comm->mode = read_int();
+    } else if (flag == COMM_CUTOFF) {
+      comm->cutghostuser = read_double();
+    } else if (flag == COMM_VEL) {
+      comm->ghost_velocity = read_int();
 
     } else error->all(FLERR,"Invalid flag in header section of restart file");
 

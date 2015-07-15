@@ -232,47 +232,50 @@ void ComputeAcklandAtom::compute_peratom()
         }
       }
 
-      // Deviations from the different lattice structures
+      if (chi[7] > 0 || n0 < 11) structure[i] = UNKNOWN;
+      else if (chi[0] == 7) structure[i] = BCC;
+      else if (chi[0] == 6) structure[i] = FCC;
+      else if (chi[0] == 3) structure[i] = HCP;
+      else {
+        // Deviations from the different lattice structures
 
-      double delta_bcc = 0.35*chi[4]/(double)(chi[5]+chi[6]-chi[4]);
-      double delta_cp = fabs(1.-(double)chi[6]/24.);
-      double delta_fcc = 0.61*(fabs((double)(chi[0]+chi[1]-6.))+
-                               (double)chi[2])/6.0;
-      double delta_hcp = (fabs((double)chi[0]-3.)+
-                          fabs((double)chi[0]+(double)chi[1]+
-                               (double)chi[2]+(double)chi[3]-9.0))/12.0;
+        double delta_cp = fabs(1.-(double)chi[6]/24.);
 
-      // Identification of the local structure according to the reference
+        // ensure we do not get divide by zero
+        // and if we will, make delta_bcc irrelevant
+        double delta_bcc = delta_cp + 1.0;
+        int chi56m4 = chi[5]+chi[6]-chi[4];
 
-      if (chi[0] == 7)       { delta_bcc = 0.; }
-      else if (chi[0] == 6)  { delta_fcc = 0.; }
-      else if (chi[0] <= 3)  { delta_hcp = 0.; }
+        // note that chi[7] presumed zero 
+        if (chi56m4 != 0) delta_bcc = 0.35*chi[4]/(double)chi56m4;
 
-      if (chi[7] > 0.)
-         structure[i] = UNKNOWN;
-      else
-      if (chi[4] < 3.)
-      {
-         if (n1 > 13 || n1 < 11)
-            structure[i] = UNKNOWN;
-         else
-            structure[i] = ICO;
-      } else
-      if (delta_bcc <= delta_cp)
-      {
-         if (n1 < 11)
-            structure[i] = UNKNOWN;
-         else
-            structure[i] = BCC;
-      } else
-      if (n1 > 12 || n1 < 11)
-         structure[i] = UNKNOWN;
-      else
-      if (delta_fcc < delta_hcp)
-         structure[i] = FCC;
-      else
-         structure[i] = HCP;
+        double delta_fcc = 0.61*(fabs((double)(chi[0]+chi[1]-6))
+                                 +(double)chi[2])/6.0;
 
+        double delta_hcp = (fabs((double)chi[0]-3.)+fabs((double)chi[0]
+                            +(double)chi[1]+(double)chi[2]+(double)chi[3]
+                            -9.0))/12.0;
+
+	 // Identification of the local structure according to the reference
+
+        if (delta_bcc >= 0.1 && delta_cp >= 0.1 && delta_fcc >= 0.1 
+            && delta_hcp >= 0.1) structure[i] = UNKNOWN;
+
+	// not part of Ackland-Jones 2006; included for backward compatibility
+        if (chi[4] < 3. && n1 == 12) structure[i] = ICO;
+
+        else {
+	  if (delta_bcc <= delta_cp && n1 > 10 && n1 < 13) structure[i] = BCC;
+	  else {
+	    if (n0 > 12) structure[i] = UNKNOWN;
+	    else {
+	      if (delta_fcc < delta_hcp) structure[i] = FCC;
+	      else
+	      structure[i] = HCP;
+	    }
+	  }
+	}
+      }
     } else structure[i] = 0.0;
   }
 }

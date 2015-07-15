@@ -59,7 +59,9 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      SPECIAL_LJ,SPECIAL_COUL,
      MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT,BOUNDMIN};
+     IMAGEINT,BOUNDMIN,TIMESTEP,
+     ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
+     COMM_MODE,COMM_CUTOFF,COMM_VEL};
 
 enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
 
@@ -496,6 +498,18 @@ void WriteRestart::header()
 
   write_double_vec(SPECIAL_LJ,3,&force->special_lj[1]);
   write_double_vec(SPECIAL_COUL,3,&force->special_coul[1]);
+
+  write_double(TIMESTEP,update->dt);
+
+  write_int(ATOM_ID,atom->tag_enable);
+  write_int(ATOM_MAP_STYLE,atom->map_style);
+  write_int(ATOM_MAP_USER,atom->map_user);
+  write_int(ATOM_SORTFREQ,atom->sortfreq);
+  write_double(ATOM_SORTBIN,atom->userbinsize);
+
+  write_int(COMM_MODE,comm->mode);  
+  write_double(COMM_CUTOFF,comm->cutghostuser);
+  write_int(COMM_VEL,comm->ghost_velocity);
 
   // -1 flag signals end of header
 

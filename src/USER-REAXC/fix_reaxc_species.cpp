@@ -77,7 +77,7 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
   // but may be updated when no averaging is performed.
   
   int rene_flag = 0;
-  if (nfreq % neighbor->every != 0 || neighbor->every < nevery * nrepeat) {
+  if (nevery * nrepeat != 1 && (nfreq % neighbor->every != 0 || neighbor->every < nevery * nrepeat)) {
     int newneighborevery = nevery * nrepeat;
     while (nfreq % newneighborevery != 0 && newneighborevery <= nfreq / 2)
       newneighborevery++;
@@ -89,7 +89,7 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
     rene_flag = 1;
   }
 
-  if (neighbor->delay != 0 || neighbor->dist_check != 0) {
+  if (nevery * nrepeat != 1 && (neighbor->delay != 0 || neighbor->dist_check != 0)) {
     neighbor->delay = 0;
     neighbor->dist_check = 0;
     rene_flag = 1;

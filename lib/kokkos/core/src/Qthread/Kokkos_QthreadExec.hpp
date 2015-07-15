@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -150,7 +150,6 @@ public:
   void exec_all_reduce( const FunctorType & func ) const
     {
       typedef Kokkos::Impl::FunctorValueJoin< FunctorType , ArgTag > ValueJoin ;
-      typedef Kokkos::Impl::FunctorValueOps<  FunctorType , ArgTag > ValueOps ;
 
       const int rev_rank = m_worker_size - ( m_worker_rank + 1 );
 
@@ -202,16 +201,18 @@ public:
         // highest ranking thread.
 
         // Copy from lower ranking to higher ranking worker.
-        for ( int i = 1 ; i < n ; ++i ) {
-          ValueOps::copy( func , m_worker_base[i-1]->m_scratch_alloc
-                           , m_worker_base[i]->m_scratch_alloc );
+        for ( int i = 1 ; i < m_worker_size ; ++i ) {
+          ValueOps::copy( func
+                        , m_worker_base[i-1]->m_scratch_alloc
+                        , m_worker_base[i]->m_scratch_alloc
+                        );
         }
 
-        ValueInit::init( func , m_worker_base[n-1]->m_scratch_alloc );
+        ValueInit::init( func , m_worker_base[m_worker_size-1]->m_scratch_alloc );
 
         // Join from lower ranking to higher ranking worker.
         // Value at m_worker_base[n-1] is zero so skip adding it to m_worker_base[n-2].
-        for ( int i = n - 1 ; --i ; ) {
+        for ( int i = m_worker_size - 1 ; --i ; ) {
           ValueJoin::join( func , m_worker_base[i-1]->m_scratch_alloc , m_worker_base[i]->m_scratch_alloc );
         }
       }
@@ -227,6 +228,19 @@ public:
   inline
   volatile Type * shepherd_team_scratch_value() const
     { return (volatile Type*)(((unsigned char *) m_scratch_alloc) + m_reduce_end); }
+
+  template< class Type >
+  inline
+  void shepherd_broadcast( Type & value , const int team_size , const int team_rank ) const
+    {
+      if ( m_shepherd_base ) {
+        Type * const shared_value = m_shepherd_base[0]->shepherd_team_scratch_value<Type>();
+        if ( m_shepherd_worker_rank == team_rank ) { *shared_value = value ; }
+        memory_fence();
+        shepherd_barrier( team_size );
+        value = *shared_value ;
+      }
+    }
 
   template< class Type >
   inline
@@ -294,10 +308,10 @@ public:
       }
       else {
         volatile Type & accum = * m_shepherd_base[0]->shepherd_team_scratch_value<Type>();
-        for ( int i = 1 ; i < n ; ++i ) {
+        for ( int i = 1 ; i < team_size ; ++i ) {
           op.join( accum , * m_shepherd_base[i]->shepherd_team_scratch_value<Type>() );
         }
-        for ( int i = 1 ; i < n ; ++i ) {
+        for ( int i = 1 ; i < team_size ; ++i ) {
           * m_shepherd_base[i]->shepherd_team_scratch_value<Type>() = accum ;
         }
 
@@ -341,17 +355,17 @@ public:
         // Copy from lower ranking to higher ranking worker.
 
         Type accum = * m_shepherd_base[0]->shepherd_team_scratch_value<Type>();
-        for ( int i = 1 ; i < n ; ++i ) {
+        for ( int i = 1 ; i < team_size ; ++i ) {
           const Type tmp = * m_shepherd_base[i]->shepherd_team_scratch_value<Type>();
           accum += tmp ;
           * m_shepherd_base[i-1]->shepherd_team_scratch_value<Type>() = tmp ;
         }
 
-        * m_shepherd_base[n-1]->shepherd_team_scratch_value<Type>() =
+        * m_shepherd_base[team_size-1]->shepherd_team_scratch_value<Type>() =
           global_value ? atomic_fetch_add( global_value , accum ) : 0 ;
 
         // Join from lower ranking to higher ranking worker.
-        for ( int i = n ; --i ; ) {
+        for ( int i = team_size ; --i ; ) {
           * m_shepherd_base[i-1]->shepherd_team_scratch_value<Type>() += * m_shepherd_base[i]->shepherd_team_scratch_value<Type>();
         }
 
@@ -392,6 +406,8 @@ public:
   inline int shepherd_worker_size() const { return m_shepherd_worker_size ; }
   inline int shepherd_rank() const { return m_shepherd_rank ; }
   inline int shepherd_size() const { return m_shepherd_size ; }
+
+  static int worker_per_shepherd();
 };
 
 } /* namespace Impl */
@@ -432,6 +448,14 @@ public:
     {}
 #else
     { m_exec.shepherd_barrier( m_team_size ); }
+#endif
+
+  template< typename Type >
+  KOKKOS_INLINE_FUNCTION Type team_broadcast( const Type & value , int rank ) const
+#if ! defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
+    { return Type(); }
+#else
+    { return m_exec.template shepherd_broadcast<Type>( value , m_team_size , rank ); }
 #endif
 
   template< typename Type >
@@ -481,6 +505,11 @@ public:
 #else
     { return m_exec.template shepherd_scan<Type>( m_team_size , value , global_accum ); }
 #endif
+
+  //----------------------------------------
+  // Private driver for task-team parallel
+
+  QthreadTeamPolicyMember();
 
   //----------------------------------------
   // Private for the driver ( for ( member_type i(exec,team); i ; i.next_team() ) { ... }
@@ -536,6 +565,11 @@ public:
 
   template< class FunctorType >
   static int team_size_recommended( const FunctorType & f )
+    { return team_size_max( f ); }
+
+  template< class FunctorType >
+  inline static
+  int team_size_recommended( const FunctorType & f , const int& )
     { return team_size_max( f ); }
 
   //----------------------------------------

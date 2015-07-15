@@ -1,0 +1,127 @@
+#
+# Include the global look and feel options
+#
+@INCLUDE               = ../../common/Doxyfile
+#
+# Package options
+#
+PROJECT_NAME           = "Kokkos Core Kernels Package"
+PROJECT_NUMBER         = "Version of the Day"
+OUTPUT_DIRECTORY       = .
+OUTPUT_LANGUAGE        = English
+
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = YES
+HIDE_UNDOC_MEMBERS     = YES
+HIDE_UNDOC_CLASSES     = YES
+BRIEF_MEMBER_DESC      = YES
+REPEAT_BRIEF           = YES
+ALWAYS_DETAILED_SEC    = YES
+FULL_PATH_NAMES        = NO
+STRIP_FROM_PATH        = 
+INTERNAL_DOCS          = NO
+CLASS_DIAGRAMS         = YES
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+STRIP_CODE_COMMENTS    = YES
+REFERENCED_BY_RELATION = NO
+REFERENCES_RELATION    = NO
+CASE_SENSE_NAMES       = YES
+HIDE_SCOPE_NAMES       = NO
+VERBATIM_HEADERS       = YES
+SHOW_INCLUDE_FILES     = YES
+#JAVADOC_AUTOBRIEF      = YES
+INHERIT_DOCS           = YES
+INLINE_INHERITED_MEMB  = YES
+INLINE_INFO            = YES
+SORT_MEMBER_DOCS       = NO
+TAB_SIZE               = 2
+ENABLED_SECTIONS       = 
+SORT_BRIEF_DOCS        = NO
+GENERATE_TODOLIST      = YES
+GENERATE_TESTLIST      = YES
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_FORMAT            = "$file:$line: $text"
+
+#
+# INPUT: Where to find files that Doxygen should process.  ../classic
+# has a doc/ subdirectory with its own Doxyfile that points to its own
+# files.  The other Kokkos subpackages don't currently have their own
+# Doxyfile files, so we have to do it manually here.
+#
+# mfh 26 Sep 2013: I've only added those directories in the Core
+# subpackage that constitute the "public interface" of that
+# subpackage.  Please feel free to include additional subdirectories
+# of ../core if you want to generate their documentation as well.
+#
+# mfh 26 Sep 2013: I've only added the Kokkos subpackages here that I
+# think are ready for Doxygen documentation generation.  Please feel
+# free to amend this list as you see fit.
+#
+
+INPUT                  = index.doc ../classic ../core/src ../containers/src ../linalg/src
+FILE_PATTERNS          = *.hpp *.cpp *.cuh *.cu
+RECURSIVE              = NO
+EXCLUDE_PATTERNS       = *.x *.o *.out
+EXAMPLE_PATH           = 
+EXAMPLE_RECURSIVE       = YES
+EXAMPLE_PATTERNS       = *.cpp *.hpp
+IMAGE_PATH             = 
+INPUT_FILTER           = 
+ALPHABETICAL_INDEX     = YES
+COLS_IN_ALPHA_INDEX    = 4
+IGNORE_PREFIX          = 
+#
+# What diagrams are created
+#
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = NO
+INCLUDE_GRAPH          = NO
+INCLUDED_BY_GRAPH      = NO
+GRAPHICAL_HIERARCHY    = YES
+#
+# Preprocessing
+#
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+SEARCH_INCLUDES        = YES
+INCLUDE_FILE_PATTERNS  = 
+PREDEFINED             = DOXYGEN_SHOULD_SKIP_THIS DOXYGEN_USE_ONLY
+INCLUDE_PATH           = ../src
+EXPAND_AS_DEFINED      = 
+#
+# Links to other packages
+#
+TAGFILES               = ../../common/tag_files/teuchos.tag=../../../teuchos/doc/html ../../common/tag_files/epetra.tag=../../../epetra/doc/html \
+                         ../../common/tag_files/belos.tag=../../../belos/doc/html ../../common/tag_files/anasazi.tag=../../../anasazi/doc/html \
+                         ../../common/tag_files/kokkos.tag=../../../kokkos/doc/html 
+GENERATE_TAGFILE       = ../../common/tag_files/tpetra.tag
+ALLEXTERNALS           = NO
+EXTERNAL_GROUPS        = NO
+#
+# Environment
+#
+PERL_PATH              = /usr/bin/perl
+HAVE_DOT               = YES
+DOT_PATH               = 
+MAX_DOT_GRAPH_WIDTH    = 1024
+MAX_DOT_GRAPH_HEIGHT   = 1024
+#
+# What kind of documentation is generated
+#
+#GENERATE_HTML          = YES
+#HTML_OUTPUT            = html
+#HTML_HEADER            = includes/header.html
+#HTML_FOOTER            = includes/footer.html
+#HTML_STYLESHEET        = includes/stylesheet.css
+#HTML_ALIGN_MEMBERS     = YES
+GENERATE_HTMLHELP      = NO
+DISABLE_INDEX          = NO
+GENERATE_LATEX         = NO
+GENERATE_RTF           = NO
+GENERATE_MAN           = NO
+GENERATE_XML           = NO

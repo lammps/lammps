@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -131,7 +131,7 @@ template <typename Bitset>
 struct BitsetCount
 {
   typedef Bitset bitset_type;
-  typedef typename bitset_type::device_type::execution_space device_type;
+  typedef typename bitset_type::execution_space::execution_space execution_space;
   typedef typename bitset_type::size_type size_type;
   typedef size_type value_type;
 
@@ -144,7 +144,7 @@ struct BitsetCount
   size_type apply() const
   {
     size_type count = 0u;
-    parallel_reduce(m_bitset.m_blocks.size(), *this, count);
+    parallel_reduce(m_bitset.m_blocks.dimension_0(), *this, count);
     return count;
   }
 

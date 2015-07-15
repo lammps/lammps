@@ -1,15 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//                             Kokkos
-//         Manycore Performance-Portable Multidimensional Arrays
-//
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -37,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -79,6 +77,8 @@ class CudaHostPinnedSpace ;  ///< Memory space on Host accessible to Cuda GPU
 class Cuda ;                 ///< Execution space for Cuda GPU
 #endif
 
+template<class ExecutionSpace, class MemorySpace>
+struct Device;
 } // namespace Kokkos
 
 //----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ class Cuda ;                 ///< Execution space for Cuda GPU
 namespace Kokkos {
 
 #if   defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_CUDA )
-  typedef Kokkos::Cuda DefaultExecutionSpace ;
+  typedef Cuda DefaultExecutionSpace ;
 #elif defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_OPENMP )
   typedef OpenMP DefaultExecutionSpace ;
 #elif defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_THREADS )
@@ -101,6 +101,22 @@ namespace Kokkos {
   typedef Serial DefaultExecutionSpace ;
 #else
 #  error "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::OpenMP, Kokkos::Serial, or Kokkos::Threads."
+#endif
+
+#if defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_OPENMP )
+  typedef OpenMP DefaultHostExecutionSpace ;
+#elif defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_THREADS )
+  typedef Threads DefaultHostExecutionSpace ;
+#elif defined ( KOKKOS_HAVE_DEFAULT_DEVICE_TYPE_SERIAL )
+  typedef Serial DefaultHostExecutionSpace ;
+#elif defined ( KOKKOS_HAVE_OPENMP )
+  typedef OpenMP DefaultHostExecutionSpace ;
+#elif defined ( KOKKOS_HAVE_PTHREAD )
+  typedef Threads DefaultHostExecutionSpace ;
+#elif defined ( KOKKOS_HAVE_SERIAL )
+  typedef Serial DefaultHostExecutionSpace ;
+#else
+#  error "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::OpenMP, Kokkos::Serial, or Kokkos::Threads."
 #endif
 
 } // namespace Kokkos
@@ -145,6 +161,10 @@ struct VerifyExecutionCanAccessMemorySpace< Space , Space >
 #define KOKKOS_RESTRICT_EXECUTION_TO_( DATA_SPACE ) \
   Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< \
     Kokkos::Impl::ActiveExecutionMemorySpace , DATA_SPACE >::verify()
+
+namespace Kokkos {
+  void fence();
+}
 
 #endif /* #ifndef KOKKOS_CORE_FWD_HPP */
 

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -110,7 +110,7 @@ create_staticcrsgraph( const std::string & label ,
 
   typedef View< typename output_type::size_type [] ,
                 typename output_type::array_layout ,
-                typename output_type::device_type > work_type ;
+                typename output_type::execution_space > work_type ;
 
   output_type output ;
 
@@ -147,30 +147,15 @@ typename StaticCrsGraphType::staticcrsgraph_type
 create_staticcrsgraph( const std::string & label ,
                  const std::vector< std::vector< InputSizeType > > & input )
 {
-  typedef StaticCrsGraphType                                output_type ;
-  //typedef std::vector< std::vector< InputSizeType > > input_type ; // unused
-  typedef typename output_type::entries_type          entries_type ;
-  //typedef typename output_type::size_type             size_type ; // unused
+  typedef StaticCrsGraphType                  output_type ;
+  typedef typename output_type::entries_type  entries_type ;
 
-  // mfh 14 Feb 2014: This function doesn't actually create instances
-  // of ok_rank, but it needs to declare the typedef in order to do
-  // the static "assert" (a compile-time check that the given shape
-  // has rank 1).  In order to avoid a "declared but unused typedef"
-  // warning, we declare an empty instance of this type, with the
-  // usual "(void)" marker to avoid a compiler warning for the unused
-  // variable.
-
-  typedef typename
-    Impl::assert_shape_is_rank_one< typename entries_type::shape_type >::type
-      ok_rank ;
-  {
-    ok_rank thing;
-    (void) thing;
-  }
+  static_assert( entries_type::rank == 1
+               , "Graph entries view must be rank one" );
 
   typedef View< typename output_type::size_type [] ,
                 typename output_type::array_layout ,
-                typename output_type::device_type > work_type ;
+                typename output_type::execution_space > work_type ;
 
   output_type output ;
 

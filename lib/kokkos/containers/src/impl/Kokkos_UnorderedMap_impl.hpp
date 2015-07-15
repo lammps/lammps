@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -61,7 +61,7 @@ struct UnorderedMapRehash
 {
   typedef Map map_type;
   typedef typename map_type::const_map_type const_map_type;
-  typedef typename map_type::device_type device_type;
+  typedef typename map_type::execution_space execution_space;
   typedef typename map_type::size_type size_type;
 
   map_type       m_dst;
@@ -89,7 +89,7 @@ template <typename UMap>
 struct UnorderedMapErase
 {
   typedef UMap map_type;
-  typedef typename map_type::device_type device_type;
+  typedef typename map_type::execution_space execution_space;
   typedef typename map_type::size_type size_type;
   typedef typename map_type::key_type key_type;
   typedef typename map_type::impl_value_type value_type;
@@ -102,7 +102,7 @@ struct UnorderedMapErase
 
   void apply() const
   {
-    parallel_for(m_map.m_hash_lists.size(), *this);
+    parallel_for(m_map.m_hash_lists.dimension_0(), *this);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -150,10 +150,10 @@ template <typename UMap>
 struct UnorderedMapHistogram
 {
   typedef UMap map_type;
-  typedef typename map_type::device_type device_type;
+  typedef typename map_type::execution_space execution_space;
   typedef typename map_type::size_type size_type;
 
-  typedef View<int[100], device_type> histogram_view;
+  typedef View<int[100], execution_space> histogram_view;
   typedef typename histogram_view::HostMirror host_histogram_view;
 
   map_type m_map;
@@ -170,7 +170,7 @@ struct UnorderedMapHistogram
 
   void calculate()
   {
-    parallel_for(m_map.m_hash_lists.size(), *this);
+    parallel_for(m_map.m_hash_lists.dimension_0(), *this);
   }
 
   void clear()
@@ -185,7 +185,7 @@ struct UnorderedMapHistogram
     host_histogram_view host_copy = create_mirror_view(m_length);
     Kokkos::deep_copy(host_copy, m_length);
 
-    for (int i=0, size = host_copy.size(); i<size; ++i)
+    for (int i=0, size = host_copy.dimension_0(); i<size; ++i)
     {
       out << host_copy[i] << " , ";
     }
@@ -197,7 +197,7 @@ struct UnorderedMapHistogram
     host_histogram_view host_copy = create_mirror_view(m_distance);
     Kokkos::deep_copy(host_copy, m_distance);
 
-    for (int i=0, size = host_copy.size(); i<size; ++i)
+    for (int i=0, size = host_copy.dimension_0(); i<size; ++i)
     {
       out << host_copy[i] << " , ";
     }
@@ -209,7 +209,7 @@ struct UnorderedMapHistogram
     host_histogram_view host_copy = create_mirror_view(m_block_distance);
     Kokkos::deep_copy(host_copy, m_block_distance);
 
-    for (int i=0, size = host_copy.size(); i<size; ++i)
+    for (int i=0, size = host_copy.dimension_0(); i<size; ++i)
     {
       out << host_copy[i] << " , ";
     }
@@ -250,7 +250,7 @@ template <typename UMap>
 struct UnorderedMapPrint
 {
   typedef UMap map_type;
-  typedef typename map_type::device_type device_type;
+  typedef typename map_type::execution_space execution_space;
   typedef typename map_type::size_type size_type;
 
   map_type m_map;
@@ -261,7 +261,7 @@ struct UnorderedMapPrint
 
   void apply()
   {
-    parallel_for(m_map.m_hash_lists.size(), *this);
+    parallel_for(m_map.m_hash_lists.dimension_0(), *this);
   }
 
   KOKKOS_INLINE_FUNCTION

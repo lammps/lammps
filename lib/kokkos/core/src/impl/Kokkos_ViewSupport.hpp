@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -134,6 +134,12 @@ struct ViewDataHandle {
 
   typedef typename StaticViewTraits::value_type * handle_type;
   typedef typename StaticViewTraits::value_type & return_type;
+
+  KOKKOS_INLINE_FUNCTION
+  static handle_type create_handle( typename StaticViewTraits::value_type * arg_data_ptr, AllocationTracker const & /*arg_tracker*/ )
+  {
+    return handle_type(arg_data_ptr);
+  }
 };
 
 template< class StaticViewTraits , class Enable = void >
@@ -173,20 +179,6 @@ private:
   unsigned assign( const ViewDataManagement<T> & rhs , const StaticallyUnmanaged & )
     { return rhs.m_traits | Unmanaged ; }
 
-  inline
-  void increment( const void * ptr , const PotentiallyManaged & ) const
-    { if ( is_managed() ) StaticViewTraits::memory_space::increment( ptr ); }
-  
-  inline
-  void decrement( const void * ptr , const PotentiallyManaged & ) const
-    { if ( is_managed() ) StaticViewTraits::memory_space::decrement( ptr ); }
-  
-  KOKKOS_INLINE_FUNCTION
-  void increment( const void * , const StaticallyUnmanaged & ) const {}
-  
-  KOKKOS_INLINE_FUNCTION
-  void decrement( const void * , const StaticallyUnmanaged & ) const {}
-
 public:
 
   typedef typename ViewDataHandle< StaticViewTraits >::handle_type handle_type;
@@ -224,30 +216,12 @@ public:
   KOKKOS_INLINE_FUNCTION
   void set_noncontiguous() { m_traits |= Noncontiguous ; }
 
-
-  KOKKOS_INLINE_FUNCTION
-  void increment( handle_type handle ) const
-    { increment( ( typename StaticViewTraits::value_type *) handle , StaticManagementTag() ); }
-
-  KOKKOS_INLINE_FUNCTION
-  void decrement( handle_type handle ) const
-    { decrement( ( typename StaticViewTraits::value_type *) handle , StaticManagementTag() ); }
-
-
-  KOKKOS_INLINE_FUNCTION
-  void increment( const void * ptr ) const
-    { increment( ptr , StaticManagementTag() ); }
-
-  KOKKOS_INLINE_FUNCTION
-  void decrement( const void * ptr ) const
-    { decrement( ptr , StaticManagementTag() ); }
-
-
   template< bool Initialize >
   static
-  handle_type allocate( const std::string & label
-                      , const Impl::ViewOffset< typename StaticViewTraits::shape_type
-                                              , typename StaticViewTraits::array_layout > & offset_map )
+  handle_type allocate(  const std::string & label
+                       , const Impl::ViewOffset< typename StaticViewTraits::shape_type, typename StaticViewTraits::array_layout > & offset_map
+                       , AllocationTracker & tracker
+               )
     {
       typedef typename StaticViewTraits::execution_space  execution_space ;
       typedef typename StaticViewTraits::memory_space     memory_space ;
@@ -255,12 +229,14 @@ public:
 
       const size_t count = offset_map.capacity();
 
-      value_type * ptr = (value_type*) memory_space::allocate( label , sizeof(value_type) * count );
+      tracker = memory_space::allocate_and_track( label, sizeof(value_type) * count );
 
-        // Default construct within the view's execution space.
+      value_type * ptr = reinterpret_cast<value_type *>(tracker.alloc_ptr());
+
+      // Default construct within the view's execution space.
       (void) ViewDefaultConstruct< execution_space , value_type , Initialize >( ptr , count );
 
-      return typename ViewDataHandle< StaticViewTraits >::handle_type(ptr);
+      return ViewDataHandle< StaticViewTraits >::create_handle(ptr, tracker);
     }
 };
 
@@ -342,9 +318,9 @@ struct ViewDefaultConstruct< ExecSpace , Type , true >
 {
   Type * const m_ptr ;
 
-  KOKKOS_INLINE_FUNCTION
-  void operator()( const typename ExecSpace::size_type i ) const
-    { new( m_ptr + i ) Type(); }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator()( const typename ExecSpace::size_type& i ) const
+    { m_ptr[i] = Type(); }
 
   ViewDefaultConstruct( Type * pointer , size_t capacity )
     : m_ptr( pointer )
@@ -355,7 +331,8 @@ struct ViewDefaultConstruct< ExecSpace , Type , true >
     }
 };
 
-template< class OutputView , unsigned Rank = OutputView::Rank >
+template< class OutputView , unsigned Rank = OutputView::Rank ,
+          class Enabled = void >
 struct ViewFill
 {
   typedef typename OutputView::const_value_type  const_value_type ;
@@ -527,7 +504,7 @@ struct ViewRawPointerProp< Traits , T ,
   )>::type >
   : public Kokkos::Impl::true_type
 {
-  typedef size_t size_type ; 
+  typedef size_t size_type ;
 };
 
 } // namespace Impl

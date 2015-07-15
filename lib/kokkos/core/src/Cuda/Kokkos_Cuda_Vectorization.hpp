@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,13 +35,19 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
 #ifndef KOKKOS_CUDA_VECTORIZATION_HPP
 #define KOKKOS_CUDA_VECTORIZATION_HPP
+
+#include <Kokkos_Macros.hpp>
+
+/* only compile this file if CUDA is enabled for Kokkos */
+#ifdef KOKKOS_HAVE_CUDA
+
 #include <Kokkos_Cuda.hpp>
 
 namespace Kokkos {
@@ -65,15 +71,15 @@ namespace Impl {
       return *(Scalar*) fval;
     }
     KOKKOS_INLINE_FUNCTION
-    void operator= (Scalar& value) {
-      float* const val_ptr = (float*) &value;
+    void operator= (Scalar& value_) {
+      float* const val_ptr = (float*) &value_;
       for(int i=0; i<n ; i++) {
         fval[i] = val_ptr[i];
       }
     }
     KOKKOS_INLINE_FUNCTION
-    void operator= (const Scalar& value) {
-      float* const val_ptr = (float*) &value;
+    void operator= (const Scalar& value_) {
+      float* const val_ptr = (float*) &value_;
       for(int i=0; i<n ; i++) {
         fval[i] = val_ptr[i];
       }
@@ -288,4 +294,5 @@ namespace Impl {
 
 }
 
+#endif // KOKKOS_HAVE_CUDA
 #endif

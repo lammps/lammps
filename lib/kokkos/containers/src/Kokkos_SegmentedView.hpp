@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -48,7 +48,10 @@
 #include <impl/Kokkos_Error.hpp>
 #include <cstdio>
 
+#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
 namespace Kokkos {
+namespace Experimental {
 
 namespace Impl {
 
@@ -93,15 +96,15 @@ template< class DataType ,
           class Arg1Type = void ,
           class Arg2Type = void ,
           class Arg3Type = void>
-class SegmentedView : public ViewTraits< DataType , Arg1Type , Arg2Type, Arg3Type >
+class SegmentedView : public Kokkos::ViewTraits< DataType , Arg1Type , Arg2Type, Arg3Type >
 {
 public:
   //! \name Typedefs for device types and various Kokkos::View specializations.
   //@{
-  typedef ViewTraits< DataType , Arg1Type , Arg2Type, Arg3Type > traits ;
+  typedef Kokkos::ViewTraits< DataType , Arg1Type , Arg2Type, Arg3Type > traits ;
 
   //! The type of a Kokkos::View on the device.
-  typedef View< typename traits::data_type ,
+  typedef Kokkos::View< typename traits::data_type ,
                 typename traits::array_layout ,
                 typename traits::memory_space ,
                 Kokkos::MemoryUnmanaged > t_dev ;
@@ -122,46 +125,46 @@ private:
   // Dimensions, cardinality, capacity, and offset computation for
   // multidimensional array view of contiguous memory.
   // Inherits from Impl::Shape
-  typedef Impl::ViewOffset< typename traits::shape_type
+  typedef Kokkos::Impl::ViewOffset< typename traits::shape_type
                           , typename traits::array_layout
                           > offset_map_type ;
 
   offset_map_type               m_offset_map ;
 
-  typedef View< typename traits::array_intrinsic_type ,
+  typedef Kokkos::View< typename traits::array_intrinsic_type ,
                 typename traits::array_layout ,
                 typename traits::memory_space ,
                 typename traits::memory_traits > array_type ;
 
-  typedef View< typename traits::const_data_type ,
+  typedef Kokkos::View< typename traits::const_data_type ,
                 typename traits::array_layout ,
                 typename traits::memory_space ,
                 typename traits::memory_traits > const_type ;
 
-  typedef View< typename traits::non_const_data_type ,
+  typedef Kokkos::View< typename traits::non_const_data_type ,
                 typename traits::array_layout ,
                 typename traits::memory_space ,
                 typename traits::memory_traits > non_const_type ;
 
-  typedef View< typename traits::non_const_data_type ,
+  typedef Kokkos::View< typename traits::non_const_data_type ,
                 typename traits::array_layout ,
                 HostSpace ,
                 void > HostMirror ;
 
   template< bool Accessible >
   KOKKOS_INLINE_FUNCTION
-  typename Impl::enable_if< Accessible , typename traits::size_type >::type
+  typename Kokkos::Impl::enable_if< Accessible , typename traits::size_type >::type
   dimension_0_intern() const { return nsegments_() * segment_length_ ; }
 
   template< bool Accessible >
   KOKKOS_INLINE_FUNCTION
-  typename Impl::enable_if< ! Accessible , typename traits::size_type >::type
+  typename Kokkos::Impl::enable_if< ! Accessible , typename traits::size_type >::type
   dimension_0_intern() const
   {
     // In Host space
     int n = 0 ;
 #if ! defined( __CUDA_ARCH__ )
-    Impl::DeepCopy< HostSpace , typename traits::memory_space >( & n , nsegments_.ptr_on_device() , sizeof(int) );
+    Kokkos::Impl::DeepCopy< HostSpace , typename traits::memory_space >( & n , nsegments_.ptr_on_device() , sizeof(int) );
 #endif
 
     return n * segment_length_ ;
@@ -175,8 +178,8 @@ public:
 
   /* \brief return (current) size of dimension 0 */
   KOKKOS_INLINE_FUNCTION typename traits::size_type dimension_0() const {
-    enum { Accessible = Impl::VerifyExecutionCanAccessMemorySpace<
-             Impl::ActiveExecutionMemorySpace, typename traits::memory_space >::value };
+    enum { Accessible = Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<
+      Kokkos::Impl::ActiveExecutionMemorySpace, typename traits::memory_space >::value };
     int n = SegmentedView::dimension_0_intern< Accessible >();
     return n ;
   }
@@ -209,7 +212,7 @@ public:
     if(i==0)
       return dimension_0();
     else
-      return Impl::dimension( m_offset_map , i );
+      return Kokkos::Impl::dimension( m_offset_map , i );
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -221,8 +224,8 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   typename traits::size_type get_num_segments() {
-    enum { Accessible = Impl::VerifyExecutionCanAccessMemorySpace<
-             Impl::ActiveExecutionMemorySpace, typename traits::memory_space >::value };
+    enum { Accessible = Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<
+      Kokkos::Impl::ActiveExecutionMemorySpace, typename traits::memory_space >::value };
     int n = SegmentedView::dimension_0_intern< Accessible >();
     return n/segment_length_ ;
   }
@@ -269,7 +272,7 @@ public:
     }
     l = 1<<segment_length_log2;
     if(l!=segment_length_)
-      Impl::throw_runtime_exception("Kokkos::SegmentedView requires a 'power of 2' segment length");
+      Kokkos::Impl::throw_runtime_exception("Kokkos::SegmentedView requires a 'power of 2' segment length");
 
     max_segments_ = (n0+segment_length_m1_)/segment_length_;
 
@@ -308,9 +311,9 @@ public:
   }
 
   ~SegmentedView() {
-    if (traits::execution_space::in_parallel()) return;
-    int count = traits::memory_space::count(segments_.ptr_on_device());
-    if(count == 1) {
+    if ( !segments_.tracker().ref_counting()) { return; }
+    size_t ref_count = segments_.tracker().ref_count();
+    if(ref_count == 1u) {
       Kokkos::fence();
       typename Kokkos::View<int,typename traits::execution_space>::HostMirror h_nviews("h_nviews");
       Kokkos::deep_copy(h_nviews,nsegments_);
@@ -330,23 +333,26 @@ public:
       printf ("Exceeding maxSize: %lu %lu\n", growSize, max_segments_*segment_length_);
       return;
     }
+
     if(team_member.team_rank()==0) {
       bool too_small = growSize > segment_length_ * nsegments_();
-      while(too_small && Kokkos::atomic_compare_exchange(&realloc_lock(),0,1) ) {
-        too_small = growSize > segment_length_ * nsegments_();
-      }
-      if(too_small) {
-        while(too_small) {
-          const size_t alloc_size = segment_length_*m_offset_map.N1*m_offset_map.N2*m_offset_map.N3*
-                              m_offset_map.N4*m_offset_map.N5*m_offset_map.N6*m_offset_map.N7;
-          typename traits::non_const_value_type* const ptr = new typename traits::non_const_value_type[alloc_size];
+      if (too_small) {
+        while(Kokkos::atomic_compare_exchange(&realloc_lock(),0,1) )
+          ; // get the lock
+        too_small = growSize > segment_length_ * nsegments_(); // Recheck once we have the lock
+        if(too_small) {
+          while(too_small) {
+            const size_t alloc_size = segment_length_*m_offset_map.N1*m_offset_map.N2*m_offset_map.N3*
+                m_offset_map.N4*m_offset_map.N5*m_offset_map.N6*m_offset_map.N7;
+            typename traits::non_const_value_type* const ptr = new typename traits::non_const_value_type[alloc_size];
 
-          segments_(nsegments_()) =
-            t_dev(ptr,segment_length_,m_offset_map.N1,m_offset_map.N2,m_offset_map.N3,m_offset_map.N4,m_offset_map.N5,m_offset_map.N6,m_offset_map.N7);
-          nsegments_()++;
-          too_small = growSize > segment_length_ * nsegments_();
+            segments_(nsegments_()) =
+                t_dev(ptr,segment_length_,m_offset_map.N1,m_offset_map.N2,m_offset_map.N3,m_offset_map.N4,m_offset_map.N5,m_offset_map.N6,m_offset_map.N7);
+            nsegments_()++;
+            too_small = growSize > segment_length_ * nsegments_();
+          }
         }
-        realloc_lock() = 0;
+        realloc_lock() = 0; //release the lock
       }
     }
     team_member.team_barrier();
@@ -378,7 +384,9 @@ public:
 
   template< typename iType0 >
   KOKKOS_FORCEINLINE_FUNCTION
-  typename Impl::ViewEnableArrayOper< typename traits::value_type & , traits, typename traits::array_layout, 1, iType0 >::type
+  typename std::enable_if<( std::is_integral<iType0>::value && traits::rank == 1 )
+                         , typename traits::value_type &
+                         >::type
     operator() ( const iType0 & i0 ) const
     {
       return segments_[i0>>segment_length_log2](i0&(segment_length_m1_));
@@ -386,8 +394,11 @@ public:
 
   template< typename iType0 , typename iType1 >
   KOKKOS_FORCEINLINE_FUNCTION
-  typename Impl::ViewEnableArrayOper< typename traits::value_type & , traits, typename traits::array_layout, 2,
-               iType0 , iType1>::type
+  typename std::enable_if<( std::is_integral<iType0>::value &&
+                            std::is_integral<iType1>::value &&
+                            traits::rank == 2 )
+                         , typename traits::value_type &
+                         >::type
     operator() ( const iType0 & i0 , const iType1 & i1 ) const
     {
       return segments_[i0>>segment_length_log2](i0&(segment_length_m1_),i1);
@@ -395,8 +406,12 @@ public:
 
   template< typename iType0 , typename iType1 , typename iType2 >
   KOKKOS_FORCEINLINE_FUNCTION
-  typename Impl::ViewEnableArrayOper< typename traits::value_type & , traits, typename traits::array_layout, 3,
-               iType0 , iType1 , iType2 >::type
+  typename std::enable_if<( std::is_integral<iType0>::value &&
+                            std::is_integral<iType1>::value &&
+                            std::is_integral<iType2>::value &&
+                            traits::rank == 3 )
+                         , typename traits::value_type &
+                         >::type
     operator() ( const iType0 & i0 , const iType1 & i1 , const iType2 & i2 ) const
     {
       return segments_[i0>>segment_length_log2](i0&(segment_length_m1_),i1,i2);
@@ -404,8 +419,13 @@ public:
 
   template< typename iType0 , typename iType1 , typename iType2 , typename iType3 >
   KOKKOS_FORCEINLINE_FUNCTION
-  typename Impl::ViewEnableArrayOper< typename traits::value_type & , traits, typename traits::array_layout, 4,
-               iType0 , iType1 , iType2 , iType3 >::type
+  typename std::enable_if<( std::is_integral<iType0>::value &&
+                            std::is_integral<iType1>::value &&
+                            std::is_integral<iType2>::value &&
+                            std::is_integral<iType3>::value &&
+                            traits::rank == 4 )
+                         , typename traits::value_type &
+                         >::type
     operator() ( const iType0 & i0 , const iType1 & i1 , const iType2 & i2 , const iType3 & i3 ) const
     {
       return segments_[i0>>segment_length_log2](i0&(segment_length_m1_),i1,i2,i3);
@@ -414,8 +434,14 @@ public:
   template< typename iType0 , typename iType1 , typename iType2 , typename iType3 ,
             typename iType4 >
   KOKKOS_FORCEINLINE_FUNCTION
-  typename Impl::ViewEnableArrayOper< typename traits::value_type & , traits, typename traits::array_layout, 5,
-               iType0 , iType1 , iType2 , iType3 , iType4 >::type
+  typename std::enable_if<( std::is_integral<iType0>::value &&
+                            std::is_integral<iType1>::value &&
+                            std::is_integral<iType2>::value &&
+                            std::is_integral<iType3>::value &&
+                            std::is_integral<iType4>::value &&
+                            traits::rank == 5 )
+                         , typename traits::value_type &
+                         >::type
     operator() ( const iType0 & i0 , const iType1 & i1 , const iType2 & i2 , const iType3 & i3 ,
                  const iType4 & i4 ) const
     {
@@ -425,8 +451,15 @@ public:
   template< typename iType0 , typename iType1 , typename iType2 , typename iType3 ,
             typename iType4 , typename iType5 >
   KOKKOS_FORCEINLINE_FUNCTION
-  typename Impl::ViewEnableArrayOper< typename traits::value_type & , traits, typename traits::array_layout, 6,
-               iType0 , iType1 , iType2 , iType3 , iType4 , iType5>::type
+  typename std::enable_if<( std::is_integral<iType0>::value &&
+                            std::is_integral<iType1>::value &&
+                            std::is_integral<iType2>::value &&
+                            std::is_integral<iType3>::value &&
+                            std::is_integral<iType4>::value &&
+                            std::is_integral<iType5>::value &&
+                            traits::rank == 6 )
+                         , typename traits::value_type &
+                         >::type
     operator() ( const iType0 & i0 , const iType1 & i1 , const iType2 & i2 , const iType3 & i3 ,
                  const iType4 & i4 , const iType5 & i5 ) const
     {
@@ -436,8 +469,16 @@ public:
   template< typename iType0 , typename iType1 , typename iType2 , typename iType3 ,
             typename iType4 , typename iType5 , typename iType6 >
   KOKKOS_FORCEINLINE_FUNCTION
-  typename Impl::ViewEnableArrayOper< typename traits::value_type & , traits, typename traits::array_layout, 7,
-               iType0 , iType1 , iType2 , iType3 , iType4 , iType5 , iType6>::type
+  typename std::enable_if<( std::is_integral<iType0>::value &&
+                            std::is_integral<iType1>::value &&
+                            std::is_integral<iType2>::value &&
+                            std::is_integral<iType3>::value &&
+                            std::is_integral<iType4>::value &&
+                            std::is_integral<iType5>::value &&
+                            std::is_integral<iType6>::value &&
+                            traits::rank == 7 )
+                         , typename traits::value_type &
+                         >::type
     operator() ( const iType0 & i0 , const iType1 & i1 , const iType2 & i2 , const iType3 & i3 ,
                  const iType4 & i4 , const iType5 & i5 , const iType6 & i6 ) const
     {
@@ -447,8 +488,17 @@ public:
   template< typename iType0 , typename iType1 , typename iType2 , typename iType3 ,
             typename iType4 , typename iType5 , typename iType6 , typename iType7 >
   KOKKOS_FORCEINLINE_FUNCTION
-  typename Impl::ViewEnableArrayOper< typename traits::value_type & , traits, typename traits::array_layout, 8,
-               iType0 , iType1 , iType2 , iType3 , iType4 , iType5 , iType6 , iType7>::type
+  typename std::enable_if<( std::is_integral<iType0>::value &&
+                            std::is_integral<iType1>::value &&
+                            std::is_integral<iType2>::value &&
+                            std::is_integral<iType3>::value &&
+                            std::is_integral<iType4>::value &&
+                            std::is_integral<iType5>::value &&
+                            std::is_integral<iType6>::value &&
+                            std::is_integral<iType7>::value &&
+                            traits::rank == 8 )
+                         , typename traits::value_type &
+                         >::type
     operator() ( const iType0 & i0 , const iType1 & i1 , const iType2 & i2 , const iType3 & i3 ,
                  const iType4 & i4 , const iType5 & i5 , const iType6 & i6 , const iType7 & i7 ) const
     {
@@ -460,7 +510,7 @@ namespace Impl {
 template<class DataType, class Arg1Type, class Arg2Type, class Arg3Type>
 struct delete_segmented_view {
   typedef SegmentedView<DataType , Arg1Type , Arg2Type, Arg3Type> view_type;
-  typedef typename view_type::execution_space device_type;
+  typedef typename view_type::execution_space execution_space;
 
   view_type view_;
   delete_segmented_view(view_type view):view_(view) {
@@ -474,5 +524,8 @@ struct delete_segmented_view {
 
 }
 }
+}
+
+#endif
 
 #endif

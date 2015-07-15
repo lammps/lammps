@@ -147,12 +147,12 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
         f_type;
       f_type f(this,(NeighListKokkos<DeviceType>*) list);
       #ifdef KOKKOS_HAVE_CUDA
-        const int teamsize = Kokkos::Impl::is_same<typename f_type::device_type, Kokkos::Cuda>::value ? 256 : 1;
+        const int teamsize = Kokkos::Impl::is_same<DeviceType, Kokkos::Cuda>::value ? 32 : 1;
       #else
         const int teamsize = 1;
       #endif
-      const int nteams = (list->inum*f_type::vectorization::increment+teamsize-1)/teamsize;
-      Kokkos::TeamPolicy<DeviceType> config(nteams,teamsize);
+      const int nteams = (list->inum*+teamsize-1)/teamsize;
+      Kokkos::TeamPolicy<DeviceType> config(nteams,teamsize,NeighClusterSize);
       if (eflag || vflag) Kokkos::parallel_reduce(config,f,ev);
       else Kokkos::parallel_for(config,f);
     }
@@ -182,12 +182,12 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
         f_type;
       f_type f(this,(NeighListKokkos<DeviceType>*) list);
       #ifdef KOKKOS_HAVE_CUDA
-        const int teamsize = Kokkos::Impl::is_same<typename f_type::device_type, Kokkos::Cuda>::value ? 256 : 1;
+        const int teamsize = Kokkos::Impl::is_same<DeviceType, Kokkos::Cuda>::value ? 32 : 1;
       #else
         const int teamsize = 1;
       #endif
-      const int nteams = (list->inum*f_type::vectorization::increment+teamsize-1)/teamsize;
-      Kokkos::TeamPolicy<DeviceType> config(nteams,teamsize);
+      const int nteams = (list->inum*+teamsize-1)/teamsize;
+      Kokkos::TeamPolicy<DeviceType> config(nteams,teamsize,NeighClusterSize);
       if (eflag || vflag) Kokkos::parallel_reduce(config,f,ev);
       else Kokkos::parallel_for(config,f);
     }

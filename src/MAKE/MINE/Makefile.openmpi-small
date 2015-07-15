@@ -9,13 +9,13 @@ SHELL = /bin/sh
 OPENMP= -fopenmp
 
 CC =		mpic++ $(OPENMP)
-CCFLAGS =	-O3 -fomit-frame-pointer -fno-rtti -fno-exceptions            \
+CCFLAGS =	-O3 -fomit-frame-pointer \
 			-march=native -ffast-math -mpc64 -g -fstrict-aliasing \
 			-Wall -W -Wno-unused-parameter -Wno-maybe-uninitialized
 SHFLAGS =	-fPIC
 DEPFLAGS =	-MM
 LINK =		mpic++ $(OPENMP)
-LINKFLAGS =	-O -g -fno-rtti -fno-exceptions -mpc64
+LINKFLAGS =	-O -g -mpc64
 LIB =
 ARCHIVE =	ar
 ARFLAGS =	-rcsv

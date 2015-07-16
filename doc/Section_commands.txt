@@ -402,6 +402,7 @@ in the command's documentation.
 "fix_modify"_fix_modify.html,
 "group"_group.html,
 "if"_if.html,
+"info"_info.html,
 "improper_coeff"_improper_coeff.html,
 "improper_style"_improper_style.html,
 "include"_include.html,

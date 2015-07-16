@@ -222,7 +222,7 @@ c         G = 0.01*(-0.99/Gamma)**99
       else if (ibar.eq.1) then
         G = fm_exp(Gamma/2.d0)
       else if (ibar.eq.3) then
-        G = 2.d0/(1.d0+fm_exp(-Gamma))
+        G = 2.d0/(1.d0+exp(-Gamma))
       else if (ibar.eq.-5) then
         if ((1.d0+Gamma).ge.0) then
            G = sqrt(1.d0+Gamma)

@@ -1418,16 +1418,22 @@ void Atom::add_molecule(int narg, char **arg)
   if (find_molecule(arg[0]) >= 0) 
     error->all(FLERR,"Reuse of molecule template ID");
 
-  int nprevious = nmolecule;
-  nmolecule += narg-1;
-  molecules = (Molecule **)
-    memory->srealloc(molecules,nmolecule*sizeof(Molecule *),"atom::molecules");
+  // may over-allocate if not all args are mol files, but OK for srealloc
 
-  for (int i = 1; i < narg; i++) {
-    molecules[nprevious] = new Molecule(lmp,arg[0],arg[i]);
-    if (i == 1) molecules[nprevious]->nset = narg-1;
-    else molecules[nprevious]->nset = 0;
-    nprevious++;
+  molecules = (Molecule **)
+    memory->srealloc(molecules,(nmolecule+narg-1)*sizeof(Molecule *),
+                     "atom::molecules");
+
+  // 1st molecule in set stores nset = # of sets, others store nset = 0
+
+  int ifile = 1;
+  while (1) {
+    molecules[nmolecule] = new Molecule(lmp,narg,arg,ifile);
+    molecules[nmolecule]->nset = 0;
+    molecules[nmolecule-ifile+1]->nset++;
+    nmolecule++;
+    if (molecules[nmolecule-1]->last) break;
+    ifile++;
   }
 }
 

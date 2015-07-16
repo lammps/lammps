@@ -25,6 +25,7 @@ class Comm : protected Pointers {
   int layout;    // LAYOUT_UNIFORM = equal-sized bricks
                  // LAYOUT_NONUNIFORM = logical bricks, but diff sizes via LB
                  // LAYOUT_TILED = general tiling, due to RCB LB
+  int mode;      // 0 = single cutoff, 1 = multi-type cutoff
 
   int me,nprocs;                    // proc info
   int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not

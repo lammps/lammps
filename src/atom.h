@@ -161,6 +161,7 @@ class Atom : protected Pointers {
   int sortfreq;             // sort atoms every this many steps, 0 = off
   double userbinsize;       // requested sort bin size
   bigint nextsort;          // next timestep to sort on
+  double userbinsize;       // requested sort bin size
 
   // indices of atoms with same ID
 

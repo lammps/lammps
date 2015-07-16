@@ -115,12 +115,10 @@ Section "${LAMMPS}"
   SetOutPath "$INSTDIR\Benchmarks"
   File /r /x log.*.4 lammps-current/bench/*
 
-  # only add MPICH2 path, if installing parallel package
-  StrCmp ${VARIANT} "mpich2" 0 serial
-    Push "${MPICHDIR}"
-    Call AddToPath
-    #${EnvVarUpdate} $0 "PATH"              "A" "HKLM" "${MPICHDIR}"
-  serial:
+  # add MPICH2 path
+  Push "${MPICHDIR}"
+  Call AddToPath
+  #${EnvVarUpdate} $0 "PATH"              "A" "HKLM" "${MPICHDIR}"
 
   Push "$INSTDIR\bin"
   Call AddToPath
@@ -139,11 +137,9 @@ Section "Uninstall"
   SetRegView ${BIT}
 
   # only remove MPICH2 path, if uninstalling parallel package
-  StrCmp ${VARIANT} "mpich2" 0 serial
-    Push "${MPICHDIR}"
-    Call un.RemoveFromPath
-    #${un.EnvVarUpdate} $0 "PATH"              "R" "HKLM" "${MPICHDIR}"
-  serial:
+  Push "${MPICHDIR}"
+  Call un.RemoveFromPath
+  #${un.EnvVarUpdate} $0 "PATH"              "R" "HKLM" "${MPICHDIR}"
 
   Push "$INSTDIR\bin"
   Call un.RemoveFromPath

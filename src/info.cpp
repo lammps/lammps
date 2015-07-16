@@ -183,13 +183,13 @@ void Info::command(int narg, char **arg)
 
 #if defined(_WIN32)
       HANDLE phandle = GetCurrentProcess();
-      PROCESS_MEMORY_COUNTERS pmc;
+      PROCESS_MEMORY_COUNTERS_EX pmc;
       GetProcessMemoryInfo(phandle, &pmc, sizeof(pmc));
 
-      fprintf(screen,"Current resident set size: %.3g Mbyte\n",
-              (double)pmc.WorkingSetSize/1024.0);
+      fprintf(screen,"Non-shared memory use: %.3g Mbyte\n",
+              (double)pmc.PrivateUsage/1048576.0);
       fprintf(screen,"Maximum resident set size: %.3g Mbyte\n",
-              (double)pmc.PeakWorkingSetSize/1024.0);
+              (double)pmc.PeakWorkingSetSize/1048576.0);
 #else
 #if defined(__linux)
       struct mallinfo mi;

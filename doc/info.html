@@ -15,8 +15,7 @@
 </P>
 <PRE>info args 
 </PRE>
-<UL><LI>args = one or more of the following keywords: <I>system</I>, <I>computes</I>, <I>dumps</I>,
-<LI>    <I>fixes</I>, <I>groups</I>, <I>regions</I>, <I>variables</I>, <I>time</I>, or <I>configuration</I>  
+<UL><LI>args = one or more of the following keywords: <I>system</I>, <I>computes</I>, <I>dumps</I>, <I>fixes</I>, <I>groups</I>, <I>regions</I>, <I>variables</I>, <I>time</I>, or <I>configuration</I> 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -26,21 +25,21 @@ info groups computes variables
 <P><B>Description:</B>
 </P>
 <P>Print out information about the current internal state of the running
-LAMMPS process. This can be particularly helpful when debugging or
-validating complex input scripts. Several output categories are available
-and one or more output category may be requested. Output is only sent to
+LAMMPS process. This can be helpful when debugging or validating
+complex input scripts.  Several output categories are available and
+one or more output category may be requested.  Output is only sent to
 the screen, provided screen output is enabled.
 </P>
-<P>The <I>system</I> category prints a general system overview listing - among
-others - unit style, atom style, number of atoms, bonds, angles, dihedrals,
-and impropers and the number of the respective types, box dimensions and
-properties, force computing styles and more.
+<P>The <I>system</I> category prints a general system overview listing.  This
+includes the unit style, atom style, number of atoms, bonds, angles,
+dihedrals, and impropers and the number of the respective types, box
+dimensions and properties, force computing styles and more.
 </P>
-<P>The <I>computes</I> category prints a list of all currently defined computes,
-their IDs and styles and groups they operate on.
+<P>The <I>computes</I> category prints a list of all currently defined
+computes, their IDs and styles and groups they operate on.
 </P>
-<P>The <I>dumps</I> category prints a list of all currently active dumps, their
-IDs, styles, filenames, groups, and dump frequencies.
+<P>The <I>dumps</I> category prints a list of all currently active dumps,
+their IDs, styles, filenames, groups, and dump frequencies.
 </P>
 <P>The <I>fixes</I> category prints a list of all currently defined fixes,
 their IDs and styles and groups they operate on.
@@ -48,17 +47,20 @@ their IDs and styles and groups they operate on.
 <P>The <I>groups</I> category prints a list of all currently defined groups.
 </P>
 <P>The <I>regions</I> category prints a list of all currently defined regions,
-their IDs and styles and whether "inside" or "outside" atoms are selected.
+their IDs and styles and whether "inside" or "outside" atoms are
+selected.
 </P>
-<P>The <I>variables</I> category prints a list of all currently defined variables,
-their names, styles, definition and last computed value, if available.
+<P>The <I>variables</I> category prints a list of all currently defined
+variables, their names, styles, definition and last computed value, if
+available.
 </P>
 <P>The <I>time</I> category prints the accumulated CPU and wall time for the
 process that writes output (usually MPI rank 0).
 </P>
 <P>The <I>configuration</I> command prints some information about the LAMMPS
 version and architection and OS it is run on. Where supported, also
-information about the memory consumption provided by the OS is reported.
+information about the memory consumption provided by the OS is
+reported.
 </P>
 <P><B>Restrictions:</B> none
 </P>

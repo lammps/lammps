@@ -17,12 +17,13 @@ file1,file2,... = names of files containing molecule descriptions :l
 zero or more keyword/value pairs may be appended :l
 keyword = {offset} or {auto} :l
   {offset} values = toff boff aoff doff ioff
-    toff = offset to add to atom type
-    boff = offset to add to bond type
-    aoff = offset to add to angle type
-    doff = offset to add to dihedral type
-    ioff = offset to add to improper type
-  {auto} value = none = generate special bond lists automatically :pre
+    toff = offset to add to atom types
+    boff = offset to add to bond types
+    aoff = offset to add to angle types
+    doff = offset to add to dihedral types
+    ioff = offset to add to improper types
+  {auto} value = none
+    generate special bond lists automatically if {auto} is specified :pre
 :ule
 
 [Examples:]
@@ -57,15 +58,15 @@ contains multiple molecules.  The "atom_style
 template"_atom_style.html command allows multiple-molecule templates
 to define a system with more than one templated molecule.
 
-The optional {offset} keyword will add the specified offset values to
-the atom types, bond types, angle types, dihedral types, and improper
+The optional {offset} keyword adds the specified offset values to the
+atom types, bond types, angle types, dihedral types, and improper
 types as they are read from the molecule file.  E.g. if {toff} = 2,
 and the file uses atom types 1,2,3, then each created molecule will
 have atom types 3,4,5.  This makes it easy to use the same molecule
 template file in different simulations.  Note that the same offsets
 are applied to the molecules in all specified files.  All five offset
-values are required, but individual values will be ignored if the
-molecule template does not define that attribute.
+values must be speicified, but individual values will be ignored if
+the molecule template does not use that attribute (e.g. no bonds).
 
 The optional {auto} keyword can be used for molecules with bonds
 instead of listing neighbors within the molecular topology explicitly.
@@ -442,4 +443,8 @@ of SHAKE clusters.
 "fix deposit"_fix_deposit.html, "fix pour"_fix_pour.html,
 "fix_gcmc"_fix_gcmc.html
 
-[Default:] none
+[Default:]
+
+The default keyword values are offset 0 0 0 0 0, and no
+auto-generation of special bond lists.  The latter is overridden in
+the {auto} keyword is used.

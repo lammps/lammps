@@ -19,9 +19,23 @@
 
 <LI>zero or more keyword/arg pairs may be appended 
 
-<LI>keyword = <I>fix</I> 
+<LI>keyword = <I>add</I> or <I>offset</I> or <I>shift</I> or <I>group</I> or <I>fix</I> 
 
-<PRE>  <I>fix</I> args = fix-ID header-string section-string
+<PRE>  <I>add</I> arg = <I>append</I> or <I>Nstart</I> or <I>merge</I>
+    append = add new atoms with IDs appended to current IDs
+    Nstart = add new atoms with IDs starting with Nstart
+    merge = add new atoms with their IDs, assumed to not conflict with atoms that already exist
+  <I>offset</I> args = toff boff aoff doff ioff
+    toff = offset to add to atom types
+    boff = offset to add to bond types
+    aoff = offset to add to angle types
+    doff = offset to add to dihedral types
+    ioff = offset to add to improper types
+  <I>shift</I> args = Sx Sy Sz
+    Sx,Sy,Sz = distance to shift atoms when adding to system (distance units)
+  <I>group</I> args = groupID
+    groupID = add atoms in data file to this group
+  <I>fix</I> args = fix-ID header-string section-string
     fix-ID = ID of fix to process header lines and sections of data file
     header-string = header lines containing this string will be passed to fix
     section-string = section names with this string will be passed to fix 
@@ -33,6 +47,8 @@
 <PRE>read_data data.lj
 read_data ../run7/data.polymer.gz
 read_data data.protein fix mycmap crossterm CMAP 
+read_data data.water add append offset 3 1 1 1 1 shift 0.0 0.0 50.0
+read_data data.water add merge 1 group solvent 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -45,6 +61,77 @@ Also see the explanation of the <A HREF = "Section_start.html#start_7">-restart 
 switch</A> which can convert a restart file to
 a data file.
 </P>
+<P>This command can also be used to add new atoms and their properties to
+an existing system by using the <I>add</I> keyword.  If a simulation box
+does not yet exist, the <I>add</I> keyword cannot be used; the box size is
+defined in the data file.  If a simulation box does exist, due to
+using the <A HREF = "create_box.html">create_box</A> command, or a previous
+read_data command, then the <I>add</I> keyword must be used.  The box
+information in the new data file will be ignored.
+</P>
+<P>The three choices for the <I>add</I> argument affect how the IDs of atoms
+in the data file are treated.  If <I>append</I> is specified, atoms in the
+data file are added to the current system, with their atom IDs reset
+so that an atomID = M in the data file becomes atomID = N+M, where N
+is the largest atom ID in the current system.  This rule is applied to
+all occurrences of atom IDs in the data file, e.g. in the Velocity or
+Bonds section.  If <I>Nstart</I> is specified, then a numeric value is
+given, e.g. 1000, so that atomID in the data file becomes atomID =
+1000+M.  If <I>merge</I> is specified, the data file atoms are added to the
+current system without changing their IDs.  They are assumed to merge
+(without conflict) with the currently defined atoms.  It is up to you
+to insure there are no multiply defined atom IDs, as LAMMPS cannot
+easily check that this is the case.
+</P>
+<P>The <I>offset</I> and <I>shift</I> keywords can only be used if
+the <I>add</I> keyword is also used.
+</P>
+<P>The <I>offset</I> keyword adds the specified offset values to the atom
+types, bond types, angle types, dihedral types, and improper types as
+they are read from the data file.  E.g. if <I>toff</I> = 2, and the file
+uses atom types 1,2,3, then the added atoms will have atom types
+3,4,5.  These offsets apply to all occurrences of types in the data
+file, e.g. for the Atoms or Masses or Pair Coeffs or Bond Coeffs
+sections.  This makes it easy to use atoms and molecules and their
+attributes from a data file in different simulations.  All five offset
+values must be specified, but individual values will be ignored if the
+data file does not use that attribute (e.g. no bonds).
+</P>
+<P>The <I>shift</I> keyword can be used to specify a displacement applied to
+the coordinates of each atom.  This is a mechanism for adding
+structured collections of atoms at different locations within the
+simulation box, to build up a complex geometry.  It is up to you to
+insure atoms do not overlap unphysically which would lead to bad
+dynamics.  The <A HREF = "delete_atoms.html">delete_atoms</A> command can be used to
+remove overlapping atoms.
+</P>
+<P>The <I>group</I> keyword adds all the atoms in the data file to the
+specified group-ID.  The group will be created if it does not already
+exist.  This is useful if you wish to change the coordinates of a
+particular set of atoms in a more complex way than can be done via the
+<I>shift</I> keyword, after using the read_data command multiple times.
+E.g. a group of atoms can be diplaced via the
+<A HREF = "displace_atoms.html">displate_atoms</A> command, which includes options
+for rotation or rescaling.
+</P>
+<P>The use of the <I>fix</I> keyword is discussed below.
+</P>
+<P>IMPORTANT NOTE: You cannot use the <I>append</I> keyword if a previously
+read-in data file defined any per-type quantities, e.g. via Masses or
+Pair Coeffs or Bond Coeffs sections.  This is because those
+definitions trigger the allocation of arrays with length = # of
+currently defined types, and they cannot be reallocated.  There are
+two solutions to this issue.  The first is to define the per-type
+quantities in the input script, after all data files are read,
+e.g. via the <A HREF = "mass.html">mass</A> or <A HREF = "pair_coeff.html">pair_coeff</A> command.
+The second is to use the <A HREF = "create_box">create_box</A> command to create the
+simulation box and use its various options to define the total number
+of types of all kinds (atom, bond, etc).  Then use the <I>merge</I> keyword
+to read as many data files as needed, with Masses, Pair Coeffs, etc
+sections that are indexed with appropriate types.
+</P>
+<HR>
+
 <P>The structure of the data file is important, though many settings and
 sections are optional or can come in any order.  See the examples
 directory for sample data files for different problems.

@@ -24,6 +24,7 @@ class Dump : protected Pointers {
  public:
   char *id;                  // user-defined name of Dump
   char *style;               // style of Dump
+  char *filename;            // user-specified file
   int igroup,groupbit;       // group that Dump is performed on
 
   int first_flag;            // 0 if no initial dump, 1 if yes initial dump
@@ -52,7 +53,6 @@ class Dump : protected Pointers {
  protected:
   int me,nprocs;             // proc info
 
-  char *filename;            // user-specified file
   int compressed;            // 1 if dump file is written compressed, 0 no
   int binary;                // 1 if dump file is written binary, 0 no
   int multifile;             // 0 = one big file, 1 = one file per timestep

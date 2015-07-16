@@ -361,7 +361,7 @@ int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank)
 int MPI_Type_contiguous(int count, MPI_Datatype oldtype, 
                         MPI_Datatype *newtype)
 {
-  if (nextra_datatype = MAXEXTRA_DATATYPE) return -1;
+  if (nextra_datatype == MAXEXTRA_DATATYPE) return -1;
   ptr_datatype[nextra_datatype] = newtype;
   index_datatype[nextra_datatype] = -(nextra_datatype + 1);
   size_datatype[nextra_datatype] = count * stubtypesize(oldtype);

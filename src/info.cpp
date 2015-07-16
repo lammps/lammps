@@ -35,8 +35,10 @@
 #include "error.h"
 
 #ifdef _WIN32
+#define PSAPI_VERSION=1
 #include <windows.h>
 #include <stdint.h>
+#include <psapi.h>
 #else
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -131,38 +133,76 @@ void Info::command(int narg, char **arg)
                 i, regs[i]->id, regs[i]->style, regs[i]->interior ? "in" : "out");
       }
 
-    } else if (strncmp(arg[idx],"hardware",3) == 0) {
-
-#if defined(_WIN32)
-      fprintf(screen,"OS information:\n");
-#else
-      struct utsname ut;
-      uname(&ut);
-      fprintf(screen,"OS information: %s %s on %s\n",
-              ut.sysname, ut.release, ut.machine);
-#endif
-
-      fprintf(screen,"Memory allocation information (MPI rank 0)\n");
-
-#if defined(_WIN32)
-#else
-#if defined(__linux)
-      struct mallinfo mi;
-      mi = mallinfo();
-      fprintf(screen,"Total dynamically allocated memory: %.3g Mbyte\n",(double)mi.uordblks/1048576.0);
-#endif
-      struct rusage ru;
-      if (getrusage(RUSAGE_SELF, &ru) == 0) {
-        fprintf(screen,"Maximum resident set size: %.3g Mbyte\n",(double)ru.ru_maxrss/1024.0);
-      }
-#endif
-
-    } else if (strncmp(arg[idx],"version",3) == 0) {
+    } else if (strncmp(arg[idx],"configuration",3) == 0) {
       fprintf(screen,"LAMMPS version: %s\n", universe->version);
       fprintf(screen,"sizeof(smallint): %3d-bit\n",(int)sizeof(smallint)*8);
       fprintf(screen,"sizeof(imageint): %3d-bit\n",(int)sizeof(imageint)*8);
       fprintf(screen,"sizeof(tagint):   %3d-bit\n",(int)sizeof(tagint)*8);
       fprintf(screen,"sizeof(bigint):   %3d-bit\n",(int)sizeof(bigint)*8);
+
+#if defined(_WIN32)
+      DWORD fullversion,majorv,minorv,buildv=0;
+
+      fullversion = GetVersion();
+      majorv = (DWORD) (LOBYTE(LOWORD(fullversion)));
+      minorv = (DWORD) (HIBYTE(LOWORD(fullversion)));
+      if (fullversion < 0x80000000)
+        buildv = (DWORD) (HIWORD(fullversion));
+       
+      SYSTEM_INFO si;
+      GetSystemInfo(&si);
+
+      const char *machine;
+      switch (si.wProcessorArchitecture) {
+        case PROCESSOR_ARCHITECTURE_AMD64:
+          machine = (const char *) "x86_64";
+          break;
+        case PROCESSOR_ARCHITECTURE_ARM:
+          machine = (const char *) "arm";
+          break;
+        case PROCESSOR_ARCHITECTURE_IA64:
+          machine = (const char *) "ia64";
+          break;
+        case PROCESSOR_ARCHITECTURE_INTEL:
+          machine = (const char *) "i386";
+          break;
+        default:
+          machine = (const char *) "(unknown)";
+      }
+      fprintf(screen,"\nOS information: Windows %d.%d (%d) on %s\n",
+                     majorv,minorv,buildv,machine);
+          
+#else
+      struct utsname ut;
+      uname(&ut);
+      fprintf(screen,"\nOS information: %s %s on %s\n",
+              ut.sysname, ut.release, ut.machine);
+#endif
+
+      fprintf(screen,"\nMemory allocation information (MPI rank 0)\n");
+
+#if defined(_WIN32)
+      HANDLE phandle = GetCurrentProcess();
+      PROCESS_MEMORY_COUNTERS pmc;
+      GetProcessMemoryInfo(phandle, &pmc, sizeof(pmc));
+
+      fprintf(screen,"Current resident set size: %.3g Mbyte\n",
+              (double)pmc.WorkingSetSize/1024.0);
+      fprintf(screen,"Maximum resident set size: %.3g Mbyte\n",
+              (double)pmc.PeakWorkingSetSize/1024.0);
+#else
+#if defined(__linux)
+      struct mallinfo mi;
+      mi = mallinfo();
+      fprintf(screen,"Total dynamically allocated memory: %.3g Mbyte\n",
+                     (double)mi.uordblks/1048576.0);
+#endif
+      struct rusage ru;
+      if (getrusage(RUSAGE_SELF, &ru) == 0) {
+        fprintf(screen,"Maximum resident set size: %.3g Mbyte\n",
+                (double)ru.ru_maxrss/1024.0);
+      }
+#endif
 
     } else if (strncmp(arg[idx],"time",3) == 0) {
 
@@ -219,7 +259,7 @@ void Info::command(int narg, char **arg)
         fputs("\n",screen);
       }
 
-    } else if (strcmp(arg[idx],"system") == 0) {
+    } else if (strncmp(arg[idx],"system",3) == 0) {
       fprintf(screen,"System information:\n");
       fprintf(screen,"Units      = %s\n",update->unit_style);
       fprintf(screen,"Atom style = %s\n", atom->atom_style);

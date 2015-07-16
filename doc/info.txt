@@ -12,8 +12,8 @@ info command :h3
 
 info args :pre
 
-args = one or more of the following keywords: {system}, {computes},
-       {dumps}, {fixes}, {groups}, {regions}, or {variables}  :ul
+args = one or more of the following keywords: {system}, {computes}, {dumps},
+    {fixes}, {groups}, {regions}, {variables}, {time}, or {configuration}  :ul
 
 [Examples:]
 
@@ -47,8 +47,15 @@ The {groups} category prints a list of all currently defined groups.
 The {regions} category prints a list of all currently defined regions,
 their IDs and styles and whether "inside" or "outside" atoms are selected.
 
-The {variable} command prints a list of all currently defined variables,
+The {variables} category prints a list of all currently defined variables,
 their names, styles, definition and last computed value, if available.
+
+The {time} category prints the accumulated CPU and wall time for the
+process that writes output (usually MPI rank 0).
+
+The {configuration} command prints some information about the LAMMPS
+version and architection and OS it is run on. Where supported, also
+information about the memory consumption provided by the OS is reported.
 
 [Restrictions:] none
 

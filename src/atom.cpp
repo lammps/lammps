@@ -1414,7 +1414,8 @@ int Atom::shape_consistency(int itype,
 
 void Atom::add_molecule(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal molecule command");
+  if (narg < 1) error->all(FLERR,"Illegal molecule command");
+
   if (find_molecule(arg[0]) >= 0) 
     error->all(FLERR,"Reuse of molecule template ID");
 
@@ -1424,7 +1425,7 @@ void Atom::add_molecule(int narg, char **arg)
     memory->srealloc(molecules,(nmolecule+narg-1)*sizeof(Molecule *),
                      "atom::molecules");
 
-  // 1st molecule in set stores nset = # of sets, others store nset = 0
+  // 1st molecule in set stores nset = # of mols, others store nset = 0
 
   int ifile = 1;
   while (1) {

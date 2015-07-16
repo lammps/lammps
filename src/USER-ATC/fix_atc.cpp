@@ -43,6 +43,10 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using std::string;
 
+#ifdef LAMMPS_BIGBIG
+#error "The USER-ATC package is not compatible with -DLAMMPS_BIGBIG"
+#endif
+
 // main page of doxygen documentation
 /*! \mainpage AtC : Atom-to-Continuum methods
     fix commands:

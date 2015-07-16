@@ -29,7 +29,7 @@ inline std::ostream & operator<< (std::ostream &out, const commdata &cd)
   out << " (" << cd.tag << "/" << cd.type << ": "
       << cd.x << ", " << cd.y << ", " << cd.z << ") ";
   return out;
-};
+}
 
 /// \brief Communication between colvars and LAMMPS
 /// (implementation of \link colvarproxy \endlink)

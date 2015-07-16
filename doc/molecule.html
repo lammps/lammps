@@ -24,12 +24,13 @@
 <LI>keyword = <I>offset</I> or <I>auto</I> 
 
 <PRE>  <I>offset</I> values = toff boff aoff doff ioff
-    toff = offset to add to atom type
-    boff = offset to add to bond type
-    aoff = offset to add to angle type
-    doff = offset to add to dihedral type
-    ioff = offset to add to improper type
-  <I>auto</I> value = none = generate special bond lists automatically 
+    toff = offset to add to atom types
+    boff = offset to add to bond types
+    aoff = offset to add to angle types
+    doff = offset to add to dihedral types
+    ioff = offset to add to improper types
+  <I>auto</I> value = none
+    generate special bond lists automatically if <I>auto</I> is specified 
 </PRE>
 
 </UL>
@@ -65,15 +66,15 @@ contains multiple molecules.  The <A HREF = "atom_style.html">atom_style
 template</A> command allows multiple-molecule templates
 to define a system with more than one templated molecule.
 </P>
-<P>The optional <I>offset</I> keyword will add the specified offset values to
-the atom types, bond types, angle types, dihedral types, and improper
+<P>The optional <I>offset</I> keyword adds the specified offset values to the
+atom types, bond types, angle types, dihedral types, and improper
 types as they are read from the molecule file.  E.g. if <I>toff</I> = 2,
 and the file uses atom types 1,2,3, then each created molecule will
 have atom types 3,4,5.  This makes it easy to use the same molecule
 template file in different simulations.  Note that the same offsets
 are applied to the molecules in all specified files.  All five offset
-values are required, but individual values will be ignored if the
-molecule template does not define that attribute.
+values must be speicified, but individual values will be ignored if
+the molecule template does not use that attribute (e.g. no bonds).
 </P>
 <P>The optional <I>auto</I> keyword can be used for molecules with bonds
 instead of listing neighbors within the molecular topology explicitly.
@@ -450,6 +451,10 @@ of SHAKE clusters.
 <P><A HREF = "fix_deposit.html">fix deposit</A>, <A HREF = "fix_pour.html">fix pour</A>,
 <A HREF = "fix_gcmc.html">fix_gcmc</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The default keyword values are offset 0 0 0 0 0, and no
+auto-generation of special bond lists.  The latter is overridden in
+the <I>auto</I> keyword is used.
 </P>
 </HTML>

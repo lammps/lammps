@@ -21,7 +21,6 @@ namespace LAMMPS_NS {
 class Comm : protected Pointers {
  public:
   int style;     // comm pattern: 0 = 6-way stencil, 1 = irregular tiling
-  int mode;      // 0 = single cutoff, 1 = multi-type cutoff
   int layout;    // LAYOUT_UNIFORM = equal-sized bricks
                  // LAYOUT_NONUNIFORM = logical bricks, but diff sizes via LB
                  // LAYOUT_TILED = general tiling, due to RCB LB

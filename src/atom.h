@@ -159,7 +159,6 @@ class Atom : protected Pointers {
   // spatial sorting of atoms
 
   int sortfreq;             // sort atoms every this many steps, 0 = off
-  double userbinsize;       // requested sort bin size
   bigint nextsort;          // next timestep to sort on
   double userbinsize;       // requested sort bin size
 

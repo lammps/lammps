@@ -71,6 +71,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   logfile = NULL;
   infile = NULL;
 
+  initclock = MPI_Wtime();
+
   // parse input switches
 
   int inflag = 0;

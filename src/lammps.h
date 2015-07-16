@@ -42,6 +42,8 @@ class LAMMPS {
   FILE *screen;                  // screen output
   FILE *logfile;                 // logfile
 
+  double initclock;              // wall clock at instantiation
+
   char *suffix,*suffix2;         // suffixes to add to input script style names
   int suffix_enable;             // 1 if suffixes are enabled, 0 if disabled
   int cite_enable;               // 1 if generating log.cite, 0 if disabled

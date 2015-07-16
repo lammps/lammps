@@ -13,16 +13,32 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>molecule ID file1 file2 ... 
+<PRE>molecule ID file1 file2 ... keyword values ... 
 </PRE>
-<UL><LI>ID = user-assigned name for the molecule template
+<UL><LI>ID = user-assigned name for the molecule template 
+
 <LI>file1,file2,... = names of files containing molecule descriptions 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>offset</I> or <I>auto</I> 
+
+<PRE>  <I>offset</I> values = toff boff aoff doff ioff
+    toff = offset to add to atom type
+    boff = offset to add to bond type
+    aoff = offset to add to angle type
+    doff = offset to add to dihedral type
+    ioff = offset to add to improper type
+  <I>auto</I> value = none = generate special bond lists automatically 
+</PRE>
+
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>molecule 1 mymol
 molecule 1 co2.txt h2o.txt
-molecule CO2 co2.txt 
+molecule CO2 co2.txt
+molecule 1 mymol offset 6 9 18 23 14 auto 
 </PRE>
 <P><B>Description:</B>
 </P>
@@ -49,6 +65,20 @@ contains multiple molecules.  The <A HREF = "atom_style.html">atom_style
 template</A> command allows multiple-molecule templates
 to define a system with more than one templated molecule.
 </P>
+<P>The optional <I>offset</I> keyword will add the specified offset values to
+the atom types, bond types, angle types, dihedral types, and improper
+types as they are read from the molecule file.  E.g. if <I>toff</I> = 2,
+and the file uses atom types 1,2,3, then each created molecule will
+have atom types 3,4,5.  This makes it easy to use the same molecule
+template file in different simulations.  Note that the same offsets
+are applied to the molecules in all specified files.  All five offset
+values are required, but individual values will be ignored if the
+molecule template does not define that attribute.
+</P>
+<P>The optional <I>auto</I> keyword can be used for molecules with bonds
+instead of listing neighbors within the molecular topology explicitly.
+More details are given below.
+</P>
 <P>IMPORTANT NOTE: When using the <A HREF = "atom_style.html">atom_style template</A>
 command with a molecule template that contains multiple molecules, you
 should insure the atom types, bond types, angle_types, etc in all the
@@ -59,7 +89,23 @@ with each other when a mixture system of H2O and CO2 molecules is
 defined, e.g.  by the <A HREF = "read_data.html">read_data</A> command.  Rather the
 H2O molecule should define atom types 1 and 2, and bond type 1.  And
 the CO2 molecule should define atom types 3 and 4 (or atom types 3 and
-2 if a single oxygen type is desired), and bond type 2.
+2 if a single oxygen type is desired), and bond type 2.  You can also
+use the <I>offset</I> keyword to shift all of these type values to new
+values for a particular simulation.
+</P>
+<P>IMPORTANT NOTE: This command can be used to define molecules with
+bonds, angles, dihedrals, imporopers, or special bond lists of
+neighbors within a molecular topology, so that you can later add the
+molecules to your simulation, via one or more of the commands listed
+above.  If such molecules do not already exist when LAMMPS creates the
+simulation box, via the <A HREF = "create_box.html">create_box</A> or
+<A HREF = "read_data.html">read_data</A> command, when you later add them you may
+overflow the pre-allocated data structures which store molecular
+topology information with each atom, and an error will be generated.
+Both the <A HREF = "create_box.html">create_box</A> command and the data files read
+by the <A HREF = "read_data.html">read_data</A> command have "extra" options which
+insure space is allocated for storing topology info for molecules that
+are added later.
 </P>
 <P>The format of an individual molecule file is similar to the data file
 read by the <A HREF = "read_data.html">read_data</A> commands, and is as follows.
@@ -119,10 +165,12 @@ internally.
 <LI><I>Shake Flags, Shake Atoms, Shake Bond Types</I> = SHAKE info 
 </UL>
 <P>If a Bonds section is specified then the Special Bond Counts and
-Special Bonds sections must be also, since the latter is needed for
-LAMMPS to properly exclude or weight bonded pairwise interactions
-between bonded atoms.  See the <A HREF = "special_bonds.html">special_bonds</A>
-command for more details.
+Special Bonds sections must be also unless the optional <I>auto</I> keyword
+is defined.  This info is needed for LAMMPS to properly exclude or
+weight bonded pairwise interactions between bonded atoms.  See the
+<A HREF = "special_bonds.html">special_bonds</A> command for more details.  If the
+<I>auto</I> keyword is used, then LAMMPS will generate this information
+automatically for the molecule.
 </P>
 <P>IMPORTANT NOTE: Whether a section is required depends on how the
 molecule template is used by other LAMMPS commands.  For example, to

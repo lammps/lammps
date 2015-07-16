@@ -184,7 +184,7 @@ void Info::command(int narg, char **arg)
 #if defined(_WIN32)
       HANDLE phandle = GetCurrentProcess();
       PROCESS_MEMORY_COUNTERS_EX pmc;
-      GetProcessMemoryInfo(phandle, &pmc, sizeof(pmc));
+      GetProcessMemoryInfo(phandle, (PROCESS_MEMORY_COUNTERS *) &pmc, sizeof(pmc));
 
       fprintf(screen,"Non-shared memory use: %.3g Mbyte\n",
               (double)pmc.PrivateUsage/1048576.0);

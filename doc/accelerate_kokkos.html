@@ -194,18 +194,15 @@ lib/kokkos/Makefile.kokkos file.
 #Options: force_uvm,use_ldg,rdc
 </P>
 <UL><LI>KOKKOS_DEVICES, values = <I>OpenMP</I>, <I>Serial</I>, <I>Pthreads</I>, <I>Cuda</I>, default = <I>OpenMP</I>
-<LI>KOKKOS_ARCH, values = <I>KNC</I>, <I>SNB</I>, <I>HSW</I>, <I>Kepler</I>, <I>Kepler30</I>, <I>Kepler32</I>, <I>Kepler35</I>, 
-<LI><I>Kepler37</I>, <I>Maxwell</I>, <I>Maxwell50</I>, <I>Maxwell52</I>, <I>Maxwell53</I>, <I>ARMv8</I>, <I>BGQ</I>, <I>Power7</I>, <I>Power8</I>,
-<LI>default = <I>none</I>
+<LI>KOKKOS_ARCH, values = <I>KNC</I>, <I>SNB</I>, <I>HSW</I>, <I>Kepler</I>, <I>Kepler30</I>, <I>Kepler32</I>, <I>Kepler35</I>, <I>Kepler37</I>, <I>Maxwell</I>, <I>Maxwell50</I>, <I>Maxwell52</I>, <I>Maxwell53</I>, <I>ARMv8</I>, <I>BGQ</I>, <I>Power7</I>, <I>Power8</I>, default = <I>none</I>
 <LI>KOKKOS_DEBUG, values = <I>yes</I>, <I>no</I>, default = <I>no</I>
 <LI>KOKKOS_USE_TPLS, values = <I>hwloc</I>, <I>librt</I>, default = <I>none</I>
 <LI>KOKKOS_CUDA_OPTIONS, values = <I>force_uvm</I>, <I>use_ldg</I>, <I>rdc</I> 
 </UL>
-<P>KOKKOS_DEVICE sets the parallelization method used for Kokkos code (within
-LAMMPS).  KOKKOS_DEVICES=OpenMP means that OpenMP will be
-used.  KOKKOS_DEVICES=Pthreads means that pthreads will be used.  
-KOKKOS_DEVICES=Cuda means an NVIDIA GPU running
-CUDA will be used.
+<P>KOKKOS_DEVICE sets the parallelization method used for Kokkos code
+(within LAMMPS).  KOKKOS_DEVICES=OpenMP means that OpenMP will be
+used.  KOKKOS_DEVICES=Pthreads means that pthreads will be used.
+KOKKOS_DEVICES=Cuda means an NVIDIA GPU running CUDA will be used.
 </P>
 <P>If KOKKOS_DEVICES=Cuda, then the lo-level Makefile in the src/MAKE
 directory must use "nvcc" as its compiler, via its CC setting.  For

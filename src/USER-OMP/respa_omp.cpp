@@ -69,7 +69,12 @@ void RespaOMP::init()
 
 void RespaOMP::setup()
 {
-  if (comm->me == 0 && screen) fprintf(screen,"Setting up run ...\n");
+  if (comm->me == 0 && screen) {
+    fprintf(screen,"Setting up r-RESPA/omp run ...\n");
+    fprintf(screen,"  Unit style    : %s\n", update->unit_style);
+    fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
+    fprintf(screen,"  OuterTime step: %g\n", update->dt);
+  }
 
   update->setupflag = 1;
 
@@ -101,14 +106,11 @@ void RespaOMP::setup()
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
     force_clear(newton[ilevel]);
     modify->setup_pre_force_respa(vflag,ilevel);
-    if (level_bond == ilevel && force->bond)
-      force->bond->compute(eflag,vflag);
-    if (level_angle == ilevel && force->angle)
-      force->angle->compute(eflag,vflag);
-    if (level_dihedral == ilevel && force->dihedral)
-      force->dihedral->compute(eflag,vflag);
-    if (level_improper == ilevel && force->improper)
-      force->improper->compute(eflag,vflag);
+
+    if (nhybrid_styles > 0) {
+      set_compute_flags(ilevel);
+      force->pair->compute(eflag,vflag);
+    }
     if (level_pair == ilevel && pair_compute_flag)
       force->pair->compute(eflag,vflag);
     if (level_inner == ilevel && pair_compute_flag)
@@ -117,6 +119,14 @@ void RespaOMP::setup()
       force->pair->compute_middle();
     if (level_outer == ilevel && pair_compute_flag)
       force->pair->compute_outer(eflag,vflag);
+    if (level_bond == ilevel && force->bond)
+      force->bond->compute(eflag,vflag);
+    if (level_angle == ilevel && force->angle)
+      force->angle->compute(eflag,vflag);
+    if (level_dihedral == ilevel && force->dihedral)
+      force->dihedral->compute(eflag,vflag);
+    if (level_improper == ilevel && force->improper)
+      force->improper->compute(eflag,vflag);
     if (level_kspace == ilevel && force->kspace) {
       force->kspace->setup();
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
@@ -188,14 +198,12 @@ void RespaOMP::setup_minimal(int flag)
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
     force_clear(newton[ilevel]);
     modify->setup_pre_force_respa(vflag,ilevel);
-    if (level_bond == ilevel && force->bond)
-      force->bond->compute(eflag,vflag);
-    if (level_angle == ilevel && force->angle)
-      force->angle->compute(eflag,vflag);
-    if (level_dihedral == ilevel && force->dihedral)
-      force->dihedral->compute(eflag,vflag);
-    if (level_improper == ilevel && force->improper)
-      force->improper->compute(eflag,vflag);
+
+    if (nhybrid_styles > 0) {
+      set_compute_flags(ilevel);
+      force->pair->compute(eflag,vflag);
+    }
+
     if (level_pair == ilevel && pair_compute_flag)
       force->pair->compute(eflag,vflag);
     if (level_inner == ilevel && pair_compute_flag)
@@ -204,6 +212,14 @@ void RespaOMP::setup_minimal(int flag)
       force->pair->compute_middle();
     if (level_outer == ilevel && pair_compute_flag)
       force->pair->compute_outer(eflag,vflag);
+    if (level_bond == ilevel && force->bond)
+      force->bond->compute(eflag,vflag);
+    if (level_angle == ilevel && force->angle)
+      force->angle->compute(eflag,vflag);
+    if (level_dihedral == ilevel && force->dihedral)
+      force->dihedral->compute(eflag,vflag);
+    if (level_improper == ilevel && force->improper)
+      force->improper->compute(eflag,vflag);
     if (level_kspace == ilevel && force->kspace) {
       force->kspace->setup();
       if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
@@ -274,15 +290,18 @@ void RespaOMP::recurse(int ilevel)
         if (atom->sortfreq > 0 &&
             update->ntimestep >= atom->nextsort) atom->sort();
         comm->borders();
-        timer->stamp(Timer::COMM);
         if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+        timer->stamp(Timer::COMM);
         if (modify->n_pre_neighbor) {
-          timer->stamp();
           modify->pre_neighbor();
           timer->stamp(Timer::MODIFY);
         }
         neighbor->build();
         timer->stamp(Timer::NEIGH);
+      } else if (ilevel == 0) {
+        timer->stamp();
+        comm->forward_comm();
+        timer->stamp(Timer::COMM);
       }
 
     } else if (ilevel == 0) {
@@ -312,21 +331,10 @@ void RespaOMP::recurse(int ilevel)
     }
 
     timer->stamp();
-    if (level_bond == ilevel && force->bond) {
-      force->bond->compute(eflag,vflag);
-      timer->stamp(Timer::BOND);
-    }
-    if (level_angle == ilevel && force->angle) {
-      force->angle->compute(eflag,vflag);
-      timer->stamp(Timer::BOND);
-    }
-    if (level_dihedral == ilevel && force->dihedral) {
-      force->dihedral->compute(eflag,vflag);
-      timer->stamp(Timer::BOND);
-    }
-    if (level_improper == ilevel && force->improper) {
-      force->improper->compute(eflag,vflag);
-      timer->stamp(Timer::BOND);
+    if (nhybrid_styles > 0) {
+      set_compute_flags(ilevel);
+      force->pair->compute(eflag,vflag);
+      timer->stamp(Timer::PAIR);
     }
     if (level_pair == ilevel && pair_compute_flag) {
       force->pair->compute(eflag,vflag);
@@ -343,6 +351,22 @@ void RespaOMP::recurse(int ilevel)
     if (level_outer == ilevel && pair_compute_flag) {
       force->pair->compute_outer(eflag,vflag);
       timer->stamp(Timer::PAIR);
+    }
+    if (level_bond == ilevel && force->bond) {
+      force->bond->compute(eflag,vflag);
+      timer->stamp(Timer::BOND);
+    }
+    if (level_angle == ilevel && force->angle) {
+      force->angle->compute(eflag,vflag);
+      timer->stamp(Timer::BOND);
+    }
+    if (level_dihedral == ilevel && force->dihedral) {
+      force->dihedral->compute(eflag,vflag);
+      timer->stamp(Timer::BOND);
+    }
+    if (level_improper == ilevel && force->improper) {
+      force->improper->compute(eflag,vflag);
+      timer->stamp(Timer::BOND);
     }
     if (level_kspace == ilevel && kspace_compute_flag) {
       force->kspace->compute(eflag,vflag);

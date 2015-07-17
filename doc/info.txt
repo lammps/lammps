@@ -12,20 +12,30 @@ info command :h3
 
 info args :pre
 
-args = one or more of the following keywords: {system}, {computes}, {dumps}, {fixes}, {groups}, {regions}, {variables}, {time}, or {configuration} :ul
+args = one or more of the following keywords: {out}, {all}, {system}, {computes}, {dumps}, {fixes}, {groups}, {regions}, {variables}, {time}, or {configuration}
+     {out} values = {screen}, {log}, {append} filename, {overwrite} filename:ul
 
 [Examples:]
 
 info system
-info groups computes variables :pre
+info groups computes variables
+info all out log
+info all out append info.txt :pre
 
 [Description:]
 
 Print out information about the current internal state of the running
 LAMMPS process. This can be helpful when debugging or validating
 complex input scripts.  Several output categories are available and
-one or more output category may be requested.  Output is only sent to
-the screen, provided screen output is enabled.
+one or more output category may be requested.
+
+The {out} flag controls where the output is sent. It can only be sent
+to one target. By default this is the screen, if it is active. The
+{log} argument selects the log file instead. With the {append} and
+{overwrite} option, followed by a filename, the output is written
+to that file, which is either appended to or overwritten, respectively.
+
+The {all} flag activates printing all categories listed below.
 
 The {system} category prints a general system overview listing.  This
 includes the unit style, atom style, number of atoms, bonds, angles,
@@ -65,4 +75,6 @@ reported.
 
 "print"_print.html
 
-[Default:] none
+[Default:]
+
+The {out} option has the default {screen}.

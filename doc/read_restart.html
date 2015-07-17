@@ -31,15 +31,14 @@ read_restart poly.*.% remap
 <P><B>Description:</B>
 </P>
 <P>Read in a previously saved system configuration from a restart file.
-This allows continuation of a previous run. However, not the entire
-state of a simulation can be saved and read back.  Details about what
-information is stored in a restart file is given below.  Basically
-this operation will re-create the simulation box with all its atoms
-and their attributes as well as some related global settings, at the
-point in time it was written to the restart file by a previous
-simluation.  The simulation box will be partitioned into a regular 3d
-grid of rectangular bricks, one per processor, based on the number of
-processors in the current simulation and the settings of the
+This allows continuation of a previous run.  Details about what
+information is stored (and not stored) in a restart file is given
+below.  Basically this operation will re-create the simulation box
+with all its atoms and their attributes as well as some related global
+settings, at the point in time it was written to the restart file by a
+previous simluation.  The simulation box will be partitioned into a
+regular 3d grid of rectangular bricks, one per processor, based on the
+number of processors in the current simulation and the settings of the
 <A HREF = "processors.html">processors</A> command.  The partitioning can later be
 changed by the <A HREF = "balance.html">balance</A> or <A HREF = "fix_balance.html">fix
 balance</A> commands.
@@ -150,14 +149,14 @@ for these quantities do not need to be re-specified in the input
 script that reads the restart file, though you can redefine settings
 after the restart file is read.
 </P>
-<P>One exception is that some force styles do not store their coefficient
-info in restart files.  Typically these are many-body or tabulated
-potentials which read their parameters from separate files;
-you may need to re-specify the <A HREF = "pair_style.html">pair style</A> and
-<A HREF = "pair_coeff.html">pair coeff</A> commands in your restart input script.
-The doc pages for individual pair styles mention if this is the case.
-This is also true of bond_style hybrid (and angle_style, dihedral_style,
-improper_style hybrid).
+<P>One exception is that some force styles (pair, bond, angle, etc) do
+not store their coefficient info in restart files.  Typically these
+are many-body or tabulated potentials which read their parameters from
+separate files; you may need to re-specify the <A HREF = "pair_style.html">pair
+style</A> and <A HREF = "pair_coeff.html">pair coeff</A> commands in
+your restart input script.  The doc pages for individual pair styles
+mention if this is the case.  This is also true of bond_style hybrid
+(and angle_style, dihedral_style, improper_style hybrid).
 </P>
 <P>All settings made by the <A HREF = "pair_modify.html">pair_modify</A> command, such
 as the shift and tail settings, are stored in the restart file with

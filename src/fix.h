@@ -182,7 +182,7 @@ class Fix : protected Pointers {
   virtual void reset_dt() {}
 
   virtual void read_data_header(char *) {}
-  virtual void read_data_section(char *, int, char *) {}
+  virtual void read_data_section(char *, int, char *, tagint) {}
   virtual bigint read_data_skip_lines(char *) {return 0;}
 
   virtual void write_data_header(FILE *, int) {}

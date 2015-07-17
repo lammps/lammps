@@ -31,7 +31,7 @@ class FixPropertyAtom : public Fix {
   int setmask();
   void init();
 
-  void read_data_section(char *, int, char *);
+  void read_data_section(char *, int, char *, tagint);
   bigint read_data_skip_lines(char *);
   void write_data_section_size(int, int &, int &);
   void write_data_section_pack(int, double **);

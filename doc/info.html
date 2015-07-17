@@ -15,20 +15,30 @@
 </P>
 <PRE>info args 
 </PRE>
-<UL><LI>args = one or more of the following keywords: <I>system</I>, <I>computes</I>, <I>dumps</I>, <I>fixes</I>, <I>groups</I>, <I>regions</I>, <I>variables</I>, <I>time</I>, or <I>configuration</I> 
-</UL>
+<P>args = one or more of the following keywords: <I>out</I>, <I>all</I>, <I>system</I>, <I>computes</I>, <I>dumps</I>, <I>fixes</I>, <I>groups</I>, <I>regions</I>, <I>variables</I>, <I>time</I>, or <I>configuration</I>
+     <I>out</I> values = <I>screen</I>, <I>log</I>, <I>append</I> filename, <I>overwrite</I> filename:ul
+</P>
 <P><B>Examples:</B>
 </P>
 <PRE>info system
-info groups computes variables 
+info groups computes variables
+info all out log
+info all out append info.txt 
 </PRE>
 <P><B>Description:</B>
 </P>
 <P>Print out information about the current internal state of the running
 LAMMPS process. This can be helpful when debugging or validating
 complex input scripts.  Several output categories are available and
-one or more output category may be requested.  Output is only sent to
-the screen, provided screen output is enabled.
+one or more output category may be requested.
+</P>
+<P>The <I>out</I> flag controls where the output is sent. It can only be sent
+to one target. By default this is the screen, if it is active. The
+<I>log</I> argument selects the log file instead. With the <I>append</I> and
+<I>overwrite</I> option, followed by a filename, the output is written
+to that file, which is either appended to or overwritten, respectively.
+</P>
+<P>The <I>all</I> flag activates printing all categories listed below.
 </P>
 <P>The <I>system</I> category prints a general system overview listing.  This
 includes the unit style, atom style, number of atoms, bonds, angles,
@@ -68,6 +78,8 @@ reported.
 </P>
 <P><A HREF = "print.html">print</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The <I>out</I> option has the default <I>screen</I>.
 </P>
 </HTML>

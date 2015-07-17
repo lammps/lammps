@@ -1,17 +1,20 @@
-# kokkos_cuda = KOKKOS package with CUDA support, nvcc/mpicxx compiler
+# kokkos_cuda = KOKKOS package with CUDA support, OpenMPI, nvcc/mpicxx compiler
 
 SHELL = /bin/sh
+
+KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
+export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
 
 # ---------------------------------------------------------------------
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		nvcc -ccbin=mpicxx
+CC =		mpicxx
 CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		nvcc -ccbin=mpicxx
+LINK =		mpicxx
 LINKFLAGS =	-g -O
 LIB = 
 SIZE =		size
@@ -21,7 +24,6 @@ ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
 KOKKOS_DEVICES = Cuda, OpenMP
 KOKKOS_ARCH = Kepler35
-CUDA_PATH = /usr/local/cuda
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL

@@ -323,7 +323,12 @@ void Respa::init()
 
 void Respa::setup()
 {
-  if (comm->me == 0 && screen) fprintf(screen,"Setting up run ...\n");
+  if (comm->me == 0 && screen) {
+    fprintf(screen,"Setting up r-RESPA run ...\n");
+    fprintf(screen,"  Unit style    : %s\n", update->unit_style);
+    fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
+    fprintf(screen,"  OuterTime step: %g\n", update->dt);
+  }
 
   update->setupflag = 1;
 

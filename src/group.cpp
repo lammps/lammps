@@ -588,6 +588,26 @@ int Group::find(const char *name)
 }
 
 /* ----------------------------------------------------------------------
+   find group with name or create group if it doesn't exist
+   return group index
+------------------------------------------------------------------------- */
+
+int Group::find_or_create(const char *name)
+{
+  int igroup = find(name);
+  if (igroup >= 0) return igroup;
+
+  if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
+  igroup = find_unused();
+  int n = strlen(name) + 1;
+  names[igroup] = new char[n];
+  strcpy(names[igroup],name);
+  ngroup++;
+
+  return igroup;
+}
+
+/* ----------------------------------------------------------------------
    return index of first available group
    should never be called when group limit has been reached
 ------------------------------------------------------------------------- */

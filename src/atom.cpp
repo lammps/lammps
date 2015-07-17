@@ -516,7 +516,7 @@ void Atom::modify_params(int narg, char **arg)
         error->all(FLERR,
                    "Atom_modify id command after simulation box is defined");
       if (strcmp(arg[iarg+1],"yes") == 0) tag_enable = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) tag_enable = 2;
+      else if (strcmp(arg[iarg+1],"no") == 0) tag_enable = 0;
       else error->all(FLERR,"Illegal atom_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"map") == 0) {
@@ -559,9 +559,11 @@ void Atom::modify_params(int narg, char **arg)
    check that atom IDs are valid
    error if any atom ID < 0 or atom ID = MAXTAGINT
    if any atom ID > 0, error if any atom ID == 0
+   if any atom ID > 0, error if tag_enable = 0
    if all atom IDs = 0, tag_enable must be 0
-   OK if atom IDs > natoms
-   NOTE: not checking that atom IDs are unique
+   if max atom IDs < natoms, must be duplicates
+   OK if max atom IDs > natoms
+   NOTE: not fully checking that atom IDs are unique
 ------------------------------------------------------------------------- */
 
 void Atom::tag_check()
@@ -578,12 +580,16 @@ void Atom::tag_check()
   MPI_Allreduce(&min,&minall,1,MPI_LMP_TAGINT,MPI_MIN,world);
   MPI_Allreduce(&max,&maxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
-  if (minall < 0) error->all(FLERR,"Atom ID is negative");
-  if (maxall >= MAXTAGINT) error->all(FLERR,"Atom ID is too big");
-  if (maxall > 0 && minall == 0) error->all(FLERR,"Atom ID is zero");
-  // this last message is wrong
-  if (maxall == 0 && tag_enable && natoms) 
-    error->all(FLERR,"Not all atom IDs are 0");
+  if (minall < 0) error->all(FLERR,"One or more Atom IDs is negative");
+  if (maxall >= MAXTAGINT) error->all(FLERR,"One or more atom IDs is too big");
+  if (maxall > 0 && minall == 0) 
+    error->all(FLERR,"One or more atom IDs is zero");
+  if (maxall > 0 && tag_enable == 0)
+    error->all(FLERR,"Non-zero atom IDs with atom_modify id = no");
+  if (maxall == 0 && natoms && tag_enable) 
+    error->all(FLERR,"All atom IDs = 0 but atom_modify id = yes");
+  if (tag_enable && maxall < natoms)
+    error->all(FLERR,"Duplicate atom IDs exist");
 }
 
 /* ----------------------------------------------------------------------
@@ -725,7 +731,8 @@ void Atom::deallocate_topology()
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_atoms(int n, char *buf)
+void Atom::data_atoms(int n, char *buf, tagint id_offset, int type_offset, 
+                      int shiftflag, double *shift)
 {
   int m,xptr,iptr;
   imageint imagedata;
@@ -833,6 +840,12 @@ void Atom::data_atoms(int n, char *buf)
     xdata[0] = atof(values[xptr]);
     xdata[1] = atof(values[xptr+1]);
     xdata[2] = atof(values[xptr+2]);
+    if (shiftflag) {
+      xdata[0] += shift[0];
+      xdata[1] += shift[1];
+      xdata[2] += shift[2];
+    }
+
     domain->remap(xdata,imagedata);
     if (triclinic) {
       domain->x2lamda(xdata,lamda);
@@ -841,8 +854,15 @@ void Atom::data_atoms(int n, char *buf)
 
     if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
         coord[1] >= sublo[1] && coord[1] < subhi[1] &&
-        coord[2] >= sublo[2] && coord[2] < subhi[2])
+        coord[2] >= sublo[2] && coord[2] < subhi[2]) {
       avec->data_atom(xdata,imagedata,values);
+      if (id_offset) tag[nlocal-1] += id_offset;
+      if (type_offset) {
+        type[nlocal-1] += type_offset;
+        if (type[nlocal-1] > ntypes)
+          error->one(FLERR,"Invalid atom type in Atoms section of data file");
+      }
+    }
 
     buf = next + 1;
   }
@@ -856,7 +876,7 @@ void Atom::data_atoms(int n, char *buf)
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_vels(int n, char *buf)
+void Atom::data_vels(int n, char *buf, tagint id_offset)
 {
   int j,m;
   tagint tagdata;
@@ -883,7 +903,7 @@ void Atom::data_vels(int n, char *buf)
     for (j = 1; j < nwords; j++)
       values[j] = strtok(NULL," \t\n\r\f");
 
-    tagdata = ATOTAGINT(values[0]);
+    tagdata = ATOTAGINT(values[0]) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Velocities section of data file");
     if ((m = map(tagdata)) >= 0) avec->data_vel(m,&values[1]);
@@ -901,7 +921,7 @@ void Atom::data_vels(int n, char *buf)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_bonds(int n, char *buf, int *count)
+void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2;
@@ -913,6 +933,11 @@ void Atom::data_bonds(int n, char *buf, int *count)
     *next = '\0';
     sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2);
+    if (id_offset) {
+      atom1 += id_offset;
+      atom2 += id_offset;
+    }
+
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bonds section of data file");
@@ -947,7 +972,7 @@ void Atom::data_bonds(int n, char *buf, int *count)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_angles(int n, char *buf, int *count)
+void Atom::data_angles(int n, char *buf, int *count, tagint id_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3;
@@ -959,6 +984,12 @@ void Atom::data_angles(int n, char *buf, int *count)
     *next = '\0';
     sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2,&atom3);
+    if (id_offset) {
+      atom1 += id_offset;
+      atom2 += id_offset;
+      atom3 += id_offset;
+    }
+
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max ||
         atom3 <= 0 || atom3 > map_tag_max)
@@ -1008,7 +1039,7 @@ void Atom::data_angles(int n, char *buf, int *count)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_dihedrals(int n, char *buf, int *count)
+void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3,atom4;
@@ -1021,6 +1052,13 @@ void Atom::data_dihedrals(int n, char *buf, int *count)
     sscanf(buf,"%d %d " 
            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    if (id_offset) {
+      atom1 += id_offset;
+      atom2 += id_offset;
+      atom3 += id_offset;
+      atom4 += id_offset;
+    }
+
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max ||
         atom3 <= 0 || atom3 > map_tag_max ||
@@ -1086,7 +1124,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_impropers(int n, char *buf, int *count)
+void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset)
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3,atom4;
@@ -1099,6 +1137,13 @@ void Atom::data_impropers(int n, char *buf, int *count)
     sscanf(buf,"%d %d " 
            TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+    if (id_offset) {
+      atom1 += id_offset;
+      atom2 += id_offset;
+      atom3 += id_offset;
+      atom4 += id_offset;
+    }
+
     if (atom1 <= 0 || atom1 > map_tag_max ||
         atom2 <= 0 || atom2 > map_tag_max ||
         atom3 <= 0 || atom3 > map_tag_max ||
@@ -1163,7 +1208,7 @@ void Atom::data_impropers(int n, char *buf, int *count)
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus)
+void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 {
   int j,m,tagdata;
   char *next;
@@ -1189,7 +1234,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus)
     for (j = 1; j < nwords; j++)
       values[j] = strtok(NULL," \t\n\r\f");
 
-    tagdata = ATOTAGINT(values[0]);
+    tagdata = ATOTAGINT(values[0]) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bonus section of data file");
 
@@ -1210,7 +1255,8 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus)
    call style-specific routine to parse line
 ------------------------------------------------------------------------- */
 
-void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body)
+void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body, 
+                       tagint id_offset)
 {
   int j,m,tagdata,ninteger,ndouble;
 
@@ -1222,8 +1268,8 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body)
   // if I own atom tag, unpack its values
 
   for (int i = 0; i < n; i++) {
-    if (i == 0) tagdata = ATOTAGINT(strtok(buf," \t\n\r\f"));
-    else tagdata = ATOTAGINT(strtok(NULL," \t\n\r\f"));
+    if (i == 0) tagdata = ATOTAGINT(strtok(buf," \t\n\r\f")) + id_offset;
+    else tagdata = ATOTAGINT(strtok(NULL," \t\n\r\f")) + id_offset;
     ninteger = atoi(strtok(NULL," \t\n\r\f"));
     ndouble = atoi(strtok(NULL," \t\n\r\f"));
 
@@ -1260,9 +1306,10 @@ void Atom::allocate_type_arrays()
 /* ----------------------------------------------------------------------
    set a mass and flag it as set
    called from reading of data file
+   type_offset may be used when reading multiple data files
 ------------------------------------------------------------------------- */
 
-void Atom::set_mass(const char *str)
+void Atom::set_mass(const char *str, int type_offset)
 {
   if (mass == NULL) error->all(FLERR,"Cannot set mass for this atom style");
 
@@ -1270,6 +1317,7 @@ void Atom::set_mass(const char *str)
   double mass_one;
   int n = sscanf(str,"%d %lg",&itype,&mass_one);
   if (n != 2) error->all(FLERR,"Invalid mass line in data file");
+  itype += type_offset;
 
   if (itype < 1 || itype > ntypes)
     error->all(FLERR,"Invalid type for mass set");

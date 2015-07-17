@@ -43,9 +43,9 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Unknown info command style
+W: Ignoring unknown or incorrect info command flag
 
-Self-explanatory. The an unknown style was given as argument to the
-info command. Compare your input with the documentation
+Self-explanatory. The an unknown argument was given to the info command.
+Compare your input with the documentation.
 
 */

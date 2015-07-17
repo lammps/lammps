@@ -191,18 +191,15 @@ lib/kokkos/Makefile.kokkos file.
 #Options: force_uvm,use_ldg,rdc
 
 KOKKOS_DEVICES, values = {OpenMP}, {Serial}, {Pthreads}, {Cuda}, default = {OpenMP}
-KOKKOS_ARCH, values = {KNC}, {SNB}, {HSW}, {Kepler}, {Kepler30}, {Kepler32}, {Kepler35}, 
-{Kepler37}, {Maxwell}, {Maxwell50}, {Maxwell52}, {Maxwell53}, {ARMv8}, {BGQ}, {Power7}, {Power8},
-default = {none}
+KOKKOS_ARCH, values = {KNC}, {SNB}, {HSW}, {Kepler}, {Kepler30}, {Kepler32}, {Kepler35}, {Kepler37}, {Maxwell}, {Maxwell50}, {Maxwell52}, {Maxwell53}, {ARMv8}, {BGQ}, {Power7}, {Power8}, default = {none}
 KOKKOS_DEBUG, values = {yes}, {no}, default = {no}
 KOKKOS_USE_TPLS, values = {hwloc}, {librt}, default = {none}
 KOKKOS_CUDA_OPTIONS, values = {force_uvm}, {use_ldg}, {rdc} :ul
 
-KOKKOS_DEVICE sets the parallelization method used for Kokkos code (within
-LAMMPS).  KOKKOS_DEVICES=OpenMP means that OpenMP will be
-used.  KOKKOS_DEVICES=Pthreads means that pthreads will be used.  
-KOKKOS_DEVICES=Cuda means an NVIDIA GPU running
-CUDA will be used.
+KOKKOS_DEVICE sets the parallelization method used for Kokkos code
+(within LAMMPS).  KOKKOS_DEVICES=OpenMP means that OpenMP will be
+used.  KOKKOS_DEVICES=Pthreads means that pthreads will be used.
+KOKKOS_DEVICES=Cuda means an NVIDIA GPU running CUDA will be used.
 
 If KOKKOS_DEVICES=Cuda, then the lo-level Makefile in the src/MAKE
 directory must use "nvcc" as its compiler, via its CC setting.  For

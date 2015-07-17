@@ -83,7 +83,8 @@ void Info::command(int narg, char **arg)
       fprintf(screen,"Compute information:\n");
       for (int i=0; i < ncompute; ++i) {
         fprintf(screen,"Compute[%3d]: %s,  style: %s,  group: %s\n",
-                i, compute[i]->id, compute[i]->style, names[compute[i]->igroup]);
+                i, compute[i]->id, compute[i]->style, 
+                names[compute[i]->igroup]);
       }
 
     } else if (strncmp(arg[idx],"dumps",3) == 0) {
@@ -130,7 +131,8 @@ void Info::command(int narg, char **arg)
       fprintf(screen,"Region information:\n");
       for (int i=0; i < nreg; ++i) {
         fprintf(screen,"Region[%3d]: %s,  style: %s,  side: %s\n",
-                i, regs[i]->id, regs[i]->style, regs[i]->interior ? "in" : "out");
+                i, regs[i]->id, regs[i]->style, 
+                regs[i]->interior ? "in" : "out");
       }
 
     } else if (strncmp(arg[idx],"configuration",3) == 0) {
@@ -184,7 +186,8 @@ void Info::command(int narg, char **arg)
 #if defined(_WIN32)
       HANDLE phandle = GetCurrentProcess();
       PROCESS_MEMORY_COUNTERS_EX pmc;
-      GetProcessMemoryInfo(phandle, (PROCESS_MEMORY_COUNTERS *) &pmc, sizeof(pmc));
+      GetProcessMemoryInfo(phandle, (PROCESS_MEMORY_COUNTERS *) &pmc, 
+                           sizeof(pmc));
 
       fprintf(screen,"Non-shared memory use: %.3g Mbyte\n",
               (double)pmc.PrivateUsage/1048576.0);
@@ -309,10 +312,14 @@ void Info::command(int narg, char **arg)
         fprintf(screen,"Boundaries = %c,%c %c,%c %c,%c\n",
                 bstyles[domain->boundary[0][0]],bstyles[domain->boundary[0][1]],
                 bstyles[domain->boundary[1][0]],bstyles[domain->boundary[1][1]],
-                bstyles[domain->boundary[2][0]],bstyles[domain->boundary[2][1]]);
-        fprintf(screen,"Xlo, zhi = %g, %g\n", domain->boxlo[0], domain->boxhi[0]);
-        fprintf(screen,"Ylo, zhi = %g, %g\n", domain->boxlo[1], domain->boxhi[1]);
-        fprintf(screen,"Zlo, zhi = %g, %g\n", domain->boxlo[2], domain->boxhi[2]);
+                bstyles[domain->boundary[2][0]],
+                bstyles[domain->boundary[2][1]]);
+        fprintf(screen,"Xlo, zhi = %g, %g\n", 
+                domain->boxlo[0], domain->boxhi[0]);
+        fprintf(screen,"Ylo, zhi = %g, %g\n", 
+                domain->boxlo[1], domain->boxhi[1]);
+        fprintf(screen,"Zlo, zhi = %g, %g\n", 
+                domain->boxlo[2], domain->boxhi[2]);
         if (domain->triclinic)
           fprintf(screen,"Xy, xz, yz = %g, %g, %g\n",
                   domain->xy, domain->xz, domain->yz);
@@ -324,5 +331,6 @@ void Info::command(int narg, char **arg)
       error->one(FLERR,"Unknown info command style");
     }
   }
+
   fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n\n",screen);
 }

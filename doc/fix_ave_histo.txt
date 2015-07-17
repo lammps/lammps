@@ -29,7 +29,7 @@ value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_nam
   v_name = value(s) calculated by an equal-style or atom-style variable with name :pre
 
 zero or more keyword/arg pairs may be appended :l
-keyword = {mode} or {file} or {ave} or {start} or {beyond} or {overwrite} or {title1} or {title2} or {title3} :l
+keyword = {mode} or {file} or {ave} or {start} or {beyond} or {overwrite} or {title1} or {title2} or {title3} or {weights} :l
   {mode} arg = {scalar} or {vector}
     scalar = all input values are scalars
     vector = all input values are vectors
@@ -51,14 +51,21 @@ keyword = {mode} or {file} or {ave} or {start} or {beyond} or {overwrite} or {ti
   {title2} arg = string
     string = text to print as 2nd line of output file
   {title3} arg = string
-    string = text to print as 3rd line of output file, only for vector mode :pre
+    string = text to print as 3rd line of output file, only for vector mode 
+  {weights} arg = c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name 
+    c_ID = scalar or vector calculated by a compute with ID
+    c_ID\[I\] = Ith component of vector or Ith column of array calculated by a compute with ID
+    f_ID = scalar or vector calculated by a fix with ID
+    f_ID\[I\] = Ith component of vector or Ith column of array calculated by a fix with ID
+    v_name = value(s) calculated by an equal-style or atom-style variable with name :pre    
 :ule
 
 [Examples:]
 
 fix 1 all ave/histo 100 5 1000 0.5 1.5 50 c_myTemp file temp.histo ave running
 fix 1 all ave/histo 100 5 1000 -5 5 100 c_thermo_press\[2\] c_thermo_press\[3\] title1 "My output values"
-fix 1 all ave/histo 1 100 1000 -2.0 2.0 18 vx vy vz mode vector ave running beyond extra :pre
+fix 1 all ave/histo 1 100 1000 -2.0 2.0 18 vx vy vz mode vector ave running beyond extra 
+fix 1 all ave/histo 1 1 1 10 100 2000 c_XRD[1] mode vector weights c_XRD[2] :pre
 
 [Description:]
 
@@ -271,6 +278,15 @@ In the first line, ID is replaced with the fix-ID.  The second line
 describes the six values that are printed at the first of each section
 of output.  The third describes the 4 values printed for each bin in
 the histogram.
+
+If the {weights} keyword is specified, the fix will compute a weighted
+histogram using per-bin weights specified by the {weights} argument.  As
+normal, the bin locations will be will be generated based off value1.
+However, instead of each binned value contributing 1 to the bin
+location, the contributing ammount is assigned the weights
+argument. Only a single value1 and weights argument pair can be can be
+used for each fix ave/histo.  The length of value1 must match the
+lenght of the weights arguemnt.
 
 :line
 

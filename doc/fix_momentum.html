@@ -22,17 +22,20 @@
 <LI>N = adjust the momentum every this many timesteps
 one or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>linear</I> or <I>angular</I> 
+<LI>keyword = <I>linear</I> or <I>angular</I> or <I>rescale</I> 
 
 <PRE>  <I>linear</I> values = xflag yflag zflag
     xflag,yflag,zflag = 0/1 to exclude/include each dimension
   <I>angular</I> values = none 
+</PRE>
+<PRE>  <I>rescale</I> values = none 
 </PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix 1 all momentum 1 linear 1 1 0
+fix 1 all momentum 1 linear 1 1 1 rescale
 fix 1 all momentum 100 linear 1 1 1 angular 
 </PRE>
 <P><B>Description:</B>
@@ -54,6 +57,9 @@ subtracting a rotational component from each atom.
 a subset of them) does not drift or rotate during the simulation due
 to random perturbations (e.g. <A HREF = "fix_langevin.html">fix langevin</A>
 thermostatting).
+</P>
+<P>The <I>rescale</I> keyword enables conserving the kinetic energy of the group
+of atoms by rescaling the velocities after the momentum was removed.
 </P>
 <P>Note that the <A HREF = "velocity.html">velocity</A> command can be used to create
 initial velocities with zero aggregate linear and/or angular momentum.

@@ -19,9 +19,10 @@
 
 <LI>zero or more keyword/value pairs may be appended 
 
-<LI>keyword = <I>pair</I> 
+<LI>keyword = <I>pair</I> or <I>nocoeff</I> 
 
-<PRE>  <I>pair</I> value = <I>ii</I> or <I>ij</I>
+<PRE>  <I>nocoeff</I> = do not write out force field info
+  <I>pair</I> value = <I>ii</I> or <I>ij</I>
     <I>ii</I> = write one line of pair coefficient info per atom type
     <I>ij</I> = write one line of pair coefficient info per IJ atom type pair 
 </PRE>
@@ -84,6 +85,11 @@ data file is read.
 </P>
 <HR>
 
+<P>The <I>nocoeff</I> keyword requests that no force field parameters should
+be written to the data file. This can be very helpful, if one wants
+to make significant changes to the force field or if the parameters
+are read in separately anyway, e.g. from an include file.
+</P>
 <P>The <I>pair</I> keyword lets you specify in what format the pair
 coefficient information is written into the data file.  If the value
 is specified as <I>ii</I>, then one line per atom type is written, to

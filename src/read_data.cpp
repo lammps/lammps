@@ -1681,7 +1681,7 @@ void ReadData::fix(int ifix, char *keyword)
     nchunk = MIN(nline-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
-    modify->fix[ifix]->read_data_section(keyword,nchunk,buffer);
+    modify->fix[ifix]->read_data_section(keyword,nchunk,buffer,id_offset);
     nread += nchunk;
   }
 }

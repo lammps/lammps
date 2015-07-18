@@ -66,17 +66,19 @@ Also see the explanation of the <A HREF = "Section_start.html#start_7">-restart 
 switch</A> which can convert a restart file to
 a data file.
 </P>
-<P>This command can also be used to add new atoms and their properties to
-an existing system by using the <I>add</I>, <I>offset</I>, and <I>shift</I> keywords.
-See more details below, as well as the use case for the <I>extra</I>
-keywords.
+<P>This command can be used multiple times to add new atoms and their
+properties to an existing system by using the <I>add</I>, <I>offset</I>, and
+<I>shift</I> keywords.  See more details below, which includes the use case
+for the <I>extra</I> keywords.
 </P>
 <P>The <I>group</I> keyword adds all the atoms in the data file to the
 specified group-ID.  The group will be created if it does not already
 exist.  This is useful if you are reading multiple data files and wish
 to put sets of atoms into different groups so they can be operated on
 later.  E.g. a group of added atoms can be moved to new positions via
-the <A HREF = "displace_atoms.html">displace_atoms</A> command.
+the <A HREF = "displace_atoms.html">displace_atoms</A> command.  Note that atoms
+read from the data file are also always added to the "all" group.  The
+<A HREF = "group.html">group</A> command discusses atom groups, as used in LAMMPS.
 </P>
 <P>The use of the <I>fix</I> keyword is discussed below.
 </P>
@@ -1217,6 +1219,8 @@ LAMMPS</A> section of the documentation.
 <P><A HREF = "read_dump.html">read_dump</A>, <A HREF = "read_restart.html">read_restart</A>,
 <A HREF = "create_atoms.html">create_atoms</A>, <A HREF = "write_data.html">write_data</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The default for all the <I>extra</I> keywords is 0.
 </P>
 </HTML>

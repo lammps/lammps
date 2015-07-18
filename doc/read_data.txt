@@ -59,17 +59,19 @@ Also see the explanation of the "-restart command-line
 switch"_Section_start.html#start_7 which can convert a restart file to
 a data file.
 
-This command can also be used to add new atoms and their properties to
-an existing system by using the {add}, {offset}, and {shift} keywords.
-See more details below, as well as the use case for the {extra}
-keywords.
+This command can be used multiple times to add new atoms and their
+properties to an existing system by using the {add}, {offset}, and
+{shift} keywords.  See more details below, which includes the use case
+for the {extra} keywords.
 
 The {group} keyword adds all the atoms in the data file to the
 specified group-ID.  The group will be created if it does not already
 exist.  This is useful if you are reading multiple data files and wish
 to put sets of atoms into different groups so they can be operated on
 later.  E.g. a group of added atoms can be moved to new positions via
-the "displace_atoms"_displace_atoms.html command.
+the "displace_atoms"_displace_atoms.html command.  Note that atoms
+read from the data file are also always added to the "all" group.  The
+"group"_group.html command discusses atom groups, as used in LAMMPS.
 
 The use of the {fix} keyword is discussed below.
 
@@ -1106,4 +1108,6 @@ LAMMPS"_Section_start.html#start_2 section of the documentation.
 "read_dump"_read_dump.html, "read_restart"_read_restart.html,
 "create_atoms"_create_atoms.html, "write_data"_write_data.html
 
-[Default:] none
+[Default:]
+
+The default for all the {extra} keywords is 0.

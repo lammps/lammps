@@ -40,16 +40,18 @@ The {id} keyword determines whether non-zero atom IDs can be assigned
 to each atom.  If the value is {yes}, which is the default, IDs are
 assigned, whether you use the "create atoms"_create_atoms.html or
 "read_data"_read_data.html or "read_restart"_read_restart.html
-commands to initialize atoms.  If atom IDs are used, they must all be
-positive integers.  They should also be unique, though LAMMPS does not
-check for this.  Typically they should also be consecutively numbered
-(from 1 to Natoms), though this is not required.  Molecular "atom
-styles"_atom_style.html are those that store bond topology information
-(styles bond, angle, molecular, full).  These styles require atom IDs
-since the IDs are used to encode the topology.  Some other LAMMPS
-commands also require the use of atom IDs.  E.g. some many-body pair
-styles use them to avoid double computation of the I-J interaction
-between two atoms.
+commands to initialize atoms.  If the value is {no} the IDs for all
+atoms are assumed to be 0.
+
+If atom IDs are used, they must all be positive integers.  They should
+also be unique, though LAMMPS does not check for this.  Typically they
+should also be consecutively numbered (from 1 to Natoms), though this
+is not required.  Molecular "atom styles"_atom_style.html are those
+that store bond topology information (styles bond, angle, molecular,
+full).  These styles require atom IDs since the IDs are used to encode
+the topology.  Some other LAMMPS commands also require the use of atom
+IDs.  E.g. some many-body pair styles use them to avoid double
+computation of the I-J interaction between two atoms.
 
 The only reason not to use atom IDs is if you are running an atomic
 simulation so large that IDs cannot be uniquely assigned.  For a

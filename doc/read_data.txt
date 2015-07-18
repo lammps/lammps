@@ -376,6 +376,11 @@ in the LAMMPS data structures for storing these neighbors.  See the
 "special_bonds"_special_bonds.html and "molecule"_molecule.html doc
 pages for more discussion of 1-2,1-3,1-4 neighbors.
 
+IMPORTANT NOTE: All of the "extra" settings are only used if they
+appear in the first data file read; see the description of the {add}
+keyword above for reading multiple data files.  If they appear in
+later data files, they are ignored.
+
 The "ellipsoids" and "lines" and "triangles" and "bodies" settings are
 only used with "atom_style ellipsoid or line or tri or
 body"_atom_style.html and specify how many of the atoms are

@@ -361,7 +361,7 @@ void ReadData::command(int narg, char **arg)
       domain->boxlo[2] = MIN(domain->boxlo[2],boxlo[2]+shift[2]);
       domain->boxhi[2] = MAX(domain->boxhi[2],boxhi[2]+shift[2]);
 
-      // NOTE: not sure what to do about this:
+      // NOTE: not sure what to do about tilt value in subsequent data files
       //if (triclinic) {
       //  domain->xy = xy; domain->xz = xz; domain->yz = yz;
       // }

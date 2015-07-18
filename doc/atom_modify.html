@@ -46,16 +46,18 @@ simulation box is defined; other keywords can be specified any time.
 to each atom.  If the value is <I>yes</I>, which is the default, IDs are
 assigned, whether you use the <A HREF = "create_atoms.html">create atoms</A> or
 <A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands to initialize atoms.  If atom IDs are used, they must all be
-positive integers.  They should also be unique, though LAMMPS does not
-check for this.  Typically they should also be consecutively numbered
-(from 1 to Natoms), though this is not required.  Molecular <A HREF = "atom_style.html">atom
-styles</A> are those that store bond topology information
-(styles bond, angle, molecular, full).  These styles require atom IDs
-since the IDs are used to encode the topology.  Some other LAMMPS
-commands also require the use of atom IDs.  E.g. some many-body pair
-styles use them to avoid double computation of the I-J interaction
-between two atoms.
+commands to initialize atoms.  If the value is <I>no</I> the IDs for all
+atoms are assumed to be 0.
+</P>
+<P>If atom IDs are used, they must all be positive integers.  They should
+also be unique, though LAMMPS does not check for this.  Typically they
+should also be consecutively numbered (from 1 to Natoms), though this
+is not required.  Molecular <A HREF = "atom_style.html">atom styles</A> are those
+that store bond topology information (styles bond, angle, molecular,
+full).  These styles require atom IDs since the IDs are used to encode
+the topology.  Some other LAMMPS commands also require the use of atom
+IDs.  E.g. some many-body pair styles use them to avoid double
+computation of the I-J interaction between two atoms.
 </P>
 <P>The only reason not to use atom IDs is if you are running an atomic
 simulation so large that IDs cannot be uniquely assigned.  For a

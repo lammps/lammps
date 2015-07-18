@@ -14,19 +14,39 @@ read_data file keyword args ... :pre
 
 file = name of data file to read in :ulb,l
 zero or more keyword/arg pairs may be appended :l
-keyword = {fix} :l
+keyword = {add} or {offset} or {shift} or {extra/atom/types} or {extra/bond/types} or {extra/angle/types} or {extra/dihedral/types} or {extra/improper/types} or {group} or {fix} :l
+  {add} arg = {append} or {Nstart} or {merge}
+    append = add new atoms with IDs appended to current IDs
+    Nstart = add new atoms with IDs starting with Nstart
+    merge = add new atoms with their IDs unchanged
+  {offset} args = toff boff aoff doff ioff
+    toff = offset to add to atom types
+    boff = offset to add to bond types
+    aoff = offset to add to angle types
+    doff = offset to add to dihedral types
+    ioff = offset to add to improper types
+  {shift} args = Sx Sy Sz
+    Sx,Sy,Sz = distance to shift atoms when adding to system (distance units)
+  {extra/atom/types} arg = # of extra atom types
+  {extra/bond/types} arg = # of extra bond types
+  {extra/angle/types} arg = # of extra angle types
+  {extra/dihedral/types} arg = # of extra dihedral types
+  {extra/improper/types} arg = # of extra improper types
+  {group} args = groupID
+    groupID = add atoms in data file to this group
   {fix} args = fix-ID header-string section-string
     fix-ID = ID of fix to process header lines and sections of data file
     header-string = header lines containing this string will be passed to fix
     section-string = section names with this string will be passed to fix :pre
 :ule
 
-
 [Examples:]
 
 read_data data.lj
 read_data ../run7/data.polymer.gz
-read_data data.protein fix mycmap crossterm CMAP :pre
+read_data data.protein fix mycmap crossterm CMAP 
+read_data data.water add append offset 3 1 1 1 1 shift 0.0 0.0 50.0
+read_data data.water add merge 1 group solvent :pre
 
 [Description:]
 
@@ -38,6 +58,138 @@ atom coordinates; see the "read_restart"_read_restart.html and
 Also see the explanation of the "-restart command-line
 switch"_Section_start.html#start_7 which can convert a restart file to
 a data file.
+
+This command can also be used to add new atoms and their properties to
+an existing system by using the {add}, {offset}, and {shift} keywords.
+See more details below, as well as the use case for the {extra}
+keywords.
+
+The {group} keyword adds all the atoms in the data file to the
+specified group-ID.  The group will be created if it does not already
+exist.  This is useful if you are reading multiple data files and wish
+to put sets of atoms into different groups so they can be operated on
+later.  E.g. a group of added atoms can be moved to new positions via
+the "displace_atoms"_displace_atoms.html command.
+
+The use of the {fix} keyword is discussed below.
+
+:line
+
+[Reading multiple data files]
+
+The read_data command can be used multiple times with the same or
+different data files to build up a complex system from components
+contained in individual data files.  For example one data file could
+contain fluid in a confined domain; a second could contain wall atoms,
+and the second file could be read a third time to create a wall on the
+other side of the fluid.  The third set of atoms could be rotated to
+an opposing direction using the "displace_atoms"_displace_atoms.html
+command, after the third read_data command is used.
+
+The {add}, {offset}, {shift}, {extra}, and {group} keywords are
+useful in this context.
+
+If a simulation box does not yet exist, the {add} keyword
+cannot be used; the read_data command is being used for the first
+time.  If a simulation box does exist, due to using the
+"create_box"_create_box.html command, or a previous read_data command,
+then the {add} keyword must be used.
+
+IMPORTANT NOTE: The simulation box size (xlo to xhi, ylo to yhi, zlo
+to zhi) in the new data file will be merged with the existing
+simulation box to create a large enough box in each dimension to
+contain both the existing and new atoms.  Each box dimension never
+shrinks due to this merge operation, it only stays the same or
+grows. Care must be used if you are growing the existing simulation
+box in a periodic dimension.  If there are existing atoms with bonds
+that straddle that periodic boundary, then the atoms may become far
+apart if the box size grows.  This will separate the atoms in the
+bond, which can lead to "lost" bond atoms or bad dynamics.
+
+The three choices for the {add} argument affect how the IDs of atoms
+in the data file are treated.  If {append} is specified, atoms in the
+data file are added to the current system, with their atom IDs reset
+so that an atomID = M in the data file becomes atomID = N+M, where N
+is the largest atom ID in the current system.  This rule is applied to
+all occurrences of atom IDs in the data file, e.g. in the Velocity or
+Bonds section.  If {Nstart} is specified, then {Nstart} is a numeric
+value is given, e.g. 1000, so that an atomID = M in the data file
+becomes atomID = 1000+M.  If {merge} is specified, the data file atoms
+are added to the current system without changing their IDs.  They are
+assumed to merge (without duplication) with the currently defined
+atoms.  It is up to you to insure there are no multiply defined atom
+IDs, as LAMMPS only performs an incomplete check that this is the case
+by insuring the resulting max atomID >= the number of atoms.
+
+The {offset} and {shift} keywords can only be used if the {add}
+keyword is also specified.
+
+The {offset} keyword adds the specified offset values to the atom
+types, bond types, angle types, dihedral types, and improper types as
+they are read from the data file.  E.g. if {toff} = 2, and the file
+uses atom types 1,2,3, then the added atoms will have atom types
+3,4,5.  These offsets apply to all occurrences of types in the data
+file, e.g. for the Atoms or Masses or Pair Coeffs or Bond Coeffs
+sections.  This makes it easy to use atoms and molecules and their
+attributes from a data file in different simulations, where you want
+their types (atom, bond, angle, etc) to be different depending on what
+other types already exist.  All five offset values must be specified,
+but individual values will be ignored if the data file does not use
+that attribute (e.g. no bonds).
+
+The {shift} keyword can be used to specify an (Sx, Sy, Sz)
+displacement applied to the coordinates of each atom.  Sz must be 0.0
+for a 2d simulation.  This is a mechanism for adding structured
+collections of atoms at different locations within the simulation box,
+to build up a complex geometry.  It is up to you to insure atoms do
+not end up overlapping unphysically which would lead to bad dynamics.
+Note that the "displace_atoms"_displace_atoms.html command can be used
+to move a subset of atoms after they have been read from a data file.
+Likewise, the "delete_atoms"_delete_atoms.html command can be used to
+remove overlapping atoms.  Note that the shift values (Sx, Sy, Sz) are
+also added to the simulation box information (xlo, xhi, ylo, yhi, zlo,
+zhi) in the data file to shift its boundaries.  E.g. xlo_new = xlo +
+Sx, xhi_new = xhi + Sx.
+
+The {extra} keywords can only be used the first time the read_data
+command is used.  They are useful if you intend to add new atom, bond,
+angle, etc types later with additional read_data commands.  This is
+because the maximum number of allowed atom, bond, angle, etc types is
+set by LAMMPS when the system is first initialized.  If you do not use
+the {extra} keywords, then the number of these types will be limited
+to what appears in the first data file you read.  For example, if the
+first data file is a solid substrate of Si, it will likely specify a
+single atom type.  If you read a second data file with a different
+material (water molecules) that sit on top of the substrate, you will
+want to use different atom types for those atoms.  You can only do
+this if you set the {extra/atom/types} keyword to a sufficiently large
+value when reading the substrate data file.  Note that use of the
+{extra} keywords also allows each data file to contain sections like
+Masses or Pair Coeffs or Bond Coeffs which are sized appropriately for
+the number of types in that data file.  If the {offset} keyword is
+used appropriately when each data file is read, the values in those
+sections will be stored correctly in the larger data structures
+allocated by the use of the {extra} keywords.  E.g. the substrate file
+can list mass and pair coefficients for type 1 silicon atoms.  The
+water file can list mass and pair coeffcients for type 1 and type 2
+hydrogen and oxygen atoms.  Use of the {extra} and {offset} keywords
+will store those mass and pair coefficient values appropriately in
+data structures that allow for 3 atom types (Si, H, O).  Of course,
+you would still need to specify coefficients for H/Si and O/Si
+interactions in your input script to have a complete pairwise
+interaction model.
+
+An alternative to using the {extra} keywords with the read_data
+command, is to use the "create_box"_create_box.html command to
+initialize the simulation box and all the various type limits you need
+via its {extra} keywords.  Then use the read_data command one or more
+times to populate the system with atoms, bonds, angles, etc, using the
+{offset} keyword if desired to alter types used in the various data
+files you read.
+
+:line
+
+[Format of a data file]
 
 The structure of the data file is important, though many settings and
 sections are optional or can come in any order.  See the examples
@@ -81,6 +233,8 @@ words - e.g. two spaces or a tab between the 2 words in "xlo xhi" or
 the 2 words in "Bond Coeffs", is not valid.
 
 :line
+
+[Format of the header of a data file]
 
 These are the recognized header keywords.  Header lines can come in
 any order.  The value(s) are read from the beginning of the line.
@@ -177,7 +331,11 @@ and yz tilt factors must be 0.0.
 
 If the system is periodic (in a dimension), then atom coordinates can
 be outside the bounds (in that dimension); they will be remapped (in a
-periodic sense) back inside the box.
+periodic sense) back inside the box.  Note that if the {add} option is
+being used to add atoms to a simulation box that already exists, this
+periodic remapping will be performed using simulation box bounds that
+are the union of the existing box and the box boundaries in the new
+data file.
 
 IMPORTANT NOTE: If the system is non-periodic (in a dimension), then
 all atoms in the data file must have coordinates (in that dimension)
@@ -236,6 +394,8 @@ keywords, though it is not necessary.  If specified, they must match
 the maximum values defined in any of the template molecules.
 
 :line
+
+[Format of the body of a data file]
 
 These are the section keywords for the body of the file.
 

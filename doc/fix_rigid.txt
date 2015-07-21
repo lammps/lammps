@@ -136,8 +136,8 @@ large enough to span the distance between the atom that owns the body
 and every other atom in the body.  This distance value is printed out
 when the rigid bodies are defined.  If the
 "pair_style"_pair_style.html cutoff plus neighbor skin does not span
-this distance, then you should use the "communicate
-cutoff"_communicate.html command with a setting epsilon larger than
+this distance, then you should use the "comm_modify
+cutoff"_comm_modify.html command with a setting epsilon larger than
 the distance.
 
 Which of the two variants is faster for a particular problem is hard

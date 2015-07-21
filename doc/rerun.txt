@@ -153,8 +153,8 @@ If you only want the rerun script to perform analyses that do not
 involve pair interactions, such as use compute msd to calculated
 displacements over time, you do not need to define a "pair
 style"_pair_style.html, which may also mean neighbor lists will not
-need to be calculated which saves time.  The "communicate
-cutoff"_communicate.html command can also be used to insure ghost
+need to be calculated which saves time.  The "comm_modify
+cutoff"_comm_modify.html command can also be used to insure ghost
 atoms are acquired from far enough away for operations like bond and
 angle evaluations, if no pair style is being used.
 

@@ -13,22 +13,22 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(ave/time/saed,FixAveTimeSAED)
+FixStyle(saed/vtk,FixSAEDVTK)
 
 #else
 
-#ifndef LMP_FIX_AVE_TIME_SAED_H
-#define LMP_FIX_AVE_TIME_SAED_H
+#ifndef LMP_FIX_SAED_VTK_H
+#define LMP_FIX_SAED_VTK_H
 
 #include "stdio.h"
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixAveTimeSAED : public Fix {
+class FixSAEDVTK : public Fix {
  public:
-  FixAveTimeSAED(class LAMMPS *, int, char **);
-  ~FixAveTimeSAED();
+  FixSAEDVTK(class LAMMPS *, int, char **);
+  ~FixSAEDVTK();
   int setmask();
   void init();
   void setup(int);

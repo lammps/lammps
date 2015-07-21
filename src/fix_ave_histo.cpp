@@ -26,9 +26,6 @@
 #include "error.h"
 #include "force.h"
 
-#include <iostream>
-using namespace std;
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -46,6 +43,7 @@ enum{SINGLE,VALUE};
 #define INVOKED_LOCAL 16
 
 #define BIG 1.0e20
+
 /* ---------------------------------------------------------------------- */
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
@@ -193,7 +191,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
       if (mode == VECTOR && which[nvalues] == COMPUTE &&
           argindex[nvalues] == 0) {
-        if (weights = VALUE) error->all(FLERR,"Illegal fix ave/histo command");
+        if (weights == VALUE) 
+          error->all(FLERR,"Illegal fix ave/histo command");
         int icompute = modify->find_compute(ids[nvalues]);
         if (icompute < 0)
           error->all(FLERR,"Compute ID for fix ave/histo does not exist");
@@ -214,7 +213,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
       } else if (mode == VECTOR && which[nvalues] == FIX &&
                  argindex[nvalues] == 0) {
-        if (weights = VALUE) error->all(FLERR,"Illegal fix ave/histo command");                 
+        if (weights == VALUE) 
+          error->all(FLERR,"Illegal fix ave/histo command");                 
         int ifix = modify->find_fix(ids[nvalues]);
         if (ifix < 0)
           error->all(FLERR,"Fix ID for fix ave/histo does not exist");
@@ -439,41 +439,45 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   }
   
   // weighted histogram number of rows must match weights
-  int Size[2];
-  if ( weights == VALUE ) {
+
+  int size[2];
+  if (weights == VALUE) {
+     // NOTE: shouldn't this be one?
      if (nvalues != 2) error->all(FLERR,"Illegal fix ave/histo command");     
      for (int i = 0; i < nvalues; i++) {  
-      if (which[i] == X || which[i] == V || which[i] == F) {
-      Size[i] = atom->nmax;
-      } else if (which[i] == COMPUTE && kind == GLOBAL && mode == SCALAR) {
-      int icompute = modify->find_compute(ids[i]);
-      Size[i] = modify->compute[icompute]->size_vector;
-      } else if (which[i] == COMPUTE && kind == GLOBAL && mode == VECTOR) {
-      int icompute = modify->find_compute(ids[i]);
-      Size[i] = modify->compute[icompute]->size_array_rows;
-      } else if (which[i] == COMPUTE && kind == PERATOM) {
-      int icompute = modify->find_compute(ids[i]);
-      Size[i] = atom->nmax;
-      } else if (which[i] == COMPUTE && kind == LOCAL) {
-      int icompute = modify->find_compute(ids[i]);    
-      Size[i] = modify->compute[icompute]->size_local_rows;
-      } else if (which[i] == FIX && kind == GLOBAL && mode == SCALAR) {
-      int ifix = modify->find_fix(ids[i]);   
-      Size[i] = modify->fix[ifix]->size_vector;
-      } else if (which[i] == FIX && kind == GLOBAL && mode == VECTOR) {
-      int ifix = modify->find_fix(ids[i]);      
-      Size[i]= modify->fix[ifix]->size_array_rows;
-      } else if (which[i] == FIX && kind == PERATOM) {
-      int ifix = modify->find_fix(ids[i]);   
-      Size[i] = atom->nmax;
-      } else if (which[i] == FIX && kind == LOCAL) {
-      int ifix = modify->find_fix(ids[i]);
-      Size[i] = modify->fix[ifix]->size_local_rows;
-      } else if (which[i] == VARIABLE && kind == PERATOM) {
-      Size[i] = atom->nmax;
-      }
-    } 
-    if (Size[0] != Size[1]) error->all(FLERR,"Illegal fix ave/histo command");
+       if (which[i] == X || which[i] == V || which[i] == F) {
+         size[i] = atom->nmax;
+       } else if (which[i] == COMPUTE && kind == GLOBAL && mode == SCALAR) {
+         int icompute = modify->find_compute(ids[i]);
+         size[i] = modify->compute[icompute]->size_vector;
+       } else if (which[i] == COMPUTE && kind == GLOBAL && mode == VECTOR) {
+         int icompute = modify->find_compute(ids[i]);
+         size[i] = modify->compute[icompute]->size_array_rows;
+       } else if (which[i] == COMPUTE && kind == PERATOM) {
+         int icompute = modify->find_compute(ids[i]);
+         size[i] = atom->nmax;
+       } else if (which[i] == COMPUTE && kind == LOCAL) {
+         int icompute = modify->find_compute(ids[i]);    
+         size[i] = modify->compute[icompute]->size_local_rows;
+       } else if (which[i] == FIX && kind == GLOBAL && mode == SCALAR) {
+         int ifix = modify->find_fix(ids[i]);   
+         size[i] = modify->fix[ifix]->size_vector;
+       } else if (which[i] == FIX && kind == GLOBAL && mode == VECTOR) {
+         int ifix = modify->find_fix(ids[i]);      
+         size[i]= modify->fix[ifix]->size_array_rows;
+       } else if (which[i] == FIX && kind == PERATOM) {
+         int ifix = modify->find_fix(ids[i]);   
+         size[i] = atom->nmax;
+       } else if (which[i] == FIX && kind == LOCAL) {
+         int ifix = modify->find_fix(ids[i]);
+         size[i] = modify->fix[ifix]->size_local_rows;
+       } else if (which[i] == VARIABLE && kind == PERATOM) {
+         size[i] = atom->nmax;
+       }
+     } 
+     if (size[0] != size[1]) 
+       error->all(FLERR,"Fix ave/histo value and weight vector "
+                  "lengths do not match");
   }
 
   // print file comment lines
@@ -1395,7 +1399,7 @@ void FixAveHisto::options(int narg, char **arg)
           (strncmp(arg[iarg],"f_",2) == 0) ||
           (strncmp(arg[iarg],"v_",2) == 0)) {
         iarg++;        
-      }
+      } error->all(FLERR,"Illegal fix ave/histo command");
       nvalues = 2;   
       weights = VALUE;
     } else error->all(FLERR,"Illegal fix ave/histo command");

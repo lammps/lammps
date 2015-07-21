@@ -18,7 +18,7 @@
 
 #include "stdlib.h"
 #include "string.h"
-#include "fix_ave_time_saed.h"
+#include "fix_saed_vtk.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
@@ -47,10 +47,10 @@ enum{FIRST,MULTI};
 
 /* ---------------------------------------------------------------------- */
 
-FixAveTimeSAED::FixAveTimeSAED(LAMMPS *lmp, int narg, char **arg) :
+FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 7) error->all(FLERR,"Illegal fix ave/time/saed command");
+  if (narg < 7) error->all(FLERR,"Illegal fix saed/vtk command");
 
   MPI_Comm_rank(world,&me);
 
@@ -68,7 +68,7 @@ FixAveTimeSAED::FixAveTimeSAED(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     } else break;
   }
-  if (nvalues != 1) error->all(FLERR,"Illegal fix ave/time/saed command");
+  if (nvalues != 1) error->all(FLERR,"Illegal fix saed/vtk command");
 
   options(narg,arg);
   
@@ -87,7 +87,7 @@ FixAveTimeSAED::FixAveTimeSAED(LAMMPS *lmp, int narg, char **arg) :
       strcpy(suffix,&arg[iarg][2]);
 
       char *ptr = strchr(suffix,'[');
-      if (ptr) error->all(FLERR,"Illegal fix ave/time/saed command");
+      if (ptr) error->all(FLERR,"Illegal fix saed/vtk command");
 
       n = strlen(suffix) + 1;
       ids = new char[n];
@@ -96,14 +96,14 @@ FixAveTimeSAED::FixAveTimeSAED(LAMMPS *lmp, int narg, char **arg) :
 
       int icompute = modify->find_compute(ids);
       if (icompute < 0) 
-        error->all(FLERR,"Compute ID for fix ave/time/saed does not exist");
+        error->all(FLERR,"Compute ID for fix saed/vtk does not exist");
       
       Compute *compute = modify->compute[icompute];
 
       // Check that specified compute is for SAED
       compute_saed = (ComputeSAED*) modify->compute[icompute];
       if (strcmp(compute_saed->style,"saed") != 0)
-        error->all(FLERR,"Fix ave/time/saed has invalid compute assigned");
+        error->all(FLERR,"Fix saed/vtk has invalid compute assigned");
 
       // Gather varialbes from specified compute_saed
       double *saed_var = compute_saed->saed_var;
@@ -122,9 +122,9 @@ FixAveTimeSAED::FixAveTimeSAED(LAMMPS *lmp, int narg, char **arg) :
 
       // Standard error check for fix/ave/time
       if (compute->vector_flag == 0)
-        error->all(FLERR,"Fix ave/time/saed compute does not calculate a vector");
+        error->all(FLERR,"Fix saed/vtk compute does not calculate a vector");
       if (compute->extvector != 0) 
-        error->all(FLERR,"Illegal fix ave/time/saed command"); 
+        error->all(FLERR,"Illegal fix saed/vtk command"); 
         
       int length = modify->compute[icompute]->size_vector;
  
@@ -138,11 +138,11 @@ FixAveTimeSAED::FixAveTimeSAED(LAMMPS *lmp, int narg, char **arg) :
   // for fix inputs, check that fix frequency is acceptable
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
-    error->all(FLERR,"Illegal fix ave/time/saed command");
+    error->all(FLERR,"Illegal fix saed/vtk command");
   if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
-    error->all(FLERR,"Illegal fix ave/time/saed command");
+    error->all(FLERR,"Illegal fix saed/vtk command");
   if (ave != RUNNING && overwrite)
-    error->all(FLERR,"Illegal fix ave/time/saed command");
+    error->all(FLERR,"Illegal fix saed/vtk command");
 
   // allocate memory for averaging
 
@@ -150,10 +150,10 @@ FixAveTimeSAED::FixAveTimeSAED(LAMMPS *lmp, int narg, char **arg) :
   vector_list = NULL;
 
   if (ave == WINDOW)
-    memory->create(vector_list,nwindow,nvalues,"ave/time/saed:vector_list");
+    memory->create(vector_list,nwindow,nvalues,"saed/vtk:vector_list");
 
-  memory->create(vector,nrows,"ave/time/saed:vector");
-  memory->create(vector_total,nrows,"ave/time/saed:vector_total");
+  memory->create(vector,nrows,"saed/vtk:vector");
+  memory->create(vector_total,nrows,"saed/vtk:vector_total");
 
   extlist = NULL;
 
@@ -290,7 +290,7 @@ FixAveTimeSAED::FixAveTimeSAED(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixAveTimeSAED::~FixAveTimeSAED()
+FixSAEDVTK::~FixSAEDVTK()
 {
   delete [] extlist;
   memory->destroy(vector);
@@ -300,7 +300,7 @@ FixAveTimeSAED::~FixAveTimeSAED()
 
 /* ---------------------------------------------------------------------- */
 
-int FixAveTimeSAED::setmask()
+int FixSAEDVTK::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
@@ -309,7 +309,7 @@ int FixAveTimeSAED::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixAveTimeSAED::init()
+void FixSAEDVTK::init()
 {
   // set current indices for all computes,fixes,variables
 
@@ -331,14 +331,14 @@ void FixAveTimeSAED::init()
    only does something if nvalid = current timestep
 ------------------------------------------------------------------------- */
 
-void FixAveTimeSAED::setup(int vflag)
+void FixSAEDVTK::setup(int vflag)
 {
   end_of_step();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixAveTimeSAED::end_of_step()
+void FixSAEDVTK::end_of_step()
 {
   // skip if not step which requires doing something
   bigint ntimestep = update->ntimestep;
@@ -348,12 +348,12 @@ void FixAveTimeSAED::end_of_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixAveTimeSAED::invoke_vector(bigint ntimestep)
+void FixSAEDVTK::invoke_vector(bigint ntimestep)
 {
   // zero if first step
   int icompute = modify->find_compute(ids);
   if (icompute < 0)
-    error->all(FLERR,"Compute ID for fix ave/time/saed does not exist");
+    error->all(FLERR,"Compute ID for fix saed/vtk does not exist");
  
   if (irepeat == 0)
     for (int i = 0; i < nrows; i++)
@@ -435,7 +435,7 @@ void FixAveTimeSAED::invoke_vector(bigint ntimestep)
 
       if (fp == NULL) {
         char str[128];
-        sprintf(str,"Cannot open fix ave/time/saed file %s",nName);
+        sprintf(str,"Cannot open fix saed/vtk file %s",nName);
         error->one(FLERR,str);
       }
     }
@@ -523,7 +523,7 @@ void FixAveTimeSAED::invoke_vector(bigint ntimestep)
    return Ith vector value
 ------------------------------------------------------------------------- */
 
-double FixAveTimeSAED::compute_vector(int i)
+double FixSAEDVTK::compute_vector(int i)
 {
   if (norm) {
     return vector_total[i]/norm;
@@ -535,7 +535,7 @@ double FixAveTimeSAED::compute_vector(int i)
    parse optional args
 ------------------------------------------------------------------------- */
 
-void FixAveTimeSAED::options(int narg, char **arg)
+void FixSAEDVTK::options(int narg, char **arg)
 {
   // option defaults
 
@@ -598,7 +598,7 @@ void FixAveTimeSAED::options(int narg, char **arg)
    startstep is lower bound on nfreq multiple
 ------------------------------------------------------------------------- */
 
-bigint FixAveTimeSAED::nextvalid()
+bigint FixSAEDVTK::nextvalid()
 {
   bigint nvalid = (update->ntimestep/nfreq)*nfreq + nfreq;
   while (nvalid < startstep) nvalid += nfreq;
@@ -612,7 +612,7 @@ bigint FixAveTimeSAED::nextvalid()
 
 /* ---------------------------------------------------------------------- */
 
-void FixAveTimeSAED::reset_timestep(bigint ntimestep)
+void FixSAEDVTK::reset_timestep(bigint ntimestep)
 {
   if (ntimestep > nvalid) error->all(FLERR,"Fix saed/vtk missed timestep");
 }

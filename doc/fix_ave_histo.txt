@@ -53,6 +53,7 @@ keyword = {mode} or {file} or {ave} or {start} or {beyond} or {overwrite} or {ti
   {title3} arg = string
     string = text to print as 3rd line of output file, only for vector mode 
   {weights} arg =  x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name 
+    x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
     c_ID = scalar or vector calculated by a compute with ID
     c_ID\[I\] = Ith component of vector or Ith column of array calculated by a compute with ID
     f_ID = scalar or vector calculated by a fix with ID
@@ -279,14 +280,14 @@ describes the six values that are printed at the first of each section
 of output.  The third describes the 4 values printed for each bin in
 the histogram.
 
-If the {weights} keyword is specified, the fix will generate a weighted 
-histogram using data from the assigned value1 and weights argument. 
-As normal, the bin locations will be will be generated based off value1. 
-However, instead of each binned value contributing 1 to the bin location, 
-the contributing ammount is assigned the weights argument. Only a single 
-value1 and weights argument pair can be can be used for each fix 
-ave/histo.  The length of value1 must match the lenght of the weights 
-arguemnt.
+If the {weights} keyword is specified, the fix will compute a
+"weighted" histogram using the specified value and weights argument.
+As usual, each value will be tallied to a bin.  However, instead of
+each value tallying a "1" to its bin, each value tallies the
+corresponding weight to its bin, e.g. the Nth value tallies the Nth
+entry in the weight vector.  Note that if the {weights} keyword is
+used, only a single value can be specified.  Also the length of the
+value and weight vectors must be equal.
 
 :line
 

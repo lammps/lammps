@@ -624,6 +624,7 @@ package"_Section_start.html#start_3.
 "qmmm"_fix_qmmm.html,
 "reax/c/bonds"_fix_reax_bonds.html,
 "reax/c/species"_fix_reaxc_species.html,
+"saed/vtk"_fix_saed_vtk.html,
 "smd"_fix_smd.html,
 "temp/rescale/eff"_fix_temp_rescale_eff.html,
 "ti/rs"_fix_ti_rs.html,
@@ -721,10 +722,12 @@ package"_Section_start.html#start_3.
 "meso_e/atom"_compute_meso_e_atom.html,
 "meso_rho/atom"_compute_meso_rho_atom.html,
 "meso_t/atom"_compute_meso_t_atom.html,
+"saed"_compute_saed.html,
 "temp/eff"_compute_temp_eff.html,
 "temp/deform/eff"_compute_temp_deform_eff.html,
 "temp/region/eff"_compute_temp_region_eff.html,
-"temp/rotate"_compute_temp_rotate.html :tb(c=6,ea=c)
+"temp/rotate"_compute_temp_rotate.html,
+"xrd"_compute_xrd.html :tb(c=6,ea=c)
 
 :line
 

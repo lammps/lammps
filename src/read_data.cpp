@@ -340,6 +340,7 @@ void ReadData::command(int narg, char **arg)
       domain->boxlo[2] = boxlo[2]; domain->boxhi[2] = boxhi[2];
 
       if (triclinic) {
+        domain->triclinic = 1;
         domain->xy = xy; domain->xz = xz; domain->yz = yz;
       }
 

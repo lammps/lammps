@@ -329,6 +329,8 @@ public:
   /// colvar::update()) to the external degrees of freedom
   void communicate_forces();
 
+  /// \brief Enables and disables individual CVCs based on flags
+  int set_cvc_flags(std::vector<bool> const &flags);
 
   /// \brief Use the internal metrics (as from \link cvc
   /// \endlink objects) to calculate square distances and gradients

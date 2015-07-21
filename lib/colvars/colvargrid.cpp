@@ -103,6 +103,53 @@ std::ostream & colvar_grid_scalar::write_restart(std::ostream &os)
 }
 
 
+cvm::real colvar_grid_scalar::maximum_value() const
+{
+  cvm::real max = data[0];
+  for (size_t i = 0; i < nt; i++) {
+    if (data[i] > max) max = data[i];
+  }
+  return max;
+}
+
+
+cvm::real colvar_grid_scalar::minimum_value() const
+{
+  cvm::real min = data[0];
+  for (size_t i = 0; i < nt; i++) {
+    if (data[i] < min) min = data[i];
+  }
+  return min;
+}
+
+
+cvm::real colvar_grid_scalar::integral() const
+{
+  cvm::real sum = 0.0;
+  for (size_t i = 0; i < nt; i++) {
+    sum += data[i];
+  }
+  cvm::real bin_volume = 1.0;
+  for (size_t id = 0; id < widths.size(); id++) {
+    bin_volume *= widths[id];
+  }
+  return bin_volume * sum;
+}
+
+
+cvm::real colvar_grid_scalar::entropy() const
+{
+  cvm::real sum = 0.0;
+  for (size_t i = 0; i < nt; i++) {
+    sum += -1.0 * data[i] * std::log(data[i]);
+  }
+  cvm::real bin_volume = 1.0;
+  for (size_t id = 0; id < widths.size(); id++) {
+    bin_volume *= widths[id];
+  }
+  return bin_volume * sum;
+}
+
 
 colvar_grid_gradient::colvar_grid_gradient()
   : colvar_grid<cvm::real>(), samples(NULL)

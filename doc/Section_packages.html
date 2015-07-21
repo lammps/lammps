@@ -126,6 +126,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.
 <TR ALIGN="center"><TD >USER-CG-CMM</TD><TD > coarse-graining model</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "pair_sdk.html">pair_style lj/sdk</A></TD><TD > USER/cg-cmm</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#cg">cg</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-COLVARS</TD><TD > collective variables</TD><TD > Fiorin & Henin & Kohlmeyer (3)</TD><TD > <A HREF = "fix_colvars.html">fix colvars</A></TD><TD > USER/colvars</TD><TD > <A HREF = "colvars">colvars</A></TD><TD > lib/colvars</TD></TR>
 <TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "accelerate_cuda.html">Section accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
+<TR ALIGN="center"><TD >USER-DIFFRACTION</TD><TD > virutal x-ray and electron diffraction</TD><TD > Shawn Coleman (ARL)</TD><TD ><A HREF = "compute_xrd.html">compute xrd</A></TD><TD > USER/diffraction</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-FEP</TD><TD > free energy perturbation</TD><TD > Agilio Padua (U Blaise Pascal Clermont-Ferrand)</TD><TD > <A HREF = "compute_fep.html">compute fep</A></TD><TD > USER/fep</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-INTEL</TD><TD > Vectorized CPU and Intel(R) coprocessor styles</TD><TD > W. Michael Brown (Intel)</TD><TD > <A HREF = "accelerate_intel.html">Section accelerate</A></TD><TD > examples/intel</TD><TD > -</TD><TD > -</TD></TR>
@@ -333,6 +334,24 @@ libraries.
 <P>The person who created this package is Christian Trott at the
 University of Technology Ilmenau, Germany (christian.trott at
 tu-ilmenau.de).  Contact him directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-DIFFRACTION package 
+</H4>
+<P>This package contains the commands neeed to calculate x-ray and
+electron diffraction intensities based on kinematic diffraction 
+theory.
+</P>
+<P>See these doc pages and their related commands to get started:
+</P>
+<UL><LI><A HREF = "compute_xrd.html">compute xrd</A>
+<LI><A HREF = "compute_saed.html">compute saed</A>
+<LI><A HREF = "fix_saed_vtk.html">fix saed/vtk</A> 
+</UL>
+<P>The person who created this package is Shawn P. Coleman 
+(shawn.p.coleman8.ctr at mail.mil) while at the University of 
+Arkansas.  Contact him directly if you have questions.
 </P>
 <HR>
 

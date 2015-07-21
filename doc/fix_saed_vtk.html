@@ -42,9 +42,9 @@
 </UL>
 <P><B>Examples:</B>
 </P>
-<P>compute 1 all saed 0.0251 Al O Kmax 1.70 Zone 0 0 1 dR_Ewald 0.01 c 0.5 0.5 0.5
-compute 2 all saed 0.0251 Ni Kmax 1.70 Zone 0 0 0 c 0.05 0.05 0.05 manual echo
-</P>
+<PRE>compute 1 all saed 0.0251 Al O Kmax 1.70 Zone 0 0 1 dR_Ewald 0.01 c 0.5 0.5 0.5
+compute 2 all saed 0.0251 Ni Kmax 1.70 Zone 0 0 0 c 0.05 0.05 0.05 manual echo 
+</PRE>
 <PRE>fix saed/vtk 1 1 1 c_1 file Al2O3_001.saed
 fix saed/vtk 1 1 1 c_2 file Ni_000.saed 
 </PRE>
@@ -69,11 +69,11 @@ specified values may represent calculations performed by saed computes
 which store their own "group" definitions.
 </P>
 <P>Fix saed/vtk is designed to work only with <A HREF = "compute_saed.txt">compute_saed</A> 
-values.
+values, e.g.
 </P>
-<P>compute 3 top saed 0.0251 Al O 
-fix saed/vtk 1 1 1 c_3 file Al2O3_001.saed
-</P>
+<PRE>compute 3 top saed 0.0251 Al O 
+fix saed/vtk 1 1 1 c_3 file Al2O3_001.saed 
+</PRE>
 <HR>
 
 <P>The <I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> arguments specify on what

@@ -118,6 +118,7 @@ USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpm
 USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
 USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_accelerate_cuda.html, USER/cuda, -, lib/cuda
+USER-DIFFRACTION, virutal x-ray and electron diffraction, Shawn Coleman (ARL),"compute xrd"_compute_xrd.html, USER/diffraction, -, -
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferrand), "compute fep"_compute_fep.html, USER/fep, -, -
 USER-INTEL, Vectorized CPU and Intel(R) coprocessor styles, W. Michael Brown (Intel), "Section accelerate"_accelerate_intel.html, examples/intel, -, -
@@ -320,6 +321,24 @@ libraries.
 The person who created this package is Christian Trott at the
 University of Technology Ilmenau, Germany (christian.trott at
 tu-ilmenau.de).  Contact him directly if you have questions.
+
+:line
+
+USER-DIFFRACTION package :h4
+
+This package contains the commands neeed to calculate x-ray and
+electron diffraction intensities based on kinematic diffraction 
+theory.
+
+See these doc pages and their related commands to get started:
+
+"compute xrd"_compute_xrd.html
+"compute saed"_compute_saed.html
+"fix saed/vtk"_fix_saed_vtk.html :ul
+
+The person who created this package is Shawn P. Coleman 
+(shawn.p.coleman8.ctr at mail.mil) while at the University of 
+Arkansas.  Contact him directly if you have questions.
 
 :line
 

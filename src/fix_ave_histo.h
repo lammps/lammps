@@ -44,7 +44,7 @@ class FixAveHisto : public Fix {
   char **ids;
   FILE *fp;
   double lo,hi,binsize,bininv;
-  int kind,beyond,overwrite;
+  int kind,beyond,overwrite,weights;
   long filepos;
 
   double stats[4],stats_total[4],stats_all[4];
@@ -65,6 +65,9 @@ class FixAveHisto : public Fix {
   void bin_one(double);
   void bin_vector(int, double *, int);
   void bin_atoms(double *, int);
+  void bin_one_weights(double, double);
+  void bin_vector_weights(int, double *, int, double *, int);
+  void bin_atoms_weights(double *, int, double *, int);  
   void options(int, char **);
   void allocate_values(int);
   bigint nextvalid();

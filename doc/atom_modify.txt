@@ -93,7 +93,7 @@ small fraction of all the atoms, and there are other operations LAMMPS
 is performing that will be sped-up significantly by being able to loop
 over the smaller set of atoms.  Otherwise the reordering required by
 this option will be a net slow-down.  The "neigh_modify
-include"_neigh_modify.html and "communicate group"_communicate.html
+include"_neigh_modify.html and "comm_modify group"_comm_modify.html
 commands are two examples of commands that require this setting to
 work efficiently.  Several "fixes"_fix.html, most notably time
 integration fixes like "fix nve"_fix_nve.html, also take advantage of

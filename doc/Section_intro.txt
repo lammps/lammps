@@ -252,6 +252,7 @@ molecular dynamics options:
 "generalized aspherical particles"_body.html
 "stochastic rotation dynamics (SRD)"_fix_srd.html
 "real-time visualization and interactive MD"_fix_imd.html
+calculate "virtual diffraction patterns"_compute_xrd.html
 "atom-to-continuum coupling"_fix_atc.html with finite elements
 coupled rigid body integration via the "POEMS"_fix_poems.html library
 "QM/MM coupling"_fix_qmmm.html

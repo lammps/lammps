@@ -55,9 +55,9 @@ other type pairs have a much shorter cutoff.  For style {multi} the
 bin size is set to 1/2 of the shortest cutoff distance and multiple
 sets of bins are defined to search over for different atom types.
 This imposes some extra setup overhead, but the searches themselves
-may be much faster for the short-cutoff cases.  See the "communicate
-multi"_communicate.html command for a communication option option that
-may also be beneficial for simulations of this kind.
+may be much faster for the short-cutoff cases.  See the "comm_modify
+mode multi"_comm_modify.html command for a communication option option
+that may also be beneficial for simulations of this kind.
 
 The "neigh_modify"_neigh_modify.html command has additional options
 that control how often neighbor lists are built and which pairs are
@@ -73,7 +73,7 @@ section"_Section_start.html#start_8 for details.
 [Related commands:]
 
 "neigh_modify"_neigh_modify.html, "units"_units.html,
-"communicate"_communicate.html
+"comm_modify"_cmom_modify.html
 
 [Default:]
 

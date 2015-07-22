@@ -151,7 +151,11 @@ All array values calculated by this compute are "intensive".
 
 [Restrictions:] 
 
-The compute_saed command does not work for triclinic cells. 
+This command is part of the USER-DIFFRACTION package.  It is only
+enabled if LAMMPS was built with that package. See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+This command does not work for triclinic cells.
 
 [Related commands:] 
 

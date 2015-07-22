@@ -782,6 +782,7 @@ std::istream & colvarmodule::read_restart(std::istream &is)
       }
     }
     is.clear();
+    parse->clear_keyword_registry();
   }
 
   // colvars restart

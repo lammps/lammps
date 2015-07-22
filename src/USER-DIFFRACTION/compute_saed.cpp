@@ -22,6 +22,7 @@
 #include "compute_saed.h"
 #include "compute_saed_consts.h"
 #include "atom.h"
+#include "comm.h"
 #include "update.h"
 #include "domain.h"
 #include "group.h"
@@ -31,16 +32,8 @@
 #include "stdio.h"
 #include "string.h"
 
-#include <iostream>
-
-#ifdef _OPENMP
-#include "omp.h"
-#include "comm.h"
-#endif
-
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace std;
 
 static const char cite_compute_saed_c[] =
   "compute_saed command:\n\n"
@@ -60,12 +53,12 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
 {
   if (lmp->citeme) lmp->citeme->add(cite_compute_saed_c);
 
-  MPI_Comm_rank(world,&me);
   int ntypes = atom->ntypes;
   int natoms = group->count(igroup);
   int dimension = domain->dimension;
   int *periodicity = domain->periodicity;
   int triclinic = domain->triclinic;
+  me = comm->me;
 
   // Checking errors specific to the compute
   if (dimension == 2) 
@@ -409,12 +402,10 @@ void ComputeSAED::compute_vector()
   if (Smax > 2)  offset = 10;     
 
   // Setting up OMP
-  int nthreads = 1;
-#ifdef _OPENMP
-  nthreads = comm->nthreads;
+#if defined(_OPENMP)
   if (me == 0 && echo) {
     if (screen)
-      fprintf(screen," using %d OMP threads",nthreads);
+      fprintf(screen," using %d OMP threads\n",comm->nthreads);
   }
 #endif
 
@@ -426,20 +417,23 @@ void ComputeSAED::compute_vector()
   int m = 0;
   double frac = 0.1;
 
-#pragma omp parallel num_threads(nthreads)
+#if defined(_OPENMP)
+#pragma omp parallel default(none) shared(offset,ASFSAED,typelocal,xlocal,Fvec,m,frac)
+#endif
   {
     double *f = new double[ntypes];    // atomic structure factor by type
     int typei = 0;
     double Fatom1 = 0.0;               // structure factor per atom
     double Fatom2 = 0.0;               // structure factor per atom (imaginary)
-    double S = 0.0;                    // sin(theta)/lambda
     double K[3];
     double dinv2 = 0.0;
     double dinv  = 0.0;
     double SinTheta_lambda = 0.0; 
     double inners = 0.0;
 
+#if defined(_OPENMP)
 #pragma omp for
+#endif
     for (int n = 0; n < nRows; n++) {
       int i = store_tmp[3*n+0];
       int j = store_tmp[3*n+1];
@@ -479,7 +473,10 @@ void ComputeSAED::compute_vector()
 
       // reporting progress of calculation
       if ( echo ) {
+#if defined(_OPENMP)
         #pragma omp critical
+      // TODO use VMD timer style incrementer
+#endif
         {
           if ( m == round(frac * nRows) ) {
             if (me == 0 && screen) fprintf(screen," %0.0f%% -",frac*100);

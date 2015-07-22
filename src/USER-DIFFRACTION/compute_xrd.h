@@ -20,7 +20,6 @@ ComputeStyle(xrd,ComputeXRD)
 #ifndef LMP_COMPUTE_XRD_H
 #define LMP_COMPUTE_XRD_H
 
-#include "stdio.h"
 #include "compute.h"
 
 namespace LAMMPS_NS {

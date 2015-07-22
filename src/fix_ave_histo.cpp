@@ -874,7 +874,7 @@ void FixAveHisto::end_of_step()
 
       } else if (kind == GLOBAL && mode == VECTOR) {
       
-        error->all(FLERR,"Illegal fix ave/spatial command");
+        error->all(FLERR,"Illegal fix ave/histo command");
       
         if (j == 0) {
           int n = fix->size_vector;
@@ -910,7 +910,7 @@ void FixAveHisto::end_of_step()
       if (atom->nlocal > maxatom) {
         memory->destroy(vector);
         maxatom = atom->nmax;
-        memory->create(vector,maxatom,"ave/histo/weights:vector");
+        memory->create(vector,maxatom,"ave/histo:vector");
       }
       input->variable->compute_atom(m,igroup,vector,1,0);
       values = vector;
@@ -1397,7 +1397,7 @@ void FixAveHisto::options(int narg, char **arg)
           (strncmp(arg[iarg],"f_",2) == 0) ||
           (strncmp(arg[iarg],"v_",2) == 0)) {
         iarg++;        
-      } error->all(FLERR,"Illegal fix ave/histo command");
+      } else error->all(FLERR,"Illegal fix ave/histo command");
       nvalues = 2;   
       weights = VALUE;
     } else error->all(FLERR,"Illegal fix ave/histo command");

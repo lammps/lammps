@@ -489,6 +489,7 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "ave/chunk"_fix_ave_chunk.html,
 "ave/correlate"_fix_ave_correlate.html,
 "ave/histo"_fix_ave_histo.html,
+"ave/histo/weight"_fix_ave_histo.html,
 "ave/spatial"_fix_ave_spatial.html,
 "ave/time"_fix_ave_time.html,
 "balance"_fix_balance.html,

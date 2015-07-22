@@ -7,13 +7,14 @@
 :line
 
 fix ave/histo command :h3
+fix ave/histo/weight command :h3
 
 [Syntax:]
 
-fix ID group-ID ave/histo Nevery Nrepeat Nfreq lo hi Nbin value1 value2 ... keyword args ... :pre
+fix ID group-ID style Nevery Nrepeat Nfreq lo hi Nbin value1 value2 ... keyword args ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-ave/histo = style name of this fix command :l
+style = {ave/histo} or {ave/histo/weight} = style name of this fix command :l
 Nevery = use input values every this many timesteps :l
 Nrepeat = # of times to use input values for calculating histogram :l
 Nfreq = calculate histogram every this many timesteps :l
@@ -29,7 +30,7 @@ value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_nam
   v_name = value(s) calculated by an equal-style or atom-style variable with name :pre
 
 zero or more keyword/arg pairs may be appended :l
-keyword = {mode} or {file} or {ave} or {start} or {beyond} or {overwrite} or {title1} or {title2} or {title3} or {weights} :l
+keyword = {mode} or {file} or {ave} or {start} or {beyond} or {overwrite} or {title1} or {title2} or {title3} :l
   {mode} arg = {scalar} or {vector}
     scalar = all input values are scalars
     vector = all input values are vectors
@@ -51,14 +52,7 @@ keyword = {mode} or {file} or {ave} or {start} or {beyond} or {overwrite} or {ti
   {title2} arg = string
     string = text to print as 2nd line of output file
   {title3} arg = string
-    string = text to print as 3rd line of output file, only for vector mode 
-  {weights} arg =  x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name 
-    x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
-    c_ID = scalar or vector calculated by a compute with ID
-    c_ID\[I\] = Ith component of vector or Ith column of array calculated by a compute with ID
-    f_ID = scalar or vector calculated by a fix with ID
-    f_ID\[I\] = Ith component of vector or Ith column of array calculated by a fix with ID
-    v_name = value(s) calculated by an equal-style or atom-style variable with name :pre    
+    string = text to print as 3rd line of output file, only for vector mode :pre
 :ule
 
 [Examples:]
@@ -66,7 +60,7 @@ keyword = {mode} or {file} or {ave} or {start} or {beyond} or {overwrite} or {ti
 fix 1 all ave/histo 100 5 1000 0.5 1.5 50 c_myTemp file temp.histo ave running
 fix 1 all ave/histo 100 5 1000 -5 5 100 c_thermo_press\[2\] c_thermo_press\[3\] title1 "My output values"
 fix 1 all ave/histo 1 100 1000 -2.0 2.0 18 vx vy vz mode vector ave running beyond extra 
-fix 1 all ave/histo 1 1 1 10 100 2000 c_XRD[1] mode vector weights c_XRD[2] :pre
+fix 1 all ave/histo/weight 1 1 1 10 100 2000 c_XRD[1] c_XRD[2] :pre
 
 [Description:]
 
@@ -74,7 +68,9 @@ Use one or more values as inputs every few timesteps, histogram them,
 and average the histogram over longer timescales.  The resulting
 histogram can be used by other "output
 commands"_Section_howto.html#howto_15, and can also be written to a
-file.
+file.  The fix ave/histo/weight command has identical syntax to fix
+ave/histo, except that exactly two values must be specified.  See
+details below.
 
 The group specified with this command is ignored for global and local
 input values.  For per-atom input values, only atoms in the group
@@ -99,6 +95,10 @@ per-atom vector values.  See the doc page for individual "compute" and
 The input values must either be all scalars or all vectors (or
 arrays), depending on the setting of the {mode} keyword.
 
+Note that the output of this command is a single histogram for all
+input values combined together, not one histogram per input value.
+See below for details on the format of the output of this fix.
+
 If {mode} = vector, then the input values may either be vectors or
 arrays.  If a global array is listed, then it is the same as if the
 individual columns of the array had been listed one by one.
@@ -110,9 +110,14 @@ compute myCOM all com/chunk
 fix 1 all ave/histo 100 1 100 c_myCOM file tmp1.com mode vector
 fix 2 all ave/histo 100 1 100 c_myCOM\[1\] c_myCOM\[2\] c_myCOM\[3\] file tmp2.com mode vector :pre
 
-The output of this command is a single histogram for all input values
-combined together, not one histogram per input value.  See below for
-details on the format of the output of this fix.
+If the fix ave/histo/weight command is used, exactly two values must
+be specified.  If the values are vectors, they must be the same
+length.  The first value (a scalar or vector) is what is histogrammed
+into bins, in the same manner the fix ave/histo command operates.  The
+second value (a scalar or vector) is used as a "weight".  This means
+that instead of each value tallying a "1" to its bin, the
+corresponding weight is tallied.  E.g. the Nth entry in the first
+vector tallies the Nth entry (weight) in the second vector.
 
 :line
 
@@ -279,15 +284,6 @@ In the first line, ID is replaced with the fix-ID.  The second line
 describes the six values that are printed at the first of each section
 of output.  The third describes the 4 values printed for each bin in
 the histogram.
-
-If the {weights} keyword is specified, the fix will compute a
-"weighted" histogram using the specified value and weights argument.
-As usual, each value will be tallied to a bin.  However, instead of
-each value tallying a "1" to its bin, each value tallies the
-corresponding weight to its bin, e.g. the Nth value tallies the Nth
-entry in the weight vector.  Note that if the {weights} keyword is
-used, only a single value can be specified.  Also the length of the
-value and weight vectors must be equal.
 
 :line
 

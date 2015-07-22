@@ -32,10 +32,6 @@
 #include "math.h"
 #include "domain.h"
 
-#include <stdio.h>
-#include <iostream>
-
-using namespace std;
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -72,9 +68,8 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
 
   options(narg,arg);
   
-  which = NULL;
+  which = 0;
   ids = NULL;
-  int maxvalues = nvalues;
 
   nvalues = 0;
 
@@ -126,8 +121,6 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
       if (compute->extvector != 0) 
         error->all(FLERR,"Illegal fix saed/vtk command"); 
         
-      int length = modify->compute[icompute]->size_vector;
- 
       nrows = compute->size_vector;
       nvalues++;
       iarg++;

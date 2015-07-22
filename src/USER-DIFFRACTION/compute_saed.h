@@ -20,7 +20,6 @@ ComputeStyle(saed,ComputeSAED)
 #ifndef LMP_COMPUTE_SAED_H
 #define LMP_COMPUTE_SAED_H
 
-#include "stdio.h"
 #include "compute.h"
 
 namespace LAMMPS_NS {

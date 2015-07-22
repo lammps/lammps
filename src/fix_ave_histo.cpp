@@ -454,7 +454,6 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
          int icompute = modify->find_compute(ids[i]);
          size[i] = modify->compute[icompute]->size_array_rows;
        } else if (which[i] == COMPUTE && kind == PERATOM) {
-         int icompute = modify->find_compute(ids[i]);
          size[i] = atom->nmax;
        } else if (which[i] == COMPUTE && kind == LOCAL) {
          int icompute = modify->find_compute(ids[i]);    
@@ -466,7 +465,6 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
          int ifix = modify->find_fix(ids[i]);      
          size[i]= modify->fix[ifix]->size_array_rows;
        } else if (which[i] == FIX && kind == PERATOM) {
-         int ifix = modify->find_fix(ids[i]);   
          size[i] = atom->nmax;
        } else if (which[i] == FIX && kind == LOCAL) {
          int ifix = modify->find_fix(ids[i]);

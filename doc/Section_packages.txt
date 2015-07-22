@@ -128,6 +128,7 @@ USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfi
 USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_accelerate_omp.html, -, -, -
 USER-PHONON, phonon dynamical matrix, Ling-Ti Kong (Shanghai Jiao Tong U), "fix phonon"_fix_phonon.html, USER/phonon, -, -
 USER-QMMM, QM/MM coupling, Axel Kohlmeyer (Temple U), "fix qmmm"_fix_qmmm.html, USER/qmmm, -, lib/qmmm
+USER-QTB, quantum nuclear effects, Yuan Shen (Stanford), "fix qtb"_fix_qtb.html "fix_qbmsst"_fix_qbmsst.html, qtb, -, -
 USER-QUIP, QM/MM coupling, Albert Bartok-Partay (U Cambridge), "fix quip"_fix_quip.html, USER/quip, -, lib/quip
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
 USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_USER/sph/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
@@ -532,6 +533,33 @@ as well as the lib/qmmm/README file.
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.
+
+:line
+
+USER-QTB package :h4
+
+This package provides a self-consistent quantum treatment of the
+vibrational modes in a classical molecular dynamics simulation.  By
+coupling the MD simulation to a colored thermostat, it introduces zero
+point energy into the system, alter the energy power spectrum and the
+heat capacity towards their quantum nature. This package could be of
+interest if one wants to model systems at temperatures lower than
+their classical limits or when temperatures ramp up across the
+classical limits in the simulation.
+
+See these two doc pages to get started:
+
+"fix qtb"_fix_qtb.html provides quantum nulcear correction through a
+colored thermostat and can be used with other time integration schemes
+like "fix nve"_fix_nve.html or "fix nph"_fix_nh.html.
+
+"fix qbmsst"_fix_qbmsst.html enables quantum nuclear correction of a
+multi-scale shock technique simulation by coupling the quantum thermal
+bath with the shocked system.
+
+The person who created this package is Yuan Shen (sy0302 at
+stanford.edu) at Stanford University.  Contact him directly if you
+have questions.
 
 :line
 

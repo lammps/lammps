@@ -23,6 +23,7 @@
 #include "compute_xrd.h"
 #include "compute_xrd_consts.h"
 #include "atom.h"
+#include "comm.h"
 #include "update.h"
 #include "domain.h"
 #include "group.h"
@@ -32,16 +33,8 @@
 #include "stdio.h"
 #include "string.h"
 
-#include <iostream>
-
-#ifdef _OPENMP
-#include "omp.h"
-#include "comm.h"
-#endif
-
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace std;
 
 static const char cite_compute_xrd_c[] =
   "compute_xrd command:\n\n"
@@ -61,12 +54,12 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
 {
   if (lmp->citeme) lmp->citeme->add(cite_compute_xrd_c);
 
-  MPI_Comm_rank(world,&me);
   int ntypes = atom->ntypes;
   int natoms = group->count(igroup);
   int dimension = domain->dimension;
   int *periodicity = domain->periodicity;
   int triclinic = domain->triclinic;
+  me = comm->me;
 
   // Checking errors
   if (dimension == 2) 
@@ -104,7 +97,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   // Set defaults for optional args
   Min2Theta = 1;
   Max2Theta = 179;  
-  radflag ==1;
+  radflag = 1;
   c[0] = 1; c[1] = 1; c[2] = 1;
   LP = 1;
   manual = false;
@@ -224,7 +217,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
         dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
         if  (4 >= dinv2 * lambda * lambda ) {
        	  ang = asin(lambda * sqrt(dinv2) * 0.5);
-          if (ang <= Max2Theta & ang >= Min2Theta) {
+          if ((ang <= Max2Theta) && (ang >= Min2Theta)) {
           nRows++;
 	        }
         }
@@ -284,7 +277,7 @@ void ComputeXRD::init()
     dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
     if  (4 >= dinv2 * lambda * lambda ) {
        ang = asin(lambda * sqrt(dinv2) * 0.5);
-       if (ang <= Max2Theta & ang >= Min2Theta) {
+       if ((ang <= Max2Theta) && (ang >= Min2Theta)) {
           store_tmp[3*n] = k;
           store_tmp[3*n+1] = j;
           store_tmp[3*n+2] = i;
@@ -342,27 +335,29 @@ void ComputeXRD::compute_array()
   }    
 
 // Setting up OMP
-  int nthreads = 1;
-
-#ifdef _OPENMP
-  nthreads = comm->nthreads;
+#if defined(_OPENMP)
   if (me == 0 && echo) {
     if (screen)
-      fprintf(screen," using %d OMP threads",nthreads);
+      fprintf(screen," using %d OMP threads\n",comm->nthreads);
   }
 #endif
 
   if (me == 0 && echo) {
     if (screen)
       fprintf(screen,"\n");
+      if (LP == 1)
+        fprintf(screen,"Applying Lorentz-Polarization Factor During XRD Calculation 2\n");
   }
   int m = 0;
   double frac = 0.1;
 
-#pragma omp parallel num_threads(nthreads)
+#if defined(_OPENMP)
+#pragma omp parallel default(none) shared(typelocal,xlocal,Fvec,m,frac,ASFXRD)
+#endif
   {
     double *f = new double[ntypes];    // atomic structure factor by type
-    int typei = 0;
+    int n,typei = 0;
+
     double Fatom1 = 0.0;               // structure factor per atom (real)
     double Fatom2 = 0.0;               // structure factor per atom (imaginary)
 
@@ -380,18 +375,10 @@ void ComputeXRD::compute_array()
 
     if (LP == 1) {
 
-    if (me == 0 && echo && screen) {
-#ifdef _OPENMP
-      if (omp_get_thread_num() == 0)
-        fprintf(screen,"Applying Lorentz-Polarization Factor During XRD Calculation 2\n");
-#endif
-#ifndef _OPENMP
-      fprintf(screen,"Applying Lorentz-Polarization Factor During XRD Calculation 2\n");
-#endif
-    }
-
+#if defined(_OPENMP)
 #pragma omp for
-      for (int n = 0; n < size_array_rows; n++) {
+#endif
+      for (n = 0; n < size_array_rows; n++) {
         int k = store_tmp[3*n];
         int j = store_tmp[3*n+1];
         int i = store_tmp[3*n+2];
@@ -434,7 +421,9 @@ void ComputeXRD::compute_array()
 
         // reporting progress of calculation
         if ( echo ) {
+#if defined(_OPENMP)
           #pragma omp critical
+#endif
           {
             if ( m == round(frac * size_array_rows) ) {
               if (me == 0 && screen) fprintf(screen," %0.0f%% -",frac*100);
@@ -446,8 +435,10 @@ void ComputeXRD::compute_array()
       } // End of pragma omp for region
 
     } else {
+#if defined(_OPENMP)
 #pragma omp for
-      for (int n = 0; n < size_array_rows; n++) {
+#endif
+      for (n = 0; n < size_array_rows; n++) {
         int k = store_tmp[3*n];
         int j = store_tmp[3*n+1];
         int i = store_tmp[3*n+2];
@@ -484,7 +475,9 @@ void ComputeXRD::compute_array()
 
         // reporting progress of calculation
         if ( echo ) {
+#if defined(_OPENMP)
           #pragma omp critical
+#endif
           {
             if ( m == round(frac * size_array_rows) ) {
               if (me == 0 && screen) fprintf(screen," %0.0f%% -",frac*100 );

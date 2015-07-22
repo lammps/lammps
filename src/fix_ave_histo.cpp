@@ -34,7 +34,6 @@ enum{ONE,RUNNING};
 enum{SCALAR,VECTOR,WINDOW};
 enum{GLOBAL,PERATOM,LOCAL};
 enum{IGNORE,END,EXTRA};
-enum{SINGLE,VALUE};
 
 #define INVOKED_SCALAR 1
 #define INVOKED_VECTOR 2
@@ -43,7 +42,6 @@ enum{SINGLE,VALUE};
 #define INVOKED_LOCAL 16
 
 #define BIG 1.0e20
-
 /* ---------------------------------------------------------------------- */
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
@@ -88,8 +86,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         strncmp(arg[iarg],"c_",2) == 0 ||
         strncmp(arg[iarg],"f_",2) == 0 ||
         strncmp(arg[iarg],"v_",2) == 0) {
-        nvalues++;
-        iarg++;
+      nvalues++;
+      iarg++;
     } else break;
   }
 
@@ -99,13 +97,13 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   // if mode = VECTOR and value is a global array:
   //   expand it as if columns listed one by one
   //   adjust nvalues accordingly via maxvalues
-  
+
   which = argindex = value2index = NULL;
   ids = NULL;
   int maxvalues = nvalues;
   allocate_values(maxvalues);
-
   nvalues = 0;
+
   iarg = 9;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"x") == 0) {
@@ -191,8 +189,6 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
       if (mode == VECTOR && which[nvalues] == COMPUTE &&
           argindex[nvalues] == 0) {
-        if (weights == VALUE) 
-          error->all(FLERR,"Illegal fix ave/histo command");
         int icompute = modify->find_compute(ids[nvalues]);
         if (icompute < 0)
           error->all(FLERR,"Compute ID for fix ave/histo does not exist");
@@ -213,8 +209,6 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
       } else if (mode == VECTOR && which[nvalues] == FIX &&
                  argindex[nvalues] == 0) {
-        if (weights == VALUE) 
-          error->all(FLERR,"Illegal fix ave/histo command");                 
         int ifix = modify->find_fix(ids[nvalues]);
         if (ifix < 0)
           error->all(FLERR,"Fix ID for fix ave/histo does not exist");
@@ -233,11 +227,12 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
           nvalues += ncols-1;
         }
       }
+
       nvalues++;
       iarg++;
-    } else iarg++;
+    } else break;
   }
-  
+
   // setup and error check
   // kind = inputs are all global, or all per-atom, or all local
   // for fix inputs, check that fix frequency is acceptable
@@ -437,48 +432,6 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Variable name for fix ave/histo does not exist");
     }
   }
-  
-  // weighted histogram number of rows must match weights
-
-  int size[2];
-  if (weights == VALUE) {
-     // NOTE: shouldn't this be one?
-     if (nvalues != 2) error->all(FLERR,"Illegal fix ave/histo command");     
-     for (int i = 0; i < nvalues; i++) {  
-       if (which[i] == X || which[i] == V || which[i] == F) {
-         size[i] = atom->nmax;
-       } else if (which[i] == COMPUTE && kind == GLOBAL && mode == SCALAR) {
-         int icompute = modify->find_compute(ids[i]);
-         size[i] = modify->compute[icompute]->size_vector;
-       } else if (which[i] == COMPUTE && kind == GLOBAL && mode == VECTOR) {
-         int icompute = modify->find_compute(ids[i]);
-         size[i] = modify->compute[icompute]->size_array_rows;
-       } else if (which[i] == COMPUTE && kind == PERATOM) {
-         int icompute = modify->find_compute(ids[i]);
-         size[i] = atom->nmax;
-       } else if (which[i] == COMPUTE && kind == LOCAL) {
-         int icompute = modify->find_compute(ids[i]);    
-         size[i] = modify->compute[icompute]->size_local_rows;
-       } else if (which[i] == FIX && kind == GLOBAL && mode == SCALAR) {
-         int ifix = modify->find_fix(ids[i]);   
-         size[i] = modify->fix[ifix]->size_vector;
-       } else if (which[i] == FIX && kind == GLOBAL && mode == VECTOR) {
-         int ifix = modify->find_fix(ids[i]);      
-         size[i]= modify->fix[ifix]->size_array_rows;
-       } else if (which[i] == FIX && kind == PERATOM) {
-         int ifix = modify->find_fix(ids[i]);   
-         size[i] = atom->nmax;
-       } else if (which[i] == FIX && kind == LOCAL) {
-         int ifix = modify->find_fix(ids[i]);
-         size[i] = modify->fix[ifix]->size_local_rows;
-       } else if (which[i] == VARIABLE && kind == PERATOM) {
-         size[i] = atom->nmax;
-       }
-     } 
-     if (size[0] != size[1]) 
-       error->all(FLERR,"Fix ave/histo value and weight vector "
-                  "lengths do not match");
-  }
 
   // print file comment lines
 
@@ -658,299 +611,37 @@ void FixAveHisto::end_of_step()
 
   modify->clearstep_compute();
 
-  if (weights == SINGLE) {
-    for (i = 0; i < nvalues; i++) {
-      m = value2index[i];
-      j = argindex[i];
-
-      // atom attributes
-
-      if (which[i] == X)
-        bin_atoms(&atom->x[0][j],3);
-      else if (which[i] == V)
-        bin_atoms(&atom->v[0][j],3);
-      else if (which[i] == F)
-        bin_atoms(&atom->f[0][j],3);
-
-      // invoke compute if not previously invoked
-
-      if (which[i] == COMPUTE) {
-        Compute *compute = modify->compute[m];
-
-        if (kind == GLOBAL && mode == SCALAR) {
-          if (j == 0) {
-            if (!(compute->invoked_flag & INVOKED_SCALAR)) {
-              compute->compute_scalar();
-              compute->invoked_flag |= INVOKED_SCALAR;
-            }
-            bin_one(compute->scalar);
-          } else {
-            if (!(compute->invoked_flag & INVOKED_VECTOR)) {
-              compute->compute_vector();
-              compute->invoked_flag |= INVOKED_VECTOR;
-            }
-            bin_one(compute->vector[j-1]);
-          }
-        } else if (kind == GLOBAL && mode == VECTOR) {
-          if (j == 0) {
-            if (!(compute->invoked_flag & INVOKED_VECTOR)) {
-              compute->compute_vector();
-              compute->invoked_flag |= INVOKED_VECTOR;
-            }
-            bin_vector(compute->size_vector,compute->vector,1);
-          } else {
-            if (!(compute->invoked_flag & INVOKED_ARRAY)) {
-              compute->compute_array();
-              compute->invoked_flag |= INVOKED_ARRAY;
-            }
-            if (compute->array)
-              bin_vector(compute->size_array_rows,&compute->array[0][j-1],
-                         compute->size_array_cols);
-          }
-
-        } else if (kind == PERATOM) {
-          if (!(compute->invoked_flag & INVOKED_PERATOM)) {
-            compute->compute_peratom();
-            compute->invoked_flag |= INVOKED_PERATOM;
-          }
-          if (j == 0)
-            bin_atoms(compute->vector_atom,1);
-          else if (compute->array_atom)
-            bin_atoms(&compute->array_atom[0][j-1],compute->size_peratom_cols);
-
-        } else if (kind == LOCAL) {
-          if (!(compute->invoked_flag & INVOKED_LOCAL)) {
-            compute->compute_local();
-            compute->invoked_flag |= INVOKED_LOCAL;
-          }
-          if (j == 0)
-            bin_vector(compute->size_local_rows,compute->vector_local,1);
-          else if (compute->array_local)
-            bin_vector(compute->size_local_rows,&compute->array_local[0][j-1],
-                       compute->size_local_cols);
-        }
-
-        // access fix fields, guaranteed to be ready
-
-      } else if (which[i] == FIX) {
-
-        Fix *fix = modify->fix[m];
-
-        if (kind == GLOBAL && mode == SCALAR) {
-          if (j == 0) bin_one(fix->compute_scalar());
-          else bin_one(fix->compute_vector(j-1));
-
-        } else if (kind == GLOBAL && mode == VECTOR) {
-          if (j == 0) {
-            int n = fix->size_vector;
-            for (i = 0; i < n; i++) bin_one(fix->compute_vector(i));
-          } else {
-            int n = fix->size_vector;
-            for (i = 0; i < n; i++) bin_one(fix->compute_array(i,j-1));
-          }
-
-        } else if (kind == PERATOM) {
-          if (j == 0) bin_atoms(fix->vector_atom,1);
-          else if (fix->array_atom)
-            bin_atoms(fix->array_atom[j-1],fix->size_peratom_cols);
-
-        } else if (kind == LOCAL) {
-          if (j == 0) bin_vector(fix->size_local_rows,fix->vector_local,1);
-          else if (fix->array_local)
-            bin_vector(fix->size_local_rows,&fix->array_local[0][j-1],
-                       fix->size_local_cols);
-        }
-
-        // evaluate equal-style variable
-
-      } else if (which[i] == VARIABLE && kind == GLOBAL) {
-        bin_one(input->variable->compute_equal(m));
-
-      } else if (which[i] == VARIABLE && kind == PERATOM) {
-        if (atom->nlocal > maxatom) {
-          memory->destroy(vector);
-          maxatom = atom->nmax;
-          memory->create(vector,maxatom,"ave/histo:vector");
-        }
-        input->variable->compute_atom(m,igroup,vector,1,0);
-        bin_atoms(vector,1);
-      }
-    }
-  } else if (weights == VALUE) {
-
-    if (nvalues != 2) error->all(FLERR,"Illegal fix ave/histo command");
-    
-    // gather weighting factors
-    
-    double value = 0.0;
-    double *values = NULL;
-    int stride = 0;
-    int i = 1;
-
-    m = value2index[i];
-    j = argindex[i];
-
-    // atom attributes
-
-    if (which[i] == X) {
-      values = &atom->x[0][j];
-      stride = 3;
-    } else if (which[i] == V){
-      values = &atom->v[0][j];
-      stride = 3;
-      bin_atoms(&atom->v[0][j],3);
-    } else if (which[i] == F) {
-      values = &atom->f[0][j];
-      stride = 3;
-    }
-    // invoke compute if not previously invoked
-    
-    if (which[i] == COMPUTE) {
-      Compute *compute = modify->compute[m];
-      if (kind == GLOBAL && mode == SCALAR) {
-        if (j == 0) {
-          if (!(compute->invoked_flag & INVOKED_SCALAR)) {
-            compute->compute_scalar();
-            compute->invoked_flag |= INVOKED_SCALAR;
-          }
-          value = compute->scalar;
-          } else {
-          if (!(compute->invoked_flag & INVOKED_VECTOR)) {
-            compute->compute_vector();
-            compute->invoked_flag |= INVOKED_VECTOR;
-          }
-          value = compute->vector[j-1];
-        }
-      } else if (kind == GLOBAL && mode == VECTOR) {
-        if (j == 0) {
-          if (!(compute->invoked_flag & INVOKED_VECTOR)) {
-            compute->compute_vector();
-            compute->invoked_flag |= INVOKED_VECTOR;
-          }
-          values = compute->vector;
-          stride = 1;
-        } else {
-          if (!(compute->invoked_flag & INVOKED_ARRAY)) {
-            compute->compute_array();
-            compute->invoked_flag |= INVOKED_ARRAY;
-          }
-          if (compute->array)
-            values = &compute->array[0][j-1];
-            stride = compute->size_array_cols;
-        }
-      } else if (kind == PERATOM) {
-        if (!(compute->invoked_flag & INVOKED_PERATOM)) {
-          compute->compute_peratom();
-          compute->invoked_flag |= INVOKED_PERATOM;
-        }
-          if (j == 0) {
-            values = compute->vector_atom;
-            stride = 1;
-          } else if (compute->array_atom) {
-            values = &compute->array_atom[0][j-1];
-            stride = compute->size_peratom_cols;         
-          }
-        } else if (kind == LOCAL) {
-          if (!(compute->invoked_flag & INVOKED_LOCAL)) {
-            compute->compute_local();
-            compute->invoked_flag |= INVOKED_LOCAL;
-          }
-          if (j == 0) {
-            values = compute->vector_local;
-            stride = 1;
-          } else if (compute->array_local) {
-            values = &compute->array_local[0][j-1];
-            stride = compute->size_local_cols;
-          }
-        }
-
-        // access fix fields, guaranteed to be ready
-
-    } else if (which[i] == FIX) {
-   
-      Fix *fix = modify->fix[m];
-  
-        if (kind == GLOBAL && mode == SCALAR) {
-        if (j == 0) value = fix->compute_scalar();
-        else value = fix->compute_vector(j-1);
-
-      } else if (kind == GLOBAL && mode == VECTOR) {
-      
-        error->all(FLERR,"Illegal fix ave/spatial command");
-      
-        if (j == 0) {
-          int n = fix->size_vector;
-          for (i = 0; i < n; i++) values[n] = fix->compute_vector(i);
-        } else {
-          int n = fix->size_vector;
-          for (i = 0; i < n; i++) values[n] = fix->compute_array(i,j-1);
-        }
-
-      } else if (kind == PERATOM) {
-        if (j == 0) {
-          values = fix->vector_atom;
-          stride = 1;
-        } else if (fix->array_atom) {
-          values = fix->array_atom[j-1];
-          stride = fix->size_peratom_cols;
-        }
-      } else if (kind == LOCAL) {
-          if (j == 0) {
-            values = fix->vector_local;
-            stride = 1;
-          } else if (fix->array_local) {
-            values = &fix->array_local[0][j-1];
-            stride = fix->size_local_cols;
-          }  
-      }
-        // evaluate equal-style variable
- 
-    } else if (which[i] == VARIABLE && kind == GLOBAL) {
-      value = input->variable->compute_equal(m);
-  
-    } else if (which[i] == VARIABLE && kind == PERATOM) {
-      if (atom->nlocal > maxatom) {
-        memory->destroy(vector);
-        maxatom = atom->nmax;
-        memory->create(vector,maxatom,"ave/histo/weights:vector");
-      }
-      input->variable->compute_atom(m,igroup,vector,1,0);
-      values = vector;
-      stride = 1;
-    }
-    
-    // now bin values with weights
-
-    i = 0;  
+  for (i = 0; i < nvalues; i++) {
     m = value2index[i];
     j = argindex[i];
 
     // atom attributes
 
     if (which[i] == X)
-      bin_atoms_weights(&atom->x[0][j],3, values, stride);
+      bin_atoms(&atom->x[0][j],3);
     else if (which[i] == V)
-      bin_atoms_weights(&atom->v[0][j],3, values, stride);
+      bin_atoms(&atom->v[0][j],3);
     else if (which[i] == F)
-      bin_atoms_weights(&atom->f[0][j],3, values, stride);
+      bin_atoms(&atom->f[0][j],3);
 
     // invoke compute if not previously invoked
-   
+
     if (which[i] == COMPUTE) {
-     Compute *compute = modify->compute[m];
-     if (kind == GLOBAL && mode == SCALAR) {
+      Compute *compute = modify->compute[m];
+
+      if (kind == GLOBAL && mode == SCALAR) {
         if (j == 0) {
           if (!(compute->invoked_flag & INVOKED_SCALAR)) {
             compute->compute_scalar();
             compute->invoked_flag |= INVOKED_SCALAR;
           }
-          bin_one_weights(compute->scalar,value);
-          } else {
+          bin_one(compute->scalar);
+        } else {
           if (!(compute->invoked_flag & INVOKED_VECTOR)) {
             compute->compute_vector();
             compute->invoked_flag |= INVOKED_VECTOR;
           }
-          bin_one_weights(compute->vector[j-1],value);
+          bin_one(compute->vector[j-1]);
         }
       } else if (kind == GLOBAL && mode == VECTOR) {
         if (j == 0) {
@@ -958,15 +649,15 @@ void FixAveHisto::end_of_step()
             compute->compute_vector();
             compute->invoked_flag |= INVOKED_VECTOR;
           }
-          bin_vector_weights(compute->size_vector,compute->vector,1,values,stride);
+          bin_vector(compute->size_vector,compute->vector,1);
         } else {
           if (!(compute->invoked_flag & INVOKED_ARRAY)) {
             compute->compute_array();
             compute->invoked_flag |= INVOKED_ARRAY;
           }
           if (compute->array)
-            bin_vector_weights(compute->size_array_rows,&compute->array[0][j-1],
-                       compute->size_array_cols,values,stride);
+            bin_vector(compute->size_array_rows,&compute->array[0][j-1],
+                       compute->size_array_cols);
         }
 
       } else if (kind == PERATOM) {
@@ -974,70 +665,68 @@ void FixAveHisto::end_of_step()
           compute->compute_peratom();
           compute->invoked_flag |= INVOKED_PERATOM;
         }
-        if (j == 0) 
-          bin_atoms_weights(compute->vector_atom,1,values, stride);
+        if (j == 0)
+          bin_atoms(compute->vector_atom,1);
         else if (compute->array_atom)
-          bin_atoms_weights(&compute->array_atom[0][j-1],compute->size_peratom_cols,values,stride);
- 
+          bin_atoms(&compute->array_atom[0][j-1],compute->size_peratom_cols);
+
       } else if (kind == LOCAL) {
         if (!(compute->invoked_flag & INVOKED_LOCAL)) {
           compute->compute_local();
           compute->invoked_flag |= INVOKED_LOCAL;
         }
         if (j == 0)
-          bin_vector_weights(compute->size_local_rows,compute->vector_local,1,values,stride);
+          bin_vector(compute->size_local_rows,compute->vector_local,1);
         else if (compute->array_local)
-          bin_vector_weights(compute->size_local_rows,&compute->array_local[0][j-1],
-                     compute->size_local_cols,values,stride);
+          bin_vector(compute->size_local_rows,&compute->array_local[0][j-1],
+                     compute->size_local_cols);
       }
 
-    // access fix fields, guaranteed to be ready
-   
+      // access fix fields, guaranteed to be ready
+
     } else if (which[i] == FIX) {
-   
+
       Fix *fix = modify->fix[m];
 
       if (kind == GLOBAL && mode == SCALAR) {
-        if (j == 0) bin_one_weights(fix->compute_scalar(),value);
-        else bin_one_weights(fix->compute_vector(j-1),value);
+        if (j == 0) bin_one(fix->compute_scalar());
+        else bin_one(fix->compute_vector(j-1));
 
-       } else if (kind == GLOBAL && mode == VECTOR) {
+      } else if (kind == GLOBAL && mode == VECTOR) {
         if (j == 0) {
           int n = fix->size_vector;
-          for (i = 0; i < n; i++) bin_one_weights(fix->compute_vector(i),values[i*stride]);
+          for (i = 0; i < n; i++) bin_one(fix->compute_vector(i));
         } else {
           int n = fix->size_vector;
-          for (i = 0; i < n; i++) bin_one_weights(fix->compute_array(i,j-1),values[i*stride]);
+          for (i = 0; i < n; i++) bin_one(fix->compute_array(i,j-1));
         }
 
-       } else if (kind == PERATOM) {
-        if (j == 0) 
-          bin_atoms_weights(fix->vector_atom,1,values,stride);
+      } else if (kind == PERATOM) {
+        if (j == 0) bin_atoms(fix->vector_atom,1);
         else if (fix->array_atom)
-          bin_atoms_weights(fix->array_atom[j-1],fix->size_peratom_cols,values,stride);
+          bin_atoms(fix->array_atom[j-1],fix->size_peratom_cols);
 
- 
       } else if (kind == LOCAL) {
-        if (j == 0) bin_vector_weights(fix->size_local_rows,fix->vector_local,1,values,stride);
+        if (j == 0) bin_vector(fix->size_local_rows,fix->vector_local,1);
         else if (fix->array_local)
-          bin_vector_weights(fix->size_local_rows,&fix->array_local[0][j-1],
-                     fix->size_local_cols,values,stride);
+          bin_vector(fix->size_local_rows,&fix->array_local[0][j-1],
+                     fix->size_local_cols);
       }
 
-       // evaluate equal-style variable
+      // evaluate equal-style variable
 
     } else if (which[i] == VARIABLE && kind == GLOBAL) {
-      bin_one_weights(input->variable->compute_equal(m),value);
+      bin_one(input->variable->compute_equal(m));
 
     } else if (which[i] == VARIABLE && kind == PERATOM) {
       if (atom->nlocal > maxatom) {
         memory->destroy(vector);
         maxatom = atom->nmax;
-        memory->create(vector,maxatom,"ave/histo/weights:vector");
+        memory->create(vector,maxatom,"ave/histo:vector");
       }
       input->variable->compute_atom(m,igroup,vector,1,0);
-      bin_atoms_weights(vector,1,values,stride);
-    } 
+      bin_atoms(vector,1);
+    }
   }
 
   // done if irepeat < nrepeat
@@ -1222,69 +911,6 @@ void FixAveHisto::bin_atoms(double *values, int stride)
 }
 
 /* ----------------------------------------------------------------------
-   bin a single value (with weights)
-------------------------------------------------------------------------- */
-
-void FixAveHisto::bin_one_weights(double value, double value2)
-{
-  stats[2] = MIN(stats[2],value);
-  stats[3] = MAX(stats[3],value);
-
-  if (value < lo) {
-    if (beyond == IGNORE) {
-      stats[1] += value2;
-      return;
-    } else bin[0] += value2;
-  } else if (value > hi) {
-    if (beyond == IGNORE) {
-      stats[1] += value2;
-      return;
-    } else bin[nbins-1] += value2;
-  } else {
-    int ibin = static_cast<int> ((value-lo)*bininv);
-    ibin = MIN(ibin,nbins-1);
-    if (beyond == EXTRA) ibin++;
-    bin[ibin] += value2;
-  }
-
-  stats[0] += value2;
-}
-
-/* ----------------------------------------------------------------------
-   bin a vector of values with stride (with weights)
-------------------------------------------------------------------------- */
-
-void FixAveHisto::bin_vector_weights(int n, double *values, int stride, double *values2, int stride2)
-{
-  int m = 0;
-  int m2 = 0;
-  for (int i = 0; i < n; i++) {
-    bin_one_weights(values[m],values2[m2]);
-    m += stride;
-    m2 +=stride2;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   bin a per-atom vector of values with stride (with weights)
-   only bin if atom is in group
-------------------------------------------------------------------------- */
-
-void FixAveHisto::bin_atoms_weights(double *values, int stride,double *values2, int stride2)
-{
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  int m = 0;
-  int m2 = 0;
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) bin_one_weights(values[m],values2[m2]);
-    m += stride;
-    m2 +=stride2;
-  }
-}
-
-/* ----------------------------------------------------------------------
    parse optional args
 ------------------------------------------------------------------------- */
 
@@ -1301,7 +927,6 @@ void FixAveHisto::options(int narg, char **arg)
   title1 = NULL;
   title2 = NULL;
   title3 = NULL;
-  weights = SINGLE;  
 
   // optional args
 
@@ -1372,36 +997,6 @@ void FixAveHisto::options(int narg, char **arg)
       title3 = new char[n];
       strcpy(title3,arg[iarg+1]);
       iarg += 2;
-      
-    } else if (strcmp(arg[iarg],"weights") == 0) {
-      if (nvalues != 1) error->all(FLERR,"Illegal fix ave/histo command");
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-      iarg += 1;
-      if (strcmp(arg[iarg],"x") == 0) {
-        iarg++;
-      } else if (strcmp(arg[iarg],"y") == 0) {
-        iarg++;
-      } else if (strcmp(arg[iarg],"z") == 0) {
-        iarg++;
-      } else if (strcmp(arg[iarg],"vx") == 0) {
-        iarg++;
-      } else if (strcmp(arg[iarg],"vy") == 0) {
-        iarg++;
-      } else if (strcmp(arg[iarg],"vz") == 0) {
-        iarg++;
-      } else if (strcmp(arg[iarg],"fx") == 0) {
-        iarg++;
-      } else if (strcmp(arg[iarg],"fy") == 0) {
-        iarg++;
-      } else if (strcmp(arg[iarg],"fz") == 0) {
-        iarg++;
-      } else if ((strncmp(arg[iarg],"c_",2) == 0) ||
-          (strncmp(arg[iarg],"f_",2) == 0) ||
-          (strncmp(arg[iarg],"v_",2) == 0)) {
-        iarg++;        
-      } error->all(FLERR,"Illegal fix ave/histo command");
-      nvalues = 2;   
-      weights = VALUE;
     } else error->all(FLERR,"Illegal fix ave/histo command");
   }
 }

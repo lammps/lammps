@@ -28,15 +28,15 @@ namespace LAMMPS_NS {
 class FixAveHisto : public Fix {
  public:
   FixAveHisto(class LAMMPS *, int, char **);
-  ~FixAveHisto();
+  virtual ~FixAveHisto();
   int setmask();
   void init();
   void setup(int);
-  void end_of_step();
+  virtual void end_of_step();
   double compute_vector(int);
   double compute_array(int,int);
 
- private:
+ protected:
   int me,nvalues;
   int nrepeat,nfreq,irepeat;
   bigint nvalid,nvalid_last;
@@ -44,7 +44,7 @@ class FixAveHisto : public Fix {
   char **ids;
   FILE *fp;
   double lo,hi,binsize,bininv;
-  int kind,beyond,overwrite,weights;
+  int kind,beyond,overwrite;
   long filepos;
 
   double stats[4],stats_total[4],stats_all[4];
@@ -65,9 +65,6 @@ class FixAveHisto : public Fix {
   void bin_one(double);
   void bin_vector(int, double *, int);
   void bin_atoms(double *, int);
-  void bin_one_weights(double, double);
-  void bin_vector_weights(int, double *, int, double *, int);
-  void bin_atoms_weights(double *, int, double *, int);  
   void options(int, char **);
   void allocate_values(int);
   bigint nextvalid();

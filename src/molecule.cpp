@@ -57,7 +57,6 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int ifile) : Pointers(lmp)
   int iarg = ifile+1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"offset") == 0) break;
-    if (strcmp(arg[iarg],"auto") == 0) break;
     iarg++;
   }
   if (iarg == ifile+1) last = 1;
@@ -66,7 +65,6 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int ifile) : Pointers(lmp)
 
   toffset = 0;
   boffset = aoffset = doffset = ioffset = 0;
-  autospecial = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"offset") == 0) {
@@ -80,9 +78,6 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int ifile) : Pointers(lmp)
           doffset < 0 || ioffset < 0) 
         error->all(FLERR,"Illegal molecule command");
       iarg += 6;
-    } else if (strcmp(arg[iarg],"auto") == 0) {
-      autospecial = 1;
-      iarg++;
     } else error->all(FLERR,"Illegal molecule command");
   }
 
@@ -476,15 +471,9 @@ void Molecule::read(int flag)
       impropers(flag,line);
 
     } else if (strcmp(keyword,"Special Bond Counts") == 0) {
-      if (autospecial) 
-        error->all(FLERR,"Molecule file with auto keyword cannot list " 
-                   "explict special bonds");
       nspecialflag = 1;
       nspecial_read(flag,line);
     } else if (strcmp(keyword,"Special Bonds") == 0) {
-      if (autospecial) 
-        error->all(FLERR,"Molecule file with auto keyword cannot list " 
-                   "explict special bonds");
       specialflag = tag_require = 1;
       if (flag) special_read(line);
       else skip_lines(natoms,line);
@@ -513,14 +502,6 @@ void Molecule::read(int flag)
     parse_keyword(1,line,keyword);
   }
 
-  // auto-generate special bonds
-
-  if (autospecial) {
-    specialflag = 1;
-    nspecialflag = 1;
-    if (flag) special_generate();
-  }
-
   // clean up
 
   memory->destroy(count);
@@ -532,11 +513,17 @@ void Molecule::read(int flag)
       error->all(FLERR,"Molecule file needs both Special Bond sections");
     if (specialflag && !bondflag) 
       error->all(FLERR,"Molecule file has special flags but no bonds");
-    if (!specialflag && bondflag) 
-      error->all(FLERR,"Molecule file has bonds but no special flags");
-
     if ((shakeflagflag || shakeatomflag || shaketypeflag) && !shakeflag)
       error->all(FLERR,"Molecule file shake info is incomplete");
+  }
+
+  // auto-generate special bonds
+
+  if (bondflag && !specialflag) {
+    specialflag = 1;
+    nspecialflag = 1;
+    maxspecial = atom->maxspecial;
+    if (flag) special_generate();
   }
 }
 
@@ -1301,7 +1288,6 @@ void Molecule::allocate()
   memory->create(num_improper,natoms,"molecule:num_improper");
   for (int i = 0; i < natoms; i++) num_improper[i] = 0;
 
-  if (autospecial) maxspecial = atom->maxspecial;
   memory->create(special,natoms,maxspecial,"molecule:special");
 
   memory->create(nspecial,natoms,3,"molecule:nspecial");

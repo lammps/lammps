@@ -13,61 +13,28 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(ave/histo,FixAveHisto)
+FixStyle(ave/histo/weight,FixAveHistoWeight)
 
 #else
 
-#ifndef LMP_FIX_AVE_HISTO_H
-#define LMP_FIX_AVE_HISTO_H
+#ifndef LMP_FIX_AVE_HISTO_WEIGHT_H
+#define LMP_FIX_AVE_HISTO_WEIGHT_H
 
 #include "stdio.h"
-#include "fix.h"
+#include "fix_ave_histo.h"
 
 namespace LAMMPS_NS {
 
-class FixAveHisto : public Fix {
+class FixAveHistoWeight : public FixAveHisto {
  public:
-  FixAveHisto(class LAMMPS *, int, char **);
-  virtual ~FixAveHisto();
-  int setmask();
-  void init();
-  void setup(int);
-  virtual void end_of_step();
-  double compute_vector(int);
-  double compute_array(int,int);
+  FixAveHistoWeight(class LAMMPS *, int, char **);
+  ~FixAveHistoWeight() {}
+  void end_of_step();
 
- protected:
-  int me,nvalues;
-  int nrepeat,nfreq,irepeat;
-  bigint nvalid,nvalid_last;
-  int *which,*argindex,*value2index;
-  char **ids;
-  FILE *fp;
-  double lo,hi,binsize,bininv;
-  int kind,beyond,overwrite;
-  long filepos;
-
-  double stats[4],stats_total[4],stats_all[4];
-  double **stats_list;
-
-  int nbins;
-  double *bin,*bin_total,*bin_all;
-  double **bin_list;
-  double *coord;
-
-  double *vector;
-  int maxatom;
-
-  int ave,nwindow,startstep,mode;
-  char *title1,*title2,*title3;
-  int iwindow,window_limit;
-
-  void bin_one(double);
-  void bin_vector(int, double *, int);
-  void bin_atoms(double *, int);
-  void options(int, char **);
-  void allocate_values(int);
-  bigint nextvalid();
+ private:
+  void bin_one_weights(double, double);
+  void bin_vector_weights(int, double *, int, double *, int);
+  void bin_atoms_weights(double *, int, double *, int);  
 };
 
 }

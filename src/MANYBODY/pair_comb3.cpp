@@ -326,6 +326,7 @@ void PairComb3::read_lib()
 
     // read and store at the same time
     fgets(s,maxlib,fp);
+    fgets(s,maxlib,fp);
     nwords = 0;
     words[nwords++] = strtok(s," \t\n\r\f");
     while ((words[nwords++] = strtok(NULL," \t\n\r\f")))continue;

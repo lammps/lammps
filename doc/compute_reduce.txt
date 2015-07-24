@@ -149,13 +149,13 @@ value.  If multiple inputs are specified, this compute produces a
 global vector of values, the length of which is equal to the number of
 inputs specified.
 
-As discussed below, for {sum} mode, the value(s) produced by this
-compute are all "extensive", meaning their value scales linearly with
-the number of atoms involved.  If normalized values are desired, this
-compute can be accessed by the "thermo_style custom"_thermo_style.html
-command with "thermo_modify norm yes"_thermo_modify.html set as an
-option.  Or it can be accessed by a "variable"_variable.html that
-divides by the appropriate atom count.
+As discussed below, for the {sum} and {sumsq} modes, the value(s)
+produced by this compute are all "extensive", meaning their value
+scales linearly with the number of atoms involved.  If normalized
+values are desired, this compute can be accessed by the "thermo_style
+custom"_thermo_style.html command with "thermo_modify norm
+yes"_thermo_modify.html set as an option.  Or it can be accessed by a
+"variable"_variable.html that divides by the appropriate atom count.
 
 :line
 
@@ -169,8 +169,9 @@ compute as input.  See "Section_howto 15"_Section_howto.html#howto_15
 for an overview of LAMMPS output options.
 
 All the scalar or vector values calculated by this compute are
-"intensive", except when the {sum} mode is used on per-atom or local
-vectors, in which case the calculated values are "extensive".
+"intensive", except when the {sum} or {sumsq} modes are used on
+per-atom or local vectors, in which case the calculated values are
+"extensive".
 
 The scalar or vector values will be in whatever "units"_units.html the
 quantities being reduced are in.

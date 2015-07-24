@@ -46,7 +46,7 @@ PACKAGE = asphere body class2 colloid coreshell dipole fld gpu granular kim \
 	  python qeq reax replica rigid shock snap srd voronoi xtc
 
 PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars user-cuda \
-	   user-diffraction user-drude user-eff user-fep user-intel user-lb \
+	   user-diffraction user-eff user-fep user-intel user-lb \
 	   user-misc user-molfile user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-sph
 

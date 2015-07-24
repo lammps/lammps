@@ -228,6 +228,11 @@ it gives quick access to documentation for all LAMMPS commands.
 :link(howto_19,Section_howto.html#howto_19)
 :link(howto_20,Section_howto.html#howto_20)
 :link(howto_21,Section_howto.html#howto_21)
+:link(howto_22,Section_howto.html#howto_22)
+:link(howto_23,Section_howto.html#howto_23)
+:link(howto_24,Section_howto.html#howto_24)
+:link(howto_25,Section_howto.html#howto_25)
+:link(howto_26,Section_howto.html#howto_26)
 
 :link(mod_1,Section_modify.html#mod_1)
 :link(mod_2,Section_modify.html#mod_2)

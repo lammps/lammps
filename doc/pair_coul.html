@@ -35,6 +35,8 @@
 </H3>
 <H3>pair_style coul/long command 
 </H3>
+<H3>pair_style coul/long/cs command 
+</H3>
 <H3>pair_style coul/long/omp command 
 </H3>
 <H3>pair_style coul/long/gpu command 
@@ -67,6 +69,7 @@
 pair_style coul/debye kappa cutoff
 pair_style coul/dsf alpha cutoff
 pair_style coul/long cutoff
+pair_style coul/long/cs cutoff
 pair_style coul/long/gpu cutoff 
 pair_style coul/wolf alpha cutoff
 pair_style coul/streitz cutoff keyword alpha
@@ -91,6 +94,7 @@ pair_coeff 2 2 3.5
 pair_coeff * * 
 </PRE>
 <PRE>pair_style coul/long 10.0
+pair_style coul/long/cs 10.0
 pair_coeff * * 
 </PRE>
 <PRE>pair_style coul/msm 10.0
@@ -225,6 +229,10 @@ option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 </P>
+<P>Style <I>coul/long/cs</I> is identical to <I>coul/long</I> except that a term is
+added for the <A HREF = "Section_howto.html#howto_25">core/shell model</A> to allow
+charges on core and shell particles to be separated by r = 0.0.
+</P>
 <P>Styles <I>tip4p/cut</I> and <I>tip4p/long</I> implement the coulomb part of
 the TIP4P water model of <A HREF = "#Jorgensen">(Jorgensen)</A>, which introduces
 a massless site located a short distance away from the oxygen atom
@@ -333,16 +341,15 @@ to be specified in an input script that reads a restart file.
 <P><B>Restrictions:</B>
 </P>
 <P>The <I>coul/long</I>, <I>coul/msm</I> and <I>tip4p/long</I> styles are part of the
-KSPACE package.  They are only enabled if LAMMPS was built with that
-package (which it is by default).
- See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
-for more info.
+KSPACE package.  The <I>coul/long/cs</I> style is part of the CORESHELL
+package.  They are only enabled if LAMMPS was built with that package
+(which it is by default).  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_hybrid.html">pair_style
-hybrid/overlay</A>
-<A HREF = "kspace_style.html">kspace_style</A>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_hybrid.html">pair_style,
+hybrid/overlay</A>, <A HREF = "kspace_style.html">kspace_style</A>
 </P>
 <P><B>Default:</B> none
 </P>

@@ -1,0 +1,62 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute temp/drude command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID temp/drude 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>temp/drude = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute TDRUDE all temp/drude 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the temperature based on the
+center-of-mass velocities of pairs of Drude cores and Drude particles,
+bonded by springs.  This compute is designed to be used with the
+<A HREF = "tutorial_drude.html">thermalized Drude oscillator model</A>.  Polarizable
+models in LAMMPS are described in <A HREF = "Section_howto.html#howto_25">this
+Section</A>.
+</P>
+<P>Specifically, this compute enables calculation of the temperature of
+the Drude particles in relative coordinates with respect to their
+cores.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar (the temperature) and a global
+vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+These values can be used by any command that uses global scalar or
+vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
+section</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The scalar value calculated by this compute is "intensive".  The
+vector are "extensive".
+</P>
+<P>The scalar value will be in temperature <A HREF = "units.html">units</A>.  The
+vector values will be in energy <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The number of core-Drude pairs contributing to the temperature is
+assumed to be constant for the duration of the run.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

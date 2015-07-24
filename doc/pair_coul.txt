@@ -19,6 +19,7 @@ pair_style coul/dsf/gpu command :h3
 pair_style coul/dsf/kk command :h3
 pair_style coul/dsf/omp command :h3
 pair_style coul/long command :h3
+pair_style coul/long/cs command :h3
 pair_style coul/long/omp command :h3
 pair_style coul/long/gpu command :h3
 pair_style coul/long/kk command :h3
@@ -39,6 +40,7 @@ pair_style coul/cut cutoff
 pair_style coul/debye kappa cutoff
 pair_style coul/dsf alpha cutoff
 pair_style coul/long cutoff
+pair_style coul/long/cs cutoff
 pair_style coul/long/gpu cutoff 
 pair_style coul/wolf alpha cutoff
 pair_style coul/streitz cutoff keyword alpha
@@ -63,6 +65,7 @@ pair_style coul/dsf 0.05 10.0
 pair_coeff * * :pre
 
 pair_style coul/long 10.0
+pair_style coul/long/cs 10.0
 pair_coeff * * :pre
 
 pair_style coul/msm 10.0
@@ -197,6 +200,10 @@ option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
 
+Style {coul/long/cs} is identical to {coul/long} except that a term is
+added for the "core/shell model"_Section_howto.html#howto_25 to allow
+charges on core and shell particles to be separated by r = 0.0.
+
 Styles {tip4p/cut} and {tip4p/long} implement the coulomb part of
 the TIP4P water model of "(Jorgensen)"_#Jorgensen, which introduces
 a massless site located a short distance away from the oxygen atom
@@ -305,16 +312,15 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 The {coul/long}, {coul/msm} and {tip4p/long} styles are part of the
-KSPACE package.  They are only enabled if LAMMPS was built with that
-package (which it is by default).
- See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info.
+KSPACE package.  The {coul/long/cs} style is part of the CORESHELL
+package.  They are only enabled if LAMMPS was built with that package
+(which it is by default).  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "pair_style
-hybrid/overlay"_pair_hybrid.html
-"kspace_style"_kspace_style.html
+"pair_coeff"_pair_coeff.html, "pair_style,
+hybrid/overlay"_pair_hybrid.html, "kspace_style"_kspace_style.html
 
 [Default:] none
 

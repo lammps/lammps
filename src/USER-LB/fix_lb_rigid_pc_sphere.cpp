@@ -51,7 +51,6 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
   rigid_flag = 1;
   create_attribute = 1;
   virial_flag = 1;
-  dof_flag = 1;
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
@@ -456,7 +455,7 @@ int FixLbRigidPCSphere::setmask()
 
 void FixLbRigidPCSphere::init()
 {
-  int i,ibody;
+  int i,itype,ibody;
 
   // warn if more than one rigid fix
 
@@ -650,7 +649,7 @@ void FixLbRigidPCSphere::init()
 void FixLbRigidPCSphere::setup(int vflag)
 {
   int i,n,ibody;
-  double massone;
+  double massone,radone;
   
   // vcm = velocity of center-of-mass of each rigid body
   // fcm = force on center-of-mass of each rigid body
@@ -664,6 +663,7 @@ void FixLbRigidPCSphere::setup(int vflag)
   int nlocal = atom->nlocal;
 
   imageint *image = atom->image;
+  int *periodicity = domain->periodicity;
 
   double unwrap[3];
   double dx,dy,dz;
@@ -761,11 +761,12 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
 {
   double dtfm;
 
-  int i,ibody;
+  int i,n,ibody;
 
-  double massone;
+  double massone,radone;
   double **x = atom->x;
   double **v = atom->v;
+  double **f = atom->f;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
@@ -952,12 +953,14 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
 void FixLbRigidPCSphere::final_integrate()
 {
   int i,ibody;
+  double xy,xz,yz;
 
   // sum over atoms to get force and torque on rigid body
   double massone;
   imageint *image = atom->image;
   double **x = atom->x;
   double **f = atom->f;
+  double **v = atom->v;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
@@ -1562,7 +1565,7 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
    int *mask = atom->mask;
    int nlocal = atom->nlocal;
    double **x = atom->x;
-   int i,k;
+   int i,j,k,p,m;
    int ix,iy,iz;
    int ixp,iyp,izp;
    double dx1,dy1,dz1;

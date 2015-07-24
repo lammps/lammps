@@ -149,6 +149,9 @@ int FixPIMD::setmask()
 
 void FixPIMD::init()
 {
+  if (atom->map_style == 0)
+    error->all(FLERR,"Fix pimd requires an atom map, see atom_modify");
+
   if(universe->me==0 && screen) fprintf(screen,"Fix pimd initializing Path-Integral ...\n");
   
   // prepare the constants

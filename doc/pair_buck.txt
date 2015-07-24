@@ -17,6 +17,7 @@ pair_style buck/coul/cut/gpu command :h3
 pair_style buck/coul/cut/kk command :h3
 pair_style buck/coul/cut/omp command :h3
 pair_style buck/coul/long command :h3
+pair_style buck/coul/long/cs command :h3
 pair_style buck/coul/long/cuda command :h3
 pair_style buck/coul/long/gpu command :h3
 pair_style buck/coul/long/kk command :h3
@@ -28,14 +29,14 @@ pair_style buck/coul/msm/omp command :h3
 
 pair_style style args :pre
 
-style = {buck} or {buck/coul/cut} or {buck/coul/long} or {buck/coul/msm}
+style = {buck} or {buck/coul/cut} or {buck/coul/long} or {buck/coul/long/cs} or {buck/coul/msm}
 args = list of arguments for a particular style :ul
   {buck} args = cutoff
     cutoff = global cutoff for Buckingham interactions (distance units)
   {buck/coul/cut} args = cutoff (cutoff2)
     cutoff = global cutoff for Buckingham (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
-  {buck/coul/long} args = cutoff (cutoff2)
+  {buck/coul/long} or {buck/coul/long/cs} args = cutoff (cutoff2)
     cutoff = global cutoff for Buckingham (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {buck/coul/msm} args = cutoff (cutoff2)
@@ -55,7 +56,9 @@ pair_coeff 1 1 100.0 1.5 200.0 9.0
 pair_coeff 1 1 100.0 1.5 200.0 9.0 8.0 :pre
 
 pair_style buck/coul/long 10.0
+pair_style buck/coul/long/cs 10.0
 pair_style buck/coul/long 10.0 8.0
+pair_style buck/coul/long/cs 10.0 8.0
 pair_coeff * * 100.0 1.5 200.0
 pair_coeff 1 1 100.0 1.5 200.0 9.0 :pre
 
@@ -88,6 +91,11 @@ If one cutoff is specified for the {born/coul/cut} and
 A,C and Coulombic terms.  If two cutoffs are specified, the first is
 used as the cutoff for the A,C terms, and the second is the cutoff for
 the Coulombic term.
+
+Style {buck/coul/long/cs} is identical to {buck/coul/long} except that
+a term is added for the "core/shell model"_Section_howto.html#howto_25
+to allow charges on core and shell particles to be separated by r =
+0.0.
 
 Note that these potentials are related to the "Born-Mayer-Huggins
 potential"_pair_born.html.
@@ -159,7 +167,7 @@ These styles support the "pair_modify"_pair_modify.html shift option
 for the energy of the exp() and 1/r^6 portion of the pair interaction.
 
 The {buck/coul/long} pair style supports the
-"pair_modify"_pair_modify.html table option ti tabulate the
+"pair_modify"_pair_modify.html table option to tabulate the
 short-range portion of the long-range Coulombic interaction.
 
 These styles support the pair_modify tail option for adding long-range
@@ -176,8 +184,9 @@ respa"_run_style.html command.  They do not support the {inner},
 
 [Restrictions:]
 
-The {buck/coul/long} style is part of the KSPACE package.  It is only
-enabled if LAMMPS was built with that package (which it is by
+The {buck/coul/long} style is part of the KSPACE package.  The
+{buck/coul/long/cs} style is part of the CORESHELL package.  They are
+only enabled if LAMMPS was built with that package (which it is by
 default).  See the "Making LAMMPS"_Section_start.html#start_3 section
 for more info.
 

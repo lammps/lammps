@@ -68,7 +68,6 @@ FixLbPC::FixLbPC(LAMMPS *lmp, int narg, char **arg) :
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int print_warning = 0;
   for(int j=0; j<nlocal; j++){
     if((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
       error->one(FLERR,"can only use the lb/pc fix for an atom if also using the lb/fluid fix for that atom");

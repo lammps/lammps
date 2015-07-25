@@ -310,6 +310,7 @@ void Neighbor::init()
   // flag = 1 if both LJ/Coulomb special values are 1.0
   // flag = 2 otherwise or if KSpace solver is enabled
   // pairwise portion of KSpace solver uses all 1-2,1-3,1-4 neighbors
+  // or selected Coulomb-approixmation pair styles require it
 
   if (force->special_lj[1] == 0.0 && force->special_coul[1] == 0.0)
     special_flag[1] = 0;
@@ -329,8 +330,8 @@ void Neighbor::init()
     special_flag[3] = 1;
   else special_flag[3] = 2;
 
-  if (force->kspace || force->pair_match("coul/wolf",0)
-      || force->pair_match("coul/dsf",0))
+  if (force->kspace || force->pair_match("coul/wolf",0) ||
+      force->pair_match("coul/dsf",0) || force->pair_match("thole",0))
      special_flag[1] = special_flag[2] = special_flag[3] = 2;
 
   // maxwt = max multiplicative factor on atom indices stored in neigh list

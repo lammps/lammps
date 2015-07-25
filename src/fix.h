@@ -50,6 +50,7 @@ class Fix : protected Pointers {
   int wd_section;                // # of sections fix writes to data file
   int dynamic_group_allow;       // 1 if can be used with dynamic group, else 0
   int dof_flag;                  // 1 if has dof() method (not min_dof())
+  int special_alter_flag;        // 1 if has special_alter() meth for spec lists
   int cudable_comm;              // 1 if fix has CUDA-enabled communication
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
@@ -193,6 +194,8 @@ class Fix : protected Pointers {
 
   virtual void zero_momentum() {}
   virtual void zero_rotation() {}
+
+  virtual void rebuild_special() {}
 
   virtual int modify_param(int, char **) {return 0;}
   virtual void *extract(const char *, int &) {return NULL;}

@@ -240,6 +240,9 @@ void FixLbMomentum::end_of_step()
 	      u_old[1] += feqold[i][j][k][l]*e[l][1];
 	      u_old[2] += feqold[i][j][k][l]*e[l][2];
 	    }
+	    u_old[0] = u_old[0]/density_old;
+	    u_old[1] = u_old[1]/density_old;
+	    u_old[2] = u_old[2]/density_old;
 	    
 	    if(numvel==15){
 	      etacov[0]=0.0;

@@ -17,6 +17,8 @@
 </H3>
 <H3>pair_style born/coul/long command 
 </H3>
+<H3>pair_style born/coul/long/cs command 
+</H3>
 <H3>pair_style born/coul/long/cuda command 
 </H3>
 <H3>pair_style born/coul/long/gpu command 
@@ -37,12 +39,12 @@
 </P>
 <PRE>pair_style style args 
 </PRE>
-<UL><LI>style = <I>born</I> or <I>born/coul/long</I> or <I>born/coul/msm</I> or <I>born/coul/wolf</I>
+<UL><LI>style = <I>born</I> or <I>born/coul/long</I> or <I>born/coul/long/cs</I> or <I>born/coul/msm</I> or <I>born/coul/wolf</I>
 <LI>args = list of arguments for a particular style 
 </UL>
 <PRE>  <I>born</I> args = cutoff
     cutoff = global cutoff for non-Coulombic interactions (distance units)
-  <I>born/coul/long</I> args = cutoff (cutoff2)
+  <I>born/coul/long</I> or <I>born/coul/long/cs</I> args = cutoff (cutoff2)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   <I>born/coul/msm</I> args = cutoff (cutoff2)
@@ -60,7 +62,9 @@ pair_coeff * * 6.08 0.317 2.340 24.18 11.51
 pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 
 </PRE>
 <PRE>pair_style born/coul/long 10.0
+pair_style born/coul/long/cs 10.0
 pair_style born/coul/long 10.0 8.0
+pair_style born/coul/long/cs 10.0 8.0
 pair_coeff * * 6.08 0.317 2.340 24.18 11.51
 pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 
 </PRE>
@@ -102,7 +106,12 @@ term.
 <P>The <I>born/coul/wolf</I> style adds a Coulombic term as described for the
 Wolf potential in the <A HREF = "pair_coul.html">coul/wolf</A> pair style.
 </P>
-<P>Note that these potentials are related to the <A HREF = "pair_born.html">Buckingham
+<P>Style <I>born/coul/long/cs</I> is identical to <I>born/coul/long</I> except that
+a term is added for the <A HREF = "Section_howto.html#howto_25">core/shell model</A>
+to allow charges on core and shell particles to be separated by r =
+0.0.
+</P>
+<P>Note that these potentials are related to the <A HREF = "pair_buck.html">Buckingham
 potential</A>.
 </P>
 <P>The following coefficients must be defined for each pair of atoms

@@ -34,9 +34,14 @@ transferability to different phases can approach that of quantum
 mechanical methods.  This potential is similar to the original BOP
 developed by Pettifor ("Pettifor_1"_#Pettifor_1,
 "Pettifor_2"_#Pettifor_2, "Pettifor_3"_#Pettifor_3) and later updated
-by Murdick, Zhou, and Ward ("Murdick"_#Murdick, "Ward"_#Ward).  As of
-summer 2015, BOP potential files for these systems are provide with
-LAMMPS: AlCu, CCu, CdTe, CuH, GaAs.
+by Murdick, Zhou, and Ward ("Murdick"_#Murdick, "Ward"_#Ward).
+Currently, BOP potential files for these systems are provided with
+LAMMPS: AlCu, CCu, CdTe, CdTeSe, CdZnTe, CuH, GaAs.  A sysstem with
+only a subset of these elements, including a single element (e.g. C or
+Cu or Al or Ga or Zn or CdZn), can also be modeled by using the
+appropriate alloy file and assigning all atom types to the
+singleelement or subset of elements via the pair_coeff command, as
+discussed below.
 
 The BOP potential consists of three terms:
 

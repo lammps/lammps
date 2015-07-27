@@ -122,7 +122,7 @@ required.
 
 Make.py -p kokkos -kokkos omp -o kokkos_omp file mpi 
 Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda file kokkos_cuda
-Make.py -p kokkos -kokkos phi -o kokkos_phi file mpi 
+Make.py -p kokkos -kokkos phi -o kokkos_phi file mpi :pre
 
 Or you can follow these steps:
 

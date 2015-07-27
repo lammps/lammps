@@ -37,7 +37,9 @@
 6.22 <A HREF = "#howto_22">Calculating a diffusion coefficient</A><BR>
 6.23 <A HREF = "#howto_23">Using chunks to calculate system properties</A><BR>
 6.24 <A HREF = "#howto_24">Setting parameters for the kspace_style pppm/disp command</A><BR>
-6.25 <A HREF = "#howto_25">Adiabatic core/shell model</A> <BR>
+6.25 <A HREF = "#howto_25">Polarizable models</A><BR>
+6.26 <A HREF = "#howto_26">Adiabatic core/shell model</A><BR>
+6.27 <A HREF = "#howto_27">Drude induced dipoles</A> <BR>
 
 <P>The example input scripts included in the LAMMPS distribution and
 highlighted in <A HREF = "Section_example.html">Section_example</A> also show how to
@@ -2415,14 +2417,91 @@ to specify this command explicitly.
 </P>
 <HR>
 
-<A NAME = "howto_25"></A><H4>6.25 Adiabatic core/shell model 
+<A NAME = "howto_25"></A><H4>6.25 Polarizable models 
+</H4>
+<P>In polarizable force fields the charge distributions in molecules and
+materials respond to their electrostatic environements. Polarizable
+systems can be simulated in LAMMPS using three methods:
+</P>
+<UL><LI>the fluctuating charge method, implemented in the <A HREF = "fix_qeq.html">QEQ</A>
+package, 
+
+<LI>the adiabatic core-shell method, implemented in the
+<A HREF = "#howto_26">CORESHELL</A> package, 
+
+<LI>the thermalized Drude dipole method, implemented in the
+<A HREF = "#howto_27">USER-DRUDE</A> package. 
+</UL>
+<P>The fluctuating charge method calculates instantaneous charges on
+interacting atoms based on the electronegativity equalization
+principle. It is implemented in the <A HREF = "fix_qeq.html">fix qeq</A> which is
+available in several variants. It is a relatively efficient technique
+since no additional particles are introduced. This method allows for
+charge transfer between molecules or atom groups. However, because the
+charges are located at the interaction sites, off-plane components of
+polarization cannot be represented in planar molecules or atom groups.
+</P>
+<P>The two other methods share the same basic idea: polarizable atoms are
+split into one core atom and one satellite particle (called shell or
+Drude particle) attached to it by a harmonic spring.  Both atoms bear
+a charge and they represent collectively an induced electric dipole.
+These techniques are computationally more expensive than the QEq
+method because of additional particles and bonds. These two
+charge-on-spring methods differ in certain features, with the
+core-shell model being normally used for ionic/crystalline materials,
+whereas the so-called Drude model is normally used for molecular
+systems and fluid states.
+</P>
+<P>The core-shell model is applicable to crystalline materials where the
+high symmetry around each site leads to stable trajectories of the
+core-shell pairs. However, bonded atoms in molecules can be so close
+that a core would interact too strongly or even capture the Drude
+particle of a neighbor. The Drude dipole model is relatively more
+complex in order to remediate this and other issues. Specifically, the
+Drude model includes specific thermostating of the core-Drude pairs
+and short-range damping of the induced dipoles.
+</P>
+<P>The three polarization methods can be implemented through a
+self-consistent calculation of charges or induced dipoles at each
+timestep. In the fluctuating charge scheme this is done by the matrix
+inversion method in <A HREF = "fix_qeq.html">fix qeq/point</A>, but for core-shell
+or Drude-dipoles the relaxed-dipoles technique would require an slow
+iterative procedure. These self-consistent solutions yield accurate
+trajectories since the additional degrees of freedom representing
+polarization are massless.  An alternative is to attribute a mass to
+the additional degrees of freedom and perform time integration using
+an extended Lagrangian technique. For the fluctuating charge scheme
+this is done by <A HREF = "fix_qeq.html">fix qeq/dynamic</A>, and for the
+charge-on-spring models by the methods outlined in the next two
+sections. The assignment of masses to the additional degrees of
+freedom can lead to unphysical trajectories if care is not exerted in
+choosing the parameters of the poarizable models and the simulation
+conditions.
+</P>
+<P>In the core-shell model the vibration of the shells is kept faster
+than the ionic vibrations to mimic the fast response of the
+polarizable electrons.  But in molecular systems thermalizing the
+core-Drude pairs at temperatures comparable to the rest of the
+simulation leads to several problems (kinetic energy transfer, too
+short a timestep, etc.) In order to avoid these problems the relative
+motion of the Drude particles with respect to their cores is kept
+"cold" so the vibration of the core-Drude pairs is very slow,
+approaching the self-consistent regime.  In both models the
+temperature is regulated using the velocities of the center of mass of
+core+shell (or Drude) pairs, but in the Drude model the actual
+relative core-Drude particle motion is thermostated separately as
+well.
+</P>
+<HR>
+
+<A NAME = "howto_26"></A><H4>6.26 Adiabatic core/shell model 
 </H4>
 <P>The adiabatic core-shell model by <A HREF = "#MitchellFinchham">Mitchell and
 Finchham</A> is a simple method for adding
 polarizability to a system.  In order to mimic the electron shell of
-an ion, a ghost atom is attached to it. This way the ions are split
-into a core and a shell where the latter is meant to react to the
-electrostatic environment inducing polarizability.
+an ion, a satellite particle is attached to it. This way the ions are
+split into a core and a shell where the latter is meant to react to
+the electrostatic environment inducing polarizability.
 </P>
 <P>Technically, shells are attached to the cores by a spring force f =
 k*r where k is a parametrized spring constant and r is the distance
@@ -2600,6 +2679,70 @@ fix ave_chunk all ave/time 10 1 10 c_cstherm file chunk.dump mode vector
 </PRE>
 <HR>
 
+<A NAME = "howto_27"></A><H4>6.27 Drude induced dipoles 
+</H4>
+<P>The thermalized Drude model, similarly to the <A HREF = "#howto_26">core-shell</A>
+model, representes induced dipoles by a pair of charges (the core atom
+and the Drude particle) connected by a harmonic spring. The Drude
+model has a number of features aimed at its use in molecular systems
+(<A HREF = "#Lamoureux">Lamoureux and Roux</A>):
+</P>
+<UL><LI>Thermostating of the additional degrees of freedom associated with the
+induced dipoles at very low temperature, in terms of the reduced
+coordinates of the Drude particles with respect to their cores. This
+makes the trajectory close to that of relaxed induced dipoles. 
+
+<LI>Consistent definition of 1-2 to 1-4 neighbors. A core-Drude particle
+pair represents a single (polarizable) atom, so the special screening
+factors in a covalent structure should be the same for the core and
+the Drude particle.  Drude particles have to inherit the 1-2, 1-3, 1-4
+special neighbor relations from their respective cores. 
+
+<LI>Stabilization of the interactions between induced dipoles. Drude
+dipoles on covalently bonded atoms interact too strongly due to the
+short distances, so an atom may capture the Drude particle of a
+neighbor, or the induced dipoles within the same molecule may align
+too much. To avoid this, damping at short range can be done by Thole
+functions (for which there are physical grounds). This Thole damping
+is applied to the point charges composing the induced dipole (the
+charge of the Drude particle and the opposite charge on the core, not
+to the total charge of the core atom). 
+</UL>
+<P>A detailed tutorial covering the usage of Drude induced dipoles in
+LAMMPS is <A HREF = "tutorial_drude.html">available here</A>.
+</P>
+<P>As with the core-shell model, the cores and Drude particles should
+appear in the data file as standard atoms. The same holds for the
+springs between them, which are described by standard harmonic bonds.
+The nature of the atoms (core, Drude particle or non-polarizable) is
+specified via the <A HREF = "fix_drude.html">fix drude</A> command.  The special
+list of neighbors is automatically refactored to account for the
+equivalence of core and Drude particles as regards special 1-2 to 1-4
+screening. It may be necessary to use the <I>extra</I> keyword of the
+<A HREF = "special_bonds.html">special_bonds</A> command. If using <A HREF = "fix_shake.html">fix
+shake</A>, make sure no Drude particle is in this fix
+group.
+</P>
+<P>There are two ways to thermostat the Drude particles at a low
+temperature: use either <A HREF = "fix_langevin_drude.html">fix langevin/drude</A>
+for a Langevin thermostat, or <A HREF = "fix_drude_transform.html">fix
+drude/transform</A> for a Nose-Hoover
+thermostat. The former requires use of the command <A HREF = "comm_modify.html">comm_modify vel
+yes</A>. The latter requires two separate integration
+fixes like <I>nvt</I> or <I>npt</I>. The correct temperatures of the reduced
+degrees of freedom can be calculated using the <A HREF = "compute_temp_drude.html">compute
+temp/drude</A>. This requires also to use the
+command <I>comm_modify vel yes</I>.
+</P>
+<P>Short-range damping of the induced dipole interactions can be achieved
+using Thole functions through the the <A HREF = "pair_thole.html">pair style
+thole</A> in <A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A>
+with a Coulomb pair style. It may be useful to use <I>coul/long/cs</I> or
+similar from the CORESHELL package if the core and Drude particle come
+too close, which can cause numerical issues.
+</P>
+<HR>
+
 <HR>
 
 <A NAME = "Berendsen"></A>
@@ -2649,5 +2792,9 @@ Phys, 79, 926 (1983).
 
 <P><B>(Mitchell and Finchham)</B> Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).
+</P>
+<A NAME = "Lamoureux"></A>
+
+<P><B>(Lamoureux and Roux)</B> G. Lamoureux, B. Roux, J. Chem. Phys 119, 3025 (2003)
 </P>
 </HTML>

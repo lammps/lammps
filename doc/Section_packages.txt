@@ -113,12 +113,13 @@ on how to build LAMMPS with both kinds of auxiliary libraries.
 The current list of user-contributed packages is as follows:
 
 Package, Description, Author(s), Doc page, Example, Pic/movie, Library
-USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (2), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
+USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (1), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
 USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
 USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
-USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
+USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (2), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_accelerate_cuda.html, USER/cuda, -, lib/cuda
 USER-DIFFRACTION, virutal x-ray and electron diffraction, Shawn Coleman (ARL),"compute xrd"_compute_xrd.html, USER/diffraction, -, -
+USER-DRUDE, Drude oscillators, Dequidt & Devemy & Padua (3), "tutorial"_tutorial_drude.html, USER/drude, -, -
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferrand), "compute fep"_compute_fep.html, USER/fep, -, -
 USER-INTEL, Vectorized CPU and Intel(R) coprocessor styles, W. Michael Brown (Intel), "Section accelerate"_accelerate_intel.html, examples/intel, -, -
@@ -151,9 +152,13 @@ library from.
 (2) The ATC package was created by Reese Jones, Jeremy Templeton, and
 Jon Zimmerman (Sandia).
 
-(3) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
+(2) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
 the colvars module library written by Giacomo Fiorin (Temple U) and
 Jerome Henin (LISM, Marseille, France).
+
+(3) The DRUDE package was created by Alain Dequidt (U Blaise Pascal
+Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
+(U Blaise Pascal).
 
 The "Doc page" column links to either a portion of the
 "Section_howto"_Section_howto.html of the manual, or an input script
@@ -340,6 +345,29 @@ See these doc pages and their related commands to get started:
 The person who created this package is Shawn P. Coleman 
 (shawn.p.coleman8.ctr at mail.mil) while at the University of 
 Arkansas.  Contact him directly if you have questions.
+
+:line
+
+USER-DRUDE package :h4
+
+This package implements methods for simulating polarizable systems
+in LAMMPS using thermalized Drude oscillators.
+
+See these doc pages and their related commands to get started:
+
+"Drude tutorial"_tutorial_drude.html
+"fix drude"_fix_drude.html
+"compute temp/drude"_compute_temp_drude.html
+"fix langevin/drude"_fix_langevin_drude.html
+"fix drude/transform/..."_fix_drude_transform.html
+"pair thole"_pair_thole.html
+
+There are auxiliary tools for using this package in tools/drude.
+
+The person who created this package is Alain Dequidt at Universite
+Blaise Pascal Clermont-Ferrand (alain.dequidt at univ-bpclermont.fr)
+Contact him directly if you have questions. Co-authors: Julien Devemy,
+Agilio Padua.
 
 :line
 

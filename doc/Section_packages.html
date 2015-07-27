@@ -121,12 +121,13 @@ on how to build LAMMPS with both kinds of auxiliary libraries.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR ALIGN="center"><TD >Package</TD><TD > Description</TD><TD > Author(s)</TD><TD > Doc page</TD><TD > Example</TD><TD > Pic/movie</TD><TD > Library</TD></TR>
-<TR ALIGN="center"><TD >USER-ATC</TD><TD > atom-to-continuum coupling</TD><TD > Jones & Templeton & Zimmerman (2)</TD><TD > <A HREF = "fix_atc.html">fix atc</A></TD><TD > USER/atc</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#atc">atc</A></TD><TD > lib/atc</TD></TR>
+<TR ALIGN="center"><TD >USER-ATC</TD><TD > atom-to-continuum coupling</TD><TD > Jones & Templeton & Zimmerman (1)</TD><TD > <A HREF = "fix_atc.html">fix atc</A></TD><TD > USER/atc</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#atc">atc</A></TD><TD > lib/atc</TD></TR>
 <TR ALIGN="center"><TD >USER-AWPMD</TD><TD > wave-packet MD</TD><TD > Ilya Valuev (JIHT)</TD><TD > <A HREF = "pair_awpmd.html">pair_style awpmd/cut</A></TD><TD > USER/awpmd</TD><TD > -</TD><TD > lib/awpmd</TD></TR>
 <TR ALIGN="center"><TD >USER-CG-CMM</TD><TD > coarse-graining model</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "pair_sdk.html">pair_style lj/sdk</A></TD><TD > USER/cg-cmm</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#cg">cg</A></TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >USER-COLVARS</TD><TD > collective variables</TD><TD > Fiorin & Henin & Kohlmeyer (3)</TD><TD > <A HREF = "fix_colvars.html">fix colvars</A></TD><TD > USER/colvars</TD><TD > <A HREF = "colvars">colvars</A></TD><TD > lib/colvars</TD></TR>
+<TR ALIGN="center"><TD >USER-COLVARS</TD><TD > collective variables</TD><TD > Fiorin & Henin & Kohlmeyer (2)</TD><TD > <A HREF = "fix_colvars.html">fix colvars</A></TD><TD > USER/colvars</TD><TD > <A HREF = "colvars">colvars</A></TD><TD > lib/colvars</TD></TR>
 <TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "accelerate_cuda.html">Section accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
 <TR ALIGN="center"><TD >USER-DIFFRACTION</TD><TD > virutal x-ray and electron diffraction</TD><TD > Shawn Coleman (ARL)</TD><TD ><A HREF = "compute_xrd.html">compute xrd</A></TD><TD > USER/diffraction</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-DRUDE</TD><TD > Drude oscillators</TD><TD > Dequidt & Devemy & Padua (3)</TD><TD > <A HREF = "tutorial_drude.html">tutorial</A></TD><TD > USER/drude</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-FEP</TD><TD > free energy perturbation</TD><TD > Agilio Padua (U Blaise Pascal Clermont-Ferrand)</TD><TD > <A HREF = "compute_fep.html">compute fep</A></TD><TD > USER/fep</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-INTEL</TD><TD > Vectorized CPU and Intel(R) coprocessor styles</TD><TD > W. Michael Brown (Intel)</TD><TD > <A HREF = "accelerate_intel.html">Section accelerate</A></TD><TD > examples/intel</TD><TD > -</TD><TD > -</TD></TR>
@@ -164,9 +165,13 @@ library from.
 <P>(2) The ATC package was created by Reese Jones, Jeremy Templeton, and
 Jon Zimmerman (Sandia).
 </P>
-<P>(3) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
+<P>(2) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
 the colvars module library written by Giacomo Fiorin (Temple U) and
 Jerome Henin (LISM, Marseille, France).
+</P>
+<P>(3) The DRUDE package was created by Alain Dequidt (U Blaise Pascal
+Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
+(U Blaise Pascal).
 </P>
 <P>The "Doc page" column links to either a portion of the
 <A HREF = "Section_howto.html">Section_howto</A> of the manual, or an input script
@@ -353,6 +358,29 @@ theory.
 <P>The person who created this package is Shawn P. Coleman 
 (shawn.p.coleman8.ctr at mail.mil) while at the University of 
 Arkansas.  Contact him directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-DRUDE package 
+</H4>
+<P>This package implements methods for simulating polarizable systems
+in LAMMPS using thermalized Drude oscillators.
+</P>
+<P>See these doc pages and their related commands to get started:
+</P>
+<P><A HREF = "tutorial_drude.html">Drude tutorial</A>
+<A HREF = "fix_drude.html">fix drude</A>
+<A HREF = "compute_temp_drude.html">compute temp/drude</A>
+<A HREF = "fix_langevin_drude.html">fix langevin/drude</A>
+<A HREF = "fix_drude_transform.html">fix drude/transform/...</A>
+<A HREF = "pair_thole.html">pair thole</A>
+</P>
+<P>There are auxiliary tools for using this package in tools/drude.
+</P>
+<P>The person who created this package is Alain Dequidt at Universite
+Blaise Pascal Clermont-Ferrand (alain.dequidt at univ-bpclermont.fr)
+Contact him directly if you have questions. Co-authors: Julien Devemy,
+Agilio Padua.
 </P>
 <HR>
 

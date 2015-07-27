@@ -2709,7 +2709,7 @@ group.
 There are two ways to thermostat the Drude particles at a low
 temperature: use either "fix langevin/drude"_fix_langevin_drude.html
 for a Langevin thermostat, or "fix
-drude/transform"_fix_drude_transform.html for a Nose-Hoover
+drude/transform/*"_fix_drude_transform.html for a Nose-Hoover
 thermostat. The former requires use of the command "comm_modify vel
 yes"_comm_modify.html. The latter requires two separate integration
 fixes like {nvt} or {npt}. The correct temperatures of the reduced

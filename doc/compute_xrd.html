@@ -46,8 +46,8 @@
 <PRE>compute 1 all xrd 1.541838 Al O 2Theta 0.087 0.87 c 1 1 1 LP 1 echo 
 compute 2 all xrd 1.541838 Al O 2Theta 10 100 c 0.05 0.05 0.05 LP 1 manual 
 </PRE>
-<PRE>fix 1 all ave/histo 1 1 1 0.087 0.87 250 c_1[1] mode vector weights c_1[2] file Rad2Theta.xrd
-fix 2 all ave/histo 1 1 1 10 100 250 c_2[1] mode vector weights c_2[2] file Deg2Theta.xrd 
+<PRE>fix 1 all ave/histo/weights 1 1 1 0.087 0.87 250 c_1[1] c_1[2] mode vector file Rad2Theta.xrd
+fix 2 all ave/histo/weights 1 1 1 10 100 250 c_2[1] c_2[2] mode vector file Deg2Theta.xrd 
 </PRE>
 <PRE>
 </PRE>
@@ -55,11 +55,11 @@ fix 2 all ave/histo 1 1 1 10 100 250 c_2[1] mode vector weights c_2[2] file Deg2
 </P>
 <P>Define a computation that calculates x-ray diffraction intensity as described
 in <A HREF = "#Coleman">(Coleman)</A> on a mesh of reciprocal lattice nodes defined 
-by the entire simulation domain (or manually) using simulated radiation
+by the entire simulation domain (or manually) using a simulated radiation
 of wavelength lambda. 
 </P>
-<P>The x-ray diffraction intensity I at each reciprocal lattice point 
-is computed from the structure factor F using the equations:
+<P>The x-ray diffraction intensity, I, at each reciprocal lattice point, k, 
+is computed from the structure factor, F, using the equations:
 </P>
 <CENTER><IMG SRC = "Eqs/compute_xrd1.jpg">
 </CENTER>
@@ -73,14 +73,14 @@ is computed from the structure factor F using the equations:
 position of each atom, fj are atomic scattering factors, LP is the 
 Lorentz-polarization factor, and theta is the scattering angle of 
 diffraction.  The Lorentz-polarization factor can be turned off using 
-the <I>LP</I> switch.
+the optional <I>LP</I> keyword.
 </P>
 <P>Diffraction intensities are calculated on a three-dimensional mesh of 
-reciprocal lattice nodes. The mesh spacing is defined either (I) 
-by the entire simulation domain or (II) manually using selected values as
+reciprocal lattice nodes. The mesh spacing is defined either (a) 
+by the entire simulation domain or (b) manually using selected values as
 shown in the 2D diagram below.
 </P>
-<CENTER><A HREF = "xrd_mesh.jpg"><IMG SRC = "JPG/xrd_mesh_small.jpg"></A>
+<CENTER><A HREF = "JPG/xrd_mesh.jpg"><IMG SRC = "JPG/xrd_mesh_small.jpg"></A>
 </CENTER>
 <P>For a mesh defined by the simulation domain, a rectilinear grid is
 constructed with spacing <I>c</I>*inv(A) along each reciprocal lattice
@@ -159,7 +159,7 @@ type. Valid chemical symbols for compute xrd are:
       Ac3+:      Th:    Th4+:      Pa:       U:
        U3+:     U4+:     U6+:      Np:    Np3+:
       Np4+:    Np6+:      Pu:    Pu3+:    Pu4+:
-      Pu6+:      Am:      Cm:      Bk:      Cf:
+      Pu6+:      Am:      Cm:      Bk:      Cf:tb(c=5,s=:)
 </P>
 <P>If the <I>echo</I> keyword is specified, compute xrd will provide extra 
 reporting information to the screen.  
@@ -182,15 +182,11 @@ options.
 </P>
 <P><B>Restrictions:</B> 
 </P>
-<P>This command is part of the USER-DIFFRACTION package.  It is only
-enabled if LAMMPS was built with that package. See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>This command does not work for triclinic cells. 
+<P>The compute_xrd command does not work for triclinic cells. 
 </P>
 <P><B>Related commands:</B> 
 </P>
-<P><A HREF = "compute_ave_histo.html">fix ave/histo</A>,
+<P><A HREF = "fix_ave_histo.html">fix ave/histo</A>,
 <A HREF = "compute_saed.html">compute saed</A>
 </P>
 <P><B>Default:</B> 

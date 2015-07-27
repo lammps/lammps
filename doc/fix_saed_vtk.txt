@@ -13,7 +13,7 @@ fix saed/vtk command :h3
 fix ID group-ID saed/vtk Nevery Nrepeat Nfreak c_ID attribute args ... keyword args ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-ave/time/saed = style name of this fix command :l
+saed/vtk = style name of this fix command :l
 Nevery = use input values every this many timesteps :l
 Nrepeat = # of times to use input values for calculating averages :l
 Nfreq = calculate averages every this many timesteps :l
@@ -54,7 +54,7 @@ outside the {Kmax} range assigned in the compute saed. The ghost data is
 assigned a value of -1 and can be removed setting a minimum isovolume 
 of 0 within the vizualiziton software. SAED images can be created by 
 visualizing a spherical slice of the data that is centered at 
-R_Ewald*[h k l]/norm([h k l]), where R_Ewald=1/lambda.
+R_Ewald*\[h k l\]/norm(\[h k l\]), where R_Ewald=1/lambda.
 
 The group specified within this command is ignored. However, note that 
 specified values may represent calculations performed by saed computes
@@ -100,10 +100,18 @@ ASCII
 DATASET STRUCTURED_POINTS
 DIMENSIONS 337 219 209
 ASPECT_RATIO 0.00507953 0.00785161 0.00821458
-ORIGIN -0.853361 -0.855826 -0.854316 \n POINT_DATA 15424827
+ORIGIN -0.853361 -0.855826 -0.854316 
+POINT_DATA 15424827
 SCALARS intensity float
 LOOKUP_TABLE default
-...data
+...data  :pre
+
+In this example, kspace is sampled across a 337 x 219 x 209 point mesh
+where the mesh spacing is approximately 0.005, 0.007, and 0.008 
+inv(length) units in the k1, k2, and k3 directions, respectively.  
+The data is shifted by -0.85, -0.85, -0.85 inv(length) units so that
+the origin will lie at 0, 0, 0.   Here, 15,424,827 kspace points are
+sampled in total.
 
 :line
 
@@ -162,12 +170,8 @@ minimization"_minimize.html.
 
 [Restrictions:] 
 
-This command is part of the USER-DIFFRACTION package.  It is only
-enabled if LAMMPS was built with that package. See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
-
 The attributes for fix_saed_vtk must match the values assigned in the
-associated "compute_saed"_compute_saed.txt command.
+associated "compute_saed"_compute_saed.html command.
 
 [Related commands:] 
 

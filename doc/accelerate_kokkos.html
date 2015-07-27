@@ -123,10 +123,10 @@ the starting Makefile.machine.  The CUDA option uses
 src/MAKE/OPTIONS/Makefile.cuda since the NVIDIA nvcc compiler is
 required.
 </P>
-<P>Make.py -p kokkos -kokkos omp -o kokkos_omp file mpi 
+<PRE>Make.py -p kokkos -kokkos omp -o kokkos_omp file mpi 
 Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda file kokkos_cuda
 Make.py -p kokkos -kokkos phi -o kokkos_phi file mpi 
-</P>
+</PRE>
 <P>Or you can follow these steps:
 </P>
 <P>CPU-only (run all-MPI or with OpenMP threading):

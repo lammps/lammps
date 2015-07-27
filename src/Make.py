@@ -349,7 +349,6 @@ class Actions:
       if final["user-omp"]:
         if compile_check(compiler,pre + "-restrict",0):
           make.addvar("CCFLAGS",pre + "-restrict")
-        #if "nvcc" not in compiler:
           if compile_check(compiler,pre + "-fopenmp",1):
             make.addvar("CCFLAGS",pre + "-fopenmp")
             make.addvar("LINKFLAGS",pre + "-fopenmp")
@@ -400,23 +399,25 @@ class Actions:
 
       if final["kokkos"]:
         if kokkos.mode == "omp":
-          make.addvar("OMP","yes","lmp")
-          make.delvar("CUDA")
-          make.delvar("MIC")
+          make.delvar("KOKKOS_DEVICES","*")
+          make.delvar("KOKKOS_ARCH","*")
+          make.addvar("KOKKOS_DEVICES","OpenMP","lmp")
         elif kokkos.mode == "cuda":
-          if "nvcc" not in compiler:
-            error("Kokkos/cuda build appears to not be " +
-                  "using NVIDIA nvcc compiler",0)
-          make.addvar("OMP","yes","lmp")
-          make.addvar("CUDA","yes","lmp")
-          make.delvar("MIC")
-          if kokkos.archflag:
-            make.delvar("CCFLAGS","-arch=sm_*")
-            make.addvar("CCFLAGS","-arch=sm_%s" % kokkos.arch)
+          #if "nvcc" not in compiler:
+          #  error("Kokkos/cuda build appears to not be " +
+          #        "using NVIDIA nvcc compiler",0)
+          make.delvar("KOKKOS_DEVICES","*")
+          make.delvar("KOKKOS_ARCH","*")
+          make.addvar("KOKKOS_DEVICES","Cuda, OpenMP","lmp")
+          if kokkos.arch[0] == "3":
+            make.addvar("KOKKOS_ARCH","Kepler" + kokkos.arch,"lmp")
+          elif kokkos.arch[0] == "2":
+            make.addvar("KOKKOS_ARCH","Fermi" + kokkos.arch,"lmp")
         elif kokkos.mode == "phi":
-          make.addvar("OMP","yes","lmp")
-          make.addvar("MIC","yes","lmp")
-          make.delvar("CUDA")
+          make.delvar("KOKKOS_DEVICES","*")
+          make.delvar("KOKKOS_ARCH","*")
+          make.addvar("KOKKOS_DEVICES","OpenMP","lmp")
+          make.addvar("KOKKOS_ARCH","KNC","lmp")
 
       # add LMP settings
       
@@ -495,7 +496,6 @@ class Actions:
     if caller == "file" or "file" not in self.alist:
       make.write("%s/MAKE/MINE/Makefile.auto" % dir.src,1)
       print "Created src/MAKE/MINE/Makefile.auto"
-
       
     # test full compile and link
     # unless caller = "file" and "exe" action will be invoked later
@@ -1466,15 +1466,16 @@ class Kokkos:
   def __init__(self,list):
     if list == None: self.inlist = None
     else: self.inlist = list[:]
-    self.mode = "omp"
+    self.mode = ""
     self.archflag = 0
     
   def help(self):
     return """
 -kokkos mode arch=N
   mode is not optional, arch is optional
-  mode = omp or cuda or phi (def = omp if -kokkos is not used)
+  mode = omp or cuda or phi (def = KOKKOS_DEVICES setting in Makefile )
     build Kokkos package for omp or cuda or phi
+    set KOKKOS_DEVICES to "OpenMP" (omp, phi) or "Cuda, OpenMP" (cuda)
   arch = 31 (Kepler) or 21 (Fermi) (def = -arch setting in Makefile)
 """
 
@@ -1826,7 +1827,7 @@ class MakeReader:
   # add value to var
   # do not add if value already defined by var
   # if var not defined,
-  #   create new variable using where
+  #   create new variable using "where"
   #   where="cc", line before "CC =" line, use ":="
   #   where="lmp", 2 lines before "LAMMPS-specific settings" line, use "="
   
@@ -1857,8 +1858,12 @@ class MakeReader:
   # if var or value not defined, ignore it
       
   def delvar(self,var,value=None):
+    #if var == "KOKKOS_DEVICES":
+    #  print self.var,value
     if var not in self.var: return
-    if not value: del self.var[var]
+    if not value:
+      del self.var[var]
+      #print "AGAIN",self.var
     elif value and value[-1] != '*':
       if value not in self.var[var]: return
       self.var[var].remove(value)

@@ -360,7 +360,7 @@ See these doc pages and their related commands to get started:
 "compute temp/drude"_compute_temp_drude.html
 "fix langevin/drude"_fix_langevin_drude.html
 "fix drude/transform/..."_fix_drude_transform.html
-"pair thole"_pair_thole.html
+"pair thole"_pair_thole.html :ul
 
 There are auxiliary tools for using this package in tools/drude.
 

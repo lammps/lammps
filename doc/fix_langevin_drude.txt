@@ -77,8 +77,10 @@ transform:
 \begin\{equation\} F = \frac M \{M'\}\, F' - f' \end\{equation\}
 \begin\{equation\} f = \frac m \{M'\}\, F' + f' \end\{equation\}
 
-For Drude pairs (core + electron), the center of mass and the dipole
-are thermostated if (and only if) the core atom is in the specified
+This fix also thermostates non-polarizable atoms in the group at
+temperature {Tcom}, as if they had a massless Drude partner.  The
+Drude particles themselves need not be in the group. The center of
+mass and the dipole are thermostated iff the core atom is in the
 group.
 
 Note that the thermostat effect of this fix is applied to only the
@@ -182,9 +184,14 @@ subtracting off an equal part of it from each center of mass in the
 group. As a result, the total center of mass of a system with zero
 initial momentum will not drift over time.
 
+The actual temperatures of cores and Drude particles, in
+center-of-mass and relatice coordinates, respectively, can be
+calculated using the "compute temp/drude"_compute_temp_drude.html
+command.
+
 :line
 
-Example for rigid bodies in the NPT ensemble:
+Usage example for rigid bodies in the NPT ensemble:
 
 comm_modify vel yes
 fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
@@ -194,14 +201,25 @@ thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TAT
 
 Comments:
 
-Drude particles should not be in the rigid group, otherwise the Drude oscillators will be frozen and the system will lose its polarizability.
-{zero yes} avoids a drift of the center of mass of the system, but is a bit slower.
-use two different random seeds to avoid unphysical correlations.
-temperature is controlled by the fix {langevin/drude}, so the time-integration fixes do not thermostate.
+Drude particles should not be in the rigid group, otherwise the Drude
+oscillators will be frozen and the system will lose its
+polarizability.  {zero yes} avoids a drift of the center of mass of
+the system, but is a bit slower.  use two different random seeds to
+avoid unphysical correlations.  temperature is controlled by the fix
+{langevin/drude}, so the time-integration fixes do not thermostate.
 don't forget to time-integrate both cores and Drude particles.
-pressure is time-integrated only once by using {nve} for Drude particles and {nph} for atoms/cores (or vice versa). Do not use {nph} for both.
-contrary to the alternative thermostating using Nose-Hoover thermostat fix {npt} and fix {drude/transform}, the {fix_modify} command is not required here, because the fix {nph} computes the global pressure even if its group is {ATOMS}. This is what we want. If we thermostated {ATOMS} using {npt}, the pressure should be the global one, but the temperature should be only that of the cores. That's why the command {fix_modify} should be called in that case.
-f_TEMP\[1\] and f_TEMP\[2\] contain the reduced temperatures of the cores/atoms and of the Drude particles (see below). They should be 300. and 1. on average here. :ul
+pressure is time-integrated only once by using {nve} for Drude
+particles and {nph} for atoms/cores (or vice versa). Do not use {nph}
+for both.  contrary to the alternative thermostating using Nose-Hoover
+thermostat fix {npt} and fix {drude/transform}, the {fix_modify}
+command is not required here, because the fix {nph} computes the
+global pressure even if its group is {ATOMS}. This is what we want. If
+we thermostated {ATOMS} using {npt}, the pressure should be the global
+one, but the temperature should be only that of the cores. That's why
+the command {fix_modify} should be called in that case.  f_TEMP\[1\]
+and f_TEMP\[2\] contain the reduced temperatures of the cores/atoms
+and of the Drude particles (see below). They should be 300. and 1. on
+average here. :ul
 
 :line
 
@@ -220,17 +238,6 @@ you have defined to this fix which will be used in its thermostating
 procedure, as described above. For consistency, the group used by the
 compute should include the group of this fix and the Drude particles.
 
-This fix computes a global vector with 6 components which can be
-accessed by various "output commands"_Section_howto.html#howto_15. The
-meaning of the components are as follows:
-
-temperature of the centers of mass (temperature units)
-temperature of the dipoles (temperature units)
-number of degrees of freedom of the centers of mass
-number of degrees of freedom of the dipoles 
-kinetic energy of the centers of mass (energy units)
-kinetic energy of the dipoles (energy units) :ol
-
 This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:] none
@@ -238,6 +245,7 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Related commands:]
 
 "fix langevin"_fix_langevin.html,
+"fix drude"_fix_drude.html,
 "fix drude/transform"_fix_drude_transform.html,
 "compute temp/drude"_compute_temp_drude.html,
 "pair_style thole"_pair_thole.html

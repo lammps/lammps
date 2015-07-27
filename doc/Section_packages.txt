@@ -130,7 +130,7 @@ USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate
 USER-PHONON, phonon dynamical matrix, Ling-Ti Kong (Shanghai Jiao Tong U), "fix phonon"_fix_phonon.html, USER/phonon, -, -
 USER-QMMM, QM/MM coupling, Axel Kohlmeyer (Temple U), "fix qmmm"_fix_qmmm.html, USER/qmmm, -, lib/qmmm
 USER-QTB, quantum nuclear effects, Yuan Shen (Stanford), "fix qtb"_fix_qtb.html "fix_qbmsst"_fix_qbmsst.html, qtb, -, -
-USER-QUIP, QM/MM coupling, Albert Bartok-Partay (U Cambridge), "fix quip"_fix_quip.html, USER/quip, -, lib/quip
+USER-QUIP, QUIP/libatoms interface, Albert Bartok-Partay (U Cambridge), "pair_style quip"_pair_quip.html, USER/quip, -, lib/quip
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
 USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_USER/sph/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
 :tb(ea=c)

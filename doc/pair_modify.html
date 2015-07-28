@@ -19,9 +19,12 @@
 
 <LI>keyword = <I>pair</I> or <I>shift</I> or <I>mix</I> or <I>table</I> or <I>table/disp</I> or <I>tabinner</I> or <I>tabinner/disp</I> or <I>tail</I> or <I>compute</I> 
 
-<PRE>  <I>pair</I> values = sub-style N
+<PRE>  <I>pair</I> values = sub-style N special which w1 wt2 wt3
     sub-style = sub-style of <A HREF = "pair_hybrid.html">pair hybrid</A>
     N = which instance of sub-style (only if sub-style is used multiple times)
+    special = optional if want to override <A HREF = "special_bonds.html">special_bonds</A> settings for sub-style
+    which = <I>lj/coul</I> or <I>lj</I> or <I>coul</I>
+    w1,w2,w3 = weights from 0.0 to 1.0 inclusive
   <I>mix</I> value = <I>geometric</I> or <I>arithmetic</I> or <I>sixthpower</I>
   <I>shift</I> value = <I>yes</I> or <I>no</I>
   <I>table</I> value = N
@@ -48,19 +51,15 @@ pair_modify table 12
 <P>Modify the parameters of the currently defined pair style.  Not all
 parameters are relevant to all pair styles.
 </P>
-<P>If used, the <I>pair</I> keyword must appear first in the list of keywords.
-It can only be used with the <A HREF = "pair_hybrid.html">hybrid and
-hybrid/overlay</A> pair styles.  It means that the
-following parameters will only be modified for the specified
-sub-style, which must be a sub-style defined by the <A HREF = "pair_hybrid.html">pair_style
-hybrid</A> command.  If the sub-style is defined
-multiple times, then an additional numeric argument <I>N</I> must also be
-specified which is a number from 1 to M where M is the number of times
-the sub-style was listed in the <A HREF = "pair_hybrid.html">pair_style hybrid</A>
-command.  The extra number indicates which instance of the sub-style
-these modifications apply to.  Note that if the <I>pair</I> keyword is not
-used, and the pair style is <I>hybrid</I> or <I>hybrid/overlay</I>, the
-pair_modify keywords will be applied to all sub-styles.
+<P>If used, the <I>pair</I> keyword and its optional <I>special</I> arguments must
+appear first in the list of keywords.  It can only be used with the
+<A HREF = "pair_hybrid.html">hybrid and hybrid/overlay</A> pair styles and when used
+it means that all the following parameters will only be modified for
+the specified sub-style.  If the <I>pair</I> keyword is not used, and the
+pair style is <I>hybrid</I> or <I>hybrid/overlay</I>, all the following
+parameters keywords will be applied to all sub-styles.  A more detailed
+explanation of the <I>pair</I> keyword syntax, including its optional
+<I>special</I> argument are given below.
 </P>
 <P>The <I>mix</I> keyword affects pair coefficients for interactions between
 atoms of type I and J, when I != J and the coefficients are not
@@ -202,6 +201,66 @@ a pair style will not work, because the
 <A HREF = "kspace_style.html">kspace_style</A> command requires a Kspace-compatible
 pair style be defined.
 </P>
+<HR>
+
+<H4>Use of the pair keyword 
+</H4>
+<P>If used, the <I>pair</I> keyword and its optional <I>special</I> arguments must
+appear first in the list of keywords.  It can only be used with the
+<A HREF = "pair_hybrid.html">hybrid and hybrid/overlay</A> pair styles and when used
+it means that all the following parameters will only be modified for
+the specified sub-style.  If the <I>pair</I> keyword is not used, and the
+pair style is <I>hybrid</I> or <I>hybrid/overlay</I>, all the following
+parameters keywords will be applied to all sub-styles.  A more detailed
+explanation of the <I>pair</I> keyword syntax, including its optional
+<I>special</I> argument are given below.
+</P>
+<P>As mentioned above, the <I>pair</I> keyword can only be used with the
+<A HREF = "pair_hybrid.html">hybrid and hybrid/overlay</A> pair styles, and must
+come first in the list of keywords.  If used, the subsequent keywords
+will only be applied to the specified sub-style.  If the sub-style is
+defined multiple times, then an additional numeric argument <I>N</I> must
+also be specified, which is a number from 1 to M where M is the number
+of times the sub-style was listed in the <A HREF = "pair_hybrid.html">pair_style
+hybrid</A> command.  The extra number indicates which
+instance of the sub-style the pair_modify keywords will be applied to.
+</P>
+<P>If the optional <I>special</I> argument is used, then the settings of the
+<A HREF = "special_bonds.html">special_bonds</A> command are overridden for the
+specified sub-style.  The <I>special</I> argument requires 4 additional
+arguments: <I>which</I> and w1,w2,w3.  These are analogous to arguments in
+the <A HREF = "special_bonds.html">special_bonds</A> command.  The <I>which</I> argument
+can be <I>lj</I> to change the Lennard-Jones settings, <I>coul</I> to change the
+Coulombic settings, or <I>lj/coul</I> to change both to the same values.
+The w1,w2,w3 arguments are numeric weights from 0.0 to 1.0 inclusive,
+for the 1-2, 1-3, and 1-4 bond topology neighbors.  For example, these
+commands
+</P>
+<PRE>special_bonds lj/coul 0.0 0.0 0.1
+pair_hybrid lj/charmm/coul/charmm 8.0 10.0 lj/cut/coul/cut 10.0
+pair_modify pair lj/charmm/coul/charmm special lj/coul 0.0 0.0 0.0
+pair_modify pair lj/cut/coul/cut special lj 0.0 0.0 0.5
+pair_modify pair lj/cut/coul/cut special coul 0.0 0.0 0.8333 
+</PRE>
+<P>show how to use both the CHARMM and AMBER force fields in a single
+simulation.  The first pair modify command sets the special bonds to
+CHARMM values (all 0.0).  The latter 2 pair modify commands set the
+standard AMBER values for LJ and Coulombic weights.
+</P>
+<P>IMPORTANT NOTE: The global settings specified by the
+<A HREF = "special_bonds.html">special_bonds</A> command affect the construction of
+neighbor lists.  Weights of 0.0 (for 1-2, 1-3, or 1-4 neighbors)
+exclude those pairs from the neighbor list entirely.  Weights of 1.0
+store the neighbor with no weight flag applied.  Neither of these
+neighbor effects can be changed by setting a sub-style weight to a
+non-zero or non-one value.  Thus an error is generated if the new
+sub-style value is not 0.0 (or 1.0) and the global setting is 0.0 (or
+1.0).  Note that as in the example above, the global factor can simply
+be set a value other than 0.0 or 1.0, then overridden by any of the
+sub-styles to a value that is 0.0 or 1.0.
+</P>
+<HR>
+
 <P><B>Restrictions:</B> none
 </P>
 <P>You cannot use <I>shift</I> yes with <I>tail</I> yes, since those are

@@ -1,0 +1,67 @@
+.. index:: compute cluster/atom
+
+compute cluster/atom command
+============================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   compute ID group-ID cluster/atom cutoff
+
+* ID, group-ID are documented in :doc:`compute <compute>` command
+* cluster/atom = style name of this compute command
+* cutoff = distance within which to label atoms as part of same cluster (distance units)
+
+Examples
+""""""""
+
+.. parsed-literal::
+
+   compute 1 all cluster/atom 1.0
+
+Description
+"""""""""""
+
+Define a computation that assigns each atom a cluster ID.
+
+A cluster is defined as a set of atoms, each of which is within the
+cutoff distance from one or more other atoms in the cluster.  If an
+atom has no neighbors within the cutoff distance, then it is a 1-atom
+cluster.  The ID of every atom in the cluster will be the smallest
+atom ID of any atom in the cluster.
+
+Only atoms in the compute group are clustered and assigned cluster
+IDs.  Atoms not in the compute group are assigned a cluster ID = 0.
+
+The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently or to have multiple compute/dump commands, each of a
+*clsuter/atom* style.
+
+**Output info:**
+
+This compute calculates a per-atom vector, which can be accessed by
+any command that uses per-atom values from a compute as input.  See
+:ref:`Section_howto 15 <howto_15>` for an overview of
+LAMMPS output options.
+
+The per-atom vector values will be an ID > 0, as explained above.
+
+Restrictions
+""""""""""""
+ none
+
+Related commands
+""""""""""""""""
+
+:doc:`compute coord/atom <compute_coord_atom>`
+
+**Default:** none
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

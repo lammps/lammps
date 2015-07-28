@@ -1,0 +1,38 @@
+.. index:: angle_style none
+
+angle_style none command
+========================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   angle_style none
+
+Examples
+""""""""
+
+.. parsed-literal::
+
+   angle_style none
+
+Description
+"""""""""""
+
+Using an angle style of none means angle forces are not computed, even
+if triplets of angle atoms were listed in the data file read by the
+:doc:`read_data <read_data>` command.
+
+Restrictions
+""""""""""""
+ none
+
+**Related commands:** none
+
+**Default:** none
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

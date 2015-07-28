@@ -1,100 +1,211 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>velocity command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>velocity command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>velocity group-ID style args keyword value ... 
-</PRE>
-<UL><LI>group-ID = ID of group of atoms whose velocity will be changed 
-
-<LI>style = <I>create</I> or <I>set</I> or <I>scale</I> or <I>ramp</I> or <I>zero</I> 
-
-<PRE>  <I>create</I> args = temp seed
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>velocity command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="velocity-command">
+<span id="index-0"></span><h1>velocity command<a class="headerlink" href="#velocity-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>velocity group-ID style args keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>group-ID = ID of group of atoms whose velocity will be changed</li>
+<li>style = <em>create</em> or <em>set</em> or <em>scale</em> or <em>ramp</em> or <em>zero</em></li>
+</ul>
+<pre class="literal-block">
+<em>create</em> args = temp seed
     temp = temperature value (temperature units)
     seed = random # seed (positive integer)
-  <I>set</I> args = vx vy vz
+  <em>set</em> args = vx vy vz
     vx,vy,vz = velocity value or NULL (velocity units)
     any of vx,vy,vz van be a variable (see below)
-  <I>scale</I> arg = temp
+  <em>scale</em> arg = temp
     temp = temperature value (temperature units)
-  <I>ramp</I> args = vdim vlo vhi dim clo chi
-    vdim = <I>vx</I> or <I>vy</I> or <I>vz</I>
+  <em>ramp</em> args = vdim vlo vhi dim clo chi
+    vdim = <em>vx</em> or <em>vy</em> or <em>vz</em>
     vlo,vhi = lower and upper velocity value (velocity units)
-    dim = <I>x</I> or <I>y</I> or <I>z</I>
+    dim = <em>x</em> or <em>y</em> or <em>z</em>
     clo,chi = lower and upper coordinate bound (distance units)
-  <I>zero</I> arg = <I>linear</I> or <I>angular</I>
-    <I>linear</I> = zero the linear momentum
-    <I>angular</I> = zero the angular momentum 
-</PRE>
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>dist</I> or <I>sum</I> or <I>mom</I> or <I>rot</I> or <I>temp</I> or <I>bias</I> or <I>loop</I> or <I>units</I> 
-
-<PRE>  <I>dist</I> value = <I>uniform</I> or <I>gaussian</I>
-  <I>sum</I> value = <I>no</I> or <I>yes</I>
-  <I>mom</I> value = <I>no</I> or <I>yes</I> 
-  <I>rot</I> value = <I>no</I> or <I>yes</I> 
-  <I>temp</I> value = temperature compute ID
-  <I>bias</I> value = <I>no</I> or <I>yes</I> 
-  <I>loop</I> value = <I>all</I> or <I>local</I> or <I>geom</I>
-  <I>rigid</I> value = fix-ID
+  <em>zero</em> arg = <em>linear</em> or <em>angular</em>
+    <em>linear</em> = zero the linear momentum
+    <em>angular</em> = zero the angular momentum
+</pre>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>dist</em> or <em>sum</em> or <em>mom</em> or <em>rot</em> or <em>temp</em> or <em>bias</em> or <em>loop</em> or <em>units</em></li>
+</ul>
+<pre class="literal-block">
+<em>dist</em> value = <em>uniform</em> or <em>gaussian</em>
+  <em>sum</em> value = <em>no</em> or <em>yes</em>
+  <em>mom</em> value = <em>no</em> or <em>yes</em>
+  <em>rot</em> value = <em>no</em> or <em>yes</em>
+  <em>temp</em> value = temperature compute ID
+  <em>bias</em> value = <em>no</em> or <em>yes</em>
+  <em>loop</em> value = <em>all</em> or <em>local</em> or <em>geom</em>
+  <em>rigid</em> value = fix-ID
     fix-ID = ID of rigid body fix
-  <I>units</I> value = <I>box</I> or <I>lattice</I> 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>velocity all create 300.0 4928459 rot yes dist gaussian
+  <em>units</em> value = <em>box</em> or <em>lattice</em>
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>velocity all create 300.0 4928459 rot yes dist gaussian
 velocity border set NULL 4.0 v_vz sum yes units box
 velocity flow scale 300.0
 velocity flow ramp vx 0.0 5.0 y 5 25 temp mytemp
-velocity all zero linear 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Set or change the velocities of a group of atoms in one of several
+velocity all zero linear
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Set or change the velocities of a group of atoms in one of several
 styles.  For each style, there are required arguments and optional
 keyword/value parameters.  Not all options are used by each style.
-Each option has a default as listed below.
-</P>
-<P>The <I>create</I> style generates an ensemble of velocities using a random
-number generator with the specified seed as the specified temperature.
-</P>
-<P>The <I>set</I> style sets the velocities of all atoms in the group to the
+Each option has a default as listed below.</p>
+<p>The <em>create</em> style generates an ensemble of velocities using a random
+number generator with the specified seed as the specified temperature.</p>
+<p>The <em>set</em> style sets the velocities of all atoms in the group to the
 specified values.  If any component is specified as NULL, then it is
 not set.  Any of the vx,vy,vz velocity components can be specified as
-an equal-style or atom-style <A HREF = "variable.html">variable</A>.  If the value
+an equal-style or atom-style <a class="reference internal" href="variable.html"><em>variable</em></a>.  If the value
 is a variable, it should be specified as v_name, where name is the
 variable name.  In this case, the variable will be evaluated, and its
 value used to determine the velocity component.  Note that if a
 variable is used, the velocity it calculates must be in box units, not
-lattice units; see the discussion of the <I>units</I> keyword below.
-</P>
-<P>Equal-style variables can specify formulas with various mathematical
-functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
-keywords for the simulation box parameters or other parameters.
-</P>
-<P>Atom-style variables can specify the same formulas as equal-style
+lattice units; see the discussion of the <em>units</em> keyword below.</p>
+<p>Equal-style variables can specify formulas with various mathematical
+functions, and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command
+keywords for the simulation box parameters or other parameters.</p>
+<p>Atom-style variables can specify the same formulas as equal-style
 variables but can also include per-atom values, such as atom
 coordinates.  Thus it is easy to specify a spatially-dependent
-velocity field.
-</P>
-<P>The <I>scale</I> style computes the current temperature of the group of
-atoms and then rescales the velocities to the specified temperature.
-</P>
-<P>The <I>ramp</I> style is similar to that used by the <A HREF = "compute_temp_ramp.html">compute
-temp/ramp</A> command.  Velocities ramped
+velocity field.</p>
+<p>The <em>scale</em> style computes the current temperature of the group of
+atoms and then rescales the velocities to the specified temperature.</p>
+<p>The <em>ramp</em> style is similar to that used by the <a class="reference internal" href="compute_temp_ramp.html"><em>compute temp/ramp</em></a> command.  Velocities ramped
 uniformly from vlo to vhi are applied to dimension vx, or vy, or vz.
 The value assigned to a particular atom depends on its relative
 coordinate value (in dim) from clo to chi.  For the example above, an
@@ -102,169 +213,205 @@ atom with y-coordinate of 10 (1/4 of the way from 5 to 25), would be
 assigned a x-velocity of 1.25 (1/4 of the way from 0.0 to 5.0).  Atoms
 outside the coordinate bounds (less than 5 or greater than 25 in this
 case), are assigned velocities equal to vlo or vhi (0.0 or 5.0 in this
-case).
-</P>
-<P>The <I>zero</I> style adjusts the velocities of the group of atoms so that
+case).</p>
+<p>The <em>zero</em> style adjusts the velocities of the group of atoms so that
 the aggregate linear or angular momentum is zero.  No other changes
-are made to the velocities of the atoms.  If the <I>rigid</I> option is
+are made to the velocities of the atoms.  If the <em>rigid</em> option is
 specified (see below), then the zeroing is performed on individual
-rigid bodies, as defined by the <A HREF = "fix_rigid.html">fix rigid or fix
-rigid/small</A> commands.  In other words, zero linear
+rigid bodies, as defined by the <a class="reference internal" href="fix_rigid.html"><em>fix rigid or fix rigid/small</em></a> commands.  In other words, zero linear
 will set the linear momentum of each rigid body to zero, and zero
 angular will set the angular momentum of each rigid body to zero.
 This is done by adjusting the velocities of the atoms in each rigid
-body.
-</P>
-<P>All temperatures specified in the velocity command are in temperature
-units; see the <A HREF = "units.html">units</A> command.  The units of velocities and
-coordinates depend on whether the <I>units</I> keyword is set to <I>box</I> or
-<I>lattice</I>, as discussed below.
-</P>
-<P>For all styles, no atoms are assigned z-component velocities if the
-simulation is 2d; see the <A HREF = "dimension.html">dimension</A> command.
-</P>
-<HR>
-
-<P>The keyword/value options are used in the following ways by the
-various styles.
-</P>
-<P>The <I>dist</I> keyword is used by <I>create</I>.  The ensemble of generated
-velocities can be a <I>uniform</I> distribution from some minimum to
+body.</p>
+<p>All temperatures specified in the velocity command are in temperature
+units; see the <a class="reference internal" href="units.html"><em>units</em></a> command.  The units of velocities and
+coordinates depend on whether the <em>units</em> keyword is set to <em>box</em> or
+<em>lattice</em>, as discussed below.</p>
+<p>For all styles, no atoms are assigned z-component velocities if the
+simulation is 2d; see the <a class="reference internal" href="dimension.html"><em>dimension</em></a> command.</p>
+<hr class="docutils" />
+<p>The keyword/value options are used in the following ways by the
+various styles.</p>
+<p>The <em>dist</em> keyword is used by <em>create</em>.  The ensemble of generated
+velocities can be a <em>uniform</em> distribution from some minimum to
 maximum value, scaled to produce the requested temperature.  Or it can
-be a <I>gaussian</I> distribution with a mean of 0.0 and a sigma scaled to
-produce the requested temperature.
-</P>
-<P>The <I>sum</I> keyword is used by all styles, except <I>zero</I>.  The new
+be a <em>gaussian</em> distribution with a mean of 0.0 and a sigma scaled to
+produce the requested temperature.</p>
+<p>The <em>sum</em> keyword is used by all styles, except <em>zero</em>.  The new
 velocities will be added to the existing ones if sum = yes, or will
-replace them if sum = no.
-</P>
-<P>The <I>mom</I> and <I>rot</I> keywords are used by <I>create</I>.  If mom = yes, the
+replace them if sum = no.</p>
+<p>The <em>mom</em> and <em>rot</em> keywords are used by <em>create</em>.  If mom = yes, the
 linear momentum of the newly created ensemble of velocities is zeroed;
-if rot = yes, the angular momentum is zeroed.
-</P>
-<P>*line
-</P>
-<P>If specified, the <I>temp</I> keyword is used by <I>create</I> and <I>scale</I> to
-specify a <A HREF = "compute.html">compute</A> that calculates temperature in a
+if rot = yes, the angular momentum is zeroed.</p>
+<p><a href="#id1"><span class="problematic" id="id2">*</span></a>line</p>
+<p>If specified, the <em>temp</em> keyword is used by <em>create</em> and <em>scale</em> to
+specify a <a class="reference internal" href="compute.html"><em>compute</em></a> that calculates temperature in a
 desired way, e.g. by first subtracting out a velocity bias, as
-discussed in <A HREF = "Section_howto.html#howto_15">Section howto 16</A> of the doc
-pages.  If this keyword is not specified, <I>create</I> and <I>scale</I>
+discussed in <a class="reference internal" href="Section_howto.html#howto-15"><span>Section howto 16</span></a> of the doc
+pages.  If this keyword is not specified, <em>create</em> and <em>scale</em>
 calculate temperature using a compute that is defined internally as
-follows:
-</P>
-<PRE>compute velocity_temp group-ID temp 
-</PRE>
-<P>where group-ID is the same ID used in the velocity command. i.e. the
+follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute velocity_temp group-ID temp
+</pre></div>
+</div>
+<p>where group-ID is the same ID used in the velocity command. i.e. the
 group of atoms whose velocity is being altered.  This compute is
-deleted when the velocity command is finished.  See the <A HREF = "compute_temp.html">compute
-temp</A> command for details.  If the calculated
+deleted when the velocity command is finished.  See the <a class="reference internal" href="compute_temp.html"><em>compute temp</em></a> command for details.  If the calculated
 temperature should have degrees-of-freedom removed due to fix
 constraints (e.g. SHAKE or rigid-body constraints), then the
 appropriate fix command must be specified before the velocity command
-is issued.
-</P>
-<P>The <I>bias</I> keyword with a <I>yes</I> setting is used by <I>create</I> and
-<I>scale</I>, but only if the <I>temp</I> keyword is also used to specify a
-<A HREF = "compute.html">compute</A> that calculates temperature in a desired way.
+is issued.</p>
+<p>The <em>bias</em> keyword with a <em>yes</em> setting is used by <em>create</em> and
+<em>scale</em>, but only if the <em>temp</em> keyword is also used to specify a
+<a class="reference internal" href="compute.html"><em>compute</em></a> that calculates temperature in a desired way.
 If the temperature compute also calculates a velocity bias, the the
-bias is subtracted from atom velocities before the <I>create</I> and
-<I>scale</I> operations are performed.  After the operations, the bias is
-added back to the atom velocities.  See <A HREF = "Section_howto.html#howto_15">Section howto
-16</A> of the doc pages for more discussion
+bias is subtracted from atom velocities before the <em>create</em> and
+<em>scale</em> operations are performed.  After the operations, the bias is
+added back to the atom velocities.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section howto 16</span></a> of the doc pages for more discussion
 of temperature computes with biases.  Note that the velocity bias is
 only applied to atoms in the temperature compute specified with the
-<I>temp</I> keyword.
-</P>
-<P>As an example, assume atoms are currently streaming in a flow
-direction (which could be separately initialized with the <I>ramp</I>
+<em>temp</em> keyword.</p>
+<p>As an example, assume atoms are currently streaming in a flow
+direction (which could be separately initialized with the <em>ramp</em>
 style), and you wish to initialize their thermal velocity to a desired
 temperature.  In this context thermal velocity means the per-particle
 velocity that remains when the streaming velocity is subtracted.  This
-can be done using the <I>create</I> style with the <I>temp</I> keyword
-specifying the ID of a <A HREF = "compute_temp_ramp.html">compute temp/ramp</A> or
-<A HREF = "compute_temp_profile.html">compute temp/profile</A> command, and the
-<I>bias</I> keyword set to a <I>yes</I> value.
-</P>
-<HR>
-
-<P>The <I>loop</I> keyword is used by <I>create</I> in the following ways.
-</P>
-<P>If loop = all, then each processor loops over all atoms in the
+can be done using the <em>create</em> style with the <em>temp</em> keyword
+specifying the ID of a <a class="reference internal" href="compute_temp_ramp.html"><em>compute temp/ramp</em></a> or
+<a class="reference internal" href="compute_temp_profile.html"><em>compute temp/profile</em></a> command, and the
+<em>bias</em> keyword set to a <em>yes</em> value.</p>
+<hr class="docutils" />
+<p>The <em>loop</em> keyword is used by <em>create</em> in the following ways.</p>
+<p>If loop = all, then each processor loops over all atoms in the
 simulation to create velocities, but only stores velocities for atoms
 it owns.  This can be a slow loop for a large simulation.  If atoms
 were read from a data file, the velocity assigned to a particular atom
 will be the same, independent of how many processors are being used.
 This will not be the case if atoms were created using the
-<A HREF = "create_atoms.html">create_atoms</A> command, since atom IDs will likely
-be assigned to atoms differently.
-</P>
-<P>If loop = local, then each processor loops over only its atoms to
+<a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command, since atom IDs will likely
+be assigned to atoms differently.</p>
+<p>If loop = local, then each processor loops over only its atoms to
 produce velocities.  The random number seed is adjusted to give a
 different set of velocities on each processor.  This is a fast loop,
 but the velocity assigned to a particular atom will depend on which
 processor owns it.  Thus the results will always be different when a
-simulation is run on a different number of processors.
-</P>
-<P>If loop = geom, then each processor loops over only its atoms.  For
-each atom a unique random number seed is created, based on the atom's
+simulation is run on a different number of processors.</p>
+<p>If loop = geom, then each processor loops over only its atoms.  For
+each atom a unique random number seed is created, based on the atom&#8217;s
 xyz coordinates.  A velocity is generated using that seed.  This is a
 fast loop and the velocity assigned to a particular atom will be the
 same, independent of how many processors are used.  However, the set
-of generated velocities may be more correlated than if the <I>all</I> or
-<I>local</I> keywords are used.
-</P>
-<P>Note that the <I>loop geom</I> keyword will not necessarily assign
+of generated velocities may be more correlated than if the <em>all</em> or
+<em>local</em> keywords are used.</p>
+<p>Note that the <em>loop geom</em> keyword will not necessarily assign
 identical velocities for two simulations run on different machines.
 This is because the computations based on xyz coordinates are
 sensitive to tiny differences in the double-precision value for a
-coordinate as stored on a particular machine.
-</P>
-<HR>
-
-<P>The <I>rigid</I> keyword only has meaning when used with the <I>zero</I> style.
-It allows specification of a fix-ID for one of the <A HREF = "fix_rigid.html">rigid-body
-fix</A> variants which defines a set of rigid bodies.  The
+coordinate as stored on a particular machine.</p>
+<hr class="docutils" />
+<p>The <em>rigid</em> keyword only has meaning when used with the <em>zero</em> style.
+It allows specification of a fix-ID for one of the <a class="reference internal" href="fix_rigid.html"><em>rigid-body fix</em></a> variants which defines a set of rigid bodies.  The
 zeroing of linear or angular momentum is then performed for each rigid
-body defined by the fix, as described above.
-</P>
-<P>The <I>units</I> keyword is used by <I>set</I> and <I>ramp</I>.  If units = box, 
+body defined by the fix, as described above.</p>
+<p>The <em>units</em> keyword is used by <em>set</em> and <em>ramp</em>.  If units = box,
 the velocities and coordinates specified in the velocity command are
-in the standard units described by the <A HREF = "units.html">units</A> command
+in the standard units described by the <a class="reference internal" href="units.html"><em>units</em></a> command
 (e.g. Angstroms/fmsec for real units).  If units = lattice, velocities
 are in units of lattice spacings per time (e.g. spacings/fmsec) and
-coordinates are in lattice spacings.  The <A HREF = "lattice.html">lattice</A>
-command must have been previously used to define the lattice spacing.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>Assigning a temperature via the <I>create</I> style to a system with <A HREF = "fix_rigid.html">rigid
-bodies</A> or <A HREF = "fix_shake.html">SHAKE constraints</A> may not
+coordinates are in lattice spacings.  The <a class="reference internal" href="lattice.html"><em>lattice</em></a>
+command must have been previously used to define the lattice spacing.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Assigning a temperature via the <em>create</em> style to a system with <a class="reference internal" href="fix_rigid.html"><em>rigid bodies</em></a> or <a class="reference internal" href="fix_shake.html"><em>SHAKE constraints</em></a> may not
 have the desired outcome for two reasons.  First, the velocity command
 can be invoked before all of the relevant fixes are created and
 initialized and the number of adjusted degrees of freedom (DOFs) is
 known.  Thus it is not possible to compute the target temperature
 correctly.  Second, the assigned velocities may be partially canceled
 when constraints are first enforced, leading to a different
-temperature than desired.  A workaround for this is to perform a <A HREF = "run.html">run
-0</A> command, which insures all DOFs are accounted for
+temperature than desired.  A workaround for this is to perform a <a class="reference internal" href="run.html"><em>run 0</em></a> command, which insures all DOFs are accounted for
 properly, and then rescale the temperature to the desired value before
-performing a simulation.  For example:
-</P>
-<PRE>velocity all create 300.0 12345
+performing a simulation.  For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>velocity all create 300.0 12345
 run 0                             # temperature may not be 300K
-velocity all scale 300.0          # now it should be 
-</PRE>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_rigid.html">fix rigid</A>, <A HREF = "fix_shake.html">fix shake</A>,
-<A HREF = "lattice.html">lattice</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The keyword defaults are dist = uniform, sum = no, mom = yes, rot =
+velocity all scale 300.0          # now it should be
+</pre></div>
+</div>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a>, <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a>,
+<a class="reference internal" href="lattice.html"><em>lattice</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The keyword defaults are dist = uniform, sum = no, mom = yes, rot =
 no, bias = no, loop = all, and units = lattice.  The temp and rigid
-keywords are not defined by default.
-</P>
-</HTML>
+keywords are not defined by default.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

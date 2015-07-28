@@ -1,147 +1,302 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix colvars command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix colvars command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID colvars configfile keyword values ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>colvars = style name of this fix command 
-
-<LI>configfile = the configuration file for the colvars module 
-
-<LI>keyword = <I>input</I> or <I>output</I> or <I>seed</I> or <I>tstat</I> 
-
-<PRE>  <I>input</I> arg = colvars.state file name or prefix or NULL (default: NULL)
-  <I>output</I> arg = output filename prefix (default: out)
-  <I>seed</I> arg = seed for random number generator (default: 1966)
-  <I>unwrap</I> arg = <I>yes</I> or <I>no</I>
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix colvars command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-colvars-command">
+<span id="index-0"></span><h1>fix colvars command<a class="headerlink" href="#fix-colvars-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID colvars configfile keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>colvars = style name of this fix command</li>
+<li>configfile = the configuration file for the colvars module</li>
+<li>keyword = <em>input</em> or <em>output</em> or <em>seed</em> or <em>tstat</em></li>
+</ul>
+<pre class="literal-block">
+<em>input</em> arg = colvars.state file name or prefix or NULL (default: NULL)
+  <em>output</em> arg = output filename prefix (default: out)
+  <em>seed</em> arg = seed for random number generator (default: 1966)
+  <em>unwrap</em> arg = <em>yes</em> or <em>no</em>
     use unwrapped coordinates in collective variables (default: yes)
-  <I>tstat</I> arg = fix id of a thermostat or NULL (default: NULL) 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix mtd all colvars peptide.colvars.inp seed 2122 input peptide.colvars.state output peptide
-fix abf all colvars colvars.inp tstat 1 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This fix interfaces LAMMPS to a "collective variables" or "colvars"
+  <em>tstat</em> arg = fix id of a thermostat or NULL (default: NULL)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix mtd all colvars peptide.colvars.inp seed 2122 input peptide.colvars.state output peptide
+fix abf all colvars colvars.inp tstat 1
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This fix interfaces LAMMPS to a &#8220;collective variables&#8221; or &#8220;colvars&#8221;
 module library which allows to calculate potentials of mean force
 (PMFs) for any set of colvars, using different sampling methods:
 currently implemented are the Adaptive Biasing Force (ABF) method,
 metadynamics, Steered Molecular Dynamics (SMD) and Umbrella Sampling
 (US) via a flexible harmonic restraint bias. The colvars library is
-hosted at <A HREF = "http://colvars.github.io/">http://colvars.github.io/</A>
-</P>
-<P>This documentation describes only the fix colvars command itself and 
-LAMMPS specific parts of the code.  The full documentation of the 
-colvars library is available as <A HREF = "PDF/colvars-refman-lammps.pdf">this supplementary PDF document</A>
-</P>
-<P>A detailed discussion of the implementation of the portable collective
-variable library is in <A HREF = "#Fiorin">(Fiorin)</A>. Additional information can
-be found in <A HREF = "#Henin">(Henin)</A>.
-</P>
-<P>There are some example scripts for using this package with LAMMPS in the
-examples/USER/colvars directory.
-</P>
-<HR>
-
-<P>The only mandatory argument to the fix is the filename to the colvars
+hosted at <a class="reference external" href="http://colvars.github.io/">http://colvars.github.io/</a></p>
+<p>This documentation describes only the fix colvars command itself and
+LAMMPS specific parts of the code.  The full documentation of the
+colvars library is available as <a class="reference external" href="PDF/colvars-refman-lammps.pdf">this supplementary PDF document</a></p>
+<p>A detailed discussion of the implementation of the portable collective
+variable library is in <a class="reference internal" href="#fiorin"><span>(Fiorin)</span></a>. Additional information can
+be found in <a class="reference internal" href="#henin"><span>(Henin)</span></a>.</p>
+<p>There are some example scripts for using this package with LAMMPS in the
+examples/USER/colvars directory.</p>
+<hr class="docutils" />
+<p>The only mandatory argument to the fix is the filename to the colvars
 input file that contains the input that is independent from the MD
-program in which the colvars library has been integrated.
-</P>
-<P>The <I>group-ID</I> entry is ignored. The collective variable module will
+program in which the colvars library has been integrated.</p>
+<p>The <em>group-ID</em> entry is ignored. The collective variable module will
 always apply to the entire system and there can only be one instance
 of the colvars fix at a time. The colvars fix will only communicate
 the minimum information necessary and the colvars library supports
 multiple, completely independent collective variables, so there is
-no restriction to functionaliry by limiting the number of colvars fixes.
-</P>
-<P>The <I>input</I> keyword allows to specify a state file that would contain
+no restriction to functionaliry by limiting the number of colvars fixes.</p>
+<p>The <em>input</em> keyword allows to specify a state file that would contain
 the restart information required in order to continue a calculation from
-a prerecorded state. Fix colvars records it state in <A HREF = "restart.html">binary restart</A>
-files, so when using the <A HREF = "read_restart.html">read_restart</A> command,
-this is usually not needed.
-</P>
-<P>The <I>output</I> keyword allows to specify the output prefix. All output
-files generated will use this prefix followed by the ".colvars." and
-a word like "state" or "traj".
-</P>
-<P>The <I>seed</I> keyword contains the seed for the random number generator
-that will be used in the colvars module.
-</P>
-<P>The <I>unwrap</I> keyword controls whether wrapped or unwrapped coordinates
+a prerecorded state. Fix colvars records it state in <a class="reference internal" href="restart.html"><em>binary restart</em></a>
+files, so when using the <a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command,
+this is usually not needed.</p>
+<p>The <em>output</em> keyword allows to specify the output prefix. All output
+files generated will use this prefix followed by the &#8221;.colvars.&#8221; and
+a word like &#8220;state&#8221; or &#8220;traj&#8221;.</p>
+<p>The <em>seed</em> keyword contains the seed for the random number generator
+that will be used in the colvars module.</p>
+<p>The <em>unwrap</em> keyword controls whether wrapped or unwrapped coordinates
 are passed to the colvars library for calculation of the collective
-variables and the resulting forces. The default is <I>yes</I>, i.e. to use
+variables and the resulting forces. The default is <em>yes</em>, i.e. to use
 the image flags to reconstruct the absolute atom positions.
-Setting this to <I>no</I> will use the current local coordinates that are
-wrapped back into the simulation cell at each re-neighboring instead.
-</P>
-<P>The <I>tstat</I> keyword can be either NULL or the label of a thermostating
+Setting this to <em>no</em> will use the current local coordinates that are
+wrapped back into the simulation cell at each re-neighboring instead.</p>
+<p>The <em>tstat</em> keyword can be either NULL or the label of a thermostating
 fix that thermostats all atoms in the fix colvars group. This will be
 used to provide the colvars module with the current thermostat target
-temperature.
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>This fix writes the current status of the colvars module into
-<A HREF = "restart.html">binary restart files</A>. This is in addition to the text
+temperature.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>This fix writes the current status of the colvars module into
+<a class="reference internal" href="restart.html"><em>binary restart files</em></a>. This is in addition to the text
 mode status file that is written by the colvars module itself and the
-kind of information in both files is identical.
-</P>
-<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+kind of information in both files is identical.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by this
 fix to add the energy change from the biasing force added by the fix
-to the system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
-output</A>.
-</P>
-<P>This fix computes a global scalar which can be accessed by various
-<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+to the system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>.</p>
+<p>This fix computes a global scalar which can be accessed by various
+<a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar is the
 cummulative energy change due to this fix.  The scalar value
-calculated by this fix is "extensive".
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix is part of the USER-COLVARS package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>There can only be one colvars fix active at a time. Since the interface
+calculated by this fix is &#8220;extensive&#8221;.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is part of the USER-COLVARS package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>There can only be one colvars fix active at a time. Since the interface
 communicates only the minimum amount of information and colvars module
 itself can handle an arbitrary number of collective variables, this is
-not a limitation of functionality.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_smd.html">fix smd</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The default options are input = NULL, output = out, seed = 1966, unwrap yes, 
-and tstat = NULL.
-</P>
-<HR>
+not a limitation of functionality.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_smd.html"><em>fix smd</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The default options are input = NULL, output = out, seed = 1966, unwrap yes,
+and tstat = NULL.</p>
+<hr class="docutils" />
+<p id="fiorin"><strong>(Fiorin)</strong> Fiorin , Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594</p>
+<p id="henin"><strong>(Henin)</strong> Henin, Fiorin, Chipot, Klein, J. Chem. Theory Comput., 6,
+35-47 (2010)</p>
+</div>
+</div>
 
-<A NAME = "Fiorin"></A>
 
-<P><B>(Fiorin)</B> Fiorin , Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594
-</P>
-<A NAME = "Henin"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Henin)</B> Henin, Fiorin, Chipot, Klein, J. Chem. Theory Comput., 6,
-35-47 (2010)
-</P>
-</HTML>
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

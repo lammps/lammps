@@ -1,154 +1,315 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix gravity command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix gravity command 
-</H3>
-<H3>fix gravity/cuda command 
-</H3>
-<H3>fix gravity/omp command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group gravity magnitude style args 
-</PRE>
-<UL><LI>ID, group are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>gravity = style name of this fix command 
-
-<LI>magnitude = size of acceleration (force/mass units) 
-
-<LI>magnitude can be a variable (see below) 
-
-<LI>style = <I>chute</I> or <I>spherical</I> or <I>gradient</I> or <I>vector</I> 
-
-<PRE>  <I>chute</I> args = angle
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix gravity command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-gravity-command">
+<span id="index-0"></span><h1>fix gravity command<a class="headerlink" href="#fix-gravity-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-gravity-cuda-command">
+<h1>fix gravity/cuda command<a class="headerlink" href="#fix-gravity-cuda-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-gravity-omp-command">
+<h1>fix gravity/omp command<a class="headerlink" href="#fix-gravity-omp-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group gravity magnitude style args
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>gravity = style name of this fix command</li>
+<li>magnitude = size of acceleration (force/mass units)</li>
+<li>magnitude can be a variable (see below)</li>
+<li>style = <em>chute</em> or <em>spherical</em> or <em>gradient</em> or <em>vector</em></li>
+</ul>
+<pre class="literal-block">
+<em>chute</em> args = angle
     angle = angle in +x away from -z or -y axis in 3d/2d (in degrees)
     angle can be a variable (see below)
-  <I>spherical</I> args = phi theta
+  <em>spherical</em> args = phi theta
     phi = azimuthal angle from +x axis (in degrees)
     theta = angle from +z or +y axis in 3d/2d (in degrees)
     phi or theta can be a variable (see below)
-  <I>vector</I> args = x y z
+  <em>vector</em> args = x y z
     x y z = vector direction to apply the acceleration
-    x or y or z can be a variable (see below) 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all gravity 1.0 chute 24.0
+    x or y or z can be a variable (see below)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all gravity 1.0 chute 24.0
 fix 1 all gravity v_increase chute 24.0
 fix 1 all gravity 1.0 spherical 0.0 -180.0
 fix 1 all gravity 10.0 spherical v_phi v_theta
-fix 1 all gravity 100.0 vector 1 1 0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Impose an additional acceleration on each particle in the group.  This
-fix is typically used with granular systems to include a "gravity"
+fix 1 all gravity 100.0 vector 1 1 0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Impose an additional acceleration on each particle in the group.  This
+fix is typically used with granular systems to include a &#8220;gravity&#8221;
 term acting on the macroscopic particles.  More generally, it can
 represent any kind of driving field, e.g. a pressure gradient inducing
 a Poiseuille flow in a fluid.  Note that this fix operates differently
-than the <A HREF = "fix_addforce.html">fix addforce</A> command.  The addforce fix
+than the <a class="reference internal" href="fix_addforce.html"><em>fix addforce</em></a> command.  The addforce fix
 adds the same force to each atom, independent of its mass.  This
-command imparts the same acceleration to each atom (force/mass).
-</P>
-<P>The <I>magnitude</I> of the acceleration is specified in force/mass units.
+command imparts the same acceleration to each atom (force/mass).</p>
+<p>The <em>magnitude</em> of the acceleration is specified in force/mass units.
 For granular systems (LJ units) this is typically 1.0.  See the
-<A HREF = "units.html">units</A> command for details.
-</P>
-<P>Style <I>chute</I> is typically used for simulations of chute flow where
-the specified <I>angle</I> is the chute angle, with flow occurring in the +x
+<a class="reference internal" href="units.html"><em>units</em></a> command for details.</p>
+<p>Style <em>chute</em> is typically used for simulations of chute flow where
+the specified <em>angle</em> is the chute angle, with flow occurring in the +x
 direction.  For 3d systems, the tilt is away from the z axis; for 2d
-systems, the tilt is away from the y axis.
-</P>
-<P>Style <I>spherical</I> allows an arbitrary 3d direction to be specified for
-the acceleration vector.  <I>Phi</I> and <I>theta</I> are defined in the usual
+systems, the tilt is away from the y axis.</p>
+<p>Style <em>spherical</em> allows an arbitrary 3d direction to be specified for
+the acceleration vector.  <em>Phi</em> and <em>theta</em> are defined in the usual
 spherical coordinates.  Thus for acceleration acting in the -z
-direction, <I>theta</I> would be 180.0 (or -180.0).  <I>Theta</I> = 90.0 and
-<I>phi</I> = -90.0 would mean acceleration acts in the -y direction.  For
-2d systems, <I>phi</I> is ignored and <I>theta</I> is an angle in the xy plane
-where <I>theta</I> = 0.0 is the y-axis.
-</P>
-<P>Style <I>vector</I> imposes an acceleration in the vector direction given
-by (x,y,z).  Only the direction of the vector is important; it's
-length is ignored.  For 2d systems, the <I>z</I> component is ignored.
-</P>
-<P>Any of the quantities <I>magnitude</I>, <I>angle</I>, <I>phi</I>, <I>theta</I>, <I>x</I>, <I>y</I>,
-<I>z</I> which define the gravitational magnitude and direction, can be
-specified as an equal-style <A HREF = "variable.html">variable</A>.  If the value is
+direction, <em>theta</em> would be 180.0 (or -180.0).  <em>Theta</em> = 90.0 and
+<em>phi</em> = -90.0 would mean acceleration acts in the -y direction.  For
+2d systems, <em>phi</em> is ignored and <em>theta</em> is an angle in the xy plane
+where <em>theta</em> = 0.0 is the y-axis.</p>
+<p>Style <em>vector</em> imposes an acceleration in the vector direction given
+by (x,y,z).  Only the direction of the vector is important; it&#8217;s
+length is ignored.  For 2d systems, the <em>z</em> component is ignored.</p>
+<p>Any of the quantities <em>magnitude</em>, <em>angle</em>, <em>phi</em>, <em>theta</em>, <em>x</em>, <em>y</em>,
+<em>z</em> which define the gravitational magnitude and direction, can be
+specified as an equal-style <a class="reference internal" href="variable.html"><em>variable</em></a>.  If the value is
 a variable, it should be specified as v_name, where name is the
 variable name.  In this case, the variable will be evaluated each
 timestep, and its value used to determine the quantity.  You should
 insure that the variable calculates a result in the approriate units,
-e.g. force/mass or degrees.
-</P>
-<P>Equal-style variables can specify formulas with various mathematical
-functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+e.g. force/mass or degrees.</p>
+<p>Equal-style variables can specify formulas with various mathematical
+functions, and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent gravitational
-field.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+field.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  
-</P>
-<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by this
 fix to add the gravitational potential energy of the system to the
-system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
-output</A>.
-</P>
-<P>This fix computes a global scalar which can be accessed by various
-<A HREF = "Section_howto.html#howto_15">output commands</A>.  This scalar is the
+system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>.</p>
+<p>This fix computes a global scalar which can be accessed by various
+<a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  This scalar is the
 gravitational potential energy of the particles in the defined field,
 namely mass * (g dot x) for each particles, where x and mass are the
 particles position and mass, and g is the gravitational field.  The
-scalar value calculated by this fix is "extensive".
-</P>
-<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
-minimization</A>.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "atom_style.html">atom_style sphere</A>, <A HREF = "fix_addforce.html">fix addforce</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+scalar value calculated by this fix is &#8220;extensive&#8221;.</p>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><em>run</em></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="atom_style.html"><em>atom_style sphere</em></a>, <a class="reference internal" href="fix_addforce.html"><em>fix addforce</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

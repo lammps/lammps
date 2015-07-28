@@ -1,106 +1,269 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix qeq/reax command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix qeq/reax command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID qeq/reax Nevery cutlo cuthi tolerance params 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>qeq/reax = style name of this fix command 
-<LI>Nevery = perform QEq every this many steps
-<LI>cutlo,cuthi = lo and hi cutoff for Taper radius
-<LI>tolerance = precision to which charges will be equilibrated
-<LI>params = reax/c or a filename 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
-fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Perform the charge equilibration (QEq) method as described in <A HREF = "#Rappe">(Rappe
-and Goddard)</A> and formulated in <A HREF = "#Nakano">(Nakano)</A>.  It is
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix qeq/reax command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-qeq-reax-command">
+<span id="index-0"></span><h1>fix qeq/reax command<a class="headerlink" href="#fix-qeq-reax-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID qeq/reax Nevery cutlo cuthi tolerance params
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>qeq/reax = style name of this fix command</li>
+<li>Nevery = perform QEq every this many steps</li>
+<li>cutlo,cuthi = lo and hi cutoff for Taper radius</li>
+<li>tolerance = precision to which charges will be equilibrated</li>
+<li>params = reax/c or a filename</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
+fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Perform the charge equilibration (QEq) method as described in <a class="reference internal" href="#rappe"><span>(Rappe and Goddard)</span></a> and formulated in <a class="reference internal" href="neb.html#nakano"><span>(Nakano)</span></a>.  It is
 typically used in conjunction with the ReaxFF force field model as
-implemented in the <A HREF = "pair_reax_c.html">pair_style reax/c</A> command, but
+implemented in the <a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a> command, but
 it can be used with any potential in LAMMPS, so long as it defines and
-uses charges on each atom.  The <A HREF = "fix_qeq_comb.html">fix qeq/comb</A>
-command should be used to perform charge equliibration with the <A HREF = "pair_comb.html">COMB
-potential</A>.  For more technical details about the
+uses charges on each atom.  The <a class="reference internal" href="fix_qeq_comb.html"><em>fix qeq/comb</em></a>
+command should be used to perform charge equliibration with the <a class="reference internal" href="pair_comb.html"><em>COMB potential</em></a>.  For more technical details about the
 charge equilibration performed by fix qeq/reax, see the
-<A HREF = "#Aktulga">(Aktulga)</A> paper.
-</P>
-<P>The QEq method minimizes the electrostatic energy of the system by
+<a class="reference internal" href="pair_reax_c.html#aktulga"><span>(Aktulga)</span></a> paper.</p>
+<p>The QEq method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
 with their neighbors.  It reqires some parameters for each atom type.
-If the <I>params</I> setting above is the word "reax/c", then these are
-extracted from the <A HREF = "pair_reax_c.html">pair_style reax/c</A> command and
+If the <em>params</em> setting above is the word &#8220;reax/c&#8221;, then these are
+extracted from the <a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a> command and
 the ReaxFF force field file it reads in.  If a file name is specified
-for <I>params</I>, then the parameters are taken from the specified file
+for <em>params</em>, then the parameters are taken from the specified file
 and the file must contain one line for each atom type.  The latter
 form must be used when performing QeQ with a non-ReaxFF potential.
-Each line should be formatted as follows:
-</P>
-<PRE>itype chi eta gamma 
-</PRE>
-<P>where <I>itype</I> is the atom type from 1 to Ntypes, <I>chi</I> denotes the
-electronegativity in eV, <I>eta</I> denotes the self-Coulomb
-potential in eV, and <I>gamma</I> denotes the valence orbital
+Each line should be formatted as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>itype chi eta gamma
+</pre></div>
+</div>
+<p>where <em>itype</em> is the atom type from 1 to Ntypes, <em>chi</em> denotes the
+electronegativity in eV, <em>eta</em> denotes the self-Coulomb
+potential in eV, and <em>gamma</em> denotes the valence orbital
 exponent.  Note that these 3 quantities are also in the ReaxFF
 potential file, except that eta is defined here as twice the eta value
 in the ReaxFF file. Note that unlike the rest of LAMMPS, the units
-of this fix are hard-coded to be A, eV, and electronic charge. 
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  No parameter of this fix can
-be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-</P>
-<P>This fix is invoked during <A HREF = "minimize.html">energy minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix is part of the USER-REAXC package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>This fix does not correctly handle interactions
+of this fix are hard-coded to be A, eV, and electronic charge.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  No global scalar or vector or per-atom
+quantities are stored by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  No parameter of this fix can
+be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command.</p>
+<p>This fix is invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is part of the USER-REAXC package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>This fix does not correctly handle interactions
 involving multiple periodic images of the same atom. Hence, it should not
-be used for periodic cell dimensions less than 10 angstroms. 
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_reax_c.html">pair_style reax/c</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+be used for periodic cell dimensions less than 10 angstroms.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_reax_c.html"><em>pair_style reax/c</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="rappe"><strong>(Rappe)</strong> Rappe and Goddard III, Journal of Physical Chemistry, 95,
+3358-3363 (1991).</p>
+<p id="nakano"><strong>(Nakano)</strong> Nakano, Computer Physics Communications, 104, 59-69 (1997).</p>
+<p id="aktulga">(Aktulga) Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
+245-259 (2012).</p>
+</div>
+</div>
 
-<A NAME = "Rappe"></A>
 
-<P> <B>(Rappe)</B> Rappe and Goddard III, Journal of Physical Chemistry, 95,
-3358-3363 (1991).
-</P>
-<A NAME = "Nakano"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Nakano)</B> Nakano, Computer Physics Communications, 104, 59-69 (1997).
-</P>
-<A NAME = "Aktulga"></A>
+  <hr/>
 
-<P>(Aktulga) Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
-245-259 (2012).
-</P>
-</HTML>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

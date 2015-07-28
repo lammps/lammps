@@ -1,89 +1,204 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>kspace_modify command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>kspace_modify command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>kspace_modify keyword value ... 
-</PRE>
-<UL><LI>one or more keyword/value pairs may be listed 
-
-<PRE>keyword = <I>mesh</I> or <I>order</I> or <I>order/disp</I> or <I>mix/disp</I> or <I>overlap</I> or <I>minorder</I> or <I>force</I> or <I>gewald</I> or <I>gewald/disp</I> or <I>slab</I> or (nozforce</I> or <I>compute</I> or <I>cutoff/adjust</I> or <I>fftbench</I> or <I>collective</I> or <I>diff</I> or <I>kmax/ewald</I> or <I>force/disp/real</I> or <I>force/disp/kspace</I> or <I>splittol</I> or <I>disp/auto</I>:l
-  <I>mesh</I> value = x y z
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>kspace_modify command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="kspace-modify-command">
+<span id="index-0"></span><h1>kspace_modify command<a class="headerlink" href="#kspace-modify-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>kspace_modify keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>one or more keyword/value pairs may be listed</li>
+</ul>
+<pre class="literal-block">
+keyword = <em>mesh</em> or <em>order</em> or <em>order/disp</em> or <em>mix/disp</em> or <em>overlap</em> or <em>minorder</em> or <em>force</em> or <em>gewald</em> or <em>gewald/disp</em> or <em>slab</em> or (nozforce* or <em>compute</em> or <em>cutoff/adjust</em> or <em>fftbench</em> or <em>collective</em> or <em>diff</em> or <em>kmax/ewald</em> or <em>force/disp/real</em> or <em>force/disp/kspace</em> or <em>splittol</em> or <em>disp/auto</em>:l
+  <em>mesh</em> value = x y z
     x,y,z = grid size in each dimension for long-range Coulombics
-  <I>mesh/disp</I> value = x y z
+  <em>mesh/disp</em> value = x y z
     x,y,z = grid size in each dimension for 1/r^6 dispersion
-  <I>order</I> value = N
+  <em>order</em> value = N
     N = extent of Gaussian for PPPM or MSM mapping of charge to grid
-  <I>order/disp</I> value = N
+  <em>order/disp</em> value = N
     N = extent of Gaussian for PPPM mapping of dispersion term to grid
-  <I>mix/disp</I> value = <I>pair</I> or <I>geom</I> or <I>none</I>
-  <I>overlap</I> = <I>yes</I> or <I>no</I> = whether the grid stencil for PPPM is allowed to overlap into more than the nearest-neighbor processor
-  <I>minorder</I> value = M
+  <em>mix/disp</em> value = <em>pair</em> or <em>geom</em> or <em>none</em>
+  <em>overlap</em> = <em>yes</em> or <em>no</em> = whether the grid stencil for PPPM is allowed to overlap into more than the nearest-neighbor processor
+  <em>minorder</em> value = M
     M = min allowed extent of Gaussian when auto-adjusting to minimize grid communication
-  <I>force</I> value = accuracy (force units)
-  <I>gewald</I> value = rinv (1/distance units)
+  <em>force</em> value = accuracy (force units)
+  <em>gewald</em> value = rinv (1/distance units)
     rinv = G-ewald parameter for Coulombics
-  <I>gewald/disp</I> value = rinv (1/distance units)
+  <em>gewald/disp</em> value = rinv (1/distance units)
     rinv = G-ewald parameter for dispersion
-  <I>slab</I> value = volfactor or <I>nozforce</I>
+  <em>slab</em> value = volfactor or <em>nozforce</em>
     volfactor = ratio of the total extended volume used in the
       2d approximation compared with the volume of the simulation domain
-  <I>nozforce</I> turns off kspace forces in the z direction
-  <I>compute</I> value = <I>yes</I> or <I>no</I> 
-  <I>cutoff/adjust</I> value = <I>yes</I> or <I>no</I> 
-  <I>pressure/scalar</I> value = <I>yes</I> or <I>no</I> 
-  <I>fftbench</I> value = <I>yes</I> or <I>no</I> 
-  <I>collective</I> value = <I>yes</I> or <I>no</I> 
-  <I>diff</I> value = <I>ad</I> or <I>ik</I> = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode 
-  <I>kmax/ewald</I> value = kx ky kz 
+  <em>nozforce</em> turns off kspace forces in the z direction
+  <em>compute</em> value = <em>yes</em> or <em>no</em>
+  <em>cutoff/adjust</em> value = <em>yes</em> or <em>no</em>
+  <em>pressure/scalar</em> value = <em>yes</em> or <em>no</em>
+  <em>fftbench</em> value = <em>yes</em> or <em>no</em>
+  <em>collective</em> value = <em>yes</em> or <em>no</em>
+  <em>diff</em> value = <em>ad</em> or <em>ik</em> = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode
+  <em>kmax/ewald</em> value = kx ky kz
     kx,ky,kz = number of Ewald sum kspace vectors in each dimension
-  <I>force/disp/real</I> value = accuracy (force units)
-  <I>force/disp/kspace</I> value = accuracy (force units)
-  <I>splittol</I> value = tol
+  <em>force/disp/real</em> value = accuracy (force units)
+  <em>force/disp/kspace</em> value = accuracy (force units)
+  <em>splittol</em> value = tol
     tol = relative size of two eigenvalues (see discussion below)
-  <I>disp/auto</I> value = yes or no 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>kspace_modify mesh 24 24 30 order 6
-kspace_modify slab 3.0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Set parameters used by the kspace solvers defined by the
-<A HREF = "kspace_style.html">kspace_style</A> command.  Not all parameters are
-relevant to all kspace styles.
-</P>
-<P>The <I>mesh</I> keyword sets the grid size for kspace style <I>pppm</I> or
-<I>msm</I>.  In the case of PPPM, this is the FFT mesh, and each dimension
+  <em>disp/auto</em> value = yes or no
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>kspace_modify mesh 24 24 30 order 6
+kspace_modify slab 3.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Set parameters used by the kspace solvers defined by the
+<a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command.  Not all parameters are
+relevant to all kspace styles.</p>
+<p>The <em>mesh</em> keyword sets the grid size for kspace style <em>pppm</em> or
+<em>msm</em>.  In the case of PPPM, this is the FFT mesh, and each dimension
 must be factorizable into powers of 2, 3, and 5.  In the case of MSM,
 this is the finest scale real-space mesh, and each dimension must be
 factorizable into powers of 2.  When this option is not set, the PPPM
 or MSM solver chooses its own grid size, consistent with the
 user-specified accuracy and pairwise cutoff.  Values for x,y,z of
-0,0,0 unset the option.
-</P>
-<P>The <I>mesh/disp</I> keyword sets the grid size for kspace style
-<I>pppm/disp</I>.  This is the FFT mesh for long-range dispersion and ach
+0,0,0 unset the option.</p>
+<p>The <em>mesh/disp</em> keyword sets the grid size for kspace style
+<em>pppm/disp</em>.  This is the FFT mesh for long-range dispersion and ach
 dimension must be factorizable into powers of 2, 3, and 5.  When this
-option is not set, the PPPM solver chooses its own grid size, 
+option is not set, the PPPM solver chooses its own grid size,
 consistent with the user-specified accuracy and pairwise cutoff.
-Values for x,y,z of 0,0,0 unset the option.
-</P>
-<P>The <I>order</I> keyword determines how many grid spacings an atom's charge
-extends when it is mapped to the grid in kspace style <I>pppm</I> or <I>msm</I>.
+Values for x,y,z of 0,0,0 unset the option.</p>
+<p>The <em>order</em> keyword determines how many grid spacings an atom&#8217;s charge
+extends when it is mapped to the grid in kspace style <em>pppm</em> or <em>msm</em>.
 The default for this parameter is 5 for PPPM and 8 for MSM, which
 means each charge spans 5 or 8 grid cells in each dimension,
 respectively.  For the LAMMPS implementation of MSM, the order can
@@ -94,63 +209,57 @@ size, to achieve the requested accuracy.  Conversely, the smaller the
 order value, the larger the grid size will be.  Note that there is an
 inherent trade-off involved: a small grid will lower the cost of FFTs
 or MSM direct sum, but a larger order parameter will increase the cost
-of interpolating charge/fields to/from the grid.
-</P>
-<P>The <I>order/disp</I> keyword determines how many grid spacings an atom's
+of interpolating charge/fields to/from the grid.</p>
+<p>The <em>order/disp</em> keyword determines how many grid spacings an atom&#8217;s
 dispersion term extends when it is mapped to the grid in kspace style
-<I>pppm/disp</I>.  It has the same meaning as the <I>order</I> setting for
-Coulombics.
-</P>
-<P>The <I>overlap</I> keyword can be used in conjunction with the <I>minorder</I>
+<em>pppm/disp</em>.  It has the same meaning as the <em>order</em> setting for
+Coulombics.</p>
+<p>The <em>overlap</em> keyword can be used in conjunction with the <em>minorder</em>
 keyword with the PPPM styles to adjust the amount of communication
 that occurs when values on the FFT grid are exchangeed between
 processors.  This communication is distinct from the communication
 inherent in the parallel FFTs themselves, and is required because
 processors interpolate charge and field values using grid point values
 owned by neighboring processors (i.e. ghost point communication).  If
-the <I>overlap</I> keyword is set to <I>yes</I> then this communication is
+the <em>overlap</em> keyword is set to <em>yes</em> then this communication is
 allowed to extend beyond nearest-neighbor processors, e.g. when using
-lots of processors on a small problem.  If it is set to <I>no</I> then the
+lots of processors on a small problem.  If it is set to <em>no</em> then the
 communication will be limited to nearest-neighbor processors and the
-<I>order</I> setting will be reduced if necessary, as explained by the
-<I>minorder</I> keyword discussion. The <I>overlap</I> keyword is always set to
-<I>yes</I> in MSM.
-</P>
-<P>The <I>minorder</I> keyword allows LAMMPS to reduce the <I>order</I> setting if
+<em>order</em> setting will be reduced if necessary, as explained by the
+<em>minorder</em> keyword discussion. The <em>overlap</em> keyword is always set to
+<em>yes</em> in MSM.</p>
+<p>The <em>minorder</em> keyword allows LAMMPS to reduce the <em>order</em> setting if
 necessary to keep the communication of ghost grid point limited to
 exchanges between nearest-neighbor processors.  See the discussion of
-the <I>overlap</I> keyword for details.  If the <I>overlap</I> keyword is set to
-<I>yes</I>, which is the default, this is never needed.  If it set to <I>no</I>
+the <em>overlap</em> keyword for details.  If the <em>overlap</em> keyword is set to
+<em>yes</em>, which is the default, this is never needed.  If it set to <em>no</em>
 and overlap occurs, then LAMMPS will reduce the order setting, one
 step at a time, until the ghost grid overlap only extends to nearest
-neighbor processors.  The <I>minorder</I> keyword limits how small the
-<I>order</I> setting can become.  The minimum allowed value for PPPM is 2,
-which is the default.  If <I>minorder</I> is set to the same value as
-<I>order</I> then no reduction is allowed, and LAMMPS will generate an
-error if the grid communcation is non-nearest-neighbor and <I>overlap</I>
-is set to <I>no</I>. The <I>minorder</I> keyword is not currently supported in
-MSM.
-</P>
-<P>The PPPM order parameter may be reset by LAMMPS when it sets up the
+neighbor processors.  The <em>minorder</em> keyword limits how small the
+<em>order</em> setting can become.  The minimum allowed value for PPPM is 2,
+which is the default.  If <em>minorder</em> is set to the same value as
+<em>order</em> then no reduction is allowed, and LAMMPS will generate an
+error if the grid communcation is non-nearest-neighbor and <em>overlap</em>
+is set to <em>no</em>. The <em>minorder</em> keyword is not currently supported in
+MSM.</p>
+<p>The PPPM order parameter may be reset by LAMMPS when it sets up the
 FFT grid if the implied grid stencil extends beyond the grid cells
 owned by neighboring processors.  Typically this will only occur when
 small problems are run on large numbers of processors.  A warning will
 be generated indicating the order parameter is being reduced to allow
 LAMMPS to run the problem. Automatic adjustment of the order parameter
-is not supported in MSM. 
-</P>
-<P>The <I>force</I> keyword overrides the relative accuracy parameter set by
-the <A HREF = "kspace_style.html">kspace_style</A> command with an absolute
+is not supported in MSM.</p>
+<p>The <em>force</em> keyword overrides the relative accuracy parameter set by
+the <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command with an absolute
 accuracy.  The accuracy determines the RMS error in per-atom forces
 calculated by the long-range solver and is thus specified in force
 units.  A negative value for the accuracy setting means to use the
 relative accuracy parameter.  The accuracy setting is used in
 conjunction with the pairwise cutoff to determine the number of
-K-space vectors for style <I>ewald</I>, the FFT grid size for style
-<I>pppm</I>, or the real space grid size for style <I>msm</I>.
-</P>
-<P>The <I>gewald</I> keyword sets the value of the Ewald or PPPM G-ewald
-parameter for charge as <I>rinv</I> in reciprocal distance units.  Without
+K-space vectors for style <em>ewald</em>, the FFT grid size for style
+<em>pppm</em>, or the real space grid size for style <em>msm</em>.</p>
+<p>The <em>gewald</em> keyword sets the value of the Ewald or PPPM G-ewald
+parameter for charge as <em>rinv</em> in reciprocal distance units.  Without
 this setting, LAMMPS chooses the parameter automatically as a function
 of cutoff, precision, grid spacing, etc.  This means it can vary from
 one simulation to the next which may not be desirable for matching a
@@ -158,15 +267,13 @@ KSpace solver to a pre-tabulated pairwise potential.  This setting can
 also be useful if Ewald or PPPM fails to choose a good grid spacing
 and G-ewald parameter automatically.  If the value is set to 0.0,
 LAMMPS will choose the G-ewald parameter automatically.  MSM does not
-use the <I>gewald</I> parameter.
-</P>
-<P>The <I>gewald/disp</I> keyword sets the value of the Ewald or PPPM G-ewald
-parameter for dispersion as <I>rinv</I> in reciprocal distance units.  It
-has the same meaning as the <I>gewald</I> setting for Coulombics.
-</P>
-<P>The <I>slab</I> keyword allows an Ewald or PPPM solver to be used for a
+use the <em>gewald</em> parameter.</p>
+<p>The <em>gewald/disp</em> keyword sets the value of the Ewald or PPPM G-ewald
+parameter for dispersion as <em>rinv</em> in reciprocal distance units.  It
+has the same meaning as the <em>gewald</em> setting for Coulombics.</p>
+<p>The <em>slab</em> keyword allows an Ewald or PPPM solver to be used for a
 systems that are periodic in x,y but non-periodic in z - a
-<A HREF = "boundary.html">boundary</A> setting of "boundary p p f".  This is done by
+<a class="reference internal" href="boundary.html"><em>boundary</em></a> setting of &#8220;boundary p p f&#8221;.  This is done by
 treating the system as if it were periodic in z, but inserting empty
 volume between atom slabs and removing dipole inter-slab interactions
 so that slab-slab interactions are effectively turned off.  The
@@ -175,176 +282,208 @@ by the actual dimension in z.  The recommended value is 3.0.  A larger
 value is inefficient; a smaller value introduces unwanted slab-slab
 interactions.  The use of fixed boundaries in z means that the user
 must prevent particle migration beyond the initial z-bounds, typically
-by providing a wall-style fix.  The methodology behind the <I>slab</I>
-option is explained in the paper by <A HREF = "#Yeh">(Yeh)</A>.  The <I>slab</I> option
+by providing a wall-style fix.  The methodology behind the <em>slab</em>
+option is explained in the paper by <a class="reference internal" href="#yeh"><span>(Yeh)</span></a>.  The <em>slab</em> option
 is also extended to non-neutral systems
-<A HREF = "#Ballenegger">(Ballenegger)</A>. An alternative slab option can be
-invoked with the <I>nozforce</I> keyword in lieu of the volfactor. This
-turns off all kspace forces in the z direction.  The <I>nozforce</I> option
+<a class="reference internal" href="#ballenegger"><span>(Ballenegger)</span></a>. An alternative slab option can be
+invoked with the <em>nozforce</em> keyword in lieu of the volfactor. This
+turns off all kspace forces in the z direction.  The <em>nozforce</em> option
 is not supported by MSM. For MSM, any combination of periodic,
 non-periodic, or shrink-wrapped boundaries can be set using
-<A HREF = "boundary.html">boundary</A> (the slab approximation in not needed).  The
-<I>slab</I> keyword is not currently supported by Ewald or PPPM when using
+<a class="reference internal" href="boundary.html"><em>boundary</em></a> (the slab approximation in not needed).  The
+<em>slab</em> keyword is not currently supported by Ewald or PPPM when using
 a triclinic simulation cell. The slab correction has also been
-extended to point dipole interactions <A HREF = "#Klapp">(Klapp)</A> in
-<A HREF = "kspace_style.html">kspace_style</A> <I>ewald/disp</I>.
-</P>
-<P>The <I>compute</I> keyword allows Kspace computations to be turned off,
-even though a <A HREF = "kspace_style.html">kspace_style</A> is defined.  This is
+extended to point dipole interactions <a class="reference internal" href="#klapp"><span>(Klapp)</span></a> in
+<a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> <em>ewald/disp</em>.</p>
+<p>The <em>compute</em> keyword allows Kspace computations to be turned off,
+even though a <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> is defined.  This is
 not useful for running a real simulation, but can be useful for
 debugging purposes or for computing only partial forces that do not
 include the Kspace contribution.  You can also do this by simply not
-defining a <A HREF = "kspace_style.html">kspace_style</A>, but a Kspace-compatible
-<A HREF = "pair_style.html">pair_style</A> requires a kspace style to be defined.
-This keyword gives you that option.
-</P>
-<P>The <I>cutoff/adjust</I> keyword applies only to MSM. If this option is
+defining a <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a>, but a Kspace-compatible
+<a class="reference internal" href="pair_style.html"><em>pair_style</em></a> requires a kspace style to be defined.
+This keyword gives you that option.</p>
+<p>The <em>cutoff/adjust</em> keyword applies only to MSM. If this option is
 turned on, the Coulombic cutoff will be automatically adjusted at the
 beginning of the run to give the desired estimated error. Other
 cutoffs such as LJ will not be affected. If the grid is not set using
-the <I>mesh</I> command, this command will also attempt to use the optimal
+the <em>mesh</em> command, this command will also attempt to use the optimal
 grid that minimizes cost using an estimate given by
-<A HREF = "#Hardy">(Hardy)</A>. Note that this cost estimate is not exact, somewhat
-experimental, and still may not yield the optimal parameters.
-</P>
-<P>The <I>pressure/scalar</I> keyword applies only to MSM. If this option is
+<a class="reference internal" href="kspace_style.html#hardy"><span>(Hardy)</span></a>. Note that this cost estimate is not exact, somewhat
+experimental, and still may not yield the optimal parameters.</p>
+<p>The <em>pressure/scalar</em> keyword applies only to MSM. If this option is
 turned on, only the scalar pressure (i.e. (Pxx + Pyy + Pzz)/3.0) will
 be computed, which can be used, for example, to run an isotropic barostat.
 Computing the full pressure tensor with MSM is expensive, and this option
 provides a faster alternative. The scalar pressure is computed using a
-relationship between the Coulombic energy and pressure <A HREF = "#Hummer">(Hummer)</A>
+relationship between the Coulombic energy and pressure <a class="reference internal" href="#hummer"><span>(Hummer)</span></a>
 instead of using the virial equation. This option cannot be used to access
 individual components of the pressure tensor, to compute per-atom virial,
-or with suffix kspace/pair styles of MSM, like OMP or GPU.
-</P>
-<P>The <I>fftbench</I> keyword applies only to PPPM. It is on by default. If
+or with suffix kspace/pair styles of MSM, like OMP or GPU.</p>
+<p>The <em>fftbench</em> keyword applies only to PPPM. It is on by default. If
 this option is turned off, LAMMPS will not take the time at the end
 of a run to give FFT benchmark timings, and will finish a few seconds
-faster than it would if this option were on.
-</P>
-<P>The <I>collective</I> keyword applies only to PPPM.  It is set to <I>no</I> by
+faster than it would if this option were on.</p>
+<p>The <em>collective</em> keyword applies only to PPPM.  It is set to <em>no</em> by
 default, except on IBM BlueGene machines.  If this option is set to
-<I>yes</I>, LAMMPS will use MPI collective operations to remap data for
+<em>yes</em>, LAMMPS will use MPI collective operations to remap data for
 3d-FFT operations instead of the default point-to-point communication.
 This is faster on IBM BlueGene machines, and may also be faster on
 other machines if they have an efficient implementation of MPI
-collective operations and adequate hardware.
-</P>
-<P>The <I>diff</I> keyword specifies the differentiation scheme used by the
+collective operations and adequate hardware.</p>
+<p>The <em>diff</em> keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
-potentials on the PPPM mesh.  The <I>ik</I> approach is the default for
-PPPM and is the original formulation used in <A HREF = "#Hockney">(Hockney)</A>.  It
+potentials on the PPPM mesh.  The <em>ik</em> approach is the default for
+PPPM and is the original formulation used in <a class="reference internal" href="kspace_style.html#hockney"><span>(Hockney)</span></a>.  It
 performs differentiation in Kspace, and uses 3 FFTs to transfer each
 component of the computed fields back to real space for total of 4
-FFTs per timestep.
-</P>
-<P>The analytic differentiation <I>ad</I> approach uses only 1 FFT to transfer
+FFTs per timestep.</p>
+<p>The analytic differentiation <em>ad</em> approach uses only 1 FFT to transfer
 information back to real space for a total of 2 FFTs per timestep.  It
 then performs analytic differentiation on the single quantity to
 generate the 3 components of the electric field at each grid point.
-This is sometimes referred to as "smoothed" PPPM.  This approach
+This is sometimes referred to as &#8220;smoothed&#8221; PPPM.  This approach
 requires a somewhat larger PPPM mesh to achieve the same accuracy as
-the <I>ik</I> method. Currently, only the <I>ik</I> method (default) can be 
-used for a triclinic simulation cell with PPPM. The <I>ad</I> method is 
-always used for MSM.
-</P>
-<P>IMPORTANT NOTE: Currently, not all PPPM styles support the <I>ad</I>
-option.  Support for those PPPM variants will be added later.
-</P>
-<P>The <I>kmax/ewald</I> keyword sets the number of kspace vectors in each
-dimension for kspace style <I>ewald</I>.  The three values must be positive
+the <em>ik</em> method. Currently, only the <em>ik</em> method (default) can be
+used for a triclinic simulation cell with PPPM. The <em>ad</em> method is
+always used for MSM.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Currently, not all PPPM styles support the <em>ad</em>
+option.  Support for those PPPM variants will be added later.</p>
+</div>
+<p>The <em>kmax/ewald</em> keyword sets the number of kspace vectors in each
+dimension for kspace style <em>ewald</em>.  The three values must be positive
 integers, or else (0,0,0), which unsets the option.  When this option
 is not set, the Ewald sum scheme chooses its own kspace vectors,
 consistent with the user-specified accuracy and pairwise cutoff. In
-any case, if kspace style <I>ewald</I> is invoked, the values used are
-printed to the screen and the log file at the start of the run.
-</P>
-<P>With the <I>mix/disp</I> keyword one can select the mixing rule for the
-dispersion coefficients.  With <I>pair</I>, the dispersion coefficients of
+any case, if kspace style <em>ewald</em> is invoked, the values used are
+printed to the screen and the log file at the start of the run.</p>
+<p>With the <em>mix/disp</em> keyword one can select the mixing rule for the
+dispersion coefficients.  With <em>pair</em>, the dispersion coefficients of
 unlike types are computed as indicated with
-<A HREF = "pair_modify.html">pair_modify</A>.  With <I>geom</I>, geometric mixing is
+<a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>.  With <em>geom</em>, geometric mixing is
 enforced on the dispersion coefficients in the kspace
 coefficients. When using the arithmetic mixing rule, this will
 speed-up the simulations but introduces some error in the force
-computations, as shown in <A HREF = "#Wennberg">(Wennberg)</A>.  With <I>none</I>, it is
+computations, as shown in <a class="reference internal" href="#wennberg"><span>(Wennberg)</span></a>.  With <em>none</em>, it is
 assumed that no mixing rule is applicable. Splitting of the dispersion
 coefficients will be performed as described in
-<A HREF = "#Isele-Holder">(Isele-Holder)</A>.  This splitting can be influenced with
-the <I>splittol</I> keywords. Only the eigenvalues that are larger than tol
+<a class="reference internal" href="kspace_style.html#isele-holder"><span>(Isele-Holder)</span></a>.  This splitting can be influenced with
+the <em>splittol</em> keywords. Only the eigenvalues that are larger than tol
 compared to the largest eigenvalues are included. Using this keywords
 the original matrix of dispersion coefficients is approximated. This
 leads to faster computations, but the accuracy in the reciprocal space
-computations of the dispersion part is decreased.
-</P>
-<P>The <I>force/disp/real</I> and <I>force/disp/kspace</I> keywords set the force
+computations of the dispersion part is decreased.</p>
+<p>The <em>force/disp/real</em> and <em>force/disp/kspace</em> keywords set the force
 accuracy for the real and space computations for the dispersion part
-of pppm/disp. As shown in <A HREF = "#Isele-Holder">(Isele-Holder)</A>, optimal
+of pppm/disp. As shown in <a class="reference internal" href="kspace_style.html#isele-holder"><span>(Isele-Holder)</span></a>, optimal
 performance and accuracy in the results is obtained when these values
-are different.
-</P>
-<P>The <I>disp/auto</I> option controlls whether the pppm/disp is allowed to
-generate PPPM parameters automatically. If set to <I>no</I>, parameters have
-to be specified using the <I>gewald/disp</I>, <I>mesh/disp</I>,
-<I>force/disp/real</I> or <I>force/disp/kspace</I> keywords, or
+are different.</p>
+<p>The <em>disp/auto</em> option controlls whether the pppm/disp is allowed to
+generate PPPM parameters automatically. If set to <em>no</em>, parameters have
+to be specified using the <em>gewald/disp</em>, <em>mesh/disp</em>,
+<em>force/disp/real</em> or <em>force/disp/kspace</em> keywords, or
 the code will stop with an error message. When this option is set to
-<I>yes</I>, the error message will not appear and the simulation will start.
+<em>yes</em>, the error message will not appear and the simulation will start.
 For a typical application, using the automatic parameter generation will provide
 simulations that are either inaccurate or slow. Using this option is thus not
-recommended. For guidelines on how to obtain good parameters, see the <A HREF = "Section_howto.html#howto_23">How-To</A> discussion.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "kspace_style.html">kspace_style</A>, <A HREF = "boundary.html">boundary</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
+recommended. For guidelines on how to obtain good parameters, see the <a class="reference internal" href="Section_howto.html#howto-23"><span>How-To</span></a> discussion.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a>, <a class="reference internal" href="boundary.html"><em>boundary</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
 yes (MSM), pressure/scalar = yes (MSM), fftbench = yes (PPPM), diff = ik
 (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace = -1.0,
-split = 0, tol = 1.0e-6, and disp/auto = no.
-</P>
-<HR>
-
-<A NAME = "Hockney"></A>
-
-<P><B>(Hockney)</B> Hockney and Eastwood, Computer Simulation Using Particles,
-Adam Hilger, NY (1989).
-</P>
-<A NAME = "Yeh"></A>
-
-<P><B>(Yeh)</B> Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).
-</P>
-<A NAME = "Ballenegger"></A>
-
-<P><B>(Ballenegger)</B> Ballenegger, Arnold, Cerda, J Chem Phys, 131, 094107
-(2009).
-</P>
-<A NAME = "Klapp"></A>
-
-<P><B>(Klapp)</B> Klapp, Schoen, J Chem Phys, 117, 8050 (2002).
-</P>
-<A NAME = "Hardy"></A>
-
-<P><B>(Hardy)</B> David Hardy thesis: Multilevel Summation for the Fast
+split = 0, tol = 1.0e-6, and disp/auto = no.</p>
+<hr class="docutils" />
+<p id="hockney"><strong>(Hockney)</strong> Hockney and Eastwood, Computer Simulation Using Particles,
+Adam Hilger, NY (1989).</p>
+<p id="yeh"><strong>(Yeh)</strong> Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).</p>
+<p id="ballenegger"><strong>(Ballenegger)</strong> Ballenegger, Arnold, Cerda, J Chem Phys, 131, 094107
+(2009).</p>
+<p id="klapp"><strong>(Klapp)</strong> Klapp, Schoen, J Chem Phys, 117, 8050 (2002).</p>
+<p id="hardy"><strong>(Hardy)</strong> David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
-Illinois at Urbana-Champaign, (2006).
-</P>
-<A NAME = "Hummer"></A>
+Illinois at Urbana-Champaign, (2006).</p>
+<p id="hummer"><strong>(Hummer)</strong> Hummer, Gronbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)</p>
+<p id="isele-holder"><strong>(Isele-Holder)</strong> Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J
+Chem Theory Comput, 9, 5412 (2013).</p>
+<p id="wennberg"><strong>(Wennberg)</strong> Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput,
+9, 3527 (2013).</p>
+</div>
+</div>
 
-<P><B>(Hummer)</B> Hummer, Gronbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)
-</P>
-<A NAME = "Isele-Holder"></A>
 
-<P><B>(Isele-Holder)</B> Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J
-Chem Theory Comput, 9, 5412 (2013).
-</P>
-<A NAME = "Wennberg"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Wennberg)</B> Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput,
-9, 3527 (2013).
-</P>
-</HTML>
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

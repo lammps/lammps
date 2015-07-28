@@ -1,145 +1,266 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>kspace_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>kspace_style command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>kspace_style style value 
-</PRE>
-<UL><LI>style = <I>none</I> or <I>ewald</I> or <I>ewald/disp</I> or <I>ewald/omp</I> or <I>pppm</I> or <I>pppm/cg</I> or <I>pppm/disp</I> or <I>pppm/tip4p</I> or <I>pppm/stagger</I> or <I>pppm/disp/tip4p</I> or <I>pppm/gpu</I> or <I>pppm/omp</I> or <I>pppm/cg/omp</I> or <I>pppm/tip4p/omp</I> or <I>msm</I> or <I>msm/cg</I> or <I>msm/omp</I> or <I>msm/cg/omp</I> 
-
-<PRE>  <I>none</I> value = none
-  <I>ewald</I> value = accuracy
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>kspace_style command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="kspace-style-command">
+<span id="index-0"></span><h1>kspace_style command<a class="headerlink" href="#kspace-style-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>kspace_style style value
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>none</em> or <em>ewald</em> or <em>ewald/disp</em> or <em>ewald/omp</em> or <em>pppm</em> or <em>pppm/cg</em> or <em>pppm/disp</em> or <em>pppm/tip4p</em> or <em>pppm/stagger</em> or <em>pppm/disp/tip4p</em> or <em>pppm/gpu</em> or <em>pppm/omp</em> or <em>pppm/cg/omp</em> or <em>pppm/tip4p/omp</em> or <em>msm</em> or <em>msm/cg</em> or <em>msm/omp</em> or <em>msm/cg/omp</em></li>
+</ul>
+<pre class="literal-block">
+<em>none</em> value = none
+  <em>ewald</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>ewald/disp</I> value = accuracy
+  <em>ewald/disp</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>ewald/omp</I> value = accuracy
+  <em>ewald/omp</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>pppm</I> value = accuracy
+  <em>pppm</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>pppm/cg</I> value = accuracy (smallq)
+  <em>pppm/cg</em> value = accuracy (smallq)
     accuracy = desired relative error in forces
     smallq = cutoff for charges to be considered (optional) (charge units)
-  <I>pppm/disp</I> value = accuracy
+  <em>pppm/disp</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>pppm/tip4p</I> value = accuracy
+  <em>pppm/tip4p</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>pppm/disp/tip4p</I> value = accuracy
+  <em>pppm/disp/tip4p</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>pppm/gpu</I> value = accuracy
+  <em>pppm/gpu</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>pppm/omp</I> value = accuracy
+  <em>pppm/omp</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>pppm/cg/omp</I> value = accuracy
+  <em>pppm/cg/omp</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>pppm/tip4p/omp</I> value = accuracy
+  <em>pppm/tip4p/omp</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>pppm/stagger</I> value = accuracy
+  <em>pppm/stagger</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>msm</I> value = accuracy
+  <em>msm</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>msm/cg</I> value = accuracy (smallq)
+  <em>msm/cg</em> value = accuracy (smallq)
     accuracy = desired relative error in forces
     smallq = cutoff for charges to be considered (optional) (charge units)
-  <I>msm/omp</I> value = accuracy
+  <em>msm/omp</em> value = accuracy
     accuracy = desired relative error in forces
-  <I>msm/cg/omp</I> value = accuracy (smallq)
+  <em>msm/cg/omp</em> value = accuracy (smallq)
     accuracy = desired relative error in forces
-    smallq = cutoff for charges to be considered (optional) (charge units) 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>kspace_style pppm 1.0e-4
+    smallq = cutoff for charges to be considered (optional) (charge units)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>kspace_style pppm 1.0e-4
 kspace_style pppm/cg 1.0e-5 1.0e-6
 kspace style msm 1.0e-4
-kspace_style none 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a long-range solver for LAMMPS to use each timestep to compute
+kspace_style none
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a long-range solver for LAMMPS to use each timestep to compute
 long-range Coulombic interactions or long-range 1/r^6 interactions.
 Most of the long-range solvers perform their computation in K-space,
-hence the name of this command.
-</P>
-<P>When such a solver is used in conjunction with an appropriate pair
+hence the name of this command.</p>
+<p>When such a solver is used in conjunction with an appropriate pair
 style, the cutoff for Coulombic or 1/r^N interactions is effectively
 infinite.  If the Coulombic case, this means each charge in the system
 interacts with charges in an infinite array of periodic images of the
-simulation domain.
-</P>
-<P>Note that using a long-range solver requires use of a matching <A HREF = "pair.html">pair
-style</A> to perform consistent short-range pairwise
+simulation domain.</p>
+<p>Note that using a long-range solver requires use of a matching <code class="xref doc docutils literal"><span class="pre">pair</span> <span class="pre">style</span></code> to perform consistent short-range pairwise
 calculations.  This means that the name of the pair style contains a
-matching keyword to the name of the KSpace style, as in this table:
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD >Pair style </TD><TD > KSpace style </TD></TR>
-<TR ALIGN="center"><TD >coul/long </TD><TD > ewald or pppm</TD></TR>
-<TR ALIGN="center"><TD >coul/msm </TD><TD > msm</TD></TR>
-<TR ALIGN="center"><TD >lj/long or buck/long </TD><TD > disp (for dispersion)</TD></TR>
-<TR ALIGN="center"><TD >tip4p/long </TD><TD > tip4p 
-</TD></TR></TABLE></DIV>
-
-<HR>
-
-<P>The <I>ewald</I> style performs a standard Ewald summation as described in
-any solid-state physics text.
-</P>
-<P>The <I>ewald/disp</I> style adds a long-range dispersion sum option for
+matching keyword to the name of the KSpace style, as in this table:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="49%" />
+<col width="51%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Pair style</td>
+<td>KSpace style</td>
+</tr>
+<tr class="row-even"><td>coul/long</td>
+<td>ewald or pppm</td>
+</tr>
+<tr class="row-odd"><td>coul/msm</td>
+<td>msm</td>
+</tr>
+<tr class="row-even"><td>lj/long or buck/long</td>
+<td>disp (for dispersion)</td>
+</tr>
+<tr class="row-odd"><td>tip4p/long</td>
+<td>tip4p</td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<p>The <em>ewald</em> style performs a standard Ewald summation as described in
+any solid-state physics text.</p>
+<p>The <em>ewald/disp</em> style adds a long-range dispersion sum option for
 1/r^6 potentials and is useful for simulation of interfaces
-<A HREF = "#Veld">(Veld)</A>.  It also performs standard Coulombic Ewald summations,
-but in a more efficient manner than the <I>ewald</I> style.  The 1/r^6
+<a class="reference internal" href="pair_lj_long.html#veld"><span>(Veld)</span></a>.  It also performs standard Coulombic Ewald summations,
+but in a more efficient manner than the <em>ewald</em> style.  The 1/r^6
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
-The <I>ewald/disp</I> style can also be used with point-dipoles
-<A HREF = "#Toukmaji">(Toukmaji)</A> and is currently the only kspace solver in
-LAMMPS with this capability.
-</P>
-<HR>
-
-<P>The <I>pppm</I> style invokes a particle-particle particle-mesh solver
-<A HREF = "#Hockney">(Hockney)</A> which maps atom charge to a 3d mesh, uses 3d FFTs
-to solve Poisson's equation on the mesh, then interpolates electric
+The <em>ewald/disp</em> style can also be used with point-dipoles
+<a class="reference internal" href="pair_dipole.html#toukmaji"><span>(Toukmaji)</span></a> and is currently the only kspace solver in
+LAMMPS with this capability.</p>
+<hr class="docutils" />
+<p>The <em>pppm</em> style invokes a particle-particle particle-mesh solver
+<a class="reference internal" href="#hockney"><span>(Hockney)</span></a> which maps atom charge to a 3d mesh, uses 3d FFTs
+to solve Poisson&#8217;s equation on the mesh, then interpolates electric
 fields on the mesh points back to the atoms.  It is closely related to
-the particle-mesh Ewald technique (PME) <A HREF = "#Darden">(Darden)</A> used in
+the particle-mesh Ewald technique (PME) <a class="reference internal" href="#darden"><span>(Darden)</span></a> used in
 AMBER and CHARMM.  The cost of traditional Ewald summation scales as
 N^(3/2) where N is the number of atoms in the system.  The PPPM solver
 scales as Nlog(N) due to the FFTs, so it is almost always a faster
-choice <A HREF = "#Pollock">(Pollock)</A>.
-</P>
-<P>The <I>pppm/cg</I> style is identical to the <I>pppm</I> style except that it
+choice <a class="reference internal" href="#pollock"><span>(Pollock)</span></a>.</p>
+<p>The <em>pppm/cg</em> style is identical to the <em>pppm</em> style except that it
 has an optimization for systems where most particles are uncharged.
-Similarly the <I>msm/cg</I> style implements the same optimization for <I>msm</I>.
-The optional <I>smallq</I> argument defines the cutoff for the absolute
+Similarly the <em>msm/cg</em> style implements the same optimization for <em>msm</em>.
+The optional <em>smallq</em> argument defines the cutoff for the absolute
 charge value which determines whether a particle is considered charged
-or not.  Its default value is 1.0e-5.
-</P>
-<P>The <I>pppm/tip4p</I> style is identical to the <I>pppm</I> style except that it
+or not.  Its default value is 1.0e-5.</p>
+<p>The <em>pppm/tip4p</em> style is identical to the <em>pppm</em> style except that it
 adds a charge at the massless 4th site in each TIP4P water molecule.
-It should be used with <A HREF = "pair_style.html">pair styles</A> with a
-<I>tip4p/long</I> in their style name.
-</P>
-<P>The <I>pppm/stagger</I> style performs calculations using two different
+It should be used with <a class="reference internal" href="pair_style.html"><em>pair styles</em></a> with a
+<em>tip4p/long</em> in their style name.</p>
+<p>The <em>pppm/stagger</em> style performs calculations using two different
 meshes, one shifted slightly with respect to the other.  This can
 reduce force aliasing errors and increase the accuracy of the method
 for a given mesh size.  Or a coarser mesh can be used for the same
 target accuracy, which saves CPU time.  However, there is a trade-off
 since FFTs on two meshes are now performed which increases the
-compuation required.  See <A HREF = "#Cerutti">(Cerutti)</A>, <A HREF = "#Neelov">(Neelov)</A>,
-and <A HREF = "#Hockney">(Hockney)</A> for details of the method.
-</P>
-<P>For high relative accuracy, using staggered PPPM allows the mesh size
+compuation required.  See <a class="reference internal" href="#cerutti"><span>(Cerutti)</span></a>, <a class="reference internal" href="#neelov"><span>(Neelov)</span></a>,
+and <a class="reference internal" href="#hockney"><span>(Hockney)</span></a> for details of the method.</p>
+<p>For high relative accuracy, using staggered PPPM allows the mesh size
 to be reduced by a factor of 2 in each dimension as compared to
 regular PPPM (for the same target accuracy).  This can give up to a 4x
 speedup in the KSpace time (8x less mesh points, 2x more expensive).
@@ -147,88 +268,80 @@ However, for low relative accuracy, the staggered PPPM mesh size may
 be essentially the same as for regular PPPM, which means the method
 will be up to 2x slower in the KSpace time (simply 2x more expensive).
 For more details and timings, see
-<A HREF = "Section_accelerate.html">Section_accelerate</A>.
-</P>
-<P>IMPORTANT NOTE: Using <I>pppm/stagger</I> may not give the same increase in
+<a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Using <em>pppm/stagger</em> may not give the same increase in
 the accuracy of energy and pressure as it does in forces, so some
 caution must be used if energy and/or pressure are quantities of
-interest, such as when using a barostat.
-</P>
-<HR>
-
-<P>The <I>pppm/disp</I> and <I>pppm/disp/tip4p</I> styles add a mesh-based long-range
-dispersion sum option for 1/r^6 potentials <A HREF = "#Isele-Holder">(Isele-Holder)</A>,
-similar to the <I>ewald/disp</I> style. The 1/r^6 capability means
+interest, such as when using a barostat.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>pppm/disp</em> and <em>pppm/disp/tip4p</em> styles add a mesh-based long-range
+dispersion sum option for 1/r^6 potentials <a class="reference internal" href="#isele-holder"><span>(Isele-Holder)</span></a>,
+similar to the <em>ewald/disp</em> style. The 1/r^6 capability means
 that Lennard-Jones or Buckingham potentials can be used without a cutoff,
-i.e. they become full long-range potentials.
-</P>
-<P>For these styles, you will possibly want to adjust the default choice of
-parameters by using the <A HREF = "kspace_modify.html">kspace_modify</A> command.
+i.e. they become full long-range potentials.</p>
+<p>For these styles, you will possibly want to adjust the default choice of
+parameters by using the <a class="reference internal" href="kspace_modify.html"><em>kspace_modify</em></a> command.
 This can be done by either choosing the Ewald and grid parameters, or
 by specifying separate accuracies for the real and kspace
 calculations. When not making any settings, the simulation will stop with
 an error message. Further information on the influence of the parameters
-and how to choose them is described in <A HREF = "#Isele-Holder">(Isele-Holder)</A>,
-<A HREF = "#Isele-Holder2">(Isele-Holder2)</A> and the
-<A HREF = "Section_howto.html#howto_24">How-To</A> discussion.
-</P>
-<HR>
-
-<P>IMPORTANT NOTE: All of the PPPM styles can be used with
+and how to choose them is described in <a class="reference internal" href="#isele-holder"><span>(Isele-Holder)</span></a>,
+<a class="reference internal" href="#isele-holder2"><span>(Isele-Holder2)</span></a> and the
+<a class="reference internal" href="Section_howto.html#howto-24"><span>How-To</span></a> discussion.</p>
+<hr class="docutils" />
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">All of the PPPM styles can be used with
 single-precision FFTs by using the compiler switch -DFFT_SINGLE for
 the FFT_INC setting in your lo-level Makefile.  This setting also
 changes some of the PPPM operations (e.g. mapping charge to mesh and
 interpolating electric fields to particles) to be performed in single
 precision.  This option can speed-up long-range calulations,
 particularly in parallel or on GPUs.  The use of the -DFFT_SINGLE flag
-is discussed in <A HREF = "Section_start.html#start_2_4">this section</A> of the
-manual. MSM does not currently support the -DFFT_SINGLE compiler switch.
-</P>
-<HR>
-
-<P>The <I>msm</I> style invokes a multi-level summation method MSM solver,
-<A HREF = "#Hardy">(Hardy)</A> or <A HREF = "#Hardy2">(Hardy2)</A>, which maps atom charge to a 3d
+is discussed in <a class="reference internal" href="Section_start.html#start-2-4"><span>this section</span></a> of the
+manual. MSM does not currently support the -DFFT_SINGLE compiler switch.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>msm</em> style invokes a multi-level summation method MSM solver,
+<a class="reference internal" href="#hardy"><span>(Hardy)</span></a> or <a class="reference internal" href="#hardy2"><span>(Hardy2)</span></a>, which maps atom charge to a 3d
 mesh, and uses a multi-level hierarchy of coarser and coarser meshes
 on which direct coulomb solves are done.  This method does not use
 FFTs and scales as N. It may therefore be faster than the other
 K-space solvers for relatively large problems when running on large
-core counts. MSM can also be used for non-periodic boundary conditions and 
-for mixed periodic and non-periodic boundaries.
-</P>
-<P>MSM is most competitive versus Ewald and PPPM when only relatively 
-low accuracy forces, about 1e-4 relative error or less accurate, 
-are needed. Note that use of a larger coulomb cutoff (i.e. 15 
-angstroms instead of 10 angstroms) provides better MSM accuracy for 
-both the real space and grid computed forces.
-</P>
-<P>Currently calculation of the full pressure tensor in MSM is expensive.
-Using the <A HREF = "kspace_modify.html">kspace_modify</A> <I>pressure/scalar yes</I>
+core counts. MSM can also be used for non-periodic boundary conditions and
+for mixed periodic and non-periodic boundaries.</p>
+<p>MSM is most competitive versus Ewald and PPPM when only relatively
+low accuracy forces, about 1e-4 relative error or less accurate,
+are needed. Note that use of a larger coulomb cutoff (i.e. 15
+angstroms instead of 10 angstroms) provides better MSM accuracy for
+both the real space and grid computed forces.</p>
+<p>Currently calculation of the full pressure tensor in MSM is expensive.
+Using the <a class="reference internal" href="kspace_modify.html"><em>kspace_modify</em></a> <em>pressure/scalar yes</em>
 command provides a less expensive way to compute the scalar pressure
 (Pxx + Pyy + Pzz)/3.0. The scalar pressure can be used, for example,
 to run an isotropic barostat. If the full pressure tensor is needed,
 then calculating the pressure at every timestep or using a fixed
-pressure simulation with MSM will cause the code to run slower.
-</P>
-<HR>
-
-<P>The specified <I>accuracy</I> determines the relative RMS error in per-atom
+pressure simulation with MSM will cause the code to run slower.</p>
+<hr class="docutils" />
+<p>The specified <em>accuracy</em> determines the relative RMS error in per-atom
 forces calculated by the long-range solver.  It is set as a
 dimensionless number, relative to the force that two unit point
 charges (e.g. 2 monovalent ions) exert on each other at a distance of
 1 Angstrom.  This reference value was chosen as representative of the
 magnitude of electrostatic forces in atomic systems.  Thus an accuracy
 value of 1.0e-4 means that the RMS error will be a factor of 10000
-smaller than the reference force.
-</P>
-<P>The accuracy setting is used in conjunction with the pairwise cutoff
-to determine the number of K-space vectors for style <I>ewald</I> or the
-grid size for style <I>pppm</I> or <I>msm</I>. 
-</P>
-<P>Note that style <I>pppm</I> only computes the grid size at the beginning of
+smaller than the reference force.</p>
+<p>The accuracy setting is used in conjunction with the pairwise cutoff
+to determine the number of K-space vectors for style <em>ewald</em> or the
+grid size for style <em>pppm</em> or <em>msm</em>.</p>
+<p>Note that style <em>pppm</em> only computes the grid size at the beginning of
 a simulation, so if the length or triclinic tilt of the simulation
 cell increases dramatically during the course of the simulation, the
 accuracy of the simulation may degrade.  Likewise, if the
-<A HREF = "kspace_modify.html">kspace_modify slab</A> option is used with
+<a class="reference internal" href="kspace_modify.html"><em>kspace_modify slab</em></a> option is used with
 shrink-wrap boundaries in the z-dimension, and the box size changes
 dramatically in z.  For example, for a triclinic system with all three
 tilt factors set to the maximum limit, the PPPM grid should be
@@ -237,158 +350,161 @@ z direction as compared to the same system using a cubic orthogonal
 simulation cell. One way to ensure the accuracy requirement is being
 met is to run a short simulation at the maximum expected tilt or
 length, note the required grid size, and then use the
-<A HREF = "kspace_modify.html">kspace_modify</A> <I>mesh</I> command to manually set the
-PPPM grid size to this value.
-</P>
-<P>RMS force errors in real space for <I>ewald</I> and <I>pppm</I> are estimated
-using equation 18 of <A HREF = "#Kolafa">(Kolafa)</A>, which is also referenced as
-equation 9 of <A HREF = "#Petersen">(Petersen)</A>. RMS force errors in K-space for
-<I>ewald</I> are estimated using equation 11 of <A HREF = "#Petersen">(Petersen)</A>,
-which is similar to equation 32 of <A HREF = "#Kolafa">(Kolafa)</A>. RMS force
-errors in K-space for <I>pppm</I> are estimated using equation 38 of
-<A HREF = "#Deserno">(Deserno)</A>. RMS force errors for <I>msm</I> are estimated 
-using ideas from chapter 3 of <A HREF = "#Hardy">(Hardy)</A>, with equation 3.197
-of particular note. When using <I>msm</I> with non-periodic boundary 
+<a class="reference internal" href="kspace_modify.html"><em>kspace_modify</em></a> <em>mesh</em> command to manually set the
+PPPM grid size to this value.</p>
+<p>RMS force errors in real space for <em>ewald</em> and <em>pppm</em> are estimated
+using equation 18 of <a class="reference internal" href="#kolafa"><span>(Kolafa)</span></a>, which is also referenced as
+equation 9 of <a class="reference internal" href="#petersen"><span>(Petersen)</span></a>. RMS force errors in K-space for
+<em>ewald</em> are estimated using equation 11 of <a class="reference internal" href="#petersen"><span>(Petersen)</span></a>,
+which is similar to equation 32 of <a class="reference internal" href="#kolafa"><span>(Kolafa)</span></a>. RMS force
+errors in K-space for <em>pppm</em> are estimated using equation 38 of
+<a class="reference internal" href="#deserno"><span>(Deserno)</span></a>. RMS force errors for <em>msm</em> are estimated
+using ideas from chapter 3 of <a class="reference internal" href="#hardy"><span>(Hardy)</span></a>, with equation 3.197
+of particular note. When using <em>msm</em> with non-periodic boundary
 conditions, it is expected that the error estimation will be too
-pessimistic. RMS force errors for dipoles when using <I>ewald/disp</I>
-are estimated using equations 33 and 46 of <A HREF = "#Wang">(Wang)</A>.
-</P>
-<P>See the <A HREF = "kspace_modify.html">kspace_modify</A> command for additional
-options of the K-space solvers that can be set, including a <I>force</I>
+pessimistic. RMS force errors for dipoles when using <em>ewald/disp</em>
+are estimated using equations 33 and 46 of <a class="reference internal" href="pair_polymorphic.html#wang"><span>(Wang)</span></a>.</p>
+<p>See the <a class="reference internal" href="kspace_modify.html"><em>kspace_modify</em></a> command for additional
+options of the K-space solvers that can be set, including a <em>force</em>
 option for setting an absoulte RMS error in forces, as opposed to a
-relative RMS error.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+relative RMS error.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.
-</P>
-<P>More specifically, the <I>pppm/gpu</I> style performs charge assignment and
+issues.</p>
+<p>More specifically, the <em>pppm/gpu</em> style performs charge assignment and
 force interpolation calculations on the GPU.  These processes are
 performed either in single or double precision, depending on whether
 the -DFFT_SINGLE setting was specified in your lo-level Makefile, as
 discussed above.  The FFTs themselves are still calculated on the CPU.
-If <I>pppm/gpu</I> is used with a GPU-enabled pair style, part of the PPPM
+If <em>pppm/gpu</em> is used with a GPU-enabled pair style, part of the PPPM
 calculation can be performed concurrently on the GPU while other
 calculations for non-bonded and bonded force calculation are performed
-on the CPU.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+on the CPU.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP, and OPT packages respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>Note that the long-range electrostatic solvers in LAMMPS assume conducting
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Note that the long-range electrostatic solvers in LAMMPS assume conducting
 metal (tinfoil) boundary conditions for both charge and dipole
-interactions. Vacuum boundary conditions are not currently supported.
-</P>
-<P>The <I>ewald/disp</I>, <I>ewald</I>, <I>pppm</I>, and <I>msm</I> styles support 
+interactions. Vacuum boundary conditions are not currently supported.</p>
+<p>The <em>ewald/disp</em>, <em>ewald</em>, <em>pppm</em>, and <em>msm</em> styles support
 non-orthogonal (triclinic symmetry) simulation boxes. However, triclinic
-simulation cells may not yet be supported by suffix versions of these 
-styles (such as <I>pppm/cuda</I>). 
-</P>
-<P>All of the kspace styles are part of the KSPACE package.  They are
-only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.  Note that
-the KSPACE package is installed by default.
-</P>
-<P>For MSM, a simulation must be 3d and one can use any combination of 
-periodic, non-periodic, or shrink-wrapped boundaries (specified using 
-the <A HREF = "boundary.html">boundary</A> command). 
-</P>
-<P>For Ewald and PPPM, a simulation must be 3d and periodic in all dimensions.  
-The only exception is if the slab option is set with <A HREF = "kspace_modify.html">kspace_modify</A>, 
-in which case the xy dimensions must be periodic and the z dimension must be 
-non-periodic.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "kspace_modify.html">kspace_modify</A>, <A HREF = "pair_lj.html">pair_style
-lj/cut/coul/long</A>, <A HREF = "pair_charmm.html">pair_style
-lj/charmm/coul/long</A>, <A HREF = "pair_lj_long.html">pair_style
-lj/long/coul/long</A>, <A HREF = "pair_buck.html">pair_style buck/coul/long</A>
-</P>
-<P><B>Default:</B>
-</P>
-<PRE>kspace_style none 
-</PRE>
-<HR>
-
-<A NAME = "Darden"></A>
-
-<P><B>(Darden)</B> Darden, York, Pedersen, J Chem Phys, 98, 10089 (1993).
-</P>
-<A NAME = "Deserno"></A>
-
-<P><B>(Deserno)</B> Deserno and Holm, J Chem Phys, 109, 7694 (1998).
-</P>
-<A NAME = "Hockney"></A>
-
-<P><B>(Hockney)</B> Hockney and Eastwood, Computer Simulation Using Particles,
-Adam Hilger, NY (1989).
-</P>
-<A NAME = "Kolafa"></A>
-
-<P><B>(Kolafa)</B> Kolafa and Perram, Molecular Simualtion, 9, 351 (1992).
-</P>
-<A NAME = "Petersen"></A>
-
-<P><B>(Petersen)</B> Petersen, J Chem Phys, 103, 3668 (1995).
-</P>
-<A NAME = "Wang"></A>
-
-<P><B>(Wang)</B> Wang and Holm, J Chem Phys, 115, 6277 (2001).
-</P>
-<A NAME = "Pollock"></A>
-
-<P><B>(Pollock)</B> Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).
-</P>
-<A NAME = "Cerutti"></A>
-
-<P><B>(Cerutti)</B> Cerutti, Duke, Darden, Lybrand, Journal of Chemical Theory
-and Computation 5, 2322 (2009)
-</P>
-<A NAME = "Neelov"></A>
-
-<P><B>(Neelov)</B> Neelov, Holm, J Chem Phys 132, 234103 (2010)
-</P>
-<A NAME = "Veld"></A>
-
-<P><B>(Veld)</B> In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).
-</P>
-<A NAME = "Toukmaji"></A>
-
-<P><B>(Toukmaji)</B> Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
-10913 (2000).
-</P>
-<A NAME = "Isele-Holder"></A>
-
-<P><B>(Isele-Holder)</B> Isele-Holder, Mitchell, Ismail, J Chem Phys, 137, 174107 (2012). 
-</P>
-<A NAME = "Isele-Holder2"></A>
-
-<P><B>(Isele-Holder2)</B> Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J Chem Theory
-Comput 9, 5412 (2013).
-</P>
-<A NAME = "Hardy"></A>
-
-<P><B>(Hardy)</B> David Hardy thesis: Multilevel Summation for the Fast
+simulation cells may not yet be supported by suffix versions of these
+styles (such as <em>pppm/cuda</em>).</p>
+<p>All of the kspace styles are part of the KSPACE package.  They are
+only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.  Note that
+the KSPACE package is installed by default.</p>
+<p>For MSM, a simulation must be 3d and one can use any combination of
+periodic, non-periodic, or shrink-wrapped boundaries (specified using
+the <a class="reference internal" href="boundary.html"><em>boundary</em></a> command).</p>
+<p>For Ewald and PPPM, a simulation must be 3d and periodic in all dimensions.
+The only exception is if the slab option is set with <a class="reference internal" href="kspace_modify.html"><em>kspace_modify</em></a>,
+in which case the xy dimensions must be periodic and the z dimension must be
+non-periodic.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="kspace_modify.html"><em>kspace_modify</em></a>, <a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/long</em></a>, <a class="reference internal" href="pair_charmm.html"><em>pair_style lj/charmm/coul/long</em></a>, <a class="reference internal" href="pair_lj_long.html"><em>pair_style lj/long/coul/long</em></a>, <a class="reference internal" href="pair_buck.html"><em>pair_style buck/coul/long</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>kspace_style none
+</pre></div>
+</div>
+<hr class="docutils" />
+<p id="darden"><strong>(Darden)</strong> Darden, York, Pedersen, J Chem Phys, 98, 10089 (1993).</p>
+<p id="deserno"><strong>(Deserno)</strong> Deserno and Holm, J Chem Phys, 109, 7694 (1998).</p>
+<p id="hockney"><strong>(Hockney)</strong> Hockney and Eastwood, Computer Simulation Using Particles,
+Adam Hilger, NY (1989).</p>
+<p id="kolafa"><strong>(Kolafa)</strong> Kolafa and Perram, Molecular Simualtion, 9, 351 (1992).</p>
+<p id="petersen"><strong>(Petersen)</strong> Petersen, J Chem Phys, 103, 3668 (1995).</p>
+<p id="wang"><strong>(Wang)</strong> Wang and Holm, J Chem Phys, 115, 6277 (2001).</p>
+<p id="pollock"><strong>(Pollock)</strong> Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).</p>
+<p id="cerutti"><strong>(Cerutti)</strong> Cerutti, Duke, Darden, Lybrand, Journal of Chemical Theory
+and Computation 5, 2322 (2009)</p>
+<p id="neelov"><strong>(Neelov)</strong> Neelov, Holm, J Chem Phys 132, 234103 (2010)</p>
+<p id="veld"><strong>(Veld)</strong> In &#8216;t Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).</p>
+<p id="toukmaji"><strong>(Toukmaji)</strong> Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
+10913 (2000).</p>
+<p id="isele-holder"><strong>(Isele-Holder)</strong> Isele-Holder, Mitchell, Ismail, J Chem Phys, 137, 174107 (2012).</p>
+<p id="isele-holder2"><strong>(Isele-Holder2)</strong> Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J Chem Theory
+Comput 9, 5412 (2013).</p>
+<p id="hardy"><strong>(Hardy)</strong> David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
-Illinois at Urbana-Champaign, (2006).
-</P>
-<A NAME = "Hardy2"></A>
+Illinois at Urbana-Champaign, (2006).</p>
+<p id="hardy2"><strong>(Hardy)</strong> Hardy, Stone, Schulten, Parallel Computing 35 (2009)
+164-177.</p>
+</div>
+</div>
 
-<P><B>(Hardy)</B> Hardy, Stone, Schulten, Parallel Computing 35 (2009)
-164-177.
-</P>
-</HTML>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

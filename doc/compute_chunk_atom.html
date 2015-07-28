@@ -1,437 +1,483 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute chunk/atom command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>compute chunk/atom command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>compute ID group-ID chunk/atom style args keyword values ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
-
-<LI>chunk/atom = style name of this compute command 
-
-<PRE>style = <I>bin/1d</I> or <I>bin/2d</I> or <I>bin/3d</I> or <I>type</I> or <I>molecule</I> or <I>compute/fix/variable</I>
-  <I>bin/1d</I> args = dim origin delta
-    dim = <I>x</I> or <I>y</I> or <I>z</I>
-    origin = <I>lower</I> or <I>center</I> or <I>upper</I> or coordinate value (distance units)
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute chunk/atom command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-chunk-atom-command">
+<span id="index-0"></span><h1>compute chunk/atom command<a class="headerlink" href="#compute-chunk-atom-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID chunk/atom style args keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>chunk/atom = style name of this compute command</li>
+</ul>
+<pre class="literal-block">
+style = <em>bin/1d</em> or <em>bin/2d</em> or <em>bin/3d</em> or <em>type</em> or <em>molecule</em> or <em>compute/fix/variable</em>
+  <em>bin/1d</em> args = dim origin delta
+    dim = <em>x</em> or <em>y</em> or <em>z</em>
+    origin = <em>lower</em> or <em>center</em> or <em>upper</em> or coordinate value (distance units)
     delta = thickness of spatial bins in dim (distance units)
-  <I>bin/2d</I> args = dim origin delta dim origin delta
-    dim = <I>x</I> or <I>y</I> or <I>z</I>
-    origin = <I>lower</I> or <I>center</I> or <I>upper</I> or coordinate value (distance units)
+  <em>bin/2d</em> args = dim origin delta dim origin delta
+    dim = <em>x</em> or <em>y</em> or <em>z</em>
+    origin = <em>lower</em> or <em>center</em> or <em>upper</em> or coordinate value (distance units)
     delta = thickness of spatial bins in dim (distance units)
-  <I>bin/3d</I> args = dim origin delta dim origin delta dim origin delta
-    dim = <I>x</I> or <I>y</I> or <I>z</I>
-    origin = <I>lower</I> or <I>center</I> or <I>upper</I> or coordinate value (distance units)
+  <em>bin/3d</em> args = dim origin delta dim origin delta dim origin delta
+    dim = <em>x</em> or <em>y</em> or <em>z</em>
+    origin = <em>lower</em> or <em>center</em> or <em>upper</em> or coordinate value (distance units)
     delta = thickness of spatial bins in dim (distance units)
-  <I>type</I> args = none
-  <I>molecule</I> args = none
-  <I>compute/fix/variable</I> = c_ID, c_ID[I], f_ID, f_ID[I], v_name with no args
+  <em>type</em> args = none
+  <em>molecule</em> args = none
+  <em>compute/fix/variable</em> = c_ID, c_ID[I], f_ID, f_ID[I], v_name with no args
     c_ID = per-atom vector calculated by a compute with ID
     c_ID[I] = Ith column of per-atom array calculated by a compute with ID
     f_ID = per-atom vector calculated by a fix with ID
     f_ID[I] = Ith column of per-atom array calculated by a fix with ID
-    v_name = per-atom vector calculated by an atom-style variable with name 
-</PRE>
-<LI>zero or more keyword/values pairs may be appended 
-
-<LI>keyword = <I>region</I> or <I>nchunk</I> or <I>static</I> or <I>compress</I> or <I>bound</I> or <I>discard</I> or <I>units</I> 
-
-<PRE>  <I>region</I> value = region-ID
+    v_name = per-atom vector calculated by an atom-style variable with name
+</pre>
+<ul class="simple">
+<li>zero or more keyword/values pairs may be appended</li>
+<li>keyword = <em>region</em> or <em>nchunk</em> or <em>static</em> or <em>compress</em> or <em>bound</em> or <em>discard</em> or <em>units</em></li>
+</ul>
+<pre class="literal-block">
+<em>region</em> value = region-ID
     region-ID = ID of region atoms must be in to be part of a chunk
-  <I>nchunk</I> value = <I>once</I> or <I>every</I>
+  <em>nchunk</em> value = <em>once</em> or <em>every</em>
     once = only compute the number of chunks once
     every = re-compute the number of chunks whenever invoked
-  <I>limit</I> values = 0 or Nc max or Nc exact
+  <em>limit</em> values = 0 or Nc max or Nc exact
     0 = no limit on the number of chunks
-    Nc max = limit number of chunks to be <= Nc
+    Nc max = limit number of chunks to be &lt;= Nc
     Nc exact = set number of chunks to exactly Nc
-  <I>ids</I> value = <I>once</I> or <I>nfreq</I> or <I>every</I>
+  <em>ids</em> value = <em>once</em> or <em>nfreq</em> or <em>every</em>
     once = assign chunk IDs to atoms only once, they persist thereafter
-    nfreq = assign chunk IDs to atoms only once every Nfreq steps (if invoked by <A HREF = "fix_ave_chunk.html">fix ave/chunk</A> which sets Nfreq)
+    nfreq = assign chunk IDs to atoms only once every Nfreq steps (if invoked by <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> which sets Nfreq)
     every = assign chunk IDs to atoms whenever invoked
-  <I>compress</I> value = <I>yes</I> or <I>no</I>
+  <em>compress</em> value = <em>yes</em> or <em>no</em>
     yes = compress chunk IDs to eliminate IDs with no atoms
     no = do not compress chunk IDs even if some IDs have no atoms
-  <I>discard</I> value = <I>yes</I> or <I>no</I> or <I>mixed</I>
+  <em>discard</em> value = <em>yes</em> or <em>no</em> or <em>mixed</em>
     yes = discard atoms with out-of-range chunk IDs by assigning a chunk ID = 0
     no = keep atoms with out-of-range chunk IDs by assigning a valid chunk ID
     mixed = keep or discard such atoms according to spatial binning rule
-  <I>bound</I> values = x/y/z lo hi
-    x/y/z = <I>x</I> or <I>y</I> or <I>z</I> to bound sptial bins in this dimension
-    lo = <I>lower</I> or coordinate value (distance units)
-    hi = <I>upper</I> or coordinate value (distance units)
-  <I>units</I> value = <I>box</I> or <I>lattice</I> or <I>reduced</I> 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>compute 1 all chunk/atom type
+  <em>bound</em> values = x/y/z lo hi
+    x/y/z = <em>x</em> or <em>y</em> or <em>z</em> to bound sptial bins in this dimension
+    lo = <em>lower</em> or coordinate value (distance units)
+    hi = <em>upper</em> or coordinate value (distance units)
+  <em>units</em> value = <em>box</em> or <em>lattice</em> or <em>reduced</em>
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all chunk/atom type
 compute 1 all chunk/atom bin/1d z lower 0.02 units reduced
 compute 1 all chunk/atom bin/2d z lower 1.0 y 0.0 2.5
-compute 1 all chunk/atom molecule region sphere nchunk once ids once compress yes 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a computation that calculates an integer chunk ID from 1 to
+compute 1 all chunk/atom molecule region sphere nchunk once ids once compress yes
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that calculates an integer chunk ID from 1 to
 Nchunk for each atom in the group.  Values of chunk IDs are determined
-by the <I>style</I> of chunk, which can be based on atom type or molecule
+by the <em>style</em> of chunk, which can be based on atom type or molecule
 ID or spatial binning or a per-atom property or value calculated by
-another <A HREF = "compute.html">compute</A>, <A HREF = "fix.html">fix</A>, or <A HREF = "variable.html">atom-style
-variable</A>.  Per-atom chunk IDs can be used by other
-computes with "chunk" in their style name, such as <A HREF = "compute_com_chunk.html">compute
-com/chunk</A> or <A HREF = "compute_msd_chunk.html">compute
-msd/chunk</A>.  Or they can be used by the <A HREF = "fix_ave_chunk.html">fix
-ave/chunk</A> command to sum and time average a
+another <a class="reference internal" href="compute.html"><em>compute</em></a>, <a class="reference internal" href="fix.html"><em>fix</em></a>, or <a class="reference internal" href="variable.html"><em>atom-style variable</em></a>.  Per-atom chunk IDs can be used by other
+computes with &#8220;chunk&#8221; in their style name, such as <a class="reference internal" href="compute_com_chunk.html"><em>compute com/chunk</em></a> or <a class="reference internal" href="compute_msd_chunk.html"><em>compute msd/chunk</em></a>.  Or they can be used by the <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> command to sum and time average a
 variety of per-atom properties over the atoms in each chunk.  Or they
 can simply be accessed by any command that uses per-atom values from a
-compute as input, as discussed in <A HREF = "Section_howto.html#howto_15">Section_howto
-15</A>.
-</P>
-<P>See <A HREF = "Section_howto.html#howto_23">Section_howto 23</A> for an overview of
+compute as input, as discussed in <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a>.</p>
+<p>See <a class="reference internal" href="Section_howto.html#howto-23"><span>Section_howto 23</span></a> for an overview of
 how this compute can be used with a variety of other commands to
 tabulate properties of a simulation.  The howto section gives several
 examples of input script commands that can be used to calculate
-interesting properties.
-</P>
-<P>Conceptually it is important to realize that this compute does two
-simple things.  First, it sets the value of <I>Nchunk</I> = the number of
+interesting properties.</p>
+<p>Conceptually it is important to realize that this compute does two
+simple things.  First, it sets the value of <em>Nchunk</em> = the number of
 chunks, which can be a constant value or change over time.  Second, it
 assigns each atom to a chunk via a chunk ID.  Chunk IDs range from 1
-to <I>Nchunk</I> inclusive; some chunks may have no atoms assigned to them.
+to <em>Nchunk</em> inclusive; some chunks may have no atoms assigned to them.
 Atoms that do not belong to any chunk are assigned a value of 0.  Note
 that the two operations are not always performed together.  For
-example, spatial bins can be setup once (which sets <I>Nchunk</I>), and
+example, spatial bins can be setup once (which sets <em>Nchunk</em>), and
 atoms assigned to those bins many times thereafter (setting their
-chunk IDs).
-</P>
-<P>All other commands in LAMMPS that use chunk IDs assume there are
-<I>Nchunk</I> number of chunks, and that every atom is assigned to one of
-those chunks, or not assigned to any chunk.
-</P>
-<P>There are many options for specifying for how and when <I>Nchunk</I> is
+chunk IDs).</p>
+<p>All other commands in LAMMPS that use chunk IDs assume there are
+<em>Nchunk</em> number of chunks, and that every atom is assigned to one of
+those chunks, or not assigned to any chunk.</p>
+<p>There are many options for specifying for how and when <em>Nchunk</em> is
 calculated, and how and when chunk IDs are assigned to atoms.  The
-details depend on the chunk <I>style</I> and its <I>args</I>, as well as
-optional keyword settings.  They can also depend on whether a <A HREF = "fix_ave_chunk.html">fix
-ave/chunk</A> command is using this compute, since
-that command requires <I>Nchunk</I> to remain static across windows of
-timesteps it specifies, while it accumulates per-chunk averages.
-</P>
-<P>The details are described below.
-</P>
-<HR>
-
-<HR>
-
-<P>The different chunk styles operate as follows.  For each style, how it
-calculates <I>Nchunk</I> and assigns chunk IDs to atoms is explained.  Note
+details depend on the chunk <em>style</em> and its <em>args</em>, as well as
+optional keyword settings.  They can also depend on whether a <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> command is using this compute, since
+that command requires <em>Nchunk</em> to remain static across windows of
+timesteps it specifies, while it accumulates per-chunk averages.</p>
+<p>The details are described below.</p>
+<p>The different chunk styles operate as follows.  For each style, how it
+calculates <em>Nchunk</em> and assigns chunk IDs to atoms is explained.  Note
 that using the optional keywords can change both of those actions, as
-described further below where the keywords are discussed.
-</P>
-<HR>
-
-<P>The <I>binning</I> styles perform a spatial binning of atoms, and assign an
-atom the chunk ID corresponding to the bin number it is in.  <I>Nchunk</I>
+described further below where the keywords are discussed.</p>
+<hr class="docutils" />
+<p>The <em>binning</em> styles perform a spatial binning of atoms, and assign an
+atom the chunk ID corresponding to the bin number it is in.  <em>Nchunk</em>
 is set to the number of bins, which can change if the simulation box
-size changes.
-</P>
-<P>The <I>bin/1d</I>, <I>bin/2d</I>, and <I>bin/3d</I> styles define bins as 1d layers
-(slabs), 2d pencils, or 3d boxes.  The <I>dim</I>, <I>origin</I>, and <I>delta</I>
+size changes.</p>
+<p>The <em>bin/1d</em>, <em>bin/2d</em>, and <em>bin/3d</em> styles define bins as 1d layers
+(slabs), 2d pencils, or 3d boxes.  The <em>dim</em>, <em>origin</em>, and <em>delta</em>
 settings are specified 1, 2, or 3 times.  For 2d or 3d bins, there is
 no restriction on specifying dim = x before dim = y or z, or dim = y
-before dim = z.  Bins in a particular <I>dim</I> have a bin size in that
-dimension given by <I>delta</I>.  In each dimension, bins are defined
-relative to a specified <I>origin</I>, which may be the lower/upper edge of
+before dim = z.  Bins in a particular <em>dim</em> have a bin size in that
+dimension given by <em>delta</em>.  In each dimension, bins are defined
+relative to a specified <em>origin</em>, which may be the lower/upper edge of
 the simulation box (in that dimension), or its center point, or a
 specified coordinate value.  Starting at the origin, sufficient bins
 are created in both directions to completely span the simulation box
-or the bounds specified by the optional <I>bounds</I> keyword.
-</P>
-<P>For orthogonal simulation boxes, the bins are layers, pencils, or
+or the bounds specified by the optional <em>bounds</em> keyword.</p>
+<p>For orthogonal simulation boxes, the bins are layers, pencils, or
 boxes aligned with the xyz coordinate axes.  For triclinic
 (non-orthogonal) simulation boxes, the bin faces are parallel to the
-tilted faces of the simulation box.  See <A HREF = "Section_howto.html#howto_12">this
-section</A> of the manual for a discussion of
+tilted faces of the simulation box.  See <a class="reference internal" href="Section_howto.html#howto-12"><span>this section</span></a> of the manual for a discussion of
 the geometry of triclinic boxes in LAMMPS.  As described there, a
 tilted simulation box has edge vectors a,b,c.  In that nomenclature,
-bins in the x dimension have faces with normals in the "b" cross "c"
-direction.  Bins in y have faces normal to the "a" cross "c"
-direction.  And bins in z have faces normal to the "a" cross "b"
+bins in the x dimension have faces with normals in the &#8220;b&#8221; cross &#8220;c&#8221;
+direction.  Bins in y have faces normal to the &#8220;a&#8221; cross &#8220;c&#8221;
+direction.  And bins in z have faces normal to the &#8220;a&#8221; cross &#8220;b&#8221;
 direction.  Note that in order to define the size and position of
-these bins in an unambiguous fashion, the <I>units</I> option must be set
-to <I>reduced</I> when using a triclinic simulation box, as noted below.
-</P>
-<P>The meaning of <I>origin</I> and <I>delta</I> for triclinic boxes is as follows.
+these bins in an unambiguous fashion, the <em>units</em> option must be set
+to <em>reduced</em> when using a triclinic simulation box, as noted below.</p>
+<p>The meaning of <em>origin</em> and <em>delta</em> for triclinic boxes is as follows.
 Consider a triclinic box with bins that are 1d layers or slabs in the
-x dimension.  No matter how the box is tilted, an <I>origin</I> of 0.0
-means start layers at the lower "b" cross "c" plane of the simulation
-box and an <I>origin</I> of 1.0 means to start layers at the upper "b"
-cross "c" face of the box.  A <I>delta</I> value of 0.1 in <I>reduced</I> units
+x dimension.  No matter how the box is tilted, an <em>origin</em> of 0.0
+means start layers at the lower &#8220;b&#8221; cross &#8220;c&#8221; plane of the simulation
+box and an <em>origin</em> of 1.0 means to start layers at the upper &#8220;b&#8221;
+cross &#8220;c&#8221; face of the box.  A <em>delta</em> value of 0.1 in <em>reduced</em> units
 means there will be 10 layers from 0.0 to 1.0, regardless of the
-current size or shape of the simulation box.
-</P>
-<P>The created bins (and hence the chunk IDs) are numbered consecutively
-from 1 to the number of bins = <I>Nchunk</I>.  For 2d and 3d bins, the
+current size or shape of the simulation box.</p>
+<p>The created bins (and hence the chunk IDs) are numbered consecutively
+from 1 to the number of bins = <em>Nchunk</em>.  For 2d and 3d bins, the
 numbering varies most rapidly in the first dimension (which could be
 x, y, or z), next rapidly in the 2nd dimension, and most slowly in the
-3rd dimension.
-</P>
-<P>Each time this compute is invoked, each atom is mapped to a bin based
+3rd dimension.</p>
+<p>Each time this compute is invoked, each atom is mapped to a bin based
 on its current position.  Note that between reneighboring timesteps,
 atoms can move outside the current simulation box.  If the box is
 periodic (in that dimension) the atom is remapping into the periodic
 box for purposes of binning.  If the box in not periodic, the atom may
 have moved outside the bounds of all bins.  If an atom is not inside
-any bin, the <I>discard</I> keyword is used to determine how a chunk ID is
-assigned to the atom.
-</P>
-<HR>
-
-<P>The <I>type</I> style uses the atom type as the chunk ID.  <I>Nchunk</I> is set
+any bin, the <em>discard</em> keyword is used to determine how a chunk ID is
+assigned to the atom.</p>
+<hr class="docutils" />
+<p>The <em>type</em> style uses the atom type as the chunk ID.  <em>Nchunk</em> is set
 to the number of atom types defined for the simulation, e.g. via the
-<A HREF = "create_box.html">create_box</A> or <A HREF = "read_data.html">read_data</A> commands.
-</P>
-<HR>
-
-<P>The <I>molecule</I> style uses the molecule ID of each atom as its chunk
-ID.  <I>Nchunk</I> is set to the largest chunk ID.  Note that this excludes
+<a class="reference internal" href="create_box.html"><em>create_box</em></a> or <a class="reference internal" href="read_data.html"><em>read_data</em></a> commands.</p>
+<hr class="docutils" />
+<p>The <em>molecule</em> style uses the molecule ID of each atom as its chunk
+ID.  <em>Nchunk</em> is set to the largest chunk ID.  Note that this excludes
 molecule IDs for atoms which are not in the specified group or
-optional region.
-</P>
-<P>There is no requirement that all atoms in a particular molecule are
+optional region.</p>
+<p>There is no requirement that all atoms in a particular molecule are
 assigned the same chunk ID (zero or non-zero), though you probably
 want that to be the case, if you wish to compute a per-molecule
 property.  LAMMPS will issue a warning if that is not the case, but
-only the first time that <I>Nchunk</I> is calculated.
-</P>
-<P>Note that atoms with a molecule ID = 0, which may be non-molecular
+only the first time that <em>Nchunk</em> is calculated.</p>
+<p>Note that atoms with a molecule ID = 0, which may be non-molecular
 solvent atoms, have an out-of-range chunk ID.  These atoms are
-discarded (not assigned to any chunk) or assigned to <I>Nchunk</I>,
-depending on the value of the <I>discard</I> keyword.
-</P>
-<HR>
-
-<P>The <I>compute/fix/variable</I> styles set the chunk ID of each atom based
+discarded (not assigned to any chunk) or assigned to <em>Nchunk</em>,
+depending on the value of the <em>discard</em> keyword.</p>
+<hr class="docutils" />
+<p>The <em>compute/fix/variable</em> styles set the chunk ID of each atom based
 on a quantity calculated and stored by a compute, fix, or variable.
 In each case, it must be a per-atom quantity.  In each case the
 referenced floating point values are converted to an integer chunk ID
 as follows.  The floating point value is truncated (rounded down) to
-an integer value.  If the integer value is <= 0, then a chunk ID of 0
-is assigned to the atom.  If the integer value is > 0, it becomes the
-chunk ID to the atom.  <I>Nchunk</I> is set to the largest chunk ID.  Note
+an integer value.  If the integer value is &lt;= 0, then a chunk ID of 0
+is assigned to the atom.  If the integer value is &gt; 0, it becomes the
+chunk ID to the atom.  <em>Nchunk</em> is set to the largest chunk ID.  Note
 that this excludes atoms which are not in the specified group or
-optional region.
-</P>
-<P>If the style begins with "c_", a compute ID must follow which has been
+optional region.</p>
+<p>If the style begins with &#8220;<a href="#id1"><span class="problematic" id="id2">c_</span></a>&#8221;, a compute ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
 calculated by the compute is used.  Users can also write code for
-their own compute styles and <A HREF = "Section_modify.html">add them to LAMMPS</A>.
-</P>
-<P>If the style begins with "f_", a fix ID must follow which has been
+their own compute styles and <a class="reference internal" href="Section_modify.html"><em>add them to LAMMPS</em></a>.</p>
+<p>If the style begins with &#8220;<a href="#id3"><span class="problematic" id="id4">f_</span></a>&#8221;, a fix ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
 calculated by the fix is used.  Note that some fixes only produce
 their values on certain timesteps, which must be compatible with the
 timestep on which this compute accesses the fix, else an error
-results.  Users can also write code for their own fix styles and <A HREF = "Section_modify.html">add
-them to LAMMPS</A>.
-</P>
-<P>If a value begins with "v_", a variable name for an <I>atom</I> or
-<I>atomfile</I> style <A HREF = "variable.html">variable</A> must follow which has been
-previously defined in the input script.  Variables of style <I>atom</I> can
+results.  Users can also write code for their own fix styles and <a class="reference internal" href="Section_modify.html"><em>add them to LAMMPS</em></a>.</p>
+<p>If a value begins with &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;, a variable name for an <em>atom</em> or
+<em>atomfile</em> style <a class="reference internal" href="variable.html"><em>variable</em></a> must follow which has been
+previously defined in the input script.  Variables of style <em>atom</em> can
 reference thermodynamic keywords and various per-atom attributes, or
 invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of generating per-atom quantities to
-treat as a chunk ID.
-</P>
-<HR>
-
-<HR>
-
-<P>Normally, <I>Nchunk</I> = the number of chunks, is re-calculated every time
+treat as a chunk ID.</p>
+<p>Normally, <em>Nchunk</em> = the number of chunks, is re-calculated every time
 this fix is invoked, though the value may or may not change.  As
-explained below, the <I>nchunk</I> keyword can be set to <I>once</I> which means
-<I>Nchunk</I> will never change.
-</P>
-<P>If a <A HREF = "fix_ave_chunk.html">fix ave/chunk</A> command uses this compute, it
-can also turn off the re-calculation of <I>Nchunk</I> for one or more
+explained below, the <em>nchunk</em> keyword can be set to <em>once</em> which means
+<em>Nchunk</em> will never change.</p>
+<p>If a <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> command uses this compute, it
+can also turn off the re-calculation of <em>Nchunk</em> for one or more
 windows of timesteps.  The extent of the windows, during which Nchunk
-is held constant, are determined by the <I>Nevery</I>, <I>Nrepeat</I>, <I>Nfreq</I>
-values and the <I>ave</I> keyword setting that are used by the <A HREF = "fix_ave_chunk.html">fix
-ave/chunk</A> command.
-</P>
-<P>Specifically, if <I>ave</I> = <I>one</I>, then for each span of <I>Nfreq</I>
-timesteps, <I>Nchunk</I> is held constant between the first timestep when
+is held constant, are determined by the <em>Nevery</em>, <em>Nrepeat</em>, <em>Nfreq</em>
+values and the <em>ave</em> keyword setting that are used by the <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> command.</p>
+<p>Specifically, if <em>ave</em> = <em>one</em>, then for each span of <em>Nfreq</em>
+timesteps, <em>Nchunk</em> is held constant between the first timestep when
 averaging is done (within the Nfreq-length window), and the last
-timestep when averaging is done (multiple of Nfreq).  If <I>ave</I> =
-<I>running</I> or <I>window</I>, then <I>Nchunk</I> is held constant forever,
-starting on the first timestep when the <A HREF = "fix_ave_chunk.html">fix
-ave/chunk</A> command invokes this compute.
-</P>
-<P>Note that multiple <A HREF = "fix_ave_chunk.html">fix ave/chunk</A> commands can use
+timestep when averaging is done (multiple of Nfreq).  If <em>ave</em> =
+<em>running</em> or <em>window</em>, then <em>Nchunk</em> is held constant forever,
+starting on the first timestep when the <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> command invokes this compute.</p>
+<p>Note that multiple <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> commands can use
 the same compute chunk/atom compute.  However, the time windows they
-induce for holding <I>Nchunk</I> constant must be identical, else an error
-will be generated.
-</P>
-<HR>
-
-<HR>
-
-<P>The various optional keywords operate as follows.  Note that some of
+induce for holding <em>Nchunk</em> constant must be identical, else an error
+will be generated.</p>
+<p>The various optional keywords operate as follows.  Note that some of
 them function differently or are ignored by different chunk styles.
 Some of them also have different default values, depending on
-the chunk style, as listed below.
-</P>
-<P>The <I>region</I> keyword applies to all chunk styles.  If used, an atom
+the chunk style, as listed below.</p>
+<p>The <em>region</em> keyword applies to all chunk styles.  If used, an atom
 must be in both the specified group and the specified geometric
-<A HREF = "region.html">region</A> to be assigned to a chunk.
-</P>
-<HR>
-
-<P>The <I>nchunk</I> keyword applies to all chunk styles.  It specifies how
-often <I>Nchunk</I> is recalculated, which in turn can affect the chunk IDs
-assigned to individual atoms.
-</P>
-<P>If <I>nchunk</I> is set to <I>once</I>, then <I>Nchunk</I> is only calculated once,
-the first time this compute is invoked.  If <I>nchunk</I> is set to
-<I>every</I>, then <I>Nchunk</I> is re-calculated every time the compute is
+<a class="reference internal" href="region.html"><em>region</em></a> to be assigned to a chunk.</p>
+<hr class="docutils" />
+<p>The <em>nchunk</em> keyword applies to all chunk styles.  It specifies how
+often <em>Nchunk</em> is recalculated, which in turn can affect the chunk IDs
+assigned to individual atoms.</p>
+<p>If <em>nchunk</em> is set to <em>once</em>, then <em>Nchunk</em> is only calculated once,
+the first time this compute is invoked.  If <em>nchunk</em> is set to
+<em>every</em>, then <em>Nchunk</em> is re-calculated every time the compute is
 invoked.  Note that, as described above, the use of this compute
-by the <A HREF = "fix_ave_chunk.html">fix ave/chunk</A> command can override
-the <I>every</I> setting.
-</P>
-<P>The default values for <I>nchunk</I> are listed below and depend on the
+by the <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> command can override
+the <em>every</em> setting.</p>
+<p>The default values for <em>nchunk</em> are listed below and depend on the
 chunk style and other system and keyword settings.  They attempt to
 represent typical use cases for the various chunk styles.  The
-<I>nchunk</I> value can always be set explicitly if desired.
-</P>
-<HR>
-
-<P>The <I>limit</I> keyword can be used to limit the calculated value of
-<I>Nchunk</I> = the number of chunks.  The limit is applied each time
-<I>Nchunk</I> is calculated, which also limits the chunk IDs assigned to
-any atom.  The <I>limit</I> keyword is used by all chunk styles except the
-<I>binning</I> styles, which ignore it.  This is because the number of bins
-can be tailored using the <I>bound</I> keyword (described below) which
-effectively limits the size of <I>Nchunk</I>.
-</P>
-<P>If <I>limit</I> is set to <I>Nc</I> = 0, then no limit is imposed on <I>Nchunk</I>,
-though the <I>compress</I> keyword can still be used to reduce <I>Nchunk</I>, as
-described below.
-</P>
-<P>If <I>Nc</I> > 0, then the effect of the <I>limit</I> keyword depends on whether
-the <I>compress</I> keyword is also used with a setting of <I>yes</I>, and
-whether the <I>compress</I> keyword is specified before the <I>limit</I> keyword
-or after.
-</P>
-<P>In all cases, <I>Nchunk</I> is first calculated in the usual way for each
-chunk style, as described above.
-</P>
-<P>First, here is what occurs if <I>compress yes</I> is not set.  If <I>limit</I>
-is set to <I>Nc max</I>, then <I>Nchunk</I> is reset to the smaller of <I>Nchunk</I>
-and <I>Nc</I>.  If <I>limit</I> is set to <I>Nc exact</I>, then <I>Nchunk</I> is reset to
-<I>Nc</I>, whether the original <I>Nchunk</I> was larger or smaller than <I>Nc</I>.
-If <I>Nchunk</I> shrank due to the <I>limit</I> setting, then atom chunk IDs >
-<I>Nchunk</I> will be reset to 0 or <I>Nchunk</I>, depending on the setting of
-the <I>discard</I> keyword.  If <I>Nchunk</I> grew, there will simply be some
-chunks with no atoms assigned to them.
-</P>
-<P>If <I>compress yes</I> is set, and the <I>compress</I> keyword comes before the
-<I>limit</I> keyword, the compression operation is performed first, as
-described below, which resets <I>Nchunk</I>.  The <I>limit</I> keyword is then
-applied to the new <I>Nchunk</I> value, exactly as described in the
+<em>nchunk</em> value can always be set explicitly if desired.</p>
+<hr class="docutils" />
+<p>The <em>limit</em> keyword can be used to limit the calculated value of
+<em>Nchunk</em> = the number of chunks.  The limit is applied each time
+<em>Nchunk</em> is calculated, which also limits the chunk IDs assigned to
+any atom.  The <em>limit</em> keyword is used by all chunk styles except the
+<em>binning</em> styles, which ignore it.  This is because the number of bins
+can be tailored using the <em>bound</em> keyword (described below) which
+effectively limits the size of <em>Nchunk</em>.</p>
+<p>If <em>limit</em> is set to <em>Nc</em> = 0, then no limit is imposed on <em>Nchunk</em>,
+though the <em>compress</em> keyword can still be used to reduce <em>Nchunk</em>, as
+described below.</p>
+<p>If <em>Nc</em> &gt; 0, then the effect of the <em>limit</em> keyword depends on whether
+the <em>compress</em> keyword is also used with a setting of <em>yes</em>, and
+whether the <em>compress</em> keyword is specified before the <em>limit</em> keyword
+or after.</p>
+<p>In all cases, <em>Nchunk</em> is first calculated in the usual way for each
+chunk style, as described above.</p>
+<p>First, here is what occurs if <em>compress yes</em> is not set.  If <em>limit</em>
+is set to <em>Nc max</em>, then <em>Nchunk</em> is reset to the smaller of <em>Nchunk</em>
+and <em>Nc</em>.  If <em>limit</em> is set to <em>Nc exact</em>, then <em>Nchunk</em> is reset to
+<em>Nc</em>, whether the original <em>Nchunk</em> was larger or smaller than <em>Nc</em>.
+If <em>Nchunk</em> shrank due to the <em>limit</em> setting, then atom chunk IDs &gt;
+<em>Nchunk</em> will be reset to 0 or <em>Nchunk</em>, depending on the setting of
+the <em>discard</em> keyword.  If <em>Nchunk</em> grew, there will simply be some
+chunks with no atoms assigned to them.</p>
+<p>If <em>compress yes</em> is set, and the <em>compress</em> keyword comes before the
+<em>limit</em> keyword, the compression operation is performed first, as
+described below, which resets <em>Nchunk</em>.  The <em>limit</em> keyword is then
+applied to the new <em>Nchunk</em> value, exactly as described in the
 preceeding paragraph.  Note that in this case, all atoms will end up
-with chunk IDs <= <I>Nc</I>, but their original values (e.g. molecule ID or
-compute/fix/variable value) may have been > <I>Nc</I>, because of the
-compression operation.
-</P>
-<P>If <I>compress yes</I> is set, and the <I>compress</I> keyword comes after the
-<I>limit</I> keyword, then the <I>limit</I> value of <I>Nc</I> is applied first to
-the uncompressed value of <I>Nchunk</I>, but only if <I>Nc</I> < <I>Nchunk</I>
-(whether <I>Nc max</I> or <I>Nc exact</I> is used).  This effectively means all
-atoms with chunk IDs > <I>Nc</I> have their chunk IDs reset to 0 or <I>Nc</I>,
-depending on the setting of the <I>discard</I> keyword.  The compression
-operation is then performed, which may shrink <I>Nchunk</I> further.  If
-the new <I>Nchunk</I> < <I>Nc</I> and <I>limit</I> = <I>Nc exact</I> is specified, then
-<I>Nchunk</I> is reset to <I>Nc</I>, which results in extra chunks with no atoms
+with chunk IDs &lt;= <em>Nc</em>, but their original values (e.g. molecule ID or
+compute/fix/variable value) may have been &gt; <em>Nc</em>, because of the
+compression operation.</p>
+<p>If <em>compress yes</em> is set, and the <em>compress</em> keyword comes after the
+<em>limit</em> keyword, then the <em>limit</em> value of <em>Nc</em> is applied first to
+the uncompressed value of <em>Nchunk</em>, but only if <em>Nc</em> &lt; <em>Nchunk</em>
+(whether <em>Nc max</em> or <em>Nc exact</em> is used).  This effectively means all
+atoms with chunk IDs &gt; <em>Nc</em> have their chunk IDs reset to 0 or <em>Nc</em>,
+depending on the setting of the <em>discard</em> keyword.  The compression
+operation is then performed, which may shrink <em>Nchunk</em> further.  If
+the new <em>Nchunk</em> &lt; <em>Nc</em> and <em>limit</em> = <em>Nc exact</em> is specified, then
+<em>Nchunk</em> is reset to <em>Nc</em>, which results in extra chunks with no atoms
 assigned to them.  Note that in this case, all atoms will end up with
-chunk IDs <= <I>Nc</I>, and their original values (e.g. molecule ID or
-compute/fix/variable value) will also have been <= <I>Nc</I>.
-</P>
-<HR>
-
-<P>The <I>ids</I> keyword applies to all chunk styles.  If the setting is
-<I>once</I> then the chunk IDs assigned to atoms the first time this
-compute is invoked will be permanent, and never be re-computed.
-</P>
-<P>If the setting is <I>nfreq</I> and if a <A HREF = "fix_ave_chunk.html">fix ave/chunk</A>
-command is using this compute, then in each of the <I>Nchunk</I> = constant
-time windows (discussed above), the chunk ID's assigned to atoms on
+chunk IDs &lt;= <em>Nc</em>, and their original values (e.g. molecule ID or
+compute/fix/variable value) will also have been &lt;= <em>Nc</em>.</p>
+<hr class="docutils" />
+<p>The <em>ids</em> keyword applies to all chunk styles.  If the setting is
+<em>once</em> then the chunk IDs assigned to atoms the first time this
+compute is invoked will be permanent, and never be re-computed.</p>
+<p>If the setting is <em>nfreq</em> and if a <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a>
+command is using this compute, then in each of the <em>Nchunk</em> = constant
+time windows (discussed above), the chunk ID&#8217;s assigned to atoms on
 the first step of the time window will persist until the end of the
-time window.
-</P>
-<P>If the setting is <I>every</I>, which is the default, then chunk IDs are
-re-calculated on any timestep this compute is invoked.
-</P>
-<P>IMPORTANT NOTE: If you want the persistent chunk-IDs calculated by
-this compute to be continuous when running from a <A HREF = "read_restart.html">restart
-file</A>, then you should use the same ID for this
+time window.</p>
+<p>If the setting is <em>every</em>, which is the default, then chunk IDs are
+re-calculated on any timestep this compute is invoked.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you want the persistent chunk-IDs calculated by
+this compute to be continuous when running from a <a class="reference internal" href="read_restart.html"><em>restart file</em></a>, then you should use the same ID for this
 compute, as in the original run.  This is so that the fix this compute
 creates to store per-atom quantities will also have the same ID, and
-thus be initialized correctly with chunk IDs from the restart file.
-</P>
-<HR>
-
-<P>The <I>compress</I> keyword applies to all chunk styles and affects how
-<I>Nchunk</I> is calculated, which in turn affects the chunk IDs assigned
-to each atom.  It is useful for converting a "sparse" set of chunk IDs
-(with many IDs that have no atoms assigned to them), into a "dense"
-set of IDs, where every chunk has one or more atoms assigned to it.
-</P>
-<P>Two possible use cases are as follows.  If a large simulation box is
-mostly empty space, then the <I>binning</I> style may produce many bins
-with no atoms.  If <I>compress</I> is set to <I>yes</I>, only bins with atoms
-will be contribute to <I>Nchunk</I>.  Likewise, the <I>molecule</I> or
-<I>compute/fix/variable</I> styles may produce large <I>Nchunk</I> values.  For
-example, the <A HREF = "compute_cluster_atom.html">compute cluster/atom</A> command
+thus be initialized correctly with chunk IDs from the restart file.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>compress</em> keyword applies to all chunk styles and affects how
+<em>Nchunk</em> is calculated, which in turn affects the chunk IDs assigned
+to each atom.  It is useful for converting a &#8220;sparse&#8221; set of chunk IDs
+(with many IDs that have no atoms assigned to them), into a &#8220;dense&#8221;
+set of IDs, where every chunk has one or more atoms assigned to it.</p>
+<p>Two possible use cases are as follows.  If a large simulation box is
+mostly empty space, then the <em>binning</em> style may produce many bins
+with no atoms.  If <em>compress</em> is set to <em>yes</em>, only bins with atoms
+will be contribute to <em>Nchunk</em>.  Likewise, the <em>molecule</em> or
+<em>compute/fix/variable</em> styles may produce large <em>Nchunk</em> values.  For
+example, the <a class="reference internal" href="compute_cluster_atom.html"><em>compute cluster/atom</em></a> command
 assigns every atom an atom ID for one of the atoms it is clustered
 with.  For a million-atom system with 5 clusters, there would only be
 5 unique chunk IDs, but the largest chunk ID might be 1 million,
-resulting in <I>Nchunk</I> = 1 million.  If <I>compress</I> is set to <I>yes</I>,
-<I>Nchunk</I> will be reset to 5.
-</P>
-<P>If <I>compress</I> is set to <I>no</I>, which is the default, no compression is
-done.  If it is set to <I>yes</I>, all chunk IDs with no atoms are removed
+resulting in <em>Nchunk</em> = 1 million.  If <em>compress</em> is set to <em>yes</em>,
+<em>Nchunk</em> will be reset to 5.</p>
+<p>If <em>compress</em> is set to <em>no</em>, which is the default, no compression is
+done.  If it is set to <em>yes</em>, all chunk IDs with no atoms are removed
 from the list of chunk IDs, and the list is sorted.  The remaining
-chunk IDs are renumbered from 1 to <I>Nchunk</I> where <I>Nchunk</I> is the new
+chunk IDs are renumbered from 1 to <em>Nchunk</em> where <em>Nchunk</em> is the new
 length of the list.  The chunk IDs assigned to each atom reflect
-the new renumbering from 1 to <I>Nchunk</I>.
-</P>
-<P>The original chunk IDs (before renumbering) can be accessed by the
-<A HREF = "compute_property_chunk.html">compute property/chunk</A> command and its
-<I>id</I> keyword, or by the <A HREF = "fix_ave_chunk.html">fix ave/chunk</A> command
+the new renumbering from 1 to <em>Nchunk</em>.</p>
+<p>The original chunk IDs (before renumbering) can be accessed by the
+<a class="reference internal" href="compute_property_chunk.html"><em>compute property/chunk</em></a> command and its
+<em>id</em> keyword, or by the <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> command
 which outputs the original IDs as one of the columns in its global
-output array.  For example, using the "compute cluster/atom" command
+output array.  For example, using the &#8220;compute cluster/atom&#8221; command
 discussed above, the original 5 unique chunk IDs might be atom IDs
 (27,4982,58374,857838,1000000).  After compresion, these will be
 renumbered to (1,2,3,4,5).  The original values (27,...,1000000) can
-be output to a file by the <A HREF = "fix_ave_chunk.html">fix ave/chunk</A> command,
-or by using the <A HREF = "fix_ave_time.html">fix ave/time</A> command in
-conjunction with the <A HREF = "compute_property_chunk.html">compute
-property/chunk</A> command.
-</P>
-<P>IMPORTANT NOTE: The compression operation requires global
+be output to a file by the <a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a> command,
+or by using the <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> command in
+conjunction with the <a class="reference internal" href="compute_property_chunk.html"><em>compute property/chunk</em></a> command.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The compression operation requires global
 communication across all processors to share their chunk ID values.
 It can require large memory on every processor to store them, even
 after they are compressed, if there are are a large number of unique
@@ -439,130 +485,178 @@ chunk IDs with atoms assigned to them.  It uses a STL map to find
 unique chunk IDs and store them in sorted order.  Each time an atom is
 assigned a compressed chunk ID, it must access the STL map.  All of
 this means that compression can be expensive, both in memory and CPU
-time.  The use of the <I>limit</I> keyword in conjunction with the
-<I>compress</I> keyword can affect these costs, depending on which keyword
-is used first.  So use this option with care.
-</P>
-<HR>
-
-<P>The <I>discard</I> keyword applies to all chunk styles.  It affects what
+time.  The use of the <em>limit</em> keyword in conjunction with the
+<em>compress</em> keyword can affect these costs, depending on which keyword
+is used first.  So use this option with care.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>discard</em> keyword applies to all chunk styles.  It affects what
 chunk IDs are assigned to atoms that do not match one of the valid
-chunk IDs from 1 to <I>Nchunk</I>.  Note that it does not apply to atoms
+chunk IDs from 1 to <em>Nchunk</em>.  Note that it does not apply to atoms
 that are not in the specified group or optionally specified region.
-Those atoms are always assigned a chunk ID = 0.
-</P>
-<P>If the calculated chunk ID for an atom is not within the range 1 to
-<I>Nchunk</I> then it is a "discard" atom.  Note that <I>Nchunk</I> may have
-been shrunk by the <I>limit</I> keyword.  Or the <I>compress</I> keyword may
+Those atoms are always assigned a chunk ID = 0.</p>
+<p>If the calculated chunk ID for an atom is not within the range 1 to
+<em>Nchunk</em> then it is a &#8220;discard&#8221; atom.  Note that <em>Nchunk</em> may have
+been shrunk by the <em>limit</em> keyword.  Or the <em>compress</em> keyword may
 have eliminated chunk IDs that were valid before the compression took
 place, and are now not in the compressed list.  Also note that for the
-<I>molecule</I> chunk style, if new molecules are added to the system,
-their chunk IDs may exceed a previously calculated <I>Nchunk</I>.
+<em>molecule</em> chunk style, if new molecules are added to the system,
+their chunk IDs may exceed a previously calculated <em>Nchunk</em>.
 Likewise, evaluation of a compute/fix/variable on a later timestep may
 return chunk IDs that are invalid for the previously calculated
-<I>Nchunk</I>.
-</P>
-<P>All the chunk styles except the <I>binning</I> styles, must use <I>discard</I>
-set to either <I>yes</I> or <I>no</I>.  If <I>discard</I> is set to <I>yes</I>, which is
-the default, then every "discard" atom has its chunk ID set to 0.  If
-<I>discard</I> is set to <I>no</I>, every "discard" atom has its chunk ID set to
-<I>Nchunk</I>.  I.e. it becomes part of the last chunk.
-</P>
-<P>The <I>binning</I> styles use the <I>discard</I> keyword to decide whether to
+<em>Nchunk</em>.</p>
+<p>All the chunk styles except the <em>binning</em> styles, must use <em>discard</em>
+set to either <em>yes</em> or <em>no</em>.  If <em>discard</em> is set to <em>yes</em>, which is
+the default, then every &#8220;discard&#8221; atom has its chunk ID set to 0.  If
+<em>discard</em> is set to <em>no</em>, every &#8220;discard&#8221; atom has its chunk ID set to
+<em>Nchunk</em>.  I.e. it becomes part of the last chunk.</p>
+<p>The <em>binning</em> styles use the <em>discard</em> keyword to decide whether to
 discard atoms outside the spatial domain covered by bins, or to assign
-them to the bin they are nearest to.  Details are as follows.
-</P>
-<P>If <I>discard</I> is set to <I>yes</I>, an out-of-domain atom will have its
-chunk ID set to 0.  If <I>discard</I> is set to <I>no</I>, the atom will have
+them to the bin they are nearest to.  Details are as follows.</p>
+<p>If <em>discard</em> is set to <em>yes</em>, an out-of-domain atom will have its
+chunk ID set to 0.  If <em>discard</em> is set to <em>no</em>, the atom will have
 its chunk ID set to the first or last bin in that dimension.  If
-(discard</I> is set to <I>mixed</I>, which is the default, it will only have
+(discard* is set to <em>mixed</em>, which is the default, it will only have
 its chunk ID set to the first or last bin if bins extend to the
 simulation box boundary in that dimension.  This is the case if the
-<I>bound</I> keyword settings are <I>lower</I> and <I>upper</I>, which is the
-default.  If the <I>bound</I> keyword settings are numeric values, then the
+<em>bound</em> keyword settings are <em>lower</em> and <em>upper</em>, which is the
+default.  If the <em>bound</em> keyword settings are numeric values, then the
 atom will have its chunk ID set to 0 if it is outside the bounds of
 any bin.  Note that in this case, it is possible that the first or
-last bin extends beyond the numeric <I>bounds</I> settings, depending on
-the specified <I>origin</I>.  If this is the case, the chunk ID of the atom
+last bin extends beyond the numeric <em>bounds</em> settings, depending on
+the specified <em>origin</em>.  If this is the case, the chunk ID of the atom
 is only set to 0 if it is outside the first or last bin, not if it is
-simply outside the numeric <I>bounds</I> setting.
-</P>
-<HR>
-
-<P>The <I>bound</I> keyword only applies to the <I>binning</I> styles; otherwise it
+simply outside the numeric <em>bounds</em> setting.</p>
+<hr class="docutils" />
+<p>The <em>bound</em> keyword only applies to the <em>binning</em> styles; otherwise it
 is ignored.  It can be used one or more times to limit the extent of
 bin coverage in a specified dimension, i.e. to only bin a portion of
-the box.  If the <I>lo</I> setting is <I>lower</I> or the <I>hi</I> setting is
-<I>upper</I>, the bin extent in that direction extends to the box boundary.
-If a numeric value is used for <I>lo</I> and/or <I>hi</I>, then the bin extent
-in the <I>lo</I> or <I>hi</I> direction extends only to that value, which is
+the box.  If the <em>lo</em> setting is <em>lower</em> or the <em>hi</em> setting is
+<em>upper</em>, the bin extent in that direction extends to the box boundary.
+If a numeric value is used for <em>lo</em> and/or <em>hi</em>, then the bin extent
+in the <em>lo</em> or <em>hi</em> direction extends only to that value, which is
 assumed to be inside (or at least near) the simulation box boundaries,
-though LAMMPS does not check for this.  Note that using the <I>bound</I>
+though LAMMPS does not check for this.  Note that using the <em>bound</em>
 keyword typically reduces the total number of bins and thus the number
-of chunks <I>Nchunk</I>.
-</P>
-<P>The <I>units</I> keyword only applies to the <I>binning</I> styles; otherwise it
+of chunks <em>Nchunk</em>.</p>
+<p>The <em>units</em> keyword only applies to the <em>binning</em> styles; otherwise it
 is ignored.  It determines the meaning of the distance units used for
-the bin sizes <I>delta</I> and for <I>origin</I> and <I>bounds</I> values if they are
+the bin sizes <em>delta</em> and for <em>origin</em> and <em>bounds</em> values if they are
 coordinate values.  For orthogonal simulation boxes, any of the 3
 options may be used.  For non-orthogonal (triclinic) simulation boxes,
-only the <I>reduced</I> option may be used.
-</P>
-<P>A <I>box</I> value selects standard distance units as defined by the
-<A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or metal.
-A <I>lattice</I> value means the distance units are in lattice spacings.
-The <A HREF = "lattice.html">lattice</A> command must have been previously used to
-define the lattice spacing.  A <I>reduced</I> value means normalized
+only the <em>reduced</em> option may be used.</p>
+<p>A <em>box</em> value selects standard distance units as defined by the
+<a class="reference internal" href="units.html"><em>units</em></a> command, e.g. Angstroms for units = real or metal.
+A <em>lattice</em> value means the distance units are in lattice spacings.
+The <a class="reference internal" href="lattice.html"><em>lattice</em></a> command must have been previously used to
+define the lattice spacing.  A <em>reduced</em> value means normalized
 unitless values between 0 and 1, which represent the lower and upper
-faces of the simulation box respectively.  Thus an <I>origin</I> value of
-0.5 means the center of the box in any dimension.  A <I>delta</I> value of
-0.1 means 10 bins span the box in that dimension.
-</P>
-<HR>
-
-<HR>
-
-<P><B>Output info:</B>
-</P>
-<P>This compute calculates a per-atom vector, which can be accessed by
+faces of the simulation box respectively.  Thus an <em>origin</em> value of
+0.5 means the center of the box in any dimension.  A <em>delta</em> value of
+0.1 means 10 bins span the box in that dimension.</p>
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-<A HREF = "Section_howto.html#howto_15">Section_howto 15</A> for an overview of
-LAMMPS output options.
-</P>
-<P>The per-atom vector values are unitless chunk IDs, ranging from 1 to
-<I>Nchunk</I> (inclusive) for atoms assigned to chunks, and 0 for atoms not
-belonging to a chunk.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>Even if the <I>nchunk</I> keyword is set to <I>once</I>, the chunk IDs assigned
+<a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of
+LAMMPS output options.</p>
+<p>The per-atom vector values are unitless chunk IDs, ranging from 1 to
+<em>Nchunk</em> (inclusive) for atoms assigned to chunks, and 0 for atoms not
+belonging to a chunk.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Even if the <em>nchunk</em> keyword is set to <em>once</em>, the chunk IDs assigned
 to each atom are not stored in a restart files.  This means you cannot
 expect those assignments to persist in a restarted simulation.
 Instead you must re-specify this command and assign atoms to chunks when
-the restarted simulation begins.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_ave_chunk.html">fix ave/chunk</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are as follows:
-</P>
-<UL><LI>region = none
-<LI>nchunk = every if compress is yes, overriding other defaults listed here
-<LI>nchunk = once for type style
-<LI>nchunk = once for mol style if region is none
-<LI>nchunk = every for mol style if region is set
-<LI>nchunk = once for binning style if the simulation box size is static or units = reduced
-<LI>nchunk = every for binning style if the simulation box size is dynamic and units is lattice or box
-<LI>nchunk = every for compute/fix/variable style
-<LI>limit = 0
-<LI>ids = every
-<LI>compress = no
-<LI>discard = yes for all styles except binning
-<LI>discard = mixed for binning styles
-<LI>bound = lower and upper in all dimensions
-<LI>units = lattice 
-</UL>
-</HTML>
+the restarted simulation begins.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_ave_chunk.html"><em>fix ave/chunk</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are as follows:</p>
+<ul class="simple">
+<li>region = none</li>
+<li>nchunk = every if compress is yes, overriding other defaults listed here</li>
+<li>nchunk = once for type style</li>
+<li>nchunk = once for mol style if region is none</li>
+<li>nchunk = every for mol style if region is set</li>
+<li>nchunk = once for binning style if the simulation box size is static or units = reduced</li>
+<li>nchunk = every for binning style if the simulation box size is dynamic and units is lattice or box</li>
+<li>nchunk = every for compute/fix/variable style</li>
+<li>limit = 0</li>
+<li>ids = every</li>
+<li>compress = no</li>
+<li>discard = yes for all styles except binning</li>
+<li>discard = mixed for binning styles</li>
+<li>bound = lower and upper in all dimensions</li>
+<li>units = lattice</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

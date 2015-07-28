@@ -1,151 +1,327 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>comm_modify command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>comm_modify command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>comm_modify keyword value ... 
-</PRE>
-<UL><LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>mode</I> or <I>cutoff</I> or <I>group</I> or <I>vel</I> 
-
-<PRE>  <I>mode</I> value = <I>single</I> or <I>multi</I> = communicate atoms within a single or multiple distances
-  <I>cutoff</I> value = Rcut (distance units) = communicate atoms from this far away
-  <I>group</I> value = group-ID = only communicate atoms in the group
-  <I>vel</I> value = <I>yes</I> or <I>no</I> = do or do not communicate velocity info with ghost atoms 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>comm_modify mode multi
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>comm_modify command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="comm-modify-command">
+<span id="index-0"></span><h1>comm_modify command<a class="headerlink" href="#comm-modify-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>comm_modify keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>mode</em> or <em>cutoff</em> or <em>group</em> or <em>vel</em></li>
+</ul>
+<pre class="literal-block">
+<em>mode</em> value = <em>single</em> or <em>multi</em> = communicate atoms within a single or multiple distances
+  <em>cutoff</em> value = Rcut (distance units) = communicate atoms from this far away
+  <em>group</em> value = group-ID = only communicate atoms in the group
+  <em>vel</em> value = <em>yes</em> or <em>no</em> = do or do not communicate velocity info with ghost atoms
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>comm_modify mode multi
 comm_modify mode multi group solvent
 comm_modify vel yes
-comm_modify cutoff 5.0 vel yes 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This command sets parameters that affect the inter-processor
+comm_modify cutoff 5.0 vel yes
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command sets parameters that affect the inter-processor
 communication of atom information that occurs each timestep as
 coordinates and other properties are exchanged between neighboring
-processors and stored as properties of ghost atoms.
-</P>
-<P>IMPORTANT NOTE: These options apply to the currently defined comm
-style.  When you specify a <A HREF = "comm_style.html">comm_style</A> command, all
+processors and stored as properties of ghost atoms.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">These options apply to the currently defined comm
+style.  When you specify a <a class="reference internal" href="comm_style.html"><em>comm_style</em></a> command, all
 communication settings are restored to their default values, including
 those previously reset by a comm_modify command.  Thus if your input
 script specifies a comm_style command, you should use the comm_modify
-command after it.
-</P>
-<P>The <I>mode</I> keyword determines whether a single or multiple cutoff
-distances are used to determine which atoms to communicate.
-</P>
-<P>The default mode is <I>single</I> which means each processor acquires
+command after it.</p>
+</div>
+<p>The <em>mode</em> keyword determines whether a single or multiple cutoff
+distances are used to determine which atoms to communicate.</p>
+<p>The default mode is <em>single</em> which means each processor acquires
 information for ghost atoms that are within a single distance from its
 sub-domain.  The distance is the maximum of the neighbor cutoff for
-all atom type pairs.
-</P>
-<P>For many systems this is an efficient algorithm, but for systems with
-widely varying cutoffs for different type pairs, the <I>multi</I> mode can
+all atom type pairs.</p>
+<p>For many systems this is an efficient algorithm, but for systems with
+widely varying cutoffs for different type pairs, the <em>multi</em> mode can
 be faster.  In this case, each atom type is assigned its own distance
 cutoff for communication purposes, and fewer atoms will be
-communicated.  See the <A HREF = "neighbor.html">neighbor multi</A> command for a
+communicated.  See the <a class="reference internal" href="neighbor.html"><em>neighbor multi</em></a> command for a
 neighbor list construction option that may also be beneficial for
-simulations of this kind.
-</P>
-<P>The <I>cutoff</I> keyword allows you to set a ghost cutoff distance, which
-is the distance from the borders of a processor's sub-domain at which
+simulations of this kind.</p>
+<p>The <em>cutoff</em> keyword allows you to set a ghost cutoff distance, which
+is the distance from the borders of a processor&#8217;s sub-domain at which
 ghost atoms are acquired from other processors.  By default the ghost
 cutoff = neighbor cutoff = pairwise force cutoff + neighbor skin.  See
-the <A HREF = "neighbor.html">neighbor</A> command for more information about the
+the <a class="reference internal" href="neighbor.html"><em>neighbor</em></a> command for more information about the
 skin distance.  If the specified Rcut is greater than the neighbor
 cutoff, then extra ghost atoms will be acquired.  If it is smaller,
-the ghost cutoff is set to the neighbor cutoff.
-</P>
-<P>These are simulation scenarios in which it may be useful or even
-necessary to set a ghost cutoff > neighbor cutoff:
-</P>
-<UL><LI>a single polymer chain with bond interactions, but no pairwise interactions
-<LI>bonded interactions (e.g. dihedrals) extend further than the pairwise cutoff
-<LI>ghost atoms beyond the pairwise cutoff are needed for some computation 
-</UL>
-<P>In the first scenario, a pairwise potential is not defined.  Thus the
+the ghost cutoff is set to the neighbor cutoff.</p>
+<p>These are simulation scenarios in which it may be useful or even
+necessary to set a ghost cutoff &gt; neighbor cutoff:</p>
+<ul class="simple">
+<li>a single polymer chain with bond interactions, but no pairwise interactions</li>
+<li>bonded interactions (e.g. dihedrals) extend further than the pairwise cutoff</li>
+<li>ghost atoms beyond the pairwise cutoff are needed for some computation</li>
+</ul>
+<p>In the first scenario, a pairwise potential is not defined.  Thus the
 pairwise neighbor cutoff will be 0.0.  But ghost atoms are still
 needed for computing bond, angle, etc interactions between atoms on
 different processors, or when the interaction straddles a periodic
-boundary.
-</P>
-<P>The appropriate ghost cutoff depends on the <A HREF = "newton.html">newton bond</A>
-setting.  For newton bond <I>off</I>, the distance needs to be the furthest
+boundary.</p>
+<p>The appropriate ghost cutoff depends on the <a class="reference internal" href="newton.html"><em>newton bond</em></a>
+setting.  For newton bond <em>off</em>, the distance needs to be the furthest
 distance between any two atoms in the bond, angle, etc.  E.g. the
-distance between 1-4 atoms in a dihedral.  For newton bond <I>on</I>, the
+distance between 1-4 atoms in a dihedral.  For newton bond <em>on</em>, the
 distance between the central atom in the bond, angle, etc and any
 other atom is sufficient.  E.g. the distance between 2-4 atoms in a
-dihedral.
-</P>
-<P>In the second scenario, a pairwise potential is defined, but its
+dihedral.</p>
+<p>In the second scenario, a pairwise potential is defined, but its
 neighbor cutoff is not sufficiently long enough to enable bond, angle,
 etc terms to be computed.  As in the previous scenario, an appropriate
-ghost cutoff should be set.
-</P>
-<P>In the last scenario, a <A HREF = "fix.html">fix</A> or <A HREF = "compute.html">compute</A> or
-<A HREF = "pair_style.html">pairwise potential</A> needs to calculate with ghost
+ghost cutoff should be set.</p>
+<p>In the last scenario, a <a class="reference internal" href="fix.html"><em>fix</em></a> or <a class="reference internal" href="compute.html"><em>compute</em></a> or
+<a class="reference internal" href="pair_style.html"><em>pairwise potential</em></a> needs to calculate with ghost
 atoms beyond the normal pairwise cutoff for some computation it
 performs (e.g. locate neighbors of ghost atoms in a multibody pair
 potential).  Setting the ghost cutoff appropriately can insure it will
-find the needed atoms.
-</P>
-<P>IMPORTANT NOTE: In these scenarios, if you do not set the ghost cutoff
+find the needed atoms.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">In these scenarios, if you do not set the ghost cutoff
 long enough, and if there is only one processor in a periodic
-dimension (e.g. you are running in serial), then LAMMPS may "find" the
+dimension (e.g. you are running in serial), then LAMMPS may &#8220;find&#8221; the
 atom it is looking for (e.g. the partner atom in a bond), that is on
 the far side of the simulation box, across a periodic boundary.  This
 will typically lead to bad dynamics (i.e. the bond length is now the
 simulation box length).  To detect if this is happening, see the
-<A HREF = "neigh_modify.html">neigh_modify cluster</A> command.
-</P>
-<P>The <I>group</I> keyword will limit communication to atoms in the specified
+<a class="reference internal" href="neigh_modify.html"><em>neigh_modify cluster</em></a> command.</p>
+</div>
+<p>The <em>group</em> keyword will limit communication to atoms in the specified
 group.  This can be useful for models where no ghost atoms are needed
 for some kinds of particles.  All atoms (not just those in the
 specified group) will still migrate to new processors as they move.
 The group specified with this option must also be specified via the
-<A HREF = "atom_modify.html">atom_modify first</A> command.
-</P>
-<P>The <I>vel</I> keyword enables velocity information to be communicated with
-ghost particles.  Depending on the <A HREF = "atom_style.html">atom_style</A>,
+<a class="reference internal" href="atom_modify.html"><em>atom_modify first</em></a> command.</p>
+<p>The <em>vel</em> keyword enables velocity information to be communicated with
+ghost particles.  Depending on the <a class="reference internal" href="atom_style.html"><em>atom_style</em></a>,
 velocity info includes the translational velocity, angular velocity,
-and angular momentum of a particle.  If the <I>vel</I> option is set to
-<I>yes</I>, then ghost atoms store these quantities; if <I>no</I> then they do
-not.  The <I>yes</I> setting is needed by some pair styles which require
+and angular momentum of a particle.  If the <em>vel</em> option is set to
+<em>yes</em>, then ghost atoms store these quantities; if <em>no</em> then they do
+not.  The <em>yes</em> setting is needed by some pair styles which require
 the velocity state of both the I and J particles to compute a pairwise
-I,J interaction.
-</P>
-<P>Note that if the <A HREF = "fix_deform.html">fix deform</A> command is being used
-with its "remap v" option enabled, then the velocities for ghost atoms
+I,J interaction.</p>
+<p>Note that if the <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a> command is being used
+with its &#8220;remap v&#8221; option enabled, then the velocities for ghost atoms
 (in the fix deform group) mirrored across a periodic boundary will
 also include components due to any velocity shift that occurs across
-that boundary (e.g. due to dilation or shear).
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "comm_style.html">comm_style</A>, <A HREF = "neighbor.html">neighbor</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defauls are mode = single, group = all, cutoff = 0.0, vel =
+that boundary (e.g. due to dilation or shear).</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="comm_style.html"><em>comm_style</em></a>, <a class="reference internal" href="neighbor.html"><em>neighbor</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defauls are mode = single, group = all, cutoff = 0.0, vel =
 no.  The cutoff default of 0.0 means that ghost cutoff = neighbor
-cutoff = pairwise force cutoff + neighbor skin.
-</P>
-</HTML>
+cutoff = pairwise force cutoff + neighbor skin.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

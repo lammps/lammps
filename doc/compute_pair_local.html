@@ -1,127 +1,296 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute pair/local command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>compute pair/local command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>compute ID group-ID pair/local input1 input2 ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
-
-<LI>pair/local = style name of this compute command 
-
-<LI>zero or more keywords may be appended 
-
-<LI>keyword = <I>dist</I> or <I>eng</I> or <I>force</I> or <I>fx</I> or <I>fy</I> or <I>fz</I> or <I>pN</I> 
-
-<PRE>  <I>dist</I> = pairwise distance
-  <I>eng</I> = pairwise energy
-  <I>force</I> = pairwise force
-  <I>fx</I>,<I>fy</I>,<I>fz</I> = components of pairwise force
-  <I>pN</I> = pair style specific quantities for allowed N values 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>compute 1 all pair/local eng
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute pair/local command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-pair-local-command">
+<span id="index-0"></span><h1>compute pair/local command<a class="headerlink" href="#compute-pair-local-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID pair/local input1 input2 ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>pair/local = style name of this compute command</li>
+<li>zero or more keywords may be appended</li>
+<li>keyword = <em>dist</em> or <em>eng</em> or <em>force</em> or <em>fx</em> or <em>fy</em> or <em>fz</em> or <em>pN</em></li>
+</ul>
+<pre class="literal-block">
+<em>dist</em> = pairwise distance
+  <em>eng</em> = pairwise energy
+  <em>force</em> = pairwise force
+  <em>fx</em>,*fy*,*fz* = components of pairwise force
+  <em>pN</em> = pair style specific quantities for allowed N values
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all pair/local eng
 compute 1 all pair/local dist eng force
 compute 1 all pair/local dist eng fx fy fz
-compute 1 all pair/local dist fx fy fz p1 p2 p3 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a computation that calculates properties of individual pairwise
+compute 1 all pair/local dist fx fy fz p1 p2 p3
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that calculates properties of individual pairwise
 interactions.  The number of datums generated, aggregated across all
-processors, equals the number of pairwise interactions in the system.
-</P>
-<P>The local data stored by this command is generated by looping over the
+processors, equals the number of pairwise interactions in the system.</p>
+<p>The local data stored by this command is generated by looping over the
 pairwise neighbor list.  Info about an individual pairwise interaction
 will only be included if both atoms in the pair are in the specified
 compute group, and if the current pairwise distance is less than the
 force cutoff distance for that interaction, as defined by the
-<A HREF = "pair_style.html">pair_style</A> and <A HREF = "pair_coeff.html">pair_coeff</A>
-commands.
-</P>
-<P>The output <I>dist</I> is the distance bewteen the pair of atoms.
-</P>
-<P>The output <I>eng</I> is the interaction energy for the pair of atoms.
-</P>
-<P>The output <I>force</I> is the force acting between the pair of atoms,
+<a class="reference internal" href="pair_style.html"><em>pair_style</em></a> and <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>
+commands.</p>
+<p>The output <em>dist</em> is the distance bewteen the pair of atoms.</p>
+<p>The output <em>eng</em> is the interaction energy for the pair of atoms.</p>
+<p>The output <em>force</em> is the force acting between the pair of atoms,
 which is positive for a repulsive force and negative for an attractive
-force.  The outputs <I>fx</I>, <I>fy</I>, and <I>fz</I> are the xyz components of
-<I>force</I> on atom I.
-</P>
-<P>A pair style may define additional pairwise quantities which can be
-accessed as <I>p1</I> to <I>pN</I>, where N is defined by the pair style.  Most
+force.  The outputs <em>fx</em>, <em>fy</em>, and <em>fz</em> are the xyz components of
+<em>force</em> on atom I.</p>
+<p>A pair style may define additional pairwise quantities which can be
+accessed as <em>p1</em> to <em>pN</em>, where N is defined by the pair style.  Most
 pair styles do not define any additional quantities, so N = 0.  An
-example of ones that do are the <A HREF = "pair_gran.html">granular pair styles</A>
+example of ones that do are the <a class="reference internal" href="pair_gran.html"><em>granular pair styles</em></a>
 which calculate the tangential force between two particles and return
 its components and magnitude acting on atom I for N = 1,2,3,4.  See
-individual pair styles for detils.
-</P>
-<P>The output <I>dist</I> will be in distance <A HREF = "units.html">units</A>.  The output
-<I>eng</I> will be in energy <A HREF = "units.html">units</A>.  The outputs <I>force</I>,
-<I>fx</I>, <I>fy</I>, and <I>fz</I> will be in force <A HREF = "units.html">units</A>.  The output
-<I>pN</I> will be in whatever units the pair style defines.
-</P>
-<P>Note that as atoms migrate from processor to processor, there will be
+individual pair styles for detils.</p>
+<p>The output <em>dist</em> will be in distance <a class="reference internal" href="units.html"><em>units</em></a>.  The output
+<em>eng</em> will be in energy <a class="reference internal" href="units.html"><em>units</em></a>.  The outputs <em>force</em>,
+<em>fx</em>, <em>fy</em>, and <em>fz</em> will be in force <a class="reference internal" href="units.html"><em>units</em></a>.  The output
+<em>pN</em> will be in whatever units the pair style defines.</p>
+<p>Note that as atoms migrate from processor to processor, there will be
 no consistent ordering of the entries within the local vector or array
 from one timestep to the next.  The only consistency that is
 guaranteed is that the ordering on a particular timestep will be the
 same for local vectors or arrays generated by other compute commands.
-For example, pair output from the <A HREF = "compute_property_local.html">compute
-property/local</A> command can be combined
-with data from this command and output by the <A HREF = "dump.html">dump local</A>
-command in a consistent way.
-</P>
-<P>IMPORTANT NOTE: For pairs, if two atoms I,J are involved in 1-2, 1-3,
+For example, pair output from the <a class="reference internal" href="compute_property_local.html"><em>compute property/local</em></a> command can be combined
+with data from this command and output by the <a class="reference internal" href="dump.html"><em>dump local</em></a>
+command in a consistent way.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">For pairs, if two atoms I,J are involved in 1-2, 1-3,
 1-4 interactions within the molecular topology, their pairwise
 interaction may be turned off, and thus they may not appear in the
 neighbor list, and will not be part of the local data created by this
 command.  More specifically, this will be true of I,J pairs with a
 weighting factor of 0.0; pairs with a non-zero weighting factor are
 included.  The weighting factors for 1-2, 1-3, and 1-4 pairwise
-interactions are set by the <A HREF = "special_bonds.html">special_bonds</A>
+interactions are set by the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a>
 command.  An exception is if long-range Coulombics are being computed
-via the <A HREF = "kspace_style.html">kspace_style</A> command, then atom pairs with
+via the <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command, then atom pairs with
 weighting factors of zero are still included in the neighbor list, so
 that a portion of the long-range interaction contribution can be
 computed in the pair style.  Hence in that case, those atom pairs will
-be part of the local data created by this command.
-</P>
-<P><B>Output info:</B>
-</P>
-<P>This compute calculates a local vector or local array depending on the
+be part of the local data created by this command.</p>
+</div>
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a local vector or local array depending on the
 number of keywords.  The length of the vector or number of rows in the
 array is the number of pairs.  If a single keyword is specified, a
 local vector is produced.  If two or more keywords are specified, a
 local array is produced where the number of columns = the number of
 keywords.  The vector or array can be accessed by any command that
-uses local values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
-section</A> for an overview of LAMMPS output
-options.
-</P>
-<P>The output for <I>dist</I> will be in distance <A HREF = "units.html">units</A>.  The
-output for <I>eng</I> will be in energy <A HREF = "units.html">units</A>.  The output for
-<I>force</I> will be in force <A HREF = "units.html">units</A>.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "dump.html">dump local</A>, <A HREF = "compute_property_local.html">compute
-property/local</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+uses local values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
+options.</p>
+<p>The output for <em>dist</em> will be in distance <a class="reference internal" href="units.html"><em>units</em></a>.  The
+output for <em>eng</em> will be in energy <a class="reference internal" href="units.html"><em>units</em></a>.  The output for
+<em>force</em> will be in force <a class="reference internal" href="units.html"><em>units</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="dump.html"><em>dump local</em></a>, <a class="reference internal" href="compute_property_local.html"><em>compute property/local</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

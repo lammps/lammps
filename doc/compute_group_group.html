@@ -1,135 +1,293 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute group/group command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>compute group/group command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>compute ID group-ID group/group group2-ID keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
-
-<LI>group/group = style name of this compute command 
-
-<LI>group2-ID = group ID of second (or same) group 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>pair</I> or <I>kspace</I> or <I>boundary</I> 
-
-<PRE>  <I>pair</I> value = <I>yes</I> or <I>no</I>
-  <I>kspace</I> value = <I>yes</I> or <I>no</I>
-  <I>boundary</I> value = <I>yes</I> or <I>no</I> 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>compute 1 lower group/group upper
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute group/group command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-group-group-command">
+<span id="index-0"></span><h1>compute group/group command<a class="headerlink" href="#compute-group-group-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID group/group group2-ID keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>group/group = style name of this compute command</li>
+<li>group2-ID = group ID of second (or same) group</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>pair</em> or <em>kspace</em> or <em>boundary</em></li>
+</ul>
+<pre class="literal-block">
+<em>pair</em> value = <em>yes</em> or <em>no</em>
+  <em>kspace</em> value = <em>yes</em> or <em>no</em>
+  <em>boundary</em> value = <em>yes</em> or <em>no</em>
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 lower group/group upper
 compute 1 lower group/group upper kspace yes
-compute mine fluid group/group wall 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a computation that calculates the total energy and force
+compute mine fluid group/group wall
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that calculates the total energy and force
 interaction between two groups of atoms: the compute group and the
-specified group2.  The two groups can be the same.
-</P>
-<P>If the <I>pair</I> keyword is set to <I>yes</I>, which is the default, then the
+specified group2.  The two groups can be the same.</p>
+<p>If the <em>pair</em> keyword is set to <em>yes</em>, which is the default, then the
 the interaction energy will include a pair component which is defined
 as the pairwise energy between all pairs of atoms where one atom in
 the pair is in the first group and the other is in the second group.
 Likewise, the interaction force calculated by this compute will
 include the force on the compute group atoms due to pairwise
-interactions with atoms in the specified group2.
-</P>
-<P>If the <I>kspace</I> keyword is set to <I>yes</I>, which is not the default, and
-if a <A HREF = "kspace_style.html">kspace_style</A> is defined, then the interaction
+interactions with atoms in the specified group2.</p>
+<p>If the <em>kspace</em> keyword is set to <em>yes</em>, which is not the default, and
+if a <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> is defined, then the interaction
 energy will include a Kspace component which is the long-range
 Coulombic energy between all the atoms in the first group and all the
 atoms in the 2nd group.  Likewise, the interaction force calculated by
 this compute will include the force on the compute group atoms due to
-long-range Coulombic interactions with atoms in the specified group2.
-</P>
-<P>Normally the long-range Coulombic energy converges only when the net
+long-range Coulombic interactions with atoms in the specified group2.</p>
+<p>Normally the long-range Coulombic energy converges only when the net
 charge of the unit cell is zero.  However, one can assume the net
 charge of the system is neutralized by a uniform background plasma,
 and a correction to the system energy can be applied to reduce
-artifacts. For more information see <A HREF = "#Bogusz">(Bogusz)</A>.  If the
-<I>boundary</I> keyword is set to <I>yes</I>, which is the default, and <I>kspace</I>
+artifacts. For more information see <a class="reference internal" href="#bogusz"><span>(Bogusz)</span></a>.  If the
+<em>boundary</em> keyword is set to <em>yes</em>, which is the default, and <em>kspace</em>
 contributions are included, then this energy correction term will be
 added to the total group-group energy.  This correction term does not
 affect the force calculation and will be zero if one or both of the
 groups are charge neutral.  This energy correction term is the same as
-that included in the regular Ewald and PPPM routines.
-</P>
-<P>This compute does not calculate any bond or angle or dihedral or
-improper interactions between atoms in the two groups.
-</P>
-<HR>
-
-<P>The pairwise contributions to the group-group interactions are
+that included in the regular Ewald and PPPM routines.</p>
+<p>This compute does not calculate any bond or angle or dihedral or
+improper interactions between atoms in the two groups.</p>
+<hr class="docutils" />
+<p>The pairwise contributions to the group-group interactions are
 calculated by looping over a neighbor list.  The Kspace contribution
 to the group-group interactions require essentially the same amount of
 work (FFTs, Ewald summation) as computing long-range forces for the
 entire system.  Thus it can be costly to invoke this compute too
-frequently.
-</P>
-<P>If you desire a breakdown of the interactions into a pairwise and
+frequently.</p>
+<p>If you desire a breakdown of the interactions into a pairwise and
 Kspace component, simply invoke the compute twice with the appropriate
-yes/no settings for the <I>pair</I> and <I>kspace</I> keywords.  This is no more
-costly than using a single compute with both keywords set to <I>yes</I>.
+yes/no settings for the <em>pair</em> and <em>kspace</em> keywords.  This is no more
+costly than using a single compute with both keywords set to <em>yes</em>.
 The individual contributions can be summed in a
-<A HREF = "variable.html">variable</A> if desired.
-</P>
-<P>This <A HREF = "PDF/kspace.pdf">document</A> describes how the long-range
-group-group calculations are performed.
-</P>
-<HR>
-
-<P><B>Output info:</B>
-</P>
-<P>This compute calculates a global scalar (the energy) and a global
+<a class="reference internal" href="variable.html"><em>variable</em></a> if desired.</p>
+<p>This <a class="reference external" href="PDF/kspace.pdf">document</a> describes how the long-range
+group-group calculations are performed.</p>
+<hr class="docutils" />
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a global scalar (the energy) and a global
 vector of length 3 (force), which can be accessed by indices 1-3.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
-section</A> for an overview of LAMMPS output
-options.
-</P>
-<P>Both the scalar and vector values calculated by this compute are
-"extensive".  The scalar value will be in energy <A HREF = "units.html">units</A>.
-The vector values will be in force <A HREF = "units.html">units</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>Not all pair styles can be evaluated in a pairwise mode as required by
+vector values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
+options.</p>
+<p>Both the scalar and vector values calculated by this compute are
+&#8220;extensive&#8221;.  The scalar value will be in energy <a class="reference internal" href="units.html"><em>units</em></a>.
+The vector values will be in force <a class="reference internal" href="units.html"><em>units</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Not all pair styles can be evaluated in a pairwise mode as required by
 this compute.  For example, 3-body and other many-body potentials,
-such as <A HREF = "pair_tersoff.html">Tersoff</A> and
-<A HREF = "pair_sw.html">Stillinger-Weber</A> cannot be used.  <A HREF = "pair_eam.html">EAM</A>
+such as <a class="reference internal" href="pair_tersoff.html"><em>Tersoff</em></a> and
+<a class="reference internal" href="pair_sw.html"><em>Stillinger-Weber</em></a> cannot be used.  <a class="reference internal" href="pair_eam.html"><em>EAM</em></a>
 potentials only include the pair potential portion of the EAM
-interaction when used by this compute, not the embedding term.
-</P>
-<P>Not all Kspace styles support calculation of group/group interactions.
-The <I>ewald</I> and <I>pppm</I> styles do.
-</P>
-<P><B>Related commands:</B> none
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are pair = yes, kspace = no, and boundary = yes.
-</P>
-<HR>
+interaction when used by this compute, not the embedding term.</p>
+<p>Not all Kspace styles support calculation of group/group interactions.
+The <em>ewald</em> and <em>pppm</em> styles do.</p>
+<p><strong>Related commands:</strong> none</p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are pair = yes, kspace = no, and boundary = yes.</p>
+<hr class="docutils" />
+<p id="bogusz">Bogusz et al, J Chem Phys, 108, 7070 (1998)</p>
+</div>
+</div>
 
-<A NAME = "Bogusz"></A>
 
-<P>Bogusz et al, J Chem Phys, 108, 7070 (1998)
-</P>
-</HTML>
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,154 +1,327 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute rdf command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>compute rdf command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>compute ID group-ID rdf Nbin itype1 jtype1 itype2 jtype2 ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>rdf = style name of this compute command
-<LI>Nbin = number of RDF bins
-<LI>itypeN = central atom type for Nth RDF histogram (see asterisk form below)
-<LI>jtypeN = distribution atom type for Nth RDF histogram (see asterisk form below) 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>compute 1 all rdf 100
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute rdf command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-rdf-command">
+<span id="index-0"></span><h1>compute rdf command<a class="headerlink" href="#compute-rdf-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID rdf Nbin itype1 jtype1 itype2 jtype2 ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>rdf = style name of this compute command</li>
+<li>Nbin = number of RDF bins</li>
+<li>itypeN = central atom type for Nth RDF histogram (see asterisk form below)</li>
+<li>jtypeN = distribution atom type for Nth RDF histogram (see asterisk form below)</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all rdf 100
 compute 1 all rdf 100 1 1
 compute 1 all rdf 100 * 3
 compute 1 fluid rdf 500 1 1 1 2 2 1 2 2
-compute 1 fluid rdf 500 1*3 2 5 *10 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a computation that calculates the radial distribution function
+compute 1 fluid rdf 500 1*3 2 5 *10
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that calculates the radial distribution function
 (RDF), also called g(r), and the coordination number for a group of
 particles.  Both are calculated in histogram form by binning pairwise
-distances into <I>Nbin</I> bins from 0.0 to the maximum force cutoff
-defined by the <A HREF = "pair_style.html">pair_style</A> command.  The bins are of
+distances into <em>Nbin</em> bins from 0.0 to the maximum force cutoff
+defined by the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> command.  The bins are of
 uniform size in radial distance.  Thus a single bin encompasses a thin
-shell of distances in 3d and a thin ring of distances in 2d.
-</P>
-<P>IMPORTANT NOTE: If you have a bonded system, then the settings of
-<A HREF = "special_bonds.html">special_bonds</A> command can remove pairwise
+shell of distances in 3d and a thin ring of distances in 2d.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you have a bonded system, then the settings of
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command can remove pairwise
 interactions between atoms in the same bond, angle, or dihedral.  This
-is the default setting for the <A HREF = "special_bonds.html">special_bonds</A>
+is the default setting for the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a>
 command, and means those pairwise interactions do not appear in the
 neighbor list.  Because this fix uses the neighbor list, it also means
 those pairs will not be included in the RDF.  One way to get around
-this, is to write a dump file, and use the <A HREF = "rerun.html">rerun</A> command
+this, is to write a dump file, and use the <a class="reference internal" href="rerun.html"><em>rerun</em></a> command
 to compute the RDF for snapshots in the dump file.  The rerun script
-can use a <A HREF = "special_bonds.html">special_bonds</A> command that includes all
-pairs in the neighbor list.
-</P>
-<P>The <I>itypeN</I> and <I>jtypeN</I> arguments are optional.  These arguments
+can use a <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command that includes all
+pairs in the neighbor list.</p>
+</div>
+<p>The <em>itypeN</em> and <em>jtypeN</em> arguments are optional.  These arguments
 must come in pairs.  If no pairs are listed, then a single histogram
 is computed for g(r) between all atom types.  If one or more pairs are
 listed, then a separate histogram is generated for each
-<I>itype</I>,<I>jtype</I> pair.
-</P>
-<P>The <I>itypeN</I> and <I>jtypeN</I> settings can be specified in one of two
+<em>itype</em>,*jtype* pair.</p>
+<p>The <em>itypeN</em> and <em>jtypeN</em> settings can be specified in one of two
 ways.  An explicit numeric value can be used, as in the 4th example
 above.  Or a wild-card asterisk can be used to specify a range of atom
-types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+types.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the
 number of atom types, then an asterisk with no numeric values means
 all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from n to N
 (inclusive).  A middle asterisk means all types from m to n
-(inclusive).
-</P>
-<P>If both <I>itypeN</I> and <I>jtypeN</I> are single values, as in the 4th example
-above, this means that a g(r) is computed where atoms of type <I>itypeN</I>
-are the central atom, and atoms of type <I>jtypeN</I> are the distribution
-atom.  If either <I>itypeN</I> and <I>jtypeN</I> represent a range of values via
+(inclusive).</p>
+<p>If both <em>itypeN</em> and <em>jtypeN</em> are single values, as in the 4th example
+above, this means that a g(r) is computed where atoms of type <em>itypeN</em>
+are the central atom, and atoms of type <em>jtypeN</em> are the distribution
+atom.  If either <em>itypeN</em> and <em>jtypeN</em> represent a range of values via
 the wild-card asterisk, as in the 5th example above, this means that a
 g(r) is computed where atoms of any of the range of types represented
-by <I>itypeN</I> are the central atom, and atoms of any of the range of
-types represented by <I>jtypeN</I> are the distribution atom.
-</P>
-<P>Pairwise distances are generated by looping over a pairwise neighbor
-list, just as they would be in a <A HREF = "pair_style.html">pair_style</A>
+by <em>itypeN</em> are the central atom, and atoms of any of the range of
+types represented by <em>jtypeN</em> are the distribution atom.</p>
+<p>Pairwise distances are generated by looping over a pairwise neighbor
+list, just as they would be in a <a class="reference internal" href="pair_style.html"><em>pair_style</em></a>
 computation.  The distance between two atoms I and J is included in a
-specific histogram if the following criteria are met:
-</P>
-<UL><LI>atoms I,J are both in the specified compute group
-<LI>the distance between atoms I,J is less than the maximum force cutoff
-<LI>the type of the I atom matches itypeN (one or a range of types)
-<LI>the type of the J atom matches jtypeN (one or a range of types) 
-</UL>
-<P>It is OK if a particular pairwise distance is included in more than
-one individual histogram, due to the way the <I>itypeN</I> and <I>jtypeN</I>
-arguments are specified.
-</P>
-<P>The g(r) value for a bin is calculated from the histogram count by
+specific histogram if the following criteria are met:</p>
+<ul class="simple">
+<li>atoms I,J are both in the specified compute group</li>
+<li>the distance between atoms I,J is less than the maximum force cutoff</li>
+<li>the type of the I atom matches itypeN (one or a range of types)</li>
+<li>the type of the J atom matches jtypeN (one or a range of types)</li>
+</ul>
+<p>It is OK if a particular pairwise distance is included in more than
+one individual histogram, due to the way the <em>itypeN</em> and <em>jtypeN</em>
+arguments are specified.</p>
+<p>The g(r) value for a bin is calculated from the histogram count by
 scaling it by the idealized number of how many counts there would be
-if atoms of type <I>jtypeN</I> were uniformly distributed.  Thus it
-involves the count of <I>itypeN</I> atoms, the count of <I>jtypeN</I> atoms, the
-volume of the entire simulation box, and the volume of the bin's thin
-shell in 3d (or the area of the bin's thin ring in 2d).
-</P>
-<P>A coordination number coord(r) is also calculated, which is the number
-of atoms of type <I>jtypeN</I> within the current bin or closer, averaged
-over atoms of type <I>itypeN</I>.  This is calculated as the area- or
+if atoms of type <em>jtypeN</em> were uniformly distributed.  Thus it
+involves the count of <em>itypeN</em> atoms, the count of <em>jtypeN</em> atoms, the
+volume of the entire simulation box, and the volume of the bin&#8217;s thin
+shell in 3d (or the area of the bin&#8217;s thin ring in 2d).</p>
+<p>A coordination number coord(r) is also calculated, which is the number
+of atoms of type <em>jtypeN</em> within the current bin or closer, averaged
+over atoms of type <em>itypeN</em>.  This is calculated as the area- or
 volume-weighted sum of g(r) values over all bins up to and including
 the current bin, multiplied by the global average volume density of
-atoms of type jtypeN.
-</P>
-<P>The simplest way to output the results of the compute rdf calculation
-to a file is to use the <A HREF = "fix_ave_time.html">fix ave/time</A> command, for
-example:
-</P>
-<PRE>compute myRDF all rdf 50
-fix 1 all ave/time 100 1 100 c_myRDF file tmp.rdf mode vector 
-</PRE>
-<P><B>Output info:</B>
-</P>
-<P>This compute calculates a global array with the number of rows =
-<I>Nbins</I>, and the number of columns = 1 + 2*Npairs, where Npairs is the
+atoms of type jtypeN.</p>
+<p>The simplest way to output the results of the compute rdf calculation
+to a file is to use the <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> command, for
+example:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute myRDF all rdf 50
+fix 1 all ave/time 100 1 100 c_myRDF file tmp.rdf mode vector
+</pre></div>
+</div>
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a global array with the number of rows =
+<em>Nbins</em>, and the number of columns = 1 + 2*Npairs, where Npairs is the
 number of I,J pairings specified.  The first column has the bin
 coordinate (center of the bin), Each successive set of 2 columns has
-the g(r) and coord(r) values for a specific set of <I>itypeN</I> versus
-<I>jtypeN</I> interactions, as described above.  These values can be used
+the g(r) and coord(r) values for a specific set of <em>itypeN</em> versus
+<em>jtypeN</em> interactions, as described above.  These values can be used
 by any command that uses a global values from a compute as input.  See
-<A HREF = "Section_howto.html#howto_15">Section_howto 15</A> for an overview of
-LAMMPS output options.
-</P>
-<P>The array values calculated by this compute are all "intensive".
-</P>
-<P>The first column of array values will be in distance
-<A HREF = "units.html">units</A>.  The g(r) columns of array values are normalized
-numbers >= 0.0.  The coordination number columns of array values are
-also numbers >= 0.0.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>The RDF is not computed for distances longer than the force cutoff,
-since processors (in parallel) don't know about atom coordinates for
+<a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of
+LAMMPS output options.</p>
+<p>The array values calculated by this compute are all &#8220;intensive&#8221;.</p>
+<p>The first column of array values will be in distance
+<a class="reference internal" href="units.html"><em>units</em></a>.  The g(r) columns of array values are normalized
+numbers &gt;= 0.0.  The coordination number columns of array values are
+also numbers &gt;= 0.0.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>The RDF is not computed for distances longer than the force cutoff,
+since processors (in parallel) don&#8217;t know about atom coordinates for
 atoms further away than that distance.  If you want an RDF for larger
-distances, you can use the <A HREF = "rerun.html">rerun</A> command to post-process
+distances, you can use the <a class="reference internal" href="rerun.html"><em>rerun</em></a> command to post-process
 a dump file. The definition of g(r) used by LAMMPS is only appropriate
 for characterizing atoms that are uniformly distributed throughout the
 simulation cell. In such cases, the coordination number is still
 correct and meaningful.  As an example, if a large simulation cell
-contains only one atom of type <I>itypeN</I> and one of <I>jtypeN</I>, then g(r)
+contains only one atom of type <em>itypeN</em> and one of <em>jtypeN</em>, then g(r)
 will register an arbitrarily large spike at whatever distance they
 happen to be at, and zero everywhere else.  coord(r) will show a step
-change from zero to one at the location of the spike in g(r).
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_ave_time.html">fix ave/time</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+change from zero to one at the location of the spike in g(r).</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

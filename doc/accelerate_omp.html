@@ -1,153 +1,242 @@
-<HTML>
-<CENTER><A HREF = "Section_packages.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
-<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>5.USER-OMP package &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<P><A HREF = "Section_accelerate.html">Return to Section accelerate overview</A>
-</P>
-<H4>5.3.5 USER-OMP package 
-</H4>
-<P>The USER-OMP package was developed by Axel Kohlmeyer at Temple
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>5.USER-OMP package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <p><a class="reference internal" href="Section_accelerate.html"><em>Return to Section accelerate overview</em></a></p>
+<div class="section" id="user-omp-package">
+<h1>5.USER-OMP package<a class="headerlink" href="#user-omp-package" title="Permalink to this headline">¶</a></h1>
+<p>The USER-OMP package was developed by Axel Kohlmeyer at Temple
 University.  It provides multi-threaded versions of most pair styles,
 nearly all bonded styles (bond, angle, dihedral, improper), several
 Kspace styles, and a few fix styles.  The package currently
-uses the OpenMP interface for multi-threading.
-</P>
-<P>Here is a quick overview of how to use the USER-OMP package:
-</P>
-<UL><LI>use the -fopenmp flag for compiling and linking in your Makefile.machine
-<LI>include the USER-OMP package and build LAMMPS
-<LI>use the mpirun command to set the number of MPI tasks/node
-<LI>specify how many threads per MPI task to use
-<LI>use USER-OMP styles in your input script 
-</UL>
-<P>The latter two steps can be done using the "-pk omp" and "-sf omp"
-<A HREF = "Section_start.html#start_7">command-line switches</A> respectively.  Or
-the effect of the "-pk" or "-sf" switches can be duplicated by adding
-the <A HREF = "package.html">package omp</A> or <A HREF = "suffix.html">suffix omp</A> commands
-respectively to your input script.
-</P>
-<P><B>Required hardware/software:</B>
-</P>
-<P>Your compiler must support the OpenMP interface.  You should have one
+uses the OpenMP interface for multi-threading.</p>
+<p>Here is a quick overview of how to use the USER-OMP package:</p>
+<ul class="simple">
+<li>use the -fopenmp flag for compiling and linking in your Makefile.machine</li>
+<li>include the USER-OMP package and build LAMMPS</li>
+<li>use the mpirun command to set the number of MPI tasks/node</li>
+<li>specify how many threads per MPI task to use</li>
+<li>use USER-OMP styles in your input script</li>
+</ul>
+<p>The latter two steps can be done using the &#8220;-pk omp&#8221; and &#8220;-sf omp&#8221;
+<a class="reference internal" href="Section_start.html#start-7"><span>command-line switches</span></a> respectively.  Or
+the effect of the &#8220;-pk&#8221; or &#8220;-sf&#8221; switches can be duplicated by adding
+the <a class="reference internal" href="package.html"><em>package omp</em></a> or <a class="reference internal" href="suffix.html"><em>suffix omp</em></a> commands
+respectively to your input script.</p>
+<p><strong>Required hardware/software:</strong></p>
+<p>Your compiler must support the OpenMP interface.  You should have one
 or more multi-core CPUs so that multiple threads can be launched by an
-MPI task running on a CPU.
-</P>
-<P><B>Building LAMMPS with the USER-OMP package:</B>
-</P>
-<P>To do this in one line, use the src/Make.py script, described in
-<A HREF = "Section_start.html#start_4">Section 2.4</A> of the manual.  Type "Make.py
--h" for help.  If run from the src directory, this command will create
+MPI task running on a CPU.</p>
+<p><strong>Building LAMMPS with the USER-OMP package:</strong></p>
+<p>To do this in one line, use the src/Make.py script, described in
+<a class="reference internal" href="Section_start.html#start-4"><span>Section 2.4</span></a> of the manual.  Type &#8220;Make.py
+-h&#8221; for help.  If run from the src directory, this command will create
 src/lmp_omp using src/MAKE/Makefile.mpi as the starting
-Makefile.machine:
-</P>
-<PRE>Make.py -p omp -o omp file mpi 
-</PRE>
-<P>Or you can follow these steps:
-</P>
-<PRE>cd lammps/src
+Makefile.machine:</p>
+<div class="highlight-python"><div class="highlight"><pre>Make.py -p omp -o omp file mpi
+</pre></div>
+</div>
+<p>Or you can follow these steps:</p>
+<div class="highlight-python"><div class="highlight"><pre>cd lammps/src
 make yes-user-omp
-make machine 
-</PRE>
-<P>The CCFLAGS setting in Makefile.machine needs "-fopenmp" to add OpenMP
+make machine
+</pre></div>
+</div>
+<p>The CCFLAGS setting in Makefile.machine needs &#8220;-fopenmp&#8221; to add OpenMP
 support.  This works for both the GNU and Intel compilers.  Without
 this flag the USER-OMP styles will still be compiled and work, but
 will not support multi-threading.  For the Intel compilers the CCFLAGS
-setting also needs to include "-restrict".
-</P>
-<P><B>Run with the USER-OMP package from the command line:</B>
-</P>
-<P>The mpirun or mpiexec command sets the total number of MPI tasks used
+setting also needs to include &#8220;-restrict&#8221;.</p>
+<p><strong>Run with the USER-OMP package from the command line:</strong></p>
+<p>The mpirun or mpiexec command sets the total number of MPI tasks used
 by LAMMPS (one or multiple per compute node) and the number of MPI
 tasks used per node.  E.g. the mpirun command in MPICH does this via
-its -np and -ppn switches.  Ditto for OpenMPI via -np and -npernode.
-</P>
-<P>You need to choose how many threads per MPI task will be used by the
+its -np and -ppn switches.  Ditto for OpenMPI via -np and -npernode.</p>
+<p>You need to choose how many threads per MPI task will be used by the
 USER-OMP package.  Note that the product of MPI tasks * threads/task
 should not exceed the physical number of cores (on a node), otherwise
-performance will suffer.
-</P>
-<P>Use the "-sf omp" <A HREF = "Section_start.html#start_7">command-line switch</A>,
-which will automatically append "omp" to styles that support it.  Use
-the "-pk omp Nt" <A HREF = "Section_start.html#start_7">command-line switch</A>, to
-set Nt = # of OpenMP threads per MPI task to use.
-</P>
-<PRE>lmp_machine -sf omp -pk omp 16 -in in.script                       # 1 MPI task on a 16-core node
+performance will suffer.</p>
+<p>Use the &#8220;-sf omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a>,
+which will automatically append &#8220;omp&#8221; to styles that support it.  Use
+the &#8220;-pk omp Nt&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a>, to
+set Nt = # of OpenMP threads per MPI task to use.</p>
+<div class="highlight-python"><div class="highlight"><pre>lmp_machine -sf omp -pk omp 16 -in in.script                       # 1 MPI task on a 16-core node
 mpirun -np 4 lmp_machine -sf omp -pk omp 4 -in in.script           # 4 MPI tasks each with 4 threads on a single 16-core node
-mpirun -np 32 -ppn 4 lmp_machine -sf omp -pk omp 4 -in in.script   # ditto on 8 16-core nodes 
-</PRE>
-<P>Note that if the "-sf omp" switch is used, it also issues a default
-<A HREF = "package.html">package omp 0</A> command, which sets the number of threads
-per MPI task via the OMP_NUM_THREADS environment variable.
-</P>
-<P>Using the "-pk" switch explicitly allows for direct setting of the
+mpirun -np 32 -ppn 4 lmp_machine -sf omp -pk omp 4 -in in.script   # ditto on 8 16-core nodes
+</pre></div>
+</div>
+<p>Note that if the &#8220;-sf omp&#8221; switch is used, it also issues a default
+<a class="reference internal" href="package.html"><em>package omp 0</em></a> command, which sets the number of threads
+per MPI task via the OMP_NUM_THREADS environment variable.</p>
+<p>Using the &#8220;-pk&#8221; switch explicitly allows for direct setting of the
 number of threads and additional options.  Its syntax is the same as
-the "package omp" command.  See the <A HREF = "package.html">package</A> command doc
+the &#8220;package omp&#8221; command.  See the <a class="reference internal" href="package.html"><em>package</em></a> command doc
 page for details, including the default values used for all its
 options if it is not specified, and how to set the number of threads
-via the OMP_NUM_THREADS environment variable if desired.
-</P>
-<P><B>Or run with the USER-OMP package by editing an input script:</B>
-</P>
-<P>The discussion above for the mpirun/mpiexec command, MPI tasks/node,
-and threads/MPI task is the same.
-</P>
-<P>Use the <A HREF = "suffix.html">suffix omp</A> command, or you can explicitly add an
-"omp" suffix to individual styles in your input script, e.g.
-</P>
-<PRE>pair_style lj/cut/omp 2.5 
-</PRE>
-<P>You must also use the <A HREF = "package.html">package omp</A> command to enable the
-USER-OMP package, unless the "-sf omp" or "-pk omp" <A HREF = "Section_start.html#start_7">command-line
-switches</A> were used.  It specifies how many
+via the OMP_NUM_THREADS environment variable if desired.</p>
+<p><strong>Or run with the USER-OMP package by editing an input script:</strong></p>
+<p>The discussion above for the mpirun/mpiexec command, MPI tasks/node,
+and threads/MPI task is the same.</p>
+<p>Use the <a class="reference internal" href="suffix.html"><em>suffix omp</em></a> command, or you can explicitly add an
+&#8220;omp&#8221; suffix to individual styles in your input script, e.g.</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lj/cut/omp 2.5
+</pre></div>
+</div>
+<p>You must also use the <a class="reference internal" href="package.html"><em>package omp</em></a> command to enable the
+USER-OMP package, unless the &#8220;-sf omp&#8221; or &#8220;-pk omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span>command-line switches</span></a> were used.  It specifies how many
 threads per MPI task to use, as well as other options.  Its doc page
 explains how to set the number of threads via an environment variable
-if desired.
-</P>
-<P><B>Speed-ups to expect:</B>
-</P>
-<P>Depending on which styles are accelerated, you should look for a
-reduction in the "Pair time", "Bond time", "KSpace time", and "Loop
-time" values printed at the end of a run.  
-</P>
-<P>You may see a small performance advantage (5 to 20%) when running a
+if desired.</p>
+<p><strong>Speed-ups to expect:</strong></p>
+<p>Depending on which styles are accelerated, you should look for a
+reduction in the &#8220;Pair time&#8221;, &#8220;Bond time&#8221;, &#8220;KSpace time&#8221;, and &#8220;Loop
+time&#8221; values printed at the end of a run.</p>
+<p>You may see a small performance advantage (5 to 20%) when running a
 USER-OMP style (in serial or parallel) with a single thread per MPI
 task, versus running standard LAMMPS with its standard
 (un-accelerated) styles (in serial or all-MPI parallelization with 1
 task/core).  This is because many of the USER-OMP styles contain
 similar optimizations to those used in the OPT package, as described
-above.
-</P>
-<P>With multiple threads/task, the optimal choice of MPI tasks/node and
+above.</p>
+<p>With multiple threads/task, the optimal choice of MPI tasks/node and
 OpenMP threads/task can vary a lot and should always be tested via
 benchmark runs for a specific simulation running on a specific
 machine, paying attention to guidelines discussed in the next
-sub-section.
-</P>
-<P>A description of the multi-threading strategy used in the USER-OMP
-package and some performance examples are <A HREF = "http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&d=1">presented
-here</A>
-</P>
-<P><B>Guidelines for best performance:</B>
-</P>
-<P>For many problems on current generation CPUs, running the USER-OMP
+sub-section.</p>
+<p>A description of the multi-threading strategy used in the USER-OMP
+package and some performance examples are <a class="reference external" href="http://sites.google.com/site/akohlmey/software/lammps-icms/lammps-icms-tms2011-talk.pdf?attredirects=0&amp;d=1">presented here</a></p>
+<p><strong>Guidelines for best performance:</strong></p>
+<p>For many problems on current generation CPUs, running the USER-OMP
 package with a single thread/task is faster than running with multiple
 threads/task.  This is because the MPI parallelization in LAMMPS is
 often more efficient than multi-threading as implemented in the
 USER-OMP package.  The parallel efficiency (in a threaded sense) also
-varies for different USER-OMP styles.
-</P>
-<P>Using multiple threads/task can be more effective under the following
-circumstances:
-</P>
-<UL><LI>Individual compute nodes have a significant number of CPU cores but
+varies for different USER-OMP styles.</p>
+<p>Using multiple threads/task can be more effective under the following
+circumstances:</p>
+<ul class="simple">
+<li>Individual compute nodes have a significant number of CPU cores but
 the CPU itself has limited memory bandwidth, e.g. for Intel Xeon 53xx
 (Clovertown) and 54xx (Harpertown) quad core processors. Running one
 MPI task per CPU core will result in significant performance
@@ -155,52 +244,110 @@ degradation, so that running with 4 or even only 2 MPI tasks per node
 is faster.  Running in hybrid MPI+OpenMP mode will reduce the
 inter-node communication bandwidth contention in the same way, but
 offers an additional speedup by utilizing the otherwise idle CPU
-cores. 
-
-<LI>The interconnect used for MPI communication does not provide
+cores.</li>
+<li>The interconnect used for MPI communication does not provide
 sufficient bandwidth for a large number of MPI tasks per node.  For
 example, this applies to running over gigabit ethernet or on Cray XT4
 or XT5 series supercomputers.  As in the aforementioned case, this
-effect worsens when using an increasing number of nodes. 
-
-<LI>The system has a spatially inhomogeneous particle density which does
-not map well to the <A HREF = "processors.html">domain decomposition scheme</A> or
-<A HREF = "balance.html">load-balancing</A> options that LAMMPS provides.  This is
+effect worsens when using an increasing number of nodes.</li>
+<li>The system has a spatially inhomogeneous particle density which does
+not map well to the <a class="reference internal" href="processors.html"><em>domain decomposition scheme</em></a> or
+<a class="reference internal" href="balance.html"><em>load-balancing</em></a> options that LAMMPS provides.  This is
 because multi-threading achives parallelism over the number of
-particles, not via their distribution in space. 
-
-<LI>A machine is being used in "capability mode", i.e. near the point
+particles, not via their distribution in space.</li>
+<li>A machine is being used in &#8220;capability mode&#8221;, i.e. near the point
 where MPI parallelism is maxed out.  For example, this can happen when
-using the <A HREF = "kspace_style.html">PPPM solver</A> for long-range
+using the <a class="reference internal" href="kspace_style.html"><em>PPPM solver</em></a> for long-range
 electrostatics on large numbers of nodes.  The scaling of the KSpace
-calculation (see the <A HREF = "kspace_style.html">kspace_style</A> command) becomes
+calculation (see the <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command) becomes
 the performance-limiting factor.  Using multi-threading allows less
 MPI tasks to be invoked and can speed-up the long-range solver, while
 increasing overall performance by parallelizing the pairwise and
 bonded calculations via OpenMP.  Likewise additional speedup can be
 sometimes be achived by increasing the length of the Coulombic cutoff
 and thus reducing the work done by the long-range solver.  Using the
-<A HREF = "run_style.html">run_style verlet/split</A> command, which is compatible
+<a class="reference internal" href="run_style.html"><em>run_style verlet/split</em></a> command, which is compatible
 with the USER-OMP package, is an alternative way to reduce the number
-of MPI tasks assigned to the KSpace calculation. 
-</UL>
-<P>Additional performance tips are as follows:
-</P>
-<UL><LI>The best parallel efficiency from <I>omp</I> styles is typically achieved
+of MPI tasks assigned to the KSpace calculation.</li>
+</ul>
+<p>Additional performance tips are as follows:</p>
+<ul class="simple">
+<li>The best parallel efficiency from <em>omp</em> styles is typically achieved
 when there is at least one MPI task per physical processor,
-i.e. socket or die. 
-
-<LI>It is usually most efficient to restrict threading to a single
-socket, i.e. use one or more MPI task per socket. 
-
-<LI>Several current MPI implementation by default use a processor affinity
+i.e. socket or die.</li>
+<li>It is usually most efficient to restrict threading to a single
+socket, i.e. use one or more MPI task per socket.</li>
+<li>Several current MPI implementation by default use a processor affinity
 setting that restricts each MPI task to a single CPU core.  Using
 multi-threading in this mode will force the threads to share that core
 and thus is likely to be counterproductive.  Instead, binding MPI
-tasks to a (multi-core) socket, should solve this issue. 
-</UL>
-<P><B>Restrictions:</B>
-</P>
-<P>None.
-</P>
-</HTML>
+tasks to a (multi-core) socket, should solve this issue.</li>
+</ul>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>None.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,75 +1,249 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>improper_style hybrid command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>improper_style hybrid command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>improper_style hybrid style1 style2 ... 
-</PRE>
-<UL><LI>style1,style2 = list of one or more improper styles 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>improper_style hybrid harmonic helix
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>improper_style hybrid command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="improper-style-hybrid-command">
+<span id="index-0"></span><h1>improper_style hybrid command<a class="headerlink" href="#improper-style-hybrid-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>improper_style hybrid style1 style2 ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>style1,style2 = list of one or more improper styles</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>improper_style hybrid harmonic helix
 improper_coeff 1 harmonic 120.0 30
-improper_coeff 2 cvff 20.0 -1 2 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>The <I>hybrid</I> style enables the use of multiple improper styles in one
+improper_coeff 2 cvff 20.0 -1 2
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>The <em>hybrid</em> style enables the use of multiple improper styles in one
 simulation.  An improper style is assigned to each improper type.  For
 example, impropers in a polymer flow (of improper type 1) could be
-computed with a <I>harmonic</I> potential and impropers in the wall
-boundary (of improper type 2) could be computed with a <I>cvff</I>
+computed with a <em>harmonic</em> potential and impropers in the wall
+boundary (of improper type 2) could be computed with a <em>cvff</em>
 potential.  The assignment of improper type to style is made via the
-<A HREF = "improper_coeff.html">improper_coeff</A> command or in the data file.
-</P>
-<P>In the improper_coeff command, the first coefficient sets the improper
+<a class="reference internal" href="improper_coeff.html"><em>improper_coeff</em></a> command or in the data file.</p>
+<p>In the improper_coeff command, the first coefficient sets the improper
 style and the remaining coefficients are those appropriate to that
 style.  In the example above, the 2 improper_coeff commands would set
-impropers of improper type 1 to be computed with a <I>harmonic</I>
+impropers of improper type 1 to be computed with a <em>harmonic</em>
 potential with coefficients 120.0, 30 for K, X0.  Improper type 2
-would be computed with a <I>cvff</I> potential with coefficients 20.0, -1,
-2 for K, d, n.
-</P>
-<P>If the improper <I>class2</I> potential is one of the hybrid styles, it
+would be computed with a <em>cvff</em> potential with coefficients 20.0, -1,
+2 for K, d, n.</p>
+<p>If the improper <em>class2</em> potential is one of the hybrid styles, it
 requires additional AngleAngle coefficients be specified in the data
-file.  These lines must also have an additional "class2" argument
+file.  These lines must also have an additional &#8220;class2&#8221; argument
 added after the improper type.  For improper types which are assigned
-to other hybrid styles, use the style name (e.g. "harmonic")
+to other hybrid styles, use the style name (e.g. &#8220;harmonic&#8221;)
 appropriate to that style.  The AngleAngle coeffs for that improper
-type will then be ignored.
-</P>
-<P>An improper style of <I>none</I> can be specified as the 2nd argument to
+type will then be ignored.</p>
+<p>An improper style of <em>none</em> can be specified as the 2nd argument to
 the improper_coeff command, if you desire to turn off certain improper
-types.
-</P>
-<HR>
+types.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This improper style can only be used if LAMMPS was built with the
+MOLECULE package (which it is by default).  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info on packages.</p>
+<p>Unlike other improper styles, the hybrid improper style does not store
+improper coefficient info for individual sub-styles in a <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  Thus when retarting a simulation from a
+restart file, you need to re-specify improper_coeff commands.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="improper_coeff.html"><em>improper_coeff</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
 
-<P><B>Restrictions:</B>
-</P>
-<P>This improper style can only be used if LAMMPS was built with the
-MOLECULE package (which it is by default).  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info on packages.
-</P>
-<P>Unlike other improper styles, the hybrid improper style does not store
-improper coefficient info for individual sub-styles in a <A HREF = "restart.html">binary
-restart files</A>.  Thus when retarting a simulation from a
-restart file, you need to re-specify improper_coeff commands.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "improper_coeff.html">improper_coeff</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

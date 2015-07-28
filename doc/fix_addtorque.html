@@ -1,102 +1,267 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix addtorque command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix addtorque command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID addtorque Tx Ty Tz 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>addtorque = style name of this fix command 
-
-<LI>Tx,Ty,Tz = torque component values (torque units) 
-
-<LI>any of Tx,Ty,Tz can be a variable (see below) 
-
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix kick bead addtorque 2.0 3.0 5.0
-fix kick bead addtorque 0.0 0.0 v_oscillate 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Add a set of forces to each atom in
-the group such that:
-</P>
-<UL><LI>the components of the total torque applied on the group (around its
-center of mass) are Tx,Ty,Tz 
-
-<LI>the group would move as a rigid body in the absence of other
-forces. 
-</UL>
-<P>This command can be used to drive a group of atoms into rotation.
-</P>
-<P>Any of the 3 quantities defining the torque components can be specified
-as an equal-style <A HREF = "variable.html">variable</A>, namely <I>Tx</I>,
-<I>Ty</I>, <I>Tz</I>.  If the value is a variable, it should be specified as
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix addtorque command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-addtorque-command">
+<span id="index-0"></span><h1>fix addtorque command<a class="headerlink" href="#fix-addtorque-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID addtorque Tx Ty Tz
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>addtorque = style name of this fix command</li>
+<li>Tx,Ty,Tz = torque component values (torque units)</li>
+<li>any of Tx,Ty,Tz can be a variable (see below)</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix kick bead addtorque 2.0 3.0 5.0
+fix kick bead addtorque 0.0 0.0 v_oscillate
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Add a set of forces to each atom in
+the group such that:</p>
+<ul class="simple">
+<li>the components of the total torque applied on the group (around its
+center of mass) are Tx,Ty,Tz</li>
+<li>the group would move as a rigid body in the absence of other
+forces.</li>
+</ul>
+<p>This command can be used to drive a group of atoms into rotation.</p>
+<p>Any of the 3 quantities defining the torque components can be specified
+as an equal-style <a class="reference internal" href="variable.html"><em>variable</em></a>, namely <em>Tx</em>,
+<em>Ty</em>, <em>Tz</em>.  If the value is a variable, it should be specified as
 v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to determine the
-torque component.
-</P>
-<P>Equal-style variables can specify formulas with various mathematical
-functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+torque component.</p>
+<p>Equal-style variables can specify formulas with various mathematical
+functions, and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command
 keywords for the simulation box parameters and timestep and elapsed
-time.  Thus it is easy to specify a time-dependent torque.
-</P>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.
-</P>
-<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
-fix to add the potential "energy" inferred by the added forces to the
-system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
-output</A>.  This is a fictitious quantity but is
-needed so that the <A HREF = "minimize.html">minimize</A> command can include the
+time.  Thus it is easy to specify a time-dependent torque.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by this
+fix to add the potential &#8220;energy&#8221; inferred by the added forces to the
+system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>.  This is a fictitious quantity but is
+needed so that the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command can include the
 forces added by this fix in a consistent manner.  I.e. there is a
 decrease in potential energy when atoms move in the direction of the
-added forces.
-</P>
-<P>This fix computes a global scalar and a global 3-vector, which can be
-accessed by various <A HREF = "Section_howto.html#howto_15">output commands</A>.
+added forces.</p>
+<p>This fix computes a global scalar and a global 3-vector, which can be
+accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.
 The scalar is the potential energy discussed above.  The vector is the
 total torque on the group of atoms before the forces on individual
 atoms are changed by the fix.  The scalar and vector values calculated
-by this fix are "extensive".
-</P>
-<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.
-</P>
-<P>The forces due to this fix are imposed during an energy minimization,
-invoked by the <A HREF = "minimize.html">minimize</A> command.  You should not
+by this fix are &#8220;extensive&#8221;.</p>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><em>run</em></a> command.</p>
+<p>The forces due to this fix are imposed during an energy minimization,
+invoked by the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command.  You should not
 specify force components with a variable that has time-dependence for
 use with a minimizer, since the minimizer increments the timestep as
-the iteration count during the minimization.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_addforce.html">fix addforce</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+the iteration count during the minimization.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_addforce.html"><em>fix addforce</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

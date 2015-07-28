@@ -1,181 +1,336 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style eim command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style eim command 
-</H3>
-<H3>pair_style eim/omp command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style style 
-</PRE>
-<UL><LI>style = <I>eim</I> 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style eim
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style eim command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-eim-command">
+<span id="index-0"></span><h1>pair_style eim command<a class="headerlink" href="#pair-style-eim-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-eim-omp-command">
+<h1>pair_style eim/omp command<a class="headerlink" href="#pair-style-eim-omp-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style style
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>eim</em></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style eim
 pair_coeff * * Na Cl ../potentials/ffield.eim Na Cl
 pair_coeff * * Na Cl ffield.eim  Na Na Na Cl
-pair_coeff * * Na Cl ../potentials/ffield.eim Cl NULL Na 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Style <I>eim</I> computes pairwise interactions for ionic compounds
-using embedded-ion method (EIM) potentials <A HREF = "#Zhou">(Zhou)</A>.  The
-energy of the system E is given by
-</P>
-<CENTER><IMG SRC = "Eqs/pair_eim1.jpg">
-</CENTER>
-<P>The first term is a double pairwise sum over the J neighbors of all I
+pair_coeff * * Na Cl ../potentials/ffield.eim Cl NULL Na
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Style <em>eim</em> computes pairwise interactions for ionic compounds
+using embedded-ion method (EIM) potentials <a class="reference internal" href="pair_polymorphic.html#zhou"><span>(Zhou)</span></a>.  The
+energy of the system E is given by</p>
+<img alt="_images/pair_eim1.jpg" class="align-center" src="_images/pair_eim1.jpg" />
+<p>The first term is a double pairwise sum over the J neighbors of all I
 atoms, where phi_ij is a pair potential.  The second term sums over
 the embedding energy E_i of atom I, which is a function of its charge
 q_i and the electrical potential sigma_i at its location.  E_i, q_i,
-and sigma_i are calculated as
-</P>
-<CENTER><IMG SRC = "Eqs/pair_eim2.jpg">
-</CENTER>
-<P>where eta_ji is a pairwise function describing electron flow from atom
+and sigma_i are calculated as</p>
+<img alt="_images/pair_eim2.jpg" class="align-center" src="_images/pair_eim2.jpg" />
+<p>where eta_ji is a pairwise function describing electron flow from atom
 I to atom J, and psi_ij is another pairwise function.  The multi-body
 nature of the EIM potential is a result of the embedding energy term.
 A complete list of all the pair functions used in EIM is summarized
-below
-</P>
-<CENTER><IMG SRC = "Eqs/pair_eim3.jpg">
-</CENTER>
-<P>Here E_b, r_e, r_(c,phi), alpha, beta, A_(psi), zeta, r_(s,psi),
+below</p>
+<img alt="_images/pair_eim3.jpg" class="align-center" src="_images/pair_eim3.jpg" />
+<p>Here E_b, r_e, r_(c,phi), alpha, beta, A_(psi), zeta, r_(s,psi),
 r_(c,psi), A_(eta), r_(s,eta), r_(c,eta), chi, and pair function type
 p are parameters, with subscripts ij indicating the two species of
-atoms in the atomic pair.
-</P>
-<P>IMPORTANT NOTE: Even though the EIM potential is treating atoms as
-charged ions, you should not use a LAMMPS <A HREF = "atom_style.html">atom_style</A>
+atoms in the atomic pair.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Even though the EIM potential is treating atoms as
+charged ions, you should not use a LAMMPS <a class="reference internal" href="atom_style.html"><em>atom_style</em></a>
 that stores a charge on each atom and thus requires you to assign a
-charge to each atom, e.g. the <I>charge</I> or <I>full</I> atom styles.  This is
+charge to each atom, e.g. the <em>charge</em> or <em>full</em> atom styles.  This is
 because the EIM potential infers the charge on an atom from the
-equation above for q_i; you do not assign charges explicitly.
-</P>
-<HR>
-
-<P>All the EIM parameters are listed in a potential file which is
-specified by the <A HREF = "pair_coeff.html">pair_coeff</A> command.  This is an
-ASCII text file in a format described below.  The "ffield.eim" file
-included in the "potentials" directory of the LAMMPS distribution
+equation above for q_i; you do not assign charges explicitly.</p>
+</div>
+<hr class="docutils" />
+<p>All the EIM parameters are listed in a potential file which is
+specified by the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command.  This is an
+ASCII text file in a format described below.  The &#8220;ffield.eim&#8221; file
+included in the &#8220;potentials&#8221; directory of the LAMMPS distribution
 currently includes nine elements Li, Na, K, Rb, Cs, F, Cl, Br, and I.
 A system with any combination of these elements can be modeled.  This
-file is parameterized in terms of LAMMPS <A HREF = "units.html">metal units</A>.
-</P>
-<P>Note that unlike other potentials, cutoffs for EIM potentials are not
+file is parameterized in terms of LAMMPS <a class="reference internal" href="units.html"><em>metal units</em></a>.</p>
+<p>Note that unlike other potentials, cutoffs for EIM potentials are not
 set in the pair_style or pair_coeff command; they are specified in the
 EIM potential file itself.  Likewise, the EIM potential file lists
-atomic masses; thus you do not need to use the <A HREF = "mass.html">mass</A>
-command to specify them.
-</P>
-<P>Only a single pair_coeff command is used with the <I>eim</I> style which
+atomic masses; thus you do not need to use the <a class="reference internal" href="mass.html"><em>mass</em></a>
+command to specify them.</p>
+<p>Only a single pair_coeff command is used with the <em>eim</em> style which
 specifies an EIM potential file and the element(s) to extract
 information for.  The EIM elements are mapped to LAMMPS atom types by
 specifying N additional arguments after the filename in the pair_coeff
-command, where N is the number of LAMMPS atom types:
-</P>
-<UL><LI>Elem1, Elem2, ...
-<LI>EIM potential file
-<LI>N element names = mapping of EIM elements to atom types 
-</UL>
-<P>See the <A HREF = "pair_coeff.html">pair_coeff</A> doc page for alternate ways
-to specify the path for the potential file.
-</P>
-<P>As an example like one of those above, suppose you want to model a
+command, where N is the number of LAMMPS atom types:</p>
+<ul class="simple">
+<li>Elem1, Elem2, ...</li>
+<li>EIM potential file</li>
+<li>N element names = mapping of EIM elements to atom types</li>
+</ul>
+<p>See the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> doc page for alternate ways
+to specify the path for the potential file.</p>
+<p>As an example like one of those above, suppose you want to model a
 system with Na and Cl atoms.  If your LAMMPS simulation has 4 atoms
 types and you want the 1st 3 to be Na, and the 4th to be Cl, you would
-use the following pair_coeff command:
-</P>
-<PRE>pair_coeff * * Na Cl ffield.eim Na Na Na Cl 
-</PRE>
-<P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+use the following pair_coeff command:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_coeff * * Na Cl ffield.eim Na Na Na Cl
+</pre></div>
+</div>
+<p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The filename is the EIM potential file.  The Na and Cl arguments
 (before the file name) are the two elements for which info will be
 extracted from the potentail file.  The first three trailing Na
 arguments map LAMMPS atom types 1,2,3 to the EIM Na element.  The
-final Cl argument maps LAMMPS atom type 4 to the EIM Cl element.
-</P>
-<P>If a mapping value is specified as NULL, the mapping is not performed.
-This can be used when an <I>eim</I> potential is used as part of the
-<I>hybrid</I> pair style.  The NULL values are placeholders for atom types
-that will be used with other potentials.
-</P>
-<P>The ffield.eim file in the <I>potentials</I> directory of the LAMMPS
-distribution is formated as follows:
-</P>
-<P>Lines starting with # are comments and are ignored by LAMMPS.  Lines
-starting with "global:" include three global values. The first value
+final Cl argument maps LAMMPS atom type 4 to the EIM Cl element.</p>
+<p>If a mapping value is specified as NULL, the mapping is not performed.
+This can be used when an <em>eim</em> potential is used as part of the
+<em>hybrid</em> pair style.  The NULL values are placeholders for atom types
+that will be used with other potentials.</p>
+<p>The ffield.eim file in the <em>potentials</em> directory of the LAMMPS
+distribution is formated as follows:</p>
+<p>Lines starting with # are comments and are ignored by LAMMPS.  Lines
+starting with &#8220;global:&#8221; include three global values. The first value
 divides the cations from anions, i.e., any elements with
 electronegativity above this value are viewed as anions, and any
 elements with electronegativity below this value are viewed as
 cations. The second and third values are related to the cutoff
 function - i.e. the 0.510204, 1.64498, and 0.010204 shown in the above
-equation can be derived from these values.
-</P>
-<P>Lines starting with "element:" are formatted as follows: name of
+equation can be derived from these values.</p>
+<p>Lines starting with &#8220;element:&#8221; are formatted as follows: name of
 element, atomic number, atomic mass, electronic negativity, atomic
 radius (LAMMPS ignores it), ionic radius (LAMMPS ignores it), cohesive
-energy (LAMMPS ignores it), and q0 (must be 0).
-</P>
-<P>Lines starting with "pair:" are entered as: element 1, element 2,
+energy (LAMMPS ignores it), and q0 (must be 0).</p>
+<p>Lines starting with &#8220;pair:&#8221; are entered as: element 1, element 2,
 r_(c,phi), r_(c,phi) (redundant for historical reasons), E_b, r_e,
 alpha, beta, r_(c,eta), A_(eta), r_(s,eta), r_(c,psi), A_(psi), zeta,
-r_(s,psi), and p.
-</P>
-<P>The lines in the file can be in any order; LAMMPS extracts the info it
-needs.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+r_(s,psi), and p.</p>
+<p>The lines in the file can be in any order; LAMMPS extracts the info it
+needs.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This style is part of the MANYBODY package.  It is only enabled if
+LAMMPS was built with that package (which it is by default).</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="zhou"><strong>(Zhou)</strong> Zhou, submitted for publication (2010).  Please contact
+Xiaowang Zhou (Sandia) for details via email at xzhou at sandia.gov.</p>
+</div>
+</div>
 
-<P><B>Restrictions:</B>
-</P>
-<P>This style is part of the MANYBODY package.  It is only enabled if
-LAMMPS was built with that package (which it is by default).
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
 
-<A NAME = "Zhou"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Zhou)</B> Zhou, submitted for publication (2010).  Please contact
-Xiaowang Zhou (Sandia) for details via email at xzhou at sandia.gov.
-</P>
-</HTML>
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

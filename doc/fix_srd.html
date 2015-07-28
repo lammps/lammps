@@ -1,69 +1,185 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix srd command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix srd command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID srd N groupbig-ID Tsrd hgrid seed keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>srd = style name of this fix command
-<LI>N = reset SRD particle velocities every this many timesteps
-<LI>groupbig-ID = ID of group of large particles that SRDs interact with
-<LI>Tsrd = temperature of SRD particles (temperature units)
-<LI>hgrid = grid spacing for SRD grouping (distance units)
-<LI>seed = random # seed (positive integer) 
-</UL>
-<UL><LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>lamda</I> or <I>collision</I> or <I>overlap</I> or <I>inside</I> or <I>exact</I> or <I>radius</I> or <I>bounce</I> or <I>search</I> or <I>cubic</I> or <I>shift</I> or <I>tstat</I> or <I>rescale</I> 
-
-<PRE>  <I>lamda</I> value = mean free path of SRD particles (distance units)
-  <I>collision</I> value = <I>noslip</I> or <I>slip</I> = collision model
-  <I>overlap</I> value = <I>yes</I> or <I>no</I> = whether big particles may overlap
-  <I>inside</I> value = <I>error</I> or <I>warn</I> or <I>ignore</I> = how SRD particles which end up inside a big particle are treated
-  <I>exact</I> value = <I>yes</I> or <I>no</I>
-  <I>radius</I> value = rfactor = scale collision radius by this factor
-  <I>bounce</I> value = Nbounce = max # of collisions an SRD particle can undergo in one timestep
-  <I>search</I> value = sgrid = grid spacing for collision partner searching (distance units)
-  <I>cubic</I> values = style tolerance
-    style = <I>error</I> or <I>warn</I>
-    tolerance = fractional difference allowed (0 <= tol <= 1)
-  <I>shift</I> values = flag shiftseed
-    flag = <I>yes</I> or <I>no</I> or <I>possible</I> = SRD bin shifting for better statistics
-      <I>yes</I> = perform bin shifting each time SRD velocities are rescaled
-      <I>no</I> = no shifting
-      <I>possible</I> = shift depending on mean free path and bin size
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix srd command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-srd-command">
+<span id="index-0"></span><h1>fix srd command<a class="headerlink" href="#fix-srd-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID srd N groupbig-ID Tsrd hgrid seed keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>srd = style name of this fix command</li>
+<li>N = reset SRD particle velocities every this many timesteps</li>
+<li>groupbig-ID = ID of group of large particles that SRDs interact with</li>
+<li>Tsrd = temperature of SRD particles (temperature units)</li>
+<li>hgrid = grid spacing for SRD grouping (distance units)</li>
+<li>seed = random # seed (positive integer)</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>lamda</em> or <em>collision</em> or <em>overlap</em> or <em>inside</em> or <em>exact</em> or <em>radius</em> or <em>bounce</em> or <em>search</em> or <em>cubic</em> or <em>shift</em> or <em>tstat</em> or <em>rescale</em></li>
+</ul>
+<pre class="literal-block">
+<em>lamda</em> value = mean free path of SRD particles (distance units)
+  <em>collision</em> value = <em>noslip</em> or <em>slip</em> = collision model
+  <em>overlap</em> value = <em>yes</em> or <em>no</em> = whether big particles may overlap
+  <em>inside</em> value = <em>error</em> or <em>warn</em> or <em>ignore</em> = how SRD particles which end up inside a big particle are treated
+  <em>exact</em> value = <em>yes</em> or <em>no</em>
+  <em>radius</em> value = rfactor = scale collision radius by this factor
+  <em>bounce</em> value = Nbounce = max # of collisions an SRD particle can undergo in one timestep
+  <em>search</em> value = sgrid = grid spacing for collision partner searching (distance units)
+  <em>cubic</em> values = style tolerance
+    style = <em>error</em> or <em>warn</em>
+    tolerance = fractional difference allowed (0 &lt;= tol &lt;= 1)
+  <em>shift</em> values = flag shiftseed
+    flag = <em>yes</em> or <em>no</em> or <em>possible</em> = SRD bin shifting for better statistics
+      <em>yes</em> = perform bin shifting each time SRD velocities are rescaled
+      <em>no</em> = no shifting
+      <em>possible</em> = shift depending on mean free path and bin size
     shiftseed = random # seed (positive integer)
-  <I>tstat</I> value = <I>yes</I> or <I>no</I> = thermostat SRD particles or not
-  <I>rescale</I> value = <I>yes</I> or <I>no</I> or <I>rotate</I> or <I>collide</I> = rescaling of SRD velocities
-    <I>yes</I> = rescale during velocity rotation and collisions
-    <I>no</I> = no rescaling
-    <I>rotate</I> = rescale during velocity rotation, but not collisions
-    <I>collide</I> = rescale during collisions, but not velocity rotation 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 srd srd 10 big 1.0 0.25 482984
-fix 1 srd srd 10 big 0.5 0.25 482984 collision slip search 0.5 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Treat a group of partilces as stochastic rotation dynamics (SRD)
+  <em>tstat</em> value = <em>yes</em> or <em>no</em> = thermostat SRD particles or not
+  <em>rescale</em> value = <em>yes</em> or <em>no</em> or <em>rotate</em> or <em>collide</em> = rescaling of SRD velocities
+    <em>yes</em> = rescale during velocity rotation and collisions
+    <em>no</em> = no rescaling
+    <em>rotate</em> = rescale during velocity rotation, but not collisions
+    <em>collide</em> = rescale during collisions, but not velocity rotation
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 srd srd 10 big 1.0 0.25 482984
+fix 1 srd srd 10 big 0.5 0.25 482984 collision slip search 0.5
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Treat a group of partilces as stochastic rotation dynamics (SRD)
 particles that serve as a background solvent when interacting with big
 (colloidal) particles in groupbig-ID.  The SRD formalism is described
-in <A HREF = "#Hecht">(Hecht)</A>.  The key idea behind using SRD particles as a
+in <a class="reference internal" href="#hecht"><span>(Hecht)</span></a>.  The key idea behind using SRD particles as a
 cheap coarse-grained solvent is that SRD particles do not interact
 with each other, but only with the solute particles, which in LAMMPS
 can be spheroids, ellipsoids, or line segments, or triangles, or rigid
@@ -73,185 +189,159 @@ imbue the SRD particles with fluid-like properties, including an
 effective viscosity.  Thus simulations with large solute particles can
 be run more quickly, to measure solute propoerties like diffusivity
 and viscosity in a background fluid.  The usual LAMMPS fixes for such
-simulations, such as <A HREF = "fix_deform.html">fix deform</A>, <A HREF = "fix_viscosity.html">fix
-viscosity</A>, and <A HREF = "fix_nvt_sllod.html">fix nvt/sllod</A>,
-can be used in conjunction with the SRD model.
-</P>
-<P>For more details on how the SRD model is implemented in LAMMPS, <A HREF = "#Petersen">this
-paper</A> describes the implementation and usage of pure SRD
-fluids.  <A HREF = "#Lechman">This paper</A>, which is nearly complete, describes
+simulations, such as <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a>, <a class="reference internal" href="fix_viscosity.html"><em>fix viscosity</em></a>, and <a class="reference internal" href="fix_nvt_sllod.html"><em>fix nvt/sllod</em></a>,
+can be used in conjunction with the SRD model.</p>
+<p>For more details on how the SRD model is implemented in LAMMPS, <a class="reference internal" href="kspace_style.html#petersen"><span>this paper</span></a> describes the implementation and usage of pure SRD
+fluids.  <a class="reference internal" href="#lechman"><span>This paper</span></a>, which is nearly complete, describes
 the implementation and usage of mixture systems (solute particles in
 an SRD fluid).  See the examples/srd directory for sample input
-scripts using SRD particles in both settings.
-</P>
-<P>This fix does 2 things:
-</P>
-<P>(1) It advects the SRD particles, performing collisions between SRD
+scripts using SRD particles in both settings.</p>
+<p>This fix does 2 things:</p>
+<p>(1) It advects the SRD particles, performing collisions between SRD
 and big particles or walls every timestep, imparting force and torque
 to the big particles.  Collisions also change the position and
-velocity of SRD particles.
-</P>
-<P>(2) It resets the velocity distribution of SRD particles via random
-rotations every N timesteps.
-</P>
-<P>SRD particles have a mass, temperature, characteristic timestep
+velocity of SRD particles.</p>
+<p>(2) It resets the velocity distribution of SRD particles via random
+rotations every N timesteps.</p>
+<p>SRD particles have a mass, temperature, characteristic timestep
 dt_SRD, and mean free path between collisions (lamda).  The
-fundamental equation relating these 4 quantities is
-</P>
-<PRE>lamda = dt_SRD * sqrt(Kboltz * Tsrd / mass) 
-</PRE>
-<P>The mass of SRD particles is set by the <A HREF = "mass.html">mass</A> command
+fundamental equation relating these 4 quantities is</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">lamda</span> <span class="o">=</span> <span class="n">dt_SRD</span> <span class="o">*</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">Kboltz</span> <span class="o">*</span> <span class="n">Tsrd</span> <span class="o">/</span> <span class="n">mass</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The mass of SRD particles is set by the <a class="reference internal" href="mass.html"><em>mass</em></a> command
 elsewhere in the input script.  The SRD timestep dt_SRD is N times the
-step dt defined by the <A HREF = "timestep.html">timestep</A> command.  Big
-particles move in the normal way via a time integration <A HREF = "fix.html">fix</A>
+step dt defined by the <a class="reference internal" href="timestep.html"><em>timestep</em></a> command.  Big
+particles move in the normal way via a time integration <a class="reference internal" href="fix.html"><em>fix</em></a>
 with a short timestep dt.  SRD particles advect with a large timestep
-dt_SRD >= dt.
-</P>
-<P>If the <I>lamda</I> keyword is not specified, the the SRD temperature
-<I>Tsrd</I> is used in the above formula to compute lamda.  If the <I>lamda</I>
-keyword is specified, then the <I>Tsrd</I> setting is ignored and the above
-equation is used to compute the SRD temperature.
-</P>
-<P>The characteristic length scale for the SRD fluid is set by <I>hgrid</I>
+dt_SRD &gt;= dt.</p>
+<p>If the <em>lamda</em> keyword is not specified, the the SRD temperature
+<em>Tsrd</em> is used in the above formula to compute lamda.  If the <em>lamda</em>
+keyword is specified, then the <em>Tsrd</em> setting is ignored and the above
+equation is used to compute the SRD temperature.</p>
+<p>The characteristic length scale for the SRD fluid is set by <em>hgrid</em>
 which is used to bin SRD particles for purposes of resetting their
 velocities.  Normally hgrid is set to be 1/4 of the big particle
 diameter or smaller, to adequately resolve fluid properties around the
-big particles.
-</P>
-<P>Lamda cannot be smaller than 0.6 * hgrid, else an error is generated
-(unless the <I>shift</I> keyword is used, see below).  The velocities of
+big particles.</p>
+<p>Lamda cannot be smaller than 0.6 * hgrid, else an error is generated
+(unless the <em>shift</em> keyword is used, see below).  The velocities of
 SRD particles are bounded by Vmax, which is set so that an SRD
 particle will not advect further than Dmax = 4*lamda in dt_SRD.  This
 means that roughly speaking, Dmax should not be larger than a big
 particle diameter, else SRDs may pass thru big particles without
-colliding.  A warning is generated if this is the case.
-</P>
-<P>Collisions between SRD particles and big particles or walls are
+colliding.  A warning is generated if this is the case.</p>
+<p>Collisions between SRD particles and big particles or walls are
 modeled as a lightweight SRD point particle hitting a heavy big
 particle of given diameter or a wall at a point on its surface and
 bouncing off with a new velocity.  The collision changes the momentum
 of the SRD particle.  It imparts a force and torque to the big
 particle.  It imparts a force to a wall.  Static or moving SRD walls
-are setup via the <A HREF = "fix_wall_srd.html">fix wall/srd</A> command.  For the
+are setup via the <a class="reference internal" href="fix_wall_srd.html"><em>fix wall/srd</em></a> command.  For the
 remainder of this doc page, a collision of an SRD particle with a wall
 can be viewed as a collision with a big particle of infinite radius
-and mass.
-</P>
-<P>The <I>collision</I> keyword sets the style of collisions.  The <I>slip</I>
+and mass.</p>
+<p>The <em>collision</em> keyword sets the style of collisions.  The <em>slip</em>
 style means that the tangential component of the SRD particle momentum
 is preserved.  Thus a force is imparted to a big particle, but no
 torque.  The normal component of the new SRD velocity is sampled from
-a Gaussian distribution at temperature <I>Tsrd</I>.
-</P>
-<P>For the <I>noslip</I> style, both the normal and tangential components of
+a Gaussian distribution at temperature <em>Tsrd</em>.</p>
+<p>For the <em>noslip</em> style, both the normal and tangential components of
 the new SRD velocity are sampled from a Gaussian distribution at
-temperature <I>Tsrd</I>.  Additionally, a new tangential direction for the
+temperature <em>Tsrd</em>.  Additionally, a new tangential direction for the
 SRD velocity is chosen randomly.  This collision style imparts torque
-to a big particle.  Thus a time integrator <A HREF = "fix.html">fix</A> that rotates
-the big particles appropriately should be used.
-</P>
-<HR>
-
-<P>The <I>overlap</I> keyword should be set to <I>yes</I> if two (or more) big
+to a big particle.  Thus a time integrator <a class="reference internal" href="fix.html"><em>fix</em></a> that rotates
+the big particles appropriately should be used.</p>
+<hr class="docutils" />
+<p>The <em>overlap</em> keyword should be set to <em>yes</em> if two (or more) big
 particles can ever overlap.  This depends on the pair potential
 interaction used for big-big interactions, or could be the case if
-multiple big particles are held together as rigid bodies via the <A HREF = "fix_rigid.html">fix
-rigid</A> command.  If the <I>overlap</I> keyword is <I>no</I> and
+multiple big particles are held together as rigid bodies via the <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> command.  If the <em>overlap</em> keyword is <em>no</em> and
 big particles do in fact overlap, then SRD/big collisions can generate
 an error if an SRD ends up inside two (or more) big particles at once.
-How this error is treated is determined by the <I>inside</I> keyword.
-Running with <I>overlap</I> set to <I>no</I> allows for faster collision
-checking, so it should only be set to <I>yes</I> if needed.
-</P>
-<P>The <I>inside</I> keyword determines how a collision is treated if the
+How this error is treated is determined by the <em>inside</em> keyword.
+Running with <em>overlap</em> set to <em>no</em> allows for faster collision
+checking, so it should only be set to <em>yes</em> if needed.</p>
+<p>The <em>inside</em> keyword determines how a collision is treated if the
 computation determines that the timestep started with the SRD particle
-already inside a big particle.  If the setting is <I>error</I> then this
-generates an error message and LAMMPS stops.  If the setting is <I>warn</I>
+already inside a big particle.  If the setting is <em>error</em> then this
+generates an error message and LAMMPS stops.  If the setting is <em>warn</em>
 then this generates a warning message and the code continues.  If the
-setting is <I>ignore</I> then no message is generated.  One of the output
+setting is <em>ignore</em> then no message is generated.  One of the output
 quantities logged by the fix (see below) tallies the number of such
 events, so it can be monitored.  Note that once an SRD particle is
 inside a big particle, it may remain there for several steps until it
-drifts outside the big particle.
-</P>
-<P>The <I>exact</I> keyword determines how accurately collisions are computed.
-A setting of <I>yes</I> computes the time and position of each collision as
-SRD and big particles move together.  A setting of <I>no</I> estimates the
+drifts outside the big particle.</p>
+<p>The <em>exact</em> keyword determines how accurately collisions are computed.
+A setting of <em>yes</em> computes the time and position of each collision as
+SRD and big particles move together.  A setting of <em>no</em> estimates the
 position of each collision based on the end-of-timestep positions of
-the SRD and big particle.  If <I>overlap</I> is set to yes, the setting of
-the <I>exact</I> keyword is ignored since time-accurate collisions are
-needed.
-</P>
-<P>The <I>radius</I> keyword scales the effective size of big particles.  If
+the SRD and big particle.  If <em>overlap</em> is set to yes, the setting of
+the <em>exact</em> keyword is ignored since time-accurate collisions are
+needed.</p>
+<p>The <em>radius</em> keyword scales the effective size of big particles.  If
 big particles will overlap as they undergo dynamics, then this keyword
 can be used to scale down their effective collision radius by an
-amount <I>rfactor</I>, so that SRD particle will only collide with one big
+amount <em>rfactor</em>, so that SRD particle will only collide with one big
 particle at a time.  For example, in a Lennard-Jones system at a
 temperature of 1.0 (in reduced LJ units), the minimum separation
 bewteen two big particles is as small as about 0.88 sigma.  Thus an
-<I>rfactor</I> value of 0.85 should prevent dual collisions.
-</P>
-<P>The <I>bounce</I> keyword can be used to limit the maximum number of
+<em>rfactor</em> value of 0.85 should prevent dual collisions.</p>
+<p>The <em>bounce</em> keyword can be used to limit the maximum number of
 collisions an SRD particle undergoes in a single timestep as it
 bounces between nearby big particles.  Note that if the limit is
 reached, the SRD can be left inside a big particle.  A setting of 0 is
-the same as no limit.
-</P>
-<HR>
-
-<P>There are 2 kinds of bins created and maintained when running an SRD
-simulation.  The first are "SRD bins" which are used to bin SRD
+the same as no limit.</p>
+<hr class="docutils" />
+<p>There are 2 kinds of bins created and maintained when running an SRD
+simulation.  The first are &#8220;SRD bins&#8221; which are used to bin SRD
 particles and reset their velocities, as discussed above.  The second
-are "search bins" which are used to identify SRD/big particle
-collisions.
-</P>
-<P>The <I>search</I> keyword can be used to choose a search bin size for
+are &#8220;search bins&#8221; which are used to identify SRD/big particle
+collisions.</p>
+<p>The <em>search</em> keyword can be used to choose a search bin size for
 identifying SRD/big particle collisions.  The default is to use the
-<I>hgrid</I> parameter for SRD bins as the search bin size.  Choosing a
+<em>hgrid</em> parameter for SRD bins as the search bin size.  Choosing a
 smaller or large value may be more efficient, depending on the
 problem.  But, in a statistical sense, it should not change the
-simulation results.
-</P>
-<P>The <I>cubic</I> keyword can be used to generate an error or warning when
+simulation results.</p>
+<p>The <em>cubic</em> keyword can be used to generate an error or warning when
 the bin size chosen by LAMMPS creates SRD bins that are non-cubic or
-different than the requested value of <I>hgrid</I> by a specified
-<I>tolerance</I>.  Note that using non-cubic SRD bins can lead to
+different than the requested value of <em>hgrid</em> by a specified
+<em>tolerance</em>.  Note that using non-cubic SRD bins can lead to
 undetermined behavior when rotating the velocities of SRD particles,
-hence LAMMPS tries to protect you from this problem.
-</P>
-<P>LAMMPS attempts to set the SRD bin size to exactly <I>hgrid</I>.  However,
+hence LAMMPS tries to protect you from this problem.</p>
+<p>LAMMPS attempts to set the SRD bin size to exactly <em>hgrid</em>.  However,
 there must be an integer number of bins in each dimension of the
 simulation box.  Thus the actual bin size will depend on the size and
 shape of the overall simulation box.  The actual bin size is printed
-as part of the SRD output when a simulation begins.
-</P>
-<P>If the actual bin size in non-cubic by an amount exceeding the
+as part of the SRD output when a simulation begins.</p>
+<p>If the actual bin size in non-cubic by an amount exceeding the
 tolerance, an error or warning is printed, depending on the style of
-the <I>cubic</I> keyword.  Likewise, if the actual bin size differs from
-the requested <I>hgrid</I> value by an amount exceeding the tolerance, then
-an error or warning is printed.  The <I>tolerance</I> is a fractional
+the <em>cubic</em> keyword.  Likewise, if the actual bin size differs from
+the requested <em>hgrid</em> value by an amount exceeding the tolerance, then
+an error or warning is printed.  The <em>tolerance</em> is a fractional
 difference.  E.g. a tolerance setting of 0.01 on the shape means that
 if the ratio of any 2 bin dimensions exceeds (1 +/- tolerance) then an
 error or warning is generated.  Similarly, if the ratio of any bin
-dimension with <I>hgrid</I> exceeds (1 +/- tolerance), then an error or
-warning is generated.
-</P>
-<P>IMPORTANT NOTE: The fix srd command can be used with simluations the
+dimension with <em>hgrid</em> exceeds (1 +/- tolerance), then an error or
+warning is generated.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The fix srd command can be used with simluations the
 size and/or shape of the simulation box changes.  This can be due to
-non-periodic boundary conditions or the use of fixes such as the <A HREF = "fix_deform.html">fix
-deform</A> or <A HREF = "fix_wall_srd.html">fix wall/srd</A> commands
+non-periodic boundary conditions or the use of fixes such as the <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a> or <a class="reference internal" href="fix_wall_srd.html"><em>fix wall/srd</em></a> commands
 to impose a shear on an SRD fluid or an interaction with an external
 wall.  If the box size changes then the size of SRD bins must be
 recalculated every reneighboring.  This is not necessary if only the
 box shape changes.  This re-binning is always done so as to fit an
 integer number of bins in the current box dimension, whether it be a
 fixed, shrink-wrapped, or periodic boundary, as set by the
-<A HREF = "boundary.html">boundary</A> command.  If the box size or shape changes,
+<a class="reference internal" href="boundary.html"><em>boundary</em></a> command.  If the box size or shape changes,
 then the size of the search bins must be recalculated avery
 reneighboring.  Note that changing the SRD bin size may alter the
-properties of the SRD fluid, such as its viscosity.
-</P>
-<P>The <I>shift</I> keyword determines whether the coordinates of SRD
+properties of the SRD fluid, such as its viscosity.</p>
+</div>
+<p>The <em>shift</em> keyword determines whether the coordinates of SRD
 particles are randomly shifted when binned for purposes of rotating
 their velocities.  When no shifting is performed, SRD particles are
 binned and the velocity distribution of the set of SRD particles in
@@ -262,29 +352,25 @@ lamda.  If lamda is less than 0.6 of the SRD bin size, then shifting
 is required.  A shift means that all of the SRD particles are shifted
 by a vector whose coordinates are chosen randomly in the range [-1/2
 bin size, 1/2 bin size].  Note that all particles are shifted by the
-same vector.  The specified random number <I>shiftseed</I> is used to
+same vector.  The specified random number <em>shiftseed</em> is used to
 generate these vectors.  This operation sufficiently randomizes which
-SRD particles are in the same bin, even if lamda is small.
-</P>
-<P>If the <I>shift</I> flag is set to <I>no</I>, then no shifting is performed, but
+SRD particles are in the same bin, even if lamda is small.</p>
+<p>If the <em>shift</em> flag is set to <em>no</em>, then no shifting is performed, but
 bin data will be communicated if bins overlap processor boundaries.
-An error will be generated if lamda < 0.6 of the SRD bin size.  If the
-<I>shift</I> flag is set to <I>possible</I>, then shifting is performed only if
-lamda < 0.6 of the SRD bin size.  A warning is generated to let you
-know this is occurring.  If the <I>shift</I> flag is set to <I>yes</I> then
+An error will be generated if lamda &lt; 0.6 of the SRD bin size.  If the
+<em>shift</em> flag is set to <em>possible</em>, then shifting is performed only if
+lamda &lt; 0.6 of the SRD bin size.  A warning is generated to let you
+know this is occurring.  If the <em>shift</em> flag is set to <em>yes</em> then
 shifting is performed regardless of the magnitude of lamda.  Note that
-the <I>shiftseed</I> is not used if the <I>shift</I> flag is set to <I>no</I>, but
-must still be specified.
-</P>
-<P>Note that shifting of SRD coordinates requires extra communication,
-hence it should not normally be enabled unless required.
-</P>
-<P>The <I>tstat</I> keyword will thermostat the SRD particles to the specified
-<I>Tsrd</I>.  This is done every N timesteps, during the velocity rotation
+the <em>shiftseed</em> is not used if the <em>shift</em> flag is set to <em>no</em>, but
+must still be specified.</p>
+<p>Note that shifting of SRD coordinates requires extra communication,
+hence it should not normally be enabled unless required.</p>
+<p>The <em>tstat</em> keyword will thermostat the SRD particles to the specified
+<em>Tsrd</em>.  This is done every N timesteps, during the velocity rotation
 operation, by rescaling the thermal velocity of particles in each SRD
 bin to the desired temperature.  If there is a streaming velocity
-associated with the system, e.g. due to use of the <A HREF = "fix_deform.html">fix
-deform</A> command to perform a simulation undergoing
+associated with the system, e.g. due to use of the <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a> command to perform a simulation undergoing
 shear, then that is also accounted for.  The mean velocity of each bin
 of SRD particles is set to the position-dependent streaming velocity,
 based on the coordinates of the center of the SRD bin.  Note that
@@ -294,117 +380,196 @@ necessary to thermostat the SRD particles on a bin by bin basis in
 that case.  Also note that for streaming simulations, if no
 thermostatting is performed (the default), then it may take a long
 time for the SRD fluid to come to equilibrium with a velocity profile
-that matches the simulation box deformation.
-</P>
-<P>The <I>rescale</I> keyword enables rescaling of an SRD particle's velocity
+that matches the simulation box deformation.</p>
+<p>The <em>rescale</em> keyword enables rescaling of an SRD particle&#8217;s velocity
 if it would travel more than 4 mean-free paths in an SRD timestep.  If
 an SRD particle exceeds this velocity it is possible it will be lost
 when migrating to other processors or that collisions with big
 particles will be missed, either of which will generate errors.  Thus
 the safest mode is to run with rescaling enabled.  However rescaling
-removes kinetic energy from the system (the particle's velocity is
+removes kinetic energy from the system (the particle&#8217;s velocity is
 reduced).  The latter will not typically be a problem if
-thermostatting is enabled via the <I>tstat</I> keyword or if SRD collisions
+thermostatting is enabled via the <em>tstat</em> keyword or if SRD collisions
 with big particles or walls effectively thermostat the system.  If you
 wish to turn off rescaling (on is the default), e.g. for a pure SRD
 system with no thermostatting so that the temperature does not decline
-over time, the <I>rescale</I> keyword can be used.  The <I>no</I> value turns
+over time, the <em>rescale</em> keyword can be used.  The <em>no</em> value turns
 rescaling off during collisions and the per-bin velocity rotation
-operation.  The <I>collide</I> and <I>rotate</I> values turn it on for
-one of the operations and off for the other.
-</P>
-<HR>
-
-<P>IMPORTANT NOTE: This fix is normally used for simulations with a huge
+operation.  The <em>collide</em> and <em>rotate</em> values turn it on for
+one of the operations and off for the other.</p>
+<hr class="docutils" />
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This fix is normally used for simulations with a huge
 number of SRD particles relative to the number of big particles,
 e.g. 100 to 1.  In this scenario, computations that involve only big
 particles (neighbor list creation, communication, time integration)
 can slow down dramatically due to the large number of background SRD
-particles.
-</P>
-<P>Three other input script commands will largely overcome this effect,
+particles.</p>
+</div>
+<p>Three other input script commands will largely overcome this effect,
 speeding up an SRD simulation by a significant amount.  These are the
-<A HREF = "atom_modify.html">atom_modify first</A>, <A HREF = "neigh_modify.html">neigh_modify
-include</A>, and <A HREF = "comm_modify.html">comm_modify group</A>
+<a class="reference internal" href="atom_modify.html"><em>atom_modify first</em></a>, <a class="reference internal" href="neigh_modify.html"><em>neigh_modify include</em></a>, and <a class="reference internal" href="comm_modify.html"><em>comm_modify group</em></a>
 commands.  Each takes a group-ID as an argument, which in this case
-should be the group-ID of the big solute particles.
-</P>
-<P>Additionally, when a <A HREF = "pair_style.html">pair_style</A> for big/big particle
-interactions is specified, the <A HREF = "pair_coeff.html">pair_coeff</A> command
+should be the group-ID of the big solute particles.</p>
+<p>Additionally, when a <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> for big/big particle
+interactions is specified, the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command
 should be used to turn off big/SRD interactions, e.g. by setting their
-epsilon or cutoff length to 0.0.
-</P>
-<P>The "delete_atoms overlap" command may be useful in setting up an SRD
+epsilon or cutoff length to 0.0.</p>
+<p>The &#8220;delete_atoms overlap&#8221; command may be useful in setting up an SRD
 simulation to insure there are no initial overlaps between big and SRD
-particles.
-</P>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.
-</P>
-<P>This fix tabulates several SRD statistics which are stored in a vector
-of length 12, which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  The vector values calculated
-by this fix are "intensive", meaning they do not scale with the size
+particles.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options
+are relevant to this fix.</p>
+<p>This fix tabulates several SRD statistics which are stored in a vector
+of length 12, which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The vector values calculated
+by this fix are &#8220;intensive&#8221;, meaning they do not scale with the size
 of the simulation.  Technically, the first 8 do scale with the size of
 the simulation, but treating them as intensive means they are not
-scaled when printed as part of thermodyanmic output.
-</P>
-<P>These are the 12 quantities.  All are values for the current timestep,
+scaled when printed as part of thermodyanmic output.</p>
+<p>These are the 12 quantities.  All are values for the current timestep,
 except for quantity 5 and the last three, each of which are
-cummulative quantities since the beginning of the run.
-</P>
-<UL><LI>(1) # of SRD/big collision checks performed
-<LI>(2) # of SRDs which had a collision
-<LI>(3) # of SRD/big colllisions (including multiple bounces)
-<LI>(4) # of SRD particles inside a big particle
-<LI>(5) # of SRD particles whose velocity was rescaled to be < Vmax
-<LI>(6) # of bins for collision searching
-<LI>(7) # of bins for SRD velocity rotation
-<LI>(8) # of bins in which SRD temperature was computed
-<LI>(9) SRD temperature
-<LI>(10) # of SRD particles which have undergone max # of bounces
-<LI>(11) max # of bounces any SRD particle has had in a single step
-<LI>(12) # of reneighborings due to SRD particles moving too far 
-</UL>
-<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
-minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This command can only be used if LAMMPS was built with the SRD
-package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
-for more info on packages.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_wall_srd.html">fix wall/srd</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are lamda inferred from Tsrd, collision = noslip,
+cummulative quantities since the beginning of the run.</p>
+<ul class="simple">
+<li><ol class="first arabic">
+<li># of SRD/big collision checks performed</li>
+</ol>
+</li>
+<li><ol class="first arabic" start="2">
+<li># of SRDs which had a collision</li>
+</ol>
+</li>
+<li><ol class="first arabic" start="3">
+<li># of SRD/big colllisions (including multiple bounces)</li>
+</ol>
+</li>
+<li><ol class="first arabic" start="4">
+<li># of SRD particles inside a big particle</li>
+</ol>
+</li>
+<li><ol class="first arabic" start="5">
+<li># of SRD particles whose velocity was rescaled to be &lt; Vmax</li>
+</ol>
+</li>
+<li><ol class="first arabic" start="6">
+<li># of bins for collision searching</li>
+</ol>
+</li>
+<li><ol class="first arabic" start="7">
+<li># of bins for SRD velocity rotation</li>
+</ol>
+</li>
+<li><ol class="first arabic" start="8">
+<li># of bins in which SRD temperature was computed</li>
+</ol>
+</li>
+<li><ol class="first arabic" start="9">
+<li>SRD temperature</li>
+</ol>
+</li>
+<li><ol class="first arabic" start="10">
+<li># of SRD particles which have undergone max # of bounces</li>
+</ol>
+</li>
+<li><ol class="first arabic" start="11">
+<li>max # of bounces any SRD particle has had in a single step</li>
+</ol>
+</li>
+<li><ol class="first arabic" start="12">
+<li># of reneighborings due to SRD particles moving too far</li>
+</ol>
+</li>
+</ul>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><em>run</em></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This command can only be used if LAMMPS was built with the SRD
+package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section
+for more info on packages.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_wall_srd.html"><em>fix wall/srd</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are lamda inferred from Tsrd, collision = noslip,
 overlap = no, inside = error, exact = yes, radius = 1.0, bounce = 0,
 search = hgrid, cubic = error 0.01, shift = no, tstat = no, and
-rescale = yes.
-</P>
-<HR>
+rescale = yes.</p>
+<hr class="docutils" />
+<p id="hecht"><strong>(Hecht)</strong> Hecht, Harting, Ihle, Herrmann, Phys Rev E, 72, 011408 (2005).</p>
+<p id="petersen"><strong>(Petersen)</strong> Petersen, Lechman, Plimpton, Grest, in&#8217; t Veld, Schunk, J
+Chem Phys, 132, 174106 (2010).</p>
+<p id="lechman"><strong>(Lechman)</strong> Lechman, et al, in preparation (2010).</p>
+</div>
+</div>
 
-<A NAME = "Hecht"></A>
 
-<P><B>(Hecht)</B> Hecht, Harting, Ihle, Herrmann, Phys Rev E, 72, 011408 (2005).
-</P>
-<A NAME = "Petersen"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Petersen)</B> Petersen, Lechman, Plimpton, Grest, in' t Veld, Schunk, J
-Chem Phys, 132, 174106 (2010).
-</P>
-<A NAME = "Lechman"></A>
+  <hr/>
 
-<P><B>(Lechman)</B> Lechman, et al, in preparation (2010).
-</P>
-</HTML>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

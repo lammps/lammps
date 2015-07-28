@@ -1,226 +1,385 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix property/atom command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix property/atom command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID property/atom vec1 vec2 ... keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>property/atom = style name of this fix command 
-
-<LI>vec1,vec2,... = <I>mol</I> or <I>q</I> or <I>i_name</I> or <I>d_name</I> 
-
-<PRE>  <I>mol</I> = molecule IDs
-  <I>q</I> = charge
-  <I>i_name</I> = new integer vector referenced by name
-  <I>d_name</I> = new floating-point vector referenced by name 
-</PRE>
-<LI>zero of more keyword/value pairs may be appended 
-
-<LI>keyword = <I>ghost</I> 
-
-<PRE>  <I>ghost</I> value = <I>no</I> or <I>yes</I> for whether ghost atom info in communicated 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all property/atom mol
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix property/atom command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-property-atom-command">
+<span id="index-0"></span><h1>fix property/atom command<a class="headerlink" href="#fix-property-atom-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID property/atom vec1 vec2 ... keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>property/atom = style name of this fix command</li>
+<li>vec1,vec2,... = <em>mol</em> or <em>q</em> or <em>i_name</em> or <em>d_name</em></li>
+</ul>
+<pre class="literal-block">
+<em>mol</em> = molecule IDs
+  <em>q</em> = charge
+  <em>i_name</em> = new integer vector referenced by name
+  <em>d_name</em> = new floating-point vector referenced by name
+</pre>
+<ul class="simple">
+<li>zero of more keyword/value pairs may be appended</li>
+<li>keyword = <em>ghost</em></li>
+</ul>
+<pre class="literal-block">
+<em>ghost</em> value = <em>no</em> or <em>yes</em> for whether ghost atom info in communicated
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all property/atom mol
 fix 1 all property/atom i_myflag1 i_myflag2
-fix 1 all property/atom d_sx d_sy d_sz 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Create one or more additional per-atom vectors to store information
-about atoms and to use during a simulation.  The specified <I>group-ID</I>
-is ignored by this fix.
-</P>
-<P>The atom style used for a simulation defines a set of per-atom
-properties, as explained on the <A HREF = "atom_style.html">atom_style</A> and
-<A HREF = "read_data.html">read_data</A> doc pages.  The latter command allows these
+fix 1 all property/atom d_sx d_sy d_sz
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Create one or more additional per-atom vectors to store information
+about atoms and to use during a simulation.  The specified <em>group-ID</em>
+is ignored by this fix.</p>
+<p>The atom style used for a simulation defines a set of per-atom
+properties, as explained on the <a class="reference internal" href="atom_style.html"><em>atom_style</em></a> and
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> doc pages.  The latter command allows these
 properties to be defined for each atom in the system when a data file
 is read.  This fix will augment the set of properties with new custom
-ones.
-</P>
-<P>This can be useful in at least two scenarios.
-</P>
-<P>If the atom style does not define molecule IDs or per-atom charge,
-they can be added using the <I>mol</I> or <I>q</I> keywords.  This can be
-useful, e.g, to define "molecules" to use as rigid bodies with the
-<A HREF = "fix_rigid.html">fix rigid</A> command, or just to carry around an extra
+ones.</p>
+<p>This can be useful in at least two scenarios.</p>
+<p>If the atom style does not define molecule IDs or per-atom charge,
+they can be added using the <em>mol</em> or <em>q</em> keywords.  This can be
+useful, e.g, to define &#8220;molecules&#8221; to use as rigid bodies with the
+<a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> command, or just to carry around an extra
 flag with the atoms (stored as a molecule ID).  An alternative is to
 use an atom style that does define molecule IDs or charge or to use a
 hybrid atom style that combines two styles to allow for molecule IDs
 or charge, but that has 2 practical drawbacks.  First it typically
 necessitates changing the format of the data file.  And it may define
-additional properties that aren't needed such as bond lists, which has
-some overhead when there are no bonds.
-</P>
-<P>In the future, we may add additional per-atom properties similar to
-<I>mol</I> or <I>q</I>, which "turn-on" specific properties defined by some atom
-styles, so they can be used by atom styles that don't define them.
-</P>
-<P>More generally, the <I>i_name</I> and <I>d_name</I> vectors allow one or more
+additional properties that aren&#8217;t needed such as bond lists, which has
+some overhead when there are no bonds.</p>
+<p>In the future, we may add additional per-atom properties similar to
+<em>mol</em> or <em>q</em>, which &#8220;turn-on&#8221; specific properties defined by some atom
+styles, so they can be used by atom styles that don&#8217;t define them.</p>
+<p>More generally, the <em>i_name</em> and <em>d_name</em> vectors allow one or more
 new custom per-atom properties to be defined.  Each name must be
 unique and can use alphanumeric or underscore characters.  These
 vectors can store whatever values you decide are useful in your
 simulation.  As explained below there are several ways to initialize
 and access and output these values, both via input script commands and
-in new code that you add to LAMMPS.
-</P>
-<P>This is effectively a simple way to add per-atom properties to a model
-without needing to write code for a new <A HREF = "atom_style.html">atom style</A>
+in new code that you add to LAMMPS.</p>
+<p>This is effectively a simple way to add per-atom properties to a model
+without needing to write code for a new <a class="reference internal" href="atom_style.html"><em>atom style</em></a>
 that defines the properties.  Note however that implementing a new
 atom style allows new atom properties to be more tightly and
-seamlessly integrated with the rest of the code.
-</P>
-<P>The new atom properties encode values that migrate with atoms to new
+seamlessly integrated with the rest of the code.</p>
+<p>The new atom properties encode values that migrate with atoms to new
 processors and are written to restart files.  If you want the new
-properties to also be defined for ghost atoms, then use the <I>ghost</I>
-keyword with a value of <I>yes</I>.  This will invoke extra communication
+properties to also be defined for ghost atoms, then use the <em>ghost</em>
+keyword with a value of <em>yes</em>.  This will invoke extra communication
 when ghost atoms are created (at every re-neighboring) to insure the
-new properties are also defined for the ghost atoms.
-</P>
-<P>IMPORTANT NOTE: If you use this command with the <I>mol</I> or <I>charge</I>
-vectors than you most likely want to set <I>ghost</I> yes, since these
+new properties are also defined for the ghost atoms.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you use this command with the <em>mol</em> or <em>charge</em>
+vectors than you most likely want to set <em>ghost</em> yes, since these
 properties are stored with ghost atoms if you use an
-<A HREF = "atom_style.html">atom_style</A> that defines them, and many LAMMPS
+<a class="reference internal" href="atom_style.html"><em>atom_style</em></a> that defines them, and many LAMMPS
 operations that use molecule IDs or charge, such as neighbor lists and
 pair styles, will expect ghost atoms to have these valuse.  LAMMPS
 will issue a warning it you define those vectors but do not set
-<I>ghost</I> yes.
-</P>
-<P>IMPORTANT NOTE: The properties for ghost atoms are not updated every
+<em>ghost</em> yes.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The properties for ghost atoms are not updated every
 timestep, but only once every few steps when neighbor lists are
-re-built.  Thus the <I>ghost</I> keyword is suitable for static properties,
+re-built.  Thus the <em>ghost</em> keyword is suitable for static properties,
 like molecule IDs, but not for dynamic properties that change every
 step.  For the latter, the code you add to LAMMPS to change the
 properties will also need to communicate their new values to/from
-ghost atoms, an operation that can be invoked from within a <A HREF = "pair_style.html">pair
-style</A> or <A HREF = "fix.html">fix</A> or <A HREF = "compute.html">compute</A>
-that you write.
-</P>
-<HR>
-
-<P>This fix is one of a small number that can be defined in an input
+ghost atoms, an operation that can be invoked from within a <a class="reference internal" href="pair_style.html"><em>pair style</em></a> or <a class="reference internal" href="fix.html"><em>fix</em></a> or <a class="reference internal" href="compute.html"><em>compute</em></a>
+that you write.</p>
+</div>
+<hr class="docutils" />
+<p>This fix is one of a small number that can be defined in an input
 script before the simulation box is created or atoms are defined.
-This is so it can be used with the <A HREF = "read_data.html">read_data</A> command
-as described below.
-</P>
-<P>Per-atom properties that are defined by the <A HREF = "atom_style.html">atom
-style</A> are initialized when atoms are created, e.g. by
-the <A HREF = "read_data.html">read_data</A> or <A HREF = "create_atoms.html">create_atoms</A>
+This is so it can be used with the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command
+as described below.</p>
+<p>Per-atom properties that are defined by the <a class="reference internal" href="atom_style.html"><em>atom style</em></a> are initialized when atoms are created, e.g. by
+the <a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a>
 commands.  The per-atom properaties defined by this fix are not.  So
 you need to initialize them explicitly.  This can be done by the
-<A HREF = "read_data.html">read_data</A> command, using its <I>fix</I> keyword and
-passing it the fix-ID of this fix.
-</P>
-<P>Thus these commands:
-</P>
-<PRE>fix prop all property/atom mol d_flag
-read_data data.txt fix prop NULL Molecules 
-</PRE>
-<P>would allow a data file to have a section like this:
-</P>
-<PRE>Molecules 
-</PRE>
-<PRE>1 4 1.5
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> command, using its <em>fix</em> keyword and
+passing it the fix-ID of this fix.</p>
+<p>Thus these commands:</p>
+<div class="highlight-python"><div class="highlight"><pre>fix prop all property/atom mol d_flag
+read_data data.txt fix prop NULL Molecules
+</pre></div>
+</div>
+<p>would allow a data file to have a section like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">Molecules</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>1 4 1.5
 2 4 3.0
 3 10 1.0
 4 10 1.0
 5 10 1.0
 ...
-N 763 4.5 
-</PRE>
-<P>where N is the number of atoms, and the first field on each line is
+N 763 4.5
+</pre></div>
+</div>
+<p>where N is the number of atoms, and the first field on each line is
 the atom-ID, followed by a molecule-ID and a floating point value that
-will be stored in a new property called "flag".  Note that the list of
-per-atom properties can be in any order.
-</P>
-<P>Another way of initializing the new properties is via the
-<A HREF = "set.html">set</A> command.  For example, if you wanted molecules
+will be stored in a new property called &#8220;flag&#8221;.  Note that the list of
+per-atom properties can be in any order.</p>
+<p>Another way of initializing the new properties is via the
+<a class="reference internal" href="set.html"><em>set</em></a> command.  For example, if you wanted molecules
 defined for every set of 10 atoms, based on their atom-IDs,
-these commands could be used:
-</P>
-<PRE>fix prop all property/atom mol
+these commands could be used:</p>
+<div class="highlight-python"><div class="highlight"><pre>fix prop all property/atom mol
 variable cluster atom ((id-1)/10)+1
-set id * mol v_cluster 
-</PRE>
-<P>The <A HREF = "variable.html">atom-style variable</A> will create values for atoms
+set id * mol v_cluster
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="variable.html"><em>atom-style variable</em></a> will create values for atoms
 with IDs 31,32,33,...40 that are 4.0,4.1,4.2,...,4.9.  When the
-<A HREF = "set.html">set</A> commands assigns them to the molecule ID for each atom,
+<a class="reference internal" href="set.html"><em>set</em></a> commands assigns them to the molecule ID for each atom,
 they will be truncated to an integer value, so atoms 31-40 will all be
-assigned a molecule ID of 4.
-</P>
-<P>Note that <A HREF = "variable.html">atomfile-style variables</A> can also be used in
+assigned a molecule ID of 4.</p>
+<p>Note that <a class="reference internal" href="variable.html"><em>atomfile-style variables</em></a> can also be used in
 place of atom-style variables, which means in this case that the
 molecule IDs could be read-in from a separate file and assinged by the
-<A HREF = "set.html">set</A> command.  This allows you to initialize new per-atom
-properties in a completely general fashion.
-</P>
-<HR>
-
-<P>For new atom properties specified as <I>i_name</I> or <I>d_name</I>, the
-<A HREF = "compute_property_atom.html">compute property/atom</A> command can access
-their values.  This means that the values can be output via the <A HREF = "dump.html">dump
-custom</A> command, accessed by fixes like <A HREF = "fix_ave_atom.html">fix
-ave/atom</A>, accessed by other computes like <A HREF = "compute_reduce.html">compute
-reduce</A>, or used in <A HREF = "variables">atom-style
-variables</A>.
-</P>
-<P>For example, these commands will output two new properties to a custom
-dump file:
-</P>
-<PRE>fix prop all property/atom i_flag1 d_flag2
+<a class="reference internal" href="set.html"><em>set</em></a> command.  This allows you to initialize new per-atom
+properties in a completely general fashion.</p>
+<hr class="docutils" />
+<p>For new atom properties specified as <em>i_name</em> or <em>d_name</em>, the
+<a class="reference internal" href="compute_property_atom.html"><em>compute property/atom</em></a> command can access
+their values.  This means that the values can be output via the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command, accessed by fixes like <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a>, accessed by other computes like <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a>, or used in <a class="reference external" href="variables">atom-style variables</a>.</p>
+<p>For example, these commands will output two new properties to a custom
+dump file:</p>
+<div class="highlight-python"><div class="highlight"><pre>fix prop all property/atom i_flag1 d_flag2
 compute 1 all property/atom i_flag1 d_flag2
-dump 1 all custom 100 tmp.dump id x y z c_1[1] c_1[2] 
-</PRE>
-<HR>
-
-<P>If you wish to add new <A HREF = "pair_style.html">pair styles</A>,
-<A HREF = "fix.html">fixes</A>, or <A HREF = "compute.html">computes</A> that use the per-atom
-properties defined by this fix, see <A HREF = "Section_modify.html#mod_1">Section
-modify</A> of the manual which has some details
-on how the properties can be accessed from added classes.
-</P>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>This fix writes the per-atom values it stores to <A HREF = "restart.html">binary restart
-files</A>, so that the values can be restored when a
-simulation is restarted.  See the <A HREF = "read_restart.html">read_restart</A>
+dump 1 all custom 100 tmp.dump id x y z c_1[1] c_1[2]
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>If you wish to add new <a class="reference internal" href="pair_style.html"><em>pair styles</em></a>,
+<a class="reference internal" href="fix.html"><em>fixes</em></a>, or <a class="reference internal" href="compute.html"><em>computes</em></a> that use the per-atom
+properties defined by this fix, see <a class="reference internal" href="Section_modify.html#mod-1"><span>Section modify</span></a> of the manual which has some details
+on how the properties can be accessed from added classes.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>This fix writes the per-atom values it stores to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so that the values can be restored when a
+simulation is restarted.  See the <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
 command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an
-uninterrupted fashion.
-</P>
-<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options
+uninterrupted fashion.</p>
+<p>None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options
 are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  No parameter of this fix can
-be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "read_data.html">read_data</A>, <A HREF = "set.html">set</A>, <A HREF = "compute_property_atom.html">compute
-property/atom</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The default keyword values are ghost = no.
-</P>
-</HTML>
+by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  No parameter of this fix can
+be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command.
+This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="read_data.html"><em>read_data</em></a>, <a class="reference internal" href="set.html"><em>set</em></a>, <a class="reference internal" href="compute_property_atom.html"><em>compute property/atom</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The default keyword values are ghost = no.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

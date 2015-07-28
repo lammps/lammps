@@ -1,99 +1,271 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute msd command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>compute msd command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>compute ID group-ID msd keyword values ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command 
-
-<LI>msd = style name of this compute command 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>com</I> 
-
-<PRE>  <I>com</I> value = <I>yes</I> or <I>no</I> 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>compute 1 all msd
-compute 1 upper msd com yes 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a computation that calculates the mean-squared displacement
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute msd command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-msd-command">
+<span id="index-0"></span><h1>compute msd command<a class="headerlink" href="#compute-msd-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID msd keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>msd = style name of this compute command</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>com</em></li>
+</ul>
+<pre class="literal-block">
+<em>com</em> value = <em>yes</em> or <em>no</em>
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all msd
+compute 1 upper msd com yes
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that calculates the mean-squared displacement
 (MSD) of the group of atoms, including all effects due to atoms
 passing thru periodic boundaries.  For computation of the non-Gaussian
-parameter of mean-squared displacement, see the <A HREF = "compute_msd_nongauss.html">compute
-msd/nongauss</A> command.
-</P>
-<P>A vector of four quantites is calculated by this compute.  The first 3
+parameter of mean-squared displacement, see the <a class="reference internal" href="compute_msd_nongauss.html"><em>compute msd/nongauss</em></a> command.</p>
+<p>A vector of four quantites is calculated by this compute.  The first 3
 elements of the vector are the squared dx,dy,dz displacements, summed
 and averaged over atoms in the group.  The 4th element is the total
 squared displacement, i.e. (dx*dx + dy*dy + dz*dz), summed and
-averaged over atoms in the group.
-</P>
-<P>The slope of the mean-squared displacement (MSD) versus time is
-proportional to the diffusion coefficient of the diffusing atoms.
-</P>
-<P>The displacement of an atom is from its original position at the time
+averaged over atoms in the group.</p>
+<p>The slope of the mean-squared displacement (MSD) versus time is
+proportional to the diffusion coefficient of the diffusing atoms.</p>
+<p>The displacement of an atom is from its original position at the time
 the compute command was issued.  The value of the displacement will be
-0.0 for atoms not in the specified compute group.
-</P>
-<P>If the <I>com</I> option is set to <I>yes</I> then the effect of any drift in
+0.0 for atoms not in the specified compute group.</p>
+<p>If the <em>com</em> option is set to <em>yes</em> then the effect of any drift in
 the center-of-mass of the group of atoms is subtracted out before xhe
-displacment of each atom is calcluated.
-</P>
-<P>IMPORTANT NOTE: Initial coordinates are stored in "unwrapped" form, by
-using the image flags associated with each atom.  See the <A HREF = "dump.html">dump
-custom</A> command for a discussion of "unwrapped" coordinates.
-See the Atoms section of the <A HREF = "read_data.html">read_data</A> command for a
+displacment of each atom is calcluated.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Initial coordinates are stored in &#8220;unwrapped&#8221; form, by
+using the image flags associated with each atom.  See the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command for a discussion of &#8220;unwrapped&#8221; coordinates.
+See the Atoms section of the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command for a
 discussion of image flags and how they are set for each atom.  You can
 reset the image flags (e.g. to 0) before invoking this compute by
-using the <A HREF = "set.html">set image</A> command.
-</P>
-<P>IMPORTANT NOTE: If you want the quantities calculated by this compute
-to be continuous when running from a <A HREF = "read_restart.html">restart file</A>,
+using the <a class="reference internal" href="set.html"><em>set image</em></a> command.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you want the quantities calculated by this compute
+to be continuous when running from a <a class="reference internal" href="read_restart.html"><em>restart file</em></a>,
 then you should use the same ID for this compute, as in the original
 run.  This is so that the fix this compute creates to store per-atom
 quantities will also have the same ID, and thus be initialized
-correctly with time=0 atom coordinates from the restart file.
-</P>
-<P><B>Output info:</B>
-</P>
-<P>This compute calculates a global vector of length 4, which can be
+correctly with time=0 atom coordinates from the restart file.</p>
+</div>
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a global vector of length 4, which can be
 accessed by indices 1-4 by any command that uses global vector values
-from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
-section</A> for an overview of LAMMPS output
-options.
-</P>
-<P>The vector values are "intensive".  The vector values will be in
-distance^2 <A HREF = "units.html">units</A>.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "compute_msd_nongauss.html">compute msd/nongauss</A>, <A HREF = "compute_displace_atom.html">compute
-displace_atom</A>, <A HREF = "fix_store_state.html">fix
-store/state</A>, <A HREF = "compute_msd_chunk.html">compute
-msd/chunk</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option default is com = no.
-</P>
-</HTML>
+from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>this section</span></a> for an overview of LAMMPS output
+options.</p>
+<p>The vector values are &#8220;intensive&#8221;.  The vector values will be in
+distance^2 <a class="reference internal" href="units.html"><em>units</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="compute_msd_nongauss.html"><em>compute msd/nongauss</em></a>, <a class="reference internal" href="compute_displace_atom.html"><em>compute displace_atom</em></a>, <a class="reference internal" href="fix_store_state.html"><em>fix store/state</em></a>, <a class="reference internal" href="compute_msd_chunk.html"><em>compute msd/chunk</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option default is com = no.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

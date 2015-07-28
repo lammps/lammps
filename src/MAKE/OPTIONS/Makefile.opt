@@ -63,7 +63,7 @@ FFT_LIB =
 
 JPG_INC =       
 JPG_PATH = 	
-JPG_LIB =	
+JPG_LIB =       
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

@@ -142,10 +142,15 @@ commands)
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, \
     REBO, AIREBO, ReaxFF, COMB, SNAP, Streitz-Mintmire
+  long-range interactions for charge, point-dipoles, and LJ dispersion: \
+    Ewald, Wolf, PPPM (similar to particle-mesh Ewald)
+  polarization models: "QEq"_fix_qeq.html, \
+    "core/shell model"_Section_howto.html#howto_26, \
+    "Drude dipole model"_Section_howto.html#howto_27
   charge equilibration (QEq via dynamic, point, shielded, Slater methods)
-  electron force field (eFF, AWPMD)
   coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
   mesoscopic potentials: granular, Peridynamics, SPH
+  electron force field (eFF, AWPMD)
   bond potentials: harmonic, FENE, Morse, nonlinear, class 2, \
     quartic (breakable)
   angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, \
@@ -156,12 +161,10 @@ commands)
   polymer potentials: all-atom, united-atom, bead-spring, breakable
   water potentials: TIP3P, TIP4P, SPC
   implicit solvent potentials: hydrodynamic lubrication, Debye
-  "KIM archive"_http://openkim.org of potentials
-  long-range interactions for charge, point-dipoles, and LJ dispersion: \
-    Ewald, Wolf, PPPM (similar to particle-mesh Ewald)
   force-field compatibility with common CHARMM, AMBER, DREIDING, \
     OPLS, GROMACS, COMPASS options
-  handful of GPU-enabled pair styles
+  access to "KIM archive"_http://openkim.org of potentials via \
+    "pair kim"_pair_kim.html
   hybrid potentials: multiple pair, bond, angle, dihedral, improper \
     potentials can be used in one simulation
   overlaid potentials: superposition of multiple pair potentials :ul

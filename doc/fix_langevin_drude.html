@@ -93,8 +93,10 @@ transform:
 \begin{equation} F = \frac M {M'}\, F' - f' \end{equation}
 \begin{equation} f = \frac m {M'}\, F' + f' \end{equation}
 </P>
-<P>For Drude pairs (core + electron), the center of mass and the dipole
-are thermostated if (and only if) the core atom is in the specified
+<P>This fix also thermostates non-polarizable atoms in the group at
+temperature <I>Tcom</I>, as if they had a massless Drude partner.  The
+Drude particles themselves need not be in the group. The center of
+mass and the dipole are thermostated iff the core atom is in the
 group.
 </P>
 <P>Note that the thermostat effect of this fix is applied to only the
@@ -198,9 +200,14 @@ subtracting off an equal part of it from each center of mass in the
 group. As a result, the total center of mass of a system with zero
 initial momentum will not drift over time.
 </P>
+<P>The actual temperatures of cores and Drude particles, in
+center-of-mass and relatice coordinates, respectively, can be
+calculated using the <A HREF = "compute_temp_drude.html">compute temp/drude</A>
+command.
+</P>
 <HR>
 
-<P>Example for rigid bodies in the NPT ensemble:
+<P>Usage example for rigid bodies in the NPT ensemble:
 </P>
 <PRE>comm_modify vel yes
 fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
@@ -210,14 +217,25 @@ thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TAT
 </PRE>
 <P>Comments:
 </P>
-<UL><LI>Drude particles should not be in the rigid group, otherwise the Drude oscillators will be frozen and the system will lose its polarizability.
-<LI><I>zero yes</I> avoids a drift of the center of mass of the system, but is a bit slower.
-<LI>use two different random seeds to avoid unphysical correlations.
-<LI>temperature is controlled by the fix <I>langevin/drude</I>, so the time-integration fixes do not thermostate.
+<UL><LI>Drude particles should not be in the rigid group, otherwise the Drude
+<LI>oscillators will be frozen and the system will lose its
+<LI>polarizability.  <I>zero yes</I> avoids a drift of the center of mass of
+<LI>the system, but is a bit slower.  use two different random seeds to
+<LI>avoid unphysical correlations.  temperature is controlled by the fix
+<LI><I>langevin/drude</I>, so the time-integration fixes do not thermostate.
 <LI>don't forget to time-integrate both cores and Drude particles.
-<LI>pressure is time-integrated only once by using <I>nve</I> for Drude particles and <I>nph</I> for atoms/cores (or vice versa). Do not use <I>nph</I> for both.
-<LI>contrary to the alternative thermostating using Nose-Hoover thermostat fix <I>npt</I> and fix <I>drude/transform</I>, the <I>fix_modify</I> command is not required here, because the fix <I>nph</I> computes the global pressure even if its group is <I>ATOMS</I>. This is what we want. If we thermostated <I>ATOMS</I> using <I>npt</I>, the pressure should be the global one, but the temperature should be only that of the cores. That's why the command <I>fix_modify</I> should be called in that case.
-<LI>f_TEMP[1] and f_TEMP[2] contain the reduced temperatures of the cores/atoms and of the Drude particles (see below). They should be 300. and 1. on average here. 
+<LI>pressure is time-integrated only once by using <I>nve</I> for Drude
+<LI>particles and <I>nph</I> for atoms/cores (or vice versa). Do not use <I>nph</I>
+<LI>for both.  contrary to the alternative thermostating using Nose-Hoover
+<LI>thermostat fix <I>npt</I> and fix <I>drude/transform</I>, the <I>fix_modify</I>
+<LI>command is not required here, because the fix <I>nph</I> computes the
+<LI>global pressure even if its group is <I>ATOMS</I>. This is what we want. If
+<LI>we thermostated <I>ATOMS</I> using <I>npt</I>, the pressure should be the global
+<LI>one, but the temperature should be only that of the cores. That's why
+<LI>the command <I>fix_modify</I> should be called in that case.  f_TEMP[1]
+<LI>and f_TEMP[2] contain the reduced temperatures of the cores/atoms
+<LI>and of the Drude particles (see below). They should be 300. and 1. on
+<LI>average here. 
 </UL>
 <HR>
 
@@ -236,17 +254,6 @@ you have defined to this fix which will be used in its thermostating
 procedure, as described above. For consistency, the group used by the
 compute should include the group of this fix and the Drude particles.
 </P>
-<P>This fix computes a global vector with 6 components which can be
-accessed by various <A HREF = "Section_howto.html#howto_15">output commands</A>. The
-meaning of the components are as follows:
-</P>
-<OL><LI>temperature of the centers of mass (temperature units)
-<LI>temperature of the dipoles (temperature units)
-<LI>number of degrees of freedom of the centers of mass
-<LI>number of degrees of freedom of the dipoles 
-<LI>kinetic energy of the centers of mass (energy units)
-<LI>kinetic energy of the dipoles (energy units) 
-</OL>
 <P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B> none
@@ -254,6 +261,7 @@ meaning of the components are as follows:
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "fix_langevin.html">fix langevin</A>,
+<A HREF = "fix_drude.html">fix drude</A>,
 <A HREF = "fix_drude_transform.html">fix drude/transform</A>,
 <A HREF = "compute_temp_drude.html">compute temp/drude</A>,
 <A HREF = "pair_thole.html">pair_style thole</A>

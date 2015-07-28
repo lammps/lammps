@@ -1,0 +1,29 @@
+# drude.ff, version 2015/05/07
+# units: kJ/mol, A, deg
+# kforce is in the form k/2 r_D^2
+
+# type  m_D/u   q_D/e    k_D   alpha/A3  thole
+# PSPC water, JCP 119(2003)3025
+Ow      0.8     2.0824  4184.0   1.440   2.6
+# SWM4-NDP water, CPL 418(2006)245
+ODw     0.8    -1.7164  4184.0   0.978   2.6
+# alkanes (CHARMM)
+C3H     0.4    -1.0     4184.0   2.051   2.6
+C2H     0.4    -1.0     4184.0   1.660   2.6
+C1H     0.4    -1.0     4184.0   1.302   2.6
+C4C     0.4    -1.0     4184.0   1.302   2.6
+# alcohols (CHARMM)
+#OH      0.4    -1.0     4184.0   1.028   2.6
+#CTO     0.4    -1.0     4184.0   1.000   2.6
+#C2O     0.4    -1.0     4184.0   1.400   2.6
+# ethanol Noskov JPCB 109(2005)6705
+OH      0.4    -1.0     4184.0   0.97772 2.6
+CTO     0.4    -1.0     4184.0   1.21757 2.6
+C2O     0.4    -1.0     4184.0   1.23758 2.6
+# aromatic (CHARMM)
+CA      0.4    -1.0     4184.0   1.62    2.6
+CG      0.4    -1.0     4184.0   1.62    2.6
+# general elements, Schwerdtfeger Table 2014
+S       0.8    -1.0     4184.0   2.90    2.6
+P       0.8    -1.0     4184.0   3.69    2.6
+Mo      0.8    -1.0     4184.0  10.74    2.6

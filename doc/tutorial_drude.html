@@ -8,13 +8,13 @@
 
 <H3>Tutorial for Thermalized Drude oscillators in LAMMPS 
 </H3>
-<P>This tutorial explains how to use <A HREF = "drude_oscillators.html">Drude
-oscillators</A> in LAMMPS to simulate polarizable
-systems.  As an illustration, the input files for a simulation of 250
-phenol molecules are documented. First of all, LAMMPS has to be
-compiled with the USER-DRUDE package activated. Then, the data file
-and input scripts have to be modified to include the Drude dipoles and
-how to handle them.
+<P>This tutorial explains how to use Drude oscillators in LAMMPS to
+simulate polarizable systems using the USER-DRUDE package. As an
+illustration, the input files for a simulation of 250 phenol molecules
+are documented. First of all, LAMMPS has to be compiled with the
+USER-DRUDE package activated. Then, the data file and input scripts
+have to be modified to include the Drude dipoles and how to handle
+them.
 </P>
 <HR>
 
@@ -155,18 +155,13 @@ script (the use of these lines will be explained below).  In order for
 LAMMPS to recognize that you are using Drude oscillators, you should
 use the fix <I>drude</I>. The command is
 </P>
-<PRE>fix DRUDE all drude 1 1 1 0 0 2 2 2 
-</PRE>
-<P>or, equivalently
-</P>
 <PRE>fix DRUDE all drude C C C N N D D D 
 </PRE>
-<P>The 0, 1, 2 (or N, C, D) following the <I>drude</I> keyword have the
-following meaning: There is one tag for each atom type. This tag is 1
-(or C) for DCs, 2 (or D) for DPs and 0 (or N) for non-polarizable
-atoms.  Here the atom types 1 to 3 (C and O atoms) are DC, atom types
-4 and 5 (H atoms) are non-polarizable and the atom types 6 to 8 are
-the newly created DPs.
+<P>The N, C, D following the <I>drude</I> keyword have the following meaning:
+There is one tag for each atom type. This tag is C for DCs, D for DPs
+and N for non-polarizable atoms.  Here the atom types 1 to 3 (C and O
+atoms) are DC, atom types 4 and 5 (H atoms) are non-polarizable and
+the atom types 6 to 8 are the newly created DPs.
 </P>
 <P>By recognizing the fix <I>drude</I>, LAMMPS will find and store matching
 DC-DP pairs and will treat DP as equivalent to their DC in the
@@ -245,11 +240,16 @@ dump_modify DUMP element C C O H H D D D
 LAMMPS is not 300. K as wanted.  This is because LAMMPS treats DPs as
 standard atoms in his default compute.  If you want to output the
 temperatures of the DC-DP pair centers of mass and of the DPs relative
-to their DCs, you should use <I>thermo_style custom</I> with respectively
-<I>f_LANG[1]</I> and <I>f_LANG[2]</I>. These should be close to 300. and
-1. on average.
+to their DCs, you should use the <A HREF = "compute_temp_drude.html">compute
+temp_drude</A>
 </P>
-<PRE>thermo_style custom step temp f_LANG[1] f_LANG[2] 
+<PRE>compute TDRUDE all temp/drude 
+</PRE>
+<P>And then output the correct temperatures of the Drude oscillators
+using <I>thermo_style custom</I> with respectively <I>c_TDRUDE[1]</I> and
+<I>c_TDRUDE[2]</I>. These should be close to 300.0 and 1.0 on average.
+</P>
+<PRE>thermo_style custom step temp c_TDRUDE[1] c_TDRUDE[2] 
 </PRE>
 <HR>
 
@@ -319,21 +319,24 @@ pair_coeff    8    8 thole   0.630   0.670
 </PRE>
 <P>For the <I>thole</I> pair style the coefficients are 
 </P>
-<OL><LI>the atom polarizability in units of cubic length
-<LI>the screening factor of the Thole function (optional, default value specified by the pair_style command)
-<LI>the cutoff (optional, default value defined by the pair_style command) 
+<OL><LI>the atom polarizability in units of cubic length 
+
+<LI>the screening factor of the Thole function (optional, default value
+specified by the pair_style command) 
+
+<LI>the cutoff (optional, default value defined by the pair_style command)
+
 </OL>
 <P>The special neighbors have charge-charge and charge-dipole
 interactions screened by the <I>coul</I> factors of the <I>special_bonds</I>
-command (0., 0., and 0.5 in the example above).  Without using the
+command (0.0, 0.0, and 0.5 in the example above).  Without using the
 pair_style <I>thole</I>, dipole-dipole interactions are screened by the
 same factor.  By using the pair_style <I>thole</I>, dipole-dipole
 interactions are screened by Thole's function, whatever their special
 relationship (except within each DC-DP pair of course).  Consider for
 example 1-2 neighbors: using the pair_style <I>thole</I>, their dipoles
 will see each other (despite the <I>coul</I> factor being 0.) and the
-interactions between these dipoles will be damped by Thole's
-function.
+interactions between these dipoles will be damped by Thole's function.
 </P>
 <HR>
 

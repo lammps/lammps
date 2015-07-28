@@ -21,37 +21,62 @@ compute TDRUDE all temp/drude :pre
 
 [Description:]
 
-Define a computation that calculates the temperature based on the
-center-of-mass velocities of pairs of Drude cores and Drude particles,
-bonded by springs.  This compute is designed to be used with the
+Define a computation that calculates the temperatures of core-Drude
+pairs.  This compute is designed to be used with the thermalized Drude
+oscillator model.  This compute is designed to be used with the
 "thermalized Drude oscillator model"_tutorial_drude.html.  Polarizable
 models in LAMMPS are described in "this
 Section"_Section_howto.html#howto_25.
 
-Specifically, this compute enables calculation of the temperature of
-the Drude particles in relative coordinates with respect to their
-cores.
+Drude oscillators consist of a core particle and a Drude particle
+connected by a harmonic bond, and the relative motion of these Drude
+oscillators is usually maintained cold by a specific thermostat that
+acts on the relative motion of the core-Drude particle
+pairs. Therefore, because LAMMPS considers Drude particles as normal
+atoms in its default temperature compute ("compute
+temp"_compute_temp.html command), the reduced temperature of the
+core-Drude particle pairs is not calculated correctly.
+
+By contrast, this compute calculates the temperature of the cores
+using center-of-mass velocities of the core-Drude pairs, and the
+reduced temperature of the Drude particles using the relative
+velocities of the Drude particles with respect to their cores.
+Non-polarizable atoms are considered as cores.  Their velocities
+contribute to the temperature of the cores.
 
 [Output info:]
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+vector of length 6, which can be accessed by indices 1-6, whose components
+are
+
+temperature of the centers of mass (temperature units)
+temperature of the dipoles (temperature units)
+number of degrees of freedom of the centers of mass
+number of degrees of freedom of the dipoles
+kinetic energy of the centers of mass (energy units)
+kinetic energy of the dipoles (energy units) :ol
+
 These values can be used by any command that uses global scalar or
 vector values from a compute as input.  See "this
 section"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
-The scalar value calculated by this compute is "intensive".  The
-vector are "extensive".
-
-The scalar value will be in temperature "units"_units.html.  The
-vector values will be in energy "units"_units.html.
+Both the scalar value and the first two values of the vector
+calculated by this compute are "intensive".  The other 4 vector values
+are "extensive".
 
 [Restrictions:]
 
-The number of core-Drude pairs contributing to the temperature is
-assumed to be constant for the duration of the run.
+The number of degrees of freedom contributing to the temperature is
+assumed to be constant for the duration of the run unless the 
+{fix_modify} command sets the option {dynamic yes}.
 
-[Related commands:] none
+[Related commands:]
+
+"fix drude"_fix_drude.html, "fix
+langevin_drude"_fix_langevin_drude.html, "fix
+drude/transform"_fix_drude_transform.html, "pair_style
+thole"_pair_thole.html, "compute temp"_compute_temp.html
 
 [Default:] none

@@ -71,22 +71,18 @@
         
           
           
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">balance command</a><ul>
+<li><a class="reference internal" href="#syntax">Syntax</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li><a class="reference internal" href="#related-commands">Related commands</a></li>
 </ul>
-
+</li>
+</ul>
+</div>
           
         
       </div>
@@ -264,7 +260,7 @@ the processor that owns them.  The leftmost diagram is the default
 partitioning of the simulation box across processors (one sub-box for
 each of 16 processors); the middle diagram is after a &#8220;grid&#8221; method
 has been applied.</p>
-<a data-lightbox="group-33581b25-ff7a-4993-af10-3eb635606c51"
+<a data-lightbox="group-022505f1-dc20-4757-8079-1c46a98561c1"
                    href="_images/balance_uniform.jpg"
                    class=""
                    title=""
@@ -274,7 +270,7 @@ has been applied.</p>
                     width="25%"
                     height="auto"
                     alt=""/>
-                    </a><a data-lightbox="group-0707698a-5184-4a24-a0b3-55e008c10da2"
+                    </a><a data-lightbox="group-33c706ca-ec21-410d-8dea-549388d6ccd9"
                    href="_images/balance_nonuniform.jpg"
                    class=""
                    title=""
@@ -284,7 +280,7 @@ has been applied.</p>
                     width="25%"
                     height="auto"
                     alt=""/>
-                    </a><a data-lightbox="group-153ac620-167c-4887-8859-4d5f616526fe"
+                    </a><a data-lightbox="group-eb041c99-4215-4b9b-8dbd-437cfbda53dd"
                    href="_images/balance_rcb.jpg"
                    class=""
                    title=""

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Python interface to LAMMPS &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>11. Python interface to LAMMPS &mdash; LAMMPS 15 May 2015 version documentation</title>
   
 
   
@@ -32,7 +32,9 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+        <link rel="next" title="12. Errors" href="Section_errors.html"/>
+        <link rel="prev" title="10. Modifying &amp; extending LAMMPS" href="Section_modify.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,26 +73,37 @@
         
           
           
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Python interface to LAMMPS</a><ul>
-<li><a class="reference internal" href="#overview-of-running-lammps-from-python">Overview of running LAMMPS from Python</a></li>
-<li><a class="reference internal" href="#overview-of-using-python-from-a-lammps-script">Overview of using Python from a LAMMPS script</a></li>
-<li><a class="reference internal" href="#building-lammps-as-a-shared-library">Building LAMMPS as a shared library</a></li>
-<li><a class="reference internal" href="#installing-the-python-wrapper-into-python">Installing the Python wrapper into Python</a></li>
-<li><a class="reference internal" href="#extending-python-with-mpi-to-run-in-parallel">Extending Python with MPI to run in parallel</a></li>
-<li><a class="reference internal" href="#testing-the-python-lammps-interface">Testing the Python-LAMMPS interface</a><ul>
-<li><a class="reference internal" href="#test-lammps-and-python-in-serial"><strong>Test LAMMPS and Python in serial:</strong></a></li>
-<li><a class="reference internal" href="#test-lammps-and-python-in-parallel"><strong>Test LAMMPS and Python in parallel:</strong></a></li>
-<li><a class="reference internal" href="#running-python-scripts"><strong>Running Python scripts:</strong></a></li>
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">11. Python interface to LAMMPS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview-of-running-lammps-from-python">11.1. Overview of running LAMMPS from Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#overview-of-using-python-from-a-lammps-script">11.2. Overview of using Python from a LAMMPS script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-lammps-as-a-shared-library">11.3. Building LAMMPS as a shared library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-the-python-wrapper-into-python">11.4. Installing the Python wrapper into Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extending-python-with-mpi-to-run-in-parallel">11.5. Extending Python with MPI to run in parallel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing-the-python-lammps-interface">11.6. Testing the Python-LAMMPS interface</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#test-lammps-and-python-in-serial">11.6.1. <strong>Test LAMMPS and Python in serial:</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-lammps-and-python-in-parallel">11.6.2. <strong>Test LAMMPS and Python in parallel:</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-python-scripts">11.6.3. <strong>Running Python scripts:</strong></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#using-lammps-from-python">Using LAMMPS from Python</a></li>
-<li><a class="reference internal" href="#example-python-scripts-that-use-lammps">Example Python scripts that use LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-lammps-from-python">11.7. Using LAMMPS from Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-python-scripts-that-use-lammps">11.8. Example Python scripts that use LAMMPS</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-</div>
+
           
         
       </div>
@@ -113,7 +126,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>Python interface to LAMMPS</li>
+    <li>11. Python interface to LAMMPS</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -128,7 +141,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="python-interface-to-lammps">
-<h1>Python interface to LAMMPS<a class="headerlink" href="#python-interface-to-lammps" title="Permalink to this headline">¶</a></h1>
+<h1>11. Python interface to LAMMPS<a class="headerlink" href="#python-interface-to-lammps" title="Permalink to this headline">¶</a></h1>
 <p>LAMMPS can work together with Python in two ways.  First, Python can
 wrap LAMMPS through the <a class="reference internal" href="Section_howto.html#howto-19"><span>LAMMPS library interface</span></a>, so that a Python script can
 create one or more instances of LAMMPS and launch one or more
@@ -174,7 +187,7 @@ interesting Python functions that can be called from a LAMMPS input
 script, that you think would be useful to other users, please <a class="reference external" href="http://lammps.sandia.gov/authors.html">email them to the developers</a>.  We can
 include them in the LAMMPS distribution.</p>
 <div class="section" id="overview-of-running-lammps-from-python">
-<span id="py-1"></span><h2>Overview of running LAMMPS from Python<a class="headerlink" href="#overview-of-running-lammps-from-python" title="Permalink to this headline">¶</a></h2>
+<span id="py-1"></span><h2>11.1. Overview of running LAMMPS from Python<a class="headerlink" href="#overview-of-running-lammps-from-python" title="Permalink to this headline">¶</a></h2>
 <p>The LAMMPS distribution includes a python directory with all you need
 to run LAMMPS from Python.  The python/lammps.py file wraps the LAMMPS
 library interface, with one wrapper function per LAMMPS library
@@ -214,7 +227,7 @@ check which version of Python you have installed, by simply typing
 <hr class="docutils" />
 </div>
 <div class="section" id="overview-of-using-python-from-a-lammps-script">
-<span id="py-2"></span><h2>Overview of using Python from a LAMMPS script<a class="headerlink" href="#overview-of-using-python-from-a-lammps-script" title="Permalink to this headline">¶</a></h2>
+<span id="py-2"></span><h2>11.2. Overview of using Python from a LAMMPS script<a class="headerlink" href="#overview-of-using-python-from-a-lammps-script" title="Permalink to this headline">¶</a></h2>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">It is not currently possible to use the
@@ -275,7 +288,7 @@ file and the shared library.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="building-lammps-as-a-shared-library">
-<span id="py-3"></span><h2>Building LAMMPS as a shared library<a class="headerlink" href="#building-lammps-as-a-shared-library" title="Permalink to this headline">¶</a></h2>
+<span id="py-3"></span><h2>11.3. Building LAMMPS as a shared library<a class="headerlink" href="#building-lammps-as-a-shared-library" title="Permalink to this headline">¶</a></h2>
 <p>Instructions on how to build LAMMPS as a shared library are given in
 <a class="reference internal" href="Section_start.html#start-5"><span>Section_start 5</span></a>.  A shared library is one
 that is dynamically loadable, which is what Python requires to wrap
@@ -297,7 +310,7 @@ system.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="installing-the-python-wrapper-into-python">
-<span id="py-4"></span><h2>Installing the Python wrapper into Python<a class="headerlink" href="#installing-the-python-wrapper-into-python" title="Permalink to this headline">¶</a></h2>
+<span id="py-4"></span><h2>11.4. Installing the Python wrapper into Python<a class="headerlink" href="#installing-the-python-wrapper-into-python" title="Permalink to this headline">¶</a></h2>
 <p>For Python to invoke LAMMPS, there are 2 files it needs to know about:</p>
 <ul class="simple">
 <li>python/lammps.py</li>
@@ -359,7 +372,7 @@ environment variable as described above.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="extending-python-with-mpi-to-run-in-parallel">
-<span id="py-5"></span><h2>Extending Python with MPI to run in parallel<a class="headerlink" href="#extending-python-with-mpi-to-run-in-parallel" title="Permalink to this headline">¶</a></h2>
+<span id="py-5"></span><h2>11.5. Extending Python with MPI to run in parallel<a class="headerlink" href="#extending-python-with-mpi-to-run-in-parallel" title="Permalink to this headline">¶</a></h2>
 <p>If you wish to run LAMMPS in parallel from Python, you need to extend
 your Python with an interface to MPI.  This also allows you to
 make MPI calls directly from Python in your script, if you desire.</p>
@@ -445,7 +458,7 @@ the right one.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="testing-the-python-lammps-interface">
-<span id="py-6"></span><h2>Testing the Python-LAMMPS interface<a class="headerlink" href="#testing-the-python-lammps-interface" title="Permalink to this headline">¶</a></h2>
+<span id="py-6"></span><h2>11.6. Testing the Python-LAMMPS interface<a class="headerlink" href="#testing-the-python-lammps-interface" title="Permalink to this headline">¶</a></h2>
 <p>To test if LAMMPS is callable from Python, launch Python interactively
 and type:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">lammps</span>
@@ -472,7 +485,7 @@ first importing from the lammps.py file:</p>
 library and about insuring Python can find the necessary two files
 it needs.</p>
 <div class="section" id="test-lammps-and-python-in-serial">
-<h3><strong>Test LAMMPS and Python in serial:</strong><a class="headerlink" href="#test-lammps-and-python-in-serial" title="Permalink to this headline">¶</a></h3>
+<h3>11.6.1. <strong>Test LAMMPS and Python in serial:</strong><a class="headerlink" href="#test-lammps-and-python-in-serial" title="Permalink to this headline">¶</a></h3>
 <p>To run a LAMMPS test in serial, type these lines into Python
 interactively from the bench directory:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">lammps</span>
@@ -492,7 +505,7 @@ typed something like:</p>
 </div>
 </div>
 <div class="section" id="test-lammps-and-python-in-parallel">
-<h3><strong>Test LAMMPS and Python in parallel:</strong><a class="headerlink" href="#test-lammps-and-python-in-parallel" title="Permalink to this headline">¶</a></h3>
+<h3>11.6.2. <strong>Test LAMMPS and Python in parallel:</strong><a class="headerlink" href="#test-lammps-and-python-in-parallel" title="Permalink to this headline">¶</a></h3>
 <p>To run LAMMPS in parallel, assuming you have installed the
 <a class="reference external" href="http://datamining.anu.edu.au/~ole/pypar">Pypar</a> package as discussed
 above, create a test.py file containing these lines:</p>
@@ -526,7 +539,7 @@ script should be pypar.finalize(), to insure MPI is shut down
 correctly.</p>
 </div>
 <div class="section" id="running-python-scripts">
-<h3><strong>Running Python scripts:</strong><a class="headerlink" href="#running-python-scripts" title="Permalink to this headline">¶</a></h3>
+<h3>11.6.3. <strong>Running Python scripts:</strong><a class="headerlink" href="#running-python-scripts" title="Permalink to this headline">¶</a></h3>
 <p>Note that any Python script (not just for LAMMPS) can be invoked in
 one of several ways:</p>
 <div class="highlight-python"><div class="highlight"><pre>% python foo.script
@@ -553,7 +566,7 @@ Python on a single processor, not in parallel.</p>
 </div>
 </div>
 <div class="section" id="using-lammps-from-python">
-<span id="py-7"></span><h2>Using LAMMPS from Python<a class="headerlink" href="#using-lammps-from-python" title="Permalink to this headline">¶</a></h2>
+<span id="py-7"></span><h2>11.7. Using LAMMPS from Python<a class="headerlink" href="#using-lammps-from-python" title="Permalink to this headline">¶</a></h2>
 <p>As described above, the Python interface to LAMMPS consists of a
 Python &#8220;lammps&#8221; module, the source code for which is in
 python/lammps.py, which creates a &#8220;lammps&#8221; object, with a set of
@@ -770,7 +783,7 @@ Python script.  Isn&#8217;t ctypes amazing?</li>
 </ul>
 </div>
 <div class="section" id="example-python-scripts-that-use-lammps">
-<span id="py-8"></span><h2>Example Python scripts that use LAMMPS<a class="headerlink" href="#example-python-scripts-that-use-lammps" title="Permalink to this headline">¶</a></h2>
+<span id="py-8"></span><h2>11.8. Example Python scripts that use LAMMPS<a class="headerlink" href="#example-python-scripts-that-use-lammps" title="Permalink to this headline">¶</a></h2>
 <p>These are the Python scripts included as demos in the python/examples
 directory of the LAMMPS distribution, to illustrate the kinds of
 things that are possible when Python wraps LAMMPS.  If you create your
@@ -837,7 +850,7 @@ variables that have to match the VMD installation on your system.</p>
 source code for individual scripts for comments about what they do.</p>
 <p>Here are screenshots of the vizplotgui_tool.py script in action for
 different visualization package options.  Click to see larger images:</p>
-<a data-lightbox="group-18a49424-552b-4e40-84e6-3c68f302c35c"
+<a data-lightbox="group-abad215d-0434-41e2-bc11-9f41aac64349"
                    href="_images/screenshot_gl.jpg"
                    class=""
                    title=""
@@ -847,7 +860,7 @@ different visualization package options.  Click to see larger images:</p>
                     width="25%"
                     height="auto"
                     alt=""/>
-                    </a><a data-lightbox="group-2b79ab21-07b7-47a3-81c3-94a3021a26e0"
+                    </a><a data-lightbox="group-0060607e-2e72-4d15-a243-c7e743159460"
                    href="_images/screenshot_atomeye.jpg"
                    class=""
                    title=""
@@ -857,7 +870,7 @@ different visualization package options.  Click to see larger images:</p>
                     width="25%"
                     height="auto"
                     alt=""/>
-                    </a><a data-lightbox="group-f4ded497-3be9-4ca3-99ca-0b3b2731bb5b"
+                    </a><a data-lightbox="group-678e5623-6cd3-4bcb-8ec4-1ca57392d6d8"
                    href="_images/screenshot_pymol.jpg"
                    class=""
                    title=""
@@ -867,7 +880,7 @@ different visualization package options.  Click to see larger images:</p>
                     width="25%"
                     height="auto"
                     alt=""/>
-                    </a><a data-lightbox="group-0c7ab672-9c97-4a40-b3ac-1a55870e2905"
+                    </a><a data-lightbox="group-ca92cc6f-e5c3-492e-a2da-af16743cbf57"
                    href="_images/screenshot_vmd.jpg"
                    class=""
                    title=""
@@ -884,6 +897,15 @@ different visualization package options.  Click to see larger images:</p>
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_errors.html" class="btn btn-neutral float-right" title="12. Errors" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_modify.html" class="btn btn-neutral" title="10. Modifying &amp; extending LAMMPS" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

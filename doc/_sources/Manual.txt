@@ -71,7 +71,7 @@ it gives quick access to documentation for all LAMMPS commands.
 
 .. toctree::
    :maxdepth: 2
-   :numbered: // comment
+   :numbered:
    
    Section_intro
    Section_start
@@ -91,8 +91,8 @@ it gives quick access to documentation for all LAMMPS commands.
 Indices and tables
 ==================
 
-* :ref:`genindex` // comment
-* :ref:`search` // comment
+* :ref:`genindex`
+* :ref:`search`
    
 .. raw:: html
 

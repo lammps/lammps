@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Packages &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>4. Packages &mdash; LAMMPS 15 May 2015 version documentation</title>
   
 
   
@@ -32,7 +32,9 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+        <link rel="next" title="5. Accelerating LAMMPS performance" href="Section_accelerate.html"/>
+        <link rel="prev" title="3. Commands" href="Section_commands.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,34 +73,45 @@
         
           
           
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Packages</a><ul>
-<li><a class="reference internal" href="#standard-packages">Standard packages</a></li>
-<li><a class="reference internal" href="#user-packages">User packages</a></li>
-<li><a class="reference internal" href="#user-atc-package">USER-ATC package</a></li>
-<li><a class="reference internal" href="#user-awpmd-package">USER-AWPMD package</a></li>
-<li><a class="reference internal" href="#user-cg-cmm-package">USER-CG-CMM package</a></li>
-<li><a class="reference internal" href="#user-colvars-package">USER-COLVARS package</a></li>
-<li><a class="reference internal" href="#user-cuda-package">USER-CUDA package</a></li>
-<li><a class="reference internal" href="#user-diffraction-package">USER-DIFFRACTION package</a></li>
-<li><a class="reference internal" href="#user-drude-package">USER-DRUDE package</a></li>
-<li><a class="reference internal" href="#user-eff-package">USER-EFF package</a></li>
-<li><a class="reference internal" href="#user-fep-package">USER-FEP package</a></li>
-<li><a class="reference internal" href="#user-intel-package">USER-INTEL package</a></li>
-<li><a class="reference internal" href="#user-lb-package">USER-LB package</a></li>
-<li><a class="reference internal" href="#user-misc-package">USER-MISC package</a></li>
-<li><a class="reference internal" href="#user-molfile-package">USER-MOLFILE package</a></li>
-<li><a class="reference internal" href="#user-omp-package">USER-OMP package</a></li>
-<li><a class="reference internal" href="#user-phonon-package">USER-PHONON package</a></li>
-<li><a class="reference internal" href="#user-qmmm-package">USER-QMMM package</a></li>
-<li><a class="reference internal" href="#user-qtb-package">USER-QTB package</a></li>
-<li><a class="reference internal" href="#user-reaxc-package">USER-REAXC package</a></li>
-<li><a class="reference internal" href="#user-sph-package">USER-SPH package</a></li>
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">4. Packages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#standard-packages">4.1. Standard packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-packages">4.2. User packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-atc-package">4.3. USER-ATC package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-awpmd-package">4.4. USER-AWPMD package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-cg-cmm-package">4.5. USER-CG-CMM package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-colvars-package">4.6. USER-COLVARS package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-cuda-package">4.7. USER-CUDA package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-diffraction-package">4.8. USER-DIFFRACTION package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-drude-package">4.9. USER-DRUDE package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-eff-package">4.10. USER-EFF package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-fep-package">4.11. USER-FEP package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-intel-package">4.12. USER-INTEL package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-lb-package">4.13. USER-LB package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-misc-package">4.14. USER-MISC package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-molfile-package">4.15. USER-MOLFILE package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-omp-package">4.16. USER-OMP package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-phonon-package">4.17. USER-PHONON package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-qmmm-package">4.18. USER-QMMM package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-qtb-package">4.19. USER-QTB package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-reaxc-package">4.20. USER-REAXC package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-sph-package">4.21. USER-SPH package</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-</div>
+
           
         
       </div>
@@ -121,7 +134,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>Packages</li>
+    <li>4. Packages</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -136,7 +149,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="packages">
-<h1>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h1>
+<h1>4. Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h1>
 <p>This section gives a quick overview of the add-on packages that extend
 LAMMPS functionality.</p>
 <div class="line-block">
@@ -157,7 +170,7 @@ between standard packages and user packages in LAMMPS.</p>
 standard packages, just a one-line description is given.  For user
 packages, more details are provided.</p>
 <div class="section" id="standard-packages">
-<span id="pkg-1"></span><h2>Standard packages<a class="headerlink" href="#standard-packages" title="Permalink to this headline">¶</a></h2>
+<span id="pkg-1"></span><h2>4.1. Standard packages<a class="headerlink" href="#standard-packages" title="Permalink to this headline">¶</a></h2>
 <p>The current list of standard packages is as follows:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -539,7 +552,7 @@ info on where to download the library.  <a class="reference internal" href="Sect
 on how to build LAMMPS with both kinds of auxiliary libraries.</p>
 </div>
 <div class="section" id="user-packages">
-<span id="pkg-2"></span><h2>User packages<a class="headerlink" href="#user-packages" title="Permalink to this headline">¶</a></h2>
+<span id="pkg-2"></span><h2>4.2. User packages<a class="headerlink" href="#user-packages" title="Permalink to this headline">¶</a></h2>
 <p>The current list of user-contributed packages is as follows:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -863,7 +876,7 @@ below.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-atc-package">
-<h2>USER-ATC package<a class="headerlink" href="#user-atc-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.3. USER-ATC package<a class="headerlink" href="#user-atc-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements a &#8220;fix atc&#8221; command which can be used in a
 LAMMPS input script.  This fix can be employed to either do concurrent
 coupling of MD with FE-based physics surrogates or on-the-fly
@@ -883,7 +896,7 @@ you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-awpmd-package">
-<h2>USER-AWPMD package<a class="headerlink" href="#user-awpmd-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.4. USER-AWPMD package<a class="headerlink" href="#user-awpmd-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a LAMMPS implementation of the Antisymmetrized
 Wave Packet Molecular Dynamics (AWPMD) method.</p>
 <p>See the doc page for the pair_style awpmd/cut command to get started.</p>
@@ -898,7 +911,7 @@ have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-cg-cmm-package">
-<h2>USER-CG-CMM package<a class="headerlink" href="#user-cg-cmm-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.5. USER-CG-CMM package<a class="headerlink" href="#user-cg-cmm-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements 3 commands which can be used in a LAMMPS input
 script:</p>
 <ul class="simple">
@@ -933,7 +946,7 @@ simulation systems.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-colvars-package">
-<h2>USER-COLVARS package<a class="headerlink" href="#user-colvars-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.6. USER-COLVARS package<a class="headerlink" href="#user-colvars-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements the &#8220;fix colvars&#8221; command which can be
 used in a LAMMPS input script.</p>
 <p>This fix allows to use &#8220;collective variables&#8221; to implement
@@ -962,7 +975,7 @@ beta quality.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-cuda-package">
-<h2>USER-CUDA package<a class="headerlink" href="#user-cuda-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.7. USER-CUDA package<a class="headerlink" href="#user-cuda-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides acceleration of various LAMMPS pair styles, fix
 styles, compute styles, and long-range Coulombics via PPPM for NVIDIA
 GPUs.</p>
@@ -980,7 +993,7 @@ tu-ilmenau.de).  Contact him directly if you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-diffraction-package">
-<h2>USER-DIFFRACTION package<a class="headerlink" href="#user-diffraction-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.8. USER-DIFFRACTION package<a class="headerlink" href="#user-diffraction-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains the commands neeed to calculate x-ray and
 electron diffraction intensities based on kinematic diffraction
 theory.</p>
@@ -996,7 +1009,7 @@ Arkansas.  Contact him directly if you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-drude-package">
-<h2>USER-DRUDE package<a class="headerlink" href="#user-drude-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.9. USER-DRUDE package<a class="headerlink" href="#user-drude-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements methods for simulating polarizable systems
 in LAMMPS using thermalized Drude oscillators.</p>
 <p>See these doc pages and their related commands to get started:</p>
@@ -1016,7 +1029,7 @@ Agilio Padua.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-eff-package">
-<h2>USER-EFF package<a class="headerlink" href="#user-eff-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.10. USER-EFF package<a class="headerlink" href="#user-eff-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a LAMMPS implementation of the electron Force
 Field (eFF) currently under development at Caltech, as described in
 A. Jaramillo-Botero, J. Su, Q. An, and W.A. Goddard III, JCC,
@@ -1050,7 +1063,7 @@ have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-fep-package">
-<h2>USER-FEP package<a class="headerlink" href="#user-fep-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.11. USER-FEP package<a class="headerlink" href="#user-fep-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides methods for performing free energy perturbation
 simulations with soft-core pair potentials in LAMMPS.</p>
 <p>See these doc pages and their related commands to get started:</p>
@@ -1065,7 +1078,7 @@ Contact him directly if you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-intel-package">
-<h2>USER-INTEL package<a class="headerlink" href="#user-intel-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.12. USER-INTEL package<a class="headerlink" href="#user-intel-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides options for performing neighbor list and
 non-bonded force calculations in single, mixed, or double precision
 and also a capability for accelerating calculations with an
@@ -1077,7 +1090,7 @@ Intel(R) Xeon Phi(TM) coprocessor.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-lb-package">
-<h2>USER-LB package<a class="headerlink" href="#user-lb-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.13. USER-LB package<a class="headerlink" href="#user-lb-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a LAMMPS implementation of a background
 Lattice-Boltzmann fluid, which can be used to model MD particles
 influenced by hydrodynamic forces.</p>
@@ -1089,7 +1102,7 @@ Western Ontario.  Contact them directly if you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-misc-package">
-<h2>USER-MISC package<a class="headerlink" href="#user-misc-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.14. USER-MISC package<a class="headerlink" href="#user-misc-package" title="Permalink to this headline">¶</a></h2>
 <p>The files in this package are a potpourri of (mostly) unrelated
 features contributed to LAMMPS by users.  Each feature is a single
 pair of files (<a href="#id3"><span class="problematic" id="id4">*</span></a>.cpp and <a href="#id5"><span class="problematic" id="id6">*</span></a>.h).</p>
@@ -1106,7 +1119,7 @@ about the feature or its coding.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-molfile-package">
-<h2>USER-MOLFILE package<a class="headerlink" href="#user-molfile-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.15. USER-MOLFILE package<a class="headerlink" href="#user-molfile-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a dump molfile command which uses molfile
 plugins that are bundled with the
 <a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a> molecular visualization and
@@ -1125,7 +1138,7 @@ application itself.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-omp-package">
-<h2>USER-OMP package<a class="headerlink" href="#user-omp-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.16. USER-OMP package<a class="headerlink" href="#user-omp-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides OpenMP multi-threading support and
 other optimizations of various LAMMPS pair styles, dihedral
 styles, and fix styles.</p>
@@ -1136,7 +1149,7 @@ styles, and fix styles.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-phonon-package">
-<h2>USER-PHONON package<a class="headerlink" href="#user-phonon-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.17. USER-PHONON package<a class="headerlink" href="#user-phonon-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a fix phonon command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.</p>
@@ -1148,7 +1161,7 @@ if you have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-qmmm-package">
-<h2>USER-QMMM package<a class="headerlink" href="#user-qmmm-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.18. USER-QMMM package<a class="headerlink" href="#user-qmmm-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides a fix qmmm command which allows LAMMPS to be
 used in a QM/MM simulation, currently only in combination with pw.x
 code from the <a class="reference external" href="http://www.quantum-espresso.org">Quantum ESPRESSO</a> package.</p>
@@ -1165,7 +1178,7 @@ without changes to LAMMPS itself.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-qtb-package">
-<h2>USER-QTB package<a class="headerlink" href="#user-qtb-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.19. USER-QTB package<a class="headerlink" href="#user-qtb-package" title="Permalink to this headline">¶</a></h2>
 <p>This package provides a self-consistent quantum treatment of the
 vibrational modes in a classical molecular dynamics simulation.  By
 coupling the MD simulation to a colored thermostat, it introduces zero
@@ -1187,7 +1200,7 @@ have questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-reaxc-package">
-<h2>USER-REAXC package<a class="headerlink" href="#user-reaxc-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.20. USER-REAXC package<a class="headerlink" href="#user-reaxc-package" title="Permalink to this headline">¶</a></h2>
 <p>This package contains a implementation for LAMMPS of the ReaxFF force
 field.  ReaxFF uses distance-dependent bond-order functions to
 represent the contributions of chemical bonding to the potential
@@ -1215,7 +1228,7 @@ questions.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="user-sph-package">
-<h2>USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h2>
+<h2>4.21. USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h2>
 <p>This package implements smoothed particle hydrodynamics (SPH) in
 LAMMPS.  Currently, the package has the following features:</p>
 <ul class="simple">
@@ -1241,6 +1254,15 @@ you have questions.</p>
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_accelerate.html" class="btn btn-neutral float-right" title="5. Accelerating LAMMPS performance" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_commands.html" class="btn btn-neutral" title="3. Commands" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Commands &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>3. Commands &mdash; LAMMPS 15 May 2015 version documentation</title>
   
 
   
@@ -32,7 +32,9 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+        <link rel="next" title="4. Packages" href="Section_packages.html"/>
+        <link rel="prev" title="2. Getting Started" href="Section_start.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,26 +73,37 @@
         
           
           
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Commands</a><ul>
-<li><a class="reference internal" href="#lammps-input-script">LAMMPS input script</a></li>
-<li><a class="reference internal" href="#parsing-rules">Parsing rules</a></li>
-<li><a class="reference internal" href="#input-script-structure">Input script structure</a></li>
-<li><a class="reference internal" href="#commands-listed-by-category">Commands listed by category</a></li>
-<li><a class="reference internal" href="#individual-commands">Individual commands</a></li>
-<li><a class="reference internal" href="#fix-styles">Fix styles</a></li>
-<li><a class="reference internal" href="#compute-styles">Compute styles</a></li>
-<li><a class="reference internal" href="#pair-style-potentials">Pair_style potentials</a></li>
-<li><a class="reference internal" href="#bond-style-potentials">Bond_style potentials</a></li>
-<li><a class="reference internal" href="#angle-style-potentials">Angle_style potentials</a></li>
-<li><a class="reference internal" href="#dihedral-style-potentials">Dihedral_style potentials</a></li>
-<li><a class="reference internal" href="#improper-style-potentials">Improper_style potentials</a></li>
-<li><a class="reference internal" href="#kspace-solvers">Kspace solvers</a></li>
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">3. Commands</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#lammps-input-script">3.1. LAMMPS input script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parsing-rules">3.2. Parsing rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#input-script-structure">3.3. Input script structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#commands-listed-by-category">3.4. Commands listed by category</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#individual-commands">3.5. Individual commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-styles">3.6. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compute-styles">3.7. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pair-style-potentials">3.8. Pair_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bond-style-potentials">3.9. Bond_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#angle-style-potentials">3.10. Angle_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dihedral-style-potentials">3.11. Dihedral_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#improper-style-potentials">3.12. Improper_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kspace-solvers">3.13. Kspace solvers</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-</div>
+
           
         
       </div>
@@ -113,7 +126,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>Commands</li>
+    <li>3. Commands</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -128,7 +141,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="commands">
-<h1>Commands<a class="headerlink" href="#commands" title="Permalink to this headline">¶</a></h1>
+<h1>3. Commands<a class="headerlink" href="#commands" title="Permalink to this headline">¶</a></h1>
 <p>This section describes how a LAMMPS input script is formatted and the
 input script commands used to define a LAMMPS simulation.</p>
 <div class="line-block">
@@ -140,7 +153,7 @@ input script commands used to define a LAMMPS simulation.</p>
 <div class="line"><br /></div>
 </div>
 <div class="section" id="lammps-input-script">
-<span id="cmd-1"></span><h2>LAMMPS input script<a class="headerlink" href="#lammps-input-script" title="Permalink to this headline">¶</a></h2>
+<span id="cmd-1"></span><h2>3.1. LAMMPS input script<a class="headerlink" href="#lammps-input-script" title="Permalink to this headline">¶</a></h2>
 <p>LAMMPS executes by reading commands from a input script (text file),
 one line at a time.  When the input script ends, LAMMPS exits.  Each
 command causes LAMMPS to take some action.  It may set an internal
@@ -187,7 +200,7 @@ command lists restrictions on how the command can be used.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="parsing-rules">
-<span id="cmd-2"></span><h2>Parsing rules<a class="headerlink" href="#parsing-rules" title="Permalink to this headline">¶</a></h2>
+<span id="cmd-2"></span><h2>3.2. Parsing rules<a class="headerlink" href="#parsing-rules" title="Permalink to this headline">¶</a></h2>
 <p>Each non-blank line in the input script is treated as a command.
 LAMMPS commands are case sensitive.  Command names are lower-case, as
 are specified command arguments.  Upper case letters may be used in
@@ -291,7 +304,7 @@ allowed, but that should be sufficient for most use cases.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="input-script-structure">
-<span id="cmd-3"></span><h2>Input script structure<a class="headerlink" href="#input-script-structure" title="Permalink to this headline">¶</a></h2>
+<span id="cmd-3"></span><h2>3.3. Input script structure<a class="headerlink" href="#input-script-structure" title="Permalink to this headline">¶</a></h2>
 <p>This section describes the structure of a typical LAMMPS input script.
 The &#8220;examples&#8221; directory in the LAMMPS distribution contains many
 sample input scripts; the corresponding problems are discussed in
@@ -370,7 +383,7 @@ the <a class="reference internal" href="minimize.html"><em>minimize</em></a> com
 <hr class="docutils" />
 </div>
 <div class="section" id="commands-listed-by-category">
-<span id="cmd-4"></span><h2>Commands listed by category<a class="headerlink" href="#commands-listed-by-category" title="Permalink to this headline">¶</a></h2>
+<span id="cmd-4"></span><h2>3.4. Commands listed by category<a class="headerlink" href="#commands-listed-by-category" title="Permalink to this headline">¶</a></h2>
 <p>This section lists all LAMMPS commands, grouped by category.  The
 <a class="reference internal" href="#cmd-5"><span>next section</span></a> lists the same commands alphabetically.  Note
 that some style options for some commands are part of specific LAMMPS
@@ -429,7 +442,7 @@ in the command&#8217;s documentation.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="individual-commands">
-<span id="comm"></span><span id="cmd-5"></span><h2>Individual commands<a class="headerlink" href="#individual-commands" title="Permalink to this headline">¶</a></h2>
+<span id="comm"></span><span id="cmd-5"></span><h2>3.5. Individual commands<a class="headerlink" href="#individual-commands" title="Permalink to this headline">¶</a></h2>
 <p>This section lists all LAMMPS commands alphabetically, with a separate
 listing below of styles within certain commands.  The <a class="reference internal" href="#cmd-4"><span>previous section</span></a> lists the same commands, grouped by category.  Note
 that some style options for some commands are part of specific LAMMPS
@@ -575,7 +588,7 @@ in the command&#8217;s documentation.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="fix-styles">
-<h2>Fix styles<a class="headerlink" href="#fix-styles" title="Permalink to this headline">¶</a></h2>
+<h2>3.6. Fix styles<a class="headerlink" href="#fix-styles" title="Permalink to this headline">¶</a></h2>
 <p>See the <a class="reference internal" href="fix.html"><em>fix</em></a> command for one-line descriptions of each style
 or click on the style itself for a full description.  Some of the
 styles have accelerated versions, which can be used if LAMMPS is built
@@ -797,7 +810,7 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="compute-styles">
-<h2>Compute styles<a class="headerlink" href="#compute-styles" title="Permalink to this headline">¶</a></h2>
+<h2>3.7. Compute styles<a class="headerlink" href="#compute-styles" title="Permalink to this headline">¶</a></h2>
 <p>See the <a class="reference internal" href="compute.html"><em>compute</em></a> command for one-line descriptions of
 each style or click on the style itself for a full description.  Some
 of the styles have accelerated versions, which can be used if LAMMPS
@@ -931,7 +944,7 @@ used if <a class="reference internal" href="Section_start.html#start-3"><span>LA
 </div>
 <hr class="docutils" />
 <div class="section" id="pair-style-potentials">
-<h2>Pair_style potentials<a class="headerlink" href="#pair-style-potentials" title="Permalink to this headline">¶</a></h2>
+<h2>3.8. Pair_style potentials<a class="headerlink" href="#pair-style-potentials" title="Permalink to this headline">¶</a></h2>
 <p>See the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> command for an overview of pair
 potentials.  Click on the style itself for a full description.  Many
 of the styles have accelerated versions, which can be used if LAMMPS
@@ -1143,7 +1156,7 @@ if <a class="reference internal" href="Section_start.html#start-3"><span>LAMMPS 
 </div>
 <hr class="docutils" />
 <div class="section" id="bond-style-potentials">
-<h2>Bond_style potentials<a class="headerlink" href="#bond-style-potentials" title="Permalink to this headline">¶</a></h2>
+<h2>3.9. Bond_style potentials<a class="headerlink" href="#bond-style-potentials" title="Permalink to this headline">¶</a></h2>
 <p>See the <a class="reference internal" href="bond_style.html"><em>bond_style</em></a> command for an overview of bond
 potentials.  Click on the style itself for a full description.  Some
 of the styles have accelerated versions, which can be used if LAMMPS
@@ -1191,7 +1204,7 @@ if <a class="reference internal" href="Section_start.html#start-3"><span>LAMMPS 
 </div>
 <hr class="docutils" />
 <div class="section" id="angle-style-potentials">
-<h2>Angle_style potentials<a class="headerlink" href="#angle-style-potentials" title="Permalink to this headline">¶</a></h2>
+<h2>3.10. Angle_style potentials<a class="headerlink" href="#angle-style-potentials" title="Permalink to this headline">¶</a></h2>
 <p>See the <a class="reference internal" href="angle_style.html"><em>angle_style</em></a> command for an overview of
 angle potentials.  Click on the style itself for a full description.
 Some of the styles have accelerated versions, which can be used if
@@ -1248,7 +1261,7 @@ if <a class="reference internal" href="Section_start.html#start-3"><span>LAMMPS 
 </div>
 <hr class="docutils" />
 <div class="section" id="dihedral-style-potentials">
-<h2>Dihedral_style potentials<a class="headerlink" href="#dihedral-style-potentials" title="Permalink to this headline">¶</a></h2>
+<h2>3.11. Dihedral_style potentials<a class="headerlink" href="#dihedral-style-potentials" title="Permalink to this headline">¶</a></h2>
 <p>See the <a class="reference internal" href="dihedral_style.html"><em>dihedral_style</em></a> command for an overview
 of dihedral potentials.  Click on the style itself for a full
 description.  Some of the styles have accelerated versions, which can
@@ -1300,7 +1313,7 @@ used if <a class="reference internal" href="Section_start.html#start-3"><span>LA
 </div>
 <hr class="docutils" />
 <div class="section" id="improper-style-potentials">
-<h2>Improper_style potentials<a class="headerlink" href="#improper-style-potentials" title="Permalink to this headline">¶</a></h2>
+<h2>3.12. Improper_style potentials<a class="headerlink" href="#improper-style-potentials" title="Permalink to this headline">¶</a></h2>
 <p>See the <a class="reference internal" href="improper_style.html"><em>improper_style</em></a> command for an overview
 of improper potentials.  Click on the style itself for a full
 description.  Some of the styles have accelerated versions, which can
@@ -1345,7 +1358,7 @@ used if <a class="reference internal" href="Section_start.html#start-3"><span>LA
 </div>
 <hr class="docutils" />
 <div class="section" id="kspace-solvers">
-<h2>Kspace solvers<a class="headerlink" href="#kspace-solvers" title="Permalink to this headline">¶</a></h2>
+<h2>3.13. Kspace solvers<a class="headerlink" href="#kspace-solvers" title="Permalink to this headline">¶</a></h2>
 <p>See the <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command for an overview of
 Kspace solvers.  Click on the style itself for a full description.
 Some of the styles have accelerated versions, which can be used if
@@ -1384,6 +1397,15 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_packages.html" class="btn btn-neutral float-right" title="4. Packages" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_start.html" class="btn btn-neutral" title="2. Getting Started" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

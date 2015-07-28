@@ -1,279 +1,428 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>minimize command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>minimize command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>minimize etol ftol maxiter maxeval 
-</PRE>
-<UL><LI>etol = stopping tolerance for energy (unitless)
-<LI>ftol = stopping tolerance for force (force units)
-<LI>maxiter = max iterations of minimizer
-<LI>maxeval = max number of force/energy evaluations 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>minimize 1.0e-4 1.0e-6 100 1000
-minimize 0.0 1.0e-8 1000 100000 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Perform an energy minimization of the system, by iteratively adjusting
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>minimize command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="minimize-command">
+<span id="index-0"></span><h1>minimize command<a class="headerlink" href="#minimize-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>minimize etol ftol maxiter maxeval
+</pre></div>
+</div>
+<ul class="simple">
+<li>etol = stopping tolerance for energy (unitless)</li>
+<li>ftol = stopping tolerance for force (force units)</li>
+<li>maxiter = max iterations of minimizer</li>
+<li>maxeval = max number of force/energy evaluations</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>minimize 1.0e-4 1.0e-6 100 1000
+minimize 0.0 1.0e-8 1000 100000
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Perform an energy minimization of the system, by iteratively adjusting
 atom coordinates.  Iterations are terminated when one of the stopping
 criteria is satisfied.  At that point the configuration will hopefully
 be in local potential energy minimum.  More precisely, the
 configuration should approximate a critical point for the objective
-function (see below), which may or may not be a local minimum.
-</P>
-<P>The minimization algorithm used is set by the
-<A HREF = "min_style.html">min_style</A> command.  Other options are set by the
-<A HREF = "min_modify.html">min_modify</A> command.  Minimize commands can be
-interspersed with <A HREF = "run.html">run</A> commands to alternate between
+function (see below), which may or may not be a local minimum.</p>
+<p>The minimization algorithm used is set by the
+<a class="reference internal" href="min_style.html"><em>min_style</em></a> command.  Other options are set by the
+<a class="reference internal" href="min_modify.html"><em>min_modify</em></a> command.  Minimize commands can be
+interspersed with <a class="reference internal" href="run.html"><em>run</em></a> commands to alternate between
 relaxation and dynamics.  The minimizers bound the distance atoms move
 in one iteration, so that you can relax systems with highly overlapped
 atoms (large energies and forces) by pushing the atoms off of each
-other.
-</P>
-<P>Alternate means of relaxing a system are to run dynamics with a small
-or <A HREF = "fix_nve_limit.html">limited timestep</A>.  Or dynamics can be run
-using <A HREF = "fix_viscous.html">fix viscous</A> to impose a damping force that
-slowly drains all kinetic energy from the system.  The <A HREF = "pair_soft.html">pair_style
-soft</A> potential can be used to un-overlap atoms while
-running dynamics.
-</P>
-<P>Note that you can minimize some atoms in the system while holding the
-coordiates of other atoms fixed by applying <A HREF = "fix_setforce.html">fix
-setforce</A> to the other atoms.  See a fuller
-discussion of using fixes while minimizing below.
-</P>
-<P>The <A HREF = "min_style.html">minimization styles</A> <I>cg</I>, <I>sd</I>, and <I>hftn</I>
+other.</p>
+<p>Alternate means of relaxing a system are to run dynamics with a small
+or <a class="reference internal" href="fix_nve_limit.html"><em>limited timestep</em></a>.  Or dynamics can be run
+using <a class="reference internal" href="fix_viscous.html"><em>fix viscous</em></a> to impose a damping force that
+slowly drains all kinetic energy from the system.  The <a class="reference internal" href="pair_soft.html"><em>pair_style soft</em></a> potential can be used to un-overlap atoms while
+running dynamics.</p>
+<p>Note that you can minimize some atoms in the system while holding the
+coordiates of other atoms fixed by applying <a class="reference internal" href="fix_setforce.html"><em>fix setforce</em></a> to the other atoms.  See a fuller
+discussion of using fixes while minimizing below.</p>
+<p>The <a class="reference internal" href="min_style.html"><em>minimization styles</em></a> <em>cg</em>, <em>sd</em>, and <em>hftn</em>
 involves an outer iteration loop which sets the search direction along
 which atom coordinates are changed.  An inner iteration is then
 performed using a line search algorithm.  The line search typically
 evaluates forces and energies several times to set new coordinates.
 Currently, a backtracking algorithm is used which may not be optimal
 in terms of the number of force evaulations performed, but appears to
-be more robust than previous line searches we've tried.  The
-backtracking method is described in Nocedal and Wright's Numerical
-Optimization (Procedure 3.1 on p 41).
-</P>
-<P>The <A HREF = "min_style.html">minimization styles</A> <I>quickmin</I> and <I>fire</I> perform
+be more robust than previous line searches we&#8217;ve tried.  The
+backtracking method is described in Nocedal and Wright&#8217;s Numerical
+Optimization (Procedure 3.1 on p 41).</p>
+<p>The <a class="reference internal" href="min_style.html"><em>minimization styles</em></a> <em>quickmin</em> and <em>fire</em> perform
 damped dynamics using an Euler integration step.  Thus they require a
-<A HREF = "timestep.html">timestep</A> be defined.
-</P>
-<P>IMPORTANT NOTE: The damped dynamic minimizers use whatever timestep
-you have defined via the <A HREF = "timestep.html">timestep</A> command.  Often they
+<a class="reference internal" href="timestep.html"><em>timestep</em></a> be defined.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The damped dynamic minimizers use whatever timestep
+you have defined via the <a class="reference internal" href="timestep.html"><em>timestep</em></a> command.  Often they
 will converge more quickly if you use a timestep about 10x larger than
-you would normally use for dynamics simulations.
-</P>
-<HR>
-
-<P>In all cases, the objective function being minimized is the total
+you would normally use for dynamics simulations.</p>
+</div>
+<hr class="docutils" />
+<p>In all cases, the objective function being minimized is the total
 potential energy of the system as a function of the N atom
-coordinates:
-</P>
-<CENTER><IMG SRC = "Eqs/min_energy.jpg">
-</CENTER>
-<P>where the first term is the sum of all non-bonded <A HREF = "pair_style.html">pairwise
-interactions</A> including <A HREF = "kspace_style.html">long-range Coulombic
-interactions</A>, the 2nd thru 5th terms are
-<A HREF = "bond_style.html">bond</A>, <A HREF = "angle_style.html">angle</A>,
-<A HREF = "dihedral_style.html">dihedral</A>, and <A HREF = "improper_style.html">improper</A>
+coordinates:</p>
+<img alt="_images/min_energy.jpg" class="align-center" src="_images/min_energy.jpg" />
+<p>where the first term is the sum of all non-bonded <a class="reference internal" href="pair_style.html"><em>pairwise interactions</em></a> including <a class="reference internal" href="kspace_style.html"><em>long-range Coulombic interactions</em></a>, the 2nd thru 5th terms are
+<a class="reference internal" href="bond_style.html"><em>bond</em></a>, <a class="reference internal" href="angle_style.html"><em>angle</em></a>,
+<a class="reference internal" href="dihedral_style.html"><em>dihedral</em></a>, and <a class="reference internal" href="improper_style.html"><em>improper</em></a>
 interactions respectively, and the last term is energy due to
-<A HREF = "fix.html">fixes</A> which can act as constraints or apply force to atoms,
+<a class="reference internal" href="fix.html"><em>fixes</em></a> which can act as constraints or apply force to atoms,
 such as thru interaction with a wall.  See the discussion below about
-how fix commands affect minimization.
-</P>
-<P>The starting point for the minimization is the current configuration
-of the atoms.
-</P>
-<HR>
-
-<P>The minimization procedure stops if any of several criteria are met:
-</P>
-<UL><LI>the change in energy between outer iterations is less than <I>etol</I>
-<LI>the 2-norm (length) of the global force vector is less than the <I>ftol</I>
-<LI>the line search fails because the step distance backtracks to 0.0
-<LI>the number of outer iterations or timesteps exceeds <I>maxiter</I>
-<LI>the number of total force evaluations exceeds <I>maxeval</I> 
-</UL>
-<P>For the first criterion, the specified energy tolerance <I>etol</I> is
+how fix commands affect minimization.</p>
+<p>The starting point for the minimization is the current configuration
+of the atoms.</p>
+<hr class="docutils" />
+<p>The minimization procedure stops if any of several criteria are met:</p>
+<ul class="simple">
+<li>the change in energy between outer iterations is less than <em>etol</em></li>
+<li>the 2-norm (length) of the global force vector is less than the <em>ftol</em></li>
+<li>the line search fails because the step distance backtracks to 0.0</li>
+<li>the number of outer iterations or timesteps exceeds <em>maxiter</em></li>
+<li>the number of total force evaluations exceeds <em>maxeval</em></li>
+</ul>
+<p>For the first criterion, the specified energy tolerance <em>etol</em> is
 unitless; it is met when the energy change between successive
 iterations divided by the energy magnitude is less than or equal to
-the tolerance.  For example, a setting of 1.0e-4 for <I>etol</I> means an
+the tolerance.  For example, a setting of 1.0e-4 for <em>etol</em> means an
 energy tolerance of one part in 10^4.  For the damped dynamics
 minimizers this check is not performed for a few steps after
 velocities are reset to 0, otherwise the minimizer would prematurely
-converge.
-</P>
-<P>For the second criterion, the specified force tolerance <I>ftol</I> is in
+converge.</p>
+<p>For the second criterion, the specified force tolerance <em>ftol</em> is in
 force units, since it is the length of the global force vector for all
 atoms, e.g. a vector of size 3N for N atoms.  Since many of the
 components will be near zero after minimization, you can think of
-<I>ftol</I> as an upper bound on the final force on any component of any
-atom.  For example, a setting of 1.0e-4 for <I>ftol</I> means no x, y, or z
+<em>ftol</em> as an upper bound on the final force on any component of any
+atom.  For example, a setting of 1.0e-4 for <em>ftol</em> means no x, y, or z
 component of force on any atom will be larger than 1.0e-4 (in force
-units) after minimization.
-</P>
-<P>Either or both of the <I>etol</I> and <I>ftol</I> values can be set to 0.0, in
-which case some other criterion will terminate the minimization.
-</P>
-<P>During a minimization, the outer iteration count is treated as a
+units) after minimization.</p>
+<p>Either or both of the <em>etol</em> and <em>ftol</em> values can be set to 0.0, in
+which case some other criterion will terminate the minimization.</p>
+<p>During a minimization, the outer iteration count is treated as a
 timestep.  Output is triggered by this timestep, e.g. thermodynamic
-output or dump and restart files.
-</P>
-<P>Using the <A HREF = "thermo_style.html">thermo_style custom</A> command with the
-<I>fmax</I> or <I>fnorm</I> keywords can be useful for monitoring the progress
+output or dump and restart files.</p>
+<p>Using the <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> command with the
+<em>fmax</em> or <em>fnorm</em> keywords can be useful for monitoring the progress
 of the minimization.  Note that these outputs will be calculated only
 from forces on the atoms, and will not include any extra degrees of
-freedom, such as from the <A HREF = "fix_box_relax.html">fix box/relax</A> command.
-</P>
-<P>Following minimization, a statistical summary is printed that lists
+freedom, such as from the <a class="reference internal" href="fix_box_relax.html"><em>fix box/relax</em></a> command.</p>
+<p>Following minimization, a statistical summary is printed that lists
 which convergence criterion caused the minimizer to stop, as well as
 information about the energy, force, final line search, and
-iteration counts.  An example is as follows:
-</P>
-<PRE>Minimization stats:
+iteration counts.  An example is as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>Minimization stats:
   Stopping criterion = max iterations
-  Energy initial, next-to-last, final = 
+  Energy initial, next-to-last, final =
        -0.626828169302     -2.82642039062     -2.82643549739
   Force two-norm initial, final = 2052.1 91.9642
   Force max component initial, final = 346.048 9.78056
   Final line search alpha, max atom move = 2.23899e-06 2.18986e-05
-  Iterations, force evaluations = 2000 12724 
-</PRE>
-<P>The 3 energy values are for before and after the minimization and on
-the next-to-last iteration.  This is what the <I>etol</I> parameter checks.
-</P>
-<P>The two-norm force values are the length of the global force vector
-before and after minimization.  This is what the <I>ftol</I> parameter
-checks.
-</P>
-<P>The max-component force values are the absolute value of the largest
+  Iterations, force evaluations = 2000 12724
+</pre></div>
+</div>
+<p>The 3 energy values are for before and after the minimization and on
+the next-to-last iteration.  This is what the <em>etol</em> parameter checks.</p>
+<p>The two-norm force values are the length of the global force vector
+before and after minimization.  This is what the <em>ftol</em> parameter
+checks.</p>
+<p>The max-component force values are the absolute value of the largest
 component (x,y,z) in the global force vector, i.e. the infinity-norm
-of the force vector.
-</P>
-<P>The alpha parameter for the line-search, when multiplied by the max
+of the force vector.</p>
+<p>The alpha parameter for the line-search, when multiplied by the max
 force component (on the last iteration), gives the max distance any
 atom moved during the last iteration.  Alpha will be 0.0 if the line
 search could not reduce the energy.  Even if alpha is non-zero, if the
-"max atom move" distance is tiny compared to typical atom coordinates,
+&#8220;max atom move&#8221; distance is tiny compared to typical atom coordinates,
 then it is possible the last iteration effectively caused no atom
 movement and thus the evaluated energy did not change and the
 minimizer terminated.  Said another way, even with non-zero forces,
-it's possible the effect of those forces is to move atoms a distance
+it&#8217;s possible the effect of those forces is to move atoms a distance
 less than machine precision, so that the energy cannot be further
-reduced.
-</P>
-<P>The iterations and force evaluation values are what is checked by the
-<I>maxiter</I> and <I>maxeval</I> parameters.
-</P>
-<HR>
-
-<P>IMPORTANT NOTE: There are several force fields in LAMMPS which have
+reduced.</p>
+<p>The iterations and force evaluation values are what is checked by the
+<em>maxiter</em> and <em>maxeval</em> parameters.</p>
+<hr class="docutils" />
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">There are several force fields in LAMMPS which have
 discontinuities or other approximations which may prevent you from
 performing an energy minimization to high tolerances.  For example,
-you should use a <A HREF = "pair_style.html">pair style</A> that goes to 0.0 at the
+you should use a <a class="reference internal" href="pair_style.html"><em>pair style</em></a> that goes to 0.0 at the
 cutoff distance when performing minimization (even if you later change
 it when running dynamics).  If you do not do this, the total energy of
 the system will have discontinuities when the relative distance
 between any pair of atoms changes from cutoff+epsilon to
 cutoff-epsilon and the minimizer may behave poorly.  Some of the
 manybody potentials use splines and other internal cutoffs that
-inherently have this problem.  The <A HREF = "kspace_style.html">long-range Coulombic
-styles</A> (PPPM, Ewald) are approximate to within the
+inherently have this problem.  The <a class="reference internal" href="kspace_style.html"><em>long-range Coulombic styles</em></a> (PPPM, Ewald) are approximate to within the
 user-specified tolerance, which means their energy and forces may not
 agree to a higher precision than the Kspace-specified tolerance.  In
 all these cases, the minimizer may give up and stop before finding a
-minimum to the specified energy or force tolerance.
-</P>
-<P>Note that a cutoff Lennard-Jones potential (and others) can be shifted
+minimum to the specified energy or force tolerance.</p>
+</div>
+<p>Note that a cutoff Lennard-Jones potential (and others) can be shifted
 so that its energy is 0.0 at the cutoff via the
-<A HREF = "pair_modify.html">pair_modify</A> command.  See the doc pages for
-inidividual <A HREF = "pair_style.html">pair styles</A> for details.  Note that
+<a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> command.  See the doc pages for
+inidividual <a class="reference internal" href="pair_style.html"><em>pair styles</em></a> for details.  Note that
 Coulombic potentials always have a cutoff, unless versions with a
-long-range component are used (e.g. <A HREF = "pair_lj.html">pair_style
-lj/cut/coul/long</A>).  The CHARMM potentials go to 0.0 at
-the cutoff (e.g. <A HREF = "pair_charmm.html">pair_style lj/charmm/coul/charmm</A>),
-as do the GROMACS potentials (e.g. <A HREF = "pair_gromacs.html">pair_style
-lj/gromacs</A>).
-</P>
-<P>If a soft potential (<A HREF = "pair_soft.html">pair_style soft</A>) is used the
-Astop value is used for the prefactor (no time dependence).
-</P>
-<P>The <A HREF = "fix_box_relax.html">fix box/relax</A> command can be used to apply an
+long-range component are used (e.g. <a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut/coul/long</em></a>).  The CHARMM potentials go to 0.0 at
+the cutoff (e.g. <a class="reference internal" href="pair_charmm.html"><em>pair_style lj/charmm/coul/charmm</em></a>),
+as do the GROMACS potentials (e.g. <a class="reference internal" href="pair_gromacs.html"><em>pair_style lj/gromacs</em></a>).</p>
+<p>If a soft potential (<a class="reference internal" href="pair_soft.html"><em>pair_style soft</em></a>) is used the
+Astop value is used for the prefactor (no time dependence).</p>
+<p>The <a class="reference internal" href="fix_box_relax.html"><em>fix box/relax</em></a> command can be used to apply an
 external pressure to the simulation box and allow it to shrink/expand
-during the minimization.
-</P>
-<P>Only a few other fixes (typically those that apply force constraints)
+during the minimization.</p>
+<p>Only a few other fixes (typically those that apply force constraints)
 are invoked during minimization.  See the doc pages for individual
-<A HREF = "fix.html">fix</A> commands to see which ones are relevant.  Current
-examples of fixes that can be used include:
-</P>
-<UL><LI><A HREF = "fix_addforce.html">fix addforce</A>
-<LI><A HREF = "fix_addtorque.html">fix addtorque</A>
-<LI><A HREF = "fix_efield.html">fix efield</A>
-<LI><A HREF = "fix_enforce2d.html">fix enforce2d</A>
-<LI><A HREF = "fix_indent.html">fix indent</A>
-<LI><A HREF = "fix_lineforce.html">fix lineforce</A>
-<LI><A HREF = "fix_planeforce.html">fix planeforce</A>
-<LI><A HREF = "fix_setforce.html">fix setforce</A>
-<LI><A HREF = "fix_spring.html">fix spring</A>
-<LI><A HREF = "fix_spring_self.html">fix spring/self</A>
-<LI><A HREF = "fix_viscous.html">fix viscous</A>
-<LI><A HREF = "fix_wall.html">fix wall</A>
-<LI><A HREF = "fix_wall_region.html">fix wall/region</A> 
-</UL>
-<P>IMPORTANT NOTE: Some fixes which are invoked during minimization have
+<a class="reference internal" href="fix.html"><em>fix</em></a> commands to see which ones are relevant.  Current
+examples of fixes that can be used include:</p>
+<ul class="simple">
+<li><a class="reference internal" href="fix_addforce.html"><em>fix addforce</em></a></li>
+<li><a class="reference internal" href="fix_addtorque.html"><em>fix addtorque</em></a></li>
+<li><a class="reference internal" href="fix_efield.html"><em>fix efield</em></a></li>
+<li><a class="reference internal" href="fix_enforce2d.html"><em>fix enforce2d</em></a></li>
+<li><a class="reference internal" href="fix_indent.html"><em>fix indent</em></a></li>
+<li><a class="reference internal" href="fix_lineforce.html"><em>fix lineforce</em></a></li>
+<li><a class="reference internal" href="fix_planeforce.html"><em>fix planeforce</em></a></li>
+<li><a class="reference internal" href="fix_setforce.html"><em>fix setforce</em></a></li>
+<li><a class="reference internal" href="fix_spring.html"><em>fix spring</em></a></li>
+<li><a class="reference internal" href="fix_spring_self.html"><em>fix spring/self</em></a></li>
+<li><a class="reference internal" href="fix_viscous.html"><em>fix viscous</em></a></li>
+<li><a class="reference internal" href="fix_wall.html"><em>fix wall</em></a></li>
+<li><a class="reference internal" href="fix_wall_region.html"><em>fix wall/region</em></a></li>
+</ul>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Some fixes which are invoked during minimization have
 an associated potential energy.  For that energy to be included in the
 total potential energy of the system (the quantity being minimized),
-you MUST enable the <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for
-that fix.  The doc pages for individual <A HREF = "fix.html">fix</A> commands
-specify if this should be done.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>Features that are not yet implemented are listed here, in case someone
-knows how they could be coded:
-</P>
-<P>It is an error to use <A HREF = "fix_shake.html">fix shake</A> with minimization
+you MUST enable the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option for
+that fix.  The doc pages for individual <a class="reference internal" href="fix.html"><em>fix</em></a> commands
+specify if this should be done.</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Features that are not yet implemented are listed here, in case someone
+knows how they could be coded:</p>
+<p>It is an error to use <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> with minimization
 because it turns off bonds that should be included in the potential
 energy of the system.  The effect of a fix shake can be approximated
 during a minimization by using stiff spring constants for the bonds
 and/or angles that would normally be constrained by the SHAKE
-algorithm.
-</P>
-<P><A HREF = "fix_rigid.html">Fix rigid</A> is also not supported by minimization.  It
+algorithm.</p>
+<p><a class="reference internal" href="fix_rigid.html"><em>Fix rigid</em></a> is also not supported by minimization.  It
 is not an error to have it defined, but the energy minimization will
 not keep the defined body(s) rigid during the minimization.  Note that
 if bonds, angles, etc internal to a rigid body have been turned off
-(e.g. via <A HREF = "neigh_modify.html">neigh_modify exclude</A>), they will not
+(e.g. via <a class="reference internal" href="neigh_modify.html"><em>neigh_modify exclude</em></a>), they will not
 contribute to the potential energy which is probably not what is
-desired.
-</P>
-<P>Pair potentials that produce torque on a particle (e.g. <A HREF = "pair_gran.html">granular
-potentials</A> or the <A HREF = "pair_gayberne.html">GayBerne
-potential</A> for ellipsoidal particles) are not
+desired.</p>
+<p>Pair potentials that produce torque on a particle (e.g. <a class="reference internal" href="pair_gran.html"><em>granular potentials</em></a> or the <a class="reference internal" href="pair_gayberne.html"><em>GayBerne potential</em></a> for ellipsoidal particles) are not
 relaxed by a minimization.  More specifically, radial relaxations are
 induced, but no rotations are induced by a minimization, so such a
-system will not fully relax.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "min_modify.html">min_modify</A>, <A HREF = "min_style.html">min_style</A>,
-<A HREF = "run_style.html">run_style</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+system will not fully relax.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="min_modify.html"><em>min_modify</em></a>, <a class="reference internal" href="min_style.html"><em>min_style</em></a>,
+<a class="reference internal" href="run_style.html"><em>run_style</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

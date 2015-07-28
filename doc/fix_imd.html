@@ -1,172 +1,325 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix imd command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix imd command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID imd trate port keyword values ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>imd = style name of this fix command 
-
-<LI>port = port number on which the fix listens for an IMD client 
-
-<LI>keyword = <I>unwrap</I> or <I>fscale</I> or <I>trate</I> 
-
-<PRE>  <I>unwrap</I> arg = <I>on</I> or <I>off</I>
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix imd command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-imd-command">
+<span id="index-0"></span><h1>fix imd command<a class="headerlink" href="#fix-imd-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID imd trate port keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>imd = style name of this fix command</li>
+<li>port = port number on which the fix listens for an IMD client</li>
+<li>keyword = <em>unwrap</em> or <em>fscale</em> or <em>trate</em></li>
+</ul>
+<pre class="literal-block">
+<em>unwrap</em> arg = <em>on</em> or <em>off</em>
     off = coordinates are wrapped back into the principal unit cell (default)
-    on = "unwrapped" coordinates using the image flags used
-  <I>fscale</I> arg = factor
+    on = &quot;unwrapped&quot; coordinates using the image flags used
+  <em>fscale</em> arg = factor
     factor = floating point number to scale IMD forces (default: 1.0)
-  <I>trate</I> arg = transmission rate of coordinate data sets (default: 1)
-  <I>nowait</I> arg = <I>on</I> or <I>off</I>
+  <em>trate</em> arg = transmission rate of coordinate data sets (default: 1)
+  <em>nowait</em> arg = <em>on</em> or <em>off</em>
     off = LAMMPS waits to be connected to an IMD client before continuing (default)
-    on = LAMMPS listens for an IMD client, but continues with the run 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix vmd all imd 5678 
-fix comm all imd 8888 trate 5 unwrap on fscale 10.0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This fix implements the "Interactive MD" (IMD) protocol which allows
+    on = LAMMPS listens for an IMD client, but continues with the run
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix vmd all imd 5678
+fix comm all imd 8888 trate 5 unwrap on fscale 10.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This fix implements the &#8220;Interactive MD&#8221; (IMD) protocol which allows
 realtime visualization and manipulation of MD simulations through the
 IMD protocol, as initially implemented in VMD and NAMD.  Specifically
-it allows LAMMPS to connect an IMD client, for example the <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD
-visualization program</A>, so that it can monitor the progress of the
-simulation and interactively apply forces to selected atoms.
-</P>
-<P>If LAMMPS is compiled with the preprocessor flag -DLAMMPS_ASYNC_IMD
+it allows LAMMPS to connect an IMD client, for example the <a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD visualization program</a>, so that it can monitor the progress of the
+simulation and interactively apply forces to selected atoms.</p>
+<p>If LAMMPS is compiled with the preprocessor flag -DLAMMPS_ASYNC_IMD
 then fix imd will use POSIX threads to spawn a IMD communication
 thread on MPI rank 0 in order to offload data reading and writing
 from the main execution thread and potentially lower the inferred
 latencies for slow communication links. This feature has only been
-tested under linux.
-</P>
-<P>There are example scripts for using this package with LAMMPS in
+tested under linux.</p>
+<p>There are example scripts for using this package with LAMMPS in
 examples/USER/imd. Additional examples and a driver for use with the
 Novint Falcon game controller as haptic device can be found at:
-http://sites.google.com/site/akohlmey/software/vrpn-icms.
-</P>
-<P>The source code for this fix includes code developed by the
+<a class="reference external" href="http://sites.google.com/site/akohlmey/software/vrpn-icms">http://sites.google.com/site/akohlmey/software/vrpn-icms</a>.</p>
+<p>The source code for this fix includes code developed by the
 Theoretical and Computational Biophysics Group in the Beckman
 Institute for Advanced Science and Technology at the University of
 Illinois at Urbana-Champaign.  We thank them for providing a software
-interface that allows codes like LAMMPS to hook to <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A>.
-</P>
-<P>Upon initialization of the fix, it will open a communication port on
+interface that allows codes like LAMMPS to hook to <a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a>.</p>
+<p>Upon initialization of the fix, it will open a communication port on
 the node with MPI task 0 and wait for an incoming connection.  As soon
 as an IMD client is connected, the simulation will continue and the
-fix will send the current coordinates of the fix's group to the IMD
+fix will send the current coordinates of the fix&#8217;s group to the IMD
 client at every trate MD step. When using r-RESPA, trate applies to
 the steps of the outmost RESPA level.  During a run with an active IMD
 connection also the IMD client can request to apply forces to selected
-atoms of the fix group.
-</P>
-<P>The port number selected must be an available network port number.  On
-many machines, port numbers < 1024 are reserved for accounts with
+atoms of the fix group.</p>
+<p>The port number selected must be an available network port number.  On
+many machines, port numbers &lt; 1024 are reserved for accounts with
 system manager privilege and specific applications. If multiple imd
 fixes would be active at the same time, each needs to use a different
-port number.
-</P>
-<P>The <I>nowait</I> keyword controls the behavior of the fix when no IMD
-client is connected. With the default setting of <I>off</I>, LAMMPS will
+port number.</p>
+<p>The <em>nowait</em> keyword controls the behavior of the fix when no IMD
+client is connected. With the default setting of <em>off</em>, LAMMPS will
 wait until a connection is made before continuing with the
-execution. Setting <I>nowait</I> to <I>on</I> will have the LAMMPS code be ready
+execution. Setting <em>nowait</em> to <em>on</em> will have the LAMMPS code be ready
 to connect to a client, but continue with the simulation. This can for
 example be used to monitor the progress of an ongoing calculation
 without the need to be permanently connected or having to download a
-trajectory file.
-</P>
-<P>The <I>trate</I> keyword allows to select how often the coordinate data is
+trajectory file.</p>
+<p>The <em>trate</em> keyword allows to select how often the coordinate data is
 sent to the IMD client. It can also be changed on request of the IMD
-client through an IMD protocol message.  The <I>unwrap</I> keyword allows
-to send "unwrapped" coordinates to the IMD client that undo the
+client through an IMD protocol message.  The <em>unwrap</em> keyword allows
+to send &#8220;unwrapped&#8221; coordinates to the IMD client that undo the
 wrapping back of coordinates into the principle unit cell, as done by
-default in LAMMPS.  The <I>fscale</I> keyword allows to apply a scaling
+default in LAMMPS.  The <em>fscale</em> keyword allows to apply a scaling
 factor to forces transmitted by the IMD client. The IMD protocols
 stipulates that forces are transferred in kcal/mol/angstrom under the
 assumption that coordinates are given in angstrom. For LAMMPS runs
 with different units or as a measure to tweak the forces generated by
 the manipulation of the IMD client, this option allows to make
-adjustments.
-</P>
-<P>To connect VMD to a listening LAMMPS simulation on the same machine
+adjustments.</p>
+<p>To connect VMD to a listening LAMMPS simulation on the same machine
 with fix imd enabled, one needs to start VMD and load a coordinate or
 topology file that matches the fix group.  When the VMD command
-prompts appears, one types the command line:
-</P>
-<PRE>imd connect localhost 5678 
-</PRE>
-<P>This assumes that <I>fix imd</I> was started with 5678 as a port 
-number for the IMD protocol.
-</P>
-<P>The steps to do interactive manipulation of a running simulation in
-VMD are the following:
-</P>
-<P>In the Mouse menu of the VMD Main window, select "Mouse -> Force ->
-Atom".  You may alternately select "Residue", or "Fragment" to apply
+prompts appears, one types the command line:</p>
+<div class="highlight-python"><div class="highlight"><pre>imd connect localhost 5678
+</pre></div>
+</div>
+<p>This assumes that <em>fix imd</em> was started with 5678 as a port
+number for the IMD protocol.</p>
+<p>The steps to do interactive manipulation of a running simulation in
+VMD are the following:</p>
+<p>In the Mouse menu of the VMD Main window, select &#8220;Mouse -&gt; Force -&gt;
+Atom&#8221;.  You may alternately select &#8220;Residue&#8221;, or &#8220;Fragment&#8221; to apply
 forces to whole residues or fragments. Your mouse can now be used to
 apply forces to your simulation. Click on an atom, residue, or
 fragment and drag to apply a force. Click quickly without moving the
 mouse to turn the force off. You can also use a variety of 3D position
 trackers to apply forces to your simulation. Game controllers or haptic
-devices with force-feedback such as the Novint Falcon or Sensable 
+devices with force-feedback such as the Novint Falcon or Sensable
 PHANTOM allow you to feel the resistance due to inertia or interactions
-with neighbors that the atoms experience you are trying to move, as if 
-they were real objects. See the <A HREF = "http://www.ks.uiuc.edu/Research/vmd/imd/">VMD IMD Homepage</A> and the 
-<A HREF = "http://sites.google.com/site/akohlmey/software/vrpn-icms">VRPN-ICMS Homepage</A> for more details.
-</P>
-<P>If IMD control messages are received, a line of text describing the
+with neighbors that the atoms experience you are trying to move, as if
+they were real objects. See the <a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd/imd/">VMD IMD Homepage</a> and the
+<a class="reference external" href="http://sites.google.com/site/akohlmey/software/vrpn-icms">VRPN-ICMS Homepage</a> for more details.</p>
+<p>If IMD control messages are received, a line of text describing the
 message and its effect will be printed to the LAMMPS output screen, if
-screen output is active.
-</P>
-
-
-
-
-
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+screen output is active.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options
 are relevant to this fix.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  No parameter of this fix can
-be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>When used in combination with VMD, a topology or coordinate file has
+quantities are stored by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  No parameter of this fix can
+be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command.
+This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>When used in combination with VMD, a topology or coordinate file has
 to be loaded, which matches (in number and ordering of atoms) the
 group the fix is applied to. The fix internally sorts atom IDs by
 ascending integer value; in VMD (and thus the IMD protocol) those will
-be assigned 0-based consecutive index numbers.
-</P>
-<P>When using multiple active IMD connections at the same time, each
-needs to use a different port number.
-</P>
-<P><B>Related commands:</B> none
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+be assigned 0-based consecutive index numbers.</p>
+<p>When using multiple active IMD connections at the same time, each
+needs to use a different port number.</p>
+<p><strong>Related commands:</strong> none</p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

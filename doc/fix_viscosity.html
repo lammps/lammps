@@ -1,50 +1,160 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix viscosity command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix viscosity command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID viscosity N vdim pdim Nbin keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>viscosity = style name of this fix command 
-
-<LI>N = perform momentum exchange every N steps 
-
-<LI>vdim = <I>x</I> or <I>y</I> or <I>z</I> = which momentum component to exchange 
-
-<LI>pdim = <I>x</I> or <I>y</I> or <I>z</I> = direction of momentum transfer 
-
-<LI>Nbin = # of layers in pdim direction (must be even number) 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>swap</I> or <I>target</I> 
-
-<PRE>  <I>swap</I> value = Nswap = number of swaps to perform every N steps
-  <I>vtarget</I> value = V or INF = target velocity of swap partners (velocity units) 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all viscosity 100 x z 20
-fix 1 all viscosity 50 x z 20 swap 2 vtarget 1.5 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Use the Muller-Plathe algorithm described in <A HREF = "#Muller-Plathe">this
-paper</A> to exchange momenta between two particles in
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix viscosity command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-viscosity-command">
+<span id="index-0"></span><h1>fix viscosity command<a class="headerlink" href="#fix-viscosity-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID viscosity N vdim pdim Nbin keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>viscosity = style name of this fix command</li>
+<li>N = perform momentum exchange every N steps</li>
+<li>vdim = <em>x</em> or <em>y</em> or <em>z</em> = which momentum component to exchange</li>
+<li>pdim = <em>x</em> or <em>y</em> or <em>z</em> = direction of momentum transfer</li>
+<li>Nbin = # of layers in pdim direction (must be even number)</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>swap</em> or <em>target</em></li>
+</ul>
+<pre class="literal-block">
+<em>swap</em> value = Nswap = number of swaps to perform every N steps
+  <em>vtarget</em> value = V or INF = target velocity of swap partners (velocity units)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all viscosity 100 x z 20
+fix 1 all viscosity 50 x z 20 swap 2 vtarget 1.5
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Use the Muller-Plathe algorithm described in <a class="reference internal" href="#muller-plathe"><span>this paper</span></a> to exchange momenta between two particles in
 different regions of the simulation box every N steps.  This induces a
 shear velocity profile in the system.  As described below this enables
 a viscosity of the fluid to be calculated.  This algorithm is
@@ -54,131 +164,174 @@ impose a shear velocity profile on the system and measure the response
 via an off-diagonal component of the stress tensor, which is
 proportional to the momentum flux.  In the Muller-Plathe method, the
 momentum flux is imposed, and the shear velocity profile is the
-system's response.
-</P>
-<P>The simulation box is divided into <I>Nbin</I> layers in the <I>pdim</I>
+system&#8217;s response.</p>
+<p>The simulation box is divided into <em>Nbin</em> layers in the <em>pdim</em>
 direction, where the layer 1 is at the low end of that dimension and
-the layer <I>Nbin</I> is at the high end.  Every N steps, Nswap pairs of
+the layer <em>Nbin</em> is at the high end.  Every N steps, Nswap pairs of
 atoms are chosen in the following manner.  Only atoms in the fix group
 are considered.  Nswap atoms in layer 1 with positive velocity
-components in the <I>vdim</I> direction closest to the target value <I>V</I> are
-selected.  Similarly, Nswap atoms in the "middle" layer (see below) with
-negative velocity components in the <I>vdim</I> direction closest to the
-negative of the target value <I>V</I> are selected.  The two sets of Nswap
-atoms are paired up and their <I>vdim</I> momenta components are swapped
+components in the <em>vdim</em> direction closest to the target value <em>V</em> are
+selected.  Similarly, Nswap atoms in the &#8220;middle&#8221; layer (see below) with
+negative velocity components in the <em>vdim</em> direction closest to the
+negative of the target value <em>V</em> are selected.  The two sets of Nswap
+atoms are paired up and their <em>vdim</em> momenta components are swapped
 within each pair.  This resets their velocities, typically in opposite
 directions.  Over time, this induces a shear velocity profile in the
 system which can be measured using commands such as the following,
-which writes the profile to the file tmp.profile:
-</P>
-<PRE>fix f1 all ave/spatial 100 10 1000 z lower 0.05 vx &
-    file tmp.profile units reduced 
-</PRE>
-<P>Note that by default, Nswap = 1 and vtarget = INF, though this can be
-changed by the optional <I>swap</I> and <I>vtarget</I> keywords.  When vtarget =
+which writes the profile to the file tmp.profile:</p>
+<div class="highlight-python"><div class="highlight"><pre>fix f1 all ave/spatial 100 10 1000 z lower 0.05 vx &amp;
+    file tmp.profile units reduced
+</pre></div>
+</div>
+<p>Note that by default, Nswap = 1 and vtarget = INF, though this can be
+changed by the optional <em>swap</em> and <em>vtarget</em> keywords.  When vtarget =
 INF, one or more atoms with the most positive and negative velocity
 components are selected.  Setting these parameters appropriately, in
 conjunction with the swap rate N, allows the momentum flux rate to be
 adjusted across a wide range of values, and the momenta to be
-exchanged in large chunks or more smoothly.
-</P>
-<P>The "middle" layer for momenta swapping is defined as the <I>Nbin</I>/2 + 1
-layer.  Thus if <I>Nbin</I> = 20, the two swapping layers are 1 and 11.
+exchanged in large chunks or more smoothly.</p>
+<p>The &#8220;middle&#8221; layer for momenta swapping is defined as the <em>Nbin</em>/2 + 1
+layer.  Thus if <em>Nbin</em> = 20, the two swapping layers are 1 and 11.
 This should lead to a symmetric velocity profile since the two layers
 are separated by the same distance in both directions in a periodic
-sense.  This is why <I>Nbin</I> is restricted to being an even number.
-</P>
-<P>As described below, the total momentum transferred by these velocity
+sense.  This is why <em>Nbin</em> is restricted to being an even number.</p>
+<p>As described below, the total momentum transferred by these velocity
 swaps is computed by the fix and can be output.  Dividing this
 quantity by time and the cross-sectional area of the simulation box
 yields a momentum flux.  The ratio of momentum flux to the slope of
 the shear velocity profile is proportional to the viscosity of the
-fluid, in appropriate units.  See the <A HREF = "#Muller-Plathe">Muller-Plathe
-paper</A> for details.
-</P>
-<P>IMPORTANT NOTE: If your system is periodic in the direction of the
+fluid, in appropriate units.  See the <a class="reference internal" href="#muller-plathe"><span>Muller-Plathe paper</span></a> for details.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If your system is periodic in the direction of the
 momentum flux, then the flux is going in 2 directions.  This means the
 effective momentum flux in one direction is reduced by a factor of 2.
 You will see this in the equations for viscosity in the Muller-Plathe
 paper.  LAMMPS is simply tallying momentum which does not account for
 whether or not your system is periodic; you must use the value
-appropriately to yield a viscosity for your system.
-</P>
-<P>IMPORTANT NOTE: After equilibration, if the velocity profile you
+appropriately to yield a viscosity for your system.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">After equilibration, if the velocity profile you
 observe is not linear, then you are likely swapping momentum too
 frequently and are not in a regime of linear response.  In this case
 you cannot accurately infer a viscosity and should try increasing
-the Nevery parameter.
-</P>
-<P>An alternative method for calculating a viscosity is to run a NEMD
-simulation, as described in <A HREF = "Section_howto.html#howto_13">Section_howto
-13</A> of the manual.  NEMD simulations
-deform the simmulation box via the <A HREF = "fix_deform.html">fix deform</A>
-command.  Thus they cannot be run on a charged system using a <A HREF = "kspace_style.html">PPPM
-solver</A> since PPPM does not currently support
+the Nevery parameter.</p>
+</div>
+<p>An alternative method for calculating a viscosity is to run a NEMD
+simulation, as described in <a class="reference internal" href="Section_howto.html#howto-13"><span>Section_howto 13</span></a> of the manual.  NEMD simulations
+deform the simmulation box via the <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a>
+command.  Thus they cannot be run on a charged system using a <a class="reference internal" href="kspace_style.html"><em>PPPM solver</em></a> since PPPM does not currently support
 non-orthogonal boxes.  Using fix viscosity keeps the box orthogonal;
-thus it does not suffer from this limitation.
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.
-</P>
-<P>This fix computes a global scalar which can be accessed by various
-<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+thus it does not suffer from this limitation.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options
+are relevant to this fix.</p>
+<p>This fix computes a global scalar which can be accessed by various
+<a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar is the
 cummulative momentum transferred between the bottom and middle of the
-simulation box (in the <I>pdim</I> direction) is stored as a scalar
+simulation box (in the <em>pdim</em> direction) is stored as a scalar
 quantity by this fix.  This quantity is zeroed when the fix is defined
 and accumlates thereafter, once every N steps.  The units of the
 quantity are momentum = mass*velocity.  The scalar value calculated by
-this fix is "intensive".
-</P>
-<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
-minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>Swaps conserve both momentum and kinetic energy, even if the masses of
+this fix is &#8220;intensive&#8221;.</p>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><em>run</em></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is part of the MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>Swaps conserve both momentum and kinetic energy, even if the masses of
 the swapped atoms are not equal.  Thus you should not need to
 thermostat the system.  If you do use a thermostat, you may want to
-apply it only to the non-swapped dimensions (other than <I>vdim</I>).
-</P>
-<P>LAMMPS does not check, but you should not use this fix to swap
-velocities of atoms that are in constrained molecules, e.g. via <A HREF = "fix_shake.html">fix
-shake</A> or <A HREF = "fix_rigid.html">fix rigid</A>.  This is because
+apply it only to the non-swapped dimensions (other than <em>vdim</em>).</p>
+<p>LAMMPS does not check, but you should not use this fix to swap
+velocities of atoms that are in constrained molecules, e.g. via <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> or <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a>.  This is because
 application of the constraints will alter the amount of transferred
 momentum.  You should, however, be able to use flexible molecules.
-See the <A HREF = "#Maginn">Maginn paper</A> for an example of using this algorithm
-in a computation of alcohol molecule properties.
-</P>
-<P>When running a simulation with large, massive particles or molecules
+See the <a class="reference internal" href="#maginn"><span>Maginn paper</span></a> for an example of using this algorithm
+in a computation of alcohol molecule properties.</p>
+<p>When running a simulation with large, massive particles or molecules
 in a background solvent, you may want to only exchange momenta bewteen
-solvent particles.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_ave_spatial.html">fix ave/spatial</A>, <A HREF = "fix_thermal_conductivity.html">fix
-thermal/conductivity</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are swap = 1 and vtarget = INF.
-</P>
-<HR>
+solvent particles.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a>, <a class="reference internal" href="fix_thermal_conductivity.html"><em>fix thermal/conductivity</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are swap = 1 and vtarget = INF.</p>
+<hr class="docutils" />
+<p id="muller-plathe"><strong>(Muller-Plathe)</strong> Muller-Plathe, Phys Rev E, 59, 4894-4898 (1999).</p>
+<p id="maginn"><strong>(Maginn)</strong> Kelkar, Rafferty, Maginn, Siepmann, Fluid Phase Equilibria,
+260, 218-231 (2007).</p>
+</div>
+</div>
 
-<A NAME = "Muller-Plathe"></A>
 
-<P><B>(Muller-Plathe)</B> Muller-Plathe, Phys Rev E, 59, 4894-4898 (1999).
-</P>
-<A NAME = "Maginn"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Maginn)</B> Kelkar, Rafferty, Maginn, Siepmann, Fluid Phase Equilibria,
-260, 218-231 (2007).
-</P>
-</HTML>
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

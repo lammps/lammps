@@ -1,227 +1,382 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix press/berendsen command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix press/berendsen command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID press/berendsen keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>press/berendsen = style name of this fix command 
-
-<PRE>one or more keyword value pairs may be appended
-keyword = <I>iso</I> or <I>aniso</I> or <I>x</I> or <I>y</I> or <I>z</I> or <I>couple</I> or <I>dilate</I> or <I>modulus</I>
-  <I>iso</I> or <I>aniso</I> values = Pstart Pstop Pdamp
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix press/berendsen command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-press-berendsen-command">
+<span id="index-0"></span><h1>fix press/berendsen command<a class="headerlink" href="#fix-press-berendsen-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID press/berendsen keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>press/berendsen = style name of this fix command</li>
+</ul>
+<pre class="literal-block">
+one or more keyword value pairs may be appended
+keyword = <em>iso</em> or <em>aniso</em> or <em>x</em> or <em>y</em> or <em>z</em> or <em>couple</em> or <em>dilate</em> or <em>modulus</em>
+  <em>iso</em> or <em>aniso</em> values = Pstart Pstop Pdamp
     Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
     Pdamp = pressure damping parameter (time units)
-  <I>x</I> or <I>y</I> or <I>z</I> values = Pstart Pstop Pdamp
+  <em>x</em> or <em>y</em> or <em>z</em> values = Pstart Pstop Pdamp
     Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
     Pdamp = stress damping parameter (time units)
-  <I>couple</I> = <I>none</I> or <I>xyz</I> or <I>xy</I> or <I>yz</I> or <I>xz</I>
-  <I>modulus</I> value = bulk modulus of system (pressure units)
-  <I>dilate</I> value = <I>all</I> or <I>partial</I> 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all press/berendsen iso 0.0 0.0 1000.0
-fix 2 all press/berendsen aniso 0.0 0.0 1000.0 dilate partial 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Reset the pressure of the system by using a Berendsen barostat
-<A HREF = "#Berendsen">(Berendsen)</A>, which rescales the system volume and
+  <em>couple</em> = <em>none</em> or <em>xyz</em> or <em>xy</em> or <em>yz</em> or <em>xz</em>
+  <em>modulus</em> value = bulk modulus of system (pressure units)
+  <em>dilate</em> value = <em>all</em> or <em>partial</em>
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all press/berendsen iso 0.0 0.0 1000.0
+fix 2 all press/berendsen aniso 0.0 0.0 1000.0 dilate partial
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Reset the pressure of the system by using a Berendsen barostat
+<a class="reference internal" href="fix_temp_berendsen.html#berendsen"><span>(Berendsen)</span></a>, which rescales the system volume and
 (optionally) the atoms coordinates within the simulation box every
-timestep.
-</P>
-<P>Regardless of what atoms are in the fix group, a global pressure is
+timestep.</p>
+<p>Regardless of what atoms are in the fix group, a global pressure is
 computed for all atoms.  Similarly, when the size of the simulation
 box is changed, all atoms are re-scaled to new positions, unless the
-keyword <I>dilate</I> is specified with a value of <I>partial</I>, in which case
+keyword <em>dilate</em> is specified with a value of <em>partial</em>, in which case
 only the atoms in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of atoms in a solid substrate
-unchanged and controlling the pressure of a surrounding fluid.
-</P>
-<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nh.html">fix npt</A> or <A HREF = "fix_nh.html">fix
-nph</A> commands which perform Nose/Hoover barostatting AND
+unchanged and controlling the pressure of a surrounding fluid.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Unlike the <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> commands which perform Nose/Hoover barostatting AND
 time integration, this fix does NOT perform time integration.  It only
 modifies the box size and atom coordinates to effect barostatting.
-Thus you must use a separate time integration fix, like <A HREF = "fix_nve.html">fix
-nve</A> or <A HREF = "fix_nh.html">fix nvt</A> to actually update the
+Thus you must use a separate time integration fix, like <a class="reference internal" href="fix_nve.html"><em>fix nve</em></a> or <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> to actually update the
 positions and velocities of atoms.  This fix can be used in
 conjunction with thermostatting fixes to control the temperature, such
-as <A HREF = "fix_nh.html">fix nvt</A> or <A HREF = "fix_langevin.html">fix langevin</A> or <A HREF = "fix_temp_berendsen.html">fix
-temp/berendsen</A>.
-</P>
-<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
+as <a class="reference internal" href="fix_nh.html"><em>fix nvt</em></a> or <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a> or <a class="reference internal" href="fix_temp_berendsen.html"><em>fix temp/berendsen</em></a>.</p>
+</div>
+<p>See <a class="reference internal" href="Section_howto.html#howto-16"><span>this howto section</span></a> of the manual for
 a discussion of different ways to compute temperature and perform
-thermostatting and barostatting.
-</P>
-<HR>
-
-<P>The barostat is specified using one or more of the <I>iso</I>, <I>aniso</I>,
-<I>x</I>, <I>y</I>, <I>z</I>, and <I>couple</I> keywords.  These keywords give you the
+thermostatting and barostatting.</p>
+<hr class="docutils" />
+<p>The barostat is specified using one or more of the <em>iso</em>, <em>aniso</em>,
+<em>x</em>, <em>y</em>, <em>z</em>, and <em>couple</em> keywords.  These keywords give you the
 ability to specify the 3 diagonal components of an external stress
 tensor, and to couple various of these components together so that the
 dimensions they represent are varied together during a
-constant-pressure simulation.  Unlike the <A HREF = "fix_nh.html">fix npt</A> and
-<A HREF = "fix_nh.html">fix nph</A> commands, this fix cannot be used with triclinic
+constant-pressure simulation.  Unlike the <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a> and
+<a class="reference internal" href="fix_nh.html"><em>fix nph</em></a> commands, this fix cannot be used with triclinic
 (non-orthogonal) simulation boxes to control all 6 components of the
-general pressure tensor.
-</P>
-<P>The target pressures for each of the 3 diagonal components of the
-stress tensor can be specified independently via the <I>x</I>, <I>y</I>, <I>z</I>,
+general pressure tensor.</p>
+<p>The target pressures for each of the 3 diagonal components of the
+stress tensor can be specified independently via the <em>x</em>, <em>y</em>, <em>z</em>,
 keywords, which correspond to the 3 simulation box dimensions.  For
 each component, the external pressure or tensor component at each
-timestep is a ramped value during the run from <I>Pstart</I> to <I>Pstop</I>.
+timestep is a ramped value during the run from <em>Pstart</em> to <em>Pstop</em>.
 If a target pressure is specified for a component, then the
 corresponding box dimension will change during a simulation.  For
-example, if the <I>y</I> keyword is used, the y-box length will change.  A
+example, if the <em>y</em> keyword is used, the y-box length will change.  A
 box dimension will not change if that component is not specified,
-although you have the option to change that dimension via the <A HREF = "fix_deform.html">fix
-deform</A> command.
-</P>
-<P>For all barostat keywords, the <I>Pdamp</I> parameter determines the time
+although you have the option to change that dimension via the <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a> command.</p>
+<p>For all barostat keywords, the <em>Pdamp</em> parameter determines the time
 scale on which pressure is relaxed.  For example, a value of 1000.0
 means to relax the pressure in a timespan of (roughly) 1000 time units
-(tau or fmsec or psec - see the <A HREF = "units.html">units</A> command).
-</P>
-<P>IMPORTANT NOTE: The relaxation time is actually also a function of the
+(tau or fmsec or psec - see the <a class="reference internal" href="units.html"><em>units</em></a> command).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The relaxation time is actually also a function of the
 bulk modulus of the system (inverse of isothermal compressibility).
 The bulk modulus has units of pressure and is the amount of pressure
 that would need to be applied (isotropically) to reduce the volume of
 the system by a factor of 2 (assuming the bulk modulus was a constant,
-independent of density, which it's not).  The bulk modulus can be set
-via the keyword <I>modulus</I>.  The <I>Pdamp</I> parameter is effectively
+independent of density, which it&#8217;s not).  The bulk modulus can be set
+via the keyword <em>modulus</em>.  The <em>Pdamp</em> parameter is effectively
 multiplied by the bulk modulus, so if the pressure is relaxing faster
 than expected or desired, increasing the bulk modulus has the same
-effect as increasing <I>Pdamp</I>.  The converse is also true.  LAMMPS does
+effect as increasing <em>Pdamp</em>.  The converse is also true.  LAMMPS does
 not attempt to guess a correct value of the bulk modulus; it just uses
 10.0 as a default value which gives reasonable relaxation for a
 Lennard-Jones liquid, but will be way off for other materials and way
 too small for solids.  Thus you should experiment to find appropriate
-values of <I>Pdamp</I> and/or the <I>modulus</I> when using this fix.
-</P>
-<HR>
-
-<P>The <I>couple</I> keyword allows two or three of the diagonal components of
-the pressure tensor to be "coupled" together.  The value specified
-with the keyword determines which are coupled.  For example, <I>xz</I>
-means the <I>Pxx</I> and <I>Pzz</I> components of the stress tensor are coupled.
-<I>Xyz</I> means all 3 diagonal components are coupled.  Coupling means two
+values of <em>Pdamp</em> and/or the <em>modulus</em> when using this fix.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>couple</em> keyword allows two or three of the diagonal components of
+the pressure tensor to be &#8220;coupled&#8221; together.  The value specified
+with the keyword determines which are coupled.  For example, <em>xz</em>
+means the <em>Pxx</em> and <em>Pzz</em> components of the stress tensor are coupled.
+<em>Xyz</em> means all 3 diagonal components are coupled.  Coupling means two
 things: the instantaneous stress will be computed as an average of the
 corresponding diagonal components, and the coupled box dimensions will
 be changed together in lockstep, meaning coupled dimensions will be
 dilated or contracted by the same percentage every timestep.  The
-<I>Pstart</I>, <I>Pstop</I>, <I>Pdamp</I> parameters for any coupled dimensions must
-be identical.  <I>Couple xyz</I> can be used for a 2d simulation; the <I>z</I>
-dimension is simply ignored.
-</P>
-<HR>
-
-<P>The <I>iso</I> and <I>aniso</I> keywords are simply shortcuts that are
-equivalent to specifying several other keywords together.
-</P>
-<P>The keyword <I>iso</I> means couple all 3 diagonal components together when
+<em>Pstart</em>, <em>Pstop</em>, <em>Pdamp</em> parameters for any coupled dimensions must
+be identical.  <em>Couple xyz</em> can be used for a 2d simulation; the <em>z</em>
+dimension is simply ignored.</p>
+<hr class="docutils" />
+<p>The <em>iso</em> and <em>aniso</em> keywords are simply shortcuts that are
+equivalent to specifying several other keywords together.</p>
+<p>The keyword <em>iso</em> means couple all 3 diagonal components together when
 pressure is computed (hydrostatic pressure), and dilate/contract the
-dimensions together.  Using "iso Pstart Pstop Pdamp" is the same as
-specifying these 4 keywords:
-</P>
-<PRE>x Pstart Pstop Pdamp
+dimensions together.  Using &#8220;iso Pstart Pstop Pdamp&#8221; is the same as
+specifying these 4 keywords:</p>
+<div class="highlight-python"><div class="highlight"><pre>x Pstart Pstop Pdamp
 y Pstart Pstop Pdamp
 z Pstart Pstop Pdamp
-couple xyz 
-</PRE>
-<P>The keyword <I>aniso</I> means <I>x</I>, <I>y</I>, and <I>z</I> dimensions are controlled
-independently using the <I>Pxx</I>, <I>Pyy</I>, and <I>Pzz</I> components of the
+couple xyz
+</pre></div>
+</div>
+<p>The keyword <em>aniso</em> means <em>x</em>, <em>y</em>, and <em>z</em> dimensions are controlled
+independently using the <em>Pxx</em>, <em>Pyy</em>, and <em>Pzz</em> components of the
 stress tensor as the driving forces, and the specified scalar external
-pressure.  Using "aniso Pstart Pstop Pdamp" is the same as specifying
-these 4 keywords:
-</P>
-<PRE>x Pstart Pstop Pdamp
+pressure.  Using &#8220;aniso Pstart Pstop Pdamp&#8221; is the same as specifying
+these 4 keywords:</p>
+<div class="highlight-python"><div class="highlight"><pre>x Pstart Pstop Pdamp
 y Pstart Pstop Pdamp
 z Pstart Pstop Pdamp
-couple none 
-</PRE>
-<HR>
-
-<P>This fix computes a temperature and pressure each timestep.  To do
-this, the fix creates its own computes of style "temp" and "pressure",
-as if these commands had been issued:
-</P>
-<PRE>compute fix-ID_temp group-ID temp
-compute fix-ID_press group-ID pressure fix-ID_temp 
-</PRE>
-<P>See the <A HREF = "compute_temp.html">compute temp</A> and <A HREF = "compute_pressure.html">compute
-pressure</A> commands for details.  Note that the
-IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
-+ underscore + "press", and the group for the new computes is the same
-as the fix group.
-</P>
-<P>Note that these are NOT the computes used by thermodynamic output (see
-the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>
-and <I>thermo_press</I>.  This means you can change the attributes of this
-fix's temperature or pressure via the
-<A HREF = "compute_modify.html">compute_modify</A> command or print this temperature
-or pressure during thermodynamic output via the <A HREF = "thermo_style.html">thermo_style
-custom</A> command using the appropriate compute-ID.
-It also means that changing attributes of <I>thermo_temp</I> or
-<I>thermo_press</I> will have no effect on this fix.
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.
-</P>
-<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> and <I>press</I> options are
+couple none
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>This fix computes a temperature and pressure each timestep.  To do
+this, the fix creates its own computes of style &#8220;temp&#8221; and &#8220;pressure&#8221;,
+as if these commands had been issued:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute fix-ID_temp group-ID temp
+compute fix-ID_press group-ID pressure fix-ID_temp
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="compute_temp.html"><em>compute temp</em></a> and <a class="reference internal" href="compute_pressure.html"><em>compute pressure</em></a> commands for details.  Note that the
+IDs of the new computes are the fix-ID + underscore + &#8220;temp&#8221; or fix_ID
++ underscore + &#8220;press&#8221;, and the group for the new computes is the same
+as the fix group.</p>
+<p>Note that these are NOT the computes used by thermodynamic output (see
+the <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command) with ID = <em>thermo_temp</em>
+and <em>thermo_press</em>.  This means you can change the attributes of this
+fix&#8217;s temperature or pressure via the
+<a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> command or print this temperature
+or pressure during thermodynamic output via the <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> command using the appropriate compute-ID.
+It also means that changing attributes of <em>thermo_temp</em> or
+<em>thermo_press</em> will have no effect on this fix.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>temp</em> and <em>press</em> options are
 supported by this fix.  You can use them to assign a
-<A HREF = "compute.html">compute</A> you have defined to this fix which will be used
+<a class="reference internal" href="compute.html"><em>compute</em></a> you have defined to this fix which will be used
 in its temperature and pressure calculations.  If you do this, note
 that the kinetic energy derived from the compute temperature should be
 consistent with the virial term computed using all atoms for the
 pressure.  LAMMPS will warn you if you choose to compute temperature
-on a subset of atoms.
-</P>
-<P>No global or per-atom quantities are stored by this fix for access by
-various <A HREF = "Section_howto.html#howto_15">output commands</A>.
-</P>
-<P>This fix can ramp its target pressure over multiple runs, using the
-<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
-<A HREF = "run.html">run</A> command for details of how to do this.
-</P>
-<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>Any dimension being adjusted by this fix must be periodic.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_nve.html">fix nve</A>, <A HREF = "fix_nh.html">fix nph</A>, <A HREF = "fix_nh.html">fix
-npt</A>, <A HREF = "fix_temp_berendsen.html">fix temp/berendsen</A>,
-<A HREF = "fix_modify.html">fix_modify</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The keyword defaults are dilate = all, modulus = 10.0 in units of
-pressure for whatever <A HREF = "units.html">units</A> are defined.
-</P>
-<HR>
+on a subset of atoms.</p>
+<p>No global or per-atom quantities are stored by this fix for access by
+various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.</p>
+<p>This fix can ramp its target pressure over multiple runs, using the
+<em>start</em> and <em>stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command.  See the
+<a class="reference internal" href="run.html"><em>run</em></a> command for details of how to do this.</p>
+<p>This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Any dimension being adjusted by this fix must be periodic.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_nve.html"><em>fix nve</em></a>, <a class="reference internal" href="fix_nh.html"><em>fix nph</em></a>, <a class="reference internal" href="fix_nh.html"><em>fix npt</em></a>, <a class="reference internal" href="fix_temp_berendsen.html"><em>fix temp/berendsen</em></a>,
+<a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The keyword defaults are dilate = all, modulus = 10.0 in units of
+pressure for whatever <a class="reference internal" href="units.html"><em>units</em></a> are defined.</p>
+<hr class="docutils" />
+<p id="berendsen"><strong>(Berendsen)</strong> Berendsen, Postma, van Gunsteren, DiNola, Haak, J Chem
+Phys, 81, 3684 (1984).</p>
+</div>
+</div>
 
-<A NAME = "Berendsen"></A>
 
-<P><B>(Berendsen)</B> Berendsen, Postma, van Gunsteren, DiNola, Haak, J Chem
-Phys, 81, 3684 (1984).
-</P>
-</HTML>
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

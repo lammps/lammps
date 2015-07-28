@@ -1,43 +1,157 @@
-<HTML>
-<CENTER><A HREF = "Section_example.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_tools.html">Next Section</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>8. Performance &amp; scalability &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+        <link rel="next" title="9. Additional tools" href="Section_tools.html"/>
+        <link rel="prev" title="7. Example problems" href="Section_example.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>8. Performance & scalability 
-</H3>
-<P>LAMMPS performance on several prototypical benchmarks and machines is
-discussed on the Benchmarks page of the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> where
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>8. Performance &amp; scalability</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="performance-scalability">
+<h1>8. Performance &amp; scalability<a class="headerlink" href="#performance-scalability" title="Permalink to this headline">¶</a></h1>
+<p>LAMMPS performance on several prototypical benchmarks and machines is
+discussed on the Benchmarks page of the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW Site</a> where
 CPU timings and parallel efficiencies are listed.  Here, the
 benchmarks are described briefly and some useful rules of thumb about
-their performance are highlighted.
-</P>
-<P>These are the 5 benchmark problems:
-</P>
-<OL><LI>LJ = atomic fluid, Lennard-Jones potential with 2.5 sigma cutoff (55
-neighbors per atom), NVE integration 
-
-<LI>Chain = bead-spring polymer melt of 100-mer chains, FENE bonds and LJ
+their performance are highlighted.</p>
+<p>These are the 5 benchmark problems:</p>
+<ol class="arabic simple">
+<li>LJ = atomic fluid, Lennard-Jones potential with 2.5 sigma cutoff (55</li>
+</ol>
+<blockquote>
+<div>neighbors per atom), NVE integration</div></blockquote>
+<ol class="arabic simple">
+<li>Chain = bead-spring polymer melt of 100-mer chains, FENE bonds and LJ
 pairwise interactions with a 2^(1/6) sigma cutoff (5 neighbors per
-atom), NVE integration 
-
-<LI>EAM = metallic solid, Cu EAM potential with 4.95 Angstrom cutoff (45
-neighbors per atom), NVE integration 
-
-<LI>Chute = granular chute flow, frictional history potential with 1.1
-sigma cutoff (7 neighbors per atom), NVE integration 
-
-<LI>Rhodo = rhodopsin protein in solvated lipid bilayer, CHARMM force
+atom), NVE integration</li>
+<li>EAM = metallic solid, Cu EAM potential with 4.95 Angstrom cutoff (45
+neighbors per atom), NVE integration</li>
+<li>Chute = granular chute flow, frictional history potential with 1.1
+sigma cutoff (7 neighbors per atom), NVE integration</li>
+<li>Rhodo = rhodopsin protein in solvated lipid bilayer, CHARMM force
 field with a 10 Angstrom LJ cutoff (440 neighbors per atom),
 particle-particle particle-mesh (PPPM) for long-range Coulombics, NPT
-integration 
-</OL>
-<P>The input files for running the benchmarks are included in the LAMMPS
+integration</li>
+</ol>
+<p>The input files for running the benchmarks are included in the LAMMPS
 distribution, as are sample output files.  Each of the 5 problems has
 32,000 atoms and runs for 100 timesteps.  Each can be run as a serial
 benchmarks (on one processor) or in parallel.  In parallel, each
@@ -46,30 +160,54 @@ fixed-size benchmarking, the same 32K atom problem is run on various
 numbers of processors.  For scaled-size benchmarking, the model size
 is increased with the number of processors.  E.g. on 8 processors, a
 256K-atom problem is run; on 1024 processors, a 32-million atom
-problem is run, etc.
-</P>
-<P>A useful metric from the benchmarks is the CPU cost per atom per
+problem is run, etc.</p>
+<p>A useful metric from the benchmarks is the CPU cost per atom per
 timestep.  Since LAMMPS performance scales roughly linearly with
 problem size and timesteps, the run time of any problem using the same
 model (atom style, force field, cutoff, etc) can then be estimated.
 For example, on a 1.7 GHz Pentium desktop machine (Intel icc compiler
 under Red Hat Linux), the CPU run-time in seconds/atom/timestep for
-the 5 problems is
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR ALIGN="center"><TD  ALIGN ="right">Problem:</TD><TD > LJ</TD><TD > Chain</TD><TD > EAM</TD><TD > Chute</TD><TD > Rhodopsin</TD></TR>
-<TR ALIGN="center"><TD  ALIGN ="right">CPU/atom/step:</TD><TD > 4.55E-6</TD><TD > 2.18E-6</TD><TD > 9.38E-6</TD><TD > 2.18E-6</TD><TD > 1.11E-4</TD></TR>
-<TR ALIGN="center"><TD  ALIGN ="right">Ratio to LJ:</TD><TD > 1.0</TD><TD > 0.48</TD><TD > 2.06</TD><TD > 0.48</TD><TD > 24.5 
-</TD></TR></TABLE></DIV>
-
-<P>The ratios mean that if the atomic LJ system has a normalized cost of
+the 5 problems is</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="14%" />
+<col width="17%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Problem:</td>
+<td>LJ</td>
+<td>Chain</td>
+<td>EAM</td>
+<td>Chute</td>
+<td>Rhodopsin</td>
+</tr>
+<tr class="row-even"><td>CPU/atom/step:</td>
+<td>4.55E-6</td>
+<td>2.18E-6</td>
+<td>9.38E-6</td>
+<td>2.18E-6</td>
+<td>1.11E-4</td>
+</tr>
+<tr class="row-odd"><td>Ratio to LJ:</td>
+<td>1.0</td>
+<td>0.48</td>
+<td>2.06</td>
+<td>0.48</td>
+<td>24.5</td>
+</tr>
+</tbody>
+</table>
+<p>The ratios mean that if the atomic LJ system has a normalized cost of
 1.0, the bead-spring chains and granular systems run 2x faster, while
 the EAM metal and solvated protein models run 2x and 25x slower
 respectively.  The bulk of these cost differences is due to the
 expense of computing a particular pairwise force field for a given
-number of neighbors per atom.
-</P>
-<P>Performance on a parallel machine can also be predicted from the
+number of neighbors per atom.</p>
+<p>Performance on a parallel machine can also be predicted from the
 one-processor timings if the parallel efficiency can be estimated.
 The communication bandwidth and latency of a particular parallel
 machine affects the efficiency.  On most machines LAMMPS will give
@@ -77,8 +215,79 @@ fixed-size parallel efficiencies on these benchmarks above 50% so long
 as the atoms/processor count is a few 100 or greater - i.e. on 64 to
 128 processors.  Likewise, scaled-size parallel efficiencies will
 typically be 80% or greater up to very large processor counts.  The
-benchmark data on the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> gives specific examples on
+benchmark data on the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW Site</a> gives specific examples on
 some different machines, including a run of 3/4 of a billion LJ atoms
-on 1500 processors that ran at 85% parallel efficiency.
-</P>
-</HTML>
+on 1500 processors that ran at 85% parallel efficiency.</p>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_tools.html" class="btn btn-neutral float-right" title="9. Additional tools" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_example.html" class="btn btn-neutral" title="7. Example problems" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

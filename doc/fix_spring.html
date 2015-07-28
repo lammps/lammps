@@ -1,151 +1,324 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix spring command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix spring command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID spring keyword values 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>spring = style name of this fix command 
-
-<LI>keyword = <I>tether</I> or <I>couple</I> 
-
-<PRE>  <I>tether</I> values = K x y z R0
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix spring command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-spring-command">
+<span id="index-0"></span><h1>fix spring command<a class="headerlink" href="#fix-spring-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID spring keyword values
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>spring = style name of this fix command</li>
+<li>keyword = <em>tether</em> or <em>couple</em></li>
+</ul>
+<pre class="literal-block">
+<em>tether</em> values = K x y z R0
     K = spring constant (force/distance units)
     x,y,z = point to which spring is tethered
     R0 = equilibrium distance from tether point (distance units)
-  <I>couple</I> values = group-ID2 K x y z R0
+  <em>couple</em> values = group-ID2 K x y z R0
     group-ID2 = 2nd group to couple to fix group with a spring
     K = spring constant (force/distance units)
     x,y,z = direction of spring
-    R0 = equilibrium distance of spring (distance units) 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix pull ligand spring tether 50.0 0.0 0.0 0.0 0.0
+    R0 = equilibrium distance of spring (distance units)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix pull ligand spring tether 50.0 0.0 0.0 0.0 0.0
 fix pull ligand spring tether 50.0 0.0 0.0 0.0 5.0
 fix pull ligand spring tether 50.0 NULL NULL 2.0 3.0
 fix 5 bilayer1 spring couple bilayer2 100.0 NULL NULL 10.0 0.0
 fix longitudinal pore spring couple ion 100.0 NULL NULL -20.0 0.0
-fix radial pore spring couple ion 100.0 0.0 0.0 NULL 5.0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Apply a spring force to a group of atoms or between two groups of
+fix radial pore spring couple ion 100.0 0.0 0.0 NULL 5.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Apply a spring force to a group of atoms or between two groups of
 atoms.  This is useful for applying an umbrella force to a small
 molecule or lightly tethering a large group of atoms (e.g. all the
 solvent or a large molecule) to the center of the simulation box so
-that it doesn't wander away over the course of a long simulation.  It
+that it doesn&#8217;t wander away over the course of a long simulation.  It
 can also be used to hold the centers of mass of two groups of atoms at
-a given distance or orientation with respect to each other.
-</P>
-<P>The <I>tether</I> style attaches a spring between a fixed point <I>x,y,z</I> and
+a given distance or orientation with respect to each other.</p>
+<p>The <em>tether</em> style attaches a spring between a fixed point <em>x,y,z</em> and
 the center of mass of the fix group of atoms.  The equilibrium
 position of the spring is R0.  At each timestep the distance R from
 the center of mass of the group of atoms to the tethering point is
 computed, taking account of wrap-around in a periodic simulation box.
 A restoring force of magnitude K (R - R0) Mi / M is applied to each
-atom in the group where <I>K</I> is the spring constant, Mi is the mass of
+atom in the group where <em>K</em> is the spring constant, Mi is the mass of
 the atom, and M is the total mass of all atoms in the group.  Note
-that <I>K</I> thus represents the total force on the group of atoms, not a
-per-atom force.
-</P>
-<P>The <I>couple</I> style links two groups of atoms together.  The first
+that <em>K</em> thus represents the total force on the group of atoms, not a
+per-atom force.</p>
+<p>The <em>couple</em> style links two groups of atoms together.  The first
 group is the fix group; the second is specified by group-ID2.  The
 groups are coupled together by a spring that is at equilibrium when
-the two groups are displaced by a vector <I>x,y,z</I> with respect to each
-other and at a distance R0 from that displacement.  Note that <I>x,y,z</I>
+the two groups are displaced by a vector <em>x,y,z</em> with respect to each
+other and at a distance R0 from that displacement.  Note that <em>x,y,z</em>
 is the equilibrium displacement of group-ID2 relative to the fix
 group.  Thus (1,1,0) is a different spring than (-1,-1,0).  When the
 relative positions and distance between the two groups are not in
 equilibrium, the same spring force described above is applied to atoms
-in each of the two groups.
-</P>
-<P>For both the <I>tether</I> and <I>couple</I> styles, any of the x,y,z values can
+in each of the two groups.</p>
+<p>For both the <em>tether</em> and <em>couple</em> styles, any of the x,y,z values can
 be specified as NULL which means do not include that dimension in the
-distance calculation or force application.
-</P>
-<P>The first example above pulls the ligand towards the point (0,0,0).
+distance calculation or force application.</p>
+<p>The first example above pulls the ligand towards the point (0,0,0).
 The second example holds the ligand near the surface of a sphere of
 radius 5 around the point (0,0,0).  The third example holds the ligand
-a distance 3 away from the z=2 plane (on either side).
-</P>
-<P>The fourth example holds 2 bilayers a distance 10 apart in z.  For the
+a distance 3 away from the z=2 plane (on either side).</p>
+<p>The fourth example holds 2 bilayers a distance 10 apart in z.  For the
 last two examples, imagine a pore (a slab of atoms with a cylindrical
 hole cut out) oriented with the pore axis along z, and an ion moving
 within the pore.  The fifth example holds the ion a distance of -20
 below the z = 0 center plane of the pore (umbrella sampling).  The
 last example holds the ion a distance 5 away from the pore axis
-(assuming the center-of-mass of the pore in x,y is the pore axis).
-</P>
-<P>IMPORTANT NOTE: The center of mass of a group of atoms is calculated
-in "unwrapped" coordinates using atom image flags, which means that
-the group can straddle a periodic boundary.  See the <A HREF = "dump.html">dump</A>
+(assuming the center-of-mass of the pore in x,y is the pore axis).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The center of mass of a group of atoms is calculated
+in &#8220;unwrapped&#8221; coordinates using atom image flags, which means that
+the group can straddle a periodic boundary.  See the <a class="reference internal" href="dump.html"><em>dump</em></a>
 doc page for a discussion of unwrapped coordinates.  It also means
 that a spring connecting two groups or a group and the tether point
 can cross a periodic boundary and its length be calculated correctly.
 One exception is for rigid bodies, which should not be used with the
 fix spring command, if the rigid body will cross a periodic boundary.
 This is because image flags for rigid bodies are used in a different
-way, as explained on the <A HREF = "fix_rigid.html">fix rigid</A> doc page.
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>. 
-</P>
-<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
-fix to add the energy stored in the spring to the system's potential
-energy as part of <A HREF = "thermo_style.html">thermodynamic output</A>.
-</P>
-<P>This fix computes a global scalar which can be accessed by various
-<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
-spring energy = 0.5 * K * r^2.
-</P>
-<P>This fix also computes global 4-vector which can be accessed by
-various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The first 3
+way, as explained on the <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> doc page.</p>
+</div>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by this
+fix to add the energy stored in the spring to the system&#8217;s potential
+energy as part of <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>.</p>
+<p>This fix computes a global scalar which can be accessed by various
+<a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar is the
+spring energy = 0.5 * K * r^2.</p>
+<p>This fix also computes global 4-vector which can be accessed by
+various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The first 3
 quantities in the vector are xyz components of the total force added
-to the group of atoms by the spring.  In the case of the <I>couple</I>
+to the group of atoms by the spring.  In the case of the <em>couple</em>
 style, it is the force on the fix group (group-ID) or the negative of
 the force on the 2nd group (group-ID2).  The 4th quantity in the
 vector is the magnitude of the force added by the spring, as a
-positive value if (r-R0) > 0 and a negative value if (r-R0) < 0.  This
+positive value if (r-R0) &gt; 0 and a negative value if (r-R0) &lt; 0.  This
 sign convention can be useful when using the spring force to compute a
-potential of mean force (PMF).
-</P>
-<P>The scalar and vector values calculated by this fix are "extensive".
-</P>
-<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.
-</P>
-<P>The forces due to this fix are imposed during an energy minimization,
-invoked by the <A HREF = "minimize.html">minimize</A> command.
-</P>
-<P>IMPORTANT NOTE: If you want the spring energy to be included in the
+potential of mean force (PMF).</p>
+<p>The scalar and vector values calculated by this fix are &#8220;extensive&#8221;.</p>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><em>run</em></a> command.</p>
+<p>The forces due to this fix are imposed during an energy minimization,
+invoked by the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you want the spring energy to be included in the
 total potential energy of the system (the quantity being minimized),
-you MUST enable the <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for
-this fix.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_drag.html">fix drag</A>, <A HREF = "fix_spring_self.html">fix spring/self</A>, 
-<A HREF = "fix_spring_rg.html">fix spring/rg</A>, <A HREF = "fix_smd.html">fix smd</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+you MUST enable the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option for
+this fix.</p>
+</div>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_drag.html"><em>fix drag</em></a>, <a class="reference internal" href="fix_spring_self.html"><em>fix spring/self</em></a>,
+<a class="reference internal" href="fix_spring_rg.html"><em>fix spring/rg</em></a>, <a class="reference internal" href="fix_smd.html"><em>fix smd</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

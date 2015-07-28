@@ -1,174 +1,282 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>if command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>if command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>if boolean then t1 t2 ... elif boolean f1 f2 ... elif boolean f1 f2 ... else e1 e2 ... 
-</PRE>
-<UL><LI>boolean = a Boolean expression evaluated as TRUE or FALSE (see below)
-<LI>then = required word
-<LI>t1,t2,...,tN = one or more LAMMPS commands to execute if condition is met, each enclosed in quotes
-<LI>elif = optional word, can appear multiple times
-<LI>f1,f2,...,fN = one or more LAMMPS commands to execute if elif condition is met, each enclosed in quotes (optional arguments)
-<LI>else = optional argument
-<LI>e1,e2,...,eN = one or more LAMMPS commands to execute if no condition is met, each enclosed in quotes (optional arguments) 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>if "${steps} > 1000" then quit
-if "${myString} == a10" then quit
-if "$x <= $y" then "print X is smaller = $x" else "print Y is smaller = $y"
-if "(${eng} > 0.0) || ($n < 1000)" then &
-  "timestep 0.005" &
-elif $n<10000 &
-  "timestep 0.01" &
-else &
-  "timestep 0.02" &
-  "print 'Max step reached'"
-if "${eng} > ${eng_previous}" then "jump file1" else "jump file2" 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This command provides an if-then-else capability within an input
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>if command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="if-command">
+<span id="index-0"></span><h1>if command<a class="headerlink" href="#if-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>if boolean then t1 t2 ... elif boolean f1 f2 ... elif boolean f1 f2 ... else e1 e2 ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>boolean = a Boolean expression evaluated as TRUE or FALSE (see below)</li>
+<li>then = required word</li>
+<li>t1,t2,...,tN = one or more LAMMPS commands to execute if condition is met, each enclosed in quotes</li>
+<li>elif = optional word, can appear multiple times</li>
+<li>f1,f2,...,fN = one or more LAMMPS commands to execute if elif condition is met, each enclosed in quotes (optional arguments)</li>
+<li>else = optional argument</li>
+<li>e1,e2,...,eN = one or more LAMMPS commands to execute if no condition is met, each enclosed in quotes (optional arguments)</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>if &quot;${steps} &gt; 1000&quot; then quit
+if &quot;${myString} == a10&quot; then quit
+if &quot;$x &lt;= $y&quot; then &quot;print X is smaller = $x&quot; else &quot;print Y is smaller = $y&quot;
+if &quot;(${eng} &gt; 0.0) || ($n &lt; 1000)&quot; then &amp;
+  &quot;timestep 0.005&quot; &amp;
+elif $n&lt;10000 &amp;
+  &quot;timestep 0.01&quot; &amp;
+else &amp;
+  &quot;timestep 0.02&quot; &amp;
+  &quot;print &#39;Max step reached&#39;&quot;
+if &quot;${eng} &gt; ${eng_previous}&quot; then &quot;jump file1&quot; else &quot;jump file2&quot;
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command provides an if-then-else capability within an input
 script.  A Boolean expression is evaluted and the result is TRUE or
 FALSE.  Note that as in the examples above, the expression can contain
-variables, as defined by the <A HREF = "variable.html">variable</A> command, which
+variables, as defined by the <a class="reference internal" href="variable.html"><em>variable</em></a> command, which
 will be evaluated as part of the expression.  Thus a user-defined
 formula that reflects the current state of the simulation can be used
-to issue one or more new commands.
-</P>
-<P>If the result of the Boolean expression is TRUE, then one or more
+to issue one or more new commands.</p>
+<p>If the result of the Boolean expression is TRUE, then one or more
 commands (t1, t2, ..., tN) are executed.  If it is FALSE, then Boolean
 expressions associated with successive elif keywords are evaluated
 until one is found to be true, in which case its commands (f1, f2,
 ..., fN) are executed.  If no Boolean expression is TRUE, then the
 commands associated with the else keyword, namely (e1, e2, ..., eN),
 are executed.  The elif and else keywords and their associated
-commands are optional.  If they aren't specified and the initial
-Boolean expression is FALSE, then no commands are executed.
-</P>
-<P>The syntax for Boolean expressions is described below.
-</P>
-<P>Each command (t1, f1, e1, etc) can be any valid LAMMPS input script
-command, except an <A HREF = "include.html">include</A> command, which is not
+commands are optional.  If they aren&#8217;t specified and the initial
+Boolean expression is FALSE, then no commands are executed.</p>
+<p>The syntax for Boolean expressions is described below.</p>
+<p>Each command (t1, f1, e1, etc) can be any valid LAMMPS input script
+command, except an <a class="reference internal" href="include.html"><em>include</em></a> command, which is not
 allowed.  If the command is more than one word, it must enclosed in
 quotes, so it will be treated as a single argument, as in the examples
-above.
-</P>
-<P>IMPORTANT NOTE: If a command itself requires a quoted argument (e.g. a
-<A HREF = "print.html">print</A> command), then double and single quotes can be used
+above.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If a command itself requires a quoted argument (e.g. a
+<a class="reference internal" href="print.html"><em>print</em></a> command), then double and single quotes can be used
 and nested in the usual manner, as in the examples above and below.
-See <A HREF = "Section_commands.html#cmd_2">Section_commands 2</A> of the manual for
+See <a class="reference internal" href="Section_commands.html#cmd-2"><span>Section_commands 2</span></a> of the manual for
 more details on using quotes in arguments.  Only one of level of
-nesting is allowed, but that should be sufficient for most use cases.
-</P>
-<P>Note that by using the line continuation character "&", the if command
-can be spread across many lines, though it is still a single command:
-</P>
-<PRE>if "$a < $b" then &
-  "print 'Minimum value = $a'" &
-  "run 1000" &
-else &      
-  'print "Minimum value = $b"' &
-  "minimize 0.001 0.001 1000 10000" 
-</PRE>
-<P>Note that if one of the commands to execute is <A HREF = "quit.html">quit</A>, as in
+nesting is allowed, but that should be sufficient for most use cases.</p>
+</div>
+<p>Note that by using the line continuation character &#8220;&amp;&#8221;, the if command
+can be spread across many lines, though it is still a single command:</p>
+<div class="highlight-python"><div class="highlight"><pre>if &quot;$a &lt; $b&quot; then &amp;
+  &quot;print &#39;Minimum value = $a&#39;&quot; &amp;
+  &quot;run 1000&quot; &amp;
+else &amp;
+  &#39;print &quot;Minimum value = $b&quot;&#39; &amp;
+  &quot;minimize 0.001 0.001 1000 10000&quot;
+</pre></div>
+</div>
+<p>Note that if one of the commands to execute is <a class="reference internal" href="quit.html"><em>quit</em></a>, as in
 the first example above, then executing the command will cause LAMMPS
-to halt.
-</P>
-<P>Note that by jumping to a label in the same input script, the if
-command can be used to break out of a loop.  See the <A HREF = "variable.html">variable
-delete</A> command for info on how to delete the associated
-loop variable, so that it can be re-used later in the input script.
-</P>
-<P>Here is an example of a loop which checks every 1000 steps if the
+to halt.</p>
+<p>Note that by jumping to a label in the same input script, the if
+command can be used to break out of a loop.  See the <a class="reference internal" href="variable.html"><em>variable delete</em></a> command for info on how to delete the associated
+loop variable, so that it can be re-used later in the input script.</p>
+<p>Here is an example of a loop which checks every 1000 steps if the
 system temperature has reached a certain value, and if so, breaks out
 of the loop to finish the run.  Note that any variable could be
 checked, so long as it is current on the timestep when the run
-completes.  As explained on the <A HREF = "variable.html">variable</A> doc page,
-this can be insured by includig the variable in thermodynamic output.
-</P>
-<PRE>variable myTemp equal temp
+completes.  As explained on the <a class="reference internal" href="variable.html"><em>variable</em></a> doc page,
+this can be insured by includig the variable in thermodynamic output.</p>
+<div class="highlight-python"><div class="highlight"><pre>variable myTemp equal temp
 label loop
 variable a loop 1000
 run 1000
-if "${myTemp} < 300.0" then "jump SELF break"
+if &quot;${myTemp} &lt; 300.0&quot; then &quot;jump SELF break&quot;
 next a
 jump SELF loop
 label break
-print "ALL DONE" 
-</PRE>
-<P>Here is an example of a double loop which uses the if and
-<A HREF = "jump.html">jump</A> commands to break out of the inner loop when a
-condition is met, then continues iterating thru the outer loop.
-</P>
-<PRE>label	    loopa
+print &quot;ALL DONE&quot;
+</pre></div>
+</div>
+<p>Here is an example of a double loop which uses the if and
+<a class="reference internal" href="jump.html"><em>jump</em></a> commands to break out of the inner loop when a
+condition is met, then continues iterating thru the outer loop.</p>
+<div class="highlight-python"><div class="highlight"><pre>label            loopa
 variable    a loop 5
-  label	    loopb
+  label          loopb
   variable  b loop 5
-  print	    "A,B = $a,$b"
+  print          &quot;A,B = $a,$b&quot;
   run       10000
-  if	    "$b > 2" then "jump SELF break"
-  next	    b
-  jump	    in.script loopb
-label	    break
+  if     &quot;$b &gt; 2&quot; then &quot;jump SELF break&quot;
+  next           b
+  jump           in.script loopb
+label            break
 variable    b delete
-next	    a
-jump	    SELF loopa 
-</PRE>
-<HR>
-
-<P>The Boolean expressions for the if and elif keywords have a C-like
+next     a
+jump     SELF loopa
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>The Boolean expressions for the if and elif keywords have a C-like
 syntax.  Note that each expression is a single argument within the if
 command.  Thus if you want to include spaces in the expression for
-clarity, you must enclose the entire expression in quotes.
-</P>
-<P>An expression is built out of numbers (which start with a digit or
+clarity, you must enclose the entire expression in quotes.</p>
+<p>An expression is built out of numbers (which start with a digit or
 period or minus sign) or strings (which start with a letter and can
-contain alphanumeric characters or underscores):
-</P>
-<PRE>0.2, 100, 1.0e20, -15.4, etc 
-InP, myString, a123, ab_23_cd, etc 
-</PRE>
-<P>and Boolean operators:
-</P>
-<PRE>A == B, A != B, A < B, A <= B, A > B, A >= B, A && B, A || B, !A 
-</PRE>
-<P>Each A and B is a number or string or a variable reference like $a or
-${abc}, or A or B can be another Boolean expression.
-</P>
-<P>If a variable is used it can produce a number when evaluated, like an
-<A HREF = "variable.html">equal-style variable</A>.  Or it can produce a string,
-like an <A HREF = "variable.html">index-style variable</A>.  For an individual
+contain alphanumeric characters or underscores):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="mf">0.2</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mf">1.0e20</span><span class="p">,</span> <span class="o">-</span><span class="mf">15.4</span><span class="p">,</span> <span class="n">etc</span>
+<span class="n">InP</span><span class="p">,</span> <span class="n">myString</span><span class="p">,</span> <span class="n">a123</span><span class="p">,</span> <span class="n">ab_23_cd</span><span class="p">,</span> <span class="n">etc</span>
+</pre></div>
+</div>
+<p>and Boolean operators:</p>
+<div class="highlight-python"><div class="highlight"><pre>A == B, A != B, A &lt; B, A &lt;= B, A &gt; B, A &gt;= B, A &amp;&amp; B, A || B, !A
+</pre></div>
+</div>
+<p>Each A and B is a number or string or a variable reference like $a or
+${abc}, or A or B can be another Boolean expression.</p>
+<p>If a variable is used it can produce a number when evaluated, like an
+<a class="reference internal" href="variable.html"><em>equal-style variable</em></a>.  Or it can produce a string,
+like an <a class="reference internal" href="variable.html"><em>index-style variable</em></a>.  For an individual
 Boolean operator, A and B must both be numbers or must both be
-strings.  You cannot compare a number to a string.  
-</P>
-<P>Expressions are evaluated left to right and have the usual C-style
-precedence: the unary logical NOT operator "!" has the highest
-precedence, the 4 relational operators "<", "<=", ">", and ">=" are
-next; the two remaining relational operators "==" and "!=" are next;
-then the logical AND operator "&&"; and finally the logical OR
-operator "||" has the lowest precedence.  Parenthesis can be used to
+strings.  You cannot compare a number to a string.</p>
+<p>Expressions are evaluated left to right and have the usual C-style
+precedence: the unary logical NOT operator &#8221;!&#8221; has the highest
+precedence, the 4 relational operators &#8220;&lt;&#8221;, &#8220;&lt;=&#8221;, &#8220;&gt;&#8221;, and &#8220;&gt;=&#8221; are
+next; the two remaining relational operators &#8220;==&#8221; and &#8221;!=&#8221; are next;
+then the logical AND operator &#8220;&amp;&amp;&#8221;; and finally the logical OR
+operator &#8220;||&#8221; has the lowest precedence.  Parenthesis can be used to
 group one or more portions of an expression and/or enforce a different
-order of evaluation than what would occur with the default precedence.
-</P>
-<P>When the 6 relational operators (first 6 in list above) compare 2
+order of evaluation than what would occur with the default precedence.</p>
+<p>When the 6 relational operators (first 6 in list above) compare 2
 numbers, they return either a 1.0 or 0.0 depending on whether the
 relationship between A and B is TRUE or FALSE.  When the 6 relational
 operators compare 2 strings, they also return a 1.0 or 0.0 for TRUE or
-FALSE, but the comparison is done by the C function strcmp().
-</P>
-<P>When the 3 logical operators (last 3 in list above) compare 2 numbers,
+FALSE, but the comparison is done by the C function strcmp().</p>
+<p>When the 3 logical operators (last 3 in list above) compare 2 numbers,
 they also return either a 1.0 or 0.0 depending on whether the
 relationship between A and B is TRUE or FALSE (or just A).  The
 logical AND operator will return 1.0 if both its arguments are
@@ -176,19 +284,82 @@ non-zero, else it returns 0.0.  The logical OR operator will return
 1.0 if either of its arguments is non-zero, else it returns 0.0.  The
 logical NOT operator returns 1.0 if its argument is 0.0, else it
 returns 0.0.  The 3 logical operators can only be used to operate on
-numbers, not on strings.
-</P>
-<P>The overall Boolean expression produces a TRUE result if the result is
-non-zero.  If the result is zero, the expression result is FALSE.
-</P>
-<HR>
+numbers, not on strings.</p>
+<p>The overall Boolean expression produces a TRUE result if the result is
+non-zero.  If the result is zero, the expression result is FALSE.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="variable.html"><em>variable</em></a>, <a class="reference internal" href="print.html"><em>print</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
 
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "variable.html">variable</A>, <A HREF = "print.html">print</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

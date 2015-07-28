@@ -1,715 +1,1099 @@
-<HTML>
-<CENTER> <A HREF = "Section_tools.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
-<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_python.html">Next
-Section</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>10. Modifying &amp; extending LAMMPS &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+        <link rel="next" title="11. Python interface to LAMMPS" href="Section_python.html"/>
+        <link rel="prev" title="9. Additional tools" href="Section_tools.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">10. Modifying &amp; extending LAMMPS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#atom-styles">10.1. Atom styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bond-angle-dihedral-improper-potentials">10.2. Bond, angle, dihedral, improper potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compute-styles">10.3. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-styles">10.4. Dump styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-custom-output-options">10.5. Dump custom output options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-styles">10.6. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#input-script-commands">10.7. Input script commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kspace-computations">10.8. Kspace computations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#minimization-styles">10.9. Minimization styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pairwise-potentials">10.10. Pairwise potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#region-styles">10.11. Region styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#body-styles">10.12. Body styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#thermodynamic-output-options">10.13. Thermodynamic output options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#variable-options">10.14. Variable options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#submitting-new-features-for-inclusion-in-lammps">10.15. Submitting new features for inclusion in LAMMPS</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>10. Modifying & extending LAMMPS 
-</H3>
-<P>This section describes how to customize LAMMPS by modifying
-and extending its source code.
-</P>
-10.1 <A HREF = "#mod_1">Atom styles</A><BR>
-10.2 <A HREF = "#mod_2">Bond, angle, dihedral, improper potentials</A><BR>
-10.3 <A HREF = "#mod_3">Compute styles</A><BR>
-10.4 <A HREF = "#mod_4">Dump styles</A><BR>
-10.5 <A HREF = "#mod_5">Dump custom output options</A><BR>
-10.6 <A HREF = "#mod_6">Fix styles</A> which include integrators,      temperature and pressure control, force constraints,      boundary conditions, diagnostic output, etc<BR>
-10.7 <A HREF = "mod_7">Input script commands</A><BR>
-10.8 <A HREF = "#mod_8">Kspace computations</A><BR>
-10.9 <A HREF = "#mod_9">Minimization styles</A><BR>
-10.10 <A HREF = "#mod_10">Pairwise potentials</A><BR>
-10.11 <A HREF = "#mod_11">Region styles</A><BR>
-10.12 <A HREF = "#mod_12">Body styles</A><BR>
-10.13 <A HREF = "#mod_13">Thermodynamic output options</A><BR>
-10.14 <A HREF = "#mod_14">Variable options</A><BR>
-10.15 <A HREF = "#mod_15">Submitting new features for inclusion in LAMMPS</A> <BR>
-
-<P>LAMMPS is designed in a modular fashion so as to be easy to modify and
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>10. Modifying &amp; extending LAMMPS</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="modifying-extending-lammps">
+<h1>10. Modifying &amp; extending LAMMPS<a class="headerlink" href="#modifying-extending-lammps" title="Permalink to this headline">¶</a></h1>
+<p>This section describes how to customize LAMMPS by modifying
+and extending its source code.</p>
+<div class="line-block">
+<div class="line">10.1 <a class="reference internal" href="#mod-1"><span>Atom styles</span></a></div>
+<div class="line">10.2 <a class="reference internal" href="#mod-2"><span>Bond, angle, dihedral, improper potentials</span></a></div>
+<div class="line">10.3 <a class="reference internal" href="#mod-3"><span>Compute styles</span></a></div>
+<div class="line">10.4 <a class="reference internal" href="#mod-4"><span>Dump styles</span></a></div>
+<div class="line">10.5 <a class="reference internal" href="#mod-5"><span>Dump custom output options</span></a></div>
+<div class="line">10.6 <a class="reference internal" href="#mod-6"><span>Fix styles</span></a> which include integrators,      temperature and pressure control, force constraints,      boundary conditions, diagnostic output, etc</div>
+<div class="line">10.7 <a class="reference internal" href="#mod-7"><span>Input script commands</span></a></div>
+<div class="line">10.8 <a class="reference internal" href="#mod-8"><span>Kspace computations</span></a></div>
+<div class="line">10.9 <a class="reference internal" href="#mod-9"><span>Minimization styles</span></a></div>
+<div class="line">10.10 <a class="reference internal" href="#mod-10"><span>Pairwise potentials</span></a></div>
+<div class="line">10.11 <a class="reference internal" href="#mod-11"><span>Region styles</span></a></div>
+<div class="line">10.12 <a class="reference internal" href="#mod-12"><span>Body styles</span></a></div>
+<div class="line">10.13 <a class="reference internal" href="#mod-13"><span>Thermodynamic output options</span></a></div>
+<div class="line">10.14 <a class="reference internal" href="#mod-14"><span>Variable options</span></a></div>
+<div class="line">10.15 <a class="reference internal" href="#mod-15"><span>Submitting new features for inclusion in LAMMPS</span></a></div>
+<div class="line"><br /></div>
+</div>
+<p>LAMMPS is designed in a modular fashion so as to be easy to modify and
 extend with new functionality.  In fact, about 75% of its source code
-is files added in this fashion.
-</P>
-<P>In this section, changes and additions users can make are listed along
+is files added in this fashion.</p>
+<p>In this section, changes and additions users can make are listed along
 with minimal instructions.  If you add a new feature to LAMMPS and
 think it will be of interest to general users, we encourage you to
 submit it to the developers for inclusion in the released version of
 LAMMPS.  Information about how to do this is provided
-<A HREF = "#mod_14">below</A>.
-</P>
-<P>The best way to add a new feature is to find a similar feature in
+<a class="reference internal" href="#mod-14"><span>below</span></a>.</p>
+<p>The best way to add a new feature is to find a similar feature in
 LAMMPS and look at the corresponding source and header files to figure
 out what it does.  You will need some knowledge of C++ to be able to
 understand the hi-level structure of LAMMPS and its class
 organization, but functions (class methods) that do actual
 computations are written in vanilla C-style code and operate on simple
-C-style data structures (vectors and arrays).
-</P>
-<P>Most of the new features described in this section require you to
+C-style data structures (vectors and arrays).</p>
+<p>Most of the new features described in this section require you to
 write a new C++ derived class (except for exceptions described below,
 where you can make small edits to existing files).  Creating a new
-class requires 2 files, a source code file (*.cpp) and a header file
-(*.h).  The derived class must provide certain methods to work as a
+class requires 2 files, a source code file (<em>.cpp) and a header file
+(</em>.h).  The derived class must provide certain methods to work as a
 new option.  Depending on how different your new feature is compared
 to existing features, you can either derive from the base class
 itself, or from a derived class that already exists.  Enabling LAMMPS
 to invoke the new class is as simple as putting the two source
-files in the src dir and re-building LAMMPS.
-</P>
-<P>The advantage of C++ and its object-orientation is that all the code
+files in the src dir and re-building LAMMPS.</p>
+<p>The advantage of C++ and its object-orientation is that all the code
 and variables needed to define the new feature are in the 2 files you
-write, and thus shouldn't make the rest of LAMMPS more complex or
-cause side-effect bugs.
-</P>
-<P>Here is a concrete example.  Suppose you write 2 files pair_foo.cpp
+write, and thus shouldn&#8217;t make the rest of LAMMPS more complex or
+cause side-effect bugs.</p>
+<p>Here is a concrete example.  Suppose you write 2 files pair_foo.cpp
 and pair_foo.h that define a new class PairFoo that computes pairwise
-potentials described in the classic 1997 <A HREF = "#Foo">paper</A> by Foo, et al.
+potentials described in the classic 1997 <a class="reference internal" href="#foo"><span>paper</span></a> by Foo, et al.
 If you wish to invoke those potentials in a LAMMPS input script with a
-command like
-</P>
-<PRE>pair_style foo 0.1 3.5 
-</PRE>
-<P>then your pair_foo.h file should be structured as follows:
-</P>
-<PRE>#ifdef PAIR_CLASS
+command like</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_style foo 0.1 3.5
+</pre></div>
+</div>
+<p>then your pair_foo.h file should be structured as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>#ifdef PAIR_CLASS
 PairStyle(foo,PairFoo)
 #else
 ...
 (class definition for PairFoo)
 ...
-#endif 
-</PRE>
-<P>where "foo" is the style keyword in the pair_style command, and
+#endif
+</pre></div>
+</div>
+<p>where &#8220;foo&#8221; is the style keyword in the pair_style command, and
 PairFoo is the class name defined in your pair_foo.cpp and pair_foo.h
-files.
-</P>
-<P>When you re-build LAMMPS, your new pairwise potential becomes part of
+files.</p>
+<p>When you re-build LAMMPS, your new pairwise potential becomes part of
 the executable and can be invoked with a pair_style command like the
 example above.  Arguments like 0.1 and 3.5 can be defined and
-processed by your new class.
-</P>
-<P>As illustrated by this pairwise example, many kinds of options are
-referred to in the LAMMPS documentation as the "style" of a particular
-command.
-</P>
-<P>The instructions below give the header file for the base class that
+processed by your new class.</p>
+<p>As illustrated by this pairwise example, many kinds of options are
+referred to in the LAMMPS documentation as the &#8220;style&#8221; of a particular
+command.</p>
+<p>The instructions below give the header file for the base class that
 these styles are derived from.  Public variables in that file are ones
 used and set by the derived classes which are also used by the base
 class.  Sometimes they are also used by the rest of LAMMPS.  Virtual
 functions in the base class header file which are set = 0 are ones you
 must define in your new derived class to give it the functionality
 LAMMPS expects.  Virtual functions that are not set to 0 are functions
-you can optionally define.
-</P>
-<P>Additionally, new output options can be added directly to the
+you can optionally define.</p>
+<p>Additionally, new output options can be added directly to the
 thermo.cpp, dump_custom.cpp, and variable.cpp files as explained
-below.
-</P>
-<P>Here are additional guidelines for modifying LAMMPS and adding new
-functionality:
-</P>
-<UL><LI>Think about whether what you want to do would be better as a pre- or
+below.</p>
+<p>Here are additional guidelines for modifying LAMMPS and adding new
+functionality:</p>
+<ul class="simple">
+<li>Think about whether what you want to do would be better as a pre- or
 post-processing step.  Many computations are more easily and more
-quickly done that way. 
-
-<LI>Don't do anything within the timestepping of a run that isn't
-parallel.  E.g. don't accumulate a bunch of data on a single processor
+quickly done that way.</li>
+<li>Don&#8217;t do anything within the timestepping of a run that isn&#8217;t
+parallel.  E.g. don&#8217;t accumulate a bunch of data on a single processor
 and analyze it.  You run the risk of seriously degrading the parallel
-efficiency. 
-
-<LI>If your new feature reads arguments or writes output, make sure you
-follow the unit conventions discussed by the <A HREF = "units.html">units</A>
-command. 
-
-<LI>If you add something you think is truly useful and doesn't impact
-LAMMPS performance when it isn't used, send an email to the
-<A HREF = "http://lammps.sandia.gov/authors.html">developers</A>.  We might be
+efficiency.</li>
+<li>If your new feature reads arguments or writes output, make sure you
+follow the unit conventions discussed by the <a class="reference internal" href="units.html"><em>units</em></a>
+command.</li>
+<li>If you add something you think is truly useful and doesn&#8217;t impact
+LAMMPS performance when it isn&#8217;t used, send an email to the
+<a class="reference external" href="http://lammps.sandia.gov/authors.html">developers</a>.  We might be
 interested in adding it to the LAMMPS distribution.  See further
-details on this at the bottom of this page. 
-</UL>
-<HR>
-
-<HR>
-
-<A NAME = "mod_1"></A><H4>10.1 Atom styles 
-</H4>
-<P>Classes that define an <A HREF = "atom_style.html">atom style</A> are derived from
+details on this at the bottom of this page.</li>
+</ul>
+<div class="section" id="atom-styles">
+<span id="mod-1"></span><h2>10.1. Atom styles<a class="headerlink" href="#atom-styles" title="Permalink to this headline">¶</a></h2>
+<p>Classes that define an <a class="reference internal" href="atom_style.html"><em>atom style</em></a> are derived from
 the AtomVec class and managed by the Atom class.  The atom style
 determines what attributes are associated with an atom.  A new atom
 style can be created if one of the existing atom styles does not
 define all the attributes you need to store and communicate with
-atoms.
-</P>
-<P>Atom_vec_atomic.cpp is a simple example of an atom style.
-</P>
-<P>Here is a brief description of methods you define in your new derived
-class.  See atom_vec.h for details.
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >init</TD><TD > one time setup (optional)</TD></TR>
-<TR><TD >grow</TD><TD > re-allocate atom arrays to longer lengths (required)</TD></TR>
-<TR><TD >grow_reset</TD><TD > make array pointers in Atom and AtomVec classes consistent (required)</TD></TR>
-<TR><TD >copy</TD><TD > copy info for one atom to another atom's array locations (required)</TD></TR>
-<TR><TD >pack_comm</TD><TD > store an atom's info in a buffer communicated every timestep (required)</TD></TR>
-<TR><TD >pack_comm_vel</TD><TD > add velocity info to communication buffer (required)</TD></TR>
-<TR><TD >pack_comm_hybrid</TD><TD > store extra info unique to this atom style (optional)</TD></TR>
-<TR><TD >unpack_comm</TD><TD > retrieve an atom's info from the buffer (required)</TD></TR>
-<TR><TD >unpack_comm_vel</TD><TD > also retrieve velocity info (required)</TD></TR>
-<TR><TD >unpack_comm_hybrid</TD><TD > retreive extra info unique to this atom style (optional)</TD></TR>
-<TR><TD >pack_reverse</TD><TD > store an atom's info in a buffer communicating partial forces  (required)</TD></TR>
-<TR><TD >pack_reverse_hybrid</TD><TD > store extra info unique to this atom style (optional)</TD></TR>
-<TR><TD >unpack_reverse</TD><TD > retrieve an atom's info from the buffer (required)</TD></TR>
-<TR><TD >unpack_reverse_hybrid</TD><TD > retreive extra info unique to this atom style (optional)</TD></TR>
-<TR><TD >pack_border</TD><TD > store an atom's info in a buffer communicated on neighbor re-builds (required)</TD></TR>
-<TR><TD >pack_border_vel</TD><TD > add velocity info to buffer (required)</TD></TR>
-<TR><TD >pack_border_hybrid</TD><TD > store extra info unique to this atom style (optional)</TD></TR>
-<TR><TD >unpack_border</TD><TD > retrieve an atom's info from the buffer (required)</TD></TR>
-<TR><TD >unpack_border_vel</TD><TD > also retrieve velocity info (required)</TD></TR>
-<TR><TD >unpack_border_hybrid</TD><TD > retreive extra info unique to this atom style (optional)</TD></TR>
-<TR><TD >pack_exchange</TD><TD > store all an atom's info to migrate to another processor (required)</TD></TR>
-<TR><TD >unpack_exchange</TD><TD > retrieve an atom's info from the buffer (required)</TD></TR>
-<TR><TD >size_restart</TD><TD > number of restart quantities associated with proc's atoms (required)</TD></TR>
-<TR><TD >pack_restart</TD><TD > pack atom quantities into a buffer (required)</TD></TR>
-<TR><TD >unpack_restart</TD><TD > unpack atom quantities from a buffer (required)</TD></TR>
-<TR><TD >create_atom</TD><TD > create an individual atom of this style (required)</TD></TR>
-<TR><TD >data_atom</TD><TD > parse an atom line from the data file (required)</TD></TR>
-<TR><TD >data_atom_hybrid</TD><TD > parse additional atom info unique to this atom style (optional)</TD></TR>
-<TR><TD >data_vel</TD><TD > parse one line of velocity information from data file (optional)</TD></TR>
-<TR><TD >data_vel_hybrid</TD><TD > parse additional velocity data unique to this atom style (optional)</TD></TR>
-<TR><TD >memory_usage</TD><TD > tally memory allocated by atom arrays (required) 
-</TD></TR></TABLE></DIV>
-
-<P>The constructor of the derived class sets values for several variables
+atoms.</p>
+<p>Atom_vec_atomic.cpp is a simple example of an atom style.</p>
+<p>Here is a brief description of methods you define in your new derived
+class.  See atom_vec.h for details.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="78%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>init</td>
+<td>one time setup (optional)</td>
+</tr>
+<tr class="row-even"><td>grow</td>
+<td>re-allocate atom arrays to longer lengths (required)</td>
+</tr>
+<tr class="row-odd"><td>grow_reset</td>
+<td>make array pointers in Atom and AtomVec classes consistent (required)</td>
+</tr>
+<tr class="row-even"><td>copy</td>
+<td>copy info for one atom to another atom&#8217;s array locations (required)</td>
+</tr>
+<tr class="row-odd"><td>pack_comm</td>
+<td>store an atom&#8217;s info in a buffer communicated every timestep (required)</td>
+</tr>
+<tr class="row-even"><td>pack_comm_vel</td>
+<td>add velocity info to communication buffer (required)</td>
+</tr>
+<tr class="row-odd"><td>pack_comm_hybrid</td>
+<td>store extra info unique to this atom style (optional)</td>
+</tr>
+<tr class="row-even"><td>unpack_comm</td>
+<td>retrieve an atom&#8217;s info from the buffer (required)</td>
+</tr>
+<tr class="row-odd"><td>unpack_comm_vel</td>
+<td>also retrieve velocity info (required)</td>
+</tr>
+<tr class="row-even"><td>unpack_comm_hybrid</td>
+<td>retreive extra info unique to this atom style (optional)</td>
+</tr>
+<tr class="row-odd"><td>pack_reverse</td>
+<td>store an atom&#8217;s info in a buffer communicating partial forces  (required)</td>
+</tr>
+<tr class="row-even"><td>pack_reverse_hybrid</td>
+<td>store extra info unique to this atom style (optional)</td>
+</tr>
+<tr class="row-odd"><td>unpack_reverse</td>
+<td>retrieve an atom&#8217;s info from the buffer (required)</td>
+</tr>
+<tr class="row-even"><td>unpack_reverse_hybrid</td>
+<td>retreive extra info unique to this atom style (optional)</td>
+</tr>
+<tr class="row-odd"><td>pack_border</td>
+<td>store an atom&#8217;s info in a buffer communicated on neighbor re-builds (required)</td>
+</tr>
+<tr class="row-even"><td>pack_border_vel</td>
+<td>add velocity info to buffer (required)</td>
+</tr>
+<tr class="row-odd"><td>pack_border_hybrid</td>
+<td>store extra info unique to this atom style (optional)</td>
+</tr>
+<tr class="row-even"><td>unpack_border</td>
+<td>retrieve an atom&#8217;s info from the buffer (required)</td>
+</tr>
+<tr class="row-odd"><td>unpack_border_vel</td>
+<td>also retrieve velocity info (required)</td>
+</tr>
+<tr class="row-even"><td>unpack_border_hybrid</td>
+<td>retreive extra info unique to this atom style (optional)</td>
+</tr>
+<tr class="row-odd"><td>pack_exchange</td>
+<td>store all an atom&#8217;s info to migrate to another processor (required)</td>
+</tr>
+<tr class="row-even"><td>unpack_exchange</td>
+<td>retrieve an atom&#8217;s info from the buffer (required)</td>
+</tr>
+<tr class="row-odd"><td>size_restart</td>
+<td>number of restart quantities associated with proc&#8217;s atoms (required)</td>
+</tr>
+<tr class="row-even"><td>pack_restart</td>
+<td>pack atom quantities into a buffer (required)</td>
+</tr>
+<tr class="row-odd"><td>unpack_restart</td>
+<td>unpack atom quantities from a buffer (required)</td>
+</tr>
+<tr class="row-even"><td>create_atom</td>
+<td>create an individual atom of this style (required)</td>
+</tr>
+<tr class="row-odd"><td>data_atom</td>
+<td>parse an atom line from the data file (required)</td>
+</tr>
+<tr class="row-even"><td>data_atom_hybrid</td>
+<td>parse additional atom info unique to this atom style (optional)</td>
+</tr>
+<tr class="row-odd"><td>data_vel</td>
+<td>parse one line of velocity information from data file (optional)</td>
+</tr>
+<tr class="row-even"><td>data_vel_hybrid</td>
+<td>parse additional velocity data unique to this atom style (optional)</td>
+</tr>
+<tr class="row-odd"><td>memory_usage</td>
+<td>tally memory allocated by atom arrays (required)</td>
+</tr>
+</tbody>
+</table>
+<p>The constructor of the derived class sets values for several variables
 that you must set when defining a new atom style, which are documented
 in atom_vec.h.  New atom arrays are defined in atom.cpp.  Search for
-the word "customize" and you will find locations you will need to
-modify.
-</P>
-<P>IMPORTANT NOTE: It is possible to add some attributes, such as a
-molecule ID, to atom styles that do not have them via the <A HREF = "fix_property_atom.html">fix
-property/atom</A> command.  This command also
+the word &#8220;customize&#8221; and you will find locations you will need to
+modify.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is possible to add some attributes, such as a
+molecule ID, to atom styles that do not have them via the <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> command.  This command also
 allows new custom attributes consisting of extra integer or
-floating-point values to be added to atoms.  See the <A HREF = "fix_property_atom.html">fix
-property/atom</A> doc page for examples of cases
+floating-point values to be added to atoms.  See the <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> doc page for examples of cases
 where this is useful and details on how to initialize, access, and
-output the custom values.
-</P>
-<P>New <A HREF = "pair_style.html">pair styles</A>, <A HREF = "fix.html">fixes</A>, or
-<A HREF = "compute.html">computes</A> can be added to LAMMPS, as discussed below.
+output the custom values.</p>
+</div>
+<p>New <a class="reference internal" href="pair_style.html"><em>pair styles</em></a>, <a class="reference internal" href="fix.html"><em>fixes</em></a>, or
+<a class="reference internal" href="compute.html"><em>computes</em></a> can be added to LAMMPS, as discussed below.
 The code for these classes can use the per-atom properties defined by
 fix property/atom.  The Atom class has a find_custom() method that is
-useful in this context:
-</P>
-<PRE>int index = atom->find_custom(char *name, int &flag); 
-</PRE>
-<P>The "name" of a custom attribute, as specified in the <A HREF = "fix_property_atom.html">fix
-property/atom</A> command, is checked to verify
+useful in this context:</p>
+<div class="highlight-python"><div class="highlight"><pre>int index = atom-&gt;find_custom(char *name, int &amp;flag);
+</pre></div>
+</div>
+<p>The &#8220;name&#8221; of a custom attribute, as specified in the <a class="reference internal" href="fix_property_atom.html"><em>fix property/atom</em></a> command, is checked to verify
 that it exists and its index is returned.  The method also sets flag =
 0/1 depending on whether it is an integer or floating-point attribute.
 The vector of values associated with the attribute can then be
-accessed using the returned index as
-</P>
-<PRE>int *ivector = atom->ivector[index];
-double *dvector = atom->dvector[index]; 
-</PRE>
-<P>Ivector or dvector are vectors of length Nlocal = # of owned atoms,
-which store the attributes of individual atoms.
-</P>
-<HR>
-
-<A NAME = "mod_2"></A><H4>10.2 Bond, angle, dihedral, improper potentials 
-</H4>
-<P>Classes that compute molecular interactions are derived from the Bond,
+accessed using the returned index as</p>
+<div class="highlight-python"><div class="highlight"><pre>int *ivector = atom-&gt;ivector[index];
+double *dvector = atom-&gt;dvector[index];
+</pre></div>
+</div>
+<p>Ivector or dvector are vectors of length Nlocal = # of owned atoms,
+which store the attributes of individual atoms.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="bond-angle-dihedral-improper-potentials">
+<span id="mod-2"></span><h2>10.2. Bond, angle, dihedral, improper potentials<a class="headerlink" href="#bond-angle-dihedral-improper-potentials" title="Permalink to this headline">¶</a></h2>
+<p>Classes that compute molecular interactions are derived from the Bond,
 Angle, Dihedral, and Improper classes.  New styles can be created to
-add new potentials to LAMMPS.
-</P>
-<P>Bond_harmonic.cpp is the simplest example of a bond style.  Ditto for
+add new potentials to LAMMPS.</p>
+<p>Bond_harmonic.cpp is the simplest example of a bond style.  Ditto for
 the harmonic forms of the angle, dihedral, and improper style
-commands.
-</P>
-<P>Here is a brief description of common methods you define in your
+commands.</p>
+<p>Here is a brief description of common methods you define in your
 new derived class.  See bond.h, angle.h, dihedral.h, and improper.h
-for details and specific additional methods.
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >init</TD><TD > check if all coefficients are set, calls <I>init_style</I> (optional)</TD></TR>
-<TR><TD >init_style</TD><TD > check if style specific conditions are met (optional)</TD></TR>
-<TR><TD >compute</TD><TD > compute the molecular interactions (required)</TD></TR>
-<TR><TD >settings</TD><TD > apply global settings for all types (optional)</TD></TR>
-<TR><TD >coeff</TD><TD > set coefficients for one type (required)</TD></TR>
-<TR><TD >equilibrium_distance</TD><TD > length of bond, used by SHAKE (required, bond only)</TD></TR>
-<TR><TD >equilibrium_angle</TD><TD > opening of angle, used by SHAKE (required, angle only)</TD></TR>
-<TR><TD >write & read_restart</TD><TD > writes/reads coeffs to restart files (required)</TD></TR>
-<TR><TD >single</TD><TD > force and energy of a single bond or angle (required, bond or angle only)</TD></TR>
-<TR><TD >memory_usage</TD><TD > tally memory allocated by the style (optional) 
-</TD></TR></TABLE></DIV>
-
-<HR>
-
-<A NAME = "mod_3"></A><H4>10.3 Compute styles 
-</H4>
-<P>Classes that compute scalar and vector quantities like temperature
+for details and specific additional methods.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>init</td>
+<td>check if all coefficients are set, calls <em>init_style</em> (optional)</td>
+</tr>
+<tr class="row-even"><td>init_style</td>
+<td>check if style specific conditions are met (optional)</td>
+</tr>
+<tr class="row-odd"><td>compute</td>
+<td>compute the molecular interactions (required)</td>
+</tr>
+<tr class="row-even"><td>settings</td>
+<td>apply global settings for all types (optional)</td>
+</tr>
+<tr class="row-odd"><td>coeff</td>
+<td>set coefficients for one type (required)</td>
+</tr>
+<tr class="row-even"><td>equilibrium_distance</td>
+<td>length of bond, used by SHAKE (required, bond only)</td>
+</tr>
+<tr class="row-odd"><td>equilibrium_angle</td>
+<td>opening of angle, used by SHAKE (required, angle only)</td>
+</tr>
+<tr class="row-even"><td>write &amp; read_restart</td>
+<td>writes/reads coeffs to restart files (required)</td>
+</tr>
+<tr class="row-odd"><td>single</td>
+<td>force and energy of a single bond or angle (required, bond or angle only)</td>
+</tr>
+<tr class="row-even"><td>memory_usage</td>
+<td>tally memory allocated by the style (optional)</td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+</div>
+<div class="section" id="compute-styles">
+<span id="mod-3"></span><h2>10.3. Compute styles<a class="headerlink" href="#compute-styles" title="Permalink to this headline">¶</a></h2>
+<p>Classes that compute scalar and vector quantities like temperature
 and the pressure tensor, as well as classes that compute per-atom
 quantities like kinetic energy and the centro-symmetry parameter
 are derived from the Compute class.  New styles can be created
-to add new calculations to LAMMPS.
-</P>
-<P>Compute_temp.cpp is a simple example of computing a scalar
+to add new calculations to LAMMPS.</p>
+<p>Compute_temp.cpp is a simple example of computing a scalar
 temperature.  Compute_ke_atom.cpp is a simple example of computing
-per-atom kinetic energy.
-</P>
-<P>Here is a brief description of methods you define in your new derived
-class.  See compute.h for details.
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >init</TD><TD > perform one time setup (required)</TD></TR>
-<TR><TD >init_list</TD><TD > neighbor list setup, if needed (optional)</TD></TR>
-<TR><TD >compute_scalar</TD><TD > compute a scalar quantity (optional)</TD></TR>
-<TR><TD >compute_vector</TD><TD > compute a vector of quantities (optional)</TD></TR>
-<TR><TD >compute_peratom</TD><TD > compute one or more quantities per atom (optional)</TD></TR>
-<TR><TD >compute_local</TD><TD > compute one or more quantities per processor (optional)</TD></TR>
-<TR><TD >pack_comm</TD><TD > pack a buffer with items to communicate (optional)</TD></TR>
-<TR><TD >unpack_comm</TD><TD > unpack the buffer (optional)</TD></TR>
-<TR><TD >pack_reverse</TD><TD > pack a buffer with items to reverse communicate (optional)</TD></TR>
-<TR><TD >unpack_reverse</TD><TD > unpack the buffer (optional)</TD></TR>
-<TR><TD >remove_bias</TD><TD > remove velocity bias from one atom (optional)</TD></TR>
-<TR><TD >remove_bias_all</TD><TD > remove velocity bias from all atoms in group (optional)</TD></TR>
-<TR><TD >restore_bias</TD><TD > restore velocity bias for one atom after remove_bias (optional)</TD></TR>
-<TR><TD >restore_bias_all</TD><TD > same as before, but for all atoms in group (optional)</TD></TR>
-<TR><TD >memory_usage</TD><TD > tally memory usage (optional) 
-</TD></TR></TABLE></DIV>
-
-<HR>
-
-<A NAME = "mod_4"></A><H4>10.4 Dump styles 
-</H4>
-<A NAME = "mod_5"></A><H4>10.5 Dump custom output options 
-</H4>
-<P>Classes that dump per-atom info to files are derived from the Dump
+per-atom kinetic energy.</p>
+<p>Here is a brief description of methods you define in your new derived
+class.  See compute.h for details.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="78%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>init</td>
+<td>perform one time setup (required)</td>
+</tr>
+<tr class="row-even"><td>init_list</td>
+<td>neighbor list setup, if needed (optional)</td>
+</tr>
+<tr class="row-odd"><td>compute_scalar</td>
+<td>compute a scalar quantity (optional)</td>
+</tr>
+<tr class="row-even"><td>compute_vector</td>
+<td>compute a vector of quantities (optional)</td>
+</tr>
+<tr class="row-odd"><td>compute_peratom</td>
+<td>compute one or more quantities per atom (optional)</td>
+</tr>
+<tr class="row-even"><td>compute_local</td>
+<td>compute one or more quantities per processor (optional)</td>
+</tr>
+<tr class="row-odd"><td>pack_comm</td>
+<td>pack a buffer with items to communicate (optional)</td>
+</tr>
+<tr class="row-even"><td>unpack_comm</td>
+<td>unpack the buffer (optional)</td>
+</tr>
+<tr class="row-odd"><td>pack_reverse</td>
+<td>pack a buffer with items to reverse communicate (optional)</td>
+</tr>
+<tr class="row-even"><td>unpack_reverse</td>
+<td>unpack the buffer (optional)</td>
+</tr>
+<tr class="row-odd"><td>remove_bias</td>
+<td>remove velocity bias from one atom (optional)</td>
+</tr>
+<tr class="row-even"><td>remove_bias_all</td>
+<td>remove velocity bias from all atoms in group (optional)</td>
+</tr>
+<tr class="row-odd"><td>restore_bias</td>
+<td>restore velocity bias for one atom after remove_bias (optional)</td>
+</tr>
+<tr class="row-even"><td>restore_bias_all</td>
+<td>same as before, but for all atoms in group (optional)</td>
+</tr>
+<tr class="row-odd"><td>memory_usage</td>
+<td>tally memory usage (optional)</td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+</div>
+<div class="section" id="dump-styles">
+<span id="mod-4"></span><h2>10.4. Dump styles<a class="headerlink" href="#dump-styles" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="dump-custom-output-options">
+<span id="mod-5"></span><h2>10.5. Dump custom output options<a class="headerlink" href="#dump-custom-output-options" title="Permalink to this headline">¶</a></h2>
+<p>Classes that dump per-atom info to files are derived from the Dump
 class.  To dump new quantities or in a new format, a new derived dump
 class can be added, but it is typically simpler to modify the
-DumpCustom class contained in the dump_custom.cpp file.
-</P>
-<P>Dump_atom.cpp is a simple example of a derived dump class.
-</P>
-<P>Here is a brief description of methods you define in your new derived
-class.  See dump.h for details.
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >write_header</TD><TD > write the header section of a snapshot of atoms</TD></TR>
-<TR><TD >count</TD><TD > count the number of lines a processor will output</TD></TR>
-<TR><TD >pack</TD><TD > pack a proc's output data into a buffer</TD></TR>
-<TR><TD >write_data</TD><TD > write a proc's data to a file 
-</TD></TR></TABLE></DIV>
-
-<P>See the <A HREF = "dump.html">dump</A> command and its <I>custom</I> style for a list of
+DumpCustom class contained in the dump_custom.cpp file.</p>
+<p>Dump_atom.cpp is a simple example of a derived dump class.</p>
+<p>Here is a brief description of methods you define in your new derived
+class.  See dump.h for details.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="78%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>write_header</td>
+<td>write the header section of a snapshot of atoms</td>
+</tr>
+<tr class="row-even"><td>count</td>
+<td>count the number of lines a processor will output</td>
+</tr>
+<tr class="row-odd"><td>pack</td>
+<td>pack a proc&#8217;s output data into a buffer</td>
+</tr>
+<tr class="row-even"><td>write_data</td>
+<td>write a proc&#8217;s data to a file</td>
+</tr>
+</tbody>
+</table>
+<p>See the <a class="reference internal" href="dump.html"><em>dump</em></a> command and its <em>custom</em> style for a list of
 keywords for atom information that can already be dumped by
 DumpCustom.  It includes options to dump per-atom info from Compute
 classes, so adding a new derived Compute class is one way to calculate
-new quantities to dump.
-</P>
-<P>Alternatively, you can add new keywords to the dump custom command.
-Search for the word "customize" in dump_custom.cpp to see the
-half-dozen or so locations where code will need to be added.
-</P>
-<HR>
-
-<A NAME = "mod_6"></A><H4>10.6 Fix styles 
-</H4>
-<P>In LAMMPS, a "fix" is any operation that is computed during
+new quantities to dump.</p>
+<p>Alternatively, you can add new keywords to the dump custom command.
+Search for the word &#8220;customize&#8221; in dump_custom.cpp to see the
+half-dozen or so locations where code will need to be added.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="fix-styles">
+<span id="mod-6"></span><h2>10.6. Fix styles<a class="headerlink" href="#fix-styles" title="Permalink to this headline">¶</a></h2>
+<p>In LAMMPS, a &#8220;fix&#8221; is any operation that is computed during
 timestepping that alters some property of the system.  Essentially
 everything that happens during a simulation besides force computation,
-neighbor list construction, and output, is a "fix".  This includes
+neighbor list construction, and output, is a &#8220;fix&#8221;.  This includes
 time integration (update of coordinates and velocities), force
 constraints or boundary conditions (SHAKE or walls), and diagnostics
 (compute a diffusion coefficient).  New styles can be created to add
-new options to LAMMPS.
-</P>
-<P>Fix_setforce.cpp is a simple example of setting forces on atoms to
+new options to LAMMPS.</p>
+<p>Fix_setforce.cpp is a simple example of setting forces on atoms to
 prescribed values.  There are dozens of fix options already in LAMMPS;
 choose one as a template that is similar to what you want to
-implement.
-</P>
-<P>Here is a brief description of methods you can define in your new
-derived class.  See fix.h for details.
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >setmask</TD><TD > determines when the fix is called during the timestep (required)</TD></TR>
-<TR><TD >init</TD><TD > initialization before a run (optional)</TD></TR>
-<TR><TD >setup_pre_exchange</TD><TD > called before atom exchange in setup (optional)</TD></TR>
-<TR><TD >setup_pre_force</TD><TD > called before force computation in setup (optional)</TD></TR>
-<TR><TD >setup</TD><TD > called immediately before the 1st timestep and after forces are computed (optional)</TD></TR>
-<TR><TD >min_setup_pre_force</TD><TD > like setup_pre_force, but for minimizations instead of MD runs (optional)</TD></TR>
-<TR><TD >min_setup</TD><TD > like setup, but for minimizations instead of MD runs (optional)</TD></TR>
-<TR><TD >initial_integrate</TD><TD > called at very beginning of each timestep (optional)</TD></TR>
-<TR><TD >pre_exchange</TD><TD > called before atom exchange on re-neighboring steps (optional)</TD></TR>
-<TR><TD >pre_neighbor</TD><TD > called before neighbor list build (optional)</TD></TR>
-<TR><TD >pre_force</TD><TD > called before pair & molecular forces are computed (optional)</TD></TR>
-<TR><TD >post_force</TD><TD > called after pair & molecular forces are computed and communicated (optional)</TD></TR>
-<TR><TD >final_integrate</TD><TD > called at end of each timestep (optional)</TD></TR>
-<TR><TD >end_of_step</TD><TD > called at very end of timestep (optional)</TD></TR>
-<TR><TD >write_restart</TD><TD > dumps fix info to restart file (optional)</TD></TR>
-<TR><TD >restart</TD><TD > uses info from restart file to re-initialize the fix (optional)</TD></TR>
-<TR><TD >grow_arrays</TD><TD > allocate memory for atom-based arrays used by fix (optional)</TD></TR>
-<TR><TD >copy_arrays</TD><TD > copy atom info when an atom migrates to a new processor (optional)</TD></TR>
-<TR><TD >pack_exchange</TD><TD > store atom's data in a buffer (optional)</TD></TR>
-<TR><TD >unpack_exchange</TD><TD > retrieve atom's data from a buffer (optional)</TD></TR>
-<TR><TD >pack_restart</TD><TD > store atom's data for writing to restart file (optional)</TD></TR>
-<TR><TD >unpack_restart</TD><TD > retrieve atom's data from a restart file buffer (optional)</TD></TR>
-<TR><TD >size_restart</TD><TD > size of atom's data (optional)</TD></TR>
-<TR><TD >maxsize_restart</TD><TD > max size of atom's data (optional)</TD></TR>
-<TR><TD >setup_pre_force_respa</TD><TD > same as setup_pre_force, but for rRESPA (optional)</TD></TR>
-<TR><TD >initial_integrate_respa</TD><TD > same as initial_integrate, but for rRESPA (optional)</TD></TR>
-<TR><TD >post_integrate_respa</TD><TD > called after the first half integration step is done in rRESPA (optional)</TD></TR>
-<TR><TD >pre_force_respa</TD><TD > same as pre_force, but for rRESPA (optional)</TD></TR>
-<TR><TD >post_force_respa</TD><TD > same as post_force, but for rRESPA (optional)</TD></TR>
-<TR><TD >final_integrate_respa</TD><TD > same as final_integrate, but for rRESPA (optional)</TD></TR>
-<TR><TD >min_pre_force</TD><TD > called after pair & molecular forces are computed in minimizer (optional)</TD></TR>
-<TR><TD >min_post_force</TD><TD > called after pair & molecular forces are computed and communicated in minmizer (optional)</TD></TR>
-<TR><TD >min_store</TD><TD > store extra data for linesearch based minimization on a LIFO stack (optional)</TD></TR>
-<TR><TD >min_pushstore</TD><TD > push the minimization LIFO stack one element down (optional)</TD></TR>
-<TR><TD >min_popstore</TD><TD > pop the minimization LIFO stack one element up (optional)</TD></TR>
-<TR><TD >min_clearstore</TD><TD > clear minimization LIFO stack (optional)</TD></TR>
-<TR><TD >min_step</TD><TD > reset or move forward on line search minimization (optional)</TD></TR>
-<TR><TD >min_dof</TD><TD > report number of degrees of freedom <I>added</I> by this fix in minimization (optional)</TD></TR>
-<TR><TD >max_alpha</TD><TD > report maximum allowed step size during linesearch minimization (optional)</TD></TR>
-<TR><TD >pack_comm</TD><TD > pack a buffer to communicate a per-atom quantity (optional)</TD></TR>
-<TR><TD >unpack_comm</TD><TD > unpack a buffer to communicate a per-atom quantity (optional)</TD></TR>
-<TR><TD >pack_reverse_comm</TD><TD > pack a buffer to reverse communicate a per-atom quantity (optional)</TD></TR>
-<TR><TD >unpack_reverse_comm</TD><TD > unpack a buffer to reverse communicate a per-atom quantity (optional)</TD></TR>
-<TR><TD >dof</TD><TD > report number of degrees of freedom <I>removed</I> by this fix during MD (optional)</TD></TR>
-<TR><TD >compute_scalar</TD><TD > return a global scalar property that the fix computes (optional)</TD></TR>
-<TR><TD >compute_vector</TD><TD > return a component of a vector property that the fix computes (optional)</TD></TR>
-<TR><TD >compute_array</TD><TD > return a component of an array property that the fix computes (optional)</TD></TR>
-<TR><TD >deform</TD><TD > called when the box size is changed (optional)</TD></TR>
-<TR><TD >reset_target</TD><TD > called when a change of the target temperature is requested during a run (optional)</TD></TR>
-<TR><TD >reset_dt</TD><TD > is called when a change of the time step is requested during a run (optional)</TD></TR>
-<TR><TD >modify_param</TD><TD > called when a fix_modify request is executed (optional)</TD></TR>
-<TR><TD >memory_usage</TD><TD > report memory used by fix (optional)</TD></TR>
-<TR><TD >thermo</TD><TD > compute quantities for thermodynamic output (optional) 
-</TD></TR></TABLE></DIV>
-
-<P>Typically, only a small fraction of these methods are defined for a
+implement.</p>
+<p>Here is a brief description of methods you can define in your new
+derived class.  See fix.h for details.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="78%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>setmask</td>
+<td>determines when the fix is called during the timestep (required)</td>
+</tr>
+<tr class="row-even"><td>init</td>
+<td>initialization before a run (optional)</td>
+</tr>
+<tr class="row-odd"><td>setup_pre_exchange</td>
+<td>called before atom exchange in setup (optional)</td>
+</tr>
+<tr class="row-even"><td>setup_pre_force</td>
+<td>called before force computation in setup (optional)</td>
+</tr>
+<tr class="row-odd"><td>setup</td>
+<td>called immediately before the 1st timestep and after forces are computed (optional)</td>
+</tr>
+<tr class="row-even"><td>min_setup_pre_force</td>
+<td>like setup_pre_force, but for minimizations instead of MD runs (optional)</td>
+</tr>
+<tr class="row-odd"><td>min_setup</td>
+<td>like setup, but for minimizations instead of MD runs (optional)</td>
+</tr>
+<tr class="row-even"><td>initial_integrate</td>
+<td>called at very beginning of each timestep (optional)</td>
+</tr>
+<tr class="row-odd"><td>pre_exchange</td>
+<td>called before atom exchange on re-neighboring steps (optional)</td>
+</tr>
+<tr class="row-even"><td>pre_neighbor</td>
+<td>called before neighbor list build (optional)</td>
+</tr>
+<tr class="row-odd"><td>pre_force</td>
+<td>called before pair &amp; molecular forces are computed (optional)</td>
+</tr>
+<tr class="row-even"><td>post_force</td>
+<td>called after pair &amp; molecular forces are computed and communicated (optional)</td>
+</tr>
+<tr class="row-odd"><td>final_integrate</td>
+<td>called at end of each timestep (optional)</td>
+</tr>
+<tr class="row-even"><td>end_of_step</td>
+<td>called at very end of timestep (optional)</td>
+</tr>
+<tr class="row-odd"><td>write_restart</td>
+<td>dumps fix info to restart file (optional)</td>
+</tr>
+<tr class="row-even"><td>restart</td>
+<td>uses info from restart file to re-initialize the fix (optional)</td>
+</tr>
+<tr class="row-odd"><td>grow_arrays</td>
+<td>allocate memory for atom-based arrays used by fix (optional)</td>
+</tr>
+<tr class="row-even"><td>copy_arrays</td>
+<td>copy atom info when an atom migrates to a new processor (optional)</td>
+</tr>
+<tr class="row-odd"><td>pack_exchange</td>
+<td>store atom&#8217;s data in a buffer (optional)</td>
+</tr>
+<tr class="row-even"><td>unpack_exchange</td>
+<td>retrieve atom&#8217;s data from a buffer (optional)</td>
+</tr>
+<tr class="row-odd"><td>pack_restart</td>
+<td>store atom&#8217;s data for writing to restart file (optional)</td>
+</tr>
+<tr class="row-even"><td>unpack_restart</td>
+<td>retrieve atom&#8217;s data from a restart file buffer (optional)</td>
+</tr>
+<tr class="row-odd"><td>size_restart</td>
+<td>size of atom&#8217;s data (optional)</td>
+</tr>
+<tr class="row-even"><td>maxsize_restart</td>
+<td>max size of atom&#8217;s data (optional)</td>
+</tr>
+<tr class="row-odd"><td>setup_pre_force_respa</td>
+<td>same as setup_pre_force, but for rRESPA (optional)</td>
+</tr>
+<tr class="row-even"><td>initial_integrate_respa</td>
+<td>same as initial_integrate, but for rRESPA (optional)</td>
+</tr>
+<tr class="row-odd"><td>post_integrate_respa</td>
+<td>called after the first half integration step is done in rRESPA (optional)</td>
+</tr>
+<tr class="row-even"><td>pre_force_respa</td>
+<td>same as pre_force, but for rRESPA (optional)</td>
+</tr>
+<tr class="row-odd"><td>post_force_respa</td>
+<td>same as post_force, but for rRESPA (optional)</td>
+</tr>
+<tr class="row-even"><td>final_integrate_respa</td>
+<td>same as final_integrate, but for rRESPA (optional)</td>
+</tr>
+<tr class="row-odd"><td>min_pre_force</td>
+<td>called after pair &amp; molecular forces are computed in minimizer (optional)</td>
+</tr>
+<tr class="row-even"><td>min_post_force</td>
+<td>called after pair &amp; molecular forces are computed and communicated in minmizer (optional)</td>
+</tr>
+<tr class="row-odd"><td>min_store</td>
+<td>store extra data for linesearch based minimization on a LIFO stack (optional)</td>
+</tr>
+<tr class="row-even"><td>min_pushstore</td>
+<td>push the minimization LIFO stack one element down (optional)</td>
+</tr>
+<tr class="row-odd"><td>min_popstore</td>
+<td>pop the minimization LIFO stack one element up (optional)</td>
+</tr>
+<tr class="row-even"><td>min_clearstore</td>
+<td>clear minimization LIFO stack (optional)</td>
+</tr>
+<tr class="row-odd"><td>min_step</td>
+<td>reset or move forward on line search minimization (optional)</td>
+</tr>
+<tr class="row-even"><td>min_dof</td>
+<td>report number of degrees of freedom <em>added</em> by this fix in minimization (optional)</td>
+</tr>
+<tr class="row-odd"><td>max_alpha</td>
+<td>report maximum allowed step size during linesearch minimization (optional)</td>
+</tr>
+<tr class="row-even"><td>pack_comm</td>
+<td>pack a buffer to communicate a per-atom quantity (optional)</td>
+</tr>
+<tr class="row-odd"><td>unpack_comm</td>
+<td>unpack a buffer to communicate a per-atom quantity (optional)</td>
+</tr>
+<tr class="row-even"><td>pack_reverse_comm</td>
+<td>pack a buffer to reverse communicate a per-atom quantity (optional)</td>
+</tr>
+<tr class="row-odd"><td>unpack_reverse_comm</td>
+<td>unpack a buffer to reverse communicate a per-atom quantity (optional)</td>
+</tr>
+<tr class="row-even"><td>dof</td>
+<td>report number of degrees of freedom <em>removed</em> by this fix during MD (optional)</td>
+</tr>
+<tr class="row-odd"><td>compute_scalar</td>
+<td>return a global scalar property that the fix computes (optional)</td>
+</tr>
+<tr class="row-even"><td>compute_vector</td>
+<td>return a component of a vector property that the fix computes (optional)</td>
+</tr>
+<tr class="row-odd"><td>compute_array</td>
+<td>return a component of an array property that the fix computes (optional)</td>
+</tr>
+<tr class="row-even"><td>deform</td>
+<td>called when the box size is changed (optional)</td>
+</tr>
+<tr class="row-odd"><td>reset_target</td>
+<td>called when a change of the target temperature is requested during a run (optional)</td>
+</tr>
+<tr class="row-even"><td>reset_dt</td>
+<td>is called when a change of the time step is requested during a run (optional)</td>
+</tr>
+<tr class="row-odd"><td>modify_param</td>
+<td>called when a fix_modify request is executed (optional)</td>
+</tr>
+<tr class="row-even"><td>memory_usage</td>
+<td>report memory used by fix (optional)</td>
+</tr>
+<tr class="row-odd"><td>thermo</td>
+<td>compute quantities for thermodynamic output (optional)</td>
+</tr>
+</tbody>
+</table>
+<p>Typically, only a small fraction of these methods are defined for a
 particular fix.  Setmask is mandatory, as it determines when the fix
 will be invoked during the timestep.  Fixes that perform time
-integration (<I>nve</I>, <I>nvt</I>, <I>npt</I>) implement initial_integrate() and
+integration (<em>nve</em>, <em>nvt</em>, <em>npt</em>) implement initial_integrate() and
 final_integrate() to perform velocity Verlet updates.  Fixes that
-constrain forces implement post_force().
-</P>
-<P>Fixes that perform diagnostics typically implement end_of_step().  For
+constrain forces implement post_force().</p>
+<p>Fixes that perform diagnostics typically implement end_of_step().  For
 an end_of_step fix, one of your fix arguments must be the variable
-"nevery" which is used to determine when to call the fix and you must
+&#8220;nevery&#8221; which is used to determine when to call the fix and you must
 set this variable in the constructor of your fix.  By convention, this
-is the first argument the fix defines (after the ID, group-ID, style).
-</P>
-<P>If the fix needs to store information for each atom that persists from
+is the first argument the fix defines (after the ID, group-ID, style).</p>
+<p>If the fix needs to store information for each atom that persists from
 timestep to timestep, it can manage that memory and migrate the info
 with the atoms as they move from processors to processor by
 implementing the grow_arrays, copy_arrays, pack_exchange, and
 unpack_exchange methods.  Similarly, the pack_restart and
 unpack_restart methods can be implemented to store information about
 the fix in restart files.  If you wish an integrator or force
-constraint fix to work with rRESPA (see the <A HREF = "run_style.html">run_style</A>
+constraint fix to work with rRESPA (see the <a class="reference internal" href="run_style.html"><em>run_style</em></a>
 command), the initial_integrate, post_force_integrate, and
 final_integrate_respa methods can be implemented.  The thermo method
 enables a fix to contribute values to thermodynamic output, as printed
-quantities and/or to be summed to the potential energy of the system.
-</P>
-<HR>
-
-<A NAME = "mod_7"></A><H4>10.7 Input script commands 
-</H4>
-<P>New commands can be added to LAMMPS input scripts by adding new
-classes that have a "command" method.  For example, the create_atoms,
+quantities and/or to be summed to the potential energy of the system.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="input-script-commands">
+<span id="mod-7"></span><h2>10.7. Input script commands<a class="headerlink" href="#input-script-commands" title="Permalink to this headline">¶</a></h2>
+<p>New commands can be added to LAMMPS input scripts by adding new
+classes that have a &#8220;command&#8221; method.  For example, the create_atoms,
 read_data, velocity, and run commands are all implemented in this
 fashion.  When such a command is encountered in the LAMMPS input
 script, LAMMPS simply creates a class with the corresponding name,
-invokes the "command" method of the class, and passes it the arguments
+invokes the &#8220;command&#8221; method of the class, and passes it the arguments
 from the input script.  The command method can perform whatever
-operations it wishes on LAMMPS data structures.
-</P>
-<P>The single method your new class must define is as follows:
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >command</TD><TD > operations performed by the new command 
-</TD></TR></TABLE></DIV>
-
-<P>Of course, the new class can define other methods and variables as
-needed.
-</P>
-<HR>
-
-<A NAME = "mod_8"></A><H4>10.8 Kspace computations 
-</H4>
-<P>Classes that compute long-range Coulombic interactions via K-space
+operations it wishes on LAMMPS data structures.</p>
+<p>The single method your new class must define is as follows:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="82%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>command</td>
+<td>operations performed by the new command</td>
+</tr>
+</tbody>
+</table>
+<p>Of course, the new class can define other methods and variables as
+needed.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="kspace-computations">
+<span id="mod-8"></span><h2>10.8. Kspace computations<a class="headerlink" href="#kspace-computations" title="Permalink to this headline">¶</a></h2>
+<p>Classes that compute long-range Coulombic interactions via K-space
 representations (Ewald, PPPM) are derived from the KSpace class.  New
-styles can be created to add new K-space options to LAMMPS.
-</P>
-<P>Ewald.cpp is an example of computing K-space interactions.
-</P>
-<P>Here is a brief description of methods you define in your new derived
-class.  See kspace.h for details.
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >init</TD><TD > initialize the calculation before a run</TD></TR>
-<TR><TD >setup</TD><TD > computation before the 1st timestep of a run</TD></TR>
-<TR><TD >compute</TD><TD > every-timestep computation</TD></TR>
-<TR><TD >memory_usage</TD><TD > tally of memory usage 
-</TD></TR></TABLE></DIV>
-
-<HR>
-
-<A NAME = "mod_9"></A><H4>10.9 Minimization styles 
-</H4>
-<P>Classes that perform energy minimization derived from the Min class.
+styles can be created to add new K-space options to LAMMPS.</p>
+<p>Ewald.cpp is an example of computing K-space interactions.</p>
+<p>Here is a brief description of methods you define in your new derived
+class.  See kspace.h for details.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>init</td>
+<td>initialize the calculation before a run</td>
+</tr>
+<tr class="row-even"><td>setup</td>
+<td>computation before the 1st timestep of a run</td>
+</tr>
+<tr class="row-odd"><td>compute</td>
+<td>every-timestep computation</td>
+</tr>
+<tr class="row-even"><td>memory_usage</td>
+<td>tally of memory usage</td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+</div>
+<div class="section" id="minimization-styles">
+<span id="mod-9"></span><h2>10.9. Minimization styles<a class="headerlink" href="#minimization-styles" title="Permalink to this headline">¶</a></h2>
+<p>Classes that perform energy minimization derived from the Min class.
 New styles can be created to add new minimization algorithms to
-LAMMPS.
-</P>
-<P>Min_cg.cpp is an example of conjugate gradient minimization.
-</P>
-<P>Here is a brief description of methods you define in your new derived
-class.  See min.h for details.
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >init</TD><TD > initialize the minimization before a run</TD></TR>
-<TR><TD >run</TD><TD > perform the minimization</TD></TR>
-<TR><TD >memory_usage</TD><TD > tally of memory usage 
-</TD></TR></TABLE></DIV>
-
-<HR>
-
-<A NAME = "mod_10"></A><H4>10.10 Pairwise potentials 
-</H4>
-<P>Classes that compute pairwise interactions are derived from the Pair
+LAMMPS.</p>
+<p>Min_cg.cpp is an example of conjugate gradient minimization.</p>
+<p>Here is a brief description of methods you define in your new derived
+class.  See min.h for details.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>init</td>
+<td>initialize the minimization before a run</td>
+</tr>
+<tr class="row-even"><td>run</td>
+<td>perform the minimization</td>
+</tr>
+<tr class="row-odd"><td>memory_usage</td>
+<td>tally of memory usage</td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+</div>
+<div class="section" id="pairwise-potentials">
+<span id="mod-10"></span><h2>10.10. Pairwise potentials<a class="headerlink" href="#pairwise-potentials" title="Permalink to this headline">¶</a></h2>
+<p>Classes that compute pairwise interactions are derived from the Pair
 class.  In LAMMPS, pairwise calculation include manybody potentials
 such as EAM or Tersoff where particles interact without a static bond
 topology.  New styles can be created to add new pair potentials to
-LAMMPS.
-</P>
-<P>Pair_lj_cut.cpp is a simple example of a Pair class, though it
-includes some optional methods to enable its use with rRESPA.
-</P>
-<P>Here is a brief description of the class methods in pair.h:
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >compute</TD><TD > workhorse routine that computes pairwise interactions</TD></TR>
-<TR><TD >settings</TD><TD > reads the input script line with arguments you define</TD></TR>
-<TR><TD >coeff</TD><TD > set coefficients for one i,j type pair</TD></TR>
-<TR><TD >init_one</TD><TD > perform initialization for one i,j type pair</TD></TR>
-<TR><TD >init_style</TD><TD > initialization specific to this pair style</TD></TR>
-<TR><TD >write & read_restart</TD><TD > write/read i,j pair coeffs to restart files</TD></TR>
-<TR><TD >write & read_restart_settings</TD><TD > write/read global settings to restart files</TD></TR>
-<TR><TD >single</TD><TD > force and energy of a single pairwise interaction between 2 atoms</TD></TR>
-<TR><TD >compute_inner/middle/outer</TD><TD > versions of compute used by rRESPA 
-</TD></TR></TABLE></DIV>
-
-<P>The inner/middle/outer routines are optional.
-</P>
-<HR>
-
-<A NAME = "mod_11"></A><H4>10.11 Region styles 
-</H4>
-<P>Classes that define geometric regions are derived from the Region
+LAMMPS.</p>
+<p>Pair_lj_cut.cpp is a simple example of a Pair class, though it
+includes some optional methods to enable its use with rRESPA.</p>
+<p>Here is a brief description of the class methods in pair.h:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="32%" />
+<col width="68%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>compute</td>
+<td>workhorse routine that computes pairwise interactions</td>
+</tr>
+<tr class="row-even"><td>settings</td>
+<td>reads the input script line with arguments you define</td>
+</tr>
+<tr class="row-odd"><td>coeff</td>
+<td>set coefficients for one i,j type pair</td>
+</tr>
+<tr class="row-even"><td>init_one</td>
+<td>perform initialization for one i,j type pair</td>
+</tr>
+<tr class="row-odd"><td>init_style</td>
+<td>initialization specific to this pair style</td>
+</tr>
+<tr class="row-even"><td>write &amp; read_restart</td>
+<td>write/read i,j pair coeffs to restart files</td>
+</tr>
+<tr class="row-odd"><td>write &amp; read_restart_settings</td>
+<td>write/read global settings to restart files</td>
+</tr>
+<tr class="row-even"><td>single</td>
+<td>force and energy of a single pairwise interaction between 2 atoms</td>
+</tr>
+<tr class="row-odd"><td>compute_inner/middle/outer</td>
+<td>versions of compute used by rRESPA</td>
+</tr>
+</tbody>
+</table>
+<p>The inner/middle/outer routines are optional.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="region-styles">
+<span id="mod-11"></span><h2>10.11. Region styles<a class="headerlink" href="#region-styles" title="Permalink to this headline">¶</a></h2>
+<p>Classes that define geometric regions are derived from the Region
 class.  Regions are used elsewhere in LAMMPS to group atoms, delete
 atoms to create a void, insert atoms in a specified region, etc.  New
-styles can be created to add new region shapes to LAMMPS.
-</P>
-<P>Region_sphere.cpp is an example of a spherical region.
-</P>
-<P>Here is a brief description of methods you define in your new derived
-class.  See region.h for details.
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >match</TD><TD > determine whether a point is in the region 
-</TD></TR></TABLE></DIV>
-
-<HR>
-
-<A NAME = "mod_12"></A><H4>10.11 Body styles 
-</H4>
-<P>Classes that define body particles are derived from the Body class.
+styles can be created to add new region shapes to LAMMPS.</p>
+<p>Region_sphere.cpp is an example of a spherical region.</p>
+<p>Here is a brief description of methods you define in your new derived
+class.  See region.h for details.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>match</td>
+<td>determine whether a point is in the region</td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+</div>
+<div class="section" id="body-styles">
+<span id="mod-12"></span><h2>10.12. Body styles<a class="headerlink" href="#body-styles" title="Permalink to this headline">¶</a></h2>
+<p>Classes that define body particles are derived from the Body class.
 Body particles can represent complex entities, such as surface meshes
 of discrete points, collections of sub-particles, deformable objects,
-etc.
-</P>
-<P>See <A HREF = "Section_howto.html#howto_14">Section_howto 14</A> of the manual for
-an overview of using body particles and the <A HREF = "body.html">body</A> doc page
+etc.</p>
+<p>See <a class="reference internal" href="Section_howto.html#howto-14"><span>Section_howto 14</span></a> of the manual for
+an overview of using body particles and the <a class="reference internal" href="body.html"><em>body</em></a> doc page
 for details on the various body styles LAMMPS supports.  New styles
-can be created to add new kinds of body particles to LAMMPS.
-</P>
-<P>Body_nparticle.cpp is an example of a body particle that is treated as
-a rigid body containing N sub-particles.
-</P>
-<P>Here is a brief description of methods you define in your new derived
-class.  See body.h for details.
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >data_body</TD><TD > process a line from the Bodies section of a data file</TD></TR>
-<TR><TD >noutrow</TD><TD > number of sub-particles output is generated for</TD></TR>
-<TR><TD >noutcol</TD><TD > number of values per-sub-particle output is generated for</TD></TR>
-<TR><TD >output</TD><TD > output values for the Mth sub-particle</TD></TR>
-<TR><TD >pack_comm_body</TD><TD > body attributes to communicate every timestep</TD></TR>
-<TR><TD >unpack_comm_body</TD><TD > unpacking of those attributes</TD></TR>
-<TR><TD >pack_border_body</TD><TD > body attributes to communicate when reneighboring is done</TD></TR>
-<TR><TD >unpack_border_body</TD><TD > unpacking of those attributes 
-</TD></TR></TABLE></DIV>
-
-<HR>
-
-<A NAME = "mod_13"></A><H4>10.13 Thermodynamic output options 
-</H4>
-<P>There is one class that computes and prints thermodynamic information
-to the screen and log file; see the file thermo.cpp.
-</P>
-<P>There are two styles defined in thermo.cpp: "one" and "multi".  There
-is also a flexible "custom" style which allows the user to explicitly
+can be created to add new kinds of body particles to LAMMPS.</p>
+<p>Body_nparticle.cpp is an example of a body particle that is treated as
+a rigid body containing N sub-particles.</p>
+<p>Here is a brief description of methods you define in your new derived
+class.  See body.h for details.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="75%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>data_body</td>
+<td>process a line from the Bodies section of a data file</td>
+</tr>
+<tr class="row-even"><td>noutrow</td>
+<td>number of sub-particles output is generated for</td>
+</tr>
+<tr class="row-odd"><td>noutcol</td>
+<td>number of values per-sub-particle output is generated for</td>
+</tr>
+<tr class="row-even"><td>output</td>
+<td>output values for the Mth sub-particle</td>
+</tr>
+<tr class="row-odd"><td>pack_comm_body</td>
+<td>body attributes to communicate every timestep</td>
+</tr>
+<tr class="row-even"><td>unpack_comm_body</td>
+<td>unpacking of those attributes</td>
+</tr>
+<tr class="row-odd"><td>pack_border_body</td>
+<td>body attributes to communicate when reneighboring is done</td>
+</tr>
+<tr class="row-even"><td>unpack_border_body</td>
+<td>unpacking of those attributes</td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+</div>
+<div class="section" id="thermodynamic-output-options">
+<span id="mod-13"></span><h2>10.13. Thermodynamic output options<a class="headerlink" href="#thermodynamic-output-options" title="Permalink to this headline">¶</a></h2>
+<p>There is one class that computes and prints thermodynamic information
+to the screen and log file; see the file thermo.cpp.</p>
+<p>There are two styles defined in thermo.cpp: &#8220;one&#8221; and &#8220;multi&#8221;.  There
+is also a flexible &#8220;custom&#8221; style which allows the user to explicitly
 list keywords for quantities to print when thermodynamic info is
-output.  See the <A HREF = "thermo_style.html">thermo_style</A> command for a list
-of defined quantities.
-</P>
-<P>The thermo styles (one, multi, etc) are simply lists of keywords.
+output.  See the <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command for a list
+of defined quantities.</p>
+<p>The thermo styles (one, multi, etc) are simply lists of keywords.
 Adding a new style thus only requires defining a new list of keywords.
-Search for the word "customize" with references to "thermo style" in
-thermo.cpp to see the two locations where code will need to be added.
-</P>
-<P>New keywords can also be added to thermo.cpp to compute new quantities
-for output.  Search for the word "customize" with references to
-"keyword" in thermo.cpp to see the several locations where code will
-need to be added.
-</P>
-<P>Note that the <A HREF = "thermo.html">thermo_style custom</A> command already allows
-for thermo output of quantities calculated by <A HREF = "fix.html">fixes</A>,
-<A HREF = "compute.html">computes</A>, and <A HREF = "variable.html">variables</A>.  Thus, it may
+Search for the word &#8220;customize&#8221; with references to &#8220;thermo style&#8221; in
+thermo.cpp to see the two locations where code will need to be added.</p>
+<p>New keywords can also be added to thermo.cpp to compute new quantities
+for output.  Search for the word &#8220;customize&#8221; with references to
+&#8220;keyword&#8221; in thermo.cpp to see the several locations where code will
+need to be added.</p>
+<p>Note that the <a class="reference internal" href="thermo.html"><em>thermo_style custom</em></a> command already allows
+for thermo output of quantities calculated by <a class="reference internal" href="fix.html"><em>fixes</em></a>,
+<a class="reference internal" href="compute.html"><em>computes</em></a>, and <a class="reference internal" href="variable.html"><em>variables</em></a>.  Thus, it may
 be simpler to compute what you wish via one of those constructs, than
-by adding a new keyword to the thermo command.
-</P>
-<HR>
-
-<A NAME = "mod_14"></A><H4>10.14 Variable options 
-</H4>
-<P>There is one class that computes and stores <A HREF = "variable.html">variable</A>
+by adding a new keyword to the thermo command.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="variable-options">
+<span id="mod-14"></span><h2>10.14. Variable options<a class="headerlink" href="#variable-options" title="Permalink to this headline">¶</a></h2>
+<p>There is one class that computes and stores <a class="reference internal" href="variable.html"><em>variable</em></a>
 information in LAMMPS; see the file variable.cpp.  The value
 associated with a variable can be periodically printed to the screen
-via the <A HREF = "print.html">print</A>, <A HREF = "fix_print.html">fix print</A>, or
-<A HREF = "thermo_style.html">thermo_style custom</A> commands.  Variables of style
-"equal" can compute complex equations that involve the following types
-of arguments:
-</P>
-<PRE>thermo keywords = ke, vol, atoms, ...
+via the <a class="reference internal" href="print.html"><em>print</em></a>, <a class="reference internal" href="fix_print.html"><em>fix print</em></a>, or
+<a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> commands.  Variables of style
+&#8220;equal&#8221; can compute complex equations that involve the following types
+of arguments:</p>
+<div class="highlight-python"><div class="highlight"><pre>thermo keywords = ke, vol, atoms, ...
 other variables = v_a, v_myvar, ...
 math functions = div(x,y), mult(x,y), add(x,y), ...
 group functions = mass(group), xcm(group,x), ...
 atom values = x[123], y[3], vx[34], ...
-compute values = c_mytemp[0], c_thermo_press[3], ... 
-</PRE>
-<P>Adding keywords for the <A HREF = "thermo_style.html">thermo_style custom</A> command
+compute values = c_mytemp[0], c_thermo_press[3], ...
+</pre></div>
+</div>
+<p>Adding keywords for the <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> command
 (which can then be accessed by variables) was discussed
-<A HREF = "Section_modify.html#thermo">here</A> on this page.
-</P>
-<P>Adding a new math function of one or two arguments can be done by
+<a class="reference internal" href="Section_howto.html#thermo"><span>here</span></a> on this page.</p>
+<p>Adding a new math function of one or two arguments can be done by
 editing one section of the Variable::evaulate() method.  Search for
-the word "customize" to find the appropriate location.
-</P>
-<P>Adding a new group function can be done by editing one section of the
-Variable::evaulate() method.  Search for the word "customize" to find
+the word &#8220;customize&#8221; to find the appropriate location.</p>
+<p>Adding a new group function can be done by editing one section of the
+Variable::evaulate() method.  Search for the word &#8220;customize&#8221; to find
 the appropriate location.  You may need to add a new method to the
-Group class as well (see the group.cpp file).
-</P>
-<P>Accessing a new atom-based vector can be done by editing one section
-of the Variable::evaulate() method.  Search for the word "customize"
-to find the appropriate location.
-</P>
-<P>Adding new <A HREF = "compute.html">compute styles</A> (whose calculated values can
+Group class as well (see the group.cpp file).</p>
+<p>Accessing a new atom-based vector can be done by editing one section
+of the Variable::evaulate() method.  Search for the word &#8220;customize&#8221;
+to find the appropriate location.</p>
+<p>Adding new <a class="reference internal" href="compute.html"><em>compute styles</em></a> (whose calculated values can
 then be accessed by variables) was discussed
-<A HREF = "Section_modify.html#compute">here</A> on this page.
-</P>
-<HR>
-
-<HR>
-
-<A NAME = "mod_15"></A><H4>10.15 Submitting new features for inclusion in LAMMPS 
-</H4>
-<P>We encourage users to submit new features to <A HREF = "http://lammps.sandia.gov/authors.html">the
-developers</A> that they add to
+<a class="reference internal" href="Section_howto.html#compute"><span>here</span></a> on this page.</p>
+</div>
+<div class="section" id="submitting-new-features-for-inclusion-in-lammps">
+<span id="mod-15"></span><h2>10.15. Submitting new features for inclusion in LAMMPS<a class="headerlink" href="#submitting-new-features-for-inclusion-in-lammps" title="Permalink to this headline">¶</a></h2>
+<p>We encourage users to submit new features to <a class="reference external" href="http://lammps.sandia.gov/authors.html">the developers</a> that they add to
 LAMMPS, especially if you think they will be of interest to other
 users.  If they are broadly useful we may add them as core files to
-LAMMPS or as part of a <A HREF = "Section_start.html#start_3">standard package</A>.
+LAMMPS or as part of a <a class="reference internal" href="Section_start.html#start-3"><span>standard package</span></a>.
 Else we will add them as a user-contributed file or package.  Examples
 of user packages are in src sub-directories that start with USER.  The
 USER-MISC package is simply a collection of (mostly) unrelated single
 files, which is the simplest way to have your contribution quickly
 added to the LAMMPS distribution.  You can see a list of the both
-standard and user packages by typing "make package" in the LAMMPS src
-directory.
-</P>
-<P>Note that by providing us the files to release, you are agreeing to
+standard and user packages by typing &#8220;make package&#8221; in the LAMMPS src
+directory.</p>
+<p>Note that by providing us the files to release, you are agreeing to
 make them open-source, i.e. we can release them under the terms of the
-GPL, used as a license for the rest of LAMMPS.  See <A HREF = "Section_intro.html#intro_4">Section
-1.4</A> for details.
-</P>
-<P>With user packages and files, all we are really providing (aside from
+GPL, used as a license for the rest of LAMMPS.  See <a class="reference internal" href="Section_intro.html#intro-4"><span>Section 1.4</span></a> for details.</p>
+<p>With user packages and files, all we are really providing (aside from
 the fame and fortune that accompanies having your name in the source
-code and on the <A HREF = "http://lammps.sandia.gov/authors.html">Authors page</A>
-of the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW site</A>), is a means for you to distribute your
+code and on the <a class="reference external" href="http://lammps.sandia.gov/authors.html">Authors page</a>
+of the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW site</a>), is a means for you to distribute your
 work to the LAMMPS user community, and a mechanism for others to
 easily try out your new feature.  This may help you find bugs or make
-contact with new collaborators.  Note that you're also implicitly
+contact with new collaborators.  Note that you&#8217;re also implicitly
 agreeing to support your code which means answer questions, fix bugs,
 and maintain it if LAMMPS changes in some way that breaks it (an
-unusual event).
-</P>
-<P>NOTE: If you prefer to actively develop and support your add-on
+unusual event).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you prefer to actively develop and support your add-on
 feature yourself, then you may wish to make it available for download
 from your own website, as a user package that LAMMPS users can add to
-their copy of LAMMPS.  See the <A HREF = "http://lammps.sandia.gov/offsite.html">Offsite LAMMPS packages and
-tools</A> page of the LAMMPS web
+their copy of LAMMPS.  See the <a class="reference external" href="http://lammps.sandia.gov/offsite.html">Offsite LAMMPS packages and tools</a> page of the LAMMPS web
 site for examples of groups that do this.  We are happy to advertise
 your package and web site from that page.  Simply email the
-<A HREF = "http://lammps.sandia.gov/authors.html">developers</A> with info about
-your package and we will post it there.
-</P>
-<P>The previous sections of this doc page describe how to add new "style"
+<a class="reference external" href="http://lammps.sandia.gov/authors.html">developers</a> with info about
+your package and we will post it there.</p>
+</div>
+<p>The previous sections of this doc page describe how to add new &#8220;style&#8221;
 files of various kinds to LAMMPS.  Packages are simply collections of
 one or more new class files which are invoked as a new style within a
 LAMMPS input script.  If designed correctly, these additions typically
 do not require changes to the main core of LAMMPS; they are simply
 add-on files.  If you think your new feature requires non-trivial
-changes in core LAMMPS files, you'll need to <A HREF = "http://lammps.sandia.gov/authors.html">communicate with the
-developers</A>, since we may or may
+changes in core LAMMPS files, you&#8217;ll need to <a class="reference external" href="http://lammps.sandia.gov/authors.html">communicate with the developers</a>, since we may or may
 not want to make those changes.  An example of a trivial change is
-making a parent-class method "virtual" when you derive a new child
-class from it.
-</P>
-<P>Here are the steps you need to follow to submit a single file or user
+making a parent-class method &#8220;virtual&#8221; when you derive a new child
+class from it.</p>
+<p>Here are the steps you need to follow to submit a single file or user
 package for our consideration.  Following these steps will save both
 you and us time.  See existing files in packages in the src dir for
-examples.
-</P>
-<UL><LI>All source files you provide must compile with the most current
-version of LAMMPS. 
-
-<LI>If you want your file(s) to be added to main LAMMPS or one of its
+examples.</p>
+<ul class="simple">
+<li>All source files you provide must compile with the most current
+version of LAMMPS.</li>
+<li>If you want your file(s) to be added to main LAMMPS or one of its
 standard packages, then it needs to be written in a style compatible
 with other LAMMPS source files.  This is so the developers can
 understand it and hopefully maintain it.  This basically means that
 the code accesses data structures, performs its operations, and is
 formatted similar to other LAMMPS source files, including the use of
-the error class for error and warning messages. 
-
-<LI>If you want your contribution to be added as a user-contributed
-feature, and it's a single file (actually a *.cpp and *.h file) it can
+the error class for error and warning messages.</li>
+<li>If you want your contribution to be added as a user-contributed
+feature, and it&#8217;s a single file (actually a <a href="#id8"><span class="problematic" id="id9">*</span></a>.cpp and <a href="#id10"><span class="problematic" id="id11">*</span></a>.h file) it can
 rapidly be added to the USER-MISC directory.  Send us the one-line
 entry to add to the USER-MISC/README file in that dir, along with the
 2 source files.  You can do this multiple times if you wish to
-contribute several individual features.  
-
-<LI>If you want your contribution to be added as a user-contribution and
+contribute several individual features.</li>
+<li>If you want your contribution to be added as a user-contribution and
 it is several related featues, it is probably best to make it a user
 package directory with a name like USER-FOO.  In addition to your new
 files, the directory should contain a README text file.  The README
@@ -719,9 +1103,8 @@ other LAMMPS style files also being installed (e.g. because your file
 is a derived class from the other LAMMPS class), then an Install.sh
 file is also needed to check for those dependencies.  See other README
 and Install.sh files in other USER directories as examples.  Send us a
-tarball of this USER-FOO directory. 
-
-<LI>Your new source files need to have the LAMMPS copyright, GPL notice,
+tarball of this USER-FOO directory.</li>
+<li>Your new source files need to have the LAMMPS copyright, GPL notice,
 and your name and email address at the top, like other
 user-contributed LAMMPS source files.  They need to create a class
 that is inside the LAMMPS namespace.  If the file is for one of the
@@ -729,37 +1112,33 @@ USER packages, including USER-MISC, then we are not as picky about the
 coding style (see above).  I.e. the files do not need to be in the
 same stylistic format and syntax as other LAMMPS files, though that
 would be nice for developers as well as users who try to read your
-code. 
-
-<LI>You must also create a documentation file for each new command or
+code.</li>
+<li>You must also create a documentation file for each new command or
 style you are adding to LAMMPS.  This will be one file for a
 single-file feature.  For a package, it might be several files.  These
 are simple text files which we auto-convert to HTML.  Thus they must
-be in the same format as other *.txt files in the lammps/doc directory
+be in the same format as other <em>.txt files in the lammps/doc directory
 for similar commands and styles; use one or more of them as a starting
 point.  As appropriate, the text files can include links to equations
-(see doc/Eqs/*.tex for examples, we auto-create the associated JPG
+(see doc/Eqs/</em>.tex for examples, we auto-create the associated JPG
 files), or figures (see doc/JPG for examples), or even additional PDF
 files with further details (see doc/PDF for examples).  The doc page
 should also include literature citations as appropriate; see the
 bottom of doc/fix_nh.txt for examples and the earlier part of the same
-file for how to format the cite itself.  The "Restrictions" section of
+file for how to format the cite itself.  The &#8220;Restrictions&#8221; section of
 the doc page should indicate that your command is only available if
 LAMMPS is built with the appropriate USER-MISC or USER-FOO package.
 See other user package doc files for examples of how to do this.  The
-txt2html tool we use to convert to HTML can be downloaded from <A HREF = "http://www.sandia.gov/~sjplimp/download.html">this
-site</A>, so you can perform
-the HTML conversion yourself to proofread your doc page. 
-
-<LI>For a new package (or even a single command) you can include one or
+txt2html tool we use to convert to HTML can be downloaded from <a class="reference external" href="http://www.sandia.gov/~sjplimp/download.html">this site</a>, so you can perform
+the HTML conversion yourself to proofread your doc page.</li>
+<li>For a new package (or even a single command) you can include one or
 more example scripts.  These should run in no more than 1 minute, even
 on a single processor, and not require large data files as input.  See
 directories under examples/USER for examples of input scripts other
-users provided for their packages. 
-
-<LI>If there is a paper of yours describing your feature (either the
+users provided for their packages.</li>
+<li>If there is a paper of yours describing your feature (either the
 algorithm/science behind the feature itself, or its initial usage, or
-its implementation in LAMMPS), you can add the citation to the *.cpp
+its implementation in LAMMPS), you can add the citation to the <a href="#id12"><span class="problematic" id="id13">*</span></a>.cpp
 source file.  See src/USER-EFF/atom_vec_electron.cpp for an example.
 A LaTeX citation is stored in a variable at the top of the file and a
 single line of code that references the variable is added to the
@@ -770,20 +1149,85 @@ should only use this for a paper you or your group authored.
 E.g. adding a cite in the code for a paper by Nose and Hoover if you
 write a fix that implements their integrator is not the intended
 usage.  That kind of citation should just be in the doc page you
-provide. 
-</UL>
-<P>Finally, as a general rule-of-thumb, the more clear and
+provide.</li>
+</ul>
+<p>Finally, as a general rule-of-thumb, the more clear and
 self-explanatory you make your doc and README files, and the easier
 you make it for people to get started, e.g. by providing example
 scripts, the more likely it is that users will try out your new
-feature.
-</P>
-<HR>
+feature.</p>
+<p id="foo"><strong>(Foo)</strong> Foo, Morefoo, and Maxfoo, J of Classic Potentials, 75, 345 (1997).</p>
+</div>
+</div>
 
-<HR>
 
-<A NAME = "Foo"></A>
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_python.html" class="btn btn-neutral float-right" title="11. Python interface to LAMMPS" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_tools.html" class="btn btn-neutral" title="9. Additional tools" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
-<P><B>(Foo)</B> Foo, Morefoo, and Maxfoo, J of Classic Potentials, 75, 345 (1997).
-</P>
-</HTML>
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

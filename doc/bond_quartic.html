@@ -1,119 +1,284 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>bond_style quartic command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>bond_style quartic command 
-</H3>
-<H3>bond_style quartic/omp command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>bond_style quartic 
-</PRE>
-<P><B>Examples:</B>
-</P>
-<PRE>bond_style quartic
-bond_coeff 2 1200 -0.55 0.25 1.3 34.6878 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>The <I>quartic</I> bond style uses the potential
-</P>
-<CENTER><IMG SRC = "Eqs/bond_quartic.jpg">
-</CENTER>
-<P>to define a bond that can be broken as the simulation proceeds (e.g.
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>bond_style quartic command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="bond-style-quartic-command">
+<span id="index-0"></span><h1>bond_style quartic command<a class="headerlink" href="#bond-style-quartic-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="bond-style-quartic-omp-command">
+<h1>bond_style quartic/omp command<a class="headerlink" href="#bond-style-quartic-omp-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>bond_style quartic
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>bond_style quartic
+bond_coeff 2 1200 -0.55 0.25 1.3 34.6878
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>The <em>quartic</em> bond style uses the potential</p>
+<img alt="_images/bond_quartic.jpg" class="align-center" src="_images/bond_quartic.jpg" />
+<p>to define a bond that can be broken as the simulation proceeds (e.g.
 due to a polymer being stretched).  The sigma and epsilon used in the
-LJ portion of the formula are both set equal to 1.0 by LAMMPS.
-</P>
-<P>The following coefficients must be defined for each bond type via the
-<A HREF = "bond_coeff.html">bond_coeff</A> command as in the example above, or in
-the data file or restart files read by the <A HREF = "read_data.html">read_data</A>
-or <A HREF = "read_restart.html">read_restart</A> commands:
-</P>
-<UL><LI>K (energy/distance^4)
-<LI>B1 (distance)
-<LI>B2 (distance)
-<LI>Rc (distance)
-<LI>U0 (energy) 
-</UL>
-<P>This potential was constructed to mimic the FENE bond potential for
+LJ portion of the formula are both set equal to 1.0 by LAMMPS.</p>
+<p>The following coefficients must be defined for each bond type via the
+<a class="reference internal" href="bond_coeff.html"><em>bond_coeff</em></a> command as in the example above, or in
+the data file or restart files read by the <a class="reference internal" href="read_data.html"><em>read_data</em></a>
+or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a> commands:</p>
+<ul class="simple">
+<li>K (energy/distance^4)</li>
+<li>B1 (distance)</li>
+<li>B2 (distance)</li>
+<li>Rc (distance)</li>
+<li>U0 (energy)</li>
+</ul>
+<p>This potential was constructed to mimic the FENE bond potential for
 coarse-grained polymer chains.  When monomers with sigma = epsilon =
 1.0 are used, the following choice of parameters gives a quartic
 potential that looks nearly like the FENE potential: K = 1200, B1 =
 -0.55, B2 = 0.25, Rc = 1.3, and U0 = 34.6878.  Different parameters
-can be specified using the <A HREF = "bond_coeff.html">bond_coeff</A> command, but
+can be specified using the <a class="reference internal" href="bond_coeff.html"><em>bond_coeff</em></a> command, but
 you will need to choose them carefully so they form a suitable bond
-potential.
-</P>
-<P>Rc is the cutoff length at which the bond potential goes smoothly to a
-local maximum.  If a bond length ever becomes > Rc, LAMMPS "breaks"
+potential.</p>
+<p>Rc is the cutoff length at which the bond potential goes smoothly to a
+local maximum.  If a bond length ever becomes &gt; Rc, LAMMPS &#8220;breaks&#8221;
 the bond, which means two things.  First, the bond potential is turned
 off by setting its type to 0, and is no longer computed.  Second, a
 pairwise interaction between the two atoms is turned on, since they
-are no longer bonded.
-</P>
-<P>LAMMPS does the second task via a computational sleight-of-hand.  It
+are no longer bonded.</p>
+<p>LAMMPS does the second task via a computational sleight-of-hand.  It
 subtracts the pairwise interaction as part of the bond computation.
 When the bond breaks, the subtraction stops.  For this to work, the
 pairwise interaction must always be computed by the
-<A HREF = "pair_style.html">pair_style</A> command, whether the bond is broken or
-not.  This means that <A HREF = "special_bonds.html">special_bonds</A> must be set
-to 1,1,1, as indicated as a restriction below.
-</P>
-<P>Note that when bonds are dumped to a file via the <A HREF = "dump.html">dump
-local</A> command, bonds with type 0 are not included.  The
-<A HREF = "delete_bonds.html">delete_bonds</A> command can also be used to query the
-status of broken bonds or permanently delete them, e.g.:
-</P>
-<PRE>delete_bonds all stats
-delete_bonds all bond 0 remove 
-</PRE>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+<a class="reference internal" href="pair_style.html"><em>pair_style</em></a> command, whether the bond is broken or
+not.  This means that <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> must be set
+to 1,1,1, as indicated as a restriction below.</p>
+<p>Note that when bonds are dumped to a file via the <a class="reference internal" href="dump.html"><em>dump local</em></a> command, bonds with type 0 are not included.  The
+<a class="reference internal" href="delete_bonds.html"><em>delete_bonds</em></a> command can also be used to query the
+status of broken bonds or permanently delete them, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre>delete_bonds all stats
+delete_bonds all bond 0 remove
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>This bond style can only be used if LAMMPS was built with the
-MOLECULE package (which it is by default).  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info on packages.
-</P>
-<P>The <I>quartic</I> style requires that <A HREF = "special_bonds.html">special_bonds</A>
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This bond style can only be used if LAMMPS was built with the
+MOLECULE package (which it is by default).  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info on packages.</p>
+<p>The <em>quartic</em> style requires that <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a>
 parameters be set to 1,1,1.  Three- and four-body interactions (angle,
-dihedral, etc) cannot be used with <I>quartic</I> bonds.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "bond_coeff.html">bond_coeff</A>, <A HREF = "delete_bonds.html">delete_bonds</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+dihedral, etc) cannot be used with <em>quartic</em> bonds.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="bond_coeff.html"><em>bond_coeff</em></a>, <a class="reference internal" href="delete_bonds.html"><em>delete_bonds</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

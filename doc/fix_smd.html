@@ -1,162 +1,322 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix smd command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix smd command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID smd type values keyword values 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>smd  = style name of this fix command 
-
-<LI>mode = <I>cvel</I> or <I>cfor</I> to select constant velocity or constant force SMD 
-
-<PRE>  <I>cvel</I> values = K vel
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix smd command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-smd-command">
+<span id="index-0"></span><h1>fix smd command<a class="headerlink" href="#fix-smd-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID smd type values keyword values
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>smd  = style name of this fix command</li>
+<li>mode = <em>cvel</em> or <em>cfor</em> to select constant velocity or constant force SMD</li>
+</ul>
+<pre class="literal-block">
+<em>cvel</em> values = K vel
     K = spring constant (force/distance units)
-    vel = velocity of pulling (distance/time units) 
-  <I>cfor</I> values = force
-    force = pulling force (force units) 
-</PRE>
-<LI>keyword = <I>tether</I> or <I>couple</I> 
-
-<PRE>  <I>tether</I> values = x y z R0
+    vel = velocity of pulling (distance/time units)
+  <em>cfor</em> values = force
+    force = pulling force (force units)
+</pre>
+<ul class="simple">
+<li>keyword = <em>tether</em> or <em>couple</em></li>
+</ul>
+<pre class="literal-block">
+<em>tether</em> values = x y z R0
     x,y,z = point to which spring is tethered
     R0 = distance of end of spring from tether point (distance units)
-  <I>couple</I> values = group-ID2 x y z R0
+  <em>couple</em> values = group-ID2 x y z R0
     group-ID2 = 2nd group to couple to fix group with a spring
     x,y,z = direction of spring, automatically computed with 'auto'
-    R0 = distance of end of spring (distance units) 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix  pull    cterm smd cvel 20.0 -0.00005 tether NULL NULL 100.0 0.0
+    R0 = distance of end of spring (distance units)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix  pull    cterm smd cvel 20.0 -0.00005 tether NULL NULL 100.0 0.0
 fix  pull    cterm smd cvel 20.0 -0.0001 tether 25.0 25 25.0 0.0
 fix  stretch cterm smd cvel 20.0  0.0001 couple nterm auto auto auto 0.0
-fix  pull    cterm smd cfor  5.0 tether 25.0 25.0 25.0 0.0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This fix implements several options of steered MD (SMD) as reviewed in
-<A HREF = "#Izrailev">(Izrailev)</A>, which allows to induce conformational changes
+fix  pull    cterm smd cfor  5.0 tether 25.0 25.0 25.0 0.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This fix implements several options of steered MD (SMD) as reviewed in
+<span class="xref std std-ref">(Izrailev)</span>, which allows to induce conformational changes
 in systems and to compute the potential of mean force (PMF) along the
-assumed reaction coordinate <A HREF = "#Park">(Park)</A> based on Jarzynski's
-equality <A HREF = "#Jarzynski">(Jarzynski)</A>.  This fix borrows a lot from <A HREF = "fix_spring.html">fix
-spring</A> and <A HREF = "fix_setforce.html">fix setforce</A>.
-</P>
-<P>You can apply a moving spring force to a group of atoms (<I>tether</I>
-style) or between two groups of atoms (<I>couple</I> style).  The spring
-can then be used in either constant velocity (<I>cvel</I>) mode or in
-constant force (<I>cfor</I>) mode to induce transitions in your systems.
-When running in <I>tether</I> style, you may need some way to fix some
-other part of the system (e.g. via <A HREF = "fix_spring_self.html">fix
-spring/self</A>)
-</P>
-<P>The <I>tether</I> style attaches a spring between a point at a distance of
-R0 away from a fixed point <I>x,y,z</I> and the center of mass of the fix
+assumed reaction coordinate <span class="xref std std-ref">(Park)</span> based on Jarzynski&#8217;s
+equality <span class="xref std std-ref">(Jarzynski)</span>.  This fix borrows a lot from <a class="reference internal" href="fix_spring.html"><em>fix spring</em></a> and <a class="reference internal" href="fix_setforce.html"><em>fix setforce</em></a>.</p>
+<p>You can apply a moving spring force to a group of atoms (<em>tether</em>
+style) or between two groups of atoms (<em>couple</em> style).  The spring
+can then be used in either constant velocity (<em>cvel</em>) mode or in
+constant force (<em>cfor</em>) mode to induce transitions in your systems.
+When running in <em>tether</em> style, you may need some way to fix some
+other part of the system (e.g. via <a class="reference internal" href="fix_spring_self.html"><em>fix spring/self</em></a>)</p>
+<p>The <em>tether</em> style attaches a spring between a point at a distance of
+R0 away from a fixed point <em>x,y,z</em> and the center of mass of the fix
 group of atoms.  A restoring force of magnitude K (R - R0) Mi / M is
-applied to each atom in the group where <I>K</I> is the spring constant, Mi
+applied to each atom in the group where <em>K</em> is the spring constant, Mi
 is the mass of the atom, and M is the total mass of all atoms in the
-group.  Note that <I>K</I> thus represents the total force on the group of
-atoms, not a per-atom force.
-</P>
-<P>In <I>cvel</I> mode the distance R is incremented or decremented
+group.  Note that <em>K</em> thus represents the total force on the group of
+atoms, not a per-atom force.</p>
+<p>In <em>cvel</em> mode the distance R is incremented or decremented
 monotonously according to the pulling (or pushing) velocity.
-In <I>cfor</I> mode a constant force is added and the actual distance
-in direction of the spring is recorded.
-</P>
-<P>The <I>couple</I> style links two groups of atoms together.  The first
+In <em>cfor</em> mode a constant force is added and the actual distance
+in direction of the spring is recorded.</p>
+<p>The <em>couple</em> style links two groups of atoms together.  The first
 group is the fix group; the second is specified by group-ID2.  The
 groups are coupled together by a spring that is at equilibrium when
-the two groups are displaced by a vector in direction <I>x,y,z</I> with
+the two groups are displaced by a vector in direction <em>x,y,z</em> with
 respect to each other and at a distance R0 from that displacement.
-Note that <I>x,y,z</I> only provides a direction and will be internally
-normalized. But since it represents the <I>absolute</I> displacement of
+Note that <em>x,y,z</em> only provides a direction and will be internally
+normalized. But since it represents the <em>absolute</em> displacement of
 group-ID2 relative to the fix group, (1,1,0) is a different spring
 than (-1,-1,0).  For each vector component, the displacement can be
-described with the <I>auto</I> parameter. In this case the direction is
+described with the <em>auto</em> parameter. In this case the direction is
 recomputed in every step, which can be useful for steering a local
 process where the whole object undergoes some other change.  When the
 relative positions and distance between the two groups are not in
 equilibrium, the same spring force described above is applied to atoms
-in each of the two groups.
-</P>
-<P>For both the <I>tether</I> and <I>couple</I> styles, any of the x,y,z values can
+in each of the two groups.</p>
+<p>For both the <em>tether</em> and <em>couple</em> styles, any of the x,y,z values can
 be specified as NULL which means do not include that dimension in the
-distance calculation or force application.
-</P>
-<P>For constant velocity pulling (<I>cvel</I> mode), the running integral 
+distance calculation or force application.</p>
+<p>For constant velocity pulling (<em>cvel</em> mode), the running integral
 over the pulling force in direction of the spring is recorded and
-can then later be used to compute the potential of mean force (PMF) 
+can then later be used to compute the potential of mean force (PMF)
 by averaging over multiple independent trajectories along the same
-pulling path.
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>The fix stores the direction of the spring, current pulling target
-distance and the running PMF to <A HREF = "restart.html">binary restart files</A>.
-See the <A HREF = "read_restart.html">read_restart</A> command for info on how to
+pulling path.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>The fix stores the direction of the spring, current pulling target
+distance and the running PMF to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.
+See the <a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command for info on how to
 re-specify a fix in an input script that reads a restart file, so that
-the operation of the fix continues in an uninterrupted fashion.
-</P>
-<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
-fix.
-</P>
-<P>This fix computes a vector list of 7 quantities, which can be accessed
-by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The
+the operation of the fix continues in an uninterrupted fashion.</p>
+<p>None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options are relevant to this
+fix.</p>
+<p>This fix computes a vector list of 7 quantities, which can be accessed
+by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The
 quantities in the vector are in this order: the x-, y-, and
 z-component of the pulling force, the total force in direction of the
 pull, the equilibrium distance of the spring, the distance between the
 two reference points, and finally the accumulated PMF (the sum of
-pulling forces times displacement).
-</P>
-<P>The force is the total force on the group of atoms by the spring.  In
-the case of the <I>couple</I> style, it is the force on the fix group
+pulling forces times displacement).</p>
+<p>The force is the total force on the group of atoms by the spring.  In
+the case of the <em>couple</em> style, it is the force on the fix group
 (group-ID) or the negative of the force on the 2nd group (group-ID2).
-The vector values calculated by this fix are "extensive".
-</P>
-<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
-minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_drag.html">fix drag</A>, <A HREF = "fix_spring.html">fix spring</A>, 
-<A HREF = "fix_spring_self.html">fix spring/self</A>, 
-<A HREF = "fix_spring_rg.html">fix spring/rg</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
-
-<A NAME = "Israilev"></A>
-
-<P><B>(Izrailev)</B> Izrailev, Stepaniants, Isralewitz, Kosztin, Lu, Molnar,
+The vector values calculated by this fix are &#8220;extensive&#8221;.</p>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><em>run</em></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_drag.html"><em>fix drag</em></a>, <a class="reference internal" href="fix_spring.html"><em>fix spring</em></a>,
+<a class="reference internal" href="fix_spring_self.html"><em>fix spring/self</em></a>,
+<a class="reference internal" href="fix_spring_rg.html"><em>fix spring/rg</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="israilev"><strong>(Izrailev)</strong> Izrailev, Stepaniants, Isralewitz, Kosztin, Lu, Molnar,
 Wriggers, Schulten. Computational Molecular Dynamics: Challenges,
 Methods, Ideas, volume 4 of Lecture Notes in Computational Science and
-Engineering, pp. 39-65. Springer-Verlag, Berlin, 1998.
-</P>
-<P><B>(Park)</B>
-Park, Schulten, J. Chem. Phys. 120 (13), 5946 (2004)
-</P>
-<P><B>(Jarzynski)</B>
-Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)
-</P>
-</HTML>
+Engineering, pp. 39-65. Springer-Verlag, Berlin, 1998.</p>
+<p><strong>(Park)</strong>
+Park, Schulten, J. Chem. Phys. 120 (13), 5946 (2004)</p>
+<p><strong>(Jarzynski)</strong>
+Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,323 +1,454 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style reax/c command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style reax/c command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style reax/c cfile keyword value 
-</PRE>
-<UL><LI>cfile = NULL or name of a control file 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-<PRE>keyword = <I>checkqeq</I> or <I>lgvdw</I> or <I>safezone</I> or <I>mincap</I>
-  <I>checkqeq</I> value = <I>yes</I> or <I>no</I> = whether or not to require qeq/reax fix 
-  <I>lgvdw</I> value = <I>yes</I> or <I>no</I> = whether or not to use a low gradient vdW correction
-  <I>safezone</I> = factor used for array allocation
-  <I>mincap</I> = minimum size for array allocation 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style reax/c NULL
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style reax/c command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-reax-c-command">
+<span id="index-0"></span><h1>pair_style reax/c command<a class="headerlink" href="#pair-style-reax-c-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style reax/c cfile keyword value
+</pre></div>
+</div>
+<ul class="simple">
+<li>cfile = NULL or name of a control file</li>
+<li>zero or more keyword/value pairs may be appended</li>
+</ul>
+<pre class="literal-block">
+keyword = <em>checkqeq</em> or <em>lgvdw</em> or <em>safezone</em> or <em>mincap</em>
+  <em>checkqeq</em> value = <em>yes</em> or <em>no</em> = whether or not to require qeq/reax fix
+  <em>lgvdw</em> value = <em>yes</em> or <em>no</em> = whether or not to use a low gradient vdW correction
+  <em>safezone</em> = factor used for array allocation
+  <em>mincap</em> = minimum size for array allocation
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style reax/c NULL
 pair_style reax/c controlfile checkqeq no
 pair_style reax/c NULL lgvdw yes
 pair_style reax/c NULL safezone 1.6 mincap 100
-pair_coeff * * ffield.reax C H O N 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Style <I>reax/c</I> computes the ReaxFF potential of van Duin, Goddard and
+pair_coeff * * ffield.reax C H O N
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Style <em>reax/c</em> computes the ReaxFF potential of van Duin, Goddard and
 co-workers.  ReaxFF uses distance-dependent bond-order functions to
 represent the contributions of chemical bonding to the potential
 energy. There is more than one version of ReaxFF.  The version
 implemented in LAMMPS uses the functional forms documented in the
-supplemental information of the following paper: <A HREF = "#Chenoweth_2008">(Chenoweth et al.,
-2008)</A>.  The version integrated into LAMMPS matches
+supplemental information of the following paper: <a class="reference internal" href="#chenoweth-2008"><span>(Chenoweth et al., 2008)</span></a>.  The version integrated into LAMMPS matches
 the most up-to-date version of ReaxFF as of summer 2010.  For more
 technical details about the pair reax/c implementation of ReaxFF, see
-the <A HREF = "#Aktulga">(Aktulga)</A> paper.
-</P>
-<P>The <I>reax/c</I> style differs from the <A HREF = "pair_reax.html">pair_style reax</A>
-command in the lo-level implementation details.  The <I>reax</I> style is a
-Fortran library, linked to LAMMPS.  The <I>reax/c</I> style was initially
+the <a class="reference internal" href="#aktulga"><span>(Aktulga)</span></a> paper.</p>
+<p>The <em>reax/c</em> style differs from the <a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a>
+command in the lo-level implementation details.  The <em>reax</em> style is a
+Fortran library, linked to LAMMPS.  The <em>reax/c</em> style was initially
 implemented as stand-alone C code and is now integrated into LAMMPS as
-a package.
-</P>
-<P>LAMMPS provides several different versions of ffield.reax in its
+a package.</p>
+<p>LAMMPS provides several different versions of ffield.reax in its
 potentials dir, each called potentials/ffield.reax.label.  These are
 documented in potentials/README.reax.  The default ffield.reax
-contains parameterizations for the following elements: C, H, O, N, S.
-</P>
-<P>The format of these files is identical to that used originally by van
-Duin.  We have tested the accuracy of <I>pair_style reax/c</I> potential
+contains parameterizations for the following elements: C, H, O, N, S.</p>
+<p>The format of these files is identical to that used originally by van
+Duin.  We have tested the accuracy of <em>pair_style reax/c</em> potential
 against the original ReaxFF code for the systems mentioned above.  You
 can use other ffield files for specific chemical systems that may be
 available elsewhere (but note that their accuracy may not have been
-tested).
-</P>
-<P>IMPORTANT NOTE: We do not distribute a wide variety of ReaxFF force
-field files with LAMMPS.  Adri van Duin's group at PSU is the central
+tested).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">We do not distribute a wide variety of ReaxFF force
+field files with LAMMPS.  Adri van Duin&#8217;s group at PSU is the central
 repository for this kind of data as they are continuously deriving and
 updating parameterizations for different classes of materials.  You
 can visit their WWW site at
-<A HREF = "http://www.engr.psu.edu/adri">http://www.engr.psu.edu/adri</A>, register
-as a "new user", and then submit a request to their group describing
+<a class="reference external" href="http://www.engr.psu.edu/adri">http://www.engr.psu.edu/adri</a>, register
+as a &#8220;new user&#8221;, and then submit a request to their group describing
 material(s) you are interested in modeling with ReaxFF.  They can tell
 you what is currently available or what it would take to create a
-suitable ReaxFF parameterization.
-</P>
-<P>The <I>cfile</I> setting can be specified as NULL, in which case default
+suitable ReaxFF parameterization.</p>
+</div>
+<p>The <em>cfile</em> setting can be specified as NULL, in which case default
 settings are used. A control file can be specified which defines
-values of control variables. Some control variables are 
+values of control variables. Some control variables are
 global parameters for the ReaxFF potential. Others define certain
-performance and output settings. 
+performance and output settings.
 Each line in the control file specifies the value for
 a control variable.  The format of the control file is described
-below. 
-</P>
-<P>IMPORTANT NOTE: The LAMMPS default values for the ReaxFF global parameters 
+below.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The LAMMPS default values for the ReaxFF global parameters
 correspond to those used by
-Adri van Duin's stand-alone serial code. If these are changed by
+Adri van Duin&#8217;s stand-alone serial code. If these are changed by
 setting control variables in the control file, the results from
-LAMMPS and the serial code will not agree.
-</P>
-<P>Two examples using <I>pair_style reax/c</I> are provided in the examples/reax
-sub-directory, along with corresponding examples for 
-<A HREF = "pair_reax.html">pair_style reax</A>.
-</P>
-<P>Use of this pair style requires that a charge be defined for every
-atom.  See the <A HREF = "atom_style.html">atom_style</A> and
-<A HREF = "read_data.html">read_data</A> commands for details on how to specify
-charges.
-</P>
-<P>The ReaxFF parameter files provided were created using a charge
+LAMMPS and the serial code will not agree.</p>
+</div>
+<p>Two examples using <em>pair_style reax/c</em> are provided in the examples/reax
+sub-directory, along with corresponding examples for
+<a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a>.</p>
+<p>Use of this pair style requires that a charge be defined for every
+atom.  See the <a class="reference internal" href="atom_style.html"><em>atom_style</em></a> and
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> commands for details on how to specify
+charges.</p>
+<p>The ReaxFF parameter files provided were created using a charge
 equilibration (QEq) model for handling the electrostatic interactions.
-Therefore, by default, LAMMPS requires that the <A HREF = "fix_qeq_reax.html">fix
-qeq/reax</A> command be used with <I>pair_style reax/c</I>
+Therefore, by default, LAMMPS requires that the <a class="reference internal" href="fix_qeq_reax.html"><em>fix qeq/reax</em></a> command be used with <em>pair_style reax/c</em>
 when simulating a ReaxFF model, to equilibrate charge each timestep.
-Using the keyword <I>checkqeq</I> with the value <I>no</I> 
-turns off the check for <I>fix qeq/reax</I>,
+Using the keyword <em>checkqeq</em> with the value <em>no</em>
+turns off the check for <em>fix qeq/reax</em>,
 allowing a simulation to be run without charge equilibration.
 In this case, the static charges you
 assign to each atom will be used for computing the electrostatic
 interactions in the system.
-See the <A HREF = "fix_qeq_reax.html">fix qeq/reax</A> command for details.
-</P>
-<P>Using the optional keyword <I>lgvdw</I> with the value <I>yes</I> turns on 
-the low-gradient correction of the ReaxFF/C for long-range 
-London Dispersion, as described in the <A HREF = "#Liu_2011">(Liu)</A> paper. Force field 
-file <I>ffield.reax.lg</I> is designed for this correction, and is trained
-for several energetic materials (see "Liu"). When using lg-correction, 
-recommended value for parameter <I>thb</I> is 0.01, which can be set in the 
-control file.  Note: Force field files are different for the original 
-or lg corrected pair styles, using wrong ffield file generates an error message.
-</P>
-<P>Optional keywords <I>safezone</I> and <I>mincap</I> are used for allocating 
-reax/c arrays.  Increase these values can avoid memory problems, such 
-as segmentation faults and bondchk failed errors, that could occur under 
-certain conditions.
-</P>
-<P>The thermo variable <I>evdwl</I> stores the sum of all the ReaxFF potential
+See the <a class="reference internal" href="fix_qeq_reax.html"><em>fix qeq/reax</em></a> command for details.</p>
+<p>Using the optional keyword <em>lgvdw</em> with the value <em>yes</em> turns on
+the low-gradient correction of the ReaxFF/C for long-range
+London Dispersion, as described in the <a class="reference internal" href="#liu-2011"><span>(Liu)</span></a> paper. Force field
+file <em>ffield.reax.lg</em> is designed for this correction, and is trained
+for several energetic materials (see &#8220;Liu&#8221;). When using lg-correction,
+recommended value for parameter <em>thb</em> is 0.01, which can be set in the
+control file.  Note: Force field files are different for the original
+or lg corrected pair styles, using wrong ffield file generates an error message.</p>
+<p>Optional keywords <em>safezone</em> and <em>mincap</em> are used for allocating
+reax/c arrays.  Increase these values can avoid memory problems, such
+as segmentation faults and bondchk failed errors, that could occur under
+certain conditions.</p>
+<p>The thermo variable <em>evdwl</em> stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
 equilibration contributions which are stored in the thermo variable
-<I>ecoul</I>.  The output of these quantities is controlled by the
-<A HREF = "thermo.html">thermo</A> command.
-</P>
-<P>This pair style tallies a breakdown of the total ReaxFF potential
-energy into sub-categories, which can be accessed via the <A HREF = "compute_pair.html">compute
-pair</A> command as a vector of values of length 14.
+<em>ecoul</em>.  The output of these quantities is controlled by the
+<a class="reference internal" href="thermo.html"><em>thermo</em></a> command.</p>
+<p>This pair style tallies a breakdown of the total ReaxFF potential
+energy into sub-categories, which can be accessed via the <a class="reference internal" href="compute_pair.html"><em>compute pair</em></a> command as a vector of values of length 14.
 The 14 values correspond to the following sub-categories (the variable
-names in italics match those used in the original FORTRAN ReaxFF code):
-</P>
-<OL><LI><I>eb</I> = bond energy
-<LI><I>ea</I> = atom energy
-<LI><I>elp</I> = lone-pair energy
-<LI><I>emol</I> = molecule energy (always 0.0)
-<LI><I>ev</I> = valence angle energy
-<LI><I>epen</I> = double-bond valence angle penalty
-<LI><I>ecoa</I> = valence angle conjugation energy
-<LI><I>ehb</I> = hydrogen bond energy
-<LI><I>et</I> = torsion energy
-<LI><I>eco</I> = conjugation energy 
-<LI><I>ew</I> = van der Waals energy
-<LI><I>ep</I> = Coulomb energy
-<LI><I>efi</I> = electric field energy (always 0.0)
-<LI><I>eqeq</I> = charge equilibration energy 
-</OL>
-<P>To print these quantities to the log file (with descriptive column
-headings) the following commands could be included in an input script:
-</P>
-<PRE>compute reax all pair reax/c
-variable eb  	 equal c_reax[1]
-variable ea  	 equal c_reax[2] 
+names in italics match those used in the original FORTRAN ReaxFF code):</p>
+<ol class="arabic simple">
+<li><em>eb</em> = bond energy</li>
+<li><em>ea</em> = atom energy</li>
+<li><em>elp</em> = lone-pair energy</li>
+<li><em>emol</em> = molecule energy (always 0.0)</li>
+<li><em>ev</em> = valence angle energy</li>
+<li><em>epen</em> = double-bond valence angle penalty</li>
+<li><em>ecoa</em> = valence angle conjugation energy</li>
+<li><em>ehb</em> = hydrogen bond energy</li>
+<li><em>et</em> = torsion energy</li>
+<li><em>eco</em> = conjugation energy</li>
+<li><em>ew</em> = van der Waals energy</li>
+<li><em>ep</em> = Coulomb energy</li>
+<li><em>efi</em> = electric field energy (always 0.0)</li>
+<li><em>eqeq</em> = charge equilibration energy</li>
+</ol>
+<p>To print these quantities to the log file (with descriptive column
+headings) the following commands could be included in an input script:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute reax all pair reax/c
+variable eb           equal c_reax[1]
+variable ea           equal c_reax[2]
 ...
-variable eqeq 	 equal c_reax[14]
-thermo_style custom step temp epair v_eb v_ea ... v_eqeq 
-</PRE>
-<P>Only a single pair_coeff command is used with the <I>reax/c</I> style which
+variable eqeq         equal c_reax[14]
+thermo_style custom step temp epair v_eb v_ea ... v_eqeq
+</pre></div>
+</div>
+<p>Only a single pair_coeff command is used with the <em>reax/c</em> style which
 specifies a ReaxFF potential file with parameters for all needed
 elements.  These are mapped to LAMMPS atom types by specifying N
 additional arguments after the filename in the pair_coeff command,
-where N is the number of LAMMPS atom types:
-</P>
-<UL><LI>filename
-<LI>N indices = ReaxFF elements 
-</UL>
-<P>The filename is the ReaxFF potential file.  Unlike for the <I>reax</I>
-pair style, any filename can be used.
-</P>
-<P>In the ReaxFF potential file, near the top, after the general
+where N is the number of LAMMPS atom types:</p>
+<ul class="simple">
+<li>filename</li>
+<li>N indices = ReaxFF elements</li>
+</ul>
+<p>The filename is the ReaxFF potential file.  Unlike for the <em>reax</em>
+pair style, any filename can be used.</p>
+<p>In the ReaxFF potential file, near the top, after the general
 parameters, is the atomic parameters section that contains element
 names, each with a couple dozen numeric parameters.  If there are M
-elements specified in the <I>ffield</I> file, think of these as numbered 1
+elements specified in the <em>ffield</em> file, think of these as numbered 1
 to M. Each of the N indices you specify for the N atom types of LAMMPS
 atoms must be an integer from 1 to M.  Atoms with LAMMPS type 1 will
 be mapped to whatever element you specify as the first index value,
 etc.  If a mapping value is specified as NULL, the mapping is not
-performed.  This can be used when the <I>reax/c</I> style is used as part
-of the <I>hybrid</I> pair style.  The NULL values are placeholders for atom
-types that will be used with other potentials.
-</P>
-<P>As an example, say your LAMMPS simulation has 4 atom types and the
-elements are ordered as C, H, O, N in the <I>ffield</I> file.  If you want
+performed.  This can be used when the <em>reax/c</em> style is used as part
+of the <em>hybrid</em> pair style.  The NULL values are placeholders for atom
+types that will be used with other potentials.</p>
+<p>As an example, say your LAMMPS simulation has 4 atom types and the
+elements are ordered as C, H, O, N in the <em>ffield</em> file.  If you want
 the LAMMPS atom type 1 and 2 to be C, type 3 to be N, and type 4 to be
-H, you would use the following pair_coeff command:
-</P>
-<PRE>pair_coeff * * ffield.reax C C N H 
-</PRE>
-<HR>
-
-<P>The format of a line in the control file is as follows:
-</P>
-<PRE>variable_name value 
-</PRE>
-<P>and it may be followed by an "!" character and a trailing comment.
-</P>
-<P>If the value of a control variable is not specified, then default
+H, you would use the following pair_coeff command:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_coeff * * ffield.reax C C N H
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>The format of a line in the control file is as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>variable_name value
+</pre></div>
+</div>
+<p>and it may be followed by an &#8221;!&#8221; character and a trailing comment.</p>
+<p>If the value of a control variable is not specified, then default
 values are used.  What follows is the list of variables along with a
-brief description of their use and default values.
-</P>
-<P>simulation_name: Output files produced by <I>pair_style reax/c</I> carry
+brief description of their use and default values.</p>
+<p>simulation_name: Output files produced by <em>pair_style reax/c</em> carry
 this name + extensions specific to their contents.  Partial energies
-are reported with a ".pot" extension, while the trajectory file has
-".trj" extension.
-</P>
-<P>tabulate_long_range: To improve performance, long range interactions
+are reported with a &#8221;.pot&#8221; extension, while the trajectory file has
+&#8221;.trj&#8221; extension.</p>
+<p>tabulate_long_range: To improve performance, long range interactions
 can optionally be tabulated (0 means no tabulation). Value of this
 variable denotes the size of the long range interaction table.  The
-range from 0 to long range cutoff (defined in the <I>ffield</I> file) is
-divided into <I>tabulate_long_range</I> points.  Then at the start of
+range from 0 to long range cutoff (defined in the <em>ffield</em> file) is
+divided into <em>tabulate_long_range</em> points.  Then at the start of
 simulation, we fill in the entries of the long range interaction table
 by computing the energies and forces resulting from van der Waals and
 Coulomb interactions between every possible atom type pairs present in
 the input system.  During the simulation we consult to the long range
 interaction table to estimate the energy and forces between a pair of
 atoms. Linear interpolation is used for estimation. (default value =
-0)
-</P>
-<P>energy_update_freq: Denotes the frequency (in number of steps) of
-writes into the partial energies file. (default value = 0)
-</P>
-<P>nbrhood_cutoff: Denotes the near neighbors cutoff (in Angstroms)
-regarding the bonded interactions. (default value = 5.0)
-</P>
-<P>hbond_cutoff: Denotes the cutoff distance (in Angstroms) for hydrogen
-bond interactions.(default value = 7.5. Value of 0.0 turns off hydrogen 
-		bonds)
-</P>
-<P>bond_graph_cutoff: is the threshold used in determining what is a
+0)</p>
+<p>energy_update_freq: Denotes the frequency (in number of steps) of
+writes into the partial energies file. (default value = 0)</p>
+<p>nbrhood_cutoff: Denotes the near neighbors cutoff (in Angstroms)
+regarding the bonded interactions. (default value = 5.0)</p>
+<p>hbond_cutoff: Denotes the cutoff distance (in Angstroms) for hydrogen
+bond interactions.(default value = 7.5. Value of 0.0 turns off hydrogen</p>
+<blockquote>
+<div>bonds)</div></blockquote>
+<p>bond_graph_cutoff: is the threshold used in determining what is a
 physical bond, what is not. Bonds and angles reported in the
-trajectory file rely on this cutoff. (default value = 0.3)
-</P>
-<P>thb_cutoff: cutoff value for the strength of bonds to be considered in
-three body interactions. (default value = 0.001)
-</P>
-<P>thb_cutoff_sq: cutoff value for the strength of bond order products 
-to be considered in three body interactions. (default value = 0.00001)
-</P>
-<P>write_freq: Frequency of writes into the trajectory file. (default
-value = 0)
-</P>
-<P>traj_title: Title of the trajectory - not the name of the trajectory
-file.
-</P>
-<P>atom_info: 1 means print only atomic positions + charge (default = 0)
-</P>
-<P>atom_forces: 1 adds net forces to atom lines in the trajectory file
-(default = 0)
-</P>
-<P>atom_velocities: 1 adds atomic velocities to atoms line (default = 0)
-</P>
-<P>bond_info: 1 prints bonds in the trajectory file (default = 0)
-</P>
-<P>angle_info: 1 prints angles in the trajectory file (default = 0)
-</P>
-<HR>
-
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
-mix, shift, table, and tail options.
-</P>
-<P>This pair style does not write its information to <A HREF = "restart.html">binary restart
-files</A>, since it is stored in potential files.  Thus, you
+trajectory file rely on this cutoff. (default value = 0.3)</p>
+<p>thb_cutoff: cutoff value for the strength of bonds to be considered in
+three body interactions. (default value = 0.001)</p>
+<p>thb_cutoff_sq: cutoff value for the strength of bond order products
+to be considered in three body interactions. (default value = 0.00001)</p>
+<p>write_freq: Frequency of writes into the trajectory file. (default
+value = 0)</p>
+<p>traj_title: Title of the trajectory - not the name of the trajectory
+file.</p>
+<p>atom_info: 1 means print only atomic positions + charge (default = 0)</p>
+<p>atom_forces: 1 adds net forces to atom lines in the trajectory file
+(default = 0)</p>
+<p>atom_velocities: 1 adds atomic velocities to atoms line (default = 0)</p>
+<p>bond_info: 1 prints bonds in the trajectory file (default = 0)</p>
+<p>angle_info: 1 prints angles in the trajectory file (default = 0)</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
+mix, shift, table, and tail options.</p>
+<p>This pair style does not write its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, since it is stored in potential files.  Thus, you
 need to re-specify the pair_style and pair_coeff commands in an input
-script that reads a restart file.
-</P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
-<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This pair style is part of the USER-REAXC package.  It is only enabled
-if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>The ReaxFF potential files provided with LAMMPS in the potentials
-directory are parameterized for real <A HREF = "units.html">units</A>.  You can use
+script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This pair style is part of the USER-REAXC package.  It is only enabled
+if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>The ReaxFF potential files provided with LAMMPS in the potentials
+directory are parameterized for real <a class="reference internal" href="units.html"><em>units</em></a>.  You can use
 the ReaxFF potential with any LAMMPS units, but you would need to
 create your own potential file with coefficients listed in the
-appropriate units if your simulation doesn't use "real" units.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "fix_qeq_reax.html">fix qeq/reax</A>, <A HREF = "fix_reax_bonds.html">fix
-reax/c/bonds</A>, <A HREF = "fix_reaxc_species.html">fix
-reax/c/species</A>, <A HREF = "pair_reax.html">pair_style
-reax</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2,
-mincap = 50.
-</P>
-<HR>
+appropriate units if your simulation doesn&#8217;t use &#8220;real&#8221; units.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>, <a class="reference internal" href="fix_qeq_reax.html"><em>fix qeq/reax</em></a>, <a class="reference internal" href="fix_reax_bonds.html"><em>fix reax/c/bonds</em></a>, <a class="reference internal" href="fix_reaxc_species.html"><em>fix reax/c/species</em></a>, <a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The keyword defaults are checkqeq = yes, lgvdw = no, safezone = 1.2,
+mincap = 50.</p>
+<hr class="docutils" />
+<p id="chenoweth-2008"><strong>(Chenoweth_2008)</strong> Chenoweth, van Duin and Goddard,
+Journal of Physical Chemistry A, 112, 1040-1053 (2008).</p>
+<p id="aktulga">(Aktulga) Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
+245-259 (2012).</p>
+<p id="liu-2011"><strong>(Liu)</strong> L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
+of Physical Chemistry A, 115, 11016-11022 (2011).</p>
+</div>
+</div>
 
-<A NAME = "Chenoweth_2008"></A>
 
-<P><B>(Chenoweth_2008)</B> Chenoweth, van Duin and Goddard, 
-Journal of Physical Chemistry A, 112, 1040-1053 (2008).
-</P>
-<A NAME = "Aktulga"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P>(Aktulga) Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
-245-259 (2012).
-</P>
-<A NAME = "Liu_2011"></A>
+  <hr/>
 
-<P><B>(Liu)</B> L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
-of Physical Chemistry A, 115, 11016-11022 (2011).
-</P>
-</HTML>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

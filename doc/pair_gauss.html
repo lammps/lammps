@@ -1,172 +1,326 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style gauss command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style gauss command 
-</H3>
-<H3>pair_style gauss/gpu command 
-</H3>
-<H3>pair_style gauss/omp command 
-</H3>
-<H3>pair_style gauss/cut command 
-</H3>
-<H3>pair_style gauss/cut/omp command 
-</H3>
-<P><B>Syntax:</B> 
-</P>
-<PRE>pair_style gauss cutoff
-pair_style gauss/cut cutoff 
-</PRE>
-<UL><LI>cutoff = global cutoff for Gauss interactions (distance units) 
-</UL>
-<P><B>Examples:</B> 
-</P>
-<PRE>pair_style gauss 12.0 
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style gauss command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-gauss-command">
+<span id="index-0"></span><h1>pair_style gauss command<a class="headerlink" href="#pair-style-gauss-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-gauss-gpu-command">
+<h1>pair_style gauss/gpu command<a class="headerlink" href="#pair-style-gauss-gpu-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-gauss-omp-command">
+<h1>pair_style gauss/omp command<a class="headerlink" href="#pair-style-gauss-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-gauss-cut-command">
+<h1>pair_style gauss/cut command<a class="headerlink" href="#pair-style-gauss-cut-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-gauss-cut-omp-command">
+<h1>pair_style gauss/cut/omp command<a class="headerlink" href="#pair-style-gauss-cut-omp-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style gauss cutoff
+pair_style gauss/cut cutoff
+</pre></div>
+</div>
+<ul class="simple">
+<li>cutoff = global cutoff for Gauss interactions (distance units)</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style gauss 12.0
 pair_coeff * * 1.0 0.9
-pair_coeff 1 4 1.0 0.9 10.0 
-</PRE>
-<PRE>pair_style gauss/cut 3.5
-pair_coeff 1 4 0.2805 1.45 0.112 
-</PRE>
-<P><B>Description:</B> 
-</P>
-<P>Style <I>gauss</I> computes a tethering potential of the form
-</P>
-<CENTER><IMG SRC = "Eqs/pair_gauss.jpg">
-</CENTER>
-<P>between an atom and its corresponding tether site which will typically
-be a frozen atom in the simulation.  Rc is the cutoff.
-</P>
-<P>The following coefficients must be defined for each pair of atom types
-via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples above,
+pair_coeff 1 4 1.0 0.9 10.0
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style gauss/cut 3.5
+pair_coeff 1 4 0.2805 1.45 0.112
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Style <em>gauss</em> computes a tethering potential of the form</p>
+<img alt="_images/pair_gauss.jpg" class="align-center" src="_images/pair_gauss.jpg" />
+<p>between an atom and its corresponding tether site which will typically
+be a frozen atom in the simulation.  Rc is the cutoff.</p>
+<p>The following coefficients must be defined for each pair of atom types
+via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples above,
 or in the data file or restart files read by the
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands:
-</P>
-<UL><LI>A (energy units)
-<LI>B (1/distance^2 units) 
-<LI>cutoff (distance units) 
-</UL>
-<P>The last coefficient is optional. If not specified, the global cutoff
-is used.
-</P>
-<P>Style <I>gauss/cut</I> computes a generalized Gaussian interaction potential 
-between pairs of particles:
-</P>
-<CENTER><IMG SRC = "Eqs/pair_gauss_cut.jpg">
-</CENTER>
-<P>where H determines together with the standard deviation sigma_h the
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+commands:</p>
+<ul class="simple">
+<li>A (energy units)</li>
+<li>B (1/distance^2 units)</li>
+<li>cutoff (distance units)</li>
+</ul>
+<p>The last coefficient is optional. If not specified, the global cutoff
+is used.</p>
+<p>Style <em>gauss/cut</em> computes a generalized Gaussian interaction potential
+between pairs of particles:</p>
+<img alt="_images/pair_gauss_cut.jpg" class="align-center" src="_images/pair_gauss_cut.jpg" />
+<p>where H determines together with the standard deviation sigma_h the
 peak height of the Gaussian function, and r_mh the peak position.
 Examples of the use of the Gaussian potentials include implicit
-solvent simulations of salt ions <A HREF = "#Lenart">(Lenart)</A> and of surfactants
-<A HREF = "#Jusufi">(Jusufi)</A>.  In these instances the Gaussian potential mimics
+solvent simulations of salt ions <a class="reference internal" href="#lenart"><span>(Lenart)</span></a> and of surfactants
+<a class="reference internal" href="#jusufi"><span>(Jusufi)</span></a>.  In these instances the Gaussian potential mimics
 the hydration barrier between a pair of particles. The hydration
 barrier is located at r_mh and has a width of sigma_h. The prefactor
-determines the hight of the potential barrier.
-</P>
-<P>The following coefficients must be defined for each pair of atom types
-via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the example above,
+determines the hight of the potential barrier.</p>
+<p>The following coefficients must be defined for each pair of atom types
+via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the example above,
 or in the data file or restart files read by the
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands:
-</P>
-<UL><LI>H (energy * distance units)
-<LI>r_mh (distance units)
-<LI>sigma_h (distance units) 
-</UL>
-<P>The global cutoff (r_c) specified in the pair_style command is used.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+commands:</p>
+<ul class="simple">
+<li>H (energy * distance units)</li>
+<li>r_mh (distance units)</li>
+<li>sigma_h (distance units)</li>
+</ul>
+<p>The global cutoff (r_c) specified in the pair_style command is used.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the "-suffix command-line
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the &#8220;-suffix command-line
 switch7_Section_start.html#start_6 when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>These pair styles do not support mixing. Thus, coefficients for all
-I,J pairs must be specified explicitly.
-</P>
-<P>The <I>gauss</I> style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>These pair styles do not support mixing. Thus, coefficients for all
+I,J pairs must be specified explicitly.</p>
+<p>The <em>gauss</em> style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
 shift option. There is no effect due to the Gaussian well beyond the
-cutoff; hence reasonable cutoffs need to be specified.
-</P>
-<P>The <I>gauss/cut</I> style supports the <A HREF = "pair_modify.html">pair_modify</A> shift
+cutoff; hence reasonable cutoffs need to be specified.</p>
+<p>The <em>gauss/cut</em> style supports the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> shift
 option for the energy of the Gauss-potential portion of the pair
-interaction.
-</P>
-<P>The <A HREF = "pair_modify.html">pair_modify</A> table and tail options are not
-relevant for these pair styles.
-</P>
-<P>These pair styles write their information to <A HREF = "restart.html">binary restart
-files</A>, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.
-</P>
-<P>These pair styles can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
-<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
-</P>
-<P>The <I>gauss</I> pair style tallies an "occupancy" count of how many Gaussian-well
+interaction.</p>
+<p>The <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> table and tail options are not
+relevant for these pair styles.</p>
+<p>These pair styles write their information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.</p>
+<p>These pair styles can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  They do not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+<p>The <em>gauss</em> pair style tallies an &#8220;occupancy&#8221; count of how many Gaussian-well
 sites have an atom within the distance at which the force is a maximum
-= sqrt(0.5/b).  This quantity can be accessed via the <A HREF = "compute_pair.html">compute
-pair</A> command as a vector of values of length 1.
-</P>
-<P>To print this quantity to the log file (with a descriptive column
-heading) the following commands could be included in an input script:
-</P>
-<PRE>compute gauss all pair gauss
+= sqrt(0.5/b).  This quantity can be accessed via the <a class="reference internal" href="compute_pair.html"><em>compute pair</em></a> command as a vector of values of length 1.</p>
+<p>To print this quantity to the log file (with a descriptive column
+heading) the following commands could be included in an input script:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute gauss all pair gauss
 variable occ equal c_gauss[1]
-thermo_style custom step temp epair v_occ 
-</PRE>
-<HR>
+thermo_style custom step temp epair v_occ
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>The <em>gauss/cut</em> style is part of the &#8220;user-misc&#8221; package. It is only
+enabled if LAMMPS is build with that package. See the <span class="xref std std-ref">Making of LAMMPS</span> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>,
+<a class="reference internal" href="pair_coul_diel.html"><em>pair_style coul/diel</em></a></p>
+<p><strong>Default:</strong> none</p>
+<p id="lenart"><strong>(Lenart)</strong> Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,
+044509 (2007).</p>
+<p id="jusufi"><strong>(Jusufi)</strong> Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
+13783 (2008).</p>
+</div>
+</div>
 
-<P><B>Restrictions:</B>
-</P>
-<P>The <I>gauss/cut</I> style is part of the "user-misc" package. It is only
-enabled if LAMMPS is build with that package. See the <A HREF = "Section_start.html#3">Making of
-LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, 
-<A HREF = "pair_coul_diel.html">pair_style coul/diel</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<A NAME = "Lenart"></A>
 
-<P><B>(Lenart)</B> Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,
-044509 (2007).
-</P>
-<A NAME = "Jusufi"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Jusufi)</B> Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
-13783 (2008).
-</P>
-</HTML>
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

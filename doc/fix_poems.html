@@ -1,146 +1,298 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix poems &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix poems 
-</H3>
-<P>Syntax:
-</P>
-<PRE>fix ID group-ID poems keyword values 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>poems = style name of this fix command 
-
-<LI>keyword = <I>group</I> or <I>file</I> or <I>molecule</I> 
-
-<PRE>  <I>group</I> values = list of group IDs
-  <I>molecule</I> values = none
-  <I>file</I> values = filename 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 3 fluid poems group clump1 clump2 clump3
-fix 3 fluid poems file cluster.list 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Treats one or more sets of atoms as coupled rigid bodies.  This means
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix poems</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-poems">
+<h1>fix poems<a class="headerlink" href="#fix-poems" title="Permalink to this headline">¶</a></h1>
+<p>Syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID poems keyword values
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>poems = style name of this fix command</li>
+<li>keyword = <em>group</em> or <em>file</em> or <em>molecule</em></li>
+</ul>
+<pre class="literal-block">
+<em>group</em> values = list of group IDs
+  <em>molecule</em> values = none
+  <em>file</em> values = filename
+</pre>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 3 fluid poems group clump1 clump2 clump3
+fix 3 fluid poems file cluster.list
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Treats one or more sets of atoms as coupled rigid bodies.  This means
 that each timestep the total force and torque on each rigid body is
 computed and the coordinates and velocities of the atoms are updated
 so that the collection of bodies move as a coupled set.  This can be
 useful for treating a large biomolecule as a collection of connected,
-coarse-grained particles.
-</P>
-<P>The coupling, associated motion constraints, and time integration is
-performed by the software package <A HREF = "http://www.rpi.edu/~anderk5/lab">Parallelizable Open source
-Efficient Multibody Software (POEMS)</A> which computes the
+coarse-grained particles.</p>
+<p>The coupling, associated motion constraints, and time integration is
+performed by the software package <a class="reference external" href="http://www.rpi.edu/~anderk5/lab">Parallelizable Open source Efficient Multibody Software (POEMS)</a> which computes the
 constrained rigid-body motion of articulated (jointed) multibody
-systems <A HREF = "#Anderson">(Anderson)</A>.  POEMS was written and is distributed
+systems <a class="reference internal" href="#anderson"><span>(Anderson)</span></a>.  POEMS was written and is distributed
 by Prof Kurt Anderson, his graduate student Rudranarayan Mukherjee,
 and other members of his group at Rensselaer Polytechnic Institute
 (RPI).  Rudranarayan developed the LAMMPS/POEMS interface.  For
 copyright information on POEMS and other details, please refer to the
-documents in the poems directory distributed with LAMMPS.
-</P>
-
-
-<P>This fix updates the positions and velocities of the rigid atoms with
+documents in the poems directory distributed with LAMMPS.</p>
+<p>This fix updates the positions and velocities of the rigid atoms with
 a constant-energy time integration, so you should not update the same
-atoms via other fixes (e.g. nve, nvt, npt, temp/rescale, langevin).
-</P>
-<P>Each body must have a non-degenerate inertia tensor, which means if
+atoms via other fixes (e.g. nve, nvt, npt, temp/rescale, langevin).</p>
+<p>Each body must have a non-degenerate inertia tensor, which means if
 must contain at least 3 non-collinear atoms.  Which atoms are in which
-bodies can be defined via several options.
-</P>
-<P>For option <I>group</I>, each of the listed groups is treated as a rigid
+bodies can be defined via several options.</p>
+<p>For option <em>group</em>, each of the listed groups is treated as a rigid
 body.  Note that only atoms that are also in the fix group are
-included in each rigid body.
-</P>
-<P>For option <I>molecule</I>, each set of atoms in the group with a different
-molecule ID is treated as a rigid body.
-</P>
-<P>For option <I>file</I>, sets of atoms are read from the specified file and
+included in each rigid body.</p>
+<p>For option <em>molecule</em>, each set of atoms in the group with a different
+molecule ID is treated as a rigid body.</p>
+<p>For option <em>file</em>, sets of atoms are read from the specified file and
 each set is treated as a rigid body.  Each line of the file specifies
-a rigid body in the following format:
-</P>
-<P>ID type atom1-ID atom2-ID atom3-ID ...
-</P>
-<P>ID as an integer from 1 to M (the number of rigid bodies).  Type is
+a rigid body in the following format:</p>
+<p>ID type atom1-ID atom2-ID atom3-ID ...</p>
+<p>ID as an integer from 1 to M (the number of rigid bodies).  Type is
 any integer; it is not used by the fix poems command.  The remaining
 arguments are IDs of atoms in the rigid body, each typically from 1 to
 N (the number of atoms in the system).  Only atoms that are also in
 the fix group are included in each rigid body.  Blank lines and lines
-that begin with '#' are skipped.
-</P>
-<P>A connection between a pair of rigid bodies is inferred if one atom is
+that begin with &#8216;#&#8217; are skipped.</p>
+<p>A connection between a pair of rigid bodies is inferred if one atom is
 common to both bodies.  The POEMS solver treats that atom as a
 spherical joint with 3 degrees of freedom.  Currently, a collection of
 bodies can only be connected by joints as a linear chain.  The entire
 collection of rigid bodies can represent one or more chains.  Other
 connection topologies (tree, ring) are not allowed, but will be added
 later.  Note that if no joints exist, it is more efficient to use the
-<A HREF = "fix_rigid.html">fix rigid</A> command to simulate the system.
-</P>
-<P>When the poems fix is defined, it will print out statistics on the
+<a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> command to simulate the system.</p>
+<p>When the poems fix is defined, it will print out statistics on the
 total # of clusters, bodies, joints, atoms involved.  A cluster in
-this context means a set of rigid bodies connected by joints.
-</P>
-<P>For computational efficiency, you should turn off pairwise and bond
+this context means a set of rigid bodies connected by joints.</p>
+<p>For computational efficiency, you should turn off pairwise and bond
 interactions within each rigid body, as they no longer contribute to
-the motion.  The "neigh_modify exclude" and "delete_bonds" commands
-can be used to do this if each rigid body is a group.
-</P>
-<P>For computational efficiency, you should only define one fix poems
+the motion.  The &#8220;neigh_modify exclude&#8221; and &#8220;delete_bonds&#8221; commands
+can be used to do this if each rigid body is a group.</p>
+<p>For computational efficiency, you should only define one fix poems
 which includes all the desired rigid bodies.  LAMMPS will allow
-multiple poems fixes to be defined, but it is more expensive.
-</P>
-<P>The degrees-of-freedom removed by coupled rigid bodies are accounted
+multiple poems fixes to be defined, but it is more expensive.</p>
+<p>The degrees-of-freedom removed by coupled rigid bodies are accounted
 for in temperature and pressure computations.  Similarly, the rigid
 body contribution to the pressure virial is also accounted for.  The
 latter is only correct if forces within the bodies have been turned
-off, and there is only a single fix poems defined.
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+off, and there is only a single fix poems defined.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options
 are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  No parameter of this fix can
-be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix is part of the POEMS package.  It is only enabled if LAMMPS
+by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  No parameter of this fix can
+be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command.
+This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is part of the POEMS package.  It is only enabled if LAMMPS
 was built with that package, which also requires the POEMS library be
-built and linked with LAMMPS.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_rigid.html">fix rigid</A>, <A HREF = "delete_bonds.html">delete_bonds</A>,
-<A HREF = "neigh_modify.html">neigh_modify</A> exclude
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+built and linked with LAMMPS.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a>, <a class="reference internal" href="delete_bonds.html"><em>delete_bonds</em></a>,
+<a class="reference internal" href="neigh_modify.html"><em>neigh_modify</em></a> exclude</p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="anderson"><strong>(Anderson)</strong> Anderson, Mukherjee, Critchley, Ziegler, and Lipton
+&#8220;POEMS: Parallelizable Open-source Efficient Multibody Software &#8221;,
+Engineering With Computers (2006). (<a class="reference external" href="http://dx.doi.org/10.1007/s00366-006-0026-x">link to paper</a>)</p>
+</div>
+</div>
 
-<A NAME = "Anderson"></A>
 
-<P><B>(Anderson)</B> Anderson, Mukherjee, Critchley, Ziegler, and Lipton
-"POEMS: Parallelizable Open-source Efficient Multibody Software ",
-Engineering With Computers (2006). (<A HREF = "http://dx.doi.org/10.1007/s00366-006-0026-x">link to
-paper</A>)
-</P>
-</HTML>
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

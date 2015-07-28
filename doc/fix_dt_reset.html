@@ -1,96 +1,272 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix dt/reset command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix dt/reset command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID dt/reset N Tmin Tmax Xmax keyword values ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
-<LI>dt/reset = style name of this fix command
-<LI>N = recompute dt every N timesteps
-<LI>Tmin = minimum dt allowed which can be NULL (time units)
-<LI>Tmax = maximum dt allowed which can be NULL (time units)
-<LI>Xmax = maximum distance for an atom to move in one timestep (distance units)
-<LI>zero or more keyword/value pairs may be appended
-<LI>keyword = <I>units</I> 
-</UL>
-<PRE>  <I>units</I> value = <I>lattice</I> or <I>box</I>
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix dt/reset command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-dt-reset-command">
+<span id="index-0"></span><h1>fix dt/reset command<a class="headerlink" href="#fix-dt-reset-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID dt/reset N Tmin Tmax Xmax keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>dt/reset = style name of this fix command</li>
+<li>N = recompute dt every N timesteps</li>
+<li>Tmin = minimum dt allowed which can be NULL (time units)</li>
+<li>Tmax = maximum dt allowed which can be NULL (time units)</li>
+<li>Xmax = maximum distance for an atom to move in one timestep (distance units)</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>units</em></li>
+</ul>
+<pre class="literal-block">
+<em>units</em> value = <em>lattice</em> or <em>box</em>
     lattice = Xmax is defined in lattice units
-    box = Xmax is defined in simulation box units 
-</PRE>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 5 all dt/reset 10 1.0e-5 0.01 0.1
-fix 5 all dt/reset 10 0.01 2.0 0.2 units box 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Reset the timestep size every N steps during a run, so that no atom
+    box = Xmax is defined in simulation box units
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 5 all dt/reset 10 1.0e-5 0.01 0.1
+fix 5 all dt/reset 10 0.01 2.0 0.2 units box
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Reset the timestep size every N steps during a run, so that no atom
 moves further than Xmax, based on current atom velocities and forces.
 This can be useful when starting from a configuration with overlapping
 atoms, where forces will be large.  Or it can be useful when running
 an impact simulation where one or more high-energy atoms collide with
-a solid, causing a damage cascade.
-</P>
-<P>This fix overrides the timestep size setting made by the
-<A HREF = "timestep.html">timestep</A> command.  The new timestep size <I>dt</I> is
-computed in the following manner.
-</P>
-<P>For each atom, the timestep is computed that would cause it to
-displace <I>Xmax</I> on the next integration step, as a function of its
+a solid, causing a damage cascade.</p>
+<p>This fix overrides the timestep size setting made by the
+<a class="reference internal" href="timestep.html"><em>timestep</em></a> command.  The new timestep size <em>dt</em> is
+computed in the following manner.</p>
+<p>For each atom, the timestep is computed that would cause it to
+displace <em>Xmax</em> on the next integration step, as a function of its
 current velocity and force.  Since performing this calculation exactly
 would require the solution to a quartic equation, a cheaper estimate
-is generated.  The estimate is conservative in that the atom's
-displacement is guaranteed not to exceed <I>Xmax</I>, though it may be
-smaller.
-</P>
-<P>Given this putative timestep for each atom, the minimum timestep value
-across all atoms is computed.  Then the <I>Tmin</I> and <I>Tmax</I> bounds are
+is generated.  The estimate is conservative in that the atom&#8217;s
+displacement is guaranteed not to exceed <em>Xmax</em>, though it may be
+smaller.</p>
+<p>Given this putative timestep for each atom, the minimum timestep value
+across all atoms is computed.  Then the <em>Tmin</em> and <em>Tmax</em> bounds are
 applied, if specified.  If one (or both) is specified as NULL, it is
-not applied.
-</P>
-<P>When the <A HREF = "run_style.html">run style</A> is <I>respa</I>, this fix resets the
+not applied.</p>
+<p>When the <a class="reference internal" href="run_style.html"><em>run style</em></a> is <em>respa</em>, this fix resets the
 outer loop (largest) timestep, which is the same timestep that the
-<A HREF = "timestep.html">timestep</A> command sets.
-</P>
-<P>Note that the cumulative simulation time (in time units), which
+<a class="reference internal" href="timestep.html"><em>timestep</em></a> command sets.</p>
+<p>Note that the cumulative simulation time (in time units), which
 accounts for changes in the timestep size as a simulation proceeds,
-can be accessed by the <A HREF = "thermo_style.html">thermo_style time</A> keyword.
-</P>
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.
-</P>
-<P>This fix computes a global scalar which can be accessed by various
-<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar stores
-the last timestep on which the timestep was reset to a new value.
-</P>
-<P>The scalar value calculated by this fix is "intensive".
-</P>
-<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
-minimization</A>.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "timestep.html">timestep</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults is units = lattice.
-</P>
-</HTML>
+can be accessed by the <a class="reference internal" href="thermo_style.html"><em>thermo_style time</em></a> keyword.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options
+are relevant to this fix.</p>
+<p>This fix computes a global scalar which can be accessed by various
+<a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar stores
+the last timestep on which the timestep was reset to a new value.</p>
+<p>The scalar value calculated by this fix is &#8220;intensive&#8221;.</p>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><em>run</em></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="timestep.html"><em>timestep</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults is units = lattice.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

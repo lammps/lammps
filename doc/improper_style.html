@@ -1,99 +1,276 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>improper_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>improper_style command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>improper_style style 
-</PRE>
-<UL><LI>style = <I>none</I> or <I>hybrid</I> or <I>class2</I> or <I>cvff</I> or <I>harmonic</I> 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>improper_style harmonic
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>improper_style command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="improper-style-command">
+<span id="index-0"></span><h1>improper_style command<a class="headerlink" href="#improper-style-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>improper_style style
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>none</em> or <em>hybrid</em> or <em>class2</em> or <em>cvff</em> or <em>harmonic</em></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>improper_style harmonic
 improper_style cvff
-improper_style hybrid cvff harmonic 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Set the formula(s) LAMMPS uses to compute improper interactions
+improper_style hybrid cvff harmonic
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Set the formula(s) LAMMPS uses to compute improper interactions
 between quadruplets of atoms, which remain in force for the duration
 of the simulation.  The list of improper quadruplets is read in by a
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A> command
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command
 from a data or restart file.  Note that the ordering of the 4 atoms in
 an improper quadruplet determines the the definition of the improper
 angle used in the formula for each style.  See the doc pages of
-individual styles for details.
-</P>
-<P>Hybrid models where impropers are computed using different improper
-potentials can be setup using the <I>hybrid</I> improper style.
-</P>
-<P>The coefficients associated with an improper style can be specified in
-a data or restart file or via the <A HREF = "improper_coeff.html">improper_coeff</A>
-command.
-</P>
-<P>All improper potentials store their coefficient data in binary restart
+individual styles for details.</p>
+<p>Hybrid models where impropers are computed using different improper
+potentials can be setup using the <em>hybrid</em> improper style.</p>
+<p>The coefficients associated with an improper style can be specified in
+a data or restart file or via the <a class="reference internal" href="improper_coeff.html"><em>improper_coeff</em></a>
+command.</p>
+<p>All improper potentials store their coefficient data in binary restart
 files which means improper_style and
-<A HREF = "improper_coeff.html">improper_coeff</A> commands do not need to be
+<a class="reference internal" href="improper_coeff.html"><em>improper_coeff</em></a> commands do not need to be
 re-specified in an input script that restarts a simulation.  See the
-<A HREF = "read_restart.html">read_restart</A> command for details on how to do
-this.  The one exception is that improper_style <I>hybrid</I> only stores
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> command for details on how to do
+this.  The one exception is that improper_style <em>hybrid</em> only stores
 the list of sub-styles in the restart file; improper coefficients need
-to be re-specified.
-</P>
-<P>IMPORTANT NOTE: When both an improper and pair style is defined, the
-<A HREF = "special_bonds.html">special_bonds</A> command often needs to be used to
+to be re-specified.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When both an improper and pair style is defined, the
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command often needs to be used to
 turn off (or weight) the pairwise interaction that would otherwise
-exist between a group of 4 bonded atoms.
-</P>
-<HR>
-
-<P>Here is an alphabetic list of improper styles defined in LAMMPS.
+exist between a group of 4 bonded atoms.</p>
+</div>
+<hr class="docutils" />
+<p>Here is an alphabetic list of improper styles defined in LAMMPS.
 Click on the style to display the formula it computes and coefficients
-specified by the associated <A HREF = "improper_coeff.html">improper_coeff</A>
-command.
-</P>
-<P>Note that there are also additional improper styles submitted by users
+specified by the associated <a class="reference internal" href="improper_coeff.html"><em>improper_coeff</em></a>
+command.</p>
+<p>Note that there are also additional improper styles submitted by users
 which are included in the LAMMPS distribution.  The list of these with
 links to the individual styles are given in the improper section of
-<A HREF = "Section_commands.html#cmd_5">this page</A>.
-</P>
-<UL><LI><A HREF = "improper_none.html">improper_style none</A> - turn off improper interactions
-<LI><A HREF = "improper_hybrid.html">improper_style hybrid</A> - define multiple styles of improper interactions 
-</UL>
-<UL><LI><A HREF = "improper_class2.html">improper_style class2</A> - COMPASS (class 2) improper
-<LI><A HREF = "improper_cvff.html">improper_style cvff</A> - CVFF improper
-<LI><A HREF = "improper_harmonic.html">improper_style harmonic</A> - harmonic improper
-<LI><A HREF = "improper_umbrella.html">improper_style umbrella</A> - DREIDING improper 
-</UL>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>Improper styles can only be set for atom_style choices that allow
-impropers to be defined.
-</P>
-<P>Most improper styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info on packages.
+<a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+<ul class="simple">
+<li><a class="reference internal" href="improper_none.html"><em>improper_style none</em></a> - turn off improper interactions</li>
+<li><a class="reference internal" href="improper_hybrid.html"><em>improper_style hybrid</em></a> - define multiple styles of improper interactions</li>
+<li><a class="reference internal" href="improper_class2.html"><em>improper_style class2</em></a> - COMPASS (class 2) improper</li>
+<li><a class="reference internal" href="improper_cvff.html"><em>improper_style cvff</em></a> - CVFF improper</li>
+<li><a class="reference internal" href="improper_harmonic.html"><em>improper_style harmonic</em></a> - harmonic improper</li>
+<li><a class="reference internal" href="improper_umbrella.html"><em>improper_style umbrella</em></a> - DREIDING improper</li>
+</ul>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Improper styles can only be set for atom_style choices that allow
+impropers to be defined.</p>
+<p>Most improper styles are part of the MOLECULE package.  They are only
+enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info on packages.
 The doc pages for individual improper potentials tell if it is part of
-a package.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "improper_coeff.html">improper_coeff</A>
-</P>
-<P><B>Default:</B>
-</P>
-<PRE>improper_style none 
-</PRE>
-</HTML>
+a package.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="improper_coeff.html"><em>improper_coeff</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>improper_style none
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

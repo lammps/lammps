@@ -1,201 +1,302 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>run_style command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>run_style command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>run_style style args 
-</PRE>
-<UL><LI>style = <I>verlet</I> or <I>verlet/split</I> or <I>respa</I> or <I>respa/omp</I> 
-
-<PRE>  <I>verlet</I> args = none
-  <I>verlet/split</I> args = none
-  <I>respa</I> args = N n1 n2 ... keyword values ...
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>run_style command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="run-style-command">
+<span id="index-0"></span><h1>run_style command<a class="headerlink" href="#run-style-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>run_style style args
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>verlet</em> or <em>verlet/split</em> or <em>respa</em> or <em>respa/omp</em></li>
+</ul>
+<pre class="literal-block">
+<em>verlet</em> args = none
+  <em>verlet/split</em> args = none
+  <em>respa</em> args = N n1 n2 ... keyword values ...
     N = # of levels of rRESPA
     n1, n2, ... = loop factor between rRESPA levels (N-1 values)
     zero or more keyword/value pairings may be appended to the loop factors
-    keyword = <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or
-	      <I>pair</I> or <I>inner</I> or <I>middle</I> or <I>outer</I> or <I>hybrid</I> or <I>kspace</I>
-      <I>bond</I> value = M
+    keyword = <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or
+           <em>pair</em> or <em>inner</em> or <em>middle</em> or <em>outer</em> or <em>hybrid</em> or <em>kspace</em>
+      <em>bond</em> value = M
         M = which level (1-N) to compute bond forces in
-      <I>angle</I> value = M
+      <em>angle</em> value = M
         M = which level (1-N) to compute angle forces in
-      <I>dihedral</I> value = M
+      <em>dihedral</em> value = M
         M = which level (1-N) to compute dihedral forces in
-      <I>improper</I> value = M
+      <em>improper</em> value = M
         M = which level (1-N) to compute improper forces in
-      <I>pair</I> value = M
+      <em>pair</em> value = M
         M = which level (1-N) to compute pair forces in
-      <I>inner</I> values = M cut1 cut2
+      <em>inner</em> values = M cut1 cut2
         M = which level (1-N) to compute pair inner forces in
-	cut1 = inner cutoff between pair inner and
-	       pair middle or outer  (distance units)
-	cut2 = outer cutoff between pair inner and
-	       pair middle or outer  (distance units)
-      <I>middle</I> values = M cut1 cut2
+     cut1 = inner cutoff between pair inner and
+            pair middle or outer  (distance units)
+     cut2 = outer cutoff between pair inner and
+            pair middle or outer  (distance units)
+      <em>middle</em> values = M cut1 cut2
         M = which level (1-N) to compute pair middle forces in
-	cut1 = inner cutoff between pair middle and pair outer (distance units)
-	cut2 = outer cutoff between pair middle and pair outer (distance units)
-      <I>outer</I> value = M
+     cut1 = inner cutoff between pair middle and pair outer (distance units)
+     cut2 = outer cutoff between pair middle and pair outer (distance units)
+      <em>outer</em> value = M
         M = which level (1-N) to compute pair outer forces in
-      <I>hybrid</I> values = M1 [M2 ...] (as many values as there are hybrid sub-styles 
+      <em>hybrid</em> values = M1 [M2 ...] (as many values as there are hybrid sub-styles
         M1 = which level (1-N) to compute the first pair_style hybrid sub-style in
         M2 = which level (1-N) to compute the second pair_style hybrid sub-style in
         ...
-      <I>kspace</I> value = M
-        M = which level (1-N) to compute kspace forces in 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>run_style verlet
+      <em>kspace</em> value = M
+        M = which level (1-N) to compute kspace forces in
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>run_style verlet
 run_style respa 4 2 2 2 bond 1 dihedral 2 pair 3 kspace 4
-run_style respa 4 2 2 2 bond 1 dihedral 2 inner 3 5.0 6.0 outer 4 kspace 4 
-</PRE>
-<PRE>run_style respa 3 4 2 bond 1 hybrid 2 2 1 kspace 3 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Choose the style of time integrator used for molecular dynamics
-simulations performed by LAMMPS.
-</P>
-<P>The <I>verlet</I> style is a standard velocity-Verlet integrator.
-</P>
-<HR>
-
-<P>The <I>verlet/split</I> style is also a velocity-Verlet integrator, but it
+run_style respa 4 2 2 2 bond 1 dihedral 2 inner 3 5.0 6.0 outer 4 kspace 4
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>run_style respa 3 4 2 bond 1 hybrid 2 2 1 kspace 3
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Choose the style of time integrator used for molecular dynamics
+simulations performed by LAMMPS.</p>
+<p>The <em>verlet</em> style is a standard velocity-Verlet integrator.</p>
+<hr class="docutils" />
+<p>The <em>verlet/split</em> style is also a velocity-Verlet integrator, but it
 splits the force calculation within each timestep over 2 partitions of
-processors.  See <A HREF = "Section_start.html#start_7">Section_start 6</A> for an
-explanation of the -partition command-line switch.
-</P>
-<P>Specifically, this style performs all computation except the
-<A HREF = "kspace_style.html">kspace_style</A> portion of the force field on the 1st
-partition.  This include the <A HREF = "pair_style.html">pair style</A>, <A HREF = "bond_style.html">bond
-style</A>, <A HREF = "neighbor.html">neighbor list building</A>,
-<A HREF = "fix.html">fixes</A> including time intergration, and output.  The
-<A HREF = "kspace_style.html">kspace_style</A> portion of the calculation is
-performed on the 2nd partition.
-</P>
-<P>This is most useful for the PPPM kspace_style when its performance on
+processors.  See <a class="reference internal" href="Section_start.html#start-7"><span>Section_start 6</span></a> for an
+explanation of the -partition command-line switch.</p>
+<p>Specifically, this style performs all computation except the
+<a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> portion of the force field on the 1st
+partition.  This include the <a class="reference internal" href="pair_style.html"><em>pair style</em></a>, <a class="reference internal" href="bond_style.html"><em>bond style</em></a>, <a class="reference internal" href="neighbor.html"><em>neighbor list building</em></a>,
+<a class="reference internal" href="fix.html"><em>fixes</em></a> including time intergration, and output.  The
+<a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> portion of the calculation is
+performed on the 2nd partition.</p>
+<p>This is most useful for the PPPM kspace_style when its performance on
 a large number of processors degrades due to the cost of communication
 in its 3d FFTs.  In this scenario, splitting your P total processors
 into 2 subsets of processors, P1 in the 1st partition and P2 in the
 2nd partition, can enable your simulation to run faster.  This is
 because the long-range forces in PPPM can be calculated at the same
 time as pair-wise and bonded forces are being calculated, and the FFTs
-can actually speed up when running on fewer processors.
-</P>
-<P>To use this style, you must define 2 partitions where P1 is a multiple
+can actually speed up when running on fewer processors.</p>
+<p>To use this style, you must define 2 partitions where P1 is a multiple
 of P2.  Typically having P1 be 3x larger than P2 is a good choice.
 The 3d processor layouts in each partition must overlay in the
 following sense.  If P1 is a Px1 by Py1 by Pz1 grid, and P2 = Px2 by
 Py2 by Pz2, then Px1 must be an integer multiple of Px2, and similarly
-for Py1 a multiple of Py2, and Pz1 a multiple of Pz2.
-</P>
-<P>Typically the best way to do this is to let the 1st partition choose
-its onn optimal layout, then require the 2nd partition's layout to
+for Py1 a multiple of Py2, and Pz1 a multiple of Pz2.</p>
+<p>Typically the best way to do this is to let the 1st partition choose
+its onn optimal layout, then require the 2nd partition&#8217;s layout to
 match the integer multiple constraint.  See the
-<A HREF = "processors.html">processors</A> command with its <I>part</I> keyword for a way
-to control this, e.g.
-</P>
-<PRE>procssors * * * part 1 2 multiple 
-</PRE>
-<P>You can also use the <A HREF = "partition.html">partition</A> command to explicitly
+<a class="reference internal" href="processors.html"><em>processors</em></a> command with its <em>part</em> keyword for a way
+to control this, e.g.</p>
+<div class="highlight-python"><div class="highlight"><pre>procssors * * * part 1 2 multiple
+</pre></div>
+</div>
+<p>You can also use the <a class="reference internal" href="partition.html"><em>partition</em></a> command to explicitly
 specity the processor layout on each partition.  E.g. for 2 partitions
-of 60 and 15 processors each:
-</P>
-<PRE>partition yes 1 processors 3 4 5
-partition yes 2 processors 3 1 5 
-</PRE>
-<P>When you run in 2-partition mode with the <I>verlet/split</I> style, the
+of 60 and 15 processors each:</p>
+<div class="highlight-python"><div class="highlight"><pre>partition yes 1 processors 3 4 5
+partition yes 2 processors 3 1 5
+</pre></div>
+</div>
+<p>When you run in 2-partition mode with the <em>verlet/split</em> style, the
 thermodyanmic data for the entire simulation will be output to the log
 and screen file of the 1st partition, which are log.lammps.0 and
-screen.0 by default; see the "-plog and -pscreen command-line
-switches"Section_start.html#start_7 to change this.  The log and
+screen.0 by default; see the &#8220;-plog and -pscreen command-line
+switches&#8221;Section_start.html#start_7 to change this.  The log and
 screen file for the 2nd partition will not contain thermodynamic
-output beyone the 1st timestep of the run.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-performance details of the speed-up offered by the <I>verlet/split</I>
+output beyone the 1st timestep of the run.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+performance details of the speed-up offered by the <em>verlet/split</em>
 style.  One important performance consideration is the assignemnt of
 logical processors in the 2 partitions to the physical cores of a
-parallel machine.  The <A HREF = "processors.html">processors</A> command has
+parallel machine.  The <a class="reference internal" href="processors.html"><em>processors</em></a> command has
 options to support this, and strategies are discussed in
-<A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.
-</P>
-<HR>
-
-<P>The <I>respa</I> style implements the rRESPA multi-timescale integrator
-<A HREF = "#Tuckerman">(Tuckerman)</A> with N hierarchical levels, where level 1 is
+<a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual.</p>
+<hr class="docutils" />
+<p>The <em>respa</em> style implements the rRESPA multi-timescale integrator
+<a class="reference internal" href="#tuckerman"><span>(Tuckerman)</span></a> with N hierarchical levels, where level 1 is
 the innermost loop (shortest timestep) and level N is the outermost
 loop (largest timestep).  The loop factor arguments specify what the
 looping factor is between levels.  N1 specifies the number of
 iterations of level 1 for a single iteration of level 2, N2 is the
 iterations of level 2 per iteration of level 3, etc.  N-1 looping
-parameters must be specified.
-</P>
-<P>The <A HREF = "timestep.html">timestep</A> command sets the timestep for the
+parameters must be specified.</p>
+<p>The <a class="reference internal" href="timestep.html"><em>timestep</em></a> command sets the timestep for the
 outermost rRESPA level.  Thus if the example command above for a
 4-level rRESPA had an outer timestep of 4.0 fmsec, the inner timestep
 would be 8x smaller or 0.5 fmsec.  All other LAMMPS commands that
-specify number of timesteps (e.g. <A HREF = "neigh_modify.html">neigh_modify</A>
-parameters, <A HREF = "dump.html">dump</A> every N timesteps, etc) refer to the
-outermost timesteps.
-</P>
-<P>The rRESPA keywords enable you to specify at what level of the
+specify number of timesteps (e.g. <a class="reference internal" href="neigh_modify.html"><em>neigh_modify</em></a>
+parameters, <a class="reference internal" href="dump.html"><em>dump</em></a> every N timesteps, etc) refer to the
+outermost timesteps.</p>
+<p>The rRESPA keywords enable you to specify at what level of the
 hierarchy various forces will be computed.  If not specified, the
 defaults are that bond forces are computed at level 1 (innermost
 loop), angle forces are computed where bond forces are, dihedral
 forces are computed where angle forces are, improper forces are
 computed where dihedral forces are, pair forces are computed at the
 outermost level, and kspace forces are computed where pair forces are.
-The inner, middle, outer forces have no defaults.
-</P>
-<P>The <I>inner</I> and <I>middle</I> keywords take additional arguments for
+The inner, middle, outer forces have no defaults.</p>
+<p>The <em>inner</em> and <em>middle</em> keywords take additional arguments for
 cutoffs that are used by the pairwise force computations.  If the 2
-cutoffs for <I>inner</I> are 5.0 and 6.0, this means that all pairs up to
+cutoffs for <em>inner</em> are 5.0 and 6.0, this means that all pairs up to
 6.0 apart are computed by the inner force.  Those between 5.0 and 6.0
 have their force go ramped to 0.0 so the overlap with the next regime
 (middle or outer) is smooth.  The next regime (middle or outer) will
 compute forces for all pairs from 5.0 outward, with those from 5.0 to
-6.0 having their value ramped in an inverse manner.
-</P>
-<P>Only some pair potentials support the use of the <I>inner</I> and <I>middle</I>
-and <I>outer</I> keywords.  If not, only the <I>pair</I> keyword can be used
+6.0 having their value ramped in an inverse manner.</p>
+<p>Only some pair potentials support the use of the <em>inner</em> and <em>middle</em>
+and <em>outer</em> keywords.  If not, only the <em>pair</em> keyword can be used
 with that pair style, meaning all pairwise forces are computed at the
 same rRESPA level.  See the doc pages for individual pair styles for
-details.i
-</P>
-<P>Another variant to use pair potentials in rRESPA is with the <I>hybrid</I>
-keyword, which requires the use of a <A HREF = "pair_hybrid.html">hybrid pair_style</A>
+details.i</p>
+<p>Another variant to use pair potentials in rRESPA is with the <em>hybrid</em>
+keyword, which requires the use of a <a class="reference internal" href="pair_hybrid.html"><em>hybrid pair_style</em></a>
 In this scenario, different sub-styles of the hybrid pair style are
 evaluated at different rRESPA levels. Thus the hybrid keyword requires
 as many level assignments as there are hybrid substyles which designate
 the respective sub-styles to the rRESPA level according to their order
-of definition in the pair_style command. Since the <I>hybrid</I> designates
-pair force computations, it is mututally exclusive with either the <I>pair</I>
-or the <I>inner</I>/<I>middle</I>/<I>outer</I> keywords.
-</P>
-<P>When using rRESPA (or for any MD simulation) care must be taken to
+of definition in the pair_style command. Since the <em>hybrid</em> designates
+pair force computations, it is mututally exclusive with either the <em>pair</em>
+or the <em>inner</em>/<em>middle</em>/<em>outer</em> keywords.</p>
+<p>When using rRESPA (or for any MD simulation) care must be taken to
 choose a timestep size(s) that insures the Hamiltonian for the chosen
 ensemble is conserved.  For the constant NVE ensemble, total energy
-must be conserved.  Unfortunately, it is difficult to know <I>a priori</I>
+must be conserved.  Unfortunately, it is difficult to know <em>a priori</em>
 how well energy will be conserved, and a fairly long test simulation
 (~10 ps) is usually necessary in order to verify that no long-term
-drift in energy occurs with the trial set of parameters.
-</P>
-<P>With that caveat, a few rules-of-thumb may be useful in selecting
-<I>respa</I> settings.  The following applies mostly to biomolecular
+drift in energy occurs with the trial set of parameters.</p>
+<p>With that caveat, a few rules-of-thumb may be useful in selecting
+<em>respa</em> settings.  The following applies mostly to biomolecular
 simulations using the CHARMM or a similar all-atom force field, but
 the concepts are adaptable to other problems.  Without SHAKE, bonds
 involving hydrogen atoms exhibit high-frequency vibrations and require
@@ -205,19 +306,18 @@ impropers, and dihedrals can be computed on this innermost 0.5 fmsec
 step.  The outermost timestep cannot be greater than 4.0 fmsec without
 risking energy drift.  Smooth switching of forces between the levels
 of the rRESPA hierarchy is also necessary to avoid drift, and a 1-2
-angstrom "healing distance" (the distance between the outer and inner
+angstrom &#8220;healing distance&#8221; (the distance between the outer and inner
 cutoffs) works reasonably well.  We thus recommend the following
-settings for use of the <I>respa</I> style without SHAKE in biomolecular
-simulations:
-</P>
-<PRE>timestep  4.0
-run_style respa 4 2 2 2 inner 2 4.5 6.0 middle 3 8.0 10.0 outer 4 
-</PRE>
-<P>With these settings, users can expect good energy conservation and
-roughly a 2.5 fold speedup over the <I>verlet</I> style with a 0.5 fmsec
-timestep.
-</P>
-<P>If SHAKE is used with the <I>respa</I> style, time reversibility is lost,
+settings for use of the <em>respa</em> style without SHAKE in biomolecular
+simulations:</p>
+<div class="highlight-python"><div class="highlight"><pre>timestep  4.0
+run_style respa 4 2 2 2 inner 2 4.5 6.0 middle 3 8.0 10.0 outer 4
+</pre></div>
+</div>
+<p>With these settings, users can expect good energy conservation and
+roughly a 2.5 fold speedup over the <em>verlet</em> style with a 0.5 fmsec
+timestep.</p>
+<p>If SHAKE is used with the <em>respa</em> style, time reversibility is lost,
 but substantially longer time steps can be achieved.  For biomolecular
 simulations using the CHARMM or similar all-atom force field, bonds
 involving hydrogen atoms exhibit high frequency vibrations and require
@@ -227,72 +327,127 @@ the modes are coupled.  It is therefore desirable to use SHAKE with
 respa in order to freeze out these high frequency motions and increase
 the size of the time steps in the respa hierarchy.  The following
 settings can be used for biomolecular simulations with SHAKE and
-rRESPA:
-</P>
-<PRE>fix             2 all shake 0.000001 500 0 m 1.0 a 1
+rRESPA:</p>
+<div class="highlight-python"><div class="highlight"><pre>fix             2 all shake 0.000001 500 0 m 1.0 a 1
 timestep        4.0
-run_style	respa 2 2 inner 1 4.0 5.0 outer 2 
-</PRE>
-<P>With these settings, users can expect good energy conservation and
-roughly a 1.5 fold speedup over the <I>verlet</I> style with SHAKE and a
-2.0 fmsec timestep.
-</P>
-<P>For non-biomolecular simulations, the <I>respa</I> style can be
+run_style    respa 2 2 inner 1 4.0 5.0 outer 2
+</pre></div>
+</div>
+<p>With these settings, users can expect good energy conservation and
+roughly a 1.5 fold speedup over the <em>verlet</em> style with SHAKE and a
+2.0 fmsec timestep.</p>
+<p>For non-biomolecular simulations, the <em>respa</em> style can be
 advantageous if there is a clear separation of time scales - fast and
 slow modes in the simulation.  Even a LJ system can benefit from
 rRESPA if the interactions are divided by the inner, middle and outer
 keywords.  A 2-fold or more speedup can be obtained while maintaining
 good energy conservation.  In real units, for a pure LJ fluid at
 liquid density, with a sigma of 3.0 angstroms, and epsilon of 0.1
-Kcal/mol, the following settings seem to work well:
-</P>
-<PRE>timestep  36.0  
-run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3 
-</PRE>
-<HR>
-
-<P>The <I>respa/omp</I> styles is a variant of <I>respa</I> adapted for use with
-pair, bond, angle, dihedral, improper, or kspace styles with an <I>omp</I>
-suffix. It is functionally equivalent to <I>respa</I> but performs additional
-operations required for managing <I>omp</I> styles. For more on <I>omp</I> styles
-see the <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.
+Kcal/mol, the following settings seem to work well:</p>
+<div class="highlight-python"><div class="highlight"><pre>timestep  36.0
+run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>The <em>respa/omp</em> styles is a variant of <em>respa</em> adapted for use with
+pair, bond, angle, dihedral, improper, or kspace styles with an <em>omp</em>
+suffix. It is functionally equivalent to <em>respa</em> but performs additional
+operations required for managing <em>omp</em> styles. For more on <em>omp</em> styles
+see the <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual.
 Accelerated styles take the same arguments and should produce the same
-results, except for round-off and precision issues.
-</P>
-<P>You can specify <I>respa/omp</I> explicitly in your input script, or
-you can use the <A HREF = "Section_start.html#start_7">-suffix command-line switch</A>
-when you invoke LAMMPS, or you can use the <A HREF = "suffix.html">suffix</A>
-command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>The <I>verlet/split</I> style can only be used if LAMMPS was built with the
-REPLICA package. Correspondingly the <I>respa/omp</I> style is available only
-if the USER-OMP package was included. See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
-section for more info on packages.
-</P>
-<P>Whenever using rRESPA, the user should experiment with trade-offs in
+results, except for round-off and precision issues.</p>
+<p>You can specify <em>respa/omp</em> explicitly in your input script, or
+you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a>
+when you invoke LAMMPS, or you can use the <a class="reference internal" href="suffix.html"><em>suffix</em></a>
+command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>The <em>verlet/split</em> style can only be used if LAMMPS was built with the
+REPLICA package. Correspondingly the <em>respa/omp</em> style is available only
+if the USER-OMP package was included. See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a>
+section for more info on packages.</p>
+<p>Whenever using rRESPA, the user should experiment with trade-offs in
 speed and accuracy for their system, and verify that they are
-conserving energy to adequate precision.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "timestep.html">timestep</A>, <A HREF = "run.html">run</A>
-</P>
-<P><B>Default:</B>
-</P>
-<PRE>run_style verlet 
-</PRE>
-<HR>
+conserving energy to adequate precision.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="timestep.html"><em>timestep</em></a>, <a class="reference internal" href="run.html"><em>run</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>run_style verlet
+</pre></div>
+</div>
+<hr class="docutils" />
+<p id="tuckerman"><strong>(Tuckerman)</strong> Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
+(1992).</p>
+</div>
+</div>
 
-<A NAME = "Tuckerman"></A>
 
-<P><B>(Tuckerman)</B> Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
-(1992).
-</P>
-</HTML>
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

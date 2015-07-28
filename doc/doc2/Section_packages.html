@@ -1,0 +1,665 @@
+<HTML>
+<CENTER><A HREF = "Section_commands.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> -
+<A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_accelerate.html">Next
+Section</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>4. Packages 
+</H3>
+<P>This section gives a quick overview of the add-on packages that extend
+LAMMPS functionality.
+</P>
+4.1 <A HREF = "#pkg_1">Standard packages</A><BR>
+4.2 <A HREF = "#pkg_2">User packages</A> <BR>
+
+<P>LAMMPS includes many optional packages, which are groups of files that
+enable a specific set of features.  For example, force fields for
+molecular systems or granular systems are in packages.  You can see
+the list of all packages by typing "make package" from within the src
+directory of the LAMMPS distribution.
+</P>
+<P>See <A HREF = "Section_start.html#start_3">Section_start 3</A> of the manual for
+details on how to include/exclude specific packages as part of the
+LAMMPS build process, and for more details about the differences
+between standard packages and user packages in LAMMPS.
+</P>
+<P>Below, the packages currently availabe in LAMMPS are listed.  For
+standard packages, just a one-line description is given.  For user
+packages, more details are provided.
+</P>
+<HR>
+
+<HR>
+
+<H4><A NAME = "pkg_1"></A>4.1 Standard packages 
+</H4>
+<P>The current list of standard packages is as follows:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD >Package</TD><TD > Description</TD><TD > Author(s)</TD><TD > Doc page</TD><TD > Example</TD><TD > Library</TD></TR>
+<TR ALIGN="center"><TD >ASPHERE</TD><TD > aspherical particles</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_14">Section_howto 6.14</A></TD><TD > ellipse</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >BODY</TD><TD > body-style particles</TD><TD > -</TD><TD > <A HREF = "body.html">body</A></TD><TD > body</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >CLASS2</TD><TD > class 2 force fields</TD><TD > -</TD><TD > <A HREF = "pair_class2.html">pair_style lj/class2</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >COLLOID</TD><TD > colloidal particles</TD><TD > -</TD><TD > <A HREF = "atom_style.html">atom_style colloid</A></TD><TD > colloid</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >CORESHELL</TD><TD > adiabatic core/shell model</TD><TD > Hendrik Heenen (Technical U of Munich)</TD><TD > <A HREF = "Section_howto.html#howto_25">Section_howto 6.25</A></TD><TD > coreshell</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >DIPOLE</TD><TD > point dipole particles</TD><TD > -</TD><TD > <A HREF = "pair_dipole.html">pair_style dipole/cut</A></TD><TD > dipole</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >FLD</TD><TD > Fast Lubrication Dynamics</TD><TD > Kumar & Bybee & Higdon (1)</TD><TD > <A HREF = "pair_lubricateU.html">pair_style lubricateU</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >GPU</TD><TD > GPU-enabled styles</TD><TD > Mike Brown (ORNL)</TD><TD > <A HREF = "accelerate_gpu.html">Section accelerate</A></TD><TD > gpu</TD><TD > lib/gpu</TD></TR>
+<TR ALIGN="center"><TD >GRANULAR</TD><TD > granular systems</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_6">Section_howto 6.6</A></TD><TD > pour</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >KIM</TD><TD > openKIM potentials</TD><TD > Smirichinski & Elliot & Tadmor (3)</TD><TD > <A HREF = "pair_kim.html">pair_style kim</A></TD><TD > kim</TD><TD > KIM</TD></TR>
+<TR ALIGN="center"><TD >KOKKOS</TD><TD > Kokkos-enabled styles</TD><TD > Trott & Edwards (4)</TD><TD > <A HREF = "accelerate_kokkos.html">Section_accelerate</A></TD><TD > kokkos</TD><TD > lib/kokkos</TD></TR>
+<TR ALIGN="center"><TD >KSPACE</TD><TD > long-range Coulombic solvers</TD><TD > -</TD><TD > <A HREF = "kspace_style.html">kspace_style</A></TD><TD > peptide</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >MANYBODY</TD><TD > many-body potentials</TD><TD > -</TD><TD > <A HREF = "pair_tersoff.html">pair_style tersoff</A></TD><TD > shear</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >MEAM</TD><TD > modified EAM potential</TD><TD > Greg Wagner (Sandia)</TD><TD > <A HREF = "pair_meam.html">pair_style meam</A></TD><TD > meam</TD><TD > lib/meam</TD></TR>
+<TR ALIGN="center"><TD >MC</TD><TD > Monte Carlo options</TD><TD > -</TD><TD > <A HREF = "fix_gcmc.html">fix gcmc</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >MOLECULE</TD><TD > molecular system force fields</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_3">Section_howto 6.3</A></TD><TD > peptide</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >OPT</TD><TD > optimized pair styles</TD><TD > Fischer & Richie & Natoli (2)</TD><TD > <A HREF = "accelerate_opt.html">Section accelerate</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >PERI</TD><TD > Peridynamics models</TD><TD > Mike Parks (Sandia)</TD><TD > <A HREF = "pair_peri.html">pair_style peri</A></TD><TD > peri</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >POEMS</TD><TD > coupled rigid body motion</TD><TD > Rudra Mukherjee (JPL)</TD><TD > <A HREF = "fix_poems.html">fix poems</A></TD><TD > rigid</TD><TD > lib/poems</TD></TR>
+<TR ALIGN="center"><TD >PYTHON</TD><TD > embed Python code in an input script</TD><TD > -</TD><TD > <A HREF = "python.html">python</A></TD><TD > python</TD><TD > lib/python</TD></TR>
+<TR ALIGN="center"><TD >REAX</TD><TD > ReaxFF potential</TD><TD > Aidan Thompson (Sandia)</TD><TD > <A HREF = "pair_reax.html">pair_style reax</A></TD><TD > reax</TD><TD >  lib/reax</TD></TR>
+<TR ALIGN="center"><TD >REPLICA</TD><TD > multi-replica methods</TD><TD > -</TD><TD > <A HREF = "Section_howto.html#howto_5">Section_howto 6.5</A></TD><TD > tad</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >RIGID</TD><TD > rigid bodies</TD><TD > -</TD><TD > <A HREF = "fix_rigid.html">fix rigid</A></TD><TD > rigid</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >SHOCK</TD><TD > shock loading methods</TD><TD > -</TD><TD > <A HREF = "fix_msst.html">fix msst</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >SNAP</TD><TD > quantum-fit potential</TD><TD > Aidan Thompson (Sandia)</TD><TD > <A HREF = "pair_snap.html">pair snap</A></TD><TD > snap</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >SRD</TD><TD > stochastic rotation dynamics</TD><TD > -</TD><TD > <A HREF = "fix_srd.html">fix srd</A></TD><TD > srd</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >VORONOI</TD><TD > Voronoi tesselations</TD><TD > Daniel Schwen (LANL)</TD><TD > <A HREF = "compute_voronoi_atom.html">compute voronoi/atom</A></TD><TD > -</TD><TD > Voro++</TD></TR>
+<TR ALIGN="center"><TD >XTC</TD><TD > dumps in XTC format</TD><TD > -</TD><TD > <A HREF = "dump.html">dump</A></TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >
+</TD></TR></TABLE></DIV>
+
+<P>The "Authors" column lists a name(s) if a specific person is
+responible for creating and maintaining the package.
+</P>
+<P>(1) The FLD package was created by Amit Kumar and Michael Bybee from
+Jonathan Higdon's group at UIUC.
+</P>
+<P>(2) The OPT package was created by James Fischer (High Performance
+Technologies), David Richie, and Vincent Natoli (Stone Ridge
+Technolgy).
+</P>
+<P>(3) The KIM package was created by Valeriu Smirichinski, Ryan Elliott,
+and Ellad Tadmor (U Minn).
+</P>
+<P>(4) The KOKKOS package was created primarily by Christian Trott
+(Sandia).  It uses the Kokkos library which was developed by Carter
+Edwards, Christian, and collaborators at Sandia.
+</P>
+<P>The "Doc page" column links to either a portion of the
+<A HREF = "Section_howto.html">Section_howto</A> of the manual, or an input script
+command implemented as part of the package.
+</P>
+<P>The "Example" column is a sub-directory in the examples directory of
+the distribution which has an input script that uses the package.
+E.g. "peptide" refers to the examples/peptide directory.
+</P>
+<P>The "Library" column lists an external library which must be built
+first and which LAMMPS links to when it is built.  If it is listed as
+lib/package, then the code for the library is under the lib directory
+of the LAMMPS distribution.  See the lib/package/README file for info
+on how to build the library.  If it is not listed as lib/package, then
+it is a third-party library not included in the LAMMPS distribution.
+See the src/package/README or src/package/Makefile.lammps file for
+info on where to download the library.  <A HREF = "Section_start.html#start_3_3">Section
+start</A> of the manual also gives details
+on how to build LAMMPS with both kinds of auxiliary libraries.
+</P>
+<HR>
+
+<HR>
+
+<H4><A NAME = "pkg_2"></A>4.2 User packages 
+</H4>
+<P>The current list of user-contributed packages is as follows:
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR ALIGN="center"><TD >Package</TD><TD > Description</TD><TD > Author(s)</TD><TD > Doc page</TD><TD > Example</TD><TD > Pic/movie</TD><TD > Library</TD></TR>
+<TR ALIGN="center"><TD >USER-ATC</TD><TD > atom-to-continuum coupling</TD><TD > Jones & Templeton & Zimmerman (1)</TD><TD > <A HREF = "fix_atc.html">fix atc</A></TD><TD > USER/atc</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#atc">atc</A></TD><TD > lib/atc</TD></TR>
+<TR ALIGN="center"><TD >USER-AWPMD</TD><TD > wave-packet MD</TD><TD > Ilya Valuev (JIHT)</TD><TD > <A HREF = "pair_awpmd.html">pair_style awpmd/cut</A></TD><TD > USER/awpmd</TD><TD > -</TD><TD > lib/awpmd</TD></TR>
+<TR ALIGN="center"><TD >USER-CG-CMM</TD><TD > coarse-graining model</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "pair_sdk.html">pair_style lj/sdk</A></TD><TD > USER/cg-cmm</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#cg">cg</A></TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-COLVARS</TD><TD > collective variables</TD><TD > Fiorin & Henin & Kohlmeyer (2)</TD><TD > <A HREF = "fix_colvars.html">fix colvars</A></TD><TD > USER/colvars</TD><TD > <A HREF = "colvars">colvars</A></TD><TD > lib/colvars</TD></TR>
+<TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "accelerate_cuda.html">Section accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
+<TR ALIGN="center"><TD >USER-DIFFRACTION</TD><TD > virutal x-ray and electron diffraction</TD><TD > Shawn Coleman (ARL)</TD><TD ><A HREF = "compute_xrd.html">compute xrd</A></TD><TD > USER/diffraction</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-DRUDE</TD><TD > Drude oscillators</TD><TD > Dequidt & Devemy & Padua (3)</TD><TD > <A HREF = "tutorial_drude.html">tutorial</A></TD><TD > USER/drude</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-FEP</TD><TD > free energy perturbation</TD><TD > Agilio Padua (U Blaise Pascal Clermont-Ferrand)</TD><TD > <A HREF = "compute_fep.html">compute fep</A></TD><TD > USER/fep</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-INTEL</TD><TD > Vectorized CPU and Intel(R) coprocessor styles</TD><TD > W. Michael Brown (Intel)</TD><TD > <A HREF = "accelerate_intel.html">Section accelerate</A></TD><TD > examples/intel</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-LB</TD><TD > Lattice Boltzmann fluid</TD><TD > Colin Denniston (U Western Ontario)</TD><TD > <A HREF = "fix_lb_fluid.html">fix lb/fluid</A></TD><TD > USER/lb</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-MISC</TD><TD > single-file contributions</TD><TD > USER-MISC/README</TD><TD > USER-MISC/README</TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-MOLFILE</TD><TD > <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> molfile plug-ins</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "dump_molfile.html">dump molfile</A></TD><TD > -</TD><TD > -</TD><TD > VMD-MOLFILE</TD></TR>
+<TR ALIGN="center"><TD >USER-OMP</TD><TD > OpenMP threaded styles</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "accelerate_omp.html">Section accelerate</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-PHONON</TD><TD > phonon dynamical matrix</TD><TD > Ling-Ti Kong (Shanghai Jiao Tong U)</TD><TD > <A HREF = "fix_phonon.html">fix phonon</A></TD><TD > USER/phonon</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-QMMM</TD><TD > QM/MM coupling</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "fix_qmmm.html">fix qmmm</A></TD><TD > USER/qmmm</TD><TD > -</TD><TD > lib/qmmm</TD></TR>
+<TR ALIGN="center"><TD >USER-QTB</TD><TD > quantum nuclear effects</TD><TD > Yuan Shen (Stanford)</TD><TD > <A HREF = "fix_qtb.html">fix qtb</A> <A HREF = "fix_qbmsst.html">fix_qbmsst</A></TD><TD > qtb</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-QUIP</TD><TD > QUIP/libatoms interface</TD><TD > Albert Bartok-Partay (U Cambridge)</TD><TD > <A HREF = "pair_quip.html">pair_style quip</A></TD><TD > USER/quip</TD><TD > -</TD><TD > lib/quip</TD></TR>
+<TR ALIGN="center"><TD >USER-REAXC</TD><TD > C version of ReaxFF</TD><TD > Metin Aktulga (LBNL)</TD><TD > <A HREF = "pair_reax_c.html">pair_style reaxc</A></TD><TD > reax</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-SPH</TD><TD > smoothed particle hydrodynamics</TD><TD > Georg Ganzenmuller (EMI)</TD><TD > <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">userguide.pdf</A></TD><TD > USER/sph</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#sph">sph</A></TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >
+</TD></TR></TABLE></DIV>
+
+
+
+
+
+
+
+
+
+
+
+<P>The "Authors" column lists a name(s) if a specific person is
+responible for creating and maintaining the package.
+</P>
+<P>If the Library is not listed as lib/package, then it is a third-party
+library not included in the LAMMPS distribution.  See the
+src/package/Makefile.lammps file for info on where to download the
+library from.
+</P>
+<P>(2) The ATC package was created by Reese Jones, Jeremy Templeton, and
+Jon Zimmerman (Sandia).
+</P>
+<P>(2) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
+the colvars module library written by Giacomo Fiorin (Temple U) and
+Jerome Henin (LISM, Marseille, France).
+</P>
+<P>(3) The DRUDE package was created by Alain Dequidt (U Blaise Pascal
+Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
+(U Blaise Pascal).
+</P>
+<P>The "Doc page" column links to either a portion of the
+<A HREF = "Section_howto.html">Section_howto</A> of the manual, or an input script
+command implemented as part of the package, or to additional
+documentation provided witht he package.
+</P>
+<P>The "Example" column is a sub-directory in the examples directory of
+the distribution which has an input script that uses the package.
+E.g. "peptide" refers to the examples/peptide directory.  USER/cuda
+refers to the examples/USER/cuda directory.
+</P>
+<P>The "Library" column lists an external library which must be built
+first and which LAMMPS links to when it is built.  If it is listed as
+lib/package, then the code for the library is under the lib directory
+of the LAMMPS distribution.  See the lib/package/README file for info
+on how to build the library.  If it is not listed as lib/package, then
+it is a third-party library not included in the LAMMPS distribution.
+See the src/package/Makefile.lammps file for info on where to download
+the library.  <A HREF = "Section_start.html#start_3_3">Section start</A> of the
+manual also gives details on how to build LAMMPS with both kinds of
+auxiliary libraries.
+</P>
+<P>More details on each package, from the USER-*/README file is given
+below.
+</P>
+<HR>
+
+<H4>USER-ATC package 
+</H4>
+<P>This package implements a "fix atc" command which can be used in a
+LAMMPS input script.  This fix can be employed to either do concurrent
+coupling of MD with FE-based physics surrogates or on-the-fly
+post-processing of atomic information to continuum fields.
+</P>
+<P>See the doc page for the fix atc command to get started.  At the
+bottom of the doc page are many links to additional documentation
+contained in the doc/USER/atc directory.
+</P>
+<P>There are example scripts for using this package in examples/USER/atc.
+</P>
+<P>This package uses an external library in lib/atc which must be
+compiled before making LAMMPS.  See the lib/atc/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.
+</P>
+<P>The primary people who created this package are Reese Jones (rjones at
+sandia.gov), Jeremy Templeton (jatempl at sandia.gov) and Jon
+Zimmerman (jzimmer at sandia.gov) at Sandia.  Contact them directly if
+you have questions.
+</P>
+<HR>
+
+<H4>USER-AWPMD package 
+</H4>
+<P>This package contains a LAMMPS implementation of the Antisymmetrized
+Wave Packet Molecular Dynamics (AWPMD) method.
+</P>
+<P>See the doc page for the pair_style awpmd/cut command to get started.
+</P>
+<P>There are example scripts for using this package in examples/USER/awpmd.
+</P>
+<P>This package uses an external library in lib/awpmd which must be
+compiled before making LAMMPS.  See the lib/awpmd/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.
+</P>
+<P>The person who created this package is Ilya Valuev at the JIHT in
+Russia (valuev at physik.hu-berlin.de).  Contact him directly if you
+have questions.
+</P>
+<HR>
+
+<H4>USER-CG-CMM package 
+</H4>
+<P>This package implements 3 commands which can be used in a LAMMPS input
+script:
+</P>
+<UL><LI>pair_style lj/sdk
+<LI>pair_style lj/sdk/coul/long
+<LI>angle_style sdk 
+</UL>
+<P>These styles allow coarse grained MD simulations with the
+parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007)
+(SDK), with extensions to simulate ionic liquids, electrolytes, lipids
+and charged amino acids.
+</P>
+<P>See the doc pages for these commands for details.
+</P>
+<P>There are example scripts for using this package in
+examples/USER/cg-cmm.
+</P>
+<P>This is the second generation implementation reducing the the clutter
+of the previous version. For many systems with electrostatics, it will
+be faster to use pair_style hybrid/overlay with lj/sdk and coul/long
+instead of the combined lj/sdk/coul/long style.  since the number of
+charged atom types is usually small.  For any other coulomb
+interactions this is now required.  To exploit this property, the use
+of the kspace_style pppm/cg is recommended over regular pppm. For all
+new styles, input file backward compatibility is provided.  The old
+implementation is still available through appending the /old
+suffix. These will be discontinued and removed after the new
+implementation has been fully validated.
+</P>
+<P>The current version of this package should be considered beta
+quality. The CG potentials work correctly for "normal" situations, but
+have not been testing with all kinds of potential parameters and
+simulation systems.
+</P>
+<P>The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-COLVARS package 
+</H4>
+<P>This package implements the "fix colvars" command which can be
+used in a LAMMPS input script.
+</P>
+<P>This fix allows to use "collective variables" to implement
+Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
+Sampling and Restraints. This code consists of two parts:
+</P>
+<UL><LI>A portable collective variable module library written and maintained
+<LI>by Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and
+<LI>Jerome Henin (LISM, CNRS, Marseille, France). This code is located in
+<LI>the directory lib/colvars and needs to be compiled first.  The colvars
+<LI>fix and an interface layer, exchanges information between LAMMPS and
+<LI>the collective variable module. 
+</UL>
+<P>See the doc page of <A HREF = "fix_colvars.html">fix colvars</A> for more details.
+</P>
+<P>There are example scripts for using this package in
+examples/USER/colvars
+</P>
+<P>This is a very new interface that does not yet support all
+features in the module and will see future optimizations
+and improvements. The colvars module library is also available
+in NAMD has been thoroughly used and tested there. Bugs and
+problems are likely due to the interface layers code.
+Thus the current version of this package should be considered
+beta quality.
+</P>
+<P>The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-CUDA package 
+</H4>
+<P>This package provides acceleration of various LAMMPS pair styles, fix
+styles, compute styles, and long-range Coulombics via PPPM for NVIDIA
+GPUs.
+</P>
+<P>See this section of the manual to get started:
+</P>
+<P><A HREF = "Section_accelerate.html#acc_7">Section_accelerate</A>
+</P>
+<P>There are example scripts for using this package in
+examples/USER/cuda.
+</P>
+<P>This package uses an external library in lib/cuda which must be
+compiled before making LAMMPS.  See the lib/cuda/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.
+</P>
+<P>The person who created this package is Christian Trott at the
+University of Technology Ilmenau, Germany (christian.trott at
+tu-ilmenau.de).  Contact him directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-DIFFRACTION package 
+</H4>
+<P>This package contains the commands neeed to calculate x-ray and
+electron diffraction intensities based on kinematic diffraction 
+theory.
+</P>
+<P>See these doc pages and their related commands to get started:
+</P>
+<UL><LI><A HREF = "compute_xrd.html">compute xrd</A>
+<LI><A HREF = "compute_saed.html">compute saed</A>
+<LI><A HREF = "fix_saed_vtk.html">fix saed/vtk</A> 
+</UL>
+<P>The person who created this package is Shawn P. Coleman 
+(shawn.p.coleman8.ctr at mail.mil) while at the University of 
+Arkansas.  Contact him directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-DRUDE package 
+</H4>
+<P>This package implements methods for simulating polarizable systems
+in LAMMPS using thermalized Drude oscillators.
+</P>
+<P>See these doc pages and their related commands to get started:
+</P>
+<UL><LI><A HREF = "tutorial_drude.html">Drude tutorial</A>
+<LI><A HREF = "fix_drude.html">fix drude</A>
+<LI><A HREF = "compute_temp_drude.html">compute temp/drude</A>
+<LI><A HREF = "fix_langevin_drude.html">fix langevin/drude</A>
+<LI><A HREF = "fix_drude_transform.html">fix drude/transform/...</A>
+<LI><A HREF = "pair_thole.html">pair thole</A> 
+</UL>
+<P>There are auxiliary tools for using this package in tools/drude.
+</P>
+<P>The person who created this package is Alain Dequidt at Universite
+Blaise Pascal Clermont-Ferrand (alain.dequidt at univ-bpclermont.fr)
+Contact him directly if you have questions. Co-authors: Julien Devemy,
+Agilio Padua.
+</P>
+<HR>
+
+<H4>USER-EFF package 
+</H4>
+<P>This package contains a LAMMPS implementation of the electron Force
+Field (eFF) currently under development at Caltech, as described in
+A. Jaramillo-Botero, J. Su, Q. An, and W.A. Goddard III, JCC,
+2010. The eFF potential was first introduced by Su and Goddard, in
+2007.
+</P>
+<P>eFF can be viewed as an approximation to QM wave packet dynamics and
+Fermionic molecular dynamics, combining the ability of electronic
+structure methods to describe atomic structure, bonding, and chemistry
+in materials, and of plasma methods to describe nonequilibrium
+dynamics of large systems with a large number of highly excited
+electrons. We classify it as a mixed QM-classical approach rather than
+a conventional force field method, which introduces QM-based terms (a
+spin-dependent repulsion term to account for the Pauli exclusion
+principle and the electron wavefunction kinetic energy associated with
+the Heisenberg principle) that reduce, along with classical
+electrostatic terms between nuclei and electrons, to the sum of a set
+of effective pairwise potentials.  This makes eFF uniquely suited to
+simulate materials over a wide range of temperatures and pressures
+where electronically excited and ionized states of matter can occur
+and coexist.
+</P>
+<P>The necessary customizations to the LAMMPS core are in place to
+enable the correct handling of explicit electron properties during
+minimization and dynamics.
+</P>
+<P>See the doc page for the pair_style eff/cut command to get started.
+</P>
+<P>There are example scripts for using this package in
+examples/USER/eff.
+</P>
+<P>There are auxiliary tools for using this package in tools/eff.
+</P>
+<P>The person who created this package is Andres Jaramillo-Botero at
+CalTech (ajaramil at wag.caltech.edu).  Contact him directly if you
+have questions.
+</P>
+<HR>
+
+<H4>USER-FEP package 
+</H4>
+<P>This package provides methods for performing free energy perturbation
+simulations with soft-core pair potentials in LAMMPS.
+</P>
+<P>See these doc pages and their related commands to get started:
+</P>
+<UL><LI><A HREF = "fix_adapt_fep.html">fix adapt/fep</A>
+<LI><A HREF = "compute_fep.html">compute fep</A>
+<LI><A HREF = "pair_lj_soft.html">soft pair styles</A> 
+</UL>
+<P>The person who created this package is Agilio Padua at Universite
+Blaise Pascal Clermont-Ferrand (agilio.padua at univ-bpclermont.fr)
+Contact him directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-INTEL package 
+</H4>
+<P>This package provides options for performing neighbor list and
+non-bonded force calculations in single, mixed, or double precision
+and also a capability for accelerating calculations with an
+Intel(R) Xeon Phi(TM) coprocessor.
+</P>
+<P>See this section of the manual to get started:
+</P>
+<P><A HREF = "Section_accelerate.html#acc_9">Section_accelerate</A>
+</P>
+<P>The person who created this package is W. Michael Brown at Intel
+(michael.w.brown at intel.com).  Contact him directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-LB package 
+</H4>
+<P>This package contains a LAMMPS implementation of a background
+Lattice-Boltzmann fluid, which can be used to model MD particles
+influenced by hydrodynamic forces.
+</P>
+<P>See this doc page and its related commands to get started:
+</P>
+<P><A HREF = "fix_lb_fluid.html">fix lb/fluid</A>
+</P>
+<P>The people who created this package are Frances Mackay (fmackay at
+uwo.ca) and Colin (cdennist at uwo.ca) Denniston, University of
+Western Ontario.  Contact them directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-MISC package 
+</H4>
+<P>The files in this package are a potpourri of (mostly) unrelated
+features contributed to LAMMPS by users.  Each feature is a single
+pair of files (*.cpp and *.h).
+</P>
+<P>More information about each feature can be found by reading its doc
+page in the LAMMPS doc directory.  The doc page which lists all LAMMPS
+input script commands is as follows:
+</P>
+<P><A HREF = "Section_commands.html#cmd_5">Section_commands</A>
+</P>
+<P>User-contributed features are listed at the bottom of the fix,
+compute, pair, etc sections.
+</P>
+<P>The list of features and author of each is given in the
+src/USER-MISC/README file.
+</P>
+<P>You should contact the author directly if you have specific questions
+about the feature or its coding.
+</P>
+<HR>
+
+<H4>USER-MOLFILE package 
+</H4>
+<P>This package contains a dump molfile command which uses molfile
+plugins that are bundled with the
+<A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD</A> molecular visualization and
+analysis program, to enable LAMMPS to dump its information in formats
+compatible with various molecular simulation tools.
+</P>
+<P>The package only provides the interface code, not the plugins.  These
+can be obtained from a VMD installation which has to match the
+platform that you are using to compile LAMMPS for. By adding plugins
+to VMD, support for new file formats can be added to LAMMPS (or VMD or
+other programs that use them) without having to recompile the
+application itself.
+</P>
+<P>See this doc page to get started:
+</P>
+<P><A HREF = "dump_molfile.html#acc_5">dump molfile</A>
+</P>
+<P>The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-OMP package 
+</H4>
+<P>This package provides OpenMP multi-threading support and
+other optimizations of various LAMMPS pair styles, dihedral
+styles, and fix styles.
+</P>
+<P>See this section of the manual to get started:
+</P>
+<P><A HREF = "Section_accelerate.html#acc_5">Section_accelerate</A>
+</P>
+<P>The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-PHONON package 
+</H4>
+<P>This package contains a fix phonon command that calculates dynamical
+matrices, which can then be used to compute phonon dispersion
+relations, directly from molecular dynamics simulations.
+</P>
+<P>See this doc page to get started:
+</P>
+<P><A HREF = "fix_phonon.html">fix phonon</A>
+</P>
+<P>The person who created this package is Ling-Ti Kong (konglt at
+sjtu.edu.cn) at Shanghai Jiao Tong University.  Contact him directly
+if you have questions.
+</P>
+<HR>
+
+<H4>USER-QMMM package 
+</H4>
+<P>This package provides a fix qmmm command which allows LAMMPS to be
+used in a QM/MM simulation, currently only in combination with pw.x
+code from the <A HREF = "http://www.quantum-espresso.org">Quantum ESPRESSO</A> package.
+</P>
+
+
+<P>The current implementation only supports an ONIOM style mechanical
+coupling to the Quantum ESPRESSO plane wave DFT package.
+Electrostatic coupling is in preparation and the interface has been
+written in a manner that coupling to other QM codes should be possible
+without changes to LAMMPS itself.
+</P>
+<P>See this doc page to get started:
+</P>
+<P><A HREF = "fix_qmmm.html">fix qmmm</A>
+</P>
+<P>as well as the lib/qmmm/README file.
+</P>
+<P>The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-QTB package 
+</H4>
+<P>This package provides a self-consistent quantum treatment of the
+vibrational modes in a classical molecular dynamics simulation.  By
+coupling the MD simulation to a colored thermostat, it introduces zero
+point energy into the system, alter the energy power spectrum and the
+heat capacity towards their quantum nature. This package could be of
+interest if one wants to model systems at temperatures lower than
+their classical limits or when temperatures ramp up across the
+classical limits in the simulation.
+</P>
+<P>See these two doc pages to get started:
+</P>
+<P><A HREF = "fix_qtb.html">fix qtb</A> provides quantum nulcear correction through a
+colored thermostat and can be used with other time integration schemes
+like <A HREF = "fix_nve.html">fix nve</A> or <A HREF = "fix_nh.html">fix nph</A>.
+</P>
+<P><A HREF = "fix_qbmsst.html">fix qbmsst</A> enables quantum nuclear correction of a
+multi-scale shock technique simulation by coupling the quantum thermal
+bath with the shocked system.
+</P>
+<P>The person who created this package is Yuan Shen (sy0302 at
+stanford.edu) at Stanford University.  Contact him directly if you
+have questions.
+</P>
+<HR>
+
+<H4>USER-REAXC package 
+</H4>
+<P>This package contains a implementation for LAMMPS of the ReaxFF force
+field.  ReaxFF uses distance-dependent bond-order functions to
+represent the contributions of chemical bonding to the potential
+energy.  It was originally developed by Adri van Duin and the Goddard
+group at CalTech.
+</P>
+<P>The USER-REAXC version of ReaxFF (pair_style reax/c), implemented in
+C, should give identical or very similar results to pair_style reax,
+which is a ReaxFF implementation on top of a Fortran library, a
+version of which library was originally authored by Adri van Duin.
+</P>
+<P>The reax/c version should be somewhat faster and more scalable,
+particularly with respect to the charge equilibration calculation.  It
+should also be easier to build and use since there are no complicating
+issues with Fortran memory allocation or linking to a Fortran library.
+</P>
+<P>For technical details about this implemention of ReaxFF, see
+this paper:
+</P>
+<P>Parallel and Scalable Reactive Molecular Dynamics: Numerical Methods
+and Algorithmic Techniques, H. M. Aktulga, J. C. Fogarty,
+S. A. Pandit, A. Y. Grama, Parallel Computing, in press (2011).
+</P>
+<P>See the doc page for the pair_style reax/c command for details
+of how to use it in LAMMPS.
+</P>
+<P>The person who created this package is Hasan Metin Aktulga (hmaktulga
+at lbl.gov), while at Purdue University.  Contact him directly, or
+Aidan Thompson at Sandia (athomps at sandia.gov), if you have
+questions.
+</P>
+<HR>
+
+<H4>USER-SPH package 
+</H4>
+<P>This package implements smoothed particle hydrodynamics (SPH) in
+LAMMPS.  Currently, the package has the following features:
+</P>
+<P>* Tait, ideal gas, Lennard-Jones equation of states, full support for 
+  complete (i.e. internal-energy dependent) equations of state
+* plain or Monaghans XSPH integration of the equations of motion
+* density continuity or density summation to propagate the density field
+* commands to set internal energy and density of particles from the 
+  input script
+* output commands to access internal energy and density for dumping and 
+  thermo output
+</P>
+<P>See the file doc/USER/sph/SPH_LAMMPS_userguide.pdf to get started.
+</P>
+<P>There are example scripts for using this package in examples/USER/sph.
+</P>
+<P>The person who created this package is Georg Ganzenmuller at the
+Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
+Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
+you have questions.
+</P>
+</HTML>

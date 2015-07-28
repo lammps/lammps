@@ -1,0 +1,146 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix poems 
+</H3>
+<P>Syntax:
+</P>
+<PRE>fix ID group-ID poems keyword values 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>poems = style name of this fix command 
+
+<LI>keyword = <I>group</I> or <I>file</I> or <I>molecule</I> 
+
+<PRE>  <I>group</I> values = list of group IDs
+  <I>molecule</I> values = none
+  <I>file</I> values = filename 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 3 fluid poems group clump1 clump2 clump3
+fix 3 fluid poems file cluster.list 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Treats one or more sets of atoms as coupled rigid bodies.  This means
+that each timestep the total force and torque on each rigid body is
+computed and the coordinates and velocities of the atoms are updated
+so that the collection of bodies move as a coupled set.  This can be
+useful for treating a large biomolecule as a collection of connected,
+coarse-grained particles.
+</P>
+<P>The coupling, associated motion constraints, and time integration is
+performed by the software package <A HREF = "http://www.rpi.edu/~anderk5/lab">Parallelizable Open source
+Efficient Multibody Software (POEMS)</A> which computes the
+constrained rigid-body motion of articulated (jointed) multibody
+systems <A HREF = "#Anderson">(Anderson)</A>.  POEMS was written and is distributed
+by Prof Kurt Anderson, his graduate student Rudranarayan Mukherjee,
+and other members of his group at Rensselaer Polytechnic Institute
+(RPI).  Rudranarayan developed the LAMMPS/POEMS interface.  For
+copyright information on POEMS and other details, please refer to the
+documents in the poems directory distributed with LAMMPS.
+</P>
+
+
+<P>This fix updates the positions and velocities of the rigid atoms with
+a constant-energy time integration, so you should not update the same
+atoms via other fixes (e.g. nve, nvt, npt, temp/rescale, langevin).
+</P>
+<P>Each body must have a non-degenerate inertia tensor, which means if
+must contain at least 3 non-collinear atoms.  Which atoms are in which
+bodies can be defined via several options.
+</P>
+<P>For option <I>group</I>, each of the listed groups is treated as a rigid
+body.  Note that only atoms that are also in the fix group are
+included in each rigid body.
+</P>
+<P>For option <I>molecule</I>, each set of atoms in the group with a different
+molecule ID is treated as a rigid body.
+</P>
+<P>For option <I>file</I>, sets of atoms are read from the specified file and
+each set is treated as a rigid body.  Each line of the file specifies
+a rigid body in the following format:
+</P>
+<P>ID type atom1-ID atom2-ID atom3-ID ...
+</P>
+<P>ID as an integer from 1 to M (the number of rigid bodies).  Type is
+any integer; it is not used by the fix poems command.  The remaining
+arguments are IDs of atoms in the rigid body, each typically from 1 to
+N (the number of atoms in the system).  Only atoms that are also in
+the fix group are included in each rigid body.  Blank lines and lines
+that begin with '#' are skipped.
+</P>
+<P>A connection between a pair of rigid bodies is inferred if one atom is
+common to both bodies.  The POEMS solver treats that atom as a
+spherical joint with 3 degrees of freedom.  Currently, a collection of
+bodies can only be connected by joints as a linear chain.  The entire
+collection of rigid bodies can represent one or more chains.  Other
+connection topologies (tree, ring) are not allowed, but will be added
+later.  Note that if no joints exist, it is more efficient to use the
+<A HREF = "fix_rigid.html">fix rigid</A> command to simulate the system.
+</P>
+<P>When the poems fix is defined, it will print out statistics on the
+total # of clusters, bodies, joints, atoms involved.  A cluster in
+this context means a set of rigid bodies connected by joints.
+</P>
+<P>For computational efficiency, you should turn off pairwise and bond
+interactions within each rigid body, as they no longer contribute to
+the motion.  The "neigh_modify exclude" and "delete_bonds" commands
+can be used to do this if each rigid body is a group.
+</P>
+<P>For computational efficiency, you should only define one fix poems
+which includes all the desired rigid bodies.  LAMMPS will allow
+multiple poems fixes to be defined, but it is more expensive.
+</P>
+<P>The degrees-of-freedom removed by coupled rigid bodies are accounted
+for in temperature and pressure computations.  Similarly, the rigid
+body contribution to the pressure virial is also accounted for.  The
+latter is only correct if forces within the bodies have been turned
+off, and there is only a single fix poems defined.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the POEMS package.  It is only enabled if LAMMPS
+was built with that package, which also requires the POEMS library be
+built and linked with LAMMPS.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_rigid.html">fix rigid</A>, <A HREF = "delete_bonds.html">delete_bonds</A>,
+<A HREF = "neigh_modify.html">neigh_modify</A> exclude
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Anderson"></A>
+
+<P><B>(Anderson)</B> Anderson, Mukherjee, Critchley, Ziegler, and Lipton
+"POEMS: Parallelizable Open-source Efficient Multibody Software ",
+Engineering With Computers (2006). (<A HREF = "http://dx.doi.org/10.1007/s00366-006-0026-x">link to
+paper</A>)
+</P>
+</HTML>

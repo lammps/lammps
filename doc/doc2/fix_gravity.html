@@ -1,0 +1,154 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix gravity command 
+</H3>
+<H3>fix gravity/cuda command 
+</H3>
+<H3>fix gravity/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group gravity magnitude style args 
+</PRE>
+<UL><LI>ID, group are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>gravity = style name of this fix command 
+
+<LI>magnitude = size of acceleration (force/mass units) 
+
+<LI>magnitude can be a variable (see below) 
+
+<LI>style = <I>chute</I> or <I>spherical</I> or <I>gradient</I> or <I>vector</I> 
+
+<PRE>  <I>chute</I> args = angle
+    angle = angle in +x away from -z or -y axis in 3d/2d (in degrees)
+    angle can be a variable (see below)
+  <I>spherical</I> args = phi theta
+    phi = azimuthal angle from +x axis (in degrees)
+    theta = angle from +z or +y axis in 3d/2d (in degrees)
+    phi or theta can be a variable (see below)
+  <I>vector</I> args = x y z
+    x y z = vector direction to apply the acceleration
+    x or y or z can be a variable (see below) 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all gravity 1.0 chute 24.0
+fix 1 all gravity v_increase chute 24.0
+fix 1 all gravity 1.0 spherical 0.0 -180.0
+fix 1 all gravity 10.0 spherical v_phi v_theta
+fix 1 all gravity 100.0 vector 1 1 0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Impose an additional acceleration on each particle in the group.  This
+fix is typically used with granular systems to include a "gravity"
+term acting on the macroscopic particles.  More generally, it can
+represent any kind of driving field, e.g. a pressure gradient inducing
+a Poiseuille flow in a fluid.  Note that this fix operates differently
+than the <A HREF = "fix_addforce.html">fix addforce</A> command.  The addforce fix
+adds the same force to each atom, independent of its mass.  This
+command imparts the same acceleration to each atom (force/mass).
+</P>
+<P>The <I>magnitude</I> of the acceleration is specified in force/mass units.
+For granular systems (LJ units) this is typically 1.0.  See the
+<A HREF = "units.html">units</A> command for details.
+</P>
+<P>Style <I>chute</I> is typically used for simulations of chute flow where
+the specified <I>angle</I> is the chute angle, with flow occurring in the +x
+direction.  For 3d systems, the tilt is away from the z axis; for 2d
+systems, the tilt is away from the y axis.
+</P>
+<P>Style <I>spherical</I> allows an arbitrary 3d direction to be specified for
+the acceleration vector.  <I>Phi</I> and <I>theta</I> are defined in the usual
+spherical coordinates.  Thus for acceleration acting in the -z
+direction, <I>theta</I> would be 180.0 (or -180.0).  <I>Theta</I> = 90.0 and
+<I>phi</I> = -90.0 would mean acceleration acts in the -y direction.  For
+2d systems, <I>phi</I> is ignored and <I>theta</I> is an angle in the xy plane
+where <I>theta</I> = 0.0 is the y-axis.
+</P>
+<P>Style <I>vector</I> imposes an acceleration in the vector direction given
+by (x,y,z).  Only the direction of the vector is important; it's
+length is ignored.  For 2d systems, the <I>z</I> component is ignored.
+</P>
+<P>Any of the quantities <I>magnitude</I>, <I>angle</I>, <I>phi</I>, <I>theta</I>, <I>x</I>, <I>y</I>,
+<I>z</I> which define the gravitational magnitude and direction, can be
+specified as an equal-style <A HREF = "variable.html">variable</A>.  If the value is
+a variable, it should be specified as v_name, where name is the
+variable name.  In this case, the variable will be evaluated each
+timestep, and its value used to determine the quantity.  You should
+insure that the variable calculates a result in the approriate units,
+e.g. force/mass or degrees.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent gravitational
+field.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the gravitational potential energy of the system to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.
+</P>
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  This scalar is the
+gravitational potential energy of the particles in the defined field,
+namely mass * (g dot x) for each particles, where x and mass are the
+particles position and mass, and g is the gravitational field.  The
+scalar value calculated by this fix is "extensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "atom_style.html">atom_style sphere</A>, <A HREF = "fix_addforce.html">fix addforce</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

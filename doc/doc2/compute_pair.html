@@ -1,0 +1,86 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute pair command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID pair pstyle evalue 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>pair = style name of this compute command
+<LI>pstyle = style name of a pair style that calculates additional values
+<LI>evalue = <I>epair</I> or <I>evdwl</I> or <I>ecoul</I> or blank (optional setting) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all pair gauss
+compute 1 all pair lj/cut/coul/cut ecoul
+compute 1 all pair reax 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that extracts additional values calculated by a
+pair style, sums them across processors, and makes them accessible for
+output or further processing by other commands.  The group specified
+for this command is ignored.
+</P>
+<P>The specified <I>pstyle</I> must be a pair style used in your simulation
+either by itself or as a sub-style in a <A HREF = "pair_hybrid.html">pair_style hybrid or
+hybrid/overlay</A> command.
+</P>
+<P>The <I>evalue</I> setting is optional; it may be left off the command.  All
+pair styles tally a potential energy <I>epair</I> which may be broken into
+two parts: <I>evdwl</I> and <I>ecoul</I> such that <I>epair</I> = <I>evdwl</I> + <I>ecoul</I>.
+If the pair style calculates Coulombic interactions, their energy will
+be tallied in <I>ecoul</I>.  Everything else (whether it is a Lennard-Jones
+style van der Waals interaction or not) is tallied in <I>evdwl</I>.  If
+<I>evalue</I> is specified as <I>epair</I> or left out, then <I>epair</I> is stored
+as a global scalar by this compute.  This is useful when using
+<A HREF = "pair_hybrid.html">pair_style hybrid</A> if you want to know the portion
+of the total energy contributed by one sub-style.  If <I>evalue</I> is
+specfied as <I>evdwl</I> or <I>ecoul</I>, then just that portion of the energy
+is stored as a global scalar.
+</P>
+<P>Some pair styles tally additional quantities, e.g. a breakdown of
+potential energy into a dozen or so components is tallied by the
+<A HREF = "pair_reax.html">pair_style reax</A> commmand.  These values (1 or more)
+are stored as a global vector by this compute.  See the doc page for
+<A HREF = "pair_style.html">individual pair styles</A> for info on these values.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar which is <I>epair</I> or <I>evdwl</I> or
+<I>ecoul</I>.  If the pair style supports it, it also calculates a global
+vector of length >= 1, as determined by the pair style.  These values
+can be used by any command that uses global scalar or vector values
+from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
+section</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The scalar and vector values calculated by this compute are
+"extensive".
+</P>
+<P>The scalar value will be in energy <A HREF = "units.html">units</A>.  The vector
+values will typically also be in energy <A HREF = "units.html">units</A>, but
+see the doc page for the pair style for details.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_pe.html">compute pe</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The default for <I>evalue</I> is <I>epair</I>.
+</P>
+</HTML>

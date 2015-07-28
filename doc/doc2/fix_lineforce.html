@@ -1,0 +1,56 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix lineforce command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID lineforce x y z 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>lineforce = style name of this fix command
+<LI>x y z = direction of line as a 3-vector 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix hold boundary lineforce 0.0 1.0 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Adjust the forces on each atom in the group so that only the component
+of force along the linear direction specified by the vector (x,y,z)
+remains.  This is done by subtracting out components of force in the
+plane perpendicular to the line.
+</P>
+<P>If the initial velocity of the atom is 0.0 (or along the line), then
+it should continue to move along the line thereafter.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+invoked by the <A HREF = "minimize.html">minimize</A> command.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_planeforce.html">fix planeforce</A>
+</P>
+<P><B>Default:</B> none 
+</P>
+</HTML>

@@ -1,0 +1,64 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute ke command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID ke 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>ke = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all ke 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the translational kinetic energy
+of a group of particles.
+</P>
+<P>The kinetic energy of each particle is computed as 1/2 m v^2, where m
+and v are the mass and velocity of the particle.
+</P>
+<P>There is a subtle difference between the quantity calculated by this
+compute and the kinetic energy calculated by the <I>ke</I> or <I>etotal</I>
+keyword used in thermodynamic output, as specified by the
+<A HREF = "thermo_style.html">thermo_style</A> command.  For this compute, kinetic
+energy is "translational" kinetic energy, calculated by the simple
+formula above.  For thermodynamic output, the <I>ke</I> keyword infers
+kinetic energy from the temperature of the system with 1/2 Kb T of
+energy for each degree of freedom.  For the default temperature
+computation via the <A HREF = "compute_temp.html">compute temp</A> command, these
+are the same.  But different computes that calculate temperature can
+subtract out different non-thermal components of velocity and/or
+include different degrees of freedom (translational, rotational, etc).
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar (the summed KE).  This value
+can be used by any command that uses a global scalar value from a
+compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto 15</A>
+for an overview of LAMMPS output options.
+</P>
+<P>The scalar value calculated by this compute is "extensive".  The
+scalar value will be in energy <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_erotate_sphere.html">compute erotate/sphere</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

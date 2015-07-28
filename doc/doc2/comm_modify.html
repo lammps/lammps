@@ -1,0 +1,151 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>comm_modify command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>comm_modify keyword value ... 
+</PRE>
+<UL><LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>mode</I> or <I>cutoff</I> or <I>group</I> or <I>vel</I> 
+
+<PRE>  <I>mode</I> value = <I>single</I> or <I>multi</I> = communicate atoms within a single or multiple distances
+  <I>cutoff</I> value = Rcut (distance units) = communicate atoms from this far away
+  <I>group</I> value = group-ID = only communicate atoms in the group
+  <I>vel</I> value = <I>yes</I> or <I>no</I> = do or do not communicate velocity info with ghost atoms 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>comm_modify mode multi
+comm_modify mode multi group solvent
+comm_modify vel yes
+comm_modify cutoff 5.0 vel yes 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command sets parameters that affect the inter-processor
+communication of atom information that occurs each timestep as
+coordinates and other properties are exchanged between neighboring
+processors and stored as properties of ghost atoms.
+</P>
+<P>IMPORTANT NOTE: These options apply to the currently defined comm
+style.  When you specify a <A HREF = "comm_style.html">comm_style</A> command, all
+communication settings are restored to their default values, including
+those previously reset by a comm_modify command.  Thus if your input
+script specifies a comm_style command, you should use the comm_modify
+command after it.
+</P>
+<P>The <I>mode</I> keyword determines whether a single or multiple cutoff
+distances are used to determine which atoms to communicate.
+</P>
+<P>The default mode is <I>single</I> which means each processor acquires
+information for ghost atoms that are within a single distance from its
+sub-domain.  The distance is the maximum of the neighbor cutoff for
+all atom type pairs.
+</P>
+<P>For many systems this is an efficient algorithm, but for systems with
+widely varying cutoffs for different type pairs, the <I>multi</I> mode can
+be faster.  In this case, each atom type is assigned its own distance
+cutoff for communication purposes, and fewer atoms will be
+communicated.  See the <A HREF = "neighbor.html">neighbor multi</A> command for a
+neighbor list construction option that may also be beneficial for
+simulations of this kind.
+</P>
+<P>The <I>cutoff</I> keyword allows you to set a ghost cutoff distance, which
+is the distance from the borders of a processor's sub-domain at which
+ghost atoms are acquired from other processors.  By default the ghost
+cutoff = neighbor cutoff = pairwise force cutoff + neighbor skin.  See
+the <A HREF = "neighbor.html">neighbor</A> command for more information about the
+skin distance.  If the specified Rcut is greater than the neighbor
+cutoff, then extra ghost atoms will be acquired.  If it is smaller,
+the ghost cutoff is set to the neighbor cutoff.
+</P>
+<P>These are simulation scenarios in which it may be useful or even
+necessary to set a ghost cutoff > neighbor cutoff:
+</P>
+<UL><LI>a single polymer chain with bond interactions, but no pairwise interactions
+<LI>bonded interactions (e.g. dihedrals) extend further than the pairwise cutoff
+<LI>ghost atoms beyond the pairwise cutoff are needed for some computation 
+</UL>
+<P>In the first scenario, a pairwise potential is not defined.  Thus the
+pairwise neighbor cutoff will be 0.0.  But ghost atoms are still
+needed for computing bond, angle, etc interactions between atoms on
+different processors, or when the interaction straddles a periodic
+boundary.
+</P>
+<P>The appropriate ghost cutoff depends on the <A HREF = "newton.html">newton bond</A>
+setting.  For newton bond <I>off</I>, the distance needs to be the furthest
+distance between any two atoms in the bond, angle, etc.  E.g. the
+distance between 1-4 atoms in a dihedral.  For newton bond <I>on</I>, the
+distance between the central atom in the bond, angle, etc and any
+other atom is sufficient.  E.g. the distance between 2-4 atoms in a
+dihedral.
+</P>
+<P>In the second scenario, a pairwise potential is defined, but its
+neighbor cutoff is not sufficiently long enough to enable bond, angle,
+etc terms to be computed.  As in the previous scenario, an appropriate
+ghost cutoff should be set.
+</P>
+<P>In the last scenario, a <A HREF = "fix.html">fix</A> or <A HREF = "compute.html">compute</A> or
+<A HREF = "pair_style.html">pairwise potential</A> needs to calculate with ghost
+atoms beyond the normal pairwise cutoff for some computation it
+performs (e.g. locate neighbors of ghost atoms in a multibody pair
+potential).  Setting the ghost cutoff appropriately can insure it will
+find the needed atoms.
+</P>
+<P>IMPORTANT NOTE: In these scenarios, if you do not set the ghost cutoff
+long enough, and if there is only one processor in a periodic
+dimension (e.g. you are running in serial), then LAMMPS may "find" the
+atom it is looking for (e.g. the partner atom in a bond), that is on
+the far side of the simulation box, across a periodic boundary.  This
+will typically lead to bad dynamics (i.e. the bond length is now the
+simulation box length).  To detect if this is happening, see the
+<A HREF = "neigh_modify.html">neigh_modify cluster</A> command.
+</P>
+<P>The <I>group</I> keyword will limit communication to atoms in the specified
+group.  This can be useful for models where no ghost atoms are needed
+for some kinds of particles.  All atoms (not just those in the
+specified group) will still migrate to new processors as they move.
+The group specified with this option must also be specified via the
+<A HREF = "atom_modify.html">atom_modify first</A> command.
+</P>
+<P>The <I>vel</I> keyword enables velocity information to be communicated with
+ghost particles.  Depending on the <A HREF = "atom_style.html">atom_style</A>,
+velocity info includes the translational velocity, angular velocity,
+and angular momentum of a particle.  If the <I>vel</I> option is set to
+<I>yes</I>, then ghost atoms store these quantities; if <I>no</I> then they do
+not.  The <I>yes</I> setting is needed by some pair styles which require
+the velocity state of both the I and J particles to compute a pairwise
+I,J interaction.
+</P>
+<P>Note that if the <A HREF = "fix_deform.html">fix deform</A> command is being used
+with its "remap v" option enabled, then the velocities for ghost atoms
+(in the fix deform group) mirrored across a periodic boundary will
+also include components due to any velocity shift that occurs across
+that boundary (e.g. due to dilation or shear).
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "comm_style.html">comm_style</A>, <A HREF = "neighbor.html">neighbor</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defauls are mode = single, group = all, cutoff = 0.0, vel =
+no.  The cutoff default of 0.0 means that ghost cutoff = neighbor
+cutoff = pairwise force cutoff + neighbor skin.
+</P>
+</HTML>

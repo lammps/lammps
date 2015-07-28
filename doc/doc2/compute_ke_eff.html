@@ -1,0 +1,83 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute ke/eff command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID ke/eff 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>ke/eff = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all ke/eff 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the kinetic energy of motion of a
+group of eFF particles (nuclei and electrons), as modeled with the
+<A HREF = "pair_eff.html">electronic force field</A>.
+</P>
+<P>The kinetic energy for each nucleus is computed as 1/2 m v^2 and the
+kinetic energy for each electron is computed as 1/2(me v^2 + 3/4 me
+s^2), where m corresponds to the nuclear mass, me to the electron
+mass, v to the translational velocity of each particle, and s to the
+radial velocity of the electron, respectively.
+</P>
+<P>There is a subtle difference between the quantity calculated by this
+compute and the kinetic energy calculated by the <I>ke</I> or <I>etotal</I>
+keyword used in thermodynamic output, as specified by the
+<A HREF = "thermo_style.html">thermo_style</A> command.  For this compute, kinetic
+energy is "translational" and "radial" (only for electrons) kinetic
+energy, calculated by the simple formula above.  For thermodynamic
+output, the <I>ke</I> keyword infers kinetic energy from the temperature of
+the system with 1/2 Kb T of energy for each degree of freedom.  For
+the eFF temperature computation via the <A HREF = "compute_temp_eff.html">compute
+temp_eff</A> command, these are the same.  But
+different computes that calculate temperature can subtract out
+different non-thermal components of velocity and/or include other
+degrees of freedom.
+</P>
+<P>IMPRORTANT NOTE: The temperature in eFF models should be monitored via
+the <A HREF = "compute_temp_eff.html">compute temp/eff</A> command, which can be
+printed with thermodynamic output by using the
+<A HREF = "thermo_modify.html">thermo_modify</A> command, as shown in the following
+example:
+</P>
+<PRE>compute         effTemp all temp/eff
+thermo_style    custom step etotal pe ke temp press 
+thermo_modify   temp effTemp 
+</PRE>
+<P>See <A HREF = "compute_temp_eff.html">compute temp/eff</A>.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar (the KE).  This value can be
+used by any command that uses a global scalar value from a compute as
+input.  See <A HREF = "Section_howto.html#howto_15">Section_howto 15</A> for an
+overview of LAMMPS output options.
+</P>
+<P>The scalar value calculated by this compute is "extensive".  The
+scalar value will be in energy <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute is part of the USER-EFF package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

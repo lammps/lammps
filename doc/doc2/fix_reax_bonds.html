@@ -1,0 +1,73 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix reax/bonds command 
+</H3>
+<H3>fix reax/c/bonds command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID reax/bonds Nevery filename 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>reax/bonds = style name of this fix command
+<LI>Nevery = output interval in timesteps
+<LI>filename = name of output file 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all reax/bonds 100 bonds.tatb
+fix 1 all reax/c/bonds 100 bonds.reaxc 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Write out the bond information computed by the ReaxFF potential
+specified by <A HREF = "pair_reax.html">pair_style reax</A> or <A HREF = "pair_reax_c.html">pair_style
+reax/c</A> in the exact same format as the original
+stand-alone ReaxFF code of Adri van Duin.  The bond information is
+written to <I>filename</I> on timesteps that are multiples of <I>Nevery</I>,
+including timestep 0.  For time-averaged chemical species analysis,
+please see the <A HREF = "fix_species.html">fix species</A> command.
+</P>
+<P>The format of the output file should be self-explantory.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The fix reax/bonds command requires that the <A HREF = "pair_reax.html">pair_style
+reax</A> be invoked.  This fix is part of the REAX
+package.  It is only enabled if LAMMPS was built with that package,
+which also requires the REAX library be built and linked with LAMMPS.
+The fix reax/c/bonds command requires that the <A HREF = "pair_reax_c.html">pair_style
+reax/c</A> be invoked.  This fix is part of the
+USER-REAXC package.  It is only enabled if LAMMPS was built with that
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_reax.html">pair_style reax</A>, <A HREF = "pair_reax_c.html">pair_style
+reax/c</A>, <A HREF = "fix_reaxc_species.html">fix reax/c/species</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

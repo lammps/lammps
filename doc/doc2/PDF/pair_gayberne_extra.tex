@@ -1,0 +1,167 @@
+\documentstyle[12pt]{article}
+
+\begin{document}
+
+\begin{center}
+
+\large{Additional documentation for the Gay-Berne ellipsoidal potential \\
+  as implemented in LAMMPS}
+
+\end{center}
+
+\centerline{Mike Brown, Sandia National Labs, April 2007}
+
+\vspace{0.3in}
+
+The Gay-Berne anisotropic LJ interaction between pairs of dissimilar
+ellipsoidal particles is given by
+
+$$ U ( \mathbf{A}_1, \mathbf{A}_2, \mathbf{r}_{12} ) = U_r (
+\mathbf{A}_1, \mathbf{A}_2, \mathbf{r}_{12}, \gamma ) \cdot \eta_{12} (
+\mathbf{A}_1, \mathbf{A}_2, \upsilon ) \cdot \chi_{12} ( \mathbf{A}_1,
+\mathbf{A}_2, \mathbf{r}_{12}, \mu ) $$
+
+where $\mathbf{A}_1$ and $\mathbf{A}_2$ are the transformation
+matrices from the simulation box frame to the body frame and
+$\mathbf{r}_{12}$ is the center to center vector between the
+particles.  $U_r$ controls the shifted distance dependent interaction
+based on the distance of closest approach of the two particles
+($h_{12}$) and the user-specified shift parameter gamma:
+
+$$ U_r = 4 \epsilon ( \varrho^{12} - \varrho^6) $$
+
+$$ \varrho = \frac{\sigma}{ h_{12} + \gamma \sigma} $$
+
+Let the shape matrices $\mathbf{S}_i=\mbox{diag}(a_i, b_i, c_i)$ be 
+given by the ellipsoid radii. The $\eta$ orientation-dependent energy 
+based on the user-specified exponent $\upsilon$ is given by
+
+$$ \eta_{12} = [ \frac{ 2 s_1 s_2 }{\det ( \mathbf{G}_{12} )}]^{
+\upsilon / 2 } , $$
+
+$$ s_i = [a_i b_i + c_i c_i][a_i b_i]^{ 1 / 2 }, $$
+
+and
+
+$$ \mathbf{G}_{12} = \mathbf{A}_1^T \mathbf{S}_1^2 \mathbf{A}_1 +
+\mathbf{A}_2^T \mathbf{S}_2^2 \mathbf{A}_2 = \mathbf{G}_1 +
+\mathbf{G}_2. $$
+
+Let the relative energy matrices $\mathbf{E}_i = \mbox{diag}
+(\epsilon_{ia}, \epsilon_{ib}, \epsilon_{ic})$ be given by 
+the relative well depths (dimensionless energy scales 
+inversely proportional to the well-depths of the respective 
+orthogonal configurations of the interacting molecules). The 
+$\chi$ orientation-dependent energy based on the user-specified 
+exponent $\mu$ is given by
+
+$$ \chi_{12} = [2 \hat{\mathbf{r}}_{12}^T \mathbf{B}_{12}^{-1}
+\hat{\mathbf{r}}_{12}]^\mu, $$
+
+$$ \hat{\mathbf{r}}_{12} = { \mathbf{r}_{12} } / |\mathbf{r}_{12}|, $$
+
+and
+
+$$ \mathbf{B}_{12} = \mathbf{A}_1^T \mathbf{E}_1^2 \mathbf{A}_1 +
+\mathbf{A}_2^T \mathbf{E}_2^2 \mathbf{A}_2 = \mathbf{B}_1 +
+\mathbf{B}_2. $$
+
+Here, we use the distance of closest approach approximation given by the
+Perram reference, namely
+
+$$ h_{12} = r - \sigma_{12} ( \mathbf{A}_1, \mathbf{A}_2,
+\mathbf{r}_{12} ), $$
+
+$$ r = |\mathbf{r}_{12}|, $$
+
+and
+
+$$ \sigma_{12} = [ \frac{1}{2} \hat{\mathbf{r}}_{12}^T
+\mathbf{G}_{12}^{-1} \hat{\mathbf{r}}_{12}.]^{ -1/2 } $$
+
+Forces and Torques: Because the analytic forces and torques have not
+been published for this potential, we list them here:
+
+$$ \mathbf{f} = - \eta_{12} ( U_r \cdot { \frac{\partial \chi_{12}
+}{\partial r} } + \chi_{12} \cdot { \frac{\partial U_r }{\partial r} }
+) $$
+
+where the derivative of $U_r$ is given by (see Allen reference)
+
+$$ \frac{\partial U_r }{\partial r} = \frac{ \partial U_{SLJ} }{
+\partial r } \hat{\mathbf{r}}_{12} + r^{-2} \frac{ \partial U_{SLJ} }{
+\partial \varphi } [ \mathbf{\kappa} - ( \mathbf{\kappa}^T \cdot
+\hat{\mathbf{r}}_{12}) \hat{\mathbf{r}}_{12} ], $$
+
+$$ \frac{ \partial U_{SLJ} }{ \partial \varphi } = 24 \epsilon ( 2
+\varrho^{13} - \varrho^7 ) \sigma_{12}^3 / 2 \sigma, $$
+
+$$ \frac{ \partial U_{SLJ} }{ \partial r } = 24 \epsilon ( 2
+\varrho^{13} - \varrho^7 ) / \sigma, $$
+
+and
+
+$$ \mathbf{\kappa} = \mathbf{G}_{12}^{-1} \cdot \mathbf{r}_{12}. $$
+
+The derivate of the $\chi$ term is given by
+
+$$ \frac{\partial \chi_{12} }{\partial r} = - r^{-2} \cdot 4.0 \cdot [
+\mathbf{\iota} - ( \mathbf{\iota}^T \cdot \hat{\mathbf{r}}_{12} )
+\hat{\mathbf{r}}_{12} ] \cdot \mu \cdot \chi_{12}^{ ( \mu -1 ) / \mu
+}, $$
+
+and
+
+$$ \mathbf{\iota} = \mathbf{B}_{12}^{-1} \cdot \mathbf{r}_{12}. $$
+
+The torque is given by:
+
+$$ \mathbf{\tau}_i = U_r \eta_{12} \frac{ \partial \chi_{12} }{
+\partial \mathbf{q}_i } + \chi_{12} ( U_r \frac{ \partial \eta_{12} }{
+\partial \mathbf{q}_i } + \eta_{12} \frac{ \partial U_r }{ \partial
+\mathbf{q}_i } ), $$
+
+$$ \frac{ \partial U_r }{ \partial \mathbf{q}_i } = \mathbf{A}_i \cdot
+(- \mathbf{\kappa}^T \cdot \mathbf{G}_i \times \mathbf{f}_k ), $$
+
+$$ \mathbf{f}_k = - r^{-2} \frac{ \delta U_{SLJ} }{ \delta \varphi }
+\mathbf{\kappa}, $$
+
+and
+
+$$ \frac{ \partial \chi_{12} }{ \partial \mathbf{q}_i } = 4.0 \cdot
+r^{-2} \cdot \mathbf{A}_i (- \mathbf{\iota}^T \cdot \mathbf{B}_i
+\times \mathbf{\iota} ). $$
+
+For the derivative of the $\eta$ term, we were unable to find a matrix
+expression due to the determinant. Let $a_{mi}$ be the mth row of the
+rotation matrix $A_i$. Then,
+
+$$ \frac{ \partial \eta_{12} }{ \partial \mathbf{q}_i } = \mathbf{A}_i
+\cdot \sum_m \mathbf{a}_{mi} \times \frac{ \partial \eta_{12} }{
+\partial \mathbf{a}_{mi} } = \mathbf{A}_i \cdot \sum_m \mathbf{a}_{mi}
+\times \mathbf{d}_{mi}, $$
+
+where $d_mi$ represents the mth row of a derivative matrix $D_i$,
+
+$$ \mathbf{D}_i = - \frac{1}{2} \cdot ( \frac{2s1s2}{\det (
+\mathbf{G}_{12} ) } )^{ \upsilon / 2 } \cdot {\frac{\upsilon}{\det (
+\mathbf{G}_{12} ) }} \cdot \mathbf{E}, $$
+
+where the matrix $E$ gives the derivate with respect to the rotation
+matrix,
+
+$$ \mathbf{E} = [ e_{my} ] = \frac{ \partial \eta_{12} }{ \partial
+\mathbf{A}_i }, $$
+
+and
+
+$$ e_{my} = \det ( \mathbf{G}_{12} ) \cdot \mbox{trace} [
+\mathbf{G}_{12}^{-1} \cdot ( \hat{\mathbf{p}}_y \otimes \mathbf{a}_m +
+\mathbf{a}_m \otimes \hat{\mathbf{p}}_y ) \cdot s_{mm}^2 ]. $$
+
+Here, $p_v$ is the unit vector for the axes in the lab frame $(p1=[1, 0,
+0], p2=[0, 1, 0], and p3=[0, 0, 1])$ and $s_{mm}$ gives the mth radius of
+the ellipsoid $i$.
+
+\end{document}

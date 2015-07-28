@@ -1,0 +1,172 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style gauss command 
+</H3>
+<H3>pair_style gauss/gpu command 
+</H3>
+<H3>pair_style gauss/omp command 
+</H3>
+<H3>pair_style gauss/cut command 
+</H3>
+<H3>pair_style gauss/cut/omp command 
+</H3>
+<P><B>Syntax:</B> 
+</P>
+<PRE>pair_style gauss cutoff
+pair_style gauss/cut cutoff 
+</PRE>
+<UL><LI>cutoff = global cutoff for Gauss interactions (distance units) 
+</UL>
+<P><B>Examples:</B> 
+</P>
+<PRE>pair_style gauss 12.0 
+pair_coeff * * 1.0 0.9
+pair_coeff 1 4 1.0 0.9 10.0 
+</PRE>
+<PRE>pair_style gauss/cut 3.5
+pair_coeff 1 4 0.2805 1.45 0.112 
+</PRE>
+<P><B>Description:</B> 
+</P>
+<P>Style <I>gauss</I> computes a tethering potential of the form
+</P>
+<CENTER><IMG SRC = "Eqs/pair_gauss.jpg">
+</CENTER>
+<P>between an atom and its corresponding tether site which will typically
+be a frozen atom in the simulation.  Rc is the cutoff.
+</P>
+<P>The following coefficients must be defined for each pair of atom types
+via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples above,
+or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>A (energy units)
+<LI>B (1/distance^2 units) 
+<LI>cutoff (distance units) 
+</UL>
+<P>The last coefficient is optional. If not specified, the global cutoff
+is used.
+</P>
+<P>Style <I>gauss/cut</I> computes a generalized Gaussian interaction potential 
+between pairs of particles:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_gauss_cut.jpg">
+</CENTER>
+<P>where H determines together with the standard deviation sigma_h the
+peak height of the Gaussian function, and r_mh the peak position.
+Examples of the use of the Gaussian potentials include implicit
+solvent simulations of salt ions <A HREF = "#Lenart">(Lenart)</A> and of surfactants
+<A HREF = "#Jusufi">(Jusufi)</A>.  In these instances the Gaussian potential mimics
+the hydration barrier between a pair of particles. The hydration
+barrier is located at r_mh and has a width of sigma_h. The prefactor
+determines the hight of the potential barrier.
+</P>
+<P>The following coefficients must be defined for each pair of atom types
+via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the example above,
+or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands:
+</P>
+<UL><LI>H (energy * distance units)
+<LI>r_mh (distance units)
+<LI>sigma_h (distance units) 
+</UL>
+<P>The global cutoff (r_c) specified in the pair_style command is used.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch7_Section_start.html#start_6 when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>These pair styles do not support mixing. Thus, coefficients for all
+I,J pairs must be specified explicitly.
+</P>
+<P>The <I>gauss</I> style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option. There is no effect due to the Gaussian well beyond the
+cutoff; hence reasonable cutoffs need to be specified.
+</P>
+<P>The <I>gauss/cut</I> style supports the <A HREF = "pair_modify.html">pair_modify</A> shift
+option for the energy of the Gauss-potential portion of the pair
+interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table and tail options are not
+relevant for these pair styles.
+</P>
+<P>These pair styles write their information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>These pair styles can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  They do not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<P>The <I>gauss</I> pair style tallies an "occupancy" count of how many Gaussian-well
+sites have an atom within the distance at which the force is a maximum
+= sqrt(0.5/b).  This quantity can be accessed via the <A HREF = "compute_pair.html">compute
+pair</A> command as a vector of values of length 1.
+</P>
+<P>To print this quantity to the log file (with a descriptive column
+heading) the following commands could be included in an input script:
+</P>
+<PRE>compute gauss all pair gauss
+variable occ equal c_gauss[1]
+thermo_style custom step temp epair v_occ 
+</PRE>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>gauss/cut</I> style is part of the "user-misc" package. It is only
+enabled if LAMMPS is build with that package. See the <A HREF = "Section_start.html#3">Making of
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, 
+<A HREF = "pair_coul_diel.html">pair_style coul/diel</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<A NAME = "Lenart"></A>
+
+<P><B>(Lenart)</B> Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,
+044509 (2007).
+</P>
+<A NAME = "Jusufi"></A>
+
+<P><B>(Jusufi)</B> Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
+13783 (2008).
+</P>
+</HTML>

@@ -1,0 +1,185 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dihedral_style class2 command 
+</H3>
+<H3>dihedral_style class2/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dihedral_style class2 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>dihedral_style class2
+dihedral_coeff 1 100 75 100 70 80 60
+dihedral_coeff * mbt 3.5945 0.1704 -0.5490 1.5228 
+dihedral_coeff * ebt 0.3417 0.3264 -0.9036 0.1368 0.0 -0.8080 1.0119 1.1010
+dihedral_coeff 2 at 0.0 -0.1850 -0.7963 -2.0220 0.0 -0.3991 110.2453 105.1270 
+dihedral_coeff * aat -13.5271 110.2453 105.1270 
+dihedral_coeff * bb13 0.0 1.0119 1.1010 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>class2</I> dihedral style uses the potential
+</P>
+<CENTER><IMG SRC = "Eqs/dihedral_class2.jpg">
+</CENTER>
+<P>where Ed is the dihedral term, Embt is a middle-bond-torsion term,
+Eebt is an end-bond-torsion term, Eat is an angle-torsion term, Eaat
+is an angle-angle-torsion term, and Ebb13 is a bond-bond-13 term.
+</P>
+<P>Theta1 and theta2 are equilibrium angles and r1 r2 r3 are equilibrium
+bond lengths.
+</P>
+<P>See <A HREF = "#Sun">(Sun)</A> for a description of the COMPASS class2 force field.
+</P>
+<P>Coefficients for the Ed, Embt, Eebt, Eat, Eaat, and Ebb13 formulas
+must be defined for each dihedral type via the
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command as in the example above,
+or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands.
+</P>
+<P>These are the 6 coefficients for the Ed formula:
+</P>
+<UL><LI>K1 (energy)
+<LI>phi1 (degrees)
+<LI>K2 (energy)
+<LI>phi2 (degrees)
+<LI>K3 (energy)
+<LI>phi3 (degrees) 
+</UL>
+<P>For the Embt formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+5 coefficients, the first of which is "mbt" to indicate they are
+MiddleBondTorsion coefficients.  In a data file, these coefficients
+should be listed under a "MiddleBondTorsion Coeffs" heading and you
+must leave out the "mbt", i.e. only list 4 coefficients after the
+dihedral type.
+</P>
+<UL><LI>mbt
+<LI>A1 (energy/distance)
+<LI>A2 (energy/distance)
+<LI>A3 (energy/distance)
+<LI>r2 (distance) 
+</UL>
+<P>For the Eebt formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+9 coefficients, the first of which is "ebt" to indicate they are
+EndBondTorsion coefficients.  In a data file, these coefficients
+should be listed under a "EndBondTorsion Coeffs" heading and you must
+leave out the "ebt", i.e. only list 8 coefficients after the dihedral
+type.
+</P>
+<UL><LI>ebt
+<LI>B1 (energy/distance)
+<LI>B2 (energy/distance)
+<LI>B3 (energy/distance)
+<LI>C1 (energy/distance)
+<LI>C2 (energy/distance)
+<LI>C3 (energy/distance)
+<LI>r1 (distance)
+<LI>r3 (distance) 
+</UL>
+<P>For the Eat formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+9 coefficients, the first of which is "at" to indicate they are
+AngleTorsion coefficients.  In a data file, these coefficients should
+be listed under a "AngleTorsion Coeffs" heading and you must leave out
+the "at", i.e. only list 8 coefficients after the dihedral type.
+</P>
+<UL><LI>at
+<LI>D1 (energy/radian)
+<LI>D2 (energy/radian)
+<LI>D3 (energy/radian)
+<LI>E1 (energy/radian)
+<LI>E2 (energy/radian)
+<LI>E3 (energy/radian)
+<LI>theta1 (degrees)
+<LI>theta2 (degrees) 
+</UL>
+<P>Theta1 and theta2 are specified in degrees, but LAMMPS converts them
+to radians internally; hence the units of D and E are in
+energy/radian.
+</P>
+<P>For the Eaat formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+4 coefficients, the first of which is "aat" to indicate they are
+AngleAngleTorsion coefficients.  In a data file, these coefficients
+should be listed under a "AngleAngleTorsion Coeffs" heading and you
+must leave out the "aat", i.e. only list 3 coefficients after the
+dihedral type.
+</P>
+<UL><LI>aat
+<LI>M (energy/radian^2)
+<LI>theta1 (degrees)
+<LI>theta2 (degrees) 
+</UL>
+<P>Theta1 and theta2 are specified in degrees, but LAMMPS converts them
+to radians internally; hence the units of M are in energy/radian^2.
+</P>
+<P>For the Ebb13 formula, each line in a
+<A HREF = "dihedral_coeff.html">dihedral_coeff</A> command in the input script lists
+4 coefficients, the first of which is "bb13" to indicate they are
+BondBond13 coefficients.  In a data file, these coefficients should be
+listed under a "BondBond13 Coeffs" heading and you must leave out the
+"bb13", i.e. only list 3 coefficients after the dihedral type.
+</P>
+<UL><LI>bb13
+<LI>N (energy/distance^2)
+<LI>r1 (distance)
+<LI>r3 (distance) 
+</UL>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This dihedral style can only be used if LAMMPS was built with the
+CLASS2 package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dihedral_coeff.html">dihedral_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Sun"></A>
+
+<P><B>(Sun)</B> Sun, J Phys Chem B 102, 7338-7364 (1998).
+</P>
+</HTML>

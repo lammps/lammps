@@ -1,0 +1,298 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>run_style command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>run_style style args 
+</PRE>
+<UL><LI>style = <I>verlet</I> or <I>verlet/split</I> or <I>respa</I> or <I>respa/omp</I> 
+
+<PRE>  <I>verlet</I> args = none
+  <I>verlet/split</I> args = none
+  <I>respa</I> args = N n1 n2 ... keyword values ...
+    N = # of levels of rRESPA
+    n1, n2, ... = loop factor between rRESPA levels (N-1 values)
+    zero or more keyword/value pairings may be appended to the loop factors
+    keyword = <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or
+	      <I>pair</I> or <I>inner</I> or <I>middle</I> or <I>outer</I> or <I>hybrid</I> or <I>kspace</I>
+      <I>bond</I> value = M
+        M = which level (1-N) to compute bond forces in
+      <I>angle</I> value = M
+        M = which level (1-N) to compute angle forces in
+      <I>dihedral</I> value = M
+        M = which level (1-N) to compute dihedral forces in
+      <I>improper</I> value = M
+        M = which level (1-N) to compute improper forces in
+      <I>pair</I> value = M
+        M = which level (1-N) to compute pair forces in
+      <I>inner</I> values = M cut1 cut2
+        M = which level (1-N) to compute pair inner forces in
+	cut1 = inner cutoff between pair inner and
+	       pair middle or outer  (distance units)
+	cut2 = outer cutoff between pair inner and
+	       pair middle or outer  (distance units)
+      <I>middle</I> values = M cut1 cut2
+        M = which level (1-N) to compute pair middle forces in
+	cut1 = inner cutoff between pair middle and pair outer (distance units)
+	cut2 = outer cutoff between pair middle and pair outer (distance units)
+      <I>outer</I> value = M
+        M = which level (1-N) to compute pair outer forces in
+      <I>hybrid</I> values = M1 [M2 ...] (as many values as there are hybrid sub-styles 
+        M1 = which level (1-N) to compute the first pair_style hybrid sub-style in
+        M2 = which level (1-N) to compute the second pair_style hybrid sub-style in
+        ...
+      <I>kspace</I> value = M
+        M = which level (1-N) to compute kspace forces in 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>run_style verlet
+run_style respa 4 2 2 2 bond 1 dihedral 2 pair 3 kspace 4
+run_style respa 4 2 2 2 bond 1 dihedral 2 inner 3 5.0 6.0 outer 4 kspace 4 
+</PRE>
+<PRE>run_style respa 3 4 2 bond 1 hybrid 2 2 1 kspace 3 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Choose the style of time integrator used for molecular dynamics
+simulations performed by LAMMPS.
+</P>
+<P>The <I>verlet</I> style is a standard velocity-Verlet integrator.
+</P>
+<HR>
+
+<P>The <I>verlet/split</I> style is also a velocity-Verlet integrator, but it
+splits the force calculation within each timestep over 2 partitions of
+processors.  See <A HREF = "Section_start.html#start_7">Section_start 6</A> for an
+explanation of the -partition command-line switch.
+</P>
+<P>Specifically, this style performs all computation except the
+<A HREF = "kspace_style.html">kspace_style</A> portion of the force field on the 1st
+partition.  This include the <A HREF = "pair_style.html">pair style</A>, <A HREF = "bond_style.html">bond
+style</A>, <A HREF = "neighbor.html">neighbor list building</A>,
+<A HREF = "fix.html">fixes</A> including time intergration, and output.  The
+<A HREF = "kspace_style.html">kspace_style</A> portion of the calculation is
+performed on the 2nd partition.
+</P>
+<P>This is most useful for the PPPM kspace_style when its performance on
+a large number of processors degrades due to the cost of communication
+in its 3d FFTs.  In this scenario, splitting your P total processors
+into 2 subsets of processors, P1 in the 1st partition and P2 in the
+2nd partition, can enable your simulation to run faster.  This is
+because the long-range forces in PPPM can be calculated at the same
+time as pair-wise and bonded forces are being calculated, and the FFTs
+can actually speed up when running on fewer processors.
+</P>
+<P>To use this style, you must define 2 partitions where P1 is a multiple
+of P2.  Typically having P1 be 3x larger than P2 is a good choice.
+The 3d processor layouts in each partition must overlay in the
+following sense.  If P1 is a Px1 by Py1 by Pz1 grid, and P2 = Px2 by
+Py2 by Pz2, then Px1 must be an integer multiple of Px2, and similarly
+for Py1 a multiple of Py2, and Pz1 a multiple of Pz2.
+</P>
+<P>Typically the best way to do this is to let the 1st partition choose
+its onn optimal layout, then require the 2nd partition's layout to
+match the integer multiple constraint.  See the
+<A HREF = "processors.html">processors</A> command with its <I>part</I> keyword for a way
+to control this, e.g.
+</P>
+<PRE>procssors * * * part 1 2 multiple 
+</PRE>
+<P>You can also use the <A HREF = "partition.html">partition</A> command to explicitly
+specity the processor layout on each partition.  E.g. for 2 partitions
+of 60 and 15 processors each:
+</P>
+<PRE>partition yes 1 processors 3 4 5
+partition yes 2 processors 3 1 5 
+</PRE>
+<P>When you run in 2-partition mode with the <I>verlet/split</I> style, the
+thermodyanmic data for the entire simulation will be output to the log
+and screen file of the 1st partition, which are log.lammps.0 and
+screen.0 by default; see the "-plog and -pscreen command-line
+switches"Section_start.html#start_7 to change this.  The log and
+screen file for the 2nd partition will not contain thermodynamic
+output beyone the 1st timestep of the run.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+performance details of the speed-up offered by the <I>verlet/split</I>
+style.  One important performance consideration is the assignemnt of
+logical processors in the 2 partitions to the physical cores of a
+parallel machine.  The <A HREF = "processors.html">processors</A> command has
+options to support this, and strategies are discussed in
+<A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.
+</P>
+<HR>
+
+<P>The <I>respa</I> style implements the rRESPA multi-timescale integrator
+<A HREF = "#Tuckerman">(Tuckerman)</A> with N hierarchical levels, where level 1 is
+the innermost loop (shortest timestep) and level N is the outermost
+loop (largest timestep).  The loop factor arguments specify what the
+looping factor is between levels.  N1 specifies the number of
+iterations of level 1 for a single iteration of level 2, N2 is the
+iterations of level 2 per iteration of level 3, etc.  N-1 looping
+parameters must be specified.
+</P>
+<P>The <A HREF = "timestep.html">timestep</A> command sets the timestep for the
+outermost rRESPA level.  Thus if the example command above for a
+4-level rRESPA had an outer timestep of 4.0 fmsec, the inner timestep
+would be 8x smaller or 0.5 fmsec.  All other LAMMPS commands that
+specify number of timesteps (e.g. <A HREF = "neigh_modify.html">neigh_modify</A>
+parameters, <A HREF = "dump.html">dump</A> every N timesteps, etc) refer to the
+outermost timesteps.
+</P>
+<P>The rRESPA keywords enable you to specify at what level of the
+hierarchy various forces will be computed.  If not specified, the
+defaults are that bond forces are computed at level 1 (innermost
+loop), angle forces are computed where bond forces are, dihedral
+forces are computed where angle forces are, improper forces are
+computed where dihedral forces are, pair forces are computed at the
+outermost level, and kspace forces are computed where pair forces are.
+The inner, middle, outer forces have no defaults.
+</P>
+<P>The <I>inner</I> and <I>middle</I> keywords take additional arguments for
+cutoffs that are used by the pairwise force computations.  If the 2
+cutoffs for <I>inner</I> are 5.0 and 6.0, this means that all pairs up to
+6.0 apart are computed by the inner force.  Those between 5.0 and 6.0
+have their force go ramped to 0.0 so the overlap with the next regime
+(middle or outer) is smooth.  The next regime (middle or outer) will
+compute forces for all pairs from 5.0 outward, with those from 5.0 to
+6.0 having their value ramped in an inverse manner.
+</P>
+<P>Only some pair potentials support the use of the <I>inner</I> and <I>middle</I>
+and <I>outer</I> keywords.  If not, only the <I>pair</I> keyword can be used
+with that pair style, meaning all pairwise forces are computed at the
+same rRESPA level.  See the doc pages for individual pair styles for
+details.i
+</P>
+<P>Another variant to use pair potentials in rRESPA is with the <I>hybrid</I>
+keyword, which requires the use of a <A HREF = "pair_hybrid.html">hybrid pair_style</A>
+In this scenario, different sub-styles of the hybrid pair style are
+evaluated at different rRESPA levels. Thus the hybrid keyword requires
+as many level assignments as there are hybrid substyles which designate
+the respective sub-styles to the rRESPA level according to their order
+of definition in the pair_style command. Since the <I>hybrid</I> designates
+pair force computations, it is mututally exclusive with either the <I>pair</I>
+or the <I>inner</I>/<I>middle</I>/<I>outer</I> keywords.
+</P>
+<P>When using rRESPA (or for any MD simulation) care must be taken to
+choose a timestep size(s) that insures the Hamiltonian for the chosen
+ensemble is conserved.  For the constant NVE ensemble, total energy
+must be conserved.  Unfortunately, it is difficult to know <I>a priori</I>
+how well energy will be conserved, and a fairly long test simulation
+(~10 ps) is usually necessary in order to verify that no long-term
+drift in energy occurs with the trial set of parameters.
+</P>
+<P>With that caveat, a few rules-of-thumb may be useful in selecting
+<I>respa</I> settings.  The following applies mostly to biomolecular
+simulations using the CHARMM or a similar all-atom force field, but
+the concepts are adaptable to other problems.  Without SHAKE, bonds
+involving hydrogen atoms exhibit high-frequency vibrations and require
+a timestep on the order of 0.5 fmsec in order to conserve energy.  The
+relatively inexpensive force computations for the bonds, angles,
+impropers, and dihedrals can be computed on this innermost 0.5 fmsec
+step.  The outermost timestep cannot be greater than 4.0 fmsec without
+risking energy drift.  Smooth switching of forces between the levels
+of the rRESPA hierarchy is also necessary to avoid drift, and a 1-2
+angstrom "healing distance" (the distance between the outer and inner
+cutoffs) works reasonably well.  We thus recommend the following
+settings for use of the <I>respa</I> style without SHAKE in biomolecular
+simulations:
+</P>
+<PRE>timestep  4.0
+run_style respa 4 2 2 2 inner 2 4.5 6.0 middle 3 8.0 10.0 outer 4 
+</PRE>
+<P>With these settings, users can expect good energy conservation and
+roughly a 2.5 fold speedup over the <I>verlet</I> style with a 0.5 fmsec
+timestep.
+</P>
+<P>If SHAKE is used with the <I>respa</I> style, time reversibility is lost,
+but substantially longer time steps can be achieved.  For biomolecular
+simulations using the CHARMM or similar all-atom force field, bonds
+involving hydrogen atoms exhibit high frequency vibrations and require
+a time step on the order of 0.5 fmsec in order to conserve energy.
+These high frequency modes also limit the outer time step sizes since
+the modes are coupled.  It is therefore desirable to use SHAKE with
+respa in order to freeze out these high frequency motions and increase
+the size of the time steps in the respa hierarchy.  The following
+settings can be used for biomolecular simulations with SHAKE and
+rRESPA:
+</P>
+<PRE>fix             2 all shake 0.000001 500 0 m 1.0 a 1
+timestep        4.0
+run_style	respa 2 2 inner 1 4.0 5.0 outer 2 
+</PRE>
+<P>With these settings, users can expect good energy conservation and
+roughly a 1.5 fold speedup over the <I>verlet</I> style with SHAKE and a
+2.0 fmsec timestep.
+</P>
+<P>For non-biomolecular simulations, the <I>respa</I> style can be
+advantageous if there is a clear separation of time scales - fast and
+slow modes in the simulation.  Even a LJ system can benefit from
+rRESPA if the interactions are divided by the inner, middle and outer
+keywords.  A 2-fold or more speedup can be obtained while maintaining
+good energy conservation.  In real units, for a pure LJ fluid at
+liquid density, with a sigma of 3.0 angstroms, and epsilon of 0.1
+Kcal/mol, the following settings seem to work well:
+</P>
+<PRE>timestep  36.0  
+run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3 
+</PRE>
+<HR>
+
+<P>The <I>respa/omp</I> styles is a variant of <I>respa</I> adapted for use with
+pair, bond, angle, dihedral, improper, or kspace styles with an <I>omp</I>
+suffix. It is functionally equivalent to <I>respa</I> but performs additional
+operations required for managing <I>omp</I> styles. For more on <I>omp</I> styles
+see the <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.
+Accelerated styles take the same arguments and should produce the same
+results, except for round-off and precision issues.
+</P>
+<P>You can specify <I>respa/omp</I> explicitly in your input script, or
+you can use the <A HREF = "Section_start.html#start_7">-suffix command-line switch</A>
+when you invoke LAMMPS, or you can use the <A HREF = "suffix.html">suffix</A>
+command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>The <I>verlet/split</I> style can only be used if LAMMPS was built with the
+REPLICA package. Correspondingly the <I>respa/omp</I> style is available only
+if the USER-OMP package was included. See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A>
+section for more info on packages.
+</P>
+<P>Whenever using rRESPA, the user should experiment with trade-offs in
+speed and accuracy for their system, and verify that they are
+conserving energy to adequate precision.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "timestep.html">timestep</A>, <A HREF = "run.html">run</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>run_style verlet 
+</PRE>
+<HR>
+
+<A NAME = "Tuckerman"></A>
+
+<P><B>(Tuckerman)</B> Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
+(1992).
+</P>
+</HTML>

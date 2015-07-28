@@ -141,7 +141,7 @@ commands)
   charged pairwise potentials: Coulombic, point-dipole
   manybody potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), \
     embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, \
-    REBO, AIREBO, ReaxFF, COMB, SNAP, Streitz-Mintmire
+    REBO, AIREBO, ReaxFF, COMB, SNAP, Streitz-Mintmire, 3-body polymorphic
   long-range interactions for charge, point-dipoles, and LJ dispersion: \
     Ewald, Wolf, PPPM (similar to particle-mesh Ewald)
   polarization models: "QEq"_fix_qeq.html, \

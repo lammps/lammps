@@ -21,6 +21,8 @@
 #include "modify.h"
 #include "force.h"
 
+#include <string.h>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 

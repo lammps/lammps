@@ -57,7 +57,7 @@ to Stillinger-Weber potential (<A HREF = "#SW">SW</A>) if we set
 <CENTER><IMG SRC = "Eqs/polymorphic4.jpg">
 </CENTER>
 <P>The potential reduces to Tersoff types of potential
-(<A HREF = "#Tersoff,<A HREF = "#Albe">Tersoff</A>">Albe</A>) if we set
+(<A HREF = "#Tersoff">Tersoff</A> or <A HREF = "#Albe">Albe</A>) if we set
 </P>
 <CENTER><IMG SRC = "Eqs/polymorphic5.jpg">
 </CENTER>
@@ -98,19 +98,21 @@ mapped to LAMMPS atom types by specifying N additional arguments after
 the filename in the pair_coeff command, where N is the number of
 LAMMPS atom types:
 </P>
-<P> filename
- N element names = mapping of Tersoff elements to atom types 
-</P>
+<UL><LI>filename
+<LI>N element names = mapping of Tersoff elements to atom types 
+</UL>
 <P>See the pair_coeff doc page for alternate ways to specify the path for
-the potential file.
+the potential file.  Several files for polymorphic potentials are
+included in the potentials dir of the LAMMPS distro.  They have a
+"poly" suffix.
 </P>
 <P>As an example, imagine the SiC_tersoff.polymorphic file has tabulated
 functions for Si-C tersoff potential. If your LAMMPS simulation has 4
 atoms types and you want the 1st 3 to be Si, and the 4th to be C, you
 would use the following pair_coeff command:
 </P>
-<P>pair_coeff * * SiC_tersoff.polymorphic Si Si Si C 
-</P>
+<PRE>pair_coeff * * SiC_tersoff.polymorphic Si Si Si C 
+</PRE>
 <P>The 1st 2 arguments must be * * so as to span all LAMMPS atom
 types. The first three Si arguments map LAMMPS atom types 1,2,3 to the
 Si element in the polymorphic file. The final C argument maps LAMMPS
@@ -135,18 +137,18 @@ delta_ij, otherwise eta_ij is set to delta_ij. The next ntypes lines
 each lists two numbers and a character string representing atomic
 number, atomic mass, and name of the species of the ntypes elements:
 </P>
-<P>atomic_number atomic-mass element (1)
+<PRE>atomic_number atomic-mass element (1)
 atomic_number atomic-mass element (2)
 ...
-atomic_number atomic-mass element (ntypes)
-</P>
+atomic_number atomic-mass element (ntypes) 
+</PRE>
 <P>The next ntypes*(ntypes+1)/2 lines contain two numbers:
 </P>
-<P>cut xi (1)
+<PRE>cut xi (1)
 cut xi (2)
 ...
-cut xi (ntypes*(ntypes+1)/2)
-</P>
+cut xi (ntypes*(ntypes+1)/2) 
+</PRE>
 <P>Here cut means the cutoff distance of the pair functions, xi is the
 same as defined in the potential functions above. The
 ntypes*(ntypes+1)/2 lines are related to the pairs according to the
@@ -177,8 +179,6 @@ functions are between 0 <= r <= cut for the U(r), V(r), W(r)
 functions, -cutmax <= delta_r <= cutmax for the P(delta_r) functions,
 -1 <= costheta <= 1 for the G(costheta) functions, and 0 <= X <= maxX
 for the F(X) functions.
-</P>
-<P>This concludes the potential files for the polymorphic pair style.
 </P>
 <P><B>Mixing, shift, table tail correction, restart</B>:
 </P>

@@ -1,0 +1,181 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style eim command 
+</H3>
+<H3>pair_style eim/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style 
+</PRE>
+<UL><LI>style = <I>eim</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style eim
+pair_coeff * * Na Cl ../potentials/ffield.eim Na Cl
+pair_coeff * * Na Cl ffield.eim  Na Na Na Cl
+pair_coeff * * Na Cl ../potentials/ffield.eim Cl NULL Na 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>eim</I> computes pairwise interactions for ionic compounds
+using embedded-ion method (EIM) potentials <A HREF = "#Zhou">(Zhou)</A>.  The
+energy of the system E is given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_eim1.jpg">
+</CENTER>
+<P>The first term is a double pairwise sum over the J neighbors of all I
+atoms, where phi_ij is a pair potential.  The second term sums over
+the embedding energy E_i of atom I, which is a function of its charge
+q_i and the electrical potential sigma_i at its location.  E_i, q_i,
+and sigma_i are calculated as
+</P>
+<CENTER><IMG SRC = "Eqs/pair_eim2.jpg">
+</CENTER>
+<P>where eta_ji is a pairwise function describing electron flow from atom
+I to atom J, and psi_ij is another pairwise function.  The multi-body
+nature of the EIM potential is a result of the embedding energy term.
+A complete list of all the pair functions used in EIM is summarized
+below
+</P>
+<CENTER><IMG SRC = "Eqs/pair_eim3.jpg">
+</CENTER>
+<P>Here E_b, r_e, r_(c,phi), alpha, beta, A_(psi), zeta, r_(s,psi),
+r_(c,psi), A_(eta), r_(s,eta), r_(c,eta), chi, and pair function type
+p are parameters, with subscripts ij indicating the two species of
+atoms in the atomic pair.
+</P>
+<P>IMPORTANT NOTE: Even though the EIM potential is treating atoms as
+charged ions, you should not use a LAMMPS <A HREF = "atom_style.html">atom_style</A>
+that stores a charge on each atom and thus requires you to assign a
+charge to each atom, e.g. the <I>charge</I> or <I>full</I> atom styles.  This is
+because the EIM potential infers the charge on an atom from the
+equation above for q_i; you do not assign charges explicitly.
+</P>
+<HR>
+
+<P>All the EIM parameters are listed in a potential file which is
+specified by the <A HREF = "pair_coeff.html">pair_coeff</A> command.  This is an
+ASCII text file in a format described below.  The "ffield.eim" file
+included in the "potentials" directory of the LAMMPS distribution
+currently includes nine elements Li, Na, K, Rb, Cs, F, Cl, Br, and I.
+A system with any combination of these elements can be modeled.  This
+file is parameterized in terms of LAMMPS <A HREF = "units.html">metal units</A>.
+</P>
+<P>Note that unlike other potentials, cutoffs for EIM potentials are not
+set in the pair_style or pair_coeff command; they are specified in the
+EIM potential file itself.  Likewise, the EIM potential file lists
+atomic masses; thus you do not need to use the <A HREF = "mass.html">mass</A>
+command to specify them.
+</P>
+<P>Only a single pair_coeff command is used with the <I>eim</I> style which
+specifies an EIM potential file and the element(s) to extract
+information for.  The EIM elements are mapped to LAMMPS atom types by
+specifying N additional arguments after the filename in the pair_coeff
+command, where N is the number of LAMMPS atom types:
+</P>
+<UL><LI>Elem1, Elem2, ...
+<LI>EIM potential file
+<LI>N element names = mapping of EIM elements to atom types 
+</UL>
+<P>See the <A HREF = "pair_coeff.html">pair_coeff</A> doc page for alternate ways
+to specify the path for the potential file.
+</P>
+<P>As an example like one of those above, suppose you want to model a
+system with Na and Cl atoms.  If your LAMMPS simulation has 4 atoms
+types and you want the 1st 3 to be Na, and the 4th to be Cl, you would
+use the following pair_coeff command:
+</P>
+<PRE>pair_coeff * * Na Cl ffield.eim Na Na Na Cl 
+</PRE>
+<P>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+The filename is the EIM potential file.  The Na and Cl arguments
+(before the file name) are the two elements for which info will be
+extracted from the potentail file.  The first three trailing Na
+arguments map LAMMPS atom types 1,2,3 to the EIM Na element.  The
+final Cl argument maps LAMMPS atom type 4 to the EIM Cl element.
+</P>
+<P>If a mapping value is specified as NULL, the mapping is not performed.
+This can be used when an <I>eim</I> potential is used as part of the
+<I>hybrid</I> pair style.  The NULL values are placeholders for atom types
+that will be used with other potentials.
+</P>
+<P>The ffield.eim file in the <I>potentials</I> directory of the LAMMPS
+distribution is formated as follows:
+</P>
+<P>Lines starting with # are comments and are ignored by LAMMPS.  Lines
+starting with "global:" include three global values. The first value
+divides the cations from anions, i.e., any elements with
+electronegativity above this value are viewed as anions, and any
+elements with electronegativity below this value are viewed as
+cations. The second and third values are related to the cutoff
+function - i.e. the 0.510204, 1.64498, and 0.010204 shown in the above
+equation can be derived from these values.
+</P>
+<P>Lines starting with "element:" are formatted as follows: name of
+element, atomic number, atomic mass, electronic negativity, atomic
+radius (LAMMPS ignores it), ionic radius (LAMMPS ignores it), cohesive
+energy (LAMMPS ignores it), and q0 (must be 0).
+</P>
+<P>Lines starting with "pair:" are entered as: element 1, element 2,
+r_(c,phi), r_(c,phi) (redundant for historical reasons), E_b, r_e,
+alpha, beta, r_(c,eta), A_(eta), r_(s,eta), r_(c,psi), A_(psi), zeta,
+r_(s,psi), and p.
+</P>
+<P>The lines in the file can be in any order; LAMMPS extracts the info it
+needs.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This style is part of the MANYBODY package.  It is only enabled if
+LAMMPS was built with that package (which it is by default).
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Zhou"></A>
+
+<P><B>(Zhou)</B> Zhou, submitted for publication (2010).  Please contact
+Xiaowang Zhou (Sandia) for details via email at xzhou at sandia.gov.
+</P>
+</HTML>

@@ -1,0 +1,64 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>angle_style sdk command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>angle_style sdk 
+</PRE>
+<PRE>angle_style sdk/omp 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>angle_style sdk
+angle_coeff 1 300.0 107.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>The <I>sdk</I> angle style is a combination of the harmonic angle potential,
+</P>
+<CENTER><IMG SRC = "Eqs/angle_harmonic.jpg">
+</CENTER>
+<P>where theta0 is the equilibrium value of the angle and K a prefactor,
+with the <I>repulsive</I> part of the non-bonded <I>lj/sdk</I> pair style
+between the atoms 1 and 3.  This angle potential is intended for
+coarse grained MD simulations with the CMM parametrization using the
+<A HREF = "pair_sdk.html">pair_style lj/sdk</A>.  Relative to the pair_style
+<I>lj/sdk</I>, however, the energy is shifted by <I>epsilon</I>, to avoid sudden
+jumps.  Note that the usual 1/2 factor is included in K.
+</P>
+<P>The following coefficients must be defined for each angle type via the
+<A HREF = "angle_coeff.html">angle_coeff</A> command as in the example above:
+</P>
+<UL><LI>K (energy/radian^2)
+<LI>theta0 (degrees) 
+</UL>
+<P>Theta0 is specified in degrees, but LAMMPS converts it to radians
+internally; hence the units of K are in energy/radian^2.
+The also required <I>lj/sdk</I> parameters will be extracted automatically
+from the pair_style.
+</P>
+<P><B>Restrictions:</B> 
+</P>
+<P>This angle style can only be used if LAMMPS was built with the
+USER-CG-CMM package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "angle_coeff.html">angle_coeff</A>, <A HREF = "angle_harmonic.html">angle_style
+harmonic</A>, <A HREF = "pair_sdk.html">pair_style lj/sdk</A>,
+<A HREF = "pair_sdk.html">pair_style lj/sdk/coul/long</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

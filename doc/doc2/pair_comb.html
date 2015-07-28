@@ -1,0 +1,204 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style comb command 
+</H3>
+<H3>pair_style comb/omp command 
+</H3>
+<H3>pair_style comb3 command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style comb
+pair_style comb3 keyword 
+</PRE>
+<PRE>keyword = <I>polar</I>
+  <I>polar</I> value = <I>polar_on</I> or <I>polar_off</I> = whether or not to include atomic polarization 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style comb
+pair_coeff * * ../potentials/ffield.comb Si
+pair_coeff * * ../potentials/ffield.comb Hf Si O 
+</PRE>
+<PRE>pair_style comb3 polar_off
+pair_coeff * * ../potentials/ffield.comb3 O Cu N C O 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>comb</I> computes the second-generation variable charge COMB
+(Charge-Optimized Many-Body) potential.  Style <I>comb3</I> computes the
+third-generation COMB potential.  These COMB potentials are described
+in <A HREF = "#COMB">(COMB)</A> and <A HREF = "#COMB3">(COMB3)</A>.  Briefly, the total energy
+<I>E<sub>T</sub></I> of a system of atoms is given by
+</P>
+<CENTER><IMG SRC = "Eqs/pair_comb1.jpg">
+</CENTER>
+<P>where <I>E<sub>i</sub><sup>self</sup></I> is the self-energy of atom <I>i</I> 
+(including atomic ionization energies and electron affinities),
+<I>E<sub>ij</sub><sup>short</sup></I> is the bond-order potential between 
+atoms <I>i</I> and <I>j</I>,
+<I>E<sub>ij</sub><sup>Coul</sup></I> is the Coulomb interactions,
+<I>E<sup>polar</sup></I> is the polarization term for organic systems 
+(style <I>comb3</I> only), 
+<I>E<sup>vdW</sup></I> is the van der Waals energy (style <I>comb3</I> only), 
+<I>E<sup>barr</sup></I> is a charge barrier function, and 
+<I>E<sup>corr</sup></I> are angular correction terms.
+</P>
+<P>The COMB potentials (styles <I>comb</I> and <I>comb3</I>) are variable charge
+potentials.  The equilibrium charge on each atom is calculated by the
+electronegativity equalization (QEq) method.  See <A HREF = "#Rick">Rick</A> for
+further details.  This is implemented by the <A HREF = "fix_qeq_comb.html">fix
+qeq/comb</A> command, which should normally be
+specified in the input script when running a model with the COMB
+potential.  The <A HREF = "fix_qeq_comb.html">fix qeq/comb</A> command has options
+that determine how often charge equilibration is performed, its
+convergence criterion, and which atoms are included in the
+calculation.
+</P>
+<P>Only a single pair_coeff command is used with the <I>comb</I> and <I>comb3</I>
+styles which specifies the COMB potential file with parameters for all
+needed elements.  These are mapped to LAMMPS atom types by specifying
+N additional arguments after the potential file in the pair_coeff
+command, where N is the number of LAMMPS atom types.
+</P>
+<P>For example, if your LAMMPS simulation of a Si/SiO<sub>2</sub>/
+HfO<sub>2</sub> interface has 4 atom types, and you want the 1st and
+last to be Si, the 2nd to be Hf, and the 3rd to be O, and you would
+use the following pair_coeff command:
+</P>
+<PRE>pair_coeff * * ../potentials/ffield.comb Si Hf O Si 
+</PRE>
+<P>The first two arguments must be * * so as to span all LAMMPS atom
+types.  The first and last Si arguments map LAMMPS atom types 1 and 4
+to the Si element in the <I>ffield.comb</I> file.  The second Hf argument
+maps LAMMPS atom type 2 to the Hf element, and the third O argument
+maps LAMMPS atom type 3 to the O element in the potential file.  If a
+mapping value is specified as NULL, the mapping is not performed.
+This can be used when a <I>comb</I> potential is used as part of the
+<I>hybrid</I> pair style.  The NULL values are placeholders for atom types
+that will be used with other potentials.
+</P>
+<P>For style <I>comb</I>, the provided potential file <I>ffield.comb</I> contains
+all currently-available 2nd generation COMB parameterizations: for Si,
+Cu, Hf, Ti, O, their oxides and Zr, Zn and U metals.  For style
+<I>comb3</I>, the potential file <I>ffield.comb3</I> contains all
+currently-available 3rd generation COMB paramterizations: O, Cu, N, C,
+H, Ti, Zn and Zr.  The status of the optimization of the compounds, for
+example Cu<sub>2</sub>O, TiN and hydrocarbons, are given in the
+following table:
+</P>
+<CENTER><IMG SRC = "Eqs/pair_comb2.jpg">
+</CENTER>
+<P>For style <I>comb3</I>, in addition to ffield.comb3, a special parameter
+file, <I>lib.comb3</I>, that is exclusively used for C/O/H systems, will be
+automatically loaded if carbon atom is detected in LAMMPS input
+structure.  This file must be in your working directory or in the
+directory pointed to by the environment variable LAMMPS_POTENTIALS, as
+described on the <A HREF = "pair_coeff.html">pair_coeff</A> command doc page.
+</P>
+<P>Keyword <I>polar</I> indicates whether the force field includes
+the atomic polarization.  Since the equilibration of the polarization
+has not yet been implemented, it can only set polar_off at present.
+</P>
+<P>IMPORTANT NOTE: You can not use potential file <I>ffield.comb</I> with
+style <I>comb3</I>, nor file <I>ffield.comb3</I> with style <I>comb</I>.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, where types I and J correspond to
+two different element types, mixing is performed by LAMMPS as
+described above from values in the potential file.
+</P>
+<P>These pair styles does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift, table, and tail options.
+</P>
+<P>These pair styles do not write its information to <A HREF = "restart.html">binary restart
+files</A>, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style, pair_coeff, and <A HREF = "fix_qeq_comb.html">fix
+qeq/comb</A> commands in an input script that reads a
+restart file.
+</P>
+<P>These pair styles can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>These pair styles are part of the MANYBODY package.  It is only enabled
+if LAMMPS was built with that package (which it is by default).  See
+the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
+</P>
+<P>These pair styles requires the <A HREF = "newton.html">newton</A> setting to be "on"
+for pair interactions.
+</P>
+<P>The COMB potentials in the <I>ffield.comb</I> and <I>ffield.comb3</I> files provided 
+with LAMMPS (see the potentials directory) are parameterized for metal
+<A HREF = "units.html">units</A>.  You can use the COMB potential with any LAMMPS
+units, but you would need to create your own COMB potential file with
+coefficients listed in the appropriate units if your simulation
+doesn't use "metal" units.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_style.html">pair_style</A>, <A HREF = "pair_coeff.html">pair_coeff</A>, 
+<A HREF = "fix_qeq_comb.html">fix_qeq/comb</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "COMB"></A>
+
+<P><B>(COMB)</B>  T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, and 
+S. R. Phillpot, Phys. Rev. B 81, 125328 (2010)
+</P>
+<A NAME = "COMB3"></A>
+
+<P><B>(COMB3)</B> T. Liang, T.-R. Shan, Y.-T. Cheng, B. D. Devine, M. Noordhoek, 
+Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. & Eng: R 74, 
+255-279 (2013).
+</P>
+<A NAME = "Rick"></A>
+
+<P><B>(Rick)</B> S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
+(1994).
+</P>
+</HTML>

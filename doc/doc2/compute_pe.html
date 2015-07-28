@@ -1,0 +1,107 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute pe command 
+</H3>
+<H3>compute pe/cuda command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID pe keyword ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>pe = style name of this compute command
+<LI>zero or more keywords may be appended
+<LI>keyword = <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or <I>kspace</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all pe
+compute molPE all pe bond angle dihedral improper 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the potential energy of the
+entire system of atoms.  The specified group must be "all".  See the
+<A HREF = "compute_pe_atom.html">compute pe/atom</A> command if you want per-atom
+energies.  These per-atom values could be summed for a group of atoms
+via the <A HREF = "compute_reduce.html">compute reduce</A> command.
+</P>
+<P>The energy is calculated by the various pair, bond, etc potentials
+defined for the simulation.  If no extra keywords are listed, then the
+potential energy is the sum of pair, bond, angle, dihedral, improper,
+and kspace (long-range) energy.  If any extra keywords are listed,
+then only those components are summed to compute the potential energy.
+</P>
+<P>The Kspace contribution requires 1 extra FFT each timestep the energy
+is calculated, if using the PPPM solver via the <A HREF = "kspace_style.html">kspace_style
+pppm</A> command.  Thus it can increase the cost of the
+PPPM calculation if it is needed on a large fraction of the simulation
+timesteps.
+</P>
+<P>Various fixes can contribute to the total potential energy of the
+system.  See the doc pages for <A HREF = "fix.html">individual fixes</A> for
+details.  The <I>thermo</I> option of the
+<A HREF = "compute_modify.html">compute_modify</A> command determines whether these
+contributions are added into the computed potential energy.  If no
+keywords are specified the default is <I>yes</I>.  If any keywords are
+specified, the default is <I>no</I>.
+</P>
+<P>A compute of this style with the ID of "thermo_pe" is created when
+LAMMPS starts up, as if this command were in the input script:
+</P>
+<PRE>compute thermo_pe all pe 
+</PRE>
+<P>See the "thermo_style" command for more details.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I> suffix are functionally the same as the
+corresponding style without the suffix.  They have been optimized to
+run faster, depending on your available hardware, as discussed in
+<A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.  The
+accelerated styles take the same arguments and should produce the same
+results, except for round-off and precision issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA package.  They are
+only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar (the potential energy).  This
+value can be used by any command that uses a global scalar value from
+a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
+15</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The scalar value calculated by this compute is "extensive".  The
+scalar value will be in energy <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_pe_atom.html">compute pe/atom</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,159 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix nvt/asphere command 
+</H3>
+<H3>fix nvt/asphere/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID nvt/asphere keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>nvt/asphere = style name of this fix command
+<LI>additional thermostat related keyword/value pairs from the <A HREF = "fix_nh.html">fix nvt</A> command can be appended 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all nvt/asphere temp 300.0 300.0 100.0
+fix 1 all nvt/asphere temp 300.0 300.0 100.0 drag 0.2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Perform constant NVT integration to update position, velocity,
+orientation, and angular velocity each timestep for aspherical or
+ellipsoidal particles in the group using a Nose/Hoover temperature
+thermostat.  V is volume; T is temperature.  This creates a system
+trajectory consistent with the canonical ensemble.
+</P>
+<P>This fix differs from the <A HREF = "fix_nh.html">fix nvt</A> command, which
+assumes point particles and only updates their position and velocity.
+</P>
+<P>The thermostat is applied to both the translational and rotational
+degrees of freedom for the aspherical particles, assuming a compute is
+used which calculates a temperature that includes the rotational
+degrees of freedom (see below).  The translational degrees of freedom
+can also have a bias velocity removed from them before thermostatting
+takes place; see the description below.
+</P>
+<P>Additional parameters affecting the thermostat are specified by
+keywords and values documented with the <A HREF = "fix_nh.html">fix nvt</A>
+command.  See, for example, discussion of the <I>temp</I> and <I>drag</I>
+keywords.
+</P>
+<P>This fix computes a temperature each timestep.  To do this, the fix
+creates its own compute of style "temp/asphere", as if this command 
+had been issued:
+</P>
+<PRE>compute fix-ID_temp group-ID temp/asphere 
+</PRE>
+<P>See the <A HREF = "compute_temp_asphere.html">compute temp/asphere</A> command for
+details.  Note that the ID of the new compute is the fix-ID +
+underscore + "temp", and the group for the new compute is the same as
+the fix group.
+</P>
+<P>Note that this is NOT the compute used by thermodynamic output (see
+the <A HREF = "thermo_style.html">thermo_style</A> command) with ID = <I>thermo_temp</I>.
+This means you can change the attributes of this fix's temperature
+(e.g. its degrees-of-freedom) via the
+<A HREF = "compute_modify.html">compute_modify</A> command or print this temperature
+during thermodynamic output via the <A HREF = "thermo_style.html">thermo_style
+custom</A> command using the appropriate compute-ID.
+It also means that changing attributes of <I>thermo_temp</I> will have no
+effect on this fix.
+</P>
+<P>Like other fixes that perform thermostatting, this fix can be used
+with <A HREF = "compute.html">compute commands</A> that calculate a temperature
+after removing a "bias" from the atom velocities.  E.g. removing the
+center-of-mass velocity from a group of atoms or only calculating
+temperature on the x-component of velocity or only calculating
+temperature for atoms in a geometric region.  This is not done by
+default, but only if the <A HREF = "fix_modify.html">fix_modify</A> command is used
+to assign a temperature compute to this fix that includes such a bias
+term.  See the doc pages for individual <A HREF = "compute.html">compute
+commands</A> to determine which ones include a bias.  In
+this case, the thermostat works in the following manner: the current
+temperature is calculated taking the bias into account, bias is
+removed from each atom, thermostatting is performed on the remaining
+thermal degrees of freedom, and the bias is added back in.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the state of the Nose/Hoover thermostat to <A HREF = "restart.html">binary
+restart files</A>.  See the <A HREF = "read_restart.html">read_restart</A>
+command for info on how to re-specify a fix in an input script that
+reads a restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+fix.  You can use it to assign a <A HREF = "compute.html">compute</A> you have
+defined to this fix which will be used in its thermostatting
+procedure.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy change induced by Nose/Hoover thermostatting to
+the system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.
+</P>
+<P>This fix computes the same global scalar and global vector of
+quantities as does the <A HREF = "fix_nh.html">fix nvt</A> command.
+</P>
+<P>This fix can ramp its target temperature over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
+was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>This fix requires that atoms store torque and angular momementum and a
+quaternion as defined by the <A HREF = "atom_style.html">atom_style ellipsoid</A>
+command.
+</P>
+<P>All particles in the group must be finite-size.  They cannot be point
+particles, but they can be aspherical or spherical as defined by their
+shape attribute.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "fix_nve_asphere.html">fix nve_asphere</A>, <A HREF = "fix_npt_asphere.html">fix
+npt_asphere</A>, <A HREF = "fix_modify.html">fix_modify</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

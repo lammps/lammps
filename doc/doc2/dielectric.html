@@ -1,0 +1,44 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dielectric command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dielectric value 
+</PRE>
+<UL><LI>value = dielectric constant 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>dielectric 2.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the dielectric constant for Coulombic interactions (pairwise and
+long-range) to this value.  The constant is unitless, since it is used
+to reduce the strength of the interactions.  The value is used in the
+denominator of the formulas for Coulombic interactions - e.g. a value
+of 4.0 reduces the Coulombic interactions to 25% of their default
+strength.  See the <A HREF = "pair_style.html">pair_style</A> command for more
+details.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_style.html">pair_style</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>dielectric 1.0 
+</PRE>
+</HTML>

@@ -1,0 +1,159 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>delete_bonds command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>delete_bonds group-ID style arg keyword ... 
+</PRE>
+<UL><LI>group-ID = group ID 
+
+<LI>style = <I>multi</I> or <I>atom</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or
+        <I>improper</I> or <I>stats</I> 
+
+<PRE>  <I>multi</I> arg = none
+  <I>atom</I> arg = an atom type or range of types (see below)
+  <I>bond</I> arg = a bond type or range of types (see below)
+  <I>angle</I> arg = an angle type or range of types (see below)
+  <I>dihedral</I> arg = a dihedral type or range of types (see below)
+  <I>improper</I> arg = an improper type or range of types (see below)
+  <I>stats</I> arg = none 
+</PRE>
+<LI>zero or more keywords may be appended 
+
+<LI>keyword = <I>any</I> or <I>undo</I> or <I>remove</I> or <I>special</I> 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>delete_bonds frozen multi remove
+delete_bonds all atom 4 special
+delete_bonds all bond 0*3 special
+delete_bonds all stats 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Turn off (or on) molecular topology interactions, i.e. bonds, angles,
+dihedrals, impropers.  This command is useful for deleting
+interactions that have been previously turned off by bond-breaking
+potentials.  It is also useful for turning off topology interactions
+between frozen or rigid atoms.  Pairwise interactions can be turned
+off via the <A HREF = "neigh_modify.html">neigh_modify exclude</A> command.  The
+<A HREF = "fix_shake.html">fix shake</A> command also effectively turns off certain
+bond and angle interactions.
+</P>
+<P>For all styles, by default, an interaction is only turned off (or on)
+if all the atoms involved are in the specified group.  See the <I>any</I>
+keyword to change the behavior.
+</P>
+<P>Several of the styles (<I>atom</I>, <I>bond</I>, <I>angle</I>, <I>dihedral</I>,
+<I>improper</I>) take a <I>type</I> as an argument.  The specified <I>type</I> should
+be an integer from 0 to N, where N is the number of relevant types
+(atom types, bond types, etc).  A value of 0 is only relevant for
+style <I>bond</I>; see details below.  In all cases, a wildcard asterisk
+can be used in place of or in conjunction with the <I>type</I> argument to
+specify a range of types.  This takes the form "*" or "*n" or "n*" or
+"m*n".  If N = the number of types, then an asterisk with no numeric
+values means all types from 0 to N.  A leading asterisk means all
+types from 0 to n (inclusive).  A trailing asterisk means all types
+from n to N (inclusive).  A middle asterisk means all types from m to
+n (inclusive).  Note that it is fine to include a type of 0 for
+non-bond styles; it will simply be ignored.
+</P>
+<P>For style <I>multi</I> all bond, angle, dihedral, and improper interactions
+of any type, involving atoms in the group, are turned off.
+</P>
+<P>Style <I>atom</I> is the same as style <I>multi</I> except that in addition, one
+or more of the atoms involved in the bond, angle, dihedral, or
+improper interaction must also be of the specified atom type.
+</P>
+<P>For style <I>bond</I>, only bonds are candidates for turn-off, and the bond
+must also be of the specified type.  Styles <I>angle</I>, <I>dihedral</I>, and
+<I>improper</I> are treated similarly.
+</P>
+<P>For style <I>bond</I>, you can set the type to 0 to delete bonds that have
+been previously broken by a bond-breaking potential (which sets the
+bond type to 0 when a bond is broken); e.g. see the <A HREF = "bond_style.html">bond_style
+quartic</A> command.
+</P>
+<P>For style <I>stats</I> no interactions are turned off (or on); the status
+of all interactions in the specified group is simply reported.  This
+is useful for diagnostic purposes if bonds have been turned off by a
+bond-breaking potential during a previous run.
+</P>
+<P>The default behavior of the delete_bonds command is to turn off
+interactions by toggling their type to a negative value, but not to
+permanently remove the interaction.  E.g. a bond_type of 2 is set to
+-2.  The neighbor list creation routines will not include such an
+interaction in their interaction lists.  The default is also to not
+alter the list of 1-2, 1-3, 1-4 neighbors computed by the
+<A HREF = "special_bonds.html">special_bonds</A> command and used to weight pairwise
+force and energy calculations.  This means that pairwise computations
+will proceed as if the bond (or angle, etc) were still turned on.
+</P>
+<P>Several keywords can be appended to the argument list to alter the
+default behaviors.
+</P>
+<P>The <I>any</I> keyword changes the requirement that all atoms in the bond
+(angle, etc) must be in the specified group in order to turn-off the
+interaction.  Instead, if any of the atoms in the interaction are in
+the specified group, it will be turned off (or on if the <I>undo</I>
+keyword is used).
+</P>
+<P>The <I>undo</I> keyword inverts the delete_bonds command so that the
+specified bonds, angles, etc are turned on if they are currently
+turned off.  This means a negative value is toggled to positive.  For
+example, for style <I>angle</I>, if <I>type</I> is specified as 2, then all
+angles with current type = -2, are reset to type = 2.  Note that the
+<A HREF = "fix_shake.html">fix shake</A> command also sets bond and angle types
+negative, so this option should not be used on those interactions.
+</P>
+<P>The <I>remove</I> keyword is invoked at the end of the delete_bonds
+operation.  It causes turned-off bonds (angles, etc) to be removed
+from each atom's data structure and then adjusts the global bond
+(angle, etc) counts accordingly.  Removal is a permanent change;
+removed bonds cannot be turned back on via the <I>undo</I> keyword.
+Removal does not alter the pairwise 1-2, 1-3, 1-4 weighting list.
+</P>
+<P>The <I>special</I> keyword is invoked at the end of the delete_bonds
+operation, after (optional) removal.  It re-computes the pairwise 1-2,
+1-3, 1-4 weighting list.  The weighting list computation treats
+turned-off bonds the same as turned-on.  Thus, turned-off bonds must
+be removed if you wish to change the weighting list. 
+</P>
+<P>Note that the choice of <I>remove</I> and <I>special</I> options affects how
+1-2, 1-3, 1-4 pairwise interactions will be computed across bonds that
+have been modified by the delete_bonds command.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command requires inter-processor communication to coordinate the
+deleting of bonds.  This means that your system must be ready to
+perform a simulation before using this command (force fields setup,
+atom masses set, etc).
+</P>
+<P>If deleted bonds (angles, etc) are removed but the 1-2, 1-3, 1-4
+weighting list is not recomputed, this can cause a later <A HREF = "fix_shake.html">fix
+shake</A> command to fail due to an atom's bonds being
+inconsistent with the weighting list.  This should only happen if the
+group used in the fix command includes both atoms in the bond, in
+which case you probably should be recomputing the weighting list.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "neigh_modify.html">neigh_modify</A> exclude,
+<A HREF = "special_bonds.html">special_bonds</A>, <A HREF = "fix_shake.html">fix shake</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

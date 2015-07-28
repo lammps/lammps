@@ -1,0 +1,53 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>dimension command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>dimension N 
+</PRE>
+<UL><LI>N = 2 or 3 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>dimension 2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the dimensionality of the simulation.  By default LAMMPS runs 3d
+simulations.  To run a 2d simulation, this command should be used
+prior to setting up a simulation box via the
+<A HREF = "create_box.html">create_box</A> or <A HREF = "read_data.html">read_data</A> commands.
+Restart files also store this setting.
+</P>
+<P>See the discussion in <A HREF = "Section_howto.html">Section_howto</A> for
+additional instructions on how to run 2d simulations.
+</P>
+<P>IMPORTANT NOTE: Some models in LAMMPS treat particles as finite-size
+spheres or ellipsoids, as opposed to point particles.  In 2d, the
+particles will still be spheres or ellipsoids, not circular disks or
+ellipses, meaning their moment of inertia will be the same as in 3d.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command must be used before the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_enforce2d.html">fix enforce2d</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>dimension 3 
+</PRE>
+</HTML>

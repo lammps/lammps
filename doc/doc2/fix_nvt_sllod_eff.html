@@ -1,0 +1,100 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix nvt/sllod/eff command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID nvt/sllod/eff keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>nvt/sllod/eff = style name of this fix command
+<LI>additional thermostat related keyword/value pairs from the <A HREF = "fix_nh_eff.html">fix nvt/eff</A> command can be appended 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all nvt/sllod/eff temp 300.0 300.0 0.1
+fix 1 all nvt/sllod/eff temp 300.0 300.0 0.1 drag 0.2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Perform constant NVT integration to update positions and velocities
+each timestep for nuclei and electrons in the group for the <A HREF = "pair_eff.html">electron
+force field</A> model, using a Nose/Hoover temperature
+thermostat.  V is volume; T is temperature.  This creates a system
+trajectory consistent with the canonical ensemble.
+</P>
+<P>The operation of this fix is exactly like that described by the <A HREF = "fix_nvt_sllod.html">fix
+nvt/sllod</A> command, except that the radius and
+radial velocity of electrons are also updated and thermostatted.
+Likewise the temperature calculated by the fix, using the compute it
+creates (as discussed in the <A HREF = "fix_nh.html">fix nvt, npt, and nph</A> doc
+page), is performed with a <A HREF = "compute_temp_deform_eff.html">compute
+temp/deform/eff</A> commmand that includes
+the eFF contribution to the temperature from the electron radial
+velocity.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>This fix writes the state of the Nose/Hoover thermostat to <A HREF = "restart.html">binary
+restart files</A>.  See the <A HREF = "read_restart.html">read_restart</A>
+command for info on how to re-specify a fix in an input script that
+reads a restart file, so that the operation of the fix continues in an
+uninterrupted fashion.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+fix.  You can use it to assign a <A HREF = "compute.html">compute</A> you have
+defined to this fix which will be used in its thermostatting
+procedure.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy change induced by Nose/Hoover thermostatting to
+the system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.
+</P>
+<P>This fix computes the same global scalar and global vector of
+quantities as does the <A HREF = "fix_nh_eff.html">fix nvt/eff</A> command.
+</P>
+<P>This fix can ramp its target temperature over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> 
+</P>
+<P>This fix is part of the USER-EFF package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>This fix works best without Nose-Hoover chain thermostats, i.e. using
+tchain = 1.  Setting tchain to larger values can result in poor
+equilibration.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_nve_eff.html">fix nve/eff</A>, <A HREF = "fix_nh_eff.html">fix nvt/eff</A>, <A HREF = "fix_langevin_eff.html">fix
+langevin/eff</A>, <A HREF = "fix_nvt_sllod.html">fix
+nvt/sllod</A>, <A HREF = "fix_modify.html">fix_modify</A>, <A HREF = "compute_temp_deform_eff.html">compute
+temp/deform/eff</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>Same as <A HREF = "fix_nh_eff.html">fix nvt/eff</A>, except tchain = 1.
+</P>
+<HR>
+
+<A NAME = "Tuckerman"></A>
+
+<P><B>(Tuckerman)</B> Tuckerman, Mundy, Balasubramanian, Klein, J Chem Phys,
+106, 5615 (1997).
+</P>
+</HTML>

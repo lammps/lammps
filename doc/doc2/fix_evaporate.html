@@ -1,0 +1,109 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix evaporate command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID evaporate N M region-ID seed 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>evaporate = style name of this fix command 
+
+<LI>N = delete atoms every this many timesteps 
+
+<LI>M = number of atoms to delete each time 
+
+<LI>region-ID = ID of region within which to perform deletions 
+
+<LI>seed = random number seed to use for choosing atoms to delete 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<PRE>keyword = <I>molecule</I>
+  <I>molecule</I> value = <I>no</I> or <I>yes</I> 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 solvent evaporate 1000 10 surface 49892
+fix 1 solvent evaporate 1000 10 surface 38277 molecule yes 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Remove M atoms from the simulation every N steps.  This can be used,
+for example, to model evaporation of solvent particles or moleclues
+(i.e. drying) of a system.  Every N steps, the number of atoms in the
+fix group and within the specifed region are counted.  M of these are
+chosen at random and deleted.  If there are less than M eligible
+particles, then all of them are deleted.
+</P>
+<P>If the setting for the <I>molecule</I> keyword is <I>no</I>, then only single
+atoms are deleted.  In this case, you should insure you do not delete
+only a portion of a molecule (only some of its atoms), or LAMMPS will
+soon generate an error when it tries to find those atoms.  LAMMPS will
+warn you if any of the atoms eligible for deletion have a non-zero
+molecule ID, but does not check for this at the time of deletion.
+</P>
+<P>If the setting for the <I>molecule</I> keyword is <I>yes</I>, then when an atom
+is chosen for deletion, the entire molecule it is part of is deleted.
+The count of deleted atoms is incremented by the number of atoms in
+the molecule, which may make it exceed <I>M</I>.  If the molecule ID of the
+chosen atom is 0, then it is assumed to not be part of a molecule, and
+just the single atom is deleted.
+</P>
+<P>As an example, if you wish to delete 10 water molecules every <I>N</I>
+steps, you should set <I>M</I> to 30.  If only the water's oxygen atoms
+were in the fix group, then two hydrogen atoms would be deleted when
+an oxygen atom is selected for deletion, whether the hydrogens are
+inside the evaporation region or not.
+</P>
+<P>Note that neighbor lists are re-built on timesteps that atoms are
+removed.  Thus you should not remove atoms too frequently or you will
+incur overhead due to the cost of building neighbor lists.
+</P>
+<P>IMPORTANT NOTE: If you are monitoring the temperature of a system
+where the atom count is changing due to evaporation, you typically
+should use the <A HREF = "compute_modify.html">compute_modify dynamic yes</A>
+command for the temperature compute you are using.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.
+</P>
+<P>This fix computes a global scalar, which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+cummulative number of deleted atoms.  The scalar value calculated by
+this fix is "intensive".
+</P>
+<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
+the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
+minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_deposit.html">fix deposit</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are molecule = no.
+</P>
+</HTML>

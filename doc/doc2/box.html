@@ -1,0 +1,69 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>box command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>box keyword value ... 
+</PRE>
+<UL><LI>one or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>tilt</I> 
+
+<PRE>  <I>tilt</I> value = <I>small</I> or <I>large</I> 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>box tilt large
+box tilt small 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set attributes of the simulation box.
+</P>
+<P>For triclinic (non-orthogonal) simulation boxes, the <I>tilt</I> keyword
+allows simulation domains to be created with arbitrary tilt factors,
+e.g. via the <A HREF = "create_box.html">create_box</A> or
+<A HREF = "read_data.html">read_data</A> commands.  Tilt factors determine how
+skewed the triclinic box is; see <A HREF = "Section_howto.html#howto_12">this
+section</A> of the manual for a discussion of
+triclinic boxes in LAMMPS.
+</P>
+<P>LAMMPS normally requires that no tilt factor can skew the box more
+than half the distance of the parallel box length, which is the 1st
+dimension in the tilt factor (x for xz).  If <I>tilt</I> is set to
+<I>small</I>, which is the default, then an error will be
+generated if a box is created which exceeds this limit.  If <I>tilt</I>
+is set to <I>large</I>, then no limit is enforced.  You can create
+a box with any tilt factors you wish.
+</P>
+<P>Note that if a simulation box has a large tilt factor, LAMMPS will run
+less efficiently, due to the large volume of communication needed to
+acquire ghost atoms around a processor's irregular-shaped sub-domain.
+For extreme values of tilt, LAMMPS may also lose atoms and generate an
+error.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command cannot be used after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command or
+<A HREF = "read_restart.html">read_restart</A> command.
+</P>
+<P><B>Related commands:</B> none
+</P>
+<P><B>Default:</B>
+</P>
+<P>The default value is tilt = small.
+</P>
+</HTML>

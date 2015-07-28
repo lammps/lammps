@@ -1,0 +1,78 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute temp/deform/eff command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID temp/deform/eff 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>temp/deform/eff = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute myTemp all temp/deform/eff 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the temperature of a group of
+nuclei and electrons in the <A HREF = "pair_eff.html">electron force field</A>
+model, after subtracting out a streaming velocity induced by the
+simulation box changing size and/or shape, for example in a
+non-equilibrium MD (NEMD) simulation.  The size/shape change is
+induced by use of the <A HREF = "fix_deform_eff.html">fix deform/eff</A> command.  A
+compute of this style is created by the <A HREF = "fix_nvt_sllod_eff.html">fix
+nvt/sllod/eff</A> command to compute the thermal
+temperature of atoms for thermostatting purposes.  A compute of this
+style can also be used by any command that computes a temperature,
+e.g. <A HREF = "thermo_modify.html">thermo_modify</A>, <A HREF = "fix_nh.html">fix npt/eff</A>,
+etc.
+</P>
+<P>The calculation performed by this compute is exactly like that
+described by the <A HREF = "compute_temp_deform.html">compute temp/deform</A>
+command, except that the formula for the temperature includes the
+radial electron velocity contributions, as discussed by the <A HREF = "compute_temp_eff.html">compute
+temp/eff</A> command.  Note that only the
+translational degrees of freedom for each nuclei or electron are
+affected by the streaming velocity adjustment.  The radial velocity
+component of the electrons is not affected.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar (the temperature) and a global
+vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+These values can be used by any command that uses global scalar or
+vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
+section</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The scalar value calculated by this compute is "intensive".  The
+vector values are "extensive".
+</P>
+<P>The scalar value will be in temperature <A HREF = "units.html">units</A>.  The
+vector values will be in energy <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute is part of the USER-EFF package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_temp_ramp.html">compute temp/ramp</A>, <A HREF = "fix_deform_eff.html">fix
+deform/eff</A>, <A HREF = "fix_nvt_sllod_eff.html">fix
+nvt/sllod/eff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

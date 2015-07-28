@@ -1,0 +1,38 @@
+\documentclass[12pt]{article}
+
+\begin{document}
+
+\begin{eqnarray*}
+E_{LJ} & = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - 
+                        \left(\frac{\sigma}{r}\right)^6 \right] \\
+E_{qq} & = & \frac{q_i q_j}{r} \\
+E_{qp} & = & \frac{q}{r^3} (p \bullet \vec{r}) \\
+E_{pp} & = & \frac{1}{r^3} (\vec{p_i} \bullet \vec{p_j}) - 
+             \frac{3}{r^5} (\vec{p_i} \bullet \vec{r}) (\vec{p_j} \bullet \vec{r}) 
+\end{eqnarray*}                           
+
+\begin{eqnarray*}
+F_{qq} & = & \frac{q_i q_j}{r^3} \vec{r} \\
+F_{qp} & = & -\frac{q}{r^3} \vec{p} + \frac{3q}{r^5} 
+             (\vec{p} \bullet \vec{r}) \vec{r} \\
+F_{pp} & = & \frac{3}{r^5} (\vec{p_i} \bullet \vec{p_j}) \vec{r} -
+             \frac{15}{r^7} (\vec{p_i} \bullet \vec{r}) 
+	     (\vec{p_j} \bullet \vec{r}) \vec{r} + 
+             \frac{3}{r^5} \left[ (\vec{p_j} \bullet \vec{r}) \vec{p_i} + 
+             (\vec{p_i} \bullet \vec{r}) \vec{p_j} \right]
+\end{eqnarray*}                           
+
+\begin{eqnarray*}
+T_{pq} = T_{ij} & = & \frac{q_j}{r^3} (\vec{p_i} \times \vec{r}) \\
+T_{qp} = T_{ji} & = & - \frac{q_i}{r^3} (\vec{p_j} \times \vec{r}) \\
+T_{pp} = T_{ij} & = & -\frac{1}{r^3} (\vec{p_i} \times \vec{p_j}) + 
+                      \frac{3}{r^5} (\vec{p_j} \bullet \vec{r})
+		      (\vec{p_i} \times \vec{r}) \\
+T_{pp} = T_{ji} & = & -\frac{1}{r^3} (\vec{p_j} \times \vec{p_i}) + 
+                      \frac{3}{r^5} (\vec{p_i} \bullet \vec{r}) 
+		      (\vec{p_j} \times \vec{r}) \\
+\end{eqnarray*}                           
+
+\end{document}
+
+

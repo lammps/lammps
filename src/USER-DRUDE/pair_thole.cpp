@@ -55,7 +55,7 @@ void PairThole::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qi,qj,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
-  double r,rsq,r2inv,rinv,forcecoul,factor_coul;
+  double r,rsq,r2inv,rinv,factor_coul;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double factor_f,factor_e;
   int di,dj;

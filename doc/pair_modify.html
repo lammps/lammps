@@ -71,22 +71,22 @@
         
           
           
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">pair_modify command</a><ul>
+<li><a class="reference internal" href="#syntax">Syntax</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#description">Description</a><ul>
+<li><a class="reference internal" href="#use-of-special-keyword">Use of <em>special</em> keyword</a></li>
 </ul>
-
+</li>
+<li><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+</ul>
+</div>
           
         
       </div>
@@ -132,14 +132,14 @@
 </div>
 <ul class="simple">
 <li>one or more keyword/value pairs may be listed</li>
-<li>keyword = <em>pair</em> or <em>shift</em> or <em>mix</em> or <em>table</em> or <em>table/disp</em> or <em>tabinner</em> or <em>tabinner/disp</em> or <em>tail</em> or <em>compute</em></li>
+<li>keyword = <em>pair</em> or <em>special</em> or <em>shift</em> or <em>mix</em> or <em>table</em> or <em>table/disp</em> or <em>tabinner</em> or <em>tabinner/disp</em> or <em>tail</em> or <em>compute</em></li>
 </ul>
 <pre class="literal-block">
 <em>pair</em> values = sub-style N special which w1 wt2 wt3
     sub-style = sub-style of <a class="reference internal" href="pair_hybrid.html"><em>pair hybrid</em></a>
     N = which instance of sub-style (only if sub-style is used multiple times)
-    special = optional if want to override <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> settings for sub-style
-    which = <em>lj/coul</em> or <em>lj</em> or <em>coul</em>
+  <em>special</em> values = flavor w1 w2 w3
+    flavor = <em>lj/coul</em> or <em>lj</em> or <em>coul</em>
     w1,w2,w3 = weights from 0.0 to 1.0 inclusive
   <em>mix</em> value = <em>geometric</em> or <em>arithmetic</em> or <em>sixthpower</em>
   <em>shift</em> value = <em>yes</em> or <em>no</em>
@@ -167,15 +167,23 @@ pair_modify table 12
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>Modify the parameters of the currently defined pair style.  Not all
 parameters are relevant to all pair styles.</p>
-<p>If used, the <em>pair</em> keyword and its optional <em>special</em> arguments must
-appear first in the list of keywords.  It can only be used with the
-<a class="reference internal" href="pair_hybrid.html"><em>hybrid and hybrid/overlay</em></a> pair styles and when used
-it means that all the following parameters will only be modified for
-the specified sub-style.  If the <em>pair</em> keyword is not used, and the
-pair style is <em>hybrid</em> or <em>hybrid/overlay</em>, all the following
-parameters keywords will be applied to all sub-styles.  A more detailed
-explanation of the <em>pair</em> keyword syntax, including its optional
-<em>special</em> argument are given below.</p>
+<p>If used, the <em>pair</em> keyword must appear first in the list of keywords.
+It can only be used with the <a class="reference internal" href="pair_hybrid.html"><em>hybrid and hybrid/overlay</em></a> pair styles.  It means that all the
+following parameters will only be modified for the specified
+sub-style.  If the sub-style is defined multiple times, then an
+additional numeric argument <em>N</em> must also be specified, which is a
+number from 1 to M where M is the number of times the sub-style was
+listed in the <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> command.  The extra
+number indicates which instance of the sub-style the remaining
+keywords will be applied to.  Note that if the <em>pair</em> keyword is not
+used, and the pair style is <em>hybrid</em> or <em>hybrid/overlay</em>, then all the
+specified keywords will be applied to all sub-styles.</p>
+<p>If used, the <em>special</em> keyword must appear second in the list of
+keywords, and must follow the <em>pair</em> keyword.  Like the <em>pair</em>
+keyword, it also can only be used with the <a class="reference internal" href="pair_hybrid.html"><em>hybrid and hybrid/overlay</em></a> pair styles.  Its parameters are
+similar to the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command, and it
+overrides the special_bond settings for the specified sub-style.  More
+details are given below.</p>
 <p>The <em>mix</em> keyword affects pair coefficients for interactions between
 atoms of type I and J, when I != J and the coefficients are not
 explicitly set in the input script.  Note that coefficients for I = J
@@ -308,45 +316,25 @@ a pair style will not work, because the
 <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command requires a Kspace-compatible
 pair style be defined.</p>
 <hr class="docutils" />
-<div class="section" id="use-of-the-pair-keyword">
-<h3>Use of the pair keyword<a class="headerlink" href="#use-of-the-pair-keyword" title="Permalink to this headline">¶</a></h3>
-<p>If used, the <em>pair</em> keyword and its optional <em>special</em> arguments must
-appear first in the list of keywords.  It can only be used with the
-<a class="reference internal" href="pair_hybrid.html"><em>hybrid and hybrid/overlay</em></a> pair styles and when used
-it means that all the following parameters will only be modified for
-the specified sub-style.  If the <em>pair</em> keyword is not used, and the
-pair style is <em>hybrid</em> or <em>hybrid/overlay</em>, all the following
-parameters keywords will be applied to all sub-styles.  A more detailed
-explanation of the <em>pair</em> keyword syntax, including its optional
-<em>special</em> argument are given below.</p>
-<p>As mentioned above, the <em>pair</em> keyword can only be used with the
-<a class="reference internal" href="pair_hybrid.html"><em>hybrid and hybrid/overlay</em></a> pair styles, and must
-come first in the list of keywords.  If used, the subsequent keywords
-will only be applied to the specified sub-style.  If the sub-style is
-defined multiple times, then an additional numeric argument <em>N</em> must
-also be specified, which is a number from 1 to M where M is the number
-of times the sub-style was listed in the <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid</em></a> command.  The extra number indicates which
-instance of the sub-style the pair_modify keywords will be applied to.</p>
-<p>If the optional <em>special</em> argument is used, then the settings of the
-<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command are overridden for the
-specified sub-style.  The <em>special</em> argument requires 4 additional
-arguments: <em>which</em> and w1,w2,w3.  These are analogous to arguments in
-the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command.  The <em>which</em> argument
-can be <em>lj</em> to change the Lennard-Jones settings, <em>coul</em> to change the
-Coulombic settings, or <em>lj/coul</em> to change both to the same values.
-The w1,w2,w3 arguments are numeric weights from 0.0 to 1.0 inclusive,
-for the 1-2, 1-3, and 1-4 bond topology neighbors.  For example, these
-commands</p>
+<div class="section" id="use-of-special-keyword">
+<h3>Use of <em>special</em> keyword<a class="headerlink" href="#use-of-special-keyword" title="Permalink to this headline">¶</a></h3>
+<p>The <em>special</em> keyword requires 4 values similar to those specified
+with the <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command, <em>flavor</em> and
+w1,w2,w3.  The <em>flavor</em> argument can be <em>lj</em> to change the
+Lennard-Jones settings, <em>coul</em> to change the Coulombic settings, or
+<em>lj/coul</em> to change both to the same set of 3 values.  The w1,w2,w3
+values are numeric weights from 0.0 to 1.0 inclusive, for the 1-2,
+1-3, and 1-4 bond topology neighbors.  For example, these commands</p>
 <div class="highlight-python"><div class="highlight"><pre>special_bonds lj/coul 0.0 0.0 0.1
-pair_hybrid lj/charmm/coul/charmm 8.0 10.0 lj/cut/coul/cut 10.0
-pair_modify pair lj/charmm/coul/charmm special lj/coul 0.0 0.0 0.0
-pair_modify pair lj/cut/coul/cut special lj 0.0 0.0 0.5
-pair_modify pair lj/cut/coul/cut special coul 0.0 0.0 0.8333
+pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
+pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
+pair_modify pair lj/cut/coul/long special lj 0.0 0.0 0.5
+pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.8333
 </pre></div>
 </div>
 <p>show how to use both the CHARMM and AMBER force fields in a single
 simulation.  The first pair modify command sets the special bonds to
-CHARMM values (all 0.0).  The latter 2 pair modify commands set the
+CHARMM values (all 0.0).  The last 2 pair modify commands set the
 standard AMBER values for LJ and Coulombic weights.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -354,13 +342,13 @@ standard AMBER values for LJ and Coulombic weights.</p>
 <a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command affect the construction of
 neighbor lists.  Weights of 0.0 (for 1-2, 1-3, or 1-4 neighbors)
 exclude those pairs from the neighbor list entirely.  Weights of 1.0
-store the neighbor with no weight flag applied.  Neither of these
-neighbor effects can be changed by setting a sub-style weight to a
+store the neighbor with no weighting applied.  The format of the
+neighbor list cannot be changed by setting a sub-style weight to a
 non-zero or non-one value.  Thus an error is generated if the new
-sub-style value is not 0.0 (or 1.0) and the global setting is 0.0 (or
+sub-style value is not 0.0 (or 1.0) when the global setting is 0.0 (or
 1.0).  Note that as in the example above, the global factor can simply
 be set a value other than 0.0 or 1.0, then overridden by any of the
-sub-styles to a value that is 0.0 or 1.0.</p>
+sub-styles with a value that is 0.0 or 1.0.</p>
 </div>
 </div>
 </div>

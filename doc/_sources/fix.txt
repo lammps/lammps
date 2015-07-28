@@ -177,7 +177,7 @@ in the fix section of :ref:`this page <cmd_5>`.
 * :doc:`append/atoms <fix_append_atoms>` - append atoms to a running simulation
 * :doc:`aveforce <fix_aveforce>` - add an averaged force to each atom
 * :doc:`ave/atom <fix_ave_atom>` - compute per-atom time-averaged quantities
-* :doc:`ave/correlate <fix_correlate_atom>` - compute/output time correlations
+* :doc:`ave/correlate <fix_ave_correlate>` - compute/output time correlations
 * :doc:`ave/histo <fix_ave_histo>` - compute/output time-averaged histograms
 * :doc:`ave/spatial <fix_ave_spatial>` - compute/output time-averaged per-atom quantities by layer
 * :doc:`ave/time <fix_ave_time>` - compute/output global time-averaged quantities

@@ -71,22 +71,21 @@
         
           
           
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">pair_style hybrid command</a></li>
+<li><a class="reference internal" href="#pair-style-hybrid-omp-command">pair_style hybrid/omp command</a></li>
+<li><a class="reference internal" href="#pair-style-hybrid-overlay-command">pair_style hybrid/overlay command</a></li>
+<li><a class="reference internal" href="#pair-style-hybrid-overlay-omp-command">pair_style hybrid/overlay/omp command</a><ul>
+<li><a class="reference internal" href="#syntax">Syntax</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li><a class="reference internal" href="#related-commands">Related commands</a></li>
 </ul>
-
+</li>
+</ul>
+</div>
           
         
       </div>
@@ -305,14 +304,13 @@ attributes from several atom styles, due to using multiple pair
 potentials.</p>
 <hr class="docutils" />
 <p>Different force fields (e.g. CHARMM vs AMBER) may have different rules
-for applying these factors to modulate the strength of pairwise
+for applying weightings that change the strength of pairwise
 interactions bewteen pairs of atoms that are also 1-2, 1-3, and 1-4
-neighbors in the molecular bond topology.  Specific
-<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> settings can be assigned to
-different pair hybrid sub-styles via the <a class="reference internal" href="pair_modify.html"><em>pair_modify special</em></a> special command, using its <em>pair</em> keyword
-and optional <em>special</em> argument.  This allows multiple force fields to
-be used to a model a hybrid system.  See the
-<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> doc page for details.</p>
+neighbors in the molecular bond topology, as normally set by the
+<a class="reference internal" href="special_bonds.html"><em>special_bonds</em></a> command.  Different weights can be
+assigned to different pair hybrid sub-styles via the <a class="reference internal" href="pair_modify.html"><em>pair_modify special</em></a> command.  This allows multiple force fields
+to be used in a model of a hybrid system.  See the
+<a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> doc page for details.</p>
 <p>The potential energy contribution to the overall system due to an
 individual sub-style can be accessed and output via the <a class="reference internal" href="compute_pair.html"><em>compute pair</em></a> command.</p>
 <hr class="docutils" />

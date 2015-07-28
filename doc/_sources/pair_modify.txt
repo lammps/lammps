@@ -11,14 +11,14 @@ Syntax
    pair_modify keyword values ...
 
 * one or more keyword/value pairs may be listed
-* keyword = *pair* or *shift* or *mix* or *table* or *table/disp* or *tabinner* or *tabinner/disp* or *tail* or *compute*
+* keyword = *pair* or *special* or *shift* or *mix* or *table* or *table/disp* or *tabinner* or *tabinner/disp* or *tail* or *compute*
 .. parsed-literal::
 
    *pair* values = sub-style N special which w1 wt2 wt3
        sub-style = sub-style of :doc:`pair hybrid <pair_hybrid>`
        N = which instance of sub-style (only if sub-style is used multiple times)
-       special = optional if want to override :doc:`special_bonds <special_bonds>` settings for sub-style
-       which = *lj/coul* or *lj* or *coul*
+     *special* values = flavor w1 w2 w3
+       flavor = *lj/coul* or *lj* or *coul*
        w1,w2,w3 = weights from 0.0 to 1.0 inclusive
      *mix* value = *geometric* or *arithmetic* or *sixthpower*
      *shift* value = *yes* or *no*
@@ -50,15 +50,24 @@ Description
 Modify the parameters of the currently defined pair style.  Not all
 parameters are relevant to all pair styles.
 
-If used, the *pair* keyword and its optional *special* arguments must
-appear first in the list of keywords.  It can only be used with the
-:doc:`hybrid and hybrid/overlay <pair_hybrid>` pair styles and when used
-it means that all the following parameters will only be modified for
-the specified sub-style.  If the *pair* keyword is not used, and the
-pair style is *hybrid* or *hybrid/overlay*, all the following
-parameters keywords will be applied to all sub-styles.  A more detailed
-explanation of the *pair* keyword syntax, including its optional
-*special* argument are given below.
+If used, the *pair* keyword must appear first in the list of keywords.
+It can only be used with the :doc:`hybrid and hybrid/overlay <pair_hybrid>` pair styles.  It means that all the
+following parameters will only be modified for the specified
+sub-style.  If the sub-style is defined multiple times, then an
+additional numeric argument *N* must also be specified, which is a
+number from 1 to M where M is the number of times the sub-style was
+listed in the :doc:`pair_style hybrid <pair_hybrid>` command.  The extra
+number indicates which instance of the sub-style the remaining
+keywords will be applied to.  Note that if the *pair* keyword is not
+used, and the pair style is *hybrid* or *hybrid/overlay*, then all the
+specified keywords will be applied to all sub-styles.
+
+If used, the *special* keyword must appear second in the list of
+keywords, and must follow the *pair* keyword.  Like the *pair*
+keyword, it also can only be used with the :doc:`hybrid and hybrid/overlay <pair_hybrid>` pair styles.  Its parameters are
+similar to the :doc:`special_bonds <special_bonds>` command, and it
+overrides the special_bond settings for the specified sub-style.  More
+details are given below.
 
 The *mix* keyword affects pair coefficients for interactions between
 atoms of type I and J, when I != J and the coefficients are not
@@ -208,50 +217,28 @@ pair style be defined.
 ----------
 
 
-Use of the pair keyword
------------------------
+Use of *special* keyword
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-If used, the *pair* keyword and its optional *special* arguments must
-appear first in the list of keywords.  It can only be used with the
-:doc:`hybrid and hybrid/overlay <pair_hybrid>` pair styles and when used
-it means that all the following parameters will only be modified for
-the specified sub-style.  If the *pair* keyword is not used, and the
-pair style is *hybrid* or *hybrid/overlay*, all the following
-parameters keywords will be applied to all sub-styles.  A more detailed
-explanation of the *pair* keyword syntax, including its optional
-*special* argument are given below.
-
-As mentioned above, the *pair* keyword can only be used with the
-:doc:`hybrid and hybrid/overlay <pair_hybrid>` pair styles, and must
-come first in the list of keywords.  If used, the subsequent keywords
-will only be applied to the specified sub-style.  If the sub-style is
-defined multiple times, then an additional numeric argument *N* must
-also be specified, which is a number from 1 to M where M is the number
-of times the sub-style was listed in the :doc:`pair_style hybrid <pair_hybrid>` command.  The extra number indicates which
-instance of the sub-style the pair_modify keywords will be applied to.
-
-If the optional *special* argument is used, then the settings of the
-:doc:`special_bonds <special_bonds>` command are overridden for the
-specified sub-style.  The *special* argument requires 4 additional
-arguments: *which* and w1,w2,w3.  These are analogous to arguments in
-the :doc:`special_bonds <special_bonds>` command.  The *which* argument
-can be *lj* to change the Lennard-Jones settings, *coul* to change the
-Coulombic settings, or *lj/coul* to change both to the same values.
-The w1,w2,w3 arguments are numeric weights from 0.0 to 1.0 inclusive,
-for the 1-2, 1-3, and 1-4 bond topology neighbors.  For example, these
-commands
+The *special* keyword requires 4 values similar to those specified
+with the :doc:`special_bonds <special_bonds>` command, *flavor* and
+w1,w2,w3.  The *flavor* argument can be *lj* to change the
+Lennard-Jones settings, *coul* to change the Coulombic settings, or
+*lj/coul* to change both to the same set of 3 values.  The w1,w2,w3
+values are numeric weights from 0.0 to 1.0 inclusive, for the 1-2,
+1-3, and 1-4 bond topology neighbors.  For example, these commands
 
 .. parsed-literal::
 
    special_bonds lj/coul 0.0 0.0 0.1
-   pair_hybrid lj/charmm/coul/charmm 8.0 10.0 lj/cut/coul/cut 10.0
-   pair_modify pair lj/charmm/coul/charmm special lj/coul 0.0 0.0 0.0
-   pair_modify pair lj/cut/coul/cut special lj 0.0 0.0 0.5
-   pair_modify pair lj/cut/coul/cut special coul 0.0 0.0 0.8333
+   pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
+   pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
+   pair_modify pair lj/cut/coul/long special lj 0.0 0.0 0.5
+   pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.8333
 
 show how to use both the CHARMM and AMBER force fields in a single
 simulation.  The first pair modify command sets the special bonds to
-CHARMM values (all 0.0).  The latter 2 pair modify commands set the
+CHARMM values (all 0.0).  The last 2 pair modify commands set the
 standard AMBER values for LJ and Coulombic weights.
 
 .. warning::
@@ -260,13 +247,13 @@ standard AMBER values for LJ and Coulombic weights.
    :doc:`special_bonds <special_bonds>` command affect the construction of
    neighbor lists.  Weights of 0.0 (for 1-2, 1-3, or 1-4 neighbors)
    exclude those pairs from the neighbor list entirely.  Weights of 1.0
-   store the neighbor with no weight flag applied.  Neither of these
-   neighbor effects can be changed by setting a sub-style weight to a
+   store the neighbor with no weighting applied.  The format of the
+   neighbor list cannot be changed by setting a sub-style weight to a
    non-zero or non-one value.  Thus an error is generated if the new
-   sub-style value is not 0.0 (or 1.0) and the global setting is 0.0 (or
+   sub-style value is not 0.0 (or 1.0) when the global setting is 0.0 (or
    1.0).  Note that as in the example above, the global factor can simply
    be set a value other than 0.0 or 1.0, then overridden by any of the
-   sub-styles to a value that is 0.0 or 1.0.
+   sub-styles with a value that is 0.0 or 1.0.
 
 
 ----------

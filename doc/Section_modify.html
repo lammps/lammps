@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>10. Modifying &amp; extending LAMMPS &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>Modifying &amp; extending LAMMPS &mdash; LAMMPS 15 May 2015 version documentation</title>
   
 
   
@@ -32,9 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
-        <link rel="next" title="11. Python interface to LAMMPS" href="Section_python.html"/>
-        <link rel="prev" title="9. Additional tools" href="Section_tools.html"/> 
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -73,39 +71,28 @@
         
           
           
-              <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">10. Modifying &amp; extending LAMMPS</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#atom-styles">10.1. Atom styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#bond-angle-dihedral-improper-potentials">10.2. Bond, angle, dihedral, improper potentials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#compute-styles">10.3. Compute styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dump-styles">10.4. Dump styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#dump-custom-output-options">10.5. Dump custom output options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#fix-styles">10.6. Fix styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#input-script-commands">10.7. Input script commands</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#kspace-computations">10.8. Kspace computations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#minimization-styles">10.9. Minimization styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pairwise-potentials">10.10. Pairwise potentials</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#region-styles">10.11. Region styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#body-styles">10.12. Body styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#thermodynamic-output-options">10.13. Thermodynamic output options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#variable-options">10.14. Variable options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#submitting-new-features-for-inclusion-in-lammps">10.15. Submitting new features for inclusion in LAMMPS</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Modifying &amp; extending LAMMPS</a><ul>
+<li><a class="reference internal" href="#atom-styles">Atom styles</a></li>
+<li><a class="reference internal" href="#bond-angle-dihedral-improper-potentials">Bond, angle, dihedral, improper potentials</a></li>
+<li><a class="reference internal" href="#compute-styles">Compute styles</a></li>
+<li><a class="reference internal" href="#dump-styles">Dump styles</a></li>
+<li><a class="reference internal" href="#dump-custom-output-options">Dump custom output options</a></li>
+<li><a class="reference internal" href="#fix-styles">Fix styles</a></li>
+<li><a class="reference internal" href="#input-script-commands">Input script commands</a></li>
+<li><a class="reference internal" href="#kspace-computations">Kspace computations</a></li>
+<li><a class="reference internal" href="#minimization-styles">Minimization styles</a></li>
+<li><a class="reference internal" href="#pairwise-potentials">Pairwise potentials</a></li>
+<li><a class="reference internal" href="#region-styles">Region styles</a></li>
+<li><a class="reference internal" href="#body-styles">Body styles</a></li>
+<li><a class="reference internal" href="#thermodynamic-output-options">Thermodynamic output options</a></li>
+<li><a class="reference internal" href="#variable-options">Variable options</a></li>
+<li><a class="reference internal" href="#submitting-new-features-for-inclusion-in-lammps">Submitting new features for inclusion in LAMMPS</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-
+</div>
           
         
       </div>
@@ -128,7 +115,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>10. Modifying &amp; extending LAMMPS</li>
+    <li>Modifying &amp; extending LAMMPS</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -143,7 +130,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="modifying-extending-lammps">
-<h1>10. Modifying &amp; extending LAMMPS<a class="headerlink" href="#modifying-extending-lammps" title="Permalink to this headline">¶</a></h1>
+<h1>Modifying &amp; extending LAMMPS<a class="headerlink" href="#modifying-extending-lammps" title="Permalink to this headline">¶</a></h1>
 <p>This section describes how to customize LAMMPS by modifying
 and extending its source code.</p>
 <div class="line-block">
@@ -253,7 +240,7 @@ interested in adding it to the LAMMPS distribution.  See further
 details on this at the bottom of this page.</li>
 </ul>
 <div class="section" id="atom-styles">
-<span id="mod-1"></span><h2>10.1. Atom styles<a class="headerlink" href="#atom-styles" title="Permalink to this headline">¶</a></h2>
+<span id="mod-1"></span><h2>Atom styles<a class="headerlink" href="#atom-styles" title="Permalink to this headline">¶</a></h2>
 <p>Classes that define an <a class="reference internal" href="atom_style.html"><em>atom style</em></a> are derived from
 the AtomVec class and managed by the Atom class.  The atom style
 determines what attributes are associated with an atom.  A new atom
@@ -400,7 +387,7 @@ which store the attributes of individual atoms.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="bond-angle-dihedral-improper-potentials">
-<span id="mod-2"></span><h2>10.2. Bond, angle, dihedral, improper potentials<a class="headerlink" href="#bond-angle-dihedral-improper-potentials" title="Permalink to this headline">¶</a></h2>
+<span id="mod-2"></span><h2>Bond, angle, dihedral, improper potentials<a class="headerlink" href="#bond-angle-dihedral-improper-potentials" title="Permalink to this headline">¶</a></h2>
 <p>Classes that compute molecular interactions are derived from the Bond,
 Angle, Dihedral, and Improper classes.  New styles can be created to
 add new potentials to LAMMPS.</p>
@@ -451,7 +438,7 @@ for details and specific additional methods.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="compute-styles">
-<span id="mod-3"></span><h2>10.3. Compute styles<a class="headerlink" href="#compute-styles" title="Permalink to this headline">¶</a></h2>
+<span id="mod-3"></span><h2>Compute styles<a class="headerlink" href="#compute-styles" title="Permalink to this headline">¶</a></h2>
 <p>Classes that compute scalar and vector quantities like temperature
 and the pressure tensor, as well as classes that compute per-atom
 quantities like kinetic energy and the centro-symmetry parameter
@@ -518,10 +505,10 @@ class.  See compute.h for details.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="dump-styles">
-<span id="mod-4"></span><h2>10.4. Dump styles<a class="headerlink" href="#dump-styles" title="Permalink to this headline">¶</a></h2>
+<span id="mod-4"></span><h2>Dump styles<a class="headerlink" href="#dump-styles" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="dump-custom-output-options">
-<span id="mod-5"></span><h2>10.5. Dump custom output options<a class="headerlink" href="#dump-custom-output-options" title="Permalink to this headline">¶</a></h2>
+<span id="mod-5"></span><h2>Dump custom output options<a class="headerlink" href="#dump-custom-output-options" title="Permalink to this headline">¶</a></h2>
 <p>Classes that dump per-atom info to files are derived from the Dump
 class.  To dump new quantities or in a new format, a new derived dump
 class can be added, but it is typically simpler to modify the
@@ -560,7 +547,7 @@ half-dozen or so locations where code will need to be added.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="fix-styles">
-<span id="mod-6"></span><h2>10.6. Fix styles<a class="headerlink" href="#fix-styles" title="Permalink to this headline">¶</a></h2>
+<span id="mod-6"></span><h2>Fix styles<a class="headerlink" href="#fix-styles" title="Permalink to this headline">¶</a></h2>
 <p>In LAMMPS, a &#8220;fix&#8221; is any operation that is computed during
 timestepping that alters some property of the system.  Essentially
 everything that happens during a simulation besides force computation,
@@ -768,7 +755,7 @@ quantities and/or to be summed to the potential energy of the system.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="input-script-commands">
-<span id="mod-7"></span><h2>10.7. Input script commands<a class="headerlink" href="#input-script-commands" title="Permalink to this headline">¶</a></h2>
+<span id="mod-7"></span><h2>Input script commands<a class="headerlink" href="#input-script-commands" title="Permalink to this headline">¶</a></h2>
 <p>New commands can be added to LAMMPS input scripts by adding new
 classes that have a &#8220;command&#8221; method.  For example, the create_atoms,
 read_data, velocity, and run commands are all implemented in this
@@ -794,7 +781,7 @@ needed.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="kspace-computations">
-<span id="mod-8"></span><h2>10.8. Kspace computations<a class="headerlink" href="#kspace-computations" title="Permalink to this headline">¶</a></h2>
+<span id="mod-8"></span><h2>Kspace computations<a class="headerlink" href="#kspace-computations" title="Permalink to this headline">¶</a></h2>
 <p>Classes that compute long-range Coulombic interactions via K-space
 representations (Ewald, PPPM) are derived from the KSpace class.  New
 styles can be created to add new K-space options to LAMMPS.</p>
@@ -824,7 +811,7 @@ class.  See kspace.h for details.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="minimization-styles">
-<span id="mod-9"></span><h2>10.9. Minimization styles<a class="headerlink" href="#minimization-styles" title="Permalink to this headline">¶</a></h2>
+<span id="mod-9"></span><h2>Minimization styles<a class="headerlink" href="#minimization-styles" title="Permalink to this headline">¶</a></h2>
 <p>Classes that perform energy minimization derived from the Min class.
 New styles can be created to add new minimization algorithms to
 LAMMPS.</p>
@@ -851,7 +838,7 @@ class.  See min.h for details.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="pairwise-potentials">
-<span id="mod-10"></span><h2>10.10. Pairwise potentials<a class="headerlink" href="#pairwise-potentials" title="Permalink to this headline">¶</a></h2>
+<span id="mod-10"></span><h2>Pairwise potentials<a class="headerlink" href="#pairwise-potentials" title="Permalink to this headline">¶</a></h2>
 <p>Classes that compute pairwise interactions are derived from the Pair
 class.  In LAMMPS, pairwise calculation include manybody potentials
 such as EAM or Tersoff where particles interact without a static bond
@@ -899,7 +886,7 @@ includes some optional methods to enable its use with rRESPA.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="region-styles">
-<span id="mod-11"></span><h2>10.11. Region styles<a class="headerlink" href="#region-styles" title="Permalink to this headline">¶</a></h2>
+<span id="mod-11"></span><h2>Region styles<a class="headerlink" href="#region-styles" title="Permalink to this headline">¶</a></h2>
 <p>Classes that define geometric regions are derived from the Region
 class.  Regions are used elsewhere in LAMMPS to group atoms, delete
 atoms to create a void, insert atoms in a specified region, etc.  New
@@ -921,7 +908,7 @@ class.  See region.h for details.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="body-styles">
-<span id="mod-12"></span><h2>10.12. Body styles<a class="headerlink" href="#body-styles" title="Permalink to this headline">¶</a></h2>
+<span id="mod-12"></span><h2>Body styles<a class="headerlink" href="#body-styles" title="Permalink to this headline">¶</a></h2>
 <p>Classes that define body particles are derived from the Body class.
 Body particles can represent complex entities, such as surface meshes
 of discrete points, collections of sub-particles, deformable objects,
@@ -969,7 +956,7 @@ class.  See body.h for details.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="thermodynamic-output-options">
-<span id="mod-13"></span><h2>10.13. Thermodynamic output options<a class="headerlink" href="#thermodynamic-output-options" title="Permalink to this headline">¶</a></h2>
+<span id="mod-13"></span><h2>Thermodynamic output options<a class="headerlink" href="#thermodynamic-output-options" title="Permalink to this headline">¶</a></h2>
 <p>There is one class that computes and prints thermodynamic information
 to the screen and log file; see the file thermo.cpp.</p>
 <p>There are two styles defined in thermo.cpp: &#8220;one&#8221; and &#8220;multi&#8221;.  There
@@ -993,7 +980,7 @@ by adding a new keyword to the thermo command.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="variable-options">
-<span id="mod-14"></span><h2>10.14. Variable options<a class="headerlink" href="#variable-options" title="Permalink to this headline">¶</a></h2>
+<span id="mod-14"></span><h2>Variable options<a class="headerlink" href="#variable-options" title="Permalink to this headline">¶</a></h2>
 <p>There is one class that computes and stores <a class="reference internal" href="variable.html"><em>variable</em></a>
 information in LAMMPS; see the file variable.cpp.  The value
 associated with a variable can be periodically printed to the screen
@@ -1027,7 +1014,7 @@ then be accessed by variables) was discussed
 <a class="reference internal" href="Section_howto.html#compute"><span>here</span></a> on this page.</p>
 </div>
 <div class="section" id="submitting-new-features-for-inclusion-in-lammps">
-<span id="mod-15"></span><h2>10.15. Submitting new features for inclusion in LAMMPS<a class="headerlink" href="#submitting-new-features-for-inclusion-in-lammps" title="Permalink to this headline">¶</a></h2>
+<span id="mod-15"></span><h2>Submitting new features for inclusion in LAMMPS<a class="headerlink" href="#submitting-new-features-for-inclusion-in-lammps" title="Permalink to this headline">¶</a></h2>
 <p>We encourage users to submit new features to <a class="reference external" href="http://lammps.sandia.gov/authors.html">the developers</a> that they add to
 LAMMPS, especially if you think they will be of interest to other
 users.  If they are broadly useful we may add them as core files to
@@ -1164,15 +1151,6 @@ feature.</p>
            </div>
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="Section_python.html" class="btn btn-neutral float-right" title="11. Python interface to LAMMPS" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="Section_tools.html" class="btn btn-neutral" title="9. Additional tools" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

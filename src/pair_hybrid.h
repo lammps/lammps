@@ -26,12 +26,11 @@ PairStyle(hybrid,PairHybrid)
 namespace LAMMPS_NS {
 
 class PairHybrid : public Pair {
+  friend class FixGPU;
+  friend class FixOMP;
+  friend class Force;
+  friend class Respa;
  public:
-  int nstyles;                  // # of sub-styles
-  Pair **styles;                // list of Pair style classes
-  char **keywords;              // style name of each Pair style
-  int *multiple;                // 0 if style used once, else Mth instance
-
   PairHybrid(class LAMMPS *);
   virtual ~PairHybrid();
   void compute(int, int);
@@ -54,13 +53,28 @@ class PairHybrid : public Pair {
   int check_ijtype(int, int, char *);
 
  protected:
+  int nstyles;                  // # of sub-styles
+  Pair **styles;                // list of Pair style classes
+  char **keywords;              // style name of each Pair style
+  int *multiple;                // 0 if style used once, else Mth instance
+
   int outerflag;                // toggle compute() when invoked by outer()
+  int respaflag;                // 1 if different substyles are assigned to
+                                // different r-RESPA levels
 
   int **nmap;                   // # of sub-styles itype,jtype points to
   int ***map;                   // list of sub-styles itype,jtype points to
+  double **special_lj;          // list of per style LJ exclusion factors
+  double **special_coul;        // list of per style Coulomb exclusion factors
 
   void allocate();
   void flags();
+
+  void modify_special(int, int, char**);
+  double *save_special();
+  void set_special(int);
+  void restore_special(double *);
+
   virtual void modify_requests();
 };
 

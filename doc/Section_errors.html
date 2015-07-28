@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Errors &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>12. Errors &mdash; LAMMPS 15 May 2015 version documentation</title>
   
 
   
@@ -32,7 +32,9 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+        <link rel="next" title="13. Future and history" href="Section_history.html"/>
+        <link rel="prev" title="11. Python interface to LAMMPS" href="Section_python.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,18 +73,29 @@
         
           
           
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Errors</a><ul>
-<li><a class="reference internal" href="#common-problems">Common problems</a></li>
-<li><a class="reference internal" href="#reporting-bugs">Reporting bugs</a></li>
-<li><a class="reference internal" href="#error-warning-messages">Error &amp; warning messages</a></li>
-<li><a class="reference internal" href="#error">Errors:</a></li>
-<li><a class="reference internal" href="#warnings">Warnings:</a></li>
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">12. Errors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#common-problems">12.1. Common problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reporting-bugs">12.2. Reporting bugs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error-warning-messages">12.3. Error &amp; warning messages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error">12.4. Errors:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#warnings">12.5. Warnings:</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-</div>
+
           
         
       </div>
@@ -105,7 +118,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>Errors</li>
+    <li>12. Errors</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -120,7 +133,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="errors">
-<h1>Errors<a class="headerlink" href="#errors" title="Permalink to this headline">¶</a></h1>
+<h1>12. Errors<a class="headerlink" href="#errors" title="Permalink to this headline">¶</a></h1>
 <p>This section describes the errors you can encounter when using LAMMPS,
 either conceptually, or as printed out by the program.</p>
 <div class="line-block">
@@ -130,7 +143,7 @@ either conceptually, or as printed out by the program.</p>
 <div class="line"><br /></div>
 </div>
 <div class="section" id="common-problems">
-<span id="err-1"></span><h2>Common problems<a class="headerlink" href="#common-problems" title="Permalink to this headline">¶</a></h2>
+<span id="err-1"></span><h2>12.1. Common problems<a class="headerlink" href="#common-problems" title="Permalink to this headline">¶</a></h2>
 <p>If two LAMMPS runs do not produce the same answer on different
 machines or different numbers of processors, this is typically not a
 bug.  In theory you should get identical answers on any number of
@@ -219,7 +232,7 @@ buffering or boost the sizes of messages that can be buffered.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="reporting-bugs">
-<span id="err-2"></span><h2>Reporting bugs<a class="headerlink" href="#reporting-bugs" title="Permalink to this headline">¶</a></h2>
+<span id="err-2"></span><h2>12.2. Reporting bugs<a class="headerlink" href="#reporting-bugs" title="Permalink to this headline">¶</a></h2>
 <p>If you are confident that you have found a bug in LAMMPS, follow these
 steps.</p>
 <p>Check the <a class="reference external" href="http://lammps.sandia.gov/bug.html">New features and bug fixes</a> section of the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW site</a> to see if the bug has already been reported or fixed or the
@@ -241,7 +254,7 @@ causing the problem.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="error-warning-messages">
-<span id="err-3"></span><h2>Error &amp; warning messages<a class="headerlink" href="#error-warning-messages" title="Permalink to this headline">¶</a></h2>
+<span id="err-3"></span><h2>12.3. Error &amp; warning messages<a class="headerlink" href="#error-warning-messages" title="Permalink to this headline">¶</a></h2>
 <p>These are two alphabetic lists of the <a class="reference internal" href="#error"><span>ERROR</span></a> and
 <a class="reference internal" href="#warn"><span>WARNING</span></a> messages LAMMPS prints out and the reason why.  If the
 explanation here is not sufficient, the documentation for the
@@ -256,7 +269,7 @@ error occurs and is not self-explanatory, you&#8217;ll need to look in the
 source code or contact the author of the package.</p>
 </div>
 <div class="section" id="error">
-<span id="id2"></span><h2>Errors:<a class="headerlink" href="#error" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>12.4. Errors:<a class="headerlink" href="#error" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
 <dt><em>1-3 bond count is inconsistent</em></dt>
 <dd>An inconsistency was detected when computing the number of 1-3
@@ -5775,7 +5788,7 @@ read_restart, or create_box command.</dd>
 </dl>
 </div>
 <div class="section" id="warnings">
-<span id="warn"></span><h2>Warnings:<a class="headerlink" href="#warnings" title="Permalink to this headline">¶</a></h2>
+<span id="warn"></span><h2>12.5. Warnings:<a class="headerlink" href="#warnings" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
 <dt><em>Adjusting Coulombic cutoff for MSM, new cutoff = %g</em></dt>
 <dd>The adjust/cutoff command is turned on and the Coulombic cutoff has been
@@ -6285,6 +6298,15 @@ infinity.</dd>
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_history.html" class="btn btn-neutral float-right" title="13. Future and history" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_python.html" class="btn btn-neutral" title="11. Python interface to LAMMPS" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

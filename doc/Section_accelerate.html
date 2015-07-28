@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Accelerating LAMMPS performance &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>5. Accelerating LAMMPS performance &mdash; LAMMPS 15 May 2015 version documentation</title>
   
 
   
@@ -32,7 +32,9 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+        <link rel="next" title="6. How-to discussions" href="Section_howto.html"/>
+        <link rel="prev" title="4. Packages" href="Section_packages.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,20 +73,31 @@
         
           
           
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Accelerating LAMMPS performance</a><ul>
-<li><a class="reference internal" href="#measuring-performance">Measuring performance</a></li>
-<li><a class="reference internal" href="#general-strategies">General strategies</a></li>
-<li><a class="reference internal" href="#packages-with-optimized-styles">Packages with optimized styles</a></li>
-<li><a class="reference internal" href="#comparison-of-various-accelerator-packages">Comparison of various accelerator packages</a><ul>
-<li><a class="reference internal" href="#examples">Examples</a></li>
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">5. Accelerating LAMMPS performance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#measuring-performance">5.1. Measuring performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#general-strategies">5.2. General strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#packages-with-optimized-styles">5.3. Packages with optimized styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#comparison-of-various-accelerator-packages">5.4. Comparison of various accelerator packages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#examples">5.4.1. Examples</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-</div>
+
           
         
       </div>
@@ -107,7 +120,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>Accelerating LAMMPS performance</li>
+    <li>5. Accelerating LAMMPS performance</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -122,7 +135,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="accelerating-lammps-performance">
-<h1>Accelerating LAMMPS performance<a class="headerlink" href="#accelerating-lammps-performance" title="Permalink to this headline">¶</a></h1>
+<h1>5. Accelerating LAMMPS performance<a class="headerlink" href="#accelerating-lammps-performance" title="Permalink to this headline">¶</a></h1>
 <p>This section describes various methods for improving LAMMPS
 performance for different classes of problems running on different
 kinds of machines.</p>
@@ -150,7 +163,7 @@ packages discussed in Section 5.2, for several of the standard LAMMPS
 benchmark problems, as a function of problem size and number of
 compute nodes, on different hardware platforms.</p>
 <div class="section" id="measuring-performance">
-<span id="acc-1"></span><h2>Measuring performance<a class="headerlink" href="#measuring-performance" title="Permalink to this headline">¶</a></h2>
+<span id="acc-1"></span><h2>5.1. Measuring performance<a class="headerlink" href="#measuring-performance" title="Permalink to this headline">¶</a></h2>
 <p>Before trying to make your simulation run faster, you should
 understand how it currently performs and where the bottlenecks are.</p>
 <p>The best way to do this is run the your system (actual number of
@@ -191,7 +204,7 @@ LAMMPS, to obtain synchronized timings.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="general-strategies">
-<span id="acc-2"></span><h2>General strategies<a class="headerlink" href="#general-strategies" title="Permalink to this headline">¶</a></h2>
+<span id="acc-2"></span><h2>5.2. General strategies<a class="headerlink" href="#general-strategies" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">this section 5.2 is still a work in progress</p>
@@ -244,7 +257,7 @@ such as when using a barostat.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="packages-with-optimized-styles">
-<span id="acc-3"></span><h2>Packages with optimized styles<a class="headerlink" href="#packages-with-optimized-styles" title="Permalink to this headline">¶</a></h2>
+<span id="acc-3"></span><h2>5.3. Packages with optimized styles<a class="headerlink" href="#packages-with-optimized-styles" title="Permalink to this headline">¶</a></h2>
 <p>Accelerated versions of various <a class="reference internal" href="pair_style.html"><em>pair_style</em></a>,
 <a class="reference internal" href="fix.html"><em>fixes</em></a>, <a class="reference internal" href="compute.html"><em>computes</em></a>, and other commands have
 been added to LAMMPS, which will typically run faster than the
@@ -436,7 +449,7 @@ CPU.</li>
 <hr class="docutils" />
 </div>
 <div class="section" id="comparison-of-various-accelerator-packages">
-<span id="acc-4"></span><h2>Comparison of various accelerator packages<a class="headerlink" href="#comparison-of-various-accelerator-packages" title="Permalink to this headline">¶</a></h2>
+<span id="acc-4"></span><h2>5.4. Comparison of various accelerator packages<a class="headerlink" href="#comparison-of-various-accelerator-packages" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">this section still needs to be re-worked with additional KOKKOS
@@ -507,7 +520,7 @@ is generally not a problem since typical runs are computation-limited
 rather than memory-limited.</li>
 </ul>
 <div class="section" id="examples">
-<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<h3>5.4.1. Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
 <p>The LAMMPS distribution has two directories with sample input scripts
 for the GPU and USER-CUDA packages.</p>
 <ul class="simple">
@@ -524,6 +537,15 @@ to benchmark the performance of both packages on your system.</p>
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_howto.html" class="btn btn-neutral float-right" title="6. How-to discussions" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_packages.html" class="btn btn-neutral" title="4. Packages" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

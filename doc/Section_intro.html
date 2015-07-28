@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Introduction &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>1. Introduction &mdash; LAMMPS 15 May 2015 version documentation</title>
   
 
   
@@ -32,7 +32,9 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+        <link rel="next" title="2. Getting Started" href="Section_start.html"/>
+        <link rel="prev" title="LAMMPS Documentation" href="Manual.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,31 +73,42 @@
         
           
           
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Introduction</a><ul>
-<li><a class="reference internal" href="#what-is-lammps">What is LAMMPS</a></li>
-<li><a class="reference internal" href="#lammps-features">LAMMPS features</a><ul>
-<li><a class="reference internal" href="#general-features">General features</a></li>
-<li><a class="reference internal" href="#particle-and-model-types">Particle and model types</a></li>
-<li><a class="reference internal" href="#force-fields">Force fields</a></li>
-<li><a class="reference internal" href="#atom-creation">Atom creation</a></li>
-<li><a class="reference internal" href="#ensembles-constraints-and-boundary-conditions">Ensembles, constraints, and boundary conditions</a></li>
-<li><a class="reference internal" href="#integrators">Integrators</a></li>
-<li><a class="reference internal" href="#diagnostics">Diagnostics</a></li>
-<li><a class="reference internal" href="#output">Output</a></li>
-<li><a class="reference internal" href="#multi-replica-models">Multi-replica models</a></li>
-<li><a class="reference internal" href="#pre-and-post-processing">Pre- and post-processing</a></li>
-<li><a class="reference internal" href="#specialized-features">Specialized features</a></li>
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-lammps">1.1. What is LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lammps-features">1.2. LAMMPS features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#general-features">1.2.1. General features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#particle-and-model-types">1.2.2. Particle and model types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#force-fields">1.2.3. Force fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#atom-creation">1.2.4. Atom creation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ensembles-constraints-and-boundary-conditions">1.2.5. Ensembles, constraints, and boundary conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#integrators">1.2.6. Integrators</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#diagnostics">1.2.7. Diagnostics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output">1.2.8. Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multi-replica-models">1.2.9. Multi-replica models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pre-and-post-processing">1.2.10. Pre- and post-processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#specialized-features">1.2.11. Specialized features</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#lammps-non-features">LAMMPS non-features</a></li>
-<li><a class="reference internal" href="#open-source-distribution">Open source distribution</a></li>
-<li><a class="reference internal" href="#acknowledgments-and-citations">Acknowledgments and citations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lammps-non-features">1.3. LAMMPS non-features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#open-source-distribution">1.4. Open source distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#acknowledgments-and-citations">1.5. Acknowledgments and citations</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-</div>
+
           
         
       </div>
@@ -118,7 +131,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>Introduction</li>
+    <li>1. Introduction</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -133,7 +146,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="introduction">
-<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<h1>1. Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
 <p>This section provides an overview of what LAMMPS can and can&#8217;t do,
 describes what it means for LAMMPS to be an open-source code, and
 acknowledges the funding and people who have contributed to LAMMPS
@@ -147,7 +160,7 @@ over the years.</p>
 <div class="line"><br /></div>
 </div>
 <div class="section" id="what-is-lammps">
-<span id="intro-1"></span><h2>What is LAMMPS<a class="headerlink" href="#what-is-lammps" title="Permalink to this headline">¶</a></h2>
+<span id="intro-1"></span><h2>1.1. What is LAMMPS<a class="headerlink" href="#what-is-lammps" title="Permalink to this headline">¶</a></h2>
 <p>LAMMPS is a classical molecular dynamics code that models an ensemble
 of particles in a liquid, solid, or gaseous state.  It can model
 atomic, polymeric, biological, metallic, granular, and coarse-grained
@@ -198,14 +211,14 @@ LAMMPS are listed in <a class="reference internal" href="#intro-5"><span>this se
 <hr class="docutils" />
 </div>
 <div class="section" id="lammps-features">
-<span id="intro-2"></span><h2>LAMMPS features<a class="headerlink" href="#lammps-features" title="Permalink to this headline">¶</a></h2>
+<span id="intro-2"></span><h2>1.2. LAMMPS features<a class="headerlink" href="#lammps-features" title="Permalink to this headline">¶</a></h2>
 <p>This section highlights LAMMPS features, with pointers to specific
 commands which give more details.  If LAMMPS doesn&#8217;t have your
 favorite interatomic potential, boundary condition, or atom type, see
 <a class="reference internal" href="Section_modify.html"><em>Section_modify</em></a>, which describes how you can add
 it to LAMMPS.</p>
 <div class="section" id="general-features">
-<h3>General features<a class="headerlink" href="#general-features" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.1. General features<a class="headerlink" href="#general-features" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>runs on a single processor or in parallel</li>
 <li>distributed-memory message-passing parallelism (MPI)</li>
@@ -224,7 +237,7 @@ it to LAMMPS.</p>
 </ul>
 </div>
 <div class="section" id="particle-and-model-types">
-<h3>Particle and model types<a class="headerlink" href="#particle-and-model-types" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.2. Particle and model types<a class="headerlink" href="#particle-and-model-types" title="Permalink to this headline">¶</a></h3>
 <p>(<a class="reference internal" href="atom_style.html"><em>atom style</em></a> command)</p>
 <ul class="simple">
 <li>atoms</li>
@@ -242,7 +255,7 @@ it to LAMMPS.</p>
 </ul>
 </div>
 <div class="section" id="force-fields">
-<h3>Force fields<a class="headerlink" href="#force-fields" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.3. Force fields<a class="headerlink" href="#force-fields" title="Permalink to this headline">¶</a></h3>
 <p>(<a class="reference internal" href="pair_style.html"><em>pair style</em></a>, <a class="reference internal" href="bond_style.html"><em>bond style</em></a>,
 <a class="reference internal" href="angle_style.html"><em>angle style</em></a>, <a class="reference internal" href="dihedral_style.html"><em>dihedral style</em></a>,
 <a class="reference internal" href="improper_style.html"><em>improper style</em></a>, <a class="reference internal" href="kspace_style.html"><em>kspace style</em></a>
@@ -271,7 +284,7 @@ commands)</p>
 </ul>
 </div>
 <div class="section" id="atom-creation">
-<h3>Atom creation<a class="headerlink" href="#atom-creation" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.4. Atom creation<a class="headerlink" href="#atom-creation" title="Permalink to this headline">¶</a></h3>
 <p>(<a class="reference internal" href="read_data.html"><em>read_data</em></a>, <a class="reference internal" href="lattice.html"><em>lattice</em></a>,
 <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a>, <a class="reference internal" href="delete_atoms.html"><em>delete_atoms</em></a>,
 <a class="reference internal" href="displace_atoms.html"><em>displace_atoms</em></a>, <a class="reference internal" href="replicate.html"><em>replicate</em></a> commands)</p>
@@ -284,7 +297,7 @@ commands)</p>
 </ul>
 </div>
 <div class="section" id="ensembles-constraints-and-boundary-conditions">
-<h3>Ensembles, constraints, and boundary conditions<a class="headerlink" href="#ensembles-constraints-and-boundary-conditions" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.5. Ensembles, constraints, and boundary conditions<a class="headerlink" href="#ensembles-constraints-and-boundary-conditions" title="Permalink to this headline">¶</a></h3>
 <p>(<a class="reference internal" href="fix.html"><em>fix</em></a> command)</p>
 <ul class="simple">
 <li>2d or 3d systems</li>
@@ -304,7 +317,7 @@ commands)</p>
 </ul>
 </div>
 <div class="section" id="integrators">
-<h3>Integrators<a class="headerlink" href="#integrators" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.6. Integrators<a class="headerlink" href="#integrators" title="Permalink to this headline">¶</a></h3>
 <p>(<a class="reference internal" href="run.html"><em>run</em></a>, <a class="reference internal" href="run_style.html"><em>run_style</em></a>, <a class="reference internal" href="minimize.html"><em>minimize</em></a> commands)</p>
 <ul class="simple">
 <li>velocity-Verlet integrator</li>
@@ -316,13 +329,13 @@ commands)</p>
 </ul>
 </div>
 <div class="section" id="diagnostics">
-<h3>Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.7. Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>see the various flavors of the <a class="reference internal" href="fix.html"><em>fix</em></a> and <a class="reference internal" href="compute.html"><em>compute</em></a> commands</li>
 </ul>
 </div>
 <div class="section" id="output">
-<h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.8. Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
 <p>(<a class="reference internal" href="dump.html"><em>dump</em></a>, <a class="reference internal" href="restart.html"><em>restart</em></a> commands)</p>
 <ul class="simple">
 <li>log file of thermodynamic info</li>
@@ -337,14 +350,14 @@ commands)</p>
 </ul>
 </div>
 <div class="section" id="multi-replica-models">
-<h3>Multi-replica models<a class="headerlink" href="#multi-replica-models" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.9. Multi-replica models<a class="headerlink" href="#multi-replica-models" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="neb.html"><em>nudged elastic band</em></a>
 <a class="reference internal" href="prd.html"><em>parallel replica dynamics</em></a>
 <a class="reference internal" href="tad.html"><em>temperature accelerated dynamics</em></a>
 <a class="reference internal" href="temper.html"><em>parallel tempering</em></a></p>
 </div>
 <div class="section" id="pre-and-post-processing">
-<h3>Pre- and post-processing<a class="headerlink" href="#pre-and-post-processing" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.10. Pre- and post-processing<a class="headerlink" href="#pre-and-post-processing" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Various pre- and post-processing serial tools are packaged
 with LAMMPS; see these <a class="reference internal" href="Section_tools.html"><em>doc pages</em></a>.</li>
@@ -355,7 +368,7 @@ written in <a class="reference external" href="http://www.python.org">Python</a>
 </ul>
 </div>
 <div class="section" id="specialized-features">
-<h3>Specialized features<a class="headerlink" href="#specialized-features" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.11. Specialized features<a class="headerlink" href="#specialized-features" title="Permalink to this headline">¶</a></h3>
 <p>These are LAMMPS capabilities which you may not think of as typical
 molecular dynamics options:</p>
 <ul class="simple">
@@ -379,7 +392,7 @@ molecular dynamics options:</p>
 </div>
 </div>
 <div class="section" id="lammps-non-features">
-<span id="intro-3"></span><h2>LAMMPS non-features<a class="headerlink" href="#lammps-non-features" title="Permalink to this headline">¶</a></h2>
+<span id="intro-3"></span><h2>1.3. LAMMPS non-features<a class="headerlink" href="#lammps-non-features" title="Permalink to this headline">¶</a></h2>
 <p>LAMMPS is designed to efficiently compute Newton&#8217;s equations of motion
 for a system of interacting particles.  Many of the tools needed to
 pre- and post-process the data for such simulations are not included
@@ -472,7 +485,7 @@ spatial-decomposition version exist.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="open-source-distribution">
-<span id="intro-4"></span><h2>Open source distribution<a class="headerlink" href="#open-source-distribution" title="Permalink to this headline">¶</a></h2>
+<span id="intro-4"></span><h2>1.4. Open source distribution<a class="headerlink" href="#open-source-distribution" title="Permalink to this headline">¶</a></h2>
 <p>LAMMPS comes with no warranty of any kind.  As each source file states
 in its header, it is a copyrighted code that is distributed free-of-
 charge, under the terms of the <a class="reference external" href="http://www.gnu.org/copyleft/gpl.html">GNU Public License</a> (GPL).  This
@@ -534,7 +547,7 @@ encouraged.</li>
 <hr class="docutils" />
 </div>
 <div class="section" id="acknowledgments-and-citations">
-<span id="intro-5"></span><h2>Acknowledgments and citations<a class="headerlink" href="#acknowledgments-and-citations" title="Permalink to this headline">¶</a></h2>
+<span id="intro-5"></span><h2>1.5. Acknowledgments and citations<a class="headerlink" href="#acknowledgments-and-citations" title="Permalink to this headline">¶</a></h2>
 <p>LAMMPS development has been funded by the <a class="reference external" href="http://www.doe.gov">US Department of Energy</a> (DOE), through its CRADA, LDRD, ASCI, and Genomes-to-Life
 programs and its <a class="reference external" href="http://www.sc.doe.gov/ascr/home.html">OASCR</a> and <a class="reference external" href="http://www.er.doe.gov/production/ober/ober_top.html">OBER</a> offices.</p>
 <p>Specifically, work on the latest version was funded in part by the US
@@ -602,6 +615,15 @@ version of LAMMPS were the following:</p>
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_start.html" class="btn btn-neutral float-right" title="2. Getting Started" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Manual.html" class="btn btn-neutral" title="LAMMPS Documentation" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

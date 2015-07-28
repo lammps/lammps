@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started &mdash; LAMMPS 15 May 2015 version documentation</title>
+  <title>2. Getting Started &mdash; LAMMPS 15 May 2015 version documentation</title>
   
 
   
@@ -32,7 +32,9 @@
   
 
   
-    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+        <link rel="next" title="3. Commands" href="Section_commands.html"/>
+        <link rel="prev" title="1. Introduction" href="Section_intro.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,28 +73,39 @@
         
           
           
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Getting Started</a><ul>
-<li><a class="reference internal" href="#what-s-in-the-lammps-distribution">What&#8217;s in the LAMMPS distribution</a></li>
-<li><a class="reference internal" href="#making-lammps">Making LAMMPS</a></li>
-<li><a class="reference internal" href="#making-lammps-with-optional-packages">Making LAMMPS with optional packages</a></li>
-<li><a class="reference internal" href="#building-lammps-via-the-make-py-script">Building LAMMPS via the Make.py script</a></li>
-<li><a class="reference internal" href="#building-lammps-as-a-library">Building LAMMPS as a library</a><ul>
-<li><a class="reference internal" href="#static-library"><strong>Static library:</strong></a></li>
-<li><a class="reference internal" href="#shared-library"><strong>Shared library:</strong></a></li>
-<li><a class="reference internal" href="#additional-requirement-for-using-a-shared-library"><strong>Additional requirement for using a shared library:</strong></a></li>
-<li><a class="reference internal" href="#calling-the-lammps-library"><strong>Calling the LAMMPS library:</strong></a></li>
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">2. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-s-in-the-lammps-distribution">2.1. What&#8217;s in the LAMMPS distribution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#making-lammps">2.2. Making LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#making-lammps-with-optional-packages">2.3. Making LAMMPS with optional packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-lammps-via-the-make-py-script">2.4. Building LAMMPS via the Make.py script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-lammps-as-a-library">2.5. Building LAMMPS as a library</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#static-library">2.5.1. <strong>Static library:</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shared-library">2.5.2. <strong>Shared library:</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#additional-requirement-for-using-a-shared-library">2.5.3. <strong>Additional requirement for using a shared library:</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#calling-the-lammps-library">2.5.4. <strong>Calling the LAMMPS library:</strong></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#running-lammps">Running LAMMPS</a></li>
-<li><a class="reference internal" href="#command-line-options">Command-line options</a></li>
-<li><a class="reference internal" href="#lammps-screen-output">LAMMPS screen output</a></li>
-<li><a class="reference internal" href="#tips-for-users-of-previous-lammps-versions">Tips for users of previous LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-lammps">2.6. Running LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#command-line-options">2.7. Command-line options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lammps-screen-output">2.8. LAMMPS screen output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tips-for-users-of-previous-lammps-versions">2.9. Tips for users of previous LAMMPS versions</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-</div>
+
           
         
       </div>
@@ -115,7 +128,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>Getting Started</li>
+    <li>2. Getting Started</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -130,7 +143,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="getting-started">
-<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<h1>2. Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <p>This section describes how to build and run LAMMPS, for both new and
 experienced users.</p>
 <div class="line-block">
@@ -146,7 +159,7 @@ experienced users.</p>
 <div class="line"><br /></div>
 </div>
 <div class="section" id="what-s-in-the-lammps-distribution">
-<span id="start-1"></span><h2>What&#8217;s in the LAMMPS distribution<a class="headerlink" href="#what-s-in-the-lammps-distribution" title="Permalink to this headline">¶</a></h2>
+<span id="start-1"></span><h2>2.1. What&#8217;s in the LAMMPS distribution<a class="headerlink" href="#what-s-in-the-lammps-distribution" title="Permalink to this headline">¶</a></h2>
 <p>When you download a LAMMPS tarball you will need to unzip and untar
 the downloaded file with the following commands, after placing the
 tarball in an appropriate directory.</p>
@@ -204,7 +217,7 @@ launch a LAMMPS Windows executable on a Windows box.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="making-lammps">
-<span id="start-2"></span><h2>Making LAMMPS<a class="headerlink" href="#making-lammps" title="Permalink to this headline">¶</a></h2>
+<span id="start-2"></span><h2>2.2. Making LAMMPS<a class="headerlink" href="#making-lammps" title="Permalink to this headline">¶</a></h2>
 <p>This section has the following sub-sections:</p>
 <ul class="simple">
 <li><a class="reference internal" href="#start-2-1"><span>Read this first</span></a></li>
@@ -667,7 +680,7 @@ on both a basic build and a customized build with pacakges you select.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="making-lammps-with-optional-packages">
-<span id="start-3"></span><h2>Making LAMMPS with optional packages<a class="headerlink" href="#making-lammps-with-optional-packages" title="Permalink to this headline">¶</a></h2>
+<span id="start-3"></span><h2>2.3. Making LAMMPS with optional packages<a class="headerlink" href="#making-lammps-with-optional-packages" title="Permalink to this headline">¶</a></h2>
 <p>This section has the following sub-sections:</p>
 <ul class="simple">
 <li><a class="reference internal" href="#start-3-1"><span>Package basics</span></a></li>
@@ -931,7 +944,7 @@ settings for CCFLAGS.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="building-lammps-via-the-make-py-script">
-<span id="start-4"></span><h2>Building LAMMPS via the Make.py script<a class="headerlink" href="#building-lammps-via-the-make-py-script" title="Permalink to this headline">¶</a></h2>
+<span id="start-4"></span><h2>2.4. Building LAMMPS via the Make.py script<a class="headerlink" href="#building-lammps-via-the-make-py-script" title="Permalink to this headline">¶</a></h2>
 <p>The src directory includes a Make.py script, written in Python, which
 can be used to automate various steps of the build process.  It is
 particularly useful for working with the accelerator packages, as well
@@ -1062,14 +1075,14 @@ and MPI options to use, via the &#8220;-cc&#8221; and &#8220;-mpi&#8221; switche
 <hr class="docutils" />
 </div>
 <div class="section" id="building-lammps-as-a-library">
-<span id="start-5"></span><h2>Building LAMMPS as a library<a class="headerlink" href="#building-lammps-as-a-library" title="Permalink to this headline">¶</a></h2>
+<span id="start-5"></span><h2>2.5. Building LAMMPS as a library<a class="headerlink" href="#building-lammps-as-a-library" title="Permalink to this headline">¶</a></h2>
 <p>LAMMPS can be built as either a static or shared library, which can
 then be called from another application or a scripting language.  See
 <a class="reference internal" href="Section_howto.html#howto-10"><span>this section</span></a> for more info on coupling
 LAMMPS to other codes.  See <a class="reference internal" href="Section_python.html"><em>this section</em></a> for
 more info on wrapping and running LAMMPS from Python.</p>
 <div class="section" id="static-library">
-<h3><strong>Static library:</strong><a class="headerlink" href="#static-library" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.1. <strong>Static library:</strong><a class="headerlink" href="#static-library" title="Permalink to this headline">¶</a></h3>
 <p>To build LAMMPS as a static library (<a href="#id7"><span class="problematic" id="id8">*</span></a>.a file on Linux), type</p>
 <div class="highlight-python"><div class="highlight"><pre>make foo mode=lib
 </pre></div>
@@ -1083,7 +1096,7 @@ link to.  It will also create a soft link liblammps.a, which will
 point to the most recently built static library.</p>
 </div>
 <div class="section" id="shared-library">
-<h3><strong>Shared library:</strong><a class="headerlink" href="#shared-library" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.2. <strong>Shared library:</strong><a class="headerlink" href="#shared-library" title="Permalink to this headline">¶</a></h3>
 <p>To build LAMMPS as a shared library (<a href="#id9"><span class="problematic" id="id10">*</span></a>.so file on Linux), which can be
 dynamically loaded, e.g. from Python, type</p>
 <div class="highlight-python"><div class="highlight"><pre>make foo mode=shlib
@@ -1136,7 +1149,7 @@ you do not have write privileges for /usr/local/lib.  The end result
 should be the file /usr/local/lib/libmpich.so.</p>
 </div>
 <div class="section" id="additional-requirement-for-using-a-shared-library">
-<h3><strong>Additional requirement for using a shared library:</strong><a class="headerlink" href="#additional-requirement-for-using-a-shared-library" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.3. <strong>Additional requirement for using a shared library:</strong><a class="headerlink" href="#additional-requirement-for-using-a-shared-library" title="Permalink to this headline">¶</a></h3>
 <p>The operating system finds shared libraries to load at run-time using
 the environment variable LD_LIBRARY_PATH.  So you may wish to copy the
 file src/liblammps.so or src/liblammps_g++.so (for example) to a place
@@ -1151,7 +1164,7 @@ that use it.</p>
 </div>
 </div>
 <div class="section" id="calling-the-lammps-library">
-<h3><strong>Calling the LAMMPS library:</strong><a class="headerlink" href="#calling-the-lammps-library" title="Permalink to this headline">¶</a></h3>
+<h3>2.5.4. <strong>Calling the LAMMPS library:</strong><a class="headerlink" href="#calling-the-lammps-library" title="Permalink to this headline">¶</a></h3>
 <p>Either flavor of library (static or shared0 allows one or more LAMMPS
 objects to be instantiated from the calling program.</p>
 <p>When used from a C++ program, all of LAMMPS is wrapped in a LAMMPS_NS
@@ -1174,7 +1187,7 @@ interface and how to extend it for your needs.</p>
 </div>
 </div>
 <div class="section" id="running-lammps">
-<span id="start-6"></span><h2>Running LAMMPS<a class="headerlink" href="#running-lammps" title="Permalink to this headline">¶</a></h2>
+<span id="start-6"></span><h2>2.6. Running LAMMPS<a class="headerlink" href="#running-lammps" title="Permalink to this headline">¶</a></h2>
 <p>By default, LAMMPS runs by reading commands from standard input.  Thus
 if you run the LAMMPS executable by itself, e.g.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">lmp_linux</span>
@@ -1276,7 +1289,7 @@ more processors or setup a smaller problem.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="command-line-options">
-<span id="start-7"></span><h2>Command-line options<a class="headerlink" href="#command-line-options" title="Permalink to this headline">¶</a></h2>
+<span id="start-7"></span><h2>2.7. Command-line options<a class="headerlink" href="#command-line-options" title="Permalink to this headline">¶</a></h2>
 <p>At run time, LAMMPS recognizes several optional command-line switches
 which may be used in any order.  Either the full word or a one-or-two
 letter abbreviation can be used:</p>
@@ -1688,7 +1701,7 @@ negative numeric value.  It is OK if the first value1 starts with a
 <hr class="docutils" />
 </div>
 <div class="section" id="lammps-screen-output">
-<span id="start-8"></span><h2>LAMMPS screen output<a class="headerlink" href="#lammps-screen-output" title="Permalink to this headline">¶</a></h2>
+<span id="start-8"></span><h2>2.8. LAMMPS screen output<a class="headerlink" href="#lammps-screen-output" title="Permalink to this headline">¶</a></h2>
 <p>As LAMMPS reads an input script, it prints information to both the
 screen and a log file about significant actions it takes to setup a
 simulation.  When the simulation is ready to begin, LAMMPS performs
@@ -1784,7 +1797,7 @@ communication, roughly 75% in the example above.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="tips-for-users-of-previous-lammps-versions">
-<span id="start-9"></span><h2>Tips for users of previous LAMMPS versions<a class="headerlink" href="#tips-for-users-of-previous-lammps-versions" title="Permalink to this headline">¶</a></h2>
+<span id="start-9"></span><h2>2.9. Tips for users of previous LAMMPS versions<a class="headerlink" href="#tips-for-users-of-previous-lammps-versions" title="Permalink to this headline">¶</a></h2>
 <p>The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed
 in <a class="reference internal" href="Section_history.html"><em>Section_history</em></a>.  The F90 and F77 versions
@@ -1820,6 +1833,15 @@ close if you have setup the problem for both codes the same.</p>
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_commands.html" class="btn btn-neutral float-right" title="3. Commands" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_intro.html" class="btn btn-neutral" title="1. Introduction" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

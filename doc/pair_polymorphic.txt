@@ -52,7 +52,7 @@ to Stillinger-Weber potential ("SW"_#SW) if we set
 :c,image(Eqs/polymorphic4.jpg)
 
 The potential reduces to Tersoff types of potential
-("Tersoff"_#Tersoff,"Albe"_#Albe) if we set
+("Tersoff"_#Tersoff or "Albe"_#Albe) if we set
 
 :c,image(Eqs/polymorphic5.jpg)
 :c,image(Eqs/polymorphic6.jpg)
@@ -90,18 +90,20 @@ mapped to LAMMPS atom types by specifying N additional arguments after
 the filename in the pair_coeff command, where N is the number of
 LAMMPS atom types:
 
- filename
- N element names = mapping of Tersoff elements to atom types 
+filename
+N element names = mapping of Tersoff elements to atom types :ul
 
 See the pair_coeff doc page for alternate ways to specify the path for
-the potential file.
+the potential file.  Several files for polymorphic potentials are
+included in the potentials dir of the LAMMPS distro.  They have a
+"poly" suffix.
 
 As an example, imagine the SiC_tersoff.polymorphic file has tabulated
 functions for Si-C tersoff potential. If your LAMMPS simulation has 4
 atoms types and you want the 1st 3 to be Si, and the 4th to be C, you
 would use the following pair_coeff command:
 
-pair_coeff * * SiC_tersoff.polymorphic Si Si Si C 
+pair_coeff * * SiC_tersoff.polymorphic Si Si Si C :pre
 
 The 1st 2 arguments must be * * so as to span all LAMMPS atom
 types. The first three Si arguments map LAMMPS atom types 1,2,3 to the
@@ -130,15 +132,14 @@ number, atomic mass, and name of the species of the ntypes elements:
 atomic_number atomic-mass element (1)
 atomic_number atomic-mass element (2)
 ...
-atomic_number atomic-mass element (ntypes)
-
+atomic_number atomic-mass element (ntypes) :pre
 
 The next ntypes*(ntypes+1)/2 lines contain two numbers:
 
 cut xi (1)
 cut xi (2)
 ...
-cut xi (ntypes*(ntypes+1)/2)
+cut xi (ntypes*(ntypes+1)/2) :pre
 
 Here cut means the cutoff distance of the pair functions, xi is the
 same as defined in the potential functions above. The
@@ -170,8 +171,6 @@ functions are between 0 <= r <= cut for the U(r), V(r), W(r)
 functions, -cutmax <= delta_r <= cutmax for the P(delta_r) functions,
 -1 <= costheta <= 1 for the G(costheta) functions, and 0 <= X <= maxX
 for the F(X) functions.
-
-This concludes the potential files for the polymorphic pair style.
 
 [Mixing, shift, table tail correction, restart]:
 

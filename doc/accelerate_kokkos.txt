@@ -70,10 +70,9 @@ mode.
 
 Here is a quick overview of how to use the KOKKOS package:
 
-specify variables and settings in your Makefile.machine that enable
-OpenMP, GPU, or Phi support include the KOKKOS package and build
-LAMMPS enable the KOKKOS package and its hardware options via the "-k
-on" command-line switch use KOKKOS styles in your input script :ul
+specify variables and settings in your Makefile.machine that enable OpenMP, GPU, or Phi support
+include the KOKKOS package and build LAMMPS
+enable the KOKKOS package and its hardware options via the "-k on" command-line switch use KOKKOS styles in your input script :ul
 
 The latter two steps can be done using the "-k on", "-pk kokkos" and
 "-sf kk" "command-line switches"_Section_start.html#start_7
@@ -86,11 +85,13 @@ kk"_suffix.html commands respectively to your input script.
 The KOKKOS package can be used to build and run LAMMPS on the
 following kinds of hardware:
 
-CPU-only: one MPI task per CPU core (MPI-only, but using KOKKOS
-styles) CPU-only: one or a few MPI tasks per node with additional
-threading via OpenMP Phi: on one or more Intel Phi coprocessors (per
-node) GPU: on the GPUs of a node with additional OpenMP threading on
-the CPUs :ul
+CPU-only: one MPI task per CPU core (MPI-only, but using KOKKOS styles) 
+CPU-only: one or a few MPI tasks per node with additional threading via OpenMP
+Phi: on one or more Intel Phi coprocessors (per node)
+GPU: on the GPUs of a node with additional OpenMP threading on the CPUs :ul
+
+Kokkos support within LAMMPS must be built with a C++11 compatible
+compiler.  For example, gcc 4.7.2 or later.
 
 Note that Intel Xeon Phi coprocessors are supported in "native" mode,
 not "offload" mode like the USER-INTEL package supports.
@@ -115,14 +116,13 @@ You can do any of these in one line, using the src/Make.py script,
 described in "Section 2.4"_Section_start.html#start_4 of the manual.
 Type "Make.py -h" for help.  If run from the src directory, these
 commands will create src/lmp_kokkos_omp, lmp_kokkos_cuda, and
-lmp_kokkos_phi.  The OMP and PHI options use src/MAKE/Makefile.mpi as
-the starting Makefile.machine.  The CUDA option uses
-src/MAKE/OPTIONS/Makefile.cuda since the NVIDIA nvcc compiler is
-required.
+lmp_kokkos_phi.  Note that the OMP and PHI options use
+src/MAKE/Makefile.mpi as the starting Makefile.machine.  The CUDA
+option uses src/MAKE/OPTIONS/Makefile.kokkos_cuda.
 
-Make.py -p kokkos -kokkos omp -o kokkos_omp file mpi 
-Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda file kokkos_cuda
-Make.py -p kokkos -kokkos phi -o kokkos_phi file mpi :pre
+Make.py -p kokkos -kokkos omp -o kokkos_omp -a file mpi 
+Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda -a file kokkos_cuda
+Make.py -p kokkos -kokkos phi -o kokkos_phi -a file mpi :pre
 
 Or you can follow these steps:
 
@@ -502,6 +502,3 @@ Currently Kokkos does not support AMD GPUs due to limits in the
 available backend programming models.  Specifically, Kokkos requires
 extensive C++ support from the Kernel language.  This is expected to
 change in the future.
-
-Kokkos must be built with a C++11 compatible compiler.  For example,
-gcc 4.7.2 or later.

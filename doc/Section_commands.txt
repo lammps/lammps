@@ -839,6 +839,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "peri/lps (o)"_pair_peri.html,
 "peri/pmb (o)"_pair_peri.html,
 "peri/ves"_pair_peri.html,
+"polymorphic"_pair_polymorphic.html,
 "reax"_pair_reax.html,
 "rebo (o)"_pair_airebo.html,
 "resquared (go)"_pair_resquared.html,

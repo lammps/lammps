@@ -210,6 +210,9 @@ which can lead to poor energy conservation.  You can test for this in
 your system by running a constant NVE simulation with a particular set
 of SHAKE parameters and monitoring the energy versus time.
 
+SHAKE or RATTLE should not be used to contrain an angle at 180 degrees
+(e.g. linear CO2 molecule).  This causes numeric difficulties.
+
 [Related commands:] none
 
 [Default:] none

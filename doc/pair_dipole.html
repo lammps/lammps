@@ -1,286 +1,423 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style lj/cut/dipole/cut command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style lj/cut/dipole/cut command 
-</H3>
-<H3>pair_style lj/cut/dipole/cut/gpu command 
-</H3>
-<H3>pair_style lj/cut/dipole/cut/omp command 
-</H3>
-<H3>pair_style lj/sf/dipole/sf command 
-</H3>
-<H3>pair_style lj/sf/dipole/sf/gpu command 
-</H3>
-<H3>pair_style lj/sf/dipole/sf/omp command 
-</H3>
-<H3>pair_style lj/cut/dipole/long command 
-</H3>
-<H3>pair_style lj/long/dipole/long command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style lj/cut/dipole/cut cutoff (cutoff2)
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style lj/cut/dipole/cut command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-lj-cut-dipole-cut-command">
+<span id="index-0"></span><h1>pair_style lj/cut/dipole/cut command<a class="headerlink" href="#pair-style-lj-cut-dipole-cut-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lj-cut-dipole-cut-gpu-command">
+<h1>pair_style lj/cut/dipole/cut/gpu command<a class="headerlink" href="#pair-style-lj-cut-dipole-cut-gpu-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lj-cut-dipole-cut-omp-command">
+<h1>pair_style lj/cut/dipole/cut/omp command<a class="headerlink" href="#pair-style-lj-cut-dipole-cut-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lj-sf-dipole-sf-command">
+<h1>pair_style lj/sf/dipole/sf command<a class="headerlink" href="#pair-style-lj-sf-dipole-sf-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lj-sf-dipole-sf-gpu-command">
+<h1>pair_style lj/sf/dipole/sf/gpu command<a class="headerlink" href="#pair-style-lj-sf-dipole-sf-gpu-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lj-sf-dipole-sf-omp-command">
+<h1>pair_style lj/sf/dipole/sf/omp command<a class="headerlink" href="#pair-style-lj-sf-dipole-sf-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lj-cut-dipole-long-command">
+<h1>pair_style lj/cut/dipole/long command<a class="headerlink" href="#pair-style-lj-cut-dipole-long-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-lj-long-dipole-long-command">
+<h1>pair_style lj/long/dipole/long command<a class="headerlink" href="#pair-style-lj-long-dipole-long-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lj/cut/dipole/cut cutoff (cutoff2)
 pair_style lj/sf/dipole/sf cutoff (cutoff2)
 pair_style lj/cut/dipole/long cutoff (cutoff2)
-pair_style lj/long/dipole/long flag_lj flag_coul cutoff (cutoff2) 
-</PRE>
-<UL><LI>cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units) 
-
-<LI>cutoff2 = global cutoff for Coulombic and dipole (optional) (distance units) 
-
-<LI>flag_lj = <I>long</I> or <I>cut</I> or <I>off</I> 
-
-<PRE>  <I>long</I> = use long-range damping on dispersion 1/r^6 term
-  <I>cut</I> = use a cutoff on dispersion 1/r^6 term
-  <I>off</I> = omit disperion 1/r^6 term entirely 
-</PRE>
-<LI>flag_coul = <I>long</I> or <I>off</I> 
-
-<PRE>  <I>long</I> = use long-range damping on Coulombic 1/r and point-dipole terms
-  <I>off</I> = omit Coulombic and point-dipole terms entirely 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style lj/cut/dipole/cut 10.0
-pair_coeff * * 1.0 1.0 
-pair_coeff 2 3 1.0 1.0 2.5 4.0 
-</PRE>
-<PRE>pair_style lj/sf/dipole/sf 9.0
-pair_coeff * * 1.0 1.0 
-pair_coeff 2 3 1.0 1.0 2.5 4.0 
-</PRE>
-<PRE>pair_style lj/cut/dipole/long 10.0
-pair_coeff * * 1.0 1.0 
-pair_coeff 2 3 1.0 1.0 2.5 4.0 
-</PRE>
-<PRE>pair_style lj/long/dipole/long long long 3.5 10.0
-pair_coeff * * 1.0 1.0 
-pair_coeff 2 3 1.0 1.0 2.5 4.0 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Style <I>lj/cut/dipole/cut</I> computes interactions between pairs of particles
+pair_style lj/long/dipole/long flag_lj flag_coul cutoff (cutoff2)
+</pre></div>
+</div>
+<ul class="simple">
+<li>cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units)</li>
+<li>cutoff2 = global cutoff for Coulombic and dipole (optional) (distance units)</li>
+<li>flag_lj = <em>long</em> or <em>cut</em> or <em>off</em></li>
+</ul>
+<pre class="literal-block">
+<em>long</em> = use long-range damping on dispersion 1/r^6 term
+  <em>cut</em> = use a cutoff on dispersion 1/r^6 term
+  <em>off</em> = omit disperion 1/r^6 term entirely
+</pre>
+<ul class="simple">
+<li>flag_coul = <em>long</em> or <em>off</em></li>
+</ul>
+<pre class="literal-block">
+<em>long</em> = use long-range damping on Coulombic 1/r and point-dipole terms
+  <em>off</em> = omit Coulombic and point-dipole terms entirely
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lj/cut/dipole/cut 10.0
+pair_coeff * * 1.0 1.0
+pair_coeff 2 3 1.0 1.0 2.5 4.0
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lj/sf/dipole/sf 9.0
+pair_coeff * * 1.0 1.0
+pair_coeff 2 3 1.0 1.0 2.5 4.0
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lj/cut/dipole/long 10.0
+pair_coeff * * 1.0 1.0
+pair_coeff 2 3 1.0 1.0 2.5 4.0
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style lj/long/dipole/long long long 3.5 10.0
+pair_coeff * * 1.0 1.0
+pair_coeff 2 3 1.0 1.0 2.5 4.0
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Style <em>lj/cut/dipole/cut</em> computes interactions between pairs of particles
 that each have a charge and/or a point dipole moment.  In addition to
 the usual Lennard-Jones interaction between the particles (Elj) the
 charge-charge (Eqq), charge-dipole (Eqp), and dipole-dipole (Epp)
 interactions are computed by these formulas for the energy (E), force
-(F), and torque (T) between particles I and J.
-</P>
-<CENTER><IMG SRC = "Eqs/pair_dipole.jpg">
-</CENTER>
-<P>where qi and qj are the charges on the two particles, pi and pj are
+(F), and torque (T) between particles I and J.</p>
+<img alt="_images/pair_dipole.jpg" class="align-center" src="_images/pair_dipole.jpg" />
+<p>where qi and qj are the charges on the two particles, pi and pj are
 the dipole moment vectors of the two particles, r is their separation
 distance, and the vector r = Ri - Rj is the separation vector between
 the two particles.  Note that Eqq and Fqq are simply Coulombic energy
 and force, Fij = -Fji as symmetric forces, and Tij != -Tji since the
 torques do not act symmetrically.  These formulas are discussed in
-<A HREF = "#Allen">(Allen)</A> and in <A HREF = "#Toukmaji">(Toukmaji)</A>.
-</P>
-<P>Style <I>lj/sf/dipole/sf</I> computes "shifted-force" interactions between
+<a class="reference internal" href="pair_gayberne.html#allen"><span>(Allen)</span></a> and in <a class="reference internal" href="#toukmaji"><span>(Toukmaji)</span></a>.</p>
+<p>Style <em>lj/sf/dipole/sf</em> computes &#8220;shifted-force&#8221; interactions between
 pairs of particles that each have a charge and/or a point dipole
 moment. In general, a shifted-force potential is a (sligthly) modified
 potential containing extra terms that make both the energy and its
 derivative go to zero at the cutoff distance; this removes
 (cutoff-related) problems in energy conservation and any numerical
-instability in the equations of motion <A HREF = "#Allen">(Allen)</A>. Shifted-force
+instability in the equations of motion <a class="reference internal" href="pair_gayberne.html#allen"><span>(Allen)</span></a>. Shifted-force
 interactions for the Lennard-Jones (E_LJ), charge-charge (Eqq),
 charge-dipole (Eqp), dipole-charge (Epq) and dipole-dipole (Epp)
 potentials are computed by these formulas for the energy (E), force
-(F), and torque (T) between particles I and J:
-</P>
-<CENTER><IMG SRC = "Eqs/pair_dipole_sf.jpg">
-</CENTER>
-<CENTER><IMG SRC = "Eqs/pair_dipole_sf2.jpg">
-</CENTER>
-<P>where epsilon and sigma are the standard LJ parameters, r_c is the
+(F), and torque (T) between particles I and J:</p>
+<img alt="_images/pair_dipole_sf.jpg" class="align-center" src="_images/pair_dipole_sf.jpg" />
+<img alt="_images/pair_dipole_sf2.jpg" class="align-center" src="_images/pair_dipole_sf2.jpg" />
+<p>where epsilon and sigma are the standard LJ parameters, r_c is the
 cutoff, qi and qj are the charges on the two particles, pi and pj are
 the dipole moment vectors of the two particles, r is their separation
 distance, and the vector r = Ri - Rj is the separation vector between
 the two particles.  Note that Eqq and Fqq are simply Coulombic energy
 and force, Fij = -Fji as symmetric forces, and Tij != -Tji since the
 torques do not act symmetrically.  The shifted-force formula for the
-Lennard-Jones potential is reported in <A HREF = "#Stoddard">(Stoddard)</A>.  The
+Lennard-Jones potential is reported in <a class="reference internal" href="#stoddard"><span>(Stoddard)</span></a>.  The
 original (unshifted) formulas for the electrostatic potentials, forces
-and torques can be found in <A HREF = "#Price">(Price)</A>.  The shifted-force
+and torques can be found in <a class="reference internal" href="#price"><span>(Price)</span></a>.  The shifted-force
 electrostatic potentials have been obtained by applying equation 5.13
-of <A HREF = "#Allen">(Allen)</A>. The formulas for the corresponding forces and
-torques have been obtained by applying the 'chain rule' as in appendix
-C.3 of <A HREF = "#Allen">(Allen)</A>.
-</P>
-<P>If one cutoff is specified in the pair_style command, it is used for
+of <a class="reference internal" href="pair_gayberne.html#allen"><span>(Allen)</span></a>. The formulas for the corresponding forces and
+torques have been obtained by applying the &#8216;chain rule&#8217; as in appendix
+C.3 of <a class="reference internal" href="pair_gayberne.html#allen"><span>(Allen)</span></a>.</p>
+<p>If one cutoff is specified in the pair_style command, it is used for
 both the LJ and Coulombic (q,p) terms.  If two cutoffs are specified,
 they are used as cutoffs for the LJ and Coulombic (q,p) terms
-respectively.
-</P>
-<P>Style <I>lj/cut/dipole/long</I> computes long-range point-dipole
-interactions as discussed in <A HREF = "#Toukmaji">(Toukmaji)</A>. Dipole-dipole,
+respectively.</p>
+<p>Style <em>lj/cut/dipole/long</em> computes long-range point-dipole
+interactions as discussed in <a class="reference internal" href="#toukmaji"><span>(Toukmaji)</span></a>. Dipole-dipole,
 dipole-charge, and charge-charge interactions are all supported, along
 with the standard 12/6 Lennard-Jones interactions, which are computed
-with a cutoff.  A <A HREF = "kspace_style.html">kspace_style</A> must be defined to
-use this pair style.  Currently, only <A HREF = "kspace_style.html">kspace_style
-ewald/disp</A> support long-range point-dipole
-interactions.
-</P>
-<P>Style <I>lj/long/dipole/long</I> also computes point-dipole interactions as
-discussed in <A HREF = "#Toukmaji">(Toukmaji)</A>. Long-range dipole-dipole,
+with a cutoff.  A <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> must be defined to
+use this pair style.  Currently, only <a class="reference internal" href="kspace_style.html"><em>kspace_style ewald/disp</em></a> support long-range point-dipole
+interactions.</p>
+<p>Style <em>lj/long/dipole/long</em> also computes point-dipole interactions as
+discussed in <a class="reference internal" href="#toukmaji"><span>(Toukmaji)</span></a>. Long-range dipole-dipole,
 dipole-charge, and charge-charge interactions are all supported, along
 with the standard 12/6 Lennard-Jones interactions.  LJ interactions
-can be cutoff or long-ranged.
-</P>
-<P>For style <I>lj/long/dipole/long</I>, if <I>flag_lj</I> is set to <I>long</I>, no
+can be cutoff or long-ranged.</p>
+<p>For style <em>lj/long/dipole/long</em>, if <em>flag_lj</em> is set to <em>long</em>, no
 cutoff is used on the LJ 1/r^6 dispersion term.  The long-range
-portion is calculated by using the <A HREF = "kspace_style.html">kspace_style
-ewald_disp</A> command.  The specified LJ cutoff then
+portion is calculated by using the <a class="reference internal" href="kspace_style.html"><em>kspace_style ewald_disp</em></a> command.  The specified LJ cutoff then
 determines which portion of the LJ interactions are computed directly
 by the pair potential versus which part is computed in reciprocal
-space via the Kspace style.  If <I>flag_lj</I> is set to <I>cut</I>, the LJ
-interactions are simply cutoff, as with <A HREF = "pair_lj.html">pair_style
-lj/cut</A>.  If <I>flag_lj</I> is set to <I>off</I>, LJ interactions
-are not computed at all.
-</P>
-<P>If <I>flag_coul</I> is set to <I>long</I>, no cutoff is used on the Coulombic or
+space via the Kspace style.  If <em>flag_lj</em> is set to <em>cut</em>, the LJ
+interactions are simply cutoff, as with <a class="reference internal" href="pair_lj.html"><em>pair_style lj/cut</em></a>.  If <em>flag_lj</em> is set to <em>off</em>, LJ interactions
+are not computed at all.</p>
+<p>If <em>flag_coul</em> is set to <em>long</em>, no cutoff is used on the Coulombic or
 dipole interactions.  The long-range portion is calculated by using
-<I>ewald_disp</I> of the <A HREF = "kspace_style.html">kspace_style</A> command. If
-<I>flag_coul</I> is set to <I>off</I>, Coulombic and dipole interactions are not
-computed at all.
-</P>
-<P>Atoms with dipole moments should be integrated using the <A HREF = "fix_nve_sphere.html">fix
-nve/sphere update dipole</A> command to rotate the
-dipole moments.  The <I>omega</I> option on the <A HREF = "fix_langevin.html">fix
-langevin</A> command can be used to thermostat the
-rotational motion.  The <A HREF = "compute_temp_sphere.html">compute temp/sphere</A>
+<em>ewald_disp</em> of the <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command. If
+<em>flag_coul</em> is set to <em>off</em>, Coulombic and dipole interactions are not
+computed at all.</p>
+<p>Atoms with dipole moments should be integrated using the <a class="reference internal" href="fix_nve_sphere.html"><em>fix nve/sphere update dipole</em></a> command to rotate the
+dipole moments.  The <em>omega</em> option on the <a class="reference internal" href="fix_langevin.html"><em>fix langevin</em></a> command can be used to thermostat the
+rotational motion.  The <a class="reference internal" href="compute_temp_sphere.html"><em>compute temp/sphere</em></a>
 command can be used to monitor the temperature, since it includes
-rotational degrees of freedom.  The <A HREF = "atom_style.html">atom_style
-dipole</A> command should be used since it defines the
+rotational degrees of freedom.  The <a class="reference internal" href="atom_style.html"><em>atom_style dipole</em></a> command should be used since it defines the
 point dipoles and their rotational state.  The magnitude of the dipole
 moment for each type of particle can be defined by the
-<A HREF = "dipole.html">dipole</A> command or in the "Dipoles" section of the data
-file read in by the <A HREF = "read_data.html">read_data</A> command.  Their initial
-orientation can be defined by the <A HREF = "set.html">set dipole</A> command or in
-the "Atoms" section of the data file.
-</P>
-<P>The following coefficients must be defined for each pair of atoms
-types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+<code class="xref doc docutils literal"><span class="pre">dipole</span></code> command or in the &#8220;Dipoles&#8221; section of the data
+file read in by the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command.  Their initial
+orientation can be defined by the <a class="reference internal" href="set.html"><em>set dipole</em></a> command or in
+the &#8220;Atoms&#8221; section of the data file.</p>
+<p>The following coefficients must be defined for each pair of atoms
+types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples
 above, or in the data file or restart files read by the
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands, or by mixing as described below:
-</P>
-<UL><LI>epsilon (energy units)
-<LI>sigma (distance units)
-<LI>cutoff1 (distance units)
-<LI>cutoff2 (distance units) 
-</UL>
-<P>The latter 2 coefficients are optional.  If not specified, the global
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+commands, or by mixing as described below:</p>
+<ul class="simple">
+<li>epsilon (energy units)</li>
+<li>sigma (distance units)</li>
+<li>cutoff1 (distance units)</li>
+<li>cutoff2 (distance units)</li>
+</ul>
+<p>The latter 2 coefficients are optional.  If not specified, the global
 LJ and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both LJ
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
-type pair.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+type pair.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distances for this pair style can be mixed.  The default
-mix value is <I>geometric</I>.  See the "pair_modify" command for details.
-</P>
-<P>For atom type pairs I,J and I != J, the A, sigma, d1, and d2
+mix value is <em>geometric</em>.  See the &#8220;pair_modify&#8221; command for details.</p>
+<p>For atom type pairs I,J and I != J, the A, sigma, d1, and d2
 coefficients and cutoff distance for this pair style can be mixed.  A
 is an energy value mixed like a LJ epsilon.  D1 and d2 are distance
 values and are mixed like sigma.  The default mix value is
-<I>geometric</I>.  See the "pair_modify" command for details.
-</P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A> 
+<em>geometric</em>.  See the &#8220;pair_modify&#8221; command for details.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
 shift option for the energy of the Lennard-Jones portion of the pair
-interaction; such energy goes to zero at the cutoff by construction.
-</P>
-<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
-for this pair style.
-</P>
-<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+interaction; such energy goes to zero at the cutoff by construction.</p>
+<p>The <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> table option is not relevant
+for this pair style.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
 tail option for adding long-range tail corrections to energy and
-pressure.
-</P>
-<P>This pair style writes its information to <A HREF = "restart.html">binary restart
-files</A>, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.
-</P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
-<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>The <I>lj/cut/dipole/cut</I>, <I>lj/cut/dipole/long</I>, and
-<I>lj/long/dipole/long</I> styles are part of the DIPOLE package.  They are
-only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>The <I>lj/sf/dipole/sf</I> style is part of the USER-MISC package.  It is
-only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>Using dipole pair styles with <I>electron</I> <A HREF = "units.html">units</A> is not
-currently supported.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+pressure.</p>
+<p>This pair style writes its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>The <em>lj/cut/dipole/cut</em>, <em>lj/cut/dipole/long</em>, and
+<em>lj/long/dipole/long</em> styles are part of the DIPOLE package.  They are
+only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>The <em>lj/sf/dipole/sf</em> style is part of the USER-MISC package.  It is
+only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>Using dipole pair styles with <em>electron</em> <a class="reference internal" href="units.html"><em>units</em></a> is not
+currently supported.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="allen"><strong>(Allen)</strong> Allen and Tildesley, Computer Simulation of Liquids,
+Clarendon Press, Oxford, 1987.</p>
+<p id="toukmaji"><strong>(Toukmaji)</strong> Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
+10913 (2000).</p>
+<p id="stoddard"><strong>(Stoddard)</strong> Stoddard and Ford, Phys Rev A, 8, 1504 (1973).</p>
+<p id="price"><strong>(Price)</strong> Price, Stone and Alderton, Mol Phys, 52, 987 (1984).</p>
+</div>
+</div>
 
-<A NAME = "Allen"></A>
 
-<P><B>(Allen)</B> Allen and Tildesley, Computer Simulation of Liquids,
-Clarendon Press, Oxford, 1987.
-</P>
-<A NAME = "Toukmaji"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Toukmaji)</B> Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
-10913 (2000).
-</P>
-<A NAME = "Stoddard"></A>
+  <hr/>
 
-<P><B>(Stoddard)</B> Stoddard and Ford, Phys Rev A, 8, 1504 (1973).
-</P>
-<A NAME = "Price"></A>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-<P><B>(Price)</B> Price, Stone and Alderton, Mol Phys, 52, 987 (1984).
-</P>
-</HTML>
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

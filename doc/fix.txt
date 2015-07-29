@@ -172,7 +172,7 @@ in the fix section of "this page"_Section_commands.html#cmd_5.
 "append/atoms"_fix_append_atoms.html - append atoms to a running simulation
 "aveforce"_fix_aveforce.html - add an averaged force to each atom
 "ave/atom"_fix_ave_atom.html - compute per-atom time-averaged quantities
-"ave/correlate"_fix_correlate_atom.html - compute/output time correlations
+"ave/correlate"_fix_ave_correlate.html - compute/output time correlations
 "ave/histo"_fix_ave_histo.html - compute/output time-averaged histograms
 "ave/spatial"_fix_ave_spatial.html - compute/output time-averaged per-atom quantities by layer
 "ave/time"_fix_ave_time.html - compute/output global time-averaged quantities

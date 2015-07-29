@@ -1,83 +1,193 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute stress/atom command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>compute stress/atom command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>compute ID group-ID stress/atom temp-ID keyword ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
-<LI>stress/atom = style name of this compute command
-<LI>temp-ID = ID of compute that calculates temperature, can be NULL if not needed
-<LI>zero or more keywords may be appended
-<LI>keyword = <I>ke</I> or <I>pair</I> or <I>bond</I> or <I>angle</I> or <I>dihedral</I> or <I>improper</I> or <I>kspace</I> or <I>fix</I> or <I>virial</I> 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>compute 1 mobile stress/atom NULL
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute stress/atom command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-stress-atom-command">
+<span id="index-0"></span><h1>compute stress/atom command<a class="headerlink" href="#compute-stress-atom-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID stress/atom temp-ID keyword ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><em>compute</em></a> command</li>
+<li>stress/atom = style name of this compute command</li>
+<li>temp-ID = ID of compute that calculates temperature, can be NULL if not needed</li>
+<li>zero or more keywords may be appended</li>
+<li>keyword = <em>ke</em> or <em>pair</em> or <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or <em>kspace</em> or <em>fix</em> or <em>virial</em></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 mobile stress/atom NULL
 compute 1 mobile stress/atom myRamp
-compute 1 all stress/atom NULL pair bond 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a computation that computes the symmetric per-atom stress
+compute 1 all stress/atom NULL pair bond
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that computes the symmetric per-atom stress
 tensor for each atom in a group.  The tensor for each atom has 6
 components and is stored as a 6-element vector in the following order:
-xx, yy, zz, xy, xz, yz.  See the <A HREF = "compute_pressure.html">compute
-pressure</A> command if you want the stress tensor
-(pressure) of the entire system.
-</P>
-<P>The stress tensor for atom <I>I</I> is given by the following formula,
-where <I>a</I> and <I>b</I> take on values x,y,z to generate the 6 components of
-the symmetric tensor:
-</P>
-<CENTER><IMG SRC = "Eqs/stress_tensor.jpg">
-</CENTER>
-<P>The first term is a kinetic energy contribution for atom <I>I</I>.  See
-details below on how the specified <I>temp-ID</I> can affect the velocities
+xx, yy, zz, xy, xz, yz.  See the <a class="reference internal" href="compute_pressure.html"><em>compute pressure</em></a> command if you want the stress tensor
+(pressure) of the entire system.</p>
+<p>The stress tensor for atom <em>I</em> is given by the following formula,
+where <em>a</em> and <em>b</em> take on values x,y,z to generate the 6 components of
+the symmetric tensor:</p>
+<img alt="_images/stress_tensor.jpg" class="align-center" src="_images/stress_tensor.jpg" />
+<p>The first term is a kinetic energy contribution for atom <em>I</em>.  See
+details below on how the specified <em>temp-ID</em> can affect the velocities
 used in this calculation.  The second term is a pairwise energy
-contribution where <I>n</I> loops over the <I>Np</I> neighbors of atom <I>I</I>, <I>r1</I>
-and <I>r2</I> are the positions of the 2 atoms in the pairwise interaction,
-and <I>F1</I> and <I>F2</I> are the forces on the 2 atoms resulting from the
+contribution where <em>n</em> loops over the <em>Np</em> neighbors of atom <em>I</em>, <em>r1</em>
+and <em>r2</em> are the positions of the 2 atoms in the pairwise interaction,
+and <em>F1</em> and <em>F2</em> are the forces on the 2 atoms resulting from the
 pairwise interaction.  The third term is a bond contribution of
-similar form for the <I>Nb</I> bonds which atom <I>I</I> is part of.  There are
-similar terms for the <I>Na</I> angle, <I>Nd</I> dihedral, and <I>Ni</I> improper
-interactions atom <I>I</I> is part of.  There is also a term for the KSpace
+similar form for the <em>Nb</em> bonds which atom <em>I</em> is part of.  There are
+similar terms for the <em>Na</em> angle, <em>Nd</em> dihedral, and <em>Ni</em> improper
+interactions atom <em>I</em> is part of.  There is also a term for the KSpace
 contribution from long-range Coulombic interactions, if defined.
-Finally, there is a term for the <I>Nf</I> <A HREF = "fix.html">fixes</A> that apply
-internal constraint forces to atom <I>I</I>.  Currently, only the <A HREF = "fix_shake.html">fix
-shake</A> and <A HREF = "fix_rigid.html">fix rigid</A> commands
-contribute to this term.
-</P>
-<P>As the coefficients in the formula imply, a virial contribution
+Finally, there is a term for the <em>Nf</em> <a class="reference internal" href="fix.html"><em>fixes</em></a> that apply
+internal constraint forces to atom <em>I</em>.  Currently, only the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> and <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> commands
+contribute to this term.</p>
+<p>As the coefficients in the formula imply, a virial contribution
 produced by a small set of atoms (e.g. 4 atoms in a dihedral or 3
 atoms in a Tersoff 3-body interaction) is assigned in equal portions
 to each atom in the set.  E.g. 1/4 of the dihedral virial to each of
 the 4 atoms, or 1/3 of the fix virial due to SHAKE constraints applied
-to atoms in a a water molecule via the <A HREF = "fix_shake.html">fix shake</A>
-command.
-</P>
-<P>If no extra keywords are listed, all of the terms in this formula are
+to atoms in a a water molecule via the <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a>
+command.</p>
+<p>If no extra keywords are listed, all of the terms in this formula are
 included in the per-atom stress tensor.  If any extra keywords are
 listed, only those terms are summed to compute the tensor.  The
-<I>virial</I> keyword means include all terms except the kinetic energy
-<I>ke</I>.
-</P>
-<P>Note that the stress for each atom is due to its interaction with all
-other atoms in the simulation, not just with other atoms in the group.
-</P>
-<P>Details of how LAMMPS computes the virial for individual atoms for
+<em>virial</em> keyword means include all terms except the kinetic energy
+<em>ke</em>.</p>
+<p>Note that the stress for each atom is due to its interaction with all
+other atoms in the simulation, not just with other atoms in the group.</p>
+<p>Details of how LAMMPS computes the virial for individual atoms for
 either pairwise or manybody potentials, and including the effects of
-periodic boundary conditions is discussed in <A HREF = "#Thompson">(Thompson)</A>.
+periodic boundary conditions is discussed in <a class="reference internal" href="#thompson"><span>(Thompson)</span></a>.
 The basic idea for manybody potentials is to treat each component of
 the force computation between a small cluster of atoms in the same
 manner as in the formula above for bond, angle, dihedral, etc
@@ -85,88 +195,133 @@ interactions.  Namely the quantity R dot F is summed over the atoms in
 the interaction, with the R vectors unwrapped by periodic boundaries
 so that the cluster of atoms is close together.  The total
 contribution for the cluster interaction is divided evenly among those
-atoms.
-</P>
-<P>The <A HREF = "dihedral_charmm.html">dihedral_style charmm</A> style calculates
+atoms.</p>
+<p>The <a class="reference internal" href="dihedral_charmm.html"><em>dihedral_style charmm</em></a> style calculates
 pairwise interactions between 1-4 atoms.  The virial contribution of
-these terms is included in the pair virial, not the dihedral virial.
-</P>
-<P>The KSpace contribution is calculated using the method in
-<A HREF = "#Heyes">(Heyes)</A> for the Ewald method and by the methodology described
-in <A HREF = "#Sirk">(Sirk)</A> for PPPM.  The choice of KSpace solver is specified
-by the <A HREF = "kspace_style.html">kspace_style pppm</A> command.  Note that for
+these terms is included in the pair virial, not the dihedral virial.</p>
+<p>The KSpace contribution is calculated using the method in
+<a class="reference internal" href="#heyes"><span>(Heyes)</span></a> for the Ewald method and by the methodology described
+in <a class="reference internal" href="pair_srp.html#sirk"><span>(Sirk)</span></a> for PPPM.  The choice of KSpace solver is specified
+by the <a class="reference internal" href="kspace_style.html"><em>kspace_style pppm</em></a> command.  Note that for
 PPPM, the calcluation requires 6 extra FFTs each timestep that
 per-atom stress is calculated.  Thus it can significantly increase the
 cost of the PPPM calculation if it is needed on a large fraction of
-the simulation timesteps.
-</P>
-<P>The <I>temp-ID</I> argument can be used to affect the per-atom velocities
+the simulation timesteps.</p>
+<p>The <em>temp-ID</em> argument can be used to affect the per-atom velocities
 used in the kinetic energy contribution to the total stress.  If the
 kinetic energy is not included in the stress, than the temperature
 compute is not used and can be specified as NULL.  If the kinetic
 energy is included and you wish to use atom velocities as-is, then
-<I>temp-ID</I> can also be specified as NULL.  If desired, the specified
+<em>temp-ID</em> can also be specified as NULL.  If desired, the specified
 temperature compute can be one that subtracts off a bias to leave each
 atom with only a thermal velocity to use in the formula above, e.g. by
 subtracting a background streaming velocity.  See the doc pages for
-individual <A HREF = "compute.html">compute commands</A> to determine which ones
-include a bias.
-</P>
-<HR>
-
-<P>Note that as defined in the formula, per-atom stress is the negative
+individual <a class="reference internal" href="compute.html"><em>compute commands</em></a> to determine which ones
+include a bias.</p>
+<hr class="docutils" />
+<p>Note that as defined in the formula, per-atom stress is the negative
 of the per-atom pressure tensor.  It is also really a stress*volume
 formulation, meaning the computed quantity is in units of
 pressure*volume.  It would need to be divided by a per-atom volume to
-have units of stress (pressure), but an individual atom's volume is
+have units of stress (pressure), but an individual atom&#8217;s volume is
 not well defined or easy to compute in a deformed solid or a liquid.
-See the <A HREF = "compute_voronoi_atom.html">compute voronoi/atom</A> command for
-one possible way to estimate a per-atom volume.
-</P>
-<P>Thus, if the diagonal components of the per-atom stress tensor are
+See the <a class="reference internal" href="compute_voronoi_atom.html"><em>compute voronoi/atom</em></a> command for
+one possible way to estimate a per-atom volume.</p>
+<p>Thus, if the diagonal components of the per-atom stress tensor are
 summed for all atoms in the system and the sum is divided by dV, where
 d = dimension and V is the volume of the system, the result should be
--P, where P is the total pressure of the system.
-</P>
-<P>These lines in an input script for a 3d system should yield that
-result.  I.e. the last 2 columns of thermo output will be the same:
-</P>
-<PRE>compute		peratom all stress/atom NULL
-compute		p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
-variable	press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
-thermo_style	custom step temp etotal press v_press 
-</PRE>
-<P><B>Output info:</B>
-</P>
-<P>This compute calculates a per-atom array with 6 columns, which can be
+-P, where P is the total pressure of the system.</p>
+<p>These lines in an input script for a 3d system should yield that
+result.  I.e. the last 2 columns of thermo output will be the same:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute              peratom all stress/atom NULL
+compute              p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable     press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+thermo_style custom step temp etotal press v_press
+</pre></div>
+</div>
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a per-atom array with 6 columns, which can be
 accessed by indices 1-6 by any command that uses per-atom values from
-a compute as input.  See <A HREF = "Section_howto.html#howto_15">Section_howto
-15</A> for an overview of LAMMPS output
-options.
-</P>
-<P>The per-atom array values will be in pressure*volume
-<A HREF = "units.html">units</A> as discussed above.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "compute_pe.html">compute pe</A>, <A HREF = "compute_pressure.html">compute pressure</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span>Section_howto 15</span></a> for an overview of LAMMPS output
+options.</p>
+<p>The per-atom array values will be in pressure*volume
+<a class="reference internal" href="units.html"><em>units</em></a> as discussed above.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="compute_pe.html"><em>compute pe</em></a>, <a class="reference internal" href="compute_pressure.html"><em>compute pressure</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="heyes"><strong>(Heyes)</strong> Heyes, Phys Rev B 49, 755 (1994),</p>
+<p id="sirk"><strong>(Sirk)</strong> Sirk, Moore, Brown, J Chem Phys, 138, 064505 (2013).</p>
+<p id="thompson"><strong>(Thompson)</strong> Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).</p>
+</div>
+</div>
 
-<A NAME = "Heyes"></A>
 
-<P><B>(Heyes)</B> Heyes, Phys Rev B 49, 755 (1994),
-</P>
-<A NAME = "Sirk"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Sirk)</B> Sirk, Moore, Brown, J Chem Phys, 138, 064505 (2013).
-</P>
-<A NAME = "Thompson"></A>
+  <hr/>
 
-<P><B>(Thompson)</B> Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).
-</P>
-</HTML>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

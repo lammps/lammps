@@ -1,0 +1,225 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style lubricateU command 
+</H3>
+<H3>pair_style lubricateU/poly command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style mu flaglog cutinner cutoff gdot flagHI flagVF 
+</PRE>
+<UL><LI>style = <I>lubricateU</I> or <I>lubricateU/poly</I>
+<LI>mu = dynamic viscosity (dynamic viscosity units)
+<LI>flaglog = 0/1 to exclude/include log terms in the lubrication approximation
+<LI>cutinner = inner cut off distance (distance units)
+<LI>cutoff = outer cutoff for interactions (distance units)
+<LI>gdot = shear rate (1/time units)
+<LI>flagHI (optional) = 0/1 to exclude/include 1/r hydrodynamic interactions
+<LI>flagVF (optional) = 0/1 to exclude/include volume fraction corrections in the long-range isotropic terms 
+</UL>
+<P><B>Examples:</B> (all assume radius = 1)
+</P>
+<PRE>pair_style lubricateU 1.5 1 2.01 2.5 0.01 1 1
+pair_coeff 1 1 2.05 2.8
+pair_coeff * * 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Styles <I>lubricateU</I> and <I>lubricateU/poly</I> compute velocities and
+angular velocities such that the hydrodynamic interaction balances the
+force and torque due to all other types of interactions.
+</P>
+<P>The interactions have 2 components.  The first is
+Ball-Melrose lubrication terms via the formulas in <A HREF = "#Ball">(Ball and
+Melrose)</A>
+</P>
+<CENTER><IMG SRC = "Eqs/pair_lubricate.jpg">
+</CENTER>
+<P>which represents the dissipation W between two nearby particles due to
+their relative velocities in the presence of a background solvent with
+viscosity <I>mu</I>.  Note that this is dynamic viscosity which has units of
+mass/distance/time, not kinematic viscosity.
+</P>
+<P>The Asq (squeeze) term is the strongest and is included as long as
+<I>flagHI</I> is set to 1 (default). It scales as 1/gap where gap is the
+separation between the surfaces of the 2 particles. The Ash (shear)
+and Apu (pump) terms are only included if <I>flaglog</I> is set to 1. They
+are the next strongest interactions, and the only other singular
+interaction, and scale as log(gap). Note that <I>flaglog</I> = 1 and
+<I>flagHI</I> = 0 is invalid, and will result in a warning message, after
+which <I>flagHI</I> will be set to 1. The Atw (twist) term is currently not
+included. It is typically a very small contribution to the lubrication
+forces.
+</P>
+<P>The <I>flagHI</I> and <I>flagVF</I> settings are optional.  Neither should be
+used, or both must be defined.
+</P>
+<P><I>Cutinner</I> sets the minimum center-to-center separation that will be
+used in calculations irrespective of the actual separation.  <I>Cutoff</I>
+is the maximum center-to-center separation at which an interaction is
+computed.  Using a <I>cutoff</I> less than 3 radii is recommended if
+<I>flaglog</I> is set to 1.
+</P>
+<P>The other component is due to the Fast Lubrication Dynamics (FLD)
+approximation, described in <A HREF = "#Kumar">(Kumar)</A>.  The equation being
+solved to balance the forces and torques is
+</P>
+<CENTER><IMG SRC = "Eqs/fld2.jpg">
+</CENTER>
+<P>where U represents the velocities and angular velocities of the
+particles, U^<I>infty</I> represents the velocities and the angular
+velocities of the undisturbed fluid, and E^<I>infty</I> represents the rate
+of strain tensor of the undisturbed fluid flow with viscosity
+<I>mu</I>. Again, note that this is dynamic viscosity which has units of
+mass/distance/time, not kinematic viscosity.  Volume fraction
+corrections to R_FU are included if <I>flagVF</I> is set to 1 (default).
+</P>
+<P>F<I>rest</I> represents the forces and torques due to all other types of
+interactions, e.g. Brownian, electrostatic etc.  Note that this
+algorithm neglects the inertial terms, thereby removing the
+restriction of resolving the small interial time scale, which may not
+be of interest for colloidal particles.  This pair style solves for
+the velocity such that the hydrodynamic force balances all other types
+of forces, thereby resulting in a net zero force (zero inertia limit).
+When defining this pair style, it must be defined last so that when
+this style is invoked all other types of forces have already been
+computed.  For the same reason, it won't work if additional non-pair
+styles are defined (such as bond or Kspace forces) as they are
+calculated in LAMMPS after the pairwise interactions have been
+computed.
+</P>
+<P>IMPORTANT NOTE: When using these styles, the these pair styles are
+designed to be used with implicit time integration and a
+correspondingly larger timestep.  Thus either <A HREF = "fix_nve_noforce.html">fix
+nve/noforce</A> should be used for spherical
+particles defined via <A HREF = "atom_style.html">atom_style sphere</A> or <A HREF = "fix_nve_asphere_noforce.html">fix
+nve/asphere/noforce</A> should be used for
+spherical particles defined via <A HREF = "atom_style.html">atom_style
+ellipsoid</A>.  This is because the velocity and angular
+momentum of each particle is set by the pair style, and should not be
+reset by the time integration fix.
+</P>
+<P>Style <I>lubricateU</I> requires monodisperse spherical particles; style
+<I>lubricateU/poly</I> allows for polydisperse spherical particles.
+</P>
+<P>If the suspension is sheared via the <A HREF = "fix_deform.html">fix deform</A>
+command then the pair style uses the shear rate to adjust the
+hydrodynamic interactions accordingly. Volume changes due to fix
+deform are accounted for when computing the volume fraction
+corrections to R_FU.
+</P>
+<P>When computing the volume fraction corrections to R_FU, the presence
+of walls (whether moving or stationary) will affect the volume
+fraction available to colloidal particles. This is currently accounted
+for with the following types of walls: <A HREF = "fix_wall.html">wall/lj93</A>,
+<A HREF = "fix_wall.html">wall/lj126</A>, <A HREF = "fix_wall.html">wall/colloid</A>, and
+"wall/harmonic_fix_wall.html".  For these wall styles, the correct
+volume fraction will be used when walls do not coincide with the box
+boundary, as well as when walls move and thereby cause a change in the
+volume fraction. To use these wall styles with pair_style <I>lubricateU</I>
+or <I>lubricateU/poly</I>, the <I>fld yes</I> option must be specified in the
+fix wall command.
+</P>
+<P>Since lubrication forces are dissipative, it is usually desirable to
+thermostat the system at a constant temperature. If Brownian motion
+(at a constant temperature) is desired, it can be set using the
+<A HREF = "pair_brownian.html">pair_style brownian</A> command. These pair styles
+and the brownian style should use consistent parameters for <I>mu</I>,
+<I>flaglog</I>, <I>flagfld</I>, <I>cutinner</I>, <I>cutoff</I>, <I>flagHI</I> and <I>flagVF</I>.
+</P>
+<HR>
+
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above, or in the data file or restart files read by the
+<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
+commands, or by mixing as described below:
+</P>
+<UL><LI>cutinner (distance units)
+<LI>cutoff (distance units) 
+</UL>
+<P>The two coefficients are optional.  If neither is specified, the two
+cutoffs specified in the pair_style command are used.  Otherwise both
+must be specified.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>For atom type pairs I,J and I != J, the two cutoff distances for this
+pair style can be mixed.  The default mix value is <I>geometric</I>.  See
+the "pair_modify" command for details.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+shift option for the energy of the pair interaction.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> table option is not relevant
+for this pair style.
+</P>
+<P>This pair style does not support the <A HREF = "pair_modify.html">pair_modify</A>
+tail option for adding long-range tail corrections to energy and
+pressure.
+</P>
+<P>This pair style writes its information to <A HREF = "restart.html">binary restart
+files</A>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>These styles are part of the FLD package.  They are only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#2_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>Currently, these pair styles assume that all other types of
+forces/torques on the particles have been already been computed when
+it is invoked.  This requires this style to be defined as the last of
+the pair styles, and that no fixes apply additional constraint forces.
+One exception is the <A HREF = "fix_wall.html">fix wall/colloid</A> commands, which
+has an "fld" option to apply their wall forces correctly.
+</P>
+<P>Only spherical monodisperse particles are allowed for pair_style
+lubricateU.
+</P>
+<P>Only spherical particles are allowed for pair_style lubricateU/poly.
+</P>
+<P>For sheared suspensions, it is assumed that the shearing is done in
+the xy plane, with x being the velocity direction and y being the
+velocity-gradient direction. In this case, one must use <A HREF = "fix_deform.html">fix
+deform</A> with the same rate of shear (erate).
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_lubricate.html">pair_style
+lubricate</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The default settings for the optional args are flagHI = 1 and flagVF =
+1.
+</P>
+<HR>
+
+<A NAME = "Ball"></A>
+
+<P><B>(Ball)</B> Ball and Melrose, Physica A, 247, 444-472 (1997).
+</P>
+<A NAME = "Kumar"></A>
+
+<P><B>(Kumar)</B> Kumar and Higdon, Phys Rev E, 82, 051401 (2010).
+</P>
+</HTML>

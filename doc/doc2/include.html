@@ -1,0 +1,45 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>include command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>include file 
+</PRE>
+<UL><LI>file = filename of new input script to switch to 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>include newfile
+include in.run2 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command opens a new input script file and begins reading LAMMPS
+commands from that file.  When the new file is finished, the original
+file is returned to.  Include files can be nested as deeply as
+desired.  If input script A includes script B, and B includes A, then
+LAMMPS could run for a long time.
+</P>
+<P>If the filename is a variable (see the <A HREF = "variable.html">variable</A>
+command), different processor partitions can run different input
+scripts.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "variable.html">variable</A>, <A HREF = "jump.html">jump</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

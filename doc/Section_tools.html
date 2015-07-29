@@ -1,572 +1,696 @@
-<HTML>
-<CENTER><A HREF = "Section_perf.html">Previous Section</A> - <A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS
-Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> - <A HREF = "Section_modify.html">Next
-Section</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>9. Additional tools &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/>
+        <link rel="next" title="10. Modifying &amp; extending LAMMPS" href="Section_modify.html"/>
+        <link rel="prev" title="8. Performance &amp; scalability" href="Section_perf.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">9. Additional tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#amber2lmp-tool">9.1. amber2lmp tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#binary2txt-tool">9.2. binary2txt tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ch2lmp-tool">9.3. ch2lmp tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chain-tool">9.4. chain tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#colvars-tools">9.5. colvars tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#createatoms-tool">9.6. createatoms tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data2xmovie-tool">9.7. data2xmovie tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#eam-database-tool">9.8. eam database tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#eam-generate-tool">9.9. eam generate tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#eff-tool">9.10. eff tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#emacs-tool">9.11. emacs tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fep-tool">9.12. fep tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#i-pi-tool">9.13. i-pi tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ipp-tool">9.14. ipp tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kate-tool">9.15. kate tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lmp2arc-tool">9.16. lmp2arc tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lmp2cfg-tool">9.17. lmp2cfg tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lmp2vmd-tool">9.18. lmp2vmd tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#matlab-tool">9.19. matlab tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#micelle2d-tool">9.20. micelle2d tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#moltemplate-tool">9.21. moltemplate tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#msi2lmp-tool">9.22. msi2lmp tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#phonon-tool">9.23. phonon tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#polymer-bonding-tool">9.24. polymer bonding tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pymol-asphere-tool">9.25. pymol_asphere tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python-tool">9.26. python tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reax-tool">9.27. reax tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#restart2data-tool">9.28. restart2data tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#vim-tool">9.29. vim tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#xmgrace-tool">9.30. xmgrace tool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#xmovie-tool">9.31. xmovie tool</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>9. Additional tools 
-</H3>
-<P>LAMMPS is designed to be a computational kernel for performing
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>9. Additional tools</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="additional-tools">
+<h1>9. Additional tools<a class="headerlink" href="#additional-tools" title="Permalink to this headline">¶</a></h1>
+<p>LAMMPS is designed to be a computational kernel for performing
 molecular dynamics computations.  Additional pre- and post-processing
 steps are often necessary to setup and analyze a simulation.  A few
 additional tools are provided with the LAMMPS distribution and are
-described in this section.
-</P>
-<P>Our group has also written and released a separate toolkit called
-<A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A> which provides tools for doing setup, analysis,
+described in this section.</p>
+<p>Our group has also written and released a separate toolkit called
+<a class="reference external" href="http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</a> which provides tools for doing setup, analysis,
 plotting, and visualization for LAMMPS simulations.  Pizza.py is
-written in <A HREF = "http://www.python.org">Python</A> and is available for download from <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">the
-Pizza.py WWW site</A>.
-</P>
-
-
-
-
-<P>Note that many users write their own setup or analysis tools or use
+written in <a class="reference external" href="http://www.python.org">Python</a> and is available for download from <a class="reference external" href="http://www.sandia.gov/~sjplimp/pizza.html">the Pizza.py WWW site</a>.</p>
+<p>Note that many users write their own setup or analysis tools or use
 other existing codes and convert their output to a LAMMPS input format
 or vice versa.  The tools listed here are included in the LAMMPS
 distribution as examples of auxiliary tools.  Some of them are not
 actively supported by Sandia, as they were contributed by LAMMPS
 users.  If you have problems using them, we can direct you to the
-authors.
-</P>
-<P>The source code for each of these codes is in the tools sub-directory
+authors.</p>
+<p>The source code for each of these codes is in the tools sub-directory
 of the LAMMPS distribution.  There is a Makefile (which you may need
 to edit for your platform) which will build several of the tools which
 reside in that directory.  Some of them are larger packages in their
-own sub-directories with their own Makefiles.
-</P>
-<UL><LI><A HREF = "#amber">amber2lmp</A>
-<LI><A HREF = "#binary">binary2txt</A>
-<LI><A HREF = "#charmm">ch2lmp</A>
-<LI><A HREF = "#chain">chain</A>
-<LI><A HREF = "#colvars">colvars</A>
-<LI><A HREF = "#create">createatoms</A>
-<LI><A HREF = "#data">data2xmovie</A>
-<LI><A HREF = "#eamdb">eam database</A>
-<LI><A HREF = "#eamgn">eam generate</A>
-<LI><A HREF = "#eff">eff</A>
-<LI><A HREF = "#emacs">emacs</A>
-<LI><A HREF = "#fep">fep</A>
-<LI><A HREF = "#ipi">i-pi</A>
-<LI><A HREF = "#ipp">ipp</A>
-<LI><A HREF = "#kate">kate</A>
-<LI><A HREF = "#arc">lmp2arc</A>
-<LI><A HREF = "#cfg">lmp2cfg</A>
-<LI><A HREF = "#vmd">lmp2vmd</A>
-<LI><A HREF = "#matlab">matlab</A>
-<LI><A HREF = "#micelle">micelle2d</A>
-<LI><A HREF = "#moltemplate">moltemplate</A>
-<LI><A HREF = "#msi">msi2lmp</A>
-<LI><A HREF = "#phonon">phonon</A>
-<LI><A HREF = "#polybond">polymer bonding</A>
-<LI><A HREF = "#pymol">pymol_asphere</A>
-<LI><A HREF = "#pythontools">python</A>
-<LI><A HREF = "#reax">reax</A>
-<LI><A HREF = "#restart">restart2data</A>
-<LI><A HREF = "#vim">vim</A>
-<LI><A HREF = "#xmgrace">xmgrace</A>
-<LI><A HREF = "#xmovie">xmovie</A> 
-</UL>
-<HR>
-
-<H4><A NAME = "amber"></A>amber2lmp tool 
-</H4>
-<P>The amber2lmp sub-directory contains two Python scripts for converting
+own sub-directories with their own Makefiles.</p>
+<ul class="simple">
+<li><a class="reference internal" href="#amber"><span>amber2lmp</span></a></li>
+<li><a class="reference internal" href="#binary"><span>binary2txt</span></a></li>
+<li><a class="reference internal" href="#charmm"><span>ch2lmp</span></a></li>
+<li><a class="reference internal" href="#chain"><span>chain</span></a></li>
+<li><a class="reference internal" href="#colvars"><span>colvars</span></a></li>
+<li><a class="reference internal" href="#create"><span>createatoms</span></a></li>
+<li><a class="reference internal" href="#data"><span>data2xmovie</span></a></li>
+<li><a class="reference internal" href="#eamdb"><span>eam database</span></a></li>
+<li><a class="reference internal" href="#eamgn"><span>eam generate</span></a></li>
+<li><a class="reference internal" href="#eff"><span>eff</span></a></li>
+<li><a class="reference internal" href="#emacs"><span>emacs</span></a></li>
+<li><a class="reference internal" href="#fep"><span>fep</span></a></li>
+<li><a class="reference internal" href="fix_ipi.html#ipi"><span>i-pi</span></a></li>
+<li><a class="reference internal" href="#ipp"><span>ipp</span></a></li>
+<li><a class="reference internal" href="#kate"><span>kate</span></a></li>
+<li><a class="reference internal" href="#arc"><span>lmp2arc</span></a></li>
+<li><a class="reference internal" href="#cfg"><span>lmp2cfg</span></a></li>
+<li><a class="reference internal" href="#vmd"><span>lmp2vmd</span></a></li>
+<li><span class="xref std std-ref">matlab</span></li>
+<li><a class="reference internal" href="#micelle"><span>micelle2d</span></a></li>
+<li><a class="reference internal" href="#moltemplate"><span>moltemplate</span></a></li>
+<li><a class="reference internal" href="#msi"><span>msi2lmp</span></a></li>
+<li><a class="reference internal" href="#phonon"><span>phonon</span></a></li>
+<li><a class="reference internal" href="#polybond"><span>polymer bonding</span></a></li>
+<li><span class="xref std std-ref">pymol_asphere</span></li>
+<li><a class="reference internal" href="#pythontools"><span>python</span></a></li>
+<li><a class="reference internal" href="#reax"><span>reax</span></a></li>
+<li><a class="reference internal" href="#restart"><span>restart2data</span></a></li>
+<li><a class="reference internal" href="#vim"><span>vim</span></a></li>
+<li><a class="reference internal" href="#xmgrace"><span>xmgrace</span></a></li>
+<li><a class="reference internal" href="#xmovie"><span>xmovie</span></a></li>
+</ul>
+<hr class="docutils" />
+<div class="section" id="amber2lmp-tool">
+<span id="amber"></span><h2>9.1. amber2lmp tool<a class="headerlink" href="#amber2lmp-tool" title="Permalink to this headline">¶</a></h2>
+<p>The amber2lmp sub-directory contains two Python scripts for converting
 files back-and-forth between the AMBER MD code and LAMMPS.  See the
-README file in amber2lmp for more information.
-</P>
-<P>These tools were written by Keir Novik while he was at Queen Mary
+README file in amber2lmp for more information.</p>
+<p>These tools were written by Keir Novik while he was at Queen Mary
 University of London.  Keir is no longer there and cannot support
 these tools which are out-of-date with respect to the current LAMMPS
-version (and maybe with respect to AMBER as well).  Since we don't use
-these tools at Sandia, you'll need to experiment with them and make
-necessary modifications yourself.
-</P>
-<HR>
-
-<H4><A NAME = "binary"></A>binary2txt tool 
-</H4>
-<P>The file binary2txt.cpp converts one or more binary LAMMPS dump file
-into ASCII text files.  The syntax for running the tool is
-</P>
-<PRE>binary2txt file1 file2 ... 
-</PRE>
-<P>which creates file1.txt, file2.txt, etc.  This tool must be compiled
+version (and maybe with respect to AMBER as well).  Since we don&#8217;t use
+these tools at Sandia, you&#8217;ll need to experiment with them and make
+necessary modifications yourself.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="binary2txt-tool">
+<span id="binary"></span><h2>9.2. binary2txt tool<a class="headerlink" href="#binary2txt-tool" title="Permalink to this headline">¶</a></h2>
+<p>The file binary2txt.cpp converts one or more binary LAMMPS dump file
+into ASCII text files.  The syntax for running the tool is</p>
+<div class="highlight-python"><div class="highlight"><pre>binary2txt file1 file2 ...
+</pre></div>
+</div>
+<p>which creates file1.txt, file2.txt, etc.  This tool must be compiled
 on a platform that can read the binary file created by a LAMMPS run,
-since binary files are not compatible across all platforms.
-</P>
-<HR>
-
-<H4><A NAME = "charmm"></A>ch2lmp tool 
-</H4>
-<P>The ch2lmp sub-directory contains tools for converting files
-back-and-forth between the CHARMM MD code and LAMMPS. 
-</P>
-<P>They are intended to make it easy to use CHARMM as a builder and as a
+since binary files are not compatible across all platforms.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="ch2lmp-tool">
+<span id="charmm"></span><h2>9.3. ch2lmp tool<a class="headerlink" href="#ch2lmp-tool" title="Permalink to this headline">¶</a></h2>
+<p>The ch2lmp sub-directory contains tools for converting files
+back-and-forth between the CHARMM MD code and LAMMPS.</p>
+<p>They are intended to make it easy to use CHARMM as a builder and as a
 post-processor for LAMMPS. Using charmm2lammps.pl, you can convert an
 ensemble built in CHARMM into its LAMMPS equivalent.  Using
-lammps2pdb.pl you can convert LAMMPS atom dumps into pdb files.
-</P>
-<P>See the README file in the ch2lmp sub-directory for more information.
-</P>
-<P>These tools were created by Pieter in't Veld (pjintve at sandia.gov)
-and Paul Crozier (pscrozi at sandia.gov) at Sandia.
-</P>
-<HR>
-
-<H4><A NAME = "chain"></A>chain tool 
-</H4>
-<P>The file chain.f creates a LAMMPS data file containing bead-spring
+lammps2pdb.pl you can convert LAMMPS atom dumps into pdb files.</p>
+<p>See the README file in the ch2lmp sub-directory for more information.</p>
+<p>These tools were created by Pieter in&#8217;t Veld (pjintve at sandia.gov)
+and Paul Crozier (pscrozi at sandia.gov) at Sandia.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="chain-tool">
+<span id="chain"></span><h2>9.4. chain tool<a class="headerlink" href="#chain-tool" title="Permalink to this headline">¶</a></h2>
+<p>The file chain.f creates a LAMMPS data file containing bead-spring
 polymer chains and/or monomer solvent atoms.  It uses a text file
 containing chain definition parameters as an input.  The created
 chains and solvent atoms can strongly overlap, so LAMMPS needs to run
-the system initially with a "soft" pair potential to un-overlap it.
-The syntax for running the tool is
-</P>
-<PRE>chain < def.chain > data.file 
-</PRE>
-<P>See the def.chain or def.chain.ab files in the tools directory for
+the system initially with a &#8220;soft&#8221; pair potential to un-overlap it.
+The syntax for running the tool is</p>
+<div class="highlight-python"><div class="highlight"><pre>chain &lt; def.chain &gt; data.file
+</pre></div>
+</div>
+<p>See the def.chain or def.chain.ab files in the tools directory for
 examples of definition files.  This tool was used to create the
-system for the <A HREF = "Section_perf.html">chain benchmark</A>.
-</P>
-<HR>
-
-<H4><A NAME = "colvars"></A>colvars tools 
-</H4>
-<P>The colvars directory contains a collection of tools for postprocessing
+system for the <a class="reference internal" href="Section_perf.html"><em>chain benchmark</em></a>.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="colvars-tools">
+<span id="colvars"></span><h2>9.5. colvars tools<a class="headerlink" href="#colvars-tools" title="Permalink to this headline">¶</a></h2>
+<p>The colvars directory contains a collection of tools for postprocessing
 data produced by the colvars collective variable library.
-To compile the tools, edit the makefile for your system and run "make".
-</P>
-<P>Please report problems and issues the colvars library and its tools
-at: https://github.com/colvars/colvars/issues
-</P>
-<P>abf_integrate:
-</P>
-<P>MC-based integration of multidimensional free energy gradient
-Version 20110511
-</P>
-<PRE>Syntax: ./abf_integrate < filename > [-n < nsteps >] [-t < temp >] [-m [0|1] (metadynamics)] [-h < hill_height >] [-f < variable_hill_factor >] 
-</PRE>
-<P>The LAMMPS interface to the colvars collective variable library, as
+To compile the tools, edit the makefile for your system and run &#8220;make&#8221;.</p>
+<p>Please report problems and issues the colvars library and its tools
+at: <a class="reference external" href="https://github.com/colvars/colvars/issues">https://github.com/colvars/colvars/issues</a></p>
+<p>abf_integrate:</p>
+<p>MC-based integration of multidimensional free energy gradient
+Version 20110511</p>
+<div class="highlight-python"><div class="highlight"><pre>Syntax: ./abf_integrate &lt; filename &gt; [-n &lt; nsteps &gt;] [-t &lt; temp &gt;] [-m [0|1] (metadynamics)] [-h &lt; hill_height &gt;] [-f &lt; variable_hill_factor &gt;]
+</pre></div>
+</div>
+<p>The LAMMPS interface to the colvars collective variable library, as
 well as these tools, were created by Axel Kohlmeyer (akohlmey at
-gmail.com) at ICTP, Italy.
-</P>
-<HR>
-
-<H4><A NAME = "create"></A>createatoms tool 
-</H4>
-<P>The tools/createatoms directory contains a Fortran program called
+gmail.com) at ICTP, Italy.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="createatoms-tool">
+<span id="create"></span><h2>9.6. createatoms tool<a class="headerlink" href="#createatoms-tool" title="Permalink to this headline">¶</a></h2>
+<p>The tools/createatoms directory contains a Fortran program called
 createAtoms.f which can generate a variety of interesting crystal
 structures and geometries and output the resulting list of atom
-coordinates in LAMMPS or other formats.
-</P>
-<P>See the included Manual.pdf for details.
-</P>
-<P>The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov.
-</P>
-<HR>
-
-<H4><A NAME = "data"></A>data2xmovie tool 
-</H4>
-<P>The file data2xmovie.c converts a LAMMPS data file into a snapshot
-suitable for visualizing with the <A HREF = "#xmovie">xmovie</A> tool, as if it had
+coordinates in LAMMPS or other formats.</p>
+<p>See the included Manual.pdf for details.</p>
+<p>The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="data2xmovie-tool">
+<span id="data"></span><h2>9.7. data2xmovie tool<a class="headerlink" href="#data2xmovie-tool" title="Permalink to this headline">¶</a></h2>
+<p>The file data2xmovie.c converts a LAMMPS data file into a snapshot
+suitable for visualizing with the <a class="reference internal" href="#xmovie"><span>xmovie</span></a> tool, as if it had
 been output with a dump command from LAMMPS itself.  The syntax for
-running the tool is
-</P>
-<PRE>data2xmovie [options] < infile > outfile 
-</PRE>
-<P>See the top of the data2xmovie.c file for a discussion of the options.
-</P>
-<HR>
-
-<H4><A NAME = "eamdb"></A>eam database tool 
-</H4>
-<P>The tools/eam_database directory contains a Fortran program that will
+running the tool is</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">data2xmovie</span> <span class="p">[</span><span class="n">options</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">infile</span> <span class="o">&gt;</span> <span class="n">outfile</span>
+</pre></div>
+</div>
+<p>See the top of the data2xmovie.c file for a discussion of the options.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="eam-database-tool">
+<span id="eamdb"></span><h2>9.8. eam database tool<a class="headerlink" href="#eam-database-tool" title="Permalink to this headline">¶</a></h2>
+<p>The tools/eam_database directory contains a Fortran program that will
 generate EAM alloy setfl potential files for any combination of 16
 elements: Cu, Ag, Au, Ni, Pd, Pt, Al, Pb, Fe, Mo, Ta, W, Mg, Co, Ti,
-Zr.  The files can then be used with the <A HREF = "pair_eam.html">pair_style
-eam/alloy</A> command.
-</P>
-<P>The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov,
-and is based on his paper:
-</P>
-<P>X. W. Zhou, R. A. Johnson, and H. N. G. Wadley, Phys. Rev. B, 69,
-144113 (2004).
-</P>
-<HR>
-
-<H4><A NAME = "eamgn"></A>eam generate tool 
-</H4>
-<P>The tools/eam_generate directory contains several one-file C programs
-that convert an analytic formula into a tabulated <A HREF = "pair_eam.html">embedded atom
-method (EAM)</A> setfl potential file.  The potentials they
+Zr.  The files can then be used with the <a class="reference internal" href="pair_eam.html"><em>pair_style eam/alloy</em></a> command.</p>
+<p>The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov,
+and is based on his paper:</p>
+<p>X. W. Zhou, R. A. Johnson, and H. N. G. Wadley, Phys. Rev. B, 69,
+144113 (2004).</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="eam-generate-tool">
+<span id="eamgn"></span><h2>9.9. eam generate tool<a class="headerlink" href="#eam-generate-tool" title="Permalink to this headline">¶</a></h2>
+<p>The tools/eam_generate directory contains several one-file C programs
+that convert an analytic formula into a tabulated <a class="reference internal" href="pair_eam.html"><em>embedded atom method (EAM)</em></a> setfl potential file.  The potentials they
 produce are in the potentials directory, and can be used with the
-<A HREF = "pair_eam.html">pair_style eam/alloy</A> command.
-</P>
-<P>The source files and potentials were provided by Gerolf Ziegenhain
-(gerolf at ziegenhain.com).
-</P>
-<HR>
-
-<H4><A NAME = "eff"></A>eff tool 
-</H4>
-<P>The tools/eff directory contains various scripts for generating
+<a class="reference internal" href="pair_eam.html"><em>pair_style eam/alloy</em></a> command.</p>
+<p>The source files and potentials were provided by Gerolf Ziegenhain
+(gerolf at ziegenhain.com).</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="eff-tool">
+<span id="eff"></span><h2>9.10. eff tool<a class="headerlink" href="#eff-tool" title="Permalink to this headline">¶</a></h2>
+<p>The tools/eff directory contains various scripts for generating
 structures and post-processing output for simulations using the
-electron force field (eFF).
-</P>
-<P>These tools were provided by Andres Jaramillo-Botero at CalTech
-(ajaramil at wag.caltech.edu).
-</P>
-<HR>
-
-<H4><A NAME = "emacs"></A>emacs tool 
-</H4>
-<P>The tools/emacs directory contains a Lips add-on file for Emacs that
+electron force field (eFF).</p>
+<p>These tools were provided by Andres Jaramillo-Botero at CalTech
+(ajaramil at wag.caltech.edu).</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="emacs-tool">
+<span id="emacs"></span><h2>9.11. emacs tool<a class="headerlink" href="#emacs-tool" title="Permalink to this headline">¶</a></h2>
+<p>The tools/emacs directory contains a Lips add-on file for Emacs that
 enables a lammps-mode for editing of input scripts when using Emacs,
-with various highlighting options setup.
-</P>
-<P>These tools were provided by Aidan Thompson at Sandia
-(athomps at sandia.gov).
-</P>
-<HR>
-
-<H4><A NAME = "fep"></A>fep tool 
-</H4>
-<P>The tools/fep directory contains Python scripts useful for
+with various highlighting options setup.</p>
+<p>These tools were provided by Aidan Thompson at Sandia
+(athomps at sandia.gov).</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="fep-tool">
+<span id="fep"></span><h2>9.12. fep tool<a class="headerlink" href="#fep-tool" title="Permalink to this headline">¶</a></h2>
+<p>The tools/fep directory contains Python scripts useful for
 post-processing results from performing free-energy perturbation
-simulations using the USER-FEP package.
-</P>
-<P>The scripts were contributed by Agilio Padua (Universite Blaise
-Pascal Clermont-Ferrand), agilio.padua at univ-bpclermont.fr.
-</P>
-<P>See README file in the tools/fep directory.
-</P>
-<HR>
-
-<H4><A NAME = "ipi"></A>i-pi tool 
-</H4>
-<P>The tools/i-pi directory contains a version of the i-PI package, with
+simulations using the USER-FEP package.</p>
+<p>The scripts were contributed by Agilio Padua (Universite Blaise
+Pascal Clermont-Ferrand), agilio.padua at univ-bpclermont.fr.</p>
+<p>See README file in the tools/fep directory.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="i-pi-tool">
+<span id="ipi"></span><h2>9.13. i-pi tool<a class="headerlink" href="#i-pi-tool" title="Permalink to this headline">¶</a></h2>
+<p>The tools/i-pi directory contains a version of the i-PI package, with
 all the LAMMPS-unrelated files removed.  It is provided so that it can
-be used with the <A HREF = "fix_ipi.html">fix ipi</A> command to perform
-path-integral molecular dynamics (PIMD).
-</P>
-<P>The i-PI package was created and is maintained by Michele Ceriotti,
+be used with the <a class="reference internal" href="fix_ipi.html"><em>fix ipi</em></a> command to perform
+path-integral molecular dynamics (PIMD).</p>
+<p>The i-PI package was created and is maintained by Michele Ceriotti,
 michele.ceriotti at gmail.com, to interface to a variety of molecular
-dynamics codes.
-</P>
-<P>See the tools/i-pi/manual.pdf file for an overview of i-PI, and the
-<A HREF = "fix_ipi.html">fix ipi</A> doc page for further details on running PIMD
-calculations with LAMMPS.
-</P>
-<HR>
-
-<H4><A NAME = "ipp"></A>ipp tool 
-</H4>
-<P>The tools/ipp directory contains a Perl script ipp which can be used
+dynamics codes.</p>
+<p>See the tools/i-pi/manual.pdf file for an overview of i-PI, and the
+<a class="reference internal" href="fix_ipi.html"><em>fix ipi</em></a> doc page for further details on running PIMD
+calculations with LAMMPS.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="ipp-tool">
+<span id="ipp"></span><h2>9.14. ipp tool<a class="headerlink" href="#ipp-tool" title="Permalink to this headline">¶</a></h2>
+<p>The tools/ipp directory contains a Perl script ipp which can be used
 to facilitate the creation of a complicated file (say, a lammps input
-script or tools/createatoms input file) using a template file.
-</P>
-<P>ipp was created and is maintained by Reese Jones (Sandia), rjones at
-sandia.gov.
-</P>
-<P>See two examples in the tools/ipp directory.  One of them is for the
-tools/createatoms tool's input file.
-</P>
-<HR>
-
-<H4><A NAME = "kate"></A>kate tool 
-</H4>
-<P>The file in the tools/kate directory is an add-on to the Kate editor
+script or tools/createatoms input file) using a template file.</p>
+<p>ipp was created and is maintained by Reese Jones (Sandia), rjones at
+sandia.gov.</p>
+<p>See two examples in the tools/ipp directory.  One of them is for the
+tools/createatoms tool&#8217;s input file.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="kate-tool">
+<span id="kate"></span><h2>9.15. kate tool<a class="headerlink" href="#kate-tool" title="Permalink to this headline">¶</a></h2>
+<p>The file in the tools/kate directory is an add-on to the Kate editor
 in the KDE suite that allow syntax highlighting of LAMMPS input
-scripts.  See the README.txt file for details.
-</P>
-<P>The file was provided by Alessandro Luigi Sellerio
-(alessandro.sellerio at ieni.cnr.it).
-</P>
-<HR>
-
-<H4><A NAME = "arc"></A>lmp2arc tool 
-</H4>
-<P>The lmp2arc sub-directory contains a tool for converting LAMMPS output
-files to the format for Accelrys' Insight MD code (formerly
+scripts.  See the README.txt file for details.</p>
+<p>The file was provided by Alessandro Luigi Sellerio
+(alessandro.sellerio at ieni.cnr.it).</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="lmp2arc-tool">
+<span id="arc"></span><h2>9.16. lmp2arc tool<a class="headerlink" href="#lmp2arc-tool" title="Permalink to this headline">¶</a></h2>
+<p>The lmp2arc sub-directory contains a tool for converting LAMMPS output
+files to the format for Accelrys&#8217; Insight MD code (formerly
 MSI/Biosym and its Discover MD code).  See the README file for more
-information.
-</P>
-<P>This tool was written by John Carpenter (Cray), Michael Peachey
+information.</p>
+<p>This tool was written by John Carpenter (Cray), Michael Peachey
 (Cray), and Steve Lustig (Dupont).  John is now at the Mayo Clinic
-(jec at mayo.edu), but still fields questions about the tool.
-</P>
-<P>This tool was updated for the current LAMMPS C++ version by Jeff
-Greathouse at Sandia (jagreat at sandia.gov).
-</P>
-<HR>
-
-<H4><A NAME = "cfg"></A>lmp2cfg tool 
-</H4>
-<P>The lmp2cfg sub-directory contains a tool for converting LAMMPS output
-files into a series of *.cfg files which can be read into the
-<A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A> visualizer.  See
-the README file for more information.
-</P>
-<P>This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).
-</P>
-<HR>
-
-<H4><A NAME = "vmd"></A>lmp2vmd tool 
-</H4>
-<P>The lmp2vmd sub-directory contains a README.txt file that describes
-details of scripts and plugin support within the <A HREF = "http://www.ks.uiuc.edu/Research/vmd">VMD
-package</A> for visualizing LAMMPS
-dump files.
-</P>
-<P>The VMD plugins and other supporting scripts were written by Axel
-Kohlmeyer (akohlmey at cmm.chem.upenn.edu) at U Penn.
-</P>
-<HR>
-
-<H4><A NAME = "matlab"></A>matlab tool 
-</H4>
-<P>The matlab sub-directory contains several <A HREF = "http://www.mathworks.com">MATLAB</A> scripts for
+(jec at mayo.edu), but still fields questions about the tool.</p>
+<p>This tool was updated for the current LAMMPS C++ version by Jeff
+Greathouse at Sandia (jagreat at sandia.gov).</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="lmp2cfg-tool">
+<span id="cfg"></span><h2>9.17. lmp2cfg tool<a class="headerlink" href="#lmp2cfg-tool" title="Permalink to this headline">¶</a></h2>
+<p>The lmp2cfg sub-directory contains a tool for converting LAMMPS output
+files into a series of <a href="#id1"><span class="problematic" id="id2">*</span></a>.cfg files which can be read into the
+<a class="reference external" href="http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</a> visualizer.  See
+the README file for more information.</p>
+<p>This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="lmp2vmd-tool">
+<span id="vmd"></span><h2>9.18. lmp2vmd tool<a class="headerlink" href="#lmp2vmd-tool" title="Permalink to this headline">¶</a></h2>
+<p>The lmp2vmd sub-directory contains a README.txt file that describes
+details of scripts and plugin support within the <a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD package</a> for visualizing LAMMPS
+dump files.</p>
+<p>The VMD plugins and other supporting scripts were written by Axel
+Kohlmeyer (akohlmey at cmm.chem.upenn.edu) at U Penn.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="matlab-tool">
+<span id="matlab"></span><h2>9.19. matlab tool<a class="headerlink" href="#matlab-tool" title="Permalink to this headline">¶</a></h2>
+<p>The matlab sub-directory contains several <span class="xref std std-ref">MATLAB</span> scripts for
 post-processing LAMMPS output.  The scripts include readers for log
 and dump files, a reader for EAM potential files, and a converter that
 reads LAMMPS dump files and produces CFG files that can be visualized
-with the <A HREF = "http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</A>
-visualizer.
-</P>
-<P>See the README.pdf file for more information.
-</P>
-<P>These scripts were written by Arun Subramaniyan at Purdue Univ
-(asubrama at purdue.edu).
-</P>
-
-
-<HR>
-
-<H4><A NAME = "micelle"></A>micelle2d tool 
-</H4>
-<P>The file micelle2d.f creates a LAMMPS data file containing short lipid
+with the <a class="reference external" href="http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</a>
+visualizer.</p>
+<p>See the README.pdf file for more information.</p>
+<p>These scripts were written by Arun Subramaniyan at Purdue Univ
+(asubrama at purdue.edu).</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="micelle2d-tool">
+<span id="micelle"></span><h2>9.20. micelle2d tool<a class="headerlink" href="#micelle2d-tool" title="Permalink to this headline">¶</a></h2>
+<p>The file micelle2d.f creates a LAMMPS data file containing short lipid
 chains in a monomer solution.  It uses a text file containing lipid
 definition parameters as an input.  The created molecules and solvent
 atoms can strongly overlap, so LAMMPS needs to run the system
-initially with a "soft" pair potential to un-overlap it.  The syntax
-for running the tool is
-</P>
-<PRE>micelle2d < def.micelle2d > data.file 
-</PRE>
-<P>See the def.micelle2d file in the tools directory for an example of a
+initially with a &#8220;soft&#8221; pair potential to un-overlap it.  The syntax
+for running the tool is</p>
+<div class="highlight-python"><div class="highlight"><pre>micelle2d &lt; def.micelle2d &gt; data.file
+</pre></div>
+</div>
+<p>See the def.micelle2d file in the tools directory for an example of a
 definition file.  This tool was used to create the system for the
-<A HREF = "Section_example.html">micelle example</A>.
-</P>
-<HR>
-
-<H4><A NAME = "moltemplate"></A>moltemplate tool 
-</H4>
-<P>The moltemplate sub-directory contains a Python-based tool for
+<a class="reference internal" href="Section_example.html"><em>micelle example</em></a>.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="moltemplate-tool">
+<span id="moltemplate"></span><h2>9.21. moltemplate tool<a class="headerlink" href="#moltemplate-tool" title="Permalink to this headline">¶</a></h2>
+<p>The moltemplate sub-directory contains a Python-based tool for
 building molecular systems based on a text-file description, and
 creating LAMMPS data files that encode their molecular topology as
 lists of bonds, angles, dihedrals, etc.  See the README.TXT file for
-more information.
-</P>
-<P>This tool was written by Andrew Jewett (jewett.aij at gmail.com), who
+more information.</p>
+<p>This tool was written by Andrew Jewett (jewett.aij at gmail.com), who
 supports it.  It has its own WWW page at
-<A HREF = "http://moltemplate.org">http://moltemplate.org</A>.
-</P>
-<HR>
-
-<H4><A NAME = "msi"></A>msi2lmp tool 
-</H4>
-<P>The msi2lmp sub-directory contains a tool for creating LAMMPS input
-data files from Accelrys' Insight MD code (formerly MSI/Biosym and
-its Discover MD code).  See the README file for more information.
-</P>
-<P>This tool was written by John Carpenter (Cray), Michael Peachey
+<a class="reference external" href="http://moltemplate.org">http://moltemplate.org</a>.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="msi2lmp-tool">
+<span id="msi"></span><h2>9.22. msi2lmp tool<a class="headerlink" href="#msi2lmp-tool" title="Permalink to this headline">¶</a></h2>
+<p>The msi2lmp sub-directory contains a tool for creating LAMMPS input
+data files from Accelrys&#8217; Insight MD code (formerly MSI/Biosym and
+its Discover MD code).  See the README file for more information.</p>
+<p>This tool was written by John Carpenter (Cray), Michael Peachey
 (Cray), and Steve Lustig (Dupont).  John is now at the Mayo Clinic
-(jec at mayo.edu), but still fields questions about the tool.
-</P>
-<P>This tool may be out-of-date with respect to the current LAMMPS and
-Insight versions.  Since we don't use it at Sandia, you'll need to
-experiment with it yourself.
-</P>
-<HR>
-
-<H4><A NAME = "phonon"></A>phonon tool 
-</H4>
-<P>The phonon sub-directory contains a post-processing tool useful for
-analyzing the output of the <A HREF = "fix_phonon.html">fix phonon</A> command in
-the USER-PHONON package.
-</P>
-<P>See the README file for instruction on building the tool and what
+(jec at mayo.edu), but still fields questions about the tool.</p>
+<p>This tool may be out-of-date with respect to the current LAMMPS and
+Insight versions.  Since we don&#8217;t use it at Sandia, you&#8217;ll need to
+experiment with it yourself.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="phonon-tool">
+<span id="phonon"></span><h2>9.23. phonon tool<a class="headerlink" href="#phonon-tool" title="Permalink to this headline">¶</a></h2>
+<p>The phonon sub-directory contains a post-processing tool useful for
+analyzing the output of the <a class="reference internal" href="fix_phonon.html"><em>fix phonon</em></a> command in
+the USER-PHONON package.</p>
+<p>See the README file for instruction on building the tool and what
 library it needs.  And see the examples/USER/phonon directory
-for example problems that can be post-processed with this tool.
-</P>
-<P>This tool was written by Ling-Ti Kong at Shanghai Jiao Tong
-University.
-</P>
-<HR>
-
-<H4><A NAME = "polybond"></A>polymer bonding tool 
-</H4>
-<P>The polybond sub-directory contains a Python-based tool useful for
-performing "programmable polymer bonding".  The Python file
-lmpsdata.py provides a "Lmpsdata" class with various methods which can
+for example problems that can be post-processed with this tool.</p>
+<p>This tool was written by Ling-Ti Kong at Shanghai Jiao Tong
+University.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="polymer-bonding-tool">
+<span id="polybond"></span><h2>9.24. polymer bonding tool<a class="headerlink" href="#polymer-bonding-tool" title="Permalink to this headline">¶</a></h2>
+<p>The polybond sub-directory contains a Python-based tool useful for
+performing &#8220;programmable polymer bonding&#8221;.  The Python file
+lmpsdata.py provides a &#8220;Lmpsdata&#8221; class with various methods which can
 be invoked by a user-written Python script to create data files with
-complex bonding topologies.
-</P>
-<P>See the Manual.pdf for details and example scripts.
-</P>
-<P>This tool was written by Zachary Kraus at Georgia Tech.
-</P>
-<HR>
-
-<H4><A NAME = "pymol"></A>pymol_asphere tool 
-</H4>
-<P>The pymol_asphere sub-directory contains a tool for converting a
+complex bonding topologies.</p>
+<p>See the Manual.pdf for details and example scripts.</p>
+<p>This tool was written by Zachary Kraus at Georgia Tech.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="pymol-asphere-tool">
+<span id="pymol"></span><h2>9.25. pymol_asphere tool<a class="headerlink" href="#pymol-asphere-tool" title="Permalink to this headline">¶</a></h2>
+<p>The pymol_asphere sub-directory contains a tool for converting a
 LAMMPS dump file that contains orientation info for ellipsoidal
-particles into an input file for the <A HREF = "http://pymol.sourceforge.net">PyMol visualization
-package</A>.
-</P>
-
-
-<P>Specifically, the tool triangulates the ellipsoids so they can be
+particles into an input file for the <span class="xref std std-ref">PyMol visualization package</span>.</p>
+<p>Specifically, the tool triangulates the ellipsoids so they can be
 viewed as true ellipsoidal particles within PyMol.  See the README and
-examples directory within pymol_asphere for more information.
-</P>
-<P>This tool was written by Mike Brown at Sandia.
-</P>
-<HR>
-
-<H4><A NAME = "pythontools"></A>python tool 
-</H4>
-<P>The python sub-directory contains several Python scripts
-that perform common LAMMPS post-processing tasks, such as:
-</P>
-<UL><LI>extract thermodynamic info from a log file as columns of numbers
-<LI>plot two columns of thermodynamic info from a log file using GnuPlot
-<LI>sort the snapshots in a dump file by atom ID
-<LI>convert multiple <A HREF = "neb.html">NEB</A> dump files into one dump file for viz
-<LI>convert dump files into XYZ, CFG, or PDB format for viz by other packages 
-</UL>
-<P>These are simple scripts built on <A HREF = "http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</A> modules.  See the
-README for more info on Pizza.py and how to use these scripts.
-</P>
-<HR>
-
-<H4><A NAME = "reax"></A>reax tool 
-</H4>
-<P>The reax sub-directory contains stand-alond codes that can
-post-process the output of the <A HREF = "fix_reax_bonds.html">fix reax/bonds</A>
-command from a LAMMPS simulation using <A HREF = "pair_reax.html">ReaxFF</A>.  See
-the README.txt file for more info.
-</P>
-<P>These tools were written by Aidan Thompson at Sandia.
-</P>
-<HR>
-
-<H4><A NAME = "restart"></A>restart2data tool 
-</H4>
-<P>IMPORTANT NOTE: This tool is now obsolete and is not included in the
+examples directory within pymol_asphere for more information.</p>
+<p>This tool was written by Mike Brown at Sandia.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="python-tool">
+<span id="pythontools"></span><h2>9.26. python tool<a class="headerlink" href="#python-tool" title="Permalink to this headline">¶</a></h2>
+<p>The python sub-directory contains several Python scripts
+that perform common LAMMPS post-processing tasks, such as:</p>
+<ul class="simple">
+<li>extract thermodynamic info from a log file as columns of numbers</li>
+<li>plot two columns of thermodynamic info from a log file using GnuPlot</li>
+<li>sort the snapshots in a dump file by atom ID</li>
+<li>convert multiple <a class="reference internal" href="neb.html"><em>NEB</em></a> dump files into one dump file for viz</li>
+<li>convert dump files into XYZ, CFG, or PDB format for viz by other packages</li>
+</ul>
+<p>These are simple scripts built on <a class="reference external" href="http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</a> modules.  See the
+README for more info on Pizza.py and how to use these scripts.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="reax-tool">
+<span id="reax"></span><h2>9.27. reax tool<a class="headerlink" href="#reax-tool" title="Permalink to this headline">¶</a></h2>
+<p>The reax sub-directory contains stand-alond codes that can
+post-process the output of the <a class="reference internal" href="fix_reax_bonds.html"><em>fix reax/bonds</em></a>
+command from a LAMMPS simulation using <a class="reference internal" href="pair_reax.html"><em>ReaxFF</em></a>.  See
+the README.txt file for more info.</p>
+<p>These tools were written by Aidan Thompson at Sandia.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="restart2data-tool">
+<span id="restart"></span><h2>9.28. restart2data tool<a class="headerlink" href="#restart2data-tool" title="Permalink to this headline">¶</a></h2>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This tool is now obsolete and is not included in the
 current LAMMPS distribution.  This is becaues there is now a
-<A HREF = "write_data.html">write_data</A> command, which can create a data file
-from within an input script.  Running LAMMPS with the "-r"
-<A HREF = "Section_start.html#start_7">command-line switch</A> as follows:
-</P>
-<P>lmp_g++ -r restartfile datafile
-</P>
-<P>is the same as running a 2-line input script:
-</P>
-<P>read_restart restartfile
-write_data datafile
-</P>
-<P>which will produce the same data file that the restart2data tool used
+<a class="reference internal" href="write_data.html"><em>write_data</em></a> command, which can create a data file
+from within an input script.  Running LAMMPS with the &#8220;-r&#8221;
+<a class="reference internal" href="Section_start.html#start-7"><span>command-line switch</span></a> as follows:</p>
+</div>
+<p>lmp_g++ -r restartfile datafile</p>
+<p>is the same as running a 2-line input script:</p>
+<p>read_restart restartfile
+write_data datafile</p>
+<p>which will produce the same data file that the restart2data tool used
 to create.  The following information is included in case you have an
-older version of LAMMPS which still includes the restart2data tool.
-</P>
-<P>The file restart2data.cpp converts a binary LAMMPS restart file into
-an ASCII data file.  The syntax for running the tool is
-</P>
-<PRE>restart2data restart-file data-file (input-file) 
-</PRE>
-<P>Input-file is optional and if specified will contain LAMMPS input
+older version of LAMMPS which still includes the restart2data tool.</p>
+<p>The file restart2data.cpp converts a binary LAMMPS restart file into
+an ASCII data file.  The syntax for running the tool is</p>
+<div class="highlight-python"><div class="highlight"><pre>restart2data restart-file data-file (input-file)
+</pre></div>
+</div>
+<p>Input-file is optional and if specified will contain LAMMPS input
 commands for the masses and force field parameters, instead of putting
 those in the data-file.  Only a few force field styles currently
-support this option.
-</P>
-<P>This tool must be compiled on a platform that can read the binary file
+support this option.</p>
+<p>This tool must be compiled on a platform that can read the binary file
 created by a LAMMPS run, since binary files are not compatible across
-all platforms.
-</P>
-<P>Note that a text data file has less precision than a binary restart
+all platforms.</p>
+<p>Note that a text data file has less precision than a binary restart
 file.  Hence, continuing a run from a converted data file will
 typically not conform as closely to a previous run as will restarting
-from a binary restart file.
-</P>
-<P>If a "%" appears in the specified restart-file, the tool expects a set
-of multiple files to exist.  See the <A HREF = "restart.html">restart</A> and
-<A HREF = "write_restart.html">write_restart</A> commands for info on how such sets
-of files are written by LAMMPS, and how the files are named.
-</P>
-<HR>
-
-<H4><A NAME = "vim"></A>vim tool 
-</H4>
-<P>The files in the tools/vim directory are add-ons to the VIM editor
+from a binary restart file.</p>
+<p>If a &#8220;%&#8221; appears in the specified restart-file, the tool expects a set
+of multiple files to exist.  See the <a class="reference internal" href="restart.html"><em>restart</em></a> and
+<a class="reference internal" href="write_restart.html"><em>write_restart</em></a> commands for info on how such sets
+of files are written by LAMMPS, and how the files are named.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="vim-tool">
+<span id="vim"></span><h2>9.29. vim tool<a class="headerlink" href="#vim-tool" title="Permalink to this headline">¶</a></h2>
+<p>The files in the tools/vim directory are add-ons to the VIM editor
 that allow easier editing of LAMMPS input scripts.  See the README.txt
-file for details.
-</P>
-<P>These files were provided by Gerolf Ziegenhain (gerolf at
-ziegenhain.com)
-</P>
-<HR>
-
-<H4><A NAME = "xmgrace"></A>xmgrace tool 
-</H4>
-<P>The files in the tools/xmgrace directory can be used to plot the
+file for details.</p>
+<p>These files were provided by Gerolf Ziegenhain (gerolf at
+ziegenhain.com)</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="xmgrace-tool">
+<span id="xmgrace"></span><h2>9.30. xmgrace tool<a class="headerlink" href="#xmgrace-tool" title="Permalink to this headline">¶</a></h2>
+<p>The files in the tools/xmgrace directory can be used to plot the
 thermodynamic data in LAMMPS log files via the xmgrace plotting
 package.  There are several tools in the directory that can be used in
 post-processing mode.  The lammpsplot.cpp file can be compiled and
 used to create plots from the current state of a running LAMMPS
-simulation.
-</P>
-<P>See the README file for details.
-</P>
-<P>These files were provided by Vikas Varshney (vv0210 at gmail.com)
-</P>
-<HR>
-
-<H4><A NAME = "xmovie"></A>xmovie tool 
-</H4>
-<P>The xmovie tool is an X-based visualization package that can read
+simulation.</p>
+<p>See the README file for details.</p>
+<p>These files were provided by Vikas Varshney (vv0210 at gmail.com)</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="xmovie-tool">
+<span id="xmovie"></span><h2>9.31. xmovie tool<a class="headerlink" href="#xmovie-tool" title="Permalink to this headline">¶</a></h2>
+<p>The xmovie tool is an X-based visualization package that can read
 LAMMPS dump files and animate them.  It is in its own sub-directory
 with the tools directory.  You may need to modify its Makefile so that
-it can find the appropriate X libraries to link against.
-</P>
-<P>The syntax for running xmovie is
-</P>
-<PRE>xmovie [options] dump.file1 dump.file2 ... 
-</PRE>
-<P>If you just type "xmovie" you will see a list of options.  Note that
+it can find the appropriate X libraries to link against.</p>
+<p>The syntax for running xmovie is</p>
+<div class="highlight-python"><div class="highlight"><pre>xmovie [options] dump.file1 dump.file2 ...
+</pre></div>
+</div>
+<p>If you just type &#8220;xmovie&#8221; you will see a list of options.  Note that
 by default, LAMMPS dump files are in scaled coordinates, so you
 typically need to use the -scale option with xmovie.  When xmovie runs
 it opens a visualization window and a control window.  The control
-options are straightforward to use.
-</P>
-<P>Xmovie was mostly written by Mike Uttormark (U Wisconsin) while he
+options are straightforward to use.</p>
+<p>Xmovie was mostly written by Mike Uttormark (U Wisconsin) while he
 spent a summer at Sandia.  It displays 2d projections of a 3d domain.
 While simple in design, it is an amazingly fast program that can
-render large numbers of atoms very quickly.  It's a useful tool for
+render large numbers of atoms very quickly.  It&#8217;s a useful tool for
 debugging LAMMPS input and output and making sure your simulation is
 doing what you think it should.  The animations on the Examples page
-of the <A HREF = "http://lammps.sandia.gov">LAMMPS WWW site</A> were created with xmovie.
-</P>
-<P>I've lost contact with Mike, so I hope he's comfortable with us
-distributing his great tool!
-</P>
-</HTML>
+of the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW site</a> were created with xmovie.</p>
+<p>I&#8217;ve lost contact with Mike, so I hope he&#8217;s comfortable with us
+distributing his great tool!</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_modify.html" class="btn btn-neutral float-right" title="10. Modifying &amp; extending LAMMPS" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_perf.html" class="btn btn-neutral" title="8. Performance &amp; scalability" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

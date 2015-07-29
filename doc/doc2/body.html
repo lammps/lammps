@@ -1,0 +1,163 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>Body particles 
+</H3>
+<P><B>Overview:</B>
+</P>
+<P>This doc page is not about a LAMMPS input script command, but about
+body particles, which are generalized finite-size particles.
+Individual body particles can represent complex entities, such as
+surface meshes of discrete points, collections of sub-particles,
+deformable objects, etc.  Note that other kinds of finite-size
+spherical and aspherical particles are also supported by LAMMPS, such
+as spheres, ellipsoids, line segments, and triangles, but they are
+simpler entities that body particles.  See <A HREF = "Section_howto.html#howto_14">Section_howto
+14</A> for a general overview of all these
+particle types.
+</P>
+<P>Body particles are used via the <A HREF = "atom_style.html">atom_style body</A>
+command.  It takes a body style as an argument.  The current body
+styles supported by LAMMPS are as follows.  The name in the first
+column is used as the <I>bstyle</I> argument for the <A HREF = "atom_style.html">atom_style
+body</A> command.
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><I>nparticle</I> </TD><TD > rigid body with N sub-particles 
+</TD></TR></TABLE></DIV>
+
+<P>The body style determines what attributes are stored for each body and
+thus how they can be used to compute pairwise body/body or
+bond/non-body (point particle) interactions.  More details of each
+style are described below.
+</P>
+<P>We hope to add more styles in the future.  See <A HREF = "Section_modify.html#mod_12">Section_modify
+12</A> for details on how to add a new body
+style to the code.
+</P>
+<HR>
+
+<P><B>When to use body particles:</B>
+</P>
+<P>You should not use body particles to model a rigid body made of
+simpler particles (e.g. point, sphere, ellipsoid, line segment,
+triangular particles), if the interaction between pairs of rigid
+bodies is just the summation of pairwise interactions between the
+simpler particles.  LAMMPS already supports this kind of model via the
+<A HREF = "fix_rigid.html">fix rigid</A> command.  Any of the numerous pair styles
+that compute interactions between simpler particles can be used.  The
+<A HREF = "fix_rigid.html">fix rigid</A> command time integrates the motion of the
+rigid bodies.  All of the standard LAMMPS commands for thermostatting,
+adding constraints, performing output, etc will operate as expected on
+the simple particles.
+</P>
+<P>By contrast, when body particles are used, LAMMPS treats an entire
+body as a single particle for purposes of computing pairwise
+interactions, building neighbor lists, migrating particles between
+processors, outputting particles to a dump file, etc.  This means that
+interactions between pairs of bodies or between a body and non-body
+(point) particle need to be encoded in an appropriate pair style.  If
+such a pair style were to mimic the <A HREF = "fix_rigid.html">fix rigid</A> model,
+it would need to loop over the entire collection of interactions
+between pairs of simple particles within the two bodies, each time a
+single body/body interaction was computed.
+</P>
+<P>Thus it only makes sense to use body particles and develop such a pair
+style, when particle/particle interactions are more complex than what
+the <A HREF = "fix_rigid.html">fix rigid</A> command can already calculate.  For
+example, if particles have one or more of the following attributes:
+</P>
+<UL><LI>represented by a surface mesh
+<LI>represented by a collection of geometric entities (e.g. planes + spheres)
+<LI>deformable
+<LI>internal stress that induces fragmentation 
+</UL>
+<P>then the interaction between pairs of particles is likely to be more
+complex than the summation of simple sub-particle interactions.  An
+example is contact or frictional forces between particles with planar
+sufaces that inter-penetrate.
+</P>
+<P>These are additional LAMMPS commands that can be used with body
+particles of different styles
+</P>
+<DIV ALIGN=center><TABLE  BORDER=1 >
+<TR><TD ><A HREF = "fix_nve_body.html">fix nve/body</A> </TD><TD > integrate motion of a body particle</TD></TR>
+<TR><TD ><A HREF = "compute_body_local.html">compute body/local</A> </TD><TD > store sub-particle attributes of a body particle</TD></TR>
+<TR><TD ><A HREF = "dump.html">dump local</A> </TD><TD > output sub-particle attributes of a body particle 
+</TD></TR></TABLE></DIV>
+
+<P>The pair styles defined for use with specific body styles are listed
+in the sections below.
+</P>
+<HR>
+
+<P><B>Specifics of body style nparticle:</B>
+</P>
+<P>The <I>nparticle</I> body style represents body particles as a rigid body
+with a variable number N of sub-particles.  It is provided as a
+vanillia, prototypical example of a body particle, although as
+mentioned above, the <A HREF = "fix_rigid.html">fix rigid</A> command already
+duplicates its functionality.
+</P>
+<P>The atom_style body command for this body style takes two additional
+arguments:
+</P>
+<PRE>atom_style body nparticle Nmin Nmax
+Nmin = minimum # of sub-particles in any body in the system
+Nmax = maximum # of sub-particles in any body in the system 
+</PRE>
+<P>The Nmin and Nmax arguments are used to bound the size of data
+structures used internally by each particle.
+</P>
+<P>When the <A HREF = "read_data.html">read_data</A> command reads a data file for this
+body style, the following information must be provided for each entry
+in the <I>Bodies</I> section of the data file:
+</P>
+<PRE>atom-ID 1 M
+N
+ixx iyy izz ixy ixz iyz x1 y1 z1 ...
+...
+... xN yN zN 
+</PRE>
+<P>N is the number of sub-particles in the body particle.  M = 6 + 3*N.
+The integer line has a single value N.  The floating point line(s)
+list 6 moments of inertia followed by the coordinates of the N
+sub-particles (x1 to zN) as 3N values on as many lines as required.
+Note that this in not N lines, but 10 values per line; see the
+<A HREF = "read_data.html">read_data</A> command for details.  The 6 moments of
+inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the values consistent with
+the current orientation of the rigid body around its center of mass.
+The values are with respect to the simulation box XYZ axes, not with
+respect to the prinicpal axes of the rigid body itself.  LAMMPS
+performs the latter calculation internally.  The coordinates of each
+sub-particle are specified as its x,y,z displacement from the
+center-of-mass of the body particle.  The center-of-mass position of
+the particle is specified by the x,y,z values in the <I>Atoms</I> section
+of the data file.
+</P>
+<P>The <A HREF = "pair_body.html">pair_style body</A> command can be used with this
+body style to compute body/body and body/non-body interactions.
+</P>
+<P>For output purposes via the <A HREF = "compute_body_local.html">compute
+body/local</A> and <A HREF = "dump.html">dump local</A>
+commands, this body style produces one datum for each of the N
+sub-particles in a body particle.  The datum has 3 values:
+</P>
+<PRE>1 = x position of sub-particle
+2 = y position of sub-particle
+3 = z position of sub-particle 
+</PRE>
+<P>These values are the current position of the sub-particle within the
+simulation domain, not a displacement from the center-of-mass (COM) of
+the body particle itself.  These values are calculated using the
+current COM and orientiation of the body particle.
+</P>
+</HTML>

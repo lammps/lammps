@@ -1,0 +1,106 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix qeq/reax command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID qeq/reax Nevery cutlo cuthi tolerance params 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>qeq/reax = style name of this fix command 
+<LI>Nevery = perform QEq every this many steps
+<LI>cutlo,cuthi = lo and hi cutoff for Taper radius
+<LI>tolerance = precision to which charges will be equilibrated
+<LI>params = reax/c or a filename 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
+fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Perform the charge equilibration (QEq) method as described in <A HREF = "#Rappe">(Rappe
+and Goddard)</A> and formulated in <A HREF = "#Nakano">(Nakano)</A>.  It is
+typically used in conjunction with the ReaxFF force field model as
+implemented in the <A HREF = "pair_reax_c.html">pair_style reax/c</A> command, but
+it can be used with any potential in LAMMPS, so long as it defines and
+uses charges on each atom.  The <A HREF = "fix_qeq_comb.html">fix qeq/comb</A>
+command should be used to perform charge equliibration with the <A HREF = "pair_comb.html">COMB
+potential</A>.  For more technical details about the
+charge equilibration performed by fix qeq/reax, see the
+<A HREF = "#Aktulga">(Aktulga)</A> paper.
+</P>
+<P>The QEq method minimizes the electrostatic energy of the system by
+adjusting the partial charge on individual atoms based on interactions
+with their neighbors.  It reqires some parameters for each atom type.
+If the <I>params</I> setting above is the word "reax/c", then these are
+extracted from the <A HREF = "pair_reax_c.html">pair_style reax/c</A> command and
+the ReaxFF force field file it reads in.  If a file name is specified
+for <I>params</I>, then the parameters are taken from the specified file
+and the file must contain one line for each atom type.  The latter
+form must be used when performing QeQ with a non-ReaxFF potential.
+Each line should be formatted as follows:
+</P>
+<PRE>itype chi eta gamma 
+</PRE>
+<P>where <I>itype</I> is the atom type from 1 to Ntypes, <I>chi</I> denotes the
+electronegativity in eV, <I>eta</I> denotes the self-Coulomb
+potential in eV, and <I>gamma</I> denotes the valence orbital
+exponent.  Note that these 3 quantities are also in the ReaxFF
+potential file, except that eta is defined here as twice the eta value
+in the ReaxFF file. Note that unlike the rest of LAMMPS, the units
+of this fix are hard-coded to be A, eV, and electronic charge. 
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  No global scalar or vector or per-atom
+quantities are stored by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+</P>
+<P>This fix is invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the USER-REAXC package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>This fix does not correctly handle interactions
+involving multiple periodic images of the same atom. Hence, it should not
+be used for periodic cell dimensions less than 10 angstroms. 
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_reax_c.html">pair_style reax/c</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Rappe"></A>
+
+<P> <B>(Rappe)</B> Rappe and Goddard III, Journal of Physical Chemistry, 95,
+3358-3363 (1991).
+</P>
+<A NAME = "Nakano"></A>
+
+<P><B>(Nakano)</B> Nakano, Computer Physics Communications, 104, 59-69 (1997).
+</P>
+<A NAME = "Aktulga"></A>
+
+<P>(Aktulga) Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
+245-259 (2012).
+</P>
+</HTML>

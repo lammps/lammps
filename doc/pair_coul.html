@@ -1,373 +1,531 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style coul/cut command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style coul/cut command 
-</H3>
-<H3>pair_style coul/cut/gpu command 
-</H3>
-<H3>pair_style coul/cut/kk command 
-</H3>
-<H3>pair_style coul/cut/omp command 
-</H3>
-<H3>pair_style coul/debye command 
-</H3>
-<H3>pair_style coul/debye/gpu command 
-</H3>
-<H3>pair_style coul/debye/kk command 
-</H3>
-<H3>pair_style coul/debye/omp command 
-</H3>
-<H3>pair_style coul/dsf command 
-</H3>
-<H3>pair_style coul/dsf/gpu command 
-</H3>
-<H3>pair_style coul/dsf/kk command 
-</H3>
-<H3>pair_style coul/dsf/omp command 
-</H3>
-<H3>pair_style coul/long command 
-</H3>
-<H3>pair_style coul/long/cs command 
-</H3>
-<H3>pair_style coul/long/omp command 
-</H3>
-<H3>pair_style coul/long/gpu command 
-</H3>
-<H3>pair_style coul/long/kk command 
-</H3>
-<H3>pair_style coul/msm command 
-</H3>
-<H3>pair_style coul/msm/omp command 
-</H3>
-<H3>pair_style coul/streitz command 
-</H3>
-<H3>pair_style coul/wolf command 
-</H3>
-<H3>pair_style coul/wolf/kk command 
-</H3>
-<H3>pair_style coul/wolf/omp command 
-</H3>
-<H3>pair_style tip4p/cut command 
-</H3>
-<H3>pair_style tip4p/long command 
-</H3>
-<H3>pair_style tip4p/cut/omp command 
-</H3>
-<H3>pair_style tip4p/long/omp command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style coul/cut cutoff
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style coul/cut command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-coul-cut-command">
+<span id="index-0"></span><h1>pair_style coul/cut command<a class="headerlink" href="#pair-style-coul-cut-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-cut-gpu-command">
+<h1>pair_style coul/cut/gpu command<a class="headerlink" href="#pair-style-coul-cut-gpu-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-cut-kk-command">
+<h1>pair_style coul/cut/kk command<a class="headerlink" href="#pair-style-coul-cut-kk-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-cut-omp-command">
+<h1>pair_style coul/cut/omp command<a class="headerlink" href="#pair-style-coul-cut-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-debye-command">
+<h1>pair_style coul/debye command<a class="headerlink" href="#pair-style-coul-debye-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-debye-gpu-command">
+<h1>pair_style coul/debye/gpu command<a class="headerlink" href="#pair-style-coul-debye-gpu-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-debye-kk-command">
+<h1>pair_style coul/debye/kk command<a class="headerlink" href="#pair-style-coul-debye-kk-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-debye-omp-command">
+<h1>pair_style coul/debye/omp command<a class="headerlink" href="#pair-style-coul-debye-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-dsf-command">
+<h1>pair_style coul/dsf command<a class="headerlink" href="#pair-style-coul-dsf-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-dsf-gpu-command">
+<h1>pair_style coul/dsf/gpu command<a class="headerlink" href="#pair-style-coul-dsf-gpu-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-dsf-kk-command">
+<h1>pair_style coul/dsf/kk command<a class="headerlink" href="#pair-style-coul-dsf-kk-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-dsf-omp-command">
+<h1>pair_style coul/dsf/omp command<a class="headerlink" href="#pair-style-coul-dsf-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-long-command">
+<h1>pair_style coul/long command<a class="headerlink" href="#pair-style-coul-long-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-long-cs-command">
+<h1>pair_style coul/long/cs command<a class="headerlink" href="#pair-style-coul-long-cs-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-long-omp-command">
+<h1>pair_style coul/long/omp command<a class="headerlink" href="#pair-style-coul-long-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-long-gpu-command">
+<h1>pair_style coul/long/gpu command<a class="headerlink" href="#pair-style-coul-long-gpu-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-long-kk-command">
+<h1>pair_style coul/long/kk command<a class="headerlink" href="#pair-style-coul-long-kk-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-msm-command">
+<h1>pair_style coul/msm command<a class="headerlink" href="#pair-style-coul-msm-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-msm-omp-command">
+<h1>pair_style coul/msm/omp command<a class="headerlink" href="#pair-style-coul-msm-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-streitz-command">
+<h1>pair_style coul/streitz command<a class="headerlink" href="#pair-style-coul-streitz-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-wolf-command">
+<h1>pair_style coul/wolf command<a class="headerlink" href="#pair-style-coul-wolf-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-wolf-kk-command">
+<h1>pair_style coul/wolf/kk command<a class="headerlink" href="#pair-style-coul-wolf-kk-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-coul-wolf-omp-command">
+<h1>pair_style coul/wolf/omp command<a class="headerlink" href="#pair-style-coul-wolf-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-tip4p-cut-command">
+<h1>pair_style tip4p/cut command<a class="headerlink" href="#pair-style-tip4p-cut-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-tip4p-long-command">
+<h1>pair_style tip4p/long command<a class="headerlink" href="#pair-style-tip4p-long-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-tip4p-cut-omp-command">
+<h1>pair_style tip4p/cut/omp command<a class="headerlink" href="#pair-style-tip4p-cut-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-tip4p-long-omp-command">
+<h1>pair_style tip4p/long/omp command<a class="headerlink" href="#pair-style-tip4p-long-omp-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style coul/cut cutoff
 pair_style coul/debye kappa cutoff
 pair_style coul/dsf alpha cutoff
 pair_style coul/long cutoff
 pair_style coul/long/cs cutoff
-pair_style coul/long/gpu cutoff 
+pair_style coul/long/gpu cutoff
 pair_style coul/wolf alpha cutoff
 pair_style coul/streitz cutoff keyword alpha
 pair_style tip4p/cut otype htype btype atype qdist cutoff
-pair_style tip4p/long otype htype btype atype qdist cutoff 
-</PRE>
-<UL><LI>cutoff = global cutoff for Coulombic interactions
-<LI>kappa = Debye length (inverse distance units) 
-<LI>alpha = damping parameter (inverse distance units) 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style coul/cut 2.5
+pair_style tip4p/long otype htype btype atype qdist cutoff
+</pre></div>
+</div>
+<ul class="simple">
+<li>cutoff = global cutoff for Coulombic interactions</li>
+<li>kappa = Debye length (inverse distance units)</li>
+<li>alpha = damping parameter (inverse distance units)</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style coul/cut 2.5
 pair_coeff * *
-pair_coeff 2 2 3.5 
-</PRE>
-<PRE>pair_style coul/debye 1.4 3.0
+pair_coeff 2 2 3.5
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style coul/debye 1.4 3.0
 pair_coeff * *
-pair_coeff 2 2 3.5 
-</PRE>
-<PRE>pair_style coul/dsf 0.05 10.0
-pair_coeff * * 
-</PRE>
-<PRE>pair_style coul/long 10.0
+pair_coeff 2 2 3.5
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style coul/dsf 0.05 10.0
+pair_coeff * *
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style coul/long 10.0
 pair_style coul/long/cs 10.0
-pair_coeff * * 
-</PRE>
-<PRE>pair_style coul/msm 10.0
-pair_coeff * * 
-</PRE>
-<PRE>pair_style coul/wolf 0.2 9.0
-pair_coeff * * 
-</PRE>
-<PRE>pair_style coul/streitz 12.0 ewald
+pair_coeff * *
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style coul/msm 10.0
+pair_coeff * *
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style coul/wolf 0.2 9.0
+pair_coeff * *
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style coul/streitz 12.0 ewald
 pair_style coul/streitz 12.0 wolf 0.30
-pair_coeff * * AlO.streitz Al O 
-</PRE>
-<PRE>pair_style tip4p/cut 1 2 7 8 0.15 12.0
-pair_coeff * * 
-</PRE>
-<PRE>pair_style tip4p/long 1 2 7 8 0.15 10.0
-pair_coeff * * 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>The <I>coul/cut</I> style computes the standard Coulombic interaction
-potential given by
-</P>
-<CENTER><IMG SRC = "Eqs/pair_coulomb.jpg">
-</CENTER>
-<P>where C is an energy-conversion constant, Qi and Qj are the charges on
+pair_coeff * * AlO.streitz Al O
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style tip4p/cut 1 2 7 8 0.15 12.0
+pair_coeff * *
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style tip4p/long 1 2 7 8 0.15 10.0
+pair_coeff * *
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>The <em>coul/cut</em> style computes the standard Coulombic interaction
+potential given by</p>
+<img alt="_images/pair_coulomb.jpg" class="align-center" src="_images/pair_coulomb.jpg" />
+<p>where C is an energy-conversion constant, Qi and Qj are the charges on
 the 2 atoms, and epsilon is the dielectric constant which can be set
-by the <A HREF = "dielectric.html">dielectric</A> command.  The cutoff Rc truncates
-the interaction distance.
-</P>
-<HR>
-
-<P>Style <I>coul/debye</I> adds an additional exp() damping factor to the
-Coulombic term, given by
-</P>
-<CENTER><IMG SRC = "Eqs/pair_debye.jpg">
-</CENTER>
-<P>where kappa is the Debye length.  This potential is another way to
-mimic the screening effect of a polar solvent.
-</P>
-<HR>
-
-<P>Style <I>coul/dsf</I> computes Coulombic interactions via the damped 
-shifted force model described in <A HREF = "#Fennell">Fennell</A>, given by:
-</P>
-<CENTER><IMG SRC = "Eqs/pair_coul_dsf.jpg">
-</CENTER>
-<P>where <I>alpha</I> is the damping parameter and erfc() is the
+by the <a class="reference internal" href="dielectric.html"><em>dielectric</em></a> command.  The cutoff Rc truncates
+the interaction distance.</p>
+<hr class="docutils" />
+<p>Style <em>coul/debye</em> adds an additional exp() damping factor to the
+Coulombic term, given by</p>
+<img alt="_images/pair_debye.jpg" class="align-center" src="_images/pair_debye.jpg" />
+<p>where kappa is the Debye length.  This potential is another way to
+mimic the screening effect of a polar solvent.</p>
+<hr class="docutils" />
+<p>Style <em>coul/dsf</em> computes Coulombic interactions via the damped
+shifted force model described in <a class="reference internal" href="pair_lj.html#fennell"><span>Fennell</span></a>, given by:</p>
+<img alt="_images/pair_coul_dsf.jpg" class="align-center" src="_images/pair_coul_dsf.jpg" />
+<p>where <em>alpha</em> is the damping parameter and erfc() is the
 complementary error-function. The potential corrects issues in the
 Wolf model (described below) to provide consistent forces and energies
 (the Wolf potential is not differentiable at the cutoff) and smooth
-decay to zero.
-</P>
-<HR>
-
-<P>Style <I>coul/wolf</I> computes Coulombic interactions via the Wolf
-summation method, described in <A HREF = "#Wolf">Wolf</A>, given by:
-</P>
-<CENTER><IMG SRC = "Eqs/pair_coul_wolf.jpg">
-</CENTER>
-<P>where <I>alpha</I> is the damping parameter, and erc() and erfc() are
+decay to zero.</p>
+<hr class="docutils" />
+<p>Style <em>coul/wolf</em> computes Coulombic interactions via the Wolf
+summation method, described in <a class="reference internal" href="#wolf"><span>Wolf</span></a>, given by:</p>
+<img alt="_images/pair_coul_wolf.jpg" class="align-center" src="_images/pair_coul_wolf.jpg" />
+<p>where <em>alpha</em> is the damping parameter, and erc() and erfc() are
 error-fuction and complementary error-function terms.  This potential
 is essentially a short-range, spherically-truncated,
-charge-neutralized, shifted, pairwise <I>1/r</I> summation.  With a
+charge-neutralized, shifted, pairwise <em>1/r</em> summation.  With a
 manipulation of adding and substracting a self term (for i = j) to the
 first and second term on the right-hand-side, respectively, and a
-small enough <I>alpha</I> damping parameter, the second term shrinks and
+small enough <em>alpha</em> damping parameter, the second term shrinks and
 the potential becomes a rapidly-converging real-space summation.  With
 a long enough cutoff and small enough alpha parameter, the energy and
 forces calcluated by the Wolf summation method approach those of the
 Ewald sum.  So it is a means of getting effective long-range
-interactions with a short-range potential.
-</P>
-<HR>
-
-<P>Style <I>coul/streitz</I> is the Coulomb pair interaction defined as part
-of the Streitz-Mintmire potential, as described in <A HREF = "#Streitz">this
-paper</A>, in which charge distribution about an atom is modeled
-as a Slater 1<I>s</I> orbital.  More details can be found in the referenced
+interactions with a short-range potential.</p>
+<hr class="docutils" />
+<p>Style <em>coul/streitz</em> is the Coulomb pair interaction defined as part
+of the Streitz-Mintmire potential, as described in <a class="reference internal" href="#streitz"><span>this paper</span></a>, in which charge distribution about an atom is modeled
+as a Slater 1*s* orbital.  More details can be found in the referenced
 paper.  To fully reproduce the published Streitz-Mintmire potential,
-which is a variable charge potential, style <I>coul/streitz</I> must be
-used with <A HREF = "pair_eam.html">pair_style eam/alloy</A> (or some other
+which is a variable charge potential, style <em>coul/streitz</em> must be
+used with <a class="reference internal" href="pair_eam.html"><em>pair_style eam/alloy</em></a> (or some other
 short-range potential that has been parameterized appropriately) via
-the <A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A> command.  Likewise,
-charge equilibration must be performed via the <A HREF = "fix_qeq.html">fix
-qeq/slater</A> command. For example:
-</P>
-<PRE>pair_style hybrid/overlay coul/streitz 12.0 wolf 0.31 eam/alloy
+the <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid/overlay</em></a> command.  Likewise,
+charge equilibration must be performed via the <a class="reference internal" href="fix_qeq.html"><em>fix qeq/slater</em></a> command. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_style hybrid/overlay coul/streitz 12.0 wolf 0.31 eam/alloy
 pair_coeff * * coul/streitz AlO.streitz Al O
 pair_coeff * * eam/alloy AlO.eam.alloy Al O
-fix 1 all qeq/slater 1 12.0 1.0e-6 100 coul/streitz 
-</PRE>
-<P>The keyword <I>wolf</I> in the coul/streitz command denotes computing
+fix 1 all qeq/slater 1 12.0 1.0e-6 100 coul/streitz
+</pre></div>
+</div>
+<p>The keyword <em>wolf</em> in the coul/streitz command denotes computing
 Coulombic interactions via Wolf summation.  An additional damping
 parameter is required for the Wolf summation, as described for the
 coul/wolf potential above.  Alternatively, Coulombic interactions can
-be computed via an Ewald summation.  For example:
-</P>
-<PRE>pair_style hybrid/overlay coul/streitz 12.0 ewald eam/alloy
-kspace_style ewald 1e-6 
-</PRE>
-<P>Keyword <I>ewald</I> does not need a damping parameter, but a
-<A HREF = "kspace_style.html">kspace_style</A> must be defined, which can be style
-<I>ewald</I> or <I>pppm</I>.  The Ewald method was used in Streitz and
-Mintmire's original paper, but a Wolf summation offers a speed-up in
-some cases.
-</P>
-<P>For the fix qeq/slater command, the <I>qfile</I> can be a filename that
-contains QEq parameters as discussed on the <A HREF = "fix_qeq.html">fix qeq</A>
-command doc page.  Alternatively <I>qfile</I> can be replaced by
-"coul/streitz", in which case the fix will extract QEq parameters from
-the coul/streitz pair style itself.
-</P>
-<P>See the examples/strietz directory for an example input script that
+be computed via an Ewald summation.  For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_style hybrid/overlay coul/streitz 12.0 ewald eam/alloy
+kspace_style ewald 1e-6
+</pre></div>
+</div>
+<p>Keyword <em>ewald</em> does not need a damping parameter, but a
+<a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> must be defined, which can be style
+<em>ewald</em> or <em>pppm</em>.  The Ewald method was used in Streitz and
+Mintmire&#8217;s original paper, but a Wolf summation offers a speed-up in
+some cases.</p>
+<p>For the fix qeq/slater command, the <em>qfile</em> can be a filename that
+contains QEq parameters as discussed on the <a class="reference internal" href="fix_qeq.html"><em>fix qeq</em></a>
+command doc page.  Alternatively <em>qfile</em> can be replaced by
+&#8220;coul/streitz&#8221;, in which case the fix will extract QEq parameters from
+the coul/streitz pair style itself.</p>
+<p>See the examples/strietz directory for an example input script that
 uses the Streitz-Mintmire potential.  The potentials directory has the
-AlO.eam.alloy and AlO.streitz potential files used by the example.
-</P>
-<P>Note that the Streiz-Mintmire potential is generally used for oxides,
+AlO.eam.alloy and AlO.streitz potential files used by the example.</p>
+<p>Note that the Streiz-Mintmire potential is generally used for oxides,
 but there is no conceptual problem with extending it to nitrides and
 carbides (such as SiC, TiN).  Pair coul/strietz used by itself or with
 any other pair style such as EAM, MEAM, Tersoff, or LJ in
 hybrid/overlay mode.  To do this, you would need to provide a
-Streitz-Mintmire parameterizaion for the material being modeled.
-</P>
-<HR>
-
-<P>Styles <I>coul/long</I> and <I>coul/msm</I> compute the same Coulombic
-interactions as style <I>coul/cut</I> except that an additional damping
+Streitz-Mintmire parameterizaion for the material being modeled.</p>
+<hr class="docutils" />
+<p>Styles <em>coul/long</em> and <em>coul/msm</em> compute the same Coulombic
+interactions as style <em>coul/cut</em> except that an additional damping
 factor is applied so it can be used in conjunction with the
-<A HREF = "kspace_style.html">kspace_style</A> command and its <I>ewald</I> or <I>pppm</I>
+<a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command and its <em>ewald</em> or <em>pppm</em>
 option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
-interactions outside that distance are computed in reciprocal space.
-</P>
-<P>Style <I>coul/long/cs</I> is identical to <I>coul/long</I> except that a term is
-added for the <A HREF = "Section_howto.html#howto_25">core/shell model</A> to allow
-charges on core and shell particles to be separated by r = 0.0.
-</P>
-<P>Styles <I>tip4p/cut</I> and <I>tip4p/long</I> implement the coulomb part of
-the TIP4P water model of <A HREF = "#Jorgensen">(Jorgensen)</A>, which introduces
+interactions outside that distance are computed in reciprocal space.</p>
+<p>Style <em>coul/long/cs</em> is identical to <em>coul/long</em> except that a term is
+added for the <a class="reference internal" href="Section_howto.html#howto-25"><span>core/shell model</span></a> to allow
+charges on core and shell particles to be separated by r = 0.0.</p>
+<p>Styles <em>tip4p/cut</em> and <em>tip4p/long</em> implement the coulomb part of
+the TIP4P water model of <a class="reference internal" href="pair_lj.html#jorgensen"><span>(Jorgensen)</span></a>, which introduces
 a massless site located a short distance away from the oxygen atom
 along the bisector of the HOH angle.  The atomic types of the oxygen and
 hydrogen atoms, the bond and angle types for OH and HOH interactions,
 and the distance to the massless charge site are specified as
-pair_style arguments.  Style <I>tip4p/cut</I> uses a global cutoff for
-Coulomb interactions; style <I>tip4p/long</I> is for use with a long-range
-Coulombic solver (Ewald or PPPM).
-</P>
-<P>IMPORTANT NOTE: For each TIP4P water molecule in your system, the atom
+pair_style arguments.  Style <em>tip4p/cut</em> uses a global cutoff for
+Coulomb interactions; style <em>tip4p/long</em> is for use with a long-range
+Coulombic solver (Ewald or PPPM).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">For each TIP4P water molecule in your system, the atom
 IDs for the O and 2 H atoms must be consecutive, with the O atom
-first.  This is to enable LAMMPS to "find" the 2 H atoms associated
+first.  This is to enable LAMMPS to &#8220;find&#8221; the 2 H atoms associated
 with each O atom.  For example, if the atom ID of an O atom in a TIP4P
-water molecule is 500, then its 2 H atoms must have IDs 501 and 502.
-</P>
-<P>See the <A HREF = "Section_howto.html#howto_8">howto section</A> for more
+water molecule is 500, then its 2 H atoms must have IDs 501 and 502.</p>
+</div>
+<p>See the <a class="reference internal" href="Section_howto.html#howto-8"><span>howto section</span></a> for more
 information on how to use the TIP4P pair styles and lists of
 parameters to set.  Note that the neighobr list cutoff for Coulomb
 interactions is effectively extended by a distance 2*qdist when using
 the TIP4P pair style, to account for the offset distance of the
 fictitious charges on O atoms in water molecules.  Thus it is
-typically best in an efficiency sense to use a LJ cutoff >= Coulomb
+typically best in an efficiency sense to use a LJ cutoff &gt;= Coulomb
 cutoff + 2*qdist, to shrink the size of the neighbor list.  This leads
 to slightly larger cost for the long-range calculation, so you can
-test the trade-off for your model.
-</P>
-<HR>
-
-<P>Note that these potentials are designed to be combined with other pair
-potentials via the <A HREF = "pair_hybrid.html">pair_style hybrid/overlay</A>
+test the trade-off for your model.</p>
+<hr class="docutils" />
+<p>Note that these potentials are designed to be combined with other pair
+potentials via the <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid/overlay</em></a>
 command.  This is because they have no repulsive core.  Hence if they
 are used by themselves, there will be no repulsion to keep two
 oppositely charged particles from moving arbitrarily close to each
-other.
-</P>
-<P>The following coefficients must be defined for each pair of atoms
-types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+other.</p>
+<p>The following coefficients must be defined for each pair of atoms
+types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples
 above, or in the data file or restart files read by the
-<A HREF = "read_data.html">read_data</A> or <A HREF = "read_restart.html">read_restart</A>
-commands, or by mixing as described below:
-</P>
-<UL><LI>cutoff (distance units) 
-</UL>
-<P>For <I>coul/cut</I> and <I>coul/debye</I>, the cutoff coefficient is optional.
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="read_restart.html"><em>read_restart</em></a>
+commands, or by mixing as described below:</p>
+<ul class="simple">
+<li>cutoff (distance units)</li>
+</ul>
+<p>For <em>coul/cut</em> and <em>coul/debye</em>, the cutoff coefficient is optional.
 If it is not used (as in some of the examples above), the default
-global value specified in the pair_style command is used.
-</P>
-<P>For <I>coul/long</I> and <I>coul/msm</I> no cutoff can be specified for an
+global value specified in the pair_style command is used.</p>
+<p>For <em>coul/long</em> and <em>coul/msm</em> no cutoff can be specified for an
 individual I,J type pair via the pair_coeff command.  All type pairs
 use the same global Coulombic cutoff specified in the pair_style
-command.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+command.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>For atom type pairs I,J and I != J, the cutoff distance for the
-<I>coul/cut</I> style can be mixed.  The default mix value is <I>geometric</I>.
-See the "pair_modify" command for details.
-</P>
-<P>The <A HREF = "pair_modify.html">pair_modify</A> shift option is not relevant
-for these pair styles.
-</P>
-<P>The <I>coul/long</I> style supports the <A HREF = "pair_modify.html">pair_modify</A>
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>For atom type pairs I,J and I != J, the cutoff distance for the
+<em>coul/cut</em> style can be mixed.  The default mix value is <em>geometric</em>.
+See the &#8220;pair_modify&#8221; command for details.</p>
+<p>The <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a> shift option is not relevant
+for these pair styles.</p>
+<p>The <em>coul/long</em> style supports the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
 table option for tabulation of the short-range portion of the
-long-range Coulombic interaction.
-</P>
-<P>These pair styles do not support the <A HREF = "pair_modify.html">pair_modify</A>
+long-range Coulombic interaction.</p>
+<p>These pair styles do not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
 tail option for adding long-range tail corrections to energy and
-pressure.
-</P>
-<P>These pair styles write their information to <A HREF = "restart.html">binary restart
-files</A>, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.
-</P>
-<P>This pair style can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
-<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>The <I>coul/long</I>, <I>coul/msm</I> and <I>tip4p/long</I> styles are part of the
-KSPACE package.  The <I>coul/long/cs</I> style is part of the CORESHELL
+pressure.</p>
+<p>These pair styles write their information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>The <em>coul/long</em>, <em>coul/msm</em> and <em>tip4p/long</em> styles are part of the
+KSPACE package.  The <em>coul/long/cs</em> style is part of the CORESHELL
 package.  They are only enabled if LAMMPS was built with that package
-(which it is by default).  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, <A HREF = "pair_hybrid.html">pair_style,
-hybrid/overlay</A>, <A HREF = "kspace_style.html">kspace_style</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+(which it is by default).  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>, <a class="reference internal" href="pair_hybrid.html"><em>pair_style, hybrid/overlay</em></a>, <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="wolf"><strong>(Wolf)</strong> D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
+Phys, 110, 8254 (1999).</p>
+<p id="fennell"><strong>(Fennell)</strong> C. J. Fennell, J. D. Gezelter, J Chem Phys, 124,
+234104 (2006).</p>
+<p id="streitz"><strong>(Streitz)</strong> F. H. Streitz, J. W. Mintmire, Phys Rev B, 50, 11996-12003
+(1994).</p>
+</div>
+</div>
 
-<A NAME = "Wolf"></A>
 
-<P><B>(Wolf)</B> D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
-Phys, 110, 8254 (1999).
-</P>
-<A NAME = "Fennell"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Fennell)</B> C. J. Fennell, J. D. Gezelter, J Chem Phys, 124, 
-234104 (2006).
-</P>
-<A NAME = "Streitz"></A>
+  <hr/>
 
-<P><B>(Streitz)</B> F. H. Streitz, J. W. Mintmire, Phys Rev B, 50, 11996-12003
-(1994).
-</P>
-</HTML>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

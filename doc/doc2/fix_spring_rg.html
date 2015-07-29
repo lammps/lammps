@@ -1,0 +1,72 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix spring/rg command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID spring/rg K RG0 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>spring/rg = style name of this fix command
+<LI>K = harmonic force constant (force/distance units)
+<LI>RG0 = target radius of gyration to constrain to (distance units) 
+</UL>
+<PRE>  if RG0 = NULL, use the current RG as the target value 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 protein spring/rg 5.0 10.0
+fix 2 micelle spring/rg 5.0 NULL 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Apply a harmonic restraining force to atoms in the group to affect
+their central moment about the center of mass (radius of gyration).
+This fix is useful to encourage a protein or polymer to fold/unfold
+and also when sampling along the radius of gyration as a reaction
+coordinate (i.e. for protein folding).
+</P>
+<P>The radius of gyration is defined as RG in the first formula.  The
+energy of the constraint and associated force on each atom is given by
+the second and third formulas, when the group is at a different RG
+than the target value RG0.
+</P>
+<CENTER><IMG SRC = "Eqs/fix_spring_rg.jpg">
+</CENTER>
+<P>The (xi - center-of-mass) term is computed taking into account
+periodic boundary conditions, m_i is the mass of the atom, and M is
+the mass of the entire group.  Note that K is thus a force constant
+for the aggregate force on the group of atoms, not a per-atom force.
+</P>
+<P>If RG0 is specified as NULL, then the RG of the group is computed at
+the time the fix is specified, and that value is used as the target.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_spring.html">fix spring</A>, <A HREF = "fix_spring_self.html">fix spring/self</A>
+<A HREF = "fix_drag.html">fix drag</A>, <A HREF = "fix_smd.html">fix smd</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

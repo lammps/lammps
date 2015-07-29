@@ -1,0 +1,16 @@
+\documentclass[24pt]{article}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\newcommand{\hcoeff}[9]{H\!\!{\tiny\begin{array}{l}#1 #2 #3 \\ #4 #5 #6 \\ #7 #8 #9 \end{array}}}
+
+\begin{equation}
+B_{j_1,j_2,j}  = \\
+\sum_{m_1,m'_1=-j_1}^{j_1}\sum_{m_2,m'_2=-j_2}^{j_2}\sum_{m,m'=-j}^{j} (u^j_{m,m'})^*
+\hcoeff{j}{m}{m'}{j_1}{\!m_1}{\!m'_1}{j_2}{m_2}{m'_2}
+u^{j_1}_{m_1,m'_1} u^{j_2}_{m_2,m'_2}
+\end{equation}
+
+\end{document}

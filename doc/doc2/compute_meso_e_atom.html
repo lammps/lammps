@@ -1,0 +1,61 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute meso_e/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID meso_e/atom 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>meso_e/atom = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all meso_e/atom 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the per-atom internal energy
+for each atom in a group.
+</P>
+<P>The internal energy is the energy associated with the internal degrees
+of freedom of a mesoscopic particles, e.g. a Smooth-Particle
+Hydrodynamics particle.
+</P>
+<P>See <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</A> to using SPH in
+LAMMPS.
+</P>
+<P>The value of the internal energy will be 0.0 for atoms not in the
+specified compute group.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a per-atom vector, which can be accessed by
+any command that uses per-atom values from a compute as input.  See
+<A HREF = "Section_howto.html#howto_15">Section_howto 15</A> for an overview of
+LAMMPS output options.
+</P>
+<P>The per-atom vector values will be in energy <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute is part of the USER-SPH package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump custom</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

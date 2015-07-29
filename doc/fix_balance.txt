@@ -113,7 +113,7 @@ the simulation box across processors (one sub-box for each of 16
 processors); the middle diagram is after a "grid" method has been
 applied.
 
-:c,image(JPG/balance_uniform_small.jpg,JPG/balance_uniform.jpg),image(JPG/balance_nonuniform_small.jpg,JPG/balance_nonuniform.jpg),image(JPG/balance_rcb_small.jpg,JPG/pbalance_rcb.jpg)
+:c,image(JPG/balance_uniform_small.jpg,JPG/balance_uniform.jpg),image(JPG/balance_nonuniform_small.jpg,JPG/balance_nonuniform.jpg),image(JPG/balance_rcb_small.jpg,JPG/balance_rcb.jpg)
 
 The {rcb} style is a "tiling" method which does not produce a logical
 3d grid of processors.  Rather it tiles the simulation domain with

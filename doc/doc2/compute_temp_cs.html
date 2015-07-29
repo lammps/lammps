@@ -1,0 +1,117 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute temp/cs command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<P>compute ID group-ID temp/cs group1 group2 pre
+</P>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>temp/cs = style name of this compute command
+<LI>group1 = group-ID of either cores or shells
+<LI>group2 = group-ID of either shells or cores 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute oxygen_c-s all temp/cs O_core O_shell
+compute core_shells all temp/cs cores shells 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the temperature of a system based
+on the center-of-mass velocity of atom pairs that are bonded to each
+other.  This compute is designed to be used with the adiabatic
+core/shell model of <A HREF = "#MitchellFinchham">(Mitchell and Finchham)</A>.  See
+<A HREF = "Section_howto.html#howto_25">Section_howto 25</A> of the manual for an
+overview of the model as implemented in LAMMPS.  Specifically, this
+compute enables correct temperature calculation and thermostatting of
+core/shell pairs where it is desirable for the internal degrees of
+freedom of the core/shell pairs to not be influenced by a thermostat.
+A compute of this style can be used by any command that computes a
+temperature via <A HREF = "fix_modify.html">fix_modify</A> e.g. <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A>, <A HREF = "fix_nh.html">fix npt</A>, etc.
+</P>
+<P>For this compute, core and shell particles are specified by two
+respective group IDs, which can be defined using the
+<A HREF = "group.html">group</A> command.  The number of atoms in the two groups
+must be the same and there should be one bond defined between a pair
+of atoms in the two groups.
+</P>
+<P>The temperature is calculated by the formula KE = dim/2 N k T, where
+KE = total kinetic energy of the group of atoms (sum of 1/2 m v^2),
+dim = 2 or 3 = dimensionality of the simulation, N = number of atoms
+in the group, k = Boltzmann constant, and T = temperature.  Note that
+the velocity of each core or shell atom used in the KE calculation is
+the velocity of the center-of-mass (COM) of the core/shell pair the
+atom is part of.
+</P>
+<P>A kinetic energy tensor, stored as a 6-element vector, is also
+calculated by this compute for use in the computation of a pressure
+tensor.  The formula for the components of the tensor is the same as
+the above formula, except that v^2 is replaced by vx*vy for the xy
+component, etc.  The 6 components of the vector are ordered xx, yy,
+zz, xy, xz, yz.  Again, the velocity of each core or shell atom is its
+COM velocity.
+</P>
+<P>The change this fix makes to core/shell atom velocities is essentially
+computing the temperature after a "bias" has been removed from the
+velocity of the atoms.  This "bias" is the velocity of the atom
+relative to the COM velocity of the core/shell pair.  If this compute
+is used with a fix command that performs thermostatting then this bias
+will be subtracted from each atom, thermostatting of the remaining COM
+velocity will be performed, and the bias will be added back in.  This
+means the thermostating will effectively be performed on the
+core/shell pairs, instead of on the individual core and shell atoms.
+Thermostatting fixes that work in this way include <A HREF = "fix_nh.html">fix
+nvt</A>, <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>, <A HREF = "fix_temp_berendsen.html">fix
+temp/berendsen</A>, and <A HREF = "fix_langevin.html">fix
+langevin</A>.
+</P>
+<P>The internal energy of core/shell pairs can be calculated by the
+<A HREF = "compute_temp_chunk.html">compute temp/chunk</A> command, if chunks are
+defined as core/shell pairs.  See <A HREF = "Section_howto.html#howto_25">Section_howto
+25</A> for more discussion on how to do this.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar (the temperature) and a global
+vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+These values can be used by any command that uses global scalar or
+vector values from a compute as input.
+</P>
+<P>The scalar value calculated by this compute is "intensive".  The
+vector values are "extensive".
+</P>
+<P>The scalar value will be in temperature <A HREF = "units.html">units</A>.  The
+vector values will be in energy <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>The number of core/shell pairs contributing to the temperature is
+assumed to be constant for the duration of the run.  No fixes should
+be used which generate new molecules or atoms during a simulation.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "compute_temp_chunk.html">compute
+temp/chunk</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "MitchellFinchham"></A>
+
+<P><B>(Mitchell and Finchham)</B> Mitchell, Finchham, J Phys Condensed Matter,
+5, 1031-1038 (1993).
+</P>
+</HTML>

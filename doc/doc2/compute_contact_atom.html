@@ -1,0 +1,59 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute contact/atom command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID contact/atom 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>contact/atom = style name of this compute command 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 1 all contact/atom 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the number of contacts
+for each atom in a group.
+</P>
+<P>The contact number is defined for finite-size spherical particles as
+the number of neighbor atoms which overlap the central particle,
+meaning that their distance of separation is less than or equal to the
+sum of the radii of the two particles.
+</P>
+<P>The value of the contact number will be 0.0 for atoms not in the
+specified compute group.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a per-atom vector, whose values can be
+accessed by any command that uses per-atom values from a compute as
+input.  See <A HREF = "Section_howto.html#howto_15">Section_howto 15</A> for an
+overview of LAMMPS output options.
+</P>
+<P>The per-atom vector values will be a number >= 0.0, as explained
+above.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This compute requires that atoms store a radius as defined by the
+<A HREF = "atom_style.html">atom_style sphere</A> command.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_coord_atom.html">compute coord/atom</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

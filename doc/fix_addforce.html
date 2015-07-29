@@ -1,184 +1,344 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix addforce command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix addforce command 
-</H3>
-<H3>fix addforce/cuda command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID addforce fx fy fz keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>addforce = style name of this fix command 
-
-<LI>fx,fy,fz = force component values (force units) 
-
-<PRE>  any of fx,fy,fz can be a variable (see below) 
-</PRE>
-<LI>zero or more keyword/value pairs may be appended to args 
-
-<LI>keyword = <I>every</I> or <I>region</I> or <I>energy</I> 
-
-<PRE>  <I>every</I> value = Nevery
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix addforce command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-addforce-command">
+<span id="index-0"></span><h1>fix addforce command<a class="headerlink" href="#fix-addforce-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-addforce-cuda-command">
+<h1>fix addforce/cuda command<a class="headerlink" href="#fix-addforce-cuda-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID addforce fx fy fz keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>addforce = style name of this fix command</li>
+<li>fx,fy,fz = force component values (force units)</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>any of fx,fy,fz can be a variable (see below)
+</pre></div>
+</div>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended to args</li>
+<li>keyword = <em>every</em> or <em>region</em> or <em>energy</em></li>
+</ul>
+<pre class="literal-block">
+<em>every</em> value = Nevery
     Nevery = add force every this many timesteps
-  <I>region</I> value = region-ID
+  <em>region</em> value = region-ID
     region-ID = ID of region atoms must be in to have added force
-  <I>energy</I> value = v_name
-    v_name = variable with name that calculates the potential energy of each atom in the added force field 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix kick flow addforce 1.0 0.0 0.0
+  <em>energy</em> value = v_name
+    v_name = variable with name that calculates the potential energy of each atom in the added force field
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix kick flow addforce 1.0 0.0 0.0
 fix kick flow addforce 1.0 0.0 v_oscillate
-fix ff boundary addforce 0.0 0.0 v_push energy v_espace 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Add fx,fy,fz to the corresponding component of force for each atom in
+fix ff boundary addforce 0.0 0.0 v_push energy v_espace
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Add fx,fy,fz to the corresponding component of force for each atom in
 the group.  This command can be used to give an additional push to
 atoms in a simulation, such as for a simulation of Poiseuille flow in
-a channel.
-</P>
-<P>Any of the 3 quantities defining the force components can be specified
-as an equal-style or atom-style <A HREF = "variable.html">variable</A>, namely <I>fx</I>,
-<I>fy</I>, <I>fz</I>.  If the value is a variable, it should be specified as
+a channel.</p>
+<p>Any of the 3 quantities defining the force components can be specified
+as an equal-style or atom-style <a class="reference internal" href="variable.html"><em>variable</em></a>, namely <em>fx</em>,
+<em>fy</em>, <em>fz</em>.  If the value is a variable, it should be specified as
 v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value(s) used to determine
-the force component.
-</P>
-<P>Equal-style variables can specify formulas with various mathematical
-functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+the force component.</p>
+<p>Equal-style variables can specify formulas with various mathematical
+functions, and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command
 keywords for the simulation box parameters and timestep and elapsed
-time.  Thus it is easy to specify a time-dependent force field.
-</P>
-<P>Atom-style variables can specify the same formulas as equal-style
+time.  Thus it is easy to specify a time-dependent force field.</p>
+<p>Atom-style variables can specify the same formulas as equal-style
 variables but can also include per-atom values, such as atom
 coordinates.  Thus it is easy to specify a spatially-dependent force
-field with optional time-dependence as well.
-</P>
-<P>If the <I>every</I> keyword is used, the <I>Nevery</I> setting determines how
+field with optional time-dependence as well.</p>
+<p>If the <em>every</em> keyword is used, the <em>Nevery</em> setting determines how
 often the forces are applied.  The default value is 1, for every
-timestep.
-</P>
-<P>If the <I>region</I> keyword is used, the atom must also be in the
-specified geometric <A HREF = "region.html">region</A> in order to have force added
-to it.
-</P>
-<HR>
-
-<P>Adding a force to atoms implies a change in their potential energy as
-they move due to the applied force field.  For dynamics via the "run"
-command, this energy can be optionally added to the system's potential
+timestep.</p>
+<p>If the <em>region</em> keyword is used, the atom must also be in the
+specified geometric <a class="reference internal" href="region.html"><em>region</em></a> in order to have force added
+to it.</p>
+<hr class="docutils" />
+<p>Adding a force to atoms implies a change in their potential energy as
+they move due to the applied force field.  For dynamics via the &#8220;run&#8221;
+command, this energy can be optionally added to the system&#8217;s potential
 energy for thermodynamic output (see below).  For energy minimization
-via the "minimize" command, this energy must be added to the system's
+via the &#8220;minimize&#8221; command, this energy must be added to the system&#8217;s
 potential energy to formulate a self-consistent minimization problem
-(see below).
-</P>
-<P>The <I>energy</I> keyword is not allowed if the added force is a constant
+(see below).</p>
+<p>The <em>energy</em> keyword is not allowed if the added force is a constant
 vector F = (fx,fy,fz), with all components defined as numeric
 constants and not as variables.  This is because LAMMPS can compute
 the energy for each atom directly as E = -x dot F = -(x*fx + y*fy +
-z*fz), so that -Grad(E) = F.
-</P>
-<P>The <I>energy</I> keyword is optional if the added force is defined with
+z*fz), so that -Grad(E) = F.</p>
+<p>The <em>energy</em> keyword is optional if the added force is defined with
 one or more variables, and if you are performing dynamics via the
-<A HREF = "run.html">run</A> command.  If the keyword is not used, LAMMPS will set
-the energy to 0.0, which is typically fine for dynamics.
-</P>
-<P>The <I>energy</I> keyword is required if the added force is defined with
+<a class="reference internal" href="run.html"><em>run</em></a> command.  If the keyword is not used, LAMMPS will set
+the energy to 0.0, which is typically fine for dynamics.</p>
+<p>The <em>energy</em> keyword is required if the added force is defined with
 one or more variables, and you are performing energy minimization via
-the "minimize" command.  The keyword specifies the name of an
-atom-style <A HREF = "variable.html">variable</A> which is used to compute the
+the &#8220;minimize&#8221; command.  The keyword specifies the name of an
+atom-style <a class="reference internal" href="variable.html"><em>variable</em></a> which is used to compute the
 energy of each atom as function of its position.  Like variables used
-for <I>fx</I>, <I>fy</I>, <I>fz</I>, the energy variable is specified as v_name,
-where name is the variable name.
-</P>
-<P>Note that when the <I>energy</I> keyword is used during an energy
+for <em>fx</em>, <em>fy</em>, <em>fz</em>, the energy variable is specified as v_name,
+where name is the variable name.</p>
+<p>Note that when the <em>energy</em> keyword is used during an energy
 minimization, you must insure that the formula defined for the
-atom-style <A HREF = "variable.html">variable</A> is consistent with the force
+atom-style <a class="reference internal" href="variable.html"><em>variable</em></a> is consistent with the force
 variable formulas, i.e. that -Grad(E) = F.  For example, if the force
 were a spring-like F = kx, then the energy formula should be E =
--0.5kx^2.  If you don't do this correctly, the minimization will not
-converge properly.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I> suffix are functionally the same as the
+-0.5kx^2.  If you don&#8217;t do this correctly, the minimization will not
+converge properly.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em> suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
 run faster, depending on your available hardware, as discussed in
-<A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual.  The
+<a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual.  The
 accelerated styles take the same arguments and should produce the same
-results, except for round-off and precision issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA package.  They are
-only enabled if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.
-</P>
-<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
-fix to add the potential "energy" inferred by the added force to the
-system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
-output</A>.  This is a fictitious quantity but is
-needed so that the <A HREF = "minimize.html">minimize</A> command can include the
+results, except for round-off and precision issues.</p>
+<p>These accelerated styles are part of the USER-CUDA package.  They are
+only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option is supported by this
+fix to add the potential &#8220;energy&#8221; inferred by the added force to the
+system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><em>thermodynamic output</em></a>.  This is a fictitious quantity but is
+needed so that the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command can include the
 forces added by this fix in a consistent manner.  I.e. there is a
 decrease in potential energy when atoms move in the direction of the
-added force.
-</P>
-<P>This fix computes a global scalar and a global 3-vector of forces,
-which can be accessed by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  The scalar is the potential
+added force.</p>
+<p>This fix computes a global scalar and a global 3-vector of forces,
+which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The scalar is the potential
 energy discussed above.  The vector is the total force on the group of
 atoms before the forces on individual atoms are changed by the fix.
-The scalar and vector values calculated by this fix are "extensive".
-</P>
-<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.
-</P>
-<P>The forces due to this fix are imposed during an energy minimization,
-invoked by the <A HREF = "minimize.html">minimize</A> command.  You should not
+The scalar and vector values calculated by this fix are &#8220;extensive&#8221;.</p>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><em>run</em></a> command.</p>
+<p>The forces due to this fix are imposed during an energy minimization,
+invoked by the <a class="reference internal" href="minimize.html"><em>minimize</em></a> command.  You should not
 specify force components with a variable that has time-dependence for
 use with a minimizer, since the minimizer increments the timestep as
-the iteration count during the minimization.
-</P>
-<P>IMPORTANT NOTE: If you want the fictitious potential energy associated
+the iteration count during the minimization.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you want the fictitious potential energy associated
 with the added forces to be included in the total potential energy of
 the system (the quantity being minimized), you MUST enable the
-<A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option for this fix.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_setforce.html">fix setforce</A>, <A HREF = "fix_aveforce.html">fix aveforce</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option default for the every keyword is every = 1.
-</P>
-</HTML>
+<a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> <em>energy</em> option for this fix.</p>
+</div>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_setforce.html"><em>fix setforce</em></a>, <a class="reference internal" href="fix_aveforce.html"><em>fix aveforce</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option default for the every keyword is every = 1.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

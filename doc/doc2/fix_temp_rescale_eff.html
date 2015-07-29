@@ -1,0 +1,81 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix temp/rescale/eff command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID temp/rescale/eff N Tstart Tstop window fraction 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>temp/rescale/eff = style name of this fix command
+<LI>N = perform rescaling every N steps 
+<LI>Tstart,Tstop = desired temperature at start/end of run (temperature units)
+<LI>window = only rescale if temperature is outside this window (temperature units)
+<LI>fraction = rescale to target temperature by this fraction 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 3 flow temp/rescale/eff 10 1.0 100.0 0.02 1.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Reset the temperature of a group of nuclei and electrons in the
+<A HREF = "pair_eff.html">electron force field</A> model by explicitly rescaling
+their velocities.
+</P>
+<P>The operation of this fix is exactly like that described by the <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A> command, except that the rescaling
+is also applied to the radial electron velocity for electron
+particles.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+fix.  You can use it to assign a temperature <A HREF = "compute.html">compute</A>
+you have defined to this fix which will be used in its thermostatting
+procedure, as described above.  For consistency, the group used by
+this fix and by the compute should be the same.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy change implied by a velocity rescaling to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.
+</P>
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+cummulative energy change due to this fix.  The scalar value
+calculated by this fix is "extensive".
+</P>
+<P>This fix can ramp its target temperature over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix is part of the USER-EFF package.  It is only enabled if
+LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_langevin_eff.html">fix langevin/eff</A>, <A HREF = "fix_nh_eff.html">fix
+nvt/eff</A>, <A HREF = "fix_modify.html">fix_modify</A>,
+<A HREF = "fix_temp_rescale.html">fix_temp_rescale</A>,
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

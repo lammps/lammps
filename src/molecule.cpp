@@ -536,6 +536,11 @@ void Molecule::coords(char *line)
   int tmp;
   for (int i = 0; i < natoms; i++) {
     readline(line);
+    if (i == 0) {
+      int nwords = atom->count_words(line);
+      if (nwords != 4) 
+        error->all(FLERR,"Invalid Coords section in molecule file");
+    }
     sscanf(line,"%d %lg %lg %lg",&tmp,&x[i][0],&x[i][1],&x[i][2]);
   }
 
@@ -556,6 +561,11 @@ void Molecule::types(char *line)
   int tmp;
   for (int i = 0; i < natoms; i++) {
     readline(line);
+    if (i == 0) {
+      int nwords = atom->count_words(line);
+      if (nwords != 2) 
+        error->all(FLERR,"Invalid Types section in molecule file");
+    }
     sscanf(line,"%d %d",&tmp,&type[i]);
     type[i] += toffset;
   }
@@ -577,6 +587,11 @@ void Molecule::charges(char *line)
   int tmp;
   for (int i = 0; i < natoms; i++) {
     readline(line);
+    if (i == 0) {
+      int nwords = atom->count_words(line);
+      if (nwords != 2) 
+        error->all(FLERR,"Invalid Charges section in molecule file");
+    }
     sscanf(line,"%d %lg",&tmp,&q[i]);
   }
 }
@@ -591,6 +606,11 @@ void Molecule::diameters(char *line)
   maxradius = 0.0;
   for (int i = 0; i < natoms; i++) {
     readline(line);
+    if (i == 0) {
+      int nwords = atom->count_words(line);
+      if (nwords != 2) 
+        error->all(FLERR,"Invalid Diameters section in molecule file");
+    }
     sscanf(line,"%d %lg",&tmp,&radius[i]);
     radius[i] *= 0.5;
     maxradius = MAX(maxradius,radius[i]);
@@ -610,6 +630,11 @@ void Molecule::masses(char *line)
   int tmp;
   for (int i = 0; i < natoms; i++) {
     readline(line);
+    if (i == 0) {
+      int nwords = atom->count_words(line);
+      if (nwords != 2) 
+        error->all(FLERR,"Invalid Masses section in molecule file");
+    }
     sscanf(line,"%d %lg",&tmp,&rmass[i]);
   }
 
@@ -638,6 +663,11 @@ void Molecule::bonds(int flag, char *line)
 
   for (int i = 0; i < nbonds; i++) {
     readline(line);
+    if (i == 0) {
+      int nwords = atom->count_words(line);
+      if (nwords != 4) 
+        error->all(FLERR,"Invalid Bonds section in molecule file");
+    }
     sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2);
     itype += boffset;
@@ -695,6 +725,11 @@ void Molecule::angles(int flag, char *line)
 
   for (int i = 0; i < nangles; i++) {
     readline(line);
+    if (i == 0) {
+      int nwords = atom->count_words(line);
+      if (nwords != 5) 
+        error->all(FLERR,"Invalid Angles section in molecule file");
+    }
     sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
            &tmp,&itype,&atom1,&atom2,&atom3);
     itype += aoffset;
@@ -766,6 +801,11 @@ void Molecule::dihedrals(int flag, char *line)
 
   for (int i = 0; i < ndihedrals; i++) {
     readline(line);
+    if (i == 0) {
+      int nwords = atom->count_words(line);
+      if (nwords != 6) 
+        error->all(FLERR,"Invalid Dihedrals section in molecule file");
+    }
     sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
            TAGINT_FORMAT " " TAGINT_FORMAT " ",
            &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
@@ -852,6 +892,11 @@ void Molecule::impropers(int flag, char *line)
 
   for (int i = 0; i < nimpropers; i++) {
     readline(line);
+    if (i == 0) {
+      int nwords = atom->count_words(line);
+      if (nwords != 6) 
+        error->all(FLERR,"Invalid Impropers section in molecule file");
+    }
     sscanf(line,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
            TAGINT_FORMAT " " TAGINT_FORMAT " ",
            &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
@@ -932,6 +977,12 @@ void Molecule::nspecial_read(int flag, char *line)
 
   for (int i = 0; i < natoms; i++) {
     readline(line);
+    if (i == 0) {
+      int nwords = atom->count_words(line);
+      if (nwords != 4) 
+        error->all(FLERR,"Invalid Special Bond Counts section in "
+                   "molecule file");
+    }
     sscanf(line,"%d %d %d %d",&tmp,&c1,&c2,&c3);
 
     if (flag) {

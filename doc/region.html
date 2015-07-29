@@ -1,172 +1,284 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>region command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>region command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>region ID style args keyword arg ... 
-</PRE>
-<UL><LI>ID = user-assigned name for the region 
-
-<LI>style = <I>delete</I> or <I>block</I> or <I>cone</I> or <I>cylinder</I> or <I>plane</I> or <I>prism</I> or <I>sphere</I> or <I>union</I> or <I>intersect</I> 
-
-<PRE>  <I>delete</I> = no args
-  <I>block</I> args = xlo xhi ylo yhi zlo zhi
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>region command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="region-command">
+<span id="index-0"></span><h1>region command<a class="headerlink" href="#region-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>region ID style args keyword arg ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID = user-assigned name for the region</li>
+<li>style = <em>delete</em> or <em>block</em> or <em>cone</em> or <em>cylinder</em> or <em>plane</em> or <em>prism</em> or <em>sphere</em> or <em>union</em> or <em>intersect</em></li>
+</ul>
+<pre class="literal-block">
+<em>delete</em> = no args
+  <em>block</em> args = xlo xhi ylo yhi zlo zhi
     xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
-  <I>cone</I> args = dim c1 c2 radlo radhi lo hi
-    dim = <I>x</I> or <I>y</I> or <I>z</I> = axis of cone
+  <em>cone</em> args = dim c1 c2 radlo radhi lo hi
+    dim = <em>x</em> or <em>y</em> or <em>z</em> = axis of cone
     c1,c2 = coords of cone axis in other 2 dimensions (distance units)
     radlo,radhi = cone radii at lo and hi end (distance units)
     lo,hi = bounds of cone in dim (distance units)
-  <I>cylinder</I> args = dim c1 c2 radius lo hi
-    dim = <I>x</I> or <I>y</I> or <I>z</I> = axis of cylinder
+  <em>cylinder</em> args = dim c1 c2 radius lo hi
+    dim = <em>x</em> or <em>y</em> or <em>z</em> = axis of cylinder
     c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
     radius = cylinder radius (distance units)
       radius can be a variable (see below)
     lo,hi = bounds of cylinder in dim (distance units)
-  <I>plane</I> args = px py pz nx ny nz
+  <em>plane</em> args = px py pz nx ny nz
     px,py,pz = point on the plane (distance units)
     nx,ny,nz = direction normal to plane (distance units)
-  <I>prism</I> args = xlo xhi ylo yhi zlo zhi xy xz yz
+  <em>prism</em> args = xlo xhi ylo yhi zlo zhi xy xz yz
     xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
     xy = distance to tilt y in x direction (distance units)
     xz = distance to tilt z in x direction (distance units)
     yz = distance to tilt z in y direction (distance units)
-  <I>sphere</I> args = x y z radius
+  <em>sphere</em> args = x y z radius
     x,y,z = center of sphere (distance units)
     radius = radius of sphere (distance units)
       radius can be a variable (see below)
-  <I>union</I> args = N reg-ID1 reg-ID2 ...
+  <em>union</em> args = N reg-ID1 reg-ID2 ...
     N = # of regions to follow, must be 2 or greater
     reg-ID1,reg-ID2, ... = IDs of regions to join together
-  <I>intersect</I> args = N reg-ID1 reg-ID2 ...
+  <em>intersect</em> args = N reg-ID1 reg-ID2 ...
     N = # of regions to follow, must be 2 or greater
-    reg-ID1,reg-ID2, ... = IDs of regions to intersect 
-</PRE>
-<LI>zero or more keyword/arg pairs may be appended 
-
-<LI>keyword = <I>side</I> or <I>units</I> or <I>move</I> or <I>rotate</I> 
-
-<PRE>  <I>side</I> value = <I>in</I> or <I>out</I>
-    <I>in</I> = the region is inside the specified geometry
-    <I>out</I> = the region is outside the specified geometry
-  <I>units</I> value = <I>lattice</I> or <I>box</I>
-    <I>lattice</I> = the geometry is defined in lattice units
-    <I>box</I> = the geometry is defined in simulation box units
-  <I>move</I> args = v_x v_y v_z
+    reg-ID1,reg-ID2, ... = IDs of regions to intersect
+</pre>
+<ul class="simple">
+<li>zero or more keyword/arg pairs may be appended</li>
+<li>keyword = <em>side</em> or <em>units</em> or <em>move</em> or <em>rotate</em></li>
+</ul>
+<pre class="literal-block">
+<em>side</em> value = <em>in</em> or <em>out</em>
+    <em>in</em> = the region is inside the specified geometry
+    <em>out</em> = the region is outside the specified geometry
+  <em>units</em> value = <em>lattice</em> or <em>box</em>
+    <em>lattice</em> = the geometry is defined in lattice units
+    <em>box</em> = the geometry is defined in simulation box units
+  <em>move</em> args = v_x v_y v_z
     v_x,v_y,v_z = equal-style variables for x,y,z displacement of region over time
-  <I>rotate</I> args = v_theta Px Py Pz Rx Ry Rz
+  <em>rotate</em> args = v_theta Px Py Pz Rx Ry Rz
     v_theta = equal-style variable for rotaton of region over time (in radians)
     Px,Py,Pz = origin for axis of rotation (distance units)
-    Rx,Ry,Rz = axis of rotation vector 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>region 1 block -3.0 5.0 INF 10.0 INF INF
+    Rx,Ry,Rz = axis of rotation vector
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>region 1 block -3.0 5.0 INF 10.0 INF INF
 region 2 sphere 0.0 0.0 0.0 5 side out
 region void cylinder y 2 3 5 -5.0 EDGE units box
 region 1 prism 0 10 0 10 0 10 2 0 0
 region outside union 4 side1 side2 side3 side4
-region 2 sphere 0.0 0.0 0.0 5 side out move v_left v_up NULL 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This command defines a geometric region of space.  Various other
+region 2 sphere 0.0 0.0 0.0 5 side out move v_left v_up NULL
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command defines a geometric region of space.  Various other
 commands use regions.  For example, the region can be filled with
-atoms via the <A HREF = "create_atoms.html">create_atoms</A> command.  Or a bounding
+atoms via the <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command.  Or a bounding
 box around the region, can be used to define the simulation box via
-the <A HREF = "create_box.html">create_box</A> command.  Or the atoms in the region
-can be identified as a group via the <A HREF = "group.html">group</A> command, or
-deleted via the <A HREF = "delete_atoms.html">delete_atoms</A> command.  Or the
-surface of the region can be used as a boundary wall via the <A HREF = "fix_wall_region.html">fix
-wall/region</A> command.
-</P>
-<P>Commands which use regions typically test whether an atom's position
+the <a class="reference internal" href="create_box.html"><em>create_box</em></a> command.  Or the atoms in the region
+can be identified as a group via the <a class="reference internal" href="group.html"><em>group</em></a> command, or
+deleted via the <a class="reference internal" href="delete_atoms.html"><em>delete_atoms</em></a> command.  Or the
+surface of the region can be used as a boundary wall via the <a class="reference internal" href="fix_wall_region.html"><em>fix wall/region</em></a> command.</p>
+<p>Commands which use regions typically test whether an atom&#8217;s position
 is contained in the region or not.  For this purpose, coordinates
 exactly on the region boundary are considered to be interior to the
 region.  This means, for example, for a spherical region, an atom on
 the sphere surface would be part of the region if the sphere were
-defined with the <I>side in</I> keyword, but would not be part of the
-region if it were defined using the <I>side out</I> keyword.  See more
-details on the <I>side</I> keyword below.
-</P>
-<P>Normally, regions in LAMMPS are "static", meaning their geometric
-extent does not change with time.  If the <I>move</I> or <I>rotate</I> keyword
-is used, as described below, the region becomes "dynamic", meaning
-it's location or orientation changes with time.  This may be useful,
+defined with the <em>side in</em> keyword, but would not be part of the
+region if it were defined using the <em>side out</em> keyword.  See more
+details on the <em>side</em> keyword below.</p>
+<p>Normally, regions in LAMMPS are &#8220;static&#8221;, meaning their geometric
+extent does not change with time.  If the <em>move</em> or <em>rotate</em> keyword
+is used, as described below, the region becomes &#8220;dynamic&#8221;, meaning
+it&#8217;s location or orientation changes with time.  This may be useful,
 for example, when thermostatting a region, via the compute temp/region
 command, or when the fix wall/region command uses a region surface as
-a bounding wall on particle motion, i.e. a rotating container.
-</P>
-<P>The <I>delete</I> style removes the named region.  Since there is little
+a bounding wall on particle motion, i.e. a rotating container.</p>
+<p>The <em>delete</em> style removes the named region.  Since there is little
 overhead to defining extra regions, there is normally no need to do
 this, unless you are defining and discarding large numbers of regions
-in your input script.
-</P>
-<P>The lo/hi values for <I>block</I> or <I>cone</I> or <I>cylinder</I> or <I>prism</I> styles
+in your input script.</p>
+<p>The lo/hi values for <em>block</em> or <em>cone</em> or <em>cylinder</em> or <em>prism</em> styles
 can be specified as EDGE or INF.  EDGE means they extend all the way
 to the global simulation box boundary.  Note that this is the current
 box boundary; if the box changes size during a simulation, the region
 does not.  INF means a large negative or positive number (1.0e20), so
 it should encompass the simulation box even if it changes size.  If a
 region is defined before the simulation box has been created (via
-<A HREF = "create_box.html">create_box</A> or <A HREF = "read_data.html">read_data</A> or
-<A HREF = "read_restart.html">read_restart</A> commands), then an EDGE or INF
-parameter cannot be used.  For a <I>prism</I> region, a non-zero tilt
+<a class="reference internal" href="create_box.html"><em>create_box</em></a> or <a class="reference internal" href="read_data.html"><em>read_data</em></a> or
+<a class="reference internal" href="read_restart.html"><em>read_restart</em></a> commands), then an EDGE or INF
+parameter cannot be used.  For a <em>prism</em> region, a non-zero tilt
 factor in any pair of dimensions cannot be used if both the lo/hi
 values in either of those dimensions are INF.  E.g. if the xy tilt is
-non-zero, then xlo and xhi cannot both be INF, nor can ylo and yhi.
-</P>
-<P>IMPORTANT NOTE: Regions in LAMMPS do not get wrapped across periodic
-boundaries, as specified by the <A HREF = "boundary.html">boundary</A> command.  For
+non-zero, then xlo and xhi cannot both be INF, nor can ylo and yhi.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Regions in LAMMPS do not get wrapped across periodic
+boundaries, as specified by the <a class="reference internal" href="boundary.html"><em>boundary</em></a> command.  For
 example, a spherical region that is defined so that it overlaps a
 periodic boundary is not treated as 2 half-spheres, one on either side
-of the simulation box.
-</P>
-<P>IMPORTANT NOTE: Regions in LAMMPS are always 3d geometric objects,
-regardless of whether the <A HREF = "dimension.html">dimension</A> of a simulation
+of the simulation box.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Regions in LAMMPS are always 3d geometric objects,
+regardless of whether the <a class="reference internal" href="dimension.html"><em>dimension</em></a> of a simulation
 is 2d or 3d.  Thus when using regions in a 2d simulation, you should
 be careful to define the region so that its intersection with the 2d
-x-y plane of the simulation has the 2d geometric extent you want.
-</P>
-<P>For style <I>cone</I>, an axis-aligned cone is defined which is like a
-<I>cylinder</I> except that two different radii (one at each end) can be
-defined.  Either of the radii (but not both) can be 0.0.
-</P>
-<P>For style <I>cone</I> and <I>cylinder</I>, the c1,c2 params are coordinates in
+x-y plane of the simulation has the 2d geometric extent you want.</p>
+</div>
+<p>For style <em>cone</em>, an axis-aligned cone is defined which is like a
+<em>cylinder</em> except that two different radii (one at each end) can be
+defined.  Either of the radii (but not both) can be 0.0.</p>
+<p>For style <em>cone</em> and <em>cylinder</em>, the c1,c2 params are coordinates in
 the 2 other dimensions besides the cylinder axis dimension.  For dim =
 x, c1/c2 = y/z; for dim = y, c1/c2 = x/z; for dim = z, c1/c2 = x/y.
 Thus the third example above specifies a cylinder with its axis in the
 y-direction located at x = 2.0 and z = 3.0, with a radius of 5.0, and
-extending in the y-direction from -5.0 to the upper box boundary.
-</P>
-<P>For style <I>plane</I>, a plane is defined which contain the point
+extending in the y-direction from -5.0 to the upper box boundary.</p>
+<p>For style <em>plane</em>, a plane is defined which contain the point
 (px,py,pz) and has a normal vector (nx,ny,nz).  The normal vector does
-not have to be of unit length.  The "inside" of the plane is the
+not have to be of unit length.  The &#8220;inside&#8221; of the plane is the
 half-space in the direction of the normal vector; see the discussion
-of the <I>side</I> option below.
-</P>
-<P>For style <I>prism</I>, a parallelepiped is defined (it's too hard to spell
+of the <em>side</em> option below.</p>
+<p>For style <em>prism</em>, a parallelepiped is defined (it&#8217;s too hard to spell
 parallelepiped in an input script!).  The parallelepiped has its
-"origin" at (xlo,ylo,zlo) and is defined by 3 edge vectors starting
+&#8220;origin&#8221; at (xlo,ylo,zlo) and is defined by 3 edge vectors starting
 from the origin given by A = (xhi-xlo,0,0); B = (xy,yhi-ylo,0); C =
-(xz,yz,zhi-zlo).  <I>Xy,xz,yz</I> can be 0.0 or positive or negative values
-and are called "tilt factors" because they are the amount of
+(xz,yz,zhi-zlo).  <em>Xy,xz,yz</em> can be 0.0 or positive or negative values
+and are called &#8220;tilt factors&#8221; because they are the amount of
 displacement applied to faces of an originally orthogonal box to
-transform it into the parallelepiped.
-</P>
-<P>A prism region that will be used with the <A HREF = "create_box.html">create_box</A>
+transform it into the parallelepiped.</p>
+<p>A prism region that will be used with the <a class="reference internal" href="create_box.html"><em>create_box</em></a>
 command to define a triclinic simulation box must have tilt factors
 (xy,xz,yz) that do not skew the box more than half the distance of
 corresponding the parallel box length.  For example, if xlo = 2 and
@@ -175,153 +287,197 @@ between -5 and 5.  Similarly, both xz and yz must be between
 -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not a limitation,
 since if the maximum tilt factor is 5 (as in this example), then
 configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
-geometrically equivalent.
-</P>
-<P>The <I>radius</I> value for style <I>sphere</I> and <I>cylinder</I> can be specified
-as an equal-style <A HREF = "variable.html">variable</A>.  If the value is a
+geometrically equivalent.</p>
+<p>The <em>radius</em> value for style <em>sphere</em> and <em>cylinder</em> can be specified
+as an equal-style <a class="reference internal" href="variable.html"><em>variable</em></a>.  If the value is a
 variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
-its value used to determine the radius of the region.
-</P>
-<P>Equal-style variables can specify formulas with various mathematical
-functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+its value used to determine the radius of the region.</p>
+<p>Equal-style variables can specify formulas with various mathematical
+functions, and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command
 keywords for the simulation box parameters and timestep and elapsed
-time.  Thus it is easy to specify a time-dependent radius.
-</P>
-<P>See <A HREF = "Section_howto.html#howto_12">Section_howto 12</A> of the doc pages
+time.  Thus it is easy to specify a time-dependent radius.</p>
+<p>See <a class="reference internal" href="Section_howto.html#howto-12"><span>Section_howto 12</span></a> of the doc pages
 for a geometric description of triclinic boxes, as defined by LAMMPS,
 and how to transform these parameters to and from other commonly used
-triclinic representations.
-</P>
-<P>The <I>union</I> style creates a region consisting of the volume of all the
-listed regions combined.  The <I>intersect</I> style creates a region
-consisting of the volume that is common to all the listed regions.
-</P>
-<P>IMPORTANT NOTE: The <I>union</I> and <I>intersect</I> regions operate by
+triclinic representations.</p>
+<p>The <em>union</em> style creates a region consisting of the volume of all the
+listed regions combined.  The <em>intersect</em> style creates a region
+consisting of the volume that is common to all the listed regions.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The <em>union</em> and <em>intersect</em> regions operate by
 invoking methods from their list of sub-regions.  Thus you cannot
-delete the sub-regions after defining the <I>union</I> or <I>intersection</I>
-region.
-</P>
-<HR>
-
-<P>The <I>side</I> keyword determines whether the region is considered to be
+delete the sub-regions after defining the <em>union</em> or <em>intersection</em>
+region.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>side</em> keyword determines whether the region is considered to be
 inside or outside of the specified geometry.  Using this keyword in
-conjunction with <I>union</I> and <I>intersect</I> regions, complex geometries
+conjunction with <em>union</em> and <em>intersect</em> regions, complex geometries
 can be built up.  For example, if the interior of two spheres were
-each defined as regions, and a <I>union</I> style with <I>side</I> = out was
+each defined as regions, and a <em>union</em> style with <em>side</em> = out was
 constructed listing the region-IDs of the 2 spheres, the resulting
 region would be all the volume in the simulation box that was outside
-both of the spheres.
-</P>
-<P>The <I>units</I> keyword determines the meaning of the distance units used
+both of the spheres.</p>
+<p>The <em>units</em> keyword determines the meaning of the distance units used
 to define the region for any argument above listed as having distance
 units.  It also affects the scaling of the velocity vector specfied
-with the <I>vel</I> keyword, the amplitude vector specified with the
-<I>wiggle</I> keyword, and the rotation point specified with the <I>rotate</I>
-keyword, since they each involve a distance metric.
-</P>
-<P>A <I>box</I> value selects standard distance units as defined by the
-<A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or metal.
-A <I>lattice</I> value means the distance units are in lattice spacings.
-The <A HREF = "lattice.html">lattice</A> command must have been previously used to
-define the lattice spacings which are used as follows:
-</P>
-<UL><LI>For style <I>block</I>, the lattice spacing in dimension x is applied to
+with the <em>vel</em> keyword, the amplitude vector specified with the
+<em>wiggle</em> keyword, and the rotation point specified with the <em>rotate</em>
+keyword, since they each involve a distance metric.</p>
+<p>A <em>box</em> value selects standard distance units as defined by the
+<a class="reference internal" href="units.html"><em>units</em></a> command, e.g. Angstroms for units = real or metal.
+A <em>lattice</em> value means the distance units are in lattice spacings.
+The <a class="reference internal" href="lattice.html"><em>lattice</em></a> command must have been previously used to
+define the lattice spacings which are used as follows:</p>
+<ul class="simple">
+<li>For style <em>block</em>, the lattice spacing in dimension x is applied to
 xlo and xhi, similarly the spacings in dimensions y,z are applied to
-ylo/yhi and zlo/zhi. 
-
-<LI>For style <I>cone</I>, the lattice spacing in argument <I>dim</I> is applied to
+ylo/yhi and zlo/zhi.</li>
+<li>For style <em>cone</em>, the lattice spacing in argument <em>dim</em> is applied to
 lo and hi.  The spacings in the two radial dimensions are applied to
 c1 and c2.  The two cone radii are scaled by the lattice
-spacing in the dimension corresponding to c1. 
-
-<LI>For style <I>cylinder</I>, the lattice spacing in argument <I>dim</I> is applied
+spacing in the dimension corresponding to c1.</li>
+<li>For style <em>cylinder</em>, the lattice spacing in argument <em>dim</em> is applied
 to lo and hi.  The spacings in the two radial dimensions are applied
 to c1 and c2.  The cylinder radius is scaled by the lattice
-spacing in the dimension corresponding to c1. 
-
-<LI>For style <I>plane</I>, the lattice spacing in dimension x is applied to
+spacing in the dimension corresponding to c1.</li>
+<li>For style <em>plane</em>, the lattice spacing in dimension x is applied to
 px and nx, similarly the spacings in dimensions y,z are applied to
-py/ny and pz/nz. 
-
-<LI>For style <I>prism</I>, the lattice spacing in dimension x is applied to
+py/ny and pz/nz.</li>
+<li>For style <em>prism</em>, the lattice spacing in dimension x is applied to
 xlo and xhi, similarly for ylo/yhi and zlo/zhi.  The lattice spacing
 in dimension x is applied to xy and xz, and the spacing in dimension y
-to yz. 
-
-<LI>For style <I>sphere</I>, the lattice spacing in dimensions x,y,z are
+to yz.</li>
+<li>For style <em>sphere</em>, the lattice spacing in dimensions x,y,z are
 applied to the sphere center x,y,z.  The spacing in dimension x is
-applied to the sphere radius. 
-</UL>
-<HR>
-
-<P>If the <I>move</I> or <I>rotate</I> keywords are used, the region is "dynamic",
+applied to the sphere radius.</li>
+</ul>
+<hr class="docutils" />
+<p>If the <em>move</em> or <em>rotate</em> keywords are used, the region is &#8220;dynamic&#8221;,
 meaning its location or orientation changes with time.  These keywords
-cannot be used with a <I>union</I> or <I>intersect</I> style region.  Instead,
+cannot be used with a <em>union</em> or <em>intersect</em> style region.  Instead,
 the keywords should be used to make the individual sub-regions of the
-<I>union</I> or <I>intersect</I> region dynamic.  Normally, each sub-region
-should be "dynamic" in the same manner (e.g. rotate around the same
-point), though this is not a requirement.
-</P>
-<P>The <I>move</I> keyword allows one or more <A HREF = "variable.html">equal-style
-variables</A> to be used to specify the x,y,z displacement
+<em>union</em> or <em>intersect</em> region dynamic.  Normally, each sub-region
+should be &#8220;dynamic&#8221; in the same manner (e.g. rotate around the same
+point), though this is not a requirement.</p>
+<p>The <em>move</em> keyword allows one or more <a class="reference internal" href="variable.html"><em>equal-style variables</em></a> to be used to specify the x,y,z displacement
 of the region, typically as a function of time.  A variable is
 specified as v_name, where name is the variable name.  Any of the
 three variables can be specified as NULL, in which case no
-displacement is calculated in that dimension.
-</P>
-<P>Note that equal-style variables can specify formulas with various
-mathematical functions, and include <A HREF = "thermo_style.html">thermo_style</A>
+displacement is calculated in that dimension.</p>
+<p>Note that equal-style variables can specify formulas with various
+mathematical functions, and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a>
 command keywords for the simulation box parameters and timestep and
 elapsed time.  Thus it is easy to specify a region displacement that
 change as a function of time or spans consecutive runs in a continuous
-fashion.  For the latter, see the <I>start</I> and <I>stop</I> keywords of the
-<A HREF = "run.html">run</A> command and the <I>elaplong</I> keyword of <A HREF = "thermo_style.html">thermo_style
-custom</A> for details.
-</P>
-<P>For example, these commands would displace a region from its initial
+fashion.  For the latter, see the <em>start</em> and <em>stop</em> keywords of the
+<a class="reference internal" href="run.html"><em>run</em></a> command and the <em>elaplong</em> keyword of <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> for details.</p>
+<p>For example, these commands would displace a region from its initial
 position, in the positive x direction, effectively at a constant
-velocity:
-</P>
-<PRE>variable dx equal ramp(0,10)
-region 2 sphere 10.0 10.0 0.0 5 move v_dx NULL NULL 
-</PRE>
-<P>Note that the initial displacemet is 0.0, though that is not required.
-</P>
-<P>Either of these varaibles would "wiggle" the region back and forth in
-the y direction:
-</P>
-<PRE>variable dy equal swiggle(0,5,100)
+velocity:</p>
+<div class="highlight-python"><div class="highlight"><pre>variable dx equal ramp(0,10)
+region 2 sphere 10.0 10.0 0.0 5 move v_dx NULL NULL
+</pre></div>
+</div>
+<p>Note that the initial displacemet is 0.0, though that is not required.</p>
+<p>Either of these varaibles would &#8220;wiggle&#8221; the region back and forth in
+the y direction:</p>
+<div class="highlight-python"><div class="highlight"><pre>variable dy equal swiggle(0,5,100)
 variable dysame equal 5*sin(2*PI*elaplong*dt/100)
-region 2 sphere 10.0 10.0 0.0 5 move NULL v_dy NULL 
-</PRE>
-<P>The <I>rotate</I> keyword rotates the region around a rotation axis <I>R</I> =
-(Rx,Ry,Rz) that goes thru a point <I>P</I> = (Px,Py,Pz).  The rotation
+region 2 sphere 10.0 10.0 0.0 5 move NULL v_dy NULL
+</pre></div>
+</div>
+<p>The <em>rotate</em> keyword rotates the region around a rotation axis <em>R</em> =
+(Rx,Ry,Rz) that goes thru a point <em>P</em> = (Px,Py,Pz).  The rotation
 angle is calculated, presumably as a function of time, by a variable
 specified as v_theta, where theta is the variable name.  The variable
 should generate its result in radians.  The direction of rotation for
 the region around the rotation axis is consistent with the right-hand
-rule: if your right-hand thumb points along <I>R</I>, then your fingers
-wrap around the axis in the direction of rotation.
-</P>
-<P>The <I>move</I> and <I>rotate</I> keywords can be used together.  In this case,
-the displacement specified by the <I>move</I> keyword is applied to the <I>P</I>
-point of the <I>rotate</I> keyword.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>A prism cannot be of 0.0 thickness in any dimension; use a small z
+rule: if your right-hand thumb points along <em>R</em>, then your fingers
+wrap around the axis in the direction of rotation.</p>
+<p>The <em>move</em> and <em>rotate</em> keywords can be used together.  In this case,
+the displacement specified by the <em>move</em> keyword is applied to the <em>P</em>
+point of the <em>rotate</em> keyword.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>A prism cannot be of 0.0 thickness in any dimension; use a small z
 thickness for 2d simulations.  For 2d simulations, the xz and yz
-parameters must be 0.0.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "lattice.html">lattice</A>, <A HREF = "create_atoms.html">create_atoms</A>,
-<A HREF = "delete_atoms.html">delete_atoms</A>, <A HREF = "group.html">group</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are side = in, units = lattice, and no move or
-rotation.
-</P>
-</HTML>
+parameters must be 0.0.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="lattice.html"><em>lattice</em></a>, <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a>,
+<a class="reference internal" href="delete_atoms.html"><em>delete_atoms</em></a>, <a class="reference internal" href="group.html"><em>group</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are side = in, units = lattice, and no move or
+rotation.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

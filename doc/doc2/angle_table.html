@@ -1,0 +1,163 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>angle_style table command 
+</H3>
+<H3>angle_style table/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>angle_style table style N 
+</PRE>
+<UL><LI>style = <I>linear</I> or <I>spline</I> = method of interpolation
+<LI>N = use N values in table 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>angle_style table linear 1000
+angle_coeff 3 file.table ENTRY1 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>table</I> creates interpolation tables of length <I>N</I> from angle
+potential and derivative values listed in a file(s) as a function of
+angle The files are read by the <A HREF = "angle_coeff.html">angle_coeff</A>
+command.
+</P>
+<P>The interpolation tables are created by fitting cubic splines to the
+file values and interpolating energy and derivative values at each of
+<I>N</I> angles.  During a simulation, these tables are used to interpolate
+energy and force values on individual atoms as needed.  The
+interpolation is done in one of 2 styles: <I>linear</I> or <I>spline</I>.
+</P>
+<P>For the <I>linear</I> style, the angle is used to find 2 surrounding table
+values from which an energy or its derivative is computed by linear
+interpolation.
+</P>
+<P>For the <I>spline</I> style, a cubic spline coefficients are computed and
+stored at each of the <I>N</I> values in the table.  The angle is used to
+find the appropriate set of coefficients which are used to evaluate a
+cubic polynomial which computes the energy or derivative.
+</P>
+<P>The following coefficients must be defined for each angle type via the
+<A HREF = "angle_coeff.html">angle_coeff</A> command as in the example above.
+</P>
+<UL><LI>filename
+<LI>keyword 
+</UL>
+<P>The filename specifies a file containing tabulated energy and
+derivative values.  The keyword specifies a section of the file.  The
+format of this file is described below.
+</P>
+<HR>
+
+<P>The format of a tabulated file is as follows (without the
+parenthesized comments):
+</P>
+<PRE># Angle potential for harmonic (one or more comment or blank lines) 
+</PRE>
+<PRE>HAM                           (keyword is the first text on line)
+N 181 FP 0 0 EQ 90.0          (N, FP, EQ parameters)
+                              (blank line)
+N 181 FP 0 0                  (N, FP parameters)
+1 0.0 200.5 2.5               (index, angle, energy, derivative)
+2 1.0 198.0 2.5
+...
+181 180.0 0.0 0.0 
+</PRE>
+<P>A section begins with a non-blank line whose 1st character is not a
+"#"; blank lines or lines starting with "#" can be used as comments
+between sections.  The first line begins with a keyword which
+identifies the section.  The line can contain additional text, but the
+initial text must match the argument specified in the
+<A HREF = "angle_coeff.html">angle_coeff</A> command.  The next line lists (in any
+order) one or more parameters for the table.  Each parameter is a
+keyword followed by one or more numeric values.
+</P>
+<P>The parameter "N" is required and its value is the number of table
+entries that follow.  Note that this may be different than the <I>N</I>
+specified in the <A HREF = "angle_style.html">angle_style table</A> command.  Let
+Ntable = <I>N</I> in the angle_style command, and Nfile = "N" in the
+tabulated file.  What LAMMPS does is a preliminary interpolation by
+creating splines using the Nfile tabulated values as nodal points.  It
+uses these to interpolate as needed to generate energy and derivative
+values at Ntable different points.  The resulting tables of length
+Ntable are then used as described above, when computing energy and
+force for individual angles and their atoms.  This means that if you
+want the interpolation tables of length Ntable to match exactly what
+is in the tabulated file (with effectively no preliminary
+interpolation), you should set Ntable = Nfile.
+</P>
+<P>The "FP" parameter is optional.  If used, it is followed by two values
+fplo and fphi, which are the 2nd derivatives at the innermost and
+outermost angle settings.  These values are needed by the spline
+construction routines.  If not specified by the "FP" parameter, they
+are estimated (less accurately) by the first two and last two
+derivative values in the table.
+</P>
+<P>The "EQ" parameter is also optional.  If used, it is followed by a the
+equilibrium angle value, which is used, for example, by the <A HREF = "fix_shake.html">fix
+shake</A> command.  If not used, the equilibrium angle is
+set to 180.0.
+</P>
+<P>Following a blank line, the next N lines list the tabulated values.
+On each line, the 1st value is the index from 1 to N, the 2nd value is
+the angle value (in degrees), the 3rd value is the energy (in energy
+units), and the 4th is -dE/d(theta) (also in energy units).  The 3rd
+term is the energy of the 3-atom configuration for the specified
+angle.  The last term is the derivative of the energy with respect to
+the angle (in degrees, not radians).  Thus the units of the last term
+are still energy, not force.  The angle values must increase from one
+line to the next.  The angle values must also begin with 0.0 and end
+with 180.0, i.e. span the full range of possible angles.
+</P>
+<P>Note that one file can contain many sections, each with a tabulated
+potential.  LAMMPS reads the file section by section until it finds
+one that matches the specified keyword.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This angle style can only be used if LAMMPS was built with the
+MOLECULE package (which it is by default).  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "angle_coeff.html">angle_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

@@ -1,0 +1,88 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>neighbor command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>neighbor skin style 
+</PRE>
+<UL><LI>skin = extra distance beyond force cutoff (distance units)
+<LI>style = <I>bin</I> or <I>nsq</I> or <I>multi</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>neighbor 0.3 bin
+neighbor 2.0 nsq 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>This command sets parameters that affect the building of pairwise
+neighbor lists.  All atom pairs within a neighbor cutoff distance
+equal to the their force cutoff plus the <I>skin</I> distance are stored in
+the list.  Typically, the larger the skin distance, the less often
+neighbor lists need to be built, but more pairs must be checked for
+possible force interactions every timestep.  The default value for
+<I>skin</I> depends on the choice of units for the simulation; see the
+default values below.
+</P>
+<P>The <I>skin</I> distance is also used to determine how often atoms migrate
+to new processors if the <I>check</I> option of the
+<A HREF = "neigh_modify.html">neigh_modify</A> command is set to <I>yes</I>.  Atoms are
+migrated (communicated) to new processors on the same timestep that
+neighbor lists are re-built.
+</P>
+<P>The <I>style</I> value selects what algorithm is used to build the list.
+The <I>bin</I> style creates the list by binning which is an operation that
+scales linearly with N/P, the number of atoms per processor where N =
+total number of atoms and P = number of processors.  It is almost
+always faster than the <I>nsq</I> style which scales as (N/P)^2.  For
+unsolvated small molecules in a non-periodic box, the <I>nsq</I> choice can
+sometimes be faster.  Either style should give the same answers.
+</P>
+<P>The <I>multi</I> style is a modified binning algorithm that is useful for
+systems with a wide range of cutoff distances, e.g. due to different
+size particles.  For the <I>bin</I> style, the bin size is set to 1/2 of
+the largest cutoff distance between any pair of atom types and a
+single set of bins is defined to search over for all atom types.  This
+can be inefficient if one pair of types has a very long cutoff, but
+other type pairs have a much shorter cutoff.  For style <I>multi</I> the
+bin size is set to 1/2 of the shortest cutoff distance and multiple
+sets of bins are defined to search over for different atom types.
+This imposes some extra setup overhead, but the searches themselves
+may be much faster for the short-cutoff cases.  See the <A HREF = "comm_modify.html">comm_modify
+mode multi</A> command for a communication option option
+that may also be beneficial for simulations of this kind.
+</P>
+<P>The <A HREF = "neigh_modify.html">neigh_modify</A> command has additional options
+that control how often neighbor lists are built and which pairs are
+stored in the list.
+</P>
+<P>When a run is finished, counts of the number of neighbors stored in
+the pairwise list and the number of times neighbor lists were built
+are printed to the screen and log file.  See <A HREF = "Section_start.html#start_8">this
+section</A> for details.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "neigh_modify.html">neigh_modify</A>, <A HREF = "units.html">units</A>,
+<A HREF = "cmom_modify.html">comm_modify</A>
+</P>
+<P><B>Default:</B>
+</P>
+0.3 bin for units = lj, skin = 0.3 sigma<BR>
+2.0 bin for units = real or metal, skin = 2.0 Angstroms<BR>
+0.001 bin for units = si, skin = 0.001 meters = 1.0 mm<BR>
+0.1 bin for units = cgs, skin = 0.1 cm = 1.0 mm <BR>
+
+</HTML>

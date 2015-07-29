@@ -1,0 +1,49 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>timestep command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>timestep dt 
+</PRE>
+<UL><LI>dt = timestep size (time units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>timestep 2.0 
+timestep 0.003 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Set the timestep size for subsequent molecular dynamics simulations.
+See the <A HREF = "units.html">units</A> command for a discussion of time units.
+The default value for the timestep also depends on the choice of units
+for the simulation; see the default values below.
+</P>
+<P>When the <A HREF = "run_style.html">run style</A> is <I>respa</I>, dt is the timestep for
+the outer loop (largest) timestep.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_dt_reset.html">fix dt/reset</A>, <A HREF = "run.html">run</A>,
+<A HREF = "run_style.html">run_style</A> respa, <A HREF = "units.html">units</A>
+</P>
+<P><B>Default:</B>
+</P>
+timestep = 0.005 tau for units = lj<BR>
+timestep = 1.0 fmsec for units = real<BR>
+timestep = 0.001 psec for units = metal<BR>
+timestep = 1.0e-8 sec (10 nsec) for units = si or cgs <BR>
+
+</HTML>

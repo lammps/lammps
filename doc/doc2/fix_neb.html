@@ -1,0 +1,113 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix neb command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID neb Kspring 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
+<LI>neb = style name of this fix command
+<LI>Kspring = inter-replica spring constant (force/distance units) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 active neb 10.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Add inter-replica forces to atoms in the group for a multi-replica
+simulation run via the <A HREF = "neb.html">neb</A> command to perform a nudged
+elastic band (NEB) calculation for transition state finding.  Hi-level
+explanations of NEB are given with the <A HREF = "neb.html">neb</A> command and in
+<A HREF = "Section_howto.html#howto_5">Section_howto 5</A> of the manual.  The fix
+neb command must be used with the "neb" command to define how
+inter-replica forces are computed.
+</P>
+<P>Only the N atoms in the fix group experience inter-replica forces.
+Atoms in the two end-point replicas do not experience these forces,
+but those in intermediate replicas do.  During the initial stage of
+NEB, the 3N-length vector of interatomic forces Fi = -Grad(V) acting
+on the atoms of each intermediate replica I is altered, as described
+in the <A HREF = "#Henkelman1">(Henkelman1)</A> paper, to become:
+</P>
+<PRE>Fi = -Grad(V) + (Grad(V) dot That) That + Kspring (|Ri+i - Ri| - |Ri - Ri-1|) That 
+</PRE>
+<P>Ri are the atomic coordinates of replica I; Ri-1 and Ri+1 are the
+coordinates of its neighbor replicas.  That (t with a hat over it) is
+the unit "tangent" vector for replica I which is a function of Ri,
+Ri-1, Ri+1, and the potential energy of the 3 replicas; it points
+roughly in the direction of (Ri+i - Ri-1); see the
+<A HREF = "#Henkelman1">(Henkelman1)</A> paper for details.
+</P>
+<P>The first two terms in the above equation are the component of the
+interatomic forces perpendicular to the tangent vector.  The last term
+is a spring force between replica I and its neighbors, parallel to the
+tangent vector direction with the specified spring constant <I>Kspring</I>.
+</P>
+<P>The effect of the first two terms is to push the atoms of each replica
+toward the minimum energy path (MEP) of conformational states that
+transition over the energy barrier.  The MEP for an energy barrier is
+defined as a sequence of 3N-dimensional states which cross the barrier
+at its saddle point, each of which has a potential energy gradient
+parallel to the MEP itself.
+</P>
+<P>The effect of the last term is to push each replica away from its two
+neighbors in a direction along the MEP, so that the final set of
+states are equidistant from each other.
+</P>
+<P>During the second stage of NEB, the forces on the N atoms in the
+replica nearest the top of the energy barrier are altered so that it
+climbs to the top of the barrier and finds the saddle point.  The
+forces on atoms in this replica are described in the
+<A HREF = "#Henkelman2">(Henkelman2)</A> paper, and become:
+</P>
+<PRE>Fi = -Grad(V) + 2 (Grad(V) dot That) That 
+</PRE>
+<P>The inter-replica forces for the other replicas are unchanged from the
+first equation.
+</P>
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
+commands</A>.  No parameter of this fix can
+be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
+</P>
+<P>The forces due to this fix are imposed during an energy minimization,
+as invoked by the <A HREF = "minimize.html">minimize</A> command via the
+<A HREF = "neb.html">neb</A> command.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used if LAMMPS was built with the REPLICA
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "neb.html">neb</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<A NAME = "Henkelman"></A>
+
+<P><B>(Henkelman1)</B> Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
+</P>
+<A NAME = "Henkelman"></A>
+
+<P><B>(Henkelman2)</B> Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
+9901-9904 (2000).
+</P>
+</HTML>

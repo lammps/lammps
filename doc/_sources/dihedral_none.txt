@@ -1,0 +1,38 @@
+.. index:: dihedral_style none
+
+dihedral_style none command
+===========================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   dihedral_style none
+
+Examples
+""""""""
+
+.. parsed-literal::
+
+   dihedral_style none
+
+Description
+"""""""""""
+
+Using an dihedral style of none means dihedral forces are not
+computed, even if quadruplets of dihedral atoms were listed in the
+data file read by the :doc:`read_data <read_data>` command.
+
+Restrictions
+""""""""""""
+ none
+
+**Related commands:** none
+
+**Default:** none
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

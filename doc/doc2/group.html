@@ -1,0 +1,289 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>group command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>group ID style args 
+</PRE>
+<UL><LI>ID = user-defined name of the group 
+
+<LI>style = <I>delete</I> or <I>region</I> or <I>type</I> or <I>id</I> or <I>molecule</I> or <I>variable</I> or         <I>include</I> or <I>subtract</I> or <I>union</I> or <I>intersect</I> or         <I>dynamic</I> or <I>static</I> 
+
+<PRE>  <I>delete</I> = no args
+  <I>clear</I> = no args
+  <I>region</I> args = region-ID
+  <I>type</I> or <I>id</I> or <I>molecule</I>
+    args = list of one or more atom types, atom IDs, or molecule IDs
+      any entry in list can be a sequence formatted as A:B or A:B:C where
+      A = starting index, B = ending index,
+      C = increment between indices, 1 if not specified
+    args = logical value
+      logical = "<" or "<=" or ">" or ">=" or "==" or "!="
+      value = an atom type or atom ID or molecule ID (depending on <I>style</I>)
+    args = logical value1 value2
+      logical = "<>"
+      value1,value2 = atom types or atom IDs or molecule IDs (depending on <I>style</I>)
+  <I>variable</I> args = variable-name
+  <I>include</I> args = molecule
+    molecule = add atoms to group with same molecule ID as atoms already in group
+  <I>subtract</I> args = two or more group IDs
+  <I>union</I> args = one or more group IDs
+  <I>intersect</I> args = two or more group IDs
+  <I>dynamic</I> args = parent-ID keyword value ...
+    one or more keyword/value pairs may be appended
+    keyword = <I>region</I> or <I>var</I> or <I>every</I>
+      <I>region</I> value = region-ID
+      <I>var</I> value = name of variable
+      <I>every</I> value = N = update group every this many timesteps
+  <I>static</I> = no args 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>group edge region regstrip
+group water type 3 4
+group sub id 10 25 50
+group sub id 10 25 50 500:1000
+group sub id 100:10000:10
+group sub id <= 150
+group polyA molecule <> 50 250
+group hienergy variable eng
+group hienergy include molecule
+group boundary subtract all a2 a3
+group boundary union lower upper
+group boundary intersect upper flow
+group boundary delete
+group mine dynamic all region myRegion every 100 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Identify a collection of atoms as belonging to a group.  The group ID
+can then be used in other commands such as <A HREF = "fix.html">fix</A>,
+<A HREF = "compute.html">compute</A>, <A HREF = "dump.html">dump</A>, or <A HREF = "velocity.html">velocity</A>
+to act on those atoms together.
+</P>
+<P>If the group ID already exists, the group command adds the specified
+atoms to the group.
+</P>
+<P>IMPORTANT NOTE: By default groups are static, meaning the atoms are
+permanently assigned to the group.  For example, if the <I>region</I> style
+is used to assign atoms to a group, the atoms will remain in the group
+even if they later move out of the region.  As explained below, the
+<I>dynamic</I> style can be used to make a group dynamic so that a periodic
+determination is made as to which atoms are in the group.  Since many
+LAMMPS commands operate on groups of atoms, you should think carefully
+about whether making a group dynamic makes sense for your model.
+</P>
+<P>A group with the ID <I>all</I> is predefined.  All atoms belong to this
+group.  This group cannot be deleted, or made dynamic.
+</P>
+<P>The <I>delete</I> style removes the named group and un-assigns all atoms
+that were assigned to that group.  Since there is a restriction (see
+below) that no more than 32 groups can be defined at any time, the
+<I>delete</I> style allows you to remove groups that are no longer needed,
+so that more can be specified.  You cannot delete a group if it has
+been used to define a current <A HREF = "fix.html">fix</A> or <A HREF = "compute.html">compute</A>
+or <A HREF = "dump.html">dump</A>.
+</P>
+<P>The <I>clear</I> style un-assigns all atoms that were assigned to that
+group.  This may be dangerous to do during a simulation run,
+e.g. using the <A HREF = "run.html">run every</A> command if a fix or compute or
+other operation expects the atoms in the group to remain constant, but
+LAMMPS does not check for this.
+</P>
+<P>The <I>region</I> style puts all atoms in the region volume into the group.
+Note that this is a static one-time assignment.  The atoms remain
+assigned (or not assigned) to the group even in they later move out of
+the region volume.
+</P>
+<P>The <I>type</I>, <I>id</I>, and <I>molecule</I> styles put all atoms with the
+specified atom types, atom IDs, or molecule IDs into the group.  These
+3 styles can use arguments specified in one of two formats.
+</P>
+<P>The first format is a list of values (types or IDs).  For example, the
+2nd command in the examples above puts all atoms of type 3 or 4 into
+the group named <I>water</I>.  Each entry in the list can be a
+colon-separated sequence A:B or A:B:C, as in two of the examples
+above.  A "sequence" generates a sequence of values (types or IDs),
+with an optional increment.  The first example with 500:1000 has the
+default increment of 1 and would add all atom IDs from 500 to 1000
+(inclusive) to the group sub, along with 10,25,50 since they also
+appear in the list of values.  The second example with 100:10000:10
+uses an increment of 10 and would thus would add atoms IDs
+100,110,120, ... 9990,10000 to the group sub.
+</P>
+<P>The second format is a <I>logical</I> followed by one or two values (type
+or ID).  The 7 valid logicals are listed above.  All the logicals
+except <> take a single argument.  The 3rd example above adds all
+atoms with IDs from 1 to 150 to the group named <I>sub</I>.  The logical <>
+means "between" and takes 2 arguments.  The 4th example above adds all
+atoms belonging to molecules with IDs from 50 to 250 (inclusive) to
+the group named polyA.
+</P>
+<P>The <I>variable</I> style evaluates a variable to determine which atoms to
+add to the group.  It must be an <A HREF = "variable.html">atom-style variable</A>
+previously defined in the input script.  If the variable evaluates
+to a non-zero value for a particular atom, then that atom is added
+to the specified group.
+</P>
+<P>Atom-style variables can specify formulas that include thermodynamic
+quantities, per-atom values such as atom coordinates, or per-atom
+quantities calculated by computes, fixes, or other variables.  They
+can also include Boolean logic where 2 numeric values are compared to
+yield a 1 or 0 (effectively a true or false).  Thus using the
+<I>variable</I> style, is a general way to flag specific atoms to include
+or exclude from a group.
+</P>
+<P>For example, these lines define a variable "eatom" that calculates the
+potential energy of each atom and includes it in the group if its
+potential energy is above the threshhold value -3.0.
+</P>
+<PRE>compute         1 all pe/atom
+compute         2 all reduce sum c_1
+thermo_style    custom step temp pe c_2
+run             0 
+</PRE>
+<PRE>variable        eatom atom "c_1 > -3.0"
+group           hienergy variable eatom 
+</PRE>
+<P>Note that these lines
+</P>
+<PRE>compute         2 all reduce sum c_1
+thermo_style    custom step temp pe c_2
+run             0 
+</PRE>
+<P>are necessary to insure that the "eatom" variable is current when the
+group command invokes it.  Because the eatom variable computes the
+per-atom energy via the pe/atom compute, it will only be current if a
+run has been performed which evaluated pairwise energies, and the
+pe/atom compute was actually invoked during the run.  Printing the
+thermodyanmic info for compute 2 insures that this is the case, since
+it sums the pe/atom compute values (in the reduce compute) to output
+them to the screen.  See the "Variable Accuracy" section of the
+<A HREF = "variable.html">variable</A> doc page for more details on insuring that
+variables are current when they are evaluated between runs.
+</P>
+<P>The <I>include</I> style with its arg <I>molecule</I> adds atoms to a group that
+have the same molecule ID as atoms already in the group.  The molecule
+ID = 0 is ignored in this operation, since it is assumed to flag
+isolated atoms that are not part of molecules.  An example of where
+this operation is useful is if the <I>region</I> style has been used
+previously to add atoms to a group that are within a geometric region.
+If molecules straddle the region boundary, then atoms outside the
+region that are part of molecules with atoms inside the region will
+not be in the group.  Using the group command a 2nd time with <I>include
+molecule</I> will add those atoms that are outside the region to the
+group.
+</P>
+<P>IMPORTANT NOTE: The <I>include molecule</I> operation is relatively
+expensive in a parallel sense.  This is because it requires
+communication of relevant molecule IDs between all the processors and
+each processor to loop over its atoms once per processor, to compare
+its atoms to the list of molecule IDs from every other processor.
+Hence it scales as N, rather than N/P as most of the group operations
+do, where N is the number of atoms, and P is the number of processors.
+</P>
+<P>The <I>subtract</I> style takes a list of two or more existing group names
+as arguments.  All atoms that belong to the 1st group, but not to any
+of the other groups are added to the specified group.
+</P>
+<P>The <I>union</I> style takes a list of one or more existing group names as
+arguments.  All atoms that belong to any of the listed groups are
+added to the specified group.
+</P>
+<P>The <I>intersect</I> style takes a list of two or more existing group names
+as arguments.  Atoms that belong to every one of the listed groups are
+added to the specified group.
+</P>
+<HR>
+
+<P>The <I>dynamic</I> style flags an existing or new group as dynamic.  This
+means atoms will be (re)assigned to the group periodically as a
+simulation runs.  This is in contrast to static groups where atoms are
+permanently assigned to the group.  The way the assignment occurs is
+as follows.  Only atoms in the group specified as the parent group via
+the parent-ID are assigned to the dynamic group before the following
+conditions are applied.  If the <I>region</I> keyword is used, atoms not in
+the specified region are removed from the dynamic group.  If the <I>var</I>
+keyword is used, the variable name must be an atom-style or
+atomfile-style variable.  The variable is evaluated and atoms whose
+per-atom values are 0.0, are removed from the dynamic group.
+</P>
+<P>The assignment of atoms to a dynamic group is done at the beginning of
+each run and on every timestep that is a multiple of <I>N</I>, which is the
+argument for the <I>every</I> keyword (N = 1 is the default).  For an
+energy minimization, via the <A HREF = "minimize.html">minimize</A> command, an
+assignement is made at the beginning of the minimization, but not
+during the iterations of the minimizer.
+</P>
+<P>The point in the timestep at which atoms are assigned to a dynamic
+group is after the initial stage of velocity Verlet time integration
+has been performed, and before neighbor lists or forces are computed.
+This is the point in the timestep where atom positions have just
+changed due to the time integration, so the region criterion should be
+accurate, if applied.
+</P>
+<P>IMPORTANT NOTE: If the <I>region</I> keyword is used to determine what
+atoms are in the dynamic group, atoms can move outside of the
+simulation box between reneighboring events.  Thus if you want to
+include all atoms on the left side of the simulation box, you probably
+want to set the left boundary of the region to be outside the
+simulation box by some reasonable amount (e.g. up to the cutoff of the
+potential), else they may be excluded from the dynamic region.
+</P>
+<P>Here is an example of using a dynamic group to shrink the set of atoms
+being integrated by using a spherical region with a variable radius
+(shrinking from 18 to 5 over the course of the run).  This could be
+used to model a quench of the system, freezing atoms outside the
+shrinking sphere, then converting the remaining atoms to a static
+group and running further.
+</P>
+<PRE>variable        nsteps equal 5000
+variable        rad equal 18-(step/v_nsteps)*(18-5)
+region          ss sphere 20 20 0 v_rad
+group           mobile dynamic all region ss
+fix             1 mobile nve
+run             ${nsteps}
+group           mobile static
+run	        ${nsteps} 
+</PRE>
+<P>IMPORTANT NOTE: All fixes and computes take a group ID as an argument,
+but they do not all allow for use of a dynamic group.  If you get an
+error message that this is not allowed, but feel that it should be for
+the fix or compute in question, then please post your reasoning to the
+LAMMPS mail list and we can change it.
+</P>
+<P>The <I>static</I> style removes the setting for a dynamic group, converting
+it to a static group (the default).  The atoms in the static group are
+those currently in the dynamic group.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>There can be no more than 32 groups defined at one time, including
+"all".
+</P>
+<P>The parent group of a dynamic group cannot itself be a dynamic group.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "dump.html">dump</A>, <A HREF = "fix.html">fix</A>, <A HREF = "region.html">region</A>,
+<A HREF = "velocity.html">velocity</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>All atoms belong to the "all" group.
+</P>
+</HTML>

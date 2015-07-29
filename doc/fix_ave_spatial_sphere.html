@@ -1,259 +1,340 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix ave/spatial/sphere command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix ave/spatial/sphere command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID ave/spatial/sphere Nevery Nrepeat Nfreq origin_x origin_y origin_z r_min r_max nbins value1 value2 ... keyword args ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>ave/spatial = style name of this fix command 
-
-<LI>Nevery = use input values every this many timesteps 
-
-<LI>Nrepeat = # of times to use input values for calculating averages 
-
-<LI>Nfreq = calculate averages every this many timesteps 
-
-<LI>origin_x, origin_y, origin_z = center of the sphere. can be the result of variables or computes (see below) 
-
-<LI>r_min = radial distance at which binning begins 
-
-<LI>r_max = radial distance at which binning ends 
-
-<LI>nbins = number of spherical shells to create between r_min and r_max 
-
-<LI>one or more input values can be listed 
-
-<LI>value = vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID[I], f_ID, f_ID[I], v_name 
-
-<PRE>  vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix ave/spatial/sphere command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-ave-spatial-sphere-command">
+<span id="index-0"></span><h1>fix ave/spatial/sphere command<a class="headerlink" href="#fix-ave-spatial-sphere-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID ave/spatial/sphere Nevery Nrepeat Nfreq origin_x origin_y origin_z r_min r_max nbins value1 value2 ... keyword args ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>ave/spatial = style name of this fix command</li>
+<li>Nevery = use input values every this many timesteps</li>
+<li>Nrepeat = # of times to use input values for calculating averages</li>
+<li>Nfreq = calculate averages every this many timesteps</li>
+<li>origin_x, origin_y, origin_z = center of the sphere. can be the result of variables or computes (see below)</li>
+<li>r_min = radial distance at which binning begins</li>
+<li>r_max = radial distance at which binning ends</li>
+<li>nbins = number of spherical shells to create between r_min and r_max</li>
+<li>one or more input values can be listed</li>
+<li>value = vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID[I], f_ID, f_ID[I], v_name</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre>vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
   density/number, density/mass = number or mass density
   c_ID = per-atom vector calculated by a compute with ID
   c_ID[I] = Ith column of per-atom array calculated by a compute with ID
   f_ID = per-atom vector calculated by a fix with ID
   f_ID[I] = Ith column of per-atom array calculated by a fix with ID
-  v_name = per-atom vector calculated by an atom-style variable with name 
-</PRE>
-<LI>zero or more keyword/arg pairs may be appended 
-
-<LI>keyword = <I>region</I> or <I>norm</I> or <I>units</I> or <I>ave</I> or <I>file</I> or <I>overwrite</I> or <I>title1</I> or <I>title2</I> or <I>title3</I> 
-
-<PRE>  <I>region</I> arg = region-ID
+  v_name = per-atom vector calculated by an atom-style variable with name
+</pre></div>
+</div>
+<ul class="simple">
+<li>zero or more keyword/arg pairs may be appended</li>
+<li>keyword = <em>region</em> or <em>norm</em> or <em>units</em> or <em>ave</em> or <em>file</em> or <em>overwrite</em> or <em>title1</em> or <em>title2</em> or <em>title3</em></li>
+</ul>
+<pre class="literal-block">
+<em>region</em> arg = region-ID
     region-ID = ID of region atoms must be in to contribute to spatial averaging
-  <I>norm</I> arg = <I>all</I> or <I>sample</I>
-  <I>units</I> arg = <I>box</I> or <I>lattice</I> or <I>reduced</I>
-  <I>ave</I> args = <I>one</I> or <I>running</I> or <I>window M</I>
+  <em>norm</em> arg = <em>all</em> or <em>sample</em>
+  <em>units</em> arg = <em>box</em> or <em>lattice</em> or <em>reduced</em>
+  <em>ave</em> args = <em>one</em> or <em>running</em> or <em>window M</em>
     one = output new average value every Nfreq steps
     running = output cumulative average of all previous Nfreq steps
     window M = output average of M most recent Nfreq steps
-  <I>file</I> arg = filename
+  <em>file</em> arg = filename
     filename = file to write results to
-  <I>overwrite</I> arg = none = overwrite output file with only latest output
-  <I>title1</I> arg = string
+  <em>overwrite</em> arg = none = overwrite output file with only latest output
+  <em>title1</em> arg = string
     string = text to print as 1st line of output file
-  <I>title2</I> arg = string
+  <em>title2</em> arg = string
     string = text to print as 2nd line of output file
-  <I>title3</I> arg = string
-    string = text to print as 3rd line of output file 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all ave/spatial/sphere 10000 1 10000 0.5 0.5 0.5 0.1 0.5 5 density/number vx vy vz units reduced title1 "My output values"
-fix 1 flow ave/spatial/sphere 100 10 1000 20.0 20.0 20.0 0.0 20.0 20 vx vz norm sample file vel.profile 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Use one or more per-atom vectors as inputs every few timesteps, bin
+  <em>title3</em> arg = string
+    string = text to print as 3rd line of output file
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all ave/spatial/sphere 10000 1 10000 0.5 0.5 0.5 0.1 0.5 5 density/number vx vy vz units reduced title1 &quot;My output values&quot;
+fix 1 flow ave/spatial/sphere 100 10 1000 20.0 20.0 20.0 0.0 20.0 20 vx vz norm sample file vel.profile
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Use one or more per-atom vectors as inputs every few timesteps, bin
 their values spatially into spherical shells based on current atom
 coordinates, and average the bin values over longer timescales.  The
-resulting bin averages can be used by other <A HREF = "Section_howto.html#howto_15">output
-commands</A> such as <A HREF = "thermo_style.html">thermo_style
-custom</A>, and can also be written to a file.
-</P>
-<P>The group specified with the command means only atoms within the group
-contribute to bin averages.  If the <I>region</I> keyword is used, the atom
+resulting bin averages can be used by other <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a> such as <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a>, and can also be written to a file.</p>
+<p>The group specified with the command means only atoms within the group
+contribute to bin averages.  If the <em>region</em> keyword is used, the atom
 must be in both the group and the specified geometric
-<A HREF = "region.html">region</A> in order to contribute to bin averages.
-</P>
-<P>Each listed value can be an atom attribute (position, velocity, force
+<a class="reference internal" href="region.html"><em>region</em></a> in order to contribute to bin averages.</p>
+<p>Each listed value can be an atom attribute (position, velocity, force
 component), a mass or number density, or the result of a
-<A HREF = "compute.html">compute</A> or <A HREF = "fix.html">fix</A> or the evaluation of an
-atom-style <A HREF = "variable.html">variable</A>.  In the latter cases, the
+<a class="reference internal" href="compute.html"><em>compute</em></a> or <a class="reference internal" href="fix.html"><em>fix</em></a> or the evaluation of an
+atom-style <a class="reference internal" href="variable.html"><em>variable</em></a>.  In the latter cases, the
 compute, fix, or variable must produce a per-atom quantity, not a
 global quantity.  If you wish to time-average global quantities from a
-compute, fix, or variable, then see the <A HREF = "fix_ave_time.html">fix
-ave/time</A> command.
-</P>
-<P><A HREF = "compute.html">Computes</A> that produce per-atom quantities are those
-which have the word <I>atom</I> in their style name.  See the doc pages for
-individual <A HREF = "fix.html">fixes</A> to determine which ones produce per-atom
-quantities.  <A HREF = "variable.html">Variables</A> of style <I>atom</I> are the only
+compute, fix, or variable, then see the <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> command.</p>
+<p><a class="reference internal" href="compute.html"><em>Computes</em></a> that produce per-atom quantities are those
+which have the word <em>atom</em> in their style name.  See the doc pages for
+individual <a class="reference internal" href="fix.html"><em>fixes</em></a> to determine which ones produce per-atom
+quantities.  <a class="reference internal" href="variable.html"><em>Variables</em></a> of style <em>atom</em> are the only
 ones that can be used with this fix since all other styles of variable
-produce global quantities.
-</P>
-<P>The per-atom values of each input vector are binned and averaged
-independently of the per-atom values in other input vectors.
-</P>
-<P><I>Nbins</I> specifies the number of spherical shells which will be created
-between r_min and r_max centered at (origin_x, origin_y, origin_z).
-</P>
-<P>IMPORTANT NOTE: This fix works by creating an array of size Nbins by
+produce global quantities.</p>
+<p>The per-atom values of each input vector are binned and averaged
+independently of the per-atom values in other input vectors.</p>
+<p><em>Nbins</em> specifies the number of spherical shells which will be created
+between r_min and r_max centered at (origin_x, origin_y, origin_z).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This fix works by creating an array of size Nbins by
 Nvalues on each processor.  Nbins is the total number of bins; Nvalues
 is the number of input values specified.  Each processor loops over
 its atoms, tallying its values to the appropriate bin.  Then the
 entire array is summed across all processors.  This means that using a
-large number of bins will incur an overhead in memory and computational 
-cost (summing across processors), so be careful to use reasonable numbers 
-of bins.
-</P>
-<HR>
-
-<P>The <I>Nevery</I>, <I>Nrepeat</I>, and <I>Nfreq</I> arguments specify on what
+large number of bins will incur an overhead in memory and computational
+cost (summing across processors), so be careful to use reasonable numbers
+of bins.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>Nevery</em>, <em>Nrepeat</em>, and <em>Nfreq</em> arguments specify on what
 timesteps the input values will be used to bin them and contribute to
 the average.  The final averaged quantities are generated on timesteps
-that are a multiples of <I>Nfreq</I>.  The average is over <I>Nrepeat</I>
+that are a multiples of <em>Nfreq</em>.  The average is over <em>Nrepeat</em>
 quantities, computed in the preceding portion of the simulation every
-<I>Nevery</I> timesteps.  <I>Nfreq</I> must be a multiple of <I>Nevery</I> and
-<I>Nevery</I> must be non-zero even if <I>Nrepeat</I> is 1.  Also, the timesteps
-contributing to the average value cannot overlap, i.e. Nfreq >
-(Nrepeat-1)*Nevery is required.
-</P>
-<P>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
+<em>Nevery</em> timesteps.  <em>Nfreq</em> must be a multiple of <em>Nevery</em> and
+<em>Nevery</em> must be non-zero even if <em>Nrepeat</em> is 1.  Also, the timesteps
+contributing to the average value cannot overlap, i.e. Nfreq &gt;
+(Nrepeat-1)*Nevery is required.</p>
+<p>For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
 timesteps 90,92,94,96,98,100 will be used to compute the final average
 on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
 timestep 200, etc.  If Nrepeat=1 and Nfreq = 100, then no time
 averaging is done; values are simply generated on timesteps
-100,200,etc.
-</P>
-<HR>
-
-<P>The <I>origin_x</I>, <I>origin_y</I>, and <I>origin_z</I> parameters may be specified
+100,200,etc.</p>
+<hr class="docutils" />
+<p>The <em>origin_x</em>, <em>origin_y</em>, and <em>origin_z</em> parameters may be specified
 by either a compute or a variable. This allows, for example, the
 center of the spherical bins to be attached to the center of mass of a
 group of atoms. If a variable origin is used and periodic boundary
 conditions are in effect, then the origin will be wrapped across
 periodic boundaries whenever it changes so that it is always inside
-the simulation box.
-</P>
-<HR>
-
-<P>The atom attribute values (vx,vy,vz,fx,fy,fz) are self-explanatory.
+the simulation box.</p>
+<hr class="docutils" />
+<p>The atom attribute values (vx,vy,vz,fx,fy,fz) are self-explanatory.
 Note that other atom attributes (including atom postitions x,y,z) can
-be used as inputs to this fix by using the <A HREF = "compute_property_atom.html">compute
-property/atom</A> command and then specifying
-an input value from that compute.
-</P>
-<P>The <I>density/number</I> value means the number density is computed in
-each bin, i.e. a weighting of 1 for each atom.  The <I>density/mass</I>
+be used as inputs to this fix by using the <a class="reference internal" href="compute_property_atom.html"><em>compute property/atom</em></a> command and then specifying
+an input value from that compute.</p>
+<p>The <em>density/number</em> value means the number density is computed in
+each bin, i.e. a weighting of 1 for each atom.  The <em>density/mass</em>
 value means the mass density is computed in each bin, i.e. each atom
 is weighted by its mass.  The resulting density is normalized by the
 volume of the bin so that units of number/volume or density are
-output.  See the <A HREF = "units.html">units</A> command doc page for the
+output.  See the <a class="reference internal" href="units.html"><em>units</em></a> command doc page for the
 definition of density for each choice of units, e.g. gram/cm^3.
-The bin volume will always be calculated in box units, independent 
-of the use of the <I>units</I> keyword in this command.
-</P>
-<P>If a value begins with "c_", a compute ID must follow which has been
+The bin volume will always be calculated in box units, independent
+of the use of the <em>units</em> keyword in this command.</p>
+<p>If a value begins with &#8220;<a href="#id1"><span class="problematic" id="id2">c_</span></a>&#8221;, a compute ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
 calculated by the compute is used.  Users can also write code for
-their own compute styles and <A HREF = "Section_modify.html">add them to LAMMPS</A>.
-</P>
-<P>If a value begins with "f_", a fix ID must follow which has been
+their own compute styles and <a class="reference internal" href="Section_modify.html"><em>add them to LAMMPS</em></a>.</p>
+<p>If a value begins with &#8220;<a href="#id3"><span class="problematic" id="id4">f_</span></a>&#8221;, a fix ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
 calculated by the fix is used.  Note that some fixes only produce
 their values on certain timesteps, which must be compatible with
-<I>Nevery</I>, else an error results.  Users can also write code for their
-own fix styles and <A HREF = "Section_modify.html">add them to LAMMPS</A>.
-</P>
-<P>If a value begins with "v_", a variable name must follow which has
+<em>Nevery</em>, else an error results.  Users can also write code for their
+own fix styles and <a class="reference internal" href="Section_modify.html"><em>add them to LAMMPS</em></a>.</p>
+<p>If a value begins with &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;, a variable name must follow which has
 been previously defined in the input script.  Variables of style
-<I>atom</I> can reference thermodynamic keywords and various per-atom
+<em>atom</em> can reference thermodynamic keywords and various per-atom
 attributes, or invoke other computes, fixes, or variables when they
 are evaluated, so this is a very general means of generating per-atom
-quantities to spatially average.
-</P>
-<HR>
-
-<P>Additional optional keywords also affect the operation of this fix.
-The <I>region</I> keyword was discussed above.
-</P>
-<P>The <I>norm</I> keyword affects how averaging is done for the output
-produced every <I>Nfreq</I> timesteps.  For an <I>all</I> setting, a bin
-quantity is summed over all atoms in all <I>Nrepeat</I> samples, as is the
+quantities to spatially average.</p>
+<hr class="docutils" />
+<p>Additional optional keywords also affect the operation of this fix.
+The <em>region</em> keyword was discussed above.</p>
+<p>The <em>norm</em> keyword affects how averaging is done for the output
+produced every <em>Nfreq</em> timesteps.  For an <em>all</em> setting, a bin
+quantity is summed over all atoms in all <em>Nrepeat</em> samples, as is the
 count of atoms in the bin.  The printed value for the bin is
 Total-quantity / Total-count.  In other words it is an average over
-the entire <I>Nfreq</I> timescale.
-</P>
-<P>For a <I>sample</I> setting, the bin quantity is summed over atoms for only
-a single sample, as is the count, and a "average sample value" is
+the entire <em>Nfreq</em> timescale.</p>
+<p>For a <em>sample</em> setting, the bin quantity is summed over atoms for only
+a single sample, as is the count, and a &#8220;average sample value&#8221; is
 computed, i.e. Sample-quantity / Sample-count.  The printed value for
-the bin is the average of the <I>Nrepeat</I> "average sample values", In
-other words it is an average of an average.
-</P>
-<P>The <I>ave</I> keyword determines how the bin values produced every <I>Nfreq</I>
+the bin is the average of the <em>Nrepeat</em> &#8220;average sample values&#8221;, In
+other words it is an average of an average.</p>
+<p>The <em>ave</em> keyword determines how the bin values produced every <em>Nfreq</em>
 steps are averaged with bin values produced on previous steps that
-were multiples of <I>Nfreq</I>, before they are accessed by another output
-command or written to a file.
-</P>
-<P>If the <I>ave</I> setting is <I>one</I>, then the bin values produced on
-timesteps that are multiples of <I>Nfreq</I> are independent of each other;
-they are output as-is without further averaging.
-</P>
-<P>If the <I>ave</I> setting is <I>running</I>, then the bin values produced on
-timesteps that are multiples of <I>Nfreq</I> are summed and averaged in a
+were multiples of <em>Nfreq</em>, before they are accessed by another output
+command or written to a file.</p>
+<p>If the <em>ave</em> setting is <em>one</em>, then the bin values produced on
+timesteps that are multiples of <em>Nfreq</em> are independent of each other;
+they are output as-is without further averaging.</p>
+<p>If the <em>ave</em> setting is <em>running</em>, then the bin values produced on
+timesteps that are multiples of <em>Nfreq</em> are summed and averaged in a
 cumulative sense before being output.  Each output bin value is thus
 the average of the bin value produced on that timestep with all
 preceding values for the same bin.  This running average begins when
 the fix is defined; it can only be restarted by deleting the fix via
-the <A HREF = "unfix.html">unfix</A> command, or re-defining the fix by
-re-specifying it.
-</P>
-<P>If the <I>ave</I> setting is <I>window</I>, then the bin values produced on
-timesteps that are multiples of <I>Nfreq</I> are summed and averaged within
-a moving "window" of time, so that the last M values for the same bin
+the <a class="reference internal" href="unfix.html"><em>unfix</em></a> command, or re-defining the fix by
+re-specifying it.</p>
+<p>If the <em>ave</em> setting is <em>window</em>, then the bin values produced on
+timesteps that are multiples of <em>Nfreq</em> are summed and averaged within
+a moving &#8220;window&#8221; of time, so that the last M values for the same bin
 are used to produce the output.  E.g. if M = 3 and Nfreq = 1000, then
 the output on step 10000 will be the average of the individual bin
 values on steps 8000,9000,10000.  Outputs on early steps will average
-over less than M values if they are not available.
-</P>
-<P>The <I>units</I> keyword determines the meaning of the distance units used
+over less than M values if they are not available.</p>
+<p>The <em>units</em> keyword determines the meaning of the distance units used
 for the sphere origin and the two radial lengths.  For orthogonal
 simulation boxes, any of the 3 options may be used.  For
-non-orthogonal (triclinic) simulation boxes, only the <I>reduced</I> option
-may be used.
-</P>
-<P>A <I>box</I> value selects standard distance units as defined by the
-<A HREF = "units.html">units</A> command, e.g. Angstroms for units = real or metal.
-A <I>lattice</I> value means the distance units are in lattice spacings.
-The <A HREF = "lattice.html">lattice</A> command must have been previously used to
-define the lattice spacing.
-</P>
-<P>IMPORTANT NOTE: The <I>lattice</I> style may only be used if the lattice
-spacing is the same in each direction.
-</P>
-<P>A <I>reduced</I> value means normalized unitless values between 0 and 1,
+non-orthogonal (triclinic) simulation boxes, only the <em>reduced</em> option
+may be used.</p>
+<p>A <em>box</em> value selects standard distance units as defined by the
+<a class="reference internal" href="units.html"><em>units</em></a> command, e.g. Angstroms for units = real or metal.
+A <em>lattice</em> value means the distance units are in lattice spacings.
+The <a class="reference internal" href="lattice.html"><em>lattice</em></a> command must have been previously used to
+define the lattice spacing.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The <em>lattice</em> style may only be used if the lattice
+spacing is the same in each direction.</p>
+</div>
+<p>A <em>reduced</em> value means normalized unitless values between 0 and 1,
 which represent the lower and upper faces of the simulation box
-respectively.  Thus an <I>origin</I> value of 0.5 means the center of the
-box in any dimension.
-</P>
-<P>The <I>file</I> keyword allows a filename to be specified.  Every <I>Nfreq</I>
+respectively.  Thus an <em>origin</em> value of 0.5 means the center of the
+box in any dimension.</p>
+<p>The <em>file</em> keyword allows a filename to be specified.  Every <em>Nfreq</em>
 timesteps, a section of bin info will be written to a text file in the
 following format.  A line with the timestep and number of bin is
 written.  Then one line per bin is written, containing the bin ID
@@ -261,82 +342,134 @@ written.  Then one line per bin is written, containing the bin ID
 the bin, and one or more calculated values.  The number of values in
 each line corresponds to the number of values specified in the fix
 ave/spatial command.  The number of atoms and the value(s) are average
-quantities.  If the value of the <I>units</I> keyword is <I>box</I> or
-<I>lattice</I>, the "coord" is printed in box units.  If the value of the
-<I>units</I> keyword is <I>reduced</I>, the "coord" is printed in reduced units
-(0-1).
-</P>
-<P>The <I>overwrite</I> keyword will continuously overwrite the output file
+quantities.  If the value of the <em>units</em> keyword is <em>box</em> or
+<em>lattice</em>, the &#8220;coord&#8221; is printed in box units.  If the value of the
+<em>units</em> keyword is <em>reduced</em>, the &#8220;coord&#8221; is printed in reduced units
+(0-1).</p>
+<p>The <em>overwrite</em> keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of
-output.  This option can only be used with the <I>ave running</I> setting.
-</P>
-<P>The <I>title1</I> and <I>title2</I> and <I>title3</I> keywords allow specification of
+output.  This option can only be used with the <em>ave running</em> setting.</p>
+<p>The <em>title1</em> and <em>title2</em> and <em>title3</em> keywords allow specification of
 the strings that will be printed as the first 3 lines of the output
-file, assuming the <I>file</I> keyword was used.  LAMMPS uses default
-values for each of these, so they do not need to be specified.
-</P>
-<P>By default, these header lines are as follows:
-</P>
-<PRE># Spatial-averaged data for fix ID and group name
-# Timestep Number-of-bins
-# Bin r Count value1 value2 ... 
-</PRE>
-<P>In the first line, ID and name are replaced with the fix-ID and group
+file, assuming the <em>file</em> keyword was used.  LAMMPS uses default
+values for each of these, so they do not need to be specified.</p>
+<p>By default, these header lines are as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Spatial-averaged data for fix ID and group name</span>
+<span class="c"># Timestep Number-of-bins</span>
+<span class="c"># Bin r Count value1 value2 ...</span>
+</pre></div>
+</div>
+<p>In the first line, ID and name are replaced with the fix-ID and group
 name.  The second line describes the two values that are printed at
 the first of each section of output.  In the third line the values are
 replaced with the appropriate fields from the fix ave/spatial command.
 The Coord2 and Coord3 entries in the third line only appear for 2d and
 3d bins respectively.  For 1d bins, the word Coord1 is replaced by
-just Coord.
-</P>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
-are relevant to this fix.
-</P>
-<P>This fix computes a global array of values which can be accessed by
-various <A HREF = "Section_howto.html#howto_15">output commands</A>.  The values can
-only be accessed on timesteps that are multiples of <I>Nfreq</I> since that
+just Coord.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options
+are relevant to this fix.</p>
+<p>This fix computes a global array of values which can be accessed by
+various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  The values can
+only be accessed on timesteps that are multiples of <em>Nfreq</em> since that
 is when averaging is performed.  The global array has # of rows =
 Nbins and # of columns = 2+Nvalues.  The first column contains the
-radius at the center of the shell. For units <I>reduced</I>, this is in
-reduced units, while for units <I>box</I> and <I>lattice</I> this is in box
+radius at the center of the shell. For units <em>reduced</em>, this is in
+reduced units, while for units <em>box</em> and <em>lattice</em> this is in box
 units. The next column has the count of atoms in that bin, and the
 remaining columns are the Nvalue quantities.  When the array is
 accessed with an I that exceeds the current number of bins, than a 0.0
 is returned by the fix instead of an error.  The array values
-calculated by this fix are "intensive", since they are already
-normalized by the count of atoms in each bin.
-</P>
-<P>No parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
-minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>When the <I>ave</I> keyword is set to <I>running</I> or <I>window</I> then the number
+calculated by this fix are &#8220;intensive&#8221;, since they are already
+normalized by the count of atoms in each bin.</p>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><em>run</em></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>When the <em>ave</em> keyword is set to <em>running</em> or <em>window</em> then the number
 of bins must remain the same during the simulation, so that the
 appropriate averaging can be done.  This will be the case if the
-simulation box size doesn't change or if the <I>units</I> keyword is set to
-<I>reduced</I>.
-</P>
-<P>This style is part of the USER-MISC package. It is only enabled if
-LAMMPS is build with that package. See the <A HREF = "Section_start.html#3">Making of
-LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "compute.html">compute</A>, <A HREF = "fix_ave_atom.html">fix ave/atom</A>, <A HREF = "fix_ave_histo.html">fix
-ave/histo</A>, <A HREF = "fix_ave_time.html">fix ave/time</A>,
-<A HREF = "variable.html">variable</A>, <A HREF = "fix_ave_correlate.html">fix ave/correlate</A>,
-<A HREF = "fix_ave_spatial.html">fix ave/spatial</A>,
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are norm = all, ave = one, units = lattice, no
-file output, and title 1,2,3 = strings as described above.
-</P>
-</HTML>
+simulation box size doesn&#8217;t change or if the <em>units</em> keyword is set to
+<em>reduced</em>.</p>
+<p>This style is part of the USER-MISC package. It is only enabled if
+LAMMPS is build with that package. See the <span class="xref std std-ref">Making of LAMMPS</span> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="compute.html"><em>compute</em></a>, <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a>, <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a>, <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>,
+<a class="reference internal" href="variable.html"><em>variable</em></a>, <a class="reference internal" href="fix_ave_correlate.html"><em>fix ave/correlate</em></a>,
+<a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a>,</p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are norm = all, ave = one, units = lattice, no
+file output, and title 1,2,3 = strings as described above.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

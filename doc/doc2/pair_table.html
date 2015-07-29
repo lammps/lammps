@@ -1,0 +1,263 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style table command 
+</H3>
+<H3>pair_style table/gpu command 
+</H3>
+<H3>pair_style table/kk command 
+</H3>
+<H3>pair_style table/omp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style table style N keyword ... 
+</PRE>
+<UL><LI>style = <I>lookup</I> or <I>linear</I> or <I>spline</I> or <I>bitmap</I> = method of interpolation
+<LI>N = use N values in <I>lookup</I>, <I>linear</I>, <I>spline</I> tables
+<LI>N = use 2^N values in <I>bitmap</I> tables
+<LI>zero or more keywords may be appended
+<LI>keyword = <I>ewald</I> or <I>pppm</I> or <I>msm</I> or <I>dispersion</I> or <I>tip4p</I> 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style table linear 1000
+pair_style table linear 1000 pppm
+pair_style table bitmap 12
+pair_coeff * 3 morse.table ENTRY1
+pair_coeff * 3 morse.table ENTRY1 7.0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Style <I>table</I> creates interpolation tables of length <I>N</I> from pair
+potential and force values listed in a file(s) as a function of
+distance.  The files are read by the <A HREF = "pair_coeff.html">pair_coeff</A>
+command.
+</P>
+<P>The interpolation tables are created by fitting cubic splines to the
+file values and interpolating energy and force values at each of <I>N</I>
+distances.  During a simulation, these tables are used to interpolate
+energy and force values as needed.  The interpolation is done in one
+of 4 styles: <I>lookup</I>, <I>linear</I>, <I>spline</I>, or <I>bitmap</I>.
+</P>
+<P>For the <I>lookup</I> style, the distance between 2 atoms is used to find
+the nearest table entry, which is the energy or force.
+</P>
+<P>For the <I>linear</I> style, the pair distance is used to find 2
+surrounding table values from which an energy or force is computed by
+linear interpolation.
+</P>
+<P>For the <I>spline</I> style, a cubic spline coefficients are computed and
+stored at each of the <I>N</I> values in the table.  The pair distance is
+used to find the appropriate set of coefficients which are used to
+evaluate a cubic polynomial which computes the energy or force.
+</P>
+<P>For the <I>bitmap</I> style, the N means to create interpolation tables
+that are 2^N in length.  The pair distance is used to index into the
+table via a fast bit-mapping technique due to <A HREF = "#Wolff">(Wolff)</A>, and a
+linear interpolation is performed between adjacent table values.
+</P>
+<P>The following coefficients must be defined for each pair of atoms
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+above.
+</P>
+<UL><LI>filename
+<LI>keyword
+<LI>cutoff (distance units) 
+</UL>
+<P>The filename specifies a file containing tabulated energy and force
+values.  The keyword specifies a section of the file.  The cutoff is
+an optional coefficient.  If not specified, the outer cutoff in the
+table itself (see below) will be used to build an interpolation table
+that extend to the largest tabulated distance.  If specified, only
+file values up to the cutoff are used to create the interpolation
+table.  The format of this file is described below.
+</P>
+<P>If your tabulated potential(s) are designed to be used as the
+short-range part of one of the long-range solvers specified by the
+<A HREF = "kspace_style.html">kspace_style</A> command, then you must use one or
+more of the optional keywords listed above for the pair_style command.
+These are <I>ewald</I> or <I>pppm</I> or <I>msm</I> or <I>dispersion</I> or <I>tip4p</I>.  This
+is so LAMMPS can insure the short-range potential and long-range
+solver are compatible with each other, as it does for other
+short-range pair styles, such as <A HREF = "pair_lj.html">pair_style
+lj/cut/coul/long</A>.  Note that it is up to you to insure
+the tabulated values for each pair of atom types has the correct
+functional form to be compatible with the matching long-range solver.
+</P>
+<HR>
+
+<P>Here are some guidelines for using the pair_style table command to
+best effect:
+</P>
+<UL><LI>Vary the number of table points; you may need to use more than you think
+to get good resolution. 
+
+<LI>Always use the <A HREF = "pair_write.html">pair_write</A> command to produce a plot
+of what the final interpolated potential looks like.  This can show up
+interpolation "features" you may not like. 
+
+<LI>Start with the linear style; it's the style least likely to have problems. 
+
+<LI>Use <I>N</I> in the pair_style command equal to the "N" in the tabulation
+file, and use the "RSQ" or "BITMAP" parameter, so additional interpolation
+is not needed.  See discussion below. 
+
+<LI>Make sure that your tabulated forces and tabulated energies are consistent 
+(dE/dr = -F) along the entire range of r values. 
+
+<LI>Use as large an inner cutoff as possible.  This avoids fitting splines
+to very steep parts of the potential. 
+</UL>
+<HR>
+
+<P>The format of a tabulated file is a series of one or more sections,
+defined as follows (without the parenthesized comments):
+</P>
+<PRE># Morse potential for Fe   (one or more comment or blank lines) 
+</PRE>
+<PRE>MORSE_FE                   (keyword is first text on line)
+N 500 R 1.0 10.0           (N, R, RSQ, BITMAP, FPRIME parameters)
+                           (blank)
+1 1.0 25.5 102.34          (index, r, energy, force)
+2 1.02 23.4 98.5
+...
+500 10.0 0.001 0.003 
+</PRE>
+<P>A section begins with a non-blank line whose 1st character is not a
+"#"; blank lines or lines starting with "#" can be used as comments
+between sections.  The first line begins with a keyword which
+identifies the section.  The line can contain additional text, but the
+initial text must match the argument specified in the pair_coeff
+command.  The next line lists (in any order) one or more parameters
+for the table.  Each parameter is a keyword followed by one or more
+numeric values.
+</P>
+<P>The parameter "N" is required and its value is the number of table
+entries that follow.  Note that this may be different than the <I>N</I>
+specified in the <A HREF = "pair_style.html">pair_style table</A> command.  Let
+Ntable = <I>N</I> in the pair_style command, and Nfile = "N" in the
+tabulated file.  What LAMMPS does is a preliminary interpolation by
+creating splines using the Nfile tabulated values as nodal points.  It
+uses these to interpolate as needed to generate energy and force
+values at Ntable different points.  The resulting tables of length
+Ntable are then used as described above, when computing energy and
+force for individual pair distances.  This means that if you want the
+interpolation tables of length Ntable to match exactly what is in the
+tabulated file (with effectively no preliminary interpolation), you
+should set Ntable = Nfile, and use the "RSQ" or "BITMAP" parameter.
+The internal table abscissa is RSQ (separation distance squared).
+</P>
+<P>All other parameters are optional.  If "R" or "RSQ" or "BITMAP" does
+not appear, then the distances in each line of the table are used
+as-is to perform spline interpolation.  In this case, the table values
+can be spaced in <I>r</I> uniformly or however you wish to position table
+values in regions of large gradients.
+</P>
+<P>If used, the parameters "R" or "RSQ" are followed by 2 values <I>rlo</I>
+and <I>rhi</I>.  If specified, the distance associated with each energy and
+force value is computed from these 2 values (at high accuracy), rather
+than using the (low-accuracy) value listed in each line of the table.
+The distance values in the table file are ignored in this case.
+For "R", distances uniformly spaced between <I>rlo</I> and <I>rhi</I> are
+computed; for "RSQ", squared distances uniformly spaced between
+<I>rlo*rlo</I> and <I>rhi*rhi</I> are computed.
+</P>
+<P>If used, the parameter "BITMAP" is also followed by 2 values <I>rlo</I> and
+<I>rhi</I>.  These values, along with the "N" value determine the ordering
+of the N lines that follow and what distance is associated with each.
+This ordering is complex, so it is not documented here, since this
+file is typically produced by the <A HREF = "pair_write.html">pair_write</A> command
+with its <I>bitmap</I> option.  When the table is in BITMAP format, the "N"
+parameter in the file must be equal to 2^M where M is the value
+specified in the pair_style command.  Also, a cutoff parameter cannot
+be used as an optional 3rd argument in the pair_coeff command; the
+entire table extent as specified in the file must be used.
+</P>
+<P>If used, the parameter "FPRIME" is followed by 2 values <I>fplo</I> and
+<I>fphi</I> which are the derivative of the force at the innermost and
+outermost distances listed in the table.  These values are needed by
+the spline construction routines.  If not specified by the "FPRIME"
+parameter, they are estimated (less accurately) by the first 2 and
+last 2 force values in the table.  This parameter is not used by
+BITMAP tables.
+</P>
+<P>Following a blank line, the next N lines list the tabulated values.
+On each line, the 1st value is the index from 1 to N, the 2nd value is
+r (in distance units), the 3rd value is the energy (in energy units),
+and the 4th is the force (in force units).  The r values must increase
+from one line to the next (unless the BITMAP parameter is specified).
+</P>
+<P>Note that one file can contain many sections, each with a tabulated
+potential.  LAMMPS reads the file section by section until it finds
+one that matches the specified keyword.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>This pair style does not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+</P>
+<P>The <A HREF = "pair_modify.html">pair_modify</A> shift, table, and tail options are
+not relevant for this pair style.
+</P>
+<P>This pair style writes the settings for the "pair_style table" command
+to <A HREF = "restart.html">binary restart files</A>, so a pair_style command does
+not need to specified in an input script that reads a restart file.
+However, the coefficient information is not stored in the restart
+file, since it is tabulated in the potential files.  Thus, pair_coeff
+commands do need to be specified in the restart input script.
+</P>
+<P>This pair style can only be used via the <I>pair</I> keyword of the
+<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
+<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
+</P>
+<HR>
+
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Wolff"></A>
+
+<P><B>(Wolff)</B> Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
+</P>
+</HTML>

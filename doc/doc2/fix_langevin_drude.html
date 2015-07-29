@@ -1,0 +1,280 @@
+<HTML>
+<script type="text/javascript"
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+</script>
+
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix langevin/drude command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID langevin/drude Tcom damp_com seed_com Tdrude damp_drude seed_drude keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>langevin/drude = style name of this fix command 
+
+<LI>Tcom = desired temperature of the centers of mass (temperature units) 
+
+<LI>damp_com = damping parameter for the thermostat on centers of mass (time units) 
+
+<LI>seed_com = random number seed to use for white noise of the thermostat on centers of mass (positive integer) 
+
+<LI>Tdrude = desired temperature of the Drude oscillators (temperature units) 
+
+<LI>damp_drude = damping parameter for the thermostat on Drude oscillators (time units) 
+
+<LI>seed_drude = random number seed to use for white noise of the thermostat on Drude oscillators (positive integer) 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>zero</I> 
+
+<PRE>  <I>zero</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = do not set total random force on centers of mass to zero
+    <I>yes</I> = set total random force on centers of mass to zero 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 3 all langevin/drude 300.0 100.0 19377 1.0 20.0 83451
+fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Apply two Langevin thermostats as described in <A HREF = "#Jiang">(Jiang)</A> for
+thermalizing the reduced degrees of freedom of Drude oscillators.
+This link describes how to use the <A HREF = "tutorial_drude.html">thermalized Drude oscillator
+model</A> in LAMMPS and polarizable models in LAMMPS
+are discussed in <A HREF = "Section_howto.html#howto_25">this Section</A>.
+</P>
+<P>Drude oscillators are a way to simulate polarizables atoms, by
+splitting them into a core and a Drude particle bound by a harmonic
+bond.  The thermalization works by transforming the particles degrees
+of freedom by these equations.  In these equations upper case denotes
+atomic or center of mass values and lower case denotes Drude particle
+or dipole values. Primes denote the transformed (reduced) values,
+while bare letters denote the original values.
+</P>
+Velocities:
+\begin{equation} V' = \frac {M\, V + m\, v} {M'} \end{equation}
+\begin{equation} v' = v - V \end{equation}
+Masses:
+\begin{equation} M' = M + m \end{equation}
+\begin{equation} m' = \frac {M\, m } {M'} \end{equation}
+The Langevin forces are computed as
+\begin{equation} F' = - \frac {M'} {\mathtt{damp\_com}}\, V' + F_r' \end{equation}
+\begin{equation} f' = - \frac {m'} {\mathtt{damp\_drude}}\, v' + f_r' \end{equation}
+\(F_r'\) is a random force proportional to 
+\(\sqrt { \frac {2\, k_B \mathtt{Tcom}\, m'} 
+                 {\mathrm dt\, \mathtt{damp\_com} } 
+        } \). 
+<BR>
+\(f_r'\) is a random force proportional to 
+\(\sqrt { \frac {2\, k_B \mathtt{Tdrude}\, m'} 
+                 {\mathrm dt\, \mathtt{damp\_drude} } 
+        } \). 
+<BR>
+<P>Then the real forces acting on the particles are computed from the inverse 
+transform:
+\begin{equation} F = \frac M {M'}\, F' - f' \end{equation}
+\begin{equation} f = \frac m {M'}\, F' + f' \end{equation}
+</P>
+<P>This fix also thermostates non-polarizable atoms in the group at
+temperature <I>Tcom</I>, as if they had a massless Drude partner.  The
+Drude particles themselves need not be in the group. The center of
+mass and the dipole are thermostated iff the core atom is in the
+group.
+</P>
+<P>Note that the thermostat effect of this fix is applied to only the
+translational degrees of freedom of the particles, which is an
+important consideration if finite-size particles, which have
+rotational degrees of freedom, are being thermostated. The
+translational degrees of freedom can also have a bias velocity removed
+from them before thermostating takes place; see the description below.
+</P>
+<P>IMPORTANT NOTE: Like the <A HREF = "fix_langevin.html">fix langevin</A> command,
+this fix does NOT perform time integration. It only modifies forces to
+effect thermostating. Thus you must use a separate time integration
+fix, like <A HREF = "fix_nve.html">fix nve</A> or <A HREF = "fix_nh.html">fix nph</A> to actually
+update the velocities and positions of atoms using the modified
+forces.  Likewise, this fix should not normally be used on atoms that
+also have their temperature controlled by another fix - e.g. by <A HREF = "fix_nh.html">fix
+nvt</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A> commands.
+</P>
+<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
+a discussion of different ways to compute temperature and perform
+thermostating.
+</P>
+<HR>
+
+<P>This fix requires each atom know whether it is a Drude particle or
+not.  You must therefore use the <A HREF = "fix_drude.html">fix drude</A> command to
+specify the Drude status of each atom type.
+</P>
+<P>IMPORTANT NOTE: only the Drude core atoms need to be in the group
+specified for this fix. A Drude electron will be transformed together
+with its cores even if it is not itself in the group.  It is safe to
+include Drude electrons or non-polarizable atoms in the group. The
+non-polarizable atoms will simply not be thermostatted as if they had
+a massless Drude partner (electron).
+</P>
+<P>IMPORTANT NOTE: Ghost atoms need to know their velocity for this fix
+to act correctly.  You must use the <A HREF = "comm_modify.html">comm_modify</A>
+command to enable this, e.g.
+</P>
+<PRE>comm_modify vel yes 
+</PRE>
+<HR>
+
+<P><I>Tcom</I> is the target temperature of the centers of mass, which would
+be used to thermostate the non-polarizable atoms.  <I>Tdrude</I> is the
+(normally low) target temperature of the core-Drude particle pairs
+(dipoles).  <I>Tcom</I> and <I>Tdrude</I> can be specified as an equal-style
+<A HREF = "variable.html">variable</A>.  If the value is a variable, it should be
+specified as v_name, where name is the variable name. In this case,
+the variable will be evaluated each timestep, and its value used to
+determine the target temperature.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.
+</P>
+<P>Like other fixes that perform thermostating, this fix can be used with
+<A HREF = "compute.html">compute commands</A> that remove a "bias" from the atom
+velocities.  E.g. removing the center-of-mass velocity from a group of
+atoms.  This is not done by default, but only if the
+<A HREF = "fix_modify.html">fix_modify</A> command is used to assign a temperature
+compute to this fix that includes such a bias term.  See the doc pages
+for individual <A HREF = "compute.html">compute commands</A> to determine which ones
+include a bias.  In this case, the thermostat works in the following
+manner: bias is removed from each atom, thermostating is performed on
+the remaining thermal degrees of freedom, and the bias is added back
+in.  NOTE: this feature has not been tested.
+</P>
+<P>Note: The temperature thermostating the core-Drude particle pairs
+should be chosen low enough, so as to mimic as closely as possible the
+self-consistent minimization. It must however be high enough, so that
+the dipoles can follow the local electric field exerted by the
+neighbouring atoms. The optimal value probably depends on the
+temperature of the centers of mass and on the mass of the Drude
+particles.
+</P>
+<P><I>damp_com</I> is the characteristic time for reaching thermal equilibrium
+of the centers of mass.  For example, a value of 100.0 means to relax
+the temperature of the centers of mass in a timespan of (roughly) 100
+time units (tau or fmsec or psec - see the <A HREF = "units.html">units</A>
+command).  <I>damp_drude</I> is the characteristic time for reaching
+thermal equilibrium of the dipoles. It is typically a few timesteps.
+</P>
+<P>The number <I>seed_com</I> and <I>seed_drude</I> are positive integers. They set
+the seeds of the Marsaglia random number generators used for
+generating the random forces on centers of mass and on the
+dipoles. Each processor uses the input seed to generate its own unique
+seed and its own stream of random numbers.  Thus the dynamics of the
+system will not be identical on two runs on different numbers of
+processors.
+</P>
+<P>The keyword <I>zero</I> can be used to eliminate drift due to the
+thermostat on centers of mass. Because the random forces on different
+centers of mass are independent, they do not sum exactly to zero.  As
+a result, this fix applies a small random force to the entire system,
+and the momentum of the total center of mass of the system undergoes a
+slow random walk.  If the keyword <I>zero</I> is set to <I>yes</I>, the total
+random force on the centers of mass is set exactly to zero by
+subtracting off an equal part of it from each center of mass in the
+group. As a result, the total center of mass of a system with zero
+initial momentum will not drift over time.
+</P>
+<P>The actual temperatures of cores and Drude particles, in
+center-of-mass and relatice coordinates, respectively, can be
+calculated using the <A HREF = "compute_temp_drude.html">compute temp/drude</A>
+command.
+</P>
+<HR>
+
+<P>Usage example for rigid bodies in the NPT ensemble:
+</P>
+<PRE>comm_modify vel yes
+fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
+fix NPH ATOMS rigid/nph/small molecule iso 1. 1. 500.
+fix NVE DRUDES nve
+thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TATOM c_TDRUDE f_TEMP[1] f_TEMP[2] 
+</PRE>
+<P>Comments:
+</P>
+<UL><LI>Drude particles should not be in the rigid group, otherwise the Drude
+<LI>oscillators will be frozen and the system will lose its
+<LI>polarizability.  <I>zero yes</I> avoids a drift of the center of mass of
+<LI>the system, but is a bit slower.  use two different random seeds to
+<LI>avoid unphysical correlations.  temperature is controlled by the fix
+<LI><I>langevin/drude</I>, so the time-integration fixes do not thermostate.
+<LI>don't forget to time-integrate both cores and Drude particles.
+<LI>pressure is time-integrated only once by using <I>nve</I> for Drude
+<LI>particles and <I>nph</I> for atoms/cores (or vice versa). Do not use <I>nph</I>
+<LI>for both.  contrary to the alternative thermostating using Nose-Hoover
+<LI>thermostat fix <I>npt</I> and fix <I>drude/transform</I>, the <I>fix_modify</I>
+<LI>command is not required here, because the fix <I>nph</I> computes the
+<LI>global pressure even if its group is <I>ATOMS</I>. This is what we want. If
+<LI>we thermostated <I>ATOMS</I> using <I>npt</I>, the pressure should be the global
+<LI>one, but the temperature should be only that of the cores. That's why
+<LI>the command <I>fix_modify</I> should be called in that case.  f_TEMP[1]
+<LI>and f_TEMP[2] contain the reduced temperatures of the cores/atoms
+<LI>and of the Drude particles (see below). They should be 300. and 1. on
+<LI>average here. 
+</UL>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  Because the state of the random number generator
+is not saved in restart files, this means you cannot do "exact"
+restarts with this fix, where the simulation continues on the same as
+if no restart had taken place.  However, in a statistical sense, a
+restarted simulation should produce the same behavior.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+fix.  You can use it to assign a temperature <A HREF = "compute.html">compute</A>
+you have defined to this fix which will be used in its thermostating
+procedure, as described above. For consistency, the group used by the
+compute should include the group of this fix and the Drude particles.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_langevin.html">fix langevin</A>,
+<A HREF = "fix_drude.html">fix drude</A>,
+<A HREF = "fix_drude_transform.html">fix drude/transform</A>,
+<A HREF = "compute_temp_drude.html">compute temp/drude</A>,
+<A HREF = "pair_thole.html">pair_style thole</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are zero = no.
+</P>
+<HR>
+
+<A NAME = "Jiang"></A>
+
+<P><B>(Jiang)</B> Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
+Phys Chem Lett, 2, 87-92 (2011).
+</P>
+</HTML>

@@ -1,0 +1,122 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>compute temp/ramp command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>compute ID group-ID temp/ramp vdim vlo vhi dim clo chi keyword value ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "compute.html">compute</A> command
+<LI>temp/ramp = style name of this compute command
+<LI>vdim = <I>vx</I> or <I>vy</I> or <I>vz</I>
+<LI>vlo,vhi = subtract velocities between vlo and vhi (velocity units)
+<LI>dim = <I>x</I> or <I>y</I> or <I>z</I>
+<LI>clo,chi = lower and upper bound of domain to subtract from (distance units)
+<LI>zero or more keyword/value pairs may be appended
+<LI>keyword = <I>units</I> 
+</UL>
+<PRE>  <I>units</I> value = <I>lattice</I> or <I>box</I> 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>compute 2nd middle temp/ramp vx 0 8 y 2 12 units lattice 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define a computation that calculates the temperature of a group of
+atoms, after subtracting out an ramped velocity profile before
+computing the kinetic energy.  A compute of this style can be used by
+any command that computes a temperature,
+e.g. <A HREF = "thermo_modify.html">thermo_modify</A>, <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A>, <A HREF = "fix_nh.html">fix npt</A>, etc.
+</P>
+<P>The meaning of the arguments for this command which define the
+velocity ramp are the same as for the <A HREF = "velocity.html">velocity ramp</A>
+command which was presumably used to impose the velocity.
+</P>
+<P>After the ramp velocity has been subtracted from the specified
+dimension for each atom, the temperature is calculated by the formula
+KE = dim/2 N k T, where KE = total kinetic energy of the group of
+atoms (sum of 1/2 m v^2), dim = 2 or 3 = dimensionality of the
+simulation, N = number of atoms in the group, k = Boltzmann constant,
+and T = temperature.
+</P>
+<P>The <I>units</I> keyword determines the meaning of the distance units used
+for coordinates (c1,c2) and velocities (vlo,vhi).  A <I>box</I> value
+selects standard distance units as defined by the <A HREF = "units.html">units</A>
+command, e.g. Angstroms for units = real or metal.  A <I>lattice</I> value
+means the distance units are in lattice spacings; e.g. velocity =
+lattice spacings / tau.  The <A HREF = "lattice.html">lattice</A> command must have
+been previously used to define the lattice spacing.
+</P>
+<P>A kinetic energy tensor, stored as a 6-element vector, is also
+calculated by this compute for use in the computation of a pressure
+tensor.  The formula for the components of the tensor is the same as
+the above formula, except that v^2 is replaced by vx*vy for the xy
+component, etc.  The 6 components of the vector are ordered xx, yy,
+zz, xy, xz, yz.
+</P>
+<P>The number of atoms contributing to the temperature is assumed to be
+constant for the duration of the run; use the <I>dynamic</I> option of the
+<A HREF = "compute_modify.html">compute_modify</A> command if this is not the case.
+</P>
+<P>The removal of the ramped velocity component by this fix is
+essentially computing the temperature after a "bias" has been removed
+from the velocity of the atoms.  If this compute is used with a fix
+command that performs thermostatting then this bias will be subtracted
+from each atom, thermostatting of the remaining thermal velocity will
+be performed, and the bias will be added back in.  Thermostatting
+fixes that work in this way include <A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A>, <A HREF = "fix_temp_berendsen.html">fix
+temp/berendsen</A>, and <A HREF = "fix_langevin.html">fix
+langevin</A>.
+</P>
+<P>This compute subtracts out degrees-of-freedom due to fixes that
+constrain molecular motion, such as <A HREF = "fix_shake.html">fix shake</A> and
+<A HREF = "fix_rigid.html">fix rigid</A>.  This means the temperature of groups of
+atoms that include these constraints will be computed correctly.  If
+needed, the subtracted degrees-of-freedom can be altered using the
+<I>extra</I> option of the <A HREF = "compute_modify.html">compute_modify</A> command.
+</P>
+<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
+a discussion of different ways to compute temperature and perform
+thermostatting.
+</P>
+<P><B>Output info:</B>
+</P>
+<P>This compute calculates a global scalar (the temperature) and a global
+vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+These values can be used by any command that uses global scalar or
+vector values from a compute as input.  See <A HREF = "Section_howto.html#howto_15">this
+section</A> for an overview of LAMMPS output
+options.
+</P>
+<P>The scalar value calculated by this compute is "intensive".  The
+vector values are "extensive".
+</P>
+<P>The scalar value will be in temperature <A HREF = "units.html">units</A>.  The
+vector values will be in energy <A HREF = "units.html">units</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "compute_temp.html">compute temp</A>, <A HREF = "compute_temp_profile.html">compute
+temp/profie</A>, <A HREF = "compute_temp_deform.html">compute
+temp/deform</A>, <A HREF = "compute_pressure.html">compute
+pressure</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option default is units = lattice.
+</P>
+</HTML>

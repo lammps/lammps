@@ -1,54 +1,167 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix pimd command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix pimd command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID pimd keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>pimd = style name of this fix command 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>method</I> or <I>fmass</I> or <I>sp</I> or <I>temp</I> or <I>nhc</I> 
-
-<PRE>  <I>method</I> value = <I>pimd</I> or <I>nmpimd</I> or <I>cmd</I>
-  <I>fmass</I> value = scaling factor on mass
-  <I>sp</I> value = scaling factor on Planck constant
-  <I>temp</I> value = temperature (temperarate units)
-  <I>nhc</I> value = Nc = number of chains in Nose-Hoover thermostat 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all pimd method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This command performs quantum molecular dynamics simulations based on
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix pimd command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-pimd-command">
+<span id="index-0"></span><h1>fix pimd command<a class="headerlink" href="#fix-pimd-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID pimd keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>pimd = style name of this fix command</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>method</em> or <em>fmass</em> or <em>sp</em> or <em>temp</em> or <em>nhc</em></li>
+</ul>
+<pre class="literal-block">
+<em>method</em> value = <em>pimd</em> or <em>nmpimd</em> or <em>cmd</em>
+  <em>fmass</em> value = scaling factor on mass
+  <em>sp</em> value = scaling factor on Planck constant
+  <em>temp</em> value = temperature (temperarate units)
+  <em>nhc</em> value = Nc = number of chains in Nose-Hoover thermostat
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all pimd method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command performs quantum molecular dynamics simulations based on
 the Feynman path integral to include effects of tunneling and
 zero-point motion.  In this formalism, the isomorphism of a quantum
 partition function for the original system to a classical partition
 function for a ring-polymer system is exploited, to efficiently sample
-configurations from the canonical ensemble <A HREF = "#Feynman">(Feynman)</A>.
+configurations from the canonical ensemble <a class="reference internal" href="#feynman"><span>(Feynman)</span></a>.
 The classical partition function and its components are given
-by the following equations:
-</P>
-<CENTER><IMG SRC = "Eqs/fix_pimd.jpg">
-</CENTER>
-<P>The interested user is referred to any of the numerous references on
+by the following equations:</p>
+<img alt="_images/fix_pimd.jpg" class="align-center" src="_images/fix_pimd.jpg" />
+<p>The interested user is referred to any of the numerous references on
 this methodology, but briefly, each quantum particle in a path
 integral simulation is represented by a ring-polymer of P quasi-beads,
 labeled from 1 to P.  During the simulation, each quasi-bead interacts
@@ -57,139 +170,175 @@ index (the second term in the effective potential above).  The
 quasi-beads also interact with the two neighboring quasi-beads through
 the spring potential in imaginary-time space (first term in effective
 potential).  To sample the canonical ensemble, a Nose-Hoover massive
-chain thermostat is applied <A HREF = "#Tuckerman">(Tuckerman)</A>.  With the
+chain thermostat is applied <a class="reference internal" href="run_style.html#tuckerman"><span>(Tuckerman)</span></a>.  With the
 massive chain algorithm, a chain of NH thermostats is coupled to each
-degree of freedom for each quasi-bead.  The keyword <I>temp</I> sets the
-target temperature for the system and the keyword <I>nhc</I> sets the
-number <I>Nc</I> of thermostats in each chain.  For example, for a
+degree of freedom for each quasi-bead.  The keyword <em>temp</em> sets the
+target temperature for the system and the keyword <em>nhc</em> sets the
+number <em>Nc</em> of thermostats in each chain.  For example, for a
 simulation of N particles with P beads in each ring-polymer, the total
-number of NH thermostats would be 3 x N x P x Nc.
-</P>
-<P>IMPORTANT NOTE: This fix implements a complete velocity-verlet
+number of NH thermostats would be 3 x N x P x Nc.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This fix implements a complete velocity-verlet
 integrator combined with NH massive chain thermostat, so no
-other time integration fix should be used.
-</P>
-<P>The <I>method</I> keyword determines what style of PIMD is performed.  A
-value of <I>pimd</I> is standard PIMD.  A value of <I>nmpimd</I> is for
-normal-mode PIMD.  A value of <I>cmd</I> is for centroid molecular dynamics
-(CMD).  The difference between the styles is as follows.
-</P>
-<P>In standard PIMD, the value used for a bead's fictitious mass is
+other time integration fix should be used.</p>
+</div>
+<p>The <em>method</em> keyword determines what style of PIMD is performed.  A
+value of <em>pimd</em> is standard PIMD.  A value of <em>nmpimd</em> is for
+normal-mode PIMD.  A value of <em>cmd</em> is for centroid molecular dynamics
+(CMD).  The difference between the styles is as follows.</p>
+<p>In standard PIMD, the value used for a bead&#8217;s fictitious mass is
 arbitrary.  A common choice is to use Mi = m/P, which results in the
 mass of the entire ring-polymer being equal to the real quantum
 particle.  But it can be difficult to efficiently integrate the
 equations of motion for the stiff harmonic interactions in the ring
-polymers.
-</P>
-<P>A useful way to resolve this issue is to integrate the equations of
+polymers.</p>
+<p>A useful way to resolve this issue is to integrate the equations of
 motion in a normal mode representation, using Normal Mode
-Path-Integral Molecular Dynamics (NMPIMD) <A HREF = "#Cao1">(Cao1)</A>.  In NMPIMD,
+Path-Integral Molecular Dynamics (NMPIMD) <a class="reference internal" href="#cao1"><span>(Cao1)</span></a>.  In NMPIMD,
 the NH chains are attached to each normal mode of the ring-polymer and
 the fictitious mass of each mode is chosen as Mk = the eigenvalue of
-the Kth normal mode for k > 0. The k = 0 mode, referred to as the
+the Kth normal mode for k &gt; 0. The k = 0 mode, referred to as the
 zero-frequency mode or centroid, corresponds to overall translation of
-the ring-polymer and is assigned the mass of the real particle.
-</P>
-<P>Motion of the centroid can be effectively uncoupled from the other
+the ring-polymer and is assigned the mass of the real particle.</p>
+<p>Motion of the centroid can be effectively uncoupled from the other
 normal modes by scaling the fictitious masses to achieve a partial
 adiabatic separation.  This is called a Centroid Molecular Dynamics
-(CMD) approximation <A HREF = "#Cao2">(Cao2)</A>.  The time-evolution (and resulting
+(CMD) approximation <a class="reference internal" href="#cao2"><span>(Cao2)</span></a>.  The time-evolution (and resulting
 dynamics) of the quantum particles can be used to obtain centroid time
 correlation functions, which can be further used to obtain the true
 quantum correlation function for the original system.  The CMD method
-also uses normal modes to evolve the system, except only the k > 0
-modes are thermostatted, not the centroid degrees of freedom.
-</P>
-<P>The keyword <I>fmass</I> sets a further scaling factor for the fictitious
+also uses normal modes to evolve the system, except only the k &gt; 0
+modes are thermostatted, not the centroid degrees of freedom.</p>
+<p>The keyword <em>fmass</em> sets a further scaling factor for the fictitious
 masses of beads, which can be used for the Partial Adiabatic CMD
-<A HREF = "#Hone">(Hone)</A>, or to be set as P, which results in the fictitious
-masses to be equal to the real particle masses. 
-</P>
-<P>The keyword <I>sp</I> is a scaling factor on Planck's constant, which can
+<a class="reference internal" href="#hone"><span>(Hone)</span></a>, or to be set as P, which results in the fictitious
+masses to be equal to the real particle masses.</p>
+<p>The keyword <em>sp</em> is a scaling factor on Planck&#8217;s constant, which can
 be useful for debugging or other purposes.  The default value of 1.0
-is appropriate for most situations.
-</P>
-<P>The PIMD algorithm in LAMMPS is implemented as a hyper-parallel scheme
-as described in <A HREF = "#Calhoun">(Calhoun)</A>.  In LAMMPS this is done by using
-<A HREF = "Section_howto.html#howto_5">multi-replica feature</A> in LAMMPS, where
+is appropriate for most situations.</p>
+<p>The PIMD algorithm in LAMMPS is implemented as a hyper-parallel scheme
+as described in <a class="reference internal" href="#calhoun"><span>(Calhoun)</span></a>.  In LAMMPS this is done by using
+<a class="reference internal" href="Section_howto.html#howto-5"><span>multi-replica feature</span></a> in LAMMPS, where
 each quasi-particle system is stored and simulated on a separate
 partition of processors.  The following diagram illustrates this
 approach.  The original system with 2 ring polymers is shown in red.
 Since each ring has 4 quasi-beads (imaginary time slices), there are 4
 replicas of the system, each running on one of the 4 partitions of
 processors.  Each replica (shown in green) owns one quasi-bead in each
-ring.
-</P>
-<CENTER><IMG SRC = "JPG/pimd.jpg">
-</CENTER>
-<P>To run a PIMD simulation with M quasi-beads in each ring polymer using
-N MPI tasks for each partition's domain-decomposition, you would use P
-= MxN processors (cores) and run the simulation as follows:
-</P>
-<PRE>mpirun -np P lmp_mpi -partition MxN -in script 
-</PRE>
-<P>Note that in the LAMMPS input script for a multi-partition simulation,
-it is often very useful to define a <A HREF = "variable.html">uloop-style
-variable</A> such as
-</P>
-<PRE>variable ibead uloop M pad 
-</PRE>
-<P>where M is the number of quasi-beads (partitions) used in the
+ring.</p>
+<img alt="_images/pimd.jpg" class="align-center" src="_images/pimd.jpg" />
+<p>To run a PIMD simulation with M quasi-beads in each ring polymer using
+N MPI tasks for each partition&#8217;s domain-decomposition, you would use P
+= MxN processors (cores) and run the simulation as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre>mpirun -np P lmp_mpi -partition MxN -in script
+</pre></div>
+</div>
+<p>Note that in the LAMMPS input script for a multi-partition simulation,
+it is often very useful to define a <a class="reference internal" href="variable.html"><em>uloop-style variable</em></a> such as</p>
+<div class="highlight-python"><div class="highlight"><pre>variable ibead uloop M pad
+</pre></div>
+</div>
+<p>where M is the number of quasi-beads (partitions) used in the
 calculation.  The uloop variable can then be used to manage I/O
-related tasks for each of the partitions, e.g.
-</P>
-<PRE>dump dcd all dcd 10 system_${ibead}.dcd
+related tasks for each of the partitions, e.g.</p>
+<div class="highlight-python"><div class="highlight"><pre>dump dcd all dcd 10 system_${ibead}.dcd
 restart 1000 system_${ibead}.restart1 system_${ibead}.restart2
-read_restart system_${ibead}.restart2 
-</PRE>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.  
-</P>
-<P>A PIMD simulation can be initialized with a single data file read via
-the <A HREF = "read_data.html">read_data</A> command.  However, this means all
+read_restart system_${ibead}.restart2
+</pre></div>
+</div>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>A PIMD simulation can be initialized with a single data file read via
+the <a class="reference internal" href="read_data.html"><em>read_data</em></a> command.  However, this means all
 quasi-beads in a ring polymer will have identical positions and
 velocities, resulting in identical trajectories for all quasi-beads.
 To avoid this, users can simply initialize velocities with different
 random number seeds assigned to each partition, as defined by the
-uloop variable, e.g.
-</P>
-<PRE>velocity all create 300.0 1234${ibead} rot yes dist gaussian 
-</PRE>
-<P><B>Default:</B>
-</P>
-<P>The keyword defaults are method = pimd, fmass = 1.0, sp = 1.0, temp = 300.0,
-and nhc = 2.
-</P>
-<HR>
+uloop variable, e.g.</p>
+<div class="highlight-python"><div class="highlight"><pre>velocity all create 300.0 1234${ibead} rot yes dist gaussian
+</pre></div>
+</div>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The keyword defaults are method = pimd, fmass = 1.0, sp = 1.0, temp = 300.0,
+and nhc = 2.</p>
+<hr class="docutils" />
+<p id="feynman"><strong>(Feynman)</strong> R. Feynman and A. Hibbs, Chapter 7, Quantum Mechanics and
+Path Integrals, McGraw-Hill, New York (1965).</p>
+<p id="tuckerman"><strong>(Tuckerman)</strong> M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).</p>
+<p id="cao1"><strong>(Cao1)</strong> J. Cao and B. Berne, J Chem Phys, 99, 2902 (1993).</p>
+<p id="cao2"><strong>(Cao2)</strong> J. Cao and G. Voth, J Chem Phys, 100, 5093 (1994).</p>
+<p id="hone"><strong>(Hone)</strong> T. Hone, P. Rossky, G. Voth, J Chem Phys, 124,
+154103 (2006).</p>
+<p id="calhoun"><strong>(Calhoun)</strong> A. Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262,
+415 (1996).</p>
+</div>
+</div>
 
-<A NAME = "Feynman"></A>
 
-<P><B>(Feynman)</B> R. Feynman and A. Hibbs, Chapter 7, Quantum Mechanics and
-Path Integrals, McGraw-Hill, New York (1965).
-</P>
-<A NAME = "Tuckerman"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(Tuckerman)</B> M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).
-</P>
-<A NAME = "Cao1"></A>
+  <hr/>
 
-<P><B>(Cao1)</B> J. Cao and B. Berne, J Chem Phys, 99, 2902 (1993).
-</P>
-<A NAME = "Cao2"></A>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-<P><B>(Cao2)</B> J. Cao and G. Voth, J Chem Phys, 100, 5093 (1994).
-</P>
-<A NAME = "Hone"></A>
+</footer>
 
-<P><B>(Hone)</B> T. Hone, P. Rossky, G. Voth, J Chem Phys, 124,
-154103 (2006).
-</P>
-<A NAME = "Calhoun"></A>
+        </div>
+      </div>
 
-<P><B>(Calhoun)</B> A. Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262,
-415 (1996).
-</P>
-</HTML>
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

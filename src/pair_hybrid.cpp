@@ -111,12 +111,12 @@ void PairHybrid::compute(int eflag, int vflag)
 
   double *saved_special = save_special();
 
-  Respa *respa = NULL;
   // check if we are running with r-RESPA using the hybrid keyword
+
+  Respa *respa = NULL;
   if (strstr(update->integrate_style,"respa")) {
     respa = (Respa *) update->integrate;
-    if (respa->nhybrid_styles > 0)
-      respaflag = 1;
+    if (respa->nhybrid_styles > 0) respaflag = 1;
   }
 
   for (m = 0; m < nstyles; m++) {
@@ -136,9 +136,9 @@ void PairHybrid::compute(int eflag, int vflag)
 
     restore_special(saved_special);
 
-    // jump to next sub-style if r-RESPA does not want global accumulator data
-    if (respaflag && !respa->tally_global)
-      continue;
+    // jump to next sub-style if r-RESPA does not want global accumulated data
+
+    if (respaflag && !respa->tally_global) continue;
 
     if (eflag_global) {
       eng_vdwl += styles[m]->eng_vdwl;
@@ -162,6 +162,7 @@ void PairHybrid::compute(int eflag, int vflag)
           vatom[i][j] += vatom_substyle[i][j];
     }
   }
+
   delete [] saved_special;
 
   if (vflag_fdotr) virial_fdotr_compute();
@@ -459,6 +460,7 @@ void PairHybrid::init_style()
   }
 
   // check if special_lj/special_coul overrides are compatible
+
   for (istyle = 0; istyle < nstyles; istyle++) {
     if (special_lj[istyle]) {
       for (i = 1; i < 4; ++i) {
@@ -794,10 +796,7 @@ void PairHybrid::modify_params(int narg, char **arg)
 {
   if (narg == 0) error->all(FLERR,"Illegal pair_modify command");
 
-  // if 1st keyword is pair, then apply args to one sub-style
-  // else pass args to every sub-style
-  // also apply all args (except pair) to pair hybrid itself
-  //   important for some keywords like tail or compute
+  // if 1st keyword is pair, apply other keywords to one sub-style
 
   if (strcmp(arg[0],"pair") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal pair_modify command");
@@ -805,41 +804,39 @@ void PairHybrid::modify_params(int narg, char **arg)
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[1],keywords[m]) == 0) break;
     if (m == nstyles) error->all(FLERR,"Unknown pair_modify hybrid sub-style");
-    if (multiple[m] == 0) {
-      // augment special settings for this one pair style
-      if (strcmp(arg[2],"special") == 0) {
-        if (narg < 7) error->all(FLERR,"Illegal pair_modify special command");
-        modify_special(m,narg-3,&arg[3]);
-      } else {
-        Pair::modify_params(narg-2,&arg[2]);
-        styles[m]->modify_params(narg-2,&arg[2]);
-      }
-    } else {
+    int iarg = 2;
+
+    if (multiple[m]) {
       if (narg < 3) error->all(FLERR,"Illegal pair_modify command");
       int multiflag = force->inumeric(FLERR,arg[2]);
       for (m = 0; m < nstyles; m++)
         if (strcmp(arg[1],keywords[m]) == 0 && multiflag == multiple[m]) break;
       if (m == nstyles) 
         error->all(FLERR,"Unknown pair_modify hybrid sub-style");
-      // augment special settings for this one pair style
-      if (strcmp(arg[3],"special") == 0) {
-        if (narg < 8) error->all(FLERR,"Illegal pair_modify special command");
-        modify_special(m,narg-4,&arg[4]);
-      } else {
-        Pair::modify_params(narg-3,&arg[3]);
-        styles[m]->modify_params(narg-3,&arg[3]);
-      }
+      iarg = 3;
     }
-    
+
+    // if 2nd keyword (after pair) is special:
+    // invoke modify_special() for the sub-style
+
+    if (iarg < narg && strcmp(arg[iarg],"special") == 0) {
+      if (iarg+4 < narg) 
+        error->all(FLERR,"Illegal pair_modify special command");
+      modify_special(m,narg-iarg,&arg[iarg]);
+      iarg += 4;
+    }
+
+    // apply all keywords (except pair and special) to pair hybrid itself
+    // important for some keywords like tail or compute
+
+    Pair::modify_params(narg-iarg,&arg[iarg]);
+    styles[m]->modify_params(narg-iarg,&arg[iarg]);
+
+  // apply all keywords to pair hybrid itself and every sub-style
+
   } else {
-    // augment special settings for all pair styles
-    if (strcmp(arg[0],"special") == 0) {
-      if (narg < 5) error->all(FLERR,"Illegal pair_modify special command");
-      for (int m = 0; m < nstyles; m++) modify_special(m,narg-1,&arg[1]);
-    } else {
-      Pair::modify_params(narg,arg);
-      for (int m = 0; m < nstyles; m++) styles[m]->modify_params(narg,arg);
-    }
+    Pair::modify_params(narg,arg);
+    for (int m = 0; m < nstyles; m++) styles[m]->modify_params(narg,arg);
   }
 }
 
@@ -879,13 +876,12 @@ void PairHybrid::modify_special(int m, int narg, char **arg)
 /* ----------------------------------------------------------------------
    override global special bonds settings with per substyle values
 ------------------------------------------------------------------------- */
+
 void PairHybrid::set_special(int m)
 {
   int i;
-
   if (special_lj[m])
     for (i = 0; i < 4; ++i) force->special_lj[i] = special_lj[m][i];
-
   if (special_coul[m])
     for (i = 0; i < 4; ++i) force->special_coul[i] = special_coul[m][i];
 }
@@ -893,6 +889,7 @@ void PairHybrid::set_special(int m)
 /* ----------------------------------------------------------------------
    store global special settings
 ------------------------------------------------------------------------- */
+
 double * PairHybrid::save_special()
 {
   double *saved = new double[8];
@@ -907,6 +904,7 @@ double * PairHybrid::save_special()
 /* ----------------------------------------------------------------------
    restore global special settings from saved data
 ------------------------------------------------------------------------- */
+
 void PairHybrid::restore_special(double *saved)
 {
   for (int i = 0; i < 4; ++i) {

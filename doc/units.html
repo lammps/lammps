@@ -1,223 +1,401 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>units command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>units command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>units style 
-</PRE>
-<UL><LI>style = <I>lj</I> or <I>real</I> or <I>metal</I> or <I>si</I> or <I>cgs</I> or <I>electron</I> or <I>micro</I> or <I>nano</I> 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>units metal
-units lj 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This command sets the style of units used for a simulation.  It
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>units command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="units-command">
+<span id="index-0"></span><h1>units command<a class="headerlink" href="#units-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>units style
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>lj</em> or <em>real</em> or <em>metal</em> or <em>si</em> or <em>cgs</em> or <em>electron</em> or <em>micro</em> or <em>nano</em></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>units metal
+units lj
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command sets the style of units used for a simulation.  It
 determines the units of all quantities specified in the input script
 and data file, as well as quantities output to the screen, log file,
 and dump files.  Typically, this command is used at the very beginning
-of an input script.
-</P>
-<P>For all units except <I>lj</I>, LAMMPS uses physical constants from
+of an input script.</p>
+<p>For all units except <em>lj</em>, LAMMPS uses physical constants from
 www.physics.nist.gov.  For the definition of Kcal in real units,
-LAMMPS uses the thermochemical calorie = 4.184 J.
-</P>
-<P>The choice you make for units simply sets some internal conversion
+LAMMPS uses the thermochemical calorie = 4.184 J.</p>
+<p>The choice you make for units simply sets some internal conversion
 factors within LAMMPS.  This means that any simulation you perform for
 one choice of units can be duplicated with any other unit setting
-LAMMPS supports.  In this context "duplicate" means the particles will
+LAMMPS supports.  In this context &#8220;duplicate&#8221; means the particles will
 have identical trajectories and all output generated by the simulation
 will be identical.  This will be the case for some number of timesteps
 until round-off effects accumulate, since the conversion factors for
-two different unit systems are not identical to infinite precision.
-</P>
-<P>To perform the same simulation in a different set of units you must
+two different unit systems are not identical to infinite precision.</p>
+<p>To perform the same simulation in a different set of units you must
 change all the unit-based input parameters in your input script and
 other input files (data file, potential files, etc) correctly to the
 new units.  And you must correctly convert all output from the new
 units to the old units when comparing to the original results.  That
-is often not simple to do.
-</P>
-<HR>
-
-<P>For style <I>lj</I>, all quantities are unitless.  Without loss of
+is often not simple to do.</p>
+<hr class="docutils" />
+<p>For style <em>lj</em>, all quantities are unitless.  Without loss of
 generality, LAMMPS sets the fundamental quantities mass, sigma,
 epsilon, and the Boltzmann constant = 1.  The masses, distances,
 energies you specify are multiples of these fundamental values.  The
 formulas relating the reduced or unitless quantity (with an asterisk)
 to the same quantity with units is also given.  Thus you can use the
-mass & sigma & epsilon values for a specific material and convert the
-results from a unitless LJ simulation into physical quantities.
-</P>
-<UL><LI>mass = mass or m
-<LI>distance = sigma, where x* = x / sigma
-<LI>time = tau, where t* = t (epsilon / m / sigma^2)^1/2
-<LI>energy = epsilon, where E* = E / epsilon
-<LI>velocity = sigma/tau, where v* = v tau / sigma
-<LI>force = epsilon/sigma, where f* = f sigma / epsilon
-<LI>torque = epsilon, where t* = t / epsilon
-<LI>temperature = reduced LJ temperature, where T* = T Kb / epsilon
-<LI>pressure = reduced LJ pressure, where P* = P sigma^3 / epsilon
-<LI>dynamic viscosity = reduced LJ viscosity, where eta* = eta sigma^3 / epsilon / tau
-<LI>charge = reduced LJ charge, where q* = q / (4 pi perm0 sigma epsilon)^1/2
-<LI>dipole = reduced LJ dipole, moment where *mu = mu / (4 pi perm0 sigma^3 epsilon)^1/2
-<LI>electric field = force/charge, where E* = E (4 pi perm0 sigma epsilon)^1/2 sigma / epsilon 
-<LI>density = mass/volume, where rho* = rho sigma^dim 
-</UL>
-<P>Note that for LJ units, the default mode of thermodyamic output via
-the <A HREF = "thermo_style.html">thermo_style</A> command is to normalize energies
+mass &amp; sigma &amp; epsilon values for a specific material and convert the
+results from a unitless LJ simulation into physical quantities.</p>
+<ul class="simple">
+<li>mass = mass or m</li>
+<li>distance = sigma, where x* = x / sigma</li>
+<li>time = tau, where t* = t (epsilon / m / sigma^2)^1/2</li>
+<li>energy = epsilon, where E* = E / epsilon</li>
+<li>velocity = sigma/tau, where v* = v tau / sigma</li>
+<li>force = epsilon/sigma, where f* = f sigma / epsilon</li>
+<li>torque = epsilon, where t* = t / epsilon</li>
+<li>temperature = reduced LJ temperature, where T* = T Kb / epsilon</li>
+<li>pressure = reduced LJ pressure, where P* = P sigma^3 / epsilon</li>
+<li>dynamic viscosity = reduced LJ viscosity, where eta* = eta sigma^3 / epsilon / tau</li>
+<li>charge = reduced LJ charge, where q* = q / (4 pi perm0 sigma epsilon)^1/2</li>
+<li>dipole = reduced LJ dipole, moment where <a href="#id1"><span class="problematic" id="id2">*</span></a>mu = mu / (4 pi perm0 sigma^3 epsilon)^1/2</li>
+<li>electric field = force/charge, where E* = E (4 pi perm0 sigma epsilon)^1/2 sigma / epsilon</li>
+<li>density = mass/volume, where rho* = rho sigma^dim</li>
+</ul>
+<p>Note that for LJ units, the default mode of thermodyamic output via
+the <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command is to normalize energies
 by the number of atoms, i.e. energy/atom.  This can be changed via the
-<A HREF = "thermo_modify.html">thermo_modify norm</A> command.
-</P>
-<P>For style <I>real</I>, these are the units:
-</P>
-<UL><LI>mass = grams/mole
-<LI>distance = Angstroms
-<LI>time = femtoseconds
-<LI>energy = Kcal/mole 
-<LI>velocity = Angstroms/femtosecond 
-<LI>force = Kcal/mole-Angstrom
-<LI>torque = Kcal/mole
-<LI>temperature = Kelvin
-<LI>pressure = atmospheres
-<LI>dynamic viscosity = Poise
-<LI>charge = multiple of electron charge (1.0 is a proton)
-<LI>dipole = charge*Angstroms
-<LI>electric field = volts/Angstrom 
-<LI>density = gram/cm^dim 
-</UL>
-<P>For style <I>metal</I>, these are the units:
-</P>
-<UL><LI>mass = grams/mole
-<LI>distance = Angstroms
-<LI>time = picoseconds
-<LI>energy = eV
-<LI>velocity = Angstroms/picosecond 
-<LI>force = eV/Angstrom
-<LI>torque = eV
-<LI>temperature = Kelvin
-<LI>pressure = bars
-<LI>dynamic viscosity = Poise
-<LI>charge = multiple of electron charge (1.0 is a proton)
-<LI>dipole = charge*Angstroms
-<LI>electric field = volts/Angstrom
-<LI>density = gram/cm^dim 
-</UL>
-<P>For style <I>si</I>, these are the units:
-</P>
-<UL><LI>mass = kilograms
-<LI>distance = meters
-<LI>time = seconds
-<LI>energy = Joules
-<LI>velocity = meters/second
-<LI>force = Newtons
-<LI>torque = Newton-meters
-<LI>temperature = Kelvin
-<LI>pressure = Pascals
-<LI>dynamic viscosity = Pascal*second
-<LI>charge = Coulombs (1.6021765e-19 is a proton)
-<LI>dipole = Coulombs*meters
-<LI>electric field = volts/meter 
-<LI>density = kilograms/meter^dim 
-</UL>
-<P>For style <I>cgs</I>, these are the units:
-</P>
-<UL><LI>mass = grams
-<LI>distance = centimeters
-<LI>time = seconds
-<LI>energy = ergs
-<LI>velocity = centimeters/second
-<LI>force = dynes
-<LI>torque = dyne-centimeters
-<LI>temperature = Kelvin
-<LI>pressure = dyne/cm^2 or barye = 1.0e-6 bars
-<LI>dynamic viscosity = Poise
-<LI>charge = statcoulombs or esu (4.8032044e-10 is a proton)
-<LI>dipole = statcoul-cm = 10^18 debye
-<LI>electric field = statvolt/cm or dyne/esu 
-<LI>density = grams/cm^dim 
-</UL>
-<P>For style <I>electron</I>, these are the units:
-</P>
-<UL><LI>mass = atomic mass units
-<LI>distance = Bohr
-<LI>time = femtoseconds
-<LI>energy = Hartrees
-<LI>velocity = Bohr/atomic time units [1.03275e-15 seconds]
-<LI>force = Hartrees/Bohr
-<LI>temperature = Kelvin
-<LI>pressure = Pascals
-<LI>charge = multiple of electron charge (1.0 is a proton)
-<LI>dipole moment = Debye
-<LI>electric field = volts/cm 
-</UL>
-<P>For style <I>micro</I>, these are the units:
-</P>
-<UL><LI>mass = picograms
-<LI>distance = micrometers
-<LI>time = microseconds
-<LI>energy = picogram-micrometer^2/microsecond^2
-<LI>velocity = micrometers/microsecond
-<LI>force = picogram-micrometer/microsecond^2
-<LI>torque = picogram-micrometer^2/microsecond^2
-<LI>temperature = Kelvin
-<LI>pressure = picogram/(micrometer-microsecond^2)
-<LI>dynamic viscosity = picogram/(micrometer-microsecond)
-<LI>charge = picocoulombs (1.6021765e-7 is a proton)
-<LI>dipole = picocoulomb-micrometer
-<LI>electric field = volt/micrometer 
-<LI>density = picograms/micrometer^dim 
-</UL>
-<P>For style <I>nano</I>, these are the units:
-</P>
-<UL><LI>mass = attograms
-<LI>distance = nanometers
-<LI>time = nanoseconds
-<LI>energy = attogram-nanometer^2/nanosecond^2
-<LI>velocity = nanometers/nanosecond
-<LI>force = attogram-nanometer/nanosecond^2
-<LI>torque = attogram-nanometer^2/nanosecond^2
-<LI>temperature = Kelvin
-<LI>pressure = attogram/(nanometer-nanosecond^2)
-<LI>dynamic viscosity = attogram/(nanometer-nanosecond)
-<LI>charge = multiple of electron charge (1.0 is a proton)
-<LI>dipole = charge-nanometer
-<LI>electric field = volt/nanometer 
-<LI>density = attograms/nanometer^dim 
-</UL>
-<P>The units command also sets the timestep size and neighbor skin
-distance to default values for each style:
-</P>
-<UL><LI>For style <I>lj</I> these are dt = 0.005 tau and skin = 0.3 sigma.
-<LI>For style <I>real</I> these are dt = 1.0 fmsec and skin = 2.0 Angstroms.
-<LI>For style <I>metal</I> these are dt = 0.001 psec and skin = 2.0 Angstroms.
-<LI>For style <I>si</I> these are dt = 1.0e-8 sec and skin = 0.001 meters.
-<LI>For style <I>cgs</I> these are dt = 1.0e-8 sec and skin = 0.1 cm.
-<LI>For style <I>electron</I> these are dt = 0.001 fmsec and skin = 2.0 Bohr. 
-<LI>For style <I>micro</I> these are dt = 2.0 microsec and skin = 0.1 micrometers.
-<LI>For style <I>nano</I> these are dt = 0.00045 nanosec and skin = 0.1 nanometers. 
-</UL>
-<P><B>Restrictions:</B>
-</P>
-<P>This command cannot be used after the simulation box is defined by a
-<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
-</P>
-<P><B>Related commands:</B> none
-</P>
-<P><B>Default:</B>
-</P>
-<PRE>units lj 
-</PRE>
-</HTML>
+<a class="reference internal" href="thermo_modify.html"><em>thermo_modify norm</em></a> command.</p>
+<p>For style <em>real</em>, these are the units:</p>
+<ul class="simple">
+<li>mass = grams/mole</li>
+<li>distance = Angstroms</li>
+<li>time = femtoseconds</li>
+<li>energy = Kcal/mole</li>
+<li>velocity = Angstroms/femtosecond</li>
+<li>force = Kcal/mole-Angstrom</li>
+<li>torque = Kcal/mole</li>
+<li>temperature = Kelvin</li>
+<li>pressure = atmospheres</li>
+<li>dynamic viscosity = Poise</li>
+<li>charge = multiple of electron charge (1.0 is a proton)</li>
+<li>dipole = charge*Angstroms</li>
+<li>electric field = volts/Angstrom</li>
+<li>density = gram/cm^dim</li>
+</ul>
+<p>For style <em>metal</em>, these are the units:</p>
+<ul class="simple">
+<li>mass = grams/mole</li>
+<li>distance = Angstroms</li>
+<li>time = picoseconds</li>
+<li>energy = eV</li>
+<li>velocity = Angstroms/picosecond</li>
+<li>force = eV/Angstrom</li>
+<li>torque = eV</li>
+<li>temperature = Kelvin</li>
+<li>pressure = bars</li>
+<li>dynamic viscosity = Poise</li>
+<li>charge = multiple of electron charge (1.0 is a proton)</li>
+<li>dipole = charge*Angstroms</li>
+<li>electric field = volts/Angstrom</li>
+<li>density = gram/cm^dim</li>
+</ul>
+<p>For style <em>si</em>, these are the units:</p>
+<ul class="simple">
+<li>mass = kilograms</li>
+<li>distance = meters</li>
+<li>time = seconds</li>
+<li>energy = Joules</li>
+<li>velocity = meters/second</li>
+<li>force = Newtons</li>
+<li>torque = Newton-meters</li>
+<li>temperature = Kelvin</li>
+<li>pressure = Pascals</li>
+<li>dynamic viscosity = Pascal*second</li>
+<li>charge = Coulombs (1.6021765e-19 is a proton)</li>
+<li>dipole = Coulombs*meters</li>
+<li>electric field = volts/meter</li>
+<li>density = kilograms/meter^dim</li>
+</ul>
+<p>For style <em>cgs</em>, these are the units:</p>
+<ul class="simple">
+<li>mass = grams</li>
+<li>distance = centimeters</li>
+<li>time = seconds</li>
+<li>energy = ergs</li>
+<li>velocity = centimeters/second</li>
+<li>force = dynes</li>
+<li>torque = dyne-centimeters</li>
+<li>temperature = Kelvin</li>
+<li>pressure = dyne/cm^2 or barye = 1.0e-6 bars</li>
+<li>dynamic viscosity = Poise</li>
+<li>charge = statcoulombs or esu (4.8032044e-10 is a proton)</li>
+<li>dipole = statcoul-cm = 10^18 debye</li>
+<li>electric field = statvolt/cm or dyne/esu</li>
+<li>density = grams/cm^dim</li>
+</ul>
+<p>For style <em>electron</em>, these are the units:</p>
+<ul class="simple">
+<li>mass = atomic mass units</li>
+<li>distance = Bohr</li>
+<li>time = femtoseconds</li>
+<li>energy = Hartrees</li>
+<li>velocity = Bohr/atomic time units [1.03275e-15 seconds]</li>
+<li>force = Hartrees/Bohr</li>
+<li>temperature = Kelvin</li>
+<li>pressure = Pascals</li>
+<li>charge = multiple of electron charge (1.0 is a proton)</li>
+<li>dipole moment = Debye</li>
+<li>electric field = volts/cm</li>
+</ul>
+<p>For style <em>micro</em>, these are the units:</p>
+<ul class="simple">
+<li>mass = picograms</li>
+<li>distance = micrometers</li>
+<li>time = microseconds</li>
+<li>energy = picogram-micrometer^2/microsecond^2</li>
+<li>velocity = micrometers/microsecond</li>
+<li>force = picogram-micrometer/microsecond^2</li>
+<li>torque = picogram-micrometer^2/microsecond^2</li>
+<li>temperature = Kelvin</li>
+<li>pressure = picogram/(micrometer-microsecond^2)</li>
+<li>dynamic viscosity = picogram/(micrometer-microsecond)</li>
+<li>charge = picocoulombs (1.6021765e-7 is a proton)</li>
+<li>dipole = picocoulomb-micrometer</li>
+<li>electric field = volt/micrometer</li>
+<li>density = picograms/micrometer^dim</li>
+</ul>
+<p>For style <em>nano</em>, these are the units:</p>
+<ul class="simple">
+<li>mass = attograms</li>
+<li>distance = nanometers</li>
+<li>time = nanoseconds</li>
+<li>energy = attogram-nanometer^2/nanosecond^2</li>
+<li>velocity = nanometers/nanosecond</li>
+<li>force = attogram-nanometer/nanosecond^2</li>
+<li>torque = attogram-nanometer^2/nanosecond^2</li>
+<li>temperature = Kelvin</li>
+<li>pressure = attogram/(nanometer-nanosecond^2)</li>
+<li>dynamic viscosity = attogram/(nanometer-nanosecond)</li>
+<li>charge = multiple of electron charge (1.0 is a proton)</li>
+<li>dipole = charge-nanometer</li>
+<li>electric field = volt/nanometer</li>
+<li>density = attograms/nanometer^dim</li>
+</ul>
+<p>The units command also sets the timestep size and neighbor skin
+distance to default values for each style:</p>
+<ul class="simple">
+<li>For style <em>lj</em> these are dt = 0.005 tau and skin = 0.3 sigma.</li>
+<li>For style <em>real</em> these are dt = 1.0 fmsec and skin = 2.0 Angstroms.</li>
+<li>For style <em>metal</em> these are dt = 0.001 psec and skin = 2.0 Angstroms.</li>
+<li>For style <em>si</em> these are dt = 1.0e-8 sec and skin = 0.001 meters.</li>
+<li>For style <em>cgs</em> these are dt = 1.0e-8 sec and skin = 0.1 cm.</li>
+<li>For style <em>electron</em> these are dt = 0.001 fmsec and skin = 2.0 Bohr.</li>
+<li>For style <em>micro</em> these are dt = 2.0 microsec and skin = 0.1 micrometers.</li>
+<li>For style <em>nano</em> these are dt = 0.00045 nanosec and skin = 0.1 nanometers.</li>
+</ul>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This command cannot be used after the simulation box is defined by a
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> or <a class="reference internal" href="create_box.html"><em>create_box</em></a> command.</p>
+<p><strong>Related commands:</strong> none</p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>units lj
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

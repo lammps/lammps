@@ -1,34 +1,153 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>compute command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>compute ID group-ID style args 
-</PRE>
-<UL><LI>ID = user-assigned name for the computation
-<LI>group-ID = ID of the group of atoms to perform the computation on
-<LI>style = one of a list of possible style names (see below)
-<LI>args = arguments used by a particular style 
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>compute 1 all temp
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-command">
+<span id="index-0"></span><h1>compute command<a class="headerlink" href="#compute-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute ID group-ID style args
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID = user-assigned name for the computation</li>
+<li>group-ID = ID of the group of atoms to perform the computation on</li>
+<li>style = one of a list of possible style names (see below)</li>
+<li>args = arguments used by a particular style</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>compute 1 all temp
 compute newtemp flow temp/partial 1 1 0
-compute 3 all ke/atom 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Define a computation that will be performed on a group of atoms.
+compute 3 all ke/atom
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that will be performed on a group of atoms.
 Quantities calculated by a compute are instantaneous values, meaning
 they are calculated from information about atoms on the current
 timestep or iteration, though a compute may internally store some
@@ -36,15 +155,12 @@ information about a previous state of the system.  Defining a compute
 does not perform a computation.  Instead computes are invoked by other
 LAMMPS commands as needed, e.g. to calculate a temperature needed for
 a thermostat fix or to generate thermodynamic or dump file output.
-See this <A HREF = "Section_howto.html#howto_15">howto section</A> for a summary of
-various LAMMPS output options, many of which involve computes.
-</P>
-<P>The ID of a compute can only contain alphanumeric characters and
-underscores.
-</P>
-<HR>
-
-<P>Computes calculate one of three styles of quantities: global,
+See this <a class="reference internal" href="Section_howto.html#howto-15"><span>howto section</span></a> for a summary of
+various LAMMPS output options, many of which involve computes.</p>
+<p>The ID of a compute can only contain alphanumeric characters and
+underscores.</p>
+<hr class="docutils" />
+<p>Computes calculate one of three styles of quantities: global,
 per-atom, or local.  A global quantity is one or more system-wide
 values, e.g. the temperature of the system.  A per-atom quantity is
 one or more values per atom, e.g. the kinetic energy of each atom.
@@ -52,215 +168,259 @@ Per-atom values are set to 0.0 for atoms not in the specified compute
 group.  Local quantities are calculated by each processor based on the
 atoms it owns, but there may be zero or more per atom, e.g. a list of
 bond distances.  Computes that produce per-atom quantities have the
-word "atom" in their style, e.g. <I>ke/atom</I>.  Computes that produce
-local quantities have the word "local" in their style,
-e.g. <I>bond/local</I>.  Styles with neither "atom" or "local" in their
-style produce global quantities.
-</P>
-<P>Note that a single compute produces either global or per-atom or local
-quantities, but never more than one of these.
-</P>
-<P>Global, per-atom, and local quantities each come in three kinds: a
+word &#8220;atom&#8221; in their style, e.g. <em>ke/atom</em>.  Computes that produce
+local quantities have the word &#8220;local&#8221; in their style,
+e.g. <em>bond/local</em>.  Styles with neither &#8220;atom&#8221; or &#8220;local&#8221; in their
+style produce global quantities.</p>
+<p>Note that a single compute produces either global or per-atom or local
+quantities, but never more than one of these.</p>
+<p>Global, per-atom, and local quantities each come in three kinds: a
 single scalar value, a vector of values, or a 2d array of values.  The
 doc page for each compute describes the style and kind of values it
 produces, e.g. a per-atom vector.  Some computes produce more than one
-kind of a single style, e.g. a global scalar and a global vector.
-</P>
-<P>When a compute quantity is accessed, as in many of the output commands
+kind of a single style, e.g. a global scalar and a global vector.</p>
+<p>When a compute quantity is accessed, as in many of the output commands
 discussed below, it can be referenced via the following bracket
-notation, where ID is the ID of the compute:
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD >c_ID </TD><TD > entire scalar, vector, or array</TD></TR>
-<TR><TD >c_ID[I] </TD><TD > one element of vector, one column of array</TD></TR>
-<TR><TD >c_ID[I][J] </TD><TD > one element of array 
-</TD></TR></TABLE></DIV>
-
-<P>In other words, using one bracket reduces the dimension of the
-quantity once (vector -> scalar, array -> vector).  Using two brackets
-reduces the dimension twice (array -> scalar).  Thus a command that
+notation, where ID is the ID of the compute:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>c_ID</td>
+<td>entire scalar, vector, or array</td>
+</tr>
+<tr class="row-even"><td>c_ID[I]</td>
+<td>one element of vector, one column of array</td>
+</tr>
+<tr class="row-odd"><td>c_ID[I][J]</td>
+<td>one element of array</td>
+</tr>
+</tbody>
+</table>
+<p>In other words, using one bracket reduces the dimension of the
+quantity once (vector -&gt; scalar, array -&gt; vector).  Using two brackets
+reduces the dimension twice (array -&gt; scalar).  Thus a command that
 uses scalar compute values as input can also process elements of a
-vector or array.
-</P>
-<P>Note that commands and <A HREF = "variable.html">variables</A> which use compute
+vector or array.</p>
+<p>Note that commands and <a class="reference internal" href="variable.html"><em>variables</em></a> which use compute
 quantities typically do not allow for all kinds, e.g. a command may
 require a vector of values, not a scalar.  This means there is no
 ambiguity about referring to a compute quantity as c_ID even if it
 produces, for example, both a scalar and vector.  The doc pages for
-various commands explain the details.
-</P>
-<HR>
-
-<P>In LAMMPS, the values generated by a compute can be used in several
-ways:
-</P>
-<UL><LI>The results of computes that calculate a global temperature or
+various commands explain the details.</p>
+<hr class="docutils" />
+<p>In LAMMPS, the values generated by a compute can be used in several
+ways:</p>
+<ul class="simple">
+<li>The results of computes that calculate a global temperature or
 pressure can be used by fixes that do thermostatting or barostatting
-or when atom velocities are created. 
-
-<LI>Global values can be output via the <A HREF = "thermo_style.html">thermo_style
-custom</A> or <A HREF = "fix_ave_time.html">fix ave/time</A> command.
-Or the values can be referenced in a <A HREF = "variable.html">variable equal</A> or
-<A HREF = "variable.html">variable atom</A> command. 
-
-<LI>Per-atom values can be output via the <A HREF = "dump.html">dump custom</A> command
-or the <A HREF = "fix_ave_spatial.html">fix ave/spatial</A> command.  Or they can be
-time-averaged via the <A HREF = "fix_ave_atom.html">fix ave/atom</A> command or
-reduced by the <A HREF = "compute_reduce.html">compute reduce</A> command.  Or the
-per-atom values can be referenced in an <A HREF = "variable.html">atom-style
-variable</A>. 
-
-<LI>Local values can be reduced by the <A HREF = "compute_reduce.html">compute
-reduce</A> command, or histogrammed by the <A HREF = "fix_ave_histo.html">fix
-ave/histo</A> command, or output by the <A HREF = "dump.html">dump
-local</A> command. 
-</UL>
-<P>The results of computes that calculate global quantities can be either
-"intensive" or "extensive" values.  Intensive means the value is
+or when atom velocities are created.</li>
+<li>Global values can be output via the <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> or <a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a> command.
+Or the values can be referenced in a <a class="reference internal" href="variable.html"><em>variable equal</em></a> or
+<a class="reference internal" href="variable.html"><em>variable atom</em></a> command.</li>
+<li>Per-atom values can be output via the <a class="reference internal" href="dump.html"><em>dump custom</em></a> command
+or the <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a> command.  Or they can be
+time-averaged via the <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a> command or
+reduced by the <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a> command.  Or the
+per-atom values can be referenced in an <a class="reference internal" href="variable.html"><em>atom-style variable</em></a>.</li>
+<li>Local values can be reduced by the <a class="reference internal" href="compute_reduce.html"><em>compute reduce</em></a> command, or histogrammed by the <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a> command, or output by the <a class="reference internal" href="dump.html"><em>dump local</em></a> command.</li>
+</ul>
+<p>The results of computes that calculate global quantities can be either
+&#8220;intensive&#8221; or &#8220;extensive&#8221; values.  Intensive means the value is
 independent of the number of atoms in the simulation,
 e.g. temperature.  Extensive means the value scales with the number of
 atoms in the simulation, e.g. total rotational kinetic energy.
-<A HREF = "thermo_style.html">Thermodynamic output</A> will normalize extensive
+<a class="reference internal" href="thermo_style.html"><em>Thermodynamic output</em></a> will normalize extensive
 values by the number of atoms in the system, depending on the
-"thermo_modify norm" setting.  It will not normalize intensive values.
+&#8220;thermo_modify norm&#8221; setting.  It will not normalize intensive values.
 If a compute value is accessed in another way, e.g. by a
-<A HREF = "variable.html">variable</A>, you may want to know whether it is an
+<a class="reference internal" href="variable.html"><em>variable</em></a>, you may want to know whether it is an
 intensive or extensive value.  See the doc page for individual
-computes for further info.
-</P>
-<HR>
-
-<P>LAMMPS creates its own computes internally for thermodynamic output.
-Three computes are always created, named "thermo_temp",
-"thermo_press", and "thermo_pe", as if these commands had been invoked
-in the input script:
-</P>
-<PRE>compute thermo_temp all temp
+computes for further info.</p>
+<hr class="docutils" />
+<p>LAMMPS creates its own computes internally for thermodynamic output.
+Three computes are always created, named &#8220;thermo_temp&#8221;,
+&#8220;thermo_press&#8221;, and &#8220;thermo_pe&#8221;, as if these commands had been invoked
+in the input script:</p>
+<div class="highlight-python"><div class="highlight"><pre>compute thermo_temp all temp
 compute thermo_press all pressure thermo_temp
-compute thermo_pe all pe 
-</PRE>
-<P>Additional computes for other quantities are created if the thermo
+compute thermo_pe all pe
+</pre></div>
+</div>
+<p>Additional computes for other quantities are created if the thermo
 style requires it.  See the documentation for the
-<A HREF = "thermo_style.html">thermo_style</A> command.
-</P>
-<P>Fixes that calculate temperature or pressure, i.e. for thermostatting
+<a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command.</p>
+<p>Fixes that calculate temperature or pressure, i.e. for thermostatting
 or barostatting, may also create computes.  These are discussed in the
-documentation for specific <A HREF = "fix.html">fix</A> commands.
-</P>
-<P>In all these cases, the default computes LAMMPS creates can be
+documentation for specific <a class="reference internal" href="fix.html"><em>fix</em></a> commands.</p>
+<p>In all these cases, the default computes LAMMPS creates can be
 replaced by computes defined by the user in the input script, as
-described by the <A HREF = "thermo_modify.html">thermo_modify</A> and <A HREF = "fix_modify.html">fix
-modify</A> commands.
-</P>
-<P>Properties of either a default or user-defined compute can be modified
-via the <A HREF = "compute_modify.html">compute_modify</A> command.
-</P>
-<P>Computes can be deleted with the <A HREF = "uncompute.html">uncompute</A> command.
-</P>
-<P>Code for new computes can be added to LAMMPS (see <A HREF = "Section_modify.html">this
-section</A> of the manual) and the results of their
-calculations accessed in the various ways described above.
-</P>
-<HR>
-
-<P>Each compute style has its own doc page which describes its arguments
+described by the <a class="reference internal" href="thermo_modify.html"><em>thermo_modify</em></a> and <a class="reference internal" href="fix_modify.html"><em>fix modify</em></a> commands.</p>
+<p>Properties of either a default or user-defined compute can be modified
+via the <a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a> command.</p>
+<p>Computes can be deleted with the <a class="reference internal" href="uncompute.html"><em>uncompute</em></a> command.</p>
+<p>Code for new computes can be added to LAMMPS (see <a class="reference internal" href="Section_modify.html"><em>this section</em></a> of the manual) and the results of their
+calculations accessed in the various ways described above.</p>
+<hr class="docutils" />
+<p>Each compute style has its own doc page which describes its arguments
 and what it does.  Here is an alphabetic list of compute styles
 available in LAMMPS.  They are also given in more compact form in the
-compute section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
-</P>
-<P>There are also additional compute styles (not listed here) submitted
+compute section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+<p>There are also additional compute styles (not listed here) submitted
 by users which are included in the LAMMPS distribution.  The list of
 these with links to the individual styles are given in the compute
-section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
-</P>
-<P>There are also additional accelerated compute styles (note listed
+section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+<p>There are also additional accelerated compute styles (note listed
 here) included in the LAMMPS distribution for faster performance on
 CPUs and GPUs.  The list of these with links to the individual styles
-are given in the compute section of <A HREF = "Section_commands.html#cmd_5">this
-page</A>.
-</P>
-<UL><LI><A HREF = "compute_bond_local.html">angle/local</A> - theta and energy of each angle
-<LI><A HREF = "compute_body_local.html">body/local</A> - attributes of body sub-particles
-<LI><A HREF = "compute_bond_local.html">bond/local</A> - distance and energy of each bond
-<LI><A HREF = "compute_centro_atom.html">centro/atom</A> - centro-symmetry parameter for each atom
-<LI><A HREF = "compute_cluster_atom.html">cluster/atom</A> - cluster ID for each atom
-<LI><A HREF = "compute_cna_atom.html">cna/atom</A> - common neighbor analysis (CNA) for each atom
-<LI><A HREF = "compute_com.html">com</A> - center-of-mass of group of atoms
-<LI><A HREF = "compute_com_chunk.html">com/chunk</A> - center-of-mass for each chunk
-<LI><A HREF = "compute_contact_atom.html">contact/atom</A> - contact count for each spherical particle
-<LI><A HREF = "compute_coord_atom.html">coord/atom</A> - coordination number for each atom
-<LI><A HREF = "compute_damage_atom.html">damage/atom</A> - Peridynamic damage for each atom
-<LI><A HREF = "compute_dihedral_local.html">dihedral/local</A> - angle of each dihedral
-<LI><A HREF = "compute_dilatation_atom.html">dilatation/atom</A> - Peridynamic dilatation for each atom
-<LI><A HREF = "compute_displace_atom.html">displace/atom</A> - displacement of each atom
-<LI><A HREF = "compute_erotate_asphere.html">erotate/asphere</A> - rotational energy of aspherical particles
-<LI><A HREF = "compute_erotate_rigid.html">erotate/rigid</A> - rotational energy of rigid bodies
-<LI><A HREF = "compute_erotate_sphere.html">erotate/sphere</A> - rotational energy of spherical particles
-<LI><A HREF = "compute_erotate_sphere.html">erotate/sphere/atom</A> - rotational energy for each spherical particle
-<LI><A HREF = "compute_event_displace.html">event/displace</A> - detect event on atom displacement
-<LI><A HREF = "compute_group_group.html">group/group</A> - energy/force between two groups of atoms
-<LI><A HREF = "compute_gyration.html">gyration</A> - radius of gyration of group of atoms
-<LI><A HREF = "compute_gyration_chunk.html">gyration/chunk</A> - radius of gyration for each chunk
-<LI><A HREF = "compute_heat_flux.html">heat/flux</A> - heat flux through a group of atoms
-<LI><A HREF = "compute_improper_local.html">improper/local</A> - angle of each improper
-<LI><A HREF = "compute_inertia_chunk.html">inertia/chunk</A> - inertia tensor for each chunk
-<LI><A HREF = "compute_ke.html">ke</A> - translational kinetic energy
-<LI><A HREF = "compute_ke_atom.html">ke/atom</A> - kinetic energy for each atom
-<LI><A HREF = "compute_ke_rigid.html">ke/rigid</A> - translational kinetic energy of rigid bodies
-<LI><A HREF = "compute_msd.html">msd</A> - mean-squared displacement of group of atoms
-<LI><A HREF = "compute_msd_chunk.html">msd/chunk</A> - mean-squared displacement for each chunk
-<LI><A HREF = "compute_msd_nongauss.html">msd/nongauss</A> - MSD and non-Gaussian parameter of group of atoms
-<LI><A HREF = "compute_pair.html">pair</A> - values computed by a pair style
-<LI><A HREF = "compute_pair_local.html">pair/local</A> - distance/energy/force of each pairwise interaction
-<LI><A HREF = "compute_pe.html">pe</A> - potential energy
-<LI><A HREF = "compute_pe_atom.html">pe/atom</A> - potential energy for each atom
-<LI><A HREF = "compute_plasticity_atom.html">plasticity/atom</A> - Peridynamic plasticity for each atom
-<LI><A HREF = "compute_pressure.html">pressure</A> - total pressure and pressure tensor
-<LI><A HREF = "compute_property_atom.html">property/atom</A> - convert atom attributes to per-atom vectors/arrays
-<LI><A HREF = "compute_property_local.html">property/local</A> - convert local attributes to localvectors/arrays
-<LI><A HREF = "compute_property_chunk.html">property/chunk</A> - extract various per-chunk attributes
-<LI><A HREF = "compute_rdf.html">rdf</A> - radial distribution function g(r) histogram of group of atoms
-<LI><A HREF = "compute_reduce.html">reduce</A> - combine per-atom quantities into a single global value
-<LI><A HREF = "compute_reduce.html">reduce/region</A> - same as compute reduce, within a region
-<LI><A HREF = "compute_slice.html">slice</A> - extract values from global vector or array
-<LI><A HREF = "compute_sna.html">sna/atom</A> - calculate bispectrum coefficients for each atom
-<LI><A HREF = "compute_sna.html">snad/atom</A> - derivative of bispectrum coefficients for each atom
-<LI><A HREF = "compute_sna.html">snav/atom</A> - virial contribution from bispectrum coefficients for each atom
-<LI><A HREF = "compute_stress_atom.html">stress/atom</A> - stress tensor for each atom
-<LI><A HREF = "compute_temp.html">temp</A> - temperature of group of atoms
-<LI><A HREF = "compute_temp_asphere.html">temp/asphere</A> - temperature of aspherical particles
-<LI><A HREF = "compute_temp_chunk.html">temp/chunk</A> - temperature of each chunk
-<LI><A HREF = "compute_temp_com.html">temp/com</A> - temperature after subtracting center-of-mass velocity
-<LI><A HREF = "compute_temp_deform.html">temp/deform</A> - temperature excluding box deformation velocity
-<LI><A HREF = "compute_temp_partial.html">temp/partial</A> - temperature excluding one or more dimensions of velocity
-<LI><A HREF = "compute_temp_profile.html">temp/profile</A> - temperature excluding a binned velocity profile
-<LI><A HREF = "compute_temp_ramp.html">temp/ramp</A> - temperature excluding ramped velocity component
-<LI><A HREF = "compute_temp_region.html">temp/region</A> - temperature of a region of atoms
-<LI><A HREF = "compute_temp_sphere.html">temp/sphere</A> - temperature of spherical particles
-<LI><A HREF = "compute_ti.html">ti</A> - thermodyanmic integration free energy values
-<LI><A HREF = "compute_torque_chunk.html">torque/chunk</A> - torque applied on each chunk
-<LI><A HREF = "compute_vacf.html">vacf</A> - velocity-autocorrelation function of group of atoms
-<LI><A HREF = "compute_vcm_chunk.html">vcm/chunk</A> - velocity of center-of-mass for each chunk
-<LI><A HREF = "compute_voronoi_atom.html">voronoi/atom</A> - Voronoi volume and neighbors for each atom 
-</UL>
-<P>There are also additional compute styles submitted by users which are
+are given in the compute section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+<ul class="simple">
+<li><a class="reference internal" href="compute_bond_local.html"><em>angle/local</em></a> - theta and energy of each angle</li>
+<li><a class="reference internal" href="compute_body_local.html"><em>body/local</em></a> - attributes of body sub-particles</li>
+<li><a class="reference internal" href="compute_bond_local.html"><em>bond/local</em></a> - distance and energy of each bond</li>
+<li><a class="reference internal" href="compute_centro_atom.html"><em>centro/atom</em></a> - centro-symmetry parameter for each atom</li>
+<li><a class="reference internal" href="compute_cluster_atom.html"><em>cluster/atom</em></a> - cluster ID for each atom</li>
+<li><a class="reference internal" href="compute_cna_atom.html"><em>cna/atom</em></a> - common neighbor analysis (CNA) for each atom</li>
+<li><a class="reference internal" href="compute_com.html"><em>com</em></a> - center-of-mass of group of atoms</li>
+<li><a class="reference internal" href="compute_com_chunk.html"><em>com/chunk</em></a> - center-of-mass for each chunk</li>
+<li><a class="reference internal" href="compute_contact_atom.html"><em>contact/atom</em></a> - contact count for each spherical particle</li>
+<li><a class="reference internal" href="compute_coord_atom.html"><em>coord/atom</em></a> - coordination number for each atom</li>
+<li><a class="reference internal" href="compute_damage_atom.html"><em>damage/atom</em></a> - Peridynamic damage for each atom</li>
+<li><a class="reference internal" href="compute_dihedral_local.html"><em>dihedral/local</em></a> - angle of each dihedral</li>
+<li><a class="reference internal" href="compute_dilatation_atom.html"><em>dilatation/atom</em></a> - Peridynamic dilatation for each atom</li>
+<li><a class="reference internal" href="compute_displace_atom.html"><em>displace/atom</em></a> - displacement of each atom</li>
+<li><a class="reference internal" href="compute_erotate_asphere.html"><em>erotate/asphere</em></a> - rotational energy of aspherical particles</li>
+<li><a class="reference internal" href="compute_erotate_rigid.html"><em>erotate/rigid</em></a> - rotational energy of rigid bodies</li>
+<li><a class="reference internal" href="compute_erotate_sphere.html"><em>erotate/sphere</em></a> - rotational energy of spherical particles</li>
+<li><a class="reference internal" href="compute_erotate_sphere.html"><em>erotate/sphere/atom</em></a> - rotational energy for each spherical particle</li>
+<li><a class="reference internal" href="compute_event_displace.html"><em>event/displace</em></a> - detect event on atom displacement</li>
+<li><a class="reference internal" href="compute_group_group.html"><em>group/group</em></a> - energy/force between two groups of atoms</li>
+<li><a class="reference internal" href="compute_gyration.html"><em>gyration</em></a> - radius of gyration of group of atoms</li>
+<li><a class="reference internal" href="compute_gyration_chunk.html"><em>gyration/chunk</em></a> - radius of gyration for each chunk</li>
+<li><a class="reference internal" href="compute_heat_flux.html"><em>heat/flux</em></a> - heat flux through a group of atoms</li>
+<li><a class="reference internal" href="compute_improper_local.html"><em>improper/local</em></a> - angle of each improper</li>
+<li><a class="reference internal" href="compute_inertia_chunk.html"><em>inertia/chunk</em></a> - inertia tensor for each chunk</li>
+<li><a class="reference internal" href="compute_ke.html"><em>ke</em></a> - translational kinetic energy</li>
+<li><a class="reference internal" href="compute_ke_atom.html"><em>ke/atom</em></a> - kinetic energy for each atom</li>
+<li><a class="reference internal" href="compute_ke_rigid.html"><em>ke/rigid</em></a> - translational kinetic energy of rigid bodies</li>
+<li><a class="reference internal" href="compute_msd.html"><em>msd</em></a> - mean-squared displacement of group of atoms</li>
+<li><a class="reference internal" href="compute_msd_chunk.html"><em>msd/chunk</em></a> - mean-squared displacement for each chunk</li>
+<li><a class="reference internal" href="compute_msd_nongauss.html"><em>msd/nongauss</em></a> - MSD and non-Gaussian parameter of group of atoms</li>
+<li><a class="reference internal" href="compute_pair.html"><em>pair</em></a> - values computed by a pair style</li>
+<li><a class="reference internal" href="compute_pair_local.html"><em>pair/local</em></a> - distance/energy/force of each pairwise interaction</li>
+<li><a class="reference internal" href="compute_pe.html"><em>pe</em></a> - potential energy</li>
+<li><a class="reference internal" href="compute_pe_atom.html"><em>pe/atom</em></a> - potential energy for each atom</li>
+<li><a class="reference internal" href="compute_plasticity_atom.html"><em>plasticity/atom</em></a> - Peridynamic plasticity for each atom</li>
+<li><a class="reference internal" href="compute_pressure.html"><em>pressure</em></a> - total pressure and pressure tensor</li>
+<li><a class="reference internal" href="compute_property_atom.html"><em>property/atom</em></a> - convert atom attributes to per-atom vectors/arrays</li>
+<li><a class="reference internal" href="compute_property_local.html"><em>property/local</em></a> - convert local attributes to localvectors/arrays</li>
+<li><a class="reference internal" href="compute_property_chunk.html"><em>property/chunk</em></a> - extract various per-chunk attributes</li>
+<li><a class="reference internal" href="compute_rdf.html"><em>rdf</em></a> - radial distribution function g(r) histogram of group of atoms</li>
+<li><a class="reference internal" href="compute_reduce.html"><em>reduce</em></a> - combine per-atom quantities into a single global value</li>
+<li><a class="reference internal" href="compute_reduce.html"><em>reduce/region</em></a> - same as compute reduce, within a region</li>
+<li><a class="reference internal" href="compute_slice.html"><em>slice</em></a> - extract values from global vector or array</li>
+<li><code class="xref doc docutils literal"><span class="pre">sna/atom</span></code> - calculate bispectrum coefficients for each atom</li>
+<li><code class="xref doc docutils literal"><span class="pre">snad/atom</span></code> - derivative of bispectrum coefficients for each atom</li>
+<li><code class="xref doc docutils literal"><span class="pre">snav/atom</span></code> - virial contribution from bispectrum coefficients for each atom</li>
+<li><a class="reference internal" href="compute_stress_atom.html"><em>stress/atom</em></a> - stress tensor for each atom</li>
+<li><a class="reference internal" href="compute_temp.html"><em>temp</em></a> - temperature of group of atoms</li>
+<li><a class="reference internal" href="compute_temp_asphere.html"><em>temp/asphere</em></a> - temperature of aspherical particles</li>
+<li><a class="reference internal" href="compute_temp_chunk.html"><em>temp/chunk</em></a> - temperature of each chunk</li>
+<li><a class="reference internal" href="compute_temp_com.html"><em>temp/com</em></a> - temperature after subtracting center-of-mass velocity</li>
+<li><a class="reference internal" href="compute_temp_deform.html"><em>temp/deform</em></a> - temperature excluding box deformation velocity</li>
+<li><a class="reference internal" href="compute_temp_partial.html"><em>temp/partial</em></a> - temperature excluding one or more dimensions of velocity</li>
+<li><a class="reference internal" href="compute_temp_profile.html"><em>temp/profile</em></a> - temperature excluding a binned velocity profile</li>
+<li><a class="reference internal" href="compute_temp_ramp.html"><em>temp/ramp</em></a> - temperature excluding ramped velocity component</li>
+<li><a class="reference internal" href="compute_temp_region.html"><em>temp/region</em></a> - temperature of a region of atoms</li>
+<li><a class="reference internal" href="compute_temp_sphere.html"><em>temp/sphere</em></a> - temperature of spherical particles</li>
+<li><a class="reference internal" href="compute_ti.html"><em>ti</em></a> - thermodyanmic integration free energy values</li>
+<li><a class="reference internal" href="compute_torque_chunk.html"><em>torque/chunk</em></a> - torque applied on each chunk</li>
+<li><a class="reference internal" href="compute_vacf.html"><em>vacf</em></a> - velocity-autocorrelation function of group of atoms</li>
+<li><a class="reference internal" href="compute_vcm_chunk.html"><em>vcm/chunk</em></a> - velocity of center-of-mass for each chunk</li>
+<li><a class="reference internal" href="compute_voronoi_atom.html"><em>voronoi/atom</em></a> - Voronoi volume and neighbors for each atom</li>
+</ul>
+<p>There are also additional compute styles submitted by users which are
 included in the LAMMPS distribution.  The list of these with links to
-the individual styles are given in the compute section of <A HREF = "Section_commands.html#cmd_5">this
-page</A>.
-</P>
-<P>There are also additional accelerated compute styles included in the
+the individual styles are given in the compute section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+<p>There are also additional accelerated compute styles included in the
 LAMMPS distribution for faster performance on CPUs and GPUs.  The list
 of these with links to the individual styles are given in the pair
-section of <A HREF = "Section_commands.html#cmd_5">this page</A>.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "uncompute.html">uncompute</A>, <A HREF = "compute_modify.html">compute_modify</A>, <A HREF = "fix_ave_atom.html">fix
-ave/atom</A>, <A HREF = "fix_ave_spatial.html">fix ave/spatial</A>,
-<A HREF = "fix_ave_time.html">fix ave/time</A>, <A HREF = "fix_ave_histo.html">fix ave/histo</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+section of <a class="reference internal" href="Section_commands.html#cmd-5"><span>this page</span></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="uncompute.html"><em>uncompute</em></a>, <a class="reference internal" href="compute_modify.html"><em>compute_modify</em></a>, <a class="reference internal" href="fix_ave_atom.html"><em>fix ave/atom</em></a>, <a class="reference internal" href="fix_ave_spatial.html"><em>fix ave/spatial</em></a>,
+<a class="reference internal" href="fix_ave_time.html"><em>fix ave/time</em></a>, <a class="reference internal" href="fix_ave_histo.html"><em>fix ave/histo</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

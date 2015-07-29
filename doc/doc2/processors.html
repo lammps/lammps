@@ -1,0 +1,351 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>processors command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>processors Px Py Pz keyword args ... 
+</PRE>
+<UL><LI>Px,Py,Pz = # of processors in each dimension of 3d grid overlaying the simulation domain 
+
+<LI>zero or more keyword/arg pairs may be appended 
+
+<LI>keyword = <I>grid</I> or <I>map</I> or <I>part</I> or <I>file</I> 
+
+<PRE>  <I>grid</I> arg = gstyle params ...
+    gstyle = <I>onelevel</I> or <I>twolevel</I> or <I>numa</I> or <I>custom</I>
+      onelevel params = none
+      twolevel params = Nc Cx Cy Cz
+        Nc = number of cores per node
+        Cx,Cy,Cz = # of cores in each dimension of 3d sub-grid assigned to each node
+      numa params = none
+      custom params = infile
+        infile = file containing grid layout
+  <I>map</I> arg = <I>cart</I> or <I>cart/reorder</I> or <I>xyz</I> or <I>xzy</I> or <I>yxz</I> or <I>yzx</I> or <I>zxy</I> or <I>zyx</I>
+     cart = use MPI_Cart() methods to map processors to 3d grid with reorder = 0
+     cart/reorder = use MPI_Cart() methods to map processors to 3d grid with reorder = 1
+     xyz,xzy,yxz,yzx,zxy,zyx = map procesors to 3d grid in IJK ordering
+  <I>numa</I> arg = none
+  <I>part</I> args = Psend Precv cstyle
+    Psend = partition # (1 to Np) which will send its processor layout
+    Precv = partition # (1 to Np) which will recv the processor layout
+    cstyle = <I>multiple</I>
+      <I>multiple</I> = Psend grid will be multiple of Precv grid in each dimension
+  <I>file</I> arg = outfile
+    outfile = name of file to write 3d grid of processors to 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>processors * * 5 
+processors 2 4 4
+processors * * 8 map xyz
+processors * * * grid numa
+processors * * * grid twolevel 4 * * 1
+processors 4 8 16 grid custom myfile
+processors * * * part 1 2 multiple 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Specify how processors are mapped as a regular 3d grid to the global
+simulation box.  The mapping involves 2 steps.  First if there are P
+processors it means choosing a factorization P = Px by Py by Pz so
+that there are Px processors in the x dimension, and similarly for the
+y and z dimensions.  Second, the P processors are mapped to the
+regular 3d grid.  The arguments to this command control each of these
+2 steps.
+</P>
+<P>The Px, Py, Pz parameters affect the factorization.  Any of the 3
+parameters can be specified with an asterisk "*", which means LAMMPS
+will choose the number of processors in that dimension of the grid.
+It will do this based on the size and shape of the global simulation
+box so as to minimize the surface-to-volume ratio of each processor's
+sub-domain.
+</P>
+<P>Choosing explicit values for Px or Py or Pz can be used to override
+the default manner in which LAMMPS will create the regular 3d grid of
+processors, if it is known to be sub-optimal for a particular problem.
+E.g. a problem where the extent of atoms will change dramatically in a
+particular dimension over the course of the simulation.
+</P>
+<P>The product of Px, Py, Pz must equal P, the total # of processors
+LAMMPS is running on.  For a <A HREF = "dimension.html">2d simulation</A>, Pz must
+equal 1.
+</P>
+<P>Note that if you run on a prime number of processors P, then a grid
+such as 1 x P x 1 will be required, which may incur extra
+communication costs due to the high surface area of each processor's
+sub-domain.
+</P>
+<P>Also note that if multiple partitions are being used then P is the
+number of processors in this partition; see <A HREF = "Section_start.html#start_7">this
+section</A> for an explanation of the
+-partition command-line switch.  Also note that you can prefix the
+processors command with the <A HREF = "partition.html">partition</A> command to
+easily specify different Px,Py,Pz values for different partitions.
+</P>
+<P>You can use the <A HREF = "partition.html">partition</A> command to specify
+different processor grids for different partitions, e.g.
+</P>
+<PRE>partition yes 1 processors 4 4 4
+partition yes 2 processors 2 3 2 
+</PRE>
+<P>IMPORTANT NOTE: This command only affects the initial regular 3d grid
+created when the simulation box is first specified via a
+<A HREF = "create_box.html">create_box</A> or <A HREF = "read_data.html">read_data</A> or
+<A HREF = "read_restart.html">read_restart</A> command.  Or if the simulation box is
+re-created via the <A HREF = "replicate.html">replicate</A> command.  The same
+regular grid is initially created, regardless of which
+<A HREF = "comm_style.html">comm_style</A> command is in effect.
+</P>
+<P>If load-balancing is never invoked via the <A HREF = "balance.html">balance</A> or
+<A HREF = "fix_balance.html">fix balance</A> commands, then the initial regular grid
+will persist for all simulations.  If balancing is performed, some of
+the methods invoked by those commands retain the logical toplogy of
+the initial 3d grid, and the mapping of processors to the grid
+specified by the processors command.  However the grid spacings in
+different dimensions may change, so that processors own sub-domains of
+different sizes.  If the <A HREF = "comm_style.html">comm_style tiled</A> command is
+used, methods invoked by the balancing commands may discard the 3d
+grid of processors and tile the simulation domain with sub-domains of
+different sizes and shapes which no longer have a logical 3d
+connectivity.  If that occurs, all the information specified by the
+processors command is ignored.
+</P>
+<HR>
+
+<P>The <I>grid</I> keyword affects the factorization of P into Px,Py,Pz and it
+can also affect how the P processor IDs are mapped to the 3d grid of
+processors.
+</P>
+<P>The <I>onelevel</I> style creates a 3d grid that is compatible with the
+Px,Py,Pz settings, and which minimizes the surface-to-volume ratio of
+each processor's sub-domain, as described above.  The mapping of
+processors to the grid is determined by the <I>map</I> keyword setting.
+</P>
+<P>The <I>twolevel</I> style can be used on machines with multicore nodes to
+minimize off-node communication.  It insures that contiguous
+sub-sections of the 3d grid are assigned to all the cores of a node.
+For example if <I>Nc</I> is 4, then 2x2x1 or 2x1x2 or 1x2x2 sub-sections of
+the 3d grid will correspond to the cores of each node.  This affects
+both the factorization and mapping steps.
+</P>
+<P>The <I>Cx</I>, <I>Cy</I>, <I>Cz</I> settings are similar to the <I>Px</I>, <I>Py</I>, <I>Pz</I>
+settings, only their product should equal <I>Nc</I>.  Any of the 3
+parameters can be specified with an asterisk "*", which means LAMMPS
+will choose the number of cores in that dimension of the node's
+sub-grid.  As with Px,Py,Pz, it will do this based on the size and
+shape of the global simulation box so as to minimize the
+surface-to-volume ratio of each processor's sub-domain.
+</P>
+<P>IMPORTANT NOTE: For the <I>twolevel</I> style to work correctly, it
+assumes the MPI ranks of processors LAMMPS is running on are ordered
+by core and then by node.  E.g. if you are running on 2 quad-core
+nodes, for a total of 8 processors, then it assumes processors 0,1,2,3
+are on node 1, and processors 4,5,6,7 are on node 2.  This is the
+default rank ordering for most MPI implementations, but some MPIs
+provide options for this ordering, e.g. via environment variable
+settings.
+</P>
+<P>The <I>numa</I> style operates similar to the <I>twolevel</I> keyword except
+that it auto-detects which cores are running on which nodes.
+Currently, it does this in only 2 levels, but it may be extended in
+the future to account for socket topology and other non-uniform memory
+access (NUMA) costs.  It also uses a different algorithm than the
+<I>twolevel</I> keyword for doing the two-level factorization of the
+simulation box into a 3d processor grid to minimize off-node
+communication, and it does its own MPI-based mapping of nodes and
+cores to the regular 3d grid.  Thus it may produce a different layout
+of the processors than the <I>twolevel</I> options.
+</P>
+<P>The <I>numa</I> style will give an error if the number of MPI processes is
+not divisible by the number of cores used per node, or any of the Px
+or Py of Pz values is greater than 1.
+</P>
+<P>IMPORTANT NOTE: Unlike the <I>twolevel</I> style, the <I>numa</I> style does not
+require any particular ordering of MPI ranks i norder to work
+correctly.  This is because it auto-detects which processes are
+running on which nodes.
+</P>
+<P>The <I>custom</I> style uses the file <I>infile</I> to define both the 3d
+factorization and the mapping of processors to the grid.
+</P>
+<P>The file should have the following format.  Any number of initial
+blank or comment lines (starting with a "#" character) can be present.
+The first non-blank, non-comment line should have
+3 values:
+</P>
+<PRE>Px Py Py 
+</PRE>
+<P>These must be compatible with the total number of processors
+and the Px, Py, Pz settings of the processors commmand.
+</P>
+<P>This line should be immediately followed by
+P = Px*Py*Pz lines of the form:
+</P>
+<PRE>ID I J K 
+</PRE>
+<P>where ID is a processor ID (from 0 to P-1) and I,J,K are the
+processors location in the 3d grid.  I must be a number from 1 to Px
+(inclusive) and similarly for J and K.  The P lines can be listed in
+any order, but no processor ID should appear more than once.
+</P>
+<HR>
+
+<P>The <I>map</I> keyword affects how the P processor IDs (from 0 to P-1) are
+mapped to the 3d grid of processors.  It is only used by the
+<I>onelevel</I> and <I>twolevel</I> grid settings.  
+</P>
+<P>The <I>cart</I> style uses the family of MPI Cartesian functions to perform
+the mapping, namely MPI_Cart_create(), MPI_Cart_get(),
+MPI_Cart_shift(), and MPI_Cart_rank().  It invokes the
+MPI_Cart_create() function with its reorder flag = 0, so that MPI is
+not free to reorder the processors.
+</P>
+<P>The <I>cart/reorder</I> style does the same thing as the <I>cart</I> style
+except it sets the reorder flag to 1, so that MPI can reorder
+processors if it desires.
+</P>
+<P>The <I>xyz</I>, <I>xzy</I>, <I>yxz</I>, <I>yzx</I>, <I>zxy</I>, and <I>zyx</I> styles are all
+similar.  If the style is IJK, then it maps the P processors to the
+grid so that the processor ID in the I direction varies fastest, the
+processor ID in the J direction varies next fastest, and the processor
+ID in the K direction varies slowest.  For example, if you select
+style <I>xyz</I> and you have a 2x2x2 grid of 8 processors, the assignments
+of the 8 octants of the simulation domain will be:
+</P>
+<PRE>proc 0 = lo x, lo y, lo z octant
+proc 1 = hi x, lo y, lo z octant
+proc 2 = lo x, hi y, lo z octant
+proc 3 = hi x, hi y, lo z octant
+proc 4 = lo x, lo y, hi z octant
+proc 5 = hi x, lo y, hi z octant
+proc 6 = lo x, hi y, hi z octant
+proc 7 = hi x, hi y, hi z octant 
+</PRE>
+<P>Note that, in principle, an MPI implementation on a particular machine
+should be aware of both the machine's network topology and the
+specific subset of processors and nodes that were assigned to your
+simulation.  Thus its MPI_Cart calls can optimize the assignment of
+MPI processes to the 3d grid to minimize communication costs.  In
+practice, however, few if any MPI implementations actually do this.
+So it is likely that the <I>cart</I> and <I>cart/reorder</I> styles simply give
+the same result as one of the IJK styles.
+</P>
+<P>Also note, that for the <I>twolevel</I> grid style, the <I>map</I> setting is
+used to first map the nodes to the 3d grid, then again to the cores
+within each node.  For the latter step, the <I>cart</I> and <I>cart/reorder</I>
+styles are not supported, so an <I>xyz</I> style is used in their place.
+</P>
+<HR>
+
+<P>The <I>part</I> keyword affects the factorization of P into Px,Py,Pz.
+</P>
+<P>It can be useful when running in multi-partition mode, e.g. with the
+<A HREF = "run_style.html">run_style verlet/split</A> command.  It specifies a
+dependency bewteen a sending partition <I>Psend</I> and a receiving
+partition <I>Precv</I> which is enforced when each is setting up their own
+mapping of their processors to the simulation box.  Each of <I>Psend</I>
+and <I>Precv</I> must be integers from 1 to Np, where Np is the number of
+partitions you have defined via the <A HREF = "Section_start.html#start_7">-partition command-line
+switch</A>.
+</P>
+<P>A "dependency" means that the sending partition will create its
+regular 3d grid as Px by Py by Pz and after it has done this, it will
+send the Px,Py,Pz values to the receiving partition.  The receiving
+partition will wait to receive these values before creating its own
+regular 3d grid and will use the sender's Px,Py,Pz values as a
+constraint.  The nature of the constraint is determined by the
+<I>cstyle</I> argument.
+</P>
+<P>For a <I>cstyle</I> of <I>multiple</I>, each dimension of the sender's processor
+grid is required to be an integer multiple of the corresponding
+dimension in the receiver's processor grid.  This is a requirement of
+the <A HREF = "run_style.html">run_style verlet/split</A> command.
+</P>
+<P>For example, assume the sending partition creates a 4x6x10 grid = 240
+processor grid.  If the receiving partition is running on 80
+processors, it could create a 4x2x10 grid, but it will not create a
+2x4x10 grid, since in the y-dimension, 6 is not an integer multiple of
+4.
+</P>
+<P>IMPORTANT NOTE: If you use the <A HREF = "partition.html">partition</A> command to
+invoke different "processsors" commands on different partitions, and
+you also use the <I>part</I> keyword, then you must insure that both the
+sending and receiving partitions invoke the "processors" command that
+connects the 2 partitions via the <I>part</I> keyword.  LAMMPS cannot
+easily check for this, but your simulation will likely hang in its
+setup phase if this error has been made.
+</P>
+<HR>
+
+<P>The <I>file</I> keyword writes the mapping of the factorization of P
+processors and their mapping to the 3d grid to the specified file
+<I>outfile</I>.  This is useful to check that you assigned physical
+processors in the manner you desired, which can be tricky to figure
+out, especially when running on multiple partitions or on, a multicore
+machine or when the processor ranks were reordered by use of the
+<A HREF = "Section_start.html#start_7">-reorder command-line switch</A> or due to
+use of MPI-specific launch options such as a config file.
+</P>
+<P>If you have multiple partitions you should insure that each one writes
+to a different file, e.g. using a <A HREF = "variable.html">world-style variable</A>
+for the filename.  The file has a self-explanatory header, followed by
+one-line per processor in this format:
+</P>
+<P>world-ID universe-ID original-ID: I J K: name
+</P>
+<P>The IDs are the processor's rank in this simulation (the world), the
+universe (of multiple simulations), and the original MPI communicator
+used to instantiate LAMMPS, respectively.  The world and universe IDs
+will only be different if you are running on more than one partition;
+see the <A HREF = "Section_start.html#start_7">-partition command-line switch</A>.
+The universe and original IDs will only be different if you used the
+<A HREF = "Section_start.html#start_7">-reorder command-line switch</A> to reorder
+the processors differently than their rank in the original
+communicator LAMMPS was instantiated with.
+</P>
+<P>I,J,K are the indices of the processor in the regular 3d grid, each
+from 1 to Nd, where Nd is the number of processors in that dimension
+of the grid.
+</P>
+<P>The <I>name</I> is what is returned by a call to MPI_Get_processor_name()
+and should represent an identifier relevant to the physical processors
+in your machine.  Note that depending on the MPI implementation,
+multiple cores can have the same <I>name</I>.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This command cannot be used after the simulation box is defined by a
+<A HREF = "read_data.html">read_data</A> or <A HREF = "create_box.html">create_box</A> command.
+It can be used before a restart file is read to change the 3d
+processor grid from what is specified in the restart file.
+</P>
+<P>The <I>grid numa</I> keyword only currently works with the <I>map cart</I>
+option.
+</P>
+<P>The <I>part</I> keyword (for the receiving partition) only works with the
+<I>grid onelevel</I> or <I>grid twolevel</I> options.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "partition.html">partition</A>, <A HREF = "Section_start.html#start_7">-reorder command-line switch</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are Px Py Pz = * * *, grid = onelevel, and map =
+cart.
+</P>
+</HTML>

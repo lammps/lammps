@@ -1,0 +1,83 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_write command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_write itype jtype N style inner outer file keyword Qi Qj 
+</PRE>
+<UL><LI>itype,jtype = 2 atom types
+<LI>N = # of values
+<LI>style = <I>r</I> or <I>rsq</I> or <I>bitmap</I>
+<LI>inner,outer = inner and outer cutoff (distance units)
+<LI>file = name of file to write values to
+<LI>keyword = section name in file for this set of tabulated values
+<LI>Qi,Qj = 2 atom charges (charge units) (optional) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_write 1 3 500 r 1.0 10.0 table.txt LJ
+pair_write 1 1 1000 rsq 2.0 8.0 table.txt Yukawa_1_1 -0.5 0.5 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Write energy and force values to a file as a function of distance for
+the currently defined pair potential.  This is useful for plotting the
+potential function or otherwise debugging its values.  If the file
+already exists, the table of values is appended to the end of the file
+to allow multiple tables of energy and force to be included in one
+file.
+</P>
+<P>The energy and force values are computed at distances from inner to
+outer for 2 interacting atoms of type itype and jtype, using the
+appropriate <A HREF = "pair_coeff.html">pair_coeff</A> coefficients.  If the style
+is <I>r</I>, then N distances are used, evenly spaced in r; if the style is
+<I>rsq</I>, N distances are used, evenly spaced in r^2.
+</P>
+<P>For example, for N = 7, style = <I>r</I>, inner = 1.0, and outer = 4.0,
+values are computed at r = 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0.
+</P>
+<P>If the style is <I>bitmap</I>, then 2^N values are written to the file in a
+format and order consistent with how they are read in by the
+<A HREF = "pair_coeff.html">pair_coeff</A> command for pair style <I>table</I>.  For
+reasonable accuracy in a bitmapped table, choose N >= 12, an <I>inner</I>
+value that is smaller than the distance of closest approach of 2
+atoms, and an <I>outer</I> value <= cutoff of the potential.
+</P>
+<P>If the pair potential is computed between charged atoms, the charges
+of the pair of interacting atoms can optionally be specified.  If not
+specified, values of Qi = Qj = 1.0 are used.
+</P>
+<P>The file is written in the format used as input for the
+<A HREF = "pair_style.html">pair_style</A> <I>table</I> option with <I>keyword</I> as the
+section name.  Each line written to the file lists an index number
+(1-N), a distance (in distance units), an energy (in energy units),
+and a force (in force units).
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>All force field coefficients for pair and other kinds of interactions
+must be set before this command can be invoked.
+</P>
+<P>Due to how the pairwise force is computed, an inner value > 0.0 must
+be specified even if the potential has a finite value at r = 0.0.
+</P>
+<P>For EAM potentials, the pair_write command only tabulates the
+pairwise portion of the potential, not the embedding portion.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "pair_style.html">pair_style</A>, <A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

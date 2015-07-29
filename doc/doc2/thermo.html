@@ -1,0 +1,64 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>thermo command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>thermo N 
+</PRE>
+<UL><LI>N = output thermodynamics every N timesteps
+<LI>N can be a variable (see below) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>thermo 100 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Compute and print thermodynamic info (e.g. temperature, energy,
+pressure) on timesteps that are a multiple of N and at the beginning
+and end of a simulation.  A value of 0 will only print thermodynamics
+at the beginning and end.
+</P>
+<P>The content and format of what is printed is controlled by the
+<A HREF = "thermo_style.html">thermo_style</A> and
+<A HREF = "thermo_modify.html">thermo_modify</A> commands.
+</P>
+<P>Instead of a numeric value, N can be specifed as an <A HREF = "variable.html">equal-style
+variable</A>, which should be specified as v_name, where
+name is the variable name.  In this case, the variable is evaluated at
+the beginning of a run to determine the next timestep at which
+thermodynamic info will be written out.  On that timestep, the
+variable will be evaluated again to determine the next timestep, etc.
+Thus the variable should return timestep values.  See the stagger()
+and logfreq() and stride() math functions for <A HREF = "variable.html">equal-style
+variables</A>, as examples of useful functions to use in
+this context.  Other similar math functions could easily be added as
+options for <A HREF = "variable.html">equal-style variables</A>.
+</P>
+<P>For example, the following commands will output thermodynamic info at
+timesteps 0,10,20,30,100,200,300,1000,2000,etc:
+</P>
+<PRE>variable	s equal logfreq(10,3,10)
+thermo	        v_s 
+</PRE>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "thermo_style.html">thermo_style</A>, <A HREF = "thermo_modify.html">thermo_modify</A>
+</P>
+<P><B>Default:</B>
+</P>
+<PRE>thermo 0 
+</PRE>
+</HTML>

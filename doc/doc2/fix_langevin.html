@@ -1,0 +1,362 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix langevin command 
+</H3>
+<H3>fix langevin/kk command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID langevin Tstart Tstop damp seed keyword values ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>langevin = style name of this fix command 
+
+<LI>Tstart,Tstop = desired temperature at start/end of run (temperature units) 
+
+<LI>Tstart can be a variable (see below) 
+
+<LI>damp = damping parameter (time units) 
+
+<LI>seed = random number seed to use for white noise (positive integer) 
+
+<LI>zero or more keyword/value pairs may be appended 
+
+<LI>keyword = <I>angmom</I> or <I>omega</I> or <I>scale</I> or <I>tally</I> or <I>zero</I> 
+
+<PRE>  <I>angmom</I> value = <I>no</I> or scale
+    <I>no</I> = do not thermostat rotational degrees of freedom via the angular momentum
+    factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric factor as discussed below
+  <I>gjf</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = use standard formulation
+    <I>yes</I> = use Gronbech-Jensen/Farago formulation
+  <I>omega</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = do not thermostat rotational degrees of freedom via the angular velocity
+    <I>yes</I> = do thermostat rotational degrees of freedom via the angular velocity
+  <I>scale</I> values = type ratio
+    type = atom type (1-N)
+    ratio = factor by which to scale the damping coefficient
+  <I>tally</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = do not tally the energy added/subtracted to atoms
+    <I>yes</I> = do tally the energy added/subtracted to atoms
+  <I>zero</I> value = <I>no</I> or <I>yes</I>
+    <I>no</I> = do not set total random force to zero
+    <I>yes</I> = set total random force to zero 
+</PRE>
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 3 boundary langevin 1.0 1.0 1000.0 699483
+fix 1 all langevin 1.0 1.1 100.0 48279 scale 3 1.5
+fix 1 all langevin 1.0 1.1 100.0 48279 angmom 3.333 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Apply a Langevin thermostat as described in <A HREF = "#Schneider">(Schneider)</A>
+to a group of atoms which models an interaction with a background
+implicit solvent.  Used with <A HREF = "fix_nve.html">fix nve</A>, this command
+performs Brownian dynamics (BD), since the total force on each atom
+will have the form:
+</P>
+<PRE>F = Fc + Ff + Fr
+Ff = - (m / damp) v
+Fr is proportional to sqrt(Kb T m / (dt damp)) 
+</PRE>
+<P>Fc is the conservative force computed via the usual inter-particle
+interactions (<A HREF = "pair_style.html">pair_style</A>,
+<A HREF = "bond_style.html">bond_style</A>, etc).
+</P>
+<P>The Ff and Fr terms are added by this fix on a per-particle basis.
+See the <A HREF = "pair_dpd.html">pair_style dpd/tstat</A> command for a
+thermostatting option that adds similar terms on a pairwise basis to
+pairs of interacting particles.
+</P>
+<P>Ff is a frictional drag or viscous damping term proportional to the
+particle's velocity.  The proportionality constant for each atom is
+computed as m/damp, where m is the mass of the particle and damp is
+the damping factor specified by the user.
+</P>
+<P>Fr is a force due to solvent atoms at a temperature T randomly bumping
+into the particle.  As derived from the fluctuation/dissipation
+theorem, its magnitude as shown above is proportional to sqrt(Kb T m /
+dt damp), where Kb is the Boltzmann constant, T is the desired
+temperature, m is the mass of the particle, dt is the timestep size,
+and damp is the damping factor.  Random numbers are used to randomize
+the direction and magnitude of this force as described in
+<A HREF = "#Dunweg">(Dunweg)</A>, where a uniform random number is used (instead of
+a Gaussian random number) for speed.
+</P>
+<P>Note that unless you use the <I>omega</I> or <I>angmom</I> keywords, the
+thermostat effect of this fix is applied to only the translational
+degrees of freedom for the particles, which is an important
+consideration for finite-size particles, which have rotational degrees
+of freedom, are being thermostatted.  The translational degrees of
+freedom can also have a bias velocity removed from them before
+thermostatting takes place; see the description below.
+</P>
+<P>IMPORTANT NOTE: Unlike the <A HREF = "fix_nh.html">fix nvt</A> command which
+performs Nose/Hoover thermostatting AND time integration, this fix
+does NOT perform time integration.  It only modifies forces to effect
+thermostatting.  Thus you must use a separate time integration fix,
+like <A HREF = "fix_nve.html">fix nve</A> to actually update the velocities and
+positions of atoms using the modified forces.  Likewise, this fix
+should not normally be used on atoms that also have their temperature
+controlled by another fix - e.g. by <A HREF = "fix_nh.html">fix nvt</A> or <A HREF = "fix_temp_rescale.html">fix
+temp/rescale</A> commands.
+</P>
+<P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
+a discussion of different ways to compute temperature and perform
+thermostatting.
+</P>
+<P>The desired temperature at each timestep is a ramped value during the
+run from <I>Tstart</I> to <I>Tstop</I>.
+</P>
+<P><I>Tstart</I> can be specified as an equal-style or atom-style
+<A HREF = "variable.html">variable</A>.  In this case, the <I>Tstop</I> setting is
+ignored.  If the value is a variable, it should be specified as
+v_name, where name is the variable name.  In this case, the variable
+will be evaluated each timestep, and its value used to determine the
+target temperature.
+</P>
+<P>Equal-style variables can specify formulas with various mathematical
+functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.
+</P>
+<P>Atom-style variables can specify the same formulas as equal-style
+variables but can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a spatially-dependent
+temperature with optional time-dependence as well.
+</P>
+<P>Like other fixes that perform thermostatting, this fix can be used
+with <A HREF = "compute.html">compute commands</A> that remove a "bias" from the
+atom velocities.  E.g. removing the center-of-mass velocity from a
+group of atoms or removing the x-component of velocity from the
+calculation.  This is not done by default, but only if the
+<A HREF = "fix_modify.html">fix_modify</A> command is used to assign a temperature
+compute to this fix that includes such a bias term.  See the doc pages
+for individual <A HREF = "compute.html">compute commands</A> to determine which ones
+include a bias.  In this case, the thermostat works in the following
+manner: bias is removed from each atom, thermostatting is performed on
+the remaining thermal degrees of freedom, and the bias is added back
+in.
+</P>
+<P>The <I>damp</I> parameter is specified in time units and determines how
+rapidly the temperature is relaxed.  For example, a value of 100.0
+means to relax the temperature in a timespan of (roughly) 100 time
+units (tau or fmsec or psec - see the <A HREF = "units.html">units</A> command).
+The damp factor can be thought of as inversely related to the
+viscosity of the solvent.  I.e. a small relaxation time implies a
+hi-viscosity solvent and vice versa.  See the discussion about gamma
+and viscosity in the documentation for the <A HREF = "fix_viscous.html">fix
+viscous</A> command for more details.
+</P>
+<P>The random # <I>seed</I> must be a positive integer.  A Marsaglia random
+number generator is used.  Each processor uses the input seed to
+generate its own unique seed and its own stream of random numbers.
+Thus the dynamics of the system will not be identical on two runs on
+different numbers of processors.
+</P>
+<HR>
+
+<P>The keyword/value option pairs are used in the following ways.
+</P>
+<P>The keyword <I>angmom</I> and <I>omega</I> keywords enable thermostatting of
+rotational degrees of freedom in addition to the usual translational
+degrees of freedom.  This can only be done for finite-size particles.
+</P>
+<P>A simulation using atom_style sphere defines an omega for finite-size
+spheres.  A simulation using atom_style ellipsoid defines a finite
+size and shape for aspherical particles and an angular momentum.
+The Langevin formulas for thermostatting the rotational degrees of
+freedom are the same as those above, where force is replaced by
+torque, m is replaced by the moment of inertia I, and v is replaced by
+omega (which is derived from the angular momentum in the case of
+aspherical particles).
+</P>
+<P>The rotational temperature of the particles can be monitored by the
+<A HREF = "compute_temp_sphere.html">compute temp/sphere</A> and <A HREF = "compute_temp_asphere.html">compute
+temp/asphere</A> commands with their rotate
+options.
+</P>
+<P>For the <I>omega</I> keyword there is also a scale factor of 10.0/3.0 that
+is applied as a multiplier on the Ff (damping) term in the equation
+above and of sqrt(10.0/3.0) as a multiplier on the Fr term.  This does
+not affect the thermostatting behaviour of the Langevin formalism but
+insures that the randomized rotational diffusivity of spherical
+particles is correct.
+</P>
+<P>For the <I>angmom</I> keyword a similar scale factor is needed which is
+10.0/3.0 for spherical particles, but is anisotropic for aspherical
+particles (e.g. ellipsoids).  Currently LAMMPS only applies an
+isotropic scale factor, and you can choose its magnitude as the
+specified value of the <I>angmom</I> keyword.  If your aspherical particles
+are (nearly) spherical than a value of 10.0/3.0 = 3.333 is a good
+choice.  If they are highly aspherical, a value of 1.0 is as good a
+choice as any, since the effects on rotational diffusivity of the
+particles will be incorrect regardless.  Note that for any reasonable
+scale factor, the thermostatting effect of the <I>angmom</I> keyword on the
+rotational temperature of the aspherical particles should still be
+valid.
+</P>
+<P>The keyword <I>scale</I> allows the damp factor to be scaled up or down by
+the specified factor for atoms of that type.  This can be useful when
+different atom types have different sizes or masses.  It can be used
+multiple times to adjust damp for several atom types.  Note that
+specifying a ratio of 2 increases the relaxation time which is
+equivalent to the solvent's viscosity acting on particles with 1/2 the
+diameter.  This is the opposite effect of scale factors used by the
+<A HREF = "fix_viscous.html">fix viscous</A> command, since the damp factor in fix
+<I>langevin</I> is inversely related to the gamma factor in fix <I>viscous</I>.
+Also note that the damping factor in fix <I>langevin</I> includes the
+particle mass in Ff, unlike fix <I>viscous</I>.  Thus the mass and size of
+different atom types should be accounted for in the choice of ratio
+values.
+</P>
+<P>The keyword <I>tally</I> enables the calculation of the cumulative energy
+added/subtracted to the atoms as they are thermostatted.  Effectively
+it is the energy exchanged between the infinite thermal reservoir and
+the particles.  As described below, this energy can then be printed
+out or added to the potential energy of the system to monitor energy
+conservation.
+</P>
+<P>IMPORTANT NOTE: this accumulated energy does NOT include kinetic
+energy removed by the <I>zero</I> flag. LAMMPS will print a warning when
+both options are active.
+</P>
+<P>The keyword <I>zero</I> can be used to eliminate drift due to the
+thermostat. Because the random forces on different atoms are
+independent, they do not sum exactly to zero.  As a result, this fix
+applies a small random force to the entire system, and the
+center-of-mass of the system undergoes a slow random walk.  If the
+keyword <I>zero</I> is set to <I>yes</I>, the total random force is set exactly
+to zero by subtracting off an equal part of it from each atom in the
+group.  As a result, the center-of-mass of a system with zero initial
+momentum will not drift over time.
+</P>
+<P>The keyword <I>gjf</I> can be used to run the <A HREF = "#Gronbech-Jensen">Gronbech-Jensen/Farago
+</A> time-discretization of the Langevin model.  As
+described in the papers cited below, the purpose of this method is to
+enable longer timesteps to be used (up to the numerical stability
+limit of the integrator), while still producing the correct Boltzmann
+distribution of atom positions.  It is implemented within LAMMPS, by
+changing how the the random force is applied so that it is composed of
+the average of two random forces representing half-contributions from
+the previous and current time intervals.  
+</P>
+<P>In common with all methods based on Verlet integration, the
+discretized velocities generated by this method in conjunction with
+velocity-Verlet time integration are not exactly conjugate to the
+positions.  As a result the temperature (computed from the discretized
+velocities) will be systematically lower than the target temperature,
+by a small amount which grows with the timestep.  Nonetheless, the
+distribution of atom positions will still be consistent with the
+target temperature.
+</P>
+<P>As an example of using the <I>gjf</I> keyword, for molecules containing C-H
+bonds, configurational properties generated with dt = 2.5 fs and tdamp
+= 100 fs are indistinguishable from dt = 0.5 fs.  Because the velocity
+distribution systematically decreases with increasing timestep, the
+method should not be used to generate properties that depend on the
+velocity distribution, such as the velocity autocorrelation function
+(VACF). In this example, the velocity distribution at dt = 2.5fs
+generates an average temperature of 220 K, instead of 300 K.
+</P>
+<HR>
+
+<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+</P>
+<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
+LAMMPS</A> section for more info.
+</P>
+<P>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
+switch</A> when you invoke LAMMPS, or you can
+use the <A HREF = "suffix.html">suffix</A> command in your input script.
+</P>
+<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
+more instructions on how to use the accelerated styles effectively.
+</P>
+<HR>
+
+<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
+</P>
+<P>No information about this fix is written to <A HREF = "restart.html">binary restart
+files</A>.  Because the state of the random number generator
+is not saved in restart files, this means you cannot do "exact"
+restarts with this fix, where the simulation continues on the same as
+if no restart had taken place.  However, in a statistical sense, a
+restarted simulation should produce the same behavior.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
+fix.  You can use it to assign a temperature <A HREF = "compute.html">compute</A>
+you have defined to this fix which will be used in its thermostatting
+procedure, as described above.  For consistency, the group used by
+this fix and by the compute should be the same.
+</P>
+<P>The <A HREF = "fix_modify.html">fix_modify</A> <I>energy</I> option is supported by this
+fix to add the energy change induced by Langevin thermostatting to the
+system's potential energy as part of <A HREF = "thermo_style.html">thermodynamic
+output</A>.  Note that use of this option requires
+setting the <I>tally</I> keyword to <I>yes</I>.
+</P>
+<P>This fix computes a global scalar which can be accessed by various
+<A HREF = "Section_howto.html#howto_15">output commands</A>.  The scalar is the
+cummulative energy change due to this fix.  The scalar value
+calculated by this fix is "extensive".  Note that calculation of this
+quantity requires setting the <I>tally</I> keyword to <I>yes</I>.
+</P>
+<P>This fix can ramp its target temperature over multiple runs, using the
+<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command.  See the
+<A HREF = "run.html">run</A> command for details of how to do this.
+</P>
+<P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
+</P>
+<P><B>Restrictions:</B> none
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "fix_temp_rescale.html">fix temp/rescale</A>, <A HREF = "fix_viscous.html">fix
+viscous</A>, <A HREF = "fix_nh.html">fix nvt</A>, <A HREF = "pair_dpd.html">pair_style
+dpd/tstat</A>
+</P>
+<P><B>Default:</B>
+</P>
+<P>The option defaults are angmom = no, omega = no, scale = 1.0 for all
+types, tally = no, zero = no, gjf = no.
+</P>
+<HR>
+
+<A NAME = "Dunweg"></A>
+
+<P><B>(Dunweg)</B> Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
+</P>
+<A NAME = "Schneider"></A>
+
+<P><B>(Schneider)</B> Schneider and Stoll, Phys Rev B, 17, 1302 (1978).
+</P>
+<A NAME = "Gronbech-Jensen"></A>
+
+<P><B>(Gronbech-Jensen)</B> Gronbech-Jensen and Farago, Mol Phys, 111, 983
+(2013); Gronbech-Jensen, Hayre, and Farago, Comp Phys Comm, 
+185, 524 (2014)
+</P>
+</HTML>

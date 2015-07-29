@@ -1,0 +1,137 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>temper command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>temper N M temp fix-ID seed1 seed2 index 
+</PRE>
+<UL><LI>N = total # of timesteps to run
+<LI>M = attempt a tempering swap every this many steps
+<LI>temp = initial temperature for this ensemble
+<LI>fix-ID = ID of the fix that will control temperature during the run
+<LI>seed1 = random # seed used to decide on adjacent temperature to partner with
+<LI>seed2 = random # seed for Boltzmann factor in Metropolis swap 
+<LI>index = which temperature (0 to N-1) I am simulating (optional) 
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>temper 100000 100 $t tempfix 0 58728
+temper 40000 100 $t tempfix 0 32285 $w 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Run a parallel tempering or replica exchange simulation using multiple
+replicas (ensembles) of a system.  Two or more replicas must be used.
+</P>
+<P>Each replica runs on a partition of one or more processors.  Processor
+partitions are defined at run-time using the -partition command-line
+switch; see <A HREF = "Section_start.html#start_7">Section_start 6</A> of the
+manual.  Note that if you have MPI installed, you can run a
+multi-replica simulation with more replicas (partitions) than you have
+physical processors, e.g you can run a 10-replica simulation on one or
+two processors.  You will simply not get the performance speed-up you
+would see with one or more physical processors per replica.  See <A HREF = "Section_howto.html#howto_5">this
+section</A> of the manual for further
+discussion.
+</P>
+<P>Each replica's temperature is controlled at a different value by a fix
+with <I>fix-ID</I> that controls temperature.  Possible fix styles are
+<A HREF = "fix_nh.html">nvt</A>, <A HREF = "fix_nh.html">temp/berendsen</A>,
+<A HREF = "fix_langevin.html">langevin</A> and <A HREF = "fix_temp_rescale.html">temp/rescale</A>.
+The desired temperature is specified by <I>temp</I>, which is typically a
+variable previously set in the input script, so that each partition is
+assigned a different temperature.  See the <A HREF = "variable.html">variable</A>
+command for more details.  For example:
+</P>
+<PRE>variable t world 300.0 310.0 320.0 330.0
+fix myfix all nvt $t $t 100.0
+temper 100000 100 $t myfix 3847 58382 
+</PRE>
+<P>would define 4 temperatures, and assign one of them to the thermostat
+used by each replica, and to the temper command.
+</P>
+<P>As the tempering simulation runs for <I>N</I> timesteps, a temperature swap
+between adjacent ensembles will be attempted every <I>M</I> timesteps.  If
+<I>seed1</I> is 0, then the swap attempts will alternate between odd and
+even pairings.  If <I>seed1</I> is non-zero then it is used as a seed in a
+random number generator to randomly choose an odd or even pairing each
+time.  Each attempted swap of temperatures is either accepted or
+rejected based on a Boltzmann-weighted Metropolis criterion which uses
+<I>seed2</I> in the random number generator.
+</P>
+<P>As a tempering run proceeds, multiple log files and screen output
+files are created, one per replica.  By default these files are named
+log.lammps.M and screen.M where M is the replica number from 0 to N-1,
+with N = # of replicas.  See the <A HREF = "Section_start.html#start_7">section on command-line
+switches</A> for info on how to change these
+names.
+</P>
+<P>The main screen and log file (log.lammps) will list information about
+which temperature is assigned to each replica at each thermodynamic
+output timestep.  E.g. for a simulation with 16 replicas:
+</P>
+<PRE>Running on 16 partitions of processors
+Step T0 T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11 T12 T13 T14 T15
+0    0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+500  1 0 3 2 5 4 6 7 8 9 10 11 12 13 14 15
+1000 2 0 4 1 5 3 6 7 8 9 10 11 12 14 13 15
+1500 2 1 4 0 5 3 6 7 9 8 10 11 12 14 13 15
+2000 2 1 3 0 6 4 5 7 10 8 9 11 12 14 13 15
+2500 2 1 3 0 6 4 5 7 11 8 9 10 12 14 13 15
+... 
+</PRE>
+<P>The column headings T0 to TN-1 mean which temperature is currently
+assigned to the replica 0 to N-1.  Thus the columns represent replicas
+and the value in each column is its temperature (also numbered 0 to
+N-1).  For example, a 0 in the 4th column (column T3, step 2500) means
+that the 4th replica is assigned temperature 0, i.e. the lowest
+temperature.  You can verify this time sequence of temperature
+assignments for the Nth replica by comparing the Nth column of screen
+output to the thermodynamic data in the corresponding log.lammps.N or
+screen.N files as time proceeds.
+</P>
+<P>The last argument <I>index</I> in the temper command is optional and is
+used when restarting a tempering run from a set of restart files (one
+for each replica) which had previously swapped to new temperatures.
+The <I>index</I> value (from 0 to N-1, where N is the # of replicas)
+identifies which temperature the replica was simulating on the
+timestep the restart files were written.  Obviously, this argument
+must be a variable so that each partition has the correct value.  Set
+the variable to the <I>N</I> values listed in the log file for the previous
+run for the replica temperatures at that timestep.  For example if the
+log file listed the following for a simulation with 5 replicas:
+</P>
+<PRE>500000 2 4 0 1 3 
+</PRE>
+<P>then a setting of
+</P>
+<PRE>variable w world 2 4 0 1 3 
+</PRE>
+<P>would be used to restart the run with a tempering command like the
+example above with $w as the last argument.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>This command can only be used if LAMMPS was built with the REPLICA
+package.  See the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section
+for more info on packages.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "variable.html">variable</A>, <A HREF = "prd.html">prd</A>, <A HREF = "neb.html">neb</A>
+</P>
+<P><B>Default:</B> none
+</P>
+</HTML>

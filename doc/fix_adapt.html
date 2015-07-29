@@ -1,263 +1,460 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix adapt command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix adapt command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID adapt N attribute args ... keyword value ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>adapt = style name of this fix command 
-
-<LI>N = adapt simulation settings every this many timesteps 
-
-<LI>one or more attribute/arg pairs may be appended 
-
-<LI>attribute = <I>pair</I> or <I>kspace</I> or <I>atom</I> 
-
-<PRE>  <I>pair</I> args = pstyle pparam I J v_name
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix adapt command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-adapt-command">
+<span id="index-0"></span><h1>fix adapt command<a class="headerlink" href="#fix-adapt-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID adapt N attribute args ... keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>adapt = style name of this fix command</li>
+<li>N = adapt simulation settings every this many timesteps</li>
+<li>one or more attribute/arg pairs may be appended</li>
+<li>attribute = <em>pair</em> or <em>kspace</em> or <em>atom</em></li>
+</ul>
+<pre class="literal-block">
+<em>pair</em> args = pstyle pparam I J v_name
     pstyle = pair style name, e.g. lj/cut
     pparam = parameter to adapt over time
     I,J = type pair(s) to set parameter for
     v_name = variable with name that calculates value of pparam
-  <I>kspace</I> arg = v_name
+  <em>kspace</em> arg = v_name
     v_name = variable with name that calculates scale factor on K-space terms
-  <I>atom</I> args = aparam v_name
+  <em>atom</em> args = aparam v_name
     aparam = parameter to adapt over time
-    v_name = variable with name that calculates value of aparam 
-</PRE>
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>scale</I> or <I>reset</I> 
-
-<PRE>  <I>scale</I> value = <I>no</I> or <I>yes</I>
-    <I>no</I> = the variable value is the new setting
-    <I>yes</I> = the variable value multiplies the original setting
-  <I>reset</I> value = <I>no</I> or <I>yes</I>
-    <I>no</I> = values will remain altered at the end of a run
-    <I>yes</I> = reset altered values to their original values at the end of a run 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 1 all adapt 1 pair soft a 1 1 v_prefactor
+    v_name = variable with name that calculates value of aparam
+</pre>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>scale</em> or <em>reset</em></li>
+</ul>
+<pre class="literal-block">
+<em>scale</em> value = <em>no</em> or <em>yes</em>
+    <em>no</em> = the variable value is the new setting
+    <em>yes</em> = the variable value multiplies the original setting
+  <em>reset</em> value = <em>no</em> or <em>yes</em>
+    <em>no</em> = values will remain altered at the end of a run
+    <em>yes</em> = reset altered values to their original values at the end of a run
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 1 all adapt 1 pair soft a 1 1 v_prefactor
 fix 1 all adapt 1 pair soft a 2* 3 v_prefactor
 fix 1 all adapt 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
-fix 1 all adapt 10 atom diameter v_size 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Change or adapt one or more specific simulation attributes or settings
+fix 1 all adapt 10 atom diameter v_size
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Change or adapt one or more specific simulation attributes or settings
 over time as a simulation runs.  Pair potential and K-space and atom
 attributes which can be varied by this fix are discussed below.  Many
 other fixes can also be used to time-vary simulation parameters,
-e.g. the "fix deform" command will change the simulation box
-size/shape and the "fix move" command will change atom positions and
+e.g. the &#8220;fix deform&#8221; command will change the simulation box
+size/shape and the &#8220;fix move&#8221; command will change atom positions and
 velocities in a prescribed manner.  Also note that many commands allow
 variables as arguments for specific parameters, if described in that
 manner on their doc pages.  An equal-style variable can calculate a
 time-dependent quantity, so this is another way to vary a simulation
-parameter over time.
-</P>
-<P>If <I>N</I> is specified as 0, the specified attributes are only changed
+parameter over time.</p>
+<p>If <em>N</em> is specified as 0, the specified attributes are only changed
 once, before the simulation begins.  This is all that is needed if the
-associated variables are not time-dependent.  If <I>N</I> > 0, then changes
-are made every <I>N</I> steps during the simulation, presumably with a
-variable that is time-dependent.
-</P>
-<P>Depending on the value of the <I>reset</I> keyword, attributes changed by
+associated variables are not time-dependent.  If <em>N</em> &gt; 0, then changes
+are made every <em>N</em> steps during the simulation, presumably with a
+variable that is time-dependent.</p>
+<p>Depending on the value of the <em>reset</em> keyword, attributes changed by
 this fix will or will not be reset back to their original values at
-the end of a simulation.  Even if <I>reset</I> is specified as <I>yes</I>, a
+the end of a simulation.  Even if <em>reset</em> is specified as <em>yes</em>, a
 restart file written during a simulation will contain the modified
-settings.
-</P>
-<P>If the <I>scale</I> keyword is set to <I>no</I>, then the value the parameter is
-set to will be whatever the variable generates.  If the <I>scale</I>
-keyword is set to <I>yes</I>, then the value of the altered parameter will
+settings.</p>
+<p>If the <em>scale</em> keyword is set to <em>no</em>, then the value the parameter is
+set to will be whatever the variable generates.  If the <em>scale</em>
+keyword is set to <em>yes</em>, then the value of the altered parameter will
 be the initial value of that parameter multiplied by whatever the
-variable generates.  I.e. the variable is now a "scale factor" applied
-in (presumably) a time-varying fashion to the parameter.
-</P>
-<P>Note that whether scale is <I>no</I> or <I>yes</I>, internally, the parameters
+variable generates.  I.e. the variable is now a &#8220;scale factor&#8221; applied
+in (presumably) a time-varying fashion to the parameter.</p>
+<p>Note that whether scale is <em>no</em> or <em>yes</em>, internally, the parameters
 themselves are actually altered by this fix.  Make sure you use the
-<I>reset yes</I> option if you want the parameters to be restored to their
-initial values after the run.
-</P>
-<HR>
-
-<P>The <I>pair</I> keyword enables various parameters of potentials defined by
-the <A HREF = "pair_style.html">pair_style</A> command to be changed, if the pair
-style supports it.  Note that the <A HREF = "pair_style.html">pair_style</A> and
-<A HREF = "pair_coeff.html">pair_coeff</A> commands must be used in the usual manner
+<em>reset yes</em> option if you want the parameters to be restored to their
+initial values after the run.</p>
+<hr class="docutils" />
+<p>The <em>pair</em> keyword enables various parameters of potentials defined by
+the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> command to be changed, if the pair
+style supports it.  Note that the <a class="reference internal" href="pair_style.html"><em>pair_style</em></a> and
+<a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> commands must be used in the usual manner
 to specify these parameters initially; the fix adapt command simply
-overrides the parameters.
-</P>
-<P>The <I>pstyle</I> argument is the name of the pair style.  If <A HREF = "pair_hybrid.html">pair_style
-hybrid or hybrid/overlay</A> is used, <I>pstyle</I> should be
-a sub-style name.  For example, <I>pstyle</I> could be specified as "soft"
-or "lubricate".  The <I>pparam</I> argument is the name of the parameter to
+overrides the parameters.</p>
+<p>The <em>pstyle</em> argument is the name of the pair style.  If <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid or hybrid/overlay</em></a> is used, <em>pstyle</em> should be
+a sub-style name.  For example, <em>pstyle</em> could be specified as &#8220;soft&#8221;
+or &#8220;lubricate&#8221;.  The <em>pparam</em> argument is the name of the parameter to
 change.  This is the current list of pair styles and parameters that
 can be varied by this fix.  See the doc pages for individual pair
-styles and their energy formulas for the meaning of these parameters:
-</P>
-<DIV ALIGN=center><TABLE  BORDER=1 >
-<TR><TD ><A HREF = "pair_born.html">born</A></TD><TD > a,b,c</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_buck.html">buck</A></TD><TD > a,c</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_coul.html">coul/cut</A></TD><TD > scale</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_coul.html">coul/debye</A></TD><TD > scale</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_coul.html">coul/long</A></TD><TD > scale</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_lj.html">lj/cut</A></TD><TD > epsilon,sigma</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_lj_expand.html">lj/expand</A></TD><TD > epsilon,sigma,delta</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_lubricate.html">lubricate</A></TD><TD > mu</TD><TD > global</TD></TR>
-<TR><TD ><A HREF = "pair_gauss.html">gauss</A></TD><TD > a</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_morse.html">morse</A></TD><TD > d0,r0,alpha</TD><TD > type pairs</TD></TR>
-<TR><TD ><A HREF = "pair_soft.html">soft</A></TD><TD > a</TD><TD > type pairs 
-</TD></TR></TABLE></DIV>
-
-<P>IMPORTANT NOTE: It is easy to add new potentials and their parameters
+styles and their energy formulas for the meaning of these parameters:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="51%" />
+<col width="31%" />
+<col width="18%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="pair_born.html"><em>born</em></a></td>
+<td>a,b,c</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_buck.html"><em>buck</em></a></td>
+<td>a,c</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_coul.html"><em>coul/cut</em></a></td>
+<td>scale</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_coul.html"><em>coul/debye</em></a></td>
+<td>scale</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_coul.html"><em>coul/long</em></a></td>
+<td>scale</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj.html"><em>lj/cut</em></a></td>
+<td>epsilon,sigma</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj_expand.html"><em>lj/expand</em></a></td>
+<td>epsilon,sigma,delta</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_lubricate.html"><em>lubricate</em></a></td>
+<td>mu</td>
+<td>global</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_gauss.html"><em>gauss</em></a></td>
+<td>a</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_morse.html"><em>morse</em></a></td>
+<td>d0,r0,alpha</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_soft.html"><em>soft</em></a></td>
+<td>a</td>
+<td>type pairs</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It is easy to add new potentials and their parameters
 to this list.  All it typically takes is adding an extract() method to
-the pair_*.cpp file associated with the potential.
-</P>
-<P>Some parameters are global settings for the pair style, e.g. the
-viscosity setting "mu" for <A HREF = "pair_lubricate.html">pair_style lubricate</A>.
+the pair_*.cpp file associated with the potential.</p>
+</div>
+<p>Some parameters are global settings for the pair style, e.g. the
+viscosity setting &#8220;mu&#8221; for <a class="reference internal" href="pair_lubricate.html"><em>pair_style lubricate</em></a>.
 Other parameters apply to atom type pairs within the pair style,
-e.g. the prefactor "a" for <A HREF = "pair_soft.html">pair_style soft</A>.
-</P>
-<P>Note that for many of the potentials, the parameter that can be varied
+e.g. the prefactor &#8220;a&#8221; for <a class="reference internal" href="pair_soft.html"><em>pair_style soft</em></a>.</p>
+<p>Note that for many of the potentials, the parameter that can be varied
 is effectively a prefactor on the entire energy expression for the
-potential, e.g. the lj/cut epsilon.  The parameters listed as "scale"
+potential, e.g. the lj/cut epsilon.  The parameters listed as &#8220;scale&#8221;
 are exactly that, since the energy expression for the
-<A HREF = "pair_coul.html">coul/cut</A> potential (for example) has no labeled
+<a class="reference internal" href="pair_coul.html"><em>coul/cut</em></a> potential (for example) has no labeled
 prefactor in its formula.  To apply an effective prefactor to some
 potentials, multiple parameters need to be altered.  For example, the
-<A HREF = "pair_buck.html">Buckingham potential</A> needs both the A and C terms
+<a class="reference internal" href="pair_buck.html"><em>Buckingham potential</em></a> needs both the A and C terms
 altered together.  To scale the Buckingham potential, you should thus
-list the pair style twice, once for A and once for C.
-</P>
-<P>If a type pair parameter is specified, the <I>I</I> and <I>J</I> settings should
+list the pair style twice, once for A and once for C.</p>
+<p>If a type pair parameter is specified, the <em>I</em> and <em>J</em> settings should
 be specified to indicate which type pairs to apply it to.  If a global
-parameter is specified, the <I>I</I> and <I>J</I> settings still need to be
-specified, but are ignored.
-</P>
-<P>Similar to the <A HREF = "pair_coeff.html">pair_coeff command</A>, I and J can be
+parameter is specified, the <em>I</em> and <em>J</em> settings still need to be
+specified, but are ignored.</p>
+<p>Similar to the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff command</em></a>, I and J can be
 specified in one of two ways.  Explicit numeric values can be used for
-each, as in the 1st example above.  I <= J is required.  LAMMPS sets
-the coefficients for the symmetric J,I interaction to the same values.
-</P>
-<P>A wild-card asterisk can be used in place of or in conjunction with
+each, as in the 1st example above.  I &lt;= J is required.  LAMMPS sets
+the coefficients for the symmetric J,I interaction to the same values.</p>
+<p>A wild-card asterisk can be used in place of or in conjunction with
 the I,J arguments to set the coefficients for multiple pairs of atom
-types.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+types.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the
 number of atom types, then an asterisk with no numeric values means
 all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from n to N
 (inclusive).  A middle asterisk means all types from m to n
-(inclusive).  Note that only type pairs with I <= J are considered; if
-asterisks imply type pairs where J < I, they are ignored.
-</P>
-<P>IMPROTANT NOTE: If <A HREF = "pair_hybrid.html">pair_style hybrid or
-hybrid/overlay</A> is being used, then the <I>pstyle</I> will
+(inclusive).  Note that only type pairs with I &lt;= J are considered; if
+asterisks imply type pairs where J &lt; I, they are ignored.</p>
+<p>IMPROTANT NOTE: If <a class="reference internal" href="pair_hybrid.html"><em>pair_style hybrid or hybrid/overlay</em></a> is being used, then the <em>pstyle</em> will
 be a sub-style name.  You must specify I,J arguments that correspond
-to type pair values defined (via the <A HREF = "pair_coeff.html">pair_coeff</A>
-command) for that sub-style.
-</P>
-<P>The <I>v_name</I> argument for keyword <I>pair</I> is the name of an
-<A HREF = "variable.html">equal-style variable</A> which will be evaluated each time
+to type pair values defined (via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>
+command) for that sub-style.</p>
+<p>The <em>v_name</em> argument for keyword <em>pair</em> is the name of an
+<a class="reference internal" href="variable.html"><em>equal-style variable</em></a> which will be evaluated each time
 this fix is invoked to set the parameter to a new value.  It should be
 specified as v_name, where name is the variable name.  Equal-style
 variables can specify formulas with various mathematical functions,
-and include <A HREF = "thermo_style.html">thermo_style</A> command keywords for the
+and include <a class="reference internal" href="thermo_style.html"><em>thermo_style</em></a> command keywords for the
 simulation box parameters and timestep and elapsed time.  Thus it is
 easy to specify parameters that change as a function of time or span
 consecutive runs in a continuous fashion.  For the latter, see the
-<I>start</I> and <I>stop</I> keywords of the <A HREF = "run.html">run</A> command and the
-<I>elaplong</I> keyword of <A HREF = "thermo_style.html">thermo_style custom</A> for
-details.
-</P>
-<P>For example, these commands would change the prefactor coefficient of
-the <A HREF = "pair_soft.html">pair_style soft</A> potential from 10.0 to 30.0 in a
-linear fashion over the course of a simulation:
-</P>
-<PRE>variable prefactor equal ramp(10,30)
-fix 1 all adapt 1 pair soft a * * v_prefactor 
-</PRE>
-<HR>
-
-<P>The <I>kspace</I> keyword used the specified variable as a scale factor on
+<em>start</em> and <em>stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command and the
+<em>elaplong</em> keyword of <a class="reference internal" href="thermo_style.html"><em>thermo_style custom</em></a> for
+details.</p>
+<p>For example, these commands would change the prefactor coefficient of
+the <a class="reference internal" href="pair_soft.html"><em>pair_style soft</em></a> potential from 10.0 to 30.0 in a
+linear fashion over the course of a simulation:</p>
+<div class="highlight-python"><div class="highlight"><pre>variable prefactor equal ramp(10,30)
+fix 1 all adapt 1 pair soft a * * v_prefactor
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>The <em>kspace</em> keyword used the specified variable as a scale factor on
 the energy, forces, virial calculated by whatever K-Space solver is
-defined by the <A HREF = "kspace_style.html">kspace_style</A> command.  If the
-variable has a value of 1.0, then the solver is unaltered.
-</P>
-<P>The <I>kspace</I> keyword works this way whether the <I>scale</I> keyword
-is set to <I>no</I> or <I>yes</I>.
-</P>
-<HR>
-
-<P>The <I>atom</I> keyword enables various atom properties to be changed.  The
-<I>aparam</I> argument is the name of the parameter to change.  This is the
-current list of atom parameters that can be varied by this fix:
-</P>
-<UL><LI>charge = charge on particle
-<LI>diameter = diameter of particle 
-</UL>
-<P>The <I>v_name</I> argument of the <I>atom</I> keyword is the name of an
-<A HREF = "variable.html">equal-style variable</A> which will be evaluated each time
+defined by the <a class="reference internal" href="kspace_style.html"><em>kspace_style</em></a> command.  If the
+variable has a value of 1.0, then the solver is unaltered.</p>
+<p>The <em>kspace</em> keyword works this way whether the <em>scale</em> keyword
+is set to <em>no</em> or <em>yes</em>.</p>
+<hr class="docutils" />
+<p>The <em>atom</em> keyword enables various atom properties to be changed.  The
+<em>aparam</em> argument is the name of the parameter to change.  This is the
+current list of atom parameters that can be varied by this fix:</p>
+<ul class="simple">
+<li>charge = charge on particle</li>
+<li>diameter = diameter of particle</li>
+</ul>
+<p>The <em>v_name</em> argument of the <em>atom</em> keyword is the name of an
+<a class="reference internal" href="variable.html"><em>equal-style variable</em></a> which will be evaluated each time
 this fix is invoked to set the parameter to a new value.  It should be
 specified as v_name, where name is the variable name.  See the
 discussion above describing the formulas associated with equal-style
 variables.  The new value is assigned to the corresponding attribute
-for all atoms in the fix group.
-</P>
-<P>IMPORTANT NOTE: The <I>atom</I> keyword works this way whether the <I>scale</I>
-keyword is set to <I>no</I> or <I>yes</I>.  I.e. the use of scale yes is not yet
-supported by the <I>atom</I> keyword.
-</P>
-<P>If the atom parameter is <I>diameter</I> and per-atom density and per-atom
-mass are defined for particles (e.g. <A HREF = "atom_style.html">atom_style
-granular</A>), then the mass of each particle is also
+for all atoms in the fix group.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The <em>atom</em> keyword works this way whether the <em>scale</em>
+keyword is set to <em>no</em> or <em>yes</em>.  I.e. the use of scale yes is not yet
+supported by the <em>atom</em> keyword.</p>
+</div>
+<p>If the atom parameter is <em>diameter</em> and per-atom density and per-atom
+mass are defined for particles (e.g. <a class="reference internal" href="atom_style.html"><em>atom_style granular</em></a>), then the mass of each particle is also
 changed when the diameter changes (density is assumed to stay
-constant).
-</P>
-<P>For example, these commands would shrink the diameter of all granular
-particles in the "center" group from 1.0 to 0.1 in a linear fashion
-over the course of a 1000-step simulation:
-</P>
-<PRE>variable size equal ramp(1.0,0.1)
-fix 1 center adapt 10 atom diameter v_size 
-</PRE>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  None of the <A HREF = "fix_modify.html">fix_modify</A> options
+constant).</p>
+<p>For example, these commands would shrink the diameter of all granular
+particles in the &#8220;center&#8221; group from 1.0 to 0.1 in a linear fashion
+over the course of a 1000-step simulation:</p>
+<div class="highlight-python"><div class="highlight"><pre>variable size equal ramp(1.0,0.1)
+fix 1 center adapt 10 atom diameter v_size
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options
 are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various <A HREF = "Section_howto.html#howto_15">output
-commands</A>.  No parameter of this fix can
-be used with the <I>start/stop</I> keywords of the <A HREF = "run.html">run</A> command.
-This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
-</P>
-<P>For <A HREF = "run_style.html">rRESPA time integration</A>, this fix changes
-parameters on the outermost rRESPA level.
-</P>
-<P><B>Restrictions:</B> none
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "compute_ti.html">compute ti</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>The option defaults are scale = no, reset = no.
-</P>
-</HTML>
+by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  No parameter of this fix can
+be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><em>run</em></a> command.
+This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+<p>For <a class="reference internal" href="run_style.html"><em>rRESPA time integration</em></a>, this fix changes
+parameters on the outermost rRESPA level.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="compute_ti.html"><em>compute ti</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are scale = no, reset = no.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,74 +1,184 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>create_box command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>create_box command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>create_box N region-ID keyword value ... 
-</PRE>
-<UL><LI>N = # of atom types to use in this simulation 
-
-<LI>region-ID = ID of region to use as simulation domain 
-
-<LI>zero or more keyword/value pairs may be appended 
-
-<LI>keyword = <I>bond/types</I> or <I>angle/types</I> or <I>dihedral/types</I> or <I>improper/types</I> or <I>extra/bond/per/atom</I> or <I>extra/angle/per/atom</I> or <I>extra/dihedral/per/atom</I> or <I>extra/improper/per/atom</I> 
-
-<PRE>  <I>bond/types</I> value = # of bond types
-  <I>angle/types</I> value = # of angle types
-  <I>dihedral/types</I> value = # of dihedral types
-  <I>improper/types</I> value = # of improper types
-  <I>extra/bond/per/atom</I> value = # of bonds per atom
-  <I>extra/angle/per/atom</I> value = # of angles per atom
-  <I>extra/dihedral/per/atom</I> value = # of dihedrals per atom
-  <I>extra/improper/per/atom</I> value = # of impropers per atom
-  <I>extra/special/per/atom</I> value = # of special neighbors per atom 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>create_box 2 mybox
-create_box 2 mybox bond/types 2 extra/bond/per/atom 1 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>This command creates a simulation box based on the specified region.
-Thus a <A HREF = "region.html">region</A> command must first be used to define a
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>create_box command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="create-box-command">
+<span id="index-0"></span><h1>create_box command<a class="headerlink" href="#create-box-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>create_box N region-ID keyword value ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>N = # of atom types to use in this simulation</li>
+<li>region-ID = ID of region to use as simulation domain</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>bond/types</em> or <em>angle/types</em> or <em>dihedral/types</em> or <em>improper/types</em> or <em>extra/bond/per/atom</em> or <em>extra/angle/per/atom</em> or <em>extra/dihedral/per/atom</em> or <em>extra/improper/per/atom</em></li>
+</ul>
+<pre class="literal-block">
+<em>bond/types</em> value = # of bond types
+  <em>angle/types</em> value = # of angle types
+  <em>dihedral/types</em> value = # of dihedral types
+  <em>improper/types</em> value = # of improper types
+  <em>extra/bond/per/atom</em> value = # of bonds per atom
+  <em>extra/angle/per/atom</em> value = # of angles per atom
+  <em>extra/dihedral/per/atom</em> value = # of dihedrals per atom
+  <em>extra/improper/per/atom</em> value = # of impropers per atom
+  <em>extra/special/per/atom</em> value = # of special neighbors per atom
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>create_box 2 mybox
+create_box 2 mybox bond/types 2 extra/bond/per/atom 1
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command creates a simulation box based on the specified region.
+Thus a <a class="reference internal" href="region.html"><em>region</em></a> command must first be used to define a
 geometric domain.  It also partitions the simulation box into a
 regular 3d grid of rectangular bricks, one per processor, based on the
 number of processors being used and the settings of the
-<A HREF = "processors.html">processors</A> command.  The partitioning can later be
-changed by the <A HREF = "balance.html">balance</A> or <A HREF = "fix_balance.html">fix
-balance</A> commands.
-</P>
-<P>The argument N is the number of atom types that will be used in the
-simulation.
-</P>
-<P>If the region is not of style <I>prism</I>, then LAMMPS encloses the region
+<a class="reference internal" href="processors.html"><em>processors</em></a> command.  The partitioning can later be
+changed by the <a class="reference internal" href="balance.html"><em>balance</em></a> or <a class="reference internal" href="fix_balance.html"><em>fix balance</em></a> commands.</p>
+<p>The argument N is the number of atom types that will be used in the
+simulation.</p>
+<p>If the region is not of style <em>prism</em>, then LAMMPS encloses the region
 (block, sphere, etc) with an axis-aligned orthogonal bounding box
-which becomes the simulation domain.
-</P>
-<P>If the region is of style <I>prism</I>, LAMMPS creates a non-orthogonal
+which becomes the simulation domain.</p>
+<p>If the region is of style <em>prism</em>, LAMMPS creates a non-orthogonal
 simulation domain shaped as a parallelepiped with triclinic symmetry.
-As defined by the <A HREF = "region.html">region prism</A> command, the
-parallelepiped has its "origin" at (xlo,ylo,zlo) and is defined by 3
+As defined by the <a class="reference internal" href="region.html"><em>region prism</em></a> command, the
+parallelepiped has its &#8220;origin&#8221; at (xlo,ylo,zlo) and is defined by 3
 edge vectors starting from the origin given by A = (xhi-xlo,0,0); B =
-(xy,yhi-ylo,0); C = (xz,yz,zhi-zlo).  <I>Xy,xz,yz</I> can be 0.0 or
-positive or negative values and are called "tilt factors" because they
+(xy,yhi-ylo,0); C = (xz,yz,zhi-zlo).  <em>Xy,xz,yz</em> can be 0.0 or
+positive or negative values and are called &#8220;tilt factors&#8221; because they
 are the amount of displacement applied to faces of an originally
-orthogonal box to transform it into the parallelipiped.
-</P>
-<P>By default, a <I>prism</I> region used with the create_box command must
+orthogonal box to transform it into the parallelipiped.</p>
+<p>By default, a <em>prism</em> region used with the create_box command must
 have tilt factors (xy,xz,yz) that do not skew the box more than half
 the distance of the parallel box length.  For example, if xlo = 2 and
 xhi = 12, then the x box length is 10 and the xy tilt factor must be
@@ -77,86 +187,139 @@ between -5 and 5.  Similarly, both xz and yz must be between
 since if the maximum tilt factor is 5 (as in this example), then
 configurations with tilt = ..., -15, -5, 5, 15, 25, ... are all
 geometrically equivalent.  If you wish to define a box with tilt
-factors that exceed these limits, you can use the <A HREF = "box.html">box tilt</A>
-command, with a setting of <I>large</I>; a setting of <I>small</I> is the
-default.
-</P>
-<P>See <A HREF = "Section_howto.html#howto_12">Section_howto 12</A> of the doc pages
+factors that exceed these limits, you can use the <a class="reference internal" href="box.html"><em>box tilt</em></a>
+command, with a setting of <em>large</em>; a setting of <em>small</em> is the
+default.</p>
+<p>See <a class="reference internal" href="Section_howto.html#howto-12"><span>Section_howto 12</span></a> of the doc pages
 for a geometric description of triclinic boxes, as defined by LAMMPS,
 and how to transform these parameters to and from other commonly used
-triclinic representations.
-</P>
-<P>When a prism region is used, the simulation domain should normally be
+triclinic representations.</p>
+<p>When a prism region is used, the simulation domain should normally be
 periodic in the dimension that the tilt is applied to, which is given
 by the second dimension of the tilt factor (e.g. y for xy tilt).  This
 is so that pairs of atoms interacting across that boundary will have
 one of them shifted by the tilt factor.  Periodicity is set by the
-<A HREF = "boundary.html">boundary</A> command.  For example, if the xy tilt factor
+<a class="reference internal" href="boundary.html"><em>boundary</em></a> command.  For example, if the xy tilt factor
 is non-zero, then the y dimension should be periodic.  Similarly, the
 z dimension should be periodic if xz or yz is non-zero.  LAMMPS does
 not require this periodicity, but you may lose atoms if this is not
-the case.
-</P>
-<P>Also note that if your simulation will tilt the box, e.g. via the <A HREF = "fix_deform.html">fix
-deform</A> command, the simulation box must be setup to
+the case.</p>
+<p>Also note that if your simulation will tilt the box, e.g. via the <a class="reference internal" href="fix_deform.html"><em>fix deform</em></a> command, the simulation box must be setup to
 be triclinic, even if the tilt factors are initially 0.0.  You can
 also change an orthogonal box to a triclinic box or vice versa by
-using the <A HREF = "change_box.html">change box</A> command with its <I>ortho</I> and
-<I>triclinic</I> options.
-</P>
-<P>IMPORTANT NOTE: If the system is non-periodic (in a dimension), then
+using the <a class="reference internal" href="change_box.html"><em>change box</em></a> command with its <em>ortho</em> and
+<em>triclinic</em> options.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If the system is non-periodic (in a dimension), then
 you should not make the lo/hi box dimensions (as defined in your
-<A HREF = "region.html">region</A> command) radically smaller/larger than the extent
+<a class="reference internal" href="region.html"><em>region</em></a> command) radically smaller/larger than the extent
 of the atoms you eventually plan to create, e.g. via the
-<A HREF = "create_atoms.html">create_atoms</A> command.  For example, if your atoms
+<a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a> command.  For example, if your atoms
 extend from 0 to 50, you should not specify the box bounds as -10000
 and 10000. This is because as described above, LAMMPS uses the
 specified box size to layout the 3d grid of processors.  A huge
 (mostly empty) box will be sub-optimal for performance when using
-"fixed" boundary conditions (see the <A HREF = "boundary.html">boundary</A>
-command).  When using "shrink-wrap" boundary conditions (see the
-<A HREF = "boundary.html">boundary</A> command), a huge (mostly empty) box may cause
+&#8220;fixed&#8221; boundary conditions (see the <a class="reference internal" href="boundary.html"><em>boundary</em></a>
+command).  When using &#8220;shrink-wrap&#8221; boundary conditions (see the
+<a class="reference internal" href="boundary.html"><em>boundary</em></a> command), a huge (mostly empty) box may cause
 a parallel simulation to lose atoms the first time that LAMMPS
-shrink-wraps the box around the atoms.
-</P>
-<HR>
-
-<P>The optional keywords can be used to create a system that allows for
+shrink-wraps the box around the atoms.</p>
+</div>
+<hr class="docutils" />
+<p>The optional keywords can be used to create a system that allows for
 bond (angle, dihedral, improper) interactions, or for molecules with
 special 1-2,1-3,1-4 neighbors to be added later.  These optional
 keywords serve the same purpose as the analogous keywords that can be
 used in a data file which are recognized by the
-<A HREF = "read_data.html">read_data</A> command when it sets up a system.
-</P>
-<P>Note that if these keywords are not used, then the create_box command
+<a class="reference internal" href="read_data.html"><em>read_data</em></a> command when it sets up a system.</p>
+<p>Note that if these keywords are not used, then the create_box command
 creates an atomic (non-molecular) simulation that does not allow bonds
-between pairs of atoms to be defined, or a <A HREF = "bond_style.html">bond
-potential</A> to be specified, or for molecules with
+between pairs of atoms to be defined, or a <a class="reference internal" href="bond_style.html"><em>bond potential</em></a> to be specified, or for molecules with
 special neighbors to be added to the system by commands such as
-<A HREF = "create_atoms.html">create_atoms mol</A>, <A HREF = "fix_deposit.html">fix deposit</A>
-or <A HREF = "fix_pour.html">fix pour</A>.
-</P>
-<P>As an example, see the examples/deposit/in.deposit.molecule script,
+<a class="reference internal" href="create_atoms.html"><em>create_atoms mol</em></a>, <a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a>
+or <a class="reference internal" href="fix_pour.html"><em>fix pour</em></a>.</p>
+<p>As an example, see the examples/deposit/in.deposit.molecule script,
 which deposits molecules onto a substrate.  Initially there are no
-molecules in the system, but they are added later by the <A HREF = "fix_deposit.html">fix
-deposit</A> command.  The create_box command in the
+molecules in the system, but they are added later by the <a class="reference internal" href="fix_deposit.html"><em>fix deposit</em></a> command.  The create_box command in the
 script uses the bond/types and extra/bond/per/atom keywords to allow
 this.  If the added molecule contained more than 1 special bond
 (allowed by default), an extra/special/per/atom keyword would also
-need to be specified.
-</P>
-<HR>
+need to be specified.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>An <a class="reference internal" href="atom_style.html"><em>atom_style</em></a> and <a class="reference internal" href="region.html"><em>region</em></a> must have
+been previously defined to use this command.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="read_data.html"><em>read_data</em></a>, <a class="reference internal" href="create_atoms.html"><em>create_atoms</em></a>,
+<a class="reference internal" href="region.html"><em>region</em></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
 
-<P><B>Restrictions:</B>
-</P>
-<P>An <A HREF = "atom_style.html">atom_style</A> and <A HREF = "region.html">region</A> must have
-been previously defined to use this command.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "read_data.html">read_data</A>, <A HREF = "create_atoms.html">create_atoms</A>,
-<A HREF = "region.html">region</A>
-</P>
-<P><B>Default:</B> none
-</P>
-</HTML>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,83 +1,246 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style sph/taitwater/morris command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style sph/taitwater/morris command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-sph-taitwater-morris-command">
+<span id="index-0"></span><h1>pair_style sph/taitwater/morris command<a class="headerlink" href="#pair-style-sph-taitwater-morris-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style sph/taitwater/morris
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style sph/taitwater/morris
+pair_coeff * * 1000.0 1430.0 1.0 2.4
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>The sph/taitwater/morris style computes pressure forces between SPH
+particles according to Tait&#8217;s equation of state:</p>
+<img alt="_images/pair_sph_tait.jpg" class="align-center" src="_images/pair_sph_tait.jpg" />
+<p>where gamma = 7 and B = c_0^2 rho_0 / gamma, with rho_0 being the
+reference density and c_0 the reference speed of sound.</p>
+<p>This pair style also computes laminar viscosity <a class="reference internal" href="#morris"><span>(Morris)</span></a>.</p>
+<p>See <a class="reference external" href="USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</a> to using SPH in
+LAMMPS.</p>
+<p>The following coefficients must be defined for each pair of atoms
+types via the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command as in the examples
+above.</p>
+<ul class="simple">
+<li>rho0 reference density (mass/volume units)</li>
+<li>c0 reference soundspeed (distance/time units)</li>
+<li>nu dynamic viscosity (mass*distance/time units)</li>
+<li>h kernel function cutoff (distance units)</li>
+</ul>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>This style does not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.</p>
+<p>This style does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
+shift, table, and tail options.</p>
+<p>This style does not write information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.</p>
+<p>This style can only be used via the <em>pair</em> keyword of the <a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the <em>inner</em>,
+<em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This pair style is part of the USER-SPH package.  It is only enabled
+if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>, pair_sph/rhosum</p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="morris"><strong>(Morris)</strong> Morris, Fox, Zhu, J Comp Physics, 136, 214-226 (1997).</p>
+</div>
+</div>
 
 
-<HR>
+           </div>
+          </div>
+          <footer>
+  
 
-<H3>pair_style sph/taitwater/morris command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style sph/taitwater/morris 
-</PRE>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style sph/taitwater/morris
-pair_coeff * * 1000.0 1430.0 1.0 2.4 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>The sph/taitwater/morris style computes pressure forces between SPH
-particles according to Tait's equation of state:
-</P>
-<CENTER><IMG SRC = "Eqs/pair_sph_tait.jpg">
-</CENTER>
-<P>where gamma = 7 and B = c_0^2 rho_0 / gamma, with rho_0 being the
-reference density and c_0 the reference speed of sound.
-</P>
-<P>This pair style also computes laminar viscosity <A HREF = "#Morris">(Morris)</A>.
-</P>
-<P>See <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">this PDF guide</A> to using SPH in
-LAMMPS.
-</P>
-<P>The following coefficients must be defined for each pair of atoms
-types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
-above.
-</P>
-<UL><LI>rho0 reference density (mass/volume units)
-<LI>c0 reference soundspeed (distance/time units)
-<LI>nu dynamic viscosity (mass*distance/time units)
-<LI>h kernel function cutoff (distance units) 
-</UL>
-<HR>
+  <hr/>
 
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>This style does not support mixing.  Thus, coefficients for all
-I,J pairs must be specified explicitly.
-</P>
-<P>This style does not support the <A HREF = "pair_modify.html">pair_modify</A>
-shift, table, and tail options.
-</P>
-<P>This style does not write information to <A HREF = "restart.html">binary restart
-files</A>.  Thus, you need to re-specify the pair_style and
-pair_coeff commands in an input script that reads a restart file.
-</P>
-<P>This style can only be used via the <I>pair</I> keyword of the <A HREF = "run_style.html">run_style
-respa</A> command.  It does not support the <I>inner</I>,
-<I>middle</I>, <I>outer</I> keywords.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This pair style is part of the USER-SPH package.  It is only enabled
-if LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_coeff.html">pair_coeff</A>, pair_sph/rhosum
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
-<A NAME = "Morris"></A>
+</footer>
 
-<P><B>(Morris)</B> Morris, Fox, Zhu, J Comp Physics, 136, 214-226 (1997).
-</P>
-</HTML>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

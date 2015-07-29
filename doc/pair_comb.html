@@ -1,204 +1,350 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style comb command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>pair_style comb command 
-</H3>
-<H3>pair_style comb/omp command 
-</H3>
-<H3>pair_style comb3 command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>pair_style comb
-pair_style comb3 keyword 
-</PRE>
-<PRE>keyword = <I>polar</I>
-  <I>polar</I> value = <I>polar_on</I> or <I>polar_off</I> = whether or not to include atomic polarization 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>pair_style comb
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style comb command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-comb-command">
+<span id="index-0"></span><h1>pair_style comb command<a class="headerlink" href="#pair-style-comb-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-comb-omp-command">
+<h1>pair_style comb/omp command<a class="headerlink" href="#pair-style-comb-omp-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="pair-style-comb3-command">
+<h1>pair_style comb3 command<a class="headerlink" href="#pair-style-comb3-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style comb
+pair_style comb3 keyword
+</pre></div>
+</div>
+<pre class="literal-block">
+keyword = <em>polar</em>
+  <em>polar</em> value = <em>polar_on</em> or <em>polar_off</em> = whether or not to include atomic polarization
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>pair_style comb
 pair_coeff * * ../potentials/ffield.comb Si
-pair_coeff * * ../potentials/ffield.comb Hf Si O 
-</PRE>
-<PRE>pair_style comb3 polar_off
-pair_coeff * * ../potentials/ffield.comb3 O Cu N C O 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Style <I>comb</I> computes the second-generation variable charge COMB
-(Charge-Optimized Many-Body) potential.  Style <I>comb3</I> computes the
+pair_coeff * * ../potentials/ffield.comb Hf Si O
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre>pair_style comb3 polar_off
+pair_coeff * * ../potentials/ffield.comb3 O Cu N C O
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Style <em>comb</em> computes the second-generation variable charge COMB
+(Charge-Optimized Many-Body) potential.  Style <em>comb3</em> computes the
 third-generation COMB potential.  These COMB potentials are described
-in <A HREF = "#COMB">(COMB)</A> and <A HREF = "#COMB3">(COMB3)</A>.  Briefly, the total energy
-<I>E<sub>T</sub></I> of a system of atoms is given by
-</P>
-<CENTER><IMG SRC = "Eqs/pair_comb1.jpg">
-</CENTER>
-<P>where <I>E<sub>i</sub><sup>self</sup></I> is the self-energy of atom <I>i</I> 
+in <a class="reference internal" href="#comb"><span>(COMB)</span></a> and <a class="reference internal" href="#comb3"><span>(COMB3)</span></a>.  Briefly, the total energy
+<em>E&lt;sub&gt;T&lt;/sub&gt;</em> of a system of atoms is given by</p>
+<img alt="_images/pair_comb1.jpg" class="align-center" src="_images/pair_comb1.jpg" />
+<p>where <em>E&lt;sub&gt;i&lt;/sub&gt;&lt;sup&gt;self&lt;/sup&gt;</em> is the self-energy of atom <em>i</em>
 (including atomic ionization energies and electron affinities),
-<I>E<sub>ij</sub><sup>short</sup></I> is the bond-order potential between 
-atoms <I>i</I> and <I>j</I>,
-<I>E<sub>ij</sub><sup>Coul</sup></I> is the Coulomb interactions,
-<I>E<sup>polar</sup></I> is the polarization term for organic systems 
-(style <I>comb3</I> only), 
-<I>E<sup>vdW</sup></I> is the van der Waals energy (style <I>comb3</I> only), 
-<I>E<sup>barr</sup></I> is a charge barrier function, and 
-<I>E<sup>corr</sup></I> are angular correction terms.
-</P>
-<P>The COMB potentials (styles <I>comb</I> and <I>comb3</I>) are variable charge
+<em>E&lt;sub&gt;ij&lt;/sub&gt;&lt;sup&gt;short&lt;/sup&gt;</em> is the bond-order potential between
+atoms <em>i</em> and <em>j</em>,
+<em>E&lt;sub&gt;ij&lt;/sub&gt;&lt;sup&gt;Coul&lt;/sup&gt;</em> is the Coulomb interactions,
+<em>E&lt;sup&gt;polar&lt;/sup&gt;</em> is the polarization term for organic systems
+(style <em>comb3</em> only),
+<em>E&lt;sup&gt;vdW&lt;/sup&gt;</em> is the van der Waals energy (style <em>comb3</em> only),
+<em>E&lt;sup&gt;barr&lt;/sup&gt;</em> is a charge barrier function, and
+<em>E&lt;sup&gt;corr&lt;/sup&gt;</em> are angular correction terms.</p>
+<p>The COMB potentials (styles <em>comb</em> and <em>comb3</em>) are variable charge
 potentials.  The equilibrium charge on each atom is calculated by the
-electronegativity equalization (QEq) method.  See <A HREF = "#Rick">Rick</A> for
-further details.  This is implemented by the <A HREF = "fix_qeq_comb.html">fix
-qeq/comb</A> command, which should normally be
+electronegativity equalization (QEq) method.  See <a class="reference internal" href="#rick"><span>Rick</span></a> for
+further details.  This is implemented by the <a class="reference internal" href="fix_qeq_comb.html"><em>fix qeq/comb</em></a> command, which should normally be
 specified in the input script when running a model with the COMB
-potential.  The <A HREF = "fix_qeq_comb.html">fix qeq/comb</A> command has options
+potential.  The <a class="reference internal" href="fix_qeq_comb.html"><em>fix qeq/comb</em></a> command has options
 that determine how often charge equilibration is performed, its
 convergence criterion, and which atoms are included in the
-calculation.
-</P>
-<P>Only a single pair_coeff command is used with the <I>comb</I> and <I>comb3</I>
+calculation.</p>
+<p>Only a single pair_coeff command is used with the <em>comb</em> and <em>comb3</em>
 styles which specifies the COMB potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
 N additional arguments after the potential file in the pair_coeff
-command, where N is the number of LAMMPS atom types.
-</P>
-<P>For example, if your LAMMPS simulation of a Si/SiO<sub>2</sub>/
-HfO<sub>2</sub> interface has 4 atom types, and you want the 1st and
+command, where N is the number of LAMMPS atom types.</p>
+<p>For example, if your LAMMPS simulation of a Si/SiO&lt;sub&gt;2&lt;/sub&gt;/
+HfO&lt;sub&gt;2&lt;/sub&gt; interface has 4 atom types, and you want the 1st and
 last to be Si, the 2nd to be Hf, and the 3rd to be O, and you would
-use the following pair_coeff command:
-</P>
-<PRE>pair_coeff * * ../potentials/ffield.comb Si Hf O Si 
-</PRE>
-<P>The first two arguments must be * * so as to span all LAMMPS atom
+use the following pair_coeff command:</p>
+<div class="highlight-python"><div class="highlight"><pre>pair_coeff * * ../potentials/ffield.comb Si Hf O Si
+</pre></div>
+</div>
+<p>The first two arguments must be * * so as to span all LAMMPS atom
 types.  The first and last Si arguments map LAMMPS atom types 1 and 4
-to the Si element in the <I>ffield.comb</I> file.  The second Hf argument
+to the Si element in the <em>ffield.comb</em> file.  The second Hf argument
 maps LAMMPS atom type 2 to the Hf element, and the third O argument
 maps LAMMPS atom type 3 to the O element in the potential file.  If a
 mapping value is specified as NULL, the mapping is not performed.
-This can be used when a <I>comb</I> potential is used as part of the
-<I>hybrid</I> pair style.  The NULL values are placeholders for atom types
-that will be used with other potentials.
-</P>
-<P>For style <I>comb</I>, the provided potential file <I>ffield.comb</I> contains
+This can be used when a <em>comb</em> potential is used as part of the
+<em>hybrid</em> pair style.  The NULL values are placeholders for atom types
+that will be used with other potentials.</p>
+<p>For style <em>comb</em>, the provided potential file <em>ffield.comb</em> contains
 all currently-available 2nd generation COMB parameterizations: for Si,
 Cu, Hf, Ti, O, their oxides and Zr, Zn and U metals.  For style
-<I>comb3</I>, the potential file <I>ffield.comb3</I> contains all
+<em>comb3</em>, the potential file <em>ffield.comb3</em> contains all
 currently-available 3rd generation COMB paramterizations: O, Cu, N, C,
 H, Ti, Zn and Zr.  The status of the optimization of the compounds, for
-example Cu<sub>2</sub>O, TiN and hydrocarbons, are given in the
-following table:
-</P>
-<CENTER><IMG SRC = "Eqs/pair_comb2.jpg">
-</CENTER>
-<P>For style <I>comb3</I>, in addition to ffield.comb3, a special parameter
-file, <I>lib.comb3</I>, that is exclusively used for C/O/H systems, will be
+example Cu&lt;sub&gt;2&lt;/sub&gt;O, TiN and hydrocarbons, are given in the
+following table:</p>
+<img alt="_images/pair_comb2.jpg" class="align-center" src="_images/pair_comb2.jpg" />
+<p>For style <em>comb3</em>, in addition to ffield.comb3, a special parameter
+file, <em>lib.comb3</em>, that is exclusively used for C/O/H systems, will be
 automatically loaded if carbon atom is detected in LAMMPS input
 structure.  This file must be in your working directory or in the
 directory pointed to by the environment variable LAMMPS_POTENTIALS, as
-described on the <A HREF = "pair_coeff.html">pair_coeff</A> command doc page.
-</P>
-<P>Keyword <I>polar</I> indicates whether the force field includes
+described on the <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a> command doc page.</p>
+<p>Keyword <em>polar</em> indicates whether the force field includes
 the atomic polarization.  Since the equilibration of the polarization
-has not yet been implemented, it can only set polar_off at present.
-</P>
-<P>IMPORTANT NOTE: You can not use potential file <I>ffield.comb</I> with
-style <I>comb3</I>, nor file <I>ffield.comb3</I> with style <I>comb</I>.
-</P>
-<HR>
-
-<P>Styles with a <I>cuda</I>, <I>gpu</I>, <I>intel</I>, <I>kk</I>, <I>omp</I>, or <I>opt</I> suffix are
+has not yet been implemented, it can only set polar_off at present.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">You can not use potential file <em>ffield.comb</em> with
+style <em>comb3</em>, nor file <em>ffield.comb3</em> with style <em>comb</em>.</p>
+</div>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <A HREF = "Section_accelerate.html">Section_accelerate</A>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
-issues.
-</P>
-<P>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
 KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <A HREF = "Section_start.html#start_7">-suffix command-line
-switch</A> when you invoke LAMMPS, or you can
-use the <A HREF = "suffix.html">suffix</A> command in your input script.
-</P>
-<P>See <A HREF = "Section_accelerate.html">Section_accelerate</A> of the manual for
-more instructions on how to use the accelerated styles effectively.
-</P>
-<HR>
-
-<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
-</P>
-<P>For atom type pairs I,J and I != J, where types I and J correspond to
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span>-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><em>suffix</em></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><em>Section_accelerate</em></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
-described above from values in the potential file.
-</P>
-<P>These pair styles does not support the <A HREF = "pair_modify.html">pair_modify</A>
-shift, table, and tail options.
-</P>
-<P>These pair styles do not write its information to <A HREF = "restart.html">binary restart
-files</A>, since it is stored in potential files.  Thus, you
-need to re-specify the pair_style, pair_coeff, and <A HREF = "fix_qeq_comb.html">fix
-qeq/comb</A> commands in an input script that reads a
-restart file.
-</P>
-<P>These pair styles can only be used via the <I>pair</I> keyword of the
-<A HREF = "run_style.html">run_style respa</A> command.  It does not support the
-<I>inner</I>, <I>middle</I>, <I>outer</I> keywords.
-</P>
-<HR>
-
-<P><B>Restrictions:</B>
-</P>
-<P>These pair styles are part of the MANYBODY package.  It is only enabled
+described above from values in the potential file.</p>
+<p>These pair styles does not support the <a class="reference internal" href="pair_modify.html"><em>pair_modify</em></a>
+shift, table, and tail options.</p>
+<p>These pair styles do not write its information to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style, pair_coeff, and <a class="reference internal" href="fix_qeq_comb.html"><em>fix qeq/comb</em></a> commands in an input script that reads a
+restart file.</p>
+<p>These pair styles can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><em>run_style respa</em></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>These pair styles are part of the MANYBODY package.  It is only enabled
 if LAMMPS was built with that package (which it is by default).  See
-the <A HREF = "Section_start.html#start_3">Making LAMMPS</A> section for more info.
-</P>
-<P>These pair styles requires the <A HREF = "newton.html">newton</A> setting to be "on"
-for pair interactions.
-</P>
-<P>The COMB potentials in the <I>ffield.comb</I> and <I>ffield.comb3</I> files provided 
+the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>These pair styles requires the <a class="reference internal" href="newton.html"><em>newton</em></a> setting to be &#8220;on&#8221;
+for pair interactions.</p>
+<p>The COMB potentials in the <em>ffield.comb</em> and <em>ffield.comb3</em> files provided
 with LAMMPS (see the potentials directory) are parameterized for metal
-<A HREF = "units.html">units</A>.  You can use the COMB potential with any LAMMPS
+<a class="reference internal" href="units.html"><em>units</em></a>.  You can use the COMB potential with any LAMMPS
 units, but you would need to create your own COMB potential file with
 coefficients listed in the appropriate units if your simulation
-doesn't use "metal" units.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "pair_style.html">pair_style</A>, <A HREF = "pair_coeff.html">pair_coeff</A>, 
-<A HREF = "fix_qeq_comb.html">fix_qeq/comb</A>
-</P>
-<P><B>Default:</B> none
-</P>
-<HR>
+doesn&#8217;t use &#8220;metal&#8221; units.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="pair_style.html"><em>pair_style</em></a>, <a class="reference internal" href="pair_coeff.html"><em>pair_coeff</em></a>,
+<a class="reference internal" href="fix_qeq_comb.html"><em>fix_qeq/comb</em></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="comb"><strong>(COMB)</strong>  T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, and
+S. R. Phillpot, Phys. Rev. B 81, 125328 (2010)</p>
+<p id="comb3"><strong>(COMB3)</strong> T. Liang, T.-R. Shan, Y.-T. Cheng, B. D. Devine, M. Noordhoek,
+Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. &amp; Eng: R 74,
+255-279 (2013).</p>
+<p id="rick"><strong>(Rick)</strong> S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
+(1994).</p>
+</div>
+</div>
 
-<A NAME = "COMB"></A>
 
-<P><B>(COMB)</B>  T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, and 
-S. R. Phillpot, Phys. Rev. B 81, 125328 (2010)
-</P>
-<A NAME = "COMB3"></A>
+           </div>
+          </div>
+          <footer>
+  
 
-<P><B>(COMB3)</B> T. Liang, T.-R. Shan, Y.-T. Cheng, B. D. Devine, M. Noordhoek, 
-Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. & Eng: R 74, 
-255-279 (2013).
-</P>
-<A NAME = "Rick"></A>
+  <hr/>
 
-<P><B>(Rick)</B> S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
-(1994).
-</P>
-</HTML>
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

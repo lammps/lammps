@@ -1,242 +1,394 @@
-<HTML>
-<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
-</CENTER>
 
 
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix pour command &mdash; LAMMPS 15 May 2015 version documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS 15 May 2015 version documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
 
 
-
-
-<HR>
-
-<H3>fix pour command 
-</H3>
-<P><B>Syntax:</B>
-</P>
-<PRE>fix ID group-ID pour N type seed keyword values ... 
-</PRE>
-<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
-
-<LI>pour = style name of this fix command 
-
-<LI>N = # of atoms to insert 
-
-<LI>type = atom type to assign to inserted atoms (offset for molecule insertion) 
-
-<LI>seed = random # seed (positive integer) 
-
-<LI>one or more keyword/value pairs may be appended to args 
-
-<LI>keyword = <I>region</I> or <I>diam</I> or <I>dens</I> or <I>vol</I> or <I>rate</I> or <I>vel</I> or <I>mol</I> or <I>rigid</I> or <I>shake</I> 
-
-<PRE>  <I>region</I> value = region-ID
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix pour command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Homepage</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-pour-command">
+<span id="index-0"></span><h1>fix pour command<a class="headerlink" href="#fix-pour-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix ID group-ID pour N type seed keyword values ...
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
+<li>pour = style name of this fix command</li>
+<li>N = # of atoms to insert</li>
+<li>type = atom type to assign to inserted atoms (offset for molecule insertion)</li>
+<li>seed = random # seed (positive integer)</li>
+<li>one or more keyword/value pairs may be appended to args</li>
+<li>keyword = <em>region</em> or <em>diam</em> or <em>dens</em> or <em>vol</em> or <em>rate</em> or <em>vel</em> or <em>mol</em> or <em>rigid</em> or <em>shake</em></li>
+</ul>
+<pre class="literal-block">
+<em>region</em> value = region-ID
     region-ID = ID of region to use as insertion volume
-  <I>diam</I> values = dstyle args
-    dstyle = <I>one</I> or <I>range</I> or <I>poly</I>
-      <I>one</I> args = D
+  <em>diam</em> values = dstyle args
+    dstyle = <em>one</em> or <em>range</em> or <em>poly</em>
+      <em>one</em> args = D
         D = single diameter for inserted particles (distance units)
-      <I>range</I> args = Dlo Dhi
+      <em>range</em> args = Dlo Dhi
         Dlo,Dhi = range of diameters for inserted particles (distance units)
-      <I>poly</I> args = Npoly D1 P1 D2 P2 ...
+      <em>poly</em> args = Npoly D1 P1 D2 P2 ...
         Npoly = # of (D,P) pairs
         D1,D2,... = diameter for subset of inserted particles (distance units)
         P1,P2,... = percentage of inserted particles with this diameter (0-1)
-  <I>vol</I> values = fraction Nattempt
+  <em>vol</em> values = fraction Nattempt
     fraction = desired volume fraction for filling insertion volume
     Nattempt = max # of insertion attempts per atom
-  <I>rate</I> value = V
+  <em>rate</em> value = V
     V = z velocity (3d) or y velocity (2d) at which
         insertion volume moves (velocity units)
-  <I>vel</I> values (3d) = vxlo vxhi vylo vyhi vz
-  <I>vel</I> values (2d) = vxlo vxhi vy
+  <em>vel</em> values (3d) = vxlo vxhi vylo vyhi vz
+  <em>vel</em> values (2d) = vxlo vxhi vy
     vxlo,vxhi = range of x velocities for inserted particles (velocity units)
     vylo,vyhi = range of y velocities for inserted particles (velocity units)
     vz = z velocity (3d) assigned to inserted particles (velocity units)
     vy = y velocity (2d) assigned to inserted particles (velocity units)
-  <I>mol</I> value = template-ID
-    template-ID = ID of molecule template specified in a separate <A HREF = "molecule.html">molecule</A> command
-  <I>molfrac</I> values = f1 f2 ... fN
+  <em>mol</em> value = template-ID
+    template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><em>molecule</em></a> command
+  <em>molfrac</em> values = f1 f2 ... fN
     f1 to fN = relative probability of creating each of N molecules in template-ID
-  <I>rigid</I> value = fix-ID
-    fix-ID = ID of <A HREF = "fix_rigid.html">fix rigid/small</A> command
-  <I>shake</I> value = fix-ID
-    fix-ID = ID of <A HREF = "fix_shake.html">fix shake</A> command 
-</PRE>
-
-</UL>
-<P><B>Examples:</B>
-</P>
-<PRE>fix 3 all pour 1000 2 29494 region myblock
-fix 2 all pour 10000 1 19985583 region disk vol 0.33 100 rate 1.0 diam range 0.9 1.1 
+  <em>rigid</em> value = fix-ID
+    fix-ID = ID of <a class="reference internal" href="fix_rigid.html"><em>fix rigid/small</em></a> command
+  <em>shake</em> value = fix-ID
+    fix-ID = ID of <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre>fix 3 all pour 1000 2 29494 region myblock
+fix 2 all pour 10000 1 19985583 region disk vol 0.33 100 rate 1.0 diam range 0.9 1.1
 fix 2 all pour 10000 1 19985583 region disk diam poly 2 0.7 0.4 1.5 0.6
-fix ins all pour 500 1 4767548 vol 0.8 10 region slab mol object rigid myRigid 
-</PRE>
-<P><B>Description:</B>
-</P>
-<P>Insert finite-size particles or molecules into the simulation box
+fix ins all pour 500 1 4767548 vol 0.8 10 region slab mol object rigid myRigid
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Insert finite-size particles or molecules into the simulation box
 every few timesteps within a specified region until N particles or
 molecules have been inserted.  This is typically used to model the
 pouring of granular particles into a container under the influence of
 gravity.  For the remainder of this doc page, a single inserted atom
-or molecule is referred to as a "particle".
-</P>
-<P>If inserted particles are individual atoms, they are assigned the
+or molecule is referred to as a &#8220;particle&#8221;.</p>
+<p>If inserted particles are individual atoms, they are assigned the
 specified atom type.  If they are molecules, the type of each atom in
 the inserted molecule is specified in the file read by the
-<A HREF = "molecule.html">molecule</A> command, and those values are added to the
+<a class="reference internal" href="molecule.html"><em>molecule</em></a> command, and those values are added to the
 specified atom type.  E.g. if the file specifies atom types 1,2,3, and
 those are the atom types you want for inserted molecules, then specify
-<I>type</I> = 0.  If you specify <I>type</I> = 2, the in the inserted molecule
-will have atom types 3,4,5.
-</P>
-<P>All atoms in the inserted particle are assigned to two groups: the
-default group "all" and the group specified in the fix pour command
-(which can also be "all").
-</P>
-<P>This command must use the <I>region</I> keyword to define an insertion
+<em>type</em> = 0.  If you specify <em>type</em> = 2, the in the inserted molecule
+will have atom types 3,4,5.</p>
+<p>All atoms in the inserted particle are assigned to two groups: the
+default group &#8220;all&#8221; and the group specified in the fix pour command
+(which can also be &#8220;all&#8221;).</p>
+<p>This command must use the <em>region</em> keyword to define an insertion
 volume.  The specified region must have been previously defined with a
-<A HREF = "region.html">region</A> command.  It must be of type <I>block</I> or a z-axis
-<I>cylinder</I> and must be defined with side = <I>in</I>.  The cylinder style
-of region can only be used with 3d simulations.
-</P>
-<P>Individual atoms are inserted, unless the <I>mol</I> keyword is used.  It
-specifies a <I>template-ID</I> previously defined using the
-<A HREF = "molecule.html">molecule</A> command, which reads a file that defines the
+<a class="reference internal" href="region.html"><em>region</em></a> command.  It must be of type <em>block</em> or a z-axis
+<em>cylinder</em> and must be defined with side = <em>in</em>.  The cylinder style
+of region can only be used with 3d simulations.</p>
+<p>Individual atoms are inserted, unless the <em>mol</em> keyword is used.  It
+specifies a <em>template-ID</em> previously defined using the
+<a class="reference internal" href="molecule.html"><em>molecule</em></a> command, which reads a file that defines the
 molecule.  The coordinates, atom types, center-of-mass, moments of
 inertia, etc, as well as any bond/angle/etc and special neighbor
 information for the molecule can be specified in the molecule file.
-See the <A HREF = "molecule.html">molecule</A> command for details.  The only
+See the <a class="reference internal" href="molecule.html"><em>molecule</em></a> command for details.  The only
 settings required to be in this file are the coordinates and types of
-atoms in the molecule.
-</P>
-<P>If the molecule template contains more than one molecule, the relative
+atoms in the molecule.</p>
+<p>If the molecule template contains more than one molecule, the relative
 probability of depositing each molecule can be specified by the
-<I>molfrac</I> keyword.  N relative probablities, each from 0.0 to 1.0, are
+<em>molfrac</em> keyword.  N relative probablities, each from 0.0 to 1.0, are
 specified, where N is the number of molecules in the template.  Each
 time a molecule is inserted, a random number is used to sample from
-the list of relative probabilities.  The N values must sum to 1.0.
-</P>
-<P>If you wish to insert molecules via the <I>mol</I> keyword, that will be
-treated as rigid bodies, use the <I>rigid</I> keyword, specifying as its
-value the ID of a separate <A HREF = "fix_rigid_small.html">fix rigid/small</A>
-command which also appears in your input script.
-</P>
-<P>If you wish to insert molecules via the <I>mol</I> keyword, that will have
-their bonds or angles constrained via SHAKE, use the <I>shake</I> keyword,
-specifying as its value the ID of a separate <A HREF = "fix_shake.html">fix
-shake</A> command which also appears in your input script.
-</P>
-<P>Each timestep particles are inserted, they are placed randomly inside
+the list of relative probabilities.  The N values must sum to 1.0.</p>
+<p>If you wish to insert molecules via the <em>mol</em> keyword, that will be
+treated as rigid bodies, use the <em>rigid</em> keyword, specifying as its
+value the ID of a separate <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">rigid/small</span></code>
+command which also appears in your input script.</p>
+<p>If you wish to insert molecules via the <em>mol</em> keyword, that will have
+their bonds or angles constrained via SHAKE, use the <em>shake</em> keyword,
+specifying as its value the ID of a separate <a class="reference internal" href="fix_shake.html"><em>fix shake</em></a> command which also appears in your input script.</p>
+<p>Each timestep particles are inserted, they are placed randomly inside
 the insertion volume so as to mimic a stream of poured particles.  If
 they are molecules they are also oriented randomly.  Each atom in the
 particle is tested for overlaps with existing particles, including
 effects due to periodic boundary conditions if applicable.  If an
 overlap is detected, another random insertion attempt is made; see the
-<I>vol</I> keyword discussion below.  The larger the volume of the
+<em>vol</em> keyword discussion below.  The larger the volume of the
 insertion region, the more particles that can be inserted at any one
 timestep.  Particles are inserted again after enough time has elapsed
 that the previously inserted particles fall out of the insertion
 volume under the influence of gravity.  Insertions continue every so
-many timesteps until the desired # of particles has been inserted.
-</P>
-<P>All other keywords are optional with defaults as shown below.
-</P>
-<P>The <I>diam</I> option is only used when inserting atoms and specifes the
-diameters of inserted particles.  There are 3 styles: <I>one</I>, <I>range</I>,
-or <I>poly</I>.  For <I>one</I>, all particles will have diameter <I>D</I>.  For
-<I>range</I>, the diameter of each particle will be chosen randomly and
-uniformly between the specified <I>Dlo</I> and <I>Dhi</I> bounds.  For <I>poly</I>, a
-series of <I>Npoly</I> diameters is specified.  For each diameter a
-percentage value from 0.0 to 1.0 is also specified.  The <I>Npoly</I>
-percentages must sum to 1.0.  For the example shown above with "diam 2
-0.7 0.4 1.5 0.6", all inserted particles will have a diameter of 0.7
-or 1.5.  40% of the particles will be small; 60% will be large.
-</P>
-<P>Note that for molecule insertion, the diameters of individual atoms in
+many timesteps until the desired # of particles has been inserted.</p>
+<p>All other keywords are optional with defaults as shown below.</p>
+<p>The <em>diam</em> option is only used when inserting atoms and specifes the
+diameters of inserted particles.  There are 3 styles: <em>one</em>, <em>range</em>,
+or <em>poly</em>.  For <em>one</em>, all particles will have diameter <em>D</em>.  For
+<em>range</em>, the diameter of each particle will be chosen randomly and
+uniformly between the specified <em>Dlo</em> and <em>Dhi</em> bounds.  For <em>poly</em>, a
+series of <em>Npoly</em> diameters is specified.  For each diameter a
+percentage value from 0.0 to 1.0 is also specified.  The <em>Npoly</em>
+percentages must sum to 1.0.  For the example shown above with &#8220;diam 2
+0.7 0.4 1.5 0.6&#8221;, all inserted particles will have a diameter of 0.7
+or 1.5.  40% of the particles will be small; 60% will be large.</p>
+<p>Note that for molecule insertion, the diameters of individual atoms in
 the molecule can be specified in the file read by the
-<A HREF = "molecule.html">molecule</A> command.  If not specified, the diameter of
-each atom in the molecule has a default diameter of 1.0.
-</P>
-<P>The <I>dens</I> and <I>vel</I> options enable inserted particles to have a range
+<a class="reference internal" href="molecule.html"><em>molecule</em></a> command.  If not specified, the diameter of
+each atom in the molecule has a default diameter of 1.0.</p>
+<p>The <em>dens</em> and <em>vel</em> options enable inserted particles to have a range
 of densities or xy velocities.  The specific values for a particular
 inserted particle will be chosen randomly and uniformly between the
-specified bounds.  The <I>vz</I> or <I>vy</I> value for option <I>vel</I> assigns a
-z-velocity (3d) or y-velocity (2d) to each inserted particle.
-</P>
-<P>The <I>vol</I> option specifies what volume fraction of the insertion
+specified bounds.  The <em>vz</em> or <em>vy</em> value for option <em>vel</em> assigns a
+z-velocity (3d) or y-velocity (2d) to each inserted particle.</p>
+<p>The <em>vol</em> option specifies what volume fraction of the insertion
 volume will be filled with particles.  For particles with a size
-specified by the <I>diam range</I> keyword, they are assumed to all be of
-maximum diamter <I>Dhi</I> for purposes of computing their contribution to
-the volume fraction.
-</P>
-<P>The higher the volume fraction value, the more particles are inserted
+specified by the <em>diam range</em> keyword, they are assumed to all be of
+maximum diamter <em>Dhi</em> for purposes of computing their contribution to
+the volume fraction.</p>
+<p>The higher the volume fraction value, the more particles are inserted
 each timestep.  Since inserted particles cannot overlap, the maximum
 volume fraction should be no higher than about 0.6.  Each timestep
 particles are inserted, LAMMPS will make up to a total of M tries to
 insert the new particles without overlaps, where M = # of inserted
 particles * Nattempt.  If LAMMPS is unsuccessful at completing all
-insertions, it prints a warning.
-</P>
-<P>The <I>rate</I> option moves the insertion volume in the z direction (3d)
+insertions, it prints a warning.</p>
+<p>The <em>rate</em> option moves the insertion volume in the z direction (3d)
 or y direction (2d).  This enables pouring particles from a
-successively higher height over time.
-</P>
-<P>IMPORTANT NOTE: If you are monitoring the temperature of a system
+successively higher height over time.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If you are monitoring the temperature of a system
 where the particle count is changing due to adding particles, you
-typically should use the <A HREF = "compute_modify.html">compute_modify dynamic
-yes</A> command for the temperature compute you are
-using.
-</P>
-<HR>
-
-<P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
-</P>
-<P>No information about this fix is written to <A HREF = "restart.html">binary restart
-files</A>.  This means you must be careful when restarting a
+typically should use the <a class="reference internal" href="compute_modify.html"><em>compute_modify dynamic yes</em></a> command for the temperature compute you are
+using.</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><em>binary restart files</em></a>.  This means you must be careful when restarting a
 pouring simulation, when the restart file was written in the middle of
 the pouring operation.  Specifically, you should use a new fix pour
 command in the input script for the restarted simulation that
 continues the operation.  You will need to adjust the arguments of the
-original fix pour command to do this.
-</P>
-<P>Also note that because the state of the random number generator is not
-saved in restart files, you cannot do "exact" restarts with this fix,
+original fix pour command to do this.</p>
+<p>Also note that because the state of the random number generator is not
+saved in restart files, you cannot do &#8220;exact&#8221; restarts with this fix,
 where the simulation continues on the same as if no restart had taken
 place.  However, in a statistical sense, a restarted simulation should
 produce the same behavior if you adjust the fix pour parameters
-appropriately.
-</P>
-<P>None of the <A HREF = "fix_modify.html">fix_modify</A> options are relevant to this
+appropriately.</p>
+<p>None of the <a class="reference internal" href="fix_modify.html"><em>fix_modify</em></a> options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
-access by various <A HREF = "Section_howto.html#howto_15">output commands</A>.  No
-parameter of this fix can be used with the <I>start/stop</I> keywords of
-the <A HREF = "run.html">run</A> command.  This fix is not invoked during <A HREF = "minimize.html">energy
-minimization</A>.
-</P>
-<P><B>Restrictions:</B>
-</P>
-<P>This fix is part of the GRANULAR package.  It is only enabled if
-LAMMPS was built with that package.  See the <A HREF = "Section_start.html#start_3">Making
-LAMMPS</A> section for more info.
-</P>
-<P>For 3d simulations, a gravity fix in the -z direction must be defined
+access by various <a class="reference internal" href="Section_howto.html#howto-15"><span>output commands</span></a>.  No
+parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><em>run</em></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><em>energy minimization</em></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is part of the GRANULAR package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span>Making LAMMPS</span></a> section for more info.</p>
+<p>For 3d simulations, a gravity fix in the -z direction must be defined
 for use in conjunction with this fix.  For 2d simulations, gravity
-must be defined in the -y direction.
-</P>
-<P>The specified insertion region cannot be a "dynamic" region, as
-defined by the <A HREF = "region.html">region</A> command.
-</P>
-<P><B>Related commands:</B>
-</P>
-<P><A HREF = "fix_deposit.html">fix_deposit</A>, <A HREF = "fix_gravity.html">fix_gravity</A>,
-<A HREF = "region.html">region</A>
-</P>
-<P><B>Default:</B>
-</P>
-<P>Insertions are performed for individual particles, i.e. no <I>mol</I>
-setting is defined.  If the <I>mol</I> keyword is used, the default for
-<I>molfrac</I> is an equal probabilities for all molecules in the template.
+must be defined in the -y direction.</p>
+<p>The specified insertion region cannot be a &#8220;dynamic&#8221; region, as
+defined by the <a class="reference internal" href="region.html"><em>region</em></a> command.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_deposit.html"><em>fix_deposit</em></a>, <a class="reference internal" href="fix_gravity.html"><em>fix_gravity</em></a>,
+<a class="reference internal" href="region.html"><em>region</em></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>Insertions are performed for individual particles, i.e. no <em>mol</em>
+setting is defined.  If the <em>mol</em> keyword is used, the default for
+<em>molfrac</em> is an equal probabilities for all molecules in the template.
 Additional option defaults are diam = one 1.0, dens = 1.0 1.0, vol =
-0.25 50, rate = 0.0, vel = 0.0 0.0 0.0 0.0 0.0.
-</P>
-</HTML>
+0.25 50, rate = 0.0, vel = 0.0 0.0 0.0 0.0 0.0.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright .
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'15 May 2015 version',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

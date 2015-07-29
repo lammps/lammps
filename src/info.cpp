@@ -27,6 +27,7 @@
 #include "group.h"
 #include "input.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "output.h"
 #include "region.h"
 #include "universe.h"
@@ -280,6 +281,13 @@ void Info::command(int narg, char **arg)
     } else {
       fputs("\nBox has not yet been created\n",out);
     }
+
+    const double cutghost = MAX(neighbor->cutneighmax,comm->cutghostuser);
+    fprintf(out,"\nNeighbor list information:\n");
+    fprintf(out,"  update every %d steps, delay %d steps, check %s\n",
+                neighbor->every,neighbor->delay,neighbor->dist_check ? "yes" : "no");
+    fprintf(out,"  master list distance cutoff = %g\n",neighbor->cutneighmax);
+    fprintf(out,"  ghost atom cutoff = %g\n",cutghost);
   }
 
   if (flags & GROUPS) {
